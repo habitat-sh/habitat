@@ -255,11 +255,9 @@ impl RumorList {
     pub fn rumors(&self, id: &str) -> RumorVec {
         let rumors = self.rumor_list.read().expect("Rumor map lock poisoned");
         let mut rumor_vec: RumorVec = rumors.iter()
-            .map(|(rk, heat_map)| {
-                match heat_map.get(id) {
-                    Some(h) => (rk.clone(), h.clone()),
-                    None => (rk.clone(), 0),
-                }
+            .map(|(rk, heat_map)| match heat_map.get(id) {
+                Some(h) => (rk.clone(), h.clone()),
+                None => (rk.clone(), 0),
             })
             .filter(|&(ref _rk, heat)| heat < RUMOR_MAX)
             .collect();

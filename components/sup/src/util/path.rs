@@ -47,7 +47,8 @@ const INTERPRETER_COMMAND: &'static str = "powershell";
 /// installation. The general strategy is the following:
 ///
 /// * Are we (the Supervisor) running inside a package?
-///     * Yes: use the interpreter release describes in our `DEPS` metafile & return its `PATH` entries
+///     * Yes: use the interpreter release describes in our `DEPS` metafile & return its `PATH`
+///       entries
 ///     * No
 ///         * Can we find any installed interpreter package?
 ///             * Yes: use the latest installed interpreter release & return its `PATH` entries
@@ -62,11 +63,12 @@ const INTERPRETER_COMMAND: &'static str = "powershell";
 /// * If a installed package's path metadata cannot be read or returned
 /// * If a known-working package identifier string cannot be parsed
 /// * If the parent directory of a located interpreter binary cannot be computed
-/// * If the Supervisor is not executing inside a package, and if no interpreter package is installed,
-///   and if no interpreter binary can be found on the `PATH`
+/// * If the Supervisor is not executing inside a package, and if no interpreter package is
+///   installed, and if no interpreter binary can be found on the `PATH`
 pub fn interpreter_paths() -> Result<Vec<PathBuf>> {
     // First, we'll check if we're running inside a package. If we are, then we should  be able to
-    // access the `../DEPS` metadata file and read it to get the specific version of the interpreter.
+    // access the `../DEPS` metadata file and read it to get the specific version of the
+    // interpreter.
     let my_interpreter_dep_ident = match env::current_exe() {
         Ok(p) => {
             match p.parent() {
@@ -90,17 +92,19 @@ pub fn interpreter_paths() -> Result<Vec<PathBuf>> {
             let pkg_install = try!(PackageInstall::load(&ident, None));
             try!(pkg_install.paths())
         }
-        // If we're not running out of a package, then see if any package of the interpreter is installed.
+        // If we're not running out of a package, then see if any package of the interpreter is
+        // installed.
         None => {
             let ident = try!(PackageIdent::from_str(INTERPRETER_IDENT));
             match PackageInstall::load(&ident, None) {
                 // We found a version of the interpreter. Get its path metadata.
                 Ok(pkg_install) => try!(pkg_install.paths()),
-                // Nope, no packages of the interpreter installed. Now we're going to see if the interpreter
-                // command is present on `PATH`.
+                // Nope, no packages of the interpreter installed. Now we're going to see if the
+                // interpreter command is present on `PATH`.
                 Err(_) => {
                     match find_command(INTERPRETER_COMMAND) {
-                        // We found the interpreter on `PATH`, so that its `dirname` and return that.
+                        // We found the interpreter on `PATH`, so that its `dirname` and return
+                        // that.
                         Some(bin) => {
                             match bin.parent() {
                                 Some(dir) => vec![dir.to_path_buf()],
@@ -109,7 +113,8 @@ pub fn interpreter_paths() -> Result<Vec<PathBuf>> {
                                     outputln!("An unexpected error has occurred. {} was \
                                                found at {}, yet the parent directory could not \
                                                be computed. Aborting...",
-                                              INTERPRETER_COMMAND, &path);
+                                              INTERPRETER_COMMAND,
+                                              &path);
                                     return Err(sup_error!(Error::FileNotFound(path)));
                                 }
                             }
@@ -120,7 +125,8 @@ pub fn interpreter_paths() -> Result<Vec<PathBuf>> {
                         None => {
                             outputln!("A interpreter installation is required but could not be \
                                        found. Please install '{}' or put the \
-                                       interpreter's command on your $PATH. Aborting...", INTERPRETER_IDENT);
+                                       interpreter's command on your $PATH. Aborting...",
+                                      INTERPRETER_IDENT);
                             return Err(sup_error!(Error::PackageNotFound(ident)));
                         }
                     }

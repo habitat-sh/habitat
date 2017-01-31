@@ -55,7 +55,9 @@ impl<'a> Expire<'a> {
                     self.server.member_list.with_member(id, |has_member| {
                         let member = has_member.expect("Member does not exist when expiring it");
                         debug!("Marking {:?} as Confirmed", member);
-                        trace_it!(PROBE: &self.server, TraceKind::ProbeConfirmed, member.get_id(), member.get_address());
+                        trace_it!(
+                            PROBE: &self.server,
+                            TraceKind::ProbeConfirmed, member.get_id(), member.get_address());
                     });
                 }
             });

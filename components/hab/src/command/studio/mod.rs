@@ -234,7 +234,8 @@ mod inner {
             return Err(Error::DockerFileSharingNotEnabled);
         }
 
-        // If we make it here, filesystem sharing has been setup correctly, so let's proceed like normal.
+        // If we make it here, filesystem sharing has been setup correctly, so let's proceed like
+        // normal.
 
         let mut cmd_args: Vec<OsString> = vec!["run".into(),
                                                "--rm".into(),

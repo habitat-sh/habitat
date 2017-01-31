@@ -51,7 +51,9 @@ impl Serialize for Origin {
         try!(serializer.serialize_struct_elt(&mut state, "id", self.get_id()));
         try!(serializer.serialize_struct_elt(&mut state, "name", self.get_name()));
         try!(serializer.serialize_struct_elt(&mut state, "owner_id", self.get_owner_id()));
-        try!(serializer.serialize_struct_elt(&mut state, "private_key_name", self.get_private_key_name()));
+        try!(serializer.serialize_struct_elt(&mut state,
+                                             "private_key_name",
+                                             self.get_private_key_name()));
         serializer.serialize_struct_end(state)
     }
 }
@@ -143,7 +145,9 @@ impl Serialize for OriginInvitation {
         let mut state = try!(serializer.serialize_struct("origin_invitation", 6));
         try!(serializer.serialize_struct_elt(&mut state, "id", self.get_id()));
         try!(serializer.serialize_struct_elt(&mut state, "account_id", self.get_account_id()));
-        try!(serializer.serialize_struct_elt(&mut state, "accaccount_name", self.get_account_name()));
+        try!(serializer.serialize_struct_elt(&mut state,
+                                             "accaccount_name",
+                                             self.get_account_name()));
         try!(serializer.serialize_struct_elt(&mut state, "origin_id", self.get_origin_id()));
         try!(serializer.serialize_struct_elt(&mut state, "origin_name", self.get_origin_name()));
         try!(serializer.serialize_struct_elt(&mut state, "owner_id", self.get_owner_id()));

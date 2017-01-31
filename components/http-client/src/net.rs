@@ -53,7 +53,8 @@ impl<S: SslClient> NetworkConnector for ProxyHttpsConnector<S> {
             "https" => {
                 // If the target URL is an `"https"` scheme, then we use proxy/TCP tunneling as
                 // per the RFC draft:
-                // http://www.web-cache.com/Writings/Internet-Drafts/draft-luotonen-web-proxy-tunneling-01.txt
+                // http://www.web-cache.com/Writings/Internet-Drafts/
+                // draft-luotonen-web-proxy-tunneling-01.txt
                 //
                 // We can't yet use hyper directly and therefore use the underlying http parsing
                 // library to establish the connection and parse the response. This implementation

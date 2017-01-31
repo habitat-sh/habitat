@@ -83,82 +83,84 @@
 //!
 //! ## `v=1`
 //!
-//! The [Protocol
-//! Version](https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters#v)
-//! which is currently only ever the integer value of `1`.
+//! The [Protocol Version][pv] which is currently only ever the integer value of `1`.
+//!
+//! [pv]: https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters#v
 //!
 //! ## `tid=UA-XXXXXXX-X`
 //!
-//! The [Tracking
-//! ID](https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters#tid)
+//! The [Tracking ID][ti]
 //! which represents this product and is currently hard coded as `"UA-6369228-7"`.
+//!
+//! [ti]: https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters#tid
 //!
 //! ## `cid=f673faaf-6ba1-4e60-b819-e2d51e4ad6f1`
 //!
-//! The [Client
-//! ID](https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters#cid)
-//! which is a randomly generated [UUID
-//! v4](https://en.wikipedia.org/wiki/Universally_unique_identifier#Version_4_.28random.29) and
-//! written into the system or user's analytics cache (`/hab/cache/analytics/CLIENT_ID` when the
-//! program is invoked as the root user and `$HOME/.hab/analytics/CLIENT_ID` when invoked by a
-//! non-root user). This is not intended to track individual users or systems, but rather show
-//! patterns of usage in aggregate. For example: "In general, users who generally start with `hab
-//! studio enter` tend to migrate to using `hab pkg build` over time".
+//! The [Client ID][ci] which is a randomly generated [UUID v4][uuid] and written into the system
+//! or user's analytics cache (`/hab/cache/analytics/CLIENT_ID` when the program is invoked as the
+//! root user and `$HOME/.hab/analytics/CLIENT_ID` when invoked by a non-root user). This is not
+//! intended to track individual users or systems, but rather show patterns of usage in aggregate.
+//! For example: "In general, users who generally start with `hab studio enter` tend to migrate to
+//! using `hab pkg build` over time".
+//!
+//! [ci]: https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters#cid
+//! [uuid]: https://en.wikipedia.org/wiki/Universally_unique_identifier#Version_4_.28random.29
 //!
 //! ## `t=event`
 //!
-//! The [Hit
-//! Type](https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters#t).
-//! This value is hard coded as `"event"` as it is a required Google Analytics field for all Hit
-//! Events.
+//! The [Hit Type][ht].  This value is hard coded as `"event"` as it is a required Google Analytics
+//! field for all Hit Events.
+//!
+//! [ht]: https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters#t
 //!
 //! ## `aip=1`
 //!
-//! Enables [Anonymize
-//! IP](https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters#aip).
-//! This entry ensures that the sender's IP address will not be captured and will be anonymized.
-//! The value is hard coded as the integer `1`.
+//! Enables [Anonymize IP][ai].  This entry ensures that the sender's IP address will not be
+//! captured and will be anonymized.  The value is hard coded as the integer `1`.
+//!
+//! [ai]: https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters#aip
 //!
 //! ## `an=hab`
 //!
-//! The [Application
-//! Name](https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters#an)
-//! of the program sending the event. For this program the value is currently hard coded as
-//! `"hab"`.
+//! The [Application Name][an] of the program sending the event. For this program the value is
+//! currently hard coded as `"hab"`.
+//!
+//! [an]: https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters#an
 //!
 //! ## `av=0.6.0%2F20160604180457`
 //!
-//! The [Application
-//! Version](https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters#av)
-//! of the program sending the event. This version string will be the same value as reported when
-//! asking for the program's version on the command line. Note that this field may contain
-//! characters that must be percent encoded.
+//! The [Application Version][av] of the program sending the event. This version string will be the
+//! same value as reported when asking for the program's version on the command line. Note that
+//! this field may contain characters that must be percent encoded.
+//!
+//! [av]: https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters#av
 //!
 //! ## `ds=cli--hab`
 //!
-//! The [Data
-//! Source](https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters#ds)
-//! which represents the program which generated the event data. For this program the value is
-//! currently hardcoded as `"cli--hab"`.
+//! The [Data Source][ds] which represents the program which generated the event data. For this
+//! program the value is currently hardcoded as `"cli--hab"`.
+//!
+//! [ds]: https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters#ds
 //!
 //! ## `ec=invoke`
 //!
-//! The [Event
-//! Category](https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters#ec)
-//! which corresponds to the type of event being sent. Currently there are only 2 possible values:
-//! `"invoke"` for subcommand invocations and `"clierror"` for CLI errors.
+//! The [Event Category][ec] which corresponds to the type of event being sent. Currently there are
+//! only 2 possible values: `"invoke"` for subcommand invocations and `"clierror"` for CLI errors.
+//!
+//! [ec]: https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters#ec
 //!
 //! ## `ea=hab--pkg--build`
 //!
-//! The [Event
-//! Action](https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters#ea)
-//! which breaks down differently depending on the type of event. For subcommand invocations (where
-//! `"ec=invoke"`), the value is the subcommand invoked with no further arguments, options, or
-//! flags. Any spaces are replaced with a doubledash, as in: `"hab--studio--enter"` or
-//! `"hab--artifact--upload"`. For CLI errors (where `"ec=clierror"`), the value is the type of CLI
-//! error followed by a double dash and terminated with the subcommand which was invoked (also
-//! containing no further arguments, options, or flags). As before any spaces in the subcommand are
-//! replaced with a double dash, as in: `"InvalidSubcommand--hab-whoops"`.
+//! The [Event Action][ea] which breaks down differently depending on the type of event. For
+//! subcommand invocations (where `"ec=invoke"`), the value is the subcommand invoked with no
+//! further arguments, options, or flags. Any spaces are replaced with a doubledash, as in:
+//! `"hab--studio--enter"` or `"hab--artifact--upload"`. For CLI errors (where `"ec=clierror"`),
+//! the value is the type of CLI error followed by a double dash and terminated with the subcommand
+//! which was invoked (also containing no further arguments, options, or flags). As before any
+//! spaces in the subcommand are replaced with a double dash, as in:
+//! `"InvalidSubcommand--hab-whoops"`.
+//!
+//! [ea]: https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters#ea
 //!
 //! # User-Agent HTTP Header
 //!
@@ -204,8 +206,9 @@ use error::Result;
 /// ID](https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters#tid)
 /// which represents this product.
 const GOOGLE_ANALYTICS_ID: &'static str = "UA-6369228-7";
-/// The Google Analytics [URL
-/// endpoint](https://developers.google.com/analytics/devguides/collection/protocol/v1/reference#endpoint).
+/// The Google Analytics [URL endpoint][g].
+///
+/// [g]: https://developers.google.com/analytics/devguides/collection/protocol/v1/reference#endpoint
 const GOOGLE_ANALYTICS_URL: &'static str = "https://www.google-analytics.com/collect";
 /// The product name for this application.
 const PRODUCT: &'static str = "hab";

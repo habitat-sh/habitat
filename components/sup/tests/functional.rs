@@ -32,18 +32,19 @@ extern crate habitat_core as hcore;
 //     use std::process::Command;
 //     use std::env;
 //     use tempdir::TempDir;
-//
+
 //     use util;
-//
+
 //     pub fn origin_setup() {
 //         env::set_var("HABITAT_KEY_CACHE", util::path::key_cache());
 //     }
-//
+
 //     pub fn simple_service() {
 //         static ONCE: Once = ONCE_INIT;
 //         ONCE.call_once(|| {
 //             let mut simple_service =
-//                 match util::command::plan_build(&util::path::fixture_as_string("simple_service")) {
+//                 match util::command::plan_build(
+//                      &util::path::fixture_as_string("simple_service")) {
 //                     Ok(cmd) => cmd,
 //                     Err(e) => panic!("{:?}", e),
 //                 };
@@ -54,11 +55,12 @@ extern crate habitat_core as hcore;
 //             util::command::dockerize("test/simple_service");
 //         });
 //     }
-//
+
 //     pub fn simple_service_gossip() {
 //         static ONCE: Once = ONCE_INIT;
 //         ONCE.call_once(|| {
-//             let mut simple_service = match util::command::plan_build(&util::path::fixture_as_string("simple_service_gossip")) {
+//             let mut simple_service = match util::command::plan_build(
+//                     &util::path::fixture_as_string("simple_service_gossip")) {
 //                 Ok(cmd) => cmd,
 //                 Err(e) => panic!("{:?}", e),
 //             };
@@ -69,7 +71,7 @@ extern crate habitat_core as hcore;
 //             util::command::dockerize("test/simple_service_gossip");
 //         });
 //     }
-//
+
 //     pub fn fixture_service(pkg: &str) {
 //         static ONCE: Once = ONCE_INIT;
 //         ONCE.call_once(|| {
@@ -81,7 +83,7 @@ extern crate habitat_core as hcore;
 //                 .spawn()
 //                 .unwrap();
 //             copy_cmd.wait().unwrap();
-//
+
 //             let mut simple_service = match util::command::plan_build(tempdir.path()
 //                 .join(pkg)
 //                 .to_str()
@@ -99,7 +101,7 @@ extern crate habitat_core as hcore;
 //         });
 //     }
 // }
-//
+
 // macro_rules! poerr {
 //     ($expr:expr) => (
 //         match $expr {
@@ -110,7 +112,7 @@ extern crate habitat_core as hcore;
 //         }
 //         )
 // }
-//
+
 // macro_rules! poerr_ref {
 //     ($expr:expr) => (
 //         match $expr {
@@ -121,7 +123,7 @@ extern crate habitat_core as hcore;
 //         }
 //         )
 // }
-//
+
 // /// Given a Cmd struct and a list of status codes, fails
 // /// if the command didn't exit with one of the status codes.
 // macro_rules! assert_cmd_exit_code {
@@ -129,7 +131,8 @@ extern crate habitat_core as hcore;
 //         match $cmd.status().code() {
 //             Some(value) => {
 //                 let codes = [$($status),+];
-//                 assert!(codes.into_iter().any(|x| *x == value), "Status code {} does not match {:?}", value, codes)
+//                 assert!(codes.into_iter().any(|x| *x == value),
+//                     "Status code {} does not match {:?}", value, codes)
 //             },
 //             None => {
 //                 panic!("Command has not finished - cannot assert exit code")
@@ -137,20 +140,20 @@ extern crate habitat_core as hcore;
 //         }
 //     }
 // }
-//
+
 // /// Given a string and a regex (use the r".." syntax), assert that
 // /// the string matches the regex.
 // macro_rules! assert_regex {
 //     ($string:expr, $regexp:expr) => {
 //         {
 //             use regex::Regex;
-//
+
 //             let re = Regex::new($regexp).unwrap();
 //             assert!(re.is_match($string), "Regex '{}' failed to match", $regexp);
 //         }
 //     }
 // }
-//
+
 // macro_rules! assert_docker_log {
 //     ($docker:expr, $regexp:expr) => {
 //         {
@@ -158,22 +161,24 @@ extern crate habitat_core as hcore;
 //         }
 //     }
 // }
-//
+
 // macro_rules! assert_docker_log_count {
 //     ($count:expr, $regexp:expr, [ $( $docker:expr ),+ ]) => {
 //         {
 //             let responses = [ $( $docker.wait_until($regexp) ),+ ];
-//             let num_responses = responses.iter().fold(0, |acc, &item| { let x = if item == true { 1 } else { 0 }; acc + x });
-//             assert!(num_responses == $count, "Expected {} occurrences of {}; got {}", $count, $regexp, num_responses);
+//             let num_responses = responses.iter().
+//                 fold(0, |acc, &item| { let x = if item == true { 1 } else { 0 }; acc + x });
+//             assert!(num_responses == $count, "Expected {} occurrences of {}; got {}",
+//                     $count, $regexp, num_responses);
 //         }
 //     }
 // }
-//
+
 // macro_rules! assert_file_exists {
 //     ($string:expr) => {
 //         {
 //             use std::fs;
-//
+
 //             let meta = match fs::metadata($string) {
 //                 Ok(meta) => meta,
 //                 Err(e) => panic!("{} does not exist - {:?}", $string, e)
@@ -182,7 +187,7 @@ extern crate habitat_core as hcore;
 //         }
 //     }
 // }
-//
+
 // macro_rules! assert_file_exists_in_studio {
 //     ($string:expr) => {
 //         {

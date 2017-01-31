@@ -48,9 +48,7 @@ static mut CONFIG: *const Config = 0 as *const Config;
 pub fn gcache(config: Config) {
     static ONCE: Once = ONCE_INIT;
     unsafe {
-        ONCE.call_once(|| {
-            CONFIG = mem::transmute(Box::new(config));
-        });
+        ONCE.call_once(|| { CONFIG = mem::transmute(Box::new(config)); });
     }
 }
 

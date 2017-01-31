@@ -127,7 +127,11 @@ impl<'a> Inbound<'a> {
 
     /// Process pingreq messages.
     fn process_pingreq(&self, addr: SocketAddr, mut msg: Swim) {
-        trace_it!(SWIM: &self.server, TraceKind::RecvPingReq, msg.get_pingreq().get_from().get_id(), addr, &msg);
+        trace_it!(SWIM: &self.server,
+                  TraceKind::RecvPingReq,
+                  msg.get_pingreq().get_from().get_id(),
+                  addr,
+                  &msg);
         // We need to get msg to be owned by the closure, so we're going to have to
         // allocate here to get the id. Kind of a bummer, but life goes on.
         let mid = String::from(msg.get_pingreq().get_target().get_id());
@@ -152,7 +156,11 @@ impl<'a> Inbound<'a> {
 
     /// Process ack messages; forwards to the outbound thread.
     fn process_ack(&self, addr: SocketAddr, mut msg: Swim) {
-        trace_it!(SWIM: &self.server, TraceKind::RecvAck, msg.get_ack().get_from().get_id(), addr, &msg);
+        trace_it!(SWIM: &self.server,
+                  TraceKind::RecvAck,
+                  msg.get_ack().get_from().get_id(),
+                  addr,
+                  &msg);
         info!("Ack from {}@{}", msg.get_ack().get_from().get_id(), addr);
         if msg.get_ack().has_forward_to() {
             if self.server.member_id() != msg.get_ack().get_forward_to().get_id() {
@@ -195,7 +203,11 @@ impl<'a> Inbound<'a> {
 
     /// Process ping messages.
     fn process_ping(&self, addr: SocketAddr, mut msg: Swim) {
-        trace_it!(SWIM: &self.server, TraceKind::RecvPing, msg.get_ping().get_from().get_id(), addr, &msg);
+        trace_it!(SWIM: &self.server,
+                  TraceKind::RecvPing,
+                  msg.get_ping().get_from().get_id(),
+                  addr,
+                  &msg);
         let target: Member = msg.get_ping().get_from().into();
         if msg.get_ping().has_forward_to() {
             outbound::ack(self.server,

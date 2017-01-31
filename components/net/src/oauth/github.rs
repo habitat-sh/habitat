@@ -58,13 +58,12 @@ impl GitHubClient {
     }
 
     pub fn authenticate(&self, code: &str) -> Result<String> {
-        let url =
-            Url::parse(&format!("https://github.com/login/oauth/access_token?\
+        let url = Url::parse(&format!("https://github.com/login/oauth/access_token?\
                                 client_id={}&client_secret={}&code={}",
-                                self.client_id,
-                                self.client_secret,
-                                code))
-                .unwrap();
+                                      self.client_id,
+                                      self.client_secret,
+                                      code))
+            .unwrap();
         let mut rep = try!(http_post(url));
         if rep.status.is_success() {
             let mut encoded = String::new();

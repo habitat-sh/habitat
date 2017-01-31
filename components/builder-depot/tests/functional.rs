@@ -48,7 +48,8 @@ macro_rules! assert_cmd_exit_code {
         match $cmd.status().code() {
             Some(value) => {
                 let codes = [$($status),+];
-                assert!(codes.into_iter().any(|x| *x == value), "Status code {} does not match {:?}", value, codes)
+                assert!(codes.into_iter().any(|x| *x == value),
+                        "Status code {} does not match {:?}", value, codes)
             },
             None => {
                 panic!("Command has not finished - cannot assert exit code")
@@ -85,7 +86,8 @@ macro_rules! assert_docker_log_count {
             let num_responses = responses.iter().fold(0, |acc, &item| {
                 let x = if item == true { 1 } else { 0 }; acc + x
             });
-            assert!(num_responses == $count, "Expected {} occurrences of {}; got {}", $count, $regexp, num_responses);
+            assert!(num_responses == $count,
+                    "Expected {} occurrences of {}; got {}", $count, $regexp, num_responses);
         }
     }
 }

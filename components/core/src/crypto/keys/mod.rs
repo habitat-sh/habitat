@@ -417,7 +417,8 @@ mod test {
     use super::super::test_support::*;
 
     static VALID_KEY: &'static str = "ring-key-valid-20160504220722.sym.key";
-    static VALID_KEY_AS_HEX: &'static str = "44215a3bce23e351a6af359d77131db17a46767de2b88cbb330df162b8cf2ec1";
+    static VALID_KEY_AS_HEX: &'static str = "\
+        44215a3bce23e351a6af359d77131db17a46767de2b88cbb330df162b8cf2ec1";
 
     #[test]
     fn tmp_keyfile_delete_on_drop() {

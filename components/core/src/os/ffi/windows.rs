@@ -33,7 +33,7 @@ pub trait OsStrExt2 {
 
 impl OsStrExt3 for OsStr {
     fn from_bytes(b: &[u8]) -> &Self {
-        use ::std::mem;
+        use std::mem;
         unsafe { mem::transmute(b) }
     }
     fn as_bytes(&self) -> &[u8] {

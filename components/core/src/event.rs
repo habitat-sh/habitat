@@ -94,6 +94,11 @@ pub enum Event {
 }
 
 impl fmt::Display for Event {
+    // TODO fn: As of rustfmt 0.7.1 the following match block is not well understood. The tool puts
+    // all match arms on the same line which blows over the 100-column max which then fails the
+    // tool with a `"line exceeded maximum length"` error. This ignore should be removed when we
+    // upgrade rustfmt and retry.
+    #[cfg_attr(rustfmt, rustfmt_skip)]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
             Event::ProjectCreate { origin: _, package: _, account: _ } => "project-create",
@@ -101,8 +106,12 @@ impl fmt::Display for Event {
                 "package-upload"
             }
             Event::OriginKeyUpload { origin: _, version: _, account: _ } => "origin-key-upload",
-            Event::OriginSecretKeyUpload { origin: _, version: _, account: _ } => "origin-secret-key-upload",
-            Event::OriginInvitationSend { origin: _, user: _, id: _, account: _ } => "origin-invitation-send",
+            Event::OriginSecretKeyUpload { origin: _, version: _, account: _ } => {
+                "origin-secret-key-upload"
+            }
+            Event::OriginInvitationSend { origin: _, user: _, id: _, account: _ } => {
+                "origin-invitation-send"
+            }
             Event::OriginInvitationAccept { id: _, account: _ } => "origin-invitation-accept",
             Event::OriginInvitationIgnore { id: _, account: _ } => "origin-invitation-ignore",
             Event::JobCreate { package: _, account: _ } => "job-create",
@@ -126,7 +135,11 @@ impl Serialize for Event {
                 try!(serializer.serialize_struct_elt(&mut state, "account", a));
                 state
             }
-            Event::PackageUpload { origin: ref o, package: ref p, version: ref v, release: ref r, account: ref a } => {
+            Event::PackageUpload { origin: ref o,
+                                   package: ref p,
+                                   version: ref v,
+                                   release: ref r,
+                                   account: ref a } => {
                 let mut state = try!(serializer.serialize_struct("event", 6));
                 try!(serializer.serialize_struct_elt(&mut state, "name", &self.to_string()));
                 try!(serializer.serialize_struct_elt(&mut state, "origin", o));
@@ -136,7 +149,10 @@ impl Serialize for Event {
                 try!(serializer.serialize_struct_elt(&mut state, "account", a));
                 state
             }
-            Event::OriginInvitationSend { origin: ref o, user: ref u, id: ref i, account: ref a } => {
+            Event::OriginInvitationSend { origin: ref o,
+                                          user: ref u,
+                                          id: ref i,
+                                          account: ref a } => {
                 let mut state = try!(serializer.serialize_struct("event", 5));
                 try!(serializer.serialize_struct_elt(&mut state, "name", &self.to_string()));
                 try!(serializer.serialize_struct_elt(&mut state, "origin", o));
