@@ -83,15 +83,20 @@ SUBCOMMANDS:
     version   Prints version information
 
 ENVIRONMENT VARIABLES:
-    HAB_ORIGIN        Propagates this variable into any studios
-    HAB_ORIGIN_KEYS   Installs secret keys (\`-k' option overrides)
-    HAB_STUDIOS_HOME  Sets a home path for all Studios (default: /hab/studios)
-    HAB_STUDIO_ROOT   Sets a Studio root (\`-r' option overrides)
-    NO_SRC_PATH       If set, do not mount source path (\`-n' flag overrides)
-    QUIET             Prints less output (\`-q' flag overrides)
-    SRC_PATH          Sets the source path (\`-s' option overrides)
-    STUDIO_TYPE       Sets a Studio type when creating (\`-t' option overrides)
-    VERBOSE           Prints more verbose output (\`-v' flag overrides)
+    HAB_NOCOLORING      Disables text coloring mode despite TERM capabilities
+    HAB_NONINTERACTIVE  Disables interactive progress bars despite tty
+    HAB_ORIGIN          Propagates this variable into any studios
+    HAB_ORIGIN_KEYS     Installs secret keys (\`-k' option overrides)
+    HAB_STUDIOS_HOME    Sets a home path for all Studios (default: /hab/studios)
+    HAB_STUDIO_ROOT     Sets a Studio root (\`-r' option overrides)
+    NO_SRC_PATH         If set, do not mount source path (\`-n' flag overrides)
+    QUIET               Prints less output (\`-q' flag overrides)
+    SRC_PATH            Sets the source path (\`-s' option overrides)
+    STUDIO_TYPE         Sets a Studio type when creating (\`-t' option overrides)
+    VERBOSE             Prints more verbose output (\`-v' flag overrides)
+    http_proxy          Sets an http_proxy environment variable inside the Studio
+    https_proxy         Sets an https_proxy environment variable inside the Studio
+    no_proxy            Sets a no_proxy environment variable inside the Studio
 
 SUBCOMMAND HELP:
     $program <SUBCOMMAND> -h
@@ -592,14 +597,18 @@ fi
 alias ls="ls --color=auto"
 
 # Set a prompt which tells us what kind of Studio we're in
-case "${TERM:-}" in
-*term | xterm-* | rxvt | screen | screen-*)
-  PS1='\[\e[0;32m\][\[\e[0;36m\]\#\[\e[0;32m\]]['${STUDIO_TYPE:-unknown}':\[\e[0;35m\]\w\[\e[0;32m\]:\[\e[1;37m\]`echo -n $?`\[\e[0;32m\]]\$\[\e[0m\] '
-  ;;
-*)
+if [ "${HAB_NOCOLORING:-}" = "true" ]; then
   PS1='[\#]['${STUDIO_TYPE:-unknown}':\w:`echo -n $?`]\$ '
-  ;;
-esac
+else
+  case "${TERM:-}" in
+  *term | xterm-* | rxvt | screen | screen-*)
+    PS1='\[\e[0;32m\][\[\e[0;36m\]\#\[\e[0;32m\]]['${STUDIO_TYPE:-unknown}':\[\e[0;35m\]\w\[\e[0;32m\]:\[\e[1;37m\]`echo -n $?`\[\e[0;32m\]]\$\[\e[0m\] '
+    ;;
+  *)
+    PS1='[\#]['${STUDIO_TYPE:-unknown}':\w:`echo -n $?`]\$ '
+    ;;
+  esac
+fi
 
 record() {
   (if [ -n "${DEBUG:-}" ]; then set -x; fi; unset DEBUG
@@ -815,14 +824,18 @@ info() {
     return 0
   fi
 
-  case "${TERM:-}" in
-    *term | xterm-* | rxvt | screen | screen-*)
-      printf -- "   \033[1;36m${program:-unknown}: \033[1;37m$1\033[0m\n"
-      ;;
-    *)
-      printf -- "   ${program:-unknown}: $1\n"
-      ;;
-  esac
+  if [ "${HAB_NOCOLORING:-}" = "true" ]; then
+    printf -- "   ${program:-unknown}: $1\n"
+  else
+    case "${TERM:-}" in
+      *term | xterm-* | rxvt | screen | screen-*)
+        printf -- "   \033[1;36m${program:-unknown}: \033[1;37m$1\033[0m\n"
+        ;;
+      *)
+        printf -- "   ${program:-unknown}: $1\n"
+        ;;
+    esac
+  fi
   return 0
 }
 
@@ -841,14 +854,18 @@ ensure_root() {
 Please retry this command as a super user or use a privilege-granting facility such as sudo."
   fatal_msg="Root or administrator permissions required to complete operation"
 
-  case "${TERM:-}" in
-    *term | xterm-* | rxvt | screen | screen-*)
-      printf -- "\033[0;33m∅ $warn_msg\033[0m\n\n\033[0;31m✗✗✗\n✗✗✗ $fatal_msg\n✗✗✗\033[0m\n"
-      ;;
-    *)
-      printf -- "∅ $warn_msg\n\n✗✗✗\n✗✗✗ $fatal_msg\n✗✗✗\n"
-      ;;
-  esac
+  if [ "${HAB_NOCOLORING:-}" = "true" ]; then
+    printf -- "∅ $warn_msg\n\n✗✗✗\n✗✗✗ $fatal_msg\n✗✗✗\n"
+  else
+    case "${TERM:-}" in
+      *term | xterm-* | rxvt | screen | screen-*)
+        printf -- "\033[0;33m∅ $warn_msg\033[0m\n\n\033[0;31m✗✗✗\n✗✗✗ $fatal_msg\n✗✗✗\033[0m\n"
+        ;;
+      *)
+        printf -- "∅ $warn_msg\n\n✗✗✗\n✗✗✗ $fatal_msg\n✗✗✗\n"
+        ;;
+    esac
+  fi
   exit 9
 }
 
@@ -858,14 +875,18 @@ Please retry this command as a super user or use a privilege-granting facility s
 # exit_with "Something bad went down" 55
 # ```
 exit_with() {
-  case "${TERM:-}" in
-    *term | xterm-* | rxvt | screen | screen-*)
-      printf -- "\033[1;31mERROR: \033[1;37m$1\033[0m\n"
-      ;;
-    *)
-      printf -- "ERROR: $1\n"
-      ;;
-  esac
+  if [ "${HAB_NOCOLORING:-}" = "true" ]; then
+    printf -- "ERROR: $1\n"
+  else
+    case "${TERM:-}" in
+      *term | xterm-* | rxvt | screen | screen-*)
+        printf -- "\033[1;31mERROR: \033[1;37m$1\033[0m\n"
+        ;;
+      *)
+        printf -- "ERROR: $1\n"
+        ;;
+    esac
+  fi
   exit $2
 }
 
@@ -885,20 +906,30 @@ chroot_env() {
   if [ -n "$extra_env" ]; then
     env="$env $extra_env"
   fi
+  # If a Habitat config filetype ignore string is set, then propagate it
+  # into the Studio's environment.
+  if [ -n "${HAB_CONFIG_EXCLUDE:-}" ]; then
+    env="$env HAB_CONFIG_EXCLUDE=$HAB_CONFIG_EXCLUDE"
+  fi
   # If a Habitat Depot URL is set, then propagate it into the Studio's
   # environment.
   if [ -n "${HAB_DEPOT_URL:-}" ]; then
     env="$env HAB_DEPOT_URL=$HAB_DEPOT_URL"
   fi
+  # If a no coloring environment variable is set, then propagate it into the Studio's
+  # environment.
+  if [ -n "${HAB_NOCOLORING:-}" ]; then
+    env="$env HAB_NOCOLORING=$HAB_NOCOLORING"
+  fi
+  # If a noninteractive environment variable is set, then propagate it into the Studio's
+  # environment.
+  if [ -n "${HAB_NONINTERACTIVE:-}" ]; then
+    env="$env HAB_NONINTERACTIVE=$HAB_NONINTERACTIVE"
+  fi
   # If a Habitat origin name is set, then propagate it into the Studio's
   # environment.
   if [ -n "${HAB_ORIGIN:-}" ]; then
     env="$env HAB_ORIGIN=$HAB_ORIGIN"
-  fi
-  # If a Habitat config filetype ignore string is set, then propagate it
-  # into the Studio's environment.
-  if [ -n "${HAB_CONFIG_EXCLUDE:-}" ]; then
-    env="$env HAB_CONFIG_EXCLUDE=$HAB_CONFIG_EXCLUDE"
   fi
   # If HTTP proxy variables are detected in the current environment, propagate
   # them into the Studio's environment.
@@ -924,14 +955,20 @@ chroot_env() {
 # **Internal** Prints out any important environment variables that will be used
 # inside the Studio.
 report_env_vars() {
+  if [ -n "${HAB_CONFIG_EXCLUDE:-}" ]; then
+    info "Exported: HAB_CONFIG_EXCLUDE=$HAB_CONFIG_EXCLUDE"
+  fi
   if [ -n "${HAB_ORIGIN:-}" ]; then
     info "Exported: HAB_ORIGIN=$HAB_ORIGIN"
   fi
   if [ -n "${HAB_DEPOT_URL:-}" ]; then
     info "Exported: HAB_DEPOT_URL=$HAB_DEPOT_URL"
   fi
-  if [ -n "${HAB_CONFIG_EXCLUDE:-}" ]; then
-    info "Exported: HAB_CONFIG_EXCLUDE=$HAB_CONFIG_EXCLUDE"
+  if [ -n "${HAB_NOCOLORING:-}" ]; then
+    info "Exported: HAB_NOCOLORING=$HAB_NOCOLORING"
+  fi
+  if [ -n "${HAB_NONINTERACTIVE:-}" ]; then
+    info "Exported: HAB_NONINTERACTIVE=$HAB_NONINTERACTIVE"
   fi
   if [ -n "${http_proxy:-}" ]; then
     info "Exported: http_proxy=$http_proxy"

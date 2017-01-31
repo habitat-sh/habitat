@@ -11,6 +11,8 @@ This is a list of all environment variables that can be used to modify the opera
 | `HAB_AUTH_TOKEN` | build system | no default | Authorization token used to perform privileged operations against the depot, e.g. uploading packages or keys.
 | `HAB_CACHE_KEY_PATH` | build system, supervisor | `/hab/cache/keys` if running as root; `$HOME/.hab/cache/keys` if running as non-root | Cache directory for origin signing keys |
 | `HAB_DEPOT_URL` | build system, supervisor | `https://willem.habitat.sh/v1/depot` | The depot (or materialized view in the depot) used by the Habitat build system or supervisor |
+| `HAB_NOCOLORING` | build system | no default | If set to the lowercase string `"true"` this environment variable will unconditionally disable text coloring where possible |
+| `HAB_NONINTERACTIVE` | build system | no default | If set to the lowercase string `"true"` this environment variable will unconditionally disable interactive progress bars (i.e. "spinners") where possible |
 | `HAB_ORG` | supervisor | no default | Organization to use when running with [service group encryption](/docs/run-packages-security/#service-group-encryption)
 | `HAB_ORIGIN` | build system | no default | Origin used to build packages. The signing key for this origin is passed to the build system. |
 | `HAB_ORIGIN_KEYS` | build system | no default | Comma-separated list of origin keys to automatically share with the build system |
@@ -19,6 +21,9 @@ This is a list of all environment variables that can be used to modify the opera
 | `HAB_STUDIOS_HOME` | build system | `/hab/studios` if running as root; `$HOME/.hab/studios` if running as non-root | Directory in which to create build studios |
 | `HAB_STUDIO_ROOT` | build system | no default | Root of the current studio under `$HAB_STUDIOS_HOME`. Infrequently overridden. |
 | `HAB_USER` | supervisor | no default | User key to use when running with [service group encryption](/docs/run-packages-security/#service-group-encryption) |
+| `http_proxy` | build system, supervisor | no default | A URL for a local HTTP proxy server optionally supporting basic authentication |
+| `https_proxy` | build system, supervisor | no default | A URL for a local HTTPS proxy server optionally supporting basic authentication |
+| `no_proxy` | build system, supervisor | no default | A comma-separated list of domain exclusions for the `http_proxy` and `https_proxy` environment variables |
 
 # Customizing Studio
 

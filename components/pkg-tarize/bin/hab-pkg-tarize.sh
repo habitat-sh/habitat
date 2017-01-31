@@ -69,14 +69,18 @@ ARGS:
 # exit_with "Something bad went down" 55
 # ```
 exit_with() {
-  case "${TERM:-}" in
-    *term | xterm-* | rxvt | screen | screen-*)
-      printf -- "\033[1;31mERROR: \033[1;37m$1\033[0m\n"
-      ;;
-    *)
-      printf -- "ERROR: $1\n"
-      ;;
-  esac
+  if [ "${HAB_NOCOLORING:-}" = "true" ]; then
+    printf -- "ERROR: $1\n"
+  else
+    case "${TERM:-}" in
+      *term | xterm-* | rxvt | screen | screen-*)
+        printf -- "\033[1;31mERROR: \033[1;37m$1\033[0m\n"
+        ;;
+      *)
+        printf -- "ERROR: $1\n"
+        ;;
+    esac
+  fi
   exit $2
 }
 

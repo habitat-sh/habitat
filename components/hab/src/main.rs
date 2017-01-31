@@ -31,7 +31,7 @@ use std::thread;
 
 use clap::{ArgMatches, Shell};
 
-use common::ui::UI;
+use common::ui::{Coloring, UI, NOCOLORING_ENVVAR, NONINTERACTIVE_ENVVAR};
 use hcore::env as henv;
 use hcore::crypto::{init, default_cache_key_path, SigKeyPair};
 use hcore::crypto::keys::PairType;
@@ -52,7 +52,7 @@ const DEFAULT_BINLINK_DIR: &'static str = "/bin";
 
 fn main() {
     env_logger::init().unwrap();
-    let mut ui = UI::default();
+    let mut ui = ui();
     thread::spawn(|| analytics::instrument_subcommand());
     if let Err(e) = start(&mut ui) {
         ui.fatal(e).unwrap();
@@ -468,6 +468,20 @@ fn sub_user_key_generate(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     init();
 
     command::user::key::generate::start(ui, user, &default_cache_key_path(fs_root_path))
+}
+
+fn ui() -> UI {
+    let isatty = if henv::var(NONINTERACTIVE_ENVVAR).map(|val| val == "true").unwrap_or(false) {
+        Some(false)
+    } else {
+        None
+    };
+    let coloring = if henv::var(NOCOLORING_ENVVAR).map(|val| val == "true").unwrap_or(false) {
+        Coloring::Never
+    } else {
+        Coloring::Auto
+    };
+    UI::default_with(coloring, isatty)
 }
 
 fn exec_subcommand_if_called(ui: &mut UI) -> Result<()> {
