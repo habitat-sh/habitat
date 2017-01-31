@@ -21,19 +21,19 @@ meaning you can use common Rust workflows such as `cd components/sup; cargo
 build`.
 
 **Note:** The Makefile targets are documented. Run `make help` to show the
-output. Habitat requires `perl`.
+output (this target requires `perl`).
 
 **Optional:** This project compiles and runs inside Docker containers so while
 installing the Rust language isn't strictly necessary, you might want a local
 copy of Rust on your workstation (some editors' language support require an
 installed version). To [install stable
 Rust](https://www.rust-lang.org/install.html), run: `curl -sSf
-https://static.rust-lang.org/rustup.sh | sh`. Additionally, the project
-maintainers use [rustfmt](https://github.com/rust-lang-nursery/rustfmt) for
-code formatting. If you are submitting changes, please ensure that your work
-has been run through the latest version of rustfmt. An easy way to install it
-(assuming you have Rust installed as above), is to run `cargo install rustfmt`
-and adding `$HOME/.cargo/bin` to your `PATH`.
+https://sh.rustup.rs | sh`. Additionally, the project maintainers use
+[rustfmt](https://github.com/rust-lang-nursery/rustfmt) for code formatting. If
+you are submitting changes, please ensure that your work has been run through
+the latest version of rustfmt. An easy way to install it (assuming you have
+Rust installed as above), is to run `cargo install rustfmt` and adding
+`$HOME/.cargo/bin` to your `PATH`.
 
 
 ## Mac OS X for Native Development
