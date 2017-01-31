@@ -23,6 +23,7 @@ extern crate hyper_openssl;
 extern crate log;
 extern crate pbr;
 extern crate protobuf;
+extern crate rand;
 extern crate serde;
 extern crate serde_json;
 extern crate tee;
@@ -44,6 +45,7 @@ use hyper::status::StatusCode;
 use hyper::header::{Authorization, Bearer};
 use hyper::Url;
 use protocol::{depotsrv, net};
+use rand::{Rng, thread_rng};
 use tee::TeeReader;
 
 header! { (XFileName, "X-Filename") => [String] }
@@ -390,7 +392,10 @@ impl Client {
             Some(filename) => format!("{}", filename),
             None => return Err(Error::NoXFilename),
         };
-        let tmp_file_path = dst_path.join(format!("{}.tmp", file_name));
+        let tmp_file_path =
+            dst_path.join(format!("{}.tmp-{}",
+                                  file_name,
+                                  thread_rng().gen_ascii_chars().take(8).collect::<String>()));
         let dst_file_path = dst_path.join(file_name);
         debug!("Writing to {}", &tmp_file_path.display());
         let mut f = try!(File::create(&tmp_file_path));
