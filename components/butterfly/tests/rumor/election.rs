@@ -87,9 +87,9 @@ fn five_members_elect_a_new_leader_when_the_old_one_dies() {
     assert_wait_for_equal_election!(net, [0..5, 0..5], "witcher.prod");
 
     let mut leader_id = String::from("");
-    net[0].election_store.with_rumor("witcher.prod", "election", |e| {
-        leader_id = String::from(e.unwrap().get_member_id());
-    });
+    net[0].election_store.with_rumor("witcher.prod",
+                                     "election",
+                                     |e| { leader_id = String::from(e.unwrap().get_member_id()); });
 
     let mut paused = 0;
     for (index, server) in net.iter_mut().enumerate() {
@@ -151,9 +151,9 @@ fn five_members_elect_a_new_leader_when_they_are_quorum_partitioned() {
     assert_wait_for_equal_election!(net, [0..5, 0..5], "witcher.prod");
 
     let mut leader_id = String::from("");
-    net[0].election_store.with_rumor("witcher.prod", "election", |e| {
-        leader_id = String::from(e.unwrap().get_member_id());
-    });
+    net[0].election_store.with_rumor("witcher.prod",
+                                     "election",
+                                     |e| { leader_id = String::from(e.unwrap().get_member_id()); });
 
     assert_eq!(leader_id, net[0].member_id());
 

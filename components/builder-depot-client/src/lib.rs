@@ -299,19 +299,17 @@ impl Client {
         let mut file = try!(File::open(&pa.path));
         let file_size = try!(file.metadata()).len();
         let path = format!("pkgs/{}", ident);
-        let customize = |url: &mut Url| {
-            url.query_pairs_mut().append_pair("checksum", &checksum);
-        };
+        let custom = |url: &mut Url| { url.query_pairs_mut().append_pair("checksum", &checksum); };
         debug!("Reading from {}", &pa.path.display());
 
         let result = if let Some(mut progress) = progress {
             progress.size(file_size);
             let mut reader = TeeReader::new(file, progress);
-            self.add_authz(self.inner.post_with_custom_url(&path, customize), token)
+            self.add_authz(self.inner.post_with_custom_url(&path, custom), token)
                 .body(Body::SizedBody(&mut reader, file_size))
                 .send()
         } else {
-            self.add_authz(self.inner.post_with_custom_url(&path, customize), token)
+            self.add_authz(self.inner.post_with_custom_url(&path, custom), token)
                 .body(Body::SizedBody(&mut file, file_size))
                 .send()
         };
@@ -328,12 +326,10 @@ impl Client {
         let mut file = try!(File::open(&pa.path));
         let file_size = try!(file.metadata()).len();
         let path = format!("pkgs/{}", ident);
-        let customize = |url: &mut Url| {
-            url.query_pairs_mut().append_pair("checksum", &checksum);
-        };
+        let custom = |url: &mut Url| { url.query_pairs_mut().append_pair("checksum", &checksum); };
         debug!("Reading from {}", &pa.path.display());
 
-        let result = self.add_authz(self.inner.post_with_custom_url(&path, customize), token)
+        let result = self.add_authz(self.inner.post_with_custom_url(&path, custom), token)
             .body(Body::SizedBody(&mut file, file_size))
             .send();
         match result {

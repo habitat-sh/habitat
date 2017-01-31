@@ -65,9 +65,7 @@ static INIT: Once = ONCE_INIT;
 
 fn sender() -> Sender<MetricTuple> {
     unsafe {
-        INIT.call_once(|| {
-            SENDER = Box::into_raw(Box::new(init()));
-        });
+        INIT.call_once(|| { SENDER = Box::into_raw(Box::new(init())); });
         (*SENDER).clone()
     }
 }

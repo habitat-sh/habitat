@@ -216,13 +216,14 @@ impl Manager {
             // have had their incarnation updated.
             let mut cl = CensusList::new();
             debug!("Updating census from butterfly data");
-            self.state.butterfly.service_store.with_keys(|(_group, rumors)| {
-                for (_member_id, service) in rumors.iter() {
+            self.state
+                .butterfly
+                .service_store
+                .with_keys(|(_group, rumors)| for (_member_id, service) in rumors.iter() {
                     let mut ce = CensusEntry::default();
                     ce.populate_from_service(service);
                     cl.insert(String::from(self.state.butterfly.member_id()), ce);
-                }
-            });
+                });
             self.state.butterfly.election_store.with_keys(|(_service_group, rumors)| {
                 // We know you have an election, and this is the only key in the hash
                 let election = rumors.get("election").unwrap();
@@ -389,15 +390,15 @@ impl Manager {
             self.state
                 .butterfly
                 .service_store
-                .with_rumor(&*service.service_group, &me, |rumor| {
-                    if let Some(rumor) = rumor {
-                        let mut rumor = rumor.clone();
-                        let incarnation = rumor.get_incarnation() + 1;
-                        rumor.set_incarnation(incarnation);
-                        *rumor.mut_cfg() = toml::encode_str(&cfg).into_bytes();
-                        updated = Some(rumor);
-                    }
-                });
+                .with_rumor(&*service.service_group,
+                            &me,
+                            |rumor| if let Some(rumor) = rumor {
+                                let mut rumor = rumor.clone();
+                                let incarnation = rumor.get_incarnation() + 1;
+                                rumor.set_incarnation(incarnation);
+                                *rumor.mut_cfg() = toml::encode_str(&cfg).into_bytes();
+                                updated = Some(rumor);
+                            });
             if let Some(rumor) = updated {
                 self.state.butterfly.insert_service(rumor);
                 last_update.service_counter += 1;

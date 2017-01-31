@@ -127,7 +127,8 @@ impl<'a> Outbound<'a> {
                     self.probe(member);
 
                     if SteadyTime::now() <= next_protocol_period {
-                        let wait_time = (next_protocol_period - SteadyTime::now()).num_milliseconds();
+                        let wait_time = (next_protocol_period - SteadyTime::now())
+                            .num_milliseconds();
                         if wait_time > 0 {
                             debug!("Waiting {} until the next protocol period", wait_time);
                             thread::sleep(Duration::from_millis(wait_time as u64));
@@ -174,10 +175,15 @@ impl<'a> Outbound<'a> {
             return;
         }
 
-        self.server.member_list.with_pingreq_targets(self.server.member_id(), member.get_id(), |pingreq_target| {
-            trace_it!(PROBE: &self.server, TraceKind::ProbePingReq, pingreq_target.get_id(), pingreq_target.get_address());
-            pingreq(self.server, &self.socket, &pingreq_target, &member);
-        });
+        self.server
+            .member_list
+            .with_pingreq_targets(self.server.member_id(), member.get_id(), |pingreq_target| {
+                trace_it!(PROBE: &self.server,
+                          TraceKind::ProbePingReq,
+                          pingreq_target.get_id(),
+                          pingreq_target.get_address());
+                pingreq(self.server, &self.socket, &pingreq_target, &member);
+            });
         if !self.recv_ack(&member, addr, AckFrom::PingReq) {
             // We mark as suspect when we fail to get a response from the PingReq. That moves us
             // into the suspicion phase, where anyone marked as suspect has a certain number of

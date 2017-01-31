@@ -78,10 +78,14 @@ pub struct Server {
 }
 
 impl Serialize for Server {
-    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error> where S: Serializer {
+    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error>
+        where S: Serializer
+    {
         let mut state = try!(serializer.serialize_struct("butterfly", 5));
         try!(serializer.serialize_struct_elt(&mut state, "service", &self.service_store));
-        try!(serializer.serialize_struct_elt(&mut state, "service_config", &self.service_config_store));
+        try!(serializer.serialize_struct_elt(&mut state,
+                                             "service_config",
+                                             &self.service_config_store));
         try!(serializer.serialize_struct_elt(&mut state, "service_file", &self.service_file_store));
         try!(serializer.serialize_struct_elt(&mut state, "election", &self.election_store));
         try!(serializer.serialize_struct_elt(&mut state, "election_update", &self.update_store));
@@ -103,28 +107,33 @@ impl Server {
         let maybe_gossip_socket_addr = gossip_addr.to_socket_addrs().map(|mut iter| iter.next());
 
         match (maybe_swim_socket_addr, maybe_gossip_socket_addr) {
-            (Ok(Some(swim_socket_addr)), Ok(Some(gossip_socket_addr))) => Ok(Server {
-                name: Arc::new(name.unwrap_or(String::from(member.get_id()))),
-                member_id: Arc::new(String::from(member.get_id())),
-                member: Arc::new(RwLock::new(member)),
-                member_list: MemberList::new(),
-                ring_key: Arc::new(ring_key),
-                rumor_list: RumorList::default(),
-                service_store: RumorStore::default(),
-                service_config_store: RumorStore::default(),
-                service_file_store: RumorStore::default(),
-                election_store: RumorStore::default(),
-                update_store: RumorStore::default(),
-                swim_addr: Arc::new(RwLock::new(swim_socket_addr)),
-                gossip_addr: Arc::new(RwLock::new(gossip_socket_addr)),
-                pause: Arc::new(AtomicBool::new(false)),
-                trace: Arc::new(RwLock::new(trace)),
-                swim_rounds: Arc::new(AtomicIsize::new(0)),
-                gossip_rounds: Arc::new(AtomicIsize::new(0)),
-                blacklist: Arc::new(RwLock::new(HashSet::new())),
-            }),
+            (Ok(Some(swim_socket_addr)), Ok(Some(gossip_socket_addr))) => {
+                Ok(Server {
+                    name: Arc::new(name.unwrap_or(String::from(member.get_id()))),
+                    member_id: Arc::new(String::from(member.get_id())),
+                    member: Arc::new(RwLock::new(member)),
+                    member_list: MemberList::new(),
+                    ring_key: Arc::new(ring_key),
+                    rumor_list: RumorList::default(),
+                    service_store: RumorStore::default(),
+                    service_config_store: RumorStore::default(),
+                    service_file_store: RumorStore::default(),
+                    election_store: RumorStore::default(),
+                    update_store: RumorStore::default(),
+                    swim_addr: Arc::new(RwLock::new(swim_socket_addr)),
+                    gossip_addr: Arc::new(RwLock::new(gossip_socket_addr)),
+                    pause: Arc::new(AtomicBool::new(false)),
+                    trace: Arc::new(RwLock::new(trace)),
+                    swim_rounds: Arc::new(AtomicIsize::new(0)),
+                    gossip_rounds: Arc::new(AtomicIsize::new(0)),
+                    blacklist: Arc::new(RwLock::new(HashSet::new())),
+                })
+            }
             (Err(e), _) | (_, Err(e)) => Err(Error::CannotBind(e)),
-            (Ok(None), _) | (_, Ok(None)) => Err(Error::CannotBind(io::Error::new(io::ErrorKind::AddrNotAvailable, "No address discovered.")))
+            (Ok(None), _) | (_, Ok(None)) => {
+                Err(Error::CannotBind(io::Error::new(io::ErrorKind::AddrNotAvailable,
+                                                     "No address discovered.")))
+            }
         }
     }
 
@@ -410,11 +419,9 @@ impl Server {
     /// Get all the Member ID's who are present in a given service group.
     pub fn get_electorate(&self, key: &str) -> Vec<String> {
         let mut electorate = vec![];
-        self.service_store.with_rumors(key, |s| {
-            if self.member_list
-                .check_health_of_by_id(s.get_member_id(), Health::Alive) {
-                electorate.push(String::from(s.get_member_id()));
-            }
+        self.service_store.with_rumors(key, |s| if self.member_list
+            .check_health_of_by_id(s.get_member_id(), Health::Alive) {
+            electorate.push(String::from(s.get_member_id()));
         });
         electorate
     }
@@ -481,15 +488,21 @@ impl Server {
                 if election.is_finished() && election.get_member_id() == self.member_id() {
                     // If we are the leader, and we have lost quorum, we should restart the election
                     if self.check_quorum(election.key()) == false {
-                        warn!("Restarting election with a new term as the leader has lost quorum: {:?}", election);
-                        elections_to_restart.push((String::from(&service_group[..]), election.get_term()));
+                        warn!("Restarting election with a new term as the leader has lost \
+                              quorum: {:?}",
+                              election);
+                        elections_to_restart.push(
+                            (String::from(&service_group[..]), election.get_term()));
 
                     }
                 } else if election.is_finished() {
                     if self.member_list
                         .check_health_of_by_id(election.get_member_id(), Health::Confirmed) {
-                            warn!("Restarting election with a new term as the leader is dead {}: {:?}", self.member_id(), election);
-                            elections_to_restart.push((String::from(&service_group[..]), election.get_term()));
+                        warn!("Restarting election with a new term as the leader is dead {}: {:?}",
+                              self.member_id(),
+                              election);
+                        elections_to_restart.push(
+                                (String::from(&service_group[..]), election.get_term()));
                     }
                 }
             }
@@ -504,15 +517,21 @@ impl Server {
                 if election.is_finished() && election.get_member_id() == self.member_id() {
                     // If we are the leader, and we have lost quorum, we should restart the election
                     if self.check_quorum(election.key()) == false {
-                        warn!("Restarting election with a new term as the leader has lost quorum: {:?}", election);
-                        update_elections_to_restart.push((String::from(&service_group[..]), election.get_term()));
+                        warn!("Restarting election with a new term as the leader has lost \
+                              quorum: {:?}",
+                              election);
+                        update_elections_to_restart.push(
+                            (String::from(&service_group[..]), election.get_term()));
 
                     }
                 } else if election.is_finished() {
                     if self.member_list
                         .check_health_of_by_id(election.get_member_id(), Health::Confirmed) {
-                            warn!("Restarting election with a new term as the leader is dead {}: {:?}", self.member_id(), election);
-                            update_elections_to_restart.push((String::from(&service_group[..]), election.get_term()));
+                        warn!("Restarting election with a new term as the leader is dead {}: {:?}",
+                              self.member_id(),
+                              election);
+                        update_elections_to_restart.push(
+                                (String::from(&service_group[..]), election.get_term()));
                     }
                 }
             }
@@ -576,8 +595,8 @@ impl Server {
                     };
                     self.start_election(sg, 0, election.get_term());
                 }
-                // If we are the member that this election is voting for, then check to see if the election
-                // is over! If it is, mark this election as final before you process it.
+                // If we are the member that this election is voting for, then check to see if the
+                // election is over! If it is, mark this election as final before you process it.
                 if self.member_id() == election.get_member_id() {
                     if self.check_quorum(election.key()) {
                         let electorate = self.get_electorate(election.key());
@@ -648,8 +667,8 @@ impl Server {
                     };
                     self.start_update_election(sg, 0, election.get_term());
                 }
-                // If we are the member that this election is voting for, then check to see if the election
-                // is over! If it is, mark this election as final before you process it.
+                // If we are the member that this election is voting for, then check to see if the
+                // election is over! If it is, mark this election as final before you process it.
                 if self.member_id() == election.get_member_id() {
                     if self.check_quorum(election.key()) {
                         let electorate = self.get_electorate(election.key());
@@ -711,10 +730,15 @@ impl Server {
                    sf.get_incarnation() > *current_incarnation.unwrap() {
                     match sf.body() {
                         Ok(body) => {
-                            service_files.push((sf.get_incarnation(), String::from(sf.get_filename()), body))
+                            service_files.push(
+                                (sf.get_incarnation(), String::from(sf.get_filename()), body))
                         }
                         Err(e) => {
-                            warn!("Cannot decrypt service file for {} {} {}: {}", service_group, sf.get_filename(), sf.get_incarnation(), e)
+                            warn!("Cannot decrypt service file for {} {} {}: {}",
+                                  service_group,
+                                  sf.get_filename(),
+                                  sf.get_incarnation(),
+                                  e)
                         }
                     }
                 }
@@ -728,16 +752,20 @@ impl Server {
                               incarnation: Option<u64>)
                               -> Option<(u64, toml::Value)> {
         let mut result = None;
-        self.service_config_store.with_rumor(service_group, "service_config", |maybe_sc| {
-            if let Some(sc) = maybe_sc {
-                if incarnation.is_none() || sc.get_incarnation() > incarnation.unwrap() {
-                    match sc.config() {
-                        Ok(config) => result = Some((sc.get_incarnation(), config)),
-                        Err(err) => warn!("{}", err),
-                    }
-                }
-            }
-        });
+        self.service_config_store.with_rumor(service_group,
+                                             "service_config",
+                                             |maybe_sc| if let Some(sc) = maybe_sc {
+                                                 if incarnation.is_none() ||
+                                                    sc.get_incarnation() > incarnation.unwrap() {
+                                                     match sc.config() {
+                                                         Ok(config) => {
+                                                             result = Some((sc.get_incarnation(),
+                                                                            config))
+                                                         }
+                                                         Err(err) => warn!("{}", err),
+                                                     }
+                                                 }
+                                             });
         result
     }
 
@@ -802,11 +830,12 @@ mod tests {
             let gossip_listen = "";
             let member = Member::new();
             assert!(Server::new(&swim_listen[..],
-                &gossip_listen[..],
-                member,
-                Trace::default(),
-                None,
-                None).is_err())
+                                &gossip_listen[..],
+                                member,
+                                Trace::default(),
+                                None,
+                                None)
+                .is_err())
         }
 
         #[test]

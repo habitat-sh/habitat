@@ -52,7 +52,8 @@ fn app<'a, 'b>() -> clap::App<'a, 'b> {
         (@subcommand start =>
             (about: "Run a Habitat-Builder router")
             (@arg config: -c --config +takes_value
-                "Filepath to configuration file. [default: /hab/svc/hab-builder-router/config.toml]")
+                "Filepath to configuration file. \
+                [default: /hab/svc/hab-builder-router/config.toml]")
             (@arg port: --port +takes_value "Listen port. [default: 5560]")
         )
     )

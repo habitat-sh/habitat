@@ -87,18 +87,16 @@ impl PackageInstall {
         } else {
             let latest: Option<PackageIdent> = pl.iter()
                 .filter(|&p| p.satisfies(ident))
-                .fold(None, |winner, b| {
-                    match winner {
-                        Some(a) => {
-                            match a.partial_cmp(&b) {
-                                Some(Ordering::Greater) => Some(a),
-                                Some(Ordering::Equal) => Some(a),
-                                Some(Ordering::Less) => Some(b.clone()),
-                                None => Some(a),
-                            }
+                .fold(None, |winner, b| match winner {
+                    Some(a) => {
+                        match a.partial_cmp(&b) {
+                            Some(Ordering::Greater) => Some(a),
+                            Some(Ordering::Equal) => Some(a),
+                            Some(Ordering::Less) => Some(b.clone()),
+                            None => Some(a),
                         }
-                        None => Some(b.clone()),
                     }
+                    None => Some(b.clone()),
                 });
             if let Some(id) = latest {
                 Ok(PackageInstall {

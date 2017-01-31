@@ -55,7 +55,8 @@ impl Serialize for swim::Election {
     {
         let mut state = try!(serializer.serialize_struct("election", 6));
         try!(serializer.serialize_struct_elt(&mut state, "member_id", self.get_member_id()));
-        try!(serializer.serialize_struct_elt(&mut state, "service_group", self.get_service_group()));
+        try!(serializer.serialize_struct_elt(&mut state,
+                                             "service_group", self.get_service_group()));
         try!(serializer.serialize_struct_elt(&mut state, "term", self.get_term()));
         try!(serializer.serialize_struct_elt(&mut state, "suitability", self.get_suitability()));
         try!(serializer.serialize_struct_elt(&mut state, "status", self.get_status()));
@@ -105,10 +106,14 @@ impl Serialize for swim::Rumor {
             try!(serializer.serialize_struct_elt(&mut state, "service", self.get_service()));
         }
         if self.has_service_config() {
-            try!(serializer.serialize_struct_elt(&mut state, "service_config", self.get_service_config()));
+            try!(serializer.serialize_struct_elt(&mut state,
+                                                 "service_config",
+                                                 self.get_service_config()));
         }
         if self.has_service_file() {
-            try!(serializer.serialize_struct_elt(&mut state, "service_file", self.get_service_file()));
+            try!(serializer.serialize_struct_elt(&mut state,
+                                                 "service_file",
+                                                 self.get_service_file()));
         }
         if self.has_election() {
             try!(serializer.serialize_struct_elt(&mut state, "election", self.get_election()));
@@ -128,7 +133,9 @@ impl Serialize for swim::Service {
             .and_then(|v| toml::decode_str(v))
             .unwrap_or(SysInfo::default());
         try!(serializer.serialize_struct_elt(&mut state, "member_id", self.get_member_id()));
-        try!(serializer.serialize_struct_elt(&mut state, "service_group", self.get_service_group()));
+        try!(serializer.serialize_struct_elt(&mut state,
+                                             "service_group",
+                                             self.get_service_group()));
         try!(serializer.serialize_struct_elt(&mut state, "package", self.get_package_ident()));
         try!(serializer.serialize_struct_elt(&mut state, "incarnation", self.get_incarnation()));
         try!(serializer.serialize_struct_elt(&mut state, "ip", self.get_ip()));
@@ -147,7 +154,9 @@ impl Serialize for swim::ServiceConfig {
         where S: Serializer
     {
         let mut state = try!(serializer.serialize_struct("service_config", 4));
-        try!(serializer.serialize_struct_elt(&mut state, "service_group", self.get_service_group()));
+        try!(serializer.serialize_struct_elt(&mut state,
+                                             "service_group",
+                                             self.get_service_group()));
         try!(serializer.serialize_struct_elt(&mut state, "incarnation", self.get_incarnation()));
         try!(serializer.serialize_struct_elt(&mut state, "encrypted", self.get_encrypted()));
         match str::from_utf8(self.get_config()) {
@@ -165,7 +174,9 @@ impl Serialize for swim::ServiceFile {
         where S: Serializer
     {
         let mut state = try!(serializer.serialize_struct("service_file", 5));
-        try!(serializer.serialize_struct_elt(&mut state, "service_group", self.get_service_group()));
+        try!(serializer.serialize_struct_elt(&mut state,
+                                             "service_group",
+                                             self.get_service_group()));
         try!(serializer.serialize_struct_elt(&mut state, "incarnation", self.get_incarnation()));
         try!(serializer.serialize_struct_elt(&mut state, "encrypted", self.get_encrypted()));
         try!(serializer.serialize_struct_elt(&mut state, "filename", self.get_filename()));

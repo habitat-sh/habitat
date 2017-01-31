@@ -520,7 +520,8 @@ pub enum WriteStream {
 
 impl WriteStream {
     // Implementation heavily inspired and based on the Cargo `shell.rs` implementation. Source:
-    // https://github.com/rust-lang/cargo/blob/d05ba53afec82308edcfeb778446010bf18e71ae/src/cargo/core/shell.rs
+    // https://github.com/rust-lang/cargo/blob/d05ba53afec82308edcfeb778446010bf18e71ae/
+    // src/cargo/core/shell.rs
 
     pub fn create<T: FnMut() -> Box<Write + Send>>(mut writable_fn: T) -> Self {
         match Self::get_term(writable_fn()) {

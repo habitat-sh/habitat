@@ -51,7 +51,8 @@ fn app<'a, 'b>() -> clap::App<'a, 'b> {
         (@subcommand start =>
             (about: "Run a Habitat Builder job server")
             (@arg config: -c --config +takes_value
-                "Filepath to configuration file. [default: /hab/svc/hab-builder-jobsrv/config.toml]")
+                "Filepath to configuration file. \
+                [default: /hab/svc/hab-builder-jobsrv/config.toml]")
         )
     )
 }

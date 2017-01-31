@@ -94,17 +94,18 @@ impl<'a> Push<'a> {
                         if rumors.len() > 0 {
                             let sc = self.server.clone();
 
-                            let guard = match thread::Builder::new()
-                                .name(String::from("push-worker"))
-                                .spawn(move || {
-                                    PushWorker::new(sc).send_rumors(member, rumors);
-                                }) {
-                                Ok(guard) => guard,
-                                Err(e) => {
-                                    error!("Could not spawn thread: {}", e);
-                                    continue;
-                                }
-                            };
+                            let guard =
+                                match thread::Builder::new()
+                                    .name(String::from("push-worker"))
+                                    .spawn(move || {
+                                        PushWorker::new(sc).send_rumors(member, rumors);
+                                    }) {
+                                    Ok(guard) => guard,
+                                    Err(e) => {
+                                        error!("Could not spawn thread: {}", e);
+                                        continue;
+                                    }
+                                };
                             thread_list.push(guard);
                         }
                     }
@@ -169,7 +170,11 @@ impl PushWorker {
             let rumor_as_bytes = match rumor_key.kind {
                 ProtoRumor_Type::Member => {
                     let send_rumor = self.create_member_rumor(&rumor_key);
-                    trace_it!(GOSSIP: &self.server, TraceKind::SendRumor, member.get_id(), &send_rumor);
+                    trace_it!(
+                        GOSSIP: &self.server,
+                        TraceKind::SendRumor,
+                        member.get_id(),
+                        &send_rumor);
                     match send_rumor.write_to_bytes() {
                         Ok(bytes) => bytes,
                         Err(e) => {
@@ -181,7 +186,10 @@ impl PushWorker {
                     }
                 }
                 ProtoRumor_Type::Service => {
-                    // trace_it!(GOSSIP: &self.server, TraceKind::SendRumor, member.get_id(), &send_rumor);
+                    // trace_it!(GOSSIP: &self.server,
+                    //           TraceKind::SendRumor,
+                    //           member.get_id(),
+                    //           &send_rumor);
                     match self.server
                         .service_store
                         .write_to_bytes(&rumor_key.key, &rumor_key.id) {
@@ -195,7 +203,10 @@ impl PushWorker {
                     }
                 }
                 ProtoRumor_Type::ServiceConfig => {
-                    // trace_it!(GOSSIP: &self.server, TraceKind::SendRumor, member.get_id(), &send_rumor);
+                    // trace_it!(GOSSIP: &self.server,
+                    //           TraceKind::SendRumor,
+                    //           member.get_id(),
+                    //           &send_rumor);
                     match self.server
                         .service_config_store
                         .write_to_bytes(&rumor_key.key, &rumor_key.id) {
@@ -209,7 +220,10 @@ impl PushWorker {
                     }
                 }
                 ProtoRumor_Type::ServiceFile => {
-                    // trace_it!(GOSSIP: &self.server, TraceKind::SendRumor, member.get_id(), &send_rumor);
+                    // trace_it!(GOSSIP: &self.server,
+                    //           TraceKind::SendRumor,
+                    //           member.get_id(),
+                    //           &send_rumor);
                     match self.server
                         .service_file_store
                         .write_to_bytes(&rumor_key.key, &rumor_key.id) {
@@ -223,7 +237,10 @@ impl PushWorker {
                     }
                 }
                 ProtoRumor_Type::Election => {
-                    // trace_it!(GOSSIP: &self.server, TraceKind::SendRumor, member.get_id(), &send_rumor);
+                    // trace_it!(GOSSIP: &self.server,
+                    //           TraceKind::SendRumor,
+                    //           member.get_id(),
+                    //           &send_rumor);
                     match self.server
                         .election_store
                         .write_to_bytes(&rumor_key.key, &rumor_key.id) {
@@ -240,14 +257,14 @@ impl PushWorker {
                     match self.server
                         .update_store
                         .write_to_bytes(&rumor_key.key, &rumor_key.id) {
-                            Ok(bytes) => bytes,
-                            Err(e) => {
-                                println!("Could not write our own rumor to bytes; abandoning \
-                                          sending rumor: {:?}",
-                                         e);
-                                continue 'rumorlist;
-                            }
+                        Ok(bytes) => bytes,
+                        Err(e) => {
+                            println!("Could not write our own rumor to bytes; abandoning sending \
+                                      rumor: {:?}",
+                                     e);
+                            continue 'rumorlist;
                         }
+                    }
                 }
                 ProtoRumor_Type::Fake |
                 ProtoRumor_Type::Fake2 => {
@@ -279,7 +296,8 @@ impl PushWorker {
         });
         let mut membership = ProtoMembership::new();
         membership.set_member(member);
-        membership.set_health(self.server.member_list.health_of_by_id(&rumor_key.key()).unwrap().into());
+        membership.set_health(
+            self.server.member_list.health_of_by_id(&rumor_key.key()).unwrap().into());
         let mut rumor = ProtoRumor::new();
         rumor.set_field_type(ProtoRumor_Type::Member);
         rumor.set_member(membership);
