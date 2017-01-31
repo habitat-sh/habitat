@@ -371,7 +371,11 @@ impl SigKeyPair {
         };
         match lines.nth(1) {
             Some(val) => {
-                try!(base64::decode(val.trim()).map_err(|_| Error::CryptoError(format!("write_sig_key_from_str:3 Malformed sig key string:\n({})", content))));
+                try!(base64::decode(val.trim()).map_err(|_| {
+                    Error::CryptoError(format!("write_sig_key_from_str:3 Malformed sig key \
+                                                string:\n({})",
+                                               content))
+                }));
                 Ok((pair_type, name_with_rev.to_string(), val.trim().to_string()))
             }
             None => {
@@ -470,10 +474,11 @@ mod test {
         let pairs = SigKeyPair::get_pairs_for("unicorn", cache.path()).unwrap();
         assert_eq!(pairs.len(), 1);
 
-        let _ = match wait_until_ok(|| SigKeyPair::generate_pair_for_origin("unicorn", cache.path())) {
-            Some(pair) => pair,
-            None => panic!("Failed to generate another keypair after waiting"),
-        };
+        let _ =
+            match wait_until_ok(|| SigKeyPair::generate_pair_for_origin("unicorn", cache.path())) {
+                Some(pair) => pair,
+                None => panic!("Failed to generate another keypair after waiting"),
+            };
         let pairs = SigKeyPair::get_pairs_for("unicorn", cache.path()).unwrap();
         assert_eq!(pairs.len(), 2);
 
@@ -713,8 +718,9 @@ mod test {
     fn write_file_from_str_invalid_key_secret() {
         let cache = TempDir::new("key_cache").unwrap();
 
-        SigKeyPair::write_file_from_str("SIG-SEC-1\norigin-key-valid-20160509190508\n\nc29tZXRoaW5n%",
-                                        cache.path()).unwrap();
+        SigKeyPair::write_file_from_str(
+            "SIG-SEC-1\norigin-key-valid-20160509190508\n\nc29tZXRoaW5n%",
+            cache.path()).unwrap();
     }
 
     #[test]
@@ -736,9 +742,9 @@ mod test {
                  cache.path().join("origin-key-valid-20160509190508.sig.key"))
             .unwrap();
 
-        SigKeyPair::write_file_from_str("SIG-SEC-1\norigin-key-valid-20160509190508\n\nc29tZXRoaW5n",
-                                        cache.path())
-            .unwrap();
+        SigKeyPair::write_file_from_str(
+            "SIG-SEC-1\norigin-key-valid-20160509190508\n\nc29tZXRoaW5n",
+            cache.path()).unwrap();
     }
 
     #[test]
@@ -750,8 +756,8 @@ mod test {
                  cache.path().join("origin-key-valid-20160509190508.pub"))
             .unwrap();
 
-        SigKeyPair::write_file_from_str("SIG-PUB-1\norigin-key-valid-20160509190508\n\nc29tZXRoaW5n",
-                                        cache.path())
-            .unwrap();
+        SigKeyPair::write_file_from_str(
+            "SIG-PUB-1\norigin-key-valid-20160509190508\n\nc29tZXRoaW5n",
+            cache.path()).unwrap();
     }
 }
