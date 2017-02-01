@@ -37,18 +37,21 @@ mod inner {
 
     use error::{Error, Result};
     use exec;
+    use VERSION;
 
     const CMD: &'static str = "hab-butterfly";
     const CMD_ENVVAR: &'static str = "HAB_BUTTERFLY_BINARY";
 
     pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
-        let sup_ident = "core/hab-butterfly";
+        let butterfly_ident = "core/hab-butterfly";
         let command = match henv::var(CMD_ENVVAR) {
             Ok(command) => PathBuf::from(command),
             Err(_) => {
                 init();
-                let ident = try!(PackageIdent::from_str(sup_ident));
-                try!(exec::command_from_pkg(ui, CMD, &ident, &default_cache_key_path(None), 0))
+                let version: Vec<&str> = VERSION.split("/").collect();
+                let ident =
+                    try!(PackageIdent::from_str(&format!("{}/{}", butterfly_ident, version[0])));
+                try!(exec::command_from_min_pkg(ui, CMD, &ident, &default_cache_key_path(None), 0))
             }
         };
 

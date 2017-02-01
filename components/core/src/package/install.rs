@@ -50,6 +50,22 @@ impl PackageInstall {
         }
     }
 
+    /// Verifies an installation of a package that is equal or newer to a given ident and returns
+    /// a Result of a `PackageIdent` if one exists.
+    ///
+    /// An optional `fs_root` path may be provided to search for a package that is mounted on a
+    /// filesystem not currently rooted at `/`.
+    pub fn load_at_least(ident: &PackageIdent,
+                         fs_root_path: Option<&Path>)
+                         -> Result<PackageInstall> {
+        let package_install = try!(Self::resolve_package_install_min(ident, fs_root_path));
+        let package_target = try!(package_install.target());
+        match package_target.validate() {
+            Ok(()) => Ok(package_install),
+            Err(e) => Err(e),
+        }
+    }
+
     /// Read and return the decoded contents of the packages default configuration.
     pub fn default_cfg(&self) -> Option<toml::Table> {
         match File::open(self.installed_path.join(DEFAULT_CFG_FILE)) {
@@ -108,6 +124,57 @@ impl PackageInstall {
             } else {
                 Err(Error::PackageNotFound(ident.clone()))
             }
+        }
+    }
+
+    /// Find an installed package that is at minimum the version of the given ident.
+    fn resolve_package_install_min(ident: &PackageIdent,
+                                   fs_root_path: Option<&Path>)
+                                   -> Result<PackageInstall> {
+        // If the PackageIndent is does not have a version, use a reasonable minimum version that
+        // will be satisfied by any installed package with the same origin/name
+        let ident = if None == ident.version {
+            PackageIdent::new(ident.origin.clone(),
+                              ident.name.clone(),
+                              Some("0".into()),
+                              Some("0".into()))
+        } else {
+            ident.clone()
+        };
+
+        let fs_root_path = fs_root_path.unwrap_or(Path::new("/"));
+        let package_root_path = fs_root_path.join(PKG_PATH);
+        if !package_root_path.exists() {
+            return Err(Error::PackageNotFound(ident.clone()));
+        }
+
+        let pl = try!(Self::package_list(&package_root_path));
+        let latest: Option<PackageIdent> = pl.iter()
+            .filter(|ref p| p.origin == ident.origin && p.name == ident.name)
+            .fold(None, |winner, b| match winner {
+                Some(a) => {
+                    match a.cmp(&b) {
+                        Ordering::Greater | Ordering::Equal => Some(a),
+                        Ordering::Less => Some(b.clone()),
+                    }
+                }
+                None => {
+                    match b.cmp(&ident) {
+                        Ordering::Greater | Ordering::Equal => Some(b.clone()),
+                        Ordering::Less => None,
+                    }
+                }
+            });
+        match latest {
+            Some(id) => {
+                Ok(PackageInstall {
+                    ident: id.clone(),
+                    fs_root_path: PathBuf::from(fs_root_path),
+                    package_root_path: package_root_path.clone(),
+                    installed_path: try!(Self::calc_installed_path(&id, &package_root_path)),
+                })
+            }
+            None => Err(Error::PackageNotFound(ident.clone())),
         }
     }
 
