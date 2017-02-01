@@ -24,6 +24,10 @@ use hcore::os::users;
 use config;
 use error::Result;
 
+const STUDIO_CMD: &'static str = "hab-studio";
+const STUDIO_CMD_ENVVAR: &'static str = "HAB_STUDIO_BINARY";
+const STUDIO_PACKAGE_IDENT: &'static str = "core/hab-studio";
+
 pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
     try!(inner::rerun_with_sudo_if_needed(ui));
 
@@ -78,19 +82,16 @@ mod inner {
     use error::{Error, Result};
     use exec;
 
-    const STUDIO_CMD: &'static str = "hab-studio";
-    const STUDIO_CMD_ENVVAR: &'static str = "HAB_STUDIO_BINARY";
-    const STUDIO_PACKAGE_IDENT: &'static str = "core/hab-studio";
     const SUDO_CMD: &'static str = "sudo";
 
     pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
-        let command = match henv::var(STUDIO_CMD_ENVVAR) {
+        let command = match henv::var(super::STUDIO_CMD_ENVVAR) {
             Ok(command) => PathBuf::from(command),
             Err(_) => {
                 init();
-                let ident = try!(PackageIdent::from_str(STUDIO_PACKAGE_IDENT));
+                let ident = try!(PackageIdent::from_str(super::STUDIO_PACKAGE_IDENT));
                 try!(exec::command_from_pkg(ui,
-                                            STUDIO_CMD,
+                                            super::STUDIO_CMD,
                                             &ident,
                                             &default_cache_key_path(None),
                                             0))
@@ -136,15 +137,19 @@ mod inner {
 mod inner {
     use std::env;
     use std::ffi::OsString;
+    use std::path::PathBuf;
     use std::process::{Command, Stdio};
+    use std::str::FromStr;
 
     use common::ui::UI;
-    use hcore::crypto::default_cache_key_path;
+    use hcore::crypto::{init, default_cache_key_path};
     use hcore::env as henv;
     use hcore::fs::{CACHE_KEY_PATH, find_command};
     use hcore::os::process;
+    use hcore::package::PackageIdent;
 
     use error::{Error, Result};
+    use exec;
     use VERSION;
 
     const DOCKER_CMD: &'static str = "docker";
@@ -153,7 +158,40 @@ mod inner {
     const DOCKER_IMAGE_ENVVAR: &'static str = "HAB_DOCKER_STUDIO_IMAGE";
     const DOCKER_OPTS: &'static str = "HAB_DOCKER_OPTS";
 
+    const HAB_WINDOWS_STUDIO: &'static str = "HAB_WINDOWS_STUDIO";
+
     pub fn start(_ui: &mut UI, args: Vec<OsString>) -> Result<()> {
+        //TODO: Remove HAB_WINDOWS_STUDIO check after windows studio support is official
+        if cfg!(target_os = "windows") && henv::var(HAB_WINDOWS_STUDIO).is_ok() {
+            start_windows_studio(_ui, args)
+        } else {
+            start_docker_studio(_ui, args)
+        }
+    }
+
+    pub fn start_windows_studio(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
+        let command = match henv::var(super::STUDIO_CMD_ENVVAR) {
+            Ok(command) => PathBuf::from(command),
+            Err(_) => {
+                init();
+                let ident = try!(PackageIdent::from_str(super::STUDIO_PACKAGE_IDENT));
+                try!(exec::command_from_pkg(ui,
+                                            super::STUDIO_CMD,
+                                            &ident,
+                                            &default_cache_key_path(None),
+                                            0))
+            }
+        };
+
+        if let Some(cmd) = find_command(command.to_string_lossy().as_ref()) {
+            try!(process::become_command(cmd, args));
+        } else {
+            return Err(Error::ExecCommandNotFound(command.to_string_lossy().into_owned()));
+        }
+        Ok(())
+    }
+
+    pub fn start_docker_studio(_ui: &mut UI, args: Vec<OsString>) -> Result<()> {
         let docker = henv::var(DOCKER_CMD_ENVVAR).unwrap_or(DOCKER_CMD.to_string());
 
         let cmd = match find_command(&docker) {

@@ -32,6 +32,7 @@ param (
 $program = $MyInvocation.MyCommand
 # The current version of this program
 $HAB_PLAN_BUILD = "@VERSION@"
+$script:originalPath = (Get-Location).Path
 # The root path of the Habitat file system. If the `$HAB_ROOT_PATH` environment
 # variable is set, this value is overridden, otherwise it is set to its default
 if (Test-Path Env:\HAB_ROOT_PATH) {
@@ -39,23 +40,24 @@ if (Test-Path Env:\HAB_ROOT_PATH) {
 } else {
     $script:HAB_ROOT_PATH = "\hab"
 }
+$resolvedRoot = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($HAB_ROOT_PATH)
 # The default path where source artifacts are downloaded, extracted, & compiled
-$HAB_CACHE_SRC_PATH = "${HAB_ROOT_PATH}\cache\src"
+$HAB_CACHE_SRC_PATH = "$resolvedRoot\cache\src"
 # The default download root path for package artifacts, used on package
 # installation
-$HAB_CACHE_ARTIFACT_PATH = "${HAB_ROOT_PATH}\cache\artifacts"
+$HAB_CACHE_ARTIFACT_PATH = "$resolvedRoot\cache\artifacts"
 # The default path where cryptographic keys are stored. If the
 # `$HAB_CACHE_KEY_PATH` environment variable is set, this value is overridden,
 # otherwise it is set to its default.
 if (Test-Path Env:\HAB_CACHE_KEY_PATH) {
     $script:HAB_CACHE_KEY_PATH = "$env:HAB_CACHE_KEY_PATH"
 } else {
-    $script:HAB_CACHE_KEY_PATH = "${HAB_ROOT_PATH}\cache\keys"
+    $script:HAB_CACHE_KEY_PATH = "$resolvedRoot\cache\keys"
 }
 # Export the key path for other programs and subshells to use
 $env:HAB_CACHE_KEY_PATH = "$script:HAB_CACHE_KEY_PATH"
 # The root path containing all locally installed packages
-$script:HAB_PKG_PATH = "${HAB_ROOT_PATH}\pkgs"
+$script:HAB_PKG_PATH = "$resolvedRoot\pkgs"
 # The first argument to the script is a Plan context directory, containing a
 # `plan.sh` file
 $script:PLAN_CONTEXT = "$Context"
@@ -646,13 +648,17 @@ function _Set-Path {
   }
   foreach($dep_path in $pkg_all_tdeps_resolved) {
     if (Test-Path "$dep_path/PATH") {
-      $data = Get-Content "$dep_path/PATH"
-      if (!$path_part) {
-        $path_part = $data.Trim()
+      Push-Location $originalPath
+      try {
+        $data = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath((Get-Content "$dep_path/PATH").Trim())
+        if (!$path_part) {
+          $path_part = $data
+        }
+        else {
+          $path_part += ";$data"
+        }
       }
-      else {
-        $path_part += ";$($data.Trim())"
-      }
+      finally { Pop-Location }
     }
   }
   # Insert all the package PATH fragments before the default PATH to ensure
@@ -664,10 +670,17 @@ function _Set-Path {
   Write-BuildLine "Setting PATH=$env:PATH"
 }
 
-# TODO: When we switch to powershell core, we must use
-# System.Security.Cryptography.SHA256 which is not an IDisposable
+function _Get-SHA256Converter {
+  if($PSVersionTable.PSEdition -eq 'Core') {
+    [System.Security.Cryptography.SHA256]::Create()
+  }
+  else {
+    New-Object -TypeName Security.Cryptography.SHA256Managed
+  }
+}
+
 function _Get-Sha256($src) {
-  $converter = New-Object -TypeName Security.Cryptography.SHA256Managed
+  $converter = _Get-SHA256Converter
   try {
     $bytes = $converter.ComputeHash(($in = (Get-Item $src).OpenRead()))
     return ([System.BitConverter]::ToString($bytes)).Replace("-", "").ToLower()
@@ -1043,7 +1056,10 @@ function _Write-Metadata {
     # @TODO fin - PKG_CONFIG_PATH
 
     if ($pkg_bin_dirs.Length -gt 0) {
-        $($pkg_bin_dirs | % { "${pkg_prefix}\$_" }) -join ':' |
+        $prefixDrive = (Resolve-Path $originalPath).Drive.Root
+        $strippedPrefix = $pkg_prefix.Substring($prefixDrive.length)
+        if(!$strippedPrefix.StartsWith('\')) { $strippedPrefix = "\$strippedPrefix" }
+        $($pkg_bin_dirs | % { "$strippedPrefix\$_" }) -join ':' |
             Out-File "$pkg_prefix\PATH" -Encoding ascii
     }
 
@@ -1113,8 +1129,8 @@ function _Save-Artifact {
     New-Item $tempPkg -ItemType Directory -Force | Out-Null
     Copy-Item $pkg_prefix $tempPkg -Recurse
 
-    & "$_7z_cmd" a -ttar "$tarf" $tempBase
-    & "$_7z_cmd" a -txz "$xzf" "$tarf"
+    & "$_7z_cmd" a -ttar "$tarf" $tempBase | Out-Null
+    & "$_7z_cmd" a -txz "$xzf" "$tarf" | Out-Null
     & $HAB_BIN pkg sign --origin "$pkg_origin" "$xzf" "$pkg_artifact"
     Remove-Item "$tarf", "$xzf" -Force
     Remove-Item $tempBase -Recurse -Force
@@ -1188,7 +1204,7 @@ $ErrorActionPreference = "Stop"
 # Change into the `$PLAN_CONTEXT` directory for proper resolution of relative
 # paths in `plan.ps1`
 Push-Location "$PLAN_CONTEXT"
-
+$originalPathVar = $env:path
 try {
     # Load the Plan
     Write-BuildLine "Loading $PLAN_CONTEXT\plan.ps1"
@@ -1327,6 +1343,7 @@ try {
 }
 finally {
     Pop-Location
+    $env:path = $originalPathVar
 }
 
 # Print the results
