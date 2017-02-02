@@ -31,6 +31,8 @@ extern crate protobuf;
 extern crate redis;
 #[macro_use]
 extern crate router;
+#[macro_use]
+extern crate serde_derive;
 extern crate serde_json;
 extern crate staticfile;
 extern crate toml;

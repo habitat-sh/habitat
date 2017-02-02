@@ -107,12 +107,12 @@ function Invoke-Configure {
         rustup install stable-x86_64-pc-windows-msvc
     }
     else {
-        $env:PATH = New-PathString -StartingPath $env:PATH -Path "C:\Program Files\Rust stable MSVC 1.14\bin"
+        $env:PATH = New-PathString -StartingPath $env:PATH -Path "C:\Program Files\Rust stable MSVC 1.15\bin"
         if (-not (get-command rustc -ErrorAction SilentlyContinue)) {
             write-host "installing rust"
-            Invoke-WebRequest -UseBasicParsing -Uri 'https://static.rust-lang.org/dist/rust-1.14.0-x86_64-pc-windows-msvc.msi' -OutFile "$env:TEMP/rust-14-stable.msi"
-            start-process -filepath MSIExec.exe -argumentlist "/qn", "/i", "$env:TEMP\rust-14-stable.msi" -Wait
-            $env:PATH = New-PathString -StartingPath $env:PATH -Path "C:\Program Files\Rust stable MSVC 1.14\bin"
+            Invoke-WebRequest -UseBasicParsing -Uri 'https://static.rust-lang.org/dist/rust-1.15.0-x86_64-pc-windows-msvc.msi' -OutFile "$env:TEMP/rust-15-stable.msi"
+            start-process -filepath MSIExec.exe -argumentlist "/qn", "/i", "$env:TEMP\rust-15-stable.msi" -Wait
+            $env:PATH = New-PathString -StartingPath $env:PATH -Path "C:\Program Files\Rust stable MSVC 1.15\bin"
             while (-not (get-command cargo -ErrorAction SilentlyContinue)) {
                 Write-Warning "`tWaiting for `cargo` to be available."
                 start-sleep -Seconds 1

@@ -2,7 +2,7 @@
 image: Visual Studio 2015
 
 cache:
-    - C:\Program Files\Rust stable MSVC 1.14
+    - C:\Program Files\Rust stable MSVC 1.15
     - c:\cargo
 
 branches:

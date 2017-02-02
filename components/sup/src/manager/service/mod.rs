@@ -27,7 +27,6 @@ use hcore::fs;
 use hcore::util::perm::{set_owner, set_permissions};
 use toml;
 
-pub use types::service::*;
 pub use self::config::ServiceConfig;
 use config::gconfig;
 use error::Result;
@@ -39,6 +38,28 @@ use supervisor::{Supervisor, RuntimeConfig};
 use util;
 
 static LOGKEY: &'static str = "SR";
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
+pub enum LastRestartDisplay {
+    None,
+    ElectionInProgress,
+    ElectionNoQuorum,
+    ElectionFinished,
+}
+
+#[derive(Debug, Serialize)]
+pub struct Service {
+    pub needs_restart: bool,
+    pub package: Package,
+    pub cfg_incarnation: u64,
+    pub service_group: ServiceGroup,
+    pub topology: Topology,
+    pub update_strategy: UpdateStrategy,
+    pub current_service_files: HashMap<String, u64>,
+    pub initialized: bool,
+    pub last_restart_display: LastRestartDisplay,
+    pub supervisor: Supervisor,
+}
 
 impl Service {
     pub fn new<T>(package: Package,
@@ -370,10 +391,24 @@ impl fmt::Display for Service {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
+pub enum Topology {
+    Standalone,
+    Leader,
+    Initializer,
+}
+
 impl Default for Topology {
     fn default() -> Topology {
         Topology::Standalone
     }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
+pub enum UpdateStrategy {
+    None,
+    AtOnce,
+    Rolling,
 }
 
 impl UpdateStrategy {

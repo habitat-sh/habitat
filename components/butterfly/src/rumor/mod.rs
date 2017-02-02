@@ -305,10 +305,15 @@ impl RumorList {
 mod tests {
     use uuid::Uuid;
 
-    pub use types::rumor::tests::*;
     use rumor::Rumor;
     use message::swim::Rumor_Type;
     use error::Result;
+
+    #[derive(Clone, Debug, Serialize)]
+    struct FakeRumor {
+        pub id: String,
+        pub key: String,
+    }
 
     impl Default for FakeRumor {
         fn default() -> FakeRumor {
@@ -317,6 +322,12 @@ mod tests {
                 key: String::from("fakerton"),
             }
         }
+    }
+
+    #[derive(Clone, Debug, Serialize)]
+    struct TrumpRumor {
+        pub id: String,
+        pub key: String,
     }
 
     impl Rumor for FakeRumor {

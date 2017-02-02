@@ -38,6 +38,8 @@ extern crate redis;
 #[macro_use]
 extern crate router;
 extern crate serde;
+#[macro_use]
+extern crate serde_derive;
 extern crate serde_json;
 extern crate time;
 extern crate toml;
@@ -61,7 +63,7 @@ use std::path::{Path, PathBuf};
 
 use crypto::sha2::Sha256;
 use crypto::digest::Digest;
-use hab_core::package::{Identifiable, PackageArchive, PackageTarget};
+use hab_core::package::{Identifiable, PackageArchive};
 use hab_net::server::NetIdent;
 use iron::typemap;
 

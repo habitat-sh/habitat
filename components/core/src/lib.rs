@@ -25,6 +25,8 @@ extern crate libarchive;
 extern crate log;
 extern crate regex;
 extern crate serde;
+#[macro_use]
+extern crate serde_derive;
 extern crate serde_json;
 extern crate sodiumoxide;
 extern crate libsodium_sys;
@@ -60,7 +62,3 @@ pub mod event;
 
 pub use os::filesystem;
 pub use os::users;
-
-mod types {
-    include!(concat!(env!("OUT_DIR"), "/serde_types.rs"));
-}

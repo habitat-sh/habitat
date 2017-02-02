@@ -28,10 +28,12 @@ use habitat_core::service::ServiceGroup;
 use protobuf::{Message, RepeatedField};
 
 pub use message::swim::Election_Status;
-pub use types::rumor_election::*;
 use error::Result;
 use message::swim::{Election as ProtoElection, Rumor as ProtoRumor, Rumor_Type as ProtoRumor_Type};
 use rumor::Rumor;
+
+#[derive(Debug, Clone, Serialize)]
+pub struct Election(ProtoRumor);
 
 impl From<ProtoRumor> for Election {
     fn from(pr: ProtoRumor) -> Election {
@@ -204,6 +206,9 @@ impl Rumor for Election {
         Ok(try!(self.0.write_to_bytes()))
     }
 }
+
+#[derive(Debug, Clone, Serialize)]
+pub struct ElectionUpdate(Election);
 
 impl ElectionUpdate {
     pub fn new<S1: Into<String>>(member_id: S1,

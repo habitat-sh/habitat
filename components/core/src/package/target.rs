@@ -15,13 +15,20 @@
 use std::fmt;
 use std::result;
 use std::str::FromStr;
-use os::system::{Architecture, Platform};
 
-pub use types::package_target::*;
 use error::{Error, Result};
+use os::system::{Architecture, Platform};
 
 pub trait Target: fmt::Display + Into<PackageTarget> {
     fn validate(&self) -> Result<()>;
+}
+
+/// Describes the platform (operating system/kernel)
+/// and architecture (x86_64, i386, etc..) that a package is built for
+#[derive(Deserialize, Serialize, Eq, PartialEq, Debug, Clone, Hash)]
+pub struct PackageTarget {
+    pub platform: Platform,
+    pub architecture: Architecture,
 }
 
 impl PackageTarget {

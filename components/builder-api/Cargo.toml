@@ -3,7 +3,7 @@ name = "habitat_builder_api"
 version = "0.0.0"
 authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletcher Nichol <fnichol@chef.io>", "Joshua Timberman <joshua@chef.io>", "Dave Parfitt <dparfitt@chef.io>"]
 description = "Habitat-Builder HTTP API gateway"
-build = "build.rs"
+build = "../bldr-build.rs"
 workspace = "../../"
 
 [[bin]]
@@ -23,6 +23,7 @@ persistent = "*"
 protobuf = "*"
 router = "*"
 serde = "*"
+serde_derive = "*"
 serde_json = "*"
 toml = { version = "*", features = ["serde"], default-features = false }
 unicase = "*"
@@ -56,9 +57,6 @@ path = "../net"
 [dependencies.redis]
 git = "https://github.com/habitat-sh/redis-rs"
 branch = "habitat"
-
-[build-dependencies]
-serde_codegen = "*"
 
 [features]
 functional = []

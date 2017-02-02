@@ -3,7 +3,7 @@ name = "habitat_builder_admin"
 version = "0.0.0"
 authors = ["Jamie Winsor <reset@chef.io>"]
 description = "Habitat-Builder Admin Gateway"
-build = "build.rs"
+build = "../bldr-build.rs"
 workspace = "../../"
 
 [[bin]]
@@ -22,6 +22,7 @@ persistent = "*"
 protobuf = "*"
 router = "*"
 serde = "*"
+serde_derive = "*"
 serde_json = "*"
 toml = { version = "*", features = ["serde"], default-features = false }
 unicase = "*"
@@ -49,6 +50,3 @@ path = "../builder-protocol"
 
 [dependencies.habitat_net]
 path = "../net"
-
-[build-dependencies]
-serde_codegen = "*"

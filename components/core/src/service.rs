@@ -19,13 +19,15 @@ use std::str::FromStr;
 
 use regex::Regex;
 
-pub use types::service::*;
 use error::{Error, Result};
 
 lazy_static! {
     static ref FROM_STR_RE: Regex =
         Regex::new(r"\A(?P<service>[^.]+)\.(?P<group>[^.@]+)(@(?P<organization>.+))?\z").unwrap();
 }
+
+#[derive(Clone, Debug, Eq, Hash, PartialEq, Deserialize, Serialize)]
+pub struct ServiceGroup(String);
 
 impl ServiceGroup {
     pub fn new<S1, S2>(service: S1, group: S2, organization: Option<&str>) -> Result<Self>

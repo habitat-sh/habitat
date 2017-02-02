@@ -30,6 +30,8 @@ extern crate num_cpus;
 extern crate persistent;
 extern crate protobuf;
 extern crate serde;
+#[macro_use]
+extern crate serde_derive;
 extern crate serde_json;
 extern crate time;
 extern crate unicase;
@@ -70,8 +72,4 @@ pub fn hostname() -> Result<String> {
             Err(Error::Sys)
         }
     }
-}
-
-mod types {
-    include!(concat!(env!("OUT_DIR"), "/serde_types.rs"));
 }

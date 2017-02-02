@@ -34,12 +34,19 @@ use hcore::service::ServiceGroup;
 use serde::{Serialize, Serializer};
 use time::SteadyTime;
 
-pub use types::supervisor::*;
 use error::{Result, Error};
 use util;
 
 const PIDFILE_NAME: &'static str = "PID";
 static LOGKEY: &'static str = "SV";
+
+#[derive(Debug, Deserialize, Serialize)]
+pub enum ProcessState {
+    Down,
+    Up,
+    Start,
+    Restart,
+}
 
 impl fmt::Display for ProcessState {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -51,6 +58,16 @@ impl fmt::Display for ProcessState {
         };
         write!(f, "{}", state)
     }
+}
+
+/// Additional params used to start the Supervisor.
+/// These params are outside the scope of what is in
+/// Supervisor.package_ident, and aren't runtime params that are stored
+/// in the top-level Supervisor struct (such as PID etc)
+#[derive(Debug, Deserialize, Serialize)]
+pub struct RuntimeConfig {
+    pub svc_user: String,
+    pub svc_group: String,
 }
 
 impl RuntimeConfig {

@@ -3,7 +3,6 @@ name = "habitat_net"
 version = "0.0.0"
 authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletcher Nichol <fnichol@chef.io>", "Joshua Timberman <joshua@chef.io>", "Dave Parfitt <dparfitt@chef.io>"]
 workspace = "../../"
-build = "build.rs"
 
 [dependencies]
 bitflags = "*"
@@ -18,6 +17,7 @@ num_cpus = "*"
 persistent = "*"
 protobuf = "*"
 serde = "*"
+serde_derive = "*"
 serde_json = "*"
 time = "*"
 unicase = "*"
@@ -28,9 +28,6 @@ path = "../builder-protocol"
 [dependencies.zmq]
 git = "https://github.com/erickt/rust-zmq"
 branch = "release/v0.8"
-
-[build-dependencies]
-serde_codegen = "*"
 
 [features]
 functional = []

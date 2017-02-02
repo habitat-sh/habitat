@@ -23,10 +23,35 @@ use hcore::fs::{am_i_root, FS_ROOT_PATH};
 use hcore::os::users;
 use toml;
 
-pub use types::config::*;
 use error::{Error, Result};
 
 const CLI_CONFIG_PATH: &'static str = "hab/etc/cli.toml";
+
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+pub struct Config {
+    pub auth_token: Option<String>,
+    pub origin: Option<String>,
+}
+
+impl ConfigFile for Config {
+    type Error = Error;
+
+    fn from_toml(toml: toml::Value) -> Result<Self> {
+        let mut cfg = Config::default();
+        try!(toml.parse_into("auth_token", &mut cfg.auth_token));
+        try!(toml.parse_into("origin", &mut cfg.origin));
+        Ok(cfg)
+    }
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        Config {
+            auth_token: None,
+            origin: None,
+        }
+    }
+}
 
 pub fn load() -> Result<Config> {
     common_load(false)
@@ -80,24 +105,4 @@ fn cli_config_path(use_sudo_user: bool) -> PathBuf {
     }
 
     PathBuf::from(FS_ROOT_PATH).join(CLI_CONFIG_PATH)
-}
-
-impl ConfigFile for Config {
-    type Error = Error;
-
-    fn from_toml(toml: toml::Value) -> Result<Self> {
-        let mut cfg = Config::default();
-        try!(toml.parse_into("auth_token", &mut cfg.auth_token));
-        try!(toml.parse_into("origin", &mut cfg.origin));
-        Ok(cfg)
-    }
-}
-
-impl Default for Config {
-    fn default() -> Self {
-        Config {
-            auth_token: None,
-            origin: None,
-        }
-    }
 }

@@ -27,6 +27,9 @@ extern crate log;
 extern crate pbr;
 extern crate regex;
 extern crate retry;
+extern crate serde;
+#[macro_use]
+extern crate serde_derive;
 extern crate toml;
 extern crate url;
 extern crate uuid;
@@ -43,7 +46,3 @@ pub const PRODUCT: &'static str = "hab";
 pub const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 pub const AUTH_TOKEN_ENVVAR: &'static str = "HAB_AUTH_TOKEN";
 pub const ORIGIN_ENVVAR: &'static str = "HAB_ORIGIN";
-
-mod types {
-    include!(concat!(env!("OUT_DIR"), "/serde_types.rs"));
-}

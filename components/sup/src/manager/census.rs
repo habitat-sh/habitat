@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::ops::{Deref, DerefMut};
 use std::collections::HashMap;
+use std::ops::{Deref, DerefMut};
 use std::str::{self, FromStr};
 
 use hcore::package::PackageIdent;
@@ -25,8 +25,6 @@ use butterfly::rumor::election::Election_Status;
 use butterfly::rumor::service::SysInfo;
 use butterfly::member::{Member, Health};
 use toml;
-
-pub use types::census::*;
 
 static LOGKEY: &'static str = "CE";
 
@@ -49,6 +47,38 @@ impl CensusUpdate {
             membership_counter: butterfly.member_list.get_update_counter(),
         }
     }
+}
+
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize, Default)]
+pub struct CensusEntry {
+    pub member_id: String,
+    pub service: String,
+    pub group: String,
+    pub org: Option<String>,
+    pub hostname: String,
+    pub address: String,
+    pub ip: String,
+    pub port: String,
+    pub exposes: Vec<String>,
+    pub cfg: toml::Table,
+    pub sys: SysInfo,
+    #[serde(rename = "pkg")]
+    pub package_ident: Option<PackageIdent>,
+    pub leader: Option<bool>,
+    pub follower: Option<bool>,
+    pub update_leader: Option<bool>,
+    pub update_follower: Option<bool>,
+    pub election_is_running: Option<bool>,
+    pub election_is_no_quorum: Option<bool>,
+    pub election_is_finished: Option<bool>,
+    pub update_election_is_running: Option<bool>,
+    pub update_election_is_no_quorum: Option<bool>,
+    pub update_election_is_finished: Option<bool>,
+    pub initialized: Option<bool>,
+    pub alive: Option<bool>,
+    pub suspect: Option<bool>,
+    pub confirmed: Option<bool>,
+    pub persistent: Option<bool>,
 }
 
 impl CensusEntry {
@@ -386,6 +416,16 @@ impl CensusEntry {
     }
 }
 
+#[derive(Debug, Deserialize, Serialize)]
+pub struct Census {
+    // JW TODO: This needs to become an Ordered HashMap keyed on member_id. This will reduce our
+    // allocations when ordering the population to determine who should update next in a rolling
+    // update strategy. For now, we allocate a new vector every server tick by the members() and
+    // members_ordered() functions.
+    pub population: HashMap<String, CensusEntry>,
+    pub member_id: String,
+}
+
 impl Deref for Census {
     type Target = HashMap<String, CensusEntry>;
 
@@ -499,6 +539,11 @@ impl Census {
             None => None,
         }
     }
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct CensusList {
+    pub censuses: HashMap<String, Census>,
 }
 
 impl Deref for CensusList {

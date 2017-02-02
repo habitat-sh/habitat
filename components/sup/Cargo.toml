@@ -2,7 +2,7 @@
 name = "habitat_sup"
 version = "0.0.0"
 authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletcher Nichol <fnichol@chef.io>", "Joshua Timberman <joshua@chef.io>", "Dave Parfitt <dparfitt@chef.io>"]
-build = "build.rs"
+build = "../build.rs"
 workspace = "../../"
 
 [lib]
@@ -27,6 +27,7 @@ persistent = "*"
 regex = "*"
 router = "*"
 serde = "*"
+serde_derive = "*"
 serde_json = "*"
 tempdir = "*"
 time = "*"
@@ -48,9 +49,6 @@ path = "../butterfly"
 [dependencies.clap]
 version = "*"
 features = [ "suggestions", "color", "unstable" ]
-
-[build-dependencies]
-serde_codegen = "*"
 
 [dev-dependencies]
 hyper = "*"
