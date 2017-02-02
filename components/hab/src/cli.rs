@@ -431,11 +431,7 @@ fn file_exists(val: String) -> result::Result<(), String> {
 }
 
 fn file_exists_or_stdin(val: String) -> result::Result<(), String> {
-    if val == "-" {
-        Ok(())
-    } else {
-        file_exists(val)
-    }
+    if val == "-" { Ok(()) } else { file_exists(val) }
 }
 
 fn valid_pair_type(val: String) -> result::Result<(), String> {

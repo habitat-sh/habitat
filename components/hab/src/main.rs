@@ -351,8 +351,7 @@ fn sub_pkg_install(ui: &mut UI, m: &ArgMatches) -> Result<()> {
             command::pkg::binlink::binlink_all_in_pkg(ui,
                                                       &pkg_ident,
                                                       dest_dir,
-                                                      &Path::new(&fs_root))
-                ?;
+                                                      &Path::new(&fs_root))?;
         }
     }
     Ok(())

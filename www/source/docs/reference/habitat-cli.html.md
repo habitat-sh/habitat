@@ -327,6 +327,7 @@ Installs a Habitat package from a Depot or locally from a Habitat Artifact
 
 **FLAGS**
 
+    -b, --binlink    Binlink all binaries from installed package(s)
     -h, --help       Prints help information
     -V, --version    Prints version information
 
