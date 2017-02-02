@@ -6,6 +6,7 @@ workspace = "../../"
 
 [dependencies]
 ansi_term = "*"
+hyper = "*"
 libc = "*"
 log = "*"
 pbr = "0.2" # lock until ready to support 0.3+ interface

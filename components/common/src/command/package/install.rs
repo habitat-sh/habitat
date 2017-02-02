@@ -45,6 +45,7 @@ use hcore::fs::{am_i_root, cache_key_path};
 use hcore::crypto::{artifact, SigKeyPair};
 use hcore::crypto::keys::parse_name_with_rev;
 use hcore::package::{Identifiable, PackageArchive, PackageIdent, Target, PackageInstall};
+use hyper::status::StatusCode;
 
 use error::{Error, Result};
 use ui::{Status, UI};
@@ -257,8 +258,15 @@ impl<'a> InstallTask<'a> {
         }
 
         try!(ui.status(Status::Downloading, ident));
-        try!(self.depot_client.fetch_package(ident, self.cache_artifact_path, ui.progress()));
-        Ok(())
+        match self.depot_client.fetch_package(ident, self.cache_artifact_path, ui.progress()) {
+            Ok(_) => Ok(()),
+            Err(depot_client::Error::APIError(StatusCode::NotImplemented, _)) => {
+                println!("Host platform or architecture not supported by the targted depot; \
+                          skipping.");
+                Ok(())
+            }
+            Err(e) => Err(Error::from(e)),
+        }
     }
 
     fn fetch_origin_key(&self, ui: &mut UI, name_with_rev: &str) -> Result<()> {
