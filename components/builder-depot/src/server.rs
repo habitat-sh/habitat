@@ -16,10 +16,11 @@ use std::fs::{self, File};
 use std::io::{Read, Write, BufWriter};
 use std::path::PathBuf;
 use std::result;
+use std::str::FromStr;
 
 use bodyparser;
 use dbcache::{self, BasicSet};
-use hab_core::package::{Identifiable, FromArchive, PackageArchive};
+use hab_core::package::{Identifiable, FromArchive, PackageArchive, PackageTarget};
 use hab_core::crypto::keys::{self, PairType};
 use hab_core::crypto::SigKeyPair;
 use hab_core::event::*;
@@ -30,7 +31,7 @@ use hab_net::privilege;
 use hab_net::routing::{Broker, BrokerConn};
 use hab_net::server::NetIdent;
 use hyper::mime::{Mime, TopLevel, SubLevel, Attr, Value};
-use iron::headers::ContentType;
+use iron::headers::{ContentType, UserAgent, HeaderFormat};
 use iron::prelude::*;
 use iron::{status, headers};
 use iron::request::Body;
@@ -41,6 +42,7 @@ use protocol::depotsrv;
 use protocol::net::ErrCode;
 use protocol::sessionsrv::{Account, AccountGet};
 use protocol::vault::*;
+use regex::Regex;
 use router::{Params, Router};
 use serde::Serialize;
 use serde_json;
@@ -657,10 +659,18 @@ fn download_latest_origin_key(req: &mut Request) -> IronResult<Response> {
     Ok(response)
 }
 
+
+
 fn download_package(req: &mut Request) -> IronResult<Response> {
     let depot = req.get::<persistent::Read<Depot>>().unwrap();
     let params = req.extensions.get::<Router>().unwrap();
     let ident = ident_from_params(params);
+    let agent_target = target_from_headers(&req.headers.get::<UserAgent>().unwrap()).unwrap();
+    if agent_target != depot.config.supported_target {
+        error!("Unsupported client platform ({}) for this depot.",
+               agent_target);
+        return Ok(Response::with(status::NotImplemented));
+    }
 
     match depot.datastore.packages.find(&ident) {
         Ok(ident) => {
@@ -1017,6 +1027,20 @@ fn ident_from_params(params: &Params) -> depotsrv::PackageIdent {
         ident.set_release(rel.to_string());
     }
     ident
+}
+
+fn target_from_headers(user_agent_header: &UserAgent) -> result::Result<PackageTarget, Response> {
+    let user_agent = user_agent_header.as_str();
+    debug!("Headers = {}", &user_agent);
+
+    let user_agent_regex = Regex::new(r"(?P<client>\.*)\s\((?P<target>\w+-\w+); (?P<kernel>.*)\)")
+        .unwrap();
+    let user_agent_capture = user_agent_regex.captures(user_agent)
+        .expect("Invalid user agent supplied.");
+    match PackageTarget::from_str(&user_agent_capture["target"]) {
+        Ok(target) => Ok(target),
+        Err(_) => Err(Response::with(status::BadRequest)),
+    }
 }
 
 // Returns a tuple representing the from and to values representing a paginated set.
