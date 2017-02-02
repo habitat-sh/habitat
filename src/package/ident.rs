@@ -19,9 +19,16 @@ use std::str::FromStr;
 
 use regex::Regex;
 
-pub use types::package_ident::*;
 use package::PackageTarget;
 use error::{Error, Result};
+
+#[derive(Deserialize, Serialize, Eq, PartialEq, Debug, Clone, Hash)]
+pub struct PackageIdent {
+    pub origin: String,
+    pub name: String,
+    pub version: Option<String>,
+    pub release: Option<String>,
+}
 
 pub trait Identifiable: fmt::Display + Into<PackageIdent> {
     fn origin(&self) -> &str;

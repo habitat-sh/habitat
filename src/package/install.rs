@@ -23,13 +23,20 @@ use std::str::FromStr;
 
 use toml;
 
-pub use types::package_install::*;
 use super::{Identifiable, MetaFile, PackageIdent, Target, PackageTarget};
 use error::{Error, Result};
 use fs::{self, PKG_PATH};
 use util;
 
 pub const DEFAULT_CFG_FILE: &'static str = "default.toml";
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct PackageInstall {
+    pub ident: PackageIdent,
+    pub fs_root_path: PathBuf,
+    pub package_root_path: PathBuf,
+    pub installed_path: PathBuf,
+}
 
 impl PackageInstall {
     /// Verifies an installation of a package is within the package path and returns a struct
