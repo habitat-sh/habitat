@@ -62,3 +62,22 @@ pub fn start(ui: &mut UI,
                         &dst.display())));
     Ok(())
 }
+
+pub fn binlink_all_in_pkg(ui: &mut UI,
+                          pkg_ident: &PackageIdent,
+                          dest_path: &Path,
+                          fs_root_path: &Path)
+                          -> Result<()> {
+    let pkg_path = PackageInstall::load(&pkg_ident, Some(fs_root_path))?;
+    for bin_path in pkg_path.paths()? {
+        for bin in fs::read_dir(&bin_path)? {
+            let bin_file = bin?;
+            let bin_name = bin_file.file_name()
+                .to_str()
+                .ok_or(Error::Utf8Error("Not a valid Utf8 string".to_string()))?
+                .to_owned();
+            self::start(ui, &pkg_ident, &bin_name, &dest_path, &fs_root_path)?;
+        }
+    }
+    Ok(())
+}
