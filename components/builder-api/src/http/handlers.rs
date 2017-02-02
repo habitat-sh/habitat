@@ -32,7 +32,30 @@ use protocol::net::{self, NetOk, ErrCode};
 use router::Router;
 
 define_event_log!();
-include!(concat!(env!("OUT_DIR"), "/serde_types.rs"));
+
+#[derive(Clone, Serialize, Deserialize)]
+struct JobCreateReq {
+    project_id: String,
+}
+
+#[derive(Clone, Serialize, Deserialize)]
+struct ProjectCreateReq {
+    origin: String,
+    plan_path: String,
+    github: GitHubProject,
+}
+
+#[derive(Clone, Serialize, Deserialize)]
+struct ProjectUpdateReq {
+    plan_path: String,
+    github: GitHubProject,
+}
+
+#[derive(Clone, Serialize, Deserialize)]
+struct GitHubProject {
+    organization: String,
+    repo: String,
+}
 
 pub fn github_authenticate(req: &mut Request) -> IronResult<Response> {
     let code = {

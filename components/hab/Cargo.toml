@@ -2,7 +2,7 @@
 name = "hab"
 version = "0.0.0"
 authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletcher Nichol <fnichol@chef.io>", "Joshua Timberman <joshua@chef.io>", "Dave Parfitt <dparfitt@chef.io>"]
-build = "build.rs"
+build = "../build.rs"
 workspace = "../../"
 
 [[bin]]
@@ -20,6 +20,7 @@ pbr = "*"
 regex = "*"
 retry = "*"
 serde = "*"
+serde_derive = "*"
 toml = { version = "*", features = ["serde"], default-features = false }
 url = "*"
 walkdir = "*"
@@ -43,9 +44,6 @@ path = "../http-client"
 [dependencies.uuid]
 version = "*"
 features = ["v4"]
-
-[build-dependencies]
-serde_codegen = "*"
 
 [features]
 functional = []

@@ -3,12 +3,13 @@ name = "habitat_builder_protocol"
 version = "0.0.0"
 authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletcher Nichol <fnichol@chef.io>", "Joshua Timberman <joshua@chef.io>", "Dave Parfitt <dparfitt@chef.io>"]
 description = "Habitat-Builder Network Server Protocol"
-build = "build.rs"
+build = "../bldr-build.rs"
 workspace = "../../"
 
 [dependencies]
 protobuf = "*"
 serde = "*"
+serde_derive = "*"
 time = "*"
 
 [dependencies.habitat_core]
@@ -20,7 +21,6 @@ branch = "habitat"
 
 [build-dependencies]
 pkg-config = "0.3"
-serde_codegen = "*"
 
 [features]
 functional = []

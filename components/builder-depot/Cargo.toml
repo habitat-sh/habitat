@@ -3,7 +3,7 @@ name = "habitat_depot"
 version = "0.0.0"
 authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletcher Nichol <fnichol@chef.io>", "Joshua Timberman <joshua@chef.io>", "Dave Parfitt <dparfitt@chef.io>"]
 description = "Habitat-Builder package depot"
-build = "build.rs"
+build = "../bldr-build.rs"
 workspace = "../../"
 
 [[bin]]
@@ -27,6 +27,7 @@ regex = "*"
 router = "*"
 rust-crypto = "*"
 serde = "*"
+serde_derive = "*"
 serde_json = "*"
 time = "*"
 toml = { version = "*", features = ["serde"], default-features = false }
@@ -65,9 +66,6 @@ branch = "habitat"
 [dependencies.zmq]
 git = "https://github.com/erickt/rust-zmq"
 branch = "release/v0.8"
-
-[build-dependencies]
-serde_codegen = "*"
 
 [dev-dependencies]
 url = "*"

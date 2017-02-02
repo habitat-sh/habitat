@@ -14,7 +14,6 @@ path = "../butterfly-test"
 
 [build-dependencies]
 pkg-config = "0.3"
-serde_codegen = "*"
 
 [dependencies]
 env_logger = "*"
@@ -23,6 +22,7 @@ lazy_static = "*"
 protobuf = "*"
 rand = "*"
 serde = "*"
+serde_derive = "*"
 time = "*"
 threadpool = "*"
 toml = { version = "*", features = ["serde"], default-features = false }

@@ -26,11 +26,13 @@ use habitat_core::service::ServiceGroup;
 use protobuf::Message;
 use toml;
 
-pub use types::rumor_service_config::*;
 use error::{Error, Result};
 use message::swim::{ServiceConfig as ProtoServiceConfig, Rumor as ProtoRumor,
                     Rumor_Type as ProtoRumor_Type};
 use rumor::Rumor;
+
+#[derive(Debug, Clone, Serialize)]
+pub struct ServiceConfig(ProtoRumor);
 
 impl PartialOrd for ServiceConfig {
     fn partial_cmp(&self, other: &ServiceConfig) -> Option<Ordering> {

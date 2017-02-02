@@ -25,10 +25,12 @@ use habitat_core::package::Identifiable;
 use protobuf::Message;
 use toml;
 
-pub use types::rumor_service::*;
 use error::Result;
 use message::swim::{Service as ProtoService, Rumor as ProtoRumor, Rumor_Type as ProtoRumor_Type};
 use rumor::Rumor;
+
+#[derive(Debug, Clone, Serialize)]
+pub struct Service(ProtoRumor);
 
 impl PartialOrd for Service {
     fn partial_cmp(&self, other: &Service) -> Option<Ordering> {
@@ -144,6 +146,14 @@ impl Rumor for Service {
     fn write_to_bytes(&self) -> Result<Vec<u8>> {
         Ok(try!(self.0.write_to_bytes()))
     }
+}
+
+#[derive(Debug, Default, Clone, PartialEq, Deserialize, Serialize)]
+pub struct SysInfo {
+    pub ip: String,
+    pub hostname: String,
+    pub http_gateway_ip: String,
+    pub http_gateway_port: u16,
 }
 
 #[cfg(test)]

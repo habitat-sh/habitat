@@ -19,7 +19,6 @@ use error::Error;
 #[cfg(windows)]
 mod windows;
 
-pub use types::system::*;
 #[cfg(windows)]
 pub use self::windows::uname;
 #[cfg(not(windows))]
@@ -36,11 +35,24 @@ pub struct Uname {
     pub machine: String,
 }
 
+#[allow(non_camel_case_types)]
+#[derive(Debug, Hash, Clone, Serialize, Deserialize, Eq, PartialEq)]
+pub enum Architecture {
+    X86_64,
+}
+
 impl fmt::Display for Architecture {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let architecture_string = format!("{:?}", self);
         write!(f, "{}", architecture_string.to_lowercase())
     }
+}
+
+#[derive(Debug, Hash, Clone, Serialize, Deserialize, Eq, PartialEq)]
+pub enum Platform {
+    Linux,
+    Windows,
+    MacOS,
 }
 
 impl fmt::Display for Platform {

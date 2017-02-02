@@ -27,7 +27,6 @@ use hcore::package::PackageInstall;
 use hcore::crypto;
 use toml;
 
-pub use types::service_config::*;
 use manager::census::{Census, CensusList};
 use config::gconfig;
 use error::{Error, Result};
@@ -45,6 +44,21 @@ static ENV_VAR_PREFIX: &'static str = "HAB";
 /// is deeper than this value crosses into overly complex territory when describing configuration
 /// for a single service.
 static TOML_MAX_MERGE_DEPTH: u16 = 30;
+
+/// The top level struct for all our configuration - this corresponds to the top level
+/// namespaces available in `config.toml`.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct ServiceConfig {
+    pub hab: Hab,
+    pub pkg: Pkg,
+    pub sys: Sys,
+    pub cfg: Cfg,
+    pub svc: Svc,
+    pub bind: Bind,
+    // Set to 'true' if we have data that needs to be sent to a configuration file
+    #[serde(skip_deserializing)]
+    pub needs_write: bool,
+}
 
 impl ServiceConfig {
     /// Takes a new package and a new census list, and returns a ServiceConfig. This function can
@@ -194,6 +208,9 @@ impl ServiceConfig {
     }
 }
 
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct Bind(toml::Table);
+
 impl Bind {
     fn new(binding_cfg: Vec<String>, cl: &CensusList) -> Result<Bind> {
         let mut top = toml::Table::new();
@@ -229,6 +246,9 @@ impl Bind {
         toml::Value::Table(self.0.clone())
     }
 }
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct Svc(toml::Table);
 
 impl Svc {
     fn new(service_group: &str, cl: &CensusList) -> Svc {
@@ -284,6 +304,14 @@ fn service_entry(census: &Census) -> toml::Table {
     result.insert("members".to_string(), toml::Value::Array(members));
     result.insert("member_id".to_string(), toml::Value::Table(member_id));
     result
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct Cfg {
+    pub default: Option<toml::Value>,
+    pub user: Option<toml::Value>,
+    pub gossip: Option<toml::Value>,
+    pub environment: Option<toml::Value>,
 }
 
 impl Cfg {
@@ -431,6 +459,29 @@ impl Cfg {
     }
 }
 
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct Pkg {
+    pub origin: String,
+    pub name: String,
+    pub version: String,
+    pub release: String,
+    pub ident: String,
+    pub deps: Vec<Pkg>,
+    pub exposes: Vec<String>,
+    pub exports: HashMap<String, String>,
+    pub path: String,
+    pub svc_path: String,
+    pub svc_config_path: String,
+    pub svc_data_path: String,
+    pub svc_files_path: String,
+    pub svc_static_path: String,
+    pub svc_var_path: String,
+    pub svc_user: Option<String>,
+    pub svc_group: Option<String>,
+    pub svc_user_default: String,
+    pub svc_group_default: String,
+}
+
 impl Pkg {
     fn new(pkg_install: &PackageInstall) -> Pkg {
         let ident = pkg_install.ident();
@@ -520,6 +571,9 @@ impl Pkg {
     }
 }
 
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct Sys(SysInfo);
+
 impl Sys {
     fn new() -> Sys {
         let ip = match util::sys::ip() {
@@ -565,6 +619,11 @@ impl DerefMut for Sys {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
     }
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct Hab {
+    pub version: String,
 }
 
 impl Hab {

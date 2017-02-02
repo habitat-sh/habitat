@@ -24,11 +24,13 @@ use habitat_core::crypto::{BoxKeyPair, default_cache_key_path};
 use habitat_core::service::ServiceGroup;
 use protobuf::Message;
 
-pub use types::rumor_service_file::*;
 use error::Result;
 use message::swim::{ServiceFile as ProtoServiceFile, Rumor as ProtoRumor,
                     Rumor_Type as ProtoRumor_Type};
 use rumor::Rumor;
+
+#[derive(Debug, Clone, Serialize)]
+pub struct ServiceFile(ProtoRumor);
 
 impl PartialOrd for ServiceFile {
     fn partial_cmp(&self, other: &ServiceFile) -> Option<Ordering> {

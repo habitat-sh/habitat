@@ -16,6 +16,7 @@
 
 use bodyparser;
 use hab_net::http::controller::*;
+use hab_net::privilege;
 use hab_net::routing::Broker;
 use iron::prelude::*;
 use iron::status;
@@ -25,7 +26,13 @@ use protocol::sessionsrv::*;
 use router::Router;
 use serde_json;
 
-include!(concat!(env!("OUT_DIR"), "/serde_types.rs"));
+#[derive(Clone, Serialize, Deserialize)]
+struct FeatureGrant {
+    team_id: u64,
+}
+
+#[derive(Clone, Serialize, Deserialize)]
+struct FeatureFlagList(Vec<FeatureFlag>);
 
 impl Default for FeatureFlagList {
     fn default() -> Self {
@@ -36,6 +43,12 @@ impl Default for FeatureFlagList {
     }
 }
 
+#[derive(Clone, Serialize, Deserialize)]
+struct FeatureFlag {
+    name: String,
+    id: u32,
+}
+
 impl FeatureFlag {
     pub fn new(name: &'static str, id: u32) -> Self {
         FeatureFlag {
@@ -43,6 +56,13 @@ impl FeatureFlag {
             id: id,
         }
     }
+}
+
+#[derive(Clone, Serialize, Deserialize)]
+struct SearchTerm {
+    attr: String,
+    entity: String,
+    value: String,
 }
 
 pub fn account_show(req: &mut Request) -> IronResult<Response> {

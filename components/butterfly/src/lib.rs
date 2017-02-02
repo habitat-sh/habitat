@@ -48,6 +48,8 @@ extern crate log;
 extern crate protobuf;
 extern crate rand;
 extern crate serde;
+#[macro_use]
+extern crate serde_derive;
 extern crate time;
 extern crate toml;
 extern crate uuid;
@@ -65,10 +67,6 @@ pub mod server;
 use std::cell::UnsafeCell;
 
 pub use server::Server;
-
-mod types {
-    include!(concat!(env!("OUT_DIR"), "/serde_types.rs"));
-}
 
 lazy_static! {
     /// A threadsafe shared ZMQ context for consuming services.

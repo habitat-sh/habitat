@@ -159,8 +159,6 @@ fn config_from_args(subcommand: &str, sub_args: &ArgMatches) -> Result<()> {
     Ok({})
 }
 
-type Handler = fn() -> result::Result<(), sup::error::SupError>;
-
 /// The entrypoint for the Supervisor.
 ///
 /// * Set up the logger

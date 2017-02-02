@@ -19,8 +19,6 @@ use std::ops::Deref;
 use redis;
 use time;
 
-pub use types::sharding::*;
-
 /// Time from which we begin issuing identifiers. This number can be used to determine how old
 /// an entity is by subtracting it's timestamp from this value.
 pub const EPOCH_MS: u64 = 1460499133628;
@@ -34,6 +32,9 @@ const ID_MASK: u64 = 0x3FF;
 const SHARD_MASK: u64 = 0x1FFF;
 
 pub type ShardId = u32;
+
+#[derive(Clone, Copy, Debug, PartialEq, Deserialize, Serialize)]
+pub struct InstaId(pub u64);
 
 impl InstaId {
     pub fn generate(auto_id: u64) -> Self {

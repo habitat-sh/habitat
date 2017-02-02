@@ -25,17 +25,19 @@ extern crate pbr;
 extern crate protobuf;
 extern crate rand;
 extern crate serde;
+#[macro_use]
+extern crate serde_derive;
 extern crate serde_json;
 extern crate tee;
 extern crate url;
 
 pub mod error;
-
 pub use error::{Error, Result};
 
 use std::fs::{self, File};
 use std::io::{self, Read, Write};
 use std::path::{Path, PathBuf};
+use std::string::ToString;
 
 use broadcast::BroadcastWriter;
 use hab_core::package::{Identifiable, PackageArchive};
@@ -44,6 +46,7 @@ use hyper::client::{Body, IntoUrl, Response, RequestBuilder};
 use hyper::status::StatusCode;
 use hyper::header::{Authorization, Bearer};
 use hyper::Url;
+use protobuf::core::ProtobufEnum;
 use protocol::{depotsrv, net};
 use rand::{Rng, thread_rng};
 use tee::TeeReader;
@@ -51,7 +54,100 @@ use tee::TeeReader;
 header! { (XFileName, "X-Filename") => [String] }
 header! { (ETag, "ETag") => [String] }
 
-include!(concat!(env!("OUT_DIR"), "/serde_types.rs"));
+#[derive(Clone, Deserialize)]
+#[serde(rename = "error")]
+pub struct NetError {
+    pub code: i32,
+    pub msg: String,
+}
+
+impl ToString for NetError {
+    fn to_string(&self) -> String {
+        let mut out = net::NetError::new();
+        out.set_code(net::ErrCode::from_i32(self.code).unwrap());
+        out.set_msg(self.msg.clone());
+        out.to_string()
+    }
+}
+
+#[derive(Clone, Deserialize)]
+pub struct OriginKeyIdent {
+    pub origin: String,
+    pub revision: String,
+    pub location: String,
+}
+
+impl Into<depotsrv::OriginKeyIdent> for OriginKeyIdent {
+    fn into(self) -> depotsrv::OriginKeyIdent {
+        let mut out = depotsrv::OriginKeyIdent::new();
+        out.set_origin(self.origin);
+        out.set_revision(self.revision);
+        out.set_location(self.location);
+        out
+    }
+}
+
+#[derive(Clone, Serialize, Deserialize)]
+pub struct OriginSecretKey {
+    pub id: String,
+    pub origin_id: String,
+    pub name: String,
+    pub revision: String,
+    pub body: String,
+    pub owner_id: String,
+}
+
+#[derive(Clone, Deserialize)]
+pub struct Package {
+    pub ident: PackageIdent,
+    pub checksum: String,
+    pub manifest: String,
+    pub deps: Vec<PackageIdent>,
+    pub tdeps: Vec<PackageIdent>,
+    pub exposes: Vec<u32>,
+    pub config: String,
+}
+
+impl Into<depotsrv::Package> for Package {
+    fn into(self) -> depotsrv::Package {
+        let mut out = depotsrv::Package::new();
+        out.set_ident(self.ident.into());
+        out.set_checksum(self.checksum);
+        out.set_manifest(self.manifest);
+        out.set_deps(self.deps.into_iter().map(|m| m.into()).collect());
+        out.set_tdeps(self.tdeps.into_iter().map(|m| m.into()).collect());
+        out.set_exposes(self.exposes);
+        out.set_config(self.config);
+        out
+    }
+}
+
+#[derive(Clone, Deserialize)]
+pub struct PackageIdent {
+    pub origin: String,
+    pub name: String,
+    pub version: String,
+    pub release: String,
+}
+
+impl Into<depotsrv::PackageIdent> for PackageIdent {
+    fn into(self) -> depotsrv::PackageIdent {
+        let mut out = depotsrv::PackageIdent::new();
+        out.set_origin(self.origin);
+        out.set_name(self.name);
+        out.set_version(self.version);
+        out.set_release(self.release);
+        out
+    }
+}
+
+#[derive(Clone, Serialize, Deserialize)]
+pub struct PackageResults<T> {
+    pub range_start: isize,
+    pub range_end: isize,
+    pub total_count: isize,
+    pub package_list: Vec<T>,
+}
 
 pub trait DisplayProgress: Write {
     fn size(&mut self, size: u64);

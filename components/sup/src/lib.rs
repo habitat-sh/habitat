@@ -55,6 +55,8 @@ extern crate iron;
 #[macro_use]
 extern crate router;
 extern crate serde;
+#[macro_use]
+extern crate serde_derive;
 extern crate serde_json;
 extern crate time;
 extern crate toml;
@@ -288,7 +290,3 @@ lazy_static!{
 
 const PRODUCT: &'static str = "hab-sup";
 const VERSION: &'static str = env!("CARGO_PKG_VERSION");
-
-mod types {
-    include!(concat!(env!("OUT_DIR"), "/serde_types.rs"));
-}
