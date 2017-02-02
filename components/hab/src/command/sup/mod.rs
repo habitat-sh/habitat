@@ -37,6 +37,7 @@ mod inner {
 
     use error::{Error, Result};
     use exec;
+    use VERSION;
 
     const SUP_CMD: &'static str = "hab-sup";
     const SUP_CMD_ENVVAR: &'static str = "HAB_SUP_BINARY";
@@ -58,8 +59,13 @@ mod inner {
             Ok(command) => PathBuf::from(command),
             Err(_) => {
                 init();
-                let ident = try!(PackageIdent::from_str(sup_ident));
-                try!(exec::command_from_pkg(ui, SUP_CMD, &ident, &default_cache_key_path(None), 0))
+                let version: Vec<&str> = VERSION.split("/").collect();
+                let ident = try!(PackageIdent::from_str(&format!("{}/{}", sup_ident, version[0])));
+                try!(exec::command_from_min_pkg(ui,
+                                                SUP_CMD,
+                                                &ident,
+                                                &default_cache_key_path(None),
+                                                0))
             }
         };
 

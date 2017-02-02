@@ -81,6 +81,7 @@ mod inner {
 
     use error::{Error, Result};
     use exec;
+    use VERSION;
 
     const SUDO_CMD: &'static str = "sudo";
 
@@ -89,12 +90,15 @@ mod inner {
             Ok(command) => PathBuf::from(command),
             Err(_) => {
                 init();
-                let ident = try!(PackageIdent::from_str(super::STUDIO_PACKAGE_IDENT));
-                try!(exec::command_from_pkg(ui,
-                                            super::STUDIO_CMD,
-                                            &ident,
-                                            &default_cache_key_path(None),
-                                            0))
+                let version: Vec<&str> = VERSION.split("/").collect();
+                let ident = try!(PackageIdent::from_str(&format!("{}/{}",
+                                                                 super::STUDIO_PACKAGE_IDENT,
+                                                                 version[0])));
+                try!(exec::command_from_min_pkg(ui,
+                                                super::STUDIO_CMD,
+                                                &ident,
+                                                &default_cache_key_path(None),
+                                                0))
             }
         };
 
@@ -174,12 +178,15 @@ mod inner {
             Ok(command) => PathBuf::from(command),
             Err(_) => {
                 init();
-                let ident = try!(PackageIdent::from_str(super::STUDIO_PACKAGE_IDENT));
-                try!(exec::command_from_pkg(ui,
-                                            super::STUDIO_CMD,
-                                            &ident,
-                                            &default_cache_key_path(None),
-                                            0))
+                let version: Vec<&str> = VERSION.split("/").collect();
+                let ident = try!(PackageIdent::from_str(&format!("{}/{}",
+                                                                 super::STUDIO_PACKAGE_IDENT,
+                                                                 version[0])));
+                try!(exec::command_from_min_pkg(ui,
+                                                super::STUDIO_CMD,
+                                                &ident,
+                                                &default_cache_key_path(None),
+                                                0))
             }
         };
 
