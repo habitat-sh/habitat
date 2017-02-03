@@ -221,21 +221,13 @@ have `git` installed and configured.  Posh-Git is a handy PowerShell module for
 making `git` better in your PowerShell console (`install-module posh-git`).
 
 ```
-# Clone the Windows build script
-git clone https://github.com/smurawski/hab-build-script.git
-
 # Clone the Habitat source
 git clone https://github.com/habitat-sh/habitat.git
 
-# Install the psake PowerShell module
-import-module PowerShellGet -force
-install-module psake -force
+cd habitat
 
-# Change into build script directory
-cd ./hab-build-script
+./build.ps1 components/hab -configure
 
-# Build Habitat
-invoke-psake
 ```
 
 
@@ -253,43 +245,10 @@ invoke-psake
 
 ## Windows build notes
 
-The Windows build scripts referenced above and the default build task
-`invoke-psake` attempts to build the full habitat project as well as validates
-pre-reqs are installed. This is not always and ideal way to build or test. In
-some cases the following tasks may be more appropriate.
+The `-configure` switch will make sure you have all the necessary dependencies to build the `hab` CLI tool, including Rust, the Visual Studio Build Tools, and all the native dependencies.
 
-```
-# Build all the currently ported crates
-invoke-psake -tasklist build_all
+Not all crates have been fully ported to Windows.
 
-# Build only the current crate in progress
-invoke-psake -tasklist current_build
+Currently the `hab` command will build (as well as the dependent crates).
 
-# Test all the currently ported crates
-invoke-psake -tasklist test_all
-
-# Run tests on the current crate in progress
-invoke-psake -tasklist current_test
-```
-
-
-#### Building the native dependencies
-
-You'll want to start in a fresh PowerShell instance, with the Visual C++ Build
-Tools paths and environment variables set.
-
-I use a handy `Start-VsDevShell` function in my profile.
-
-```
-function Start-VsDevShell {
-  cmd.exe --% /k ""C:\Program Files (x86)\Microsoft Visual C++ Build Tools\vcbuildtools.bat" amd64" & powershell
-}
-```
-
-then
-
-```
-Start-VsDevShell
-cd ~/source/hab-build-script
-invoke-psake -tasklist build_native_deps
-```
+Work is in progress on the supervisor and other parts of the toolchain.
