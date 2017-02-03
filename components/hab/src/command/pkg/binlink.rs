@@ -72,10 +72,13 @@ pub fn binlink_all_in_pkg(ui: &mut UI,
     for bin_path in pkg_path.paths()? {
         for bin in fs::read_dir(&bin_path)? {
             let bin_file = bin?;
-            let bin_name = bin_file.file_name()
-                .to_str()
-                .ok_or(Error::Utf8Error("Not a valid Utf8 string".to_string()))?
-                .to_owned();
+            let bin_name = match bin_file.file_name().to_str() {
+                Some(bn) => bn.to_owned(),
+                None => {
+                    try!(ui.warn("Found a binary with an invalid name.  Skipping binlink."));
+                    continue;
+                }
+            };
             self::start(ui, &pkg_ident, &bin_name, &dest_path, &fs_root_path)?;
         }
     }
