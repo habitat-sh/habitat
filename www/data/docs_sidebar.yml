@@ -95,6 +95,8 @@ sidebar_links:
     link: "/docs/reference/environment-vars/"
   - title: Package contents
     link: "/docs/reference/package-contents/"
+  - title: Supervisor log keys
+    link: "/docs/reference/log-keys/"
 - title: Contribute
   links:
   - title: Help build Habitat
