@@ -413,6 +413,7 @@ fn sub_pkg_install() -> App<'static, 'static> {
         (@arg PKG_IDENT_OR_ARTIFACT: +required +multiple
             "One or more Habitat package identifiers (ex: acme/redis) and/or filepaths \
             to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
+        (@arg BINLINK: -b --binlink "Binlink all binaries from installed package(s)")
     );
     sub.arg(Arg::with_name("IGNORE_TARGET")
         .help("Skips target validation for package installation.")

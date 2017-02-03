@@ -338,7 +338,7 @@ fn sub_pkg_install(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     init();
 
     for ident_or_artifact in ident_or_artifacts {
-        try!(common::command::package::install::start(ui,
+        let pkg_ident = try!(common::command::package::install::start(ui,
                                                       url,
                                                       ident_or_artifact,
                                                       PRODUCT,
@@ -346,6 +346,13 @@ fn sub_pkg_install(ui: &mut UI, m: &ArgMatches) -> Result<()> {
                                                       Path::new(&fs_root),
                                                       &cache_artifact_path(fs_root_path),
                                                       ignore_target));
+        if m.is_present("BINLINK") {
+            let dest_dir = Path::new(m.value_of("DEST_DIR").unwrap_or(DEFAULT_BINLINK_DIR));
+            command::pkg::binlink::binlink_all_in_pkg(ui,
+                                                      &pkg_ident,
+                                                      dest_dir,
+                                                      &Path::new(&fs_root))?;
+        }
     }
     Ok(())
 }
