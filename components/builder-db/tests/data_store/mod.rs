@@ -15,7 +15,6 @@
 use db::pool::Pool;
 use db::migration::Migrator;
 use db::error::{Result, Error};
-use db::data_store::DataStore;
 
 #[derive(Debug)]
 struct MusicDB {
@@ -40,7 +39,7 @@ impl MusicDB {
         )"#)?;
         migrator.migrate("music",
                      2,
-                     r#"CREATE VIEW metal_bands AS 
+                     r#"CREATE VIEW metal_bands AS
             SELECT band FROM music WHERE style = 'metal'"#)?;
         migrator.migrate("music",
                      3,
