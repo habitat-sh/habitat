@@ -18,7 +18,6 @@ pub mod worker_manager;
 use std::ops::Deref;
 use std::sync::{Arc, RwLock};
 
-use dbcache::data_store::Pool;
 use hab_net::dispatcher::prelude::*;
 use hab_net::{Application, Supervisor};
 use hab_net::server::{Envelope, NetIdent, RouteConn, Service, ZMQ_CONTEXT};
@@ -34,12 +33,12 @@ const BE_LISTEN_ADDR: &'static str = "inproc://backend";
 
 #[derive(Clone)]
 pub struct InitServerState {
-    datastore: Arc<Box<DataStore>>,
+    datastore: DataStore,
 }
 
 impl InitServerState {
     pub fn new(datastore: DataStore) -> Self {
-        InitServerState { datastore: Arc::new(Box::new(datastore)) }
+        InitServerState { datastore: datastore }
     }
 }
 
@@ -53,7 +52,7 @@ impl Into<ServerState> for InitServerState {
 
 #[derive(Default)]
 pub struct ServerState {
-    datastore: Option<Arc<Box<DataStore>>>,
+    datastore: Option<DataStore>,
     worker_mgr: Option<WorkerMgrClient>,
 }
 
@@ -152,8 +151,9 @@ impl Application for Server {
         try!(self.be_sock.bind(BE_LISTEN_ADDR));
         let datastore = {
             let cfg = self.config.read().unwrap();
-            DataStore::start(cfg.deref())
+            try!(DataStore::new(cfg.deref()))
         };
+        try!(datastore.setup());
         let cfg = self.config.clone();
         let cfg2 = self.config.clone();
         let init_state = InitServerState::new(datastore);

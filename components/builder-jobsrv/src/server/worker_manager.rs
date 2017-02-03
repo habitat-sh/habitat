@@ -16,7 +16,6 @@ use std::sync::{mpsc, Arc, RwLock};
 use std::time::{Duration, Instant};
 use std::thread::{self, JoinHandle};
 
-use dbcache::InstaSet;
 use linked_hash_map::LinkedHashMap;
 use hab_net::config::ToAddrString;
 use hab_net::server::ZMQ_CONTEXT;
@@ -59,7 +58,7 @@ impl Default for WorkerMgrClient {
 
 pub struct WorkerMgr {
     config: Arc<RwLock<Config>>,
-    datastore: Arc<Box<DataStore>>,
+    datastore: DataStore,
     hb_sock: zmq::Socket,
     rq_sock: zmq::Socket,
     work_mgr_sock: zmq::Socket,
@@ -68,7 +67,7 @@ pub struct WorkerMgr {
 }
 
 impl WorkerMgr {
-    pub fn new(config: Arc<RwLock<Config>>, datastore: Arc<Box<DataStore>>) -> Result<Self> {
+    pub fn new(config: Arc<RwLock<Config>>, datastore: DataStore) -> Result<Self> {
         let hb_sock = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::SUB));
         let rq_sock = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::ROUTER));
         let work_mgr_sock = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER));
@@ -89,7 +88,7 @@ impl WorkerMgr {
         })
     }
 
-    pub fn start(cfg: Arc<RwLock<Config>>, ds: Arc<Box<DataStore>>) -> Result<JoinHandle<()>> {
+    pub fn start(cfg: Arc<RwLock<Config>>, ds: DataStore) -> Result<JoinHandle<()>> {
         let (tx, rx) = mpsc::sync_channel(1);
         let handle = thread::Builder::new()
             .name("worker-manager".to_string())
@@ -165,35 +164,37 @@ impl WorkerMgr {
 
     fn distribute_work(&mut self) -> Result<()> {
         loop {
-            let job = match self.datastore.job_queue.peek() {
-                Ok(Some(job)) => job,
-                Ok(None) => break,
-                Err(e) => return Err(e),
-            };
+            // Take one job from the pending list
+            let mut jobs = self.datastore.pending_jobs(1)?;
+            // 0 means there are no pending jobs, so we should consume our notice that we have work
+            if jobs.len() == 0 {
+                try!(self.work_mgr_sock.recv(&mut self.msg, 0));
+                break;
+            }
+            // This unwrap is fine, because we just checked our length
+            let mut job = jobs.pop().unwrap();
+
             match self.workers.pop_front() {
                 Some((worker, _)) => {
                     debug!("sending work, worker={:?}, job={:?}", worker, job);
                     if self.rq_sock.send_str(&worker, zmq::SNDMORE).is_err() {
                         debug!("failed to send, worker went away, worker={:?}", worker);
+                        job.set_state(jobsrv::JobState::Pending);
+                        self.datastore.set_job_state(&job)?;
                         continue;
                     }
                     if self.rq_sock.send(&[], zmq::SNDMORE).is_err() {
                         debug!("failed to send, worker went away, worker={:?}", worker);
+                        job.set_state(jobsrv::JobState::Pending);
+                        self.datastore.set_job_state(&job)?;
                         continue;
                     }
                     if self.rq_sock.send(&job.write_to_bytes().unwrap(), 0).is_err() {
                         debug!("failed to send, worker went away, worker={:?}", worker);
+                        job.set_state(jobsrv::JobState::Pending);
+                        self.datastore.set_job_state(&job)?;
                         continue;
                     }
-                    // JW TODO: Wait for response back to ensure we can dequeue this. If state
-                    // returned is not processing then we move onto next worker and assume this
-                    // worker is no longer valid. Put work back on queue.
-                    try!(self.datastore.job_queue.dequeue());
-                    // Consume the to-do work notification if the queue is empty.
-                    if try!(self.datastore.job_queue.peek()).is_none() {
-                        try!(self.work_mgr_sock.recv(&mut self.msg, 0));
-                    }
-                    break;
                 }
                 None => break,
             }
@@ -240,7 +241,7 @@ impl WorkerMgr {
         try!(self.rq_sock.recv(&mut self.msg, 0));
         let job: jobsrv::Job = try!(parse_from_bytes(&self.msg));
         debug!("job_status={:?}", job);
-        try!(self.datastore.jobs.update(&job));
+        try!(self.datastore.set_job_state(&job));
         Ok(())
     }
 }

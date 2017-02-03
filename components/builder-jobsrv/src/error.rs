@@ -17,20 +17,30 @@ use std::fmt;
 use std::io;
 use std::result;
 
+use db;
 use hab_core;
-use dbcache;
 use hab_net;
+use postgres;
 use protobuf;
+use r2d2;
 use zmq;
 
 #[derive(Debug)]
 pub enum Error {
     BadPort(String),
-    DataStore(dbcache::Error),
+    Db(db::error::Error),
+    DbPoolTimeout(r2d2::GetTimeout),
+    DbTransaction(postgres::error::Error),
     HabitatCore(hab_core::Error),
     IO(io::Error),
+    JobCreate(postgres::error::Error),
+    JobGet(postgres::error::Error),
+    JobPending(postgres::error::Error),
+    JobSetState(postgres::error::Error),
     NetError(hab_net::Error),
     Protobuf(protobuf::ProtobufError),
+    UnknownVCS,
+    UnknownJobState,
     Zmq(zmq::Error),
 }
 
@@ -40,11 +50,21 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
             Error::BadPort(ref e) => format!("{} is an invalid port. Valid range 1-65535.", e),
-            Error::DataStore(ref e) => format!("{}", e),
+            Error::Db(ref e) => format!("{}", e),
+            Error::DbPoolTimeout(ref e) => {
+                format!("Timeout getting connection from the database pool, {}", e)
+            }
+            Error::DbTransaction(ref e) => format!("Database transaction error, {}", e),
             Error::HabitatCore(ref e) => format!("{}", e),
             Error::IO(ref e) => format!("{}", e),
+            Error::JobCreate(ref e) => format!("Database error creating a new job, {}", e),
+            Error::JobGet(ref e) => format!("Database error getting job data, {}", e),
+            Error::JobPending(ref e) => format!("Database error getting pending jobs, {}", e),
+            Error::JobSetState(ref e) => format!("Database error setting job state, {}", e),
             Error::NetError(ref e) => format!("{}", e),
             Error::Protobuf(ref e) => format!("{}", e),
+            Error::UnknownVCS => format!("Unknown VCS"),
+            Error::UnknownJobState => format!("Unknown Job State"),
             Error::Zmq(ref e) => format!("{}", e),
         };
         write!(f, "{}", msg)
@@ -55,13 +75,27 @@ impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
             Error::BadPort(_) => "Received an invalid port or a number outside of the valid range.",
-            Error::DataStore(ref err) => err.description(),
+            Error::Db(ref err) => err.description(),
+            Error::DbPoolTimeout(ref err) => err.description(),
+            Error::DbTransaction(ref err) => err.description(),
             Error::HabitatCore(ref err) => err.description(),
             Error::IO(ref err) => err.description(),
+            Error::JobCreate(ref err) => err.description(),
+            Error::JobGet(ref err) => err.description(),
+            Error::JobPending(ref err) => err.description(),
+            Error::JobSetState(ref err) => err.description(),
             Error::NetError(ref err) => err.description(),
             Error::Protobuf(ref err) => err.description(),
+            Error::UnknownVCS => "Unknown VCS",
+            Error::UnknownJobState => "Unknown Job State",
             Error::Zmq(ref err) => err.description(),
         }
+    }
+}
+
+impl From<r2d2::GetTimeout> for Error {
+    fn from(err: r2d2::GetTimeout) -> Error {
+        Error::DbPoolTimeout(err)
     }
 }
 
@@ -71,9 +105,9 @@ impl From<hab_core::Error> for Error {
     }
 }
 
-impl From<dbcache::Error> for Error {
-    fn from(err: dbcache::Error) -> Self {
-        Error::DataStore(err)
+impl From<db::error::Error> for Error {
+    fn from(err: db::error::Error) -> Self {
+        Error::Db(err)
     }
 }
 

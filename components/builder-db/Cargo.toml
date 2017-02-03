@@ -12,6 +12,7 @@ rustc-serialize = "*"
 time = "*"
 postgres = "*"
 r2d2_postgres = "*"
+num_cpus = "*"
 
 [features]
 functional = []

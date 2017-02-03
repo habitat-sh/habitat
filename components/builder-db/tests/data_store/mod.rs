@@ -48,7 +48,7 @@ impl MusicDB {
                          BEGIN
                             INSERT INTO music (band, style) VALUES (band, style);
                          END
-                         $$ LANGUAGE plpgsql"#)?;
+                         $$ LANGUAGE plpgsql VOLATILE"#)?;
         Ok(())
     }
 

@@ -12,15 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-extern crate habitat_builder_dbcache as dbcache;
 extern crate habitat_builder_protocol as protocol;
 extern crate habitat_core as hab_core;
 extern crate habitat_net as hab_net;
+extern crate habitat_builder_db as db;
 extern crate linked_hash_map;
 #[macro_use]
 extern crate log;
+extern crate postgres;
 extern crate protobuf;
-extern crate redis;
+extern crate r2d2;
 extern crate toml;
 extern crate zmq;
 
