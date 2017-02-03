@@ -32,6 +32,7 @@ extern crate log;
 extern crate mount;
 extern crate persistent;
 extern crate protobuf;
+extern crate regex;
 extern crate r2d2;
 extern crate r2d2_redis;
 extern crate redis;

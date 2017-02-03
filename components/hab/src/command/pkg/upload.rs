@@ -157,6 +157,7 @@ fn upload_into_depot(ui: &mut UI,
         Err(depot_client::Error::APIError(StatusCode::UnprocessableEntity, _)) => {
             return Err(Error::PackageArchiveMalformed(format!("{}", archive.path.display())));
         }
+        Err(depot_client::Error::APIError(StatusCode::NotImplemented, _)) => println!("Package platform or architecture not supported by the targted depot; skipping."),
         Err(e) => return Err(Error::from(e)),
     };
     try!(ui.status(Status::Uploaded, ident));
