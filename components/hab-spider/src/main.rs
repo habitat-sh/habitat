@@ -20,16 +20,14 @@ extern crate time;
 extern crate petgraph;
 extern crate walkdir;
 extern crate habitat_core as hab_core;
+extern crate builder_core as bldr_core;
 extern crate habitat_builder_protocol as protocol;
 extern crate clap;
-
-pub mod rdeps;
-pub mod spider;
 
 use std::io::{self, Write};
 use clap::{Arg, App};
 use time::PreciseTime;
-use spider::Spider;
+use bldr_core::graph_walker::GraphWalker;
 
 fn main() {
     env_logger::init().unwrap();
@@ -47,9 +45,9 @@ fn main() {
 
     println!("Crawling packages... please wait.");
 
-    let mut spider = Spider::new(&path);
+    let mut walker = GraphWalker::new(&path);
     let start_time = PreciseTime::now();
-    let (ncount, ecount) = spider.crawl();
+    let (ncount, ecount) = walker.build();
     let end_time = PreciseTime::now();
 
     println!("OK: {} nodes, {} edges ({} sec)",
@@ -57,7 +55,7 @@ fn main() {
              ecount,
              start_time.to(end_time));
 
-    println!("\nAvailable commands: HELP, STATS, TOP, FIND, RDEPS, EXIT\n");
+    println!("\nAvailable commands: help, stats, top, find, rdeps, exit\n");
 
     let mut done = false;
     while !done {
@@ -72,14 +70,14 @@ fn main() {
         if v.len() > 0 {
             match v[0].to_lowercase().as_str() {
                 "help" => do_help(),
-                "stats" => do_stats(&spider),
+                "stats" => do_stats(&walker),
                 "top" => {
                     let count = if v.len() < 2 {
                         10
                     } else {
                         v[1].parse::<usize>().unwrap()
                     };
-                    do_top(&spider, count);
+                    do_top(&walker, count);
                 }
                 "find" => {
                     if v.len() < 2 {
@@ -90,7 +88,7 @@ fn main() {
                         } else {
                             10
                         };
-                        do_find(&spider, v[1].to_lowercase().as_str(), max)
+                        do_find(&walker, v[1].to_lowercase().as_str(), max)
                     }
                 }
                 "rdeps" => {
@@ -102,7 +100,7 @@ fn main() {
                         } else {
                             10
                         };
-                        do_rdeps(&spider, v[1].to_lowercase().as_str(), max)
+                        do_rdeps(&walker, v[1].to_lowercase().as_str(), max)
                     }
                 }
                 "exit" => done = true,
@@ -122,8 +120,8 @@ fn do_help() {
     println!("  exit                    Exit the application\n");
 }
 
-fn do_stats(spider: &Spider) {
-    let stats = spider.stats();
+fn do_stats(walker: &GraphWalker) {
+    let stats = walker.stats();
 
     println!("Node count: {}", stats.node_count);
     println!("Edge count: {}", stats.edge_count);
@@ -131,9 +129,9 @@ fn do_stats(spider: &Spider) {
     println!("Is cyclic: {}\n", stats.is_cyclic);
 }
 
-fn do_top(spider: &Spider, count: usize) {
+fn do_top(walker: &GraphWalker, count: usize) {
     let start_time = PreciseTime::now();
-    let top = spider.top(count);
+    let top = walker.top(count);
     let end_time = PreciseTime::now();
 
     println!("OK: {} items ({} sec)\n",
@@ -146,9 +144,9 @@ fn do_top(spider: &Spider, count: usize) {
     println!("");
 }
 
-fn do_find(spider: &Spider, phrase: &str, max: usize) {
+fn do_find(walker: &GraphWalker, phrase: &str, max: usize) {
     let start_time = PreciseTime::now();
-    let mut v = spider.search(phrase);
+    let mut v = walker.search(phrase);
     let end_time = PreciseTime::now();
 
     println!("OK: {} items ({} sec)\n", v.len(), start_time.to(end_time));
@@ -167,10 +165,10 @@ fn do_find(spider: &Spider, phrase: &str, max: usize) {
     println!("");
 }
 
-fn do_rdeps(spider: &Spider, name: &str, max: usize) {
+fn do_rdeps(walker: &GraphWalker, name: &str, max: usize) {
     let start_time = PreciseTime::now();
 
-    match spider.rdeps(name) {
+    match walker.rdeps(name) {
         Some(mut rdeps) => {
             let end_time = PreciseTime::now();
             println!("OK: {} items ({} sec)\n",

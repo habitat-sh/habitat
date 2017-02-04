@@ -56,7 +56,7 @@ impl PartialEq for HeapEntry {
     }
 }
 
-pub struct Spider {
+pub struct GraphWalker {
     packages_path: PathBuf,
     package_max: usize,
     package_map: HashMap<String, (usize, NodeIndex)>,
@@ -64,9 +64,9 @@ pub struct Spider {
     graph: Graph<usize, usize>,
 }
 
-impl Spider {
+impl GraphWalker {
     pub fn new(path: &str) -> Self {
-        Spider {
+        GraphWalker {
             packages_path: PathBuf::from(path),
             package_max: 0,
             package_map: HashMap::new(),
@@ -93,7 +93,7 @@ impl Spider {
         id
     }
 
-    pub fn crawl(&mut self) -> (usize, usize) {
+    pub fn build(&mut self) -> (usize, usize) {
         assert!(self.package_max == 0);
 
         let mut directories = vec![];
