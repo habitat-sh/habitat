@@ -145,14 +145,15 @@ pkg_exports
   pkg_exports=(
     [port]=server.port
     [host]=server.host
+    [ssl-port]=ssl.port
   )
   ~~~
 
-pkg_expose
-: Optional. An array of ports this service exposes when you create a Docker image from your package.
+pkg_exposes
+: Optional. An array of `pkg_exports` keys containing default values for which ports that this package exposes. These values are used as sensible defaults for other tools. For example, when exporting a package to a container format.
 
   ~~~
-  pkg_expose=(80 443)
+  pkg_exposes=(port ssl-port)
   ~~~
 
 
@@ -422,7 +423,7 @@ deps
 : An array of runtime dependencies for your package based on the pkg_deps setting in a plan.
 
 exposes
-: The port(s) to expose for an application or service. This value is pulled from the pkg_expose setting in a plan.
+: The port(s) to expose for an application or service. This value is pulled from the pkg_exposes setting in a plan.
 
 path
 : The location where the fully-qualified package is installed.

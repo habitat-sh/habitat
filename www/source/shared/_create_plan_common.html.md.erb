@@ -59,6 +59,7 @@ In your terminal window, do the following:
        pkg_source=nosuchfile.tar.gz
        pkg_deps=()
        pkg_exports=()
+       pkg_exposes=()
 
 Let's walk through these settings:
 
@@ -66,8 +67,9 @@ Let's walk through these settings:
 - The `pkg_maintainer` and `pkg_license` settings provide contact and license type information.
 - The `pkg_upstream_url` is used to provide project website metadata.
 - The `pkg_source` is a URL that specifies where to download the source from. If you are building the source locally, or do not need to download a file, you must still provide a non-empty string value.
-- The `pkg_deps` corresponds to the runtime package dependencies, and `pkg_expose` opens a network port when a Docker container is created (must be used along with the `-p` runtime option to publish it to the host machine).
-- The `pkg_exports` is a mapping of the private configuration keyspace to a public keyspace which makes configuration data available to peers by the gossip ring.
+- The `pkg_deps` corresponds to the runtime package dependencies.
+- The `pkg_exports` is a mapping of configuration to alias and make publicly available to peers by the gossip ring.
+- The `pkg_exposes` is a list of `pkg_exports` keys whose values are ports to give hints for other tools to operate with a set of sensible defaults. For example, this is used when exporting a Habitat package to a Docker container.
 
 ## Modify the plan
 
@@ -85,17 +87,25 @@ We now have a skeleton plan, but we need to modify some of its settings before w
 
    > Note: Later on in this topic we are going to install the `nconf` module into our package, which requires the `npm` binary; however, we do not need to include `core/node` as a build dependency because the build script automatically installs build and runtime dependencies and adds their bin directories to the `$PATH` variable before building the package. So, if you need the same dependent binary for both build and runtime operations, you only need to include it as a runtime dependency.
 
-6. Set the `pkg_expose` value to `8080`. The `pkg_expose` setting creates an `EXPOSE` instruction in a generated Dockerfile, which we will use to create an optional Docker container; however, specifying the `pkg_expose` value does not publish this port for access by the host machine. We will do that later.
+6. Set the `pkg_exports` value to an associative array with one key value pair. This is an alias of a default configuration which will be shared to consumers who `--bind` to your package. All service configuration is considered "private" to the supervisor and not shared without an explicit entry here. We will setup the `default.toml` for the configuration soon.
+
+    pkg_exports(
+      [port]=port
+    )
+
+7. Set the `pkg_exposes` value to `port`. The `pkg_exposes` values are used to create an `EXPOSE` instruction in a generated Dockerfile, which we will use to create an optional Docker container; however, specifying the `pkg_exposes` value does not publish this port for access by the host machine. We will do that later.
 
    Add the following line to your plan:
 
-        pkg_expose=(8080)
+        pkg_exposes=(port)
 
 It's important to note that the Node.js application in this tutorial does not create any new binaries or libraries of its own; however, for those packages that compile binaries and/or libraries, you must also include settings that specify the directory names where those files will be located, such as:
 
      pkg_bin_dirs=(bin)
      pkg_include_dirs=(include)
      pkg_lib_dirs=(lib)
+
+## Create a default.toml
 
 ## Add in callbacks
 
@@ -159,7 +169,10 @@ pkg_license=()
 pkg_upstream_url=https://github.com/habitat-sh/habitat-example-plans
 pkg_source=nosuchfile.tar.gz
 pkg_deps=(core/node)
-pkg_expose=(8080)
+pkg_exports(
+  [port]=port
+)
+pkg_exposes=(port)
 
 do_download() {
   return 0

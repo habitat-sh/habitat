@@ -32,6 +32,10 @@ echo "Node $(node --version)"
 echo "npm $(npm --version)"
 echo "docco $(docco --version)"
 
+if [ ! -f /usr/local/bin/rq ]; then
+  curl -sSLf https://sh.dflemstr.name/rq | bash -s -- --yes false
+fi
+
 if command -v useradd > /dev/null; then
   sudo -E useradd --system --no-create-home hab || true
 else

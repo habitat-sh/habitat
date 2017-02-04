@@ -6,9 +6,11 @@ pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_source=nosuchfile.tar.gz
 pkg_svc_run="app-server"
 pkg_exports=(
+  [proxy-port]=proxy.port
   [port]=srv.port
   [host]=srv.host
 )
+pkg_exposes=(proxy-port port)
 
 do_download() {
   return 0

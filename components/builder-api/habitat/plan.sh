@@ -9,7 +9,10 @@ pkg_deps=(core/glibc core/openssl core/coreutils core/gcc-libs core/zeromq core/
   core/libarchive)
 pkg_build_deps=(core/protobuf core/protobuf-rust core/coreutils core/cacerts
   core/rust core/gcc core/git core/pkg-config core/node core/phantomjs)
-pkg_expose=(9636)
+pkg_exports=(
+  [port]=srv.port
+)
+pkg_exposes=(port)
 bin="bldr-api"
 pkg_svc_run="$bin start -c ${pkg_svc_path}/config.toml"
 

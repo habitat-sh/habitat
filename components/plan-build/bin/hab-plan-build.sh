@@ -171,12 +171,6 @@
 # pkg_svc_run="bin/haproxy -f $pkg_svc_config_path/haproxy.conf"
 # ```
 #
-# ### pkg_expose
-# An array of ports this service exposes to the world.
-# ```
-# pkg_expose=(80 443)
-# ```
-#
 # ### pkg_exports
 # An associative array representing configuration data which should be gossiped to peers. The keys
 # in this array represent the name the value will be assigned and the values represent the toml path
@@ -187,6 +181,14 @@
 #   [port]=server.port
 #   [host]=server.host
 # )
+# ```
+#
+# ### pkg_exposes
+# An array of `pkg_exports` keys containing default values for which ports that this package
+# exposes. These values are used as sensible defaults for other tools. For example, when exporting
+# a package to a container format.
+# ```
+# pkg_exposes=(port)
 # ```
 #
 # ### pkg_origin
@@ -255,7 +257,7 @@
 # pkg_bin_dirs=(bin)
 # pkg_deps=(glibc pcre openssl zlib)
 # pkg_svc_run="bin/haproxy -f $pkg_svc_config_path/haproxy.conf"
-# pkg_expose=(80 443)
+# pkg_exposes=(port)
 # pkg_exports=(
 #   [mode]=mode
 #   [port]=server.port
@@ -372,9 +374,7 @@ pkg_include_dirs=()
 pkg_pconfig_dirs=()
 # The command to run the service - must not fork or return
 pkg_svc_run=''
-# An array of ports to expose.
-pkg_expose=()
-# An associative array representing configuration data which should be gossiped to peers.
+pkg_exposes=()
 declare -A pkg_exports
 # The user to run the service as
 pkg_svc_user=hab
@@ -501,6 +501,7 @@ _ensure_origin_key_present() {
 # * `$_shasum_cmd` (either gsha256sum or sha256sum on system)
 # * `$_tar_cmd` (GNU version of tar)
 # * `$_mktemp_cmd` (GNU version from coreutils)
+# * `$_rq_cmd`
 #
 # Note that all of the commands noted above are considered internal
 # implementation details and are subject to change with little to no notice,
@@ -568,6 +569,13 @@ _find_system_commands() {
     exit_with "We require hab to sign artifacts; aborting" 1
   fi
   debug "Setting _hab_cmd=$_hab_cmd"
+
+  if exists rq; then
+    _rq_cmd=$(command -v rq)
+  else
+    exit_with "We required rq to build package metadata; aborting" 1
+  fi
+  debug "Setting _rq_cmd=$_rq_cmd"
 }
 
 # **Internal** Return the path to the latest release of a package on stdout.
@@ -1213,6 +1221,31 @@ abspath() {
     echo "$1" does not exist! >&2
     return 127
   fi
+}
+
+# **Internal** Convert a string into a numerical value.
+function _to_int() {
+    local -i num="10#${1}"
+    echo "${num}"
+}
+
+# **Internal** Return 0 if the given value is a valid port and 1 if not.
+#
+# ```
+# _port_is_valid "80"
+# # 0
+# _port_is_valid 80
+# # 0
+# _port_is_valid "hello"
+# # 1
+# ```
+function _port_is_valid() {
+    local port="$1"
+    local -i port_num=$(_to_int $port 2>/dev/null)
+    if (( $port_num < 1 || $port_num > 65535 )) ; then
+        return 1
+    fi
+    return 0
 }
 
 # Downloads a file from a source URL to a local file and uses an optional
@@ -1996,7 +2029,16 @@ _build_metadata() {
   done
 
   local port_part=""
-  for port in "${pkg_expose[@]}"; do
+  for export in "${pkg_exposes[@]}"; do
+    if ! [ ${pkg_exports[$export]+abc} ]; then
+      exit_with "Bad value in pkg_exposes; No pkg_export found matching key: ${export}"
+    fi
+    key=${pkg_exports[$export]}
+    port=$($_rq_cmd -t < $PLAN_CONTEXT/default.toml "at \"${key}\"" | tr -d '"')
+    if ! _port_is_valid $port; then
+      exit_with "Bad pkg_export in pkg_exposes; Value of key does not contain a valid port: ${key}"
+    fi
+
     if [[ -z "$port_part" ]]; then
       port_part="$port";
     else

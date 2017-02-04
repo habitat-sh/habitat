@@ -128,22 +128,23 @@ pkg_svc_run="{{ pkg_svc_run }}"
 # An associative array representing configuration data which should be gossiped to peers. The keys
 # in this array represent the name the value will be assigned and the values represent the toml path
 # to read the value.
-{{#if pkg_expose ~}}
+{{#if pkg_exports ~}}
 pkg_exports={{ pkg_exports }}
 {{else ~}}
 # pkg_exports=(
 #   [host]=srv.address
 #   [port]=srv.port
-#   [domain]=domain
+#   [ssl-port]=srv.ssl.port
 # )
 {{/if}}
 # Optional.
-# An array of ports this service exposes when you create a Docker image from
-# your package.
-{{#if pkg_expose ~}}
-pkg_expose={{ pkg_expose }}
+# An array of `pkg_exports` keys containing default values for which ports that this package
+# exposes. These values are used as sensible defaults for other tools. For example, when exporting
+# a package to a container format.
+{{#if pkg_exposes ~}}
+pkg_exposes={{ pkg_exposes }}
 {{else ~}}
-# pkg_expose=(80 443)
+# pkg_exposes=(port ssl-port)
 {{/if}}
 # Optional.
 # An array of interpreters used in shebang lines for scripts. Specify the
