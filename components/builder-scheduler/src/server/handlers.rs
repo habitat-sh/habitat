@@ -33,19 +33,19 @@ pub fn schedule(req: &mut Envelope, sock: &mut zmq::Socket, state: &mut ServerSt
     let mut group = proto::Group::new();
     state.datastore().create_group(&mut group)?;
 
-    let mut project_get = ProjectGet::new();
-    let project_id = format!("{}/{}",
-                             msg.get_ident().get_origin(),
-                             msg.get_ident().get_name());
-    project_get.set_id(project_id.clone());
+    let mut project_get = OriginProjectGet::new();
+    let project_name = format!("{}/{}",
+                               msg.get_ident().get_origin(),
+                               msg.get_ident().get_name());
+    project_get.set_name(project_name.clone());
 
-    println!("Retreiving project: {}", project_id);
+    println!("Retreiving project: {}", project_name);
     let mut conn = Broker::connect().unwrap();
-    let project = match conn.route::<ProjectGet, Project>(&project_get) {
+    let project = match conn.route::<OriginProjectGet, OriginProject>(&project_get) {
         Ok(project) => project,
         Err(err) => {
             error!("Unable to retrieve project: {:?}, error: {:?}",
-                   project_id,
+                   project_name,
                    err);
             group.set_state(proto::GroupState::Failed);
             state.datastore().set_group_state(&group)?;

@@ -15,20 +15,30 @@
 use std::path::Path;
 
 use git2;
-use protocol::vault;
 
 use error::Result;
 
-pub trait RemoteSource {
-    fn clone(&self, path: &Path) -> Result<()>;
+pub struct VCS {
+    pub vcs_type: String,
+    pub data: String,
 }
 
-impl RemoteSource for vault::VCSGit {
-    fn clone(&self, path: &Path) -> Result<()> {
-        debug!("cloning git repository, url={}, path={:?}",
-               self.get_url(),
-               path);
-        try!(git2::Repository::clone(self.get_url(), path));
-        Ok(())
+impl VCS {
+    pub fn new(vcs_type: String, data: String) -> VCS {
+        VCS {
+            vcs_type: vcs_type,
+            data: data,
+        }
+    }
+
+    pub fn clone(&self, path: &Path) -> Result<()> {
+        match self.vcs_type.as_ref() {
+            "git" => {
+                debug!("cloning git repository, url={}, path={:?}", self.data, path);
+                try!(git2::Repository::clone(&self.data, path));
+                Ok(())
+            }
+            _ => panic!("Unknown vcs type"),
+        }
     }
 }

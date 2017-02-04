@@ -23,24 +23,24 @@ enum JobState {
 }
 
 message Heartbeat {
-  required string endpoint = 1;
-  required Os os = 2;
-  required WorkerState state = 3;
+  optional string endpoint = 1;
+  optional Os os = 2;
+  optional WorkerState state = 3;
 }
 
 message Job {
-  required uint64 id = 1;
-  required uint64 owner_id = 2;
-  required JobState state = 3;
-  required vault.Project project = 4;
+  optional uint64 id = 1;
+  optional uint64 owner_id = 2;
+  optional JobState state = 3;
+  optional vault.OriginProject project = 4;
   optional net.NetError error = 5;
 }
 
 message JobGet {
-  required uint64 id = 1;
+  optional uint64 id = 1;
 }
 
 message JobSpec {
-  required uint64 owner_id = 1;
-  required vault.Project project = 2;
+  optional uint64 owner_id = 1;
+  optional vault.OriginProject project = 2;
 }

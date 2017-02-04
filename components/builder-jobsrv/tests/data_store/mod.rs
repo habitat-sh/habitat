@@ -27,9 +27,8 @@ fn migration() {
 #[test]
 fn create_job() {
     let mut job = jobsrv::Job::new();
-    let mut git = vault::VCSGit::new();
-    git.set_url(String::from("http://github.com/habitat-sh/habitat"));
-    job.mut_project().set_git(git);
+    job.mut_project().set_vcs_type(String::from("git"));
+    job.mut_project().set_vcs_data(String::from("http://github.com/habitat-sh/habitat"));
 
     with_pool!(pool, {
         let ds = DataStore::from_pool(pool).expect("Failed to create data store from pool");
@@ -41,9 +40,8 @@ fn create_job() {
 fn test_job() -> jobsrv::Job {
     let mut job = jobsrv::Job::new();
     job.set_id(0);
-    let mut git = vault::VCSGit::new();
-    git.set_url(String::from("http://github.com/habitat-sh/habitat"));
-    job.mut_project().set_git(git);
+    job.mut_project().set_vcs_type(String::from("git"));
+    job.mut_project().set_vcs_data(String::from("http://github.com/habitat-sh/habitat"));
     job
 }
 

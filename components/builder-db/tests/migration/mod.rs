@@ -27,17 +27,16 @@ fn setup() {
 fn migrate() {
     with_migration!(pool, migration, {
         migration.migrate("metal",
-                     1,
                      r#"CREATE TABLE bands (
                         name text PRIMARY KEY,
                         style text
                      )"#)
             .expect("Migration should be run successfully");
 
+        let mut m = Migrator::new(&pool);
         // Running the same migration twice should not fail, due to the internal migration checking
         // logic.
-        migration.migrate("metal",
-                     1,
+        m.migrate("metal",
                      r#"CREATE TABLE bands (
                         name text PRIMARY KEY,
                         style text

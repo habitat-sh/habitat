@@ -97,6 +97,23 @@ macro_rules! with_pool {
     }
 }
 
+/// The `with_pool` macro injects a `Pool` instance thats dynamically configured to use the test
+/// database, and set to create a new schema for the test.
+#[macro_export]
+macro_rules! pool {
+    () => {
+         {
+            use std::time::Duration;
+            use $crate::pool::Pool;
+
+            use $crate::test::{init, postgres};
+
+            postgres::start();
+            init::create_database();
+            Pool::new("postgresql://hab@127.0.0.1/builder_db_test", 1, 300, Duration::from_secs(3600), true).expect("Failed to create pool")
+        }
+    }
+}
 
 /// The `with_migration` macro injects both a new `Pool` and a `Migration` into your test.
 #[macro_export]
@@ -111,7 +128,7 @@ macro_rules! with_migration {
         postgres::start();
         init::create_database();
         let $pool = Pool::new("postgresql://hab@127.0.0.1/builder_db_test", 1, 300, Duration::from_secs(3600), true).expect("Failed to create pool");
-        let $migration = Migrator::new(&$pool);
+        let mut $migration = Migrator::new(&$pool);
         $migration.setup().expect("Migration setup failed");
         $code
     }

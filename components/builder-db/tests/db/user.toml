@@ -1,3 +1,4 @@
 listen_addresses = "127.0.0.1"
 search_path = "pg_temp"
 hba_file = "/hab/svc/postgresql/pg_hba.conf"
+log_statement = "mod"

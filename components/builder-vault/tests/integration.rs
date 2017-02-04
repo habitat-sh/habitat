@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Copyright (c) 2017 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,24 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#[macro_use]
 extern crate habitat_builder_db as db;
+extern crate habitat_builder_vault as vault;
 extern crate habitat_builder_protocol as protocol;
-extern crate habitat_core as hab_core;
-extern crate habitat_net as hab_net;
-#[macro_use]
-extern crate log;
-extern crate postgres;
-extern crate protobuf;
-extern crate r2d2;
-extern crate toml;
-#[macro_use]
-extern crate zmq;
 
-pub mod config;
-pub mod data_store;
-pub mod error;
-pub mod migrations;
-pub mod server;
+mod data_store;
 
-pub use self::config::Config;
-pub use self::error::{Error, Result};
