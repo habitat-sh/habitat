@@ -72,9 +72,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "builder_core"
 version = "0.0.0"
 dependencies = [
+ "habitat_builder_protocol 0.0.0",
  "habitat_core 0.0.0",
+ "libarchive 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "petgraph 0.4.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "statsd 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "time 0.1.36 (registry+https://github.com/rust-lang/crates.io-index)",
+ "walkdir 1.0.7 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -283,6 +288,7 @@ dependencies = [
 name = "hab-spider"
 version = "0.1.0"
 dependencies = [
+ "builder_core 0.0.0",
  "clap 2.19.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "habitat_builder_protocol 0.0.0",

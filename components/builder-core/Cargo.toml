@@ -8,9 +8,16 @@ build = "../bldr-build.rs"
 [dependencies]
 log = "*"
 statsd = "*"
+petgraph = "*"
+walkdir = "*"
+libarchive = "*"
+time = "*"
 
 [dependencies.habitat_core]
 path = "../core"
+
+[dependencies.habitat_builder_protocol]
+path = "../builder-protocol"
 
 [features]
 functional = []
