@@ -243,7 +243,7 @@ $env:LIBZMQ_PREFIX              = Split-Path $ChocolateyHabitatLibDir -Parent
 Write-RustToolVersion
 
 if ($Test) { Invoke-Test $Path -Clean:$Clean -Release:$Release }
-if (!$SkipBuild) { Invoke-Build $Path -Clean:$Cean -Release:$Release }
+if (!$SkipBuild) { Invoke-Build $Path -Clean:$Clean -Release:$Release }
 if($Package) { New-HartPackage }
 
 exit $LASTEXITCODE
