@@ -18,6 +18,7 @@ pkg_deps=(
   core/grep
   core/gzip
   core/hab
+  core/rq
   core/sed
   core/tar
   core/unzip

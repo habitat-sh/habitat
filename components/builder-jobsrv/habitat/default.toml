@@ -1,0 +1,3 @@
+[srv]
+port = 5566
+heartbeat = 5567

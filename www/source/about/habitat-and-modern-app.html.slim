@@ -110,7 +110,11 @@ pre
     pkg_deps=(core/glibc chefops/jdk8)
     pkg_bin_dirs=(bin)
     pkg_lib_dirs=(lib)
-    pkg_expose=(9200 9300)
+    pkg_exports=(
+      [http-port]=network.port
+      [transport-port]=transport.port
+    )
+    pkg_exposes=(http-port transport-port)
     pkg_svc_run="es/bin/elasticsearch --default.path.conf=${pkg_svc_config_path} 2>&1"
     do_build() {
       return 0
@@ -127,11 +131,13 @@ p The first three values form part of the package's fully qualified name. The
   files. The <code>pkg_shasum</code> value is the package's checksum. The
   <code>pkg_deps</code> values list the runtime dependencies for ElasticSearch.
   The <code>pkg_bin_dirs</code> value specifies the location for the
-  ElasticSearch binary. The <code>pkg_expose</code> values specify which
-  Docker ports need to be exposed if this package is exported to a Docker
-  image. Finally, the <code>pkg_svc_run</code> value specifies how the
-  ElasticSearch binary should be run when the supervisor starts the
-  ElasticSearch package payload.
+  ElasticSearch binary. The <code>pkg_exports</code> associative array contains a
+  mapping of configuration keys to give public aliases to and make publicly
+  available. The <code>pkg_exposes</code> values specify which exported
+  configuration values representing service ports will be exposed if this
+  package is exported to a Docker image. Finally, the <code>pkg_svc_run</code>
+  value specifies how the ElasticSearch binary should be run when the supervisor
+  starts the ElasticSearch package payload.
 
 p The callbacks override certain default behaviors such as compiling and
   building binaries from source code and installing them into the package
