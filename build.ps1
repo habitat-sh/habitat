@@ -126,7 +126,7 @@ function Invoke-Configure {
 
 function Get-RustcCommand {
     if(Test-RustUp) {
-        'rustup run stable-i686-pc-windows-msvc rustc'
+        'rustup run stable-x86_64-pc-windows-msvc rustc'
     }
     else {
         'rustc'
@@ -135,7 +135,7 @@ function Get-RustcCommand {
 
 function Get-CargoCommand {
     if(Test-RustUp) {
-        'rustup run stable-i686-pc-windows-msvc cargo'
+        'rustup run stable-x86_64-pc-windows-msvc cargo'
     }
     else {
         'cargo'
