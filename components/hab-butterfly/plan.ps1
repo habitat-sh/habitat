@@ -1,4 +1,4 @@
-$pkg_name = "hab"
+$pkg_name = "hab-butterfly"
 $pkg_origin = "core"
 $pkg_version = "$(Get-Content $PLAN_CONTEXT/../../VERSION)"
 $pkg_maintainer = "The Habitat Maintainers <humans@habitat.sh>"
@@ -11,14 +11,15 @@ $pkg_build_deps = @("core/rust")
 function Invoke-Prepare {
     $env:PLAN_VERSION               = "$pkg_version/$pkg_release"
     $env:CARGO_TARGET_DIR           = "$HAB_CACHE_SRC_PATH/$pkg_dirname"
-    $env:LIB                        += ";$HAB_CACHE_SRC_PATH/$pkg_dirname/lib"
-    $env:INCLUDE                    += ";$HAB_CACHE_SRC_PATH/$pkg_dirname/include"
+    $env:LIB                        = "$HAB_CACHE_SRC_PATH/$pkg_dirname/lib"
+    $env:INCLUDE                    = "$HAB_CACHE_SRC_PATH/$pkg_dirname/include"
     $env:SODIUM_LIB_DIR             = "$HAB_CACHE_SRC_PATH/$pkg_dirname/lib"
     $env:LIBARCHIVE_INCLUDE_DIR     = "$HAB_CACHE_SRC_PATH/$pkg_dirname/include"
     $env:LIBARCHIVE_LIB_DIR         = "$HAB_CACHE_SRC_PATH/$pkg_dirname/lib"
     $env:OPENSSL_LIBS               = 'ssleay32:libeay32'
     $env:OPENSSL_LIB_DIR            = "$HAB_CACHE_SRC_PATH/$pkg_dirname/lib"
     $env:OPENSSL_INCLUDE_DIR        = "$HAB_CACHE_SRC_PATH/$pkg_dirname/include"
+    $env:LIBZMQ_PREFIX              = "$HAB_CACHE_SRC_PATH/$pkg_dirname"
 }
 
 function Invoke-Unpack {
@@ -37,6 +38,6 @@ function Invoke-Build {
 }
 
 function Invoke-Install {
-    Copy-Item "$env:CARGO_TARGET_DIR/release/hab.exe" "$pkg_prefix/bin/hab.exe"
+    Copy-Item "$env:CARGO_TARGET_DIR/release/hab-butterfly.exe" "$pkg_prefix/bin/hab-butterfly.exe"
     Copy-Item "$HAB_CACHE_SRC_PATH/$pkg_dirname/bin/*" "$pkg_prefix/bin"
 }
