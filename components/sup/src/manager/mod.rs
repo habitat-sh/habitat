@@ -336,7 +336,7 @@ impl Manager {
         if let Some((incarnation, config)) =
             self.state
                 .butterfly
-                .service_config_for(&service.service_group_str(), Some(service.cfg_incarnation)) {
+                .service_config_for(&*service.service_group, Some(service.cfg_incarnation)) {
             service.cfg_incarnation = incarnation;
             service.write_butterfly_service_config(config)
         } else {
@@ -352,7 +352,7 @@ impl Manager {
         for (incarnation, filename, body) in
             self.state
                 .butterfly
-                .service_files_for(&service.service_group_str(), &service.current_service_files)
+                .service_files_for(&*service.service_group, &service.current_service_files)
                 .into_iter() {
             if service.write_butterfly_service_file(filename, incarnation, body) {
                 updated = true;

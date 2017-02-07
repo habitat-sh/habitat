@@ -32,11 +32,24 @@ use prometheus;
 
 use config::gconfig;
 use error::{Result, Error, SupError};
-use health_check;
 use manager;
+use manager::service::HealthCheck;
 
 static LOGKEY: &'static str = "HG";
 
+// Simple macro to encapsulate the HTTP metrics for each endpoint
+macro_rules! with_metrics {
+    ($method:expr, $name:expr) => {{
+        let mut labels = HashMap::new();
+        labels.insert("handler", $name);
+
+        HTTP_COUNTER.with(&labels.clone()).inc();
+        let timer = HTTP_REQ_HISTOGRAM.with(&labels).start_timer();
+        let result = $method;
+        timer.observe_duration();
+        result
+    }}
+}
 
 lazy_static! {
     static ref HTTP_COUNTER: CounterVec = register_counter_vec!(
@@ -111,21 +124,6 @@ impl typemap::Key for ManagerState {
 
 pub struct Server(Iron<Chain>);
 
-
-// Simple macro to encapsulate the HTTP metrics for each endpoint
-macro_rules! with_metrics {
-    ($method:expr, $name:expr) => {{
-        let mut labels = HashMap::new();
-        labels.insert("handler", $name);
-        
-        HTTP_COUNTER.with(&labels.clone()).inc();
-        let timer = HTTP_REQ_HISTOGRAM.with(&labels).start_timer();
-        let result = $method;
-        timer.observe_duration();
-        result
-    }}
-}
-
 impl Server {
     pub fn new(manager_state: manager::State) -> Self {
         let router = router!(
@@ -133,10 +131,16 @@ impl Server {
             census: get "/census" => with_metrics!(census, "census"),
             metrics: get "/metrics" => with_metrics!(metrics, "metrics"),
             services: get "/services" => with_metrics!(services, "services"),
-            service_config: get "/services/:svc/:group/config" => with_metrics!(config, "config"),
+            service_config: get "/services/:svc/:group/config" => {
+                with_metrics!(config, "config")
+            },
             service_health: get "/services/:svc/:group/health" => with_metrics!(health, "health"),
-            service_config_org: get "/services/:svc/:group/:org/config" => with_metrics!(config, "config"),
-            service_health_org: get "/services/:svc/:group/:org/health" => with_metrics!(health, "config"),
+            service_config_org: get "/services/:svc/:group/:org/config" => {
+                with_metrics!(config, "config")
+            },
+            service_health_org: get "/services/:svc/:group/:org/health" => {
+                with_metrics!(health, "config")
+            }
         );
         let mut chain = Chain::new(router);
         chain.link(persistent::Read::<ManagerState>::both(manager_state));
@@ -154,7 +158,6 @@ impl Server {
         Ok(handle)
     }
 }
-
 
 fn butterfly(req: &mut Request) -> IronResult<Response> {
     let state = req.get::<persistent::Read<ManagerState>>().unwrap();
@@ -196,15 +199,7 @@ fn health(req: &mut Request) -> IronResult<Response> {
     };
     let services = state.services.read().unwrap();
     match services.iter().find(|s| s.service_group == service_group) {
-        Some(service) => {
-            match service.health_check() {
-                Ok(result) => Ok(result.into()),
-                Err(err) => {
-                    error!("Health Check failed, err={:?}", err);
-                    Ok(Response::with(status::InternalServerError))
-                }
-            }
-        }
+        Some(service) => Ok(service.health_check().into()),
         None => Ok(Response::with(status::NotFound)),
     }
 }
@@ -224,20 +219,19 @@ fn metrics(_req: &mut Request) -> IronResult<Response> {
     Ok(Response::with((status::Ok, String::from_utf8(buffer).unwrap())))
 }
 
-impl Into<Response> for health_check::CheckResult {
+impl Into<Response> for HealthCheck {
     fn into(self) -> Response {
         let status: status::Status = self.into();
         Response::with(status)
     }
 }
 
-impl Into<status::Status> for health_check::CheckResult {
+impl Into<status::Status> for HealthCheck {
     fn into(self) -> status::Status {
         match self {
-            health_check::CheckResult::Ok |
-            health_check::CheckResult::Warning => status::Ok,
-            health_check::CheckResult::Critical => status::ServiceUnavailable,
-            health_check::CheckResult::Unknown => status::InternalServerError,
+            HealthCheck::Ok | HealthCheck::Warning => status::Ok,
+            HealthCheck::Critical => status::ServiceUnavailable,
+            HealthCheck::Unknown => status::InternalServerError,
         }
     }
 }
