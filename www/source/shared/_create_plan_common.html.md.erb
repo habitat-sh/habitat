@@ -89,7 +89,7 @@ We now have a skeleton plan, but we need to modify some of its settings before w
 
 6. Set the `pkg_exports` value to an associative array with one key value pair. This is an alias of a default configuration which will be shared to consumers who `--bind` to your package. All service configuration is considered "private" to the supervisor and not shared without an explicit entry here. We will setup the `default.toml` for the configuration soon.
 
-    pkg_exports(
+    pkg_exports=(
       [port]=port
     )
 
@@ -169,7 +169,7 @@ pkg_license=()
 pkg_upstream_url=https://github.com/habitat-sh/habitat-example-plans
 pkg_source=nosuchfile.tar.gz
 pkg_deps=(core/node)
-pkg_exports(
+pkg_exports=(
   [port]=port
 )
 pkg_exposes=(port)
