@@ -136,12 +136,8 @@ impl Serialize for swim::Service {
         try!(serializer.serialize_struct_elt(&mut state,
                                              "service_group",
                                              self.get_service_group()));
-        try!(serializer.serialize_struct_elt(&mut state, "package", self.get_package_ident()));
+        try!(serializer.serialize_struct_elt(&mut state, "package", self.get_pkg()));
         try!(serializer.serialize_struct_elt(&mut state, "incarnation", self.get_incarnation()));
-        try!(serializer.serialize_struct_elt(&mut state, "ip", self.get_ip()));
-        try!(serializer.serialize_struct_elt(&mut state, "hostname", self.get_hostname()));
-        try!(serializer.serialize_struct_elt(&mut state, "port", self.get_port()));
-        try!(serializer.serialize_struct_elt(&mut state, "exposes", self.get_exposes()));
         try!(serializer.serialize_struct_elt(&mut state, "cfg", &cfg));
         try!(serializer.serialize_struct_elt(&mut state, "sys", &sys));
         try!(serializer.serialize_struct_elt(&mut state, "initialized", self.get_initialized()));

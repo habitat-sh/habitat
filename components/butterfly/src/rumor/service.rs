@@ -82,7 +82,6 @@ impl Service {
     pub fn new<T>(member_id: String,
                   package: &T,
                   service_group: &ServiceGroup,
-                  exposes: Vec<u32>,
                   sys: &SysInfo,
                   cfg: Option<&toml::Table>)
                   -> Result<Self>
@@ -102,13 +101,7 @@ impl Service {
         proto.set_member_id(member_id);
         proto.set_service_group(service_group.to_string());
         proto.set_incarnation(0);
-        proto.set_hostname(sys.hostname.clone());
-        proto.set_ip(sys.ip.clone());
-        if let Some(port) = exposes.get(0) {
-            proto.set_port(*port);
-        }
-        proto.set_exposes(exposes);
-        proto.set_package_ident(package.to_string());
+        proto.set_pkg(package.to_string());
         proto.set_sys(toml::encode_str(&sys).into_bytes());
         if let Some(cfg) = cfg {
             proto.set_cfg(toml::encode_str(cfg).into_bytes());
@@ -171,13 +164,7 @@ mod tests {
     fn create_service(member_id: &str) -> Service {
         let pkg = PackageIdent::from_str("core/neurosis/1.2.3/20161208121212").unwrap();
         let sg = ServiceGroup::new(pkg.name(), "production", None).unwrap();
-        Service::new(member_id.to_string(),
-                     &pkg,
-                     &sg,
-                     vec![9090, 9091],
-                     &SysInfo::default(),
-                     None)
-            .unwrap()
+        Service::new(member_id.to_string(), &pkg, &sg, &SysInfo::default(), None).unwrap()
     }
 
     #[test]
@@ -266,7 +253,6 @@ mod tests {
         Service::new("bad-member".to_string(),
                      &ident,
                      &sg,
-                     vec![],
                      &SysInfo::default(),
                      None)
             .unwrap();

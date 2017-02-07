@@ -59,11 +59,9 @@ pub struct CensusEntry {
     pub address: String,
     pub ip: String,
     pub port: String,
-    pub exposes: Vec<String>,
     pub cfg: toml::Table,
     pub sys: SysInfo,
-    #[serde(rename = "pkg")]
-    pub package_ident: Option<PackageIdent>,
+    pub pkg: Option<PackageIdent>,
     pub leader: Option<bool>,
     pub follower: Option<bool>,
     pub update_leader: Option<bool>,
@@ -128,14 +126,6 @@ impl CensusEntry {
         self.org = Some(value);
     }
 
-    pub fn get_hostname(&self) -> &str {
-        &self.hostname
-    }
-
-    pub fn set_hostname(&mut self, value: String) {
-        self.hostname = value;
-    }
-
     pub fn get_address(&self) -> &str {
         &self.address
     }
@@ -144,36 +134,12 @@ impl CensusEntry {
         self.address = value;
     }
 
-    pub fn get_ip(&self) -> &str {
-        &self.ip
+    pub fn get_pkg(&self) -> &PackageIdent {
+        self.pkg.as_ref().unwrap()
     }
 
-    pub fn set_ip(&mut self, value: String) {
-        self.ip = value;
-    }
-
-    pub fn get_port(&self) -> &str {
-        &self.port
-    }
-
-    pub fn set_port(&mut self, value: String) {
-        self.port = value;
-    }
-
-    pub fn get_exposes(&self) -> &Vec<String> {
-        &self.exposes
-    }
-
-    pub fn set_exposes(&mut self, value: Vec<String>) {
-        self.exposes = value;
-    }
-
-    pub fn get_package_ident(&self) -> &PackageIdent {
-        self.package_ident.as_ref().unwrap()
-    }
-
-    pub fn set_package_ident(&mut self, value: PackageIdent) {
-        self.package_ident = Some(value);
+    pub fn set_pkg(&mut self, value: PackageIdent) {
+        self.pkg = Some(value);
     }
 
     pub fn set_leader(&mut self, value: bool) {
@@ -312,12 +278,8 @@ impl CensusEntry {
         if let Some(org) = sg.org() {
             self.set_org(org.to_string());
         }
-        self.set_ip(String::from(rumor.get_ip()));
-        self.set_hostname(String::from(rumor.get_hostname()));
-        self.set_port(format!("{}", rumor.get_port()));
-        self.set_exposes(rumor.get_exposes().iter().map(|p| format!("{}", p)).collect());
-        match PackageIdent::from_str(rumor.get_package_ident()) {
-            Ok(ident) => self.set_package_ident(ident),
+        match PackageIdent::from_str(rumor.get_pkg()) {
+            Ok(ident) => self.set_pkg(ident),
             Err(err) => warn!("Received a bad package ident from gossip data, err={}", err),
         }
         self.cfg = util::toml::table_from_bytes(rumor.get_cfg()).unwrap_or(toml::Table::default());
@@ -635,7 +597,6 @@ mod tests {
             let service = Service::new("neurosis".to_string(),
                                        &ident,
                                        &sg,
-                                       vec![6060, 8080],
                                        &SysInfo::default(),
                                        None)
                 .unwrap();
@@ -644,10 +605,7 @@ mod tests {
             assert_eq!(ce.get_service(), "overwatch");
             assert_eq!(ce.get_group(), "times");
             assert_eq!(ce.get_org(), "ofgrace");
-            assert_eq!(ce.get_port(), "6060");
-            assert_eq!(ce.get_exposes(),
-                       &vec![String::from("6060"), String::from("8080")]);
-            assert_eq!(ce.get_package_ident(), &ident);
+            assert_eq!(ce.get_pkg(), &ident);
         }
 
         #[test]

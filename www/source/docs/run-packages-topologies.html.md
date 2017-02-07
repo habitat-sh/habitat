@@ -32,7 +32,7 @@ Because Habitat provides for automation that is built into the application packa
 
        {{#if svc.me.follower}}
        {{#with svc.leader}}
-       slaveof {{ip}} {{port}}
+       slaveof {{sys.ip}} {{cfg.port}}
        {{/with}}
        {{/if}}
 

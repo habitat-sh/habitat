@@ -179,8 +179,8 @@ impl ServiceUpdater {
                         match census_list.get(&*service.service_group) {
                             Some(census) => {
                                 if census.members_ordered().iter().any(|ce| {
-                                    ce.package_ident.as_ref().unwrap() !=
-                                    census.me().unwrap().package_ident.as_ref().unwrap()
+                                    ce.pkg.as_ref().unwrap() !=
+                                    census.me().unwrap().pkg.as_ref().unwrap()
                                 }) {
                                     debug!("Update leader still waiting for followers...");
                                     return false;
@@ -208,18 +208,17 @@ impl ServiceUpdater {
                                        census.previous_peer(),
                                        census.me()) {
                                     (Some(leader), Some(peer), Some(me)) => {
-                                        if leader.package_ident == me.package_ident {
+                                        if leader.pkg == me.pkg {
                                             debug!("We're not in an update");
                                             return false;
                                         }
-                                        if leader.package_ident != peer.package_ident {
+                                        if leader.pkg != peer.pkg {
                                             debug!("We're in an update but it's not our turn");
                                             return false;
                                         }
                                         debug!("We're in an update and it's our turn");
-                                        let package = leader.package_ident.clone();
                                         let rx = Worker::new(service)
-                                            .start(&service.service_group, package);
+                                            .start(&service.service_group, leader.pkg.clone());
                                         *state = FollowerState::Updating(rx);
                                     }
                                     _ => return false,
@@ -245,7 +244,7 @@ impl ServiceUpdater {
                                             "Service Updater has died {}", "; restarting...");
                                         let package = census.get_update_leader()
                                             .unwrap()
-                                            .package_ident
+                                            .pkg
                                             .clone();
                                         *rx = Worker::new(service)
                                             .start(&service.service_group, package);
