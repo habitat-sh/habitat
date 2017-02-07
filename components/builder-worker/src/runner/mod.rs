@@ -416,12 +416,12 @@ fn studio_cmd() -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use protocol::{jobsrv, vault};
+    use protocol::{jobsrv, originsrv};
 
     #[test]
     fn extract_origin_from_job() {
         let mut inner = jobsrv::Job::new();
-        let mut project = vault::OriginProject::new();
+        let mut project = originsrv::OriginProject::new();
         project.set_name("core/nginx".to_string());
         inner.set_project(project);
         let job = Job::new(inner);

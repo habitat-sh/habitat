@@ -161,7 +161,7 @@ impl Service for Server {
     type Error = Error;
 
     fn protocol() -> net::Protocol {
-        net::Protocol::VaultSrv
+        net::Protocol::OriginSrv
     }
 
     fn config(&self) -> &Arc<RwLock<Self::Config>> {

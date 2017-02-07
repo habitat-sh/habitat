@@ -28,7 +28,7 @@ pub mod routesrv;
 pub mod search;
 pub mod sessionsrv;
 pub mod sharding;
-pub mod vault;
+pub mod originsrv;
 pub mod scheduler;
 mod message;
 

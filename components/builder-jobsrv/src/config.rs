@@ -62,7 +62,7 @@ impl Default for Config {
                                                                     5567)),
             status_publisher_addr: SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(0, 0, 0, 0),
                                                                     5568)),
-            datastore_connection_url: String::from("postgresql:://hab@127.0.0.1/builder_db_test"),
+            datastore_connection_url: String::from("postgresql://hab@127.0.0.1/builder_jobsrv"),
             datastore_connection_retry_ms: 300,
             datastore_connection_timeout: Duration::from_secs(3600),
             datastore_connection_test: false,

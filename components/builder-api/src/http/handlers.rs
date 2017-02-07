@@ -27,7 +27,7 @@ use iron::status;
 use iron::typemap;
 use persistent;
 use protocol::jobsrv::{Job, JobGet, JobSpec};
-use protocol::vault::*;
+use protocol::originsrv::*;
 use protocol::net::{self, NetOk, ErrCode};
 use router::Router;
 use serde_json;

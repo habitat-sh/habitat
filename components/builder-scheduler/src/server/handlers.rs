@@ -20,7 +20,7 @@ use zmq;
 
 use protocol::jobsrv::{Job, JobSpec};
 use hab_net::routing::Broker;
-use protocol::vault::*;
+use protocol::originsrv::*;
 
 use super::ServerState;
 use error::Result;

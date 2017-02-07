@@ -14,8 +14,7 @@
 
 #[macro_use]
 extern crate habitat_builder_db as db;
-extern crate habitat_builder_vault as vault;
+extern crate habitat_builder_originsrv as originsrv;
 extern crate habitat_builder_protocol as protocol;
 
 mod data_store;
-

@@ -42,7 +42,7 @@ use protocol::depotsrv;
 use protocol::net::ErrCode;
 use protocol::sessionsrv::{Account, AccountGet};
 use protocol::scheduler::{Schedule, Group};
-use protocol::vault::*;
+use protocol::originsrv::*;
 use regex::Regex;
 use router::{Params, Router};
 use serde::Serialize;
@@ -205,7 +205,7 @@ pub fn invite_to_origin(req: &mut Request) -> IronResult<Response> {
     };
     invite_request.set_owner_id(session.get_id());
 
-    // store invitations in the vault
+    // store invitations in the originsrv
     match conn.route::<OriginInvitationCreate, OriginInvitation>(&invite_request) {
         Ok(invitation) => {
             log_event!(req,

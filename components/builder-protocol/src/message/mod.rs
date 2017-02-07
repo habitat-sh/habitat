@@ -24,7 +24,7 @@ pub mod jobsrv;
 pub mod net;
 pub mod routesrv;
 pub mod sessionsrv;
-pub mod vault;
+pub mod originsrv;
 pub mod scheduler;
 
 #[derive(Debug)]
@@ -41,7 +41,7 @@ impl<'a, T: 'a + protobuf::Message> Message<'a, T> {
             Some("net") => net::Protocol::Net,
             Some("routesrv") => net::Protocol::RouteSrv,
             Some("sessionsrv") => net::Protocol::SessionSrv,
-            Some("vault") => net::Protocol::VaultSrv,
+            Some("originsrv") => net::Protocol::OriginSrv,
             Some("scheduler") => net::Protocol::Scheduler,
             Some(_) | None => {
                 unreachable!("no protocol defined for message, name={}",
@@ -154,8 +154,8 @@ mod tests {
                    net::Protocol::RouteSrv);
         assert_eq!(Message(&sessionsrv::Session::new()).protocol(),
                    net::Protocol::SessionSrv);
-        assert_eq!(Message(&vault::Origin::new()).protocol(),
-                   net::Protocol::VaultSrv);
+        assert_eq!(Message(&originsrv::Origin::new()).protocol(),
+                   net::Protocol::OriginSrv);
         assert_eq!(Message(&scheduler::Schedule::new()).protocol(),
                    net::Protocol::Scheduler);
     }

@@ -1,4 +1,4 @@
-pkg_name=hab-builder-vault
+pkg_name=hab-builder-originsrv
 pkg_origin=core
 pkg_version=undefined
 pkg_maintainer="Jamie Winsor <reset@chef.io>"
@@ -8,7 +8,7 @@ pkg_bin_dirs=(bin)
 pkg_deps=(core/glibc core/openssl core/gcc-libs core/zeromq core/libsodium core/libarchive)
 pkg_build_deps=(core/protobuf core/protobuf-rust core/coreutils core/cacerts
   core/rust core/gcc core/git core/pkg-config)
-bin="bldr-vault"
+bin="bldr-originsrv"
 pkg_svc_run="$bin start -c ${pkg_svc_path}/config.toml"
 
 do_verify() {

@@ -1160,7 +1160,7 @@ pub enum Protocol {
     Net = 0,
     RouteSrv = 1,
     SessionSrv = 2,
-    VaultSrv = 3,
+    OriginSrv = 3,
     JobSrv = 4,
     Scheduler = 5,
 }
@@ -1175,7 +1175,7 @@ impl ::protobuf::ProtobufEnum for Protocol {
             0 => ::std::option::Option::Some(Protocol::Net),
             1 => ::std::option::Option::Some(Protocol::RouteSrv),
             2 => ::std::option::Option::Some(Protocol::SessionSrv),
-            3 => ::std::option::Option::Some(Protocol::VaultSrv),
+            3 => ::std::option::Option::Some(Protocol::OriginSrv),
             4 => ::std::option::Option::Some(Protocol::JobSrv),
             5 => ::std::option::Option::Some(Protocol::Scheduler),
             _ => ::std::option::Option::None
@@ -1187,7 +1187,7 @@ impl ::protobuf::ProtobufEnum for Protocol {
             Protocol::Net,
             Protocol::RouteSrv,
             Protocol::SessionSrv,
-            Protocol::VaultSrv,
+            Protocol::OriginSrv,
             Protocol::JobSrv,
             Protocol::Scheduler,
         ];

@@ -9,7 +9,7 @@ use std::result;
 use serde::{Serialize, Serializer};
 use serde::ser::SerializeStruct;
 
-pub use message::vault::*;
+pub use message::originsrv::*;
 use message::{Persistable, Routable};
 use sharding::InstaId;
 
@@ -31,7 +31,7 @@ impl Routable for OriginGet {
     fn route_key(&self) -> Option<Self::H> {
         // JW TODO: This won't accurately find the origin without it. We can switch to using the ID
         // of the origin or perform a reverse lookup by storing the name->ID map on a particular
-        // vault server.
+        // originsrv server.
         Some(self.get_name().to_string())
     }
 }

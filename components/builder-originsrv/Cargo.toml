@@ -1,13 +1,13 @@
 [package]
-name = "habitat_builder_vault"
+name = "habitat_builder_originsrv"
 version = "0.0.0"
 authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletcher Nichol <fnichol@chef.io>", "Joshua Timberman <joshua@chef.io>", "Dave Parfitt <dparfitt@chef.io>"]
-description = "Habitat-Builder Vault Server"
+description = "Habitat-Builder Origin Server"
 build = "../bldr-build.rs"
 workspace = "../../"
 
 [[bin]]
-name = "bldr-vault"
+name = "bldr-origin-srv"
 doc = false
 
 [dependencies]

@@ -14,7 +14,7 @@
 
 use jobsrv::data_store::DataStore;
 use protocol::jobsrv;
-use protocol::vault;
+use protocol::originsrv;
 
 #[test]
 fn migration() {

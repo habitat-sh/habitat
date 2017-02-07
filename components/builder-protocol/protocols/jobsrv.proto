@@ -1,6 +1,6 @@
 package jobsrv;
 import "protocols/net.proto";
-import "protocols/vault.proto";
+import "protocols/originsrv.proto";
 
 enum Os {
   Linux = 1;
@@ -32,7 +32,7 @@ message Job {
   optional uint64 id = 1;
   optional uint64 owner_id = 2;
   optional JobState state = 3;
-  optional vault.OriginProject project = 4;
+  optional originsrv.OriginProject project = 4;
   optional net.NetError error = 5;
 }
 
@@ -42,5 +42,5 @@ message JobGet {
 
 message JobSpec {
   optional uint64 owner_id = 1;
-  optional vault.OriginProject project = 2;
+  optional originsrv.OriginProject project = 2;
 }
