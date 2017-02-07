@@ -19,6 +19,8 @@ use std::collections::HashMap;
 use std::fmt;
 use std::fs::File;
 use std::io::prelude::*;
+use std::result;
+use std::str::FromStr;
 
 use ansi_term::Colour::{Yellow, Red, Green};
 use hcore::service::ServiceGroup;
@@ -29,7 +31,7 @@ use toml;
 
 pub use self::config::ServiceConfig;
 use config::gconfig;
-use error::Result;
+use error::{Error, Result, SupError};
 use health_check;
 use manager::signals;
 use manager::census::CensusList;
@@ -398,6 +400,19 @@ pub enum Topology {
     Initializer,
 }
 
+impl FromStr for Topology {
+    type Err = SupError;
+
+    fn from_str(topology: &str) -> result::Result<Self, Self::Err> {
+        match topology {
+            "initializer" => Ok(Topology::Initializer),
+            "leader" => Ok(Topology::Leader),
+            "standalone" => Ok(Topology::Standalone),
+            _ => Err(sup_error!(Error::UnknownTopology(String::from(topology)))),
+        }
+    }
+}
+
 impl Default for Topology {
     fn default() -> Topology {
         Topology::Standalone
@@ -411,13 +426,15 @@ pub enum UpdateStrategy {
     Rolling,
 }
 
-impl UpdateStrategy {
-    pub fn from_str(strategy: &str) -> Self {
+impl FromStr for UpdateStrategy {
+    type Err = SupError;
+
+    fn from_str(strategy: &str) -> result::Result<Self, Self::Err> {
         match strategy {
-            "none" => UpdateStrategy::None,
-            "at-once" => UpdateStrategy::AtOnce,
-            "rolling" => UpdateStrategy::Rolling,
-            s => panic!("Invalid update strategy {}", s),
+            "none" => Ok(UpdateStrategy::None),
+            "at-once" => Ok(UpdateStrategy::AtOnce),
+            "rolling" => Ok(UpdateStrategy::Rolling),
+            _ => Err(sup_error!(Error::InvalidUpdateStrategy(String::from(strategy)))),
         }
     }
 }

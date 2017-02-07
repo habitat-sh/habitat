@@ -13,10 +13,6 @@
 // limitations under the License.
 
 //! The CLI commands.
-//!
-//! The Supervisor's command line actions are defined here; one module per command. Their names map
-//! 1:1 to the actual command line arguments, with one exception - `_` is translated to `-` on the
-//! CLI.
 
 pub mod start;
 pub mod shell;

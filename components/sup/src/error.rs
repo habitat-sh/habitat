@@ -120,6 +120,7 @@ pub enum Error {
     InvalidPidFile,
     InvalidPort(num::ParseIntError),
     InvalidServiceGroupString(String),
+    InvalidUpdateStrategy(String),
     Io(io::Error),
     IPFailed,
     KeyNotFound(String),
@@ -183,6 +184,7 @@ impl fmt::Display for SupError {
             Error::InvalidServiceGroupString(ref e) => {
                 format!("Invalid service group string: {}", e)
             }
+            Error::InvalidUpdateStrategy(ref s) => format!("Invalid update strategy: {}", s),
             Error::Io(ref err) => format!("{}", err),
             Error::IPFailed => format!("Failed to discover this hosts outbound IP address"),
             Error::KeyNotFound(ref e) => format!("Key not found in key cache: {}", e),
@@ -266,6 +268,7 @@ impl error::Error for SupError {
             Error::InvalidServiceGroupString(_) => {
                 "Service group strings must be in service.group format (example: redis.default)"
             }
+            Error::InvalidUpdateStrategy(_) => "Invalid update strategy",
             Error::Io(ref err) => err.description(),
             Error::IPFailed => "Failed to discover the outbound IP address",
             Error::KeyNotFound(_) => "Key not found in key cache",

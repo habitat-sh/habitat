@@ -60,14 +60,6 @@ pub fn gconfig() -> &'static Config {
     unsafe { &*CONFIG }
 }
 
-/// An enum with the various CLI commands. Used to keep track of what command was called.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Command {
-    Start,
-    ShellBash,
-    ShellSh,
-}
-
 #[derive(PartialEq, Eq, Debug)]
 pub struct GossipListenAddr(SocketAddr);
 
@@ -119,31 +111,11 @@ impl ToSocketAddrs for GossipListenAddr {
     }
 }
 
-impl FromStr for Command {
-    type Err = SupError;
-    fn from_str(s: &str) -> Result<Command> {
-        match s {
-            "bash" => Ok(Command::ShellBash),
-            "sh" => Ok(Command::ShellSh),
-            "start" => Ok(Command::Start),
-            _ => Err(sup_error!(Error::CommandNotImplemented)),
-        }
-    }
-}
-
-// We provide a default command primarily so the Config struct can have reasonable defaults.
-impl Default for Command {
-    fn default() -> Command {
-        Command::Start
-    }
-}
-
 /// Holds our configuration options.
 #[derive(Default, Debug, PartialEq, Eq)]
 pub struct Config {
     pub http_listen_addr: http_gateway::ListenAddr,
     pub gossip_listen: GossipListenAddr,
-    command: Command,
     package: PackageIdent,
     local_artifact: Option<String>,
     url: String,
@@ -183,17 +155,6 @@ impl Config {
     /// Return the command we used
     pub fn update_strategy(&self) -> UpdateStrategy {
         self.update_strategy
-    }
-
-    /// Set the `Command` we used
-    pub fn set_command(&mut self, command: Command) -> &mut Config {
-        self.command = command;
-        self
-    }
-
-    /// Return the command we used
-    pub fn command(&self) -> Command {
-        self.command
     }
 
     /// Set the group
@@ -328,19 +289,12 @@ impl Config {
 #[cfg(test)]
 mod tests {
     use manager::service::Topology;
-    use super::{Config, Command};
+    use super::Config;
 
     #[test]
     fn new() {
         let c = Config::new();
         assert_eq!(c.topology(), Topology::Standalone);
-    }
-
-    #[test]
-    fn command() {
-        let mut c = Config::new();
-        c.set_command(Command::Start);
-        assert_eq!(c.command(), Command::Start);
     }
 
     #[test]
