@@ -596,10 +596,9 @@ function _Complete-DependencyResolution {
     $tdeps=_Get-TdepsFor $dep
     foreach($tdep in $tdeps) {
       $tdep=(Resolve-Path "$HAB_PKG_PATH/$tdep").Path
-      $script:pkg_build_tdeps_resolved=(_return_or_append_to_set $tdep $pkg_build_tdeps_resolved)
+      $script:pkg_build_tdeps_resolved=@(_return_or_append_to_set $tdep $pkg_build_tdeps_resolved)
     }
   }
-
   # Build `${pkg_tdeps_resolved[@]}` containing all the direct run
   # dependencies, and the run dependencies for each direct run dependency.
 
@@ -611,7 +610,7 @@ function _Complete-DependencyResolution {
     $tdeps=_Get-TdepsFor $dep
     foreach($tdep in $tdeps) {
       $tdep=(Resolve-Path "$HAB_PKG_PATH/$tdep").Path
-      $script:pkg_tdeps_resolved=_return_or_append_to_set $tdep $pkg_tdeps_resolved
+      $script:pkg_tdeps_resolved=@(_return_or_append_to_set $tdep $pkg_tdeps_resolved)
     }
   }
 
@@ -630,10 +629,29 @@ function _Complete-DependencyResolution {
   # 1. All unique transitive run dependencies that aren't already added
   $script:pkg_all_tdeps_resolved = $pkg_deps_resolved + $pkg_build_deps_resolved
   foreach($dep in ($pkg_tdeps_resolved + $pkg_build_tdeps_resolved)) {
-    $script:pkg_all_tdeps_resolved = _return_or_append_to_set $tdep $pkg_all_tdeps_resolved
+    $script:pkg_all_tdeps_resolved = @(_return_or_append_to_set $dep $pkg_all_tdeps_resolved)
   }
-
   _Assert-Deps
+}
+
+function _Add-Paths($fromFile) {
+  $path_part = $null
+  foreach($dep_path in $pkg_all_tdeps_resolved) {
+    if (Test-Path "$dep_path/$fromFile") {
+      Push-Location $originalPath
+      try {
+        $data = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath((Get-Content "$dep_path/$fromFile").Trim())
+        if (!$path_part) {
+          $path_part = $data
+        }
+        else {
+          $path_part += ";$data"
+        }
+      }
+      finally { Pop-Location }
+    }
+  }
+  $path_part
 }
 
 function _Set-Path {
@@ -646,25 +664,23 @@ function _Set-Path {
       $path_part += ";$pkg_prefix/$path"
     }
   }
-  foreach($dep_path in $pkg_all_tdeps_resolved) {
-    if (Test-Path "$dep_path/PATH") {
-      Push-Location $originalPath
-      try {
-        $data = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath((Get-Content "$dep_path/PATH").Trim())
-        if (!$path_part) {
-          $path_part = $data
-        }
-        else {
-          $path_part += ";$data"
-        }
-      }
-      finally { Pop-Location }
-    }
+  $depPaths = _Add-Paths("PATH")
+  if($path_part) {
+    $depPaths = $path_part + ";$depPaths"
   }
+  $depLibs = _Add-Paths("LIB_DIRS")
+  $depIncludes = _Add-Paths("INCLUDE_DIRS")
+
   # Insert all the package PATH fragments before the default PATH to ensure
   # package binaries are used before any userland/operating system binaries
-  if ($path_part) {
-    $env:PATH="$path_part;$INITIAL_PATH"
+  if ($depPaths) {
+    $env:PATH="$depPaths;$INITIAL_PATH"
+  }
+  if ($depLibs) {
+    $env:LIB=$depLibs
+  }
+  if ($depIncludes) {
+    $env:INCLUDE=$depIncludes
   }
 
   Write-BuildLine "Setting PATH=$env:PATH"
@@ -1048,19 +1064,23 @@ $(Get-Content "$PLAN_CONTEXT\plan.ps1" -Raw)
 function _Write-Metadata {
     Write-BuildLine "Building pacakge metadata"
 
-    # @TODO fin - LD_RUN_PATH
-    # @TODO fin - LDFLAGS
-    # @TODO fin - CFLAGS
-    # @TODO fin - CPPFLAGS
-    # @TODO fin - CXXFLAGS
-    # @TODO fin - PKG_CONFIG_PATH
+    $prefixDrive = (Resolve-Path $originalPath).Drive.Root
+    $strippedPrefix = $pkg_prefix.Substring($prefixDrive.length)
+    if(!$strippedPrefix.StartsWith('\')) { $strippedPrefix = "\$strippedPrefix" }
 
     if ($pkg_bin_dirs.Length -gt 0) {
-        $prefixDrive = (Resolve-Path $originalPath).Drive.Root
-        $strippedPrefix = $pkg_prefix.Substring($prefixDrive.length)
-        if(!$strippedPrefix.StartsWith('\')) { $strippedPrefix = "\$strippedPrefix" }
-        $($pkg_bin_dirs | % { "$strippedPrefix\$_" }) -join ':' |
+        $($pkg_bin_dirs | % { "$strippedPrefix\$_" }) -join ';' |
             Out-File "$pkg_prefix\PATH" -Encoding ascii
+    }
+
+    if ($pkg_lib_dirs.Length -gt 0) {
+        $($pkg_lib_dirs | % { "$strippedPrefix\$_" }) -join ';' |
+            Out-File "$pkg_prefix\LIB_DIRS" -Encoding ascii
+    }
+
+    if ($pkg_include_dirs.Length -gt 0) {
+        $($pkg_include_dirs | % { "$strippedPrefix\$_" }) -join ';' |
+            Out-File "$pkg_prefix\INCLUDE_DIRS" -Encoding ascii
     }
 
     if ($pkg_expose.Length -gt 0) {
@@ -1071,8 +1091,6 @@ function _Write-Metadata {
     foreach ($export in $pkg_exports.GetEnumerator()) {
         "$($export.Key)=$($export.Value)" | Out-File "$pkg_prefix\EXPORTS" -Encoding ascii -Append
     }
-
-    # @TODO fin - INTERPRETERS
 
     $pkg_build_deps_resolved | % {
         Resolve-HabPkgPath $_ | Out-File $pkg_prefix\BUILD_DEPS -Encoding ascii -Append
