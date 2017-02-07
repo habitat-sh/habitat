@@ -145,11 +145,8 @@ p We who work on Habitat think that there's a handful of patterns for deploying
   that only one piece is down at a time, or a percentage of pieces. Perhaps you
   have a canary, where you start up just one updated service instance and make
   sure that it passes its smoke tests before you deploy the update more
-  broadly. You might have an initializer where the first service instance must
-  come up and perform some tasks before remaining instances of the same service
-  are allowed to run (in other words, the first service instance holds a mutex
-  until it's fully configured). We're investigating other patterns and we're
-  sure we'll learn more as time goes on.
+  broadly. We're investigating other patterns and we're sure we'll learn more
+  as time goes on.
 
 h2 Conclusion
 

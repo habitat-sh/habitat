@@ -22,22 +22,24 @@ extern crate ansi_term;
 extern crate libc;
 #[macro_use]
 extern crate clap;
+extern crate url;
 
 use std::path::Path;
-use std::process;
+use std::result;
 use std::str::FromStr;
 
 use ansi_term::Colour::Yellow;
-use clap::{App, AppSettings, Arg, ArgMatches, SubCommand};
+use clap::{App, ArgMatches};
 use hcore::env as henv;
 use hcore::crypto::{default_cache_key_path, SymKey};
 use hcore::crypto::init as crypto_init;
 use hcore::package::{PackageArchive, PackageIdent};
 use hcore::url::{DEFAULT_DEPOT_URL, DEPOT_URL_ENVVAR};
+use url::Url;
 
-use sup::config::{gcache, gconfig, Command, Config, GossipListenAddr};
-use sup::error::{Error, Result, SupError};
-use sup::command::*;
+use sup::config::{gcache, gconfig, Config, GossipListenAddr};
+use sup::error::Result;
+use sup::command;
 use sup::http_gateway;
 use sup::manager::service::{UpdateStrategy, Topology};
 
@@ -53,74 +55,124 @@ static DEFAULT_GROUP: &'static str = "default";
 static RING_ENVVAR: &'static str = "HAB_RING";
 static RING_KEY_ENVVAR: &'static str = "HAB_RING_KEY";
 
-/// Creates a [Config](config/struct.Config.html) from global args
-/// and subcommand args.
-fn config_from_args(subcommand: &str, sub_args: &ArgMatches) -> Result<()> {
-    let mut config = Config::new();
-    let command = try!(Command::from_str(subcommand));
-    config.set_command(command);
-    if let Some(ref config_from) = sub_args.value_of("config-from") {
-        config.set_config_from(Some(config_from.to_string()));
+fn main() {
+    env_logger::init().unwrap();
+    if let Err(e) = start() {
+        println!("{}", e);
+        std::process::exit(1);
     }
-    if let Some(ref strategy) = sub_args.value_of("strategy") {
-        config.set_update_strategy(UpdateStrategy::from_str(strategy));
-    }
-    if let Some(ref ident_or_artifact) = sub_args.value_of("pkg_ident_or_artifact") {
-        if Path::new(ident_or_artifact).is_file() {
-            let ident = try!(PackageArchive::new(Path::new(ident_or_artifact)).ident());
-            config.set_package(ident);
-            config.set_local_artifact(ident_or_artifact.to_string());
-        } else {
-            let ident = try!(PackageIdent::from_str(ident_or_artifact));
-            config.set_package(ident);
-        }
-    }
-    if let Some(topology) = sub_args.value_of("topology") {
-        match topology.as_ref() {
-            "standalone" => {
-                config.set_topology(Topology::Standalone);
-            }
-            "leader" => {
-                config.set_topology(Topology::Leader);
-            }
-            "initializer" => {
-                config.set_topology(Topology::Initializer);
-            }
-            t => return Err(sup_error!(Error::UnknownTopology(String::from(t)))),
-        }
-    }
-    let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
-    let url = sub_args.value_of("url").unwrap_or(&env_or_default);
-    config.set_url(url.to_string());
-    config.set_group(sub_args.value_of("group").unwrap_or(DEFAULT_GROUP).to_string());
-    let bindings = match sub_args.values_of("bind") {
-        Some(bind) => bind.map(|s| s.to_string()).collect(),
-        None => vec![],
-    };
-    config.set_bind(bindings);
+}
 
-    if let Some(addr_str) = sub_args.value_of("listen-peer") {
-        outputln!("{}",
-                  Yellow.bold()
-                      .paint("--listen-peer flag deprecated, please use --listen-gossip. This \
-                              flag will be removed in a future release."));
+fn start() -> Result<()> {
+    crypto_init();
+    let app_matches = cli().get_matches();
+    match app_matches.subcommand() {
+        ("bash", Some(m)) => sub_bash(m),
+        ("sh", Some(m)) => sub_sh(m),
+        ("start", Some(m)) => sub_start(m),
+        _ => unreachable!(),
+    }
+}
+
+fn cli<'a, 'b>() -> App<'a, 'b> {
+    clap_app!(("hab-sup") =>
+        (about: "The Habitat Supervisor")
+        (version: VERSION)
+        (author: "\nAuthors: The Habitat Maintainers <humans@habitat.sh>\n")
+        (@setting VersionlessSubcommands)
+        (@setting SubcommandRequiredElseHelp)
+        (@arg VERBOSE: -v +global "Verbose output; shows line numbers")
+        (@arg NO_COLOR: --("no-color") +global "Turn ANSI color off")
+        (@subcommand bash =>
+            (about: "Start an interactive Bash-like shell")
+            (aliases: &["b", "ba", "bas"])
+        )
+        (@subcommand sh =>
+            (about: "Start an interactive Bourne-like shell")
+            (aliases: &[])
+        )
+        (@subcommand start =>
+            (about: "Start a Habitat-supervised service from a package or artifact")
+            (aliases: &["st", "sta", "star"])
+            (@arg PKG_IDENT_OR_ARTIFACT: +required
+                "A Habitat package identifier (ex: acme/redis) or filepath to a Habitat Artifact \
+                (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
+            (@arg BIND: --bind +takes_value +multiple
+                "One or more service groups to bind to a configuration")
+            (@arg CONFIG_DIR: --("config-from") +takes_value {dir_exists}
+                "Use package config from this path, rather than the package itself")
+            (@arg DEPOT_URL: --url -u +takes_value {valid_url}
+                "Use a specific Depot URL (ex: http://depot.example.com/v1/depot)")
+            (@arg GROUP: --group +takes_value
+                "The service group; shared config and topology [default: default].")
+            (@arg LISTEN_GOSSIP: --("listen-gossip") +takes_value
+                "The listen address for the gossip system [default: 0.0.0.0:9638]")
+            (@arg LISTEN_HTTP: --("listen-http") +takes_value
+                "The listen address for the HTTP gateway [default: 0.0.0.0:9631]")
+            (@arg ORGANIZATION: --org +takes_value "The organization that a service is part of")
+            (@arg PEER: --peer +takes_value "The listen address of an initial peer (IP[:PORT])")
+            (@arg PERMANENT_PEER: --("permanent-peer") -I "If this service is a permanent peer")
+            (@arg RING: --ring -r +takes_value "Ring key name")
+            (@arg STRATEGY: --strategy -s +takes_value {valid_update_strategy}
+                "The update strategy; [default: none] [values: none, at-once, rolling]")
+            (@arg TOPOLOGY: --topology -t +takes_value {valid_topology}
+                "Service topology; [default: none]")
+        )
+    )
+}
+
+fn sub_bash(m: &ArgMatches) -> Result<()> {
+    let config = Config::new();
+    if m.is_present("VERBOSE") {
+        sup::output::set_verbose(true);
+    }
+    if m.is_present("NO_COLOR") {
+        sup::output::set_no_color(true);
+    }
+    debug!("Config:\n{:?}", config);
+    gcache(config);
+
+    command::shell::bash()
+}
+
+fn sub_sh(m: &ArgMatches) -> Result<()> {
+    let config = Config::new();
+    if m.is_present("VERBOSE") {
+        sup::output::set_verbose(true);
+    }
+    if m.is_present("NO_COLOR") {
+        sup::output::set_no_color(true);
+    }
+    debug!("Config:\n{:?}", config);
+    gcache(config);
+
+    command::shell::sh()
+}
+
+fn sub_start(m: &ArgMatches) -> Result<()> {
+    let mut config = Config::new();
+    if m.is_present("VERBOSE") {
+        sup::output::set_verbose(true);
+    }
+    if m.is_present("NO_COLOR") {
+        sup::output::set_no_color(true);
+    }
+
+    if let Some(addr_str) = m.value_of("LISTEN_GOSSIP") {
         config.gossip_listen = try!(GossipListenAddr::from_str(addr_str));
     }
-    if let Some(addr_str) = sub_args.value_of("listen-gossip") {
-        config.gossip_listen = try!(GossipListenAddr::from_str(addr_str));
-    }
-    if let Some(addr_str) = sub_args.value_of("listen-http") {
+    if let Some(addr_str) = m.value_of("LISTEN_HTTP") {
         config.http_listen_addr = try!(http_gateway::ListenAddr::from_str(addr_str));
     }
-    let gossip_peers = match sub_args.values_of("peer") {
+    let gossip_peers = match m.values_of("PEER") {
         Some(gp) => gp.map(|s| s.to_string()).collect(),
         None => vec![],
     };
     config.set_gossip_peer(gossip_peers);
-    if sub_args.is_present("permanent-peer") {
+    if m.is_present("PERMANENT_PEER") {
         config.set_gossip_permanent(true);
     }
-    let ring = match sub_args.value_of("ring") {
+    let ring = match m.value_of("RING") {
         Some(val) => Some(try!(SymKey::get_latest_pair_for(&val, &default_cache_key_path(None)))),
         None => {
             match henv::var(RING_KEY_ENVVAR) {
@@ -144,189 +196,83 @@ fn config_from_args(subcommand: &str, sub_args: &ArgMatches) -> Result<()> {
     if let Some(ring) = ring {
         config.set_ring(ring.name_with_rev());
     }
-    if sub_args.is_present("verbose") {
-        sup::output::set_verbose(true);
+
+    // TODO fn: This become service configuration
+    if let Some(ref config_from) = m.value_of("CONFIG_DIR") {
+        config.set_config_from(Some(config_from.to_string()));
     }
-    if sub_args.is_present("no-color") {
-        sup::output::set_no_color(true);
+    // TODO fn: This become service configuration
+    if let Some(ref strategy) = m.value_of("STRATEGY") {
+        config.set_update_strategy(try!(UpdateStrategy::from_str(strategy)));
     }
-    if let Some(org) = sub_args.value_of("organization") {
+    // TODO fn: This become service configuration
+    if let Some(ref ident_or_artifact) = m.value_of("PKG_IDENT_OR_ARTIFACT") {
+        if Path::new(ident_or_artifact).is_file() {
+            let ident = try!(PackageArchive::new(Path::new(ident_or_artifact)).ident());
+            config.set_package(ident);
+            config.set_local_artifact(ident_or_artifact.to_string());
+        } else {
+            let ident = try!(PackageIdent::from_str(ident_or_artifact));
+            config.set_package(ident);
+        }
+    }
+    // TODO fn: This become service configuration
+    if let Some(topology) = m.value_of("TOPOLOGY") {
+        config.set_topology(try!(Topology::from_str(topology)));
+    }
+    // TODO fn: This become service configuration
+    let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
+    let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
+    config.set_url(url.to_string());
+    // TODO fn: This become service configuration
+    config.set_group(m.value_of("GROUP").unwrap_or(DEFAULT_GROUP).to_string());
+    // TODO fn: This become service configuration
+    if let Some(org) = m.value_of("ORGANIZATION") {
         config.set_organization(org.to_string());
     }
+    // TODO fn: This become service configuration
+    let bindings = match m.values_of("BIND") {
+        Some(bind) => bind.map(|s| s.to_string()).collect(),
+        None => vec![],
+    };
+    config.set_bind(bindings);
+
     debug!("Config:\n{:?}", config);
     gcache(config);
-    Ok({})
-}
 
-/// The entrypoint for the Supervisor.
-///
-/// * Set up the logger
-/// * Pull in the arguments from the Command Line, push through clap
-/// * Dispatch to a function that handles that action called
-/// * Exit cleanly, or if we return an `Error`, call `exit_with(E, 1)`
-#[allow(dead_code)]
-fn main() {
-    env_logger::init().unwrap();
-    crypto_init();
-
-    let arg_url = || {
-        Arg::with_name("url")
-            .short("u")
-            .long("url")
-            .takes_value(true)
-            .help("Use the specified package depot url")
-    };
-    let arg_group = || {
-        Arg::with_name("group")
-            .long("group")
-            .takes_value(true)
-            .help("The service group; shared config and topology [default: default].")
-    };
-
-    let arg_org = || {
-        Arg::with_name("organization")
-            .long("org")
-            .takes_value(true)
-            .help("The organization that a service is part of")
-    };
-
-    let arg_strategy = || {
-        Arg::with_name("strategy")
-            .long("strategy")
-            .short("s")
-            .takes_value(true)
-            .possible_values(&["none", "at-once", "rolling"])
-            .help("The update strategy; [default: none].")
-    };
-
-    let sub_start = SubCommand::with_name("start")
-        .about("Start a Habitat-supervised service from a package or artifact")
-        .aliases(&["st", "sta", "star"])
-        .arg(Arg::with_name("pkg_ident_or_artifact")
-            .index(1)
-            .required(true)
-            .help("A Habitat package identifier (ex: acme/redis) or a filepath to a Habitat \
-                   Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)"))
-        .arg(arg_url())
-        .arg(arg_group())
-        .arg(arg_org())
-        .arg(arg_strategy())
-        .arg(Arg::with_name("config-from")
-            .short("C")
-            .long("config-from")
-            .value_name("config-from")
-            .help("Use package config from this path, rather than the package itself"))
-        .arg(Arg::with_name("topology")
-            .short("t")
-            .long("topology")
-            .value_name("topology")
-            .help("Service topology"))
-        .arg(Arg::with_name("bind")
-            .long("bind")
-            .value_name("bind")
-            .multiple(true)
-            .help("One or more service groups to bind to a configuration"))
-        .arg(Arg::with_name("ring")
-            .short("r")
-            .long("ring")
-            .value_name("ring")
-            .help("Ring key name"))
-        .arg(Arg::with_name("peer")
-            .long("peer")
-            .value_name("ip:port")
-            .multiple(true)
-            .help("The listen address of an initial peer"))
-        .arg(Arg::with_name("listen-gossip")
-            .long("listen-gossip")
-            .value_name("ip:port")
-            .help("The listen address [default: 0.0.0.0:9638]"))
-        .arg(Arg::with_name("listen-peer")
-            .long("listen-peer")
-            .value_name("ip:port")
-            .help("The listen address [default: 0.0.0.0:9638]")
-            .hidden(true))
-        .arg(Arg::with_name("listen-http")
-            .long("listen-http")
-            .value_name("ip:port")
-            .help("The HTTP API listen address [default: 0.0.0.0:9631]"))
-        .arg(Arg::with_name("permanent-peer")
-            .short("I")
-            .long("permanent-peer")
-            .help("If this service is a permanent peer"));
-    let sub_bash = SubCommand::with_name("bash")
-        .about("Start an interactive shell (bash)")
-        .aliases(&["b", "ba", "bas"]);
-    let sub_sh = SubCommand::with_name("sh").about("Start an interactive shell (sh)");
-    let sub_config = SubCommand::with_name("config")
-        .about("Print the default.toml for a given package")
-        .aliases(&["c", "co", "con", "conf", "confi"])
-        .arg(Arg::with_name("pkg_ident_or_artifact")
-            .index(1)
-            .required(true)
-            .help("Name of package"));
-    let args = App::new(sup::PROGRAM_NAME.as_str())
-        .version(VERSION)
-        .setting(AppSettings::VersionlessSubcommands)
-        .setting(AppSettings::SubcommandRequiredElseHelp)
-        .arg(Arg::with_name("verbose")
-            .short("v")
-            .global(true)
-            .help("Verbose output; shows line numbers"))
-        .arg(Arg::with_name("no-color")
-            .long("no-color")
-            .global(true)
-            .help("Turn ANSI color off :("))
-        .subcommand(sub_start)
-        .subcommand(sub_bash)
-        .subcommand(sub_sh)
-        .subcommand(sub_config);
-    let matches = args.get_matches();
-
-    debug!("clap matches {:?}", matches);
-    let subcommand_name = matches.subcommand_name().unwrap();
-    let subcommand_matches = matches.subcommand_matches(subcommand_name).unwrap();
-    debug!("subcommand name {:?}", &subcommand_name);
-    debug!("Subcommand matches {:?}", &subcommand_matches);
-
-    match config_from_args(subcommand_name, &subcommand_matches) {
-        Ok(()) => {}
-        Err(e) => return exit_with(e, 1),
-    };
-
-    let result = match gconfig().command() {
-        Command::ShellBash => shell_bash(),
-        Command::ShellSh => shell_sh(),
-        Command::Start => start(),
-    };
-
-    match result {
-        Ok(_) => std::process::exit(0),
-        Err(e) => exit_with(e, 1),
-    }
-}
-
-/// Exit with an error message and the right status code
-fn exit_with(e: SupError, code: i32) {
-    println!("{}", e.to_string());
-    process::exit(code)
-}
-
-/// Start a sh shell
-fn shell_sh() -> Result<()> {
-    shell::sh()
-}
-
-/// Start a bash shell
-fn shell_bash() -> Result<()> {
-    shell::bash()
-}
-
-/// Start a service
-fn start() -> Result<()> {
     outputln!("Starting {}",
               Yellow.bold().paint(gconfig().package().to_string()));
-    try!(start::package());
+    try!(command::start::package());
     outputln!("Finished with {}",
               Yellow.bold().paint(gconfig().package().to_string()));
     Ok(())
+}
+
+fn dir_exists(val: String) -> result::Result<(), String> {
+    if Path::new(&val).is_dir() {
+        Ok(())
+    } else {
+        Err(format!("Directory: '{}' cannot be found", &val))
+    }
+}
+
+fn valid_topology(val: String) -> result::Result<(), String> {
+    match Topology::from_str(&val) {
+        Ok(_) => Ok(()),
+        Err(_) => Err(format!("Service topology: '{}' is not valid", &val)),
+    }
+}
+
+fn valid_update_strategy(val: String) -> result::Result<(), String> {
+    match UpdateStrategy::from_str(&val) {
+        Ok(_) => Ok(()),
+        Err(_) => Err(format!("Update strategy: '{}' is not valid", &val)),
+    }
+}
+
+fn valid_url(val: String) -> result::Result<(), String> {
+    match Url::parse(&val) {
+        Ok(_) => Ok(()),
+        Err(_) => Err(format!("URL: '{}' is not valid", &val)),
+    }
 }
