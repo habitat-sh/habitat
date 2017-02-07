@@ -20,14 +20,15 @@ This syntax guide is divided into six parts:
 The following settings are defined at the beginning of your plan. They specify basic information about your plan such as name, version, and dependencies.
 
 pkg_name
-: Required. Sets the name of the package. This will be used in along with `pkg_origin`, and `pkg_version` to define the fully-qualified package name, which determines where the package is installed to on disk, how it is referred to in package metadata, and so on.
+: Required. Sets the name of the package. This will be used in along with `pkg_origin`, and `pkg_version` to define the fully-qualified package name, which determines where the package is installed to on disk, how it is referred to in package metadata, and so on. A `pkg_name` can contain upper and lowercase letters, numbers, dashes, and underscores.
 
   ~~~
   pkg_name=zlib
   ~~~
 
 pkg_origin
-: Required unless overridden by the `HAB_ORIGIN` environment variable. The origin is used to denote a particular upstream of a package.
+: Required unless overridden by the `HAB_ORIGIN` environment variable. The origin is used to denote a particular upstream of a package. A `pkg_origin` can contain upper and lowercase letters, numbers, dashes, and underscores.
+
 
   ~~~
   pkg_origin=Habitat

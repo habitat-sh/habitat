@@ -2481,10 +2481,12 @@ do
 done
 
 # Test to ensure package name contains only valid characters
-if [[ ! "${pkg_name}" =~ ^[A-Za-z0-9_-]+$ ]];
-then
-  exit_with "Failed to build. Package name '${pkg_name}' contains invalid characters." 1
-fi
+for var in pkg_name pkg_origin; do
+  if [[ ! "${!var}" =~ ^[A-Za-z0-9_-]+$ ]];
+  then
+    exit_with "Failed to build. Package $var '${!var}' contains invalid characters." 1
+  fi
+done
 
 # Pass over `$pkg_svc_run` to replace any `$pkg_name` placeholder tokens
 # from prior pkg_svc_* variables that were set before the Plan was loaded.
