@@ -25,7 +25,6 @@ extern crate clap;
 
 use std::path::Path;
 use std::process;
-use std::result;
 use std::str::FromStr;
 
 use ansi_term::Colour::Yellow;

@@ -111,18 +111,9 @@ impl Manager {
         let census = self.state.census_list.read().expect("Census list lock is poisoned!");
         let svc_cfg = service.load_service_config(&census)?;
         let cfg = svc_cfg.to_exported()?;
-        // TODO: We should do this much earlier, to confirm that the ports we expose are not
-        //       bullshit.
-        let mut exposes = Vec::new();
-        for port in service.package.exposes().into_iter() {
-            let port_num = try!(port.parse::<u32>().map_err(|e| sup_error!(Error::InvalidPort(e))));
-            exposes.push(port_num);
-        }
-
         let service_rumor = ServiceRumor::new(self.state.butterfly.member_id().to_string(),
                                               service.package.ident(),
                                               &service.service_group,
-                                              exposes,
                                               &*svc_cfg.sys,
                                               Some(&cfg))?;
         self.state.butterfly.insert_service(service_rumor);
@@ -314,7 +305,7 @@ impl Manager {
                         .clone()
                 };
                 let incarnation = rumor.get_incarnation() + 1;
-                rumor.set_package_ident(service.package.to_string());
+                rumor.set_pkg(service.package.to_string());
                 rumor.set_incarnation(incarnation);
                 match service.load_service_config(&census_list) {
                     Ok(raw_cfg) => {

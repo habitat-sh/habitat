@@ -272,10 +272,9 @@ impl SwimNet {
             let mut result = false;
             let server =
                 self.members.get(e_num).expect("Asked for a network member who is out of bounds");
-            server.election_store.with_rumor(key, "election", |e| {
-                if e.is_some() && e.unwrap().get_status() == status {
-                    result = true;
-                }
+            server.election_store.with_rumor(key, "election", |e| if e.is_some() &&
+                                                    e.unwrap().get_status() == status {
+                result = true;
             });
             if result {
                 return true;
@@ -417,7 +416,6 @@ impl SwimNet {
         let s = Service::new(self[member].member_id().to_string(),
                              &ident,
                              &sg,
-                             vec![4040, 4041, 4042],
                              &SysInfo::default(),
                              None)
             .unwrap();

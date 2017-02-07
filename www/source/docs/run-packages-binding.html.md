@@ -16,7 +16,7 @@ For an example look at the [haproxy](https://github.com/habitat-sh/core-plans/bl
 {{#if bind.has_backend }}
 {{~#each bind.backend.members}}
 {{~#if alive }}
-    server {{ip}} {{ip}}:{{port}}
+  server {{sys.ip}} {{sys.ip}}:{{cfg.port}}
 {{~/if}}
 {{~/each}}
 ~~~
