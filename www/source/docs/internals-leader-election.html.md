@@ -4,7 +4,7 @@ title: Leader Election
 
 # Leader Election
 
-The Habitat supervisor performs leader election natively for service group [topologies](/docs/run-packages-topologies) that require one, such as _initializer_ or _leader-follower_.
+The Habitat supervisor performs leader election natively for service group [topologies](/docs/run-packages-topologies) that require one, such as _leader-follower_.
 
 Because Habitat is an eventually-consistent distributed system, the role of the leader is different than in strongly-consistent systems. In fact, it only serves as the leader for *application level semantics*, e.g. a database write leader. The fact that a supervisor is a leader has no bearing upon other operations in the Habitat system, including rumor dissemination for configuration updates. Thus, it is _not_ akin to a [Raft](https://raft.github.io/) leader, through which writes must all be funneled. This allows for very high scalability of the Habitat supervisor ring.
 

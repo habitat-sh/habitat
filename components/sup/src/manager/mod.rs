@@ -118,7 +118,7 @@ impl Manager {
                                               Some(&cfg))?;
         self.state.butterfly.insert_service(service_rumor);
 
-        if service.topology == Topology::Leader || service.topology == Topology::Initializer {
+        if service.topology == Topology::Leader {
             // Note - eventually, we need to deal with suitability here. The original implementation
             // didn't have this working either.
             self.state.butterfly.start_election(service.service_group.clone(), 0, 0);

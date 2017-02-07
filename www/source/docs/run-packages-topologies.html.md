@@ -4,7 +4,7 @@ title: Running packages in topologies
 
 # Topologies
 
-A topology describes the intended relationship between peers within a service group. Three topologies ship with Habitat by default: standalone, leader-follower and initializer. The leader-follower and initializer topologies both employ [leader election](/docs/internals-leader-election) to define a leader.
+A topology describes the intended relationship between peers within a service group. Three topologies ship with Habitat by default: standalone, and leader-follower. The leader-follower topology employs [leader election](/docs/internals-leader-election) to define a leader.
 
 ## Standalone
 
@@ -37,15 +37,3 @@ Because Habitat provides for automation that is built into the application packa
        {{/if}}
 
 This logic says that if this peer is a follower, it will become a read replica of the IP and port of service leader (`svc.leader`), which is has found by service discovery through the ring. However, if this peer is the leader, the entire list of statements here evaluate to empty text -- meaning that the peer starts up as the leader.
-
-## Initializer Topology
-
-The initializer topology is very similar to leader-follower, except that the elected leader will block the startup of the peers until it has come up fully. This topology is suitable for systems where, on first bootup, a long-running initialization process must occur before any other operations can proceed.
-
-The initializer topology can be started with the `--topology initializer` argument to the supervisor.
-
-<hr>
-<ul class="main-content--link-nav">
-  <li>Continue to the next topic</li>
-  <li><a href="/docs/run-packages-apply-config-updates">Configuration updates</a></li>
-</ul>

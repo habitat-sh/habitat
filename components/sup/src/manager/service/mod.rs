@@ -100,7 +100,7 @@ impl Service {
 
     pub fn restart(&mut self, census_list: &CensusList) -> Result<()> {
         match self.topology {
-            Topology::Leader | Topology::Initializer => {
+            Topology::Leader => {
                 if let Some(census) = census_list.get(&self.service_group.to_string()) {
                     // We know perfectly well we are in this census, because we asked for
                     // our own service group *by name*
@@ -397,7 +397,6 @@ impl fmt::Display for Service {
 pub enum Topology {
     Standalone,
     Leader,
-    Initializer,
 }
 
 impl FromStr for Topology {
@@ -405,7 +404,6 @@ impl FromStr for Topology {
 
     fn from_str(topology: &str) -> result::Result<Self, Self::Err> {
         match topology {
-            "initializer" => Ok(Topology::Initializer),
             "leader" => Ok(Topology::Leader),
             "standalone" => Ok(Topology::Standalone),
             _ => Err(sup_error!(Error::UnknownTopology(String::from(topology)))),
