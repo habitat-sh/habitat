@@ -27,7 +27,8 @@ extern crate clap;
 use std::io::{self, Write};
 use clap::{Arg, App};
 use time::PreciseTime;
-use bldr_core::graph_walker::GraphWalker;
+use bldr_core::package_graph::PackageGraph;
+use bldr_core::file_walker::FileWalker;
 
 fn main() {
     env_logger::init().unwrap();
@@ -45,9 +46,9 @@ fn main() {
 
     println!("Crawling packages... please wait.");
 
-    let mut walker = GraphWalker::new(&path);
+    let mut graph = PackageGraph::new();
     let start_time = PreciseTime::now();
-    let (ncount, ecount) = walker.build();
+    let (ncount, ecount) = graph.build(FileWalker::new(&path));
     let end_time = PreciseTime::now();
 
     println!("OK: {} nodes, {} edges ({} sec)",
@@ -70,14 +71,14 @@ fn main() {
         if v.len() > 0 {
             match v[0].to_lowercase().as_str() {
                 "help" => do_help(),
-                "stats" => do_stats(&walker),
+                "stats" => do_stats(&graph),
                 "top" => {
                     let count = if v.len() < 2 {
                         10
                     } else {
                         v[1].parse::<usize>().unwrap()
                     };
-                    do_top(&walker, count);
+                    do_top(&graph, count);
                 }
                 "find" => {
                     if v.len() < 2 {
@@ -88,7 +89,7 @@ fn main() {
                         } else {
                             10
                         };
-                        do_find(&walker, v[1].to_lowercase().as_str(), max)
+                        do_find(&graph, v[1].to_lowercase().as_str(), max)
                     }
                 }
                 "rdeps" => {
@@ -100,7 +101,7 @@ fn main() {
                         } else {
                             10
                         };
-                        do_rdeps(&walker, v[1].to_lowercase().as_str(), max)
+                        do_rdeps(&graph, v[1].to_lowercase().as_str(), max)
                     }
                 }
                 "exit" => done = true,
@@ -120,8 +121,8 @@ fn do_help() {
     println!("  exit                    Exit the application\n");
 }
 
-fn do_stats(walker: &GraphWalker) {
-    let stats = walker.stats();
+fn do_stats(graph: &PackageGraph) {
+    let stats = graph.stats();
 
     println!("Node count: {}", stats.node_count);
     println!("Edge count: {}", stats.edge_count);
@@ -129,9 +130,9 @@ fn do_stats(walker: &GraphWalker) {
     println!("Is cyclic: {}\n", stats.is_cyclic);
 }
 
-fn do_top(walker: &GraphWalker, count: usize) {
+fn do_top(graph: &PackageGraph, count: usize) {
     let start_time = PreciseTime::now();
-    let top = walker.top(count);
+    let top = graph.top(count);
     let end_time = PreciseTime::now();
 
     println!("OK: {} items ({} sec)\n",
@@ -144,9 +145,9 @@ fn do_top(walker: &GraphWalker, count: usize) {
     println!("");
 }
 
-fn do_find(walker: &GraphWalker, phrase: &str, max: usize) {
+fn do_find(graph: &PackageGraph, phrase: &str, max: usize) {
     let start_time = PreciseTime::now();
-    let mut v = walker.search(phrase);
+    let mut v = graph.search(phrase);
     let end_time = PreciseTime::now();
 
     println!("OK: {} items ({} sec)\n", v.len(), start_time.to(end_time));
@@ -165,10 +166,10 @@ fn do_find(walker: &GraphWalker, phrase: &str, max: usize) {
     println!("");
 }
 
-fn do_rdeps(walker: &GraphWalker, name: &str, max: usize) {
+fn do_rdeps(graph: &PackageGraph, name: &str, max: usize) {
     let start_time = PreciseTime::now();
 
-    match walker.rdeps(name) {
+    match graph.rdeps(name) {
         Some(mut rdeps) => {
             let end_time = PreciseTime::now();
             println!("OK: {} items ({} sec)\n",

@@ -12,11 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::path::PathBuf;
 use std::collections::{HashMap, BinaryHeap};
 use std::cmp::Ordering;
-use walkdir::WalkDir;
-use hab_core::package::{FromArchive, PackageArchive};
 use protocol::depotsrv;
 use petgraph::Graph;
 use petgraph::graph::NodeIndex;
@@ -56,18 +53,16 @@ impl PartialEq for HeapEntry {
     }
 }
 
-pub struct GraphWalker {
-    packages_path: PathBuf,
+pub struct PackageGraph {
     package_max: usize,
     package_map: HashMap<String, (usize, NodeIndex)>,
     package_names: Vec<String>,
     graph: Graph<usize, usize>,
 }
 
-impl GraphWalker {
-    pub fn new(path: &str) -> Self {
-        GraphWalker {
-            packages_path: PathBuf::from(path),
+impl PackageGraph {
+    pub fn new() -> Self {
+        PackageGraph {
             package_max: 0,
             package_map: HashMap::new(),
             package_names: Vec::new(),
@@ -93,44 +88,24 @@ impl GraphWalker {
         id
     }
 
-    pub fn build(&mut self) -> (usize, usize) {
+    pub fn build<T>(&mut self, packages: T) -> (usize, usize)
+        where T: Iterator<Item = depotsrv::Package>
+    {
         assert!(self.package_max == 0);
 
-        let mut directories = vec![];
+        for p in packages {
+            let name = format!("{}", p.get_ident());
+            let (pkg_id, pkg_node) = self.generate_id(&name);
 
-        for entry in WalkDir::new(&self.packages_path).follow_links(false) {
-            let entry = entry.unwrap();
-            if entry.metadata().unwrap().is_dir() {
-                directories.push(entry);
-                continue;
-            }
+            assert_eq!(pkg_id, pkg_node.index());
+            debug!("{} ({})", name, pkg_id);
 
-            let mut archive = PackageArchive::new(PathBuf::from(entry.path()));
-
-            match archive.ident() {
-                Ok(_) => {
-                    match depotsrv::Package::from_archive(&mut archive) {
-                        Ok(o) => {
-                            let name = format!("{}", o.get_ident());
-                            let (pkg_id, pkg_node) = self.generate_id(&name);
-
-                            assert_eq!(pkg_id, pkg_node.index());
-                            debug!("{} ({})", name, pkg_id);
-
-                            let deps = o.get_deps();
-                            for dep in deps {
-                                let depname = format!("{}", dep);
-                                debug!("|_ {}", depname);
-                                let (_, dep_node) = self.generate_id(&depname);
-                                self.graph.extend_with_edges(&[(dep_node, pkg_node)]);
-                            }
-                        }
-                        Err(e) => error!("Error parsing package from archive: {:?}", e),
-                    }
-                }
-                Err(e) => {
-                    error!("Error reading, archive={:?} error={:?}", &archive, &e);
-                }
+            let deps = p.get_deps();
+            for dep in deps {
+                let depname = format!("{}", dep);
+                debug!("|_ {}", depname);
+                let (_, dep_node) = self.generate_id(&depname);
+                self.graph.extend_with_edges(&[(dep_node, pkg_node)]);
             }
             debug!("");
         }

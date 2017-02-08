@@ -26,4 +26,5 @@ extern crate habitat_builder_protocol as protocol;
 
 pub mod metrics;
 pub mod rdeps;
-pub mod graph_walker;
+pub mod package_graph;
+pub mod file_walker;
