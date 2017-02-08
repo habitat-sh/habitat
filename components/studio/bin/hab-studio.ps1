@@ -256,12 +256,10 @@ function New-Studio {
     }
 
     $env:FS_ROOT=$HAB_STUDIO_ROOT
-    try {
-      $keys | % { $_ | & hab origin key import }
-    }
-    finally {
-      $env:FS_ROOT=$null
-    }
+    $keys | % { $_ | & hab origin key import }
+  }
+  else {
+    $env:FS_ROOT=$HAB_STUDIO_ROOT
   }
 
   New-PSDrive -Name "Habitat" -PSProvider FileSystem -Root $HAB_STUDIO_ROOT -Scope Script | Out-Null

@@ -104,7 +104,7 @@ mod inner {
                                     &format_ident.to_string(),
                                     PRODUCT,
                                     VERSION,
-                                    Path::new(FS_ROOT_PATH),
+                                    Path::new(&*FS_ROOT_PATH),
                                     &cache_artifact_path(None),
                                     false));
             }

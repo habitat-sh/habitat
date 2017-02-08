@@ -22,11 +22,6 @@ use error::Result;
 use super::package::PackageInstall;
 
 
-/// The default filesystem root path
-#[cfg(not(target_os="windows"))]
-pub const FS_ROOT_PATH: &'static str = "/";
-#[cfg(target_os="windows")]
-pub const FS_ROOT_PATH: &'static str = concat!(env!("SYSTEMDRIVE"), "/");
 /// The default root path of the Habitat filesystem
 pub const ROOT_PATH: &'static str = "hab";
 /// The default path for any analytics related files
@@ -41,10 +36,24 @@ pub const CACHE_SRC_PATH: &'static str = "hab/cache/src";
 pub const CACHE_SSL_PATH: &'static str = "hab/cache/ssl";
 /// The root path containing all locally installed packages
 pub const PKG_PATH: &'static str = "hab/pkgs";
+/// The environment variable pointing to the filesystem root. This exists for internal
+/// Habitat team usage and is not intended to be used by Habitat consumers.
+/// Using this variable could lead to broken supervisor services and it should
+/// be used with extreme caution.
+pub const FS_ROOT_ENVVAR: &'static str = "FS_ROOT";
 /// The root path containing all runtime service directories and files
 const SVC_PATH: &'static str = "hab/svc";
 
 lazy_static! {
+    /// The default filesystem root path
+    pub static ref FS_ROOT_PATH: String = {
+        if cfg!(target_os = "windows") && henv::var(FS_ROOT_ENVVAR).is_ok() {
+            henv::var(FS_ROOT_ENVVAR).unwrap()
+        } else {
+            "/".to_string()
+        }
+    };
+
     static ref EUID: u32 = users::get_effective_uid();
 
     static ref MY_CACHE_ANALYTICS_PATH: PathBuf = {
@@ -107,7 +116,7 @@ lazy_static! {
 pub fn cache_analytics_path(fs_root_path: Option<&Path>) -> PathBuf {
     match fs_root_path {
         Some(fs_root_path) => Path::new(fs_root_path).join(&*MY_CACHE_ANALYTICS_PATH),
-        None => Path::new(FS_ROOT_PATH).join(&*MY_CACHE_ANALYTICS_PATH),
+        None => Path::new(&*FS_ROOT_PATH).join(&*MY_CACHE_ANALYTICS_PATH),
     }
 }
 
@@ -115,7 +124,7 @@ pub fn cache_analytics_path(fs_root_path: Option<&Path>) -> PathBuf {
 pub fn cache_artifact_path(fs_root_path: Option<&Path>) -> PathBuf {
     match fs_root_path {
         Some(fs_root_path) => Path::new(fs_root_path).join(&*MY_CACHE_ARTIFACT_PATH),
-        None => Path::new(FS_ROOT_PATH).join(&*MY_CACHE_ARTIFACT_PATH),
+        None => Path::new(&*FS_ROOT_PATH).join(&*MY_CACHE_ARTIFACT_PATH),
     }
 }
 
@@ -123,7 +132,7 @@ pub fn cache_artifact_path(fs_root_path: Option<&Path>) -> PathBuf {
 pub fn cache_key_path(fs_root_path: Option<&Path>) -> PathBuf {
     match fs_root_path {
         Some(fs_root_path) => Path::new(fs_root_path).join(&*MY_CACHE_KEY_PATH),
-        None => Path::new(FS_ROOT_PATH).join(&*MY_CACHE_KEY_PATH),
+        None => Path::new(&*FS_ROOT_PATH).join(&*MY_CACHE_KEY_PATH),
     }
 }
 
@@ -131,7 +140,7 @@ pub fn cache_key_path(fs_root_path: Option<&Path>) -> PathBuf {
 pub fn cache_src_path(fs_root_path: Option<&Path>) -> PathBuf {
     match fs_root_path {
         Some(fs_root_path) => Path::new(fs_root_path).join(&*MY_CACHE_SRC_PATH),
-        None => Path::new(FS_ROOT_PATH).join(&*MY_CACHE_SRC_PATH),
+        None => Path::new(&*FS_ROOT_PATH).join(&*MY_CACHE_SRC_PATH),
     }
 }
 
@@ -139,7 +148,7 @@ pub fn cache_src_path(fs_root_path: Option<&Path>) -> PathBuf {
 pub fn cache_ssl_path(fs_root_path: Option<&Path>) -> PathBuf {
     match fs_root_path {
         Some(fs_root_path) => Path::new(fs_root_path).join(&*MY_CACHE_SSL_PATH),
-        None => Path::new(FS_ROOT_PATH).join(&*MY_CACHE_SSL_PATH),
+        None => Path::new(&*FS_ROOT_PATH).join(&*MY_CACHE_SSL_PATH),
     }
 }
 

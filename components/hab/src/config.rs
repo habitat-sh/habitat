@@ -104,5 +104,5 @@ fn cli_config_path(use_sudo_user: bool) -> PathBuf {
         }
     }
 
-    PathBuf::from(FS_ROOT_PATH).join(CLI_CONFIG_PATH)
+    PathBuf::from(&*FS_ROOT_PATH).join(CLI_CONFIG_PATH)
 }
