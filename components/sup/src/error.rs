@@ -49,16 +49,16 @@ use std::string;
 use std::sync::mpsc;
 
 use ansi_term::Colour::Red;
-use handlebars;
-use hcore::package::Identifiable;
 use butterfly;
-use toml;
-
 use common;
 use depot_client;
+use handlebars;
 use hcore::{self, package};
+use hcore::package::Identifiable;
+use toml;
+
+use manager::service::hooks::HookType;
 use output::StructuredOutput;
-use package::HookType;
 use PROGRAM_NAME;
 
 static LOGKEY: &'static str = "ER";
@@ -110,8 +110,6 @@ pub enum Error {
     HabitatCore(hcore::Error),
     TemplateFileError(handlebars::TemplateFileError),
     TemplateRenderError(handlebars::RenderError),
-    /// Health check exited with an invalid status code. Valid status codes are 0, 1, 2, and 3.
-    HealthCheckBadExit(i32),
     /// A hook failed to successfully execute. This error contains the type of hook which failed
     /// to run and the exit code.
     HookFailed(HookType, i32),
@@ -165,9 +163,6 @@ impl fmt::Display for SupError {
             Error::DepotClient(ref err) => format!("{}", err),
             Error::EnvJoinPathsError(ref err) => format!("{}", err),
             Error::FileNotFound(ref e) => format!("File not found at: {}", e),
-            Error::HealthCheckBadExit(ref e) => {
-                format!("Health check exited with an unknown status code, {}", e)
-            }
             Error::HookFailed(ref hook, ref code) => {
                 format!("{} hook failed to run with exit code {}", hook, code)
             }
@@ -259,7 +254,6 @@ impl error::Error for SupError {
             Error::DepotClient(ref err) => err.description(),
             Error::EnvJoinPathsError(ref err) => err.description(),
             Error::FileNotFound(_) => "File not found",
-            Error::HealthCheckBadExit(_) => "Health Check exited with an unknown status code",
             Error::HookFailed(_, _) => "Hook failed to run",
             Error::InvalidBinding(_) => "Invalid binding parameter",
             Error::InvalidKeyParameter(_) => "Key parameter error",

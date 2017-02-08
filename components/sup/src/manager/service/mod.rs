@@ -13,6 +13,8 @@
 // limitations under the License.
 
 pub mod config;
+pub mod health;
+pub mod hooks;
 
 use std;
 use std::collections::HashMap;
@@ -30,9 +32,10 @@ use hcore::util::perm::{set_owner, set_permissions};
 use toml;
 
 pub use self::config::ServiceConfig;
+pub use self::health::{HealthCheck, SmokeCheck};
+use self::hooks::{HOOK_PERMISSIONS, HookType};
 use config::gconfig;
 use error::{Error, Result, SupError};
-use health_check;
 use manager::signals;
 use manager::census::CensusList;
 use package::Package;
@@ -90,10 +93,6 @@ impl Service {
         })
     }
 
-    pub fn service_group_str(&self) -> String {
-        format!("{}", self.service_group)
-    }
-
     pub fn start(&mut self) -> Result<()> {
         self.supervisor.start()
     }
@@ -101,20 +100,20 @@ impl Service {
     pub fn restart(&mut self, census_list: &CensusList) -> Result<()> {
         match self.topology {
             Topology::Leader => {
-                if let Some(census) = census_list.get(&self.service_group.to_string()) {
+                if let Some(census) = census_list.get(&*self.service_group) {
                     // We know perfectly well we are in this census, because we asked for
                     // our own service group *by name*
                     let me = census.me().unwrap();
                     if me.get_election_is_running() {
                         if self.last_restart_display != LastRestartDisplay::ElectionInProgress {
-                            outputln!(preamble self.service_group_str(),
+                            outputln!(preamble self.service_group,
                                       "Not restarting service; {}",
                                       Yellow.bold().paint("election in progress."));
                             self.last_restart_display = LastRestartDisplay::ElectionInProgress;
                         }
                     } else if me.get_election_is_no_quorum() {
                         if self.last_restart_display != LastRestartDisplay::ElectionNoQuorum {
-                            outputln!(preamble self.service_group_str(),
+                            outputln!(preamble self.service_group,
                                       "Not restarting service; {}, {}.",
                                       Yellow.bold().paint("election in progress"),
                                       Red.bold().paint("and we have no quorum"));
@@ -124,7 +123,7 @@ impl Service {
                         // We know we have a leader, so this is fine
                         let leader_id = census.get_leader().unwrap().get_member_id();
                         if self.last_restart_display != LastRestartDisplay::ElectionFinished {
-                            outputln!(preamble self.service_group_str(),
+                            outputln!(preamble self.service_group,
                                       "Restarting service; {} is the leader",
                                       Green.bold().paint(leader_id));
                             self.last_restart_display = LastRestartDisplay::ElectionFinished;
@@ -190,53 +189,53 @@ impl Service {
             let mut new_file = match File::create(&new_filename) {
                 Ok(new_file) => new_file,
                 Err(e) => {
-                    outputln!(preamble self.service_group_str(),
-                        "Service file from butterfly failed to open the new file {}: {}",
-                        new_filename,
-                        Red.bold().paint(format!("{}", e)));
+                    outputln!(preamble self.service_group,
+                              "Service file from butterfly failed to open the new file {}: {}",
+                              new_filename,
+                              Red.bold().paint(format!("{}", e)));
                     return false;
                 }
             };
 
             if let Err(e) = new_file.write_all(&body) {
-                outputln!(preamble self.service_group_str(),
-                    "Service file from butterfly failed to write {}: {}",
-                    new_filename,
-                    Red.bold().paint(format!("{}", e)));
+                outputln!(preamble self.service_group,
+                          "Service file from butterfly failed to write {}: {}",
+                          new_filename,
+                          Red.bold().paint(format!("{}", e)));
                 return false;
             }
 
             if let Err(e) = std::fs::rename(&new_filename, &on_disk_path) {
-                outputln!(preamble self.service_group_str(),
-                    "Service file from butterfly failed to rename {} to {}: {}",
-                    new_filename,
-                    on_disk_path.to_string_lossy(),
-                    Red.bold().paint(format!("{}", e)));
+                outputln!(preamble self.service_group,
+                          "Service file from butterfly failed to rename {} to {}: {}",
+                          new_filename,
+                          on_disk_path.to_string_lossy(),
+                          Red.bold().paint(format!("{}", e)));
                 return false;
             }
 
             if let Err(e) = set_owner(&on_disk_path,
                                       &self.supervisor.runtime_config.svc_user,
                                       &self.supervisor.runtime_config.svc_group) {
-                outputln!(preamble self.service_group_str(),
-                    "Service file from butterfly failed to set ownership on {}: {}",
-                    on_disk_path.to_string_lossy(),
-                    Red.bold().paint(format!("{}", e)));
+                outputln!(preamble self.service_group,
+                          "Service file from butterfly failed to set ownership on {}: {}",
+                          on_disk_path.to_string_lossy(),
+                          Red.bold().paint(format!("{}", e)));
                 return false;
             }
 
             if let Err(e) = set_permissions(&on_disk_path, 0o640) {
-                outputln!(preamble self.service_group_str(),
-                    "Service file from butterfly failed to set permissions on {}: {}",
-                    on_disk_path.to_string_lossy(),
-                    Red.bold().paint(format!("{}", e)));
+                outputln!(preamble self.service_group,
+                          "Service file from butterfly failed to set permissions on {}: {}",
+                          on_disk_path.to_string_lossy(),
+                          Red.bold().paint(format!("{}", e)));
                 return false;
             }
 
-            outputln!(preamble self.service_group_str(),
-                "Service file updated from butterfly {}: {}",
-                on_disk_path.to_string_lossy(),
-                Green.bold().paint(new_checksum));
+            outputln!(preamble self.service_group,
+                      "Service file updated from butterfly {}: {}",
+                      on_disk_path.to_string_lossy(),
+                      Green.bold().paint(new_checksum));
             true
         } else {
             false
@@ -264,96 +263,123 @@ impl Service {
             let mut new_file = match File::create(&new_filename) {
                 Ok(new_file) => new_file,
                 Err(e) => {
-                    outputln!(preamble self.service_group_str(),
-                        "Service configuration from butterfly failed to open the new file: {}",
-                        Red.bold().paint(format!("{}", e)));
+                    outputln!(preamble self.service_group,
+                              "Service configuration from butterfly failed to open the new file: \
+                               {}",
+                              Red.bold().paint(format!("{}", e)));
                     return false;
                 }
             };
 
             if let Err(e) = new_file.write_all(encoded.as_bytes()) {
-                outputln!(preamble self.service_group_str(),
-                    "Service configuration from butterfly failed to write: {}",
-                    Red.bold().paint(format!("{}", e)));
+                outputln!(preamble self.service_group,
+                          "Service configuration from butterfly failed to write: {}",
+                          Red.bold().paint(format!("{}", e)));
                 return false;
             }
 
             if let Err(e) = std::fs::rename(&new_filename, &on_disk_path) {
-                outputln!(preamble self.service_group_str(),
-                    "Service configuration from butterfly failed to rename: {}",
-                    Red.bold().paint(format!("{}", e)));
+                outputln!(preamble self.service_group,
+                          "Service configuration from butterfly failed to rename: {}",
+                          Red.bold().paint(format!("{}", e)));
                 return false;
             }
 
             if let Err(e) = set_owner(&on_disk_path,
                                       &self.supervisor.runtime_config.svc_user,
                                       &self.supervisor.runtime_config.svc_group) {
-                outputln!(preamble self.service_group_str(),
-                    "Service configuration from butterfly failed to set ownership: {}",
-                    Red.bold().paint(format!("{}", e)));
+                outputln!(preamble self.service_group,
+                          "Service configuration from butterfly failed to set ownership: {}",
+                          Red.bold().paint(format!("{}", e)));
                 return false;
             }
 
             if let Err(e) = set_permissions(&on_disk_path, 0o640) {
-                outputln!(preamble self.service_group_str(),
-                    "Service configuration from butterfly failed to set permissions: {}",
-                    Red.bold().paint(format!("{}", e)));
+                outputln!(preamble self.service_group,
+                          "Service configuration from butterfly failed to set permissions: {}",
+                          Red.bold().paint(format!("{}", e)));
                 return false;
             }
 
-            outputln!(preamble self.service_group_str(),
-                "Service configuration updated from butterfly: {}",
-                Green.bold().paint(new_checksum));
+            outputln!(preamble self.service_group,
+                      "Service configuration updated from butterfly: {}",
+                      Green.bold().paint(new_checksum));
             true
         } else {
             false
         }
     }
 
-    pub fn health_check(&self) -> Result<health_check::CheckResult> {
-        self.package.health_check(&self.supervisor, &self.service_group)
+    pub fn health_check(&self) -> HealthCheck {
+        if let Some(hook) = self.hooks().health_check {
+            match hook.run(&self.service_group) {
+                Ok(()) => HealthCheck::Ok,
+                Err(SupError { err: Error::HookFailed(_, 1), .. }) => HealthCheck::Warning,
+                Err(SupError { err: Error::HookFailed(_, 2), .. }) => HealthCheck::Critical,
+                Err(SupError { err: Error::HookFailed(_, 3), .. }) => HealthCheck::Unknown,
+                Err(SupError { err: Error::HookFailed(_, code), .. }) => {
+                    outputln!(preamble self.service_group,
+                        "Health check exited with an unknown status code, {}", code);
+                    HealthCheck::Unknown
+                }
+                Err(err) => {
+                    outputln!(preamble self.service_group, "Health check couldn't be run, {}", err);
+                    HealthCheck::Unknown
+                }
+            }
+        } else {
+            match self.supervisor.status() {
+                (true, _) => HealthCheck::Ok,
+                (false, _) => HealthCheck::Critical,
+            }
+        }
     }
 
+    pub fn hooks(&self) -> hooks::HookTable {
+        let mut hooks = hooks::HookTable::new(&self.package, &self.service_group);
+        hooks.load_hooks();
+        hooks
+    }
+
+    /// Run file_updated hook if present
     pub fn file_updated(&self) -> bool {
         if self.initialized {
-            let sg = self.service_group_str();
-            match self.package.file_updated(&self.service_group) {
-                Ok(_) => {
-                    outputln!(preamble sg, "{}", "File update hook succeeded.");
+            match self.hooks().try_run(HookType::FileUpdated) {
+                Ok(()) => {
+                    outputln!(preamble self.service_group, "File update hook succeeded");
                     return true;
                 }
-                Err(e) => outputln!(preamble sg, "File update hook failed: {}", e),
+                Err(err) => {
+                    outputln!(preamble self.service_group, "File update hook failed: {}", err);
+                }
             }
         }
         false
     }
 
+    /// Run initialization hook if present
     pub fn initialize(&mut self) {
         if !self.initialized {
-            match self.package.initialize(&self.service_group) {
-                Ok(()) => {
-                    outputln!(preamble self.service_group_str(), "{}", "Initializing");
-                    self.initialized = true
-                }
-                Err(e) => {
-                    outputln!(preamble self.service_group_str(), "Initialization failed: {}", e)
-                }
+            outputln!(preamble self.service_group, "Initializing");
+            if let Some(err) = self.hooks().try_run(HookType::Init).err() {
+                outputln!(preamble self.service_group, "Initialization failed: {}", err);
+                return;
             }
+            self.initialized = true;
         }
     }
 
     pub fn load_service_config(&self, census: &CensusList) -> Result<ServiceConfig> {
-        ServiceConfig::new(&self.service_group_str(),
-                           &self.package,
-                           census,
-                           gconfig().bind())
+        ServiceConfig::new(&self.service_group, &self.package, census, gconfig().bind())
     }
 
+    /// Run reconfigure hook if present. Return false if it is not present, to trigger default
+    /// restart behavior.
     pub fn reconfigure(&mut self, census_list: &CensusList) -> Option<ServiceConfig> {
         let mut service_config = match self.load_service_config(census_list) {
             Ok(sc) => sc,
             Err(e) => {
-                outputln!(preamble self.service_group_str(),
+                outputln!(preamble self.service_group,
                           "Error generating Service Configuration; not reconfiguring: {}",
                           e);
                 return None;
@@ -362,28 +388,61 @@ impl Service {
         match service_config.write(&self.package) {
             Ok(true) => {
                 self.needs_restart = true;
-                match self.package.reconfigure(&self.service_group) {
-                    Ok(_) => {}
-                    Err(e) => {
-                        outputln!(preamble self.service_group_str(),
-                            "Reconfiguration hook failed: {}", e);
-                    }
+                if let Some(err) = self.hooks().try_run(HookType::Reconfigure).err() {
+                    outputln!(preamble self.service_group,
+                              "Reconfiguration hook failed: {}",
+                              err);
                 }
             }
             Ok(false) => {}
             Err(e) => {
-                outputln!(preamble self.service_group_str(),
-                    "Failed to write service configuration: {}", e);
+                outputln!(preamble self.service_group,
+                          "Failed to write service configuration: {}",
+                          e);
             }
         }
-
-        self.package.hooks().load_hooks();
-        // Probably worth moving the run hook under compile all, eventually
-        if let Err(e) = self.package.copy_run(&service_config) {
-            outputln!("Failed to copy run hook: {}", e);
+        // JW TODO: We probably don't need to reload everything. Just updating them is more
+        // appropriate.
+        self.hooks().compile(&service_config);
+        if let Some(err) = self.copy_run().err() {
+            outputln!(preamble self.service_group, "Failed to copy run hook: {}", err);
         }
-        self.package.hooks().compile_all(&service_config);
         Some(service_config)
+    }
+
+    pub fn smoke_test(&self) -> SmokeCheck {
+        match self.hooks().try_run(HookType::SmokeTest) {
+            Ok(()) => SmokeCheck::Ok,
+            Err(SupError { err: Error::HookFailed(_, code), .. }) => SmokeCheck::Failed(code),
+            Err(err) => {
+                outputln!(preamble self.service_group, "Smoke test couldn't be run, {}", err);
+                SmokeCheck::Failed(-1)
+            }
+        }
+    }
+
+    // Copy the "run" file to the svc path.
+    fn copy_run(&self) -> Result<()> {
+        let svc_run = self.package.pkg_install.svc_path().join(hooks::RUN_FILENAME);
+        match self.hooks().run {
+            Some(hook) => {
+                try!(std::fs::copy(hook.path, &svc_run));
+                try!(set_permissions(&svc_run.to_str().unwrap(), HOOK_PERMISSIONS));
+            }
+            None => {
+                let run = self.package.path().join(hooks::RUN_FILENAME);
+                match std::fs::metadata(&run) {
+                    Ok(_) => {
+                        try!(std::fs::copy(&run, &svc_run));
+                        try!(set_permissions(&svc_run, HOOK_PERMISSIONS));
+                    }
+                    Err(err) => {
+                        outputln!(preamble self.service_group, "Error finding run file: {}", err);
+                    }
+                }
+            }
+        }
+        Ok(())
     }
 }
 

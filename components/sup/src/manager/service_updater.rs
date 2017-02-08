@@ -108,7 +108,7 @@ impl ServiceUpdater {
                     Err(TryRecvError::Empty) => return false,
                     Err(TryRecvError::Disconnected) => {}
                 }
-                outputln!(preamble service.service_group_str(),
+                outputln!(preamble service.service_group,
                     "Service Updater worker has died {}", "; restarting...");
                 *rx = Worker::new(service).start(&service.service_group, None);
             }
@@ -169,7 +169,7 @@ impl ServiceUpdater {
                             }
                             Err(TryRecvError::Empty) => return false,
                             Err(TryRecvError::Disconnected) => {
-                                outputln!(preamble service.service_group_str(),
+                                outputln!(preamble service.service_group,
                                     "Service Updater has died {}", "; restarting...");
                                 *rx = Worker::new(service).start(&service.service_group, None);
                             }
@@ -240,7 +240,7 @@ impl ServiceUpdater {
                                     }
                                     Err(TryRecvError::Empty) => return false,
                                     Err(TryRecvError::Disconnected) => {
-                                        outputln!(preamble service.service_group_str(),
+                                        outputln!(preamble service.service_group,
                                             "Service Updater has died {}", "; restarting...");
                                         let package = census.get_update_leader()
                                             .unwrap()

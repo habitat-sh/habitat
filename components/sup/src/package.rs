@@ -12,10 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-pub mod hooks;
-
-pub use self::hooks::HookType;
-
 use std;
 use std::collections::HashMap;
 use std::env;
@@ -26,25 +22,15 @@ use std::string::ToString;
 use std::io::prelude::*;
 
 use hcore::package::{PackageIdent, PackageInstall};
-use hcore::service::ServiceGroup;
 use hcore::util;
 
-use self::hooks::{HookTable, HOOK_PERMISSIONS};
 use config::gconfig;
-use error::{Error, Result, SupError};
-use health_check::{self, CheckResult};
-use manager::service::config::ServiceConfig;
-use supervisor::Supervisor;
+use error::{Error, Result};
 use util::path;
 use util::users as hab_users;
 use prometheus::Opts;
 
 static LOGKEY: &'static str = "PK";
-const INIT_FILENAME: &'static str = "init";
-const HEALTHCHECK_FILENAME: &'static str = "health_check";
-const FILEUPDATED_FILENAME: &'static str = "file_updated";
-const RECONFIGURE_FILENAME: &'static str = "reconfigure";
-const RUN_FILENAME: &'static str = "run";
 const HABITAT_PACKAGE_INFO_NAME: &'static str = "habitat_package_info";
 const HABITAT_PACKAGE_INFO_DESC: &'static str = "package version information";
 
@@ -111,28 +97,6 @@ impl Package {
             Err(e) => return Err(sup_error!(Error::HabitatCore(e))),
         };
         path::append_interpreter_and_path(&mut paths)
-    }
-
-    pub fn hook_template_path(&self, hook_type: &HookType) -> PathBuf {
-        let base = self.config_from().join("hooks");
-        match *hook_type {
-            HookType::Init => base.join(INIT_FILENAME),
-            HookType::HealthCheck => base.join(HEALTHCHECK_FILENAME),
-            HookType::FileUpdated => base.join(FILEUPDATED_FILENAME),
-            HookType::Reconfigure => base.join(RECONFIGURE_FILENAME),
-            HookType::Run => base.join(RUN_FILENAME),
-        }
-    }
-
-    pub fn hook_path(&self, hook_type: &HookType) -> PathBuf {
-        let base = self.pkg_install.svc_hooks_path();
-        match *hook_type {
-            HookType::Init => base.join(INIT_FILENAME),
-            HookType::HealthCheck => base.join(HEALTHCHECK_FILENAME),
-            HookType::FileUpdated => base.join(FILEUPDATED_FILENAME),
-            HookType::Reconfigure => base.join(RECONFIGURE_FILENAME),
-            HookType::Run => base.join(RUN_FILENAME),
-        }
     }
 
     /// The path to the package on disk.
@@ -211,39 +175,6 @@ impl Package {
         Ok(())
     }
 
-    /// Copy the "run" file to the svc path.
-    pub fn copy_run(&self, context: &ServiceConfig) -> Result<()> {
-        debug!("Copying the run file");
-        let svc_run = self.pkg_install.svc_path().join(RUN_FILENAME);
-        debug!("svc_run = {}", &svc_run.to_str().unwrap());
-        if let Some(hook) = self.hooks().run_hook {
-            debug!("Compiling hook");
-            try!(hook.compile(Some(context)));
-            try!(std::fs::copy(hook.path, &svc_run));
-            try!(util::perm::set_permissions(&svc_run.to_str().unwrap(), HOOK_PERMISSIONS));
-        } else {
-            let run = self.path().join(RUN_FILENAME);
-            match std::fs::metadata(&run) {
-                Ok(_) => {
-                    debug!("run file = {}", &run.to_str().unwrap());
-                    debug!("svc_run file = {}", &svc_run.to_str().unwrap());
-                    try!(Self::remove_symlink(&svc_run));
-                    try!(std::fs::copy(&run, &svc_run));
-                    try!(util::perm::set_permissions(&svc_run, HOOK_PERMISSIONS));
-                }
-                Err(e) => {
-                    outputln!("Error finding the run file: {}", e);
-                    return Err(sup_error!(Error::NoRunFile));
-                }
-            }
-        }
-        Ok(())
-    }
-
-    pub fn topology_leader() -> Result<()> {
-        Ok(())
-    }
-
     pub fn config_from(&self) -> PathBuf {
         gconfig().config_from().as_ref().map_or(self.pkg_install.installed_path().clone(),
                                                 |p| PathBuf::from(p))
@@ -281,65 +212,6 @@ impl Package {
         self.pkg_install.ident()
     }
 
-    /// Run initialization hook if present
-    pub fn initialize(&self, service_group: &ServiceGroup) -> Result<()> {
-        if let Some(hook) = self.hooks().init_hook {
-            hook.run(service_group)
-        } else {
-            Ok(())
-        }
-    }
-
-    /// Run reconfigure hook if present. Return false if it is not present, to trigger default
-    /// restart behavior.
-    pub fn reconfigure(&self, service_group: &ServiceGroup) -> Result<bool> {
-        if let Some(hook) = self.hooks().reconfigure_hook {
-            hook.run(service_group).map(|_| true)
-        } else {
-            Ok(false)
-        }
-    }
-
-    /// Run file_updated hook if present
-    pub fn file_updated(&self, service_group: &ServiceGroup) -> Result<bool> {
-        if let Some(hook) = self.hooks().file_updated_hook {
-            hook.run(service_group).map(|_| true)
-        } else {
-            Ok(false)
-        }
-    }
-
-    pub fn health_check(&self,
-                        supervisor: &Supervisor,
-                        service_group: &ServiceGroup)
-                        -> Result<CheckResult> {
-        if let Some(hook) = self.hooks().health_check_hook {
-            match hook.run(service_group) {
-                Ok(()) => Ok(health_check::CheckResult::Ok),
-                Err(SupError { err: Error::HookFailed(_, 1), .. }) => {
-                    Ok(health_check::CheckResult::Warning)
-                }
-                Err(SupError { err: Error::HookFailed(_, 2), .. }) => {
-                    Ok(health_check::CheckResult::Critical)
-                }
-                Err(SupError { err: Error::HookFailed(_, 3), .. }) => {
-                    Ok(health_check::CheckResult::Unknown)
-                }
-                Err(SupError { err: Error::HookFailed(_, code), .. }) => {
-                    Err(sup_error!(Error::HealthCheckBadExit(code)))
-                }
-                Err(e) => Err(SupError::from(e)),
-            }
-        } else {
-            let (health, _) = supervisor.status();
-            if health {
-                Ok(health_check::CheckResult::Ok)
-            } else {
-                Ok(health_check::CheckResult::Critical)
-            }
-        }
-    }
-
     pub fn register_metrics(&self) {
         let version_opts = Opts::new(HABITAT_PACKAGE_INFO_NAME, HABITAT_PACKAGE_INFO_DESC)
             .const_label("origin", &self.origin.clone())
@@ -350,26 +222,11 @@ impl Package {
         version_gauge.set(1.0);
     }
 
-    pub fn hooks(&self) -> HookTable {
-        let mut hooks = HookTable::new(&self);
-        hooks.load_hooks();
-        hooks
-    }
-
     pub fn last_config(&self) -> Result<String> {
         let mut file = try!(File::open(self.pkg_install.svc_path().join("config.toml")));
         let mut result = String::new();
         try!(file.read_to_string(&mut result));
         Ok(result)
-    }
-}
-
-impl Into<PackageIdent> for Package {
-    fn into(self) -> PackageIdent {
-        PackageIdent::new(self.origin,
-                          self.name,
-                          Some(self.version),
-                          Some(self.release))
     }
 }
 

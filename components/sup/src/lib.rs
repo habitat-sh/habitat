@@ -95,9 +95,10 @@ macro_rules! output {
     };
     (preamble $preamble: expr, $content: expr) => {
         {
+            use std::ops::Deref;
             use $crate::output::StructuredOutput;
             let preamble = &$preamble;
-            let so = StructuredOutput::new(preamble,
+            let so = StructuredOutput::new(preamble.deref(),
                                            LOGKEY,
                                            line!(),
                                            file!(),
@@ -108,9 +109,10 @@ macro_rules! output {
     };
     ($content: expr, $($arg:tt)*) => {
         {
+            use std::ops::Deref;
             use $crate::output::StructuredOutput;
             use $crate::PROGRAM_NAME;
-            let content = format!($content, $($arg)*);
+            let content = format!($content.deref(), $($arg)*);
             let so = StructuredOutput::new(PROGRAM_NAME.as_str(),
                                            LOGKEY,
                                            line!(),
@@ -122,10 +124,10 @@ macro_rules! output {
     };
     (preamble $preamble: expr, $content: expr, $($arg:tt)*) => {
         {
+            use std::ops::Deref;
             use $crate::output::StructuredOutput;
-            let content = format!($content, $($arg)*);
-            let preamble = &$preamble;
-            let so = StructuredOutput::new(preamble,
+            let content = format!($content.deref(), $($arg)*);
+            let so = StructuredOutput::new(preamble.deref(),
                                            LOGKEY,
                                            line!(),
                                            file!(),
@@ -178,13 +180,11 @@ macro_rules! outputln {
             println!("{}", so);
         }
     };
-
     (preamble $preamble: expr, $content: expr, $($arg:tt)*) => {
         {
             use $crate::output::StructuredOutput;
             let content = format!($content, $($arg)*);
-            let preamble = &$preamble;
-            let so = StructuredOutput::new(preamble,
+            let so = StructuredOutput::new(&$preamble,
                                            LOGKEY,
                                            line!(),
                                            file!(),
@@ -192,7 +192,7 @@ macro_rules! outputln {
                                            &content);
             println!("{}", so);
         }
-    }
+    };
 }
 
 #[macro_export]
@@ -271,7 +271,6 @@ macro_rules! output_format {
 pub mod command;
 pub mod config;
 pub mod error;
-pub mod health_check;
 pub mod http_gateway;
 pub mod manager;
 pub mod output;
