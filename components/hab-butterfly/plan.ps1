@@ -6,7 +6,7 @@ $pkg_license = @("Apache-2.0")
 $pkg_source = "https://s3-us-west-2.amazonaws.com/habitat-win-deps/hab-win-deps.zip"
 $pkg_shasum="0a99b1e171ff1075cca139cf9f695685f7a04b122f1704f82f2b852561847710"
 $pkg_bin_dirs = @("bin")
-$pkg_build_deps = @("core/rust")
+$pkg_build_deps = @("core/visual-cpp-redist-2013", "core/rust")
 
 function Invoke-Prepare {
     $env:PLAN_VERSION               = "$pkg_version/$pkg_release"
@@ -40,4 +40,5 @@ function Invoke-Build {
 function Invoke-Install {
     Copy-Item "$env:CARGO_TARGET_DIR/release/hab-butterfly.exe" "$pkg_prefix/bin/hab-butterfly.exe"
     Copy-Item "$HAB_CACHE_SRC_PATH/$pkg_dirname/bin/*" "$pkg_prefix/bin"
+    Copy-Item "$(Get-HabPackagePath "visual-cpp-redist-2013")/bin/*" "$pkg_prefix/bin"
 }
