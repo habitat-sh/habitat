@@ -17,7 +17,7 @@ pub mod service;
 pub mod signals;
 pub mod service_updater;
 
-use std::net::{SocketAddr, ToSocketAddrs};
+use std::net::SocketAddr;
 use std::thread;
 use std::sync::{Arc, RwLock};
 use std::time::Duration;
@@ -33,8 +33,8 @@ use toml;
 
 pub use manager::service::{Service, ServiceConfig, UpdateStrategy, Topology};
 use self::service_updater::ServiceUpdater;
-use error::{Error, Result};
-use config::gconfig;
+use error::Result;
+use config::GossipListenAddr;
 use manager::census::{CensusUpdate, CensusList, CensusEntry};
 use manager::signals::SignalEvent;
 use http_gateway;
@@ -58,51 +58,54 @@ impl State {
     }
 }
 
+#[derive(Default)]
+pub struct ManagerCfg {
+    pub gossip_listen: GossipListenAddr,
+    pub http_listen: http_gateway::ListenAddr,
+    pub gossip_peers: Vec<SocketAddr>,
+    pub gossip_permanent: bool,
+    pub ring: Option<String>,
+}
+
 pub struct Manager {
     state: State,
     updater: ServiceUpdater,
+    http_listen: http_gateway::ListenAddr,
 }
 
 impl Manager {
-    pub fn new() -> Result<Manager> {
+    pub fn new(cfg: ManagerCfg) -> Result<Manager> {
         let mut member = Member::new();
-        member.set_persistent(gconfig().gossip_permanent());
-        member.set_swim_port(gconfig().gossip_listen().port() as i32);
-        member.set_gossip_port(gconfig().gossip_listen().port() as i32);
+        member.set_persistent(cfg.gossip_permanent);
+        member.set_swim_port(cfg.gossip_listen.port() as i32);
+        member.set_gossip_port(cfg.gossip_listen.port() as i32);
 
-        let ring_key = match gconfig().ring() {
-            Some(ring_with_revision) => {
+        let ring_key = match cfg.ring {
+            Some(ref ring_with_revision) => {
                 outputln!("Joining ring {}", ring_with_revision);
                 Some(try!(SymKey::get_pair_for(&ring_with_revision, &default_cache_key_path(None))))
             }
             None => None,
         };
 
-        let server = try!(butterfly::Server::new(gconfig().gossip_listen(),
-                                                 gconfig().gossip_listen(),
+        let server = try!(butterfly::Server::new(&cfg.gossip_listen,
+                                                 &cfg.gossip_listen,
                                                  member,
                                                  Trace::default(),
                                                  ring_key,
                                                  None));
         outputln!("Butterfly Member ID {}", server.member_id());
-        for peer_addr in gconfig().gossip_peer() {
-            let addrs: Vec<SocketAddr> = match peer_addr.to_socket_addrs() {
-                Ok(addrs) => addrs.collect(),
-                Err(e) => {
-                    outputln!("Failed to resolve: {}", peer_addr);
-                    return Err(sup_error!(Error::NameLookup(e)));
-                }
-            };
-            let addr: SocketAddr = addrs[0];
+        for peer_addr in &cfg.gossip_peers {
             let mut peer = Member::new();
-            peer.set_address(format!("{}", addr.ip()));
-            peer.set_swim_port(addr.port() as i32);
-            peer.set_gossip_port(addr.port() as i32);
+            peer.set_address(format!("{}", peer_addr.ip()));
+            peer.set_swim_port(peer_addr.port() as i32);
+            peer.set_gossip_port(peer_addr.port() as i32);
             server.member_list.add_initial_member(peer);
         }
         Ok(Manager {
             updater: ServiceUpdater::new(server.clone()),
             state: State::new(server),
+            http_listen: cfg.http_listen,
         })
     }
 
@@ -134,11 +137,11 @@ impl Manager {
         signals::init();
 
         outputln!("Starting butterfly on {}",
-                  gconfig().gossip_listen().to_string());
+                  self.state.butterfly.gossip_addr());
         try!(self.state.butterfly.start(Timing::default()));
         debug!("butterfly server started");
-        outputln!("Starting http-gateway on {}", gconfig().http_listen_addr());
-        try!(http_gateway::Server::new(self.state.clone()).start());
+        outputln!("Starting http-gateway on {}", self.http_listen);
+        try!(http_gateway::Server::new(self.state.clone(), self.http_listen.clone()).start());
         debug!("http-gateway server started");
 
         let mut last_census_update = CensusUpdate::default();

@@ -20,11 +20,13 @@
 //!
 //! See the [Config](struct.Config.html) struct for the specific options available.
 
+use std::fmt;
 use std::io;
 use std::mem;
 use std::net::{IpAddr, Ipv4Addr, ToSocketAddrs, SocketAddr, SocketAddrV4};
 use std::ops::{Deref, DerefMut};
 use std::option;
+use std::result;
 use std::str::FromStr;
 use std::sync::{Once, ONCE_INIT};
 
@@ -111,22 +113,24 @@ impl ToSocketAddrs for GossipListenAddr {
     }
 }
 
+impl fmt::Display for GossipListenAddr {
+    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
+        write!(f, "{}", self.0)
+    }
+}
+
 /// Holds our configuration options.
 #[derive(Default, Debug, PartialEq, Eq)]
 pub struct Config {
-    pub http_listen_addr: http_gateway::ListenAddr,
-    pub gossip_listen: GossipListenAddr,
+    pub service_config_http_listen: http_gateway::ListenAddr,
     package: PackageIdent,
     local_artifact: Option<String>,
     url: String,
     topology: Topology,
     group: String,
     bind: Vec<String>,
-    gossip_peer: Vec<String>,
-    gossip_permanent: bool,
     update_strategy: UpdateStrategy,
     organization: Option<String>,
-    ring: Option<String>,
     config_from: Option<String>,
 }
 
@@ -201,52 +205,6 @@ impl Config {
         self.topology
     }
 
-    pub fn gossip_listen(&self) -> &GossipListenAddr {
-        &self.gossip_listen
-    }
-
-    pub fn set_gossip_listen(&mut self, gossip_listen: GossipListenAddr) -> &mut Config {
-        self.gossip_listen = gossip_listen;
-        self
-    }
-
-    pub fn http_listen_addr(&self) -> &SocketAddr {
-        &self.http_listen_addr
-    }
-
-    pub fn set_http_listen_ip(&mut self, ip: IpAddr) -> &mut Config {
-        self.http_listen_addr.set_ip(ip);
-        self
-    }
-
-    pub fn set_http_listen_port(&mut self, port: u16) -> &mut Config {
-        self.http_listen_addr.set_port(port);
-        self
-    }
-
-    pub fn gossip_permanent(&self) -> bool {
-        self.gossip_permanent
-    }
-
-    pub fn set_gossip_permanent(&mut self, p: bool) -> &mut Config {
-        self.gossip_permanent = p;
-        self
-    }
-
-    pub fn gossip_peer(&self) -> &[String] {
-        &self.gossip_peer
-    }
-
-    pub fn set_gossip_peer(&mut self, mut gp: Vec<String>) -> &mut Config {
-        for p in gp.iter_mut() {
-            if p.find(':').is_none() {
-                p.push_str(&format!(":{}", 9638));
-            }
-        }
-        self.gossip_peer = gp;
-        self
-    }
-
     pub fn set_package(&mut self, ident: PackageIdent) -> &mut Config {
         self.package = ident;
         self
@@ -272,17 +230,6 @@ impl Config {
 
     pub fn organization(&self) -> Option<&str> {
         self.organization.as_ref().map(|v| &**v)
-    }
-
-    /// Set the ring name
-    pub fn set_ring(&mut self, ring: String) -> &mut Config {
-        self.ring = Some(ring);
-        self
-    }
-
-    /// Return the ring name
-    pub fn ring(&self) -> Option<&str> {
-        self.ring.as_ref().map(|v| &**v)
     }
 }
 

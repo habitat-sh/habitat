@@ -24,6 +24,7 @@ extern crate libc;
 extern crate clap;
 extern crate url;
 
+use std::net::{SocketAddr, ToSocketAddrs};
 use std::path::Path;
 use std::result;
 use std::str::FromStr;
@@ -38,9 +39,10 @@ use hcore::url::{DEFAULT_DEPOT_URL, DEPOT_URL_ENVVAR};
 use url::Url;
 
 use sup::config::{gcache, gconfig, Config, GossipListenAddr};
-use sup::error::Result;
+use sup::error::{Error, Result};
 use sup::command;
 use sup::http_gateway;
+use sup::manager::ManagerCfg;
 use sup::manager::service::{UpdateStrategy, Topology};
 
 /// Our output key
@@ -110,7 +112,8 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
             (@arg LISTEN_HTTP: --("listen-http") +takes_value
                 "The listen address for the HTTP gateway [default: 0.0.0.0:9631]")
             (@arg ORGANIZATION: --org +takes_value "The organization that a service is part of")
-            (@arg PEER: --peer +takes_value "The listen address of an initial peer (IP[:PORT])")
+            (@arg PEER: --peer +takes_value +multiple
+                "The listen address of an initial peer (IP[:PORT])")
             (@arg PERMANENT_PEER: --("permanent-peer") -I "If this service is a permanent peer")
             (@arg RING: --ring -r +takes_value "Ring key name")
             (@arg STRATEGY: --strategy -s +takes_value {valid_update_strategy}
@@ -158,20 +161,42 @@ fn sub_start(m: &ArgMatches) -> Result<()> {
         sup::output::set_no_color(true);
     }
 
+    let mut manager_cfg = ManagerCfg::default();
+
     if let Some(addr_str) = m.value_of("LISTEN_GOSSIP") {
-        config.gossip_listen = try!(GossipListenAddr::from_str(addr_str));
+        manager_cfg.gossip_listen = try!(GossipListenAddr::from_str(addr_str));
     }
     if let Some(addr_str) = m.value_of("LISTEN_HTTP") {
-        config.http_listen_addr = try!(http_gateway::ListenAddr::from_str(addr_str));
+        let addr = try!(http_gateway::ListenAddr::from_str(addr_str));
+        // TODO fn: remove once ServiceConfig doesn't depend on global config
+        config.service_config_http_listen = addr.clone();
+        manager_cfg.http_listen = addr;
     }
-    let gossip_peers = match m.values_of("PEER") {
-        Some(gp) => gp.map(|s| s.to_string()).collect(),
-        None => vec![],
-    };
-    config.set_gossip_peer(gossip_peers);
     if m.is_present("PERMANENT_PEER") {
-        config.set_gossip_permanent(true);
+        manager_cfg.gossip_permanent = true;
     }
+    // TODO fn: Clean this up--using a for loop doesn't feel good however an iterator was
+    // causing a lot of developer/compiler type confusion
+    let mut gossip_peers: Vec<SocketAddr> = Vec::new();
+    if let Some(peers) = m.values_of("PEER") {
+        for peer in peers {
+            let peer_addr = if peer.find(':').is_some() {
+                peer.to_string()
+            } else {
+                format!("{}:{}", peer, 9638)
+            };
+            let addrs: Vec<SocketAddr> = match peer_addr.to_socket_addrs() {
+                Ok(addrs) => addrs.collect(),
+                Err(e) => {
+                    outputln!("Failed to resolve peer: {}", peer_addr);
+                    return Err(sup_error!(Error::NameLookup(e)));
+                }
+            };
+            let addr: SocketAddr = addrs[0];
+            gossip_peers.push(addr);
+        }
+    }
+    manager_cfg.gossip_peers = gossip_peers;
     let ring = match m.value_of("RING") {
         Some(val) => Some(try!(SymKey::get_latest_pair_for(&val, &default_cache_key_path(None)))),
         None => {
@@ -194,7 +219,7 @@ fn sub_start(m: &ArgMatches) -> Result<()> {
         }
     };
     if let Some(ring) = ring {
-        config.set_ring(ring.name_with_rev());
+        manager_cfg.ring = Some(ring.name_with_rev());
     }
 
     // TODO fn: This become service configuration
@@ -242,7 +267,7 @@ fn sub_start(m: &ArgMatches) -> Result<()> {
 
     outputln!("Starting {}",
               Yellow.bold().paint(gconfig().package().to_string()));
-    try!(command::start::package());
+    try!(command::start::package(manager_cfg));
     outputln!("Finished with {}",
               Yellow.bold().paint(gconfig().package().to_string()));
     Ok(())

@@ -61,7 +61,7 @@ use {PRODUCT, VERSION};
 use error::{Error, Result};
 use config::gconfig;
 use package::Package;
-use manager::Manager;
+use manager::{Manager, ManagerCfg};
 use manager::{Service, UpdateStrategy};
 
 static LOGKEY: &'static str = "CS";
@@ -74,7 +74,7 @@ static LOGKEY: &'static str = "CS";
 /// * Fails if it cannot find a package with the given name
 /// * Fails if the `run` method for the topology fails
 /// * Fails if an unknown topology was specified on the command line
-pub fn package() -> Result<()> {
+pub fn package(cfg: ManagerCfg) -> Result<()> {
     let mut ui = UI::default();
     if !am_i_root() {
         try!(ui.warn("Running the Habitat Supervisor requires root or administrator privileges. \
@@ -119,7 +119,7 @@ pub fn package() -> Result<()> {
                     };
                 }
             }
-            start_package(package)
+            start_package(package, cfg)
         }
         Err(_) => {
             outputln!("{} is not installed",
@@ -151,17 +151,17 @@ pub fn package() -> Result<()> {
                 }
             };
             let package = try!(Package::load(&new_pkg_data, Some(&*FS_ROOT_PATH)));
-            start_package(package)
+            start_package(package, cfg)
         }
     }
 }
 
-fn start_package(package: Package) -> Result<()> {
+fn start_package(package: Package, cfg: ManagerCfg) -> Result<()> {
     let run_path = try!(package.run_path());
     debug!("Setting the PATH to {}", run_path);
     env::set_var("PATH", &run_path);
 
-    let mut manager = try!(Manager::new());
+    let mut manager = try!(Manager::new(cfg));
     let service = try!(Service::new(package,
                                     gconfig().group(),
                                     gconfig().organization().clone(),

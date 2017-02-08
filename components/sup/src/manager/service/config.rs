@@ -598,8 +598,8 @@ impl Sys {
         Sys(SysInfo {
             ip: ip,
             hostname: hostname,
-            http_gateway_ip: gconfig().http_listen_addr().ip().to_string(),
-            http_gateway_port: gconfig().http_listen_addr().port(),
+            http_gateway_ip: gconfig().service_config_http_listen.ip().to_string(),
+            http_gateway_port: gconfig().service_config_http_listen.port(),
         })
     }
 
