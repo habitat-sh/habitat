@@ -35,7 +35,8 @@ use common::ui::{Coloring, UI, NOCOLORING_ENVVAR, NONINTERACTIVE_ENVVAR};
 use hcore::env as henv;
 use hcore::crypto::{init, default_cache_key_path, SigKeyPair};
 use hcore::crypto::keys::PairType;
-use hcore::fs::{cache_artifact_path, cache_analytics_path, cache_key_path, FS_ROOT_PATH};
+use hcore::fs::{cache_artifact_path, cache_analytics_path, cache_key_path, FS_ROOT_PATH,
+                FS_ROOT_ENVVAR};
 use hcore::service::ServiceGroup;
 use hcore::package::PackageIdent;
 use hcore::url::{DEFAULT_DEPOT_URL, DEPOT_URL_ENVVAR};
@@ -45,8 +46,6 @@ use hab::error::{Error, Result};
 
 /// Makes the --org CLI param optional when this env var is set
 const HABITAT_ORG_ENVVAR: &'static str = "HAB_ORG";
-
-const FS_ROOT_ENVVAR: &'static str = "FS_ROOT";
 
 const DEFAULT_BINLINK_DIR: &'static str = "/bin";
 

@@ -84,7 +84,7 @@ pub fn package() -> Result<()> {
         return Err(sup_error!(Error::RootRequired));
     }
 
-    match Package::load(gconfig().package(), None) {
+    match Package::load(gconfig().package(), Some(&*FS_ROOT_PATH)) {
         Ok(mut package) => {
             let update_strategy = gconfig().update_strategy();
             match update_strategy {
@@ -110,10 +110,10 @@ pub fn package() -> Result<()> {
                                                                &latest_ident.to_string(),
                                                                PRODUCT,
                                                                VERSION,
-                                                               Path::new(FS_ROOT_PATH),
+                                                               Path::new(&*FS_ROOT_PATH),
                                                                &cache_artifact_path(None),
                                                                false));
-                        package = try!(Package::load(&new_pkg_data, None));
+                        package = try!(Package::load(&new_pkg_data, Some(&*FS_ROOT_PATH)));
                     } else {
                         outputln!("Already running latest.");
                     };
@@ -132,7 +132,7 @@ pub fn package() -> Result<()> {
                                         &artifact,
                                         PRODUCT,
                                         VERSION,
-                                        Path::new(FS_ROOT_PATH),
+                                        Path::new(&*FS_ROOT_PATH),
                                         &cache_artifact_path(None),
                                         false))
                 }
@@ -145,12 +145,12 @@ pub fn package() -> Result<()> {
                                         &gconfig().package().to_string(),
                                         PRODUCT,
                                         VERSION,
-                                        Path::new(FS_ROOT_PATH),
+                                        Path::new(&*FS_ROOT_PATH),
                                         &cache_artifact_path(None),
                                         false))
                 }
             };
-            let package = try!(Package::load(&new_pkg_data, None));
+            let package = try!(Package::load(&new_pkg_data, Some(&*FS_ROOT_PATH)));
             start_package(package)
         }
     }

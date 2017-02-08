@@ -21,6 +21,7 @@ use std::path::{Path, PathBuf};
 use std::string::ToString;
 use std::io::prelude::*;
 
+use hcore::fs::FS_ROOT_PATH;
 use hcore::package::{PackageIdent, PackageInstall};
 use hcore::util;
 
@@ -96,6 +97,19 @@ impl Package {
             Ok(r) => env::split_paths(&r).collect::<Vec<PathBuf>>(),
             Err(e) => return Err(sup_error!(Error::HabitatCore(e))),
         };
+
+        // Lets join the run paths to the FS_ROOT
+        // In most cases, this does nothing and should only mutate
+        // the paths in a windows studio where FS_ROOT_PATH will
+        // be the studio root path (ie c:\hab\studios\...). In any other
+        // environment FS_ROOT will be "/" and this will not make any
+        // meaningful change.
+        for i in 0..paths.len() {
+            if paths[i].starts_with("/") {
+                paths[i] = Path::new(&*FS_ROOT_PATH).join(paths[i].strip_prefix("/").unwrap());
+            }
+        }
+
         path::append_interpreter_and_path(&mut paths)
     }
 

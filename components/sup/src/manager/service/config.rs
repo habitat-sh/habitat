@@ -20,9 +20,11 @@ use std::env;
 use std::fs::File;
 use std::io::prelude::*;
 use std::ops::{Deref, DerefMut};
+use std::path::Path;
 
 use ansi_term::Colour::Purple;
 use butterfly::rumor::service::SysInfo;
+use hcore::fs::FS_ROOT_PATH;
 use hcore::package::PackageInstall;
 use hcore::crypto;
 use toml;
@@ -496,7 +498,7 @@ impl Pkg {
         };
         let mut deps = Vec::new();
         for d in pkg_deps.iter() {
-            if let Ok(p) = PackageInstall::load(d, None) {
+            if let Ok(p) = PackageInstall::load(d, Some(Path::new(&*FS_ROOT_PATH))) {
                 deps.push(Pkg::new(&p));
             } else {
                 outputln!("Failed to load {} - it will be missing from the configuration",

@@ -355,7 +355,7 @@ impl Worker {
     }
 
     fn install(&mut self, package: &PackageIdent, recurse: bool) -> Result<Package> {
-        let package = match Package::load(package, None) {
+        let package = match Package::load(package, Some(&*FS_ROOT_PATH)) {
             Ok(pkg) => pkg,
             Err(_) => try!(self.download(package)),
         };
@@ -370,12 +370,12 @@ impl Worker {
     fn download(&mut self, package: &PackageIdent) -> Result<Package> {
         outputln!("Downloading {}", package);
         let mut archive = try!(self.depot.fetch_package(package,
-                                                        &Path::new(FS_ROOT_PATH)
+                                                        &Path::new(&*FS_ROOT_PATH)
                                                             .join(CACHE_ARTIFACT_PATH),
                                                         self.ui.progress()));
         try!(archive.verify(&default_cache_key_path(None)));
         outputln!("Installing {}", package);
         try!(archive.unpack(None));
-        Package::load(archive.ident().as_ref().unwrap(), None)
+        Package::load(archive.ident().as_ref().unwrap(), Some(&*FS_ROOT_PATH))
     }
 }
