@@ -12,26 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-extern crate habitat_core as hab_core;
-extern crate protobuf;
-extern crate redis;
-extern crate serde;
-#[macro_use]
-extern crate serde_derive;
-extern crate time;
+use message::Routable;
+use sharding::InstaId;
 
-pub mod depotsrv;
-pub mod error;
-pub mod jobsrv;
-pub mod net;
-pub mod routesrv;
-pub mod search;
-pub mod sessionsrv;
-pub mod sharding;
-pub mod vault;
-pub mod scheduler;
-mod message;
+pub use message::scheduler::*;
 
-pub use self::error::{ProtocolError, ProtocolResult};
-pub use self::message::{Message, Persistable, Routable, RouteKey};
-pub use self::sharding::InstaId;
+impl Routable for Schedule {
+    type H = InstaId;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(InstaId(0))
+    }
+}
