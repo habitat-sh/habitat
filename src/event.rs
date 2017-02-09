@@ -22,8 +22,6 @@ use std::fmt;
 use serde::{Serialize, Serializer};
 use serde_json::value::ToJson;
 
-use fs::svc_var_path;
-
 /// Sample envelope JSON payload
 /// {
 ///   "timestamp": "1479330000.13442404",
@@ -262,9 +260,9 @@ pub struct EventLogger {
 }
 
 impl EventLogger {
-    pub fn new(service_name: &str, enabled: bool) -> Self {
+    pub fn new<T: Into<PathBuf>>(log_dir: T, enabled: bool) -> Self {
         EventLogger {
-            log_dir: svc_var_path(&service_name),
+            log_dir: log_dir.into(),
             enabled: enabled,
         }
     }
@@ -284,7 +282,7 @@ mod test {
 
     #[test]
     fn event_logger_path() {
-        let event_logger: EventLogger = EventLogger::new("foo", true);
+        let event_logger: EventLogger = EventLogger::new("/hab/svc/foo/var", true);
         let expected = r#"foo"#;
         match event_logger.log_dir.to_str() {
             Some(s) => assert!(s.contains(expected)),
