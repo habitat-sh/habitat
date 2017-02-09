@@ -693,6 +693,10 @@ mod test {
     use regex::Regex;
     use toml;
 
+    use serde;
+    use serde_json;
+    use util::{self, convert};
+
     use super::*;
     use config::{gcache, Config};
     use error::Error;
@@ -706,12 +710,13 @@ mod test {
             PathBuf::from("/"),
             PathBuf::from("/fakeo"),
             PathBuf::from("/fakeo/here"));
+        let pkg_dep = PackageIdent::from_str("neurosis/jq-static/1000/20160222201259").unwrap();
         Package {
             origin: String::from("neurosis"),
             name: String::from("redis"),
             version: String::from("2000"),
             release: String::from("20160222201258"),
-            deps: Vec::new(),
+            deps: vec![pkg_dep],
             tdeps: Vec::new(),
             pkg_install: pkg_install,
         }
@@ -766,6 +771,17 @@ mod test {
         let ip = toml.lookup("sys.ip").unwrap().as_str().unwrap();
         let re = Regex::new(r"\d+\.\d+\.\d+\.\d+").unwrap();
         assert!(re.is_match(&ip));
+    }
+
+    #[test]
+    fn deserialize_service_config_from_json() {
+        gcache(Config::default());
+        let pkg = gen_pkg();
+        let cl = gen_census_list();
+        let sc = ServiceConfig::new("redis.default", &pkg, &cl, &Vec::new()).unwrap();
+        let toml = sc.to_toml().unwrap();
+        let data = convert::toml_to_json(toml);
+        let _ = serde_json::from_value::<ServiceConfig>(data).unwrap();
     }
 
     #[test]
