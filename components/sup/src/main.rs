@@ -24,11 +24,12 @@ extern crate libc;
 extern crate clap;
 extern crate url;
 
-use std::path::Path;
+use std::net::{SocketAddr, ToSocketAddrs};
+use std::path::{Path, PathBuf};
 use std::result;
 use std::str::FromStr;
 
-use ansi_term::Colour::Yellow;
+use ansi_term::Colour::{Red, Yellow};
 use clap::{App, ArgMatches};
 use hcore::env as henv;
 use hcore::crypto::{default_cache_key_path, SymKey};
@@ -37,20 +38,18 @@ use hcore::package::{PackageArchive, PackageIdent};
 use hcore::url::{DEFAULT_DEPOT_URL, DEPOT_URL_ENVVAR};
 use url::Url;
 
-use sup::config::{gcache, gconfig, Config, GossipListenAddr};
-use sup::error::Result;
+use sup::config::{gcache, Config, GossipListenAddr};
+use sup::error::{Error, Result};
 use sup::command;
 use sup::http_gateway;
-use sup::manager::service::{UpdateStrategy, Topology};
+use sup::manager::ManagerConfig;
+use sup::manager::service::{ServiceSpec, Topology, UpdateStrategy};
 
 /// Our output key
 static LOGKEY: &'static str = "MN";
 
 /// The version number
 const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
-
-/// CLI defaults
-static DEFAULT_GROUP: &'static str = "default";
 
 static RING_ENVVAR: &'static str = "HAB_RING";
 static RING_KEY_ENVVAR: &'static str = "HAB_RING_KEY";
@@ -110,7 +109,8 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
             (@arg LISTEN_HTTP: --("listen-http") +takes_value
                 "The listen address for the HTTP gateway [default: 0.0.0.0:9631]")
             (@arg ORGANIZATION: --org +takes_value "The organization that a service is part of")
-            (@arg PEER: --peer +takes_value "The listen address of an initial peer (IP[:PORT])")
+            (@arg PEER: --peer +takes_value +multiple
+                "The listen address of an initial peer (IP[:PORT])")
             (@arg PERMANENT_PEER: --("permanent-peer") -I "If this service is a permanent peer")
             (@arg RING: --ring -r +takes_value "Ring key name")
             (@arg STRATEGY: --strategy -s +takes_value {valid_update_strategy}
@@ -122,35 +122,30 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
 }
 
 fn sub_bash(m: &ArgMatches) -> Result<()> {
-    let config = Config::new();
     if m.is_present("VERBOSE") {
         sup::output::set_verbose(true);
     }
     if m.is_present("NO_COLOR") {
         sup::output::set_no_color(true);
     }
-    debug!("Config:\n{:?}", config);
-    gcache(config);
+    try!(setup_global_config(m));
 
     command::shell::bash()
 }
 
 fn sub_sh(m: &ArgMatches) -> Result<()> {
-    let config = Config::new();
     if m.is_present("VERBOSE") {
         sup::output::set_verbose(true);
     }
     if m.is_present("NO_COLOR") {
         sup::output::set_no_color(true);
     }
-    debug!("Config:\n{:?}", config);
-    gcache(config);
+    try!(setup_global_config(m));
 
     command::shell::sh()
 }
 
 fn sub_start(m: &ArgMatches) -> Result<()> {
-    let mut config = Config::new();
     if m.is_present("VERBOSE") {
         sup::output::set_verbose(true);
     }
@@ -158,20 +153,39 @@ fn sub_start(m: &ArgMatches) -> Result<()> {
         sup::output::set_no_color(true);
     }
 
+    let mut cfg = ManagerConfig::default();
+
     if let Some(addr_str) = m.value_of("LISTEN_GOSSIP") {
-        config.gossip_listen = try!(GossipListenAddr::from_str(addr_str));
+        cfg.gossip_listen = try!(GossipListenAddr::from_str(addr_str));
     }
     if let Some(addr_str) = m.value_of("LISTEN_HTTP") {
-        config.http_listen_addr = try!(http_gateway::ListenAddr::from_str(addr_str));
+        cfg.http_listen = try!(http_gateway::ListenAddr::from_str(addr_str));
     }
-    let gossip_peers = match m.values_of("PEER") {
-        Some(gp) => gp.map(|s| s.to_string()).collect(),
-        None => vec![],
-    };
-    config.set_gossip_peer(gossip_peers);
     if m.is_present("PERMANENT_PEER") {
-        config.set_gossip_permanent(true);
+        cfg.gossip_permanent = true;
     }
+    // TODO fn: Clean this up--using a for loop doesn't feel good however an iterator was
+    // causing a lot of developer/compiler type confusion
+    let mut gossip_peers: Vec<SocketAddr> = Vec::new();
+    if let Some(peers) = m.values_of("PEER") {
+        for peer in peers {
+            let peer_addr = if peer.find(':').is_some() {
+                peer.to_string()
+            } else {
+                format!("{}:{}", peer, 9638)
+            };
+            let addrs: Vec<SocketAddr> = match peer_addr.to_socket_addrs() {
+                Ok(addrs) => addrs.collect(),
+                Err(e) => {
+                    outputln!("Failed to resolve peer: {}", peer_addr);
+                    return Err(sup_error!(Error::NameLookup(e)));
+                }
+            };
+            let addr: SocketAddr = addrs[0];
+            gossip_peers.push(addr);
+        }
+    }
+    cfg.gossip_peers = gossip_peers;
     let ring = match m.value_of("RING") {
         Some(val) => Some(try!(SymKey::get_latest_pair_for(&val, &default_cache_key_path(None)))),
         None => {
@@ -194,58 +208,77 @@ fn sub_start(m: &ArgMatches) -> Result<()> {
         }
     };
     if let Some(ring) = ring {
-        config.set_ring(ring.name_with_rev());
+        cfg.ring = Some(ring.name_with_rev());
     }
 
-    // TODO fn: This become service configuration
-    if let Some(ref config_from) = m.value_of("CONFIG_DIR") {
-        config.set_config_from(Some(config_from.to_string()));
-    }
-    // TODO fn: This become service configuration
-    if let Some(ref strategy) = m.value_of("STRATEGY") {
-        config.set_update_strategy(try!(UpdateStrategy::from_str(strategy)));
-    }
-    // TODO fn: This become service configuration
-    if let Some(ref ident_or_artifact) = m.value_of("PKG_IDENT_OR_ARTIFACT") {
+    let mut local_artifact: Option<&str> = None;
+    let ident = {
+        let ident_or_artifact = m.value_of("PKG_IDENT_OR_ARTIFACT").unwrap();
         if Path::new(ident_or_artifact).is_file() {
-            let ident = try!(PackageArchive::new(Path::new(ident_or_artifact)).ident());
-            config.set_package(ident);
-            config.set_local_artifact(ident_or_artifact.to_string());
+            local_artifact = Some(ident_or_artifact);
+            try!(PackageArchive::new(Path::new(ident_or_artifact)).ident())
         } else {
-            let ident = try!(PackageIdent::from_str(ident_or_artifact));
-            config.set_package(ident);
+            try!(PackageIdent::from_str(ident_or_artifact))
         }
-    }
-    // TODO fn: This become service configuration
-    if let Some(topology) = m.value_of("TOPOLOGY") {
-        config.set_topology(try!(Topology::from_str(topology)));
-    }
-    // TODO fn: This become service configuration
-    let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
-    let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
-    config.set_url(url.to_string());
-    // TODO fn: This become service configuration
-    config.set_group(m.value_of("GROUP").unwrap_or(DEFAULT_GROUP).to_string());
-    // TODO fn: This become service configuration
-    if let Some(org) = m.value_of("ORGANIZATION") {
-        config.set_organization(org.to_string());
-    }
-    // TODO fn: This become service configuration
-    let bindings = match m.values_of("BIND") {
-        Some(bind) => bind.map(|s| s.to_string()).collect(),
-        None => vec![],
     };
-    config.set_bind(bindings);
+    let spec = try!(spec_from_matches(&ident, m));
 
+    try!(setup_global_config(m));
+
+    outputln!("Starting {}", Yellow.bold().paint(ident.to_string()));
+    try!(command::start::package(cfg, spec, local_artifact));
+    outputln!("Finished with {}", Yellow.bold().paint(ident.to_string()));
+    Ok(())
+}
+
+// TODO fn: Once the remaining fields of Config are gone, the struct and this function can be
+// deleted
+fn setup_global_config(m: &ArgMatches) -> Result<()> {
+    let mut config = Config::default();
+    // TODO fn: remove once ServiceConfig doesn't depend on global config
+    if let Some(addr_str) = m.value_of("LISTEN_HTTP") {
+        config.service_config_http_listen = try!(http_gateway::ListenAddr::from_str(addr_str));
+    }
+    // TODO fn: remove once Package doesn't depend on global config
+    if let Some(ref config_from) = m.value_of("CONFIG_DIR") {
+        config.package_config_from = Some(config_from.to_string());
+    }
     debug!("Config:\n{:?}", config);
     gcache(config);
-
-    outputln!("Starting {}",
-              Yellow.bold().paint(gconfig().package().to_string()));
-    try!(command::start::package());
-    outputln!("Finished with {}",
-              Yellow.bold().paint(gconfig().package().to_string()));
     Ok(())
+}
+
+fn spec_from_matches(ident: &PackageIdent, m: &ArgMatches) -> Result<ServiceSpec> {
+    let mut spec = ServiceSpec::default_for(ident.clone());
+
+    if let Some(group) = m.value_of("GROUP") {
+        spec.group = group.to_string();
+    }
+    if let Some(org) = m.value_of("ORGANIZATION") {
+        spec.organization = Some(org.to_string());
+    }
+    let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
+    let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
+    spec.depot_url = String::from(url);
+    if let Some(topology) = m.value_of("TOPOLOGY") {
+        spec.topology = try!(Topology::from_str(topology));
+    }
+    if let Some(ref strategy) = m.value_of("STRATEGY") {
+        spec.update_strategy = try!(UpdateStrategy::from_str(strategy));
+    }
+    if let Some(binds) = m.values_of("BIND") {
+        spec.binds = binds.map(|s| s.to_string()).collect();
+    }
+    if let Some(ref config_from) = m.value_of("CONFIG_DIR") {
+        spec.dev_config_from = Some(PathBuf::from(config_from));
+        outputln!("");
+        outputln!("{} Setting '{}' should only be used in development, not production!",
+                  Red.bold().paint("WARNING:".to_string()),
+                  Yellow.bold().paint(format!("--config-from {}", config_from)));
+        outputln!("");
+    }
+
+    Ok(spec)
 }
 
 fn dir_exists(val: String) -> result::Result<(), String> {

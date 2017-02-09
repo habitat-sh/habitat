@@ -59,10 +59,9 @@ use hcore::package::PackageIdent;
 
 use {PRODUCT, VERSION};
 use error::{Error, Result};
-use config::gconfig;
 use package::Package;
-use manager::Manager;
-use manager::{Service, UpdateStrategy};
+use manager::{Manager, ManagerConfig};
+use manager::{Service, ServiceSpec, UpdateStrategy};
 
 static LOGKEY: &'static str = "CS";
 
@@ -74,7 +73,7 @@ static LOGKEY: &'static str = "CS";
 /// * Fails if it cannot find a package with the given name
 /// * Fails if the `run` method for the topology fails
 /// * Fails if an unknown topology was specified on the command line
-pub fn package() -> Result<()> {
+pub fn package(cfg: ManagerConfig, spec: ServiceSpec, local_artifact: Option<&str>) -> Result<()> {
     let mut ui = UI::default();
     if !am_i_root() {
         try!(ui.warn("Running the Habitat Supervisor requires root or administrator privileges. \
@@ -84,13 +83,11 @@ pub fn package() -> Result<()> {
         return Err(sup_error!(Error::RootRequired));
     }
 
-    match Package::load(gconfig().package(), Some(&*FS_ROOT_PATH)) {
+    match Package::load(&spec.ident, Some(&*FS_ROOT_PATH)) {
         Ok(mut package) => {
-            let update_strategy = gconfig().update_strategy();
-            match update_strategy {
+            match spec.update_strategy {
                 UpdateStrategy::None => {}
                 _ => {
-                    let url = gconfig().url();
                     outputln!("Checking Depot for newer versions...");
                     // It is important to pass `gconfig().package()` to `show_package()` instead
                     // of the package identifier of the loaded package. This will ensure that
@@ -100,13 +97,13 @@ pub fn package() -> Result<()> {
                     // If the operator does not specify a version number they will
                     // automatically receive updates for any releases, regardless of version
                     // number, for the started  package.
-                    let depot_client = try!(Client::new(url, PRODUCT, VERSION, None));
-                    let latest_pkg_data = try!(depot_client.show_package(gconfig().package()));
+                    let depot_client = try!(Client::new(&spec.depot_url, PRODUCT, VERSION, None));
+                    let latest_pkg_data = try!(depot_client.show_package(&spec.ident));
                     let latest_ident: PackageIdent = latest_pkg_data.get_ident().clone().into();
                     if &latest_ident > package.ident() {
                         outputln!("Downloading latest version from Depot: {}", latest_ident);
                         let new_pkg_data = try!(install::start(&mut ui,
-                                                               url,
+                                                               &spec.depot_url,
                                                                &latest_ident.to_string(),
                                                                PRODUCT,
                                                                VERSION,
@@ -119,16 +116,15 @@ pub fn package() -> Result<()> {
                     };
                 }
             }
-            start_package(package)
+            start_package(package, cfg, spec)
         }
         Err(_) => {
             outputln!("{} is not installed",
-                      Yellow.bold().paint(gconfig().package().to_string()));
-            let url = gconfig().url();
-            let new_pkg_data = match gconfig().local_artifact() {
+                      Yellow.bold().paint(spec.ident.to_string()));
+            let new_pkg_data = match local_artifact {
                 Some(artifact) => {
                     try!(install::start(&mut ui,
-                                        url,
+                                        &spec.depot_url,
                                         &artifact,
                                         PRODUCT,
                                         VERSION,
@@ -138,11 +134,11 @@ pub fn package() -> Result<()> {
                 }
                 None => {
                     outputln!("Searching for {} in remote {}",
-                              Yellow.bold().paint(gconfig().package().to_string()),
-                              url);
+                              Yellow.bold().paint(spec.ident.to_string()),
+                              &spec.depot_url);
                     try!(install::start(&mut ui,
-                                        url,
-                                        &gconfig().package().to_string(),
+                                        &spec.depot_url,
+                                        &spec.ident.to_string(),
                                         PRODUCT,
                                         VERSION,
                                         Path::new(&*FS_ROOT_PATH),
@@ -151,22 +147,18 @@ pub fn package() -> Result<()> {
                 }
             };
             let package = try!(Package::load(&new_pkg_data, Some(&*FS_ROOT_PATH)));
-            start_package(package)
+            start_package(package, cfg, spec)
         }
     }
 }
 
-fn start_package(package: Package) -> Result<()> {
+fn start_package(package: Package, cfg: ManagerConfig, spec: ServiceSpec) -> Result<()> {
     let run_path = try!(package.run_path());
     debug!("Setting the PATH to {}", run_path);
     env::set_var("PATH", &run_path);
 
-    let mut manager = try!(Manager::new());
-    let service = try!(Service::new(package,
-                                    gconfig().group(),
-                                    gconfig().organization().clone(),
-                                    gconfig().topology(),
-                                    gconfig().update_strategy()));
+    let mut manager = try!(Manager::new(cfg));
+    let service = try!(Service::new(package, spec));
     try!(manager.add_service(service));
     manager.run()
 }

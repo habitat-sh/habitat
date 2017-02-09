@@ -13,10 +13,12 @@
 // limitations under the License.
 
 use std::collections::HashMap;
+use std::fmt;
 use std::io;
 use std::net::{IpAddr, Ipv4Addr, ToSocketAddrs, SocketAddr, SocketAddrV4};
 use std::ops::{Deref, DerefMut};
 use std::option;
+use std::result;
 use std::str::FromStr;
 use std::thread::{self, JoinHandle};
 
@@ -30,7 +32,6 @@ use serde_json;
 use prometheus::{CounterVec, HistogramVec, TextEncoder, Encoder};
 use prometheus;
 
-use config::gconfig;
 use error::{Result, Error, SupError};
 use manager;
 use manager::service::HealthCheck;
@@ -65,7 +66,7 @@ lazy_static! {
         &["handler"]).unwrap();
 }
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub struct ListenAddr(SocketAddr);
 
 impl Default for ListenAddr {
@@ -116,16 +117,22 @@ impl ToSocketAddrs for ListenAddr {
     }
 }
 
+impl fmt::Display for ListenAddr {
+    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
+        write!(f, "{}", self.0)
+    }
+}
+
 struct ManagerState;
 
 impl typemap::Key for ManagerState {
     type Value = manager::State;
 }
 
-pub struct Server(Iron<Chain>);
+pub struct Server(Iron<Chain>, ListenAddr);
 
 impl Server {
-    pub fn new(manager_state: manager::State) -> Self {
+    pub fn new(manager_state: manager::State, listen_addr: ListenAddr) -> Self {
         let router = router!(
             butterfly: get "/butterfly" => with_metrics!(butterfly, "butterfly"),
             census: get "/census" => with_metrics!(census, "census"),
@@ -144,16 +151,14 @@ impl Server {
         );
         let mut chain = Chain::new(router);
         chain.link(persistent::Read::<ManagerState>::both(manager_state));
-        Server(Iron::new(chain))
+        Server(Iron::new(chain), listen_addr)
     }
 
     pub fn start(self) -> Result<JoinHandle<()>> {
         let handle = try!(thread::Builder::new()
             .name("http-gateway".to_string())
             .spawn(move || {
-                self.0
-                    .http(*gconfig().http_listen_addr())
-                    .expect("unable to start http-gateway thread");
+                self.0.http(*self.1).expect("unable to start http-gateway thread");
             }));
         Ok(handle)
     }

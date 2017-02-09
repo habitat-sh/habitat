@@ -21,6 +21,7 @@ use std::collections::HashMap;
 use std::fmt;
 use std::fs::File;
 use std::io::prelude::*;
+use std::path::PathBuf;
 use std::result;
 use std::str::FromStr;
 
@@ -28,13 +29,14 @@ use ansi_term::Colour::{Yellow, Red, Green};
 use hcore::service::ServiceGroup;
 use hcore::crypto::hash;
 use hcore::fs;
+use hcore::package::PackageIdent;
+use hcore::url::DEFAULT_DEPOT_URL;
 use hcore::util::perm::{set_owner, set_permissions};
 use toml;
 
 pub use self::config::ServiceConfig;
 pub use self::health::{HealthCheck, SmokeCheck};
 use self::hooks::{HOOK_PERMISSIONS, HookType};
-use config::gconfig;
 use error::{Error, Result, SupError};
 use manager::signals;
 use manager::census::CensusList;
@@ -44,12 +46,40 @@ use util;
 
 static LOGKEY: &'static str = "SR";
 
+static DEFAULT_GROUP: &'static str = "default";
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
 pub enum LastRestartDisplay {
     None,
     ElectionInProgress,
     ElectionNoQuorum,
     ElectionFinished,
+}
+
+pub struct ServiceSpec {
+    pub ident: PackageIdent,
+    pub group: String,
+    pub organization: Option<String>,
+    pub depot_url: String,
+    pub topology: Topology,
+    pub update_strategy: UpdateStrategy,
+    pub binds: Vec<String>,
+    pub dev_config_from: Option<PathBuf>,
+}
+
+impl ServiceSpec {
+    pub fn default_for(ident: PackageIdent) -> Self {
+        ServiceSpec {
+            ident: ident,
+            group: DEFAULT_GROUP.to_string(),
+            organization: None,
+            depot_url: DEFAULT_DEPOT_URL.to_string(),
+            topology: Topology::default(),
+            update_strategy: UpdateStrategy::default(),
+            binds: vec![],
+            dev_config_from: None,
+        }
+    }
 }
 
 #[derive(Debug, Serialize)]
@@ -64,18 +94,16 @@ pub struct Service {
     pub initialized: bool,
     pub last_restart_display: LastRestartDisplay,
     pub supervisor: Supervisor,
+    pub depot_url: String,
+    pub spec_ident: PackageIdent,
+    pub binds: Vec<String>,
 }
 
 impl Service {
-    pub fn new<T>(package: Package,
-                  group: T,
-                  organization: Option<&str>,
-                  topology: Topology,
-                  update_strategy: UpdateStrategy)
-                  -> Result<Service>
-        where T: AsRef<str>
-    {
-        let service_group = ServiceGroup::new(&package.name, group, organization)?;
+    pub fn new(package: Package, spec: ServiceSpec) -> Result<Service> {
+        let service_group = ServiceGroup::new(&package.name,
+                                              spec.group,
+                                              spec.organization.as_ref().map(|x| &**x))?;
         let (svc_user, svc_group) = try!(util::users::get_user_and_group(&package.pkg_install));
         let runtime_config = RuntimeConfig::new(svc_user, svc_group);
         let supervisor = Supervisor::new(package.ident().clone(), &service_group, runtime_config);
@@ -83,9 +111,12 @@ impl Service {
             service_group: service_group,
             supervisor: supervisor,
             package: package,
-            topology: topology,
+            topology: spec.topology,
+            depot_url: spec.depot_url,
+            spec_ident: spec.ident,
+            binds: spec.binds,
             needs_restart: false,
-            update_strategy: update_strategy,
+            update_strategy: spec.update_strategy,
             current_service_files: HashMap::new(),
             last_restart_display: LastRestartDisplay::None,
             initialized: false,
@@ -370,7 +401,7 @@ impl Service {
     }
 
     pub fn load_service_config(&self, census: &CensusList) -> Result<ServiceConfig> {
-        ServiceConfig::new(&self.service_group, &self.package, census, gconfig().bind())
+        ServiceConfig::new(&self.service_group, &self.package, census, &self.binds)
     }
 
     /// Run reconfigure hook if present. Return false if it is not present, to trigger default

@@ -69,7 +69,7 @@ impl ServiceConfig {
     pub fn new(service_group: &str,
                package: &Package,
                cl: &CensusList,
-               bindings: Vec<String>)
+               bindings: &[String])
                -> Result<ServiceConfig> {
         let cfg = try!(Cfg::new(package));
         let bind = try!(Bind::new(bindings, &cl));
@@ -126,7 +126,7 @@ impl ServiceConfig {
     }
 
     /// Replace the `svc` data.
-    pub fn bind(&mut self, bindings: Vec<String>, cl: &CensusList) {
+    pub fn bind(&mut self, bindings: &[String], cl: &CensusList) {
         // This is only safe because we will fail the first time if the bindings are badly
         // formatted - so we know we can't fail here.
         self.bind = Bind::new(bindings, cl).unwrap();
@@ -214,7 +214,7 @@ impl ServiceConfig {
 pub struct Bind(toml::Table);
 
 impl Bind {
-    fn new(binding_cfg: Vec<String>, cl: &CensusList) -> Result<Bind> {
+    fn new(binding_cfg: &[String], cl: &CensusList) -> Result<Bind> {
         let mut top = toml::Table::new();
         let bindings = try!(Bind::split_bindings(binding_cfg));
         for (bind, service_group) in bindings {
@@ -231,7 +231,7 @@ impl Bind {
         Ok(Bind(top))
     }
 
-    fn split_bindings(bindings: Vec<String>) -> Result<Vec<(String, String)>> {
+    fn split_bindings(bindings: &[String]) -> Result<Vec<(String, String)>> {
         let mut bresult = Vec::new();
         for bind in bindings.into_iter() {
             let values: Vec<&str> = bind.splitn(2, ':').collect();
@@ -598,8 +598,8 @@ impl Sys {
         Sys(SysInfo {
             ip: ip,
             hostname: hostname,
-            http_gateway_ip: gconfig().http_listen_addr().ip().to_string(),
-            http_gateway_port: gconfig().http_listen_addr().port(),
+            http_gateway_ip: gconfig().service_config_http_listen.ip().to_string(),
+            http_gateway_port: gconfig().service_config_http_listen.port(),
         })
     }
 
@@ -736,10 +736,10 @@ mod test {
 
     #[test]
     fn to_toml_hab() {
-        gcache(Config::new());
+        gcache(Config::default());
         let pkg = gen_pkg();
         let cl = gen_census_list();
-        let sc = ServiceConfig::new("redis.default", &pkg, &cl, Vec::new()).unwrap();
+        let sc = ServiceConfig::new("redis.default", &pkg, &cl, &Vec::new()).unwrap();
         let toml = sc.to_toml().unwrap();
         let version = toml.lookup("hab.version").unwrap().as_str().unwrap();
         assert_eq!(version, VERSION);
@@ -747,10 +747,10 @@ mod test {
 
     #[test]
     fn to_toml_pkg() {
-        gcache(Config::new());
+        gcache(Config::default());
         let pkg = gen_pkg();
         let cl = gen_census_list();
-        let sc = ServiceConfig::new("redis.default", &pkg, &cl, Vec::new()).unwrap();
+        let sc = ServiceConfig::new("redis.default", &pkg, &cl, &Vec::new()).unwrap();
         let toml = sc.to_toml().unwrap();
         let name = toml.lookup("pkg.name").unwrap().as_str().unwrap();
         assert_eq!(name, "redis");
@@ -758,10 +758,10 @@ mod test {
 
     #[test]
     fn to_toml_sys() {
-        gcache(Config::new());
+        gcache(Config::default());
         let pkg = gen_pkg();
         let cl = gen_census_list();
-        let sc = ServiceConfig::new("redis.default", &pkg, &cl, Vec::new()).unwrap();
+        let sc = ServiceConfig::new("redis.default", &pkg, &cl, &Vec::new()).unwrap();
         let toml = sc.to_toml().unwrap();
         let ip = toml.lookup("sys.ip").unwrap().as_str().unwrap();
         let re = Regex::new(r"\d+\.\d+\.\d+\.\d+").unwrap();
@@ -921,7 +921,7 @@ mod test {
 
         #[test]
         fn ip() {
-            gcache(Config::new());
+            gcache(Config::default());
             let s = Sys::new();
             let re = Regex::new(r"\d+\.\d+\.\d+\.\d+").unwrap();
             assert!(re.is_match(&s.ip));
@@ -929,7 +929,7 @@ mod test {
 
         #[test]
         fn hostname() {
-            gcache(Config::new());
+            gcache(Config::default());
             let s = Sys::new();
             let re = Regex::new(r"\w+").unwrap();
             assert!(re.is_match(&s.hostname));
@@ -937,7 +937,7 @@ mod test {
 
         #[test]
         fn to_toml() {
-            gcache(Config::new());
+            gcache(Config::default());
             let s = Sys::new();
             let toml = s.to_toml().unwrap();
             let ip = toml.lookup("ip").unwrap().as_str().unwrap();

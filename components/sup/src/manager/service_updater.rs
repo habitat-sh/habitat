@@ -28,7 +28,6 @@ use hcore::fs::{CACHE_ARTIFACT_PATH, FS_ROOT_PATH};
 use time::{SteadyTime, Duration as TimeDuration};
 
 use {PRODUCT, VERSION};
-use config::gconfig;
 use error::Result;
 use manager::census::CensusList;
 use manager::service::{Service, Topology, UpdateStrategy};
@@ -270,6 +269,7 @@ impl ServiceUpdater {
 
 struct Worker {
     current: PackageIdent,
+    spec_ident: PackageIdent,
     depot: depot_client::Client,
     ui: UI,
 }
@@ -278,7 +278,8 @@ impl Worker {
     pub fn new(service: &Service) -> Self {
         Worker {
             current: service.package.ident().clone(),
-            depot: depot_client::Client::new(gconfig().url(), PRODUCT, VERSION, None).unwrap(),
+            spec_ident: service.spec_ident.clone(),
+            depot: depot_client::Client::new(&service.depot_url, PRODUCT, VERSION, None).unwrap(),
             ui: UI::default(),
         }
     }
@@ -324,11 +325,7 @@ impl Worker {
         loop {
             let next_check = SteadyTime::now() +
                              TimeDuration::milliseconds(UPDATE_STRATEGY_FREQUENCY_MS);
-            // TODO fn: We don't want to reach into a global config for the package argument given
-            // to the `start` subcommand. Instead, each Service will have this peice of information
-            // but for the moment we're going to go global.
-            let initial_ident = gconfig().package();
-            match self.depot.show_package(initial_ident) {
+            match self.depot.show_package(&self.spec_ident) {
                 Ok(remote) => {
                     let latest: PackageIdent = remote.get_ident().clone().into();
                     if latest > self.current {

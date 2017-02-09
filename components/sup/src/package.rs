@@ -190,8 +190,8 @@ impl Package {
     }
 
     pub fn config_from(&self) -> PathBuf {
-        gconfig().config_from().as_ref().map_or(self.pkg_install.installed_path().clone(),
-                                                |p| PathBuf::from(p))
+        gconfig().package_config_from.as_ref().map_or(self.pkg_install.installed_path().clone(),
+                                                      |p| PathBuf::from(p))
     }
 
     /// Return an iterator of the configuration file names to render.
