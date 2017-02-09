@@ -70,8 +70,7 @@ pub fn router(config: Arc<Config>) -> Result<Chain> {
     );
     let mut chain = Chain::new(router);
     chain.link(persistent::Read::<GitHubCli>::both(GitHubClient::new(&*config)));
-    chain.link(Read::<EventLog>::both(EventLogger::new("hab-builder-api", config.events_enabled)));
-
+    chain.link(Read::<EventLog>::both(EventLogger::new(&config.log_dir, config.events_enabled)));
     chain.link_before(RouteBroker);
     chain.link_after(Cors);
     Ok(chain)

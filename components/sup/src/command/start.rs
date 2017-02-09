@@ -47,7 +47,6 @@
 //! See the [documentation on topologies](../topology) for a deeper discussion of how they function.
 //!
 
-use std::env;
 use std::path::Path;
 
 use ansi_term::Colour::Yellow;
@@ -55,11 +54,10 @@ use common::command::package::install;
 use common::ui::UI;
 use depot_client::Client;
 use hcore::fs::{am_i_root, cache_artifact_path, FS_ROOT_PATH};
-use hcore::package::PackageIdent;
+use hcore::package::{PackageIdent, PackageInstall};
 
 use {PRODUCT, VERSION};
 use error::{Error, Result};
-use package::Package;
 use manager::{Manager, ManagerConfig};
 use manager::{Service, ServiceSpec, UpdateStrategy};
 
@@ -83,7 +81,7 @@ pub fn package(cfg: ManagerConfig, spec: ServiceSpec, local_artifact: Option<&st
         return Err(sup_error!(Error::RootRequired));
     }
 
-    match Package::load(&spec.ident, Some(&*FS_ROOT_PATH)) {
+    match PackageInstall::load(&spec.ident, Some(&Path::new(&*FS_ROOT_PATH))) {
         Ok(mut package) => {
             match spec.update_strategy {
                 UpdateStrategy::None => {}
@@ -110,7 +108,7 @@ pub fn package(cfg: ManagerConfig, spec: ServiceSpec, local_artifact: Option<&st
                                                                Path::new(&*FS_ROOT_PATH),
                                                                &cache_artifact_path(None),
                                                                false));
-                        package = try!(Package::load(&new_pkg_data, Some(&*FS_ROOT_PATH)));
+                        package = try!(PackageInstall::load(&new_pkg_data, Some(&*FS_ROOT_PATH)));
                     } else {
                         outputln!("Already running latest.");
                     };
@@ -146,17 +144,13 @@ pub fn package(cfg: ManagerConfig, spec: ServiceSpec, local_artifact: Option<&st
                                         false))
                 }
             };
-            let package = try!(Package::load(&new_pkg_data, Some(&*FS_ROOT_PATH)));
+            let package = try!(PackageInstall::load(&new_pkg_data, Some(&*FS_ROOT_PATH)));
             start_package(package, cfg, spec)
         }
     }
 }
 
-fn start_package(package: Package, cfg: ManagerConfig, spec: ServiceSpec) -> Result<()> {
-    let run_path = try!(package.run_path());
-    debug!("Setting the PATH to {}", run_path);
-    env::set_var("PATH", &run_path);
-
+fn start_package(package: PackageInstall, cfg: ManagerConfig, spec: ServiceSpec) -> Result<()> {
     let mut manager = try!(Manager::new(cfg));
     let service = try!(Service::new(package, spec));
     try!(manager.add_service(service));

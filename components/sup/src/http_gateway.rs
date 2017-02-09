@@ -184,7 +184,7 @@ fn config(req: &mut Request) -> IronResult<Response> {
     let services = state.services.read().unwrap();
     match services.iter().find(|s| s.service_group == service_group) {
         Some(service) => {
-            match service.package.last_config() {
+            match service.last_config() {
                 Ok(config) => Ok(Response::with((status::Ok, config))),
                 Err(err) => {
                     error!("Couldn't retrieve last config, err={:?}", err);

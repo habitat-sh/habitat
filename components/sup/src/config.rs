@@ -121,6 +121,4 @@ impl fmt::Display for GossipListenAddr {
 pub struct Config {
     // Currently only used by `ServiceConfig`
     pub service_config_http_listen: http_gateway::ListenAddr,
-    // Currently only used by `Package`
-    pub package_config_from: Option<String>,
 }

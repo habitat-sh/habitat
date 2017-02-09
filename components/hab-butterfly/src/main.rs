@@ -20,11 +20,13 @@ extern crate hab_butterfly;
 extern crate habitat_core as hcore;
 extern crate habitat_common as common;
 #[macro_use]
+extern crate lazy_static;
+#[macro_use]
 extern crate log;
 
 use std::env;
 use std::ffi::OsString;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use std::thread;
 
@@ -33,23 +35,31 @@ use clap::ArgMatches;
 use common::ui::{Coloring, UI, NOCOLORING_ENVVAR, NONINTERACTIVE_ENVVAR};
 use hcore::env as henv;
 use hcore::crypto::{init, default_cache_key_path, BoxKeyPair, SymKey};
-use hcore::fs::FS_ROOT_PATH;
 use hcore::service::ServiceGroup;
 
 use hab_butterfly::{analytics, cli, command};
 use hab_butterfly::error::{Error, Result};
 
-
 /// Makes the --org CLI param optional when this env var is set
 const HABITAT_ORG_ENVVAR: &'static str = "HAB_ORG";
 /// Makes the --user CLI param optional when this env var is set
 const HABITAT_USER_ENVVAR: &'static str = "HAB_USER";
-
-const FS_ROOT_ENVVAR: &'static str = "FS_ROOT";
-
 const HABITAT_BUTTERFLY_PORT: u64 = 9638;
-
 const MAX_FILE_UPLOAD_SIZE_BYTES: u64 = 4096;
+
+lazy_static! {
+    /// The default filesystem root path to base all commands from. This is lazily generated on
+    /// first call and reflects on the presence and value of the environment variable keyed as
+    /// `FS_ROOT_ENVVAR`.
+    static ref FS_ROOT: PathBuf = {
+        use hcore::fs::FS_ROOT_ENVVAR;
+        if let Some(root) = henv::var(FS_ROOT_ENVVAR).ok() {
+            PathBuf::from(root)
+        } else {
+            PathBuf::from("/")
+        }
+    };
+}
 
 fn main() {
     env_logger::init().unwrap();
@@ -89,8 +99,6 @@ fn start(ui: &mut UI) -> Result<()> {
 }
 
 fn sub_config_apply(ui: &mut UI, m: &ArgMatches) -> Result<()> {
-    let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
-    let fs_root_path = Some(Path::new(&fs_root));
     let peers_str = m.value_of("PEER").unwrap_or("127.0.0.1");
     let mut peers: Vec<String> = peers_str.split(",").map(|p| p.into()).collect();
     for p in peers.iter_mut() {
@@ -106,7 +114,7 @@ fn sub_config_apply(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     };
 
     init();
-    let cache = default_cache_key_path(fs_root_path);
+    let cache = default_cache_key_path(Some(&*FS_ROOT));
     let ring_key = match m.value_of("RING") {
         Some(name) => Some(try!(SymKey::get_latest_pair_for(&name, &cache))),
         None => None,
@@ -136,9 +144,6 @@ fn sub_config_apply(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_file_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
-    let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
-    let fs_root_path = Some(Path::new(&fs_root));
-
     let peers_str = m.value_of("PEER").unwrap_or("127.0.0.1");
     let mut peers: Vec<String> = peers_str.split(",").map(|p| p.into()).collect();
     for p in peers.iter_mut() {
@@ -163,7 +168,7 @@ fn sub_file_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     };
 
     init();
-    let cache = default_cache_key_path(fs_root_path);
+    let cache = default_cache_key_path(Some(&*FS_ROOT));
     let ring_key = match m.value_of("RING") {
         Some(name) => Some(try!(SymKey::get_latest_pair_for(&name, &cache))),
         None => None,

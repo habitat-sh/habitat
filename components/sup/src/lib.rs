@@ -271,10 +271,10 @@ macro_rules! output_format {
 pub mod command;
 pub mod config;
 pub mod error;
+pub mod fs;
 pub mod http_gateway;
 pub mod manager;
 pub mod output;
-pub mod package;
 pub mod supervisor;
 pub mod templating;
 pub mod util;

@@ -18,8 +18,9 @@
 /// spawning the new process, watching for failure, and ensuring the service is either up or down.
 /// If the process dies, the supervisor will restart it.
 
+use std;
 use std::fmt;
-use std::fs::{self, File};
+use std::fs::File;
 use std::io::BufReader;
 use std::io::prelude::*;
 use std::path::PathBuf;
@@ -27,7 +28,6 @@ use std::process::Child;
 use std::result;
 use std::thread;
 
-use hcore;
 use hcore::os::process::{HabChild, ExitStatusExt};
 use hcore::package::PackageIdent;
 use hcore::service::ServiceGroup;
@@ -35,6 +35,7 @@ use serde::{Serialize, Serializer};
 use time::SteadyTime;
 
 use error::{Result, Error};
+use fs;
 use util;
 
 const PIDFILE_NAME: &'static str = "PID";
@@ -75,6 +76,15 @@ impl RuntimeConfig {
         RuntimeConfig {
             svc_user: svc_user,
             svc_group: svc_group,
+        }
+    }
+}
+
+impl Default for RuntimeConfig {
+    fn default() -> RuntimeConfig {
+        RuntimeConfig {
+            svc_user: util::users::DEFAULT_USER.to_string(),
+            svc_group: util::users::DEFAULT_GROUP.to_string(),
         }
     }
 }
@@ -241,7 +251,7 @@ impl Supervisor {
     }
 
     pub fn service_dir(&self) -> PathBuf {
-        hcore::fs::svc_path(&self.package_ident.name)
+        fs::svc_path(&self.package_ident.name)
     }
 
     pub fn pid_file(&self) -> PathBuf {
@@ -272,7 +282,7 @@ impl Supervisor {
     pub fn cleanup_pidfile(&self) {
         let pid_file = self.pid_file();
         debug!("Attempting to clean up pid file {}", &pid_file.display());
-        match fs::remove_file(pid_file) {
+        match std::fs::remove_file(pid_file) {
             Ok(_) => {
                 debug!("Removed pid file");
             }

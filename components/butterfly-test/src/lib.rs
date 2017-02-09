@@ -417,8 +417,7 @@ impl SwimNet {
                              &ident,
                              &sg,
                              &SysInfo::default(),
-                             None)
-            .unwrap();
+                             None);
         self[member].insert_service(s);
     }
 

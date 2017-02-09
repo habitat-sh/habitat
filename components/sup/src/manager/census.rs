@@ -598,8 +598,7 @@ mod tests {
                                        &ident,
                                        &sg,
                                        &SysInfo::default(),
-                                       None)
-                .unwrap();
+                                       None);
             ce.populate_from_service(&service);
             assert_eq!(ce.get_member_id(), "neurosis");
             assert_eq!(ce.get_service(), "overwatch");

@@ -14,6 +14,7 @@
 
 //! Configuration for a Habitat Builder-API service
 
+use std::env;
 use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
 
 use hab_net;
@@ -43,6 +44,8 @@ pub struct Config {
     pub ui_root: Option<String>,
     /// Whether to log events for funnel metrics
     pub events_enabled: bool,
+    /// Where to record log events for funnel metrics
+    pub log_dir: String,
 }
 
 impl Config {
@@ -64,6 +67,7 @@ impl Default for Config {
             github_client_secret: DEV_GITHUB_CLIENT_SECRET.to_string(),
             ui_root: None,
             events_enabled: false, // TODO: change to default to true later
+            log_dir: env::temp_dir().to_string_lossy().into_owned(),
         }
     }
 }
@@ -96,6 +100,8 @@ impl ConfigFile for Config {
                              &mut cfg.depot.github_client_secret));
         try!(toml.parse_into("cfg.events_enabled", &mut cfg.events_enabled));
         try!(toml.parse_into("cfg.events_enabled", &mut cfg.depot.events_enabled));
+        try!(toml.parse_into("pkg.svc_var_path", &mut cfg.log_dir));
+        try!(toml.parse_into("pkg.svc_var_path", &mut cfg.depot.log_dir));
         try!(toml.parse_into("cfg.supported_target", &mut cfg.depot.supported_target));
         Ok(cfg)
     }
