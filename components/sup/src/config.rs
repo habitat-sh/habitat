@@ -30,11 +30,8 @@ use std::result;
 use std::str::FromStr;
 use std::sync::{Once, ONCE_INIT};
 
-use hcore::package::PackageIdent;
-
 use error::{Error, Result, SupError};
 use http_gateway;
-use manager::service::{Topology, UpdateStrategy};
 
 static LOGKEY: &'static str = "CFG";
 
@@ -122,139 +119,8 @@ impl fmt::Display for GossipListenAddr {
 /// Holds our configuration options.
 #[derive(Default, Debug, PartialEq, Eq)]
 pub struct Config {
+    // Currently only used by `ServiceConfig`
     pub service_config_http_listen: http_gateway::ListenAddr,
-    package: PackageIdent,
-    local_artifact: Option<String>,
-    url: String,
-    topology: Topology,
-    group: String,
-    bind: Vec<String>,
-    update_strategy: UpdateStrategy,
-    organization: Option<String>,
-    config_from: Option<String>,
-}
-
-impl Config {
-    /// Create a default `Config`
-    pub fn new() -> Config {
-        Config::default()
-    }
-
-    /// Set the config file from directory
-    pub fn set_config_from(&mut self, config_from: Option<String>) -> &mut Config {
-        self.config_from = config_from;
-        self
-    }
-
-    /// Return the config file from directory
-    pub fn config_from(&self) -> Option<&String> {
-        self.config_from.as_ref()
-    }
-
-    pub fn set_update_strategy(&mut self, strat: UpdateStrategy) -> &mut Config {
-        self.update_strategy = strat;
-        self
-    }
-
-    /// Return the command we used
-    pub fn update_strategy(&self) -> UpdateStrategy {
-        self.update_strategy
-    }
-
-    /// Set the group
-    pub fn set_group(&mut self, group: String) -> &mut Config {
-        self.group = group;
-        self
-    }
-
-    /// Return the group
-    pub fn group(&self) -> &str {
-        &self.group
-    }
-
-    /// Set the bindings
-    pub fn set_bind(&mut self, bind: Vec<String>) -> &mut Config {
-        self.bind = bind;
-        self
-    }
-
-    /// Return the bindings
-    pub fn bind(&self) -> Vec<String> {
-        self.bind.clone()
-    }
-
-    /// Set the url
-    pub fn set_url(&mut self, url: String) -> &mut Config {
-        self.url = url;
-        self
-    }
-
-    /// Return the url
-    pub fn url(&self) -> &str {
-        &self.url
-    }
-
-    /// Set the topology
-    pub fn set_topology(&mut self, topology: Topology) -> &mut Config {
-        self.topology = topology;
-        self
-    }
-
-    /// Return the topology
-    pub fn topology(&self) -> Topology {
-        self.topology
-    }
-
-    pub fn set_package(&mut self, ident: PackageIdent) -> &mut Config {
-        self.package = ident;
-        self
-    }
-
-    pub fn package(&self) -> &PackageIdent {
-        &self.package
-    }
-
-    pub fn set_local_artifact(&mut self, artifact: String) -> &mut Config {
-        self.local_artifact = Some(artifact);
-        self
-    }
-
-    pub fn local_artifact(&self) -> Option<&str> {
-        self.local_artifact.as_ref().map(String::as_ref)
-    }
-
-    pub fn set_organization(&mut self, org: String) -> &mut Config {
-        self.organization = Some(org);
-        self
-    }
-
-    pub fn organization(&self) -> Option<&str> {
-        self.organization.as_ref().map(|v| &**v)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use manager::service::Topology;
-    use super::Config;
-
-    #[test]
-    fn new() {
-        let c = Config::new();
-        assert_eq!(c.topology(), Topology::Standalone);
-    }
-
-    #[test]
-    fn url() {
-        let mut c = Config::new();
-        c.set_url(String::from("http://foolio.com"));
-        assert_eq!(c.url(), "http://foolio.com");
-    }
-
-    #[test]
-    fn topology() {
-        let mut c = Config::new();
-        c.set_topology(Topology::Leader);
-        assert_eq!(c.topology(), Topology::Leader);
-    }
+    // Currently only used by `Package`
+    pub package_config_from: Option<String>,
 }

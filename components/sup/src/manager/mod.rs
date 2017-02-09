@@ -31,7 +31,7 @@ use hcore::crypto::{default_cache_key_path, SymKey};
 use time::{SteadyTime, Duration as TimeDuration};
 use toml;
 
-pub use manager::service::{Service, ServiceConfig, UpdateStrategy, Topology};
+pub use manager::service::{Service, ServiceConfig, ServiceSpec, UpdateStrategy, Topology};
 use self::service_updater::ServiceUpdater;
 use error::Result;
 use config::GossipListenAddr;
@@ -59,7 +59,7 @@ impl State {
 }
 
 #[derive(Default)]
-pub struct ManagerCfg {
+pub struct ManagerConfig {
     pub gossip_listen: GossipListenAddr,
     pub http_listen: http_gateway::ListenAddr,
     pub gossip_peers: Vec<SocketAddr>,
@@ -74,7 +74,7 @@ pub struct Manager {
 }
 
 impl Manager {
-    pub fn new(cfg: ManagerCfg) -> Result<Manager> {
+    pub fn new(cfg: ManagerConfig) -> Result<Manager> {
         let mut member = Member::new();
         member.set_persistent(cfg.gossip_permanent);
         member.set_swim_port(cfg.gossip_listen.port() as i32);
