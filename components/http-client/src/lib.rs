@@ -31,7 +31,7 @@ pub mod proxy;
 pub use api_client::ApiClient;
 pub use error::{Error, Result};
 
-#[cfg(target_os = "linux")]
+#[cfg(not(target_os = "macos"))]
 mod ssl {
     use std::fs::{self, File};
     use std::io::Write;
@@ -76,7 +76,7 @@ mod ssl {
     }
 }
 
-#[cfg(not(target_os = "linux"))]
+#[cfg(target_os = "macos")]
 mod ssl {
     use std::path::Path;
 

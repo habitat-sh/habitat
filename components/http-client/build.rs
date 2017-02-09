@@ -2,7 +2,7 @@ fn main() {
     inner::main()
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(not(target_os = "macos"))]
 mod inner {
     use std::env;
     use std::fs;
@@ -17,7 +17,7 @@ mod inner {
     }
 }
 
-#[cfg(not(target_os = "linux"))]
+#[cfg(target_os = "macos")]
 mod inner {
     pub fn main() {}
 }
