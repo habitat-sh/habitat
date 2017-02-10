@@ -120,7 +120,7 @@ impl Service {
         self.supervisor.start()
     }
 
-    pub fn restart(&mut self, census_list: &CensusList) -> Result<()> {
+    pub fn restart(&mut self, census_list: &CensusList) -> bool {
         match self.topology {
             Topology::Leader => {
                 if let Some(census) = census_list.get(&*self.service_group) {
@@ -150,6 +150,7 @@ impl Service {
                                 self.last_election_status = ElectionStatus::ElectionFinished;
                                 self.needs_restart = false;
                                 try!(self.supervisor.restart());
+                                return true;
                             }
                             ElectionStatus::None => {}
                         }
@@ -160,9 +161,10 @@ impl Service {
             Topology::Standalone => {
                 self.needs_restart = false;
                 try!(self.supervisor.restart());
+                return true;
             }
         }
-        Ok(())
+        return false;
     }
 
     pub fn down(&mut self) -> Result<()> {
