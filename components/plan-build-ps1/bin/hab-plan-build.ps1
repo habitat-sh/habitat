@@ -209,7 +209,7 @@ function _Exit-With {
 # terminated.
 function _Get-SystemCommands {
     if (_Check-Command hab) {
-        $script:_hab_cmd = (Get-Command hab).Source
+        $script:_hab_cmd = (Get-Command hab.exe).Source
     } else {
         _Exit-With "We require hab to sign artifacts; aborting" 1
     }

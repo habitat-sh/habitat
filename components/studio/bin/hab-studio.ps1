@@ -283,6 +283,17 @@ function Enter-Studio {
     function build {
       & "$env:STUDIO_SCRIPT_ROOT\hab-plan-build.ps1" @args
     }
+    # This captures 'hab start' commands and launches them in a new window
+    # We do this because breaking out of a service via ctrl-C breaks
+    # nested shells. Any other hab command should simply be passed through
+    function hab {
+      if($args.length -gt 1 -and ($args[0] -eq "start")) {
+        Start-Process hab.exe -ArgumentList $args
+      }
+      else {
+        & hab.exe @args
+      }
+    }
     New-PSDrive -Name "Habitat" -PSProvider FileSystem -Root $env:HAB_STUDIO_ENTER_ROOT | Out-Null
     Set-Location "Habitat:\src"
   }
