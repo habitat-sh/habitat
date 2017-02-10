@@ -146,7 +146,7 @@ pub struct SysInfo {
     pub ip: String,
     pub hostname: String,
     pub http_gateway_ip: String,
-    pub http_gateway_port: u16,
+    pub http_gateway_port: u64,
 }
 
 #[cfg(test)]

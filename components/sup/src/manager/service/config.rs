@@ -635,7 +635,8 @@ mod test {
     use hcore::package::{PackageIdent, PackageInstall};
     use regex::Regex;
     use toml;
-
+    use serde_json;
+    use util::convert;
     use super::*;
     use config::{gcache, Config};
     use error::Error;
@@ -654,6 +655,13 @@ mod test {
         toml::Parser::new(content)
             .parse()
             .expect(&format!("Content should parse as TOML: {}", content))
+    }
+
+    fn setup_service_config() -> Result<ServiceConfig> {
+        gcache(Config::default());
+        let pkg = gen_pkg();
+        let cl = gen_census_list();
+        ServiceConfig::new("redis.default", &pkg, &cl, &Vec::new())
     }
 
     #[test]
@@ -686,6 +694,17 @@ mod test {
         let ip = toml.lookup("sys.ip").unwrap().as_str().unwrap();
         let re = Regex::new(r"\d+\.\d+\.\d+\.\d+").unwrap();
         assert!(re.is_match(&ip));
+    }
+
+    #[test]
+    fn deserialize_service_config_from_json() {
+        let sc = setup_service_config().unwrap();
+        let toml = sc.to_toml().unwrap();
+        let data = convert::toml_to_json(toml);
+        let deserialized_service_config = serde_json::from_value::<ServiceConfig>(data).unwrap();
+        let target_service_config = setup_service_config().unwrap();
+        assert_eq!(deserialized_service_config.pkg.ident,
+                   target_service_config.pkg.ident);
     }
 
     #[test]
