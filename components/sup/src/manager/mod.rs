@@ -17,6 +17,7 @@ pub mod service;
 pub mod signals;
 pub mod service_updater;
 
+use std::env;
 use std::net::SocketAddr;
 use std::thread;
 use std::sync::{Arc, RwLock};
@@ -25,7 +26,6 @@ use std::time::Duration;
 use butterfly;
 use butterfly::member::Member;
 use butterfly::trace::Trace;
-use butterfly::rumor::service::Service as ServiceRumor;
 use butterfly::server::timing::Timing;
 use hcore::crypto::{default_cache_key_path, SymKey};
 use time::{SteadyTime, Duration as TimeDuration};
@@ -110,25 +110,21 @@ impl Manager {
     }
 
     pub fn add_service(&mut self, service: Service) -> Result<()> {
-        try!(service.package.create_svc_path());
-        let census = self.state.census_list.read().expect("Census list lock is poisoned!");
-        let svc_cfg = service.load_service_config(&census)?;
-        let cfg = svc_cfg.to_exported()?;
-        let service_rumor = ServiceRumor::new(self.state.butterfly.member_id().to_string(),
-                                              service.package.ident(),
-                                              &service.service_group,
-                                              &*svc_cfg.sys,
-                                              Some(&cfg))?;
-        self.state.butterfly.insert_service(service_rumor);
-
+        // JW TODO: We can't just set the run path for the entire process here, we need to set
+        // this on the supervisor which will be starting the process itself to support multi
+        // services in hab-sup.
+        let run_path = try!(service.run_path());
+        debug!("Setting the PATH to {}", run_path);
+        env::set_var("PATH", &run_path);
+        service.create_svc_path()?;
+        service.register_metrics();
+        self.state.butterfly.insert_service(service.to_rumor(self.state.butterfly.member_id()));
         if service.topology == Topology::Leader {
             // Note - eventually, we need to deal with suitability here. The original implementation
             // didn't have this working either.
             self.state.butterfly.start_election(service.service_group.clone(), 0, 0);
         }
-
         self.updater.add(&service);
-        service.package.register_metrics();
         self.state.services.write().expect("Services lock is poisoned!").push(service);
         Ok(())
     }
@@ -158,41 +154,19 @@ impl Manager {
             if census_updated {
                 last_census_update = ncu;
             }
-            for mut service in self.state
+            for service in self.state
                 .services
                 .write()
                 .expect("Services lock is poisoned!")
                 .iter_mut() {
-
-                self.persist_service_files(&mut service);
-                let svc_cfg_updated = self.persist_service_config(&mut service);
-
-                if svc_cfg_updated || census_updated {
-                    let svc_cfg = service.reconfigure(&self.state
-                        .census_list
-                        .read()
-                        .expect("Census list lock is poisoned!"));
-                    if svc_cfg_updated && svc_cfg.is_some() {
-                        self.update_service_rumor_cfg(&service,
-                                                      svc_cfg.as_ref().unwrap(),
-                                                      &mut last_census_update);
-                    }
-                }
-
-                service.initialize();
-                service.check_process();
-
-                if service.initialized && (service.needs_restart || service.is_down()) {
-                    match service.restart(&self.state
-                        .census_list
-                        .read()
-                        .expect("Census list lock is poisoned!")) {
-                        Ok(()) => {}
-                        Err(e) => outputln!("Cannot restart service: {}", e),
-                    }
-                }
+                service.tick(&self.state.butterfly,
+                             &self.state
+                                 .census_list
+                                 .read()
+                                 .expect("Census list lock is poisoned!"),
+                             census_updated,
+                             &mut last_census_update)
             }
-
             let time_to_wait = (next_check - SteadyTime::now()).num_milliseconds();
             if time_to_wait > 0 {
                 thread::sleep(Duration::from_millis(time_to_wait as u64));
@@ -310,15 +284,9 @@ impl Manager {
                 let incarnation = rumor.get_incarnation() + 1;
                 rumor.set_pkg(service.package.to_string());
                 rumor.set_incarnation(incarnation);
-                match service.load_service_config(&census_list) {
-                    Ok(raw_cfg) => {
-                        match raw_cfg.to_exported() {
-                            Ok(cfg) => *rumor.mut_cfg() = toml::encode_str(&cfg).into_bytes(),
-                            Err(err) => {
-                                warn!("Error loading service config after update, err={}", err)
-                            }
-                        }
-                    }
+                service.populate(&census_list);
+                match service.config.to_exported() {
+                    Ok(cfg) => *rumor.mut_cfg() = toml::encode_str(&cfg).into_bytes(),
                     Err(err) => warn!("Error loading service config after update, err={}", err),
                 }
                 self.state.butterfly.insert_service(rumor);
@@ -330,74 +298,5 @@ impl Manager {
     /// Check if any elections need restarting.
     fn restart_elections(&mut self) {
         self.state.butterfly.restart_elections();
-    }
-
-    /// Write service configuration from gossip data to disk.
-    ///
-    /// Returns true if a change was made and false if there were no updates.
-    fn persist_service_config(&self, service: &mut Service) -> bool {
-        if let Some((incarnation, config)) =
-            self.state
-                .butterfly
-                .service_config_for(&*service.service_group, Some(service.cfg_incarnation)) {
-            service.cfg_incarnation = incarnation;
-            service.write_butterfly_service_config(config)
-        } else {
-            false
-        }
-    }
-
-    /// Write service files from gossip data to disk.
-    ///
-    /// Returnst rue if a file was changed, added, or removed, and false if there were no updates.
-    fn persist_service_files(&self, service: &mut Service) -> bool {
-        let mut updated = false;
-        for (incarnation, filename, body) in
-            self.state
-                .butterfly
-                .service_files_for(&*service.service_group, &service.current_service_files)
-                .into_iter() {
-            if service.write_butterfly_service_file(filename, incarnation, body) {
-                updated = true;
-            }
-        }
-        if updated {
-            service.file_updated()
-        } else {
-            false
-        }
-    }
-
-    /// Update our own service rumor with a new configuration from the packages exported
-    /// configuration data.
-    ///
-    /// The run loop's last updated census is a required parameter on this function to inform the
-    /// main loop that we, ourselves, updated the service counter when we updated ourselves.
-    fn update_service_rumor_cfg(&self,
-                                service: &Service,
-                                cfg: &ServiceConfig,
-                                last_update: &mut CensusUpdate) {
-        if let Some(cfg) = cfg.to_exported().ok() {
-            let me = {
-                self.state.butterfly.member_id().to_string()
-            };
-            let mut updated = None;
-            self.state
-                .butterfly
-                .service_store
-                .with_rumor(&*service.service_group,
-                            &me,
-                            |rumor| if let Some(rumor) = rumor {
-                                let mut rumor = rumor.clone();
-                                let incarnation = rumor.get_incarnation() + 1;
-                                rumor.set_incarnation(incarnation);
-                                *rumor.mut_cfg() = toml::encode_str(&cfg).into_bytes();
-                                updated = Some(rumor);
-                            });
-            if let Some(rumor) = updated {
-                self.state.butterfly.insert_service(rumor);
-                last_update.service_counter += 1;
-            }
-        }
     }
 }

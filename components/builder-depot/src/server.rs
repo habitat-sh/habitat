@@ -31,7 +31,7 @@ use hab_net::privilege;
 use hab_net::routing::{Broker, BrokerConn};
 use hab_net::server::NetIdent;
 use hyper::mime::{Mime, TopLevel, SubLevel, Attr, Value};
-use iron::headers::{ContentType, UserAgent, HeaderFormat};
+use iron::headers::{ContentType, UserAgent};
 use iron::prelude::*;
 use iron::{status, headers};
 use iron::request::Body;
@@ -1179,7 +1179,7 @@ pub fn router(depot: Depot) -> Result<Chain> {
         }
     );
     let mut chain = Chain::new(router);
-    chain.link(persistent::Read::<EventLog>::both(EventLogger::new("hab-depot",
+    chain.link(persistent::Read::<EventLog>::both(EventLogger::new(&depot.config.log_dir,
                                                                    depot.config.events_enabled)));
     chain.link(persistent::Read::<Depot>::both(depot));
     chain.link_after(Cors);

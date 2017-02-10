@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::env;
 use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
 
 use hab_core::config::{ConfigFile, ParseInto};
@@ -49,6 +50,8 @@ pub struct Config {
     pub insecure: bool,
     /// Whether to log events for funnel metrics
     pub events_enabled: bool,
+    /// Where to record log events for funnel metrics
+    pub log_dir: String,
     /// Supported targets - comma separated
     pub supported_target: PackageTarget,
 }
@@ -58,11 +61,12 @@ impl ConfigFile for Config {
 
     fn from_toml(toml: toml::Value) -> Result<Self> {
         let mut cfg = Config::default();
-        try!(toml.parse_into("cfg.path", &mut cfg.path));
+        try!(toml.parse_into("pkg.svc_data_path", &mut cfg.path));
         try!(toml.parse_into("cfg.bind_addr", &mut cfg.listen_addr));
         try!(toml.parse_into("cfg.datastore_addr", &mut cfg.datastore_addr));
         try!(toml.parse_into("cfg.router_addrs", &mut cfg.routers));
         try!(toml.parse_into("cfg.events_enabled", &mut cfg.events_enabled));
+        try!(toml.parse_into("pkg.svc_var_path", &mut cfg.log_dir));
         try!(toml.parse_into("cfg.supported_target", &mut cfg.supported_target));
         Ok(cfg)
     }
@@ -80,6 +84,7 @@ impl Default for Config {
             github_client_secret: DEV_GITHUB_CLIENT_SECRET.to_string(),
             insecure: false,
             events_enabled: false, // TODO: change to default to true later
+            log_dir: env::temp_dir().to_string_lossy().into_owned(),
             supported_target: PackageTarget::default(),
         }
     }

@@ -16,10 +16,10 @@ use error::{Result, Error};
 use hcore::os::users;
 use hcore::package::PackageInstall;
 
-static LOGKEY: &'static str = "UR";
+pub const DEFAULT_USER: &'static str = "hab";
+pub const DEFAULT_GROUP: &'static str = "hab";
 
-const DEFAULT_USER: &'static str = "hab";
-const DEFAULT_GROUP: &'static str = "hab";
+static LOGKEY: &'static str = "UR";
 
 /// This function checks to see if a custom SVC_USER and SVC_GROUP has
 /// been specified as part of the package metadata.

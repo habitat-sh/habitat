@@ -239,10 +239,6 @@ fn setup_global_config(m: &ArgMatches) -> Result<()> {
     if let Some(addr_str) = m.value_of("LISTEN_HTTP") {
         config.service_config_http_listen = try!(http_gateway::ListenAddr::from_str(addr_str));
     }
-    // TODO fn: remove once Package doesn't depend on global config
-    if let Some(ref config_from) = m.value_of("CONFIG_DIR") {
-        config.package_config_from = Some(config_from.to_string());
-    }
     debug!("Config:\n{:?}", config);
     gcache(config);
     Ok(())
@@ -270,7 +266,7 @@ fn spec_from_matches(ident: &PackageIdent, m: &ArgMatches) -> Result<ServiceSpec
         spec.binds = binds.map(|s| s.to_string()).collect();
     }
     if let Some(ref config_from) = m.value_of("CONFIG_DIR") {
-        spec.dev_config_from = Some(PathBuf::from(config_from));
+        spec.config_from = Some(PathBuf::from(config_from));
         outputln!("");
         outputln!("{} Setting '{}' should only be used in development, not production!",
                   Red.bold().paint("WARNING:".to_string()),

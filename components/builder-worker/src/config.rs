@@ -16,7 +16,6 @@
 
 use std::collections::BTreeMap;
 
-use hab_core;
 use hab_core::config::{ConfigFile, ParseInto};
 use toml;
 
@@ -54,9 +53,7 @@ impl Default for Config {
         jobsrv.insert("heartbeat".to_string(), "5567".to_string());
         Config {
             auth_token: "".to_string(),
-            data_path: hab_core::fs::svc_data_path("hab-builder-worker")
-                .to_string_lossy()
-                .into_owned(),
+            data_path: "/tmp".to_string(),
             job_servers: vec![jobsrv],
         }
     }

@@ -84,7 +84,7 @@ impl Service {
                   service_group: &ServiceGroup,
                   sys: &SysInfo,
                   cfg: Option<&toml::Table>)
-                  -> Result<Self>
+                  -> Self
         where T: Identifiable
     {
         assert!(package.fully_qualified(),
@@ -108,7 +108,7 @@ impl Service {
         }
 
         rumor.set_service(proto);
-        Ok(Service(rumor))
+        Service(rumor)
     }
 }
 
@@ -164,7 +164,7 @@ mod tests {
     fn create_service(member_id: &str) -> Service {
         let pkg = PackageIdent::from_str("core/neurosis/1.2.3/20161208121212").unwrap();
         let sg = ServiceGroup::new(pkg.name(), "production", None).unwrap();
-        Service::new(member_id.to_string(), &pkg, &sg, &SysInfo::default(), None).unwrap()
+        Service::new(member_id.to_string(), &pkg, &sg, &SysInfo::default(), None)
     }
 
     #[test]
@@ -254,7 +254,6 @@ mod tests {
                      &ident,
                      &sg,
                      &SysInfo::default(),
-                     None)
-            .unwrap();
+                     None);
     }
 }

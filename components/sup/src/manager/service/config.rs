@@ -14,28 +14,31 @@
 
 /// Collect all the configuration data that is exposed to users, and render it.
 
+use std;
 use std::ascii::AsciiExt;
 use std::collections::HashMap;
 use std::env;
+use std::fmt;
 use std::fs::File;
 use std::io::prelude::*;
 use std::ops::{Deref, DerefMut};
-use std::path::Path;
+use std::path::{Path, PathBuf};
+use std::str::FromStr;
 
 use ansi_term::Colour::Purple;
 use butterfly::rumor::service::SysInfo;
-use hcore::fs::FS_ROOT_PATH;
-use hcore::package::PackageInstall;
 use hcore::crypto;
+use hcore::package::{PackageIdent, PackageInstall};
+use hcore::service::ServiceGroup;
 use toml;
 
 use manager::census::{Census, CensusList};
 use config::gconfig;
 use error::{Error, Result};
-use package::Package;
+use fs;
+use supervisor::RuntimeConfig;
 use templating::Template;
 use util::{self, convert};
-use util::users as hab_users;
 use VERSION;
 
 static LOGKEY: &'static str = "SC";
@@ -57,31 +60,76 @@ pub struct ServiceConfig {
     pub cfg: Cfg,
     pub svc: Svc,
     pub bind: Bind,
+    #[serde(skip_serializing)]
+    pub config_root: PathBuf,
     // Set to 'true' if we have data that needs to be sent to a configuration file
-    #[serde(skip_deserializing)]
+    #[serde(skip_serializing, skip_deserializing)]
     pub needs_write: bool,
+    #[serde(skip_serializing, skip_deserializing)]
+    supported_bindings: Vec<(String, ServiceGroup)>,
 }
 
 impl ServiceConfig {
     /// Takes a new package and a new census list, and returns a ServiceConfig. This function can
     /// fail, and indeed, we want it to - it causes the program to crash if we can not render the
     /// first pass of the configuration file.
-    pub fn new(service_group: &str,
-               package: &Package,
-               cl: &CensusList,
+    pub fn new(package: &PackageInstall,
+               runtime: &RuntimeConfig,
+               config_root: Option<PathBuf>,
                bindings: &[String])
                -> Result<ServiceConfig> {
-        let cfg = try!(Cfg::new(package));
-        let bind = try!(Bind::new(bindings, &cl));
+        let config_root = config_root.unwrap_or(package.installed_path.clone());
         Ok(ServiceConfig {
-            pkg: Pkg::new(&package.pkg_install),
+            pkg: Pkg::new(package, runtime)?,
             hab: Hab::new(),
             sys: Sys::new(),
-            cfg: cfg,
-            svc: Svc::new(service_group, cl),
-            bind: bind,
+            cfg: Cfg::new(package, &config_root)?,
+            svc: Svc::default(),
+            bind: Bind::default(),
             needs_write: true,
+            supported_bindings: Self::split_bindings(bindings)?,
+            config_root: config_root,
         })
+    }
+
+    fn split_bindings(bindings: &[String]) -> Result<Vec<(String, ServiceGroup)>> {
+        let mut bresult = Vec::new();
+        for bind in bindings.into_iter() {
+            let values: Vec<&str> = bind.splitn(2, ':').collect();
+            if values.len() != 2 {
+                return Err(sup_error!(Error::InvalidBinding(bind.clone())));
+            } else {
+                bresult.push((values[0].to_string(), ServiceGroup::from_str(values[1])?));
+            }
+        }
+        Ok(bresult)
+    }
+
+    /// Return an iterator of the configuration file names to render.
+    ///
+    /// This does not return the full path, for convenience with the path
+    /// helpers above.
+    fn config_files<T: AsRef<Path> + fmt::Debug>(config_path: T) -> Result<Vec<String>> {
+        let mut files: Vec<String> = Vec::new();
+        debug!("Loading configuration from {:?}", config_path);
+        match std::fs::read_dir(config_path) {
+            Ok(config_path) => {
+                for config in config_path {
+                    let config = try!(config);
+                    match config.path().file_name() {
+                        Some(filename) => {
+                            debug!("Looking in {:?}", filename);
+                            files.push(filename.to_string_lossy().into_owned().to_string());
+                        }
+                        None => unreachable!(),
+                    }
+                }
+            }
+            Err(e) => {
+                debug!("No config directory in package: {}", e);
+            }
+        }
+        Ok(files)
     }
 
     /// Render this struct as toml.
@@ -113,43 +161,16 @@ impl ServiceConfig {
         self.cfg.to_exported(&self.pkg.exports)
     }
 
-    /// Replace the `pkg` data.
-    pub fn pkg(&mut self, pkg_install: &PackageInstall) {
-        self.pkg = Pkg::new(pkg_install);
-        self.needs_write = true
-    }
-
-    /// Replace the `svc` data.
-    pub fn svc(&mut self, service_group: &str, cl: &CensusList) {
-        self.svc = Svc::new(service_group, cl);
-        self.needs_write = true
-    }
-
-    /// Replace the `svc` data.
-    pub fn bind(&mut self, bindings: &[String], cl: &CensusList) {
-        // This is only safe because we will fail the first time if the bindings are badly
-        // formatted - so we know we can't fail here.
-        self.bind = Bind::new(bindings, cl).unwrap();
-        self.needs_write = true
-    }
-
-    /// Replace the `cfg` data.
-    pub fn cfg(&mut self, package: &Package) {
-        match Cfg::new(package) {
-            Ok(cfg) => {
-                self.cfg = cfg;
-                self.needs_write = true;
-            }
-            Err(e) => outputln!("Failed to write new cfg tree: {}", e),
-        }
+    pub fn populate(&mut self, service_group: &ServiceGroup, census_list: &CensusList) {
+        self.bind.populate(&self.supported_bindings, census_list);
+        self.svc.populate(service_group, census_list);
     }
 
     /// Write the configuration to `config.toml`, and render the templated configuration files.
-    pub fn write(&mut self, pkg: &Package) -> Result<bool> {
-        let pi = &pkg.pkg_install;
+    pub fn write(&mut self) -> Result<bool> {
         let final_toml = try!(self.to_toml());
         {
-            let mut last_toml = try!(File::create(pi.svc_path().join("config.toml")));
+            let mut last_toml = try!(File::create(self.pkg.svc_config_path.join("config.toml")));
             try!(write!(&mut last_toml, "{}", toml::encode_str(&final_toml)));
         }
         let mut template = Template::new();
@@ -157,9 +178,10 @@ impl ServiceConfig {
         // Register all the templates; this makes them available as partials!
         // I suspect this will be useful, but I think we'll want to make this
         // more explicit... in a minute, we render all the config files anyway.
-        let config_files = try!(pkg.config_files());
+        let config_path = self.config_root.join("config");
+        let config_files = try!(Self::config_files(&config_path));
         for config in config_files.iter() {
-            let path = pkg.config_from().join("config").join(config);
+            let path = config_path.join(config);
             debug!("Config template {} from {:?}", config, &path);
             if let Err(e) = template.register_template_file(config, &path) {
                 outputln!("Error parsing config template file {}: {}",
@@ -175,31 +197,30 @@ impl ServiceConfig {
             debug!("Rendering template {}", &config);
             let template_data = try!(template.render(&config, &final_data));
             let template_hash = try!(crypto::hash::hash_string(&template_data));
-            let filename = pi.svc_config_path().join(&config).to_string_lossy().into_owned();
-            let file_hash = match crypto::hash::hash_file(&filename) {
+            let cfg_dest = self.pkg.svc_config_path.join(&config).to_string_lossy().into_owned();
+            let file_hash = match crypto::hash::hash_file(&cfg_dest) {
                 Ok(file_hash) => file_hash,
                 Err(e) => {
                     debug!("Cannot read the file in order to hash it: {}", e);
                     String::new()
                 }
             };
-
             if file_hash.is_empty() {
-                debug!("Configuration {} does not exist; restarting", filename);
+                debug!("Configuration {} does not exist; restarting", cfg_dest);
                 outputln!("Updated {} {}", Purple.bold().paint(config), template_hash);
-                let mut config_file = try!(File::create(&filename));
+                let mut config_file = try!(File::create(&cfg_dest));
                 try!(config_file.write_all(&template_data.into_bytes()));
                 should_restart = true
             } else {
                 if file_hash == template_hash {
                     debug!("Configuration {} {} has not changed; not restarting.",
-                           filename,
+                           cfg_dest,
                            file_hash);
                     continue;
                 } else {
-                    debug!("Configuration {} has changed; restarting", filename);
+                    debug!("Configuration {} has changed; restarting", cfg_dest);
                     outputln!("Updated {} {}", Purple.bold().paint(config), template_hash);
-                    let mut config_file = try!(File::create(&filename));
+                    let mut config_file = try!(File::create(&cfg_dest));
                     try!(config_file.write_all(&template_data.into_bytes()));
                     should_restart = true;
                 }
@@ -210,38 +231,23 @@ impl ServiceConfig {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct Bind(toml::Table);
 
 impl Bind {
-    fn new(binding_cfg: &[String], cl: &CensusList) -> Result<Bind> {
-        let mut top = toml::Table::new();
-        let bindings = try!(Bind::split_bindings(binding_cfg));
-        for (bind, service_group) in bindings {
-            match cl.get(&service_group) {
+    fn populate(&mut self, bindings: &[(String, ServiceGroup)], census_list: &CensusList) {
+        self.0.clear();
+        for &(ref bind, ref service_group) in bindings.iter() {
+            match census_list.get(service_group) {
                 Some(census) => {
-                    top.insert(format!("has_{}", bind), toml::Value::Boolean(true));
-                    top.insert(bind, toml::Value::Table(service_entry(census)));
+                    self.0.insert(format!("has_{}", bind), toml::Value::Boolean(true));
+                    self.0.insert(bind.to_string(), toml::Value::Table(service_entry(census)));
                 }
                 None => {
-                    top.insert(format!("has_{}", bind), toml::Value::Boolean(false));
+                    self.0.insert(format!("has_{}", bind), toml::Value::Boolean(false));
                 }
             }
         }
-        Ok(Bind(top))
-    }
-
-    fn split_bindings(bindings: &[String]) -> Result<Vec<(String, String)>> {
-        let mut bresult = Vec::new();
-        for bind in bindings.into_iter() {
-            let values: Vec<&str> = bind.splitn(2, ':').collect();
-            if values.len() != 2 {
-                return Err(sup_error!(Error::InvalidBinding(bind.clone())));
-            } else {
-                bresult.push((values[0].to_string(), values[1].to_string()));
-            }
-        }
-        Ok(bresult)
     }
 
     fn to_toml(&self) -> toml::Value {
@@ -249,18 +255,16 @@ impl Bind {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct Svc(toml::Table);
 
 impl Svc {
-    fn new(service_group: &str, cl: &CensusList) -> Svc {
-        let mut top = match cl.get(service_group) {
-            Some(ce) => service_entry(ce),
-            None => toml::Table::default(),
-        };
+    pub fn populate(&mut self, service_group: &ServiceGroup, census_list: &CensusList) {
+        let mut top = service_entry(census_list.get(&*service_group)
+            .expect("Service Group's census entry missing from list!"));
         let mut all: Vec<toml::Value> = Vec::new();
         let mut named = toml::Table::new();
-        for (_sg, c) in cl.iter() {
+        for (_sg, c) in census_list.iter() {
             all.push(toml::Value::Table(service_entry(c)));
             let mut group = if named.contains_key(c.get_service()) {
                 named.get(c.get_service()).unwrap().as_table().unwrap().clone()
@@ -273,7 +277,7 @@ impl Svc {
         }
         top.insert("all".to_string(), toml::Value::Array(all));
         top.insert("named".to_string(), toml::Value::Table(named));
-        Svc(top)
+        self.0 = top;
     }
 
     fn to_toml(&self) -> toml::Value {
@@ -317,17 +321,17 @@ pub struct Cfg {
 }
 
 impl Cfg {
-    fn new(pkg: &Package) -> Result<Cfg> {
+    fn new<T: AsRef<Path>>(package: &PackageInstall, config_root: T) -> Result<Cfg> {
         let mut cfg = Cfg {
             default: None,
             user: None,
             gossip: None,
             environment: None,
         };
-        try!(cfg.load_default(pkg));
-        try!(cfg.load_user(pkg));
-        try!(cfg.load_gossip(pkg));
-        try!(cfg.load_environment(pkg));
+        try!(cfg.load_default(&config_root));
+        try!(cfg.load_user(&config_root));
+        try!(cfg.load_gossip(&config_root));
+        try!(cfg.load_environment(&package));
         Ok(cfg)
     }
 
@@ -363,8 +367,8 @@ impl Cfg {
         Ok(map)
     }
 
-    fn load_default(&mut self, pkg: &Package) -> Result<()> {
-        let mut file = match File::open(pkg.config_from().join("default.toml")) {
+    fn load_default<T: AsRef<Path>>(&mut self, config_root: T) -> Result<()> {
+        let mut file = match File::open(config_root.as_ref().join("default.toml")) {
             Ok(file) => file,
             Err(e) => {
                 debug!("Failed to open default.toml: {}", e);
@@ -388,8 +392,8 @@ impl Cfg {
         Ok(())
     }
 
-    fn load_user(&mut self, pkg: &Package) -> Result<()> {
-        let mut file = match File::open(pkg.svc_path().join("user.toml")) {
+    fn load_user<T: AsRef<Path>>(&mut self, config_root: T) -> Result<()> {
+        let mut file = match File::open(config_root.as_ref().join("user.toml")) {
             Ok(file) => file,
             Err(e) => {
                 debug!("Failed to open user.toml: {}", e);
@@ -413,8 +417,8 @@ impl Cfg {
         Ok(())
     }
 
-    fn load_gossip(&mut self, pkg: &Package) -> Result<()> {
-        let mut file = match File::open(pkg.svc_path().join("gossip.toml")) {
+    fn load_gossip<T: AsRef<Path>>(&mut self, config_root: T) -> Result<()> {
+        let mut file = match File::open(config_root.as_ref().join("gossip.toml")) {
             Ok(file) => file,
             Err(e) => {
                 debug!("Failed to open gossip.toml: {}", e);
@@ -438,8 +442,8 @@ impl Cfg {
         Ok(())
     }
 
-    fn load_environment(&mut self, pkg: &Package) -> Result<()> {
-        let var_name = format!("{}_{}", ENV_VAR_PREFIX, pkg.name)
+    fn load_environment(&mut self, package: &PackageInstall) -> Result<()> {
+        let var_name = format!("{}_{}", ENV_VAR_PREFIX, package)
             .to_ascii_uppercase()
             .replace("-", "_");
         match env::var(&var_name) {
@@ -468,103 +472,42 @@ pub struct Pkg {
     pub version: String,
     pub release: String,
     pub ident: String,
-    pub deps: Vec<Pkg>,
+    pub deps: Vec<PackageIdent>,
     pub exposes: Vec<String>,
     pub exports: HashMap<String, String>,
-    pub path: String,
-    pub svc_path: String,
-    pub svc_config_path: String,
-    pub svc_data_path: String,
-    pub svc_files_path: String,
-    pub svc_static_path: String,
-    pub svc_var_path: String,
-    pub svc_user: Option<String>,
-    pub svc_group: Option<String>,
-    pub svc_user_default: String,
-    pub svc_group_default: String,
+    pub path: PathBuf,
+    pub svc_path: PathBuf,
+    pub svc_config_path: PathBuf,
+    pub svc_data_path: PathBuf,
+    pub svc_files_path: PathBuf,
+    pub svc_static_path: PathBuf,
+    pub svc_var_path: PathBuf,
+    pub svc_user: String,
+    pub svc_group: String,
 }
 
 impl Pkg {
-    fn new(pkg_install: &PackageInstall) -> Pkg {
-        let ident = pkg_install.ident();
-        let pkg_deps = match pkg_install.tdeps() {
-            Ok(deps) => deps,
-            Err(_) => {
-                outputln!("Failed to load transitive deps for {} - it will be missing from the \
-                           configuration",
-                          &ident);
-                Vec::new()
-            }
-        };
-        let mut deps = Vec::new();
-        for d in pkg_deps.iter() {
-            if let Ok(p) = PackageInstall::load(d, Some(Path::new(&*FS_ROOT_PATH))) {
-                deps.push(Pkg::new(&p));
-            } else {
-                outputln!("Failed to load {} - it will be missing from the configuration",
-                          &d)
-            }
-        }
-        let exposes = match pkg_install.exposes() {
-            Ok(exposes) => exposes,
-            Err(_) => {
-                outputln!("Failed to load exposes metadata for {} - \
-                          it will be missing from the configuration",
-                          &ident);
-                Vec::new()
-            }
-        };
-        let exports = match pkg_install.exports() {
-            Ok(exports) => exports,
-            Err(_) => {
-                outputln!("Failed to load exposes metadata for {} - \
-                          it will be missing from the configuration",
-                          &ident);
-                HashMap::<String, String>::default()
-            }
-        };
-        let version = match ident.version.as_ref() {
-            Some(v) => v.clone(),
-            None => "".to_string(),
-        };
-        let release = match ident.release.as_ref() {
-            Some(r) => r.clone(),
-            None => "".to_string(),
-        };
-
-        let (default_svc_user, default_svc_group) =
-            match hab_users::get_user_and_group(&pkg_install) {
-                Ok((svc_user, svc_group)) => (svc_user, svc_group),
-                Err(_e) => {
-                    // TODO
-                    panic!("Can't get default service and user");
-                }
-            };
-
-        let svc_user = pkg_install.svc_user().unwrap_or(None);
-        let svc_group = pkg_install.svc_group().unwrap_or(None);
-
-        Pkg {
-            origin: ident.origin.clone(),
-            name: ident.name.clone(),
-            version: version,
-            release: release,
+    fn new(package: &PackageInstall, runtime: &RuntimeConfig) -> Result<Pkg> {
+        let ident = package.ident().clone();
+        Ok(Pkg {
             ident: ident.to_string(),
-            deps: deps,
-            exposes: exposes,
-            exports: exports,
-            path: pkg_install.installed_path().to_string_lossy().into_owned(),
-            svc_path: pkg_install.svc_path().to_string_lossy().into_owned(),
-            svc_config_path: pkg_install.svc_config_path().to_string_lossy().into_owned(),
-            svc_data_path: pkg_install.svc_data_path().to_string_lossy().into_owned(),
-            svc_files_path: pkg_install.svc_files_path().to_string_lossy().into_owned(),
-            svc_static_path: pkg_install.svc_static_path().to_string_lossy().into_owned(),
-            svc_var_path: pkg_install.svc_var_path().to_string_lossy().into_owned(),
-            svc_user: svc_user,
-            svc_group: svc_group,
-            svc_user_default: default_svc_user,
-            svc_group_default: default_svc_group,
-        }
+            origin: ident.origin,
+            name: ident.name,
+            version: ident.version.expect("Couldn't read package version"),
+            release: ident.release.expect("Couldn't read package release"),
+            deps: package.tdeps()?,
+            exposes: package.exposes()?,
+            exports: package.exports()?,
+            path: package.installed_path.clone(),
+            svc_path: fs::svc_path(&package.ident.name),
+            svc_config_path: fs::svc_config_path(&package.ident.name),
+            svc_data_path: fs::svc_data_path(&package.ident.name),
+            svc_files_path: fs::svc_files_path(&package.ident.name),
+            svc_static_path: fs::svc_static_path(&package.ident.name),
+            svc_var_path: fs::svc_var_path(&package.ident.name),
+            svc_user: runtime.svc_user.to_string(),
+            svc_group: runtime.svc_group.to_string(),
+        })
     }
 
     fn to_toml(&self) -> Result<toml::Value> {
@@ -696,36 +639,15 @@ mod test {
     use super::*;
     use config::{gcache, Config};
     use error::Error;
-    use manager::census::{CensusEntry, CensusList};
-    use package::Package;
+    use supervisor::RuntimeConfig;
     use VERSION;
 
-    fn gen_pkg() -> Package {
-        let pkg_install = PackageInstall::new_from_parts(
-            PackageIdent::from_str("neurosis/redis/2000/20160222201258").unwrap(),
-            PathBuf::from("/"),
-            PathBuf::from("/fakeo"),
-            PathBuf::from("/fakeo/here"));
-        Package {
-            origin: String::from("neurosis"),
-            name: String::from("redis"),
-            version: String::from("2000"),
-            release: String::from("20160222201258"),
-            deps: Vec::new(),
-            tdeps: Vec::new(),
-            pkg_install: pkg_install,
-        }
-    }
-
-    fn gen_census_list() -> CensusList {
-        let mut ce = CensusEntry::default();
-        let member_id = "0000000000000000000";
-        ce.set_member_id(format!("{}", member_id));
-        ce.set_service(String::from("redis"));
-        ce.set_group(String::from("default"));
-        let mut cl = CensusList::new();
-        cl.insert(format!("{}", member_id), ce);
-        cl
+    fn gen_pkg() -> PackageInstall {
+        PackageInstall::new_from_parts(PackageIdent::from_str("neurosis/redis/2000/20160222201258")
+                                           .unwrap(),
+                                       PathBuf::from("/"),
+                                       PathBuf::from("/fakeo"),
+                                       PathBuf::from("/fakeo/here"))
     }
 
     fn toml_from_string(content: &str) -> toml::Table {
@@ -738,8 +660,7 @@ mod test {
     fn to_toml_hab() {
         gcache(Config::default());
         let pkg = gen_pkg();
-        let cl = gen_census_list();
-        let sc = ServiceConfig::new("redis.default", &pkg, &cl, &Vec::new()).unwrap();
+        let sc = ServiceConfig::new(&pkg, &RuntimeConfig::default(), None, &Vec::new()).unwrap();
         let toml = sc.to_toml().unwrap();
         let version = toml.lookup("hab.version").unwrap().as_str().unwrap();
         assert_eq!(version, VERSION);
@@ -749,8 +670,7 @@ mod test {
     fn to_toml_pkg() {
         gcache(Config::default());
         let pkg = gen_pkg();
-        let cl = gen_census_list();
-        let sc = ServiceConfig::new("redis.default", &pkg, &cl, &Vec::new()).unwrap();
+        let sc = ServiceConfig::new(&pkg, &RuntimeConfig::default(), None, &Vec::new()).unwrap();
         let toml = sc.to_toml().unwrap();
         let name = toml.lookup("pkg.name").unwrap().as_str().unwrap();
         assert_eq!(name, "redis");
@@ -760,8 +680,8 @@ mod test {
     fn to_toml_sys() {
         gcache(Config::default());
         let pkg = gen_pkg();
-        let cl = gen_census_list();
-        let sc = ServiceConfig::new("redis.default", &pkg, &cl, &Vec::new()).unwrap();
+        let sc = ServiceConfig::new(&pkg, &RuntimeConfig::default(), None, &Vec::new()).unwrap();
+
         let toml = sc.to_toml().unwrap();
         let ip = toml.lookup("sys.ip").unwrap().as_str().unwrap();
         let re = Regex::new(r"\d+\.\d+\.\d+\.\d+").unwrap();

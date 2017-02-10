@@ -16,6 +16,7 @@ use std;
 use std::collections::{HashMap, HashSet};
 use std::cmp::{Ordering, PartialOrd};
 use std::env;
+use std::fmt;
 use std::fs::{DirEntry, File};
 use std::io::prelude::*;
 use std::path::{Path, PathBuf};
@@ -25,7 +26,7 @@ use toml;
 
 use super::{Identifiable, MetaFile, PackageIdent, Target, PackageTarget};
 use error::{Error, Result};
-use fs::{self, PKG_PATH};
+use fs;
 use util;
 
 pub const DEFAULT_CFG_FILE: &'static str = "default.toml";
@@ -87,11 +88,13 @@ impl PackageInstall {
         }
     }
 
-    fn resolve_package_install(ident: &PackageIdent,
-                               fs_root_path: Option<&Path>)
-                               -> Result<PackageInstall> {
-        let fs_root_path = fs_root_path.unwrap_or(Path::new("/"));
-        let package_root_path = fs_root_path.join(PKG_PATH);
+    fn resolve_package_install<T>(ident: &PackageIdent,
+                                  fs_root_path: Option<T>)
+                                  -> Result<PackageInstall>
+        where T: AsRef<Path>
+    {
+        let fs_root_path = fs_root_path.map_or(PathBuf::from("/"), |p| p.as_ref().into());
+        let package_root_path = fs::pkg_root_path(Some(&fs_root_path));
         if !package_root_path.exists() {
             return Err(Error::PackageNotFound(ident.clone()));
         }
@@ -99,10 +102,10 @@ impl PackageInstall {
         if ident.fully_qualified() {
             if pl.iter().any(|ref p| p.satisfies(ident)) {
                 Ok(PackageInstall {
+                    installed_path: fs::pkg_install_path(&ident, Some(&fs_root_path)),
+                    fs_root_path: fs_root_path,
+                    package_root_path: package_root_path,
                     ident: ident.clone(),
-                    fs_root_path: PathBuf::from(fs_root_path),
-                    package_root_path: package_root_path.clone(),
-                    installed_path: try!(Self::calc_installed_path(ident, &package_root_path)),
                 })
             } else {
                 Err(Error::PackageNotFound(ident.clone()))
@@ -123,10 +126,10 @@ impl PackageInstall {
                 });
             if let Some(id) = latest {
                 Ok(PackageInstall {
-                    ident: id.clone(),
+                    installed_path: fs::pkg_install_path(&id, Some(&fs_root_path)),
                     fs_root_path: PathBuf::from(fs_root_path),
-                    package_root_path: package_root_path.clone(),
-                    installed_path: try!(Self::calc_installed_path(&id, &package_root_path)),
+                    package_root_path: package_root_path,
+                    ident: id.clone(),
                 })
             } else {
                 Err(Error::PackageNotFound(ident.clone()))
@@ -135,9 +138,11 @@ impl PackageInstall {
     }
 
     /// Find an installed package that is at minimum the version of the given ident.
-    fn resolve_package_install_min(ident: &PackageIdent,
-                                   fs_root_path: Option<&Path>)
-                                   -> Result<PackageInstall> {
+    fn resolve_package_install_min<T>(ident: &PackageIdent,
+                                      fs_root_path: Option<T>)
+                                      -> Result<PackageInstall>
+        where T: AsRef<Path>
+    {
         // If the PackageIndent is does not have a version, use a reasonable minimum version that
         // will be satisfied by any installed package with the same origin/name
         let ident = if None == ident.version {
@@ -148,9 +153,8 @@ impl PackageInstall {
         } else {
             ident.clone()
         };
-
-        let fs_root_path = fs_root_path.unwrap_or(Path::new("/"));
-        let package_root_path = fs_root_path.join(PKG_PATH);
+        let fs_root_path = fs_root_path.map_or(PathBuf::from("/"), |p| p.as_ref().into());
+        let package_root_path = fs::pkg_root_path(Some(&fs_root_path));
         if !package_root_path.exists() {
             return Err(Error::PackageNotFound(ident.clone()));
         }
@@ -175,10 +179,10 @@ impl PackageInstall {
         match latest {
             Some(id) => {
                 Ok(PackageInstall {
+                    installed_path: fs::pkg_install_path(&id, Some(&fs_root_path)),
+                    fs_root_path: fs_root_path,
+                    package_root_path: package_root_path,
                     ident: id.clone(),
-                    fs_root_path: PathBuf::from(fs_root_path),
-                    package_root_path: package_root_path.clone(),
-                    installed_path: try!(Self::calc_installed_path(&id, &package_root_path)),
                 })
             }
             None => Err(Error::PackageNotFound(ident.clone())),
@@ -303,43 +307,8 @@ impl PackageInstall {
         Ok(p.into_string().expect("Failed to convert path to utf8 string"))
     }
 
-    pub fn installed_path(&self) -> &PathBuf {
-        &self.installed_path
-    }
-
-    /// Returns the root path for service configuration, files, and data.
-    pub fn svc_path(&self) -> PathBuf {
-        fs::svc_path(&self.ident.name)
-    }
-
-    /// Returns the path to the service configuration.
-    pub fn svc_config_path(&self) -> PathBuf {
-        fs::svc_config_path(&self.ident.name)
-    }
-
-    /// Returns the path to the service data.
-    pub fn svc_data_path(&self) -> PathBuf {
-        fs::svc_data_path(&self.ident.name)
-    }
-
-    /// Returns the path to the service's gossiped config files.
-    pub fn svc_files_path(&self) -> PathBuf {
-        fs::svc_files_path(&self.ident.name)
-    }
-
-    /// Returns the path to the service hooks.
-    pub fn svc_hooks_path(&self) -> PathBuf {
-        fs::svc_hooks_path(&self.ident.name)
-    }
-
-    /// Returns the path to the service static content.
-    pub fn svc_static_path(&self) -> PathBuf {
-        fs::svc_static_path(&self.ident.name)
-    }
-
-    /// Returns the path to the service variable state.
-    pub fn svc_var_path(&self) -> PathBuf {
-        fs::svc_var_path(&self.ident.name)
+    pub fn installed_path(&self) -> &Path {
+        &*self.installed_path
     }
 
     /// Returns the user that the package is specified to run as
@@ -435,7 +404,7 @@ impl PackageInstall {
         let ddeps = try!(self.deps());
         let mut deps = Vec::with_capacity(ddeps.len());
         for dep in ddeps.iter() {
-            let dep_install = try!(Self::load(dep, Some(&self.fs_root_path)));
+            let dep_install = try!(Self::load(dep, Some(&*self.fs_root_path)));
             deps.push(dep_install);
         }
         Ok(deps)
@@ -452,21 +421,10 @@ impl PackageInstall {
         let tdeps = try!(self.tdeps());
         let mut deps = Vec::with_capacity(tdeps.len());
         for dep in tdeps.iter() {
-            let dep_install = try!(Self::load(dep, Some(&self.fs_root_path)));
+            let dep_install = try!(Self::load(dep, Some(&*self.fs_root_path)));
             deps.push(dep_install);
         }
         Ok(deps)
-    }
-
-    fn calc_installed_path(ident: &PackageIdent, pkg_root: &Path) -> Result<PathBuf> {
-        if ident.fully_qualified() {
-            Ok(pkg_root.join(&ident.origin)
-                .join(&ident.name)
-                .join(ident.version.as_ref().unwrap())
-                .join(ident.release.as_ref().unwrap()))
-        } else {
-            Err(Error::PackageNotFound(ident.clone()))
-        }
     }
 
     /// Returns a list of package structs built from the contents of the given directory.
@@ -537,5 +495,11 @@ impl PackageInstall {
             packages.push(ident)
         }
         Ok(())
+    }
+}
+
+impl fmt::Display for PackageInstall {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.ident)
     }
 }

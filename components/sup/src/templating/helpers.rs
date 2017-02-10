@@ -15,7 +15,8 @@
 use std::str::FromStr;
 use std::string::ToString;
 
-use hcore::package::{PackageIdent, PackageInstall, Identifiable};
+use hcore::package::{PackageIdent, Identifiable};
+use hcore::fs;
 use manager::service::config::ServiceConfig;
 use handlebars::{Handlebars, Helper, RenderContext, RenderError};
 use serde_json;
@@ -38,10 +39,8 @@ pub fn pkg_path_for(h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> Rende
     let pkg = cfg.pkg
         .deps
         .iter()
-        .map(|pkg| PackageIdent::from_str(&pkg.ident).expect("Bad Pkg entry in ServiceConfig!"))
         .find(|ident| ident.satisfies(&param))
-        .and_then(|i| PackageInstall::load(&i, None).ok())
-        .and_then(|i| Some(i.installed_path().to_string_lossy().into_owned()))
+        .and_then(|i| Some(fs::pkg_install_path(&i, None).to_string_lossy().into_owned()))
         .unwrap_or("".to_string());
     try!(rc.writer.write(pkg.into_bytes().as_ref()));
     Ok(())

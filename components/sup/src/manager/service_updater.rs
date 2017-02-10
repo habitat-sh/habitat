@@ -21,7 +21,7 @@ use std::time::Duration;
 use butterfly;
 use common::ui::UI;
 use depot_client;
-use hcore::package::PackageIdent;
+use hcore::package::{PackageIdent, PackageInstall};
 use hcore::service::ServiceGroup;
 use hcore::crypto::default_cache_key_path;
 use hcore::fs::{CACHE_ARTIFACT_PATH, FS_ROOT_PATH};
@@ -31,7 +31,6 @@ use {PRODUCT, VERSION};
 use error::Result;
 use manager::census::CensusList;
 use manager::service::{Service, Topology, UpdateStrategy};
-use package::Package;
 
 static LOGKEY: &'static str = "SU";
 const UPDATE_STRATEGY_FREQUENCY_MS: i64 = 60_000;
@@ -39,7 +38,7 @@ const UPDATE_STRATEGY_FREQUENCY_MS: i64 = 60_000;
 type UpdaterStateList = HashMap<ServiceGroup, UpdaterState>;
 
 enum UpdaterState {
-    AtOnce(Receiver<Package>),
+    AtOnce(Receiver<PackageInstall>),
     Rolling(RollingState),
 }
 
@@ -51,13 +50,13 @@ enum RollingState {
 }
 
 enum LeaderState {
-    Polling(Receiver<Package>),
+    Polling(Receiver<PackageInstall>),
     Waiting,
 }
 
 enum FollowerState {
     Waiting,
-    Updating(Receiver<Package>),
+    Updating(Receiver<PackageInstall>),
 }
 
 pub struct ServiceUpdater {
@@ -289,7 +288,10 @@ impl Worker {
     /// Passing an optional package identifier will make the worker perform a run-once update to
     /// retrieve a specific version from a remote Depot. If no package identifier is specified,
     /// then the updater will poll until a newer more suitable package is found.
-    pub fn start(mut self, sg: &ServiceGroup, ident: Option<PackageIdent>) -> Receiver<Package> {
+    pub fn start(mut self,
+                 sg: &ServiceGroup,
+                 ident: Option<PackageIdent>)
+                 -> Receiver<PackageInstall> {
         let (tx, rx) = sync_channel(0);
         thread::Builder::new()
             .name(format!("service-updater-{}", sg))
@@ -301,7 +303,7 @@ impl Worker {
         rx
     }
 
-    fn run_once(&mut self, sender: SyncSender<Package>, ident: PackageIdent) {
+    fn run_once(&mut self, sender: SyncSender<PackageInstall>, ident: PackageIdent) {
         outputln!("Updating from {} to {}", self.current, ident);
         loop {
             let next_check = SteadyTime::now() +
@@ -321,7 +323,7 @@ impl Worker {
         }
     }
 
-    fn run_poll(&mut self, sender: SyncSender<Package>) {
+    fn run_poll(&mut self, sender: SyncSender<PackageInstall>) {
         loop {
             let next_check = SteadyTime::now() +
                              TimeDuration::milliseconds(UPDATE_STRATEGY_FREQUENCY_MS);
@@ -351,20 +353,20 @@ impl Worker {
         }
     }
 
-    fn install(&mut self, package: &PackageIdent, recurse: bool) -> Result<Package> {
-        let package = match Package::load(package, Some(&*FS_ROOT_PATH)) {
+    fn install(&mut self, package: &PackageIdent, recurse: bool) -> Result<PackageInstall> {
+        let package = match PackageInstall::load(package, Some(&*FS_ROOT_PATH)) {
             Ok(pkg) => pkg,
             Err(_) => try!(self.download(package)),
         };
         if recurse {
-            for ident in package.tdeps.iter() {
+            for ident in package.tdeps()?.iter() {
                 try!(self.install(&ident, false));
             }
         }
         Ok(package)
     }
 
-    fn download(&mut self, package: &PackageIdent) -> Result<Package> {
+    fn download(&mut self, package: &PackageIdent) -> Result<PackageInstall> {
         outputln!("Downloading {}", package);
         let mut archive = try!(self.depot.fetch_package(package,
                                                         &Path::new(&*FS_ROOT_PATH)
@@ -373,6 +375,7 @@ impl Worker {
         try!(archive.verify(&default_cache_key_path(None)));
         outputln!("Installing {}", package);
         try!(archive.unpack(None));
-        Package::load(archive.ident().as_ref().unwrap(), Some(&*FS_ROOT_PATH))
+        let pkg = PackageInstall::load(archive.ident().as_ref().unwrap(), Some(&*FS_ROOT_PATH))?;
+        Ok(pkg)
     }
 }

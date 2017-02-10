@@ -23,8 +23,7 @@ use hcore;
 use hcore::service::ServiceGroup;
 
 use error::{Error, Result};
-use manager::service::config::ServiceConfig;
-use package::Package;
+use manager::service::{Service, ServiceConfig};
 use templating::Template;
 use util;
 
@@ -38,7 +37,7 @@ pub const RUN_FILENAME: &'static str = "run";
 
 static LOGKEY: &'static str = "HK";
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct Hook {
     pub htype: HookType,
     pub template: PathBuf,
@@ -112,65 +111,51 @@ impl Hook {
     }
 }
 
-pub struct HookTable<'a> {
+#[derive(Debug, Default, Serialize)]
+pub struct HookTable {
     pub init: Option<Hook>,
     pub health_check: Option<Hook>,
     pub reconfigure: Option<Hook>,
     pub file_updated: Option<Hook>,
     pub run: Option<Hook>,
     pub smoke_test: Option<Hook>,
-    package: &'a Package,
-    service_group: &'a ServiceGroup,
 }
 
-impl<'a> HookTable<'a> {
-    pub fn new(package: &'a Package, service_group: &'a ServiceGroup) -> Self {
-        HookTable {
-            file_updated: None,
-            health_check: None,
-            init: None,
-            reconfigure: None,
-            run: None,
-            smoke_test: None,
-            package: package,
-            service_group: service_group,
-        }
-    }
-
+impl HookTable {
     /// Compile all loaded hooks from the table into their destination service directory.
-    pub fn compile(&mut self, cfg: &ServiceConfig) {
+    pub fn compile(&mut self, service_group: &ServiceGroup, config: &ServiceConfig) {
         if let Some(ref hook) = self.file_updated {
-            self.compile_one(hook, cfg);
+            self.compile_one(hook, service_group, config);
         }
         if let Some(ref hook) = self.health_check {
-            self.compile_one(hook, cfg);
+            self.compile_one(hook, service_group, config);
         }
         if let Some(ref hook) = self.init {
-            self.compile_one(hook, cfg);
+            self.compile_one(hook, service_group, config);
         }
         if let Some(ref hook) = self.reconfigure {
-            self.compile_one(hook, cfg);
+            self.compile_one(hook, service_group, config);
         }
         if let Some(ref hook) = self.run {
-            self.compile_one(hook, cfg);
+            self.compile_one(hook, service_group, config);
         }
         if let Some(ref hook) = self.smoke_test {
-            self.compile_one(hook, cfg);
+            self.compile_one(hook, service_group, config);
         }
     }
 
     /// Read all available hook templates from the table's package directory into the table.
-    pub fn load_hooks(&mut self) -> &mut Self {
-        let path = &self.package.config_from().join("hooks");
+    pub fn load_hooks(&mut self, service: &Service) -> &mut Self {
+        let path = &service.config_root().join("hooks");
         match fs::metadata(path) {
             Ok(meta) => {
                 if meta.is_dir() {
-                    self.init = self.load_hook(HookType::Init);
-                    self.file_updated = self.load_hook(HookType::FileUpdated);
-                    self.reconfigure = self.load_hook(HookType::Reconfigure);
-                    self.health_check = self.load_hook(HookType::HealthCheck);
-                    self.run = self.load_hook(HookType::Run);
-                    self.smoke_test = self.load_hook(HookType::SmokeTest);
+                    self.init = self.load_hook(HookType::Init, service);
+                    self.file_updated = self.load_hook(HookType::FileUpdated, service);
+                    self.reconfigure = self.load_hook(HookType::Reconfigure, service);
+                    self.health_check = self.load_hook(HookType::HealthCheck, service);
+                    self.run = self.load_hook(HookType::Run, service);
+                    self.smoke_test = self.load_hook(HookType::SmokeTest, service);
                 }
             }
             Err(_) => {}
@@ -181,7 +166,7 @@ impl<'a> HookTable<'a> {
     /// Run the hook of the given type if the table has a hook of that type loaded and compiled.
     ///
     /// Returns affirmatively if the service does not have the desired hook.
-    pub fn try_run(&self, hook: HookType) -> Result<()> {
+    pub fn try_run(&self, hook: HookType, service_group: &ServiceGroup) -> Result<()> {
         let hook = match hook {
             HookType::FileUpdated => &self.file_updated,
             HookType::HealthCheck => &self.health_check,
@@ -191,21 +176,22 @@ impl<'a> HookTable<'a> {
             HookType::SmokeTest => &self.smoke_test,
         };
         match *hook {
-            Some(ref h) => h.run(&self.service_group),
+            Some(ref h) => h.run(service_group),
             None => Ok(()),
         }
     }
 
-    fn compile_one(&self, hook: &Hook, cfg: &ServiceConfig) {
-        hook.compile(cfg).unwrap_or_else(|e| {
-            outputln!(preamble self.service_group, "Failed to compile {} hook: {}", hook.htype, e);
+    fn compile_one(&self, hook: &Hook, service_group: &ServiceGroup, config: &ServiceConfig) {
+        hook.compile(config).unwrap_or_else(|e| {
+            outputln!(preamble service_group,
+                "Failed to compile {} hook: {}", hook.htype, e);
         });
     }
 
-    fn load_hook(&self, hook_type: HookType) -> Option<Hook> {
-        let template = hook_template_path(&self.package, &hook_type);
-        let concrete = hook_path(&self.package, &hook_type);
-        let (user, group) = util::users::get_user_and_group(&self.package.pkg_install)
+    fn load_hook(&self, hook_type: HookType, service: &Service) -> Option<Hook> {
+        let template = hook_template_path(service, &hook_type);
+        let concrete = hook_path(service, &hook_type);
+        let (user, group) = util::users::get_user_and_group(&service.package)
             .expect("Can't determine user:group");
         match fs::metadata(&template) {
             Ok(_) => Some(Hook::new(hook_type, template, concrete, user, group)),
@@ -214,7 +200,7 @@ impl<'a> HookTable<'a> {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Serialize)]
 pub enum HookType {
     HealthCheck,
     Reconfigure,
@@ -237,8 +223,8 @@ impl fmt::Display for HookType {
     }
 }
 
-pub fn hook_path(package: &Package, hook_type: &HookType) -> PathBuf {
-    let base = package.pkg_install.svc_hooks_path();
+pub fn hook_path(service: &Service, hook_type: &HookType) -> PathBuf {
+    let base = service.svc_hooks_path();
     match *hook_type {
         HookType::Init => base.join(INIT_FILENAME),
         HookType::HealthCheck => base.join(HEALTHCHECK_FILENAME),
@@ -249,8 +235,8 @@ pub fn hook_path(package: &Package, hook_type: &HookType) -> PathBuf {
     }
 }
 
-pub fn hook_template_path(package: &Package, hook_type: &HookType) -> PathBuf {
-    let base = package.config_from().join("hooks");
+pub fn hook_template_path(service: &Service, hook_type: &HookType) -> PathBuf {
+    let base = service.config_root().join("hooks");
     match *hook_type {
         HookType::Init => base.join(INIT_FILENAME),
         HookType::HealthCheck => base.join(HEALTHCHECK_FILENAME),
