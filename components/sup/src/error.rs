@@ -57,7 +57,6 @@ use hcore::{self, package};
 use hcore::package::Identifiable;
 use toml;
 
-use manager::service::hooks::HookType;
 use output::StructuredOutput;
 use PROGRAM_NAME;
 
@@ -110,9 +109,6 @@ pub enum Error {
     HabitatCore(hcore::Error),
     TemplateFileError(handlebars::TemplateFileError),
     TemplateRenderError(handlebars::RenderError),
-    /// A hook failed to successfully execute. This error contains the type of hook which failed
-    /// to run and the exit code.
-    HookFailed(HookType, i32),
     InvalidBinding(String),
     InvalidKeyParameter(String),
     InvalidPidFile,
@@ -164,9 +160,6 @@ impl fmt::Display for SupError {
             Error::DepotClient(ref err) => format!("{}", err),
             Error::EnvJoinPathsError(ref err) => format!("{}", err),
             Error::FileNotFound(ref e) => format!("File not found at: {}", e),
-            Error::HookFailed(ref hook, ref code) => {
-                format!("{} hook failed to run with exit code {}", hook, code)
-            }
             Error::InvalidBinding(ref binding) => {
                 format!("Invalid binding - must be ':' delimited: {}", binding)
             }
@@ -258,7 +251,6 @@ impl error::Error for SupError {
             Error::DepotClient(ref err) => err.description(),
             Error::EnvJoinPathsError(ref err) => err.description(),
             Error::FileNotFound(_) => "File not found",
-            Error::HookFailed(_, _) => "Hook failed to run",
             Error::InvalidBinding(_) => "Invalid binding parameter",
             Error::InvalidKeyParameter(_) => "Key parameter error",
             Error::InvalidPort(_) => "Invalid port number in package expose metadata",

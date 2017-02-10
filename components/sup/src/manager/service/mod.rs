@@ -40,7 +40,7 @@ use hcore::util::perm::{set_owner, set_permissions};
 use serde::Serializer;
 use toml;
 
-use self::hooks::{HOOK_PERMISSIONS, HookTable, HookType};
+use self::hooks::{HOOK_PERMISSIONS, Hook, HookTable};
 use config::GossipListenAddr;
 use error::{Error, Result, SupError};
 use http_gateway;
@@ -143,11 +143,11 @@ pub struct Service {
     pub service_group: ServiceGroup,
     pub smoke_check: SmokeCheck,
     pub spec_ident: PackageIdent,
-    pub supervisor: Supervisor,
     pub topology: Topology,
     pub update_strategy: UpdateStrategy,
     hooks: HookTable,
     config_from: Option<PathBuf>,
+    supervisor: Supervisor,
 }
 
 impl Service {
@@ -177,7 +177,7 @@ impl Service {
             current_service_files: HashMap::new(),
             depot_url: spec.depot_url,
             health_check: HealthCheck::default(),
-            hooks: HookTable::default().load_hooks(&runtime_cfg, hooks_path, hook_template_path),
+            hooks: HookTable::default().load_hooks(&service_group, hooks_path, hook_template_path),
             initialized: false,
             last_election_status: ElectionStatus::None,
             needs_restart: false,
@@ -345,7 +345,6 @@ impl Service {
                 census_list: &CensusList,
                 census_updated: bool,
                 last_census_update: &mut CensusUpdate) {
-
         self.update_configuration(butterfly, census_list, census_updated, last_census_update);
 
         match self.topology {
@@ -405,7 +404,6 @@ impl Service {
                             census_list: &CensusList,
                             census_updated: bool,
                             last_census_update: &mut CensusUpdate) {
-
         self.config.populate(&self.service_group, census_list);
         self.persist_service_files(butterfly);
 
@@ -453,7 +451,7 @@ impl Service {
         let config_root = self.config_from.clone().unwrap_or(package.installed_path.clone());
         let hooks_path = fs::svc_hooks_path(self.service_group.service());
         self.hooks = HookTable::default()
-            .load_hooks(&runtime_cfg, hooks_path, &config_root.join("hooks"));
+            .load_hooks(&self.service_group, hooks_path, &config_root.join("hooks"));
 
         if let Some(err) = self.config.reload_package(&package, config_root, &runtime_cfg).err() {
             outputln!(preamble self.service_group,
@@ -483,30 +481,10 @@ impl Service {
     }
 
     pub fn health_check(&self) -> HealthCheck {
-        if self.hooks.health_check.is_some() {
-            // JW TODO: This should leverage `run_hook()` directly but we would need to give a
-            // mutable reference to the http-gateway to allow it to run this hook. We don't want
-            // to allow the http-gateway to obtain a lock on any of the manager's memory, including
-            // the service list, so we need to temporarily ensure that this hook never attempts
-            // to compile on run.
-            //
+        if let Some(ref hook) = self.hooks.health_check {
             // In the near future, we will periodically run this hook and cache it's results on
             // the service struct itself.
-            match self.hooks.try_run(HookType::HealthCheck, &self.service_group) {
-                Ok(()) => HealthCheck::Ok,
-                Err(SupError { err: Error::HookFailed(_, 1), .. }) => HealthCheck::Warning,
-                Err(SupError { err: Error::HookFailed(_, 2), .. }) => HealthCheck::Critical,
-                Err(SupError { err: Error::HookFailed(_, 3), .. }) => HealthCheck::Unknown,
-                Err(SupError { err: Error::HookFailed(_, code), .. }) => {
-                    outputln!(preamble self.service_group,
-                        "Health check exited with an unknown status code, {}", code);
-                    HealthCheck::Unknown
-                }
-                Err(err) => {
-                    outputln!(preamble self.service_group, "Health check couldn't be run, {}", err);
-                    HealthCheck::Unknown
-                }
-            }
+            hook.run(&self.service_group, self.runtime_cfg())
         } else {
             match self.supervisor.status() {
                 (true, _) => HealthCheck::Ok,
@@ -521,9 +499,9 @@ impl Service {
             return;
         }
         outputln!(preamble self.service_group, "Initializing");
-        if let Some(err) = self.run_hook(HookType::Init).err() {
-            outputln!(preamble self.service_group, "Initialization failed: {}", err);
-            return;
+        self.hooks.compile(&self.service_group, &self.config);
+        if let Some(ref hook) = self.hooks.init {
+            hook.run(&self.service_group, self.runtime_cfg());
         }
         if let Some(err) = self.copy_run().err() {
             outputln!(preamble self.service_group, "Failed to copy run hook: {}", err);
@@ -539,10 +517,8 @@ impl Service {
     /// restart behavior.
     pub fn reconfigure(&mut self) {
         self.needs_reconfiguration = false;
-        if let Some(err) = self.run_hook(HookType::Reconfigure).err() {
-            outputln!(preamble self.service_group,
-                      "Reconfiguration hook failed: {}",
-                      err);
+        if let Some(ref hook) = self.hooks.reconfigure {
+            hook.run(&self.service_group, self.runtime_cfg());
         }
     }
 
@@ -573,13 +549,17 @@ impl Service {
         util::path::append_interpreter_and_path(&mut paths)
     }
 
-    pub fn smoke_test(&mut self) -> SmokeCheck {
-        match self.run_hook(HookType::SmokeTest) {
-            Ok(()) => SmokeCheck::Ok,
-            Err(SupError { err: Error::HookFailed(_, code), .. }) => SmokeCheck::Failed(code),
-            Err(err) => {
-                outputln!(preamble self.service_group, "Smoke test couldn't be run, {}", err);
-                SmokeCheck::Failed(-1)
+    pub fn runtime_cfg(&self) -> &RuntimeConfig {
+        &self.supervisor.runtime_config
+    }
+
+    pub fn smoke_test(&mut self) {
+        if self.smoke_check == SmokeCheck::Pending {
+            match self.hooks.smoke_test {
+                Some(ref hook) => {
+                    self.smoke_check = hook.run(&self.service_group, self.runtime_cfg())
+                }
+                None => self.smoke_check = SmokeCheck::Ok,
             }
         }
     }
@@ -632,14 +612,14 @@ impl Service {
 
     // Copy the "run" file to the svc path.
     fn copy_run(&self) -> Result<()> {
-        let svc_run = self.svc_path().join(hooks::RUN_FILENAME);
+        let svc_run = self.svc_path().join(hooks::RunHook::file_name());
         match self.hooks.run {
             Some(ref hook) => {
-                try!(std::fs::copy(&hook.path, &svc_run));
+                try!(std::fs::copy(hook.path(), &svc_run));
                 try!(set_permissions(&svc_run.to_str().unwrap(), HOOK_PERMISSIONS));
             }
             None => {
-                let run = self.package().installed_path().join(hooks::RUN_FILENAME);
+                let run = self.package().installed_path().join(hooks::RunHook::file_name());
                 match std::fs::metadata(&run) {
                     Ok(_) => {
                         try!(std::fs::copy(&run, &svc_run));
@@ -673,16 +653,10 @@ impl Service {
     }
 
     /// Run file_updated hook if present
-    fn file_updated(&mut self) -> bool {
+    fn file_updated(&self) -> bool {
         if self.initialized {
-            match self.run_hook(HookType::FileUpdated) {
-                Ok(()) => {
-                    outputln!(preamble self.service_group, "File update hook succeeded");
-                    return true;
-                }
-                Err(err) => {
-                    outputln!(preamble self.service_group, "File update hook failed: {}", err);
-                }
+            if let Some(ref hook) = self.hooks.file_updated {
+                return hook.run(&self.service_group, self.runtime_cfg());
             }
         }
         false
@@ -730,11 +704,6 @@ impl Service {
             try!(std::fs::remove_file(p));
         }
         Ok(())
-    }
-
-    fn run_hook(&mut self, hook: HookType) -> Result<()> {
-        self.hooks.compile(&self.service_group, &self.config);
-        self.hooks.try_run(hook, &self.service_group)
     }
 
     /// Update our own service rumor with a new configuration from the packages exported
