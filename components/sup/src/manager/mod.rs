@@ -179,7 +179,10 @@ impl Manager {
                     }
                 }
 
-                service.initialize();
+                service.initialize(&self.state
+                    .census_list
+                    .read()
+                    .expect("Census list lock is poisened!"));
                 service.check_process();
 
                 if service.initialized && (service.needs_restart || service.is_down()) {

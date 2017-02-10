@@ -382,14 +382,51 @@ impl Service {
     }
 
     /// Run initialization hook if present
-    pub fn initialize(&mut self) {
+    pub fn initialize(&mut self, census_list: &CensusList) {
         if !self.initialized {
-            outputln!(preamble self.service_group, "Initializing");
-            if let Some(err) = self.hooks().try_run(HookType::Init).err() {
-                outputln!(preamble self.service_group, "Initialization failed: {}", err);
-                return;
+            match self.topology {
+                Topology::Leader => {
+                    if let Some(census) = census_list.get(&*self.service_group) {
+                        // We know perfectly well we are in this census, because we asked for
+                        // our own service group *by name*
+                        let me = census.me().unwrap();
+                        let current_status = me.get_election_status();
+                        if self.last_election_status != current_status {
+                            match current_status {
+                                ElectionStatus::ElectionInProgress => {
+                                    outputln!(preamble self.service_group,
+                                              "Waiting to initialize service; {}",
+                                              Yellow.bold().paint("election in progress."));
+                                }
+                                ElectionStatus::ElectionNoQuorum => {
+                                    outputln!(preamble self.service_group,
+                                              "Waiting to initialize service; {}, {}.",
+                                              Yellow.bold().paint("election in progress"),
+                                              Red.bold().paint("and we have no quorum"));
+                                }
+                                ElectionStatus::ElectionFinished => {
+                                    outputln!(preamble self.service_group, "Initializing");
+                                    if let Some(err) = self.hooks().try_run(HookType::Init).err() {
+                                        outputln!(preamble self.service_group, "Initialization failed: {}", err);
+                                        return;
+                                    }
+                                    self.initialized = true;
+                                }
+                                ElectionStatus::None => {}
+                            }
+                            self.last_election_status = current_status
+                        }
+                    }
+                }
+                Topology::Standalone => {
+                    outputln!(preamble self.service_group, "Initializing");
+                    if let Some(err) = self.hooks().try_run(HookType::Init).err() {
+                        outputln!(preamble self.service_group, "Initialization failed: {}", err);
+                        return;
+                    }
+                    self.initialized = true;
+                }
             }
-            self.initialized = true;
         }
     }
 
