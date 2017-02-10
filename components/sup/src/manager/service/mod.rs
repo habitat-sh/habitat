@@ -435,14 +435,12 @@ impl Service {
         ServiceConfig::new(&self.service_group, &self.package, census, &self.binds)
     }
 
-    /// Run reconfigure hook if present. Return false if it is not present, to trigger default
-    /// restart behavior.
-    pub fn reconfigure(&mut self, census_list: &CensusList) -> Option<ServiceConfig> {
+    pub fn render_service_config(&mut self, census_list: &CensusList) -> Option<ServiceConfig> {
         let mut service_config = match self.load_service_config(census_list) {
             Ok(sc) => sc,
             Err(e) => {
                 outputln!(preamble self.service_group,
-                          "Error generating Service Configuration; not reconfiguring: {}",
+                          "Error generating Service Configuration: {}",
                           e);
                 return None;
             }
@@ -450,11 +448,6 @@ impl Service {
         match service_config.write(&self.package) {
             Ok(true) => {
                 self.needs_restart = true;
-                if let Some(err) = self.hooks().try_run(HookType::Reconfigure).err() {
-                    outputln!(preamble self.service_group,
-                              "Reconfiguration hook failed: {}",
-                              err);
-                }
             }
             Ok(false) => {}
             Err(e) => {
@@ -470,6 +463,15 @@ impl Service {
             outputln!(preamble self.service_group, "Failed to copy run hook: {}", err);
         }
         Some(service_config)
+    }
+
+    /// Run reconfigure hook if present.
+    pub fn reconfigure(&self) {
+        if let Some(err) = self.hooks().try_run(HookType::Reconfigure).err() {
+            outputln!(preamble self.service_group,
+                      "Reconfiguration hook failed: {}",
+                      err);
+        }
     }
 
     pub fn smoke_test(&self) -> SmokeCheck {
