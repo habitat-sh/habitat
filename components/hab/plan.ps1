@@ -6,9 +6,10 @@ $pkg_license = @("Apache-2.0")
 $pkg_source = "https://s3-us-west-2.amazonaws.com/habitat-win-deps/hab-win-deps.zip"
 $pkg_shasum="0a99b1e171ff1075cca139cf9f695685f7a04b122f1704f82f2b852561847710"
 $pkg_bin_dirs = @("bin")
-$pkg_build_deps = @("core/rust")
+$pkg_build_deps = @("core/rust", "core/cacerts")
 
 function Invoke-Prepare {
+    $env:SSL_CERT_FILE              = "$(Get-HabPackagePath "cacerts")/ssl/certs/cacert.pem"
     $env:PLAN_VERSION               = "$pkg_version/$pkg_release"
     $env:CARGO_TARGET_DIR           = "$HAB_CACHE_SRC_PATH/$pkg_dirname"
     $env:LIB                        += ";$HAB_CACHE_SRC_PATH/$pkg_dirname/lib"

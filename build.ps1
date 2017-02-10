@@ -242,6 +242,12 @@ $env:LIBZMQ_PREFIX              = Split-Path $ChocolateyHabitatLibDir -Parent
 
 Write-RustToolVersion
 
+if(!(Test-Path "$env:TEMP\cacert.pem")) {
+    Write-Host "Downloading cacerts.pem"
+    Invoke-WebRequest -UseBasicParsing -Uri "http://curl.haxx.se/ca/cacert.pem" -OutFile "$env:TEMP\cacert.pem"
+}
+$env:SSL_CERT_FILE="$env:TEMP\cacert.pem"
+
 if ($Test) { Invoke-Test $Path -Clean:$Clean -Release:$Release }
 if (!$SkipBuild) { Invoke-Build $Path -Clean:$Clean -Release:$Release }
 if($Package) { New-HartPackage }
