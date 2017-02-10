@@ -167,28 +167,42 @@ impl Manager {
                 self.persist_service_files(&mut service);
                 let svc_cfg_updated = self.persist_service_config(&mut service);
 
-                if svc_cfg_updated || census_updated {
-                    let svc_cfg = service.reconfigure(&self.state
-                        .census_list
-                        .read()
-                        .expect("Census list lock is poisoned!"));
-                    if svc_cfg_updated && svc_cfg.is_some() {
-                        self.update_service_rumor_cfg(&service,
-                                                      svc_cfg.as_ref().unwrap(),
-                                                      &mut last_census_update);
-                    }
+                let svc_cfg = service.render_service_config(&self.state
+                    .census_list
+                    .read()
+                    .expect("Census list lock is poisened!"));
+
+                if svc_cfg_updated && svc_cfg.is_some() {
+                    self.update_service_rumor_cfg(&service,
+                                                  svc_cfg.as_ref().unwrap(),
+                                                  &mut last_census_update);
                 }
 
-                service.initialize();
-                service.check_process();
-
-                if service.initialized && (service.needs_restart || service.is_down()) {
-                    match service.restart(&self.state
+                if !service.initialized {
+                    if service.initialize(&self.state
                         .census_list
                         .read()
-                        .expect("Census list lock is poisoned!")) {
-                        Ok(()) => {}
-                        Err(e) => outputln!("Cannot restart service: {}", e),
+                        .expect("Census list lock is poisened!")) {
+                        service.start();
+                    }
+                } else {
+
+                    service.check_process();
+
+                    if service.needs_restart || service.is_down() {
+                        match service.restart(&self.state
+                            .census_list
+                            .read()
+                            .expect("Census list lock is poisoned!")) {
+                            Ok(_) => {
+                                if !service.needs_restart {
+                                    service.reconfigure();
+                                }
+                            }
+                            Err(e) => {
+                                outputln!("Cannot restart service: {}", e);
+                            }
+                        }
                     }
                 }
             }
