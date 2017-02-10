@@ -49,6 +49,14 @@ impl CensusUpdate {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
+pub enum ElectionStatus {
+    None,
+    ElectionInProgress,
+    ElectionNoQuorum,
+    ElectionFinished,
+}
+
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize, Default)]
 pub struct CensusEntry {
     pub member_id: String,
@@ -196,6 +204,18 @@ impl CensusEntry {
 
     pub fn get_election_is_finished(&self) -> bool {
         self.election_is_finished.unwrap_or(false)
+    }
+
+    pub fn get_election_status(&self) -> ElectionStatus {
+        if self.get_election_is_running() {
+            ElectionStatus::ElectionInProgress
+        } else if self.get_election_is_no_quorum() {
+            ElectionStatus::ElectionNoQuorum
+        } else if self.get_election_is_finished() {
+            ElectionStatus::ElectionFinished
+        } else {
+            ElectionStatus::None
+        }
     }
 
     pub fn set_update_election_is_running(&mut self, value: bool) {
