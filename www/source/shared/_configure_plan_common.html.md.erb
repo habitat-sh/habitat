@@ -18,12 +18,14 @@ In this tutorial, our Node.js app already has a configuration file called `confi
 
     Because we want to be able to configure both of the settings above, we are going to replace the existing values in the file with references to handlebar expressions. Those expressions will look to a TOML file to define an initial set of values if they are not overridden at start up.
 
-4. Replace the values in `config.json` with the expressions **cfg.message** and **cfg.port**.
+4. Replace the values in `config.json` with the expressions **cfg.message** and **cfg.listening_port**.
 
        {
            "message": "{{cfg.message}}",
-           "port": "{{cfg.port}}"
+           "port": "{{cfg.listening_port}}"
        }
+
+   > Note: The key `port` and the value `cfg.listening_port` map to the `pkg_exports` key and value pair you added to your plan.sh.
 
 5. Save the file.
 
@@ -41,7 +43,7 @@ As we said, a TOML file is associated with your configuration file and specifies
        message = "Hello, World!"
 
        # The port number that is listening for requests.
-       port = 8080
+       listening_port = 8080
 
     We use the same values as the ones specified in the original `config.json` file to keep the initial start up experience the same. Also, the port value specified is specific to the Node.js application and it will bind to the port of its host. In this case, the host is the Docker container you will create in the next step.
 
