@@ -4,7 +4,7 @@ title: Running packages in topologies
 
 # Topologies
 
-A topology describes the intended relationship between peers within a service group. Three topologies ship with Habitat by default: standalone, and leader-follower. The leader-follower topology employs [leader election](/docs/internals-leader-election) to define a leader.
+A topology describes the intended relationship between peers within a service group. Two topologies ship with Habitat by default: standalone, and leader-follower. The leader-follower topology employs [leader election](/docs/internals-leader-election) to define a leader.
 
 ## Standalone
 
