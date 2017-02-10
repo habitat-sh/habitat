@@ -611,15 +611,3 @@ $ hab start core/redis --config-from /src
 This would take the configuration and hooks from /src, rather than from the
 package you have previously built. When the configuration is as you want it,
 do a final rebuild of the package.
-
-## Good Practices for Plan Development
-
-* If your plan has "internal" dependencies, for example, if you're building a
-  Ruby app with Bundler, or a Node.js app with Yarn, it's helpful for the
-  consumers of your package if you drop off a Gemfile.lock or yarn.lock in the
-  `$pkg_prefix` so if somebody needs to know the exact version of a Gem (or
-  module, or Egg, etc.) they can peek in that file.
-* In addition to specifying the `$pkg_license` array, you should also put a copy
-  of the license in `$pkg_prefix/LICENSE`. This will help the consumers of your
-  package be aware of the text of the license and can be used by license
-  scanning tools.
