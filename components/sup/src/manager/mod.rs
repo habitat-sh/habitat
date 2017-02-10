@@ -190,13 +190,18 @@ impl Manager {
                     service.check_process();
 
                     if service.needs_restart || service.is_down() {
-                        if service.restart(&self.state
+                        match service.restart(&self.state
                             .census_list
                             .read()
                             .expect("Census list lock is poisoned!")) {
-                            service.reconfigure();
-                        } else {
-                           outputln!("Cannot restart service: {}", e),
+                            Ok(_) => {
+                                if !service.needs_restart {
+                                    service.reconfigure();
+                                }
+                            }
+                            Err(e) => {
+                                outputln!("Cannot restart service: {}", e);
+                            }
                         }
                     }
                 }
