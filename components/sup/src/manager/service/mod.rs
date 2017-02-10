@@ -382,7 +382,7 @@ impl Service {
     }
 
     /// Run initialization hook if present
-    pub fn initialize(&mut self, census_list: &CensusList) {
+    pub fn initialize(&mut self, census_list: &CensusList) -> bool {
         if !self.initialized {
             match self.topology {
                 Topology::Leader => {
@@ -408,7 +408,7 @@ impl Service {
                                     outputln!(preamble self.service_group, "Initializing");
                                     if let Some(err) = self.hooks().try_run(HookType::Init).err() {
                                         outputln!(preamble self.service_group, "Initialization failed: {}", err);
-                                        return;
+                                        return false;
                                     }
                                     self.initialized = true;
                                 }
@@ -422,12 +422,13 @@ impl Service {
                     outputln!(preamble self.service_group, "Initializing");
                     if let Some(err) = self.hooks().try_run(HookType::Init).err() {
                         outputln!(preamble self.service_group, "Initialization failed: {}", err);
-                        return;
+                        return false;
                     }
                     self.initialized = true;
                 }
             }
         }
+        self.initialized
     }
 
     pub fn load_service_config(&self, census: &CensusList) -> Result<ServiceConfig> {
