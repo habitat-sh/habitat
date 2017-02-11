@@ -173,7 +173,7 @@ mod test {
                                     &ManagerConfig::default(),
                                     &RuntimeConfig::default(),
                                     None,
-                                    &Vec::new())
+                                    Vec::new())
             .unwrap();
         let toml = sc.to_toml().unwrap();
         let data = convert::toml_to_json(toml);

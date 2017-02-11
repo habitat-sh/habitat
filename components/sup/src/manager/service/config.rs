@@ -23,7 +23,6 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::ops::{Deref, DerefMut};
 use std::path::{Path, PathBuf};
-use std::str::FromStr;
 
 use ansi_term::Colour::Purple;
 use butterfly::rumor::service::SysInfo;
@@ -83,7 +82,7 @@ impl ServiceConfig {
                mgr_cfg: &ManagerConfig,
                runtime_cfg: &RuntimeConfig,
                config_root: Option<PathBuf>,
-               bindings: &[String])
+               bindings: Vec<(String, ServiceGroup)>)
                -> Result<ServiceConfig> {
         let config_root = config_root.unwrap_or(package.installed_path.clone());
         Ok(ServiceConfig {
@@ -95,22 +94,9 @@ impl ServiceConfig {
             bind: Bind::default(),
             incarnation: 0,
             needs_write: true,
-            supported_bindings: Self::split_bindings(bindings)?,
+            supported_bindings: bindings,
             config_root: config_root,
         })
-    }
-
-    fn split_bindings(bindings: &[String]) -> Result<Vec<(String, ServiceGroup)>> {
-        let mut bresult = Vec::new();
-        for bind in bindings.into_iter() {
-            let values: Vec<&str> = bind.splitn(2, ':').collect();
-            if values.len() != 2 {
-                return Err(sup_error!(Error::InvalidBinding(bind.clone())));
-            } else {
-                bresult.push((values[0].to_string(), ServiceGroup::from_str(values[1])?));
-            }
-        }
-        Ok(bresult)
     }
 
     /// Return an iterator of the configuration file names to render.
@@ -676,7 +662,7 @@ mod test {
                                     &ManagerConfig::default(),
                                     &RuntimeConfig::default(),
                                     None,
-                                    &Vec::new())
+                                    Vec::new())
             .unwrap();
         let toml = sc.to_toml().unwrap();
         let version = toml.lookup("hab.version").unwrap().as_str().unwrap();
@@ -690,7 +676,7 @@ mod test {
                                     &ManagerConfig::default(),
                                     &RuntimeConfig::default(),
                                     None,
-                                    &Vec::new())
+                                    Vec::new())
             .unwrap();
         let toml = sc.to_toml().unwrap();
         let name = toml.lookup("pkg.name").unwrap().as_str().unwrap();
@@ -704,9 +690,8 @@ mod test {
                                     &ManagerConfig::default(),
                                     &RuntimeConfig::default(),
                                     None,
-                                    &Vec::new())
+                                    Vec::new())
             .unwrap();
-
         let toml = sc.to_toml().unwrap();
         let ip = toml.lookup("sys.ip").unwrap().as_str().unwrap();
         let re = Regex::new(r"\d+\.\d+\.\d+\.\d+").unwrap();

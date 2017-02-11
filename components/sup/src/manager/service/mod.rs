@@ -69,7 +69,7 @@ pub struct ServiceSpec {
     pub depot_url: String,
     pub topology: Topology,
     pub update_strategy: UpdateStrategy,
-    pub binds: Vec<String>,
+    pub binds: Vec<(String, ServiceGroup)>,
     pub config_from: Option<PathBuf>,
 }
 
@@ -85,6 +85,40 @@ impl ServiceSpec {
             binds: vec![],
             config_from: None,
         }
+    }
+
+    pub fn split_bindings<'a, T>(bindings: T) -> Result<Vec<(String, ServiceGroup)>>
+        where T: Iterator<Item = &'a str>
+    {
+        let mut bresult = Vec::new();
+        for bind in bindings {
+            let values: Vec<&str> = bind.splitn(2, ':').collect();
+            if values.len() != 2 {
+                return Err(sup_error!(Error::InvalidBinding(bind.to_string())));
+            } else {
+                bresult.push((values[0].to_string(), ServiceGroup::from_str(values[1])?));
+            }
+        }
+        Ok(bresult)
+    }
+
+    pub fn validate(&self, package: &PackageInstall) -> Result<()> {
+        self.validate_binds(package)?;
+        Ok(())
+    }
+
+    fn validate_binds(&self, package: &PackageInstall) -> Result<()> {
+        let missing: Vec<String> = package.binds()?
+            .into_iter()
+            .filter(|bind| {
+                self.binds.iter().find(|&&(ref service, _)| &bind.service == service).is_none()
+            })
+            .map(|bind| bind.service)
+            .collect();
+        if !missing.is_empty() {
+            return Err(sup_error!(Error::MissingRequiredBind(missing)));
+        }
+        Ok(())
     }
 }
 
@@ -104,7 +138,6 @@ pub struct Service {
     pub supervisor: Supervisor,
     pub topology: Topology,
     pub update_strategy: UpdateStrategy,
-    #[serde(skip_deserializing)]
     hooks: HookTable,
 }
 
@@ -113,16 +146,17 @@ impl Service {
                spec: ServiceSpec,
                mgr_cfg: &ManagerConfig)
                -> Result<Service> {
+        spec.validate(&package)?;
         let service_group = ServiceGroup::new(&package.ident.name,
                                               spec.group,
                                               spec.organization.as_ref().map(|x| &**x))?;
-        let (svc_user, svc_group) = try!(util::users::get_user_and_group(&package));
+        let (svc_user, svc_group) = util::users::get_user_and_group(&package)?;
         let runtime_cfg = RuntimeConfig::new(svc_user, svc_group);
         let svc_cfg = ServiceConfig::new(&package,
                                          mgr_cfg,
                                          &runtime_cfg,
                                          spec.config_from,
-                                         &spec.binds)?;
+                                         spec.binds)?;
         let hook_template_path = svc_cfg.config_root.join("hooks");
         let hooks_path = fs::svc_hooks_path(service_group.service());
         Ok(Service {

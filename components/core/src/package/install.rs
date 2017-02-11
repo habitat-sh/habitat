@@ -24,7 +24,8 @@ use std::str::FromStr;
 
 use toml;
 
-use super::{Identifiable, MetaFile, PackageIdent, Target, PackageTarget};
+use super::{Identifiable, PackageIdent, Target, PackageTarget};
+use super::metadata::{Bind, MetaFile};
 use error::{Error, Result};
 use fs;
 use util;
@@ -71,20 +72,6 @@ impl PackageInstall {
         match package_target.validate() {
             Ok(()) => Ok(package_install),
             Err(e) => Err(e),
-        }
-    }
-
-    /// Read and return the decoded contents of the packages default configuration.
-    pub fn default_cfg(&self) -> Option<toml::Table> {
-        match File::open(self.installed_path.join(DEFAULT_CFG_FILE)) {
-            Ok(mut file) => {
-                let mut raw = String::new();
-                if file.read_to_string(&mut raw).is_err() {
-                    return None;
-                }
-                util::toml::table_from_str(&raw)
-            }
-            Err(_) => None,
         }
     }
 
@@ -199,6 +186,54 @@ impl PackageInstall {
             fs_root_path: fs_root_path,
             package_root_path: package_root_path,
             installed_path: installed_path,
+        }
+    }
+
+    pub fn binds(&self) -> Result<Vec<Bind>> {
+        match self.read_metafile(MetaFile::Binds) {
+            Ok(body) => {
+                let mut binds = Vec::new();
+                for line in body.lines() {
+                    match Bind::from_str(line) {
+                        Ok(bind) => binds.push(bind),
+                        Err(_) => return Err(Error::MetaFileMalformed(MetaFile::Binds)),
+                    }
+                }
+                Ok(binds)
+            }
+            Err(Error::MetaFileNotFound(MetaFile::Binds)) => Ok(Vec::new()),
+            Err(e) => Err(e),
+        }
+    }
+
+    pub fn binds_optional(&self) -> Result<Vec<Bind>> {
+        match self.read_metafile(MetaFile::BindsOptional) {
+            Ok(body) => {
+                let mut binds = Vec::new();
+                for line in body.lines() {
+                    match Bind::from_str(line) {
+                        Ok(bind) => binds.push(bind),
+                        Err(_) => return Err(Error::MetaFileMalformed(MetaFile::BindsOptional)),
+                    }
+                }
+                Ok(binds)
+            }
+            Err(Error::MetaFileNotFound(MetaFile::BindsOptional)) => Ok(Vec::new()),
+            Err(e) => Err(e),
+        }
+    }
+
+    /// Read and return the decoded contents of the packages default configuration.
+    pub fn default_cfg(&self) -> Option<toml::Table> {
+        match File::open(self.installed_path.join(DEFAULT_CFG_FILE)) {
+            Ok(mut file) => {
+                let mut raw = String::new();
+                if file.read_to_string(&mut raw).is_err() {
+                    return None;
+                }
+                util::toml::table_from_str(&raw)
+            }
+            Err(_) => None,
         }
     }
 

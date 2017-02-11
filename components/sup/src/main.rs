@@ -246,7 +246,7 @@ fn spec_from_matches(ident: &PackageIdent, m: &ArgMatches) -> Result<ServiceSpec
         spec.update_strategy = try!(UpdateStrategy::from_str(strategy));
     }
     if let Some(binds) = m.values_of("BIND") {
-        spec.binds = binds.map(|s| s.to_string()).collect();
+        spec.binds = ServiceSpec::split_bindings(binds)?;
     }
     if let Some(ref config_from) = m.value_of("CONFIG_DIR") {
         spec.config_from = Some(PathBuf::from(config_from));

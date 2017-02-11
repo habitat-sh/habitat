@@ -139,7 +139,7 @@ pkg_svc_run
 > Note: You should use a [run hook](#hooks) instead if you have complex start up behavior.
 
 pkg_exports
-: Optional. An array of ports this service exposes when you create a Docker image from your package. An associative array representing configuration data which should be gossiped to peers. The keys in this array represent the name the value will be assigned and the values represent the TOML path to read the value.
+: Optional. An associative array representing configuration data which should be gossiped to peers. The keys in this array represent the name the value will be assigned and the values represent the TOML path to read the value.
 
   ~~~
   pkg_exports=(
@@ -156,6 +156,23 @@ pkg_exposes
   pkg_exposes=(port ssl-port)
   ~~~
 
+pkg_binds
+: Optional. An associative array representing services which you depend on and the configuration keys that you expect the service to export (by their `pkg_exports`). These binds *must* be set for the supervisor to load the service. The loaded service will wait to run until it's bind becomes available. If the bind does not contain the expected keys, the service will not start successfully.
+
+  ~~~
+  pkg_binds=(
+    [database]="port host"
+  )
+  ~~~
+
+pkg_binds_optional
+: Optional. Same as `pkg_binds` but these represent optional services to connect to.
+
+  ~~~
+  pkg_binds_optional=(
+    [storage]="port host"
+  )
+  ~~~
 
 pkg_interpreters
 : Optional. An array of interpreters used in [shebang](https://en.wikipedia.org/wiki/Shebang_(Unix)) lines for scripts. Specify the subdirectory where the binary is relative to the package, for example, `bin/bash` or `libexec/neverland`, since binaries can be located in directories besides `bin`. This list of interpreters will be written to the metadata INTERPRETERS file, located inside a package, with their fully-qualified path.  Then these can be used with the fix_interpreter function. For more information on declaring shebangs in Habitat, see [Plan hooks](#hooks), and for more information on the fix_interpreter function, see [Plan utility functions](#plan-utility-functions).

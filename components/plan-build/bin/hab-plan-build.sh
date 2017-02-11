@@ -191,6 +191,24 @@
 # pkg_exposes=(port)
 # ```
 #
+# ### pkg_binds
+# An associative array representing services which you depend on and the configuration keys that
+# you expect the service to export (by their `pkg_exports`). These binds *must* be set for the
+# supervisor to load the service. The loaded service will wait to run until it's bind becomes
+# available. If the bind does not contain the expected keys, the service will not start
+# successfully.
+# ```
+# pkg_binds=(
+#   [database]="port host"
+# )
+#
+# ### pkg_binds_optional
+# Same as `pkg_binds` but these represent optional services to connect to.
+# ```
+# pkg_binds_optional=(
+#   [storage]="port host"
+# )
+#
 # ### pkg_origin
 # A string to use for the origin. The origin is used to denote a particular upstream of a
 # package; when we resolve dependencies, we consider a version of a package to be equal
@@ -376,6 +394,8 @@ pkg_pconfig_dirs=()
 pkg_svc_run=''
 pkg_exposes=()
 declare -A pkg_exports
+declare -A pkg_binds
+declare -A pkg_binds_optional
 # The user to run the service as
 pkg_svc_user=hab
 # The group to run the service as
@@ -1921,7 +1941,10 @@ do_default_install() {
 # * `$pkg_prefix/CFLAGS` - Any CFLAGS for things that link against us
 # * `$pkg_prefix/PKG_CONFIG_PATH` - Any PKG_CONFIG_PATH entries for things that depend on us
 # * `$pkg_prefix/DEPS` - Any dependencies we need to use the package at runtime
-# * `$pkg_prefix/EXPOSES` - Any ports we expose
+# * `$pkg_prefix/EXPORTS` - A list of exported configuration keys and their public name
+# * `$pkg_prefix/EXPOSES` - An array of `pkg_exports` for which ports that this package exposes
+# * `$pkg_prefix/BINDS` - A list of services you connect to and keys that you expect to be exported
+# * `$pkg_prefix/BINDS_OPTIONAL` - Same as `BINDS` but not required for the service to start
 # * `$pkg_prefix/FILES` - blake2b checksums of all files in the package
 # * `$pkg_prefix/LDFLAGS` - Any LDFLAGS for things that link against us
 # * `$pkg_prefix/LD_RUN_PATH` - The LD_RUN_PATH for things that link against us
@@ -2026,6 +2049,14 @@ _build_metadata() {
 
   for export in "${!pkg_exports[@]}"; do
     echo "$export=${pkg_exports[$export]}" >> $pkg_prefix/EXPORTS
+  done
+
+  for bind in "${!pkg_binds[@]}"; do
+    echo "$bind=${pkg_binds[$bind]}" >> $pkg_prefix/BINDS
+  done
+
+  for bind in "${!pkg_binds_optional[@]}"; do
+    echo "$bind=${pkg_binds_optional[$bind]}" >> $pkg_prefix/BINDS_OPTIONAL
   done
 
   local port_part=""

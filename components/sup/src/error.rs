@@ -123,6 +123,7 @@ pub enum Error {
     IPFailed,
     KeyNotFound(String),
     MetaFileIO(io::Error),
+    MissingRequiredBind(Vec<String>),
     NameLookup(io::Error),
     NetParseError(net::AddrParseError),
     NoRunFile,
@@ -183,6 +184,9 @@ impl fmt::Display for SupError {
             Error::Io(ref err) => format!("{}", err),
             Error::IPFailed => format!("Failed to discover this hosts outbound IP address"),
             Error::KeyNotFound(ref e) => format!("Key not found in key cache: {}", e),
+            Error::MissingRequiredBind(ref e) => {
+                format!("Missing required bind(s), {}", e.join(", "))
+            }
             Error::MetaFileIO(ref e) => format!("IO error while accessing MetaFile: {:?}", e),
             Error::NameLookup(ref e) => format!("Error resolving a name or IP address: {}", e),
             Error::NetParseError(ref e) => format!("Can't parse ip:port: {}", e),
@@ -266,6 +270,9 @@ impl error::Error for SupError {
             Error::Io(ref err) => err.description(),
             Error::IPFailed => "Failed to discover the outbound IP address",
             Error::KeyNotFound(_) => "Key not found in key cache",
+            Error::MissingRequiredBind(_) => {
+                "A service to start without specifying a service group for all required binds"
+            }
             Error::MetaFileIO(_) => "MetaFile could not be read or written to",
             Error::NetParseError(_) => "Can't parse IP:port",
             Error::NameLookup(_) => "Error resolving a name or IP address",

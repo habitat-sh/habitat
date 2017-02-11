@@ -23,9 +23,10 @@ use libarchive::reader::{self, Reader};
 use libarchive::archive::{Entry, ReadFilter, ReadFormat, ExtractOption, ExtractOptions};
 use regex::Regex;
 
+use super::{Identifiable, PackageIdent, PackageTarget};
+use super::metadata::MetaFile;
 use error::{Error, Result};
 use crypto::{artifact, hash};
-use package::{Identifiable, PackageIdent, PackageTarget, MetaFile};
 
 lazy_static! {
     static ref METAFILE_REGXS: HashMap<MetaFile, Regex> = {
