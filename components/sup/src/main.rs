@@ -38,7 +38,7 @@ use hcore::package::{PackageArchive, PackageIdent};
 use hcore::url::{DEFAULT_DEPOT_URL, DEPOT_URL_ENVVAR};
 use url::Url;
 
-use sup::config::{gcache, Config, GossipListenAddr};
+use sup::config::{gcache, Config, GossipListenAddr, HttpGatewayListenAddr};
 use sup::error::{Error, Result};
 use sup::command;
 use sup::http_gateway;
@@ -237,7 +237,8 @@ fn setup_global_config(m: &ArgMatches) -> Result<()> {
     let mut config = Config::default();
     // TODO fn: remove once ServiceConfig doesn't depend on global config
     if let Some(addr_str) = m.value_of("LISTEN_HTTP") {
-        config.service_config_http_listen = try!(http_gateway::ListenAddr::from_str(addr_str));
+        let listener_addr = try!(http_gateway::ListenAddr::from_str(addr_str));
+        config.service_config_http_listen.set(listener_addr);
     }
     debug!("Config:\n{:?}", config);
     gcache(config);

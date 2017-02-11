@@ -120,5 +120,33 @@ impl fmt::Display for GossipListenAddr {
 #[derive(Default, Debug, PartialEq, Eq)]
 pub struct Config {
     // Currently only used by `ServiceConfig`
-    pub service_config_http_listen: http_gateway::ListenAddr,
+    pub service_config_http_listen: HttpGatewayListenAddr,
+    // Currently only used by `Package`
+    pub package_config_from: Option<String>,
+}
+
+#[derive(PartialEq, Eq, Debug, Clone)]
+pub struct HttpGatewayListenAddr {
+    addr: http_gateway::ListenAddr,
+}
+
+impl HttpGatewayListenAddr {
+    pub fn new(listen_addr: http_gateway::ListenAddr) -> HttpGatewayListenAddr {
+        HttpGatewayListenAddr { addr: listen_addr }
+    }
+    pub fn set(&mut self, gateway_addr: http_gateway::ListenAddr) {
+        self.addr = gateway_addr;
+    }
+    pub fn port(&self) -> u64 {
+        self.addr.port() as u64
+    }
+    pub fn ip(&self) -> IpAddr {
+        self.addr.ip()
+    }
+}
+
+impl Default for HttpGatewayListenAddr {
+    fn default() -> HttpGatewayListenAddr {
+        HttpGatewayListenAddr { addr: http_gateway::ListenAddr::default() }
+    }
 }

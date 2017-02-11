@@ -59,8 +59,18 @@ fn never_escape(data: &str) -> String {
 
 #[cfg(test)]
 mod test {
+    use std::path::PathBuf;
+    use std::str::FromStr;
     use std::collections::BTreeMap;
     use super::*;
+
+    use config::{gcache, Config};
+    use hcore::package::{PackageIdent, PackageInstall};
+    use error::{Error, Result};
+    use manager::census::{CensusEntry, CensusList};
+    use package::Package;
+    use manager::service::config::ServiceConfig;
+    use util::convert;
 
     #[test]
     fn test_handlebars_json_helper() {
@@ -139,5 +149,61 @@ mod test {
         m.insert("new".into(), "new".into());
         let rendered = template.render("t", &m).unwrap();
         assert_eq!(rendered, "this is new".to_string());
+    }
+
+    fn gen_pkg() -> Package {
+        let pkg_install = PackageInstall::new_from_parts(
+            PackageIdent::from_str("neurosis/redis/2000/20160222201258").unwrap(),
+            PathBuf::from("/"),
+            PathBuf::from("/fakeo"),
+            PathBuf::from("/fakeo/here"));
+        let pkg_dep = PackageIdent::from_str("neurosis/jq-static/1000/20160222201259").unwrap();
+        Package {
+            origin: String::from("neurosis"),
+            name: String::from("redis"),
+            version: String::from("2000"),
+            release: String::from("20160222201258"),
+            deps: vec![pkg_dep],
+            tdeps: Vec::new(),
+            pkg_install: pkg_install,
+        }
+    }
+
+    fn gen_census_list() -> CensusList {
+        let mut ce = CensusEntry::default();
+        let member_id = "0000000000000000000";
+        ce.set_member_id(format!("{}", member_id));
+        ce.set_service(String::from("redis"));
+        ce.set_group(String::from("default"));
+        let mut cl = CensusList::new();
+        cl.insert(format!("{}", member_id), ce);
+        cl
+    }
+
+    fn setup_service_config() -> Result<ServiceConfig> {
+        gcache(Config::default());
+        let pkg = gen_pkg();
+        let cl = gen_census_list();
+        ServiceConfig::new("redis.default", &pkg, &cl, &Vec::new())
+    }
+
+    // This test replicates the logic in manager::service::config::ServiceConfig::write
+    // to convert the ServiceConfig to json.
+    // The pkgPathFor helper takes the render context (which is the config converted from toml to json)
+    // and attempts to deserialize it to find the package path for one of the services dependencies.
+    #[test]
+    #[should_panic(expected = "assertion failed")]
+    fn pkg_path_for_helper() {
+        let content = "{{pkgPathFor \"neurosis/jq-static\"}}".to_string();
+        let mut template = Template::new();
+        template.register_template_string("t", content).unwrap();
+
+        let sc = setup_service_config().unwrap();
+        let toml = sc.to_toml().unwrap();
+        let data = convert::toml_to_json(toml);
+
+        let rendered = template.render("t", &data).unwrap();
+        assert_eq!(rendered,
+                   "/fakeo/here/neurosis/jq-static/1000/20160222201259".to_string());
     }
 }
