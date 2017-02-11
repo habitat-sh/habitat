@@ -635,16 +635,22 @@ mod test {
     use hcore::package::{PackageIdent, PackageInstall};
     use regex::Regex;
     use toml;
+    use serde_json;
+    use util::convert;
 
     use super::*;
     use config::{gcache, Config};
     use error::Error;
+    use manager::service::ServiceSpec;
     use supervisor::RuntimeConfig;
     use VERSION;
 
+    fn gen_ident() -> PackageIdent {
+        PackageIdent::from_str("neurosis/redis/2000/20160222201258").unwrap()
+    }
+
     fn gen_pkg() -> PackageInstall {
-        PackageInstall::new_from_parts(PackageIdent::from_str("neurosis/redis/2000/20160222201258")
-                                           .unwrap(),
+        PackageInstall::new_from_parts(gen_ident(),
                                        PathBuf::from("/"),
                                        PathBuf::from("/fakeo"),
                                        PathBuf::from("/fakeo/here"))
@@ -656,6 +662,13 @@ mod test {
             .expect(&format!("Content should parse as TOML: {}", content))
     }
 
+    fn setup_service_config() -> Result<ServiceConfig> {
+        gcache(Config::default());
+        let spec = ServiceSpec::default_for(gen_ident());
+        let pkg = gen_pkg();
+        ServiceConfig::new(&pkg, &RuntimeConfig::default(), spec.config_from, &spec.binds)
+    }
+ 
     #[test]
     fn to_toml_hab() {
         gcache(Config::default());
@@ -686,6 +699,17 @@ mod test {
         let ip = toml.lookup("sys.ip").unwrap().as_str().unwrap();
         let re = Regex::new(r"\d+\.\d+\.\d+\.\d+").unwrap();
         assert!(re.is_match(&ip));
+    }
+
+    #[test]
+    fn deserialize_service_config_from_json() {
+        let sc = setup_service_config().unwrap();
+        let toml = sc.to_toml().unwrap();
+        let data = convert::toml_to_json(toml);
+        let deserialized_service_config = serde_json::from_value::<ServiceConfig>(data).unwrap();
+        let target_service_config = setup_service_config().unwrap();
+        assert_eq!(deserialized_service_config.pkg.ident,
+                   target_service_config.pkg.ident);
     }
 
     #[test]
