@@ -237,7 +237,8 @@ fn setup_global_config(m: &ArgMatches) -> Result<()> {
     let mut config = Config::default();
     // TODO fn: remove once ServiceConfig doesn't depend on global config
     if let Some(addr_str) = m.value_of("LISTEN_HTTP") {
-        config.service_config_http_listen = try!(http_gateway::ListenAddr::from_str(addr_str));
+        let listener_addr = try!(http_gateway::ListenAddr::from_str(addr_str));
+        config.service_config_http_listen.set(listener_addr);
     }
     debug!("Config:\n{:?}", config);
     gcache(config);

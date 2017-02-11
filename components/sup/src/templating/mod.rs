@@ -59,8 +59,18 @@ fn never_escape(data: &str) -> String {
 
 #[cfg(test)]
 mod test {
+    use std::path::PathBuf;
+    use std::str::FromStr;
     use std::collections::BTreeMap;
     use super::*;
+
+    use config::{gcache, Config};
+    use hcore::package::{PackageIdent, PackageInstall};
+    use error::Result;
+    use manager::service::config::ServiceConfig;
+    use manager::service::ServiceSpec;
+    use supervisor::RuntimeConfig;
+    use util::convert;
 
     #[test]
     fn test_handlebars_json_helper() {
@@ -139,5 +149,44 @@ mod test {
         m.insert("new".into(), "new".into());
         let rendered = template.render("t", &m).unwrap();
         assert_eq!(rendered, "this is new".to_string());
+    }
+
+    fn gen_ident() -> PackageIdent {
+        PackageIdent::from_str("neurosis/redis/2000/20160222201258").unwrap()
+    }
+
+    fn gen_pkg_install() -> PackageInstall {
+        PackageInstall::new_from_parts(
+            gen_ident(),
+            PathBuf::from("/"),
+            PathBuf::from("/fakeo"),
+            PathBuf::from("/fakeo/here"))
+    }
+
+    fn setup_service_config() -> Result<ServiceConfig> {
+        gcache(Config::default());
+        let spec = ServiceSpec::default_for(gen_ident());
+        let pkg = gen_pkg_install();
+        ServiceConfig::new(&pkg, &RuntimeConfig::default(), spec.config_from, &spec.binds)
+    }
+
+    // This test replicates the logic in manager::service::config::ServiceConfig::write
+    // to convert the ServiceConfig to json.
+    // The pkgPathFor helper takes the render context (which is the config converted from toml to json)
+    // and attempts to deserialize it to find the package path for one of the services dependencies.
+    #[test]
+    #[should_panic(expected = "assertion failed")]
+    fn pkg_path_for_helper() {
+        let content = "{{pkgPathFor \"neurosis/jq-static\"}}".to_string();
+        let mut template = Template::new();
+        template.register_template_string("t", content).unwrap();
+
+        let sc = setup_service_config().unwrap();
+        let toml = sc.to_toml().unwrap();
+        let data = convert::toml_to_json(toml);
+
+        let rendered = template.render("t", &data).unwrap();
+        assert_eq!(rendered,
+                   "/fakeo/here/neurosis/jq-static/1000/20160222201259".to_string());
     }
 }
