@@ -170,7 +170,7 @@ impl ServiceConfig {
     pub fn write(&mut self) -> Result<bool> {
         let final_toml = try!(self.to_toml());
         {
-            let mut last_toml = try!(File::create(self.pkg.svc_config_path.join("config.toml")));
+            let mut last_toml = try!(File::create(self.pkg.svc_path.join("config.toml")));
             try!(write!(&mut last_toml, "{}", toml::encode_str(&final_toml)));
         }
         let mut template = Template::new();
