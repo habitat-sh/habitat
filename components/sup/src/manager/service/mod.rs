@@ -43,7 +43,7 @@ use self::hooks::{HOOK_PERMISSIONS, HookTable, HookType};
 use error::{Error, Result, SupError};
 use fs;
 use manager::signals;
-use manager::census::{Census, CensusList, CensusUpdate};
+use manager::census::{CensusList, CensusUpdate};
 use prometheus::Opts;
 use supervisor::{Supervisor, RuntimeConfig};
 use util;
@@ -89,7 +89,6 @@ impl ServiceSpec {
 
 #[derive(Debug, Serialize)]
 pub struct Service {
-    pub cfg_incarnation: u64,
     pub config: ServiceConfig,
     pub current_service_files: HashMap<String, u64>,
     pub depot_url: String,
@@ -114,24 +113,26 @@ impl Service {
                                               spec.group,
                                               spec.organization.as_ref().map(|x| &**x))?;
         let (svc_user, svc_group) = try!(util::users::get_user_and_group(&package));
-        let runtime_config = RuntimeConfig::new(svc_user, svc_group);
+        let runtime_cfg = RuntimeConfig::new(svc_user, svc_group);
+        let svc_cfg = ServiceConfig::new(&package, &runtime_cfg, spec.config_from, &spec.binds)?;
+        let hook_template_path = svc_cfg.config_root.join("hooks");
+        let hooks_path = fs::svc_hooks_path(service_group.service());
         Ok(Service {
-            cfg_incarnation: 0,
-            config: ServiceConfig::new(&package, &runtime_config, spec.config_from, &spec.binds)?,
+            config: svc_cfg,
             current_service_files: HashMap::new(),
             depot_url: spec.depot_url,
             health_check: HealthCheck::default(),
+            hooks: HookTable::default().load_hooks(&runtime_cfg, hooks_path, hook_template_path),
             initialized: false,
             last_restart_display: LastRestartDisplay::None,
             needs_restart: false,
-            supervisor: Supervisor::new(package.ident().clone(), &service_group, runtime_config),
+            supervisor: Supervisor::new(package.ident().clone(), &service_group, runtime_cfg),
             package: package,
             service_group: service_group,
             smoke_check: SmokeCheck::default(),
             spec_ident: spec.ident,
             topology: spec.topology,
             update_strategy: spec.update_strategy,
-            hooks: HookTable::default(),
         })
     }
 
@@ -182,23 +183,25 @@ impl Service {
         self.supervisor.start()
     }
 
-    pub fn restart(&mut self, census: &Census) -> Result<()> {
+    pub fn restart(&mut self, census_list: &CensusList) -> Result<()> {
+        let census = census_list.get(&*self.service_group)
+            .expect("Service Group's census entry missing from list!");
         match self.topology {
             Topology::Leader => {
                 let me = census.me().expect("Census corrupt, service can't find 'me'");
                 if me.get_election_is_running() {
                     if self.last_restart_display != LastRestartDisplay::ElectionInProgress {
                         outputln!(preamble self.service_group,
-                                  "Not restarting service; {}",
-                                  Yellow.bold().paint("election in progress."));
+                                      "Not restarting service; {}",
+                                      Yellow.bold().paint("election in progress."));
                         self.last_restart_display = LastRestartDisplay::ElectionInProgress;
                     }
                 } else if me.get_election_is_no_quorum() {
                     if self.last_restart_display != LastRestartDisplay::ElectionNoQuorum {
                         outputln!(preamble self.service_group,
-                                  "Not restarting service; {}, {}.",
-                                  Yellow.bold().paint("election in progress"),
-                                  Red.bold().paint("and we have no quorum"));
+                                      "Not restarting service; {}, {}.",
+                                      Yellow.bold().paint("election in progress"),
+                                      Red.bold().paint("and we have no quorum"));
                         self.last_restart_display = LastRestartDisplay::ElectionNoQuorum;
                     }
                 } else if me.get_election_is_finished() {
@@ -207,8 +210,8 @@ impl Service {
                         .get_member_id();
                     if self.last_restart_display != LastRestartDisplay::ElectionFinished {
                         outputln!(preamble self.service_group,
-                                  "Restarting service; {} is the leader",
-                                  Green.bold().paint(leader_id));
+                                      "Restarting service; {} is the leader",
+                                      Green.bold().paint(leader_id));
                         self.last_restart_display = LastRestartDisplay::ElectionFinished;
                     }
                     self.needs_restart = false;
@@ -271,36 +274,27 @@ impl Service {
                 census_updated: bool,
                 last_census_update: &mut CensusUpdate) {
         self.config.populate(&self.service_group, census_list);
-        self.initialize();
-        self.check_process();
         self.persist_service_files(butterfly);
 
         let svc_cfg_updated = self.persist_service_config(butterfly);
         if svc_cfg_updated || census_updated {
-            self.hooks.compile(&self.service_group, &self.config);
-            self.reconfigure();
-            if let Some(err) = self.copy_run().err() {
-                outputln!(preamble self.service_group, "Failed to copy run hook: {}", err);
-            }
             if svc_cfg_updated {
                 self.update_service_rumor_cfg(butterfly, last_census_update);
+                if let Some(err) = self.config.reload_gossip().err() {
+                    outputln!(preamble self.service_group, "error loading gossip config, {}", err);
+                }
             }
+            self.reconfigure();
         }
 
+        self.initialize();
+        self.check_process();
+
         if self.initialized && (self.needs_restart || self.is_down()) {
-            let census = census_list.get(&*self.service_group)
-                .expect("Service Group's census entry missing from list!");
-            if let Some(err) = self.restart(census)
-                .err() {
+            if let Some(err) = self.restart(census_list).err() {
                 outputln!(preamble self.service_group, "Service restart failed: {}", err);
             }
         }
-
-        // if self.smoke_test == SmokeCheck::Pending {
-        //     if self.smoke_runner.is_none() {
-        //         self.smoke_runner = Some(handle);
-        //     }
-        // }
     }
 
     pub fn to_rumor<T: ToString>(&self, member_id: T) -> ServiceRumor {
@@ -320,155 +314,17 @@ impl Service {
                           exported.as_ref())
     }
 
-    pub fn write_butterfly_service_file(&mut self,
-                                        filename: String,
-                                        incarnation: u64,
-                                        body: Vec<u8>)
-                                        -> bool {
-        self.current_service_files.insert(filename.clone(), incarnation);
-        let on_disk_path = self.svc_files_path().join(filename);
-        let current_checksum = match hash::hash_file(&on_disk_path) {
-            Ok(current_checksum) => current_checksum,
-            Err(e) => {
-                debug!("Failed to get current checksum for {:?}: {}",
-                       on_disk_path,
-                       e);
-                String::new()
-            }
-        };
-        let new_checksum = hash::hash_bytes(&body)
-            .expect("We failed to hash a Vec<u8> in a method that can't return an error; not \
-                     even sure what this means");
-        if new_checksum != current_checksum {
-            let new_filename = format!("{}.write", on_disk_path.to_string_lossy());
-
-            let mut new_file = match File::create(&new_filename) {
-                Ok(new_file) => new_file,
-                Err(e) => {
-                    outputln!(preamble self.service_group,
-                              "Service file from butterfly failed to open the new file {}: {}",
-                              new_filename,
-                              Red.bold().paint(format!("{}", e)));
-                    return false;
-                }
-            };
-
-            if let Err(e) = new_file.write_all(&body) {
-                outputln!(preamble self.service_group,
-                          "Service file from butterfly failed to write {}: {}",
-                          new_filename,
-                          Red.bold().paint(format!("{}", e)));
-                return false;
-            }
-
-            if let Err(e) = std::fs::rename(&new_filename, &on_disk_path) {
-                outputln!(preamble self.service_group,
-                          "Service file from butterfly failed to rename {} to {}: {}",
-                          new_filename,
-                          on_disk_path.to_string_lossy(),
-                          Red.bold().paint(format!("{}", e)));
-                return false;
-            }
-
-            if let Err(e) = set_owner(&on_disk_path,
-                                      &self.supervisor.runtime_config.svc_user,
-                                      &self.supervisor.runtime_config.svc_group) {
-                outputln!(preamble self.service_group,
-                          "Service file from butterfly failed to set ownership on {}: {}",
-                          on_disk_path.to_string_lossy(),
-                          Red.bold().paint(format!("{}", e)));
-                return false;
-            }
-
-            if let Err(e) = set_permissions(&on_disk_path, 0o640) {
-                outputln!(preamble self.service_group,
-                          "Service file from butterfly failed to set permissions on {}: {}",
-                          on_disk_path.to_string_lossy(),
-                          Red.bold().paint(format!("{}", e)));
-                return false;
-            }
-
-            outputln!(preamble self.service_group,
-                      "Service file updated from butterfly {}: {}",
-                      on_disk_path.to_string_lossy(),
-                      Green.bold().paint(new_checksum));
-            true
-        } else {
-            false
-        }
-    }
-
-    pub fn write_butterfly_service_config(&mut self, config: toml::Value) -> bool {
-        let encoded = toml::encode_str(&config);
-        let on_disk_path = self.svc_path().join("gossip.toml");
-        let current_checksum = match hash::hash_file(&on_disk_path) {
-            Ok(current_checksum) => current_checksum,
-            Err(e) => {
-                debug!("Failed to get current checksum for {:?}: {}",
-                       on_disk_path,
-                       e);
-                String::new()
-            }
-        };
-        let new_checksum = hash::hash_string(&encoded)
-            .expect("We failed to hash a string in a method that can't return an error; not even \
-                     sure what this means");
-        if new_checksum != current_checksum {
-            let new_filename = format!("{}.write", on_disk_path.to_string_lossy());
-
-            let mut new_file = match File::create(&new_filename) {
-                Ok(new_file) => new_file,
-                Err(e) => {
-                    outputln!(preamble self.service_group,
-                              "Service configuration from butterfly failed to open the new file: \
-                               {}",
-                              Red.bold().paint(format!("{}", e)));
-                    return false;
-                }
-            };
-
-            if let Err(e) = new_file.write_all(encoded.as_bytes()) {
-                outputln!(preamble self.service_group,
-                          "Service configuration from butterfly failed to write: {}",
-                          Red.bold().paint(format!("{}", e)));
-                return false;
-            }
-
-            if let Err(e) = std::fs::rename(&new_filename, &on_disk_path) {
-                outputln!(preamble self.service_group,
-                          "Service configuration from butterfly failed to rename: {}",
-                          Red.bold().paint(format!("{}", e)));
-                return false;
-            }
-
-            if let Err(e) = set_owner(&on_disk_path,
-                                      &self.supervisor.runtime_config.svc_user,
-                                      &self.supervisor.runtime_config.svc_group) {
-                outputln!(preamble self.service_group,
-                          "Service configuration from butterfly failed to set ownership: {}",
-                          Red.bold().paint(format!("{}", e)));
-                return false;
-            }
-
-            if let Err(e) = set_permissions(&on_disk_path, 0o640) {
-                outputln!(preamble self.service_group,
-                          "Service configuration from butterfly failed to set permissions: {}",
-                          Red.bold().paint(format!("{}", e)));
-                return false;
-            }
-
-            outputln!(preamble self.service_group,
-                      "Service configuration updated from butterfly: {}",
-                      Green.bold().paint(new_checksum));
-            true
-        } else {
-            false
-        }
-    }
-
     pub fn health_check(&self) -> HealthCheck {
         if self.hooks.health_check.is_some() {
-            match self.run_hook(HookType::HealthCheck) {
+            // JW TODO: This should leverage `run_hook()` directly but we would need to give a
+            // mutable reference to the http-gateway to allow it to run this hook. We don't want
+            // to allow the http-gateway to obtain a lock on any of the manager's memory, including
+            // the service list, so we need to temporarily ensure that this hook never attempts
+            // to compile on run.
+            //
+            // In the near future, we will periodically run this hook and cache it's results on
+            // the service struct itself.
+            match self.hooks.try_run(HookType::HealthCheck, &self.service_group) {
                 Ok(()) => HealthCheck::Ok,
                 Err(SupError { err: Error::HookFailed(_, 1), .. }) => HealthCheck::Warning,
                 Err(SupError { err: Error::HookFailed(_, 2), .. }) => HealthCheck::Critical,
@@ -491,32 +347,20 @@ impl Service {
         }
     }
 
-    /// Run file_updated hook if present
-    pub fn file_updated(&self) -> bool {
-        if self.initialized {
-            match self.run_hook(HookType::FileUpdated) {
-                Ok(()) => {
-                    outputln!(preamble self.service_group, "File update hook succeeded");
-                    return true;
-                }
-                Err(err) => {
-                    outputln!(preamble self.service_group, "File update hook failed: {}", err);
-                }
-            }
-        }
-        false
-    }
-
     /// Run initialization hook if present
     pub fn initialize(&mut self) {
-        if !self.initialized {
-            outputln!(preamble self.service_group, "Initializing");
-            if let Some(err) = self.run_hook(HookType::Init).err() {
-                outputln!(preamble self.service_group, "Initialization failed: {}", err);
-                return;
-            }
-            self.initialized = true;
+        if self.initialized {
+            return;
         }
+        outputln!(preamble self.service_group, "Initializing");
+        if let Some(err) = self.run_hook(HookType::Init).err() {
+            outputln!(preamble self.service_group, "Initialization failed: {}", err);
+            return;
+        }
+        if let Some(err) = self.copy_run().err() {
+            outputln!(preamble self.service_group, "Failed to copy run hook: {}", err);
+        }
+        self.initialized = true;
     }
 
     pub fn populate(&mut self, census: &CensusList) {
@@ -533,6 +377,9 @@ impl Service {
                     outputln!(preamble self.service_group,
                               "Reconfiguration hook failed: {}",
                               err);
+                }
+                if let Some(err) = self.copy_run().err() {
+                    outputln!(preamble self.service_group, "Failed to copy run hook: {}", err);
                 }
             }
             Ok(false) => (),
@@ -571,7 +418,7 @@ impl Service {
         util::path::append_interpreter_and_path(&mut paths)
     }
 
-    pub fn smoke_test(&self) -> SmokeCheck {
+    pub fn smoke_test(&mut self) -> SmokeCheck {
         match self.run_hook(HookType::SmokeTest) {
             Ok(()) => SmokeCheck::Ok,
             Err(SupError { err: Error::HookFailed(_, code), .. }) => SmokeCheck::Failed(code),
@@ -652,13 +499,29 @@ impl Service {
         Ok(())
     }
 
+    /// Run file_updated hook if present
+    fn file_updated(&mut self) -> bool {
+        if self.initialized {
+            match self.run_hook(HookType::FileUpdated) {
+                Ok(()) => {
+                    outputln!(preamble self.service_group, "File update hook succeeded");
+                    return true;
+                }
+                Err(err) => {
+                    outputln!(preamble self.service_group, "File update hook failed: {}", err);
+                }
+            }
+        }
+        false
+    }
+
     /// Write service configuration from gossip data to disk.
     ///
     /// Returns true if a change was made and false if there were no updates.
     fn persist_service_config(&mut self, butterfly: &butterfly::Server) -> bool {
         if let Some((incarnation, config)) =
-            butterfly.service_config_for(&*self.service_group, Some(self.cfg_incarnation)) {
-            self.cfg_incarnation = incarnation;
+            butterfly.service_config_for(&*self.service_group, Some(self.config.incarnation)) {
+            self.config.incarnation = incarnation;
             self.write_butterfly_service_config(config)
         } else {
             false
@@ -696,7 +559,8 @@ impl Service {
         Ok(())
     }
 
-    fn run_hook(&self, hook: HookType) -> Result<()> {
+    fn run_hook(&mut self, hook: HookType) -> Result<()> {
+        self.hooks.compile(&self.service_group, &self.config);
         self.hooks.try_run(hook, &self.service_group)
     }
 
@@ -725,6 +589,152 @@ impl Service {
                 butterfly.insert_service(rumor);
                 last_update.service_counter += 1;
             }
+        }
+    }
+
+    fn write_butterfly_service_file(&mut self,
+                                    filename: String,
+                                    incarnation: u64,
+                                    body: Vec<u8>)
+                                    -> bool {
+        self.current_service_files.insert(filename.clone(), incarnation);
+        let on_disk_path = self.svc_files_path().join(filename);
+        let current_checksum = match hash::hash_file(&on_disk_path) {
+            Ok(current_checksum) => current_checksum,
+            Err(e) => {
+                debug!("Failed to get current checksum for {:?}: {}",
+                       on_disk_path,
+                       e);
+                String::new()
+            }
+        };
+        let new_checksum = hash::hash_bytes(&body)
+            .expect("We failed to hash a Vec<u8> in a method that can't return an error; not \
+                     even sure what this means");
+        if new_checksum != current_checksum {
+            let new_filename = format!("{}.write", on_disk_path.to_string_lossy());
+
+            let mut new_file = match File::create(&new_filename) {
+                Ok(new_file) => new_file,
+                Err(e) => {
+                    outputln!(preamble self.service_group,
+                                  "Service file from butterfly failed to open the new file {}: {}",
+                                  new_filename,
+                                  Red.bold().paint(format!("{}", e)));
+                    return false;
+                }
+            };
+
+            if let Err(e) = new_file.write_all(&body) {
+                outputln!(preamble self.service_group,
+                              "Service file from butterfly failed to write {}: {}",
+                              new_filename,
+                              Red.bold().paint(format!("{}", e)));
+                return false;
+            }
+
+            if let Err(e) = std::fs::rename(&new_filename, &on_disk_path) {
+                outputln!(preamble self.service_group,
+                              "Service file from butterfly failed to rename {} to {}: {}",
+                              new_filename,
+                              on_disk_path.to_string_lossy(),
+                              Red.bold().paint(format!("{}", e)));
+                return false;
+            }
+
+            if let Err(e) = set_owner(&on_disk_path,
+                                      &self.supervisor.runtime_config.svc_user,
+                                      &self.supervisor.runtime_config.svc_group) {
+                outputln!(preamble self.service_group,
+                              "Service file from butterfly failed to set ownership on {}: {}",
+                              on_disk_path.to_string_lossy(),
+                              Red.bold().paint(format!("{}", e)));
+                return false;
+            }
+
+            if let Err(e) = set_permissions(&on_disk_path, 0o640) {
+                outputln!(preamble self.service_group,
+                              "Service file from butterfly failed to set permissions on {}: {}",
+                              on_disk_path.to_string_lossy(),
+                              Red.bold().paint(format!("{}", e)));
+                return false;
+            }
+
+            outputln!(preamble self.service_group,
+                          "Service file updated from butterfly {}: {}",
+                          on_disk_path.to_string_lossy(),
+                          Green.bold().paint(new_checksum));
+            true
+        } else {
+            false
+        }
+    }
+
+    fn write_butterfly_service_config(&mut self, config: toml::Value) -> bool {
+        let encoded = toml::encode_str(&config);
+        let on_disk_path = self.svc_path().join("gossip.toml");
+        let current_checksum = match hash::hash_file(&on_disk_path) {
+            Ok(current_checksum) => current_checksum,
+            Err(e) => {
+                debug!("Failed to get current checksum for {:?}: {}",
+                       on_disk_path,
+                       e);
+                String::new()
+            }
+        };
+        let new_checksum = hash::hash_string(&encoded)
+            .expect("We failed to hash a string in a method that can't return an error; not even \
+                     sure what this means");
+        if new_checksum != current_checksum {
+            let new_filename = format!("{}.write", on_disk_path.to_string_lossy());
+
+            let mut new_file = match File::create(&new_filename) {
+                Ok(new_file) => new_file,
+                Err(e) => {
+                    outputln!(preamble self.service_group,
+                              "Service configuration from butterfly failed to open the new file: \
+                               {}",
+                              Red.bold().paint(format!("{}", e)));
+                    return false;
+                }
+            };
+
+            if let Err(e) = new_file.write_all(encoded.as_bytes()) {
+                outputln!(preamble self.service_group,
+                          "Service configuration from butterfly failed to write: {}",
+                          Red.bold().paint(format!("{}", e)));
+                return false;
+            }
+
+            if let Err(e) = std::fs::rename(&new_filename, &on_disk_path) {
+                outputln!(preamble self.service_group,
+                          "Service configuration from butterfly failed to rename: {}",
+                          Red.bold().paint(format!("{}", e)));
+                return false;
+            }
+
+            if let Err(e) = set_owner(&on_disk_path,
+                                      &self.supervisor.runtime_config.svc_user,
+                                      &self.supervisor.runtime_config.svc_group) {
+                outputln!(preamble self.service_group,
+                          "Service configuration from butterfly failed to set ownership: {}",
+                          Red.bold().paint(format!("{}", e)));
+                return false;
+            }
+
+            if let Err(e) = set_permissions(&on_disk_path, 0o640) {
+                outputln!(preamble self.service_group,
+                          "Service configuration from butterfly failed to set permissions: {}",
+                          Red.bold().paint(format!("{}", e)));
+                return false;
+            }
+
+            outputln!(preamble self.service_group,
+                      "Service configuration updated from butterfly: {}",
+                      Green.bold().paint(new_checksum));
+            true
+        } else {
+            false
         }
     }
 }

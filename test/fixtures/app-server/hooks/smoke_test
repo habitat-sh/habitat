@@ -1,0 +1,7 @@
+#!/bin/sh
+
+echo "**"
+echo "-- Smoke Test - {{svc.me.sys.ip}} --"
+echo "**"
+
+return 0
