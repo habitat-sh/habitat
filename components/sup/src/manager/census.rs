@@ -49,16 +49,21 @@ impl CensusUpdate {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
+pub enum ElectionStatus {
+    None,
+    ElectionInProgress,
+    ElectionNoQuorum,
+    ElectionFinished,
+}
+
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize, Default)]
 pub struct CensusEntry {
     pub member_id: String,
     pub service: String,
     pub group: String,
     pub org: Option<String>,
-    pub hostname: String,
     pub address: String,
-    pub ip: String,
-    pub port: String,
     pub cfg: toml::Table,
     pub sys: SysInfo,
     pub pkg: Option<PackageIdent>,
@@ -220,6 +225,18 @@ impl CensusEntry {
 
     pub fn get_update_election_is_finished(&self) -> bool {
         self.update_election_is_finished.unwrap_or(false)
+    }
+
+    pub fn get_election_status(&self) -> ElectionStatus {
+        if self.get_election_is_running() {
+            ElectionStatus::ElectionInProgress
+        } else if self.get_election_is_no_quorum() {
+            ElectionStatus::ElectionNoQuorum
+        } else if self.get_election_is_finished() {
+            ElectionStatus::ElectionFinished
+        } else {
+            ElectionStatus::None
+        }
     }
 
     pub fn set_initialized(&mut self, value: bool) {
