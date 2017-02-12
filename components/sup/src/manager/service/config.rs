@@ -166,6 +166,10 @@ impl ServiceConfig {
         self.svc.populate(service_group, census_list);
     }
 
+    pub fn reload_gossip(&mut self) -> Result<()> {
+        self.cfg.load_gossip(&self.pkg.name)
+    }
+
     /// Write the configuration to `config.toml`, and render the templated configuration files.
     pub fn write(&mut self) -> Result<bool> {
         let final_toml = try!(self.to_toml());
@@ -329,9 +333,9 @@ impl Cfg {
             environment: None,
         };
         try!(cfg.load_default(&config_root));
-        try!(cfg.load_user(&config_root));
-        try!(cfg.load_gossip(&config_root));
-        try!(cfg.load_environment(&package));
+        try!(cfg.load_user(&package.ident.name));
+        try!(cfg.load_gossip(&package.ident.name));
+        try!(cfg.load_environment(&package.ident.name));
         Ok(cfg)
     }
 
@@ -392,8 +396,8 @@ impl Cfg {
         Ok(())
     }
 
-    fn load_user<T: AsRef<Path>>(&mut self, config_root: T) -> Result<()> {
-        let mut file = match File::open(config_root.as_ref().join("user.toml")) {
+    fn load_user(&mut self, package: &str) -> Result<()> {
+        let mut file = match File::open(fs::svc_path(package).join("user.toml")) {
             Ok(file) => file,
             Err(e) => {
                 debug!("Failed to open user.toml: {}", e);
@@ -417,8 +421,8 @@ impl Cfg {
         Ok(())
     }
 
-    fn load_gossip<T: AsRef<Path>>(&mut self, config_root: T) -> Result<()> {
-        let mut file = match File::open(config_root.as_ref().join("gossip.toml")) {
+    fn load_gossip(&mut self, package: &str) -> Result<()> {
+        let mut file = match File::open(fs::svc_path(package).join("gossip.toml")) {
             Ok(file) => file,
             Err(e) => {
                 debug!("Failed to open gossip.toml: {}", e);
@@ -442,7 +446,7 @@ impl Cfg {
         Ok(())
     }
 
-    fn load_environment(&mut self, package: &PackageInstall) -> Result<()> {
+    fn load_environment(&mut self, package: &str) -> Result<()> {
         let var_name = format!("{}_{}", ENV_VAR_PREFIX, package)
             .to_ascii_uppercase()
             .replace("-", "_");
