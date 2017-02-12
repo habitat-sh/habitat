@@ -115,23 +115,30 @@ impl Service {
                                               spec.organization.as_ref().map(|x| &**x))?;
         let (svc_user, svc_group) = try!(util::users::get_user_and_group(&package));
         let runtime_config = RuntimeConfig::new(svc_user, svc_group);
+        let supervisor = Supervisor::new(package.ident().clone(), &service_group, runtime_config);
+        let config = ServiceConfig::new(&package,
+                                        &supervisor.runtime_config,
+                                        spec.config_from,
+                                        &spec.binds)?;
+        let mut hooks = HookTable::default();
+        hooks.load_hooks(&supervisor.runtime_config, &config, &service_group);
         Ok(Service {
             cfg_incarnation: 0,
-            config: ServiceConfig::new(&package, &runtime_config, spec.config_from, &spec.binds)?,
+            config: config,
             current_service_files: HashMap::new(),
             depot_url: spec.depot_url,
             health_check: HealthCheck::default(),
             initialized: false,
             last_restart_display: LastRestartDisplay::None,
             needs_restart: false,
-            supervisor: Supervisor::new(package.ident().clone(), &service_group, runtime_config),
+            supervisor: supervisor,
             package: package,
             service_group: service_group,
             smoke_check: SmokeCheck::default(),
             spec_ident: spec.ident,
             topology: spec.topology,
             update_strategy: spec.update_strategy,
-            hooks: HookTable::default(),
+            hooks: hooks,
         })
     }
 
@@ -344,9 +351,6 @@ impl Service {
             return;
         }
         outputln!(preamble self.service_group, "Initializing");
-        self.hooks.load_hooks(&self.supervisor.runtime_config,
-                              &self.config,
-                              &self.service_group);
         if let Some(err) = self.run_hook(HookType::Init).err() {
             outputln!(preamble self.service_group, "Initialization failed: {}", err);
             return;
