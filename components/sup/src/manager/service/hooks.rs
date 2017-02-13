@@ -12,18 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std;
 use std::fmt;
-use std::fs;
 use std::io::BufReader;
 use std::io::prelude::*;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::Child;
 
 use hcore;
 use hcore::service::ServiceGroup;
 
 use error::{Error, Result};
-use manager::service::{Service, ServiceConfig};
+use manager::service::ServiceConfig;
+use supervisor::RuntimeConfig;
 use templating::Template;
 use util;
 
@@ -81,7 +82,7 @@ impl Hook {
         let toml = try!(cfg.to_toml());
         let svc_data = util::convert::toml_to_json(toml);
         let data = try!(template.render("hook", &svc_data));
-        let mut file = try!(fs::File::create(&self.path));
+        let mut file = try!(std::fs::File::create(&self.path));
         try!(file.write_all(data.as_bytes()));
         try!(hcore::util::perm::set_owner(&self.path, &self.user, &self.group));
         try!(hcore::util::perm::set_permissions(&self.path, HOOK_PERMISSIONS));
@@ -119,11 +120,16 @@ pub struct HookTable {
     pub file_updated: Option<Hook>,
     pub run: Option<Hook>,
     pub smoke_test: Option<Hook>,
+    cfg_incarnation: u64,
 }
 
 impl HookTable {
     /// Compile all loaded hooks from the table into their destination service directory.
     pub fn compile(&mut self, service_group: &ServiceGroup, config: &ServiceConfig) {
+        if self.cfg_incarnation != 0 && config.incarnation <= self.cfg_incarnation {
+            return;
+        }
+        self.cfg_incarnation = config.incarnation;
         if let Some(ref hook) = self.file_updated {
             self.compile_one(hook, service_group, config);
         }
@@ -145,20 +151,19 @@ impl HookTable {
     }
 
     /// Read all available hook templates from the table's package directory into the table.
-    pub fn load_hooks(&mut self, service: &Service) -> &mut Self {
-        let path = &service.config_root().join("hooks");
-        match fs::metadata(path) {
-            Ok(meta) => {
-                if meta.is_dir() {
-                    self.init = self.load_hook(HookType::Init, service);
-                    self.file_updated = self.load_hook(HookType::FileUpdated, service);
-                    self.reconfigure = self.load_hook(HookType::Reconfigure, service);
-                    self.health_check = self.load_hook(HookType::HealthCheck, service);
-                    self.run = self.load_hook(HookType::Run, service);
-                    self.smoke_test = self.load_hook(HookType::SmokeTest, service);
-                }
+    pub fn load_hooks<T, U>(mut self, cfg: &RuntimeConfig, hooks: T, templates: U) -> Self
+        where T: AsRef<Path>,
+              U: AsRef<Path>
+    {
+        if let Some(meta) = std::fs::metadata(templates.as_ref()).ok() {
+            if meta.is_dir() {
+                self.init = self.load_hook(HookType::Init, cfg, &hooks, &templates);
+                self.file_updated = self.load_hook(HookType::FileUpdated, cfg, &hooks, &templates);
+                self.reconfigure = self.load_hook(HookType::Reconfigure, cfg, &hooks, &templates);
+                self.health_check = self.load_hook(HookType::HealthCheck, cfg, &hooks, &templates);
+                self.run = self.load_hook(HookType::Run, cfg, &hooks, &templates);
+                self.smoke_test = self.load_hook(HookType::SmokeTest, cfg, &hooks, &templates);
             }
-            Err(_) => {}
         }
         self
     }
@@ -166,7 +171,7 @@ impl HookTable {
     /// Run the hook of the given type if the table has a hook of that type loaded and compiled.
     ///
     /// Returns affirmatively if the service does not have the desired hook.
-    pub fn try_run(&self, hook: HookType, service_group: &ServiceGroup) -> Result<()> {
+    pub fn try_run(&self, hook: HookType, group: &ServiceGroup) -> Result<()> {
         let hook = match hook {
             HookType::FileUpdated => &self.file_updated,
             HookType::HealthCheck => &self.health_check,
@@ -176,7 +181,7 @@ impl HookTable {
             HookType::SmokeTest => &self.smoke_test,
         };
         match *hook {
-            Some(ref h) => h.run(service_group),
+            Some(ref h) => h.run(group),
             None => Ok(()),
         }
     }
@@ -188,13 +193,25 @@ impl HookTable {
         });
     }
 
-    fn load_hook(&self, hook_type: HookType, service: &Service) -> Option<Hook> {
-        let template = hook_template_path(service, &hook_type);
-        let concrete = hook_path(service, &hook_type);
-        let (user, group) = util::users::get_user_and_group(&service.package)
-            .expect("Can't determine user:group");
-        match fs::metadata(&template) {
-            Ok(_) => Some(Hook::new(hook_type, template, concrete, user, group)),
+    fn load_hook<T, U>(&self,
+                       hook_type: HookType,
+                       runtime_cfg: &RuntimeConfig,
+                       hooks: T,
+                       templates: U)
+                       -> Option<Hook>
+        where T: AsRef<Path>,
+              U: AsRef<Path>
+    {
+        let template = hook_path(&hook_type, templates);
+        let concrete = hook_path(&hook_type, hooks);
+        match std::fs::metadata(&template) {
+            Ok(_) => {
+                Some(Hook::new(hook_type,
+                               template,
+                               concrete,
+                               runtime_cfg.svc_user.clone(),
+                               runtime_cfg.svc_group.clone()))
+            }
             Err(_) => None,
         }
     }
@@ -223,26 +240,15 @@ impl fmt::Display for HookType {
     }
 }
 
-pub fn hook_path(service: &Service, hook_type: &HookType) -> PathBuf {
-    let base = service.svc_hooks_path();
+pub fn hook_path<T>(hook_type: &HookType, path: T) -> PathBuf
+    where T: AsRef<Path>
+{
     match *hook_type {
-        HookType::Init => base.join(INIT_FILENAME),
-        HookType::HealthCheck => base.join(HEALTHCHECK_FILENAME),
-        HookType::FileUpdated => base.join(FILEUPDATED_FILENAME),
-        HookType::Reconfigure => base.join(RECONFIGURE_FILENAME),
-        HookType::Run => base.join(RUN_FILENAME),
-        HookType::SmokeTest => base.join(SMOKETEST_FILENAME),
-    }
-}
-
-pub fn hook_template_path(service: &Service, hook_type: &HookType) -> PathBuf {
-    let base = service.config_root().join("hooks");
-    match *hook_type {
-        HookType::Init => base.join(INIT_FILENAME),
-        HookType::HealthCheck => base.join(HEALTHCHECK_FILENAME),
-        HookType::FileUpdated => base.join(FILEUPDATED_FILENAME),
-        HookType::Reconfigure => base.join(RECONFIGURE_FILENAME),
-        HookType::Run => base.join(RUN_FILENAME),
-        HookType::SmokeTest => base.join(SMOKETEST_FILENAME),
+        HookType::Init => path.as_ref().join(INIT_FILENAME),
+        HookType::HealthCheck => path.as_ref().join(HEALTHCHECK_FILENAME),
+        HookType::FileUpdated => path.as_ref().join(FILEUPDATED_FILENAME),
+        HookType::Reconfigure => path.as_ref().join(RECONFIGURE_FILENAME),
+        HookType::Run => path.as_ref().join(RUN_FILENAME),
+        HookType::SmokeTest => path.as_ref().join(SMOKETEST_FILENAME),
     }
 }

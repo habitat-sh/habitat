@@ -1,0 +1,7 @@
+#!/bin/sh
+
+echo "**"
+echo "-- Reconfigure - {{svc.me.sys.ip}} --"
+echo "**"
+
+return 0

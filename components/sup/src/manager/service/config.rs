@@ -60,13 +60,19 @@ pub struct ServiceConfig {
     pub cfg: Cfg,
     pub svc: Svc,
     pub bind: Bind,
-    #[serde(skip_serializing)]
+    #[serde(skip_serializing, skip_deserializing, default="default_for_pathbuf")]
     pub config_root: PathBuf,
+    #[serde(skip_serializing, skip_deserializing)]
+    pub incarnation: u64,
     // Set to 'true' if we have data that needs to be sent to a configuration file
     #[serde(skip_serializing, skip_deserializing)]
     pub needs_write: bool,
     #[serde(skip_serializing, skip_deserializing)]
     supported_bindings: Vec<(String, ServiceGroup)>,
+}
+
+fn default_for_pathbuf() -> PathBuf {
+    PathBuf::new()
 }
 
 impl ServiceConfig {
@@ -86,6 +92,7 @@ impl ServiceConfig {
             cfg: Cfg::new(package, &config_root)?,
             svc: Svc::default(),
             bind: Bind::default(),
+            incarnation: 0,
             needs_write: true,
             supported_bindings: Self::split_bindings(bindings)?,
             config_root: config_root,
@@ -166,11 +173,15 @@ impl ServiceConfig {
         self.svc.populate(service_group, census_list);
     }
 
+    pub fn reload_gossip(&mut self) -> Result<()> {
+        self.cfg.load_gossip(&self.pkg.name)
+    }
+
     /// Write the configuration to `config.toml`, and render the templated configuration files.
     pub fn write(&mut self) -> Result<bool> {
         let final_toml = try!(self.to_toml());
         {
-            let mut last_toml = try!(File::create(self.pkg.svc_config_path.join("config.toml")));
+            let mut last_toml = try!(File::create(self.pkg.svc_path.join("config.toml")));
             try!(write!(&mut last_toml, "{}", toml::encode_str(&final_toml)));
         }
         let mut template = Template::new();
@@ -329,9 +340,9 @@ impl Cfg {
             environment: None,
         };
         try!(cfg.load_default(&config_root));
-        try!(cfg.load_user(&config_root));
-        try!(cfg.load_gossip(&config_root));
-        try!(cfg.load_environment(&package));
+        try!(cfg.load_user(&package.ident.name));
+        try!(cfg.load_gossip(&package.ident.name));
+        try!(cfg.load_environment(&package.ident.name));
         Ok(cfg)
     }
 
@@ -392,8 +403,8 @@ impl Cfg {
         Ok(())
     }
 
-    fn load_user<T: AsRef<Path>>(&mut self, config_root: T) -> Result<()> {
-        let mut file = match File::open(config_root.as_ref().join("user.toml")) {
+    fn load_user(&mut self, package: &str) -> Result<()> {
+        let mut file = match File::open(fs::svc_path(package).join("user.toml")) {
             Ok(file) => file,
             Err(e) => {
                 debug!("Failed to open user.toml: {}", e);
@@ -417,8 +428,8 @@ impl Cfg {
         Ok(())
     }
 
-    fn load_gossip<T: AsRef<Path>>(&mut self, config_root: T) -> Result<()> {
-        let mut file = match File::open(config_root.as_ref().join("gossip.toml")) {
+    fn load_gossip(&mut self, package: &str) -> Result<()> {
+        let mut file = match File::open(fs::svc_path(package).join("gossip.toml")) {
             Ok(file) => file,
             Err(e) => {
                 debug!("Failed to open gossip.toml: {}", e);
@@ -442,7 +453,7 @@ impl Cfg {
         Ok(())
     }
 
-    fn load_environment(&mut self, package: &PackageInstall) -> Result<()> {
+    fn load_environment(&mut self, package: &str) -> Result<()> {
         let var_name = format!("{}_{}", ENV_VAR_PREFIX, package)
             .to_ascii_uppercase()
             .replace("-", "_");

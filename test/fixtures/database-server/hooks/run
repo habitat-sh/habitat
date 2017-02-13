@@ -11,7 +11,7 @@ echo "-- Starting Database --"
 echo ""
 cat {{pkg.svc_config_path}}/database.conf
 echo ""
-echo "-- Running on {{svc.me.ip}} --"
+echo "-- Running on {{svc.me.sys.ip}} --"
 
 while [ 1 ]; do
   if [ $EXIT_NOW = 1 ]; then
