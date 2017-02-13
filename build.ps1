@@ -28,7 +28,9 @@ param (
     [switch]$Release
 )
 
-if(!$env:ChocolateyInstall) { $env:ChocolateyInstall = "$env:ProgramData\Chocolatey" }
+if(!$env:ChocolateyInstall) {
+    $env:ChocolateyInstall = "$env:ProgramData\Chocolatey"
+}
 # Set Environment Variables for the build
 $ChocolateyHabitatLibDir = "$env:ChocolateyInstall\lib\habitat_native_dependencies\builds\lib"
 $ChocolateyHabitatIncludeDir = "$env:ChocolateyInstall\lib\habitat_native_dependencies\builds\include"
@@ -40,12 +42,12 @@ function New-PathString([string]$StartingPath, [string]$Path) {
         if (-not [string]::IsNullOrEmpty($StartingPath)) {
             [string[]]$PathCollection = "$path;$StartingPath" -split ';'
             $Path = ($PathCollection |
-              Select-Object -Unique |
-              where {-not [string]::IsNullOrEmpty($_.trim())} |
-              where {test-path "$_"}
-              ) -join ';'
+                Select-Object -Unique |
+                Where-Object {-not [string]::IsNullOrEmpty($_.trim())} |
+                Where-Object {test-path "$_"}
+            ) -join ';'
         }
-      $path
+        $path
     }
     else {
         $StartingPath
@@ -88,6 +90,7 @@ function Invoke-Configure {
         $env:path = New-PathString -StartingPath $env:path -Path "c:\Program Files\git\cmd"
     }
     choco install libzmq_vc120 --version 4.2.3 --confirm -s https://www.nuget.org/api/v2/ --allowemptychecksums
+
     Copy-Item $env:ChocolateyInstall\lib\libzmq_vc120\build\native\bin\libzmq-x64-v120-mt-4_2_3_0.imp.lib $ChocolateyHabitatLibDir\zmq.lib -Force
     Copy-Item $env:ChocolateyInstall\lib\libzmq_vc120\build\native\bin\libzmq-x64-v120-mt-4_2_3_0.dll $ChocolateyHabitatBinDir\libzmq.dll -Force
 
@@ -101,26 +104,13 @@ function Invoke-Configure {
         choco install 7zip --version '16.02.0.20160811' --confirm
     }
 
-
-    # Install Rust Nightly (since there aren't MSVC nightly cargo builds)
-    if (Test-RustUp) {
-        rustup install stable-x86_64-pc-windows-msvc
+    if (-not (Test-RustUp)) {
+        Write-Host "Installing rustup and stable-x86_64-pc-windows-msvc Rust."
+        invoke-restmethod -usebasicparsing 'https://static.rust-lang.org/rustup/dist/i686-pc-windows-gnu/rustup-init.exe' -outfile 'rustup-init.exe'
+        ./rustup-init.exe -y --default-toolchain stable-x86_64-pc-windows-msvc --no-modify-path
     }
     else {
-        $env:PATH = New-PathString -StartingPath $env:PATH -Path "C:\Program Files\Rust stable MSVC 1.15\bin"
-        if (-not (get-command rustc -ErrorAction SilentlyContinue)) {
-            write-host "installing rust"
-            Invoke-WebRequest -UseBasicParsing -Uri 'https://static.rust-lang.org/dist/rust-1.15.0-x86_64-pc-windows-msvc.msi' -OutFile "$env:TEMP/rust-15-stable.msi"
-            start-process -filepath MSIExec.exe -argumentlist "/qn", "/i", "$env:TEMP\rust-15-stable.msi" -Wait
-            $env:PATH = New-PathString -StartingPath $env:PATH -Path "C:\Program Files\Rust stable MSVC 1.15\bin"
-            while (-not (get-command cargo -ErrorAction SilentlyContinue)) {
-                Write-Warning "`tWaiting for `cargo` to be available."
-                start-sleep -Seconds 1
-            }
-        }
-        else {
-            # TODO: version checking logic and upgrades
-        }
+        rustup install stable-x86_64-pc-windows-msvc
     }
 }
 
@@ -155,7 +145,9 @@ function Invoke-Build([string]$Path, [switch]$Clean, [switch]$Release) {
     $cargo = Get-CargoCommand
 
     Push-Location "$Path"
-    if($Clean) { invoke-expression "$cargo clean" }
+    if($Clean) {
+        invoke-expression "$cargo clean"
+    }
     Invoke-Expression "$cargo build $(if ($Release) { '--release' })" -ErrorAction Stop
     Pop-Location
 }
@@ -166,7 +158,9 @@ function Invoke-Test([string]$Path, [switch]$Clean, [switch]$Release) {
     $cargo = Get-CargoCommand
 
     Push-Location "$Path"
-    if($Clean) { invoke-expression "$cargo clean" }
+    if($Clean) {
+        invoke-expression "$cargo clean"
+    }
     Invoke-Expression "$cargo test $(if ($Release) { '--release' })" -ErrorAction Stop
     Pop-Location
 }
@@ -174,51 +168,55 @@ function Invoke-Test([string]$Path, [switch]$Clean, [switch]$Release) {
 function New-HartPackage {
     if((Split-Path $Path -leaf) -ne "hab") {
         Invoke-Build $(Join-Path $psscriptroot 'components/hab') -Clean -Release
-    }
-
-    # Import origin key
-    if (!(Test-Path "/hab/cache/keys/core-*.sig.key")) {
-        if(!$env:ORIGIN_KEY) {
-           throw "You do not have the core origin key imported on this machine. Please ensure the key is exported to the ORIGIN_KEY environment variable."
-        }
-        $env:ORIGIN_KEY | & "$psscriptroot\target\Release\hab.exe" origin key import
-    }
-
-    # Create the archive
-    $pkgRoot = "$psscriptroot/results"
-    New-Item -ItemType Directory -Path $pkgRoot -ErrorAction SilentlyContinue -Force
-
-    $pkgName = 'hab'
-    $pkgOrigin = 'core'
-    $pkgRelease = (Get-Date).ToString('yyyyMMddhhmmss')
-    $pkgVersion = (Get-Content -Path "$psscriptroot\VERSION" | Out-String).Trim()
-    $pkgArtifact = "$pkgRoot/$pkgOrigin-$pkgName-$pkgVersion-$pkgRelease-x86_64-windows"
-    $pkgFiles = @(
-        "$psscriptroot\target\Release\hab.exe",
-        'C:\Windows\System32\vcruntime140.dll',
-        'C:\ProgramData\chocolatey\lib\habitat_native_dependencies\builds\bin\*.dll'
-    )
-    $pkgTempDir = "./hab/pkgs/$pkgOrigin/$pkgName/$pkgVersion/$pkgRelease"
-    $pkgBinDir =  "$pkgTempDir/bin"
-    mkdir $pkgBinDir -Force | Out-Null
-    Copy-Item $pkgFiles -Destination $pkgBinDir
-    "$pkgOrigin/$pkgName/$pkgVersion/$pkgRelease" | out-file "$pkgTempDir/IDENT" -Encoding ascii
-    "" | out-file "$pkgTempDir/BUILD_DEPS" -Encoding ascii
-    "" | out-file "$pkgTempDir/BUILD_TDEPS" -Encoding ascii
-    "" | out-file "$pkgTempDir/FILES" -Encoding ascii
-    "" | out-file "$pkgTempDir/MANIFEST" -Encoding ascii
-    "/hab/pkgs/$pkgOrigin/$pkgName/$pkgVersion/$pkgRelease" | out-file "$pkgTempDir/PATH" -Encoding ascii
-    "" | out-file "$pkgTempDir/SVC_GROUP" -Encoding ascii
-    "" | out-file "$pkgTempDir/SVC_USER" -Encoding ascii
-    "x86_64-windows" | out-file "$pkgTempDir/TARGET" -Encoding ascii
-    7z.exe a -ttar "$pkgArtifact.tar" ./hab
-    7z.exe a -txz "$pkgArtifact.tar.xz" "$pkgArtifact.tar"
-
-    & "$psscriptroot\target\Release\hab.exe" pkg sign --origin $pkgOrigin "$pkgArtifact.tar.xz" "$pkgArtifact.hart"
-    rm "$pkgArtifact.tar", "$pkgArtifact.tar.xz", "./hab" -Recurse -force
 }
 
-if($Configure) { Invoke-Configure }
+# Import origin key
+if (!(Test-Path "/hab/cache/keys/core-*.sig.key")) {
+    if(!$env:ORIGIN_KEY) {
+        throw "You do not have the core origin key imported on this machine. Please ensure the key is exported to the ORIGIN_KEY environment variable."
+    }
+    $env:ORIGIN_KEY | & "$psscriptroot\target\Release\hab.exe" origin key import
+}
+
+# Create the archive
+$pkgRoot = "$psscriptroot/results"
+New-Item -ItemType Directory -Path $pkgRoot -ErrorAction SilentlyContinue -Force
+
+$pkgName = 'hab'
+$pkgOrigin = 'core'
+$pkgRelease = (Get-Date).ToString('yyyyMMddhhmmss')
+$pkgVersion = (Get-Content -Path "$psscriptroot\VERSION" | Out-String).Trim()
+$pkgArtifact = "$pkgRoot/$pkgOrigin-$pkgName-$pkgVersion-$pkgRelease-x86_64-windows"
+$pkgFiles = @(
+    "$psscriptroot\target\Release\hab.exe",
+    'C:\Windows\System32\vcruntime140.dll',
+    'C:\ProgramData\chocolatey\lib\habitat_native_dependencies\builds\bin\*.dll'
+)
+$pkgTempDir = "./hab/pkgs/$pkgOrigin/$pkgName/$pkgVersion/$pkgRelease"
+$pkgBinDir =  "$pkgTempDir/bin"
+mkdir $pkgBinDir -Force | Out-Null
+Copy-Item $pkgFiles -Destination $pkgBinDir
+
+"$pkgOrigin/$pkgName/$pkgVersion/$pkgRelease" | out-file "$pkgTempDir/IDENT" -Encoding ascii
+"" | out-file "$pkgTempDir/BUILD_DEPS" -Encoding ascii
+"" | out-file "$pkgTempDir/BUILD_TDEPS" -Encoding ascii
+"" | out-file "$pkgTempDir/FILES" -Encoding ascii
+"" | out-file "$pkgTempDir/MANIFEST" -Encoding ascii
+"/hab/pkgs/$pkgOrigin/$pkgName/$pkgVersion/$pkgRelease" | out-file "$pkgTempDir/PATH" -Encoding ascii
+"" | out-file "$pkgTempDir/SVC_GROUP" -Encoding ascii
+"" | out-file "$pkgTempDir/SVC_USER" -Encoding ascii
+"x86_64-windows" | out-file "$pkgTempDir/TARGET" -Encoding ascii
+
+7z.exe a -ttar "$pkgArtifact.tar" ./hab
+7z.exe a -txz "$pkgArtifact.tar.xz" "$pkgArtifact.tar"
+
+& "$psscriptroot\target\Release\hab.exe" pkg sign --origin $pkgOrigin "$pkgArtifact.tar.xz" "$pkgArtifact.hart"
+Remove-Item "$pkgArtifact.tar", "$pkgArtifact.tar.xz", "./hab" -Recurse -force
+}
+
+if($Configure) {
+    Invoke-Configure
+}
 
 # Set Default Environmental Variables for Native Compilation
 # AppVeyor will have these set already.
@@ -248,8 +246,14 @@ if(!(Test-Path "$env:TEMP\cacert.pem")) {
 }
 $env:SSL_CERT_FILE="$env:TEMP\cacert.pem"
 
-if ($Test) { Invoke-Test $Path -Clean:$Clean -Release:$Release }
-if (!$SkipBuild) { Invoke-Build $Path -Clean:$Clean -Release:$Release }
-if($Package) { New-HartPackage }
+if ($Test) {
+    Invoke-Test $Path -Clean:$Clean -Release:$Release
+}
+if (!$SkipBuild) {
+    Invoke-Build $Path -Clean:$Clean -Release:$Release
+}
+if($Package) {
+    New-HartPackage
+}
 
 exit $LASTEXITCODE
