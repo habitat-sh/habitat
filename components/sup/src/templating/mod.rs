@@ -59,8 +59,19 @@ fn never_escape(data: &str) -> String {
 
 #[cfg(test)]
 mod test {
+    use std::path::PathBuf;
+    use std::str::FromStr;
     use std::collections::BTreeMap;
+
     use super::*;
+
+    use util::convert;
+    use hcore::package::{PackageIdent, PackageInstall};
+    use serde_json;
+
+    use config::{gcache, Config};
+    use manager::ServiceConfig;
+    use supervisor::RuntimeConfig;
 
     #[test]
     fn test_handlebars_json_helper() {
@@ -139,5 +150,32 @@ mod test {
         m.insert("new".into(), "new".into());
         let rendered = template.render("t", &m).unwrap();
         assert_eq!(rendered, "this is new".to_string());
+    }
+
+    fn gen_pkg() -> PackageInstall {
+        PackageInstall::new_from_parts(PackageIdent::from_str("neurosis/redis/2000/20160222201258")
+                                           .unwrap(),
+                                       PathBuf::from("/"),
+                                       PathBuf::from("/fakeo"),
+                                       PathBuf::from("/fakeo/here"))
+    }
+
+    // This test is meant to fail until the ServiceConfig has mock data to
+    // include a package with deps.
+    // TODO: update ServiceConfig to include a package with deps.
+    #[test]
+    #[should_panic(expected = "assertion failed")]
+    fn pkg_path_for_helper() {
+        let content = "{{pkgPathFor \"neurosis/redis\"}}".to_string();
+        let mut template = Template::new();
+        template.register_template_string("t", content).unwrap();
+
+        gcache(Config::default());
+        let pkg = gen_pkg();
+        let sc = ServiceConfig::new(&pkg, &RuntimeConfig::default(), None, &Vec::new()).unwrap();
+        let toml = sc.to_toml().unwrap();
+        let data = convert::toml_to_json(toml);
+        let rendered = template.render("t", &data).unwrap();
+        assert_eq!(rendered, "/hab/pkgs/neurosis/redis/2000/20160222201258");
     }
 }

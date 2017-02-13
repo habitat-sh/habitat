@@ -60,14 +60,19 @@ pub struct ServiceConfig {
     pub cfg: Cfg,
     pub svc: Svc,
     pub bind: Bind,
-    #[serde(skip_serializing)]
+    #[serde(skip_serializing, skip_deserializing, default="default_for_pathbuf")]
     pub config_root: PathBuf,
+    #[serde(skip_serializing, skip_deserializing)]
     pub incarnation: u64,
     // Set to 'true' if we have data that needs to be sent to a configuration file
     #[serde(skip_serializing, skip_deserializing)]
     pub needs_write: bool,
     #[serde(skip_serializing, skip_deserializing)]
     supported_bindings: Vec<(String, ServiceGroup)>,
+}
+
+fn default_for_pathbuf() -> PathBuf {
+    PathBuf::new()
 }
 
 impl ServiceConfig {
