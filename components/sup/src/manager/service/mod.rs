@@ -43,7 +43,7 @@ use self::hooks::{HOOK_PERMISSIONS, HookTable, HookType};
 use error::{Error, Result, SupError};
 use fs;
 use manager::signals;
-use manager::census::{CensusList, CensusUpdate};
+use manager::census::{CensusList, CensusUpdate, ElectionStatus};
 use prometheus::Opts;
 use supervisor::{Supervisor, RuntimeConfig};
 use util;
@@ -52,14 +52,6 @@ static LOGKEY: &'static str = "SR";
 static DEFAULT_GROUP: &'static str = "default";
 const HABITAT_PACKAGE_INFO_NAME: &'static str = "habitat_package_info";
 const HABITAT_PACKAGE_INFO_DESC: &'static str = "package version information";
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
-pub enum LastRestartDisplay {
-    None,
-    ElectionInProgress,
-    ElectionNoQuorum,
-    ElectionFinished,
-}
 
 pub struct ServiceSpec {
     pub ident: PackageIdent,
@@ -94,8 +86,9 @@ pub struct Service {
     pub depot_url: String,
     pub health_check: HealthCheck,
     pub initialized: bool,
-    pub last_restart_display: LastRestartDisplay,
+    pub last_election_status: ElectionStatus,
     pub needs_restart: bool,
+    pub needs_reconfiguration: bool,
     pub package: PackageInstall,
     pub service_group: ServiceGroup,
     pub smoke_check: SmokeCheck,
@@ -124,8 +117,9 @@ impl Service {
             health_check: HealthCheck::default(),
             hooks: HookTable::default().load_hooks(&runtime_cfg, hooks_path, hook_template_path),
             initialized: false,
-            last_restart_display: LastRestartDisplay::None,
+            last_election_status: ElectionStatus::None,
             needs_restart: false,
+            needs_reconfiguration: false,
             supervisor: Supervisor::new(package.ident().clone(), &service_group, runtime_cfg),
             package: package,
             service_group: service_group,
@@ -179,51 +173,21 @@ impl Service {
         Ok(())
     }
 
-    pub fn start(&mut self) -> Result<()> {
-        self.supervisor.start()
+    pub fn start(&mut self) {
+        if let Some(err) = self.supervisor.start().err() {
+            outputln!(preamble self.service_group, "Service start failed: {}", err);
+        } else {
+            self.needs_restart = false;
+            self.needs_reconfiguration = false;
+        }
     }
 
-    pub fn restart(&mut self, census_list: &CensusList) -> Result<()> {
-        let census = census_list.get(&*self.service_group)
-            .expect("Service Group's census entry missing from list!");
-        match self.topology {
-            Topology::Leader => {
-                let me = census.me().expect("Census corrupt, service can't find 'me'");
-                if me.get_election_is_running() {
-                    if self.last_restart_display != LastRestartDisplay::ElectionInProgress {
-                        outputln!(preamble self.service_group,
-                                      "Not restarting service; {}",
-                                      Yellow.bold().paint("election in progress."));
-                        self.last_restart_display = LastRestartDisplay::ElectionInProgress;
-                    }
-                } else if me.get_election_is_no_quorum() {
-                    if self.last_restart_display != LastRestartDisplay::ElectionNoQuorum {
-                        outputln!(preamble self.service_group,
-                                      "Not restarting service; {}, {}.",
-                                      Yellow.bold().paint("election in progress"),
-                                      Red.bold().paint("and we have no quorum"));
-                        self.last_restart_display = LastRestartDisplay::ElectionNoQuorum;
-                    }
-                } else if me.get_election_is_finished() {
-                    let leader_id = census.get_leader()
-                        .expect("No leader with finished election")
-                        .get_member_id();
-                    if self.last_restart_display != LastRestartDisplay::ElectionFinished {
-                        outputln!(preamble self.service_group,
-                                      "Restarting service; {} is the leader",
-                                      Green.bold().paint(leader_id));
-                        self.last_restart_display = LastRestartDisplay::ElectionFinished;
-                    }
-                    self.needs_restart = false;
-                    try!(self.supervisor.restart());
-                }
-            }
-            Topology::Standalone => {
-                self.needs_restart = false;
-                try!(self.supervisor.restart());
-            }
+    pub fn restart(&mut self) {
+        if let Some(err) = self.supervisor.restart().err() {
+            outputln!(preamble self.service_group, "Service restart failed: {}", err);
+        } else {
+            self.needs_restart = false;
         }
-        Ok(())
     }
 
     pub fn down(&mut self) -> Result<()> {
@@ -273,6 +237,67 @@ impl Service {
                 census_list: &CensusList,
                 census_updated: bool,
                 last_census_update: &mut CensusUpdate) {
+
+        self.update_configuration(butterfly, census_list, census_updated, last_census_update);
+
+        match self.topology {
+            Topology::Standalone => {
+                self.execute_hooks();
+            }
+            Topology::Leader => {
+                let census = census_list.get(&*self.service_group)
+                    .expect("Service Group's census entry missing from list!");
+                let me = census.me().expect("Census corrupt, service can't find 'me'");
+                let current_election_status = me.get_election_status();
+                match current_election_status {
+                    ElectionStatus::None => {
+                        if self.last_election_status != current_election_status {
+                            outputln!(preamble self.service_group,
+                                      "Waiting to execute hooks; {}",
+                                      Yellow.bold().paint("election hasn't started"));
+                            self.last_election_status = current_election_status;
+                        }
+                    }
+                    ElectionStatus::ElectionInProgress => {
+                        if self.last_election_status != current_election_status {
+                            outputln!(preamble self.service_group,
+                                      "Waiting to execute hooks; {}",
+                                      Yellow.bold().paint("election in progress."));
+                            self.last_election_status = current_election_status;
+                        }
+                    }
+                    ElectionStatus::ElectionNoQuorum => {
+                        if self.last_election_status != current_election_status {
+                            outputln!(preamble self.service_group,
+                                      "Waiting to execute hooks; {}, {}.",
+                                      Yellow.bold().paint("election in progress"),
+                                      Red.bold().paint("and we have no quorum"));
+                            self.last_election_status = current_election_status
+                        }
+                    }
+                    ElectionStatus::ElectionFinished => {
+                        let leader_id = census.get_leader()
+                            .expect("No leader with finished election")
+                            .get_member_id();
+                        if self.last_election_status != current_election_status {
+                            outputln!(preamble self.service_group,
+                                      "Executing hooks; {} is the leader",
+                                      Green.bold().paint(leader_id));
+                            self.last_election_status = current_election_status;
+                        }
+                        self.execute_hooks()
+                    }
+                }
+            }
+        }
+    }
+
+    fn update_configuration(&mut self,
+                            butterfly: &butterfly::Server,
+                            census_list: &CensusList,
+                            census_updated: bool,
+                            last_census_update: &mut CensusUpdate) {
+
         self.config.populate(&self.service_group, census_list);
         self.persist_service_files(butterfly);
 
@@ -284,15 +309,37 @@ impl Service {
                     outputln!(preamble self.service_group, "error loading gossip config, {}", err);
                 }
             }
-            self.reconfigure();
+            match self.config.write() {
+                Ok(true) => {
+                    self.needs_reconfiguration = true;
+                    if let Some(err) = self.copy_run().err() {
+                        outputln!(preamble self.service_group, "Failed to copy run hook: {}", err);
+                    }
+                }
+                Ok(false) => (),
+                Err(e) => {
+                    outputln!(preamble self.service_group,
+                              "Failed to write service configuration: {}",
+                              e);
+                }
+            }
         }
+    }
 
-        self.initialize();
-        self.check_process();
+    fn execute_hooks(&mut self) {
+        if !self.initialized {
+            self.initialize();
+            if self.initialized {
+                self.start();
+            }
+        } else {
+            self.check_process();
 
-        if self.initialized && (self.needs_restart || self.is_down()) {
-            if let Some(err) = self.restart(census_list).err() {
-                outputln!(preamble self.service_group, "Service restart failed: {}", err);
+            if self.needs_restart || self.is_down() || self.needs_reconfiguration {
+                self.restart();
+                if self.needs_reconfiguration {
+                    self.reconfigure()
+                }
             }
         }
     }
@@ -370,24 +417,12 @@ impl Service {
     /// Run reconfigure hook if present. Return false if it is not present, to trigger default
     /// restart behavior.
     pub fn reconfigure(&mut self) {
-        match self.config.write() {
-            Ok(true) => {
-                self.needs_restart = true;
-                if let Some(err) = self.run_hook(HookType::Reconfigure).err() {
-                    outputln!(preamble self.service_group,
-                              "Reconfiguration hook failed: {}",
-                              err);
-                }
-                if let Some(err) = self.copy_run().err() {
-                    outputln!(preamble self.service_group, "Failed to copy run hook: {}", err);
-                }
-            }
-            Ok(false) => (),
-            Err(e) => {
-                outputln!(preamble self.service_group,
-                          "Failed to write service configuration: {}",
-                          e);
-            }
+        if let Some(err) = self.run_hook(HookType::Reconfigure).err() {
+            outputln!(preamble self.service_group,
+                      "Reconfiguration hook failed: {}",
+                      err);
+        } else {
+            self.needs_reconfiguration = false;
         }
     }
 
