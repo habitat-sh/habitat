@@ -417,12 +417,11 @@ impl Service {
     /// Run reconfigure hook if present. Return false if it is not present, to trigger default
     /// restart behavior.
     pub fn reconfigure(&mut self) {
+        self.needs_reconfiguration = false;
         if let Some(err) = self.run_hook(HookType::Reconfigure).err() {
             outputln!(preamble self.service_group,
                       "Reconfiguration hook failed: {}",
                       err);
-        } else {
-            self.needs_reconfiguration = false;
         }
     }
 
