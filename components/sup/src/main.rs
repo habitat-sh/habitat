@@ -12,9 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+extern crate habitat_common as common;
+extern crate habitat_core as hcore;
 #[macro_use]
 extern crate habitat_sup as sup;
-extern crate habitat_core as hcore;
 #[macro_use]
 extern crate log;
 extern crate env_logger;
@@ -67,6 +68,7 @@ fn start() -> Result<()> {
     let app_matches = cli().get_matches();
     match app_matches.subcommand() {
         ("bash", Some(m)) => sub_bash(m),
+        ("config", Some(m)) => sub_config(m),
         ("sh", Some(m)) => sub_sh(m),
         ("start", Some(m)) => sub_start(m),
         _ => unreachable!(),
@@ -85,6 +87,12 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
         (@subcommand bash =>
             (about: "Start an interactive Bash-like shell")
             (aliases: &["b", "ba", "bas"])
+        )
+        (@subcommand config =>
+            (about: "Displays the default configuration options for a service")
+            (aliases: &["c", "co", "con", "conf", "confi"])
+            (@arg PKG_IDENT: +required +takes_value
+                "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
         )
         (@subcommand sh =>
             (about: "Start an interactive Bourne-like shell")
@@ -130,6 +138,13 @@ fn sub_bash(m: &ArgMatches) -> Result<()> {
     }
 
     command::shell::bash()
+}
+
+fn sub_config(m: &ArgMatches) -> Result<()> {
+    let ident = try!(PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap()));
+
+    try!(common::command::package::config::start(&ident, "/"));
+    Ok(())
 }
 
 fn sub_sh(m: &ArgMatches) -> Result<()> {
