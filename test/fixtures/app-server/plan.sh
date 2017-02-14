@@ -11,6 +11,12 @@ pkg_exports=(
   [host]=srv.host
 )
 pkg_exposes=(proxy-port port)
+pkg_binds=(
+  [database]="port host"
+)
+pkg_binds_optional=(
+  [storage]="port host"
+)
 
 do_download() {
   return 0

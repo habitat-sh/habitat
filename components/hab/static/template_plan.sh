@@ -147,6 +147,28 @@ pkg_exposes={{ pkg_exposes }}
 # pkg_exposes=(port ssl-port)
 {{/if}}
 # Optional.
+# An associative array representing services which you depend on and the configuration keys that
+# you expect the service to export (by their `pkg_exports`). These binds *must* be set for the
+# supervisor to load the service. The loaded service will wait to run until it's bind becomes
+# available. If the bind does not contain the expected keys, the service will not start
+# successfully.
+{{#if pkg_binds ~}}
+pkg_binds={{ pkg_binds }}
+{{else ~}}
+# pkg_binds=(
+#   [database]="port host"
+# )
+{{/if}}
+# Optional.
+# Same as `pkg_binds` but these represent optional services to connect to.
+{{#if pkg_binds_optional ~}}
+pkg_binds_optional={{ pkg_binds_optional }}
+{{else ~}}
+# pkg_binds_optional=(
+#   [storage]="port host"
+# )
+{{/if}}
+# Optional.
 # An array of interpreters used in shebang lines for scripts. Specify the
 # subdirectory where the binary is relative to the package, for example,
 # bin/bash or libexec/neverland, since binaries can be located in directories

@@ -4,34 +4,56 @@ title: Running packages with runtime binding
 
 # Runtime Binding
 
-*Runtime binding* in Habitat refers to the ability for service groups to be named generically in plans, and hence Habitat packages, and for those generic service group names to be resolved to actual service group names at runtime.
+*Runtime binding* in Habitat refers to the ability for one service group to connect to another forming a producer/consumer relationship where the consumer can use the producer's publicly available configuration to configure it's services at runtime. We form a [polymorphic relationship](https://en.wikipedia.org/wiki/Polymorphism_(computer_science)) between these two service groups defined by a [dynamically-typed](https://en.wikipedia.org/wiki/Duck_typing) contract where the consumer specifies a generic name of the service it is consuming along with the configuration keys it expects the producer to export.
 
-For example, you might have a web application `foo` that depends on the value of the leader of a database service group. Rather than hardcoding the name of the service group in `foo`'s plan, which would limit its portability, you can _bind_ the name `database`, for example, to the service group name `postgresql.production` in a production environment, and `postgresql.development` in a development environment.
+For example, you might have a web application `app-server` that depends on the value of the leader of a database service group. Rather than hardcoding the name of the service group or package identifier in `app-servers`'s plan, which would limit its portability, you can _bind_ the name `database`, for example, to the `default` service group running PostgreSQL. If you have multiple service groups for PostgreSQL - perhaps you have a production and development environment - you could bind `database` to `postgresql.production` or `postgresql.development`. If `app-server` supports multiple different database backends you could even bind `database` to another, such as `redis.default` or `mysql.default`.
 
-## Example
+## Producer Contract
 
-For an example look at the [haproxy](https://github.com/habitat-sh/core-plans/blob/master/haproxy/config/haproxy.conf) core-plan. These lines in the [haproxy.conf](https://github.com/habitat-sh/core-plans/blob/master/haproxy/config/haproxy.conf#L18-L23) illustrate how to reference a service binding. When a binding is enabled, the config will be rendered with a backend for each healthy instance in the service group.
+The producer defines their contract by "exporting" configuration publicly to consumers. This is done by setting keys in the `pkg_exports` associative array defined in your package's `plan.sh`. For example, a database server named `amnesia` might define the exports:
+
+    pkg_exports=(
+      [port]=network.port
+      [ssl-port]=network.ssl.port
+    )
+
+This will export the value of `network.port` and `transport.ssl.port` defined in it's `default.toml` publicly as `port` and `ssl-port` respectively. All `pkg_exports` must define a default value in `default.toml` but their values may change at runtime by an operator configuring the service group. If this happens, the consumer will be notified that their producer's configuration has changed. We'll see how to leverage this on the consumer in the sections below.
+
+## Consumer Contract
+
+Consumers defines their half of the contract by specifying required and optional "binds". These are also represented by key/value pairs in an associative array called `pkg_binds` and `pkg_binds_optional` where the values are the exported keys defined by the producer. For example, an application server named `session-server` that depends on a database might define the following binds:
+
+    pkg_binds=(
+      [database]="port ssl-port"
+    )
+
+This says that `session-server` needs to bind to a service aliased as `database` and that service must export a configuration key for both `port` and `ssl-port`. This would make this application service compatible with the producer we defined above for a database called `amnesia` since it does export a value for both of these keys.
+
+## Consumer's Configuration Example
+
+Once you've defined both ends of the contract you can leverage the bind in any of your package's hooks or configuration files. Given the two example services above, a section of a configuration file for `session-server` might look like this:
 
 ~~~
-{{#if bind.has_backend }}
-{{~#each bind.backend.members}}
+{{#if bind.has_database }}
+{{~#each bind.database.members}}
 {{~#if alive }}
-  server {{sys.ip}} {{sys.ip}}:{{cfg.port}}
+  database = "{{sys.ip}}:{{cfg.port}}"
+  database-secure = "{{sys.ip}}:{{cfg.ssl-port}}"
 {{~/if}}
 {{~/each}}
 ~~~
 
-`backend` is a generic name which will be substituted with the real name
-using the `--bind` parameter to the supervisor, for example:
+## Starting A Consumer
 
-       hab start core/haproxy --bind backend:example-services
+Since your application server defined `database` as a required bind, you'll need to provide the name of a service group running a package which fulfills the contract using the `--bind` parameter to the supervisor. For example, running the following:
 
-which would bind `backend` to the `example-services` service group.
+    hab start my-origin/app-server --bind database:amnesia.default
 
-You can declare bindings to multiple service groups in your templates. The arguments to `--bind` are separated by commas.
+would create a bind aliasing `database` to the `amnesia` service in the `default` service group.
 
-The supervisor will throw an error if you have declared bindings but failed to resolve all of them with `--bind` when starting the package.
+The service group passed to `--bind database:{service}.{group}` doesn't *need* to be the service `amnesia`. This bind can be any service as long as they export a configuration key for `port` and `ssl-port`.
 
+You can declare bindings to multiple service groups in your templates. The arguments to `--bind` are separated by commas. Your service will not start if your package has declared a required bind and a value for it was not specified by `--bind`.
 
 <hr>
 <ul class="main-content--link-nav">

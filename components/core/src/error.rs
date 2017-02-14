@@ -64,10 +64,12 @@ pub enum Error {
     InvalidServiceGroup(String),
     /// Occurs when making lower level IO calls.
     IO(io::Error),
+    /// Occurs when a BIND or BIND_OPTIONAL MetaFile is read and contains a bad entry.
+    MetaFileBadBind,
     /// Occurs when a package metadata file cannot be opened, read, or parsed.
-    MetaFileMalformed(package::MetaFile),
+    MetaFileMalformed(package::metadata::MetaFile),
     /// Occurs when a particular package metadata file is not found.
-    MetaFileNotFound(package::MetaFile),
+    MetaFileNotFound(package::metadata::MetaFile),
     /// When an IO error while accessing a MetaFile.
     MetaFileIO(io::Error),
     /// Occurs when we can't find an outbound IP address
@@ -153,6 +155,7 @@ impl fmt::Display for Error {
                         e)
             }
             Error::IO(ref err) => format!("{}", err),
+            Error::MetaFileBadBind => format!("Bad value parsed from BIND or BIND_OPTIONAL"),
             Error::MetaFileMalformed(ref e) => {
                 format!("MetaFile: {:?}, didn't contain a valid UTF-8 string", e)
             }
@@ -222,6 +225,7 @@ impl error::Error for Error {
                 "Service group strings must be in service.group format (example: redis.production)"
             }
             Error::IO(ref err) => err.description(),
+            Error::MetaFileBadBind => "Bad value parsed from BIND or BIND_OPTIONAL MetaFile",
             Error::MetaFileMalformed(_) => "MetaFile didn't contain a valid UTF-8 string",
             Error::MetaFileNotFound(_) => "Failed to read an archive's metafile",
             Error::MetaFileIO(_) => "MetaFile could not be read or written to",
