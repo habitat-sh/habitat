@@ -145,6 +145,8 @@ impl Rumor for Service {
 pub struct SysInfo {
     pub ip: String,
     pub hostname: String,
+    pub gossip_ip: String,
+    pub gossip_port: u16,
     pub http_gateway_ip: String,
     pub http_gateway_port: u16,
 }

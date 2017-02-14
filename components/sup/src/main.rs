@@ -38,7 +38,7 @@ use hcore::package::{PackageArchive, PackageIdent};
 use hcore::url::{DEFAULT_DEPOT_URL, DEPOT_URL_ENVVAR};
 use url::Url;
 
-use sup::config::{gcache, Config, GossipListenAddr};
+use sup::config::{GossipListenAddr, GOSSIP_DEFAULT_PORT};
 use sup::error::{Error, Result};
 use sup::command;
 use sup::http_gateway;
@@ -128,7 +128,6 @@ fn sub_bash(m: &ArgMatches) -> Result<()> {
     if m.is_present("NO_COLOR") {
         sup::output::set_no_color(true);
     }
-    try!(setup_global_config(m));
 
     command::shell::bash()
 }
@@ -140,7 +139,6 @@ fn sub_sh(m: &ArgMatches) -> Result<()> {
     if m.is_present("NO_COLOR") {
         sup::output::set_no_color(true);
     }
-    try!(setup_global_config(m));
 
     command::shell::sh()
 }
@@ -172,7 +170,7 @@ fn sub_start(m: &ArgMatches) -> Result<()> {
             let peer_addr = if peer.find(':').is_some() {
                 peer.to_string()
             } else {
-                format!("{}:{}", peer, 9638)
+                format!("{}:{}", peer, GOSSIP_DEFAULT_PORT)
             };
             let addrs: Vec<SocketAddr> = match peer_addr.to_socket_addrs() {
                 Ok(addrs) => addrs.collect(),
@@ -223,24 +221,9 @@ fn sub_start(m: &ArgMatches) -> Result<()> {
     };
     let spec = try!(spec_from_matches(&ident, m));
 
-    try!(setup_global_config(m));
-
     outputln!("Starting {}", Yellow.bold().paint(ident.to_string()));
     try!(command::start::package(cfg, spec, local_artifact));
     outputln!("Finished with {}", Yellow.bold().paint(ident.to_string()));
-    Ok(())
-}
-
-// TODO fn: Once the remaining fields of Config are gone, the struct and this function can be
-// deleted
-fn setup_global_config(m: &ArgMatches) -> Result<()> {
-    let mut config = Config::default();
-    // TODO fn: remove once ServiceConfig doesn't depend on global config
-    if let Some(addr_str) = m.value_of("LISTEN_HTTP") {
-        config.service_config_http_listen = try!(http_gateway::ListenAddr::from_str(addr_str));
-    }
-    debug!("Config:\n{:?}", config);
-    gcache(config);
     Ok(())
 }
 

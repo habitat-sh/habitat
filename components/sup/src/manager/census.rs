@@ -55,7 +55,6 @@ pub struct CensusEntry {
     pub service: String,
     pub group: String,
     pub org: Option<String>,
-    pub address: String,
     pub cfg: toml::Table,
     pub sys: SysInfo,
     pub pkg: Option<PackageIdent>,
@@ -121,14 +120,6 @@ impl CensusEntry {
 
     pub fn set_org(&mut self, value: String) {
         self.org = Some(value);
-    }
-
-    pub fn get_address(&self) -> &str {
-        &self.address
-    }
-
-    pub fn set_address(&mut self, value: String) {
-        self.address = value;
     }
 
     pub fn get_pkg(&self) -> &PackageIdent {
@@ -288,7 +279,8 @@ impl CensusEntry {
 
     pub fn populate_from_member(&mut self, member: &Member) {
         self.set_member_id(String::from(member.get_id()));
-        self.set_address(String::from(member.get_address()));
+        self.sys.gossip_ip = member.get_address().to_string();
+        self.sys.gossip_port = member.get_gossip_port() as u16;
         self.set_persistent(true);
     }
 
@@ -612,7 +604,7 @@ mod tests {
             member.set_persistent(true);
             ce.populate_from_member(&member);
             assert_eq!(ce.get_member_id(), member.get_id());
-            assert_eq!(ce.get_address(), member.get_address());
+            assert_eq!(ce.sys.gossip_ip, member.get_address());
             assert_eq!(ce.get_persistent(), member.get_persistent());
         }
     }
