@@ -22,6 +22,7 @@
 //!
 //! Will show the `default.toml`.
 
+use std::io::{self, Write};
 use std::path::Path;
 
 use hcore::package::{PackageIdent, PackageInstall};
@@ -30,11 +31,19 @@ use toml;
 
 use error::Result;
 
-pub fn start(ident: &PackageIdent, fs_root_path: &Path) -> Result<()> {
-    let package = try!(PackageInstall::load(ident, Some(fs_root_path)));
+pub fn start<P>(ident: &PackageIdent, fs_root_path: P) -> Result<()>
+    where P: AsRef<Path>
+{
+    let package = try!(PackageInstall::load(ident, Some(fs_root_path.as_ref())));
     match package.default_cfg() {
         Some(cfg) => println!("{}", toml::encode_str(&cfg)),
-        None => println!("No '{}' found for {}", DEFAULT_CFG_FILE, &package.ident),
+        None => {
+            writeln!(&mut io::stderr(),
+                     "No '{}' found for {}",
+                     DEFAULT_CFG_FILE,
+                     &package.ident)
+                .expect("Failed printing to stderr")
+        }
     }
     Ok(())
 }

@@ -285,7 +285,8 @@ fn sub_pkg_build(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 fn sub_pkg_config(m: &ArgMatches) -> Result<()> {
     let ident = try!(PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap()));
 
-    command::pkg::config::start(&ident, &*FS_ROOT)
+    try!(common::command::package::config::start(&ident, &*FS_ROOT));
+    Ok(())
 }
 
 fn sub_pkg_exec(m: &ArgMatches, cmd_args: Vec<OsString>) -> Result<()> {
