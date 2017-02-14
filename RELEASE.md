@@ -93,7 +93,7 @@ from the master branch on a bi-weekly schedule occurring every other Thursday.
     $ make changelog
     ```
 
-1. Commit the `CHANGELOG.md` and `VERSION` changes and push your branch    
+1. Commit the `CHANGELOG.md` and `VERSION` changes and push your branch
 1. Issue a new PR await approval (in the form of a [dank gif](http://imgur.com/X0sNq)) from two maintainers
 1. Pull master once again once the PR is merged into master
 1. Create & push a Git tag
