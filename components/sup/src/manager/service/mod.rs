@@ -42,6 +42,7 @@ pub use self::health::{HealthCheck, SmokeCheck};
 use self::hooks::{HOOK_PERMISSIONS, HookTable, HookType};
 use error::{Error, Result, SupError};
 use fs;
+use manager::ManagerConfig;
 use manager::signals;
 use manager::census::{CensusList, CensusUpdate};
 use prometheus::Opts;
@@ -108,13 +109,20 @@ pub struct Service {
 }
 
 impl Service {
-    pub fn new(package: PackageInstall, spec: ServiceSpec) -> Result<Service> {
+    pub fn new(package: PackageInstall,
+               spec: ServiceSpec,
+               mgr_cfg: &ManagerConfig)
+               -> Result<Service> {
         let service_group = ServiceGroup::new(&package.ident.name,
                                               spec.group,
                                               spec.organization.as_ref().map(|x| &**x))?;
         let (svc_user, svc_group) = try!(util::users::get_user_and_group(&package));
         let runtime_cfg = RuntimeConfig::new(svc_user, svc_group);
-        let svc_cfg = ServiceConfig::new(&package, &runtime_cfg, spec.config_from, &spec.binds)?;
+        let svc_cfg = ServiceConfig::new(&package,
+                                         mgr_cfg,
+                                         &runtime_cfg,
+                                         spec.config_from,
+                                         &spec.binds)?;
         let hook_template_path = svc_cfg.config_root.join("hooks");
         let hooks_path = fs::svc_hooks_path(service_group.service());
         Ok(Service {

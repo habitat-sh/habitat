@@ -22,49 +22,25 @@
 
 use std::fmt;
 use std::io;
-use std::mem;
 use std::net::{IpAddr, Ipv4Addr, ToSocketAddrs, SocketAddr, SocketAddrV4};
 use std::ops::{Deref, DerefMut};
 use std::option;
 use std::result;
 use std::str::FromStr;
-use std::sync::{Once, ONCE_INIT};
 
 use error::{Error, Result, SupError};
-use http_gateway;
+
+pub const GOSSIP_DEFAULT_PORT: u16 = 9638;
 
 static LOGKEY: &'static str = "CFG";
-
-/// The Static Global Configuration.
-///
-/// This sets up a raw pointer, which we are going to transmute to a Box<Config>
-/// with the first call to gcache().
-static mut CONFIG: *const Config = 0 as *const Config;
-
-/// Store a configuration, for later use through `gconfig()`.
-///
-/// MUST BE CALLED BEFORE ANY CALLS TO `gconfig()`.
-pub fn gcache(config: Config) {
-    static ONCE: Once = ONCE_INIT;
-    unsafe {
-        ONCE.call_once(|| { CONFIG = mem::transmute(Box::new(config)); });
-    }
-}
-
-/// Return a reference to our cached configuration.
-///
-/// This is unsafe, because we are de-referencing the raw pointer stored in
-/// CONFIG.
-pub fn gconfig() -> &'static Config {
-    unsafe { &*CONFIG }
-}
 
 #[derive(PartialEq, Eq, Debug)]
 pub struct GossipListenAddr(SocketAddr);
 
 impl Default for GossipListenAddr {
     fn default() -> GossipListenAddr {
-        GossipListenAddr(SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(0, 0, 0, 0), 9638)))
+        GossipListenAddr(SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(0, 0, 0, 0),
+                                                          GOSSIP_DEFAULT_PORT)))
     }
 }
 
@@ -114,11 +90,4 @@ impl fmt::Display for GossipListenAddr {
     fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         write!(f, "{}", self.0)
     }
-}
-
-/// Holds our configuration options.
-#[derive(Default, Debug, PartialEq, Eq)]
-pub struct Config {
-    // Currently only used by `ServiceConfig`
-    pub service_config_http_listen: http_gateway::ListenAddr,
 }

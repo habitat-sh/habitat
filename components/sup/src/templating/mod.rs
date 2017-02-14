@@ -67,10 +67,8 @@ mod test {
 
     use util::convert;
     use hcore::package::{PackageIdent, PackageInstall};
-    use serde_json;
 
-    use config::{gcache, Config};
-    use manager::ServiceConfig;
+    use manager::{ManagerConfig, ServiceConfig};
     use supervisor::RuntimeConfig;
 
     #[test]
@@ -170,9 +168,13 @@ mod test {
         let mut template = Template::new();
         template.register_template_string("t", content).unwrap();
 
-        gcache(Config::default());
         let pkg = gen_pkg();
-        let sc = ServiceConfig::new(&pkg, &RuntimeConfig::default(), None, &Vec::new()).unwrap();
+        let sc = ServiceConfig::new(&pkg,
+                                    &ManagerConfig::default(),
+                                    &RuntimeConfig::default(),
+                                    None,
+                                    &Vec::new())
+            .unwrap();
         let toml = sc.to_toml().unwrap();
         let data = convert::toml_to_json(toml);
         let rendered = template.render("t", &data).unwrap();

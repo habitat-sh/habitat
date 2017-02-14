@@ -32,8 +32,8 @@ use hcore::package::{PackageIdent, PackageInstall};
 use hcore::service::ServiceGroup;
 use toml;
 
+use manager::ManagerConfig;
 use manager::census::{Census, CensusList};
-use config::gconfig;
 use error::{Error, Result};
 use fs;
 use supervisor::RuntimeConfig;
@@ -80,15 +80,16 @@ impl ServiceConfig {
     /// fail, and indeed, we want it to - it causes the program to crash if we can not render the
     /// first pass of the configuration file.
     pub fn new(package: &PackageInstall,
-               runtime: &RuntimeConfig,
+               mgr_cfg: &ManagerConfig,
+               runtime_cfg: &RuntimeConfig,
                config_root: Option<PathBuf>,
                bindings: &[String])
                -> Result<ServiceConfig> {
         let config_root = config_root.unwrap_or(package.installed_path.clone());
         Ok(ServiceConfig {
-            pkg: Pkg::new(package, runtime)?,
+            pkg: Pkg::new(package, runtime_cfg)?,
             hab: Hab::new(),
-            sys: Sys::new(),
+            sys: Sys::new(mgr_cfg),
             cfg: Cfg::new(package, &config_root)?,
             svc: Svc::default(),
             bind: Bind::default(),
@@ -531,7 +532,7 @@ impl Pkg {
 pub struct Sys(SysInfo);
 
 impl Sys {
-    fn new() -> Sys {
+    fn new(manager_cfg: &ManagerConfig) -> Sys {
         let ip = match util::sys::ip() {
             Ok(ip) => ip.to_string(),
             Err(e) => {
@@ -548,12 +549,13 @@ impl Sys {
                 String::from("localhost")
             }
         };
-
         Sys(SysInfo {
             ip: ip,
             hostname: hostname,
-            http_gateway_ip: gconfig().service_config_http_listen.ip().to_string(),
-            http_gateway_port: gconfig().service_config_http_listen.port(),
+            gossip_ip: manager_cfg.gossip_listen.ip().to_string(),
+            gossip_port: manager_cfg.gossip_listen.port(),
+            http_gateway_ip: manager_cfg.http_listen.ip().to_string(),
+            http_gateway_port: manager_cfg.http_listen.port(),
         })
     }
 
@@ -648,8 +650,8 @@ mod test {
     use toml;
 
     use super::*;
-    use config::{gcache, Config};
     use error::Error;
+    use manager::ManagerConfig;
     use supervisor::RuntimeConfig;
     use VERSION;
 
@@ -669,9 +671,13 @@ mod test {
 
     #[test]
     fn to_toml_hab() {
-        gcache(Config::default());
         let pkg = gen_pkg();
-        let sc = ServiceConfig::new(&pkg, &RuntimeConfig::default(), None, &Vec::new()).unwrap();
+        let sc = ServiceConfig::new(&pkg,
+                                    &ManagerConfig::default(),
+                                    &RuntimeConfig::default(),
+                                    None,
+                                    &Vec::new())
+            .unwrap();
         let toml = sc.to_toml().unwrap();
         let version = toml.lookup("hab.version").unwrap().as_str().unwrap();
         assert_eq!(version, VERSION);
@@ -679,9 +685,13 @@ mod test {
 
     #[test]
     fn to_toml_pkg() {
-        gcache(Config::default());
         let pkg = gen_pkg();
-        let sc = ServiceConfig::new(&pkg, &RuntimeConfig::default(), None, &Vec::new()).unwrap();
+        let sc = ServiceConfig::new(&pkg,
+                                    &ManagerConfig::default(),
+                                    &RuntimeConfig::default(),
+                                    None,
+                                    &Vec::new())
+            .unwrap();
         let toml = sc.to_toml().unwrap();
         let name = toml.lookup("pkg.name").unwrap().as_str().unwrap();
         assert_eq!(name, "redis");
@@ -689,9 +699,13 @@ mod test {
 
     #[test]
     fn to_toml_sys() {
-        gcache(Config::default());
         let pkg = gen_pkg();
-        let sc = ServiceConfig::new(&pkg, &RuntimeConfig::default(), None, &Vec::new()).unwrap();
+        let sc = ServiceConfig::new(&pkg,
+                                    &ManagerConfig::default(),
+                                    &RuntimeConfig::default(),
+                                    None,
+                                    &Vec::new())
+            .unwrap();
 
         let toml = sc.to_toml().unwrap();
         let ip = toml.lookup("sys.ip").unwrap().as_str().unwrap();
@@ -846,30 +860,27 @@ mod test {
     }
 
     mod sys {
-        use config::{gcache, Config};
         use super::super::Sys;
+        use manager::ManagerConfig;
         use regex::Regex;
 
         #[test]
         fn ip() {
-            gcache(Config::default());
-            let s = Sys::new();
+            let s = Sys::new(&ManagerConfig::default());
             let re = Regex::new(r"\d+\.\d+\.\d+\.\d+").unwrap();
             assert!(re.is_match(&s.ip));
         }
 
         #[test]
         fn hostname() {
-            gcache(Config::default());
-            let s = Sys::new();
+            let s = Sys::new(&ManagerConfig::default());
             let re = Regex::new(r"\w+").unwrap();
             assert!(re.is_match(&s.hostname));
         }
 
         #[test]
         fn to_toml() {
-            gcache(Config::default());
-            let s = Sys::new();
+            let s = Sys::new(&ManagerConfig::default());
             let toml = s.to_toml().unwrap();
             let ip = toml.lookup("ip").unwrap().as_str().unwrap();
             let re = Regex::new(r"\d+\.\d+\.\d+\.\d+").unwrap();

@@ -87,7 +87,7 @@ pub fn package(cfg: ManagerConfig, spec: ServiceSpec, local_artifact: Option<&st
                 UpdateStrategy::None => {}
                 _ => {
                     outputln!("Checking Depot for newer versions...");
-                    // It is important to pass `gconfig().package()` to `show_package()` instead
+                    // It is important to pass `spec.ident` to `show_package()` instead
                     // of the package identifier of the loaded package. This will ensure that
                     // if the operator starts a package while specifying a version number, they
                     // will only automatically receive release updates for the started package.
@@ -151,8 +151,8 @@ pub fn package(cfg: ManagerConfig, spec: ServiceSpec, local_artifact: Option<&st
 }
 
 fn start_package(package: PackageInstall, cfg: ManagerConfig, spec: ServiceSpec) -> Result<()> {
+    let service = try!(Service::new(package, spec, &cfg));
     let mut manager = try!(Manager::new(cfg));
-    let service = try!(Service::new(package, spec));
     try!(manager.add_service(service));
     manager.run()
 }
