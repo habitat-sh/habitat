@@ -9,6 +9,7 @@
 
 #![allow(box_pointers)]
 #![allow(dead_code)]
+#![allow(missing_docs)]
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
@@ -20,7 +21,7 @@
 use protobuf::Message as Message_imported_for_functions;
 use protobuf::ProtobufEnum as ProtobufEnum_imported_for_functions;
 
-#[derive(Clone,Default)]
+#[derive(PartialEq,Clone,Default)]
 pub struct Account {
     // message fields
     id: ::std::option::Option<u64>,
@@ -28,7 +29,7 @@ pub struct Account {
     name: ::protobuf::SingularField<::std::string::String>,
     // special fields
     unknown_fields: ::protobuf::UnknownFields,
-    cached_size: ::std::cell::Cell<u32>,
+    cached_size: ::protobuf::CachedSize,
 }
 
 // see codegen.rs for the explanation why impl Sync explicitly
@@ -45,15 +46,7 @@ impl Account {
             ptr: 0 as *const Account,
         };
         unsafe {
-            instance.get(|| {
-                Account {
-                    id: ::std::option::Option::None,
-                    email: ::protobuf::SingularField::none(),
-                    name: ::protobuf::SingularField::none(),
-                    unknown_fields: ::protobuf::UnknownFields::new(),
-                    cached_size: ::std::cell::Cell::new(0),
-                }
-            })
+            instance.get(Account::new)
         }
     }
 
@@ -74,6 +67,14 @@ impl Account {
 
     pub fn get_id(&self) -> u64 {
         self.id.unwrap_or(0)
+    }
+
+    fn get_id_for_reflect(&self) -> &::std::option::Option<u64> {
+        &self.id
+    }
+
+    fn mut_id_for_reflect(&mut self) -> &mut ::std::option::Option<u64> {
+        &mut self.id
     }
 
     // required string email = 2;
@@ -112,6 +113,14 @@ impl Account {
         }
     }
 
+    fn get_email_for_reflect(&self) -> &::protobuf::SingularField<::std::string::String> {
+        &self.email
+    }
+
+    fn mut_email_for_reflect(&mut self) -> &mut ::protobuf::SingularField<::std::string::String> {
+        &mut self.email
+    }
+
     // required string name = 3;
 
     pub fn clear_name(&mut self) {
@@ -147,6 +156,14 @@ impl Account {
             None => "",
         }
     }
+
+    fn get_name_for_reflect(&self) -> &::protobuf::SingularField<::std::string::String> {
+        &self.name
+    }
+
+    fn mut_name_for_reflect(&mut self) -> &mut ::protobuf::SingularField<::std::string::String> {
+        &mut self.name
+    }
 }
 
 impl ::protobuf::Message for Account {
@@ -164,24 +181,24 @@ impl ::protobuf::Message for Account {
     }
 
     fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream) -> ::protobuf::ProtobufResult<()> {
-        while !try!(is.eof()) {
-            let (field_number, wire_type) = try!(is.read_tag_unpack());
+        while !is.eof()? {
+            let (field_number, wire_type) = is.read_tag_unpack()?;
             match field_number {
                 1 => {
                     if wire_type != ::protobuf::wire_format::WireTypeVarint {
                         return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
                     };
-                    let tmp = try!(is.read_uint64());
+                    let tmp = is.read_uint64()?;
                     self.id = ::std::option::Option::Some(tmp);
                 },
                 2 => {
-                    try!(::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.email));
+                    ::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.email)?;
                 },
                 3 => {
-                    try!(::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.name));
+                    ::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.name)?;
                 },
                 _ => {
-                    try!(::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields()));
+                    ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
                 },
             };
         }
@@ -192,14 +209,14 @@ impl ::protobuf::Message for Account {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in &self.id {
-            my_size += ::protobuf::rt::value_size(1, *value, ::protobuf::wire_format::WireTypeVarint);
+        if let Some(v) = self.id {
+            my_size += ::protobuf::rt::value_size(1, v, ::protobuf::wire_format::WireTypeVarint);
         };
-        for value in &self.email {
-            my_size += ::protobuf::rt::string_size(2, &value);
+        if let Some(v) = self.email.as_ref() {
+            my_size += ::protobuf::rt::string_size(2, &v);
         };
-        for value in &self.name {
-            my_size += ::protobuf::rt::string_size(3, &value);
+        if let Some(v) = self.name.as_ref() {
+            my_size += ::protobuf::rt::string_size(3, &v);
         };
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
         self.cached_size.set(my_size);
@@ -208,15 +225,15 @@ impl ::protobuf::Message for Account {
 
     fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
         if let Some(v) = self.id {
-            try!(os.write_uint64(1, v));
+            os.write_uint64(1, v)?;
         };
         if let Some(v) = self.email.as_ref() {
-            try!(os.write_string(2, &v));
+            os.write_string(2, &v)?;
         };
         if let Some(v) = self.name.as_ref() {
-            try!(os.write_string(3, &v));
+            os.write_string(3, &v)?;
         };
-        try!(os.write_unknown_fields(self.get_unknown_fields()));
+        os.write_unknown_fields(self.get_unknown_fields())?;
         ::std::result::Result::Ok(())
     }
 
@@ -232,12 +249,14 @@ impl ::protobuf::Message for Account {
         &mut self.unknown_fields
     }
 
-    fn type_id(&self) -> ::std::any::TypeId {
-        ::std::any::TypeId::of::<Account>()
-    }
-
     fn as_any(&self) -> &::std::any::Any {
         self as &::std::any::Any
+    }
+    fn as_any_mut(&mut self) -> &mut ::std::any::Any {
+        self as &mut ::std::any::Any
+    }
+    fn into_any(self: Box<Self>) -> ::std::boxed::Box<::std::any::Any> {
+        self
     }
 
     fn descriptor(&self) -> &'static ::protobuf::reflect::MessageDescriptor {
@@ -258,20 +277,20 @@ impl ::protobuf::MessageStatic for Account {
         unsafe {
             descriptor.get(|| {
                 let mut fields = ::std::vec::Vec::new();
-                fields.push(::protobuf::reflect::accessor::make_singular_u64_accessor(
+                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeUint64>(
                     "id",
-                    Account::has_id,
-                    Account::get_id,
+                    Account::get_id_for_reflect,
+                    Account::mut_id_for_reflect,
                 ));
-                fields.push(::protobuf::reflect::accessor::make_singular_string_accessor(
+                fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
                     "email",
-                    Account::has_email,
-                    Account::get_email,
+                    Account::get_email_for_reflect,
+                    Account::mut_email_for_reflect,
                 ));
-                fields.push(::protobuf::reflect::accessor::make_singular_string_accessor(
+                fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
                     "name",
-                    Account::has_name,
-                    Account::get_name,
+                    Account::get_name_for_reflect,
+                    Account::mut_name_for_reflect,
                 ));
                 ::protobuf::reflect::MessageDescriptor::new::<Account>(
                     "Account",
@@ -292,28 +311,25 @@ impl ::protobuf::Clear for Account {
     }
 }
 
-impl ::std::cmp::PartialEq for Account {
-    fn eq(&self, other: &Account) -> bool {
-        self.id == other.id &&
-        self.email == other.email &&
-        self.name == other.name &&
-        self.unknown_fields == other.unknown_fields
-    }
-}
-
 impl ::std::fmt::Debug for Account {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         ::protobuf::text_format::fmt(self, f)
     }
 }
 
-#[derive(Clone,Default)]
+impl ::protobuf::reflect::ProtobufValue for Account {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Message(self)
+    }
+}
+
+#[derive(PartialEq,Clone,Default)]
 pub struct AccountGet {
     // message fields
     name: ::protobuf::SingularField<::std::string::String>,
     // special fields
     unknown_fields: ::protobuf::UnknownFields,
-    cached_size: ::std::cell::Cell<u32>,
+    cached_size: ::protobuf::CachedSize,
 }
 
 // see codegen.rs for the explanation why impl Sync explicitly
@@ -330,13 +346,7 @@ impl AccountGet {
             ptr: 0 as *const AccountGet,
         };
         unsafe {
-            instance.get(|| {
-                AccountGet {
-                    name: ::protobuf::SingularField::none(),
-                    unknown_fields: ::protobuf::UnknownFields::new(),
-                    cached_size: ::std::cell::Cell::new(0),
-                }
-            })
+            instance.get(AccountGet::new)
         }
     }
 
@@ -375,6 +385,14 @@ impl AccountGet {
             None => "",
         }
     }
+
+    fn get_name_for_reflect(&self) -> &::protobuf::SingularField<::std::string::String> {
+        &self.name
+    }
+
+    fn mut_name_for_reflect(&mut self) -> &mut ::protobuf::SingularField<::std::string::String> {
+        &mut self.name
+    }
 }
 
 impl ::protobuf::Message for AccountGet {
@@ -386,14 +404,14 @@ impl ::protobuf::Message for AccountGet {
     }
 
     fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream) -> ::protobuf::ProtobufResult<()> {
-        while !try!(is.eof()) {
-            let (field_number, wire_type) = try!(is.read_tag_unpack());
+        while !is.eof()? {
+            let (field_number, wire_type) = is.read_tag_unpack()?;
             match field_number {
                 1 => {
-                    try!(::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.name));
+                    ::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.name)?;
                 },
                 _ => {
-                    try!(::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields()));
+                    ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
                 },
             };
         }
@@ -404,8 +422,8 @@ impl ::protobuf::Message for AccountGet {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in &self.name {
-            my_size += ::protobuf::rt::string_size(1, &value);
+        if let Some(v) = self.name.as_ref() {
+            my_size += ::protobuf::rt::string_size(1, &v);
         };
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
         self.cached_size.set(my_size);
@@ -414,9 +432,9 @@ impl ::protobuf::Message for AccountGet {
 
     fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
         if let Some(v) = self.name.as_ref() {
-            try!(os.write_string(1, &v));
+            os.write_string(1, &v)?;
         };
-        try!(os.write_unknown_fields(self.get_unknown_fields()));
+        os.write_unknown_fields(self.get_unknown_fields())?;
         ::std::result::Result::Ok(())
     }
 
@@ -432,12 +450,14 @@ impl ::protobuf::Message for AccountGet {
         &mut self.unknown_fields
     }
 
-    fn type_id(&self) -> ::std::any::TypeId {
-        ::std::any::TypeId::of::<AccountGet>()
-    }
-
     fn as_any(&self) -> &::std::any::Any {
         self as &::std::any::Any
+    }
+    fn as_any_mut(&mut self) -> &mut ::std::any::Any {
+        self as &mut ::std::any::Any
+    }
+    fn into_any(self: Box<Self>) -> ::std::boxed::Box<::std::any::Any> {
+        self
     }
 
     fn descriptor(&self) -> &'static ::protobuf::reflect::MessageDescriptor {
@@ -458,10 +478,10 @@ impl ::protobuf::MessageStatic for AccountGet {
         unsafe {
             descriptor.get(|| {
                 let mut fields = ::std::vec::Vec::new();
-                fields.push(::protobuf::reflect::accessor::make_singular_string_accessor(
+                fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
                     "name",
-                    AccountGet::has_name,
-                    AccountGet::get_name,
+                    AccountGet::get_name_for_reflect,
+                    AccountGet::mut_name_for_reflect,
                 ));
                 ::protobuf::reflect::MessageDescriptor::new::<AccountGet>(
                     "AccountGet",
@@ -480,27 +500,26 @@ impl ::protobuf::Clear for AccountGet {
     }
 }
 
-impl ::std::cmp::PartialEq for AccountGet {
-    fn eq(&self, other: &AccountGet) -> bool {
-        self.name == other.name &&
-        self.unknown_fields == other.unknown_fields
-    }
-}
-
 impl ::std::fmt::Debug for AccountGet {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         ::protobuf::text_format::fmt(self, f)
     }
 }
 
-#[derive(Clone,Default)]
+impl ::protobuf::reflect::ProtobufValue for AccountGet {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Message(self)
+    }
+}
+
+#[derive(PartialEq,Clone,Default)]
 pub struct AccountSearch {
     // message fields
     key: ::std::option::Option<AccountSearchKey>,
     value: ::protobuf::SingularField<::std::string::String>,
     // special fields
     unknown_fields: ::protobuf::UnknownFields,
-    cached_size: ::std::cell::Cell<u32>,
+    cached_size: ::protobuf::CachedSize,
 }
 
 // see codegen.rs for the explanation why impl Sync explicitly
@@ -517,14 +536,7 @@ impl AccountSearch {
             ptr: 0 as *const AccountSearch,
         };
         unsafe {
-            instance.get(|| {
-                AccountSearch {
-                    key: ::std::option::Option::None,
-                    value: ::protobuf::SingularField::none(),
-                    unknown_fields: ::protobuf::UnknownFields::new(),
-                    cached_size: ::std::cell::Cell::new(0),
-                }
-            })
+            instance.get(AccountSearch::new)
         }
     }
 
@@ -545,6 +557,14 @@ impl AccountSearch {
 
     pub fn get_key(&self) -> AccountSearchKey {
         self.key.unwrap_or(AccountSearchKey::Id)
+    }
+
+    fn get_key_for_reflect(&self) -> &::std::option::Option<AccountSearchKey> {
+        &self.key
+    }
+
+    fn mut_key_for_reflect(&mut self) -> &mut ::std::option::Option<AccountSearchKey> {
+        &mut self.key
     }
 
     // required string value = 2;
@@ -582,6 +602,14 @@ impl AccountSearch {
             None => "",
         }
     }
+
+    fn get_value_for_reflect(&self) -> &::protobuf::SingularField<::std::string::String> {
+        &self.value
+    }
+
+    fn mut_value_for_reflect(&mut self) -> &mut ::protobuf::SingularField<::std::string::String> {
+        &mut self.value
+    }
 }
 
 impl ::protobuf::Message for AccountSearch {
@@ -596,21 +624,21 @@ impl ::protobuf::Message for AccountSearch {
     }
 
     fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream) -> ::protobuf::ProtobufResult<()> {
-        while !try!(is.eof()) {
-            let (field_number, wire_type) = try!(is.read_tag_unpack());
+        while !is.eof()? {
+            let (field_number, wire_type) = is.read_tag_unpack()?;
             match field_number {
                 1 => {
                     if wire_type != ::protobuf::wire_format::WireTypeVarint {
                         return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
                     };
-                    let tmp = try!(is.read_enum());
+                    let tmp = is.read_enum()?;
                     self.key = ::std::option::Option::Some(tmp);
                 },
                 2 => {
-                    try!(::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.value));
+                    ::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.value)?;
                 },
                 _ => {
-                    try!(::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields()));
+                    ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
                 },
             };
         }
@@ -621,11 +649,11 @@ impl ::protobuf::Message for AccountSearch {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in &self.key {
-            my_size += ::protobuf::rt::enum_size(1, *value);
+        if let Some(v) = self.key {
+            my_size += ::protobuf::rt::enum_size(1, v);
         };
-        for value in &self.value {
-            my_size += ::protobuf::rt::string_size(2, &value);
+        if let Some(v) = self.value.as_ref() {
+            my_size += ::protobuf::rt::string_size(2, &v);
         };
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
         self.cached_size.set(my_size);
@@ -634,12 +662,12 @@ impl ::protobuf::Message for AccountSearch {
 
     fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
         if let Some(v) = self.key {
-            try!(os.write_enum(1, v.value()));
+            os.write_enum(1, v.value())?;
         };
         if let Some(v) = self.value.as_ref() {
-            try!(os.write_string(2, &v));
+            os.write_string(2, &v)?;
         };
-        try!(os.write_unknown_fields(self.get_unknown_fields()));
+        os.write_unknown_fields(self.get_unknown_fields())?;
         ::std::result::Result::Ok(())
     }
 
@@ -655,12 +683,14 @@ impl ::protobuf::Message for AccountSearch {
         &mut self.unknown_fields
     }
 
-    fn type_id(&self) -> ::std::any::TypeId {
-        ::std::any::TypeId::of::<AccountSearch>()
-    }
-
     fn as_any(&self) -> &::std::any::Any {
         self as &::std::any::Any
+    }
+    fn as_any_mut(&mut self) -> &mut ::std::any::Any {
+        self as &mut ::std::any::Any
+    }
+    fn into_any(self: Box<Self>) -> ::std::boxed::Box<::std::any::Any> {
+        self
     }
 
     fn descriptor(&self) -> &'static ::protobuf::reflect::MessageDescriptor {
@@ -681,15 +711,15 @@ impl ::protobuf::MessageStatic for AccountSearch {
         unsafe {
             descriptor.get(|| {
                 let mut fields = ::std::vec::Vec::new();
-                fields.push(::protobuf::reflect::accessor::make_singular_enum_accessor(
+                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeEnum<AccountSearchKey>>(
                     "key",
-                    AccountSearch::has_key,
-                    AccountSearch::get_key,
+                    AccountSearch::get_key_for_reflect,
+                    AccountSearch::mut_key_for_reflect,
                 ));
-                fields.push(::protobuf::reflect::accessor::make_singular_string_accessor(
+                fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
                     "value",
-                    AccountSearch::has_value,
-                    AccountSearch::get_value,
+                    AccountSearch::get_value_for_reflect,
+                    AccountSearch::mut_value_for_reflect,
                 ));
                 ::protobuf::reflect::MessageDescriptor::new::<AccountSearch>(
                     "AccountSearch",
@@ -709,28 +739,26 @@ impl ::protobuf::Clear for AccountSearch {
     }
 }
 
-impl ::std::cmp::PartialEq for AccountSearch {
-    fn eq(&self, other: &AccountSearch) -> bool {
-        self.key == other.key &&
-        self.value == other.value &&
-        self.unknown_fields == other.unknown_fields
-    }
-}
-
 impl ::std::fmt::Debug for AccountSearch {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         ::protobuf::text_format::fmt(self, f)
     }
 }
 
-#[derive(Clone,Default)]
+impl ::protobuf::reflect::ProtobufValue for AccountSearch {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Message(self)
+    }
+}
+
+#[derive(PartialEq,Clone,Default)]
 pub struct GrantFlagToTeam {
     // message fields
     flag: ::std::option::Option<u32>,
     team_id: ::std::option::Option<u64>,
     // special fields
     unknown_fields: ::protobuf::UnknownFields,
-    cached_size: ::std::cell::Cell<u32>,
+    cached_size: ::protobuf::CachedSize,
 }
 
 // see codegen.rs for the explanation why impl Sync explicitly
@@ -747,14 +775,7 @@ impl GrantFlagToTeam {
             ptr: 0 as *const GrantFlagToTeam,
         };
         unsafe {
-            instance.get(|| {
-                GrantFlagToTeam {
-                    flag: ::std::option::Option::None,
-                    team_id: ::std::option::Option::None,
-                    unknown_fields: ::protobuf::UnknownFields::new(),
-                    cached_size: ::std::cell::Cell::new(0),
-                }
-            })
+            instance.get(GrantFlagToTeam::new)
         }
     }
 
@@ -777,6 +798,14 @@ impl GrantFlagToTeam {
         self.flag.unwrap_or(0)
     }
 
+    fn get_flag_for_reflect(&self) -> &::std::option::Option<u32> {
+        &self.flag
+    }
+
+    fn mut_flag_for_reflect(&mut self) -> &mut ::std::option::Option<u32> {
+        &mut self.flag
+    }
+
     // required uint64 team_id = 2;
 
     pub fn clear_team_id(&mut self) {
@@ -795,6 +824,14 @@ impl GrantFlagToTeam {
     pub fn get_team_id(&self) -> u64 {
         self.team_id.unwrap_or(0)
     }
+
+    fn get_team_id_for_reflect(&self) -> &::std::option::Option<u64> {
+        &self.team_id
+    }
+
+    fn mut_team_id_for_reflect(&mut self) -> &mut ::std::option::Option<u64> {
+        &mut self.team_id
+    }
 }
 
 impl ::protobuf::Message for GrantFlagToTeam {
@@ -809,25 +846,25 @@ impl ::protobuf::Message for GrantFlagToTeam {
     }
 
     fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream) -> ::protobuf::ProtobufResult<()> {
-        while !try!(is.eof()) {
-            let (field_number, wire_type) = try!(is.read_tag_unpack());
+        while !is.eof()? {
+            let (field_number, wire_type) = is.read_tag_unpack()?;
             match field_number {
                 1 => {
                     if wire_type != ::protobuf::wire_format::WireTypeVarint {
                         return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
                     };
-                    let tmp = try!(is.read_uint32());
+                    let tmp = is.read_uint32()?;
                     self.flag = ::std::option::Option::Some(tmp);
                 },
                 2 => {
                     if wire_type != ::protobuf::wire_format::WireTypeVarint {
                         return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
                     };
-                    let tmp = try!(is.read_uint64());
+                    let tmp = is.read_uint64()?;
                     self.team_id = ::std::option::Option::Some(tmp);
                 },
                 _ => {
-                    try!(::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields()));
+                    ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
                 },
             };
         }
@@ -838,11 +875,11 @@ impl ::protobuf::Message for GrantFlagToTeam {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in &self.flag {
-            my_size += ::protobuf::rt::value_size(1, *value, ::protobuf::wire_format::WireTypeVarint);
+        if let Some(v) = self.flag {
+            my_size += ::protobuf::rt::value_size(1, v, ::protobuf::wire_format::WireTypeVarint);
         };
-        for value in &self.team_id {
-            my_size += ::protobuf::rt::value_size(2, *value, ::protobuf::wire_format::WireTypeVarint);
+        if let Some(v) = self.team_id {
+            my_size += ::protobuf::rt::value_size(2, v, ::protobuf::wire_format::WireTypeVarint);
         };
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
         self.cached_size.set(my_size);
@@ -851,12 +888,12 @@ impl ::protobuf::Message for GrantFlagToTeam {
 
     fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
         if let Some(v) = self.flag {
-            try!(os.write_uint32(1, v));
+            os.write_uint32(1, v)?;
         };
         if let Some(v) = self.team_id {
-            try!(os.write_uint64(2, v));
+            os.write_uint64(2, v)?;
         };
-        try!(os.write_unknown_fields(self.get_unknown_fields()));
+        os.write_unknown_fields(self.get_unknown_fields())?;
         ::std::result::Result::Ok(())
     }
 
@@ -872,12 +909,14 @@ impl ::protobuf::Message for GrantFlagToTeam {
         &mut self.unknown_fields
     }
 
-    fn type_id(&self) -> ::std::any::TypeId {
-        ::std::any::TypeId::of::<GrantFlagToTeam>()
-    }
-
     fn as_any(&self) -> &::std::any::Any {
         self as &::std::any::Any
+    }
+    fn as_any_mut(&mut self) -> &mut ::std::any::Any {
+        self as &mut ::std::any::Any
+    }
+    fn into_any(self: Box<Self>) -> ::std::boxed::Box<::std::any::Any> {
+        self
     }
 
     fn descriptor(&self) -> &'static ::protobuf::reflect::MessageDescriptor {
@@ -898,15 +937,15 @@ impl ::protobuf::MessageStatic for GrantFlagToTeam {
         unsafe {
             descriptor.get(|| {
                 let mut fields = ::std::vec::Vec::new();
-                fields.push(::protobuf::reflect::accessor::make_singular_u32_accessor(
+                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeUint32>(
                     "flag",
-                    GrantFlagToTeam::has_flag,
-                    GrantFlagToTeam::get_flag,
+                    GrantFlagToTeam::get_flag_for_reflect,
+                    GrantFlagToTeam::mut_flag_for_reflect,
                 ));
-                fields.push(::protobuf::reflect::accessor::make_singular_u64_accessor(
+                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeUint64>(
                     "team_id",
-                    GrantFlagToTeam::has_team_id,
-                    GrantFlagToTeam::get_team_id,
+                    GrantFlagToTeam::get_team_id_for_reflect,
+                    GrantFlagToTeam::mut_team_id_for_reflect,
                 ));
                 ::protobuf::reflect::MessageDescriptor::new::<GrantFlagToTeam>(
                     "GrantFlagToTeam",
@@ -926,28 +965,26 @@ impl ::protobuf::Clear for GrantFlagToTeam {
     }
 }
 
-impl ::std::cmp::PartialEq for GrantFlagToTeam {
-    fn eq(&self, other: &GrantFlagToTeam) -> bool {
-        self.flag == other.flag &&
-        self.team_id == other.team_id &&
-        self.unknown_fields == other.unknown_fields
-    }
-}
-
 impl ::std::fmt::Debug for GrantFlagToTeam {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         ::protobuf::text_format::fmt(self, f)
     }
 }
 
-#[derive(Clone,Default)]
+impl ::protobuf::reflect::ProtobufValue for GrantFlagToTeam {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Message(self)
+    }
+}
+
+#[derive(PartialEq,Clone,Default)]
 pub struct RevokeFlagFromTeam {
     // message fields
     flag: ::std::option::Option<u32>,
     team_id: ::std::option::Option<u64>,
     // special fields
     unknown_fields: ::protobuf::UnknownFields,
-    cached_size: ::std::cell::Cell<u32>,
+    cached_size: ::protobuf::CachedSize,
 }
 
 // see codegen.rs for the explanation why impl Sync explicitly
@@ -964,14 +1001,7 @@ impl RevokeFlagFromTeam {
             ptr: 0 as *const RevokeFlagFromTeam,
         };
         unsafe {
-            instance.get(|| {
-                RevokeFlagFromTeam {
-                    flag: ::std::option::Option::None,
-                    team_id: ::std::option::Option::None,
-                    unknown_fields: ::protobuf::UnknownFields::new(),
-                    cached_size: ::std::cell::Cell::new(0),
-                }
-            })
+            instance.get(RevokeFlagFromTeam::new)
         }
     }
 
@@ -992,6 +1022,14 @@ impl RevokeFlagFromTeam {
 
     pub fn get_flag(&self) -> u32 {
         self.flag.unwrap_or(0)
+    }
+
+    fn get_flag_for_reflect(&self) -> &::std::option::Option<u32> {
+        &self.flag
+    }
+
+    fn mut_flag_for_reflect(&mut self) -> &mut ::std::option::Option<u32> {
+        &mut self.flag
     }
 
     // required uint64 team_id = 2;
@@ -1012,6 +1050,14 @@ impl RevokeFlagFromTeam {
     pub fn get_team_id(&self) -> u64 {
         self.team_id.unwrap_or(0)
     }
+
+    fn get_team_id_for_reflect(&self) -> &::std::option::Option<u64> {
+        &self.team_id
+    }
+
+    fn mut_team_id_for_reflect(&mut self) -> &mut ::std::option::Option<u64> {
+        &mut self.team_id
+    }
 }
 
 impl ::protobuf::Message for RevokeFlagFromTeam {
@@ -1026,25 +1072,25 @@ impl ::protobuf::Message for RevokeFlagFromTeam {
     }
 
     fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream) -> ::protobuf::ProtobufResult<()> {
-        while !try!(is.eof()) {
-            let (field_number, wire_type) = try!(is.read_tag_unpack());
+        while !is.eof()? {
+            let (field_number, wire_type) = is.read_tag_unpack()?;
             match field_number {
                 1 => {
                     if wire_type != ::protobuf::wire_format::WireTypeVarint {
                         return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
                     };
-                    let tmp = try!(is.read_uint32());
+                    let tmp = is.read_uint32()?;
                     self.flag = ::std::option::Option::Some(tmp);
                 },
                 2 => {
                     if wire_type != ::protobuf::wire_format::WireTypeVarint {
                         return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
                     };
-                    let tmp = try!(is.read_uint64());
+                    let tmp = is.read_uint64()?;
                     self.team_id = ::std::option::Option::Some(tmp);
                 },
                 _ => {
-                    try!(::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields()));
+                    ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
                 },
             };
         }
@@ -1055,11 +1101,11 @@ impl ::protobuf::Message for RevokeFlagFromTeam {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in &self.flag {
-            my_size += ::protobuf::rt::value_size(1, *value, ::protobuf::wire_format::WireTypeVarint);
+        if let Some(v) = self.flag {
+            my_size += ::protobuf::rt::value_size(1, v, ::protobuf::wire_format::WireTypeVarint);
         };
-        for value in &self.team_id {
-            my_size += ::protobuf::rt::value_size(2, *value, ::protobuf::wire_format::WireTypeVarint);
+        if let Some(v) = self.team_id {
+            my_size += ::protobuf::rt::value_size(2, v, ::protobuf::wire_format::WireTypeVarint);
         };
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
         self.cached_size.set(my_size);
@@ -1068,12 +1114,12 @@ impl ::protobuf::Message for RevokeFlagFromTeam {
 
     fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
         if let Some(v) = self.flag {
-            try!(os.write_uint32(1, v));
+            os.write_uint32(1, v)?;
         };
         if let Some(v) = self.team_id {
-            try!(os.write_uint64(2, v));
+            os.write_uint64(2, v)?;
         };
-        try!(os.write_unknown_fields(self.get_unknown_fields()));
+        os.write_unknown_fields(self.get_unknown_fields())?;
         ::std::result::Result::Ok(())
     }
 
@@ -1089,12 +1135,14 @@ impl ::protobuf::Message for RevokeFlagFromTeam {
         &mut self.unknown_fields
     }
 
-    fn type_id(&self) -> ::std::any::TypeId {
-        ::std::any::TypeId::of::<RevokeFlagFromTeam>()
-    }
-
     fn as_any(&self) -> &::std::any::Any {
         self as &::std::any::Any
+    }
+    fn as_any_mut(&mut self) -> &mut ::std::any::Any {
+        self as &mut ::std::any::Any
+    }
+    fn into_any(self: Box<Self>) -> ::std::boxed::Box<::std::any::Any> {
+        self
     }
 
     fn descriptor(&self) -> &'static ::protobuf::reflect::MessageDescriptor {
@@ -1115,15 +1163,15 @@ impl ::protobuf::MessageStatic for RevokeFlagFromTeam {
         unsafe {
             descriptor.get(|| {
                 let mut fields = ::std::vec::Vec::new();
-                fields.push(::protobuf::reflect::accessor::make_singular_u32_accessor(
+                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeUint32>(
                     "flag",
-                    RevokeFlagFromTeam::has_flag,
-                    RevokeFlagFromTeam::get_flag,
+                    RevokeFlagFromTeam::get_flag_for_reflect,
+                    RevokeFlagFromTeam::mut_flag_for_reflect,
                 ));
-                fields.push(::protobuf::reflect::accessor::make_singular_u64_accessor(
+                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeUint64>(
                     "team_id",
-                    RevokeFlagFromTeam::has_team_id,
-                    RevokeFlagFromTeam::get_team_id,
+                    RevokeFlagFromTeam::get_team_id_for_reflect,
+                    RevokeFlagFromTeam::mut_team_id_for_reflect,
                 ));
                 ::protobuf::reflect::MessageDescriptor::new::<RevokeFlagFromTeam>(
                     "RevokeFlagFromTeam",
@@ -1143,27 +1191,25 @@ impl ::protobuf::Clear for RevokeFlagFromTeam {
     }
 }
 
-impl ::std::cmp::PartialEq for RevokeFlagFromTeam {
-    fn eq(&self, other: &RevokeFlagFromTeam) -> bool {
-        self.flag == other.flag &&
-        self.team_id == other.team_id &&
-        self.unknown_fields == other.unknown_fields
-    }
-}
-
 impl ::std::fmt::Debug for RevokeFlagFromTeam {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         ::protobuf::text_format::fmt(self, f)
     }
 }
 
-#[derive(Clone,Default)]
+impl ::protobuf::reflect::ProtobufValue for RevokeFlagFromTeam {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Message(self)
+    }
+}
+
+#[derive(PartialEq,Clone,Default)]
 pub struct ListFlagGrants {
     // message fields
     flag: ::std::option::Option<u32>,
     // special fields
     unknown_fields: ::protobuf::UnknownFields,
-    cached_size: ::std::cell::Cell<u32>,
+    cached_size: ::protobuf::CachedSize,
 }
 
 // see codegen.rs for the explanation why impl Sync explicitly
@@ -1180,13 +1226,7 @@ impl ListFlagGrants {
             ptr: 0 as *const ListFlagGrants,
         };
         unsafe {
-            instance.get(|| {
-                ListFlagGrants {
-                    flag: ::std::option::Option::None,
-                    unknown_fields: ::protobuf::UnknownFields::new(),
-                    cached_size: ::std::cell::Cell::new(0),
-                }
-            })
+            instance.get(ListFlagGrants::new)
         }
     }
 
@@ -1208,6 +1248,14 @@ impl ListFlagGrants {
     pub fn get_flag(&self) -> u32 {
         self.flag.unwrap_or(0)
     }
+
+    fn get_flag_for_reflect(&self) -> &::std::option::Option<u32> {
+        &self.flag
+    }
+
+    fn mut_flag_for_reflect(&mut self) -> &mut ::std::option::Option<u32> {
+        &mut self.flag
+    }
 }
 
 impl ::protobuf::Message for ListFlagGrants {
@@ -1219,18 +1267,18 @@ impl ::protobuf::Message for ListFlagGrants {
     }
 
     fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream) -> ::protobuf::ProtobufResult<()> {
-        while !try!(is.eof()) {
-            let (field_number, wire_type) = try!(is.read_tag_unpack());
+        while !is.eof()? {
+            let (field_number, wire_type) = is.read_tag_unpack()?;
             match field_number {
                 1 => {
                     if wire_type != ::protobuf::wire_format::WireTypeVarint {
                         return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
                     };
-                    let tmp = try!(is.read_uint32());
+                    let tmp = is.read_uint32()?;
                     self.flag = ::std::option::Option::Some(tmp);
                 },
                 _ => {
-                    try!(::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields()));
+                    ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
                 },
             };
         }
@@ -1241,8 +1289,8 @@ impl ::protobuf::Message for ListFlagGrants {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in &self.flag {
-            my_size += ::protobuf::rt::value_size(1, *value, ::protobuf::wire_format::WireTypeVarint);
+        if let Some(v) = self.flag {
+            my_size += ::protobuf::rt::value_size(1, v, ::protobuf::wire_format::WireTypeVarint);
         };
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
         self.cached_size.set(my_size);
@@ -1251,9 +1299,9 @@ impl ::protobuf::Message for ListFlagGrants {
 
     fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
         if let Some(v) = self.flag {
-            try!(os.write_uint32(1, v));
+            os.write_uint32(1, v)?;
         };
-        try!(os.write_unknown_fields(self.get_unknown_fields()));
+        os.write_unknown_fields(self.get_unknown_fields())?;
         ::std::result::Result::Ok(())
     }
 
@@ -1269,12 +1317,14 @@ impl ::protobuf::Message for ListFlagGrants {
         &mut self.unknown_fields
     }
 
-    fn type_id(&self) -> ::std::any::TypeId {
-        ::std::any::TypeId::of::<ListFlagGrants>()
-    }
-
     fn as_any(&self) -> &::std::any::Any {
         self as &::std::any::Any
+    }
+    fn as_any_mut(&mut self) -> &mut ::std::any::Any {
+        self as &mut ::std::any::Any
+    }
+    fn into_any(self: Box<Self>) -> ::std::boxed::Box<::std::any::Any> {
+        self
     }
 
     fn descriptor(&self) -> &'static ::protobuf::reflect::MessageDescriptor {
@@ -1295,10 +1345,10 @@ impl ::protobuf::MessageStatic for ListFlagGrants {
         unsafe {
             descriptor.get(|| {
                 let mut fields = ::std::vec::Vec::new();
-                fields.push(::protobuf::reflect::accessor::make_singular_u32_accessor(
+                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeUint32>(
                     "flag",
-                    ListFlagGrants::has_flag,
-                    ListFlagGrants::get_flag,
+                    ListFlagGrants::get_flag_for_reflect,
+                    ListFlagGrants::mut_flag_for_reflect,
                 ));
                 ::protobuf::reflect::MessageDescriptor::new::<ListFlagGrants>(
                     "ListFlagGrants",
@@ -1317,26 +1367,25 @@ impl ::protobuf::Clear for ListFlagGrants {
     }
 }
 
-impl ::std::cmp::PartialEq for ListFlagGrants {
-    fn eq(&self, other: &ListFlagGrants) -> bool {
-        self.flag == other.flag &&
-        self.unknown_fields == other.unknown_fields
-    }
-}
-
 impl ::std::fmt::Debug for ListFlagGrants {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         ::protobuf::text_format::fmt(self, f)
     }
 }
 
-#[derive(Clone,Default)]
+impl ::protobuf::reflect::ProtobufValue for ListFlagGrants {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Message(self)
+    }
+}
+
+#[derive(PartialEq,Clone,Default)]
 pub struct FlagGrants {
     // message fields
     teams: ::std::vec::Vec<u64>,
     // special fields
     unknown_fields: ::protobuf::UnknownFields,
-    cached_size: ::std::cell::Cell<u32>,
+    cached_size: ::protobuf::CachedSize,
 }
 
 // see codegen.rs for the explanation why impl Sync explicitly
@@ -1353,13 +1402,7 @@ impl FlagGrants {
             ptr: 0 as *const FlagGrants,
         };
         unsafe {
-            instance.get(|| {
-                FlagGrants {
-                    teams: ::std::vec::Vec::new(),
-                    unknown_fields: ::protobuf::UnknownFields::new(),
-                    cached_size: ::std::cell::Cell::new(0),
-                }
-            })
+            instance.get(FlagGrants::new)
         }
     }
 
@@ -1387,6 +1430,14 @@ impl FlagGrants {
     pub fn get_teams(&self) -> &[u64] {
         &self.teams
     }
+
+    fn get_teams_for_reflect(&self) -> &::std::vec::Vec<u64> {
+        &self.teams
+    }
+
+    fn mut_teams_for_reflect(&mut self) -> &mut ::std::vec::Vec<u64> {
+        &mut self.teams
+    }
 }
 
 impl ::protobuf::Message for FlagGrants {
@@ -1395,14 +1446,14 @@ impl ::protobuf::Message for FlagGrants {
     }
 
     fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream) -> ::protobuf::ProtobufResult<()> {
-        while !try!(is.eof()) {
-            let (field_number, wire_type) = try!(is.read_tag_unpack());
+        while !is.eof()? {
+            let (field_number, wire_type) = is.read_tag_unpack()?;
             match field_number {
                 1 => {
-                    try!(::protobuf::rt::read_repeated_uint64_into(wire_type, is, &mut self.teams));
+                    ::protobuf::rt::read_repeated_uint64_into(wire_type, is, &mut self.teams)?;
                 },
                 _ => {
-                    try!(::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields()));
+                    ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
                 },
             };
         }
@@ -1423,9 +1474,9 @@ impl ::protobuf::Message for FlagGrants {
 
     fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
         for v in &self.teams {
-            try!(os.write_uint64(1, *v));
+            os.write_uint64(1, *v)?;
         };
-        try!(os.write_unknown_fields(self.get_unknown_fields()));
+        os.write_unknown_fields(self.get_unknown_fields())?;
         ::std::result::Result::Ok(())
     }
 
@@ -1441,12 +1492,14 @@ impl ::protobuf::Message for FlagGrants {
         &mut self.unknown_fields
     }
 
-    fn type_id(&self) -> ::std::any::TypeId {
-        ::std::any::TypeId::of::<FlagGrants>()
-    }
-
     fn as_any(&self) -> &::std::any::Any {
         self as &::std::any::Any
+    }
+    fn as_any_mut(&mut self) -> &mut ::std::any::Any {
+        self as &mut ::std::any::Any
+    }
+    fn into_any(self: Box<Self>) -> ::std::boxed::Box<::std::any::Any> {
+        self
     }
 
     fn descriptor(&self) -> &'static ::protobuf::reflect::MessageDescriptor {
@@ -1467,9 +1520,10 @@ impl ::protobuf::MessageStatic for FlagGrants {
         unsafe {
             descriptor.get(|| {
                 let mut fields = ::std::vec::Vec::new();
-                fields.push(::protobuf::reflect::accessor::make_repeated_u64_accessor(
+                fields.push(::protobuf::reflect::accessor::make_vec_accessor::<_, ::protobuf::types::ProtobufTypeUint64>(
                     "teams",
-                    FlagGrants::get_teams,
+                    FlagGrants::get_teams_for_reflect,
+                    FlagGrants::mut_teams_for_reflect,
                 ));
                 ::protobuf::reflect::MessageDescriptor::new::<FlagGrants>(
                     "FlagGrants",
@@ -1488,20 +1542,19 @@ impl ::protobuf::Clear for FlagGrants {
     }
 }
 
-impl ::std::cmp::PartialEq for FlagGrants {
-    fn eq(&self, other: &FlagGrants) -> bool {
-        self.teams == other.teams &&
-        self.unknown_fields == other.unknown_fields
-    }
-}
-
 impl ::std::fmt::Debug for FlagGrants {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         ::protobuf::text_format::fmt(self, f)
     }
 }
 
-#[derive(Clone,Default)]
+impl ::protobuf::reflect::ProtobufValue for FlagGrants {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Message(self)
+    }
+}
+
+#[derive(PartialEq,Clone,Default)]
 pub struct Session {
     // message fields
     id: ::std::option::Option<u64>,
@@ -1511,7 +1564,7 @@ pub struct Session {
     flags: ::std::option::Option<u32>,
     // special fields
     unknown_fields: ::protobuf::UnknownFields,
-    cached_size: ::std::cell::Cell<u32>,
+    cached_size: ::protobuf::CachedSize,
 }
 
 // see codegen.rs for the explanation why impl Sync explicitly
@@ -1528,17 +1581,7 @@ impl Session {
             ptr: 0 as *const Session,
         };
         unsafe {
-            instance.get(|| {
-                Session {
-                    id: ::std::option::Option::None,
-                    email: ::protobuf::SingularField::none(),
-                    name: ::protobuf::SingularField::none(),
-                    token: ::protobuf::SingularField::none(),
-                    flags: ::std::option::Option::None,
-                    unknown_fields: ::protobuf::UnknownFields::new(),
-                    cached_size: ::std::cell::Cell::new(0),
-                }
-            })
+            instance.get(Session::new)
         }
     }
 
@@ -1559,6 +1602,14 @@ impl Session {
 
     pub fn get_id(&self) -> u64 {
         self.id.unwrap_or(0)
+    }
+
+    fn get_id_for_reflect(&self) -> &::std::option::Option<u64> {
+        &self.id
+    }
+
+    fn mut_id_for_reflect(&mut self) -> &mut ::std::option::Option<u64> {
+        &mut self.id
     }
 
     // required string email = 2;
@@ -1597,6 +1648,14 @@ impl Session {
         }
     }
 
+    fn get_email_for_reflect(&self) -> &::protobuf::SingularField<::std::string::String> {
+        &self.email
+    }
+
+    fn mut_email_for_reflect(&mut self) -> &mut ::protobuf::SingularField<::std::string::String> {
+        &mut self.email
+    }
+
     // required string name = 3;
 
     pub fn clear_name(&mut self) {
@@ -1631,6 +1690,14 @@ impl Session {
             Some(v) => &v,
             None => "",
         }
+    }
+
+    fn get_name_for_reflect(&self) -> &::protobuf::SingularField<::std::string::String> {
+        &self.name
+    }
+
+    fn mut_name_for_reflect(&mut self) -> &mut ::protobuf::SingularField<::std::string::String> {
+        &mut self.name
     }
 
     // required string token = 4;
@@ -1669,6 +1736,14 @@ impl Session {
         }
     }
 
+    fn get_token_for_reflect(&self) -> &::protobuf::SingularField<::std::string::String> {
+        &self.token
+    }
+
+    fn mut_token_for_reflect(&mut self) -> &mut ::protobuf::SingularField<::std::string::String> {
+        &mut self.token
+    }
+
     // required uint32 flags = 5;
 
     pub fn clear_flags(&mut self) {
@@ -1686,6 +1761,14 @@ impl Session {
 
     pub fn get_flags(&self) -> u32 {
         self.flags.unwrap_or(0)
+    }
+
+    fn get_flags_for_reflect(&self) -> &::std::option::Option<u32> {
+        &self.flags
+    }
+
+    fn mut_flags_for_reflect(&mut self) -> &mut ::std::option::Option<u32> {
+        &mut self.flags
     }
 }
 
@@ -1710,34 +1793,34 @@ impl ::protobuf::Message for Session {
     }
 
     fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream) -> ::protobuf::ProtobufResult<()> {
-        while !try!(is.eof()) {
-            let (field_number, wire_type) = try!(is.read_tag_unpack());
+        while !is.eof()? {
+            let (field_number, wire_type) = is.read_tag_unpack()?;
             match field_number {
                 1 => {
                     if wire_type != ::protobuf::wire_format::WireTypeVarint {
                         return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
                     };
-                    let tmp = try!(is.read_uint64());
+                    let tmp = is.read_uint64()?;
                     self.id = ::std::option::Option::Some(tmp);
                 },
                 2 => {
-                    try!(::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.email));
+                    ::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.email)?;
                 },
                 3 => {
-                    try!(::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.name));
+                    ::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.name)?;
                 },
                 4 => {
-                    try!(::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.token));
+                    ::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.token)?;
                 },
                 5 => {
                     if wire_type != ::protobuf::wire_format::WireTypeVarint {
                         return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
                     };
-                    let tmp = try!(is.read_uint32());
+                    let tmp = is.read_uint32()?;
                     self.flags = ::std::option::Option::Some(tmp);
                 },
                 _ => {
-                    try!(::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields()));
+                    ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
                 },
             };
         }
@@ -1748,20 +1831,20 @@ impl ::protobuf::Message for Session {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in &self.id {
-            my_size += ::protobuf::rt::value_size(1, *value, ::protobuf::wire_format::WireTypeVarint);
+        if let Some(v) = self.id {
+            my_size += ::protobuf::rt::value_size(1, v, ::protobuf::wire_format::WireTypeVarint);
         };
-        for value in &self.email {
-            my_size += ::protobuf::rt::string_size(2, &value);
+        if let Some(v) = self.email.as_ref() {
+            my_size += ::protobuf::rt::string_size(2, &v);
         };
-        for value in &self.name {
-            my_size += ::protobuf::rt::string_size(3, &value);
+        if let Some(v) = self.name.as_ref() {
+            my_size += ::protobuf::rt::string_size(3, &v);
         };
-        for value in &self.token {
-            my_size += ::protobuf::rt::string_size(4, &value);
+        if let Some(v) = self.token.as_ref() {
+            my_size += ::protobuf::rt::string_size(4, &v);
         };
-        for value in &self.flags {
-            my_size += ::protobuf::rt::value_size(5, *value, ::protobuf::wire_format::WireTypeVarint);
+        if let Some(v) = self.flags {
+            my_size += ::protobuf::rt::value_size(5, v, ::protobuf::wire_format::WireTypeVarint);
         };
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
         self.cached_size.set(my_size);
@@ -1770,21 +1853,21 @@ impl ::protobuf::Message for Session {
 
     fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
         if let Some(v) = self.id {
-            try!(os.write_uint64(1, v));
+            os.write_uint64(1, v)?;
         };
         if let Some(v) = self.email.as_ref() {
-            try!(os.write_string(2, &v));
+            os.write_string(2, &v)?;
         };
         if let Some(v) = self.name.as_ref() {
-            try!(os.write_string(3, &v));
+            os.write_string(3, &v)?;
         };
         if let Some(v) = self.token.as_ref() {
-            try!(os.write_string(4, &v));
+            os.write_string(4, &v)?;
         };
         if let Some(v) = self.flags {
-            try!(os.write_uint32(5, v));
+            os.write_uint32(5, v)?;
         };
-        try!(os.write_unknown_fields(self.get_unknown_fields()));
+        os.write_unknown_fields(self.get_unknown_fields())?;
         ::std::result::Result::Ok(())
     }
 
@@ -1800,12 +1883,14 @@ impl ::protobuf::Message for Session {
         &mut self.unknown_fields
     }
 
-    fn type_id(&self) -> ::std::any::TypeId {
-        ::std::any::TypeId::of::<Session>()
-    }
-
     fn as_any(&self) -> &::std::any::Any {
         self as &::std::any::Any
+    }
+    fn as_any_mut(&mut self) -> &mut ::std::any::Any {
+        self as &mut ::std::any::Any
+    }
+    fn into_any(self: Box<Self>) -> ::std::boxed::Box<::std::any::Any> {
+        self
     }
 
     fn descriptor(&self) -> &'static ::protobuf::reflect::MessageDescriptor {
@@ -1826,30 +1911,30 @@ impl ::protobuf::MessageStatic for Session {
         unsafe {
             descriptor.get(|| {
                 let mut fields = ::std::vec::Vec::new();
-                fields.push(::protobuf::reflect::accessor::make_singular_u64_accessor(
+                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeUint64>(
                     "id",
-                    Session::has_id,
-                    Session::get_id,
+                    Session::get_id_for_reflect,
+                    Session::mut_id_for_reflect,
                 ));
-                fields.push(::protobuf::reflect::accessor::make_singular_string_accessor(
+                fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
                     "email",
-                    Session::has_email,
-                    Session::get_email,
+                    Session::get_email_for_reflect,
+                    Session::mut_email_for_reflect,
                 ));
-                fields.push(::protobuf::reflect::accessor::make_singular_string_accessor(
+                fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
                     "name",
-                    Session::has_name,
-                    Session::get_name,
+                    Session::get_name_for_reflect,
+                    Session::mut_name_for_reflect,
                 ));
-                fields.push(::protobuf::reflect::accessor::make_singular_string_accessor(
+                fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
                     "token",
-                    Session::has_token,
-                    Session::get_token,
+                    Session::get_token_for_reflect,
+                    Session::mut_token_for_reflect,
                 ));
-                fields.push(::protobuf::reflect::accessor::make_singular_u32_accessor(
+                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeUint32>(
                     "flags",
-                    Session::has_flags,
-                    Session::get_flags,
+                    Session::get_flags_for_reflect,
+                    Session::mut_flags_for_reflect,
                 ));
                 ::protobuf::reflect::MessageDescriptor::new::<Session>(
                     "Session",
@@ -1872,24 +1957,19 @@ impl ::protobuf::Clear for Session {
     }
 }
 
-impl ::std::cmp::PartialEq for Session {
-    fn eq(&self, other: &Session) -> bool {
-        self.id == other.id &&
-        self.email == other.email &&
-        self.name == other.name &&
-        self.token == other.token &&
-        self.flags == other.flags &&
-        self.unknown_fields == other.unknown_fields
-    }
-}
-
 impl ::std::fmt::Debug for Session {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         ::protobuf::text_format::fmt(self, f)
     }
 }
 
-#[derive(Clone,Default)]
+impl ::protobuf::reflect::ProtobufValue for Session {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Message(self)
+    }
+}
+
+#[derive(PartialEq,Clone,Default)]
 pub struct SessionToken {
     // message fields
     token: ::protobuf::SingularField<::std::string::String>,
@@ -1897,7 +1977,7 @@ pub struct SessionToken {
     provider: ::std::option::Option<OAuthProvider>,
     // special fields
     unknown_fields: ::protobuf::UnknownFields,
-    cached_size: ::std::cell::Cell<u32>,
+    cached_size: ::protobuf::CachedSize,
 }
 
 // see codegen.rs for the explanation why impl Sync explicitly
@@ -1914,15 +1994,7 @@ impl SessionToken {
             ptr: 0 as *const SessionToken,
         };
         unsafe {
-            instance.get(|| {
-                SessionToken {
-                    token: ::protobuf::SingularField::none(),
-                    owner_id: ::std::option::Option::None,
-                    provider: ::std::option::Option::None,
-                    unknown_fields: ::protobuf::UnknownFields::new(),
-                    cached_size: ::std::cell::Cell::new(0),
-                }
-            })
+            instance.get(SessionToken::new)
         }
     }
 
@@ -1960,6 +2032,14 @@ impl SessionToken {
             Some(v) => &v,
             None => "",
         }
+    }
+
+    fn get_token_for_reflect(&self) -> &::protobuf::SingularField<::std::string::String> {
+        &self.token
+    }
+
+    fn mut_token_for_reflect(&mut self) -> &mut ::protobuf::SingularField<::std::string::String> {
+        &mut self.token
     }
 
     // required uint64 owner_id = 2;
@@ -1981,6 +2061,14 @@ impl SessionToken {
         self.owner_id.unwrap_or(0)
     }
 
+    fn get_owner_id_for_reflect(&self) -> &::std::option::Option<u64> {
+        &self.owner_id
+    }
+
+    fn mut_owner_id_for_reflect(&mut self) -> &mut ::std::option::Option<u64> {
+        &mut self.owner_id
+    }
+
     // required .sessionsrv.OAuthProvider provider = 3;
 
     pub fn clear_provider(&mut self) {
@@ -1999,6 +2087,14 @@ impl SessionToken {
     pub fn get_provider(&self) -> OAuthProvider {
         self.provider.unwrap_or(OAuthProvider::GitHub)
     }
+
+    fn get_provider_for_reflect(&self) -> &::std::option::Option<OAuthProvider> {
+        &self.provider
+    }
+
+    fn mut_provider_for_reflect(&mut self) -> &mut ::std::option::Option<OAuthProvider> {
+        &mut self.provider
+    }
 }
 
 impl ::protobuf::Message for SessionToken {
@@ -2016,28 +2112,28 @@ impl ::protobuf::Message for SessionToken {
     }
 
     fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream) -> ::protobuf::ProtobufResult<()> {
-        while !try!(is.eof()) {
-            let (field_number, wire_type) = try!(is.read_tag_unpack());
+        while !is.eof()? {
+            let (field_number, wire_type) = is.read_tag_unpack()?;
             match field_number {
                 1 => {
-                    try!(::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.token));
+                    ::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.token)?;
                 },
                 2 => {
                     if wire_type != ::protobuf::wire_format::WireTypeVarint {
                         return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
                     };
-                    let tmp = try!(is.read_uint64());
+                    let tmp = is.read_uint64()?;
                     self.owner_id = ::std::option::Option::Some(tmp);
                 },
                 3 => {
                     if wire_type != ::protobuf::wire_format::WireTypeVarint {
                         return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
                     };
-                    let tmp = try!(is.read_enum());
+                    let tmp = is.read_enum()?;
                     self.provider = ::std::option::Option::Some(tmp);
                 },
                 _ => {
-                    try!(::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields()));
+                    ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
                 },
             };
         }
@@ -2048,14 +2144,14 @@ impl ::protobuf::Message for SessionToken {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in &self.token {
-            my_size += ::protobuf::rt::string_size(1, &value);
+        if let Some(v) = self.token.as_ref() {
+            my_size += ::protobuf::rt::string_size(1, &v);
         };
-        for value in &self.owner_id {
-            my_size += ::protobuf::rt::value_size(2, *value, ::protobuf::wire_format::WireTypeVarint);
+        if let Some(v) = self.owner_id {
+            my_size += ::protobuf::rt::value_size(2, v, ::protobuf::wire_format::WireTypeVarint);
         };
-        for value in &self.provider {
-            my_size += ::protobuf::rt::enum_size(3, *value);
+        if let Some(v) = self.provider {
+            my_size += ::protobuf::rt::enum_size(3, v);
         };
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
         self.cached_size.set(my_size);
@@ -2064,15 +2160,15 @@ impl ::protobuf::Message for SessionToken {
 
     fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
         if let Some(v) = self.token.as_ref() {
-            try!(os.write_string(1, &v));
+            os.write_string(1, &v)?;
         };
         if let Some(v) = self.owner_id {
-            try!(os.write_uint64(2, v));
+            os.write_uint64(2, v)?;
         };
         if let Some(v) = self.provider {
-            try!(os.write_enum(3, v.value()));
+            os.write_enum(3, v.value())?;
         };
-        try!(os.write_unknown_fields(self.get_unknown_fields()));
+        os.write_unknown_fields(self.get_unknown_fields())?;
         ::std::result::Result::Ok(())
     }
 
@@ -2088,12 +2184,14 @@ impl ::protobuf::Message for SessionToken {
         &mut self.unknown_fields
     }
 
-    fn type_id(&self) -> ::std::any::TypeId {
-        ::std::any::TypeId::of::<SessionToken>()
-    }
-
     fn as_any(&self) -> &::std::any::Any {
         self as &::std::any::Any
+    }
+    fn as_any_mut(&mut self) -> &mut ::std::any::Any {
+        self as &mut ::std::any::Any
+    }
+    fn into_any(self: Box<Self>) -> ::std::boxed::Box<::std::any::Any> {
+        self
     }
 
     fn descriptor(&self) -> &'static ::protobuf::reflect::MessageDescriptor {
@@ -2114,20 +2212,20 @@ impl ::protobuf::MessageStatic for SessionToken {
         unsafe {
             descriptor.get(|| {
                 let mut fields = ::std::vec::Vec::new();
-                fields.push(::protobuf::reflect::accessor::make_singular_string_accessor(
+                fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
                     "token",
-                    SessionToken::has_token,
-                    SessionToken::get_token,
+                    SessionToken::get_token_for_reflect,
+                    SessionToken::mut_token_for_reflect,
                 ));
-                fields.push(::protobuf::reflect::accessor::make_singular_u64_accessor(
+                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeUint64>(
                     "owner_id",
-                    SessionToken::has_owner_id,
-                    SessionToken::get_owner_id,
+                    SessionToken::get_owner_id_for_reflect,
+                    SessionToken::mut_owner_id_for_reflect,
                 ));
-                fields.push(::protobuf::reflect::accessor::make_singular_enum_accessor(
+                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeEnum<OAuthProvider>>(
                     "provider",
-                    SessionToken::has_provider,
-                    SessionToken::get_provider,
+                    SessionToken::get_provider_for_reflect,
+                    SessionToken::mut_provider_for_reflect,
                 ));
                 ::protobuf::reflect::MessageDescriptor::new::<SessionToken>(
                     "SessionToken",
@@ -2148,22 +2246,19 @@ impl ::protobuf::Clear for SessionToken {
     }
 }
 
-impl ::std::cmp::PartialEq for SessionToken {
-    fn eq(&self, other: &SessionToken) -> bool {
-        self.token == other.token &&
-        self.owner_id == other.owner_id &&
-        self.provider == other.provider &&
-        self.unknown_fields == other.unknown_fields
-    }
-}
-
 impl ::std::fmt::Debug for SessionToken {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         ::protobuf::text_format::fmt(self, f)
     }
 }
 
-#[derive(Clone,Default)]
+impl ::protobuf::reflect::ProtobufValue for SessionToken {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Message(self)
+    }
+}
+
+#[derive(PartialEq,Clone,Default)]
 pub struct SessionCreate {
     // message fields
     token: ::protobuf::SingularField<::std::string::String>,
@@ -2173,7 +2268,7 @@ pub struct SessionCreate {
     provider: ::std::option::Option<OAuthProvider>,
     // special fields
     unknown_fields: ::protobuf::UnknownFields,
-    cached_size: ::std::cell::Cell<u32>,
+    cached_size: ::protobuf::CachedSize,
 }
 
 // see codegen.rs for the explanation why impl Sync explicitly
@@ -2190,17 +2285,7 @@ impl SessionCreate {
             ptr: 0 as *const SessionCreate,
         };
         unsafe {
-            instance.get(|| {
-                SessionCreate {
-                    token: ::protobuf::SingularField::none(),
-                    extern_id: ::std::option::Option::None,
-                    email: ::protobuf::SingularField::none(),
-                    name: ::protobuf::SingularField::none(),
-                    provider: ::std::option::Option::None,
-                    unknown_fields: ::protobuf::UnknownFields::new(),
-                    cached_size: ::std::cell::Cell::new(0),
-                }
-            })
+            instance.get(SessionCreate::new)
         }
     }
 
@@ -2240,6 +2325,14 @@ impl SessionCreate {
         }
     }
 
+    fn get_token_for_reflect(&self) -> &::protobuf::SingularField<::std::string::String> {
+        &self.token
+    }
+
+    fn mut_token_for_reflect(&mut self) -> &mut ::protobuf::SingularField<::std::string::String> {
+        &mut self.token
+    }
+
     // required uint64 extern_id = 2;
 
     pub fn clear_extern_id(&mut self) {
@@ -2257,6 +2350,14 @@ impl SessionCreate {
 
     pub fn get_extern_id(&self) -> u64 {
         self.extern_id.unwrap_or(0)
+    }
+
+    fn get_extern_id_for_reflect(&self) -> &::std::option::Option<u64> {
+        &self.extern_id
+    }
+
+    fn mut_extern_id_for_reflect(&mut self) -> &mut ::std::option::Option<u64> {
+        &mut self.extern_id
     }
 
     // required string email = 3;
@@ -2295,6 +2396,14 @@ impl SessionCreate {
         }
     }
 
+    fn get_email_for_reflect(&self) -> &::protobuf::SingularField<::std::string::String> {
+        &self.email
+    }
+
+    fn mut_email_for_reflect(&mut self) -> &mut ::protobuf::SingularField<::std::string::String> {
+        &mut self.email
+    }
+
     // required string name = 4;
 
     pub fn clear_name(&mut self) {
@@ -2331,6 +2440,14 @@ impl SessionCreate {
         }
     }
 
+    fn get_name_for_reflect(&self) -> &::protobuf::SingularField<::std::string::String> {
+        &self.name
+    }
+
+    fn mut_name_for_reflect(&mut self) -> &mut ::protobuf::SingularField<::std::string::String> {
+        &mut self.name
+    }
+
     // required .sessionsrv.OAuthProvider provider = 5;
 
     pub fn clear_provider(&mut self) {
@@ -2348,6 +2465,14 @@ impl SessionCreate {
 
     pub fn get_provider(&self) -> OAuthProvider {
         self.provider.unwrap_or(OAuthProvider::GitHub)
+    }
+
+    fn get_provider_for_reflect(&self) -> &::std::option::Option<OAuthProvider> {
+        &self.provider
+    }
+
+    fn mut_provider_for_reflect(&mut self) -> &mut ::std::option::Option<OAuthProvider> {
+        &mut self.provider
     }
 }
 
@@ -2372,34 +2497,34 @@ impl ::protobuf::Message for SessionCreate {
     }
 
     fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream) -> ::protobuf::ProtobufResult<()> {
-        while !try!(is.eof()) {
-            let (field_number, wire_type) = try!(is.read_tag_unpack());
+        while !is.eof()? {
+            let (field_number, wire_type) = is.read_tag_unpack()?;
             match field_number {
                 1 => {
-                    try!(::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.token));
+                    ::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.token)?;
                 },
                 2 => {
                     if wire_type != ::protobuf::wire_format::WireTypeVarint {
                         return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
                     };
-                    let tmp = try!(is.read_uint64());
+                    let tmp = is.read_uint64()?;
                     self.extern_id = ::std::option::Option::Some(tmp);
                 },
                 3 => {
-                    try!(::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.email));
+                    ::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.email)?;
                 },
                 4 => {
-                    try!(::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.name));
+                    ::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.name)?;
                 },
                 5 => {
                     if wire_type != ::protobuf::wire_format::WireTypeVarint {
                         return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
                     };
-                    let tmp = try!(is.read_enum());
+                    let tmp = is.read_enum()?;
                     self.provider = ::std::option::Option::Some(tmp);
                 },
                 _ => {
-                    try!(::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields()));
+                    ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
                 },
             };
         }
@@ -2410,20 +2535,20 @@ impl ::protobuf::Message for SessionCreate {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in &self.token {
-            my_size += ::protobuf::rt::string_size(1, &value);
+        if let Some(v) = self.token.as_ref() {
+            my_size += ::protobuf::rt::string_size(1, &v);
         };
-        for value in &self.extern_id {
-            my_size += ::protobuf::rt::value_size(2, *value, ::protobuf::wire_format::WireTypeVarint);
+        if let Some(v) = self.extern_id {
+            my_size += ::protobuf::rt::value_size(2, v, ::protobuf::wire_format::WireTypeVarint);
         };
-        for value in &self.email {
-            my_size += ::protobuf::rt::string_size(3, &value);
+        if let Some(v) = self.email.as_ref() {
+            my_size += ::protobuf::rt::string_size(3, &v);
         };
-        for value in &self.name {
-            my_size += ::protobuf::rt::string_size(4, &value);
+        if let Some(v) = self.name.as_ref() {
+            my_size += ::protobuf::rt::string_size(4, &v);
         };
-        for value in &self.provider {
-            my_size += ::protobuf::rt::enum_size(5, *value);
+        if let Some(v) = self.provider {
+            my_size += ::protobuf::rt::enum_size(5, v);
         };
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
         self.cached_size.set(my_size);
@@ -2432,21 +2557,21 @@ impl ::protobuf::Message for SessionCreate {
 
     fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
         if let Some(v) = self.token.as_ref() {
-            try!(os.write_string(1, &v));
+            os.write_string(1, &v)?;
         };
         if let Some(v) = self.extern_id {
-            try!(os.write_uint64(2, v));
+            os.write_uint64(2, v)?;
         };
         if let Some(v) = self.email.as_ref() {
-            try!(os.write_string(3, &v));
+            os.write_string(3, &v)?;
         };
         if let Some(v) = self.name.as_ref() {
-            try!(os.write_string(4, &v));
+            os.write_string(4, &v)?;
         };
         if let Some(v) = self.provider {
-            try!(os.write_enum(5, v.value()));
+            os.write_enum(5, v.value())?;
         };
-        try!(os.write_unknown_fields(self.get_unknown_fields()));
+        os.write_unknown_fields(self.get_unknown_fields())?;
         ::std::result::Result::Ok(())
     }
 
@@ -2462,12 +2587,14 @@ impl ::protobuf::Message for SessionCreate {
         &mut self.unknown_fields
     }
 
-    fn type_id(&self) -> ::std::any::TypeId {
-        ::std::any::TypeId::of::<SessionCreate>()
-    }
-
     fn as_any(&self) -> &::std::any::Any {
         self as &::std::any::Any
+    }
+    fn as_any_mut(&mut self) -> &mut ::std::any::Any {
+        self as &mut ::std::any::Any
+    }
+    fn into_any(self: Box<Self>) -> ::std::boxed::Box<::std::any::Any> {
+        self
     }
 
     fn descriptor(&self) -> &'static ::protobuf::reflect::MessageDescriptor {
@@ -2488,30 +2615,30 @@ impl ::protobuf::MessageStatic for SessionCreate {
         unsafe {
             descriptor.get(|| {
                 let mut fields = ::std::vec::Vec::new();
-                fields.push(::protobuf::reflect::accessor::make_singular_string_accessor(
+                fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
                     "token",
-                    SessionCreate::has_token,
-                    SessionCreate::get_token,
+                    SessionCreate::get_token_for_reflect,
+                    SessionCreate::mut_token_for_reflect,
                 ));
-                fields.push(::protobuf::reflect::accessor::make_singular_u64_accessor(
+                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeUint64>(
                     "extern_id",
-                    SessionCreate::has_extern_id,
-                    SessionCreate::get_extern_id,
+                    SessionCreate::get_extern_id_for_reflect,
+                    SessionCreate::mut_extern_id_for_reflect,
                 ));
-                fields.push(::protobuf::reflect::accessor::make_singular_string_accessor(
+                fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
                     "email",
-                    SessionCreate::has_email,
-                    SessionCreate::get_email,
+                    SessionCreate::get_email_for_reflect,
+                    SessionCreate::mut_email_for_reflect,
                 ));
-                fields.push(::protobuf::reflect::accessor::make_singular_string_accessor(
+                fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
                     "name",
-                    SessionCreate::has_name,
-                    SessionCreate::get_name,
+                    SessionCreate::get_name_for_reflect,
+                    SessionCreate::mut_name_for_reflect,
                 ));
-                fields.push(::protobuf::reflect::accessor::make_singular_enum_accessor(
+                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeEnum<OAuthProvider>>(
                     "provider",
-                    SessionCreate::has_provider,
-                    SessionCreate::get_provider,
+                    SessionCreate::get_provider_for_reflect,
+                    SessionCreate::mut_provider_for_reflect,
                 ));
                 ::protobuf::reflect::MessageDescriptor::new::<SessionCreate>(
                     "SessionCreate",
@@ -2534,30 +2661,25 @@ impl ::protobuf::Clear for SessionCreate {
     }
 }
 
-impl ::std::cmp::PartialEq for SessionCreate {
-    fn eq(&self, other: &SessionCreate) -> bool {
-        self.token == other.token &&
-        self.extern_id == other.extern_id &&
-        self.email == other.email &&
-        self.name == other.name &&
-        self.provider == other.provider &&
-        self.unknown_fields == other.unknown_fields
-    }
-}
-
 impl ::std::fmt::Debug for SessionCreate {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         ::protobuf::text_format::fmt(self, f)
     }
 }
 
-#[derive(Clone,Default)]
+impl ::protobuf::reflect::ProtobufValue for SessionCreate {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Message(self)
+    }
+}
+
+#[derive(PartialEq,Clone,Default)]
 pub struct SessionGet {
     // message fields
     token: ::protobuf::SingularField<::std::string::String>,
     // special fields
     unknown_fields: ::protobuf::UnknownFields,
-    cached_size: ::std::cell::Cell<u32>,
+    cached_size: ::protobuf::CachedSize,
 }
 
 // see codegen.rs for the explanation why impl Sync explicitly
@@ -2574,13 +2696,7 @@ impl SessionGet {
             ptr: 0 as *const SessionGet,
         };
         unsafe {
-            instance.get(|| {
-                SessionGet {
-                    token: ::protobuf::SingularField::none(),
-                    unknown_fields: ::protobuf::UnknownFields::new(),
-                    cached_size: ::std::cell::Cell::new(0),
-                }
-            })
+            instance.get(SessionGet::new)
         }
     }
 
@@ -2619,6 +2735,14 @@ impl SessionGet {
             None => "",
         }
     }
+
+    fn get_token_for_reflect(&self) -> &::protobuf::SingularField<::std::string::String> {
+        &self.token
+    }
+
+    fn mut_token_for_reflect(&mut self) -> &mut ::protobuf::SingularField<::std::string::String> {
+        &mut self.token
+    }
 }
 
 impl ::protobuf::Message for SessionGet {
@@ -2630,14 +2754,14 @@ impl ::protobuf::Message for SessionGet {
     }
 
     fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream) -> ::protobuf::ProtobufResult<()> {
-        while !try!(is.eof()) {
-            let (field_number, wire_type) = try!(is.read_tag_unpack());
+        while !is.eof()? {
+            let (field_number, wire_type) = is.read_tag_unpack()?;
             match field_number {
                 1 => {
-                    try!(::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.token));
+                    ::protobuf::rt::read_singular_string_into(wire_type, is, &mut self.token)?;
                 },
                 _ => {
-                    try!(::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields()));
+                    ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
                 },
             };
         }
@@ -2648,8 +2772,8 @@ impl ::protobuf::Message for SessionGet {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in &self.token {
-            my_size += ::protobuf::rt::string_size(1, &value);
+        if let Some(v) = self.token.as_ref() {
+            my_size += ::protobuf::rt::string_size(1, &v);
         };
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
         self.cached_size.set(my_size);
@@ -2658,9 +2782,9 @@ impl ::protobuf::Message for SessionGet {
 
     fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
         if let Some(v) = self.token.as_ref() {
-            try!(os.write_string(1, &v));
+            os.write_string(1, &v)?;
         };
-        try!(os.write_unknown_fields(self.get_unknown_fields()));
+        os.write_unknown_fields(self.get_unknown_fields())?;
         ::std::result::Result::Ok(())
     }
 
@@ -2676,12 +2800,14 @@ impl ::protobuf::Message for SessionGet {
         &mut self.unknown_fields
     }
 
-    fn type_id(&self) -> ::std::any::TypeId {
-        ::std::any::TypeId::of::<SessionGet>()
-    }
-
     fn as_any(&self) -> &::std::any::Any {
         self as &::std::any::Any
+    }
+    fn as_any_mut(&mut self) -> &mut ::std::any::Any {
+        self as &mut ::std::any::Any
+    }
+    fn into_any(self: Box<Self>) -> ::std::boxed::Box<::std::any::Any> {
+        self
     }
 
     fn descriptor(&self) -> &'static ::protobuf::reflect::MessageDescriptor {
@@ -2702,10 +2828,10 @@ impl ::protobuf::MessageStatic for SessionGet {
         unsafe {
             descriptor.get(|| {
                 let mut fields = ::std::vec::Vec::new();
-                fields.push(::protobuf::reflect::accessor::make_singular_string_accessor(
+                fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
                     "token",
-                    SessionGet::has_token,
-                    SessionGet::get_token,
+                    SessionGet::get_token_for_reflect,
+                    SessionGet::mut_token_for_reflect,
                 ));
                 ::protobuf::reflect::MessageDescriptor::new::<SessionGet>(
                     "SessionGet",
@@ -2724,16 +2850,15 @@ impl ::protobuf::Clear for SessionGet {
     }
 }
 
-impl ::std::cmp::PartialEq for SessionGet {
-    fn eq(&self, other: &SessionGet) -> bool {
-        self.token == other.token &&
-        self.unknown_fields == other.unknown_fields
-    }
-}
-
 impl ::std::fmt::Debug for SessionGet {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         ::protobuf::text_format::fmt(self, f)
+    }
+}
+
+impl ::protobuf::reflect::ProtobufValue for SessionGet {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Message(self)
     }
 }
 
@@ -2777,6 +2902,12 @@ impl ::protobuf::ProtobufEnum for OAuthProvider {
 impl ::std::marker::Copy for OAuthProvider {
 }
 
+impl ::protobuf::reflect::ProtobufValue for OAuthProvider {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Enum(self.descriptor())
+    }
+}
+
 #[derive(Clone,PartialEq,Eq,Debug,Hash)]
 pub enum AccountSearchKey {
     Id = 0,
@@ -2818,6 +2949,12 @@ impl ::protobuf::ProtobufEnum for AccountSearchKey {
 }
 
 impl ::std::marker::Copy for AccountSearchKey {
+}
+
+impl ::protobuf::reflect::ProtobufValue for AccountSearchKey {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Enum(self.descriptor())
+    }
 }
 
 static file_descriptor_proto_data: &'static [u8] = &[
