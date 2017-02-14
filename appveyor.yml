@@ -2,8 +2,8 @@
 image: Visual Studio 2015
 
 cache:
-    - C:\Program Files\Rust stable MSVC 1.15
-    - c:\cargo
+  - c:\cargo\registry
+  - c:\cargo\git
 
 branches:
   only:
@@ -12,6 +12,8 @@ branches:
 init:
   - git config --global core.eol lf
   - mkdir c:\cargo
+  - mkdir c:\multirust
+  - SET PATH=c:\cargo\bin;%PATH%
 
 skip_tags: true
 
@@ -20,6 +22,7 @@ clone_folder: c:\projects\habitat
 environment:
   matrix:
     - CARGO_HOME: "c:\\cargo"
+      RUSTUP_HOME: "c:\\multirust"
       hab_build_action: "test;build"
       hab_components: "core;http-client;builder-protocol;builder-depot-client;common;win-users;sup"
 
