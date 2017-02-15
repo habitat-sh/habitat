@@ -5,4 +5,9 @@ Vagrant.configure("2") do |config|
     v.vmx["memsize"] = (5 * 1024).to_s
     v.vmx["numvcpus"] = "4"
   end
+  if key = ENV.has_key?("ORIGIN_KEY")
+    config.vm.provision "shell", inline: <<-EOF
+      echo '#{ENV.fetch("ORIGIN_KEY")}' > /tmp/hab.sig.key
+    EOF
+  end
 end

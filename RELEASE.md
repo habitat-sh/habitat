@@ -180,11 +180,10 @@ Next we will be running the same commands for hab-butterfly and hab-sup.
     ```
     $ cd ~/code/habitat/components/hab/mac
     $ vagrant destroy
+    $ export ORIGIN_KEY=$(hab origin key export core --type secret)
     $ vagrant up
     $ vagrant ssh
     ```
-
-1. Have the secret core origin key ready for pasting into the terminal. The `mac-build.sh` script will interactively prompt for pasting the key contents if no core origin key is installed on the VM.
 
 1. Build Hab for Mac
 
