@@ -1,0 +1,350 @@
+[bind]
+
+[cfg]
+
+[hab]
+version = "0.0.0"
+
+[pkg]
+exposes = []
+ident = "smith/lsyncd/0.1.0/20170215230753"
+name = "lsyncd"
+origin = "smith"
+path = "/hab/pkgs/smith/lsyncd/0.1.0/20170215230753"
+release = "20170215230753"
+svc_config_path = "/hab/svc/lsyncd/config"
+svc_data_path = "/hab/svc/lsyncd/data"
+svc_files_path = "/hab/svc/lsyncd/files"
+svc_group = "hab"
+svc_path = "/hab/svc/lsyncd"
+svc_static_path = "/hab/svc/lsyncd/static"
+svc_user = "hab"
+svc_var_path = "/hab/svc/lsyncd/var"
+version = "0.1.0"
+
+[[pkg.deps]]
+name = "acl"
+origin = "core"
+release = "20161208223311"
+version = "2.2.52"
+
+[[pkg.deps]]
+name = "attr"
+origin = "core"
+release = "20161208223238"
+version = "2.4.47"
+
+[[pkg.deps]]
+name = "bzip2"
+origin = "core"
+release = "20161208225359"
+version = "1.0.6"
+
+[[pkg.deps]]
+name = "coreutils"
+origin = "core"
+release = "20161208223423"
+version = "8.25"
+
+[[pkg.deps]]
+name = "db"
+origin = "core"
+release = "20161213234940"
+version = "5.3.28"
+
+[[pkg.deps]]
+name = "gcc-libs"
+origin = "core"
+release = "20161208223920"
+version = "5.2.0"
+
+[[pkg.deps]]
+name = "gdbm"
+origin = "core"
+release = "20161208225425"
+version = "1.11"
+
+[[pkg.deps]]
+name = "glibc"
+origin = "core"
+release = "20160612063629"
+version = "2.22"
+
+[[pkg.deps]]
+name = "gmp"
+origin = "core"
+release = "20161208212521"
+version = "6.1.0"
+
+[[pkg.deps]]
+name = "less"
+origin = "core"
+release = "20161213235230"
+version = "481"
+
+[[pkg.deps]]
+name = "libcap"
+origin = "core"
+release = "20161208223353"
+version = "2.24"
+
+[[pkg.deps]]
+name = "linux-headers"
+origin = "core"
+release = "20160612063537"
+version = "4.3"
+
+[[pkg.deps]]
+name = "lsyncd"
+origin = "core"
+release = "20170215185907"
+version = "2.1.6"
+
+[[pkg.deps]]
+name = "ncurses"
+origin = "core"
+release = "20161213233720"
+version = "6.0"
+
+[[pkg.deps]]
+name = "pcre"
+origin = "core"
+release = "20161213233903"
+version = "8.38"
+
+[[pkg.deps]]
+name = "perl"
+origin = "core"
+release = "20161213235304"
+version = "5.22.1"
+
+[[pkg.deps]]
+name = "rsync"
+origin = "core"
+release = "20161215000807"
+version = "3.1.2"
+
+[[pkg.deps]]
+name = "zlib"
+origin = "core"
+release = "20161118033245"
+version = "1.2.8"
+
+[pkg.exports]
+
+[svc]
+group = "default"
+ident = "lsyncd.default"
+service = "lsyncd"
+
+[[svc.all]]
+group = "default"
+ident = "lsyncd.default"
+service = "lsyncd"
+
+[svc.all.me]
+group = "default"
+member_id = "b3130c943a2d481492af62891f34cad3"
+service = "lsyncd"
+
+[svc.all.me.cfg]
+
+[svc.all.me.pkg]
+name = "lsyncd"
+origin = "smith"
+release = "20170215230753"
+version = "0.1.0"
+
+[svc.all.me.sys]
+gossip_ip = "0.0.0.0"
+gossip_port = "9638"
+hostname = "ef8549a34328"
+http_gateway_ip = "0.0.0.0"
+http_gateway_port = "9631"
+ip = "172.17.0.4"
+
+[svc.all.member_id]
+[svc.all.member_id.b3130c943a2d481492af62891f34cad3]
+group = "default"
+member_id = "b3130c943a2d481492af62891f34cad3"
+service = "lsyncd"
+
+[svc.all.member_id.b3130c943a2d481492af62891f34cad3.cfg]
+
+[svc.all.member_id.b3130c943a2d481492af62891f34cad3.pkg]
+name = "lsyncd"
+origin = "smith"
+release = "20170215230753"
+version = "0.1.0"
+
+[svc.all.member_id.b3130c943a2d481492af62891f34cad3.sys]
+gossip_ip = "0.0.0.0"
+gossip_port = "9638"
+hostname = "ef8549a34328"
+http_gateway_ip = "0.0.0.0"
+http_gateway_port = "9631"
+ip = "172.17.0.4"
+
+[[svc.all.members]]
+group = "default"
+member_id = "b3130c943a2d481492af62891f34cad3"
+service = "lsyncd"
+
+[svc.all.members.cfg]
+
+[svc.all.members.pkg]
+name = "lsyncd"
+origin = "smith"
+release = "20170215230753"
+version = "0.1.0"
+
+[svc.all.members.sys]
+gossip_ip = "0.0.0.0"
+gossip_port = "9638"
+hostname = "ef8549a34328"
+http_gateway_ip = "0.0.0.0"
+http_gateway_port = "9631"
+ip = "172.17.0.4"
+
+[svc.me]
+group = "default"
+member_id = "b3130c943a2d481492af62891f34cad3"
+service = "lsyncd"
+
+[svc.me.cfg]
+
+[svc.me.pkg]
+name = "lsyncd"
+origin = "smith"
+release = "20170215230753"
+version = "0.1.0"
+
+[svc.me.sys]
+gossip_ip = "0.0.0.0"
+gossip_port = "9638"
+hostname = "ef8549a34328"
+http_gateway_ip = "0.0.0.0"
+http_gateway_port = "9631"
+ip = "172.17.0.4"
+
+[svc.member_id]
+[svc.member_id.b3130c943a2d481492af62891f34cad3]
+group = "default"
+member_id = "b3130c943a2d481492af62891f34cad3"
+service = "lsyncd"
+
+[svc.member_id.b3130c943a2d481492af62891f34cad3.cfg]
+
+[svc.member_id.b3130c943a2d481492af62891f34cad3.pkg]
+name = "lsyncd"
+origin = "smith"
+release = "20170215230753"
+version = "0.1.0"
+
+[svc.member_id.b3130c943a2d481492af62891f34cad3.sys]
+gossip_ip = "0.0.0.0"
+gossip_port = "9638"
+hostname = "ef8549a34328"
+http_gateway_ip = "0.0.0.0"
+http_gateway_port = "9631"
+ip = "172.17.0.4"
+
+[[svc.members]]
+group = "default"
+member_id = "b3130c943a2d481492af62891f34cad3"
+service = "lsyncd"
+
+[svc.members.cfg]
+
+[svc.members.pkg]
+name = "lsyncd"
+origin = "smith"
+release = "20170215230753"
+version = "0.1.0"
+
+[svc.members.sys]
+gossip_ip = "0.0.0.0"
+gossip_port = "9638"
+hostname = "ef8549a34328"
+http_gateway_ip = "0.0.0.0"
+http_gateway_port = "9631"
+ip = "172.17.0.4"
+
+[svc.named]
+[svc.named.lsyncd]
+[svc.named.lsyncd.default]
+group = "default"
+ident = "lsyncd.default"
+service = "lsyncd"
+
+[svc.named.lsyncd.default.me]
+group = "default"
+member_id = "b3130c943a2d481492af62891f34cad3"
+service = "lsyncd"
+
+[svc.named.lsyncd.default.me.cfg]
+
+[svc.named.lsyncd.default.me.pkg]
+name = "lsyncd"
+origin = "smith"
+release = "20170215230753"
+version = "0.1.0"
+
+[svc.named.lsyncd.default.me.sys]
+gossip_ip = "0.0.0.0"
+gossip_port = "9638"
+hostname = "ef8549a34328"
+http_gateway_ip = "0.0.0.0"
+http_gateway_port = "9631"
+ip = "172.17.0.4"
+
+[svc.named.lsyncd.default.member_id]
+[svc.named.lsyncd.default.member_id.b3130c943a2d481492af62891f34cad3]
+group = "default"
+member_id = "b3130c943a2d481492af62891f34cad3"
+service = "lsyncd"
+
+[svc.named.lsyncd.default.member_id.b3130c943a2d481492af62891f34cad3.cfg]
+
+[svc.named.lsyncd.default.member_id.b3130c943a2d481492af62891f34cad3.pkg]
+name = "lsyncd"
+origin = "smith"
+release = "20170215230753"
+version = "0.1.0"
+
+[svc.named.lsyncd.default.member_id.b3130c943a2d481492af62891f34cad3.sys]
+gossip_ip = "0.0.0.0"
+gossip_port = "9638"
+hostname = "ef8549a34328"
+http_gateway_ip = "0.0.0.0"
+http_gateway_port = "9631"
+ip = "172.17.0.4"
+
+[[svc.named.lsyncd.default.members]]
+group = "default"
+member_id = "b3130c943a2d481492af62891f34cad3"
+service = "lsyncd"
+
+[svc.named.lsyncd.default.members.cfg]
+
+[svc.named.lsyncd.default.members.pkg]
+name = "lsyncd"
+origin = "smith"
+release = "20170215230753"
+version = "0.1.0"
+
+[svc.named.lsyncd.default.members.sys]
+gossip_ip = "0.0.0.0"
+gossip_port = "9638"
+hostname = "ef8549a34328"
+http_gateway_ip = "0.0.0.0"
+http_gateway_port = "9631"
+ip = "172.17.0.4"
+
+[sys]
+gossip_ip = "0.0.0.0"
+gossip_port = "9638"
+hostname = "ef8549a34328"
+http_gateway_ip = "0.0.0.0"
+http_gateway_port = "9631"
+ip = "172.17.0.4"
