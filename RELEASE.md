@@ -135,7 +135,7 @@ target component.
     $ cat build.manifest | while read entry; do echo "Building $(echo $entry | cut -d ' ' -f 1)"; build $(echo $entry | cut -d ' ' -f 2) || break; done
     ```
 
-Next we will be running the same commands for hab-butterfly, hab-sup, and hab-sup-static.
+Next we will be running the same commands for hab-butterfly and hab-sup.
 
 ### Build `hab-butterfly`
 
