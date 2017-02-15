@@ -52,8 +52,11 @@ fi
 while true; do
   if [[ $(ls -1 /hab/cache/keys/core-*.sig.key 2> /dev/null | wc -l) -gt 0 ]]; then
     break
+  elif [[ -f /tmp/hab.sig.key ]]; then
+    cat /tmp/hab.sig.key | hab origin key import
+    rm -f /tmp/hab.sig.key
   else
-    printf ${HAB_ORIGIN_KEY} | hab origin key import
+    printf ${ORIGIN_KEY} | hab origin key import
   fi
 done
 
@@ -80,6 +83,8 @@ fi
 install_if_missing coreutils
 install_if_missing gnu-tar
 install_if_missing wget
+install_if_missing bash
+install_if_missing hab-rq $(dirname $0)/homebrew/hab-rq.rb
 
 # Homebrew packages required to build `hab`
 install_if_missing zlib homebrew/dupes/zlib
@@ -101,10 +106,11 @@ fi
 info "Updating PATH to include GNU toolchain from HomeBrew"
 gnu_path="$(brew --prefix coreutils)/libexec/gnubin"
 gnu_path="$gnu_path:$(brew --prefix gnu-tar)/libexec/gnubin"
+gnu_path="$gnu_path:$(brew --prefix bash)/bin"
 export PATH="$gnu_path:$PATH"
 info "Setting PATH=$PATH"
 
 program="$(dirname $0)/../../plan-build/bin/hab-plan-build.sh"
 info "Executing: $program $*"
 echo
-exec $program $*
+exec $(brew --prefix bash)/bin/bash $program $*
