@@ -41,6 +41,7 @@ Once you've defined both ends of the contract you can leverage the bind in any o
   database-secure = "{{sys.ip}}:{{cfg.ssl-port}}"
 {{~/if}}
 {{~/each}}
+{{~/if}}
 ~~~
 
 ## Starting A Consumer
