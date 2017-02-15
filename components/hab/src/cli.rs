@@ -96,7 +96,7 @@ pub fn get() -> App<'static, 'static> {
                     (about: "Outputs the latest origin key contents to stdout")
                     (aliases: &["e", "ex", "exp", "expo", "expor"])
                     (@arg ORIGIN: +required +takes_value)
-                    (@arg PAIR_TYPE: -t --type +takes_value +required {valid_pair_type}
+                    (@arg PAIR_TYPE: -t --type +takes_value {valid_pair_type}
                     "Export either the `public' or `secret' key")
                 )
                 (@subcommand generate =>

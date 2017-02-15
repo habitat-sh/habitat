@@ -203,7 +203,7 @@ fn sub_origin_key_download(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 
 fn sub_origin_key_export(m: &ArgMatches) -> Result<()> {
     let origin = m.value_of("ORIGIN").unwrap(); // Required via clap
-    let pair_type = try!(PairType::from_str(m.value_of("PAIR_TYPE").unwrap()));
+    let pair_type = try!(PairType::from_str(m.value_of("PAIR_TYPE").unwrap_or("public")));
     init();
 
     command::origin::key::export::start(origin, pair_type, &default_cache_key_path(Some(&*FS_ROOT)))

@@ -165,7 +165,7 @@ Outputs the latest origin key contents to stdout
 
 **OPTIONS**
 
-    -t, --type <PAIR_TYPE>    Export either the `public' or `secret' key
+    -t, --type <PAIR_TYPE>    Export either the `public' or `secret' key (default: public)
 
 **ARGS**
 
