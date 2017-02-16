@@ -2,219 +2,259 @@
 title: Habitat - Automation That Travels with the App
 description: Habitat - Automation that travels with the app. Habitat allows any app to be independent of any particular infrastructure environment, like containers or PaaS.
 inline_javascript: homepageScripts();
+classes: home
 ---
-section.hero
+section.home--hero
   .row
     .columns.medium-12
-      .hero--content
-        h1.hero--heading
-          | Package your app and its automation together
-        p.hero--text
-          | Habitat is an open-source project that enables you to ship your application, to any platform,
-            along with all the automation you'll need to manage it in production.
+      .home--hero--content
+        h1.home--hero--heading Automate any app, anywhere with Habitat
+        p.home--hero--text
+          | From containers to traditional services, Habitat gives you a
+            consistent way to build and run your applications in a Cloud
+            Native manner.
+section.home--sub-hero
+  .row.hide-for-medium
+    .columns.medium-12
+      .home--button-wrap.sub-hero
+        = link_to 'Try Habitat Now', '', class: "button cta"
+        = link_to 'Download Habitat', '', class: "button cta outline"
+        p
+          | Take a quick, interactive tour of Habitat features, or download the bits and get your hands dirty
+  .row
+    .columns.large-6
+      .home--sub-hero--logos.containers
+        img.home--sub-hero--logo src="/images/homepage/sub-hero-logos-01.svg" onerror="this.src='/images/homepage/sub-hero-logos-01.png'" alt=""
+      img.home--sub-hero--icon src="/images/homepage/container-icon.svg" onerror="this.src='/images/homepage/container-icon.png'" alt=""
+      .home--sub-hero--nav.containers
+        button.home--sub-hero--dot
+        button.home--sub-hero--dot
+        button.home--sub-hero--dot
+      h2.home--sub-hero--heading For Containers
+      p.home--sub-hero--text
+        | Habitat builds containers that are easier to manage, without
+          committing to a specific container format or problem.
+    .columns.large-6
+      .home--sub-hero--logos.applications
+        img.home--sub-hero--logo src="/images/homepage/sub-hero-logos-02.svg" onerror="this.src='/images/homepage/sub-hero-logos-02.png'" alt=""
+      img.home--sub-hero--icon src="/images/homepage/app-icon.svg" onerror="this.src='/images/homepage/app-icon.png'" alt=""
+      .home--sub-hero--nav.applications
+        button.home--sub-hero--dot
+        button.home--sub-hero--dot
+      h2.home--sub-hero--heading For Traditional Applications
+      p.home--sub-hero--text
+        | Habitat helps you modernize your traditional applications
+          to run on any infrastructure.
+  .row.show-for-medium
+    .columns.medium-12
+      .home--button-wrap.sub-hero
+        = link_to 'Try Habitat Now', '', class: "button cta"
+        = link_to 'Download Habitat', '', class: "button cta outline"
+        p
+          | Take a quick, interactive tour of Habitat features, or download the bits and get your hands dirty
+  .row
+    .columns.medium-12.home--sub-hero--github
+      img[src="/images/homepage/github-logo.svg"
+        onerror="this.src='/images/homepage/github-logo.png'" alt="Github Logo"]
+      a href="https://github.com/habitat-sh/habitat" Find us on Github
 
-        a.button.cta href="/try" Try the Demo
-        a.button.cta.outline href="/docs/get-habitat" Get Habitat
-        p.cta-subtext
-          | Take a quick, interactive tour of Habitat features<br/>
-            or download the bits and get your hands dirty.
-    .hero--graphic
-      img[src="/images/graphics/hero-package-offset.svg"
-        onerror="this.src='/images/graphics/hero-package-offset.png'" alt=""]
-
-section.sub-hero
+section.main-section
   .row
     .columns.medium-12
-      .sub-hero--content
-        h2.sub-hero--heading What does Habitat do?
-        .row
-          .sub-hero--blurb.columns.medium-3
-            .sub-hero--blurb-title
-              img.sub-hero--icon[src="/images/icons/subhero-build.svg"
-                onerror="this.src='/icons/subhero-build.png'" alt=""]
-              h4 Build
-            p
-              | Define your app dependencies, startup scripts, and configuration
-                settings, then use the Habitat Studio to confidently build
-                clean, lean artifacts.
-
-          .sub-hero--blurb.columns.medium-3.medium-offset-1
-            .sub-hero--blurb-title
-              img.sub-hero--icon[src="/images/icons/subhero-deploy.svg"
-                onerror="this.src='/icons/subhero-deploy.png'" alt=""]
-              h4 Deploy
-            p
-              | Ship your Habitat build artifact as-is or export it into another
-                format, such as a container, allowing you to install and run it
-                anywhere.
-
-          .sub-hero--blurb.columns.medium-3.medium-offset-1.end
-            .sub-hero--blurb-title
-              img.sub-hero--icon[src="/images/icons/subhero-config.svg"
-                onerror="this.src='/icons/subhero-config.png'" alt=""]
-              h4 Manage
-            p
-              | Once your app is running, use Habitat's built-in tooling to
-                manage it throughout its entire lifecycle, thus minimizing
-                additional interfaces.
-        p
-          a.sub-hero--button.button href="/about/announcement/" Watch the Announcement Video
-        img.sub-hero--graphic src="/images/graphics/subhero-watermark.png" alt=""
-
-section.main-section.first
+      h2.main-section--heading Build and run containers collaboratively.
+      p.main-section--text Still throwing containers over the wall? Habitat helps you create better containers that both development and operation team will love.
   .row
-    .columns.medium-12.text-center
-      h2.use-cases--title
-        | It's much more than a packaging system.
-      .use-cases
-        .row
-          .use-cases--wrap.columns.medium-5.medium-offset-1
-            .use-cases--box
-              h4 Instant portability
-              p
-                | Habitat artifacts are fully capable of running on their own or
-                  you can export them into a variety of image formats.
-              p
-                | Already using containers? No problem. With a simple export
-                  command you can wrap your Habitat package in an AMI, Docker
-                  container, Marathon-ready package and more.
-              .use-cases--box-footer
-                img.use-cases--icon[src="/images/icons/usecase-portable.svg"
-                  onerror="this.src='/icons/usecase-portable.png'" alt="briefcase"]
-                a href="/about/habitat-and-workload-placement/" Learn more
-          .use-cases--wrap.columns.medium-5.end
-            .use-cases--box
-              h4 Improved container experience
-              p
-                | Habitat makes it easy to build containers by using a structured
-                  build language that allows you to use the same description to
-                  target any format.
-              p
-                | And when Habitat apps run inside containers, you'll get
-                  production runtime support for tasks such as config changes,
-                  health monitoring, and dependency audits.
-              .use-cases--box-footer
-                img.use-cases--icon[src="/images/icons/usecase-container.svg"
-                  onerror="this.src='/icons/usecase-container.png'" alt="box"]
-                a href="/about/habitat-and-modern-app/" Learn more
-        .row
-          .use-cases--wrap.columns.medium-5.medium-offset-1
-            .use-cases--box
-              h4 Modernize legacy apps
-              p
-                | Rewriting legacy apps for the cloud is a daunting task,
-                  especially if you have hundreds or thousands of them.
-              p
-                | Habitat enables you to modernize your applications to be
-                  completely independent of the underlying operating system,
-                  making cloud migrations much easier.
-              .use-cases--box-footer
-                img.use-cases--icon[src="/images/icons/usecase-legacy.svg"
-                  onerror="this.src='/icons/usecase-legacy.png'" alt="cloud"]
-                a href="/about/what-is-modern-app/" Learn more
-          .use-cases--wrap.columns.medium-5.end
-            .use-cases--box
-              h4 Simplify production management
-              p
-                | Designing and deploying apps across a variety of environments
-                  leads to an ever-growing number of management interfaces.
-              p
-                | With Habitat's built-in management features, you can standardize
-                  how your team monitors, configures, and updates all of your apps
-                  - both modern and legacy.
-              .use-cases--box-footer
-                img.use-cases--icon[src="/images/icons/usecase-production.svg"
-                  onerror="this.src='/icons/usecase-production.png'" alt="chart"]
-                a href="/about/why-habitat/" Learn more
-  hr
-  .production-wrap
-    .row
-      .production--blurb.columns.medium-3.medium-offset-1
-        h2 What does Habitat provide?
-        p
-          | When you build a Habitat package, you’re getting access to a host of
-            built-in features typically attained through a tangled mess of
-            third-party solutions that are external to the runtime environment.
-        p
-          | Accessing these built-in features is as simple as starting the
-            Habitat package.
-        p
-          | How does it work? Habitat packages are started by a process
-            supervisor that instantly provides everything you need to manage
-            your entire application.
+    .columns.large-6.medium-12
+      .row
+        .home--icon.columns.medium-6
+          img.home--icon-img src="/images/homepage/container-icon-1.svg" onerror="this.src='/images/homepage/container-icon-1.png" alt=""
+          h3.home--icon-heading Quick Config Changes
+          p
+            | Make environment specific config changes without rebuilding the container
+        .home--icon.columns.medium-6
+          img.home--icon-img src="/images/homepage/container-icon-2.svg" onerror="this.src='/images/homepage/container-icon-2.png" alt=""
+          h3.home--icon-heading Secure Secrets
+          p
+            | Store secrets outside the container
+    .columns.large-6.medium-12
+      .row
+        .home--icon.columns.medium-6
+          img.home--icon-img src="/images/homepage/container-icon-3.svg" onerror="this.src='/images/homepage/container-icon-3.png" alt=""
+          h3.home--icon-heading Intelligent Run-time Management
+          p
+            | Cluster containers through gossip based service groups
+        .home--icon.columns.medium-6
+          img.home--icon-img src="/images/homepage/container-icon-4.svg" onerror="this.src='/images/homepage/container-icon-4.png" alt=""
+          h3.home--icon-heading Traceable Content
+          p
+            | Audit the contents (libraries, application, and config) of a container
+  .row
+    .home--icon.columns.medium-12
+      h2.main-section--heading Manage traditional applications consistently
+      p.main-section--text Still struggling with managing traditional applications? Package them with Habitat, they will be set free from specific platforms.
+  .row
+    .columns.large-6.medium-12
+      .row
+        .home--icon.columns.medium-6
+          img.home--icon-img src="/images/homepage/app-icon-1.svg" onerror="this.src='/images/homepage/app-icon-1.png" alt=""
+          h3.home--icon-heading Get Started Fast
+          p
+            | Package any services your developers need with a simple Plan file.
+        .home--icon.columns.medium-6
+          img.home--icon-img src="/images/homepage/app-icon-2.svg" onerror="this.src='/images/homepage/app-icon-2.png" alt=""
+          h3.home--icon-heading Simple Config Management
+          p
+            | Change config based on developers' needs in a declarative way.
+    .columns.large-6.medium-12
+      .row
+        .home--icon.columns.medium-6
+          img.home--icon-img src="/images/homepage/app-icon-3.svg" onerror="this.src='/images/homepage/app-icon-3.png" alt=""
+          h3.home--icon-heading Built-in Monitoring Capability
+          p
+            | Integrate with monitoring and management tools through a RESTful API.
+        .home--icon.columns.medium-6
+          img.home--icon-img src="/images/homepage/app-icon-4.svg" onerror="this.src='/images/homepage/app-icon-4.png" alt=""
+          h3.home--icon-heading Centralized Management Layer
+          p
+            | Manage your traditional services like you manage your containers.
 
-      .production--features.columns.medium-3.medium-offset-1
-        .production--features-item
-          img.production--icon[src="/images/icons/subhero-manage.svg"
-              onerror="this.src='/icons/subhero-manage.png'" alt=""]
-          h4 Supervisor
-          p
-            | Each service starts with a supervisor process that takes commands
-              and communicates them amongst its peers.
-          a href="/docs/concepts-supervisor/" View docs
-        .production--features-item
-          img.production--icon[src="/images/icons/subhero-results.svg"
-              onerror="this.src='/icons/subhero-manage.png'" alt=""]
-          h4 Isolated Build Environment
-          p
-            | Define your entire app in a plan and generate reproducible,
-              versioned builds in a clean-room environment.
-          a href="/docs/concepts-studio/" View docs
-        .production--features-item
-          img.production--icon[src="/images/icons/subhero-platform.svg"
-              onerror="this.src='/icons/subhero-manage.png'" alt=""]
-          h4 Update Strategies
-          p
-            | Determine how your app should respond when new package versions
-              become available.
-          a href="/docs/run-packages-update-strategy/" View docs
-        .production--features-item
-          img.production--icon[src="/images/icons/subhero-manage.svg"
-              onerror="this.src='/icons/subhero-manage.png'" alt=""]
-          h4 Monitoring
-          p
-            | Check the health of your services and get configuration or
-              dependency version information via a customizable HTTP endpoint.
-          a href="/docs/run-packages-monitoring/" View docs
-
-      .production--features.columns.medium-3.medium-offset-1
-        .production--features-item
-          img.production--icon[src="/images/icons/subhero-platform.svg"
-              onerror="this.src='/icons/subhero-manage.png'" alt=""]
-          h4 Runtime Support
-          p
-            | Configuration changes and files can be passed and circulated to
-              your app with a single command.
-          a href="/docs/run-packages-overview/" View docs
-        .production--features-item
-          img.production--icon[src="/images/icons/subhero-manage.svg"
-              onerror="this.src='/icons/subhero-manage.png'" alt=""]
-          h4 Clustering Strategies
-          p
-            | Start up your services in a variety of built-in topologies
-              representing real-world distributed applications.
-          a href="/docs/run-packages-topologies/" View docs
-        .production--features-item
-          img.production--icon[src="/images/icons/subhero-results.svg"
-              onerror="this.src='/icons/subhero-manage.png'" alt=""]
-          h4 Secrets Management
-          p
-            | All communications to and between your services are secured with
-              high-grade encryption.
-          a href="/docs/run-packages-security/" View docs
-        .production--features-item.last-item
-          img.production--icon[src="/images/icons/subhero-platform.svg"
-              onerror="this.src='/icons/subhero-manage.png'" alt=""]
-          h4 Service Discovery
-          p
-            | Connect running services into groups, enabling them to
-              self-manage and reorganize as changes occur.
-          a href="/docs/run-packages-service-groups/" View docs
-
-hr
-section.main-section.last
+section.main-section
   .row
     .columns.medium-12
+      h2.main-section--heading How Habitat Works
+      p.main-section--text Habitat simplifies how we build, deploy, and manage our applications.
+  .row
+    .columns.medium-9
+      h3.main-section--subhead Build
+      p
+        | Habitat makes it easy to build and package your application. Once packaged you can export your application in your preferred container format. For stateful services, you can run this same package on cloud instances, VMs, or bare metal.
+  .row
+    .columns.large-6.medium-12.has-icon-divider.large
+      .row
+        .home--icon.has-icon-divider.medium.columns.medium-6
+          img.home--icon-img src="/images/homepage/build-icon-1.svg" onerror="this.src='/images/homepage/build-icon-1.png" alt=""
+          p.home--icon-code $ EDITOR plan.sh
+          p
+            | Create a plan that defines what your package contains, its dependencies, how it is built, and what’s configurable.
+        .home--icon.has-icon-divider.medium.columns.medium-6
+          img.home--icon-img src="/images/homepage/build-icon-2.svg" onerror="this.src='/images/homepage/build-icon-2.png" alt=""
+          p.home--icon-code $ hab studio enter
+          p
+            | Enter the studio, a “clean room” to build and test your Habitat packages.
+    .columns.large-6.medium-12
+      .row
+        .home--icon.has-icon-divider.medium.columns.medium-6
+          img.home--icon-img src="/images/homepage/build-icon-3.svg" onerror="this.src='/images/homepage/build-icon-3.png" alt=""
+          p.home--icon-code $ build origin/myapp
+          p
+            | Build your application package, an immutable and atomic artifact of your application.
+        .home--icon.has-code.columns.medium-6
+          img.home--icon-img src="/images/homepage/build-icon-4.svg" onerror="this.src='/images/homepage/build-icon-4.png" alt=""
+          p.home--icon-code $ hab pkg export docker
+          p
+            | Export a container consisting of your application, dependencies, a lightweight os, and the Habitat supervisor.
+  .row
+    .columns.medium-9
+      h3.main-section--subhead Run
+      p
+        | Habitat makes it easy to run your application in a container or other compute runtime. The Habitat supervisor provides the minimal level of configuration management required. The supervisor also gives you a gossip based services layer that lets you cluster your application with ease. Containers, Cloud, VMs, or Bare Metal, operate your applications in a consistent manner.
+  .row
+    .columns.large-6.medium-12.has-icon-divider.large
+      .row
+        .home--icon.has-icon-divider.medium.columns.medium-6
+          img.home--icon-img src="/images/homepage/run-icon-1.svg" onerror="this.src='/images/homepage/run-icon-1.png" alt=""
+          p.home--icon-code $ hab start
+          p
+            | Start your Habitat based application by launching your container, or with a simple `hab start`.
+        .home--icon.has-icon-divider.medium.columns.medium-6
+          img.home--icon-img src="/images/homepage/run-icon-2.svg" onerror="this.src='/images/homepage/run-icon-2.png" alt=""
+          p.home--icon-code $ hab config apply
+          p
+            | Easily apply configuration changes by updating the service group.
+    .columns.large-6.medium-12
+      .row
+        .home--icon.has-icon-divider.medium.columns.medium-6
+          img.home--icon-img src="/images/homepage/run-icon-3.svg" onerror="this.src='/images/homepage/run-icon-3.png" alt=""
+          p.home--icon-code $ --strategy rolling
+          p
+            | Deploy new code as it’s published by setting an update strategy.
+        .home--icon.has-code.columns.medium-6
+          img.home--icon-img src="/images/homepage/run-icon-4.svg" onerror="this.src='/images/homepage/run-icon-4.png" alt=""
+          p.home--icon-code $ get /services
+          p
+            | Monitor the health of the application and service group through Habitat’s RESTful API
+  .row
+    .columns.medium-12
+      .home--button-wrap
+        = link_to 'Try Habitat Now', '', class: "button cta"
+        p
+          | Take a quick, interactive tour of Habitat features in your browser.
+
+section.main-section
+  .row
+    .columns.medium-12
+      h2.main-section--heading Empower your teams with Habitat
+      p.main-section--text Increase collaboration between teams. Accelerate your time to market.
+  .row
+    .columns.large-8.large-push-2.medium-12
+      img src="/images/homepage/team-icon.svg" onerror="this.src='/images/homepage/team-icon.png'" alt=""
+  .row
+    .columns.medium-6
+      .home--callout.development
+        h3.main-section--subhead.text-center Development
+        .row
+          .columns.large-6
+            h4.home--callout--subhead Consistent Deployments
+            p
+              | You can confidently deploy your app at scale and achieve consistent results.
+          .columns.large-6
+            h4.home--callout--subhead Approachable Language
+            p
+              | Habitat plan files are easy to write and understand, and provide access to a full-featured build language.
+        .row
+          .columns.large-6
+            h4.home--callout--subhead Standardized Libraries
+            p
+              | You can create reusable packages for libraries used by your apps.
+          .columns.large-6
+            h4.home--callout--subhead Dependency Awareness
+            p
+              | Each package is aware of all the dependencies it needs for both build and runtime.
+        .row
+          .columns.large-6
+            h4.home--callout--subhead Lower Operational Complexity
+            p
+              | Ship immutable, versioned artifacts inside OS-independent containers.
+    .columns.medium-6
+      .home--callout.operations
+        h3.main-section--subhead.text-center Operations
+        .row
+          .columns.large-6
+            h4.home--callout--subhead Content Management
+            p
+              | Manage your apps the same way using Habitat’s built-in runtime features.
+          .columns.large-6
+            h4.home--callout--subhead Run at Scale
+            p
+              | Reduce the complexity of running clustered applications through service groups.
+        .row
+          .columns.large-6
+            h4.home--callout--subhead Platform Independence
+            p
+              | Run the same package on any platform.
+          .columns.large-6
+            h4.home--callout--subhead Dependency Resolution
+            p
+              | Avoid the pain of deploying multiple apps, with competing dependencies, to the same environment.
+        .row
+          .columns.large-6
+            h4.home--callout--subhead Gain Insight
+            p
+              | Full traceability of what's packaged inside a container.
+
+  .row
+    .columns.medium-12
+      h2.main-section--heading Hear What Others are Saying
       .testimonials-slider
         .testimonial.first.is-active
           .testimonial--image

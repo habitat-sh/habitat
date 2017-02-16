@@ -2,14 +2,7 @@
   position: relative;
   z-index: 5;
   padding: rem-calc(62) 0 rem-calc(90);
-  background-image: url('/images/footer-mask.png'),
-    linear-gradient(240deg, lighten($hab-green-light, 3%), $hab-green-light);
-  background-image: url('/images/footer-mask.svg'),
-    linear-gradient(240deg, lighten($hab-green-light, 3%), $hab-green-light);
-  background-repeat: repeat-x, no-repeat;
-  background-position: center top;
-  background-color: $hab-green-light;
-  background-size: auto rem-calc(247), cover;
+  background: linear-gradient($hab-green-light-2, $hab-blue-green);
   color: $white;
 
   &.has-sidebar,
@@ -26,7 +19,7 @@
 
 .footer--cta-heading {
   margin-bottom: rem-calc(40);
-  font-size: rem-calc(24);
+  font-size: rem-calc(30);
   text-shadow: 0px 2px 23px rgba(0,0,0,0.4);
 }
 

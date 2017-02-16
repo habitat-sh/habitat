@@ -1,11 +1,11 @@
-const navBreakpoint = 710;
+const navBreakpoint = 769;
 const $mainNav = $('#main-nav');
 const $navLinks = $('.main-nav--links');
 const $navToggle = $('.main-nav--toggle');
 const currentPagePath = location.pathname;
 const navPageLinks = ['about', 'docs', 'tutorials', 'community'];
-const stickyBreakpoint = 120;
-const stickyVisibleBreakpoint = 160;
+const stickyBreakpoint = 280;
+const stickyVisibleBreakpoint = 300;
 
 var toggleStickyNav = function() {
   if ($mainNav.is(":not(.has-sidebar)")) {

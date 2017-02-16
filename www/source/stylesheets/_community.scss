@@ -1,0 +1,226 @@
+// Community Page
+// Community Page media queries
+$community-small-breakpoint: rem-calc(650);
+$community-medium-breakpoint: rem-calc(880);
+
+@mixin small-community {
+  @media (max-width: $community-small-breakpoint - rem-calc(1)) {
+    @content;
+  }
+}
+
+@mixin medium-community {
+  @media (min-width: $community-small-breakpoint) and (max-width: $community-medium-breakpoint - rem-calc(1)) {
+    @content;
+  }
+}
+
+@mixin large-community {
+  @media (min-width: $community-medium-breakpoint) {
+    @content;
+  }
+}
+
+@mixin section-left-margin {
+  @media (min-width: 1040px) {
+    margin-left: rem-calc(104);
+  }
+}
+
+%section-heading {
+  font-size: rem-calc(25);
+
+  @include small-community {
+    font-size: rem-calc(18);
+  }
+}
+
+// Hero
+.community--hero {
+  min-height: rem-calc(600);
+  background: url('/images/graphics/hero-pattern.svg') no-repeat rem-calc(-100) 111%;
+  background-size: rem-calc(730) auto;
+
+  @include medium-community {
+    background-position: rem-calc(-100) 118%;
+    background-size: rem-calc(730) auto;
+  }
+
+  @include large-community {
+    background-position: -16% 165%;
+    background-position: calc(50% - rem-calc(400px)) 165%;
+    background-size: auto;
+  }
+
+  & > .row {
+    position: relative;
+  }
+
+  .cta-subtext a {
+    color: $hab-orange-dark;
+  }
+}
+
+.community--hero--content {
+  margin: rem-calc(60) 0 rem-calc(400);
+
+  @media (max-width: rem-calc(400)) {
+    margin-bottom: 112%;
+  }
+
+  @media (min-width: 376px) {
+    .button + .button {
+      margin-left: rem-calc(10);
+    }
+  }
+
+  @include medium-community {
+    max-width: 80%;
+    margin: rem-calc(90) 0 rem-calc(400);
+  }
+
+  @media (max-width: 940px) and (min-width: $community-medium-breakpoint) {
+    max-width: 50%;
+    margin: rem-calc(90) 0 rem-calc(150);
+  }
+
+  @media (min-width: 941px) {
+    max-width: 55%;
+    margin: rem-calc(94) 0 rem-calc(180);
+
+    .community & {
+      max-width: 50%;
+    }
+  }
+
+  @include section-left-margin;
+}
+
+.community--hero--heading {
+  font-size: rem-calc(36);
+
+  @include small-community {
+    font-size: rem-calc(20);
+  }
+}
+
+.community--hero--text {
+  margin-bottom: rem-calc(40);
+
+  & + .community--hero--text {
+    margin-top: rem-calc(-20px);
+  }
+}
+
+.community--hero--graphic {
+  position: absolute;
+  bottom: rem-calc(-100);
+  z-index: 3;
+  overflow: hidden;
+  right: 0;
+
+  & > img {
+    position: relative;
+    right: -40px;
+
+    @media (max-width: 420px) {
+      left: -10%;
+    }
+  }
+
+  @include small-community {
+    width: 100%;
+    text-align: center;
+
+    & > img {
+      position: relative;
+      width: 120%;
+      max-width: 450px;
+      right: 0;
+    }
+
+    .community & {
+      bottom: rem-calc(-50);
+    }
+  }
+}
+
+// Sub hero
+$sub-hero-skew: 5deg;
+
+.community--sub-hero {
+  position: relative;
+  z-index: 2;
+  padding: rem-calc(160) 0 rem-calc(200);
+  margin-top: rem-calc(-100);
+  margin-bottom: rem-calc(-100);
+  background-image: linear-gradient(240deg, $hab-blue-grey, darken($hab-blue-grey, 5%));
+  color: $white;
+  transform: skewY(-($sub-hero-skew));
+
+  &:after {
+    content: "";
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 4px;
+    background-image: linear-gradient(to right, $hab-green, $hab-blue-grey);
+  }
+
+  @include small-community {
+    padding-bottom: rem-calc(90);
+  }
+}
+
+.community--sub-hero--content {
+  position: relative;
+  transform: skewY($sub-hero-skew);
+  @include section-left-margin;
+}
+
+.community--sub-hero--heading,
+.community--sub-hero--blurb {
+  position: relative;
+  z-index: 3;
+}
+
+.community--sub-hero--heading {
+  margin-bottom: rem-calc(60);
+  @extend %section-heading;
+}
+
+.community--sub-hero--icon {
+  margin-bottom: rem-calc(20);
+}
+
+.community--sub-hero--blurb {
+  @include small-community {
+    padding: 0 8%;
+    margin-bottom: 5%;
+  }
+
+  p {
+    color: darken($white, 15%);
+  }
+}
+
+.community--sub-hero--graphic {
+  position: absolute;
+  z-index: 2;
+  left: 0.9375rem;
+  top: rem-calc(-200);
+
+  @include small-community {
+    width: 90%;
+    top: rem-calc(-215);
+  }
+}
+
+.community--sub-hero--button {
+  margin: rem-calc(40) 0 rem-calc(-35);
+
+  @include small-community {
+    margin: rem-calc(20) 0 0 6%;
+  }
+}
