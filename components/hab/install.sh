@@ -20,336 +20,251 @@ set -eu
 # If the variable `$DEBUG` is set, then print the shell commands as we execute.
 if [ -n "${DEBUG:-}" ]; then set -x; fi
 
-# Borrowed from Omnitruck.
-# helpers.sh
-############
-# This section has some helper functions to make life easier.
-#
-# Outputs:
-# $tmp_dir: secure-ish temp directory that can be used during installation.
-############
+BT_ROOT="https://api.bintray.com/content/habitat"
 
-# Check whether a command exists - returns 0 if it does, 1 if it does not
-exists() {
-  if command -v $1 >/dev/null 2>&1
-  then
-    return 0
+main() {
+  # Use stable Bintray channel by default
+  channel="stable"
+  # Set an empty version variable, signaling we want the latest release
+  version=""
+
+  # Parse command line flags and options.
+  while getopts "c:hv:" opt; do
+    case "${opt}" in
+      c)
+        channel="${OPTARG}"
+        ;;
+      h)
+        print_help
+        exit 0
+        ;;
+      v)
+        version="${OPTARG}"
+        ;;
+      \?)
+        echo "" >&2
+        print_help >&2
+        exit_with "Invalid option" 1
+        ;;
+    esac
+  done
+
+  info "Installing Habitat 'hab' program"
+  create_workdir
+  get_platform
+  download_archive
+  verify_archive
+  extract_archive
+  install_hab
+  print_hab_version
+  info "Installation of Habitat 'hab' program complete."
+}
+
+print_help() {
+  need_cmd cat
+  need_cmd basename
+
+  local _cmd
+  _cmd="$(basename "${0}")"
+  cat <<USAGE
+${_cmd}
+
+Authors: The Habitat Maintainers <humans@habitat.sh>
+
+Installs the Habitat 'hab' program.
+
+USAGE:
+    ${_cmd} [FLAGS]
+
+FLAGS:
+    -c    Specifies a channel [values: stable, unstable] [default: stable]
+    -h    Prints help information
+    -v    Specifies a version (ex: 0.15.0/20161222215311)
+
+USAGE
+}
+
+create_workdir() {
+  need_cmd mktemp
+  need_cmd rm
+  need_cmd mkdir
+
+  if [ -n "${TMPDIR:-}" ]; then
+    local _tmp="${TMPDIR}"
+  elif [ -d /var/tmp ]; then
+    local _tmp=/var/tmp
   else
-    return 1
+    local _tmp=/tmp
   fi
+  workdir="$(mktemp -d -p "$_tmp" 2> /dev/null || mktemp -d "${_tmp}/hab.XXXX")"
+  # Add a trap to clean up any interrupted file downloads
+  trap 'code=$?; rm -rf $workdir; exit $?' INT TERM EXIT
+  cd "${workdir}"
 }
 
-# Output the instructions to report bug about this script
-report_bug() {
-  echo ""
-  echo "Please file a Bug Report at https://github.com/habitat-sh/habitat/issues/new"
-  echo ""
-  echo "Please include as many details about the problem as possible i.e., how to reproduce"
-  echo "the problem (if possible), type of the Operating System and its version, etc.,"
-  echo "and any other relevant details that might help us with troubleshooting."
-  echo ""
-}
+get_platform() {
+  need_cmd uname
+  need_cmd tr
 
-checksum_mismatch() {
-  echo "Package checksum mismatch!"
-  report_bug
-  exit 1
-}
+  local _ostype
+  _ostype="$(uname -s)"
 
-unable_to_retrieve_package() {
-  echo "Unable to retrieve a valid package!"
-  echo ""
-  echo "We attempt to use several different programs to download the package from the"
-  echo "downloads site. Usually, this means we could not find the 'wget' or 'curl'"
-  echo "program on your system. We need one of these installed before we can proceed."
-  report_bug
-  if test "x$download_url" != "x"; then
-    echo "Download URL: $download_url"
-  fi
-  if test "x$stderr_results" != "x"; then
-    echo "\nDEBUG OUTPUT FOLLOWS:\n$stderr_results"
-  fi
-  exit 1
-}
+  case "${_ostype}" in
+    Darwin|Linux)
+      sys="$(uname -s | tr '[:upper:]' '[:lower:]')"
+      arch="$(uname -m | tr '[:upper:]' '[:lower:]')"
+      ;;
+    *)
+      exit_with "Unrecognized OS type when determining platform: ${_ostype}" 2
+      ;;
+  esac
 
-http_404_error() {
-  echo ""
-  echo "Either this means:"
-  echo "   - We do not support $platform"
-  echo "   - We do not have an artifact for $version"
-  echo ""
-  # deliberately do not call report_bug to suppress bug report noise.
-  if test "x$download_url" != "x"; then
-    echo "Download URL: $download_url"
-  fi
-  if test "x$stderr_results" != "x"; then
-    echo "\nDEBUG OUTPUT FOLLOWS:\n$stderr_results"
-  fi
-  exit 1
-}
+  case "${sys}" in
+    darwin)
+      need_cmd shasum
 
-capture_tmp_stderr() {
-  # spool up /tmp/stderr from all the commands we called
-  if test -f "$tmp_dir/stderr"; then
-    output=`cat $tmp_dir/stderr`
-    stderr_results="${stderr_results}\nSTDERR from $1:\n\n$output\n"
-    rm $tmp_dir/stderr
-  fi
-}
+      ext=zip
+      shasum_cmd="shasum -a 256"
+      ;;
+    linux)
+      need_cmd sha256sum
 
-# do_wget URL FILENAME
-do_wget() {
-  echo "trying wget..."
-  wget -O "$2" "$1" 2>$tmp_dir/stderr
-  rc=$?
-  # check for 404
-  grep "ERROR 404" $tmp_dir/stderr 2>&1 >/dev/null
-  if test $? -eq 0; then
-    echo "ERROR 404"
-    http_404_error
-  fi
-
-  # check for bad return status or empty output
-  if test $rc -ne 0 || test ! -s "$2"; then
-    capture_tmp_stderr "wget"
-    return 1
-  fi
-
-  return 0
-}
-
-# do_curl URL FILENAME
-do_curl() {
-  echo "trying curl..."
-  curl --retry 5 -sL -D $tmp_dir/stderr "$1" > "$2"
-  rc=$?
-  # check for 404
-  grep "404 Not Found" $tmp_dir/stderr 2>&1 >/dev/null
-  if test $? -eq 0; then
-    echo "ERROR 404"
-    http_404_error
-  fi
-
-  # check for bad return status or empty output
-  if test $rc -ne 0 || test ! -s "$2"; then
-    capture_tmp_stderr "curl"
-    return 1
-  fi
-
-  return 0
-}
-
-# do_fetch URL FILENAME
-do_fetch() {
-  echo "trying fetch..."
-  fetch -o "$2" "$1" 2>$tmp_dir/stderr
-  # check for bad return status
-  test $? -ne 0 && return 1
-  return 0
-}
-
-# do_perl URL FILENAME
-do_perl() {
-  echo "trying perl..."
-  perl -e 'use LWP::Simple; getprint($ARGV[0]);' "$1" > "$2" 2>$tmp_dir/stderr
-  rc=$?
-  # check for 404
-  grep "404 Not Found" $tmp_dir/stderr 2>&1 >/dev/null
-  if test $? -eq 0; then
-    echo "ERROR 404"
-    http_404_error
-  fi
-
-  # check for bad return status or empty output
-  if test $rc -ne 0 || test ! -s "$2"; then
-    capture_tmp_stderr "perl"
-    return 1
-  fi
-
-  return 0
-}
-
-# do_python URL FILENAME
-do_python() {
-  echo "trying python..."
-  python -c "import sys,urllib2 ; sys.stdout.write(urllib2.urlopen(sys.argv[1]).read())" "$1" > "$2" 2>$tmp_dir/stderr
-  rc=$?
-  # check for 404
-  grep "HTTP Error 404" $tmp_dir/stderr 2>&1 >/dev/null
-  if test $? -eq 0; then
-    echo "ERROR 404"
-    http_404_error
-  fi
-
-  # check for bad return status or empty output
-  if test $rc -ne 0 || test ! -s "$2"; then
-    capture_tmp_stderr "python"
-    return 1
-  fi
-  return 0
-}
-
-# do_download URL FILENAME
-do_download() {
-  echo "downloading $1"
-  echo "  to file $2"
-
-  url=`echo $1`
-  if test "x$platform" = "xsolaris2"; then
-    if test "x$platform_version" = "x5.9" -o "x$platform_version" = "x5.10"; then
-      # solaris 9 lacks openssl, solaris 10 lacks recent enough credentials - your base O/S is completely insecure, please upgrade
-      url=`echo $url | sed -e 's/https/http/'`
-    fi
-  fi
-
-  # we try all of these until we get success.
-  # perl, in particular may be present but LWP::Simple may not be installed
-
-  if exists wget; then
-    do_wget $url $2 && return 0
-  fi
-
-  if exists curl; then
-    do_curl $url $2 && return 0
-  fi
-
-  if exists fetch; then
-    do_fetch $url $2 && return 0
-  fi
-
-  if exists perl; then
-    do_perl $url $2 && return 0
-  fi
-
-  if exists python; then
-    do_python $url $2 && return 0
-  fi
-
-  unable_to_retrieve_package
-}
-
-case `uname` in
-  "Darwin")
-    platform="darwin"
-    file_ext="zip"
-    shasum_cmd="shasum -a 256"
-    ;;
-  "Linux")
-    platform="linux"
-    file_ext="tar.gz"
-    shasum_cmd="sha256sum"
-    ;;
-  *)
-    platform="unknown"
-    file_ext="unknown"
-    report_bug
-    ;;
-esac
-
-do_extract() {
-  case $file_ext in
-    "tar.gz")
-      zcat "$1" | tar x -C "$tmp_dir"
-      archive_dir="$(echo $archive | sed 's/.tar.gz$//')"
-    ;;
-    "zip")
-      unzip "$1" -d "$tmp_dir"
-      archive_dir="$(echo $archive | sed 's/.zip$//')"
-    ;;
+      ext=tar.gz
+      shasum_cmd="sha256sum"
+      ;;
+    *)
+      exit_with "Unrecognized sys type when determining platform: ${sys}" 3
+      ;;
   esac
 }
 
-do_install() {
-  case $platform in
-    "darwin")
-      if test -d /usr/local/bin; then
-        install -v $archive_dir/hab /usr/local/bin/hab
-      else
-        echo "This system does not have '/usr/local/bin'"
-        echo "Create this directory and rerun this script, or"
-        echo "copy '$archive_dir/hab' to a location in the PATH,"
-        echo "PATH=$PATH"
-        return 1
-      fi
+download_archive() {
+  need_cmd cut
+  need_cmd mv
+
+  local _btv
+  _btv="$(echo "${version:-%24latest}" | tr '/' '-')"
+
+  url="${BT_ROOT}/${channel}/${sys}/${arch}/hab-${_btv}-${arch}-${sys}.${ext}"
+  query="?bt_package=hab-${arch}-${sys}"
+
+  local _hab_url="${url}${query}"
+  local _sha_url="${url}.sha256sum${query}"
+
+  dl_file "${_hab_url}" "${workdir}/hab-latest.${ext}"
+  dl_file "${_sha_url}" "${workdir}/hab-latest.${ext}.sha256sum"
+
+  archive="${workdir}/$(cut -d ' ' -f 3 hab-latest.${ext}.sha256sum)"
+  sha_file="${archive}.sha256sum"
+
+  info "Renaming downloaded archive files"
+  mv -v "${workdir}/hab-latest.${ext}" "${archive}"
+  mv -v "${workdir}/hab-latest.${ext}.sha256sum" "${archive}.sha256sum"
+}
+
+verify_archive() {
+  if command -v gpg >/dev/null; then
+    info "GnuPG tooling found, verifying the shasum digest is properly signed"
+    local _sha_sig_url="${url}.sha256sum.asc${query}"
+    local _sha_sig_file="${archive}.sha256sum.asc"
+    local _key_url="https://bintray.com/user/downloadSubjectPublicKey?username=habitat"
+    local _key_file="${workdir}/habitat.asc"
+
+    dl_file "${_sha_sig_url}" "${_sha_sig_file}"
+    dl_file "${_key_url}" "${_key_file}"
+
+    gpg --no-permission-warning --dearmor "${_key_file}"
+    gpg --no-permission-warning \
+      --keyring "${_key_file}.gpg" --verify "${_sha_sig_file}"
+  fi
+
+  info "Verifying the shasum digest matches the downloaded archive"
+  ${shasum_cmd} -c "${sha_file}"
+}
+
+extract_archive() {
+  need_cmd sed
+
+  info "Extracting ${archive}"
+  case "${ext}" in
+    tar.gz)
+      need_cmd zcat
+      need_cmd tar
+
+      zcat "${archive}" | tar x -C "${workdir}"
+      archive_dir="$(echo "${archive}" | sed 's/.tar.gz$//')"
       ;;
-    "linux")
-      ident="core/hab"
-      if [ ! -z "${version-}" ]; then ident="$ident/$version"; fi
+    zip)
+      need_cmd unzip
+
+      unzip "${archive}" -d "${workdir}"
+      archive_dir="$(echo "${archive}" | sed 's/.zip$//')"
+      ;;
+    *)
+      exit_with "Unrecognized file extension when extracting: ${ext}" 4
+      ;;
+  esac
+}
+
+install_hab() {
+  case "${sys}" in
+    darwin)
+      need_cmd mkdir
+      need_cmd install
+
+      info "Installing hab into /usr/local/bin"
+      mkdir -pv /usr/local/bin
+      install -v "${archive_dir}"/hab /usr/local/bin/hab
+      ;;
+    linux)
+      local _ident="core/hab"
+      if [ ! -z "${version-}" ]; then _ident="${_ident}/$version"; fi
+      info "Installing Habitat package using temporarily downloaded hab"
       # Install hab release using the extracted version and add/update symlink
-      "$archive_dir/hab" install "$ident"
-      "$archive_dir/hab" pkg binlink "$ident" hab
+      "${archive_dir}/hab" install "$_ident"
+      "${archive_dir}/hab" pkg binlink "$_ident" hab
+      ;;
+    *)
+      exit_with "Unrecognized sys when installing: ${sys}" 5
       ;;
   esac
 }
 
-# Download location for the temporary files
-if [ -n "${TMPDIR:-}" ]; then
-  tmp_dir="${TMPDIR}/hab"
-elif [ -d /var/tmp ]; then
-  tmp_dir=/var/tmp/hab
-else
-  tmp_dir=/tmp/hab
-fi
+print_hab_version() {
+  need_cmd hab
 
-# Use stable Bintray channel by default
-channel="stable"
+  info "Checking installed hab version"
+  hab --version
+}
 
-# Set an empty version variable, signaling we want the latest release
-version=""
+need_cmd() {
+  if ! command -v "$1" > /dev/null 2>&1; then
+    exit_with "Required command '$1' not found on PATH" 127
+  fi
+}
 
-# ## CLI Argument Parsing
+info() {
+  echo "--> hab-install: $1"
+}
 
-# Parse command line flags and options.
-while getopts "c:v:" opt; do
-  case $opt in
-    c)
-      channel=$OPTARG
-      ;;
-    v)
-      version=$OPTARG
-      ;;
-    \?)
-      exit 1
-      ;;
-  esac
-done
+exit_with() {
+  info "$1" >&2
+  exit "${2:-10}"
+}
 
-if [ "$channel" = "unstable" ]; then
-  export HAB_DEPOT_URL="${HAB_DEPOT_URL:-https://app.acceptance.habitat.sh/v1/depot}"
-fi
+dl_file() {
+  local _url="${1}"
+  local _dst="${2}"
 
-# Add a trap to clean up any interrupted file downloads
-trap 'rm -rf $tmp_dir; exit $?' INT TERM EXIT
-rm -rf "$tmp_dir"
-(umask 077 && mkdir -p $tmp_dir) || exit 1
+  if command -v wget > /dev/null; then
+    info "Downlading via wget: ${_url}"
+    wget -q -O "${_dst}" "${_url}"
+  elif command -v curl > /dev/null; then
+    info "Downlading via curl: ${_url}"
+    curl -sSfL "${_url}" -o "${_dst}"
+  else
+    exit_with "Required: SSL-enabled 'curl' or 'wget' on PATH" 6
+  fi
+}
 
-bt_version="$(echo ${version:-%24latest} | tr '/' '-')"
-download_url="https://api.bintray.com/content/habitat/$channel/$platform/x86_64/hab-$bt_version-x86_64-$platform.$file_ext"
-bt_query="?bt_package=hab-x86_64-$platform"
-
-do_download "${download_url}${bt_query}" "${tmp_dir}/hab-latest.${file_ext}"
-do_download "${download_url}.sha256sum${bt_query}" "${tmp_dir}/hab-latest.${file_ext}.sha256sum"
-
-cd "$tmp_dir"
-archive="${tmp_dir}/$(cat hab-latest.${file_ext}.sha256sum | cut -d ' ' -f 3)"
-mv -v "${tmp_dir}/hab-latest.${file_ext}" "${archive}"
-sha_file="${archive}.sha256sum"
-mv -v "${tmp_dir}/hab-latest.${file_ext}.sha256sum" "${archive}.sha256sum"
-
-# If gnupg is available, verify that the shasum digest is properly signed
-if command -v gpg >/dev/null; then
-  sha_sig_url="${download_url}.sha256sum.asc$bt_query"
-  sha_sig_file="${archive}.sha256sum.asc"
-  key_url="https://bintray.com/user/downloadSubjectPublicKey?username=habitat"
-  key_file="$tmp_dir/habitat.asc"
-  do_download "$sha_sig_url" "$sha_sig_file"
-  do_download "$key_url" "$key_file"
-  gpg --no-permission-warning --dearmor "$key_file"
-  gpg --no-permission-warning --keyring "${key_file}.gpg" --verify "$sha_sig_file"
-fi
-
-# Verify the provided shasum digest matches the downloaded archive
-$shasum_cmd -c "$sha_file"
-
-do_extract $archive
-do_install
+main "$@" || exit 99
