@@ -139,7 +139,7 @@ pkg_svc_run
 > Note: You should use a [run hook](#hooks) instead if you have complex start up behavior.
 
 pkg_exports
-: Optional. An [associative array](http://www.linuxjournal.com/content/bash-associative-arrays) representing configuration data which should be gossiped to peers. The keys in this array are aliases and their values represent the TOML path to a value.
+: Optional. An [associative array](http://www.linuxjournal.com/content/bash-associative-arrays) representing configuration data which should be gossiped to peers. The keys in this array are used with `pkg_exposes` and for any consuming services that set `pkg_binds` or `pkg_binds_optional`. The values represent the TOML path to a value.
 
   ~~~
   pkg_exports=(
