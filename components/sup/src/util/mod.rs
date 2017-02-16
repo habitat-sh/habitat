@@ -14,6 +14,7 @@
 
 pub mod convert;
 pub mod path;
+pub mod pkg;
 pub mod sys;
 pub mod users;
 

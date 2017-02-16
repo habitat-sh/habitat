@@ -17,7 +17,6 @@ pub mod service;
 pub mod signals;
 pub mod service_updater;
 
-use std::env;
 use std::net::SocketAddr;
 use std::thread;
 use std::sync::{Arc, RwLock};
@@ -70,6 +69,7 @@ pub struct ManagerConfig {
 pub struct Manager {
     state: State,
     updater: ServiceUpdater,
+    gossip_listen: GossipListenAddr,
     http_listen: http_gateway::ListenAddr,
 }
 
@@ -105,19 +105,14 @@ impl Manager {
         Ok(Manager {
             updater: ServiceUpdater::new(server.clone()),
             state: State::new(server),
+            gossip_listen: cfg.gossip_listen,
             http_listen: cfg.http_listen,
         })
     }
 
-    pub fn add_service(&mut self, service: Service) -> Result<()> {
-        // JW TODO: We can't just set the run path for the entire process here, we need to set
-        // this on the supervisor which will be starting the process itself to support multi
-        // services in hab-sup.
-        let run_path = try!(service.run_path());
-        debug!("Setting the PATH to {}", run_path);
-        env::set_var("PATH", &run_path);
-        service.create_svc_path()?;
-        service.register_metrics();
+    pub fn add_service(&mut self, spec: ServiceSpec) -> Result<()> {
+        let service = Service::load(spec, &self.gossip_listen, &self.http_listen)?;
+        service.add()?;
         self.state.butterfly.insert_service(service.to_rumor(self.state.butterfly.member_id()));
         if service.topology == Topology::Leader {
             // Note - eventually, we need to deal with suitability here. The original implementation
@@ -126,6 +121,12 @@ impl Manager {
         }
         self.updater.add(&service);
         self.state.services.write().expect("Services lock is poisoned!").push(service);
+        Ok(())
+    }
+
+    pub fn remove_service(&self, service: &Service) -> Result<()> {
+        // TODO FN: there is more to removing a service, more to follow
+        service.remove()?;
         Ok(())
     }
 
@@ -145,6 +146,13 @@ impl Manager {
         loop {
             let next_check = SteadyTime::now() + TimeDuration::milliseconds(1000);
             if self.check_for_incoming_signals() {
+                let mut services = self.state
+                    .services
+                    .write()
+                    .expect("Services lock is poisend!");
+                for service in services.drain(..) {
+                    self.remove_service(&service)?;
+                }
                 outputln!("Habitat thanks you - shutting down!");
                 return Ok(());
             }
