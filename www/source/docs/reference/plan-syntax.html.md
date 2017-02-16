@@ -139,7 +139,7 @@ pkg_svc_run
 > Note: You should use a [run hook](#hooks) instead if you have complex start up behavior.
 
 pkg_exports
-: Optional. An associative array representing configuration data which should be gossiped to peers. The keys in this array represent the name the value will be assigned and the values represent the TOML path to read the value.
+: Optional. An [associative array](http://www.linuxjournal.com/content/bash-associative-arrays) representing configuration data which should be gossiped to peers. The keys in this array are aliases and their values represent the TOML path to a value.
 
   ~~~
   pkg_exports=(
@@ -149,12 +149,23 @@ pkg_exports
   )
   ~~~
 
+In this example, the corresponding default.toml file would have the following key/value pairs defined:
+
+    [server]
+    port = 80
+    host = "www.example.com"
+
+    [ssl]
+    port = 443
+
 pkg_exposes
-: Optional. An array of `pkg_exports` keys containing default values for which ports that this package exposes. These values are used as sensible defaults for other tools. For example, when exporting a package to a container format.
+: Optional. An array of `pkg_exports` keys containing default values for the ports that this package exposes. These values are used as sensible defaults for other tools, such as when exporting a package to a container format. 
 
   ~~~
   pkg_exposes=(port ssl-port)
   ~~~
+
+  > Note: In addition to specifying the keys you defined in `pkg_exports`, you **must** have a default.toml file indicating the port values to expose.
 
 pkg_binds
 : Optional. An associative array representing services which you depend on and the configuration keys that you expect the service to export (by their `pkg_exports`). These binds *must* be set for the supervisor to load the service. The loaded service will wait to run until it's bind becomes available. If the bind does not contain the expected keys, the service will not start successfully.
