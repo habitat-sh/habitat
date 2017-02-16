@@ -14,12 +14,12 @@ body.home {
     top: 0;
     right: 0;
     left: 0;
-    height: rem-calc(600);
+    height: rem-calc(900);
     z-index: -1;
     background: linear-gradient($hab-navy, $hab-navy-light);
 
     @include breakpoint(large) {
-      height: rem-calc(900);
+      height: rem-calc(1000);
     }
   }
 }
@@ -39,12 +39,13 @@ body.home {
   }
 
   @include breakpoint(medium only) {
-    padding: rem-calc(80) 0 rem-calc(60);
+    padding: rem-calc(112) 0 rem-calc(60);
     margin: 0 auto rem-calc(150);
+    background-size: auto 450px;
   }
 
   @include breakpoint(large) {
-    padding: rem-calc(140) 0 rem-calc(120);
+    padding: rem-calc(140) 0 rem-calc(72);
     margin: 40px auto 180px;
   }
 }
@@ -159,7 +160,9 @@ body.home {
   margin-top: rem-calc(30);
   text-align: center;
 
-  &.sub-hero {
+  &.hero {
+    margin-top: 10px;
+
     @include breakpoint(small only) {
       margin: 0 auto rem-calc(40);
     }

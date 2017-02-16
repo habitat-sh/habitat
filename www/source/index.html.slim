@@ -13,14 +13,13 @@ section.home--hero
           | From containers to traditional services, Habitat gives you a
             consistent way to build and run your applications in a Cloud
             Native manner.
+        .home--button-wrap.hero
+          = link_to 'Try Habitat Now', '/try', class: "button cta"
+          = link_to 'Download Habitat', '/docs/get-habitat', class: "button cta outline"
+          p
+            | Take a quick, interactive tour of Habitat features, or download the bits and get your hands dirty
+
 section.home--sub-hero
-  .row.hide-for-medium
-    .columns.medium-12
-      .home--button-wrap.sub-hero
-        = link_to 'Try Habitat Now', '/try', class: "button cta"
-        = link_to 'Download Habitat', '/docs/get-habitat', class: "button cta outline"
-        p
-          | Take a quick, interactive tour of Habitat features, or download the bits and get your hands dirty
   .row
     .columns.large-6
       .home--sub-hero--logos.containers
@@ -45,13 +44,7 @@ section.home--sub-hero
       p.home--sub-hero--text
         | Habitat helps you modernize your traditional applications
           to run on any infrastructure.
-  .row.show-for-medium
-    .columns.medium-12
-      .home--button-wrap.sub-hero
-        = link_to 'Try Habitat Now', '/try', class: "button cta"
-        = link_to 'Download Habitat', '/docs/get-habitat', class: "button cta outline"
-        p
-          | Take a quick, interactive tour of Habitat features, or download the bits and get your hands dirty
+
   .row
     .columns.medium-12.home--sub-hero--github
       img[src="/images/homepage/github-logo.svg"
