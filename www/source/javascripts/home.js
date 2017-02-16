@@ -14,55 +14,6 @@ var homepageScripts = function() {
     });
   };
 
-  // Feature Slider
-  const homepageSlides = ["plan-and-config", "build-packages"];
-  const $sliderButtons = $(".slider--nav button");
-  const $slides = $(".slide");
-  const $slidesWrap = $(".slides");
-  var slideHeight;
-
-  $("#slide--plan-and-config").fadeIn();
-
-  $sliderButtons.click(function() {
-    var $button = $(this);
-    $(".slider--nav .is-active").removeClass("is-active")
-    $button.addClass("is-active");
-
-    for (var slide in homepageSlides) {
-      if ($button.hasClass(homepageSlides[slide]) && $("#slide--" + homepageSlides[slide]).is(":hidden")) {
-        $(".slide").fadeOut();
-        $("#slide--" + homepageSlides[slide]).fadeIn();
-      }
-    }
-
-    adjustParentHeight($slides, $slidesWrap);
-  });
-
-  adjustParentHeight($slides, $slidesWrap);
-
-  $(window).resize(function() {
-    adjustParentHeight($slides, $slidesWrap);
-  });
-
-  // Production Icons
-  const icons = ["lock", "search", "settings", "file", "health"];
-  const $productionIcons = $(".production--icon");
-
-  $productionIcons.click(function() {
-    $icon = $(this);
-    var $iconText;
-
-    for (var iconName in icons) {
-      $iconText = $(".production--icon-text." + icons[iconName]);
-
-      if ($icon.hasClass(icons[iconName]) && !$iconText.hasClass("is-active")) {
-        $(".production--graphic .is-active").removeClass("is-active");
-        $icon.addClass("is-active");
-        $iconText.addClass("is-active");
-      }
-    }
-  });
-
   // Testimonials slider
   const $testimonials = $(".testimonial");
   const testimonialsSlider = ".testimonials-slider";
@@ -102,4 +53,39 @@ var homepageScripts = function() {
     }
 
   }, 15000);
+
+  // Sub-hero logo sliders
+  var lastScrollPosition = 0;
+
+  var hasScrollBar = function($element, $parent) {
+    return $element.width() > $parent.width();
+  };
+
+  var elementIsVisible = function($element) {
+    var windowScrollBottom = $(window).scrollTop() + $(window).height();
+    var elementBottomPosition = $element.offset().top + $element.outerHeight();
+
+    return windowScrollBottom > elementBottomPosition;
+  };
+
+  var canScrollLeft = function($element, $parent) {
+    return $parent.scrollLeft() < $element.width();
+  };
+
+  var animateScroll = function($element) {
+    var $image = $element.children(".home--sub-hero--logo");
+    var currentScrollPosition = $(window).scrollTop();
+    var elementScrollShift = currentScrollPosition < lastScrollPosition ? 0 : 1;
+
+    lastScrollPosition = currentScrollPosition;
+
+    if (hasScrollBar($image, $element) && elementIsVisible($element) && canScrollLeft($image, $element)) {
+      $element.scrollLeft($element.scrollLeft() + elementScrollShift);
+    }
+  };
+
+  $(window).scroll(function() {
+    animateScroll($(".home--sub-hero--logos.containers"));
+    animateScroll($(".home--sub-hero--logos.applications"));
+  });
 };

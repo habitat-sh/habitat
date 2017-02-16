@@ -13,6 +13,7 @@ $main-nav-breakpoint: 769px;
 }
 
 #main-nav {
+  position: relative;
   z-index: 100;
   background: $white;
   min-height: $header-height-mobile;
@@ -46,6 +47,46 @@ $main-nav-breakpoint: 769px;
   @include small-nav {
     position: fixed;
   }
+
+  // modifiers for nav on homepage on large screens
+  .home &:not(.is-sticky) {
+    @include large-nav {
+        background: transparent;
+
+      a {
+        color: $white;
+
+        &:hover,
+        &:active,
+        &:focus {
+          color: $hab-green-light;
+        }
+      }
+    }
+
+    .main-nav--logo {
+      @media (min-width: 973px) {
+        width: rem-calc(260);
+        height: rem-calc(117);
+      }
+
+      @media (max-width: 1550px) and (min-width: 973px) {
+        position: absolute;
+        left: rem-calc(180);
+      }
+
+      @media (max-width: 1024px) {
+        width: rem-calc(100);
+      }
+
+      @include large-nav {
+        h1 {
+          background: url("../images/habitat-logo-light.svg") no-repeat left 40%;
+          background-size: contain;
+        }
+      }
+    }
+  }
 }
 
 .main-nav--container {
@@ -61,7 +102,9 @@ $main-nav-breakpoint: 769px;
   }
 
   h1 {
-    @include hide-text;
+    overflow: hidden;
+    text-indent: 400%;
+    white-space: nowrap;
     background: url("../images/habitat-logo.svg") no-repeat left 40%;
     background-size: rem-calc(89) auto;
     color: $white;
@@ -218,5 +261,21 @@ $main-nav-breakpoint: 769px;
     svg .bar {
       fill: $hab-orange;
     }
+  }
+}
+
+.main-nav--github {
+  display: none;
+  position: absolute;
+  left: 0;
+
+  @media (min-width: 973px) {
+    .home & {
+      display: block;
+    }
+  }
+
+  .is-sticky & {
+    display: none;
   }
 }
