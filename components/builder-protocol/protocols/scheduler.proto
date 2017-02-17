@@ -1,0 +1,20 @@
+package scheduler;
+import "protocols/depotsrv.proto";
+
+message Schedule {
+  optional depotsrv.PackageIdent ident = 1;
+}
+
+enum GroupState {
+  Pending = 0;
+  Processing = 1;
+  Complete = 2;
+  Rejected = 3;
+  Failed = 4;
+  Dispatched = 5;
+}
+
+message Group {
+  optional uint64 group_id = 1;
+  optional GroupState state = 2;
+}

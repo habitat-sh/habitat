@@ -41,6 +41,7 @@ use persistent;
 use protocol::depotsrv;
 use protocol::net::ErrCode;
 use protocol::sessionsrv::{Account, AccountGet};
+use protocol::scheduler::{Schedule, Group};
 use protocol::vault::*;
 use regex::Regex;
 use router::{Params, Router};
@@ -587,6 +588,29 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
               ident,
               object.get_ident());
         Ok(Response::with(status::UnprocessableEntity))
+    }
+}
+
+// TBD: This is mostly a stub for now.
+fn schedule_package(req: &mut Request) -> IronResult<Response> {
+    let ident = {
+        let params = req.extensions.get::<Router>().unwrap();
+        ident_from_params(params)
+    };
+
+    let mut conn = Broker::connect().unwrap();
+
+    debug!("SCHEDULING ident={}", ident);
+
+    let mut request = Schedule::new();
+    request.set_ident(ident.clone());
+    match conn.route::<Schedule, Group>(&request) {
+        Ok(_) => {
+            let mut response = render_json(status::Ok, &ident);
+            dont_cache_response(&mut response);
+            Ok(response)
+        }
+        Err(err) => Ok(render_net_error(&err)),
     }
 }
 
@@ -1140,6 +1164,13 @@ pub fn router(depot: Depot) -> Result<Chain> {
                 XHandler::new(upload_package)
             } else {
                 XHandler::new(upload_package).before(basic.clone())
+            }
+        },
+        package_schedule: post "/pkgs/schedule/:origin/:pkg/:version/:release" => {
+            if depot.config.insecure {
+                XHandler::new(schedule_package)
+            } else {
+                XHandler::new(schedule_package).before(worker.clone())
             }
         },
 

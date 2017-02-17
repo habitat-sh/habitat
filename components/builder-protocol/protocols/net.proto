@@ -6,6 +6,7 @@ enum Protocol {
   SessionSrv = 2;
   VaultSrv = 3;
   JobSrv = 4;
+  Scheduler = 5;
 }
 
 message RouteInfo {

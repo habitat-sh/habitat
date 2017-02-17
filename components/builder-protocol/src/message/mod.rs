@@ -25,6 +25,7 @@ pub mod net;
 pub mod routesrv;
 pub mod sessionsrv;
 pub mod vault;
+pub mod scheduler;
 
 #[derive(Debug)]
 pub struct Message<'a, T: 'a + protobuf::Message>(&'a T);
@@ -41,6 +42,7 @@ impl<'a, T: 'a + protobuf::Message> Message<'a, T> {
             Some("routesrv") => net::Protocol::RouteSrv,
             Some("sessionsrv") => net::Protocol::SessionSrv,
             Some("vault") => net::Protocol::VaultSrv,
+            Some("scheduler") => net::Protocol::Scheduler,
             Some(_) | None => {
                 unreachable!("no protocol defined for message, name={}",
                              self.0.descriptor().full_name())
@@ -154,5 +156,7 @@ mod tests {
                    net::Protocol::SessionSrv);
         assert_eq!(Message(&vault::Origin::new()).protocol(),
                    net::Protocol::VaultSrv);
+        assert_eq!(Message(&scheduler::Schedule::new()).protocol(),
+                   net::Protocol::Scheduler);
     }
 }

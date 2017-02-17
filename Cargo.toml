@@ -8,6 +8,7 @@ members = [
   "components/builder-depot",
   "components/builder-depot-client",
   "components/builder-jobsrv",
+  "components/builder-scheduler",
   "components/builder-protocol",
   "components/builder-router",
   "components/builder-sessionsrv",
