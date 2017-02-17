@@ -59,17 +59,18 @@ fn never_escape(data: &str) -> String {
 
 #[cfg(test)]
 mod test {
+    use toml;
+    use serde_json;
+
+    use std::fs::File;
+    use std::io::Read;
     use std::path::PathBuf;
-    use std::str::FromStr;
     use std::collections::BTreeMap;
 
     use super::*;
 
     use util::convert;
-    use hcore::package::{PackageIdent, PackageInstall};
-
-    use manager::{ManagerConfig, ServiceConfig};
-    use supervisor::RuntimeConfig;
+    use manager::ServiceConfig;
 
     #[test]
     fn test_handlebars_json_helper() {
@@ -150,34 +151,48 @@ mod test {
         assert_eq!(rendered, "this is new".to_string());
     }
 
-    fn gen_pkg() -> PackageInstall {
-        PackageInstall::new_from_parts(PackageIdent::from_str("neurosis/redis/2000/20160222201258")
-                                           .unwrap(),
-                                       PathBuf::from("/"),
-                                       PathBuf::from("/fakeo"),
-                                       PathBuf::from("/fakeo/here"))
+    pub fn root() -> PathBuf {
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests")
     }
 
-    // This test is meant to fail until the ServiceConfig has mock data to
-    // include a package with deps.
-    // TODO: update ServiceConfig to include a package with deps.
+    pub fn fixtures() -> PathBuf {
+        root().join("fixtures")
+    }
+
+    pub fn service_config_json_from_toml_file(filename: &str) -> serde_json::Value {
+        let mut file = File::open(fixtures().join(filename)).unwrap();
+        let mut config = String::new();
+        let _ = file.read_to_string(&mut config).unwrap();
+        let mut toml_parser = toml::Parser::new(&config);
+        let toml = toml_parser.parse().unwrap();
+        let data = convert::toml_to_json(toml::Value::Table(toml));
+        data
+    }
+
     #[test]
-    #[should_panic(expected = "assertion failed")]
     fn pkg_path_for_helper() {
-        let content = "{{pkgPathFor \"neurosis/redis\"}}".to_string();
+        let content = "{{pkgPathFor \"core/jq-static\"}}".to_string();
         let mut template = Template::new();
         template.register_template_string("t", content).unwrap();
 
-        let pkg = gen_pkg();
-        let sc = ServiceConfig::new(&pkg,
-                                    &ManagerConfig::default(),
-                                    &RuntimeConfig::default(),
-                                    PathBuf::from("/hab/pkgs/neurosis/redis/2000/20160222201258"),
-                                    Vec::new())
-            .unwrap();
-        let toml = sc.to_toml().unwrap();
-        let data = convert::toml_to_json(toml);
+        let data = service_config_json_from_toml_file("simple_config.toml");
         let rendered = template.render("t", &data).unwrap();
-        assert_eq!(rendered, "/hab/pkgs/neurosis/redis/2000/20160222201258");
+        assert_eq!(PathBuf::from(rendered),
+                   PathBuf::from("/hab/pkgs/core/jq-static/1.10/20160909011845"));
     }
+
+    #[test]
+    fn deserialize_simple_config_toml() {
+        let data = service_config_json_from_toml_file("simple_config.toml");
+        let cfg = serde_json::from_value::<ServiceConfig>(data).unwrap();
+        assert_eq!(cfg.pkg.name, "testplan");
+    }
+
+    #[test]
+    fn deserialize_complex_config_toml() {
+        let data = service_config_json_from_toml_file("complex_config.toml");
+        let cfg = serde_json::from_value::<ServiceConfig>(data).unwrap();
+        assert_eq!(cfg.pkg.name, "lsyncd");
+    }
+
 }

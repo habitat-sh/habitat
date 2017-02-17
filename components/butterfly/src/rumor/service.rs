@@ -146,9 +146,13 @@ pub struct SysInfo {
     pub ip: String,
     pub hostname: String,
     pub gossip_ip: String,
-    pub gossip_port: u16,
+    // TODO: revert to u16 when deserializing in the handlebars template
+    // works properly
+    pub gossip_port: String,
     pub http_gateway_ip: String,
-    pub http_gateway_port: u16,
+    // TODO: revert to u16 when deserializing in the handlebars template
+    // works properly
+    pub http_gateway_port: String,
 }
 
 #[cfg(test)]

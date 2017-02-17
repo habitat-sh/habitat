@@ -549,9 +549,9 @@ impl Sys {
             ip: ip,
             hostname: hostname,
             gossip_ip: manager_cfg.gossip_listen.ip().to_string(),
-            gossip_port: manager_cfg.gossip_listen.port(),
+            gossip_port: manager_cfg.gossip_listen.port().to_string(),
             http_gateway_ip: manager_cfg.http_listen.ip().to_string(),
-            http_gateway_port: manager_cfg.http_listen.port(),
+            http_gateway_port: manager_cfg.http_listen.port().to_string(),
         })
     }
 

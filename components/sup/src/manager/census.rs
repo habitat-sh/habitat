@@ -300,7 +300,7 @@ impl CensusEntry {
     pub fn populate_from_member(&mut self, member: &Member) {
         self.set_member_id(String::from(member.get_id()));
         self.sys.gossip_ip = member.get_address().to_string();
-        self.sys.gossip_port = member.get_gossip_port() as u16;
+        self.sys.gossip_port = member.get_gossip_port().to_string();
         self.set_persistent(true);
     }
 
