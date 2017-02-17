@@ -374,7 +374,10 @@ img {
     }
   }
 
-  &:hover {
+  &:hover,
+  &:focus,
+  &:active {
+    color: $white;
     background-color: darken($hab-blue, 2);
     transition: all .2s;
   }
