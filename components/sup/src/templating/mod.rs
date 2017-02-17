@@ -172,7 +172,7 @@ mod test {
         let sc = ServiceConfig::new(&pkg,
                                     &ManagerConfig::default(),
                                     &RuntimeConfig::default(),
-                                    None,
+                                    PathBuf::from("/hab/pkgs/neurosis/redis/2000/20160222201258"),
                                     Vec::new())
             .unwrap();
         let toml = sc.to_toml().unwrap();

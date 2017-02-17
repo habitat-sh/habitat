@@ -99,7 +99,7 @@ impl ServiceUpdater {
             Some(&mut UpdaterState::AtOnce(ref mut rx)) => {
                 match rx.try_recv() {
                     Ok(package) => {
-                        service.package = package;
+                        service.update_package(package);
                         service.needs_restart = true;
                         return true;
                     }
@@ -162,7 +162,7 @@ impl ServiceUpdater {
                         match rx.try_recv() {
                             Ok(package) => {
                                 debug!("Rolling Update, polling found a new package");
-                                service.package = package;
+                                service.update_package(package);
                                 service.needs_restart = true;
                             }
                             Err(TryRecvError::Empty) => return false,
@@ -233,7 +233,7 @@ impl ServiceUpdater {
                             Some(census) => {
                                 match rx.try_recv() {
                                     Ok(package) => {
-                                        service.package = package;
+                                        service.update_package(package);
                                         service.needs_restart = true;
                                     }
                                     Err(TryRecvError::Empty) => return false,
@@ -276,7 +276,7 @@ struct Worker {
 impl Worker {
     pub fn new(service: &Service) -> Self {
         Worker {
-            current: service.package.ident().clone(),
+            current: service.package().ident().clone(),
             spec_ident: service.spec_ident.clone(),
             depot: depot_client::Client::new(&service.depot_url, PRODUCT, VERSION, None).unwrap(),
             ui: UI::default(),

@@ -81,10 +81,9 @@ impl ServiceConfig {
     pub fn new(package: &PackageInstall,
                mgr_cfg: &ManagerConfig,
                runtime_cfg: &RuntimeConfig,
-               config_root: Option<PathBuf>,
+               config_root: PathBuf,
                bindings: Vec<(String, ServiceGroup)>)
                -> Result<ServiceConfig> {
-        let config_root = config_root.unwrap_or(package.installed_path.clone());
         Ok(ServiceConfig {
             pkg: Pkg::new(package, runtime_cfg)?,
             hab: Hab::new(),
@@ -226,6 +225,17 @@ impl ServiceConfig {
         }
         self.needs_write = false;
         Ok(should_restart)
+    }
+
+    pub fn reload_package(&mut self,
+                          package: &PackageInstall,
+                          config_root: PathBuf,
+                          runtime: &RuntimeConfig)
+                          -> Result<()> {
+        self.config_root = config_root;
+        self.pkg = Pkg::new(package, runtime)?;
+        self.cfg = Cfg::new(package, &self.config_root)?;
+        Ok(())
     }
 }
 
@@ -661,7 +671,7 @@ mod test {
         let sc = ServiceConfig::new(&pkg,
                                     &ManagerConfig::default(),
                                     &RuntimeConfig::default(),
-                                    None,
+                                    PathBuf::from("/hab/pkgs/neurosis/redis/2000/20160222201258"),
                                     Vec::new())
             .unwrap();
         let toml = sc.to_toml().unwrap();
@@ -675,7 +685,7 @@ mod test {
         let sc = ServiceConfig::new(&pkg,
                                     &ManagerConfig::default(),
                                     &RuntimeConfig::default(),
-                                    None,
+                                    PathBuf::from("/hab/pkgs/neurosis/redis/2000/20160222201258"),
                                     Vec::new())
             .unwrap();
         let toml = sc.to_toml().unwrap();
@@ -689,7 +699,7 @@ mod test {
         let sc = ServiceConfig::new(&pkg,
                                     &ManagerConfig::default(),
                                     &RuntimeConfig::default(),
-                                    None,
+                                    PathBuf::from("/hab/pkgs/neurosis/redis/2000/20160222201258"),
                                     Vec::new())
             .unwrap();
         let toml = sc.to_toml().unwrap();

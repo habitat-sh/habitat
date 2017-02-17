@@ -26,10 +26,11 @@ use std::io::prelude::*;
 use std::path::PathBuf;
 use std::process::Child;
 use std::result;
+use std::sync::{Arc, RwLock};
 use std::thread;
 
 use hcore::os::process::{HabChild, ExitStatusExt};
-use hcore::package::PackageIdent;
+use hcore::package::PackageInstall;
 use hcore::service::ServiceGroup;
 use serde::{Serialize, Serializer};
 use time::SteadyTime;
@@ -63,7 +64,7 @@ impl fmt::Display for ProcessState {
 
 /// Additional params used to start the Supervisor.
 /// These params are outside the scope of what is in
-/// Supervisor.package_ident, and aren't runtime params that are stored
+/// Supervisor.package.ident, and aren't runtime params that are stored
 /// in the top-level Supervisor struct (such as PID etc)
 #[derive(Debug, Deserialize, Serialize)]
 pub struct RuntimeConfig {
@@ -92,7 +93,7 @@ impl Default for RuntimeConfig {
 #[derive(Debug)]
 pub struct Supervisor {
     pub child: Option<HabChild>,
-    pub package_ident: PackageIdent,
+    pub package: Arc<RwLock<PackageInstall>>,
     pub preamble: String,
     pub state: ProcessState,
     pub state_entered: SteadyTime,
@@ -101,13 +102,13 @@ pub struct Supervisor {
 }
 
 impl Supervisor {
-    pub fn new(package_ident: PackageIdent,
+    pub fn new(package: Arc<RwLock<PackageInstall>>,
                service_group: &ServiceGroup,
                runtime_config: RuntimeConfig)
                -> Supervisor {
         Supervisor {
             child: None,
-            package_ident: package_ident,
+            package: package,
             preamble: format!("{}", service_group),
             state: ProcessState::Down,
             state_entered: SteadyTime::now(),
@@ -251,7 +252,7 @@ impl Supervisor {
     }
 
     pub fn service_dir(&self) -> PathBuf {
-        fs::svc_path(&self.package_ident.name)
+        fs::svc_path(&self.package.read().expect("Package lock poisoned").ident().name)
     }
 
     pub fn pid_file(&self) -> PathBuf {
@@ -324,7 +325,12 @@ impl Serialize for Supervisor {
         };
         let mut state = try!(serializer.serialize_struct("supervisor", 7));
         try!(serializer.serialize_struct_elt(&mut state, "pid", &pid));
-        try!(serializer.serialize_struct_elt(&mut state, "package", &self.package_ident));
+        try!(serializer.serialize_struct_elt(&mut state,
+                                             "package",
+                                             &self.package
+                                                 .read()
+                                                 .expect("Package lock poisoned")
+                                                 .to_string()));
         try!(serializer.serialize_struct_elt(&mut state, "preamble", &self.preamble));
         try!(serializer.serialize_struct_elt(&mut state, "state", &self.state));
         try!(serializer.serialize_struct_elt(&mut state, "state_entered",
