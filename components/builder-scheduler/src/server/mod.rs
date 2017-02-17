@@ -17,8 +17,10 @@ pub mod handlers;
 use std::ops::Deref;
 use std::sync::{Arc, RwLock};
 
+use hab_net::config::RouteAddrs;
 use hab_net::dispatcher::prelude::*;
 use hab_net::{Application, Supervisor};
+use hab_net::routing::Broker;
 use hab_net::server::{Envelope, NetIdent, RouteConn, Service, ZMQ_CONTEXT};
 use protocol::net;
 use zmq;
@@ -54,8 +56,8 @@ pub struct ServerState {
 }
 
 impl ServerState {
-    fn datastore(&self) -> &DataStore {
-        self.datastore.as_ref().unwrap()
+    fn datastore(&mut self) -> &mut DataStore {
+        self.datastore.as_mut().unwrap()
     }
 }
 
@@ -87,8 +89,8 @@ impl Dispatcher for Worker {
         println!("Message received: {}", message.message_id());
 
         match message.message_id() {
-            "Schedule" => handlers::schedule(message, sock, state),
-            _ => panic!("unhandled message"),
+            "Schedule" => handlers::schedule(message, sock, state).unwrap(),
+            _ => panic!("unexpected message: {:?}", message.message_id()),
         };
 
         Ok(())
@@ -152,7 +154,12 @@ impl Application for Server {
         let sup: Supervisor<Worker> = Supervisor::new(cfg, init_state);
         try!(sup.start());
         try!(self.connect());
+        let broker = {
+            let cfg = self.config.read().unwrap();
+            Broker::run(Self::net_ident(), cfg.route_addrs())
+        };
         try!(zmq::proxy(&mut self.router.socket, &mut self.be_sock));
+        broker.join().unwrap();
         Ok(())
     }
 }

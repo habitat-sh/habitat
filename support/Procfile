@@ -3,6 +3,7 @@ api: target/debug/bldr-api start --path tmp/depot
 admin: target/debug/bldr-admin start
 router: target/debug/bldr-router start
 jobsrv: target/debug/bldr-job-srv start
+scheduler: target/debug/bldr-scheduler start
 sessionsrv: target/debug/bldr-session-srv start
 vaultsrv: target/debug/bldr-vault start
 worker: target/debug/bldr-worker start

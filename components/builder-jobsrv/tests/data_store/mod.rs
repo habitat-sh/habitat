@@ -34,13 +34,13 @@ fn create_job() {
     with_pool!(pool, {
         let ds = DataStore::from_pool(pool).expect("Failed to create data store from pool");
         ds.setup().expect("Failed to migrate data");
-        ds.create_job(&job).expect("Failed to create a job");
+        ds.create_job(&mut job).expect("Failed to create a job");
     });
 }
 
-fn test_job(id: u64) -> jobsrv::Job {
+fn test_job() -> jobsrv::Job {
     let mut job = jobsrv::Job::new();
-    job.set_id(id);
+    job.set_id(0);
     let mut git = vault::VCSGit::new();
     git.set_url(String::from("http://github.com/habitat-sh/habitat"));
     job.mut_project().set_git(git);
@@ -49,22 +49,22 @@ fn test_job(id: u64) -> jobsrv::Job {
 
 #[test]
 fn get_job() {
-    let job = test_job(0);
-    let job2 = test_job(15);
-    let job3 = test_job(16);
+    let mut job = test_job();
+    let mut job2 = test_job();
+    let mut job3 = test_job();
 
     with_pool!(pool, {
         let ds = DataStore::from_pool(pool).expect("Failed to create data store from pool");
         ds.setup().expect("Failed to migrate data");
-        ds.create_job(&job).expect("Failed to create a job");
-        ds.create_job(&job2).expect("Failed to create a job");
-        ds.create_job(&job3).expect("Failed to create a job");
+        ds.create_job(&mut job).expect("Failed to create a job");
+        ds.create_job(&mut job2).expect("Failed to create a job");
+        ds.create_job(&mut job3).expect("Failed to create a job");
         let j1 = ds.get_job(job.get_id()).expect("Failed to get job 0").expect("Job should exist");
-        assert_eq!(j1.get_id(), 0);
-        let j2 = ds.get_job(job2.get_id()).expect("Failed to get job 0").expect("Job should exist");
-        assert_eq!(j2.get_id(), 15);
-        let j3 = ds.get_job(job3.get_id()).expect("Failed to get job 0").expect("Job should exist");
-        assert_eq!(j3.get_id(), 16);
+        let j2 = ds.get_job(job2.get_id()).expect("Failed to get job 2").expect("Job should exist");
+        let j3 = ds.get_job(job3.get_id()).expect("Failed to get job 3").expect("Job should exist");
+        assert!(j1.get_id() != 0);
+        assert!(j2.get_id() != 0);
+        assert!(j3.get_id() != 0);
     });
 }
 
@@ -80,17 +80,17 @@ fn get_job_does_not_exist() {
 
 #[test]
 fn pending_jobs() {
-    let job1 = test_job(0);
-    let job2 = test_job(1);
-    let job3 = test_job(2);
-    let job4 = test_job(3);
+    let mut job1 = test_job();
+    let mut job2 = test_job();
+    let mut job3 = test_job();
+    let mut job4 = test_job();
     with_pool!(pool, {
         let ds = DataStore::from_pool(pool).expect("Failed to create data store from pool");
         ds.setup().expect("Failed to migrate data");
-        ds.create_job(&job1).expect("Failed to create job");
-        ds.create_job(&job2).expect("Failed to create job");
-        ds.create_job(&job3).expect("Failed to create job");
-        ds.create_job(&job4).expect("Failed to create job");
+        ds.create_job(&mut job1).expect("Failed to create job");
+        ds.create_job(&mut job2).expect("Failed to create job");
+        ds.create_job(&mut job3).expect("Failed to create job");
+        ds.create_job(&mut job4).expect("Failed to create job");
 
         // Get one job, it should be FIFO, and it should have its status set to Dispatched
         let pending_jobs = ds.pending_jobs(1).expect("Failed to get pendings job");
@@ -117,11 +117,11 @@ fn pending_jobs() {
 
 #[test]
 fn set_job_state() {
-    let mut job1 = test_job(0);
+    let mut job1 = test_job();
     with_pool!(pool, {
         let ds = DataStore::from_pool(pool).expect("Failed to create data store from pool");
         ds.setup().expect("Failed to migrate data");
-        ds.create_job(&job1).expect("Failed to create job");
+        ds.create_job(&mut job1).expect("Failed to create job");
         let pending_job = ds.get_job(job1.get_id())
             .expect("Failed to get job from database")
             .expect("No job found");

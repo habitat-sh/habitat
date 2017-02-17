@@ -274,7 +274,10 @@ pub fn project_create(req: &mut Request) -> IronResult<Response> {
                         }
                     }
                 }
-                Err(_) => return Ok(Response::with((status::UnprocessableEntity, "rg:pc:4"))),
+                Err(e) => {
+                    error!("Base64 decode failure: {:?}", e);
+                    return Ok(Response::with((status::UnprocessableEntity, "rg:pc:4")));
+                }
             }
         }
         Err(_) => return Ok(Response::with((status::UnprocessableEntity, "rg:pc:2"))),

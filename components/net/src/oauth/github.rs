@@ -107,7 +107,14 @@ impl GitHubClient {
             let err: HashMap<String, String> = try!(serde_json::from_str(&body));
             return Err(Error::GitHubAPI(rep.status, err));
         }
-        let contents: Contents = serde_json::from_str(&body).unwrap();
+        let mut contents: Contents = serde_json::from_str(&body).unwrap();
+
+        // We need to strip line feeds as the Github API has started to return
+        // base64 content with line feeds.
+        if contents.encoding == "base64" {
+            contents.content = contents.content.replace("\n", "");
+        }
+
         Ok(contents)
     }
 
@@ -199,7 +206,7 @@ impl GitHubClient {
 }
 
 
-#[derive(Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Contents {
     pub name: String,
     pub path: String,

@@ -21,6 +21,7 @@ use postgres;
 
 use config::Config;
 use error::{Result, Error};
+use rand::{Rng, thread_rng};
 
 /// DataStore inherints being Send + Sync by virtue of having only one member, the pool itself.
 #[derive(Debug, Clone)]
@@ -77,7 +78,7 @@ impl DataStore {
         migrator.migrate("jobsrv",
                              2,
                              r#"CREATE OR REPLACE FUNCTION insert_job_v1 (
-                                id bigint, 
+                                id bigint,
                                 owner_id bigint,
                                 project_id text,
                                 project_owner_id bigint,
@@ -166,20 +167,25 @@ impl DataStore {
     /// * If the pool has no connections available
     /// * If the job cannot be created
     /// * If the job has an unknown VCS type
-    pub fn create_job(&self, job: &jobsrv::Job) -> Result<()> {
-        let project = job.get_project();
-
+    pub fn create_job(&self, job: &mut jobsrv::Job) -> Result<()> {
         let conn = self.pool.get()?;
 
-        if project.has_git() {
+        if job.get_project().has_git() {
+            // BUG - the insert query should be creating and assigning back a job_id,
+            // instead of expecting it to be passed in. The random id is a temporary
+            // workaround.
+            let mut rng = thread_rng();
+            let id = rng.gen::<u64>();
+            job.set_id(id);
+
             conn.execute("SELECT insert_job_v1($1, $2, $3, $4, $5, $6, $7)",
                          &[&(job.get_id() as i64),
                            &(job.get_owner_id() as i64),
-                           &project.get_id(),
-                           &(project.get_owner_id() as i64),
-                           &project.get_plan_path(),
+                           &job.get_project().get_id(),
+                           &(job.get_project().get_owner_id() as i64),
+                           &job.get_project().get_plan_path(),
                            &"git",
-                           &vec![project.get_git().get_url()]])
+                           &vec![job.get_project().get_git().get_url()]])
                 .map_err(Error::JobCreate)?;
         } else {
             return Err(Error::UnknownVCS);
