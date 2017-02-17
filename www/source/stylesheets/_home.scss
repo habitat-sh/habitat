@@ -321,6 +321,10 @@ body.home {
   & > .main-section--subhead {
     margin-bottom: 30px;
   }
+
+  @include breakpoint(large) {
+    min-height: rem-calc(438);
+  }
 }
 
 .home--callout--subhead {
