@@ -25,6 +25,7 @@ use std::io::prelude::*;
 use std::path::{Path, PathBuf};
 use std::result;
 use std::str::FromStr;
+use std::sync::{Arc, RwLock, RwLockReadGuard};
 
 use ansi_term::Colour::{Yellow, Red, Green};
 use butterfly;
@@ -35,6 +36,7 @@ use hcore::crypto::hash;
 use hcore::package::{PackageIdent, PackageInstall};
 use hcore::url::DEFAULT_DEPOT_URL;
 use hcore::util::perm::{set_owner, set_permissions};
+use serde::Serializer;
 use toml;
 
 pub use self::config::ServiceConfig;
@@ -114,6 +116,14 @@ impl ServiceSpec {
     }
 }
 
+fn serialize_lock<S>(x: &Arc<RwLock<PackageInstall>>,
+                     s: &mut S)
+                     -> std::result::Result<(), S::Error>
+    where S: Serializer
+{
+    s.serialize_str(&x.read().expect("Package lock poisoned").to_string())
+}
+
 #[derive(Debug, Serialize)]
 pub struct Service {
     pub config: ServiceConfig,
@@ -124,7 +134,8 @@ pub struct Service {
     pub last_election_status: ElectionStatus,
     pub needs_restart: bool,
     pub needs_reconfiguration: bool,
-    pub package: PackageInstall,
+    #[serde(serialize_with="serialize_lock")]
+    pub package: Arc<RwLock<PackageInstall>>,
     pub service_group: ServiceGroup,
     pub smoke_check: SmokeCheck,
     pub spec_ident: PackageIdent,
@@ -132,6 +143,7 @@ pub struct Service {
     pub topology: Topology,
     pub update_strategy: UpdateStrategy,
     hooks: HookTable,
+    config_from: Option<PathBuf>,
 }
 
 impl Service {
@@ -145,13 +157,11 @@ impl Service {
                                               spec.organization.as_ref().map(|x| &**x))?;
         let (svc_user, svc_group) = util::users::get_user_and_group(&package)?;
         let runtime_cfg = RuntimeConfig::new(svc_user, svc_group);
-        let svc_cfg = ServiceConfig::new(&package,
-                                         mgr_cfg,
-                                         &runtime_cfg,
-                                         spec.config_from,
-                                         spec.binds)?;
+        let config_root = spec.config_from.clone().unwrap_or(package.installed_path.clone());
+        let svc_cfg = ServiceConfig::new(&package, mgr_cfg, &runtime_cfg, config_root, spec.binds)?;
         let hook_template_path = svc_cfg.config_root.join("hooks");
         let hooks_path = fs::svc_hooks_path(service_group.service());
+        let locked_package = Arc::new(RwLock::new(package));
         Ok(Service {
             config: svc_cfg,
             current_service_files: HashMap::new(),
@@ -162,13 +172,14 @@ impl Service {
             last_election_status: ElectionStatus::None,
             needs_restart: false,
             needs_reconfiguration: false,
-            supervisor: Supervisor::new(package.ident().clone(), &service_group, runtime_cfg),
-            package: package,
+            supervisor: Supervisor::new(locked_package.clone(), &service_group, runtime_cfg),
+            package: locked_package,
             service_group: service_group,
             smoke_check: SmokeCheck::default(),
             spec_ident: spec.ident,
             topology: spec.topology,
             update_strategy: spec.update_strategy,
+            config_from: spec.config_from,
         })
     }
 
@@ -178,7 +189,7 @@ impl Service {
 
     /// Create the service path for this package.
     pub fn create_svc_path(&self) -> Result<()> {
-        let (user, group) = try!(util::users::get_user_and_group(&self.package));
+        let (user, group) = try!(util::users::get_user_and_group(&self.package()));
 
         debug!("Creating svc paths");
 
@@ -264,12 +275,12 @@ impl Service {
 
     pub fn register_metrics(&self) {
         let version_opts = Opts::new(HABITAT_PACKAGE_INFO_NAME, HABITAT_PACKAGE_INFO_DESC)
-            .const_label("origin", &self.package.ident.origin.clone())
-            .const_label("name", &self.package.ident.name.clone())
+            .const_label("origin", &self.package().ident.origin.clone())
+            .const_label("name", &self.package().ident.name.clone())
             .const_label("version",
-                         &self.package.ident.version.as_ref().unwrap().clone())
+                         &self.package().ident.version.as_ref().unwrap().clone())
             .const_label("release",
-                         &self.package.ident.release.as_ref().unwrap().clone());
+                         &self.package().ident.release.as_ref().unwrap().clone());
         let version_gauge = register_gauge!(version_opts).unwrap();
         version_gauge.set(1.0);
     }
@@ -386,6 +397,34 @@ impl Service {
         }
     }
 
+    pub fn package(&self) -> RwLockReadGuard<PackageInstall> {
+        self.package.read().expect("Package lock poisoned")
+    }
+
+    pub fn update_package(&mut self, package: PackageInstall) {
+        let (svc_user, svc_group) = match util::users::get_user_and_group(&package) {
+            Ok(user_and_group) => user_and_group,
+            Err(err) => {
+                outputln!(preamble self.service_group, "Unable to extract svc_user and svc_group from updated package, {}", err);
+                return;
+            }
+        };
+
+        let runtime_cfg = RuntimeConfig::new(svc_user, svc_group);
+        let config_root = self.config_from.clone().unwrap_or(package.installed_path.clone());
+        let hooks_path = fs::svc_hooks_path(self.service_group.service());
+        self.hooks = HookTable::default()
+            .load_hooks(&runtime_cfg, hooks_path, &config_root.join("hooks"));
+
+        if let Some(err) = self.config.reload_package(&package, config_root, &runtime_cfg).err() {
+            outputln!(preamble self.service_group, "Failed to reload service config with updated package: {}", err);
+        }
+        *self.package.write().expect("Package lock poisoned") = package;
+
+        self.initialized = false;
+        self.initialize();
+    }
+
     pub fn to_rumor<T: ToString>(&self, member_id: T) -> ServiceRumor {
         let exported = match self.config.to_exported() {
             Ok(exported) => Some(exported),
@@ -397,7 +436,7 @@ impl Service {
             }
         };
         ServiceRumor::new(member_id.to_string(),
-                          &self.package.ident,
+                          &self.package().ident,
                           &self.service_group,
                           &*self.config.sys,
                           exported.as_ref())
@@ -474,7 +513,7 @@ impl Service {
     /// This means we work on any operating system, as long as you can invoke the Supervisor,
     /// without having to worry much about context.
     pub fn run_path(&self) -> Result<String> {
-        let mut paths = match self.package.runtime_path() {
+        let mut paths = match self.package().runtime_path() {
             Ok(r) => env::split_paths(&r).collect::<Vec<PathBuf>>(),
             Err(e) => return Err(sup_error!(Error::HabitatCore(e))),
         };
@@ -560,7 +599,7 @@ impl Service {
                 try!(set_permissions(&svc_run.to_str().unwrap(), HOOK_PERMISSIONS));
             }
             None => {
-                let run = self.package.installed_path().join(hooks::RUN_FILENAME);
+                let run = self.package().installed_path().join(hooks::RUN_FILENAME);
                 match std::fs::metadata(&run) {
                     Ok(_) => {
                         try!(std::fs::copy(&run, &svc_run));
@@ -817,7 +856,7 @@ impl Service {
 
 impl fmt::Display for Service {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.package)
+        write!(f, "{}", self.package().to_string())
     }
 }
 

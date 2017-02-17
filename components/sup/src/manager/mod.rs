@@ -282,7 +282,7 @@ impl Manager {
                         .clone()
                 };
                 let incarnation = rumor.get_incarnation() + 1;
-                rumor.set_pkg(service.package.to_string());
+                rumor.set_pkg(service.package().to_string());
                 rumor.set_incarnation(incarnation);
                 service.populate(&census_list);
                 match service.config.to_exported() {
