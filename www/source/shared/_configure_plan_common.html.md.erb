@@ -33,9 +33,9 @@ All user-defined expressions must have the **cfg** prefix. For general service s
 
 As we said, a TOML file is associated with your configuration file and specifies the default values for your service at start up. If you have a templatized configuration file, then you must include a `default.toml` file in your plan folder.
 
-1. If you are not in the `/src/habitat` directory, change directories to it and create a file named `default.toml`.
+1. If you are not in the `/src/habitat` directory, change directories to it.
 
-       [10][default:/src/habitat:0]# touch default.toml
+       [10][default:/src:0]# cd habitat
 
 2. Open `default.toml` in your text editor and add the default values.
 
