@@ -96,15 +96,25 @@ body.home {
 }
 
 .home--sub-hero--logos {
-  overflow-x: scroll;
+  overflow: hidden;
   margin: 0 rem-calc(-15);
   padding: 0 rem-calc(15);
+
+  &.containers {
+    @media (max-width: 587px) {
+      overflow-x: scroll;
+    }
+  }
 
   &.applications {
     margin-top: rem-calc(40);
 
     @include breakpoint(large) {
       margin-top: 0;
+    }
+
+    @media (max-width: 393px) {
+      overflow-x: scroll;
     }
   }
 }
