@@ -41,7 +41,7 @@ body.home {
   @include breakpoint(medium only) {
     padding: rem-calc(112) 0 rem-calc(60);
     margin: 0 auto rem-calc(150);
-    background-size: auto 450px;
+    background-size: cover;
   }
 
   @include breakpoint(large) {
