@@ -65,16 +65,6 @@ fn app<'a, 'b>() -> clap::App<'a, 'b> {
         (@subcommand repair =>
             (about: "Verify and repair data integrity of the package Depot")
         )
-        (@subcommand channel =>
-            (about: "Creates or lists channels in the package Depot")
-            (@subcommand create =>
-                (about: "Create a new channel over the package Depot")
-                (@arg channel: <channel> +required "Name of the channel to create")
-            )
-            (@subcommand list =>
-                (about: "List channels in the package Depot")
-            )
-        )
     )
 }
 
@@ -108,22 +98,6 @@ fn dispatch(config: Config, matches: &clap::ArgMatches) -> Result<()> {
     match matches.subcommand_name() {
         Some("start") => start(config),
         Some("repair") => repair(config),
-        Some(cmd @ "channel") => {
-            let args = matches.subcommand_matches(cmd).unwrap();
-            match args.subcommand_name() {
-                Some(cmd @ "create") => {
-                    let args = args.subcommand_matches(cmd).unwrap();
-                    let name = args.value_of("channel").unwrap();
-                    channel_create(name, config)
-                }
-                Some("list") => channel_list(config),
-                Some(cmd) => {
-                    debug!("Dispatch failed, no match for command: {:?}", cmd);
-                    Ok(())
-                }
-                None => Ok(()),
-            }
-        }
         Some(cmd) => {
             debug!("Dispatch failed, no match for command: {:?}", cmd);
             Ok(())
@@ -156,39 +130,6 @@ pub fn repair(config: Config) -> Result<()> {
     let depot = try!(depot::Depot::new(config));
     let report = try!(depot::doctor::repair(&depot));
     println!("Report: {:?}", &report);
-    Ok(())
-}
-
-/// Create a channel with the given name in the depot.
-///
-/// # Failures
-///
-/// * The database cannot be read
-/// * A write transaction cannot be acquired.
-fn channel_create(channel: &str, config: Config) -> Result<()> {
-    let depot = try!(depot::Depot::new(config));
-    try!(depot.datastore.channels.write(&channel));
-    Ok(())
-}
-
-/// List all channels in the database.
-///
-/// # Failures
-///
-/// * The database cannot be read
-/// * A read transaction cannot be acquired.
-fn channel_list(config: Config) -> Result<()> {
-    let depot = try!(depot::Depot::new(config));
-    let channels = try!(depot.datastore.channels.all());
-    if channels.is_empty() {
-        println!("No channels. Create one with `hab-depot channel create`.");
-        return Ok(());
-    }
-    let iter = channels.iter();
-    println!("Listing {} channel(s)", iter.len());
-    for channel in iter {
-        println!("     {}", channel);
-    }
     Ok(())
 }
 

@@ -327,7 +327,12 @@ fn remove_file(filename: &PathBuf) -> Result<bool> {
 }
 
 fn upload_origin_key(req: &mut Request) -> IronResult<Response> {
-    let depot = req.get::<persistent::Read<Depot>>().unwrap();
+    // JB TODO: the following two lines are a temporary hack for the channels work, because we're
+    // using an in-memory HashMap to store channel data instead of a proper datastore. These should
+    // be removed (along with all of the other lines like this in this file) and persistent::Read
+    // should be put back once the depot is using PG for storage.
+    let lock = req.get::<persistent::State<Depot>>().expect("depot not found");
+    let depot = lock.read().expect("depot read lock is poisoned");
     // TODO: SA - Eliminate need to clone the session and params
     let params = req.extensions.get::<Router>().unwrap().clone();
     let origin = params.find("origin").unwrap();
@@ -479,7 +484,8 @@ fn upload_origin_secret_key(req: &mut Request) -> IronResult<Response> {
 }
 
 fn upload_package(req: &mut Request) -> IronResult<Response> {
-    let depot = req.get::<persistent::Read<Depot>>().unwrap();
+    let lock = req.get::<persistent::State<Depot>>().expect("depot not found");
+    let depot = lock.read().expect("depot read lock is poisoned");
     let checksum_from_param = match extract_query_value("checksum", req) {
         Some(checksum) => checksum,
         None => return Ok(Response::with(status::BadRequest)),
@@ -615,7 +621,8 @@ fn schedule_package(req: &mut Request) -> IronResult<Response> {
 }
 
 fn download_origin_key(req: &mut Request) -> IronResult<Response> {
-    let depot = req.get::<persistent::Read<Depot>>().unwrap();
+    let lock = req.get::<persistent::State<Depot>>().expect("depot not found");
+    let depot = lock.read().expect("depot read lock is poisoned");
     let params = req.extensions.get::<Router>().unwrap();
     let origin = match params.find("origin") {
         Some(origin) => origin,
@@ -651,7 +658,8 @@ fn download_origin_key(req: &mut Request) -> IronResult<Response> {
 }
 
 fn download_latest_origin_key(req: &mut Request) -> IronResult<Response> {
-    let depot = req.get::<persistent::Read<Depot>>().unwrap();
+    let lock = req.get::<persistent::State<Depot>>().expect("depot not found");
+    let depot = lock.read().expect("depot read lock is poisoned");
     let params = req.extensions.get::<Router>().unwrap();
     let origin = match params.find("origin") {
         Some(origin) => origin,
@@ -686,7 +694,8 @@ fn download_latest_origin_key(req: &mut Request) -> IronResult<Response> {
 
 
 fn download_package(req: &mut Request) -> IronResult<Response> {
-    let depot = req.get::<persistent::Read<Depot>>().unwrap();
+    let lock = req.get::<persistent::State<Depot>>().expect("depot not found");
+    let depot = lock.read().expect("depot read lock is poisoned");
     let params = req.extensions.get::<Router>().unwrap();
     let ident = ident_from_params(params);
     let agent_target = target_from_headers(&req.headers.get::<UserAgent>().unwrap()).unwrap();
@@ -728,7 +737,8 @@ fn download_package(req: &mut Request) -> IronResult<Response> {
 }
 
 fn list_origin_keys(req: &mut Request) -> IronResult<Response> {
-    let depot = req.get::<persistent::Read<Depot>>().unwrap();
+    let lock = req.get::<persistent::State<Depot>>().expect("depot not found");
+    let depot = lock.read().expect("depot read lock is poisoned");
     let params = req.extensions.get::<Router>().unwrap();
     let origin = params.find("origin").unwrap();
     match depot.datastore.origin_keys.all(origin) {
@@ -746,7 +756,8 @@ fn list_origin_keys(req: &mut Request) -> IronResult<Response> {
 }
 
 fn list_unique_packages(req: &mut Request) -> IronResult<Response> {
-    let depot = req.get::<persistent::Read<Depot>>().unwrap();
+    let lock = req.get::<persistent::State<Depot>>().expect("depot not found");
+    let depot = lock.read().expect("depot read lock is poisoned");
     let (start, stop) = match extract_pagination(req) {
         Ok(range) => range,
         Err(response) => return Ok(response),
@@ -789,47 +800,54 @@ fn list_unique_packages(req: &mut Request) -> IronResult<Response> {
 }
 
 fn list_packages(req: &mut Request) -> IronResult<Response> {
-    let depot = req.get::<persistent::Read<Depot>>().unwrap();
+    let lock = req.get::<persistent::State<Depot>>().expect("depot not found");
+    let mut depot = lock.write().expect("depot read lock is poisoned");
     let (start, stop) = match extract_pagination(req) {
         Ok(range) => range,
         Err(response) => return Ok(response),
     };
     let params = req.extensions.get::<Router>().unwrap();
+
+    let origin = match params.find("origin") {
+        Some(origin) => origin.to_string(),
+        _ => return Ok(Response::with(status::BadRequest)),
+    };
+
+    // let's make sure this origin actually exists
+    let mut conn = Broker::connect().unwrap();
+    if try!(get_origin(&mut conn, &origin)).is_none() {
+        return Ok(Response::with(status::NotFound));
+    }
+
     let ident: String = if params.find("pkg").is_none() {
-        match params.find("origin") {
-            Some(origin) => origin.to_string(),
-            None => return Ok(Response::with(status::BadRequest)),
-        }
+        origin.clone()
     } else {
         ident_from_params(params).to_string()
     };
 
     if let Some(channel) = params.find("channel") {
-        match depot.datastore.channels.channel_pkg_idx.all(channel, &ident) {
-            Ok(packages) => {
-                let count = depot.datastore.packages.index.count(&ident).unwrap();
-                let body = package_results_json(&packages, count as isize, start, stop);
-
-                let mut response = if count as isize > (stop + 1) {
-                    Response::with((status::PartialContent, body))
-                } else {
-                    Response::with((status::Ok, body))
-                };
-
-                response.headers.set(ContentType(Mime(TopLevel::Application,
-                                                      SubLevel::Json,
-                                                      vec![(Attr::Charset, Value::Utf8)])));
-                dont_cache_response(&mut response);
-                Ok(response)
-            }
-            Err(Error::DataStore(dbcache::Error::EntityNotFound)) => {
-                Ok(Response::with((status::NotFound)))
-            }
-            Err(e) => {
-                error!("list_packages:1, err={:?}", e);
-                Ok(Response::with(status::InternalServerError))
-            }
+        // let's make sure this channel actually exists
+        if !depot.datastore.channels.channel_exists(&origin, &channel) {
+            return Ok(Response::with(status::NotFound));
         }
+
+        let packages =
+            depot.datastore.channels.all_packages(&origin, &channel, &ident, start, stop);
+        let count = packages.len();
+        let body = package_results_json(&packages, count as isize, start, stop);
+
+        let mut response = if count as isize > (stop + 1) {
+            Response::with((status::PartialContent, body))
+        } else {
+            Response::with((status::Ok, body))
+        };
+
+        response.headers.set(ContentType(Mime(TopLevel::Application,
+                                              SubLevel::Json,
+                                              vec![(Attr::Charset, Value::Utf8)])));
+
+        dont_cache_response(&mut response);
+        Ok(response)
     } else {
         match depot.datastore.packages.index.list(&ident, start, stop) {
             Ok(packages) => {
@@ -864,24 +882,117 @@ fn list_packages(req: &mut Request) -> IronResult<Response> {
 }
 
 fn list_channels(req: &mut Request) -> IronResult<Response> {
-    let depot = req.get::<persistent::Read<Depot>>().unwrap();
-    let channels = try!(depot.datastore.channels.all());
-    let body = serde_json::to_string(&channels).unwrap();
+    let lock = req.get::<persistent::State<Depot>>().expect("depot not found");
+    let mut depot = lock.write().expect("depot read lock is poisoned");
+    let params = req.extensions.get::<Router>().unwrap();
 
-    let mut response = Response::with((status::Ok, body));
-    dont_cache_response(&mut response);
-    Ok(response)
+    if let Some(origin) = params.find("origin") {
+        let channels = depot.datastore.channels.all(origin);
+        let body = serde_json::to_string(&channels).unwrap();
+        let mut response = Response::with((status::Ok, body));
+        dont_cache_response(&mut response);
+        Ok(response)
+    } else {
+        Ok(Response::with(status::BadRequest))
+    }
+}
+
+fn create_channel(req: &mut Request) -> IronResult<Response> {
+    let lock = req.get::<persistent::State<Depot>>().expect("depot not found");
+    let mut depot = lock.write().expect("depot write lock is poisoned");
+    let params = req.extensions.get::<Router>().unwrap();
+    let session = req.extensions.get::<Authenticated>().unwrap();
+
+    let origin = match params.find("origin") {
+        Some(origin) => origin.to_string(),
+        _ => return Ok(Response::with(status::BadRequest)),
+    };
+
+    let channel = match params.find("channel") {
+        Some(channel) => channel.to_string(),
+        _ => return Ok(Response::with(status::BadRequest)),
+    };
+
+    // let's make sure this origin actually exists
+    let mut conn = Broker::connect().unwrap();
+    if try!(get_origin(&mut conn, &origin)).is_none() {
+        return Ok(Response::with(status::NotFound));
+    }
+
+    // make sure the person trying to create the channel has access to do so
+    if !try!(check_origin_access(&mut conn, session.get_id(), &origin)) {
+        return Ok(Response::with(status::Forbidden));
+    }
+
+    match depot.datastore.channels.create(origin, channel) {
+        Ok(_) => Ok(Response::with(status::Created)),
+        Err(Error::ChannelAlreadyExists(_)) => Ok(Response::with(status::Conflict)),
+        Err(_) => Ok(Response::with(status::InternalServerError)),
+    }
+}
+
+fn delete_channel(req: &mut Request) -> IronResult<Response> {
+    let lock = req.get::<persistent::State<Depot>>().expect("depot not found");
+    let mut depot = lock.write().expect("depot write lock is poisoned");
+    let params = req.extensions.get::<Router>().unwrap();
+    let session = req.extensions.get::<Authenticated>().unwrap();
+
+    let origin = match params.find("origin") {
+        Some(origin) => origin.to_string(),
+        _ => return Ok(Response::with(status::BadRequest)),
+    };
+
+    let channel = match params.find("channel") {
+        Some(channel) => channel.to_string(),
+        _ => return Ok(Response::with(status::BadRequest)),
+    };
+
+    // let's make sure this origin actually exists
+    let mut conn = Broker::connect().unwrap();
+    if try!(get_origin(&mut conn, &origin)).is_none() {
+        return Ok(Response::with(status::NotFound));
+    }
+
+    // make sure the person trying to create the channel has access to do so
+    if !try!(check_origin_access(&mut conn, session.get_id(), &origin)) {
+        return Ok(Response::with(status::Forbidden));
+    }
+
+    // stable and unstable can't be deleted
+    if channel == "stable" || channel == "unstable" {
+        return Ok(Response::with(status::Forbidden));
+    }
+
+    depot.datastore.channels.remove(&origin, &channel);
+    Ok(Response::with(status::Ok))
 }
 
 fn show_package(req: &mut Request) -> IronResult<Response> {
-    let depot = req.get::<persistent::Read<Depot>>().unwrap();
+    let lock = req.get::<persistent::State<Depot>>().expect("depot not found");
+    let mut depot = lock.write().expect("depot read lock is poisoned");
     let params = req.extensions.get::<Router>().unwrap();
     let mut ident = ident_from_params(params);
 
+    let origin = match params.find("origin") {
+        Some(origin) => origin.to_string(),
+        _ => return Ok(Response::with(status::BadRequest)),
+    };
+
+    // let's make sure this origin actually exists
+    let mut conn = Broker::connect().unwrap();
+    if try!(get_origin(&mut conn, &origin)).is_none() {
+        return Ok(Response::with(status::NotFound));
+    }
+
     if let Some(channel) = params.find("channel") {
+        // let's make sure this channel actually exists
+        if !depot.datastore.channels.channel_exists(&origin, &channel) {
+            return Ok(Response::with(status::NotFound));
+        }
+
         if !ident.fully_qualified() {
-            match depot.datastore.channels.channel_pkg_idx.latest(channel, &ident.to_string()) {
-                Ok(ident) => {
+            match depot.datastore.channels.latest(&origin, channel, &ident.to_string()) {
+                Some(ident) => {
                     match depot.datastore.packages.find(&ident) {
                         Ok(pkg) => render_package(&pkg, false),
                         Err(dbcache::Error::EntityNotFound) => Ok(Response::with(status::NotFound)),
@@ -891,31 +1002,21 @@ fn show_package(req: &mut Request) -> IronResult<Response> {
                         }
                     }
                 }
-                Err(Error::DataStore(dbcache::Error::EntityNotFound)) => {
-                    Ok(Response::with(status::NotFound))
-                }
-                Err(e) => {
-                    error!("show_package:2, err={:?}", e);
-                    Ok(Response::with(status::InternalServerError))
-                }
+                None => Ok(Response::with(status::NotFound)),
             }
         } else {
-            match depot.datastore.channels.channel_pkg_idx.is_member(channel, &ident) {
-                Ok(true) => {
-                    match depot.datastore.packages.find(&ident) {
-                        Ok(pkg) => render_package(&pkg, false),
-                        Err(dbcache::Error::EntityNotFound) => Ok(Response::with(status::NotFound)),
-                        Err(e) => {
-                            error!("show_package:3, err={:?}", e);
-                            Ok(Response::with(status::InternalServerError))
-                        }
+            let key = format!("{}/{}", &origin, &channel);
+            if depot.datastore.channels.package_exists(&key, &ident) {
+                match depot.datastore.packages.find(&ident) {
+                    Ok(pkg) => render_package(&pkg, false),
+                    Err(dbcache::Error::EntityNotFound) => Ok(Response::with(status::NotFound)),
+                    Err(e) => {
+                        error!("show_package:3, err={:?}", e);
+                        Ok(Response::with(status::InternalServerError))
                     }
                 }
-                Ok(false) => Ok(Response::with(status::NotFound)),
-                Err(e) => {
-                    error!("show_package:4, err={:?}", e);
-                    Ok(Response::with(status::InternalServerError))
-                }
+            } else {
+                Ok(Response::with(status::NotFound))
             }
         }
     } else {
@@ -952,7 +1053,8 @@ fn show_package(req: &mut Request) -> IronResult<Response> {
 }
 
 fn search_packages(req: &mut Request) -> IronResult<Response> {
-    let depot = req.get::<persistent::Read<Depot>>().unwrap();
+    let lock = req.get::<persistent::State<Depot>>().expect("depot not found");
+    let depot = lock.read().expect("depot read lock is poisoned");
     let (start, stop) = match extract_pagination(req) {
         Ok(range) => range,
         Err(response) => return Ok(response),
@@ -1006,23 +1108,61 @@ fn render_package(pkg: &depotsrv::Package, should_cache: bool) -> IronResult<Res
 }
 
 fn promote_package(req: &mut Request) -> IronResult<Response> {
-    let depot = req.get::<persistent::Read<Depot>>().unwrap();
+    let lock = req.get::<persistent::State<Depot>>().expect("depot not found");
+    let mut depot = lock.write().expect("depot write lock is poisoned");
     let session = req.extensions.get::<Authenticated>().unwrap();
     let (channel, ident) = {
         let params = req.extensions.get::<Router>().unwrap();
-        let channel = params.find("channel").unwrap();
-        let ident = ident_from_params(params);
+        let origin = match params.find("origin") {
+            Some(o) => o.to_string(),
+            _ => return Ok(Response::with(status::BadRequest)),
+        };
+
+        let mut conn = Broker::connect().unwrap();
+
+        if try!(get_origin(&mut conn, &origin)).is_none() {
+            return Ok(Response::with(status::NotFound));
+        }
+
+        let channel = match params.find("channel") {
+            Some(c) => c.to_string(),
+            _ => return Ok(Response::with(status::BadRequest)),
+        };
+
+        let pkg = match params.find("pkg") {
+            Some(p) => p.to_string(),
+            _ => return Ok(Response::with(status::BadRequest)),
+        };
+
+        let version = match params.find("version") {
+            Some(v) => v.to_string(),
+            _ => return Ok(Response::with(status::BadRequest)),
+        };
+
+        let release = match params.find("release") {
+            Some(r) => r.to_string(),
+            _ => return Ok(Response::with(status::BadRequest)),
+        };
+
+        let mut ident = depotsrv::PackageIdent::new();
+        ident.set_origin(origin);
+        ident.set_name(pkg);
+        ident.set_version(version);
+        ident.set_release(release);
+
         (channel, ident)
     };
     let mut conn = Broker::connect().unwrap();
-    match depot.datastore.channels.is_member(channel) {
-        Ok(true) => {
+
+    match depot.datastore.channels.channel_exists(&ident.get_origin(), &channel) {
+        true => {
             if !try!(check_origin_access(&mut conn, session.get_id(), &ident.get_origin())) {
                 return Ok(Response::with(status::Forbidden));
             }
+
             match depot.datastore.packages.find(&ident) {
                 Ok(package) => {
-                    depot.datastore.channels.associate(channel, &package).unwrap();
+                    depot.datastore.channels.associate(&channel, &package).unwrap();
                     Ok(Response::with(status::Ok))
                 }
                 Err(dbcache::Error::EntityNotFound) => Ok(Response::with(status::NotFound)),
@@ -1032,11 +1172,7 @@ fn promote_package(req: &mut Request) -> IronResult<Response> {
                 }
             }
         }
-        Ok(false) => Ok(Response::with(status::NotFound)),
-        Err(e) => {
-            error!("promote:1, err={:?}", e);
-            return Ok(Response::with(status::InternalServerError));
-        }
+        false => Ok(Response::with(status::NotFound)),
     }
 }
 
@@ -1119,34 +1255,26 @@ pub fn router(depot: Depot) -> Result<Chain> {
     let basic = Authenticated::new(&depot.config);
     let worker = Authenticated::new(&depot.config).require(privilege::BUILD_WORKER);
     let router = router!(
-        channels: get "/channels" => list_channels,
-        channel_packages: get "/channels/:channel/pkgs/:origin" => list_packages,
-        channel_packages_pkg: get "/channels/:channel/pkgs/:origin/:pkg" => list_packages,
-        channel_package_latest: get "/channels/:channel/pkgs/:origin/:pkg/latest" => show_package,
-        channel_packages_version:
-            get "/channels/:channel/pkgs/:origin/:pkg/:version" => list_packages,
-        channel_package_version_latest:
-            get "/channels/:channel/pkgs/:origin/:pkg/:version/latest" => show_package,
-        channel_package: get "/channels/:channel/pkgs/:origin/:pkg/:version/:release" => {
-            show_package
+        channels: get "/channels/:origin" => list_channels,
+        channel_packages: get "/channels/:origin/:channel/pkgs" => list_packages,
+        channel_packages_pkg: get "/channels/:origin/:channel/pkgs/:pkg" => list_packages,
+        channel_package_latest: get "/channels/:origin/:channel/pkgs/:pkg/latest" => show_package,
+        channel_packages_version: get
+            "/channels/:origin/:channel/pkgs/:pkg/:version" => list_packages,
+        channel_packages_version_latest: get
+            "/channels/:origin/:channel/pkgs/:pkg/:version/latest" => show_package,
+        channel_package_release: get
+            "/channels/:origin/:channel/pkgs/:pkg/:version/:release" => show_package,
+        channel_package_promote: put
+            "/channels/:origin/:channel/pkgs/:pkg/:version/:release/promote" => {
+            XHandler::new(promote_package).before(basic.clone())
         },
-        channel_package_promote:
-            post "/channels/:channel/pkgs/:origin/:pkg/:version/:release/promote" => {
-                XHandler::new(promote_package).before(basic.clone())
+        channel_create: post "/channels/:origin/:channel" => {
+            XHandler::new(create_channel).before(basic.clone())
         },
-        channel_package_download:
-            get "/channels/:channel/pkgs/:origin/:pkg/:version/:release/download" => {
-                download_package
+        channel_delete: delete "/channels/:origin/:channel" => {
+            XHandler::new(delete_channel).before(basic.clone())
         },
-
-        channel_origin_keys: get "/channels/:channel/origins/:origin/keys" => list_origin_keys,
-        channel_origin_key_latest: get "/channels/:channel/origins/:origin/keys/latest" => {
-            download_latest_origin_key
-        },
-        channel_origin_key: get "/channels/:channel/origins/:origin/keys/:revision" => {
-            download_origin_key
-        },
-
         package_search: get "/pkgs/search/:query" => search_packages,
         packages: get "/pkgs/:origin" => list_packages,
         packages_unique: get "/:origin/pkgs" => list_unique_packages,
@@ -1212,7 +1340,7 @@ pub fn router(depot: Depot) -> Result<Chain> {
     let mut chain = Chain::new(router);
     chain.link(persistent::Read::<EventLog>::both(EventLogger::new(&depot.config.log_dir,
                                                                    depot.config.events_enabled)));
-    chain.link(persistent::Read::<Depot>::both(depot));
+    chain.link(persistent::State::<Depot>::both(depot));
     chain.link_after(Cors);
     Ok(chain)
 }

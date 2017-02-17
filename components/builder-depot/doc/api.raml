@@ -261,6 +261,8 @@ securitySchemes:
                         application/json:
                             example: |
                                 ["stable", "unstable"]
+                400:
+                    description: Origin not specified
         /{channel}:
             post:
                 description: Create a channel
@@ -282,8 +284,8 @@ securitySchemes:
                         description: Channel successfully deleted
                     400:
                         description: Origin or channel not supplied
-                    404:
-                        description: Origin or channel does not exist
+                    403:
+                        description: Channel can not be deleted
                     500:
                         description: Server error
             /pkgs:
@@ -327,9 +329,9 @@ securitySchemes:
                             200:
                                 description: Returns a list of packages
                             400:
-                                description: Origin or channel or identifier not supplied
+                                description: Origin or channel not supplied
                             404:
-                                description: Origin or channel or identifier does not exist
+                                description: Origin or channel does not exist
                             500:
                                 description: Server error
                     /latest:
@@ -380,7 +382,7 @@ securitySchemes:
                                 400:
                                     description: Origin or channel or identifier not supplied
                                 404:
-                                    description: Origin or channel or identifier does not exist
+                                    description: Origin or channel does not exist
                                 500:
                                     description: Server error
                     /{version}:
@@ -392,7 +394,7 @@ securitySchemes:
                                 400:
                                     description: Origin or channel or identifier or version not supplied
                                 404:
-                                    description: Origin or channel or identifier or version does not exist
+                                    description: Origin or channel does not exist
                                 500:
                                     description: Server error
                         /latest:
@@ -404,7 +406,7 @@ securitySchemes:
                                     400:
                                         description: Origin or channel or identifier or version not supplied
                                     404:
-                                        description: Origin or channel or identifier or version does not exist
+                                        description: Origin or channel does not exist
                                     500:
                                         description: Server error
                         /{release}:
@@ -416,21 +418,9 @@ securitySchemes:
                                     400:
                                         description: Origin or channel or identifier or version or release not supplied
                                     404:
-                                        description: Origin or channel or identifier or version or release does not exist
+                                        description: Origin or channel does not exist
                                     500:
                                         description: Server error
-                            /download:
-                                get:
-                                    description: Download the package specified
-                                    responses:
-                                        200:
-                                            description: Streams a binary package back to the client
-                                        400:
-                                            description: Origin or channel or identifier or version or release not supplied
-                                        404:
-                                            description: Origin or channel or identifier or version or release does not exist
-                                        500:
-                                            description: Server error
                             /promote:
                                 put:
                                     description: Promote a package to a specific channel

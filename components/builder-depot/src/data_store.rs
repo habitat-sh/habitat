@@ -12,11 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::collections::HashMap;
+use std::cmp::Ordering;
+use std::fmt;
 use std::ops::Deref;
 use std::result;
 use std::str::FromStr;
 use std::sync::Arc;
-use std::fmt;
 
 use dbcache::{self, ConnectionPool, Bucket, BasicSet, IndexSet};
 use hab_core::package::{self, Identifiable};
@@ -327,9 +329,16 @@ impl Bucket for PackagesIndex {
 /// This is how packages will be "promoted" between environments without duplicating data on disk.
 pub struct ChannelsTable {
     pool: Arc<ConnectionPool>,
+    channel_package_map: HashMap<String, Vec<depotsrv::PackageIdent>>,
+    origin_channel_map: HashMap<String, Vec<String>>,
     pub pkg_channel_idx: PkgChannelIndex,
     pub channel_pkg_idx: ChannelPkgIndex,
 }
+
+// It's worth noting that these two new HashMaps are a temporary measure, put in place to avoid
+// having to deal with persisting things to Redis while the work to convert our persistence layer
+// to Postgres is in progress. Once the transition to PG is complete, these two HashMaps
+// should go away and all of the methods below that use them should be changed to use PG instead.
 
 impl ChannelsTable {
     pub fn new(pool: Arc<ConnectionPool>) -> Self {
@@ -337,46 +346,134 @@ impl ChannelsTable {
         let pool2 = pool.clone();
         let pkg_channel_idx = PkgChannelIndex::new(pool1);
         let channel_pkg_idx = ChannelPkgIndex::new(pool2);
+        let channel_package_map = HashMap::<String, Vec<depotsrv::PackageIdent>>::new();
+        let origin_channel_map = HashMap::<String, Vec<String>>::new();
 
         ChannelsTable {
             pool: pool,
+            channel_package_map: channel_package_map,
+            origin_channel_map: origin_channel_map,
             pkg_channel_idx: pkg_channel_idx,
             channel_pkg_idx: channel_pkg_idx,
         }
     }
 
-    pub fn all(&self) -> Result<Vec<String>> {
-        let conn = self.pool.get().unwrap();
-        match conn.smembers(Self::prefix()) {
-            Ok(members) => Ok(members),
-            Err(e) => Err(Error::from(e)),
-        }
+    pub fn all(&mut self, origin: &str) -> Vec<String> {
+        let channels = self.origin_channel_map
+            .entry(origin.to_string())
+            .or_insert(vec!["stable".to_string(), "unstable".to_string()]);
+        channels.clone()
     }
 
-    pub fn associate(&self, channel: &str, pkg: &depotsrv::Package) -> Result<()> {
-        let script = redis::Script::new(r"
-            redis.call('sadd', KEYS[1], ARGV[2]);
-            redis.call('zadd', KEYS[2], 0, ARGV[1]);
-        ");
-        try!(script.arg(pkg.get_ident().to_string())
-            .arg(channel.clone())
-            .key(PkgChannelIndex::key(&pkg.get_ident()))
-            .key(ChannelPkgIndex::key(&channel.to_string()))
-            .invoke(self.pool.get().unwrap().deref()));
+    pub fn create(&mut self, origin: String, channel: String) -> Result<()> {
+        let mut vec = match self.origin_channel_map.get(&origin) {
+            Some(channels) => channels.clone(),
+            None => Vec::new(),
+        };
+
+        if self.channel_exists(&origin, &channel) {
+            return Err(Error::ChannelAlreadyExists(channel.to_string()));
+        }
+
+        vec.push(channel);
+        self.origin_channel_map.insert(origin, vec);
         Ok(())
     }
 
-    pub fn is_member(&self, channel: &str) -> Result<bool> {
-        let conn = self.pool.get().unwrap();
-        match conn.sismember(Self::prefix(), channel) {
-            Ok(result) => Ok(result),
-            Err(e) => Err(Error::from(e)),
+    pub fn latest(&self,
+                  origin: &str,
+                  channel: &str,
+                  ident: &str)
+                  -> Option<&depotsrv::PackageIdent> {
+        let key = format!("{}/{}", origin, channel);
+
+        if let Some(packages) = self.channel_package_map.get(&key) {
+            let mut pkgs: Vec<&depotsrv::PackageIdent> = packages.iter()
+                .filter(|pkg| pkg.to_string().contains(ident))
+                .collect();
+
+            if pkgs.is_empty() {
+                return None;
+            }
+
+            pkgs.sort_by(|a, b| match a.get_version().cmp(b.get_version()) {
+                Ordering::Equal => a.get_release().cmp(b.get_release()),
+                other => other,
+            });
+            let pkg = pkgs.last().unwrap();
+            Some(*pkg)
+        } else {
+            None
         }
     }
 
-    pub fn write(&self, channel: &str) -> Result<()> {
-        let conn = self.pool().get().unwrap();
-        try!(conn.sadd(Self::prefix(), channel));
+    pub fn all_packages(&self,
+                        origin: &str,
+                        channel: &str,
+                        ident: &str,
+                        start: isize,
+                        stop: isize)
+                        -> Vec<&depotsrv::PackageIdent> {
+        let key = format!("{}/{}", origin, channel);
+
+        if let Some(packages) = self.channel_package_map.get(&key) {
+            packages.iter()
+                .enumerate()
+                .filter(|&(i, pkg)| if ident == origin {
+                    i >= start as usize && i <= stop as usize
+                } else {
+                    i >= start as usize && i <= stop as usize && pkg.to_string().contains(ident)
+                })
+                .map(|(_, e)| e)
+                .collect()
+        } else {
+            Vec::new()
+        }
+    }
+
+    pub fn remove(&mut self, origin: &str, channel: &str) {
+        let vec = match self.origin_channel_map.get_mut(origin) {
+            Some(channels) => channels,
+            None => return,
+        };
+
+        if let Some(index) = vec.iter().position(|x| x == channel) {
+            vec.remove(index);
+        }
+    }
+
+
+    pub fn channel_exists(&mut self, origin: &str, channel: &str) -> bool {
+        let vec = self.origin_channel_map
+            .entry(origin.to_string())
+            .or_insert(vec!["stable".to_string(), "unstable".to_string()]);
+
+        vec.contains(&channel.to_string())
+    }
+
+    pub fn package_exists(&self, key: &str, pkg: &depotsrv::PackageIdent) -> bool {
+        let vec = match self.channel_package_map.get(key) {
+            Some(packages) => packages,
+            None => return false,
+        };
+
+        vec.contains(&pkg)
+    }
+
+    pub fn associate(&mut self, channel: &str, pkg: &depotsrv::Package) -> Result<()> {
+        let ident = pkg.get_ident();
+        let key = format!("{}/{}", ident.get_origin(), channel);
+        let mut vec = match self.channel_package_map.get(&key) {
+            Some(packages) => packages.clone(),
+            None => Vec::new(),
+        };
+
+        if self.package_exists(&key, &ident) {
+            return Err(Error::PackageIsAlreadyInChannel(pkg.to_string(), channel.to_string()));
+        }
+
+        vec.push(pkg.get_ident().clone());
+        self.channel_package_map.insert(key, vec);
         Ok(())
     }
 }
