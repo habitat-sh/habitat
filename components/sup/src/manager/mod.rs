@@ -21,6 +21,7 @@ use std::net::SocketAddr;
 use std::thread;
 use std::sync::{Arc, RwLock};
 use std::time::Duration;
+use std::ops::Deref;
 
 use butterfly;
 use butterfly::member::Member;
@@ -305,6 +306,15 @@ impl Manager {
 
     /// Check if any elections need restarting.
     fn restart_elections(&mut self) {
-        self.state.butterfly.restart_elections();
+        self.state.butterfly.restart_elections(|service_group| {
+            self.state
+                .services
+                .write()
+                .expect("Services lock is poisoned!")
+                .iter_mut()
+                .find(|s| s.service_group.deref() == service_group)
+                .and_then(|s| s.suitability())
+                .unwrap_or(u64::min_value())
+        });
     }
 }
