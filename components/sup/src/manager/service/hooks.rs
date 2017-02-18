@@ -35,6 +35,7 @@ pub const FILEUPDATED_FILENAME: &'static str = "file_updated";
 pub const RECONFIGURE_FILENAME: &'static str = "reconfigure";
 pub const SMOKETEST_FILENAME: &'static str = "smoke_test";
 pub const RUN_FILENAME: &'static str = "run";
+pub const SUITABILITY_FILENAME: &'static str = "suitability";
 
 static LOGKEY: &'static str = "HK";
 
@@ -148,6 +149,7 @@ pub struct HookTable {
     pub reconfigure: Option<Hook>,
     pub file_updated: Option<Hook>,
     pub run: Option<Hook>,
+    pub suitability: Option<Hook>,
     pub smoke_test: Option<Hook>,
     cfg_incarnation: u64,
 }
@@ -174,6 +176,9 @@ impl HookTable {
         if let Some(ref hook) = self.run {
             self.compile_one(hook, service_group, config);
         }
+        if let Some(ref hook) = self.suitability {
+            self.compile_one(hook, service_group, config);
+        }
         if let Some(ref hook) = self.smoke_test {
             self.compile_one(hook, service_group, config);
         }
@@ -191,6 +196,7 @@ impl HookTable {
                 self.reconfigure = self.load_hook(HookType::Reconfigure, cfg, &hooks, &templates);
                 self.health_check = self.load_hook(HookType::HealthCheck, cfg, &hooks, &templates);
                 self.run = self.load_hook(HookType::Run, cfg, &hooks, &templates);
+                self.suitability = self.load_hook(HookType::Suitability, cfg, &hooks, &templates);
                 self.smoke_test = self.load_hook(HookType::SmokeTest, cfg, &hooks, &templates);
             }
         }
@@ -207,6 +213,7 @@ impl HookTable {
             HookType::Init => &self.init,
             HookType::Reconfigure => &self.reconfigure,
             HookType::Run => &self.run,
+            HookType::Suitability => &self.suitability,
             HookType::SmokeTest => &self.smoke_test,
         };
         match *hook {
@@ -253,6 +260,7 @@ pub enum HookType {
     FileUpdated,
     Run,
     Init,
+    Suitability,
     SmokeTest,
 }
 
@@ -264,6 +272,7 @@ impl fmt::Display for HookType {
             HookType::FileUpdated => write!(f, "file_updated"),
             HookType::Reconfigure => write!(f, "reconfigure"),
             HookType::Run => write!(f, "run"),
+            HookType::Suitability => write!(f, "suitability"),
             HookType::SmokeTest => write!(f, "smoke_test"),
         }
     }
@@ -278,6 +287,7 @@ pub fn hook_path<T>(hook_type: &HookType, path: T) -> PathBuf
         HookType::FileUpdated => path.as_ref().join(FILEUPDATED_FILENAME),
         HookType::Reconfigure => path.as_ref().join(RECONFIGURE_FILENAME),
         HookType::Run => path.as_ref().join(RUN_FILENAME),
+        HookType::Suitability => path.as_ref().join(SUITABILITY_FILENAME),
         HookType::SmokeTest => path.as_ref().join(SMOKETEST_FILENAME),
     }
 }

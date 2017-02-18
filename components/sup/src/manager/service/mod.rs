@@ -685,6 +685,21 @@ impl Service {
         false
     }
 
+    pub fn suitability(&mut self) -> Option<u64> {
+        if !self.initialized {
+            return None;
+        }
+        self.run_hook(HookType::Suitability)
+            .ok()
+            .as_ref()
+            .and_then(|hook_out| hook_out.stdout().lines().last())
+            .and_then(|line| line.trim().parse::<u64>().ok())
+            .map(|suitability| {
+                outputln!(preamble self.service_group, "Reporting suitability of: {}", suitability);
+                suitability
+            })
+    }
+
     /// Write service configuration from gossip data to disk.
     ///
     /// Returns true if a change was made and false if there were no updates.
