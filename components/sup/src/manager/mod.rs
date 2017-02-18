@@ -27,7 +27,9 @@ use butterfly;
 use butterfly::member::Member;
 use butterfly::trace::Trace;
 use butterfly::server::timing::Timing;
+use butterfly::server::Suitability;
 use hcore::crypto::{default_cache_key_path, SymKey};
+use hcore::service::ServiceGroup;
 use time::{SteadyTime, Duration as TimeDuration};
 use toml;
 
@@ -41,6 +43,20 @@ use http_gateway;
 
 static LOGKEY: &'static str = "MR";
 
+#[derive(Debug)]
+struct SuitabilityLookup(Arc<RwLock<Vec<Service>>>);
+impl Suitability for SuitabilityLookup {
+    fn get(&self, service_group: &ServiceGroup) -> u64 {
+        self.0
+            .write()
+            .expect("Services lock is poisoned!")
+            .iter_mut()
+            .find(|s| s.service_group.deref() == service_group.deref())
+            .and_then(|s| s.suitability())
+            .unwrap_or(u64::min_value())
+    }
+}
+
 #[derive(Clone)]
 pub struct State {
     pub butterfly: butterfly::Server,
@@ -49,11 +65,11 @@ pub struct State {
 }
 
 impl State {
-    pub fn new(butterfly: butterfly::Server) -> Self {
+    pub fn new(services: Arc<RwLock<Vec<Service>>>, butterfly: butterfly::Server) -> Self {
         State {
             butterfly: butterfly,
             census_list: Arc::new(RwLock::new(CensusList::new())),
-            services: Arc::new(RwLock::new(Vec::new())),
+            services: services,
         }
     }
 }
@@ -89,12 +105,14 @@ impl Manager {
             None => None,
         };
 
+        let services = Arc::new(RwLock::new(Vec::new()));
         let server = try!(butterfly::Server::new(&cfg.gossip_listen,
                                                  &cfg.gossip_listen,
                                                  member,
                                                  Trace::default(),
                                                  ring_key,
-                                                 None));
+                                                 None,
+                                                 Box::new(SuitabilityLookup(services.clone()))));
         outputln!("Butterfly Member ID {}", server.member_id());
         for peer_addr in &cfg.gossip_peers {
             let mut peer = Member::new();
@@ -105,7 +123,7 @@ impl Manager {
         }
         Ok(Manager {
             updater: ServiceUpdater::new(server.clone()),
-            state: State::new(server),
+            state: State::new(services, server),
             gossip_listen: cfg.gossip_listen,
             http_listen: cfg.http_listen,
         })
@@ -118,7 +136,7 @@ impl Manager {
         if service.topology == Topology::Leader {
             // Note - eventually, we need to deal with suitability here. The original implementation
             // didn't have this working either.
-            self.state.butterfly.start_election(service.service_group.clone(), 0, 0);
+            self.state.butterfly.start_election(service.service_group.clone(), 0);
         }
         self.updater.add(&service);
         self.state.services.write().expect("Services lock is poisoned!").push(service);
@@ -306,15 +324,6 @@ impl Manager {
 
     /// Check if any elections need restarting.
     fn restart_elections(&mut self) {
-        self.state.butterfly.restart_elections(|service_group| {
-            self.state
-                .services
-                .write()
-                .expect("Services lock is poisoned!")
-                .iter_mut()
-                .find(|s| s.service_group.deref() == service_group)
-                .and_then(|s| s.suitability())
-                .unwrap_or(u64::min_value())
-        });
+        self.state.butterfly.restart_elections();
     }
 }
