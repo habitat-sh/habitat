@@ -113,7 +113,7 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                 "A Habitat package identifier (ex: acme/redis) or filepath to a Habitat Artifact \
                 (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
             (@group SVC_ARGS =>
-                (@attributes requires[PKG_IDENT_OR_ARTIFACT])
+                (@attributes +multiple requires[PKG_IDENT_OR_ARTIFACT])
                 (@arg GROUP: --group +takes_value
                     "The service group; shared config and topology [default: default].")
                 (@arg ORGANIZATION: --org +takes_value
