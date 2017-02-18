@@ -64,12 +64,13 @@ impl Hook {
     }
 
     /// Run a compiled hook.
-    pub fn run(&self, service_group: &ServiceGroup) -> Result<()> {
+    pub fn run(&self, service_group: &ServiceGroup) -> Result<HookOutput> {
         let mut child = try!(util::create_command(&self.path, &self.user, &self.group).spawn());
-        self.stream_output(service_group, &mut child);
+        let mut output = HookOutput::new(self.htype);
+        output.stream_output(service_group, &mut child);
         let exit_status = try!(child.wait());
         if exit_status.success() {
-            Ok(())
+            Ok(output)
         } else {
             Err(sup_error!(Error::HookFailed(self.htype, exit_status.code().unwrap_or(-1))))
         }
@@ -88,13 +89,39 @@ impl Hook {
         try!(hcore::util::perm::set_permissions(&self.path, HOOK_PERMISSIONS));
         Ok(())
     }
+}
 
-    fn stream_output(&self, service_group: &ServiceGroup, process: &mut Child) {
+pub struct HookOutput {
+    stdout: String,
+    stderr: String,
+    htype: HookType,
+}
+
+impl HookOutput {
+    fn new(hook_type: HookType) -> Self {
+        HookOutput {
+            stdout: String::new(),
+            stderr: String::new(),
+            htype: hook_type,
+        }
+    }
+
+    pub fn stdout(&self) -> &String {
+        &self.stdout
+    }
+
+    pub fn stderr(&self) -> &String {
+        &self.stderr
+    }
+
+    fn stream_output(&mut self, service_group: &ServiceGroup, process: &mut Child) {
         let preamble_str = self.stream_preamble(service_group);
         if let Some(ref mut stdout) = process.stdout {
             for line in BufReader::new(stdout).lines() {
                 if let Some(ref l) = line.ok() {
                     outputln!(preamble preamble_str, l);
+                    self.stdout.push_str("\n");
+                    self.stdout.push_str(l);
                 }
             }
         }
@@ -102,6 +129,8 @@ impl Hook {
             for line in BufReader::new(stderr).lines() {
                 if let Some(ref l) = line.ok() {
                     outputln!(preamble preamble_str, l);
+                    self.stderr.push_str("\n");
+                    self.stderr.push_str(l);
                 }
             }
         }
@@ -171,8 +200,8 @@ impl HookTable {
     /// Run the hook of the given type if the table has a hook of that type loaded and compiled.
     ///
     /// Returns affirmatively if the service does not have the desired hook.
-    pub fn try_run(&self, hook: HookType, group: &ServiceGroup) -> Result<()> {
-        let hook = match hook {
+    pub fn try_run(&self, hook_type: HookType, group: &ServiceGroup) -> Result<HookOutput> {
+        let hook = match hook_type {
             HookType::FileUpdated => &self.file_updated,
             HookType::HealthCheck => &self.health_check,
             HookType::Init => &self.init,
@@ -182,7 +211,7 @@ impl HookTable {
         };
         match *hook {
             Some(ref h) => h.run(group),
-            None => Ok(()),
+            None => Ok(HookOutput::new(hook_type)),
         }
     }
 
