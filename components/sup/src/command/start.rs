@@ -50,109 +50,41 @@
 use std::path::Path;
 
 use ansi_term::Colour::Yellow;
-use common::command::package::install;
+use common;
 use common::ui::UI;
-use depot_client::Client;
-use hcore::fs::{am_i_root, cache_artifact_path, FS_ROOT_PATH};
-use hcore::package::{PackageIdent, PackageInstall};
+use hcore::fs::{self, FS_ROOT_PATH};
 
 use {PRODUCT, VERSION};
 use error::{Error, Result};
 use manager::{Manager, ManagerConfig};
-use manager::{Service, ServiceSpec, UpdateStrategy};
+use manager::ServiceSpec;
 
 static LOGKEY: &'static str = "CS";
 
-/// Creates a [Package](../../pkg/struct.Package.html), then passes it to the run method of the
-/// selected [topology](../../topology).
-///
-/// # Failures
-///
-/// * Fails if it cannot find a package with the given name
-/// * Fails if the `run` method for the topology fails
-/// * Fails if an unknown topology was specified on the command line
 pub fn package(cfg: ManagerConfig, spec: ServiceSpec, local_artifact: Option<&str>) -> Result<()> {
     let mut ui = UI::default();
-    if !am_i_root() {
-        try!(ui.warn("Running the Habitat Supervisor requires root or administrator privileges. \
-                      Please retry this command as a super user or use a privilege-granting \
-                      facility such as sudo."));
-        try!(ui.br());
+    if !fs::am_i_root() {
+        ui.warn("Running the Habitat Supervisor requires root or administrator privileges. \
+                   Please retry this command as a super user or use a privilege-granting \
+                   facility such as sudo.")?;
+        ui.br()?;
         return Err(sup_error!(Error::RootRequired));
     }
 
-    match PackageInstall::load(&spec.ident, Some(&Path::new(&*FS_ROOT_PATH))) {
-        Ok(mut package) => {
-            match spec.update_strategy {
-                UpdateStrategy::None => {}
-                _ => {
-                    outputln!("Checking Depot for newer versions...");
-                    // It is important to pass `spec.ident` to `show_package()` instead
-                    // of the package identifier of the loaded package. This will ensure that
-                    // if the operator starts a package while specifying a version number, they
-                    // will only automatically receive release updates for the started package.
-                    //
-                    // If the operator does not specify a version number they will
-                    // automatically receive updates for any releases, regardless of version
-                    // number, for the started  package.
-                    let depot_client = try!(Client::new(&spec.depot_url, PRODUCT, VERSION, None));
-                    let latest_pkg_data = try!(depot_client.show_package(&spec.ident));
-                    let latest_ident: PackageIdent = latest_pkg_data.get_ident().clone().into();
-                    if &latest_ident > package.ident() {
-                        outputln!("Downloading latest version from Depot: {}", latest_ident);
-                        let new_pkg_data = try!(install::start(&mut ui,
-                                                               &spec.depot_url,
-                                                               &latest_ident.to_string(),
-                                                               PRODUCT,
-                                                               VERSION,
-                                                               Path::new(&*FS_ROOT_PATH),
-                                                               &cache_artifact_path(None),
-                                                               false));
-                        package = try!(PackageInstall::load(&new_pkg_data, Some(&*FS_ROOT_PATH)));
-                    } else {
-                        outputln!("Already running latest.");
-                    };
-                }
-            }
-            start_package(package, cfg, spec)
-        }
-        Err(_) => {
-            outputln!("{} is not installed",
-                      Yellow.bold().paint(spec.ident.to_string()));
-            let new_pkg_data = match local_artifact {
-                Some(artifact) => {
-                    try!(install::start(&mut ui,
-                                        &spec.depot_url,
-                                        &artifact,
-                                        PRODUCT,
-                                        VERSION,
-                                        Path::new(&*FS_ROOT_PATH),
-                                        &cache_artifact_path(None),
-                                        false))
-                }
-                None => {
-                    outputln!("Searching for {} in remote {}",
-                              Yellow.bold().paint(spec.ident.to_string()),
-                              &spec.depot_url);
-                    try!(install::start(&mut ui,
-                                        &spec.depot_url,
-                                        &spec.ident.to_string(),
-                                        PRODUCT,
-                                        VERSION,
-                                        Path::new(&*FS_ROOT_PATH),
-                                        &cache_artifact_path(None),
-                                        false))
-                }
-            };
-            let package = try!(PackageInstall::load(&new_pkg_data, Some(&*FS_ROOT_PATH)));
-            start_package(package, cfg, spec)
-        }
+    if let Some(artifact) = local_artifact {
+        outputln!("Installing local artifact {}",
+                  Yellow.bold().paint(artifact));
+        common::command::package::install::start(&mut ui,
+                                                 &spec.depot_url,
+                                                 artifact,
+                                                 PRODUCT,
+                                                 VERSION,
+                                                 Path::new(&*FS_ROOT_PATH),
+                                                 &fs::cache_artifact_path(None),
+                                                 false)?;
     }
-}
 
-fn start_package(package: PackageInstall, cfg: ManagerConfig, spec: ServiceSpec) -> Result<()> {
-    let service = try!(Service::new(package, spec, &cfg));
-    let mut manager = try!(Manager::new(cfg));
-    try!(manager.add_service(service));
+    let mut manager = Manager::new(cfg)?;
+    manager.add_service(spec)?;
     manager.run()
 }

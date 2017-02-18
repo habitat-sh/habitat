@@ -30,6 +30,7 @@ use std::sync::{Arc, RwLock, RwLockReadGuard};
 use ansi_term::Colour::{Yellow, Red, Green};
 use butterfly;
 use butterfly::rumor::service::Service as ServiceRumor;
+use common::ui::UI;
 use hcore::fs::FS_ROOT_PATH;
 use hcore::service::ServiceGroup;
 use hcore::crypto::hash;
@@ -39,23 +40,26 @@ use hcore::util::perm::{set_owner, set_permissions};
 use serde::Serializer;
 use toml;
 
-pub use self::config::ServiceConfig;
-pub use self::health::{HealthCheck, SmokeCheck};
 use self::hooks::{HOOK_PERMISSIONS, HookTable, HookType};
+use config::GossipListenAddr;
 use error::{Error, Result, SupError};
+use http_gateway;
 use fs;
-use manager::ManagerConfig;
 use manager::signals;
 use manager::census::{CensusList, CensusUpdate, ElectionStatus};
 use prometheus::Opts;
 use supervisor::{Supervisor, RuntimeConfig};
 use util;
 
+pub use self::config::ServiceConfig;
+pub use self::health::{HealthCheck, SmokeCheck};
+
 static LOGKEY: &'static str = "SR";
 static DEFAULT_GROUP: &'static str = "default";
 const HABITAT_PACKAGE_INFO_NAME: &'static str = "habitat_package_info";
 const HABITAT_PACKAGE_INFO_DESC: &'static str = "package version information";
 
+#[derive(Debug)]
 pub struct ServiceSpec {
     pub ident: PackageIdent,
     pub group: String,
@@ -149,7 +153,8 @@ pub struct Service {
 impl Service {
     pub fn new(package: PackageInstall,
                spec: ServiceSpec,
-               mgr_cfg: &ManagerConfig)
+               gossip_listen: &GossipListenAddr,
+               http_listen: &http_gateway::ListenAddr)
                -> Result<Service> {
         spec.validate(&package)?;
         let service_group = ServiceGroup::new(&package.ident.name,
@@ -158,7 +163,12 @@ impl Service {
         let (svc_user, svc_group) = util::users::get_user_and_group(&package)?;
         let runtime_cfg = RuntimeConfig::new(svc_user, svc_group);
         let config_root = spec.config_from.clone().unwrap_or(package.installed_path.clone());
-        let svc_cfg = ServiceConfig::new(&package, mgr_cfg, &runtime_cfg, config_root, spec.binds)?;
+        let svc_cfg = ServiceConfig::new(&package,
+                                         &runtime_cfg,
+                                         config_root,
+                                         spec.binds,
+                                         &gossip_listen,
+                                         &http_listen)?;
         let hook_template_path = svc_cfg.config_root.join("hooks");
         let hooks_path = fs::svc_hooks_path(service_group.service());
         let locked_package = Arc::new(RwLock::new(package));
@@ -181,6 +191,51 @@ impl Service {
             update_strategy: spec.update_strategy,
             config_from: spec.config_from,
         })
+    }
+
+    pub fn load(spec: ServiceSpec,
+                gossip_listen: &GossipListenAddr,
+                http_listen: &http_gateway::ListenAddr)
+                -> Result<Service> {
+        let mut ui = UI::default();
+        let package = match PackageInstall::load(&spec.ident, Some(&Path::new(&*FS_ROOT_PATH))) {
+            Ok(package) => {
+                match spec.update_strategy {
+                    UpdateStrategy::AtOnce | UpdateStrategy::Rolling => {
+                        try!(util::pkg::maybe_install_newer(&mut ui, &spec, package))
+                    }
+                    UpdateStrategy::None => package,
+                }
+            }
+            Err(_) => {
+                outputln!("Package {} not found locally, installing from {}",
+                          Yellow.bold().paint(spec.ident.to_string()),
+                          &spec.depot_url);
+                try!(util::pkg::install(&mut ui, &spec.depot_url, &spec.ident))
+            }
+        };
+        Self::new(package, spec, gossip_listen, http_listen)
+    }
+
+    pub fn add(&self) -> Result<()> {
+        outputln!("Adding {}",
+                  Yellow.bold().paint(self.package().ident().to_string()));
+        // JW (and now also FN) TODO: We can't just set the run path for the entire process here,
+        // we need to set this on the supervisor which will be starting the process itself to
+        // support multi services in hab-sup.
+        let run_path = self.run_path()?;
+        debug!("Setting the PATH to {}", run_path);
+        env::set_var("PATH", &run_path);
+
+        self.create_svc_path()?;
+        self.register_metrics();
+        Ok(())
+    }
+
+    pub fn remove(&self) -> Result<()> {
+        outputln!("Finished with {}",
+                  Yellow.bold().paint(self.package().ident().to_string()));
+        Ok(())
     }
 
     pub fn config_root(&self) -> &Path {

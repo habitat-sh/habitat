@@ -101,30 +101,34 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
         (@subcommand start =>
             (about: "Start a Habitat-supervised service from a package or artifact")
             (aliases: &["st", "sta", "star"])
-            (@arg PKG_IDENT_OR_ARTIFACT: +required
-                "A Habitat package identifier (ex: acme/redis) or filepath to a Habitat Artifact \
-                (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
-            (@arg BIND: --bind +takes_value +multiple
-                "One or more service groups to bind to a configuration")
-            (@arg CONFIG_DIR: --("config-from") +takes_value {dir_exists}
-                "Use package config from this path, rather than the package itself")
-            (@arg DEPOT_URL: --url -u +takes_value {valid_url}
-                "Use a specific Depot URL (ex: http://depot.example.com/v1/depot)")
-            (@arg GROUP: --group +takes_value
-                "The service group; shared config and topology [default: default].")
             (@arg LISTEN_GOSSIP: --("listen-gossip") +takes_value
                 "The listen address for the gossip system [default: 0.0.0.0:9638]")
             (@arg LISTEN_HTTP: --("listen-http") +takes_value
                 "The listen address for the HTTP gateway [default: 0.0.0.0:9631]")
-            (@arg ORGANIZATION: --org +takes_value "The organization that a service is part of")
             (@arg PEER: --peer +takes_value +multiple
                 "The listen address of an initial peer (IP[:PORT])")
             (@arg PERMANENT_PEER: --("permanent-peer") -I "If this service is a permanent peer")
             (@arg RING: --ring -r +takes_value "Ring key name")
-            (@arg STRATEGY: --strategy -s +takes_value {valid_update_strategy}
-                "The update strategy; [default: none] [values: none, at-once, rolling]")
-            (@arg TOPOLOGY: --topology -t +takes_value {valid_topology}
-                "Service topology; [default: none]")
+            (@arg PKG_IDENT_OR_ARTIFACT: +required
+                "A Habitat package identifier (ex: acme/redis) or filepath to a Habitat Artifact \
+                (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
+            (@group SVC_ARGS =>
+                (@attributes requires[PKG_IDENT_OR_ARTIFACT])
+                (@arg GROUP: --group +takes_value
+                    "The service group; shared config and topology [default: default].")
+                (@arg ORGANIZATION: --org +takes_value
+                    "The organization that a service is part of")
+                (@arg DEPOT_URL: --url -u +takes_value {valid_url}
+                    "Use a specific Depot URL (ex: http://depot.example.com/v1/depot)")
+                (@arg TOPOLOGY: --topology -t +takes_value {valid_topology}
+                    "Service topology; [default: none]")
+                (@arg STRATEGY: --strategy -s +takes_value {valid_update_strategy}
+                    "The update strategy; [default: none] [values: none, at-once, rolling]")
+                (@arg BIND: --bind +takes_value +multiple
+                    "One or more service groups to bind to a configuration")
+                (@arg CONFIG_DIR: --("config-from") +takes_value {dir_exists}
+                    "Use package config from this path, rather than the package itself")
+            )
         )
     )
 }
@@ -224,21 +228,17 @@ fn sub_start(m: &ArgMatches) -> Result<()> {
         cfg.ring = Some(ring.name_with_rev());
     }
 
-    let mut local_artifact: Option<&str> = None;
-    let ident = {
-        let ident_or_artifact = m.value_of("PKG_IDENT_OR_ARTIFACT").unwrap();
-        if Path::new(ident_or_artifact).is_file() {
-            local_artifact = Some(ident_or_artifact);
-            try!(PackageArchive::new(Path::new(ident_or_artifact)).ident())
-        } else {
-            try!(PackageIdent::from_str(ident_or_artifact))
-        }
+    let mut maybe_local_artifact: Option<&str> = None;
+    let ident_or_artifact = m.value_of("PKG_IDENT_OR_ARTIFACT").unwrap();
+    let ident = if Path::new(ident_or_artifact).is_file() {
+        maybe_local_artifact = Some(ident_or_artifact);
+        try!(PackageArchive::new(Path::new(ident_or_artifact)).ident())
+    } else {
+        try!(PackageIdent::from_str(ident_or_artifact))
     };
     let spec = try!(spec_from_matches(&ident, m));
 
-    outputln!("Starting {}", Yellow.bold().paint(ident.to_string()));
-    try!(command::start::package(cfg, spec, local_artifact));
-    outputln!("Finished with {}", Yellow.bold().paint(ident.to_string()));
+    try!(command::start::package(cfg, spec, maybe_local_artifact));
     Ok(())
 }
 

@@ -31,10 +31,11 @@ use hcore::package::{PackageIdent, PackageInstall};
 use hcore::service::ServiceGroup;
 use toml;
 
-use manager::ManagerConfig;
+use config::GossipListenAddr;
 use manager::census::{Census, CensusList};
 use error::{Error, Result};
 use fs;
+use http_gateway;
 use supervisor::RuntimeConfig;
 use templating::Template;
 use util::{self, convert};
@@ -79,15 +80,16 @@ impl ServiceConfig {
     /// fail, and indeed, we want it to - it causes the program to crash if we can not render the
     /// first pass of the configuration file.
     pub fn new(package: &PackageInstall,
-               mgr_cfg: &ManagerConfig,
                runtime_cfg: &RuntimeConfig,
                config_root: PathBuf,
-               bindings: Vec<(String, ServiceGroup)>)
+               bindings: Vec<(String, ServiceGroup)>,
+               gossip_listen: &GossipListenAddr,
+               http_listen: &http_gateway::ListenAddr)
                -> Result<ServiceConfig> {
         Ok(ServiceConfig {
             pkg: Pkg::new(package, runtime_cfg)?,
             hab: Hab::new(),
-            sys: Sys::new(mgr_cfg),
+            sys: Sys::new(gossip_listen, http_listen),
             cfg: Cfg::new(package, &config_root)?,
             svc: Svc::default(),
             bind: Bind::default(),
@@ -528,7 +530,7 @@ impl Pkg {
 pub struct Sys(SysInfo);
 
 impl Sys {
-    fn new(manager_cfg: &ManagerConfig) -> Sys {
+    fn new(gossip_listen: &GossipListenAddr, http_listen: &http_gateway::ListenAddr) -> Sys {
         let ip = match util::sys::ip() {
             Ok(ip) => ip.to_string(),
             Err(e) => {
@@ -548,10 +550,10 @@ impl Sys {
         Sys(SysInfo {
             ip: ip,
             hostname: hostname,
-            gossip_ip: manager_cfg.gossip_listen.ip().to_string(),
-            gossip_port: manager_cfg.gossip_listen.port().to_string(),
-            http_gateway_ip: manager_cfg.http_listen.ip().to_string(),
-            http_gateway_port: manager_cfg.http_listen.port().to_string(),
+            gossip_ip: gossip_listen.ip().to_string(),
+            gossip_port: gossip_listen.port().to_string(),
+            http_gateway_ip: http_listen.ip().to_string(),
+            http_gateway_port: http_listen.port().to_string(),
         })
     }
 
@@ -646,8 +648,9 @@ mod test {
     use toml;
 
     use super::*;
+    use config::GossipListenAddr;
     use error::Error;
-    use manager::ManagerConfig;
+    use http_gateway::ListenAddr;
     use supervisor::RuntimeConfig;
     use VERSION;
 
@@ -669,10 +672,11 @@ mod test {
     fn to_toml_hab() {
         let pkg = gen_pkg();
         let sc = ServiceConfig::new(&pkg,
-                                    &ManagerConfig::default(),
-                                    &RuntimeConfig::default(),
+                                    &RuntimeConfig::new("hab".to_string(), "hab".to_string()),
                                     PathBuf::from("/hab/pkgs/neurosis/redis/2000/20160222201258"),
-                                    Vec::new())
+                                    Vec::new(),
+                                    &GossipListenAddr::default(),
+                                    &ListenAddr::default())
             .unwrap();
         let toml = sc.to_toml().unwrap();
         let version = toml.lookup("hab.version").unwrap().as_str().unwrap();
@@ -683,10 +687,11 @@ mod test {
     fn to_toml_pkg() {
         let pkg = gen_pkg();
         let sc = ServiceConfig::new(&pkg,
-                                    &ManagerConfig::default(),
-                                    &RuntimeConfig::default(),
+                                    &RuntimeConfig::new("hab".to_string(), "hab".to_string()),
                                     PathBuf::from("/hab/pkgs/neurosis/redis/2000/20160222201258"),
-                                    Vec::new())
+                                    Vec::new(),
+                                    &GossipListenAddr::default(),
+                                    &ListenAddr::default())
             .unwrap();
         let toml = sc.to_toml().unwrap();
         let name = toml.lookup("pkg.name").unwrap().as_str().unwrap();
@@ -697,10 +702,11 @@ mod test {
     fn to_toml_sys() {
         let pkg = gen_pkg();
         let sc = ServiceConfig::new(&pkg,
-                                    &ManagerConfig::default(),
-                                    &RuntimeConfig::default(),
+                                    &RuntimeConfig::new("hab".to_string(), "hab".to_string()),
                                     PathBuf::from("/hab/pkgs/neurosis/redis/2000/20160222201258"),
-                                    Vec::new())
+                                    Vec::new(),
+                                    &GossipListenAddr::default(),
+                                    &ListenAddr::default())
             .unwrap();
         let toml = sc.to_toml().unwrap();
         let ip = toml.lookup("sys.ip").unwrap().as_str().unwrap();
@@ -856,26 +862,27 @@ mod test {
 
     mod sys {
         use super::super::Sys;
-        use manager::ManagerConfig;
+        use config::GossipListenAddr;
+        use http_gateway::ListenAddr;
         use regex::Regex;
 
         #[test]
         fn ip() {
-            let s = Sys::new(&ManagerConfig::default());
+            let s = Sys::new(&GossipListenAddr::default(), &ListenAddr::default());
             let re = Regex::new(r"\d+\.\d+\.\d+\.\d+").unwrap();
             assert!(re.is_match(&s.ip));
         }
 
         #[test]
         fn hostname() {
-            let s = Sys::new(&ManagerConfig::default());
+            let s = Sys::new(&GossipListenAddr::default(), &ListenAddr::default());
             let re = Regex::new(r"\w+").unwrap();
             assert!(re.is_match(&s.hostname));
         }
 
         #[test]
         fn to_toml() {
-            let s = Sys::new(&ManagerConfig::default());
+            let s = Sys::new(&GossipListenAddr::default(), &ListenAddr::default());
             let toml = s.to_toml().unwrap();
             let ip = toml.lookup("ip").unwrap().as_str().unwrap();
             let re = Regex::new(r"\d+\.\d+\.\d+\.\d+").unwrap();
