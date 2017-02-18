@@ -201,10 +201,10 @@ impl Service {
         let package = match PackageInstall::load(&spec.ident, Some(&Path::new(&*FS_ROOT_PATH))) {
             Ok(package) => {
                 match spec.update_strategy {
-                    UpdateStrategy::AtOnce | UpdateStrategy::Rolling => {
+                    UpdateStrategy::AtOnce => {
                         try!(util::pkg::maybe_install_newer(&mut ui, &spec, package))
                     }
-                    UpdateStrategy::None => package,
+                    UpdateStrategy::None | UpdateStrategy::Rolling => package,
                 }
             }
             Err(_) => {
@@ -434,24 +434,6 @@ impl Service {
         }
     }
 
-    fn execute_hooks(&mut self) {
-        if !self.initialized {
-            self.initialize();
-            if self.initialized {
-                self.start();
-            }
-        } else {
-            self.check_process();
-
-            if self.needs_restart || self.is_down() || self.needs_reconfiguration {
-                self.restart();
-                if self.needs_reconfiguration {
-                    self.reconfigure()
-                }
-            }
-        }
-    }
-
     pub fn package(&self) -> RwLockReadGuard<PackageInstall> {
         self.package.read().expect("Package lock poisoned")
     }
@@ -460,7 +442,8 @@ impl Service {
         let (svc_user, svc_group) = match util::users::get_user_and_group(&package) {
             Ok(user_and_group) => user_and_group,
             Err(err) => {
-                outputln!(preamble self.service_group, "Unable to extract svc_user and svc_group from updated package, {}", err);
+                outputln!(preamble self.service_group,
+                    "Unable to extract svc_user and svc_group from updated package, {}", err);
                 return;
             }
         };
@@ -472,7 +455,8 @@ impl Service {
             .load_hooks(&runtime_cfg, hooks_path, &config_root.join("hooks"));
 
         if let Some(err) = self.config.reload_package(&package, config_root, &runtime_cfg).err() {
-            outputln!(preamble self.service_group, "Failed to reload service config with updated package: {}", err);
+            outputln!(preamble self.service_group,
+                "Failed to reload service config with updated package: {}", err);
         }
         *self.package.write().expect("Package lock poisoned") = package;
 
@@ -667,6 +651,24 @@ impl Service {
             }
         }
         Ok(())
+    }
+
+    fn execute_hooks(&mut self) {
+        if !self.initialized {
+            self.initialize();
+            if self.initialized {
+                self.start();
+            }
+        } else {
+            self.check_process();
+
+            if self.needs_restart || self.is_down() || self.needs_reconfiguration {
+                self.restart();
+                if self.needs_reconfiguration {
+                    self.reconfigure()
+                }
+            }
+        }
     }
 
     /// Run file_updated hook if present
