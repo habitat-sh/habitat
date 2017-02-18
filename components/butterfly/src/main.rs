@@ -16,6 +16,7 @@ extern crate env_logger;
 #[macro_use]
 extern crate log;
 extern crate habitat_butterfly;
+extern crate habitat_core;
 
 use std::env;
 use std::thread;
@@ -23,6 +24,16 @@ use std::time::Duration;
 use std::net::SocketAddr;
 
 use habitat_butterfly::{server, member, trace};
+use habitat_butterfly::server::Suitability;
+use habitat_core::service::ServiceGroup;
+
+#[derive(Debug)]
+struct ZeroSuitability;
+impl Suitability for ZeroSuitability {
+    fn get(&self, _service_group: &ServiceGroup) -> u64 {
+        0
+    }
+}
 
 fn main() {
     env_logger::init().unwrap();
@@ -47,7 +58,8 @@ fn main() {
                                      member,
                                      trace::Trace::default(),
                                      None,
-                                     None)
+                                     None,
+                                     Box::new(ZeroSuitability))
         .unwrap();
     println!("Server ID: {}", server.member_id);
 
