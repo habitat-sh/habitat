@@ -21,3 +21,9 @@ pub fn start(src: &str) -> Result<()> {
     println!("{}", h);
     Ok(())
 }
+
+pub fn start_multi(src: &str) -> Result<()> {
+    let h = try!(hash::hash_file(&src));
+    println!("{}  {}", h, src);
+    Ok(())
+}

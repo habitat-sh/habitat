@@ -27,6 +27,7 @@ extern crate log;
 use std::env;
 use std::ffi::OsString;
 use std::io::{self, Read};
+use std::io::prelude::*;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use std::thread;
@@ -304,10 +305,33 @@ fn sub_pkg_export(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_pkg_hash(m: &ArgMatches) -> Result<()> {
-    let source = m.value_of("SOURCE").unwrap(); // Required via clap
-
     init();
-    command::pkg::hash::start(&source)
+    match m.value_of("SOURCE") {
+        Some(source) => {
+            // hash single file
+            command::pkg::hash::start(&source)
+        },
+        None => {
+            // read files from stdin
+            let stdin = io::stdin();
+            for line in stdin.lock().lines() {
+                match line {
+                    Ok(line) => {
+                        let file = line.trim_right();
+                        if Path::new(&file).is_file() {
+                            command::pkg::hash::start_multi(&file);
+                        } else {
+                            println!("File: '{}' cannot be found", &file);
+                        }
+                    },
+                    Err(error) => {
+                        println!("error: {}", error);
+                    },
+                }
+            }
+            Ok(())
+        },
+    }
 }
 
 fn sub_plan_init(ui: &mut UI, m: &ArgMatches) -> Result<()> {
