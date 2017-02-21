@@ -58,6 +58,9 @@ configure :build do
 
   # Minify Javascript on build
   # activate :minify_javascript
+
+  # Asset hash to defeat caching between builds
+  activate :asset_hash
 end
 
 activate :autoprefixer
