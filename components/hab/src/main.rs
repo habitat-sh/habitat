@@ -321,11 +321,11 @@ fn sub_pkg_hash(m: &ArgMatches) -> Result<()> {
                         if Path::new(&file).is_file() {
                             command::pkg::hash::start_multi(&file);
                         } else {
-                            println!("File: '{}' cannot be found", &file);
+                            writeln!(io::stderr(), "{}: No such file or directory", &file);
                         }
                     },
                     Err(error) => {
-                        println!("error: {}", error);
+                        writeln!(io::stderr(), "error: {}", error);
                     },
                 }
             }
