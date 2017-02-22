@@ -48,6 +48,7 @@ Lieutenant and may have many maintainers.
 * [Josh Black](https://github.com/raskchanky)
 * [Steven Murawski](https://github.com/smurawski)
 * [Ian Henry](https://github.com/eeyun)
+* [Justin Carter](https://github.com/bodymindarts)
 
 ### Habitat Builder Web Application
 
