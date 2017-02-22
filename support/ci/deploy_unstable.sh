@@ -6,6 +6,37 @@ if [[ "${TRAVIS_PULL_REQUEST}" != "false" ]] || [[ "${TRAVIS_BRANCH}" != "master
     exit 0
 fi
 
+# kick off the mac unstable build first
+echo "Kicking off the unstable mac build"
+var_file=/tmp/our-awesome-vars
+mac_builder=admin@74.80.245.236
+
+# first update the copy of the habitat code stored on the mac server to the latest
+ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+  -i /tmp/habitat-srv-admin ${mac_builder} \
+  "~/bin/update_habitat_code.sh"
+
+# passing environment variables over ssh is a pain and never worked quite right.
+# instead, write this out to a file and scp it over, to source later.
+cat << EOF >${var_file}
+export HAB_ORIGIN_KEY=$HAB_ORIGIN_KEY
+export BINTRAY_USER=$BINTRAY_USER
+export BINTRAY_KEY=$BINTRAY_KEY
+export BINTRAY_PASSPHRASE=$BINTRAY_PASSPHRASE
+EOF
+
+scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+  -i /tmp/habitat-srv-admin ${var_file} ${mac_builder}:~/tmp
+rm ${var_file}
+
+# kick off the build
+ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+  -i /tmp/habitat-srv-admin ${mac_builder} \
+  "sudo ~/code/habitat/support/ci/deploy_mac_unstable.sh"
+
+echo "Unstable mac build has finished. Proceeding with the linux unstable build."
+
+# now do the linux unstable build
 BOOTSTRAP_DIR=/root/travis_bootstrap
 TEST_BIN_DIR=/root/hab_bins
 TRAVIS_HAB=${BOOTSTRAP_DIR}/hab
