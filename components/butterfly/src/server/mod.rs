@@ -28,6 +28,7 @@ pub mod timing;
 
 use std::collections::{HashSet, HashMap};
 use std::fmt;
+use std::fmt::Debug;
 use std::io;
 use std::net::{ToSocketAddrs, UdpSocket, SocketAddr};
 use std::result;
@@ -53,6 +54,10 @@ use rumor::service_file::ServiceFile;
 use rumor::election::{Election, ElectionUpdate};
 use message;
 
+pub trait Suitability: Debug + Send + Sync {
+    fn get(&self, service_group: &ServiceGroup) -> u64;
+}
+
 /// The server struct. Is thread-safe.
 #[derive(Debug, Clone)]
 pub struct Server {
@@ -69,6 +74,7 @@ pub struct Server {
     pub update_store: RumorStore<ElectionUpdate>,
     pub swim_addr: Arc<RwLock<SocketAddr>>,
     pub gossip_addr: Arc<RwLock<SocketAddr>>,
+    pub suitability_lookup: Arc<Box<Suitability>>,
     // These are all here for testing support
     pub pause: Arc<AtomicBool>,
     pub trace: Arc<RwLock<Trace>>,
@@ -101,7 +107,8 @@ impl Server {
                                  member: Member,
                                  trace: Trace,
                                  ring_key: Option<SymKey>,
-                                 name: Option<String>)
+                                 name: Option<String>,
+                                 suitability_lookup: Box<Suitability>)
                                  -> Result<Server> {
         let maybe_swim_socket_addr = swim_addr.to_socket_addrs().map(|mut iter| iter.next());
         let maybe_gossip_socket_addr = gossip_addr.to_socket_addrs().map(|mut iter| iter.next());
@@ -122,6 +129,7 @@ impl Server {
                     update_store: RumorStore::default(),
                     swim_addr: Arc::new(RwLock::new(swim_socket_addr)),
                     gossip_addr: Arc::new(RwLock::new(gossip_socket_addr)),
+                    suitability_lookup: Arc::new(suitability_lookup),
                     pause: Arc::new(AtomicBool::new(false)),
                     trace: Arc::new(RwLock::new(trace)),
                     swim_rounds: Arc::new(AtomicIsize::new(0)),
@@ -447,7 +455,8 @@ impl Server {
 
     /// Start an election for the given service group, declaring this members suitability and the
     /// term for the election.
-    pub fn start_election(&self, sg: ServiceGroup, suitability: u64, term: u64) {
+    pub fn start_election(&self, sg: ServiceGroup, term: u64) {
+        let suitability = self.suitability_lookup.get(&sg);
         let mut e = Election::new(self.member_id(), sg, suitability);
         e.set_term(term);
         let ek = RumorKey::from(&e);
@@ -550,7 +559,7 @@ impl Server {
             let term = old_term + 1;
             warn!("Starting a new election for {} {}", sg, term);
             self.election_store.remove(&service_group, "election");
-            self.start_election(sg, 0, term);
+            self.start_election(sg, term);
         }
 
         for (service_group, old_term) in update_elections_to_restart {
@@ -593,7 +602,7 @@ impl Server {
                             return;
                         }
                     };
-                    self.start_election(sg, 0, election.get_term());
+                    self.start_election(sg, election.get_term());
                 }
                 // If we are the member that this election is voting for, then check to see if the
                 // election is over! If it is, mark this election as final before you process it.
@@ -629,7 +638,7 @@ impl Server {
                         return;
                     }
                 };
-                self.start_election(sg, 0, election.get_term());
+                self.start_election(sg, election.get_term());
             }
             if !election.is_finished() {
                 let has_quorum = self.check_quorum(election.key());

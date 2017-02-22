@@ -377,6 +377,11 @@ reconfigure
 
   This hook is run when service configuration information has changed through a set of Habitat services that are peers with each other.
 
+suitability
+: File location: `<plan>/hooks/suitability`
+
+  The suitability hook allows a service to report a priority by which it should be elected leader. The hook is called when a new election is triggered and the last line it outputs to `stdout` should be a number parsable as a `u64`. In the event that a leader goes down and an election is started the service with the highest reported suitabilty will become the new leader.
+
 run
 : File location: `<plan>/hooks/run`
 

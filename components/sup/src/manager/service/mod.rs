@@ -40,7 +40,7 @@ use hcore::util::perm::{set_owner, set_permissions};
 use serde::Serializer;
 use toml;
 
-use self::hooks::{HOOK_PERMISSIONS, HookTable, HookType};
+use self::hooks::{HOOK_PERMISSIONS, HookTable, HookType, HookOutput};
 use config::GossipListenAddr;
 use error::{Error, Result, SupError};
 use http_gateway;
@@ -492,7 +492,7 @@ impl Service {
             // In the near future, we will periodically run this hook and cache it's results on
             // the service struct itself.
             match self.hooks.try_run(HookType::HealthCheck, &self.service_group) {
-                Ok(()) => HealthCheck::Ok,
+                Ok(_) => HealthCheck::Ok,
                 Err(SupError { err: Error::HookFailed(_, 1), .. }) => HealthCheck::Warning,
                 Err(SupError { err: Error::HookFailed(_, 2), .. }) => HealthCheck::Critical,
                 Err(SupError { err: Error::HookFailed(_, 3), .. }) => HealthCheck::Unknown,
@@ -574,7 +574,7 @@ impl Service {
 
     pub fn smoke_test(&mut self) -> SmokeCheck {
         match self.run_hook(HookType::SmokeTest) {
-            Ok(()) => SmokeCheck::Ok,
+            Ok(_) => SmokeCheck::Ok,
             Err(SupError { err: Error::HookFailed(_, code), .. }) => SmokeCheck::Failed(code),
             Err(err) => {
                 outputln!(preamble self.service_group, "Smoke test couldn't be run, {}", err);
@@ -675,7 +675,7 @@ impl Service {
     fn file_updated(&mut self) -> bool {
         if self.initialized {
             match self.run_hook(HookType::FileUpdated) {
-                Ok(()) => {
+                Ok(_) => {
                     outputln!(preamble self.service_group, "File update hook succeeded");
                     return true;
                 }
@@ -685,6 +685,21 @@ impl Service {
             }
         }
         false
+    }
+
+    pub fn suitability(&mut self) -> Option<u64> {
+        if !self.initialized {
+            return None;
+        }
+        self.run_hook(HookType::Suitability)
+            .ok()
+            .as_ref()
+            .and_then(|hook_out| hook_out.stdout().lines().last())
+            .and_then(|line| line.trim().parse::<u64>().ok())
+            .map(|suitability| {
+                outputln!(preamble self.service_group, "Reporting suitability of: {}", suitability);
+                suitability
+            })
     }
 
     /// Write service configuration from gossip data to disk.
@@ -731,7 +746,7 @@ impl Service {
         Ok(())
     }
 
-    fn run_hook(&mut self, hook: HookType) -> Result<()> {
+    fn run_hook(&mut self, hook: HookType) -> Result<HookOutput> {
         self.hooks.compile(&self.service_group, &self.config);
         self.hooks.try_run(hook, &self.service_group)
     }
