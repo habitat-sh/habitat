@@ -12,7 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+extern crate ansi_term;
 extern crate base64;
+#[cfg(windows)]
+extern crate ctrlc;
 extern crate errno;
 extern crate hex;
 #[cfg(test)]
@@ -56,6 +59,7 @@ extern crate winapi;
 pub use self::error::{Error, Result};
 
 pub mod config;
+pub mod crypto;
 pub mod env;
 pub mod error;
 pub mod fs;
@@ -63,10 +67,19 @@ pub mod package;
 pub mod service;
 pub mod url;
 pub mod util;
-pub mod crypto;
 pub mod os;
+pub mod output;
 pub mod event;
 pub mod channel;
 
+use std::path::PathBuf;
+
 pub use os::filesystem;
 pub use os::users;
+
+lazy_static!{
+    pub static ref PROGRAM_NAME: String = {
+        let arg0 = std::env::args().next().map(|p| PathBuf::from(p));
+        arg0.as_ref().and_then(|p| p.file_stem()).and_then(|p| p.to_str()).unwrap().to_string()
+    };
+}

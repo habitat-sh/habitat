@@ -50,10 +50,12 @@ extern crate features;
 extern crate glob;
 extern crate habitat_butterfly as butterfly;
 extern crate habitat_common as common;
+#[macro_use]
 extern crate habitat_core as hcore;
 extern crate habitat_depot_client as depot_client;
 extern crate habitat_eventsrv as eventsrv;
 extern crate habitat_eventsrv_client as eventsrv_client;
+extern crate habitat_launcher_client as launcher_client;
 extern crate handlebars;
 extern crate iron;
 #[macro_use]
@@ -91,197 +93,6 @@ macro_rules! sup_error {
     }
 }
 
-#[macro_export]
-/// Works the same as the print! macro, but uses our StructuredOutput formatter.
-macro_rules! output {
-    ($content: expr) => {
-        {
-            use $crate::output::StructuredOutput;
-            use $crate::PROGRAM_NAME;
-            let so = StructuredOutput::new(PROGRAM_NAME.as_str(),
-                                           LOGKEY,
-                                           line!(),
-                                           file!(),
-                                           column!(),
-                                           $content);
-            print!("{}", so);
-        }
-    };
-    (preamble $preamble: expr, $content: expr) => {
-        {
-            use std::ops::Deref;
-            use $crate::output::StructuredOutput;
-            let preamble = &$preamble;
-            let so = StructuredOutput::new(preamble.deref(),
-                                           LOGKEY,
-                                           line!(),
-                                           file!(),
-                                           column!(),
-                                           $content);
-            print!("{}", so);
-        }
-    };
-    ($content: expr, $($arg:tt)*) => {
-        {
-            use std::ops::Deref;
-            use $crate::output::StructuredOutput;
-            use $crate::PROGRAM_NAME;
-            let content = format!($content.deref(), $($arg)*);
-            let so = StructuredOutput::new(PROGRAM_NAME.as_str(),
-                                           LOGKEY,
-                                           line!(),
-                                           file!(),
-                                           column!(),
-                                           &content);
-            print!("{}", so);
-        }
-    };
-    (preamble $preamble: expr, $content: expr, $($arg:tt)*) => {
-        {
-            use std::ops::Deref;
-            use $crate::output::StructuredOutput;
-            let content = format!($content.deref(), $($arg)*);
-            let so = StructuredOutput::new(preamble.deref(),
-                                           LOGKEY,
-                                           line!(),
-                                           file!(),
-                                           column!(),
-                                           &content);
-            print!("{}", so);
-        }
-    };
-}
-
-#[macro_export]
-/// Works the same as println!, but uses our structured output formatter.
-macro_rules! outputln {
-    ($content: expr) => {
-        {
-            use $crate::output::StructuredOutput;
-            use $crate::PROGRAM_NAME;
-            let so = StructuredOutput::new(PROGRAM_NAME.as_str(),
-                                           LOGKEY,
-                                           line!(),
-                                           file!(),
-                                           column!(),
-                                           $content);
-            println!("{}", so);
-        }
-    };
-    (preamble $preamble:expr, $content: expr) => {
-        {
-            use $crate::output::StructuredOutput;
-            let so = StructuredOutput::new(&$preamble,
-                                           LOGKEY,
-                                           line!(),
-                                           file!(),
-                                           column!(),
-                                           $content);
-            println!("{}", so);
-        }
-    };
-    ($content: expr, $($arg:tt)*) => {
-        {
-            use $crate::output::StructuredOutput;
-            use $crate::PROGRAM_NAME;
-            let content = format!($content, $($arg)*);
-            let so = StructuredOutput::new(PROGRAM_NAME.as_str(),
-                                           LOGKEY,
-                                           line!(),
-                                           file!(),
-                                           column!(),
-                                           &content);
-            println!("{}", so);
-        }
-    };
-    (preamble $preamble: expr, $content: expr, $($arg:tt)*) => {
-        {
-            use $crate::output::StructuredOutput;
-            let content = format!($content, $($arg)*);
-            let so = StructuredOutput::new(&$preamble,
-                                           LOGKEY,
-                                           line!(),
-                                           file!(),
-                                           column!(),
-                                           &content);
-            println!("{}", so);
-        }
-    };
-}
-
-#[macro_export]
-/// Works the same as format!, but uses our structured output formatter.
-macro_rules! output_format {
-    ($content: expr) => {
-        {
-            use $crate::output::StructuredOutput;
-            use $crate::PROGRAM_NAME;
-            let so = StructuredOutput::new(PROGRAM_NAME.as_str(),
-                                           LOGKEY,
-                                           line!(),
-                                           file!(),
-                                           column!(),
-                                           $content);
-            format!("{}", so)
-        }
-    };
-    (preamble $preamble:expr, $content: expr) => {
-        {
-            use $crate::output::StructuredOutput;
-            let preamble = &$preamble;
-            let so = StructuredOutput::new(preamble,
-                                           LOGKEY,
-                                           line!(),
-                                           file!(),
-                                           column!(),
-                                           $content);
-            format!("{}", so)
-        }
-    };
-    (preamble $preamble:expr, logkey $logkey:expr) => {
-        {
-            use $crate::output::StructuredOutput;
-            let preamble = &$preamble;
-            let so = StructuredOutput::new(preamble,
-                                           $logkey,
-                                           line!(),
-                                           file!(),
-                                           column!(),
-                                           "");
-            format!("{}", so)
-        }
-    };
-
-    ($content: expr, $($arg:tt)*) => {
-        {
-            use $crate::output::StructuredOutput;
-            use $crate::PROGRAM_NAME;
-            let content = format!($content, $($arg)*);
-            let so = StructuredOutput::new(PROGRAM_NAME.as_str(),
-                                           LOGKEY,
-                                           line!(),
-                                           file!(),
-                                           column!(),
-                                           &content);
-            format!("{}", so)
-        }
-    };
-    (preamble $preamble: expr, $content: expr, $($arg:tt)*) => {
-        {
-            use $crate::output::StructuredOutput;
-            let content = format!($content, $($arg)*);
-            let preamble = &$preamble;
-            let so = StructuredOutput::new(preamble,
-                                           LOGKEY,
-                                           line!(),
-                                           file!(),
-                                           column!(),
-                                           &content);
-            format!("{}", so)
-        }
-    }
-}
-
 pub mod command;
 pub mod config;
 pub mod census;
@@ -289,7 +100,6 @@ pub mod error;
 pub mod fs;
 pub mod http_gateway;
 pub mod manager;
-pub mod output;
 pub mod templating;
 pub mod util;
 

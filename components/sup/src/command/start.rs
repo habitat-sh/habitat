@@ -87,7 +87,7 @@ pub fn run(
                 PRODUCT,
                 VERSION,
                 Path::new(&*FS_ROOT_PATH),
-                &fs::cache_artifact_path(None),
+                &fs::cache_artifact_path(None::<String>),
                 false,
             )?;
         }

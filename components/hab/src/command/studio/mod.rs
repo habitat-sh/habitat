@@ -205,9 +205,7 @@ mod inner {
         if let Some(cmd) = find_command(command.to_string_lossy().as_ref()) {
             try!(process::become_command(cmd, args));
         } else {
-            return Err(Error::ExecCommandNotFound(
-                command.to_string_lossy().into_owned(),
-            ));
+            return Err(Error::ExecCommandNotFound(command));
         }
         Ok(())
     }
@@ -217,7 +215,7 @@ mod inner {
 
         let cmd = match find_command(&docker) {
             Some(cmd) => cmd,
-            None => return Err(Error::ExecCommandNotFound(docker.to_string())),
+            None => return Err(Error::ExecCommandNotFound(docker.into())),
         };
 
         let output = Command::new(&cmd)

@@ -30,6 +30,7 @@ habitat_core = { path = "../core" }
 habitat_depot_client = { path = "../builder-depot-client" }
 habitat_eventsrv = { path = "../eventsrv" }
 habitat_eventsrv_client = { path = "../eventsrv-client" }
+habitat-launcher-client = { path = "../launcher-client" }
 handlebars = { version = "*", features = ["partial4"], default-features = false }
 iron = "*"
 lazy_static = "*"

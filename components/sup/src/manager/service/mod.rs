@@ -35,11 +35,11 @@ use ansi_term::Colour::{Yellow, Red, Green};
 use butterfly::rumor::service::Service as ServiceRumor;
 use common::ui::UI;
 use hcore::crypto::hash;
-use hcore::os::process;
 use hcore::package::{PackageIdent, PackageInstall};
 use hcore::service::ServiceGroup;
 use hcore::util::deserialize_using_from_str;
 use hcore::util::perm::{set_owner, set_permissions};
+use launcher_client::LauncherCli;
 use serde;
 use time::Timespec;
 
@@ -224,11 +224,13 @@ impl Service {
         Ok(())
     }
 
-    fn start(&mut self) {
+    fn start(&mut self, launcher: &LauncherCli) {
         if let Some(err) = self.supervisor
             .start(
                 &self.pkg,
-                self.svc_encrypted_password.as_ref().map(String::as_ref),
+                &self.service_group,
+                launcher,
+                self.svc_encrypted_password.as_ref(),
             )
             .err()
         {
@@ -245,13 +247,15 @@ impl Service {
         }
     }
 
-    fn reload(&mut self) {
+    fn reload(&mut self, launcher: &LauncherCli) {
         self.needs_reload = false;
-        if self.is_down() || self.hooks.reload.is_none() {
+        if self.process_down() || self.hooks.reload.is_none() {
             if let Some(err) = self.supervisor
                 .restart(
                     &self.pkg,
-                    self.svc_encrypted_password.as_ref().map(String::as_ref),
+                    &self.service_group,
+                    launcher,
+                    self.svc_encrypted_password.as_ref(),
                 )
                 .err()
             {
@@ -262,41 +266,16 @@ impl Service {
             hook.run(
                 &self.service_group,
                 &self.pkg,
-                self.svc_encrypted_password.as_ref().map(String::as_ref),
+                self.svc_encrypted_password.as_ref(),
             );
         }
-    }
-
-    pub fn down(&mut self) -> Result<()> {
-        self.supervisor.down()
-    }
-
-    pub fn send_signal(&self, signal: process::Signal) -> Result<()> {
-        match self.supervisor.child {
-            Some(ref child) => {
-                process::signal(child.id(), signal).map_err(|_| sup_error!(Error::SignalFailed))
-            }
-            None => {
-                debug!("No process to send the signal to");
-                Ok(())
-            }
-        }
-    }
-
-    fn is_down(&self) -> bool {
-        self.supervisor.child.is_none()
-    }
-
-    /// Instructs the service's process supervisor to reap dead children.
-    fn check_process(&mut self) {
-        self.supervisor.check_process()
     }
 
     pub fn last_state_change(&self) -> Timespec {
         self.supervisor.state_entered
     }
 
-    pub fn tick(&mut self, census_ring: &CensusRing) -> bool {
+    pub fn tick(&mut self, census_ring: &CensusRing, launcher: &LauncherCli) -> bool {
         if !self.initialized {
             if !self.all_binds_satisfied(census_ring) {
                 outputln!(preamble self.service_group, "Waiting for service binds...");
@@ -311,7 +290,7 @@ impl Service {
 
         match self.topology {
             Topology::Standalone => {
-                self.execute_hooks();
+                self.execute_hooks(launcher);
             }
             Topology::Leader => {
                 let census_group = census_ring.census_group_for(&self.service_group).expect(
@@ -353,7 +332,7 @@ impl Service {
                                       Green.bold().paint(leader_id.to_string()));
                             self.last_election_status = census_group.election_status;
                         }
-                        self.execute_hooks()
+                        self.execute_hooks(launcher)
                     }
                 }
             }
@@ -387,6 +366,15 @@ impl Service {
             }
         }
         ret
+    }
+
+    /// Updates the process state of the service's supervisor
+    fn check_process(&mut self) -> bool {
+        self.supervisor.check_process()
+    }
+
+    fn process_down(&self) -> bool {
+        self.supervisor.state == ProcessState::Down
     }
 
     /// Compares the current state of the service to the current state of the census ring and
@@ -435,7 +423,7 @@ impl Service {
                 return;
             }
         }
-        if let Err(err) = self.supervisor.down() {
+        if let Err(err) = self.supervisor.stop() {
             outputln!(preamble self.service_group,
                       "Error stopping process while updating package: {}", err);
         }
@@ -474,7 +462,7 @@ impl Service {
             self.initialized = hook.run(
                 &self.service_group,
                 &self.pkg,
-                self.svc_encrypted_password.as_ref().map(String::as_ref),
+                self.svc_encrypted_password.as_ref(),
             )
         }
     }
@@ -487,7 +475,7 @@ impl Service {
             hook.run(
                 &self.service_group,
                 &self.pkg,
-                self.svc_encrypted_password.as_ref().map(String::as_ref),
+                self.svc_encrypted_password.as_ref(),
             );
         }
     }
@@ -497,7 +485,7 @@ impl Service {
             hook.run(
                 &self.service_group,
                 &self.pkg,
-                self.svc_encrypted_password.as_ref().map(String::as_ref),
+                self.svc_encrypted_password.as_ref(),
             );
         }
     }
@@ -510,7 +498,7 @@ impl Service {
             hook.run(
                 &self.service_group,
                 &self.pkg,
-                self.svc_encrypted_password.as_ref().map(String::as_ref),
+                self.svc_encrypted_password.as_ref(),
             )
         })
     }
@@ -617,11 +605,16 @@ impl Service {
         Ok(())
     }
 
-    fn execute_hooks(&mut self) {
+    fn execute_hooks(&mut self, launcher: &LauncherCli) {
         if !self.initialized {
+            if self.check_process() {
+                outputln!("Reattached to {}", self.service_group);
+                self.initialized = true;
+                return;
+            }
             self.initialize();
             if self.initialized {
-                self.start();
+                self.start(launcher);
                 self.post_run();
             }
         } else {
@@ -630,8 +623,8 @@ impl Service {
                 self.run_health_check_hook();
             }
 
-            if self.needs_reload || self.is_down() || self.needs_reconfiguration {
-                self.reload();
+            if self.needs_reload || self.process_down() || self.needs_reconfiguration {
+                self.reload(launcher);
                 if self.needs_reconfiguration {
                     self.reconfigure()
                 }
@@ -646,7 +639,7 @@ impl Service {
                 return hook.run(
                     &self.service_group,
                     &self.pkg,
-                    self.svc_encrypted_password.as_ref().map(String::as_ref),
+                    self.svc_encrypted_password.as_ref(),
                 );
             }
         }
@@ -704,7 +697,7 @@ impl Service {
             hook.run(
                 &self.service_group,
                 &self.pkg,
-                self.svc_encrypted_password.as_ref().map(String::as_ref),
+                self.svc_encrypted_password.as_ref(),
             )
         } else {
             match self.supervisor.status() {

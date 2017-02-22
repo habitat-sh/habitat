@@ -18,6 +18,12 @@ use common::ui::UI;
 
 use error::Result;
 
+const SUP_CMD: &'static str = "hab-sup";
+const SUP_CMD_ENVVAR: &'static str = "HAB_SUP_BINARY";
+const SUP_PACKAGE_IDENT: &'static str = "core/hab-sup";
+const FEAT_STATIC: &'static str = "HAB_FEAT_SUP_STATIC";
+const SUP_STATIC_PACKAGE_IDENT: &'static str = "core/hab-sup-static";
+
 pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
     inner::start(ui, args)
 }
@@ -38,13 +44,6 @@ mod inner {
     use error::{Error, Result};
     use exec;
     use VERSION;
-
-    const SUP_CMD: &'static str = "hab-sup";
-    const SUP_CMD_ENVVAR: &'static str = "HAB_SUP_BINARY";
-    const SUP_PACKAGE_IDENT: &'static str = "core/hab-sup";
-
-    const FEAT_STATIC: &'static str = "HAB_FEAT_SUP_STATIC";
-    const SUP_STATIC_PACKAGE_IDENT: &'static str = "core/hab-sup-static";
 
     pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
         let sup_ident = match henv::var(FEAT_STATIC) {

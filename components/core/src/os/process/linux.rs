@@ -12,19 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use libc;
 use std::ffi::OsString;
 use std::path::PathBuf;
 use std::ops::Neg;
 use std::os::unix::process::CommandExt;
 use std::process::{self, Command};
+
+use libc::{self, pid_t};
 use time::{Duration, SteadyTime};
 
+use super::{HabExitStatus, ExitStatusExt, OsSignal, ShutdownMethod, Signal};
 use error::{Error, Result};
 
-use super::{HabExitStatus, ExitStatusExt, OsSignal, ShutdownMethod, Signal};
-
-pub type Pid = libc::pid_t;
 pub type SignalCode = libc::c_int;
 
 impl OsSignal for Signal {
@@ -69,14 +68,16 @@ pub fn current_pid() -> u32 {
 }
 
 /// Determines if a process is running with the given process identifier.
-pub fn is_alive(pid: Pid) -> bool {
-    let process_group_id = unsafe { libc::getpgid(pid) };
-    process_group_id >= 0
+pub fn is_alive(pid: u32) -> bool {
+    match unsafe { libc::kill(pid as pid_t, 0) } {
+        0 => true,
+        _ => false,
+    }
 }
 
-pub fn signal(pid: Pid, signal: Signal) -> Result<()> {
+pub fn signal(pid: u32, signal: Signal) -> Result<()> {
     unsafe {
-        match libc::kill(pid, signal.os_signal()) {
+        match libc::kill(pid as pid_t, signal.os_signal()) {
             0 => Ok(()),
             e => return Err(Error::SignalFailed(e)),
         }
@@ -99,20 +100,20 @@ fn become_exec_command(command: PathBuf, args: Vec<OsString>) -> Result<()> {
 }
 
 pub struct Child {
-    pid: Pid,
+    pid: pid_t,
     last_status: Option<i32>,
 }
 
 impl Child {
     pub fn new(child: &mut process::Child) -> Result<Child> {
         Ok(Child {
-            pid: child.id() as Pid,
+            pid: child.id() as pid_t,
             last_status: None,
         })
     }
 
-    pub fn id(&self) -> Pid {
-        self.pid
+    pub fn id(&self) -> u32 {
+        self.pid as u32
     }
 
     pub fn status(&mut self) -> Result<HabExitStatus> {
@@ -142,7 +143,7 @@ impl Child {
         // if it is the root process of the process group
         // we send our signals to the entire process group
         // to prevent orphaned processes.
-        let pgid = unsafe { libc::getpgid(self.pid) };
+        let pgid = unsafe { libc::getpgid(self.pid as pid_t) };
         if self.pid == pgid {
             debug!(
                 "pid to kill {} is the process group root. Sending signal to process group.",
@@ -153,7 +154,7 @@ impl Child {
             self.pid = self.pid.neg();
         }
 
-        signal(self.pid, Signal::TERM)?;
+        signal(self.pid as u32, Signal::TERM)?;
         let stop_time = SteadyTime::now() + Duration::seconds(8);
         loop {
             if let Ok(status) = self.status() {
@@ -162,7 +163,7 @@ impl Child {
                 }
             }
             if SteadyTime::now() > stop_time {
-                signal(self.pid, Signal::KILL)?;
+                signal(self.pid as u32, Signal::KILL)?;
                 return Ok(ShutdownMethod::Killed);
             }
         }

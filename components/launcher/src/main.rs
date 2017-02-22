@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Copyright (c) 2017 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,24 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! Contains the cross-platform signal behavior.
+extern crate env_logger;
+extern crate habitat_launcher as launcher;
 
-use hcore::os::process;
+use std::process;
 
-#[allow(dead_code)]
-pub enum SignalEvent {
-    Shutdown,
-    Passthrough(process::Signal),
+use launcher::server;
+
+fn main() {
+    env_logger::init().unwrap();
+
+    if let Err(err) = server::run() {
+        println!("{}", err);
+        process::exit(1);
+    }
 }
-
-#[cfg(unix)]
-mod unix;
-
-#[cfg(windows)]
-mod windows;
-
-#[cfg(unix)]
-pub use manager::signals::unix::{init, check_for_signal};
-
-#[cfg(windows)]
-pub use manager::signals::windows::{init, check_for_signal};

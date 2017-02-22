@@ -26,16 +26,20 @@ use error::Result;
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 static LOGKEY: &'static str = "EX";
 
-pub fn run_cmd<S: AsRef<OsStr>>(
-    path: S,
-    pkg: &Pkg,
-    svc_encrypted_password: Option<&str>,
-) -> Result<Child> {
+pub fn run_cmd<T, S>(path: S, pkg: &Pkg, svc_encrypted_password: Option<T>) -> Result<Child>
+where
+    T: ToString,
+    S: AsRef<OsStr>,
+{
     exec(path, pkg, svc_encrypted_password)
 }
 
 #[cfg(any(target_os = "linux", target_os = "macos"))]
-fn exec<S: AsRef<OsStr>>(path: S, pkg: &Pkg, _: Option<&str>) -> Result<Child> {
+fn exec<T, S>(path: S, pkg: &Pkg, _: Option<T>) -> Result<Child>
+where
+    T: ToString,
+    S: AsRef<OsStr>,
+{
     use std::process::{Command, Stdio};
 
     let mut cmd = Command::new(path);
@@ -78,11 +82,11 @@ fn exec<S: AsRef<OsStr>>(path: S, pkg: &Pkg, _: Option<&str>) -> Result<Child> {
 }
 
 #[cfg(target_os = "windows")]
-fn exec<S: AsRef<OsStr>>(
-    path: S,
-    pkg: &Pkg,
-    svc_encrypted_password: Option<&str>,
-) -> Result<Child> {
+fn exec<T, S>(path: S, pkg: &Pkg, svc_encrypted_password: Option<T>) -> Result<Child>
+where
+    T: ToString,
+    S: AsRef<OsStr>,
+{
     let ps_cmd = format!("iex $(gc {} | out-string)", path.as_ref().to_string_lossy());
     let args = vec!["-command", ps_cmd.as_str()];
     Ok(Child::spawn(
