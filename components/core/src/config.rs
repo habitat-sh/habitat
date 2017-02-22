@@ -24,7 +24,7 @@ use std::str::FromStr;
 use toml;
 
 use error::{Error, Result};
-use package::PackageTarget;
+use package::{PackageIdent, PackageTarget};
 
 pub trait ConfigFile: Sized {
     type Error: std::error::Error + From<Error>;
@@ -360,6 +360,28 @@ impl ParseInto<IpAddr> for toml::Value {
             }
         } else {
             Ok(false)
+        }
+    }
+}
+
+impl ParseInto<PackageIdent> for toml::Value {
+    fn parse_into(&self, field: &'static str, out: &mut PackageIdent) -> Result<bool> {
+        match self.lookup(field) {
+            Some(val) => {
+                match val.as_str() {
+                    Some(val_str) => {
+                        match PackageIdent::from_str(val_str) {
+                            Ok(ident) => {
+                                *out = ident;
+                                Ok(true)
+                            }
+                            Err(_) => Err(Error::ConfigInvalidIdent(field)),
+                        }
+                    }
+                    None => Err(Error::ConfigInvalidIdent(field)),
+                }
+            }
+            None => Ok(false),
         }
     }
 }
@@ -1100,6 +1122,55 @@ mod test {
 
         match toml.parse_into("field", &mut actual) {
             Err(ConfigInvalidIpAddr(field)) => assert_eq!("field", field),
+            Err(e) => panic!("Unexpected error returned: {}", e),
+            Ok(_) => panic!("Value should fail to parse"),
+        }
+    }
+
+    #[test]
+    fn parse_into_package_ident() {
+        let mut actual = PackageIdent::from_str("just/nothing").unwrap();
+        let toml = toml_from_str(r#"
+            field = "origin/name/1.2.3"
+            "#);
+        let mutated = toml.parse_into("field", &mut actual).unwrap();
+
+        assert!(mutated);
+        assert_eq!(PackageIdent::from_str("origin/name/1.2.3").unwrap(), actual);
+    }
+
+    #[test]
+    fn parse_into_package_ident_field_missing() {
+        let mut actual = PackageIdent::from_str("just/nothing").unwrap();
+        let toml = toml_from_str(r#""#);
+        let mutated = toml.parse_into("field", &mut actual).unwrap();
+
+        assert!(!mutated);
+    }
+
+    #[test]
+    fn parse_into_package_ident_invalid_string() {
+        let mut actual = PackageIdent::from_str("just/nothing").unwrap();
+        let toml = toml_from_str(r#"
+            field = false
+            "#);
+
+        match toml.parse_into("field", &mut actual) {
+            Err(ConfigInvalidIdent(field)) => assert_eq!("field", field),
+            Err(e) => panic!("Unexpected error returned: {}", e),
+            Ok(_) => panic!("Value should fail to parse"),
+        }
+    }
+
+    #[test]
+    fn parse_into_package_ident_invalid_ident() {
+        let mut actual = PackageIdent::from_str("just/nothing").unwrap();
+        let toml = toml_from_str(r#"
+            field = "nope"
+            "#);
+
+        match toml.parse_into("field", &mut actual) {
+            Err(ConfigInvalidIdent(field)) => assert_eq!("field", field),
             Err(e) => panic!("Unexpected error returned: {}", e),
             Ok(_) => panic!("Value should fail to parse"),
         }

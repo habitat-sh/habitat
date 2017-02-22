@@ -50,6 +50,8 @@ pub enum Error {
     ConfigInvalidArrayU64(&'static str),
     /// Expected a boolean for configuration field value.
     ConfigInvalidBool(&'static str),
+    /// Expected a package ident for configuration field value.
+    ConfigInvalidIdent(&'static str),
     /// Expected a network address for configuration field value.
     ConfigInvalidIpAddr(&'static str),
     /// Expected a network address pair for configuration field value.
@@ -163,6 +165,11 @@ impl fmt::Display for Error {
                 format!("Invalid boolean value in config, field={}. (example: true)",
                         f)
             }
+            Error::ConfigInvalidIdent(ref f) => {
+                format!("Invalid package identifier string value in config, field={}. (example: \
+                         \"core/redis\")",
+                        f)
+            }
             Error::ConfigInvalidIpAddr(ref f) => {
                 format!("Invalid IP address string value in config, field={}. (example: \
                          \"127.0.0.0\")",
@@ -271,6 +278,10 @@ impl error::Error for Error {
             }
             Error::ConfigInvalidBool(_) => {
                 "Invalid boolean value encountered while parsing a configuration file"
+            }
+            Error::ConfigInvalidIdent(_) => {
+                "Invalid package identifier string value encountered while parsing a configuration \
+                 file"
             }
             Error::ConfigInvalidIpAddr(_) => {
                 "Invalid IP address string value encountered while parsing a configuration file"
