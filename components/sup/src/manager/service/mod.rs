@@ -420,6 +420,7 @@ impl Service {
             match self.config.write() {
                 Ok(true) => {
                     self.needs_reconfiguration = true;
+                    self.hooks.compile(&self.service_group, &self.config);
                     if let Some(err) = self.copy_run().err() {
                         outputln!(preamble self.service_group, "Failed to copy run hook: {}", err);
                     }
