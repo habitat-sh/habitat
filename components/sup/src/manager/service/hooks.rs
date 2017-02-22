@@ -35,6 +35,7 @@ pub const FILEUPDATED_FILENAME: &'static str = "file_updated";
 pub const RECONFIGURE_FILENAME: &'static str = "reconfigure";
 pub const SMOKETEST_FILENAME: &'static str = "smoke_test";
 pub const RUN_FILENAME: &'static str = "run";
+pub const SUITABILITY_FILENAME: &'static str = "suitability";
 
 static LOGKEY: &'static str = "HK";
 
@@ -64,12 +65,13 @@ impl Hook {
     }
 
     /// Run a compiled hook.
-    pub fn run(&self, service_group: &ServiceGroup) -> Result<()> {
+    pub fn run(&self, service_group: &ServiceGroup) -> Result<HookOutput> {
         let mut child = try!(util::create_command(&self.path, &self.user, &self.group).spawn());
-        self.stream_output(service_group, &mut child);
+        let mut output = HookOutput::new(self.htype);
+        output.stream_output(service_group, &mut child);
         let exit_status = try!(child.wait());
         if exit_status.success() {
-            Ok(())
+            Ok(output)
         } else {
             Err(sup_error!(Error::HookFailed(self.htype, exit_status.code().unwrap_or(-1))))
         }
@@ -88,13 +90,39 @@ impl Hook {
         try!(hcore::util::perm::set_permissions(&self.path, HOOK_PERMISSIONS));
         Ok(())
     }
+}
 
-    fn stream_output(&self, service_group: &ServiceGroup, process: &mut Child) {
+pub struct HookOutput {
+    stdout: String,
+    stderr: String,
+    htype: HookType,
+}
+
+impl HookOutput {
+    fn new(hook_type: HookType) -> Self {
+        HookOutput {
+            stdout: String::new(),
+            stderr: String::new(),
+            htype: hook_type,
+        }
+    }
+
+    pub fn stdout(&self) -> &String {
+        &self.stdout
+    }
+
+    pub fn stderr(&self) -> &String {
+        &self.stderr
+    }
+
+    fn stream_output(&mut self, service_group: &ServiceGroup, process: &mut Child) {
         let preamble_str = self.stream_preamble(service_group);
         if let Some(ref mut stdout) = process.stdout {
             for line in BufReader::new(stdout).lines() {
                 if let Some(ref l) = line.ok() {
                     outputln!(preamble preamble_str, l);
+                    self.stdout.push_str("\n");
+                    self.stdout.push_str(l);
                 }
             }
         }
@@ -102,6 +130,8 @@ impl Hook {
             for line in BufReader::new(stderr).lines() {
                 if let Some(ref l) = line.ok() {
                     outputln!(preamble preamble_str, l);
+                    self.stderr.push_str("\n");
+                    self.stderr.push_str(l);
                 }
             }
         }
@@ -119,6 +149,7 @@ pub struct HookTable {
     pub reconfigure: Option<Hook>,
     pub file_updated: Option<Hook>,
     pub run: Option<Hook>,
+    pub suitability: Option<Hook>,
     pub smoke_test: Option<Hook>,
     cfg_incarnation: u64,
 }
@@ -145,6 +176,9 @@ impl HookTable {
         if let Some(ref hook) = self.run {
             self.compile_one(hook, service_group, config);
         }
+        if let Some(ref hook) = self.suitability {
+            self.compile_one(hook, service_group, config);
+        }
         if let Some(ref hook) = self.smoke_test {
             self.compile_one(hook, service_group, config);
         }
@@ -162,6 +196,7 @@ impl HookTable {
                 self.reconfigure = self.load_hook(HookType::Reconfigure, cfg, &hooks, &templates);
                 self.health_check = self.load_hook(HookType::HealthCheck, cfg, &hooks, &templates);
                 self.run = self.load_hook(HookType::Run, cfg, &hooks, &templates);
+                self.suitability = self.load_hook(HookType::Suitability, cfg, &hooks, &templates);
                 self.smoke_test = self.load_hook(HookType::SmokeTest, cfg, &hooks, &templates);
             }
         }
@@ -171,18 +206,19 @@ impl HookTable {
     /// Run the hook of the given type if the table has a hook of that type loaded and compiled.
     ///
     /// Returns affirmatively if the service does not have the desired hook.
-    pub fn try_run(&self, hook: HookType, group: &ServiceGroup) -> Result<()> {
-        let hook = match hook {
+    pub fn try_run(&self, hook_type: HookType, group: &ServiceGroup) -> Result<HookOutput> {
+        let hook = match hook_type {
             HookType::FileUpdated => &self.file_updated,
             HookType::HealthCheck => &self.health_check,
             HookType::Init => &self.init,
             HookType::Reconfigure => &self.reconfigure,
             HookType::Run => &self.run,
+            HookType::Suitability => &self.suitability,
             HookType::SmokeTest => &self.smoke_test,
         };
         match *hook {
             Some(ref h) => h.run(group),
-            None => Ok(()),
+            None => Ok(HookOutput::new(hook_type)),
         }
     }
 
@@ -224,6 +260,7 @@ pub enum HookType {
     FileUpdated,
     Run,
     Init,
+    Suitability,
     SmokeTest,
 }
 
@@ -235,6 +272,7 @@ impl fmt::Display for HookType {
             HookType::FileUpdated => write!(f, "file_updated"),
             HookType::Reconfigure => write!(f, "reconfigure"),
             HookType::Run => write!(f, "run"),
+            HookType::Suitability => write!(f, "suitability"),
             HookType::SmokeTest => write!(f, "smoke_test"),
         }
     }
@@ -249,6 +287,7 @@ pub fn hook_path<T>(hook_type: &HookType, path: T) -> PathBuf
         HookType::FileUpdated => path.as_ref().join(FILEUPDATED_FILENAME),
         HookType::Reconfigure => path.as_ref().join(RECONFIGURE_FILENAME),
         HookType::Run => path.as_ref().join(RUN_FILENAME),
+        HookType::Suitability => path.as_ref().join(SUITABILITY_FILENAME),
         HookType::SmokeTest => path.as_ref().join(SMOKETEST_FILENAME),
     }
 }

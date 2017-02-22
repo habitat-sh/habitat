@@ -475,7 +475,9 @@ impl Server {
     ///
     /// a) We are the leader, and we have lost quorum with the rest of the group.
     /// b) We are not the leader, and we have detected that the leader is confirmed dead.
-    pub fn restart_elections(&self) {
+    pub fn restart_elections<F>(&self, suitability_lookup: F)
+        where F: Fn(&String) -> u64
+    {
         let mut elections_to_restart = vec![];
         let mut update_elections_to_restart = vec![];
 
@@ -550,7 +552,7 @@ impl Server {
             let term = old_term + 1;
             warn!("Starting a new election for {} {}", sg, term);
             self.election_store.remove(&service_group, "election");
-            self.start_election(sg, 0, term);
+            self.start_election(sg, suitability_lookup(&service_group), term);
         }
 
         for (service_group, old_term) in update_elections_to_restart {
