@@ -53,6 +53,24 @@ pub fn current_pid() -> u32 {
     unsafe { kernel32::GetCurrentProcessId() as u32 }
 }
 
+pub fn handle_from_pid(pid: Pid) -> Option<winapi::HANDLE> {
+    unsafe {
+        let proc_handle = kernel32::OpenProcess(
+            winapi::PROCESS_QUERY_LIMITED_INFORMATION | winapi::PROCESS_TERMINATE,
+            winapi::FALSE,
+            pid,
+        );
+
+        // we expect this to happen if the process died
+        // before OpenProcess completes
+        if proc_handle == ptr::null_mut() {
+            return None;
+        } else {
+            return Some(proc_handle);
+        }
+    }
+}
+
 /// Determines if a process is running with the given process identifier.
 pub fn is_alive(pid: Pid) -> bool {
     match handle_from_pid(pid) {
@@ -92,24 +110,6 @@ fn become_child_command(command: PathBuf, args: Vec<OsString>) -> Result<()> {
     let status = try!(Command::new(command).args(&args).status());
     // Let's honor the exit codes from the child process we finished running
     process::exit(status.code().unwrap())
-}
-
-fn handle_from_pid(pid: Pid) -> Option<winapi::HANDLE> {
-    unsafe {
-        let proc_handle = kernel32::OpenProcess(
-            winapi::PROCESS_QUERY_LIMITED_INFORMATION | winapi::PROCESS_TERMINATE,
-            winapi::FALSE,
-            pid,
-        );
-
-        // we expect this to happen if the process died
-        // before OpenProcess completes
-        if proc_handle == ptr::null_mut() {
-            return None;
-        } else {
-            return Some(proc_handle);
-        }
-    }
 }
 
 fn exit_status(handle: winapi::HANDLE) -> Result<u32> {
@@ -351,7 +351,7 @@ mod tests {
             vec!["-noprofile", "-command", "while($true) { Start-Sleep 1 }"],
             &HashMap::new(),
             &get_current_username().unwrap(),
-            None,
+            None::<String>,
         ).unwrap();
 
         let mut hab_child = HabChild::from(&mut child).unwrap();
@@ -366,11 +366,10 @@ mod tests {
             vec!["-noprofile", "-command", "$a='b'"],
             &HashMap::new(),
             &get_current_username().unwrap(),
-            None,
+            None::<String>,
         ).unwrap();
         let mut hab_child = HabChild::from(&mut child).unwrap();
-
-        let _ = child.wait();
+        child.wait().unwrap();
 
         assert_eq!(hab_child.status().unwrap().code(), Some(0))
     }
@@ -382,11 +381,11 @@ mod tests {
             vec!["-noprofile", "-command", "while($true) { Start-Sleep 1 }"],
             &HashMap::new(),
             &get_current_username().unwrap(),
-            None,
+            None::<String>,
         ).unwrap();
 
         let mut hab_child = HabChild::from(&mut child).unwrap();
-        let _ = child.kill();
+        child.kill().unwrap();
 
         assert!(hab_child.status().unwrap().code() != Some(0))
     }
@@ -398,11 +397,11 @@ mod tests {
             vec!["-noprofile", "-command", "exit 5000"],
             &HashMap::new(),
             &get_current_username().unwrap(),
-            None,
+            None::<String>,
         ).unwrap();
 
         let mut hab_child = HabChild::from(&mut child).unwrap();
-        let _ = child.wait();
+        child.wait().unwrap();
 
         assert_eq!(hab_child.status().unwrap().code(), Some(5000))
     }

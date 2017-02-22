@@ -54,7 +54,8 @@ lazy_static! {
             match (henv::var(FS_ROOT_ENVVAR), henv::var(SYSTEMDRIVE_ENVVAR)) {
                 (Ok(path), _) =>  PathBuf::from(path),
                 (Err(_), Ok(system_drive)) => PathBuf::from(format!("{}{}", system_drive, "/")),
-                (Err(_), Err(_)) => unreachable!("Windows should always have a SYSTEMDRIVE environment variable.")
+                (Err(_), Err(_)) => unreachable!("Windows should always have a SYSTEMDRIVE \
+                    environment variable.")
             }
         } else {
             PathBuf::from("/")
@@ -120,52 +121,73 @@ lazy_static! {
 }
 
 /// Returns the path to the analytics cache, optionally taking a custom filesystem root.
-pub fn cache_analytics_path(fs_root_path: Option<&Path>) -> PathBuf {
+pub fn cache_analytics_path<T>(fs_root_path: Option<T>) -> PathBuf
+where
+    T: AsRef<Path>,
+{
     match fs_root_path {
-        Some(fs_root_path) => Path::new(fs_root_path).join(&*MY_CACHE_ANALYTICS_PATH),
+        Some(fs_root_path) => fs_root_path.as_ref().join(&*MY_CACHE_ANALYTICS_PATH),
         None => Path::new(&*FS_ROOT_PATH).join(&*MY_CACHE_ANALYTICS_PATH),
     }
 }
 
 /// Returns the path to the artifacts cache, optionally taking a custom filesystem root.
-pub fn cache_artifact_path(fs_root_path: Option<&Path>) -> PathBuf {
+pub fn cache_artifact_path<T>(fs_root_path: Option<T>) -> PathBuf
+where
+    T: AsRef<Path>,
+{
     match fs_root_path {
-        Some(fs_root_path) => Path::new(fs_root_path).join(&*MY_CACHE_ARTIFACT_PATH),
+        Some(fs_root_path) => fs_root_path.as_ref().join(&*MY_CACHE_ARTIFACT_PATH),
         None => Path::new(&*FS_ROOT_PATH).join(&*MY_CACHE_ARTIFACT_PATH),
     }
 }
 
 /// Returns the path to the keys cache, optionally taking a custom filesystem root.
-pub fn cache_key_path(fs_root_path: Option<&Path>) -> PathBuf {
+pub fn cache_key_path<T>(fs_root_path: Option<T>) -> PathBuf
+where
+    T: AsRef<Path>,
+{
     match fs_root_path {
-        Some(fs_root_path) => Path::new(fs_root_path).join(&*MY_CACHE_KEY_PATH),
+        Some(fs_root_path) => fs_root_path.as_ref().join(&*MY_CACHE_KEY_PATH),
         None => Path::new(&*FS_ROOT_PATH).join(&*MY_CACHE_KEY_PATH),
     }
 }
 
 /// Returns the path to the src cache, optionally taking a custom filesystem root.
-pub fn cache_src_path(fs_root_path: Option<&Path>) -> PathBuf {
+pub fn cache_src_path<T>(fs_root_path: Option<T>) -> PathBuf
+where
+    T: AsRef<Path>,
+{
     match fs_root_path {
-        Some(fs_root_path) => Path::new(fs_root_path).join(&*MY_CACHE_SRC_PATH),
+        Some(fs_root_path) => fs_root_path.as_ref().join(&*MY_CACHE_SRC_PATH),
         None => Path::new(&*FS_ROOT_PATH).join(&*MY_CACHE_SRC_PATH),
     }
 }
 
 /// Returns the path to the SSL cache, optionally taking a custom filesystem root.
-pub fn cache_ssl_path(fs_root_path: Option<&Path>) -> PathBuf {
+pub fn cache_ssl_path<T>(fs_root_path: Option<T>) -> PathBuf
+where
+    T: AsRef<Path>,
+{
     match fs_root_path {
-        Some(fs_root_path) => Path::new(fs_root_path).join(&*MY_CACHE_SSL_PATH),
+        Some(fs_root_path) => fs_root_path.as_ref().join(&*MY_CACHE_SSL_PATH),
         None => Path::new(&*FS_ROOT_PATH).join(&*MY_CACHE_SSL_PATH),
     }
 }
 
-pub fn pkg_root_path(fs_root: Option<&Path>) -> PathBuf {
-    let mut buf = fs_root.map_or(PathBuf::from("/"), |p| p.into());
+pub fn pkg_root_path<T>(fs_root: Option<T>) -> PathBuf
+where
+    T: AsRef<Path>,
+{
+    let mut buf = fs_root.map_or(PathBuf::from("/"), |p| p.as_ref().into());
     buf.push(PKG_PATH);
     buf
 }
 
-pub fn pkg_install_path(ident: &PackageIdent, fs_root: Option<&Path>) -> PathBuf {
+pub fn pkg_install_path<T>(ident: &PackageIdent, fs_root: Option<T>) -> PathBuf
+where
+    T: AsRef<Path>,
+{
     assert!(
         ident.fully_qualified(),
         "Cannot determine install path without fully qualified ident"
@@ -260,17 +282,20 @@ pub fn find_command(command: &str) -> Option<PathBuf> {
 /// # Failures
 ///
 /// * The path entries metadata cannot be loaded
-pub fn find_command_in_pkg(
+pub fn find_command_in_pkg<T>(
     command: &str,
     pkg_install: &PackageInstall,
-    fs_root_path: &Path,
-) -> Result<Option<PathBuf>> {
-    for path in try!(pkg_install.paths()) {
+    fs_root_path: T,
+) -> Result<Option<PathBuf>>
+where
+    T: AsRef<Path>,
+{
+    for path in pkg_install.paths()? {
         let stripped = path.strip_prefix("/").expect(&format!(
             "Package path missing / prefix {}",
             path.to_string_lossy()
         ));
-        let candidate = fs_root_path.join(stripped).join(command);
+        let candidate = fs_root_path.as_ref().join(stripped).join(command);
         if candidate.is_file() {
             return Ok(Some(path.join(command)));
         } else {

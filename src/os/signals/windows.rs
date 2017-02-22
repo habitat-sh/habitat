@@ -12,9 +12,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-pub mod filesystem;
-pub mod ffi;
-pub mod process;
-pub mod signals;
-pub mod system;
-pub mod users;
+//! Traps and notifies signals.
+
+use std::sync::atomic::{AtomicBool, Ordering, ATOMIC_BOOL_INIT};
+
+use ctrlc;
+
+use super::SignalEvent;
+
+// True when we have caught ctrl-c
+static CAUGHT: AtomicBool = ATOMIC_BOOL_INIT;
+
+pub fn init() {
+    ctrlc::set_handler(move || { CAUGHT.store(true, Ordering::SeqCst); })
+        .expect("Error setting Ctrl-C handler");
+}
+
+pub fn check_for_signal() -> Option<SignalEvent> {
+    if CAUGHT.load(Ordering::SeqCst) {
+        // clear out the signal so we don't sent it repeatedly
+        CAUGHT.store(false, Ordering::SeqCst);
+        Some(SignalEvent::Shutdown)
+    } else {
+        None
+    }
+}

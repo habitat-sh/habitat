@@ -12,9 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-pub mod filesystem;
-pub mod ffi;
-pub mod process;
-pub mod signals;
-pub mod system;
-pub mod users;
+//! Contains the cross-platform signal behavior.
+
+use os::process;
+
+#[allow(dead_code)]
+pub enum SignalEvent {
+    Shutdown,
+    Passthrough(process::Signal),
+}
+
+#[cfg(unix)]
+mod unix;
+
+#[cfg(windows)]
+mod windows;
+
+#[cfg(unix)]
+pub use self::unix::{init, check_for_signal};
+
+#[cfg(windows)]
+pub use self::windows::{init, check_for_signal};
