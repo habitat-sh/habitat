@@ -68,7 +68,7 @@ pub fn save(config: &Config) -> Result<()> {
         None => return Err(Error::FileNotFound(config_path.to_string_lossy().into_owned())),
     };
     try!(fs::create_dir_all(&parent_path));
-    let raw = toml::encode_str(config);
+    let raw = try!(toml::ser::to_string(config));
     debug!("Raw config toml:\n---\n{}\n---", &raw);
     let mut file = try!(File::create(&config_path));
     try!(file.write_all(raw.as_bytes()));

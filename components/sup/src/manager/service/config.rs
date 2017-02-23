@@ -129,7 +129,7 @@ impl ServiceConfig {
 
     /// Render this struct as toml.
     pub fn to_toml(&self) -> Result<toml::Value> {
-        let mut top = toml::Table::new();
+        let mut top = toml::value::Table::new();
 
         let hab = try!(self.hab.to_toml());
         top.insert(String::from("hab"), hab);
@@ -152,7 +152,7 @@ impl ServiceConfig {
         Ok(toml::Value::Table(top))
     }
 
-    pub fn to_exported(&self) -> Result<toml::Table> {
+    pub fn to_exported(&self) -> Result<toml::value::Table> {
         self.cfg.to_exported(&self.pkg.exports)
     }
 
@@ -170,7 +170,7 @@ impl ServiceConfig {
         let final_toml = try!(self.to_toml());
         {
             let mut last_toml = try!(File::create(self.pkg.svc_path.join("config.toml")));
-            try!(write!(&mut last_toml, "{}", toml::encode_str(&final_toml)));
+            try!(last_toml.write_all(&try!(toml::to_vec(&final_toml))));
         }
         let mut template = Template::new();
 
@@ -242,7 +242,7 @@ impl ServiceConfig {
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-pub struct Bind(toml::Table);
+pub struct Bind(toml::value::Table);
 
 impl Bind {
     fn populate(&mut self, bindings: &[(String, ServiceGroup)], census_list: &CensusList) {
@@ -266,20 +266,20 @@ impl Bind {
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-pub struct Svc(toml::Table);
+pub struct Svc(toml::value::Table);
 
 impl Svc {
     pub fn populate(&mut self, service_group: &ServiceGroup, census_list: &CensusList) {
         let mut top = service_entry(census_list.get(&*service_group)
             .expect("Service Group's census entry missing from list!"));
         let mut all: Vec<toml::Value> = Vec::new();
-        let mut named = toml::Table::new();
+        let mut named = toml::value::Table::new();
         for (_sg, c) in census_list.iter() {
             all.push(toml::Value::Table(service_entry(c)));
             let mut group = if named.contains_key(c.get_service()) {
                 named.get(c.get_service()).unwrap().as_table().unwrap().clone()
             } else {
-                toml::Table::new()
+                toml::value::Table::new()
             };
             group.insert(String::from(c.get_group()),
                          toml::Value::Table(service_entry(c)));
@@ -295,23 +295,29 @@ impl Svc {
     }
 }
 
-fn service_entry(census: &Census) -> toml::Table {
+// TODO FN: The newer toml crate API return a `Result` when converting (as it always should have)
+// which begs the question: how should we handle conversion failures in this function? We currently
+// don't return a `Result<toml::value::Table>`--maybe we should? Remember--`.expect()` is a panic
+// by a nicer name ;)
+fn service_entry(census: &Census) -> toml::value::Table {
     let service = toml::Value::String(String::from(census.get_service()));
     let group = toml::Value::String(String::from(census.get_group()));
     let ident = toml::Value::String(census.get_service_group());
-    let leader = census.get_leader().map(|ce| toml::encode(ce));
+    let leader = census.get_leader()
+        .map(|ce| toml::Value::try_from(ce).expect("Can't convert into TOML Value"));
     let mut members: Vec<toml::Value> = Vec::new();
-    let mut member_id = toml::Table::new();
+    let mut member_id = toml::value::Table::new();
     for (sg, ce) in census.iter() {
-        members.push(toml::encode(ce));
-        member_id.insert(format!("{}", sg), toml::encode(ce));
+        members.push(toml::Value::try_from(ce).expect("Can't convert into TOML Value"));
+        member_id.insert(format!("{}", sg),
+                         toml::Value::try_from(ce).expect("Can't convert into TOML Value"));
     }
-    let mut result = toml::Table::new();
+    let mut result = toml::value::Table::new();
     result.insert("service".to_string(), service);
     result.insert("group".to_string(), group);
     result.insert("ident".to_string(), ident);
     if let Some(me) = census.me() {
-        let toml_me = toml::encode(me);
+        let toml_me = toml::Value::try_from(me).expect("Can't convert into TOML Value");
         result.insert("me".to_string(), toml_me);
     }
     if let Some(l) = leader {
@@ -346,7 +352,7 @@ impl Cfg {
     }
 
     pub fn to_toml(&self) -> Result<toml::Value> {
-        let mut output_toml = toml::Table::new();
+        let mut output_toml = toml::value::Table::new();
         if let Some(toml::Value::Table(ref default_cfg)) = self.default {
             try!(toml_merge(&mut output_toml, default_cfg));
         }
@@ -362,15 +368,15 @@ impl Cfg {
         Ok(toml::Value::Table(output_toml))
     }
 
-    fn to_exported(&self, exports: &HashMap<String, String>) -> Result<toml::Table> {
-        let mut map = toml::Table::default();
+    fn to_exported(&self, exports: &HashMap<String, String>) -> Result<toml::value::Table> {
+        let mut map = toml::value::Table::default();
         let cfg = try!(self.to_toml());
         for (key, path) in exports.iter() {
             // JW TODO: the TOML library only provides us with a
             // function to retrieve a value with a path which returns a
             // reference. We actually want the value for ourselves.
             // Let's improve this later to avoid allocating twice.
-            if let Some(val) = cfg.lookup(&path) {
+            if let Some(val) = cfg.get(&path) {
                 map.insert(key.clone(), val.clone());
             }
         }
@@ -389,9 +395,8 @@ impl Cfg {
         let mut config = String::new();
         match file.read_to_string(&mut config) {
             Ok(_) => {
-                let mut toml_parser = toml::Parser::new(&config);
-                let toml = try!(toml_parser.parse()
-                    .ok_or(sup_error!(Error::TomlParser(toml_parser.errors))));
+                let toml = try!(toml::de::from_str(&config)
+                    .map_err(|e| sup_error!(Error::TomlParser(e))));
                 self.default = Some(toml::Value::Table(toml));
             }
             Err(e) => {
@@ -414,9 +419,8 @@ impl Cfg {
         let mut config = String::new();
         match file.read_to_string(&mut config) {
             Ok(_) => {
-                let mut toml_parser = toml::Parser::new(&config);
-                let toml = try!(toml_parser.parse()
-                    .ok_or(sup_error!(Error::TomlParser(toml_parser.errors))));
+                let toml = try!(toml::de::from_str(&config)
+                    .map_err(|e| sup_error!(Error::TomlParser(e))));
                 self.user = Some(toml::Value::Table(toml));
             }
             Err(e) => {
@@ -439,9 +443,8 @@ impl Cfg {
         let mut config = String::new();
         match file.read_to_string(&mut config) {
             Ok(_) => {
-                let mut toml_parser = toml::Parser::new(&config);
-                let toml = try!(toml_parser.parse()
-                    .ok_or(sup_error!(Error::TomlParser(toml_parser.errors))));
+                let toml = try!(toml::de::from_str(&config)
+                    .map_err(|e| sup_error!(Error::TomlParser(e))));
                 self.gossip = Some(toml::Value::Table(toml));
             }
             Err(e) => {
@@ -458,9 +461,8 @@ impl Cfg {
             .replace("-", "_");
         match env::var(&var_name) {
             Ok(config) => {
-                let mut toml_parser = toml::Parser::new(&config);
-                let toml = try!(toml_parser.parse()
-                    .ok_or(sup_error!(Error::TomlParser(toml_parser.errors))));
+                let toml = try!(toml::de::from_str(&config)
+                    .map_err(|e| sup_error!(Error::TomlParser(e))));
                 self.environment = Some(toml::Value::Table(toml));
 
             }
@@ -521,8 +523,7 @@ impl Pkg {
     }
 
     fn to_toml(&self) -> Result<toml::Value> {
-        let v = toml::encode(&self);
-        Ok(v)
+        Ok(try!(toml::Value::try_from(&self)))
     }
 }
 
@@ -558,8 +559,7 @@ impl Sys {
     }
 
     fn to_toml(&self) -> Result<toml::Value> {
-        let v = toml::encode(&self);
-        Ok(v)
+        Ok(try!(toml::Value::try_from(&self)))
     }
 }
 
@@ -588,18 +588,20 @@ impl Hab {
     }
 
     fn to_toml(&self) -> Result<toml::Value> {
-        let v = toml::encode(&self);
-        Ok(v)
+        Ok(try!(toml::Value::try_from(&self)))
     }
 }
 
 
 // Recursively merges the `other` TOML table into `me`
-pub fn toml_merge(me: &mut toml::Table, other: &toml::Table) -> Result<()> {
+pub fn toml_merge(me: &mut toml::value::Table, other: &toml::value::Table) -> Result<()> {
     toml_merge_recurse(me, other, 0)
 }
 
-fn toml_merge_recurse(me: &mut toml::Table, other: &toml::Table, depth: u16) -> Result<()> {
+fn toml_merge_recurse(me: &mut toml::value::Table,
+                      other: &toml::value::Table,
+                      depth: u16)
+                      -> Result<()> {
     if depth > TOML_MAX_MERGE_DEPTH {
         return Err(sup_error!(Error::TomlMergeError(format!("Max recursive merge depth of {} \
                                                              exceeded.",
@@ -626,7 +628,7 @@ fn toml_merge_recurse(me: &mut toml::Table, other: &toml::Table, depth: u16) -> 
     Ok(())
 }
 
-fn is_toml_value_a_table(key: &str, table: &toml::Table) -> bool {
+fn is_toml_value_a_table(key: &str, table: &toml::value::Table) -> bool {
     match table.get(key) {
         None => return false,
         Some(value) => {
@@ -662,10 +664,8 @@ mod test {
                                        PathBuf::from("/fakeo/here"))
     }
 
-    fn toml_from_string(content: &str) -> toml::Table {
-        toml::Parser::new(content)
-            .parse()
-            .expect(&format!("Content should parse as TOML: {}", content))
+    fn toml_from_str(content: &str) -> toml::value::Table {
+        toml::from_str(content).expect(&format!("Content should parse as TOML: {}", content))
     }
 
     #[test]
@@ -679,7 +679,8 @@ mod test {
                                     &ListenAddr::default())
             .unwrap();
         let toml = sc.to_toml().unwrap();
-        let version = toml.lookup("hab.version").unwrap().as_str().unwrap();
+        let version =
+            toml.get("hab").unwrap().as_table().unwrap().get("version").unwrap().as_str().unwrap();
         assert_eq!(version, VERSION);
     }
 
@@ -694,7 +695,8 @@ mod test {
                                     &ListenAddr::default())
             .unwrap();
         let toml = sc.to_toml().unwrap();
-        let name = toml.lookup("pkg.name").unwrap().as_str().unwrap();
+        let name =
+            toml.get("pkg").unwrap().as_table().unwrap().get("name").unwrap().as_str().unwrap();
         assert_eq!(name, "redis");
     }
 
@@ -709,15 +711,15 @@ mod test {
                                     &ListenAddr::default())
             .unwrap();
         let toml = sc.to_toml().unwrap();
-        let ip = toml.lookup("sys.ip").unwrap().as_str().unwrap();
+        let ip = toml.get("sys").unwrap().as_table().unwrap().get("ip").unwrap().as_str().unwrap();
         let re = Regex::new(r"\d+\.\d+\.\d+\.\d+").unwrap();
         assert!(re.is_match(&ip));
     }
 
     #[test]
     fn merge_with_empty_me_table() {
-        let mut me = toml_from_string("");
-        let other = toml_from_string(r#"
+        let mut me = toml_from_str("");
+        let other = toml_from_str(r#"
             fruit = "apple"
             veggie = "carrot"
             "#);
@@ -729,11 +731,11 @@ mod test {
 
     #[test]
     fn merge_with_empty_other_table() {
-        let mut me = toml_from_string(r#"
+        let mut me = toml_from_str(r#"
             fruit = "apple"
             veggie = "carrot"
             "#);
-        let other = toml_from_string("");
+        let other = toml_from_str("");
         let expected = me.clone();
         toml_merge(&mut me, &other).unwrap();
 
@@ -742,16 +744,16 @@ mod test {
 
     #[test]
     fn merge_with_shallow_tables() {
-        let mut me = toml_from_string(r#"
+        let mut me = toml_from_str(r#"
             fruit = "apple"
             veggie = "carrot"
             awesomeness = 10
             "#);
-        let other = toml_from_string(r#"
+        let other = toml_from_str(r#"
             fruit = "orange"
             awesomeness = 99
             "#);
-        let expected = toml_from_string(r#"
+        let expected = toml_from_str(r#"
             fruit = "orange"
             veggie = "carrot"
             awesomeness = 99
@@ -763,17 +765,17 @@ mod test {
 
     #[test]
     fn merge_with_differing_value_types() {
-        let mut me = toml_from_string(r#"
+        let mut me = toml_from_str(r#"
             fruit = "apple"
             veggie = "carrot"
             awesome_things = ["carrots", "kitties", "unicorns"]
             heat = 42
             "#);
-        let other = toml_from_string(r#"
+        let other = toml_from_str(r#"
             heat = "hothothot"
             awesome_things = "habitat"
             "#);
-        let expected = toml_from_string(r#"
+        let expected = toml_from_str(r#"
             heat = "hothothot"
             fruit = "apple"
             veggie = "carrot"
@@ -786,19 +788,19 @@ mod test {
 
     #[test]
     fn merge_with_table_values() {
-        let mut me = toml_from_string(r#"
+        let mut me = toml_from_str(r#"
             frubnub = "foobar"
 
             [server]
             some-details = "initial"
             port = 1000
             "#);
-        let other = toml_from_string(r#"
+        let other = toml_from_str(r#"
             [server]
             port = 5000
             more-details = "yep"
             "#);
-        let expected = toml_from_string(r#"
+        let expected = toml_from_str(r#"
             frubnub = "foobar"
 
             [server]
@@ -813,20 +815,20 @@ mod test {
 
     #[test]
     fn merge_with_deep_table_values() {
-        let mut me = toml_from_string(r#"
+        let mut me = toml_from_str(r#"
             [a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.aa.ab.ac.ad]
             stew = "carrot"
             [a.b.c.d.e.f.foxtrot]
             fancy = "fork"
             "#);
-        let other = toml_from_string(r#"
+        let other = toml_from_str(r#"
             [a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.aa.ab.ac.ad]
             stew = "beef"
             [a.b.c.d.e.f.foxtrot]
             fancy = "feast"
             funny = "farm"
             "#);
-        let expected = toml_from_string(r#"
+        let expected = toml_from_str(r#"
             [a.b.c.d.e.f.foxtrot]
             funny = "farm"
             fancy = "feast"
@@ -840,11 +842,11 @@ mod test {
 
     #[test]
     fn merge_with_dangerously_deep_table_values() {
-        let mut me = toml_from_string(r#"
+        let mut me = toml_from_str(r#"
             [a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.aa.ab.ac.ad.ae.af]
             stew = "carrot"
             "#);
-        let other = toml_from_string(r#"
+        let other = toml_from_str(r#"
             [a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.aa.ab.ac.ad.ae.af]
             stew = "beef"
             "#);
@@ -884,7 +886,7 @@ mod test {
         fn to_toml() {
             let s = Sys::new(&GossipListenAddr::default(), &ListenAddr::default());
             let toml = s.to_toml().unwrap();
-            let ip = toml.lookup("ip").unwrap().as_str().unwrap();
+            let ip = toml.get("ip").unwrap().as_str().unwrap();
             let re = Regex::new(r"\d+\.\d+\.\d+\.\d+").unwrap();
             assert!(re.is_match(&ip));
         }
@@ -904,7 +906,7 @@ mod test {
         fn to_toml() {
             let h = Hab::new();
             let version_toml = h.to_toml().unwrap();
-            let version = version_toml.lookup("version").unwrap().as_str().unwrap();
+            let version = version_toml.get("version").unwrap().as_str().unwrap();
             assert_eq!(version, VERSION);
         }
     }

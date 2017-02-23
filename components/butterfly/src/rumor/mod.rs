@@ -42,6 +42,7 @@ use std::sync::{Arc, RwLock};
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 use serde::{Serialize, Serializer};
+use serde::ser::SerializeStruct;
 
 use message::swim::Rumor_Type;
 use error::{Result, Error};
@@ -116,15 +117,14 @@ impl<T: Rumor> Deref for RumorStore<T> {
 }
 
 impl<T: Rumor> Serialize for RumorStore<T> {
-    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error>
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {
-        let mut state = try!(serializer.serialize_struct("rumor_store", 2));
-        try!(serializer.serialize_struct_elt(&mut state, "list", &*(self.list.read().unwrap())));
-        try!(serializer.serialize_struct_elt(&mut state,
-                                             "update_counter",
-                                             self.update_counter.load(Ordering::Relaxed)));
-        serializer.serialize_struct_end(state)
+        let mut strukt = try!(serializer.serialize_struct("rumor_store", 2));
+        try!(strukt.serialize_field("list", &*(self.list.read().unwrap())));
+        try!(strukt.serialize_field("update_counter",
+                                    &self.update_counter.load(Ordering::Relaxed)));
+        strukt.end()
     }
 }
 

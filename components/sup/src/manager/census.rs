@@ -18,7 +18,6 @@ use std::str::{self, FromStr};
 
 use hcore::package::PackageIdent;
 use hcore::service::ServiceGroup;
-use hcore::util;
 use butterfly;
 use butterfly::rumor::{Service as ServiceRumor, Election as ElectionRumor};
 use butterfly::rumor::election::Election_Status;
@@ -63,7 +62,7 @@ pub struct CensusEntry {
     pub service: String,
     pub group: String,
     pub org: Option<String>,
-    pub cfg: toml::Table,
+    pub cfg: toml::value::Table,
     pub sys: SysInfo,
     pub pkg: Option<PackageIdent>,
     pub leader: Option<bool>,
@@ -290,11 +289,8 @@ impl CensusEntry {
             Ok(ident) => self.set_pkg(ident),
             Err(err) => warn!("Received a bad package ident from gossip data, err={}", err),
         }
-        self.cfg = util::toml::table_from_bytes(rumor.get_cfg()).unwrap_or(toml::Table::default());
-        self.sys = str::from_utf8(rumor.get_sys())
-            .ok()
-            .and_then(|v| toml::decode_str(v))
-            .unwrap_or(SysInfo::default());
+        self.cfg = toml::from_slice(rumor.get_cfg()).unwrap_or(toml::value::Table::default());
+        self.sys = toml::from_slice(rumor.get_sys()).unwrap_or(SysInfo::default());
     }
 
     pub fn populate_from_member(&mut self, member: &Member) {

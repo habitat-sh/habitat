@@ -20,8 +20,8 @@ use toml;
 pub fn toml_to_json(value: toml::Value) -> serde_json::Value {
     match value {
         toml::Value::String(s) => serde_json::Value::String(format!("{}", s)),
-        toml::Value::Integer(i) => serde_json::Value::I64(i as i64),
-        toml::Value::Float(i) => serde_json::Value::F64(i as f64),
+        toml::Value::Integer(i) => serde_json::Value::from(i as i64),
+        toml::Value::Float(i) => serde_json::Value::from(i as f64),
         toml::Value::Boolean(b) => serde_json::Value::Bool(b),
         toml::Value::Datetime(s) => serde_json::Value::String(format!("{}", s)),
         toml::Value::Array(a) => toml_vec_to_json(a),
@@ -29,7 +29,7 @@ pub fn toml_to_json(value: toml::Value) -> serde_json::Value {
     }
 }
 
-pub fn toml_vec_to_json(toml: Vec<toml::Value>) -> serde_json::Value {
+fn toml_vec_to_json(toml: Vec<toml::Value>) -> serde_json::Value {
     let mut mvec = vec![];
     for x in toml.iter() {
         mvec.push(toml_to_json(x.clone()))
@@ -38,10 +38,10 @@ pub fn toml_vec_to_json(toml: Vec<toml::Value>) -> serde_json::Value {
 }
 
 // Translates a toml table to a mustache data structure.
-pub fn toml_table_to_json(toml: BTreeMap<String, toml::Value>) -> serde_json::Value {
-    let mut hashmap = BTreeMap::new();
+fn toml_table_to_json(toml: BTreeMap<String, toml::Value>) -> serde_json::Value {
+    let mut map = serde_json::Map::with_capacity(toml.len());
     for (key, value) in toml.iter() {
-        hashmap.insert(format!("{}", key), toml_to_json(value.clone()));
+        map.insert(format!("{}", key), toml_to_json(value.clone()));
     }
-    serde_json::Value::Object(hashmap)
+    serde_json::Value::Object(map)
 }

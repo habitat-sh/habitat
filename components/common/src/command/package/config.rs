@@ -36,7 +36,7 @@ pub fn start<P>(ident: &PackageIdent, fs_root_path: P) -> Result<()>
 {
     let package = try!(PackageInstall::load(ident, Some(fs_root_path.as_ref())));
     match package.default_cfg() {
-        Some(cfg) => println!("{}", toml::encode_str(&cfg)),
+        Some(cfg) => println!("{}", try!(toml::ser::to_string(&cfg))),
         None => {
             writeln!(&mut io::stderr(),
                      "No '{}' found for {}",

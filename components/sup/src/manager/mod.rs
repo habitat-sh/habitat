@@ -293,8 +293,13 @@ impl Manager {
                 rumor.set_pkg(service.package().to_string());
                 rumor.set_incarnation(incarnation);
                 service.populate(&census_list);
+                // TODO FN: the updated toml API returns a `Result` when serializing--we should
+                // handle this and not potentially panic
                 match service.config.to_exported() {
-                    Ok(cfg) => *rumor.mut_cfg() = toml::encode_str(&cfg).into_bytes(),
+                    Ok(cfg) => {
+                        *rumor.mut_cfg() = toml::ser::to_vec(&cfg)
+                            .expect("Can't serialize to TOML bytes")
+                    }
                     Err(err) => warn!("Error loading service config after update, err={}", err),
                 }
                 self.state.butterfly.insert_service(rumor);

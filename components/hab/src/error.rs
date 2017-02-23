@@ -23,6 +23,7 @@ use depot_client;
 use common;
 use hcore;
 use handlebars;
+use toml;
 
 pub type Result<T> = result::Result<T, Error>;
 
@@ -51,7 +52,8 @@ pub enum Error {
     RootRequired,
     SubcommandNotSupported(String),
     UnsupportedExportFormat(String),
-    TomlError,
+    TomlDeserializeError(toml::de::Error),
+    TomlSerializeError(toml::ser::Error),
     Utf8Error(String),
 }
 
@@ -116,7 +118,8 @@ impl fmt::Display for Error {
                 format!("Subcommand `{}' not supported on this operating system", e)
             }
             Error::UnsupportedExportFormat(ref e) => format!("Unsupported export format: {}", e),
-            Error::TomlError => format!("Invalid TOML"),
+            Error::TomlDeserializeError(ref e) => format!("Can't deserialize TOML: {}", e),
+            Error::TomlSerializeError(ref e) => format!("Can't serialize TOML: {}", e),
             Error::Utf8Error(ref e) => format!("Error processing a string as UTF-8: {}", e),
         };
         write!(f, "{}", msg)
@@ -156,7 +159,8 @@ impl error::Error for Error {
             }
             Error::SubcommandNotSupported(_) => "Subcommand not supported on this operating system",
             Error::UnsupportedExportFormat(_) => "Unsupported export format",
-            Error::TomlError => "Invalid TOML",
+            Error::TomlDeserializeError(_) => "Can't deserialize TOML",
+            Error::TomlSerializeError(_) => "Can't serialize TOML",
             Error::Utf8Error(_) => "Error processing string as UTF-8",
         }
     }
@@ -201,5 +205,16 @@ impl From<io::Error> for Error {
 impl From<path::StripPrefixError> for Error {
     fn from(err: path::StripPrefixError) -> Error {
         Error::PathPrefixError(err)
+    }
+}
+
+impl From<toml::de::Error> for Error {
+    fn from(err: toml::de::Error) -> Self {
+        Error::TomlDeserializeError(err)
+    }
+}
+impl From<toml::ser::Error> for Error {
+    fn from(err: toml::ser::Error) -> Self {
+        Error::TomlSerializeError(err)
     }
 }

@@ -33,7 +33,7 @@ pub enum Error {
     HabitatCore(habitat_core::error::Error),
     NonExistentRumor(String, String),
     ProtobufError(protobuf::ProtobufError),
-    ServiceConfigDecode(String, Vec<toml::ParserError>),
+    ServiceConfigDecode(String, toml::de::Error),
     ServiceConfigNotUtf8(String, str::Utf8Error),
     SocketSetReadTimeout(io::Error),
     SocketSetWriteTimeout(io::Error),

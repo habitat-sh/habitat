@@ -7,6 +7,7 @@
 use std::result;
 
 use serde::{Serialize, Serializer};
+use serde::ser::SerializeStruct;
 
 pub use message::vault::*;
 use message::{Persistable, Routable};
@@ -44,17 +45,15 @@ impl Routable for OriginCreate {
 }
 
 impl Serialize for Origin {
-    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error>
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {
-        let mut state = try!(serializer.serialize_struct("origin", 4));
-        try!(serializer.serialize_struct_elt(&mut state, "id", self.get_id()));
-        try!(serializer.serialize_struct_elt(&mut state, "name", self.get_name()));
-        try!(serializer.serialize_struct_elt(&mut state, "owner_id", self.get_owner_id()));
-        try!(serializer.serialize_struct_elt(&mut state,
-                                             "private_key_name",
-                                             self.get_private_key_name()));
-        serializer.serialize_struct_end(state)
+        let mut strukt = try!(serializer.serialize_struct("origin", 4));
+        try!(strukt.serialize_field("id", &self.get_id()));
+        try!(strukt.serialize_field("name", self.get_name()));
+        try!(strukt.serialize_field("owner_id", &self.get_owner_id()));
+        try!(strukt.serialize_field("private_key_name", self.get_private_key_name()));
+        strukt.end()
     }
 }
 
@@ -87,17 +86,17 @@ impl Persistable for OriginSecretKey {
 }
 
 impl Serialize for OriginSecretKey {
-    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error>
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {
-        let mut state = try!(serializer.serialize_struct("origin_secret_key", 6));
-        try!(serializer.serialize_struct_elt(&mut state, "id", self.get_id()));
-        try!(serializer.serialize_struct_elt(&mut state, "origin_id", self.get_origin_id()));
-        try!(serializer.serialize_struct_elt(&mut state, "name", self.get_name()));
-        try!(serializer.serialize_struct_elt(&mut state, "revision", self.get_revision()));
-        try!(serializer.serialize_struct_elt(&mut state, "body", self.get_body()));
-        try!(serializer.serialize_struct_elt(&mut state, "owner_id", self.get_owner_id()));
-        serializer.serialize_struct_end(state)
+        let mut strukt = try!(serializer.serialize_struct("origin_secret_key", 6));
+        try!(strukt.serialize_field("id", &self.get_id()));
+        try!(strukt.serialize_field("origin_id", &self.get_origin_id()));
+        try!(strukt.serialize_field("name", self.get_name()));
+        try!(strukt.serialize_field("revision", self.get_revision()));
+        try!(strukt.serialize_field("body", self.get_body()));
+        try!(strukt.serialize_field("owner_id", &self.get_owner_id()));
+        strukt.end()
     }
 }
 
@@ -139,19 +138,17 @@ impl Persistable for OriginInvitation {
 }
 
 impl Serialize for OriginInvitation {
-    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error>
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {
-        let mut state = try!(serializer.serialize_struct("origin_invitation", 6));
-        try!(serializer.serialize_struct_elt(&mut state, "id", self.get_id()));
-        try!(serializer.serialize_struct_elt(&mut state, "account_id", self.get_account_id()));
-        try!(serializer.serialize_struct_elt(&mut state,
-                                             "accaccount_name",
-                                             self.get_account_name()));
-        try!(serializer.serialize_struct_elt(&mut state, "origin_id", self.get_origin_id()));
-        try!(serializer.serialize_struct_elt(&mut state, "origin_name", self.get_origin_name()));
-        try!(serializer.serialize_struct_elt(&mut state, "owner_id", self.get_owner_id()));
-        serializer.serialize_struct_end(state)
+        let mut strukt = try!(serializer.serialize_struct("origin_invitation", 6));
+        try!(strukt.serialize_field("id", &self.get_id()));
+        try!(strukt.serialize_field("account_id", &self.get_account_id()));
+        try!(strukt.serialize_field("accaccount_name", self.get_account_name()));
+        try!(strukt.serialize_field("origin_id", &self.get_origin_id()));
+        try!(strukt.serialize_field("origin_name", self.get_origin_name()));
+        try!(strukt.serialize_field("owner_id", &self.get_owner_id()));
+        strukt.end()
     }
 }
 
@@ -174,13 +171,13 @@ impl Routable for AccountInvitationListResponse {
 }
 
 impl Serialize for AccountInvitationListResponse {
-    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error>
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {
-        let mut state = try!(serializer.serialize_struct("account_invitation_list_response", 2));
-        try!(serializer.serialize_struct_elt(&mut state, "account_id", self.get_account_id()));
-        try!(serializer.serialize_struct_elt(&mut state, "invitations", self.get_invitations()));
-        serializer.serialize_struct_end(state)
+        let mut strukt = try!(serializer.serialize_struct("account_invitation_list_response", 2));
+        try!(strukt.serialize_field("account_id", &self.get_account_id()));
+        try!(strukt.serialize_field("invitations", self.get_invitations()));
+        strukt.end()
     }
 }
 
@@ -203,13 +200,13 @@ impl Routable for OriginInvitationListResponse {
 }
 
 impl Serialize for OriginInvitationListResponse {
-    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error>
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {
-        let mut state = try!(serializer.serialize_struct("origin_invitation_list_response", 2));
-        try!(serializer.serialize_struct_elt(&mut state, "origin_id", self.get_origin_id()));
-        try!(serializer.serialize_struct_elt(&mut state, "invitations", self.get_invitations()));
-        serializer.serialize_struct_end(state)
+        let mut strukt = try!(serializer.serialize_struct("origin_invitation_list_response", 2));
+        try!(strukt.serialize_field("origin_id", &self.get_origin_id()));
+        try!(strukt.serialize_field("invitations", self.get_invitations()));
+        strukt.end()
     }
 }
 
@@ -223,13 +220,13 @@ impl Routable for OriginInvitationAcceptRequest {
 }
 
 impl Serialize for OriginMemberListResponse {
-    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error>
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {
-        let mut state = try!(serializer.serialize_struct("origin_member_list_response", 2));
-        try!(serializer.serialize_struct_elt(&mut state, "origin_id", self.get_origin_id()));
-        try!(serializer.serialize_struct_elt(&mut state, "members", self.get_members()));
-        serializer.serialize_struct_end(state)
+        let mut strukt = try!(serializer.serialize_struct("origin_member_list_response", 2));
+        try!(strukt.serialize_field("origin_id", &self.get_origin_id()));
+        try!(strukt.serialize_field("members", self.get_members()));
+        strukt.end()
     }
 }
 
@@ -243,13 +240,13 @@ impl Routable for AccountOriginListRequest {
 }
 
 impl Serialize for AccountOriginListResponse {
-    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error>
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {
-        let mut state = try!(serializer.serialize_struct("account_origin_list_response", 2));
-        try!(serializer.serialize_struct_elt(&mut state, "account_id", self.get_account_id()));
-        try!(serializer.serialize_struct_elt(&mut state, "origins", self.get_origins()));
-        serializer.serialize_struct_end(state)
+        let mut strukt = try!(serializer.serialize_struct("account_origin_list_response", 2));
+        try!(strukt.serialize_field("account_id", &self.get_account_id()));
+        try!(strukt.serialize_field("origins", self.get_origins()));
+        strukt.end()
     }
 }
 
@@ -307,24 +304,24 @@ impl Persistable for Project {
 }
 
 impl Serialize for Project {
-    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error>
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {
-        let mut state = try!(serializer.serialize_struct("project", 2));
-        try!(serializer.serialize_struct_elt(&mut state, "id", self.get_id()));
-        try!(serializer.serialize_struct_elt(&mut state, "plan_path", self.get_plan_path()));
-        try!(serializer.serialize_struct_elt(&mut state, "vcs", self.get_git()));
-        serializer.serialize_struct_end(state)
+        let mut strukt = try!(serializer.serialize_struct("project", 2));
+        try!(strukt.serialize_field("id", self.get_id()));
+        try!(strukt.serialize_field("plan_path", self.get_plan_path()));
+        try!(strukt.serialize_field("vcs", self.get_git()));
+        strukt.end()
     }
 }
 
 impl Serialize for VCSGit {
-    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error>
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {
-        let mut state = try!(serializer.serialize_struct("vcs", 2));
-        try!(serializer.serialize_struct_elt(&mut state, "type", "git".to_string()));
-        try!(serializer.serialize_struct_elt(&mut state, "url", self.get_url()));
-        serializer.serialize_struct_end(state)
+        let mut strukt = try!(serializer.serialize_struct("vcs", 2));
+        try!(strukt.serialize_field("type", "git"));
+        try!(strukt.serialize_field("url", self.get_url()));
+        strukt.end()
     }
 }
