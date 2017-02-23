@@ -50,7 +50,7 @@ impl PackageTarget {
         } else if cfg!(target_os = "linux") {
             Platform::Linux
         } else if cfg!(target_os = "macos") {
-            Platform::MacOS
+            Platform::Darwin
         } else {
             unreachable!("binary built for an unknown platform")
         }
@@ -126,7 +126,7 @@ mod tests {
         } else if cfg!(target_os = "linux") {
             assert_eq!(target.platform, Platform::Linux);
         } else if cfg!(target_os = "macos") {
-            assert_eq!(target.platform, Platform::MacOS);
+            assert_eq!(target.platform, Platform::Darwin);
         } else {
             unreachable!("Platform not defined for target_os! Fix this by adding a conditional \
                           compilation to PackageTarget::current_platform()");
