@@ -6,6 +6,7 @@ $pkg_license = @("Apache-2.0")
 $pkg_source = "https://s3-us-west-2.amazonaws.com/habitat-win-deps/hab-win-deps.zip"
 $pkg_shasum="0a99b1e171ff1075cca139cf9f695685f7a04b122f1704f82f2b852561847710"
 $pkg_bin_dirs = @("bin")
+$pkg_deps = @("core/powershell")
 $pkg_build_deps = @("core/visual-cpp-redist-2013", "core/rust", "core/cacerts")
 
 function Invoke-Prepare {
