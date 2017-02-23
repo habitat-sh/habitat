@@ -169,13 +169,15 @@ impl Service {
                                          &http_listen)?;
         let hook_template_path = svc_cfg.config_root.join("hooks");
         let hooks_path = fs::svc_hooks_path(service_group.service());
+        let logs_path = fs::svc_hooks_path(service_group.service());
         let locked_package = Arc::new(RwLock::new(package));
         Ok(Service {
             config: svc_cfg,
             current_service_files: HashMap::new(),
             depot_url: spec.depot_url,
             health_check: HealthCheck::default(),
-            hooks: HookTable::default().load_hooks(&service_group, hooks_path, hook_template_path),
+            hooks: HookTable::default()
+                .load_hooks(&service_group, &hooks_path, &hook_template_path, &logs_path),
             initialized: false,
             last_election_status: ElectionStatus::None,
             needs_restart: false,
@@ -272,6 +274,7 @@ impl Service {
         try!(Self::create_dir_all(self.svc_static_path()));
         try!(set_owner(self.svc_static_path(), &user, &group));
         try!(set_permissions(self.svc_static_path(), 0o700));
+        try!(Self::create_dir_all(self.svc_logs_path()));
         // TODO: Not 100% if this directory is still needed, but for the moment it's still here -
         // FIN
         try!(Self::create_dir_all(self.svc_path().join("toml")));
@@ -448,8 +451,11 @@ impl Service {
         let runtime_cfg = RuntimeConfig::new(svc_user, svc_group);
         let config_root = self.config_from.clone().unwrap_or(package.installed_path.clone());
         let hooks_path = fs::svc_hooks_path(self.service_group.service());
-        self.hooks = HookTable::default()
-            .load_hooks(&self.service_group, hooks_path, &config_root.join("hooks"));
+        let logs_path = fs::svc_hooks_path(self.service_group.service());
+        self.hooks = HookTable::default().load_hooks(&self.service_group,
+                                                     hooks_path,
+                                                     &config_root.join("hooks"),
+                                                     &logs_path);
 
         if let Some(err) = self.config.reload_package(&package, config_root, &runtime_cfg).err() {
             outputln!(preamble self.service_group,
@@ -597,6 +603,11 @@ impl Service {
         fs::svc_var_path(&self.service_group.service())
     }
 
+    /// Returns the path to the service logs.
+    pub fn svc_logs_path(&self) -> PathBuf {
+        fs::svc_logs_path(&self.service_group.service())
+    }
+
     /// this function wraps create_dir_all so we can give friendly error
     /// messages to the user.
     fn create_dir_all<P: AsRef<Path>>(path: P) -> Result<()> {
@@ -716,18 +727,18 @@ impl Service {
             let me = butterfly.member_id().to_string();
             let mut updated = None;
             butterfly.service_store
-                .with_rumor(&*self.service_group,
-                            &me,
-                            |rumor| if let Some(rumor) = rumor {
-                                let mut rumor = rumor.clone();
-                                let incarnation = rumor.get_incarnation() + 1;
-                                rumor.set_incarnation(incarnation);
-                                // TODO FN: the updated toml API returns a `Result` when
-                                // serializing--we should handle this and not potentially panic
-                                *rumor.mut_cfg() = toml::ser::to_vec(&cfg)
-                                    .expect("Can't serialize to TOML bytes");
-                                updated = Some(rumor);
-                            });
+                .with_rumor(&*self.service_group, &me, |rumor| {
+                    if let Some(rumor) = rumor {
+                        let mut rumor = rumor.clone();
+                        let incarnation = rumor.get_incarnation() + 1;
+                        rumor.set_incarnation(incarnation);
+                        // TODO FN: the updated toml API returns a `Result` when
+                        // serializing--we should handle this and not potentially panic
+                        *rumor.mut_cfg() = toml::ser::to_vec(&cfg)
+                            .expect("Can't serialize to TOML bytes");
+                        updated = Some(rumor);
+                    }
+                });
             if let Some(rumor) = updated {
                 butterfly.insert_service(rumor);
                 last_update.service_counter += 1;
