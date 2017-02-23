@@ -451,7 +451,7 @@ impl fmt::Debug for RenderPair {
 }
 
 impl Serialize for RenderPair {
-    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error>
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {
         serializer.serialize_str(&self.path.as_os_str().to_string_lossy().into_owned())
