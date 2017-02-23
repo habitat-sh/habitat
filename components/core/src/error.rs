@@ -40,7 +40,8 @@ pub enum Error {
     ConfigFileSyntax(String),
     /// Expected an array of socket addrs for configuration field value.
     ConfigInvalidArraySocketAddr(&'static str),
-    /// Expected an array of tables containing string feilds and values for configuration field value.
+    /// Expected an array of tables containing string feilds and values for configuration
+    /// field value.
     ConfigInvalidArrayTableString(&'static str),
     /// Expected an array of u16 entries for configuration field value.
     ConfigInvalidArrayU16(&'static str),

@@ -83,7 +83,7 @@ impl Service {
                   package: &T,
                   service_group: &ServiceGroup,
                   sys: &SysInfo,
-                  cfg: Option<&toml::Table>)
+                  cfg: Option<&toml::value::Table>)
                   -> Self
         where T: Identifiable
     {
@@ -102,9 +102,13 @@ impl Service {
         proto.set_service_group(service_group.to_string());
         proto.set_incarnation(0);
         proto.set_pkg(package.to_string());
-        proto.set_sys(toml::encode_str(&sys).into_bytes());
+        // TODO FN: Can we really expect this all the time, should we return a `Result<Self>` in
+        // this constructor?
+        proto.set_sys(toml::ser::to_vec(&sys).expect("Struct should serialize to bytes"));
         if let Some(cfg) = cfg {
-            proto.set_cfg(toml::encode_str(cfg).into_bytes());
+            // TODO FN: Can we really expect this all the time, should we return a `Result<Self>`
+            // in this constructor?
+            proto.set_cfg(toml::ser::to_vec(cfg).expect("Struct should serialize to bytes"));
         }
 
         rumor.set_service(proto);

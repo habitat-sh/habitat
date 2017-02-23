@@ -33,6 +33,7 @@ use hcore::os::process::{HabChild, ExitStatusExt};
 use hcore::package::PackageInstall;
 use hcore::service::ServiceGroup;
 use serde::{Serialize, Serializer};
+use serde::ser::SerializeStruct;
 use time::SteadyTime;
 
 use error::{Result, Error};
@@ -316,28 +317,26 @@ impl Supervisor {
 }
 
 impl Serialize for Supervisor {
-    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error>
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {
         let pid = match self.child {
             Some(ref child) => Some(child.id()),
             None => None,
         };
-        let mut state = try!(serializer.serialize_struct("supervisor", 7));
-        try!(serializer.serialize_struct_elt(&mut state, "pid", &pid));
-        try!(serializer.serialize_struct_elt(&mut state,
-                                             "package",
-                                             &self.package
-                                                 .read()
-                                                 .expect("Package lock poisoned")
-                                                 .to_string()));
-        try!(serializer.serialize_struct_elt(&mut state, "preamble", &self.preamble));
-        try!(serializer.serialize_struct_elt(&mut state, "state", &self.state));
-        try!(serializer.serialize_struct_elt(&mut state, "state_entered",
-            &self.state_entered.to_string()));
-        try!(serializer.serialize_struct_elt(&mut state, "started", &self.has_started));
-        try!(serializer.serialize_struct_elt(&mut state, "runtime_config", &self.runtime_config));
-        serializer.serialize_struct_end(state)
+        let mut strukt = try!(serializer.serialize_struct("supervisor", 7));
+        try!(strukt.serialize_field("pid", &pid));
+        try!(strukt.serialize_field("package",
+                                    &self.package
+                                        .read()
+                                        .expect("Package lock poisoned")
+                                        .to_string()));
+        try!(strukt.serialize_field("preamble", &self.preamble));
+        try!(strukt.serialize_field("state", &self.state));
+        try!(strukt.serialize_field("state_entered", &self.state_entered.to_string()));
+        try!(strukt.serialize_field("started", &self.has_started));
+        try!(strukt.serialize_field("runtime_config", &self.runtime_config));
+        strukt.end()
     }
 }
 

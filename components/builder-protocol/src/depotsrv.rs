@@ -18,25 +18,26 @@ use std::result;
 use hab_core;
 use hab_core::package::{self, Identifiable, FromArchive, PackageArchive};
 use serde::{Serialize, Serializer};
+use serde::ser::SerializeStruct;
 
 use message::Persistable;
 
 pub use message::depotsrv::*;
 
 impl Serialize for PackageIdent {
-    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error>
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {
-        let mut state = try!(serializer.serialize_struct("package_ident", 4));
-        try!(serializer.serialize_struct_elt(&mut state, "origin", self.get_origin()));
-        try!(serializer.serialize_struct_elt(&mut state, "name", self.get_name()));
+        let mut strukt = try!(serializer.serialize_struct("package_ident", 4));
+        try!(strukt.serialize_field("origin", self.get_origin()));
+        try!(strukt.serialize_field("name", self.get_name()));
         if !self.get_version().is_empty() {
-            try!(serializer.serialize_struct_elt(&mut state, "version", self.get_version()));
+            try!(strukt.serialize_field("version", self.get_version()));
         }
         if !self.get_release().is_empty() {
-            try!(serializer.serialize_struct_elt(&mut state, "release", self.get_release()));
+            try!(strukt.serialize_field("release", self.get_release()));
         }
-        serializer.serialize_struct_end(state)
+        strukt.end()
     }
 }
 
@@ -191,29 +192,29 @@ impl Identifiable for PackageIdent {
 }
 
 impl Serialize for OriginKeyIdent {
-    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error>
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {
-        let mut state = try!(serializer.serialize_struct("origin_key", 3));
-        try!(serializer.serialize_struct_elt(&mut state, "origin", self.get_origin()));
-        try!(serializer.serialize_struct_elt(&mut state, "revision", self.get_revision()));
-        try!(serializer.serialize_struct_elt(&mut state, "location", self.get_location()));
-        serializer.serialize_struct_end(state)
+        let mut strukt = try!(serializer.serialize_struct("origin_key", 3));
+        try!(strukt.serialize_field("origin", self.get_origin()));
+        try!(strukt.serialize_field("revision", self.get_revision()));
+        try!(strukt.serialize_field("location", self.get_location()));
+        strukt.end()
     }
 }
 
 impl Serialize for Package {
-    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error>
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {
-        let mut state = try!(serializer.serialize_struct("package", 7));
-        try!(serializer.serialize_struct_elt(&mut state, "ident", self.get_ident()));
-        try!(serializer.serialize_struct_elt(&mut state, "checksum", self.get_checksum()));
-        try!(serializer.serialize_struct_elt(&mut state, "manifest", self.get_manifest()));
-        try!(serializer.serialize_struct_elt(&mut state, "deps", self.get_deps()));
-        try!(serializer.serialize_struct_elt(&mut state, "tdeps", self.get_tdeps()));
-        try!(serializer.serialize_struct_elt(&mut state, "exposes", self.get_exposes()));
-        try!(serializer.serialize_struct_elt(&mut state, "config", self.get_config()));
-        serializer.serialize_struct_end(state)
+        let mut strukt = try!(serializer.serialize_struct("package", 7));
+        try!(strukt.serialize_field("ident", self.get_ident()));
+        try!(strukt.serialize_field("checksum", self.get_checksum()));
+        try!(strukt.serialize_field("manifest", self.get_manifest()));
+        try!(strukt.serialize_field("deps", self.get_deps()));
+        try!(strukt.serialize_field("tdeps", self.get_tdeps()));
+        try!(strukt.serialize_field("exposes", self.get_exposes()));
+        try!(strukt.serialize_field("config", self.get_config()));
+        strukt.end()
     }
 }

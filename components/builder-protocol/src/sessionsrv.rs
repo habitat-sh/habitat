@@ -16,6 +16,7 @@ use std::result;
 use std::str::FromStr;
 
 use serde::{Serialize, Serializer};
+use serde::ser::{SerializeSeq, SerializeStruct};
 
 use error::{ProtocolError, ProtocolResult};
 use message::{Persistable, Routable};
@@ -77,14 +78,14 @@ impl Into<Session> for Account {
 }
 
 impl Serialize for Account {
-    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error>
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {
-        let mut state = try!(serializer.serialize_struct("account", 3));
-        try!(serializer.serialize_struct_elt(&mut state, "id", self.get_id()));
-        try!(serializer.serialize_struct_elt(&mut state, "name", self.get_name()));
-        try!(serializer.serialize_struct_elt(&mut state, "email", self.get_email()));
-        serializer.serialize_struct_end(state)
+        let mut strukt = try!(serializer.serialize_struct("account", 3));
+        try!(strukt.serialize_field("id", &self.get_id()));
+        try!(strukt.serialize_field("name", self.get_name()));
+        try!(strukt.serialize_field("email", self.get_email()));
+        strukt.end()
     }
 }
 
@@ -169,27 +170,27 @@ impl Persistable for SessionToken {
 }
 
 impl Serialize for FlagGrants {
-    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error>
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {
-        let mut state = try!(serializer.serialize_seq(Some(self.get_teams().len())));
+        let mut seq = try!(serializer.serialize_seq(Some(self.get_teams().len())));
         for e in self.get_teams() {
-            try!(serializer.serialize_seq_elt(&mut state, e));
+            try!(seq.serialize_element(&e));
         }
-        serializer.serialize_seq_end(state)
+        seq.end()
     }
 }
 
 impl Serialize for Session {
-    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error>
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {
-        let mut state = try!(serializer.serialize_struct("session", 5));
-        try!(serializer.serialize_struct_elt(&mut state, "token", self.get_token()));
-        try!(serializer.serialize_struct_elt(&mut state, "id", self.get_id()));
-        try!(serializer.serialize_struct_elt(&mut state, "name", self.get_name()));
-        try!(serializer.serialize_struct_elt(&mut state, "email", self.get_email()));
-        try!(serializer.serialize_struct_elt(&mut state, "flags", self.get_flags()));
-        serializer.serialize_struct_end(state)
+        let mut strukt = try!(serializer.serialize_struct("session", 5));
+        try!(strukt.serialize_field("token", self.get_token()));
+        try!(strukt.serialize_field("id", &self.get_id()));
+        try!(strukt.serialize_field("name", self.get_name()));
+        try!(strukt.serialize_field("email", self.get_email()));
+        try!(strukt.serialize_field("flags", &self.get_flags()));
+        strukt.end()
     }
 }

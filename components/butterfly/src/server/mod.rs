@@ -41,6 +41,7 @@ use std::thread;
 use habitat_core::service::ServiceGroup;
 use habitat_core::crypto::SymKey;
 use serde::{Serialize, Serializer};
+use serde::ser::SerializeStruct;
 use toml;
 
 use error::{Result, Error};
@@ -78,18 +79,16 @@ pub struct Server {
 }
 
 impl Serialize for Server {
-    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error>
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {
-        let mut state = try!(serializer.serialize_struct("butterfly", 5));
-        try!(serializer.serialize_struct_elt(&mut state, "service", &self.service_store));
-        try!(serializer.serialize_struct_elt(&mut state,
-                                             "service_config",
-                                             &self.service_config_store));
-        try!(serializer.serialize_struct_elt(&mut state, "service_file", &self.service_file_store));
-        try!(serializer.serialize_struct_elt(&mut state, "election", &self.election_store));
-        try!(serializer.serialize_struct_elt(&mut state, "election_update", &self.update_store));
-        serializer.serialize_struct_end(state)
+        let mut strukt = try!(serializer.serialize_struct("butterfly", 5));
+        try!(strukt.serialize_field("service", &self.service_store));
+        try!(strukt.serialize_field("service_config", &self.service_config_store));
+        try!(strukt.serialize_field("service_file", &self.service_file_store));
+        try!(strukt.serialize_field("election", &self.election_store));
+        try!(strukt.serialize_field("election_update", &self.update_store));
+        strukt.end()
     }
 }
 

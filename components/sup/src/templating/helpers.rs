@@ -80,7 +80,9 @@ pub fn to_json(h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> RenderResu
     let param = try!(h.param(0)
             .ok_or_else(|| RenderError::new("Expected 1 parameter for \"toJson\"")))
         .value();
-    try!(rc.writer.write(serde_json::to_string_pretty(param).unwrap().into_bytes().as_ref()));
+    let json = try!(serde_json::to_string_pretty(param)
+        .map_err(|e| RenderError::new(format!("Can't serialize parameter to JSON: {}", e))));
+    try!(rc.writer.write(json.into_bytes().as_ref()));
     Ok(())
 }
 
@@ -88,6 +90,8 @@ pub fn to_toml(h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> RenderResu
     let param = try!(h.param(0)
             .ok_or_else(|| RenderError::new("Expected 1 parameter for \"toToml\"")))
         .value();
-    try!(rc.writer.write(toml::encode_str(&param).into_bytes().as_ref()));
+    let bytes = try!(toml::ser::to_vec(&param)
+        .map_err(|e| RenderError::new(format!("Can't serialize parameter to TOML: {}", e))));
+    try!(rc.writer.write_all(bytes.as_ref()));
     Ok(())
 }

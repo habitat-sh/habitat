@@ -120,9 +120,7 @@ impl ServiceSpec {
     }
 }
 
-fn serialize_lock<S>(x: &Arc<RwLock<PackageInstall>>,
-                     s: &mut S)
-                     -> std::result::Result<(), S::Error>
+fn serialize_lock<S>(x: &Arc<RwLock<PackageInstall>>, s: S) -> std::result::Result<S::Ok, S::Error>
     where S: Serializer
 {
     s.serialize_str(&x.read().expect("Package lock poisoned").to_string())
@@ -755,7 +753,10 @@ impl Service {
                                 let mut rumor = rumor.clone();
                                 let incarnation = rumor.get_incarnation() + 1;
                                 rumor.set_incarnation(incarnation);
-                                *rumor.mut_cfg() = toml::encode_str(&cfg).into_bytes();
+                                // TODO FN: the updated toml API returns a `Result` when
+                                // serializing--we should handle this and not potentially panic
+                                *rumor.mut_cfg() = toml::ser::to_vec(&cfg)
+                                    .expect("Can't serialize to TOML bytes");
                                 updated = Some(rumor);
                             });
             if let Some(rumor) = updated {
@@ -844,7 +845,9 @@ impl Service {
     }
 
     fn write_butterfly_service_config(&mut self, config: toml::Value) -> bool {
-        let encoded = toml::encode_str(&config);
+        let encoded = toml::ser::to_string(&config)
+            .expect("Failed to serialize service configuration to a string in a method that \
+                     can't return an error; this could be made better");
         let on_disk_path = self.svc_path().join("gossip.toml");
         let current_checksum = match hash::hash_file(&on_disk_path) {
             Ok(current_checksum) => current_checksum,

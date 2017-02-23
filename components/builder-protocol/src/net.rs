@@ -18,6 +18,7 @@ use std::result;
 
 use protobuf::core::ProtobufEnum;
 use serde::{Serialize, Serializer};
+use serde::ser::SerializeStruct;
 
 pub use message::net::*;
 
@@ -60,7 +61,7 @@ impl error::Error for NetError {
 }
 
 impl Serialize for ErrCode {
-    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error>
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {
         serializer.serialize_u64(self.value() as u64)
@@ -68,12 +69,12 @@ impl Serialize for ErrCode {
 }
 
 impl Serialize for NetError {
-    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error>
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {
-        let mut state = try!(serializer.serialize_struct("error", 2));
-        try!(serializer.serialize_struct_elt(&mut state, "code", self.get_code()));
-        try!(serializer.serialize_struct_elt(&mut state, "msg", self.get_msg()));
-        serializer.serialize_struct_end(state)
+        let mut strukt = try!(serializer.serialize_struct("error", 2));
+        try!(strukt.serialize_field("code", &self.get_code()));
+        try!(strukt.serialize_field("msg", self.get_msg()));
+        strukt.end()
     }
 }

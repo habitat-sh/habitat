@@ -19,6 +19,8 @@ use std::result;
 use std::str;
 use std::string;
 
+use toml;
+
 use depot_client;
 use hcore;
 
@@ -33,12 +35,12 @@ pub enum Error {
     DepotClient(depot_client::Error),
     FileNameError,
     HabitatCore(hcore::Error),
-    InvalidTomlError(String),
     /// Occurs when making lower level IO calls.
     IO(io::Error),
     RootRequired,
     StrFromUtf8Error(str::Utf8Error),
     StringFromUtf8Error(string::FromUtf8Error),
+    TomlSerializeError(toml::ser::Error),
     WireDecode(String),
 }
 
@@ -62,13 +64,13 @@ impl fmt::Display for Error {
             Error::DepotClient(ref err) => format!("{}", err),
             Error::FileNameError => format!("Failed to extract a filename"),
             Error::HabitatCore(ref e) => format!("{}", e),
-            Error::InvalidTomlError(ref e) => format!("Invalid TOML: {}", e),
             Error::IO(ref err) => format!("{}", err),
             Error::RootRequired => {
                 "Root or administrator permissions required to complete operation".to_string()
             }
             Error::StrFromUtf8Error(ref e) => format!("{}", e),
             Error::StringFromUtf8Error(ref e) => format!("{}", e),
+            Error::TomlSerializeError(ref e) => format!("Can't serialize TOML: {}", e),
             Error::WireDecode(ref m) => format!("Failed to decode wire message: {}", m),
         };
         write!(f, "{}", msg)
@@ -89,13 +91,13 @@ impl error::Error for Error {
             Error::DepotClient(ref err) => err.description(),
             Error::FileNameError => "Failed to extract a filename from a path",
             Error::HabitatCore(ref err) => err.description(),
-            Error::InvalidTomlError(_) => "Invalid TOML",
             Error::IO(ref err) => err.description(),
             Error::RootRequired => {
                 "Root or administrator permissions required to complete operation"
             }
             Error::StrFromUtf8Error(_) => "Failed to convert a string as UTF-8",
             Error::StringFromUtf8Error(_) => "Failed to convert a string as UTF-8",
+            Error::TomlSerializeError(_) => "Can't serialize TOML",
             Error::WireDecode(_) => "Failed to decode wire message",
         }
     }
@@ -128,5 +130,11 @@ impl From<str::Utf8Error> for Error {
 impl From<string::FromUtf8Error> for Error {
     fn from(err: string::FromUtf8Error) -> Self {
         Error::StringFromUtf8Error(err)
+    }
+}
+
+impl From<toml::ser::Error> for Error {
+    fn from(err: toml::ser::Error) -> Self {
+        Error::TomlSerializeError(err)
     }
 }

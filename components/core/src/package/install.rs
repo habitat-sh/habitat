@@ -28,7 +28,6 @@ use super::{Identifiable, PackageIdent, Target, PackageTarget};
 use super::metadata::{Bind, MetaFile};
 use error::{Error, Result};
 use fs;
-use util;
 
 pub const DEFAULT_CFG_FILE: &'static str = "default.toml";
 
@@ -224,14 +223,14 @@ impl PackageInstall {
     }
 
     /// Read and return the decoded contents of the packages default configuration.
-    pub fn default_cfg(&self) -> Option<toml::Table> {
+    pub fn default_cfg(&self) -> Option<toml::value::Table> {
         match File::open(self.installed_path.join(DEFAULT_CFG_FILE)) {
             Ok(mut file) => {
                 let mut raw = String::new();
                 if file.read_to_string(&mut raw).is_err() {
                     return None;
                 }
-                util::toml::table_from_str(&raw)
+                toml::from_str(&raw).ok()
             }
             Err(_) => None,
         }

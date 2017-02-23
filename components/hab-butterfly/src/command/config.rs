@@ -53,25 +53,14 @@ pub mod apply {
             }
         };
 
-        // We want to expire the borrow of body before we check to see if we need
-        // to encrypt the contents.
-        {
-            let toml_str = try!(str::from_utf8(&body)
-                .map_err(|e| Error::Utf8Error(format!("{}", e))));
-            let mut parser = toml::Parser::new(toml_str);
-            match parser.parse() {
-                Some(_) => try!(ui.status(Status::Verified, "this configuration is valid TOML")),
-                None => {
-                    for err in parser.errors.iter() {
-                        try!(ui.fatal("Invalid TOML"));
-                        try!(ui.br());
-                        try!(ui.para(&toml_str[0..err.lo]));
-                        try!(ui.warn(format!("^^^^ {} ^^^^", err)));
-                        try!(ui.br());
-                        try!(ui.para(&toml_str[err.lo..]));
-                        return Err(Error::TomlError);
-                    }
-                }
+        match toml::de::from_slice::<toml::value::Value>(&body) {
+            Ok(_) => try!(ui.status(Status::Verified, "this configuration is valid TOML")),
+            Err(err) => {
+                try!(ui.fatal("Invalid TOML"));
+                try!(ui.br());
+                try!(ui.warn(&err));
+                try!(ui.br());
+                return Err(Error::TomlDeserializeError(err));
             }
         }
 

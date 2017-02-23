@@ -137,9 +137,9 @@ pub enum Error {
     SignalNotifierStarted,
     StrFromUtf8Error(str::Utf8Error),
     StringFromUtf8Error(string::FromUtf8Error),
-    TomlEncode(toml::Error),
+    TomlEncode(toml::ser::Error),
     TomlMergeError(String),
-    TomlParser(Vec<toml::ParserError>),
+    TomlParser(toml::de::Error),
     TryRecvError(mpsc::TryRecvError),
     UnknownTopology(String),
     UnpackFailed,
@@ -222,11 +222,9 @@ impl fmt::Display for SupError {
             }
             Error::StrFromUtf8Error(ref e) => format!("{}", e),
             Error::StringFromUtf8Error(ref e) => format!("{}", e),
-            Error::TomlEncode(ref e) => format!("Failed to encode toml: {}", e),
-            Error::TomlMergeError(ref e) => format!("Failed to merge toml: {}", e),
-            Error::TomlParser(ref errs) => {
-                format!("Failed to parse toml:\n{}", toml_parser_string(errs))
-            }
+            Error::TomlEncode(ref e) => format!("Failed to encode TOML: {}", e),
+            Error::TomlMergeError(ref e) => format!("Failed to merge TOML: {}", e),
+            Error::TomlParser(ref err) => format!("Failed to parse TOML: {}", err),
             Error::TryRecvError(ref err) => format!("{}", err),
             Error::UnknownTopology(ref t) => format!("Unknown topology {}!", t),
             Error::UnpackFailed => format!("Failed to unpack a package"),
@@ -297,22 +295,13 @@ impl error::Error for SupError {
             Error::StrFromUtf8Error(_) => "Failed to convert a str from a &[u8] as UTF-8",
             Error::StringFromUtf8Error(_) => "Failed to convert a string from a Vec<u8> as UTF-8",
             Error::TomlEncode(_) => "Failed to encode toml!",
-            Error::TomlMergeError(_) => "Failed to merge toml!",
-            Error::TomlParser(_) => "Failed to parse toml!",
+            Error::TomlMergeError(_) => "Failed to merge TOML!",
+            Error::TomlParser(_) => "Failed to parse TOML!",
             Error::TryRecvError(_) => "A channel failed to receive a response",
             Error::UnknownTopology(_) => "Unknown topology",
             Error::UnpackFailed => "Failed to unpack a package",
         }
     }
-}
-
-fn toml_parser_string(errs: &Vec<toml::ParserError>) -> String {
-    let mut errors = String::new();
-    for err in errs.iter() {
-        errors.push_str(&format!("{}", err));
-        errors.push_str("\n");
-    }
-    return errors;
 }
 
 impl From<net::AddrParseError> for SupError {
@@ -393,8 +382,8 @@ impl From<mpsc::TryRecvError> for SupError {
     }
 }
 
-impl From<toml::Error> for SupError {
-    fn from(err: toml::Error) -> Self {
+impl From<toml::ser::Error> for SupError {
+    fn from(err: toml::ser::Error) -> Self {
         sup_error!(Error::TomlEncode(err))
     }
 }

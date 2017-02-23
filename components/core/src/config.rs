@@ -14,6 +14,7 @@
 
 use std;
 use std::collections::BTreeMap;
+use std::error::Error as StdError;
 use std::fs::File;
 use std::io::Read;
 use std::net::{IpAddr, SocketAddr};
@@ -42,7 +43,7 @@ pub trait ConfigFile: Sized {
         match raw.parse() {
             Ok(toml) => Self::from_toml(toml),
             Err(e) => {
-                let msg = format_errors(&e);
+                let msg = format!("\terror: {}\n", e.description());
                 Err(Self::Error::from(Error::ConfigFileSyntax(msg)))
             }
         }
@@ -57,7 +58,7 @@ pub trait ParseInto<T> {
 
 impl ParseInto<bool> for toml::Value {
     fn parse_into(&self, field: &'static str, out: &mut bool) -> Result<bool> {
-        if let Some(val) = self.lookup(field) {
+        if let Some(val) = self.get(field) {
             if let Some(v) = val.as_bool() {
                 *out = v as bool;
                 Ok(true)
@@ -72,7 +73,7 @@ impl ParseInto<bool> for toml::Value {
 
 impl ParseInto<usize> for toml::Value {
     fn parse_into(&self, field: &'static str, out: &mut usize) -> Result<bool> {
-        if let Some(val) = self.lookup(field) {
+        if let Some(val) = self.get(field) {
             if let Some(v) = val.as_integer() {
                 *out = v as usize;
                 Ok(true)
@@ -87,7 +88,7 @@ impl ParseInto<usize> for toml::Value {
 
 impl ParseInto<u16> for toml::Value {
     fn parse_into(&self, field: &'static str, out: &mut u16) -> Result<bool> {
-        if let Some(val) = self.lookup(field) {
+        if let Some(val) = self.get(field) {
             if let Some(v) = val.as_integer() {
                 *out = v as u16;
                 Ok(true)
@@ -102,8 +103,8 @@ impl ParseInto<u16> for toml::Value {
 
 impl ParseInto<Vec<u16>> for toml::Value {
     fn parse_into(&self, field: &'static str, out: &mut Vec<u16>) -> Result<bool> {
-        if let Some(val) = self.lookup(field) {
-            if let Some(v) = val.as_slice() {
+        if let Some(val) = self.get(field) {
+            if let Some(v) = val.as_array() {
                 let mut buf = vec![];
                 for int in v.iter() {
                     if let Some(i) = int.as_integer() {
@@ -125,7 +126,7 @@ impl ParseInto<Vec<u16>> for toml::Value {
 
 impl ParseInto<u32> for toml::Value {
     fn parse_into(&self, field: &'static str, out: &mut u32) -> Result<bool> {
-        if let Some(val) = self.lookup(field) {
+        if let Some(val) = self.get(field) {
             if let Some(v) = val.as_integer() {
                 *out = v as u32;
                 Ok(true)
@@ -140,8 +141,8 @@ impl ParseInto<u32> for toml::Value {
 
 impl ParseInto<Vec<u32>> for toml::Value {
     fn parse_into(&self, field: &'static str, out: &mut Vec<u32>) -> Result<bool> {
-        if let Some(val) = self.lookup(field) {
-            if let Some(v) = val.as_slice() {
+        if let Some(val) = self.get(field) {
+            if let Some(v) = val.as_array() {
                 let mut buf = vec![];
                 for int in v.iter() {
                     if let Some(i) = int.as_integer() {
@@ -163,7 +164,7 @@ impl ParseInto<Vec<u32>> for toml::Value {
 
 impl ParseInto<u64> for toml::Value {
     fn parse_into(&self, field: &'static str, out: &mut u64) -> Result<bool> {
-        if let Some(val) = self.lookup(field) {
+        if let Some(val) = self.get(field) {
             if let Some(v) = val.as_integer() {
                 *out = v as u64;
                 Ok(true)
@@ -178,8 +179,8 @@ impl ParseInto<u64> for toml::Value {
 
 impl ParseInto<Vec<u64>> for toml::Value {
     fn parse_into(&self, field: &'static str, out: &mut Vec<u64>) -> Result<bool> {
-        if let Some(val) = self.lookup(field) {
-            if let Some(v) = val.as_slice() {
+        if let Some(val) = self.get(field) {
+            if let Some(v) = val.as_array() {
                 let mut buf = vec![];
                 for int in v.iter() {
                     if let Some(i) = int.as_integer() {
@@ -201,7 +202,7 @@ impl ParseInto<Vec<u64>> for toml::Value {
 
 impl ParseInto<String> for toml::Value {
     fn parse_into(&self, field: &'static str, out: &mut String) -> Result<bool> {
-        if let Some(val) = self.lookup(field) {
+        if let Some(val) = self.get(field) {
             if let Some(v) = val.as_str() {
                 *out = v.to_string();
                 Ok(true)
@@ -216,7 +217,7 @@ impl ParseInto<String> for toml::Value {
 
 impl ParseInto<Option<String>> for toml::Value {
     fn parse_into(&self, field: &'static str, out: &mut Option<String>) -> Result<bool> {
-        if let Some(val) = self.lookup(field) {
+        if let Some(val) = self.get(field) {
             if let Some(v) = val.as_str() {
                 *out = Some(v.to_string());
                 Ok(true)
@@ -232,7 +233,7 @@ impl ParseInto<Option<String>> for toml::Value {
 
 impl ParseInto<BTreeMap<String, String>> for toml::Value {
     fn parse_into(&self, field: &'static str, out: &mut BTreeMap<String, String>) -> Result<bool> {
-        match self.lookup(field) {
+        match self.get(field) {
             Some(val) => {
                 match val.as_table() {
                     Some(val_table) => {
@@ -261,9 +262,9 @@ impl ParseInto<Vec<BTreeMap<String, String>>> for toml::Value {
                   field: &'static str,
                   out: &mut Vec<BTreeMap<String, String>>)
                   -> Result<bool> {
-        match self.lookup(field) {
+        match self.get(field) {
             Some(val) => {
-                match val.as_slice() {
+                match val.as_array() {
                     Some(val_slice) => {
                         let mut buf = vec![];
                         for i in val_slice.iter() {
@@ -300,7 +301,7 @@ impl ParseInto<Vec<BTreeMap<String, String>>> for toml::Value {
 
 impl ParseInto<SocketAddr> for toml::Value {
     fn parse_into(&self, field: &'static str, out: &mut SocketAddr) -> Result<bool> {
-        if let Some(val) = self.lookup(field) {
+        if let Some(val) = self.get(field) {
             if let Some(v) = val.as_str() {
                 match SocketAddr::from_str(v) {
                     Ok(addr) => {
@@ -320,8 +321,8 @@ impl ParseInto<SocketAddr> for toml::Value {
 
 impl ParseInto<Vec<SocketAddr>> for toml::Value {
     fn parse_into(&self, field: &'static str, out: &mut Vec<SocketAddr>) -> Result<bool> {
-        if let Some(val) = self.lookup(field) {
-            if let Some(slice) = val.as_slice() {
+        if let Some(val) = self.get(field) {
+            if let Some(slice) = val.as_array() {
                 let mut buf = vec![];
                 for entry in slice.iter() {
                     if let Some(v) = entry.as_str() {
@@ -346,7 +347,7 @@ impl ParseInto<Vec<SocketAddr>> for toml::Value {
 
 impl ParseInto<IpAddr> for toml::Value {
     fn parse_into(&self, field: &'static str, out: &mut IpAddr) -> Result<bool> {
-        if let Some(val) = self.lookup(field) {
+        if let Some(val) = self.get(field) {
             if let Some(v) = val.as_str() {
                 match IpAddr::from_str(v) {
                     Ok(addr) => {
@@ -366,7 +367,7 @@ impl ParseInto<IpAddr> for toml::Value {
 
 impl ParseInto<PackageIdent> for toml::Value {
     fn parse_into(&self, field: &'static str, out: &mut PackageIdent) -> Result<bool> {
-        match self.lookup(field) {
+        match self.get(field) {
             Some(val) => {
                 match val.as_str() {
                     Some(val_str) => {
@@ -388,7 +389,7 @@ impl ParseInto<PackageIdent> for toml::Value {
 
 impl ParseInto<PackageTarget> for toml::Value {
     fn parse_into(&self, field: &'static str, out: &mut PackageTarget) -> Result<bool> {
-        match self.lookup(field) {
+        match self.get(field) {
             Some(val) => {
                 match val.as_str() {
                     Some(val_str) => {
@@ -408,14 +409,6 @@ impl ParseInto<PackageTarget> for toml::Value {
     }
 }
 
-fn format_errors(errors: &Vec<toml::ParserError>) -> String {
-    let mut msg = String::new();
-    for err in errors {
-        msg.push_str(&format!("\terror: {}\n", err.desc));
-    }
-    msg
-}
-
 #[cfg(test)]
 mod test {
     use std::collections::BTreeMap;
@@ -429,9 +422,7 @@ mod test {
     use package::{PackageIdent, PackageTarget};
 
     fn toml_from_str(content: &str) -> toml::Value {
-        toml::Value::Table(toml::Parser::new(content)
-            .parse()
-            .expect(&format!("Content should parse as TOML: {}", content)))
+        toml::from_str(content).expect(&format!("Content should parse as TOML: {}", content))
     }
 
     #[test]
