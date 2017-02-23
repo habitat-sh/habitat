@@ -319,13 +319,18 @@ fn sub_pkg_hash(m: &ArgMatches) -> Result<()> {
                     Ok(line) => {
                         let file = line.trim_right();
                         if Path::new(&file).is_file() {
-                            command::pkg::hash::start_multi(&file);
+                            match command::pkg::hash::start(&file) {
+                                Ok(_) => (),
+                                Err(error) => {
+                                    writeln!(io::stderr(), "{}: error hashing file: {}", &file, error).unwrap();
+                                }
+                            }
                         } else {
-                            writeln!(io::stderr(), "{}: No such file or directory", &file);
+                            writeln!(io::stderr(), "{}: No such file or directory", &file).unwrap();
                         }
                     },
                     Err(error) => {
-                        writeln!(io::stderr(), "error: {}", error);
+                        writeln!(io::stderr(), "error: {}", error).unwrap();
                     },
                 }
             }
