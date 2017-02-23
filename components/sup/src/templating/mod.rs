@@ -23,6 +23,7 @@ impl Template {
     pub fn new() -> Self {
         let mut handlebars = Handlebars::new();
         handlebars.register_helper("pkgPathFor", Box::new(helpers::pkg_path_for));
+        handlebars.register_helper("eachAlive", Box::new(helpers::each_alive));
         handlebars.register_helper("toUppercase", Box::new(helpers::to_uppercase));
         handlebars.register_helper("toLowercase", Box::new(helpers::to_lowercase));
         handlebars.register_helper("strReplace", Box::new(helpers::str_replace));
@@ -193,6 +194,25 @@ mod test {
         let data = service_config_json_from_toml_file("complex_config.toml");
         let cfg = serde_json::from_value::<ServiceConfig>(data).unwrap();
         assert_eq!(cfg.pkg.name, "lsyncd");
+    }
+
+    #[test]
+    fn each_alive_helper_content() {
+        let mut template = Template::new();
+        // template using the new `eachAlive` helper
+        template.register_template_file("each_alive", fixtures().join("each_alive.txt"))
+            .unwrap();
+
+        // template using an each block with a nested if block filtering on `alive`
+        template.register_template_file("all_members", fixtures().join("all_members.txt"))
+            .unwrap();
+
+        let data = service_config_json_from_toml_file("multiple_supervisors_config.toml");
+
+        let each_alive_render = template.render("each_alive", &data).unwrap();
+        let each_if_render = template.render("all_members", &data).unwrap();
+
+        assert_eq!(each_alive_render, each_if_render);
     }
 
 }

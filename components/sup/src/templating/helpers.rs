@@ -14,15 +14,48 @@
 
 use std::str::FromStr;
 use std::string::ToString;
+use std::collections::{BTreeMap, HashMap};
 
 use hcore::package::{PackageIdent, Identifiable};
 use hcore::fs;
-use manager::service::config::ServiceConfig;
-use handlebars::{Handlebars, Helper, RenderContext, RenderError};
+use manager::service::config::{ServiceConfig, Svc};
+use handlebars::{Handlebars, Helper, Renderable, RenderContext, RenderError, Context};
 use serde_json;
 use toml;
 
+
 type RenderResult = Result<(), RenderError>;
+
+pub fn each_alive(h: &Helper, r: &Handlebars, rc: &mut RenderContext) -> RenderResult {
+    let value = try!(h.param(0)
+            .ok_or_else(|| RenderError::new("Param not found for helper \"eachAlive\"")))
+        .value();
+
+    let template = try!(h.template()
+        .ok_or_else(|| RenderError::new("No content to render inside the helper \"eachAlive\"")));
+    let default_array = Vec::default();
+    let value_array = value.as_array().unwrap_or(&default_array);
+    for i in 0..value_array.len() {
+        let member = try!(value_array[i]
+            .as_object()
+            .ok_or_else(|| {
+                RenderError::new(format!("Param value is not a valid census member.  Parameter \
+                                          content is: {:?}",
+                                         value_array[i]))
+            }));
+        if member["alive"].as_bool().unwrap_or(false) {
+            debug!("Alive! {:?}", value_array[i]);
+            let mut map = HashMap::default();
+            let mut local_context = Context::wraps(&value_array[i]);
+            let mut writer = rc.writer();
+            let mut local_rc = RenderContext::new(&mut local_context, &mut map, &mut writer);
+            try!(template.render(r, &mut local_rc));
+        } else {
+            debug!("Dead! {:?}", value_array[i]);
+        }
+    }
+    Ok(())
+}
 
 pub fn pkg_path_for(h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> RenderResult {
     let param = try!(h.param(0)
