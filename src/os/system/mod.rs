@@ -52,7 +52,7 @@ impl fmt::Display for Architecture {
 pub enum Platform {
     Linux,
     Windows,
-    MacOS,
+    Darwin,
 }
 
 impl fmt::Display for Platform {
@@ -82,7 +82,7 @@ impl FromStr for Platform {
         match platform.as_ref() {
             "linux" => Ok(Platform::Linux),
             "windows" => Ok(Platform::Windows),
-            "macos" => Ok(Platform::MacOS),
+            "darwin" => Ok(Platform::Darwin),
             _ => return Err(Error::InvalidPlatform(value.to_string())),
         }
     }
