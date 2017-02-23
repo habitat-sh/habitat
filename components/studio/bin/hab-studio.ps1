@@ -36,10 +36,11 @@ param (
     [switch]$n,
     [switch]$q,
     [switch]$v,
+    [switch]$R,
     [string]$command,
     [string]$commandVal,
     [string]$k,
-    [string]$r,
+    [string]$o,
     [string]$s
 )
 
@@ -67,10 +68,8 @@ COMMON FLAGS:
 
 COMMON OPTIONS:
     -k <HAB_ORIGIN_KEYS>  Installs secret origin keys (default:\$HAB_ORIGIN )
-    -r <HAB_STUDIO_ROOT>  Sets a Studio root (default: /hab/studios/<DIR_NAME>)
+    -o <HAB_STUDIO_ROOT>  Sets a Studio root (default: /hab/studios/<DIR_NAME>)
     -s <SRC_PATH>         Sets the source path (default: \$PWD)
-    -t <STUDIO_TYPE>      Sets a Studio type when creating (default: default)
-                          Valid types: [default baseimage busybox stage1]
 
 SUBCOMMANDS:
     build     Build using a Studio
@@ -89,7 +88,6 @@ ENVIRONMENT VARIABLES:
     NO_SRC_PATH       If set, do not mount source path (\`-n' flag overrides)
     QUIET             Prints less output (\`-q' flag overrides)
     SRC_PATH          Sets the source path (\`-s' option overrides)
-    STUDIO_TYPE       Sets a Studio type when creating (\`-t' option overrides)
     VERBOSE           Prints more verbose output (\`-v' flag overrides)
 
 SUBCOMMAND HELP:
@@ -104,19 +102,19 @@ EXAMPLES:
     $program enter
 
     # Run a command in the default Studio
-    $program run wget --version
+    $program run hab --version
 
     # Destroy the default Studio
     $program rm
 
-    # Create and enter a busybox type Studio with a custom root
-    $program -r /opt/slim -t busybox enter
+    # Create and enter a Studio with a custom root
+    $program -o /opt/slim
 
     # Run a command in the slim Studio, showing only the command output
-    $program -q -r /opt/slim run busybox ls -l /
+    $program -q -o /opt/slim run busybox ls -l /
 
     # Verbosely destroy the slim Studio
-    $program -v -r /opt/slim rm
+    $program -v -o /opt/slim rm
 
 "@
 }
@@ -311,11 +309,13 @@ function Invoke-StudioRun($cmd) {
   Invoke-Expression $cmd
 }
 
-function Invoke-StudioBuild($location) {
+function Invoke-StudioBuild($location, $reuse) {
   if($printHelp -or ($location -eq $null)) {
     Write-BuildHelp
     return
   }
+  if(!$reuse) { Remove-Studio}
+
   New-Studio
   Write-HabInfo "Building '$location' in Studio at $HAB_STUDIO_ROOT"
 
@@ -361,7 +361,7 @@ if(!$env:HAB_STUDIO_ROOT) {
 else {
   $script:HAB_STUDIO_ROOT = $env:HAB_STUDIO_ROOT
 }
-if($r) { $script:HAB_STUDIO_ROOT = $r }
+if($o) { $script:HAB_STUDIO_ROOT = $o }
 
 if($k) {
   $env:HAB_ORIGIN_KEYS = $k
@@ -383,7 +383,7 @@ try {
     "run" { Invoke-StudioRun $commandVal }
     "rm" { Remove-Studio }
     "enter" { Enter-Studio }
-    "build" { Invoke-StudioBuild $commandVal }
+    "build" { Invoke-StudioBuild $commandVal $R }
     "version" { Write-Host "$program $version" }
     "help" { Write-Help }
     default {
