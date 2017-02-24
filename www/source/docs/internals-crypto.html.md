@@ -16,9 +16,19 @@ When you have either wire encryption or service group encryption turned on, the 
 
 Habitat packages are signed using [BLAKE2b](https://blake2.net/) checksums. BLAKE2b is a cryptographic hash function faster than MD5, SHA-1, SHA-2 and SHA3, yet provides at least as much security as the latest standard SHA-3.
 
-You can examine the first four lines of a `.hart` file to extract the signature from it, because a `.hart` is an `xz`-compressed tarball with a metadata header:
+You can examine the first four lines of a `.hart` file to extract the signature from it, because it is an `xz`-compressed tarball with a metadata header. The `hab pkg header` command will do this for you.
 
-       head -n +4 somefile.hart
+       hab pkg header somefile.hart
+
+outputs:
+
+       » Reading package header for somefile.hart
+
+       Package        : somefile.hart
+       Format Version : HART-1
+       Key Name       : myorigin-19780608081445
+       Hash Type      : BLAKE2b
+       Raw Signature  : a8yDoiA0Mv0CcW6xVyfkSOIZ0LW0beef4RPtvKL56MxemgG6dMVlKG1Ibplp7DUByr5az0kI5dmJKXgK6KURDzM1N2Y2MGMxYWJiMTNlYjQxMjliZTMzNGY0MWJlYTAzYmI4NDZlZzM2MDRhM2Y5M2VlMDkyNDFlYmVmZDk1Yzk=
 
 The `.hart` file format is designed in this way to allow you to extract both the signature and the payload separately for inspection. To extract only the `xz`-compressed content, bypassing the signature, you could type this:
 
