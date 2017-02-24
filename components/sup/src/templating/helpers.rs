@@ -43,7 +43,7 @@ pub fn each_alive(h: &Helper, r: &Handlebars, rc: &mut RenderContext) -> RenderR
                                           content is: {:?}",
                                          value_array[i]))
             }));
-        if member["alive"].as_bool().unwrap_or(false) {
+        if member.contains_key("alive") && member["alive"].as_bool().unwrap_or(false) {
             debug!("Alive! {:?}", value_array[i]);
             let mut map = HashMap::default();
             let mut local_context = Context::wraps(&value_array[i]);
