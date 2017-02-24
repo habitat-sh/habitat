@@ -393,7 +393,7 @@ impl SwimNet {
         self[member].insert_service_file(s);
     }
 
-    pub fn add_election(&mut self, member: usize, service: &str, suitability: u64) {
+    pub fn add_election(&mut self, member: usize, service: &str) {
         self[member].start_election(ServiceGroup::new(service, "prod", None), suitability, 0);
     }
 }

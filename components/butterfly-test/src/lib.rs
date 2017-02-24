@@ -26,7 +26,7 @@ use std::str::FromStr;
 
 use time::SteadyTime;
 
-use habitat_butterfly::server::Server;
+use habitat_butterfly::server::{Server, Suitability};
 use habitat_butterfly::member::{Member, Health};
 use habitat_butterfly::server::timing::Timing;
 use habitat_butterfly::rumor::service::{Service, SysInfo};
@@ -40,7 +40,15 @@ use habitat_butterfly::trace::Trace;
 
 static SERVER_PORT: AtomicUsize = ATOMIC_USIZE_INIT;
 
-pub fn start_server(name: &str, ring_key: Option<SymKey>) -> Server {
+#[derive(Debug)]
+struct NSuitability(u64);
+impl Suitability for NSuitability {
+    fn get(&self, _service_group: &ServiceGroup) -> u64 {
+        self.0
+    }
+}
+
+pub fn start_server(name: &str, ring_key: Option<SymKey>, suitability: u64) -> Server {
     SERVER_PORT.compare_and_swap(0, 6666, Ordering::Relaxed);
     let swim_port = SERVER_PORT.fetch_add(1, Ordering::Relaxed);
     let gossip_port = SERVER_PORT.fetch_add(1, Ordering::Relaxed);
@@ -54,7 +62,8 @@ pub fn start_server(name: &str, ring_key: Option<SymKey>) -> Server {
                              member,
                              Trace::default(),
                              ring_key,
-                             Some(String::from(name)))
+                             Some(String::from(name)),
+                             Box::new(NSuitability(suitability)))
         .unwrap();
     server.start(Timing::default()).expect("Cannot start server");
     server
@@ -92,19 +101,25 @@ impl DerefMut for SwimNet {
 }
 
 impl SwimNet {
-    pub fn new(count: usize) -> SwimNet {
+    pub fn new_with_suitability(suitabilities: Vec<u64>) -> SwimNet {
+        let count = suitabilities.len();
         let mut members = Vec::with_capacity(count);
         for x in 0..count {
-            members.push(start_server(&format!("{}", x), None));
+            members.push(start_server(&format!("{}", x), None, suitabilities[x]));
         }
         SwimNet { members: members }
+    }
+
+    pub fn new(count: usize) -> SwimNet {
+        let suitabilities = vec![0; count];
+        SwimNet::new_with_suitability(suitabilities)
     }
 
     pub fn new_ring_encryption(count: usize, ring_key: Option<SymKey>) -> SwimNet {
         let mut members = Vec::with_capacity(count);
         for x in 0..count {
             let rk = ring_key.clone();
-            members.push(start_server(&format!("{}", x), rk));
+            members.push(start_server(&format!("{}", x), rk, 0));
         }
         SwimNet { members: members }
     }
@@ -438,10 +453,8 @@ impl SwimNet {
         self[member].insert_service_file(s);
     }
 
-    pub fn add_election(&mut self, member: usize, service: &str, suitability: u64) {
-        self[member].start_election(ServiceGroup::new(service, "prod", None).unwrap(),
-                                    suitability,
-                                    0);
+    pub fn add_election(&mut self, member: usize, service: &str) {
+        self[member].start_election(ServiceGroup::new(service, "prod", None).unwrap(), 0);
     }
 }
 

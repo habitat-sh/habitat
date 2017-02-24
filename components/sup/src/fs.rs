@@ -55,3 +55,8 @@ pub fn svc_static_path<T: AsRef<Path>>(service_name: T) -> PathBuf {
 pub fn svc_var_path<T: AsRef<Path>>(service_name: T) -> PathBuf {
     svc_path(service_name).join("var")
 }
+
+/// Returns the path to a given service's logs.
+pub fn svc_logs_path<T: AsRef<Path>>(service_name: T) -> PathBuf {
+    svc_path(service_name).join("logs")
+}
