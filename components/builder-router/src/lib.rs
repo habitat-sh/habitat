@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-extern crate habitat_builder_dbcache as dbcache;
 extern crate habitat_builder_protocol as protocol;
 extern crate habitat_core as hab_core;
 extern crate habitat_net as hab_net;
@@ -20,8 +19,9 @@ extern crate habitat_net as hab_net;
 extern crate log;
 extern crate protobuf;
 extern crate rand;
-extern crate toml;
 #[macro_use]
+extern crate serde_derive;
+extern crate toml;
 extern crate zmq;
 
 pub mod config;

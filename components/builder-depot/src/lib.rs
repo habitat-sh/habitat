@@ -17,16 +17,12 @@ extern crate habitat_builder_protocol as protocol;
 #[macro_use]
 extern crate habitat_core as hab_core;
 extern crate habitat_net as hab_net;
-#[macro_use]
 extern crate builder_core as bld_core;
 extern crate bodyparser;
 extern crate crypto;
-#[macro_use]
 extern crate hyper;
 extern crate iron;
 extern crate iron_test;
-#[macro_use]
-extern crate lazy_static;
 extern crate libc;
 #[macro_use]
 extern crate log;
