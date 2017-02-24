@@ -55,15 +55,12 @@ pub use self::config::ServiceConfig;
 pub use self::health::{HealthCheck, SmokeCheck};
 
 static LOGKEY: &'static str = "SR";
-static DEFAULT_GROUP: &'static str = "default";
 const HABITAT_PACKAGE_INFO_NAME: &'static str = "habitat_package_info";
 const HABITAT_PACKAGE_INFO_DESC: &'static str = "package version information";
 
 #[derive(Debug)]
 pub struct ServiceSpec {
     pub ident: PackageIdent,
-    pub group: String,
-    pub organization: Option<String>,
     pub depot_url: String,
     pub topology: Topology,
     pub update_strategy: UpdateStrategy,
@@ -75,8 +72,6 @@ impl ServiceSpec {
     pub fn default_for(ident: PackageIdent) -> Self {
         ServiceSpec {
             ident: ident,
-            group: DEFAULT_GROUP.to_string(),
-            organization: None,
             depot_url: DEFAULT_DEPOT_URL.to_string(),
             topology: Topology::default(),
             update_strategy: UpdateStrategy::default(),
@@ -151,13 +146,13 @@ pub struct Service {
 impl Service {
     pub fn new(package: PackageInstall,
                spec: ServiceSpec,
+               group: &str,
+               org: Option<&str>,
                gossip_listen: &GossipListenAddr,
                http_listen: &http_gateway::ListenAddr)
                -> Result<Service> {
         spec.validate(&package)?;
-        let service_group = ServiceGroup::new(&package.ident.name,
-                                              spec.group,
-                                              spec.organization.as_ref().map(|x| &**x))?;
+        let service_group = ServiceGroup::new(&package.ident.name, group, org)?;
         let (svc_user, svc_group) = util::users::get_user_and_group(&package)?;
         let runtime_cfg = RuntimeConfig::new(svc_user, svc_group);
         let config_root = spec.config_from.clone().unwrap_or(package.installed_path.clone());
@@ -194,6 +189,8 @@ impl Service {
     }
 
     pub fn load(spec: ServiceSpec,
+                group: &str,
+                org: Option<&str>,
                 gossip_listen: &GossipListenAddr,
                 http_listen: &http_gateway::ListenAddr)
                 -> Result<Service> {
@@ -214,7 +211,7 @@ impl Service {
                 try!(util::pkg::install(&mut ui, &spec.depot_url, &spec.ident))
             }
         };
-        Self::new(package, spec, gossip_listen, http_listen)
+        Self::new(package, spec, group, org, gossip_listen, http_listen)
     }
 
     pub fn add(&self) -> Result<()> {
