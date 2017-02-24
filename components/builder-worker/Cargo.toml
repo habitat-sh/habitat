@@ -16,7 +16,7 @@ git2 = "*"
 lazy_static = "*"
 log = "*"
 protobuf = "*"
-toml = { version = "*", features = ["serde"], default-features = false }
+toml = { version = "*", features = ["serde"], default-features = false, git = "https://github.com/alexcrichton/toml-rs" , rev = "d39c3f7b3ec95cb3cc1e579d7d747206c66aab74" }
 
 [dependencies.clap]
 version = "*"
