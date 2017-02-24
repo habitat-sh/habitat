@@ -420,12 +420,86 @@ impl Hook for SmokeTestHook {
     }
 }
 
+#[derive(Debug, Serialize)]
+pub struct SuitabilityHook(RenderPair, LogsPrefix);
+
+impl Hook for SuitabilityHook {
+    type ExitValue = Option<u64>;
+
+    fn file_name() -> &'static str {
+        "suitability"
+    }
+
+    fn new<C, T, L>(concrete_path: C, template_path: T, logs_prefix: L) -> Result<Self>
+        where C: Into<PathBuf>,
+              T: AsRef<Path>,
+              L: Into<PathBuf>
+    {
+        let pair = RenderPair::new(concrete_path, template_path)?;
+        Ok(SuitabilityHook(pair, logs_prefix.into()))
+    }
+
+    fn handle_exit(&self,
+                   service_group: &ServiceGroup,
+                   hook_output: &HookOutput,
+                   status: &ExitStatus)
+                   -> Self::ExitValue {
+        match status.code() {
+            Some(0) => {
+                if let Some(reader) = hook_output.stdout() {
+                    reader.lines().last().and_then(|line_reader| {
+                        match line_reader {
+                            Ok(line) => {
+                                match line.trim().parse::<u64>() {
+                                    Ok(suitability) => {
+                                        outputln!(preamble service_group, "Reporting suitability of: {}", suitability);
+                                        return Some(suitability);
+                                    }
+                                    Err(err) => {
+                                        outputln!(preamble service_group, "Parsing suitability failed: {}", err);
+                                    }
+                                };
+                            }
+                            Err(err) => {
+                                outputln!(preamble service_group, "Failed to read last line of stdout: {}", err);
+                            }
+                        };
+                        None
+                    });
+                };
+            }
+            Some(code) => {
+                outputln!(preamble service_group,
+                    "{} exited with status code {}", Self::file_name(), code);
+            }
+            None => {
+                outputln!(preamble service_group,
+                    "{} exited without a status code", Self::file_name());
+            }
+        }
+        None
+    }
+
+    fn path(&self) -> &Path {
+        &self.0.path
+    }
+
+    fn template(&self) -> &Template {
+        &self.0.template
+    }
+
+    fn logs_prefix(&self) -> &Path {
+        &self.1
+    }
+}
+
 #[derive(Debug, Default, Serialize)]
 pub struct HookTable {
     pub health_check: Option<HealthCheckHook>,
     pub init: Option<InitHook>,
     pub file_updated: Option<FileUpdatedHook>,
     pub reconfigure: Option<ReconfigureHook>,
+    pub suitability: Option<SuitabilityHook>,
     pub run: Option<RunHook>,
     pub smoke_test: Option<SmokeTestHook>,
     cfg_incarnation: u64,
@@ -451,6 +525,9 @@ impl HookTable {
             self.compile_one(hook, service_group, config);
         }
         if let Some(ref hook) = self.reconfigure {
+            self.compile_one(hook, service_group, config);
+        }
+        if let Some(ref hook) = self.suitability {
             self.compile_one(hook, service_group, config);
         }
         if let Some(ref hook) = self.run {
@@ -479,6 +556,8 @@ impl HookTable {
                     FileUpdatedHook::load(service_group, &hooks, &templates, &logs_dir);
                 self.health_check =
                     HealthCheckHook::load(service_group, &hooks, &templates, &logs_dir);
+                self.suitability =
+                    SuitabilityHook::load(service_group, &hooks, &templates, &logs_dir);
                 self.init = InitHook::load(service_group, &hooks, &templates, &logs_dir);
                 self.reconfigure =
                     ReconfigureHook::load(service_group, &hooks, &templates, &logs_dir);

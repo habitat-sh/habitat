@@ -568,6 +568,14 @@ impl Service {
         }
     }
 
+    pub fn suitability(&self) -> Option<u64> {
+        self.hooks
+            .suitability
+            .as_ref()
+            .and_then(|hook| hook.run(&self.service_group, self.runtime_cfg()))
+    }
+
+
     /// Returns the root path for service configuration, files, and data.
     pub fn svc_path(&self) -> PathBuf {
         fs::svc_path(&self.service_group.service())
