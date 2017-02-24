@@ -310,16 +310,16 @@ fn sub_pkg_hash(m: &ArgMatches) -> Result<()> {
         Some(source) => {
             // hash single file
             command::pkg::hash::start(&source)
-        },
+        }
         None => {
             // read files from stdin
             let stdin = io::stdin();
             for line in stdin.lock().lines() {
-                let file = line.unwrap();
+                let file = try!(line);
                 try!(command::pkg::hash::start(file.trim_right()));
             }
             Ok(())
-        },
+        }
     }
 }
 
