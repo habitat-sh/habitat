@@ -14,11 +14,11 @@
 
 use std::str::FromStr;
 use std::string::ToString;
-use std::collections::{BTreeMap, HashMap};
+use std::collections::HashMap;
 
 use hcore::package::{PackageIdent, Identifiable};
 use hcore::fs;
-use manager::service::config::{ServiceConfig, Svc};
+use manager::service::config::ServiceConfig;
 use handlebars::{Handlebars, Helper, Renderable, RenderContext, RenderError, Context};
 use serde_json;
 use toml;
