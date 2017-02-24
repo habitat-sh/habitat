@@ -2122,7 +2122,7 @@ _build_metadata() {
   build_line "Generating blake2b hashes of all files in the package"
   find $pkg_prefix -type f \
     | $_sort_cmd \
-    | while read file; do _b2sum "$file"; done > ${pkg_name}_blake2bsums
+    | hab pkg hash > ${pkg_name}_blake2bsums
 
   build_line "Generating signed metadata FILES"
   $HAB_BIN pkg sign --origin $pkg_origin ${pkg_name}_blake2bsums $pkg_prefix/FILES
@@ -2340,17 +2340,6 @@ $(cat $PLAN_CONTEXT/plan.sh)
 \`\`\`
 EOT
   return 0
-}
-
-# **Internal** Generate the blake2b checksum and output similar to
-# `sha256sum`.
-#
-# TODO: (jtimberman) If `hab pkg hash` itself starts to output
-# like `sha256sum` at some point, we'll need to update this function.
-_b2sum() {
-  local filename="$1"
-  local hash_val=$(hab pkg hash "$filename")
-  echo -en "$hash_val  $filename\n"
 }
 
 # **Internal** Create the package artifact with `tar`/`hab pkg sign`

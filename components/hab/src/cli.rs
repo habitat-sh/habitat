@@ -170,7 +170,7 @@ pub fn get() -> App<'static, 'static> {
             (@subcommand hash =>
                 (about: "Generates a blake2b hashsum from a target at any given filepath")
                 (aliases: &["ha", "has"])
-                (@arg SOURCE: +required {file_exists} "A filepath of the target")
+                (@arg SOURCE: +takes_value {file_exists} "A filepath of the target")
             )
             (subcommand: sub_pkg_install().aliases(
                 &["i", "in", "ins", "inst", "insta", "instal"]))

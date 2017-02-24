@@ -18,6 +18,6 @@ use error::Result;
 
 pub fn start(src: &str) -> Result<()> {
     let h = try!(hash::hash_file(&src));
-    println!("{}", h);
+    println!("{}  {}", h, src);
     Ok(())
 }
