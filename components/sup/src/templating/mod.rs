@@ -214,4 +214,23 @@ mod test {
         assert_eq!(each_alive_render, each_if_render);
     }
 
+    #[test]
+    fn each_alive_helper_first_node() {
+        let mut template = Template::new();
+        // template using the new `eachAlive` helper
+        template.register_template_file("each_alive", fixtures().join("each_alive.txt"))
+            .unwrap();
+
+        // template using an each block with a nested if block filtering on `alive`
+        template.register_template_file("all_members", fixtures().join("all_members.txt"))
+            .unwrap();
+
+        let data = service_config_json_from_toml_file("one_supervisor_not_started.toml");
+
+        let each_alive_render = template.render("each_alive", &data).unwrap();
+        let each_if_render = template.render("all_members", &data).unwrap();
+
+        assert_eq!(each_alive_render, each_if_render);
+    }
+
 }
