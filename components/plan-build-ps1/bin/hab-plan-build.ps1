@@ -1247,9 +1247,11 @@ try {
         }
     }
 
-    # Test to ensure package name contains only valid characters
-    if (-Not ("$pkg_name" -match '^[A-Za-z0-9_-]+$')) {
-        _Exit-With "Failed to build. Package name '$pkg_name' contains invalid characters." 1
+    # Test to ensure package name and origin contain only valid characters
+    foreach ($var in @("pkg_name", "pkg_origin")) {
+      if (-Not ((Get-Content Variable:\$var) -match '^[A-Za-z0-9_-]+$')) {
+          _Exit-With "Failed to build. Package '$var' contains invalid characters." 1
+      }
     }
 
     # Pass over `$pkg_svc_run` to replace any `$pkg_name` placeholder tokens
