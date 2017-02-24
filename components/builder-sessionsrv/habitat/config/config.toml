@@ -1,0 +1,14 @@
+{{toToml cfg}}
+
+{{~#eachAlive bind.router.members}}
+[[router]]
+host = "{{sys.ip}}"
+port = {{cfg.port}}
+heartbeat = {{cfg.heartbeat}}
+{{~/eachAlive}}
+
+{{~#eachAlive bind.datastore.members}}
+[datastore]
+host = "{{sys.ip}}"
+port = {{cfg.port}}
+{{~/eachAlive}}

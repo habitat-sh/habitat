@@ -27,7 +27,7 @@ use hab_core::config::ConfigFile;
 use originsrv::{Config, Error, Result};
 
 const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
-const CFG_DEFAULT_PATH: &'static str = "/hab/svc/hab-builder-originsrv/config.toml";
+const CFG_DEFAULT_PATH: &'static str = "/hab/svc/builder-originsrv/config.toml";
 
 fn main() {
     env_logger::init().unwrap();
@@ -52,7 +52,7 @@ fn app<'a, 'b>() -> clap::App<'a, 'b> {
         (@subcommand start =>
             (about: "Run a Habitat-Builder origin server")
             (@arg config: -c --config +takes_value +global
-                "Filepath to configuration file. [default: /hab/svc/hab-builder-originsrv/config.toml]")
+                "Filepath to configuration file. [default: /hab/svc/builder-originsrv/config.toml]")
         )
     )
 }

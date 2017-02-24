@@ -21,6 +21,9 @@ extern crate log;
 extern crate postgres;
 extern crate protobuf;
 extern crate r2d2;
+extern crate serde;
+#[macro_use]
+extern crate serde_derive;
 extern crate toml;
 extern crate zmq;
 

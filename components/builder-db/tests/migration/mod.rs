@@ -12,16 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::mem;
-
 use db::migration::Migrator;
 
 #[test]
+#[allow(unused_must_use)]
 fn setup() {
     with_pool!(pool, {
         let conn = pool.get_raw().expect("cannot get connection");
         let xact = conn.transaction().expect("cannot get transaction");
-        let mut migrator = Migrator::new(xact, vec![0, 1]);
+        let migrator = Migrator::new(xact, vec![0, 1]);
         migrator.setup().expect("Migration setup failed");
         migrator
             .setup()
@@ -31,6 +30,7 @@ fn setup() {
 }
 
 #[test]
+#[allow(unused_must_use)]
 fn migrate() {
     with_pool!(pool, {
         let conn = pool.get_raw().expect("cannot get connection");

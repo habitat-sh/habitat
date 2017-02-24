@@ -1,3 +1,15 @@
-[srv]
-port = 5566
-heartbeat = 5567
+shards = []
+
+[net]
+worker_command_listen = "0.0.0.0"
+worker_command_port = 5566
+worker_heartbeat_listen = "0.0.0.0"
+worker_heartbeat_port = 5567
+publisher_listen = "0.0.0.0"
+publisher_port = 5568
+
+[datastore]
+user = "hab"
+database = "builder_jobsrv"
+connection_retry_ms = 300
+connection_timeout_sec = 3600

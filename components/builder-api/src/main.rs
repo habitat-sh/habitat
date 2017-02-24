@@ -27,7 +27,7 @@ use hab_core::config::ConfigFile;
 use api::{Config, Error, Result};
 
 const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
-const CFG_DEFAULT_PATH: &'static str = "/hab/svc/hab-builder-api/config.toml";
+const CFG_DEFAULT_PATH: &'static str = "/hab/svc/builder-api/config.toml";
 
 fn main() {
     env_logger::init().unwrap();
@@ -52,7 +52,7 @@ fn app<'a, 'b>() -> clap::App<'a, 'b> {
         (@subcommand start =>
             (about: "Run the builder-api server")
             (@arg config: -c --config +takes_value
-                "Filepath to configuration file. [default: /hab/svc/hab-builder-api/config.toml]")
+                "Filepath to configuration file. [default: /hab/svc/builder-api/config.toml]")
             (@arg path: -p --path +takes_value
                 "Filepath to service storage for the Depot service")
             (@arg port: --port +takes_value "Listen port. [default: 9636]")
@@ -68,7 +68,9 @@ fn config_from_args(matches: &clap::ArgMatches) -> Result<Config> {
         None => Config::from_file(CFG_DEFAULT_PATH).unwrap_or(Config::default()),
     };
     if let Some(port) = args.value_of("port") {
-        if u16::from_str(port).map(|p| config.set_port(p)).is_err() {
+        if u16::from_str(port)
+               .map(|p| config.http.port = p)
+               .is_err() {
             return Err(Error::BadPort(port.to_string()));
         }
     }

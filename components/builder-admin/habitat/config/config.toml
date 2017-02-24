@@ -1,0 +1,10 @@
+[ui]
+root = "{{pkg.svc_static_path}}"
+
+{{toToml cfg}}
+
+{{~#eachAlive bind.router.members}}
+[[router]]
+host = "{{sys.ip}}"
+port = {{cfg.port}}
+{{~/eachAlive}}

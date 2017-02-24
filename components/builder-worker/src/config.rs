@@ -14,31 +14,29 @@
 
 //! Configuration for a Habitat JobSrv Worker
 
-use std::collections::BTreeMap;
+use std::net::{IpAddr, Ipv4Addr};
 
-use hab_core::config::{ConfigFile, ParseInto};
-use toml;
+use hab_core::config::ConfigFile;
 
-use error::{Error, Result};
+use error::Error;
 
+#[derive(Debug, Deserialize)]
+#[serde(default)]
 pub struct Config {
     /// Token for authenticating with the public builder-api
     pub auth_token: String,
     /// Filepath where persistent application data is stored
     pub data_path: String,
     /// List of Job Servers to connect to
-    pub job_servers: Vec<BTreeMap<String, String>>,
+    pub jobsrv: JobSrvCfg,
 }
 
 impl Config {
     pub fn jobsrv_addrs(&self) -> Vec<(String, String)> {
         let mut addrs = vec![];
-        for job_server in &self.job_servers {
-            let ip = job_server.get("ip").unwrap();
-            let port = job_server.get("port").unwrap();
-            let heartbeat = job_server.get("heartbeat").unwrap();
-            let hb = format!("tcp://{}:{}", ip, heartbeat);
-            let queue = format!("tcp://{}:{}", ip, port);
+        for job_server in &self.jobsrv {
+            let hb = format!("tcp://{}:{}", job_server.host, job_server.heartbeat);
+            let queue = format!("tcp://{}:{}", job_server.host, job_server.port);
             addrs.push((hb, queue));
         }
         addrs
@@ -47,26 +45,66 @@ impl Config {
 
 impl Default for Config {
     fn default() -> Self {
-        let mut jobsrv = BTreeMap::new();
-        jobsrv.insert("ip".to_string(), "127.0.0.1".to_string());
-        jobsrv.insert("port".to_string(), "5566".to_string());
-        jobsrv.insert("heartbeat".to_string(), "5567".to_string());
         Config {
             auth_token: "".to_string(),
             data_path: "/tmp".to_string(),
-            job_servers: vec![jobsrv],
+            jobsrv: vec![JobSrvAddr::default()],
         }
     }
 }
 
 impl ConfigFile for Config {
     type Error = Error;
+}
 
-    fn from_toml(toml: toml::Value) -> Result<Self> {
-        let mut cfg = Config::default();
-        try!(toml.parse_into("cfg.auth_token", &mut cfg.auth_token));
-        try!(toml.parse_into("cfg.data_path", &mut cfg.data_path));
-        try!(toml.parse_into("cfg.job_servers", &mut cfg.job_servers));
-        Ok(cfg)
+pub type JobSrvCfg = Vec<JobSrvAddr>;
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(default)]
+pub struct JobSrvAddr {
+    pub host: IpAddr,
+    pub port: u16,
+    pub heartbeat: u16,
+}
+
+impl Default for JobSrvAddr {
+    fn default() -> Self {
+        JobSrvAddr {
+            host: IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
+            port: 5568,
+            heartbeat: 5567,
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn config_from_file() {
+        let content = r#"
+        auth_token = "mytoken"
+        data_path = "/path/to/data"
+
+        [[jobsrv]]
+        host = "1:1:1:1:1:1:1:1"
+        port = 9000
+        heartbeat = 9001
+
+        [[jobsrv]]
+        host = "2.2.2.2"
+        port = 9000
+        "#;
+
+        let config = Config::from_raw(&content).unwrap();
+        assert_eq!(&config.auth_token, "mytoken");
+        assert_eq!(&config.data_path, "/path/to/data");
+        assert_eq!(&format!("{}", config.jobsrv[0].host), "1:1:1:1:1:1:1:1");
+        assert_eq!(config.jobsrv[0].port, 9000);
+        assert_eq!(config.jobsrv[0].heartbeat, 9001);
+        assert_eq!(&format!("{}", config.jobsrv[1].host), "2.2.2.2");
+        assert_eq!(config.jobsrv[1].port, 9000);
+        assert_eq!(config.jobsrv[1].heartbeat, 5567);
     }
 }

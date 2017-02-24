@@ -26,7 +26,7 @@ use hab_core::package::{Identifiable, FromArchive, PackageArchive, PackageTarget
 use hab_core::crypto::keys::{self, PairType};
 use hab_core::crypto::SigKeyPair;
 use hab_core::event::*;
-use hab_net::config::RouteAddrs;
+use hab_net::config::RouterCfg;
 use hab_net::http::controller::*;
 use hab_net::privilege;
 use hab_net::routing::{Broker, RouteResult};
@@ -668,10 +668,7 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
         }
     };
 
-    if !depot
-            .config
-            .supported_targets
-            .contains(&target_from_artifact) {
+    if !depot.config.targets.contains(&target_from_artifact) {
         debug!("Unsupported package platform or architecture {}.",
                target_from_artifact);
         return Ok(Response::with(status::NotImplemented));
@@ -926,7 +923,7 @@ fn download_package(req: &mut Request) -> IronResult<Response> {
         ident_req.set_ident(ident_from_params(params));
     };
     let agent_target = target_from_headers(&req.headers.get::<UserAgent>().unwrap()).unwrap();
-    if !depot.config.supported_targets.contains(&agent_target) {
+    if !depot.config.targets.contains(&agent_target) {
         error!("Unsupported client platform ({}) for this depot.",
                agent_target);
         return Ok(Response::with(status::NotImplemented));
@@ -1743,14 +1740,13 @@ pub fn router(depot: DepotUtil) -> Result<Chain> {
 }
 
 pub fn run(config: Config) -> Result<()> {
-    let listen_addr = config.listen_addr.clone();
     let depot = DepotUtil::new(config.clone());
     let v1 = try!(router(depot));
     let broker = Broker::run(DepotUtil::net_ident(), &config.route_addrs().clone());
 
     let mut mount = Mount::new();
     mount.mount("/v1", v1);
-    Iron::new(mount).http(listen_addr).unwrap();
+    Iron::new(mount).http(&config.http).expect("Unable to start HTTP listener");
     broker.join().unwrap();
     Ok(())
 }

@@ -34,11 +34,7 @@ impl DataStore {
     /// * Can fail if the pool cannot be created
     /// * Blocks creation of the datastore on the existince of the pool; might wait indefinetly.
     pub fn new(config: &Config) -> Result<DataStore> {
-        let pool = Pool::new(&config.datastore_connection_url,
-                             config.pool_size,
-                             config.datastore_connection_retry_ms,
-                             config.datastore_connection_timeout,
-                             config.shards.clone())?;
+        let pool = Pool::new(&config.datastore, config.shards.clone())?;
         Ok(DataStore { pool: pool })
     }
 

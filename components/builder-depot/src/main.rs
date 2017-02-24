@@ -77,7 +77,7 @@ fn config_from_args(matches: &clap::ArgMatches) -> Result<Config> {
     };
     if let Some(port) = args.value_of("port") {
         if let Some(port) = u16::from_str(port).ok() {
-            config.listen_addr.set_port(port);
+            config.http.port = port;
         } else {
             return Err(Error::BadPort(port.to_string()));
         }
@@ -112,8 +112,10 @@ fn dispatch(config: Config, matches: &clap::ArgMatches) -> Result<()> {
 ///
 /// * Fails if the depot server fails to start - cannot bind to the port, etc.
 fn start(config: Config) -> Result<()> {
-    println!("Starting package Depot at {}", &config.path);
-    println!("Depot listening on {}", &config.listen_addr);
+    println!("Starting package Depot at {}", config.path);
+    println!("Depot listening on {}:{}",
+             config.http.listen,
+             config.http.port);
     server::run(config)
 }
 

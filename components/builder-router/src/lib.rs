@@ -19,6 +19,8 @@ extern crate habitat_net as hab_net;
 extern crate log;
 extern crate protobuf;
 extern crate rand;
+#[macro_use]
+extern crate serde_derive;
 extern crate toml;
 extern crate zmq;
 

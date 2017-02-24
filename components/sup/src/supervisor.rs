@@ -158,7 +158,6 @@ impl Supervisor {
             self.enter_state(ProcessState::Start);
             let mut child = try!(try!(util::create_command(self.run_cmd(), &self.runtime_config))
                                      .spawn());
-
             let hab_child = try!(HabChild::from(&mut child));
             self.child = Some(hab_child);
             try!(self.create_pidfile());

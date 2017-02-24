@@ -17,7 +17,7 @@ use std::fs::{self, File};
 use std::io::Write;
 use std::path::PathBuf;
 
-use hcore::config::{ConfigFile, ParseInto};
+use hcore::config::ConfigFile;
 use hcore::env as henv;
 use hcore::fs::{am_i_root, FS_ROOT_PATH};
 use hcore::os::users;
@@ -35,13 +35,6 @@ pub struct Config {
 
 impl ConfigFile for Config {
     type Error = Error;
-
-    fn from_toml(toml: toml::Value) -> Result<Self> {
-        let mut cfg = Config::default();
-        try!(toml.parse_into("auth_token", &mut cfg.auth_token));
-        try!(toml.parse_into("origin", &mut cfg.origin));
-        Ok(cfg)
-    }
 }
 
 impl Default for Config {

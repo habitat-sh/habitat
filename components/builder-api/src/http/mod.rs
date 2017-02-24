@@ -84,16 +84,15 @@ pub fn router(config: Arc<Config>) -> Result<Chain> {
 pub fn run(config: Arc<Config>) -> Result<JoinHandle<()>> {
     let (tx, rx) = mpsc::sync_channel(1);
 
-    let addr = config.http_addr.clone();
     let depot = depot::DepotUtil::new(config.depot.clone());
     let depot_chain = try!(depot::server::router(depot));
 
     let mut mount = Mount::new();
-    if let Some(ref path) = config.ui_root {
+    if let Some(ref path) = config.ui.root {
         debug!("Mounting UI at filepath {}", path);
         mount.mount("/", Static::new(path));
     }
-    let chain = try!(router(config));
+    let chain = try!(router(config.clone()));
     mount.mount("/v1", chain).mount("/v1/depot", depot_chain);
 
     let handle = thread::Builder::new()
@@ -101,7 +100,7 @@ pub fn run(config: Arc<Config>) -> Result<JoinHandle<()>> {
         .spawn(move || {
                    let mut server = Iron::new(mount);
                    server.threads = HTTP_THREAD_COUNT;
-                   server.http(addr).unwrap();
+                   server.http(&config.http).unwrap();
                    tx.send(()).unwrap();
                })
         .unwrap();

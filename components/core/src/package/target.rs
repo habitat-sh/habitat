@@ -18,6 +18,7 @@ use std::str::FromStr;
 
 use error::{Error, Result};
 use os::system::{Architecture, Platform};
+use util::{deserialize_using_from_str, serialize_using_to_string};
 
 pub trait Target: fmt::Display + Into<PackageTarget> {
     fn validate(&self) -> Result<()>;
@@ -27,7 +28,15 @@ pub trait Target: fmt::Display + Into<PackageTarget> {
 /// and architecture (x86_64, i386, etc..) that a package is built for
 #[derive(Deserialize, Serialize, Eq, PartialEq, Debug, Clone, Hash)]
 pub struct PackageTarget {
+    #[serde(
+        deserialize_with = "deserialize_using_from_str",
+        serialize_with = "serialize_using_to_string"
+    )]
     pub platform: Platform,
+    #[serde(
+        deserialize_with = "deserialize_using_from_str",
+        serialize_with = "serialize_using_to_string"
+    )]
     pub architecture: Architecture,
 }
 

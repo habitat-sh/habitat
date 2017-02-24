@@ -75,7 +75,6 @@ echo 'export PKG_CONFIG_PATH="/usr/local/opt/libarchive/lib/pkgconfig:/usr/local
 direnv allow
 ```
 
-
 ## Ubuntu: Latest (16.10/Yakkety)
 
 This installation method uses as many packages from Ubuntu as possible. This

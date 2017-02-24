@@ -1,4 +1,3 @@
-doc_root = '/hab/svc/hab-builder-api/static'
 worker_rlimit_nofile = 8192
 worker_processes = "auto"
 

@@ -12,22 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use error::{Error, Result};
 use std::path::{Path, PathBuf};
-use toml;
 
-use hab_core::package::archive::PackageArchive;
-use hab_core::config::{ConfigFile, ParseInto};
 use hab_core;
+use hab_core::package::archive::PackageArchive;
+use hab_core::config::ConfigFile;
 
-use depot_client;
-use {PRODUCT, VERSION};
 use super::workspace::Workspace;
+use depot_client;
+use error::Error;
+use {PRODUCT, VERSION};
 
 /// Postprocessing config file name
 const CONFIG_FILE: &'static str = "builder.toml";
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
+#[serde(default)]
 pub struct Publish {
     /// Whether publish is enabled
     pub enabled: bool,
@@ -80,14 +80,6 @@ impl Default for Publish {
 
 impl ConfigFile for Publish {
     type Error = Error;
-
-    fn from_toml(toml: toml::Value) -> Result<Self> {
-        let mut cfg = Publish::default();
-        try!(toml.parse_into("publish.enabled", &mut cfg.enabled));
-        try!(toml.parse_into("publish.url", &mut cfg.url));
-        try!(toml.parse_into("publish.channel", &mut cfg.channel));
-        Ok(cfg)
-    }
 }
 
 pub struct PostProcessor {
@@ -126,22 +118,19 @@ impl PostProcessor {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use toml;
     use hab_core::config::ConfigFile;
+    use super::*;
 
     #[test]
     fn test_publish_config_from_toml() {
-        let config_toml = r#"
+        let toml = r#"
         [publish]
         enabled = false
         url = "https://willem.habitat.sh/v1/depot"
         channel = "unstable"
         "#;
 
-        let root: toml::Value = config_toml.parse().unwrap();
-        let cfg = Publish::from_toml(root).unwrap();
-
+        let cfg = Publish::from_raw(toml).unwrap();
         assert_eq!("https://willem.habitat.sh/v1/depot", cfg.url);
         assert_eq!(false, cfg.enabled);
         assert_eq!("unstable", cfg.channel);

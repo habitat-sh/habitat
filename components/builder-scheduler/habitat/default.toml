@@ -1,0 +1,5 @@
+[datastore]
+user = "hab"
+database = "builder_scheduler"
+connection_retry_ms = 500
+connection_timeout_sec = 4800

@@ -26,7 +26,7 @@ use hab_core::config::ConfigFile;
 use hab_sessionsrv::{server, Config, Error, Result};
 
 const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
-const CFG_DEFAULT_PATH: &'static str = "/hab/svc/hab-builder-sessionsrv/config.toml";
+const CFG_DEFAULT_PATH: &'static str = "/hab/svc/builder-sessionsrv/config.toml";
 
 fn main() {
     env_logger::init().unwrap();
@@ -52,7 +52,7 @@ fn app<'a, 'b>() -> clap::App<'a, 'b> {
             (about: "Run a Habitat-Builder session server")
             (@arg config: -c --config +takes_value
             "Filepath to configuration file. \
-            [default: /hab/svc/hab-builder-sessionsrv/config.toml]")
+            [default: /hab/svc/builder-sessionsrv/config.toml]")
         )
     )
 }

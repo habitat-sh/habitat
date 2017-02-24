@@ -1,7 +1,13 @@
-[srv]
+[http]
+listen = "0.0.0.0"
 port = 9636
 
-[ui]
+[github]
+url = "https://api.github.com"
+client_id = "0c2f738a7d0bd300de10"
+client_secret = "438223113eeb6e7edf2d2f91a232b72de72b9bdf"
+
+[web]
 app_url          = "https://willem.habitat.sh/v1"
 community_url    = "https://www.habitat.sh/community"
 docs_url         = "https://www.habitat.sh/docs"
@@ -10,3 +16,8 @@ friends_only     = false
 source_code_url  = "https://github.com/habitat-sh/habitat"
 tutorials_url    = "https://www.habitat.sh/tutorials"
 www_url          = "https://www.habitat.sh"
+
+[depot]
+insecure = false
+builds_enabled = false
+events_enabled = false

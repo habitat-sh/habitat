@@ -13,104 +13,170 @@
 // limitations under the License.
 
 use std::env;
-use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
+use std::io;
+use std::net::{IpAddr, Ipv4Addr, SocketAddr, ToSocketAddrs};
+use std::option::IntoIter;
 
-use hab_core::config::{ConfigFile, ParseInto};
+use hab_core::config::ConfigFile;
 use hab_core::os::system::{Architecture, Platform};
-use hab_net::config::{GitHubOAuth, RouteAddrs};
 use hab_core::package::PackageTarget;
-use toml;
+use hab_net::config::{GitHubCfg, GitHubOAuth, RouterAddr, RouterCfg};
 
-use error::{Error, Result};
+use error::Error;
 
-/// URL to GitHub API endpoint
-const GITHUB_URL: &'static str = "https://api.github.com";
-// Default Client ID for providing a default value in development environments only. This is
-// associated to Jamie Winsor's GitHub account and is configured to re-direct and point to a local
-// builder-api.
-const DEV_GITHUB_CLIENT_ID: &'static str = "0c2f738a7d0bd300de10";
-// Default Client Secret for development purposes only. See the `DEV_GITHUB_CLIENT_ID` for
-// additional comments.
-const DEV_GITHUB_CLIENT_SECRET: &'static str = "438223113eeb6e7edf2d2f91a232b72de72b9bdf";
-
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, Deserialize)]
+#[serde(default)]
 pub struct Config {
-    pub path: String,
-    pub listen_addr: SocketAddr,
-    pub datastore_addr: SocketAddr,
+    pub http: HttpCfg,
     /// List of net addresses for routing servers to connect to
-    pub routers: Vec<SocketAddr>,
-    /// URL to GitHub API
-    pub github_url: String,
-    /// Client identifier used for GitHub API requests
-    pub github_client_id: String,
-    /// Client secret used for GitHub API requests
-    pub github_client_secret: String,
-    /// allows you to upload packages and public keys without auth
+    pub routers: Vec<RouterAddr>,
+    pub github: GitHubCfg,
+    /// Disable authenticated uploads for all entities
     pub insecure: bool,
+    /// Filepath to location on disk to store entities
+    pub path: String,
     /// Whether to log events for funnel metrics
     pub events_enabled: bool,
     /// Whether to schedule builds on package upload
     pub builds_enabled: bool,
-    /// Where to record log events for funnel metrics
+    /// Filepath to where log events for funnel metrics will be recorded
     pub log_dir: String,
-    /// Supported targets - comma separated
-    pub supported_targets: Vec<PackageTarget>,
+    /// A list of package platform and architecture combinations which can be uploaded and hosted
+    pub targets: Vec<PackageTarget>,
 }
 
 impl ConfigFile for Config {
     type Error = Error;
-
-    fn from_toml(toml: toml::Value) -> Result<Self> {
-        let mut cfg = Config::default();
-        try!(toml.parse_into("pkg.svc_data_path", &mut cfg.path));
-        try!(toml.parse_into("cfg.bind_addr", &mut cfg.listen_addr));
-        try!(toml.parse_into("cfg.datastore_addr", &mut cfg.datastore_addr));
-        try!(toml.parse_into("cfg.router_addrs", &mut cfg.routers));
-        try!(toml.parse_into("cfg.events_enabled", &mut cfg.events_enabled));
-        try!(toml.parse_into("cfg.builds_enabled", &mut cfg.builds_enabled));
-        try!(toml.parse_into("pkg.svc_var_path", &mut cfg.log_dir));
-        try!(toml.parse_into("cfg.supported_targets", &mut cfg.supported_targets));
-        Ok(cfg)
-    }
 }
 
 impl Default for Config {
     fn default() -> Self {
         Config {
+            http: HttpCfg::default(),
+            routers: vec![RouterAddr::default()],
+            github: GitHubCfg::default(),
             path: "/hab/svc/hab-depot/data".to_string(),
-            listen_addr: SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(0, 0, 0, 0), 9632)),
-            datastore_addr: SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), 6379)),
-            routers: vec![SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), 5562))],
-            github_url: GITHUB_URL.to_string(),
-            github_client_id: DEV_GITHUB_CLIENT_ID.to_string(),
-            github_client_secret: DEV_GITHUB_CLIENT_SECRET.to_string(),
             insecure: false,
             events_enabled: false, // TODO: change to default to true later
             builds_enabled: false,
             log_dir: env::temp_dir().to_string_lossy().into_owned(),
-            supported_targets: vec![PackageTarget::new(Platform::Linux, Architecture::X86_64),
-                                    PackageTarget::new(Platform::Windows, Architecture::X86_64)],
+            targets: vec![PackageTarget::new(Platform::Linux, Architecture::X86_64),
+                          PackageTarget::new(Platform::Windows, Architecture::X86_64)],
         }
-    }
-}
-
-impl RouteAddrs for Config {
-    fn route_addrs(&self) -> &Vec<SocketAddr> {
-        &self.routers
     }
 }
 
 impl GitHubOAuth for Config {
     fn github_url(&self) -> &str {
-        &self.github_url
+        &self.github.url
     }
 
     fn github_client_id(&self) -> &str {
-        &self.github_client_id
+        &self.github.client_id
     }
 
     fn github_client_secret(&self) -> &str {
-        &self.github_client_secret
+        &self.github.client_secret
+    }
+}
+
+impl RouterCfg for Config {
+    fn route_addrs(&self) -> &Vec<RouterAddr> {
+        &self.routers
+    }
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(default)]
+pub struct HttpCfg {
+    pub listen: IpAddr,
+    pub port: u16,
+}
+
+impl Default for HttpCfg {
+    fn default() -> Self {
+        HttpCfg {
+            listen: IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)),
+            port: 9632,
+        }
+    }
+}
+
+impl ToSocketAddrs for HttpCfg {
+    type Iter = IntoIter<SocketAddr>;
+
+    fn to_socket_addrs(&self) -> io::Result<IntoIter<SocketAddr>> {
+        match self.listen {
+            IpAddr::V4(ref a) => (*a, self.port).to_socket_addrs(),
+            IpAddr::V6(ref a) => (*a, self.port).to_socket_addrs(),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn config_from_file() {
+        let content = r#"
+        path = "/hab/svc/hab-depot/data"
+        insecure = true
+        builds_enabled = true
+        events_enabled = true
+        log_dir = "/hab/svc/hab-depot/var/log"
+
+        [[targets]]
+        platform = "linux"
+        architecture = "x86_64"
+
+        [[targets]]
+        platform = "windows"
+        architecture = "x86_64"
+
+        [http]
+        listen = "127.0.0.1"
+        port = 9000
+
+        [[routers]]
+        host = "172.18.0.2"
+        port = 9001
+        heartbeat = 9001
+
+        [github]
+        url = "https://api.github.com"
+        client_id = "0c2f738a7d0bd300de10"
+        client_secret = "438223113eeb6e7edf2d2f91a232b72de72b9bdf"
+        "#;
+
+        let config = Config::from_raw(&content).unwrap();
+        assert_eq!(config.path, "/hab/svc/hab-depot/data");
+        assert_eq!(config.insecure, true);
+        assert_eq!(config.builds_enabled, true);
+        assert_eq!(config.events_enabled, true);
+        assert_eq!(config.log_dir, "/hab/svc/hab-depot/var/log");
+        assert_eq!(&format!("{}", config.http.listen), "127.0.0.1");
+        assert_eq!(config.http.port, 9000);
+        assert_eq!(&format!("{}", config.routers[0]), "172.18.0.2:9001");
+        assert_eq!(config.github.url, "https://api.github.com");
+        assert_eq!(config.github.client_id, "0c2f738a7d0bd300de10");
+        assert_eq!(config.github.client_secret,
+                   "438223113eeb6e7edf2d2f91a232b72de72b9bdf");
+        assert_eq!(config.targets.len(), 2);
+        assert_eq!(config.targets[0].platform, Platform::Linux);
+        assert_eq!(config.targets[0].architecture, Architecture::X86_64);
+        assert_eq!(config.targets[1].platform, Platform::Windows);
+        assert_eq!(config.targets[1].architecture, Architecture::X86_64);
+    }
+
+    #[test]
+    fn config_from_file_defaults() {
+        let content = r#"
+        [http]
+        port = 9000
+        "#;
+
+        let config = Config::from_raw(&content).unwrap();
+        assert_eq!(config.http.port, 9000);
     }
 }

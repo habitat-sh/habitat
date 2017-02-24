@@ -48,16 +48,16 @@ It is important that the homepage is set to `http://<hostname>:<port>` and the A
 Set the `github_client_id` to the client ID assigned to the oauth application. If you are running the API services, add `config.toml` files for the `builder-sessionsrv` and `builder-api` services:
 
 ```
-mkdir -p /hab/svc/hab-builder-api
-mkdir -p /hab/svc/hab-builder-sessionsrv
+mkdir -p /hab/svc/builder-api
+mkdir -p /hab/svc/builder-sessionsrv
 
-cat <<-EOF > /hab/svc/hab-builder-api/config.toml
+cat <<-EOF > /hab/svc/builder-api/config.toml
 [cfg.github]
 client_id       = "<Client ID>"
 client_secret   = "<Client Sescret>"
 EOF
 
-cat <<-EOF > /hab/svc/hab-builder-sessionsrv/config.toml
+cat <<-EOF > /hab/svc/builder-sessionsrv/config.toml
 [cfg.github]
 client_id       = "<Client ID>"
 client_secret   = "<Client Sescret>"

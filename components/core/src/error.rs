@@ -22,6 +22,7 @@ use std::string;
 
 use libarchive;
 use regex;
+use toml;
 
 use package::{self, Identifiable};
 
@@ -37,7 +38,7 @@ pub enum Error {
     /// Error reading raw contents of configuration file.
     ConfigFileIO(io::Error),
     /// Parsing error while reading a configuration file.
-    ConfigFileSyntax(String),
+    ConfigFileSyntax(toml::de::Error),
     /// Expected an array of socket addrs for configuration field value.
     ConfigInvalidArraySocketAddr(&'static str),
     /// Expected an array of tables containing string feilds and values for configuration
@@ -278,7 +279,7 @@ impl error::Error for Error {
             Error::ConfigInvalidArrayTarget(_) => {
                 "Invalid array value of targets containing string fields and values encountered \
                  while parsing a configuration file"
-            }            
+            }
             Error::ConfigInvalidArrayU16(_) => "Invalid array value of u16 entries encountered while parsing a configuration file",
             Error::ConfigInvalidArrayU32(_) => "Invalid array value of u32 entries encountered while parsing a configuration file",
             Error::ConfigInvalidArrayU64(_) => "Invalid array value of u64 entries encountered while parsing a configuration file",

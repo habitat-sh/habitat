@@ -124,12 +124,12 @@ impl AsyncServer {
         match event(self.pool.clone()) {
             Ok(EventOutcome::Finished) => {
                 debug!("Event finished {}", key);
-                {
-                    let mut f = self.failure_count
-                        .write()
-                        .expect("Async failure count lock poisoned");
-                    f.remove(&key);
-                }
+                let mut r = self.retry.write().expect("Async retry lock poisoned");
+                let mut f = self.failure_count
+                    .write()
+                    .expect("Async failure count lock poisoned");
+                f.remove(&key);
+                r.remove(&key);
             }
             Ok(EventOutcome::Retry) => {
                 self.retry_failed_event(key, event);

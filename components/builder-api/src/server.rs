@@ -16,7 +16,7 @@
 
 use std::sync::Arc;
 
-use hab_net::config::RouteAddrs;
+use hab_net::config::RouterCfg;
 use hab_net::routing::Broker;
 use hab_net::server::NetIdent;
 
@@ -44,7 +44,9 @@ impl Server {
     pub fn run(&mut self) -> Result<()> {
         let cfg1 = self.config.clone();
         let broker = Broker::run(Self::net_ident(), self.config.route_addrs());
-        println!("Builder API listening on {}", &self.config.http_addr);
+        println!("Builder API listening on {}:{}",
+                 self.config.http.listen,
+                 self.config.http.port);
         info!("builder-api is ready to go.");
         let http = try!(http::run(cfg1));
 

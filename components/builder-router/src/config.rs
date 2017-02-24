@@ -14,54 +14,85 @@
 
 //! Configuration for a Habitat RouteSrv service
 
-use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
+use std::net::{IpAddr, Ipv4Addr};
+use std::str::FromStr;
 
-use hab_core::config::{ConfigFile, ParseInto};
+use hab_net::config::{DEFAULT_ROUTER_LISTEN_PORT, DEFAULT_ROUTER_HEARTBEAT_PORT};
+use hab_core::config::ConfigFile;
 use toml;
 
 use error::{Error, Result};
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize)]
+#[serde(default)]
 pub struct Config {
-    /// Listening net address for client connections
-    pub listen_addr: SocketAddr,
+    /// Listening ip address for client connections
+    pub listen: IpAddr,
+    /// Port for receiving routable messages from services and gateways
+    pub client_port: u16,
     /// Port for receiving service heartbeats
     pub heartbeat_port: u16,
 }
 
 impl Config {
     pub fn fe_addr(&self) -> String {
-        format!("tcp://{}:{}",
-                self.listen_addr.ip(),
-                self.listen_addr.port())
+        format!("tcp://{}:{}", self.listen, self.client_port)
     }
 
     pub fn hb_addr(&self) -> String {
-        format!("tcp://{}:{}", self.listen_addr.ip(), self.heartbeat_port)
-    }
-
-    pub fn set_port(&mut self, port: u16) -> &mut Self {
-        self.listen_addr.set_port(port);
-        self
+        format!("tcp://{}:{}", self.listen, self.heartbeat_port)
     }
 }
 
 impl Default for Config {
     fn default() -> Self {
         Config {
-            listen_addr: SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(0, 0, 0, 0), 5562)),
-            heartbeat_port: 5563,
+            listen: IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)),
+            client_port: DEFAULT_ROUTER_LISTEN_PORT,
+            heartbeat_port: DEFAULT_ROUTER_HEARTBEAT_PORT,
         }
     }
 }
 
 impl ConfigFile for Config {
     type Error = Error;
+}
 
-    fn from_toml(toml: toml::Value) -> Result<Self> {
-        let mut cfg = Config::default();
-        try!(toml.parse_into("cfg.listen_addr", &mut cfg.listen_addr));
-        try!(toml.parse_into("cfg.heartbeat_port", &mut cfg.heartbeat_port));
-        Ok(cfg)
+impl FromStr for Config {
+    type Err = Error;
+
+    fn from_str(toml: &str) -> Result<Self> {
+        let config: Config = toml::from_str(toml).unwrap();
+        Ok(config)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::str::FromStr;
+
+    #[test]
+    fn config_from_file() {
+        let content = r#"
+        listen = "0:0:0:0:0:0:0:1"
+        client_port = 9000
+        heartbeat_port = 9001
+        "#;
+
+        let config = Config::from_str(&content).unwrap();
+        assert_eq!(&format!("{}", config.listen), "::1");
+        assert_eq!(config.client_port, 9000);
+        assert_eq!(config.heartbeat_port, 9001);
+    }
+
+    #[test]
+    fn config_from_file_defaults() {
+        let content = r#"
+        listen = "172.18.0.1"
+        "#;
+
+        let config = Config::from_str(&content).unwrap();
+        assert_eq!(&format!("{}", config.listen), "172.18.0.1");
     }
 }
