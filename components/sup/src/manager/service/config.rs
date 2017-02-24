@@ -646,7 +646,9 @@ mod test {
     use std::str::FromStr;
 
     use hcore::package::{PackageIdent, PackageInstall};
+    use util::convert;
     use regex::Regex;
+    use serde_json;
     use toml;
 
     use super::*;
@@ -666,6 +668,25 @@ mod test {
 
     fn toml_from_str(content: &str) -> toml::value::Table {
         toml::from_str(content).expect(&format!("Content should parse as TOML: {}", content))
+    }
+
+    pub fn root() -> PathBuf {
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests")
+    }
+
+    pub fn fixtures() -> PathBuf {
+        root().join("fixtures")
+    }
+
+    #[test]
+    fn service_config_to_toml_string() {
+        let mut file = File::open(fixtures().join("simple_config.toml")).unwrap();
+        let mut config = String::new();
+        let _ = file.read_to_string(&mut config).unwrap();
+        let toml_in = toml::de::from_str(&config).unwrap();
+        let data = convert::toml_to_json(toml::Value::Table(toml_in));
+        let sc = serde_json::from_value::<ServiceConfig>(data).unwrap();
+        let _ = sc.to_toml().unwrap().to_string();
     }
 
     #[test]
