@@ -235,7 +235,7 @@ impl Hook for HealthCheckHook {
 pub struct InitHook(RenderPair, LogsPrefix);
 
 impl Hook for InitHook {
-    type ExitValue = ExitCode;
+    type ExitValue = bool;
 
     fn file_name() -> &'static str {
         "init"
@@ -256,11 +256,16 @@ impl Hook for InitHook {
                    status: &ExitStatus)
                    -> Self::ExitValue {
         match status.code() {
-            Some(code) => ExitCode(code),
+            Some(0) => true,
+            Some(code) => {
+                outputln!(preamble service_group,
+                    "Initialization failed! '{}' exited with status code {}", Self::file_name(), code);
+                false
+            }
             None => {
                 outputln!(preamble service_group,
-                    "{} exited without a status code", Self::file_name());
-                ExitCode::default()
+                    "Initialization failed! '{}' exited without a status code", Self::file_name());
+                false
             }
         }
     }
