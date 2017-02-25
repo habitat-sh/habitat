@@ -47,9 +47,9 @@ struct SuitabilityLookup(Arc<RwLock<Vec<Service>>>);
 impl Suitability for SuitabilityLookup {
     fn get(&self, service_group: &ServiceGroup) -> u64 {
         self.0
-            .write()
+            .read()
             .expect("Services lock is poisoned!")
-            .iter_mut()
+            .iter()
             .find(|s| s.service_group == *service_group)
             .and_then(|s| s.suitability())
             .unwrap_or(u64::min_value())
