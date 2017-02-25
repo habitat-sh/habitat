@@ -286,7 +286,7 @@ dependencies = [
  "retry 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 0.9.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_derive 0.9.8 (registry+https://github.com/rust-lang/crates.io-index)",
- "toml 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "toml 0.3.0 (git+https://github.com/alexcrichton/toml-rs?rev=d39c3f7b3ec95cb3cc1e579d7d747206c66aab74)",
  "url 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "uuid 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "walkdir 1.0.7 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -312,7 +312,7 @@ dependencies = [
  "pbr 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "retry 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "temp_utp 0.8.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "toml 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "toml 0.3.0 (git+https://github.com/alexcrichton/toml-rs?rev=d39c3f7b3ec95cb3cc1e579d7d747206c66aab74)",
  "url 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "uuid 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "walkdir 1.0.7 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -357,7 +357,7 @@ dependencies = [
  "serde_derive 0.9.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_json 0.9.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "staticfile 0.3.1 (git+https://github.com/onur/staticfile?branch=iron-0.5)",
- "toml 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "toml 0.3.0 (git+https://github.com/alexcrichton/toml-rs?rev=d39c3f7b3ec95cb3cc1e579d7d747206c66aab74)",
  "unicase 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "urlencoded 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "zmq 0.8.1 (git+https://github.com/erickt/rust-zmq?branch=release/v0.8)",
@@ -388,7 +388,7 @@ dependencies = [
  "serde_derive 0.9.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_json 0.9.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "staticfile 0.3.1 (git+https://github.com/onur/staticfile?branch=iron-0.5)",
- "toml 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "toml 0.3.0 (git+https://github.com/alexcrichton/toml-rs?rev=d39c3f7b3ec95cb3cc1e579d7d747206c66aab74)",
  "unicase 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "zmq 0.8.1 (git+https://github.com/erickt/rust-zmq?branch=release/v0.8)",
 ]
@@ -435,7 +435,7 @@ dependencies = [
  "postgres 0.14.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "protobuf 1.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "r2d2 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "toml 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "toml 0.3.0 (git+https://github.com/alexcrichton/toml-rs?rev=d39c3f7b3ec95cb3cc1e579d7d747206c66aab74)",
  "zmq 0.8.1 (git+https://github.com/erickt/rust-zmq?branch=release/v0.8)",
 ]
 
@@ -465,7 +465,7 @@ dependencies = [
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "protobuf 1.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.3.15 (registry+https://github.com/rust-lang/crates.io-index)",
- "toml 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "toml 0.3.0 (git+https://github.com/alexcrichton/toml-rs?rev=d39c3f7b3ec95cb3cc1e579d7d747206c66aab74)",
  "zmq 0.8.1 (git+https://github.com/erickt/rust-zmq?branch=release/v0.8)",
 ]
 
@@ -484,7 +484,7 @@ dependencies = [
  "postgres 0.14.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "protobuf 1.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "r2d2 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "toml 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "toml 0.3.0 (git+https://github.com/alexcrichton/toml-rs?rev=d39c3f7b3ec95cb3cc1e579d7d747206c66aab74)",
  "zmq 0.8.1 (git+https://github.com/erickt/rust-zmq?branch=release/v0.8)",
 ]
 
@@ -504,7 +504,7 @@ dependencies = [
  "protobuf 1.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "redis 0.7.0 (git+https://github.com/habitat-sh/redis-rs?branch=habitat)",
  "time 0.1.36 (registry+https://github.com/rust-lang/crates.io-index)",
- "toml 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "toml 0.3.0 (git+https://github.com/alexcrichton/toml-rs?rev=d39c3f7b3ec95cb3cc1e579d7d747206c66aab74)",
  "zmq 0.8.1 (git+https://github.com/erickt/rust-zmq?branch=release/v0.8)",
 ]
 
@@ -521,7 +521,7 @@ dependencies = [
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "protobuf 1.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "redis 0.7.0 (git+https://github.com/habitat-sh/redis-rs?branch=habitat)",
- "toml 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "toml 0.3.0 (git+https://github.com/alexcrichton/toml-rs?rev=d39c3f7b3ec95cb3cc1e579d7d747206c66aab74)",
  "zmq 0.8.1 (git+https://github.com/erickt/rust-zmq?branch=release/v0.8)",
 ]
 
@@ -539,7 +539,7 @@ dependencies = [
  "lazy_static 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "protobuf 1.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "toml 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "toml 0.3.0 (git+https://github.com/alexcrichton/toml-rs?rev=d39c3f7b3ec95cb3cc1e579d7d747206c66aab74)",
  "zmq 0.8.1 (git+https://github.com/erickt/rust-zmq?branch=release/v0.8)",
 ]
 
@@ -559,7 +559,7 @@ dependencies = [
  "serde_derive 0.9.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "threadpool 1.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "time 0.1.36 (registry+https://github.com/rust-lang/crates.io-index)",
- "toml 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "toml 0.3.0 (git+https://github.com/alexcrichton/toml-rs?rev=d39c3f7b3ec95cb3cc1e579d7d747206c66aab74)",
  "uuid 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "zmq 0.8.1 (git+https://github.com/erickt/rust-zmq?branch=release/v0.8)",
 ]
@@ -592,7 +592,7 @@ dependencies = [
  "tempdir 0.3.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "term 0.4.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "time 0.1.36 (registry+https://github.com/rust-lang/crates.io-index)",
- "toml 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "toml 0.3.0 (git+https://github.com/alexcrichton/toml-rs?rev=d39c3f7b3ec95cb3cc1e579d7d747206c66aab74)",
  "winapi 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -619,7 +619,7 @@ dependencies = [
  "sodiumoxide 0.0.14 (registry+https://github.com/rust-lang/crates.io-index)",
  "tempdir 0.3.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "time 0.1.36 (registry+https://github.com/rust-lang/crates.io-index)",
- "toml 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "toml 0.3.0 (git+https://github.com/alexcrichton/toml-rs?rev=d39c3f7b3ec95cb3cc1e579d7d747206c66aab74)",
  "url 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "users 0.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "winapi 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -656,7 +656,7 @@ dependencies = [
  "serde_derive 0.9.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_json 0.9.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "time 0.1.36 (registry+https://github.com/rust-lang/crates.io-index)",
- "toml 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "toml 0.3.0 (git+https://github.com/alexcrichton/toml-rs?rev=d39c3f7b3ec95cb3cc1e579d7d747206c66aab74)",
  "unicase 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "url 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "urlencoded 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -750,7 +750,7 @@ dependencies = [
  "serde_json 0.9.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "tempdir 0.3.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "time 0.1.36 (registry+https://github.com/rust-lang/crates.io-index)",
- "toml 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "toml 0.3.0 (git+https://github.com/alexcrichton/toml-rs?rev=d39c3f7b3ec95cb3cc1e579d7d747206c66aab74)",
  "url 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -1620,7 +1620,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "toml"
 version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
+source = "git+https://github.com/alexcrichton/toml-rs?rev=d39c3f7b3ec95cb3cc1e579d7d747206c66aab74#d39c3f7b3ec95cb3cc1e579d7d747206c66aab74"
 dependencies = [
  "serde 0.9.8 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -1947,7 +1947,7 @@ dependencies = [
 "checksum threadpool 1.3.2 (registry+https://github.com/rust-lang/crates.io-index)" = "59f6d3eff89920113dac9db44dde461d71d01e88a5b57b258a0466c32b5d7fe1"
 "checksum time 0.1.36 (registry+https://github.com/rust-lang/crates.io-index)" = "211b63c112206356ef1ff9b19355f43740fc3f85960c598a93d3a3d3ba7beade"
 "checksum toml 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)" = "736b60249cb25337bc196faa43ee12c705e426f3d55c214d73a4e7be06f92cb4"
-"checksum toml 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)" = "08272367dd2e766db3fa38f068067d17aa6a9dfd7259af24b3927db92f1e0c2f"
+"checksum toml 0.3.0 (git+https://github.com/alexcrichton/toml-rs?rev=d39c3f7b3ec95cb3cc1e579d7d747206c66aab74)" = "<none>"
 "checksum traitobject 0.0.1 (registry+https://github.com/rust-lang/crates.io-index)" = "07eaeb7689bb7fca7ce15628319635758eda769fed481ecfe6686ddef2600616"
 "checksum traitobject 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "efd1f82c56340fdf16f2a953d7bda4f8fdffba13d93b00844c25572110b26079"
 "checksum typeable 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)" = "1410f6f91f21d1612654e7cc69193b0334f909dcf2c790c4826254fbb86f8887"
