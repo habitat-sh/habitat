@@ -504,13 +504,14 @@ impl Service {
         }
         outputln!(preamble self.service_group, "Initializing");
         self.hooks.compile(&self.service_group, &self.config);
-        if let Some(ref hook) = self.hooks.init {
-            hook.run(&self.service_group, self.runtime_cfg());
-        }
         if let Some(err) = self.copy_run().err() {
             outputln!(preamble self.service_group, "Failed to copy run hook: {}", err);
         }
+
         self.initialized = true;
+        if let Some(ref hook) = self.hooks.init {
+            self.initialized = hook.run(&self.service_group, self.runtime_cfg())
+        }
     }
 
     pub fn populate(&mut self, census: &CensusList) {
