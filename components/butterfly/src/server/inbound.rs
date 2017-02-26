@@ -30,15 +30,15 @@ use server::{Server, outbound};
 use trace::TraceKind;
 
 /// Takes the Server and a channel to send received Acks to the outbound thread.
-pub struct Inbound<'a> {
-    pub server: &'a Server,
+pub struct Inbound {
+    pub server: Server,
     pub socket: UdpSocket,
     pub tx_outbound: mpsc::Sender<(SocketAddr, Swim)>,
 }
 
-impl<'a> Inbound<'a> {
+impl Inbound {
     /// Create a new Inbound.
-    pub fn new(server: &'a Server,
+    pub fn new(server: Server,
                socket: UdpSocket,
                tx_outbound: mpsc::Sender<(SocketAddr, Swim)>)
                -> Inbound {
@@ -146,7 +146,7 @@ impl<'a> Inbound<'a> {
             // Set the route-back address to the one we received the pingreq from
             let mut from = msg.mut_pingreq().take_from();
             from.set_address(format!("{}", addr.ip()));
-            outbound::ping(self.server,
+            outbound::ping(&self.server,
                            &self.socket,
                            target,
                            target.swim_socket_address(),
@@ -183,7 +183,7 @@ impl<'a> Inbound<'a> {
                       msg.get_ack().get_forward_to().get_address(),
                       );
                 msg.mut_ack().mut_from().set_address(format!("{}", addr.ip()));
-                outbound::forward_ack(self.server, &self.socket, forward_to_addr, msg);
+                outbound::forward_ack(&self.server, &self.socket, forward_to_addr, msg);
                 return;
             }
         }
@@ -210,13 +210,13 @@ impl<'a> Inbound<'a> {
                   &msg);
         let target: Member = msg.get_ping().get_from().into();
         if msg.get_ping().has_forward_to() {
-            outbound::ack(self.server,
+            outbound::ack(&self.server,
                           &self.socket,
                           &target,
                           addr,
                           Some(msg.mut_ping().take_forward_to().into()));
         } else {
-            outbound::ack(self.server, &self.socket, &target, addr, None);
+            outbound::ack(&self.server, &self.socket, &target, addr, None);
         }
         // Populate the member for this sender with its remote address
         let from = {

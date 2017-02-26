@@ -47,18 +47,17 @@ use toml;
 
 use error::{Result, Error};
 use member::{Member, Health, MemberList};
-use trace::{Trace, TraceKind};
+use message;
 use rumor::{Rumor, RumorStore, RumorList, RumorKey};
 use rumor::service::Service;
 use rumor::service_config::ServiceConfig;
 use rumor::service_file::ServiceFile;
 use rumor::election::{Election, ElectionUpdate};
-use message;
+use trace::{Trace, TraceKind};
 
 pub trait Suitability: Debug + Send + Sync {
     fn get(&self, service_group: &ServiceGroup) -> u64;
 }
-
 
 /// The server struct. Is thread-safe.
 #[derive(Debug, Clone)]
@@ -85,31 +84,20 @@ pub struct Server {
     pub blacklist: Arc<RwLock<HashSet<String>>>,
 }
 
-impl Serialize for Server {
-    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
-    {
-        let mut strukt = try!(serializer.serialize_struct("butterfly", 5));
-        try!(strukt.serialize_field("service", &self.service_store));
-        try!(strukt.serialize_field("service_config", &self.service_config_store));
-        try!(strukt.serialize_field("service_file", &self.service_file_store));
-        try!(strukt.serialize_field("election", &self.election_store));
-        try!(strukt.serialize_field("election_update", &self.update_store));
-        strukt.end()
-    }
-}
-
 impl Server {
     /// Create a new server, bound to the `addr`, hosting a particular `member`, and with a
     /// `Trace` struct, a ring_key if you want encryption on the wire, and an optional server name.
-    pub fn new<A: ToSocketAddrs>(swim_addr: A,
-                                 gossip_addr: A,
-                                 member: Member,
-                                 trace: Trace,
-                                 ring_key: Option<SymKey>,
-                                 name: Option<String>,
-                                 suitability_lookup: Box<Suitability>)
-                                 -> Result<Server> {
+    pub fn new<T, U>(swim_addr: T,
+                     gossip_addr: U,
+                     member: Member,
+                     trace: Trace,
+                     ring_key: Option<SymKey>,
+                     name: Option<String>,
+                     suitability_lookup: Box<Suitability>)
+                     -> Result<Server>
+        where T: ToSocketAddrs,
+              U: ToSocketAddrs
+    {
         let maybe_swim_socket_addr = swim_addr.to_socket_addrs().map(|mut iter| iter.next());
         let maybe_gossip_socket_addr = gossip_addr.to_socket_addrs().map(|mut iter| iter.next());
 
@@ -214,14 +202,13 @@ impl Server {
         try!(socket.set_write_timeout(Some(Duration::from_millis(1000)))
             .map_err(|e| Error::SocketSetReadTimeout(e)));
 
-
         let server_a = self.clone();
         let socket_a = match socket.try_clone() {
             Ok(socket_a) => socket_a,
             Err(_) => return Err(Error::SocketCloneError),
         };
         let _ = thread::Builder::new().name(format!("inbound-{}", self.name())).spawn(move || {
-            inbound::Inbound::new(&server_a, socket_a, tx_outbound).run();
+            inbound::Inbound::new(server_a, socket_a, tx_outbound).run();
             panic!("You should never, ever get here, judy");
         });
 
@@ -232,26 +219,26 @@ impl Server {
         };
         let timing_b = timing.clone();
         let _ = thread::Builder::new().name(format!("outbound-{}", self.name())).spawn(move || {
-            outbound::Outbound::new(&server_b, socket_b, rx_inbound, timing_b).run();
+            outbound::Outbound::new(server_b, socket_b, rx_inbound, timing_b).run();
             panic!("You should never, ever get here, bob");
         });
 
         let server_c = self.clone();
         let timing_c = timing.clone();
         let _ = thread::Builder::new().name(format!("expire-{}", self.name())).spawn(move || {
-            expire::Expire::new(&server_c, timing_c).run();
+            expire::Expire::new(server_c, timing_c).run();
             panic!("You should never, ever get here, frank");
         });
 
         let server_d = self.clone();
         let _ = thread::Builder::new().name(format!("pull-{}", self.name())).spawn(move || {
-            pull::Pull::new(&server_d).run();
+            pull::Pull::new(server_d).run();
             panic!("You should never, ever get here, davey");
         });
 
         let server_e = self.clone();
         let _ = thread::Builder::new().name(format!("push-{}", self.name())).spawn(move || {
-            push::Push::new(&server_e, timing).run();
+            push::Push::new(server_e, timing).run();
             panic!("You should never, ever get here, liu");
         });
 
@@ -296,7 +283,6 @@ impl Server {
         let sa = self.swim_addr.read().expect("Swim Address lock poisoned");
         sa.clone()
     }
-
 
     /// Return the port number of the swim socket we are bound to.
     pub fn swim_port(&self) -> u16 {
@@ -788,6 +774,20 @@ impl Server {
 
     fn unwrap_wire(&self, payload: &[u8]) -> Result<Vec<u8>> {
         message::unwrap_wire(payload, &self.ring_key)
+    }
+}
+
+impl Serialize for Server {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+        where S: Serializer
+    {
+        let mut strukt = try!(serializer.serialize_struct("butterfly", 5));
+        try!(strukt.serialize_field("service", &self.service_store));
+        try!(strukt.serialize_field("service_config", &self.service_config_store));
+        try!(strukt.serialize_field("service_file", &self.service_file_store));
+        try!(strukt.serialize_field("election", &self.election_store));
+        try!(strukt.serialize_field("election_update", &self.update_store));
+        strukt.end()
     }
 }
 

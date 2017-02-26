@@ -29,13 +29,13 @@ use message::swim::{Rumor, Rumor_Type};
 use trace::TraceKind;
 
 /// Takes a reference to the server itself
-pub struct Pull<'a> {
-    pub server: &'a Server,
+pub struct Pull {
+    pub server: Server,
 }
 
-impl<'a> Pull<'a> {
+impl Pull {
     /// Create a new Pull
-    pub fn new(server: &'a Server) -> Pull {
+    pub fn new(server: Server) -> Pull {
         Pull { server: server }
     }
 
