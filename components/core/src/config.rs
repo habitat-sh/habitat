@@ -52,13 +52,33 @@ pub trait ConfigFile: Sized {
     fn from_toml(toml: toml::Value) -> result::Result<Self, Self::Error>;
 }
 
+// Helper function that takes a field specification such as "foo.bar.baz" and
+// extracts the "baz" field from the given toml Value
+fn extract_field<'a>(specifier: &str, toml: &'a toml::Value) -> Option<&'a toml::Value> {
+    let fields: Vec<&str> = specifier.split('.').collect();
+    let mut curr: &toml::Value = toml;
+    let mut found = false;
+
+    for field in fields {
+        match curr.get(field) {
+            Some(val) => {
+                found = true;
+                curr = val
+            }
+            None => return None,
+        }
+    }
+
+    if found == true { Some(curr) } else { None }
+}
+
 pub trait ParseInto<T> {
     fn parse_into(&self, field: &'static str, out: &mut T) -> Result<bool>;
 }
 
 impl ParseInto<bool> for toml::Value {
     fn parse_into(&self, field: &'static str, out: &mut bool) -> Result<bool> {
-        if let Some(val) = self.get(field) {
+        if let Some(val) = extract_field(field, &self) {
             if let Some(v) = val.as_bool() {
                 *out = v as bool;
                 Ok(true)
@@ -73,7 +93,7 @@ impl ParseInto<bool> for toml::Value {
 
 impl ParseInto<usize> for toml::Value {
     fn parse_into(&self, field: &'static str, out: &mut usize) -> Result<bool> {
-        if let Some(val) = self.get(field) {
+        if let Some(val) = extract_field(field, &self) {
             if let Some(v) = val.as_integer() {
                 *out = v as usize;
                 Ok(true)
@@ -88,7 +108,7 @@ impl ParseInto<usize> for toml::Value {
 
 impl ParseInto<u16> for toml::Value {
     fn parse_into(&self, field: &'static str, out: &mut u16) -> Result<bool> {
-        if let Some(val) = self.get(field) {
+        if let Some(val) = extract_field(field, &self) {
             if let Some(v) = val.as_integer() {
                 *out = v as u16;
                 Ok(true)
@@ -103,7 +123,7 @@ impl ParseInto<u16> for toml::Value {
 
 impl ParseInto<Vec<u16>> for toml::Value {
     fn parse_into(&self, field: &'static str, out: &mut Vec<u16>) -> Result<bool> {
-        if let Some(val) = self.get(field) {
+        if let Some(val) = extract_field(field, &self) {
             if let Some(v) = val.as_array() {
                 let mut buf = vec![];
                 for int in v.iter() {
@@ -126,7 +146,7 @@ impl ParseInto<Vec<u16>> for toml::Value {
 
 impl ParseInto<u32> for toml::Value {
     fn parse_into(&self, field: &'static str, out: &mut u32) -> Result<bool> {
-        if let Some(val) = self.get(field) {
+        if let Some(val) = extract_field(field, &self) {
             if let Some(v) = val.as_integer() {
                 *out = v as u32;
                 Ok(true)
@@ -141,7 +161,7 @@ impl ParseInto<u32> for toml::Value {
 
 impl ParseInto<Vec<u32>> for toml::Value {
     fn parse_into(&self, field: &'static str, out: &mut Vec<u32>) -> Result<bool> {
-        if let Some(val) = self.get(field) {
+        if let Some(val) = extract_field(field, &self) {
             if let Some(v) = val.as_array() {
                 let mut buf = vec![];
                 for int in v.iter() {
@@ -164,7 +184,7 @@ impl ParseInto<Vec<u32>> for toml::Value {
 
 impl ParseInto<u64> for toml::Value {
     fn parse_into(&self, field: &'static str, out: &mut u64) -> Result<bool> {
-        if let Some(val) = self.get(field) {
+        if let Some(val) = extract_field(field, &self) {
             if let Some(v) = val.as_integer() {
                 *out = v as u64;
                 Ok(true)
@@ -179,7 +199,7 @@ impl ParseInto<u64> for toml::Value {
 
 impl ParseInto<Vec<u64>> for toml::Value {
     fn parse_into(&self, field: &'static str, out: &mut Vec<u64>) -> Result<bool> {
-        if let Some(val) = self.get(field) {
+        if let Some(val) = extract_field(field, &self) {
             if let Some(v) = val.as_array() {
                 let mut buf = vec![];
                 for int in v.iter() {
@@ -202,7 +222,7 @@ impl ParseInto<Vec<u64>> for toml::Value {
 
 impl ParseInto<String> for toml::Value {
     fn parse_into(&self, field: &'static str, out: &mut String) -> Result<bool> {
-        if let Some(val) = self.get(field) {
+        if let Some(val) = extract_field(field, &self) {
             if let Some(v) = val.as_str() {
                 *out = v.to_string();
                 Ok(true)
@@ -217,7 +237,7 @@ impl ParseInto<String> for toml::Value {
 
 impl ParseInto<Option<String>> for toml::Value {
     fn parse_into(&self, field: &'static str, out: &mut Option<String>) -> Result<bool> {
-        if let Some(val) = self.get(field) {
+        if let Some(val) = extract_field(field, &self) {
             if let Some(v) = val.as_str() {
                 *out = Some(v.to_string());
                 Ok(true)
@@ -233,7 +253,7 @@ impl ParseInto<Option<String>> for toml::Value {
 
 impl ParseInto<BTreeMap<String, String>> for toml::Value {
     fn parse_into(&self, field: &'static str, out: &mut BTreeMap<String, String>) -> Result<bool> {
-        match self.get(field) {
+        match extract_field(field, &self) {
             Some(val) => {
                 match val.as_table() {
                     Some(val_table) => {
@@ -262,7 +282,7 @@ impl ParseInto<Vec<BTreeMap<String, String>>> for toml::Value {
                   field: &'static str,
                   out: &mut Vec<BTreeMap<String, String>>)
                   -> Result<bool> {
-        match self.get(field) {
+        match extract_field(field, &self) {
             Some(val) => {
                 match val.as_array() {
                     Some(val_slice) => {
@@ -301,7 +321,7 @@ impl ParseInto<Vec<BTreeMap<String, String>>> for toml::Value {
 
 impl ParseInto<SocketAddr> for toml::Value {
     fn parse_into(&self, field: &'static str, out: &mut SocketAddr) -> Result<bool> {
-        if let Some(val) = self.get(field) {
+        if let Some(val) = extract_field(field, &self) {
             if let Some(v) = val.as_str() {
                 match SocketAddr::from_str(v) {
                     Ok(addr) => {
@@ -321,7 +341,7 @@ impl ParseInto<SocketAddr> for toml::Value {
 
 impl ParseInto<Vec<SocketAddr>> for toml::Value {
     fn parse_into(&self, field: &'static str, out: &mut Vec<SocketAddr>) -> Result<bool> {
-        if let Some(val) = self.get(field) {
+        if let Some(val) = extract_field(field, &self) {
             if let Some(slice) = val.as_array() {
                 let mut buf = vec![];
                 for entry in slice.iter() {
@@ -347,7 +367,7 @@ impl ParseInto<Vec<SocketAddr>> for toml::Value {
 
 impl ParseInto<IpAddr> for toml::Value {
     fn parse_into(&self, field: &'static str, out: &mut IpAddr) -> Result<bool> {
-        if let Some(val) = self.get(field) {
+        if let Some(val) = extract_field(field, &self) {
             if let Some(v) = val.as_str() {
                 match IpAddr::from_str(v) {
                     Ok(addr) => {
@@ -367,7 +387,7 @@ impl ParseInto<IpAddr> for toml::Value {
 
 impl ParseInto<PackageIdent> for toml::Value {
     fn parse_into(&self, field: &'static str, out: &mut PackageIdent) -> Result<bool> {
-        match self.get(field) {
+        match extract_field(field, &self) {
             Some(val) => {
                 match val.as_str() {
                     Some(val_str) => {
@@ -389,7 +409,7 @@ impl ParseInto<PackageIdent> for toml::Value {
 
 impl ParseInto<PackageTarget> for toml::Value {
     fn parse_into(&self, field: &'static str, out: &mut PackageTarget) -> Result<bool> {
-        match self.get(field) {
+        match extract_field(field, &self) {
             Some(val) => {
                 match val.as_str() {
                     Some(val_str) => {
@@ -417,12 +437,68 @@ mod test {
 
     use toml;
 
-    use super::ParseInto;
+    use super::{ParseInto, extract_field};
     use error::Error::*;
     use package::{PackageIdent, PackageTarget};
 
     fn toml_from_str(content: &str) -> toml::Value {
         toml::from_str(content).expect(&format!("Content should parse as TOML: {}", content))
+    }
+
+    #[test]
+    fn extract_field_empty() {
+        let toml = toml_from_str("");
+        match extract_field("field", &toml) {
+            Some(_) => assert!(false, "Unexpected field"),
+            None => (),
+        }
+    }
+
+    #[test]
+    fn extract_field_missing() {
+        let toml = toml_from_str(r#"
+            [section]
+            field = true
+            "#);
+        match extract_field("section.missing", &toml) {
+            Some(_) => assert!(false, "Unexpected field"),
+            None => (),
+        }
+    }
+
+    #[test]
+    fn extract_field_root() {
+        let toml = toml_from_str(r#"
+            field = true
+            "#);
+        match extract_field("field", &toml) {
+            Some(_) => (),
+            None => assert!(false, "Failed to find field"),
+        }
+    }
+
+    #[test]
+    fn extract_field_level_1() {
+        let toml = toml_from_str(r#"
+            [section]
+            field = true
+            "#);
+        match extract_field("section.field", &toml) {
+            Some(_) => (),
+            None => assert!(false, "Failed to find field"),
+        }
+    }
+
+    #[test]
+    fn extract_field_level_2() {
+        let toml = toml_from_str(r#"
+            [section1.section2]
+            field = true
+            "#);
+        match extract_field("section1.section2.field", &toml) {
+            Some(_) => (),
+            None => assert!(false, "Failed to find field"),
+        }
     }
 
     #[test]
@@ -432,6 +508,19 @@ mod test {
             field = true
             "#);
         let mutated = toml.parse_into("field", &mut actual).unwrap();
+
+        assert!(mutated);
+        assert_eq!(true, actual);
+    }
+
+    #[test]
+    fn parse_into_bool_from_table() {
+        let mut actual = false;
+        let toml = toml_from_str(r#"
+            [cfg]
+            field = true
+            "#);
+        let mutated = toml.parse_into("cfg.field", &mut actual).unwrap();
 
         assert!(mutated);
         assert_eq!(true, actual);
@@ -473,6 +562,19 @@ mod test {
     }
 
     #[test]
+    fn parse_into_usize_from_table() {
+        let mut actual = 0 as usize;
+        let toml = toml_from_str(r#"
+            [cfg]
+            field = 12
+            "#);
+        let mutated = toml.parse_into("cfg.field", &mut actual).unwrap();
+
+        assert!(mutated);
+        assert_eq!(12, actual);
+    }
+
+    #[test]
     fn parse_into_usize_field_missing() {
         let mut actual = 0 as usize;
         let toml = toml_from_str(r#""#);
@@ -508,6 +610,19 @@ mod test {
     }
 
     #[test]
+    fn parse_into_u16_from_table() {
+        let mut actual = 0 as u16;
+        let toml = toml_from_str(r#"
+            [cfg]
+            field = 12
+            "#);
+        let mutated = toml.parse_into("cfg.field", &mut actual).unwrap();
+
+        assert!(mutated);
+        assert_eq!(12, actual);
+    }
+
+    #[test]
     fn parse_into_u16_field_missing() {
         let mut actual = 0 as u16;
         let toml = toml_from_str(r#""#);
@@ -537,6 +652,19 @@ mod test {
             field = [12, 24]
             "#);
         let mutated = toml.parse_into("field", &mut actual).unwrap();
+
+        assert!(mutated);
+        assert_eq!(vec![12, 24], actual);
+    }
+
+    #[test]
+    fn parse_into_vec_u16_from_table() {
+        let mut actual: Vec<u16> = vec![];
+        let toml = toml_from_str(r#"
+            [cfg]
+            field = [12, 24]
+            "#);
+        let mutated = toml.parse_into("cfg.field", &mut actual).unwrap();
 
         assert!(mutated);
         assert_eq!(vec![12, 24], actual);
@@ -592,6 +720,19 @@ mod test {
     }
 
     #[test]
+    fn parse_into_u32_from_table() {
+        let mut actual = 0 as u32;
+        let toml = toml_from_str(r#"
+            [cfg]
+            field = 12
+            "#);
+        let mutated = toml.parse_into("cfg.field", &mut actual).unwrap();
+
+        assert!(mutated);
+        assert_eq!(12, actual);
+    }
+
+    #[test]
     fn parse_into_u32_field_missing() {
         let mut actual = 0 as u32;
         let toml = toml_from_str(r#""#);
@@ -621,6 +762,19 @@ mod test {
             field = [12, 24]
             "#);
         let mutated = toml.parse_into("field", &mut actual).unwrap();
+
+        assert!(mutated);
+        assert_eq!(vec![12, 24], actual);
+    }
+
+    #[test]
+    fn parse_into_vec_u32_from_table() {
+        let mut actual: Vec<u32> = vec![];
+        let toml = toml_from_str(r#"
+            [cfg]
+            field = [12, 24]
+            "#);
+        let mutated = toml.parse_into("cfg.field", &mut actual).unwrap();
 
         assert!(mutated);
         assert_eq!(vec![12, 24], actual);
@@ -676,6 +830,19 @@ mod test {
     }
 
     #[test]
+    fn parse_into_u64_from_table() {
+        let mut actual = 0 as u64;
+        let toml = toml_from_str(r#"
+            [cfg]
+            field = 12
+            "#);
+        let mutated = toml.parse_into("cfg.field", &mut actual).unwrap();
+
+        assert!(mutated);
+        assert_eq!(12, actual);
+    }
+
+    #[test]
     fn parse_into_u64_field_missing() {
         let mut actual = 0 as u64;
         let toml = toml_from_str(r#""#);
@@ -705,6 +872,19 @@ mod test {
             field = [12, 24]
             "#);
         let mutated = toml.parse_into("field", &mut actual).unwrap();
+
+        assert!(mutated);
+        assert_eq!(vec![12, 24], actual);
+    }
+
+    #[test]
+    fn parse_into_vec_u64_from_table() {
+        let mut actual: Vec<u64> = vec![];
+        let toml = toml_from_str(r#"
+            [cfg]
+            field = [12, 24]
+            "#);
+        let mutated = toml.parse_into("cfg.field", &mut actual).unwrap();
 
         assert!(mutated);
         assert_eq!(vec![12, 24], actual);
@@ -760,6 +940,19 @@ mod test {
     }
 
     #[test]
+    fn parse_into_string_in_table() {
+        let mut actual = String::new();
+        let toml = toml_from_str(r#"
+            [cfg]
+            field = "val"
+            "#);
+        let mutated = toml.parse_into("cfg.field", &mut actual).unwrap();
+
+        assert!(mutated);
+        assert_eq!(String::from("val"), actual);
+    }
+
+    #[test]
     fn parse_into_string_field_missing() {
         let mut actual = String::new();
         let toml = toml_from_str(r#""#);
@@ -789,6 +982,19 @@ mod test {
             field = "val"
             "#);
         let mutated = toml.parse_into("field", &mut actual).unwrap();
+
+        assert!(mutated);
+        assert_eq!(Some(String::from("val")), actual);
+    }
+
+    #[test]
+    fn parse_into_option_string_from_table() {
+        let mut actual = None;
+        let toml = toml_from_str(r#"
+            [cfg]
+            field = "val"
+            "#);
+        let mutated = toml.parse_into("cfg.field", &mut actual).unwrap();
 
         assert!(mutated);
         assert_eq!(Some(String::from("val")), actual);
@@ -968,6 +1174,19 @@ mod test {
     }
 
     #[test]
+    fn parse_into_socket_addr_from_table() {
+        let mut actual = SocketAddr::from_str("127.0.0.1:8080").unwrap();
+        let toml = toml_from_str(r#"
+            [cfg]
+            field = "192.168.0.100:80"
+            "#);
+        let mutated = toml.parse_into("cfg.field", &mut actual).unwrap();
+
+        assert!(mutated);
+        assert_eq!(SocketAddr::from_str("192.168.0.100:80").unwrap(), actual);
+    }
+
+    #[test]
     fn parse_into_socket_addr_field_missing() {
         let mut actual = SocketAddr::from_str("127.0.0.1:8080").unwrap();
         let toml = toml_from_str(r#""#);
@@ -1013,6 +1232,21 @@ mod test {
         let expected = vec![SocketAddr::from_str("192.168.0.100:80").unwrap(),
                             SocketAddr::from_str("10.0.0.4:22").unwrap()];
         let mutated = toml.parse_into("field", &mut actual).unwrap();
+
+        assert!(mutated);
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn parse_into_vec_socket_addr_from_table() {
+        let mut actual: Vec<SocketAddr> = vec![];
+        let toml = toml_from_str(r#"
+            [cfg]
+            field = ["192.168.0.100:80", "10.0.0.4:22"]
+            "#);
+        let expected = vec![SocketAddr::from_str("192.168.0.100:80").unwrap(),
+                            SocketAddr::from_str("10.0.0.4:22").unwrap()];
+        let mutated = toml.parse_into("cfg.field", &mut actual).unwrap();
 
         assert!(mutated);
         assert_eq!(expected, actual);
@@ -1082,6 +1316,19 @@ mod test {
     }
 
     #[test]
+    fn parse_into_ip_addr_from_table() {
+        let mut actual = IpAddr::from_str("127.0.0.1").unwrap();
+        let toml = toml_from_str(r#"
+            [cfg]
+            field = "192.168.0.100"
+            "#);
+        let mutated = toml.parse_into("cfg.field", &mut actual).unwrap();
+
+        assert!(mutated);
+        assert_eq!(IpAddr::from_str("192.168.0.100").unwrap(), actual);
+    }
+
+    #[test]
     fn parse_into_ip_addr_field_missing() {
         let mut actual = IpAddr::from_str("127.0.0.1").unwrap();
         let toml = toml_from_str(r#""#);
@@ -1125,6 +1372,19 @@ mod test {
             field = "origin/name/1.2.3"
             "#);
         let mutated = toml.parse_into("field", &mut actual).unwrap();
+
+        assert!(mutated);
+        assert_eq!(PackageIdent::from_str("origin/name/1.2.3").unwrap(), actual);
+    }
+
+    #[test]
+    fn parse_into_package_ident_from_table() {
+        let mut actual = PackageIdent::from_str("just/nothing").unwrap();
+        let toml = toml_from_str(r#"
+            [cfg]
+            field = "origin/name/1.2.3"
+            "#);
+        let mutated = toml.parse_into("cfg.field", &mut actual).unwrap();
 
         assert!(mutated);
         assert_eq!(PackageIdent::from_str("origin/name/1.2.3").unwrap(), actual);
@@ -1178,6 +1438,20 @@ mod test {
         assert!(mutated);
         assert_eq!(PackageTarget::from_str("x86_64-linux").unwrap(), actual);
     }
+
+    #[test]
+    fn parse_into_package_target_from_table() {
+        let mut actual = PackageTarget::default();
+        let toml = toml_from_str(r#"
+            [cfg]
+            field = "x86_64-linux"
+            "#);
+        let mutated = toml.parse_into("cfg.field", &mut actual).unwrap();
+
+        assert!(mutated);
+        assert_eq!(PackageTarget::from_str("x86_64-linux").unwrap(), actual);
+    }
+
 
     #[test]
     fn parse_into_package_target_field_missing() {
