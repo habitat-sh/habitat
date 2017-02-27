@@ -251,6 +251,32 @@ impl PackageInstall {
         self.read_deps(MetaFile::TDeps)
     }
 
+    /// Returns a Rust representation of the mappings defined by the `pkg_env` plan variable.
+    ///
+    /// # Failures
+    ///
+    /// * The package contains a Environment metafile but it could not be read or it was malformed
+    pub fn environment(&self) -> Result<HashMap<String, String>> {
+        let mut m = HashMap::<String, String>::new();
+        match self.read_metafile(MetaFile::Environment) {
+            Ok(body) => {
+                for line in body.lines() {
+                    let mut parts = line.splitn(2, '=');
+                    let key = parts.next()
+                        .and_then(|p| Some(p.to_string()))
+                        .ok_or_else(|| Error::MetaFileMalformed(MetaFile::Environment))?;
+                    let value = parts.next()
+                        .and_then(|p| Some(p.to_string()))
+                        .ok_or_else(|| Error::MetaFileMalformed(MetaFile::Environment))?;
+                    m.insert(key, value);
+                }
+                Ok(m)
+            },
+            Err(Error::MetaFileNotFound(MetaFile::Environment)) => Ok(m),
+            Err(e) => Err(e),
+        }
+    }
+
     /// Returns a Rust representation of the mappings defined by the `pkg_exports` plan variable.
     ///
     /// These mappings are used as a filter-map to generate a public configuration when the package
