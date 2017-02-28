@@ -24,6 +24,7 @@ extern crate protobuf;
 extern crate r2d2;
 extern crate toml;
 extern crate zmq;
+extern crate rand;
 
 pub mod config;
 pub mod data_store;

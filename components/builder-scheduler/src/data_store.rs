@@ -13,20 +13,65 @@
 // limitations under the License.
 
 
-// TBD - This is just a stub for now
+// TBD - This is a WIP for now, persistence to be added later
+
+use std::collections::HashMap;
 
 use config::Config;
 use error::Result;
+use protocol::jobsrv::Job;
+use protocol::scheduler::{Group, GroupState};
 
 #[derive(Debug, Clone)]
-pub struct DataStore {}
+pub struct JobGroup {
+    group: Group,
+    jobs: HashMap<u64, Job>,
+}
+
+#[derive(Debug, Clone)]
+pub struct DataStore {
+    curr_id: u64,
+    job_groups: HashMap<u64, JobGroup>,
+}
 
 impl DataStore {
     pub fn new(_: &Config) -> Result<DataStore> {
-        Ok(DataStore {})
+        let groups = HashMap::new();
+        Ok(DataStore {
+            curr_id: 1,
+            job_groups: groups,
+        })
     }
 
     pub fn setup(&self) -> Result<()> {
+        Ok(())
+    }
+
+    pub fn create_group(&mut self, group: &mut Group) -> Result<()> {
+        group.set_group_id(self.curr_id);
+        group.set_state(GroupState::Pending);
+
+        let job_group = JobGroup {
+            group: group.clone(),
+            jobs: HashMap::new(),
+        };
+        self.job_groups.insert(self.curr_id, job_group);
+        self.curr_id = self.curr_id + 1;
+
+        Ok(())
+    }
+
+    pub fn set_group_state(&mut self, group: &Group) -> Result<()> {
+        if let Some(job_group) = self.job_groups.get_mut(&group.get_group_id()) {
+            (*job_group).group = group.clone();
+        };
+        Ok(())
+    }
+
+    pub fn add_group_job(&mut self, group: &Group, job: &Job) -> Result<()> {
+        if let Some(job_group) = self.job_groups.get_mut(&group.get_group_id()) {
+            (*job_group).jobs.insert(job.get_id(), job.clone());
+        };
         Ok(())
     }
 }

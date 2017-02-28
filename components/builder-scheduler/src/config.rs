@@ -81,7 +81,7 @@ impl ConfigFile for Config {
                                                connection_db);
         try!(toml.parse_into("cfg.datastore_connection_retry_ms",
                              &mut cfg.datastore_connection_retry_ms));
-        let mut timeout_seconds = 0;
+        let mut timeout_seconds = 3600;
         try!(toml.parse_into("cfg.datastore_connection_timeout", &mut timeout_seconds));
         cfg.datastore_connection_timeout = Duration::from_secs(timeout_seconds);
         try!(toml.parse_into("cfg.pool_size", &mut cfg.pool_size));

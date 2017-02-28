@@ -77,7 +77,7 @@ impl<'a, T: 'a + protobuf::Message> MessageBuilder<'a, T> {
 
     pub fn build(self) -> ::net::Msg {
         let mut msg = net::Msg::new();
-        msg.set_body(self.msg.0.write_to_bytes().unwrap());
+        msg.set_body(self.msg.0.write_to_bytes().expect("All message fields have been set"));
         msg.set_message_id(self.msg.0.descriptor().name().to_string());
         if let Some(route_info) = self.route_info {
             msg.set_route_info(route_info);
