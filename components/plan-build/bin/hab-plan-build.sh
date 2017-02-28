@@ -393,6 +393,8 @@ pkg_pconfig_dirs=()
 # The command to run the service - must not fork or return
 pkg_svc_run=''
 pkg_exposes=()
+declare -A pkg_env
+declare -A pkg_build_env
 declare -A pkg_exports
 declare -A pkg_binds
 declare -A pkg_binds_optional
@@ -1243,6 +1245,44 @@ abspath() {
   fi
 }
 
+# Returns all items joined by defined IFS
+#
+# ```sh
+# join_by , a "b c" d
+# # a,b c,d
+# join_by / var local tmp
+# # var/local/tmp
+# join_by , "${FOO[@]}"
+# # a,b,c
+# ```
+#
+# Thanks to [Stack Overflow](http://stackoverflow.com/a/17841619/515789)
+join_by() {
+  local IFS="$1"
+  shift
+  echo "$*"
+}
+
+# TODO: Support for adding Array's to `pkg_env`
+add_env() {
+  return 0
+}
+
+# TODO: Add `$pkg_prefix` to supplied paths
+add_path_env() {
+  return 0
+}
+
+# TODO: Copy `add_env`
+add_build_env() {
+  return 0
+}
+
+# TODO: Copy `add_path_env`
+add_path_build_env() {
+  return 0
+}
+
 # **Internal** Convert a string into a numerical value.
 function _to_int() {
     local -i num="10#${1}"
@@ -1994,10 +2034,16 @@ _build_metadata() {
     fi
   done
   if [[ -n "${ld_run_path_part}" ]]; then
+    # TODO: Remove LD_RUN_PATH file support
     echo $ld_run_path_part > $pkg_prefix/LD_RUN_PATH
+
+    pkg_build_env[LD_RUN_PATH]=${ld_run_path_part}
   fi
   if [[ -n "${ld_lib_part}" ]]; then
+    # TODO: Remove LDFLAGS file support
     echo $ld_lib_part > $pkg_prefix/LDFLAGS
+
+    pkg_build_env[LDFLAGS]=${ld_lib_part}
   fi
 
   local cflags_part=""
@@ -2072,8 +2118,19 @@ _build_metadata() {
     fi
   done
   if [[ -n "${path_part}" ]]; then
+    # TODO: Remove PATH file support
     echo $path_part > $pkg_prefix/PATH
+
+    pkg_env[PATH]=${path_part}
   fi
+
+  for env in ${!pkg_env[@]}; do
+    echo "$env=${pkg_env[$env]}" >> $pkg_prefix/ENVIRONMENT
+  done
+
+  for build_env in ${!pkg_build_env[@]}; do
+    echo "$build_env=${pkg_build_env[$build_env]}" >> $pkg_prefix/BUILD_ENVIRONMENT
+  done
 
   for export in "${!pkg_exports[@]}"; do
     echo "$export=${pkg_exports[$export]}" >> $pkg_prefix/EXPORTS
