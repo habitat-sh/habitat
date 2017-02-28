@@ -676,7 +676,7 @@ impl HookOutput {
             for line in BufReader::new(stdout).lines() {
                 if let Some(ref l) = line.ok() {
                     outputln!(preamble preamble_str, l);
-                    stdout_log.write_all(l.as_bytes());
+                    stdout_log.write_fmt(format_args!("{}\n", l));
                 }
             }
         }
@@ -684,7 +684,7 @@ impl HookOutput {
             for line in BufReader::new(stderr).lines() {
                 if let Some(ref l) = line.ok() {
                     outputln!(preamble preamble_str, l);
-                    stderr_log.write_all(l.as_bytes());
+                    stderr_log.write_fmt(format_args!("{}\n", l));
                 }
             }
         }
@@ -734,11 +734,11 @@ mod tests {
 
         let mut stdout = String::new();
         hook_output.stdout().unwrap().read_to_string(&mut stdout).expect("couldn't read stdout");
-        assert_eq!(stdout, "This is stdout");
+        assert_eq!(stdout, "This is stdout\n");
 
         let mut stderr = String::new();
         hook_output.stderr().unwrap().read_to_string(&mut stderr).expect("couldn't read stderr");
-        assert_eq!(stderr, "This is stderr");
+        assert_eq!(stderr, "This is stderr\n");
 
         fs::remove_dir_all(tmp_dir).expect("remove temp dir");
     }

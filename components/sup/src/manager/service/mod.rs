@@ -169,7 +169,7 @@ impl Service {
                                          &http_listen)?;
         let hook_template_path = svc_cfg.config_root.join("hooks");
         let hooks_path = fs::svc_hooks_path(service_group.service());
-        let logs_path = fs::svc_hooks_path(service_group.service());
+        let logs_path = fs::svc_logs_path(service_group.service());
         let locked_package = Arc::new(RwLock::new(package));
         Ok(Service {
             config: svc_cfg,
@@ -451,7 +451,7 @@ impl Service {
         let runtime_cfg = RuntimeConfig::new(svc_user, svc_group);
         let config_root = self.config_from.clone().unwrap_or(package.installed_path.clone());
         let hooks_path = fs::svc_hooks_path(self.service_group.service());
-        let logs_path = fs::svc_hooks_path(self.service_group.service());
+        let logs_path = fs::svc_logs_path(self.service_group.service());
         self.hooks = HookTable::default().load_hooks(&self.service_group,
                                                      hooks_path,
                                                      &config_root.join("hooks"),
