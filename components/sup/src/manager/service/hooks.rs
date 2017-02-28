@@ -284,13 +284,13 @@ impl Hook for InitHook {
 }
 
 #[derive(Debug, Serialize)]
-pub struct ReconfigureHook(RenderPair, LogsPrefix);
+pub struct RunHook(RenderPair, LogsPrefix);
 
-impl Hook for ReconfigureHook {
+impl Hook for RunHook {
     type ExitValue = ExitCode;
 
     fn file_name() -> &'static str {
-        "reconfigure"
+        "run"
     }
 
     fn new<C, T, L>(concrete_path: C, template_path: T, logs_prefix: L) -> Result<Self>
@@ -299,7 +299,12 @@ impl Hook for ReconfigureHook {
               L: Into<PathBuf>
     {
         let pair = RenderPair::new(concrete_path, template_path)?;
-        Ok(ReconfigureHook(pair, logs_prefix.into()))
+        Ok(RunHook(pair, logs_prefix.into()))
+    }
+
+    fn run(&self, _: &ServiceGroup, _: &RuntimeConfig) -> Self::ExitValue {
+        panic!("The run hook is a an exception to the lifetime of a service. It should only be \
+                run by the supervisor module!");
     }
 
     fn handle_exit(&self,
@@ -331,13 +336,13 @@ impl Hook for ReconfigureHook {
 }
 
 #[derive(Debug, Serialize)]
-pub struct RunHook(RenderPair, LogsPrefix);
+pub struct ReloadHook(RenderPair, LogsPrefix);
 
-impl Hook for RunHook {
+impl Hook for ReloadHook {
     type ExitValue = ExitCode;
 
     fn file_name() -> &'static str {
-        "run"
+        "reload"
     }
 
     fn new<C, T, L>(concrete_path: C, template_path: T, logs_prefix: L) -> Result<Self>
@@ -346,12 +351,59 @@ impl Hook for RunHook {
               L: Into<PathBuf>
     {
         let pair = RenderPair::new(concrete_path, template_path)?;
-        Ok(RunHook(pair, logs_prefix.into()))
+        Ok(ReloadHook(pair, logs_prefix.into()))
     }
 
-    fn run(&self, _: &ServiceGroup, _: &RuntimeConfig) -> Self::ExitValue {
-        panic!("The run hook is a an exception to the lifetime of a service. It should only be \
-                run by the supervisor module!");
+    fn handle_exit(&self,
+                   service_group: &ServiceGroup,
+                   _: &HookOutput,
+                   status: &ExitStatus)
+                   -> Self::ExitValue {
+        match status.code() {
+            Some(0) => ExitCode(0),
+            Some(code) => {
+                outputln!(preamble service_group, "Reload failed! '{}' exited with \
+                    status code {}", Self::file_name(), code);
+                ExitCode(code)
+            }
+            None => {
+                outputln!(preamble service_group, "Reload failed! '{}' exited without a \
+                    status code", Self::file_name());
+                ExitCode::default()
+            }
+        }
+    }
+
+    fn path(&self) -> &Path {
+        &self.0.path
+    }
+
+    fn template(&self) -> &Template {
+        &self.0.template
+    }
+
+    fn logs_prefix(&self) -> &Path {
+        &self.1
+    }
+}
+
+#[derive(Debug, Serialize)]
+pub struct ReconfigureHook(RenderPair, LogsPrefix);
+
+impl Hook for ReconfigureHook {
+    type ExitValue = ExitCode;
+
+    fn file_name() -> &'static str {
+        "reconfigure"
+    }
+
+    fn new<C, T, L>(concrete_path: C, template_path: T, logs_prefix: L) -> Result<Self>
+        where C: Into<PathBuf>,
+              T: AsRef<Path>,
+              L: Into<PathBuf>
+    {
+        let pair = RenderPair::new(concrete_path, template_path)?;
+        Ok(ReconfigureHook(pair, logs_prefix.into()))
     }
 
     fn handle_exit(&self,
@@ -511,6 +563,7 @@ pub struct HookTable {
     pub health_check: Option<HealthCheckHook>,
     pub init: Option<InitHook>,
     pub file_updated: Option<FileUpdatedHook>,
+    pub reload: Option<ReloadHook>,
     pub reconfigure: Option<ReconfigureHook>,
     pub suitability: Option<SuitabilityHook>,
     pub run: Option<RunHook>,
@@ -535,6 +588,9 @@ impl HookTable {
             self.compile_one(hook, service_group, config);
         }
         if let Some(ref hook) = self.init {
+            self.compile_one(hook, service_group, config);
+        }
+        if let Some(ref hook) = self.reload {
             self.compile_one(hook, service_group, config);
         }
         if let Some(ref hook) = self.reconfigure {
@@ -572,6 +628,7 @@ impl HookTable {
                 self.suitability =
                     SuitabilityHook::load(service_group, &hooks, &templates, &logs_dir);
                 self.init = InitHook::load(service_group, &hooks, &templates, &logs_dir);
+                self.reload = ReloadHook::load(service_group, &hooks, &templates, &logs_dir);
                 self.reconfigure =
                     ReconfigureHook::load(service_group, &hooks, &templates, &logs_dir);
                 self.run = RunHook::load(service_group, &hooks, &templates, &logs_dir);
