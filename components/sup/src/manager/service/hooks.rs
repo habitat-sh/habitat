@@ -258,13 +258,13 @@ impl Hook for InitHook {
         match status.code() {
             Some(0) => true,
             Some(code) => {
-                outputln!(preamble service_group,
-                    "Initialization failed! '{}' exited with status code {}", Self::file_name(), code);
+                outputln!(preamble service_group, "Initialization failed! '{}' exited with \
+                    status code {}", Self::file_name(), code);
                 false
             }
             None => {
-                outputln!(preamble service_group,
-                    "Initialization failed! '{}' exited without a status code", Self::file_name());
+                outputln!(preamble service_group, "Initialization failed! '{}' exited without a \
+                    status code", Self::file_name());
                 false
             }
         }
@@ -347,6 +347,11 @@ impl Hook for RunHook {
     {
         let pair = RenderPair::new(concrete_path, template_path)?;
         Ok(RunHook(pair, logs_prefix.into()))
+    }
+
+    fn run(&self, _: &ServiceGroup, _: &RuntimeConfig) -> Self::ExitValue {
+        panic!("The run hook is a an exception to the lifetime of a service. It should only be \
+                run by the supervisor module!");
     }
 
     fn handle_exit(&self,
@@ -457,16 +462,19 @@ impl Hook for SuitabilityHook {
                             Ok(line) => {
                                 match line.trim().parse::<u64>() {
                                     Ok(suitability) => {
-                                        outputln!(preamble service_group, "Reporting suitability of: {}", suitability);
+                                        outputln!(preamble service_group, "Reporting suitability \
+                                            of: {}", suitability);
                                         return Some(suitability);
                                     }
                                     Err(err) => {
-                                        outputln!(preamble service_group, "Parsing suitability failed: {}", err);
+                                        outputln!(preamble service_group,
+                                            "Parsing suitability failed: {}", err);
                                     }
                                 };
                             }
                             Err(err) => {
-                                outputln!(preamble service_group, "Failed to read last line of stdout: {}", err);
+                                outputln!(preamble service_group,
+                                    "Failed to read last line of stdout: {}", err);
                             }
                         };
                         None
