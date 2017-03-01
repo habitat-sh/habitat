@@ -373,10 +373,15 @@ init
 
   This hook is run when a Habitat topology starts.
 
+reload
+: File location: `<plan>/hooks/reload`
+
+For processes that can update their configuration without requiring a restart a `reload` hook can be written. This hook will execute instead of the default behaviour of restarting the process. `{{pkg.svc_pid_file}}` can be used to get a handle on the `PID` of the service.
+
 reconfigure
 : File location: `<plan>/hooks/reconfigure`
 
-  This hook is run when service configuration information has changed through a set of Habitat services that are peers with each other.
+  This hook is run when service configuration information has changed through a set of Habitat services that are peers with each other. Before the `reconfigure` hook the config files are re-rendered and the process is either restarted or the `reload` hook is called if present.
 
 suitability
 : File location: `<plan>/hooks/suitability`
