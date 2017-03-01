@@ -60,3 +60,8 @@ pub fn svc_var_path<T: AsRef<Path>>(service_name: T) -> PathBuf {
 pub fn svc_logs_path<T: AsRef<Path>>(service_name: T) -> PathBuf {
     svc_path(service_name).join("logs")
 }
+
+/// Returns the path to a given service's pid file.
+pub fn svc_pid_file<T: AsRef<Path>>(service_name: T) -> PathBuf {
+    svc_path(service_name).join("PID")
+}

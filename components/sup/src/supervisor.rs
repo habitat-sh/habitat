@@ -41,7 +41,6 @@ use error::{Result, Error};
 use fs;
 use util;
 
-const PIDFILE_NAME: &'static str = "PID";
 static LOGKEY: &'static str = "SV";
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -258,7 +257,7 @@ impl Supervisor {
     }
 
     pub fn pid_file(&self) -> PathBuf {
-        self.service_dir().join(PIDFILE_NAME)
+        fs::svc_pid_file(&self.package.read().expect("Package lock poisoned").ident().name)
     }
 
     /// Create a pid file for a package
