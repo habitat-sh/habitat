@@ -47,6 +47,7 @@ use regex::Regex;
 use router::{Params, Router};
 use serde::Serialize;
 use serde_json;
+use tempfile::NamedTempFile;
 use url;
 use urlencoded::UrlEncodedQuery;
 
@@ -289,12 +290,8 @@ fn write_string_to_file(filename: &PathBuf, body: String) -> Result<bool> {
     Ok(true)
 }
 
-fn write_file(filename: &PathBuf, body: &mut Body) -> Result<bool> {
-    let path = filename.parent().unwrap();
-    try!(fs::create_dir_all(path));
-    let tempfile = format!("{}.tmp", filename.to_string_lossy());
-    let f = try!(File::create(&tempfile));
-    let mut writer = BufWriter::new(&f);
+fn write_archive(tempfile: &NamedTempFile, body: &mut Body) -> Result<PackageArchive> {
+    let mut writer = BufWriter::new(tempfile);
     let mut written: i64 = 0;
     let mut buf = [0u8; 100000]; // Our byte buffer
     loop {
@@ -314,16 +311,7 @@ fn write_file(filename: &PathBuf, body: &mut Body) -> Result<bool> {
             }
         };
     }
-    info!("File added to Depot at {}", filename.to_string_lossy());
-    try!(fs::rename(&tempfile, &filename));
-    Ok(true)
-}
-
-fn remove_file(filename: &PathBuf) -> Result<bool> {
-    info!("File removed from the Depot from {}",
-          filename.to_string_lossy());
-    try!{fs::remove_file(filename)};
-    Ok(true)
+    Ok(PackageArchive::new(tempfile.path()))
 }
 
 fn upload_origin_key(req: &mut Request) -> IronResult<Response> {
@@ -517,10 +505,34 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
         }
     }
 
+    let tempfile = match NamedTempFile::new() {
+        Ok(file) => file,
+        Err(e) => {
+            error!("could not create temporary file, err={:?}", e);
+            return Ok(Response::with(status::InternalServerError));
+        }
+    };
+    let mut archive = try!(write_archive(&tempfile, &mut req.body));
+    debug!("Package Archive: {:#?}", archive);
+
+    let target_from_artifact = match archive.target() {
+        Ok(target) => target,
+        Err(e) => {
+            info!("Could not read the target for {:#?}: {:#?}", archive, e);
+            return Ok(Response::with(status::UnprocessableEntity));
+        }
+    };
+
+    if !depot.config.supported_targets.contains(&target_from_artifact) {
+        debug!("Unsupported package platform or architecture {}.",
+               target_from_artifact);
+        return Ok(Response::with(status::NotImplemented));
+    };
+
     match depot.datastore.packages.find(&ident) {
         Ok(_) |
         Err(dbcache::Error::EntityNotFound) => {
-            if let Some(_) = depot.archive(&ident) {
+            if depot.archive(&ident, &target_from_artifact).is_some() {
                 return Ok(Response::with((status::Conflict)));
             }
         }
@@ -529,27 +541,6 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
             return Ok(Response::with(status::InternalServerError));
         }
     }
-
-    let filename = depot.archive_path(&ident);
-    try!(write_file(&filename, &mut req.body));
-    let mut archive = PackageArchive::new(filename);
-    debug!("Package Archive: {:#?}", archive);
-
-    let target_from_artifact = match archive.target() {
-        Ok(target) => target,
-        Err(e) => {
-            info!("Could not read the target for {:#?}: {:#?}", archive, e);
-            remove_file(&archive.path).expect("Unable to remove temp file");
-            return Ok(Response::with(status::UnprocessableEntity));
-        }
-    };
-
-    if depot.config.supported_target != target_from_artifact {
-        debug!("Unsupported package platform or architecture {}.",
-               target_from_artifact);
-        remove_file(&archive.path).expect("Unable to remove temp file");
-        return Ok(Response::with(status::NotImplemented));
-    };
 
     let checksum_from_artifact = match archive.checksum() {
         Ok(cksum) => cksum,
@@ -564,6 +555,24 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
               checksum_from_artifact);
         return Ok(Response::with(status::UnprocessableEntity));
     }
+
+    let filename = depot.archive_path(&ident, &target_from_artifact);
+    match fs::create_dir_all(filename.parent().unwrap()) {
+        Ok(_) => {}
+        Err(e) => {
+            error!("Unable to create archive directory, err={:?}", e);
+            return Ok(Response::with(status::InternalServerError));
+        }
+    };
+    match tempfile.persist(&filename) {
+        Ok(_) => {}
+        Err(e) => {
+            error!("Unable to persist archive to {:?}, err={:?}", filename, e);
+            return Ok(Response::with(status::InternalServerError));
+        }
+    };
+    info!("File added to Depot at {}", filename.to_string_lossy());
+    let mut archive = PackageArchive::new(filename);
     let object = match depotsrv::Package::from_archive(&mut archive) {
         Ok(object) => object,
         Err(e) => {
@@ -580,6 +589,7 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
                        package: ident.get_name().to_string(),
                        version: ident.get_version().to_string(),
                        release: ident.get_release().to_string(),
+                       target: target_from_artifact.to_string(),
                        account: session.get_id().to_string(),
                    });
 
@@ -699,7 +709,7 @@ fn download_package(req: &mut Request) -> IronResult<Response> {
     let params = req.extensions.get::<Router>().unwrap();
     let ident = ident_from_params(params);
     let agent_target = target_from_headers(&req.headers.get::<UserAgent>().unwrap()).unwrap();
-    if agent_target != depot.config.supported_target {
+    if !depot.config.supported_targets.contains(&agent_target) {
         error!("Unsupported client platform ({}) for this depot.",
                agent_target);
         return Ok(Response::with(status::NotImplemented));
@@ -707,7 +717,7 @@ fn download_package(req: &mut Request) -> IronResult<Response> {
 
     match depot.datastore.packages.find(&ident) {
         Ok(ident) => {
-            if let Some(archive) = depot.archive(&ident) {
+            if let Some(archive) = depot.archive(&ident, &agent_target) {
                 match fs::metadata(&archive.path) {
                     Ok(_) => {
                         let mut response = Response::with((status::Ok, archive.path.clone()));
@@ -1021,7 +1031,9 @@ fn show_package(req: &mut Request) -> IronResult<Response> {
         }
     } else {
         if !ident.fully_qualified() {
-            match depot.datastore.packages.index.latest(&ident) {
+            let agent_target = target_from_headers(&req.headers.get::<UserAgent>().unwrap())
+                .unwrap();
+            match depot.datastore.packages.index.latest(&ident, &agent_target.to_string()) {
                 Ok(id) => ident = id.into(),
                 Err(Error::DataStore(dbcache::Error::EntityNotFound)) => {
                     return Ok(Response::with(status::NotFound));

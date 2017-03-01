@@ -15,6 +15,7 @@ message Package {
   repeated PackageIdent tdeps = 5;
   repeated uint32 exposes = 6 [packed=true];
   optional string config = 7;
+  required string target = 8;
 }
 
 message View {

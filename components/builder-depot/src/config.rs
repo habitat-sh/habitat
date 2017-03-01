@@ -16,6 +16,7 @@ use std::env;
 use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
 
 use hab_core::config::{ConfigFile, ParseInto};
+use hab_core::os::system::{Architecture, Platform};
 use hab_net::config::{GitHubOAuth, RouteAddrs};
 use hab_core::package::PackageTarget;
 use redis;
@@ -53,7 +54,7 @@ pub struct Config {
     /// Where to record log events for funnel metrics
     pub log_dir: String,
     /// Supported targets - comma separated
-    pub supported_target: PackageTarget,
+    pub supported_targets: Vec<PackageTarget>,
 }
 
 impl ConfigFile for Config {
@@ -67,7 +68,7 @@ impl ConfigFile for Config {
         try!(toml.parse_into("cfg.router_addrs", &mut cfg.routers));
         try!(toml.parse_into("cfg.events_enabled", &mut cfg.events_enabled));
         try!(toml.parse_into("pkg.svc_var_path", &mut cfg.log_dir));
-        try!(toml.parse_into("cfg.supported_target", &mut cfg.supported_target));
+        try!(toml.parse_into("cfg.supported_targets", &mut cfg.supported_targets));
         Ok(cfg)
     }
 }
@@ -85,7 +86,8 @@ impl Default for Config {
             insecure: false,
             events_enabled: false, // TODO: change to default to true later
             log_dir: env::temp_dir().to_string_lossy().into_owned(),
-            supported_target: PackageTarget::default(),
+            supported_targets: vec![PackageTarget::new(Platform::Linux, Architecture::X86_64),
+                                    PackageTarget::new(Platform::Windows, Architecture::X86_64)],
         }
     }
 }

@@ -67,6 +67,7 @@ pub enum Event {
         package: String,
         version: String,
         release: String,
+        target: String,
         account: String,
     },
     OriginKeyUpload {
@@ -100,7 +101,7 @@ impl fmt::Display for Event {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
             Event::ProjectCreate { origin: _, package: _, account: _ } => "project-create",
-            Event::PackageUpload { origin: _, package: _, version: _, release: _, account: _ } => {
+            Event::PackageUpload { origin: _, package: _, version: _, release: _, target: _, account: _ } => {
                 "package-upload"
             }
             Event::OriginKeyUpload { origin: _, version: _, account: _ } => "origin-key-upload",
@@ -137,6 +138,7 @@ impl Serialize for Event {
                                    package: ref p,
                                    version: ref v,
                                    release: ref r,
+                                   target: ref t,
                                    account: ref a } => {
                 let mut strukt = try!(serializer.serialize_struct("event", 6));
                 try!(strukt.serialize_field("name", &self.to_string()));
@@ -144,6 +146,7 @@ impl Serialize for Event {
                 try!(strukt.serialize_field("package", p));
                 try!(strukt.serialize_field("version", v));
                 try!(strukt.serialize_field("release", r));
+                try!(strukt.serialize_field("target", t));
                 try!(strukt.serialize_field("account", a));
                 strukt
             }
