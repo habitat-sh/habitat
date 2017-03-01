@@ -43,6 +43,8 @@ pub enum Error {
     /// Expected an array of tables containing string feilds and values for configuration
     /// field value.
     ConfigInvalidArrayTableString(&'static str),
+    /// Expected an array of PackageTarget entries for configuration field value.
+    ConfigInvalidArrayTarget(&'static str),
     /// Expected an array of u16 entries for configuration field value.
     ConfigInvalidArrayU16(&'static str),
     /// Expected an array of u32 entries for configuration field value.
@@ -147,6 +149,11 @@ impl fmt::Display for Error {
             }
             Error::ConfigInvalidArrayTableString(ref f) => {
                 format!("Invalid array value of tables containing string fields and values in \
+                         config, field={}",
+                        f)
+            }
+            Error::ConfigInvalidArrayTarget(ref f) => {
+                format!("Invalid array value of targets containing string fields and values in \
                          config, field={}",
                         f)
             }
@@ -268,6 +275,10 @@ impl error::Error for Error {
                 "Invalid array value of tables containing string fields and values encountered \
                  while parsing a configuration file"
             }
+            Error::ConfigInvalidArrayTarget(_) => {
+                "Invalid array value of targets containing string fields and values encountered \
+                 while parsing a configuration file"
+            }            
             Error::ConfigInvalidArrayU16(_) => {
                 "Invalid array value of u16 entries encountered while parsing a configuration file"
             }

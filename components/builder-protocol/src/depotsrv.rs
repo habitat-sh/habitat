@@ -121,10 +121,12 @@ impl FromArchive for Package {
         let exposes = try!(archive.exposes()).into_iter().map(|d| d as u32).collect();
         let config = try!(archive.config());
         let checksum = try!(archive.checksum());
+        let target = try!(archive.target());
 
         let mut package = Package::new();
         package.set_ident(ident);
         package.set_manifest(manifest);
+        package.set_target(target.to_string());
         package.set_deps(deps);
         package.set_tdeps(tdeps);
         package.set_exposes(exposes);
@@ -207,10 +209,11 @@ impl Serialize for Package {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {
-        let mut strukt = try!(serializer.serialize_struct("package", 7));
+        let mut strukt = try!(serializer.serialize_struct("package", 8));
         try!(strukt.serialize_field("ident", self.get_ident()));
         try!(strukt.serialize_field("checksum", self.get_checksum()));
         try!(strukt.serialize_field("manifest", self.get_manifest()));
+        try!(strukt.serialize_field("target", self.get_target()));
         try!(strukt.serialize_field("deps", self.get_deps()));
         try!(strukt.serialize_field("tdeps", self.get_tdeps()));
         try!(strukt.serialize_field("exposes", self.get_exposes()));

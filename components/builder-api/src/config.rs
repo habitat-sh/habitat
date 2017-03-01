@@ -102,7 +102,7 @@ impl ConfigFile for Config {
         try!(toml.parse_into("cfg.events_enabled", &mut cfg.depot.events_enabled));
         try!(toml.parse_into("pkg.svc_var_path", &mut cfg.log_dir));
         try!(toml.parse_into("pkg.svc_var_path", &mut cfg.depot.log_dir));
-        try!(toml.parse_into("cfg.supported_target", &mut cfg.depot.supported_target));
+        try!(toml.parse_into("cfg.supported_targets", &mut cfg.depot.supported_targets));
         Ok(cfg)
     }
 }

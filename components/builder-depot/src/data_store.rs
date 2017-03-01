@@ -186,9 +186,9 @@ impl PackagesIndex {
         }
     }
 
-    pub fn latest<T: Identifiable>(&self, id: &T) -> Result<depotsrv::PackageIdent> {
+    pub fn latest<T: Identifiable>(&self, id: &T, target: &str) -> Result<depotsrv::PackageIdent> {
         let conn = self.pool().get().unwrap();
-        match conn.zrange::<String, Vec<String>>(PackagesIndex::key(&id.to_string()), 0, -1) {
+        match conn.zrange::<String, Vec<String>>(PackagesIndex::key(&format!("{}/{}", &target, &id)), 0, -1) {
             Ok(ref ids) if ids.len() <= 0 => {
                 return Err(Error::DataStore(dbcache::Error::EntityNotFound))
             }
@@ -254,6 +254,10 @@ impl PackagesIndex {
             .ignore()
             .zadd(Self::version_idx(record), record.to_string(), 0)
             .ignore()
+            .zadd(Self::target_name_idx(record), record.to_string(), 0)
+            .ignore()
+            .zadd(Self::target_version_idx(record), record.to_string(), 0)
+            .ignore()
             .zadd(Self::prefix(),
                   format!("{}:{}", record.get_ident().get_origin(), record.to_string()),
                   0)
@@ -308,6 +312,23 @@ impl PackagesIndex {
     fn version_idx(package: &depotsrv::Package) -> String {
         let ident = package.get_ident();
         Self::key(format!("{}/{}/{}",
+                          ident.get_origin(),
+                          ident.get_name(),
+                          ident.get_version()))
+    }
+
+    fn target_name_idx(package: &depotsrv::Package) -> String {
+        let ident = package.get_ident();
+        Self::key(format!("{}/{}/{}",
+                          package.get_target(),
+                          ident.get_origin(),
+                          ident.get_name()))
+    }
+
+    fn target_version_idx(package: &depotsrv::Package) -> String {
+        let ident = package.get_ident();
+        Self::key(format!("{}/{}/{}/{}",
+                          package.get_target(),
                           ident.get_origin(),
                           ident.get_name(),
                           ident.get_version()))

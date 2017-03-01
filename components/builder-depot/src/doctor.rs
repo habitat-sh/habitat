@@ -193,7 +193,7 @@ impl<'a> Doctor<'a> {
                     match depotsrv::Package::from_archive(&mut archive) {
                         Ok(object) => {
                             try!(self.depot.datastore.packages.write(&object));
-                            let path = self.depot.archive_path(&ident);
+                            let path = self.depot.archive_path(&ident, &try!(archive.target()));
                             if let Some(e) = fs::create_dir_all(path.parent().unwrap()).err() {
                                 self.report
                                     .failure(OperationType::ArchiveInsert(entry.path()

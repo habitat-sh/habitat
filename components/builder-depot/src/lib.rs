@@ -42,6 +42,7 @@ extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_json;
+extern crate tempfile;
 extern crate time;
 extern crate toml;
 extern crate unicase;
@@ -64,7 +65,7 @@ use std::path::{Path, PathBuf};
 
 use crypto::sha2::Sha256;
 use crypto::digest::Digest;
-use hab_core::package::{Identifiable, PackageArchive};
+use hab_core::package::{Identifiable, PackageArchive, PackageTarget};
 use hab_net::server::NetIdent;
 use iron::typemap;
 
@@ -86,8 +87,11 @@ impl Depot {
 
     // Return a PackageArchive representing the given package. None is returned if the Depot
     // doesn't have an archive for the given package.
-    fn archive<T: Identifiable>(&self, ident: &T) -> Option<PackageArchive> {
-        let file = self.archive_path(ident);
+    fn archive<T: Identifiable>(&self,
+                                ident: &T,
+                                target: &PackageTarget)
+                                -> Option<PackageArchive> {
+        let file = self.archive_path(ident, target);
         match fs::metadata(&file) {
             Ok(_) => Some(PackageArchive::new(file)),
             Err(_) => None,
@@ -96,7 +100,7 @@ impl Depot {
 
     // Return a formatted string representing the filename of an archive for the given package
     // identifier pieces.
-    fn archive_path<T: Identifiable>(&self, ident: &T) -> PathBuf {
+    fn archive_path<T: Identifiable>(&self, ident: &T, target: &PackageTarget) -> PathBuf {
         let mut digest = Sha256::new();
         let mut output = [0; 64];
         digest.input_str(&ident.to_string());
@@ -109,8 +113,8 @@ impl Depot {
                           ident.name(),
                           ident.version().unwrap(),
                           ident.release().unwrap(),
-                          self.config.supported_target.architecture,
-                          self.config.supported_target.platform))
+                          target.architecture,
+                          target.platform))
     }
 
     fn key_path(&self, key: &str, rev: &str) -> PathBuf {
