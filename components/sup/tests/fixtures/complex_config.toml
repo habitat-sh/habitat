@@ -20,6 +20,7 @@ svc_path = "/hab/svc/lsyncd"
 svc_static_path = "/hab/svc/lsyncd/static"
 svc_user = "hab"
 svc_var_path = "/hab/svc/lsyncd/var"
+svc_pid_file = "/hab/svc/lsyncd/PID"
 version = "0.1.0"
 
 [[pkg.deps]]

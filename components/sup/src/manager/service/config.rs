@@ -494,6 +494,7 @@ pub struct Pkg {
     pub svc_files_path: PathBuf,
     pub svc_static_path: PathBuf,
     pub svc_var_path: PathBuf,
+    pub svc_pid_file: PathBuf,
     pub svc_user: String,
     pub svc_group: String,
 }
@@ -517,6 +518,7 @@ impl Pkg {
             svc_files_path: fs::svc_files_path(&package.ident.name),
             svc_static_path: fs::svc_static_path(&package.ident.name),
             svc_var_path: fs::svc_var_path(&package.ident.name),
+            svc_pid_file: fs::svc_pid_file(&package.ident.name),
             svc_user: runtime.svc_user.to_string(),
             svc_group: runtime.svc_group.to_string(),
         })

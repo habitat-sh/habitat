@@ -20,6 +20,7 @@ svc_path = "/hab/svc/testplan"
 svc_static_path = "/hab/svc/testplan/static"
 svc_user = "hab"
 svc_var_path = "/hab/svc/testplan/var"
+svc_pid_file = "/hab/svc/testplan/PID"
 version = "0.1.0"
 
 [[pkg.deps]]

@@ -134,7 +134,7 @@ pub struct Service {
     pub health_check: HealthCheck,
     pub initialized: bool,
     pub last_election_status: ElectionStatus,
-    pub needs_restart: bool,
+    pub needs_reload: bool,
     pub needs_reconfiguration: bool,
     #[serde(serialize_with="serialize_lock")]
     pub package: Arc<RwLock<PackageInstall>>,
@@ -180,7 +180,7 @@ impl Service {
                 .load_hooks(&service_group, &hooks_path, &hook_template_path, &logs_path),
             initialized: false,
             last_election_status: ElectionStatus::None,
-            needs_restart: false,
+            needs_reload: false,
             needs_reconfiguration: false,
             supervisor: Supervisor::new(locked_package.clone(), &service_group, runtime_cfg),
             package: locked_package,
@@ -286,16 +286,20 @@ impl Service {
         if let Some(err) = self.supervisor.start().err() {
             outputln!(preamble self.service_group, "Service start failed: {}", err);
         } else {
-            self.needs_restart = false;
+            self.needs_reload = false;
             self.needs_reconfiguration = false;
         }
     }
 
-    pub fn restart(&mut self) {
-        if let Some(err) = self.supervisor.restart().err() {
-            outputln!(preamble self.service_group, "Service restart failed: {}", err);
+    pub fn reload(&mut self) {
+        self.needs_reload = false;
+        if self.is_down() || self.hooks.reload.is_none() {
+            if let Some(err) = self.supervisor.restart().err() {
+                outputln!(preamble self.service_group, "Service restart failed: {}", err);
+            }
         } else {
-            self.needs_restart = false;
+            let hook = self.hooks.reload.as_ref().unwrap();
+            hook.run(&self.service_group, self.runtime_cfg());
         }
     }
 
@@ -664,8 +668,8 @@ impl Service {
         } else {
             self.check_process();
 
-            if self.needs_restart || self.is_down() || self.needs_reconfiguration {
-                self.restart();
+            if self.needs_reload || self.is_down() || self.needs_reconfiguration {
+                self.reload();
                 if self.needs_reconfiguration {
                     self.reconfigure()
                 }
