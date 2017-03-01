@@ -135,7 +135,7 @@ _find_system_commands() {
   fi
 
   if exists jfrog; then
-    _jfrog_cmd=$(command -v jfrog)
+    _jfrog_cmd="env JFROG_CLI_OFFER_CONFIG=false $(command -v jfrog)"
   else
     exit_with "We require jfrog to publish artifacts to Bintray; aborting" 1
   fi
@@ -238,21 +238,29 @@ _publish_slim_release() {
   bintray_endpoint="$BINTRAY_ORG/$BINTRAY_REPO/$bintray_pkg/$bintray_version"
   bintray_path="$pkg_kernel/$pkg_arch"
 
-  info "Creating Bintray package $bintray_pkg"
-  $_jfrog_cmd --offer-config=false bt package-create \
+  info "Checking to see if Bintray package $bintray_pkg already exists"
+  if $_jfrog_cmd bt package-show \
     --user=$BINTRAY_USER \
     --key=$BINTRAY_KEY \
-    --licenses=Apache-2.0 \
-    --vcs-url=https://github.com/habitat-sh/habitat \
-    --issuetracker-url=https://github.com/habitat-sh/habitat/issues \
-    --pub-dn=false \
-    --pub-stats=false \
-    --website-url=https://www.habitat.sh \
-    "$BINTRAY_ORG/$BINTRAY_REPO/$bintray_pkg"
+    "$BINTRAY_ORG/$BINTRAY_REPO/$bintray_pkg" ; then
+    info "$bintray_pkg already exists. No need to create it."
+  else
+    info "$bintray_pkg does not exist. Creating it now."
+    $_jfrog_cmd bt package-create \
+      --user=$BINTRAY_USER \
+      --key=$BINTRAY_KEY \
+      --licenses=Apache-2.0 \
+      --vcs-url=https://github.com/habitat-sh/habitat \
+      --issuetracker-url=https://github.com/habitat-sh/habitat/issues \
+      --pub-dn=false \
+      --pub-stats=false \
+      --website-url=https://www.habitat.sh \
+      "$BINTRAY_ORG/$BINTRAY_REPO/$bintray_pkg"
+  fi
 
   for a in $pkg_artifact ${pkg_artifact}.sha256sum; do
     info "Uploading $(basename $a) to $bintray_endpoint"
-    $_jfrog_cmd --offer-config=false bt upload \
+    $_jfrog_cmd bt upload \
       --user=$BINTRAY_USER \
       --key=$BINTRAY_KEY \
       "$a" \
@@ -261,14 +269,14 @@ _publish_slim_release() {
   done
 
   info "Signing files in $bintray_endpoint"
-  $_jfrog_cmd --offer-config=false bt gpg-sign-ver \
+  $_jfrog_cmd bt gpg-sign-ver \
     --user=$BINTRAY_USER \
     --key=$BINTRAY_KEY \
     --passphrase=$BINTRAY_PASSPHRASE \
     "$bintray_endpoint"
 
   info "Publishing version $bintray_endpoint"
-  $_jfrog_cmd --offer-config=false bt version-publish \
+  $_jfrog_cmd bt version-publish \
     --user=$BINTRAY_USER \
     --key=$BINTRAY_KEY \
     "$bintray_endpoint"
