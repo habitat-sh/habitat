@@ -407,24 +407,30 @@ impl ParseInto<PackageIdent> for toml::Value {
     }
 }
 
-impl ParseInto<PackageTarget> for toml::Value {
-    fn parse_into(&self, field: &'static str, out: &mut PackageTarget) -> Result<bool> {
-        match extract_field(field, &self) {
-            Some(val) => {
-                match val.as_str() {
-                    Some(val_str) => {
-                        match PackageTarget::from_str(val_str) {
-                            Ok(target) => {
-                                *out = target;
-                                Ok(true)
+impl ParseInto<Vec<PackageTarget>> for toml::Value {
+    fn parse_into(&self, field: &'static str, out: &mut Vec<PackageTarget>) -> Result<bool> {
+        if let Some(val) = extract_field(field, &self) {
+            if let Some(v) = val.as_array() {
+                let mut buf = vec![];
+                for target in v.iter() {
+                    if let Some(t) = target.as_str() {
+                        match PackageTarget::from_str(t) {
+                            Ok(tar) => {
+                                buf.push(tar);
                             }
-                            Err(_) => Err(Error::ConfigInvalidTarget(field)),
+                            Err(_) => return Err(Error::ConfigInvalidTarget(field)),
                         }
+                    } else {
+                        return Err(Error::ConfigInvalidArrayTarget(field));
                     }
-                    None => Err(Error::ConfigInvalidTarget(field)),
                 }
+                *out = buf;
+                Ok(true)
+            } else {
+                Err(Error::ConfigInvalidArrayTarget(field))
             }
-            None => Ok(false),
+        } else {
+            Ok(false)
         }
     }
 }
@@ -439,6 +445,7 @@ mod test {
 
     use super::{ParseInto, extract_field};
     use error::Error::*;
+    use os::system::{Architecture, Platform};
     use package::{PackageIdent, PackageTarget};
 
     fn toml_from_str(content: &str) -> toml::Value {
@@ -1428,34 +1435,24 @@ mod test {
     }
 
     #[test]
-    fn parse_into_package_target() {
-        let mut actual = PackageTarget::default();
+    fn parse_into_vec_package_target() {
+        let mut actual = vec![PackageTarget::new(Platform::Linux, Architecture::X86_64),
+                              PackageTarget::new(Platform::Windows, Architecture::X86_64)];
         let toml = toml_from_str(r#"
-            field = "x86_64-linux"
+            field = ["x86_64-linux", "x86_64-windows"]
             "#);
         let mutated = toml.parse_into("field", &mut actual).unwrap();
 
         assert!(mutated);
-        assert_eq!(PackageTarget::from_str("x86_64-linux").unwrap(), actual);
+        assert_eq!(vec![PackageTarget::new(Platform::Linux, Architecture::X86_64),
+                        PackageTarget::new(Platform::Windows, Architecture::X86_64)],
+                   actual);
     }
 
     #[test]
-    fn parse_into_package_target_from_table() {
-        let mut actual = PackageTarget::default();
-        let toml = toml_from_str(r#"
-            [cfg]
-            field = "x86_64-linux"
-            "#);
-        let mutated = toml.parse_into("cfg.field", &mut actual).unwrap();
-
-        assert!(mutated);
-        assert_eq!(PackageTarget::from_str("x86_64-linux").unwrap(), actual);
-    }
-
-
-    #[test]
-    fn parse_into_package_target_field_missing() {
-        let mut actual = PackageTarget::default();
+    fn parse_into_vec_package_target_field_missing() {
+        let mut actual = vec![PackageTarget::new(Platform::Linux, Architecture::X86_64),
+                              PackageTarget::new(Platform::Windows, Architecture::X86_64)];
         let toml = toml_from_str(r#""#);
         let mutated = toml.parse_into("field", &mut actual).unwrap();
 
@@ -1463,14 +1460,15 @@ mod test {
     }
 
     #[test]
-    fn parse_into_package_target_invalid_string() {
-        let mut actual = PackageTarget::default();
+    fn parse_into_vec_package_target_invalid() {
+        let mut actual = vec![PackageTarget::new(Platform::Linux, Architecture::X86_64),
+                              PackageTarget::new(Platform::Windows, Architecture::X86_64)];
         let toml = toml_from_str(r#"
             field = false
             "#);
 
         match toml.parse_into("field", &mut actual) {
-            Err(ConfigInvalidTarget(field)) => assert_eq!("field", field),
+            Err(ConfigInvalidArrayTarget(field)) => assert_eq!("field", field),
             Err(e) => panic!("Unexpected error returned: {}", e),
             Ok(_) => panic!("Value should fail to parse"),
         }
@@ -1478,9 +1476,10 @@ mod test {
 
     #[test]
     fn parse_into_package_target_invalid_target() {
-        let mut actual = PackageTarget::default();
+        let mut actual = vec![PackageTarget::new(Platform::Linux, Architecture::X86_64),
+                              PackageTarget::new(Platform::Windows, Architecture::X86_64)];
         let toml = toml_from_str(r#"
-            field = "nope"
+            field = ["x86_64-linux", "LOVE IS ALL AROUND YOU"]
             "#);
 
         match toml.parse_into("field", &mut actual) {
