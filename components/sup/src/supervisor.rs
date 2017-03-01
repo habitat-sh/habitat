@@ -30,6 +30,7 @@ use std::sync::{Arc, RwLock};
 use std::thread;
 
 use hcore::os::process::{HabChild, ExitStatusExt};
+use hcore::util::perm::set_owner;
 use hcore::package::PackageInstall;
 use hcore::service::ServiceGroup;
 use serde::{Serialize, Serializer};
@@ -271,7 +272,10 @@ impl Supervisor {
                 debug!("Creating PID file for child {} -> {:?}",
                        pid_file.display(),
                        pid);
-                let mut f = try!(File::create(pid_file));
+                let mut f = try!(File::create(&pid_file));
+                try!(set_owner(pid_file,
+                               &self.runtime_config.svc_user,
+                               &self.runtime_config.svc_group));
                 try!(write!(f, "{}", pid));
                 Ok(())
             }
