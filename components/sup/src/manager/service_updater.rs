@@ -95,12 +95,12 @@ impl ServiceUpdater {
                                      service: &mut Service,
                                      census_list: &CensusList)
                                      -> bool {
+        let mut updated = false;
         match self.states.get_mut(&service.service_group) {
             Some(&mut UpdaterState::AtOnce(ref mut rx)) => {
                 match rx.try_recv() {
                     Ok(package) => {
                         service.update_package(package);
-                        service.needs_restart = true;
                         return true;
                     }
                     Err(TryRecvError::Empty) => return false,
@@ -163,7 +163,7 @@ impl ServiceUpdater {
                             Ok(package) => {
                                 debug!("Rolling Update, polling found a new package");
                                 service.update_package(package);
-                                service.needs_restart = true;
+                                updated = true;
                             }
                             Err(TryRecvError::Empty) => return false,
                             Err(TryRecvError::Disconnected) => {
@@ -193,7 +193,7 @@ impl ServiceUpdater {
                         }
                     }
                 }
-                if service.needs_restart {
+                if updated {
                     *state = LeaderState::Waiting;
                 }
             }
@@ -234,7 +234,7 @@ impl ServiceUpdater {
                                 match rx.try_recv() {
                                     Ok(package) => {
                                         service.update_package(package);
-                                        service.needs_restart = true;
+                                        updated = true
                                     }
                                     Err(TryRecvError::Empty) => return false,
                                     Err(TryRecvError::Disconnected) => {
@@ -256,13 +256,13 @@ impl ServiceUpdater {
                         }
                     }
                 }
-                if service.needs_restart {
+                if updated {
                     *state = FollowerState::Waiting;
                 }
             }
             None => {}
         }
-        service.needs_restart
+        updated
     }
 }
 

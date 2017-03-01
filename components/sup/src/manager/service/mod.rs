@@ -463,8 +463,11 @@ impl Service {
         }
         *self.package.write().expect("Package lock poisoned") = package;
 
+        if let Err(err) = self.supervisor.down() {
+            outputln!(preamble self.service_group,
+                      "Error stopping process while updating package: {}", err);
+        }
         self.initialized = false;
-        self.initialize();
     }
 
     pub fn to_rumor<T: ToString>(&self, member_id: T) -> ServiceRumor {
