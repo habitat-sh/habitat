@@ -53,7 +53,7 @@ $main-nav-breakpoint: 769px;
     @include large-nav {
         background: transparent;
 
-      a {
+      .main-nav--links-wrap a {
         color: $white;
 
         &:hover,
