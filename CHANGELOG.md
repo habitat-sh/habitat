@@ -1,5 +1,84 @@
 # Habitat CHANGELOG
 
+## [0.18.0](https://github.com/habitat-sh/habitat/tree/0.18.0) (03-02-2017)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.17.0...0.18.0)
+
+## Features & Enhancements
+
+- \[RFC\] Reconfigure without restart [\#1801](https://github.com/habitat-sh/habitat/issues/1801)
+- Added support for dynamically provisioned ephemeral acceptance env [\#1878](https://github.com/habitat-sh/habitat/pull/1878) ([eeyun](https://github.com/eeyun))
+- Commit Cargo.lock with pinned toml dep [\#1828](https://github.com/habitat-sh/habitat/pull/1828) ([bodymindarts](https://github.com/bodymindarts))
+- \[sup\] No write lock is required to lookup suitability [\#1826](https://github.com/habitat-sh/habitat/pull/1826) ([bodymindarts](https://github.com/bodymindarts))
+- Validate that a ServiceConfig can be rendered as a string. [\#1824](https://github.com/habitat-sh/habitat/pull/1824) ([smurawski](https://github.com/smurawski))
+- changing the reference of Mac platform from MacOS to Darwin for uname… [\#1817](https://github.com/habitat-sh/habitat/pull/1817) ([smurawski](https://github.com/smurawski))
+- documentation for `eachAlive` helper [\#1814](https://github.com/habitat-sh/habitat/pull/1814) ([smurawski](https://github.com/smurawski))
+- `eachAlive` Handlebars Helper  [\#1813](https://github.com/habitat-sh/habitat/pull/1813) ([smurawski](https://github.com/smurawski))
+- Upgrade crates, primarily serde 0.9 and toml 0.3 APIs [\#1811](https://github.com/habitat-sh/habitat/pull/1811) ([fnichol](https://github.com/fnichol))
+- \[sup\] Refactor Service to install itself & load from a ServiceSpec. [\#1791](https://github.com/habitat-sh/habitat/pull/1791) ([fnichol](https://github.com/fnichol))
+- "Fix" deserialization of `ServiceConfig` inside Handlebars Helper [\#1788](https://github.com/habitat-sh/habitat/pull/1788) ([smurawski](https://github.com/smurawski))
+- Add closing {{~/if}} in example [\#1770](https://github.com/habitat-sh/habitat/pull/1770) ([smacfarlane](https://github.com/smacfarlane))
+
+## Bug fixes
+
+- Rendering config is failing [\#1818](https://github.com/habitat-sh/habitat/issues/1818)
+- Service tries to copy run hook before initialization [\#1797](https://github.com/habitat-sh/habitat/issues/1797)
+- Unable to use `pkgPathFor` helper [\#1773](https://github.com/habitat-sh/habitat/issues/1773)
+- Service should be set to "uninitialized" after an update occurs [\#1641](https://github.com/habitat-sh/habitat/issues/1641)
+- \[sup\] Correct hook output location and line breaks [\#1834](https://github.com/habitat-sh/habitat/pull/1834) ([bodymindarts](https://github.com/bodymindarts))
+- \[sup\] Begin a new service lifecycle after pkg update [\#1833](https://github.com/habitat-sh/habitat/pull/1833) ([bodymindarts](https://github.com/bodymindarts))
+- \[sup\] Initialization should fail on non 0 exit code [\#1827](https://github.com/habitat-sh/habitat/pull/1827) ([bodymindarts](https://github.com/bodymindarts))
+- A few fixes for the supervisor [\#1822](https://github.com/habitat-sh/habitat/pull/1822) ([smurawski](https://github.com/smurawski))
+- \[sup\] Fix a `Serialize` trait impl for serde 0.9. [\#1815](https://github.com/habitat-sh/habitat/pull/1815) ([fnichol](https://github.com/fnichol))
+- \[sup\] Regression: fix when specifying multiple service opts. [\#1796](https://github.com/habitat-sh/habitat/pull/1796) ([fnichol](https://github.com/fnichol))
+- Skip auto-update on start for rolling update strategy [\#1792](https://github.com/habitat-sh/habitat/pull/1792) ([reset](https://github.com/reset))
+- "Fix" deserialization of `ServiceConfig` inside Handlebars Helper [\#1788](https://github.com/habitat-sh/habitat/pull/1788) ([smurawski](https://github.com/smurawski))
+- \[hab\] Refactor `install.sh` for Habitat 'hab' program. [\#1777](https://github.com/habitat-sh/habitat/pull/1777) ([fnichol](https://github.com/fnichol))
+- Refresh and reinitialize service after package update [\#1776](https://github.com/habitat-sh/habitat/pull/1776) ([mwrock](https://github.com/mwrock))
+- \[hab/mac\] Update Mac builds with 0.17.0 updates. [\#1771](https://github.com/habitat-sh/habitat/pull/1771) ([fnichol](https://github.com/fnichol))
+- fix missing lib build errors in sup/butterfly [\#1769](https://github.com/habitat-sh/habitat/pull/1769) ([mwrock](https://github.com/mwrock))
+
+**Closed issues:**
+
+- supervisor does not install powershell plan on windows if missing [\#1874](https://github.com/habitat-sh/habitat/issues/1874)
+- Package updates restart old package and not the updated one [\#1873](https://github.com/habitat-sh/habitat/issues/1873)
+- Fix zmq crate compile in hab-sup windows plan on system w/o vs 2015 installed [\#1872](https://github.com/habitat-sh/habitat/issues/1872)
+- Multi-tier .net Core sample on windows [\#1871](https://github.com/habitat-sh/habitat/issues/1871)
+- Dummy Issue [\#1836](https://github.com/habitat-sh/habitat/issues/1836)
+- Slow hash generation for lots of files [\#1800](https://github.com/habitat-sh/habitat/issues/1800)
+- Elect 'healthiest' follower when leader goes down [\#1767](https://github.com/habitat-sh/habitat/issues/1767)
+
+**Merged pull requests:**
+
+- Reload [\#1837](https://github.com/habitat-sh/habitat/pull/1837) ([bodymindarts](https://github.com/bodymindarts))
+- Make depot upload and download target aware [\#1835](https://github.com/habitat-sh/habitat/pull/1835) ([mwrock](https://github.com/mwrock))
+- Update config file parsing for toml-rs 3.0 [\#1832](https://github.com/habitat-sh/habitat/pull/1832) ([chefsalim](https://github.com/chefsalim))
+- Add initial job creation ability to builder-scheduler [\#1829](https://github.com/habitat-sh/habitat/pull/1829) ([chefsalim](https://github.com/chefsalim))
+- Adding a script to deploy unstable mac builds [\#1825](https://github.com/habitat-sh/habitat/pull/1825) ([raskchanky](https://github.com/raskchanky))
+- Catch up documentation on "hab pkg header" [\#1821](https://github.com/habitat-sh/habitat/pull/1821) ([juliandunn](https://github.com/juliandunn))
+- Suitability [\#1819](https://github.com/habitat-sh/habitat/pull/1819) ([bodymindarts](https://github.com/bodymindarts))
+- add powershell as a hab-sup runtime dependency [\#1809](https://github.com/habitat-sh/habitat/pull/1809) ([mwrock](https://github.com/mwrock))
+- fix powershell studio args [\#1808](https://github.com/habitat-sh/habitat/pull/1808) ([mwrock](https://github.com/mwrock))
+- Bind args are multiple, not comma separated [\#1807](https://github.com/habitat-sh/habitat/pull/1807) ([smith](https://github.com/smith))
+- Update my role in MAINTAINERS [\#1806](https://github.com/habitat-sh/habitat/pull/1806) ([reset](https://github.com/reset))
+- Speed up blake2b hash generation during build [\#1804](https://github.com/habitat-sh/habitat/pull/1804) ([chetan](https://github.com/chetan))
+- Add Justin Carter as core habitat maintainer [\#1803](https://github.com/habitat-sh/habitat/pull/1803) ([bodymindarts](https://github.com/bodymindarts))
+- Activate asset\_hash extension to improve browser caching [\#1802](https://github.com/habitat-sh/habitat/pull/1802) ([magwalk](https://github.com/magwalk))
+- Recompile hooks on reconfig [\#1799](https://github.com/habitat-sh/habitat/pull/1799) ([mwrock](https://github.com/mwrock))
+- All the homepage/footer fixes!  [\#1789](https://github.com/habitat-sh/habitat/pull/1789) ([magwalk](https://github.com/magwalk))
+- Corrected tutorial to account for changes in plan syntax [\#1787](https://github.com/habitat-sh/habitat/pull/1787) ([eeyun](https://github.com/eeyun))
+- Remove text from Call To Action [\#1786](https://github.com/habitat-sh/habitat/pull/1786) ([mfdii](https://github.com/mfdii))
+- Homepage fixes [\#1785](https://github.com/habitat-sh/habitat/pull/1785) ([magwalk](https://github.com/magwalk))
+- typo [\#1783](https://github.com/habitat-sh/habitat/pull/1783) ([ubergeekgirl](https://github.com/ubergeekgirl))
+- Fix a comma splice by rewording it. [\#1782](https://github.com/habitat-sh/habitat/pull/1782) ([juliandunn](https://github.com/juliandunn))
+- fix broken hyperlinks [\#1781](https://github.com/habitat-sh/habitat/pull/1781) ([eeyun](https://github.com/eeyun))
+- Update homepage to new design [\#1780](https://github.com/habitat-sh/habitat/pull/1780) ([magwalk](https://github.com/magwalk))
+- Initial infra for builder-scheduler [\#1775](https://github.com/habitat-sh/habitat/pull/1775) ([chefsalim](https://github.com/chefsalim))
+- Clarifying pkg\_exports and pkg\_exposes descriptions [\#1774](https://github.com/habitat-sh/habitat/pull/1774) ([davidwrede](https://github.com/davidwrede))
+- Bump to 0.18.0-dev [\#1772](https://github.com/habitat-sh/habitat/pull/1772) ([reset](https://github.com/reset))
+- Promote events and blog posts [\#1762](https://github.com/habitat-sh/habitat/pull/1762) ([nathenharvey](https://github.com/nathenharvey))
+- Rework channels. [\#1759](https://github.com/habitat-sh/habitat/pull/1759) ([raskchanky](https://github.com/raskchanky))
+- Add validation and docs for pkg\_name and pkg\_origin [\#1719](https://github.com/habitat-sh/habitat/pull/1719) ([smith](https://github.com/smith))
+
 ## [0.17.0](https://github.com/habitat-sh/habitat/tree/0.17.0) (02-14-2017)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.16.0...0.17.0)
 
