@@ -393,8 +393,6 @@ pkg_pconfig_dirs=()
 # The command to run the service - must not fork or return
 pkg_svc_run=''
 pkg_exposes=()
-declare -A pkg_env
-declare -A pkg_build_env
 declare -A pkg_exports
 declare -A pkg_binds
 declare -A pkg_binds_optional
@@ -402,6 +400,21 @@ declare -A pkg_binds_optional
 pkg_svc_user=hab
 # The group to run the service as
 pkg_svc_group=$pkg_svc_user
+
+# The internal field separator used to join `env` variables for cascading
+declare -A _env_ifs=(
+  ['CFLAGS']=' '
+  ['CPPFLAGS']=' '
+  ['CXXFLAGS']=' '
+  ['LDFLAGS']=' '
+  ['LD_RUN_PATH']=':'
+  ['PATH']=':'
+  ['PKG_CONFIG_PATH']=':'
+)
+# The environment variables inside a package
+declare -A pkg_env
+# The build environment variables inside a package
+declare -A pkg_build_env
 
 # Initially set $pkg_svc_* variables. This happens before the Plan is sourced,
 # meaning that `$pkg_name` is not yet set. However, `$pkg_svc_run` wants
