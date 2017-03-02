@@ -11,6 +11,7 @@ else
     echo "We are on a PR or against the master branch. Deploying to Acceptance."
     cd www
     make build
+    sed -i '/^Disallow:/ s/$/ \//' build/robots.txt
     zip -r website.zip build
 
     curl -H "Content-Type: application/zip" \
