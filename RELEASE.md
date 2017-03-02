@@ -24,6 +24,20 @@ from the master branch on a bi-weekly schedule occurring every other Thursday.
     ```
 
 1. [Install Habitat for Mac](https://www.habitat.sh/docs/get-habitat/)
+
+1. Update your environment variables to set HAB_ORIGIN to core
+
+    ```
+    export HAB_ORIGIN=core
+    ```
+
+1. In order to build core packages, you will need to import the core public and private keys. E.g:
+
+    ```
+    hab origin key import < public_key_file
+    hab origin key import < private_key_file
+    ```
+
 1. Install AWS CLI
 
     ```
@@ -129,7 +143,7 @@ target component.
     > build habitat/components/hab
     ```
 
-1. Now run the build command for each package path output by build-dependent-order
+1. Now run the build command for each package path output by build-dependent-order (this is also from within the same studio as the step above)
 
     ```
     $ cat build.manifest | while read entry; do echo "Building $(echo $entry | cut -d ' ' -f 1)"; build $(echo $entry | cut -d ' ' -f 2) || break; done
@@ -208,6 +222,10 @@ The script provisioner in the Vagrantfile will extract the core origin key from 
 ## Publish Release
 
 Create release in [GitHub](https://github.com/habitat-sh/habitat/releases)
+
+On the Github releases page, there should already be a tag for the release (pushed up previously).
+Draft a new Release, specify the tag, and title it with the same (eg, 0.18.0). Then hit Publish Release.
+
 
 ## Publish linux components to depot
 
