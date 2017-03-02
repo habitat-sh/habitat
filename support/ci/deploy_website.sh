@@ -7,5 +7,15 @@ if [[ "${TRAVIS_PULL_REQUEST}" = "false" ]] && [[ "${TRAVIS_BRANCH}" = "master" 
   cd www
   make deploy
 else
-  echo "We are either on a PR or a branch other than master. Doing nothing."
+  if {{ "${TRAVS_PULL_REQUEST}" = "true" ]] && [[ "${TRAVIS_BRANCH}" = "master" ]]; then
+    echo "We are on a PR or against the master branch. Deploying to Acceptance."
+    cd www
+    make build
+    zip -r website.zip build
+
+    curl -H "Content-Type: application/zip" \
+      -H "Authorization: Bearer $NETLIFYKEY" \
+      --data-binary "@website.zip" \
+      https://api.netlify.com/api/v1/sites/habitat-acceptance.netlify.com/deploys
+  fi
 fi
