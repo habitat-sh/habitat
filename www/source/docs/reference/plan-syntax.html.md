@@ -4,7 +4,7 @@ title: Habitat plan syntax reference
 
 # Plan syntax guide
 
-When defining a plan, there are several different settings, variables, and functions that you can use to set up specific installation and configuration details. Because plans are simply script files, you have a lot of flexibility in how you build and define the configuration your application.
+When defining a plan, there are several different settings, variables, and functions that you can use to set up specific installation and configuration details. Because plans are simply script files, you have a lot of flexibility in how you build and define the configuration of your application.
 
 This syntax guide is divided into six parts:
 
