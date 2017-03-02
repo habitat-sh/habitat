@@ -271,7 +271,7 @@ impl PackageInstall {
                     m.insert(key, value);
                 }
                 Ok(m)
-            },
+            }
             Err(Error::MetaFileNotFound(MetaFile::Environment)) => Ok(m),
             Err(e) => Err(e),
         }
