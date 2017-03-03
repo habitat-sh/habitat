@@ -149,6 +149,7 @@ impl WorkerMgr {
             }
             if work_mgr_sock {
                 try!(self.distribute_work());
+                work_mgr_sock = false;
             }
         }
     }
