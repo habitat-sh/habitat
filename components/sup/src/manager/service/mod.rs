@@ -577,6 +577,9 @@ impl Service {
     }
 
     pub fn suitability(&self) -> Option<u64> {
+        if !self.initialized {
+            return None;
+        }
         self.hooks
             .suitability
             .as_ref()
