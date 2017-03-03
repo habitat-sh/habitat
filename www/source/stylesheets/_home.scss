@@ -8,6 +8,11 @@ body.home {
   margin-bottom: 5px;
   color: $white;
 
+  @include breakpoint(medium) {
+    padding-top: 50px;
+    margin: 0 auto;
+  }
+
   &:before {
     content: "";
     position: absolute;
@@ -28,38 +33,24 @@ body.home {
   position: relative;
   z-index: 3;
   margin-top: rem-calc(20);
-  padding: rem-calc(34) 0 16%;
-  background: url(/images/homepage/architecture-diagram.svg) no-repeat 50% 50%;
+  padding: rem-calc(34) 10px 0;
+  background: url(/images/homepage/stars.svg) no-repeat center top;
   background-size: contain;
   text-align: center;
 
-  @include breakpoint(small only) {
-    background-position: center top;
-    background-size: rem-calc(296) auto;
-  }
-
-  @include breakpoint(medium only) {
-    padding: rem-calc(112) 0 rem-calc(60);
-    margin: 0 auto rem-calc(150);
-    background-size: cover;
-  }
-
-  @include breakpoint(large) {
-    padding: rem-calc(140) 0 rem-calc(72);
-    margin: 40px auto 180px;
+  @include breakpoint(medium) {
+    padding: 0 rem-calc(15) 0;
+    background-size: auto 225px;
   }
 }
 
 .home--hero--heading {
-  margin: 0 auto rem-calc(73);
+  margin: 0 auto rem-calc(30);
   font-size: rem-calc(20);
-  max-width: rem-calc(300);
 
   @include breakpoint(medium) {
-    margin-bottom: rem-calc(20);
-    max-width: rem-calc(530);
+    margin-bottom: rem-calc(60);
     font-size: rem-calc(30);
-
   }
 }
 
@@ -70,14 +61,125 @@ body.home {
   font-size: rem-calc(14);
 }
 
+.home--hero--highlight-wrap {
+  position: relative;
+  z-index: 10;
+
+  @include breakpoint(medium) {
+    display: flex;
+    align-items: center;
+    min-height: 311px;
+    background: url(/images/homepage/architecture-diagram.svg) no-repeat center top;
+    background-size: auto 311px;
+  }
+}
+
+.home--hero--highlight {
+  display: block;
+  position: relative;
+  display: flex;
+  align-items: center;
+  z-index: 20;
+  margin: 23px auto 0;
+  max-width: 600px;
+  padding: 10px;
+  width: 90%;
+  background-color: rgba(#627B8F, 0.5);
+  border-radius: 5px;
+  color: $white;
+  transition: all 0.2s ease;
+
+  @include breakpoint(medium) {
+    padding: 0 60px 0 0;
+
+    &:after {
+      content: "";
+      background: url(/images/homepage/chevron-button.svg) no-repeat;
+      width: 20px;
+      height: 25px;
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      right: 15px;
+    }
+  }
+
+  &:hover,
+  &:focus,
+  &:active {
+    color: $white;
+    box-shadow: 0 0 36px 0 rgba(164, 207, 241, 0.21);
+  }
+}
+
+.home--hero--highlight--left {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin-right: 15px;
+  min-width: 50px;
+  height: 50px;
+  background: linear-gradient(to bottom, #BBDB8D, #62AAA8);
+  border-radius: 5px;
+  text-align: center;
+  font-size: 12px;
+
+  & > span {
+    display: block;
+    font-size: 22px;
+    line-height: 19px;
+  }
+
+  @include breakpoint(medium) {
+    min-width: 72px;
+    height: 72px;
+    font-size: 16px;
+
+    & > span {
+      font-size: 25px;
+      line-height: 20px;
+    }
+  }
+}
+
+.home--hero--highlight--right {
+  padding: 10px 0;
+
+  & > p {
+    margin-bottom: 0;
+    font-size: 14px;
+  }
+
+  @include breakpoint(small only) {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+}
+
+.home--hero--highlight--title {
+  font-family: $header-font-family;
+}
+
+.home--hero--highlight--img {
+  @include breakpoint(medium) {
+    display: none;
+  }
+}
+
 
 // Sub Hero
 .home--sub-hero {
   position: relative;
-  padding-bottom: rem-calc(60);
+  padding: rem-calc(60) 0;
+  margin-top: -70px;
   color: $white;
   text-align: center;
   background: linear-gradient($hab-green-light-2, $hab-blue-green);
+
+  @include breakpoint(medium) {
+    margin-top: -40px;
+  }
 
   & > .row {
     overflow: hidden;
@@ -86,11 +188,12 @@ body.home {
   &:before {
     content: "";
     position: absolute;
+    z-index: 2;
     left: 0;
     right: 0;
-    bottom: 100%;
-    padding-top: 30%;
-    background: url(/images/homepage/cloud-bg.svg) no-repeat center bottom;
+    bottom: 99%;
+    padding-top: 6%;
+    background: url(/images/homepage/background-hills.svg) no-repeat center bottom;
     background-size: contain;
   }
 }
