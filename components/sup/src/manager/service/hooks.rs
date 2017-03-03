@@ -32,6 +32,8 @@ use supervisor::RuntimeConfig;
 use templating::Template;
 use util;
 
+use ansi_term::Colour;
+
 pub const HOOK_PERMISSIONS: u32 = 0o755;
 static LOGKEY: &'static str = "HK";
 
@@ -509,13 +511,13 @@ impl Hook for SuitabilityHook {
         match status.code() {
             Some(0) => {
                 if let Some(reader) = hook_output.stdout() {
-                    reader.lines().last().and_then(|line_reader| {
+                    if let Some(line_reader) = reader.lines().last() {
                         match line_reader {
                             Ok(line) => {
                                 match line.trim().parse::<u64>() {
                                     Ok(suitability) => {
                                         outputln!(preamble service_group, "Reporting suitability \
-                                            of: {}", suitability);
+                                            of: {}", Colour::Green.bold().paint(format!("{}",suitability)));
                                         return Some(suitability);
                                     }
                                     Err(err) => {
@@ -529,9 +531,11 @@ impl Hook for SuitabilityHook {
                                     "Failed to read last line of stdout: {}", err);
                             }
                         };
-                        None
-                    });
-                };
+                    } else {
+                        outputln!(preamble service_group,
+                                  "{} did not print anything to stdout", Self::file_name());
+                    }
+                }
             }
             Some(code) => {
                 outputln!(preamble service_group,
