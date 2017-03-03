@@ -20,7 +20,7 @@ This syntax guide is divided into six parts:
 The following settings are defined at the beginning of your plan. They specify basic information about your plan such as name, version, and dependencies.
 
 pkg_name
-: Required. Sets the name of the package. This will be used in along with `pkg_origin`, and `pkg_version` to define the fully-qualified package name, which determines where the package is installed to on disk, how it is referred to in package metadata, and so on. A `pkg_name` can contain upper and lowercase letters, numbers, dashes, and underscores.
+: Required. Sets the name of the package. This will be used along with `pkg_origin`, and `pkg_version` to define the fully-qualified package name, which determines where the package is installed to on disk, how it is referred to in package metadata, and so on. A `pkg_name` can contain upper and lowercase letters, numbers, dashes, and underscores.
 
   ~~~
   pkg_name=zlib
@@ -169,7 +169,7 @@ pkg_exposes
   > Note: In addition to specifying the keys you defined in `pkg_exports`, you **must** have a default.toml file indicating the port values to expose.
 
 pkg_binds
-: Optional. An associative array representing services which you depend on and the configuration keys that you expect the service to export (by their `pkg_exports`). These binds *must* be set for the supervisor to load the service. The loaded service will wait to run until it's bind becomes available. If the bind does not contain the expected keys, the service will not start successfully.
+: Optional. An associative array representing services which you depend on and the configuration keys that you expect the service to export (by their `pkg_exports`). These binds *must* be set for the supervisor to load the service. The loaded service will wait to run until its bind becomes available. If the bind does not contain the expected keys, the service will not start successfully.
 
   ~~~
   pkg_binds=(
@@ -233,7 +233,7 @@ pkg_upstream_url
 The following variables can be used in your plans to help get binaries and libraries to build and install in the correct locations in your package.
 
 $pkg_prefix
-: This variable is the absolute path for your package.
+: The absolute path for your package.
 
 $pkg_dirname
 : Set to `${pkg_name}-${pkg_version}` by default. If a .tar file extracts to a directory that's different from the filename, then you would need to override this value to match the directory name created during extraction.
@@ -291,7 +291,7 @@ do_begin()
 : There is no default implementation of this callback. You can use it to execute any arbitrary commands before anything else happens.
 
 do_download()
-: The default implementation is that the software specified in $pkg_source is downloaded, checksum-verified, and placed in *$HAB_CACHE_SRC_PATH/$pkg_filename*, which resolves to a path like `/hab/cache/src/filename.tar.gz`. You should override this behavior if you need to change how your binary source is downloaded, if you are not downloading any source code at all, or if your are cloning from git. If you do clone a repo from git, you must override **do_verify()** to return 0.
+: The default implementation is that the software specified in $pkg_source is downloaded, checksum-verified, and placed in *$HAB_CACHE_SRC_PATH/$pkg_filename*, which resolves to a path like `/hab/cache/src/filename.tar.gz`. You should override this behavior if you need to change how your binary source is downloaded, if you are not downloading any source code at all, or if you are cloning from git. If you do clone a repo from git, you must override **do_verify()** to return 0.
 
 do_verify()
 : The default implementation tries to verify the checksum specified in the plan against the computed checksum after downloading the source tarball to disk. If the specified checksum doesn't match the computed checksum, then an error and a message specifying the mismatch will be printed to stderr. You should not need to override this behavior unless your package does not download any files.
@@ -300,7 +300,7 @@ do_clean()
 : The default implementation removes the *HAB_CACHE_SRC_PATH/$pkg_dirname* folder in case there was a previously-built version of your package installed on disk. This ensures you start with a clean build environment.
 
 do_unpack()
-: The default implementation extracts your tarball source file into *HAB_CACHE_SRC_PATH*. The supported archives are: .tar, .tar.bz2, .tar.gz, .tar.xz, .rar, .zip, .Z, .7z. If the file archive could not be found or was not supported, then a message will be printed to stderr with additional information.
+: The default implementation extracts your tarball source file into *HAB_CACHE_SRC_PATH*. The supported archive extensions are: .tar, .tar.bz2, .tar.gz, .tar.xz, .rar, .zip, .Z, .7z. If the file archive could not be found or has an unsupported extension, then a message will be printed to stderr with additional information.
 
 do_prepare()
 : There is no default implementation of this callback. At this point in the build process, the tarball source has been downloaded, unpacked, and the build environment variables have been set, so you can use this callback to perform any actions before the package starts building, such as exporting variables, adding symlinks, and so on.
@@ -427,7 +427,7 @@ run
 ## Runtime configuration settings
 The following configuration settings can be used during a Habitat service's lifecycle. This means that you can use these settings in any of the plan hooks, such as init, or run, and also in any templatized configuration file for your application or service.
 
-These configuration settings are referenced using the [Handlebars.js](https://github.com/wycats/handlebars.js/)) version of  [mustache-style](https://mustache.github.io/mustache.5.html) tags. For an example on how these settings are used in plan hooks, see [Add hooks to your plan](/tutorials/getting-started-add-hooks) in the getting started tutorial.
+These configuration settings are referenced using the [Handlebars.js](https://github.com/wycats/handlebars.js/) version of [mustache-style](https://mustache.github.io/mustache.5.html) tags. For an example on how these settings are used in plan hooks, see [Add hooks to your plan](/tutorials/getting-started-add-hooks) in the getting started tutorial.
 
 
 ### sys
@@ -493,12 +493,14 @@ svc_group
 
 svc_user_default
 : The default user determined by the Habitat supervisor. `svc_user_default` will contain one of the following values, tested in order:
+
 - `svc_user` if specified in the plan
 - `hab` if the user exists
 - the current user id
 
 svc_group_default
 : The default group determined by the Habitat supervisor. `svc_group_default` will contain one of the following values, tested in order:
+
 - `svc_group` if specified in the plan
 - `hab` if the group exists
 - the effective group id
