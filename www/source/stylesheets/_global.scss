@@ -372,14 +372,14 @@ img {
       margin-left: 0;
       transition: all .2s;
     }
-  }
 
-  &:hover,
-  &:focus,
-  &:active {
-    color: $white;
-    background-color: darken($hab-blue, 2);
-    transition: all .2s;
+    &:hover,
+    &:focus,
+    &:active {
+      color: $white;
+      background-color: darken($hab-blue, 2);
+      transition: all .2s;
+    }
   }
 }
 
