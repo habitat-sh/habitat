@@ -49,8 +49,12 @@ lazy_static! {
     pub static ref FS_ROOT_PATH: PathBuf = {
         // JW TODO: When Windows container studios are available the platform reflection should
         // be removed.
-        if cfg!(target_os = "windows") && henv::var(FS_ROOT_ENVVAR).is_ok() {
-            PathBuf::from(henv::var(FS_ROOT_ENVVAR).unwrap())
+        if cfg!(target_os = "windows") {
+            if henv::var(FS_ROOT_ENVVAR).is_ok() {
+                PathBuf::from(henv::var(FS_ROOT_ENVVAR).unwrap())
+            } else {
+                PathBuf::from(concat!(env!("SYSTEMDRIVE"), "/"))
+            }
         } else {
             PathBuf::from("/")
         }
