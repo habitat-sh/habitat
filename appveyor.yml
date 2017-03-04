@@ -2,7 +2,8 @@
 image: Visual Studio 2015
 
 cache:
-  - c:\cargo
+  - c:\cargo\registry
+  - c:\cargo\git
   - c:\projects\habitat\target
 
 branches:
