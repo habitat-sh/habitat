@@ -33,6 +33,8 @@ pub struct Config {
     pub worker_command_addr: SocketAddr,
     /// Listening net address for heartbeat traffic from Workers.
     pub worker_heartbeat_addr: SocketAddr,
+    /// Publishing net address for job status updates
+    pub status_publisher_addr: SocketAddr,
     /// PostgreSQL connection URL
     pub datastore_connection_url: String,
     /// Timing to retry the connection to the data store if it cannot be established
@@ -58,6 +60,8 @@ impl Default for Config {
             worker_command_addr: SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(0, 0, 0, 0), 5566)),
             worker_heartbeat_addr: SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(0, 0, 0, 0),
                                                                     5567)),
+            status_publisher_addr: SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(0, 0, 0, 0),
+                                                                    5568)),
             datastore_connection_url: String::from("postgresql:://hab@127.0.0.1/builder_db_test"),
             datastore_connection_retry_ms: 300,
             datastore_connection_timeout: Duration::from_secs(3600),
@@ -78,6 +82,7 @@ impl ConfigFile for Config {
         try!(toml.parse_into("cfg.routers", &mut cfg.routers));
         try!(toml.parse_into("cfg.worker_command_addr", &mut cfg.worker_command_addr));
         try!(toml.parse_into("cfg.worker_heartbeat_addr", &mut cfg.worker_heartbeat_addr));
+        try!(toml.parse_into("cfg.status_publisher_addr", &mut cfg.status_publisher_addr));
         let mut connection_user = String::new();
         try!(toml.parse_into("cfg.datastore_connection_user", &mut connection_user));
         let mut connection_address = String::new();

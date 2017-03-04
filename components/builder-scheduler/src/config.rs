@@ -14,6 +14,7 @@
 
 //! Configuration for a Habitat Scheduler service
 
+use std::collections::BTreeMap;
 use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
 use std::time::Duration;
 
@@ -28,6 +29,8 @@ use error::{Error, Result};
 pub struct Config {
     /// List of net addresses for routing servers to connect to
     pub routers: Vec<SocketAddr>,
+    /// List of Job Servers to subscribe for status
+    pub job_servers: Vec<BTreeMap<String, String>>,
     /// PostgreSQL connection URL
     pub datastore_connection_url: String,
     /// Timing to retry the connection to the data store if it cannot be established
@@ -46,10 +49,28 @@ pub struct Config {
     pub worker_threads: usize,
 }
 
+impl Config {
+    pub fn jobsrv_addrs(&self) -> Vec<String> {
+        let mut addrs = vec![];
+        for job_server in &self.job_servers {
+            let ip = job_server.get("ip").unwrap();
+            let port = job_server.get("port").unwrap();
+            let addr = format!("tcp://{}:{}", ip, port);
+            addrs.push(addr);
+        }
+        addrs
+    }
+}
+
 impl Default for Config {
     fn default() -> Self {
+        let mut jobsrv = BTreeMap::new();
+        jobsrv.insert("ip".to_string(), "127.0.0.1".to_string());
+        jobsrv.insert("port".to_string(), "5568".to_string());
+
         Config {
             routers: vec![SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), 5562))],
+            job_servers: vec![jobsrv],
             datastore_connection_url: String::from("postgresql:://hab@127.0.0.1/builder_db_test"),
             datastore_connection_retry_ms: 300,
             datastore_connection_timeout: Duration::from_secs(3600),
