@@ -13,6 +13,7 @@
 // limitations under the License.
 
 pub mod handlers;
+pub mod scheduler;
 
 use std::ops::Deref;
 use std::sync::{Arc, RwLock};
@@ -27,6 +28,7 @@ use zmq;
 
 use config::Config;
 use data_store::DataStore;
+use self::scheduler::ScheduleMgr;
 use error::{Error, Result};
 
 const BE_LISTEN_ADDR: &'static str = "inproc://backend";
@@ -150,8 +152,11 @@ impl Application for Server {
         };
         try!(datastore.setup());
         let cfg = self.config.clone();
+        let cfg2 = self.config.clone();
         let init_state = InitServerState::new(datastore);
+        let ds2 = init_state.datastore.clone();
         let sup: Supervisor<Worker> = Supervisor::new(cfg, init_state);
+        let schedule_mgr = try!(ScheduleMgr::start(cfg2, ds2));
         try!(sup.start());
         try!(self.connect());
         let broker = {
@@ -160,6 +165,7 @@ impl Application for Server {
         };
         try!(zmq::proxy(&mut self.router.socket, &mut self.be_sock));
         broker.join().unwrap();
+        schedule_mgr.join().unwrap();
         Ok(())
     }
 }
