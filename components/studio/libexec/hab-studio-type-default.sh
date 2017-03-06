@@ -39,6 +39,15 @@ finish_setup() {
         echo "Error exporting $key key"
         # key_text will contain an error message
         echo "${key_text}"
+        echo ""
+        echo "Habitat was unable to export your secret signing key"
+        echo "Please verify that you have a signing key for $key present in either"
+        echo "~/.hab/cache/keys (if running via sudo) or /hab/cache/keys (if running as root)"
+        echo "You can test this by running 'hab origin key export --type secret' $key"
+        echo "This test will print your signing key to the console or error if it cannot find the key."
+        echo "To create a signing key, you can run 'hab origin key generate $key'"
+        echo "You'll also be prompted to create an origin signing key when you run 'hab setup'"
+        
         exit 1
       fi
     done
