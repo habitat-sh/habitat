@@ -35,10 +35,10 @@ Once you've defined both ends of the contract you can leverage the bind in any o
 
 ~~~
 {{#if bind.has_database }}
-{{~#each bind.database.members}}
-{{~#if alive }}
-  database = "{{sys.ip}}:{{cfg.port}}"
-  database-secure = "{{sys.ip}}:{{cfg.ssl-port}}"
+{{~#each bind.database.members as |member| }}
+{{~#if member.alive }}
+  database = "{{member.sys.ip}}:{{member.cfg.port}}"
+  database-secure = "{{member.sys.ip}}:{{member.cfg.ssl-port}}"
 {{~/if}}
 {{~/each}}
 {{~/if}}
