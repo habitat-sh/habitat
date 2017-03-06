@@ -100,10 +100,10 @@ Helpers can also be nested and used together in block expressions. Here is anoth
 
 Here's an example using `each` to render multiple server entries:
 
-    {{~#each cfg.servers}}
+    {{~#each cfg.servers as |server| }}
     server {
-      host {{host}}
-      port {{port}}
+      host {{server.host}}
+      port {{server.port}}
     }
     {{~/each}}
 
