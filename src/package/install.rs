@@ -23,6 +23,7 @@ use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
 use toml;
+use toml::Value;
 
 use super::{Identifiable, PackageIdent, Target, PackageTarget};
 use super::metadata::{Bind, MetaFile};
@@ -223,14 +224,21 @@ impl PackageInstall {
     }
 
     /// Read and return the decoded contents of the packages default configuration.
-    pub fn default_cfg(&self) -> Option<toml::value::Table> {
+    pub fn default_cfg(&self) -> Option<toml::value::Value> {
         match File::open(self.installed_path.join(DEFAULT_CFG_FILE)) {
             Ok(mut file) => {
                 let mut raw = String::new();
                 if file.read_to_string(&mut raw).is_err() {
                     return None;
+                };
+
+                match raw.parse::<Value>() {
+                    Ok(v) => Some(v),
+                    Err(e) => {
+                        debug!("Failed to parse toml, error: {:?}", e);
+                        None
+                    }
                 }
-                toml::from_str(&raw).ok()
             }
             Err(_) => None,
         }
@@ -535,5 +543,34 @@ impl PackageInstall {
 impl fmt::Display for PackageInstall {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.ident)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use std::str::FromStr;
+    use std::path::PathBuf;
+    use toml;
+    use super::super::PackageIdent;
+    use super::PackageInstall;
+    use super::super::test_support::*;
+
+    #[test]
+    fn can_serialize_default_config() {
+        let package_ident = PackageIdent::from_str("just/nothing").unwrap();
+        let fixture_path = fixture_path("test_package");
+        let package_install = PackageInstall {
+            ident: package_ident,
+            fs_root_path: PathBuf::from(""),
+            package_root_path: PathBuf::from(""),
+            installed_path: fixture_path,
+        };
+
+        let cfg = package_install.default_cfg().unwrap();
+
+        match toml::ser::to_string(&cfg) {
+            Ok(_) => (),
+            Err(e) => assert!(false, format!("{:?}", e)),
+        }
     }
 }
