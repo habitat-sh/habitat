@@ -21,6 +21,7 @@ use hcore::fs;
 use manager::service::config::ServiceConfig;
 use handlebars::{Handlebars, Helper, Renderable, RenderContext, RenderError, Context};
 use serde_json;
+use serde_json::map::Map;
 use toml;
 
 
@@ -46,7 +47,18 @@ pub fn each_alive(h: &Helper, r: &Handlebars, rc: &mut RenderContext) -> RenderR
         if member.contains_key("alive") && member["alive"].as_bool().unwrap_or(false) {
             debug!("Alive! {:?}", value_array[i]);
             let mut map = HashMap::default();
-            let mut local_context = Context::wraps(&value_array[i]);
+
+            // Check for those tricky people who use as |blah| inside their helpers.
+            // I'm looking at you Smith!
+            let local_context_data = match h.block_param() {
+                Some(name) => {
+                    let mut json_map = Map::new();
+                    json_map.insert(name.to_string(), value_array[i].clone());
+                    serde_json::Value::Object(json_map)
+                }
+                None => value_array[i].clone(),
+            };
+            let mut local_context = Context::wraps(&local_context_data);
             let mut writer = rc.writer();
             let mut local_rc = RenderContext::new(&mut local_context, &mut map, &mut writer);
             try!(template.render(r, &mut local_rc));
