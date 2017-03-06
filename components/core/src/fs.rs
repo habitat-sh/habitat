@@ -40,6 +40,7 @@ pub const PKG_PATH: &'static str = "hab/pkgs";
 /// Using this variable could lead to broken supervisor services and it should
 /// be used with extreme caution.
 pub const FS_ROOT_ENVVAR: &'static str = "FS_ROOT";
+pub const SYSTEMDRIVE_ENVVAR: &'static str = "SYSTEMDRIVE";
 
 lazy_static! {
     /// The default filesystem root path.
@@ -49,8 +50,12 @@ lazy_static! {
     pub static ref FS_ROOT_PATH: PathBuf = {
         // JW TODO: When Windows container studios are available the platform reflection should
         // be removed.
-        if cfg!(target_os = "windows") && henv::var(FS_ROOT_ENVVAR).is_ok() {
-            PathBuf::from(henv::var(FS_ROOT_ENVVAR).unwrap())
+        if cfg!(target_os = "windows") {
+            match (henv::var(FS_ROOT_ENVVAR), henv::var(SYSTEMDRIVE_ENVVAR)) {
+                (Ok(path), _) =>  PathBuf::from(path),
+                (Err(_), Ok(system_drive)) => PathBuf::from(format!("{}{}", system_drive, "/")),
+                (Err(_), Err(_)) => unreachable!("Windows should always have a SYSTEMDRIVE environment variable.")
+            }
         } else {
             PathBuf::from("/")
         }
