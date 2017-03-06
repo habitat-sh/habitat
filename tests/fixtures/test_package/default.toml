@@ -1,0 +1,40 @@
+port = 6379
+bind = []
+protected-mode = "yes"
+timeout = 0
+tcp-keepalive = 0
+loglevel = "notice"
+logfile = "\"\""
+databases = 16
+stop-writes-on-bgsave-error = "yes"
+rbcompression = "yes"
+rbchecksum = "yes"
+dbfilename = "dump.rdb"
+slave-serve-stale-data = "yes"
+slave-read-only = "yes"
+repl-diskless-sync = "no"
+repl-diskless-synx-delay = 5
+repl-ping-slave-period = 10
+repl-timeout = 60
+repl-disable-tcp-nodelay = "no"
+repl-backlog-size = "1mb"
+repl-backlog-ttl = "3600"
+slave-priority = "100"
+min-slaves-to-write = false
+min-slaves-max-lag = false
+requirepass = ""
+appendonly = "no"
+appendfsync = "everysec"
+no-appendfsync-on-rewrite = "no"
+
+[[save]]
+sec = 900
+keys = 1
+
+[[save]]
+sec = 300
+keys = 10
+
+[[save]]
+sec = 60
+keys = 10000
