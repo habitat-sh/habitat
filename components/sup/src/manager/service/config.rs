@@ -680,9 +680,13 @@ mod test {
         root().join("fixtures")
     }
 
+    pub fn sample_configs() -> PathBuf {
+        fixtures().join("sample_configs")
+    }
+
     #[test]
     fn service_config_to_toml_string() {
-        let mut file = File::open(fixtures().join("simple_config.toml")).unwrap();
+        let mut file = File::open(sample_configs().join("simple_config.toml")).unwrap();
         let mut config = String::new();
         let _ = file.read_to_string(&mut config).unwrap();
         let toml_in = toml::de::from_str(&config).unwrap();
