@@ -51,13 +51,13 @@ To show the portability of Habitat, export and run a Habitat service from within
 
     ![Screen shot of node.js tutorial output](/images/nodejs-tutorial-output.png)
 
-6. You can also re-run your Docker container and update the message value when your Habitat service starts up. To do this, you must pass in a Docker environment variable with the following format: `HAB_PACKAGENAME='keyname1=newvalue1 keyname2=newvalue2'`. For multiline environment variables, such as those in a TOML table, it's preferrable to place your changes in a .toml file and pass it in using `HAB_PACKAGENAME="$(cat foo.toml)"`.
+6. You can also re-run your Docker container and update the message value when your Habitat service starts up. To do this, you must pass in a Docker environment variable with the following format: `HAB_PACKAGENAME="keyname1=newvalue1 keyname2=newvalue2"`. For multiline environment variables, such as those in a TOML table, it's preferrable to place your changes in a .toml file and pass it in using `HAB_PACKAGENAME="$(cat foo.toml)"`.
 
     > Note: The package name in the environment variable must be uppercase, any dashes must be replaced with underscores, and if you are overriding values in a TOML table, you must override all values in the table.
 
     Here is how you change the message for mytutorialapp:
 
-       $ docker run -e HAB_MYTUTORIALAPP='message="Habitat rocks!"' -p 8080:8080 -it myorigin/mytutorialapp
+       $ docker run -e HAB_MYTUTORIALAPP="message='Habitat rocks!'" -p 8080:8080 -it myorigin/mytutorialapp
 
     Now refresh, or connect again to the local URL through your web browser.
 
