@@ -1,7 +1,7 @@
 # Habitat
 
 [![Build Status](https://api.travis-ci.org/habitat-sh/habitat.svg?branch=master)](https://travis-ci.org/habitat-sh/habitat)
-[![AppVeyor Build status](https://ci.appveyor.com/api/projects/status/ttt9p6r4q6fcipwb/branch/master?svg=true)](https://ci.appveyor.com/project/habitat/habitat/branch/master)
+[![Build status](https://ci.appveyor.com/api/projects/status/ejn8d6bkhiml16al/branch/master?svg=true)](https://ci.appveyor.com/project/chef/habitat/branch/master)
 [![Slack](http://slack.habitat.sh/badge.svg)](http://slack.habitat.sh/)
 
 Want to try Habitat? [Get started here](https://www.habitat.sh/try/).
