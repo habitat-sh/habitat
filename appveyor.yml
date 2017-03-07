@@ -21,18 +21,31 @@ skip_tags: true
 clone_folder: c:\projects\habitat
 
 environment:
+  CARGO_HOME: "c:\\cargo"
+  RUSTUP_HOME: "c:\\multirust"
+  CARGO_TARGET_DIR: "c:\\projects\\habitat\\target"
+  HAB_DEPOT_URL: "https://depot.stevenmurawski.com/v1/depot"
+  HAB_WINDOWS_STUDIO: true
+  HAB_AUTH_TOKEN:
+    secure: il1kqjDtQSFOoD12nDaJhCBntC905Q8T9jRzyTZtqlJPxc3vCoS1bBeNbB55J82M
+  ORIGIN_KEY:
+    secure: S1rfa/qXZgO8skQfr/YGrGpma37Q+OBEbAH8dPXsBKtUYDOTuMXpnNq1asu6XkTkpQjaJvhst6AxSlYDweE9V+xlUzLQdd6hgIPCFNOb0Uos5iMIgbJGcyKmeY2q80Ig
+
   matrix:
-    - CARGO_HOME: "c:\\cargo"
-      RUSTUP_HOME: "c:\\multirust"
-      hab_build_action: "test;build"
-      hab_components: "core;http-client;builder-protocol;builder-depot-client;common;win-users;sup"
+    - hab_build_action: "test;build"
+      hab_components: "core;http-client;builder-protocol;builder-depot-client;common;win-users;sup;hab-butterfly"
+
+    - hab_build_action: "package"
+      hab_components: "hab;plan-build-ps1;studio;sup;hab-butterfly"
 
 build_script:
   - ps: Update-AppveyorBuild -Version "$((gc -raw ./VERSION).trim())-$((Get-Date).ToString('yyyyMMddHHmmss'))"
   - c:\projects\habitat\support\ci\appveyor.bat
 
 artifacts:
-  - path: hab-$(appveyor_build_version)-x86_64-windows.zip
+  - path: 'results\*.hart'
+
+  - path: 'results\*.zip'
     name: HabCLI
 
 deploy:

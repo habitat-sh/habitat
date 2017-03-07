@@ -9,9 +9,15 @@ $pkg_bin_dirs = @("bin")
 $pkg_build_deps = @("core/rust", "core/cacerts")
 
 function Invoke-Prepare {
+    if($env:HAB_CARGO_TARGET_DIR) {
+        $env:CARGO_TARGET_DIR           = "$env:HAB_CARGO_TARGET_DIR"
+    }
+    else {
+        $env:CARGO_TARGET_DIR           = "$env:HAB_CACHE_SRC_PATH/$pkg_dirname"
+    }
+
     $env:SSL_CERT_FILE              = "$(Get-HabPackagePath "cacerts")/ssl/certs/cacert.pem"
     $env:PLAN_VERSION               = "$pkg_version/$pkg_release"
-    $env:CARGO_TARGET_DIR           = "$HAB_CACHE_SRC_PATH/$pkg_dirname"
     $env:LIB                        += ";$HAB_CACHE_SRC_PATH/$pkg_dirname/lib"
     $env:INCLUDE                    += ";$HAB_CACHE_SRC_PATH/$pkg_dirname/include"
     $env:SODIUM_LIB_DIR             = "$HAB_CACHE_SRC_PATH/$pkg_dirname/lib"
