@@ -37,9 +37,9 @@ artifacts:
 
 deploy:
 - provider: BinTray
-  username: smurawski
+  username: mwrock
   api_key:
-    secure: A+eSjC0ulsgkxVIQa3MKuE3tJQOevqELqtglbujYuLReEzzNqXUsclcWh+etQL3n
+    secure: 2DkUS4TNHW1uGjGTkNaepmkZ7lesimoVVWzM29tfGvcbBOuL7MeRjxcRd4PIY5X1
   subject: habitat
   repo: unstable
   package: hab-x86_64-windows
