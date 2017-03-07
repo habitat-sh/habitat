@@ -87,14 +87,23 @@ if (Test-SourceChanged -or (test-path env:HAB_FORCE_TEST)) {
             }
             if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
 
+            mkdir results -Force
             foreach ($component in ($env:hab_components -split ';')) {
                 Write-Host "Building plan for $component"
                 Write-Host ""
                 & $habExe pkg build components/$component
                 if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
+                
                 $hart = Get-Item "C:\hab\studios\projects--habitat\src\components\$component\results\*.hart"
+                Write-Host "Copying $hart to artifacts directory..."
+                Copy-Item $hart.FullName results
                 & $habExe pkg install $hart.FullName
                 if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
+
+                if($env:HAB_AUTH_TOKEN) {
+                    & $habExe pkg upload $hart
+                    if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
+                }
 
                 # Install and extract hab cli bin files for zip
                 if ($component -eq "hab") {
@@ -105,25 +114,11 @@ if (Test-SourceChanged -or (test-path env:HAB_FORCE_TEST)) {
                     $zipDir = $zip.Replace(".zip", "")
                     mkdir $zipDir -Force
                     Copy-Item "/hab/pkgs/core/hab/*/*/bin/*" $zipDir
-                    mkdir results -Force
                     Compress-Archive -Path $zipDir -DestinationPath "results/$zip"
                 }
                 if ($component -eq "studio") {
                     # Now that we have built the studio we can use current hab and studio bits
                     Copy-Item "/hab/pkgs/core/hab/*/*/bin/*" $bootstrapDir -Force
-                }
-            }
-
-            Get-ChildItem "C:\hab\studios\projects--habitat\src\components\" -Recurse -Include "*.hart" | ForEach-Object { 
-                Write-Host "Copying $_ to artifacts directory..."
-                Copy-Item $_ results
-            }
-
-            # Appveyor will materialize our secure auth token on master merges
-            if($env:HAB_AUTH_TOKEN) {
-                Get-ChildItem "results/*.hart" | % {
-                    & $habExe pkg upload $_
-                    if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
                 }
             }
         }
