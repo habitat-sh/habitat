@@ -1276,12 +1276,34 @@ join_by() {
   echo "$*"
 }
 
-# TODO: Support for adding Array's to `pkg_env`
+# Sets environment variable for package
+#
+# ```sh
+# add_env PATH 'bin' 'sbin'
+# add_env DJANGO_SETTINGS_MODULE 'app.settings'
+# ```
 add_env() {
-  return 0
+  local -u key=$1
+  shift
+  local -a values=$*
+
+  if [ ${pkg_env[$key]+abc} ]; then
+    exit_with "Cannot add $key to pkg_env once the value is already set"
+  fi
+
+  if [ ${#values[@]} > 1 ]; then
+    if [ ${_env_ifs[$key]+abc} ]; then
+      pkg_env[$key]=$(join_by ${_env_ifs[$key]} ${values})
+    else
+      exit_with "Cannot add multiple values without setting an IFS for $key"
+    fi
+  else
+    pkg_env[$key]=$2
+  fi
 }
 
-# TODO: Add `$pkg_prefix` to supplied paths
+# TODO: implement this
+# Adds `$pkg_prefix` to supplied paths
 add_path_env() {
   return 0
 }
