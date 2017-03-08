@@ -121,6 +121,7 @@ if (Test-SourceChanged -or (test-path env:HAB_FORCE_TEST)) {
                     Write-Host "tag: $($env:APPVEYOR_REPO_TAG_NAME)"
                     if($env:APPVEYOR_REPO_TAG_NAME -eq "LOBSTER" -and (!$env:APPVEYOR_REPO_TAG_NAME.EndsWith("dev"))) {
                         write-host "compressing to results/prod/LOBSTER-$zip"
+                        mkdir "results/prod" -Force
                         Compress-Archive -Path $zipDir -DestinationPath "results/prod/LOBSTER-$zip"
                     }
                     Compress-Archive -Path $zipDir -DestinationPath "results/$zip"
