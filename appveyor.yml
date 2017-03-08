@@ -67,7 +67,7 @@ deploy:
   api_key:
     secure: 2DkUS4TNHW1uGjGTkNaepmkZ7lesimoVVWzM29tfGvcbBOuL7MeRjxcRd4PIY5X1
   subject: habitat
-  repo: unstable
+  repo: stable
   package: hab-x86_64-windows
   publish: true
   artifact: HabProdCLI
