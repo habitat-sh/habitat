@@ -1596,7 +1596,7 @@ _resolve_dependencies() {
   )
   for dep in "${pkg_tdeps_resolved[@]}" "${pkg_build_tdeps_resolved[@]}"; do
     pkg_all_tdeps_resolved=(
-      $(_return_or_append_to_set "$tdep" "${pkg_all_tdeps_resolved[@]}")
+      $(_return_or_append_to_set "$dep" "${pkg_all_tdeps_resolved[@]}")
     )
   done
 
