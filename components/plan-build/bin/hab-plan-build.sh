@@ -401,8 +401,12 @@ pkg_svc_user=hab
 # The group to run the service as
 pkg_svc_group=$pkg_svc_user
 
+# The environment variables inside a package
+declare -A pkg_env
+# The build environment variables inside a package
+declare -A pkg_build_env
 # The internal field separator used to join `env` variables for cascading
-declare -A _env_ifs=(
+declare -A _env_default_ifs=(
   ['CFLAGS']=' '
   ['CPPFLAGS']=' '
   ['CXXFLAGS']=' '
@@ -411,10 +415,7 @@ declare -A _env_ifs=(
   ['PATH']=':'
   ['PKG_CONFIG_PATH']=':'
 )
-# The environment variables inside a package
-declare -A pkg_env
-# The build environment variables inside a package
-declare -A pkg_build_env
+declare -A pkg_env_ifs
 
 # Initially set $pkg_svc_* variables. This happens before the Plan is sourced,
 # meaning that `$pkg_name` is not yet set. However, `$pkg_svc_run` wants
@@ -1280,7 +1281,7 @@ join_by() {
 #
 # ```sh
 # add_env PATH 'bin' 'sbin'
-# add_env DJANGO_SETTINGS_MODULE 'app.settings'
+# add_env SETTINGS_MODULE 'app.settings'
 # ```
 add_env() {
   local -u key=$1
@@ -1292,8 +1293,8 @@ add_env() {
   fi
 
   if [ ${#values[@]} > 1 ]; then
-    if [ ${_env_ifs[$key]+abc} ]; then
-      pkg_env[$key]=$(join_by ${_env_ifs[$key]} ${values})
+    if [ ${_env_default_ifs[$key]+abc} ]; then
+      pkg_env[$key]=$(join_by ${_env_default_ifs[$key]} ${values})
     else
       exit_with "Cannot add multiple values without setting an IFS for $key"
     fi
@@ -1302,20 +1303,52 @@ add_env() {
   fi
 }
 
-# TODO: implement this
 # Adds `$pkg_prefix` to supplied paths
+#
+# ```sh
+# add_path_env PATH 'bin' 'sbin'
+# ```
 add_path_env() {
-  return 0
+  local -u key=$1
+  shift
+  local -a paths
+  for path in $*; do
+    path+="${pkg_prefix}/${path}"
+  done
+  add_env ${key} ${paths}
 }
 
 # TODO: Copy `add_env`
 add_build_env() {
-  return 0
+  local -u key=$1
+  shift
+  local -a values=$*
+
+  if [ ${pkg_build_env[$key]+abc} ]; then
+    exit_with "Cannot add $key to pkg_build_env once the value is already set"
+  fi
+
+  if [ ${#values[@]} > 1 ]; then
+    if [ ${_env_default_ifs[$key]+abc} ]; then
+      pkg_build_env[$key]=$(join_by ${_env_default_ifs[$key]} ${values})
+    else
+      exit_with "Cannot add multiple values without setting an IFS for $key"
+    fi
+  else
+    pkg_build_env[$key]=$2
+  fi
+  build_line "Setting $key ${#values[@]} ${values}"
 }
 
 # TODO: Copy `add_path_env`
-add_path_build_env() {
-  return 0
+add_build_path_env() {
+  local -u key=$1
+  shift
+  local -a paths
+  for path in $*; do
+    path+="${pkg_prefix}/${path}"
+  done
+  add_build_env ${key} ${paths}
 }
 
 # **Internal** Convert a string into a numerical value.
@@ -2054,109 +2087,68 @@ do_default_install() {
 # * `$pkg_prefix/PATH` - Any PATH entries for things that link against us
 _build_metadata() {
   build_line "Building package metadata"
-  local ld_run_path_part=""
-  local ld_lib_part=""
-  for lib in "${pkg_lib_dirs[@]}"; do
-    if [[ -z "$ld_run_path_part" ]]; then
-      ld_run_path_part="${pkg_prefix}/$lib"
-    else
-      ld_run_path_part="$ld_run_path_part:${pkg_prefix}/$lib"
-    fi
-    if [[ -z "$ld_lib_part" ]]; then
-      ld_lib_part="-L${pkg_prefix}/$lib"
-    else
-      ld_lib_part="$ld_lib_part -L${pkg_prefix}/$lib"
-    fi
+  local ld_run_path_part=()
+  local ld_lib_part=()
+  for lib in ${pkg_lib_dirs[@]}; do
+    ld_run_path_part+="${pkg_prefix}/$lib"
+    ld_lib_part+="-L${pkg_prefix}/$lib"
   done
   if [[ -n "${ld_run_path_part}" ]]; then
-    # TODO: Remove LD_RUN_PATH file support
-    echo $ld_run_path_part > $pkg_prefix/LD_RUN_PATH
-
-    pkg_build_env[LD_RUN_PATH]=${ld_run_path_part}
+    add_build_env 'LD_RUN_PATH' ${ld_run_path_part}
   fi
   if [[ -n "${ld_lib_part}" ]]; then
-    # TODO: Remove LDFLAGS file support
-    echo $ld_lib_part > $pkg_prefix/LDFLAGS
-
-    pkg_build_env[LDFLAGS]=${ld_lib_part}
+    add_build_env 'LDFLAGS' ${ld_lib_part}
   fi
 
-  local cflags_part=""
+  local cflags_part=()
   for inc in "${pkg_include_dirs[@]}"; do
-    if [[ -z "$cflags_part" ]]; then
-      cflags_part="-I${pkg_prefix}/${inc}"
-    else
-      cflags_part="$cflags_part -I${pkg_prefix}/${inc}"
-    fi
+    cflags_part+="-I${pkg_prefix}/${inc}"
   done
   if [[ -n "${cflags_part}" ]]; then
-    echo $cflags_part > $pkg_prefix/CFLAGS
+    add_build_env 'CFLAGS' ${cflags_part}
   fi
 
-  local cppflags_part=""
+  local cppflags_part=()
   for inc in "${pkg_include_dirs[@]}"; do
-    if [[ -z "$cppflags_part" ]]; then
-      cppflags_part="-I${pkg_prefix}/${inc}"
-    else
-      cppflags_part="$cppflags_part -I${pkg_prefix}/${inc}"
-    fi
+    cppflags_part+="-I${pkg_prefix}/${inc}"
   done
   if [[ -n "${cppflags_part}" ]]; then
-    echo $cppflags_part > $pkg_prefix/CPPFLAGS
+    add_build_env 'CPPFLAGS' ${cppflags_part}
   fi
 
-  local cxxflags_part=""
+  local cxxflags_part=()
   for inc in "${pkg_include_dirs[@]}"; do
-    if [[ -z "$cxxflags_part" ]]; then
-      cxxflags_part="-I${pkg_prefix}/${inc}"
-    else
-      cxxflags_part="$cxxflags_part -I${pkg_prefix}/${inc}"
-    fi
+    cxxflags_part+="-I${pkg_prefix}/${inc}"
   done
   if [[ -n "${cxxflags_part}" ]]; then
-    echo $cxxflags_part > $pkg_prefix/CXXFLAGS
+    add_build_env 'CXXFLAGS' ${cxxflags_part}
   fi
 
-  local pconfig_path_part=""
+  local pconfig_path_part=()
   if [ ${#pkg_pconfig_dirs[@]} -eq 0 ]; then
     # Plan doesn't define pkg-config paths so let's try to find them in the conventional locations
     local locations=(lib/pkgconfig share/pkgconfig)
     for dir in "${locations[@]}"; do
       if [[ -d "${pkg_prefix}/${dir}" ]]; then
-        if [[ -z "$pconfig_path_part" ]]; then
-          pconfig_path_part="${pkg_prefix}/${dir}"
-        else
-          pconfig_path_part="${pconfig_path_part}:${pkg_prefix}/${dir}"
-        fi
+        pconfig_path_part+="${pkg_prefix}/${dir}"
       fi
     done
   else
     # Plan explicitly defines pkg-config paths so we don't provide defaults
     for inc in "${pkg_pconfig_dirs[@]}"; do
-      if [[ -z "$pconfig_path_part" ]]; then
-        pconfig_path_part="${pkg_prefix}/${inc}"
-      else
-        pconfig_path_part="${pconfig_path_part}:${pkg_prefix}/${inc}"
-      fi
+      pconfig_path_part+="${pkg_prefix}/${inc}"
     done
   fi
   if [[ -n "${pconfig_path_part}" ]]; then
-    echo $pconfig_path_part > $pkg_prefix/PKG_CONFIG_PATH
+    add_build_env 'PKG_CONFIG_PATH' ${pconfig_path_part}
   fi
 
-  local path_part=""
+  local path_part=()
   for bin in "${pkg_bin_dirs[@]}"; do
-    if [[ -z "$path_part" ]]; then
-      path_part="${pkg_prefix}/${bin}";
-    else
-      path_part="$path_part:${pkg_prefix}/${bin}";
-    fi
+    path_part+="${pkg_prefix}/${bin}"
   done
   if [[ -n "${path_part}" ]]; then
-    # TODO: Remove PATH file support
-    echo $path_part > $pkg_prefix/PATH
-
-    pkg_env[PATH]=${path_part}
+    add_env 'PATH' ${path_part}
   fi
 
   for env in ${!pkg_env[@]}; do
