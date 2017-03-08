@@ -34,38 +34,19 @@ use error::{Error, Result};
 const BE_LISTEN_ADDR: &'static str = "inproc://backend";
 
 #[derive(Clone)]
-pub struct InitServerState {
-    datastore: DataStore,
-}
-
-impl InitServerState {
-    pub fn new(datastore: DataStore) -> Self {
-        InitServerState { datastore: datastore }
-    }
-}
-
-impl Into<ServerState> for InitServerState {
-    fn into(self) -> ServerState {
-        let mut state = ServerState::default();
-        state.datastore = Some(self.datastore);
-        state
-    }
-}
-
-#[derive(Default)]
 pub struct ServerState {
-    datastore: Option<DataStore>,
+    datastore: Arc<RwLock<DataStore>>,
 }
 
 impl ServerState {
-    fn datastore(&mut self) -> &mut DataStore {
-        self.datastore.as_mut().unwrap()
+    pub fn new(datastore: DataStore) -> Self {
+        ServerState { datastore: Arc::new(RwLock::new(datastore)) }
     }
 }
 
 impl DispatcherState for ServerState {
     fn is_initialized(&self) -> bool {
-        self.datastore.is_some()
+        true
     }
 }
 
@@ -77,7 +58,7 @@ pub struct Worker {
 impl Dispatcher for Worker {
     type Config = Config;
     type Error = Error;
-    type InitState = InitServerState;
+    type InitState = ServerState;
     type State = ServerState;
 
     fn message_queue() -> &'static str {
@@ -153,7 +134,7 @@ impl Application for Server {
         try!(datastore.setup());
         let cfg = self.config.clone();
         let cfg2 = self.config.clone();
-        let init_state = InitServerState::new(datastore);
+        let init_state = ServerState::new(datastore);
         let ds2 = init_state.datastore.clone();
         let sup: Supervisor<Worker> = Supervisor::new(cfg, init_state);
         let schedule_mgr = try!(ScheduleMgr::start(cfg2, ds2));

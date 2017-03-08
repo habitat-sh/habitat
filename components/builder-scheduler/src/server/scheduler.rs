@@ -54,14 +54,14 @@ impl Default for ScheduleClient {
 
 pub struct ScheduleMgr {
     config: Arc<RwLock<Config>>,
-    datastore: DataStore,
+    datastore: Arc<RwLock<DataStore>>,
     work_sock: zmq::Socket,
     status_sock: zmq::Socket,
     msg: zmq::Message,
 }
 
 impl ScheduleMgr {
-    pub fn new(config: Arc<RwLock<Config>>, datastore: DataStore) -> Result<Self> {
+    pub fn new(config: Arc<RwLock<Config>>, datastore: Arc<RwLock<DataStore>>) -> Result<Self> {
         let status_sock = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::SUB));
         let work_sock = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER));
         try!(status_sock.set_subscribe(&[]));
@@ -78,7 +78,7 @@ impl ScheduleMgr {
         })
     }
 
-    pub fn start(cfg: Arc<RwLock<Config>>, ds: DataStore) -> Result<JoinHandle<()>> {
+    pub fn start(cfg: Arc<RwLock<Config>>, ds: Arc<RwLock<DataStore>>) -> Result<JoinHandle<()>> {
         let (tx, rx) = mpsc::sync_channel(1);
         let handle = thread::Builder::new()
             .name("scheduler".to_string())
@@ -145,7 +145,14 @@ impl ScheduleMgr {
         let job: jobsrv::Job = try!(parse_from_bytes(&self.msg));
         println!("Received job status: {:?}", job);
 
-        // TBD: Data store update will happen here
+        let mut ds = self.datastore.write().unwrap();
+        match ds.find_group_for_job(&job) {
+            Some(group) => ds.update_group_job(&group, &job).unwrap(),
+            None => {
+                println!("Did not find any group for job: {}", job.get_id());
+            }
+        }
+
         Ok(())
     }
 }
