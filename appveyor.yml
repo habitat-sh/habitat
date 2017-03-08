@@ -48,6 +48,9 @@ artifacts:
   - path: 'results\*.zip'
     name: HabCLI
 
+  - path: 'results\prod\*.zip'
+    name: HabProdCLI
+
 deploy:
 - provider: BinTray
   username: mwrock
@@ -57,7 +60,18 @@ deploy:
   repo: unstable
   package: hab-x86_64-windows
   publish: true
-  explode: true
   artifact: HabCLI
   on:
     branch: master
+
+- provider: BinTray
+  username: mwrock
+  api_key:
+    secure: 2DkUS4TNHW1uGjGTkNaepmkZ7lesimoVVWzM29tfGvcbBOuL7MeRjxcRd4PIY5X1
+  subject: habitat
+  repo: unstable
+  package: hab-x86_64-windows
+  publish: true
+  artifact: HabProdCLI
+  on:
+    appveyor_repo_tag: true
