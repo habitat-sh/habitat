@@ -26,9 +26,13 @@ _common_prepare() {
   # Used by the `build.rs` program to set the version of the binaries
   export PLAN_VERSION="${pkg_version}/${pkg_release}"
   build_line "Setting PLAN_VERSION=$PLAN_VERSION"
-
-  # Used by Cargo to use a pristine, isolated directory for all compilation
-  export CARGO_TARGET_DIR="$HAB_CACHE_SRC_PATH/$pkg_dirname"
+  
+  if [ -z "$HAB_CARGO_TARGET_DIR" ]; then
+    # Used by Cargo to use a pristine, isolated directory for all compilation
+    export CARGO_TARGET_DIR="$HAB_CACHE_SRC_PATH/$pkg_dirname"
+  else
+    export CARGO_TARGET_DIR="$HAB_CARGO_TARGET_DIR"
+  fi
   build_line "Setting CARGO_TARGET_DIR=$CARGO_TARGET_DIR"
 }
 
