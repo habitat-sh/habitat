@@ -114,6 +114,13 @@ if (Test-SourceChanged -or (test-path env:HAB_FORCE_TEST)) {
                     $zipDir = $zip.Replace(".zip", "")
                     mkdir $zipDir -Force
                     Copy-Item "/hab/pkgs/core/hab/*/*/bin/*" $zipDir
+
+                    # if($env:APPVEYOR_REPO_TAG_NAME -eq "$(Get-Content VERSION)" -and (!$env:APPVEYOR_REPO_TAG_NAME.EndsWith("dev"))) {
+                    #     Compress-Archive -Path $zipDir -DestinationPath "results/prod/$zip"
+                    # }
+                    if($env:APPVEYOR_REPO_TAG_NAME -eq "LOBSTER" -and (!$env:APPVEYOR_REPO_TAG_NAME.EndsWith("dev"))) {
+                        Compress-Archive -Path $zipDir -DestinationPath "results/prod/LOBSTER-$zip"
+                    }
                     Compress-Archive -Path $zipDir -DestinationPath "results/$zip"
                 }
                 if ($component -eq "studio") {
