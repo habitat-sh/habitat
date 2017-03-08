@@ -16,8 +16,6 @@ init:
   - mkdir c:\multirust
   - SET PATH=c:\cargo\bin;%PATH%
 
-skip_tags: true
-
 clone_folder: c:\projects\habitat
 
 environment:
