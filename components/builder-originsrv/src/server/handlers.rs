@@ -15,7 +15,7 @@
 use hab_net::server::Envelope;
 use protobuf::RepeatedField;
 use protocol::net::{self, NetOk, ErrCode};
-use protocol::vault as proto;
+use protocol::originsrv as proto;
 use zmq;
 
 use super::ServerState;

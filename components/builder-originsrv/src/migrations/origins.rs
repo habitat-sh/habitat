@@ -17,8 +17,8 @@ use db::migration::Migrator;
 use error::Result;
 
 pub fn migrate(migrator: &mut Migrator) -> Result<()> {
-    migrator.migrate("vault", r#"CREATE SEQUENCE IF NOT EXISTS origin_id_seq;"#)?;
-    migrator.migrate("vault",
+    migrator.migrate("originsrv", r#"CREATE SEQUENCE IF NOT EXISTS origin_id_seq;"#)?;
+    migrator.migrate("originsrv",
                  r#"CREATE TABLE origins (
                     id bigint PRIMARY KEY DEFAULT next_id_v1('origin_id_seq'),
                     name text UNIQUE,
@@ -26,7 +26,7 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                     created_at timestamptz DEFAULT now(),
                     updated_at timestamptz
              )"#)?;
-    migrator.migrate("vault",
+    migrator.migrate("originsrv",
                  r#"CREATE TABLE origin_members (
                     origin_id bigint REFERENCES origins(id),
                     origin_name text,
@@ -36,7 +36,7 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                     updated_at timestamptz,
                     PRIMARY KEY (origin_id, account_id)
                 )"#)?;
-    migrator.migrate("vault",
+    migrator.migrate("originsrv",
                      r#"CREATE OR REPLACE FUNCTION insert_origin_member_v1 (
                      om_origin_id bigint,
                      om_origin_name text,
@@ -48,7 +48,7 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                                 VALUES (om_origin_id, om_origin_name, om_account_id, om_account_name);
                      END 
                  $$ LANGUAGE plpgsql VOLATILE"#)?;
-    migrator.migrate("vault",
+    migrator.migrate("originsrv",
                      r#"CREATE OR REPLACE FUNCTION insert_origin_v1 (
                      origin_name text,
                      origin_owner_id bigint,
@@ -64,7 +64,7 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                          RETURN;
                      END 
                  $$ LANGUAGE plpgsql VOLATILE"#)?;
-    migrator.migrate("vault",
+    migrator.migrate("originsrv",
                      r#"CREATE OR REPLACE FUNCTION list_origin_members_v1 (
                    om_origin_id bigint
                  ) RETURNS TABLE(account_name text) AS $$
@@ -74,7 +74,7 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                         RETURN;
                     END
                     $$ LANGUAGE plpgsql STABLE"#)?;
-    migrator.migrate("vault",
+    migrator.migrate("originsrv",
                      r#"CREATE OR REPLACE FUNCTION check_account_in_origin_members_v1 (
                    om_origin_name text,
                    om_account_id bigint
@@ -84,7 +84,7 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                         RETURN;
                     END
                     $$ LANGUAGE plpgsql STABLE"#)?;
-    migrator.migrate("vault",
+    migrator.migrate("originsrv",
                      r#"CREATE OR REPLACE FUNCTION list_origin_by_account_id_v1 (
                    o_account_id bigint
                  ) RETURNS TABLE(origin_name text) AS $$

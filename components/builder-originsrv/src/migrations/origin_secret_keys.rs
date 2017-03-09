@@ -17,9 +17,9 @@ use db::migration::Migrator;
 use error::Result;
 
 pub fn migrate(migrator: &mut Migrator) -> Result<()> {
-    migrator.migrate("vault",
+    migrator.migrate("originsrv",
                  r#"CREATE SEQUENCE IF NOT EXISTS origin_secret_key_id_seq;"#)?;
-    migrator.migrate("vault",
+    migrator.migrate("originsrv",
                  r#"CREATE TABLE origin_secret_keys (
                     id bigint PRIMARY KEY DEFAULT next_id_v1('origin_secret_key_id_seq'),
                     origin_id bigint REFERENCES origins(id),
@@ -31,14 +31,14 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                     created_at timestamptz DEFAULT now(),
                     updated_at timestamptz
              )"#)?;
-    migrator.migrate("vault",
+    migrator.migrate("originsrv",
                  r#"CREATE OR REPLACE VIEW origins_with_secret_key_full_name_v1 AS
                         SELECT origins.id, origins.name, origins.owner_id,
                                origin_secret_keys.full_name AS private_key_name
                           FROM origins
                           LEFT OUTER JOIN origin_secret_keys ON (origins.id = origin_secret_keys.origin_id)
                           ORDER BY origins.id, origin_secret_keys.full_name DESC"#)?;
-    migrator.migrate("vault",
+    migrator.migrate("originsrv",
                  r#"CREATE OR REPLACE FUNCTION insert_origin_secret_key_v1 (
                     osk_origin_id bigint,
                     osk_owner_id bigint,
@@ -54,7 +54,7 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                          RETURN;
                      END
                  $$ LANGUAGE plpgsql VOLATILE"#)?;
-    migrator.migrate("vault",
+    migrator.migrate("originsrv",
                  r#"CREATE OR REPLACE FUNCTION get_origin_secret_key_v1 (
                     osk_name text
                  ) RETURNS SETOF origin_secret_keys AS $$

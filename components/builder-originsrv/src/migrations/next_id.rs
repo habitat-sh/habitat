@@ -17,7 +17,7 @@ use db::migration::Migrator;
 use error::Result;
 
 pub fn migrate(migrator: &mut Migrator) -> Result<()> {
-    migrator.migrate("vault",
+    migrator.migrate("originsrv",
                      r#"CREATE OR REPLACE FUNCTION next_id_v1(sequence_id regclass, OUT result bigint) AS $$
                 DECLARE
                     our_epoch bigint := 1409266191000;

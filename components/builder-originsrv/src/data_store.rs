@@ -16,7 +16,7 @@
 
 use db::pool::Pool;
 use db::migration::Migrator;
-use protocol::vault;
+use protocol::originsrv;
 use postgres;
 use protobuf;
 
@@ -57,7 +57,7 @@ impl DataStore {
         Ok(())
     }
 
-    pub fn update_origin_project(&self, opc: &vault::OriginProjectUpdate) -> Result<()> {
+    pub fn update_origin_project(&self, opc: &originsrv::OriginProjectUpdate) -> Result<()> {
         let conn = self.pool.get()?;
         let project = opc.get_project();
         conn.execute("SELECT update_origin_project_v1($1, $2, $3, $4, $5, $6, $7)",
@@ -79,7 +79,9 @@ impl DataStore {
         Ok(())
     }
 
-    pub fn get_origin_project_by_name(&self, name: &str) -> Result<Option<vault::OriginProject>> {
+    pub fn get_origin_project_by_name(&self,
+                                      name: &str)
+                                      -> Result<Option<originsrv::OriginProject>> {
         let conn = self.pool.get()?;
         let rows = &conn.query("SELECT * FROM get_origin_project_v1($1)", &[&name])
             .map_err(Error::OriginProjectGet)?;
@@ -91,8 +93,8 @@ impl DataStore {
         }
     }
 
-    pub fn row_to_origin_project(&self, row: &postgres::rows::Row) -> vault::OriginProject {
-        let mut project = vault::OriginProject::new();
+    pub fn row_to_origin_project(&self, row: &postgres::rows::Row) -> originsrv::OriginProject {
+        let mut project = originsrv::OriginProject::new();
         let id: i64 = row.get("id");
         project.set_id(id as u64);
         let origin_id: i64 = row.get("origin_id");
@@ -109,8 +111,8 @@ impl DataStore {
     }
 
     pub fn create_origin_project(&self,
-                                 opc: &vault::OriginProjectCreate)
-                                 -> Result<vault::OriginProject> {
+                                 opc: &originsrv::OriginProjectCreate)
+                                 -> Result<originsrv::OriginProject> {
         let conn = self.pool.get()?;
         let project = opc.get_project();
         let rows = conn.query("SELECT * FROM insert_origin_project_v1($1, $2, $3, $4, $5, $6)",
@@ -138,7 +140,9 @@ impl DataStore {
         if rows.len() != 0 { Ok(true) } else { Ok(false) }
     }
 
-    pub fn check_account_in_origin(&self, coar: &vault::CheckOriginAccessRequest) -> Result<bool> {
+    pub fn check_account_in_origin(&self,
+                                   coar: &originsrv::CheckOriginAccessRequest)
+                                   -> Result<bool> {
         let conn = self.pool.get()?;
         let rows = &conn.query("SELECT * FROM check_account_in_origin_members_v1($1, $2)",
                    &[&coar.get_origin_name(), &(coar.get_account_id() as i64)])
@@ -147,13 +151,13 @@ impl DataStore {
     }
 
     pub fn list_origins_by_account(&self,
-                                   aolr: &vault::AccountOriginListRequest)
-                                   -> Result<vault::AccountOriginListResponse> {
+                                   aolr: &originsrv::AccountOriginListRequest)
+                                   -> Result<originsrv::AccountOriginListResponse> {
         let conn = self.pool.get()?;
         let rows = &conn.query("SELECT * FROM list_origin_by_account_id($1)",
                    &[&(aolr.get_account_id() as i64)])
             .map_err(Error::OriginAccountList)?;
-        let mut response = vault::AccountOriginListResponse::new();
+        let mut response = originsrv::AccountOriginListResponse::new();
         response.set_account_id(aolr.get_account_id().clone());
         let mut origins = protobuf::RepeatedField::new();
         for row in rows {
@@ -164,14 +168,14 @@ impl DataStore {
     }
 
     pub fn list_origin_members(&self,
-                               omlr: &vault::OriginMemberListRequest)
-                               -> Result<vault::OriginMemberListResponse> {
+                               omlr: &originsrv::OriginMemberListRequest)
+                               -> Result<originsrv::OriginMemberListResponse> {
         let conn = self.pool.get()?;
         let rows = &conn.query("SELECT * FROM list_origin_members_v1($1)",
                    &[&(omlr.get_origin_id() as i64)])
             .map_err(Error::OriginMemberList)?;
 
-        let mut response = vault::OriginMemberListResponse::new();
+        let mut response = originsrv::OriginMemberListResponse::new();
         response.set_origin_id(omlr.get_origin_id());
 
         let mut members = protobuf::RepeatedField::new();
@@ -184,14 +188,14 @@ impl DataStore {
     }
 
     pub fn validate_origin_invitation(&self,
-                                      oiar: &vault::OriginInvitationValidateRequest)
-                                      -> Result<vault::OriginInvitationValidateResponse> {
+                                      oiar: &originsrv::OriginInvitationValidateRequest)
+                                      -> Result<originsrv::OriginInvitationValidateResponse> {
         let conn = self.pool.get()?;
         let rows = &conn.query("SELECT * FROM validate_origin_invitation_v1($1, $2)",
                    &[&(oiar.get_invite_id() as i64),
                      &(oiar.get_account_accepting_request() as i64)])
             .map_err(Error::OriginInvitationValidate)?;
-        let mut response = vault::OriginInvitationValidateResponse::new();
+        let mut response = originsrv::OriginInvitationValidateResponse::new();
         if rows.len() > 0 {
             response.set_is_valid(true);
         } else {
@@ -201,7 +205,7 @@ impl DataStore {
     }
 
     pub fn accept_origin_invitation(&self,
-                                    oiar: &vault::OriginInvitationAcceptRequest)
+                                    oiar: &originsrv::OriginInvitationAcceptRequest)
                                     -> Result<()> {
         let conn = self.pool.get()?;
         let tr = conn.transaction().map_err(Error::DbTransactionStart)?;
@@ -212,15 +216,16 @@ impl DataStore {
         Ok(())
     }
 
-    pub fn list_origin_invitations_for_account(&self,
-                                               oilr: &vault::AccountInvitationListRequest)
-                                               -> Result<Option<Vec<vault::OriginInvitation>>> {
+    pub fn list_origin_invitations_for_account
+        (&self,
+         oilr: &originsrv::AccountInvitationListRequest)
+         -> Result<Option<Vec<originsrv::OriginInvitation>>> {
         let conn = self.pool.get()?;
         let rows = &conn.query("SELECT * FROM get_origin_invitations_for_account_v1($1)",
                    &[&(oilr.get_account_id() as i64)])
             .map_err(Error::OriginInvitationListForAccount)?;
         if rows.len() != 0 {
-            let mut list_of_oi: Vec<vault::OriginInvitation> = Vec::new();
+            let mut list_of_oi: Vec<originsrv::OriginInvitation> = Vec::new();
             for row in rows {
                 list_of_oi.push(self.row_to_origin_invitation(&row));
             }
@@ -230,15 +235,16 @@ impl DataStore {
         }
     }
 
-    pub fn list_origin_invitations_for_origin(&self,
-                                              oilr: &vault::OriginInvitationListRequest)
-                                              -> Result<vault::OriginInvitationListResponse> {
+    pub fn list_origin_invitations_for_origin
+        (&self,
+         oilr: &originsrv::OriginInvitationListRequest)
+         -> Result<originsrv::OriginInvitationListResponse> {
         let conn = self.pool.get()?;
         let rows = &conn.query("SELECT * FROM get_origin_invitations_for_origin_v1($1)",
                    &[&(oilr.get_origin_id() as i64)])
             .map_err(Error::OriginInvitationListForOrigin)?;
 
-        let mut response = vault::OriginInvitationListResponse::new();
+        let mut response = originsrv::OriginInvitationListResponse::new();
         response.set_origin_id(oilr.get_origin_id());
         let mut invitations = protobuf::RepeatedField::new();
         for row in rows {
@@ -248,8 +254,8 @@ impl DataStore {
         Ok(response)
     }
 
-    fn row_to_origin_invitation(&self, row: &postgres::rows::Row) -> vault::OriginInvitation {
-        let mut oi = vault::OriginInvitation::new();
+    fn row_to_origin_invitation(&self, row: &postgres::rows::Row) -> originsrv::OriginInvitation {
+        let mut oi = originsrv::OriginInvitation::new();
         let oi_id: i64 = row.get("id");
         oi.set_id(oi_id as u64);
         let oi_account_id: i64 = row.get("account_id");
@@ -264,8 +270,8 @@ impl DataStore {
     }
 
     pub fn create_origin_invitation(&self,
-                                    oic: &vault::OriginInvitationCreate)
-                                    -> Result<Option<vault::OriginInvitation>> {
+                                    oic: &originsrv::OriginInvitationCreate)
+                                    -> Result<Option<originsrv::OriginInvitation>> {
         let conn = self.pool.get()?;
         let rows = conn.query("SELECT * FROM insert_origin_invitation_v1($1, $2, $3, $4, $5)",
                    &[&(oic.get_origin_id() as i64),
@@ -283,8 +289,8 @@ impl DataStore {
     }
 
     pub fn create_origin_secret_key(&self,
-                                    osk: &vault::OriginSecretKeyCreate)
-                                    -> Result<vault::OriginSecretKey> {
+                                    osk: &originsrv::OriginSecretKeyCreate)
+                                    -> Result<originsrv::OriginSecretKey> {
         let conn = self.pool.get()?;
         let rows = conn.query("SELECT * FROM insert_origin_secret_key_v1($1, $2, $3, $4, $5, $6)",
                    &[&(osk.get_origin_id() as i64),
@@ -298,8 +304,8 @@ impl DataStore {
         Ok(self.row_to_origin_secret_key(row))
     }
 
-    fn row_to_origin_secret_key(&self, row: postgres::rows::Row) -> vault::OriginSecretKey {
-        let mut osk = vault::OriginSecretKey::new();
+    fn row_to_origin_secret_key(&self, row: postgres::rows::Row) -> originsrv::OriginSecretKey {
+        let mut osk = originsrv::OriginSecretKey::new();
         let osk_id: i64 = row.get("id");
         osk.set_id(osk_id as u64);
         let osk_origin_id: i64 = row.get("origin_id");
@@ -313,8 +319,8 @@ impl DataStore {
     }
 
     pub fn get_origin_secret_key(&self,
-                                 osk_get: &vault::OriginSecretKeyGet)
-                                 -> Result<Option<vault::OriginSecretKey>> {
+                                 osk_get: &originsrv::OriginSecretKeyGet)
+                                 -> Result<Option<originsrv::OriginSecretKey>> {
         let conn = self.pool.get()?;
         let rows = &conn.query("SELECT * FROM get_origin_secret_key_v1($1)",
                    &[&osk_get.get_origin()])
@@ -328,8 +334,8 @@ impl DataStore {
         }
     }
 
-    fn row_to_origin(&self, row: postgres::rows::Row) -> vault::Origin {
-        let mut origin = vault::Origin::new();
+    fn row_to_origin(&self, row: postgres::rows::Row) -> originsrv::Origin {
+        let mut origin = originsrv::Origin::new();
         let oid: i64 = row.get("id");
         origin.set_id(oid as u64);
         origin.set_name(row.get("name"));
@@ -342,7 +348,9 @@ impl DataStore {
         origin
     }
 
-    pub fn create_origin(&self, origin: &vault::OriginCreate) -> Result<Option<vault::Origin>> {
+    pub fn create_origin(&self,
+                         origin: &originsrv::OriginCreate)
+                         -> Result<Option<originsrv::Origin>> {
         let conn = self.pool.get()?;
         let rows = conn.query("SELECT * FROM insert_origin_v1($1, $2, $3)",
                    &[&origin.get_name(),
@@ -357,11 +365,13 @@ impl DataStore {
         }
     }
 
-    pub fn get_origin(&self, origin_get: &vault::OriginGet) -> Result<Option<vault::Origin>> {
+    pub fn get_origin(&self,
+                      origin_get: &originsrv::OriginGet)
+                      -> Result<Option<originsrv::Origin>> {
         self.get_origin_by_name(origin_get.get_name())
     }
 
-    pub fn get_origin_by_name(&self, origin_name: &str) -> Result<Option<vault::Origin>> {
+    pub fn get_origin_by_name(&self, origin_name: &str) -> Result<Option<originsrv::Origin>> {
         let conn = self.pool.get()?;
         let rows =
             &conn.query("SELECT * FROM origins_with_secret_key_full_name_v1 WHERE name = $1 LIMIT \
@@ -370,7 +380,7 @@ impl DataStore {
                 .map_err(Error::OriginGet)?;
         if rows.len() != 0 {
             let row = rows.iter().nth(0).unwrap();
-            let mut origin = vault::Origin::new();
+            let mut origin = originsrv::Origin::new();
             let oid: i64 = row.get("id");
             origin.set_id(oid as u64);
             origin.set_name(row.get("name"));

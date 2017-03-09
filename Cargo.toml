@@ -12,7 +12,7 @@ members = [
   "components/builder-protocol",
   "components/builder-router",
   "components/builder-sessionsrv",
-  "components/builder-vault",
+  "components/builder-originsrv",
   "components/builder-worker",
   "components/common",
   "components/core",

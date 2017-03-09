@@ -17,17 +17,17 @@ extern crate clap;
 extern crate env_logger;
 extern crate habitat_core as hab_core;
 extern crate habitat_builder_protocol as protocol;
-extern crate habitat_builder_vault as vault;
+extern crate habitat_builder_originsrv as originsrv;
 #[macro_use]
 extern crate log;
 
 use std::process;
 
 use hab_core::config::ConfigFile;
-use vault::{Config, Error, Result};
+use originsrv::{Config, Error, Result};
 
 const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
-const CFG_DEFAULT_PATH: &'static str = "/hab/svc/hab-builder-vault/config.toml";
+const CFG_DEFAULT_PATH: &'static str = "/hab/svc/hab-builder-originsrv/config.toml";
 
 fn main() {
     env_logger::init().unwrap();
@@ -44,15 +44,15 @@ fn main() {
 }
 
 fn app<'a, 'b>() -> clap::App<'a, 'b> {
-    clap_app!(BuilderVault =>
+    clap_app!(BuilderOriginsrv =>
         (version: VERSION)
-        (about: "Habitat builder-vaultsrv")
+        (about: "Habitat builder-originsrv")
         (@setting VersionlessSubcommands)
         (@setting SubcommandRequiredElseHelp)
         (@subcommand start =>
-            (about: "Run a Habitat-Builder vault server")
+            (about: "Run a Habitat-Builder origin server")
             (@arg config: -c --config +takes_value +global
-                "Filepath to configuration file. [default: /hab/svc/hab-builder-vault/config.toml]")
+                "Filepath to configuration file. [default: /hab/svc/hab-builder-originsrv/config.toml]")
         )
     )
 }
@@ -72,11 +72,11 @@ fn exit_with(err: Error, code: i32) {
     process::exit(code)
 }
 
-/// Starts the builder-vault server.
+/// Starts the builder-originsrv server.
 ///
 /// # Failures
 ///
 /// * Fails if the depot server fails to start - cannot bind to the port, etc.
 fn start(config: Config) -> Result<()> {
-    vault::server::run(config)
+    originsrv::server::run(config)
 }

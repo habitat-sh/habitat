@@ -1,4 +1,4 @@
-package vault;
+package originsrv;
 
 message Origin {
   optional uint64 id = 1;

@@ -15,5 +15,5 @@
 use num_cpus;
 
 pub fn default_pool_size() -> u32 {
-    (num_cpus::get() * 8) as u32
+    (num_cpus::get() * 2) as u32
 }

@@ -16,7 +16,7 @@
 
 use db::pool::Pool;
 use db::migration::Migrator;
-use protocol::{vault, jobsrv};
+use protocol::{originsrv, jobsrv};
 use postgres;
 
 use config::Config;
@@ -218,7 +218,7 @@ impl DataStore {
         };
         job.set_state(job_state);
 
-        let mut project = vault::OriginProject::new();
+        let mut project = originsrv::OriginProject::new();
         let project_id: i64 = row.get("project_id");
         project.set_id(project_id as u64);
         project.set_name(row.get("project_name"));
