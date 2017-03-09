@@ -56,13 +56,17 @@ impl DataStore {
             jobs: HashMap::new(),
         };
         self.job_groups.insert(self.curr_id, job_group);
-        self.curr_id = self.curr_id + 1;
+        println!("Group created, id: {}", self.curr_id);
 
+        self.curr_id = self.curr_id + 1;
         Ok(())
     }
 
     pub fn set_group_state(&mut self, group: &Group) -> Result<()> {
         if let Some(job_group) = self.job_groups.get_mut(&group.get_group_id()) {
+            println!("Updating group state, id: {}, state: {:?}",
+                     group.get_group_id(),
+                     group.get_state());
             (*job_group).group = group.clone();
         };
         Ok(())
@@ -70,6 +74,27 @@ impl DataStore {
 
     pub fn add_group_job(&mut self, group: &Group, job: &Job) -> Result<()> {
         if let Some(job_group) = self.job_groups.get_mut(&group.get_group_id()) {
+            println!("Adding job id {} to group {}",
+                     job.get_id(),
+                     group.get_group_id());
+            (*job_group).jobs.insert(job.get_id(), job.clone());
+        };
+        Ok(())
+    }
+
+    pub fn find_group_for_job(&mut self, job: &Job) -> Option<Group> {
+        for job_group in self.job_groups.values() {
+            if job_group.jobs.contains_key(&job.get_id()) {
+                return Some(job_group.group.clone());
+            }
+        }
+        None
+    }
+
+    pub fn update_group_job(&mut self, group: &Group, job: &Job) -> Result<()> {
+        if let Some(job_group) = self.job_groups.get_mut(&group.get_group_id()) {
+            println!("Updating job status, job id: {}", job.get_id());
+            assert!(job_group.jobs.contains_key(&job.get_id()));
             (*job_group).jobs.insert(job.get_id(), job.clone());
         };
         Ok(())

@@ -31,7 +31,11 @@ pub fn schedule(req: &mut Envelope, sock: &mut zmq::Socket, state: &mut ServerSt
     println!("Scheduling: {:?}", msg);
 
     let mut group = proto::Group::new();
-    state.datastore().create_group(&mut group)?;
+
+    {
+        let mut ds = state.datastore.write().unwrap();
+        ds.create_group(&mut group)?;
+    }
 
     let mut project_get = OriginProjectGet::new();
     let project_name = format!("{}/{}",
@@ -39,7 +43,6 @@ pub fn schedule(req: &mut Envelope, sock: &mut zmq::Socket, state: &mut ServerSt
                                msg.get_ident().get_name());
     project_get.set_name(project_name.clone());
 
-    println!("Retreiving project: {}", project_name);
     let mut conn = Broker::connect().unwrap();
     let project = match conn.route::<OriginProjectGet, OriginProject>(&project_get) {
         Ok(project) => project,
@@ -48,7 +51,11 @@ pub fn schedule(req: &mut Envelope, sock: &mut zmq::Socket, state: &mut ServerSt
                    project_name,
                    err);
             group.set_state(proto::GroupState::Failed);
-            state.datastore().set_group_state(&group)?;
+            {
+                let mut ds = state.datastore.write().unwrap();
+                ds.set_group_state(&group)?;
+            }
+
             try!(req.reply_complete(sock, &group));
             return Ok(());
         }
@@ -61,12 +68,18 @@ pub fn schedule(req: &mut Envelope, sock: &mut zmq::Socket, state: &mut ServerSt
     match conn.route::<JobSpec, Job>(&job_spec) {
         Ok(job) => {
             println!("Job created: {:?}", job);
-            state.datastore().add_group_job(&group, &job)?;
+            group.set_state(proto::GroupState::Dispatched);
+
+            let mut ds = state.datastore.write().unwrap();
+            ds.add_group_job(&group, &job)?;
+            ds.set_group_state(&group)?;
         }
         Err(err) => {
             error!("Job creation error: {:?}", err);
             group.set_state(proto::GroupState::Failed);
-            state.datastore().set_group_state(&group)?;
+
+            let mut ds = state.datastore.write().unwrap();
+            ds.set_group_state(&group)?;
         }
     }
 
