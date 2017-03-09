@@ -2358,7 +2358,7 @@ _generate_artifact() {
 
 _prepare_build_outputs() {
   _pkg_sha256sum=$($_shasum_cmd $pkg_artifact | cut -d " " -f 1)
-  _pkg_blake2bsum=$($HAB_BIN pkg hash $pkg_artifact)
+  _pkg_blake2bsum=$($HAB_BIN pkg hash $pkg_artifact | cut -d " " -f 1)
   mkdir -pv "$pkg_output_path"
   cp -v "$pkg_artifact" "$pkg_output_path"/
 
