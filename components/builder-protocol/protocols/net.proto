@@ -10,13 +10,13 @@ enum Protocol {
 }
 
 message RouteInfo {
-  required Protocol protocol = 1;
+  optional Protocol protocol = 1;
   optional uint64 hash = 2;
 }
 
 message Msg {
-  required string message_id = 1;
-  required bytes body = 2;
+  optional string message_id = 1;
+  optional bytes body = 2;
   optional RouteInfo route_info = 3;
 }
 
@@ -45,8 +45,8 @@ enum ErrCode {
 }
 
 message NetError {
-  required ErrCode code = 1;
-  required string msg = 2;
+  optional ErrCode code = 1;
+  optional string msg = 2;
 }
 
 message NetOk {}

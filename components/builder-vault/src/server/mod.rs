@@ -20,7 +20,6 @@ use std::sync::{Arc, RwLock};
 use protocol::net;
 use zmq;
 
-use dbcache::data_store::Pool;
 use hab_net::{Application, Supervisor};
 use hab_net::dispatcher::prelude::*;
 use hab_net::server::{Envelope, NetIdent, RouteConn, Service, ZMQ_CONTEXT};
@@ -33,12 +32,12 @@ const BE_LISTEN_ADDR: &'static str = "inproc://backend";
 
 #[derive(Clone)]
 pub struct ServerState {
-    datastore: Arc<Box<DataStore>>,
+    datastore: DataStore,
 }
 
 impl ServerState {
     pub fn new(datastore: DataStore) -> Self {
-        ServerState { datastore: Arc::new(Box::new(datastore)) }
+        ServerState { datastore: datastore }
     }
 }
 
@@ -74,20 +73,22 @@ impl Dispatcher for Worker {
             "CheckOriginAccessRequest" => handlers::origin_check_access(message, sock, state),
             "OriginCreate" => handlers::origin_create(message, sock, state),
             "OriginGet" => handlers::origin_get(message, sock, state),
+            "OriginInvitationValidateRequest" => {
+                handlers::origin_invitation_validate(message, sock, state)
+            }
             "OriginInvitationAcceptRequest" => {
                 handlers::origin_invitation_accept(message, sock, state)
             }
             "OriginInvitationCreate" => handlers::origin_invitation_create(message, sock, state),
             "OriginInvitationListRequest" => handlers::origin_invitation_list(message, sock, state),
-            "OriginList" => handlers::origin_list(message, sock, state),
             "OriginMemberListRequest" => handlers::origin_member_list(message, sock, state),
             "AccountOriginListRequest" => handlers::account_origin_list(message, sock, state),
             "OriginSecretKeyCreate" => handlers::origin_secret_key_create(message, sock, state),
             "OriginSecretKeyGet" => handlers::origin_secret_key_get(message, sock, state),
-            "ProjectCreate" => handlers::project_create(message, sock, state),
-            "ProjectDelete" => handlers::project_delete(message, sock, state),
-            "ProjectGet" => handlers::project_get(message, sock, state),
-            "ProjectUpdate" => handlers::project_update(message, sock, state),
+            "OriginProjectCreate" => handlers::project_create(message, sock, state),
+            "OriginProjectDelete" => handlers::project_delete(message, sock, state),
+            "OriginProjectGet" => handlers::project_get(message, sock, state),
+            "OriginProjectUpdate" => handlers::project_update(message, sock, state),
             _ => {
                 debug!("dispatch: unhandled message: {}", message.message_id());
                 Ok(())
@@ -141,8 +142,9 @@ impl Application for Server {
         try!(self.be_sock.bind(BE_LISTEN_ADDR));
         let datastore = {
             let cfg = self.config.read().unwrap();
-            DataStore::start(cfg.deref())
+            DataStore::new(cfg.deref())?
         };
+        try!(datastore.setup());
         let cfg = self.config.clone();
         let init_state = ServerState::new(datastore);
         let sup: Supervisor<Worker> = Supervisor::new(cfg, init_state);

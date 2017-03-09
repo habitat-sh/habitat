@@ -5,19 +5,19 @@ enum OAuthProvider {
 }
 
 message Account {
-  required uint64 id = 1;
-  required string email = 2;
-  required string name = 3;
+  optional uint64 id = 1;
+  optional string email = 2;
+  optional string name = 3;
 }
 
 // get an account by GH username
 message AccountGet {
-  required string name = 1;
+  optional string name = 1;
 }
 
 message AccountSearch {
-  required AccountSearchKey key = 1;
-  required string value = 2;
+  optional AccountSearchKey key = 1;
+  optional string value = 2;
 }
 
 enum AccountSearchKey {
@@ -26,17 +26,17 @@ enum AccountSearchKey {
 }
 
 message GrantFlagToTeam {
-  required uint32 flag = 1;
-  required uint64 team_id = 2;
+  optional uint32 flag = 1;
+  optional uint64 team_id = 2;
 }
 
 message RevokeFlagFromTeam {
-  required uint32 flag = 1;
-  required uint64 team_id = 2;
+  optional uint32 flag = 1;
+  optional uint64 team_id = 2;
 }
 
 message ListFlagGrants {
-  required uint32 flag = 1;
+  optional uint32 flag = 1;
 }
 
 message FlagGrants {
@@ -44,27 +44,27 @@ message FlagGrants {
 }
 
 message Session {
-  required uint64 id = 1;
-  required string email = 2;
-  required string name = 3;
-  required string token = 4;
-  required uint32 flags = 5;
+  optional uint64 id = 1;
+  optional string email = 2;
+  optional string name = 3;
+  optional string token = 4;
+  optional uint32 flags = 5;
 }
 
 message SessionToken {
-  required string token = 1;
-  required uint64 owner_id = 2;
-  required OAuthProvider provider = 3;
+  optional string token = 1;
+  optional uint64 owner_id = 2;
+  optional OAuthProvider provider = 3;
 }
 
 message SessionCreate {
-  required string token = 1;
-  required uint64 extern_id = 2;
-  required string email = 3;
-  required string name = 4;
-  required OAuthProvider provider = 5;
+  optional string token = 1;
+  optional uint64 extern_id = 2;
+  optional string email = 3;
+  optional string name = 4;
+  optional OAuthProvider provider = 5;
 }
 
 message SessionGet {
-  required string token = 1;
+  optional string token = 1;
 }

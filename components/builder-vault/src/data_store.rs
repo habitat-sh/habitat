@@ -12,443 +12,377 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::ops::Deref;
-use std::sync::Arc;
+//! The PostgreSQL backend for the Vault.
 
-use dbcache::{self, data_store, ConnectionPool, BasicSet, Bucket, IndexSet, InstaSet};
-use protobuf::Message;
-use protocol::{vault, InstaId, Persistable};
-use redis::{self, Commands, PipelineCommands};
+use db::pool::Pool;
+use db::migration::Migrator;
+use protocol::vault;
+use postgres;
+use protobuf;
 
 use config::Config;
-use protocol::vault as proto;
+use error::{Result, Error};
+use migrations;
 
+#[derive(Debug, Clone)]
 pub struct DataStore {
-    pub pool: Arc<ConnectionPool>,
-    pub origins: OriginTable,
-    pub projects: ProjectTable,
+    pub pool: Pool,
 }
 
-impl data_store::Pool for DataStore {
-    type Config = Config;
-
-    fn init(pool: Arc<ConnectionPool>) -> Self {
-        let pool1 = pool.clone();
-        let pool2 = pool.clone();
-        let origins = OriginTable::new(pool1);
-        let projects = ProjectTable::new(pool2);
-
-        DataStore {
-            pool: pool,
-            origins: origins,
-            projects: projects,
-        }
-    }
-}
-
-pub struct OriginTable {
-    pool: Arc<ConnectionPool>,
-
-    pub origin_secret_keys: OriginSecretKeysTable,
-    pub invites: OriginInvitesTable,
-    pub name_idx: OriginNameIdx,
-    pub key_idx: OriginKeyNameIdx,
-}
-
-impl OriginTable {
-    pub fn new(pool: Arc<ConnectionPool>) -> Self {
-        let pool1 = pool.clone();
-        let pool2 = pool.clone();
-        let pool3 = pool.clone();
-        let pool4 = pool.clone();
-
-        let origin_secret_keys = OriginSecretKeysTable::new(pool1);
-        let invites = OriginInvitesTable::new(pool2);
-        let name_idx = OriginNameIdx::new(pool3);
-        let key_idx = OriginKeyNameIdx::new(pool4);
-
-        OriginTable {
-            pool: pool,
-            origin_secret_keys: origin_secret_keys,
-            invites: invites,
-            name_idx: name_idx,
-            key_idx: key_idx,
-        }
+impl DataStore {
+    pub fn new(config: &Config) -> Result<DataStore> {
+        let pool = Pool::new(&config.datastore_connection_url,
+                             config.pool_size,
+                             config.datastore_connection_retry_ms,
+                             config.datastore_connection_timeout,
+                             config.datastore_connection_test)?;
+        Ok(DataStore { pool: pool })
     }
 
-    /// modify_invite is located in the OriginTable so it can interact with
-    /// origin members AND origin invites
-    pub fn modify_invite(&self,
-                         invite: &proto::OriginInvitation,
-                         ignore: bool)
-                         -> dbcache::Result<()> {
-        debug!("Accepting invitation ({})", ignore);
+    pub fn from_pool(pool: Pool) -> Result<DataStore> {
+        Ok(DataStore { pool: pool })
+    }
 
-        // account_origins stores account_id -> origin *name*
-        // origin_members stores origin_id -> account *name*
-        //  This is cheating a bit, but the names are stored
-        //  on the SessionSrv in the Account obj so this
-        //  will do for now.
-        let account_origins_key = format!("account_origins:{}", &invite.get_account_id());
-        let origin_members_key = format!("origin_members:{}", &invite.get_origin_id());
-        debug!("account_origins_key = {}", &account_origins_key);
-        debug!("origin_members_key = {}", &origin_members_key);
+    pub fn setup(&self) -> Result<()> {
+        let mut migrator = Migrator::new(&self.pool);
+        migrator.setup()?;
 
-        let conn = try!(self.pool().get());
+        // The order here matters. Once you have deployed the software, you can never change it.
+        migrations::next_id::migrate(&mut migrator)?;
+        migrations::origins::migrate(&mut migrator)?;
+        migrations::origin_secret_keys::migrate(&mut migrator)?;
+        migrations::origin_invitations::migrate(&mut migrator)?;
+        migrations::origin_projects::migrate(&mut migrator)?;
 
-        if !ignore {
-            // accept the invite: add the account to the origin and delete the
-            // invite
-            try!(redis::transaction(conn.deref(),
-                                    &[account_origins_key.clone(), origin_members_key.clone()],
-                                    |txn| {
-                txn.sadd(account_origins_key.clone(), invite.get_origin_name())
-                    .sadd(origin_members_key.clone(), invite.get_account_name())
-                    .del(OriginInvitesTable::key(invite.get_id()))
-                    .query(conn.deref())
-            }));
+        Ok(())
+    }
+
+    pub fn update_origin_project(&self, opc: &vault::OriginProjectUpdate) -> Result<()> {
+        let conn = self.pool.get()?;
+        let project = opc.get_project();
+        conn.execute("SELECT update_origin_project_v1($1, $2, $3, $4, $5, $6, $7)",
+                     &[&(project.get_id() as i64),
+                       &(project.get_origin_id() as i64),
+                       &project.get_package_name(),
+                       &project.get_plan_path(),
+                       &project.get_vcs_type(),
+                       &project.get_vcs_data(),
+                       &(project.get_owner_id() as i64)])
+            .map_err(Error::OriginProjectUpdate)?;
+        Ok(())
+    }
+
+    pub fn delete_origin_project_by_name(&self, name: &str) -> Result<()> {
+        let conn = self.pool.get()?;
+        conn.execute("SELECT delete_origin_project_v1($1)", &[&name])
+            .map_err(Error::OriginProjectDelete)?;
+        Ok(())
+    }
+
+    pub fn get_origin_project_by_name(&self, name: &str) -> Result<Option<vault::OriginProject>> {
+        let conn = self.pool.get()?;
+        let rows = &conn.query("SELECT * FROM get_origin_project_v1($1)", &[&name])
+            .map_err(Error::OriginProjectGet)?;
+        if rows.len() != 0 {
+            let row = rows.get(0);
+            Ok(Some(self.row_to_origin_project(&row)))
         } else {
-            // "ignore" the invite, meaning: just delete it
-            try!(conn.del(invite.get_id()));
+            Ok(None)
+        }
+    }
+
+    pub fn row_to_origin_project(&self, row: &postgres::rows::Row) -> vault::OriginProject {
+        let mut project = vault::OriginProject::new();
+        let id: i64 = row.get("id");
+        project.set_id(id as u64);
+        let origin_id: i64 = row.get("origin_id");
+        project.set_origin_id(origin_id as u64);
+        let owner_id: i64 = row.get("owner_id");
+        project.set_owner_id(owner_id as u64);
+        project.set_origin_name(row.get("origin_name"));
+        project.set_package_name(row.get("package_name"));
+        project.set_name(row.get("name"));
+        project.set_plan_path(row.get("plan_path"));
+        project.set_vcs_type(row.get("vcs_type"));
+        project.set_vcs_data(row.get("vcs_data"));
+        project
+    }
+
+    pub fn create_origin_project(&self,
+                                 opc: &vault::OriginProjectCreate)
+                                 -> Result<vault::OriginProject> {
+        let conn = self.pool.get()?;
+        let project = opc.get_project();
+        let rows = conn.query("SELECT * FROM insert_origin_project_v1($1, $2, $3, $4, $5, $6)",
+                   &[&project.get_origin_name(),
+                     &project.get_package_name(),
+                     &project.get_plan_path(),
+                     &project.get_vcs_type(),
+                     &project.get_vcs_data(),
+                     &(project.get_owner_id() as i64)])
+            .map_err(Error::OriginProjectCreate)?;
+        let row = rows.get(0);
+        Ok(self.row_to_origin_project(&row))
+    }
+
+    // Take that, long line zealots - I'll out function name length you yet, I swear to all that is
+    // holy.
+    pub fn check_account_in_origin_by_origin_and_account_id(&self,
+                                                            origin_name: &str,
+                                                            account_id: i64)
+                                                            -> Result<bool> {
+        let conn = self.pool.get()?;
+        let rows = &conn.query("SELECT * FROM check_account_in_origin_members_v1($1, $2)",
+                   &[&origin_name, &account_id])
+            .map_err(Error::OriginAccountInOrigin)?;
+        if rows.len() != 0 { Ok(true) } else { Ok(false) }
+    }
+
+    pub fn check_account_in_origin(&self, coar: &vault::CheckOriginAccessRequest) -> Result<bool> {
+        let conn = self.pool.get()?;
+        let rows = &conn.query("SELECT * FROM check_account_in_origin_members_v1($1, $2)",
+                   &[&coar.get_origin_name(), &(coar.get_account_id() as i64)])
+            .map_err(Error::OriginAccountInOrigin)?;
+        if rows.len() != 0 { Ok(true) } else { Ok(false) }
+    }
+
+    pub fn list_origins_by_account(&self,
+                                   aolr: &vault::AccountOriginListRequest)
+                                   -> Result<vault::AccountOriginListResponse> {
+        let conn = self.pool.get()?;
+        let rows = &conn.query("SELECT * FROM list_origin_by_account_id($1)",
+                   &[&(aolr.get_account_id() as i64)])
+            .map_err(Error::OriginAccountList)?;
+        let mut response = vault::AccountOriginListResponse::new();
+        response.set_account_id(aolr.get_account_id().clone());
+        let mut origins = protobuf::RepeatedField::new();
+        for row in rows {
+            origins.push(row.get("origin_name"));
+        }
+        response.set_origins(origins);
+        Ok(response)
+    }
+
+    pub fn list_origin_members(&self,
+                               omlr: &vault::OriginMemberListRequest)
+                               -> Result<vault::OriginMemberListResponse> {
+        let conn = self.pool.get()?;
+        let rows = &conn.query("SELECT * FROM list_origin_members_v1($1)",
+                   &[&(omlr.get_origin_id() as i64)])
+            .map_err(Error::OriginMemberList)?;
+
+        let mut response = vault::OriginMemberListResponse::new();
+        response.set_origin_id(omlr.get_origin_id());
+
+        let mut members = protobuf::RepeatedField::new();
+        for row in rows {
+            members.push(row.get("account_name"));
         }
 
+        response.set_members(members);
+        Ok(response)
+    }
+
+    pub fn validate_origin_invitation(&self,
+                                      oiar: &vault::OriginInvitationValidateRequest)
+                                      -> Result<vault::OriginInvitationValidateResponse> {
+        let conn = self.pool.get()?;
+        let rows = &conn.query("SELECT * FROM validate_origin_invitation_v1($1, $2)",
+                   &[&(oiar.get_invite_id() as i64),
+                     &(oiar.get_account_accepting_request() as i64)])
+            .map_err(Error::OriginInvitationValidate)?;
+        let mut response = vault::OriginInvitationValidateResponse::new();
+        if rows.len() > 0 {
+            response.set_is_valid(true);
+        } else {
+            response.set_is_valid(false);
+        }
+        Ok(response)
+    }
+
+    pub fn accept_origin_invitation(&self,
+                                    oiar: &vault::OriginInvitationAcceptRequest)
+                                    -> Result<()> {
+        let conn = self.pool.get()?;
+        let tr = conn.transaction().map_err(Error::DbTransactionStart)?;
+        tr.execute("SELECT * FROM accept_origin_invitation_v1($1, $2)",
+                     &[&(oiar.get_invite_id() as i64), &oiar.get_ignore()])
+            .map_err(Error::OriginInvitationAccept)?;
+        tr.commit().map_err(Error::DbTransactionCommit)?;
         Ok(())
     }
 
-    pub fn account_origins_key(&self, account_id: &u64) -> String {
-        format!("account_origins:{}", account_id)
-    }
-
-    pub fn origin_members_key(&self, origin_id: &u64) -> String {
-        format!("origin_members:{}", origin_id)
-    }
-
-    /// this is used to add the owner of the account to the full list of members
-    /// right after an origin is created
-    pub fn add_origin_member(&self,
-                             account_id: u64,
-                             account_name: &str,
-                             origin_name: &str)
-                             -> dbcache::Result<()> {
-
-        let conn = try!(self.pool().get());
-
-        let origin_id = try!(self.name_idx.find(&origin_name.to_string()));
-        let account_origins_key = self.account_origins_key(&account_id);
-        let origin_members_key = self.origin_members_key(&origin_id);
-        try!(redis::transaction(conn.deref(),
-                                &[account_origins_key.clone(), origin_members_key.clone()],
-                                |txn| {
-                                    txn.sadd(account_origins_key.clone(), origin_name)
-                                        .sadd(origin_members_key.clone(), account_name)
-                                        .query(conn.deref())
-                                }));
-        Ok(())
-    }
-
-    pub fn list_origin_members(&self, origin_id: u64) -> dbcache::Result<Vec<String>> {
-        let origin_members_key = self.origin_members_key(&origin_id);
-        let conn = try!(self.pool().get());
-        let members = try!(conn.smembers::<String, Vec<String>>(origin_members_key));
-
-        Ok(members)
-    }
-
-    pub fn list_account_origins(&self, account_id: u64) -> dbcache::Result<Vec<String>> {
-        let account_origins_key = self.account_origins_key(&account_id);
-        let conn = try!(self.pool().get());
-        let origins = try!(conn.smembers::<String, Vec<String>>(account_origins_key));
-        Ok(origins)
-    }
-
-    pub fn is_origin_member(&self, account_id: u64, origin_name: &str) -> dbcache::Result<bool> {
-        let account_origins_key = self.account_origins_key(&account_id);
-        let conn = try!(self.pool().get());
-        let result = try!(conn.sismember::<String, String, bool>(account_origins_key,
-            origin_name.to_string()));
-        Ok(result)
-    }
-}
-
-impl Bucket for OriginTable {
-    fn pool(&self) -> &ConnectionPool {
-        &self.pool
-    }
-
-    fn prefix() -> &'static str {
-        "origin"
-    }
-}
-
-impl InstaSet for OriginTable {
-    type Record = vault::Origin;
-
-    fn seq_id() -> &'static str {
-        "origins_seq"
-    }
-
-    fn write(&self, record: &mut Self::Record) -> dbcache::Result<bool> {
-        let conn = try!(self.pool().get());
-        let (ret,): (i32,) = try!(redis::transaction(conn.deref(), &[Self::seq_id()], |txn| {
-            let sequence_id: u64 = match conn.get::<&'static str, u64>(Self::seq_id()) {
-                Ok(value) => value + 1,
-                _ => 0,
-            };
-            let insta_id = InstaId::generate(sequence_id);
-            record.set_primary_key(*insta_id);
-            txn.set(Self::seq_id(), record.primary_key())
-                .ignore()
-                .hset(OriginNameIdx::prefix(),
-                      record.get_name().to_string(),
-                      record.get_id())
-                .ignore()
-                .set_nx(Self::key(&record.primary_key()),
-                        record.write_to_bytes().unwrap())
-                .query(conn.deref())
-        }));
-        match ret {
-            1 => Ok(true),
-            0 => Ok(false),
-            _ => unreachable!("received unexpected return code from redis-hsetnx: {}", ret),
-        }
-    }
-}
-
-pub struct OriginNameIdx {
-    pool: Arc<ConnectionPool>,
-}
-
-impl OriginNameIdx {
-    pub fn new(pool: Arc<ConnectionPool>) -> Self {
-        OriginNameIdx { pool: pool }
-    }
-}
-
-impl Bucket for OriginNameIdx {
-    fn pool(&self) -> &ConnectionPool {
-        &self.pool
-    }
-
-    fn prefix() -> &'static str {
-        "origin:name:index"
-    }
-}
-
-impl IndexSet for OriginNameIdx {
-    type Key = String;
-    type Value = u64;
-}
-
-// create an index for secret keys as well
-pub struct OriginKeyNameIdx {
-    pool: Arc<ConnectionPool>,
-}
-
-impl OriginKeyNameIdx {
-    pub fn new(pool: Arc<ConnectionPool>) -> Self {
-        OriginKeyNameIdx { pool: pool }
-    }
-}
-
-impl Bucket for OriginKeyNameIdx {
-    fn pool(&self) -> &ConnectionPool {
-        &self.pool
-    }
-
-    fn prefix() -> &'static str {
-        "origin:key:name:index"
-    }
-}
-
-impl IndexSet for OriginKeyNameIdx {
-    type Key = String;
-    type Value = u64;
-}
-
-pub struct OriginSecretKeysTable {
-    pool: Arc<ConnectionPool>,
-}
-
-impl OriginSecretKeysTable {
-    pub fn new(pool: Arc<ConnectionPool>) -> Self {
-        OriginSecretKeysTable { pool: pool }
-    }
-}
-
-impl Bucket for OriginSecretKeysTable {
-    fn pool(&self) -> &ConnectionPool {
-        &self.pool
-    }
-
-    fn prefix() -> &'static str {
-        "origin_secret_key"
-    }
-}
-
-impl InstaSet for OriginSecretKeysTable {
-    type Record = vault::OriginSecretKey;
-
-    fn seq_id() -> &'static str {
-        "origin_secret_key_seq"
-    }
-
-    fn write(&self, record: &mut Self::Record) -> dbcache::Result<bool> {
-        let conn = try!(self.pool().get());
-        let (ret,): (i32,) = try!(redis::transaction(conn.deref(), &[Self::seq_id()], |txn| {
-            let sequence_id: u64 = match conn.get::<&'static str, u64>(Self::seq_id()) {
-                Ok(value) => value + 1,
-                _ => 0,
-            };
-            let insta_id = InstaId::generate(sequence_id);
-            record.set_primary_key(*insta_id);
-
-            txn.set(Self::seq_id(), record.primary_key())
-                .ignore()
-                .hset(OriginKeyNameIdx::prefix(),
-                      record.get_name().to_string(),
-                      record.primary_key())
-                .ignore()
-                .set_nx(Self::key(&record.primary_key()),
-                        record.write_to_bytes().unwrap())
-                .query(conn.deref())
-
-        }));
-        match ret {
-            1 => Ok(true),
-            0 => Ok(false),
-            _ => unreachable!("received unexpected return code from redis-setnx: {}", ret),
-        }
-    }
-}
-
-pub struct OriginInvitesTable {
-    pool: Arc<ConnectionPool>,
-}
-
-impl OriginInvitesTable {
-    pub fn new(pool: Arc<ConnectionPool>) -> Self {
-        OriginInvitesTable { pool: pool }
-    }
-
-    /// return a Vec of invite_id's for a given account
-    pub fn get_by_account_id(&self,
-                             account_id: u64)
-                             -> dbcache::Result<Vec<proto::OriginInvitation>> {
-        let conn = self.pool().get().unwrap();
-        let account_to_invites_key = format!("account_to_invites:{}", &account_id);
-        match conn.smembers::<String, Vec<u64>>(account_to_invites_key) {
-            Ok(invite_ids) => {
-                let account_invites = invite_ids.iter().fold(Vec::new(),
-                                                             |mut acc, ref invite_id| {
-                    match self.find(invite_id) {
-                        Ok(invite) => acc.push(invite),
-                        Err(e) => {
-                            debug!("Can't find origin invite for invite_id {}:{}",
-                                   &invite_id,
-                                   e);
-                        }
-                    };
-                    acc
-                });
-                Ok(account_invites)
+    pub fn list_origin_invitations_for_account(&self,
+                                               oilr: &vault::AccountInvitationListRequest)
+                                               -> Result<Option<Vec<vault::OriginInvitation>>> {
+        let conn = self.pool.get()?;
+        let rows = &conn.query("SELECT * FROM get_origin_invitations_for_account_v1($1)",
+                   &[&(oilr.get_account_id() as i64)])
+            .map_err(Error::OriginInvitationListForAccount)?;
+        if rows.len() != 0 {
+            let mut list_of_oi: Vec<vault::OriginInvitation> = Vec::new();
+            for row in rows {
+                list_of_oi.push(self.row_to_origin_invitation(&row));
             }
-            Err(e) => Err(dbcache::Error::from(e)),
+            Ok(Some(list_of_oi))
+        } else {
+            Ok(None)
         }
     }
 
-    /// return a Vec of invite_id's for a given origin
-    pub fn get_by_origin_id(&self,
-                            origin_id: u64)
-                            -> dbcache::Result<Vec<proto::OriginInvitation>> {
-        let conn = self.pool().get().unwrap();
-        let origin_to_invites_key = format!("origin_to_invites:{}", &origin_id);
-        match conn.smembers::<String, Vec<u64>>(origin_to_invites_key) {
-            Ok(invite_ids) => {
-                let origin_invites = invite_ids.iter().fold(Vec::new(), |mut acc, ref invite_id| {
-                    match self.find(invite_id) {
-                        Ok(invite) => acc.push(invite),
-                        Err(e) => {
-                            debug!("Can't find origin invite for invite_id {}:{}",
-                                   &invite_id,
-                                   e);
-                        }
-                    };
-                    acc
-                });
-                Ok(origin_invites)
+    pub fn list_origin_invitations_for_origin(&self,
+                                              oilr: &vault::OriginInvitationListRequest)
+                                              -> Result<vault::OriginInvitationListResponse> {
+        let conn = self.pool.get()?;
+        let rows = &conn.query("SELECT * FROM get_origin_invitations_for_origin_v1($1)",
+                   &[&(oilr.get_origin_id() as i64)])
+            .map_err(Error::OriginInvitationListForOrigin)?;
+
+        let mut response = vault::OriginInvitationListResponse::new();
+        response.set_origin_id(oilr.get_origin_id());
+        let mut invitations = protobuf::RepeatedField::new();
+        for row in rows {
+            invitations.push(self.row_to_origin_invitation(&row));
+        }
+        response.set_invitations(invitations);
+        Ok(response)
+    }
+
+    fn row_to_origin_invitation(&self, row: &postgres::rows::Row) -> vault::OriginInvitation {
+        let mut oi = vault::OriginInvitation::new();
+        let oi_id: i64 = row.get("id");
+        oi.set_id(oi_id as u64);
+        let oi_account_id: i64 = row.get("account_id");
+        oi.set_account_id(oi_account_id as u64);
+        oi.set_account_name(row.get("account_name"));
+        let oi_origin_id: i64 = row.get("origin_id");
+        oi.set_origin_id(oi_origin_id as u64);
+        oi.set_origin_name(row.get("origin_name"));
+        let oi_owner_id: i64 = row.get("owner_id");
+        oi.set_owner_id(oi_owner_id as u64);
+        oi
+    }
+
+    pub fn create_origin_invitation(&self,
+                                    oic: &vault::OriginInvitationCreate)
+                                    -> Result<Option<vault::OriginInvitation>> {
+        let conn = self.pool.get()?;
+        let rows = conn.query("SELECT * FROM insert_origin_invitation_v1($1, $2, $3, $4, $5)",
+                   &[&(oic.get_origin_id() as i64),
+                     &oic.get_origin_name(),
+                     &(oic.get_account_id() as i64),
+                     &oic.get_account_name(),
+                     &(oic.get_owner_id() as i64)])
+            .map_err(Error::OriginInvitationCreate)?;
+        if rows.len() == 1 {
+            let row = rows.get(0);
+            Ok(Some(self.row_to_origin_invitation(&row)))
+        } else {
+            Ok(None)
+        }
+    }
+
+    pub fn create_origin_secret_key(&self,
+                                    osk: &vault::OriginSecretKeyCreate)
+                                    -> Result<vault::OriginSecretKey> {
+        let conn = self.pool.get()?;
+        let rows = conn.query("SELECT * FROM insert_origin_secret_key_v1($1, $2, $3, $4, $5, $6)",
+                   &[&(osk.get_origin_id() as i64),
+                     &(osk.get_owner_id() as i64),
+                     &osk.get_name(),
+                     &osk.get_revision(),
+                     &format!("{}-{}", osk.get_name(), osk.get_revision()),
+                     &osk.get_body()])
+            .map_err(Error::OriginSecretKeyCreate)?;
+        let row = rows.iter().nth(0).expect("Insert returns row, but no row present");
+        Ok(self.row_to_origin_secret_key(row))
+    }
+
+    fn row_to_origin_secret_key(&self, row: postgres::rows::Row) -> vault::OriginSecretKey {
+        let mut osk = vault::OriginSecretKey::new();
+        let osk_id: i64 = row.get("id");
+        osk.set_id(osk_id as u64);
+        let osk_origin_id: i64 = row.get("origin_id");
+        osk.set_origin_id(osk_origin_id as u64);
+        osk.set_name(row.get("name"));
+        osk.set_revision(row.get("revision"));
+        osk.set_body(row.get("body"));
+        let osk_owner_id: i64 = row.get("owner_id");
+        osk.set_owner_id(osk_owner_id as u64);
+        osk
+    }
+
+    pub fn get_origin_secret_key(&self,
+                                 osk_get: &vault::OriginSecretKeyGet)
+                                 -> Result<Option<vault::OriginSecretKey>> {
+        let conn = self.pool.get()?;
+        let rows = &conn.query("SELECT * FROM get_origin_secret_key_v1($1)",
+                   &[&osk_get.get_origin()])
+            .map_err(Error::OriginSecretKeyGet)?;
+        if rows.len() != 0 {
+            // We just checked - we know there is a value here
+            let row = rows.iter().nth(0).unwrap();
+            Ok(Some(self.row_to_origin_secret_key(row)))
+        } else {
+            Ok(None)
+        }
+    }
+
+    fn row_to_origin(&self, row: postgres::rows::Row) -> vault::Origin {
+        let mut origin = vault::Origin::new();
+        let oid: i64 = row.get("id");
+        origin.set_id(oid as u64);
+        origin.set_name(row.get("name"));
+        let ooid: i64 = row.get("owner_id");
+        origin.set_owner_id(ooid as u64);
+        let private_key_name = row.get_opt("private_key_name");
+        if let Some(Ok(pk)) = private_key_name {
+            origin.set_private_key_name(pk);
+        }
+        origin
+    }
+
+    pub fn create_origin(&self, origin: &vault::OriginCreate) -> Result<Option<vault::Origin>> {
+        let conn = self.pool.get()?;
+        let rows = conn.query("SELECT * FROM insert_origin_v1($1, $2, $3)",
+                   &[&origin.get_name(),
+                     &(origin.get_owner_id() as i64),
+                     &origin.get_owner_name()])
+            .map_err(Error::OriginCreate)?;
+        if rows.len() == 1 {
+            let row = rows.iter().nth(0).expect("Insert returns row, but no row present");
+            Ok(Some(self.row_to_origin(row)))
+        } else {
+            Ok(None)
+        }
+    }
+
+    pub fn get_origin(&self, origin_get: &vault::OriginGet) -> Result<Option<vault::Origin>> {
+        self.get_origin_by_name(origin_get.get_name())
+    }
+
+    pub fn get_origin_by_name(&self, origin_name: &str) -> Result<Option<vault::Origin>> {
+        let conn = self.pool.get()?;
+        let rows =
+            &conn.query("SELECT * FROM origins_with_secret_key_full_name_v1 WHERE name = $1 LIMIT \
+                        1",
+                       &[&origin_name])
+                .map_err(Error::OriginGet)?;
+        if rows.len() != 0 {
+            let row = rows.iter().nth(0).unwrap();
+            let mut origin = vault::Origin::new();
+            let oid: i64 = row.get("id");
+            origin.set_id(oid as u64);
+            origin.set_name(row.get("name"));
+            let ooid: i64 = row.get("owner_id");
+            origin.set_owner_id(ooid as u64);
+            let private_key_name: Option<String> = row.get("private_key_name");
+            if let Some(pk) = private_key_name {
+                origin.set_private_key_name(pk);
             }
-            Err(e) => Err(dbcache::Error::from(e)),
+            Ok(Some(origin))
+        } else {
+            Ok(None)
         }
     }
-}
-
-impl Bucket for OriginInvitesTable {
-    fn prefix() -> &'static str {
-        "origin_invite"
-    }
-
-    fn pool(&self) -> &ConnectionPool {
-        &self.pool
-    }
-}
-
-impl InstaSet for OriginInvitesTable {
-    type Record = vault::OriginInvitation;
-
-    fn seq_id() -> &'static str {
-        "origin_invites_key_seq"
-    }
-
-    fn write(&self, record: &mut Self::Record) -> dbcache::Result<bool> {
-        let conn = try!(self.pool().get());
-        let (ret,): (i32,) = try!(redis::transaction(conn.deref(), &[Self::seq_id()], |txn| {
-            let sequence_id: u64 = match conn.get::<&'static str, u64>(Self::seq_id()) {
-                Ok(value) => value + 1,
-                _ => 0,
-            };
-            let insta_id = InstaId::generate(sequence_id);
-            record.set_primary_key(*insta_id);
-            let account_to_invites_key = format!("account_to_invites:{}", record.get_account_id());
-            let origin_to_invites_key = format!("origin_to_invites:{}", record.get_origin_id());
-            debug!("origin invite = {:?}", &record);
-            txn.set(Self::seq_id(), record.primary_key())
-                .ignore()
-                .set_nx(Self::key(&record.primary_key()),
-                        record.write_to_bytes().unwrap())
-                .sadd(account_to_invites_key, record.primary_key())
-                .ignore()
-                .sadd(origin_to_invites_key, record.primary_key())
-                .ignore()
-                .query(conn.deref())
-        }));
-        match ret {
-            1 => Ok(true),
-            0 => Ok(false),
-            _ => unreachable!("received unexpected return code from redis-hsetnx: {}", ret),
-        }
-    }
-}
-
-pub struct ProjectTable {
-    pool: Arc<ConnectionPool>,
-}
-
-impl ProjectTable {
-    pub fn new(pool: Arc<ConnectionPool>) -> Self {
-        ProjectTable { pool: pool }
-    }
-}
-
-impl Bucket for ProjectTable {
-    fn pool(&self) -> &ConnectionPool {
-        &self.pool
-    }
-
-    fn prefix() -> &'static str {
-        "project"
-    }
-}
-
-impl BasicSet for ProjectTable {
-    type Record = vault::Project;
 }

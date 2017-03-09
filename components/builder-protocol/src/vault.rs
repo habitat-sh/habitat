@@ -44,6 +44,15 @@ impl Routable for OriginCreate {
     }
 }
 
+// AJ TODO: This is the wrong key here - we need to route this request to the origin
+impl Routable for OriginInvitationValidateRequest {
+    type H = InstaId;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(InstaId(self.get_invite_id()))
+    }
+}
+
 impl Serialize for Origin {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
@@ -259,69 +268,52 @@ impl Routable for CheckOriginAccessRequest {
     }
 }
 
-impl Routable for ProjectGet {
+impl Routable for OriginProjectGet {
     type H = String;
 
     fn route_key(&self) -> Option<Self::H> {
-        Some(self.get_id().to_string())
+        Some(String::from(self.get_name()))
     }
 }
 
-impl Routable for ProjectCreate {
+impl Routable for OriginProjectCreate {
+    type H = InstaId;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(InstaId(self.get_project().get_origin_id()))
+    }
+}
+
+impl Routable for OriginProjectUpdate {
     type H = String;
 
     fn route_key(&self) -> Option<Self::H> {
-        Some(self.get_project().get_id().to_string())
+        Some(String::from(self.get_project().get_origin_name()))
     }
 }
 
-impl Routable for ProjectDelete {
+impl Routable for OriginProjectDelete {
     type H = String;
 
     fn route_key(&self) -> Option<Self::H> {
-        Some(self.get_id().to_string())
+        Some(String::from(self.get_name()))
     }
 }
 
-impl Routable for ProjectUpdate {
-    type H = String;
-
-    fn route_key(&self) -> Option<Self::H> {
-        Some(self.get_project().get_id().to_string())
-    }
-}
-
-impl Persistable for Project {
-    type Key = String;
-
-    fn primary_key(&self) -> Self::Key {
-        self.get_id().to_string()
-    }
-
-    fn set_primary_key(&mut self, value: Self::Key) {
-        self.set_id(value);
-    }
-}
-
-impl Serialize for Project {
+impl Serialize for OriginProject {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {
-        let mut strukt = try!(serializer.serialize_struct("project", 2));
-        try!(strukt.serialize_field("id", self.get_id()));
-        try!(strukt.serialize_field("plan_path", self.get_plan_path()));
-        try!(strukt.serialize_field("vcs", self.get_git()));
-        strukt.end()
-    }
-}
-
-impl Serialize for VCSGit {
-    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
-    {
-        let mut strukt = try!(serializer.serialize_struct("vcs", 2));
-        try!(strukt.serialize_field("type", "git"));
-        try!(strukt.serialize_field("url", self.get_url()));
-        strukt.end()
+        let mut state = try!(serializer.serialize_struct("project", 2));
+        try!(state.serialize_field("id", &self.get_id()));
+        try!(state.serialize_field("origin_id", &self.get_origin_id()));
+        try!(state.serialize_field("origin_name", self.get_origin_name()));
+        try!(state.serialize_field("package_name", self.get_package_name()));
+        try!(state.serialize_field("name", self.get_name()));
+        try!(state.serialize_field("plan_path", self.get_plan_path()));
+        try!(state.serialize_field("owner_id", &self.get_owner_id()));
+        try!(state.serialize_field("vcs_type", self.get_vcs_type()));
+        try!(state.serialize_field("vcs_data", self.get_vcs_data()));
+        state.end()
     }
 }

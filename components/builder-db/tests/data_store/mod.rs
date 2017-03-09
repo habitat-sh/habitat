@@ -27,10 +27,9 @@ impl MusicDB {
     }
 
     fn setup(&self) -> Result<()> {
-        let migrator = Migrator::new(&self.pool);
+        let mut migrator = Migrator::new(&self.pool);
         migrator.setup()?;
         migrator.migrate("music",
-                     1,
                      r#"CREATE TABLE IF NOT EXISTS music (
             band text PRIMARY KEY,
             style text,
@@ -38,11 +37,9 @@ impl MusicDB {
             updated_at timestamptz
         )"#)?;
         migrator.migrate("music",
-                     2,
-                     r#"CREATE VIEW metal_bands AS
+                     r#"CREATE VIEW metal_bands AS 
             SELECT band FROM music WHERE style = 'metal'"#)?;
         migrator.migrate("music",
-                     3,
                      r#"CREATE OR REPLACE FUNCTION insert_band_v1(band text, style text) RETURNS void AS $$
                          BEGIN
                             INSERT INTO music (band, style) VALUES (band, style);

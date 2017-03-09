@@ -53,17 +53,17 @@ impl DataStore {
     /// This includes all the schema and data migrations, along with stored procedures for data
     /// access.
     pub fn setup(&self) -> Result<()> {
-        let migrator = Migrator::new(&self.pool);
+        let mut migrator = Migrator::new(&self.pool);
         migrator.setup()?;
 
         // The core jobs table
         migrator.migrate("jobsrv",
-                     1,
                      r#"CREATE TABLE jobs (
                                     id bigint PRIMARY KEY,
                                     owner_id bigint,
                                     job_state text,
-                                    project_id text,
+                                    project_id bigint,
+                                    project_name text,
                                     project_owner_id bigint,
                                     project_plan_path text,
                                     vcs text,
@@ -76,20 +76,20 @@ impl DataStore {
 
         // Insert a new job into the jobs table
         migrator.migrate("jobsrv",
-                             2,
                              r#"CREATE OR REPLACE FUNCTION insert_job_v1 (
                                 id bigint,
                                 owner_id bigint,
-                                project_id text,
+                                project_id bigint,
+                                project_name text,
                                 project_owner_id bigint,
                                 project_plan_path text,
                                 vcs text,
                                 vcs_arguments text[]
                                 ) RETURNS void AS $$
                                     BEGIN
-                                        INSERT INTO jobs (id, owner_id, job_state, project_id, project_owner_id, project_plan_path, vcs, vcs_arguments)
+                                        INSERT INTO jobs (id, owner_id, job_state, project_id, project_name, project_owner_id, project_plan_path, vcs, vcs_arguments)
                                         VALUES
-                                            (id, owner_id, 'Pending', project_id, project_owner_id, project_plan_path, vcs, vcs_arguments);
+                                            (id, owner_id, 'Pending', project_id, project_name, project_owner_id, project_plan_path, vcs, vcs_arguments);
                                     END
                                 $$ LANGUAGE plpgsql VOLATILE
                                 "#)?;
@@ -103,7 +103,6 @@ impl DataStore {
         //
         // Just make sure you always address the columns by name, not by position.
         migrator.migrate("jobsrv",
-                     3,
                      r#"CREATE OR REPLACE FUNCTION get_job_v1 (jid bigint) RETURNS SETOF jobs AS $$
                             BEGIN
                               RETURN QUERY SELECT * FROM jobs WHERE id = jid;
@@ -129,7 +128,6 @@ impl DataStore {
         // Note that the sort order ensures that jobs that fail to dispatch and are then returned
         // will be the first job selected, making FIFO a reality.
         migrator.migrate("jobsrv",
-                         4,
                          r#"CREATE OR REPLACE FUNCTION pending_jobs_v1 (integer) RETURNS SETOF jobs AS
                                 $$
                                 DECLARE
@@ -151,12 +149,13 @@ impl DataStore {
 
         // Update the state of a job. Takes a job id and a state, and updates that row.
         migrator.migrate("jobsrv",
-                         5,
                          r#"CREATE OR REPLACE FUNCTION set_job_state_v1 (jid bigint, jstate text) RETURNS void AS $$
                             BEGIN
                                 UPDATE jobs SET job_state=jstate, updated_at=now() WHERE id=jid;
                             END
                          $$ LANGUAGE plpgsql VOLATILE"#)?;
+        migrator.migrate("jobsrv",
+                         r#"CREATE INDEX pending_jobs_index_v1 on jobs(created_at) WHERE job_state = 'Pending'"#)?;
         Ok(())
     }
 
@@ -170,22 +169,24 @@ impl DataStore {
     pub fn create_job(&self, job: &mut jobsrv::Job) -> Result<()> {
         let conn = self.pool.get()?;
 
-        if job.get_project().has_git() {
+        if job.get_project().get_vcs_type() == "git" {
             // BUG - the insert query should be creating and assigning back a job_id,
             // instead of expecting it to be passed in. The random id is a temporary
             // workaround.
             let mut rng = thread_rng();
             let id = rng.gen::<u64>();
             job.set_id(id);
+            let project = job.get_project();
 
-            conn.execute("SELECT insert_job_v1($1, $2, $3, $4, $5, $6, $7)",
+            conn.execute("SELECT insert_job_v1($1, $2, $3, $4, $5, $6, $7, $8)",
                          &[&(job.get_id() as i64),
                            &(job.get_owner_id() as i64),
-                           &job.get_project().get_id(),
-                           &(job.get_project().get_owner_id() as i64),
-                           &job.get_project().get_plan_path(),
-                           &"git",
-                           &vec![job.get_project().get_git().get_url()]])
+                           &(project.get_id() as i64),
+                           &project.get_name(),
+                           &(project.get_owner_id() as i64),
+                           &project.get_plan_path(),
+                           &project.get_vcs_type(),
+                           &vec![project.get_vcs_data()]])
                 .map_err(Error::JobCreate)?;
         } else {
             return Err(Error::UnknownVCS);
@@ -217,8 +218,10 @@ impl DataStore {
         };
         job.set_state(job_state);
 
-        let mut project = vault::Project::new();
-        project.set_id(row.get("project_id"));
+        let mut project = vault::OriginProject::new();
+        let project_id: i64 = row.get("project_id");
+        project.set_id(project_id as u64);
+        project.set_name(row.get("project_name"));
         let project_owner_id: i64 = row.get("project_owner_id");
         project.set_owner_id(project_owner_id as u64);
         project.set_plan_path(row.get("project_plan_path"));
@@ -226,10 +229,9 @@ impl DataStore {
         let rvcs: String = row.get("vcs");
         match rvcs.as_ref() {
             "git" => {
-                let mut vcs = vault::VCSGit::new();
                 let mut vcsa: Vec<String> = row.get("vcs_arguments");
-                vcs.set_url(vcsa.remove(0));
-                project.set_git(vcs);
+                project.set_vcs_type(String::from("git"));
+                project.set_vcs_data(vcsa.remove(0));
             }
             e => {
                 error!("Unknown VCS, {}", e);

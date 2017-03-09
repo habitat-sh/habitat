@@ -15,9 +15,6 @@
 #[macro_use]
 extern crate habitat_builder_db as db;
 
-mod data_store;
-mod migration;
-
 mod pool {
     use std::time::Duration;
     use db::pool::Pool;
@@ -26,11 +23,14 @@ mod pool {
     #[test]
     fn creation() {
         init::create_database();
-        Pool::new("postgresql://hab@127.0.0.1/builder_db_test",
-                  1,
-                  300,
-                  Duration::from_secs(3600),
-                  false)
+        let _p = Pool::new("postgresql://hab@127.0.0.1/builder_db_test",
+                           1,
+                           300,
+                           Duration::from_secs(3600),
+                           false)
             .expect("Failed to create pool");
     }
 }
+
+mod migration;
+mod data_store;

@@ -18,11 +18,15 @@ use pool::Pool;
 #[derive(Debug)]
 pub struct Migrator<'a> {
     pool: &'a Pool,
+    sequence_number: i64,
 }
 
 impl<'a> Migrator<'a> {
     pub fn new(pool: &'a Pool) -> Migrator {
-        Migrator { pool: pool }
+        Migrator {
+            pool: pool,
+            sequence_number: 1,
+        }
     }
 
     pub fn setup(&self) -> Result<()> {
@@ -62,19 +66,19 @@ impl<'a> Migrator<'a> {
         Ok(check_result.get(0).get(0))
     }
 
-    pub fn migrate(&self, prefix: &str, sequence_number: i64, sql: &str) -> Result<()> {
-        let result = self.check_migration_has_run(prefix, sequence_number)?;
+    pub fn migrate(&mut self, prefix: &str, sql: &str) -> Result<()> {
+        let result = self.check_migration_has_run(prefix, self.sequence_number)?;
         if !result.is_some() {
             let conn = self.pool.get()?;
             let tr = conn.transaction().map_err(Error::TransactionCreate)?;
             tr.execute(sql, &[]).map_err(Error::Migration)?;
             tr.execute("INSERT INTO builder_db_migrations (prefix, sequence_number) VALUES \
                           ($1, $2)",
-                         &[&prefix, &sequence_number])
+                         &[&prefix, &self.sequence_number])
                 .map_err(Error::MigrationTracking)?;
             tr.commit().map_err(Error::TransactionCommit)?;
         }
-
+        self.sequence_number += 1;
         Ok(())
     }
 }

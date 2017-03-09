@@ -15,6 +15,8 @@ env_logger = "*"
 log = "*"
 protobuf = "*"
 toml = { version = "*", features = ["serde"], default-features = false, git = "https://github.com/alexcrichton/toml-rs" , rev = "d39c3f7b3ec95cb3cc1e579d7d747206c66aab74" }
+postgres = "*"
+r2d2 = "*"
 
 [dependencies.clap]
 version = "*"
@@ -23,18 +25,14 @@ features = [ "suggestions", "color", "unstable" ]
 [dependencies.habitat_core]
 path = "../core"
 
-[dependencies.habitat_builder_dbcache]
-path = "../builder-dbcache"
+[dependencies.habitat_builder_db]
+path = "../builder-db"
 
 [dependencies.habitat_builder_protocol]
 path = "../builder-protocol"
 
 [dependencies.habitat_net]
 path = "../net"
-
-[dependencies.redis]
-git = "https://github.com/habitat-sh/redis-rs"
-branch = "habitat"
 
 [dependencies.zmq]
 git = "https://github.com/erickt/rust-zmq"

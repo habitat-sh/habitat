@@ -1,29 +1,29 @@
 package depotsrv;
 
 message PackageIdent {
-  required string origin = 1;
-  required string name = 2;
+  optional string origin = 1;
+  optional string name = 2;
   optional string version = 3;
   optional string release = 4;
 }
 
 message Package {
-  required PackageIdent ident = 1;
-  required string checksum = 2;
-  required string manifest = 3;
+  optional PackageIdent ident = 1;
+  optional string checksum = 2;
+  optional string manifest = 3;
   repeated PackageIdent deps = 4;
   repeated PackageIdent tdeps = 5;
   repeated uint32 exposes = 6 [packed=true];
   optional string config = 7;
-  required string target = 8;
+  optional string target = 8;
 }
 
 message View {
-  required string name = 1;
+  optional string name = 1;
 }
 
 message OriginKeyIdent {
-  required string origin = 1;
-  required string revision = 2;
-  required string location = 3;
+  optional string origin = 1;
+  optional string revision = 2;
+  optional string location = 3;
 }

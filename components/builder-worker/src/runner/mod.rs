@@ -70,15 +70,18 @@ impl Job {
         Job(job)
     }
 
-    pub fn vcs(&self) -> &vcs::RemoteSource {
-        if self.0.get_project().has_git() {
-            return self.0.get_project().get_git();
+    pub fn vcs(&self) -> vcs::VCS {
+        match self.0.get_project().get_vcs_type() {
+            "git" => {
+                vcs::VCS::new(String::from(self.0.get_project().get_vcs_type()),
+                              String::from(self.0.get_project().get_vcs_data()))
+            }
+            _ => panic!("unknown vcs associated with jobs project"),
         }
-        unreachable!("unknown vcs associated with job's project");
     }
 
     pub fn origin(&self) -> &str {
-        let items = self.0.get_project().get_id().split("/").collect::<Vec<&str>>();
+        let items = self.0.get_project().get_name().split("/").collect::<Vec<&str>>();
         assert!(items.len() == 2,
                 format!("Invalid project identifier - {}",
                         self.0.get_project().get_id()));
@@ -418,8 +421,8 @@ mod tests {
     #[test]
     fn extract_origin_from_job() {
         let mut inner = jobsrv::Job::new();
-        let mut project = vault::Project::new();
-        project.set_id("core/nginx".to_string());
+        let mut project = vault::OriginProject::new();
+        project.set_name("core/nginx".to_string());
         inner.set_project(project);
         let job = Job::new(inner);
         assert_eq!(job.origin(), "core");
