@@ -1,4 +1,5 @@
 #!/bin/sh
+# shellcheck disable=SC2039
 #
 # Copyright (c) 2010-2016 Chef Software, Inc. and/or applicable contributors
 #
@@ -21,6 +22,7 @@ set -eu
 if [ -n "${DEBUG:-}" ]; then set -x; fi
 
 BT_ROOT="https://api.bintray.com/content/habitat"
+BT_SEARCH="https://api.bintray.com/packages/habitat"
 
 main() {
   # Use stable Bintray channel by default
@@ -52,6 +54,7 @@ main() {
   info "Installing Habitat 'hab' program"
   create_workdir
   get_platform
+  get_version
   download_archive
   verify_archive
   extract_archive
@@ -79,7 +82,7 @@ USAGE:
 FLAGS:
     -c    Specifies a channel [values: stable, unstable] [default: stable]
     -h    Prints help information
-    -v    Specifies a version (ex: 0.15.0/20161222215311)
+    -v    Specifies a version (ex: 0.15.0, 0.15.0/20161222215311)
 
 USAGE
 }
@@ -98,7 +101,8 @@ create_workdir() {
   fi
   workdir="$(mktemp -d -p "$_tmp" 2> /dev/null || mktemp -d "${_tmp}/hab.XXXX")"
   # Add a trap to clean up any interrupted file downloads
-  trap 'code=$?; rm -rf $workdir; exit $?' INT TERM EXIT
+  # shellcheck disable=SC2154
+  trap 'code=$?; rm -rf $workdir; exit $code' INT TERM EXIT
   cd "${workdir}"
 }
 
@@ -138,14 +142,47 @@ get_platform() {
   esac
 }
 
+get_version() {
+  need_cmd grep
+  need_cmd head
+  need_cmd sed
+  need_cmd tr
+
+  local _btv
+  local _j="${workdir}/version.json"
+
+  _btv="$(echo "${version:-%24latest}" | tr '/' '-')"
+
+  if [ -z "${_btv##*%24latest*}" ]; then
+    btv=$_btv
+  else
+    info "Determining fully qualified version of package for \`$version'"
+    dl_file "${BT_SEARCH}/${channel}/hab-${arch}-${sys}" "${_j}"
+    # This is nasty and we know it. Clap your hands. If the install.sh stops
+    # work its likely related to this here sed command. We have to pull
+    # versions out of minified json. So if this ever stops working its likely
+    # BT api output is no longer minified.
+    _rev="$(sed -e 's/^.*"versions":\[\([^]]*\)\].*$/\1/' -e 's/"//g' "${_j}" \
+      | tr ',' '\n' \
+      | grep "^${_btv}" \
+      | head -1)"
+    if [ -z "${_rev}" ]; then
+      _e="Version \`${version}' could not used or version doesn't exist."
+      _e="$_e Please provide a simple version like: \"0.15.0\""
+      _e="$_e or a fully qualified version like: \"0.15.0/20161222203215\"."
+      exit_with "$_e" 6
+    else
+      btv=$_rev
+      info "Using fully qualified Bintray version string of: $btv"
+    fi
+  fi
+}
+
 download_archive() {
   need_cmd cut
   need_cmd mv
 
-  local _btv
-  _btv="$(echo "${version:-%24latest}" | tr '/' '-')"
-
-  url="${BT_ROOT}/${channel}/${sys}/${arch}/hab-${_btv}-${arch}-${sys}.${ext}"
+  url="${BT_ROOT}/${channel}/${sys}/${arch}/hab-${btv}-${arch}-${sys}.${ext}"
   query="?bt_package=hab-${arch}-${sys}"
 
   local _hab_url="${url}${query}"
