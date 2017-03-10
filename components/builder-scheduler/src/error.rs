@@ -20,6 +20,7 @@ use std::result;
 use db;
 use hab_core;
 use hab_net;
+use protocol;
 use postgres;
 use protobuf;
 use r2d2;
@@ -34,6 +35,7 @@ pub enum Error {
     HabitatCore(hab_core::Error),
     IO(io::Error),
     NetError(hab_net::Error),
+    ProtoNetError(protocol::net::NetError),
     Protobuf(protobuf::ProtobufError),
     Zmq(zmq::Error),
 }
@@ -52,6 +54,7 @@ impl fmt::Display for Error {
             Error::HabitatCore(ref e) => format!("{}", e),
             Error::IO(ref e) => format!("{}", e),
             Error::NetError(ref e) => format!("{}", e),
+            Error::ProtoNetError(ref e) => format!("{}", e),
             Error::Protobuf(ref e) => format!("{}", e),
             Error::Zmq(ref e) => format!("{}", e),
         };
@@ -69,6 +72,7 @@ impl error::Error for Error {
             Error::HabitatCore(ref err) => err.description(),
             Error::IO(ref err) => err.description(),
             Error::NetError(ref err) => err.description(),
+            Error::ProtoNetError(ref err) => err.description(),
             Error::Protobuf(ref err) => err.description(),
             Error::Zmq(ref err) => err.description(),
         }
@@ -102,6 +106,12 @@ impl From<io::Error> for Error {
 impl From<hab_net::Error> for Error {
     fn from(err: hab_net::Error) -> Self {
         Error::NetError(err)
+    }
+}
+
+impl From<protocol::net::NetError> for Error {
+    fn from(err: protocol::net::NetError) -> Self {
+        Error::ProtoNetError(err)
     }
 }
 

@@ -16,30 +16,42 @@
 // TBD - This is a WIP for now, persistence to be added later
 
 use std::collections::HashMap;
+use rand::{Rng, thread_rng};
 
 use config::Config;
 use error::Result;
-use protocol::jobsrv::Job;
-use protocol::scheduler::{Group, GroupState};
+use protocol::jobsrv::{self, Job, JobState};
+use protocol::scheduler as proto;
+use protocol::scheduler::Group;
+use protobuf::RepeatedField;
 
 #[derive(Debug, Clone)]
-pub struct JobGroup {
-    group: Group,
-    jobs: HashMap<u64, Job>,
+pub struct ProjectData {
+    name: String,
+    state: proto::ProjectState,
+}
+
+#[derive(Debug, Clone)]
+pub struct GroupData {
+    id: u64,
+    state: proto::GroupState,
+    projects: Vec<ProjectData>,
+    jobs: Vec<Job>,
 }
 
 #[derive(Debug, Clone)]
 pub struct DataStore {
-    curr_id: u64,
-    job_groups: HashMap<u64, JobGroup>,
+    groups: Vec<GroupData>,
+    job_map: HashMap<u64, usize>,
+    group_map: HashMap<u64, usize>,
 }
 
 impl DataStore {
     pub fn new(_: &Config) -> Result<DataStore> {
-        let groups = HashMap::new();
         Ok(DataStore {
-            curr_id: 1,
-            job_groups: groups,
+            groups: Vec::new(),
+            job_map: HashMap::new(),
+            group_map: HashMap::new(),
         })
     }
 
@@ -47,56 +59,170 @@ impl DataStore {
         Ok(())
     }
 
-    pub fn create_group(&mut self, group: &mut Group) -> Result<()> {
-        group.set_group_id(self.curr_id);
-        group.set_state(GroupState::Pending);
+    pub fn create_group(&mut self, project_names: Vec<String>) -> Result<Group> {
+        let mut projects = Vec::new();
+        for name in project_names {
+            let project = ProjectData {
+                name: name,
+                state: proto::ProjectState::NotStarted,
+            };
+            projects.push(project);
+        }
 
-        let job_group = JobGroup {
-            group: group.clone(),
-            jobs: HashMap::new(),
+        let mut rng = thread_rng();
+        let id = rng.gen::<u64>();
+
+        let group_data = GroupData {
+            id: id,
+            state: proto::GroupState::Pending,
+            projects: projects,
+            jobs: Vec::new(),
         };
-        self.job_groups.insert(self.curr_id, job_group);
-        println!("Group created, id: {}", self.curr_id);
 
-        self.curr_id = self.curr_id + 1;
-        Ok(())
+        self.groups.push(group_data.clone());
+
+        assert!(!self.group_map.contains_key(&id));
+        self.group_map.insert(id, self.groups.len() - 1);
+
+        println!("Group created: {:?}", group_data);
+
+        Ok(DataStore::group_data_to_group(&group_data))
     }
 
-    pub fn set_group_state(&mut self, group: &Group) -> Result<()> {
-        if let Some(job_group) = self.job_groups.get_mut(&group.get_group_id()) {
+    pub fn get_group(&self, group_id: u64) -> Option<Group> {
+        if self.group_map.contains_key(&group_id) {
+            let index = *self.group_map.get(&group_id).unwrap();
+            assert!(self.groups[index].id == group_id);
+
+            Some(DataStore::group_data_to_group(&self.groups[index]))
+        } else {
+            warn!("Group id {} not found", group_id);
+            None
+        }
+    }
+
+    fn group_data_to_group(group_data: &GroupData) -> Group {
+        let mut group = proto::Group::new();
+
+        group.set_id(group_data.id);
+        group.set_state(group_data.state);
+
+        let mut projects = RepeatedField::new();
+        for project_data in group_data.projects.iter() {
+            let mut project = proto::Project::new();
+            project.set_name(project_data.name.clone());
+            project.set_state(project_data.state);
+            projects.push(project);
+        }
+        group.set_projects(projects);
+
+        let mut jobs = RepeatedField::new();
+        for group_job in group_data.jobs.iter() {
+            jobs.push(group_job.clone());
+        }
+        group.set_jobs(jobs);
+
+        group
+    }
+
+    pub fn set_group_state(&mut self, group_id: u64, group_state: proto::GroupState) -> Result<()> {
+        if self.group_map.contains_key(&group_id) {
             println!("Updating group state, id: {}, state: {:?}",
-                     group.get_group_id(),
-                     group.get_state());
-            (*job_group).group = group.clone();
-        };
+                     group_id,
+                     group_state);
+
+            let index = *self.group_map.get(&group_id).unwrap();
+            assert!(self.groups[index].id == group_id);
+            self.groups[index].state = group_state;
+        } else {
+            warn!("Group id {} not found", group_id);
+        }
         Ok(())
     }
 
-    pub fn add_group_job(&mut self, group: &Group, job: &Job) -> Result<()> {
-        if let Some(job_group) = self.job_groups.get_mut(&group.get_group_id()) {
-            println!("Adding job id {} to group {}",
-                     job.get_id(),
-                     group.get_group_id());
-            (*job_group).jobs.insert(job.get_id(), job.clone());
-        };
+    pub fn add_group_job(&mut self, group_id: u64, job: &Job) -> Result<()> {
+        if self.group_map.contains_key(&group_id) {
+            let job_id = job.get_id();
+            println!("Adding job id {} to group {}", job_id, group_id);
+
+            let index = *self.group_map.get(&group_id).unwrap();
+            assert!(self.groups[index].id == group_id);
+
+            assert!(!self.job_map.contains_key(&job_id));
+            self.groups[index].jobs.push(job.clone());
+            self.job_map.insert(job_id, index);
+            self.set_group_job_state(job_id, job.get_state()).unwrap();
+        } else {
+            warn!("Group id {} not found", group_id);
+        }
+
         Ok(())
     }
 
-    pub fn find_group_for_job(&mut self, job: &Job) -> Option<Group> {
-        for job_group in self.job_groups.values() {
-            if job_group.jobs.contains_key(&job.get_id()) {
-                return Some(job_group.group.clone());
+    pub fn find_group_id_for_job(&self, job_id: u64) -> Option<u64> {
+        if self.job_map.contains_key(&job_id) {
+            let index = *self.job_map.get(&job_id).unwrap();
+
+            Some(self.groups[index].id)
+        } else {
+            warn!("Job id {} not found", job_id);
+            None
+        }
+    }
+
+    pub fn set_group_job_state(&mut self, job_id: u64, job_state: JobState) -> Result<()> {
+        if self.job_map.contains_key(&job_id) {
+            let index = *self.job_map.get(&job_id).unwrap();
+
+            println!("Updating job status, job id: {}, state: {:?}",
+                     job_id,
+                     job_state);
+
+            let mut project_name = String::new();
+            for job_elem in self.groups[index].jobs.iter_mut() {
+                if job_elem.get_id() == job_id {
+                    job_elem.set_state(job_state);
+                    project_name = String::from(job_elem.get_project().get_name());
+                    break;
+                }
+            }
+
+            for project_elem in self.groups[index].projects.iter_mut() {
+                if project_elem.name == project_name {
+                    let project_state = match job_state {
+                        jobsrv::JobState::Complete => proto::ProjectState::Success,
+                        jobsrv::JobState::Failed |
+                        jobsrv::JobState::Rejected => proto::ProjectState::Failure,
+                        _ => proto::ProjectState::InProgress,
+                    };
+
+                    project_elem.state = project_state;
+                    break;
+                }
+            }
+        } else {
+            warn!("Job id {} not found", job_id);
+        }
+
+        Ok(())
+    }
+
+    pub fn pending_groups(&mut self, count: i32) -> Result<Vec<Group>> {
+        let mut groups = Vec::new();
+        let mut curr = 0;
+
+        for group_data in self.groups.iter_mut() {
+            if group_data.state == proto::GroupState::Pending {
+                group_data.state = proto::GroupState::Dispatching;
+                groups.push(DataStore::group_data_to_group(&group_data));
+
+                curr = curr + 1;
+                if curr >= count {
+                    break;
+                };
             }
         }
-        None
-    }
 
-    pub fn update_group_job(&mut self, group: &Group, job: &Job) -> Result<()> {
-        if let Some(job_group) = self.job_groups.get_mut(&group.get_group_id()) {
-            println!("Updating job status, job id: {}", job.get_id());
-            assert!(job_group.jobs.contains_key(&job.get_id()));
-            (*job_group).jobs.insert(job.get_id(), job.clone());
-        };
-        Ok(())
+        Ok(groups)
     }
 }

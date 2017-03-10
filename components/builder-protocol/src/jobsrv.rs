@@ -79,7 +79,15 @@ impl Serialize for JobState {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {
-        serializer.serialize_i32(self.value())
+        match *self as u64 {
+            0 => serializer.serialize_str("Pending"),
+            1 => serializer.serialize_str("Processing"),
+            2 => serializer.serialize_str("Complete"),
+            3 => serializer.serialize_str("Rejected"),
+            4 => serializer.serialize_str("Failed"),
+            5 => serializer.serialize_str("Dispatched"),
+            _ => panic!("Unexpected enum value"),
+        }
     }
 }
 

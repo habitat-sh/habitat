@@ -1,20 +1,38 @@
 package scheduler;
 import "protocols/depotsrv.proto";
+import "protocols/jobsrv.proto";
 
 message Schedule {
-  optional depotsrv.PackageIdent ident = 1;
+  optional string origin = 1;
+  optional string package = 2;
+}
+
+message ScheduleGet {
+  optional uint64 group_id = 1;
 }
 
 enum GroupState {
   Pending = 0;
-  Processing = 1;
+  Dispatching = 1;
   Complete = 2;
-  Rejected = 3;
-  Failed = 4;
-  Dispatched = 5;
+  Failed = 3;
+}
+
+enum ProjectState {
+  NotStarted = 0;
+  InProgress = 1;
+  Success = 2;
+  Failure = 3;
+}
+
+message Project {
+  optional string name = 1;
+  optional ProjectState state = 2;
 }
 
 message Group {
-  optional uint64 group_id = 1;
+  optional uint64 id = 1;
   optional GroupState state = 2;
+  repeated Project projects = 3;
+  repeated jobsrv.Job jobs = 4;
 }

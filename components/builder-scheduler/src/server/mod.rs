@@ -28,25 +28,49 @@ use zmq;
 
 use config::Config;
 use data_store::DataStore;
-use self::scheduler::ScheduleMgr;
+use self::scheduler::{ScheduleMgr, ScheduleClient};
 use error::{Error, Result};
 
 const BE_LISTEN_ADDR: &'static str = "inproc://backend";
 
 #[derive(Clone)]
-pub struct ServerState {
+pub struct InitServerState {
     datastore: Arc<RwLock<DataStore>>,
 }
 
+impl InitServerState {
+    pub fn new(datastore: Arc<RwLock<DataStore>>) -> Self {
+        InitServerState { datastore: datastore }
+    }
+}
+
+impl Into<ServerState> for InitServerState {
+    fn into(self) -> ServerState {
+        let mut state = ServerState::default();
+        state.datastore = Some(self.datastore);
+        state
+    }
+}
+
+#[derive(Default)]
+pub struct ServerState {
+    datastore: Option<Arc<RwLock<DataStore>>>,
+    schedule_cli: Option<ScheduleClient>,
+}
+
 impl ServerState {
-    pub fn new(datastore: DataStore) -> Self {
-        ServerState { datastore: Arc::new(RwLock::new(datastore)) }
+    fn datastore(&mut self) -> &mut Arc<RwLock<DataStore>> {
+        self.datastore.as_mut().unwrap()
+    }
+
+    fn schedule_cli(&mut self) -> &mut ScheduleClient {
+        self.schedule_cli.as_mut().unwrap()
     }
 }
 
 impl DispatcherState for ServerState {
     fn is_initialized(&self) -> bool {
-        true
+        self.datastore.is_some() && self.schedule_cli.is_some()
     }
 }
 
@@ -58,7 +82,7 @@ pub struct Worker {
 impl Dispatcher for Worker {
     type Config = Config;
     type Error = Error;
-    type InitState = ServerState;
+    type InitState = InitServerState;
     type State = ServerState;
 
     fn message_queue() -> &'static str {
@@ -73,6 +97,7 @@ impl Dispatcher for Worker {
 
         match message.message_id() {
             "Schedule" => handlers::schedule(message, sock, state).unwrap(),
+            "ScheduleGet" => handlers::schedule_get(message, sock, state).unwrap(),
             _ => panic!("unexpected message: {:?}", message.message_id()),
         };
 
@@ -88,7 +113,10 @@ impl Dispatcher for Worker {
     }
 
     fn init(&mut self, init_state: Self::InitState) -> Result<Self::State> {
-        let state: ServerState = init_state.into();
+        let mut schedule_cli = ScheduleClient::default();
+        try!(schedule_cli.connect());
+        let mut state: ServerState = init_state.into();
+        state.schedule_cli = Some(schedule_cli);
         Ok(state)
     }
 }
@@ -134,7 +162,7 @@ impl Application for Server {
         try!(datastore.setup());
         let cfg = self.config.clone();
         let cfg2 = self.config.clone();
-        let init_state = ServerState::new(datastore);
+        let init_state = InitServerState::new(Arc::new(RwLock::new(datastore)));
         let ds2 = init_state.datastore.clone();
         let sup: Supervisor<Worker> = Supervisor::new(cfg, init_state);
         let schedule_mgr = try!(ScheduleMgr::start(cfg2, ds2));

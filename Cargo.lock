@@ -503,6 +503,7 @@ dependencies = [
  "postgres 0.14.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "protobuf 1.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "r2d2 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rand 0.3.15 (registry+https://github.com/rust-lang/crates.io-index)",
  "toml 0.3.0 (git+https://github.com/alexcrichton/toml-rs?rev=d39c3f7b3ec95cb3cc1e579d7d747206c66aab74)",
  "zmq 0.8.1 (git+https://github.com/erickt/rust-zmq?branch=release/v0.8)",
 ]
