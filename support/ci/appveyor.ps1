@@ -41,7 +41,7 @@ Write-Host "Configuring build environment"
 ./build.ps1 -Configure -SkipBuild
 
 
-if (Test-SourceChanged -or (test-path env:HAB_FORCE_TEST)) {
+if (Test-SourceChanged -or (test-path env:HAB_FORCE_TEST) -or ($env:APPVEYOR_REPO_TAG_NAME -eq "$(Get-Content VERSION)")) {
     foreach ($BuildAction in ($env:hab_build_action -split ';')) {
         if ($BuildAction -like 'build') {
             
@@ -109,8 +109,7 @@ if (Test-SourceChanged -or (test-path env:HAB_FORCE_TEST)) {
                 if ($component -eq "hab") {
                     Write-Host "Packaging HAB cli zip file"
                     Write-Host ""
-                    $zip = $hart.FullName.Replace("core-", "").Replace(".hart", ".zip")
-                    $zip = Split-Path $zip -Leaf
+                    $zip = "hab-$env:APPVEYOR_BUILD_VERSION-x86_64-windows.zip"
                     $zipDir = $zip.Replace(".zip", "")
                     mkdir $zipDir -Force
                     Copy-Item "/hab/pkgs/core/hab/*/*/bin/*" $zipDir

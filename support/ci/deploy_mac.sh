@@ -1,9 +1,10 @@
 #!/bin/bash
-# 4 env vars are required for this script
+# 5 env vars are required for this script
 # HAB_ORIGIN_KEY
 # BINTRAY_USER
 # BINTRAY_PASSPHRASE
 # BINTRAY_KEY
+# BINTRAY_REPO
 
 set -eu
 
@@ -84,6 +85,6 @@ hash -r
 
 cd ${bootstrap_dir}
 
-echo "Publishing hab to unstable"
+echo "Publishing hab to $BINTRAY_REPO"
 release=$(find $mac_dir/results -name core-hab-0*.hart | sort -n | tail -n 1)
-$program -r unstable $release
+$program -r $BINTRAY_REPO $release

@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -e
-
 # fail fast if we aren't on the desired branch or if this is a pull request
 if [[ "${TRAVIS_PULL_REQUEST}" != "false" ]] || [[ "${TRAVIS_BRANCH}" != "master" ]]; then
     echo "We only publish on successful builds of master."
@@ -14,13 +12,50 @@ TEST_BIN_DIR=/root/hab_bins
 TRAVIS_HAB=${BOOTSTRAP_DIR}/hab
 HAB_DOWNLOAD_URL="https://api.bintray.com/content/habitat/stable/linux/x86_64/hab-%24latest-x86_64-linux.tar.gz?bt_package=hab-x86_64-linux"
 export HAB_ORIGIN=core
-export HAB_DEPOT_URL=http://app.acceptance.habitat.sh/v1/depot
+
+BINTRAY_REPO=unstable
+if [ $(cat VERSION) == $TRAVIS_TAG ]; then
+  BINTRAY_REPO=stable
+else
+  export HAB_DEPOT_URL=http://app.acceptance.habitat.sh/v1/depot
+fi
 
 mkdir -p ${BOOTSTRAP_DIR}
 # download a hab binary to build hab from source in a studio
 wget -O hab.tar.gz "${HAB_DOWNLOAD_URL}"
 # install it in a custom location
 tar xvzf ./hab.tar.gz --strip 1 -C ${BOOTSTRAP_DIR}
+
+# kick off the mac unstable build
+echo "Kicking off the unstable mac build"
+var_file=/tmp/our-awesome-vars
+mac_builder=admin@74.80.245.236
+
+# first update the copy of the habitat code stored on the mac server to the latest
+ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+  -i /tmp/habitat-srv-admin ${mac_builder} \
+  "~/bin/update_habitat_code.sh"
+
+set -e
+
+# passing environment variables over ssh is a pain and never worked quite right.
+# instead, write this out to a file and scp it over, to source later.
+cat << EOF >${var_file}
+export BINTRAY_REPO=#BINTRAY_REPO
+export HAB_ORIGIN_KEY=$HAB_ORIGIN_KEY
+export BINTRAY_USER=$BINTRAY_USER
+export BINTRAY_KEY=$BINTRAY_KEY
+export BINTRAY_PASSPHRASE=$BINTRAY_PASSPHRASE
+EOF
+
+scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+  -i /tmp/habitat-srv-admin ${var_file} ${mac_builder}:~/tmp
+rm ${var_file}
+
+# kick off the build
+ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+  -i /tmp/habitat-srv-admin ${mac_builder} \
+  "sudo ~/code/habitat/support/ci/deploy_mac.sh"
 
 # so key stuff doesn't get funky
 unset SUDO_USER
@@ -46,46 +81,20 @@ do
   ${TRAVIS_HAB} pkg install $HART
 
   if [ -n "$HAB_AUTH_TOKEN" ]; then
-    ${TRAVIS_HAB} pkg upload -u http://app.acceptance.habitat.sh/v1/depot $HART
+    ${TRAVIS_HAB} pkg upload $HART
   fi
 
   # once we have built the stuio, switch over to bits built here
   if [[ "${component}" == "studio" ]]; then
     TRAVIS_HAB=$(find /hab/pkgs/core/hab -type f -name hab)
   elif [[ "${component}" == "hab" ]]; then
-    RELEASE=$HART
+    RELEASE="${HART}_keep"
+    cp $HART $RELEASE
   fi
+
+  rm $HART
 done
 
-# kick off the mac unstable build
-echo "Kicking off the unstable mac build"
-var_file=/tmp/our-awesome-vars
-mac_builder=admin@74.80.245.236
-
-# first update the copy of the habitat code stored on the mac server to the latest
-ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-  -i /tmp/habitat-srv-admin ${mac_builder} \
-  "~/bin/update_habitat_code.sh"
-
-# passing environment variables over ssh is a pain and never worked quite right.
-# instead, write this out to a file and scp it over, to source later.
-cat << EOF >${var_file}
-export HAB_ORIGIN_KEY=$HAB_ORIGIN_KEY
-export BINTRAY_USER=$BINTRAY_USER
-export BINTRAY_KEY=$BINTRAY_KEY
-export BINTRAY_PASSPHRASE=$BINTRAY_PASSPHRASE
-EOF
-
-scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-  -i /tmp/habitat-srv-admin ${var_file} ${mac_builder}:~/tmp
-rm ${var_file}
-
-# kick off the build
-ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-  -i /tmp/habitat-srv-admin ${mac_builder} \
-  "sudo ~/code/habitat/support/ci/deploy_mac_unstable.sh"
-
-echo "Publishing hab to unstable"
-PUBLISH=$(find ./results -name core-hab-bintray*.hart)
-${TRAVIS_HAB} pkg install $PUBLISH
-${TRAVIS_HAB} pkg exec core/hab-bintray-publish publish-hab -r unstable $RELEASE
+echo "Publishing hab to $BINTRAY_REPO"
+${TRAVIS_HAB} pkg exec core/hab-bintray-publish publish-studio
+${TRAVIS_HAB} pkg exec core/hab-bintray-publish publish-hab -r $BINTRAY_REPO $RELEASE
