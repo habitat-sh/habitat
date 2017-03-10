@@ -7,8 +7,7 @@
 Builds Habitat components for Windows
 
 .DESCRIPTION
-This script builds habitat components, ensure that all necesary prerequisites
-are installed, and create hart packages for a windows hab binary.
+This script builds habitat components and ensures that all necesary prerequisites are installed.
 #>
 
 param (
@@ -20,8 +19,6 @@ param (
     [switch]$Clean,
     # When specified, cargo test will be invoked for the specified component.
     [switch]$Test,
-    # When specified a .hart package of the component binary will be created.
-    [switch]$Package,
     # When specified a build will not be run.
     [switch]$SkipBuild,
     # Use a optimized release build
@@ -165,55 +162,6 @@ function Invoke-Test([string]$Path, [switch]$Clean, [switch]$Release) {
     Pop-Location
 }
 
-function New-HartPackage {
-    if((Split-Path $Path -leaf) -ne "hab") {
-        Invoke-Build $(Join-Path $psscriptroot 'components/hab') -Clean -Release
-}
-
-# Import origin key
-if (!(Test-Path "/hab/cache/keys/core-*.sig.key")) {
-    if(!$env:ORIGIN_KEY) {
-        throw "You do not have the core origin key imported on this machine. Please ensure the key is exported to the ORIGIN_KEY environment variable."
-    }
-    $env:ORIGIN_KEY | & "$psscriptroot\target\Release\hab.exe" origin key import
-}
-
-# Create the archive
-$pkgRoot = "$psscriptroot/results"
-New-Item -ItemType Directory -Path $pkgRoot -ErrorAction SilentlyContinue -Force
-
-$pkgName = 'hab'
-$pkgOrigin = 'core'
-$pkgRelease = (Get-Date).ToString('yyyyMMddhhmmss')
-$pkgVersion = (Get-Content -Path "$psscriptroot\VERSION" | Out-String).Trim()
-$pkgArtifact = "$pkgRoot/$pkgOrigin-$pkgName-$pkgVersion-$pkgRelease-x86_64-windows"
-$pkgFiles = @(
-    "$psscriptroot\target\Release\hab.exe",
-    'C:\Windows\System32\vcruntime140.dll',
-    'C:\ProgramData\chocolatey\lib\habitat_native_dependencies\builds\bin\*.dll'
-)
-$pkgTempDir = "./hab/pkgs/$pkgOrigin/$pkgName/$pkgVersion/$pkgRelease"
-$pkgBinDir =  "$pkgTempDir/bin"
-mkdir $pkgBinDir -Force | Out-Null
-Copy-Item $pkgFiles -Destination $pkgBinDir
-
-"$pkgOrigin/$pkgName/$pkgVersion/$pkgRelease" | out-file "$pkgTempDir/IDENT" -Encoding ascii
-"" | out-file "$pkgTempDir/BUILD_DEPS" -Encoding ascii
-"" | out-file "$pkgTempDir/BUILD_TDEPS" -Encoding ascii
-"" | out-file "$pkgTempDir/FILES" -Encoding ascii
-"" | out-file "$pkgTempDir/MANIFEST" -Encoding ascii
-"/hab/pkgs/$pkgOrigin/$pkgName/$pkgVersion/$pkgRelease" | out-file "$pkgTempDir/PATH" -Encoding ascii
-"" | out-file "$pkgTempDir/SVC_GROUP" -Encoding ascii
-"" | out-file "$pkgTempDir/SVC_USER" -Encoding ascii
-"x86_64-windows" | out-file "$pkgTempDir/TARGET" -Encoding ascii
-
-7z.exe a -ttar "$pkgArtifact.tar" ./hab
-7z.exe a -txz "$pkgArtifact.tar.xz" "$pkgArtifact.tar"
-
-& "$psscriptroot\target\Release\hab.exe" pkg sign --origin $pkgOrigin "$pkgArtifact.tar.xz" "$pkgArtifact.hart"
-Remove-Item "$pkgArtifact.tar", "$pkgArtifact.tar.xz", "./hab" -Recurse -force
-}
-
 if($Configure) {
     Invoke-Configure
 }
@@ -251,9 +199,6 @@ if ($Test) {
 }
 if (!$SkipBuild) {
     Invoke-Build $Path -Clean:$Clean -Release:$Release
-}
-if($Package) {
-    New-HartPackage
 }
 
 exit $LASTEXITCODE
