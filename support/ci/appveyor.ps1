@@ -111,14 +111,17 @@ if (Test-SourceChanged -or (test-path env:HAB_FORCE_TEST) -or ($env:APPVEYOR_REP
                     Write-Host ""
                     $zip = "hab-$env:APPVEYOR_BUILD_VERSION-x86_64-windows.zip"
                     $zipDir = $zip.Replace(".zip", "")
+                    $stagingZipDir = "c:/projects/habitat/windows/x86_64"
                     mkdir $zipDir -Force
                     Copy-Item "/hab/pkgs/core/hab/*/*/bin/*" $zipDir
 
+                    mkdir $stagingZipDir -Force
+                    Compress-Archive -Path $zipDir -DestinationPath "$stagingZipDir/$zip" 
                     if($env:APPVEYOR_REPO_TAG_NAME -eq "$(Get-Content VERSION)" -and (!$env:APPVEYOR_REPO_TAG_NAME.EndsWith("dev"))) {
                         mkdir "results/prod" -Force
-                        Compress-Archive -Path $zipDir -DestinationPath "results/prod/$zip"
+                        Compress-Archive -Path ./windows -DestinationPath "results/prod/$zip"
                     }
-                    Compress-Archive -Path $zipDir -DestinationPath "results/$zip"
+                    Compress-Archive -Path ./windows -DestinationPath "results/$zip"
                 }
                 if ($component -eq "studio") {
                     # Now that we have built the studio we can use current hab and studio bits
