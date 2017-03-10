@@ -284,24 +284,50 @@ info() {
   echo "--> hab-install: $1"
 }
 
+warn() {
+  echo "xxx hab-install: $1" >&2
+}
+
 exit_with() {
-  info "$1" >&2
+  warn "$1"
   exit "${2:-10}"
 }
 
 dl_file() {
   local _url="${1}"
   local _dst="${2}"
+  local _code
 
+  # Attempt to download with wget, if found. If successful, quick return
   if command -v wget > /dev/null; then
     info "Downlading via wget: ${_url}"
     wget -q -O "${_dst}" "${_url}"
-  elif command -v curl > /dev/null; then
+    _code="$?"
+    if [ $_code -eq 0 ]; then
+      return 0
+    else
+      local _e="wget failed to download file, perhaps wget doesn't have"
+      _e="$_e SSL support and/or no CA certificates are present?"
+      warn "$_e"
+    fi
+  fi
+
+  # Attempt to download with curl, if found. If successful, quick return
+  if command -v curl > /dev/null; then
     info "Downlading via curl: ${_url}"
     curl -sSfL "${_url}" -o "${_dst}"
-  else
-    exit_with "Required: SSL-enabled 'curl' or 'wget' on PATH" 6
+    _code="$?"
+    if [ $_code -eq 0 ]; then
+      return 0
+    else
+      local _e="curl failed to download file, perhaps curl doesn't have"
+      _e="$_e SSL support and/or no CA certificates are present?"
+      warn "$_e"
+    fi
   fi
+
+  # If we reach this point, wget and curl have failed and we're out of options
+  exit_with "Required: SSL-enabled 'curl' or 'wget' on PATH with" 6
 }
 
 main "$@" || exit 99
