@@ -1286,20 +1286,25 @@ join_by() {
 add_env() {
   local -u key=$1
   shift
-  local -a values=$*
+  local values=($*)
 
   if [ ${pkg_env[$key]+abc} ]; then
     exit_with "Cannot add $key to pkg_env once the value is already set"
   fi
 
-  if [ ${#values[@]} > 1 ]; then
-    if [ ${_env_default_ifs[$key]+abc} ]; then
-      pkg_env[$key]=$(join_by ${_env_default_ifs[$key]} ${values})
+  if [[ -n ${values} ]]; then
+    if [[ ${#values[@]} > 1 ]]; then
+      if ! [ ${pkg_env_ifs[$key]+abc} ]; then
+          if [ ${_env_default_ifs[$key]+abc} ]; then
+            pkg_env_ifs[$key]=${_env_default_ifs[$key]}
+          else
+            exit_with "Cannot add multiple values without setting an IFS for $key"
+          fi
+      fi
+      pkg_env[$key]=$(join_by ${pkg_env_ifs[$key]} ${values[@]})
     else
-      exit_with "Cannot add multiple values without setting an IFS for $key"
+      pkg_env[$key]=${values[0]}
     fi
-  else
-    pkg_env[$key]=$2
   fi
 }
 
@@ -1309,46 +1314,60 @@ add_env() {
 # add_path_env PATH 'bin' 'sbin'
 # ```
 add_path_env() {
-  local -u key=$1
+  local key=$1
   shift
-  local -a paths
+  local paths=()
   for path in $*; do
-    path+="${pkg_prefix}/${path}"
+    paths+=("${pkg_prefix}/${path}")
   done
-  add_env ${key} ${paths}
+  add_env ${key} ${paths[@]}
 }
 
-# TODO: Copy `add_env`
+# TODO: Make `add_build_env` and `add_build_path_env` more generic
+# Sets build environment variable for package
+#
+# ```sh
+# add_build_env PATH 'bin' 'sbin'
+# add_build_env SETTINGS_MODULE 'app.settings'
+# ```
 add_build_env() {
   local -u key=$1
   shift
-  local -a values=$*
+  local values=($*)
 
   if [ ${pkg_build_env[$key]+abc} ]; then
     exit_with "Cannot add $key to pkg_build_env once the value is already set"
   fi
 
-  if [ ${#values[@]} > 1 ]; then
-    if [ ${_env_default_ifs[$key]+abc} ]; then
-      pkg_build_env[$key]=$(join_by ${_env_default_ifs[$key]} ${values})
+  if [[ -n ${values} ]]; then
+    if [[ ${#values[@]} > 1 ]]; then
+      if ! [ ${pkg_env_ifs[$key]+abc} ]; then
+          if [ ${_env_default_ifs[$key]+abc} ]; then
+            pkg_env_ifs[$key]=${_env_default_ifs[$key]}
+          else
+            exit_with "Cannot add multiple values without setting an IFS for $key"
+          fi
+      fi
+      pkg_build_env[$key]=$(join_by ${pkg_env_ifs[$key]} ${values[@]})
     else
-      exit_with "Cannot add multiple values without setting an IFS for $key"
+      pkg_build_env[$key]=${values[0]}
     fi
-  else
-    pkg_build_env[$key]=$2
   fi
-  build_line "Setting $key ${#values[@]} ${values}"
 }
 
-# TODO: Copy `add_path_env`
+# Adds `$pkg_prefix` to supplied paths
+#
+# ```sh
+# add_build_path_env PATH 'bin' 'sbin'
+# ```
 add_build_path_env() {
-  local -u key=$1
+  local key=$1
   shift
-  local -a paths
+  local paths=()
   for path in $*; do
-    path+="${pkg_prefix}/${path}"
+    paths+=("${pkg_prefix}/${path}")
   done
-  add_build_env ${key} ${paths}
+  add_build_env ${key} ${paths[@]}
 }
 
 # **Internal** Convert a string into a numerical value.
@@ -2074,55 +2093,46 @@ do_default_install() {
 # **Internal** Write out the package data to files:
 #
 # * `$pkg_prefix/BUILD_DEPS` - Any dependencies we need build the package
-# * `$pkg_prefix/CFLAGS` - Any CFLAGS for things that link against us
-# * `$pkg_prefix/PKG_CONFIG_PATH` - Any PKG_CONFIG_PATH entries for things that depend on us
+# * `$pkg_prefix/BUILD_ENVIRONMENT` - A list of build environment keys and their values
 # * `$pkg_prefix/DEPS` - Any dependencies we need to use the package at runtime
+# * `$pkg_prefix/ENVIRONMENT` - A list of environment keys and their values
+# * `$pkg_prefix/ENVIRONMENT_IFS` - A list of Internal Field Separators for environment keys
 # * `$pkg_prefix/EXPORTS` - A list of exported configuration keys and their public name
 # * `$pkg_prefix/EXPOSES` - An array of `pkg_exports` for which ports that this package exposes
 # * `$pkg_prefix/BINDS` - A list of services you connect to and keys that you expect to be exported
 # * `$pkg_prefix/BINDS_OPTIONAL` - Same as `BINDS` but not required for the service to start
 # * `$pkg_prefix/FILES` - blake2b checksums of all files in the package
-# * `$pkg_prefix/LDFLAGS` - Any LDFLAGS for things that link against us
-# * `$pkg_prefix/LD_RUN_PATH` - The LD_RUN_PATH for things that link against us
-# * `$pkg_prefix/PATH` - Any PATH entries for things that link against us
 _build_metadata() {
   build_line "Building package metadata"
   local ld_run_path_part=()
   local ld_lib_part=()
   for lib in ${pkg_lib_dirs[@]}; do
-    ld_run_path_part+="${pkg_prefix}/$lib"
-    ld_lib_part+="-L${pkg_prefix}/$lib"
+    ld_run_path_part+=("${pkg_prefix}/$lib")
+    ld_lib_part+=("-L${pkg_prefix}/$lib")
   done
-  if [[ -n "${ld_run_path_part}" ]]; then
-    add_build_env 'LD_RUN_PATH' ${ld_run_path_part}
-  fi
-  if [[ -n "${ld_lib_part}" ]]; then
-    add_build_env 'LDFLAGS' ${ld_lib_part}
-  fi
+  # The LD_RUN_PATH for things that link against us
+  add_build_env 'LD_RUN_PATH' ${ld_run_path_part[@]}
+  # Any LDFLAGS for things that link against us
+  add_build_env 'LDFLAGS' ${ld_lib_part[@]}
 
   local cflags_part=()
   for inc in "${pkg_include_dirs[@]}"; do
-    cflags_part+="-I${pkg_prefix}/${inc}"
+    cflags_part+=("-I${pkg_prefix}/${inc}")
   done
-  if [[ -n "${cflags_part}" ]]; then
-    add_build_env 'CFLAGS' ${cflags_part}
-  fi
+  # Any CFLAGS for things that link against us
+  add_build_env 'CFLAGS' ${cflags_part[@]}
 
   local cppflags_part=()
   for inc in "${pkg_include_dirs[@]}"; do
-    cppflags_part+="-I${pkg_prefix}/${inc}"
+    cppflags_part+=("-I${pkg_prefix}/${inc}")
   done
-  if [[ -n "${cppflags_part}" ]]; then
-    add_build_env 'CPPFLAGS' ${cppflags_part}
-  fi
+  add_build_env 'CPPFLAGS' ${cppflags_part[@]}
 
   local cxxflags_part=()
   for inc in "${pkg_include_dirs[@]}"; do
-    cxxflags_part+="-I${pkg_prefix}/${inc}"
+    cxxflags_part+=("-I${pkg_prefix}/${inc}")
   done
-  if [[ -n "${cxxflags_part}" ]]; then
-    add_build_env 'CXXFLAGS' ${cxxflags_part}
-  fi
+  add_build_env 'CXXFLAGS' ${cxxflags_part[@]}
 
   local pconfig_path_part=()
   if [ ${#pkg_pconfig_dirs[@]} -eq 0 ]; then
@@ -2130,33 +2140,35 @@ _build_metadata() {
     local locations=(lib/pkgconfig share/pkgconfig)
     for dir in "${locations[@]}"; do
       if [[ -d "${pkg_prefix}/${dir}" ]]; then
-        pconfig_path_part+="${pkg_prefix}/${dir}"
+        pconfig_path_part+=("${pkg_prefix}/${dir}")
       fi
     done
   else
     # Plan explicitly defines pkg-config paths so we don't provide defaults
     for inc in "${pkg_pconfig_dirs[@]}"; do
-      pconfig_path_part+="${pkg_prefix}/${inc}"
+      pconfig_path_part+=("${pkg_prefix}/${inc}")
     done
   fi
-  if [[ -n "${pconfig_path_part}" ]]; then
-    add_build_env 'PKG_CONFIG_PATH' ${pconfig_path_part}
-  fi
+  # Any PKG_CONFIG_PATH entries for things that depend on us
+  add_build_env 'PKG_CONFIG_PATH' ${pconfig_path_part[@]}
 
   local path_part=()
   for bin in "${pkg_bin_dirs[@]}"; do
-    path_part+="${pkg_prefix}/${bin}"
+    path_part+=("${pkg_prefix}/${bin}")
   done
-  if [[ -n "${path_part}" ]]; then
-    add_env 'PATH' ${path_part}
-  fi
-
-  for env in ${!pkg_env[@]}; do
-    echo "$env=${pkg_env[$env]}" >> $pkg_prefix/ENVIRONMENT
-  done
+  #Any PATH entries for things that link against us
+  add_env 'PATH' ${path_part[@]}
 
   for build_env in ${!pkg_build_env[@]}; do
-    echo "$build_env=${pkg_build_env[$build_env]}" >> $pkg_prefix/BUILD_ENVIRONMENT
+    echo "$build_env=${pkg_build_env[$build_env]}" >> "$pkg_prefix/BUILD_ENVIRONMENT"
+  done
+
+  for env in ${!pkg_env[@]}; do
+    echo "$env=${pkg_env[$env]}" >> "$pkg_prefix/ENVIRONMENT"
+  done
+
+  for env_ifs in ${!pkg_env_ifs[@]}; do
+    echo "$env_ifs=${pkg_env_ifs[$env_ifs]}" >> "$pkg_prefix/ENVIRONMENT_IFS"
   done
 
   for export in "${!pkg_exports[@]}"; do
