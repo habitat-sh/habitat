@@ -14,7 +14,7 @@ HAB_DOWNLOAD_URL="https://api.bintray.com/content/habitat/stable/linux/x86_64/ha
 export HAB_ORIGIN=core
 
 BINTRAY_REPO=unstable
-if [ $(cat VERSION) == $TRAVIS_TAG ]; then
+if [ "$(cat VERSION)" == "$TRAVIS_TAG" ]; then
   BINTRAY_REPO=stable
 else
   export HAB_DEPOT_URL=http://app.acceptance.habitat.sh/v1/depot
