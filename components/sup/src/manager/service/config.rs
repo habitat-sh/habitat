@@ -372,12 +372,26 @@ impl Cfg {
         let mut map = toml::value::Table::default();
         let cfg = try!(self.to_toml());
         for (key, path) in exports.iter() {
+            let fields: Vec<&str> = path.split('.').collect();
+            let mut curr = &cfg;
+            let mut found = false;
+
             // JW TODO: the TOML library only provides us with a
             // function to retrieve a value with a path which returns a
             // reference. We actually want the value for ourselves.
             // Let's improve this later to avoid allocating twice.
-            if let Some(val) = cfg.get(&path) {
-                map.insert(key.clone(), val.clone());
+            for field in fields {
+                match curr.get(field) {
+                    Some(val) => {
+                        curr = val;
+                        found = true;
+                    }
+                    None => found = false,
+                }
+            }
+
+            if found {
+                map.insert(key.clone(), curr.clone());
             }
         }
         Ok(map)
@@ -668,6 +682,14 @@ mod test {
                                        PathBuf::from("/fakeo/here"))
     }
 
+    fn gen_exporting_pkg() -> PackageInstall {
+        PackageInstall::new_from_parts(PackageIdent::from_str("neurosis/redis/2000/20160222201258")
+                                           .unwrap(),
+                                       PathBuf::from("/"),
+                                       PathBuf::from("/fakeo"),
+                                       fixtures().join("exporting_service"))
+    }
+
     fn toml_from_str(content: &str) -> toml::value::Table {
         toml::from_str(content).expect(&format!("Content should parse as TOML: {}", content))
     }
@@ -741,6 +763,34 @@ mod test {
         let ip = toml.get("sys").unwrap().as_table().unwrap().get("ip").unwrap().as_str().unwrap();
         let re = Regex::new(r"\d+\.\d+\.\d+\.\d+").unwrap();
         assert!(re.is_match(&ip));
+    }
+
+    #[test]
+    fn to_toml_exported_cfg() {
+        let pkg = gen_exporting_pkg();
+        let sc = ServiceConfig::new(&pkg,
+                                    &RuntimeConfig::new("hab".to_string(), "hab".to_string()),
+                                    fixtures().join("exporting_service"),
+                                    Vec::new(),
+                                    &GossipListenAddr::default(),
+                                    &ListenAddr::default())
+            .unwrap();
+        let exported_toml = sc.to_exported().unwrap();
+        assert_eq!(exported_toml["ip"].as_str(), Some("1.2.3.4"));
+    }
+
+    #[test]
+    fn to_toml_exported_table_cfg() {
+        let pkg = gen_exporting_pkg();
+        let sc = ServiceConfig::new(&pkg,
+                                    &RuntimeConfig::new("hab".to_string(), "hab".to_string()),
+                                    fixtures().join("exporting_service"),
+                                    Vec::new(),
+                                    &GossipListenAddr::default(),
+                                    &ListenAddr::default())
+            .unwrap();
+        let exported_toml = sc.to_exported().unwrap();
+        assert_eq!(exported_toml["port"].as_integer(), Some(443));
     }
 
     #[test]
