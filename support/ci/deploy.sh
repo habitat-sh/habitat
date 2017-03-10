@@ -41,7 +41,7 @@ set -e
 # passing environment variables over ssh is a pain and never worked quite right.
 # instead, write this out to a file and scp it over, to source later.
 cat << EOF >${var_file}
-export BINTRAY_REPO=#BINTRAY_REPO
+export BINTRAY_REPO=$BINTRAY_REPO
 export HAB_ORIGIN_KEY=$HAB_ORIGIN_KEY
 export BINTRAY_USER=$BINTRAY_USER
 export BINTRAY_KEY=$BINTRAY_KEY
