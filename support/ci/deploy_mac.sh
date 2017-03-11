@@ -76,7 +76,7 @@ sed \
 echo "Building hab"
 cd $mac_dir
 ./mac-build.sh
-echo "Built new unstable version of hab"
+echo "Built new version of hab"
 
 # link the brew installed gnu-tar to "tar" otherwise it won't get used
 # when publish-hab.sh runs and publish-hab.sh will abort
@@ -88,3 +88,4 @@ cd ${bootstrap_dir}
 echo "Publishing hab to $BINTRAY_REPO"
 release=$(find $mac_dir/results -name core-hab-0*.hart | sort -n | tail -n 1)
 $program -r $BINTRAY_REPO $release
+rm $release
