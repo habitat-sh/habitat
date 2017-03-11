@@ -3,7 +3,7 @@ branches:
     - master
     - /^sentinel.+$/
     - /^test_development-.*$/
-    - /^\d.\d.\d$/
+    - /^\d+\.\d+\.\d+$/
 env:
   global:
     - PATH=$HOME/.cargo/bin:$PATH
