@@ -1,5 +1,64 @@
 # Habitat CHANGELOG
 
+## [0.19.0](https://github.com/habitat-sh/habitat/tree/0.19.0) (03-11-2017)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.18.0...0.19.0)
+
+## Features & Enhancements
+
+- hab pkg binlink needs some improvements [\#1360](https://github.com/habitat-sh/habitat/issues/1360)
+- \[hab/install.sh\] Attempt to use both wget & curl before failing. [\#1940](https://github.com/habitat-sh/habitat/pull/1940) ([fnichol](https://github.com/fnichol))
+- Added support for installing habitat from a semi-qualified version number [\#1929](https://github.com/habitat-sh/habitat/pull/1929) ([eeyun](https://github.com/eeyun))
+- Remove Optimizely [\#1912](https://github.com/habitat-sh/habitat/pull/1912) ([cwebberOps](https://github.com/cwebberOps))
+
+## Bug fixes
+
+- Can't serialize TOML: values must be emitted before tables [\#1908](https://github.com/habitat-sh/habitat/issues/1908)
+- Builder-worker job status fails to send [\#1854](https://github.com/habitat-sh/habitat/issues/1854)
+- Unable to use `pkgPathFor` helper [\#1773](https://github.com/habitat-sh/habitat/issues/1773)
+- Nodes can become duplicated in the Gossip Ring [\#899](https://github.com/habitat-sh/habitat/issues/899)
+- traverse full path of exported toml key path [\#1937](https://github.com/habitat-sh/habitat/pull/1937) ([mwrock](https://github.com/mwrock))
+- \[plan-build.sh\] Fix a `last\_build.env` formatting regression. [\#1931](https://github.com/habitat-sh/habitat/pull/1931) ([fnichol](https://github.com/fnichol))
+- Fix TOML serialize for package default\_cfg [\#1914](https://github.com/habitat-sh/habitat/pull/1914) ([chefsalim](https://github.com/chefsalim))
+- eachAlive does not support `as |member|` style syntax [\#1903](https://github.com/habitat-sh/habitat/pull/1903) ([smurawski](https://github.com/smurawski))
+- fix windows docker studio and point FS\_ROOT to the system drive by default [\#1899](https://github.com/habitat-sh/habitat/pull/1899) ([mwrock](https://github.com/mwrock))
+
+**Closed issues:**
+
+- Failed to parse TOML: invalid number at line 1 when doing docker run [\#1915](https://github.com/habitat-sh/habitat/issues/1915)
+- Transitive dependencies not added to path [\#1895](https://github.com/habitat-sh/habitat/issues/1895)
+- Add pkg\_bind\_required and pkg\_bind\_optional feature to plan [\#1868](https://github.com/habitat-sh/habitat/issues/1868)
+- Create Smoke Test Hook [\#1867](https://github.com/habitat-sh/habitat/issues/1867)
+- Refactor Vault persistence layer from Redis to PostgreSQL [\#1858](https://github.com/habitat-sh/habitat/issues/1858)
+- Add reverse dependency graph to builder depot [\#1850](https://github.com/habitat-sh/habitat/issues/1850)
+- Extend hab-spider to be able to do builds [\#1849](https://github.com/habitat-sh/habitat/issues/1849)
+
+**Merged pull requests:**
+
+- Rename the vault to the originsrv [\#1936](https://github.com/habitat-sh/habitat/pull/1936) ([adamhjk](https://github.com/adamhjk))
+- Update builder-scheduler datastore [\#1932](https://github.com/habitat-sh/habitat/pull/1932) ([chefsalim](https://github.com/chefsalim))
+- release stable linux and mac builds to bintray and depot via travis on release tag push [\#1928](https://github.com/habitat-sh/habitat/pull/1928) ([mwrock](https://github.com/mwrock))
+- deploy windows cli to stable bintray on version tag push [\#1926](https://github.com/habitat-sh/habitat/pull/1926) ([mwrock](https://github.com/mwrock))
+- test pr for release tag [\#1925](https://github.com/habitat-sh/habitat/pull/1925) ([mwrock](https://github.com/mwrock))
+- Fix $PATH in build to include transitive dependencies [\#1924](https://github.com/habitat-sh/habitat/pull/1924) ([smacfarlane](https://github.com/smacfarlane))
+- Fixed environment variable in Windows tutorial [\#1919](https://github.com/habitat-sh/habitat/pull/1919) ([davidwrede](https://github.com/davidwrede))
+- copy and upload harts as they are built instead of in bulk to avoid unwanted harts [\#1918](https://github.com/habitat-sh/habitat/pull/1918) ([mwrock](https://github.com/mwrock))
+- update appveyor readme badge and reencrypt bintray api key for account switch [\#1917](https://github.com/habitat-sh/habitat/pull/1917) ([mwrock](https://github.com/mwrock))
+- build all release packages and upload to acceptance on master merges [\#1916](https://github.com/habitat-sh/habitat/pull/1916) ([mwrock](https://github.com/mwrock))
+- Use `as |thing|` form for all `\#each` examples [\#1911](https://github.com/habitat-sh/habitat/pull/1911) ([smith](https://github.com/smith))
+- fix error: no default toolchain configured in appveyor [\#1910](https://github.com/habitat-sh/habitat/pull/1910) ([mwrock](https://github.com/mwrock))
+- improve appveyor rust build caching to match travis [\#1909](https://github.com/habitat-sh/habitat/pull/1909) ([mwrock](https://github.com/mwrock))
+- Appveyor artifacts for all windows HARTs and CLI zip and upload to depot on PR merge [\#1905](https://github.com/habitat-sh/habitat/pull/1905) ([mwrock](https://github.com/mwrock))
+- Minor edits to homepage hero banner [\#1902](https://github.com/habitat-sh/habitat/pull/1902) ([magwalk](https://github.com/magwalk))
+- Add advertising widget to hero banner on homepage [\#1901](https://github.com/habitat-sh/habitat/pull/1901) ([magwalk](https://github.com/magwalk))
+- Suitability improvements [\#1897](https://github.com/habitat-sh/habitat/pull/1897) ([bodymindarts](https://github.com/bodymindarts))
+- Fix deadlock in job server [\#1894](https://github.com/habitat-sh/habitat/pull/1894) ([chefsalim](https://github.com/chefsalim))
+- Fix minor grammar and style errors. [\#1893](https://github.com/habitat-sh/habitat/pull/1893) ([phiggins](https://github.com/phiggins))
+- disallows indexing of the acceptance site [\#1891](https://github.com/habitat-sh/habitat/pull/1891) ([eeyun](https://github.com/eeyun))
+- corrected travis env var value [\#1888](https://github.com/habitat-sh/habitat/pull/1888) ([eeyun](https://github.com/eeyun))
+- Release doc update [\#1887](https://github.com/habitat-sh/habitat/pull/1887) ([chefsalim](https://github.com/chefsalim))
+- Bump version to 0.19.0-dev [\#1886](https://github.com/habitat-sh/habitat/pull/1886) ([chefsalim](https://github.com/chefsalim))
+- This now passes shellcheck...  [\#1883](https://github.com/habitat-sh/habitat/pull/1883) ([eeyun](https://github.com/eeyun))
+
 ## [0.18.0](https://github.com/habitat-sh/habitat/tree/0.18.0) (03-02-2017)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.17.0...0.18.0)
 
@@ -22,7 +81,6 @@
 
 - Rendering config is failing [\#1818](https://github.com/habitat-sh/habitat/issues/1818)
 - Service tries to copy run hook before initialization [\#1797](https://github.com/habitat-sh/habitat/issues/1797)
-- Unable to use `pkgPathFor` helper [\#1773](https://github.com/habitat-sh/habitat/issues/1773)
 - Service should be set to "uninitialized" after an update occurs [\#1641](https://github.com/habitat-sh/habitat/issues/1641)
 - \[sup\] Correct hook output location and line breaks [\#1834](https://github.com/habitat-sh/habitat/pull/1834) ([bodymindarts](https://github.com/bodymindarts))
 - \[sup\] Begin a new service lifecycle after pkg update [\#1833](https://github.com/habitat-sh/habitat/pull/1833) ([bodymindarts](https://github.com/bodymindarts))
@@ -49,6 +107,8 @@
 
 **Merged pull requests:**
 
+- Update CHANGELOG and VERSION for Release [\#1881](https://github.com/habitat-sh/habitat/pull/1881) ([chefsalim](https://github.com/chefsalim))
+- updated netlify key, corrected typo in deploy script [\#1880](https://github.com/habitat-sh/habitat/pull/1880) ([eeyun](https://github.com/eeyun))
 - Reload [\#1837](https://github.com/habitat-sh/habitat/pull/1837) ([bodymindarts](https://github.com/bodymindarts))
 - Make depot upload and download target aware [\#1835](https://github.com/habitat-sh/habitat/pull/1835) ([mwrock](https://github.com/mwrock))
 - Update config file parsing for toml-rs 3.0 [\#1832](https://github.com/habitat-sh/habitat/pull/1832) ([chefsalim](https://github.com/chefsalim))
