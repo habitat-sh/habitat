@@ -40,7 +40,9 @@ pushd "c:/projects/habitat"
 Write-Host "Configuring build environment"
 ./build.ps1 -Configure -SkipBuild
 
-
+write-host "TAG: $env:APPVEYOR_REPO_TAG_NAME"
+Write-Host "VERSION: $(Get-Content VERSION)"
+Write-Host ($env:APPVEYOR_REPO_TAG_NAME -eq "$(Get-Content VERSION)")
 if (Test-SourceChanged -or (test-path env:HAB_FORCE_TEST) -or ($env:APPVEYOR_REPO_TAG_NAME -eq "$(Get-Content VERSION)")) {
     foreach ($BuildAction in ($env:hab_build_action -split ';')) {
         if ($BuildAction -like 'build') {
