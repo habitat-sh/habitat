@@ -23,12 +23,13 @@
 //! New rumors need to implement the `From` trait for `RumorKey`, and then can track the arrival of
 //! new rumors, and dispatch them according to their `kind`.
 
+pub mod dat_file;
 pub mod election;
 pub mod service;
 pub mod service_config;
 pub mod service_file;
 
-pub use self::election::Election;
+pub use self::election::{Election, ElectionUpdate};
 pub use self::service::Service;
 pub use self::service_config::ServiceConfig;
 pub use self::service_file::ServiceFile;
@@ -75,7 +76,8 @@ impl RumorKey {
 
 /// A representation of a Rumor; implemented by all the concrete types we share as rumors. The
 /// exception is the Membership rumor, since it's not actually a rumor in the same vein.
-pub trait Rumor: Serialize {
+pub trait Rumor: Serialize + Sized {
+    fn from_bytes(&[u8]) -> Result<Self>;
     fn kind(&self) -> Rumor_Type;
     fn key(&self) -> &str;
     fn id(&self) -> &str;
@@ -134,6 +136,28 @@ impl<T: Rumor> RumorStore<T> {
         RumorStore { update_counter: Arc::new(AtomicUsize::new(counter)), ..Default::default() }
     }
 
+    /// Clear all rumors and reset update counter of RumorStore.
+    pub fn clear(&self) -> usize {
+        let mut list = self.list.write().expect("Rumor store lock poisoned");
+        list.clear();
+        self.update_counter.swap(0, Ordering::Relaxed)
+    }
+
+    pub fn get_update_counter(&self) -> usize {
+        self.update_counter.load(Ordering::Relaxed)
+    }
+
+    /// Returns the count of all rumors in this RumorStore.
+    pub fn len(&self) -> usize {
+        self.list
+            .read()
+            .expect("Rumor store lock poisoned")
+            .values()
+            .map(|member| member.len())
+            .sum()
+    }
+
+    /// Returns the count of all rumors in the rumor store for the given member's key.
     pub fn len_for_key(&self, key: &str) -> usize {
         let list = self.list.read().expect("Rumor store lock poisoned");
         list.get(key).map_or(0, |r| r.len())
@@ -204,10 +228,6 @@ impl<T: Rumor> RumorStore<T> {
             Some(_) => true,
             None => false,
         }
-    }
-
-    fn get_update_counter(&self) -> usize {
-        self.update_counter.load(Ordering::Relaxed)
     }
 
     /// Increment the update counter for this store.
@@ -333,6 +353,10 @@ mod tests {
     }
 
     impl Rumor for FakeRumor {
+        fn from_bytes(_bytes: &[u8]) -> Result<Self> {
+            Ok(FakeRumor::default())
+        }
+
         fn kind(&self) -> Rumor_Type {
             Rumor_Type::Fake
         }
@@ -364,6 +388,10 @@ mod tests {
     }
 
     impl Rumor for TrumpRumor {
+        fn from_bytes(_bytes: &[u8]) -> Result<Self> {
+            Ok(TrumpRumor::default())
+        }
+
         fn kind(&self) -> Rumor_Type {
             Rumor_Type::Fake2
         }

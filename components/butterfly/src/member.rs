@@ -22,13 +22,14 @@ use std::ops::{Deref, DerefMut};
 use std::sync::{Arc, RwLock};
 use std::sync::atomic::{AtomicUsize, Ordering};
 
-use uuid::Uuid;
+use protobuf::ProtobufEnum;
 use rand::{thread_rng, Rng};
 use time::SteadyTime;
+use uuid::Uuid;
 
-use rumor::RumorKey;
 use message::swim::{Member as ProtoMember, Membership as ProtoMembership,
                     Membership_Health as ProtoMembership_Health, Rumor_Type};
+use rumor::RumorKey;
 
 /// How many nodes do we target when we need to run PingReq.
 const PINGREQ_TARGETS: usize = 5;
@@ -39,6 +40,12 @@ pub enum Health {
     Alive,
     Suspect,
     Confirmed,
+}
+
+impl From<i32> for Health {
+    fn from(value: i32) -> Health {
+        Self::from(ProtoMembership_Health::from_i32(value).unwrap_or(ProtoMembership_Health::ALIVE))
+    }
 }
 
 /// Maps our internal health to the wire protocols health.
@@ -90,14 +97,6 @@ pub struct Member {
 }
 
 impl Member {
-    /// Creates a new member with a unique UUID and an incarnation of zero.
-    pub fn new() -> Member {
-        let mut proto_member = ProtoMember::new();
-        proto_member.set_id(Uuid::new_v4().simple().to_string());
-        proto_member.set_incarnation(0);
-        Member { proto: proto_member }
-    }
-
     /// Returns the socket address of this member.
     ///
     /// # Panics
@@ -112,6 +111,15 @@ impl Member {
                 panic!("Cannot parse member {:?} address: {}", self, e);
             }
         }
+    }
+}
+
+impl Default for Member {
+    fn default() -> Self {
+        let mut proto_member = ProtoMember::new();
+        proto_member.set_id(Uuid::new_v4().simple().to_string());
+        proto_member.set_incarnation(0);
+        Member { proto: proto_member }
     }
 }
 
@@ -165,8 +173,8 @@ pub type UuidSimple = String;
 /// Tracks lists of members, their health, and how long they have been suspect.
 #[derive(Debug, Clone)]
 pub struct MemberList {
-    members: Arc<RwLock<HashMap<UuidSimple, Member>>>,
-    health: Arc<RwLock<HashMap<UuidSimple, Health>>>,
+    pub members: Arc<RwLock<HashMap<UuidSimple, Member>>>,
+    pub health: Arc<RwLock<HashMap<UuidSimple, Health>>>,
     suspect: Arc<RwLock<HashMap<UuidSimple, SteadyTime>>>,
     initial_members: Arc<RwLock<Vec<Member>>>,
     update_counter: Arc<AtomicUsize>,
@@ -530,7 +538,7 @@ mod tests {
         // Sets the uuid to simple, and the incarnation to zero.
         #[test]
         fn new() {
-            let member = Member::new();
+            let member = Member::default();
             assert_eq!(member.proto.get_id().len(), 32);
             assert_eq!(member.proto.get_incarnation(), 0);
         }
@@ -554,7 +562,7 @@ mod tests {
         fn populated_member_list(size: u64) -> MemberList {
             let ml = MemberList::new();
             for _x in 0..size {
-                let m = Member::new();
+                let m = Member::default();
                 ml.insert(m, Health::Alive);
             }
             ml
@@ -645,7 +653,7 @@ mod tests {
         #[test]
         fn insert_no_member() {
             let ml = MemberList::new();
-            let member = Member::new();
+            let member = Member::default();
             let mcheck = member.clone();
             assert_eq!(ml.insert(member, Health::Alive), true);
             assert!(ml.check_health_of(&mcheck, Health::Alive));
@@ -654,7 +662,7 @@ mod tests {
         #[test]
         fn insert_existing_member_lower_incarnation() {
             let ml = MemberList::new();
-            let member_one = Member::new();
+            let member_one = Member::default();
             let mcheck_one = member_one.clone();
             let mut member_two = member_one.clone();
             member_two.set_incarnation(1);
@@ -671,7 +679,7 @@ mod tests {
         #[test]
         fn insert_existing_member_higher_incarnation() {
             let ml = MemberList::new();
-            let mut member_one = Member::new();
+            let mut member_one = Member::default();
             let mcheck_one = member_one.clone();
             let member_two = member_one.clone();
             let mcheck_two = member_two.clone();
@@ -689,7 +697,7 @@ mod tests {
         #[test]
         fn insert_equal_incarnation_current_alive_new_alive() {
             let ml = MemberList::new();
-            let member_one = Member::new();
+            let member_one = Member::default();
             let mcheck_one = member_one.clone();
             let member_two = member_one.clone();
 
@@ -702,7 +710,7 @@ mod tests {
         #[test]
         fn insert_equal_incarnation_current_alive_new_suspect() {
             let ml = MemberList::new();
-            let member_one = Member::new();
+            let member_one = Member::default();
             let mcheck_one = member_one.clone();
             let member_two = member_one.clone();
             let mcheck_two = member_two.clone();
@@ -717,7 +725,7 @@ mod tests {
         #[test]
         fn insert_equal_incarnation_current_alive_new_confirmed() {
             let ml = MemberList::new();
-            let member_one = Member::new();
+            let member_one = Member::default();
             let mcheck_one = member_one.clone();
             let member_two = member_one.clone();
             let mcheck_two = member_two.clone();
@@ -732,7 +740,7 @@ mod tests {
         #[test]
         fn insert_equal_incarnation_current_suspect_new_alive() {
             let ml = MemberList::new();
-            let member_one = Member::new();
+            let member_one = Member::default();
             let mcheck_one = member_one.clone();
             let member_two = member_one.clone();
             let mcheck_two = member_two.clone();
@@ -747,7 +755,7 @@ mod tests {
         #[test]
         fn insert_equal_incarnation_current_suspect_new_suspect() {
             let ml = MemberList::new();
-            let member_one = Member::new();
+            let member_one = Member::default();
             let mcheck_one = member_one.clone();
             let member_two = member_one.clone();
             let mcheck_two = member_two.clone();
@@ -762,7 +770,7 @@ mod tests {
         #[test]
         fn insert_equal_incarnation_current_suspect_new_confirmed() {
             let ml = MemberList::new();
-            let member_one = Member::new();
+            let member_one = Member::default();
             let mcheck_one = member_one.clone();
             let member_two = member_one.clone();
             let mcheck_two = member_two.clone();
@@ -777,7 +785,7 @@ mod tests {
         #[test]
         fn insert_equal_incarnation_current_confirmed_new_alive() {
             let ml = MemberList::new();
-            let member_one = Member::new();
+            let member_one = Member::default();
             let mcheck_one = member_one.clone();
             let member_two = member_one.clone();
             let mcheck_two = member_two.clone();
@@ -792,7 +800,7 @@ mod tests {
         #[test]
         fn insert_equal_incarnation_current_confirmed_new_suspect() {
             let ml = MemberList::new();
-            let member_one = Member::new();
+            let member_one = Member::default();
             let mcheck_one = member_one.clone();
             let member_two = member_one.clone();
             let mcheck_two = member_two.clone();
@@ -807,7 +815,7 @@ mod tests {
         #[test]
         fn insert_equal_incarnation_current_confirmed_new_confirmed() {
             let ml = MemberList::new();
-            let member_one = Member::new();
+            let member_one = Member::default();
             let mcheck_one = member_one.clone();
             let member_two = member_one.clone();
             let mcheck_two = member_two.clone();

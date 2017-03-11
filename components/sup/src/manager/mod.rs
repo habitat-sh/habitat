@@ -41,6 +41,7 @@ use manager::census::{CensusUpdate, CensusList, CensusEntry};
 use manager::signals::SignalEvent;
 use http_gateway;
 
+pub const DATA_PATH: &'static str = "/hab/sup/data";
 static LOGKEY: &'static str = "MR";
 
 #[derive(Debug)]
@@ -112,6 +113,7 @@ impl Manager {
                                                  Trace::default(),
                                                  ring_key,
                                                  None,
+                                                 Some(DATA_PATH),
                                                  Box::new(SuitabilityLookup(services.clone()))));
         outputln!("Butterfly Member ID {}", server.member_id());
         for peer_addr in &cfg.gossip_peers {

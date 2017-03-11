@@ -16,6 +16,7 @@ path = "../butterfly-test"
 pkg-config = "0.3"
 
 [dependencies]
+byteorder = "*"
 env_logger = "*"
 log = "*"
 lazy_static = "*"

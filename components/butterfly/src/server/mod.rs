@@ -27,16 +27,18 @@ pub mod push;
 pub mod timing;
 
 use std::collections::{HashSet, HashMap};
-use std::fmt;
-use std::fmt::Debug;
+use std::ffi;
+use std::fmt::{self, Debug};
+use std::fs;
 use std::io;
 use std::net::{ToSocketAddrs, UdpSocket, SocketAddr};
+use std::path::PathBuf;
 use std::result;
 use std::str::FromStr;
 use std::sync::{Arc, RwLock};
 use std::sync::atomic::{AtomicBool, AtomicIsize, Ordering};
 use std::sync::mpsc::channel;
-use std::time::Duration;
+use std::time::{Instant, Duration};
 use std::thread;
 
 use habitat_core::service::ServiceGroup;
@@ -48,7 +50,8 @@ use toml;
 use error::{Result, Error};
 use member::{Member, Health, MemberList};
 use message;
-use rumor::{Rumor, RumorStore, RumorList, RumorKey};
+use rumor::{Rumor, RumorList, RumorKey, RumorStore};
+use rumor::dat_file::DatFile;
 use rumor::service::Service;
 use rumor::service_config::ServiceConfig;
 use rumor::service_file::ServiceFile;
@@ -76,6 +79,8 @@ pub struct Server {
     pub swim_addr: Arc<RwLock<SocketAddr>>,
     pub gossip_addr: Arc<RwLock<SocketAddr>>,
     pub suitability_lookup: Arc<Box<Suitability>>,
+    pub data_path: Arc<Option<PathBuf>>,
+    dat_file: Arc<RwLock<Option<DatFile>>>,
     // These are all here for testing support
     pub pause: Arc<AtomicBool>,
     pub trace: Arc<RwLock<Trace>>,
@@ -87,16 +92,18 @@ pub struct Server {
 impl Server {
     /// Create a new server, bound to the `addr`, hosting a particular `member`, and with a
     /// `Trace` struct, a ring_key if you want encryption on the wire, and an optional server name.
-    pub fn new<T, U>(swim_addr: T,
-                     gossip_addr: U,
-                     member: Member,
-                     trace: Trace,
-                     ring_key: Option<SymKey>,
-                     name: Option<String>,
-                     suitability_lookup: Box<Suitability>)
-                     -> Result<Server>
+    pub fn new<T, U, P>(swim_addr: T,
+                        gossip_addr: U,
+                        member: Member,
+                        trace: Trace,
+                        ring_key: Option<SymKey>,
+                        name: Option<String>,
+                        data_path: Option<P>,
+                        suitability_lookup: Box<Suitability>)
+                        -> Result<Server>
         where T: ToSocketAddrs,
-              U: ToSocketAddrs
+              U: ToSocketAddrs,
+              P: Into<PathBuf> + AsRef<ffi::OsStr>
     {
         let maybe_swim_socket_addr = swim_addr.to_socket_addrs().map(|mut iter| iter.next());
         let maybe_gossip_socket_addr = gossip_addr.to_socket_addrs().map(|mut iter| iter.next());
@@ -118,6 +125,8 @@ impl Server {
                        swim_addr: Arc::new(RwLock::new(swim_socket_addr)),
                        gossip_addr: Arc::new(RwLock::new(gossip_socket_addr)),
                        suitability_lookup: Arc::new(suitability_lookup),
+                       data_path: Arc::new(data_path.as_ref().map(|p| p.into())),
+                       dat_file: Arc::new(RwLock::new(None)),
                        pause: Arc::new(AtomicBool::new(false)),
                        trace: Arc::new(RwLock::new(trace)),
                        swim_rounds: Arc::new(AtomicIsize::new(0)),
@@ -189,8 +198,19 @@ impl Server {
     /// * Returns `Error::CannotBind` if the socket cannot be bound
     /// * Returns `Error::SocketSetReadTimeout` if the socket read timeout cannot be set
     /// * Returns `Error::SocketSetWriteTimeout` if the socket write timeout cannot be set
-    pub fn start(&self, timing: timing::Timing) -> Result<()> {
+    pub fn start(&mut self, timing: timing::Timing) -> Result<()> {
         let (tx_outbound, rx_inbound) = channel();
+        if let Some(ref path) = *self.data_path {
+            if let Some(err) = fs::create_dir_all(path).err() {
+                return Err(Error::BadDataPath(path.to_path_buf(), err));
+            }
+            let mut file = DatFile::new(&self.member_id, path);
+            if file.path().exists() {
+                file.read_into(self)?;
+            }
+            let mut dat_file = self.dat_file.write().expect("DatFile lock is poisoned");
+            *dat_file = Some(file);
+        }
 
         let socket =
             match UdpSocket::bind(*self.swim_addr.read().expect("Swim address lock is poisoned")) {
@@ -241,6 +261,19 @@ impl Server {
             push::Push::new(server_e, timing).run();
             panic!("You should never, ever get here, liu");
         });
+
+        if self.dat_file
+               .read()
+               .expect("DatFile lock poisoned")
+               .is_some() {
+            let server_f = self.clone();
+            let _ = thread::Builder::new()
+                .name(format!("persist-{}", self.name()))
+                .spawn(move || {
+                           persist_loop(server_f);
+                           panic!("Data persistence loop unexpectedly quit!");
+                       });
+        }
 
         Ok(())
     }
@@ -775,6 +808,14 @@ impl Server {
     fn unwrap_wire(&self, payload: &[u8]) -> Result<Vec<u8>> {
         message::unwrap_wire(payload, &self.ring_key)
     }
+
+    fn persist_data(&self) {
+        if let Some(ref dat_file) = *self.dat_file.read().expect("DatFile lock poisoned") {
+            if let Some(err) = dat_file.write(self).err() {
+                println!("Error persisting rumors to disk, {}", err);
+            }
+        }
+    }
 }
 
 impl Serialize for Server {
@@ -801,6 +842,21 @@ impl fmt::Display for Server {
     }
 }
 
+impl Drop for Server {
+    fn drop(&mut self) {
+        self.persist_data();
+    }
+}
+
+fn persist_loop(server: Server) {
+    loop {
+        let next_check = Instant::now() + Duration::from_millis(30_000);
+        server.persist_data();
+        let time_to_wait = next_check - Instant::now();
+        thread::sleep(time_to_wait);
+    }
+}
+
 #[cfg(test)]
 mod tests {
     mod server {
@@ -809,6 +865,7 @@ mod tests {
         use server::timing::Timing;
         use member::Member;
         use trace::Trace;
+        use std::path::PathBuf;
         use std::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
 
         static SWIM_PORT: AtomicUsize = ATOMIC_USIZE_INIT;
@@ -829,7 +886,7 @@ mod tests {
             let swim_listen = format!("127.0.0.1:{}", swim_port);
             let gossip_port = GOSSIP_PORT.fetch_add(1, Ordering::Relaxed);
             let gossip_listen = format!("127.0.0.1:{}", gossip_port);
-            let mut member = Member::new();
+            let mut member = Member::default();
             member.set_swim_port(swim_port as i32);
             member.set_gossip_port(gossip_port as i32);
             Server::new(&swim_listen[..],
@@ -838,6 +895,7 @@ mod tests {
                         Trace::default(),
                         None,
                         None,
+                        None::<PathBuf>,
                         Box::new(ZeroSuitability))
                     .unwrap()
         }
@@ -851,20 +909,21 @@ mod tests {
         fn invalid_addresses_fails() {
             let swim_listen = "";
             let gossip_listen = "";
-            let member = Member::new();
+            let member = Member::default();
             assert!(Server::new(&swim_listen[..],
                                 &gossip_listen[..],
                                 member,
                                 Trace::default(),
                                 None,
                                 None,
+                                None::<PathBuf>,
                                 Box::new(ZeroSuitability))
                             .is_err())
         }
 
         #[test]
         fn start_listener() {
-            let server = start_server();
+            let mut server = start_server();
             server.start(Timing::default()).expect("Server failed to start");
         }
     }

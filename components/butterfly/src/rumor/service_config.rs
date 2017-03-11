@@ -23,7 +23,7 @@ use std::str::{self, FromStr};
 
 use habitat_core::crypto::{BoxKeyPair, default_cache_key_path};
 use habitat_core::service::ServiceGroup;
-use protobuf::Message;
+use protobuf::{self, Message};
 use toml;
 
 use error::{Error, Result};
@@ -129,6 +129,11 @@ impl ServiceConfig {
 }
 
 impl Rumor for ServiceConfig {
+    fn from_bytes(bytes: &[u8]) -> Result<Self> {
+        let rumor = protobuf::parse_from_bytes::<ProtoRumor>(bytes)?;
+        Ok(ServiceConfig::from(rumor))
+    }
+
     /// Follows a simple pattern; if we have a newer incarnation than the one we already have, the
     /// new one wins. So far, these never change.
     fn merge(&mut self, mut other: ServiceConfig) -> bool {

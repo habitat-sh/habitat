@@ -630,7 +630,7 @@ mod tests {
         #[test]
         fn populate_from_member() {
             let mut ce = CensusEntry::default();
-            let mut member = Member::new();
+            let mut member = Member::default();
             member.set_address(String::from("162.42.150.33"));
             member.set_persistent(true);
             ce.populate_from_member(&member);
