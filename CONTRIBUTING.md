@@ -14,7 +14,7 @@ by having a convention cover it. When we do need to configure things, we set rea
 
 ## Workstation Setup
 
-See [docs/BUILDING.md](docs/BUILDING.md) for platform specific info on getting your workstation configured to contribute.
+See [BUILDING.md](BUILDING.md) for platform specific info on getting your workstation configured to contribute.
 
 ## Writing new features
 
