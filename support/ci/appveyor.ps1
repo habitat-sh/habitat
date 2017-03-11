@@ -42,7 +42,6 @@ Write-Host "Configuring build environment"
 
 write-host "TAG: $env:APPVEYOR_REPO_TAG_NAME"
 Write-Host "VERSION: $(Get-Content VERSION)"
-Write-Host ($env:APPVEYOR_REPO_TAG_NAME -eq "$(Get-Content VERSION)")
 if (($env:APPVEYOR_REPO_TAG_NAME -eq "$(Get-Content VERSION)") -or (Test-SourceChanged) -or (test-path env:HAB_FORCE_TEST)) {
     foreach ($BuildAction in ($env:hab_build_action -split ';')) {
         if ($BuildAction -like 'build') {
