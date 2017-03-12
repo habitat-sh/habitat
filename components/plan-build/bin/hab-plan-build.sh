@@ -1294,8 +1294,8 @@ add_env() {
 
   if [[ -n ${values} ]]; then
     if [[ ${#values[@]} > 1 ]]; then
-      if ! [ ${pkg_env_ifs[$key]+abc} ]; then
-          if [ ${_env_default_ifs[$key]+abc} ]; then
+      if [[ ! ${pkg_env_ifs[$key]+abc} ]]; then
+          if [[ ${_env_default_ifs[$key]+abc} ]]; then
             pkg_env_ifs[$key]=${_env_default_ifs[$key]}
           else
             exit_with "Cannot add multiple values without setting an IFS for $key"
@@ -1341,8 +1341,8 @@ add_build_env() {
 
   if [[ -n ${values} ]]; then
     if [[ ${#values[@]} > 1 ]]; then
-      if ! [ ${pkg_env_ifs[$key]+abc} ]; then
-          if [ ${_env_default_ifs[$key]+abc} ]; then
+      if [[ ! ${pkg_env_ifs[$key]+abc} ]]; then
+          if [[ ${_env_default_ifs[$key]+abc} ]]; then
             pkg_env_ifs[$key]=${_env_default_ifs[$key]}
           else
             exit_with "Cannot add multiple values without setting an IFS for $key"
@@ -1721,10 +1721,10 @@ _resolve_dependencies() {
   # `$PATH` ordering in the build environment. To give priority to direct
   # dependencies over transitive ones the order of packages is the following:
   #
-  # 1. All direct build dependencies
   # 1. All direct run dependencies
-  # 1. All unique transitive build dependencies that aren't already added
-  # 1. All unique transitive run dependencies that aren't already added
+  # 2. All direct build dependencies
+  # 3. All unique transitive run dependencies that aren't already added
+  # 4. All unique transitive build dependencies that aren't already added
   pkg_all_tdeps_resolved=(
     "${pkg_deps_resolved[@]}"
     "${pkg_build_deps_resolved[@]}"
@@ -1763,33 +1763,67 @@ _load_scaffolding() {
 # or transitive) if one exists. The ordering of the path is specific to
 # `${pkg_all_tdeps_resolved[@]}` which is further explained in the
 # `_resolve_dependencies()` function.
-_set_path() {
-  local path_part=""
-  for path in "${pkg_bin_dirs[@]}"; do
-    if [[ -z $path_part ]]; then
-      path_part="$pkg_prefix/$path"
+_set_environment() {
+  local -A _environment
+
+  # Set any package pre-build environment variables
+  add_path_env 'PATH' ${pkg_bin_dirs[@]}
+
+  # Copy `$pkg_env` to `$_environment`
+  for env in "${!pkg_env[@]}"; do
+    _environment[$env]=${pkg_env[$env]}
+  done
+
+  # Copy `$pkg_build_env` to `$_environment`
+  for env in "${!pkg_build_env[@]}"; do
+    if [[ ${_environment[$env]+abc} && ${pkg_env_ifs[$env]+abc} ]]; then
+      _environment[$env]=$(join_by ${pkg_env_ifs[$env]} ${_environment[$env]} ${pkg_build_env[$env]})
+    elif [[ ! ${_environment[$env]+abc} ]]; then
+      _environment[$env]=${pkg_build_env[$env]}
     else
-      path_part="$path_part:$pkg_prefix/$path"
+      exit_with "Cannot add $$pkg_build_env without setting an IFS for $env"
     fi
   done
+
   for dep_path in "${pkg_all_tdeps_resolved[@]}"; do
-    if [[ -f "$dep_path/PATH" ]]; then
-      local data=$(cat $dep_path/PATH)
-      local trimmed=$(trim $data)
-      if [[ -z $path_part ]]; then
-        path_part="$trimmed"
-      else
-        path_part="$path_part:$trimmed"
+    # If we have a ENVIRONMENT or BUILD_ENVIRONMENT skip looking for legacy files
+    if [[ -f "$dep_path/ENVIRONMENT" || -f "$dep_path/BUILD_ENVIRONMENT" ]]; then
+      local -A env_ifs
+      if [[ -f "$dep_path/ENVIRONMENT_IFS" ]]; then
+        # TODO: Parse ENVIRONMENT_IFS values
+        echo
+      fi
+      if [[ -f "$dep_path/ENVIRONMENT" ]]; then
+        # TODO: Parse ENVIRONMENT values
+        echo
+      fi
+      if [[ -f "$dep_path/BUILD_ENVIRONMENT" ]]; then
+        # TODO: Parse BUILD_ENVIRONMENT values
+        echo
+      fi
+    else # Look for legacy files
+      if [[ -f "$dep_path/PATH" ]]; then
+        local data=$(cat "$dep_path/PATH")
+        local trimmed=$(trim $data)
+        if [[ ${_environment[PATH]+abc} ]]; then
+            _environment[PATH]=$(join_by ':' ${_environment[PATH]} ${trimmed})
+        else
+            _environment[PATH]=${trimmed}
+        fi
       fi
     fi
   done
   # Insert all the package PATH fragments before the default PATH to ensure
   # package binaries are used before any userland/operating system binaries
-  if [[ -n $path_part ]]; then
-    export PATH="$path_part:$INITIAL_PATH"
+  if [[ ${_environment[PATH]+abc} ]]; then
+    _environment[PATH]=$(join_by ':' ${_environment[PATH]} ${INITIAL_PATH})
   fi
 
-  build_line "Setting PATH=$PATH"
+  # Export out computed environment
+  for env in "${!_environment[@]}"; do
+    build_line "Settings $env=${_environment[PATH]}"
+    export ${env}=${_environment[$env]}
+  done
 }
 
 # Download the software from `$pkg_source` and place it in
@@ -1865,26 +1899,20 @@ _build_environment() {
   # overridable) entries only contain **direct** **runtime** paths. If a
   # dependency's lib directory needs to be set in the resulting `RUNPATH`
   # sections of an ELF binary, it must be a direct dependency, not transitive.
-  local ld_run_path_part=""
+  local ld_run_path_part=()
   for lib in "${pkg_lib_dirs[@]}"; do
-    if [[ -z $ld_run_path_part ]]; then
-      ld_run_path_part="$pkg_prefix/$lib"
-    else
-      ld_run_path_part="$ld_run_path_part:$pkg_prefix/$lib"
-    fi
+    ld_run_path_part+=("$pkg_prefix/$lib")
   done
-  export LD_RUN_PATH=$ld_run_path_part
   for dep_path in "${pkg_deps_resolved[@]}"; do
     if [[ -f "$dep_path/LD_RUN_PATH" ]]; then
       local data=$(cat $dep_path/LD_RUN_PATH)
       local trimmed=$(trim $data)
-      if [[ -n "$LD_RUN_PATH" ]]; then
-        export LD_RUN_PATH="$LD_RUN_PATH:$trimmed"
-      else
-        export LD_RUN_PATH="$trimmed"
-      fi
+      ld_run_path_part+=("$trimmed")
     fi
   done
+  if [[ -z $ld_run_path_part ]]; then
+    export LD_RUN_PATH=$(join_by ':' ${ld_run_path_part[@]})
+  fi
 
   # Build `$CFLAGS`, `$CPPFLAGS`, `$CXXFLAGS` and `$LDFLAGS` containing any
   # direct dependency's `CFLAGS`, `CPPFLAGS`, `CXXFLAGS` or `LDFLAGS` entries
@@ -2094,6 +2122,8 @@ do_default_install() {
 #
 # * `$pkg_prefix/BUILD_DEPS` - Any dependencies we need build the package
 # * `$pkg_prefix/BUILD_ENVIRONMENT` - A list of build environment keys and their values
+# * `$pkg_prefix/CFLAGS` - Any CFLAGS for things that link against us
+# * `$pkg_prefix/PKG_CONFIG_PATH` - Any PKG_CONFIG_PATH entries for things that depend on us
 # * `$pkg_prefix/DEPS` - Any dependencies we need to use the package at runtime
 # * `$pkg_prefix/ENVIRONMENT` - A list of environment keys and their values
 # * `$pkg_prefix/ENVIRONMENT_IFS` - A list of Internal Field Separators for environment keys
@@ -2102,6 +2132,8 @@ do_default_install() {
 # * `$pkg_prefix/BINDS` - A list of services you connect to and keys that you expect to be exported
 # * `$pkg_prefix/BINDS_OPTIONAL` - Same as `BINDS` but not required for the service to start
 # * `$pkg_prefix/FILES` - blake2b checksums of all files in the package
+# * `$pkg_prefix/LDFLAGS` - Any LDFLAGS for things that link against us
+# * `$pkg_prefix/LD_RUN_PATH` - The LD_RUN_PATH for things that link against us
 _build_metadata() {
   build_line "Building package metadata"
   local ld_run_path_part=()
@@ -2110,29 +2142,36 @@ _build_metadata() {
     ld_run_path_part+=("${pkg_prefix}/$lib")
     ld_lib_part+=("-L${pkg_prefix}/$lib")
   done
-  # The LD_RUN_PATH for things that link against us
-  add_build_env 'LD_RUN_PATH' ${ld_run_path_part[@]}
-  # Any LDFLAGS for things that link against us
-  add_build_env 'LDFLAGS' ${ld_lib_part[@]}
+  if [[ -n ${ld_run_path_part} ]]; then
+    echo $(join_by ':' ${ld_run_path_part[@]}) > "$pkg_prefix/LD_RUN_PATH"
+  fi
+  if [[ -n ${ld_lib_part} ]]; then
+    echo $(join_by ' ' ${ld_lib_part[@]}) > "$pkg_prefix/LDFLAGS"
+  fi
 
   local cflags_part=()
   for inc in "${pkg_include_dirs[@]}"; do
     cflags_part+=("-I${pkg_prefix}/${inc}")
   done
-  # Any CFLAGS for things that link against us
-  add_build_env 'CFLAGS' ${cflags_part[@]}
+  if [[ -n ${cflags_part} ]]; then
+    echo $(join_by ' ' ${cflags_part[@]}) > "$pkg_prefix/CFLAGS"
+  fi
 
   local cppflags_part=()
   for inc in "${pkg_include_dirs[@]}"; do
     cppflags_part+=("-I${pkg_prefix}/${inc}")
   done
-  add_build_env 'CPPFLAGS' ${cppflags_part[@]}
+  if [[ -n ${cppflags_part} ]]; then
+    echo $(join_by ' ' ${cppflags_part[@]}) > "$pkg_prefix/CPPFLAGS"
+  fi
 
   local cxxflags_part=()
   for inc in "${pkg_include_dirs[@]}"; do
     cxxflags_part+=("-I${pkg_prefix}/${inc}")
   done
-  add_build_env 'CXXFLAGS' ${cxxflags_part[@]}
+  if [[ -n ${cxxflags_part} ]]; then
+    echo $(join_by ' ' ${cxxflags_part[@]}) > "$pkg_prefix/CXXFLAGS"
+  fi
 
   local pconfig_path_part=()
   if [ ${#pkg_pconfig_dirs[@]} -eq 0 ]; then
@@ -2149,18 +2188,12 @@ _build_metadata() {
       pconfig_path_part+=("${pkg_prefix}/${inc}")
     done
   fi
-  # Any PKG_CONFIG_PATH entries for things that depend on us
-  add_build_env 'PKG_CONFIG_PATH' ${pconfig_path_part[@]}
+  if [[ -n ${pconfig_path_part} ]]; then
+    echo $(join_by ':' ${pconfig_path_part[@]}) > "$pkg_prefix/PKG_CONFIG_PATH"
+  fi
 
-  local path_part=()
-  for bin in "${pkg_bin_dirs[@]}"; do
-    path_part+=("${pkg_prefix}/${bin}")
-  done
-  #Any PATH entries for things that link against us
-  add_env 'PATH' ${path_part[@]}
-
-  for build_env in ${!pkg_build_env[@]}; do
-    echo "$build_env=${pkg_build_env[$build_env]}" >> "$pkg_prefix/BUILD_ENVIRONMENT"
+  for env in ${!pkg_build_env[@]}; do
+    echo "$env=${pkg_build_env[$env]}" >> "$pkg_prefix/BUILD_ENVIRONMENT"
   done
 
   for env in ${!pkg_env[@]}; do
@@ -2663,7 +2696,8 @@ _inject_scaffolding_dependency
 # Download and resolve the dependencies
 _resolve_dependencies
 
-_set_path
+# Set up runtime environment
+_set_environment
 
 # Load scaffolding plans if they are being used.
 _load_scaffolding
