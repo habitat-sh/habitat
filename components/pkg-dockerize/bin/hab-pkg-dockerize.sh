@@ -160,6 +160,7 @@ build_docker_image() {
   local ident_file="$(hab pkg path $PKG)/IDENT"
   if [[ ! -f "$ident_file" ]]; then
     hab pkg install $PKG # try to install it
+    ident_file="$(hab pkg path $PKG)/IDENT"
   fi
 
   if [[ -n "$DOCKER_REGISTRY_URL" ]]; then
