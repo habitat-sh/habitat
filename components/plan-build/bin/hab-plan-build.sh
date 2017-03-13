@@ -1789,17 +1789,47 @@ _set_environment() {
     # If we have a ENVIRONMENT or BUILD_ENVIRONMENT skip looking for legacy files
     if [[ -f "$dep_path/ENVIRONMENT" || -f "$dep_path/BUILD_ENVIRONMENT" ]]; then
       local -A env_ifs
+
       if [[ -f "$dep_path/ENVIRONMENT_IFS" ]]; then
-        # TODO: Parse ENVIRONMENT_IFS values
-        echo
+        while read -r line; do
+          local -u env=${line%%=*}
+          local value=${line#*=}
+          if [[ -n "$env" && -n "$value" ]]; then
+            env_ifs[$env]=${value}
+          fi
+        done < "$dep_path/ENVIRONMENT_IFS"
       fi
+
       if [[ -f "$dep_path/ENVIRONMENT" ]]; then
-        # TODO: Parse ENVIRONMENT values
-        echo
+        while read -r line; do
+          local -u env=${line%%=*}
+          local value=${line#*=}
+          if [[ -n "$env" && -n "$value" ]]; then
+            if [[ ${_environment[$env]+abc} && ${env_ifs[$env]+abc} ]]; then
+              _environment[$env]=$(join_by ${env_ifs[$env]} ${_environment[$env]} ${value})
+            elif [[ ! ${_environment[$env]+abc} ]]; then
+              _environment[$env]=${value}
+            else
+              exit_with "Artifact $dep_path does not have an IFS set for $env"
+            fi
+          fi
+        done < "$dep_path/ENVIRONMENT"
       fi
+
       if [[ -f "$dep_path/BUILD_ENVIRONMENT" ]]; then
-        # TODO: Parse BUILD_ENVIRONMENT values
-        echo
+        while read -r line; do
+          local -u env=${line%%=*}
+          local value=${line#*=}
+          if [[ -n "$env" && -n "$value" ]]; then
+            if [[ ${_environment[$env]+abc} && ${env_ifs[$env]+abc} ]]; then
+              _environment[$env]=$(join_by ${env_ifs[$env]} ${_environment[$env]} ${value})
+            elif [[ ! ${_environment[$env]+abc} ]]; then
+              _environment[$env]=${value}
+            else
+              exit_with "Artifact $dep_path does not have an IFS set for $env"
+            fi
+          fi
+        done < "$dep_path/BUILD_ENVIRONMENT"
       fi
     else # Look for legacy files
       if [[ -f "$dep_path/PATH" ]]; then
