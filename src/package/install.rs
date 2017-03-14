@@ -14,6 +14,7 @@
 
 use std;
 use std::collections::{HashMap, HashSet};
+use std::collections::hash_map::Entry::{Occupied, Vacant};
 use std::cmp::{Ordering, PartialOrd};
 use std::env;
 use std::fmt;
@@ -255,7 +256,7 @@ impl PackageInstall {
     ///
     /// # Failures
     ///
-    /// * The package contains a Environment metafile but it could not be read or it was malformed
+    /// * The package contains a Environment metafile but it could not be read or it was malformed.
     pub fn environment(&self) -> Result<HashMap<String, String>> {
         let mut m = HashMap::<String, String>::new();
         match self.read_metafile(MetaFile::Environment) {
@@ -273,6 +274,33 @@ impl PackageInstall {
                 Ok(m)
             }
             Err(Error::MetaFileNotFound(MetaFile::Environment)) => Ok(m),
+            Err(e) => Err(e),
+        }
+    }
+
+    /// Returns a Rust representation of the mappings defined by the `pkg_env_ifs` plan variable.
+    ///
+    /// # Failures
+    ///
+    /// * The package contains a EnvironmentIfs metafile but it could not be read or it was
+    ///   malformed.
+    pub fn environment_ifs(&self) -> Result<HashMap<String, String>> {
+        let mut m = HashMap::<String, String>::new();
+        match self.read_metafile(MetaFile::EnvironmentIfs) {
+            Ok(body) => {
+                for line in body.lines() {
+                    let mut parts = line.splitn(2, '=');
+                    let key = parts.next()
+                        .and_then(|p| Some(p.to_string()))
+                        .ok_or_else(|| Error::MetaFileMalformed(MetaFile::EnvironmentIfs))?;
+                    let value = parts.next()
+                        .and_then(|p| Some(p.to_string()))
+                        .ok_or_else(|| Error::MetaFileMalformed(MetaFile::EnvironmentIfs))?;
+                    m.insert(key, value);
+                }
+                Ok(m)
+            }
+            Err(Error::MetaFileNotFound(MetaFile::EnvironmentIfs)) => Ok(m),
             Err(e) => Err(e),
         }
     }
@@ -373,6 +401,71 @@ impl PackageInstall {
 
         let p = env::join_paths(&run_paths).expect("Failed to build path string");
         Ok(p.into_string().expect("Failed to convert path to utf8 string"))
+    }
+
+    pub fn runtime_environment(&self) -> Result<HashMap<String, String>> {
+        let mut idents = HashSet::new();
+        let mut run_envs = HashMap::new();
+
+        let env = self.environment()?;
+        // let env_ifs = self.environment_ifs()?;
+        for (key, value) in env.into_iter() {
+            run_envs.insert(key, value);
+        }
+        // TODO: env.is_empty(); Load self.paths()
+
+        let deps = self.load_deps()?;
+        for dep in deps.iter() {
+            let env = dep.environment()?;
+            let env_ifs = dep.environment_ifs()?;
+            for (key, value) in env.into_iter() {
+                match run_envs.entry(key) {
+                    Occupied(entry) => match env_ifs.get(entry.key()) {
+                        Some(ifs) => {
+                            let v = entry.into_mut();
+                            v.push_str(ifs);
+                            v.push_str(&value);
+                        }
+                        // TODO: Add a proper error type
+                        None => panic!("Cannot join {}, no IFS defined", entry.key()),
+                    },
+                    Vacant(entry) => {
+                        entry.insert(value);
+                        ()
+                    }
+                }
+            }
+            idents.insert(dep.ident().clone());
+        }
+
+        let tdeps = self.load_tdeps()?;
+        for dep in tdeps.iter() {
+            if idents.contains(dep.ident()) {
+                continue;
+            }
+            let env = dep.environment()?;
+            let env_ifs = dep.environment_ifs()?;
+            for (key, value) in env.into_iter() {
+                match run_envs.entry(key) {
+                    Occupied(entry) => match env_ifs.get(entry.key()) {
+                        Some(ifs) => {
+                            let v = entry.into_mut();
+                            v.push_str(ifs);
+                            v.push_str(&value);
+                        }
+                        // TODO: Add a proper error type
+                        None => panic!("Cannot join {}, no IFS defined", entry.key()),
+                    },
+                    Vacant(entry) => {
+                        entry.insert(value);
+                        ()
+                    }
+                }
+            }
+            idents.insert(dep.ident().clone());
+        }
+
+        Ok(run_envs)
     }
 
     pub fn installed_path(&self) -> &Path {
