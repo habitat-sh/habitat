@@ -40,7 +40,7 @@ impl DataStore {
                              config.pool_size,
                              config.datastore_connection_retry_ms,
                              config.datastore_connection_timeout,
-                             config.datastore_connection_test)?;
+                             vec![0])?;
         Ok(DataStore { pool: pool })
     }
 
@@ -54,7 +54,10 @@ impl DataStore {
     /// This includes all the schema and data migrations, along with stored procedures for data
     /// access.
     pub fn setup(&self) -> Result<()> {
-        let mut migrator = Migrator::new(&self.pool);
+        let conn = self.pool.get_raw()?;
+        let xact = conn.transaction().map_err(Error::DbTransactionStart)?;
+        let mut migrator = Migrator::new(xact, self.pool.shards.clone());
+
         migrator.setup()?;
 
         // The packages table
@@ -205,11 +208,13 @@ impl DataStore {
                          END
                          $$ LANGUAGE plpgsql STABLE"#)?;
 
+        migrator.finish()?;
+
         Ok(())
     }
 
     pub fn insert_package(&self, msg: &Package) -> Result<()> {
-        let conn = self.pool.get()?;
+        let conn = self.pool.get_shard(0)?;
 
         conn.execute("SELECT insert_package_v1($1, $2)",
                      &[&msg.get_ident(), &msg.get_deps()])
@@ -223,7 +228,7 @@ impl DataStore {
     pub fn get_packages(&self) -> Result<RepeatedField<Package>> {
         let mut packages = RepeatedField::new();
 
-        let conn = self.pool.get()?;
+        let conn = self.pool.get_shard(0)?;
 
         let rows = &conn.query("SELECT * FROM get_packages_v1()", &[])
                         .map_err(Error::PackagesGet)?;
@@ -242,7 +247,7 @@ impl DataStore {
     }
 
     pub fn create_group(&self, msg: &GroupCreate, project_names: Vec<String>) -> Result<Group> {
-        let conn = self.pool.get()?;
+        let conn = self.pool.get_shard(0)?;
 
         assert!(!project_names.is_empty());
 
@@ -280,7 +285,7 @@ impl DataStore {
     pub fn get_group(&self, msg: &GroupGet) -> Result<Option<Group>> {
         let group_id = msg.get_group_id();
 
-        let conn = self.pool.get()?;
+        let conn = self.pool.get_shard(0)?;
         let rows = &conn.query("SELECT * FROM get_group_v1($1)", &[&(group_id as i64)])
                         .map_err(Error::GroupGet)?;
 
@@ -375,7 +380,7 @@ impl DataStore {
     }
 
     pub fn set_group_state(&self, group_id: u64, group_state: GroupState) -> Result<()> {
-        let conn = self.pool.get()?;
+        let conn = self.pool.get_shard(0)?;
         let state = match group_state {
             GroupState::Dispatching => "Dispatching",
             GroupState::Pending => "Pending",
@@ -389,7 +394,7 @@ impl DataStore {
     }
 
     pub fn set_group_job_state(&self, job: &Job) -> Result<()> {
-        let conn = self.pool.get()?;
+        let conn = self.pool.get_shard(0)?;
         let rows = &conn.query("SELECT * FROM find_project_v1($1, $2)",
                                &[&(job.get_owner_id() as i64), &job.get_project().get_name()])
                         .map_err(Error::ProjectSetState)?;
@@ -419,7 +424,7 @@ impl DataStore {
     pub fn pending_groups(&self, count: i32) -> Result<Vec<Group>> {
         let mut groups = Vec::new();
 
-        let conn = self.pool.get()?;
+        let conn = self.pool.get_shard(0)?;
         let group_rows = &conn.query("SELECT * FROM pending_groups_v1($1)", &[&count])
                               .map_err(Error::GroupPending)?;
 

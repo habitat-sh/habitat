@@ -10,8 +10,18 @@ log = "*"
 r2d2 = "*"
 time = "*"
 postgres = "*"
+rand = "*"
 r2d2_postgres = "*"
 num_cpus = "*"
+fnv = "*"
+fallible-iterator = "*"
+threadpool = "*"
+
+[dependencies.habitat_net]
+path = "../net"
+
+[dependencies.habitat_builder_protocol]
+path = "../builder-protocol"
 
 [features]
 functional = []

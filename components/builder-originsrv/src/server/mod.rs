@@ -20,6 +20,8 @@ use std::sync::{Arc, RwLock};
 use protocol::net;
 use zmq;
 
+use hab_net::config::RouteAddrs;
+use hab_net::routing::Broker;
 use hab_net::{Application, Supervisor};
 use hab_net::dispatcher::prelude::*;
 use hab_net::server::{Envelope, NetIdent, RouteConn, Service, ZMQ_CONTEXT};
@@ -67,22 +69,15 @@ impl Dispatcher for Worker {
                 state: &mut ServerState)
                 -> Result<()> {
         match message.message_id() {
-            "AccountInvitationListRequest" => {
-                handlers::account_invitation_list(message, sock, state)
-            }
             "CheckOriginAccessRequest" => handlers::origin_check_access(message, sock, state),
             "OriginCreate" => handlers::origin_create(message, sock, state),
             "OriginGet" => handlers::origin_get(message, sock, state),
-            "OriginInvitationValidateRequest" => {
-                handlers::origin_invitation_validate(message, sock, state)
-            }
             "OriginInvitationAcceptRequest" => {
                 handlers::origin_invitation_accept(message, sock, state)
             }
             "OriginInvitationCreate" => handlers::origin_invitation_create(message, sock, state),
             "OriginInvitationListRequest" => handlers::origin_invitation_list(message, sock, state),
             "OriginMemberListRequest" => handlers::origin_member_list(message, sock, state),
-            "AccountOriginListRequest" => handlers::account_origin_list(message, sock, state),
             "OriginSecretKeyCreate" => handlers::origin_secret_key_create(message, sock, state),
             "OriginSecretKeyGet" => handlers::origin_secret_key_get(message, sock, state),
             "OriginPublicKeyCreate" => handlers::origin_public_key_create(message, sock, state),
@@ -146,17 +141,23 @@ impl Application for Server {
 
     fn run(&mut self) -> Result<()> {
         try!(self.be_sock.bind(BE_LISTEN_ADDR));
+        let broker = {
+            let cfg = self.config.read().unwrap();
+            Broker::run(Self::net_ident(), cfg.route_addrs())
+        };
         let datastore = {
             let cfg = self.config.read().unwrap();
             DataStore::new(cfg.deref())?
         };
         try!(datastore.setup());
+        datastore.start_async();
         let cfg = self.config.clone();
         let init_state = ServerState::new(datastore);
         let sup: Supervisor<Worker> = Supervisor::new(cfg, init_state);
         try!(sup.start());
         try!(self.connect());
         try!(zmq::proxy(&mut self.router.socket, &mut self.be_sock));
+        broker.join().unwrap();
         Ok(())
     }
 }

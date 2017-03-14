@@ -42,16 +42,6 @@ pub fn router(config: Arc<Config>) -> Result<Chain> {
         status: get "/status" => status,
         search: post "/search" => XHandler::new(search).before(admin.clone()),
         account: get "/accounts/:id" => XHandler::new(account_show).before(admin.clone()),
-        features: get "/features" => XHandler::new(features_list).before(admin.clone()),
-        feature_teams: get "/features/:id/teams" => {
-            XHandler::new(feature_grants_list).before(admin.clone())
-        },
-        edit_feature_teams: post "/features/:id/teams" => {
-            XHandler::new(feature_grant).before(admin.clone())
-        },
-        delete_feature_team: delete "/features/:feature/teams/:id" => {
-            XHandler::new(feature_revoke).before(admin.clone())
-        }
     );
     let mut chain = Chain::new(router);
     chain.link(persistent::Read::<GitHubCli>::both(GitHubClient::new(&*config)));

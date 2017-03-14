@@ -1,8 +1,0 @@
-name: hab_inspec
-title: InSpec Profile
-maintainer: The Habitat Maintainers <humans@habitat.sh>
-copyright: 2016 Chef Software Inc. and/or applicable contributors
-copyright_email: humans@habitat.sh
-license: All Rights Reserved
-summary: Habitat Inspec testing profile
-version: 0.1.0

@@ -51,12 +51,6 @@ pub fn router(config: Arc<Config>) -> Result<Chain> {
         user_invitations: get "/user/invitations" => {
             XHandler::new(list_account_invitations).before(basic.clone())
         },
-        edit_user_invitation: put "/user/invitations/:invitation_id" => {
-            XHandler::new(accept_invitation).before(basic.clone())
-        },
-        delete_user_invitation: delete "/user/invitations/:invitation_id" => {
-            XHandler::new(ignore_invitation).before(basic.clone())
-        },
         user_origins: get "/user/origins" => XHandler::new(list_user_origins).before(basic.clone()),
 
         projects: post "/projects" => XHandler::new(project_create).before(bldr.clone()),

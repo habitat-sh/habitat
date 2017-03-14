@@ -22,7 +22,6 @@ extern crate postgres;
 extern crate protobuf;
 extern crate r2d2;
 extern crate toml;
-#[macro_use]
 extern crate zmq;
 
 pub mod config;

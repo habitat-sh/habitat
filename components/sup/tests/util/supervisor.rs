@@ -110,7 +110,9 @@ impl Supervisor {
         let retry_max = 10;
         let mut retry_count = 0;
         while retry_count < retry_max {
-            let mut res = match client.get(&format!("http://{}:9631/{}", self.ip, path)).send() {
+            let mut res = match client
+                      .get(&format!("http://{}:9631/{}", self.ip, path))
+                      .send() {
                 Ok(res) => res,
                 Err(e) => {
                     println!("Cannot get {}: {:?}", path, e);
@@ -143,7 +145,9 @@ impl Supervisor {
         let retry_max = 10;
         let mut retry_count = 0;
         while retry_count < retry_max {
-            let mut res = match client.get(&format!("http://{}:9631/status", self.ip)).send() {
+            let mut res = match client
+                      .get(&format!("http://{}:9631/status", self.ip))
+                      .send() {
                 Ok(res) => res,
                 Err(e) => {
                     println!("Cannot get /status: {:?}", e);
@@ -171,17 +175,25 @@ impl Supervisor {
 
     pub fn incarnation(&self) -> u64 {
         let gossip = self.gossip();
-        let member_list = gossip.find_path(&["member_list", "members"])
+        let member_list = gossip
+            .find_path(&["member_list", "members"])
             .unwrap()
             .as_object()
             .unwrap();
         let member = member_list.get(&self.id).unwrap().as_object().unwrap();
-        member.get("incarnation").unwrap().find("counter").unwrap().as_u64().unwrap()
+        member
+            .get("incarnation")
+            .unwrap()
+            .find("counter")
+            .unwrap()
+            .as_u64()
+            .unwrap()
     }
 
     pub fn has_member(&self, sup: &Supervisor) -> bool {
         let gossip = self.gossip();
-        let member_list = gossip.find_path(&["member_list", "members"])
+        let member_list = gossip
+            .find_path(&["member_list", "members"])
             .unwrap()
             .as_object()
             .unwrap();
@@ -190,7 +202,8 @@ impl Supervisor {
 
     pub fn health_of_member(&self, sup: &Supervisor) -> String {
         let gossip = self.gossip();
-        let member_list = gossip.find_path(&["member_list", "members"])
+        let member_list = gossip
+            .find_path(&["member_list", "members"])
             .unwrap()
             .as_object()
             .unwrap();
@@ -203,16 +216,28 @@ impl Supervisor {
 
     pub fn netsplit(&self, sup: &Supervisor) {
         self.docker
-            .exec(&["/bin/sh", "-l", "-c", &format!("iptables -A INPUT -s {} -j DROP", &sup.ip)]);
+            .exec(&["/bin/sh",
+                    "-l",
+                    "-c",
+                    &format!("iptables -A INPUT -s {} -j DROP", &sup.ip)]);
         sup.docker
-            .exec(&["/bin/sh", "-l", "-c", &format!("iptables -A INPUT -s {} -j DROP", &self.ip)]);
+            .exec(&["/bin/sh",
+                    "-l",
+                    "-c",
+                    &format!("iptables -A INPUT -s {} -j DROP", &self.ip)]);
     }
 
     pub fn netjoin(&self, sup: &Supervisor) {
         self.docker
-            .exec(&["/bin/sh", "-l", "-c", &format!("iptables -D INPUT -s {} -j DROP", &sup.ip)]);
+            .exec(&["/bin/sh",
+                    "-l",
+                    "-c",
+                    &format!("iptables -D INPUT -s {} -j DROP", &sup.ip)]);
         sup.docker
-            .exec(&["/bin/sh", "-l", "-c", &format!("iptables -D INPUT -s {} -j DROP", &self.ip)]);
+            .exec(&["/bin/sh",
+                    "-l",
+                    "-c",
+                    &format!("iptables -D INPUT -s {} -j DROP", &self.ip)]);
     }
 
     pub fn keeps_member_alive(&self, sup: &Supervisor) -> bool {

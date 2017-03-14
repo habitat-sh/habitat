@@ -11,6 +11,6 @@ tmp/
 *.sig.key
 *.box.key
 *.sym.key
-test/logs
-test/results
-test/cleanup.sh
+test/builder-api/node_modules
+test/builder-api/services.log
+test/builder-api/built/*

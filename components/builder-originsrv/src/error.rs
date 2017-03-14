@@ -20,6 +20,7 @@ use std::result;
 use hab_core;
 use hab_net;
 use protobuf;
+use protocol;
 use postgres;
 use r2d2;
 use zmq;
@@ -32,6 +33,7 @@ pub enum Error {
     DbPoolTimeout(r2d2::GetTimeout),
     DbTransactionStart(postgres::error::Error),
     DbTransactionCommit(postgres::error::Error),
+    DbListen(postgres::error::Error),
     HabitatCore(hab_core::Error),
     IO(io::Error),
     NetError(hab_net::Error),
@@ -56,6 +58,8 @@ pub enum Error {
     OriginPublicKeyListForOrigin(postgres::error::Error),
     OriginAccountList(postgres::error::Error),
     OriginAccountInOrigin(postgres::error::Error),
+    SyncInvitations(postgres::error::Error),
+    SyncInvitationsUpdate(postgres::error::Error),
     Protobuf(protobuf::ProtobufError),
     Zmq(zmq::Error),
 }
@@ -75,6 +79,9 @@ impl fmt::Display for Error {
             }
             Error::DbPoolTimeout(ref e) => {
                 format!("Timeout getting connection from the database pool, {}", e)
+            }
+            Error::DbListen(ref e) => {
+                format!("Error setting up async database event listener, {}", e)
             }
             Error::HabitatCore(ref e) => format!("{}", e),
             Error::IO(ref e) => format!("{}", e),
@@ -142,6 +149,12 @@ impl fmt::Display for Error {
             Error::OriginAccountInOrigin(ref e) => {
                 format!("Error checking if this account is in an origin, {}", e)
             }
+            Error::SyncInvitations(ref e) => {
+                format!("Error syncing invitations for account, {}", e)
+            }
+            Error::SyncInvitationsUpdate(ref e) => {
+                format!("Error update invitation sync for account, {}", e)
+            }
             Error::Protobuf(ref e) => format!("{}", e),
             Error::Zmq(ref e) => format!("{}", e),
         };
@@ -157,6 +170,7 @@ impl error::Error for Error {
             Error::DbTransactionStart(ref err) => err.description(),
             Error::DbTransactionCommit(ref err) => err.description(),
             Error::DbPoolTimeout(ref err) => err.description(),
+            Error::DbListen(ref err) => err.description(),
             Error::HabitatCore(ref err) => err.description(),
             Error::IO(ref err) => err.description(),
             Error::NetError(ref err) => err.description(),
@@ -181,6 +195,8 @@ impl error::Error for Error {
             Error::OriginPublicKeyListForOrigin(ref err) => err.description(),
             Error::OriginAccountList(ref err) => err.description(),
             Error::OriginAccountInOrigin(ref err) => err.description(),
+            Error::SyncInvitations(ref err) => err.description(),
+            Error::SyncInvitationsUpdate(ref err) => err.description(),
             Error::Protobuf(ref err) => err.description(),
             Error::Zmq(ref err) => err.description(),
         }
@@ -210,6 +226,13 @@ impl From<hab_net::Error> for Error {
         Error::NetError(err)
     }
 }
+
+impl From<protocol::net::NetError> for Error {
+    fn from(err: protocol::net::NetError) -> Self {
+        Error::NetError(hab_net::Error::Net(err))
+    }
+}
+
 
 impl From<io::Error> for Error {
     fn from(err: io::Error) -> Self {

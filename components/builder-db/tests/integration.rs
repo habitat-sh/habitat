@@ -27,10 +27,10 @@ mod pool {
                            1,
                            300,
                            Duration::from_secs(3600),
-                           false)
+                           vec![0])
                 .expect("Failed to create pool");
     }
 }
 
+mod async;
 mod migration;
-mod data_store;

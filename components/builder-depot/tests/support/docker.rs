@@ -47,7 +47,12 @@ fn docker_cmd(args: &[&str]) -> Docker {
 }
 
 pub fn depot(image: &str) -> Docker {
-    docker_cmd(&["run", "-d", "--cap-add=NET_ADMIN", "--expose=9632", image, "depot"])
+    docker_cmd(&["run",
+                 "-d",
+                 "--cap-add=NET_ADMIN",
+                 "--expose=9632",
+                 image,
+                 "depot"])
 }
 
 impl Docker {

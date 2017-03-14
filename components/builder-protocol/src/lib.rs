@@ -34,4 +34,4 @@ mod message;
 
 pub use self::error::{ProtocolError, ProtocolResult};
 pub use self::message::{Message, Persistable, Routable, RouteKey};
-pub use self::sharding::InstaId;
+pub use self::sharding::{ShardId, SHARD_COUNT, InstaId};

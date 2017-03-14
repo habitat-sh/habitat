@@ -49,5 +49,8 @@ pub fn plan_build() -> String {
 }
 
 pub fn sup() -> String {
-    PathBuf::from(env::var("OUT_DIR").unwrap()).join("hab-sup").to_string_lossy().into_owned()
+    PathBuf::from(env::var("OUT_DIR").unwrap())
+        .join("hab-sup")
+        .to_string_lossy()
+        .into_owned()
 }

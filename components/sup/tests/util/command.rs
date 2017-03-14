@@ -191,11 +191,11 @@ pub fn run_command(cmd_args: CommandArgs) -> Command {
 pub fn spawn(mut command: Command) -> CmdResult<Cmd> {
     let child = try!(command.spawn());
     Ok(Cmd {
-        child: Some(child),
-        status: None,
-        stdout: None,
-        stderr: None,
-    })
+           child: Some(child),
+           status: None,
+           stdout: None,
+           stderr: None,
+       })
 }
 
 pub fn studio_run(cmd: &str, args: &[&str]) -> CmdResult<Cmd> {
@@ -216,12 +216,14 @@ pub fn dockerize(ident_str: &str) {
     if !install.status.unwrap().success() {
         panic!("Failed to install 'core/hab-pkg-dockerize'");
     }
-    let mut docker =
-        match studio_run("hab",
-                         &["exec", "core/hab-pkg-dockerize", "hab-pkg-dockerize", ident_str]) {
-            Ok(cmd) => cmd,
-            Err(e) => panic!("{:?}", e),
-        };
+    let mut docker = match studio_run("hab",
+                                      &["exec",
+                                        "core/hab-pkg-dockerize",
+                                        "hab-pkg-dockerize",
+                                        ident_str]) {
+        Ok(cmd) => cmd,
+        Err(e) => panic!("{:?}", e),
+    };
     docker.wait_with_output();
     if !docker.status.unwrap().success() {
         panic!("Failed to dockerize simple service");

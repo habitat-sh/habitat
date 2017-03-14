@@ -39,9 +39,9 @@ export const SET_ORIGIN_USER_INVITE_ERROR_MESSAGE =
     "SET_ORIGIN_USER_INVITE_ERROR_MESSAGE";
 export const TOGGLE_ORIGIN_PICKER = "TOGGLE_ORIGIN_PICKER";
 
-export function acceptOriginInvitation(invitationId: string, token: string) {
+export function acceptOriginInvitation(invitationId: string, originName: string, token: string) {
     return dispatch => {
-        new BuilderApiClient(token).acceptOriginInvitation(invitationId).
+        new BuilderApiClient(token).acceptOriginInvitation(invitationId, originName).
             then(response => {
                 dispatch(addNotification({
                     title: "Invitation Accepted",

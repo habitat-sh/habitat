@@ -14,14 +14,14 @@
 // Configuration for a Habitat SessionSrv service
 
 use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
+use std::time::Duration;
 
-use dbcache::config::DataStoreCfg;
+use db;
 use hab_core::config::{ConfigFile, ParseInto};
 use hab_net;
 use hab_net::config::{DispatcherCfg, GitHubOAuth, RouteAddrs, Shards, DEFAULT_GITHUB_URL,
                       DEV_GITHUB_CLIENT_ID, DEV_GITHUB_CLIENT_SECRET};
 use protocol::sharding::{ShardId, SHARD_COUNT};
-use redis;
 use toml;
 
 use error::{Error, Result};
@@ -29,10 +29,16 @@ use error::{Error, Result};
 pub struct Config {
     /// List of net addresses for routing servers to connect to.
     pub routers: Vec<SocketAddr>,
-    /// Net address to the persistent datastore.
-    pub datastore_addr: SocketAddr,
-    /// Connection retry timeout in milliseconds for datastore.
-    pub datastore_retry_ms: u64,
+
+    /// PostgreSQL connection URL
+    pub datastore_connection_url: String,
+    /// Timing to retry the connection to the data store if it cannot be established
+    pub datastore_connection_retry_ms: u64,
+    /// How often to cycle a connection from the pool
+    pub datastore_connection_timeout: Duration,
+    /// If the datastore connection is under test
+    pub datastore_connection_test: bool,
+
     /// Number of database connections to start in pool.
     pub pool_size: u32,
     /// Router's heartbeat port to connect to.
@@ -50,19 +56,29 @@ pub struct Config {
     /// A GitHub Team identifier for which members will automatically have administration
     /// privileges assigned to their session
     pub github_admin_team: u64,
+    /// GitHub team identifiers for builders
+    pub github_builder_teams: Vec<u64>,
+    /// GitHub team identifiers for build workers
+    pub github_build_worker_teams: Vec<u64>,
 }
 
 impl Default for Config {
     fn default() -> Self {
         Config {
             routers: vec![SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), 5562))],
-            datastore_addr: SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), 6379)),
-            datastore_retry_ms: Self::default_connection_retry_ms(),
-            pool_size: Self::default_pool_size(),
+
+            datastore_connection_url: String::from("postgresql://hab@127.0.0.1/builder_originsrv"),
+            datastore_connection_retry_ms: 300,
+            datastore_connection_timeout: Duration::from_secs(3600),
+            datastore_connection_test: false,
+
+            pool_size: db::config::default_pool_size(),
             heartbeat_port: 5563,
             shards: (0..SHARD_COUNT).collect(),
             worker_threads: Self::default_worker_count(),
             github_admin_team: 0,
+            github_builder_teams: Vec::new(),
+            github_build_worker_teams: Vec::new(),
             github_url: DEFAULT_GITHUB_URL.to_string(),
             github_client_id: DEV_GITHUB_CLIENT_ID.to_string(),
             github_client_secret: DEV_GITHUB_CLIENT_SECRET.to_string(),
@@ -76,13 +92,32 @@ impl ConfigFile for Config {
     fn from_toml(toml: toml::Value) -> Result<Self> {
         let mut cfg = Config::default();
         try!(toml.parse_into("cfg.routers", &mut cfg.routers));
-        try!(toml.parse_into("cfg.datastore_addr", &mut cfg.datastore_addr));
-        try!(toml.parse_into("cfg.datastore_retry_ms", &mut cfg.datastore_retry_ms));
+
+        let mut connection_user = String::new();
+        try!(toml.parse_into("cfg.datastore_connection_user", &mut connection_user));
+        let mut connection_address = String::new();
+        try!(toml.parse_into("cfg.datastore_connection_address", &mut connection_address));
+        let mut connection_db = String::new();
+        try!(toml.parse_into("cfg.datastore_connection_db", &mut connection_db));
+
+        cfg.datastore_connection_url = format!("postgresql://{}@{}/{}",
+                                               connection_user,
+                                               connection_address,
+                                               connection_db);
+        try!(toml.parse_into("cfg.datastore_connection_retry_ms",
+                             &mut cfg.datastore_connection_retry_ms));
+        let mut timeout_seconds = 3600;
+        try!(toml.parse_into("cfg.datastore_connection_timeout", &mut timeout_seconds));
+        cfg.datastore_connection_timeout = Duration::from_secs(timeout_seconds);
+
         try!(toml.parse_into("cfg.pool_size", &mut cfg.pool_size));
         try!(toml.parse_into("cfg.heartbeat_port", &mut cfg.heartbeat_port));
         try!(toml.parse_into("cfg.shards", &mut cfg.shards));
         try!(toml.parse_into("cfg.worker_threads", &mut cfg.worker_threads));
         try!(toml.parse_into("cfg.github_admin_team", &mut cfg.github_admin_team));
+        try!(toml.parse_into("cfg.github_builder_teams", &mut cfg.github_builder_teams));
+        try!(toml.parse_into("cfg.github_build_worker_teams",
+                             &mut cfg.github_build_worker_teams));
         try!(toml.parse_into("cfg.github.url", &mut cfg.github_url));
         if !try!(toml.parse_into("cfg.github.client_id", &mut cfg.github_client_id)) {
             return Err(Error::from(hab_net::Error::RequiredConfigField("github.client_id")));
@@ -91,20 +126,6 @@ impl ConfigFile for Config {
             return Err(Error::from(hab_net::Error::RequiredConfigField("github.client_secret")));
         }
         Ok(cfg)
-    }
-}
-
-impl DataStoreCfg for Config {
-    fn datastore_addr(&self) -> &SocketAddr {
-        &self.datastore_addr
-    }
-
-    fn connection_retry_ms(&self) -> u64 {
-        self.datastore_retry_ms
-    }
-
-    fn pool_size(&self) -> u32 {
-        self.pool_size
     }
 }
 
@@ -141,14 +162,5 @@ impl RouteAddrs for Config {
 impl Shards for Config {
     fn shards(&self) -> &Vec<u32> {
         &self.shards
-    }
-}
-
-impl<'a> redis::IntoConnectionInfo for &'a Config {
-    fn into_connection_info(self) -> redis::RedisResult<redis::ConnectionInfo> {
-        format!("redis://{}:{}",
-                self.datastore_addr.ip(),
-                self.datastore_addr.port())
-                .into_connection_info()
     }
 }
