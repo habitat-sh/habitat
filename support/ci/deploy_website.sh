@@ -7,16 +7,9 @@ if [[ "${TRAVIS_PULL_REQUEST}" = "false" ]] && [[ "${TRAVIS_BRANCH}" = "master" 
   cd www
   make deploy
 else
-  if ! [[ "${TRAVIS_PULL_REQUEST}" = "false" ]] && [[ "${TRAVIS_BRANCH}" = "master" ]]; then
+  if [[ "${TRAVIS_PULL_REQUEST}" = "false" ]] && [[ "${TRAVIS_BRANCH}" =~ ^acceptance_deploy ]]; then
     echo "We are on a PR or against the master branch. Deploying to Acceptance."
     cd www
-    make build
-    sed -i '/^Disallow:/ s/$/ \//' build/robots.txt
-    zip -r website.zip build
-
-    curl -H "Content-Type: application/zip" \
-      -H "Authorization: Bearer $NETLIFYKEY" \
-      --data-binary "@website.zip" \
-      --url https://api.netlify.com/api/v1/sites/habitat-acceptance.netlify.com/deploys
+    make acceptance
   fi
 fi
