@@ -49,6 +49,8 @@ Lieutenant and may have many maintainers.
 * [Steven Murawski](https://github.com/smurawski)
 * [Ian Henry](https://github.com/eeyun)
 * [Justin Carter](https://github.com/bodymindarts)
+* [Matt Wrock](https://github.com/mwrock)
+* [Salim Alam](https://github.com/chefsalim)
 
 ### Habitat Builder Web Application
 
@@ -62,6 +64,8 @@ The web application for the Habitat builder and depot.
 
 * [Fletcher Nichol](https://github.com/fnichol)
 * [Jamie Winsor](https://github.com/reset)
+* [Matt Wrock](https://github.com/mwrock)
+* [Salim Alam](https://github.com/chefsalim)
 
 ### Habitat Builder
 
@@ -77,6 +81,8 @@ The web application for the Habitat builder and depot.
 * [Brian Scott](https://github.com/bscott)
 * [Steven Murawski](https://github.com/smurawski)
 * [Ian Henry](https://github.com/eeyun)
+* [Matt Wrock](https://github.com/mwrock)
+* [Salim Alam](https://github.com/chefsalim)
 
 ### Documentation
 
@@ -94,3 +100,5 @@ tutorials and reference materials.
 * [Brian Scott](https://github.com/bscott)
 * [Ian Henry](https://github.com/eeyun)
 * [Jamie Winsor](https://github.com/reset)
+* [Matt Wrock](https://github.com/mwrock)
+* [Salim Alam](https://github.com/chefsalim)
