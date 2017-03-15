@@ -31,8 +31,9 @@ echo "Creating builder_jobsrv database if neccessary"
 sudo -u hab -E TERM=vt100 hab pkg exec core/postgresql createdb -O hab -h 127.0.0.1 builder_jobsrv
 echo "Creating builder_originsrv database if neccessary"
 sudo -u hab -E TERM=vt100 hab pkg exec core/postgresql createdb -O hab -h 127.0.0.1 builder_originsrv
+echo "Creating builder_scheduler database if neccessary"
+sudo -u hab -E TERM=vt100 hab pkg exec core/postgresql createdb -O hab -h 127.0.0.1 builder_scheduler
 
 while true; do
   sleep 1
 done
-

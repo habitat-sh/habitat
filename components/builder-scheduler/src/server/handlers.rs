@@ -22,39 +22,41 @@ use zmq;
 use super::ServerState;
 use error::Result;
 
-pub fn schedule(req: &mut Envelope, sock: &mut zmq::Socket, state: &mut ServerState) -> Result<()> {
-    let msg: proto::Schedule = try!(req.parse_msg());
-    println!("Schedule: {:?}", msg);
+pub fn group_create(req: &mut Envelope,
+                    sock: &mut zmq::Socket,
+                    state: &mut ServerState)
+                    -> Result<()> {
+    let msg: proto::GroupCreate = try!(req.parse_msg());
+    println!("group_create message: {:?}", msg);
 
     let project_name = format!("{}/{}", msg.get_origin(), msg.get_package());
     let mut projects = Vec::new();
     projects.push(project_name);
 
     // TBD - project dependencies will be added to the projects list later
-
-    let group;
-    {
-        let mut ds = state.datastore().write().unwrap();
-        group = ds.create_group(projects)?;
-    }
+    let group = state.datastore().create_group(&msg, projects)?;
 
     try!(state.schedule_cli().notify_work());
     try!(req.reply_complete(sock, &group));
     Ok(())
 }
 
-pub fn schedule_get(req: &mut Envelope,
-                    sock: &mut zmq::Socket,
-                    state: &mut ServerState)
-                    -> Result<()> {
-    let msg: proto::ScheduleGet = try!(req.parse_msg());
-    println!("ScheduleGet: {:?}", msg);
+pub fn group_get(req: &mut Envelope,
+                 sock: &mut zmq::Socket,
+                 state: &mut ServerState)
+                 -> Result<()> {
+    let msg: proto::GroupGet = try!(req.parse_msg());
+    println!("group_get message: {:?}", msg);
 
-    let group_opt;
-    {
-        let ds = state.datastore().read().unwrap();
-        group_opt = ds.get_group(msg.get_group_id());
-    }
+    let group_opt = match state.datastore().get_group(&msg) {
+        Ok(group_opt) => group_opt,
+        Err(err) => {
+            error!("Unable to retrieve group {}, err: {:?}",
+                   msg.get_group_id(),
+                   err);
+            None
+        }
+    };
 
     match group_opt {
         Some(group) => {

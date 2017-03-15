@@ -167,7 +167,7 @@ mod tests {
                    net::Protocol::SessionSrv);
         assert_eq!(Message(&originsrv::Origin::new()).protocol(),
                    net::Protocol::OriginSrv);
-        assert_eq!(Message(&scheduler::Schedule::new()).protocol(),
+        assert_eq!(Message(&scheduler::GroupCreate::new()).protocol(),
                    net::Protocol::Scheduler);
     }
 }
