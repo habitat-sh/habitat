@@ -23,7 +23,15 @@ impl Routable for Schedule {
     type H = String;
 
     fn route_key(&self) -> Option<Self::H> {
-        Some(self.get_ident().to_string())
+        Some(format!("{}/{}", self.get_origin(), self.get_package()))
+    }
+}
+
+impl Routable for ScheduleGet {
+    type H = String;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(self.get_group_id().to_string())
     }
 }
 
@@ -31,8 +39,38 @@ impl Serialize for GroupState {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {
-        // Serialize the enum as a u64.
-        serializer.serialize_u64(*self as u64)
+        match *self as u64 {
+            0 => serializer.serialize_str("Pending"),
+            1 => serializer.serialize_str("Dispatching"),
+            2 => serializer.serialize_str("Complete"),
+            3 => serializer.serialize_str("Failed"),
+            _ => panic!("Unexpected enum value"),
+        }
+    }
+}
+
+impl Serialize for ProjectState {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+        where S: Serializer
+    {
+        match *self as u64 {
+            0 => serializer.serialize_str("NotStarted"),
+            1 => serializer.serialize_str("InProgress"),
+            2 => serializer.serialize_str("Success"),
+            3 => serializer.serialize_str("Failure"),
+            _ => panic!("Unexpected enum value"),
+        }
+    }
+}
+
+impl Serialize for Project {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+        where S: Serializer
+    {
+        let mut strukt = try!(serializer.serialize_struct("project", 2));
+        try!(strukt.serialize_field("name", &self.get_name()));
+        try!(strukt.serialize_field("state", &self.get_state()));
+        strukt.end()
     }
 }
 
@@ -40,9 +78,11 @@ impl Serialize for Group {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {
-        let mut strukt = try!(serializer.serialize_struct("group", 2));
-        try!(strukt.serialize_field("group_id", &self.get_group_id()));
+        let mut strukt = try!(serializer.serialize_struct("group", 4));
+        try!(strukt.serialize_field("id", &self.get_id()));
         try!(strukt.serialize_field("state", &self.get_state()));
+        try!(strukt.serialize_field("projects", &self.get_projects()));
+        try!(strukt.serialize_field("jobs", &self.get_jobs()));
         strukt.end()
     }
 }

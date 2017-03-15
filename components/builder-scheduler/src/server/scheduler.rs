@@ -17,12 +17,15 @@ use std::thread::{self, JoinHandle};
 
 use protobuf::parse_from_bytes;
 use hab_net::server::ZMQ_CONTEXT;
+use hab_net::routing::Broker;
 use zmq;
 
-use protocol::jobsrv;
+use protocol::jobsrv::{self, Job, JobSpec};
+use protocol::originsrv::*;
+use protocol::scheduler as proto;
 use config::Config;
 use data_store::DataStore;
-use error::Result;
+use error::{Result, Error};
 
 const SCHEDULER_ADDR: &'static str = "inproc://scheduler";
 
@@ -57,6 +60,7 @@ pub struct ScheduleMgr {
     datastore: Arc<RwLock<DataStore>>,
     work_sock: zmq::Socket,
     status_sock: zmq::Socket,
+    schedule_cli: ScheduleClient,
     msg: zmq::Message,
 }
 
@@ -69,11 +73,15 @@ impl ScheduleMgr {
         try!(work_sock.set_linger(0));
         try!(work_sock.set_immediate(true));
         let msg = try!(zmq::Message::new());
+        let mut schedule_cli = ScheduleClient::default();
+        try!(schedule_cli.connect());
+
         Ok(ScheduleMgr {
             config: config,
             datastore: datastore,
             work_sock: work_sock,
             status_sock: status_sock,
+            schedule_cli: schedule_cli,
             msg: msg,
         })
     }
@@ -134,23 +142,178 @@ impl ScheduleMgr {
 
     fn process_work(&mut self) -> Result<()> {
         println!("Process work called");
-        try!(self.work_sock.recv(&mut self.msg, 0));
 
-        // TBD: Scheduling work will happen here
+        loop {
+            // Take one group from the pending list
+            let mut groups; // = Vec::new();
+
+            {
+                let mut ds = self.datastore.write().unwrap();
+                groups = ds.pending_groups(1)?;
+            }
+
+            // 0 means there are no pending groups, so we should consume our notice that we have work
+            if groups.len() == 0 {
+                println!("No more pending groups - exiting process_work");
+                try!(self.work_sock.recv(&mut self.msg, 0));
+                break;
+            }
+
+            // This unwrap is fine, because we just checked our length
+            let group = groups.pop().unwrap();
+            println!("Got pending group {}", group.get_id());
+            assert!(group.get_state() == proto::GroupState::Dispatching);
+
+            self.dispatch_group(group)?;
+        }
         Ok(())
+    }
+
+    fn dispatch_group(&mut self, group: proto::Group) -> Result<()> {
+        for project in group.get_projects()
+            .into_iter()
+            .filter(|x| x.get_state() == proto::ProjectState::NotStarted) {
+            println!("Dispatching project: {:?}", project.get_name());
+            assert!(project.get_state() == proto::ProjectState::NotStarted);
+
+            match self.schedule_job(group.get_id(), project.get_name()) {
+                Ok(job) => {
+                    let mut ds = self.datastore.write().unwrap();
+                    ds.add_group_job(group.get_id(), &job)?;
+                    // TBD - eventually, dispatch more than one at a time
+                    // For now, we dispatch one at a time to strictly preserve the
+                    // desired dependency order.
+                    break;
+                }
+                Err(err) => {
+                    error!("Failed to schedule job for {}, err: {:?}",
+                           project.get_name(),
+                           err);
+
+                    let mut ds = self.datastore.write().unwrap();
+                    ds.set_group_state(group.get_id(), proto::GroupState::Failed)?;
+                    // TBD? ds.set_project_state(group.get_id(), project.get_name(), proto::ProjectState::Failure)?;
+                    break;
+                }
+            }
+        }
+        Ok(())
+    }
+
+    fn schedule_job(&mut self, group_id: u64, project_name: &str) -> Result<Job> {
+        let mut project_get = OriginProjectGet::new();
+
+        project_get.set_name(String::from(project_name));
+
+        let mut conn = Broker::connect().unwrap();
+        let project = match conn.route::<OriginProjectGet, OriginProject>(&project_get) {
+            Ok(project) => project,
+            Err(err) => {
+                error!("Unable to retrieve project: {:?}, error: {:?}",
+                       project_name,
+                       err);
+
+                return Err(Error::ProtoNetError(err));
+            }
+        };
+
+        let mut job_spec: JobSpec = JobSpec::new();
+        job_spec.set_owner_id(group_id);
+        job_spec.set_project(project);
+
+        match conn.route::<JobSpec, Job>(&job_spec) {
+            Ok(job) => {
+                println!("Job created: {:?}", job);
+                Ok(job)
+            }
+            Err(err) => {
+                error!("Job creation error: {:?}", err);
+                Err(Error::ProtoNetError(err))
+            }
+        }
     }
 
     fn process_status(&mut self) -> Result<()> {
         try!(self.status_sock.recv(&mut self.msg, 0));
-        let job: jobsrv::Job = try!(parse_from_bytes(&self.msg));
+        let job: Job = try!(parse_from_bytes(&self.msg));
         println!("Received job status: {:?}", job);
 
-        let mut ds = self.datastore.write().unwrap();
-        match ds.find_group_for_job(&job) {
-            Some(group) => ds.update_group_job(&group, &job).unwrap(),
+        let group_id_opt;
+        {
+            let ds = self.datastore.read().unwrap();
+            group_id_opt = ds.find_group_id_for_job(job.get_id());
+        }
+
+        match group_id_opt {
+            Some(group_id) => {
+                {
+                    let mut ds = self.datastore.write().unwrap();
+                    ds.set_group_job_state(job.get_id(), job.get_state()).unwrap();
+                }
+
+                match job.get_state() {
+                    jobsrv::JobState::Complete |
+                    jobsrv::JobState::Rejected |
+                    jobsrv::JobState::Failed => self.update_group_state(group_id)?,
+                    _ => (),
+                }
+            }
             None => {
                 println!("Did not find any group for job: {}", job.get_id());
             }
+        }
+
+        Ok(())
+    }
+
+    fn update_group_state(&mut self, group_id: u64) -> Result<()> {
+        let group;
+        {
+            let ds = self.datastore.read().unwrap();
+            group = ds.get_group(group_id).unwrap(); // we know the group exists
+        }
+
+        // Group state transition rules:
+        // |   Start Group State     |  Projects State  |   New Group State   |
+        // |-------------------------|------------------|---------------------|
+        // |     Pending             |     N/A          |        N/A          |
+        // |     Dispatching         |   any Failure    |      Failed         |
+        // |     Dispatching         |   all Success    |      Complete       |
+        // |     Dispatching         |   otherwise      |      Pending        |
+        // |     Complete            |     N/A          |        N/A          |
+        // |     Failed              |     N/A          |        N/A          |
+
+        if group.get_state() == proto::GroupState::Dispatching {
+            let mut failed = 0;
+            let mut succeeded = 0;
+            for project in group.get_projects() {
+                match project.get_state() {
+                    proto::ProjectState::Failure => failed = failed + 1,
+                    proto::ProjectState::Success => succeeded = succeeded + 1,
+                    _ => (),
+                }
+            }
+
+            let new_state = if failed > 0 {
+                proto::GroupState::Failed
+            } else if succeeded == group.get_projects().len() {
+                proto::GroupState::Complete
+            } else {
+                proto::GroupState::Pending
+            };
+
+            {
+                let mut ds = self.datastore.write().unwrap();
+                ds.set_group_state(group_id, new_state).unwrap();
+            }
+
+            if new_state == proto::GroupState::Pending {
+                try!(self.schedule_cli.notify_work());
+            }
+        } else {
+            error!("Unexpected group state {:?} for group id: {}",
+                   group.get_state(),
+                   group_id);
         }
 
         Ok(())

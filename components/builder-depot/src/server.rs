@@ -41,7 +41,7 @@ use persistent;
 use protocol::depotsrv;
 use protocol::net::ErrCode;
 use protocol::sessionsrv::{Account, AccountGet};
-use protocol::scheduler::{Schedule, Group};
+use protocol::scheduler::{Schedule, ScheduleGet, Group};
 use protocol::originsrv::*;
 use regex::Regex;
 use router::{Params, Router};
@@ -607,20 +607,53 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
     }
 }
 
-// TBD: This is mostly a stub for now.
-fn schedule_package(req: &mut Request) -> IronResult<Response> {
-    let ident = {
-        let params = req.extensions.get::<Router>().unwrap();
-        ident_from_params(params)
+fn schedule(req: &mut Request) -> IronResult<Response> {
+    let params = req.extensions.get::<Router>().unwrap().clone();
+    let origin = match params.find("origin") {
+        Some(origin) => origin,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+    let package = match params.find("pkg") {
+        Some(pkg) => pkg,
+        None => return Ok(Response::with(status::BadRequest)),
     };
 
     let mut conn = Broker::connect().unwrap();
 
-    debug!("SCHEDULING ident={}", ident);
-
     let mut request = Schedule::new();
-    request.set_ident(ident.clone());
+    request.set_origin(String::from(origin));
+    request.set_package(String::from(package));
+
     match conn.route::<Schedule, Group>(&request) {
+        Ok(group) => {
+            let mut response = render_json(status::Ok, &group);
+            dont_cache_response(&mut response);
+            Ok(response)
+        }
+        Err(err) => Ok(render_net_error(&err)),
+    }
+}
+
+fn get_schedule(req: &mut Request) -> IronResult<Response> {
+    let group_id = {
+        let params = req.extensions.get::<Router>().unwrap();
+        let group_id_str = match params.find("groupid") {
+            Some(s) => s,
+            None => return Ok(Response::with(status::BadRequest)),
+        };
+
+        match group_id_str.parse::<u64>() {
+            Ok(id) => id,
+            Err(_) => return Ok(Response::with(status::BadRequest)),
+        }
+    };
+
+    let mut conn = Broker::connect().unwrap();
+
+    let mut request = ScheduleGet::new();
+    request.set_group_id(group_id);
+
+    match conn.route::<ScheduleGet, Group>(&request) {
         Ok(group) => {
             let mut response = render_json(status::Ok, &group);
             dont_cache_response(&mut response);
@@ -1306,13 +1339,14 @@ pub fn router(depot: Depot) -> Result<Chain> {
                 XHandler::new(upload_package).before(basic.clone())
             }
         },
-        package_schedule: post "/pkgs/schedule/:origin/:pkg/:version/:release" => {
+        schedule: post "/pkgs/schedule/:origin/:pkg" => {
             if depot.config.insecure {
-                XHandler::new(schedule_package)
+                XHandler::new(schedule)
             } else {
-                XHandler::new(schedule_package).before(basic.clone())
+                XHandler::new(schedule).before(basic.clone())
             }
         },
+        schedule_get: get "/pkgs/schedule/:groupid" => get_schedule,
 
         origin_create: post "/origins" => {
             XHandler::new(origin_create).before(basic.clone())

@@ -19,6 +19,7 @@ extern crate habitat_builder_db as db;
 extern crate linked_hash_map;
 #[macro_use]
 extern crate log;
+extern crate rand;
 extern crate postgres;
 extern crate protobuf;
 extern crate r2d2;

@@ -15,74 +15,56 @@
 //! A collection of handlers for the Scheduler dispatcher
 
 use hab_net::server::Envelope;
+use protocol::net::{self, ErrCode};
 use protocol::scheduler as proto;
 use zmq;
-
-use protocol::jobsrv::{Job, JobSpec};
-use hab_net::routing::Broker;
-use protocol::originsrv::*;
 
 use super::ServerState;
 use error::Result;
 
-// TBD: This is currently a WIP to get end-to-end flow working.
 pub fn schedule(req: &mut Envelope, sock: &mut zmq::Socket, state: &mut ServerState) -> Result<()> {
     let msg: proto::Schedule = try!(req.parse_msg());
-    println!("Scheduling: {:?}", msg);
+    println!("Schedule: {:?}", msg);
 
-    let mut group = proto::Group::new();
+    let project_name = format!("{}/{}", msg.get_origin(), msg.get_package());
+    let mut projects = Vec::new();
+    projects.push(project_name);
 
+    // TBD - project dependencies will be added to the projects list later
+
+    let group;
     {
-        let mut ds = state.datastore.write().unwrap();
-        ds.create_group(&mut group)?;
+        let mut ds = state.datastore().write().unwrap();
+        group = ds.create_group(projects)?;
     }
 
-    let mut project_get = OriginProjectGet::new();
-    let project_name = format!("{}/{}",
-                               msg.get_ident().get_origin(),
-                               msg.get_ident().get_name());
-    project_get.set_name(project_name.clone());
-
-    let mut conn = Broker::connect().unwrap();
-    let project = match conn.route::<OriginProjectGet, OriginProject>(&project_get) {
-        Ok(project) => project,
-        Err(err) => {
-            error!("Unable to retrieve project: {:?}, error: {:?}",
-                   project_name,
-                   err);
-            group.set_state(proto::GroupState::Failed);
-            {
-                let mut ds = state.datastore.write().unwrap();
-                ds.set_group_state(&group)?;
-            }
-
-            try!(req.reply_complete(sock, &group));
-            return Ok(());
-        }
-    };
-
-    let mut job_spec: JobSpec = JobSpec::new();
-    job_spec.set_owner_id(group.get_group_id());
-    job_spec.set_project(project);
-
-    match conn.route::<JobSpec, Job>(&job_spec) {
-        Ok(job) => {
-            println!("Job created: {:?}", job);
-            group.set_state(proto::GroupState::Dispatched);
-
-            let mut ds = state.datastore.write().unwrap();
-            ds.add_group_job(&group, &job)?;
-            ds.set_group_state(&group)?;
-        }
-        Err(err) => {
-            error!("Job creation error: {:?}", err);
-            group.set_state(proto::GroupState::Failed);
-
-            let mut ds = state.datastore.write().unwrap();
-            ds.set_group_state(&group)?;
-        }
-    }
-
+    try!(state.schedule_cli().notify_work());
     try!(req.reply_complete(sock, &group));
+    Ok(())
+}
+
+pub fn schedule_get(req: &mut Envelope,
+                    sock: &mut zmq::Socket,
+                    state: &mut ServerState)
+                    -> Result<()> {
+    let msg: proto::ScheduleGet = try!(req.parse_msg());
+    println!("ScheduleGet: {:?}", msg);
+
+    let group_opt;
+    {
+        let ds = state.datastore().read().unwrap();
+        group_opt = ds.get_group(msg.get_group_id());
+    }
+
+    match group_opt {
+        Some(group) => {
+            try!(req.reply_complete(sock, &group));
+        }
+        None => {
+            let err = net::err(ErrCode::ENTITY_NOT_FOUND, "sc:schedule-get:1");
+            try!(req.reply_complete(sock, &err));
+        }
+    }
+
     Ok(())
 }
