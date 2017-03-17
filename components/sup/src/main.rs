@@ -101,10 +101,14 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
         (@subcommand start =>
             (about: "Start a Habitat-supervised service from a package or artifact")
             (aliases: &["st", "sta", "star"])
+            (@arg GROUP: --environment +takes_value
+                "The name of the group all services will be grouped into [default: default].")
             (@arg LISTEN_GOSSIP: --("listen-gossip") +takes_value
                 "The listen address for the gossip system [default: 0.0.0.0:9638]")
             (@arg LISTEN_HTTP: --("listen-http") +takes_value
                 "The listen address for the HTTP gateway [default: 0.0.0.0:9631]")
+            (@arg ORGANIZATION: --org +takes_value
+                "The name of the organization all services will be a part of")
             (@arg PEER: --peer +takes_value +multiple
                 "The listen address of an initial peer (IP[:PORT])")
             (@arg PERMANENT_PEER: --("permanent-peer") -I "If this service is a permanent peer")
@@ -114,10 +118,6 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                 (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
             (@group SVC_ARGS =>
                 (@attributes +multiple requires[PKG_IDENT_OR_ARTIFACT])
-                (@arg GROUP: --group +takes_value
-                    "The service group; shared config and topology [default: default].")
-                (@arg ORGANIZATION: --org +takes_value
-                    "The organization that a service is part of")
                 (@arg DEPOT_URL: --url -u +takes_value {valid_url}
                     "Use a specific Depot URL (ex: http://depot.example.com/v1/depot)")
                 (@arg TOPOLOGY: --topology -t +takes_value {valid_topology}
@@ -171,16 +171,18 @@ fn sub_start(m: &ArgMatches) -> Result<()> {
     }
 
     let mut cfg = ManagerConfig::default();
-
+    if let Some(group) = m.value_of("GROUP") {
+        cfg.group = group.to_string();
+    }
     if let Some(addr_str) = m.value_of("LISTEN_GOSSIP") {
         cfg.gossip_listen = try!(GossipListenAddr::from_str(addr_str));
     }
     if let Some(addr_str) = m.value_of("LISTEN_HTTP") {
         cfg.http_listen = try!(http_gateway::ListenAddr::from_str(addr_str));
     }
-    if m.is_present("PERMANENT_PEER") {
-        cfg.gossip_permanent = true;
-    }
+    cfg.organization = m.value_of("ORGANIZATION").map(|org| org.to_string());
+    cfg.gossip_permanent = m.is_present("PERMANENT_PEER");
+
     // TODO fn: Clean this up--using a for loop doesn't feel good however an iterator was
     // causing a lot of developer/compiler type confusion
     let mut gossip_peers: Vec<SocketAddr> = Vec::new();
@@ -244,13 +246,6 @@ fn sub_start(m: &ArgMatches) -> Result<()> {
 
 fn spec_from_matches(ident: &PackageIdent, m: &ArgMatches) -> Result<ServiceSpec> {
     let mut spec = ServiceSpec::default_for(ident.clone());
-
-    if let Some(group) = m.value_of("GROUP") {
-        spec.group = group.to_string();
-    }
-    if let Some(org) = m.value_of("ORGANIZATION") {
-        spec.organization = Some(org.to_string());
-    }
     let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
     let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
     spec.depot_url = String::from(url);

@@ -40,6 +40,7 @@ use manager::census::{CensusUpdate, CensusList, CensusEntry};
 use manager::signals::SignalEvent;
 use http_gateway;
 
+pub static DEFAULT_GROUP: &'static str = "default";
 static LOGKEY: &'static str = "MR";
 
 #[derive(Debug)]
@@ -73,20 +74,37 @@ impl State {
     }
 }
 
-#[derive(Default)]
 pub struct ManagerConfig {
     pub gossip_listen: GossipListenAddr,
-    pub http_listen: http_gateway::ListenAddr,
     pub gossip_peers: Vec<SocketAddr>,
     pub gossip_permanent: bool,
+    pub group: String,
+    pub http_listen: http_gateway::ListenAddr,
+    pub organization: Option<String>,
     pub ring: Option<String>,
 }
 
+impl Default for ManagerConfig {
+    fn default() -> ManagerConfig {
+        ManagerConfig {
+            gossip_listen: GossipListenAddr::default(),
+            gossip_peers: Vec::default(),
+            gossip_permanent: bool::default(),
+            group: DEFAULT_GROUP.to_string(),
+            http_listen: http_gateway::ListenAddr::default(),
+            organization: Option::default(),
+            ring: Option::default(),
+        }
+    }
+}
+
 pub struct Manager {
+    gossip_listen: GossipListenAddr,
+    group: String,
+    http_listen: http_gateway::ListenAddr,
+    organization: Option<String>,
     state: State,
     updater: ServiceUpdater,
-    gossip_listen: GossipListenAddr,
-    http_listen: http_gateway::ListenAddr,
 }
 
 impl Manager {
@@ -121,15 +139,21 @@ impl Manager {
             server.member_list.add_initial_member(peer);
         }
         Ok(Manager {
+            gossip_listen: cfg.gossip_listen,
+            group: cfg.group,
+            http_listen: cfg.http_listen,
+            organization: cfg.organization,
             updater: ServiceUpdater::new(server.clone()),
             state: State::new(services, server),
-            gossip_listen: cfg.gossip_listen,
-            http_listen: cfg.http_listen,
         })
     }
 
     pub fn add_service(&mut self, spec: ServiceSpec) -> Result<()> {
-        let service = Service::load(spec, &self.gossip_listen, &self.http_listen)?;
+        let service = Service::load(spec,
+                                    &self.group,
+                                    self.organization.as_ref().map(|org| &**org),
+                                    &self.gossip_listen,
+                                    &self.http_listen)?;
         service.add()?;
         self.state.butterfly.insert_service(service.to_rumor(self.state.butterfly.member_id()));
         if service.topology == Topology::Leader {
