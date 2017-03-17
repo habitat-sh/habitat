@@ -1,0 +1,37 @@
+[package]
+name = "habitat_eventsrv"
+version = "0.1.0"
+authors = ["Josh Black <raskchanky@gmail.com>"]
+description = "Habitat event service"
+build = "build.rs"
+workspace = "../../"
+
+[dependencies]
+protobuf = "*"
+time = "*"
+log = "*"
+env_logger = "*"
+
+[dependencies.zmq]
+git = "https://github.com/erickt/rust-zmq"
+branch = "release/v0.8"
+
+[build-dependencies]
+pkg-config = "0.3"
+
+[features]
+protocols = []
+
+[[bin]]
+name = "eventsrv"
+path = "src/main.rs"
+
+# this is used for testing
+[[bin]]
+name = "client"
+path = "src/client.rs"
+
+# this is used for testing
+[[bin]]
+name = "subscriber"
+path = "src/subscriber.rs"

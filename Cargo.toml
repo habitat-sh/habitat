@@ -16,6 +16,7 @@ members = [
   "components/builder-worker",
   "components/common",
   "components/core",
+  "components/eventsrv",
   "components/hab",
   "components/http-client",
   "components/net",
