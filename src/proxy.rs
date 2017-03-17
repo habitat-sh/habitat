@@ -99,9 +99,9 @@ impl ProxyInfo {
         }
 
         Ok(ProxyInfo {
-            url: url,
-            authorization: authorization,
-        })
+               url: url,
+               authorization: authorization,
+           })
     }
 
     /// Returns the scheme for the proxy server.

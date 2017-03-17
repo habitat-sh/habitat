@@ -35,10 +35,10 @@ impl<S: SslClient> ProxyHttpsConnector<S> {
     /// implementation.
     pub fn new(proxy: ProxyInfo, ssl: S) -> hyper::Result<Self> {
         Ok(ProxyHttpsConnector {
-            proxy: proxy,
-            proxy_connector: HttpConnector,
-            ssl_client: ssl,
-        })
+               proxy: proxy,
+               proxy_connector: HttpConnector,
+               ssl_client: ssl,
+           })
     }
 }
 
@@ -47,8 +47,8 @@ impl<S: SslClient> NetworkConnector for ProxyHttpsConnector<S> {
 
     fn connect(&self, host: &str, port: u16, scheme: &str) -> hyper::Result<Self::Stream> {
         // Initial connection to the proxy server, using an `HttpConnector`
-        let mut stream = try!(self.proxy_connector
-            .connect(self.proxy.host(), self.proxy.port(), "http"));
+        let mut stream =
+            try!(self.proxy_connector.connect(self.proxy.host(), self.proxy.port(), "http"));
         match scheme {
             "https" => {
                 // If the target URL is an `"https"` scheme, then we use proxy/TCP tunneling as
@@ -89,8 +89,8 @@ impl<S: SslClient> NetworkConnector for ProxyHttpsConnector<S> {
                                    self.proxy.port(),
                                    code);
                             return self.ssl_client
-                                .wrap_client(stream, host)
-                                .map(HttpsStream::Https);
+                                       .wrap_client(stream, host)
+                                       .map(HttpsStream::Https);
                         } else {
                             debug!("Proxy {}:{} CONNECT failed response = {}",
                                    self.proxy.host(),
