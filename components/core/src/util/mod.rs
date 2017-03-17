@@ -56,3 +56,10 @@ pub fn deserialize_using_from_str<T, E, D>(d: D) -> result::Result<T, D::Error>
 
     d.deserialize(FromStringable(PhantomData, PhantomData))
 }
+
+pub fn serialize_using_to_string<T, S>(t: &T, s: S) -> result::Result<S::Ok, S::Error>
+    where T: ToString,
+          S: serde::Serializer
+{
+    s.serialize_str(&t.to_string())
+}

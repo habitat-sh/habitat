@@ -876,10 +876,19 @@ impl fmt::Display for Service {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Topology {
     Standalone,
     Leader,
+}
+
+impl Topology {
+    pub fn as_str(&self) -> &str {
+        match *self {
+            Topology::Leader => "leader",
+            Topology::Standalone => "standalone",
+        }
+    }
 }
 
 impl FromStr for Topology {
@@ -891,6 +900,12 @@ impl FromStr for Topology {
             "standalone" => Ok(Topology::Standalone),
             _ => Err(sup_error!(Error::InvalidTopology(String::from(topology)))),
         }
+    }
+}
+
+impl fmt::Display for Topology {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.as_str())
     }
 }
 
@@ -908,11 +923,29 @@ impl serde::Deserialize for Topology {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+impl serde::Serialize for Topology {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+        where S: serde::Serializer
+    {
+        serializer.serialize_str(self.as_str())
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum UpdateStrategy {
     None,
     AtOnce,
     Rolling,
+}
+
+impl UpdateStrategy {
+    pub fn as_str(&self) -> &str {
+        match *self {
+            UpdateStrategy::None => "none",
+            UpdateStrategy::AtOnce => "at-once",
+            UpdateStrategy::Rolling => "rolling",
+        }
+    }
 }
 
 impl FromStr for UpdateStrategy {
@@ -928,6 +961,12 @@ impl FromStr for UpdateStrategy {
     }
 }
 
+impl fmt::Display for UpdateStrategy {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.as_str())
+    }
+}
+
 impl Default for UpdateStrategy {
     fn default() -> UpdateStrategy {
         UpdateStrategy::None
@@ -939,6 +978,14 @@ impl serde::Deserialize for UpdateStrategy {
         where D: serde::Deserializer
     {
         deserialize_using_from_str(deserializer)
+    }
+}
+
+impl serde::Serialize for UpdateStrategy {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+        where S: serde::Serializer
+    {
+        serializer.serialize_str(self.as_str())
     }
 }
 
@@ -989,6 +1036,13 @@ mod test {
     }
 
     #[test]
+    fn topology_to_string() {
+        let topology = Topology::Standalone;
+
+        assert_eq!("standalone", topology.to_string())
+    }
+
+    #[test]
     fn topology_toml_deserialize() {
         #[derive(Deserialize)]
         struct Data {
@@ -997,9 +1051,21 @@ mod test {
         let toml = r#"
             key = "leader"
             "#;
-        let data: Data = toml::de::from_str(toml).unwrap();
+        let data: Data = toml::from_str(toml).unwrap();
 
         assert_eq!(data.key, Topology::Leader);
+    }
+
+    #[test]
+    fn topology_toml_serialize() {
+        #[derive(Serialize)]
+        struct Data {
+            pub key: Topology,
+        }
+        let data = Data { key: Topology::Leader };
+        let toml = toml::to_string(&data).unwrap();
+
+        assert!(toml.starts_with(r#"key = "leader""#))
     }
 
     #[test]
@@ -1034,6 +1100,13 @@ mod test {
     }
 
     #[test]
+    fn update_strategy_to_string() {
+        let strategy = UpdateStrategy::AtOnce;
+
+        assert_eq!("at-once", strategy.to_string())
+    }
+
+    #[test]
     fn update_strategy_toml_deserialize() {
         #[derive(Deserialize)]
         struct Data {
@@ -1042,8 +1115,20 @@ mod test {
         let toml = r#"
             key = "at-once"
             "#;
-        let data: Data = toml::de::from_str(toml).unwrap();
+        let data: Data = toml::from_str(toml).unwrap();
 
         assert_eq!(data.key, UpdateStrategy::AtOnce);
+    }
+
+    #[test]
+    fn update_strategy_toml_serialize() {
+        #[derive(Serialize)]
+        struct Data {
+            pub key: UpdateStrategy,
+        }
+        let data = Data { key: UpdateStrategy::AtOnce };
+        let toml = toml::to_string(&data).unwrap();
+
+        assert!(toml.starts_with(r#"key = "at-once""#));
     }
 }

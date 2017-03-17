@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::fmt;
 use std::path::PathBuf;
 use std::result;
 use std::str::FromStr;
@@ -19,7 +20,7 @@ use std::str::FromStr;
 use hcore::package::{PackageIdent, PackageInstall};
 use hcore::service::ServiceGroup;
 use hcore::url::DEFAULT_DEPOT_URL;
-use hcore::util::deserialize_using_from_str;
+use hcore::util::{deserialize_using_from_str, serialize_using_to_string};
 use serde;
 use toml;
 
@@ -29,10 +30,13 @@ use error::{Error, Result, SupError};
 static LOGKEY: &'static str = "SS";
 static DEFAULT_GROUP: &'static str = "default";
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(default)]
 pub struct ServiceSpec {
-    #[serde(deserialize_with = "deserialize_using_from_str")]
+    #[serde(
+        deserialize_with = "deserialize_using_from_str",
+        serialize_with = "serialize_using_to_string"
+    )]
     pub ident: PackageIdent,
     pub group: String,
     pub organization: Option<String>,
@@ -40,38 +44,8 @@ pub struct ServiceSpec {
     pub topology: Topology,
     pub update_strategy: UpdateStrategy,
     pub binds: Vec<ServiceBind>,
-    #[serde(skip_deserializing)]
+    #[serde(skip_deserializing, skip_serializing)]
     pub config_from: Option<PathBuf>,
-}
-
-impl Default for ServiceSpec {
-    fn default() -> Self {
-        ServiceSpec {
-            ident: PackageIdent::default(),
-            group: DEFAULT_GROUP.to_string(),
-            organization: None,
-            depot_url: DEFAULT_DEPOT_URL.to_string(),
-            topology: Topology::default(),
-            update_strategy: UpdateStrategy::default(),
-            binds: vec![],
-            config_from: None,
-        }
-    }
-}
-
-impl FromStr for ServiceSpec {
-    type Err = SupError;
-
-    fn from_str(toml: &str) -> result::Result<Self, Self::Err> {
-        let spec: ServiceSpec = match toml::de::from_str(toml) {
-            Ok(s) => s,
-            Err(e) => return Err(sup_error!(Error::ServiceSpecParsingError(e.to_string()))),
-        };
-        if spec.ident == PackageIdent::default() {
-            return Err(sup_error!(Error::MissingRequiredIdent));
-        }
-        Ok(spec)
-    }
 }
 
 impl ServiceSpec {
@@ -79,6 +53,17 @@ impl ServiceSpec {
         let mut spec = Self::default();
         spec.ident = ident;
         spec
+    }
+
+    pub fn to_toml_string(&self) -> Result<String> {
+        if self.ident == PackageIdent::default() {
+            return Err(sup_error!(Error::MissingRequiredIdent));
+        }
+
+        match toml::to_string(self) {
+            Ok(s) => Ok(s),
+            Err(e) => Err(sup_error!(Error::ServiceSpecRenderingError(e.to_string()))),
+        }
     }
 
     pub fn validate(&self, package: &PackageInstall) -> Result<()> {
@@ -104,6 +89,36 @@ impl ServiceSpec {
     }
 }
 
+impl Default for ServiceSpec {
+    fn default() -> Self {
+        ServiceSpec {
+            ident: PackageIdent::default(),
+            group: DEFAULT_GROUP.to_string(),
+            organization: None,
+            depot_url: DEFAULT_DEPOT_URL.to_string(),
+            topology: Topology::default(),
+            update_strategy: UpdateStrategy::default(),
+            binds: vec![],
+            config_from: None,
+        }
+    }
+}
+
+impl FromStr for ServiceSpec {
+    type Err = SupError;
+
+    fn from_str(toml: &str) -> result::Result<Self, Self::Err> {
+        let spec: ServiceSpec = match toml::from_str(toml) {
+            Ok(s) => s,
+            Err(e) => return Err(sup_error!(Error::ServiceSpecParsingError(e.to_string()))),
+        };
+        if spec.ident == PackageIdent::default() {
+            return Err(sup_error!(Error::MissingRequiredIdent));
+        }
+        Ok(spec)
+    }
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct ServiceBind {
     pub name: String,
@@ -126,6 +141,12 @@ impl FromStr for ServiceBind {
     }
 }
 
+impl fmt::Display for ServiceBind {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}:{}", self.name, self.service_group)
+    }
+}
+
 impl serde::Deserialize for ServiceBind {
     fn deserialize<D>(deserializer: D) -> result::Result<Self, D::Error>
         where D: serde::Deserializer
@@ -134,9 +155,18 @@ impl serde::Deserialize for ServiceBind {
     }
 }
 
+impl serde::Serialize for ServiceBind {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+        where S: serde::Serializer
+    {
+        serializer.serialize_str(&self.to_string())
+    }
+}
+
 #[cfg(test)]
 mod test {
     use std::str::FromStr;
+    use std::path::PathBuf;
 
     use hcore::error::Error as HError;
     use hcore::package::PackageIdent;
@@ -228,6 +258,49 @@ mod test {
     }
 
     #[test]
+    fn service_spec_to_toml_string() {
+        let spec = ServiceSpec {
+            ident: PackageIdent::from_str("origin/name/1.2.3/20170223130020").unwrap(),
+            group: String::from("jobs"),
+            organization: Some(String::from("acmecorp")),
+            depot_url: String::from("http://example.com/depot"),
+            topology: Topology::Leader,
+            update_strategy: UpdateStrategy::AtOnce,
+            binds: vec![ServiceBind::from_str("cache:redis.cache@acmecorp").unwrap(),
+                        ServiceBind::from_str("db:postgres.app@acmecorp").unwrap()],
+            config_from: Some(PathBuf::from("/")),
+        };
+        let toml = spec.to_toml_string().unwrap();
+
+        assert!(toml.contains(r#"ident = "origin/name/1.2.3/20170223130020""#));
+        assert!(toml.contains(r#"group = "jobs""#));
+        assert!(toml.contains(r#"organization = "acmecorp""#));
+        assert!(toml.contains(r#"depot_url = "http://example.com/depot""#));
+        assert!(toml.contains(r#"topology = "leader""#));
+        assert!(toml.contains(r#"update_strategy = "at-once""#));
+        assert!(toml.contains(r#""cache:redis.cache@acmecorp""#));
+        assert!(toml.contains(r#""db:postgres.app@acmecorp""#));
+        assert!(!toml.contains(r#"config_from = "#));
+    }
+
+    #[test]
+    fn service_spec_to_toml_string_invalid_ident() {
+        // Remember: the default implementation of `PackageIdent` is an invalid identifier, missing
+        // origin and name--we're going to exploit this here
+        let spec = ServiceSpec::default();
+
+        match spec.to_toml_string() {
+            Err(e) => {
+                match e.err {
+                    MissingRequiredIdent => assert!(true),
+                    wrong => panic!("Unexpected error returned: {:?}", wrong),
+                }
+            }
+            Ok(_) => panic!("Spec TOML should fail to render"),
+        }
+    }
+
+    #[test]
     fn service_bind_from_str() {
         let bind_str = "name:service.group@organization";
         let bind = ServiceBind::from_str(bind_str).unwrap();
@@ -295,6 +368,16 @@ mod test {
     }
 
     #[test]
+    fn service_bind_to_string() {
+        let bind = ServiceBind {
+            name: String::from("name"),
+            service_group: ServiceGroup::from_str("service.group").unwrap(),
+        };
+
+        assert_eq!("name:service.group", bind.to_string());
+    }
+
+    #[test]
     fn service_bind_toml_deserialize() {
         #[derive(Deserialize)]
         struct Data {
@@ -303,9 +386,26 @@ mod test {
         let toml = r#"
             key = "name:service.group@organization"
             "#;
-        let data: Data = toml::de::from_str(toml).unwrap();
+        let data: Data = toml::from_str(toml).unwrap();
 
         assert_eq!(data.key,
                    ServiceBind::from_str("name:service.group@organization").unwrap());
+    }
+
+    #[test]
+    fn service_bind_toml_serialize() {
+        #[derive(Serialize)]
+        struct Data {
+            pub key: ServiceBind,
+        }
+        let data = Data {
+            key: ServiceBind {
+                name: String::from("name"),
+                service_group: ServiceGroup::from_str("service.group").unwrap(),
+            },
+        };
+        let toml = toml::to_string(&data).unwrap();
+
+        assert!(toml.starts_with(r#"key = "name:service.group""#));
     }
 }

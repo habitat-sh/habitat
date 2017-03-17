@@ -132,6 +132,7 @@ pub enum Error {
     RemotePackageNotFound(package::PackageIdent),
     RootRequired,
     ServiceSpecParsingError(String),
+    ServiceSpecRenderingError(String),
     SignalFailed,
     SignalNotifierStarted,
     StrFromUtf8Error(str::Utf8Error),
@@ -218,6 +219,10 @@ impl fmt::Display for SupError {
             Error::ServiceSpecParsingError(ref details) => {
                 format!("Service spec could not be parsed successfully: {}", details)
             }
+            Error::ServiceSpecRenderingError(ref details) => {
+                format!("Service spec TOML could not be rendered successfully: {}",
+                        details)
+            }
             Error::SignalFailed => format!("Failed to send a signal to the child process"),
             Error::SignalNotifierStarted => format!("Only one instance of a Signal Notifier may be running"),
             Error::StrFromUtf8Error(ref e) => format!("{}", e),
@@ -281,6 +286,9 @@ impl error::Error for SupError {
             Error::RemotePackageNotFound(_) => "Cannot find a package in any sources",
             Error::RootRequired => "Root or administrator permissions required to complete operation",
             Error::ServiceSpecParsingError(_) => "Service spec could not be parsed successfully",
+            Error::ServiceSpecRenderingError(_) => {
+                "Service spec TOML could not be rendered successfully"
+            }
             Error::SignalFailed => "Failed to send a signal to the child process",
             Error::SignalNotifierStarted => "Only one instance of a Signal Notifier may be running",
             Error::StrFromUtf8Error(_) => "Failed to convert a str from a &[u8] as UTF-8",
@@ -377,6 +385,7 @@ impl From<toml::de::Error> for SupError {
         sup_error!(Error::TomlParser(err))
     }
 }
+
 impl From<toml::ser::Error> for SupError {
     fn from(err: toml::ser::Error) -> Self {
         sup_error!(Error::TomlEncode(err))
