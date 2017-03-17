@@ -109,6 +109,11 @@ function Invoke-Configure {
     else {
         rustup install stable-x86_64-pc-windows-msvc
     }
+
+    # Need these for compiling protobufs
+    choco install protoc -y
+    $cargo = Get-CargoCommand
+    invoke-expression "$cargo install protobuf"
 }
 
 function Get-RustcCommand {
@@ -193,6 +198,7 @@ if(!(Test-Path "$env:TEMP\cacert.pem")) {
     Invoke-WebRequest -UseBasicParsing -Uri "http://curl.haxx.se/ca/cacert.pem" -OutFile "$env:TEMP\cacert.pem"
 }
 $env:SSL_CERT_FILE="$env:TEMP\cacert.pem"
+$env:PROTOBUF_PREFIX=$env:ChocolateyInstall
 
 if ($Test) {
     Invoke-Test $Path -Clean:$Clean -Release:$Release
