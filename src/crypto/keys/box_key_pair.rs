@@ -171,26 +171,27 @@ impl BoxKeyPair {
             }
             None => {
                 return Err(Error::CryptoError("Corrupt payload, can't read file version"
-                    .to_string()));
+                                                  .to_string()));
             }
         }
         let sender = match lines.next() {
             Some(val) => try!(Self::get_pair_for(val, cache_key_path.as_ref())),
             None => {
                 return Err(Error::CryptoError("Corrupt payload, can't read sender key name"
-                    .to_string()));
+                                                  .to_string()));
             }
         };
         let receiver = match lines.next() {
             Some(val) => try!(Self::get_pair_for(val, cache_key_path.as_ref())),
             None => {
                 return Err(Error::CryptoError("Corrupt payload, can't read receiver key name"
-                    .to_string()));
+                                                  .to_string()));
             }
         };
         let nonce = match lines.next() {
             Some(val) => {
-                let decoded = try!(base64::decode(val)
+                let decoded =
+                    try!(base64::decode(val)
                     .map_err(|e| Error::CryptoError(format!("Can't decode nonce: {}", e))));
                 match Nonce::from_slice(&decoded) {
                     Some(nonce) => nonce,
@@ -208,7 +209,7 @@ impl BoxKeyPair {
             }
             None => {
                 return Err(Error::CryptoError("Corrupt payload, can't read ciphertext"
-                    .to_string()));
+                                                  .to_string()));
             }
         };
         match box_::open(&ciphertext,
@@ -219,7 +220,7 @@ impl BoxKeyPair {
             Err(_) => {
                 return Err(Error::CryptoError("Secret key, public key, and nonce could not \
                                                     decrypt ciphertext"
-                    .to_string()))
+                                                      .to_string()))
             }
         }
     }
@@ -438,7 +439,7 @@ mod test {
         let cache = TempDir::new("key_cache").unwrap();
         fs::copy(fixture(&format!("keys/{}", VALID_PUB)),
                  cache.path().join(VALID_PUB))
-            .unwrap();
+                .unwrap();
 
         let result = BoxKeyPair::get_public_key_path(VALID_NAME_WITH_REV, cache.path()).unwrap();
         assert_eq!(result, cache.path().join(VALID_PUB));
@@ -456,7 +457,7 @@ mod test {
         let cache = TempDir::new("key_cache").unwrap();
         fs::copy(fixture(&format!("keys/{}", VALID_KEY)),
                  cache.path().join(VALID_KEY))
-            .unwrap();
+                .unwrap();
 
         let result = BoxKeyPair::get_secret_key_path(VALID_NAME_WITH_REV, cache.path()).unwrap();
         assert_eq!(result, cache.path().join(VALID_KEY));
@@ -510,30 +511,30 @@ mod test {
             // Prepare the sender cache with sender's secret and receiver's public keys
             let secret = BoxKeyPair::get_secret_key_path(&sender.name_with_rev(),
                                                          full_cache.path())
-                .unwrap();
+                    .unwrap();
             let public = BoxKeyPair::get_public_key_path(&receiver.name_with_rev(),
                                                          full_cache.path())
-                .unwrap();
+                    .unwrap();
             fs::copy(&secret,
                      sender_cache.path().join(&secret.file_name().unwrap()))
-                .unwrap();
+                    .unwrap();
             fs::copy(&public,
                      sender_cache.path().join(&public.file_name().unwrap()))
-                .unwrap();
+                    .unwrap();
 
             // Prepare the receiver cache with receivers's secret and sender's public keys
             let secret = BoxKeyPair::get_secret_key_path(&receiver.name_with_rev(),
                                                          full_cache.path())
-                .unwrap();
+                    .unwrap();
             let public = BoxKeyPair::get_public_key_path(&sender.name_with_rev(),
                                                          full_cache.path())
-                .unwrap();
+                    .unwrap();
             fs::copy(&secret,
                      receiver_cache.path().join(&secret.file_name().unwrap()))
-                .unwrap();
+                    .unwrap();
             fs::copy(&public,
                      receiver_cache.path().join(&public.file_name().unwrap()))
-                .unwrap();
+                    .unwrap();
 
         }
 
@@ -562,8 +563,8 @@ mod test {
 
         // Delete the sender's secret key
         fs::remove_file(BoxKeyPair::get_secret_key_path(&sender.name_with_rev(), cache.path())
-                .unwrap())
-            .unwrap();
+                            .unwrap())
+                .unwrap();
         // Now reload the sender's pair which will be missing the secret key
         let sender = BoxKeyPair::get_latest_pair_for("wecoyote", cache.path()).unwrap();
 
@@ -580,8 +581,8 @@ mod test {
 
         // Delete the receiver's public key
         fs::remove_file(BoxKeyPair::get_public_key_path(&receiver.name_with_rev(), cache.path())
-                .unwrap())
-            .unwrap();
+                            .unwrap())
+                .unwrap();
         // Now reload the receiver's pair which will be missing the public key
         let receiver = BoxKeyPair::get_latest_pair_for("tnt.default@acme", cache.path()).unwrap();
 
@@ -598,8 +599,8 @@ mod test {
 
         // Delete the receiver's secret key
         fs::remove_file(BoxKeyPair::get_secret_key_path(&receiver.name_with_rev(), cache.path())
-                .unwrap())
-            .unwrap();
+                            .unwrap())
+                .unwrap();
 
         let ciphertext = sender.encrypt("problems ahead".as_bytes(), &receiver).unwrap();
         BoxKeyPair::decrypt(&ciphertext, cache.path()).unwrap();
@@ -615,8 +616,8 @@ mod test {
 
         // Delete the sender's public key
         fs::remove_file(BoxKeyPair::get_public_key_path(&sender.name_with_rev(), cache.path())
-                .unwrap())
-            .unwrap();
+                            .unwrap())
+                .unwrap();
 
         let ciphertext = sender.encrypt("problems ahead".as_bytes(), &receiver).unwrap();
         BoxKeyPair::decrypt(&ciphertext, cache.path()).unwrap();

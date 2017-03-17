@@ -150,7 +150,7 @@ pub fn verify<P1: ?Sized, P2: ?Sized>(src: &P1, cache_key_path: &P2) -> Result<(
         match reader.read_line(&mut buffer) {
             Ok(0) => {
                 return Err(Error::CryptoError("Corrupt payload, can't read format version"
-                    .to_string()))
+                                                  .to_string()))
             }
             Ok(_) => {
                 if buffer.trim() != HART_FORMAT_VERSION {
@@ -167,7 +167,7 @@ pub fn verify<P1: ?Sized, P2: ?Sized>(src: &P1, cache_key_path: &P2) -> Result<(
         let mut buffer = String::new();
         if try!(reader.read_line(&mut buffer)) <= 0 {
             return Err(Error::CryptoError("Corrupt payload, can't read origin key name"
-                .to_string()));
+                                              .to_string()));
         }
         try!(SigKeyPair::get_pair_for(buffer.trim(), cache_key_path))
     };
@@ -233,7 +233,7 @@ pub fn artifact_signer<P: AsRef<Path>>(src: &P) -> Result<String> {
         match reader.read_line(&mut buffer) {
             Ok(0) => {
                 return Err(Error::CryptoError("Corrupt payload, can't read format version"
-                    .to_string()))
+                                                  .to_string()))
             }
             Ok(_) => {
                 if buffer.trim() != HART_FORMAT_VERSION {
@@ -250,7 +250,7 @@ pub fn artifact_signer<P: AsRef<Path>>(src: &P) -> Result<String> {
         let mut buffer = String::new();
         if try!(reader.read_line(&mut buffer)) <= 0 {
             return Err(Error::CryptoError("Corrupt payload, can't read origin key name"
-                .to_string()));
+                                              .to_string()));
         }
         try!(parse_name_with_rev(buffer.trim()));
         buffer.trim().to_string()
@@ -290,8 +290,8 @@ mod test {
 
         // Delete the secret key
         fs::remove_file(SigKeyPair::get_secret_key_path(&pair.name_with_rev(), cache.path())
-                .unwrap())
-            .unwrap();
+                            .unwrap())
+                .unwrap();
         // Now reload the key pair which will be missing the secret key
         let pair = SigKeyPair::get_latest_pair_for("unicorn", cache.path()).unwrap();
 
@@ -308,8 +308,8 @@ mod test {
 
         // Delete the public key
         fs::remove_file(SigKeyPair::get_public_key_path(&pair.name_with_rev(), cache.path())
-                .unwrap())
-            .unwrap();
+                            .unwrap())
+                .unwrap();
         // Now reload the key pair which will be missing the public key
         let _ = SigKeyPair::get_latest_pair_for("unicorn", cache.path()).unwrap();
 
@@ -405,7 +405,7 @@ mod test {
         let mut f = File::create(&dst).unwrap();
         f.write_all(format!("HART-1\n{}\nBLAKE2b\nnot:base64:signature",
                                pair.name_with_rev())
-                .as_bytes())
+                               .as_bytes())
             .unwrap();
 
         verify(&dst, cache.path()).unwrap();
@@ -437,13 +437,29 @@ mod test {
         let f = File::open(&dst).unwrap();
         let f = BufReader::new(f);
         let mut lines = f.lines();
-        corrupted.write(lines.next().unwrap().unwrap().as_bytes()).unwrap(); // version
+        corrupted.write(lines.next()
+                            .unwrap()
+                            .unwrap()
+                            .as_bytes())
+            .unwrap(); // version
         corrupted.write("\n".as_bytes()).unwrap();
-        corrupted.write(lines.next().unwrap().unwrap().as_bytes()).unwrap(); // key
+        corrupted.write(lines.next()
+                            .unwrap()
+                            .unwrap()
+                            .as_bytes())
+            .unwrap(); // key
         corrupted.write("\n".as_bytes()).unwrap();
-        corrupted.write(lines.next().unwrap().unwrap().as_bytes()).unwrap(); // hash type
+        corrupted.write(lines.next()
+                            .unwrap()
+                            .unwrap()
+                            .as_bytes())
+            .unwrap(); // hash type
         corrupted.write("\n".as_bytes()).unwrap();
-        corrupted.write(lines.next().unwrap().unwrap().as_bytes()).unwrap(); // signature
+        corrupted.write(lines.next()
+                            .unwrap()
+                            .unwrap()
+                            .as_bytes())
+            .unwrap(); // signature
         corrupted.write("\n\n".as_bytes()).unwrap();
         corrupted.write_all("payload-wont-match-signature".as_bytes()).unwrap(); // archive
 

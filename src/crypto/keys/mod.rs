@@ -528,8 +528,10 @@ mod test {
 
         for _ in 0..3 {
             wait_until_ok(|| {
-                BoxKeyPair::generate_pair_for_service("acme", "tnt.default", cache.path())
-            });
+                              BoxKeyPair::generate_pair_for_service("acme",
+                                                                    "tnt.default",
+                                                                    cache.path())
+                          });
         }
 
         let _ = BoxKeyPair::generate_pair_for_service("acyou", "tnt.default", cache.path())

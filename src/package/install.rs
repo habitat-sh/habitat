@@ -89,18 +89,17 @@ impl PackageInstall {
         if ident.fully_qualified() {
             if pl.iter().any(|ref p| p.satisfies(ident)) {
                 Ok(PackageInstall {
-                    installed_path: fs::pkg_install_path(&ident, Some(&fs_root_path)),
-                    fs_root_path: fs_root_path,
-                    package_root_path: package_root_path,
-                    ident: ident.clone(),
-                })
+                       installed_path: fs::pkg_install_path(&ident, Some(&fs_root_path)),
+                       fs_root_path: fs_root_path,
+                       package_root_path: package_root_path,
+                       ident: ident.clone(),
+                   })
             } else {
                 Err(Error::PackageNotFound(ident.clone()))
             }
         } else {
-            let latest: Option<PackageIdent> = pl.iter()
-                .filter(|&p| p.satisfies(ident))
-                .fold(None, |winner, b| match winner {
+            let latest: Option<PackageIdent> =
+                pl.iter().filter(|&p| p.satisfies(ident)).fold(None, |winner, b| match winner {
                     Some(a) => {
                         match a.partial_cmp(&b) {
                             Some(Ordering::Greater) => Some(a),
@@ -113,11 +112,11 @@ impl PackageInstall {
                 });
             if let Some(id) = latest {
                 Ok(PackageInstall {
-                    installed_path: fs::pkg_install_path(&id, Some(&fs_root_path)),
-                    fs_root_path: PathBuf::from(fs_root_path),
-                    package_root_path: package_root_path,
-                    ident: id.clone(),
-                })
+                       installed_path: fs::pkg_install_path(&id, Some(&fs_root_path)),
+                       fs_root_path: PathBuf::from(fs_root_path),
+                       package_root_path: package_root_path,
+                       ident: id.clone(),
+                   })
             } else {
                 Err(Error::PackageNotFound(ident.clone()))
             }
@@ -166,11 +165,11 @@ impl PackageInstall {
         match latest {
             Some(id) => {
                 Ok(PackageInstall {
-                    installed_path: fs::pkg_install_path(&id, Some(&fs_root_path)),
-                    fs_root_path: fs_root_path,
-                    package_root_path: package_root_path,
-                    ident: id.clone(),
-                })
+                       installed_path: fs::pkg_install_path(&id, Some(&fs_root_path)),
+                       fs_root_path: fs_root_path,
+                       package_root_path: package_root_path,
+                       ident: id.clone(),
+                   })
             }
             None => Err(Error::PackageNotFound(ident.clone())),
         }
@@ -263,10 +262,12 @@ impl PackageInstall {
                 let mut m = HashMap::<String, String>::new();
                 for line in body.lines() {
                     let mut parts = line.split('=');
-                    let key = try!(parts.next()
+                    let key =
+                        try!(parts.next()
                         .and_then(|p| Some(p.to_string()))
                         .ok_or_else(|| Error::MetaFileMalformed(MetaFile::Exports)));
-                    let value = try!(parts.next()
+                    let value =
+                        try!(parts.next()
                         .and_then(|p| Some(p.to_string()))
                         .ok_or_else(|| Error::MetaFileMalformed(MetaFile::Exports)));
                     m.insert(key, value);
@@ -282,9 +283,8 @@ impl PackageInstall {
     pub fn exposes(&self) -> Result<Vec<String>> {
         match self.read_metafile(MetaFile::Exposes) {
             Ok(body) => {
-                let v: Vec<String> = body.split(' ')
-                    .map(|x| String::from(x.trim_right_matches('\n')))
-                    .collect();
+                let v: Vec<String> =
+                    body.split(' ').map(|x| String::from(x.trim_right_matches('\n'))).collect();
                 Ok(v)
             }
             Err(Error::MetaFileNotFound(MetaFile::Exposes)) => {
@@ -496,7 +496,10 @@ impl PackageInstall {
     fn walk_names(origin: &DirEntry, packages: &mut Vec<PackageIdent>) -> Result<()> {
         for name in try!(std::fs::read_dir(origin.path())) {
             let name = try!(name);
-            let origin = origin.file_name().to_string_lossy().into_owned().to_string();
+            let origin = origin.file_name()
+                .to_string_lossy()
+                .into_owned()
+                .to_string();
             if try!(std::fs::metadata(name.path())).is_dir() {
                 try!(Self::walk_versions(&origin, &name, packages));
             }
@@ -512,7 +515,10 @@ impl PackageInstall {
                      -> Result<()> {
         for version in try!(std::fs::read_dir(name.path())) {
             let version = try!(version);
-            let name = name.file_name().to_string_lossy().into_owned().to_string();
+            let name = name.file_name()
+                .to_string_lossy()
+                .into_owned()
+                .to_string();
             if try!(std::fs::metadata(version.path())).is_dir() {
                 try!(Self::walk_releases(origin, &name, &version, packages));
             }
@@ -530,8 +536,15 @@ impl PackageInstall {
                      packages: &mut Vec<PackageIdent>)
                      -> Result<()> {
         for release in try!(std::fs::read_dir(version.path())) {
-            let release = try!(release).file_name().to_string_lossy().into_owned().to_string();
-            let version = version.file_name().to_string_lossy().into_owned().to_string();
+            let release = try!(release)
+                .file_name()
+                .to_string_lossy()
+                .into_owned()
+                .to_string();
+            let version = version.file_name()
+                .to_string_lossy()
+                .into_owned()
+                .to_string();
             let ident =
                 PackageIdent::new(origin.clone(), name.clone(), Some(version), Some(release));
             packages.push(ident)
