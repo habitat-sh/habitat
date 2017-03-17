@@ -210,9 +210,7 @@ impl fmt::Display for SupError {
                 "Root or administrator permissions required to complete operation".to_string()
             }
             Error::SignalFailed => format!("Failed to send a signal to the child process"),
-            Error::SignalNotifierStarted => {
-                format!("Only one instance of a Signal Notifier may be running")
-            }
+            Error::SignalNotifierStarted => format!("Only one instance of a Signal Notifier may be running"),
             Error::StrFromUtf8Error(ref e) => format!("{}", e),
             Error::StringFromUtf8Error(ref e) => format!("{}", e),
             Error::TomlEncode(ref e) => format!("Failed to encode TOML: {}", e),
@@ -253,16 +251,12 @@ impl error::Error for SupError {
             Error::InvalidKeyParameter(_) => "Key parameter error",
             Error::InvalidPort(_) => "Invalid port number in package expose metadata",
             Error::InvalidPidFile => "Invalid child process PID file",
-            Error::InvalidServiceGroupString(_) => {
-                "Service group strings must be in service.group format (example: redis.default)"
-            }
+            Error::InvalidServiceGroupString(_) => "Service group strings must be in service.group format (example: redis.default)",
             Error::InvalidUpdateStrategy(_) => "Invalid update strategy",
             Error::Io(ref err) => err.description(),
             Error::IPFailed => "Failed to discover the outbound IP address",
             Error::KeyNotFound(_) => "Key not found in key cache",
-            Error::MissingRequiredBind(_) => {
-                "A service to start without specifying a service group for all required binds"
-            }
+            Error::MissingRequiredBind(_) => "A service to start without specifying a service group for all required binds",
             Error::MetaFileIO(_) => "MetaFile could not be read or written to",
             Error::NetParseError(_) => "Can't parse IP:port",
             Error::NameLookup(_) => "Error resolving a name or IP address",
@@ -270,18 +264,12 @@ impl error::Error for SupError {
                 "No run file is present for this package; specify a run hook or $pkg_svc_run \
                  in your plan"
             }
-            Error::NulError(_) => {
-                "An attempt was made to build a CString with a null byte inside it"
-            }
-            Error::PackageArchiveMalformed(_) => {
-                "Package archive was unreadable or had unexpected contents"
-            }
+            Error::NulError(_) => "An attempt was made to build a CString with a null byte inside it",
+            Error::PackageArchiveMalformed(_) => "Package archive was unreadable or had unexpected contents",
             Error::PackageNotFound(_) => "Cannot find a package",
             Error::Permissions(_) => "File system permissions error",
             Error::RemotePackageNotFound(_) => "Cannot find a package in any sources",
-            Error::RootRequired => {
-                "Root or administrator permissions required to complete operation"
-            }
+            Error::RootRequired => "Root or administrator permissions required to complete operation",
             Error::SignalFailed => "Failed to send a signal to the child process",
             Error::SignalNotifierStarted => "Only one instance of a Signal Notifier may be running",
             Error::StrFromUtf8Error(_) => "Failed to convert a str from a &[u8] as UTF-8",

@@ -352,13 +352,13 @@ fn sub_cli_completers() -> App<'static, 'static> {
     // bad value to clap.
 
     sub.arg(Arg::with_name("SHELL")
-        .help("The name of the shell you want to generate the command-completion. \
+                .help("The name of the shell you want to generate the command-completion. \
                       Supported Shells: bash, fish, zsh, powershell")
-        .short("s")
-        .long("shell")
-        .required(true)
-        .takes_value(true)
-        .possible_values(&supported_shells))
+                .short("s")
+                .long("shell")
+                .required(true)
+                .takes_value(true)
+                .possible_values(&supported_shells))
 }
 
 fn sub_config_apply() -> App<'static, 'static> {
@@ -416,10 +416,10 @@ fn sub_pkg_install() -> App<'static, 'static> {
         (@arg BINLINK: -b --binlink "Binlink all binaries from installed package(s)")
     );
     sub.arg(Arg::with_name("IGNORE_TARGET")
-        .help("Skips target validation for package installation.")
-        .short("i")
-        .long("ignore-target")
-        .hidden(true))
+                .help("Skips target validation for package installation.")
+                .short("i")
+                .long("ignore-target")
+                .hidden(true))
 }
 
 fn file_exists(val: String) -> result::Result<(), String> {

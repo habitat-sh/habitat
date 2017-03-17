@@ -285,7 +285,10 @@ impl MemberList {
                     .insert(String::from(member.get_id()), SteadyTime::now());
             }
             if stop_suspicion == true {
-                self.suspect.write().expect("Suspect lock is poisoned").remove(member.get_id());
+                self.suspect
+                    .write()
+                    .expect("Suspect lock is poisoned")
+                    .remove(member.get_id());
             }
             self.members
                 .write()
@@ -297,7 +300,10 @@ impl MemberList {
 
     /// Returns the health of the member, if the member exists.
     pub fn health_of(&self, member: &Member) -> Option<Health> {
-        match self.health.read().expect("Health lock is poisoned").get(member.get_id()) {
+        match self.health
+                  .read()
+                  .expect("Health lock is poisoned")
+                  .get(member.get_id()) {
             Some(health) => Some(health.clone()),
             None => None,
         }
@@ -305,7 +311,10 @@ impl MemberList {
 
     /// Returns the health of the member, if the member exists.
     pub fn health_of_by_id(&self, member_id: &str) -> Option<Health> {
-        match self.health.read().expect("Health lock is poisoned").get(member_id) {
+        match self.health
+                  .read()
+                  .expect("Health lock is poisoned")
+                  .get(member_id) {
             Some(health) => Some(health.clone()),
             None => None,
         }
@@ -313,7 +322,10 @@ impl MemberList {
 
     /// Returns true if the members health is the same as `health`. False otherwise.
     pub fn check_health_of(&self, member: &Member, health: Health) -> bool {
-        match self.health.read().expect("Health lock is poisoned").get(member.get_id()) {
+        match self.health
+                  .read()
+                  .expect("Health lock is poisoned")
+                  .get(member.get_id()) {
             Some(real_health) if *real_health == health => true,
             Some(_) => false,
             None => false,
@@ -322,7 +334,10 @@ impl MemberList {
 
     /// Returns true if the members health is the same as `health`. False otherwise.
     pub fn check_health_of_by_id(&self, member_id: &str, health: Health) -> bool {
-        match self.health.read().expect("Health lock is poisoned").get(member_id) {
+        match self.health
+                  .read()
+                  .expect("Health lock is poisoned")
+                  .get(member_id) {
             Some(real_health) if *real_health == health => true,
             Some(_) => false,
             None => false,
@@ -383,8 +398,8 @@ impl MemberList {
             .expect("Should have membership before calling membership_for")
             .into();
         let ml = self.members.read().expect("Member list lock is poisoned");
-        let member = ml.get(member_id)
-            .expect("Should have membership before calling membership_for");
+        let member =
+            ml.get(member_id).expect("Should have membership before calling membership_for");
         pm.set_health(mhealth);
         pm.set_member(member.proto.clone());
         pm
@@ -392,7 +407,10 @@ impl MemberList {
 
     /// Returns the number of members.
     pub fn len(&self) -> usize {
-        self.members.read().expect("Member list lock is poisoned").len()
+        self.members
+            .read()
+            .expect("Member list lock is poisoned")
+            .len()
     }
 
     /// A randomized list of members to check.
@@ -425,11 +443,11 @@ impl MemberList {
         let mut rng = thread_rng();
         rng.shuffle(&mut members);
         for member in members.into_iter()
-            .filter(|m| {
-                m.get_id() != sending_member_id && m.get_id() != target_member_id &&
-                self.check_health_of_by_id(m.get_id(), Health::Alive)
-            })
-            .take(PINGREQ_TARGETS) {
+                .filter(|m| {
+                            m.get_id() != sending_member_id && m.get_id() != target_member_id &&
+                            self.check_health_of_by_id(m.get_id(), Health::Alive)
+                        })
+                .take(PINGREQ_TARGETS) {
             with_closure(member);
         }
     }
@@ -439,14 +457,20 @@ impl MemberList {
     pub fn with_member_iter<F>(&self, mut with_closure: F) -> ()
         where F: FnMut(hash_map::Values<String, Member>) -> ()
     {
-        with_closure(self.members.read().expect("Member list lock is poisoned").values());
+        with_closure(self.members
+                         .read()
+                         .expect("Member list lock is poisoned")
+                         .values());
     }
 
     /// Takes a function whose argument is a reference to the member list hashmap.
     pub fn with_member_list<F>(&self, mut with_closure: F) -> ()
         where F: FnMut(&HashMap<String, Member>) -> ()
     {
-        with_closure(self.members.read().expect("Member list lock is poisoned").deref());
+        with_closure(self.members
+                         .read()
+                         .expect("Member list lock is poisoned")
+                         .deref());
     }
 
     /// Calls a function whose argument is a reference to a membership entry matching the given ID.
@@ -462,7 +486,10 @@ impl MemberList {
     pub fn with_members<F>(&self, mut with_closure: F) -> ()
         where F: FnMut(&Member) -> ()
     {
-        for member in self.members.read().expect("Member list lock is poisoned").values() {
+        for member in self.members
+                .read()
+                .expect("Member list lock is poisoned")
+                .values() {
             with_closure(member);
         }
     }
@@ -471,7 +498,10 @@ impl MemberList {
     pub fn with_suspects<F>(&self, mut with_closure: F) -> ()
         where F: FnMut((&str, &SteadyTime)) -> ()
     {
-        for (id, suspect) in self.suspect.read().expect("Suspect list lock is poisoned").iter() {
+        for (id, suspect) in self.suspect
+                .read()
+                .expect("Suspect list lock is poisoned")
+                .iter() {
             with_closure((id, suspect));
         }
     }
@@ -483,7 +513,10 @@ impl MemberList {
     }
 
     pub fn contains_member(&self, member_id: &str) -> bool {
-        self.members.read().expect("Member list lock is poisoned").contains_key(member_id)
+        self.members
+            .read()
+            .expect("Member list lock is poisoned")
+            .contains_key(member_id)
     }
 }
 

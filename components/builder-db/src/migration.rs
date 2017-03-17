@@ -60,7 +60,7 @@ impl<'a> Migrator<'a> {
                                    -> Result<Option<bool>> {
         let conn = self.pool.get()?;
         let check_result = conn.query("SELECT migration_has_run_v1($1, $2)",
-                   &[&prefix, &sequence_number])
+                                      &[&prefix, &sequence_number])
             .map_err(Error::MigrationCheck)?;
 
         Ok(check_result.get(0).get(0))

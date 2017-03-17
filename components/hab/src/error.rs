@@ -69,9 +69,7 @@ impl fmt::Display for Error {
             }
             Error::CryptoCLI(ref e) => format!("{}", e),
             Error::DepotClient(ref err) => format!("{}", err),
-            Error::DockerDaemonDown => {
-                format!("Can not connect to Docker. Is the Docker daemon running?")
-            }
+            Error::DockerDaemonDown => format!("Can not connect to Docker. Is the Docker daemon running?"),
             #[cfg(not(windows))]
             Error::DockerFileSharingNotEnabled => {
                 format!("File Sharing must be enabled in order to enter a studio.\nPlease enable \
@@ -131,9 +129,7 @@ impl error::Error for Error {
         match *self {
             Error::ArgumentError(_) => "There was an error parsing an error or with it's value",
             Error::ButterflyError(_) => "Butterfly has had an error",
-            Error::CommandNotFoundInPkg(_) => {
-                "Command was not found under any 'PATH' directories in the package"
-            }
+            Error::CommandNotFoundInPkg(_) => "Command was not found under any 'PATH' directories in the package",
             Error::CryptoCLI(_) => "A cryptographic error has occurred",
             Error::DepotClient(ref err) => err.description(),
             Error::DockerDaemonDown => "The Docker daemon could not be found.",
@@ -147,16 +143,10 @@ impl error::Error for Error {
             Error::HabitatCore(ref err) => err.description(),
             Error::HandlebarsRenderError(ref err) => err.description(),
             Error::IO(ref err) => err.description(),
-            Error::PackageArchiveMalformed(_) => {
-                "Package archive was unreadable or had unexpected contents"
-            }
+            Error::PackageArchiveMalformed(_) => "Package archive was unreadable or had unexpected contents",
             Error::PathPrefixError(ref err) => err.description(),
-            Error::ProvidesError(_) => {
-                "Can't find a package that provides the given search parameter"
-            }
-            Error::RootRequired => {
-                "Root or administrator permissions required to complete operation"
-            }
+            Error::ProvidesError(_) => "Can't find a package that provides the given search parameter",
+            Error::RootRequired => "Root or administrator permissions required to complete operation",
             Error::SubcommandNotSupported(_) => "Subcommand not supported on this operating system",
             Error::UnsupportedExportFormat(_) => "Unsupported export format",
             Error::TomlDeserializeError(_) => "Can't deserialize TOML",

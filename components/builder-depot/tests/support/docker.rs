@@ -58,7 +58,7 @@ impl Docker {
                                               "{{range .NetworkSettings.Networks}}{{.\
                                                IPAddress}}{{end}}",
                                               &self.container_id)])
-            .unwrap_or_else(|x| panic!("{:?}", x));
+                .unwrap_or_else(|x| panic!("{:?}", x));
         cmd.wait_with_output();
         let ipaddress = String::from(cmd.stdout().trim());
         println!("I have ipaddress {}", &ipaddress);

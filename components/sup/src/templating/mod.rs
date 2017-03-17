@@ -91,7 +91,7 @@ mod test {
                    r#"{
   "test": "something"
 }"#
-                       .to_string());
+                           .to_string());
     }
 
     #[test]
@@ -111,7 +111,7 @@ mod test {
         assert_eq!(r.ok().unwrap(),
                    r#"test = "something"
 "#
-                       .to_string());
+                           .to_string());
     }
 
     #[test]
@@ -208,8 +208,7 @@ mod test {
     fn each_alive_helper_content() {
         let mut template = Template::new();
         // template using the new `eachAlive` helper
-        template.register_template_file("each_alive", templates().join("each_alive.txt"))
-            .unwrap();
+        template.register_template_file("each_alive", templates().join("each_alive.txt")).unwrap();
 
         // template using an each block with a nested if block filtering on `alive`
         template.register_template_file("all_members", templates().join("all_members.txt"))
@@ -227,8 +226,7 @@ mod test {
     fn each_alive_helper_first_node() {
         let mut template = Template::new();
         // template using the new `eachAlive` helper
-        template.register_template_file("each_alive", templates().join("each_alive.txt"))
-            .unwrap();
+        template.register_template_file("each_alive", templates().join("each_alive.txt")).unwrap();
 
         // template using an each block with a nested if block filtering on `alive`
         template.register_template_file("all_members", templates().join("all_members.txt"))
@@ -247,7 +245,7 @@ mod test {
         let mut template = Template::new();
         // template using the new `eachAlive` helper
         template.register_template_file("each_alive",
-                                    templates().join("each_alive_with_identifier.txt"))
+                                        templates().join("each_alive_with_identifier.txt"))
             .unwrap();
 
         // template using an each block with a nested if block filtering on `alive`

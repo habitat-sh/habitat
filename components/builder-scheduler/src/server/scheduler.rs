@@ -77,13 +77,13 @@ impl ScheduleMgr {
         try!(schedule_cli.connect());
 
         Ok(ScheduleMgr {
-            config: config,
-            datastore: datastore,
-            work_sock: work_sock,
-            status_sock: status_sock,
-            schedule_cli: schedule_cli,
-            msg: msg,
-        })
+               config: config,
+               datastore: datastore,
+               work_sock: work_sock,
+               status_sock: status_sock,
+               schedule_cli: schedule_cli,
+               msg: msg,
+           })
     }
 
     pub fn start(cfg: Arc<RwLock<Config>>, ds: Arc<RwLock<DataStore>>) -> Result<JoinHandle<()>> {
@@ -91,9 +91,9 @@ impl ScheduleMgr {
         let handle = thread::Builder::new()
             .name("scheduler".to_string())
             .spawn(move || {
-                let mut schedule_mgr = Self::new(cfg, ds).unwrap();
-                schedule_mgr.run(tx).unwrap();
-            })
+                       let mut schedule_mgr = Self::new(cfg, ds).unwrap();
+                       schedule_mgr.run(tx).unwrap();
+                   })
             .unwrap();
         match rx.recv() {
             Ok(()) => Ok(handle),
@@ -170,9 +170,10 @@ impl ScheduleMgr {
     }
 
     fn dispatch_group(&mut self, group: proto::Group) -> Result<()> {
-        for project in group.get_projects()
-            .into_iter()
-            .filter(|x| x.get_state() == proto::ProjectState::NotStarted) {
+        for project in group.get_projects().into_iter().filter(|x| {
+                                                                   x.get_state() ==
+                                                                   proto::ProjectState::NotStarted
+                                                               }) {
             println!("Dispatching project: {:?}", project.get_name());
             assert!(project.get_state() == proto::ProjectState::NotStarted);
 

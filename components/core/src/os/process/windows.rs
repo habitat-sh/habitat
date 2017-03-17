@@ -98,10 +98,10 @@ impl Child {
         match status {
             Ok(status) => {
                 Ok(Child {
-                    handle: win_handle,
-                    last_status: status,
-                    pid: child.id(),
-                })
+                       handle: win_handle,
+                       last_status: status,
+                       pid: child.id(),
+                   })
             }
             Err(e) => Err(Error::GetHabChildFailed(e)),
         }

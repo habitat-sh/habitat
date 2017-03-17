@@ -108,17 +108,24 @@ pub fn session_create(req: &mut Envelope,
                       state: &mut ServerState)
                       -> Result<()> {
     let mut msg: proto::SessionCreate = try!(req.parse_msg());
-    let account: proto::Account = match state.datastore
-        .sessions
-        .find(&msg.get_token().to_string()) {
-        Ok(session) => state.datastore.accounts.find(&session.get_owner_id()).unwrap(),
+    let account: proto::Account = match state.datastore.sessions.find(&msg.get_token()
+                                             .to_string()) {
+        Ok(session) => {
+            state.datastore
+                .accounts
+                .find(&session.get_owner_id())
+                .unwrap()
+        }
         _ => try!(state.datastore.accounts.find_or_create(&msg)),
     };
     let mut session_token = proto::SessionToken::new();
     session_token.set_token(msg.take_token());
     session_token.set_owner_id(account.get_id());
     session_token.set_provider(msg.get_provider());
-    if let Some(e) = state.datastore.sessions.write(&mut session_token).err() {
+    if let Some(e) = state.datastore
+           .sessions
+           .write(&mut session_token)
+           .err() {
         error!("{}", e);
         let err = net::err(ErrCode::DATA_STORE, "ss:session-create:0");
         try!(req.reply_complete(sock, &err));
@@ -142,8 +149,10 @@ pub fn session_get(req: &mut Envelope,
     let msg: proto::SessionGet = try!(req.parse_msg());
     match state.datastore.sessions.find(&msg.get_token().to_string()) {
         Ok(mut token) => {
-            let account: proto::Account =
-                state.datastore.accounts.find(&token.get_owner_id()).unwrap();
+            let account: proto::Account = state.datastore
+                .accounts
+                .find(&token.get_owner_id())
+                .unwrap();
             let mut session: proto::Session = account.into();
             session.set_token(token.take_token());
             if let Some(err) = set_features(&state, &mut session).err() {
@@ -180,7 +189,10 @@ fn set_features(state: &ServerState, session: &mut proto::Session) -> Result<()>
             flags.insert(privilege::ADMIN);
             continue;
         }
-        if let Some(raw_flags) = state.datastore.features.flags(team.id).ok() {
+        if let Some(raw_flags) = state.datastore
+               .features
+               .flags(team.id)
+               .ok() {
             for raw_flag in raw_flags {
                 let flag = FeatureFlags::from_bits(raw_flag).unwrap();
                 debug!("Granting feature flag={:?} for team={:?}", flag, team.name);

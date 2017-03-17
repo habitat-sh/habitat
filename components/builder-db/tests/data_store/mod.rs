@@ -30,14 +30,14 @@ impl MusicDB {
         let mut migrator = Migrator::new(&self.pool);
         migrator.setup()?;
         migrator.migrate("music",
-                     r#"CREATE TABLE IF NOT EXISTS music (
+                         r#"CREATE TABLE IF NOT EXISTS music (
             band text PRIMARY KEY,
             style text,
             created_at timestamptz DEFAULT now(),
             updated_at timestamptz
         )"#)?;
         migrator.migrate("music",
-                     r#"CREATE VIEW metal_bands AS 
+                         r#"CREATE VIEW metal_bands AS 
             SELECT band FROM music WHERE style = 'metal'"#)?;
         migrator.migrate("music",
                      r#"CREATE OR REPLACE FUNCTION insert_band_v1(band text, style text) RETURNS void AS $$

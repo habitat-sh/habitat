@@ -259,9 +259,9 @@ impl ParseInto<BTreeMap<String, String>> for toml::Value {
                     Some(val_table) => {
                         let buf: Result<BTreeMap<String, String>> = val_table.iter()
                             .map(|(k, v)| match v.as_str() {
-                                Some(val_str) => Ok((k.to_string(), val_str.to_string())),
-                                None => Err(Error::ConfigInvalidTableString(field)),
-                            })
+                                     Some(val_str) => Ok((k.to_string(), val_str.to_string())),
+                                     None => Err(Error::ConfigInvalidTableString(field)),
+                                 })
                             .collect();
                         *out = match buf {
                             Ok(b) => b,
@@ -292,13 +292,13 @@ impl ParseInto<Vec<BTreeMap<String, String>>> for toml::Value {
                                 Some(val_table) => {
                                     let map: Result<BTreeMap<String, String>> = val_table.iter()
                                         .map(|(k, v)| match v.as_str() {
-                                            Some(val_str) => {
-                                                Ok((k.to_string(), val_str.to_string()))
-                                            }
-                                            None => {
+                                                 Some(val_str) => {
+                                                     Ok((k.to_string(), val_str.to_string()))
+                                                 }
+                                                 None => {
                                                 Err(Error::ConfigInvalidArrayTableString(field))
                                             }
-                                        })
+                                             })
                                         .collect();
                                     match map {
                                         Ok(m) => buf.push(m),

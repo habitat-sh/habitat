@@ -225,8 +225,7 @@ mod inner {
                 .spawn()
                 .expect("docker failed to start");
 
-            let output = child.wait_with_output()
-                .expect("failed to wait on child");
+            let output = child.wait_with_output().expect("failed to wait on child");
 
             if output.status.success() {
                 debug!("Docker image is reachable. Proceeding with launching docker.");

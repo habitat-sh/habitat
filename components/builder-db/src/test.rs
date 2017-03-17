@@ -31,11 +31,11 @@ pub mod postgres {
 
     pub fn start() {
         POSTGRES.call_once(|| {
-            thread::spawn(move || {
-                let mut postgres = Postgres::new();
-                let _ = postgres.inner.wait();
-            });
-        });
+                               thread::spawn(move || {
+                                                 let mut postgres = Postgres::new();
+                                                 let _ = postgres.inner.wait();
+                                             });
+                           });
     }
 
     impl Postgres {
@@ -72,7 +72,7 @@ pub mod init {
                                  300,
                                  Duration::from_secs(3600),
                                  false)
-                .expect("Failed to create pool");
+                    .expect("Failed to create pool");
             let conn = pool.get().expect("Failed to get connection");
             let _ = conn.execute("DROP DATABASE IF EXISTS builder_db_test", &[]);
             let _ = conn.execute("CREATE DATABASE builder_db_test", &[]);

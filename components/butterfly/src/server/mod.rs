@@ -116,26 +116,26 @@ impl Server {
         match (maybe_swim_socket_addr, maybe_gossip_socket_addr) {
             (Ok(Some(swim_socket_addr)), Ok(Some(gossip_socket_addr))) => {
                 Ok(Server {
-                    name: Arc::new(name.unwrap_or(String::from(member.get_id()))),
-                    member_id: Arc::new(String::from(member.get_id())),
-                    member: Arc::new(RwLock::new(member)),
-                    member_list: MemberList::new(),
-                    ring_key: Arc::new(ring_key),
-                    rumor_list: RumorList::default(),
-                    service_store: RumorStore::default(),
-                    service_config_store: RumorStore::default(),
-                    service_file_store: RumorStore::default(),
-                    election_store: RumorStore::default(),
-                    update_store: RumorStore::default(),
-                    swim_addr: Arc::new(RwLock::new(swim_socket_addr)),
-                    gossip_addr: Arc::new(RwLock::new(gossip_socket_addr)),
-                    suitability_lookup: Arc::new(suitability_lookup),
-                    pause: Arc::new(AtomicBool::new(false)),
-                    trace: Arc::new(RwLock::new(trace)),
-                    swim_rounds: Arc::new(AtomicIsize::new(0)),
-                    gossip_rounds: Arc::new(AtomicIsize::new(0)),
-                    blacklist: Arc::new(RwLock::new(HashSet::new())),
-                })
+                       name: Arc::new(name.unwrap_or(String::from(member.get_id()))),
+                       member_id: Arc::new(String::from(member.get_id())),
+                       member: Arc::new(RwLock::new(member)),
+                       member_list: MemberList::new(),
+                       ring_key: Arc::new(ring_key),
+                       rumor_list: RumorList::default(),
+                       service_store: RumorStore::default(),
+                       service_config_store: RumorStore::default(),
+                       service_file_store: RumorStore::default(),
+                       election_store: RumorStore::default(),
+                       update_store: RumorStore::default(),
+                       swim_addr: Arc::new(RwLock::new(swim_socket_addr)),
+                       gossip_addr: Arc::new(RwLock::new(gossip_socket_addr)),
+                       suitability_lookup: Arc::new(suitability_lookup),
+                       pause: Arc::new(AtomicBool::new(false)),
+                       trace: Arc::new(RwLock::new(trace)),
+                       swim_rounds: Arc::new(AtomicIsize::new(0)),
+                       gossip_rounds: Arc::new(AtomicIsize::new(0)),
+                       blacklist: Arc::new(RwLock::new(HashSet::new())),
+                   })
             }
             (Err(e), _) | (_, Err(e)) => Err(Error::CannotBind(e)),
             (Ok(None), _) | (_, Ok(None)) => {
@@ -300,7 +300,10 @@ impl Server {
 
     /// Return the port number of the swim socket we are bound to.
     pub fn swim_port(&self) -> u16 {
-        self.swim_addr.read().expect("Swim Address lock poisoned").port()
+        self.swim_addr
+            .read()
+            .expect("Swim Address lock poisoned")
+            .port()
     }
 
     /// Return the gossip address we are bound to
@@ -311,7 +314,10 @@ impl Server {
 
     /// Return the port number of the gossip socket we are bound to.
     pub fn gossip_port(&self) -> u16 {
-        self.gossip_addr.read().expect("Gossip Address lock poisoned").port()
+        self.gossip_addr
+            .read()
+            .expect("Gossip Address lock poisoned")
+            .port()
     }
 
     /// Return the member ID of this server.
@@ -427,8 +433,8 @@ impl Server {
     /// Get all the Member ID's who are present in a given service group.
     pub fn get_electorate(&self, key: &str) -> Vec<String> {
         let mut electorate = vec![];
-        self.service_store.with_rumors(key, |s| if self.member_list
-            .check_health_of_by_id(s.get_member_id(), Health::Alive) {
+        self.service_store.with_rumors(key, |s| if
+            self.member_list.check_health_of_by_id(s.get_member_id(), Health::Alive) {
             electorate.push(String::from(s.get_member_id()));
         });
         electorate
@@ -463,8 +469,7 @@ impl Server {
         if !self.check_quorum(e.key()) {
             e.no_quorum();
         }
-        self.election_store
-            .insert(e);
+        self.election_store.insert(e);
         self.rumor_list.insert(ek);
     }
 
@@ -475,8 +480,7 @@ impl Server {
         if !self.check_quorum(e.key()) {
             e.no_quorum();
         }
-        self.update_store
-            .insert(e);
+        self.update_store.insert(e);
         self.rumor_list.insert(ek);
     }
 
@@ -500,18 +504,18 @@ impl Server {
                         warn!("Restarting election with a new term as the leader has lost \
                               quorum: {:?}",
                               election);
-                        elections_to_restart.push(
-                            (String::from(&service_group[..]), election.get_term()));
+                        elections_to_restart.push((String::from(&service_group[..]),
+                                                   election.get_term()));
 
                     }
                 } else if election.is_finished() {
-                    if self.member_list
-                        .check_health_of_by_id(election.get_member_id(), Health::Confirmed) {
+                    if self.member_list.check_health_of_by_id(election.get_member_id(),
+                                                              Health::Confirmed) {
                         warn!("Restarting election with a new term as the leader is dead {}: {:?}",
                               self.member_id(),
                               election);
-                        elections_to_restart.push(
-                                (String::from(&service_group[..]), election.get_term()));
+                        elections_to_restart.push((String::from(&service_group[..]),
+                                                   election.get_term()));
                     }
                 }
             }
@@ -529,18 +533,18 @@ impl Server {
                         warn!("Restarting election with a new term as the leader has lost \
                               quorum: {:?}",
                               election);
-                        update_elections_to_restart.push(
-                            (String::from(&service_group[..]), election.get_term()));
+                        update_elections_to_restart.push((String::from(&service_group[..]),
+                                                          election.get_term()));
 
                     }
                 } else if election.is_finished() {
-                    if self.member_list
-                        .check_health_of_by_id(election.get_member_id(), Health::Confirmed) {
+                    if self.member_list.check_health_of_by_id(election.get_member_id(),
+                                                              Health::Confirmed) {
                         warn!("Restarting election with a new term as the leader is dead {}: {:?}",
                               self.member_id(),
                               election);
-                        update_elections_to_restart.push(
-                                (String::from(&service_group[..]), election.get_term()));
+                        update_elections_to_restart.push((String::from(&service_group[..]),
+                                                          election.get_term()));
                     }
                 }
             }
@@ -732,26 +736,26 @@ impl Server {
                              -> Vec<(u64, String, Vec<u8>)> {
         let mut service_files = Vec::new();
 
-        self.service_file_store
-            .with_rumors(service_group, |sf| {
-                let current_incarnation = current_service_files.get(sf.get_filename());
-                if current_incarnation.is_none() ||
-                   sf.get_incarnation() > *current_incarnation.unwrap() {
-                    match sf.body() {
-                        Ok(body) => {
-                            service_files.push(
-                                (sf.get_incarnation(), String::from(sf.get_filename()), body))
-                        }
-                        Err(e) => {
-                            warn!("Cannot decrypt service file for {} {} {}: {}",
-                                  service_group,
-                                  sf.get_filename(),
-                                  sf.get_incarnation(),
-                                  e)
-                        }
+        self.service_file_store.with_rumors(service_group, |sf| {
+            let current_incarnation = current_service_files.get(sf.get_filename());
+            if current_incarnation.is_none() ||
+               sf.get_incarnation() > *current_incarnation.unwrap() {
+                match sf.body() {
+                    Ok(body) => {
+                        service_files.push((sf.get_incarnation(),
+                                            String::from(sf.get_filename()),
+                                            body))
+                    }
+                    Err(e) => {
+                        warn!("Cannot decrypt service file for {} {} {}: {}",
+                              service_group,
+                              sf.get_filename(),
+                              sf.get_incarnation(),
+                              e)
                     }
                 }
-            });
+            }
+        });
         service_files
     }
 
@@ -835,7 +839,7 @@ mod tests {
                         None,
                         None,
                         Box::new(ZeroSuitability))
-                .unwrap()
+                    .unwrap()
         }
 
         #[test]
@@ -855,7 +859,7 @@ mod tests {
                                 None,
                                 None,
                                 Box::new(ZeroSuitability))
-                .is_err())
+                            .is_err())
         }
 
         #[test]

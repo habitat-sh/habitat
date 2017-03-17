@@ -18,9 +18,9 @@ use error::Result;
 
 pub fn migrate(migrator: &mut Migrator) -> Result<()> {
     migrator.migrate("originsrv",
-                 r#"CREATE SEQUENCE IF NOT EXISTS origin_project_id_seq;"#)?;
+                     r#"CREATE SEQUENCE IF NOT EXISTS origin_project_id_seq;"#)?;
     migrator.migrate("originsrv",
-                 r#"CREATE TABLE origin_projects (
+                     r#"CREATE TABLE origin_projects (
                         id bigint PRIMARY KEY DEFAULT next_id_v1('origin_project_id_seq'),
                         origin_id bigint REFERENCES origins(id),
                         origin_name text,
@@ -35,7 +35,7 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                         UNIQUE (origin_name, package_name, name)
                         )"#)?;
     migrator.migrate("originsrv",
-                 r#"CREATE OR REPLACE FUNCTION insert_origin_project_v1 (
+                     r#"CREATE OR REPLACE FUNCTION insert_origin_project_v1 (
                         project_origin_name text,
                         project_package_name text,
                         project_plan_path text,
@@ -66,7 +66,7 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                      END
                  $$ LANGUAGE plpgsql VOLATILE"#)?;
     migrator.migrate("originsrv",
-                 r#"CREATE OR REPLACE FUNCTION get_origin_project_v1 (
+                     r#"CREATE OR REPLACE FUNCTION get_origin_project_v1 (
                     project_name text
                  ) RETURNS SETOF origin_projects AS $$
                     BEGIN
@@ -75,7 +75,7 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                     END
                     $$ LANGUAGE plpgsql STABLE"#)?;
     migrator.migrate("originsrv",
-                 r#"CREATE OR REPLACE FUNCTION delete_origin_project_v1 (
+                     r#"CREATE OR REPLACE FUNCTION delete_origin_project_v1 (
                     project_name text
                  ) RETURNS void AS $$
                     BEGIN

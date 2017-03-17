@@ -80,11 +80,12 @@ fn start(ui: &mut UI) -> Result<()> {
     let (args, remaining_args) = raw_parse_args();
     debug!("clap cli args: {:?}", &args);
     debug!("remaining cli args: {:?}", &remaining_args);
-    let app_matches =
-        cli::get().get_matches_from_safe_borrow(&mut args.iter()).unwrap_or_else(|e| {
-            analytics::instrument_clap_error(&e);
-            e.exit();
-        });
+    let app_matches = cli::get()
+        .get_matches_from_safe_borrow(&mut args.iter())
+        .unwrap_or_else(|e| {
+                            analytics::instrument_clap_error(&e);
+                            e.exit();
+                        });
     match app_matches.subcommand() {
         ("cli", Some(matches)) => {
             match matches.subcommand() {

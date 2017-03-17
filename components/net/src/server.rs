@@ -298,11 +298,11 @@ impl RouteConn {
         try!(heartbeat.set_identity(format!("hb#{}", ident).as_bytes()));
         try!(heartbeat.set_probe_router(true));
         Ok(RouteConn {
-            ident: ident,
-            socket: socket,
-            heartbeat: heartbeat,
-            hasher: FnvHasher::default(),
-        })
+               ident: ident,
+               socket: socket,
+               heartbeat: heartbeat,
+               hasher: FnvHasher::default(),
+           })
     }
 
     pub fn connect(&mut self, addr: &str) -> Result<()> {

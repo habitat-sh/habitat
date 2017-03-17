@@ -232,7 +232,7 @@ impl SymKey {
             Ok(msg) => Ok(msg),
             Err(_) => {
                 Err(Error::CryptoError("Secret key and nonce could not decrypt ciphertext"
-                    .to_string()))
+                                           .to_string()))
             }
         }
     }
@@ -331,7 +331,10 @@ impl SymKey {
         let tmpfile = {
             let mut t = secret_keyfile.clone();
             t.set_file_name(format!("{}.{}",
-                                    &secret_keyfile.file_name().unwrap().to_str().unwrap(),
+                                    &secret_keyfile.file_name()
+                                         .unwrap()
+                                         .to_str()
+                                         .unwrap(),
                                     &randombytes(6).as_slice().to_hex()));
             TmpKeyfile { path: t }
         };
@@ -536,7 +539,7 @@ mod test {
         let cache = TempDir::new("key_cache").unwrap();
         fs::copy(fixture(&format!("keys/{}", VALID_KEY)),
                  cache.path().join(VALID_KEY))
-            .unwrap();
+                .unwrap();
 
         let result = SymKey::get_secret_key_path(VALID_NAME_WITH_REV, cache.path()).unwrap();
         assert_eq!(result, cache.path().join(VALID_KEY));
@@ -675,10 +678,10 @@ mod test {
         let key = fixture("keys/ring-key-valid-20160504220722.sym.key");
         fs::copy(key,
                  cache.path().join("ring-key-valid-20160504220722.sym.key"))
-            .unwrap();
+                .unwrap();
 
         SymKey::write_file_from_str("SYM-SEC-1\nring-key-valid-20160504220722\n\nsomething",
                                     cache.path())
-            .unwrap();
+                .unwrap();
     }
 }

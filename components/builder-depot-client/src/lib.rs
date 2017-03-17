@@ -114,8 +114,14 @@ impl Into<depotsrv::Package> for Package {
         out.set_ident(self.ident.into());
         out.set_checksum(self.checksum);
         out.set_manifest(self.manifest);
-        out.set_deps(self.deps.into_iter().map(|m| m.into()).collect());
-        out.set_tdeps(self.tdeps.into_iter().map(|m| m.into()).collect());
+        out.set_deps(self.deps
+                         .into_iter()
+                         .map(|m| m.into())
+                         .collect());
+        out.set_tdeps(self.tdeps
+                          .into_iter()
+                          .map(|m| m.into())
+                          .collect());
         out.set_exposes(self.exposes);
         out.set_config(self.config);
         out
@@ -249,7 +255,7 @@ impl Client {
                     Err(Error::APIError(response.status,
                                         "Your GitHub token requires both user:email and read:org \
                                          permissions."
-                                            .to_string()))
+                                                .to_string()))
                 } else {
                     Err(err_from_response(response))
                 }
@@ -269,10 +275,10 @@ impl Client {
     ///
     /// * Authorization token was not set on client
     pub fn fetch_origin_secret_key(&self, origin: &str, token: &str) -> Result<OriginSecretKey> {
-        let mut res =
-            try!(self.add_authz(self.inner.get(&format!("origins/{}/secret_keys/latest", origin)),
-                           token)
-                .send());
+        let mut res = try!(self.add_authz(self.inner.get(&format!("origins/{}/secret_keys/latest",
+                                                                  origin)),
+                                          token)
+                               .send());
         if res.status != StatusCode::Ok {
             return Err(err_from_response(res));
         }

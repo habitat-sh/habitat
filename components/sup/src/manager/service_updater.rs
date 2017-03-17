@@ -122,10 +122,9 @@ impl ServiceUpdater {
                                 } else {
                                     u64::max_value()
                                 };
-                                self.butterfly
-                                    .start_update_election(service.service_group.clone(),
-                                                           suitability,
-                                                           0);
+                                self.butterfly.start_update_election(service.service_group.clone(),
+                                                                     suitability,
+                                                                     0);
                                 *st = RollingState::InElection
                             }
                             _ => return false,
@@ -178,7 +177,11 @@ impl ServiceUpdater {
                             Some(census) => {
                                 if census.members_ordered().iter().any(|ce| {
                                     ce.pkg.as_ref().unwrap() !=
-                                    census.me().unwrap().pkg.as_ref().unwrap()
+                                    census.me()
+                                        .unwrap()
+                                        .pkg
+                                        .as_ref()
+                                        .unwrap()
                                 }) {
                                     debug!("Update leader still waiting for followers...");
                                     return false;
@@ -215,8 +218,9 @@ impl ServiceUpdater {
                                             return false;
                                         }
                                         debug!("We're in an update and it's our turn");
-                                        let rx = Worker::new(service)
-                                            .start(&service.service_group, leader.pkg.clone());
+                                        let rx =
+                                            Worker::new(service).start(&service.service_group,
+                                                                       leader.pkg.clone());
                                         *state = FollowerState::Updating(rx);
                                     }
                                     _ => return false,
@@ -244,8 +248,8 @@ impl ServiceUpdater {
                                             .unwrap()
                                             .pkg
                                             .clone();
-                                        *rx = Worker::new(service)
-                                            .start(&service.service_group, package);
+                                        *rx = Worker::new(service).start(&service.service_group,
+                                                                         package);
                                     }
                                 }
                             }
@@ -296,9 +300,9 @@ impl Worker {
         thread::Builder::new()
             .name(format!("service-updater-{}", sg))
             .spawn(move || match ident {
-                Some(latest) => self.run_once(tx, latest),
-                None => self.run_poll(tx),
-            })
+                       Some(latest) => self.run_once(tx, latest),
+                       None => self.run_poll(tx),
+                   })
             .expect("unable to start service-updater thread");
         rx
     }
@@ -370,7 +374,7 @@ impl Worker {
         outputln!("Downloading {}", package);
         let mut archive = try!(self.depot.fetch_package(package,
                                                         &Path::new(&*FS_ROOT_PATH)
-                                                            .join(CACHE_ARTIFACT_PATH),
+                                                             .join(CACHE_ARTIFACT_PATH),
                                                         self.ui.progress()));
         try!(archive.verify(&default_cache_key_path(None)));
         outputln!("Installing {}", package);

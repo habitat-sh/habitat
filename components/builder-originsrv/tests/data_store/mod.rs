@@ -167,7 +167,10 @@ fn create_origin_invitation() {
     let conn = ds.pool.get().expect("Cannot get connection from pool");
     let rows = conn.query("SELECT COUNT(*) FROM origin_invitations", &[])
         .expect("Failed to query database for number of invitations");
-    let count: i64 = rows.iter().nth(0).unwrap().get(0);
+    let count: i64 = rows.iter()
+        .nth(0)
+        .unwrap()
+        .get(0);
     assert_eq!(count, 1);
 }
 
@@ -203,22 +206,29 @@ fn list_origin_invitations_for_origin() {
     ds.create_origin_invitation(&oic).expect("Failed to create the origin invitation");
     oic.set_account_id(3);
     oic.set_account_name(String::from("maynard_james_keenan"));
-    ds.create_origin_invitation(&oic)
-        .expect("Failed to create the origin invitation");
+    ds.create_origin_invitation(&oic).expect("Failed to create the origin invitation");
     oic.set_account_id(4);
     oic.set_account_name(String::from("danny_cary"));
-    ds.create_origin_invitation(&oic)
-        .expect("Failed to create the origin invitation");
+    ds.create_origin_invitation(&oic).expect("Failed to create the origin invitation");
 
     // List comes back in alphabetical order by origin
     let oi_list = ds.list_origin_invitations_for_origin(&oilr)
         .expect("Could not get origin invitation list from database");
     assert_eq!(oi_list.get_invitations().len(), 3);
-    let danny = oi_list.get_invitations().iter().nth(0).unwrap();
+    let danny = oi_list.get_invitations()
+        .iter()
+        .nth(0)
+        .unwrap();
     assert_eq!(danny.get_account_id(), 4);
-    let maynard = oi_list.get_invitations().iter().nth(1).unwrap();
+    let maynard = oi_list.get_invitations()
+        .iter()
+        .nth(1)
+        .unwrap();
     assert_eq!(maynard.get_account_id(), 3);
-    let noel = oi_list.get_invitations().iter().nth(2).unwrap();
+    let noel = oi_list.get_invitations()
+        .iter()
+        .nth(2)
+        .unwrap();
     assert_eq!(noel.get_account_id(), 2);
 }
 
@@ -357,8 +367,8 @@ fn accept_origin_invitation() {
 
     let mut omlr = originsrv::OriginMemberListRequest::new();
     omlr.set_origin_id(neurosis.get_id());
-    let members = ds.list_origin_members(&omlr)
-        .expect("Failed to get origin members from the database");
+    let members =
+        ds.list_origin_members(&omlr).expect("Failed to get origin members from the database");
     assert!(members.get_members().contains(&String::from("scottkelly")),
             "scotkelly should be a member");
     assert!(members.get_members().contains(&String::from("noel_gallagher")),

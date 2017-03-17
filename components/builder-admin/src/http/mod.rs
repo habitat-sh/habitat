@@ -84,11 +84,11 @@ pub fn run(config: Arc<Config>) -> Result<JoinHandle<()>> {
     let handle = thread::Builder::new()
         .name("http-srv".to_string())
         .spawn(move || {
-            let mut server = Iron::new(mount);
-            server.threads = HTTP_THREAD_COUNT;
-            server.http(addr).unwrap();
-            tx.send(()).unwrap();
-        })
+                   let mut server = Iron::new(mount);
+                   server.threads = HTTP_THREAD_COUNT;
+                   server.http(addr).unwrap();
+                   tx.send(()).unwrap();
+               })
         .unwrap();
     match rx.recv() {
         Ok(()) => Ok(handle),

@@ -168,8 +168,14 @@ pub fn check_origin_access<T: ToString>(conn: &mut BrokerConn,
 
 pub fn invite_to_origin(req: &mut Request) -> IronResult<Response> {
     // TODO: SA - Eliminate need to clone the session and params
-    let session = req.extensions.get::<Authenticated>().unwrap().clone();
-    let params = req.extensions.get::<Router>().unwrap().clone();
+    let session = req.extensions
+        .get::<Authenticated>()
+        .unwrap()
+        .clone();
+    let params = req.extensions
+        .get::<Router>()
+        .unwrap()
+        .clone();
     let origin = match params.find("origin") {
         Some(origin) => origin,
         None => return Ok(Response::with(status::BadRequest)),
@@ -322,10 +328,16 @@ fn upload_origin_key(req: &mut Request) -> IronResult<Response> {
     let lock = req.get::<persistent::State<Depot>>().expect("depot not found");
     let depot = lock.read().expect("depot read lock is poisoned");
     // TODO: SA - Eliminate need to clone the session and params
-    let params = req.extensions.get::<Router>().unwrap().clone();
+    let params = req.extensions
+        .get::<Router>()
+        .unwrap()
+        .clone();
     let origin = params.find("origin").unwrap();
     let revision = params.find("revision").unwrap();
-    let session = req.extensions.get::<Authenticated>().unwrap().clone();
+    let session = req.extensions
+        .get::<Authenticated>()
+        .unwrap()
+        .clone();
 
     if !depot.config.insecure {
         let mut conn = Broker::connect().unwrap();
@@ -399,8 +411,14 @@ fn download_latest_origin_secret_key(req: &mut Request) -> IronResult<Response> 
 fn upload_origin_secret_key(req: &mut Request) -> IronResult<Response> {
     debug!("Upload Origin Secret Key {:?}", req);
     // TODO: SA - Eliminate need to clone the session and params
-    let session = req.extensions.get::<Authenticated>().unwrap().clone();
-    let params = req.extensions.get::<Router>().unwrap().clone();
+    let session = req.extensions
+        .get::<Authenticated>()
+        .unwrap()
+        .clone();
+    let params = req.extensions
+        .get::<Router>()
+        .unwrap()
+        .clone();
     let mut conn = Broker::connect().unwrap();
     let mut request = OriginSecretKeyCreate::new();
     request.set_owner_id(session.get_id());
@@ -495,7 +513,10 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
            ident);
 
     // TODO: SA - Eliminate need to clone the session
-    let session = req.extensions.get::<Authenticated>().unwrap().clone();
+    let session = req.extensions
+        .get::<Authenticated>()
+        .unwrap()
+        .clone();
     if !depot.config.insecure {
         if !try!(check_origin_access(&mut conn, session.get_id(), &ident.get_origin())) {
             return Ok(Response::with(status::Forbidden));
@@ -581,7 +602,10 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
         }
     };
     if ident.satisfies(object.get_ident()) {
-        depot.datastore.packages.write(&object).unwrap();
+        depot.datastore
+            .packages
+            .write(&object)
+            .unwrap();
 
         log_event!(req,
                    Event::PackageUpload {
@@ -608,7 +632,10 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
 }
 
 fn schedule(req: &mut Request) -> IronResult<Response> {
-    let params = req.extensions.get::<Router>().unwrap().clone();
+    let params = req.extensions
+        .get::<Router>()
+        .unwrap()
+        .clone();
     let origin = match params.find("origin") {
         Some(origin) => origin,
         None => return Ok(Response::with(status::BadRequest)),
@@ -692,7 +719,10 @@ fn download_origin_key(req: &mut Request) -> IronResult<Response> {
         }
     };
 
-    let xfilename = origin_keyfile.file_name().unwrap().to_string_lossy().into_owned();
+    let xfilename = origin_keyfile.file_name()
+        .unwrap()
+        .to_string_lossy()
+        .into_owned();
     let mut response = Response::with((status::Ok, origin_keyfile));
     response.headers.set(ContentDisposition(format!("attachment; filename=\"{}\"", xfilename)));
     response.headers.set(XFileName(xfilename));
@@ -709,7 +739,10 @@ fn download_latest_origin_key(req: &mut Request) -> IronResult<Response> {
         None => return Ok(Response::with(status::BadRequest)),
     };
     debug!("Trying to retrieve latest origin key for {}", &origin);
-    let latest_rev = depot.datastore.origin_keys.latest(&origin).unwrap();
+    let latest_rev = depot.datastore
+        .origin_keys
+        .latest(&origin)
+        .unwrap();
     let origin_keyfile = depot.key_path(&origin, &latest_rev);
     debug!("Looking for {}", &origin_keyfile.to_string_lossy());
     match origin_keyfile.metadata() {
@@ -726,7 +759,10 @@ fn download_latest_origin_key(req: &mut Request) -> IronResult<Response> {
         }
     };
 
-    let xfilename = origin_keyfile.file_name().unwrap().to_string_lossy().into_owned();
+    let xfilename = origin_keyfile.file_name()
+        .unwrap()
+        .to_string_lossy()
+        .into_owned();
     let mut response = Response::with((status::Ok, origin_keyfile));
     response.headers.set(ContentDisposition(format!("attachment; filename=\"{}\"", xfilename)));
     response.headers.set(XFileName(xfilename));
@@ -811,9 +847,16 @@ fn list_unique_packages(req: &mut Request) -> IronResult<Response> {
         None => return Ok(Response::with(status::BadRequest)),
     };
 
-    match depot.datastore.packages.index.unique(&ident, start, stop) {
+    match depot.datastore
+              .packages
+              .index
+              .unique(&ident, start, stop) {
         Ok(packages) => {
-            let count = depot.datastore.packages.index.count_unique(&ident).unwrap();
+            let count = depot.datastore
+                .packages
+                .index
+                .count_unique(&ident)
+                .unwrap();
             debug!("list_unique_packages start: {}, stop: {}, total count: {}",
                    start,
                    stop,
@@ -892,9 +935,16 @@ fn list_packages(req: &mut Request) -> IronResult<Response> {
         dont_cache_response(&mut response);
         Ok(response)
     } else {
-        match depot.datastore.packages.index.list(&ident, start, stop) {
+        match depot.datastore
+                  .packages
+                  .index
+                  .list(&ident, start, stop) {
             Ok(packages) => {
-                let count = depot.datastore.packages.index.count(&ident).unwrap();
+                let count = depot.datastore
+                    .packages
+                    .index
+                    .count(&ident)
+                    .unwrap();
                 debug!("list_packages start: {}, stop: {}, total count: {}",
                        start,
                        stop,
@@ -1066,7 +1116,10 @@ fn show_package(req: &mut Request) -> IronResult<Response> {
         if !ident.fully_qualified() {
             let agent_target = target_from_headers(&req.headers.get::<UserAgent>().unwrap())
                 .unwrap();
-            match depot.datastore.packages.index.latest(&ident, &agent_target.to_string()) {
+            match depot.datastore
+                      .packages
+                      .index
+                      .latest(&ident, &agent_target.to_string()) {
                 Ok(id) => ident = id.into(),
                 Err(Error::DataStore(dbcache::Error::EntityNotFound)) => {
                     return Ok(Response::with(status::NotFound));
@@ -1112,8 +1165,11 @@ fn search_packages(req: &mut Request) -> IronResult<Response> {
     Gauge::PackageCount.set(depot.datastore.key_count().unwrap() as f64);
 
     // Note: the search call takes offset and count values
-    let (packages, total_count) =
-        depot.datastore.packages.index.search(partial, start, stop - start + 1).unwrap();
+    let (packages, total_count) = depot.datastore
+        .packages
+        .index
+        .search(partial, start, stop - start + 1)
+        .unwrap();
 
     debug!("search_packages offset: {}, count: {}, packages len: {}, total_count: {}",
            start,
@@ -1207,7 +1263,10 @@ fn promote_package(req: &mut Request) -> IronResult<Response> {
 
             match depot.datastore.packages.find(&ident) {
                 Ok(package) => {
-                    depot.datastore.channels.associate(&channel, &package).unwrap();
+                    depot.datastore
+                        .channels
+                        .associate(&channel, &package)
+                        .unwrap();
                     Ok(Response::with(status::Ok))
                 }
                 Err(dbcache::Error::EntityNotFound) => Ok(Response::with(status::NotFound)),
@@ -1240,8 +1299,8 @@ fn target_from_headers(user_agent_header: &UserAgent) -> result::Result<PackageT
 
     let user_agent_regex = Regex::new(r"(?P<client>\.*)\s\((?P<target>\w+-\w+); (?P<kernel>.*)\)")
         .unwrap();
-    let user_agent_capture = user_agent_regex.captures(user_agent)
-        .expect("Invalid user agent supplied.");
+    let user_agent_capture =
+        user_agent_regex.captures(user_agent).expect("Invalid user agent supplied.");
     match PackageTarget::from_str(&user_agent_capture["target"]) {
         Ok(target) => Ok(target),
         Err(_) => Err(Response::with(status::BadRequest)),

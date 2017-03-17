@@ -17,9 +17,10 @@ use db::migration::Migrator;
 use error::Result;
 
 pub fn migrate(migrator: &mut Migrator) -> Result<()> {
-    migrator.migrate("originsrv", r#"CREATE SEQUENCE IF NOT EXISTS origin_id_seq;"#)?;
     migrator.migrate("originsrv",
-                 r#"CREATE TABLE origins (
+                     r#"CREATE SEQUENCE IF NOT EXISTS origin_id_seq;"#)?;
+    migrator.migrate("originsrv",
+                     r#"CREATE TABLE origins (
                     id bigint PRIMARY KEY DEFAULT next_id_v1('origin_id_seq'),
                     name text UNIQUE,
                     owner_id bigint,
@@ -27,7 +28,7 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                     updated_at timestamptz
              )"#)?;
     migrator.migrate("originsrv",
-                 r#"CREATE TABLE origin_members (
+                     r#"CREATE TABLE origin_members (
                     origin_id bigint REFERENCES origins(id),
                     origin_name text,
                     account_id bigint,

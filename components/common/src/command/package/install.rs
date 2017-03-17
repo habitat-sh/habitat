@@ -111,12 +111,12 @@ impl<'a> InstallTask<'a> {
                ignore_target: bool)
                -> Result<Self> {
         Ok(InstallTask {
-            depot_client: try!(Client::new(url, product, version, Some(fs_root_path))),
-            fs_root_path: fs_root_path,
-            cache_artifact_path: cache_artifact_path,
-            cache_key_path: cache_key_path,
-            ignore_target: ignore_target,
-        })
+               depot_client: try!(Client::new(url, product, version, Some(fs_root_path))),
+               fs_root_path: fs_root_path,
+               cache_artifact_path: cache_artifact_path,
+               cache_key_path: cache_key_path,
+               ignore_target: ignore_target,
+           })
     }
 
     pub fn from_ident(&self, ui: &mut UI, ident: PackageIdent) -> Result<PackageIdent> {
@@ -191,7 +191,7 @@ impl<'a> InstallTask<'a> {
                      RETRY_WAIT,
                      || self.fetch_artifact(ui, &ident, src_path),
                      |res| res.is_ok())
-                .is_err() {
+                       .is_err() {
                 return Err(Error::from(depot_client::Error::DownloadFailed(format!("We tried {} \
                                                                                     times but \
                                                                                     could not \

@@ -80,9 +80,9 @@ impl Depot {
     pub fn new(config: Config) -> Result<Depot> {
         let datastore = try!(DataStore::open(&config));
         Ok(Depot {
-            config: config,
-            datastore: datastore,
-        })
+               config: config,
+               datastore: datastore,
+           })
     }
 
     // Return a PackageArchive representing the given package. None is returned if the Depot

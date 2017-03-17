@@ -421,7 +421,10 @@ impl Census {
 
     /// Return all alive members.
     pub fn alive_members(&self) -> Vec<&CensusEntry> {
-        self.population.values().filter(|ce| ce.get_alive()).collect()
+        self.population
+            .values()
+            .filter(|ce| ce.get_alive())
+            .collect()
     }
 
     /// Return all alive members ordered by member_id.
@@ -433,7 +436,10 @@ impl Census {
 
     /// Return all members.
     pub fn members(&self) -> Vec<&CensusEntry> {
-        self.population.values().map(|ce| ce).collect()
+        self.population
+            .values()
+            .map(|ce| ce)
+            .collect()
     }
 
     /// Return all members ordered by member_id.
@@ -454,17 +460,26 @@ impl Census {
 
     pub fn get_service_group(&self) -> String {
         // We know we have one, because otherwise the census wouldn't exist
-        let entry = self.population.values().nth(0).unwrap();
+        let entry = self.population
+            .values()
+            .nth(0)
+            .unwrap();
         entry.get_service_group()
     }
 
     pub fn get_group(&self) -> &str {
-        let entry = self.population.values().nth(0).unwrap();
+        let entry = self.population
+            .values()
+            .nth(0)
+            .unwrap();
         entry.get_group()
     }
 
     pub fn get_service(&self) -> &str {
-        let entry = self.population.values().nth(0).unwrap();
+        let entry = self.population
+            .values()
+            .nth(0)
+            .unwrap();
         entry.get_service()
     }
 

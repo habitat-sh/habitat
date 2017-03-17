@@ -60,9 +60,9 @@ pub struct Child {
 impl Child {
     pub fn new(child: &mut process::Child) -> Result<Child> {
         Ok(Child {
-            pid: child.id(),
-            last_status: None,
-        })
+               pid: child.id(),
+               last_status: None,
+           })
     }
 
     pub fn id(&self) -> u32 {

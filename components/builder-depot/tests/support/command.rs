@@ -177,11 +177,11 @@ pub fn run_command(cmd_args: CommandArgs) -> Command {
 pub fn spawn(mut command: Command) -> CmdResult<Cmd> {
     let child = try!(command.spawn());
     Ok(Cmd {
-        child: Some(child),
-        status: None,
-        stdout: None,
-        stderr: None,
-    })
+           child: Some(child),
+           status: None,
+           stdout: None,
+           stderr: None,
+       })
 }
 
 pub fn studio_run(cmd: &str, args: &[&str]) -> CmdResult<Cmd> {

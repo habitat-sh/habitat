@@ -63,10 +63,10 @@ pub enum Signal {
 
 pub fn init() {
     INIT.call_once(|| {
-        self::set_signal_handlers();
-        CAUGHT.store(false, Ordering::SeqCst);
-        SIGNAL.store(0 as usize, Ordering::SeqCst);
-    });
+                       self::set_signal_handlers();
+                       CAUGHT.store(false, Ordering::SeqCst);
+                       SIGNAL.store(0 as usize, Ordering::SeqCst);
+                   });
 }
 
 pub fn check_for_signal() -> Option<SignalEvent> {

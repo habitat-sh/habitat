@@ -33,7 +33,11 @@ pub fn rdeps(g: &Graph<GType, GType>, n: NodeIndex) -> Result<Vec<GType>, GraphE
     }
 
     // unwrap should never panic as we pre-check for cycle
-    let t: Vec<GType> = toposort(&g, None).unwrap().iter().map(|k| k.index()).collect();
+    let t: Vec<GType> = toposort(&g, None)
+        .unwrap()
+        .iter()
+        .map(|k| k.index())
+        .collect();
 
     let bfs: Vec<GType> = Bfs::new(&g, n).iter(&g).map(|k| k.index()).collect();
 

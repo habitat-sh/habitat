@@ -94,18 +94,17 @@ impl<'a> Push<'a> {
                         if rumors.len() > 0 {
                             let sc = self.server.clone();
 
-                            let guard =
-                                match thread::Builder::new()
-                                    .name(String::from("push-worker"))
-                                    .spawn(move || {
-                                        PushWorker::new(sc).send_rumors(member, rumors);
-                                    }) {
-                                    Ok(guard) => guard,
-                                    Err(e) => {
-                                        error!("Could not spawn thread: {}", e);
-                                        continue;
-                                    }
-                                };
+                            let guard = match thread::Builder::new()
+                                      .name(String::from("push-worker"))
+                                      .spawn(move || {
+                                                 PushWorker::new(sc).send_rumors(member, rumors);
+                                             }) {
+                                Ok(guard) => guard,
+                                Err(e) => {
+                                    error!("Could not spawn thread: {}", e);
+                                    continue;
+                                }
+                            };
                             thread_list.push(guard);
                         }
                     }
@@ -151,8 +150,7 @@ impl PushWorker {
             .as_mut()
             .socket(zmq::PUSH)
             .expect("Failure to create the ZMQ push socket");
-        socket.set_linger(1000)
-            .expect("Failure to set the ZMQ push socket to not linger");
+        socket.set_linger(1000).expect("Failure to set the ZMQ push socket to not linger");
         socket.set_tcp_keepalive(0)
             .expect("Failure to set the ZMQ push socket to not use keepalive");
         socket.set_immediate(true).expect("Failure to set the ZMQ push socket to immediate");
@@ -190,9 +188,7 @@ impl PushWorker {
                     //           TraceKind::SendRumor,
                     //           member.get_id(),
                     //           &send_rumor);
-                    match self.server
-                        .service_store
-                        .write_to_bytes(&rumor_key.key, &rumor_key.id) {
+                    match self.server.service_store.write_to_bytes(&rumor_key.key, &rumor_key.id) {
                         Ok(bytes) => bytes,
                         Err(e) => {
                             println!("Could not write our own rumor to bytes; abandoning \
@@ -207,9 +203,8 @@ impl PushWorker {
                     //           TraceKind::SendRumor,
                     //           member.get_id(),
                     //           &send_rumor);
-                    match self.server
-                        .service_config_store
-                        .write_to_bytes(&rumor_key.key, &rumor_key.id) {
+                    match self.server.service_config_store.write_to_bytes(&rumor_key.key,
+                                                                          &rumor_key.id) {
                         Ok(bytes) => bytes,
                         Err(e) => {
                             println!("Could not write our own rumor to bytes; abandoning \
@@ -224,9 +219,8 @@ impl PushWorker {
                     //           TraceKind::SendRumor,
                     //           member.get_id(),
                     //           &send_rumor);
-                    match self.server
-                        .service_file_store
-                        .write_to_bytes(&rumor_key.key, &rumor_key.id) {
+                    match self.server.service_file_store.write_to_bytes(&rumor_key.key,
+                                                                        &rumor_key.id) {
                         Ok(bytes) => bytes,
                         Err(e) => {
                             println!("Could not write our own rumor to bytes; abandoning \
@@ -241,9 +235,7 @@ impl PushWorker {
                     //           TraceKind::SendRumor,
                     //           member.get_id(),
                     //           &send_rumor);
-                    match self.server
-                        .election_store
-                        .write_to_bytes(&rumor_key.key, &rumor_key.id) {
+                    match self.server.election_store.write_to_bytes(&rumor_key.key, &rumor_key.id) {
                         Ok(bytes) => bytes,
                         Err(e) => {
                             println!("Could not write our own rumor to bytes; abandoning \
@@ -254,9 +246,7 @@ impl PushWorker {
                     }
                 }
                 ProtoRumor_Type::ElectionUpdate => {
-                    match self.server
-                        .update_store
-                        .write_to_bytes(&rumor_key.key, &rumor_key.id) {
+                    match self.server.update_store.write_to_bytes(&rumor_key.key, &rumor_key.id) {
                         Ok(bytes) => bytes,
                         Err(e) => {
                             println!("Could not write our own rumor to bytes; abandoning sending \
@@ -296,8 +286,11 @@ impl PushWorker {
         });
         let mut membership = ProtoMembership::new();
         membership.set_member(member);
-        membership.set_health(
-            self.server.member_list.health_of_by_id(&rumor_key.key()).unwrap().into());
+        membership.set_health(self.server
+                                  .member_list
+                                  .health_of_by_id(&rumor_key.key())
+                                  .unwrap()
+                                  .into());
         let mut rumor = ProtoRumor::new();
         rumor.set_field_type(ProtoRumor_Type::Member);
         rumor.set_member(membership);
