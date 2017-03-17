@@ -40,6 +40,7 @@ use supervisor::RuntimeConfig;
 use templating::Template;
 use util::{self, convert};
 use VERSION;
+use super::ServiceBind;
 
 static LOGKEY: &'static str = "SC";
 static ENV_VAR_PREFIX: &'static str = "HAB";
@@ -68,7 +69,7 @@ pub struct ServiceConfig {
     #[serde(skip_serializing, skip_deserializing)]
     pub needs_write: bool,
     #[serde(skip_serializing, skip_deserializing)]
-    supported_bindings: Vec<(String, ServiceGroup)>,
+    supported_bindings: Vec<ServiceBind>,
 }
 
 fn default_for_pathbuf() -> PathBuf {
@@ -82,7 +83,7 @@ impl ServiceConfig {
     pub fn new(package: &PackageInstall,
                runtime_cfg: &RuntimeConfig,
                config_root: PathBuf,
-               bindings: Vec<(String, ServiceGroup)>,
+               bindings: Vec<ServiceBind>,
                gossip_listen: &GossipListenAddr,
                http_listen: &http_gateway::ListenAddr)
                -> Result<ServiceConfig> {
@@ -249,16 +250,17 @@ impl ServiceConfig {
 pub struct Bind(toml::value::Table);
 
 impl Bind {
-    fn populate(&mut self, bindings: &[(String, ServiceGroup)], census_list: &CensusList) {
+    fn populate(&mut self, bindings: &[ServiceBind], census_list: &CensusList) {
         self.0.clear();
-        for &(ref bind, ref service_group) in bindings.iter() {
-            match census_list.get(service_group) {
+        for ref bind in bindings.iter() {
+            match census_list.get(&*bind.service_group) {
                 Some(census) => {
-                    self.0.insert(format!("has_{}", bind), toml::Value::Boolean(true));
-                    self.0.insert(bind.to_string(), toml::Value::Table(service_entry(census)));
+                    self.0.insert(format!("has_{}", bind.name), toml::Value::Boolean(true));
+                    self.0.insert(bind.name.to_string(),
+                                  toml::Value::Table(service_entry(census)));
                 }
                 None => {
-                    self.0.insert(format!("has_{}", bind), toml::Value::Boolean(false));
+                    self.0.insert(format!("has_{}", bind.name), toml::Value::Boolean(false));
                 }
             }
         }

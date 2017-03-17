@@ -44,7 +44,7 @@ use sup::error::{Error, Result};
 use sup::command;
 use sup::http_gateway;
 use sup::manager::ManagerConfig;
-use sup::manager::service::{ServiceSpec, Topology, UpdateStrategy};
+use sup::manager::service::{ServiceBind, ServiceSpec, Topology, UpdateStrategy};
 
 /// Our output key
 static LOGKEY: &'static str = "MN";
@@ -255,13 +255,17 @@ fn spec_from_matches(ident: &PackageIdent, m: &ArgMatches) -> Result<ServiceSpec
     let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
     spec.depot_url = String::from(url);
     if let Some(topology) = m.value_of("TOPOLOGY") {
-        spec.topology = try!(Topology::from_str(topology));
+        spec.topology = Topology::from_str(topology)?;
     }
     if let Some(ref strategy) = m.value_of("STRATEGY") {
-        spec.update_strategy = try!(UpdateStrategy::from_str(strategy));
+        spec.update_strategy = UpdateStrategy::from_str(strategy)?;
     }
-    if let Some(binds) = m.values_of("BIND") {
-        spec.binds = ServiceSpec::split_bindings(binds)?;
+    if let Some(bind_strs) = m.values_of("BIND") {
+        let mut binds = Vec::new();
+        for bind_str in bind_strs {
+            binds.push(ServiceBind::from_str(bind_str)?);
+        }
+        spec.binds = binds;
     }
     if let Some(ref config_from) = m.value_of("CONFIG_DIR") {
         spec.config_from = Some(PathBuf::from(config_from));
