@@ -45,7 +45,10 @@ pub fn maybe_install_newer(ui: &mut UI,
                            -> Result<PackageInstall> {
     let latest_ident: PackageIdent = {
         let depot_client = Client::new(&spec.depot_url, PRODUCT, VERSION, None)?;
-        depot_client.show_package(&spec.ident)?.get_ident().clone().into()
+        depot_client.show_package(&spec.ident)?
+            .get_ident()
+            .clone()
+            .into()
     };
 
     if &latest_ident > current.ident() {

@@ -49,12 +49,12 @@ fn check_pkg_user_and_group(pkg_install: &PackageInstall) -> Result<Option<(Stri
 
             if let None = current_user {
                 return Err(sup_error!(Error::Permissions("Can't determine current user"
-                    .to_string())));
+                                                             .to_string())));
             }
 
             if let None = current_group {
                 return Err(sup_error!(Error::Permissions("Can't determine current group"
-                    .to_string())));
+                                                             .to_string())));
             }
 
             let current_user = current_user.unwrap();
@@ -97,7 +97,7 @@ fn get_default_user_and_group() -> Result<(String, String)> {
                 }
                 _ => {
                     return Err(sup_error!(Error::Permissions("Can't determine current user:group"
-                        .to_string())))
+                                                                 .to_string())))
                 }
             }
         }

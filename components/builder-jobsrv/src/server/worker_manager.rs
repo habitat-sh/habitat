@@ -80,15 +80,15 @@ impl WorkerMgr {
         try!(work_mgr_sock.set_immediate(true));
         let msg = try!(zmq::Message::new());
         Ok(WorkerMgr {
-            config: config,
-            datastore: datastore,
-            hb_sock: hb_sock,
-            rq_sock: rq_sock,
-            work_mgr_sock: work_mgr_sock,
-            pub_sock: pub_sock,
-            msg: msg,
-            workers: LinkedHashMap::new(),
-        })
+               config: config,
+               datastore: datastore,
+               hb_sock: hb_sock,
+               rq_sock: rq_sock,
+               work_mgr_sock: work_mgr_sock,
+               pub_sock: pub_sock,
+               msg: msg,
+               workers: LinkedHashMap::new(),
+           })
     }
 
     pub fn start(cfg: Arc<RwLock<Config>>, ds: DataStore) -> Result<JoinHandle<()>> {
@@ -96,9 +96,9 @@ impl WorkerMgr {
         let handle = thread::Builder::new()
             .name("worker-manager".to_string())
             .spawn(move || {
-                let mut manager = Self::new(cfg, ds).unwrap();
-                manager.run(tx).unwrap();
-            })
+                       let mut manager = Self::new(cfg, ds).unwrap();
+                       manager.run(tx).unwrap();
+                   })
             .unwrap();
         match rx.recv() {
             Ok(()) => Ok(handle),

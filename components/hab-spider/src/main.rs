@@ -36,10 +36,7 @@ fn main() {
     let matches = App::new("hab-spider")
         .version("0.1.0")
         .about("Habitat package graph builder")
-        .arg(Arg::with_name("PATH")
-            .help("The path to the packages root")
-            .required(true)
-            .index(1))
+        .arg(Arg::with_name("PATH").help("The path to the packages root").required(true).index(1))
         .get_matches();
 
     let path = matches.value_of("PATH").unwrap();

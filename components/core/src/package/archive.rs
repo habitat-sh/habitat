@@ -134,9 +134,8 @@ impl PackageArchive {
     pub fn exposes(&mut self) -> Result<Vec<u16>> {
         match self.read_metadata(MetaFile::Exposes) {
             Ok(Some(data)) => {
-                let ports: Vec<u16> = data.split(" ")
-                    .filter_map(|port| port.parse::<u16>().ok())
-                    .collect();
+                let ports: Vec<u16> =
+                    data.split(" ").filter_map(|port| port.parse::<u16>().ok()).collect();
                 Ok(ports)
             }
             Ok(None) => Ok(vec![]),
@@ -191,7 +190,11 @@ impl PackageArchive {
 
     /// A plain string representation of the archive's file name.
     pub fn file_name(&self) -> String {
-        self.path.file_name().unwrap().to_string_lossy().into_owned()
+        self.path
+            .file_name()
+            .unwrap()
+            .to_string_lossy()
+            .into_owned()
     }
 
     /// Given a package name and a path to a file as an `&str`, verify
@@ -310,7 +313,10 @@ impl PackageArchive {
             }
         }
         self.metadata = Some(metadata);
-        Ok(self.metadata.as_ref().unwrap().get(&file))
+        Ok(self.metadata
+               .as_ref()
+               .unwrap()
+               .get(&file))
     }
 }
 

@@ -40,9 +40,8 @@ impl Pool {
                testing: bool)
                -> Result<Pool> {
         loop {
-            let pool_config_builder = r2d2::Config::builder()
-                .pool_size(pool_size)
-                .connection_timeout(connection_timeout);
+            let pool_config_builder =
+                r2d2::Config::builder().pool_size(pool_size).connection_timeout(connection_timeout);
             let pool_config = if testing {
                 pool_config_builder.connection_customizer(Box::new(TestConnectionCustomizer {}))
                     .build()

@@ -52,13 +52,13 @@ impl Server {
         let runner_cli = RunnerCli::new();
         try!(fe_sock.set_identity(Self::net_ident().as_bytes()));
         Ok(Server {
-            config: Arc::new(RwLock::new(config)),
-            fe_sock: fe_sock,
-            hb_cli: hb_cli,
-            runner_cli: runner_cli,
-            state: State::default(),
-            msg: try!(zmq::Message::new()),
-        })
+               config: Arc::new(RwLock::new(config)),
+               fe_sock: fe_sock,
+               hb_cli: hb_cli,
+               runner_cli: runner_cli,
+               state: State::default(),
+               msg: try!(zmq::Message::new()),
+           })
     }
 
     pub fn run(&mut self) -> Result<()> {

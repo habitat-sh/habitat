@@ -100,7 +100,7 @@ pub fn start<P: AsRef<Path>>(ui: &mut UI,
                          RETRY_WAIT,
                          || attempt_upload_dep(ui, &depot_client, token, &dep, &candidate_path),
                          |res| res.is_ok())
-                    .is_err() {
+                           .is_err() {
                     return Err(Error::from(depot_client::Error::UploadFailed(format!("We tried \
                                                                                       {} times \
                                                                                       but could \
@@ -125,7 +125,7 @@ pub fn start<P: AsRef<Path>>(ui: &mut UI,
                      RETRY_WAIT,
                      || upload_into_depot(ui, &depot_client, token, &ident, &mut archive),
                      |res| res.is_ok())
-                .is_err() {
+                       .is_err() {
                 return Err(Error::from(depot_client::Error::UploadFailed(format!("We tried \
                                                                                   {} times \
                                                                                   but could \

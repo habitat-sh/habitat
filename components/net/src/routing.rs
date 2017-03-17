@@ -59,9 +59,9 @@ impl BrokerConn {
         try!(socket.set_sndtimeo(SEND_TIMEOUT_MS));
         try!(socket.set_immediate(true));
         Ok(BrokerConn {
-            sock: socket,
-            hasher: FnvHasher::default(),
-        })
+               sock: socket,
+               hasher: FnvHasher::default(),
+           })
     }
 
     /// Connect to a running `Broker` with the given ZeroMQ address.
@@ -175,9 +175,9 @@ impl Broker {
         try!(be.set_sndtimeo(SEND_TIMEOUT_MS));
         try!(be.set_immediate(true));
         Ok(Broker {
-            client_sock: fe,
-            router_sock: be,
-        })
+               client_sock: fe,
+               router_sock: be,
+           })
     }
 
     /// Helper function for creating a new `BrokerConn` and connecting to the application's `Broker`
@@ -208,9 +208,9 @@ impl Broker {
         let handle = thread::Builder::new()
             .name("router-broker".to_string())
             .spawn(move || {
-                let mut broker = Self::new(net_ident).unwrap();
-                broker.start(tx, addrs).unwrap();
-            })
+                       let mut broker = Self::new(net_ident).unwrap();
+                       broker.start(tx, addrs).unwrap();
+                   })
             .unwrap();
         match rx.recv() {
             Ok(()) => handle,

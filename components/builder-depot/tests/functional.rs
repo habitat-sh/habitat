@@ -140,7 +140,7 @@ pub mod depot_tests {
                                         "test/simple_service",
                                         "-u",
                                         &format!("http://{}:9632", ipaddress)])
-            .unwrap();
+                .unwrap();
         upload.wait_with_output();
         assert_cmd_exit_code!(upload, [0]);
         assert_regex!(upload.stdout(), r"Upload Bldr Package (.+)");
@@ -150,7 +150,7 @@ pub mod depot_tests {
                                          "test/simple_service",
                                          "-u",
                                          &format!("http://{}:9632", ipaddress)])
-            .unwrap();
+                .unwrap();
         install.wait_with_output();
         assert_cmd_exit_code!(install, [0]);
     }

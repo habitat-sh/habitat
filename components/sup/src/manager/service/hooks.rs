@@ -105,7 +105,7 @@ pub trait Hook: fmt::Debug + Sized {
     /// Run a compiled hook.
     fn run(&self, service_group: &ServiceGroup, cfg: &RuntimeConfig) -> Self::ExitValue {
         let mut child = match util::create_command(self.path(), &cfg.svc_user, &cfg.svc_group)
-            .spawn() {
+                  .spawn() {
             Ok(child) => child,
             Err(err) => {
                 outputln!(preamble service_group,
@@ -650,9 +650,9 @@ impl HookTable {
         where H: Hook
     {
         hook.compile(config).unwrap_or_else(|e| {
-            outputln!(preamble service_group,
+                                                outputln!(preamble service_group,
                 "Failed to compile {} hook: {}", H::file_name(), e);
-        });
+                                            });
     }
 }
 
@@ -671,9 +671,9 @@ impl RenderPair {
         let mut template = Template::new();
         template.register_template_file("hook", template_path.as_ref())?;
         Ok(RenderPair {
-            path: concrete_path.into(),
-            template: template,
-        })
+               path: concrete_path.into(),
+               template: template,
+           })
     }
 }
 
@@ -687,7 +687,10 @@ impl Serialize for RenderPair {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {
-        serializer.serialize_str(&self.path.as_os_str().to_string_lossy().into_owned())
+        serializer.serialize_str(&self.path
+                                      .as_os_str()
+                                      .to_string_lossy()
+                                      .into_owned())
     }
 }
 
@@ -727,10 +730,10 @@ impl HookOutput {
     }
 
     fn stream_output<H: Hook>(&mut self, service_group: &ServiceGroup, process: &mut Child) {
-        let mut stdout_log = File::create(&self.stdout_log_file)
-            .expect("couldn't create log output file");
-        let mut stderr_log = File::create(&self.stderr_log_file)
-            .expect("couldn't create log output file");
+        let mut stdout_log =
+            File::create(&self.stdout_log_file).expect("couldn't create log output file");
+        let mut stderr_log =
+            File::create(&self.stderr_log_file).expect("couldn't create log output file");
 
         let preamble_str = self.stream_preamble::<H>(service_group);
         if let Some(ref mut stdout) = process.stdout {
@@ -766,39 +769,37 @@ mod tests {
 
 
     fn hook_fixtures_path() -> PathBuf {
-        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("tests")
-            .join("fixtures")
-            .join("hooks")
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests").join("fixtures").join("hooks")
     }
 
     #[test]
     fn hook_output() {
         let tmp_dir = TempDir::new("habitat_hooks_test").expect("create temp dir");
         let logs_dir = tmp_dir.path().join("logs");
-        DirBuilder::new()
-            .recursive(true)
-            .create(logs_dir)
-            .expect("couldn't create logs dir");
+        DirBuilder::new().recursive(true).create(logs_dir).expect("couldn't create logs dir");
         let mut cmd = Command::new(hook_fixtures_path().join(InitHook::file_name()));
-        cmd.stdin(Stdio::null())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped());
+        cmd.stdin(Stdio::null()).stdout(Stdio::piped()).stderr(Stdio::piped());
         let mut child = cmd.spawn().expect("couldn't run hook");
 
         let log_path = tmp_dir.path().join("logs").join(InitHook::file_name());
         let mut hook_output = HookOutput::new(log_path);
-        let service_group = ServiceGroup::new("dummy", "service", None)
-            .expect("couldn't create ServiceGroup");
+        let service_group =
+            ServiceGroup::new("dummy", "service", None).expect("couldn't create ServiceGroup");
 
         hook_output.stream_output::<InitHook>(&service_group, &mut child);
 
         let mut stdout = String::new();
-        hook_output.stdout().unwrap().read_to_string(&mut stdout).expect("couldn't read stdout");
+        hook_output.stdout()
+            .unwrap()
+            .read_to_string(&mut stdout)
+            .expect("couldn't read stdout");
         assert_eq!(stdout, "This is stdout\n");
 
         let mut stderr = String::new();
-        hook_output.stderr().unwrap().read_to_string(&mut stderr).expect("couldn't read stderr");
+        hook_output.stderr()
+            .unwrap()
+            .read_to_string(&mut stderr)
+            .expect("couldn't read stderr");
         assert_eq!(stderr, "This is stderr\n");
 
         fs::remove_dir_all(tmp_dir).expect("remove temp dir");

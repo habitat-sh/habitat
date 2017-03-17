@@ -83,9 +83,7 @@ impl error::Error for Error {
             Error::BadMessage(_) => "Bad Protobuf Message; should be Ping/Ack/PingReq",
             Error::CannotBind(_) => "Cannot bind to port",
             Error::HabitatCore(_) => "Habitat core error",
-            Error::NonExistentRumor(_, _) => {
-                "Cannot write rumor to bytes because it does not exist"
-            }
+            Error::NonExistentRumor(_, _) => "Cannot write rumor to bytes because it does not exist",
             Error::ProtobufError(ref err) => err.description(),
             Error::ServiceConfigDecode(_, _) => "Cannot decode service config into TOML",
             Error::ServiceConfigNotUtf8(_, _) => "Cannot read service config bytes to UTF-8",

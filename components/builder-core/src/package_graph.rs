@@ -153,8 +153,11 @@ impl PackageGraph {
     }
 
     pub fn search(&self, phrase: &str) -> Vec<String> {
-        let v: Vec<String> =
-            self.package_names.iter().cloned().filter(|s| s.contains(phrase)).collect();
+        let v: Vec<String> = self.package_names
+            .iter()
+            .cloned()
+            .filter(|s| s.contains(phrase))
+            .collect();
 
         v
     }

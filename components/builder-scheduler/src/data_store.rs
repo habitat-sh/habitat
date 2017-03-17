@@ -49,10 +49,10 @@ pub struct DataStore {
 impl DataStore {
     pub fn new(_: &Config) -> Result<DataStore> {
         Ok(DataStore {
-            groups: Vec::new(),
-            job_map: HashMap::new(),
-            group_map: HashMap::new(),
-        })
+               groups: Vec::new(),
+               job_map: HashMap::new(),
+               group_map: HashMap::new(),
+           })
     }
 
     pub fn setup(&self) -> Result<()> {

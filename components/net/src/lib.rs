@@ -55,9 +55,9 @@ pub use self::supervisor::Supervisor;
 
 pub fn hostname() -> Result<String> {
     let output = try!(Command::new("sh")
-        .arg("-c")
-        .arg("hostname | awk '{printf \"%s\", $NF; exit}'")
-        .output());
+                          .arg("-c")
+                          .arg("hostname | awk '{printf \"%s\", $NF; exit}'")
+                          .output());
     match output.status.success() {
         true => {
             debug!("Hostname address is {}",

@@ -109,8 +109,11 @@ impl ServiceSpec {
         let missing: Vec<String> = package.binds()?
             .into_iter()
             .filter(|bind| {
-                self.binds.iter().find(|&&(ref service, _)| &bind.service == service).is_none()
-            })
+                        self.binds
+                            .iter()
+                            .find(|&&(ref service, _)| &bind.service == service)
+                            .is_none()
+                    })
             .map(|bind| bind.service)
             .collect();
         if !missing.is_empty() {
@@ -172,25 +175,27 @@ impl Service {
         let logs_path = fs::svc_logs_path(service_group.service());
         let locked_package = Arc::new(RwLock::new(package));
         Ok(Service {
-            config: svc_cfg,
-            current_service_files: HashMap::new(),
-            depot_url: spec.depot_url,
-            health_check: HealthCheck::default(),
-            hooks: HookTable::default()
-                .load_hooks(&service_group, &hooks_path, &hook_template_path, &logs_path),
-            initialized: false,
-            last_election_status: ElectionStatus::None,
-            needs_reload: false,
-            needs_reconfiguration: false,
-            supervisor: Supervisor::new(locked_package.clone(), &service_group, runtime_cfg),
-            package: locked_package,
-            service_group: service_group,
-            smoke_check: SmokeCheck::default(),
-            spec_ident: spec.ident,
-            topology: spec.topology,
-            update_strategy: spec.update_strategy,
-            config_from: spec.config_from,
-        })
+               config: svc_cfg,
+               current_service_files: HashMap::new(),
+               depot_url: spec.depot_url,
+               health_check: HealthCheck::default(),
+               hooks: HookTable::default().load_hooks(&service_group,
+                                                      &hooks_path,
+                                                      &hook_template_path,
+                                                      &logs_path),
+               initialized: false,
+               last_election_status: ElectionStatus::None,
+               needs_reload: false,
+               needs_reconfiguration: false,
+               supervisor: Supervisor::new(locked_package.clone(), &service_group, runtime_cfg),
+               package: locked_package,
+               service_group: service_group,
+               smoke_check: SmokeCheck::default(),
+               spec_ident: spec.ident,
+               topology: spec.topology,
+               update_strategy: spec.update_strategy,
+               config_from: spec.config_from,
+           })
     }
 
     pub fn load(spec: ServiceSpec,
@@ -298,7 +303,10 @@ impl Service {
                 outputln!(preamble self.service_group, "Service restart failed: {}", err);
             }
         } else {
-            let hook = self.hooks.reload.as_ref().unwrap();
+            let hook = self.hooks
+                .reload
+                .as_ref()
+                .unwrap();
             hook.run(&self.service_group, self.runtime_cfg());
         }
     }
@@ -335,12 +343,30 @@ impl Service {
 
     pub fn register_metrics(&self) {
         let version_opts = Opts::new(HABITAT_PACKAGE_INFO_NAME, HABITAT_PACKAGE_INFO_DESC)
-            .const_label("origin", &self.package().ident.origin.clone())
-            .const_label("name", &self.package().ident.name.clone())
+            .const_label("origin",
+                         &self.package()
+                              .ident
+                              .origin
+                              .clone())
+            .const_label("name",
+                         &self.package()
+                              .ident
+                              .name
+                              .clone())
             .const_label("version",
-                         &self.package().ident.version.as_ref().unwrap().clone())
+                         &self.package()
+                              .ident
+                              .version
+                              .as_ref()
+                              .unwrap()
+                              .clone())
             .const_label("release",
-                         &self.package().ident.release.as_ref().unwrap().clone());
+                         &self.package()
+                              .ident
+                              .release
+                              .as_ref()
+                              .unwrap()
+                              .clone());
         let version_gauge = register_gauge!(version_opts).unwrap();
         version_gauge.set(1.0);
     }
@@ -745,19 +771,18 @@ impl Service {
         if let Some(cfg) = self.config.to_exported().ok() {
             let me = butterfly.member_id().to_string();
             let mut updated = None;
-            butterfly.service_store
-                .with_rumor(&*self.service_group, &me, |rumor| {
-                    if let Some(rumor) = rumor {
-                        let mut rumor = rumor.clone();
-                        let incarnation = rumor.get_incarnation() + 1;
-                        rumor.set_incarnation(incarnation);
-                        // TODO FN: the updated toml API returns a `Result` when
-                        // serializing--we should handle this and not potentially panic
-                        *rumor.mut_cfg() = toml::ser::to_vec(&cfg)
-                            .expect("Can't serialize to TOML bytes");
-                        updated = Some(rumor);
-                    }
-                });
+            butterfly.service_store.with_rumor(&*self.service_group, &me, |rumor| {
+                if let Some(rumor) = rumor {
+                    let mut rumor = rumor.clone();
+                    let incarnation = rumor.get_incarnation() + 1;
+                    rumor.set_incarnation(incarnation);
+                    // TODO FN: the updated toml API returns a `Result` when
+                    // serializing--we should handle this and not potentially panic
+                    *rumor.mut_cfg() =
+                        toml::ser::to_vec(&cfg).expect("Can't serialize to TOML bytes");
+                    updated = Some(rumor);
+                }
+            });
             if let Some(rumor) = updated {
                 butterfly.insert_service(rumor);
                 last_update.service_counter += 1;

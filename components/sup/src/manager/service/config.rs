@@ -87,17 +87,17 @@ impl ServiceConfig {
                http_listen: &http_gateway::ListenAddr)
                -> Result<ServiceConfig> {
         Ok(ServiceConfig {
-            pkg: Pkg::new(package, runtime_cfg)?,
-            hab: Hab::new(),
-            sys: Sys::new(gossip_listen, http_listen),
-            cfg: Cfg::new(package, &config_root)?,
-            svc: Svc::default(),
-            bind: Bind::default(),
-            incarnation: 0,
-            needs_write: true,
-            supported_bindings: bindings,
-            config_root: config_root,
-        })
+               pkg: Pkg::new(package, runtime_cfg)?,
+               hab: Hab::new(),
+               sys: Sys::new(gossip_listen, http_listen),
+               cfg: Cfg::new(package, &config_root)?,
+               svc: Svc::default(),
+               bind: Bind::default(),
+               incarnation: 0,
+               needs_write: true,
+               supported_bindings: bindings,
+               config_root: config_root,
+           })
     }
 
     /// Return an iterator of the configuration file names to render.
@@ -196,7 +196,11 @@ impl ServiceConfig {
             debug!("Rendering template {}", &config);
             let template_data = try!(template.render(&config, &final_data));
             let template_hash = try!(crypto::hash::hash_string(&template_data));
-            let cfg_dest = self.pkg.svc_config_path.join(&config).to_string_lossy().into_owned();
+            let cfg_dest = self.pkg
+                .svc_config_path
+                .join(&config)
+                .to_string_lossy()
+                .into_owned();
             let file_hash = match crypto::hash::hash_file(&cfg_dest) {
                 Ok(file_hash) => file_hash,
                 Err(e) => {
@@ -277,7 +281,11 @@ impl Svc {
         for (_sg, c) in census_list.iter() {
             all.push(toml::Value::Table(service_entry(c)));
             let mut group = if named.contains_key(c.get_service()) {
-                named.get(c.get_service()).unwrap().as_table().unwrap().clone()
+                named.get(c.get_service())
+                    .unwrap()
+                    .as_table()
+                    .unwrap()
+                    .clone()
             } else {
                 toml::value::Table::new()
             };
@@ -470,9 +478,8 @@ impl Cfg {
     }
 
     fn load_environment(&mut self, package: &str) -> Result<()> {
-        let var_name = format!("{}_{}", ENV_VAR_PREFIX, package)
-            .to_ascii_uppercase()
-            .replace("-", "_");
+        let var_name =
+            format!("{}_{}", ENV_VAR_PREFIX, package).to_ascii_uppercase().replace("-", "_");
         match env::var(&var_name) {
             Ok(config) => {
                 let toml = try!(toml::de::from_str(&config)
@@ -517,25 +524,25 @@ impl Pkg {
     fn new(package: &PackageInstall, runtime: &RuntimeConfig) -> Result<Pkg> {
         let ident = package.ident().clone();
         Ok(Pkg {
-            ident: ident.to_string(),
-            origin: ident.origin,
-            name: ident.name,
-            version: ident.version.expect("Couldn't read package version"),
-            release: ident.release.expect("Couldn't read package release"),
-            deps: package.tdeps()?,
-            exposes: package.exposes()?,
-            exports: package.exports()?,
-            path: package.installed_path.clone(),
-            svc_path: fs::svc_path(&package.ident.name),
-            svc_config_path: fs::svc_config_path(&package.ident.name),
-            svc_data_path: fs::svc_data_path(&package.ident.name),
-            svc_files_path: fs::svc_files_path(&package.ident.name),
-            svc_static_path: fs::svc_static_path(&package.ident.name),
-            svc_var_path: fs::svc_var_path(&package.ident.name),
-            svc_pid_file: fs::svc_pid_file(&package.ident.name),
-            svc_user: runtime.svc_user.to_string(),
-            svc_group: runtime.svc_group.to_string(),
-        })
+               ident: ident.to_string(),
+               origin: ident.origin,
+               name: ident.name,
+               version: ident.version.expect("Couldn't read package version"),
+               release: ident.release.expect("Couldn't read package release"),
+               deps: package.tdeps()?,
+               exposes: package.exposes()?,
+               exports: package.exports()?,
+               path: package.installed_path.clone(),
+               svc_path: fs::svc_path(&package.ident.name),
+               svc_config_path: fs::svc_config_path(&package.ident.name),
+               svc_data_path: fs::svc_data_path(&package.ident.name),
+               svc_files_path: fs::svc_files_path(&package.ident.name),
+               svc_static_path: fs::svc_static_path(&package.ident.name),
+               svc_var_path: fs::svc_var_path(&package.ident.name),
+               svc_pid_file: fs::svc_pid_file(&package.ident.name),
+               svc_user: runtime.svc_user.to_string(),
+               svc_group: runtime.svc_group.to_string(),
+           })
     }
 
     fn to_toml(&self) -> Result<toml::Value> {
@@ -565,13 +572,13 @@ impl Sys {
             }
         };
         Sys(SysInfo {
-            ip: ip,
-            hostname: hostname,
-            gossip_ip: gossip_listen.ip().to_string(),
-            gossip_port: gossip_listen.port().to_string(),
-            http_gateway_ip: http_listen.ip().to_string(),
-            http_gateway_port: http_listen.port().to_string(),
-        })
+                ip: ip,
+                hostname: hostname,
+                gossip_ip: gossip_listen.ip().to_string(),
+                gossip_port: gossip_listen.port().to_string(),
+                http_gateway_ip: http_listen.ip().to_string(),
+                http_gateway_port: http_listen.port().to_string(),
+            })
     }
 
     fn to_toml(&self) -> Result<toml::Value> {
@@ -726,10 +733,16 @@ mod test {
                                     Vec::new(),
                                     &GossipListenAddr::default(),
                                     &ListenAddr::default())
-            .unwrap();
+                .unwrap();
         let toml = sc.to_toml().unwrap();
-        let version =
-            toml.get("hab").unwrap().as_table().unwrap().get("version").unwrap().as_str().unwrap();
+        let version = toml.get("hab")
+            .unwrap()
+            .as_table()
+            .unwrap()
+            .get("version")
+            .unwrap()
+            .as_str()
+            .unwrap();
         assert_eq!(version, VERSION);
     }
 
@@ -742,10 +755,16 @@ mod test {
                                     Vec::new(),
                                     &GossipListenAddr::default(),
                                     &ListenAddr::default())
-            .unwrap();
+                .unwrap();
         let toml = sc.to_toml().unwrap();
-        let name =
-            toml.get("pkg").unwrap().as_table().unwrap().get("name").unwrap().as_str().unwrap();
+        let name = toml.get("pkg")
+            .unwrap()
+            .as_table()
+            .unwrap()
+            .get("name")
+            .unwrap()
+            .as_str()
+            .unwrap();
         assert_eq!(name, "redis");
     }
 
@@ -758,9 +777,16 @@ mod test {
                                     Vec::new(),
                                     &GossipListenAddr::default(),
                                     &ListenAddr::default())
-            .unwrap();
+                .unwrap();
         let toml = sc.to_toml().unwrap();
-        let ip = toml.get("sys").unwrap().as_table().unwrap().get("ip").unwrap().as_str().unwrap();
+        let ip = toml.get("sys")
+            .unwrap()
+            .as_table()
+            .unwrap()
+            .get("ip")
+            .unwrap()
+            .as_str()
+            .unwrap();
         let re = Regex::new(r"\d+\.\d+\.\d+\.\d+").unwrap();
         assert!(re.is_match(&ip));
     }
@@ -774,7 +800,7 @@ mod test {
                                     Vec::new(),
                                     &GossipListenAddr::default(),
                                     &ListenAddr::default())
-            .unwrap();
+                .unwrap();
         let exported_toml = sc.to_exported().unwrap();
         assert_eq!(exported_toml["ip"].as_str(), Some("1.2.3.4"));
     }
@@ -788,7 +814,7 @@ mod test {
                                     Vec::new(),
                                     &GossipListenAddr::default(),
                                     &ListenAddr::default())
-            .unwrap();
+                .unwrap();
         let exported_toml = sc.to_exported().unwrap();
         assert_eq!(exported_toml["port"].as_integer(), Some(443));
     }
@@ -963,7 +989,10 @@ mod test {
         fn to_toml() {
             let s = Sys::new(&GossipListenAddr::default(), &ListenAddr::default());
             let toml = s.to_toml().unwrap();
-            let ip = toml.get("ip").unwrap().as_str().unwrap();
+            let ip = toml.get("ip")
+                .unwrap()
+                .as_str()
+                .unwrap();
             let re = Regex::new(r"\d+\.\d+\.\d+\.\d+").unwrap();
             assert!(re.is_match(&ip));
         }
@@ -983,7 +1012,10 @@ mod test {
         fn to_toml() {
             let h = Hab::new();
             let version_toml = h.to_toml().unwrap();
-            let version = version_toml.get("version").unwrap().as_str().unwrap();
+            let version = version_toml.get("version")
+                .unwrap()
+                .as_str()
+                .unwrap();
             assert_eq!(version, VERSION);
         }
     }

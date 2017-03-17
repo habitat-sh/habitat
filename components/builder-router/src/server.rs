@@ -145,7 +145,10 @@ impl Server {
                         self.state = SocketState::Cleaning;
                         continue;
                     }
-                    match self.envelope.msg.get_route_info().get_protocol() {
+                    match self.envelope
+                              .msg
+                              .get_route_info()
+                              .get_protocol() {
                         Protocol::RouteSrv => try!(self.handle_message()),
                         _ => try!(self.route_message()),
                     }
@@ -236,14 +239,18 @@ impl Server {
                             try!(self.fe_sock.send(&*hop, zmq::SNDMORE));
                         }
                         try!(self.fe_sock.send(&[], zmq::SNDMORE));
-                        try!(self.fe_sock.send(&self.envelope.msg.write_to_bytes().unwrap(), 0));
+                        try!(self.fe_sock.send(&self.envelope
+                                                    .msg
+                                                    .write_to_bytes()
+                                                    .unwrap(),
+                                               0));
                     }
                     None => {
                         warn!("failed to route message, no server servicing shard, msg={:?}",
                               self.envelope.msg);
                         let err = protocol::Message::new(&protocol::net::err(ErrCode::NO_SHARD,
                                                                              "rt:route:1"))
-                            .build();
+                                .build();
                         let bytes = try!(err.write_to_bytes());
                         for hop in self.envelope.hops() {
                             try!(self.fe_sock.send(&*hop, zmq::SNDMORE));
@@ -258,7 +265,7 @@ impl Server {
                       self.envelope.msg);
                 let err = protocol::Message::new(&protocol::net::err(ErrCode::NO_SHARD,
                                                                      "rt:route:2"))
-                    .build();
+                        .build();
                 let bytes = try!(err.write_to_bytes());
                 for hop in self.envelope.hops() {
                     try!(self.fe_sock.send(&*hop, zmq::SNDMORE));

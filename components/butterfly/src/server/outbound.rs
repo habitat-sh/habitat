@@ -109,13 +109,11 @@ impl<'a> Outbound<'a> {
 
             let long_wait = self.timing.next_protocol_period();
 
-            let check_list = self.server
-                .member_list
-                .check_list(self.server
-                    .member
-                    .read()
-                    .expect("Member is poisoned")
-                    .get_id());
+            let check_list = self.server.member_list.check_list(self.server
+                                                                    .member
+                                                                    .read()
+                                                                    .expect("Member is poisoned")
+                                                                    .get_id());
 
             for member in check_list {
                 if self.server.member_list.pingable(&member) {
@@ -175,15 +173,15 @@ impl<'a> Outbound<'a> {
             return;
         }
 
-        self.server
-            .member_list
-            .with_pingreq_targets(self.server.member_id(), member.get_id(), |pingreq_target| {
-                trace_it!(PROBE: &self.server,
+        self.server.member_list.with_pingreq_targets(self.server.member_id(),
+                                                     member.get_id(),
+                                                     |pingreq_target| {
+            trace_it!(PROBE: &self.server,
                           TraceKind::ProbePingReq,
                           pingreq_target.get_id(),
                           pingreq_target.get_address());
-                pingreq(self.server, &self.socket, &pingreq_target, &member);
-            });
+            pingreq(self.server, &self.socket, &pingreq_target, &member);
+        });
         if !self.recv_ack(&member, addr, AckFrom::PingReq) {
             // We mark as suspect when we fail to get a response from the PingReq. That moves us
             // into the suspicion phase, where anyone marked as suspect has a certain number of

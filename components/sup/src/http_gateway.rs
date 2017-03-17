@@ -242,9 +242,19 @@ impl Into<status::Status> for HealthCheck {
 }
 
 fn build_service_group(req: &mut Request) -> Result<ServiceGroup> {
-    let sg =
-        ServiceGroup::new(req.extensions.get::<Router>().unwrap().find("svc").unwrap_or(""),
-                          req.extensions.get::<Router>().unwrap().find("group").unwrap_or(""),
-                          req.extensions.get::<Router>().unwrap().find("org"))?;
+    let sg = ServiceGroup::new(req.extensions
+                                   .get::<Router>()
+                                   .unwrap()
+                                   .find("svc")
+                                   .unwrap_or(""),
+                               req.extensions
+                                   .get::<Router>()
+                                   .unwrap()
+                                   .find("group")
+                                   .unwrap_or(""),
+                               req.extensions
+                                   .get::<Router>()
+                                   .unwrap()
+                                   .find("org"))?;
     Ok(sg)
 }

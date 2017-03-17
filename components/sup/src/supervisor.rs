@@ -145,15 +145,15 @@ impl Supervisor {
             let mut child = try!(util::create_command(self.run_cmd(),
                                                       &self.runtime_config.svc_user,
                                                       &self.runtime_config.svc_group)
-                .spawn());
+                                         .spawn());
 
             let hab_child = try!(HabChild::from(&mut child));
             self.child = Some(hab_child);
             try!(self.create_pidfile());
             let package_name = self.preamble.clone();
             try!(thread::Builder::new()
-                .name(String::from("sup-service-read"))
-                .spawn(move || -> Result<()> { child_reader(&mut child, package_name) }));
+                     .name(String::from("sup-service-read"))
+                     .spawn(move || -> Result<()> { child_reader(&mut child, package_name) }));
             self.enter_state(ProcessState::Up);
             self.has_started = true;
         } else {
@@ -253,11 +253,19 @@ impl Supervisor {
     }
 
     pub fn service_dir(&self) -> PathBuf {
-        fs::svc_path(&self.package.read().expect("Package lock poisoned").ident().name)
+        fs::svc_path(&self.package
+                          .read()
+                          .expect("Package lock poisoned")
+                          .ident()
+                          .name)
     }
 
     pub fn pid_file(&self) -> PathBuf {
-        fs::svc_pid_file(&self.package.read().expect("Package lock poisoned").ident().name)
+        fs::svc_pid_file(&self.package
+                              .read()
+                              .expect("Package lock poisoned")
+                              .ident()
+                              .name)
     }
 
     /// Create a pid file for a package
@@ -331,9 +339,9 @@ impl Serialize for Supervisor {
         try!(strukt.serialize_field("pid", &pid));
         try!(strukt.serialize_field("package",
                                     &self.package
-                                        .read()
-                                        .expect("Package lock poisoned")
-                                        .to_string()));
+                                         .read()
+                                         .expect("Package lock poisoned")
+                                         .to_string()));
         try!(strukt.serialize_field("preamble", &self.preamble));
         try!(strukt.serialize_field("state", &self.state));
         try!(strukt.serialize_field("state_entered", &self.state_entered.to_string()));

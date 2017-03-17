@@ -142,8 +142,8 @@ impl UI {
             true => {
                 try!(write!(stream,
                             "{}\n",
-                            Colour::Red.bold()
-                                .paint(format!("✗✗✗\n{}\n✗✗✗", formatted_message))));
+                            Colour::Red.bold().paint(format!("✗✗✗\n{}\n✗✗✗",
+                                                             formatted_message))));
             }
             false => {
                 try!(write!(stream, "✗✗✗\n{}\n✗✗✗\n", formatted_message));
@@ -168,8 +168,9 @@ impl UI {
                 try!(write!(stream, "{}\n", Colour::Green.bold().paint(text)));
                 try!(write!(stream,
                             "{}\n\n",
-                            Colour::Green.bold()
-                                .paint(format!("{:=<width$}", "", width = text.chars().count()))));
+                            Colour::Green.bold().paint(format!("{:=<width$}",
+                                                               "",
+                                                               width = text.chars().count()))));
             }
             false => {
                 try!(write!(stream, "{}\n", text));
@@ -256,7 +257,10 @@ impl UI {
                 let reference = self.shell.input.by_ref();
                 try!(BufReader::new(reference).read_line(&mut response));
             }
-            match response.trim().chars().next().unwrap_or('\n') {
+            match response.trim()
+                      .chars()
+                      .next()
+                      .unwrap_or('\n') {
                 'y' | 'Y' => return Ok(true),
                 'n' | 'N' => return Ok(false),
                 'q' | 'Q' => process::exit(0),

@@ -60,7 +60,7 @@ fn main() {
                                      None,
                                      None,
                                      Box::new(ZeroSuitability))
-        .unwrap();
+            .unwrap();
     println!("Server ID: {}", server.member_id);
 
     let targets: Vec<String> = args.collect();

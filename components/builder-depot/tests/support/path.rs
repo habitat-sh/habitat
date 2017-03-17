@@ -33,5 +33,10 @@ pub fn fixture_as_string(name: &str) -> String {
 }
 
 pub fn sup() -> String {
-    root().parent().unwrap().join("target/debug/hab-sup").to_string_lossy().into_owned()
+    root()
+        .parent()
+        .unwrap()
+        .join("target/debug/hab-sup")
+        .to_string_lossy()
+        .into_owned()
 }

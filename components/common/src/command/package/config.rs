@@ -42,7 +42,7 @@ pub fn start<P>(ident: &PackageIdent, fs_root_path: P) -> Result<()>
                      "No '{}' found for {}",
                      DEFAULT_CFG_FILE,
                      &package.ident)
-                .expect("Failed printing to stderr")
+                    .expect("Failed printing to stderr")
         }
     }
     Ok(())

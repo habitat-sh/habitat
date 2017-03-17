@@ -219,10 +219,10 @@ mod test {
     fn calls_from_multiple_threads() {
         for n in 0..10 {
             thread::spawn(move || {
-                Counter::SearchPackages.increment();
-                Gauge::PackageCount.set(n as f64);
-                Counter::SearchPackages.decrement();
-            });
+                              Counter::SearchPackages.increment();
+                              Gauge::PackageCount.set(n as f64);
+                              Counter::SearchPackages.decrement();
+                          });
         }
 
         thread::sleep(Duration::from_millis(500))

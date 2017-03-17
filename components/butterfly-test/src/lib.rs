@@ -64,7 +64,7 @@ pub fn start_server(name: &str, ring_key: Option<SymKey>, suitability: u64) -> S
                              ring_key,
                              Some(String::from(name)),
                              Box::new(NSuitability(suitability)))
-        .unwrap();
+            .unwrap();
     server.start(Timing::default()).expect("Cannot start server");
     server
 }
@@ -156,9 +156,9 @@ impl SwimNet {
             self.members.get(to_entry).expect("Asked for a network member who is out of bounds");
         trace_it!(TEST: &self.members[from_entry], format!("Blacklisted {} {}", self.members[to_entry].name(), self.members[to_entry].member_id()));
         from.add_to_blacklist(String::from(to.member
-            .read()
-            .expect("Member lock is poisoned")
-            .get_id()));
+                                               .read()
+                                               .expect("Member lock is poisoned")
+                                               .get_id()));
     }
 
     pub fn unblacklist(&self, from_entry: usize, to_entry: usize) {
@@ -201,19 +201,31 @@ impl SwimNet {
     }
 
     pub fn rounds(&self) -> Vec<isize> {
-        self.members.iter().map(|m| m.swim_rounds()).collect()
+        self.members
+            .iter()
+            .map(|m| m.swim_rounds())
+            .collect()
     }
 
     pub fn rounds_in(&self, count: isize) -> Vec<isize> {
-        self.rounds().iter().map(|r| r + count).collect()
+        self.rounds()
+            .iter()
+            .map(|r| r + count)
+            .collect()
     }
 
     pub fn gossip_rounds(&self) -> Vec<isize> {
-        self.members.iter().map(|m| m.gossip_rounds()).collect()
+        self.members
+            .iter()
+            .map(|m| m.gossip_rounds())
+            .collect()
     }
 
     pub fn gossip_rounds_in(&self, count: isize) -> Vec<isize> {
-        self.gossip_rounds().iter().map(|r| r + count).collect()
+        self.gossip_rounds()
+            .iter()
+            .map(|r| r + count)
+            .collect()
     }
 
     pub fn check_rounds(&self, rounds_in: &Vec<isize>) -> bool {
@@ -308,12 +320,10 @@ impl SwimNet {
         loop {
             let mut result = false;
 
-            let left_server = self.members
-                .get(left)
-                .expect("Asked for a network member who is out of bounds");
-            let right_server = self.members
-                .get(right)
-                .expect("Asked for a network member who is out of bounds");
+            let left_server =
+                self.members.get(left).expect("Asked for a network member who is out of bounds");
+            let right_server =
+                self.members.get(right).expect("Asked for a network member who is out of bounds");
 
             left_server.election_store.with_rumor(key, "election", |l| {
                 right_server.election_store.with_rumor(key, "election", |r| {
@@ -385,10 +395,10 @@ impl SwimNet {
         loop {
             let network_health = self.network_health_of(to_check);
             if network_health.iter().all(|x| if let &Some(ref h) = x {
-                *h == health
-            } else {
-                false
-            }) {
+                                             *h == health
+                                         } else {
+                                             false
+                                         }) {
                 trace_it!(TEST_NET: self,
                           format!("Health {} {} as {}",
                                   self.members[to_check].name(),

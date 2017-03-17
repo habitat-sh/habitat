@@ -62,7 +62,7 @@ impl GitHubClient {
                                       self.client_id,
                                       self.client_secret,
                                       code))
-            .unwrap();
+                .unwrap();
         let mut rep = try!(http_post(url));
         if rep.status.is_success() {
             let mut encoded = String::new();
@@ -405,7 +405,11 @@ impl AuthOk {
     pub fn missing_auth_scopes(&self) -> Vec<&'static str> {
         let mut scopes = vec![];
         for scope in AUTH_SCOPES.iter() {
-            if !self.scope.split(",").collect::<Vec<&str>>().iter().any(|p| p == scope) {
+            if !self.scope
+                    .split(",")
+                    .collect::<Vec<&str>>()
+                    .iter()
+                    .any(|p| p == scope) {
                 scopes.push(*scope);
             }
         }

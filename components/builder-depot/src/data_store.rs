@@ -49,11 +49,11 @@ impl DataStore {
         let channels = ChannelsTable::new(pool2);
         let origin_keys = OriginKeysTable::new(pool3);
         Ok(DataStore {
-            pool: pool,
-            packages: packages,
-            channels: channels,
-            origin_keys: origin_keys,
-        })
+               pool: pool,
+               packages: packages,
+               channels: channels,
+               origin_keys: origin_keys,
+           })
     }
 
     /// Truncates every database in the datastore.
@@ -63,12 +63,18 @@ impl DataStore {
     /// * If a read-write transaction could not be acquired for any of the databases in the
     ///   datastore
     pub fn clear(&self) -> Result<()> {
-        try!(redis::cmd("FLUSHDB").query(self.pool.get().unwrap().deref()));
+        try!(redis::cmd("FLUSHDB").query(self.pool
+                                             .get()
+                                             .unwrap()
+                                             .deref()));
         Ok(())
     }
 
     pub fn key_count(&self) -> Result<usize> {
-        let count = try!(redis::cmd("DBSIZE").query(self.pool.get().unwrap().deref()));
+        let count = try!(redis::cmd("DBSIZE").query(self.pool
+                                                        .get()
+                                                        .unwrap()
+                                                        .deref()));
         Ok(count)
     }
 }
@@ -172,12 +178,11 @@ impl PackagesIndex {
             Ok(ids) => {
                 // JW TODO: This in-memory sorting logic can be removed once the Redis sorted set
                 // is pre-sorted on write. For now, we'll do it on read each time.
-                let mut idz: Vec<package::PackageIdent> =
-                    ids.iter()
-                        .map(|iz| {
-                            package::PackageIdent::from_str(&format!("{}/{}", &id, &iz)).unwrap()
-                        })
-                        .collect();
+                let mut idz: Vec<package::PackageIdent> = ids.iter()
+                    .map(|iz| {
+                             package::PackageIdent::from_str(&format!("{}/{}", &id, &iz)).unwrap()
+                         })
+                    .collect();
                 idz.sort();
                 let new_ids = idz.into_iter().map(|zd| depotsrv::PackageIdent::from(zd)).collect();
                 Ok(new_ids)
@@ -188,7 +193,11 @@ impl PackagesIndex {
 
     pub fn latest<T: Identifiable>(&self, id: &T, target: &str) -> Result<depotsrv::PackageIdent> {
         let conn = self.pool().get().unwrap();
-        match conn.zrange::<String, Vec<String>>(PackagesIndex::key(&format!("{}/{}", &target, &id)), 0, -1) {
+        match conn.zrange::<String, Vec<String>>(PackagesIndex::key(&format!("{}/{}",
+                                                                             &target,
+                                                                             &id)),
+                                                 0,
+                                                 -1) {
             Ok(ref ids) if ids.len() <= 0 => {
                 return Err(Error::DataStore(dbcache::Error::EntityNotFound))
             }
@@ -235,10 +244,10 @@ impl PackagesIndex {
             Ok(ids) => {
                 let i = ids.iter()
                     .map(|i| {
-                        let id = i.split(":").last().unwrap();
-                        let p = package::PackageIdent::from_str(id).unwrap();
-                        depotsrv::PackageIdent::from(p)
-                    })
+                             let id = i.split(":").last().unwrap();
+                             let p = package::PackageIdent::from_str(id).unwrap();
+                             depotsrv::PackageIdent::from(p)
+                         })
                     .collect();
 
                 Ok((i, total_count))
@@ -409,18 +418,17 @@ impl ChannelsTable {
         let key = format!("{}/{}", origin, channel);
 
         if let Some(packages) = self.channel_package_map.get(&key) {
-            let mut pkgs: Vec<&depotsrv::PackageIdent> = packages.iter()
-                .filter(|pkg| pkg.to_string().contains(ident))
-                .collect();
+            let mut pkgs: Vec<&depotsrv::PackageIdent> =
+                packages.iter().filter(|pkg| pkg.to_string().contains(ident)).collect();
 
             if pkgs.is_empty() {
                 return None;
             }
 
             pkgs.sort_by(|a, b| match a.get_version().cmp(b.get_version()) {
-                Ordering::Equal => a.get_release().cmp(b.get_release()),
-                other => other,
-            });
+                             Ordering::Equal => a.get_release().cmp(b.get_release()),
+                             other => other,
+                         });
             let pkg = pkgs.last().unwrap();
             Some(*pkg)
         } else {
@@ -441,10 +449,11 @@ impl ChannelsTable {
             packages.iter()
                 .enumerate()
                 .filter(|&(i, pkg)| if ident == origin {
-                    i >= start as usize && i <= stop as usize
-                } else {
-                    i >= start as usize && i <= stop as usize && pkg.to_string().contains(ident)
-                })
+                            i >= start as usize && i <= stop as usize
+                        } else {
+                            i >= start as usize && i <= stop as usize &&
+                            pkg.to_string().contains(ident)
+                        })
                 .map(|(_, e)| e)
                 .collect()
         } else {
@@ -555,8 +564,7 @@ impl ChannelPkgIndex {
                 // JW TODO: This in-memory sorting logic can be removed once the Redis sorted set
                 // is pre-sorted on write. For now, we'll do it on read each time.
                 let mut set: Vec<package::PackageIdent> =
-                    set.map(|(id, _)| package::PackageIdent::from_str(&id).unwrap())
-                        .collect();
+                    set.map(|(id, _)| package::PackageIdent::from_str(&id).unwrap()).collect();
                 set.sort();
                 set.reverse();
                 Ok(set)
@@ -637,13 +645,13 @@ impl OriginKeysTable {
         let key = OriginKeysTable::key(&origin.to_string());
 
         match redis::cmd("SORT")
-            .arg(key)
-            .arg("LIMIT")
-            .arg(0)
-            .arg(1)
-            .arg("ALPHA")
-            .arg("DESC")
-            .query::<Vec<String>>(conn.deref()) {
+                  .arg(key)
+                  .arg("LIMIT")
+                  .arg(0)
+                  .arg(1)
+                  .arg("ALPHA")
+                  .arg("DESC")
+                  .query::<Vec<String>>(conn.deref()) {
             Ok(ids) => {
                 if ids.is_empty() {
                     return Err(Error::DataStore(dbcache::Error::EntityNotFound));

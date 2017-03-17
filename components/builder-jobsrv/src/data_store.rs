@@ -58,7 +58,7 @@ impl DataStore {
 
         // The core jobs table
         migrator.migrate("jobsrv",
-                     r#"CREATE TABLE jobs (
+                         r#"CREATE TABLE jobs (
                                     id bigint PRIMARY KEY,
                                     owner_id bigint,
                                     job_state text,
@@ -252,7 +252,7 @@ impl DataStore {
     pub fn get_job(&self, id: u64) -> Result<Option<jobsrv::Job>> {
         let conn = self.pool.get()?;
         let rows = &conn.query("SELECT * FROM get_job_v1($1)", &[&(id as i64)])
-            .map_err(Error::JobGet)?;
+                        .map_err(Error::JobGet)?;
         for row in rows {
             let job = self.row_to_job(&row)?;
             return Ok(Some(job));
@@ -271,7 +271,7 @@ impl DataStore {
         let mut jobs = Vec::new();
         let conn = self.pool.get()?;
         let rows = &conn.query("SELECT * FROM pending_jobs_v1($1)", &[&count])
-            .map_err(Error::JobPending)?;
+                        .map_err(Error::JobPending)?;
         for row in rows {
             let job = self.row_to_job(&row)?;
             jobs.push(job);

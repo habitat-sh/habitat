@@ -256,9 +256,9 @@ impl RumorList {
         let rumors = self.rumor_list.read().expect("Rumor map lock poisoned");
         let mut rumor_vec: RumorVec = rumors.iter()
             .map(|(rk, heat_map)| match heat_map.get(id) {
-                Some(h) => (rk.clone(), h.clone()),
-                None => (rk.clone(), 0),
-            })
+                     Some(h) => (rk.clone(), h.clone()),
+                     None => (rk.clone(), 0),
+                 })
             .filter(|&(ref _rk, heat)| heat < RUMOR_MAX)
             .collect();
         rumor_vec.sort_by(|&(ref _a_rk, ref a_heat), &(ref _b_rk, ref b_heat)| b_heat.cmp(&a_heat));
@@ -267,7 +267,10 @@ impl RumorList {
 
     /// Take a certain amount of rumors.
     pub fn take(&self, id: &str, amount: usize) -> RumorVec {
-        self.rumors(id).into_iter().take(amount).collect()
+        self.rumors(id)
+            .into_iter()
+            .take(amount)
+            .collect()
     }
 
     /// Take a certain amount of rumors of a given kind.
@@ -426,7 +429,11 @@ mod tests {
 
             assert!(rs.insert(f1));
             assert!(rs.insert(f2));
-            assert_eq!(rs.list.read().unwrap().len(), 1);
+            assert_eq!(rs.list
+                           .read()
+                           .unwrap()
+                           .len(),
+                       1);
             assert_eq!(rs.list
                            .read()
                            .unwrap()
@@ -455,7 +462,13 @@ mod tests {
             let f2 = FakeRumor::default();
             assert!(rs.insert(f1));
             assert!(rs.insert(f2));
-            assert_eq!(rs.list.read().unwrap().get(&key).unwrap().len(), 2);
+            assert_eq!(rs.list
+                           .read()
+                           .unwrap()
+                           .get(&key)
+                           .unwrap()
+                           .len(),
+                       2);
         }
 
         #[test]

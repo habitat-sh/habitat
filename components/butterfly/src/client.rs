@@ -40,22 +40,18 @@ impl Client {
             .as_mut()
             .socket(zmq::PUSH)
             .expect("Failure to create the ZMQ push socket");
-        socket.set_linger(-1)
-            .expect("Failure to set the ZMQ push socket to not linger");
+        socket.set_linger(-1).expect("Failure to set the ZMQ push socket to not linger");
         socket.set_tcp_keepalive(0)
             .expect("Failure to set the ZMQ push socket to not use keepalive");
-        socket.set_immediate(true)
-            .expect("Failure to set the ZMQ push socket to immediate");
-        socket.set_sndhwm(1000)
-            .expect("Failure to set the ZMQ push socket hwm");
-        socket.set_sndtimeo(500)
-            .expect("Failure to set the ZMQ send timeout");
+        socket.set_immediate(true).expect("Failure to set the ZMQ push socket to immediate");
+        socket.set_sndhwm(1000).expect("Failure to set the ZMQ push socket hwm");
+        socket.set_sndtimeo(500).expect("Failure to set the ZMQ send timeout");
         let to_addr = format!("tcp://{}", addr.to_string());
         try!(socket.connect(&to_addr).map_err(Error::ZmqConnectError));
         Ok(Client {
-            socket: socket,
-            ring_key: ring_key,
-        })
+               socket: socket,
+               ring_key: ring_key,
+           })
     }
 
     /// Create a service configuration and send it to the server.

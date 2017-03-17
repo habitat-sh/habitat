@@ -149,9 +149,10 @@ pub fn origin_invitation_create(req: &mut Envelope,
                                 -> Result<()> {
     let msg: proto::OriginInvitationCreate = try!(req.parse_msg());
 
-    let in_origin = state.datastore
-        .check_account_in_origin_by_origin_and_account_id(msg.get_origin_name(),
-                                                          msg.get_account_id() as i64)?;
+    let in_origin =
+        state.datastore
+            .check_account_in_origin_by_origin_and_account_id(msg.get_origin_name(),
+                                                              msg.get_account_id() as i64)?;
     if !in_origin {
         debug!("Can't invite to this org unless your already a member");
         let err = net::err(ErrCode::ACCESS_DENIED, "vt:origin-invitation-create:0");

@@ -97,12 +97,12 @@ fn lookup_account(name: &str, system_name: Option<String>) -> Option<Account> {
     }
     let domain_str = WideCString::from_vec(domain).unwrap().to_string_lossy();
     Some(Account {
-        name: name.to_string(),
-        system_name: system_name,
-        domain: domain_str,
-        account_type: sid_type,
-        sid: Sid { raw: sid },
-    })
+             name: name.to_string(),
+             system_name: system_name,
+             domain: domain_str,
+             account_type: sid_type,
+             sid: Sid { raw: sid },
+         })
 }
 
 #[cfg(test)]

@@ -149,6 +149,6 @@ impl<'a> redis::IntoConnectionInfo for &'a Config {
         format!("redis://{}:{}",
                 self.datastore_addr.ip(),
                 self.datastore_addr.port())
-            .into_connection_info()
+                .into_connection_info()
     }
 }

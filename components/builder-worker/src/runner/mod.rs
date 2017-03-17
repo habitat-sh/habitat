@@ -81,7 +81,11 @@ impl Job {
     }
 
     pub fn origin(&self) -> &str {
-        let items = self.0.get_project().get_name().split("/").collect::<Vec<&str>>();
+        let items = self.0
+            .get_project()
+            .get_name()
+            .split("/")
+            .collect::<Vec<&str>>();
         assert!(items.len() == 2,
                 format!("Invalid project identifier - {}",
                         self.0.get_project().get_id()));
@@ -160,7 +164,10 @@ impl Runner {
                 return self.fail(net::err(ErrCode::SECRET_KEY_FETCH, "wk:run:3"));
             }
         }
-        if let Some(err) = self.job().vcs().clone(&self.workspace.src()).err() {
+        if let Some(err) = self.job()
+               .vcs()
+               .clone(&self.workspace.src())
+               .err() {
             error!("Unable to clone remote source repository, err={}", err);
             return self.fail(net::err(ErrCode::VCS_CLONE, "wk:run:4"));
         }
@@ -196,8 +203,8 @@ impl Runner {
                         OsString::from(self.job().origin()),
                         OsString::from("build"),
                         OsString::from(Path::new(self.job().get_project().get_plan_path())
-                            .parent()
-                            .unwrap())];
+                                           .parent()
+                                           .unwrap())];
         let command = studio_cmd();
         debug!("building, cmd={:?}, args={:?}", command, args);
         let mut child = Command::new(command)
@@ -246,8 +253,8 @@ impl Runner {
                         OsString::from(self.workspace.studio()),
                         OsString::from("rm"),
                         OsString::from(Path::new(self.job().get_project().get_plan_path())
-                            .parent()
-                            .unwrap())];
+                                           .parent()
+                                           .unwrap())];
         let command = studio_cmd();
         debug!("removing studio, cmd={:?}, args={:?}", command, args);
         let mut child = Command::new(command)
@@ -343,9 +350,9 @@ impl RunnerMgr {
         let handle = thread::Builder::new()
             .name("runner".to_string())
             .spawn(move || {
-                let mut runner = Self::new(config).unwrap();
-                runner.run(tx).unwrap();
-            })
+                       let mut runner = Self::new(config).unwrap();
+                       runner.run(tx).unwrap();
+                   })
             .unwrap();
         match rx.recv() {
             Ok(()) => Ok(handle),
@@ -356,10 +363,10 @@ impl RunnerMgr {
     fn new(config: Arc<RwLock<Config>>) -> Result<Self> {
         let sock = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER));
         Ok(RunnerMgr {
-            sock: sock,
-            msg: zmq::Message::new().unwrap(),
-            config: config,
-        })
+               sock: sock,
+               msg: zmq::Message::new().unwrap(),
+               config: config,
+           })
     }
 
     // Main loop for server

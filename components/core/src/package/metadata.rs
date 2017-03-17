@@ -37,9 +37,9 @@ impl FromStr for Bind {
             Some(exports) => exports.split(' ').map(|t| t.to_string()).collect(),
         };
         Ok(Bind {
-            service: service,
-            exports: exports,
-        })
+               service: service,
+               exports: exports,
+           })
     }
 }
 

@@ -163,11 +163,17 @@ impl<'a> Doctor<'a> {
         match fs::metadata(&self.depot.config.path) {
             Ok(meta) => {
                 if meta.is_file() {
-                    self.report.failure(OperationType::InitDepotFs(self.depot.config.path.clone()),
+                    self.report.failure(OperationType::InitDepotFs(self.depot
+                                                                       .config
+                                                                       .path
+                                                                       .clone()),
                                         Reason::FileExists);
                 }
                 if meta.permissions().readonly() {
-                    self.report.failure(OperationType::InitDepotFs(self.depot.config.path.clone()),
+                    self.report.failure(OperationType::InitDepotFs(self.depot
+                                                                       .config
+                                                                       .path
+                                                                       .clone()),
                                         Reason::BadPermissions);
                 }
                 try!(fs::create_dir_all(&self.depot.packages_path()));
@@ -192,7 +198,10 @@ impl<'a> Doctor<'a> {
                 Ok(ident) => {
                     match depotsrv::Package::from_archive(&mut archive) {
                         Ok(object) => {
-                            try!(self.depot.datastore.packages.write(&object));
+                            try!(self.depot
+                                     .datastore
+                                     .packages
+                                     .write(&object));
                             let path = self.depot.archive_path(&ident, &try!(archive.target()));
                             if let Some(e) = fs::create_dir_all(path.parent().unwrap()).err() {
                                 self.report
@@ -212,15 +221,15 @@ impl<'a> Doctor<'a> {
                             }
                             self.report
                                 .success(OperationType::ArchiveInsert(path.to_string_lossy()
-                                    .to_string()));
+                                                                          .to_string()));
                         }
                         Err(e) => {
                             // We should be moving this back to the garbage directory and recording
                             // the path of it there in this failure
                             self.report
                                 .failure(OperationType::ArchiveInsert(entry.path()
-                                             .to_string_lossy()
-                                             .to_string()),
+                                                                          .to_string_lossy()
+                                                                          .to_string()),
                                          Reason::BadMetadata(e));
                         }
                     }
@@ -228,8 +237,8 @@ impl<'a> Doctor<'a> {
                 Err(e) => {
                     debug!("Error reading, archive={:?} error={:?}", &archive, &e);
                     self.report.failure(OperationType::ArchiveInsert(entry.path()
-                                            .to_string_lossy()
-                                            .to_string()),
+                                                                         .to_string_lossy()
+                                                                         .to_string()),
                                         Reason::BadArchive);
                 }
             }
@@ -239,8 +248,8 @@ impl<'a> Doctor<'a> {
             if let Some(e) = fs::remove_dir(dir.path()).err() {
                 debug!("Error deleting: {:?}", &e);
                 self.report.failure(OperationType::CleanupTrash(self.packages_path
-                                        .to_string_lossy()
-                                        .to_string()),
+                                                                    .to_string_lossy()
+                                                                    .to_string()),
                                     Reason::NotEmpty);
             }
         }

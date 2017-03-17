@@ -27,7 +27,7 @@ fn setup() {
 fn migrate() {
     with_migration!(pool, migration, {
         migration.migrate("metal",
-                     r#"CREATE TABLE bands (
+                          r#"CREATE TABLE bands (
                         name text PRIMARY KEY,
                         style text
                      )"#)

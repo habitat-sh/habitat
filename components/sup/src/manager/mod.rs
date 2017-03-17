@@ -121,11 +121,11 @@ impl Manager {
             server.member_list.add_initial_member(peer);
         }
         Ok(Manager {
-            updater: ServiceUpdater::new(server.clone()),
-            state: State::new(services, server),
-            gossip_listen: cfg.gossip_listen,
-            http_listen: cfg.http_listen,
-        })
+               updater: ServiceUpdater::new(server.clone()),
+               state: State::new(services, server),
+               gossip_listen: cfg.gossip_listen,
+               http_listen: cfg.http_listen,
+           })
     }
 
     pub fn add_service(&mut self, spec: ServiceSpec) -> Result<()> {
@@ -138,7 +138,11 @@ impl Manager {
             self.state.butterfly.start_election(service.service_group.clone(), 0);
         }
         self.updater.add(&service);
-        self.state.services.write().expect("Services lock is poisoned!").push(service);
+        self.state
+            .services
+            .write()
+            .expect("Services lock is poisoned!")
+            .push(service);
         Ok(())
     }
 
@@ -181,15 +185,15 @@ impl Manager {
                 last_census_update = ncu;
             }
             for service in self.state
-                .services
-                .write()
-                .expect("Services lock is poisoned!")
-                .iter_mut() {
+                    .services
+                    .write()
+                    .expect("Services lock is poisoned!")
+                    .iter_mut() {
                 service.tick(&self.state.butterfly,
                              &self.state
-                                 .census_list
-                                 .read()
-                                 .expect("Census list lock is poisoned!"),
+                                  .census_list
+                                  .read()
+                                  .expect("Census list lock is poisoned!"),
                              census_updated,
                              &mut last_census_update)
             }
@@ -215,27 +219,42 @@ impl Manager {
                 .butterfly
                 .service_store
                 .with_keys(|(_group, rumors)| for (_member_id, service) in rumors.iter() {
-                    let mut ce = CensusEntry::default();
-                    ce.populate_from_service(service);
-                    cl.insert(String::from(self.state.butterfly.member_id()), ce);
+                               let mut ce = CensusEntry::default();
+                               ce.populate_from_service(service);
+                               cl.insert(String::from(self.state.butterfly.member_id()), ce);
+                           });
+            self.state
+                .butterfly
+                .election_store
+                .with_keys(|(_service_group, rumors)| {
+                               // We know you have an election, and this is the only key in the hash
+                               let election = rumors.get("election").unwrap();
+                               cl.populate_from_election(election);
+                           });
+            self.state
+                .butterfly
+                .update_store
+                .with_keys(|(_service_group, rumors)| {
+                               // We know you have an election, and this is the only key in the hash
+                               let election = rumors.get("election").unwrap();
+                               cl.populate_from_update_election(election);
+                           });
+            self.state
+                .butterfly
+                .member_list
+                .with_members(|member| {
+                    cl.populate_from_member(member);
+                    if let Some(health) = self.state
+                           .butterfly
+                           .member_list
+                           .health_of(member) {
+                        cl.populate_from_health(member, health);
+                    }
                 });
-            self.state.butterfly.election_store.with_keys(|(_service_group, rumors)| {
-                // We know you have an election, and this is the only key in the hash
-                let election = rumors.get("election").unwrap();
-                cl.populate_from_election(election);
-            });
-            self.state.butterfly.update_store.with_keys(|(_service_group, rumors)| {
-                // We know you have an election, and this is the only key in the hash
-                let election = rumors.get("election").unwrap();
-                cl.populate_from_update_election(election);
-            });
-            self.state.butterfly.member_list.with_members(|member| {
-                cl.populate_from_member(member);
-                if let Some(health) = self.state.butterfly.member_list.health_of(member) {
-                    cl.populate_from_health(member, health);
-                }
-            });
-            *self.state.census_list.write().expect("Census list lock is poisoned!") = cl;
+            *self.state
+                 .census_list
+                 .write()
+                 .expect("Census list lock is poisoned!") = cl;
             return (true, update);
         }
         (false, update)
@@ -252,22 +271,25 @@ impl Manager {
         match signals::check_for_signal() {
             Some(SignalEvent::Shutdown) => {
                 for service in self.state
-                    .services
-                    .write()
-                    .expect("Services lock is poisoned!")
-                    .iter_mut() {
+                        .services
+                        .write()
+                        .expect("Services lock is poisoned!")
+                        .iter_mut() {
                     outputln!("Shutting down {}", service);
-                    service.down()
-                        .unwrap_or_else(|err| outputln!("Failed to shutdown {}: {}", service, err));
+                    service.down().unwrap_or_else(|err| {
+                                                      outputln!("Failed to shutdown {}: {}",
+                                                                service,
+                                                                err)
+                                                  });
                 }
                 true
             }
             Some(SignalEvent::Passthrough(signal_code)) => {
                 for service in self.state
-                    .services
-                    .read()
-                    .expect("Services lock is poisoned!")
-                    .iter() {
+                        .services
+                        .read()
+                        .expect("Services lock is poisoned!")
+                        .iter() {
                     outputln!("Forwarding signal {} to {}", signal_code, service);
                     if let Err(e) = service.send_signal(signal_code) {
                         outputln!("Failed to send signal {} to {}: {}",
@@ -290,10 +312,20 @@ impl Manager {
     /// main loop that we, ourselves, updated the service counter when we updated ourselves.
     fn check_for_updated_packages(&mut self, last_update: &mut CensusUpdate) {
         let member_id = {
-            self.state.butterfly.member_id().to_string()
+            self.state
+                .butterfly
+                .member_id()
+                .to_string()
         };
-        let census_list = self.state.census_list.read().expect("Census list lock is poisoned!");
-        for service in self.state.services.write().expect("Services lock is poisoned!").iter_mut() {
+        let census_list = self.state
+            .census_list
+            .read()
+            .expect("Census list lock is poisoned!");
+        for service in self.state
+                .services
+                .write()
+                .expect("Services lock is poisoned!")
+                .iter_mut() {
             if self.updater.check_for_updated_package(service, &census_list) {
                 let mut rumor = {
                     let list = self.state
@@ -315,8 +347,8 @@ impl Manager {
                 // handle this and not potentially panic
                 match service.config.to_exported() {
                     Ok(cfg) => {
-                        *rumor.mut_cfg() = toml::ser::to_vec(&cfg)
-                            .expect("Can't serialize to TOML bytes")
+                        *rumor.mut_cfg() =
+                            toml::ser::to_vec(&cfg).expect("Can't serialize to TOML bytes")
                     }
                     Err(err) => warn!("Error loading service config after update, err={}", err),
                 }

@@ -18,9 +18,9 @@ use error::Result;
 
 pub fn migrate(migrator: &mut Migrator) -> Result<()> {
     migrator.migrate("originsrv",
-                 r#"CREATE SEQUENCE IF NOT EXISTS origin_invitations_id_seq;"#)?;
+                     r#"CREATE SEQUENCE IF NOT EXISTS origin_invitations_id_seq;"#)?;
     migrator.migrate("originsrv",
-                 r#"CREATE TABLE origin_invitations (
+                     r#"CREATE TABLE origin_invitations (
                         id bigint PRIMARY KEY DEFAULT next_id_v1('origin_invitations_id_seq'),
                         origin_id bigint REFERENCES origins(id),
                         origin_name text,
@@ -51,7 +51,7 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                      END
                  $$ LANGUAGE plpgsql VOLATILE"#)?;
     migrator.migrate("originsrv",
-                 r#"CREATE OR REPLACE FUNCTION get_origin_invitations_for_origin_v1 (
+                     r#"CREATE OR REPLACE FUNCTION get_origin_invitations_for_origin_v1 (
                    oi_origin_id bigint
                  ) RETURNS SETOF origin_invitations AS $$
                     BEGIN
