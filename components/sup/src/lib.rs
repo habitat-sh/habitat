@@ -52,6 +52,7 @@ extern crate regex;
 extern crate libc;
 extern crate url;
 extern crate iron;
+extern crate rand;
 #[macro_use]
 extern crate router;
 extern crate serde;

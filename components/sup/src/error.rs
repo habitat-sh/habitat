@@ -131,8 +131,10 @@ pub enum Error {
     Permissions(String),
     RemotePackageNotFound(package::PackageIdent),
     RootRequired,
-    ServiceSpecParsingError(String),
-    ServiceSpecRenderingError(String),
+    ServiceSpecFileRead(String, String),
+    ServiceSpecFileWrite(String, String),
+    ServiceSpecParse(String),
+    ServiceSpecRender(String),
     SignalFailed,
     SignalNotifierStarted,
     StrFromUtf8Error(str::Utf8Error),
@@ -216,10 +218,20 @@ impl fmt::Display for SupError {
             Error::RootRequired => {
                 "Root or administrator permissions required to complete operation".to_string()
             }
-            Error::ServiceSpecParsingError(ref details) => {
+            Error::ServiceSpecFileRead(ref path, ref details) => {
+                format!("Service spec file '{}' could not be read successfully: {}",
+                        path,
+                        details)
+            }
+            Error::ServiceSpecFileWrite(ref path, ref details) => {
+                format!("Service spec file '{}' could not be written successfully: {}",
+                        path,
+                        details)
+            }
+            Error::ServiceSpecParse(ref details) => {
                 format!("Service spec could not be parsed successfully: {}", details)
             }
-            Error::ServiceSpecRenderingError(ref details) => {
+            Error::ServiceSpecRender(ref details) => {
                 format!("Service spec TOML could not be rendered successfully: {}",
                         details)
             }
@@ -285,10 +297,10 @@ impl error::Error for SupError {
             Error::Permissions(_) => "File system permissions error",
             Error::RemotePackageNotFound(_) => "Cannot find a package in any sources",
             Error::RootRequired => "Root or administrator permissions required to complete operation",
-            Error::ServiceSpecParsingError(_) => "Service spec could not be parsed successfully",
-            Error::ServiceSpecRenderingError(_) => {
-                "Service spec TOML could not be rendered successfully"
-            }
+            Error::ServiceSpecFileRead(_, _) => "Service spec file could not be read successfully",
+            Error::ServiceSpecFileWrite(_, _) => "Service spec file could not be written successfully",
+            Error::ServiceSpecParse(_) => "Service spec could not be parsed successfully",
+            Error::ServiceSpecRender(_) => "Service spec TOML could not be rendered successfully",
             Error::SignalFailed => "Failed to send a signal to the child process",
             Error::SignalNotifierStarted => "Only one instance of a Signal Notifier may be running",
             Error::StrFromUtf8Error(_) => "Failed to convert a str from a &[u8] as UTF-8",

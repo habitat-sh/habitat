@@ -13,7 +13,9 @@
 // limitations under the License.
 
 use std::fmt;
-use std::path::PathBuf;
+use std::fs::{self, File};
+use std::io::{BufReader, Read, Write};
+use std::path::{Path, PathBuf};
 use std::result;
 use std::str::FromStr;
 
@@ -21,6 +23,7 @@ use hcore::package::{PackageIdent, PackageInstall};
 use hcore::service::ServiceGroup;
 use hcore::url::DEFAULT_DEPOT_URL;
 use hcore::util::{deserialize_using_from_str, serialize_using_to_string};
+use rand::{Rng, thread_rng};
 use serde;
 use toml;
 
@@ -60,10 +63,65 @@ impl ServiceSpec {
             return Err(sup_error!(Error::MissingRequiredIdent));
         }
 
-        match toml::to_string(self) {
-            Ok(s) => Ok(s),
-            Err(e) => Err(sup_error!(Error::ServiceSpecRenderingError(e.to_string()))),
+        toml::to_string(self).map_err(|e| sup_error!(Error::ServiceSpecRender(e.to_string())))
+    }
+
+    pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self> {
+        let file = File::open(&path).map_err(|e| {
+                         sup_error!(Error::ServiceSpecFileRead(path.as_ref().display().to_string(),
+                                                               e.to_string()))
+                     })?;
+        let mut file = BufReader::new(file);
+        let mut buf = String::new();
+        file.read_to_string(&mut buf)
+            .map_err(|e| {
+                         sup_error!(Error::ServiceSpecFileRead(path.as_ref().display().to_string(),
+                                                               e.to_string()))
+                     })?;
+
+        Self::from_str(&buf)
+    }
+
+    pub fn to_file<P: AsRef<Path>>(&self, path: P) -> Result<()> {
+        let dst_path = path.as_ref()
+            .parent()
+            .ok_or(sup_error!(Error::ServiceSpecFileWrite(path.as_ref().display().to_string(),
+                                                          "cannot determine parent directory"
+                                                              .to_string())))?;
+        let tmpfile = path.as_ref().with_extension(thread_rng()
+                                                       .gen_ascii_chars()
+                                                       .take(8)
+                                                       .collect::<String>());
+
+        fs::create_dir_all(dst_path).map_err(|e| {
+                         sup_error!(Error::ServiceSpecFileWrite(path.as_ref()
+                                                                    .display()
+                                                                    .to_string(),
+                                                                e.to_string()))
+                     })?;
+
+        // Release the write file handle before the end of the function since we're done
+        {
+            let mut file = File::create(&tmpfile).map_err(|e| {
+                             sup_error!(Error::ServiceSpecFileWrite(tmpfile.display().to_string(),
+                                                                    e.to_string()))
+                         })?;
+            let toml = self.to_toml_string()?;
+            file.write_all(toml.as_bytes())
+                .map_err(|e| {
+                             sup_error!(Error::ServiceSpecFileWrite(tmpfile.display().to_string(),
+                                                                    e.to_string()))
+                         })?;
         }
+
+        fs::rename(&tmpfile, path.as_ref()).map_err(|e| {
+                         sup_error!(Error::ServiceSpecFileWrite(path.as_ref()
+                                                                    .display()
+                                                                    .to_string(),
+                                                                e.to_string()))
+                     })?;
+
+        Ok(())
     }
 
     pub fn validate(&self, package: &PackageInstall) -> Result<()> {
@@ -108,10 +166,8 @@ impl FromStr for ServiceSpec {
     type Err = SupError;
 
     fn from_str(toml: &str) -> result::Result<Self, Self::Err> {
-        let spec: ServiceSpec = match toml::from_str(toml) {
-            Ok(s) => s,
-            Err(e) => return Err(sup_error!(Error::ServiceSpecParsingError(e.to_string()))),
-        };
+        let spec: ServiceSpec =
+            toml::from_str(toml).map_err(|e| sup_error!(Error::ServiceSpecParse(e.to_string())))?;
         if spec.ident == PackageIdent::default() {
             return Err(sup_error!(Error::MissingRequiredIdent));
         }
@@ -165,20 +221,41 @@ impl serde::Serialize for ServiceBind {
 
 #[cfg(test)]
 mod test {
+    use std::fs::{self, File};
+    use std::io::{BufReader, Read, Write};
     use std::str::FromStr;
-    use std::path::PathBuf;
+    use std::path::{Path, PathBuf};
 
     use hcore::error::Error as HError;
     use hcore::package::PackageIdent;
     use hcore::service::ServiceGroup;
+    use tempdir::TempDir;
     use toml;
 
     use super::{ServiceBind, ServiceSpec, Topology, UpdateStrategy};
     use error::Error::*;
 
+    fn file_from_str<P: AsRef<Path>>(path: P, content: &str) {
+        fs::create_dir_all(path.as_ref()
+                .parent()
+                .expect("failed to determine file's parent directory"))
+            .expect("failed to create parent directory recursively");
+        let mut file = File::create(path).expect("failed to create file");
+        file.write_all(content.as_bytes()).expect("failed to write content to file");
+    }
+
+    fn string_from_file<P: AsRef<Path>>(path: P) -> String {
+        let file = File::open(path).expect("failed to open file");
+        let mut file = BufReader::new(file);
+        let mut buf = String::new();
+        file.read_to_string(&mut buf).expect("cannot read file to string");
+        buf
+    }
+
     #[test]
     fn service_spec_from_str() {
         let toml = r#"
+
             ident = "origin/name/1.2.3/20170223130020"
             group = "jobs"
             organization = "acmecorp"
@@ -230,7 +307,7 @@ mod test {
         match ServiceSpec::from_str(toml) {
             Err(e) => {
                 match e.err {
-                    ServiceSpecParsingError(_) => assert!(true),
+                    ServiceSpecParse(_) => assert!(true),
                     e => panic!("Unexpected error returned: {:?}", e),
                 }
             }
@@ -249,7 +326,7 @@ mod test {
         match ServiceSpec::from_str(toml) {
             Err(e) => {
                 match e.err {
-                    ServiceSpecParsingError(_) => assert!(true),
+                    ServiceSpecParse(_) => assert!(true),
                     e => panic!("Unexpected error returned: {:?}", e),
                 }
             }
@@ -297,6 +374,136 @@ mod test {
                 }
             }
             Ok(_) => panic!("Spec TOML should fail to render"),
+        }
+    }
+
+    #[test]
+    fn service_spec_from_file() {
+        let tmpdir = TempDir::new("specs").unwrap();
+        let path = tmpdir.path().join("name.spec.toml");
+        let toml = r#"
+            ident = "origin/name/1.2.3/20170223130020"
+            group = "jobs"
+            organization = "acmecorp"
+            depot_url = "http://example.com/depot"
+            topology = "leader"
+            update_strategy = "rolling"
+            binds = ["cache:redis.cache@acmecorp", "db:postgres.app@acmecorp"]
+
+            config_from = "should not be parsed"
+            extra_stuff = "should be ignored"
+            "#;
+        file_from_str(&path, toml);
+        let spec = ServiceSpec::from_file(path).unwrap();
+
+        assert_eq!(spec.ident,
+                   PackageIdent::from_str("origin/name/1.2.3/20170223130020").unwrap());
+        assert_eq!(spec.group, String::from("jobs"));
+        assert_eq!(spec.organization, Some(String::from("acmecorp")));
+        assert_eq!(spec.depot_url, String::from("http://example.com/depot"));
+        assert_eq!(spec.topology, Topology::Leader);
+        assert_eq!(spec.update_strategy, UpdateStrategy::Rolling);
+        assert_eq!(spec.binds,
+                   vec![ServiceBind::from_str("cache:redis.cache@acmecorp").unwrap(),
+                        ServiceBind::from_str("db:postgres.app@acmecorp").unwrap()]);
+        assert_eq!(spec.config_from, None);
+    }
+
+    #[test]
+    fn service_spec_from_file_missing() {
+        let tmpdir = TempDir::new("specs").unwrap();
+        let path = tmpdir.path().join("nope.spec.toml");
+
+        match ServiceSpec::from_file(&path) {
+            Err(e) => {
+                match e.err {
+                    ServiceSpecFileRead(p, _) => assert_eq!(path.display().to_string(), p),
+                    wrong => panic!("Unexpected error returned: {:?}", wrong),
+                }
+            }
+            Ok(_) => panic!("File should not exist for read"),
+        }
+    }
+
+    #[test]
+    fn service_spec_from_file_empty() {
+        let tmpdir = TempDir::new("specs").unwrap();
+        let path = tmpdir.path().join("empty.spec.toml");
+        file_from_str(&path, "");
+
+        match ServiceSpec::from_file(&path) {
+            Err(e) => {
+                match e.err {
+                    MissingRequiredIdent => assert!(true),
+                    wrong => panic!("Unexpected error returned: {:?}", wrong),
+                }
+            }
+            Ok(_) => panic!("File should not exist for read"),
+        }
+    }
+
+    #[test]
+    fn service_spec_from_file_bad_contents() {
+        let tmpdir = TempDir::new("specs").unwrap();
+        let path = tmpdir.path().join("bad.spec.toml");
+        file_from_str(&path, "You're gonna have a bad time");
+
+        match ServiceSpec::from_file(&path) {
+            Err(e) => {
+                match e.err {
+                    ServiceSpecParse(_) => assert!(true),
+                    wrong => panic!("Unexpected error returned: {:?}", wrong),
+                }
+            }
+            Ok(_) => panic!("File should not exist for read"),
+        }
+    }
+
+    #[test]
+    fn service_spec_to_file() {
+        let tmpdir = TempDir::new("specs").unwrap();
+        let path = tmpdir.path().join("name.spec.toml");
+        let spec = ServiceSpec {
+            ident: PackageIdent::from_str("origin/name/1.2.3/20170223130020").unwrap(),
+            group: String::from("jobs"),
+            organization: Some(String::from("acmecorp")),
+            depot_url: String::from("http://example.com/depot"),
+            topology: Topology::Leader,
+            update_strategy: UpdateStrategy::AtOnce,
+            binds: vec![ServiceBind::from_str("cache:redis.cache@acmecorp").unwrap(),
+                        ServiceBind::from_str("db:postgres.app@acmecorp").unwrap()],
+            config_from: Some(PathBuf::from("/")),
+        };
+        spec.to_file(&path).unwrap();
+        let toml = string_from_file(path);
+
+        assert!(toml.contains(r#"ident = "origin/name/1.2.3/20170223130020""#));
+        assert!(toml.contains(r#"group = "jobs""#));
+        assert!(toml.contains(r#"organization = "acmecorp""#));
+        assert!(toml.contains(r#"depot_url = "http://example.com/depot""#));
+        assert!(toml.contains(r#"topology = "leader""#));
+        assert!(toml.contains(r#"update_strategy = "at-once""#));
+        assert!(toml.contains(r#""cache:redis.cache@acmecorp""#));
+        assert!(toml.contains(r#""db:postgres.app@acmecorp""#));
+        assert!(!toml.contains(r#"config_from = "#));
+    }
+
+    #[test]
+    fn service_spec_to_file_invalid_ident() {
+        let tmpdir = TempDir::new("specs").unwrap();
+        let path = tmpdir.path().join("name.spec.toml");
+        // Remember: the default implementation of `PackageIdent` is an invalid identifier, missing
+        // origin and name--we're going to exploit this here
+        let spec = ServiceSpec::default();
+
+        match spec.to_file(path) {
+            Err(e) => {
+                match e.err {
+                    MissingRequiredIdent => assert!(true),
+                    wrong => panic!("Unexpected error returned: {:?}", wrong),
+                }
+            }
+            Ok(_) => panic!("Service spec file should not have been written"),
         }
     }
 
