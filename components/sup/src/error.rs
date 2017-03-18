@@ -43,6 +43,7 @@ use std::ffi;
 use std::fmt;
 use std::net;
 use std::num;
+use std::path::PathBuf;
 use std::result;
 use std::str;
 use std::string;
@@ -100,6 +101,8 @@ impl SupError {
 /// All the kinds of errors we produce.
 #[derive(Debug)]
 pub enum Error {
+    BadDataFile(PathBuf, io::Error),
+    BadDataPath(PathBuf, io::Error),
     ButterflyError(butterfly::error::Error),
     CommandNotImplemented,
     DbInvalidPath,
@@ -156,6 +159,16 @@ impl fmt::Display for SupError {
     // verbose on, and print it.
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let content = match self.err {
+            Error::BadDataFile(ref path, ref err) => {
+                format!("Unable to read or write to data file, {}, {}",
+                        path.display(),
+                        err)
+            }
+            Error::BadDataPath(ref path, ref err) => {
+                format!("Unable to read or write to data directory, {}, {}",
+                        path.display(),
+                        err)
+            }
             Error::ButterflyError(ref err) => format!("Butterfly error: {}", err),
             Error::ExecCommandNotFound(ref c) => {
                 format!("`{}' was not found on the filesystem or in PATH", c)
@@ -272,6 +285,8 @@ impl fmt::Display for SupError {
 impl error::Error for SupError {
     fn description(&self) -> &str {
         match self.err {
+            Error::BadDataFile(_, _) => "Unable to read or write to a data file",
+            Error::BadDataPath(_, _) => "Unable to read or write to data directory",
             Error::ButterflyError(ref err) => err.description(),
             Error::ExecCommandNotFound(_) => "Exec command was not found on filesystem or in PATH",
             Error::TemplateFileError(ref err) => err.description(),
