@@ -18,11 +18,13 @@ name = "functional"
 [dependencies]
 ansi_term = "*"
 env_logger = "*"
+glob = "*"
 handlebars = { version = "*", features = ["serde_type", "partial4"], default-features = false }
 lazy_static = "*"
 libc = "*"
 log = "*"
 iron = "*"
+notify = "*"
 persistent = "*"
 prometheus = "*"
 rand = "*"

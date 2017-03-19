@@ -52,9 +52,11 @@ use ansi_term::Colour::Red;
 use butterfly;
 use common;
 use depot_client;
+use glob;
 use handlebars;
 use hcore::{self, package};
 use hcore::package::Identifiable;
+use notify;
 use toml;
 
 use output::StructuredOutput;
@@ -137,6 +139,9 @@ pub enum Error {
     ServiceSpecRender(String),
     SignalFailed,
     SignalNotifierStarted,
+    SpecWatcherDirNotFound(String),
+    SpecWatcherGlob(glob::PatternError),
+    SpecWatcherNotify(notify::Error),
     StrFromUtf8Error(str::Utf8Error),
     StringFromUtf8Error(string::FromUtf8Error),
     TomlEncode(toml::ser::Error),
@@ -237,6 +242,12 @@ impl fmt::Display for SupError {
             }
             Error::SignalFailed => format!("Failed to send a signal to the child process"),
             Error::SignalNotifierStarted => format!("Only one instance of a Signal Notifier may be running"),
+            Error::SpecWatcherDirNotFound(ref path) => {
+                format!("Spec directory '{}' not created or is not a directory",
+                        path)
+            }
+            Error::SpecWatcherGlob(ref e) => format!("{}", e),
+            Error::SpecWatcherNotify(ref e) => format!("{}", e),
             Error::StrFromUtf8Error(ref e) => format!("{}", e),
             Error::StringFromUtf8Error(ref e) => format!("{}", e),
             Error::TomlEncode(ref e) => format!("Failed to encode TOML: {}", e),
@@ -303,6 +314,9 @@ impl error::Error for SupError {
             Error::ServiceSpecRender(_) => "Service spec TOML could not be rendered successfully",
             Error::SignalFailed => "Failed to send a signal to the child process",
             Error::SignalNotifierStarted => "Only one instance of a Signal Notifier may be running",
+            Error::SpecWatcherDirNotFound(_) => "Spec directory not created or is not a directory",
+            Error::SpecWatcherGlob(_) => "Spec watcher file globbing error",
+            Error::SpecWatcherNotify(_) => "Spec watcher error",
             Error::StrFromUtf8Error(_) => "Failed to convert a str from a &[u8] as UTF-8",
             Error::StringFromUtf8Error(_) => "Failed to convert a string from a Vec<u8> as UTF-8",
             Error::TomlEncode(_) => "Failed to encode toml!",
@@ -329,6 +343,12 @@ impl From<butterfly::error::Error> for SupError {
 impl From<common::Error> for SupError {
     fn from(err: common::Error) -> SupError {
         sup_error!(Error::HabitatCommon(err))
+    }
+}
+
+impl From<glob::PatternError> for SupError {
+    fn from(err: glob::PatternError) -> SupError {
+        sup_error!(Error::SpecWatcherGlob(err))
     }
 }
 
@@ -389,6 +409,12 @@ impl From<str::Utf8Error> for SupError {
 impl From<mpsc::TryRecvError> for SupError {
     fn from(err: mpsc::TryRecvError) -> SupError {
         sup_error!(Error::TryRecvError(err))
+    }
+}
+
+impl From<notify::Error> for SupError {
+    fn from(err: notify::Error) -> SupError {
+        sup_error!(Error::SpecWatcherNotify(err))
     }
 }
 

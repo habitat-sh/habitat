@@ -876,7 +876,7 @@ impl fmt::Display for Service {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum Topology {
     Standalone,
     Leader,
@@ -931,7 +931,7 @@ impl serde::Serialize for Topology {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum UpdateStrategy {
     None,
     AtOnce,

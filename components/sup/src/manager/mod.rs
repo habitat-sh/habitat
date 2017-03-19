@@ -16,6 +16,7 @@ pub mod census;
 pub mod service;
 pub mod signals;
 pub mod service_updater;
+pub mod spec_watcher;
 
 use std::net::SocketAddr;
 use std::thread;

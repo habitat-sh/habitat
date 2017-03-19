@@ -33,7 +33,7 @@ use error::{Error, Result, SupError};
 static LOGKEY: &'static str = "SS";
 static DEFAULT_GROUP: &'static str = "default";
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(default)]
 pub struct ServiceSpec {
     #[serde(
@@ -175,7 +175,7 @@ impl FromStr for ServiceSpec {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct ServiceBind {
     pub name: String,
     pub service_group: ServiceGroup,
