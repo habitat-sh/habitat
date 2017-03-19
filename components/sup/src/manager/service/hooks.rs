@@ -722,6 +722,8 @@ impl HookOutput {
         }
     }
 
+    // TODO fn: this method appears to not be used in the codebase, is it necessary?
+    #[allow(dead_code)]
     fn stderr(&self) -> Option<BufReader<File>> {
         match File::open(&self.stderr_log_file.clone()) {
             Ok(f) => Some(BufReader::new(f)),
