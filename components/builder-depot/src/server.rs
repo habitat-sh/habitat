@@ -12,9 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::fs::{self, File};
+use std::fs;
 use std::io::{Read, Write, BufWriter};
-use std::path::PathBuf;
 use std::result;
 use std::str::FromStr;
 
@@ -284,18 +283,6 @@ pub fn list_origin_members(req: &mut Request) -> IronResult<Response> {
     }
 }
 
-fn write_string_to_file(filename: &PathBuf, body: String) -> Result<bool> {
-    let path = filename.parent().unwrap();
-    try!(fs::create_dir_all(path));
-    let tempfile = format!("{}.tmp", filename.to_string_lossy());
-    let f = try!(File::create(&tempfile));
-    let mut writer = BufWriter::new(&f);
-    try!(writer.write_all(body.as_bytes()));
-    info!("File added to Depot at {}", filename.to_string_lossy());
-    try!(fs::rename(&tempfile, &filename));
-    Ok(true)
-}
-
 fn write_archive(tempfile: &NamedTempFile, body: &mut Body) -> Result<PackageArchive> {
     let mut writer = BufWriter::new(tempfile);
     let mut written: i64 = 0;
@@ -321,73 +308,90 @@ fn write_archive(tempfile: &NamedTempFile, body: &mut Body) -> Result<PackageArc
 }
 
 fn upload_origin_key(req: &mut Request) -> IronResult<Response> {
-    // JB TODO: the following two lines are a temporary hack for the channels work, because we're
-    // using an in-memory HashMap to store channel data instead of a proper datastore. These should
-    // be removed (along with all of the other lines like this in this file) and persistent::Read
-    // should be put back once the depot is using PG for storage.
-    let lock = req.get::<persistent::State<Depot>>().expect("depot not found");
-    let depot = lock.read().expect("depot read lock is poisoned");
+    debug!("Upload Origin Public Key {:?}", req);
     // TODO: SA - Eliminate need to clone the session and params
-    let params = req.extensions
-        .get::<Router>()
-        .unwrap()
-        .clone();
-    let origin = params.find("origin").unwrap();
-    let revision = params.find("revision").unwrap();
     let session = req.extensions
         .get::<Authenticated>()
         .unwrap()
         .clone();
+    let params = req.extensions
+        .get::<Router>()
+        .unwrap()
+        .clone();
+    let mut conn = Broker::connect().unwrap();
+    let mut request = OriginPublicKeyCreate::new();
+    request.set_owner_id(session.get_id());
 
-    if !depot.config.insecure {
-        let mut conn = Broker::connect().unwrap();
-        if !try!(check_origin_access(&mut conn, session.get_id(), origin)) {
-            return Ok(Response::with(status::Forbidden));
+    let origin = match params.find("origin") {
+        Some(origin) => {
+            if !try!(check_origin_access(&mut conn, session.get_id(), origin)) {
+                return Ok(Response::with(status::Forbidden));
+            }
+            match get_origin(&mut conn, origin)? {
+                Some(mut origin) => {
+                    request.set_name(origin.take_name());
+                    request.set_origin_id(origin.get_id());
+                }
+                None => return Ok(Response::with(status::NotFound)),
+            }
+            origin
         }
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+    match params.find("revision") {
+        Some(revision) => request.set_revision(revision.to_string()),
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+
+    let mut key_content = Vec::new();
+    if let Err(e) = req.body.read_to_end(&mut key_content) {
+        debug!("Can't read key content {}", e);
+        return Ok(Response::with(status::BadRequest));
     }
 
-    let mut content = String::new();
-    if let Err(e) = req.body.read_to_string(&mut content) {
-        debug!("Can't read public key upload content: {}", e);
-        return Ok(Response::with(status::NotAcceptable));
-    }
-
-    match SigKeyPair::parse_key_str(&content) {
-        Ok((PairType::Public, _, _)) => (),
-        Ok(_) => {
-            return Ok(Response::with((status::NotAcceptable,
-                                      format!("Received a secret key instead of a public key"))));
+    match String::from_utf8(key_content.clone()) {
+        Ok(content) => {
+            match SigKeyPair::parse_key_str(&content) {
+                Ok((PairType::Public, _, _)) => {
+                    debug!("Received a valid public key");
+                }
+                Ok(_) => {
+                    debug!("Received a secret key instead of a public key");
+                    return Ok(Response::with(status::BadRequest));
+                }
+                Err(e) => {
+                    debug!("Invalid public key content: {}", e);
+                    return Ok(Response::with(status::BadRequest));
+                }
+            }
         }
         Err(e) => {
-            return Ok(Response::with((status::NotAcceptable,
-                                      format!("Invalid public key content: {}", e))));
+            debug!("Can't parse public key upload content: {}", e);
+            return Ok(Response::with(status::BadRequest));
         }
     }
 
-    let origin_keyfile = depot.key_path(origin, revision);
-    // TODO: We can't just check if the keyfile exists on disk since this operation also requires
-    // an entry in the database. This operation should instead check the database since that is
-    // the last step of writing an origin key and represents the success.
-    if origin_keyfile.is_file() {
-        return Ok(Response::with(status::Conflict));
+    request.set_body(key_content);
+    request.set_owner_id(0);
+
+    match conn.route::<OriginPublicKeyCreate, OriginPublicKey>(&request) {
+        Ok(_) => {
+            log_event!(req,
+                       Event::OriginKeyUpload {
+                           origin: origin.to_string(),
+                           version: request.get_revision().to_string(),
+                           account: session.get_id().to_string(),
+                       });
+            let mut response =
+                Response::with((status::Created,
+                                format!("/origins/{}/keys/{}", &origin, &request.get_revision())));
+            let mut base_url: url::Url = req.url.clone().into();
+            base_url.set_path(&format!("key/{}-{}", &origin, &request.get_revision()));
+            response.headers.set(headers::Location(format!("{}", base_url)));
+            Ok(response)
+        }
+        Err(err) => Ok(render_net_error(&err)),
     }
-    debug!("Writing key file {}", origin_keyfile.to_string_lossy());
-    try!(write_string_to_file(&origin_keyfile, content));
-    try!(depot.datastore.origin_keys.write(&origin, &revision));
-
-    log_event!(req,
-               Event::OriginKeyUpload {
-                   origin: origin.to_string(),
-                   version: revision.to_string(),
-                   account: session.get_id().to_string(),
-               });
-
-    let mut response = Response::with((status::Created,
-                                       format!("/origins/{}/keys/{}", &origin, &revision)));
-    let mut base_url: url::Url = req.url.clone().into();
-    base_url.set_path(&format!("key/{}-{}", &origin, &revision));
-    response.headers.set(headers::Location(format!("{}", base_url)));
-    Ok(response)
 }
 
 fn download_latest_origin_secret_key(req: &mut Request) -> IronResult<Response> {
@@ -691,39 +695,34 @@ fn get_schedule(req: &mut Request) -> IronResult<Response> {
 }
 
 fn download_origin_key(req: &mut Request) -> IronResult<Response> {
-    let lock = req.get::<persistent::State<Depot>>().expect("depot not found");
-    let depot = lock.read().expect("depot read lock is poisoned");
     let params = req.extensions.get::<Router>().unwrap();
-    let origin = match params.find("origin") {
-        Some(origin) => origin,
+    // TODO: SA - Eliminate need to clone the session and params
+    let session = req.extensions
+        .get::<Authenticated>()
+        .unwrap()
+        .clone();
+    let mut conn = Broker::connect().unwrap();
+    let mut request = OriginPublicKeyGet::new();
+    request.set_owner_id(session.get_id());
+    match params.find("origin") {
+        Some(origin) => request.set_origin(origin.to_string()),
         None => return Ok(Response::with(status::BadRequest)),
     };
-    let revision = match params.find("revision") {
-        Some(revision) => revision,
+    match params.find("revision") {
+        Some(revision) => request.set_revision(revision.to_string()),
         None => return Ok(Response::with(status::BadRequest)),
     };
-    debug!("Trying to retrieve origin key {}-{}", &origin, &revision);
-    let origin_keyfile = depot.key_path(&origin, &revision);
-    debug!("Looking for {}", &origin_keyfile.to_string_lossy());
-    match origin_keyfile.metadata() {
-        Ok(md) => {
-            if !md.is_file() {
-                return Ok(Response::with(status::NotFound));
-            };
-        }
-        Err(e) => {
-            println!("Can't read key file {}: {}",
-                     &origin_keyfile.to_string_lossy(),
-                     e);
+
+    let key = match conn.route::<OriginPublicKeyGet, OriginPublicKey>(&request) {
+        Ok(key) => key,
+        Err(err) => {
+            error!("Can't retrieve key file: {}", err);
             return Ok(Response::with(status::NotFound));
         }
     };
 
-    let xfilename = origin_keyfile.file_name()
-        .unwrap()
-        .to_string_lossy()
-        .into_owned();
-    let mut response = Response::with((status::Ok, origin_keyfile));
+    let xfilename = format!("{}-{}.pub", key.get_name(), key.get_revision());
+    let mut response = Response::with((status::Ok, key.get_body()));
     response.headers.set(ContentDisposition(format!("attachment; filename=\"{}\"", xfilename)));
     response.headers.set(XFileName(xfilename));
     do_cache_response(&mut response);
@@ -731,39 +730,30 @@ fn download_origin_key(req: &mut Request) -> IronResult<Response> {
 }
 
 fn download_latest_origin_key(req: &mut Request) -> IronResult<Response> {
-    let lock = req.get::<persistent::State<Depot>>().expect("depot not found");
-    let depot = lock.read().expect("depot read lock is poisoned");
     let params = req.extensions.get::<Router>().unwrap();
-    let origin = match params.find("origin") {
-        Some(origin) => origin,
+    // TODO: SA - Eliminate need to clone the session and params
+    let session = req.extensions
+        .get::<Authenticated>()
+        .unwrap()
+        .clone();
+    let mut conn = Broker::connect().unwrap();
+    let mut request = OriginPublicKeyLatestGet::new();
+    request.set_owner_id(session.get_id());
+    match params.find("origin") {
+        Some(origin) => request.set_origin(origin.to_string()),
         None => return Ok(Response::with(status::BadRequest)),
     };
-    debug!("Trying to retrieve latest origin key for {}", &origin);
-    let latest_rev = depot.datastore
-        .origin_keys
-        .latest(&origin)
-        .unwrap();
-    let origin_keyfile = depot.key_path(&origin, &latest_rev);
-    debug!("Looking for {}", &origin_keyfile.to_string_lossy());
-    match origin_keyfile.metadata() {
-        Ok(md) => {
-            if !md.is_file() {
-                return Ok(Response::with(status::NotFound));
-            };
-        }
-        Err(e) => {
-            println!("Can't read key file {}: {}",
-                     &origin_keyfile.to_string_lossy(),
-                     e);
+
+    let key = match conn.route::<OriginPublicKeyLatestGet, OriginPublicKey>(&request) {
+        Ok(key) => key,
+        Err(err) => {
+            error!("Can't retrieve key file: {}", err);
             return Ok(Response::with(status::NotFound));
         }
     };
 
-    let xfilename = origin_keyfile.file_name()
-        .unwrap()
-        .to_string_lossy()
-        .into_owned();
-    let mut response = Response::with((status::Ok, origin_keyfile));
+    let xfilename = format!("{}-{}.pub", key.get_name(), key.get_revision());
+    let mut response = Response::with((status::Ok, key.get_body()));
     response.headers.set(ContentDisposition(format!("attachment; filename=\"{}\"", xfilename)));
     response.headers.set(XFileName(xfilename));
     dont_cache_response(&mut response);
@@ -816,21 +806,43 @@ fn download_package(req: &mut Request) -> IronResult<Response> {
 }
 
 fn list_origin_keys(req: &mut Request) -> IronResult<Response> {
-    let lock = req.get::<persistent::State<Depot>>().expect("depot not found");
-    let depot = lock.read().expect("depot read lock is poisoned");
+    let session = req.extensions.get::<Authenticated>().unwrap();
     let params = req.extensions.get::<Router>().unwrap();
-    let origin = params.find("origin").unwrap();
-    match depot.datastore.origin_keys.all(origin) {
-        Ok(revisions) => {
-            let body = serde_json::to_string(&revisions).unwrap();
+    let origin_name = match params.find("origin") {
+        Some(origin) => origin,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+    let mut conn = Broker::connect().unwrap();
+
+    if !try!(check_origin_access(&mut conn, session.get_id(), &origin_name)) {
+        return Ok(Response::with(status::Forbidden));
+    }
+
+    let mut request = OriginPublicKeyListRequest::new();
+    match try!(get_origin(&mut conn, origin_name)) {
+        Some(origin) => request.set_origin_id(origin.get_id()),
+        None => return Ok(Response::with(status::NotFound)),
+    };
+    match conn.route::<OriginPublicKeyListRequest, OriginPublicKeyListResponse>(&request) {
+        Ok(list) => {
+            let list: Vec<depotsrv::OriginKeyIdent> = list.get_keys()
+                .iter()
+                .map(|key| {
+                    let mut ident = depotsrv::OriginKeyIdent::new();
+                    ident.set_location(format!("/origins/{}/keys/{}",
+                                               &key.get_name(),
+                                               &key.get_revision()));
+                    ident.set_origin(key.get_name().to_string());
+                    ident.set_revision(key.get_revision().to_string());
+                    ident
+                })
+                .collect();
+            let body = serde_json::to_string(&list).unwrap();
             let mut response = Response::with((status::Ok, body));
             dont_cache_response(&mut response);
             Ok(response)
         }
-        Err(e) => {
-            error!("list_origin_keys:1, err={:?}", e);
-            Ok(Response::with(status::InternalServerError))
-        }
+        Err(err) => Ok(render_net_error(&err)),
     }
 }
 

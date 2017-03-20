@@ -266,6 +266,84 @@ pub fn origin_secret_key_get(req: &mut Envelope,
     Ok(())
 }
 
+pub fn origin_public_key_create(req: &mut Envelope,
+                                sock: &mut zmq::Socket,
+                                state: &mut ServerState)
+                                -> Result<()> {
+    let msg: proto::OriginPublicKeyCreate = try!(req.parse_msg());
+
+    match state.datastore.create_origin_public_key(&msg) {
+        Ok(ref osk) => try!(req.reply_complete(sock, osk)),
+        Err(err) => {
+            error!("OriginPublicKeyCreate, err={:?}", err);
+            let err = net::err(ErrCode::DATA_STORE, "vt:origin-public-key-create:1");
+            try!(req.reply_complete(sock, &err));
+        }
+    }
+    Ok(())
+}
+
+pub fn origin_public_key_get(req: &mut Envelope,
+                             sock: &mut zmq::Socket,
+                             state: &mut ServerState)
+                             -> Result<()> {
+    let msg: proto::OriginPublicKeyGet = try!(req.parse_msg());
+    match state.datastore.get_origin_public_key(&msg) {
+        Ok(Some(ref key)) => {
+            try!(req.reply_complete(sock, key));
+        }
+        Ok(None) => {
+            let err = net::err(ErrCode::ENTITY_NOT_FOUND, "vt:origin-public-key-get:0");
+            try!(req.reply_complete(sock, &err));
+        }
+        Err(err) => {
+            error!("OriginPublicKeyGet, err={:?}", err);
+            let err = net::err(ErrCode::DATA_STORE, "vt:origin-public-key-get:1");
+            try!(req.reply_complete(sock, &err));
+        }
+    }
+    Ok(())
+}
+
+pub fn origin_public_key_latest_get(req: &mut Envelope,
+                                    sock: &mut zmq::Socket,
+                                    state: &mut ServerState)
+                                    -> Result<()> {
+    let msg: proto::OriginPublicKeyLatestGet = try!(req.parse_msg());
+    match state.datastore.get_origin_public_key_latest(&msg) {
+        Ok(Some(ref key)) => {
+            try!(req.reply_complete(sock, key));
+        }
+        Ok(None) => {
+            let err = net::err(ErrCode::ENTITY_NOT_FOUND,
+                               "vt:origin-public-key-latest-get:0");
+            try!(req.reply_complete(sock, &err));
+        }
+        Err(err) => {
+            error!("OriginPublicKeyLatestGet, err={:?}", err);
+            let err = net::err(ErrCode::DATA_STORE, "vt:origin-public-key-latest-get:1");
+            try!(req.reply_complete(sock, &err));
+        }
+    }
+    Ok(())
+}
+
+pub fn origin_public_key_list(req: &mut Envelope,
+                              sock: &mut zmq::Socket,
+                              state: &mut ServerState)
+                              -> Result<()> {
+    let msg: proto::OriginPublicKeyListRequest = try!(req.parse_msg());
+    match state.datastore.list_origin_public_keys_for_origin(&msg) {
+        Ok(ref opklr) => try!(req.reply_complete(sock, opklr)),
+        Err(err) => {
+            error!("OriginPublicKeyListForOrigin, err={:?}", err);
+            let err = net::err(ErrCode::DATA_STORE, "vt:origin-public-key-list:1");
+            try!(req.reply_complete(sock, &err));
+        }
+    }
+    Ok(())
+}
+
 pub fn project_create(req: &mut Envelope,
                       sock: &mut zmq::Socket,
                       state: &mut ServerState)

@@ -133,6 +133,44 @@ message OriginSecretKeyGet {
   optional string origin = 2;
 }
 
+message OriginPublicKey {
+  optional uint64 id = 1;
+  optional uint64 origin_id = 2;
+  optional string name = 3;
+  optional string revision = 4;
+  optional bytes body = 5;
+  optional uint64 owner_id = 6;
+}
+
+message OriginPublicKeyCreate {
+  optional uint64 origin_id = 1;
+  optional string name = 2;
+  optional string revision = 3;
+  optional bytes body = 4;
+  optional uint64 owner_id = 5;
+}
+
+message OriginPublicKeyGet {
+  optional uint64 owner_id = 1;
+  optional string origin = 2;
+  optional string revision = 3;
+}
+
+message OriginPublicKeyLatestGet {
+  optional uint64 owner_id = 1;
+  optional string origin = 2;
+}
+
+message OriginPublicKeyListRequest {
+  optional uint64 owner_id = 1;
+  optional uint64 origin_id = 2;
+}
+
+message OriginPublicKeyListResponse {
+  optional uint64 origin_id = 1;
+  repeated OriginPublicKey keys = 2;
+}
+
 message OriginProject {
   optional uint64 id = 1;
   optional uint64 origin_id = 2;

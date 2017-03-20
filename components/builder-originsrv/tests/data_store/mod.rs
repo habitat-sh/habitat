@@ -135,6 +135,135 @@ fn get_origin_secret_key() {
 }
 
 #[test]
+fn create_origin_public_key() {
+    let pool = pool!();
+    let ds = DataStore::from_pool(pool).expect("Failed to create data store from pool");
+    ds.setup().expect("Failed to migrate data");
+    let mut origin = originsrv::OriginCreate::new();
+    origin.set_name(String::from("neurosis"));
+    origin.set_owner_id(1);
+    origin.set_owner_name(String::from("scottkelly"));
+    ds.create_origin(&origin).expect("Should create origin");
+
+    let neurosis = ds.get_origin_by_name("neurosis")
+        .expect("Could not retrieve origin")
+        .expect("Origin does not exist");
+
+    // Create a new origin public key
+    let mut oskc = originsrv::OriginPublicKeyCreate::new();
+    oskc.set_name(String::from("neurosis"));
+    oskc.set_revision(String::from("20160612031944"));
+    oskc.set_origin_id(neurosis.get_id());
+    oskc.set_owner_id(1);
+    oskc.set_body(String::from("very_public").into_bytes());
+    ds.create_origin_public_key(&oskc).expect("Failed to create origin public key");
+    let mut oskc2 = originsrv::OriginPublicKeyCreate::new();
+    oskc2.set_name(String::from("neurosis"));
+    oskc2.set_origin_id(neurosis.get_id());
+    oskc2.set_owner_id(1);
+    oskc2.set_revision(String::from("20160612031945"));
+    oskc2.set_body(String::from("very_very_public").into_bytes());
+    ds.create_origin_public_key(&oskc2).expect("Failed to create origin public key");
+
+    let mut oskg = originsrv::OriginPublicKeyGet::new();
+    oskg.set_owner_id(1);
+    oskg.set_origin(oskc.get_name().to_string());
+    oskg.set_revision(String::from("20160612031944"));
+    let key =
+        ds.get_origin_public_key(&oskg).expect("Could not get the key").expect("key did not exist");
+    assert_eq!(key.get_body(), oskc.get_body());
+}
+
+#[test]
+fn get_origin_public_key_latest() {
+    let pool = pool!();
+    let ds = DataStore::from_pool(pool).expect("Failed to create data store from pool");
+    ds.setup().expect("Failed to migrate data");
+    let mut origin = originsrv::OriginCreate::new();
+    origin.set_name(String::from("neurosis"));
+    origin.set_owner_id(1);
+    origin.set_owner_name(String::from("scottkelly"));
+    ds.create_origin(&origin).expect("Should create origin");
+
+    let neurosis = ds.get_origin_by_name("neurosis")
+        .expect("Could not retrieve origin")
+        .expect("Origin does not exist");
+
+    // Create a new origin public key
+    let mut oskc = originsrv::OriginPublicKeyCreate::new();
+    let body = String::from("very_public").into_bytes();
+    oskc.set_name(String::from("neurosis"));
+    oskc.set_revision(String::from("20160612031944"));
+    oskc.set_origin_id(neurosis.get_id());
+    oskc.set_owner_id(1);
+    oskc.set_body(body);
+    ds.create_origin_public_key(&oskc).expect("Failed to create origin public key");
+    oskc.set_revision(String::from("20160612031945"));
+    oskc.set_body(String::from("very_very_public").into_bytes());
+    ds.create_origin_public_key(&oskc).expect("Failed to create origin public key");
+
+    let mut osk_get = originsrv::OriginPublicKeyLatestGet::new();
+    osk_get.set_origin(String::from("neurosis"));
+    osk_get.set_owner_id(1);
+    let neurosis_key = ds.get_origin_public_key_latest(&osk_get)
+        .expect("Failed to get origin public key from database")
+        .expect("No origin public key found in database");
+    assert_eq!(neurosis_key.get_name(), "neurosis");
+    assert_eq!(neurosis_key.get_revision(), "20160612031945");
+    assert_eq!(neurosis_key.get_origin_id(), neurosis.get_id());
+    assert_eq!(neurosis_key.get_body(), oskc.get_body());
+    assert_eq!(neurosis_key.get_owner_id(), oskc.get_owner_id());
+}
+
+#[test]
+fn list_origin_public_key() {
+    let pool = pool!();
+    let ds = DataStore::from_pool(pool).expect("Failed to create data store from pool");
+    ds.setup().expect("Failed to migrate data");
+    let mut origin = originsrv::OriginCreate::new();
+    origin.set_name(String::from("neurosis"));
+    origin.set_owner_id(1);
+    origin.set_owner_name(String::from("scottkelly"));
+    ds.create_origin(&origin).expect("Should create origin");
+
+    let neurosis = ds.get_origin_by_name("neurosis")
+        .expect("Could not retrieve origin")
+        .expect("Origin does not exist");
+
+    // Create a new origin public key
+    let mut oskc = originsrv::OriginPublicKeyCreate::new();
+    oskc.set_name(String::from("neurosis"));
+    oskc.set_revision(String::from("20160612031944"));
+    oskc.set_origin_id(neurosis.get_id());
+    oskc.set_owner_id(1);
+    oskc.set_body(String::from("very_public").into_bytes());
+    ds.create_origin_public_key(&oskc).expect("Failed to create origin public key");
+    let mut oskc2 = originsrv::OriginPublicKeyCreate::new();
+    oskc2.set_name(String::from("neurosis"));
+    oskc2.set_origin_id(neurosis.get_id());
+    oskc2.set_owner_id(1);
+    oskc2.set_revision(String::from("20160612031945"));
+    oskc2.set_body(String::from("very_very_public").into_bytes());
+    ds.create_origin_public_key(&oskc2).expect("Failed to create origin public key");
+
+    let mut oskl = originsrv::OriginPublicKeyListRequest::new();
+    oskl.set_origin_id(neurosis.get_id());
+    let keys = ds.list_origin_public_keys_for_origin(&oskl)
+        .expect("Could not get the keys from the database");
+    assert_eq!(keys.get_keys().len(), 2);
+    let key1 = keys.get_keys()
+        .iter()
+        .nth(0)
+        .unwrap();
+    assert_eq!(key1.get_revision(), "20160612031945");
+    let key2 = keys.get_keys()
+        .iter()
+        .nth(1)
+        .unwrap();
+    assert_eq!(key2.get_revision(), "20160612031944");
+}
+
+#[test]
 fn create_origin_invitation() {
     let pool = pool!();
     let ds = DataStore::from_pool(pool).expect("Failed to create data store from pool");
