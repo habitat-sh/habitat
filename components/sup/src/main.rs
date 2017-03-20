@@ -16,7 +16,6 @@ extern crate habitat_common as common;
 extern crate habitat_core as hcore;
 #[macro_use]
 extern crate habitat_sup as sup;
-#[macro_use]
 extern crate log;
 extern crate env_logger;
 extern crate ansi_term;
