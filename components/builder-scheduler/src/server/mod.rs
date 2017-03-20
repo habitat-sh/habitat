@@ -35,11 +35,11 @@ const BE_LISTEN_ADDR: &'static str = "inproc://backend";
 
 #[derive(Clone)]
 pub struct InitServerState {
-    datastore: Arc<RwLock<DataStore>>,
+    datastore: DataStore,
 }
 
 impl InitServerState {
-    pub fn new(datastore: Arc<RwLock<DataStore>>) -> Self {
+    pub fn new(datastore: DataStore) -> Self {
         InitServerState { datastore: datastore }
     }
 }
@@ -54,13 +54,13 @@ impl Into<ServerState> for InitServerState {
 
 #[derive(Default)]
 pub struct ServerState {
-    datastore: Option<Arc<RwLock<DataStore>>>,
+    datastore: Option<DataStore>,
     schedule_cli: Option<ScheduleClient>,
 }
 
 impl ServerState {
-    fn datastore(&mut self) -> &mut Arc<RwLock<DataStore>> {
-        self.datastore.as_mut().unwrap()
+    fn datastore(&self) -> &DataStore {
+        self.datastore.as_ref().unwrap()
     }
 
     fn schedule_cli(&mut self) -> &mut ScheduleClient {
@@ -96,8 +96,8 @@ impl Dispatcher for Worker {
         println!("Message received: {}", message.message_id());
 
         match message.message_id() {
-            "Schedule" => handlers::schedule(message, sock, state).unwrap(),
-            "ScheduleGet" => handlers::schedule_get(message, sock, state).unwrap(),
+            "GroupCreate" => handlers::group_create(message, sock, state).unwrap(),
+            "GroupGet" => handlers::group_get(message, sock, state).unwrap(),
             _ => panic!("unexpected message: {:?}", message.message_id()),
         };
 
@@ -162,7 +162,7 @@ impl Application for Server {
         try!(datastore.setup());
         let cfg = self.config.clone();
         let cfg2 = self.config.clone();
-        let init_state = InitServerState::new(Arc::new(RwLock::new(datastore)));
+        let init_state = InitServerState::new(datastore);
         let ds2 = init_state.datastore.clone();
         let sup: Supervisor<Worker> = Supervisor::new(cfg, init_state);
         let schedule_mgr = try!(ScheduleMgr::start(cfg2, ds2));

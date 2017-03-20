@@ -19,7 +19,7 @@ pub use message::scheduler::*;
 use serde::{Serialize, Serializer};
 use serde::ser::SerializeStruct;
 
-impl Routable for Schedule {
+impl Routable for GroupCreate {
     type H = String;
 
     fn route_key(&self) -> Option<Self::H> {
@@ -27,7 +27,7 @@ impl Routable for Schedule {
     }
 }
 
-impl Routable for ScheduleGet {
+impl Routable for GroupGet {
     type H = String;
 
     fn route_key(&self) -> Option<Self::H> {
@@ -67,9 +67,10 @@ impl Serialize for Project {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {
-        let mut strukt = try!(serializer.serialize_struct("project", 2));
+        let mut strukt = try!(serializer.serialize_struct("project", 3));
         try!(strukt.serialize_field("name", &self.get_name()));
         try!(strukt.serialize_field("state", &self.get_state()));
+        try!(strukt.serialize_field("job_id", &self.get_job_id()));
         strukt.end()
     }
 }
@@ -78,11 +79,10 @@ impl Serialize for Group {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {
-        let mut strukt = try!(serializer.serialize_struct("group", 4));
+        let mut strukt = try!(serializer.serialize_struct("group", 3));
         try!(strukt.serialize_field("id", &self.get_id()));
         try!(strukt.serialize_field("state", &self.get_state()));
         try!(strukt.serialize_field("projects", &self.get_projects()));
-        try!(strukt.serialize_field("jobs", &self.get_jobs()));
         strukt.end()
     }
 }

@@ -41,7 +41,7 @@ use persistent;
 use protocol::depotsrv;
 use protocol::net::ErrCode;
 use protocol::sessionsrv::{Account, AccountGet};
-use protocol::scheduler::{Schedule, ScheduleGet, Group};
+use protocol::scheduler::{Group, GroupCreate, GroupGet};
 use protocol::originsrv::*;
 use regex::Regex;
 use router::{Params, Router};
@@ -647,11 +647,11 @@ fn schedule(req: &mut Request) -> IronResult<Response> {
 
     let mut conn = Broker::connect().unwrap();
 
-    let mut request = Schedule::new();
+    let mut request = GroupCreate::new();
     request.set_origin(String::from(origin));
     request.set_package(String::from(package));
 
-    match conn.route::<Schedule, Group>(&request) {
+    match conn.route::<GroupCreate, Group>(&request) {
         Ok(group) => {
             let mut response = render_json(status::Ok, &group);
             dont_cache_response(&mut response);
@@ -677,10 +677,10 @@ fn get_schedule(req: &mut Request) -> IronResult<Response> {
 
     let mut conn = Broker::connect().unwrap();
 
-    let mut request = ScheduleGet::new();
+    let mut request = GroupGet::new();
     request.set_group_id(group_id);
 
-    match conn.route::<ScheduleGet, Group>(&request) {
+    match conn.route::<GroupGet, Group>(&request) {
         Ok(group) => {
             let mut response = render_json(status::Ok, &group);
             dont_cache_response(&mut response);

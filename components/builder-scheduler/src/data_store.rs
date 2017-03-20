@@ -12,215 +12,339 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
-// TBD - This is a WIP for now, persistence to be added later
-
-use std::collections::HashMap;
-use rand::{Rng, thread_rng};
+use db::pool::Pool;
+use db::migration::Migrator;
+use postgres;
 
 use config::Config;
-use error::Result;
-use protocol::jobsrv::{self, Job, JobState};
-use protocol::scheduler as proto;
-use protocol::scheduler::Group;
+use error::{Result, Error};
+use rand::{Rng, thread_rng};
+
+use protocol::jobsrv::{Job, JobState};
+use protocol::scheduler::*;
 use protobuf::RepeatedField;
 
-#[derive(Debug, Clone)]
-pub struct ProjectData {
-    name: String,
-    state: proto::ProjectState,
-}
-
-#[derive(Debug, Clone)]
-pub struct GroupData {
-    id: u64,
-    state: proto::GroupState,
-    projects: Vec<ProjectData>,
-    jobs: Vec<Job>,
-}
-
+// DataStore inherits Send + Sync by virtue of having only one member, the pool itself.
 #[derive(Debug, Clone)]
 pub struct DataStore {
-    groups: Vec<GroupData>,
-    job_map: HashMap<u64, usize>,
-    group_map: HashMap<u64, usize>,
+    pool: Pool,
 }
 
 impl DataStore {
-    pub fn new(_: &Config) -> Result<DataStore> {
-        Ok(DataStore {
-               groups: Vec::new(),
-               job_map: HashMap::new(),
-               group_map: HashMap::new(),
-           })
+    /// Create a new DataStore.
+    ///
+    /// * Can fail if the pool cannot be created
+    /// * Blocks creation of the datastore on the existince of the pool; might wait indefinetly.
+    pub fn new(config: &Config) -> Result<DataStore> {
+        let pool = Pool::new(&config.datastore_connection_url,
+                             config.pool_size,
+                             config.datastore_connection_retry_ms,
+                             config.datastore_connection_timeout,
+                             config.datastore_connection_test)?;
+        Ok(DataStore { pool: pool })
     }
 
+    /// Create a new DataStore from a pre-existing pool; useful for testing the database.
+    pub fn from_pool(pool: Pool) -> Result<DataStore> {
+        Ok(DataStore { pool: pool })
+    }
+
+    /// Setup the datastore.
+    ///
+    /// This includes all the schema and data migrations, along with stored procedures for data
+    /// access.
     pub fn setup(&self) -> Result<()> {
+        let mut migrator = Migrator::new(&self.pool);
+        migrator.setup()?;
+
+        // The groups table
+        migrator.migrate("scheduler",
+                     r#"CREATE TABLE groups (
+                                    id bigint PRIMARY KEY,
+                                    group_state text,
+                                    created_at timestamptz DEFAULT now(),
+                                    updated_at timestamptz
+                             )"#)?;
+
+        // The projects table
+        migrator.migrate("scheduler",
+                     r#"CREATE TABLE projects (
+                                     id bigserial PRIMARY KEY,
+                                     owner_id bigint,
+                                     project_name text,
+                                     project_state text,
+                                     job_id bigint DEFAULT 0,
+                                     created_at timestamptz DEFAULT now(),
+                                     updated_at timestamptz
+                              )"#)?;
+
+        // Insert a new group into the groups table, and add it's projects to the projects table
+        migrator.migrate("scheduler",
+                     r#"CREATE OR REPLACE FUNCTION insert_group_v1 (
+                                id bigint,
+                                project_names text[]
+                                ) RETURNS void AS $$
+                                    DECLARE
+                                      n text;
+                                    BEGIN
+                                        INSERT INTO groups (id, group_state)
+                                        VALUES
+                                            (id, 'Pending');
+
+                                        FOREACH n IN ARRAY project_names
+                                        LOOP
+                                            INSERT INTO projects (owner_id, project_name, project_state)
+                                            VALUES
+                                                (id, n, 'NotStarted');
+                                        END LOOP;
+                                    END
+                                $$ LANGUAGE plpgsql VOLATILE
+                                "#)?;
+
+        // Retrieve a group from the groups table
+        migrator.migrate("scheduler",
+                     r#"CREATE OR REPLACE FUNCTION get_group_v1 (gid bigint) RETURNS SETOF groups AS $$
+                            BEGIN
+                              RETURN QUERY SELECT * FROM groups WHERE id = gid;
+                              RETURN;
+                            END
+                            $$ LANGUAGE plpgsql STABLE"#)?;
+
+        // Retrieve the projects for a group
+        migrator.migrate("scheduler",
+                     r#"CREATE OR REPLACE FUNCTION get_projects_for_group_v1 (gid bigint) RETURNS SETOF projects AS $$
+                            BEGIN
+                              RETURN QUERY SELECT * FROM projects WHERE owner_id = gid;
+                              RETURN;
+                            END
+                            $$ LANGUAGE plpgsql STABLE"#)?;
+
+        // Retrieve Pending groups, while atomically setting their state to Dispatched
+        migrator.migrate("scheduler",
+                         r#"CREATE OR REPLACE FUNCTION pending_groups_v1 (integer) RETURNS SETOF groups AS
+                                $$
+                                DECLARE
+                                    r groups % rowtype;
+                                BEGIN
+                                    FOR r IN
+                                        SELECT * FROM groups
+                                        WHERE group_state = 'Pending'
+                                        ORDER BY created_at ASC
+                                        FOR UPDATE SKIP LOCKED
+                                        LIMIT $1
+                                    LOOP
+                                        UPDATE groups SET group_state='Dispatching', updated_at=now() WHERE id=r.id RETURNING * INTO r;
+                                        RETURN NEXT r;
+                                    END LOOP;
+                                  RETURN;
+                                END
+                                $$ LANGUAGE plpgsql VOLATILE"#)?;
+
+        // Update the state of a group
+        migrator.migrate("scheduler",
+                         r#"CREATE OR REPLACE FUNCTION set_group_state_v1 (gid bigint, gstate text) RETURNS void AS $$
+                            BEGIN
+                                UPDATE groups SET group_state=gstate, updated_at=now() WHERE id=gid;
+                            END
+                         $$ LANGUAGE plpgsql VOLATILE"#)?;
+
+        // Update the state of a project
+        migrator.migrate("scheduler",
+                          r#"CREATE OR REPLACE FUNCTION set_project_state_v1 (pid bigint, jid bigint, state text) RETURNS void AS $$
+                             BEGIN
+                                 UPDATE projects SET project_state=state, job_id=jid, updated_at=now() WHERE id=pid;
+                             END
+                          $$ LANGUAGE plpgsql VOLATILE"#)?;
+
+        migrator.migrate("scheduler",
+                         r#"CREATE INDEX pending_groups_index_v1 on groups(created_at) WHERE group_state = 'Pending'"#)?;
+
+        // Retrieve a group project
+        migrator.migrate("scheduler",
+                  r#"CREATE OR REPLACE FUNCTION find_project_v1 (gid bigint, name text) RETURNS SETOF projects AS $$
+                         BEGIN
+                           RETURN QUERY SELECT * FROM projects WHERE owner_id = gid AND project_name = name;
+                           RETURN;
+                         END
+                         $$ LANGUAGE plpgsql STABLE"#)?;
+
         Ok(())
     }
 
-    pub fn create_group(&mut self, project_names: Vec<String>) -> Result<Group> {
-        let mut projects = Vec::new();
-        for name in project_names {
-            let project = ProjectData {
-                name: name,
-                state: proto::ProjectState::NotStarted,
-            };
-            projects.push(project);
-        }
+    pub fn create_group(&self, msg: &GroupCreate, project_names: Vec<String>) -> Result<Group> {
+        let conn = self.pool.get()?;
 
+        assert!(!project_names.is_empty());
+
+        // TODO - the actual message will be used later for sharding
+
+        // BUG - the insert query should be creating and assigning back a group_id,
+        // instead of expecting it to be passed in. The random id is a temporary
+        // workaround.
         let mut rng = thread_rng();
         let id = rng.gen::<u64>();
 
-        let group_data = GroupData {
-            id: id,
-            state: proto::GroupState::Pending,
-            projects: projects,
-            jobs: Vec::new(),
-        };
+        conn.execute("SELECT insert_group_v1($1, $2)",
+                     &[&(id as i64), &project_names])
+            .map_err(Error::GroupCreate)?;
 
-        self.groups.push(group_data.clone());
-
-        assert!(!self.group_map.contains_key(&id));
-        self.group_map.insert(id, self.groups.len() - 1);
-
-        println!("Group created: {:?}", group_data);
-
-        Ok(DataStore::group_data_to_group(&group_data))
-    }
-
-    pub fn get_group(&self, group_id: u64) -> Option<Group> {
-        if self.group_map.contains_key(&group_id) {
-            let index = *self.group_map.get(&group_id).unwrap();
-            assert!(self.groups[index].id == group_id);
-
-            Some(DataStore::group_data_to_group(&self.groups[index]))
-        } else {
-            warn!("Group id {} not found", group_id);
-            None
-        }
-    }
-
-    fn group_data_to_group(group_data: &GroupData) -> Group {
-        let mut group = proto::Group::new();
-
-        group.set_id(group_data.id);
-        group.set_state(group_data.state);
 
         let mut projects = RepeatedField::new();
-        for project_data in group_data.projects.iter() {
-            let mut project = proto::Project::new();
-            project.set_name(project_data.name.clone());
-            project.set_state(project_data.state);
+
+        for name in project_names {
+            let mut project = Project::new();
+            project.set_name(name);
+            project.set_state(ProjectState::NotStarted);
             projects.push(project);
         }
+
+        let mut group = Group::new();
+        group.set_id(id);
+        group.set_state(GroupState::Pending);
         group.set_projects(projects);
 
-        let mut jobs = RepeatedField::new();
-        for group_job in group_data.jobs.iter() {
-            jobs.push(group_job.clone());
-        }
-        group.set_jobs(jobs);
+        debug!("Group created: {:?}", group);
 
-        group
+        Ok(group)
     }
 
-    pub fn set_group_state(&mut self, group_id: u64, group_state: proto::GroupState) -> Result<()> {
-        if self.group_map.contains_key(&group_id) {
-            println!("Updating group state, id: {}, state: {:?}",
-                     group_id,
-                     group_state);
+    pub fn get_group(&self, msg: &GroupGet) -> Result<Option<Group>> {
+        let group_id = msg.get_group_id();
 
-            let index = *self.group_map.get(&group_id).unwrap();
-            assert!(self.groups[index].id == group_id);
-            self.groups[index].state = group_state;
-        } else {
+        let conn = self.pool.get()?;
+        let rows = &conn.query("SELECT * FROM get_group_v1($1)", &[&(group_id as i64)])
+            .map_err(Error::GroupGet)?;
+
+        if rows.is_empty() {
             warn!("Group id {} not found", group_id);
+            return Ok(None);
         }
+
+        assert!(rows.len() == 1); // should never have more than one
+
+        let mut group = self.row_to_group(&rows.get(0))?;
+
+        let project_rows = &conn.query("SELECT * FROM get_projects_for_group_v1($1)",
+                   &[&(group_id as i64)])
+            .map_err(Error::GroupGet)?;
+
+        assert!(project_rows.len() > 0); // should at least have one
+        let projects = self.rows_to_projects(&project_rows)?;
+
+        group.set_projects(projects);
+        Ok(Some(group))
+    }
+
+    fn row_to_group(&self, row: &postgres::rows::Row) -> Result<Group> {
+        let mut group = Group::new();
+
+        let id: i64 = row.get("id");
+        group.set_id(id as u64);
+        let js: String = row.get("group_state");
+        let group_state = match &js[..] {
+            "Dispatching" => GroupState::Dispatching,
+            "Pending" => GroupState::Pending,
+            "Complete" => GroupState::Complete,
+            "Failed" => GroupState::Failed,
+            _ => return Err(Error::UnknownGroupState),
+        };
+        group.set_state(group_state);
+
+        Ok(group)
+    }
+
+    fn row_to_project(&self, row: &postgres::rows::Row) -> Result<Project> {
+        let mut project = Project::new();
+
+        let name: String = row.get("project_name");
+        let state: String = row.get("project_state");
+        let job_id: i64 = row.get("job_id");
+
+        let project_state = match &state[..] {
+            "NotStarted" => ProjectState::NotStarted,
+            "InProgress" => ProjectState::InProgress,
+            "Success" => ProjectState::Success,
+            "Failure" => ProjectState::Failure,
+            _ => return Err(Error::UnknownProjectState),
+        };
+
+        project.set_name(name);
+        project.set_state(project_state);
+        project.set_job_id(job_id as u64);
+
+        Ok(project)
+    }
+
+    fn rows_to_projects(&self, rows: &postgres::rows::Rows) -> Result<RepeatedField<Project>> {
+        let mut projects = RepeatedField::new();
+
+        for row in rows {
+            let project = self.row_to_project(&row)?;
+            projects.push(project);
+        }
+
+        Ok(projects)
+    }
+
+    pub fn set_group_state(&self, group_id: u64, group_state: GroupState) -> Result<()> {
+        let conn = self.pool.get()?;
+        let state = match group_state {
+            GroupState::Dispatching => "Dispatching",
+            GroupState::Pending => "Pending",
+            GroupState::Complete => "Complete",
+            GroupState::Failed => "Failed",
+        };
+        conn.execute("SELECT set_group_state_v1($1, $2)",
+                     &[&(group_id as i64), &state])
+            .map_err(Error::GroupSetState)?;
         Ok(())
     }
 
-    pub fn add_group_job(&mut self, group_id: u64, job: &Job) -> Result<()> {
-        if self.group_map.contains_key(&group_id) {
-            let job_id = job.get_id();
-            println!("Adding job id {} to group {}", job_id, group_id);
+    pub fn set_group_job_state(&self, job: &Job) -> Result<()> {
+        let conn = self.pool.get()?;
+        let rows = &conn.query("SELECT * FROM find_project_v1($1, $2)",
+                   &[&(job.get_owner_id() as i64), &job.get_project().get_name()])
+            .map_err(Error::ProjectSetState)?;
 
-            let index = *self.group_map.get(&group_id).unwrap();
-            assert!(self.groups[index].id == group_id);
-
-            assert!(!self.job_map.contains_key(&job_id));
-            self.groups[index].jobs.push(job.clone());
-            self.job_map.insert(job_id, index);
-            self.set_group_job_state(job_id, job.get_state()).unwrap();
-        } else {
-            warn!("Group id {} not found", group_id);
+        // No rows is ok, as this job might not be one we care about
+        if rows.is_empty() {
+            warn!("No project found for job id: {}", job.get_id());
+            return Ok(());
         }
+
+        assert!(rows.len() == 1); // should never have more than one
+        let pid: i64 = rows.get(0).get("id");
+
+        let state = match job.get_state() {
+            JobState::Complete => "Success",
+            JobState::Failed | JobState::Rejected => "Failure",
+            _ => "InProgress",
+        };
+
+        conn.execute("SELECT set_project_state_v1($1, $2, $3)",
+                     &[&pid, &(job.get_id() as i64), &state])
+            .map_err(Error::ProjectSetState)?;
 
         Ok(())
     }
 
-    pub fn find_group_id_for_job(&self, job_id: u64) -> Option<u64> {
-        if self.job_map.contains_key(&job_id) {
-            let index = *self.job_map.get(&job_id).unwrap();
-
-            Some(self.groups[index].id)
-        } else {
-            warn!("Job id {} not found", job_id);
-            None
-        }
-    }
-
-    pub fn set_group_job_state(&mut self, job_id: u64, job_state: JobState) -> Result<()> {
-        if self.job_map.contains_key(&job_id) {
-            let index = *self.job_map.get(&job_id).unwrap();
-
-            println!("Updating job status, job id: {}, state: {:?}",
-                     job_id,
-                     job_state);
-
-            let mut project_name = String::new();
-            for job_elem in self.groups[index].jobs.iter_mut() {
-                if job_elem.get_id() == job_id {
-                    job_elem.set_state(job_state);
-                    project_name = String::from(job_elem.get_project().get_name());
-                    break;
-                }
-            }
-
-            for project_elem in self.groups[index].projects.iter_mut() {
-                if project_elem.name == project_name {
-                    let project_state = match job_state {
-                        jobsrv::JobState::Complete => proto::ProjectState::Success,
-                        jobsrv::JobState::Failed |
-                        jobsrv::JobState::Rejected => proto::ProjectState::Failure,
-                        _ => proto::ProjectState::InProgress,
-                    };
-
-                    project_elem.state = project_state;
-                    break;
-                }
-            }
-        } else {
-            warn!("Job id {} not found", job_id);
-        }
-
-        Ok(())
-    }
-
-    pub fn pending_groups(&mut self, count: i32) -> Result<Vec<Group>> {
+    pub fn pending_groups(&self, count: i32) -> Result<Vec<Group>> {
         let mut groups = Vec::new();
-        let mut curr = 0;
 
-        for group_data in self.groups.iter_mut() {
-            if group_data.state == proto::GroupState::Pending {
-                group_data.state = proto::GroupState::Dispatching;
-                groups.push(DataStore::group_data_to_group(&group_data));
+        let conn = self.pool.get()?;
+        let group_rows = &conn.query("SELECT * FROM pending_groups_v1($1)", &[&count])
+            .map_err(Error::GroupPending)?;
 
-                curr = curr + 1;
-                if curr >= count {
-                    break;
-                };
-            }
+        for group_row in group_rows {
+            let mut group = self.row_to_group(&group_row)?;
+
+            let project_rows = &conn.query("SELECT * FROM get_projects_for_group_v1($1)",
+                       &[&(group.get_id() as i64)])
+                .map_err(Error::GroupPending)?;
+            let projects = self.rows_to_projects(&project_rows)?;
+
+            group.set_projects(projects);
+            groups.push(group);
         }
 
         Ok(groups)
