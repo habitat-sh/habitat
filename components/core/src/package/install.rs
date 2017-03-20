@@ -258,7 +258,7 @@ impl PackageInstall {
     ///
     /// * The package contains a Environment metafile but it could not be read or it was malformed.
     pub fn environment(&self) -> Result<HashMap<String, String>> {
-        let mut m = HashMap::<String, String>::new();
+        let mut m = HashMap::new();
         match self.read_metafile(MetaFile::Environment) {
             Ok(body) => {
                 for line in body.lines() {
@@ -285,7 +285,7 @@ impl PackageInstall {
     /// * The package contains a EnvironmentIfs metafile but it could not be read or it was
     ///   malformed.
     pub fn environment_ifs(&self) -> Result<HashMap<String, String>> {
-        let mut m = HashMap::<String, String>::new();
+        let mut m = HashMap::new();
         match self.read_metafile(MetaFile::EnvironmentIfs) {
             Ok(body) => {
                 for line in body.lines() {
@@ -407,33 +407,62 @@ impl PackageInstall {
         let mut idents = HashSet::new();
         let mut run_envs = HashMap::new();
 
+        // This is a special storage so that we can use the old `paths()`
+        // method and not have to repeatedly convert when concatenating.
+        let mut legacy_run_paths: Vec<PathBuf> = Vec::new();
+        let mut has_legacy_run_paths = false;
+
         let env = self.environment()?;
-        // let env_ifs = self.environment_ifs()?;
-        for (key, value) in env.into_iter() {
-            run_envs.insert(key, value);
+        if !env.is_empty() {
+            if let Some(path) = env.get("PATH") {
+                let mut v: Vec<PathBuf> = env::split_paths(&path)
+                    .map(|p| PathBuf::from(&p))
+                    .collect();
+                legacy_run_paths.append(&mut v);
+            }
+
+            for (key, value) in env.into_iter() {
+                run_envs.insert(key, value);
+            }
+        } else {
+            let mut p = self.paths()?;
+            legacy_run_paths.append(&mut p);
+            has_legacy_run_paths = true;
         }
-        // TODO: env.is_empty(); Load self.paths()
 
         let deps = self.load_deps()?;
         for dep in deps.iter() {
             let env = dep.environment()?;
             let env_ifs = dep.environment_ifs()?;
-            for (key, value) in env.into_iter() {
-                match run_envs.entry(key) {
-                    Occupied(entry) => match env_ifs.get(entry.key()) {
-                        Some(ifs) => {
-                            let v = entry.into_mut();
-                            v.push_str(ifs);
-                            v.push_str(&value);
+            if !env.is_empty() {
+                if let Some(path) = env.get("PATH") {
+                    let mut v: Vec<PathBuf> = env::split_paths(&path)
+                        .map(|p| PathBuf::from(&p))
+                        .collect();
+                    legacy_run_paths.append(&mut v);
+                }
+
+                for (key, value) in env.into_iter() {
+                    match run_envs.entry(key) {
+                        Occupied(entry) => match env_ifs.get(entry.key()) {
+                            Some(ifs) => {
+                                let v = entry.into_mut();
+                                v.push_str(ifs);
+                                v.push_str(&value);
+                            }
+                            // TODO: Add a proper error type
+                            None => panic!("Cannot join {}, no IFS defined", entry.key()),
+                        },
+                        Vacant(entry) => {
+                            entry.insert(value);
+                            ()
                         }
-                        // TODO: Add a proper error type
-                        None => panic!("Cannot join {}, no IFS defined", entry.key()),
-                    },
-                    Vacant(entry) => {
-                        entry.insert(value);
-                        ()
                     }
                 }
+            } else {
+                let mut p = dep.paths()?;
+                legacy_run_paths.append(&mut p);
+                has_legacy_run_paths = true;
             }
             idents.insert(dep.ident().clone());
         }
@@ -445,24 +474,44 @@ impl PackageInstall {
             }
             let env = dep.environment()?;
             let env_ifs = dep.environment_ifs()?;
-            for (key, value) in env.into_iter() {
-                match run_envs.entry(key) {
-                    Occupied(entry) => match env_ifs.get(entry.key()) {
-                        Some(ifs) => {
-                            let v = entry.into_mut();
-                            v.push_str(ifs);
-                            v.push_str(&value);
+            if !env.is_empty() {
+                if let Some(path) = env.get("PATH") {
+                    let mut v: Vec<PathBuf> = env::split_paths(&path)
+                        .map(|p| PathBuf::from(&p))
+                        .collect();
+                    legacy_run_paths.append(&mut v);
+                }
+
+                for (key, value) in env.into_iter() {
+                    match run_envs.entry(key) {
+                        Occupied(entry) => match env_ifs.get(entry.key()) {
+                            Some(ifs) => {
+                                let v = entry.into_mut();
+                                v.push_str(ifs);
+                                v.push_str(&value);
+                            }
+                            // TODO: Add a proper error type
+                            None => panic!("Cannot join {}, no IFS defined", entry.key()),
+                        },
+                        Vacant(entry) => {
+                            entry.insert(value);
+                            ()
                         }
-                        // TODO: Add a proper error type
-                        None => panic!("Cannot join {}, no IFS defined", entry.key()),
-                    },
-                    Vacant(entry) => {
-                        entry.insert(value);
-                        ()
                     }
                 }
+            } else {
+                let mut p = dep.paths()?;
+                legacy_run_paths.append(&mut p);
+                has_legacy_run_paths = true;
             }
             idents.insert(dep.ident().clone());
+        }
+
+        if has_legacy_run_paths {
+            // Overwrite PATH with legacy_run_paths
+            let p = env::join_paths(&legacy_run_paths).expect("Failed to build path string");
+            let v = p.into_string().expect("Failed to convert path to utf8 string");
+            run_envs.insert("PATH".to_string(), v);
         }
 
         Ok(run_envs)
