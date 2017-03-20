@@ -722,6 +722,8 @@ impl HookOutput {
         }
     }
 
+    // TODO fn: this method appears to not be used in the codebase, is it necessary?
+    #[allow(dead_code)]
     fn stderr(&self) -> Option<BufReader<File>> {
         match File::open(&self.stderr_log_file.clone()) {
             Ok(f) => Some(BufReader::new(f)),
@@ -740,7 +742,7 @@ impl HookOutput {
             for line in BufReader::new(stdout).lines() {
                 if let Some(ref l) = line.ok() {
                     outputln!(preamble preamble_str, l);
-                    stdout_log.write_fmt(format_args!("{}\n", l));
+                    stdout_log.write_fmt(format_args!("{}\n", l)).expect("couldn't write line");
                 }
             }
         }
@@ -748,7 +750,7 @@ impl HookOutput {
             for line in BufReader::new(stderr).lines() {
                 if let Some(ref l) = line.ok() {
                     outputln!(preamble preamble_str, l);
-                    stderr_log.write_fmt(format_args!("{}\n", l));
+                    stderr_log.write_fmt(format_args!("{}\n", l)).expect("couldn't write line");
                 }
             }
         }

@@ -52,9 +52,11 @@ use ansi_term::Colour::Red;
 use butterfly;
 use common;
 use depot_client;
+use glob;
 use handlebars;
 use hcore::{self, package};
 use hcore::package::Identifiable;
+use notify;
 use toml;
 
 use output::StructuredOutput;
@@ -114,12 +116,14 @@ pub enum Error {
     InvalidPidFile,
     InvalidPort(num::ParseIntError),
     InvalidServiceGroupString(String),
+    InvalidTopology(String),
     InvalidUpdateStrategy(String),
     Io(io::Error),
     IPFailed,
     KeyNotFound(String),
     MetaFileIO(io::Error),
     MissingRequiredBind(Vec<String>),
+    MissingRequiredIdent,
     NameLookup(io::Error),
     NetParseError(net::AddrParseError),
     NoRunFile,
@@ -129,15 +133,21 @@ pub enum Error {
     Permissions(String),
     RemotePackageNotFound(package::PackageIdent),
     RootRequired,
+    ServiceSpecFileRead(String, String),
+    ServiceSpecFileWrite(String, String),
+    ServiceSpecParse(String),
+    ServiceSpecRender(String),
     SignalFailed,
     SignalNotifierStarted,
+    SpecWatcherDirNotFound(String),
+    SpecWatcherGlob(glob::PatternError),
+    SpecWatcherNotify(notify::Error),
     StrFromUtf8Error(str::Utf8Error),
     StringFromUtf8Error(string::FromUtf8Error),
     TomlEncode(toml::ser::Error),
     TomlMergeError(String),
     TomlParser(toml::de::Error),
     TryRecvError(mpsc::TryRecvError),
-    UnknownTopology(String),
     UnpackFailed,
 }
 
@@ -161,7 +171,9 @@ impl fmt::Display for SupError {
             Error::EnvJoinPathsError(ref err) => format!("{}", err),
             Error::FileNotFound(ref e) => format!("File not found at: {}", e),
             Error::InvalidBinding(ref binding) => {
-                format!("Invalid binding - must be ':' delimited: {}", binding)
+                format!("Invalid binding \"{}\", must be of the form <NAME>:<SERVICE_GROUP> where \
+                         <NAME> is a service name and <SERVICE_GROUP> is a valid service group",
+                        binding)
             }
             Error::InvalidKeyParameter(ref e) => {
                 format!("Invalid parameter for key generation: {:?}", e)
@@ -173,6 +185,7 @@ impl fmt::Display for SupError {
             Error::InvalidServiceGroupString(ref e) => {
                 format!("Invalid service group string: {}", e)
             }
+            Error::InvalidTopology(ref t) => format!("Invalid topology: {}", t),
             Error::InvalidUpdateStrategy(ref s) => format!("Invalid update strategy: {}", s),
             Error::Io(ref err) => format!("{}", err),
             Error::IPFailed => format!("Failed to discover this hosts outbound IP address"),
@@ -180,6 +193,7 @@ impl fmt::Display for SupError {
             Error::MissingRequiredBind(ref e) => {
                 format!("Missing required bind(s), {}", e.join(", "))
             }
+            Error::MissingRequiredIdent => format!("Missing required ident field: (example: ident = \"core/redis\")"),
             Error::MetaFileIO(ref e) => format!("IO error while accessing MetaFile: {:?}", e),
             Error::NameLookup(ref e) => format!("Error resolving a name or IP address: {}", e),
             Error::NetParseError(ref e) => format!("Can't parse ip:port: {}", e),
@@ -209,15 +223,37 @@ impl fmt::Display for SupError {
             Error::RootRequired => {
                 "Root or administrator permissions required to complete operation".to_string()
             }
+            Error::ServiceSpecFileRead(ref path, ref details) => {
+                format!("Service spec file '{}' could not be read successfully: {}",
+                        path,
+                        details)
+            }
+            Error::ServiceSpecFileWrite(ref path, ref details) => {
+                format!("Service spec file '{}' could not be written successfully: {}",
+                        path,
+                        details)
+            }
+            Error::ServiceSpecParse(ref details) => {
+                format!("Service spec could not be parsed successfully: {}", details)
+            }
+            Error::ServiceSpecRender(ref details) => {
+                format!("Service spec TOML could not be rendered successfully: {}",
+                        details)
+            }
             Error::SignalFailed => format!("Failed to send a signal to the child process"),
             Error::SignalNotifierStarted => format!("Only one instance of a Signal Notifier may be running"),
+            Error::SpecWatcherDirNotFound(ref path) => {
+                format!("Spec directory '{}' not created or is not a directory",
+                        path)
+            }
+            Error::SpecWatcherGlob(ref e) => format!("{}", e),
+            Error::SpecWatcherNotify(ref e) => format!("{}", e),
             Error::StrFromUtf8Error(ref e) => format!("{}", e),
             Error::StringFromUtf8Error(ref e) => format!("{}", e),
             Error::TomlEncode(ref e) => format!("Failed to encode TOML: {}", e),
             Error::TomlMergeError(ref e) => format!("Failed to merge TOML: {}", e),
             Error::TomlParser(ref err) => format!("Failed to parse TOML: {}", err),
             Error::TryRecvError(ref err) => format!("{}", err),
-            Error::UnknownTopology(ref t) => format!("Unknown topology {}!", t),
             Error::UnpackFailed => format!("Failed to unpack a package"),
         };
         let cstring = Red.bold().paint(content).to_string();
@@ -252,11 +288,13 @@ impl error::Error for SupError {
             Error::InvalidPort(_) => "Invalid port number in package expose metadata",
             Error::InvalidPidFile => "Invalid child process PID file",
             Error::InvalidServiceGroupString(_) => "Service group strings must be in service.group format (example: redis.default)",
+            Error::InvalidTopology(_) => "Invalid topology",
             Error::InvalidUpdateStrategy(_) => "Invalid update strategy",
             Error::Io(ref err) => err.description(),
             Error::IPFailed => "Failed to discover the outbound IP address",
             Error::KeyNotFound(_) => "Key not found in key cache",
             Error::MissingRequiredBind(_) => "A service to start without specifying a service group for all required binds",
+            Error::MissingRequiredIdent => "Missing required ident field: (example: ident = \"core/redis\")",
             Error::MetaFileIO(_) => "MetaFile could not be read or written to",
             Error::NetParseError(_) => "Can't parse IP:port",
             Error::NameLookup(_) => "Error resolving a name or IP address",
@@ -270,15 +308,21 @@ impl error::Error for SupError {
             Error::Permissions(_) => "File system permissions error",
             Error::RemotePackageNotFound(_) => "Cannot find a package in any sources",
             Error::RootRequired => "Root or administrator permissions required to complete operation",
+            Error::ServiceSpecFileRead(_, _) => "Service spec file could not be read successfully",
+            Error::ServiceSpecFileWrite(_, _) => "Service spec file could not be written successfully",
+            Error::ServiceSpecParse(_) => "Service spec could not be parsed successfully",
+            Error::ServiceSpecRender(_) => "Service spec TOML could not be rendered successfully",
             Error::SignalFailed => "Failed to send a signal to the child process",
             Error::SignalNotifierStarted => "Only one instance of a Signal Notifier may be running",
+            Error::SpecWatcherDirNotFound(_) => "Spec directory not created or is not a directory",
+            Error::SpecWatcherGlob(_) => "Spec watcher file globbing error",
+            Error::SpecWatcherNotify(_) => "Spec watcher error",
             Error::StrFromUtf8Error(_) => "Failed to convert a str from a &[u8] as UTF-8",
             Error::StringFromUtf8Error(_) => "Failed to convert a string from a Vec<u8> as UTF-8",
             Error::TomlEncode(_) => "Failed to encode toml!",
             Error::TomlMergeError(_) => "Failed to merge TOML!",
             Error::TomlParser(_) => "Failed to parse TOML!",
             Error::TryRecvError(_) => "A channel failed to receive a response",
-            Error::UnknownTopology(_) => "Unknown topology",
             Error::UnpackFailed => "Failed to unpack a package",
         }
     }
@@ -299,6 +343,12 @@ impl From<butterfly::error::Error> for SupError {
 impl From<common::Error> for SupError {
     fn from(err: common::Error) -> SupError {
         sup_error!(Error::HabitatCommon(err))
+    }
+}
+
+impl From<glob::PatternError> for SupError {
+    fn from(err: glob::PatternError) -> SupError {
+        sup_error!(Error::SpecWatcherGlob(err))
     }
 }
 
@@ -359,6 +409,18 @@ impl From<str::Utf8Error> for SupError {
 impl From<mpsc::TryRecvError> for SupError {
     fn from(err: mpsc::TryRecvError) -> SupError {
         sup_error!(Error::TryRecvError(err))
+    }
+}
+
+impl From<notify::Error> for SupError {
+    fn from(err: notify::Error) -> SupError {
+        sup_error!(Error::SpecWatcherNotify(err))
+    }
+}
+
+impl From<toml::de::Error> for SupError {
+    fn from(err: toml::de::Error) -> Self {
+        sup_error!(Error::TomlParser(err))
     }
 }
 
