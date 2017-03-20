@@ -15,5 +15,6 @@
 pub mod next_id;
 pub mod origins;
 pub mod origin_secret_keys;
+pub mod origin_public_keys;
 pub mod origin_invitations;
 pub mod origin_projects;

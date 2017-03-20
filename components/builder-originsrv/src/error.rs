@@ -50,6 +50,10 @@ pub enum Error {
     OriginProjectUpdate(postgres::error::Error),
     OriginSecretKeyCreate(postgres::error::Error),
     OriginSecretKeyGet(postgres::error::Error),
+    OriginPublicKeyCreate(postgres::error::Error),
+    OriginPublicKeyGet(postgres::error::Error),
+    OriginPublicKeyLatestGet(postgres::error::Error),
+    OriginPublicKeyListForOrigin(postgres::error::Error),
     OriginAccountList(postgres::error::Error),
     OriginAccountInOrigin(postgres::error::Error),
     Protobuf(protobuf::ProtobufError),
@@ -118,6 +122,20 @@ impl fmt::Display for Error {
             Error::OriginSecretKeyGet(ref e) => {
                 format!("Error getting origin secret key from database, {}", e)
             }
+            Error::OriginPublicKeyCreate(ref e) => {
+                format!("Error creating origin public key in database, {}", e)
+            }
+            Error::OriginPublicKeyGet(ref e) => {
+                format!("Error getting origin public key from database, {}", e)
+            }
+            Error::OriginPublicKeyLatestGet(ref e) => {
+                format!("Error getting latest origin public key from database, {}",
+                        e)
+            }
+            Error::OriginPublicKeyListForOrigin(ref e) => {
+                format!("Error listing origin public keys for an origin from database, {}",
+                        e)
+            }
             Error::OriginAccountList(ref e) => {
                 format!("Error getting list of origins for this account, {}", e)
             }
@@ -157,6 +175,10 @@ impl error::Error for Error {
             Error::OriginProjectUpdate(ref err) => err.description(),
             Error::OriginSecretKeyCreate(ref err) => err.description(),
             Error::OriginSecretKeyGet(ref err) => err.description(),
+            Error::OriginPublicKeyCreate(ref err) => err.description(),
+            Error::OriginPublicKeyGet(ref err) => err.description(),
+            Error::OriginPublicKeyLatestGet(ref err) => err.description(),
+            Error::OriginPublicKeyListForOrigin(ref err) => err.description(),
             Error::OriginAccountList(ref err) => err.description(),
             Error::OriginAccountInOrigin(ref err) => err.description(),
             Error::Protobuf(ref err) => err.description(),

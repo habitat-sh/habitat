@@ -50,6 +50,7 @@ impl DataStore {
         // The order here matters. Once you have deployed the software, you can never change it.
         migrations::next_id::migrate(&mut migrator)?;
         migrations::origins::migrate(&mut migrator)?;
+        migrations::origin_public_keys::migrate(&mut migrator)?;
         migrations::origin_secret_keys::migrate(&mut migrator)?;
         migrations::origin_invitations::migrate(&mut migrator)?;
         migrations::origin_projects::migrate(&mut migrator)?;
@@ -332,6 +333,86 @@ impl DataStore {
         } else {
             Ok(None)
         }
+    }
+
+    pub fn create_origin_public_key(&self,
+                                    opk: &originsrv::OriginPublicKeyCreate)
+                                    -> Result<originsrv::OriginPublicKey> {
+        let conn = self.pool.get()?;
+        let rows = conn.query("SELECT * FROM insert_origin_public_key_v1($1, $2, $3, $4, $5, $6)",
+                              &[&(opk.get_origin_id() as i64),
+                                &(opk.get_owner_id() as i64),
+                                &opk.get_name(),
+                                &opk.get_revision(),
+                                &format!("{}-{}", opk.get_name(), opk.get_revision()),
+                                &opk.get_body()])
+            .map_err(Error::OriginPublicKeyCreate)?;
+        let row = rows.iter().nth(0).expect("Insert returns row, but no row present");
+        Ok(self.row_to_origin_public_key(row))
+    }
+
+    fn row_to_origin_public_key(&self, row: postgres::rows::Row) -> originsrv::OriginPublicKey {
+        let mut opk = originsrv::OriginPublicKey::new();
+        let opk_id: i64 = row.get("id");
+        opk.set_id(opk_id as u64);
+        let opk_origin_id: i64 = row.get("origin_id");
+        opk.set_origin_id(opk_origin_id as u64);
+        opk.set_name(row.get("name"));
+        opk.set_revision(row.get("revision"));
+        opk.set_body(row.get("body"));
+        let opk_owner_id: i64 = row.get("owner_id");
+        opk.set_owner_id(opk_owner_id as u64);
+        opk
+    }
+
+    pub fn get_origin_public_key(&self,
+                                 opk_get: &originsrv::OriginPublicKeyGet)
+                                 -> Result<Option<originsrv::OriginPublicKey>> {
+        let conn = self.pool.get()?;
+        let rows = &conn.query("SELECT * FROM get_origin_public_key_v1($1, $2)",
+                               &[&opk_get.get_origin(), &opk_get.get_revision()])
+                        .map_err(Error::OriginPublicKeyGet)?;
+        if rows.len() != 0 {
+            // We just checked - we know there is a value here
+            let row = rows.iter().nth(0).unwrap();
+            Ok(Some(self.row_to_origin_public_key(row)))
+        } else {
+            Ok(None)
+        }
+    }
+
+    pub fn get_origin_public_key_latest(&self,
+                                        opk_get: &originsrv::OriginPublicKeyLatestGet)
+                                        -> Result<Option<originsrv::OriginPublicKey>> {
+        let conn = self.pool.get()?;
+        let rows = &conn.query("SELECT * FROM get_origin_public_key_latest_v1($1)",
+                               &[&opk_get.get_origin()])
+                        .map_err(Error::OriginPublicKeyLatestGet)?;
+        if rows.len() != 0 {
+            // We just checked - we know there is a value here
+            let row = rows.iter().nth(0).unwrap();
+            Ok(Some(self.row_to_origin_public_key(row)))
+        } else {
+            Ok(None)
+        }
+    }
+
+    pub fn list_origin_public_keys_for_origin(&self,
+                                              opklr: &originsrv::OriginPublicKeyListRequest)
+                                              -> Result<originsrv::OriginPublicKeyListResponse> {
+        let conn = self.pool.get()?;
+        let rows = &conn.query("SELECT * FROM get_origin_public_keys_for_origin_v1($1)",
+                               &[&(opklr.get_origin_id() as i64)])
+                        .map_err(Error::OriginPublicKeyListForOrigin)?;
+
+        let mut response = originsrv::OriginPublicKeyListResponse::new();
+        response.set_origin_id(opklr.get_origin_id());
+        let mut keys = protobuf::RepeatedField::new();
+        for row in rows {
+            keys.push(self.row_to_origin_public_key(row));
+        }
+        response.set_keys(keys);
+        Ok(response)
     }
 
     fn row_to_origin(&self, row: postgres::rows::Row) -> originsrv::Origin {

@@ -85,6 +85,12 @@ impl Dispatcher for Worker {
             "AccountOriginListRequest" => handlers::account_origin_list(message, sock, state),
             "OriginSecretKeyCreate" => handlers::origin_secret_key_create(message, sock, state),
             "OriginSecretKeyGet" => handlers::origin_secret_key_get(message, sock, state),
+            "OriginPublicKeyCreate" => handlers::origin_public_key_create(message, sock, state),
+            "OriginPublicKeyGet" => handlers::origin_public_key_get(message, sock, state),
+            "OriginPublicKeyLatestGet" => {
+                handlers::origin_public_key_latest_get(message, sock, state)
+            }
+            "OriginPublicKeyListRequest" => handlers::origin_public_key_list(message, sock, state),
             "OriginProjectCreate" => handlers::project_create(message, sock, state),
             "OriginProjectDelete" => handlers::project_delete(message, sock, state),
             "OriginProjectGet" => handlers::project_get(message, sock, state),

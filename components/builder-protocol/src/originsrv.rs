@@ -125,11 +125,88 @@ impl Routable for OriginSecretKeyGet {
     }
 }
 
+impl Persistable for OriginPublicKey {
+    type Key = u64;
+
+    fn primary_key(&self) -> Self::Key {
+        self.get_id()
+    }
+
+    fn set_primary_key(&mut self, value: Self::Key) {
+        self.set_id(value);
+    }
+}
+
+impl Serialize for OriginPublicKey {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+        where S: Serializer
+    {
+        let mut strukt = try!(serializer.serialize_struct("origin_public_key", 6));
+        try!(strukt.serialize_field("id", &self.get_id()));
+        try!(strukt.serialize_field("origin_id", &self.get_origin_id()));
+        try!(strukt.serialize_field("name", self.get_name()));
+        try!(strukt.serialize_field("revision", self.get_revision()));
+        try!(strukt.serialize_field("body", self.get_body()));
+        try!(strukt.serialize_field("owner_id", &self.get_owner_id()));
+        strukt.end()
+    }
+}
+
+impl Routable for OriginPublicKeyCreate {
+    type H = InstaId;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(InstaId(self.get_owner_id()))
+    }
+}
+
+impl Routable for OriginPublicKeyGet {
+    type H = InstaId;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(InstaId(self.get_owner_id()))
+    }
+}
+
+impl Routable for OriginPublicKeyLatestGet {
+    type H = InstaId;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(InstaId(self.get_owner_id()))
+    }
+}
+
+impl Routable for OriginPublicKeyListRequest {
+    type H = InstaId;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(InstaId(self.get_origin_id()))
+    }
+}
+
+impl Routable for OriginPublicKeyListResponse {
+    type H = InstaId;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(InstaId(self.get_origin_id()))
+    }
+}
+
+impl Serialize for OriginPublicKeyListResponse {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+        where S: Serializer
+    {
+        let mut strukt = try!(serializer.serialize_struct("origin_public_key_list_response", 2));
+        try!(strukt.serialize_field("origin_id", &self.get_origin_id()));
+        try!(strukt.serialize_field("keys", self.get_keys()));
+        strukt.end()
+    }
+}
+
 impl Routable for OriginInvitationCreate {
     type H = u64;
 
     fn route_key(&self) -> Option<Self::H> {
-        // TODO:
         Some(self.get_owner_id())
     }
 }
@@ -165,7 +242,6 @@ impl Routable for AccountInvitationListRequest {
     type H = u64;
 
     fn route_key(&self) -> Option<Self::H> {
-        // TODO:
         Some(self.get_account_id())
     }
 }
@@ -174,7 +250,6 @@ impl Routable for AccountInvitationListResponse {
     type H = u64;
 
     fn route_key(&self) -> Option<Self::H> {
-        // TODO:
         Some(self.get_account_id())
     }
 }
@@ -194,7 +269,6 @@ impl Routable for OriginInvitationListRequest {
     type H = u64;
 
     fn route_key(&self) -> Option<Self::H> {
-        // TODO:
         Some(self.get_origin_id())
     }
 }
@@ -203,7 +277,6 @@ impl Routable for OriginInvitationListResponse {
     type H = u64;
 
     fn route_key(&self) -> Option<Self::H> {
-        // TODO:
         Some(self.get_origin_id())
     }
 }
@@ -243,7 +316,6 @@ impl Routable for AccountOriginListRequest {
     type H = u64;
 
     fn route_key(&self) -> Option<Self::H> {
-        // TODO:
         Some(self.get_account_id())
     }
 }
@@ -263,7 +335,6 @@ impl Routable for CheckOriginAccessRequest {
     type H = u64;
 
     fn route_key(&self) -> Option<Self::H> {
-        // TODO:
         Some(self.get_account_id())
     }
 }
