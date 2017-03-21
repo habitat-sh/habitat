@@ -39,35 +39,39 @@
 //! * [The Habitat Command Line Reference](command)
 //! * [The Habitat Supervisor Sidecar; http interface to promises](sidecar)
 
+extern crate ansi_term;
+#[macro_use]
+extern crate bitflags;
+#[macro_use]
+extern crate features;
+extern crate glob;
 extern crate habitat_butterfly as butterfly;
-extern crate habitat_core as hcore;
 extern crate habitat_common as common;
+extern crate habitat_core as hcore;
 extern crate habitat_depot_client as depot_client;
 extern crate handlebars;
+extern crate iron;
+#[macro_use]
+extern crate lazy_static;
+extern crate libc;
 #[macro_use]
 extern crate log;
-extern crate tempdir;
-extern crate ansi_term;
-extern crate regex;
-extern crate libc;
-extern crate url;
-extern crate iron;
-extern crate glob;
 extern crate notify;
+extern crate persistent;
+#[macro_use]
+extern crate prometheus;
 extern crate rand;
+extern crate regex;
 #[macro_use]
 extern crate router;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_json;
+extern crate tempdir;
 extern crate time;
 extern crate toml;
-extern crate persistent;
-#[macro_use]
-extern crate prometheus;
-#[macro_use]
-extern crate lazy_static;
+extern crate url;
 
 #[macro_export]
 /// Creates a new SupError, embedding the current file name, line number, column, and module path.
@@ -290,6 +294,12 @@ lazy_static!{
         let arg0 = env::args().next().map(|p| PathBuf::from(p));
         arg0.as_ref().and_then(|p| p.file_stem()).and_then(|p| p.to_str()).unwrap().to_string()
     };
+}
+
+features! {
+    pub mod feat {
+        const List = 0b00000001
+    }
 }
 
 const PRODUCT: &'static str = "hab-sup";
