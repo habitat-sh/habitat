@@ -110,7 +110,7 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                 "The listen address of an initial peer (IP[:PORT])")
             (@arg PERMANENT_PEER: --("permanent-peer") -I "If this service is a permanent peer")
             (@arg RING: --ring -r +takes_value "Ring key name")
-            (@arg PKG_IDENT_OR_ARTIFACT: +required
+            (@arg PKG_IDENT_OR_ARTIFACT:
                 "A Habitat package identifier (ex: acme/redis) or filepath to a Habitat Artifact \
                 (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
             (@group SVC_ARGS =>
@@ -230,16 +230,20 @@ fn sub_start(m: &ArgMatches) -> Result<()> {
     }
 
     let mut maybe_local_artifact: Option<&str> = None;
-    let ident_or_artifact = m.value_of("PKG_IDENT_OR_ARTIFACT").unwrap();
-    let ident = if Path::new(ident_or_artifact).is_file() {
-        maybe_local_artifact = Some(ident_or_artifact);
-        try!(PackageArchive::new(Path::new(ident_or_artifact)).ident())
-    } else {
-        try!(PackageIdent::from_str(ident_or_artifact))
+    let maybe_spec = match m.value_of("PKG_IDENT_OR_ARTIFACT") {
+        Some(ident_or_artifact) => {
+            let ident = if Path::new(ident_or_artifact).is_file() {
+                maybe_local_artifact = Some(ident_or_artifact);
+                try!(PackageArchive::new(Path::new(ident_or_artifact)).ident())
+            } else {
+                try!(PackageIdent::from_str(ident_or_artifact))
+            };
+            Some(try!(spec_from_matches(&ident, m)))
+        }
+        None => None,
     };
-    let spec = try!(spec_from_matches(&ident, m));
 
-    try!(command::start::package(cfg, spec, maybe_local_artifact));
+    try!(command::start::package(cfg, maybe_spec, maybe_local_artifact));
     Ok(())
 }
 

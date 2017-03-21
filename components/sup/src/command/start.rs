@@ -49,7 +49,7 @@
 
 use std::path::Path;
 
-use ansi_term::Colour::Yellow;
+use ansi_term::Colour::{Red, Yellow};
 use common;
 use common::ui::UI;
 use hcore::fs::{self, FS_ROOT_PATH};
@@ -61,7 +61,10 @@ use manager::ServiceSpec;
 
 static LOGKEY: &'static str = "CS";
 
-pub fn package(cfg: ManagerConfig, spec: ServiceSpec, local_artifact: Option<&str>) -> Result<()> {
+pub fn package(cfg: ManagerConfig,
+               spec: Option<ServiceSpec>,
+               local_artifact: Option<&str>)
+               -> Result<()> {
     let mut ui = UI::default();
     if !fs::am_i_root() {
         ui.warn("Running the Habitat Supervisor requires root or administrator privileges. \
@@ -71,20 +74,28 @@ pub fn package(cfg: ManagerConfig, spec: ServiceSpec, local_artifact: Option<&st
         return Err(sup_error!(Error::RootRequired));
     }
 
-    if let Some(artifact) = local_artifact {
-        outputln!("Installing local artifact {}",
-                  Yellow.bold().paint(artifact));
-        common::command::package::install::start(&mut ui,
-                                                 &spec.depot_url,
-                                                 artifact,
-                                                 PRODUCT,
-                                                 VERSION,
-                                                 Path::new(&*FS_ROOT_PATH),
-                                                 &fs::cache_artifact_path(None),
-                                                 false)?;
-    }
-
     let mut manager = Manager::new(cfg)?;
-    manager.add_service(spec)?;
+    match spec {
+        Some(spec) => {
+            if let Some(artifact) = local_artifact {
+                outputln!("Installing local artifact {}",
+                          Yellow.bold().paint(artifact));
+                common::command::package::install::start(&mut ui,
+                                                         &spec.depot_url,
+                                                         artifact,
+                                                         PRODUCT,
+                                                         VERSION,
+                                                         Path::new(&*FS_ROOT_PATH),
+                                                         &fs::cache_artifact_path(None),
+                                                         false)?;
+            }
+            manager.add_service(spec)?;
+        }
+        None => {
+            outputln!("{} No package identifier or artifact file was provided so no services \
+                       will be started",
+                      Red.bold().paint("**Note**:"));
+        }
+    }
     manager.run()
 }
