@@ -18,7 +18,10 @@ pub mod signals;
 pub mod service_updater;
 pub mod spec_watcher;
 
+use std::fs::{self, File};
+use std::io::{Read, Write};
 use std::net::SocketAddr;
+use std::path::{Path, PathBuf};
 use std::thread;
 use std::sync::{Arc, RwLock};
 use std::time::Duration;
@@ -35,12 +38,14 @@ use toml;
 
 pub use manager::service::{Service, ServiceConfig, ServiceSpec, UpdateStrategy, Topology};
 use self::service_updater::ServiceUpdater;
-use error::Result;
+use error::{Error, Result};
 use config::GossipListenAddr;
 use manager::census::{CensusUpdate, CensusList, CensusEntry};
 use manager::signals::SignalEvent;
 use http_gateway;
 
+pub const DATA_PATH: &'static str = "/hab/sup/data";
+pub const MEMBER_ID_FILE: &'static str = "MEMBER_ID";
 static LOGKEY: &'static str = "MR";
 
 #[derive(Debug)]
@@ -92,7 +97,10 @@ pub struct Manager {
 
 impl Manager {
     pub fn new(cfg: ManagerConfig) -> Result<Manager> {
-        let mut member = Member::new();
+        if let Some(err) = fs::create_dir_all(&DATA_PATH).err() {
+            return Err(sup_error!(Error::BadDataPath(PathBuf::from(&DATA_PATH), err)));
+        }
+        let mut member = Self::load_member(&DATA_PATH)?;
         member.set_persistent(cfg.gossip_permanent);
         member.set_swim_port(cfg.gossip_listen.port() as i32);
         member.set_gossip_port(cfg.gossip_listen.port() as i32);
@@ -112,10 +120,11 @@ impl Manager {
                                                  Trace::default(),
                                                  ring_key,
                                                  None,
+                                                 Some(DATA_PATH),
                                                  Box::new(SuitabilityLookup(services.clone()))));
         outputln!("Butterfly Member ID {}", server.member_id());
         for peer_addr in &cfg.gossip_peers {
-            let mut peer = Member::new();
+            let mut peer = Member::default();
             peer.set_address(format!("{}", peer_addr.ip()));
             peer.set_swim_port(peer_addr.port() as i32);
             peer.set_gossip_port(peer_addr.port() as i32);
@@ -127,6 +136,31 @@ impl Manager {
                gossip_listen: cfg.gossip_listen,
                http_listen: cfg.http_listen,
            })
+    }
+
+    pub fn load_member<T>(data_path: T) -> Result<Member>
+        where T: AsRef<Path>
+    {
+        let mut member = Member::default();
+        let file_path = data_path.as_ref().join(MEMBER_ID_FILE);
+        match File::open(&file_path) {
+            Ok(mut file) => {
+                let mut member_id = String::new();
+                file.read_to_string(&mut member_id)
+                    .map_err(|e| sup_error!(Error::BadDataFile(file_path, e)))?;
+                member.set_id(member_id);
+            }
+            Err(_) => {
+                match File::create(&file_path) {
+                    Ok(mut file) => {
+                        file.write(member.get_id().as_bytes())
+                            .map_err(|e| sup_error!(Error::BadDataFile(file_path.clone(), e)))?;
+                    }
+                    Err(err) => return Err(sup_error!(Error::BadDataFile(file_path.clone(), err))),
+                }
+            }
+        }
+        Ok(member)
     }
 
     pub fn add_service(&mut self, spec: ServiceSpec) -> Result<()> {

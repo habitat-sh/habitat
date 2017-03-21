@@ -23,12 +23,13 @@
 //! New rumors need to implement the `From` trait for `RumorKey`, and then can track the arrival of
 //! new rumors, and dispatch them according to their `kind`.
 
+pub mod dat_file;
 pub mod election;
 pub mod service;
 pub mod service_config;
 pub mod service_file;
 
-pub use self::election::Election;
+pub use self::election::{Election, ElectionUpdate};
 pub use self::service::Service;
 pub use self::service_config::ServiceConfig;
 pub use self::service_file::ServiceFile;
@@ -75,7 +76,8 @@ impl RumorKey {
 
 /// A representation of a Rumor; implemented by all the concrete types we share as rumors. The
 /// exception is the Membership rumor, since it's not actually a rumor in the same vein.
-pub trait Rumor: Serialize {
+pub trait Rumor: Serialize + Sized {
+    fn from_bytes(&[u8]) -> Result<Self>;
     fn kind(&self) -> Rumor_Type;
     fn key(&self) -> &str;
     fn id(&self) -> &str;
@@ -83,7 +85,7 @@ pub trait Rumor: Serialize {
     fn write_to_bytes(&self) -> Result<Vec<u8>>;
 }
 
-impl<'a, T: Rumor + Clone> From<&'a T> for RumorKey {
+impl<'a, T: Rumor> From<&'a T> for RumorKey {
     fn from(rumor: &'a T) -> RumorKey {
         RumorKey::new(rumor.kind(), rumor.id(), rumor.key())
     }
@@ -99,7 +101,7 @@ pub struct RumorStore<T: Rumor> {
     update_counter: Arc<AtomicUsize>,
 }
 
-impl<T: Rumor + Clone> Default for RumorStore<T> {
+impl<T: Rumor> Default for RumorStore<T> {
     fn default() -> RumorStore<T> {
         RumorStore {
             list: Arc::new(RwLock::new(HashMap::new())),
@@ -122,31 +124,40 @@ impl<T: Rumor> Serialize for RumorStore<T> {
     {
         let mut strukt = try!(serializer.serialize_struct("rumor_store", 2));
         try!(strukt.serialize_field("list", &*(self.list.read().unwrap())));
-        try!(strukt.serialize_field("update_counter",
-                                    &self.update_counter.load(Ordering::Relaxed)));
+        try!(strukt.serialize_field("update_counter", &self.get_update_counter()));
         strukt.end()
     }
 }
 
-impl<T: Rumor + Clone> RumorStore<T> {
+impl<T: Rumor> RumorStore<T> {
     /// Create a new RumorStore for the given type. Allows you to initialize the counter to a
     /// pre-set value. Useful mainly in testing.
     pub fn new(counter: usize) -> RumorStore<T> {
         RumorStore { update_counter: Arc::new(AtomicUsize::new(counter)), ..Default::default() }
     }
 
-    /// Increment the update counter for this store.
-    ///
-    /// We don't care if this repeats - it just needs to be unique for any given two states, which
-    /// it will be.
-    pub fn increment_update_counter(&self) {
-        self.update_counter.fetch_add(1, Ordering::Relaxed);
+    /// Clear all rumors and reset update counter of RumorStore.
+    pub fn clear(&self) -> usize {
+        let mut list = self.list.write().expect("Rumor store lock poisoned");
+        list.clear();
+        self.update_counter.swap(0, Ordering::Relaxed)
     }
 
     pub fn get_update_counter(&self) -> usize {
         self.update_counter.load(Ordering::Relaxed)
     }
 
+    /// Returns the count of all rumors in this RumorStore.
+    pub fn len(&self) -> usize {
+        self.list
+            .read()
+            .expect("Rumor store lock poisoned")
+            .values()
+            .map(|member| member.len())
+            .sum()
+    }
+
+    /// Returns the count of all rumors in the rumor store for the given member's key.
     pub fn len_for_key(&self, key: &str) -> usize {
         let list = self.list.read().expect("Rumor store lock poisoned");
         list.get(key).map_or(0, |r| r.len())
@@ -217,6 +228,14 @@ impl<T: Rumor + Clone> RumorStore<T> {
             Some(_) => true,
             None => false,
         }
+    }
+
+    /// Increment the update counter for this store.
+    ///
+    /// We don't care if this repeats - it just needs to be unique for any given two states, which
+    /// it will be.
+    fn increment_update_counter(&self) {
+        self.update_counter.fetch_add(1, Ordering::Relaxed);
     }
 }
 
@@ -334,6 +353,10 @@ mod tests {
     }
 
     impl Rumor for FakeRumor {
+        fn from_bytes(_bytes: &[u8]) -> Result<Self> {
+            Ok(FakeRumor::default())
+        }
+
         fn kind(&self) -> Rumor_Type {
             Rumor_Type::Fake
         }
@@ -365,6 +388,10 @@ mod tests {
     }
 
     impl Rumor for TrumpRumor {
+        fn from_bytes(_bytes: &[u8]) -> Result<Self> {
+            Ok(TrumpRumor::default())
+        }
+
         fn kind(&self) -> Rumor_Type {
             Rumor_Type::Fake2
         }

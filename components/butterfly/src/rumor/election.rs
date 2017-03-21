@@ -25,7 +25,7 @@
 use std::ops::{Deref, DerefMut};
 
 use habitat_core::service::ServiceGroup;
-use protobuf::{Message, RepeatedField};
+use protobuf::{self, Message, RepeatedField};
 
 pub use message::swim::Election_Status;
 use error::Result;
@@ -134,6 +134,11 @@ impl PartialEq for Election {
 }
 
 impl Rumor for Election {
+    fn from_bytes(bytes: &[u8]) -> Result<Self> {
+        let rumor = protobuf::parse_from_bytes::<ProtoRumor>(bytes)?;
+        Ok(Election::from(rumor))
+    }
+
     /// Updates this election based on the contents of another election.
     fn merge(&mut self, mut other: Election) -> bool {
         if *self == other {
@@ -250,6 +255,11 @@ impl From<ElectionUpdate> for ProtoRumor {
 }
 
 impl Rumor for ElectionUpdate {
+    fn from_bytes(bytes: &[u8]) -> Result<Self> {
+        let rumor = Election::from_bytes(bytes)?;
+        Ok(ElectionUpdate(rumor))
+    }
+
     fn merge(&mut self, other: ElectionUpdate) -> bool {
         self.0.merge(other.0)
     }

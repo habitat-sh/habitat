@@ -29,14 +29,14 @@ use server::Server;
 use server::timing::Timing;
 use trace::TraceKind;
 
-pub struct Expire<'a> {
-    pub server: &'a Server,
+pub struct Expire {
+    pub server: Server,
     pub timing: Timing,
 }
 
-impl<'a> Expire<'a> {
+impl Expire {
     /// Takes a reference to a server, and a `Timing`, returns you an Expire struct.
-    pub fn new(server: &'a Server, timing: Timing) -> Expire {
+    pub fn new(server: Server, timing: Timing) -> Expire {
         Expire {
             server: server,
             timing: timing,

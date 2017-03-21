@@ -38,14 +38,14 @@ const FANOUT: usize = 5;
 
 /// The Push server
 #[derive(Debug)]
-pub struct Push<'a> {
-    pub server: &'a Server,
+pub struct Push {
+    pub server: Server,
     pub timing: Timing,
 }
 
-impl<'a> Push<'a> {
+impl Push {
     /// Creates a new Push instance from a Server and Timing
-    pub fn new(server: &'a Server, timing: Timing) -> Push {
+    pub fn new(server: Server, timing: Timing) -> Push {
         Push {
             server: server,
             timing: timing,

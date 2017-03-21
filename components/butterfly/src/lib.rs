@@ -40,6 +40,7 @@
 //!
 //! Start exploring the code base by following the thread of execution in the `server` module.
 
+extern crate byteorder;
 extern crate habitat_core;
 #[macro_use]
 extern crate lazy_static;

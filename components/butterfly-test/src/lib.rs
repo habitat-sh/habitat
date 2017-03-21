@@ -21,6 +21,7 @@ extern crate habitat_core;
 use std::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
 use std::thread;
 use std::ops::{Deref, DerefMut, Range};
+use std::path::PathBuf;
 use std::time::Duration;
 use std::str::FromStr;
 
@@ -54,15 +55,16 @@ pub fn start_server(name: &str, ring_key: Option<SymKey>, suitability: u64) -> S
     let gossip_port = SERVER_PORT.fetch_add(1, Ordering::Relaxed);
     let listen_swim = format!("127.0.0.1:{}", swim_port);
     let listen_gossip = format!("127.0.0.1:{}", gossip_port);
-    let mut member = Member::new();
+    let mut member = Member::default();
     member.set_swim_port(swim_port as i32);
     member.set_gossip_port(gossip_port as i32);
-    let server = Server::new(&listen_swim[..],
+    let mut server = Server::new(&listen_swim[..],
                              &listen_gossip[..],
                              member,
                              Trace::default(),
                              ring_key,
                              Some(String::from(name)),
+                             None::<PathBuf>,
                              Box::new(NSuitability(suitability)))
             .unwrap();
     server.start(Timing::default()).expect("Cannot start server");
@@ -70,7 +72,7 @@ pub fn start_server(name: &str, ring_key: Option<SymKey>, suitability: u64) -> S
 }
 
 pub fn member_from_server(server: &Server) -> Member {
-    let mut new_member = Member::new();
+    let mut new_member = Member::default();
     let server_member = server.member.read().expect("Member lock is poisoned");
     new_member.set_id(String::from(server_member.get_id()));
     new_member.set_incarnation(server_member.get_incarnation());

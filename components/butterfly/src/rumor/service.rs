@@ -22,7 +22,7 @@ use std::ops::{Deref, DerefMut};
 
 use habitat_core::service::ServiceGroup;
 use habitat_core::package::Identifiable;
-use protobuf::Message;
+use protobuf::{self, Message};
 use toml;
 
 use error::Result;
@@ -79,13 +79,14 @@ impl DerefMut for Service {
 
 impl Service {
     /// Creates a new Service.
-    pub fn new<T>(member_id: String,
-                  package: &T,
-                  service_group: &ServiceGroup,
-                  sys: &SysInfo,
-                  cfg: Option<&toml::value::Table>)
-                  -> Self
-        where T: Identifiable
+    pub fn new<T, U>(member_id: U,
+                     package: &T,
+                     service_group: &ServiceGroup,
+                     sys: &SysInfo,
+                     cfg: Option<&toml::value::Table>)
+                     -> Self
+        where T: Identifiable,
+              U: Into<String>
     {
         assert!(package.fully_qualified(),
                 "Service constructor requires a fully qualified package identifier");
@@ -94,11 +95,11 @@ impl Service {
                    "Service constructor requires the given package name to match the service \
                     group's name");
         let mut rumor = ProtoRumor::new();
-        rumor.set_from_id(member_id.clone());
+        rumor.set_from_id(member_id.into());
         rumor.set_field_type(ProtoRumor_Type::Service);
 
         let mut proto = ProtoService::new();
-        proto.set_member_id(member_id);
+        proto.set_member_id(rumor.get_from_id().to_string());
         proto.set_service_group(service_group.to_string());
         proto.set_incarnation(0);
         proto.set_pkg(package.to_string());
@@ -117,6 +118,11 @@ impl Service {
 }
 
 impl Rumor for Service {
+    fn from_bytes(bytes: &[u8]) -> Result<Self> {
+        let rumor = protobuf::parse_from_bytes::<ProtoRumor>(bytes)?;
+        Ok(Service::from(rumor))
+    }
+
     /// Follows a simple pattern; if we have a newer incarnation than the one we already have, the
     /// new one wins. So far, these never change.
     fn merge(&mut self, mut other: Service) -> bool {

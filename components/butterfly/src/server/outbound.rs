@@ -52,16 +52,16 @@ impl fmt::Display for AckFrom {
 }
 
 /// The outbound thread
-pub struct Outbound<'a> {
-    pub server: &'a Server,
+pub struct Outbound {
+    pub server: Server,
     pub socket: UdpSocket,
     pub rx_inbound: mpsc::Receiver<(SocketAddr, Swim)>,
     pub timing: Timing,
 }
 
-impl<'a> Outbound<'a> {
+impl Outbound {
     /// Creates a new Outbound struct.
-    pub fn new(server: &'a Server,
+    pub fn new(server: Server,
                socket: UdpSocket,
                rx_inbound: mpsc::Receiver<(SocketAddr, Swim)>,
                timing: Timing)
@@ -166,7 +166,7 @@ impl<'a> Outbound<'a> {
         trace_it!(PROBE: &self.server, TraceKind::ProbeBegin, member.get_id(), addr);
 
         // Ping the member, and wait for the ack.
-        ping(self.server, &self.socket, &member, addr, None);
+        ping(&self.server, &self.socket, &member, addr, None);
         if self.recv_ack(&member, addr, AckFrom::Ping) {
             trace_it!(PROBE: &self.server, TraceKind::ProbeAckReceived, member.get_id(), addr);
             trace_it!(PROBE: &self.server, TraceKind::ProbeComplete, member.get_id(), addr);
@@ -180,7 +180,7 @@ impl<'a> Outbound<'a> {
                           TraceKind::ProbePingReq,
                           pingreq_target.get_id(),
                           pingreq_target.get_address());
-            pingreq(self.server, &self.socket, &pingreq_target, &member);
+            pingreq(&self.server, &self.socket, &pingreq_target, &member);
         });
         if !self.recv_ack(&member, addr, AckFrom::PingReq) {
             // We mark as suspect when we fail to get a response from the PingReq. That moves us
