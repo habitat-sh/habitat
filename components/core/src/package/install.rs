@@ -377,30 +377,8 @@ impl PackageInstall {
     /// declared order) and then from any remaining transitive dependencies last (in lexically
     /// sorted order).
     pub fn runtime_path(&self) -> Result<String> {
-        let mut idents = HashSet::new();
-        let mut run_paths: Vec<PathBuf> = Vec::new();
-
-        let mut p = try!(self.paths());
-        run_paths.append(&mut p);
-        idents.insert(self.ident().clone());
-        let deps: Vec<PackageInstall> = try!(self.load_deps());
-        for dep in deps.iter() {
-            let mut p = try!(dep.paths());
-            run_paths.append(&mut p);
-            idents.insert(dep.ident().clone());
-        }
-        let tdeps: Vec<PackageInstall> = try!(self.load_tdeps());
-        for dep in tdeps.iter() {
-            if idents.contains(dep.ident()) {
-                continue;
-            }
-            let mut p = try!(dep.paths());
-            run_paths.append(&mut p);
-            idents.insert(dep.ident().clone());
-        }
-
-        let p = env::join_paths(&run_paths).expect("Failed to build path string");
-        Ok(p.into_string().expect("Failed to convert path to utf8 string"))
+        let e = self.environment().expect("Failed to build runtime environment");
+        Ok(e.get("PATH").expect("Failed to get PATH").clone())
     }
 
     pub fn runtime_environment(&self) -> Result<HashMap<String, String>> {
@@ -444,15 +422,17 @@ impl PackageInstall {
 
                 for (key, value) in env.into_iter() {
                     match run_envs.entry(key) {
-                        Occupied(entry) => match env_ifs.get(entry.key()) {
-                            Some(ifs) => {
-                                let v = entry.into_mut();
-                                v.push_str(ifs);
-                                v.push_str(&value);
+                        Occupied(entry) => {
+                            match env_ifs.get(entry.key()) {
+                                Some(ifs) => {
+                                    let v = entry.into_mut();
+                                    v.push_str(ifs);
+                                    v.push_str(&value);
+                                }
+                                // TODO: Add a proper error type
+                                None => panic!("Cannot join {}, no IFS defined", entry.key()),
                             }
-                            // TODO: Add a proper error type
-                            None => panic!("Cannot join {}, no IFS defined", entry.key()),
-                        },
+                        }
                         Vacant(entry) => {
                             entry.insert(value);
                             ()
@@ -484,15 +464,17 @@ impl PackageInstall {
 
                 for (key, value) in env.into_iter() {
                     match run_envs.entry(key) {
-                        Occupied(entry) => match env_ifs.get(entry.key()) {
-                            Some(ifs) => {
-                                let v = entry.into_mut();
-                                v.push_str(ifs);
-                                v.push_str(&value);
+                        Occupied(entry) => {
+                            match env_ifs.get(entry.key()) {
+                                Some(ifs) => {
+                                    let v = entry.into_mut();
+                                    v.push_str(ifs);
+                                    v.push_str(&value);
+                                }
+                                // TODO: Add a proper error type
+                                None => panic!("Cannot join {}, no IFS defined", entry.key()),
                             }
-                            // TODO: Add a proper error type
-                            None => panic!("Cannot join {}, no IFS defined", entry.key()),
-                        },
+                        }
                         Vacant(entry) => {
                             entry.insert(value);
                             ()
