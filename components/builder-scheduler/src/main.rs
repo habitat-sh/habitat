@@ -18,12 +18,15 @@ extern crate env_logger;
 extern crate habitat_builder_scheduler as scheduler;
 extern crate habitat_core as hab_core;
 #[macro_use]
+extern crate builder_core as bldr_core;
+#[macro_use]
 extern crate log;
 
 use std::process;
 
 use hab_core::config::ConfigFile;
 use scheduler::{Config, Error, Result};
+
 
 const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 const CFG_DEFAULT_PATH: &'static str = "/hab/svc/hab-builder-scheduler/config.toml";
@@ -36,20 +39,26 @@ fn main() {
         Ok(result) => result,
         Err(e) => return exit_with(e, 1),
     };
-    match start(config) {
+    match dispatch(config, &matches) {
         Ok(_) => std::process::exit(0),
         Err(e) => exit_with(e, 1),
     }
 }
 
 fn app<'a, 'b>() -> clap::App<'a, 'b> {
-    clap_app!(BuilderJobSrv =>
+    clap_app!(BuilderScheduler =>
         (version: VERSION)
         (about: "Habitat builder-scheduler")
         (@setting VersionlessSubcommands)
         (@setting SubcommandRequiredElseHelp)
         (@subcommand start =>
-            (about: "Run a Habitat Builder job scheduler")
+            (about: "Run a Habitat Builder scheduler service")
+            (@arg config: -c --config +takes_value
+                "Filepath to configuration file. \
+                [default: /hab/svc/hab-builder-scheduler/config.toml]")
+        )
+        (@subcommand migrate =>
+            (about: "Migrate data from package archives on-disk into the DB")
             (@arg config: -c --config +takes_value
                 "Filepath to configuration file. \
                 [default: /hab/svc/hab-builder-scheduler/config.toml]")
@@ -67,16 +76,29 @@ fn config_from_args(matches: &clap::ArgMatches) -> Result<Config> {
     Ok(config)
 }
 
+fn dispatch(config: Config, matches: &clap::ArgMatches) -> Result<()> {
+    match matches.subcommand_name() {
+        Some("start") => start(config),
+        Some("migrate") => migrate(config),
+        Some(cmd) => {
+            debug!("Dispatch failed, no match for command: {:?}", cmd);
+            Ok(())
+        }
+        None => Ok(()),
+    }
+}
+
 fn exit_with(err: Error, code: i32) {
     println!("{}", err);
     process::exit(code)
 }
 
-/// Starts the builder-scheduler server.
-///
-/// # Failures
-///
-/// * Cannot bind to the port
+// Starts the builder-scheduler server.
 fn start(config: Config) -> Result<()> {
     scheduler::server::run(config)
+}
+
+// Migrates package information from on-disk package archives into the Postgres DB.
+pub fn migrate(config: Config) -> Result<()> {
+    scheduler::migration::run(config)
 }

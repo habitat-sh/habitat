@@ -17,6 +17,7 @@ pub mod scheduler;
 
 use std::ops::Deref;
 use std::sync::{Arc, RwLock};
+use time::PreciseTime;
 
 use hab_net::config::RouteAddrs;
 use hab_net::dispatcher::prelude::*;
@@ -26,6 +27,7 @@ use hab_net::server::{Envelope, NetIdent, RouteConn, Service, ZMQ_CONTEXT};
 use protocol::net;
 use zmq;
 
+use bldr_core::package_graph::PackageGraph;
 use config::Config;
 use data_store::DataStore;
 use self::scheduler::{ScheduleMgr, ScheduleClient};
@@ -36,11 +38,15 @@ const BE_LISTEN_ADDR: &'static str = "inproc://backend";
 #[derive(Clone)]
 pub struct InitServerState {
     datastore: DataStore,
+    graph: Arc<RwLock<PackageGraph>>,
 }
 
 impl InitServerState {
-    pub fn new(datastore: DataStore) -> Self {
-        InitServerState { datastore: datastore }
+    pub fn new(datastore: DataStore, graph: Arc<RwLock<PackageGraph>>) -> Self {
+        InitServerState {
+            datastore: datastore,
+            graph: graph,
+        }
     }
 }
 
@@ -48,6 +54,7 @@ impl Into<ServerState> for InitServerState {
     fn into(self) -> ServerState {
         let mut state = ServerState::default();
         state.datastore = Some(self.datastore);
+        state.graph = Some(self.graph);
         state
     }
 }
@@ -56,6 +63,7 @@ impl Into<ServerState> for InitServerState {
 pub struct ServerState {
     datastore: Option<DataStore>,
     schedule_cli: Option<ScheduleClient>,
+    graph: Option<Arc<RwLock<PackageGraph>>>,
 }
 
 impl ServerState {
@@ -66,11 +74,15 @@ impl ServerState {
     fn schedule_cli(&mut self) -> &mut ScheduleClient {
         self.schedule_cli.as_mut().unwrap()
     }
+
+    fn graph(&mut self) -> &Arc<RwLock<PackageGraph>> {
+        self.graph.as_ref().unwrap()
+    }
 }
 
 impl DispatcherState for ServerState {
     fn is_initialized(&self) -> bool {
-        self.datastore.is_some() && self.schedule_cli.is_some()
+        self.datastore.is_some() && self.schedule_cli.is_some() && self.graph.is_some()
     }
 }
 
@@ -115,8 +127,10 @@ impl Dispatcher for Worker {
     fn init(&mut self, init_state: Self::InitState) -> Result<Self::State> {
         let mut schedule_cli = ScheduleClient::default();
         try!(schedule_cli.connect());
+
         let mut state: ServerState = init_state.into();
         state.schedule_cli = Some(schedule_cli);
+
         Ok(state)
     }
 }
@@ -160,11 +174,24 @@ impl Application for Server {
             try!(DataStore::new(cfg.deref()))
         };
         try!(datastore.setup());
+
+        let mut graph = PackageGraph::new();
+        let packages = datastore.get_packages()?;
+        let start_time = PreciseTime::now();
+        let (ncount, ecount) = graph.build(packages.into_iter());
+        let end_time = PreciseTime::now();
+
+        println!("Graph build stats: {} nodes, {} edges ({} sec)",
+                 ncount,
+                 ecount,
+                 start_time.to(end_time));
+
         let cfg = self.config.clone();
         let cfg2 = self.config.clone();
-        let init_state = InitServerState::new(datastore);
+        let init_state = InitServerState::new(datastore, Arc::new(RwLock::new(graph)));
         let ds2 = init_state.datastore.clone();
         let sup: Supervisor<Worker> = Supervisor::new(cfg, init_state);
+
         let schedule_mgr = try!(ScheduleMgr::start(cfg2, ds2));
         try!(sup.start());
         try!(self.connect());

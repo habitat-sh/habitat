@@ -144,6 +144,11 @@ impl Runner {
             error!("WORKSPACE SETUP ERR={:?}", err);
             return self.fail(net::err(ErrCode::WORKSPACE_SETUP, "wk:run:1"));
         }
+
+        if self.auth_token.is_empty() {
+            warn!("WARNING: No auth token specified, will likely fail fetching secret key");
+        };
+
         match self.depot_cli.fetch_origin_secret_key(self.job().origin(), &self.auth_token) {
             Ok(key) => {
                 let cache = crypto::default_cache_key_path(None);

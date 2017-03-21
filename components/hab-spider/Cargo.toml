@@ -12,6 +12,9 @@ walkdir = "*"
 libarchive = "*"
 time = "*"
 clap = "2"
+protobuf = "*"
+postgres = "*"
+r2d2 = "*"
 
 [dependencies.habitat_core]
 path = "../core"
@@ -21,6 +24,12 @@ path = "../builder-core"
 
 [dependencies.habitat_builder_protocol]
 path = "../builder-protocol"
+
+[dependencies.habitat_builder_db]
+path = "../builder-db"
+
+[dependencies.habitat_net]
+path = "../net"
 
 [build-dependencies]
 pkg-config = "0.3"

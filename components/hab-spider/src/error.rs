@@ -24,7 +24,6 @@ use protocol;
 use postgres;
 use protobuf;
 use r2d2;
-use zmq;
 
 #[derive(Debug)]
 pub enum Error {
@@ -36,17 +35,9 @@ pub enum Error {
     IO(io::Error),
     PackageInsert(postgres::error::Error),
     PackagesGet(postgres::error::Error),
-    GroupCreate(postgres::error::Error),
-    GroupGet(postgres::error::Error),
-    GroupPending(postgres::error::Error),
-    GroupSetState(postgres::error::Error),
-    ProjectSetState(postgres::error::Error),
     NetError(hab_net::Error),
     ProtoNetError(protocol::net::NetError),
     Protobuf(protobuf::ProtobufError),
-    UnknownGroupState,
-    UnknownProjectState,
-    Zmq(zmq::Error),
 }
 
 pub type Result<T> = result::Result<T, Error>;
@@ -64,17 +55,9 @@ impl fmt::Display for Error {
             Error::IO(ref e) => format!("{}", e),
             Error::PackageInsert(ref e) => format!("Database error inserting a new package, {}", e),
             Error::PackagesGet(ref e) => format!("Database error retrieving packages, {}", e),
-            Error::GroupCreate(ref e) => format!("Database error creating a new group, {}", e),
-            Error::GroupGet(ref e) => format!("Database error getting group data, {}", e),
-            Error::GroupPending(ref e) => format!("Database error getting pending group, {}", e),
-            Error::GroupSetState(ref e) => format!("Database error setting group state, {}", e),
-            Error::ProjectSetState(ref e) => format!("Database error setting project state, {}", e),
             Error::NetError(ref e) => format!("{}", e),
             Error::ProtoNetError(ref e) => format!("{}", e),
             Error::Protobuf(ref e) => format!("{}", e),
-            Error::UnknownGroupState => format!("Unknown Group State"),
-            Error::UnknownProjectState => format!("Unknown Project State"),
-            Error::Zmq(ref e) => format!("{}", e),
         };
         write!(f, "{}", msg)
     }
@@ -91,17 +74,9 @@ impl error::Error for Error {
             Error::IO(ref err) => err.description(),
             Error::PackageInsert(ref err) => err.description(),
             Error::PackagesGet(ref err) => err.description(),
-            Error::GroupCreate(ref err) => err.description(),
-            Error::GroupGet(ref err) => err.description(),
-            Error::GroupPending(ref err) => err.description(),
-            Error::GroupSetState(ref err) => err.description(),
-            Error::ProjectSetState(ref err) => err.description(),
             Error::NetError(ref err) => err.description(),
             Error::ProtoNetError(ref err) => err.description(),
             Error::Protobuf(ref err) => err.description(),
-            Error::UnknownGroupState => "Unknown Group State",
-            Error::UnknownProjectState => "Unknown Project State",
-            Error::Zmq(ref err) => err.description(),
         }
     }
 }
@@ -145,11 +120,5 @@ impl From<protocol::net::NetError> for Error {
 impl From<protobuf::ProtobufError> for Error {
     fn from(err: protobuf::ProtobufError) -> Error {
         Error::Protobuf(err)
-    }
-}
-
-impl From<zmq::Error> for Error {
-    fn from(err: zmq::Error) -> Error {
-        Error::Zmq(err)
     }
 }

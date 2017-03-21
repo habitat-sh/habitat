@@ -22,13 +22,21 @@ extern crate walkdir;
 extern crate habitat_core as hab_core;
 extern crate builder_core as bldr_core;
 extern crate habitat_builder_protocol as protocol;
+extern crate habitat_builder_db as db;
+extern crate habitat_net as hab_net;
 extern crate clap;
+extern crate postgres;
+extern crate protobuf;
+extern crate r2d2;
+
+pub mod data_store;
+pub mod error;
 
 use std::io::{self, Write};
 use clap::{Arg, App};
 use time::PreciseTime;
 use bldr_core::package_graph::PackageGraph;
-use bldr_core::file_walker::FileWalker;
+use data_store::DataStore;
 
 fn main() {
     env_logger::init().unwrap();
@@ -36,16 +44,22 @@ fn main() {
     let matches = App::new("hab-spider")
         .version("0.1.0")
         .about("Habitat package graph builder")
-        .arg(Arg::with_name("PATH").help("The path to the packages root").required(true).index(1))
+        .arg(Arg::with_name("URL").help("The DB connection URL").required(true).index(1))
         .get_matches();
 
-    let path = matches.value_of("PATH").unwrap();
+    let connection_url = matches.value_of("URL").unwrap();
 
-    println!("Crawling packages... please wait.");
+    println!("Connecting to {}", connection_url);
+
+    let datastore = DataStore::new(connection_url).unwrap();
+    datastore.setup().unwrap();
+
+    println!("Building graph... please wait.");
 
     let mut graph = PackageGraph::new();
+    let packages = datastore.get_packages().unwrap();
     let start_time = PreciseTime::now();
-    let (ncount, ecount) = graph.build(FileWalker::new(&path));
+    let (ncount, ecount) = graph.build(packages.into_iter());
     let end_time = PreciseTime::now();
 
     println!("OK: {} nodes, {} edges ({} sec)",
@@ -53,7 +67,7 @@ fn main() {
              ecount,
              start_time.to(end_time));
 
-    println!("\nAvailable commands: help, stats, top, find, rdeps, exit\n");
+    println!("\nAvailable commands: help, stats, top, find, resolve, rdeps, exit\n");
 
     let mut done = false;
     while !done {
@@ -89,6 +103,13 @@ fn main() {
                         do_find(&graph, v[1].to_lowercase().as_str(), max)
                     }
                 }
+                "resolve" => {
+                    if v.len() < 2 {
+                        println!("Missing package name\n")
+                    } else {
+                        do_resolve(&graph, v[1].to_lowercase().as_str())
+                    }
+                }
                 "rdeps" => {
                     if v.len() < 2 {
                         println!("Missing package name\n")
@@ -112,9 +133,10 @@ fn do_help() {
     println!("COMMANDS:");
     println!("  help                    Print this message");
     println!("  stats                   Print graph statistics");
-    println!("  top [<count>]           Print nodes with the most reverse dependencies");
-    println!("  find  <term> [<max>]    Find packages that match the search term, up to max items");
-    println!("  rdeps <name> [<max>]    Print the reverse dependencies for the package, up to max");
+    println!("  top     [<count>]       Print nodes with the most reverse dependencies");
+    println!("  resolve <name>          Find the most recent version of the package 'origin/name'");
+    println!("  find    <term> [<max>]  Find packages that match the search term, up to max items");
+    println!("  rdeps   <name> [<max>]  Print the reverse dependencies for the package, up to max");
     println!("  exit                    Exit the application\n");
 }
 
@@ -158,6 +180,21 @@ fn do_find(graph: &PackageGraph, phrase: &str, max: usize) {
         for s in v {
             println!("{}", s);
         }
+    }
+
+    println!("");
+}
+
+fn do_resolve(graph: &PackageGraph, name: &str) {
+    let start_time = PreciseTime::now();
+    let result = graph.resolve(name);
+    let end_time = PreciseTime::now();
+
+    println!("OK: ({} sec)\n", start_time.to(end_time));
+
+    match result {
+        Some(s) => println!("{}", s),
+        None => println!("No matching packages found"),
     }
 
     println!("");
