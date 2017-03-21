@@ -40,6 +40,7 @@ use url::Url;
 
 use sup::config::{GossipListenAddr, GOSSIP_DEFAULT_PORT};
 use sup::error::{Error, Result};
+use sup::feat;
 use sup::command;
 use sup::http_gateway;
 use sup::manager::ManagerConfig;
@@ -56,6 +57,7 @@ static RING_KEY_ENVVAR: &'static str = "HAB_RING_KEY";
 
 fn main() {
     env_logger::init().unwrap();
+    enable_features_from_env();
     if let Err(e) = start() {
         println!("{}", e);
         std::process::exit(1);
@@ -304,5 +306,27 @@ fn valid_url(val: String) -> result::Result<(), String> {
     match Url::parse(&val) {
         Ok(_) => Ok(()),
         Err(_) => Err(format!("URL: '{}' is not valid", &val)),
+    }
+}
+
+fn enable_features_from_env() {
+    let features = vec![(feat::List, "LIST")];
+
+    for feature in &features {
+        match henv::var(format!("HAB_FEAT_{}", feature.1)) {
+            Ok(ref val) if ["true", "TRUE"].contains(&val.as_str()) => {
+                feat::enable(feature.0);
+                outputln!("Enabling feature: {:?}", feature.0);
+            }
+            _ => {}
+        }
+    }
+
+    if feat::is_enabled(feat::List) {
+        outputln!("Listing feature flags environment variables:");
+        for feature in &features {
+            outputln!("     * {:?}: HAB_FEAT_{}=true", feature.0, feature.1);
+        }
+        outputln!("The supervisor will start now, enjoy!");
     }
 }

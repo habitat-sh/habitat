@@ -17,8 +17,10 @@ name = "functional"
 
 [dependencies]
 ansi_term = "*"
+bitflags = "*"
 clap = { version = "*", features = [ "suggestions", "color", "unstable" ] }
 env_logger = "*"
+features = "*"
 glob = "*"
 habitat_butterfly = { path = "../butterfly" }
 habitat_common = { path = "../common" }

@@ -40,6 +40,10 @@
 //! * [The Habitat Supervisor Sidecar; http interface to promises](sidecar)
 
 extern crate ansi_term;
+#[macro_use]
+extern crate bitflags;
+#[macro_use]
+extern crate features;
 extern crate glob;
 extern crate habitat_butterfly as butterfly;
 extern crate habitat_common as common;
@@ -290,6 +294,12 @@ lazy_static!{
         let arg0 = env::args().next().map(|p| PathBuf::from(p));
         arg0.as_ref().and_then(|p| p.file_stem()).and_then(|p| p.to_str()).unwrap().to_string()
     };
+}
+
+features! {
+    pub mod feat {
+        const List = 0b00000001
+    }
 }
 
 const PRODUCT: &'static str = "hab-sup";
