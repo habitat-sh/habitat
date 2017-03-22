@@ -47,6 +47,7 @@
 //! See the [documentation on topologies](../topology) for a deeper discussion of how they function.
 //!
 
+use std;
 use std::path::Path;
 
 use ansi_term::Colour::Yellow;
@@ -56,12 +57,16 @@ use hcore::fs::{self, FS_ROOT_PATH};
 
 use {PRODUCT, VERSION};
 use error::{Error, Result};
+use feat;
 use manager::{Manager, ManagerConfig};
 use manager::ServiceSpec;
 
 static LOGKEY: &'static str = "CS";
 
-pub fn package(cfg: ManagerConfig, spec: ServiceSpec, local_artifact: Option<&str>) -> Result<()> {
+pub fn package(cfg: ManagerConfig,
+               service_spec: Option<ServiceSpec>,
+               local_artifact: Option<&str>)
+               -> Result<()> {
     let mut ui = UI::default();
     if !fs::am_i_root() {
         ui.warn("Running the Habitat Supervisor requires root or administrator privileges. \
@@ -71,20 +76,43 @@ pub fn package(cfg: ManagerConfig, spec: ServiceSpec, local_artifact: Option<&st
         return Err(sup_error!(Error::RootRequired));
     }
 
-    if let Some(artifact) = local_artifact {
-        outputln!("Installing local artifact {}",
-                  Yellow.bold().paint(artifact));
-        common::command::package::install::start(&mut ui,
-                                                 &spec.depot_url,
-                                                 artifact,
-                                                 PRODUCT,
-                                                 VERSION,
-                                                 Path::new(&*FS_ROOT_PATH),
-                                                 &fs::cache_artifact_path(None),
-                                                 false)?;
+    // TODO fn: once we remove the `Multi` feature flag a refactoring of this function will clean
+    // things up substantially. If it looks slightly awkward, this was done with an eye to the end
+    // state, not this intermediate state. Cheers!
+
+    if let Some(spec) = service_spec.as_ref() {
+        if let Some(artifact) = local_artifact {
+            outputln!("Installing local artifact {}",
+                      Yellow.bold().paint(artifact));
+            common::command::package::install::start(&mut ui,
+                                                     &spec.depot_url,
+                                                     artifact,
+                                                     PRODUCT,
+                                                     VERSION,
+                                                     Path::new(&*FS_ROOT_PATH),
+                                                     &fs::cache_artifact_path(None),
+                                                     false)?;
+        }
     }
 
-    let mut manager = Manager::new(cfg)?;
-    manager.add_service(spec)?;
-    manager.run()
+    if feat::is_enabled(feat::Multi) {
+        if let Some(spec) = service_spec {
+            // If we're starting with a package, then we assume that any prior specs are out of
+            // date.  TODO fn: there are some assumptions to be tested here...
+            let specs_path = Manager::specs_path_for(&cfg);
+            if specs_path.exists() && specs_path.is_dir() {
+                std::fs::remove_dir_all(specs_path)?;
+            }
+            Manager::save_spec_for(&cfg, spec)?;
+        }
+
+        let mut manager = Manager::load(cfg)?;
+        manager.run()
+    } else {
+        let mut manager = Manager::load(cfg)?;
+        if let Some(spec) = service_spec {
+            manager.add_service(spec)?;
+        }
+        manager.run()
+    }
 }

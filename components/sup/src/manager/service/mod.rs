@@ -74,6 +74,8 @@ pub struct Service {
     pub package: Arc<RwLock<PackageInstall>>,
     pub service_group: ServiceGroup,
     pub smoke_check: SmokeCheck,
+    #[serde(skip_serializing)]
+    spec_binds: Vec<ServiceBind>,
     pub spec_ident: PackageIdent,
     pub topology: Topology,
     pub update_strategy: UpdateStrategy,
@@ -98,7 +100,7 @@ impl Service {
         let svc_cfg = ServiceConfig::new(&package,
                                          &runtime_cfg,
                                          config_root,
-                                         spec.binds,
+                                         spec.binds.clone(),
                                          &gossip_listen,
                                          &http_listen)?;
         let hook_template_path = svc_cfg.config_root.join("hooks");
@@ -122,6 +124,7 @@ impl Service {
                package: locked_package,
                service_group: service_group,
                smoke_check: SmokeCheck::default(),
+               spec_binds: spec.binds,
                spec_ident: spec.ident,
                topology: spec.topology,
                update_strategy: spec.update_strategy,
@@ -359,6 +362,18 @@ impl Service {
                 }
             }
         }
+    }
+
+    pub fn to_spec(&self) -> ServiceSpec {
+        let mut spec = ServiceSpec::default_for(self.spec_ident.clone());
+        spec.group = self.service_group.group().to_string();
+        spec.organization = self.service_group.org().map(|o| o.to_string());
+        spec.depot_url = self.depot_url.clone();
+        spec.topology = self.topology;
+        spec.update_strategy = self.update_strategy;
+        spec.binds = self.spec_binds.clone();
+        spec.config_from = self.config_from.clone();
+        spec
     }
 
     fn update_configuration(&mut self,

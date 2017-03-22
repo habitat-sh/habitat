@@ -18,6 +18,7 @@ pub mod signals;
 pub mod service_updater;
 pub mod spec_watcher;
 
+use std::collections::HashMap;
 use std::fs::{self, File};
 use std::io::{Read, Write};
 use std::net::SocketAddr;
@@ -38,14 +39,16 @@ use toml;
 
 pub use manager::service::{Service, ServiceConfig, ServiceSpec, UpdateStrategy, Topology};
 use self::service_updater::ServiceUpdater;
+use self::spec_watcher::{SpecWatcher, SpecWatcherEvent};
 use error::{Error, Result};
+use feat;
 use config::GossipListenAddr;
 use manager::census::{CensusUpdate, CensusList, CensusEntry};
 use manager::signals::SignalEvent;
 use http_gateway;
 
-pub const DATA_PATH: &'static str = "/hab/sup/data";
-pub const MEMBER_ID_FILE: &'static str = "MEMBER_ID";
+const STATE_PATH_PREFIX: &'static str = "/hab/sup";
+const MEMBER_ID_FILE: &'static str = "MEMBER_ID";
 static LOGKEY: &'static str = "MR";
 
 #[derive(Debug)]
@@ -86,21 +89,28 @@ pub struct ManagerConfig {
     pub gossip_peers: Vec<SocketAddr>,
     pub gossip_permanent: bool,
     pub ring: Option<String>,
+    pub name: Option<String>,
+    pub custom_state_path: Option<PathBuf>,
 }
 
 pub struct Manager {
     state: State,
     updater: ServiceUpdater,
+    watcher: SpecWatcher,
     gossip_listen: GossipListenAddr,
     http_listen: http_gateway::ListenAddr,
 }
 
 impl Manager {
-    pub fn new(cfg: ManagerConfig) -> Result<Manager> {
-        if let Some(err) = fs::create_dir_all(&DATA_PATH).err() {
-            return Err(sup_error!(Error::BadDataPath(PathBuf::from(&DATA_PATH), err)));
-        }
-        let mut member = Self::load_member(&DATA_PATH)?;
+    pub fn load(cfg: ManagerConfig) -> Result<Manager> {
+        let state_path = Self::state_path_from(&cfg);
+        Self::create_state_path_dirs(&state_path)?;
+        let member = Self::load_member(&Self::data_path(&state_path))?;
+
+        Self::new(cfg, member, state_path)
+    }
+
+    pub fn new(cfg: ManagerConfig, mut member: Member, state_path: PathBuf) -> Result<Manager> {
         member.set_persistent(cfg.gossip_permanent);
         member.set_swim_port(cfg.gossip_listen.port() as i32);
         member.set_gossip_port(cfg.gossip_listen.port() as i32);
@@ -108,20 +118,20 @@ impl Manager {
         let ring_key = match cfg.ring {
             Some(ref ring_with_revision) => {
                 outputln!("Joining ring {}", ring_with_revision);
-                Some(try!(SymKey::get_pair_for(&ring_with_revision, &default_cache_key_path(None))))
+                Some(SymKey::get_pair_for(&ring_with_revision, &default_cache_key_path(None))?)
             }
             None => None,
         };
 
         let services = Arc::new(RwLock::new(Vec::new()));
-        let server = try!(butterfly::Server::new(&cfg.gossip_listen,
-                                                 &cfg.gossip_listen,
-                                                 member,
-                                                 Trace::default(),
-                                                 ring_key,
-                                                 None,
-                                                 Some(DATA_PATH),
-                                                 Box::new(SuitabilityLookup(services.clone()))));
+        let server = butterfly::Server::new(&cfg.gossip_listen,
+                                            &cfg.gossip_listen,
+                                            member,
+                                            Trace::default(),
+                                            ring_key,
+                                            None,
+                                            Some(Self::data_path(&state_path)),
+                                            Box::new(SuitabilityLookup(services.clone())))?;
         outputln!("Butterfly Member ID {}", server.member_id());
         for peer_addr in &cfg.gossip_peers {
             let mut peer = Member::default();
@@ -133,6 +143,7 @@ impl Manager {
         Ok(Manager {
                updater: ServiceUpdater::new(server.clone()),
                state: State::new(services, server),
+               watcher: SpecWatcher::run(Self::specs_path(&state_path))?,
                gossip_listen: cfg.gossip_listen,
                http_listen: cfg.http_listen,
            })
@@ -163,6 +174,14 @@ impl Manager {
         Ok(member)
     }
 
+    pub fn specs_path_for(cfg: &ManagerConfig) -> PathBuf {
+        Self::specs_path(&Self::state_path_from(cfg))
+    }
+
+    pub fn save_spec_for(cfg: &ManagerConfig, spec: ServiceSpec) -> Result<()> {
+        spec.to_file(Self::specs_path_for(cfg).join(spec.file_name()))
+    }
+
     pub fn add_service(&mut self, spec: ServiceSpec) -> Result<()> {
         let service = Service::load(spec, &self.gossip_listen, &self.http_listen)?;
         service.add()?;
@@ -189,6 +208,10 @@ impl Manager {
 
     pub fn run(&mut self) -> Result<()> {
         signals::init();
+
+        if feat::is_enabled(feat::Multi) {
+            self.start_initial_services_from_watcher()?;
+        }
 
         outputln!("Starting butterfly on {}",
                   self.state.butterfly.gossip_addr());
@@ -218,6 +241,9 @@ impl Manager {
             let (census_updated, ncu) = self.build_census(&last_census_update);
             if census_updated {
                 last_census_update = ncu;
+            }
+            if feat::is_enabled(feat::Multi) {
+                self.update_running_services_from_watcher()?;
             }
             for service in self.state
                     .services
@@ -396,5 +422,135 @@ impl Manager {
     /// Check if any elections need restarting.
     fn restart_elections(&mut self) {
         self.state.butterfly.restart_elections();
+    }
+
+    fn start_initial_services_from_watcher(&mut self) -> Result<()> {
+        for service_event in self.watcher.initial_events()? {
+            match service_event {
+                SpecWatcherEvent::AddService(spec) => self.add_service(spec)?,
+                _ => warn!("Skipping unexpected watcher event: {:?}", service_event),
+            }
+        }
+        Ok(())
+    }
+
+    fn update_running_services_from_watcher(&mut self) -> Result<()> {
+        let mut active_specs = HashMap::new();
+        for service in self.state
+                .services
+                .read()
+                .expect("Services lock is poisoned!")
+                .iter() {
+            let spec = service.to_spec();
+            active_specs.insert(spec.ident.name.clone(), spec);
+        }
+        for service_event in self.watcher.new_events(active_specs)? {
+            match service_event {
+                SpecWatcherEvent::AddService(spec) => self.add_service(spec)?,
+                SpecWatcherEvent::RemoveService(spec) => self.remove_service_for_spec(&spec)?,
+            }
+        }
+        Ok(())
+    }
+
+    fn remove_service_for_spec(&mut self, spec: &ServiceSpec) -> Result<()> {
+        let mut services_mut = self.state
+            .services
+            .write()
+            .expect("Services lock is poisoned");
+        // TODO fn: storing services as a `Vec` is a bit crazy when you have to do these
+        // shenanigans--maybe we want to consider changing the data structure in the future?
+        let services_idx = match services_mut.iter().position(|ref s| s.spec_ident == spec.ident) {
+            Some(i) => i,
+            None => {
+                outputln!("Tried to remove service for {} but could not find it running, skipping",
+                          &spec.ident);
+                return Ok(());
+            }
+        };
+        let service = services_mut.remove(services_idx);
+        self.remove_service(&service)?;
+        Ok(())
+    }
+
+    fn create_state_path_dirs(state_path: &Path) -> Result<()> {
+        let data_path = Self::data_path(&state_path);
+        debug!("Creating data directory: {}", data_path.display());
+        if let Some(err) = fs::create_dir_all(&data_path).err() {
+            return Err(sup_error!(Error::BadDataPath(data_path, err)));
+        }
+        let specs_path = Self::specs_path(&state_path);
+        debug!("Creating specs directory: {}", specs_path.display());
+        if let Some(err) = fs::create_dir_all(&specs_path).err() {
+            return Err(sup_error!(Error::BadSpecsPath(specs_path, err)));
+        }
+        Ok(())
+    }
+
+    #[inline]
+    fn data_path(state_path: &Path) -> PathBuf {
+        state_path.join("data")
+    }
+
+    #[inline]
+    fn specs_path(state_path: &Path) -> PathBuf {
+        state_path.join("specs")
+    }
+
+    fn state_path_from(cfg: &ManagerConfig) -> PathBuf {
+        match cfg.custom_state_path {
+            Some(ref custom) => custom.clone(),
+            None => {
+                match cfg.name {
+                    Some(ref name) => PathBuf::from(STATE_PATH_PREFIX).join(name),
+                    None => PathBuf::from(STATE_PATH_PREFIX).join("default"),
+                }
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use std::path::PathBuf;
+
+    use super::{Manager, ManagerConfig, STATE_PATH_PREFIX};
+
+    #[test]
+    fn manager_state_path_default() {
+        let cfg = ManagerConfig::default();
+        let path = Manager::state_path_from(&cfg);
+
+        assert_eq!(PathBuf::from(format!("{}/default", STATE_PATH_PREFIX)),
+                   path);
+    }
+
+    #[test]
+    fn manager_state_path_with_name() {
+        let mut cfg = ManagerConfig::default();
+        cfg.name = Some(String::from("peanuts"));
+        let path = Manager::state_path_from(&cfg);
+
+        assert_eq!(PathBuf::from(format!("{}/peanuts", STATE_PATH_PREFIX)),
+                   path);
+    }
+
+    #[test]
+    fn manager_state_path_custom() {
+        let mut cfg = ManagerConfig::default();
+        cfg.custom_state_path = Some(PathBuf::from("/tmp/peanuts-and-cake"));
+        let path = Manager::state_path_from(&cfg);
+
+        assert_eq!(PathBuf::from("/tmp/peanuts-and-cake"), path);
+    }
+
+    #[test]
+    fn manager_state_path_custom_beats_name() {
+        let mut cfg = ManagerConfig::default();
+        cfg.custom_state_path = Some(PathBuf::from("/tmp/partay"));
+        cfg.name = Some(String::from("nope"));
+        let path = Manager::state_path_from(&cfg);
+
+        assert_eq!(PathBuf::from("/tmp/partay"), path);
     }
 }

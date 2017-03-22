@@ -106,11 +106,14 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                 "The listen address for the gossip system [default: 0.0.0.0:9638]")
             (@arg LISTEN_HTTP: --("listen-http") +takes_value
                 "The listen address for the HTTP gateway [default: 0.0.0.0:9631]")
+            (@arg NAME: --("override-name") +takes_value
+                "The name for the state directory if launching more than one Supervisor \
+                [default: default]")
             (@arg PEER: --peer +takes_value +multiple
                 "The listen address of an initial peer (IP[:PORT])")
             (@arg PERMANENT_PEER: --("permanent-peer") -I "If this service is a permanent peer")
             (@arg RING: --ring -r +takes_value "Ring key name")
-            (@arg PKG_IDENT_OR_ARTIFACT: +required
+            (@arg PKG_IDENT_OR_ARTIFACT:
                 "A Habitat package identifier (ex: acme/redis) or filepath to a Habitat Artifact \
                 (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
             (@group SVC_ARGS =>
@@ -179,6 +182,20 @@ fn sub_start(m: &ArgMatches) -> Result<()> {
     if let Some(addr_str) = m.value_of("LISTEN_HTTP") {
         cfg.http_listen = try!(http_gateway::ListenAddr::from_str(addr_str));
     }
+    if let Some(name_str) = m.value_of("NAME") {
+        cfg.name = Some(String::from(name_str));
+        outputln!("");
+        outputln!("{} Running more than one Habitat Supervisor is not recommended for most",
+                  Red.bold().paint("CAUTION:".to_string()));
+        outputln!("{} users in most use cases. Using one Supervisor per host for multiple",
+                  Red.bold().paint("CAUTION:".to_string()));
+        outputln!("{} services in one ring will yield much better performance.",
+                  Red.bold().paint("CAUTION:".to_string()));
+        outputln!("");
+        outputln!("{} If you know what you're doing, carry on!",
+                  Red.bold().paint("CAUTION:".to_string()));
+        outputln!("");
+    }
     if m.is_present("PERMANENT_PEER") {
         cfg.gossip_permanent = true;
     }
@@ -230,16 +247,31 @@ fn sub_start(m: &ArgMatches) -> Result<()> {
     }
 
     let mut maybe_local_artifact: Option<&str> = None;
-    let ident_or_artifact = m.value_of("PKG_IDENT_OR_ARTIFACT").unwrap();
-    let ident = if Path::new(ident_or_artifact).is_file() {
-        maybe_local_artifact = Some(ident_or_artifact);
-        try!(PackageArchive::new(Path::new(ident_or_artifact)).ident())
-    } else {
-        try!(PackageIdent::from_str(ident_or_artifact))
+    let maybe_spec = match m.value_of("PKG_IDENT_OR_ARTIFACT") {
+        Some(ident_or_artifact) => {
+            let ident = if Path::new(ident_or_artifact).is_file() {
+                maybe_local_artifact = Some(ident_or_artifact);
+                try!(PackageArchive::new(Path::new(ident_or_artifact)).ident())
+            } else {
+                try!(PackageIdent::from_str(ident_or_artifact))
+            };
+            Some(try!(spec_from_matches(&ident, m)))
+        }
+        None => None,
     };
-    let spec = try!(spec_from_matches(&ident, m));
-
-    try!(command::start::package(cfg, spec, maybe_local_artifact));
+    if !feat::is_enabled(feat::Multi) && !m.is_present("PKG_IDENT_OR_ARTIFACT") {
+        // For now, mimick the "required argument" error message to preserve original behavior of a
+        // require pkg ident or artifact
+        println!("{} The following required arguments were not provided:",
+                 clap::Format::Error("error:"));
+        println!("    {}", clap::Format::Error("<PKG_IDENT_OR_ARTIFACT>"));
+        println!("");
+        println!("{}", m.usage());
+        println!("");
+        println!("For more information try {}", clap::Format::Good("--help"));
+        std::process::exit(1);
+    }
+    try!(command::start::package(cfg, maybe_spec, maybe_local_artifact));
     Ok(())
 }
 
@@ -310,7 +342,7 @@ fn valid_url(val: String) -> result::Result<(), String> {
 }
 
 fn enable_features_from_env() {
-    let features = vec![(feat::List, "LIST")];
+    let features = vec![(feat::List, "LIST"), (feat::Multi, "MULTI")];
 
     for feature in &features {
         match henv::var(format!("HAB_FEAT_{}", feature.1)) {

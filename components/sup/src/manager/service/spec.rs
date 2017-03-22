@@ -32,6 +32,7 @@ use error::{Error, Result, SupError};
 
 static LOGKEY: &'static str = "SS";
 static DEFAULT_GROUP: &'static str = "default";
+pub const SPEC_FILE_EXT: &'static str = "spec.toml";
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(default)]
@@ -83,6 +84,9 @@ impl ServiceSpec {
     }
 
     pub fn to_file<P: AsRef<Path>>(&self, path: P) -> Result<()> {
+        debug!("Writing service spec to '{}': {:?}",
+               path.as_ref().display(),
+               &self);
         let dst_path = path.as_ref()
             .parent()
             .ok_or(sup_error!(Error::ServiceSpecFileWrite(path.as_ref().display().to_string(),
@@ -122,6 +126,10 @@ impl ServiceSpec {
                      })?;
 
         Ok(())
+    }
+
+    pub fn file_name(&self) -> String {
+        format!("{}.{}", &self.ident.name, SPEC_FILE_EXT)
     }
 
     pub fn validate(&self, package: &PackageInstall) -> Result<()> {
@@ -505,6 +513,13 @@ mod test {
             }
             Ok(_) => panic!("Service spec file should not have been written"),
         }
+    }
+
+    #[test]
+    fn service_spec_file_name() {
+        let spec = ServiceSpec::default_for(PackageIdent::from_str("origin/hoopa/1.2.3").unwrap());
+
+        assert_eq!(String::from("hoopa.spec.toml"), spec.file_name());
     }
 
     #[test]

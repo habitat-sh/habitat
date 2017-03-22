@@ -103,6 +103,7 @@ impl SupError {
 pub enum Error {
     BadDataFile(PathBuf, io::Error),
     BadDataPath(PathBuf, io::Error),
+    BadSpecsPath(PathBuf, io::Error),
     ButterflyError(butterfly::error::Error),
     CommandNotImplemented,
     DbInvalidPath,
@@ -166,6 +167,11 @@ impl fmt::Display for SupError {
             }
             Error::BadDataPath(ref path, ref err) => {
                 format!("Unable to read or write to data directory, {}, {}",
+                        path.display(),
+                        err)
+            }
+            Error::BadSpecsPath(ref path, ref err) => {
+                format!("Unable to create the specs directory '{}' ({})",
                         path.display(),
                         err)
             }
@@ -287,6 +293,7 @@ impl error::Error for SupError {
         match self.err {
             Error::BadDataFile(_, _) => "Unable to read or write to a data file",
             Error::BadDataPath(_, _) => "Unable to read or write to data directory",
+            Error::BadSpecsPath(_, _) => "Unable to create the specs directory",
             Error::ButterflyError(ref err) => err.description(),
             Error::ExecCommandNotFound(_) => "Exec command was not found on filesystem or in PATH",
             Error::TemplateFileError(ref err) => err.description(),
