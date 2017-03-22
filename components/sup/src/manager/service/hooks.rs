@@ -21,21 +21,33 @@ use std::path::{Path, PathBuf};
 use std::process::{Child, ExitStatus};
 use std::result;
 
+use ansi_term::Colour;
 use hcore;
 use hcore::service::ServiceGroup;
 use serde::{Serialize, Serializer};
 
 use super::health;
 use error::Result;
+use fs;
 use manager::service::ServiceConfig;
 use supervisor::RuntimeConfig;
 use templating::Template;
 use util;
 
-use ansi_term::Colour;
-
 pub const HOOK_PERMISSIONS: u32 = 0o755;
 static LOGKEY: &'static str = "HK";
+
+pub fn stdout_log_path<T>(service_group: &ServiceGroup) -> PathBuf
+    where T: Hook
+{
+    fs::svc_logs_path(service_group.service()).join(format!("{}.stdout.log", T::file_name()))
+}
+
+pub fn stderr_log_path<T>(service_group: &ServiceGroup) -> PathBuf
+    where T: Hook
+{
+    fs::svc_logs_path(service_group.service()).join(format!("{}.stderr.log", T::file_name()))
+}
 
 #[derive(Debug, Copy, Clone)]
 pub struct ExitCode(i32);
@@ -51,27 +63,22 @@ pub trait Hook: fmt::Debug + Sized {
 
     fn file_name() -> &'static str;
 
-    fn load<C, T, L>(service_group: &ServiceGroup,
-                     concrete_path: C,
-                     template_path: T,
-                     logs_path: L)
-                     -> Option<Self>
+    fn load<C, T>(service_group: &ServiceGroup, concrete_path: C, template_path: T) -> Option<Self>
         where C: AsRef<Path>,
-              T: AsRef<Path>,
-              L: AsRef<Path>
+              T: AsRef<Path>
     {
         let concrete = concrete_path.as_ref().join(Self::file_name());
         let template = template_path.as_ref().join(Self::file_name());
-        let logs_prefix = logs_path.as_ref().join(Self::file_name());
         match std::fs::metadata(&template) {
             Ok(_) => {
-                match Self::new(concrete, template, logs_prefix) {
-                    Ok(hook) => Some(hook),
+                let pair = match RenderPair::new(concrete, &template) {
+                    Ok(pair) => pair,
                     Err(err) => {
                         outputln!(preamble service_group, "Failed to load hook: {}", err);
-                        None
+                        return None;
                     }
-                }
+                };
+                Some(Self::new(service_group, pair))
             }
             Err(_) => {
                 debug!("{} not found at {}, not loading",
@@ -82,17 +89,14 @@ pub trait Hook: fmt::Debug + Sized {
         }
     }
 
-    fn new<C, T, L>(concrete_path: C, template_path: T, logs_prefix: L) -> Result<Self>
-        where C: Into<PathBuf>,
-              T: AsRef<Path>,
-              L: Into<PathBuf>;
+    fn new(service_group: &ServiceGroup, render_pair: RenderPair) -> Self;
 
     /// Compile a hook into it's destination service directory.
     fn compile(&self, cfg: &ServiceConfig) -> Result<()> {
         let toml = try!(cfg.to_toml());
         let svc_data = util::convert::toml_to_json(toml);
         let data = try!(self.template().render("hook", &svc_data));
-        let mut file = try!(std::fs::File::create(self.path()));
+        let mut file = try!(File::create(self.path()));
         try!(file.write_all(data.as_bytes()));
         try!(hcore::util::perm::set_owner(self.path(), &cfg.pkg.svc_user, &cfg.pkg.svc_group));
         try!(hcore::util::perm::set_permissions(self.path(), HOOK_PERMISSIONS));
@@ -120,7 +124,7 @@ pub trait Hook: fmt::Debug + Sized {
                 return Self::ExitValue::default();
             }
         };
-        let mut hook_output = HookOutput::new(self.logs_prefix());
+        let mut hook_output = HookOutput::new(self.stdout_log_path(), self.stderr_log_path());
         hook_output.stream_output::<Self>(service_group, &mut child);
         match child.wait() {
             Ok(status) => self.handle_exit(service_group, &hook_output, &status),
@@ -132,21 +136,27 @@ pub trait Hook: fmt::Debug + Sized {
         }
     }
 
-    fn handle_exit(&self,
-                   group: &ServiceGroup,
-                   output: &HookOutput,
-                   status: &ExitStatus)
-                   -> Self::ExitValue;
+    fn handle_exit<'a>(&self,
+                       group: &ServiceGroup,
+                       output: &'a HookOutput,
+                       status: &ExitStatus)
+                       -> Self::ExitValue;
 
     fn path(&self) -> &Path;
 
     fn template(&self) -> &Template;
 
-    fn logs_prefix(&self) -> &Path;
+    fn stdout_log_path(&self) -> &Path;
+
+    fn stderr_log_path(&self) -> &Path;
 }
 
 #[derive(Debug, Serialize)]
-pub struct FileUpdatedHook(RenderPair, LogsPrefix);
+pub struct FileUpdatedHook {
+    render_pair: RenderPair,
+    stdout_log_path: PathBuf,
+    stderr_log_path: PathBuf,
+}
 
 impl Hook for FileUpdatedHook {
     type ExitValue = bool;
@@ -155,38 +165,45 @@ impl Hook for FileUpdatedHook {
         "file_updated"
     }
 
-    fn new<C, T, L>(concrete_path: C, template_path: T, logs_prefix: L) -> Result<Self>
-        where C: Into<PathBuf>,
-              T: AsRef<Path>,
-              L: Into<PathBuf>
-    {
-        let pair = RenderPair::new(concrete_path, template_path)?;
-        Ok(FileUpdatedHook(pair, logs_prefix.into()))
+    fn new(service_group: &ServiceGroup, pair: RenderPair) -> Self {
+        FileUpdatedHook {
+            render_pair: pair,
+            stdout_log_path: stdout_log_path::<Self>(service_group),
+            stderr_log_path: stderr_log_path::<Self>(service_group),
+        }
     }
 
-    fn handle_exit(&self,
-                   _: &ServiceGroup,
-                   _: &HookOutput,
-                   status: &ExitStatus)
-                   -> Self::ExitValue {
+    fn handle_exit<'a>(&self,
+                       _: &ServiceGroup,
+                       _: &'a HookOutput,
+                       status: &ExitStatus)
+                       -> Self::ExitValue {
         status.success()
     }
 
     fn path(&self) -> &Path {
-        &self.0.path
+        &self.render_pair.path
     }
 
     fn template(&self) -> &Template {
-        &self.0.template
+        &self.render_pair.template
     }
 
-    fn logs_prefix(&self) -> &Path {
-        &self.1
+    fn stdout_log_path(&self) -> &Path {
+        &self.stdout_log_path
+    }
+
+    fn stderr_log_path(&self) -> &Path {
+        &self.stderr_log_path
     }
 }
 
 #[derive(Debug, Serialize)]
-pub struct HealthCheckHook(RenderPair, LogsPrefix);
+pub struct HealthCheckHook {
+    render_pair: RenderPair,
+    stdout_log_path: PathBuf,
+    stderr_log_path: PathBuf,
+}
 
 impl Hook for HealthCheckHook {
     type ExitValue = health::HealthCheck;
@@ -195,20 +212,19 @@ impl Hook for HealthCheckHook {
         "health_check"
     }
 
-    fn new<C, T, L>(concrete_path: C, template_path: T, logs_prefix: L) -> Result<Self>
-        where C: Into<PathBuf>,
-              T: AsRef<Path>,
-              L: Into<PathBuf>
-    {
-        let pair = RenderPair::new(concrete_path, template_path)?;
-        Ok(HealthCheckHook(pair, logs_prefix.into()))
+    fn new(service_group: &ServiceGroup, pair: RenderPair) -> Self {
+        HealthCheckHook {
+            render_pair: pair,
+            stdout_log_path: stdout_log_path::<Self>(service_group),
+            stderr_log_path: stderr_log_path::<Self>(service_group),
+        }
     }
 
-    fn handle_exit(&self,
-                   service_group: &ServiceGroup,
-                   _: &HookOutput,
-                   status: &ExitStatus)
-                   -> Self::ExitValue {
+    fn handle_exit<'a>(&self,
+                       service_group: &ServiceGroup,
+                       _: &'a HookOutput,
+                       status: &ExitStatus)
+                       -> Self::ExitValue {
         match status.code() {
             Some(0) => health::HealthCheck::Ok,
             Some(1) => health::HealthCheck::Warning,
@@ -228,20 +244,28 @@ impl Hook for HealthCheckHook {
     }
 
     fn path(&self) -> &Path {
-        &self.0.path
+        &self.render_pair.path
     }
 
     fn template(&self) -> &Template {
-        &self.0.template
+        &self.render_pair.template
     }
 
-    fn logs_prefix(&self) -> &Path {
-        &self.1
+    fn stdout_log_path(&self) -> &Path {
+        &self.stdout_log_path
+    }
+
+    fn stderr_log_path(&self) -> &Path {
+        &self.stderr_log_path
     }
 }
 
 #[derive(Debug, Serialize)]
-pub struct InitHook(RenderPair, LogsPrefix);
+pub struct InitHook {
+    render_pair: RenderPair,
+    stdout_log_path: PathBuf,
+    stderr_log_path: PathBuf,
+}
 
 impl Hook for InitHook {
     type ExitValue = bool;
@@ -250,20 +274,19 @@ impl Hook for InitHook {
         "init"
     }
 
-    fn new<C, T, L>(concrete_path: C, template_path: T, logs_prefix: L) -> Result<Self>
-        where C: Into<PathBuf>,
-              T: AsRef<Path>,
-              L: Into<PathBuf>
-    {
-        let pair = RenderPair::new(concrete_path, template_path)?;
-        Ok(InitHook(pair, logs_prefix.into()))
+    fn new(service_group: &ServiceGroup, pair: RenderPair) -> Self {
+        InitHook {
+            render_pair: pair,
+            stdout_log_path: stdout_log_path::<Self>(service_group),
+            stderr_log_path: stderr_log_path::<Self>(service_group),
+        }
     }
 
-    fn handle_exit(&self,
-                   service_group: &ServiceGroup,
-                   _: &HookOutput,
-                   status: &ExitStatus)
-                   -> Self::ExitValue {
+    fn handle_exit<'a>(&self,
+                       service_group: &ServiceGroup,
+                       _: &'a HookOutput,
+                       status: &ExitStatus)
+                       -> Self::ExitValue {
         match status.code() {
             Some(0) => true,
             Some(code) => {
@@ -280,20 +303,28 @@ impl Hook for InitHook {
     }
 
     fn path(&self) -> &Path {
-        &self.0.path
+        &self.render_pair.path
     }
 
     fn template(&self) -> &Template {
-        &self.0.template
+        &self.render_pair.template
     }
 
-    fn logs_prefix(&self) -> &Path {
-        &self.1
+    fn stdout_log_path(&self) -> &Path {
+        &self.stdout_log_path
+    }
+
+    fn stderr_log_path(&self) -> &Path {
+        &self.stderr_log_path
     }
 }
 
 #[derive(Debug, Serialize)]
-pub struct RunHook(RenderPair, LogsPrefix);
+pub struct RunHook {
+    render_pair: RenderPair,
+    stdout_log_path: PathBuf,
+    stderr_log_path: PathBuf,
+}
 
 impl Hook for RunHook {
     type ExitValue = ExitCode;
@@ -302,13 +333,12 @@ impl Hook for RunHook {
         "run"
     }
 
-    fn new<C, T, L>(concrete_path: C, template_path: T, logs_prefix: L) -> Result<Self>
-        where C: Into<PathBuf>,
-              T: AsRef<Path>,
-              L: Into<PathBuf>
-    {
-        let pair = RenderPair::new(concrete_path, template_path)?;
-        Ok(RunHook(pair, logs_prefix.into()))
+    fn new(service_group: &ServiceGroup, pair: RenderPair) -> Self {
+        RunHook {
+            render_pair: pair,
+            stdout_log_path: stdout_log_path::<Self>(service_group),
+            stderr_log_path: stderr_log_path::<Self>(service_group),
+        }
     }
 
     fn run(&self, _: &ServiceGroup, _: &RuntimeConfig) -> Self::ExitValue {
@@ -316,11 +346,11 @@ impl Hook for RunHook {
                 run by the supervisor module!");
     }
 
-    fn handle_exit(&self,
-                   service_group: &ServiceGroup,
-                   _: &HookOutput,
-                   status: &ExitStatus)
-                   -> Self::ExitValue {
+    fn handle_exit<'a>(&self,
+                       service_group: &ServiceGroup,
+                       _: &'a HookOutput,
+                       status: &ExitStatus)
+                       -> Self::ExitValue {
         match status.code() {
             Some(code) => ExitCode(code),
             None => {
@@ -332,20 +362,28 @@ impl Hook for RunHook {
     }
 
     fn path(&self) -> &Path {
-        &self.0.path
+        &self.render_pair.path
     }
 
     fn template(&self) -> &Template {
-        &self.0.template
+        &self.render_pair.template
     }
 
-    fn logs_prefix(&self) -> &Path {
-        &self.1
+    fn stdout_log_path(&self) -> &Path {
+        &self.stdout_log_path
+    }
+
+    fn stderr_log_path(&self) -> &Path {
+        &self.stderr_log_path
     }
 }
 
 #[derive(Debug, Serialize)]
-pub struct ReloadHook(RenderPair, LogsPrefix);
+pub struct ReloadHook {
+    render_pair: RenderPair,
+    stdout_log_path: PathBuf,
+    stderr_log_path: PathBuf,
+}
 
 impl Hook for ReloadHook {
     type ExitValue = ExitCode;
@@ -354,20 +392,19 @@ impl Hook for ReloadHook {
         "reload"
     }
 
-    fn new<C, T, L>(concrete_path: C, template_path: T, logs_prefix: L) -> Result<Self>
-        where C: Into<PathBuf>,
-              T: AsRef<Path>,
-              L: Into<PathBuf>
-    {
-        let pair = RenderPair::new(concrete_path, template_path)?;
-        Ok(ReloadHook(pair, logs_prefix.into()))
+    fn new(service_group: &ServiceGroup, pair: RenderPair) -> Self {
+        ReloadHook {
+            render_pair: pair,
+            stdout_log_path: stdout_log_path::<Self>(service_group),
+            stderr_log_path: stderr_log_path::<Self>(service_group),
+        }
     }
 
-    fn handle_exit(&self,
-                   service_group: &ServiceGroup,
-                   _: &HookOutput,
-                   status: &ExitStatus)
-                   -> Self::ExitValue {
+    fn handle_exit<'a>(&self,
+                       service_group: &ServiceGroup,
+                       _: &'a HookOutput,
+                       status: &ExitStatus)
+                       -> Self::ExitValue {
         match status.code() {
             Some(0) => ExitCode(0),
             Some(code) => {
@@ -384,20 +421,28 @@ impl Hook for ReloadHook {
     }
 
     fn path(&self) -> &Path {
-        &self.0.path
+        &self.render_pair.path
     }
 
     fn template(&self) -> &Template {
-        &self.0.template
+        &self.render_pair.template
     }
 
-    fn logs_prefix(&self) -> &Path {
-        &self.1
+    fn stdout_log_path(&self) -> &Path {
+        &self.stdout_log_path
+    }
+
+    fn stderr_log_path(&self) -> &Path {
+        &self.stderr_log_path
     }
 }
 
 #[derive(Debug, Serialize)]
-pub struct ReconfigureHook(RenderPair, LogsPrefix);
+pub struct ReconfigureHook {
+    render_pair: RenderPair,
+    stdout_log_path: PathBuf,
+    stderr_log_path: PathBuf,
+}
 
 impl Hook for ReconfigureHook {
     type ExitValue = ExitCode;
@@ -406,20 +451,19 @@ impl Hook for ReconfigureHook {
         "reconfigure"
     }
 
-    fn new<C, T, L>(concrete_path: C, template_path: T, logs_prefix: L) -> Result<Self>
-        where C: Into<PathBuf>,
-              T: AsRef<Path>,
-              L: Into<PathBuf>
-    {
-        let pair = RenderPair::new(concrete_path, template_path)?;
-        Ok(ReconfigureHook(pair, logs_prefix.into()))
+    fn new(service_group: &ServiceGroup, pair: RenderPair) -> Self {
+        ReconfigureHook {
+            render_pair: pair,
+            stdout_log_path: stdout_log_path::<Self>(service_group),
+            stderr_log_path: stderr_log_path::<Self>(service_group),
+        }
     }
 
-    fn handle_exit(&self,
-                   service_group: &ServiceGroup,
-                   _: &HookOutput,
-                   status: &ExitStatus)
-                   -> Self::ExitValue {
+    fn handle_exit<'a>(&self,
+                       service_group: &ServiceGroup,
+                       _: &'a HookOutput,
+                       status: &ExitStatus)
+                       -> Self::ExitValue {
         match status.code() {
             Some(code) => ExitCode(code),
             None => {
@@ -431,20 +475,28 @@ impl Hook for ReconfigureHook {
     }
 
     fn path(&self) -> &Path {
-        &self.0.path
+        &self.render_pair.path
     }
 
     fn template(&self) -> &Template {
-        &self.0.template
+        &self.render_pair.template
     }
 
-    fn logs_prefix(&self) -> &Path {
-        &self.1
+    fn stdout_log_path(&self) -> &Path {
+        &self.stdout_log_path
+    }
+
+    fn stderr_log_path(&self) -> &Path {
+        &self.stderr_log_path
     }
 }
 
 #[derive(Debug, Serialize)]
-pub struct SmokeTestHook(RenderPair, LogsPrefix);
+pub struct SmokeTestHook {
+    render_pair: RenderPair,
+    stdout_log_path: PathBuf,
+    stderr_log_path: PathBuf,
+}
 
 impl Hook for SmokeTestHook {
     type ExitValue = health::SmokeCheck;
@@ -453,20 +505,19 @@ impl Hook for SmokeTestHook {
         "smoke_test"
     }
 
-    fn new<C, T, L>(concrete_path: C, template_path: T, logs_prefix: L) -> Result<Self>
-        where C: Into<PathBuf>,
-              T: AsRef<Path>,
-              L: Into<PathBuf>
-    {
-        let pair = RenderPair::new(concrete_path, template_path)?;
-        Ok(SmokeTestHook(pair, logs_prefix.into()))
+    fn new(service_group: &ServiceGroup, pair: RenderPair) -> Self {
+        SmokeTestHook {
+            render_pair: pair,
+            stdout_log_path: stdout_log_path::<Self>(service_group),
+            stderr_log_path: stderr_log_path::<Self>(service_group),
+        }
     }
 
-    fn handle_exit(&self,
-                   service_group: &ServiceGroup,
-                   _: &HookOutput,
-                   status: &ExitStatus)
-                   -> Self::ExitValue {
+    fn handle_exit<'a>(&self,
+                       service_group: &ServiceGroup,
+                       _: &'a HookOutput,
+                       status: &ExitStatus)
+                       -> Self::ExitValue {
         match status.code() {
             Some(0) => health::SmokeCheck::Ok,
             Some(code) => health::SmokeCheck::Failed(code),
@@ -479,20 +530,28 @@ impl Hook for SmokeTestHook {
     }
 
     fn path(&self) -> &Path {
-        &self.0.path
+        &self.render_pair.path
     }
 
     fn template(&self) -> &Template {
-        &self.0.template
+        &self.render_pair.template
     }
 
-    fn logs_prefix(&self) -> &Path {
-        &self.1
+    fn stdout_log_path(&self) -> &Path {
+        &self.stdout_log_path
+    }
+
+    fn stderr_log_path(&self) -> &Path {
+        &self.stderr_log_path
     }
 }
 
 #[derive(Debug, Serialize)]
-pub struct SuitabilityHook(RenderPair, LogsPrefix);
+pub struct SuitabilityHook {
+    render_pair: RenderPair,
+    stdout_log_path: PathBuf,
+    stderr_log_path: PathBuf,
+}
 
 impl Hook for SuitabilityHook {
     type ExitValue = Option<u64>;
@@ -501,20 +560,19 @@ impl Hook for SuitabilityHook {
         "suitability"
     }
 
-    fn new<C, T, L>(concrete_path: C, template_path: T, logs_prefix: L) -> Result<Self>
-        where C: Into<PathBuf>,
-              T: AsRef<Path>,
-              L: Into<PathBuf>
-    {
-        let pair = RenderPair::new(concrete_path, template_path)?;
-        Ok(SuitabilityHook(pair, logs_prefix.into()))
+    fn new(service_group: &ServiceGroup, pair: RenderPair) -> Self {
+        SuitabilityHook {
+            render_pair: pair,
+            stdout_log_path: stdout_log_path::<Self>(service_group),
+            stderr_log_path: stderr_log_path::<Self>(service_group),
+        }
     }
 
-    fn handle_exit(&self,
-                   service_group: &ServiceGroup,
-                   hook_output: &HookOutput,
-                   status: &ExitStatus)
-                   -> Self::ExitValue {
+    fn handle_exit<'a>(&self,
+                       service_group: &ServiceGroup,
+                       hook_output: &'a HookOutput,
+                       status: &ExitStatus)
+                       -> Self::ExitValue {
         match status.code() {
             Some(0) => {
                 if let Some(reader) = hook_output.stdout() {
@@ -524,7 +582,7 @@ impl Hook for SuitabilityHook {
                                 match line.trim().parse::<u64>() {
                                     Ok(suitability) => {
                                         outputln!(preamble service_group, "Reporting suitability \
-                                            of: {}", Colour::Green.bold().paint(format!("{}",suitability)));
+                                    of: {}", Colour::Green.bold().paint(format!("{}",suitability)));
                                         return Some(suitability);
                                     }
                                     Err(err) => {
@@ -557,15 +615,19 @@ impl Hook for SuitabilityHook {
     }
 
     fn path(&self) -> &Path {
-        &self.0.path
+        &self.render_pair.path
     }
 
     fn template(&self) -> &Template {
-        &self.0.template
+        &self.render_pair.template
     }
 
-    fn logs_prefix(&self) -> &Path {
-        &self.1
+    fn stdout_log_path(&self) -> &Path {
+        &self.stdout_log_path
+    }
+
+    fn stderr_log_path(&self) -> &Path {
+        &self.stderr_log_path
     }
 }
 
@@ -620,30 +682,20 @@ impl HookTable {
     }
 
     /// Read all available hook templates from the table's package directory into the table.
-    pub fn load_hooks<T, U, L>(mut self,
-                               service_group: &ServiceGroup,
-                               hooks: T,
-                               templates: U,
-                               logs_dir: L)
-                               -> Self
+    pub fn load_hooks<T, U>(mut self, service_group: &ServiceGroup, hooks: T, templates: U) -> Self
         where T: AsRef<Path>,
-              U: AsRef<Path>,
-              L: AsRef<Path>
+              U: AsRef<Path>
     {
         if let Some(meta) = std::fs::metadata(templates.as_ref()).ok() {
             if meta.is_dir() {
-                self.file_updated =
-                    FileUpdatedHook::load(service_group, &hooks, &templates, &logs_dir);
-                self.health_check =
-                    HealthCheckHook::load(service_group, &hooks, &templates, &logs_dir);
-                self.suitability =
-                    SuitabilityHook::load(service_group, &hooks, &templates, &logs_dir);
-                self.init = InitHook::load(service_group, &hooks, &templates, &logs_dir);
-                self.reload = ReloadHook::load(service_group, &hooks, &templates, &logs_dir);
-                self.reconfigure =
-                    ReconfigureHook::load(service_group, &hooks, &templates, &logs_dir);
-                self.run = RunHook::load(service_group, &hooks, &templates, &logs_dir);
-                self.smoke_test = SmokeTestHook::load(service_group, &hooks, &templates, &logs_dir);
+                self.file_updated = FileUpdatedHook::load(service_group, &hooks, &templates);
+                self.health_check = HealthCheckHook::load(service_group, &hooks, &templates);
+                self.suitability = SuitabilityHook::load(service_group, &hooks, &templates);
+                self.init = InitHook::load(service_group, &hooks, &templates);
+                self.reload = ReloadHook::load(service_group, &hooks, &templates);
+                self.reconfigure = ReconfigureHook::load(service_group, &hooks, &templates);
+                self.run = RunHook::load(service_group, &hooks, &templates);
+                self.smoke_test = SmokeTestHook::load(service_group, &hooks, &templates);
             }
         }
         debug!("{}, Hooks loaded, destination={}, templates={}",
@@ -663,11 +715,9 @@ impl HookTable {
     }
 }
 
-type LogsPrefix = PathBuf;
-
-struct RenderPair {
-    path: PathBuf,
-    template: Template,
+pub struct RenderPair {
+    pub path: PathBuf,
+    pub template: Template,
 }
 
 impl RenderPair {
@@ -701,24 +751,16 @@ impl Serialize for RenderPair {
     }
 }
 
-pub struct HookOutput {
-    stdout_log_file: PathBuf,
-    stderr_log_file: PathBuf,
+pub struct HookOutput<'a> {
+    stdout_log_file: &'a Path,
+    stderr_log_file: &'a Path,
 }
 
-impl HookOutput {
-    fn new<P>(log_prefix: P) -> Self
-        where P: Into<PathBuf>
-    {
-        let mut stdout_log_file = log_prefix.into();
-        let mut stderr_log_file = stdout_log_file.clone();
-
-        stdout_log_file.set_extension("stdout.log");
-        stderr_log_file.set_extension("stderr.log");
-
+impl<'a> HookOutput<'a> {
+    fn new(stdout_log: &'a Path, stderr_log: &'a Path) -> Self {
         HookOutput {
-            stdout_log_file: stdout_log_file,
-            stderr_log_file: stderr_log_file,
+            stdout_log_file: stdout_log,
+            stderr_log_file: stderr_log,
         }
     }
 
@@ -729,10 +771,9 @@ impl HookOutput {
         }
     }
 
-    // TODO fn: this method appears to not be used in the codebase, is it necessary?
     #[allow(dead_code)]
     fn stderr(&self) -> Option<BufReader<File>> {
-        match File::open(&self.stderr_log_file.clone()) {
+        match File::open(&self.stderr_log_file) {
             Ok(f) => Some(BufReader::new(f)),
             Err(_) => None,
         }
@@ -789,9 +830,11 @@ mod tests {
         let mut cmd = Command::new(hook_fixtures_path().join(InitHook::file_name()));
         cmd.stdin(Stdio::null()).stdout(Stdio::piped()).stderr(Stdio::piped());
         let mut child = cmd.spawn().expect("couldn't run hook");
-
-        let log_path = tmp_dir.path().join("logs").join(InitHook::file_name());
-        let mut hook_output = HookOutput::new(log_path);
+        let stdout_log =
+            tmp_dir.path().join("logs").join(format!("{}.stdout.log", InitHook::file_name()));
+        let stderr_log =
+            tmp_dir.path().join("logs").join(format!("{}.stderr.log", InitHook::file_name()));
+        let mut hook_output = HookOutput::new(&stdout_log, &stderr_log);
         let service_group =
             ServiceGroup::new("dummy", "service", None).expect("couldn't create ServiceGroup");
 

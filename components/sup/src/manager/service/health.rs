@@ -14,7 +14,7 @@
 
 use std::fmt;
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize)]
 pub enum HealthCheck {
     Ok,
     Warning,
@@ -25,6 +25,18 @@ pub enum HealthCheck {
 impl Default for HealthCheck {
     fn default() -> HealthCheck {
         HealthCheck::Unknown
+    }
+}
+
+impl From<i8> for HealthCheck {
+    fn from(value: i8) -> HealthCheck {
+        match value {
+            0 => HealthCheck::Ok,
+            1 => HealthCheck::Warning,
+            2 => HealthCheck::Critical,
+            3 => HealthCheck::Unknown,
+            _ => HealthCheck::Unknown,
+        }
     }
 }
 

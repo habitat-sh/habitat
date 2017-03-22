@@ -22,11 +22,13 @@ use std::collections::HashMap;
 use std::env;
 use std::fmt;
 use std::fs::File;
+use std::io::BufWriter;
 use std::io::prelude::*;
 use std::path::{Path, PathBuf};
 use std::result;
 use std::str::FromStr;
 use std::sync::{Arc, RwLock, RwLockReadGuard};
+use std::time::{Duration, Instant};
 
 use ansi_term::Colour::{Yellow, Red, Green};
 use butterfly;
@@ -46,7 +48,7 @@ use config::GossipListenAddr;
 use error::{Error, Result, SupError};
 use http_gateway;
 use fs;
-use manager::signals;
+use manager::{self, signals};
 use manager::census::{CensusList, CensusUpdate, ElectionStatus};
 use prometheus::Opts;
 use supervisor::{Supervisor, RuntimeConfig};
@@ -59,6 +61,12 @@ pub use self::spec::{ServiceBind, ServiceSpec};
 static LOGKEY: &'static str = "SR";
 const HABITAT_PACKAGE_INFO_NAME: &'static str = "habitat_package_info";
 const HABITAT_PACKAGE_INFO_DESC: &'static str = "package version information";
+
+lazy_static! {
+    static ref HEALTH_CHECK_INTERVAL: Duration = {
+        Duration::from_millis(30_000)
+    };
+}
 
 #[derive(Debug, Serialize)]
 pub struct Service {
@@ -81,6 +89,10 @@ pub struct Service {
     pub update_strategy: UpdateStrategy,
     hooks: HookTable,
     config_from: Option<PathBuf>,
+    #[serde(skip_serializing)]
+    last_health_check: Instant,
+    #[serde(skip_serializing)]
+    manager_fs_cfg: Arc<manager::FsCfg>,
     supervisor: Supervisor,
 }
 
@@ -88,7 +100,8 @@ impl Service {
     pub fn new(package: PackageInstall,
                spec: ServiceSpec,
                gossip_listen: &GossipListenAddr,
-               http_listen: &http_gateway::ListenAddr)
+               http_listen: &http_gateway::ListenAddr,
+               manager_fs_cfg: Arc<manager::FsCfg>)
                -> Result<Service> {
         spec.validate(&package)?;
         let service_group = ServiceGroup::new(&package.ident.name,
@@ -104,7 +117,6 @@ impl Service {
                                          &http_listen)?;
         let hook_template_path = svc_cfg.config_root.join("hooks");
         let hooks_path = fs::svc_hooks_path(service_group.service());
-        let logs_path = fs::svc_logs_path(service_group.service());
         let locked_package = Arc::new(RwLock::new(package));
         Ok(Service {
                config: svc_cfg,
@@ -113,12 +125,12 @@ impl Service {
                health_check: HealthCheck::default(),
                hooks: HookTable::default().load_hooks(&service_group,
                                                       &hooks_path,
-                                                      &hook_template_path,
-                                                      &logs_path),
+                                                      &hook_template_path),
                initialized: false,
                last_election_status: ElectionStatus::None,
                needs_reload: false,
                needs_reconfiguration: false,
+               manager_fs_cfg: manager_fs_cfg,
                supervisor: Supervisor::new(locked_package.clone(), &service_group, runtime_cfg),
                package: locked_package,
                service_group: service_group,
@@ -128,6 +140,7 @@ impl Service {
                topology: spec.topology,
                update_strategy: spec.update_strategy,
                config_from: spec.config_from,
+               last_health_check: Instant::now() - *HEALTH_CHECK_INTERVAL,
            })
     }
 
@@ -141,7 +154,8 @@ impl Service {
 
     pub fn load(spec: ServiceSpec,
                 gossip_listen: &GossipListenAddr,
-                http_listen: &http_gateway::ListenAddr)
+                http_listen: &http_gateway::ListenAddr,
+                manager_fs_cfg: Arc<manager::FsCfg>)
                 -> Result<Service> {
         let mut ui = UI::default();
         let package = match PackageInstall::load(&spec.ident, Some(&Path::new(&*FS_ROOT_PATH))) {
@@ -160,7 +174,7 @@ impl Service {
                 try!(util::pkg::install(&mut ui, &spec.depot_url, &spec.ident))
             }
         };
-        Self::new(package, spec, gossip_listen, http_listen)
+        Self::new(package, spec, gossip_listen, http_listen, manager_fs_cfg)
     }
 
     pub fn add(&self) -> Result<()> {
@@ -247,13 +261,6 @@ impl Service {
 
     pub fn down(&mut self) -> Result<()> {
         self.supervisor.down()
-    }
-
-    pub fn last_config(&self) -> Result<String> {
-        let mut file = try!(File::open(self.svc_path().join("config.toml")));
-        let mut result = String::new();
-        try!(file.read_to_string(&mut result));
-        Ok(result)
     }
 
     pub fn send_signal(&self, signal: u32) -> Result<()> {
@@ -426,11 +433,9 @@ impl Service {
         };
         let config_root = self.config_from.clone().unwrap_or(package.installed_path.clone());
         let hooks_path = fs::svc_hooks_path(self.service_group.service());
-        let logs_path = fs::svc_logs_path(self.service_group.service());
         self.hooks = HookTable::default().load_hooks(&self.service_group,
                                                      hooks_path,
-                                                     &config_root.join("hooks"),
-                                                     &logs_path);
+                                                     &config_root.join("hooks"));
 
         if let Some(err) = self.config.reload_package(&package, config_root, &runtime_cfg).err() {
             outputln!(preamble self.service_group,
@@ -460,19 +465,6 @@ impl Service {
                           &self.service_group,
                           &*self.config.sys,
                           exported.as_ref())
-    }
-
-    pub fn health_check(&self) -> HealthCheck {
-        if let Some(ref hook) = self.hooks.health_check {
-            // In the near future, we will periodically run this hook and cache it's results on
-            // the service struct itself.
-            hook.run(&self.service_group, self.runtime_cfg())
-        } else {
-            match self.supervisor.status() {
-                (true, _) => HealthCheck::Ok,
-                (false, _) => HealthCheck::Critical,
-            }
-        }
     }
 
     /// Run initialization hook if present
@@ -609,6 +601,32 @@ impl Service {
         }
     }
 
+    fn cache_health_check(&self, check_result: HealthCheck) {
+        let state_file =
+            self.manager_fs_cfg.data_path.join(format!("{}.health", self.service_group.service()));
+        let tmp_file = state_file.with_extension("tmp");
+        let file = match File::create(&tmp_file) {
+            Ok(file) => file,
+            Err(err) => {
+                warn!("Couldn't open temporary health check file, {}, {}",
+                      self.service_group,
+                      err);
+                return;
+            }
+        };
+        let mut writer = BufWriter::new(file);
+        if let Some(err) = writer.write_all((check_result as i8).to_string().as_bytes()).err() {
+            warn!("Couldn't write to temporary health check state file, {}, {}",
+                  self.service_group,
+                  err);
+        }
+        if let Some(err) = std::fs::rename(&tmp_file, &state_file).err() {
+            warn!("Couldn't finalize health check state file, {}, {}",
+                  self.service_group,
+                  err);
+        }
+    }
+
     // Copy the "run" file to the svc path.
     fn copy_run(&self) -> Result<()> {
         let svc_run = self.svc_path().join(hooks::RunHook::file_name());
@@ -641,6 +659,9 @@ impl Service {
             }
         } else {
             self.check_process();
+            if Instant::now().duration_since(self.last_health_check) >= *HEALTH_CHECK_INTERVAL {
+                self.run_health_check_hook();
+            }
 
             if self.needs_reload || self.is_down() || self.needs_reconfiguration {
                 self.reload();
@@ -703,6 +724,19 @@ impl Service {
             try!(std::fs::remove_file(p));
         }
         Ok(())
+    }
+
+    fn run_health_check_hook(&mut self) {
+        let check_result = if let Some(ref hook) = self.hooks.health_check {
+            hook.run(&self.service_group, self.runtime_cfg())
+        } else {
+            match self.supervisor.status() {
+                (true, _) => HealthCheck::Ok,
+                (false, _) => HealthCheck::Critical,
+            }
+        };
+        self.last_health_check = Instant::now();
+        self.cache_health_check(check_result);
     }
 
     /// Update our own service rumor with a new configuration from the packages exported
