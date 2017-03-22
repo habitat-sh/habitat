@@ -51,6 +51,7 @@ Lieutenant and may have many maintainers.
 * [Justin Carter](https://github.com/bodymindarts)
 * [Matt Wrock](https://github.com/mwrock)
 * [Salim Alam](https://github.com/chefsalim)
+* [Nell Shamrell-Harrington](https://github.com/nellshamrell)
 
 ### Habitat Builder Web Application
 
@@ -66,6 +67,7 @@ The web application for the Habitat builder and depot.
 * [Jamie Winsor](https://github.com/reset)
 * [Matt Wrock](https://github.com/mwrock)
 * [Salim Alam](https://github.com/chefsalim)
+* [Nell Shamrell-Harrington](https://github.com/nellshamrell)
 
 ### Habitat Builder
 
@@ -83,6 +85,7 @@ The web application for the Habitat builder and depot.
 * [Ian Henry](https://github.com/eeyun)
 * [Matt Wrock](https://github.com/mwrock)
 * [Salim Alam](https://github.com/chefsalim)
+* [Nell Shamrell-Harrington](https://github.com/nellshamrell)
 
 ### Documentation
 
@@ -102,3 +105,4 @@ tutorials and reference materials.
 * [Jamie Winsor](https://github.com/reset)
 * [Matt Wrock](https://github.com/mwrock)
 * [Salim Alam](https://github.com/chefsalim)
+* [Nell Shamrell-Harrington](https://github.com/nellshamrell)
