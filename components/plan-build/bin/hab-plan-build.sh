@@ -1484,6 +1484,14 @@ do_default_begin() {
   return 0
 }
 
+# **Internal** Injects the defined scaffolding into `pkg_build_deps` if the
+# variable is set to ensure the dependencies are resolved and installed.
+_inject_scaffolding_dependency() {
+  if [[ -n "${pkg_scaffolding:-}" ]]; then
+    pkg_build_deps=($pkg_scaffolding ${pkg_build_deps[@]})
+  fi
+}
+
 # **Internal** Determines suitable package identifiers for each build and
 # run dependency and populates several package-related arrays for use
 # throughout this program.
@@ -1601,6 +1609,26 @@ _resolve_dependencies() {
   done
 
   _validate_deps
+}
+
+# **Internal** Loads specified scaffolding to extend plan DSL. This assumes
+# the scaffolding lives within `lib` and is named `scaffolding.sh` for each
+# application/project type.
+_load_scaffolding() {
+  local scaffolding="${pkg_scaffolding:-}"
+
+  if [[ -n "$scaffolding" ]]; then
+    build_line "Loading Scaffolding $scaffolding"
+    if source "$(pkg_path_for $scaffolding)/lib/scaffolding.sh"; then
+      build_line "Scaffolding loaded"
+    else
+      exit_with "Failed to load lib/scaffolding.sh from the root of $scaffolding" 1
+    fi
+  fi
+
+  if [[ "$(type -t _scaffolding_begin)" == "function" ]]; then
+    _scaffolding_begin
+  fi
 }
 
 # **Internal**  Build `$PATH` containing each path in our own
@@ -2531,10 +2559,18 @@ _ensure_origin_key_present
 
 _determine_hab_bin
 
+# Inject the scaffolding plan package if pkg_scaffolding is set.
+# This needs to run before _resolve_dependencies to insure it gets installed
+# correctly and is useable.
+_inject_scaffolding_dependency
+
 # Download and resolve the dependencies
 _resolve_dependencies
 
 _set_path
+
+# Load scaffolding plans if they are being used.
+_load_scaffolding
 
 # Download the source
 mkdir -pv "$HAB_CACHE_SRC_PATH"
