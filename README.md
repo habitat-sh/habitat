@@ -22,6 +22,23 @@ applications that:
 
 To learn more about Habitat, please visit the [Habitat website](https://www.habitat.sh).
 
+## Installation
+
+There are a couple of different way to install Habitat.
+
+You can download it from the [Habitat downloads page](https://www.habitat.sh/docs/get-habitat/).
+
+Once you have downloaded it, follow the instructions on the page for your specific operating system.
+
+If you are running on a Mac or Linux, you can also use the Habitat install script.
+
+```
+  $ curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh | sudo bash
+```
+
+###
+
+
 ## Web Application
 
 The Habitat Builder web application is in the components/builder-web directory. See
