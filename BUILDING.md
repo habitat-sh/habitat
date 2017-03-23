@@ -252,3 +252,47 @@ Not all crates have been fully ported to Windows.
 Currently the `hab` command will build (as well as the dependent crates).
 
 Work is in progress on the supervisor and other parts of the toolchain.
+
+# Building and running individual components
+
+When you are working on an individual component in the /components directory, you may wish to build, install, then use that individual component.
+
+Let's say you want to do this with the supervisor (which lives in the components/sup directory).
+
+## Building
+
+Change directories into the component you want to build
+
+```
+  $ cd habitat/components/sup
+```
+
+Then run
+
+```
+  $ cargo build
+```
+
+Once it is finished compiling, you can find the new build in root hab_repo/target/debug
+
+Head back to the root of the Habitat repo
+
+```
+  $ cd ../..
+```
+
+And you will find your build in target/debug
+
+If you built the sup component, this is where you would find the new build
+
+```
+  $ target/debug/hab-sup
+```
+
+## Running
+
+You can now run this newly built component with
+
+```
+  $ ./target/debug/hab-sup
+```
