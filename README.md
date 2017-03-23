@@ -60,6 +60,7 @@ See [BUILDING.md](BUILDING.md) for platform specific info on building Habitat fr
 * [Rust by Example](http://rustbyexample.com/)
 * [Introduction to Bash programming](http://tldp.org/HOWTO/Bash-Prog-Intro-HOWTO.html)
 * [Advanced Bash-Scripting Guide](http://www.tldp.org/LDP/abs/html/)
+* [Bash Cheat Sheet](http://tldp.org/LDP/abs/html/refcards.html)
 * [Writing Robust Bash Shell Scripts](http://www.davidpashley.com/articles/writing-robust-shell-scripts/)
 * [Wikibook: Bourne Shell Scripting](https://en.wikibooks.org/wiki/Bourne_Shell_Scripting)
 * [What is the difference between test, \[ and \[\[ ?](http://mywiki.wooledge.org/BashFAQ/031)
