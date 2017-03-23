@@ -15,11 +15,14 @@
 use std::collections::{HashMap, HashSet};
 use std::error::Error as StdErr;
 use std::path::{Path, PathBuf};
-use std::sync::mpsc::{channel, Receiver, TryRecvError};
+use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::mpsc::channel;
+use std::thread;
 use std::time::Duration;
 
 use glob::glob;
-use notify::{DebouncedEvent, RecommendedWatcher, RecursiveMode, Watcher};
+use notify::{RecommendedWatcher, RecursiveMode, Watcher};
 
 use error::{Error, Result};
 use manager::service::ServiceSpec;
@@ -37,7 +40,7 @@ pub enum SpecWatcherEvent {
 
 pub struct SpecWatcher {
     watch_path: PathBuf,
-    watch_rx: Receiver<DebouncedEvent>,
+    have_events: Arc<AtomicBool>,
 }
 
 impl SpecWatcher {
@@ -54,7 +57,11 @@ impl SpecWatcher {
     pub fn new_events(&mut self,
                       active_specs: HashMap<String, ServiceSpec>)
                       -> Result<Vec<SpecWatcherEvent>> {
-        self.new_events_with::<RecommendedWatcher>(active_specs)
+        if self.have_fs_events() {
+            self.generate_events(active_specs)
+        } else {
+            Ok(vec![])
+        }
     }
 
     fn run_with<W, P>(path: P) -> Result<Self>
@@ -65,63 +72,61 @@ impl SpecWatcher {
         if !path.is_dir() {
             return Err(sup_error!(Error::SpecWatcherDirNotFound(path.display().to_string())));
         }
-        let rx = Self::setup_watcher::<W>(&path)?;
+        let have_events = Arc::new(AtomicBool::new(false));
+        Self::setup_watcher::<W>(path.clone(), have_events.clone())?;
 
         Ok(SpecWatcher {
                watch_path: path,
-               watch_rx: rx,
+               have_events: have_events,
            })
     }
 
-    fn setup_watcher<W>(watch_path: &Path) -> Result<Receiver<DebouncedEvent>>
+    fn setup_watcher<W>(watch_path: PathBuf, have_events: Arc<AtomicBool>) -> Result<()>
         where W: Watcher
     {
-        let (tx, rx) = channel();
-        let mut watcher = W::new(tx, Duration::from_millis(WATCHER_DELAY_MS))?;
-        watcher.watch(watch_path, RecursiveMode::NonRecursive)?;
-        Ok(rx)
-    }
-
-    fn new_events_with<W>(&mut self,
-                          active_specs: HashMap<String, ServiceSpec>)
-                          -> Result<Vec<SpecWatcherEvent>>
-        where W: Watcher
-    {
-        if self.have_fs_events::<W>()? {
-            self.generate_events(active_specs)
-        } else {
-            Ok(vec![])
-        }
-    }
-
-    fn have_fs_events<W>(&mut self) -> Result<bool>
-        where W: Watcher
-    {
-        let mut found_events = false;
-        // Drain all events that are immediately available until `Empty` is returned
-        loop {
-            match self.watch_rx.try_recv() {
-                // If a notify event is returned, consider this a trigger for a scan
-                Ok(_) => found_events = true,
-                // If `Empty` is returned then no more events are ready, return true if we saw any
-                Err(TryRecvError::Empty) => return Ok(found_events),
-                // If `Disconnected` is returned, consider the notify watcher to have died. As we
-                // can't tell the reason or the state of the directory, return `true` to trigger a
-                // scan
-                Err(TryRecvError::Disconnected) => {
-                    info!("Directory watcher has disconnected, restarting a new watcher");
-                    self.watch_rx = Self::setup_watcher::<W>(&self.watch_path)?;
-                    info!("Triggering a recan of watch directory");
-                    return Ok(true);
+        thread::Builder::new().name(format!("spec-watcher-{}", watch_path.display()))
+            .spawn(move || {
+                debug!("SpecWatcher({}) thread starting", watch_path.display());
+                let (tx, rx) = channel();
+                let mut watcher = match W::new(tx, Duration::from_millis(WATCHER_DELAY_MS)) {
+                    Ok(w) => w,
+                    Err(err) => {
+                        outputln!("SpecWatcher({}) could not start notifier, ending thread ({})",
+                                  watch_path.display(),
+                                  err);
+                        return;
+                    }
+                };
+                if let Err(err) = watcher.watch(&watch_path, RecursiveMode::NonRecursive) {
+                    outputln!("SpecWatcher({}) could not start fs watching, ending thread ({})",
+                              watch_path.display(),
+                              err);
+                    return;
                 }
-            }
-        }
+                while let Ok(event) = rx.recv() {
+                    debug!("SpecWatcher({}) file system event: {:?}",
+                           watch_path.display(),
+                           event);
+                    have_events.store(true, Ordering::Relaxed);
+                }
+                outputln!("SpecWatcher({}) fs watching died, restarting thread",
+                          watch_path.display());
+                drop(watcher);
+                Self::setup_watcher::<W>(watch_path.clone(), have_events.clone()).unwrap();
+            })?;
+        Ok(())
+    }
+
+    fn have_fs_events(&mut self) -> bool {
+        self.have_events.load(Ordering::Relaxed)
     }
 
     fn generate_events(&mut self,
                        mut active_specs: HashMap<String, ServiceSpec>)
                        -> Result<Vec<SpecWatcherEvent>> {
         let mut desired_specs = self.specs_from_watch_path()?;
+        // Reset the "have events" flag to false, now that we've loaded specs off disk
+        self.have_events.store(false, Ordering::Relaxed);
         let desired_names: HashSet<_> = desired_specs.keys().map(|n| n.clone()).collect();
         let active_names: HashSet<_> = active_specs.keys().map(|n| n.clone()).collect();
 
@@ -261,7 +266,8 @@ mod test {
     use std::path::Path;
     use std::str::FromStr;
     use std::sync::mpsc::Sender;
-    use std::time::Duration;
+    use std::thread;
+    use std::time::{Duration, Instant};
 
     use hcore::package::PackageIdent;
     use notify;
@@ -294,13 +300,8 @@ mod test {
         fs::create_dir(&path).unwrap();
 
         match SpecWatcher::run_with::<TestWatcher, _>(&path) {
-            Err(e) => {
-                match e.err {
-                    SpecWatcherNotify(_) => assert!(true),
-                    wrong => panic!("Unexpected error returned: {:?}", wrong),
-                }
-            }
-            Ok(_) => panic!("Watcher should fail to run"),
+            Ok(_) => assert!(true),
+            Err(e) => panic!("This should not fail: {:?}", e.err),
         }
     }
 
@@ -365,7 +366,7 @@ mod test {
 
         let active_specs = map_for_specs(vec![]);
         let mut watcher = SpecWatcher::run_with::<TestWatcher, _>(&path).unwrap();
-        let events = watcher.new_events(active_specs).unwrap();
+        let events = waiting_for_new_events(&mut watcher, active_specs);
 
         assert_eq!(1, events.len());
         assert!(events.contains(&SpecWatcherEvent::AddService(newbie)));
@@ -382,7 +383,7 @@ mod test {
 
         let active_specs = map_for_specs(vec!["acme/alpha", "acme/beta"]);
         let mut watcher = SpecWatcher::run_with::<TestWatcher, _>(&path).unwrap();
-        let events = watcher.new_events(active_specs).unwrap();
+        let events = waiting_for_new_events(&mut watcher, active_specs);
 
         assert_eq!(1, events.len());
         assert!(events.contains(&SpecWatcherEvent::AddService(newbie)));
@@ -399,7 +400,7 @@ mod test {
 
         let active_specs = map_for_specs(vec!["acme/alpha", "acme/beta", "acme/oldie"]);
         let mut watcher = SpecWatcher::run_with::<TestWatcher, _>(&path).unwrap();
-        let events = watcher.new_events(active_specs).unwrap();
+        let events = waiting_for_new_events(&mut watcher, active_specs);
 
         assert_eq!(1, events.len());
         assert!(events.contains(&SpecWatcherEvent::RemoveService(oldie)));
@@ -417,7 +418,7 @@ mod test {
 
         let active_specs = map_for_specs(vec!["acme/alpha", "acme/beta", "acme/oldie"]);
         let mut watcher = SpecWatcher::run_with::<TestWatcher, _>(&path).unwrap();
-        let events = watcher.new_events(active_specs).unwrap();
+        let events = waiting_for_new_events(&mut watcher, active_specs);
 
         assert_eq!(2, events.len());
         assert!(events.contains(&SpecWatcherEvent::RemoveService(oldie)));
@@ -437,7 +438,7 @@ mod test {
 
         let active_specs = map_for_specs(vec!["acme/alpha", "acme/beta", "acme/transformer"]);
         let mut watcher = SpecWatcher::run_with::<TestWatcher, _>(&path).unwrap();
-        let events = watcher.new_events(active_specs).unwrap();
+        let events = waiting_for_new_events(&mut watcher, active_specs);
 
         assert_eq!(2, events.len());
         assert_eq!(events[0],
@@ -461,7 +462,7 @@ mod test {
         let active_specs =
             map_for_specs(vec!["acme/alpha", "acme/beta", "acme/oldie", "acme/transformer"]);
         let mut watcher = SpecWatcher::run_with::<TestWatcher, _>(&path).unwrap();
-        let events = watcher.new_events(active_specs).unwrap();
+        let events = waiting_for_new_events(&mut watcher, active_specs);
 
         assert_eq!(4, events.len());
         assert!(events.contains(&SpecWatcherEvent::RemoveService(oldie)));
@@ -617,5 +618,20 @@ mod test {
             map.insert(spec.ident.name.clone(), spec);
         }
         map
+    }
+
+    fn waiting_for_new_events(watcher: &mut SpecWatcher,
+                              active_specs: HashMap<String, ServiceSpec>)
+                              -> Vec<SpecWatcherEvent> {
+        let start = Instant::now();
+        let timeout = Duration::from_millis(100);
+        while start.elapsed() < timeout {
+            let events = watcher.new_events(active_specs.clone()).unwrap();
+            if !events.is_empty() {
+                return events;
+            }
+            thread::sleep(Duration::from_millis(1));
+        }
+        panic!("Waited for events but found none");
     }
 }
