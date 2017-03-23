@@ -14,12 +14,14 @@
 
 use std::collections::HashMap;
 use std::fmt;
-use std::io;
+use std::fs::File;
+use std::io::{self, Read};
 use std::net::{IpAddr, Ipv4Addr, ToSocketAddrs, SocketAddr, SocketAddrV4};
 use std::ops::{Deref, DerefMut};
 use std::option;
 use std::result;
 use std::str::FromStr;
+use std::sync::Arc;
 use std::thread::{self, JoinHandle};
 
 use hcore::service::ServiceGroup;
@@ -27,14 +29,16 @@ use iron::prelude::*;
 use iron::status;
 use iron::typemap;
 use persistent;
-use router::Router;
-use serde_json;
 use prometheus::{CounterVec, HistogramVec, TextEncoder, Encoder};
 use prometheus;
+use router::Router;
+use serde_json;
 
 use error::{Result, Error, SupError};
+use fs;
 use manager;
 use manager::service::HealthCheck;
+use manager::service::hooks::{self, HealthCheckHook};
 
 static LOGKEY: &'static str = "HG";
 
@@ -123,16 +127,16 @@ impl fmt::Display for ListenAddr {
     }
 }
 
-struct ManagerState;
+struct ManagerFs;
 
-impl typemap::Key for ManagerState {
-    type Value = manager::State;
+impl typemap::Key for ManagerFs {
+    type Value = manager::FsCfg;
 }
 
 pub struct Server(Iron<Chain>, ListenAddr);
 
 impl Server {
-    pub fn new(manager_state: manager::State, listen_addr: ListenAddr) -> Self {
+    pub fn new(manager_state: Arc<manager::FsCfg>, listen_addr: ListenAddr) -> Self {
         let router = router!(
             butterfly: get "/butterfly" => with_metrics!(butterfly, "butterfly"),
             census: get "/census" => with_metrics!(census, "census"),
@@ -150,7 +154,7 @@ impl Server {
             }
         );
         let mut chain = Chain::new(router);
-        chain.link(persistent::Read::<ManagerState>::both(manager_state));
+        chain.link(persistent::Read::<ManagerFs>::both(manager_state));
         Server(Iron::new(chain), listen_addr)
     }
 
@@ -164,55 +168,79 @@ impl Server {
     }
 }
 
+#[derive(Default, Serialize)]
+struct HealthCheckBody {
+    stdout: String,
+    stderr: String,
+}
+
 fn butterfly(req: &mut Request) -> IronResult<Response> {
-    let state = req.get::<persistent::Read<ManagerState>>().unwrap();
-    Ok(Response::with((status::Ok, serde_json::to_string(&state.butterfly).unwrap())))
+    let state = req.get::<persistent::Read<ManagerFs>>().unwrap();
+    match File::open(&state.butterfly_data_path) {
+        Ok(file) => Ok(Response::with((status::Ok, file))),
+        Err(_) => Ok(Response::with(status::ServiceUnavailable)),
+    }
 }
 
 fn census(req: &mut Request) -> IronResult<Response> {
-    let state = req.get::<persistent::Read<ManagerState>>().unwrap();
-    let data = state.census_list.read().unwrap();
-    Ok(Response::with((status::Ok, serde_json::to_string(&*data).unwrap())))
+    let state = req.get::<persistent::Read<ManagerFs>>().unwrap();
+    match File::open(&state.census_data_path) {
+        Ok(file) => Ok(Response::with((status::Ok, file))),
+        Err(_) => Ok(Response::with(status::ServiceUnavailable)),
+    }
 }
 
 fn config(req: &mut Request) -> IronResult<Response> {
-    let state = req.get::<persistent::Read<ManagerState>>().unwrap();
-    let service_group = match build_service_group(req) {
-        Ok(sg) => sg,
+    // JW TODO: We don't really care about the other parts of the service group. This is because
+    // we're maybe doing the wrong thing by placing all services in /hab/svc without including
+    // any information about the group name or organization perhaps? Either way - this isn't
+    // harmful for now - we'll either include that or change the URI to this endpoint to only
+    // require service name.
+    let config_file = match build_service_group(req) {
+        Ok(sg) => fs::svc_config_file(sg.service()),
         Err(_) => return Ok(Response::with(status::BadRequest)),
     };
-    let services = state.services.read().unwrap();
-    match services.iter().find(|s| s.service_group == service_group) {
-        Some(service) => {
-            match service.last_config() {
-                Ok(config) => Ok(Response::with((status::Ok, config))),
-                Err(err) => {
-                    error!("Couldn't retrieve last config, err={:?}", err);
-                    Ok(Response::with(status::ServiceUnavailable))
-                }
-            }
-        }
-        None => Ok(Response::with(status::NotFound)),
+    match File::open(&config_file) {
+        Ok(file) => Ok(Response::with((status::Ok, file))),
+        Err(_) => Ok(Response::with(status::NotFound)),
     }
 }
 
 fn health(req: &mut Request) -> IronResult<Response> {
-    let state = req.get::<persistent::Read<ManagerState>>().unwrap();
-    let service_group = match build_service_group(req) {
-        Ok(sg) => sg,
+    let state = req.get::<persistent::Read<ManagerFs>>().unwrap();
+    let (health_file, stdout_path, stderr_path) = match build_service_group(req) {
+        Ok(sg) => {
+            (state.health_check_cache(&sg),
+             hooks::stdout_log_path::<HealthCheckHook>(&sg),
+             hooks::stderr_log_path::<HealthCheckHook>(&sg))
+        }
         Err(_) => return Ok(Response::with(status::BadRequest)),
     };
-    let services = state.services.read().unwrap();
-    match services.iter().find(|s| s.service_group == service_group) {
-        Some(service) => Ok(service.health_check().into()),
-        None => Ok(Response::with(status::NotFound)),
+    match File::open(&health_file) {
+        Ok(mut file) => {
+            let mut buf = String::new();
+            let mut body = HealthCheckBody::default();
+            file.read_to_string(&mut buf).unwrap();
+            let code = i8::from_str(buf.trim()).unwrap();
+            let status: status::Status = HealthCheck::from(code).into();
+            if let Ok(mut file) = File::open(&stdout_path) {
+                let _ = file.read_to_string(&mut body.stdout);
+            }
+            if let Ok(mut file) = File::open(&stderr_path) {
+                let _ = file.read_to_string(&mut body.stderr);
+            }
+            Ok(Response::with((status, serde_json::to_string(&body).unwrap())))
+        }
+        Err(_) => Ok(Response::with(status::NotFound)),
     }
 }
 
 fn services(req: &mut Request) -> IronResult<Response> {
-    let state = req.get::<persistent::Read<ManagerState>>().unwrap();
-    let data = state.services.read().unwrap();
-    Ok(Response::with((status::Ok, serde_json::to_string(&*data).unwrap())))
+    let state = req.get::<persistent::Read<ManagerFs>>().unwrap();
+    match File::open(&state.services_data_path) {
+        Ok(file) => Ok(Response::with((status::Ok, file))),
+        Err(_) => Ok(Response::with(status::ServiceUnavailable)),
+    }
 }
 
 fn metrics(_req: &mut Request) -> IronResult<Response> {
