@@ -8,21 +8,41 @@ baseUriParameters:
         description: The root URI for the Habitat Supervisor
         example: localhost:9631
 mediaType: application/json
+schemas:
+    - healthCheckOutput: |
+        {
+            "properties": {
+                "stdout": {
+                    "type": "string",
+                    "required": false
+                },
+                "stderr": {
+                    "type": "string",
+                    "required": false
+                }
+            }
+        }
 /butterfly:
     get:
         description: Butterfly debug output
         responses:
             200:
+                body:
+                    application/json:
 /census:
     get:
         description: Census debug output
         responses:
             200:
+                body:
+                    application/json:
 /services:
     get:
         description: Service debug output
         responses:
             200:
+                body:
+                    application/json:
     /{name}/{group}/config:
         get:
             description: Get last configuration for the given service group
@@ -41,7 +61,8 @@ mediaType: application/json
                 200:
                     description: Health Check - Ok / Warning
                     body:
-                        application/text:
+                        application/json:
+                            schema: healthCheckOutput
                 404:
                     description: Service not found
                 500:
@@ -66,7 +87,8 @@ mediaType: application/json
                 200:
                     description: Health Check - Ok / Warning
                     body:
-                        application/text:
+                        application/json:
+                            schema: healthCheckOutput
                 404:
                     description: Service not found
                 500:
