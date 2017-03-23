@@ -27,6 +27,7 @@ use hcore::os;
 use time;
 
 use error::{Error, Result};
+use supervisor::RuntimeConfig;
 
 static LOGKEY: &'static str = "UT";
 
@@ -68,22 +69,27 @@ pub fn parse_ip_port_with_defaults(s: Option<&str>,
 }
 
 #[cfg(any(target_os="linux", target_os="macos"))]
-pub fn create_command<S: AsRef<OsStr>>(path: S, user: &str, group: &str) -> Command {
+pub fn create_command<S: AsRef<OsStr>>(path: S, cfg: &RuntimeConfig) -> Result<Command> {
     let mut cmd = Command::new(path);
     use std::os::unix::process::CommandExt;
-    let uid = os::users::get_uid_by_name(user).expect("Can't determine uid");
-    let gid = os::users::get_gid_by_name(group).expect("Can't determine gid");
+    let uid = os::users::get_uid_by_name(&cfg.svc_user).ok_or(sup_error!(Error::Permissions(
+                format!("No uid for user '{}' could be found", &cfg.svc_user))))?;
+    let gid = os::users::get_gid_by_name(&cfg.svc_group).ok_or(sup_error!(Error::Permissions(
+                format!("No gid for group '{}' could be found", &cfg.svc_group))))?;
 
     cmd.stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .uid(uid)
         .gid(gid);
-    cmd
+    for (key, val) in &cfg.env_vars {
+        cmd.env(key, val);
+    }
+    Ok(cmd)
 }
 
 #[cfg(target_os = "windows")]
-pub fn create_command<S: AsRef<OsStr>>(path: S, user: &str, group: &str) -> Command {
+pub fn create_command<S: AsRef<OsStr>>(path: S, cfg: &RuntimeConfig) -> Result<Command> {
     let mut cmd = Command::new("powershell.exe");
     let ps_command = format!("iex $(gc {} | out-string)", path.as_ref().to_string_lossy());
     cmd.arg("-command")
@@ -91,7 +97,10 @@ pub fn create_command<S: AsRef<OsStr>>(path: S, user: &str, group: &str) -> Comm
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
-    cmd
+    for (key, val) in &cfg.env_vars {
+        cmd.env(key, val);
+    }
+    Ok(cmd)
 }
 
 #[cfg(test)]

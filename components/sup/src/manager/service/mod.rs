@@ -94,8 +94,7 @@ impl Service {
         let service_group = ServiceGroup::new(&package.ident.name,
                                               spec.group,
                                               spec.organization.as_ref().map(|x| &**x))?;
-        let (svc_user, svc_group) = util::users::get_user_and_group(&package)?;
-        let runtime_cfg = RuntimeConfig::new(svc_user, svc_group);
+        let runtime_cfg = Self::runtime_config_from(&package)?;
         let config_root = spec.config_from.clone().unwrap_or(package.installed_path.clone());
         let svc_cfg = ServiceConfig::new(&package,
                                          &runtime_cfg,
@@ -132,6 +131,14 @@ impl Service {
            })
     }
 
+    fn runtime_config_from(package: &PackageInstall) -> Result<RuntimeConfig> {
+        let (svc_user, svc_group) = util::users::get_user_and_group(&package)?;
+        let mut env = HashMap::new();
+        env.insert(String::from("PATH"), Self::run_path(package)?);
+        // TODO fn: The future package-specific environment variables are added here
+        Ok(RuntimeConfig::new(svc_user, svc_group, env))
+    }
+
     pub fn load(spec: ServiceSpec,
                 gossip_listen: &GossipListenAddr,
                 http_listen: &http_gateway::ListenAddr)
@@ -159,13 +166,6 @@ impl Service {
     pub fn add(&self) -> Result<()> {
         outputln!("Adding {}",
                   Yellow.bold().paint(self.package().ident().to_string()));
-        // JW (and now also FN) TODO: We can't just set the run path for the entire process here,
-        // we need to set this on the supervisor which will be starting the process itself to
-        // support multi services in hab-sup.
-        let run_path = self.run_path()?;
-        debug!("Setting the PATH to {}", run_path);
-        env::set_var("PATH", &run_path);
-
         self.create_svc_path()?;
         self.register_metrics();
         Ok(())
@@ -415,16 +415,15 @@ impl Service {
     }
 
     pub fn update_package(&mut self, package: PackageInstall) {
-        let (svc_user, svc_group) = match util::users::get_user_and_group(&package) {
-            Ok(user_and_group) => user_and_group,
+        let runtime_cfg = match Self::runtime_config_from(&package) {
+            Ok(c) => c,
             Err(err) => {
                 outputln!(preamble self.service_group,
-                    "Unable to extract svc_user and svc_group from updated package, {}", err);
+                          "Unable to extract svc_user, svc_group, and env_vars \
+                          from updated package, {}", err);
                 return;
             }
         };
-
-        let runtime_cfg = RuntimeConfig::new(svc_user, svc_group);
         let config_root = self.config_from.clone().unwrap_or(package.installed_path.clone());
         let hooks_path = fs::svc_hooks_path(self.service_group.service());
         let logs_path = fs::svc_logs_path(self.service_group.service());
@@ -512,8 +511,8 @@ impl Service {
     ///
     /// This means we work on any operating system, as long as you can invoke the Supervisor,
     /// without having to worry much about context.
-    pub fn run_path(&self) -> Result<String> {
-        let mut paths = match self.package().runtime_path() {
+    fn run_path(package: &PackageInstall) -> Result<String> {
+        let mut paths = match package.runtime_path() {
             Ok(r) => env::split_paths(&r).collect::<Vec<PathBuf>>(),
             Err(e) => return Err(sup_error!(Error::HabitatCore(e))),
         };

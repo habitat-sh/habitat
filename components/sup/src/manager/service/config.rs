@@ -703,6 +703,10 @@ mod test {
         toml::from_str(content).expect(&format!("Content should parse as TOML: {}", content))
     }
 
+    fn runtime_config() -> RuntimeConfig {
+        RuntimeConfig::new("hab".to_string(), "hab".to_string(), HashMap::new())
+    }
+
     pub fn root() -> PathBuf {
         PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests")
     }
@@ -730,7 +734,7 @@ mod test {
     fn to_toml_hab() {
         let pkg = gen_pkg();
         let sc = ServiceConfig::new(&pkg,
-                                    &RuntimeConfig::new("hab".to_string(), "hab".to_string()),
+                                    &runtime_config(),
                                     PathBuf::from("/hab/pkgs/neurosis/redis/2000/20160222201258"),
                                     Vec::new(),
                                     &GossipListenAddr::default(),
@@ -752,7 +756,7 @@ mod test {
     fn to_toml_pkg() {
         let pkg = gen_pkg();
         let sc = ServiceConfig::new(&pkg,
-                                    &RuntimeConfig::new("hab".to_string(), "hab".to_string()),
+                                    &runtime_config(),
                                     PathBuf::from("/hab/pkgs/neurosis/redis/2000/20160222201258"),
                                     Vec::new(),
                                     &GossipListenAddr::default(),
@@ -774,7 +778,7 @@ mod test {
     fn to_toml_sys() {
         let pkg = gen_pkg();
         let sc = ServiceConfig::new(&pkg,
-                                    &RuntimeConfig::new("hab".to_string(), "hab".to_string()),
+                                    &runtime_config(),
                                     PathBuf::from("/hab/pkgs/neurosis/redis/2000/20160222201258"),
                                     Vec::new(),
                                     &GossipListenAddr::default(),
@@ -797,7 +801,7 @@ mod test {
     fn to_toml_exported_cfg() {
         let pkg = gen_exporting_pkg();
         let sc = ServiceConfig::new(&pkg,
-                                    &RuntimeConfig::new("hab".to_string(), "hab".to_string()),
+                                    &runtime_config(),
                                     fixtures().join("exporting_service"),
                                     Vec::new(),
                                     &GossipListenAddr::default(),
@@ -811,7 +815,7 @@ mod test {
     fn to_toml_exported_table_cfg() {
         let pkg = gen_exporting_pkg();
         let sc = ServiceConfig::new(&pkg,
-                                    &RuntimeConfig::new("hab".to_string(), "hab".to_string()),
+                                    &runtime_config(),
                                     fixtures().join("exporting_service"),
                                     Vec::new(),
                                     &GossipListenAddr::default(),
