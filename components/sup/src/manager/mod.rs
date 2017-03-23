@@ -236,14 +236,14 @@ impl Manager {
                 outputln!("Habitat thanks you - shutting down!");
                 return Ok(());
             }
+            if feat::is_enabled(feat::Multi) {
+                self.update_running_services_from_watcher()?;
+            }
             self.check_for_updated_packages(&mut last_census_update);
             self.restart_elections();
             let (census_updated, ncu) = self.build_census(&last_census_update);
             if census_updated {
                 last_census_update = ncu;
-            }
-            if feat::is_enabled(feat::Multi) {
-                self.update_running_services_from_watcher()?;
             }
             for service in self.state
                     .services
