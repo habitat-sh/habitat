@@ -26,11 +26,10 @@ use std::thread::{self, JoinHandle};
 
 use hcore::service::ServiceGroup;
 use iron::prelude::*;
-use iron::status;
-use iron::typemap;
+use iron::{headers, status, typemap};
+use iron::modifiers::Header;
 use persistent;
-use prometheus::{CounterVec, HistogramVec, TextEncoder, Encoder};
-use prometheus;
+use prometheus::{self, CounterVec, HistogramVec, TextEncoder, Encoder};
 use router::Router;
 use serde_json;
 
@@ -177,7 +176,7 @@ struct HealthCheckBody {
 fn butterfly(req: &mut Request) -> IronResult<Response> {
     let state = req.get::<persistent::Read<ManagerFs>>().unwrap();
     match File::open(&state.butterfly_data_path) {
-        Ok(file) => Ok(Response::with((status::Ok, file))),
+        Ok(file) => Ok(Response::with((status::Ok, Header(headers::ContentType::json()), file))),
         Err(_) => Ok(Response::with(status::ServiceUnavailable)),
     }
 }
@@ -185,7 +184,7 @@ fn butterfly(req: &mut Request) -> IronResult<Response> {
 fn census(req: &mut Request) -> IronResult<Response> {
     let state = req.get::<persistent::Read<ManagerFs>>().unwrap();
     match File::open(&state.census_data_path) {
-        Ok(file) => Ok(Response::with((status::Ok, file))),
+        Ok(file) => Ok(Response::with((status::Ok, Header(headers::ContentType::json()), file))),
         Err(_) => Ok(Response::with(status::ServiceUnavailable)),
     }
 }
@@ -229,7 +228,9 @@ fn health(req: &mut Request) -> IronResult<Response> {
             if let Ok(mut file) = File::open(&stderr_path) {
                 let _ = file.read_to_string(&mut body.stderr);
             }
-            Ok(Response::with((status, serde_json::to_string(&body).unwrap())))
+            Ok(Response::with((status,
+                               Header(headers::ContentType::json()),
+                               serde_json::to_string(&body).unwrap())))
         }
         Err(_) => Ok(Response::with(status::NotFound)),
     }
@@ -238,7 +239,7 @@ fn health(req: &mut Request) -> IronResult<Response> {
 fn services(req: &mut Request) -> IronResult<Response> {
     let state = req.get::<persistent::Read<ManagerFs>>().unwrap();
     match File::open(&state.services_data_path) {
-        Ok(file) => Ok(Response::with((status::Ok, file))),
+        Ok(file) => Ok(Response::with((status::Ok, Header(headers::ContentType::json()), file))),
         Err(_) => Ok(Response::with(status::ServiceUnavailable)),
     }
 }
