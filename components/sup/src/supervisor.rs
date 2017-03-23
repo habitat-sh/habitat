@@ -19,6 +19,7 @@
 /// If the process dies, the supervisor will restart it.
 
 use std;
+use std::collections::HashMap;
 use std::fmt;
 use std::fs::File;
 use std::io::BufReader;
@@ -71,13 +72,18 @@ impl fmt::Display for ProcessState {
 pub struct RuntimeConfig {
     pub svc_user: String,
     pub svc_group: String,
+    pub env_vars: HashMap<String, String>,
 }
 
 impl RuntimeConfig {
-    pub fn new(svc_user: String, svc_group: String) -> RuntimeConfig {
+    pub fn new(svc_user: String,
+               svc_group: String,
+               env_vars: HashMap<String, String>)
+               -> RuntimeConfig {
         RuntimeConfig {
             svc_user: svc_user,
             svc_group: svc_group,
+            env_vars: env_vars,
         }
     }
 }
@@ -87,6 +93,7 @@ impl Default for RuntimeConfig {
         RuntimeConfig {
             svc_user: util::users::DEFAULT_USER.to_string(),
             svc_group: util::users::DEFAULT_GROUP.to_string(),
+            env_vars: HashMap::new(),
         }
     }
 }
@@ -137,15 +144,20 @@ impl Supervisor {
 
     pub fn start(&mut self) -> Result<()> {
         if self.child.is_none() {
+            debug!("Setting PATH for {} to PATH='{}'",
+                   &self.preamble,
+                   self.runtime_config
+                       .env_vars
+                       .get("PATH")
+                       .map(|v| &**v)
+                       .unwrap_or("<unknown>"));
             outputln!(preamble self.preamble,
                       "Starting process as user={}, group={}",
                       &self.runtime_config.svc_user,
                       &self.runtime_config.svc_group);
             self.enter_state(ProcessState::Start);
-            let mut child = try!(util::create_command(self.run_cmd(),
-                                                      &self.runtime_config.svc_user,
-                                                      &self.runtime_config.svc_group)
-                                         .spawn());
+            let mut child = try!(try!(util::create_command(self.run_cmd(), &self.runtime_config))
+                                     .spawn());
 
             let hab_child = try!(HabChild::from(&mut child));
             self.child = Some(hab_child);

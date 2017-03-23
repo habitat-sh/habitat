@@ -104,8 +104,15 @@ pub trait Hook: fmt::Debug + Sized {
 
     /// Run a compiled hook.
     fn run(&self, service_group: &ServiceGroup, cfg: &RuntimeConfig) -> Self::ExitValue {
-        let mut child = match util::create_command(self.path(), &cfg.svc_user, &cfg.svc_group)
-                  .spawn() {
+        let mut cmd = match util::create_command(self.path(), cfg) {
+            Ok(c) => c,
+            Err(err) => {
+                outputln!(preamble service_group,
+                    "Hook command failed to be created, {}, {}", Self::file_name(), err);
+                return Self::ExitValue::default();
+            }
+        };
+        let mut child = match cmd.spawn() {
             Ok(child) => child,
             Err(err) => {
                 outputln!(preamble service_group,
