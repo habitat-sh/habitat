@@ -27,6 +27,17 @@ pub fn become_command(command: PathBuf, args: Vec<OsString>) -> Result<()> {
     become_exec_command(command, args)
 }
 
+/// Get process identifier of calling process.
+pub fn current_pid() -> u32 {
+    unsafe { libc::getpid() as u32 }
+}
+
+/// Determines if a process is running with the given process identifier.
+pub fn is_alive(pid: u32) -> bool {
+    let process_group_id = unsafe { libc::getpgid(pid as i32) };
+    process_group_id >= 0
+}
+
 /// send a Unix signal to a pid
 fn send_signal(pid: u32, sig: libc::c_int) -> Result<()> {
     unsafe {
