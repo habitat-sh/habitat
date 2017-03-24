@@ -19,6 +19,7 @@ use std::fmt;
 use std::iter::IntoIterator;
 use std::net::SocketAddr;
 use std::ops::{Deref, DerefMut};
+use std::result;
 use std::sync::{Arc, RwLock};
 use std::sync::atomic::{AtomicUsize, Ordering};
 
@@ -26,6 +27,8 @@ use protobuf::ProtobufEnum;
 use rand::{thread_rng, Rng};
 use time::SteadyTime;
 use uuid::Uuid;
+use serde::{Serialize, Serializer};
+use serde::ser::SerializeStruct;
 
 use message::swim::{Member as ProtoMember, Membership as ProtoMembership,
                     Membership_Health as ProtoMembership_Health, Rumor_Type};
@@ -35,7 +38,7 @@ use rumor::RumorKey;
 const PINGREQ_TARGETS: usize = 5;
 
 /// The health of a node.
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize)]
 pub enum Health {
     Alive,
     Suspect,
@@ -91,7 +94,7 @@ impl fmt::Display for Health {
 
 /// A member in the swim group. Passes most of its functionality along to the internal protobuf
 /// representation.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct Member {
     pub proto: ProtoMember,
 }
@@ -178,6 +181,27 @@ pub struct MemberList {
     suspect: Arc<RwLock<HashMap<UuidSimple, SteadyTime>>>,
     initial_members: Arc<RwLock<Vec<Member>>>,
     update_counter: Arc<AtomicUsize>,
+}
+
+impl Serialize for MemberList {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+        where S: Serializer
+    {
+        let mut strukt = try!(serializer.serialize_struct("member_list", 4));
+        {
+            let member_struct = self.members.read().expect("Member lock is poisoned");
+            try!(strukt.serialize_field("members", &*member_struct));
+        }
+        {
+            let health_struct = self.health.read().expect("Health lock is poisoned");
+            try!(strukt.serialize_field("health", &*health_struct));
+        }
+        {
+            let update_number = self.update_counter.load(Ordering::SeqCst);
+            try!(strukt.serialize_field("update_counter", &update_number));
+        }
+        strukt.end()
+    }
 }
 
 impl MemberList {

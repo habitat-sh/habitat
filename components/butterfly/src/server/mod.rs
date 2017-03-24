@@ -822,7 +822,8 @@ impl Serialize for Server {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {
-        let mut strukt = try!(serializer.serialize_struct("butterfly", 5));
+        let mut strukt = try!(serializer.serialize_struct("butterfly", 6));
+        try!(strukt.serialize_field("member", &self.member_list));
         try!(strukt.serialize_field("service", &self.service_store));
         try!(strukt.serialize_field("service_config", &self.service_config_store));
         try!(strukt.serialize_field("service_file", &self.service_file_store));
