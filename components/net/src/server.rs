@@ -17,8 +17,8 @@ use std::error;
 use std::result;
 use std::sync::{Arc, RwLock};
 
+use core::os::process;
 use fnv::FnvHasher;
-use libc;
 use protobuf::{self, parse_from_bytes};
 use protobuf::core::Message as ProtoBufMessage;
 use protocol::{self, Routable, RouteKey};
@@ -171,7 +171,7 @@ pub trait NetIdent {
 
     fn net_ident() -> String {
         let hostname = super::hostname().unwrap();
-        let pid = unsafe { libc::getpid() };
+        let pid = process::current_pid();
         if let Some(component) = Self::component() {
             format!("{}#{}@{}", component, pid, hostname)
         } else {

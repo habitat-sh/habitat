@@ -7,11 +7,12 @@ workspace = "../../"
 [dependencies]
 bitflags = "*"
 fnv = "*"
+habitat_builder_protocol = { path = "../builder-protocol" }
+habitat_core = { path = "../core" }
 hyper = "*"
 hyper-openssl = "*"
 iron = "*"
 lazy_static = "*"
-libc = "*"
 log = "*"
 num_cpus = "*"
 persistent = "*"
@@ -21,9 +22,6 @@ serde_derive = "*"
 serde_json = "*"
 time = "*"
 unicase = "*"
-
-[dependencies.habitat_builder_protocol]
-path = "../builder-protocol"
 
 [dependencies.zmq]
 git = "https://github.com/erickt/rust-zmq"

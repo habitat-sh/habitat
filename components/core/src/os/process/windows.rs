@@ -32,6 +32,16 @@ pub fn become_command(command: PathBuf, args: Vec<OsString>) -> Result<()> {
     become_child_command(command, args)
 }
 
+/// Get process identifier of calling process.
+pub fn current_pid() -> u32 {
+    unsafe { kernel32::GetCurrentProcessId() as u32 }
+}
+
+/// Determines if a process is running with the given process identifier.
+pub fn is_alive(pid: u32) -> bool {
+    handle_from_pid(pid).is_some()
+}
+
 /// Executes a command as a child process and exits with the child's exit code.
 ///
 /// Note that if successful, this function will not return.

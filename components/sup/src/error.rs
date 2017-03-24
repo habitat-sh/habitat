@@ -126,6 +126,8 @@ pub enum Error {
     NulError(ffi::NulError),
     PackageNotFound(package::PackageIdent),
     Permissions(String),
+    ProcessLocked(u32),
+    ProcessLockIO(PathBuf, io::Error),
     ServiceSpecFileRead(String, String),
     ServiceSpecFileWrite(String, String),
     ServiceSpecParse(String),
@@ -202,6 +204,19 @@ impl fmt::Display for SupError {
                     format!("Cannot find a release of package: {}", pkg)
                 }
             }
+            Error::ProcessLocked(ref pid) => {
+                format!("Unable to start Habitat Supervisor because another instance is already \
+                    running with the pid {}. If your intention was to run multiple Supervisors - \
+                    that can be done by setting a value for `--override-name` at startup - but \
+                    it is not recommended.",
+                        pid)
+            }
+            Error::ProcessLockIO(ref path, ref err) => {
+                format!("Unable to start Habitat Supervisor because we weren't able to write or \
+                    read to a process lock at {}, {}",
+                        path.display(),
+                        err)
+            }
             Error::ServiceSpecFileRead(ref path, ref details) => {
                 format!("Service spec file '{}' could not be read successfully: {}",
                         path,
@@ -276,6 +291,8 @@ impl error::Error for SupError {
             Error::NulError(_) => "An attempt was made to build a CString with a null byte inside it",
             Error::PackageNotFound(_) => "Cannot find a package",
             Error::Permissions(_) => "File system permissions error",
+            Error::ProcessLocked(_) => "Another instance of the Habitat Supervisor is already running",
+            Error::ProcessLockIO(_, _) => "Unable to write or read to a process lock",
             Error::ServiceSpecFileRead(_, _) => "Service spec file could not be read successfully",
             Error::ServiceSpecFileWrite(_, _) => "Service spec file could not be written successfully",
             Error::ServiceSpecParse(_) => "Service spec could not be parsed successfully",

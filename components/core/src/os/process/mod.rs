@@ -26,7 +26,7 @@ mod imp;
 #[path = "linux.rs"]
 mod imp;
 
-pub use self::imp::become_command;
+pub use self::imp::{become_command, current_pid, is_alive};
 
 pub enum ShutdownMethod {
     AlreadyExited,
