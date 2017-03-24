@@ -56,7 +56,7 @@ use common::ui::UI;
 use hcore::fs::{self, FS_ROOT_PATH};
 
 use {PRODUCT, VERSION};
-use error::{Error, Result};
+use error::Result;
 use feat;
 use manager::{Manager, ManagerConfig};
 use manager::ServiceSpec;
