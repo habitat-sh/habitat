@@ -56,7 +56,7 @@ use common::ui::UI;
 use hcore::fs::{self, FS_ROOT_PATH};
 
 use {PRODUCT, VERSION};
-use error::{Error, Result};
+use error::Result;
 use feat;
 use manager::{Manager, ManagerConfig};
 use manager::ServiceSpec;
@@ -69,11 +69,8 @@ pub fn package(cfg: ManagerConfig,
                -> Result<()> {
     let mut ui = UI::default();
     if !fs::am_i_root() {
-        ui.warn("Running the Habitat Supervisor requires root or administrator privileges. \
-                   Please retry this command as a super user or use a privilege-granting \
-                   facility such as sudo.")?;
+        ui.warn("Running the Habitat Supervisor with root or superuser privileges is recommended")?;
         ui.br()?;
-        return Err(sup_error!(Error::RootRequired));
     }
 
     // TODO fn: once we remove the `Multi` feature flag a refactoring of this function will clean
