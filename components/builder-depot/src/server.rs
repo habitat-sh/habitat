@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::any::TypeId;
+use std::collections::HashMap;
 use std::fs;
 use std::io::{Read, Write, BufWriter};
 use std::result;
@@ -27,17 +29,19 @@ use bld_core::metrics::*;
 use hab_net::config::RouteAddrs;
 use hab_net::http::controller::*;
 use hab_net::privilege;
-use hab_net::routing::{Broker, BrokerConn};
+use hab_net::routing::{Broker, RouteResult};
 use hab_net::server::NetIdent;
 use hyper::mime::{Mime, TopLevel, SubLevel, Attr, Value};
+use iron::{status, headers, typemap};
 use iron::headers::{ContentType, UserAgent};
+use iron::middleware::BeforeMiddleware;
 use iron::prelude::*;
-use iron::{status, headers};
 use iron::request::Body;
-use iron::typemap;
+use iron::typemap::Key;
 use mount::Mount;
 use persistent;
-use protocol::depotsrv;
+use protobuf::{self, parse_from_bytes};
+use protocol::{depotsrv, Routable};
 use protocol::net::ErrCode;
 use protocol::sessionsrv::{Account, AccountGet};
 use protocol::scheduler::{Group, GroupCreate, GroupGet};
@@ -56,6 +60,45 @@ use error::{Error, Result};
 
 define_event_log!();
 
+#[derive(Default)]
+pub struct TestableBroker {
+    message_map: HashMap<TypeId, Vec<u8>>,
+    cached_messages: HashMap<TypeId, Vec<u8>>,
+}
+
+impl TestableBroker {
+    pub fn setup<M: Routable, R: protobuf::MessageStatic>(&mut self, response: &R) -> Result<()> {
+        let bytes = response.write_to_bytes().unwrap();
+        self.message_map.insert(TypeId::of::<M>(), bytes);
+        Ok(())
+    }
+
+    pub fn messages<M: Routable>(&self) -> Result<M> {
+        let msg_type = &TypeId::of::<M>();
+        match self.cached_messages.get(msg_type) {
+            Some(msg) => {
+                Ok(parse_from_bytes::<M>(msg).expect(&format!("Unable to parse {:?} message",
+                                                              msg_type)))
+            }
+            None => panic!("Unable to find a message of type {:?}", msg_type),
+        }
+    }
+
+    pub fn route<M: Routable, R: protobuf::MessageStatic>(&mut self, msg: &M) -> RouteResult<R> {
+        let bytes = msg.write_to_bytes().unwrap();
+        self.cached_messages.insert(TypeId::of::<M>(), bytes);
+        let msg_type = &TypeId::of::<M>();
+        match self.message_map.get(msg_type) {
+            Some(message) => Ok(parse_from_bytes::<R>(message).unwrap()),
+            None => panic!("Unable to find a message of type {:?}", msg_type),
+        }
+    }
+}
+
+impl Key for TestableBroker {
+    type Value = Self;
+}
+
 #[derive(Clone, Serialize, Deserialize)]
 struct OriginCreateReq {
     name: String,
@@ -72,6 +115,16 @@ struct PackageResults<'a, T: 'a> {
 const PAGINATION_RANGE_DEFAULT: isize = 0;
 const PAGINATION_RANGE_MAX: isize = 50;
 const ONE_YEAR_IN_SECS: usize = 31536000;
+
+fn route_message<M: Routable, R: protobuf::MessageStatic>(req: &mut Request,
+                                                          msg: &M)
+                                                          -> RouteResult<R> {
+    if let Some(broker) = req.extensions.get_mut::<TestableBroker>() {
+        return broker.route::<M, R>(msg);
+    }
+
+    Broker::connect().unwrap().route::<M, R>(msg)
+}
 
 fn package_results_json<T: Serialize>(packages: &Vec<T>,
                                       count: isize,
@@ -131,10 +184,10 @@ pub fn origin_show(req: &mut Request) -> IronResult<Response> {
     }
 }
 
-pub fn get_origin(conn: &mut BrokerConn, origin: &str) -> IronResult<Option<Origin>> {
+pub fn get_origin<T: ToString>(req: &mut Request, origin: T) -> IronResult<Option<Origin>> {
     let mut request = OriginGet::new();
     request.set_name(origin.to_string());
-    match conn.route::<OriginGet, Origin>(&request) {
+    match route_message::<OriginGet, Origin>(req, &request) {
         Ok(origin) => Ok(Some(origin)),
         Err(err) => {
             if err.get_code() == ErrCode::ENTITY_NOT_FOUND {
@@ -148,14 +201,14 @@ pub fn get_origin(conn: &mut BrokerConn, origin: &str) -> IronResult<Option<Orig
     }
 }
 
-pub fn check_origin_access<T: ToString>(conn: &mut BrokerConn,
+pub fn check_origin_access<T: ToString>(req: &mut Request,
                                         account_id: u64,
                                         origin: T)
                                         -> IronResult<bool> {
     let mut request = CheckOriginAccessRequest::new();
     request.set_account_id(account_id);
     request.set_origin_name(origin.to_string());
-    match conn.route::<CheckOriginAccessRequest, CheckOriginAccessResponse>(&request) {
+    match route_message::<CheckOriginAccessRequest, CheckOriginAccessResponse>(req, &request) {
         Ok(response) => Ok(response.get_has_access()),
         Err(err) => {
             let body = serde_json::to_string(&err).unwrap();
@@ -187,7 +240,7 @@ pub fn invite_to_origin(req: &mut Request) -> IronResult<Response> {
     debug!("Creating invitation for user {} origin {}",
            &user_to_invite,
            &origin);
-    if !try!(check_origin_access(&mut conn, session.get_id(), &origin)) {
+    if !try!(check_origin_access(req, session.get_id(), &origin)) {
         return Ok(Response::with(status::Forbidden));
     }
     let mut request = AccountGet::new();
@@ -201,7 +254,7 @@ pub fn invite_to_origin(req: &mut Request) -> IronResult<Response> {
         }
         Err(err) => return Ok(render_net_error(&err)),
     };
-    match try!(get_origin(&mut conn, &origin)) {
+    match try!(get_origin(req, &origin)) {
         Some(mut origin) => {
             invite_request.set_origin_id(origin.get_id());
             invite_request.set_origin_name(origin.take_name());
@@ -227,20 +280,25 @@ pub fn invite_to_origin(req: &mut Request) -> IronResult<Response> {
 }
 
 pub fn list_origin_invitations(req: &mut Request) -> IronResult<Response> {
-    let session = req.extensions.get::<Authenticated>().unwrap();
-    let params = req.extensions.get::<Router>().unwrap();
-    let origin_name = match params.find("origin") {
-        Some(origin) => origin,
-        None => return Ok(Response::with(status::BadRequest)),
-    };
+    let session_id: u64;
+    let origin_name: String;
+    {
+        let session = req.extensions.get::<Authenticated>().unwrap();
+        session_id = session.get_id();
+        let params = req.extensions.get::<Router>().unwrap();
+        origin_name = match params.find("origin") {
+            Some(origin) => origin.to_string(),
+            None => return Ok(Response::with(status::BadRequest)),
+        };
+    }
 
     let mut conn = Broker::connect().unwrap();
-    if !try!(check_origin_access(&mut conn, session.get_id(), &origin_name)) {
+    if !try!(check_origin_access(req, session_id, &origin_name)) {
         return Ok(Response::with(status::Forbidden));
     }
 
     let mut request = OriginInvitationListRequest::new();
-    match try!(get_origin(&mut conn, origin_name)) {
+    match try!(get_origin(req, origin_name.as_str())) {
         Some(origin) => request.set_origin_id(origin.get_id()),
         None => return Ok(Response::with(status::NotFound)),
     };
@@ -256,20 +314,26 @@ pub fn list_origin_invitations(req: &mut Request) -> IronResult<Response> {
 }
 
 pub fn list_origin_members(req: &mut Request) -> IronResult<Response> {
-    let session = req.extensions.get::<Authenticated>().unwrap();
-    let params = req.extensions.get::<Router>().unwrap();
-    let origin_name = match params.find("origin") {
-        Some(origin) => origin,
-        None => return Ok(Response::with(status::BadRequest)),
-    };
+    let session_id: u64;
+    let origin_name: String;
+    {
+        let session = req.extensions.get::<Authenticated>().unwrap();
+        session_id = session.get_id();
+        let params = req.extensions.get::<Router>().unwrap();
+        origin_name = match params.find("origin") {
+            Some(origin) => origin.to_string(),
+            None => return Ok(Response::with(status::BadRequest)),
+        };
+    }
+
     let mut conn = Broker::connect().unwrap();
 
-    if !try!(check_origin_access(&mut conn, session.get_id(), &origin_name)) {
+    if !try!(check_origin_access(req, session_id, &origin_name)) {
         return Ok(Response::with(status::Forbidden));
     }
 
     let mut request = OriginMemberListRequest::new();
-    match try!(get_origin(&mut conn, origin_name)) {
+    match try!(get_origin(req, origin_name.as_str())) {
         Some(origin) => request.set_origin_id(origin.get_id()),
         None => return Ok(Response::with(status::NotFound)),
     };
@@ -324,10 +388,10 @@ fn upload_origin_key(req: &mut Request) -> IronResult<Response> {
 
     let origin = match params.find("origin") {
         Some(origin) => {
-            if !try!(check_origin_access(&mut conn, session.get_id(), origin)) {
+            if !try!(check_origin_access(req, session.get_id(), origin)) {
                 return Ok(Response::with(status::Forbidden));
             }
-            match get_origin(&mut conn, origin)? {
+            match get_origin(req, origin)? {
                 Some(mut origin) => {
                     request.set_name(origin.take_name());
                     request.set_origin_id(origin.get_id());
@@ -395,11 +459,13 @@ fn upload_origin_key(req: &mut Request) -> IronResult<Response> {
 }
 
 fn download_latest_origin_secret_key(req: &mut Request) -> IronResult<Response> {
-    let params = req.extensions.get::<Router>().unwrap();
+    let origin = {
+        let params = req.extensions.get::<Router>().unwrap();
+        params.find("origin").unwrap().to_owned()
+    };
     let mut conn = Broker::connect().unwrap();
     let mut request = OriginSecretKeyGet::new();
-    let origin = params.find("origin").unwrap();
-    match try!(get_origin(&mut conn, origin)) {
+    match try!(get_origin(req, origin)) {
         Some(mut origin) => {
             request.set_owner_id(origin.get_owner_id());
             request.set_origin(origin.take_name());
@@ -429,10 +495,10 @@ fn upload_origin_secret_key(req: &mut Request) -> IronResult<Response> {
 
     let origin = match params.find("origin") {
         Some(origin) => {
-            if !try!(check_origin_access(&mut conn, session.get_id(), origin)) {
+            if !try!(check_origin_access(req, session.get_id(), origin)) {
                 return Ok(Response::with(status::Forbidden));
             }
-            match try!(get_origin(&mut conn, origin)) {
+            match try!(get_origin(req, origin)) {
                 Some(mut origin) => {
                     request.set_name(origin.take_name());
                     request.set_origin_id(origin.get_id());
@@ -510,8 +576,6 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
         return Ok(Response::with(status::BadRequest));
     }
 
-    let mut conn = Broker::connect().unwrap();
-
     debug!("UPLOADING checksum={}, ident={}",
            checksum_from_param,
            ident);
@@ -522,7 +586,7 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
         .unwrap()
         .clone();
     if !depot.config.insecure {
-        if !try!(check_origin_access(&mut conn, session.get_id(), &ident.get_origin())) {
+        if !try!(check_origin_access(req, session.get_id(), &ident.get_origin())) {
             return Ok(Response::with(status::Forbidden));
         }
         if !ident.fully_qualified() {
@@ -806,24 +870,29 @@ fn download_package(req: &mut Request) -> IronResult<Response> {
 }
 
 fn list_origin_keys(req: &mut Request) -> IronResult<Response> {
-    let session = req.extensions.get::<Authenticated>().unwrap();
-    let params = req.extensions.get::<Router>().unwrap();
-    let origin_name = match params.find("origin") {
-        Some(origin) => origin,
-        None => return Ok(Response::with(status::BadRequest)),
-    };
-    let mut conn = Broker::connect().unwrap();
+    let session_id: u64;
+    let origin_name: String;
+    {
+        let session = req.extensions.get::<Authenticated>().unwrap();
+        session_id = session.get_id();
 
-    if !try!(check_origin_access(&mut conn, session.get_id(), &origin_name)) {
+        let params = req.extensions.get::<Router>().unwrap();
+        origin_name = match params.find("origin") {
+            Some(origin) => origin.to_string(),
+            None => return Ok(Response::with(status::BadRequest)),
+        }
+    };
+
+    if !try!(check_origin_access(req, session_id, &origin_name)) {
         return Ok(Response::with(status::Forbidden));
     }
 
     let mut request = OriginPublicKeyListRequest::new();
-    match try!(get_origin(&mut conn, origin_name)) {
+    match try!(get_origin(req, origin_name.as_str())) {
         Some(origin) => request.set_origin_id(origin.get_id()),
         None => return Ok(Response::with(status::NotFound)),
     };
-    match conn.route::<OriginPublicKeyListRequest, OriginPublicKeyListResponse>(&request) {
+    match route_message::<OriginPublicKeyListRequest, OriginPublicKeyListResponse>(req, &request) {
         Ok(list) => {
             let list: Vec<depotsrv::OriginKeyIdent> = list.get_keys()
                 .iter()
@@ -904,83 +973,95 @@ fn list_packages(req: &mut Request) -> IronResult<Response> {
         Ok(range) => range,
         Err(response) => return Ok(response),
     };
-    let params = req.extensions.get::<Router>().unwrap();
 
-    let origin = match params.find("origin") {
-        Some(origin) => origin.to_string(),
-        _ => return Ok(Response::with(status::BadRequest)),
+    let (origin, ident, channel) = {
+        let params = req.extensions.get::<Router>().unwrap();
+
+        let origin = match params.find("origin") {
+            Some(origin) => origin.to_string(),
+            _ => return Ok(Response::with(status::BadRequest)),
+        };
+
+        let ident: String = if params.find("pkg").is_none() {
+            origin.clone()
+        } else {
+            ident_from_params(params).to_string()
+        };
+
+        let channel = match params.find("channel") {
+            Some(ch) => Some(ch.to_string()),
+            None => None,
+        };
+
+        (origin, ident, channel)
     };
 
     // let's make sure this origin actually exists
-    let mut conn = Broker::connect().unwrap();
-    if try!(get_origin(&mut conn, &origin)).is_none() {
+    if try!(get_origin(req, &origin)).is_none() {
         return Ok(Response::with(status::NotFound));
     }
 
-    let ident: String = if params.find("pkg").is_none() {
-        origin.clone()
-    } else {
-        ident_from_params(params).to_string()
-    };
+    match channel {
+        Some(channel) => {
+            // let's make sure this channel actually exists
+            if !depot.datastore.channels.channel_exists(&origin, &channel) {
+                return Ok(Response::with(status::NotFound));
+            }
 
-    if let Some(channel) = params.find("channel") {
-        // let's make sure this channel actually exists
-        if !depot.datastore.channels.channel_exists(&origin, &channel) {
-            return Ok(Response::with(status::NotFound));
+            let packages =
+                depot.datastore.channels.all_packages(&origin, &channel, &ident, start, stop);
+            let count = packages.len();
+            let body = package_results_json(&packages, count as isize, start, stop);
+
+            let mut response = if count as isize > (stop + 1) {
+                Response::with((status::PartialContent, body))
+            } else {
+                Response::with((status::Ok, body))
+            };
+
+            response.headers.set(ContentType(Mime(TopLevel::Application,
+                                                  SubLevel::Json,
+                                                  vec![(Attr::Charset, Value::Utf8)])));
+
+            dont_cache_response(&mut response);
+            Ok(response)
         }
+        None => {
+            match depot.datastore
+                      .packages
+                      .index
+                      .list(&ident, start, stop) {
+                Ok(packages) => {
+                    let count = depot.datastore
+                        .packages
+                        .index
+                        .count(&ident)
+                        .unwrap();
+                    debug!("list_packages start: {}, stop: {}, total count: {}",
+                           start,
+                           stop,
+                           count);
+                    let body = package_results_json(&packages, count as isize, start, stop);
 
-        let packages =
-            depot.datastore.channels.all_packages(&origin, &channel, &ident, start, stop);
-        let count = packages.len();
-        let body = package_results_json(&packages, count as isize, start, stop);
+                    let mut response = if count as isize > (stop + 1) {
+                        Response::with((status::PartialContent, body))
+                    } else {
+                        Response::with((status::Ok, body))
+                    };
 
-        let mut response = if count as isize > (stop + 1) {
-            Response::with((status::PartialContent, body))
-        } else {
-            Response::with((status::Ok, body))
-        };
-
-        response.headers.set(ContentType(Mime(TopLevel::Application,
-                                              SubLevel::Json,
-                                              vec![(Attr::Charset, Value::Utf8)])));
-
-        dont_cache_response(&mut response);
-        Ok(response)
-    } else {
-        match depot.datastore
-                  .packages
-                  .index
-                  .list(&ident, start, stop) {
-            Ok(packages) => {
-                let count = depot.datastore
-                    .packages
-                    .index
-                    .count(&ident)
-                    .unwrap();
-                debug!("list_packages start: {}, stop: {}, total count: {}",
-                       start,
-                       stop,
-                       count);
-                let body = package_results_json(&packages, count as isize, start, stop);
-
-                let mut response = if count as isize > (stop + 1) {
-                    Response::with((status::PartialContent, body))
-                } else {
-                    Response::with((status::Ok, body))
-                };
-
-                response.headers.set(ContentType(Mime(TopLevel::Application,
-                                                      SubLevel::Json,
-                                                      vec![(Attr::Charset, Value::Utf8)])));
-                dont_cache_response(&mut response);
-                Ok(response)
-            }
-            Err(Error::DataStore(dbcache::Error::EntityNotFound)) => {
-                Ok(Response::with((status::NotFound)))
-            }
-            Err(e) => {
-                error!("list_packages:2, err={:?}", e);
-                Ok(Response::with(status::InternalServerError))
+                    response.headers.set(ContentType(Mime(TopLevel::Application,
+                                                          SubLevel::Json,
+                                                          vec![(Attr::Charset, Value::Utf8)])));
+                    dont_cache_response(&mut response);
+                    Ok(response)
+                }
+                Err(Error::DataStore(dbcache::Error::EntityNotFound)) => {
+                    Ok(Response::with((status::NotFound)))
+                }
+                Err(e) => {
+                    error!("list_packages:2, err={:?}", e);
+                    Ok(Response::with(status::InternalServerError))
+                }
             }
         }
     }
@@ -1005,27 +1086,31 @@ fn list_channels(req: &mut Request) -> IronResult<Response> {
 fn create_channel(req: &mut Request) -> IronResult<Response> {
     let lock = req.get::<persistent::State<Depot>>().expect("depot not found");
     let mut depot = lock.write().expect("depot write lock is poisoned");
-    let params = req.extensions.get::<Router>().unwrap();
-    let session = req.extensions.get::<Authenticated>().unwrap();
 
-    let origin = match params.find("origin") {
-        Some(origin) => origin.to_string(),
-        _ => return Ok(Response::with(status::BadRequest)),
-    };
-
-    let channel = match params.find("channel") {
-        Some(channel) => channel.to_string(),
-        _ => return Ok(Response::with(status::BadRequest)),
-    };
+    let session_id: u64;
+    let origin: String;
+    let channel: String;
+    {
+        let session = req.extensions.get::<Authenticated>().unwrap();
+        session_id = session.get_id();
+        let params = req.extensions.get::<Router>().unwrap();
+        origin = match params.find("origin") {
+            Some(origin) => origin.to_string(),
+            _ => return Ok(Response::with(status::BadRequest)),
+        };
+        channel = match params.find("channel") {
+            Some(channel) => channel.to_string(),
+            _ => return Ok(Response::with(status::BadRequest)),
+        };
+    }
 
     // let's make sure this origin actually exists
-    let mut conn = Broker::connect().unwrap();
-    if try!(get_origin(&mut conn, &origin)).is_none() {
+    if try!(get_origin(req, &origin)).is_none() {
         return Ok(Response::with(status::NotFound));
     }
 
     // make sure the person trying to create the channel has access to do so
-    if !try!(check_origin_access(&mut conn, session.get_id(), &origin)) {
+    if !try!(check_origin_access(req, session_id, &origin)) {
         return Ok(Response::with(status::Forbidden));
     }
 
@@ -1039,27 +1124,31 @@ fn create_channel(req: &mut Request) -> IronResult<Response> {
 fn delete_channel(req: &mut Request) -> IronResult<Response> {
     let lock = req.get::<persistent::State<Depot>>().expect("depot not found");
     let mut depot = lock.write().expect("depot write lock is poisoned");
-    let params = req.extensions.get::<Router>().unwrap();
-    let session = req.extensions.get::<Authenticated>().unwrap();
 
-    let origin = match params.find("origin") {
-        Some(origin) => origin.to_string(),
-        _ => return Ok(Response::with(status::BadRequest)),
-    };
-
-    let channel = match params.find("channel") {
-        Some(channel) => channel.to_string(),
-        _ => return Ok(Response::with(status::BadRequest)),
-    };
+    let session_id: u64;
+    let origin: String;
+    let channel: String;
+    {
+        let session = req.extensions.get::<Authenticated>().unwrap();
+        session_id = session.get_id();
+        let params = req.extensions.get::<Router>().unwrap();
+        origin = match params.find("origin") {
+            Some(origin) => origin.to_string(),
+            _ => return Ok(Response::with(status::BadRequest)),
+        };
+        channel = match params.find("channel") {
+            Some(channel) => channel.to_string(),
+            _ => return Ok(Response::with(status::BadRequest)),
+        };
+    }
 
     // let's make sure this origin actually exists
-    let mut conn = Broker::connect().unwrap();
-    if try!(get_origin(&mut conn, &origin)).is_none() {
+    if try!(get_origin(req, &origin)).is_none() {
         return Ok(Response::with(status::NotFound));
     }
 
     // make sure the person trying to create the channel has access to do so
-    if !try!(check_origin_access(&mut conn, session.get_id(), &origin)) {
+    if !try!(check_origin_access(req, session_id, &origin)) {
         return Ok(Response::with(status::Forbidden));
     }
 
@@ -1075,28 +1164,38 @@ fn delete_channel(req: &mut Request) -> IronResult<Response> {
 fn show_package(req: &mut Request) -> IronResult<Response> {
     let lock = req.get::<persistent::State<Depot>>().expect("depot not found");
     let mut depot = lock.write().expect("depot read lock is poisoned");
-    let params = req.extensions.get::<Router>().unwrap();
-    let mut ident = ident_from_params(params);
 
-    let origin = match params.find("origin") {
-        Some(origin) => origin.to_string(),
-        _ => return Ok(Response::with(status::BadRequest)),
+    let (origin, mut ident, channel) = {
+        let params = req.extensions.get::<Router>().unwrap();
+
+        let origin = match params.find("origin") {
+            Some(origin) => origin.to_string(),
+            _ => return Ok(Response::with(status::BadRequest)),
+        };
+
+        let ident = ident_from_params(params);
+
+        let channel = match params.find("channel") {
+            Some(ch) => Some(ch.to_owned()),
+            None => None,
+        };
+
+        (origin, ident, channel)
     };
 
     // let's make sure this origin actually exists
-    let mut conn = Broker::connect().unwrap();
-    if try!(get_origin(&mut conn, &origin)).is_none() {
+    if try!(get_origin(req, &origin)).is_none() {
         return Ok(Response::with(status::NotFound));
     }
 
-    if let Some(channel) = params.find("channel") {
+    if let Some(channel) = channel {
         // let's make sure this channel actually exists
         if !depot.datastore.channels.channel_exists(&origin, &channel) {
             return Ok(Response::with(status::NotFound));
         }
 
         if !ident.fully_qualified() {
-            match depot.datastore.channels.latest(&origin, channel, &ident.to_string()) {
+            match depot.datastore.channels.latest(&origin, channel.as_str(), &ident.to_string()) {
                 Some(ident) => {
                     match depot.datastore.packages.find(&ident) {
                         Ok(pkg) => render_package(&pkg, false),
@@ -1223,19 +1322,15 @@ fn render_package(pkg: &depotsrv::Package, should_cache: bool) -> IronResult<Res
 fn promote_package(req: &mut Request) -> IronResult<Response> {
     let lock = req.get::<persistent::State<Depot>>().expect("depot not found");
     let mut depot = lock.write().expect("depot write lock is poisoned");
-    let session = req.extensions.get::<Authenticated>().unwrap();
-    let (channel, ident) = {
+    let (channel, origin, mut ident, session_id) = {
+        let session = req.extensions.get::<Authenticated>().unwrap();
+        let session_id = session.get_id();
+
         let params = req.extensions.get::<Router>().unwrap();
         let origin = match params.find("origin") {
             Some(o) => o.to_string(),
             _ => return Ok(Response::with(status::BadRequest)),
         };
-
-        let mut conn = Broker::connect().unwrap();
-
-        if try!(get_origin(&mut conn, &origin)).is_none() {
-            return Ok(Response::with(status::NotFound));
-        }
 
         let channel = match params.find("channel") {
             Some(c) => c.to_string(),
@@ -1258,18 +1353,21 @@ fn promote_package(req: &mut Request) -> IronResult<Response> {
         };
 
         let mut ident = depotsrv::PackageIdent::new();
-        ident.set_origin(origin);
         ident.set_name(pkg);
         ident.set_version(version);
         ident.set_release(release);
 
-        (channel, ident)
+        (channel, origin, ident, session_id)
     };
-    let mut conn = Broker::connect().unwrap();
+
+    if try!(get_origin(req, &origin)).is_none() {
+        return Ok(Response::with(status::NotFound));
+    }
+    ident.set_origin(origin);
 
     match depot.datastore.channels.channel_exists(&ident.get_origin(), &channel) {
         true => {
-            if !try!(check_origin_access(&mut conn, session.get_id(), &ident.get_origin())) {
+            if !try!(check_origin_access(req, session_id, &ident.get_origin())) {
                 return Ok(Response::with(status::Forbidden));
             }
 
@@ -1367,10 +1465,8 @@ fn dont_cache_response(response: &mut Response) {
     response.headers.set(CacheControl(format!("private, no-cache, no-store")));
 }
 
-pub fn router(depot: Depot) -> Result<Chain> {
-    let basic = Authenticated::new(&depot.config);
-    let worker = Authenticated::new(&depot.config).require(privilege::BUILD_WORKER);
-    let router = router!(
+pub fn routes<M: BeforeMiddleware + Clone>(insecure: bool, basic: M, worker: M) -> Router {
+    router!(
         channels: get "/channels/:origin" => list_channels,
         channel_packages: get "/channels/:origin/:channel/pkgs" => list_packages,
         channel_packages_pkg: get "/channels/:origin/:channel/pkgs/:pkg" => list_packages,
@@ -1404,14 +1500,14 @@ pub fn router(depot: Depot) -> Result<Chain> {
             download_package
         },
         package_upload: post "/pkgs/:origin/:pkg/:version/:release" => {
-            if depot.config.insecure {
+            if insecure {
                 XHandler::new(upload_package)
             } else {
                 XHandler::new(upload_package).before(basic.clone())
             }
         },
         schedule: post "/pkgs/schedule/:origin/:pkg" => {
-            if depot.config.insecure {
+            if insecure {
                 XHandler::new(schedule)
             } else {
                 XHandler::new(schedule).before(basic.clone())
@@ -1428,7 +1524,7 @@ pub fn router(depot: Depot) -> Result<Chain> {
         origin_key_latest: get "/origins/:origin/keys/latest" => download_latest_origin_key,
         origin_key: get "/origins/:origin/keys/:revision" => download_origin_key,
         origin_key_create: post "/origins/:origin/keys/:revision" => {
-            if depot.config.insecure {
+            if insecure {
                 XHandler::new(upload_origin_key)
             } else {
                 XHandler::new(upload_origin_key).before(basic.clone())
@@ -1438,7 +1534,7 @@ pub fn router(depot: Depot) -> Result<Chain> {
             XHandler::new(upload_origin_secret_key).before(basic.clone())
         },
         origin_secret_key_latest: get "/origins/:origin/secret_keys/latest" => {
-            if depot.config.insecure {
+            if insecure {
                 XHandler::new(download_latest_origin_secret_key)
             } else {
                 XHandler::new(download_latest_origin_secret_key).before(worker.clone())
@@ -1453,7 +1549,13 @@ pub fn router(depot: Depot) -> Result<Chain> {
         origin_users: get "/origins/:origin/users" => {
             XHandler::new(list_origin_members).before(basic.clone())
         }
-    );
+    )
+}
+
+pub fn router(depot: Depot) -> Result<Chain> {
+    let basic = Authenticated::new(&depot.config);
+    let worker = Authenticated::new(&depot.config).require(privilege::BUILD_WORKER);
+    let router = routes(depot.config.insecure, basic, worker);
     let mut chain = Chain::new(router);
     chain.link(persistent::Read::<EventLog>::both(EventLogger::new(&depot.config.log_dir,
                                                                    depot.config.events_enabled)));
@@ -1481,5 +1583,112 @@ impl From<Error> for IronError {
             error: Box::new(err),
             response: Response::with((status::InternalServerError, "Internal Habitat error")),
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+
+    use iron::{self, method, Handler, Headers, Request, Url};
+    use iron::middleware::BeforeMiddleware;
+    use iron::prelude::*;
+    use iron_test::mock_stream::MockStream;
+    use iron_test::response;
+    use hyper;
+    use hyper::net::NetworkStream;
+    use hyper::buffer::BufReader;
+    use protocol::sessionsrv::Session;
+    use protobuf;
+
+    use std::io::Cursor;
+
+    use super::*;
+
+    #[derive(Clone)]
+    pub struct AuthenticatedTest;
+
+    impl BeforeMiddleware for AuthenticatedTest {
+        fn before(&self, req: &mut Request) -> IronResult<()> {
+            Ok(())
+        }
+    }
+
+    fn iron_request(method: method::Method,
+                    path: &str,
+                    body: &str,
+                    headers: Headers,
+                    broker: TestableBroker)
+                    -> IronResult<Response> {
+        let url = Url::parse(path).unwrap();
+        let mut buffer = String::new();
+        buffer.push_str(&format!("{} {} HTTP/1.1\r\n", &method, url));
+        buffer.push_str(&format!("Content-Length: {}\r\n", body.len() as u64));
+        for header in headers.iter() {
+            buffer.push_str(&format!("{}: {}\r\n", header.name(), header.value_string()));
+        }
+        buffer.push_str("\r\n");
+        let mut stream = MockStream::new(Cursor::new(buffer.as_bytes().to_vec()));
+        let mut buf_reader = BufReader::new(&mut stream as &mut NetworkStream);
+
+        let addr = "127.0.0.1:3000".parse().unwrap();
+        let http_request = hyper::server::Request::new(&mut buf_reader, addr).unwrap();
+        let mut req = Request::from_http(http_request, addr, &iron::Protocol::http()).unwrap();
+
+        req.extensions.insert::<Authenticated>(Session::new());
+        req.extensions.insert::<TestableBroker>(broker);
+
+        let basic = AuthenticatedTest;
+        let worker = AuthenticatedTest;
+        routes(true, basic, worker).handle(&mut req)
+    }
+
+    #[test]
+    fn list_public_keys() {
+        let mut broker: TestableBroker = Default::default();
+
+        let mut access_res = CheckOriginAccessResponse::new();
+        access_res.set_has_access(true);
+        broker.setup::<CheckOriginAccessRequest, CheckOriginAccessResponse>(&access_res);
+
+        let mut origin_res = Origin::new();
+        origin_res.set_id(5000);
+        broker.setup::<OriginGet, Origin>(&origin_res);
+
+        let mut key_res = OriginPublicKeyListResponse::new();
+        let mut keys = protobuf::RepeatedField::new();
+
+        let mut key = OriginPublicKey::new();
+        key.set_name("my_name".to_string());
+        key.set_revision("my_rev".to_string());
+        keys.push(key);
+
+        let mut key2 = OriginPublicKey::new();
+        key2.set_name("my_name2".to_string());
+        key2.set_revision("my_rev2".to_string());
+        keys.push(key2);
+
+        key_res.set_keys(keys);
+        broker.setup::<OriginPublicKeyListRequest, OriginPublicKeyListResponse>(&key_res);
+
+        let response = iron_request(method::Get,
+                                    "http://localhost/origins/org/keys",
+                                    "",
+                                    Headers::new(),
+                                    broker);
+        let result_body = response::extract_body_to_string(response.unwrap());
+
+        assert_eq!(result_body,
+                   "[\
+            {\
+                \"origin\":\"my_name\",\
+                \"revision\":\"my_rev\",\
+                \"location\":\"/origins/my_name/keys/my_rev\"\
+            },\
+            {\
+                \"origin\":\"my_name2\",\
+                \"revision\":\"my_rev2\",\
+                \"location\":\"/origins/my_name2/keys/my_rev2\"\
+            }\
+        ]");
     }
 }
