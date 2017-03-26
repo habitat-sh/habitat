@@ -42,7 +42,6 @@ use std::error;
 use std::ffi;
 use std::fmt;
 use std::net;
-use std::num;
 use std::path::PathBuf;
 use std::result;
 use std::str;
@@ -105,8 +104,6 @@ pub enum Error {
     BadDataPath(PathBuf, io::Error),
     BadSpecsPath(PathBuf, io::Error),
     ButterflyError(butterfly::error::Error),
-    CommandNotImplemented,
-    DbInvalidPath,
     DepotClient(depot_client::Error),
     EnvJoinPathsError(env::JoinPathsError),
     ExecCommandNotFound(String),
@@ -118,31 +115,22 @@ pub enum Error {
     InvalidBinding(String),
     InvalidKeyParameter(String),
     InvalidPidFile,
-    InvalidPort(num::ParseIntError),
-    InvalidServiceGroupString(String),
     InvalidTopology(String),
     InvalidUpdateStrategy(String),
     Io(io::Error),
     IPFailed,
-    KeyNotFound(String),
-    MetaFileIO(io::Error),
     MissingRequiredBind(Vec<String>),
     MissingRequiredIdent,
     NameLookup(io::Error),
     NetParseError(net::AddrParseError),
-    NoRunFile,
     NulError(ffi::NulError),
-    PackageArchiveMalformed(String),
     PackageNotFound(package::PackageIdent),
     Permissions(String),
-    RemotePackageNotFound(package::PackageIdent),
-    RootRequired,
     ServiceSpecFileRead(String, String),
     ServiceSpecFileWrite(String, String),
     ServiceSpecParse(String),
     ServiceSpecRender(String),
     SignalFailed,
-    SignalNotifierStarted,
     SpecWatcherDirNotFound(String),
     SpecWatcherGlob(glob::PatternError),
     SpecWatcherNotify(notify::Error),
@@ -184,8 +172,6 @@ impl fmt::Display for SupError {
             Error::HabitatCore(ref err) => format!("{}", err),
             Error::TemplateFileError(ref err) => format!("{:?}", err),
             Error::TemplateRenderError(ref err) => format!("{}", err),
-            Error::CommandNotImplemented => format!("Command is not yet implemented!"),
-            Error::DbInvalidPath => format!("Invalid filepath to internal datastore"),
             Error::DepotClient(ref err) => format!("{}", err),
             Error::EnvJoinPathsError(ref err) => format!("{}", err),
             Error::FileNotFound(ref e) => format!("File not found at: {}", e),
@@ -197,50 +183,24 @@ impl fmt::Display for SupError {
             Error::InvalidKeyParameter(ref e) => {
                 format!("Invalid parameter for key generation: {:?}", e)
             }
-            Error::InvalidPort(ref e) => {
-                format!("Invalid port number in package expose metadata: {}", e)
-            }
             Error::InvalidPidFile => format!("Invalid child process PID file"),
-            Error::InvalidServiceGroupString(ref e) => {
-                format!("Invalid service group string: {}", e)
-            }
             Error::InvalidTopology(ref t) => format!("Invalid topology: {}", t),
             Error::InvalidUpdateStrategy(ref s) => format!("Invalid update strategy: {}", s),
             Error::Io(ref err) => format!("{}", err),
             Error::IPFailed => format!("Failed to discover this hosts outbound IP address"),
-            Error::KeyNotFound(ref e) => format!("Key not found in key cache: {}", e),
             Error::MissingRequiredBind(ref e) => {
                 format!("Missing required bind(s), {}", e.join(", "))
             }
             Error::MissingRequiredIdent => format!("Missing required ident field: (example: ident = \"core/redis\")"),
-            Error::MetaFileIO(ref e) => format!("IO error while accessing MetaFile: {:?}", e),
             Error::NameLookup(ref e) => format!("Error resolving a name or IP address: {}", e),
             Error::NetParseError(ref e) => format!("Can't parse ip:port: {}", e),
-            Error::NoRunFile => {
-                format!("No run file is present for this package; specify a run hook or \
-                         $pkg_svc_run in your plan")
-            }
             Error::NulError(ref e) => format!("{}", e),
-            Error::PackageArchiveMalformed(ref e) => {
-                format!("Package archive was unreadable or contained unexpected contents: {:?}",
-                        e)
-            }
             Error::PackageNotFound(ref pkg) => {
                 if pkg.fully_qualified() {
                     format!("Cannot find package: {}", pkg)
                 } else {
                     format!("Cannot find a release of package: {}", pkg)
                 }
-            }
-            Error::RemotePackageNotFound(ref pkg) => {
-                if pkg.fully_qualified() {
-                    format!("Cannot find package in any sources: {}", pkg)
-                } else {
-                    format!("Cannot find a release of package in any sources: {}", pkg)
-                }
-            }
-            Error::RootRequired => {
-                "Root or administrator permissions required to complete operation".to_string()
             }
             Error::ServiceSpecFileRead(ref path, ref details) => {
                 format!("Service spec file '{}' could not be read successfully: {}",
@@ -260,7 +220,6 @@ impl fmt::Display for SupError {
                         details)
             }
             Error::SignalFailed => format!("Failed to send a signal to the child process"),
-            Error::SignalNotifierStarted => format!("Only one instance of a Signal Notifier may be running"),
             Error::SpecWatcherDirNotFound(ref path) => {
                 format!("Spec directory '{}' not created or is not a directory",
                         path)
@@ -300,42 +259,28 @@ impl error::Error for SupError {
             Error::TemplateRenderError(ref err) => err.description(),
             Error::HabitatCommon(ref err) => err.description(),
             Error::HabitatCore(ref err) => err.description(),
-            Error::CommandNotImplemented => "Command is not yet implemented!",
-            Error::DbInvalidPath => "A bad filepath was provided for an internal datastore",
             Error::DepotClient(ref err) => err.description(),
             Error::EnvJoinPathsError(ref err) => err.description(),
             Error::FileNotFound(_) => "File not found",
             Error::InvalidBinding(_) => "Invalid binding parameter",
             Error::InvalidKeyParameter(_) => "Key parameter error",
-            Error::InvalidPort(_) => "Invalid port number in package expose metadata",
             Error::InvalidPidFile => "Invalid child process PID file",
-            Error::InvalidServiceGroupString(_) => "Service group strings must be in service.group format (example: redis.default)",
             Error::InvalidTopology(_) => "Invalid topology",
             Error::InvalidUpdateStrategy(_) => "Invalid update strategy",
             Error::Io(ref err) => err.description(),
             Error::IPFailed => "Failed to discover the outbound IP address",
-            Error::KeyNotFound(_) => "Key not found in key cache",
             Error::MissingRequiredBind(_) => "A service to start without specifying a service group for all required binds",
             Error::MissingRequiredIdent => "Missing required ident field: (example: ident = \"core/redis\")",
-            Error::MetaFileIO(_) => "MetaFile could not be read or written to",
             Error::NetParseError(_) => "Can't parse IP:port",
             Error::NameLookup(_) => "Error resolving a name or IP address",
-            Error::NoRunFile => {
-                "No run file is present for this package; specify a run hook or $pkg_svc_run \
-                 in your plan"
-            }
             Error::NulError(_) => "An attempt was made to build a CString with a null byte inside it",
-            Error::PackageArchiveMalformed(_) => "Package archive was unreadable or had unexpected contents",
             Error::PackageNotFound(_) => "Cannot find a package",
             Error::Permissions(_) => "File system permissions error",
-            Error::RemotePackageNotFound(_) => "Cannot find a package in any sources",
-            Error::RootRequired => "Root or administrator permissions required to complete operation",
             Error::ServiceSpecFileRead(_, _) => "Service spec file could not be read successfully",
             Error::ServiceSpecFileWrite(_, _) => "Service spec file could not be written successfully",
             Error::ServiceSpecParse(_) => "Service spec could not be parsed successfully",
             Error::ServiceSpecRender(_) => "Service spec TOML could not be rendered successfully",
             Error::SignalFailed => "Failed to send a signal to the child process",
-            Error::SignalNotifierStarted => "Only one instance of a Signal Notifier may be running",
             Error::SpecWatcherDirNotFound(_) => "Spec directory not created or is not a directory",
             Error::SpecWatcherGlob(_) => "Spec watcher file globbing error",
             Error::SpecWatcherNotify(_) => "Spec watcher error",
