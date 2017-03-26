@@ -19,8 +19,8 @@ pub mod service_updater;
 pub mod spec_watcher;
 
 use std::collections::HashMap;
-use std::fs::{self, File};
-use std::io::{BufWriter, Read, Write};
+use std::fs::{self, File, OpenOptions};
+use std::io::{BufRead, BufReader, BufWriter, Read, Write};
 use std::net::SocketAddr;
 use std::path::{Path, PathBuf};
 use std::thread;
@@ -34,6 +34,7 @@ use butterfly::server::timing::Timing;
 use butterfly::server::Suitability;
 use hcore::crypto::{default_cache_key_path, SymKey};
 use hcore::service::ServiceGroup;
+use hcore::os::process;
 use serde_json;
 use time::{SteadyTime, Duration as TimeDuration};
 use toml;
@@ -50,6 +51,8 @@ use http_gateway;
 
 const STATE_PATH_PREFIX: &'static str = "/hab/sup";
 const MEMBER_ID_FILE: &'static str = "MEMBER_ID";
+const PROC_LOCK_FILE: &'static str = "LOCK";
+
 static LOGKEY: &'static str = "MR";
 
 /// FileSystem paths that the Manager uses to persist data to disk.
@@ -62,18 +65,23 @@ pub struct FsCfg {
     pub butterfly_data_path: PathBuf,
     pub census_data_path: PathBuf,
     pub services_data_path: PathBuf,
+    pub specs_path: PathBuf,
+    pub proc_lock_file: PathBuf,
 }
 
 impl FsCfg {
-    pub fn new<T>(data_path: T) -> Self
+    pub fn new<T>(sup_svc_root: T) -> Self
         where T: Into<PathBuf>
     {
-        let data_path: PathBuf = data_path.into();
+        let sup_svc_root = sup_svc_root.into();
+        let data_path = sup_svc_root.join("data");
         FsCfg {
             butterfly_data_path: data_path.join("butterfly.dat"),
             census_data_path: data_path.join("census.dat"),
             services_data_path: data_path.join("services.dat"),
+            specs_path: sup_svc_root.join("specs"),
             data_path: data_path,
+            proc_lock_file: sup_svc_root.join(PROC_LOCK_FILE),
         }
     }
 
@@ -110,11 +118,13 @@ impl Manager {
         Self::create_state_path_dirs(&state_path)?;
         Self::clean_dirty_state(&state_path)?;
         let member = Self::load_member(&state_path)?;
+        let fs_cfg = FsCfg::new(state_path);
+        obtain_process_lock(&fs_cfg)?;
 
-        Self::new(cfg, member, state_path)
+        Self::new(cfg, member, fs_cfg)
     }
 
-    pub fn new(cfg: ManagerConfig, mut member: Member, state_path: PathBuf) -> Result<Manager> {
+    pub fn new(cfg: ManagerConfig, mut member: Member, fs_cfg: FsCfg) -> Result<Manager> {
         member.set_persistent(cfg.gossip_permanent);
         member.set_swim_port(cfg.gossip_listen.port() as i32);
         member.set_gossip_port(cfg.gossip_listen.port() as i32);
@@ -134,7 +144,7 @@ impl Manager {
                                             Trace::default(),
                                             ring_key,
                                             None,
-                                            Some(Self::data_path(&state_path)),
+                                            Some(&fs_cfg.data_path),
                                             Box::new(SuitabilityLookup(services.clone())))?;
         outputln!("Butterfly Member ID {}", server.member_id());
         for peer_addr in &cfg.gossip_peers {
@@ -148,9 +158,9 @@ impl Manager {
                updater: ServiceUpdater::new(server.clone()),
                butterfly: server,
                census_list: CensusList::new(),
-               fs_cfg: Arc::new(FsCfg::new(&Self::data_path(&state_path))),
                services: services,
-               watcher: SpecWatcher::run(Self::specs_path(&state_path))?,
+               watcher: SpecWatcher::run(&fs_cfg.specs_path)?,
+               fs_cfg: Arc::new(fs_cfg),
                gossip_listen: cfg.gossip_listen,
                http_listen: cfg.http_listen,
            })
@@ -303,11 +313,7 @@ impl Manager {
         loop {
             let next_check = SteadyTime::now() + TimeDuration::milliseconds(1000);
             if self.check_for_incoming_signals() {
-                let mut services = self.services.write().expect("Services lock is poisend!");
-                for service in services.drain(..) {
-                    self.remove_service(&service)?;
-                }
-                outputln!("Habitat thanks you - shutting down!");
+                self.shutdown();
                 return Ok(());
             }
             if feat::is_enabled(feat::Multi) {
@@ -552,6 +558,17 @@ impl Manager {
         self.butterfly.restart_elections();
     }
 
+    fn shutdown(&self) {
+        let mut services = self.services.write().expect("Services lock is poisend!");
+        for service in services.drain(..) {
+            if let Err(err) = self.remove_service(&service) {
+                warn!("Couldn't cleanly shutdown service, {}, {}", service, err);
+            }
+        }
+        release_process_lock(&self.fs_cfg);
+        outputln!("Habitat thanks you - shutting down!");
+    }
+
     fn start_initial_services_from_watcher(&mut self) -> Result<()> {
         for service_event in self.watcher.initial_events()? {
             match service_event {
@@ -610,6 +627,53 @@ impl Suitability for SuitabilityLookup {
             .find(|s| s.service_group == *service_group)
             .and_then(|s| s.suitability())
             .unwrap_or(u64::min_value())
+    }
+}
+
+fn obtain_process_lock(fs_cfg: &FsCfg) -> Result<()> {
+    match write_process_lock(&fs_cfg.proc_lock_file) {
+        Ok(()) => Ok(()),
+        Err(_) => {
+            match File::open(&fs_cfg.proc_lock_file) {
+                Ok(file) => {
+                    let reader = BufReader::new(file);
+                    if let Some(Ok(line)) = reader.lines().next() {
+                        if let Ok(pid) = line.parse::<u32>() {
+                            if process::is_alive(pid) {
+                                return Err(sup_error!(Error::ProcessLocked(pid)));
+                            }
+                        }
+                    }
+                    release_process_lock(fs_cfg);
+                    write_process_lock(&fs_cfg.proc_lock_file)
+                }
+                Err(err) => {
+                    Err(sup_error!(Error::ProcessLockIO(fs_cfg.proc_lock_file.clone(), err)))
+                }
+            }
+        }
+    }
+}
+
+fn release_process_lock(fs_cfg: &FsCfg) {
+    if let Err(err) = fs::remove_file(&fs_cfg.proc_lock_file) {
+        debug!("Couldn't cleanup supervisor process lock, {}", err);
+    }
+}
+
+fn write_process_lock<T>(lock_path: T) -> Result<()>
+    where T: AsRef<Path>
+{
+    match OpenOptions::new().write(true).create_new(true).open(lock_path.as_ref()) {
+        Ok(mut file) => {
+            match write!(&mut file, "{}", process::current_pid()) {
+                Ok(()) => Ok(()),
+                Err(err) => {
+                    Err(sup_error!(Error::ProcessLockIO(lock_path.as_ref().to_path_buf(), err)))
+                }
+            }
+        }
+        Err(err) => Err(sup_error!(Error::ProcessLockIO(lock_path.as_ref().to_path_buf(), err))),
     }
 }
 
