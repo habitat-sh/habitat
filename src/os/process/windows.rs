@@ -39,7 +39,15 @@ pub fn current_pid() -> u32 {
 
 /// Determines if a process is running with the given process identifier.
 pub fn is_alive(pid: u32) -> bool {
-    handle_from_pid(pid).is_some()
+    match handle_from_pid(pid) {
+        Some(handle) => {
+            unsafe {
+                let _ = kernel32::CloseHandle(handle);
+            }
+            true
+        }
+        None => false,
+    }
 }
 
 /// Executes a command as a child process and exits with the child's exit code.
