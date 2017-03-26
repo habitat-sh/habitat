@@ -24,6 +24,7 @@ extern crate crypto;
 #[macro_use]
 extern crate hyper;
 extern crate iron;
+extern crate iron_test;
 #[macro_use]
 extern crate lazy_static;
 extern crate libc;
