@@ -14,10 +14,12 @@
 
 use std::collections::{HashMap, BinaryHeap};
 use std::cmp::Ordering;
-use protocol::depotsrv;
+use std::str::FromStr;
+use protocol::scheduler;
 use petgraph::Graph;
 use petgraph::graph::NodeIndex;
 use petgraph::algo::{is_cyclic_directed, connected_components};
+use hab_core::package::PackageIdent;
 
 use rdeps::rdeps;
 
@@ -89,7 +91,7 @@ impl PackageGraph {
     }
 
     pub fn build<T>(&mut self, packages: T) -> (usize, usize)
-        where T: Iterator<Item = depotsrv::Package>
+        where T: Iterator<Item = scheduler::Package>
     {
         assert!(self.package_max == 0);
 
@@ -98,16 +100,13 @@ impl PackageGraph {
             let (pkg_id, pkg_node) = self.generate_id(&name);
 
             assert_eq!(pkg_id, pkg_node.index());
-            debug!("{} ({})", name, pkg_id);
 
             let deps = p.get_deps();
             for dep in deps {
                 let depname = format!("{}", dep);
-                debug!("|_ {}", depname);
                 let (_, dep_node) = self.generate_id(&depname);
                 self.graph.extend_with_edges(&[(dep_node, pkg_node)]);
             }
-            debug!("");
         }
 
         (self.graph.node_count(), self.graph.edge_count())
@@ -121,7 +120,10 @@ impl PackageGraph {
                 match rdeps(&self.graph, pkg_node) {
                     Ok(deps) => {
                         for n in deps {
-                            v.push(self.package_names[n].clone());
+                            let parts: Vec<&str> = self.package_names[n].split("/").collect();
+                            assert!(parts.len() >= 2);
+                            let name = format!("{}/{}", parts[0], parts[1]);
+                            v.push(name);
                         }
                     }
                     Err(e) => panic!("Error: {:?}", e),
@@ -160,6 +162,36 @@ impl PackageGraph {
             .collect();
 
         v
+    }
+
+    // Given an identifier in 'origin/name' format, returns the
+    // most recent version (fully-qualified package ident string)
+    pub fn resolve(&self, name: &str) -> Option<String> {
+        let v: Vec<&str> = name.split('/').collect();
+        if v.len() == 2 {
+            let phrase = format!("{}/", name);
+
+            let v: Vec<String> = self.package_names
+                .iter()
+                .cloned()
+                .filter(|s| s.starts_with(&phrase))
+                .collect();
+
+            // We can safely unwrap below since we checked the format
+            let mut pkgs: Vec<PackageIdent> =
+                v.iter().map(|x| PackageIdent::from_str(x).unwrap()).collect();
+
+            // TODO: The PackageIdent compare is extremely slow, causing even small lists
+            // to take significant time to sort. Look at speeding this up if it becomes a
+            // bottleneck.
+            pkgs.sort();
+
+            return match pkgs.pop() {
+                       Some(p) => Some(format!("{}", p)),
+                       None => None,
+                   };
+        }
+        None
     }
 
     pub fn stats(&self) -> Stats {

@@ -14,6 +14,7 @@
 
 //! A collection of handlers for the Scheduler dispatcher
 
+use time::PreciseTime;
 use hab_net::server::Envelope;
 use protocol::net::{self, ErrCode};
 use protocol::scheduler as proto;
@@ -30,10 +31,40 @@ pub fn group_create(req: &mut Envelope,
     println!("group_create message: {:?}", msg);
 
     let project_name = format!("{}/{}", msg.get_origin(), msg.get_package());
-    let mut projects = Vec::new();
-    projects.push(project_name);
+    let mut projects: Vec<String> = Vec::new();
+    projects.push(project_name.clone());
 
-    // TBD - project dependencies will be added to the projects list later
+    // Search the packages graph to find the reverse dependencies
+    let start_time;
+    let end_time;
+
+    let rdeps_opt = {
+        let graph = state.graph().read().unwrap();
+        start_time = PreciseTime::now();
+        let ret = match graph.resolve(&project_name) {
+            Some(s) => graph.rdeps(&s),
+            None => None,
+        };
+        end_time = PreciseTime::now();
+        ret
+    };
+
+    match rdeps_opt {
+        Some(rdeps) => {
+            println!("Graph rdeps: {} items ({} sec)\n",
+                     rdeps.len(),
+                     start_time.to(end_time));
+
+            for s in rdeps {
+                println!("Adding to projects: {}", s);
+                projects.push(s);
+            }
+        }
+        None => {
+            println!("Graph rdeps: no entries found");
+        }
+    }
+
     let group = state.datastore().create_group(&msg, projects)?;
 
     try!(state.schedule_cli().notify_work());

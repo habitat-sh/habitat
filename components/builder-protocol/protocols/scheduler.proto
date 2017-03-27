@@ -35,3 +35,8 @@ message Group {
   optional GroupState state = 2;
   repeated Project projects = 3;
 }
+
+message Package {
+  optional string ident = 1;
+  repeated string deps = 2;
+}

@@ -15,6 +15,7 @@ env_logger = "*"
 linked-hash-map = "*"
 log = "*"
 rand = "*"
+time = "*"
 protobuf = "*"
 postgres = "*"
 r2d2 = "*"
@@ -26,6 +27,9 @@ features = [ "suggestions", "color", "unstable" ]
 
 [dependencies.habitat_core]
 path = "../core"
+
+[dependencies.builder_core]
+path = "../builder-core"
 
 [dependencies.habitat_builder_protocol]
 path = "../builder-protocol"

@@ -16,6 +16,7 @@ use std::path::{Path, PathBuf};
 use walkdir::{WalkDir, Iter};
 use hab_core::package::{FromArchive, PackageArchive};
 use protocol::depotsrv;
+use protocol::scheduler;
 
 pub struct FileWalker {
     walker: Iter,
@@ -50,9 +51,9 @@ pub fn extract_package<T: AsRef<Path>>(path: T) -> Option<depotsrv::Package> {
 }
 
 impl Iterator for FileWalker {
-    type Item = depotsrv::Package;
+    type Item = scheduler::Package;
 
-    fn next(&mut self) -> Option<depotsrv::Package> {
+    fn next(&mut self) -> Option<scheduler::Package> {
         loop {
             match self.walker.next() {
                 Some(entry) => {
@@ -61,7 +62,7 @@ impl Iterator for FileWalker {
                         continue;
                     } else {
                         match extract_package(entry.path()) {
-                            Some(p) => return Some(p),
+                            Some(p) => return Some(scheduler::Package::from(p)),
                             None => continue,
                         }
                     }

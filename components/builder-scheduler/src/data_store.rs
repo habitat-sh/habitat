@@ -57,9 +57,41 @@ impl DataStore {
         let mut migrator = Migrator::new(&self.pool);
         migrator.setup()?;
 
+        // The packages table
+        migrator.migrate("scheduler",
+                         r#"CREATE TABLE packages (
+                                     id bigserial PRIMARY KEY,
+                                     ident text UNIQUE,
+                                     deps text[],
+                                     created_at timestamptz DEFAULT now()
+                              )"#)?;
+
+        // Insert a new package into the packages table
+        migrator.migrate("scheduler",
+                         r#"CREATE OR REPLACE FUNCTION insert_package_v1 (
+                                    pident text,
+                                    pdeps text[]
+                                    ) RETURNS void AS $$
+                                        BEGIN
+                                            INSERT INTO packages (ident, deps)
+                                            VALUES
+                                                (pident, pdeps);
+                                        END
+                                    $$ LANGUAGE plpgsql VOLATILE
+                                "#)?;
+
+        // Retrieve all packages from the packages table
+        migrator.migrate("scheduler",
+                     r#"CREATE OR REPLACE FUNCTION get_packages_v1 () RETURNS SETOF packages AS $$
+                            BEGIN
+                              RETURN QUERY SELECT * FROM packages;
+                              RETURN;
+                            END
+                            $$ LANGUAGE plpgsql STABLE"#)?;
+
         // The groups table
         migrator.migrate("scheduler",
-                     r#"CREATE TABLE groups (
+                         r#"CREATE TABLE groups (
                                     id bigint PRIMARY KEY,
                                     group_state text,
                                     created_at timestamptz DEFAULT now(),
@@ -68,7 +100,7 @@ impl DataStore {
 
         // The projects table
         migrator.migrate("scheduler",
-                     r#"CREATE TABLE projects (
+                         r#"CREATE TABLE projects (
                                      id bigserial PRIMARY KEY,
                                      owner_id bigint,
                                      project_name text,
@@ -171,6 +203,38 @@ impl DataStore {
         Ok(())
     }
 
+    pub fn insert_package(&self, msg: &Package) -> Result<()> {
+        let conn = self.pool.get()?;
+
+        conn.execute("SELECT insert_package_v1($1, $2)",
+                     &[&msg.get_ident(), &msg.get_deps()])
+            .map_err(Error::PackageInsert)?;
+
+        debug!("Package inserted: {}", msg.get_ident());
+
+        Ok(())
+    }
+
+    pub fn get_packages(&self) -> Result<RepeatedField<Package>> {
+        let mut packages = RepeatedField::new();
+
+        let conn = self.pool.get()?;
+
+        let rows = &conn.query("SELECT * FROM get_packages_v1()", &[]).map_err(Error::PackagesGet)?;
+
+        if rows.is_empty() {
+            warn!("No packages found");
+            return Ok(packages);
+        }
+
+        for row in rows {
+            let package = self.row_to_package(&row)?;
+            packages.push(package);
+        }
+
+        Ok(packages)
+    }
+
     pub fn create_group(&self, msg: &GroupCreate, project_names: Vec<String>) -> Result<Group> {
         let conn = self.pool.get()?;
 
@@ -187,7 +251,6 @@ impl DataStore {
         conn.execute("SELECT insert_group_v1($1, $2)",
                      &[&(id as i64), &project_names])
             .map_err(Error::GroupCreate)?;
-
 
         let mut projects = RepeatedField::new();
 
@@ -213,7 +276,7 @@ impl DataStore {
 
         let conn = self.pool.get()?;
         let rows = &conn.query("SELECT * FROM get_group_v1($1)", &[&(group_id as i64)])
-            .map_err(Error::GroupGet)?;
+                        .map_err(Error::GroupGet)?;
 
         if rows.is_empty() {
             warn!("Group id {} not found", group_id);
@@ -225,14 +288,33 @@ impl DataStore {
         let mut group = self.row_to_group(&rows.get(0))?;
 
         let project_rows = &conn.query("SELECT * FROM get_projects_for_group_v1($1)",
-                   &[&(group_id as i64)])
-            .map_err(Error::GroupGet)?;
+                                       &[&(group_id as i64)])
+                                .map_err(Error::GroupGet)?;
 
         assert!(project_rows.len() > 0); // should at least have one
         let projects = self.rows_to_projects(&project_rows)?;
 
         group.set_projects(projects);
         Ok(Some(group))
+    }
+
+    fn row_to_package(&self, row: &postgres::rows::Row) -> Result<Package> {
+        let mut package = Package::new();
+
+        let name: String = row.get("ident");
+        package.set_ident(name);
+
+        let deps: Vec<String> = row.get("deps");
+
+        let mut pb_deps = RepeatedField::new();
+
+        for dep in deps {
+            pb_deps.push(dep);
+        }
+
+        package.set_deps(pb_deps);
+
+        Ok(package)
     }
 
     fn row_to_group(&self, row: &postgres::rows::Row) -> Result<Group> {
@@ -303,8 +385,8 @@ impl DataStore {
     pub fn set_group_job_state(&self, job: &Job) -> Result<()> {
         let conn = self.pool.get()?;
         let rows = &conn.query("SELECT * FROM find_project_v1($1, $2)",
-                   &[&(job.get_owner_id() as i64), &job.get_project().get_name()])
-            .map_err(Error::ProjectSetState)?;
+                               &[&(job.get_owner_id() as i64), &job.get_project().get_name()])
+                        .map_err(Error::ProjectSetState)?;
 
         // No rows is ok, as this job might not be one we care about
         if rows.is_empty() {
@@ -333,14 +415,14 @@ impl DataStore {
 
         let conn = self.pool.get()?;
         let group_rows = &conn.query("SELECT * FROM pending_groups_v1($1)", &[&count])
-            .map_err(Error::GroupPending)?;
+                              .map_err(Error::GroupPending)?;
 
         for group_row in group_rows {
             let mut group = self.row_to_group(&group_row)?;
 
             let project_rows = &conn.query("SELECT * FROM get_projects_for_group_v1($1)",
-                       &[&(group.get_id() as i64)])
-                .map_err(Error::GroupPending)?;
+                                           &[&(group.get_id() as i64)])
+                                    .map_err(Error::GroupPending)?;
             let projects = self.rows_to_projects(&project_rows)?;
 
             group.set_projects(projects);

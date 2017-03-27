@@ -16,8 +16,26 @@ use std::result;
 use message::Routable;
 
 pub use message::scheduler::*;
+use message::depotsrv;
 use serde::{Serialize, Serializer};
 use serde::ser::SerializeStruct;
+
+impl From<depotsrv::Package> for Package {
+    fn from(value: depotsrv::Package) -> Package {
+        let mut package = Package::new();
+
+        let name = format!("{}", value.get_ident());
+
+        let deps = value.get_deps()
+            .iter()
+            .map(|x| format!("{}", x))
+            .collect();
+
+        package.set_ident(name);
+        package.set_deps(deps);
+        package
+    }
+}
 
 impl Routable for GroupCreate {
     type H = String;

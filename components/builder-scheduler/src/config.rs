@@ -47,6 +47,8 @@ pub struct Config {
     pub shards: Vec<ShardId>,
     /// Number of threads to process queued messages.
     pub worker_threads: usize,
+    /// Path to packages on-disk (for migration)
+    pub migration_path: String,
 }
 
 impl Config {
@@ -79,6 +81,7 @@ impl Default for Config {
             shards: (0..SHARD_COUNT).collect(),
             heartbeat_port: 5563,
             worker_threads: Self::default_worker_count(),
+            migration_path: String::from("/hab/svc/hab-builder-scheduler/pkgs"),
         }
     }
 }
@@ -109,6 +112,7 @@ impl ConfigFile for Config {
         try!(toml.parse_into("cfg.heartbeat_port", &mut cfg.heartbeat_port));
         try!(toml.parse_into("cfg.shards", &mut cfg.shards));
         try!(toml.parse_into("cfg.worker_threads", &mut cfg.worker_threads));
+        try!(toml.parse_into("cfg.migration_path", &mut cfg.migration_path));
         Ok(cfg)
     }
 }
