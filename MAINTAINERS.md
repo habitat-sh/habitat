@@ -52,6 +52,7 @@ Lieutenant and may have many maintainers.
 * [Matt Wrock](https://github.com/mwrock)
 * [Salim Alam](https://github.com/chefsalim)
 * [Nell Shamrell-Harrington](https://github.com/nellshamrell)
+* [George Marshall](https://github.com/georgemarshall)
 
 ### Habitat Builder Web Application
 
