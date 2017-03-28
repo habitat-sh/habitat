@@ -252,10 +252,11 @@ fn sub_origin_key_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 
 fn sub_pkg_binlink(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let ident = try!(PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap()));
-    let binary = m.value_of("BINARY").unwrap(); // Required via clap
     let dest_dir = Path::new(m.value_of("DEST_DIR").unwrap_or(DEFAULT_BINLINK_DIR));
-
-    command::pkg::binlink::start(ui, &ident, &binary, &dest_dir, &*FS_ROOT)
+    match m.value_of("BINARY") {
+        Some(binary) => command::pkg::binlink::start(ui, &ident, &binary, &dest_dir, &*FS_ROOT),
+        None => command::pkg::binlink::binlink_all_in_pkg(ui, &ident, dest_dir, &*FS_ROOT),
+    }
 }
 
 fn sub_pkg_build(ui: &mut UI, m: &ArgMatches) -> Result<()> {

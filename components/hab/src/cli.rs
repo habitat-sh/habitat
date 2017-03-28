@@ -137,7 +137,7 @@ pub fn get() -> App<'static, 'static> {
                 (aliases: &["bi", "bin", "binl", "binli", "binlin"])
                 (@arg PKG_IDENT: +required +takes_value
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
-                (@arg BINARY: +required +takes_value
+                (@arg BINARY: +takes_value
                     "The command to symlink (ex: bash)")
                 (@arg DEST_DIR: -d --dest +takes_value
                     "Sets the destination directory (default: /bin)")
@@ -352,13 +352,13 @@ fn sub_cli_completers() -> App<'static, 'static> {
     // bad value to clap.
 
     sub.arg(Arg::with_name("SHELL")
-                .help("The name of the shell you want to generate the command-completion. \
-                      Supported Shells: bash, fish, zsh, powershell")
-                .short("s")
-                .long("shell")
-                .required(true)
-                .takes_value(true)
-                .possible_values(&supported_shells))
+        .help("The name of the shell you want to generate the command-completion. Supported \
+               Shells: bash, fish, zsh, powershell")
+        .short("s")
+        .long("shell")
+        .required(true)
+        .takes_value(true)
+        .possible_values(&supported_shells))
 }
 
 fn sub_config_apply() -> App<'static, 'static> {
