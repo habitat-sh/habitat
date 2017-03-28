@@ -242,7 +242,7 @@ Creates a symlink for a package binary in a common 'PATH' location
 **ARGS**
 
     <PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
-    <BINARY>       The command to symlink (ex: bash)
+    <BINARY>       The command to symlink (ex: bash)  If no binary is specified, all binaries from the specified package will be symlinked.
 
 <h2 id="hab-pkg-build" class="anchor">hab pkg build</h2>
 Builds a Plan using a Studio
