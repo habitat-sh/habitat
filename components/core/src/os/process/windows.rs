@@ -41,10 +41,11 @@ pub fn current_pid() -> u32 {
 pub fn is_alive(pid: u32) -> bool {
     match handle_from_pid(pid) {
         Some(handle) => {
+            let exit_status = exit_status(handle).expect("Failed to get exit status");
             unsafe {
                 let _ = kernel32::CloseHandle(handle);
             }
-            true
+            exit_status == STILL_ACTIVE
         }
         None => false,
     }
@@ -81,6 +82,20 @@ fn handle_from_pid(pid: u32) -> Option<winapi::HANDLE> {
             return Some(proc_handle);
         }
     }
+}
+
+fn exit_status(handle: winapi::HANDLE) -> Result<u32> {
+    let mut exit_status: u32 = 0;
+
+    unsafe {
+        let ret = kernel32::GetExitCodeProcess(handle, &mut exit_status as winapi::LPDWORD);
+        if ret == 0 {
+            return Err(Error::GetExitCodeProcessFailed(format!("Failed to retrieve Exit Code: {}",
+                                                               io::Error::last_os_error())));
+        }
+    }
+
+    Ok(exit_status)
 }
 
 pub struct Child {
@@ -134,18 +149,7 @@ impl Child {
             return Ok(HabExitStatus { status: Some(self.last_status.unwrap()) });
         }
 
-        let mut exit_status: u32 = 0;
-
-        unsafe {
-            let ret = kernel32::GetExitCodeProcess(self.handle.unwrap(),
-                                                   &mut exit_status as winapi::LPDWORD);
-            if ret == 0 {
-                return Err(Error::GetExitCodeProcessFailed(format!("Failed to retrieve Exit \
-                                                                    Code for pid {}: {}",
-                                                                   self.pid,
-                                                                   io::Error::last_os_error())));
-            }
-        }
+        let exit_status = exit_status(self.handle.unwrap())?;
 
         if exit_status == STILL_ACTIVE {
             return Ok(HabExitStatus { status: None });
