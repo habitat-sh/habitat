@@ -19,6 +19,7 @@ use std::path::{Path, PathBuf};
 
 use byteorder::{ByteOrder, LittleEndian};
 use protobuf::{self, Message};
+use tempfile::NamedTempFile;
 
 use error::{Result, Error};
 use member::{Health, Member, MemberList};
@@ -181,15 +182,10 @@ impl DatFile {
     }
 
     pub fn write(&self, server: &Server) -> Result<usize> {
-        let tmp_path = self.path.with_extension("rst.tmp");
+        let mut header = Header::default();
+        let file = NamedTempFile::new().map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
         {
-            let mut header = Header::default();
-            let file = OpenOptions::new().create(true)
-                .write(true)
-                .truncate(true)
-                .open(&tmp_path)
-                .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
-            let mut writer = BufWriter::new(file);
+            let mut writer = BufWriter::new(&file);
             self.init(&mut writer)?;
             header.member_len = self.write_member_list(&mut writer, &server.member_list)?;
             header.service_len = self.write_rumor_store(&mut writer, &server.service_store)?;
@@ -205,7 +201,7 @@ impl DatFile {
             self.write_header(&mut writer, &header)?;
             writer.flush().map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
         }
-        fs::rename(&tmp_path, &self.path).map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
+        file.persist(&self.path).map_err(|err| Error::DatFileIO(self.path.clone(), err.error))?;
         Ok(0)
     }
 
