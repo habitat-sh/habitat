@@ -42,6 +42,8 @@
 extern crate ansi_term;
 #[macro_use]
 extern crate bitflags;
+#[cfg(windows)]
+extern crate ctrlc;
 #[macro_use]
 extern crate features;
 extern crate glob;

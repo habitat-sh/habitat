@@ -14,8 +14,15 @@
 
 //! Traps and notifies signals.
 
-use error::{Error, Result, SupError};
+use std::sync::atomic::{AtomicBool, Ordering, ATOMIC_BOOL_INIT};
+
+use ctrlc;
+
+use error::Result;
 use super::SignalEvent;
+
+// True when we have caught ctrl-c
+static CAUGHT: AtomicBool = ATOMIC_BOOL_INIT;
 
 /// This is complete bullshit!
 #[allow(dead_code)]
@@ -39,10 +46,20 @@ pub enum Signal {
     SIGUSR2 = 31,
 }
 
-pub fn init() {}
+pub fn init() {
+    ctrlc::set_handler(move || {
+        CAUGHT.store(true, Ordering::SeqCst);
+    }).expect("Error setting Ctrl-C handler");
+}
 
 pub fn check_for_signal() -> Option<SignalEvent> {
-    None
+    if CAUGHT.load(Ordering::SeqCst) {
+        // clear out the signal so we don't sent it repeatedly
+        CAUGHT.store(false, Ordering::SeqCst);
+        Some(SignalEvent::Shutdown)
+    } else {
+        None
+    }
 }
 
 /// send a signal to a pid
