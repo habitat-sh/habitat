@@ -317,12 +317,18 @@ fn service_entry(census: &Census) -> toml::value::Table {
         .map(|ce| toml::Value::try_from(ce).expect("Can't convert into TOML Value"));
     let mut members: Vec<toml::Value> = Vec::new();
     let mut member_id = toml::value::Table::new();
-    for (sg, ce) in census.iter() {
-        members.push(toml::Value::try_from(ce).expect("Can't convert into TOML Value"));
-        member_id.insert(format!("{}", sg),
+    let mut first: bool = true;
+    let mut result = toml::value::Table::new();
+    for ce in census.members_ordered() {
+        let toml_member = toml::Value::try_from(ce).expect("Can't convert into TOML Value");
+        if first {
+            result.insert("first".to_string(), toml_member.clone());
+            first = false;
+        }
+        members.push(toml_member);
+        member_id.insert(format!("{}", ce.get_member_id()),
                          toml::Value::try_from(ce).expect("Can't convert into TOML Value"));
     }
-    let mut result = toml::value::Table::new();
     result.insert("service".to_string(), service);
     result.insert("group".to_string(), group);
     result.insert("ident".to_string(), ident);
@@ -331,8 +337,10 @@ fn service_entry(census: &Census) -> toml::value::Table {
         result.insert("me".to_string(), toml_me);
     }
     if let Some(l) = leader {
-        result.insert("leader".to_string(), l);
+        result.insert("leader".to_string(), l.clone());
+        result.insert("first".to_string(), l);
     }
+
     result.insert("members".to_string(), toml::Value::Array(members));
     result.insert("member_id".to_string(), toml::Value::Table(member_id));
     result
