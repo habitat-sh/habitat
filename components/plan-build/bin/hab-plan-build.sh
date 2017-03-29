@@ -1325,13 +1325,16 @@ download_file() {
 # Will return 0 if the shasums match, and 1 if they do not match. A message
 # will be printed to stderr with the expected and computed shasum values.
 verify_file() {
-  build_line "Verifying $1"
-  local checksum=($($_shasum_cmd $HAB_CACHE_SRC_PATH/$1))
-  if [[ $2 = $checksum ]]; then
-    build_line "Checksum verified for $1"
+  local file="$1"
+  local expected="$2"
+
+  build_line "Verifying $file"
+  local checksum=($($_shasum_cmd $HAB_CACHE_SRC_PATH/$file))
+  if [[ $expected = $checksum ]]; then
+    build_line "Checksum verified for $file"
   else
-    warn "Checksum invalid for $1:"
-    warn "   Expected: $2"
+    warn "Checksum invalid for $file:"
+    warn "   Expected: ${expected}"
     warn "   Computed: ${checksum}"
     return 1
   fi
@@ -1352,27 +1355,22 @@ unpack_file() {
   local unpack_file="$HAB_CACHE_SRC_PATH/$1"
   # Thanks to:
   # http://stackoverflow.com/questions/17420994/bash-regex-match-string
-  if [[ -f $unpack_file ]]; then
-    pushd $HAB_CACHE_SRC_PATH > /dev/null
-    case $unpack_file in
-      *.tar.bz2|*.tbz2|*.tar.gz|*.tgz|*.tar|*.xz)
-        $_tar_cmd xf $unpack_file
-        ;;
-      *.bz2)  bunzip2 $unpack_file    ;;
-      *.rar)  rar x $unpack_file      ;;
-      *.gz)   gunzip $unpack_file     ;;
-      *.zip)  unzip $unpack_file      ;;
-      *.Z)    uncompress $unpack_file ;;
-      *.7z)   7z x $unpack_file       ;;
-      *)
-        warn "Error: unknown archive format '.${unpack_file##*.}'"
-        return 1
-        ;;
-    esac
-  else
-    warn "'$1' is not a valid file!"
-    return 1
-  fi
+  pushd $HAB_CACHE_SRC_PATH > /dev/null
+  case $unpack_file in
+    *.tar.bz2|*.tbz2|*.tar.gz|*.tgz|*.tar|*.xz)
+      $_tar_cmd xf $unpack_file
+      ;;
+    *.bz2)  bunzip2 $unpack_file    ;;
+    *.rar)  rar x $unpack_file      ;;
+    *.gz)   gunzip $unpack_file     ;;
+    *.zip)  unzip $unpack_file      ;;
+    *.Z)    uncompress $unpack_file ;;
+    *.7z)   7z x $unpack_file       ;;
+    *)
+      warn "Error: unknown archive format '.${unpack_file##*.}'"
+      return 1
+      ;;
+  esac
   popd > /dev/null
   return 0
 }
@@ -1637,6 +1635,50 @@ _set_path() {
   build_line "Setting PATH=$PATH"
 }
 
+# Initialize GET_SOURCE_CMD
+GET_SOURCE_CMD=""
+# Parse `pkg_source` and set the `GET_SOURCE_CMD` variable to the appropriate
+# callback.
+_set_get_source_cmd() {
+  case "$pkg_source" in
+    http://*|https://*|ftp://*)
+      # existing behavior, delegate to wget
+      GET_SOURCE_CMD="do_default_download"
+      ;;
+    file://*)
+      # for local tarballs, etc.
+      GET_SOURCE_CMD="do_default_copy"
+      ;;
+    nosuchfile.tar.gz)
+      # NOP for the old "nosuchfile.tar.gz" pkg_source.
+      GET_SOURCE_CMD=":"
+      ;;
+    *)
+      # clearly fail when we give up
+      exit_with "Cannot determine how to fetch pkg_source=$pkg_source" 9
+      ;;
+  esac
+}
+
+do_copy() {
+  local src_dir="$1"
+  do_default_copy_dir "$src_dir"
+  return $?
+}
+
+# Copy files and directories to $HAB_CACHE_SRC_PATH.
+# If we use a relative path, we need to set $pkg_filename
+# The API for this has been designed to immitate the behavior of the
+# do_default_download callback in a local file/directory context.
+do_default_copy() {
+  local src="${pkg_source/#file:\/\//}"
+  if [[ "$src" == "./" ]] || [[ "$src" == "../" ]]; then
+    pkg_filename=${pkg_filename:-$pkg_name-$pkg_version}
+  fi
+  cp -r "$src" "$HAB_CACHE_SRC_PATH/$pkg_filename"
+  return $?
+}
+
 # Download the software from `$pkg_source` and place it in
 # `$HAB_CACHE_SRC_PATH/${$pkg_filename}`. If the source already exists in the
 # cache, verify that the checksum is what we expect, and skip the download.
@@ -1661,7 +1703,13 @@ do_verify() {
 
 # Default implementation for the `do_verify()` phase.
 do_default_verify() {
-  verify_file $pkg_filename $pkg_shasum
+  if [[ -d $pkg_filename ]]; then
+    # Since the source is a directory, we can't really verify it.
+    return 0
+  else
+    verify_file $pkg_filename $pkg_shasum
+    return $?
+  fi
 }
 
 # Clean up the remnants of any previous build job, ensuring it can't pollute
@@ -1692,7 +1740,15 @@ do_unpack() {
 
 # Default implementation for the `do_unpack()` phase.
 do_default_unpack() {
-  unpack_file $pkg_filename
+  if [[ -f $HAB_CACHE_SRC_PATH/$pkg_filename ]]; then
+    unpack_file $pkg_filename
+    return $?
+  elif [[ -d $HAB_CACHE_SRC_PATH/$pkg_filename ]]; then
+    return 0
+  else
+    warn "'$pkg_filename' is not a valid file!"
+    return 1
+  fi
 }
 
 # **Internal** Set up our build environment. First, add any library paths
@@ -2536,9 +2592,14 @@ _resolve_dependencies
 
 _set_path
 
-# Download the source
+# Ensure the cache folder is created.
 mkdir -pv "$HAB_CACHE_SRC_PATH"
-do_download
+
+# Set the download or copy command variable.
+_set_get_source_cmd
+
+# Download or copy the source.
+$($GET_SOURCE_CMD)
 
 # Verify the source
 do_verify
