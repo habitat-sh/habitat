@@ -12,16 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-pub mod binlink;
-pub mod build;
-pub mod env;
-pub mod exec;
-pub mod export;
-pub mod hash;
-pub mod header;
-pub mod path;
-pub mod provides;
-pub mod search;
-pub mod sign;
-pub mod upload;
-pub mod verify;
+use std::path::Path;
+
+use hcore::package::{PackageIdent, PackageInstall};
+
+use error::Result;
+
+pub fn start(ident: &PackageIdent, fs_root_path: &Path) -> Result<()> {
+    let pkg_install = PackageInstall::load(ident, Some(fs_root_path))?;
+    let env = pkg_install.runtime_environment()?;
+    for (key, value) in env.into_iter() {
+        println!("export {}=\"{}\"", key, value);
+    }
+    Ok(())
+}

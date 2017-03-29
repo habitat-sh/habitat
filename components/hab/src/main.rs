@@ -115,6 +115,7 @@ fn start(ui: &mut UI) -> Result<()> {
                 ("binlink", Some(m)) => try!(sub_pkg_binlink(ui, m)),
                 ("build", Some(m)) => try!(sub_pkg_build(ui, m)),
                 ("config", Some(m)) => try!(sub_pkg_config(m)),
+                ("env", Some(m)) => try!(sub_pkg_env(m)),
                 ("exec", Some(m)) => try!(sub_pkg_exec(m, remaining_args)),
                 ("export", Some(m)) => try!(sub_pkg_export(ui, m)),
                 ("hash", Some(m)) => try!(sub_pkg_hash(m)),
@@ -290,6 +291,12 @@ fn sub_pkg_config(m: &ArgMatches) -> Result<()> {
 
     try!(common::command::package::config::start(&ident, &*FS_ROOT));
     Ok(())
+}
+
+fn sub_pkg_env(m: &ArgMatches) -> Result<()> {
+    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
+
+    command::pkg::env::start(&ident, &*FS_ROOT)
 }
 
 fn sub_pkg_exec(m: &ArgMatches, cmd_args: Vec<OsString>) -> Result<()> {
