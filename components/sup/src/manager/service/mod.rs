@@ -146,9 +146,14 @@ impl Service {
 
     fn runtime_config_from(package: &PackageInstall) -> Result<RuntimeConfig> {
         let (svc_user, svc_group) = util::users::get_user_and_group(&package)?;
-        let mut env = HashMap::new();
-        env.insert(String::from("PATH"), Self::run_path(package)?);
-        // TODO fn: The future package-specific environment variables are added here
+        let mut env = match package.runtime_environment() {
+            Ok(r) => r,
+            Err(e) => return Err(sup_error!(Error::HabitatCore(e))),
+        };
+
+        // FIXME: Devise a way to make OS independent so we don't have to muck with env.
+        Self::run_path(&mut env)?;
+
         Ok(RuntimeConfig::new(svc_user, svc_group, env))
     }
 
@@ -497,16 +502,17 @@ impl Service {
         }
     }
 
-    /// Returns a string with the full run path for this package. This path is composed of any
+    /// Modifies PATH env with the full run path for this package. This path is composed of any
     /// binary paths specified by this package, or its TDEPS, plus a path to a BusyBox(non-windows),
     /// plus the existing value of the PATH variable.
     ///
     /// This means we work on any operating system, as long as you can invoke the Supervisor,
     /// without having to worry much about context.
-    fn run_path(package: &PackageInstall) -> Result<String> {
-        let mut paths = match package.runtime_path() {
-            Ok(r) => env::split_paths(&r).collect::<Vec<PathBuf>>(),
-            Err(e) => return Err(sup_error!(Error::HabitatCore(e))),
+    fn run_path(run_env: &mut HashMap<String, String>) -> Result<()> {
+        let path_key = "PATH".to_string();
+        let mut paths: Vec<PathBuf> = match run_env.get(&path_key) {
+            Some(path) => env::split_paths(&path).collect(),
+            None => vec![],
         };
 
         // Lets join the run paths to the FS_ROOT
@@ -520,8 +526,8 @@ impl Service {
                 paths[i] = Path::new(&*FS_ROOT_PATH).join(paths[i].strip_prefix("/").unwrap());
             }
         }
-
-        util::path::append_interpreter_and_path(&mut paths)
+        run_env.insert(path_key, util::path::append_interpreter_and_path(&mut paths)?);
+        Ok(())
     }
 
     pub fn runtime_cfg(&self) -> &RuntimeConfig {

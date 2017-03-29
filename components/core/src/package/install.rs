@@ -372,15 +372,13 @@ impl PackageInstall {
         }
     }
 
-    /// Returns a `String` with the full run path for this package. The `PATH` string will be
-    /// constructed by add all `PATH` metadata entries from the *direct* dependencies first (in
-    /// declared order) and then from any remaining transitive dependencies last (in lexically
-    /// sorted order).
-    pub fn runtime_path(&self) -> Result<String> {
-        let e = self.environment().expect("Failed to build runtime environment");
-        Ok(e.get("PATH").expect("Failed to get PATH").clone())
-    }
-
+    /// Returns a `HashMap<String, String>` with the full runtime environment for this package.
+    /// This is constructed from all `ENVIRONMENT` and `ENVIRONMENT_IFS` metadata entries from the
+    /// *direct* dependencies first (in declared order) and then from any remaining transitive
+    /// dependencies last (in lexically sorted order).
+    ///
+    /// If a package is missing the aforementioned metadata files, fall back to the
+    /// legacy `PATH` metadata files.
     pub fn runtime_environment(&self) -> Result<HashMap<String, String>> {
         let mut idents = HashSet::new();
         let mut run_envs = HashMap::new();
