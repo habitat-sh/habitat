@@ -278,29 +278,29 @@ impl PackageInstall {
         }
     }
 
-    /// Returns a Rust representation of the mappings defined by the `pkg_env_ifs` plan variable.
+    /// Returns a Rust representation of the mappings defined by the `pkg_env_sep` plan variable.
     ///
     /// # Failures
     ///
-    /// * The package contains a EnvironmentIfs metafile but it could not be read or it was
+    /// * The package contains a EnvironmentSep metafile but it could not be read or it was
     ///   malformed.
-    pub fn environment_ifs(&self) -> Result<HashMap<String, String>> {
+    pub fn environment_sep(&self) -> Result<HashMap<String, String>> {
         let mut m = HashMap::new();
-        match self.read_metafile(MetaFile::EnvironmentIfs) {
+        match self.read_metafile(MetaFile::EnvironmentSep) {
             Ok(body) => {
                 for line in body.lines() {
                     let mut parts = line.splitn(2, '=');
                     let key = parts.next()
                         .and_then(|p| Some(p.to_string()))
-                        .ok_or_else(|| Error::MetaFileMalformed(MetaFile::EnvironmentIfs))?;
+                        .ok_or_else(|| Error::MetaFileMalformed(MetaFile::EnvironmentSep))?;
                     let value = parts.next()
                         .and_then(|p| Some(p.to_string()))
-                        .ok_or_else(|| Error::MetaFileMalformed(MetaFile::EnvironmentIfs))?;
+                        .ok_or_else(|| Error::MetaFileMalformed(MetaFile::EnvironmentSep))?;
                     m.insert(key, value);
                 }
                 Ok(m)
             }
-            Err(Error::MetaFileNotFound(MetaFile::EnvironmentIfs)) => Ok(m),
+            Err(Error::MetaFileNotFound(MetaFile::EnvironmentSep)) => Ok(m),
             Err(e) => Err(e),
         }
     }
@@ -373,7 +373,7 @@ impl PackageInstall {
     }
 
     /// Returns a `HashMap<String, String>` with the full runtime environment for this package.
-    /// This is constructed from all `ENVIRONMENT` and `ENVIRONMENT_IFS` metadata entries from the
+    /// This is constructed from all `ENVIRONMENT` and `ENVIRONMENT_SEP` metadata entries from the
     /// *direct* dependencies first (in declared order) and then from any remaining transitive
     /// dependencies last (in lexically sorted order).
     ///
@@ -409,7 +409,7 @@ impl PackageInstall {
         let deps = self.load_deps()?;
         for dep in deps.iter() {
             let env = dep.environment()?;
-            let env_ifs = dep.environment_ifs()?;
+            let env_sep = dep.environment_sep()?;
             if !env.is_empty() {
                 if let Some(path) = env.get("PATH") {
                     let mut v: Vec<PathBuf> = env::split_paths(&path)
@@ -421,14 +421,13 @@ impl PackageInstall {
                 for (key, value) in env.into_iter() {
                     match run_envs.entry(key) {
                         Occupied(entry) => {
-                            match env_ifs.get(entry.key()) {
-                                Some(ifs) => {
+                            match env_sep.get(entry.key()) {
+                                Some(sep) => {
                                     let v = entry.into_mut();
-                                    v.push_str(ifs);
+                                    v.push_str(sep);
                                     v.push_str(&value);
                                 }
-                                // TODO: Add a proper error type
-                                None => panic!("Cannot join {}, no IFS defined", entry.key()),
+                                None => warn!("Cannot join {}, no separator defined", entry.key()),
                             }
                         }
                         Vacant(entry) => {
@@ -451,7 +450,7 @@ impl PackageInstall {
                 continue;
             }
             let env = dep.environment()?;
-            let env_ifs = dep.environment_ifs()?;
+            let env_sep = dep.environment_sep()?;
             if !env.is_empty() {
                 if let Some(path) = env.get("PATH") {
                     let mut v: Vec<PathBuf> = env::split_paths(&path)
@@ -463,14 +462,13 @@ impl PackageInstall {
                 for (key, value) in env.into_iter() {
                     match run_envs.entry(key) {
                         Occupied(entry) => {
-                            match env_ifs.get(entry.key()) {
-                                Some(ifs) => {
+                            match env_sep.get(entry.key()) {
+                                Some(sep) => {
                                     let v = entry.into_mut();
-                                    v.push_str(ifs);
+                                    v.push_str(sep);
                                     v.push_str(&value);
                                 }
-                                // TODO: Add a proper error type
-                                None => panic!("Cannot join {}, no IFS defined", entry.key()),
+                                None => warn!("Cannot join {}, no separator defined", entry.key()),
                             }
                         }
                         Vacant(entry) => {
