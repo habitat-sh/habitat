@@ -526,7 +526,8 @@ impl Service {
                 paths[i] = Path::new(&*FS_ROOT_PATH).join(paths[i].strip_prefix("/").unwrap());
             }
         }
-        run_env.insert(path_key, util::path::append_interpreter_and_path(&mut paths)?);
+        run_env.insert(path_key,
+                       util::path::append_interpreter_and_path(&mut paths)?);
         Ok(())
     }
 

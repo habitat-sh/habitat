@@ -266,9 +266,10 @@ impl PackageInstall {
                     let key = parts.next()
                         .and_then(|p| Some(p.to_string()))
                         .ok_or_else(|| Error::MetaFileMalformed(MetaFile::Environment))?;
-                    let value = parts.next()
-                        .and_then(|p| Some(p.to_string()))
-                        .ok_or_else(|| Error::MetaFileMalformed(MetaFile::Environment))?;
+                    let value =
+                        parts.next()
+                            .and_then(|p| Some(p.to_string()))
+                            .ok_or_else(|| Error::MetaFileMalformed(MetaFile::Environment))?;
                     m.insert(key, value);
                 }
                 Ok(m)
@@ -290,12 +291,14 @@ impl PackageInstall {
             Ok(body) => {
                 for line in body.lines() {
                     let mut parts = line.splitn(2, '=');
-                    let key = parts.next()
-                        .and_then(|p| Some(p.to_string()))
-                        .ok_or_else(|| Error::MetaFileMalformed(MetaFile::EnvironmentSep))?;
-                    let value = parts.next()
-                        .and_then(|p| Some(p.to_string()))
-                        .ok_or_else(|| Error::MetaFileMalformed(MetaFile::EnvironmentSep))?;
+                    let key =
+                        parts.next()
+                            .and_then(|p| Some(p.to_string()))
+                            .ok_or_else(|| Error::MetaFileMalformed(MetaFile::EnvironmentSep))?;
+                    let value =
+                        parts.next()
+                            .and_then(|p| Some(p.to_string()))
+                            .ok_or_else(|| Error::MetaFileMalformed(MetaFile::EnvironmentSep))?;
                     m.insert(key, value);
                 }
                 Ok(m)
@@ -391,9 +394,8 @@ impl PackageInstall {
         let env = self.environment()?;
         if !env.is_empty() {
             if let Some(path) = env.get("PATH") {
-                let mut v: Vec<PathBuf> = env::split_paths(&path)
-                    .map(|p| PathBuf::from(&p))
-                    .collect();
+                let mut v: Vec<PathBuf> =
+                    env::split_paths(&path).map(|p| PathBuf::from(&p)).collect();
                 legacy_run_paths.append(&mut v);
             }
 
@@ -412,9 +414,8 @@ impl PackageInstall {
             let env_sep = dep.environment_sep()?;
             if !env.is_empty() {
                 if let Some(path) = env.get("PATH") {
-                    let mut v: Vec<PathBuf> = env::split_paths(&path)
-                        .map(|p| PathBuf::from(&p))
-                        .collect();
+                    let mut v: Vec<PathBuf> =
+                        env::split_paths(&path).map(|p| PathBuf::from(&p)).collect();
                     legacy_run_paths.append(&mut v);
                 }
 
@@ -453,9 +454,8 @@ impl PackageInstall {
             let env_sep = dep.environment_sep()?;
             if !env.is_empty() {
                 if let Some(path) = env.get("PATH") {
-                    let mut v: Vec<PathBuf> = env::split_paths(&path)
-                        .map(|p| PathBuf::from(&p))
-                        .collect();
+                    let mut v: Vec<PathBuf> =
+                        env::split_paths(&path).map(|p| PathBuf::from(&p)).collect();
                     legacy_run_paths.append(&mut v);
                 }
 
