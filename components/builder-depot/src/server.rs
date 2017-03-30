@@ -14,11 +14,13 @@
 
 use std::any::TypeId;
 use std::collections::HashMap;
-use std::fs;
+use std::fs::{self, File};
+use std::path::PathBuf;
 use std::io::{Read, Write, BufWriter};
 use std::result;
 use std::str::FromStr;
 
+use uuid::Uuid;
 use bodyparser;
 use dbcache::{self, BasicSet};
 use hab_core::package::{Identifiable, FromArchive, PackageArchive, PackageTarget};
@@ -50,7 +52,6 @@ use regex::Regex;
 use router::{Params, Router};
 use serde::Serialize;
 use serde_json;
-use tempfile::NamedTempFile;
 use url;
 use urlencoded::UrlEncodedQuery;
 
@@ -347,8 +348,9 @@ pub fn list_origin_members(req: &mut Request) -> IronResult<Response> {
     }
 }
 
-fn write_archive(tempfile: &NamedTempFile, body: &mut Body) -> Result<PackageArchive> {
-    let mut writer = BufWriter::new(tempfile);
+fn write_archive(filename: &PathBuf, body: &mut Body) -> Result<PackageArchive> {
+    let file = try!(File::create(&filename));
+    let mut writer = BufWriter::new(file);
     let mut written: i64 = 0;
     let mut buf = [0u8; 100000]; // Our byte buffer
     loop {
@@ -368,7 +370,7 @@ fn write_archive(tempfile: &NamedTempFile, body: &mut Body) -> Result<PackageArc
             }
         };
     }
-    Ok(PackageArchive::new(tempfile.path()))
+    Ok(PackageArchive::new(filename))
 }
 
 fn upload_origin_key(req: &mut Request) -> IronResult<Response> {
@@ -594,14 +596,23 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
         }
     }
 
-    let tempfile = match NamedTempFile::new() {
-        Ok(file) => file,
+    // Find the path to folder where archive should be created, and
+    // create the folder if necessary
+    let parent_path = depot.archive_parent(&ident);
+
+    match fs::create_dir_all(parent_path.clone()) {
+        Ok(_) => {}
         Err(e) => {
-            error!("could not create temporary file, err={:?}", e);
+            error!("Unable to create archive directory, err={:?}", e);
             return Ok(Response::with(status::InternalServerError));
         }
     };
-    let mut archive = try!(write_archive(&tempfile, &mut req.body));
+
+    // Create a temp file at the archive location
+    let temp_name = format!("{}.tmp", Uuid::new_v4());
+    let temp_path = parent_path.join(temp_name);
+
+    let mut archive = try!(write_archive(&temp_path, &mut req.body));
     debug!("Package Archive: {:#?}", archive);
 
     let target_from_artifact = match archive.target() {
@@ -646,20 +657,18 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
     }
 
     let filename = depot.archive_path(&ident, &target_from_artifact);
-    match fs::create_dir_all(filename.parent().unwrap()) {
+
+    match fs::rename(&temp_path, &filename) {
         Ok(_) => {}
         Err(e) => {
-            error!("Unable to create archive directory, err={:?}", e);
+            error!("Unable to rename temp archive {:?} to {:?}, err={:?}",
+                   temp_path,
+                   filename,
+                   e);
             return Ok(Response::with(status::InternalServerError));
         }
-    };
-    match tempfile.persist(&filename) {
-        Ok(_) => {}
-        Err(e) => {
-            error!("Unable to persist archive to {:?}, err={:?}", filename, e);
-            return Ok(Response::with(status::InternalServerError));
-        }
-    };
+    }
+
     info!("File added to Depot at {}", filename.to_string_lossy());
     let mut archive = PackageArchive::new(filename);
     let object = match depotsrv::Package::from_archive(&mut archive) {
