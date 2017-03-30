@@ -406,7 +406,7 @@ declare -A pkg_env
 # The build environment variables inside a package
 declare -A pkg_build_env
 # The internal field separator used to join `env` variables for cascading
-declare -A _env_default_ifs=(
+declare -A _env_default_sep=(
   ['CFLAGS']=' '
   ['CPPFLAGS']=' '
   ['CXXFLAGS']=' '
@@ -415,7 +415,7 @@ declare -A _env_default_ifs=(
   ['PATH']=':'
   ['PKG_CONFIG_PATH']=':'
 )
-declare -A pkg_env_ifs
+declare -A pkg_env_sep
 
 # Initially set $pkg_svc_* variables. This happens before the Plan is sourced,
 # meaning that `$pkg_name` is not yet set. However, `$pkg_svc_run` wants
@@ -1288,20 +1288,20 @@ add_env() {
   shift
   local values=($*)
 
-  if [ ${pkg_env[$key]+abc} ]; then
+  if [[ ${pkg_env[$key]+abc} ]]; then
     exit_with "Cannot add $key to pkg_env once the value is already set"
   fi
 
   if [[ -n ${values} ]]; then
     if [[ ${#values[@]} > 1 ]]; then
-      if [[ ! ${pkg_env_ifs[$key]+abc} ]]; then
-          if [[ ${_env_default_ifs[$key]+abc} ]]; then
-            pkg_env_ifs[$key]=${_env_default_ifs[$key]}
+      if [[ ! ${pkg_env_sep[$key]+abc} ]]; then
+          if [[ ${_env_default_sep[$key]+abc} ]]; then
+            pkg_env_sep[$key]=${_env_default_sep[$key]}
           else
-            exit_with "Cannot add multiple values without setting an IFS for $key"
+            exit_with "Cannot add multiple values without setting a separator for $key"
           fi
       fi
-      pkg_env[$key]=$(join_by ${pkg_env_ifs[$key]} ${values[@]})
+      pkg_env[$key]=$(join_by ${pkg_env_sep[$key]} ${values[@]})
     else
       pkg_env[$key]=${values[0]}
     fi
@@ -1341,14 +1341,14 @@ add_build_env() {
 
   if [[ -n ${values} ]]; then
     if [[ ${#values[@]} > 1 ]]; then
-      if [[ ! ${pkg_env_ifs[$key]+abc} ]]; then
-          if [[ ${_env_default_ifs[$key]+abc} ]]; then
-            pkg_env_ifs[$key]=${_env_default_ifs[$key]}
+      if [[ ! ${pkg_env_sep[$key]+abc} ]]; then
+          if [[ ${_env_default_sep[$key]+abc} ]]; then
+            pkg_env_sep[$key]=${_env_default_sep[$key]}
           else
-            exit_with "Cannot add multiple values without setting an IFS for $key"
+            exit_with "Cannot add multiple values without setting a separator for $key"
           fi
       fi
-      pkg_build_env[$key]=$(join_by ${pkg_env_ifs[$key]} ${values[@]})
+      pkg_build_env[$key]=$(join_by ${pkg_env_sep[$key]} ${values[@]})
     else
       pkg_build_env[$key]=${values[0]}
     fi
@@ -1776,28 +1776,28 @@ _set_environment() {
 
   # Copy `$pkg_build_env` to `$_environment`
   for env in "${!pkg_build_env[@]}"; do
-    if [[ ${_environment[$env]+abc} && ${pkg_env_ifs[$env]+abc} ]]; then
-      _environment[$env]=$(join_by ${pkg_env_ifs[$env]} ${_environment[$env]} ${pkg_build_env[$env]})
+    if [[ ${_environment[$env]+abc} && ${pkg_env_sep[$env]+abc} ]]; then
+      _environment[$env]=$(join_by ${pkg_env_sep[$env]} ${_environment[$env]} ${pkg_build_env[$env]})
     elif [[ ! ${_environment[$env]+abc} ]]; then
       _environment[$env]=${pkg_build_env[$env]}
     else
-      exit_with "Cannot add $$pkg_build_env without setting an IFS for $env"
+      exit_with "Cannot add $$pkg_build_env without setting a separator for $env"
     fi
   done
 
   for dep_path in "${pkg_all_tdeps_resolved[@]}"; do
     # If we have a ENVIRONMENT or BUILD_ENVIRONMENT skip looking for legacy files
     if [[ -f "$dep_path/ENVIRONMENT" || -f "$dep_path/BUILD_ENVIRONMENT" ]]; then
-      local -A env_ifs
+      local -A env_sep
 
-      if [[ -f "$dep_path/ENVIRONMENT_IFS" ]]; then
+      if [[ -f "$dep_path/ENVIRONMENT_SEP" ]]; then
         while read -r line; do
           local -u env=${line%%=*}
           local value=${line#*=}
           if [[ -n "$env" && -n "$value" ]]; then
-            env_ifs[$env]=${value}
+            env_sep[$env]=${value}
           fi
-        done < "$dep_path/ENVIRONMENT_IFS"
+        done < "$dep_path/ENVIRONMENT_SEP"
       fi
 
       if [[ -f "$dep_path/ENVIRONMENT" ]]; then
@@ -1805,12 +1805,12 @@ _set_environment() {
           local -u env=${line%%=*}
           local value=${line#*=}
           if [[ -n "$env" && -n "$value" ]]; then
-            if [[ ${_environment[$env]+abc} && ${env_ifs[$env]+abc} ]]; then
-              _environment[$env]=$(join_by ${env_ifs[$env]} ${_environment[$env]} ${value})
+            if [[ ${_environment[$env]+abc} && ${env_sep[$env]+abc} ]]; then
+              _environment[$env]=$(join_by ${env_sep[$env]} ${_environment[$env]} ${value})
             elif [[ ! ${_environment[$env]+abc} ]]; then
               _environment[$env]=${value}
             else
-              exit_with "Artifact $dep_path does not have an IFS set for $env"
+              exit_with "Artifact $dep_path does not have a separator set for $env"
             fi
           fi
         done < "$dep_path/ENVIRONMENT"
@@ -1821,12 +1821,12 @@ _set_environment() {
           local -u env=${line%%=*}
           local value=${line#*=}
           if [[ -n "$env" && -n "$value" ]]; then
-            if [[ ${_environment[$env]+abc} && ${env_ifs[$env]+abc} ]]; then
-              _environment[$env]=$(join_by ${env_ifs[$env]} ${_environment[$env]} ${value})
+            if [[ ${_environment[$env]+abc} && ${env_sep[$env]+abc} ]]; then
+              _environment[$env]=$(join_by ${env_sep[$env]} ${_environment[$env]} ${value})
             elif [[ ! ${_environment[$env]+abc} ]]; then
               _environment[$env]=${value}
             else
-              exit_with "Artifact $dep_path does not have an IFS set for $env"
+              exit_with "Artifact $dep_path does not have a separator set for $env"
             fi
           fi
         done < "$dep_path/BUILD_ENVIRONMENT"
@@ -2156,7 +2156,7 @@ do_default_install() {
 # * `$pkg_prefix/PKG_CONFIG_PATH` - Any PKG_CONFIG_PATH entries for things that depend on us
 # * `$pkg_prefix/DEPS` - Any dependencies we need to use the package at runtime
 # * `$pkg_prefix/ENVIRONMENT` - A list of environment keys and their values
-# * `$pkg_prefix/ENVIRONMENT_IFS` - A list of Internal Field Separators for environment keys
+# * `$pkg_prefix/ENVIRONMENT_SEP` - A list of Internal Field Separators for environment keys
 # * `$pkg_prefix/EXPORTS` - A list of exported configuration keys and their public name
 # * `$pkg_prefix/EXPOSES` - An array of `pkg_exports` for which ports that this package exposes
 # * `$pkg_prefix/BINDS` - A list of services you connect to and keys that you expect to be exported
@@ -2230,9 +2230,14 @@ _build_metadata() {
     echo "$env=${pkg_env[$env]}" >> "$pkg_prefix/ENVIRONMENT"
   done
 
-  for env_ifs in ${!pkg_env_ifs[@]}; do
-    echo "$env_ifs=${pkg_env_ifs[$env_ifs]}" >> "$pkg_prefix/ENVIRONMENT_IFS"
+  for env_sep in ${!pkg_env_sep[@]}; do
+    echo "$env_sep=${pkg_env_sep[$env_sep]}" >> "$pkg_prefix/ENVIRONMENT_SEP"
   done
+
+  # Create PATH metadata for older versions of Habitat
+  if [[ ${pkg_env[PATH]+abc} ]]; then
+    echo "${pkg_env[PATH]}" > "$pkg_prefix/PATH"
+  fi
 
   for export in "${!pkg_exports[@]}"; do
     echo "$export=${pkg_exports[$export]}" >> $pkg_prefix/EXPORTS
