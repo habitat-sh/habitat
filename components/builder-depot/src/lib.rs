@@ -51,6 +51,7 @@ extern crate url;
 extern crate urlencoded;
 extern crate walkdir;
 extern crate zmq;
+extern crate uuid;
 
 pub mod config;
 pub mod error;
@@ -116,6 +117,15 @@ impl Depot {
                           ident.release().unwrap(),
                           target.architecture,
                           target.platform))
+    }
+
+    // Return a formatted string representing the folder location for an archive.
+    fn archive_parent<T: Identifiable>(&self, ident: &T) -> PathBuf {
+        let mut digest = Sha256::new();
+        let mut output = [0; 64];
+        digest.input_str(&ident.to_string());
+        digest.result(&mut output);
+        self.packages_path().join(format!("{:x}", output[0])).join(format!("{:x}", output[1]))
     }
 
     fn packages_path(&self) -> PathBuf {

@@ -37,6 +37,7 @@ unicase = "*"
 url = "*"
 urlencoded = "*"
 walkdir = "*"
+uuid = { version = "0.4", features = ["v4"] }
 
 [dependencies.clap]
 version = "*"

@@ -551,9 +551,9 @@ dependencies = [
 name = "habitat_builder_scheduler"
 version = "0.0.0"
 dependencies = [
+ "builder_core 0.0.0",
  "clap 2.22.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "builder_core 0.0.0",
  "habitat_builder_db 0.0.0",
  "habitat_builder_protocol 0.0.0",
  "habitat_core 0.0.0",
