@@ -13,16 +13,7 @@ title: Getting set up with Habitat | Mac
 # Set up your environment
 The `hab` command-line interface (CLI) tool downloads its other components when it needs them, so setup for Habitat is centered on where you want the `hab` CLI installed and getting it integrated into your shell.
 
-1. Open a PowerShell window. Change directory to the directory where you want to place the `hab` CLI and copy the `hab` CLI (and the included DLLs) to that directory.
-
-        mkdir ~/bin
-        cp ./where/you/extracted/hab/* -Destination ~/bin
-
-2. Add the location for the `hab` CLI to your `PATH` environment variable.
-
-       $env:PATH += "$env:PATH;$env:USERPROFILE/bin"
-
-    To keep from typing this in for every PowerShell window you use, add the above statement to your PowerShell profile.
+1. [Download the `hab` CLI](/docs/get-habitat) and install it per the instructions on the download page.
 
 3. Run `hab setup` and follow the instructions in the setup script.
 
