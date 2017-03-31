@@ -5,70 +5,70 @@ title: Creating Habitat plans
 # Create plans
 At the center of Habitat packaging is the plan. This is a directory comprised of shell scripts and optional configuration files that define how you download, configure, make, install, and manage the lifecycle of the software in the package.
 
-As a way to start to understand plans, let's look at an example `plan.sh` for [zlib](http://www.zlib.net/):
+As a way to start to understand plans, let's look at an example `plan.sh` for [sqlite](http://www.sqlite.org/):
 
 ~~~ bash
-pkg_name=zlib
-pkg_description="The zlib library"
-pkg_upstream_url=http://zlib.net
+pkg_name=sqlite
+pkg_version=3130000
 pkg_origin=core
-pkg_version=1.2.8
+pkg_license=('Public Domain')
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
-pkg_license=('zlib')
-pkg_source=http://downloads.sourceforge.net/project/libpng/$pkg_name/${pkg_version}/${pkg_name}-${pkg_version}.tar.gz
-pkg_shasum=36658cb768a54c1d4dec43c3116c27ed893e88b02ecfcb44f2166f9c0b7f2a0d
-pkg_dirname=${pkg_name}-${pkg_version}
-pkg_deps=(core/glibc)
-pkg_build_deps=(core/coreutils core/diffutils core/patch core/make core/gcc)
+pkg_description="A software library that implements a self-contained, serverless, zero-configuration, transactional SQL database engine."
+pkg_upstream_url=https://www.sqlite.org/
+pkg_source=https://www.sqlite.org/2016/${pkg_name}-autoconf-${pkg_version}.tar.gz
+pkg_filename=${pkg_name}-autoconf-${pkg_version}.tar.gz
+pkg_dirname=${pkg_name}-autoconf-${pkg_version}
+pkg_shasum=e2797026b3310c9d08bd472f6d430058c6dd139ff9d4e30289884ccd9744086b
+pkg_deps=(core/glibc core/readline)
+pkg_build_deps=(core/gcc core/make core/coreutils)
 pkg_lib_dirs=(lib)
 pkg_include_dirs=(include)
+pkg_bin_dirs=(bin)
 ~~~
 
-It has the name of the software, the version, where to download it, a checksum to verify the contents are what we expect, a single run dependency on
-`core/glibc`, build dependencies on `core/coreutils`, `core/diffutils`, `core/patch`, `core/make`, `core/gcc`, and it has the resulting libraries in `lib`
-and header files in `include`. Also, because it's a core plan, it has a description and upstream URL for the source project included.
+It has the name of the software, the version, where to download it, a checksum to verify the contents are what we expect, run dependencies on
+`core/glibc` and `core/readline`, build dependencies on `core/coreutils`, `core/make`, `core/gcc`, libraries files in `lib`, header files in `include`, and a binary file in `bin`. Also, because it's a core plan, it has a description and upstream URL for the source project included.
 
 When you have finished creating your plan and call `build` in Habitat studio, the following occurs:
 
 1.  The build script ensures that the origin key is available to sign the package.
-2.  The software is downloaded.
-3.  The checksum is validated.
-4.  The source is extracted from the archive file that the script downloaded in step two.
-5.  The build environment is set to depend on the `glibc` Habitat package.
-6.  The callback methods are run with their default implementations.
-7.  Data is written that allows other packages to take a dependency on `zlib`.
-8.  A signed tarball of the `zlib` package is created.
+2.  If specified in `pkg_source`, a compressed file containing the source code is downloaded.
+3.  The checksum of that file, specified in `pkg_shasum`, is validated.
+4.  The source is extracted into a temporary cache.
+5.  Unless overridden, the callback methods will build and install the binary or library via `make` and `make install`, respectively.
+6.  Your package contents (binaries, runtine dependencies, libraries, assets, etc.) are then compressed into a tarball.
+7.  The tarball is signed with your origin key and given a .hart file extension.
 
-The plan.sh file is the only required file to create a package. Configuration files, runtime hooks, and other source files are optional.
+After the build script completes, you can then upload your package to the depot, or install and start your package locally.
 
-## Set up the environment
-<%= partial "/shared/setup_environment" %>
+> Note: The plan.sh file is the only required file to create a package. Configuration files, runtime hooks, and other source files are optional.
 
 ## Write a plan
-To create a plan, do the following:
+All plans must have a `plan.sh` at the root of the plan context. This file will be used by the `hab-plan-build` command to build your package. To create a plan, do the following:
 
-1. In a terminal window, create a new directory for your plan. This directory is known as the plan context.
+1. If you haven't done so already, [download the `hab` CLI](/docs/get-habitat) and install it per the instructions on the download page. 
 
-2. All plans must have a `plan.sh` at the root of the plan context. This file will be used by the `hab-plan-build` command to build your package, so create a plan.sh file in your plan context and open it.
+2. Run `hab setup` and follow the instructions in the setup script.
 
-       $EDITOR plan.sh
+3. The easiest way to create a plan is to use the `hab plan init` subcommand. This subcommand will create a directory, known as the plan context, that contains your plan.sh file and any runtime hooks and/or templated configuration data.
 
-3. Copy the following template into plan.sh. You can use it as a skeleton template when writing new plans.
+   To use `hab plan init` as part of your project repo, navigate to the root of your project repo and run `hab plan init`. It will create a new `habitat` sub-directory with a plan.sh based on the name of the parent directory, and include a `default.toml` file as well as `config` and `hooks` directories for you to populate as needed. For example:
 
-~~~ bash
-pkg_origin=
-pkg_name=
-pkg_version=
-pkg_maintainer="Your Name <your email address>"
-pkg_license=()
-pkg_source=http://example.com/${pkg_name}-${pkg_version}.tar.xz
-pkg_shasum=sha256sum
-pkg_deps=()
-pkg_build_deps=()
-pkg_bin_dirs=(bin)
-pkg_include_dirs=(include)
-pkg_lib_dirs=(lib)
-~~~
+       cd /path/to/<reponame>
+       hab plan init
+
+    will result in a new `habitat` directory located at `/path/to/<reponame>/habitat`. A plan.sh file will be created and the `pkg_name` variable in plan.sh will be set to _\<reponame\>_. Also, any environment variables that you have previouly set (such as `HAB_ORIGIN`) will be used to populate the respective `pkg_*` variables.
+
+    If you want to auto-populate more of the `pkg_*` variables, you also have the option of setting them when calling `hab plan init`, as shown in the following example:
+
+       env pkg_svc_user=someuser pkg_deps="(core/make core/coreutils)" \
+          pkg_license="('MIT' 'Apache-2.0')" pkg_bin_dirs="(bin sbin)" \
+          pkg_version=1.0.0 pkg_description="foo" pkg_maintainer="you" \
+          hab plan init yourplan
+
+     See [hab plan init](/docs/reference/habitat-cli#hab-plan-init) for more information on how to use this subcommand.
+
+4.  Now that you have stubbed out your plan.sh file in your plan context, open it and begin modifying it to suit your needs.
 
 When writing a plan, it's important to understand that you are defining both how the package is built and how the Habitat service will behave when the supervisor starts and manages the child process in the package. The following sections explain what you need to do for each phase.
 
