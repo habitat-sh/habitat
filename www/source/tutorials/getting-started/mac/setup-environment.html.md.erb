@@ -13,18 +13,9 @@ title: Getting set up with Habitat | Mac
 # Set up your environment
 The `hab` command-line interface (CLI) tool downloads its other components when it needs them, so setup for Habitat is centered on where you want the `hab` CLI installed and getting it integrated into your shell.
 
-1.  Open a terminal window. Change directory to the directory where you want to place the `hab` CLI and copy the `hab` CLI to that directory.
+1. [Download the `hab` CLI](/docs/get-habitat) and install it per the instructions on the download page. 
 
-        mkdir -p ~/bin
-        cp where/you/extracted/hab ~/bin
-
-2. Add the location for the `hab` CLI to your `PATH` environment variable.
-
-       export PATH=$PATH:~/bin
-
-    To keep from typing this in for every terminal window you use, add the above statement to your shell profile.
-
-3. Run `hab setup` and follow the instructions in the setup script.
+2. Run `hab setup` and follow the instructions in the setup script.
 
    <%= partial "/shared/setup_environment_script_step" %>
 
