@@ -26,6 +26,7 @@ The commands and sub-commands for the Habitat CLI (`hab`) are listed below.
 - [hab pkg sign](#hab-pkg-sign)
 - [hab pkg upload](#hab-pkg-upload)
 - [hab pkg verify](#hab-pkg-verify)
+- [hab plan init](#hab-plan-init)
 - [hab ring key export](#hab-ring-key-export)
 - [hab ring key generate](#hab-ring-key-generate)
 - [hab ring key import](#hab-ring-key-import)
@@ -434,6 +435,32 @@ Verifies a Habitat Artifact with an origin key
 **ARGS**
 
     <SOURCE>    A path to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
+
+<h2 id="hab-plan-init" class="anchor">hab plan init</h2>
+Generates common package specific configuration files. Executing
+without argument will create a `habitat` directory in your current
+folder for the plan. If `PKG_NAME` is specified it will create a
+folder with that name. Environment variables (those starting with
+`'pkg_'`) that are set will be used in the generated plan
+
+**USAGE**
+
+    hab plan init [FLAGS] [OPTIONS] [PKG_NAME]
+
+**FLAGS**
+
+    -f, --nocallbacks    Do not include callback functions in
+                         template
+    -h, --help           Prints help information
+    -V, --version        Prints version information
+
+**OPTIONS**
+
+    -o, --origin <ORIGIN>    Origin for the new app
+
+**ARGS**
+
+    <PKG_NAME>    Name for the new app.
 
 <h2 id="hab-ring-key-export" class="anchor">hab ring key export</h2>
 Outputs the latest ring key contents to stdout
