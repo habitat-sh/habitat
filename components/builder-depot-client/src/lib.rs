@@ -443,6 +443,39 @@ impl Client {
         }
     }
 
+    /// Promote a package to a given channel
+    ///
+    /// # Failures
+    ///
+    /// * Remote Depot is not available
+    ///
+    /// # Panics
+    /// * If package archive does not have a version/release
+    /// * Authorization token was not set on client
+    pub fn promote_package(&self,
+                           pa: &mut PackageArchive,
+                           channel: &str,
+                           token: &str)
+                           -> Result<()> {
+        let ident = try!(pa.ident());
+        let path = format!("channels/{}/{}/pkgs/{}/{}/{}/promote",
+                           ident.origin,
+                           channel,
+                           ident.name,
+                           ident.version.unwrap(),
+                           ident.release.unwrap());
+
+        debug!("Promoting package, path: {}", path);
+
+        let res = self.add_authz(self.inner.put(&path), token).send()?;
+
+        if res.status != StatusCode::Ok {
+            return Err(err_from_response(res));
+        };
+
+        Ok(())
+    }
+
     /// Returns a vector of PackageIdent structs
     ///
     /// # Failures
