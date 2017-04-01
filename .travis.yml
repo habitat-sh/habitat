@@ -220,9 +220,13 @@ matrix:
         - ./support/ci/fast_pass.sh || exit 0
       before_deploy:
         - if [[ ! -x ./support/ci/deploy.sh ]]; then chmod +x ./support/ci/deploy.sh; fi
-        - openssl aes-256-cbc -K $encrypted_50e90ce07941_key -iv $encrypted_50e90ce07941_iv -in ./support/ci/habitat-srv-admin.enc -out /tmp/habitat-srv-admin -d
       deploy:
-        - sudo ./support/ci/deploy.sh
+        - provider: script
+          script:
+            - openssl aes-256-cbc -K $encrypted_50e90ce07941_key -iv $encrypted_50e90ce07941_iv -in ./support/ci/habitat-srv-admin.enc -out /tmp/habitat-srv-admin -d
+            - sudo ./support/ci/deploy.sh
+          on:
+            branch: master
 notifications:
   webhooks:
     urls:
