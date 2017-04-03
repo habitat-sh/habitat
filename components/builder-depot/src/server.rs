@@ -44,7 +44,7 @@ use mount::Mount;
 use persistent;
 use protobuf::{self, parse_from_bytes};
 use protocol::{depotsrv, Routable};
-use protocol::net::ErrCode;
+use protocol::net::{ErrCode, NetError};
 use protocol::sessionsrv::{Account, AccountGet};
 use protocol::scheduler::{Group, GroupCreate, GroupGet};
 use protocol::originsrv::*;
@@ -64,25 +64,22 @@ define_event_log!();
 #[derive(Default)]
 pub struct TestableBroker {
     message_map: HashMap<TypeId, Vec<u8>>,
+    error_map: HashMap<TypeId, NetError>,
     cached_messages: HashMap<TypeId, Vec<u8>>,
 }
 
 impl TestableBroker {
-    pub fn setup<M: Routable, R: protobuf::MessageStatic>(&mut self, response: &R) -> Result<()> {
+    pub fn setup<M: Routable, R: protobuf::MessageStatic>(&mut self, response: &R) {
         let bytes = response.write_to_bytes().unwrap();
         self.message_map.insert(TypeId::of::<M>(), bytes);
-        Ok(())
     }
 
-    pub fn messages<M: Routable>(&self) -> Result<M> {
-        let msg_type = &TypeId::of::<M>();
-        match self.cached_messages.get(msg_type) {
-            Some(msg) => {
-                Ok(parse_from_bytes::<M>(msg).expect(&format!("Unable to parse {:?} message",
-                                                              msg_type)))
-            }
-            None => panic!("Unable to find a message of type {:?}", msg_type),
-        }
+    pub fn setup_error<M: Routable>(&mut self, error: NetError) {
+        self.error_map.insert(TypeId::of::<M>(), error);
+    }
+
+    pub fn routed_messages(&self) -> RoutedMessages {
+        RoutedMessages(self.cached_messages.clone())
     }
 
     pub fn route<M: Routable, R: protobuf::MessageStatic>(&mut self, msg: &M) -> RouteResult<R> {
@@ -91,13 +88,33 @@ impl TestableBroker {
         let msg_type = &TypeId::of::<M>();
         match self.message_map.get(msg_type) {
             Some(message) => Ok(parse_from_bytes::<R>(message).unwrap()),
-            None => panic!("Unable to find a message of type {:?}", msg_type),
+            None => {
+                match self.error_map.get(msg_type) {
+                    Some(error) => Err(error.clone()),
+                    None => panic!("Unable to find message of given type"),
+                }
+            }
         }
     }
 }
 
 impl Key for TestableBroker {
     type Value = Self;
+}
+
+pub struct RoutedMessages(HashMap<TypeId, Vec<u8>>);
+
+impl RoutedMessages {
+    pub fn get<M: Routable>(&self) -> Result<M> {
+        let msg_type = &TypeId::of::<M>();
+        match self.0.get(msg_type) {
+            Some(msg) => {
+                Ok(parse_from_bytes::<M>(msg).expect(&format!("Unable to parse {:?} message",
+                                                              msg_type)))
+            }
+            None => Err(Error::MessageTypeNotFound),
+        }
+    }
 }
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -1612,6 +1629,7 @@ mod test {
     use std::io::Cursor;
 
     use super::*;
+    use super::super::DepotUtil;
 
     #[derive(Clone)]
     pub struct AuthenticatedTest;
@@ -1622,12 +1640,16 @@ mod test {
         }
     }
 
+    pub fn hart_file(name: &str) -> PathBuf {
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests").join("fixtures").join(name)
+    }
+
     fn iron_request(method: method::Method,
                     path: &str,
-                    body: &str,
+                    body: &mut Vec<u8>,
                     headers: Headers,
                     broker: TestableBroker)
-                    -> IronResult<Response> {
+                    -> (IronResult<Response>, RoutedMessages) {
         let url = Url::parse(path).unwrap();
         let mut buffer = String::new();
         buffer.push_str(&format!("{} {} HTTP/1.1\r\n", &method, url));
@@ -1636,19 +1658,29 @@ mod test {
             buffer.push_str(&format!("{}: {}\r\n", header.name(), header.value_string()));
         }
         buffer.push_str("\r\n");
-        let mut stream = MockStream::new(Cursor::new(buffer.as_bytes().to_vec()));
+        let mut bytes = buffer.as_bytes().to_vec();
+        bytes.append(body);
+        let mut stream = MockStream::new(Cursor::new(bytes));
         let mut buf_reader = BufReader::new(&mut stream as &mut NetworkStream);
 
         let addr = "127.0.0.1:3000".parse().unwrap();
         let http_request = hyper::server::Request::new(&mut buf_reader, addr).unwrap();
         let mut req = Request::from_http(http_request, addr, &iron::Protocol::http()).unwrap();
 
+        let depot = DepotUtil::new(Config::default());
         req.extensions.insert::<Authenticated>(Session::new());
         req.extensions.insert::<TestableBroker>(broker);
 
         let basic = AuthenticatedTest;
         let worker = AuthenticatedTest;
-        routes(true, basic, worker).handle(&mut req)
+        let router = routes(true, basic, worker);
+        let mut chain = Chain::new(router);
+        chain.link(persistent::State::<DepotUtil>::both(depot));
+        chain.link(persistent::Read::<EventLog>::both(EventLogger::new("", false)));
+        let resp = chain.handle(&mut req);
+        let req_broker = req.extensions.get::<TestableBroker>().unwrap();
+        let msgs = req_broker.routed_messages();
+        (resp, msgs)
     }
 
     #[test]
@@ -1679,11 +1711,11 @@ mod test {
         key_res.set_keys(keys);
         broker.setup::<OriginPublicKeyListRequest, OriginPublicKeyListResponse>(&key_res);
 
-        let response = iron_request(method::Get,
-                                    "http://localhost/origins/org/keys",
-                                    "",
-                                    Headers::new(),
-                                    broker);
+        let (response, _) = iron_request(method::Get,
+                                         "http://localhost/origins/org/keys",
+                                         &mut Vec::new(),
+                                         Headers::new(),
+                                         broker);
         let result_body = response::extract_body_to_string(response.unwrap());
 
         assert_eq!(result_body,

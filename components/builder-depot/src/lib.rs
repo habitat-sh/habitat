@@ -75,6 +75,7 @@ use data_store::DataStore;
 
 pub struct Depot {
     pub config: Config,
+    pub depotutil: DepotUtil,
     pub datastore: DataStore,
 }
 
@@ -82,9 +83,44 @@ impl Depot {
     pub fn new(config: Config) -> Result<Depot> {
         let datastore = try!(DataStore::open(&config));
         Ok(Depot {
-               config: config,
+               config: config.clone(),
+               depotutil: DepotUtil::new(config),
                datastore: datastore,
            })
+    }
+
+    // Return a PackageArchive representing the given package. None is returned if the Depot
+    // doesn't have an archive for the given package.
+    fn archive<T: Identifiable>(&self,
+                                ident: &T,
+                                target: &PackageTarget)
+                                -> Option<PackageArchive> {
+        self.depotutil.archive(ident, target)
+    }
+
+    // Return a formatted string representing the filename of an archive for the given package
+    // identifier pieces.
+    fn archive_path<T: Identifiable>(&self, ident: &T, target: &PackageTarget) -> PathBuf {
+        self.depotutil.archive_path(ident, target)
+    }
+
+    // Return a formatted string representing the folder location for an archive.
+    fn archive_parent<T: Identifiable>(&self, ident: &T) -> PathBuf {
+        self.depotutil.archive_parent(ident)
+    }
+
+    fn packages_path(&self) -> PathBuf {
+        self.depotutil.packages_path()
+    }
+}
+
+pub struct DepotUtil {
+    pub config: Config,
+}
+
+impl DepotUtil {
+    pub fn new(config: Config) -> DepotUtil {
+        DepotUtil { config: config }
     }
 
     // Return a PackageArchive representing the given package. None is returned if the Depot
@@ -134,6 +170,9 @@ impl Depot {
 }
 
 impl typemap::Key for Depot {
+    type Value = Self;
+}
+impl typemap::Key for DepotUtil {
     type Value = Self;
 }
 
