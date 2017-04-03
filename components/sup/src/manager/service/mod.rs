@@ -101,12 +101,11 @@ impl Service {
                spec: ServiceSpec,
                gossip_listen: &GossipListenAddr,
                http_listen: &http_gateway::ListenAddr,
-               manager_fs_cfg: Arc<manager::FsCfg>)
+               manager_fs_cfg: Arc<manager::FsCfg>,
+               organization: Option<&str>)
                -> Result<Service> {
         spec.validate(&package)?;
-        let service_group = ServiceGroup::new(&package.ident.name,
-                                              spec.group,
-                                              spec.organization.as_ref().map(|x| &**x))?;
+        let service_group = ServiceGroup::new(&package.ident.name, spec.group, organization)?;
         let runtime_cfg = Self::runtime_config_from(&package)?;
         let config_root = spec.config_from.clone().unwrap_or(package.installed_path.clone());
         let svc_cfg = ServiceConfig::new(&package,
@@ -155,7 +154,8 @@ impl Service {
     pub fn load(spec: ServiceSpec,
                 gossip_listen: &GossipListenAddr,
                 http_listen: &http_gateway::ListenAddr,
-                manager_fs_cfg: Arc<manager::FsCfg>)
+                manager_fs_cfg: Arc<manager::FsCfg>,
+                organization: Option<&str>)
                 -> Result<Service> {
         let mut ui = UI::default();
         let package = match PackageInstall::load(&spec.ident, Some(&Path::new(&*FS_ROOT_PATH))) {
@@ -174,7 +174,12 @@ impl Service {
                 try!(util::pkg::install(&mut ui, &spec.depot_url, &spec.ident))
             }
         };
-        Self::new(package, spec, gossip_listen, http_listen, manager_fs_cfg)
+        Self::new(package,
+                  spec,
+                  gossip_listen,
+                  http_listen,
+                  manager_fs_cfg,
+                  organization)
     }
 
     pub fn add(&self) -> Result<()> {
@@ -374,7 +379,6 @@ impl Service {
     pub fn to_spec(&self) -> ServiceSpec {
         let mut spec = ServiceSpec::default_for(self.spec_ident.clone());
         spec.group = self.service_group.group().to_string();
-        spec.organization = self.service_group.org().map(|o| o.to_string());
         spec.depot_url = self.depot_url.clone();
         spec.topology = self.topology;
         spec.update_strategy = self.update_strategy;

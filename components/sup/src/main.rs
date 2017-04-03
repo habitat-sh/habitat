@@ -109,6 +109,9 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
             (@arg NAME: --("override-name") +takes_value
                 "The name for the state directory if launching more than one Supervisor \
                 [default: default]")
+            (@arg ORGANIZATION: --org +takes_value
+                "The organization that the supervisor and it's subsequent services are part of \
+                [default: default]")
             (@arg PEER: --peer +takes_value +multiple
                 "The listen address of an initial peer (IP[:PORT])")
             (@arg PERMANENT_PEER: --("permanent-peer") -I "If this service is a permanent peer")
@@ -120,8 +123,6 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                 (@attributes +multiple requires[PKG_IDENT_OR_ARTIFACT])
                 (@arg GROUP: --group +takes_value
                     "The service group; shared config and topology [default: default].")
-                (@arg ORGANIZATION: --org +takes_value
-                    "The organization that a service is part of")
                 (@arg DEPOT_URL: --url -u +takes_value {valid_url}
                     "Use a specific Depot URL (ex: http://depot.example.com/v1/depot)")
                 (@arg TOPOLOGY: --topology -t +takes_value {valid_topology}
@@ -196,9 +197,8 @@ fn sub_start(m: &ArgMatches) -> Result<()> {
                   Red.bold().paint("CAUTION:".to_string()));
         outputln!("");
     }
-    if m.is_present("PERMANENT_PEER") {
-        cfg.gossip_permanent = true;
-    }
+    cfg.organization = m.value_of("ORGANIZATION").map(|org| org.to_string());
+    cfg.gossip_permanent = m.is_present("PERMANENT_PEER");
     // TODO fn: Clean this up--using a for loop doesn't feel good however an iterator was
     // causing a lot of developer/compiler type confusion
     let mut gossip_peers: Vec<SocketAddr> = Vec::new();
@@ -280,9 +280,6 @@ fn spec_from_matches(ident: &PackageIdent, m: &ArgMatches) -> Result<ServiceSpec
 
     if let Some(group) = m.value_of("GROUP") {
         spec.group = group.to_string();
-    }
-    if let Some(org) = m.value_of("ORGANIZATION") {
-        spec.organization = Some(org.to_string());
     }
     let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
     let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
