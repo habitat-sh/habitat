@@ -36,6 +36,7 @@ pub enum Error {
     HTTP(hyper::status::StatusCode),
     InvalidPackageIdent(String),
     IO(io::Error),
+    MessageTypeNotFound,
     NoXFilename,
     NoFilePart,
     NulError(ffi::NulError),
@@ -62,6 +63,7 @@ impl fmt::Display for Error {
                         e)
             }
             Error::IO(ref e) => format!("{}", e),
+            Error::MessageTypeNotFound => format!("Unable to find message for given type"),
             Error::NoXFilename => format!("Invalid download from a Depot - missing X-Filename header"),
             Error::NoFilePart => {
                 format!("An invalid path was passed - we needed a filename, and this path does \
@@ -101,6 +103,7 @@ impl error::Error for Error {
             Error::RemotePackageNotFound(_) => "Cannot find a package in any sources",
             Error::NoXFilename => "Invalid download from a Depot - missing X-Filename header",
             Error::NoFilePart => "An invalid path was passed - we needed a filename, and this path does not have one",
+            Error::MessageTypeNotFound => "Unable to find message for given type",
             Error::WriteSyncFailed => "Could not write to destination; bytes written was 0 on a non-0 buffer",
         }
     }
