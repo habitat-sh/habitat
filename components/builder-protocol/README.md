@@ -2,7 +2,7 @@
 
 Definitions for network protocol messages and serialization implementations for builder servers
 
-# Adding a New Protocol
+# Adding a new message or protocol
 
 * If you are adding a message to an existing protocol, find that protocol in the [protocols directory](/protocols)
 * If you are adding a brand new protocol, add the new protocol as your_protocol.proto in the [protocols directory](/protocols)
