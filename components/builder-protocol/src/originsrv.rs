@@ -388,3 +388,24 @@ impl Serialize for OriginProject {
         state.end()
     }
 }
+
+impl Persistable for OriginChannel {
+    type Key = u64;
+
+    fn primary_key(&self) -> Self::Key {
+        self.get_id()
+    }
+
+    fn set_primary_key(&mut self, value: Self::Key) {
+        self.set_id(value);
+    }
+}
+
+impl Routable for OriginChannelCreate {
+    type H = InstaId;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(InstaId(self.get_owner_id()))
+    }
+}
+
