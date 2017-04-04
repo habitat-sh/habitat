@@ -56,6 +56,7 @@ pub enum Error {
     OriginPublicKeyListForOrigin(postgres::error::Error),
     OriginAccountList(postgres::error::Error),
     OriginAccountInOrigin(postgres::error::Error),
+    OriginChannelCreate(postgres::error::Error),
     Protobuf(protobuf::ProtobufError),
     Zmq(zmq::Error),
 }
@@ -142,6 +143,9 @@ impl fmt::Display for Error {
             Error::OriginAccountInOrigin(ref e) => {
                 format!("Error checking if this account is in an origin, {}", e)
             }
+            Error::OriginChannelCreate(ref e) => {
+                format!("Error creating origin channel in database, {}", e)
+            }
             Error::Protobuf(ref e) => format!("{}", e),
             Error::Zmq(ref e) => format!("{}", e),
         };
@@ -181,6 +185,7 @@ impl error::Error for Error {
             Error::OriginPublicKeyListForOrigin(ref err) => err.description(),
             Error::OriginAccountList(ref err) => err.description(),
             Error::OriginAccountInOrigin(ref err) => err.description(),
+            Error::OriginChannelCreate(ref err) => err.description(),
             Error::Protobuf(ref err) => err.description(),
             Error::Zmq(ref err) => err.description(),
         }

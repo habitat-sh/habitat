@@ -54,6 +54,7 @@ impl DataStore {
         migrations::origin_secret_keys::migrate(&mut migrator)?;
         migrations::origin_invitations::migrate(&mut migrator)?;
         migrations::origin_projects::migrate(&mut migrator)?;
+        migrations::origin_channels::migrate(&mut migrator)?;
 
         Ok(())
     }
@@ -476,4 +477,48 @@ impl DataStore {
             Ok(None)
         }
     }
+
+//    pub fn create_origin_channel(&self,
+//                                    opk: &originsrv::OriginChannelCreate)
+//                                    -> Result<originsrv::OriginChannel> {
+//        let conn = self.pool.get()?;
+//        let rows = conn.query("SELECT * FROM insert_origin_public_key_v1($1, $2, $3, $4, $5, $6)",
+ //                              &[&(opk.get_origin_id() as i64),
+  //                               &(opk.get_owner_id() as i64),
+ //                                &opk.get_name(),
+  //                               &opk.get_revision(),
+  //                               &format!("{}-{}", opk.get_name(), opk.get_revision()),
+   //                              &opk.get_body()])
+     //        .map_err(Error::OriginPublicKeyCreate)?;
+       //  let row = rows.iter().nth(0).expect("Insert returns row, but no row present");
+    //     Ok(self.row_to_origin_public_key(row))
+//    }
+
+    pub fn create_origin_channel(&self,
+                                    occ: &originsrv::OriginChannelCreate)
+                                    -> Result<originsrv::OriginChannel> {
+        let conn = self.pool.get()?;
+
+        let rows = conn.query("SELECT * FROM insert_origin_channel_v1($1, $2, $3)",
+                               &[&(occ.get_origin_id() as i64),
+                                 &(occ.get_owner_id() as i64),
+                                 &occ.get_name()])
+             .map_err(Error::OriginChannelCreate)?;
+         let row = rows.iter().nth(0).expect("Insert returns row, but no row present");
+         Ok(self.row_to_origin_channel(row))
+    }
+
+    fn row_to_origin_channel(&self, row: postgres::rows::Row) -> originsrv::OriginChannel {
+        let mut occ = originsrv::OriginChannel::new();
+        let occ_id: i64 = row.get("id");
+        occ.set_id(occ_id as u64);
+        let occ_origin_id: i64 = row.get("origin_id");
+        occ.set_origin_id(occ_origin_id as u64);
+        occ.set_name(row.get("name"));
+        let occ_owner_id: i64 = row.get("owner_id");
+        occ.set_owner_id(occ_owner_id as u64);
+        occ
+    }
+
+
 }

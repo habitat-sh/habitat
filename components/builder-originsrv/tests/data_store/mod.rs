@@ -723,3 +723,27 @@ fn update_origin_project() {
                sepultura.get_vcs_data(),
                "Should have the same vcs data");
 }
+
+#[test]
+fn create_origin_channel() {
+    let pool = pool!();
+    let ds = DataStore::from_pool(pool).expect("Failed to create data store from pool");
+    ds.setup().expect("Failed to migrate data");
+    let mut origin = originsrv::OriginCreate::new();
+    origin.set_name(String::from("neurosis"));
+    origin.set_owner_id(1);
+    origin.set_owner_name(String::from("scottkelly"));
+    ds.create_origin(&origin).expect("Should create origin");
+
+    let neurosis = ds.get_origin_by_name("neurosis")
+        .expect("Could not retrieve origin")
+        .expect("Origin does not exist");
+
+   // Create a new origin channel
+   let mut oscc = originsrv::OriginChannelCreate::new();
+   oscc.set_origin_id(neurosis.get_id());
+   oscc.set_origin_name(neurosis.get_name().to_string());
+   oscc.set_name(String::from("eve"));
+   oscc.set_owner_id(1);
+   ds.create_origin_channel(&oscc).expect("Failed to create origin public key");
+}
