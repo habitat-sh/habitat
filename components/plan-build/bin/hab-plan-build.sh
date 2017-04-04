@@ -1293,15 +1293,17 @@ add_env() {
   fi
 
   if [ -n ${values} ]; then
-    if [ ${#values[@]} > 1 ]; then
-      if [ ! ${pkg_env_sep[$key]+abc} ]; then
-          if [ ${_env_default_sep[$key]+abc} ]; then
-            pkg_env_sep[$key]=${_env_default_sep[$key]}
-          else
-            exit_with "Cannot add multiple values without setting a separator for $key"
-          fi
+    # Set a default separator if none is defined
+    if [ ! ${pkg_env_sep[$key]+abc} ] && [ ${_env_default_sep[$key]+abc} ]; then
+      pkg_env_sep[$key]=${_env_default_sep[$key]}
+    fi
+
+    if [ ${#values[@]} -gt 1 ]; then
+      if [ ${pkg_env_sep[$key]+abc} ]; then
+        pkg_env[$key]=$(join_by ${pkg_env_sep[$key]} ${values[@]})
+      else
+        exit_with "Cannot add multiple values without setting a separator for $key"
       fi
-      pkg_env[$key]=$(join_by ${pkg_env_sep[$key]} ${values[@]})
     else
       pkg_env[$key]=${values[0]}
     fi
@@ -1340,15 +1342,17 @@ add_build_env() {
   fi
 
   if [ -n ${values} ]; then
-    if [ ${#values[@]} > 1 ]; then
-      if [ ! ${pkg_env_sep[$key]+abc} ]; then
-          if [ ${_env_default_sep[$key]+abc} ]; then
-            pkg_env_sep[$key]=${_env_default_sep[$key]}
-          else
-            exit_with "Cannot add multiple values without setting a separator for $key"
-          fi
+    # Set a default separator if none is defined
+    if [ ! ${pkg_env_sep[$key]+abc} ] && [ ${_env_default_sep[$key]+abc} ]; then
+      pkg_env_sep[$key]=${_env_default_sep[$key]}
+    fi
+
+    if [ ${#values[@]} -gt 1 ]; then
+      if [ ${pkg_env_sep[$key]+abc} ]; then
+        pkg_build_env[$key]=$(join_by ${pkg_env_sep[$key]} ${values[@]})
+      else
+        exit_with "Cannot add multiple values without setting a separator for $key"
       fi
-      pkg_build_env[$key]=$(join_by ${pkg_env_sep[$key]} ${values[@]})
     else
       pkg_build_env[$key]=${values[0]}
     fi
