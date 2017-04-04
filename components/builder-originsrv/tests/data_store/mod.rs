@@ -739,11 +739,11 @@ fn create_origin_channel() {
         .expect("Could not retrieve origin")
         .expect("Origin does not exist");
 
-   // Create a new origin channel
-   let mut oscc = originsrv::OriginChannelCreate::new();
-   oscc.set_origin_id(neurosis.get_id());
-   oscc.set_origin_name(neurosis.get_name().to_string());
-   oscc.set_name(String::from("eve"));
-   oscc.set_owner_id(1);
-   ds.create_origin_channel(&oscc).expect("Failed to create origin public key");
+    // Create a new origin channel
+    let mut oscc = originsrv::OriginChannelCreate::new();
+    oscc.set_origin_id(neurosis.get_id());
+    oscc.set_origin_name(neurosis.get_name().to_string());
+    oscc.set_name(String::from("eve"));
+    oscc.set_owner_id(1);
+    ds.create_origin_channel(&oscc).expect("Failed to create origin public key");
 }
