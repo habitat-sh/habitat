@@ -1288,14 +1288,14 @@ add_env() {
   shift
   local values=($*)
 
-  if [[ ${pkg_env[$key]+abc} ]]; then
+  if [ ${pkg_env[$key]+abc} ]; then
     exit_with "Cannot add $key to pkg_env once the value is already set"
   fi
 
-  if [[ -n ${values} ]]; then
-    if [[ ${#values[@]} > 1 ]]; then
-      if [[ ! ${pkg_env_sep[$key]+abc} ]]; then
-          if [[ ${_env_default_sep[$key]+abc} ]]; then
+  if [ -n ${values} ]; then
+    if [ ${#values[@]} > 1 ]; then
+      if [ ! ${pkg_env_sep[$key]+abc} ]; then
+          if [ ${_env_default_sep[$key]+abc} ]; then
             pkg_env_sep[$key]=${_env_default_sep[$key]}
           else
             exit_with "Cannot add multiple values without setting a separator for $key"
@@ -1339,10 +1339,10 @@ add_build_env() {
     exit_with "Cannot add $key to pkg_build_env once the value is already set"
   fi
 
-  if [[ -n ${values} ]]; then
-    if [[ ${#values[@]} > 1 ]]; then
-      if [[ ! ${pkg_env_sep[$key]+abc} ]]; then
-          if [[ ${_env_default_sep[$key]+abc} ]]; then
+  if [ -n ${values} ]; then
+    if [ ${#values[@]} > 1 ]; then
+      if [ ! ${pkg_env_sep[$key]+abc} ]; then
+          if [ ${_env_default_sep[$key]+abc} ]; then
             pkg_env_sep[$key]=${_env_default_sep[$key]}
           else
             exit_with "Cannot add multiple values without setting a separator for $key"
@@ -1767,7 +1767,9 @@ _set_environment() {
   local -A _environment
 
   # Set any package pre-build environment variables
-  add_path_env 'PATH' ${pkg_bin_dirs[@]}
+  if [ -n ${pkg_bin_dirs} ]; then
+    add_path_env 'PATH' ${pkg_bin_dirs[@]}
+  fi
 
   # Copy `$pkg_env` to `$_environment`
   for env in "${!pkg_env[@]}"; do
@@ -1851,7 +1853,7 @@ _set_environment() {
 
   # Export out computed environment
   for env in "${!_environment[@]}"; do
-    build_line "Settings $env=${_environment[PATH]}"
+    build_line "Settings $env=${_environment[$env]}"
     export ${env}=${_environment[$env]}
   done
 }
@@ -2235,7 +2237,7 @@ _build_metadata() {
   done
 
   # Create PATH metadata for older versions of Habitat
-  if [[ ${pkg_env[PATH]+abc} ]]; then
+  if [ ${pkg_env[PATH]+abc} ]; then
     echo "${pkg_env[PATH]}" > "$pkg_prefix/PATH"
   fi
 
