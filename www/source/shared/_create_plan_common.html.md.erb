@@ -31,7 +31,7 @@ The `config.json` file is the default configuration file that you would use if t
 
 And finally, because we are using npm to start up our Node.js web app, the npm binary looks for a `package.json` file to describe the Node.js app project and its dependencies.
 
-The `/habitat` directory contains the heart of a Habitat package: the plan. This is a directory comprised of shell scripts and optional configuration files that define how you download, configure, make, install, and manage the lifecycle of the software in the package. Currently, the plan in `/habitat-example-plans/habitat` only contains `plan.sh`, which you will populate and add to in the following sections.
+The `habitat` directory contains the heart of a Habitat package: the plan. This is a directory comprised of shell scripts and optional configuration files that define how you download, configure, make, install, and manage the lifecycle of the software in the package. Currently, the plan in `habitat` only contains `plan.sh`, which you will populate and add to in the following sections.
 
 > Note: The habitat-example-plans repo also contains a `mytutorialapp_finished` directory that you can reference at any time. It also contains an alternative `plan.sh` file that downloads the Node.js application source from a tarball instead of a local directory to show you how you would need to alter your `plan.sh` file in that scenario.
 
