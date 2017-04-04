@@ -694,6 +694,30 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
                        account: session.get_id().to_string(),
                    });
 
+        // Schedule re-build of dependent packages (if requested)
+        // Don't schedule builds if the upload is being done by the builder
+        // Currently, we only do dep builds of 'core' packages
+        if depot.config.builds_enabled && ident.get_origin() == "core" &&
+           !match extract_query_value("builder", req) {
+                Some(_) => true,
+                None => false,
+            } {
+            let mut conn = Broker::connect().unwrap();
+
+            let mut request = GroupCreate::new();
+            request.set_origin(ident.get_origin().to_string());
+            request.set_package(ident.get_name().to_string());
+            request.set_deps_only(true);
+
+            match conn.route::<GroupCreate, Group>(&request) {
+                Ok(group) => {
+                    debug!("Scheduled reverse dependecy build, group id: {}",
+                           group.get_id())
+                }
+                Err(err) => error!("Unable to schedule build, err: {:?}", err),
+            }
+        }
+
         let mut response = Response::with((status::Created,
                                            format!("/pkgs/{}/download", object.get_ident())));
         let mut base_url: url::Url = req.url.clone().into();

@@ -18,6 +18,7 @@ use time::PreciseTime;
 use hab_net::server::Envelope;
 use protocol::net::{self, ErrCode};
 use protocol::scheduler as proto;
+use protobuf::RepeatedField;
 use zmq;
 
 use super::ServerState;
@@ -32,7 +33,11 @@ pub fn group_create(req: &mut Envelope,
 
     let project_name = format!("{}/{}", msg.get_origin(), msg.get_package());
     let mut projects: Vec<String> = Vec::new();
-    projects.push(project_name.clone());
+
+    // Add the root package if needed
+    if !msg.get_deps_only() {
+        projects.push(project_name.clone());
+    }
 
     // Search the packages graph to find the reverse dependencies
     let start_time;
@@ -65,9 +70,20 @@ pub fn group_create(req: &mut Envelope,
         }
     }
 
-    let group = state.datastore().create_group(&msg, projects)?;
+    let group = if projects.is_empty() {
+        println!("No projects need building - group is complete");
+        let mut new_group = proto::Group::new();
+        let projects = RepeatedField::new();
+        new_group.set_id(0);
+        new_group.set_state(proto::GroupState::Complete);
+        new_group.set_projects(projects);
+        new_group
+    } else {
+        let new_group = state.datastore().create_group(&msg, projects)?;
+        try!(state.schedule_cli().notify_work());
+        new_group
+    };
 
-    try!(state.schedule_cli().notify_work());
     try!(req.reply_complete(sock, &group));
     Ok(())
 }

@@ -430,7 +430,9 @@ impl Client {
         let mut file = try!(File::open(&pa.path));
         let file_size = try!(file.metadata()).len();
         let path = format!("pkgs/{}", ident);
-        let custom = |url: &mut Url| { url.query_pairs_mut().append_pair("checksum", &checksum); };
+        let custom = |url: &mut Url| {
+            url.query_pairs_mut().append_pair("checksum", &checksum).append_pair("builder", "");
+        };
         debug!("Reading from {}", &pa.path.display());
 
         let result = self.add_authz(self.inner.post_with_custom_url(&path, custom), token)
