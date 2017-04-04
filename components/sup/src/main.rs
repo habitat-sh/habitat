@@ -259,18 +259,6 @@ fn sub_start(m: &ArgMatches) -> Result<()> {
         }
         None => None,
     };
-    if !feat::is_enabled(feat::Multi) && !m.is_present("PKG_IDENT_OR_ARTIFACT") {
-        // For now, mimick the "required argument" error message to preserve original behavior of a
-        // require pkg ident or artifact
-        println!("{} The following required arguments were not provided:",
-                 clap::Format::Error("error:"));
-        println!("    {}", clap::Format::Error("<PKG_IDENT_OR_ARTIFACT>"));
-        println!("");
-        println!("{}", m.usage());
-        println!("");
-        println!("For more information try {}", clap::Format::Good("--help"));
-        std::process::exit(1);
-    }
     try!(command::start::package(cfg, maybe_spec, maybe_local_artifact));
     Ok(())
 }
@@ -339,7 +327,7 @@ fn valid_url(val: String) -> result::Result<(), String> {
 }
 
 fn enable_features_from_env() {
-    let features = vec![(feat::List, "LIST"), (feat::Multi, "MULTI")];
+    let features = vec![(feat::List, "LIST")];
 
     for feature in &features {
         match henv::var(format!("HAB_FEAT_{}", feature.1)) {

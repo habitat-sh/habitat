@@ -300,8 +300,7 @@ lazy_static!{
 
 features! {
     pub mod feat {
-        const List = 0b00000001,
-        const Multi = 0b00000010
+        const List = 0b00000001
     }
 }
 

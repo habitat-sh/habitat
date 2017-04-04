@@ -57,7 +57,6 @@ use hcore::fs::{self, FS_ROOT_PATH};
 
 use {PRODUCT, VERSION};
 use error::Result;
-use feat;
 use manager::{Manager, ManagerConfig};
 use manager::ServiceSpec;
 
@@ -72,12 +71,7 @@ pub fn package(cfg: ManagerConfig,
         ui.warn("Running the Habitat Supervisor with root or superuser privileges is recommended")?;
         ui.br()?;
     }
-
-    // TODO fn: once we remove the `Multi` feature flag a refactoring of this function will clean
-    // things up substantially. If it looks slightly awkward, this was done with an eye to the end
-    // state, not this intermediate state. Cheers!
-
-    if let Some(spec) = service_spec.as_ref() {
+    if let Some(spec) = service_spec {
         if let Some(artifact) = local_artifact {
             outputln!("Installing local artifact {}",
                       Yellow.bold().paint(artifact));
@@ -90,26 +84,16 @@ pub fn package(cfg: ManagerConfig,
                                                      &fs::cache_artifact_path(None),
                                                      false)?;
         }
-    }
 
-    if feat::is_enabled(feat::Multi) {
-        if let Some(spec) = service_spec {
-            // If we're starting with a package, then we assume that any prior specs are out of
-            // date.  TODO fn: there are some assumptions to be tested here...
-            let specs_path = Manager::specs_path_for(&cfg);
-            if specs_path.exists() && specs_path.is_dir() {
-                std::fs::remove_dir_all(specs_path)?;
-            }
-            Manager::save_spec_for(&cfg, spec)?;
+        // If we're starting with a package, then we assume that any prior specs are out of
+        // date.
+        // TODO fn: there are some assumptions to be tested here...
+        let specs_path = Manager::specs_path_for(&cfg);
+        if specs_path.exists() && specs_path.is_dir() {
+            std::fs::remove_dir_all(specs_path)?;
         }
-
-        let mut manager = Manager::load(cfg)?;
-        manager.run()
-    } else {
-        let mut manager = Manager::load(cfg)?;
-        if let Some(spec) = service_spec {
-            manager.add_service(spec)?;
-        }
-        manager.run()
+        Manager::save_spec_for(&cfg, spec)?;
     }
+    let mut manager = Manager::load(cfg)?;
+    manager.run()
 }

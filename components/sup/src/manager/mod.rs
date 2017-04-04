@@ -43,7 +43,6 @@ pub use manager::service::{Service, ServiceConfig, ServiceSpec, UpdateStrategy, 
 use self::service_updater::ServiceUpdater;
 use self::spec_watcher::{SpecWatcher, SpecWatcherEvent};
 use error::{Error, Result};
-use feat;
 use config::GossipListenAddr;
 use manager::census::{CensusUpdate, CensusList, CensusEntry};
 use manager::signals::SignalEvent;
@@ -299,10 +298,7 @@ impl Manager {
 
     pub fn run(&mut self) -> Result<()> {
         signals::init();
-
-        if feat::is_enabled(feat::Multi) {
-            self.start_initial_services_from_watcher()?;
-        }
+        self.start_initial_services_from_watcher()?;
 
         outputln!("Starting butterfly on {}", self.butterfly.gossip_addr());
         try!(self.butterfly.start(Timing::default()));
@@ -320,9 +316,7 @@ impl Manager {
                 self.shutdown();
                 return Ok(());
             }
-            if feat::is_enabled(feat::Multi) {
-                self.update_running_services_from_watcher()?;
-            }
+            self.update_running_services_from_watcher()?;
             self.check_for_updated_packages(&mut last_census_update);
             self.restart_elections();
             let (census_updated, ncu) = self.build_census(&last_census_update);
