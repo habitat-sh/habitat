@@ -47,7 +47,6 @@
 //! See the [documentation on topologies](../topology) for a deeper discussion of how they function.
 //!
 
-use std;
 use std::path::Path;
 
 use ansi_term::Colour::Yellow;
@@ -62,10 +61,10 @@ use manager::ServiceSpec;
 
 static LOGKEY: &'static str = "CS";
 
-pub fn package(cfg: ManagerConfig,
-               service_spec: Option<ServiceSpec>,
-               local_artifact: Option<&str>)
-               -> Result<()> {
+pub fn run(cfg: ManagerConfig,
+           service_spec: Option<ServiceSpec>,
+           local_artifact: Option<&str>)
+           -> Result<()> {
     let mut ui = UI::default();
     if !fs::am_i_root() {
         ui.warn("Running the Habitat Supervisor with root or superuser privileges is recommended")?;
@@ -84,16 +83,12 @@ pub fn package(cfg: ManagerConfig,
                                                      &fs::cache_artifact_path(None),
                                                      false)?;
         }
-
-        // If we're starting with a package, then we assume that any prior specs are out of
-        // date.
-        // TODO fn: there are some assumptions to be tested here...
-        let specs_path = Manager::specs_path_for(&cfg);
-        if specs_path.exists() && specs_path.is_dir() {
-            std::fs::remove_dir_all(specs_path)?;
-        }
         Manager::save_spec_for(&cfg, spec)?;
     }
-    let mut manager = Manager::load(cfg)?;
-    manager.run()
+    if !Manager::is_running(&cfg)? {
+        let mut manager = Manager::load(cfg)?;
+        manager.run()
+    } else {
+        Ok(())
+    }
 }

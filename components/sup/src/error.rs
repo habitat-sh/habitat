@@ -126,6 +126,7 @@ pub enum Error {
     NulError(ffi::NulError),
     PackageNotFound(package::PackageIdent),
     Permissions(String),
+    ProcessLockCorrupt,
     ProcessLocked(u32),
     ProcessLockIO(PathBuf, io::Error),
     ServiceSpecFileRead(String, String),
@@ -204,6 +205,7 @@ impl fmt::Display for SupError {
                     format!("Cannot find a release of package: {}", pkg)
                 }
             }
+            Error::ProcessLockCorrupt => format!("Unable to decode contents of process lock"),
             Error::ProcessLocked(ref pid) => {
                 format!("Unable to start Habitat Supervisor because another instance is already \
                     running with the pid {}. If your intention was to run multiple Supervisors - \
@@ -291,6 +293,7 @@ impl error::Error for SupError {
             Error::NulError(_) => "An attempt was made to build a CString with a null byte inside it",
             Error::PackageNotFound(_) => "Cannot find a package",
             Error::Permissions(_) => "File system permissions error",
+            Error::ProcessLockCorrupt => "Unable to decode contents of process lock",
             Error::ProcessLocked(_) => "Another instance of the Habitat Supervisor is already running",
             Error::ProcessLockIO(_, _) => "Unable to write or read to a process lock",
             Error::ServiceSpecFileRead(_, _) => "Service spec file could not be read successfully",

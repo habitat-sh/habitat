@@ -101,7 +101,7 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
         )
         (@subcommand start =>
             (about: "Start a Habitat-supervised service from a package or artifact")
-            (aliases: &["st", "sta", "star"])
+            (aliases: &["sta", "star"])
             (@arg LISTEN_GOSSIP: --("listen-gossip") +takes_value
                 "The listen address for the gossip system [default: 0.0.0.0:9638]")
             (@arg LISTEN_HTTP: --("listen-http") +takes_value
@@ -259,7 +259,7 @@ fn sub_start(m: &ArgMatches) -> Result<()> {
         }
         None => None,
     };
-    try!(command::start::package(cfg, maybe_spec, maybe_local_artifact));
+    try!(command::start::run(cfg, maybe_spec, maybe_local_artifact));
     Ok(())
 }
 
