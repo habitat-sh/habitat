@@ -745,5 +745,16 @@ fn create_origin_channel() {
     oscc.set_origin_name(neurosis.get_name().to_string());
     oscc.set_name(String::from("eve"));
     oscc.set_owner_id(1);
-    ds.create_origin_channel(&oscc).expect("Failed to create origin public key");
+    ds.create_origin_channel(&oscc).expect("Failed to create origin channel");
+
+    // Create new database connection
+    let conn = ds.pool.get().expect("Cannot get connection from pool");
+
+    let rows = conn.query("SELECT COUNT(*) FROM origin_channels", &[])
+        .expect("Failed to query database for number of channels");
+    let count: i64 = rows.iter()
+        .nth(0)
+        .unwrap()
+        .get(0);
+    assert_eq!(count, 1);
 }
