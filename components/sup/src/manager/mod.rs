@@ -99,6 +99,7 @@ pub struct ManagerConfig {
     pub ring: Option<String>,
     pub name: Option<String>,
     pub custom_state_path: Option<PathBuf>,
+    pub organization: Option<String>,
 }
 
 pub struct Manager {
@@ -110,6 +111,7 @@ pub struct Manager {
     watcher: SpecWatcher,
     gossip_listen: GossipListenAddr,
     http_listen: http_gateway::ListenAddr,
+    organization: Option<String>,
 }
 
 impl Manager {
@@ -163,6 +165,7 @@ impl Manager {
                fs_cfg: Arc::new(fs_cfg),
                gossip_listen: cfg.gossip_listen,
                http_listen: cfg.http_listen,
+               organization: cfg.organization,
            })
     }
 
@@ -271,7 +274,8 @@ impl Manager {
         let service = Service::load(spec,
                                     &self.gossip_listen,
                                     &self.http_listen,
-                                    self.fs_cfg.clone())?;
+                                    self.fs_cfg.clone(),
+                                    self.organization.as_ref().map(|org| &**org))?;
         service.add()?;
         self.butterfly.insert_service(service.to_rumor(self.butterfly.member_id()));
         if service.topology == Topology::Leader {

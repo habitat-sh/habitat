@@ -43,7 +43,6 @@ pub struct ServiceSpec {
     )]
     pub ident: PackageIdent,
     pub group: String,
-    pub organization: Option<String>,
     pub depot_url: String,
     pub topology: Topology,
     pub update_strategy: UpdateStrategy,
@@ -160,7 +159,6 @@ impl Default for ServiceSpec {
         ServiceSpec {
             ident: PackageIdent::default(),
             group: DEFAULT_GROUP.to_string(),
-            organization: None,
             depot_url: DEFAULT_DEPOT_URL.to_string(),
             topology: Topology::default(),
             update_strategy: UpdateStrategy::default(),
@@ -266,7 +264,6 @@ mod test {
 
             ident = "origin/name/1.2.3/20170223130020"
             group = "jobs"
-            organization = "acmecorp"
             depot_url = "http://example.com/depot"
             topology = "leader"
             update_strategy = "rolling"
@@ -280,7 +277,6 @@ mod test {
         assert_eq!(spec.ident,
                    PackageIdent::from_str("origin/name/1.2.3/20170223130020").unwrap());
         assert_eq!(spec.group, String::from("jobs"));
-        assert_eq!(spec.organization, Some(String::from("acmecorp")));
         assert_eq!(spec.depot_url, String::from("http://example.com/depot"));
         assert_eq!(spec.topology, Topology::Leader);
         assert_eq!(spec.update_strategy, UpdateStrategy::Rolling);
@@ -347,7 +343,6 @@ mod test {
         let spec = ServiceSpec {
             ident: PackageIdent::from_str("origin/name/1.2.3/20170223130020").unwrap(),
             group: String::from("jobs"),
-            organization: Some(String::from("acmecorp")),
             depot_url: String::from("http://example.com/depot"),
             topology: Topology::Leader,
             update_strategy: UpdateStrategy::AtOnce,
@@ -359,7 +354,6 @@ mod test {
 
         assert!(toml.contains(r#"ident = "origin/name/1.2.3/20170223130020""#));
         assert!(toml.contains(r#"group = "jobs""#));
-        assert!(toml.contains(r#"organization = "acmecorp""#));
         assert!(toml.contains(r#"depot_url = "http://example.com/depot""#));
         assert!(toml.contains(r#"topology = "leader""#));
         assert!(toml.contains(r#"update_strategy = "at-once""#));
@@ -392,7 +386,6 @@ mod test {
         let toml = r#"
             ident = "origin/name/1.2.3/20170223130020"
             group = "jobs"
-            organization = "acmecorp"
             depot_url = "http://example.com/depot"
             topology = "leader"
             update_strategy = "rolling"
@@ -407,7 +400,6 @@ mod test {
         assert_eq!(spec.ident,
                    PackageIdent::from_str("origin/name/1.2.3/20170223130020").unwrap());
         assert_eq!(spec.group, String::from("jobs"));
-        assert_eq!(spec.organization, Some(String::from("acmecorp")));
         assert_eq!(spec.depot_url, String::from("http://example.com/depot"));
         assert_eq!(spec.topology, Topology::Leader);
         assert_eq!(spec.update_strategy, UpdateStrategy::Rolling);
@@ -474,7 +466,6 @@ mod test {
         let spec = ServiceSpec {
             ident: PackageIdent::from_str("origin/name/1.2.3/20170223130020").unwrap(),
             group: String::from("jobs"),
-            organization: Some(String::from("acmecorp")),
             depot_url: String::from("http://example.com/depot"),
             topology: Topology::Leader,
             update_strategy: UpdateStrategy::AtOnce,
@@ -487,7 +478,6 @@ mod test {
 
         assert!(toml.contains(r#"ident = "origin/name/1.2.3/20170223130020""#));
         assert!(toml.contains(r#"group = "jobs""#));
-        assert!(toml.contains(r#"organization = "acmecorp""#));
         assert!(toml.contains(r#"depot_url = "http://example.com/depot""#));
         assert!(toml.contains(r#"topology = "leader""#));
         assert!(toml.contains(r#"update_strategy = "at-once""#));
