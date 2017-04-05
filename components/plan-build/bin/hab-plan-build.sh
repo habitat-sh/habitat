@@ -401,6 +401,22 @@ pkg_svc_user=hab
 # The group to run the service as
 pkg_svc_group=$pkg_svc_user
 
+# The environment variables inside a package
+declare -A pkg_env
+# The build environment variables inside a package
+declare -A pkg_build_env
+# The internal field separator used to join `env` variables for cascading
+declare -A _env_default_sep=(
+  ['CFLAGS']=' '
+  ['CPPFLAGS']=' '
+  ['CXXFLAGS']=' '
+  ['LDFLAGS']=' '
+  ['LD_RUN_PATH']=':'
+  ['PATH']=':'
+  ['PKG_CONFIG_PATH']=':'
+)
+declare -A pkg_env_sep
+
 # Initially set $pkg_svc_* variables. This happens before the Plan is sourced,
 # meaning that `$pkg_name` is not yet set. However, `$pkg_svc_run` wants
 # to use these variables, so what to do? We'll set up these svc variables
@@ -1243,6 +1259,121 @@ abspath() {
   fi
 }
 
+# Returns all items joined by defined IFS
+#
+# ```sh
+# join_by , a "b c" d
+# # a,b c,d
+# join_by / var local tmp
+# # var/local/tmp
+# join_by , "${FOO[@]}"
+# # a,b,c
+# ```
+#
+# Thanks to [Stack Overflow](http://stackoverflow.com/a/17841619/515789)
+join_by() {
+  local IFS="$1"
+  shift
+  echo "$*"
+}
+
+# Sets environment variable for package
+#
+# ```sh
+# add_env PATH 'bin' 'sbin'
+# add_env SETTINGS_MODULE 'app.settings'
+# ```
+add_env() {
+  local -u key=$1
+  shift
+  local values=($*)
+
+  if [ ${pkg_env[$key]+abc} ]; then
+    exit_with "Cannot add $key to pkg_env once the value is already set"
+  fi
+
+  if [ -n ${values} ]; then
+    # Set a default separator if none is defined
+    if [ ! ${pkg_env_sep[$key]+abc} ] && [ ${_env_default_sep[$key]+abc} ]; then
+      pkg_env_sep[$key]=${_env_default_sep[$key]}
+    fi
+
+    if [ ${#values[@]} -gt 1 ]; then
+      if [ ${pkg_env_sep[$key]+abc} ]; then
+        pkg_env[$key]=$(join_by ${pkg_env_sep[$key]} ${values[@]})
+      else
+        exit_with "Cannot add multiple values without setting a separator for $key"
+      fi
+    else
+      pkg_env[$key]=${values[0]}
+    fi
+  fi
+}
+
+# Adds `$pkg_prefix` to supplied paths
+#
+# ```sh
+# add_path_env PATH 'bin' 'sbin'
+# ```
+add_path_env() {
+  local key=$1
+  shift
+  local paths=()
+  for path in $*; do
+    paths+=("${pkg_prefix}/${path}")
+  done
+  add_env ${key} ${paths[@]}
+}
+
+# TODO: Make `add_build_env` and `add_build_path_env` more generic
+# Sets build environment variable for package
+#
+# ```sh
+# add_build_env PATH 'bin' 'sbin'
+# add_build_env SETTINGS_MODULE 'app.settings'
+# ```
+add_build_env() {
+  local -u key=$1
+  shift
+  local values=($*)
+
+  if [ ${pkg_build_env[$key]+abc} ]; then
+    exit_with "Cannot add $key to pkg_build_env once the value is already set"
+  fi
+
+  if [ -n ${values} ]; then
+    # Set a default separator if none is defined
+    if [ ! ${pkg_env_sep[$key]+abc} ] && [ ${_env_default_sep[$key]+abc} ]; then
+      pkg_env_sep[$key]=${_env_default_sep[$key]}
+    fi
+
+    if [ ${#values[@]} -gt 1 ]; then
+      if [ ${pkg_env_sep[$key]+abc} ]; then
+        pkg_build_env[$key]=$(join_by ${pkg_env_sep[$key]} ${values[@]})
+      else
+        exit_with "Cannot add multiple values without setting a separator for $key"
+      fi
+    else
+      pkg_build_env[$key]=${values[0]}
+    fi
+  fi
+}
+
+# Adds `$pkg_prefix` to supplied paths
+#
+# ```sh
+# add_build_path_env PATH 'bin' 'sbin'
+# ```
+add_build_path_env() {
+  local key=$1
+  shift
+  local paths=()
+  for path in $*; do
+    paths+=("${pkg_prefix}/${path}")
+  done
+  add_build_env ${key} ${paths[@]}
+}
+
 # **Internal** Convert a string into a numerical value.
 function _to_int() {
     local -i num="10#${1}"
@@ -1594,10 +1725,10 @@ _resolve_dependencies() {
   # `$PATH` ordering in the build environment. To give priority to direct
   # dependencies over transitive ones the order of packages is the following:
   #
-  # 1. All direct build dependencies
   # 1. All direct run dependencies
-  # 1. All unique transitive build dependencies that aren't already added
-  # 1. All unique transitive run dependencies that aren't already added
+  # 2. All direct build dependencies
+  # 3. All unique transitive run dependencies that aren't already added
+  # 4. All unique transitive build dependencies that aren't already added
   pkg_all_tdeps_resolved=(
     "${pkg_deps_resolved[@]}"
     "${pkg_build_deps_resolved[@]}"
@@ -1636,33 +1767,99 @@ _load_scaffolding() {
 # or transitive) if one exists. The ordering of the path is specific to
 # `${pkg_all_tdeps_resolved[@]}` which is further explained in the
 # `_resolve_dependencies()` function.
-_set_path() {
-  local path_part=""
-  for path in "${pkg_bin_dirs[@]}"; do
-    if [[ -z $path_part ]]; then
-      path_part="$pkg_prefix/$path"
+_set_environment() {
+  local -A _environment
+
+  # Set any package pre-build environment variables
+  if [ -n ${pkg_bin_dirs} ]; then
+    add_path_env 'PATH' ${pkg_bin_dirs[@]}
+  fi
+
+  # Copy `$pkg_env` to `$_environment`
+  for env in "${!pkg_env[@]}"; do
+    _environment[$env]=${pkg_env[$env]}
+  done
+
+  # Copy `$pkg_build_env` to `$_environment`
+  for env in "${!pkg_build_env[@]}"; do
+    if [[ ${_environment[$env]+abc} && ${pkg_env_sep[$env]+abc} ]]; then
+      _environment[$env]=$(join_by ${pkg_env_sep[$env]} ${_environment[$env]} ${pkg_build_env[$env]})
+    elif [[ ! ${_environment[$env]+abc} ]]; then
+      _environment[$env]=${pkg_build_env[$env]}
     else
-      path_part="$path_part:$pkg_prefix/$path"
+      exit_with "Cannot add $$pkg_build_env without setting a separator for $env"
     fi
   done
+
   for dep_path in "${pkg_all_tdeps_resolved[@]}"; do
-    if [[ -f "$dep_path/PATH" ]]; then
-      local data=$(cat $dep_path/PATH)
-      local trimmed=$(trim $data)
-      if [[ -z $path_part ]]; then
-        path_part="$trimmed"
-      else
-        path_part="$path_part:$trimmed"
+    # If we have a ENVIRONMENT or BUILD_ENVIRONMENT skip looking for legacy files
+    if [[ -f "$dep_path/ENVIRONMENT" || -f "$dep_path/BUILD_ENVIRONMENT" ]]; then
+      local -A env_sep
+
+      if [[ -f "$dep_path/ENVIRONMENT_SEP" ]]; then
+        while read -r line; do
+          local -u env=${line%%=*}
+          local value=${line#*=}
+          if [[ -n "$env" && -n "$value" ]]; then
+            env_sep[$env]=${value}
+          fi
+        done < "$dep_path/ENVIRONMENT_SEP"
+      fi
+
+      if [[ -f "$dep_path/ENVIRONMENT" ]]; then
+        while read -r line; do
+          local -u env=${line%%=*}
+          local value=${line#*=}
+          if [[ -n "$env" && -n "$value" ]]; then
+            if [[ ${_environment[$env]+abc} && ${env_sep[$env]+abc} ]]; then
+              _environment[$env]=$(join_by ${env_sep[$env]} ${_environment[$env]} ${value})
+            elif [[ ! ${_environment[$env]+abc} ]]; then
+              _environment[$env]=${value}
+            else
+              exit_with "Artifact $dep_path does not have a separator set for $env"
+            fi
+          fi
+        done < "$dep_path/ENVIRONMENT"
+      fi
+
+      if [[ -f "$dep_path/BUILD_ENVIRONMENT" ]]; then
+        while read -r line; do
+          local -u env=${line%%=*}
+          local value=${line#*=}
+          if [[ -n "$env" && -n "$value" ]]; then
+            if [[ ${_environment[$env]+abc} && ${env_sep[$env]+abc} ]]; then
+              _environment[$env]=$(join_by ${env_sep[$env]} ${_environment[$env]} ${value})
+            elif [[ ! ${_environment[$env]+abc} ]]; then
+              _environment[$env]=${value}
+            else
+              exit_with "Artifact $dep_path does not have a separator set for $env"
+            fi
+          fi
+        done < "$dep_path/BUILD_ENVIRONMENT"
+      fi
+    else # Look for legacy files
+      if [[ -f "$dep_path/PATH" ]]; then
+        local data=$(cat "$dep_path/PATH")
+        local trimmed=$(trim $data)
+        if [[ ${_environment[PATH]+abc} ]]; then
+            _environment[PATH]=$(join_by ':' ${_environment[PATH]} ${trimmed})
+        else
+            _environment[PATH]=${trimmed}
+        fi
       fi
     fi
   done
   # Insert all the package PATH fragments before the default PATH to ensure
   # package binaries are used before any userland/operating system binaries
-  if [[ -n $path_part ]]; then
-    export PATH="$path_part:$INITIAL_PATH"
+  if [[ ${_environment[PATH]+abc} ]]; then
+    _environment[PATH]=$(join_by ':' ${_environment[PATH]} ${INITIAL_PATH})
   fi
 
-  build_line "Setting PATH=$PATH"
+  # Export out computed environment
+  for env in "${!_environment[@]}"; do
+    build_line "Settings $env=${_environment[$env]}"
+    export ${env}=${_environment[$env]}
+  done
 }
 
 # Download the software from `$pkg_source` and place it in
@@ -1738,26 +1935,20 @@ _build_environment() {
   # overridable) entries only contain **direct** **runtime** paths. If a
   # dependency's lib directory needs to be set in the resulting `RUNPATH`
   # sections of an ELF binary, it must be a direct dependency, not transitive.
-  local ld_run_path_part=""
+  local ld_run_path_part=()
   for lib in "${pkg_lib_dirs[@]}"; do
-    if [[ -z $ld_run_path_part ]]; then
-      ld_run_path_part="$pkg_prefix/$lib"
-    else
-      ld_run_path_part="$ld_run_path_part:$pkg_prefix/$lib"
-    fi
+    ld_run_path_part+=("$pkg_prefix/$lib")
   done
-  export LD_RUN_PATH=$ld_run_path_part
   for dep_path in "${pkg_deps_resolved[@]}"; do
     if [[ -f "$dep_path/LD_RUN_PATH" ]]; then
       local data=$(cat $dep_path/LD_RUN_PATH)
       local trimmed=$(trim $data)
-      if [[ -n "$LD_RUN_PATH" ]]; then
-        export LD_RUN_PATH="$LD_RUN_PATH:$trimmed"
-      else
-        export LD_RUN_PATH="$trimmed"
-      fi
+      ld_run_path_part+=("$trimmed")
     fi
   done
+  if [[ -z $ld_run_path_part ]]; then
+    export LD_RUN_PATH=$(join_by ':' ${ld_run_path_part[@]})
+  fi
 
   # Build `$CFLAGS`, `$CPPFLAGS`, `$CXXFLAGS` and `$LDFLAGS` containing any
   # direct dependency's `CFLAGS`, `CPPFLAGS`, `CXXFLAGS` or `LDFLAGS` entries
@@ -1966,9 +2157,12 @@ do_default_install() {
 # **Internal** Write out the package data to files:
 #
 # * `$pkg_prefix/BUILD_DEPS` - Any dependencies we need build the package
+# * `$pkg_prefix/BUILD_ENVIRONMENT` - A list of build environment keys and their values
 # * `$pkg_prefix/CFLAGS` - Any CFLAGS for things that link against us
 # * `$pkg_prefix/PKG_CONFIG_PATH` - Any PKG_CONFIG_PATH entries for things that depend on us
 # * `$pkg_prefix/DEPS` - Any dependencies we need to use the package at runtime
+# * `$pkg_prefix/ENVIRONMENT` - A list of environment keys and their values
+# * `$pkg_prefix/ENVIRONMENT_SEP` - A list of Internal Field Separators for environment keys
 # * `$pkg_prefix/EXPORTS` - A list of exported configuration keys and their public name
 # * `$pkg_prefix/EXPOSES` - An array of `pkg_exports` for which ports that this package exposes
 # * `$pkg_prefix/BINDS` - A list of services you connect to and keys that you expect to be exported
@@ -1976,103 +2170,79 @@ do_default_install() {
 # * `$pkg_prefix/FILES` - blake2b checksums of all files in the package
 # * `$pkg_prefix/LDFLAGS` - Any LDFLAGS for things that link against us
 # * `$pkg_prefix/LD_RUN_PATH` - The LD_RUN_PATH for things that link against us
-# * `$pkg_prefix/PATH` - Any PATH entries for things that link against us
 _build_metadata() {
   build_line "Building package metadata"
-  local ld_run_path_part=""
-  local ld_lib_part=""
-  for lib in "${pkg_lib_dirs[@]}"; do
-    if [[ -z "$ld_run_path_part" ]]; then
-      ld_run_path_part="${pkg_prefix}/$lib"
-    else
-      ld_run_path_part="$ld_run_path_part:${pkg_prefix}/$lib"
-    fi
-    if [[ -z "$ld_lib_part" ]]; then
-      ld_lib_part="-L${pkg_prefix}/$lib"
-    else
-      ld_lib_part="$ld_lib_part -L${pkg_prefix}/$lib"
-    fi
+  local ld_run_path_part=()
+  local ld_lib_part=()
+  for lib in ${pkg_lib_dirs[@]}; do
+    ld_run_path_part+=("${pkg_prefix}/$lib")
+    ld_lib_part+=("-L${pkg_prefix}/$lib")
   done
-  if [[ -n "${ld_run_path_part}" ]]; then
-    echo $ld_run_path_part > $pkg_prefix/LD_RUN_PATH
+  if [[ -n ${ld_run_path_part} ]]; then
+    echo $(join_by ':' ${ld_run_path_part[@]}) > "$pkg_prefix/LD_RUN_PATH"
   fi
-  if [[ -n "${ld_lib_part}" ]]; then
-    echo $ld_lib_part > $pkg_prefix/LDFLAGS
+  if [[ -n ${ld_lib_part} ]]; then
+    echo $(join_by ' ' ${ld_lib_part[@]}) > "$pkg_prefix/LDFLAGS"
   fi
 
-  local cflags_part=""
+  local cflags_part=()
   for inc in "${pkg_include_dirs[@]}"; do
-    if [[ -z "$cflags_part" ]]; then
-      cflags_part="-I${pkg_prefix}/${inc}"
-    else
-      cflags_part="$cflags_part -I${pkg_prefix}/${inc}"
-    fi
+    cflags_part+=("-I${pkg_prefix}/${inc}")
   done
-  if [[ -n "${cflags_part}" ]]; then
-    echo $cflags_part > $pkg_prefix/CFLAGS
+  if [[ -n ${cflags_part} ]]; then
+    echo $(join_by ' ' ${cflags_part[@]}) > "$pkg_prefix/CFLAGS"
   fi
 
-  local cppflags_part=""
+  local cppflags_part=()
   for inc in "${pkg_include_dirs[@]}"; do
-    if [[ -z "$cppflags_part" ]]; then
-      cppflags_part="-I${pkg_prefix}/${inc}"
-    else
-      cppflags_part="$cppflags_part -I${pkg_prefix}/${inc}"
-    fi
+    cppflags_part+=("-I${pkg_prefix}/${inc}")
   done
-  if [[ -n "${cppflags_part}" ]]; then
-    echo $cppflags_part > $pkg_prefix/CPPFLAGS
+  if [[ -n ${cppflags_part} ]]; then
+    echo $(join_by ' ' ${cppflags_part[@]}) > "$pkg_prefix/CPPFLAGS"
   fi
 
-  local cxxflags_part=""
+  local cxxflags_part=()
   for inc in "${pkg_include_dirs[@]}"; do
-    if [[ -z "$cxxflags_part" ]]; then
-      cxxflags_part="-I${pkg_prefix}/${inc}"
-    else
-      cxxflags_part="$cxxflags_part -I${pkg_prefix}/${inc}"
-    fi
+    cxxflags_part+=("-I${pkg_prefix}/${inc}")
   done
-  if [[ -n "${cxxflags_part}" ]]; then
-    echo $cxxflags_part > $pkg_prefix/CXXFLAGS
+  if [[ -n ${cxxflags_part} ]]; then
+    echo $(join_by ' ' ${cxxflags_part[@]}) > "$pkg_prefix/CXXFLAGS"
   fi
 
-  local pconfig_path_part=""
+  local pconfig_path_part=()
   if [ ${#pkg_pconfig_dirs[@]} -eq 0 ]; then
     # Plan doesn't define pkg-config paths so let's try to find them in the conventional locations
     local locations=(lib/pkgconfig share/pkgconfig)
     for dir in "${locations[@]}"; do
       if [[ -d "${pkg_prefix}/${dir}" ]]; then
-        if [[ -z "$pconfig_path_part" ]]; then
-          pconfig_path_part="${pkg_prefix}/${dir}"
-        else
-          pconfig_path_part="${pconfig_path_part}:${pkg_prefix}/${dir}"
-        fi
+        pconfig_path_part+=("${pkg_prefix}/${dir}")
       fi
     done
   else
     # Plan explicitly defines pkg-config paths so we don't provide defaults
     for inc in "${pkg_pconfig_dirs[@]}"; do
-      if [[ -z "$pconfig_path_part" ]]; then
-        pconfig_path_part="${pkg_prefix}/${inc}"
-      else
-        pconfig_path_part="${pconfig_path_part}:${pkg_prefix}/${inc}"
-      fi
+      pconfig_path_part+=("${pkg_prefix}/${inc}")
     done
   fi
-  if [[ -n "${pconfig_path_part}" ]]; then
-    echo $pconfig_path_part > $pkg_prefix/PKG_CONFIG_PATH
+  if [[ -n ${pconfig_path_part} ]]; then
+    echo $(join_by ':' ${pconfig_path_part[@]}) > "$pkg_prefix/PKG_CONFIG_PATH"
   fi
 
-  local path_part=""
-  for bin in "${pkg_bin_dirs[@]}"; do
-    if [[ -z "$path_part" ]]; then
-      path_part="${pkg_prefix}/${bin}";
-    else
-      path_part="$path_part:${pkg_prefix}/${bin}";
-    fi
+  for env in ${!pkg_build_env[@]}; do
+    echo "$env=${pkg_build_env[$env]}" >> "$pkg_prefix/BUILD_ENVIRONMENT"
   done
-  if [[ -n "${path_part}" ]]; then
-    echo $path_part > $pkg_prefix/PATH
+
+  for env in ${!pkg_env[@]}; do
+    echo "$env=${pkg_env[$env]}" >> "$pkg_prefix/ENVIRONMENT"
+  done
+
+  for env_sep in ${!pkg_env_sep[@]}; do
+    echo "$env_sep=${pkg_env_sep[$env_sep]}" >> "$pkg_prefix/ENVIRONMENT_SEP"
+  done
+
+  # Create PATH metadata for older versions of Habitat
+  if [ ${pkg_env[PATH]+abc} ]; then
+    echo "${pkg_env[PATH]}" > "$pkg_prefix/PATH"
   fi
 
   for export in "${!pkg_exports[@]}"; do
@@ -2567,7 +2737,8 @@ _inject_scaffolding_dependency
 # Download and resolve the dependencies
 _resolve_dependencies
 
-_set_path
+# Set up runtime environment
+_set_environment
 
 # Load scaffolding plans if they are being used.
 _load_scaffolding

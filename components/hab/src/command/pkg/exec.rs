@@ -22,10 +22,12 @@ use hcore::fs::find_command;
 use error::{Error, Result};
 
 pub fn start(ident: &PackageIdent, command: &str, args: Vec<OsString>) -> Result<()> {
-    let pkg_install = try!(PackageInstall::load(&ident, None));
-    let env_path = try!(pkg_install.runtime_path());
-    info!("Setting: PATH='{}'", &env_path);
-    env::set_var("PATH", env_path);
+    let pkg_install = PackageInstall::load(&ident, None)?;
+    let run_env = pkg_install.runtime_environment()?;
+    for (key, value) in run_env.into_iter() {
+        info!("Setting: {}='{}'", key, value);
+        env::set_var(key, value);
+    }
     let command = match find_command(command) {
         Some(path) => path,
         None => return Err(Error::ExecCommandNotFound(command.to_string())),
@@ -36,5 +38,5 @@ pub fn start(ident: &PackageIdent, command: &str, args: Vec<OsString>) -> Result
         display_args.push_str(arg.to_string_lossy().as_ref());
     }
     info!("Running: {}", display_args);
-    Ok(try!(process::become_command(command, args)))
+    Ok(process::become_command(command, args)?)
 }

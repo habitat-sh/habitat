@@ -149,6 +149,11 @@ pub fn get() -> App<'static, 'static> {
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
             )
             (subcommand: sub_pkg_build())
+            (@subcommand env =>
+                (about: "Prints the runtime environment of a specific installed package")
+                (@arg PKG_IDENT: +required +takes_value
+                    "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
+            )
             (@subcommand exec =>
                 (about: "Executes a command using the 'PATH' context of an installed package")
                 (aliases: &["exe"])

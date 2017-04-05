@@ -14,6 +14,7 @@
 
 use std;
 use std::collections::{HashMap, HashSet};
+use std::collections::hash_map::Entry::{Occupied, Vacant};
 use std::cmp::{Ordering, PartialOrd};
 use std::env;
 use std::fmt;
@@ -251,6 +252,62 @@ impl PackageInstall {
         self.read_deps(MetaFile::TDeps)
     }
 
+    /// Returns a Rust representation of the mappings defined by the `pkg_env` plan variable.
+    ///
+    /// # Failures
+    ///
+    /// * The package contains a Environment metafile but it could not be read or it was malformed.
+    pub fn environment(&self) -> Result<HashMap<String, String>> {
+        let mut m = HashMap::new();
+        match self.read_metafile(MetaFile::Environment) {
+            Ok(body) => {
+                for line in body.lines() {
+                    let mut parts = line.splitn(2, '=');
+                    let key = parts.next()
+                        .and_then(|p| Some(p.to_string()))
+                        .ok_or_else(|| Error::MetaFileMalformed(MetaFile::Environment))?;
+                    let value =
+                        parts.next()
+                            .and_then(|p| Some(p.to_string()))
+                            .ok_or_else(|| Error::MetaFileMalformed(MetaFile::Environment))?;
+                    m.insert(key, value);
+                }
+                Ok(m)
+            }
+            Err(Error::MetaFileNotFound(MetaFile::Environment)) => Ok(m),
+            Err(e) => Err(e),
+        }
+    }
+
+    /// Returns a Rust representation of the mappings defined by the `pkg_env_sep` plan variable.
+    ///
+    /// # Failures
+    ///
+    /// * The package contains a EnvironmentSep metafile but it could not be read or it was
+    ///   malformed.
+    pub fn environment_sep(&self) -> Result<HashMap<String, String>> {
+        let mut m = HashMap::new();
+        match self.read_metafile(MetaFile::EnvironmentSep) {
+            Ok(body) => {
+                for line in body.lines() {
+                    let mut parts = line.splitn(2, '=');
+                    let key =
+                        parts.next()
+                            .and_then(|p| Some(p.to_string()))
+                            .ok_or_else(|| Error::MetaFileMalformed(MetaFile::EnvironmentSep))?;
+                    let value =
+                        parts.next()
+                            .and_then(|p| Some(p.to_string()))
+                            .ok_or_else(|| Error::MetaFileMalformed(MetaFile::EnvironmentSep))?;
+                    m.insert(key, value);
+                }
+                Ok(m)
+            }
+            Err(Error::MetaFileNotFound(MetaFile::EnvironmentSep)) => Ok(m),
+            Err(e) => Err(e),
+        }
+    }
+
     /// Returns a Rust representation of the mappings defined by the `pkg_exports` plan variable.
     ///
     /// These mappings are used as a filter-map to generate a public configuration when the package
@@ -318,35 +375,124 @@ impl PackageInstall {
         }
     }
 
-    /// Returns a `String` with the full run path for this package. The `PATH` string will be
-    /// constructed by add all `PATH` metadata entries from the *direct* dependencies first (in
-    /// declared order) and then from any remaining transitive dependencies last (in lexically
-    /// sorted order).
-    pub fn runtime_path(&self) -> Result<String> {
+    /// Returns a `HashMap<String, String>` with the full runtime environment for this package.
+    /// This is constructed from all `ENVIRONMENT` and `ENVIRONMENT_SEP` metadata entries from the
+    /// *direct* dependencies first (in declared order) and then from any remaining transitive
+    /// dependencies last (in lexically sorted order).
+    ///
+    /// If a package is missing the aforementioned metadata files, fall back to the
+    /// legacy `PATH` metadata files.
+    pub fn runtime_environment(&self) -> Result<HashMap<String, String>> {
         let mut idents = HashSet::new();
-        let mut run_paths: Vec<PathBuf> = Vec::new();
+        let mut run_envs = HashMap::new();
 
-        let mut p = try!(self.paths());
-        run_paths.append(&mut p);
-        idents.insert(self.ident().clone());
-        let deps: Vec<PackageInstall> = try!(self.load_deps());
+        // This is a special storage so that we can use the old `paths()`
+        // method and not have to repeatedly convert when concatenating.
+        let mut legacy_run_paths: Vec<PathBuf> = Vec::new();
+        let mut has_legacy_run_paths = false;
+
+        let env = self.environment()?;
+        if !env.is_empty() {
+            if let Some(path) = env.get("PATH") {
+                let mut v: Vec<PathBuf> =
+                    env::split_paths(&path).map(|p| PathBuf::from(&p)).collect();
+                legacy_run_paths.append(&mut v);
+            }
+
+            for (key, value) in env.into_iter() {
+                run_envs.insert(key, value);
+            }
+        } else {
+            let mut p = self.paths()?;
+            legacy_run_paths.append(&mut p);
+            has_legacy_run_paths = true;
+        }
+
+        let deps = self.load_deps()?;
         for dep in deps.iter() {
-            let mut p = try!(dep.paths());
-            run_paths.append(&mut p);
+            let env = dep.environment()?;
+            let env_sep = dep.environment_sep()?;
+            if !env.is_empty() {
+                if let Some(path) = env.get("PATH") {
+                    let mut v: Vec<PathBuf> =
+                        env::split_paths(&path).map(|p| PathBuf::from(&p)).collect();
+                    legacy_run_paths.append(&mut v);
+                }
+
+                for (key, value) in env.into_iter() {
+                    match run_envs.entry(key) {
+                        Occupied(entry) => {
+                            match env_sep.get(entry.key()) {
+                                Some(sep) => {
+                                    let v = entry.into_mut();
+                                    v.push_str(sep);
+                                    v.push_str(&value);
+                                }
+                                None => warn!("Cannot join {}, no separator defined", entry.key()),
+                            }
+                        }
+                        Vacant(entry) => {
+                            entry.insert(value);
+                            ()
+                        }
+                    }
+                }
+            } else {
+                let mut p = dep.paths()?;
+                legacy_run_paths.append(&mut p);
+                has_legacy_run_paths = true;
+            }
             idents.insert(dep.ident().clone());
         }
-        let tdeps: Vec<PackageInstall> = try!(self.load_tdeps());
+
+        let tdeps = self.load_tdeps()?;
         for dep in tdeps.iter() {
             if idents.contains(dep.ident()) {
                 continue;
             }
-            let mut p = try!(dep.paths());
-            run_paths.append(&mut p);
+            let env = dep.environment()?;
+            let env_sep = dep.environment_sep()?;
+            if !env.is_empty() {
+                if let Some(path) = env.get("PATH") {
+                    let mut v: Vec<PathBuf> =
+                        env::split_paths(&path).map(|p| PathBuf::from(&p)).collect();
+                    legacy_run_paths.append(&mut v);
+                }
+
+                for (key, value) in env.into_iter() {
+                    match run_envs.entry(key) {
+                        Occupied(entry) => {
+                            match env_sep.get(entry.key()) {
+                                Some(sep) => {
+                                    let v = entry.into_mut();
+                                    v.push_str(sep);
+                                    v.push_str(&value);
+                                }
+                                None => warn!("Cannot join {}, no separator defined", entry.key()),
+                            }
+                        }
+                        Vacant(entry) => {
+                            entry.insert(value);
+                            ()
+                        }
+                    }
+                }
+            } else {
+                let mut p = dep.paths()?;
+                legacy_run_paths.append(&mut p);
+                has_legacy_run_paths = true;
+            }
             idents.insert(dep.ident().clone());
         }
 
-        let p = env::join_paths(&run_paths).expect("Failed to build path string");
-        Ok(p.into_string().expect("Failed to convert path to utf8 string"))
+        if has_legacy_run_paths {
+            // Overwrite PATH with legacy_run_paths
+            let p = env::join_paths(&legacy_run_paths).expect("Failed to build path string");
+            let v = p.into_string().expect("Failed to convert path to utf8 string");
+            run_envs.insert("PATH".to_string(), v);
+        }
+
+        Ok(run_envs)
     }
 
     pub fn installed_path(&self) -> &Path {
