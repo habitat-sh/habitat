@@ -1,8 +1,7 @@
 // Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
+// you may not use this file except in compliance with the License.  // You may obtain a copy of the License at
 //
 //     http://www.apache.org/licenses/LICENSE-2.0
 //
@@ -41,6 +40,15 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                          RETURN;
                      END
                  $$ LANGUAGE plpgsql VOLATILE"#)?;
-
+    migrator.migrate("originsrv",
+                     r#"CREATE OR REPLACE FUNCTION get_origin_channels_for_origin_v1 (
+                   occ_origin_id bigint
+                 ) RETURNS SETOF origin_channels AS $$
+                    BEGIN
+                        RETURN QUERY SELECT * FROM origin_channels WHERE origin_id = occ_origin_id
+                          ORDER BY name ASC;
+                        RETURN;
+                    END
+                    $$ LANGUAGE plpgsql STABLE"#)?;
     Ok(())
 }

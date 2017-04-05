@@ -222,7 +222,7 @@ message OriginChannelListRequest {
 
 message OriginChannelListResponse {
   optional uint64 origin_id = 1;
-  repeated string channels = 2;
+  repeated OriginChannel channels = 2;
 }
 
 

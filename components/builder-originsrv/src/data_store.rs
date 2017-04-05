@@ -504,5 +504,23 @@ impl DataStore {
         occ
     }
 
+    pub fn list_origin_channels(&self,
+                               oclr: &originsrv::OriginChannelListRequest)
+                               -> Result<originsrv::OriginChannelListResponse> {
+        let conn = self.pool.get()?;
+        let rows = &conn.query("SELECT * FROM get_origin_channels_for_origin_v1($1)",
+                               &[&(oclr.get_origin_id() as i64)])
+                        .map_err(Error::OriginChannelList)?;
 
+        let mut response = originsrv::OriginChannelListResponse::new();
+        response.set_origin_id(oclr.get_origin_id());
+
+        let mut channels = protobuf::RepeatedField::new();
+        for row in rows {
+            channels.push(self.row_to_origin_channel(row))
+        }
+
+        response.set_channels(channels);
+        Ok(response)
+    }
 }
