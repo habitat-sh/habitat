@@ -51,6 +51,8 @@ pub struct Config {
     pub insecure: bool,
     /// Whether to log events for funnel metrics
     pub events_enabled: bool,
+    /// Whether to schedule builds on package upload
+    pub builds_enabled: bool,
     /// Where to record log events for funnel metrics
     pub log_dir: String,
     /// Supported targets - comma separated
@@ -67,6 +69,7 @@ impl ConfigFile for Config {
         try!(toml.parse_into("cfg.datastore_addr", &mut cfg.datastore_addr));
         try!(toml.parse_into("cfg.router_addrs", &mut cfg.routers));
         try!(toml.parse_into("cfg.events_enabled", &mut cfg.events_enabled));
+        try!(toml.parse_into("cfg.builds_enabled", &mut cfg.builds_enabled));
         try!(toml.parse_into("pkg.svc_var_path", &mut cfg.log_dir));
         try!(toml.parse_into("cfg.supported_targets", &mut cfg.supported_targets));
         Ok(cfg)
@@ -85,6 +88,7 @@ impl Default for Config {
             github_client_secret: DEV_GITHUB_CLIENT_SECRET.to_string(),
             insecure: false,
             events_enabled: false, // TODO: change to default to true later
+            builds_enabled: false,
             log_dir: env::temp_dir().to_string_lossy().into_owned(),
             supported_targets: vec![PackageTarget::new(Platform::Linux, Architecture::X86_64),
                                     PackageTarget::new(Platform::Windows, Architecture::X86_64)],

@@ -24,6 +24,7 @@ enum GroupState {
 message GroupCreate {
   optional string origin = 1;
   optional string package = 2;
+  optional bool deps_only = 3;
 }
 
 message GroupGet {

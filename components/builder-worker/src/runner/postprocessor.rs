@@ -67,7 +67,7 @@ impl Publish {
 impl Default for Publish {
     fn default() -> Self {
         Publish {
-            enabled: false,
+            enabled: hab_core::url::default_depot_publish().parse::<bool>().unwrap(),
             url: hab_core::url::default_depot_url(),
             channel: hab_core::url::default_depot_channel(),
         }
@@ -99,19 +99,21 @@ impl PostProcessor {
     }
 
     pub fn run(&mut self, archive: &mut PackageArchive, auth_token: &str) -> bool {
-        if !self.config_path.exists() {
-            debug!("no post processing config - skipping");
-            return true;
-        }
-
-        debug!("starting post processing");
-        let mut cfg = match Publish::from_file(&self.config_path) {
-            Ok(value) => value,
-            Err(e) => {
-                debug!("failed to parse config file! {:?}", e);
-                return false;
+        let mut cfg = if !self.config_path.exists() {
+            debug!("no post processing config - using defaults");
+            Publish::default()
+        } else {
+            debug!("using post processing config from builder.toml");
+            match Publish::from_file(&self.config_path) {
+                Ok(value) => value,
+                Err(e) => {
+                    debug!("failed to parse config file! {:?}", e);
+                    return false;
+                }
             }
         };
+
+        debug!("starting post processing");
         cfg.run(archive, auth_token)
     }
 }
