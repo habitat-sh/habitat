@@ -409,3 +409,19 @@ impl Routable for OriginChannelCreate {
     }
 }
 
+impl Routable for OriginChannelListRequest {
+    type H = InstaId;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(InstaId(self.get_origin_id()))
+    }
+}
+
+impl Routable for OriginChannelListResponse {
+    type H = InstaId;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(InstaId(self.get_origin_id()))
+    }
+}
+
