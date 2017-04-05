@@ -14,7 +14,8 @@
 
 use std::collections::{HashMap, HashSet};
 use std::error::Error as StdErr;
-use std::path::{Path, PathBuf};
+use std::ffi::OsStr;
+use std::path::PathBuf;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::channel;
@@ -197,7 +198,6 @@ impl SpecWatcher {
                         // If the error is related to loading a `ServiceSpec`, emit a warning
                         // message and continue on to the next spec file. The best we can do to
                         // fail-safe is report and skip.
-                        Error::ServiceSpecFileRead(_, _) |
                         Error::ServiceSpecParse(_) |
                         Error::MissingRequiredIdent => {
                             outputln!("Error when loading service spec file '{}' ({}). \
@@ -212,14 +212,13 @@ impl SpecWatcher {
                     }
                 }
             };
-            let file_stem = match Self::spec_file_stem(&spec_file) {
-                Ok(s) => s,
-                Err(e) => {
+            let file_stem = match spec_file.file_stem().and_then(OsStr::to_str) {
+                Some(s) => s,
+                None => {
                     outputln!("Error when loading service spec file '{}' \
-                              (File stem could not be determined: {}). \
+                              (File stem could not be determined). \
                               This file will be skipped.",
-                              spec_file.display(),
-                              e.description());
+                              spec_file.display());
                     continue;
                 }
             };
@@ -238,23 +237,6 @@ impl SpecWatcher {
             specs.insert(spec.ident.name.clone(), spec);
         }
         Ok(specs)
-    }
-
-    fn spec_file_stem(spec_file: &Path) -> Result<&str> {
-        let stem = spec_file.file_name()
-            .ok_or(sup_error!(Error::ServiceSpecFileRead(
-                        spec_file.display().to_string(),
-                        String::from("This path terminates in '..'"))))?
-            .to_str()
-            .ok_or(sup_error!(Error::ServiceSpecFileRead(
-                        spec_file.display().to_string(),
-                        String::from("This path isn't properly UTF-8 encoded"))))?
-            .split(".")
-            .next()
-            .ok_or(sup_error!(Error::ServiceSpecFileRead(
-                        spec_file.display().to_string(),
-                        String::from("File part of path could not be split on '.'"))))?;
-        Ok(stem)
     }
 }
 

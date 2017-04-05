@@ -304,5 +304,5 @@ features! {
     }
 }
 
-const PRODUCT: &'static str = "hab-sup";
-const VERSION: &'static str = env!("CARGO_PKG_VERSION");
+pub const PRODUCT: &'static str = "hab-sup";
+pub const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));

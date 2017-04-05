@@ -38,19 +38,18 @@ use hcore::package::{PackageArchive, PackageIdent};
 use hcore::url::{DEFAULT_DEPOT_URL, DEPOT_URL_ENVVAR};
 use url::Url;
 
+use sup::VERSION;
 use sup::config::{GossipListenAddr, GOSSIP_DEFAULT_PORT};
 use sup::error::{Error, Result};
 use sup::feat;
 use sup::command;
 use sup::http_gateway;
-use sup::manager::ManagerConfig;
-use sup::manager::service::{ServiceBind, ServiceSpec, Topology, UpdateStrategy};
+use sup::manager::{Manager, ManagerConfig};
+use sup::manager::service::{DesiredState, ServiceBind, Topology, UpdateStrategy};
+use sup::manager::service::spec::{ServiceSpec, StartStyle};
 
 /// Our output key
 static LOGKEY: &'static str = "MN";
-
-/// The version number
-const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 
 static RING_ENVVAR: &'static str = "HAB_RING";
 static RING_KEY_ENVVAR: &'static str = "HAB_RING_KEY";
@@ -70,8 +69,12 @@ fn start() -> Result<()> {
     match app_matches.subcommand() {
         ("bash", Some(m)) => sub_bash(m),
         ("config", Some(m)) => sub_config(m),
+        ("load", Some(m)) => sub_load(m),
+        ("run", Some(m)) => sub_run(m),
         ("sh", Some(m)) => sub_sh(m),
         ("start", Some(m)) => sub_start(m),
+        ("stop", Some(m)) => sub_stop(m),
+        ("unload", Some(m)) => sub_unload(m),
         _ => unreachable!(),
     }
 }
@@ -95,12 +98,63 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
             (@arg PKG_IDENT: +required +takes_value
                 "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
         )
+        (@subcommand load =>
+            (about: "Load a service to be started and supervised by Habitat from a package or \
+                artifact. Services started in this manner will persist through Supervisor \
+                restarts.")
+            (aliases: &["lo", "loa"])
+            (@arg PKG_IDENT: +required +takes_value "A Habitat package identifier (ex: core/redis)")
+            (@arg NAME: --("override-name") +takes_value
+                "The name for the state directory if there is more than one Supervisor running \
+                [default: default]")
+            (@arg GROUP: --group +takes_value
+                "The service group; shared config and topology [default: default].")
+            (@arg DEPOT_URL: --url -u +takes_value {valid_url}
+                "Use a specific Depot URL (ex: http://depot.example.com/v1/depot)")
+            (@arg TOPOLOGY: --topology -t +takes_value {valid_topology}
+                "Service topology; [default: none]")
+            (@arg STRATEGY: --strategy -s +takes_value {valid_update_strategy}
+                "The update strategy; [default: none] [values: none, at-once, rolling]")
+            (@arg BIND: --bind +takes_value +multiple
+                "One or more service groups to bind to a configuration")
+            (@arg FORCE: --force -f "Load or reload an already loaded service. If the service was \
+                previously loaded and running this operation will also restart the service")
+        )
+        (@subcommand unload =>
+            (about: "Unload a persistent or transient service started by the Habitat supervisor. \
+            If the Supervisor is running when the service is unloaded the service will be stopped.")
+            (aliases: &["un", "unl", "unlo", "unloa"])
+            (@arg PKG_IDENT: +required +takes_value "A Habitat package identifier (ex: core/redis)")
+            (@arg NAME: --("override-name") +takes_value
+                "The name for the state directory if there is more than one Supervisor running \
+                [default: default]")
+        )
+        (@subcommand run =>
+            (about: "Start the Habitat Supervisor")
+            (aliases: &["r", "ru"])
+            (@arg LISTEN_GOSSIP: --("listen-gossip") +takes_value
+                "The listen address for the gossip system [default: 0.0.0.0:9638]")
+            (@arg LISTEN_HTTP: --("listen-http") +takes_value
+                "The listen address for the HTTP gateway [default: 0.0.0.0:9631]")
+            (@arg NAME: --("override-name") +takes_value
+                "The name for the state directory if launching more than one Supervisor \
+                [default: default]")
+            (@arg ORGANIZATION: --org +takes_value
+                "The organization that the supervisor and it's subsequent services are part of \
+                [default: default]")
+            (@arg PEER: --peer +takes_value +multiple
+                "The listen address of an initial peer (IP[:PORT])")
+            (@arg PERMANENT_PEER: --("permanent-peer") -I "If this Supervisor is a permanent peer")
+            (@arg RING: --ring -r +takes_value "Ring key name")
+        )
         (@subcommand sh =>
             (about: "Start an interactive Bourne-like shell")
             (aliases: &[])
         )
         (@subcommand start =>
-            (about: "Start a Habitat-supervised service from a package or artifact")
+            (about: "Start a loaded, but stopped, Habitat service or a transient service from \
+                a package or artifact. If the Habitat Supervisor is not already running this \
+                will additionally start one for you.")
             (aliases: &["sta", "star"])
             (@arg LISTEN_GOSSIP: --("listen-gossip") +takes_value
                 "The listen address for the gossip system [default: 0.0.0.0:9638]")
@@ -114,26 +168,31 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                 [default: default]")
             (@arg PEER: --peer +takes_value +multiple
                 "The listen address of an initial peer (IP[:PORT])")
-            (@arg PERMANENT_PEER: --("permanent-peer") -I "If this service is a permanent peer")
+            (@arg PERMANENT_PEER: --("permanent-peer") -I "If this Supervisor is a permanent peer")
             (@arg RING: --ring -r +takes_value "Ring key name")
-            (@arg PKG_IDENT_OR_ARTIFACT:
-                "A Habitat package identifier (ex: acme/redis) or filepath to a Habitat Artifact \
-                (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
-            (@group SVC_ARGS =>
-                (@attributes +multiple requires[PKG_IDENT_OR_ARTIFACT])
-                (@arg GROUP: --group +takes_value
-                    "The service group; shared config and topology [default: default].")
-                (@arg DEPOT_URL: --url -u +takes_value {valid_url}
-                    "Use a specific Depot URL (ex: http://depot.example.com/v1/depot)")
-                (@arg TOPOLOGY: --topology -t +takes_value {valid_topology}
-                    "Service topology; [default: none]")
-                (@arg STRATEGY: --strategy -s +takes_value {valid_update_strategy}
-                    "The update strategy; [default: none] [values: none, at-once, rolling]")
-                (@arg BIND: --bind +takes_value +multiple
-                    "One or more service groups to bind to a configuration")
-                (@arg CONFIG_DIR: --("config-from") +takes_value {dir_exists}
-                    "Use package config from this path, rather than the package itself")
-            )
+            (@arg PKG_IDENT_OR_ARTIFACT: +required +takes_value
+                "A Habitat package identifier (ex: core/redis) or filepath to a Habitat Artifact \
+                (ex: /home/core-redis-3.0.7-21120102031201-x86_64-linux.hart)")
+            (@arg GROUP: --group +takes_value
+                "The service group; shared config and topology [default: default].")
+            (@arg DEPOT_URL: --url -u +takes_value {valid_url}
+                "Use a specific Depot URL (ex: http://depot.example.com/v1/depot)")
+            (@arg TOPOLOGY: --topology -t +takes_value {valid_topology}
+                "Service topology; [default: none]")
+            (@arg STRATEGY: --strategy -s +takes_value {valid_update_strategy}
+                "The update strategy; [default: none] [values: none, at-once, rolling]")
+            (@arg BIND: --bind +takes_value +multiple
+                "One or more service groups to bind to a configuration")
+            (@arg CONFIG_DIR: --("config-from") +takes_value {dir_exists}
+                "Use package config from this path, rather than the package itself")
+        )
+        (@subcommand stop =>
+            (about: "Stop a running Habitat service.")
+            (aliases: &["sto"])
+            (@arg PKG_IDENT: +required +takes_value "A Habitat package identifier (ex: core/redis)")
+            (@arg NAME: --("override-name") +takes_value
+                "The name for the state directory if there is more than one Supervisor running \
+                [default: default]")
         )
     )
 }
@@ -156,6 +215,50 @@ fn sub_config(m: &ArgMatches) -> Result<()> {
     Ok(())
 }
 
+fn sub_load(m: &ArgMatches) -> Result<()> {
+    if m.is_present("VERBOSE") {
+        sup::output::set_verbose(true);
+    }
+    if m.is_present("NO_COLOR") {
+        sup::output::set_no_color(true);
+    }
+    let cfg = mgrcfg_from_matches(m)?;
+    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
+    let default_spec = ServiceSpec::default_for(ident);
+    let spec_file = Manager::spec_path_for(&cfg, &default_spec);
+    if let Ok(spec) = ServiceSpec::from_file(&spec_file) {
+        if !m.is_present("FORCE") {
+            return Err(sup_error!(Error::ServiceLoaded(spec.ident)));
+        }
+    }
+    let mut spec = spec_from_matches(default_spec.ident, m)?;
+    spec.start_style = StartStyle::Persistent;
+    Manager::save_spec_for(&cfg, spec)
+}
+
+fn sub_unload(m: &ArgMatches) -> Result<()> {
+    if m.is_present("VERBOSE") {
+        sup::output::set_verbose(true);
+    }
+    if m.is_present("NO_COLOR") {
+        sup::output::set_no_color(true);
+    }
+    let cfg = mgrcfg_from_matches(m)?;
+    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
+    let spec = spec_from_matches(ident, m)?;
+    let spec_file = Manager::spec_path_for(&cfg, &spec);
+    std::fs::remove_file(&spec_file).map_err(|err| {
+                                                 sup_error!(Error::ServiceSpecFileIO(spec_file,
+                                                                                     err))
+                                             })
+}
+
+fn sub_run(m: &ArgMatches) -> Result<()> {
+    let cfg = mgrcfg_from_matches(m)?;
+    let mut manager = Manager::load(cfg)?;
+    manager.run()
+}
+
 fn sub_sh(m: &ArgMatches) -> Result<()> {
     if m.is_present("VERBOSE") {
         sup::output::set_verbose(true);
@@ -174,7 +277,66 @@ fn sub_start(m: &ArgMatches) -> Result<()> {
     if m.is_present("NO_COLOR") {
         sup::output::set_no_color(true);
     }
+    let cfg = mgrcfg_from_matches(m)?;
+    let mut maybe_local_artifact: Option<&str> = None;
+    let maybe_spec = match m.value_of("PKG_IDENT_OR_ARTIFACT") {
+        Some(ident_or_artifact) => {
+            let ident = if Path::new(ident_or_artifact).is_file() {
+                maybe_local_artifact = Some(ident_or_artifact);
+                PackageArchive::new(Path::new(ident_or_artifact)).ident()?
+            } else {
+                PackageIdent::from_str(ident_or_artifact)?
+            };
+            let default_spec = ServiceSpec::default_for(ident);
+            let spec_file = Manager::spec_path_for(&cfg, &default_spec);
+            match ServiceSpec::from_file(&spec_file) {
+                Ok(mut spec) => {
+                    if spec.desired_state == DesiredState::Down {
+                        spec.desired_state = DesiredState::Up;
+                        Some(spec)
+                    } else {
+                        if !Manager::is_running(&cfg)? {
+                            let mut manager = Manager::load(cfg)?;
+                            return manager.run();
+                        } else {
+                            return Ok(());
+                        }
+                    }
+                }
+                Err(_) => Some(spec_from_matches(default_spec.ident, m)?),
+            }
+        }
+        None => None,
+    };
+    try!(command::start::run(cfg, maybe_spec, maybe_local_artifact));
+    Ok(())
+}
 
+fn sub_stop(m: &ArgMatches) -> Result<()> {
+    if m.is_present("VERBOSE") {
+        sup::output::set_verbose(true);
+    }
+    if m.is_present("NO_COLOR") {
+        sup::output::set_no_color(true);
+    }
+    let cfg = mgrcfg_from_matches(m)?;
+    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
+    let spec_file = Manager::spec_path_for(&cfg, &ServiceSpec::default_for(ident));
+    let mut spec = ServiceSpec::from_file(&spec_file)?;
+    match spec.start_style {
+        StartStyle::Transient => {
+            std::fs::remove_file(&spec_file).map_err(|err| {
+                sup_error!(Error::ServiceSpecFileIO(spec_file, err))
+            })
+        }
+        StartStyle::Persistent => {
+            spec.desired_state = DesiredState::Down;
+            Manager::save_spec_for(&cfg, spec)
+        }
+    }
+}
+
+fn mgrcfg_from_matches(m: &ArgMatches) -> Result<ManagerConfig> {
     let mut cfg = ManagerConfig::default();
 
     if let Some(addr_str) = m.value_of("LISTEN_GOSSIP") {
@@ -245,27 +407,11 @@ fn sub_start(m: &ArgMatches) -> Result<()> {
     if let Some(ring) = ring {
         cfg.ring = Some(ring.name_with_rev());
     }
-
-    let mut maybe_local_artifact: Option<&str> = None;
-    let maybe_spec = match m.value_of("PKG_IDENT_OR_ARTIFACT") {
-        Some(ident_or_artifact) => {
-            let ident = if Path::new(ident_or_artifact).is_file() {
-                maybe_local_artifact = Some(ident_or_artifact);
-                try!(PackageArchive::new(Path::new(ident_or_artifact)).ident())
-            } else {
-                try!(PackageIdent::from_str(ident_or_artifact))
-            };
-            Some(try!(spec_from_matches(&ident, m)))
-        }
-        None => None,
-    };
-    try!(command::start::run(cfg, maybe_spec, maybe_local_artifact));
-    Ok(())
+    Ok(cfg)
 }
 
-fn spec_from_matches(ident: &PackageIdent, m: &ArgMatches) -> Result<ServiceSpec> {
-    let mut spec = ServiceSpec::default_for(ident.clone());
-
+fn spec_from_matches(ident: PackageIdent, m: &ArgMatches) -> Result<ServiceSpec> {
+    let mut spec = ServiceSpec::default_for(ident);
     if let Some(group) = m.value_of("GROUP") {
         spec.group = group.to_string();
     }

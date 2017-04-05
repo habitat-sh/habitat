@@ -40,6 +40,7 @@ use time::{SteadyTime, Duration as TimeDuration};
 use toml;
 
 pub use manager::service::{Service, ServiceConfig, ServiceSpec, UpdateStrategy, Topology};
+use self::service::{DesiredState, StartStyle};
 use self::service_updater::ServiceUpdater;
 use self::spec_watcher::{SpecWatcher, SpecWatcherEvent};
 use error::{Error, Result, SupError};
@@ -211,12 +212,12 @@ impl Manager {
         Ok(member)
     }
 
-    pub fn specs_path_for(cfg: &ManagerConfig) -> PathBuf {
-        Self::specs_path(&Self::state_path_from(cfg))
+    pub fn spec_path_for(cfg: &ManagerConfig, spec: &ServiceSpec) -> PathBuf {
+        Self::specs_path(&Self::state_path_from(cfg)).join(spec.file_name())
     }
 
     pub fn save_spec_for(cfg: &ManagerConfig, spec: ServiceSpec) -> Result<()> {
-        spec.to_file(Self::specs_path_for(cfg).join(spec.file_name()))
+        spec.to_file(Self::spec_path_for(cfg, &spec))
     }
 
     fn clean_dirty_state<T>(state_path: T) -> Result<()>
@@ -296,7 +297,7 @@ impl Manager {
         service.add()?;
         self.butterfly.insert_service(service.to_rumor(self.butterfly.member_id()));
         if service.topology == Topology::Leader {
-            // Note - eventually, we need to deal with suitability here. The original implementation
+            // TODO: eventually, we need to deal with suitability here. The original implementation
             // didn't have this working either.
             self.butterfly.start_election(service.service_group.clone(), 0);
         }
@@ -308,9 +309,16 @@ impl Manager {
         Ok(())
     }
 
-    pub fn remove_service(&self, service: &Service) -> Result<()> {
-        // TODO FN: there is more to removing a service, more to follow
-        service.remove()?;
+    pub fn remove_service(&self, service: &mut Service) -> Result<()> {
+        // JW TODO: Update service rumor to remove service from cluster
+        service.stop();
+        if service.start_style == StartStyle::Transient {
+            if let Err(err) = fs::remove_file(&service.spec_file) {
+                outputln!("Unable to cleanup service spec for transient service, {}, {}",
+                          service,
+                          err);
+            }
+        }
         Ok(())
     }
 
@@ -576,8 +584,8 @@ impl Manager {
 
     fn shutdown(&self) {
         let mut services = self.services.write().expect("Services lock is poisend!");
-        for service in services.drain(..) {
-            if let Err(err) = self.remove_service(&service) {
+        for mut service in services.drain(..) {
+            if let Err(err) = self.remove_service(&mut service) {
                 warn!("Couldn't cleanly shutdown service, {}, {}", service, err);
             }
         }
@@ -588,7 +596,11 @@ impl Manager {
     fn start_initial_services_from_watcher(&mut self) -> Result<()> {
         for service_event in self.watcher.initial_events()? {
             match service_event {
-                SpecWatcherEvent::AddService(spec) => self.add_service(spec)?,
+                SpecWatcherEvent::AddService(spec) => {
+                    if spec.desired_state == DesiredState::Up {
+                        self.add_service(spec)?;
+                    }
+                }
                 _ => warn!("Skipping unexpected watcher event: {:?}", service_event),
             }
         }
@@ -606,7 +618,11 @@ impl Manager {
         }
         for service_event in self.watcher.new_events(active_specs)? {
             match service_event {
-                SpecWatcherEvent::AddService(spec) => self.add_service(spec)?,
+                SpecWatcherEvent::AddService(spec) => {
+                    if spec.desired_state == DesiredState::Up {
+                        self.add_service(spec)?;
+                    }
+                }
                 SpecWatcherEvent::RemoveService(spec) => self.remove_service_for_spec(&spec)?,
             }
         }
@@ -614,10 +630,10 @@ impl Manager {
     }
 
     fn remove_service_for_spec(&mut self, spec: &ServiceSpec) -> Result<()> {
-        let mut services_mut = self.services.write().expect("Services lock is poisoned");
+        let mut services = self.services.write().expect("Services lock is poisoned");
         // TODO fn: storing services as a `Vec` is a bit crazy when you have to do these
         // shenanigans--maybe we want to consider changing the data structure in the future?
-        let services_idx = match services_mut.iter().position(|ref s| s.spec_ident == spec.ident) {
+        let services_idx = match services.iter().position(|ref s| s.spec_ident == spec.ident) {
             Some(i) => i,
             None => {
                 outputln!("Tried to remove service for {} but could not find it running, skipping",
@@ -625,8 +641,8 @@ impl Manager {
                 return Ok(());
             }
         };
-        let service = services_mut.remove(services_idx);
-        self.remove_service(&service)?;
+        let mut service = services.remove(services_idx);
+        self.remove_service(&mut service)?;
         Ok(())
     }
 }
