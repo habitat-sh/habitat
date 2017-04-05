@@ -478,22 +478,6 @@ impl DataStore {
         }
     }
 
-//    pub fn create_origin_channel(&self,
-//                                    opk: &originsrv::OriginChannelCreate)
-//                                    -> Result<originsrv::OriginChannel> {
-//        let conn = self.pool.get()?;
-//        let rows = conn.query("SELECT * FROM insert_origin_public_key_v1($1, $2, $3, $4, $5, $6)",
- //                              &[&(opk.get_origin_id() as i64),
-  //                               &(opk.get_owner_id() as i64),
- //                                &opk.get_name(),
-  //                               &opk.get_revision(),
-  //                               &format!("{}-{}", opk.get_name(), opk.get_revision()),
-   //                              &opk.get_body()])
-     //        .map_err(Error::OriginPublicKeyCreate)?;
-       //  let row = rows.iter().nth(0).expect("Insert returns row, but no row present");
-    //     Ok(self.row_to_origin_public_key(row))
-//    }
-
     pub fn create_origin_channel(&self,
                                     occ: &originsrv::OriginChannelCreate)
                                     -> Result<originsrv::OriginChannel> {
