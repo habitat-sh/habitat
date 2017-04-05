@@ -413,7 +413,6 @@ impl Serialize for OriginChannel {
     }
 }
 
-
 impl Routable for OriginChannelCreate {
     type H = InstaId;
 
@@ -448,5 +447,3 @@ impl Serialize for OriginChannelListResponse {
         strukt.end()
     }
 }
-
-

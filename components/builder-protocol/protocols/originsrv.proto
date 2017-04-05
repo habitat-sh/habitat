@@ -224,5 +224,3 @@ message OriginChannelListResponse {
   optional uint64 origin_id = 1;
   repeated OriginChannel channels = 2;
 }
-
-

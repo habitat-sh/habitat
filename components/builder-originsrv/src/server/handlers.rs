@@ -447,5 +447,3 @@ pub fn origin_channel_list(req: &mut Envelope,
     }
     Ok(())
 }
-
-
