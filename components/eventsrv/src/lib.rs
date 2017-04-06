@@ -15,7 +15,6 @@
 // NOTE: The sole purpose of this client is testing and debugging. It's not
 // required for normal operation.
 
-#[macro_use]
 extern crate log;
 extern crate protobuf;
 extern crate time;

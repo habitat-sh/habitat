@@ -15,24 +15,23 @@
 // NOTE: The sole purpose of this subscriber is testing and debugging. It's not
 // required for normal operation.
 
-extern crate habitat_eventsrv;
-#[macro_use]
-extern crate log;
 extern crate env_logger;
-extern crate zmq;
+extern crate habitat_eventsrv;
+extern crate log;
 extern crate protobuf;
+extern crate zmq;
 
 mod message;
 
-use zmq::{Context, PULL};
-use protobuf::parse_from_bytes;
-
 use message::event::EventEnvelope;
+use protobuf::parse_from_bytes;
+use zmq::{Context, SUB};
 
 fn main() {
     let ctx = Context::new();
-    let socket = ctx.socket(PULL).unwrap();
-    assert!(socket.bind("tcp://*:45678").is_ok());
+    let socket = ctx.socket(SUB).unwrap();
+    assert!(socket.connect("tcp://localhost:34571").is_ok());
+    assert!(socket.set_subscribe(b"").is_ok()); // Subscribe to everything
 
     loop {
         match socket.recv_bytes(0) {
@@ -41,10 +40,11 @@ fn main() {
                 let received_payload = String::from_utf8(event.get_payload().to_vec()).unwrap();
                 let member_id = event.get_member_id();
                 let timestamp = event.get_timestamp();
-
-                println!("Timestamp {}", timestamp);
-                println!("Member ID {}\n", member_id);
-                debug!("{}\n", received_payload);
+                let service = event.get_service();
+                println!("SUBSCRIBER: Timestamp {}", timestamp);
+                println!("SUBSCRIBER: Member ID {}", member_id);
+                println!("SUBSCRIBER: Service {}", service);
+                println!("SUBSCRIBER: Payload {}\n", received_payload);
             }
             Err(e) => panic!("zeromq socket error: {:?}", e),
         }

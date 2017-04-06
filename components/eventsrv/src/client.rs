@@ -22,6 +22,7 @@ extern crate env_logger;
 extern crate zmq;
 extern crate protobuf;
 extern crate time;
+extern crate rand;
 
 mod message;
 
@@ -32,16 +33,16 @@ use std::io::prelude::*;
 use std::path::Path;
 use std::thread::sleep;
 use std::time::Duration;
-
-use zmq::{Context, PUSH};
+use rand::{thread_rng, Rng};
+use zmq::{Context, PUB};
 use protobuf::Message;
 
 use message::event::{EventEnvelope, EventEnvelope_Type};
 
 fn main() {
     let ctx = Context::new();
-    let socket = ctx.socket(PUSH).unwrap();
-    assert!(socket.bind("tcp://*:34567").is_ok());
+    let socket = ctx.socket(PUB).unwrap();
+    assert!(socket.connect("tcp://localhost:34570").is_ok());
 
     let arg = match env::args().last() {
         Some(a) => a,
@@ -61,7 +62,14 @@ fn main() {
         Ok(_) => debug!("{} contains:\n{}\n\n", display, payload),
     }
 
-    let mut count = 1;
+    // Create some fake-yet-plausible data for our messages; we'll
+    // randomly select from these when creating our messages.
+    //
+    // The service "" is an error scenario; there should always be a
+    // service.
+    let members = [1, 2, 3 ,4 ,5];
+    let services = ["frontend", "backend", "database", "ponies", ""];
+    let mut rng = thread_rng();
 
     loop {
         let timestamp = current_time();
@@ -78,18 +86,23 @@ fn main() {
             }
         };
 
-        println!("Timestamp {}", timestamp);
-        println!("Member ID {}\n", count);
-
         event.set_field_type(field_type);
         event.set_payload(payload.as_bytes().to_vec());
         event.set_timestamp(timestamp);
-        event.set_member_id(count);
+
+        let member_id = rng.choose(&members).unwrap();
+        event.set_member_id(*member_id);
+
+        let service_name = rng.choose(&services).unwrap();
+        event.set_service(String::from(*service_name));
+
+        println!("PUBLISHER: Timestamp {}", timestamp);
+        println!("PUBLISHER: Member ID {}", member_id);
+        println!("PUBLISHER: Service {}\n", service_name);
 
         socket.send(event.write_to_bytes().unwrap().as_slice(), 0).unwrap();
-        let one_sec = Duration::from_secs(1);
-        sleep(one_sec);
-        count += 1;
+        let sleep_time = Duration::from_secs(3);
+        sleep(sleep_time);
     }
 }
 

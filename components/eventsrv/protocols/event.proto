@@ -10,7 +10,8 @@ message EventEnvelope {
   optional Type type = 1;
   optional bytes payload = 2;
   optional uint64 timestamp = 3;
-  optional uint64 member_id = 4;
+  optional uint64 member_id = 4; // TODO: this needs to be a string
+  optional string service = 5;
 }
 
 message SysInfo {
