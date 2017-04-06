@@ -1946,7 +1946,7 @@ _build_environment() {
       ld_run_path_part+=("$trimmed")
     fi
   done
-  if [[ -z $ld_run_path_part ]]; then
+  if [[ ! -z $ld_run_path_part ]]; then
     export LD_RUN_PATH=$(join_by ':' ${ld_run_path_part[@]})
   fi
 
