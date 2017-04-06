@@ -27,3 +27,7 @@ message OriginKeyIdent {
   optional string revision = 2;
   optional string location = 3;
 }
+
+message OriginChannelIdent {
+  optional string name = 2;
+}

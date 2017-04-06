@@ -502,6 +502,8 @@ impl Client {
         }
     }
 
+    /// Upload a public origin key to a remote Depot.
+
     fn add_authz<'a>(&'a self, rb: RequestBuilder<'a>, token: &str) -> RequestBuilder {
         rb.header(Authorization(Bearer { token: token.to_string() }))
     }
@@ -551,6 +553,20 @@ impl Client {
                &dst_file_path.display());
         try!(fs::rename(&tmp_file_path, &dst_file_path));
         Ok(dst_file_path)
+    }
+}
+
+#[derive(Clone, Deserialize)]
+pub struct OriginChannelIdent {
+    pub origin: String,
+    pub name: String
+}
+
+impl Into<depotsrv::OriginChannelIdent> for OriginChannelIdent {
+    fn into(self) -> depotsrv::OriginChannelIdent {
+        let mut out = depotsrv::OriginChannelIdent::new();
+        out.set_name(self.name);
+        out
     }
 }
 

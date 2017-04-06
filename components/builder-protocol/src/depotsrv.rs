@@ -221,3 +221,13 @@ impl Serialize for Package {
         strukt.end()
     }
 }
+
+impl Serialize for OriginChannelIdent {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+        where S: Serializer
+    {
+        let mut strukt = try!(serializer.serialize_struct("origin_key", 3));
+        try!(strukt.serialize_field("name", self.get_name()));
+        strukt.end()
+    }
+}
