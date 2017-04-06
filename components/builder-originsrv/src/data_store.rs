@@ -155,7 +155,7 @@ impl DataStore {
                                    aolr: &originsrv::AccountOriginListRequest)
                                    -> Result<originsrv::AccountOriginListResponse> {
         let conn = self.pool.get()?;
-        let rows = &conn.query("SELECT * FROM list_origin_by_account_id($1)",
+        let rows = &conn.query("SELECT * FROM list_origin_by_account_id_v1($1)",
                                &[&(aolr.get_account_id() as i64)])
                         .map_err(Error::OriginAccountList)?;
         let mut response = originsrv::AccountOriginListResponse::new();
