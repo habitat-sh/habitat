@@ -30,8 +30,8 @@ use manager::service::ServiceSpec;
 
 static LOGKEY: &'static str = "SW";
 const WATCHER_DELAY_MS: u64 = 2_000;
-const SPEC_FILE_EXT: &'static str = "spec.toml";
-const SPEC_FILE_GLOB: &'static str = "*.spec.toml";
+const SPEC_FILE_EXT: &'static str = "spec";
+const SPEC_FILE_GLOB: &'static str = "*.spec";
 
 #[derive(Debug, PartialEq)]
 pub enum SpecWatcherEvent {
@@ -457,7 +457,7 @@ mod test {
     fn loading_spec_missing_ident_doesnt_impact_others() {
         let tmpdir = TempDir::new("specs").unwrap();
         let alpha = new_saved_spec(tmpdir.path(), "acme/alpha");
-        fs::File::create(tmpdir.path().join(format!("beta.spec.toml"))).expect("can't create file");
+        fs::File::create(tmpdir.path().join(format!("beta.spec"))).expect("can't create file");
 
         let mut watcher = SpecWatcher::run(tmpdir.path()).unwrap();
 
@@ -472,7 +472,7 @@ mod test {
         let tmpdir = TempDir::new("specs").unwrap();
         let alpha = new_saved_spec(tmpdir.path(), "acme/alpha");
         {
-            let mut bad = fs::File::create(tmpdir.path().join(format!("beta.spec.toml"))).
+            let mut bad = fs::File::create(tmpdir.path().join(format!("beta.spec"))).
                 expect("can't create file");
             bad.write_all(r#"ident = "acme/beta"
                           I am a bad bad file."#
@@ -493,7 +493,7 @@ mod test {
         let tmpdir = TempDir::new("specs").unwrap();
         let alpha = new_saved_spec(tmpdir.path(), "acme/alpha");
         {
-            let mut bad = fs::File::create(tmpdir.path().join(format!("beta.spec.toml"))).
+            let mut bad = fs::File::create(tmpdir.path().join(format!("beta.spec"))).
                 expect("can't create file");
             bad.write_all(r#"ident = "acme/NEAL_MORSE_BAND""#.as_bytes()).
                 expect("can't write file content");
@@ -515,18 +515,18 @@ mod test {
         fn behavior_new_spec<P: AsRef<Path>>(&mut self, path: P) {
             new_saved_spec(path.as_ref(), "acme/newbie");
             self.tx
-                .send(notify::DebouncedEvent::Write(path.as_ref().join("newbie.spec.toml")))
+                .send(notify::DebouncedEvent::Write(path.as_ref().join("newbie.spec")))
                 .expect("couldn't send event");
         }
 
         fn behavior_removed_spec<P: AsRef<Path>>(&mut self, path: P) {
-            let toml_path = path.as_ref().join("oldie.spec.toml");
+            let toml_path = path.as_ref().join("oldie.spec");
             fs::remove_file(&toml_path).expect("couldn't delete spec toml");
             self.tx.send(notify::DebouncedEvent::Remove(toml_path)).expect("couldn't send event");
         }
 
         fn behavior_changed_spec<P: AsRef<Path>>(&mut self, path: P) {
-            let toml_path = path.as_ref().join("transformer.spec.toml");
+            let toml_path = path.as_ref().join("transformer.spec");
             let mut spec = ServiceSpec::from_file(&toml_path).expect("couldn't load spec file");
             spec.group = String::from("autobots");
             spec.to_file(&toml_path).expect("couldn't write spec file");
@@ -587,7 +587,7 @@ mod test {
 
     fn new_saved_spec(tmpdir: &Path, ident: &str) -> ServiceSpec {
         let spec = new_spec(ident);
-        spec.to_file(tmpdir.join(format!("{}.spec.toml", &spec.ident.name))).
+        spec.to_file(tmpdir.join(format!("{}.spec", &spec.ident.name))).
             expect("couldn't save spec to disk");
         spec
     }

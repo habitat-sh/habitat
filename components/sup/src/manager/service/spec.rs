@@ -32,7 +32,7 @@ use error::{Error, Result, SupError};
 
 static LOGKEY: &'static str = "SS";
 static DEFAULT_GROUP: &'static str = "default";
-pub const SPEC_FILE_EXT: &'static str = "spec.toml";
+pub const SPEC_FILE_EXT: &'static str = "spec";
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub enum DesiredState {
@@ -451,7 +451,7 @@ mod test {
     #[test]
     fn service_spec_from_file() {
         let tmpdir = TempDir::new("specs").unwrap();
-        let path = tmpdir.path().join("name.spec.toml");
+        let path = tmpdir.path().join("name.spec");
         let toml = r#"
             ident = "origin/name/1.2.3/20170223130020"
             group = "jobs"
@@ -481,7 +481,7 @@ mod test {
     #[test]
     fn service_spec_from_file_missing() {
         let tmpdir = TempDir::new("specs").unwrap();
-        let path = tmpdir.path().join("nope.spec.toml");
+        let path = tmpdir.path().join("nope.spec");
 
         match ServiceSpec::from_file(&path) {
             Err(e) => {
@@ -497,7 +497,7 @@ mod test {
     #[test]
     fn service_spec_from_file_empty() {
         let tmpdir = TempDir::new("specs").unwrap();
-        let path = tmpdir.path().join("empty.spec.toml");
+        let path = tmpdir.path().join("empty.spec");
         file_from_str(&path, "");
 
         match ServiceSpec::from_file(&path) {
@@ -514,7 +514,7 @@ mod test {
     #[test]
     fn service_spec_from_file_bad_contents() {
         let tmpdir = TempDir::new("specs").unwrap();
-        let path = tmpdir.path().join("bad.spec.toml");
+        let path = tmpdir.path().join("bad.spec");
         file_from_str(&path, "You're gonna have a bad time");
 
         match ServiceSpec::from_file(&path) {
@@ -531,7 +531,7 @@ mod test {
     #[test]
     fn service_spec_to_file() {
         let tmpdir = TempDir::new("specs").unwrap();
-        let path = tmpdir.path().join("name.spec.toml");
+        let path = tmpdir.path().join("name.spec");
         let spec = ServiceSpec {
             ident: PackageIdent::from_str("origin/name/1.2.3/20170223130020").unwrap(),
             group: String::from("jobs"),
@@ -562,7 +562,7 @@ mod test {
     #[test]
     fn service_spec_to_file_invalid_ident() {
         let tmpdir = TempDir::new("specs").unwrap();
-        let path = tmpdir.path().join("name.spec.toml");
+        let path = tmpdir.path().join("name.spec");
         // Remember: the default implementation of `PackageIdent` is an invalid identifier, missing
         // origin and name--we're going to exploit this here
         let spec = ServiceSpec::default();
@@ -582,7 +582,7 @@ mod test {
     fn service_spec_file_name() {
         let spec = ServiceSpec::default_for(PackageIdent::from_str("origin/hoopa/1.2.3").unwrap());
 
-        assert_eq!(String::from("hoopa.spec.toml"), spec.file_name());
+        assert_eq!(String::from("hoopa.spec"), spec.file_name());
     }
 
     #[test]

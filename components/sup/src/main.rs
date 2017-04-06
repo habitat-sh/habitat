@@ -121,8 +121,9 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                 previously loaded and running this operation will also restart the service")
         )
         (@subcommand unload =>
-            (about: "Unload a persistent or transient service started by the Habitat supervisor. \
-            If the Supervisor is running when the service is unloaded the service will be stopped.")
+            (about: "Unload a persistent or transient service started by the Habitat \
+                supervisor. If the Supervisor is running when the service is unloaded the \
+                service will be stopped.")
             (aliases: &["un", "unl", "unlo", "unloa"])
             (@arg PKG_IDENT: +required +takes_value "A Habitat package identifier (ex: core/redis)")
             (@arg NAME: --("override-name") +takes_value
