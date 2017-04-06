@@ -57,6 +57,8 @@ sidebar_links:
       link: "/docs/run-packages-binding/"
     - title: Update strategy
       link: "/docs/run-packages-update-strategy/"
+    - title: Multiple Services
+      link: "/docs/run-packages-multiple-services/"
     - title: Export packages
       link: "/docs/run-packages-export/"
     - title: Monitoring
