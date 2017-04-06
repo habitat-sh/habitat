@@ -28,7 +28,7 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                     updated_at timestamptz
              )"#)?;
     migrator.migrate("originsrv",
-                 r#"CREATE OR REPLACE FUNCTION insert_origin_channel_v1 (
+                     r#"CREATE OR REPLACE FUNCTION insert_origin_channel_v1 (
                     occ_origin_id bigint,
                     occ_owner_id bigint,
                     occ_name text

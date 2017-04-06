@@ -790,8 +790,8 @@ fn list_origin_channel() {
 
     let mut occl = originsrv::OriginChannelListRequest::new();
     occl.set_origin_id(neurosis.get_id());
-    let channels = ds.list_origin_channels(&occl)
-        .expect("Could not get the channels from the database");
+    let channels =
+        ds.list_origin_channels(&occl).expect("Could not get the channels from the database");
     let channel_1 = channels.get_channels()
         .iter()
         .nth(0)

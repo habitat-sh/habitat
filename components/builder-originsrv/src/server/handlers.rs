@@ -416,9 +416,9 @@ pub fn project_update(req: &mut Envelope,
 }
 
 pub fn origin_channel_create(req: &mut Envelope,
-                                sock: &mut zmq::Socket,
-                                state: &mut ServerState)
-                                -> Result<()> {
+                             sock: &mut zmq::Socket,
+                             state: &mut ServerState)
+                             -> Result<()> {
     let msg: proto::OriginChannelCreate = try!(req.parse_msg());
 
     match state.datastore.create_origin_channel(&msg) {
@@ -433,9 +433,9 @@ pub fn origin_channel_create(req: &mut Envelope,
 }
 
 pub fn origin_channel_list(req: &mut Envelope,
-                          sock: &mut zmq::Socket,
-                          state: &mut ServerState)
-                          -> Result<()> {
+                           sock: &mut zmq::Socket,
+                           state: &mut ServerState)
+                           -> Result<()> {
     let msg: proto::OriginChannelListRequest = try!(req.parse_msg());
     match state.datastore.list_origin_channels(&msg) {
         Ok(ref oclr) => try!(req.reply_complete(sock, oclr)),

@@ -479,17 +479,17 @@ impl DataStore {
     }
 
     pub fn create_origin_channel(&self,
-                                    occ: &originsrv::OriginChannelCreate)
-                                    -> Result<originsrv::OriginChannel> {
+                                 occ: &originsrv::OriginChannelCreate)
+                                 -> Result<originsrv::OriginChannel> {
         let conn = self.pool.get()?;
 
         let rows = conn.query("SELECT * FROM insert_origin_channel_v1($1, $2, $3)",
-                               &[&(occ.get_origin_id() as i64),
-                                 &(occ.get_owner_id() as i64),
-                                 &occ.get_name()])
-             .map_err(Error::OriginChannelCreate)?;
-         let row = rows.iter().nth(0).expect("Insert returns row, but no row present");
-         Ok(self.row_to_origin_channel(row))
+                              &[&(occ.get_origin_id() as i64),
+                                &(occ.get_owner_id() as i64),
+                                &occ.get_name()])
+            .map_err(Error::OriginChannelCreate)?;
+        let row = rows.iter().nth(0).expect("Insert returns row, but no row present");
+        Ok(self.row_to_origin_channel(row))
     }
 
     fn row_to_origin_channel(&self, row: postgres::rows::Row) -> originsrv::OriginChannel {
@@ -505,8 +505,8 @@ impl DataStore {
     }
 
     pub fn list_origin_channels(&self,
-                               oclr: &originsrv::OriginChannelListRequest)
-                               -> Result<originsrv::OriginChannelListResponse> {
+                                oclr: &originsrv::OriginChannelListRequest)
+                                -> Result<originsrv::OriginChannelListResponse> {
         let conn = self.pool.get()?;
         let rows = &conn.query("SELECT * FROM get_origin_channels_for_origin_v1($1)",
                                &[&(oclr.get_origin_id() as i64)])
