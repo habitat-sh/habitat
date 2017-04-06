@@ -920,22 +920,14 @@ fn download_package(req: &mut Request) -> IronResult<Response> {
 }
 
 fn list_origin_keys(req: &mut Request) -> IronResult<Response> {
-    let session_id: u64;
     let origin_name: String;
     {
-        let session = req.extensions.get::<Authenticated>().unwrap();
-        session_id = session.get_id();
-
         let params = req.extensions.get::<Router>().unwrap();
         origin_name = match params.find("origin") {
             Some(origin) => origin.to_string(),
             None => return Ok(Response::with(status::BadRequest)),
         }
     };
-
-    if !try!(check_origin_access(req, session_id, &origin_name)) {
-        return Ok(Response::with(status::Forbidden));
-    }
 
     let mut request = OriginPublicKeyListRequest::new();
     match try!(get_origin(req, origin_name.as_str())) {
