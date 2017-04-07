@@ -34,14 +34,14 @@ use std::path::Path;
 use std::thread::sleep;
 use std::time::Duration;
 use rand::{thread_rng, Rng};
-use zmq::{Context, PUB};
+use zmq::{Context, PUSH};
 use protobuf::Message;
 
 use message::event::{EventEnvelope, EventEnvelope_Type};
 
 fn main() {
     let ctx = Context::new();
-    let socket = ctx.socket(PUB).unwrap();
+    let socket = ctx.socket(PUSH).unwrap();
     assert!(socket.connect("tcp://localhost:34570").is_ok());
 
     let arg = match env::args().last() {

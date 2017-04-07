@@ -26,7 +26,7 @@ use protobuf::parse_from_bytes;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::str::from_utf8;
-use zmq::{Context, SUB, XPUB};
+use zmq::{Context, PULL, XPUB};
 
 fn main() {
     let ctx = Context::new();
@@ -38,9 +38,9 @@ fn main() {
     // Maybe we gossip this information around?
 
     // Publishers need to connect their PUB socket to this.
-    let sub_sock = ctx.socket(SUB).unwrap();
-    assert!(sub_sock.bind("tcp://*:34570").is_ok());
-    assert!(sub_sock.set_subscribe(b"").is_ok()); // Subscribe to everything
+    let pull_sock = ctx.socket(PULL).unwrap();
+    assert!(pull_sock.bind("tcp://*:34570").is_ok());
+    assert!(pull_sock.set_subscribe(b"").is_ok()); // Subscribe to everything
 
     // Subscribers need to connect their SUB port to this.
     let xpub_sock = ctx.socket(XPUB).unwrap();
@@ -53,7 +53,7 @@ fn main() {
     let mut member_cache = HashMap::new();
 
     let mut poll_items = [
-        sub_sock.as_poll_item(zmq::POLLIN),
+        pull_sock.as_poll_item(zmq::POLLIN),
         xpub_sock.as_poll_item(zmq::POLLIN)
     ];
 
@@ -66,7 +66,7 @@ fn main() {
         if poll_items[0].is_readable() {
             // An event was published!
 
-            let bytes = sub_sock.recv_bytes(0).unwrap();
+            let bytes = pull_sock.recv_bytes(0).unwrap();
             let event = parse_from_bytes::<EventEnvelope>(&bytes).unwrap();
             let member_id = event.get_member_id();
             let timestamp = event.get_timestamp();
