@@ -89,12 +89,12 @@ impl Into<depotsrv::OriginKeyIdent> for OriginKeyIdent {
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct OriginSecretKey {
-    pub id: String,
-    pub origin_id: String,
+    pub id: u64,
+    pub origin_id: u64,
     pub name: String,
     pub revision: String,
-    pub body: String,
-    pub owner_id: String,
+    pub body: Vec<u8>,
+    pub owner_id: u64,
 }
 
 #[derive(Clone, Deserialize)]

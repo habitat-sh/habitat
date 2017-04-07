@@ -152,7 +152,9 @@ impl Runner {
         match self.depot_cli.fetch_origin_secret_key(self.job().origin(), &self.auth_token) {
             Ok(key) => {
                 let cache = crypto::default_cache_key_path(None);
-                match crypto::SigKeyPair::write_file_from_str(&key.body, &cache) {
+                let s: String = String::from_utf8(key.body).expect("Found invalid UTF-8");
+
+                match crypto::SigKeyPair::write_file_from_str(&s, &cache) {
                     Ok((pair, pair_type)) => {
                         debug!("Imported {} origin key {}.",
                                &pair_type,
