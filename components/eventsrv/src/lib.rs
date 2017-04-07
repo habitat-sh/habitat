@@ -48,11 +48,17 @@ pub fn proxy(frontend_port: i32, backend_port: i32) {
 
     let pull_sock = ctx.socket(PULL).unwrap();
     let pull_bind = format!("tcp://*:{}", frontend_port);
-    assert!(pull_sock.bind(&pull_bind).is_ok());
+    match pull_sock.bind(&pull_bind) {
+        Ok(()) => {},
+        Err(e) => panic!(format!("Could not bind socket to port {}: {:?}", frontend_port, e))
+    }
 
     let xpub_sock = ctx.socket(XPUB).unwrap();
     let xpub_bind = format!("tcp://*:{}", backend_port);
-    assert!(xpub_sock.bind(&xpub_bind).is_ok());
+    match xpub_sock.bind(&xpub_bind) {
+        Ok(()) => {},
+        Err(e) => panic!(format!("Could not bind socket to port {}: {:?}", backend_port, e))
+    }
 
     // We'll cache the most recent messages from each service and each
     // ring member. When new subscribers connect, we can send them
