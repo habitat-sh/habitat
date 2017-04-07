@@ -23,6 +23,7 @@ extern crate zmq;
 
 mod message;
 
+use std::env;
 use message::event::EventEnvelope;
 use protobuf::parse_from_bytes;
 use zmq::{Context, SUB};
@@ -30,7 +31,15 @@ use zmq::{Context, SUB};
 fn main() {
     let ctx = Context::new();
     let socket = ctx.socket(SUB).unwrap();
-    assert!(socket.connect("tcp://localhost:34571").is_ok());
+
+    let mut args: Vec<_> = env::args().collect();
+    args.remove(0); // drop the binary name
+
+    for p in args {
+        let sub_connect = format!("tcp://localhost:{}", p);
+        println!("connecting to {}", sub_connect);
+        assert!(socket.connect(&sub_connect).is_ok());
+    }
     assert!(socket.set_subscribe(b"").is_ok()); // Subscribe to everything
 
     loop {

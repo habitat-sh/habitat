@@ -40,16 +40,23 @@ use protobuf::Message;
 use message::event::{EventEnvelope, EventEnvelope_Type};
 
 fn main() {
+
+    let mut args: Vec<_> = env::args().collect();
+    args.remove(0); // drop the binary name
+
+    let file_arg = args.remove(0);
+
     let ctx = Context::new();
     let socket = ctx.socket(PUSH).unwrap();
-    assert!(socket.connect("tcp://localhost:34570").is_ok());
 
-    let arg = match env::args().last() {
-        Some(a) => a,
-        None => panic!("Pass the path for the file to parse"),
-    };
+    // Everything else is treated as a port number
+    for p in args {
+        let push_connect = format!("tcp://localhost:{}", p);
+        println!("connecting to {}", push_connect);
+        assert!(socket.connect(&push_connect).is_ok());
+    }
 
-    let path = Path::new(&arg);
+    let path = Path::new(&file_arg);
     let display = path.display();
     let mut file = match File::open(&path) {
         Err(why) => panic!("Couldn't open {}: {}", display, why.description()),
