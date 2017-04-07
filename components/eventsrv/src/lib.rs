@@ -26,7 +26,7 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 use zmq::{Context, PULL, XPUB};
 
-// Proxies messages coming into `frontend_port` out through
+/// Proxies messages coming into `frontend_port` out through
 /// `backend_port`, caching recent messages for new subscribers.
 ///
 /// Event publishers should connect a ZMQ `PUSH` socket to
