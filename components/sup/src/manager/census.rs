@@ -16,6 +16,8 @@ use std::collections::HashMap;
 use std::ops::{Deref, DerefMut};
 use std::str::{self, FromStr};
 
+use eventsrv::message::event::{CensusEntry as CensusEntryProto, PackageIdent as PackageIdentProto,
+                               SysInfo as SysInfoProto};
 use hcore::package::PackageIdent;
 use hcore::service::ServiceGroup;
 use butterfly;
@@ -150,7 +152,6 @@ impl CensusEntry {
         self.follower = Some(value);
     }
 
-    #[allow(dead_code)] // only used in tests
     fn get_follower(&self) -> bool {
         self.follower.unwrap_or(false)
     }
@@ -165,6 +166,10 @@ impl CensusEntry {
 
     fn set_update_follower(&mut self, value: bool) {
         self.update_follower = Some(value);
+    }
+
+    fn get_update_follower(&self) -> bool {
+        self.update_follower.unwrap_or(false)
     }
 
     fn set_election_is_running(&mut self, value: bool) {
@@ -195,12 +200,24 @@ impl CensusEntry {
         self.update_election_is_running = Some(value);
     }
 
+    fn get_update_election_is_running(&self) -> bool {
+        self.update_election_is_running.unwrap_or(false)
+    }
+
     fn set_update_election_is_no_quorum(&mut self, value: bool) {
         self.update_election_is_no_quorum = Some(value);
     }
 
+    fn get_update_election_is_no_quorum(&self) -> bool {
+        self.update_election_is_no_quorum.unwrap_or(false)
+    }
+
     fn set_update_election_is_finished(&mut self, value: bool) {
         self.update_election_is_finished = Some(value);
+    }
+
+    fn get_update_election_is_finished(&self) -> bool {
+        self.update_election_is_finished.unwrap_or(false)
     }
 
     pub fn get_election_status(&self) -> ElectionStatus {
@@ -215,6 +232,10 @@ impl CensusEntry {
         }
     }
 
+    fn get_initialized(&self) -> bool {
+        self.initialized.unwrap_or(false)
+    }
+
     fn set_alive(&mut self, value: bool) {
         self.alive = Some(value);
     }
@@ -227,17 +248,72 @@ impl CensusEntry {
         self.suspect = Some(value);
     }
 
+    fn get_suspect(&self) -> bool {
+        self.suspect.unwrap_or(false)
+    }
+
     fn set_confirmed(&mut self, value: bool) {
         self.confirmed = Some(value);
+    }
+
+    fn get_confirmed(&self) -> bool {
+        self.confirmed.unwrap_or(false)
     }
 
     fn set_persistent(&mut self, value: bool) {
         self.persistent = Some(value);
     }
 
-    #[allow(dead_code)] // only used in tests
     fn get_persistent(&self) -> bool {
         self.persistent.unwrap_or(false)
+    }
+
+    pub fn as_protobuf(&self) -> CensusEntryProto {
+        let mut cep = CensusEntryProto::new();
+        cep.set_member_id(self.member_id.clone());
+        cep.set_service(self.service.clone());
+        cep.set_group(self.group.clone());
+        cep.set_org(String::from(self.get_org()));
+
+        // JB TODO: cfg needs to be converted from a toml::Table::Value into a string first, then
+        // from a string to bytes.
+        // cep.set_cfg()
+
+        let mut sys_info = SysInfoProto::new();
+        sys_info.set_ip(self.sys.ip.clone());
+        sys_info.set_hostname(self.sys.hostname.clone());
+        sys_info.set_gossip_ip(self.sys.gossip_ip.clone());
+        sys_info.set_gossip_port(self.sys.gossip_port.clone());
+        sys_info.set_http_gateway_ip(self.sys.http_gateway_ip.clone());
+        sys_info.set_http_gateway_port(self.sys.http_gateway_port.clone());
+        cep.set_sys(sys_info);
+
+        if self.pkg.is_some() {
+            let pkg = self.pkg.clone().unwrap();
+            let mut pkg_ident = PackageIdentProto::new();
+            pkg_ident.set_origin(pkg.origin);
+            pkg_ident.set_name(pkg.name);
+            pkg_ident.set_version(pkg.version.unwrap_or(String::new()));
+            pkg_ident.set_release(pkg.release.unwrap_or(String::new()));
+            cep.set_pkg(pkg_ident);
+        }
+
+        cep.set_leader(self.get_leader());
+        cep.set_follower(self.get_follower());
+        cep.set_update_leader(self.get_update_leader());
+        cep.set_update_follower(self.get_update_follower());
+        cep.set_election_is_running(self.get_election_is_running());
+        cep.set_election_is_no_quorum(self.get_election_is_no_quorum());
+        cep.set_election_is_finished(self.get_election_is_finished());
+        cep.set_update_election_is_running(self.get_update_election_is_running());
+        cep.set_update_election_is_no_quorum(self.get_update_election_is_no_quorum());
+        cep.set_update_election_is_finished(self.get_update_election_is_finished());
+        cep.set_initialized(self.get_initialized());
+        cep.set_alive(self.get_alive());
+        cep.set_suspect(self.get_suspect());
+        cep.set_confirmed(self.get_confirmed());
+        cep.set_persistent(self.get_persistent());
+        cep
     }
 
     pub fn populate_from_service(&mut self, rumor: &ServiceRumor) {
