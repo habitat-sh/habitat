@@ -53,16 +53,14 @@ pub fn proxy(frontend_port: i32, backend_port: i32) {
 
     let pull_sock = ctx.socket(PULL).unwrap();
     let pull_bind = format!("tcp://*:{}", frontend_port);
-    match pull_sock.bind(&pull_bind) {
-        Ok(()) => {},
-        Err(e) => panic!(format!("Could not bind socket to port {}: {:?}", frontend_port, e))
+    if let Err(e) = pull_sock.bind(&pull_bind) {
+        panic!("Could not bind socket to port {}: {:?}", frontend_port, e);
     }
 
     let xpub_sock = ctx.socket(XPUB).unwrap();
     let xpub_bind = format!("tcp://*:{}", backend_port);
-    match xpub_sock.bind(&xpub_bind) {
-        Ok(()) => {},
-        Err(e) => panic!(format!("Could not bind socket to port {}: {:?}", backend_port, e))
+    if let Err(e) = xpub_sock.bind(&xpub_bind) {
+        panic!("Could not bind socket to port {}: {:?}", backend_port, e);
     }
 
     // We'll cache the most recent messages from each service and each
@@ -76,8 +74,8 @@ pub fn proxy(frontend_port: i32, backend_port: i32) {
 
     loop {
         // A timeout of -1 says to wait indefinitely until a message comes
-        if zmq::poll(&mut poll_items, -1).is_err() {
-            break; // This will stop the event service
+        if let Err(e) = zmq::poll(&mut poll_items, -1) {
+            panic!("Error!: {}", e)
         }
 
         if poll_items[0].is_readable() {
