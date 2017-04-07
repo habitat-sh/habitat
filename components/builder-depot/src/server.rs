@@ -1603,7 +1603,7 @@ pub fn routes<M: BeforeMiddleware + Clone>(insecure: bool, basic: M, worker: M) 
         },
         origin: get "/origins/:origin" => origin_show,
 
-        origin_channels: get "/origins/:origin/channels" => list_channels,
+        //origin_channels: get "/origins/:origin/channels" => list_channels,
 
         origin_keys: get "/origins/:origin/keys" => list_origin_keys,
         origin_key_latest: get "/origins/:origin/keys/latest" => download_latest_origin_key,
@@ -1820,7 +1820,7 @@ mod test {
         broker.setup::<OriginChannelListRequest, OriginChannelListResponse>(&channel_res);
 
         let (response, _) = iron_request(method::Get,
-                                         "http://localhost/origins/org/channels",
+                                         "http://localhost/channels/org",
                                          &mut Vec::new(),
                                          Headers::new(),
                                          broker);
@@ -1837,8 +1837,19 @@ mod test {
         ]");
     }
 
-    #[test]
-    fn create_channel() {
+//    #[test]
+//    fn create_channel() {
+//        let mut broker: TestableBroker = Default::default();
 
-    }
+//        let mut access_res = CheckOriginAccessResponse::new();
+//        access_res.set_has_access(true);
+//        broker.setup::<CheckOriginAccessRequest, CheckOriginAccessResponse>(&access_res);
+
+//        let mut origin_res = Origin::new();
+//        origin_res.set_id(5000);
+//        broker.setup::<OriginGet, Origin>(&origin_res);
+
+//        let mut request = OriginChannelCreate::new();
+//        broker.setup::<OriginChannelCreate, OriginChannel>(&request);
+//    }
 }
