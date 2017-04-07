@@ -100,6 +100,7 @@ impl ConfigFile for Config {
                              &mut cfg.depot.github_client_secret));
         try!(toml.parse_into("cfg.events_enabled", &mut cfg.events_enabled));
         try!(toml.parse_into("cfg.events_enabled", &mut cfg.depot.events_enabled));
+        try!(toml.parse_into("cfg.builds_enabled", &mut cfg.depot.builds_enabled));
         try!(toml.parse_into("pkg.svc_var_path", &mut cfg.log_dir));
         try!(toml.parse_into("pkg.svc_var_path", &mut cfg.depot.log_dir));
         try!(toml.parse_into("cfg.supported_targets", &mut cfg.depot.supported_targets));
