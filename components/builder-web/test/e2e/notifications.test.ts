@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import {expect} from "./helper";
+import { browser, element, by } from "protractor";
 
 // Shortcut for creating a project
 function createProject(name) {

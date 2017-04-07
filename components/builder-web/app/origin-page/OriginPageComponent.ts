@@ -21,14 +21,8 @@ import {fetchOrigin, fetchOriginInvitations, fetchOriginMembers,
         uploadOriginPublicKey, filterPackagesBy, fetchMyOrigins,
         setProjectHint, requestRoute, setCurrentProject, getUniquePackages} from "../actions/index";
 import config from "../config";
-import {KeyAddFormComponent} from "./KeyAddFormComponent";
-import {KeyListComponent} from "./KeyListComponent";
 import {Origin} from "../records/Origin";
-import {OriginMembersTabComponent} from "./OriginMembersTabComponent";
-import {TabComponent} from "../TabComponent";
-import {TabsComponent} from "../TabsComponent";
 import {requireSignIn, packageString} from "../util";
-import {PackagesListComponent} from "../packages-list/PackagesListComponent";
 import {Subscription} from "rxjs/Subscription";
 import {FeatureFlags} from "../Privilege";
 import {List} from "immutable";
@@ -45,9 +39,6 @@ export enum KeyType {
 }
 
 @Component({
-    directives: [KeyAddFormComponent, KeyListComponent,
-                 OriginMembersTabComponent, RouterLink, TabsComponent, TabComponent,
-                PackagesListComponent],
     template: `
     <div class="hab-origin">
         <div class="page-title">

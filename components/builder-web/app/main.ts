@@ -12,9 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-///<reference path="../typings/browser/index.d.ts" />
-///<reference path='../node_modules/immutable/dist/immutable.d.ts'/>
-
 // Include the nav control from the main website
 require("./zepto-custom");
 import "./nav";

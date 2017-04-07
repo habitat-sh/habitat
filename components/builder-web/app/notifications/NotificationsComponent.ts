@@ -12,10 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Component} from "@angular/core";
+import { Component, Input } from "@angular/core";
 
 @Component({
-    inputs: ["notifications", "removeNotification"],
     selector: "hab-notifications",
     template: `
     <ul class="hab-notifications">
@@ -25,7 +24,9 @@ import {Component} from "@angular/core";
             <h1>{{n.title}}</h1>
             <p>{{n.body}}</p>
         </li>
-    </ul>`,
+    </ul>`
 })
-
-export class NotificationsComponent { }
+export class NotificationsComponent {
+    @Input() notifications;
+    @Input() removeNotification: Function;
+}

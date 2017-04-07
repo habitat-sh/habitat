@@ -12,15 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {OnInit, Component} from "@angular/core";
-import {List, Map, OrderedSet} from "immutable";
-import {SpinnerComponent} from "../SpinnerComponent";
+import { Component, Input, OnInit } from "@angular/core";
+import { List, Map, OrderedSet } from "immutable";
 
 @Component({
-    directives: [SpinnerComponent],
-    inputs: ["areOrgsLoading", "areReposLoading", "fetchGitHubOrgs",
-        "fetchGitHubRepos", "onOrgSelect", "onRepoSelect", "orgs", "repos",
-        "selectedOrg", "user"],
     selector: "github-repo-picker",
     template: `
     <div class="hab-github-repo-picker">
@@ -71,11 +66,18 @@ import {SpinnerComponent} from "../SpinnerComponent";
 })
 
 export class GitHubRepoPickerComponent implements OnInit {
-    private clickFetchGitHubRepos;
-    private fetchGitHubOrgs: Function;
-    private fetchGitHubRepos: Function;
-    private selectedOrg: String;
-    private user;
+    @Input() areOrgsLoading;
+    @Input() areReposLoading;
+    @Input() fetchGitHubOrgs: Function;
+    @Input() fetchGitHubRepos: Function;
+    @Input() onOrgSelect;
+    @Input() onRepoSelect;
+    @Input() orgs;
+    @Input() repos;
+    @Input() selectedOrg: string;
+    @Input() user;
+
+    private clickFetchGitHubRepos: Function;
 
     constructor() {
         this.clickFetchGitHubRepos = () => {

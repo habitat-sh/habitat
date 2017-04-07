@@ -16,19 +16,20 @@ import {Injectable} from "@angular/core";
 import {applyMiddleware, compose, createStore} from "redux";
 import rootReducer from "./reducers/index";
 import thunk from "redux-thunk";
+import reduxReset from "redux-reset";
 
-const resetMiddleware = require("redux-reset").default;
+const composeEnhancers = window["__REDUX_DEVTOOLS_EXTENSION_COMPOSE__"] || compose;
 
-const finalCreateStore = compose(
+const finalCreateStore = composeEnhancers(
     // The thunk middleware allows an action to return a function that takes a
     // dispatch argument instead of returning an object directly. This allows
     // actions to make async calls.
     applyMiddleware(thunk),
+
     // Allows resetting of the store
-    resetMiddleware(),
-    // Enable dev tools if the extension is installed.
-    window["devToolsExtension"] ? window["devToolsExtension"]() : (f) => f
+    reduxReset()
 )(createStore);
+
 const appStore = finalCreateStore(rootReducer);
 
 @Injectable()

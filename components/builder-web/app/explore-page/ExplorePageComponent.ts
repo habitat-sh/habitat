@@ -15,10 +15,8 @@
 import {AppStore} from "../AppStore";
 import {Component, OnInit} from "@angular/core";
 import {fetchExplore} from "../actions/index";
-import {RouterLink} from "@angular/router";
 
 @Component({
-    directives: [RouterLink],
     template: `
     <div class="hab-explore">
       <div class="page-title">

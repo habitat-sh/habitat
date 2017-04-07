@@ -12,12 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Component, OnInit} from "@angular/core";
-import {RouterLink} from "@angular/router";
+import { Component, Input, OnInit } from "@angular/core";
 
 @Component({
-    directives: [RouterLink],
-    inputs: ["isSignedIn", "route"],
     selector: "hab-side-nav",
     template: `
     <nav class="hab-side-nav">
@@ -35,7 +32,8 @@ import {RouterLink} from "@angular/router";
 })
 
 export class SideNavComponent {
-    private route: string;
+    @Input() isSignedIn;
+    @Input() route: string;
 
     // Return true if a route matches what we're looking at.
     private routeMatch(s: string): boolean {

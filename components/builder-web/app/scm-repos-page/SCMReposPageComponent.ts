@@ -16,13 +16,10 @@ import {Component, OnInit} from "@angular/core";
 import {AppStore} from "../AppStore";
 import {fetchGitHubOrgs, fetchGitHubRepos,
         onGitHubOrgSelect, setSelectedGitHubOrg, resetRedirectRoute} from "../actions/index";
-import {GitHubRepoPickerComponent} from
-    "../github-repo-picker/GitHubRepoPickerComponent";
 import {requireSignIn} from "../util";
 import {Router} from "@angular/router";
 
 @Component({
-    directives: [GitHubRepoPickerComponent],
     template: `
     <div class="hab-scm-repos">
       <div class="page-title">

@@ -18,20 +18,12 @@ import {FeatureFlags} from "../Privilege";
 import {AppStore} from "../AppStore";
 import {Package} from "../records/Package";
 import {Origin} from "../records/Origin";
-import {PackageBreadcrumbsComponent} from "../PackageBreadcrumbsComponent";
-import {PackageListComponent} from "./PackageListComponent";
-import {SpinnerComponent} from "../SpinnerComponent";
 import {isPackage, isSignedIn} from "../util";
 import {fetchPackage, fetchProject, setProjectHint, requestRoute} from "../actions/index";
 import {BuilderApiClient} from "../BuilderApiClient";
-import {TabComponent} from "../TabComponent";
-import {TabsComponent} from "../TabsComponent";
-import {PackageInfoComponent} from "../package-info/PackageInfoComponent";
 import {Subscription} from "rxjs/Subscription";
 
 @Component({
-    directives: [PackageBreadcrumbsComponent, PackageListComponent,
-        SpinnerComponent, TabsComponent, TabComponent, PackageInfoComponent],
     template: `
     <div class="hab-package page-title">
         <h2>Package</h2>

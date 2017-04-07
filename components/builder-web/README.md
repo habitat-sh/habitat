@@ -69,7 +69,6 @@ TASK_NAME`.
 * `clean`: Remove files created by build tasks
 * `clean-css`
 * `clean-js`
-* `format-js`: Autoformat TypeScript files with [`tsfmt`](https://github.com/vvakame/typescript-formatter)
 * `lint`: Check TS and SCSS files for lint errors
 * `lint-css`
 * `lint-css-watch`
@@ -88,7 +87,6 @@ TASK_NAME`.
 These are guidelines for how to structure and format code in the application.
 
 * Four spaces for tabs.
-* `npm run format-js` will run `tsfmt` to automatically format your code.
 * TypeScript is linted with [TSLint](http://palantir.github.io/tslint/). The
   rules followed in this repository are in the [tslint.json](tslint.json) file.
   Check your code with `npm run lint-js`.

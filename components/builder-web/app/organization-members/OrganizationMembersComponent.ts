@@ -12,15 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Component} from "@angular/core";
-import {GravatarComponent} from "../GravatarComponent";
-import {icon} from "../util";
+import { Component, Input } from "@angular/core";
+import { icon } from "../util";
 
 @Component({
-    directives: [GravatarComponent],
     selector: "hab-org-members",
-    inputs: ["cancelInvitation", "inviteMemberToOrg", "org", "performSearch",
-        "searchResults", "toggleMemberActionMenu"],
     template: `
     <div class="hab-org-members">
         <h4>Search by username, full name, or email address</h4>
@@ -69,11 +65,12 @@ import {icon} from "../util";
 })
 
 export class OrganizationMembersComponent {
-    private cancelInvitation: Function;
-    private inviteMemberToOrg: Function;
-    private org;
-    private performSearch: Function;
-    private toggleMemberActionMenu: Function;
+    @Input() cancelInvitation: Function;
+    @Input() inviteMemberToOrg: Function;
+    @Input() org;
+    @Input() performSearch: Function;
+    @Input() searchResults;
+    @Input() toggleMemberActionMenu: Function;
 
     private actionClick(index: number): boolean {
         this.toggleMemberActionMenu(index);

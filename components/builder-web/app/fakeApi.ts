@@ -30,4 +30,4 @@ export function get(url: string) {
             return response.text();
         }
     });
-};
+}

@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {expect} from "./helper";
+import { expect } from "./helper";
+import { browser, element, by } from "protractor";
 
 describe("Routes", () => {
     describe("/linked-accounts", () => {

@@ -12,11 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Component} from "@angular/core";
-import {duration, friendlyTime, packageString} from "../util";
+import { Component, Input } from "@angular/core";
+import { duration, friendlyTime, packageString } from "../util";
 
 @Component({
-    inputs: ["builds", "logs", "project"],
     selector: "build-list",
     template: `
     <p *ngIf="!builds || builds.size === 0">
@@ -59,7 +58,9 @@ import {duration, friendlyTime, packageString} from "../util";
 })
 
 export class BuildListComponent {
-    private project;
+    @Input() builds;
+    @Input() logs;
+    @Input() project;
 
     private packageString(pkg) { return packageString(pkg); }
 
