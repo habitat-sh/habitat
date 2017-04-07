@@ -13,38 +13,27 @@
 // limitations under the License.
 
 extern crate habitat_eventsrv;
-#[macro_use]
 extern crate log;
-extern crate env_logger;
-extern crate zmq;
 extern crate protobuf;
 
 mod message;
 
-use zmq::{Context, PULL, PUSH};
-use protobuf::parse_from_bytes;
-
-use message::event::EventEnvelope;
+use std::env;
 
 fn main() {
-    let ctx = Context::new();
-    let pull_sock = ctx.socket(PULL).unwrap();
-    let push_sock = ctx.socket(PUSH).unwrap();
-    assert!(pull_sock.connect("tcp://127.0.0.1:34567").is_ok());
-    assert!(push_sock.connect("tcp://127.0.0.1:45678").is_ok());
+    let mut args: Vec<_> = env::args().collect();
 
-    loop {
-        match pull_sock.recv_bytes(0) {
-            Ok(bytes) => {
-                let event = parse_from_bytes::<EventEnvelope>(&bytes).unwrap();
-                let member_id = event.get_member_id();
-                let timestamp = event.get_timestamp();
+    let port1 = args.remove(1);
+    let frontend_port: i32 = port1.parse().unwrap();
 
-                println!("Timestamp {}", timestamp);
-                println!("Member ID {}\n", member_id);
-                push_sock.send(&bytes, 0).unwrap();
-            }
-            Err(e) => panic!("zeromq socket error: {:?}", e),
-        }
-    }
+    let port2 = args.remove(1);
+    let backend_port: i32 = port2.parse().unwrap();
+
+    assert!(frontend_port != backend_port);
+
+    println!("Frontend port is {}", frontend_port);
+    println!("Backend port is {}", backend_port);
+    println!("Starting proxy service...");
+
+    habitat_eventsrv::proxy(frontend_port, backend_port);
 }

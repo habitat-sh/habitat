@@ -22,6 +22,7 @@ extern crate env_logger;
 extern crate zmq;
 extern crate protobuf;
 extern crate time;
+extern crate rand;
 
 mod message;
 
@@ -32,23 +33,30 @@ use std::io::prelude::*;
 use std::path::Path;
 use std::thread::sleep;
 use std::time::Duration;
-
+use rand::{thread_rng, Rng};
 use zmq::{Context, PUSH};
 use protobuf::Message;
 
 use message::event::{EventEnvelope, EventEnvelope_Type};
 
 fn main() {
+
+    let mut args: Vec<_> = env::args().collect();
+    args.remove(0); // drop the binary name
+
+    let file_arg = args.remove(0);
+
     let ctx = Context::new();
     let socket = ctx.socket(PUSH).unwrap();
-    assert!(socket.bind("tcp://*:34567").is_ok());
 
-    let arg = match env::args().last() {
-        Some(a) => a,
-        None => panic!("Pass the path for the file to parse"),
-    };
+    // Everything else is treated as a port number
+    for p in args {
+        let push_connect = format!("tcp://localhost:{}", p);
+        println!("connecting to {}", push_connect);
+        assert!(socket.connect(&push_connect).is_ok());
+    }
 
-    let path = Path::new(&arg);
+    let path = Path::new(&file_arg);
     let display = path.display();
     let mut file = match File::open(&path) {
         Err(why) => panic!("Couldn't open {}: {}", display, why.description()),
@@ -61,7 +69,14 @@ fn main() {
         Ok(_) => debug!("{} contains:\n{}\n\n", display, payload),
     }
 
-    let mut count = 1;
+    // Create some fake-yet-plausible data for our messages; we'll
+    // randomly select from these when creating our messages.
+    //
+    // The service "" is an error scenario; there should always be a
+    // service.
+    let members = [1, 2, 3, 4, 5];
+    let services = ["frontend", "backend", "database", "ponies", ""];
+    let mut rng = thread_rng();
 
     loop {
         let timestamp = current_time();
@@ -78,18 +93,25 @@ fn main() {
             }
         };
 
-        println!("Timestamp {}", timestamp);
-        println!("Member ID {}\n", count);
-
         event.set_field_type(field_type);
         event.set_payload(payload.as_bytes().to_vec());
         event.set_timestamp(timestamp);
-        event.set_member_id(count);
 
-        socket.send(event.write_to_bytes().unwrap().as_slice(), 0).unwrap();
-        let one_sec = Duration::from_secs(1);
-        sleep(one_sec);
-        count += 1;
+        let member_id = rng.choose(&members).unwrap();
+        event.set_member_id(*member_id);
+
+        let service_name = rng.choose(&services).unwrap();
+        event.set_service(String::from(*service_name));
+
+        println!("PUBLISHER: Timestamp {}", timestamp);
+        println!("PUBLISHER: Member ID {}", member_id);
+        println!("PUBLISHER: Service {}\n", service_name);
+
+        socket
+            .send(event.write_to_bytes().unwrap().as_slice(), 0)
+            .unwrap();
+        let sleep_time = Duration::from_secs(3);
+        sleep(sleep_time);
     }
 }
 

@@ -1,7 +1,8 @@
 [package]
 name = "habitat_eventsrv"
 version = "0.1.0"
-authors = ["Josh Black <raskchanky@gmail.com>"]
+authors = ["Josh Black <raskchanky@gmail.com>",
+           "Christopher Maier <cmaier@chef.io>"]
 description = "Habitat event service"
 build = "build.rs"
 workspace = "../../"
@@ -11,6 +12,8 @@ protobuf = "*"
 time = "*"
 log = "*"
 env_logger = "*"
+# This is currently only needed for the test client
+rand="*"
 
 [dependencies.zmq]
 git = "https://github.com/erickt/rust-zmq"
