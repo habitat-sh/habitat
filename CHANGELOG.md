@@ -1,5 +1,99 @@
 # Habitat CHANGELOG
 
+## [0.20.0](https://github.com/habitat-sh/habitat/tree/0.20.0) (04-07-2017)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.19.0...0.20.0)
+
+## Features & Enhancements
+
+- Document building and using `habitat/components` [\#1971](https://github.com/habitat-sh/habitat/issues/1971)
+- Habitat EventSrv [\#1962](https://github.com/habitat-sh/habitat/issues/1962)
+- Make `hab pkg binlink` work with multiple files [\#1921](https://github.com/habitat-sh/habitat/issues/1921)
+- Make the CI builds publish on creation of tags to Bintray Stable [\#1885](https://github.com/habitat-sh/habitat/issues/1885)
+- Appveyor and Travis should upload windows and linux harts to temporary depot [\#1877](https://github.com/habitat-sh/habitat/issues/1877)
+- Document `hab plan init`  [\#1859](https://github.com/habitat-sh/habitat/issues/1859)
+- Gateway API does not return health check output [\#1548](https://github.com/habitat-sh/habitat/issues/1548)
+- RAML depot/builder-api endpoints [\#845](https://github.com/habitat-sh/habitat/issues/845)
+- RAML depot/builder-api endpoints [\#845](https://github.com/habitat-sh/habitat/issues/845)
+- Update Scaffolding documentation. [\#2049](https://github.com/habitat-sh/habitat/pull/2049) ([rhass](https://github.com/rhass))
+- Add load/unload/stop/run command to Supervisor [\#2038](https://github.com/habitat-sh/habitat/pull/2038) ([reset](https://github.com/reset))
+- First pass at the eventsrv [\#2019](https://github.com/habitat-sh/habitat/pull/2019) ([raskchanky](https://github.com/raskchanky))
+- Default binlink to all bins in package [\#2007](https://github.com/habitat-sh/habitat/pull/2007) ([nsdavidson](https://github.com/nsdavidson))
+- Add 'first' to service\_entry. [\#2006](https://github.com/habitat-sh/habitat/pull/2006) ([bodymindarts](https://github.com/bodymindarts))
+- Add support for Scaffolding to plan-build. [\#2000](https://github.com/habitat-sh/habitat/pull/2000) ([rhass](https://github.com/rhass))
+- Remove unused errors from Error enum in Supervisor [\#1998](https://github.com/habitat-sh/habitat/pull/1998) ([reset](https://github.com/reset))
+- Add mutually exclusive process lock to Supervisor [\#1992](https://github.com/habitat-sh/habitat/pull/1992) ([reset](https://github.com/reset))
+- Improvements to supervisor's raml documentation [\#1991](https://github.com/habitat-sh/habitat/pull/1991) ([reset](https://github.com/reset))
+- Add Bash Cheat Sheet to reference list. [\#1990](https://github.com/habitat-sh/habitat/pull/1990) ([rhass](https://github.com/rhass))
+- \[sup\] Move location of adding/removing services in `Manager` tick loop. [\#1988](https://github.com/habitat-sh/habitat/pull/1988) ([fnichol](https://github.com/fnichol))
+- Decouple http\_gateway module from Manager's shared state [\#1987](https://github.com/habitat-sh/habitat/pull/1987) ([reset](https://github.com/reset))
+- \[sup\] Refactor `SpecWatcher` to call notify's sync API. [\#1982](https://github.com/habitat-sh/habitat/pull/1982) ([fnichol](https://github.com/fnichol))
+- \[sup\] Set correct `PATH` for all service child processes. [\#1981](https://github.com/habitat-sh/habitat/pull/1981) ([fnichol](https://github.com/fnichol))
+- \[sup\] Activate the MVP multi-service Supervisor! \(behind feature flag\) [\#1976](https://github.com/habitat-sh/habitat/pull/1976) ([fnichol](https://github.com/fnichol))
+- Remove accidentally committed dat file [\#1975](https://github.com/habitat-sh/habitat/pull/1975) ([reset](https://github.com/reset))
+- \[sup\] Add feature flag support to Supervisor program. [\#1974](https://github.com/habitat-sh/habitat/pull/1974) ([fnichol](https://github.com/fnichol))
+- Serialize/Deserialize `ServiceSpec` & implement `SpecWatcher` to load/unload service definitions from disk [\#1969](https://github.com/habitat-sh/habitat/pull/1969) ([fnichol](https://github.com/fnichol))
+- back public origin keys in postgres [\#1965](https://github.com/habitat-sh/habitat/pull/1965) ([mwrock](https://github.com/mwrock))
+- Add documentation for blueprints. [\#1959](https://github.com/habitat-sh/habitat/pull/1959) ([rhass](https://github.com/rhass))
+- bump dev version [\#1943](https://github.com/habitat-sh/habitat/pull/1943) ([mwrock](https://github.com/mwrock))
+- remove mac release after publish [\#1942](https://github.com/habitat-sh/habitat/pull/1942) ([mwrock](https://github.com/mwrock))
+- Supervisor persisting and loading state from disk [\#1860](https://github.com/habitat-sh/habitat/pull/1860) ([eeyun](https://github.com/eeyun))
+
+## Bug fixes
+
+- Fix unbound variable in hab install.sh [\#1463](https://github.com/habitat-sh/habitat/issues/1463)
+
+**Closed issues:**
+
+- Incorrect reference of Sitecore.Feature.Media in Sitecore.Foundation.Indexing.Tests project [\#2039](https://github.com/habitat-sh/habitat/issues/2039)
+- Downloads are sometimes password protected [\#2013](https://github.com/habitat-sh/habitat/issues/2013)
+- add `bind.\<x\>.first` that always points to leader [\#2004](https://github.com/habitat-sh/habitat/issues/2004)
+- Reconfigure hook not triggering when service group topology changes [\#1984](https://github.com/habitat-sh/habitat/issues/1984)
+- habitat.sh should have a search bar at the top... [\#1923](https://github.com/habitat-sh/habitat/issues/1923)
+
+**Merged pull requests:**
+
+- Add the online Hands on Habitat event to home page [\#2050](https://github.com/habitat-sh/habitat/pull/2050) ([nathenharvey](https://github.com/nathenharvey))
+- Fix up some typo bug fixes [\#2047](https://github.com/habitat-sh/habitat/pull/2047) ([chefsalim](https://github.com/chefsalim))
+- Populate LD\_RUN\_PATH correctly [\#2045](https://github.com/habitat-sh/habitat/pull/2045) ([stevendanna](https://github.com/stevendanna))
+- Home page lists the Chicago Hands on with Habitat [\#2043](https://github.com/habitat-sh/habitat/pull/2043) ([nathenharvey](https://github.com/nathenharvey))
+- Trigger builds on package upload [\#2041](https://github.com/habitat-sh/habitat/pull/2041) ([chefsalim](https://github.com/chefsalim))
+- Fixed typo in tutorial [\#2040](https://github.com/habitat-sh/habitat/pull/2040) ([davidwrede](https://github.com/davidwrede))
+- adds documentation around generating new protocols and messages [\#2036](https://github.com/habitat-sh/habitat/pull/2036) ([nellshamrell](https://github.com/nellshamrell))
+- enhancments around testing the depot api [\#2030](https://github.com/habitat-sh/habitat/pull/2030) ([mwrock](https://github.com/mwrock))
+- Add channel support to builder-worker [\#2029](https://github.com/habitat-sh/habitat/pull/2029) ([chefsalim](https://github.com/chefsalim))
+- Updated installation instructions in tutorial [\#2028](https://github.com/habitat-sh/habitat/pull/2028) ([davidwrede](https://github.com/davidwrede))
+- Added content on hab plan init usage [\#2027](https://github.com/habitat-sh/habitat/pull/2027) ([davidwrede](https://github.com/davidwrede))
+- Fix cross-link error in package upload [\#2025](https://github.com/habitat-sh/habitat/pull/2025) ([chefsalim](https://github.com/chefsalim))
+- Add Hands on Habitat MSP to the home page [\#2022](https://github.com/habitat-sh/habitat/pull/2022) ([nathenharvey](https://github.com/nathenharvey))
+- Fix travis deploy for PRs [\#2020](https://github.com/habitat-sh/habitat/pull/2020) ([georgemarshall](https://github.com/georgemarshall))
+- Need a way to promote ChefConf [\#2018](https://github.com/habitat-sh/habitat/pull/2018) ([nathenharvey](https://github.com/nathenharvey))
+- Promote CloudNativeCon & KubeCon on the home page [\#2017](https://github.com/habitat-sh/habitat/pull/2017) ([nathenharvey](https://github.com/nathenharvey))
+- Handle ctrl-c on windows supervisor [\#2014](https://github.com/habitat-sh/habitat/pull/2014) ([mwrock](https://github.com/mwrock))
+- is\_alive should check exit status of handle for STILL\_ACTIVE [\#2012](https://github.com/habitat-sh/habitat/pull/2012) ([mwrock](https://github.com/mwrock))
+- fix intermittent errors when renaming dat file [\#2001](https://github.com/habitat-sh/habitat/pull/2001) ([mwrock](https://github.com/mwrock))
+- Add myself to MAINTAINERS [\#1999](https://github.com/habitat-sh/habitat/pull/1999) ([georgemarshall](https://github.com/georgemarshall))
+- Add member data to butterfly http gateway output [\#1997](https://github.com/habitat-sh/habitat/pull/1997) ([adamhjk](https://github.com/adamhjk))
+- setup builder-depot to run unit tests with fake data [\#1996](https://github.com/habitat-sh/habitat/pull/1996) ([mwrock](https://github.com/mwrock))
+- removes root requirement for running hab start, now only warns rather… [\#1995](https://github.com/habitat-sh/habitat/pull/1995) ([nellshamrell](https://github.com/nellshamrell))
+- Add package migration and graph to builder-scheduler [\#1989](https://github.com/habitat-sh/habitat/pull/1989) ([chefsalim](https://github.com/chefsalim))
+- adds install instructions to README [\#1986](https://github.com/habitat-sh/habitat/pull/1986) ([nellshamrell](https://github.com/nellshamrell))
+- adds documentation around building and running individual components [\#1985](https://github.com/habitat-sh/habitat/pull/1985) ([nellshamrell](https://github.com/nellshamrell))
+- adds nell shamrell to maintainers list [\#1980](https://github.com/habitat-sh/habitat/pull/1980) ([nellshamrell](https://github.com/nellshamrell))
+- Revert "Remove confusing install step from tutorial." [\#1978](https://github.com/habitat-sh/habitat/pull/1978) ([phiggins](https://github.com/phiggins))
+- update to rustfmt 0.8.0 [\#1967](https://github.com/habitat-sh/habitat/pull/1967) ([mwrock](https://github.com/mwrock))
+- install protobuf compiler and set environment in windows configuration [\#1966](https://github.com/habitat-sh/habitat/pull/1966) ([mwrock](https://github.com/mwrock))
+- Update maintainers [\#1957](https://github.com/habitat-sh/habitat/pull/1957) ([chefsalim](https://github.com/chefsalim))
+- Update builder-scheduler job handling [\#1956](https://github.com/habitat-sh/habitat/pull/1956) ([chefsalim](https://github.com/chefsalim))
+- Didn't update date icon [\#1955](https://github.com/habitat-sh/habitat/pull/1955) ([eeyun](https://github.com/eeyun))
+- Added better documentation for setup [\#1954](https://github.com/habitat-sh/habitat/pull/1954) ([mhedgpeth](https://github.com/mhedgpeth))
+- updated latest event [\#1953](https://github.com/habitat-sh/habitat/pull/1953) ([eeyun](https://github.com/eeyun))
+- Makefile escaped Char [\#1950](https://github.com/habitat-sh/habitat/pull/1950) ([eeyun](https://github.com/eeyun))
+- more travis changes to support acceptance [\#1948](https://github.com/habitat-sh/habitat/pull/1948) ([eeyun](https://github.com/eeyun))
+- Fix ECR example [\#1946](https://github.com/habitat-sh/habitat/pull/1946) ([cnunciato](https://github.com/cnunciato))
+- corrects link to building documentation [\#1944](https://github.com/habitat-sh/habitat/pull/1944) ([nellshamrell](https://github.com/nellshamrell))
+- Updated travis job to prep for 2phase deploy [\#1930](https://github.com/habitat-sh/habitat/pull/1930) ([eeyun](https://github.com/eeyun))
+- Remove confusing install step from tutorial. [\#1892](https://github.com/habitat-sh/habitat/pull/1892) ([phiggins](https://github.com/phiggins))
+
 ## [0.19.0](https://github.com/habitat-sh/habitat/tree/0.19.0) (03-11-2017)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.18.0...0.19.0)
 
@@ -34,6 +128,7 @@
 
 **Merged pull requests:**
 
+- 0.19.0 [\#1941](https://github.com/habitat-sh/habitat/pull/1941) ([reset](https://github.com/reset))
 - Rename the vault to the originsrv [\#1936](https://github.com/habitat-sh/habitat/pull/1936) ([adamhjk](https://github.com/adamhjk))
 - Update builder-scheduler datastore [\#1932](https://github.com/habitat-sh/habitat/pull/1932) ([chefsalim](https://github.com/chefsalim))
 - release stable linux and mac builds to bintray and depot via travis on release tag push [\#1928](https://github.com/habitat-sh/habitat/pull/1928) ([mwrock](https://github.com/mwrock))
