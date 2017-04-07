@@ -52,5 +52,5 @@ _At the moment, the `hab` command-line tool lacks the ability to create and mana
 <hr>
 <ul class="main-content--link-nav">
   <li>Continue to the next topic</li>
-  <li><a href="/docs/run-packages-export">Export packages</a></li>
+  <li><a href="/docs/run-packages-multiple-services">Multiple services</a></li>
 </ul>

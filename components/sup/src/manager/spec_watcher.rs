@@ -14,7 +14,8 @@
 
 use std::collections::{HashMap, HashSet};
 use std::error::Error as StdErr;
-use std::path::{Path, PathBuf};
+use std::ffi::OsStr;
+use std::path::PathBuf;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::channel;
@@ -29,8 +30,8 @@ use manager::service::ServiceSpec;
 
 static LOGKEY: &'static str = "SW";
 const WATCHER_DELAY_MS: u64 = 2_000;
-const SPEC_FILE_EXT: &'static str = "spec.toml";
-const SPEC_FILE_GLOB: &'static str = "*.spec.toml";
+const SPEC_FILE_EXT: &'static str = "spec";
+const SPEC_FILE_GLOB: &'static str = "*.spec";
 
 #[derive(Debug, PartialEq)]
 pub enum SpecWatcherEvent {
@@ -197,7 +198,6 @@ impl SpecWatcher {
                         // If the error is related to loading a `ServiceSpec`, emit a warning
                         // message and continue on to the next spec file. The best we can do to
                         // fail-safe is report and skip.
-                        Error::ServiceSpecFileRead(_, _) |
                         Error::ServiceSpecParse(_) |
                         Error::MissingRequiredIdent => {
                             outputln!("Error when loading service spec file '{}' ({}). \
@@ -212,14 +212,13 @@ impl SpecWatcher {
                     }
                 }
             };
-            let file_stem = match Self::spec_file_stem(&spec_file) {
-                Ok(s) => s,
-                Err(e) => {
+            let file_stem = match spec_file.file_stem().and_then(OsStr::to_str) {
+                Some(s) => s,
+                None => {
                     outputln!("Error when loading service spec file '{}' \
-                              (File stem could not be determined: {}). \
+                              (File stem could not be determined). \
                               This file will be skipped.",
-                              spec_file.display(),
-                              e.description());
+                              spec_file.display());
                     continue;
                 }
             };
@@ -238,23 +237,6 @@ impl SpecWatcher {
             specs.insert(spec.ident.name.clone(), spec);
         }
         Ok(specs)
-    }
-
-    fn spec_file_stem(spec_file: &Path) -> Result<&str> {
-        let stem = spec_file.file_name()
-            .ok_or(sup_error!(Error::ServiceSpecFileRead(
-                        spec_file.display().to_string(),
-                        String::from("This path terminates in '..'"))))?
-            .to_str()
-            .ok_or(sup_error!(Error::ServiceSpecFileRead(
-                        spec_file.display().to_string(),
-                        String::from("This path isn't properly UTF-8 encoded"))))?
-            .split(".")
-            .next()
-            .ok_or(sup_error!(Error::ServiceSpecFileRead(
-                        spec_file.display().to_string(),
-                        String::from("File part of path could not be split on '.'"))))?;
-        Ok(stem)
     }
 }
 
@@ -475,7 +457,7 @@ mod test {
     fn loading_spec_missing_ident_doesnt_impact_others() {
         let tmpdir = TempDir::new("specs").unwrap();
         let alpha = new_saved_spec(tmpdir.path(), "acme/alpha");
-        fs::File::create(tmpdir.path().join(format!("beta.spec.toml"))).expect("can't create file");
+        fs::File::create(tmpdir.path().join(format!("beta.spec"))).expect("can't create file");
 
         let mut watcher = SpecWatcher::run(tmpdir.path()).unwrap();
 
@@ -490,7 +472,7 @@ mod test {
         let tmpdir = TempDir::new("specs").unwrap();
         let alpha = new_saved_spec(tmpdir.path(), "acme/alpha");
         {
-            let mut bad = fs::File::create(tmpdir.path().join(format!("beta.spec.toml"))).
+            let mut bad = fs::File::create(tmpdir.path().join(format!("beta.spec"))).
                 expect("can't create file");
             bad.write_all(r#"ident = "acme/beta"
                           I am a bad bad file."#
@@ -511,7 +493,7 @@ mod test {
         let tmpdir = TempDir::new("specs").unwrap();
         let alpha = new_saved_spec(tmpdir.path(), "acme/alpha");
         {
-            let mut bad = fs::File::create(tmpdir.path().join(format!("beta.spec.toml"))).
+            let mut bad = fs::File::create(tmpdir.path().join(format!("beta.spec"))).
                 expect("can't create file");
             bad.write_all(r#"ident = "acme/NEAL_MORSE_BAND""#.as_bytes()).
                 expect("can't write file content");
@@ -533,18 +515,18 @@ mod test {
         fn behavior_new_spec<P: AsRef<Path>>(&mut self, path: P) {
             new_saved_spec(path.as_ref(), "acme/newbie");
             self.tx
-                .send(notify::DebouncedEvent::Write(path.as_ref().join("newbie.spec.toml")))
+                .send(notify::DebouncedEvent::Write(path.as_ref().join("newbie.spec")))
                 .expect("couldn't send event");
         }
 
         fn behavior_removed_spec<P: AsRef<Path>>(&mut self, path: P) {
-            let toml_path = path.as_ref().join("oldie.spec.toml");
+            let toml_path = path.as_ref().join("oldie.spec");
             fs::remove_file(&toml_path).expect("couldn't delete spec toml");
             self.tx.send(notify::DebouncedEvent::Remove(toml_path)).expect("couldn't send event");
         }
 
         fn behavior_changed_spec<P: AsRef<Path>>(&mut self, path: P) {
-            let toml_path = path.as_ref().join("transformer.spec.toml");
+            let toml_path = path.as_ref().join("transformer.spec");
             let mut spec = ServiceSpec::from_file(&toml_path).expect("couldn't load spec file");
             spec.group = String::from("autobots");
             spec.to_file(&toml_path).expect("couldn't write spec file");
@@ -605,7 +587,7 @@ mod test {
 
     fn new_saved_spec(tmpdir: &Path, ident: &str) -> ServiceSpec {
         let spec = new_spec(ident);
-        spec.to_file(tmpdir.join(format!("{}.spec.toml", &spec.ident.name))).
+        spec.to_file(tmpdir.join(format!("{}.spec", &spec.ident.name))).
             expect("couldn't save spec to disk");
         spec
     }

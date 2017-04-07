@@ -40,10 +40,10 @@ use time::{SteadyTime, Duration as TimeDuration};
 use toml;
 
 pub use manager::service::{Service, ServiceConfig, ServiceSpec, UpdateStrategy, Topology};
+use self::service::{DesiredState, StartStyle};
 use self::service_updater::ServiceUpdater;
 use self::spec_watcher::{SpecWatcher, SpecWatcherEvent};
-use error::{Error, Result};
-use feat;
+use error::{Error, Result, SupError};
 use config::GossipListenAddr;
 use manager::census::{CensusUpdate, CensusList, CensusEntry};
 use manager::signals::SignalEvent;
@@ -115,6 +115,24 @@ pub struct Manager {
 }
 
 impl Manager {
+    pub fn is_running(cfg: &ManagerConfig) -> Result<bool> {
+        let state_path = Self::state_path_from(&cfg);
+        let fs_cfg = FsCfg::new(state_path);
+
+        match read_process_lock(&fs_cfg.proc_lock_file) {
+            Ok(pid) => Ok(process::is_alive(pid)),
+            Err(SupError { err: Error::ProcessLockCorrupt, .. }) => Ok(false),
+            Err(SupError { err: Error::ProcessLockIO(_, _), .. }) => {
+                // JW TODO: We need to check the raw OS error and translate it to a "file not found"
+                // case. This is an acceptable reason to assume that another manager is not running
+                // but other IO errors are an actual problem. For now, let's just assume an IO
+                // error here is a file not found.
+                Ok(false)
+            }
+            Err(err) => Err(err),
+        }
+    }
+
     pub fn load(cfg: ManagerConfig) -> Result<Manager> {
         let state_path = Self::state_path_from(&cfg);
         Self::create_state_path_dirs(&state_path)?;
@@ -194,12 +212,12 @@ impl Manager {
         Ok(member)
     }
 
-    pub fn specs_path_for(cfg: &ManagerConfig) -> PathBuf {
-        Self::specs_path(&Self::state_path_from(cfg))
+    pub fn spec_path_for(cfg: &ManagerConfig, spec: &ServiceSpec) -> PathBuf {
+        Self::specs_path(&Self::state_path_from(cfg)).join(spec.file_name())
     }
 
     pub fn save_spec_for(cfg: &ManagerConfig, spec: ServiceSpec) -> Result<()> {
-        spec.to_file(Self::specs_path_for(cfg).join(spec.file_name()))
+        spec.to_file(Self::spec_path_for(cfg, &spec))
     }
 
     fn clean_dirty_state<T>(state_path: T) -> Result<()>
@@ -279,7 +297,7 @@ impl Manager {
         service.add()?;
         self.butterfly.insert_service(service.to_rumor(self.butterfly.member_id()));
         if service.topology == Topology::Leader {
-            // Note - eventually, we need to deal with suitability here. The original implementation
+            // TODO: eventually, we need to deal with suitability here. The original implementation
             // didn't have this working either.
             self.butterfly.start_election(service.service_group.clone(), 0);
         }
@@ -291,18 +309,22 @@ impl Manager {
         Ok(())
     }
 
-    pub fn remove_service(&self, service: &Service) -> Result<()> {
-        // TODO FN: there is more to removing a service, more to follow
-        service.remove()?;
+    pub fn remove_service(&self, service: &mut Service) -> Result<()> {
+        // JW TODO: Update service rumor to remove service from cluster
+        service.stop();
+        if service.start_style == StartStyle::Transient {
+            if let Err(err) = fs::remove_file(&service.spec_file) {
+                outputln!("Unable to cleanup service spec for transient service, {}, {}",
+                          service,
+                          err);
+            }
+        }
         Ok(())
     }
 
     pub fn run(&mut self) -> Result<()> {
         signals::init();
-
-        if feat::is_enabled(feat::Multi) {
-            self.start_initial_services_from_watcher()?;
-        }
+        self.start_initial_services_from_watcher()?;
 
         outputln!("Starting butterfly on {}", self.butterfly.gossip_addr());
         try!(self.butterfly.start(Timing::default()));
@@ -320,9 +342,7 @@ impl Manager {
                 self.shutdown();
                 return Ok(());
             }
-            if feat::is_enabled(feat::Multi) {
-                self.update_running_services_from_watcher()?;
-            }
+            self.update_running_services_from_watcher()?;
             self.check_for_updated_packages(&mut last_census_update);
             self.restart_elections();
             let (census_updated, ncu) = self.build_census(&last_census_update);
@@ -564,8 +584,8 @@ impl Manager {
 
     fn shutdown(&self) {
         let mut services = self.services.write().expect("Services lock is poisend!");
-        for service in services.drain(..) {
-            if let Err(err) = self.remove_service(&service) {
+        for mut service in services.drain(..) {
+            if let Err(err) = self.remove_service(&mut service) {
                 warn!("Couldn't cleanly shutdown service, {}, {}", service, err);
             }
         }
@@ -576,7 +596,11 @@ impl Manager {
     fn start_initial_services_from_watcher(&mut self) -> Result<()> {
         for service_event in self.watcher.initial_events()? {
             match service_event {
-                SpecWatcherEvent::AddService(spec) => self.add_service(spec)?,
+                SpecWatcherEvent::AddService(spec) => {
+                    if spec.desired_state == DesiredState::Up {
+                        self.add_service(spec)?;
+                    }
+                }
                 _ => warn!("Skipping unexpected watcher event: {:?}", service_event),
             }
         }
@@ -594,7 +618,11 @@ impl Manager {
         }
         for service_event in self.watcher.new_events(active_specs)? {
             match service_event {
-                SpecWatcherEvent::AddService(spec) => self.add_service(spec)?,
+                SpecWatcherEvent::AddService(spec) => {
+                    if spec.desired_state == DesiredState::Up {
+                        self.add_service(spec)?;
+                    }
+                }
                 SpecWatcherEvent::RemoveService(spec) => self.remove_service_for_spec(&spec)?,
             }
         }
@@ -602,10 +630,10 @@ impl Manager {
     }
 
     fn remove_service_for_spec(&mut self, spec: &ServiceSpec) -> Result<()> {
-        let mut services_mut = self.services.write().expect("Services lock is poisoned");
+        let mut services = self.services.write().expect("Services lock is poisoned");
         // TODO fn: storing services as a `Vec` is a bit crazy when you have to do these
         // shenanigans--maybe we want to consider changing the data structure in the future?
-        let services_idx = match services_mut.iter().position(|ref s| s.spec_ident == spec.ident) {
+        let services_idx = match services.iter().position(|ref s| s.spec_ident == spec.ident) {
             Some(i) => i,
             None => {
                 outputln!("Tried to remove service for {} but could not find it running, skipping",
@@ -613,8 +641,8 @@ impl Manager {
                 return Ok(());
             }
         };
-        let service = services_mut.remove(services_idx);
-        self.remove_service(&service)?;
+        let mut service = services.remove(services_idx);
+        self.remove_service(&mut service)?;
         Ok(())
     }
 }
@@ -638,24 +666,41 @@ fn obtain_process_lock(fs_cfg: &FsCfg) -> Result<()> {
     match write_process_lock(&fs_cfg.proc_lock_file) {
         Ok(()) => Ok(()),
         Err(_) => {
-            match File::open(&fs_cfg.proc_lock_file) {
-                Ok(file) => {
-                    let reader = BufReader::new(file);
-                    if let Some(Ok(line)) = reader.lines().next() {
-                        if let Ok(pid) = line.parse::<u32>() {
-                            if process::is_alive(pid) {
-                                return Err(sup_error!(Error::ProcessLocked(pid)));
-                            }
-                        }
+            match read_process_lock(&fs_cfg.proc_lock_file) {
+                Ok(pid) => {
+                    if process::is_alive(pid) {
+                        return Err(sup_error!(Error::ProcessLocked(pid)));
                     }
                     release_process_lock(fs_cfg);
                     write_process_lock(&fs_cfg.proc_lock_file)
                 }
-                Err(err) => {
-                    Err(sup_error!(Error::ProcessLockIO(fs_cfg.proc_lock_file.clone(), err)))
+                Err(SupError { err: Error::ProcessLockCorrupt, .. }) => {
+                    release_process_lock(fs_cfg);
+                    write_process_lock(&fs_cfg.proc_lock_file)
                 }
+                Err(err) => Err(err),
             }
         }
+    }
+}
+
+fn read_process_lock<T>(lock_path: T) -> Result<u32>
+    where T: AsRef<Path>
+{
+    match File::open(lock_path.as_ref()) {
+        Ok(file) => {
+            let reader = BufReader::new(file);
+            match reader.lines().next() {
+                Some(Ok(line)) => {
+                    match line.parse::<u32>() {
+                        Ok(pid) => Ok(pid),
+                        Err(_) => Err(sup_error!(Error::ProcessLockCorrupt)),
+                    }
+                }
+                _ => Err(sup_error!(Error::ProcessLockCorrupt)),
+            }
+        }
+        Err(err) => Err(sup_error!(Error::ProcessLockIO(lock_path.as_ref().to_path_buf(), err))),
     }
 }
 

@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#[macro_use]
 extern crate clap;
 extern crate env_logger;
 extern crate hab;
@@ -498,6 +497,10 @@ fn exec_subcommand_if_called(ui: &mut UI) -> Result<()> {
         }
         ("sup", _) => command::sup::start(ui, env::args_os().skip(2).collect()),
         ("start", _) => command::sup::start(ui, env::args_os().skip(1).collect()),
+        ("service", "load") |
+        ("service", "unload") |
+        ("service", "start") |
+        ("service", "stop") => command::sup::start(ui, env::args_os().skip(2).collect()),
         _ => Ok(()),
     }
 }

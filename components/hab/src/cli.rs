@@ -295,6 +295,35 @@ pub fn get() -> App<'static, 'static> {
                     (@arg ORG: "The service organization")
                 )
             )
+            (@subcommand load =>
+                (about: "Load a service to be started and supervised by Habitat from a package or \
+                    artifact. Services started in this manner will persist through Supervisor \
+                    restarts.")
+                (@setting Hidden)
+            )
+            (@subcommand unload =>
+                (about: "Unload a persistent or transient service started by the Habitat \
+                    supervisor. If the Supervisor is running when the service is unloaded the \
+                    service will be stopped.")
+                (@setting Hidden)
+            )
+            (@subcommand start =>
+                (about: "Start a loaded, but stopped, Habitat service or a transient service from \
+                    a package or artifact. If the Habitat Supervisor is not already running this \
+                    will additionally start one for you.")
+                (@setting Hidden)
+            )
+            (@subcommand stop =>
+                (about: "Stop a running Habitat service.")
+                (@setting Hidden)
+            )
+            (after_help: "\nALIASES:\
+                \n    load       Alias for: 'sup load'\
+                \n    unload     Alias for: 'sup unload'\
+                \n    start      Alias for: 'sup start'\
+                \n    stop       Alias for: 'sup stop'\
+                \n"
+            )
         )
         (@subcommand studio =>
             (about: "Commands relating to Habitat Studios")

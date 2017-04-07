@@ -14,5 +14,5 @@
 
 //! The CLI commands.
 
-pub mod start;
 pub mod shell;
+pub mod start;

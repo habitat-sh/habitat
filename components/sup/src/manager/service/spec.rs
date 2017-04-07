@@ -32,7 +32,41 @@ use error::{Error, Result, SupError};
 
 static LOGKEY: &'static str = "SS";
 static DEFAULT_GROUP: &'static str = "default";
-pub const SPEC_FILE_EXT: &'static str = "spec.toml";
+pub const SPEC_FILE_EXT: &'static str = "spec";
+
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+pub enum DesiredState {
+    Down,
+    Up,
+}
+
+impl Default for DesiredState {
+    fn default() -> DesiredState {
+        DesiredState::Up
+    }
+}
+
+impl fmt::Display for DesiredState {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let value = match *self {
+            DesiredState::Down => "down",
+            DesiredState::Up => "up",
+        };
+        write!(f, "{}", value)
+    }
+}
+
+impl FromStr for DesiredState {
+    type Err = SupError;
+
+    fn from_str(value: &str) -> result::Result<Self, Self::Err> {
+        match value.to_lowercase().as_ref() {
+            "down" => Ok(DesiredState::Down),
+            "up" => Ok(DesiredState::Up),
+            _ => Err(sup_error!(Error::BadDesiredState(value.to_string()))),
+        }
+    }
+}
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(default)]
@@ -49,6 +83,16 @@ pub struct ServiceSpec {
     pub binds: Vec<ServiceBind>,
     #[serde(skip_deserializing, skip_serializing)]
     pub config_from: Option<PathBuf>,
+    #[serde(
+        deserialize_with = "deserialize_using_from_str",
+        serialize_with = "serialize_using_to_string"
+    )]
+    pub desired_state: DesiredState,
+    #[serde(
+        deserialize_with = "deserialize_using_from_str",
+        serialize_with = "serialize_using_to_string"
+    )]
+    pub start_style: StartStyle,
 }
 
 impl ServiceSpec {
@@ -62,23 +106,18 @@ impl ServiceSpec {
         if self.ident == PackageIdent::default() {
             return Err(sup_error!(Error::MissingRequiredIdent));
         }
-
-        toml::to_string(self).map_err(|e| sup_error!(Error::ServiceSpecRender(e.to_string())))
+        toml::to_string(self).map_err(|err| sup_error!(Error::ServiceSpecRender(err)))
     }
 
     pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self> {
-        let file = File::open(&path).map_err(|e| {
-                         sup_error!(Error::ServiceSpecFileRead(path.as_ref().display().to_string(),
-                                                               e.to_string()))
-                     })?;
+        let file =
+            File::open(&path).map_err(|err| {
+                             sup_error!(Error::ServiceSpecFileIO(path.as_ref().to_path_buf(), err))
+                         })?;
         let mut file = BufReader::new(file);
         let mut buf = String::new();
         file.read_to_string(&mut buf)
-            .map_err(|e| {
-                         sup_error!(Error::ServiceSpecFileRead(path.as_ref().display().to_string(),
-                                                               e.to_string()))
-                     })?;
-
+            .map_err(|err| sup_error!(Error::ServiceSpecFileIO(path.as_ref().to_path_buf(), err)))?;
         Self::from_str(&buf)
     }
 
@@ -86,42 +125,31 @@ impl ServiceSpec {
         debug!("Writing service spec to '{}': {:?}",
                path.as_ref().display(),
                &self);
-        let dst_path = path.as_ref()
-            .parent()
-            .ok_or(sup_error!(Error::ServiceSpecFileWrite(path.as_ref().display().to_string(),
-                                                          "cannot determine parent directory"
-                                                              .to_string())))?;
+        let dst_path =
+            path.as_ref().parent().expect("Cannot determine parent directory for service spec");
         let tmpfile = path.as_ref().with_extension(thread_rng()
                                                        .gen_ascii_chars()
                                                        .take(8)
                                                        .collect::<String>());
-
-        fs::create_dir_all(dst_path).map_err(|e| {
-                         sup_error!(Error::ServiceSpecFileWrite(path.as_ref()
-                                                                    .display()
-                                                                    .to_string(),
-                                                                e.to_string()))
+        fs::create_dir_all(dst_path).map_err(|err| {
+                         sup_error!(Error::ServiceSpecFileIO(path.as_ref()
+                                                                    .to_path_buf(),
+                                                                err))
                      })?;
-
         // Release the write file handle before the end of the function since we're done
         {
-            let mut file = File::create(&tmpfile).map_err(|e| {
-                             sup_error!(Error::ServiceSpecFileWrite(tmpfile.display().to_string(),
-                                                                    e.to_string()))
-                         })?;
+            let mut file =
+                File::create(&tmpfile).map_err(|err| {
+                                 sup_error!(Error::ServiceSpecFileIO(tmpfile.to_path_buf(), err))
+                             })?;
             let toml = self.to_toml_string()?;
             file.write_all(toml.as_bytes())
-                .map_err(|e| {
-                             sup_error!(Error::ServiceSpecFileWrite(tmpfile.display().to_string(),
-                                                                    e.to_string()))
-                         })?;
+                .map_err(|err| sup_error!(Error::ServiceSpecFileIO(tmpfile.to_path_buf(), err)))?;
         }
-
-        fs::rename(&tmpfile, path.as_ref()).map_err(|e| {
-                         sup_error!(Error::ServiceSpecFileWrite(path.as_ref()
-                                                                    .display()
-                                                                    .to_string(),
-                                                                e.to_string()))
+        fs::rename(&tmpfile, path.as_ref()).map_err(|err| {
+                         sup_error!(Error::ServiceSpecFileIO(path.as_ref()
+                                                                    .to_path_buf(),
+                                                                err))
                      })?;
 
         Ok(())
@@ -164,6 +192,8 @@ impl Default for ServiceSpec {
             update_strategy: UpdateStrategy::default(),
             binds: vec![],
             config_from: None,
+            desired_state: DesiredState::default(),
+            start_style: StartStyle::default(),
         }
     }
 }
@@ -173,7 +203,7 @@ impl FromStr for ServiceSpec {
 
     fn from_str(toml: &str) -> result::Result<Self, Self::Err> {
         let spec: ServiceSpec =
-            toml::from_str(toml).map_err(|e| sup_error!(Error::ServiceSpecParse(e.to_string())))?;
+            toml::from_str(toml).map_err(|e| sup_error!(Error::ServiceSpecParse(e)))?;
         if spec.ident == PackageIdent::default() {
             return Err(sup_error!(Error::MissingRequiredIdent));
         }
@@ -225,6 +255,40 @@ impl serde::Serialize for ServiceBind {
     }
 }
 
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+pub enum StartStyle {
+    Persistent,
+    Transient,
+}
+
+impl Default for StartStyle {
+    fn default() -> StartStyle {
+        StartStyle::Transient
+    }
+}
+
+impl fmt::Display for StartStyle {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let value = match *self {
+            StartStyle::Persistent => "persistent",
+            StartStyle::Transient => "transient",
+        };
+        write!(f, "{}", value)
+    }
+}
+
+impl FromStr for StartStyle {
+    type Err = SupError;
+
+    fn from_str(value: &str) -> result::Result<Self, Self::Err> {
+        match value.to_lowercase().as_ref() {
+            "persistent" => Ok(StartStyle::Persistent),
+            "transient" => Ok(StartStyle::Transient),
+            _ => Err(sup_error!(Error::BadStartStyle(value.to_string()))),
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
     use std::fs::{self, File};
@@ -238,7 +302,7 @@ mod test {
     use tempdir::TempDir;
     use toml;
 
-    use super::{ServiceBind, ServiceSpec, Topology, UpdateStrategy};
+    use super::*;
     use error::Error::*;
 
     fn file_from_str<P: AsRef<Path>>(path: P, content: &str) {
@@ -261,13 +325,13 @@ mod test {
     #[test]
     fn service_spec_from_str() {
         let toml = r#"
-
             ident = "origin/name/1.2.3/20170223130020"
             group = "jobs"
             depot_url = "http://example.com/depot"
             topology = "leader"
             update_strategy = "rolling"
             binds = ["cache:redis.cache@acmecorp", "db:postgres.app@acmecorp"]
+            start_style = "persistent"
 
             config_from = "should not be parsed"
             extra_stuff = "should be ignored"
@@ -284,6 +348,7 @@ mod test {
                    vec![ServiceBind::from_str("cache:redis.cache@acmecorp").unwrap(),
                         ServiceBind::from_str("db:postgres.app@acmecorp").unwrap()]);
         assert_eq!(spec.config_from, None);
+        assert_eq!(spec.start_style, StartStyle::Persistent);
     }
 
     #[test]
@@ -349,6 +414,8 @@ mod test {
             binds: vec![ServiceBind::from_str("cache:redis.cache@acmecorp").unwrap(),
                         ServiceBind::from_str("db:postgres.app@acmecorp").unwrap()],
             config_from: Some(PathBuf::from("/")),
+            desired_state: DesiredState::Down,
+            start_style: StartStyle::Persistent,
         };
         let toml = spec.to_toml_string().unwrap();
 
@@ -359,6 +426,8 @@ mod test {
         assert!(toml.contains(r#"update_strategy = "at-once""#));
         assert!(toml.contains(r#""cache:redis.cache@acmecorp""#));
         assert!(toml.contains(r#""db:postgres.app@acmecorp""#));
+        assert!(toml.contains(r#"desired_state = "down""#));
+        assert!(toml.contains(r#"start_style = "persistent""#));
         assert!(!toml.contains(r#"config_from = "#));
     }
 
@@ -382,7 +451,7 @@ mod test {
     #[test]
     fn service_spec_from_file() {
         let tmpdir = TempDir::new("specs").unwrap();
-        let path = tmpdir.path().join("name.spec.toml");
+        let path = tmpdir.path().join("name.spec");
         let toml = r#"
             ident = "origin/name/1.2.3/20170223130020"
             group = "jobs"
@@ -412,12 +481,12 @@ mod test {
     #[test]
     fn service_spec_from_file_missing() {
         let tmpdir = TempDir::new("specs").unwrap();
-        let path = tmpdir.path().join("nope.spec.toml");
+        let path = tmpdir.path().join("nope.spec");
 
         match ServiceSpec::from_file(&path) {
             Err(e) => {
                 match e.err {
-                    ServiceSpecFileRead(p, _) => assert_eq!(path.display().to_string(), p),
+                    ServiceSpecFileIO(p, _) => assert_eq!(path, p),
                     wrong => panic!("Unexpected error returned: {:?}", wrong),
                 }
             }
@@ -428,7 +497,7 @@ mod test {
     #[test]
     fn service_spec_from_file_empty() {
         let tmpdir = TempDir::new("specs").unwrap();
-        let path = tmpdir.path().join("empty.spec.toml");
+        let path = tmpdir.path().join("empty.spec");
         file_from_str(&path, "");
 
         match ServiceSpec::from_file(&path) {
@@ -445,7 +514,7 @@ mod test {
     #[test]
     fn service_spec_from_file_bad_contents() {
         let tmpdir = TempDir::new("specs").unwrap();
-        let path = tmpdir.path().join("bad.spec.toml");
+        let path = tmpdir.path().join("bad.spec");
         file_from_str(&path, "You're gonna have a bad time");
 
         match ServiceSpec::from_file(&path) {
@@ -462,7 +531,7 @@ mod test {
     #[test]
     fn service_spec_to_file() {
         let tmpdir = TempDir::new("specs").unwrap();
-        let path = tmpdir.path().join("name.spec.toml");
+        let path = tmpdir.path().join("name.spec");
         let spec = ServiceSpec {
             ident: PackageIdent::from_str("origin/name/1.2.3/20170223130020").unwrap(),
             group: String::from("jobs"),
@@ -472,6 +541,8 @@ mod test {
             binds: vec![ServiceBind::from_str("cache:redis.cache@acmecorp").unwrap(),
                         ServiceBind::from_str("db:postgres.app@acmecorp").unwrap()],
             config_from: Some(PathBuf::from("/")),
+            desired_state: DesiredState::Down,
+            start_style: StartStyle::Persistent,
         };
         spec.to_file(&path).unwrap();
         let toml = string_from_file(path);
@@ -483,13 +554,15 @@ mod test {
         assert!(toml.contains(r#"update_strategy = "at-once""#));
         assert!(toml.contains(r#""cache:redis.cache@acmecorp""#));
         assert!(toml.contains(r#""db:postgres.app@acmecorp""#));
+        assert!(toml.contains(r#"desired_state = "down""#));
+        assert!(toml.contains(r#"start_style = "persistent""#));
         assert!(!toml.contains(r#"config_from = "#));
     }
 
     #[test]
     fn service_spec_to_file_invalid_ident() {
         let tmpdir = TempDir::new("specs").unwrap();
-        let path = tmpdir.path().join("name.spec.toml");
+        let path = tmpdir.path().join("name.spec");
         // Remember: the default implementation of `PackageIdent` is an invalid identifier, missing
         // origin and name--we're going to exploit this here
         let spec = ServiceSpec::default();
@@ -509,7 +582,7 @@ mod test {
     fn service_spec_file_name() {
         let spec = ServiceSpec::default_for(PackageIdent::from_str("origin/hoopa/1.2.3").unwrap());
 
-        assert_eq!(String::from("hoopa.spec.toml"), spec.file_name());
+        assert_eq!(String::from("hoopa.spec"), spec.file_name());
     }
 
     #[test]

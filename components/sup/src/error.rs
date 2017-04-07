@@ -102,7 +102,9 @@ impl SupError {
 pub enum Error {
     BadDataFile(PathBuf, io::Error),
     BadDataPath(PathBuf, io::Error),
+    BadDesiredState(String),
     BadSpecsPath(PathBuf, io::Error),
+    BadStartStyle(String),
     ButterflyError(butterfly::error::Error),
     DepotClient(depot_client::Error),
     EnvJoinPathsError(env::JoinPathsError),
@@ -126,12 +128,13 @@ pub enum Error {
     NulError(ffi::NulError),
     PackageNotFound(package::PackageIdent),
     Permissions(String),
+    ProcessLockCorrupt,
     ProcessLocked(u32),
     ProcessLockIO(PathBuf, io::Error),
-    ServiceSpecFileRead(String, String),
-    ServiceSpecFileWrite(String, String),
-    ServiceSpecParse(String),
-    ServiceSpecRender(String),
+    ServiceLoaded(package::PackageIdent),
+    ServiceSpecFileIO(PathBuf, io::Error),
+    ServiceSpecParse(toml::de::Error),
+    ServiceSpecRender(toml::ser::Error),
     SignalFailed,
     SpecWatcherDirNotFound(String),
     SpecWatcherGlob(glob::PatternError),
@@ -160,11 +163,15 @@ impl fmt::Display for SupError {
                         path.display(),
                         err)
             }
+            Error::BadDesiredState(ref state) => {
+                format!("Unknown service desired state style '{}'", state)
+            }
             Error::BadSpecsPath(ref path, ref err) => {
                 format!("Unable to create the specs directory '{}' ({})",
                         path.display(),
                         err)
             }
+            Error::BadStartStyle(ref style) => format!("Unknown service start style '{}'", style),
             Error::ButterflyError(ref err) => format!("Butterfly error: {}", err),
             Error::ExecCommandNotFound(ref c) => {
                 format!("`{}' was not found on the filesystem or in PATH", c)
@@ -204,6 +211,7 @@ impl fmt::Display for SupError {
                     format!("Cannot find a release of package: {}", pkg)
                 }
             }
+            Error::ProcessLockCorrupt => format!("Unable to decode contents of process lock"),
             Error::ProcessLocked(ref pid) => {
                 format!("Unable to start Habitat Supervisor because another instance is already \
                     running with the pid {}. If your intention was to run multiple Supervisors - \
@@ -217,22 +225,19 @@ impl fmt::Display for SupError {
                         path.display(),
                         err)
             }
-            Error::ServiceSpecFileRead(ref path, ref details) => {
-                format!("Service spec file '{}' could not be read successfully: {}",
-                        path,
-                        details)
+            Error::ServiceLoaded(ref ident) => {
+                format!("Service already loaded, unload '{}' and try again", ident)
             }
-            Error::ServiceSpecFileWrite(ref path, ref details) => {
-                format!("Service spec file '{}' could not be written successfully: {}",
-                        path,
-                        details)
+            Error::ServiceSpecFileIO(ref path, ref err) => {
+                format!("Unable to write or read to a service spec file at {}, {}",
+                        path.display(),
+                        err)
             }
-            Error::ServiceSpecParse(ref details) => {
-                format!("Service spec could not be parsed successfully: {}", details)
+            Error::ServiceSpecParse(ref err) => {
+                format!("Unable to parse contents of service spec file, {}", err)
             }
-            Error::ServiceSpecRender(ref details) => {
-                format!("Service spec TOML could not be rendered successfully: {}",
-                        details)
+            Error::ServiceSpecRender(ref err) => {
+                format!("Service spec could not be rendered successfully: {}", err)
             }
             Error::SignalFailed => format!("Failed to send a signal to the child process"),
             Error::SpecWatcherDirNotFound(ref path) => {
@@ -267,7 +272,9 @@ impl error::Error for SupError {
         match self.err {
             Error::BadDataFile(_, _) => "Unable to read or write to a data file",
             Error::BadDataPath(_, _) => "Unable to read or write to data directory",
+            Error::BadDesiredState(_) => "Unknown desired state in service spec",
             Error::BadSpecsPath(_, _) => "Unable to create the specs directory",
+            Error::BadStartStyle(_) => "Unknown start style in service spec",
             Error::ButterflyError(ref err) => err.description(),
             Error::ExecCommandNotFound(_) => "Exec command was not found on filesystem or in PATH",
             Error::TemplateFileError(ref err) => err.description(),
@@ -291,10 +298,11 @@ impl error::Error for SupError {
             Error::NulError(_) => "An attempt was made to build a CString with a null byte inside it",
             Error::PackageNotFound(_) => "Cannot find a package",
             Error::Permissions(_) => "File system permissions error",
+            Error::ProcessLockCorrupt => "Unable to decode contents of process lock",
             Error::ProcessLocked(_) => "Another instance of the Habitat Supervisor is already running",
             Error::ProcessLockIO(_, _) => "Unable to write or read to a process lock",
-            Error::ServiceSpecFileRead(_, _) => "Service spec file could not be read successfully",
-            Error::ServiceSpecFileWrite(_, _) => "Service spec file could not be written successfully",
+            Error::ServiceLoaded(_) => "Service load or start called when service already loaded",
+            Error::ServiceSpecFileIO(_, _) => "Unable to write or read to a service spec file",
             Error::ServiceSpecParse(_) => "Service spec could not be parsed successfully",
             Error::ServiceSpecRender(_) => "Service spec TOML could not be rendered successfully",
             Error::SignalFailed => "Failed to send a signal to the child process",

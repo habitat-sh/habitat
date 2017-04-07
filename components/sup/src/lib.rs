@@ -300,10 +300,9 @@ lazy_static!{
 
 features! {
     pub mod feat {
-        const List = 0b00000001,
-        const Multi = 0b00000010
+        const List = 0b00000001
     }
 }
 
-const PRODUCT: &'static str = "hab-sup";
-const VERSION: &'static str = env!("CARGO_PKG_VERSION");
+pub const PRODUCT: &'static str = "hab-sup";
+pub const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));

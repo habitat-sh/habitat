@@ -50,17 +50,14 @@ use http_gateway;
 use fs;
 use manager::{self, signals};
 use manager::census::{CensusList, CensusUpdate, ElectionStatus};
-use prometheus::Opts;
 use supervisor::{Supervisor, RuntimeConfig};
 use util;
 
 pub use self::config::ServiceConfig;
 pub use self::health::{HealthCheck, SmokeCheck};
-pub use self::spec::{ServiceBind, ServiceSpec};
+pub use self::spec::{DesiredState, ServiceBind, ServiceSpec, StartStyle};
 
 static LOGKEY: &'static str = "SR";
-const HABITAT_PACKAGE_INFO_NAME: &'static str = "habitat_package_info";
-const HABITAT_PACKAGE_INFO_DESC: &'static str = "package version information";
 
 lazy_static! {
     static ref HEALTH_CHECK_INTERVAL: Duration = {
@@ -82,11 +79,13 @@ pub struct Service {
     pub package: Arc<RwLock<PackageInstall>>,
     pub service_group: ServiceGroup,
     pub smoke_check: SmokeCheck,
-    #[serde(skip_serializing)]
-    spec_binds: Vec<ServiceBind>,
+    pub spec_file: PathBuf,
     pub spec_ident: PackageIdent,
+    pub start_style: StartStyle,
     pub topology: Topology,
     pub update_strategy: UpdateStrategy,
+    #[serde(skip_serializing)]
+    spec_binds: Vec<ServiceBind>,
     hooks: HookTable,
     config_from: Option<PathBuf>,
     #[serde(skip_serializing)]
@@ -105,6 +104,7 @@ impl Service {
                organization: Option<&str>)
                -> Result<Service> {
         spec.validate(&package)?;
+        let spec_file = manager_fs_cfg.specs_path.join(spec.file_name());
         let service_group = ServiceGroup::new(&package.ident.name, spec.group, organization)?;
         let runtime_cfg = Self::runtime_config_from(&package)?;
         let config_root = spec.config_from.clone().unwrap_or(package.installed_path.clone());
@@ -136,6 +136,8 @@ impl Service {
                smoke_check: SmokeCheck::default(),
                spec_binds: spec.binds,
                spec_ident: spec.ident,
+               spec_file: spec_file,
+               start_style: spec.start_style,
                topology: spec.topology,
                update_strategy: spec.update_strategy,
                config_from: spec.config_from,
@@ -191,13 +193,6 @@ impl Service {
         outputln!("Adding {}",
                   Yellow.bold().paint(self.package().ident().to_string()));
         self.create_svc_path()?;
-        self.register_metrics();
-        Ok(())
-    }
-
-    pub fn remove(&self) -> Result<()> {
-        outputln!("Finished with {}",
-                  Yellow.bold().paint(self.package().ident().to_string()));
         Ok(())
     }
 
@@ -254,6 +249,12 @@ impl Service {
         }
     }
 
+    pub fn stop(&mut self) {
+        if let Err(err) = self.supervisor.stop() {
+            outputln!(preamble self.service_group, "Service stop failed: {}", err);
+        }
+    }
+
     pub fn reload(&mut self) {
         self.needs_reload = false;
         if self.is_down() || self.hooks.reload.is_none() {
@@ -290,36 +291,6 @@ impl Service {
     /// Instructs the service's process supervisor to reap dead children.
     pub fn check_process(&mut self) {
         self.supervisor.check_process()
-    }
-
-    pub fn register_metrics(&self) {
-        let version_opts = Opts::new(HABITAT_PACKAGE_INFO_NAME, HABITAT_PACKAGE_INFO_DESC)
-            .const_label("origin",
-                         &self.package()
-                              .ident
-                              .origin
-                              .clone())
-            .const_label("name",
-                         &self.package()
-                              .ident
-                              .name
-                              .clone())
-            .const_label("version",
-                         &self.package()
-                              .ident
-                              .version
-                              .as_ref()
-                              .unwrap()
-                              .clone())
-            .const_label("release",
-                         &self.package()
-                              .ident
-                              .release
-                              .as_ref()
-                              .unwrap()
-                              .clone());
-        let version_gauge = register_gauge!(version_opts).unwrap();
-        version_gauge.set(1.0);
     }
 
     pub fn tick(&mut self,
@@ -388,6 +359,7 @@ impl Service {
         spec.topology = self.topology;
         spec.update_strategy = self.update_strategy;
         spec.binds = self.spec_binds.clone();
+        spec.start_style = self.start_style;
         spec.config_from = self.config_from.clone();
         spec
     }
