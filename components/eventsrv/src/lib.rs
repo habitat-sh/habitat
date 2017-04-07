@@ -43,6 +43,11 @@ use zmq::{Context, PULL, XPUB};
 /// proxy, the most recent messages from each service and from each
 /// ring member. Subscribers are responsible for sorting the messages
 /// received by timestamp.
+///
+/// # Panics
+///
+/// If either `frontend_port` or `backend_port` cannot be bound to
+/// sockets (e.g., they're already in use), the thread will panic.
 pub fn proxy(frontend_port: i32, backend_port: i32) {
     let ctx = Context::new();
 
