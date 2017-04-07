@@ -74,7 +74,7 @@ fn main() {
     //
     // The service "" is an error scenario; there should always be a
     // service.
-    let members = [1, 2, 3 ,4 ,5];
+    let members = [1, 2, 3, 4, 5];
     let services = ["frontend", "backend", "database", "ponies", ""];
     let mut rng = thread_rng();
 
@@ -107,7 +107,9 @@ fn main() {
         println!("PUBLISHER: Member ID {}", member_id);
         println!("PUBLISHER: Service {}\n", service_name);
 
-        socket.send(event.write_to_bytes().unwrap().as_slice(), 0).unwrap();
+        socket
+            .send(event.write_to_bytes().unwrap().as_slice(), 0)
+            .unwrap();
         let sleep_time = Duration::from_secs(3);
         sleep(sleep_time);
     }
