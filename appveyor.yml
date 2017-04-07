@@ -27,7 +27,7 @@ environment:
   HAB_AUTH_TOKEN:
     secure: il1kqjDtQSFOoD12nDaJhCBntC905Q8T9jRzyTZtqlJPxc3vCoS1bBeNbB55J82M
   ORIGIN_KEY:
-    secure: S1rfa/qXZgO8skQfr/YGrGpma37Q+OBEbAH8dPXsBKtUYDOTuMXpnNq1asu6XkTkpQjaJvhst6AxSlYDweE9V+xlUzLQdd6hgIPCFNOb0Uos5iMIgbJGcyKmeY2q80Ig
+    secure: T03FGJrevgQSlLfkc0mDaIkRyfu0/ci6+ryDnSqrezAmbtTayisHStac1yS4/96fMQmyfPYpGP5tMtvjuyw0cplUAUEtXarcK8CgatwnE+t7c9sjpBWgKfSE3wLOiDla
 
   matrix:
     - hab_build_action: "test;build"

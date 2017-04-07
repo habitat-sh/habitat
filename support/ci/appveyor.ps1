@@ -80,7 +80,7 @@ if (($env:APPVEYOR_REPO_TAG_NAME -eq "$(Get-Content VERSION)") -or (Test-SourceC
 
             $env:HAB_ORIGIN="core"
             if($env:ORIGIN_KEY) {
-                "SIG-SEC-1`ncore-20160810182414`n`n$($env:ORIGIN_KEY)" | & $habExe origin key import
+                "SIG-SEC-1`ncore-20170318210306`n`n$($env:ORIGIN_KEY)" | & $habExe origin key import
             }
             else {
                 Write-Host "Generating fake secret origin key for core..."
