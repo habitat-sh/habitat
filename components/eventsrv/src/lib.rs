@@ -75,16 +75,11 @@ pub fn proxy(frontend_port: i32, backend_port: i32) {
             let bytes = pull_sock.recv_bytes(0).unwrap();
             let event = parse_from_bytes::<EventEnvelope>(&bytes).unwrap();
             let member_id = event.get_member_id();
-            let timestamp = event.get_timestamp();
             let service = event.get_service().to_string();
             if service.is_empty() {
                 warn!("missing service: {:?}", event);
                 continue;
             }
-
-            println!("EVENTSRV: Timestamp {}", timestamp);
-            println!("EVENTSRV: Member ID {}", member_id);
-            println!("EVENTSRV: Service {}", service);
 
             // Store the bytes of the message in the cache. For the
             // service cache, we also record the member ID, and vice
@@ -92,9 +87,6 @@ pub fn proxy(frontend_port: i32, backend_port: i32) {
             // deduplication of messages being sent to new subscribers.
             service_cache.insert(service.clone(), (member_id, bytes.clone()));
             member_cache.insert(member_id, (service, bytes.clone()));
-
-            println!("EVENTSRV: Service Cache {:?}", service_cache.keys());
-            println!("EVENTSRV: Member Cache {:?}\n", member_cache.keys());
 
             xpub_sock.send(&bytes, 0).unwrap();
         }
@@ -118,15 +110,12 @@ pub fn proxy(frontend_port: i32, backend_port: i32) {
 
                 let mut members_encountered = HashSet::new();
 
-                for (service, &(member_id, ref message)) in &service_cache {
+                for (_, &(member_id, ref message)) in &service_cache {
                     members_encountered.insert(member_id);
-                    println!("\tSending message for {}/{}", service, member_id);
                     xpub_sock.send(&message, 0).unwrap();
                 }
-                println!("\t---");
-                for (member_id, &(ref service, ref message)) in &member_cache {
+                for (member_id, &(_, ref message)) in &member_cache {
                     if !(members_encountered.contains(member_id)) {
-                        println!("\tSending message for {}/{}", service, member_id);
                         xpub_sock.send(&message, 0).unwrap();
                     }
                 }
