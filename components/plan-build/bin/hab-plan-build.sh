@@ -2657,7 +2657,6 @@ build_line "Validating plan metadata"
 required_variables=(
   pkg_name
   pkg_origin
-  pkg_source
   pkg_version
 )
 for var in "${required_variables[@]}"
