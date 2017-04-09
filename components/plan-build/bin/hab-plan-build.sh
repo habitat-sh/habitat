@@ -1445,6 +1445,28 @@ download_file() {
   popd > /dev/null
 }
 
+# Clones a git repo from a source URL to a local dir
+#
+clone_repo() {
+  local url="$1"
+  local dst="$2"
+  local ref="$3"
+  
+  GIT_SSL_CAINFO="$(pkg_path_for core/cacerts)/ssl/certs/cacert.pem"
+  export GIT_SSL_CAINFO
+  
+  pushd $HAB_CACHE_SRC_PATH > /dev/null
+  if [[ -d "${dst}/.git" ]]; then
+    build_line "Found previous checkout in '$dst', resetting to head of '$ref'"
+    pushd $dst > /dev/null
+    git reset --hard "${ref}" --
+    popd > /dev/null
+  else
+    git clone -b "${ref}" --single-branch "${url}" "${dst}"
+  fi
+  popd > /dev/null
+}
+
 # Verifies that a file on disk matches the given shasum. If the given shasum
 # doesn't match the file's shasum then a warning is printed with the expected
 # and computed shasum values.
@@ -1873,7 +1895,11 @@ do_download() {
 
 # Default implementation for the `do_download()` phase.
 do_default_download() {
-  download_file $pkg_source $pkg_filename $pkg_shasum
+  if [[ $pkg_source == *.git ]]; then
+    clone_repo $pkg_source $pkg_dirname $pkg_git_ref
+  else
+    download_file $pkg_source $pkg_filename $pkg_shasum
+  fi
 }
 
 # Verify that the package we have in `$HAB_CACHE_SRC_PATH/$pkg_filename` has
@@ -1886,7 +1912,11 @@ do_verify() {
 
 # Default implementation for the `do_verify()` phase.
 do_default_verify() {
-  verify_file $pkg_filename $pkg_shasum
+  if [[ $pkg_source == *.git ]]; then
+    return 0
+  else
+    verify_file $pkg_filename $pkg_shasum
+  fi
 }
 
 # Clean up the remnants of any previous build job, ensuring it can't pollute
@@ -1900,7 +1930,11 @@ do_clean() {
 # Default implementation for the `do_clean()` phase.
 do_default_clean() {
   build_line "Clean the cache"
-  rm -rf "$HAB_CACHE_SRC_PATH/$pkg_dirname"
+  pushd $HAB_CACHE_SRC_PATH > /dev/null
+  if [[ ! -d "${pkg_dirname}/.git" ]]; then
+    rm -rf "$pkg_dirname"
+  fi
+  popd > /dev/null
   return 0
 }
 
@@ -1917,7 +1951,11 @@ do_unpack() {
 
 # Default implementation for the `do_unpack()` phase.
 do_default_unpack() {
-  unpack_file $pkg_filename
+  if [[ $pkg_source == *.git ]]; then
+    return 0
+  else
+    unpack_file $pkg_filename
+  fi
 }
 
 # **Internal** Set up our build environment. First, add any library paths
@@ -2702,6 +2740,11 @@ if [[ -n "$HAB_OUTPUT_PATH" ]]; then
   pkg_output_path="$HAB_OUTPUT_PATH"
 else
   pkg_output_path="$INITIAL_PWD/results"
+fi
+
+# Set `$pkg_branch` to master if it's not already set by the plan.sh
+if [[ -z "${pkg_git_ref+xxx}" ]]; then
+  pkg_git_ref="master"
 fi
 
 # Set $pkg_svc variables a second time, now that the Plan has been sourced and
