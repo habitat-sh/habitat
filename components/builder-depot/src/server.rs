@@ -1110,19 +1110,51 @@ fn list_packages(req: &mut Request) -> IronResult<Response> {
 }
 
 fn list_channels(req: &mut Request) -> IronResult<Response> {
-    let lock = req.get::<persistent::State<Depot>>().expect("depot not found");
-    let mut depot = lock.write().expect("depot read lock is poisoned");
-    let params = req.extensions.get::<Router>().unwrap();
+    let session_id: u64;
+    let origin_name: String;
+    {
+        let session = req.extensions.get::<Authenticated>().unwrap();
+        session_id = session.get_id();
 
-    if let Some(origin) = params.find("origin") {
-        let channels = depot.datastore.channels.all(origin);
-        let body = serde_json::to_string(&channels).unwrap();
-        let mut response = Response::with((status::Ok, body));
-        dont_cache_response(&mut response);
-        Ok(response)
-    } else {
-        Ok(Response::with(status::BadRequest))
+        let params = req.extensions.get::<Router>().unwrap();
+        origin_name = match params.find("origin") {
+            Some(origin) => origin.to_string(),
+            None => return Ok(Response::with(status::BadRequest)),
+        }
+    };
+
+    if !try!(check_origin_access(req, session_id, &origin_name)) {
+        return Ok(Response::with(status::Forbidden));
     }
+
+    let mut request = OriginChannelListRequest::new();
+    match try!(get_origin(req, origin_name.as_str())) {
+        Some(origin) => request.set_origin_id(origin.get_id()),
+        None => return Ok(Response::with(status::NotFound)),
+    };
+
+    match route_message::<OriginChannelListRequest, OriginChannelListResponse>(req, &request) {
+        Ok(list) => {
+            let list: Vec<depotsrv::OriginChannelIdent> = list.get_channels()
+                .iter()
+                .map(|channel| {
+                    let mut ident = depotsrv::OriginChannelIdent::new();
+                    ident.set_name(channel.get_name().to_string());
+                    ident
+                })
+                .collect();
+            let body = serde_json::to_string(&list).unwrap();
+            let mut response = Response::with((status::Ok, body));
+            dont_cache_response(&mut response);
+            Ok(response)
+        }
+        Err(err) => Ok(render_net_error(&err)),
+
+    }
+
+    //let mut response = Response::with((status::Ok));
+
+    //Ok(response)
 }
 
 fn create_channel(req: &mut Request) -> IronResult<Response> {
@@ -1529,6 +1561,7 @@ pub fn routes<M: BeforeMiddleware + Clone>(insecure: bool, basic: M, worker: M) 
         channel_delete: delete "/channels/:origin/:channel" => {
             XHandler::new(delete_channel).before(basic.clone())
         },
+
         package_search: get "/pkgs/search/:query" => search_packages,
         packages: get "/pkgs/:origin" => list_packages,
         packages_unique: get "/:origin/pkgs" => list_unique_packages,
@@ -1561,6 +1594,8 @@ pub fn routes<M: BeforeMiddleware + Clone>(insecure: bool, basic: M, worker: M) 
             XHandler::new(origin_create).before(basic.clone())
         },
         origin: get "/origins/:origin" => origin_show,
+
+        //origin_channels: get "/origins/:origin/channels" => list_channels,
 
         origin_keys: get "/origins/:origin/keys" => list_origin_keys,
         origin_key_latest: get "/origins/:origin/keys/latest" => download_latest_origin_key,
@@ -1748,4 +1783,65 @@ mod test {
             }\
         ]");
     }
+
+    #[test]
+    fn list_channels() {
+        let mut broker: TestableBroker = Default::default();
+
+        let mut access_res = CheckOriginAccessResponse::new();
+        access_res.set_has_access(true);
+        broker.setup::<CheckOriginAccessRequest, CheckOriginAccessResponse>(&access_res);
+
+        let mut origin_res = Origin::new();
+        origin_res.set_id(5000);
+        broker.setup::<OriginGet, Origin>(&origin_res);
+
+        let mut channel_res = OriginChannelListResponse::new();
+        let mut channels = protobuf::RepeatedField::new();
+
+        let mut channel = OriginChannel::new();
+        channel.set_name("my_channel".to_string());
+        channels.push(channel);
+
+        let mut channel2 = OriginChannel::new();
+        channel2.set_name("my_channel2".to_string());
+        channels.push(channel2);
+
+        channel_res.set_channels(channels);
+
+        broker.setup::<OriginChannelListRequest, OriginChannelListResponse>(&channel_res);
+
+        let (response, _) = iron_request(method::Get,
+                                         "http://localhost/channels/org",
+                                         &mut Vec::new(),
+                                         Headers::new(),
+                                         broker);
+        let result_body = response::extract_body_to_string(response.unwrap());
+
+        assert_eq!(result_body,
+                   "[\
+            {\
+                \"name\":\"my_channel\"\
+            },\
+            {\
+                \"name\":\"my_channel2\"\
+            }\
+        ]");
+    }
+
+//    #[test]
+//    fn create_channel() {
+//        let mut broker: TestableBroker = Default::default();
+
+//        let mut access_res = CheckOriginAccessResponse::new();
+//        access_res.set_has_access(true);
+//        broker.setup::<CheckOriginAccessRequest, CheckOriginAccessResponse>(&access_res);
+
+//        let mut origin_res = Origin::new();
+//        origin_res.set_id(5000);
+//        broker.setup::<OriginGet, Origin>(&origin_res);
+
+//        let mut request = OriginChannelCreate::new();
+//        broker.setup::<OriginChannelCreate, OriginChannel>(&request);
+//    }
 }

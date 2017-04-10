@@ -201,3 +201,26 @@ message OriginProjectGet {
   optional string name = 1;
 }
 
+message OriginChannel {
+  optional uint64 id = 1;
+  optional uint64 origin_id = 2;
+  optional string origin_name = 3;
+  optional string name = 4;
+  optional uint64 owner_id = 5;
+}
+
+message OriginChannelCreate {
+  optional uint64 origin_id = 1;
+  optional string origin_name = 2;
+  optional string name = 3;
+  optional uint64 owner_id = 4;
+}
+
+message OriginChannelListRequest {
+  optional uint64 origin_id = 1;
+}
+
+message OriginChannelListResponse {
+  optional uint64 origin_id = 1;
+  repeated OriginChannel channels = 2;
+}

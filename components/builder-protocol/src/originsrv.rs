@@ -388,3 +388,62 @@ impl Serialize for OriginProject {
         state.end()
     }
 }
+
+impl Persistable for OriginChannel {
+    type Key = u64;
+
+    fn primary_key(&self) -> Self::Key {
+        self.get_id()
+    }
+
+    fn set_primary_key(&mut self, value: Self::Key) {
+        self.set_id(value);
+    }
+}
+
+impl Serialize for OriginChannel {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+        where S: Serializer
+    {
+        let mut strukt = try!(serializer.serialize_struct("origin", 4));
+        try!(strukt.serialize_field("id", &self.get_id()));
+        try!(strukt.serialize_field("name", self.get_name()));
+        try!(strukt.serialize_field("owner_id", &self.get_owner_id()));
+        strukt.end()
+    }
+}
+
+impl Routable for OriginChannelCreate {
+    type H = InstaId;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(InstaId(self.get_owner_id()))
+    }
+}
+
+impl Routable for OriginChannelListRequest {
+    type H = InstaId;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(InstaId(self.get_origin_id()))
+    }
+}
+
+impl Routable for OriginChannelListResponse {
+    type H = InstaId;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(InstaId(self.get_origin_id()))
+    }
+}
+
+impl Serialize for OriginChannelListResponse {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+        where S: Serializer
+    {
+        let mut strukt = try!(serializer.serialize_struct("origin_channel_list_response", 2));
+        try!(strukt.serialize_field("origin_id", &self.get_origin_id()));
+        try!(strukt.serialize_field("channels", self.get_channels()));
+        strukt.end()
+    }
+}

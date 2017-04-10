@@ -1319,6 +1319,54 @@ impl OriginKeyIdent {
     }
 }
 
+#[derive(PartialEq,Clone,Default)]
+pub struct OriginChannelIdent {
+    // message fields
+    origin: ::protobuf::SingularField<::std::string::String>,
+    name: ::protobuf::SingularField<::std::string::String>,
+}
+
+
+impl OriginChannelIdent {
+    pub fn new() -> OriginChannelIdent {
+        ::std::default::Default::default()
+    }
+
+    pub fn default_instance() -> &'static OriginChannelIdent {
+        static mut instance: ::protobuf::lazy::Lazy<OriginChannelIdent> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const OriginChannelIdent,
+        };
+        unsafe {
+            instance.get(OriginChannelIdent::new)
+        }
+    }
+
+    pub fn get_origin(&self) -> &str {
+        match self.origin.as_ref() {
+            Some(v) => &v,
+            None => "",
+        }
+    }
+
+    // Param is passed by value, moved
+    pub fn set_origin(&mut self, v: ::std::string::String) {
+        self.origin = ::protobuf::SingularField::some(v);
+    }
+
+    pub fn get_name(&self) -> &str {
+        match self.name.as_ref() {
+            Some(v) => &v,
+            None => "",
+        }
+    }
+
+    // Param is passed by value, moved
+    pub fn set_name(&mut self, v: ::std::string::String) {
+        self.name = ::protobuf::SingularField::some(v);
+    }
+}
+
 impl ::protobuf::Message for OriginKeyIdent {
     fn is_initialized(&self) -> bool {
         true

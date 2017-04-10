@@ -54,6 +54,7 @@ impl DataStore {
         migrations::origin_secret_keys::migrate(&mut migrator)?;
         migrations::origin_invitations::migrate(&mut migrator)?;
         migrations::origin_projects::migrate(&mut migrator)?;
+        migrations::origin_channels::migrate(&mut migrator)?;
 
         Ok(())
     }
@@ -475,5 +476,51 @@ impl DataStore {
         } else {
             Ok(None)
         }
+    }
+
+    pub fn create_origin_channel(&self,
+                                 occ: &originsrv::OriginChannelCreate)
+                                 -> Result<originsrv::OriginChannel> {
+        let conn = self.pool.get()?;
+
+        let rows = conn.query("SELECT * FROM insert_origin_channel_v1($1, $2, $3)",
+                              &[&(occ.get_origin_id() as i64),
+                                &(occ.get_owner_id() as i64),
+                                &occ.get_name()])
+            .map_err(Error::OriginChannelCreate)?;
+        let row = rows.iter().nth(0).expect("Insert returns row, but no row present");
+        Ok(self.row_to_origin_channel(row))
+    }
+
+    fn row_to_origin_channel(&self, row: postgres::rows::Row) -> originsrv::OriginChannel {
+        let mut occ = originsrv::OriginChannel::new();
+        let occ_id: i64 = row.get("id");
+        occ.set_id(occ_id as u64);
+        let occ_origin_id: i64 = row.get("origin_id");
+        occ.set_origin_id(occ_origin_id as u64);
+        occ.set_name(row.get("name"));
+        let occ_owner_id: i64 = row.get("owner_id");
+        occ.set_owner_id(occ_owner_id as u64);
+        occ
+    }
+
+    pub fn list_origin_channels(&self,
+                                oclr: &originsrv::OriginChannelListRequest)
+                                -> Result<originsrv::OriginChannelListResponse> {
+        let conn = self.pool.get()?;
+        let rows = &conn.query("SELECT * FROM get_origin_channels_for_origin_v1($1)",
+                               &[&(oclr.get_origin_id() as i64)])
+                        .map_err(Error::OriginChannelList)?;
+
+        let mut response = originsrv::OriginChannelListResponse::new();
+        response.set_origin_id(oclr.get_origin_id());
+
+        let mut channels = protobuf::RepeatedField::new();
+        for row in rows {
+            channels.push(self.row_to_origin_channel(row))
+        }
+
+        response.set_channels(channels);
+        Ok(response)
     }
 }

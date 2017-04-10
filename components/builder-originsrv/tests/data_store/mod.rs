@@ -723,3 +723,83 @@ fn update_origin_project() {
                sepultura.get_vcs_data(),
                "Should have the same vcs data");
 }
+
+#[test]
+fn create_origin_channel() {
+    let pool = pool!();
+    let ds = DataStore::from_pool(pool).expect("Failed to create data store from pool");
+    ds.setup().expect("Failed to migrate data");
+    let mut origin = originsrv::OriginCreate::new();
+    origin.set_name(String::from("neurosis"));
+    origin.set_owner_id(1);
+    origin.set_owner_name(String::from("scottkelly"));
+    ds.create_origin(&origin).expect("Should create origin");
+
+    let neurosis = ds.get_origin_by_name("neurosis")
+        .expect("Could not retrieve origin")
+        .expect("Origin does not exist");
+
+    // Create a new origin channel
+    let mut oscc = originsrv::OriginChannelCreate::new();
+    oscc.set_origin_id(neurosis.get_id());
+    oscc.set_origin_name(neurosis.get_name().to_string());
+    oscc.set_name(String::from("eve"));
+    oscc.set_owner_id(1);
+    ds.create_origin_channel(&oscc).expect("Failed to create origin channel");
+
+    // Create new database connection
+    let conn = ds.pool.get().expect("Cannot get connection from pool");
+
+    let rows = conn.query("SELECT COUNT(*) FROM origin_channels", &[])
+        .expect("Failed to query database for number of channels");
+    let count: i64 = rows.iter()
+        .nth(0)
+        .unwrap()
+        .get(0);
+    assert_eq!(count, 1);
+}
+
+#[test]
+fn list_origin_channel() {
+    let pool = pool!();
+    let ds = DataStore::from_pool(pool).expect("Failed to create data store from pool");
+    ds.setup().expect("Failed to migrate data");
+    let mut origin = originsrv::OriginCreate::new();
+    origin.set_name(String::from("neurosis"));
+    origin.set_owner_id(1);
+    origin.set_owner_name(String::from("scottkelly"));
+    ds.create_origin(&origin).expect("Should create origin");
+
+    let neurosis = ds.get_origin_by_name("neurosis")
+        .expect("Could not retrieve origin")
+        .expect("Origin does not exist");
+
+    // Create a new origin channel
+    let mut oscc = originsrv::OriginChannelCreate::new();
+    oscc.set_origin_id(neurosis.get_id());
+    oscc.set_origin_name(neurosis.get_name().to_string());
+    oscc.set_name(String::from("eve"));
+    oscc.set_owner_id(1);
+    ds.create_origin_channel(&oscc).expect("Failed to create origin channel");
+    let mut oscc2 = originsrv::OriginChannelCreate::new();
+    oscc2.set_origin_id(neurosis.get_id());
+    oscc2.set_origin_name(neurosis.get_name().to_string());
+    oscc2.set_name(String::from("online"));
+    oscc2.set_owner_id(1);
+    ds.create_origin_channel(&oscc2).expect("Failed to create origin channel");
+
+    let mut occl = originsrv::OriginChannelListRequest::new();
+    occl.set_origin_id(neurosis.get_id());
+    let channels =
+        ds.list_origin_channels(&occl).expect("Could not get the channels from the database");
+    let channel_1 = channels.get_channels()
+        .iter()
+        .nth(0)
+        .unwrap();
+    assert_eq!(channel_1.get_name(), "eve");
+    let channel_2 = channels.get_channels()
+        .iter()
+        .nth(1)
+        .unwrap();
+    assert_eq!(channel_2.get_name(), "online");
+}

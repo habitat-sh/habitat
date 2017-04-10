@@ -95,6 +95,8 @@ impl Dispatcher for Worker {
             "OriginProjectDelete" => handlers::project_delete(message, sock, state),
             "OriginProjectGet" => handlers::project_get(message, sock, state),
             "OriginProjectUpdate" => handlers::project_update(message, sock, state),
+            "OriginChannelCreate" => handlers::origin_channel_create(message, sock, state),
+            "OriginChannelListRequest" => handlers::origin_channel_list(message, sock, state),
             _ => {
                 debug!("dispatch: unhandled message: {}", message.message_id());
                 Ok(())
