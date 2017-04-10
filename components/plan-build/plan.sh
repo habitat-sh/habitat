@@ -11,10 +11,12 @@ pkg_deps=(
   core/bash
   core/binutils
   core/bzip2
+  core/cacerts
   core/coreutils
   core/file
   core/findutils
   core/gawk
+  core/git
   core/grep
   core/gzip
   core/hab
