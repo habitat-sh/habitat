@@ -51,8 +51,9 @@ impl ServiceGroup {
     }
 
     pub fn validate(value: &str) -> Result<()> {
-        let caps =
-            FROM_STR_RE.captures(value).ok_or(Error::InvalidServiceGroup(value.to_string()))?;
+        let caps = FROM_STR_RE
+            .captures(value)
+            .ok_or(Error::InvalidServiceGroup(value.to_string()))?;
         if caps.name("service").is_none() {
             return Err(Error::InvalidServiceGroup(value.to_string()));
         }
@@ -63,7 +64,8 @@ impl ServiceGroup {
     }
 
     pub fn service(&self) -> &str {
-        FROM_STR_RE.captures(&self.0)
+        FROM_STR_RE
+            .captures(&self.0)
             .unwrap()
             .name("service")
             .unwrap()
@@ -71,7 +73,8 @@ impl ServiceGroup {
     }
 
     pub fn group(&self) -> &str {
-        FROM_STR_RE.captures(&self.0)
+        FROM_STR_RE
+            .captures(&self.0)
             .unwrap()
             .name("group")
             .unwrap()
@@ -79,7 +82,8 @@ impl ServiceGroup {
     }
 
     pub fn org(&self) -> Option<&str> {
-        FROM_STR_RE.captures(&self.0)
+        FROM_STR_RE
+            .captures(&self.0)
             .unwrap()
             .name("organization")
             .and_then(|v| Some(v.as_str()))

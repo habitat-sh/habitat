@@ -355,7 +355,8 @@ mod test {
         let cache = TempDir::new("key_cache").unwrap();
         let dst = cache.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
-        f.write_all("HART-1\nnope-nope\nuhoh".as_bytes()).unwrap();
+        f.write_all("HART-1\nnope-nope\nuhoh".as_bytes())
+            .unwrap();
 
         verify(&dst, cache.path()).unwrap();
     }
@@ -367,7 +368,8 @@ mod test {
         let pair = SigKeyPair::generate_pair_for_origin("unicorn", cache.path()).unwrap();
         let dst = cache.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
-        f.write_all(format!("HART-1\n{}\n", pair.name_with_rev()).as_bytes()).unwrap();
+        f.write_all(format!("HART-1\n{}\n", pair.name_with_rev()).as_bytes())
+            .unwrap();
 
         verify(&dst, cache.path()).unwrap();
     }
@@ -379,7 +381,8 @@ mod test {
         let pair = SigKeyPair::generate_pair_for_origin("unicorn", cache.path()).unwrap();
         let dst = cache.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
-        f.write_all(format!("HART-1\n{}\nBESTEST\nuhoh", pair.name_with_rev()).as_bytes()).unwrap();
+        f.write_all(format!("HART-1\n{}\nBESTEST\nuhoh", pair.name_with_rev()).as_bytes())
+            .unwrap();
 
         verify(&dst, cache.path()).unwrap();
     }
@@ -391,7 +394,8 @@ mod test {
         let pair = SigKeyPair::generate_pair_for_origin("unicorn", cache.path()).unwrap();
         let dst = cache.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
-        f.write_all(format!("HART-1\n{}\nBLAKE2b\n", pair.name_with_rev()).as_bytes()).unwrap();
+        f.write_all(format!("HART-1\n{}\nBLAKE2b\n", pair.name_with_rev()).as_bytes())
+            .unwrap();
 
         verify(&dst, cache.path()).unwrap();
     }
@@ -437,31 +441,25 @@ mod test {
         let f = File::open(&dst).unwrap();
         let f = BufReader::new(f);
         let mut lines = f.lines();
-        corrupted.write(lines.next()
-                            .unwrap()
-                            .unwrap()
-                            .as_bytes())
+        corrupted
+            .write(lines.next().unwrap().unwrap().as_bytes())
             .unwrap(); // version
         corrupted.write("\n".as_bytes()).unwrap();
-        corrupted.write(lines.next()
-                            .unwrap()
-                            .unwrap()
-                            .as_bytes())
+        corrupted
+            .write(lines.next().unwrap().unwrap().as_bytes())
             .unwrap(); // key
         corrupted.write("\n".as_bytes()).unwrap();
-        corrupted.write(lines.next()
-                            .unwrap()
-                            .unwrap()
-                            .as_bytes())
+        corrupted
+            .write(lines.next().unwrap().unwrap().as_bytes())
             .unwrap(); // hash type
         corrupted.write("\n".as_bytes()).unwrap();
-        corrupted.write(lines.next()
-                            .unwrap()
-                            .unwrap()
-                            .as_bytes())
+        corrupted
+            .write(lines.next().unwrap().unwrap().as_bytes())
             .unwrap(); // signature
         corrupted.write("\n\n".as_bytes()).unwrap();
-        corrupted.write_all("payload-wont-match-signature".as_bytes()).unwrap(); // archive
+        corrupted
+            .write_all("payload-wont-match-signature".as_bytes())
+            .unwrap(); // archive
 
         verify(&dst_corrupted, cache.path()).unwrap();
     }

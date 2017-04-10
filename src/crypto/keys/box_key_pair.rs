@@ -334,8 +334,14 @@ mod test {
             Ok(_) => assert!(true),
             Err(_) => panic!("Generated pair should have a secret key"),
         }
-        assert!(cache.path().join(format!("{}.pub", pair.name_with_rev())).exists());
-        assert!(cache.path().join(format!("{}.box.key", pair.name_with_rev())).exists());
+        assert!(cache
+                    .path()
+                    .join(format!("{}.pub", pair.name_with_rev()))
+                    .exists());
+        assert!(cache
+                    .path()
+                    .join(format!("{}.box.key", pair.name_with_rev()))
+                    .exists());
     }
 
     #[test]
@@ -352,8 +358,14 @@ mod test {
             Ok(_) => assert!(true),
             Err(_) => panic!("Generated pair should have a secret key"),
         }
-        assert!(cache.path().join(format!("{}.pub", pair.name_with_rev())).exists());
-        assert!(cache.path().join(format!("{}.box.key", pair.name_with_rev())).exists());
+        assert!(cache
+                    .path()
+                    .join(format!("{}.pub", pair.name_with_rev()))
+                    .exists());
+        assert!(cache
+                    .path()
+                    .join(format!("{}.box.key", pair.name_with_rev()))
+                    .exists());
     }
 
     #[test]
@@ -477,7 +489,8 @@ mod test {
             .unwrap();
         let user = BoxKeyPair::generate_pair_for_user("wecoyote", cache.path()).unwrap();
 
-        let ciphertext = user.encrypt("I wish to buy more rockets".as_bytes(), &service).unwrap();
+        let ciphertext = user.encrypt("I wish to buy more rockets".as_bytes(), &service)
+            .unwrap();
         let message = BoxKeyPair::decrypt(&ciphertext, cache.path()).unwrap();
         assert_eq!(message, "I wish to buy more rockets".as_bytes());
     }
@@ -489,7 +502,9 @@ mod test {
             .unwrap();
         let user = BoxKeyPair::generate_pair_for_user("wecoyote", cache.path()).unwrap();
 
-        let ciphertext = service.encrypt("Out of rockets".as_bytes(), &user).unwrap();
+        let ciphertext = service
+            .encrypt("Out of rockets".as_bytes(), &user)
+            .unwrap();
         let message = BoxKeyPair::decrypt(&ciphertext, cache.path()).unwrap();
         assert_eq!(message, "Out of rockets".as_bytes());
     }
@@ -543,7 +558,9 @@ mod test {
             let sender = BoxKeyPair::get_latest_pair_for("wecoyote", sender_cache.path()).unwrap();
             let receiver = BoxKeyPair::get_latest_pair_for("tnt.default@acme", sender_cache.path())
                 .unwrap();
-            sender.encrypt("Falling hurts".as_bytes(), &receiver).unwrap()
+            sender
+                .encrypt("Falling hurts".as_bytes(), &receiver)
+                .unwrap()
         };
 
         // Decrypt unpacks the ciphertext payload to read nonce , determines which secret key to
@@ -568,7 +585,9 @@ mod test {
         // Now reload the sender's pair which will be missing the secret key
         let sender = BoxKeyPair::get_latest_pair_for("wecoyote", cache.path()).unwrap();
 
-        sender.encrypt("not going to happen".as_bytes(), &receiver).unwrap();
+        sender
+            .encrypt("not going to happen".as_bytes(), &receiver)
+            .unwrap();
     }
 
     #[test]
@@ -586,7 +605,9 @@ mod test {
         // Now reload the receiver's pair which will be missing the public key
         let receiver = BoxKeyPair::get_latest_pair_for("tnt.default@acme", cache.path()).unwrap();
 
-        sender.encrypt("not going to happen".as_bytes(), &receiver).unwrap();
+        sender
+            .encrypt("not going to happen".as_bytes(), &receiver)
+            .unwrap();
     }
 
     #[test]
@@ -602,7 +623,9 @@ mod test {
                             .unwrap())
                 .unwrap();
 
-        let ciphertext = sender.encrypt("problems ahead".as_bytes(), &receiver).unwrap();
+        let ciphertext = sender
+            .encrypt("problems ahead".as_bytes(), &receiver)
+            .unwrap();
         BoxKeyPair::decrypt(&ciphertext, cache.path()).unwrap();
     }
 
@@ -619,7 +642,9 @@ mod test {
                             .unwrap())
                 .unwrap();
 
-        let ciphertext = sender.encrypt("problems ahead".as_bytes(), &receiver).unwrap();
+        let ciphertext = sender
+            .encrypt("problems ahead".as_bytes(), &receiver)
+            .unwrap();
         BoxKeyPair::decrypt(&ciphertext, cache.path()).unwrap();
     }
 
@@ -693,7 +718,9 @@ mod test {
         let receiver = BoxKeyPair::generate_pair_for_service("acme", "tnt.default", cache.path())
             .unwrap();
 
-        let payload = sender.encrypt("problems ahead".as_bytes(), &receiver).unwrap();
+        let payload = sender
+            .encrypt("problems ahead".as_bytes(), &receiver)
+            .unwrap();
         let mut botched = String::new();
         let mut lines = str::from_utf8(payload.as_slice()).unwrap().lines();
         botched.push_str(lines.next().unwrap()); // version
@@ -717,7 +744,9 @@ mod test {
         let receiver = BoxKeyPair::generate_pair_for_service("acme", "tnt.default", cache.path())
             .unwrap();
 
-        let payload = sender.encrypt("problems ahead".as_bytes(), &receiver).unwrap();
+        let payload = sender
+            .encrypt("problems ahead".as_bytes(), &receiver)
+            .unwrap();
         let mut botched = String::new();
         let mut lines = str::from_utf8(payload.as_slice()).unwrap().lines();
         botched.push_str(lines.next().unwrap()); // version

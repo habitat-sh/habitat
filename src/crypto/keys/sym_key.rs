@@ -331,10 +331,7 @@ impl SymKey {
         let tmpfile = {
             let mut t = secret_keyfile.clone();
             t.set_file_name(format!("{}.{}",
-                                    &secret_keyfile.file_name()
-                                         .unwrap()
-                                         .to_str()
-                                         .unwrap(),
+                                    &secret_keyfile.file_name().unwrap().to_str().unwrap(),
                                     &randombytes(6).as_slice().to_hex()));
             TmpKeyfile { path: t }
         };
@@ -446,7 +443,10 @@ mod test {
             Ok(_) => assert!(true),
             Err(_) => panic!("Generated pair should have a secret key"),
         }
-        assert!(cache.path().join(format!("{}.sym.key", pair.name_with_rev())).exists());
+        assert!(cache
+                    .path()
+                    .join(format!("{}.sym.key", pair.name_with_rev()))
+                    .exists());
     }
 
     #[test]
@@ -588,7 +588,8 @@ mod test {
         let pair = SymKey::generate_pair_for_ring("beyonce", cache.path()).unwrap();
 
         let (_, ciphertext) = pair.encrypt("Ringonit".as_bytes()).unwrap();
-        pair.decrypt("crazyinlove".as_bytes(), &ciphertext).unwrap();
+        pair.decrypt("crazyinlove".as_bytes(), &ciphertext)
+            .unwrap();
     }
 
     #[test]
@@ -616,7 +617,9 @@ mod test {
         let new_content = {
             let mut new_content_file = File::open(new_key_file).unwrap();
             let mut new_content = String::new();
-            new_content_file.read_to_string(&mut new_content).unwrap();
+            new_content_file
+                .read_to_string(&mut new_content)
+                .unwrap();
             new_content
         };
 
@@ -677,7 +680,9 @@ mod test {
         let cache = TempDir::new("key_cache").unwrap();
         let key = fixture("keys/ring-key-valid-20160504220722.sym.key");
         fs::copy(key,
-                 cache.path().join("ring-key-valid-20160504220722.sym.key"))
+                 cache
+                     .path()
+                     .join("ring-key-valid-20160504220722.sym.key"))
                 .unwrap();
 
         SymKey::write_file_from_str("SYM-SEC-1\nring-key-valid-20160504220722\n\nsomething",

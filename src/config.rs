@@ -257,7 +257,8 @@ impl ParseInto<BTreeMap<String, String>> for toml::Value {
             Some(val) => {
                 match val.as_table() {
                     Some(val_table) => {
-                        let buf: Result<BTreeMap<String, String>> = val_table.iter()
+                        let buf: Result<BTreeMap<String, String>> = val_table
+                            .iter()
                             .map(|(k, v)| match v.as_str() {
                                      Some(val_str) => Ok((k.to_string(), val_str.to_string())),
                                      None => Err(Error::ConfigInvalidTableString(field)),

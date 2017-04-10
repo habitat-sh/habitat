@@ -99,8 +99,9 @@ impl PackageInstall {
                 Err(Error::PackageNotFound(ident.clone()))
             }
         } else {
-            let latest: Option<PackageIdent> =
-                pl.iter().filter(|&p| p.satisfies(ident)).fold(None, |winner, b| match winner {
+            let latest: Option<PackageIdent> = pl.iter()
+                .filter(|&p| p.satisfies(ident))
+                .fold(None, |winner, b| match winner {
                     Some(a) => {
                         match a.partial_cmp(&b) {
                             Some(Ordering::Greater) => Some(a),
@@ -263,11 +264,13 @@ impl PackageInstall {
             Ok(body) => {
                 for line in body.lines() {
                     let mut parts = line.splitn(2, '=');
-                    let key = parts.next()
+                    let key = parts
+                        .next()
                         .and_then(|p| Some(p.to_string()))
                         .ok_or_else(|| Error::MetaFileMalformed(MetaFile::Environment))?;
                     let value =
-                        parts.next()
+                        parts
+                            .next()
                             .and_then(|p| Some(p.to_string()))
                             .ok_or_else(|| Error::MetaFileMalformed(MetaFile::Environment))?;
                     m.insert(key, value);
@@ -292,11 +295,13 @@ impl PackageInstall {
                 for line in body.lines() {
                     let mut parts = line.splitn(2, '=');
                     let key =
-                        parts.next()
+                        parts
+                            .next()
                             .and_then(|p| Some(p.to_string()))
                             .ok_or_else(|| Error::MetaFileMalformed(MetaFile::EnvironmentSep))?;
                     let value =
-                        parts.next()
+                        parts
+                            .next()
                             .and_then(|p| Some(p.to_string()))
                             .ok_or_else(|| Error::MetaFileMalformed(MetaFile::EnvironmentSep))?;
                     m.insert(key, value);
@@ -320,13 +325,15 @@ impl PackageInstall {
                 for line in body.lines() {
                     let mut parts = line.split('=');
                     let key =
-                        try!(parts.next()
-                        .and_then(|p| Some(p.to_string()))
-                        .ok_or_else(|| Error::MetaFileMalformed(MetaFile::Exports)));
+                        try!(parts
+                                 .next()
+                                 .and_then(|p| Some(p.to_string()))
+                                 .ok_or_else(|| Error::MetaFileMalformed(MetaFile::Exports)));
                     let value =
-                        try!(parts.next()
-                        .and_then(|p| Some(p.to_string()))
-                        .ok_or_else(|| Error::MetaFileMalformed(MetaFile::Exports)));
+                        try!(parts
+                                 .next()
+                                 .and_then(|p| Some(p.to_string()))
+                                 .ok_or_else(|| Error::MetaFileMalformed(MetaFile::Exports)));
                     m.insert(key, value);
                 }
                 Ok(m)
@@ -340,8 +347,9 @@ impl PackageInstall {
     pub fn exposes(&self) -> Result<Vec<String>> {
         match self.read_metafile(MetaFile::Exposes) {
             Ok(body) => {
-                let v: Vec<String> =
-                    body.split(' ').map(|x| String::from(x.trim_right_matches('\n'))).collect();
+                let v: Vec<String> = body.split(' ')
+                    .map(|x| String::from(x.trim_right_matches('\n')))
+                    .collect();
                 Ok(v)
             }
             Err(Error::MetaFileNotFound(MetaFile::Exposes)) => {
@@ -364,7 +372,9 @@ impl PackageInstall {
     pub fn paths(&self) -> Result<Vec<PathBuf>> {
         match self.read_metafile(MetaFile::Path) {
             Ok(body) => {
-                let v = env::split_paths(&body).map(|p| PathBuf::from(&p)).collect();
+                let v = env::split_paths(&body)
+                    .map(|p| PathBuf::from(&p))
+                    .collect();
                 Ok(v)
             }
             Err(Error::MetaFileNotFound(MetaFile::Path)) => {
@@ -394,8 +404,9 @@ impl PackageInstall {
         let env = self.environment()?;
         if !env.is_empty() {
             if let Some(path) = env.get("PATH") {
-                let mut v: Vec<PathBuf> =
-                    env::split_paths(&path).map(|p| PathBuf::from(&p)).collect();
+                let mut v: Vec<PathBuf> = env::split_paths(&path)
+                    .map(|p| PathBuf::from(&p))
+                    .collect();
                 legacy_run_paths.append(&mut v);
             }
 
@@ -414,8 +425,9 @@ impl PackageInstall {
             let env_sep = dep.environment_sep()?;
             if !env.is_empty() {
                 if let Some(path) = env.get("PATH") {
-                    let mut v: Vec<PathBuf> =
-                        env::split_paths(&path).map(|p| PathBuf::from(&p)).collect();
+                    let mut v: Vec<PathBuf> = env::split_paths(&path)
+                        .map(|p| PathBuf::from(&p))
+                        .collect();
                     legacy_run_paths.append(&mut v);
                 }
 
@@ -454,8 +466,9 @@ impl PackageInstall {
             let env_sep = dep.environment_sep()?;
             if !env.is_empty() {
                 if let Some(path) = env.get("PATH") {
-                    let mut v: Vec<PathBuf> =
-                        env::split_paths(&path).map(|p| PathBuf::from(&p)).collect();
+                    let mut v: Vec<PathBuf> = env::split_paths(&path)
+                        .map(|p| PathBuf::from(&p))
+                        .collect();
                     legacy_run_paths.append(&mut v);
                 }
 
@@ -488,7 +501,8 @@ impl PackageInstall {
         if has_legacy_run_paths {
             // Overwrite PATH with legacy_run_paths
             let p = env::join_paths(&legacy_run_paths).expect("Failed to build path string");
-            let v = p.into_string().expect("Failed to convert path to utf8 string");
+            let v = p.into_string()
+                .expect("Failed to convert path to utf8 string");
             run_envs.insert("PATH".to_string(), v);
         }
 
@@ -642,7 +656,8 @@ impl PackageInstall {
     fn walk_names(origin: &DirEntry, packages: &mut Vec<PackageIdent>) -> Result<()> {
         for name in try!(std::fs::read_dir(origin.path())) {
             let name = try!(name);
-            let origin = origin.file_name()
+            let origin = origin
+                .file_name()
                 .to_string_lossy()
                 .into_owned()
                 .to_string();
@@ -687,7 +702,8 @@ impl PackageInstall {
                 .to_string_lossy()
                 .into_owned()
                 .to_string();
-            let version = version.file_name()
+            let version = version
+                .file_name()
                 .to_string_lossy()
                 .into_owned()
                 .to_string();
