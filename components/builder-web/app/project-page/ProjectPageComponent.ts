@@ -13,7 +13,6 @@
 // limitations under the License.
 
 import {AppStore} from "../AppStore";
-import {BuildListComponent} from "./BuildListComponent";
 import {Component, OnInit, OnDestroy} from "@angular/core";
 import {RouterLink, ActivatedRoute} from "@angular/router";
 import {TabComponent} from "../TabComponent";
@@ -23,7 +22,6 @@ import {friendlyTime, requireSignIn} from "../util";
 import {Subscription} from "rxjs/Subscription";
 
 @Component({
-    directives: [BuildListComponent, RouterLink, TabsComponent, TabComponent],
     template: `
     <div *ngIf="!project.ui.loading" class="hab-project">
         <div class="page-title" *ngIf="!project.ui.exists">

@@ -12,14 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {FormControl, FormGroup, Validators} from "@angular/forms";
-import {Component, OnInit} from "@angular/core";
-import {AsyncValidator} from "./AsyncValidator";
+import { FormControl, FormGroup, Validators } from "@angular/forms";
+import { Component, Input, OnInit } from "@angular/core";
+import { AsyncValidator } from "./AsyncValidator";
 
 @Component({
-    inputs: ["autofocus", "availableMessage", "displayName", "form", "id",
-        "isAvailable", "maxLength", "name", "notAvailableMessage", "pattern",
-        "placeholder", "value"],
     selector: "hab-checking-input",
     template: `
     <div class="hab-checking-input">
@@ -63,17 +60,22 @@ import {AsyncValidator} from "./AsyncValidator";
 })
 
 export class CheckingInputComponent implements OnInit {
-    private availableMessage: string;
+    @Input() autofocus;
+    @Input() availableMessage;
+    @Input() displayName;
+    @Input() form: FormGroup;
+    @Input() id;
+    @Input() isAvailable: Function;
+    @Input() maxLength;
+    @Input() name: string;
+    @Input() notAvailableMessage: string;
+    @Input() pattern;
+    @Input() placeholder;
+    @Input() value: string;
+
     private control: FormControl;
     private defaultMaxLength = 255;
     private defaultPattern = "^[a-z0-9][a-z0-9_-]*$";
-    private form: FormGroup;
-    private isAvailable: Function;
-    private maxLength;
-    private name: string;
-    private notAvailableMessage: string;
-    private pattern;
-    private value: string;
 
     private patternValidator(control) {
         const value = control.value;

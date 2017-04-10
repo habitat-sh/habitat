@@ -12,26 +12,48 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {LocationStrategy, HashLocationStrategy} from "@angular/common";
-import {NgModule, provide} from "@angular/core";
-import {BrowserModule} from "@angular/platform-browser";
-import {routing} from "./routes";
-import {AppComponent} from "./AppComponent";
-import {FormsModule, ReactiveFormsModule} from "@angular/forms";
-import {ExplorePageComponent} from "./explore-page/ExplorePageComponent";
-import {OriginCreatePageComponent} from "./origin-create-page/OriginCreatePageComponent";
-import {OriginPageComponent} from "./origin-page/OriginPageComponent";
-import {OriginsPageComponent} from "./origins-page/OriginsPageComponent";
-import {OrganizationCreatePageComponent} from "./organization-create-page/OrganizationCreatePageComponent";
-import {OrganizationsPageComponent} from "./organizations-page/OrganizationsPageComponent";
-import {PackagePageComponent} from "./package-page/PackagePageComponent";
-import {PackagesPageComponent} from "./packages-page/PackagesPageComponent";
-import {ProjectCreatePageComponent} from "./project-create-page/ProjectCreatePageComponent";
-import {ProjectPageComponent} from "./project-page/ProjectPageComponent";
-import {ProjectsPageComponent} from "./projects-page/ProjectsPageComponent";
-import {SCMReposPageComponent} from "./scm-repos-page/SCMReposPageComponent";
-import {SignInPageComponent} from "./sign-in-page/SignInPageComponent";
-import {ProjectSettingsPageComponent} from "./project-settings-page/ProjectSettingsPageComponent";
+import { NgModule } from "@angular/core";
+import { LocationStrategy, HashLocationStrategy } from "@angular/common";
+import { BrowserModule } from "@angular/platform-browser";
+import { routing } from "./routes";
+import { AppStore } from "./AppStore";
+import { AppComponent } from "./AppComponent";
+import { BuildListComponent } from "./project-page/BuildListComponent";
+import { CheckingInputComponent } from "./CheckingInputComponent";
+import { FormsModule, ReactiveFormsModule } from "@angular/forms";
+import { ExplorePageComponent } from "./explore-page/ExplorePageComponent";
+import { FooterComponent } from "./footer/FooterComponent";
+import { GitHubRepoPickerComponent } from "./github-repo-picker/GitHubRepoPickerComponent";
+import { GravatarComponent } from "./GravatarComponent";
+import { HeaderComponent } from "./header/HeaderComponent";
+import { KeyAddFormComponent } from "./origin-page/KeyAddFormComponent";
+import { KeyListComponent } from "./origin-page/KeyListComponent";
+import { NotificationsComponent } from "./notifications/NotificationsComponent";
+import { OriginCreatePageComponent } from "./origin-create-page/OriginCreatePageComponent";
+import { OriginMembersTabComponent } from "./origin-page/OriginMembersTabComponent";
+import { OriginPageComponent } from "./origin-page/OriginPageComponent";
+import { OriginsPageComponent } from "./origins-page/OriginsPageComponent";
+import { OrganizationCreatePageComponent } from "./organization-create-page/OrganizationCreatePageComponent";
+import { OrganizationMembersComponent } from "./organization-members/OrganizationMembersComponent";
+import { OrganizationsPageComponent } from "./organizations-page/OrganizationsPageComponent";
+import { PackageBreadcrumbsComponent } from "./PackageBreadcrumbsComponent";
+import { PackagePageComponent } from "./package-page/PackagePageComponent";
+import { PackageInfoComponent } from "./package-info/PackageInfoComponent";
+import { PackageListComponent } from "./package-page/PackageListComponent";
+import { PackagesListComponent } from "./packages-list/PackagesListComponent";
+import { PackagesPageComponent } from "./packages-page/PackagesPageComponent";
+import { ProjectSettingsPageComponent } from "./project-settings-page/ProjectSettingsPageComponent";
+import { ProjectCreatePageComponent } from "./project-create-page/ProjectCreatePageComponent";
+import { ProjectInfoComponent } from "./project-info/ProjectInfoComponent";
+import { ProjectPageComponent } from "./project-page/ProjectPageComponent";
+import { ProjectsPageComponent } from "./projects-page/ProjectsPageComponent";
+import { SCMReposPageComponent } from "./scm-repos-page/SCMReposPageComponent";
+import { SideNavComponent } from "./side-nav/SideNavComponent";
+import { SignInPageComponent } from "./sign-in-page/SignInPageComponent";
+import { SpinnerComponent } from "./SpinnerComponent";
+import { TabComponent } from "./TabComponent";
+import { TabsComponent } from "./TabsComponent";
+import { UserNavComponent } from "./header/user-nav/UserNavComponent";
 
 @NgModule({
     imports: [
@@ -42,23 +64,45 @@ import {ProjectSettingsPageComponent} from "./project-settings-page/ProjectSetti
     ],
     declarations: [
         AppComponent,
+        BuildListComponent,
+        CheckingInputComponent,
         ExplorePageComponent,
+        FooterComponent,
+        GitHubRepoPickerComponent,
+        GravatarComponent,
+        HeaderComponent,
+        KeyAddFormComponent,
+        KeyListComponent,
+        NotificationsComponent,
         OriginCreatePageComponent,
+        OriginMembersTabComponent,
         OriginPageComponent,
         OriginsPageComponent,
         OrganizationCreatePageComponent,
+        OrganizationMembersComponent,
         OrganizationsPageComponent,
+        PackageBreadcrumbsComponent,
+        PackageListComponent,
+        PackageInfoComponent,
         PackagePageComponent,
+        PackagesListComponent,
         PackagesPageComponent,
         ProjectCreatePageComponent,
+        ProjectInfoComponent,
         ProjectPageComponent,
         ProjectsPageComponent,
         SCMReposPageComponent,
+        SideNavComponent,
         SignInPageComponent,
-        ProjectSettingsPageComponent
+        SpinnerComponent,
+        ProjectSettingsPageComponent,
+        TabComponent,
+        TabsComponent,
+        UserNavComponent
     ],
     providers: [
-        provide(LocationStrategy, {useClass: HashLocationStrategy})
+        { provide: LocationStrategy, useClass: HashLocationStrategy },
+        AppStore
     ],
     bootstrap: [ AppComponent ]
 })

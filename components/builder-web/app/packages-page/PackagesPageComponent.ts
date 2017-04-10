@@ -16,15 +16,11 @@ import {FormControl} from "@angular/forms";
 import {Component, OnInit, OnDestroy} from "@angular/core";
 import {ActivatedRoute} from "@angular/router";
 import {AppStore} from "../AppStore";
-import {PackageBreadcrumbsComponent} from "../PackageBreadcrumbsComponent";
-import {SpinnerComponent} from "../SpinnerComponent";
 import {filterPackagesBy, setPackagesSearchQuery} from "../actions/index";
 import {requireSignIn} from "../util";
-import {PackagesListComponent} from "../packages-list/PackagesListComponent";
 import {Subscription} from "rxjs/Subscription";
 
 @Component({
-    directives: [PackageBreadcrumbsComponent, SpinnerComponent, PackagesListComponent],
     template: `
     <div class="hab-packages">
         <div class="page-title">

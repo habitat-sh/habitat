@@ -16,11 +16,9 @@ import {Component, OnInit, OnDestroy} from "@angular/core";
 import {requireSignIn} from "../util";
 import {ActivatedRoute} from "@angular/router";
 import {AppStore} from "../AppStore";
-import {ProjectInfoComponent} from "../project-info/ProjectInfoComponent";
 import {Subscription} from "rxjs/Subscription";
 
 @Component({
-    directives: [ProjectInfoComponent],
     template: `
     <div class="hab-project-create">
       <div class="page-title">

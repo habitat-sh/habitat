@@ -12,12 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Component} from "@angular/core";
+import { Component, Input } from "@angular/core";
 const md5 = require("blueimp-md5");
 
 @Component({
     selector: "gravatar",
-    inputs: ["defaultStyle", "email", "size"],
     template: `
     <img class="hab-gravatar"
         width="{{size || DEFAULT_SIZE}}" height="{{size || DEFAULT_SIZE}}"
@@ -25,6 +24,10 @@ const md5 = require("blueimp-md5");
 })
 
 export class GravatarComponent {
+    @Input() defaultStyle;
+    @Input() email;
+    @Input() size;
+
     private DEFAULT_SIZE = 80;
 
     private gravatarUrl(defaultStyle: string = "retro",

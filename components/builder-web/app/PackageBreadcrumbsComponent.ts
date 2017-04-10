@@ -12,12 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Component} from "@angular/core";
-import {RouterLink} from "@angular/router";
+import { Component, Input } from "@angular/core";
 
 @Component({
-    directives: [RouterLink],
-    inputs: ["ident"],
     selector: "package-breadcrumbs",
     template: `
     <span class="hab-package-breadcrumbs">
@@ -40,4 +37,5 @@ import {RouterLink} from "@angular/router";
 })
 
 export class PackageBreadcrumbsComponent {
+    @Input() ident;
 }

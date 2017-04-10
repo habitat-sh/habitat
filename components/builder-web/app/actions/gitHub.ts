@@ -22,7 +22,7 @@ import {setFeatureFlags} from "./users";
 import {DANGER, WARNING} from "./notifications";
 
 const parseLinkHeader = require("parse-link-header");
-const uuid = require("node-uuid").v4;
+const uuid = require("uuid").v4;
 const gitHubTokenAuthUrl = `${config["habitat_api_url"]}/authenticate`;
 
 export const LOAD_SESSION_STATE = "LOAD_SESSION_STATE";

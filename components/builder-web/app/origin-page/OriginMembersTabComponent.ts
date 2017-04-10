@@ -15,11 +15,9 @@
 import {Component, Input, OnInit} from "@angular/core";
 import {FormControl, FormGroup, FormBuilder, Validators} from "@angular/forms";
 import {List} from "immutable";
-import {TabComponent} from "../TabComponent";
 
 @Component({
     selector: "hab-origin-members-tab",
-    directives: [TabComponent],
     template: `
     <tab tabTitle="Members">
         <div class="page-body">

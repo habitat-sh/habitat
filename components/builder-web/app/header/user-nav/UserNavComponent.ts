@@ -13,10 +13,8 @@
 // limitations under the License.
 
 import {Component, ElementRef, Input} from "@angular/core";
-import {RouterLink} from "@angular/router";
 
 @Component({
-    directives: [RouterLink],
     host: {
         "(document:click)": "toggle($event)",
     },

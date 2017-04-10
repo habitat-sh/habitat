@@ -81,4 +81,4 @@ export function get(params, nextRange: number = 0) {
 
         }).catch(error => reject(error));
     });
-};
+}

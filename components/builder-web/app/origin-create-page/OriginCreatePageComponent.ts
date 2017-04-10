@@ -16,13 +16,11 @@ import {FormControl, FormGroup, FormBuilder, Validators} from "@angular/forms";
 import {AfterViewInit, Component, OnInit} from "@angular/core";
 import {AppStore} from "../AppStore";
 import {AsyncValidator} from "../AsyncValidator";
-import {CheckingInputComponent} from "../CheckingInputComponent";
 import {createOrigin} from "../actions/index";
 import {BuilderApiClient} from "../BuilderApiClient";
 import {requireSignIn} from "../util";
 
 @Component({
-    directives: [CheckingInputComponent],
     template: `
     <div class="hab-origin-create">
         <div class="page-title">

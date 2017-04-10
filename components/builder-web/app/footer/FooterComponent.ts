@@ -13,11 +13,9 @@
 // limitations under the License.
 
 import {Component, Input} from "@angular/core";
-import {RouterLink} from "@angular/router";
 import config from "../config";
 
 @Component({
-    directives: [RouterLink],
     selector: "hab-footer",
     template: `
     <footer class="hab-footer">

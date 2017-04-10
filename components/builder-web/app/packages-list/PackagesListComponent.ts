@@ -14,11 +14,9 @@
 
 import {Component, Input} from "@angular/core";
 import {List} from "immutable";
-import {RouterLink} from "@angular/router";
 
 @Component({
     selector: "hab-packages-list",
-    directives: [RouterLink],
     template: `
     <ul class="hab-packages-plan-list">
         <div *ngIf="noPackages">

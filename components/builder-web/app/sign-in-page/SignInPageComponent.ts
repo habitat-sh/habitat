@@ -13,14 +13,12 @@
 // limitations under the License.
 
 import {Component, OnInit} from "@angular/core";
-import {RouterLink} from "@angular/router";
 import {AppStore} from "../AppStore";
 import {setGitHubAuthState, signOut} from "../actions/index";
 import config from "../config";
 import {createGitHubLoginUrl, icon} from "../util";
 
 @Component({
-    directives: [RouterLink],
     template: `
     <div class="hab-sign-in">
         <div class="page-title">

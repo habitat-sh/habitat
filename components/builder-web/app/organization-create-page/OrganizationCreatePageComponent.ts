@@ -18,8 +18,6 @@ import {addOrg, cancelOrgInvitation, inviteMemberToOrg, finishAddingOrg,
 import {AppStore} from "../AppStore";
 import {Component} from "@angular/core";
 import {FormGroup, FormBuilder, Validators} from "@angular/forms";
-import {OrganizationMembersComponent} from
-    "../organization-members/OrganizationMembersComponent";
 import {requireSignIn} from "../util";
 
 // This shows up on both steps. It could be broken out into a Component
@@ -39,7 +37,6 @@ const sidebar = `
     </nav>`;
 
 @Component({
-    directives: [OrganizationMembersComponent],
     template: `
     <div class="hab-organization-create">
         <div class="page-title">

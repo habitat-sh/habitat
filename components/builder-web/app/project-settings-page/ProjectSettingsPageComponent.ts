@@ -15,7 +15,6 @@
 import {Component, OnInit, OnDestroy} from "@angular/core";
 import {AppStore} from "../AppStore";
 import {ActivatedRoute} from "@angular/router";
-import {ProjectInfoComponent} from "../project-info/ProjectInfoComponent";
 import {fetchProject} from "../actions/index";
 import {requireSignIn, isProject, projectFromParams} from "../util";
 import {setRedirectRoute} from "../actions/index";
@@ -26,7 +25,6 @@ import {Project} from "../records/Project";
 import {Record} from "immutable";
 
 @Component({
-    directives: [ProjectInfoComponent],
     template: `
     <div class="hab-project-settings">
       <div class="page-title">

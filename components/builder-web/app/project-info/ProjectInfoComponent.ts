@@ -13,7 +13,6 @@
 // limitations under the License.
 
 import {Component, Input, OnInit, AfterViewInit} from "@angular/core";
-import {CheckingInputComponent} from "../CheckingInputComponent";
 import {FormControl, FormGroup, FormBuilder, Validators} from "@angular/forms";
 import {GitHubApiClient} from "../GitHubApiClient";
 import {AppStore} from "../AppStore";
@@ -22,7 +21,6 @@ import {RouterLink} from "@angular/router";
 
 @Component({
     selector: "hab-project-info",
-    directives: [CheckingInputComponent, RouterLink],
     template: `
     <form [formGroup]="form" (ngSubmit)="submitProject(form.value)" #formValues="ngForm">
       <div class="scm-repo-fields">

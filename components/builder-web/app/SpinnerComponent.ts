@@ -12,10 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Component} from "@angular/core";
+import { Component, Input } from "@angular/core";
 
 @Component({
-    inputs: ["isSpinning", "onClick"],
     selector: "hab-spinner",
     template: `
     <span (click)="onClick()" [class.spinning]="isSpinning"
@@ -23,4 +22,7 @@ import {Component} from "@angular/core";
     `
 })
 
-export class SpinnerComponent { }
+export class SpinnerComponent {
+    @Input() isSpinning;
+    @Input() onClick;
+}

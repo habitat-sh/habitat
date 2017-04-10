@@ -14,12 +14,9 @@
 
 import {AppStore} from "../AppStore";
 import {Component} from "@angular/core";
-import {GravatarComponent} from "../GravatarComponent";
-import {RouterLink} from "@angular/router";
 import {icon, requireSignIn} from "../util";
 
 @Component({
-    directives: [GravatarComponent, RouterLink],
     template: `
     <div class="hab-organizations">
       <div class="page-title">

@@ -13,14 +13,12 @@
 // limitations under the License.
 
 import {Component, OnInit} from "@angular/core";
-import {RouterLink} from "@angular/router";
 import {acceptOriginInvitation, fetchMyOriginInvitations, fetchMyOrigins}
     from "../actions/index";
 import {AppStore} from "../AppStore";
 import {requireSignIn} from "../util";
 
 @Component({
-    directives: [RouterLink],
     template: `
     <div class="hab-origins">
         <div class="page-title">

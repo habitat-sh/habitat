@@ -13,13 +13,11 @@
 // limitations under the License.
 
 import {Component, OnInit} from "@angular/core";
-import {RouterLink} from "@angular/router";
 import {fetchProjects} from "../actions/index";
 import {AppStore} from "../AppStore";
 import {requireSignIn} from "../util";
 
 @Component({
-    directives: [RouterLink],
     template: `
     <div class="hab-projects">
         <div class="page-title">

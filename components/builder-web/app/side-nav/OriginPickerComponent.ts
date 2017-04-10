@@ -12,13 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Component, OnInit} from "@angular/core";
-import {RouterLink} from "@angular/router";
+import { Component, Input, OnInit } from "@angular/core";
 
 @Component({
-    directives: [RouterLink],
-    inputs: ["fetchMyOrigins", "isOpen", "isSignedIn", "myOrigins", "currentOrigin",
-        "setCurrentOrigin", "toggleOriginPicker"],
     selector: "hab-origin-picker",
     template: `
     <div class="hab-origin-picker">
@@ -56,10 +52,13 @@ import {RouterLink} from "@angular/router";
 })
 
 export class OriginPickerComponent implements OnInit {
-    private currentOrigin;
-    private fetchMyOrigins: Function;
-    private setCurrentOrigin: Function;
-    private toggleOriginPicker: Function;
+    @Input() currentOrigin: Function;
+    @Input() fetchMyOrigins;
+    @Input() isOpen;
+    @Input() isSignedIn;
+    @Input() myOrigins;
+    @Input() setCurrentOrigin: Function;
+    @Input() toggleOriginPicker: Function;
 
     private clickSetCurrentOrigin(origin) {
         if (origin.name !== this.currentOrigin.name) {
