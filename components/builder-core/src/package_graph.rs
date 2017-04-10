@@ -113,7 +113,7 @@ impl PackageGraph {
         (self.graph.node_count(), self.graph.edge_count())
     }
 
-    pub fn rdeps(&self, name: &str) -> Option<Vec<String>> {
+    pub fn rdeps(&self, name: &str) -> Option<Vec<(String, String)>> {
         let mut v = Vec::new();
 
         match self.package_map.get(name) {
@@ -124,7 +124,7 @@ impl PackageGraph {
                             let parts: Vec<&str> = self.package_names[n].split("/").collect();
                             assert!(parts.len() >= 2);
                             let name = format!("{}/{}", parts[0], parts[1]);
-                            v.push(name);
+                            v.push((name, self.package_names[n].clone()));
                         }
                     }
                     Err(e) => panic!("Error: {:?}", e),

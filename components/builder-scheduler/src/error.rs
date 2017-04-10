@@ -48,6 +48,7 @@ pub enum Error {
     Protobuf(protobuf::ProtobufError),
     UnknownGroupState,
     UnknownProjectState,
+    UnknownPackage,
     Zmq(zmq::Error),
 }
 
@@ -80,6 +81,7 @@ impl fmt::Display for Error {
             Error::Protobuf(ref e) => format!("{}", e),
             Error::UnknownGroupState => format!("Unknown Group State"),
             Error::UnknownProjectState => format!("Unknown Project State"),
+            Error::UnknownPackage => format!("Unknown Package"),
             Error::Zmq(ref e) => format!("{}", e),
         };
         write!(f, "{}", msg)
@@ -109,6 +111,7 @@ impl error::Error for Error {
             Error::Protobuf(ref err) => err.description(),
             Error::UnknownGroupState => "Unknown Group State",
             Error::UnknownProjectState => "Unknown Project State",
+            Error::UnknownPackage => "Unknown Package",
             Error::Zmq(ref err) => err.description(),
         }
     }

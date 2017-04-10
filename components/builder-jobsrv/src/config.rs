@@ -20,7 +20,7 @@ use std::time::Duration;
 use db;
 use hab_core::config::{ConfigFile, ParseInto};
 use hab_net::config::{DispatcherCfg, RouteAddrs, Shards};
-use protocol::sharding::ShardId;
+use protocol::sharding::{ShardId, SHARD_COUNT};
 use toml;
 
 use error::{Error, Result};
@@ -67,7 +67,7 @@ impl Default for Config {
             datastore_connection_timeout: Duration::from_secs(3600),
             datastore_connection_test: false,
             pool_size: db::config::default_pool_size(),
-            shards: vec![0],
+            shards: (0..SHARD_COUNT).collect(),
             heartbeat_port: 5563,
             worker_threads: Self::default_worker_count(),
         }

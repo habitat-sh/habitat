@@ -32,24 +32,39 @@ pub fn group_create(req: &mut Envelope,
     println!("group_create message: {:?}", msg);
 
     let project_name = format!("{}/{}", msg.get_origin(), msg.get_package());
-    let mut projects: Vec<String> = Vec::new();
+    let mut projects = Vec::new();
 
-    // Add the root package if needed
-    if !msg.get_deps_only() {
-        projects.push(project_name.clone());
-    }
+    // Get the ident for the root package
+    let mut start_time;
+    let mut end_time;
 
-    // Search the packages graph to find the reverse dependencies
-    let start_time;
-    let end_time;
-
-    let rdeps_opt = {
+    let project_ident = {
         let graph = state.graph().read().unwrap();
         start_time = PreciseTime::now();
         let ret = match graph.resolve(&project_name) {
-            Some(s) => graph.rdeps(&s),
-            None => None,
+            Some(s) => s,
+            None => {
+                error!("GroupCreate, project ident not found");
+                let err = net::err(ErrCode::ENTITY_NOT_FOUND, "sc:group-create:1");
+                try!(req.reply_complete(sock, &err));
+                return Ok(());
+            }
         };
+        end_time = PreciseTime::now();
+        ret
+    };
+    println!("Resolved project name: {} sec\n", start_time.to(end_time));
+
+    // Add the root package if needed
+    if !msg.get_deps_only() {
+        projects.push((project_name.clone(), project_ident.clone()));
+    }
+
+    // Search the packages graph to find the reverse dependencies
+    let rdeps_opt = {
+        let graph = state.graph().read().unwrap();
+        start_time = PreciseTime::now();
+        let ret = graph.rdeps(&project_ident);
         end_time = PreciseTime::now();
         ret
     };
@@ -61,7 +76,7 @@ pub fn group_create(req: &mut Envelope,
                      start_time.to(end_time));
 
             for s in rdeps {
-                println!("Adding to projects: {}", s);
+                println!("Adding to projects: {} ({})", s.0, s.1);
                 projects.push(s);
             }
         }

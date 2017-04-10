@@ -24,7 +24,7 @@ fn migration() {
 
 #[test]
 fn create_group() {
-    let project_names = vec![String::from("Foo/Bar")];
+    let project_names = vec![(String::from("Foo/Bar"), String::from("Foo/Bar/0/Baz"))];
     let mut msg = scheduler::GroupCreate::new();
     msg.set_origin(String::from("Foo"));
     msg.set_package(String::from("Bar"));
@@ -36,7 +36,7 @@ fn create_group() {
 
 #[test]
 fn get_group() {
-    let project_names = vec![String::from("Foo/Bar")];
+    let project_names = vec![(String::from("Foo/Bar"), String::from("Foo/Bar/0/Baz"))];
     let mut msg = scheduler::GroupCreate::new();
     msg.set_origin(String::from("Foo"));
     msg.set_package(String::from("Bar"));
@@ -83,7 +83,7 @@ fn get_group_does_not_exist() {
 
 #[test]
 fn pending_groups() {
-    let project_names = vec![String::from("Foo/Bar")];
+    let project_names = vec![(String::from("Foo/Bar"), String::from("Foo/Bar/0/Baz"))];
     let mut msg = scheduler::GroupCreate::new();
     msg.set_origin(String::from("Foo"));
     msg.set_package(String::from("Bar"));
@@ -129,7 +129,7 @@ fn pending_groups() {
 
 #[test]
 fn set_group_state() {
-    let project_names = vec![String::from("Foo/Bar")];
+    let project_names = vec![(String::from("Foo/Bar"), String::from("Foo/Bar/0/Baz"))];
     let mut msg = scheduler::GroupCreate::new();
     msg.set_origin(String::from("Foo"));
     msg.set_package(String::from("Bar"));
@@ -158,7 +158,7 @@ fn set_group_state() {
 
 #[test]
 fn set_group_job_state() {
-    let project_names = vec![String::from("Foo/Bar")];
+    let project_names = vec![(String::from("Foo/Bar"), String::from("Foo/Bar/0/Baz"))];
     let mut msg = scheduler::GroupCreate::new();
     msg.set_origin(String::from("Foo"));
     msg.set_package(String::from("Bar"));
