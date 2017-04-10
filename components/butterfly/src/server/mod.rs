@@ -212,25 +212,30 @@ impl Server {
             *dat_file = Some(file);
         }
 
-        let socket =
-            match UdpSocket::bind(*self.swim_addr.read().expect("Swim address lock is poisoned")) {
-                Ok(socket) => socket,
-                Err(e) => return Err(Error::CannotBind(e)),
-            };
-        try!(socket.set_read_timeout(Some(Duration::from_millis(1000)))
-            .map_err(|e| Error::SocketSetReadTimeout(e)));
-        try!(socket.set_write_timeout(Some(Duration::from_millis(1000)))
-            .map_err(|e| Error::SocketSetReadTimeout(e)));
+        let socket = match UdpSocket::bind(*self.swim_addr
+                                                .read()
+                                                .expect("Swim address lock is poisoned")) {
+            Ok(socket) => socket,
+            Err(e) => return Err(Error::CannotBind(e)),
+        };
+        try!(socket
+                 .set_read_timeout(Some(Duration::from_millis(1000)))
+                 .map_err(|e| Error::SocketSetReadTimeout(e)));
+        try!(socket
+                 .set_write_timeout(Some(Duration::from_millis(1000)))
+                 .map_err(|e| Error::SocketSetReadTimeout(e)));
 
         let server_a = self.clone();
         let socket_a = match socket.try_clone() {
             Ok(socket_a) => socket_a,
             Err(_) => return Err(Error::SocketCloneError),
         };
-        let _ = thread::Builder::new().name(format!("inbound-{}", self.name())).spawn(move || {
-            inbound::Inbound::new(server_a, socket_a, tx_outbound).run();
-            panic!("You should never, ever get here, judy");
-        });
+        let _ = thread::Builder::new()
+            .name(format!("inbound-{}", self.name()))
+            .spawn(move || {
+                       inbound::Inbound::new(server_a, socket_a, tx_outbound).run();
+                       panic!("You should never, ever get here, judy");
+                   });
 
         let server_b = self.clone();
         let socket_b = match socket.try_clone() {
@@ -238,29 +243,37 @@ impl Server {
             Err(_) => return Err(Error::SocketCloneError),
         };
         let timing_b = timing.clone();
-        let _ = thread::Builder::new().name(format!("outbound-{}", self.name())).spawn(move || {
-            outbound::Outbound::new(server_b, socket_b, rx_inbound, timing_b).run();
-            panic!("You should never, ever get here, bob");
-        });
+        let _ = thread::Builder::new()
+            .name(format!("outbound-{}", self.name()))
+            .spawn(move || {
+                       outbound::Outbound::new(server_b, socket_b, rx_inbound, timing_b).run();
+                       panic!("You should never, ever get here, bob");
+                   });
 
         let server_c = self.clone();
         let timing_c = timing.clone();
-        let _ = thread::Builder::new().name(format!("expire-{}", self.name())).spawn(move || {
-            expire::Expire::new(server_c, timing_c).run();
-            panic!("You should never, ever get here, frank");
-        });
+        let _ = thread::Builder::new()
+            .name(format!("expire-{}", self.name()))
+            .spawn(move || {
+                       expire::Expire::new(server_c, timing_c).run();
+                       panic!("You should never, ever get here, frank");
+                   });
 
         let server_d = self.clone();
-        let _ = thread::Builder::new().name(format!("pull-{}", self.name())).spawn(move || {
-            pull::Pull::new(server_d).run();
-            panic!("You should never, ever get here, davey");
-        });
+        let _ = thread::Builder::new()
+            .name(format!("pull-{}", self.name()))
+            .spawn(move || {
+                       pull::Pull::new(server_d).run();
+                       panic!("You should never, ever get here, davey");
+                   });
 
         let server_e = self.clone();
-        let _ = thread::Builder::new().name(format!("push-{}", self.name())).spawn(move || {
-            push::Push::new(server_e, timing).run();
-            panic!("You should never, ever get here, liu");
-        });
+        let _ = thread::Builder::new()
+            .name(format!("push-{}", self.name()))
+            .spawn(move || {
+                       push::Push::new(server_e, timing).run();
+                       panic!("You should never, ever get here, liu");
+                   });
 
         if self.dat_file
                .read()
@@ -280,30 +293,38 @@ impl Server {
 
     /// Blacklist a given address, causing no traffic to be seen.
     pub fn add_to_blacklist(&self, member_id: String) {
-        let mut blacklist = self.blacklist.write().expect("Write lock for blacklist is poisoned");
+        let mut blacklist = self.blacklist
+            .write()
+            .expect("Write lock for blacklist is poisoned");
         blacklist.insert(member_id);
     }
 
     /// Remove a given address from the blacklist.
     pub fn remove_from_blacklist(&self, member_id: &str) {
-        let mut blacklist = self.blacklist.write().expect("Write lock for blacklist is poisoned");
+        let mut blacklist = self.blacklist
+            .write()
+            .expect("Write lock for blacklist is poisoned");
         blacklist.remove(member_id);
     }
 
     /// Check that a given address is on the blacklist.
     pub fn check_blacklist(&self, member_id: &str) -> bool {
-        let blacklist = self.blacklist.write().expect("Write lock for blacklist is poisoned");
+        let blacklist = self.blacklist
+            .write()
+            .expect("Write lock for blacklist is poisoned");
         blacklist.contains(member_id)
     }
 
     /// Stop the outbound and inbound threads from processing work.
     pub fn pause(&mut self) {
-        self.pause.compare_and_swap(false, true, Ordering::Relaxed);
+        self.pause
+            .compare_and_swap(false, true, Ordering::Relaxed);
     }
 
     /// Allow the outbound and inbound threads to process work.
     pub fn unpause(&mut self) {
-        self.pause.compare_and_swap(true, false, Ordering::Relaxed);
+        self.pause
+            .compare_and_swap(true, false, Ordering::Relaxed);
     }
 
     /// Whether this server is currently paused.
@@ -313,7 +334,9 @@ impl Server {
 
     /// Return the swim address we are bound to
     pub fn swim_addr(&self) -> SocketAddr {
-        let sa = self.swim_addr.read().expect("Swim Address lock poisoned");
+        let sa = self.swim_addr
+            .read()
+            .expect("Swim Address lock poisoned");
         sa.clone()
     }
 
@@ -327,7 +350,9 @@ impl Server {
 
     /// Return the gossip address we are bound to
     pub fn gossip_addr(&self) -> SocketAddr {
-        let ga = self.gossip_addr.read().expect("Gossip Address lock poisoned");
+        let ga = self.gossip_addr
+            .read()
+            .expect("Gossip Address lock poisoned");
         ga.clone()
     }
 
@@ -452,10 +477,11 @@ impl Server {
     /// Get all the Member ID's who are present in a given service group.
     pub fn get_electorate(&self, key: &str) -> Vec<String> {
         let mut electorate = vec![];
-        self.service_store.with_rumors(key, |s| if
-            self.member_list.check_health_of_by_id(s.get_member_id(), Health::Alive) {
-            electorate.push(String::from(s.get_member_id()));
-        });
+        self.service_store
+            .with_rumors(key, |s| if self.member_list
+                   .check_health_of_by_id(s.get_member_id(), Health::Alive) {
+                electorate.push(String::from(s.get_member_id()));
+            });
         electorate
     }
 
@@ -609,13 +635,16 @@ impl Server {
         let rk = RumorKey::from(&election);
 
         // If this is an election for a service group we care about
-        if self.service_store.contains_rumor(election.get_service_group(), self.member_id()) {
+        if self.service_store
+               .contains_rumor(election.get_service_group(), self.member_id()) {
             // And the election store already has an election rumor for this election
-            if self.election_store.contains_rumor(election.key(), election.id()) {
+            if self.election_store
+                   .contains_rumor(election.key(), election.id()) {
                 let mut new_term = false;
-                self.election_store.with_rumor(election.key(), election.id(), |ce| {
-                    new_term = election.get_term() > ce.unwrap().get_term()
-                });
+                self.election_store
+                    .with_rumor(election.key(),
+                                election.id(),
+                                |ce| new_term = election.get_term() > ce.unwrap().get_term());
                 if new_term {
                     self.election_store.remove(election.key(), election.id());
                     let sg = match ServiceGroup::from_str(election.get_service_group()) {
@@ -681,13 +710,16 @@ impl Server {
         let rk = RumorKey::from(&election);
 
         // If this is an election for a service group we care about
-        if self.service_store.contains_rumor(election.get_service_group(), self.member_id()) {
+        if self.service_store
+               .contains_rumor(election.get_service_group(), self.member_id()) {
             // And the election store already has an election rumor for this election
-            if self.update_store.contains_rumor(election.key(), election.id()) {
+            if self.update_store
+                   .contains_rumor(election.key(), election.id()) {
                 let mut new_term = false;
-                self.update_store.with_rumor(election.key(), election.id(), |ce| {
-                    new_term = election.get_term() > ce.unwrap().get_term()
-                });
+                self.update_store
+                    .with_rumor(election.key(),
+                                election.id(),
+                                |ce| new_term = election.get_term() > ce.unwrap().get_term());
                 if new_term {
                     self.update_store.remove(election.key(), election.id());
                     let sg = match ServiceGroup::from_str(election.get_service_group()) {
@@ -755,26 +787,27 @@ impl Server {
                              -> Vec<(u64, String, Vec<u8>)> {
         let mut service_files = Vec::new();
 
-        self.service_file_store.with_rumors(service_group, |sf| {
-            let current_incarnation = current_service_files.get(sf.get_filename());
-            if current_incarnation.is_none() ||
-               sf.get_incarnation() > *current_incarnation.unwrap() {
-                match sf.body() {
-                    Ok(body) => {
-                        service_files.push((sf.get_incarnation(),
-                                            String::from(sf.get_filename()),
-                                            body))
-                    }
-                    Err(e) => {
-                        warn!("Cannot decrypt service file for {} {} {}: {}",
-                              service_group,
-                              sf.get_filename(),
-                              sf.get_incarnation(),
-                              e)
+        self.service_file_store
+            .with_rumors(service_group, |sf| {
+                let current_incarnation = current_service_files.get(sf.get_filename());
+                if current_incarnation.is_none() ||
+                   sf.get_incarnation() > *current_incarnation.unwrap() {
+                    match sf.body() {
+                        Ok(body) => {
+                            service_files.push((sf.get_incarnation(),
+                                                String::from(sf.get_filename()),
+                                                body))
+                        }
+                        Err(e) => {
+                            warn!("Cannot decrypt service file for {} {} {}: {}",
+                                  service_group,
+                                  sf.get_filename(),
+                                  sf.get_incarnation(),
+                                  e)
+                        }
                     }
                 }
-            }
-        });
+            });
         service_files
     }
 
@@ -784,20 +817,18 @@ impl Server {
                               incarnation: Option<u64>)
                               -> Option<(u64, toml::Value)> {
         let mut result = None;
-        self.service_config_store.with_rumor(service_group,
-                                             "service_config",
-                                             |maybe_sc| if let Some(sc) = maybe_sc {
-                                                 if incarnation.is_none() ||
-                                                    sc.get_incarnation() > incarnation.unwrap() {
-                                                     match sc.config() {
-                                                         Ok(config) => {
-                                                             result = Some((sc.get_incarnation(),
-                                                                            config))
-                                                         }
-                                                         Err(err) => warn!("{}", err),
-                                                     }
-                                                 }
-                                             });
+        self.service_config_store
+            .with_rumor(service_group,
+                        "service_config",
+                        |maybe_sc| if let Some(sc) = maybe_sc {
+                            if incarnation.is_none() ||
+                               sc.get_incarnation() > incarnation.unwrap() {
+                                match sc.config() {
+                                    Ok(config) => result = Some((sc.get_incarnation(), config)),
+                                    Err(err) => warn!("{}", err),
+                                }
+                            }
+                        });
         result
     }
 
@@ -925,7 +956,9 @@ mod tests {
         #[test]
         fn start_listener() {
             let mut server = start_server();
-            server.start(Timing::default()).expect("Server failed to start");
+            server
+                .start(Timing::default())
+                .expect("Server failed to start");
         }
     }
 }

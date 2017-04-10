@@ -163,10 +163,11 @@ pub struct Cors;
 impl AfterMiddleware for Cors {
     fn after(&self, _req: &mut Request, mut res: Response) -> IronResult<Response> {
         res.headers.set(headers::AccessControlAllowOrigin::Any);
-        res.headers.set(headers::AccessControlAllowHeaders(vec![UniCase("authorization"
-                                                                            .to_string()),
-                                                                UniCase("range".to_string())]));
-        res.headers.set(headers::AccessControlAllowMethods(vec![Method::Put, Method::Delete]));
+        res.headers
+            .set(headers::AccessControlAllowHeaders(vec![UniCase("authorization".to_string()),
+                                                         UniCase("range".to_string())]));
+        res.headers
+            .set(headers::AccessControlAllowMethods(vec![Method::Put, Method::Delete]));
         Ok(res)
     }
 }
@@ -178,7 +179,8 @@ pub fn session_create(github: &GitHubClient, token: &str) -> IronResult<Session>
             // no email is associated with account return an access denied error.
             let email = match github.emails(&token) {
                 Ok(ref emails) => {
-                    emails.iter()
+                    emails
+                        .iter()
                         .find(|e| e.primary)
                         .unwrap_or(&emails[0])
                         .email

@@ -27,7 +27,10 @@ pub fn account_get(req: &mut Envelope,
                    state: &mut ServerState)
                    -> Result<()> {
     let msg: proto::AccountGet = try!(req.parse_msg());
-    match state.datastore.accounts.find_by_username(&msg.get_name().to_string()) {
+    match state
+              .datastore
+              .accounts
+              .find_by_username(&msg.get_name().to_string()) {
         Ok(account) => try!(req.reply_complete(sock, &account)),
         Err(dbcache::Error::EntityNotFound) => {
             let err = net::err(ErrCode::ENTITY_NOT_FOUND, "ss:account-get:0");
@@ -53,7 +56,10 @@ pub fn account_search(req: &mut Envelope,
             state.datastore.accounts.find(&value)
         }
         proto::AccountSearchKey::Name => {
-            state.datastore.accounts.find_by_username(&msg.take_value())
+            state
+                .datastore
+                .accounts
+                .find_by_username(&msg.take_value())
         }
     };
     match result {
@@ -76,7 +82,10 @@ pub fn grant_flag(req: &mut Envelope,
                   state: &mut ServerState)
                   -> Result<()> {
     let msg: proto::GrantFlagToTeam = try!(req.parse_msg());
-    try!(state.datastore.features.grant(msg.get_flag(), msg.get_team_id()));
+    try!(state
+             .datastore
+             .features
+             .grant(msg.get_flag(), msg.get_team_id()));
     try!(req.reply_complete(sock, &NetOk::new()));
     Ok(())
 }
@@ -98,7 +107,10 @@ pub fn revoke_flag(req: &mut Envelope,
                    state: &mut ServerState)
                    -> Result<()> {
     let msg: proto::RevokeFlagFromTeam = try!(req.parse_msg());
-    try!(state.datastore.features.revoke(msg.get_flag(), msg.get_team_id()));
+    try!(state
+             .datastore
+             .features
+             .revoke(msg.get_flag(), msg.get_team_id()));
     try!(req.reply_complete(sock, &NetOk::new()));
     Ok(())
 }
@@ -108,10 +120,13 @@ pub fn session_create(req: &mut Envelope,
                       state: &mut ServerState)
                       -> Result<()> {
     let mut msg: proto::SessionCreate = try!(req.parse_msg());
-    let account: proto::Account = match state.datastore.sessions.find(&msg.get_token()
-                                             .to_string()) {
+    let account: proto::Account = match state
+              .datastore
+              .sessions
+              .find(&msg.get_token().to_string()) {
         Ok(session) => {
-            state.datastore
+            state
+                .datastore
                 .accounts
                 .find(&session.get_owner_id())
                 .unwrap()
@@ -122,7 +137,8 @@ pub fn session_create(req: &mut Envelope,
     session_token.set_token(msg.take_token());
     session_token.set_owner_id(account.get_id());
     session_token.set_provider(msg.get_provider());
-    if let Some(e) = state.datastore
+    if let Some(e) = state
+           .datastore
            .sessions
            .write(&mut session_token)
            .err() {
@@ -147,9 +163,13 @@ pub fn session_get(req: &mut Envelope,
                    state: &mut ServerState)
                    -> Result<()> {
     let msg: proto::SessionGet = try!(req.parse_msg());
-    match state.datastore.sessions.find(&msg.get_token().to_string()) {
+    match state
+              .datastore
+              .sessions
+              .find(&msg.get_token().to_string()) {
         Ok(mut token) => {
-            let account: proto::Account = state.datastore
+            let account: proto::Account = state
+                .datastore
                 .accounts
                 .find(&token.get_owner_id())
                 .unwrap();
@@ -189,10 +209,7 @@ fn set_features(state: &ServerState, session: &mut proto::Session) -> Result<()>
             flags.insert(privilege::ADMIN);
             continue;
         }
-        if let Some(raw_flags) = state.datastore
-               .features
-               .flags(team.id)
-               .ok() {
+        if let Some(raw_flags) = state.datastore.features.flags(team.id).ok() {
             for raw_flag in raw_flags {
                 let flag = FeatureFlags::from_bits(raw_flag).unwrap();
                 debug!("Granting feature flag={:?} for team={:?}", flag, team.name);

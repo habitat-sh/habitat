@@ -260,7 +260,9 @@ mod tests {
     fn running_process_returns_no_exit_status() {
         let mut cmd = Command::new("C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.\
                                     exe");
-        cmd.arg("-noprofile").arg("-command").arg("while($true) { Start-Sleep 1 }");
+        cmd.arg("-noprofile")
+            .arg("-command")
+            .arg("while($true) { Start-Sleep 1 }");
         let mut child = cmd.spawn().unwrap();
 
         let mut hab_child = HabChild::from(&mut child).unwrap();
@@ -285,7 +287,9 @@ mod tests {
     fn terminated_process_returns_non_zero_exit() {
         let mut cmd = Command::new("C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.\
                                     exe");
-        cmd.arg("-noprofile").arg("-command").arg("while($true) { Start-Sleep 1 }");
+        cmd.arg("-noprofile")
+            .arg("-command")
+            .arg("while($true) { Start-Sleep 1 }");
         let mut child = cmd.spawn().unwrap();
 
         let mut hab_child = HabChild::from(&mut child).unwrap();

@@ -150,7 +150,8 @@ pub fn origin_invitation_create(req: &mut Envelope,
     let msg: proto::OriginInvitationCreate = try!(req.parse_msg());
 
     let in_origin =
-        state.datastore
+        state
+            .datastore
             .check_account_in_origin_by_origin_and_account_id(msg.get_origin_name(),
                                                               msg.get_account_id() as i64)?;
     if !in_origin {
@@ -367,7 +368,9 @@ pub fn project_delete(req: &mut Envelope,
                       -> Result<()> {
     let msg: proto::OriginProjectDelete = try!(req.parse_msg());
 
-    match state.datastore.delete_origin_project_by_name(&msg.get_name()) {
+    match state
+              .datastore
+              .delete_origin_project_by_name(&msg.get_name()) {
         Ok(()) => try!(req.reply_complete(sock, &NetOk::new())),
         Err(err) => {
             error!("OriginProjectGet, err={:?}", err);
@@ -383,7 +386,9 @@ pub fn project_get(req: &mut Envelope,
                    state: &mut ServerState)
                    -> Result<()> {
     let msg: proto::OriginProjectGet = try!(req.parse_msg());
-    match state.datastore.get_origin_project_by_name(&msg.get_name()) {
+    match state
+              .datastore
+              .get_origin_project_by_name(&msg.get_name()) {
         Ok(Some(ref project)) => try!(req.reply_complete(sock, project)),
         Ok(None) => {
             let err = net::err(ErrCode::ENTITY_NOT_FOUND, "vt:origin-project-get:0");

@@ -34,10 +34,7 @@ impl<T> Supervisor<T>
     // JW TODO: this should take a struct that implements "application config"
     pub fn new(config: Arc<RwLock<T::Config>>, state: <T as Dispatcher>::InitState) -> Self {
         let worker_count = {
-            config.read()
-                .unwrap()
-                .deref()
-                .worker_count()
+            config.read().unwrap().deref().worker_count()
         };
         Supervisor {
             config: config,
@@ -57,10 +54,7 @@ impl<T> Supervisor<T>
     // requests.
     fn init(&mut self) -> super::Result<()> {
         let worker_count = {
-            self.config
-                .read()
-                .unwrap()
-                .worker_count()
+            self.config.read().unwrap().worker_count()
         };
         for worker_id in 0..worker_count {
             try!(self.spawn_worker(worker_id));
@@ -70,10 +64,7 @@ impl<T> Supervisor<T>
 
     fn run(mut self) -> super::Result<()> {
         let worker_count = {
-            self.config
-                .read()
-                .unwrap()
-                .worker_count()
+            self.config.read().unwrap().worker_count()
         };
         thread::spawn(move || {
             loop {

@@ -263,7 +263,8 @@ fn mk_key_filename<P, S1, S2>(path: P, keyname: S1, suffix: S2) -> PathBuf
           S1: AsRef<str>,
           S2: AsRef<str>
 {
-    path.as_ref().join(format!("{}.{}", keyname.as_ref(), suffix.as_ref()))
+    path.as_ref()
+        .join(format!("{}.{}", keyname.as_ref(), suffix.as_ref()))
 }
 
 /// generates a revision string in the form:
@@ -501,7 +502,8 @@ mod test {
         let cache = TempDir::new("key_cache").unwrap();
         let keyfile = cache.path().join("missing-newlines");
         let mut f = File::create(&keyfile).unwrap();
-        f.write_all("header\nsomething\n\nI am not base64 content".as_bytes()).unwrap();
+        f.write_all("header\nsomething\n\nI am not base64 content".as_bytes())
+            .unwrap();
 
         super::read_key_bytes(keyfile.as_path()).unwrap();
     }

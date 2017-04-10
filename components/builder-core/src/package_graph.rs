@@ -81,7 +81,8 @@ impl PackageGraph {
             assert_eq!(self.package_names[self.package_max], name);
 
             let node_index = self.graph.add_node(self.package_max);
-            self.package_map.insert(String::from(name), (self.package_max, node_index));
+            self.package_map
+                .insert(String::from(name), (self.package_max, node_index));
             self.package_max = self.package_max + 1;
 
             (self.package_max - 1, node_index)
@@ -178,8 +179,9 @@ impl PackageGraph {
                 .collect();
 
             // We can safely unwrap below since we checked the format
-            let mut pkgs: Vec<PackageIdent> =
-                v.iter().map(|x| PackageIdent::from_str(x).unwrap()).collect();
+            let mut pkgs: Vec<PackageIdent> = v.iter()
+                .map(|x| PackageIdent::from_str(x).unwrap())
+                .collect();
 
             // TODO: The PackageIdent compare is extremely slow, causing even small lists
             // to take significant time to sort. Look at speeding this up if it becomes a

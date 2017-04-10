@@ -78,7 +78,8 @@ pub mod apply {
             try!(ui.status(Status::Applying, format!("to peer {}", peer)));
             let mut client = try!(Client::new(peer, ring_key.map(|k| k.clone()))
                 .map_err(|e| Error::ButterflyError(format!("{}", e))));
-            try!(client.send_service_config(sg.clone(), number, body.clone(), encrypted)
+            try!(client
+                     .send_service_config(sg.clone(), number, body.clone(), encrypted)
                      .map_err(|e| Error::ButterflyError(format!("{}", e))));
 
             // please take a moment to weep over the following line

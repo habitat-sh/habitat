@@ -145,7 +145,9 @@ pub fn append_interpreter_and_path(orig_paths: &mut Vec<PathBuf>) -> Result<Stri
         orig_paths.append(&mut os_paths);
     }
     let joined = try!(env::join_paths(orig_paths));
-    let path_str = joined.into_string().expect("Unable to convert OsStr path to string!");
+    let path_str = joined
+        .into_string()
+        .expect("Unable to convert OsStr path to string!");
     Ok(path_str)
 }
 

@@ -301,6 +301,7 @@ fn ssl_connector(fs_root_path: Option<&Path>) -> Result<SslConnector> {
     options.toggle(SSL_OP_NO_COMPRESSION);
     try!(ssl::set_ca(conn.builder_mut(), fs_root_path));
     conn.builder_mut().set_options(options);
-    try!(conn.builder_mut().set_cipher_list("ALL!EXPORT!EXPORT40!EXPORT56!aNULL!LOW!RC4@STRENGTH"));
+    try!(conn.builder_mut()
+             .set_cipher_list("ALL!EXPORT!EXPORT40!EXPORT56!aNULL!LOW!RC4@STRENGTH"));
     Ok(conn.build())
 }

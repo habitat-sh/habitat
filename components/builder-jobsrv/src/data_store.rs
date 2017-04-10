@@ -57,8 +57,9 @@ impl DataStore {
         migrator.setup()?;
 
         // The core jobs table
-        migrator.migrate("jobsrv",
-                         r#"CREATE TABLE jobs (
+        migrator
+            .migrate("jobsrv",
+                     r#"CREATE TABLE jobs (
                                     id bigint PRIMARY KEY,
                                     owner_id bigint,
                                     job_state text,
@@ -102,7 +103,8 @@ impl DataStore {
         // generate Job structs, and keeps things DRY.
         //
         // Just make sure you always address the columns by name, not by position.
-        migrator.migrate("jobsrv",
+        migrator
+            .migrate("jobsrv",
                      r#"CREATE OR REPLACE FUNCTION get_job_v1 (jid bigint) RETURNS SETOF jobs AS $$
                             BEGIN
                               RETURN QUERY SELECT * FROM jobs WHERE id = jid;

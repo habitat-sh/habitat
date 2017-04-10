@@ -58,8 +58,9 @@ impl DataStore {
         migrator.setup()?;
 
         // The packages table
-        migrator.migrate("scheduler",
-                         r#"CREATE TABLE packages (
+        migrator
+            .migrate("scheduler",
+                     r#"CREATE TABLE packages (
                                      id bigserial PRIMARY KEY,
                                      ident text UNIQUE,
                                      deps text[],
@@ -67,8 +68,9 @@ impl DataStore {
                               )"#)?;
 
         // Insert a new package into the packages table
-        migrator.migrate("scheduler",
-                         r#"CREATE OR REPLACE FUNCTION insert_package_v1 (
+        migrator
+            .migrate("scheduler",
+                     r#"CREATE OR REPLACE FUNCTION insert_package_v1 (
                                     pident text,
                                     pdeps text[]
                                     ) RETURNS void AS $$
@@ -81,7 +83,8 @@ impl DataStore {
                                 "#)?;
 
         // Retrieve all packages from the packages table
-        migrator.migrate("scheduler",
+        migrator
+            .migrate("scheduler",
                      r#"CREATE OR REPLACE FUNCTION get_packages_v1 () RETURNS SETOF packages AS $$
                             BEGIN
                               RETURN QUERY SELECT * FROM packages;
@@ -90,8 +93,9 @@ impl DataStore {
                             $$ LANGUAGE plpgsql STABLE"#)?;
 
         // The groups table
-        migrator.migrate("scheduler",
-                         r#"CREATE TABLE groups (
+        migrator
+            .migrate("scheduler",
+                     r#"CREATE TABLE groups (
                                     id bigint PRIMARY KEY,
                                     group_state text,
                                     created_at timestamptz DEFAULT now(),
@@ -99,8 +103,9 @@ impl DataStore {
                              )"#)?;
 
         // The projects table
-        migrator.migrate("scheduler",
-                         r#"CREATE TABLE projects (
+        migrator
+            .migrate("scheduler",
+                     r#"CREATE TABLE projects (
                                      id bigserial PRIMARY KEY,
                                      owner_id bigint,
                                      project_name text,
@@ -220,7 +225,8 @@ impl DataStore {
 
         let conn = self.pool.get()?;
 
-        let rows = &conn.query("SELECT * FROM get_packages_v1()", &[]).map_err(Error::PackagesGet)?;
+        let rows = &conn.query("SELECT * FROM get_packages_v1()", &[])
+                        .map_err(Error::PackagesGet)?;
 
         if rows.is_empty() {
             warn!("No packages found");

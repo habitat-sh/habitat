@@ -199,12 +199,16 @@ fn sub_file_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 }
 
 fn ui() -> UI {
-    let isatty = if henv::var(NONINTERACTIVE_ENVVAR).map(|val| val == "true").unwrap_or(false) {
+    let isatty = if henv::var(NONINTERACTIVE_ENVVAR)
+           .map(|val| val == "true")
+           .unwrap_or(false) {
         Some(false)
     } else {
         None
     };
-    let coloring = if henv::var(NOCOLORING_ENVVAR).map(|val| val == "true").unwrap_or(false) {
+    let coloring = if henv::var(NOCOLORING_ENVVAR)
+           .map(|val| val == "true")
+           .unwrap_or(false) {
         Coloring::Never
     } else {
         Coloring::Auto

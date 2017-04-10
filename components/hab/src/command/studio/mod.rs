@@ -119,8 +119,9 @@ mod inner {
         // Otherwise we will try to re-run this program using `sudo`
         match find_command(SUDO_CMD) {
             Some(sudo_prog) => {
-                let mut args: Vec<OsString> =
-                    vec!["-p".into(), "[sudo hab-studio] password for %u: ".into(), "-E".into()];
+                let mut args: Vec<OsString> = vec!["-p".into(),
+                                                   "[sudo hab-studio] password for %u: ".into(),
+                                                   "-E".into()];
                 args.append(&mut env::args_os().collect());
                 Ok(try!(process::become_command(sudo_prog, args)))
             }
@@ -225,7 +226,9 @@ mod inner {
                 .spawn()
                 .expect("docker failed to start");
 
-            let output = child.wait_with_output().expect("failed to wait on child");
+            let output = child
+                .wait_with_output()
+                .expect("failed to wait on child");
 
             if output.status.success() {
                 debug!("Docker image is reachable. Proceeding with launching docker.");

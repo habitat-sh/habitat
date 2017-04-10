@@ -264,8 +264,8 @@ pub fn find_command_in_pkg(command: &str,
                            -> Result<Option<PathBuf>> {
     for path in try!(pkg_install.paths()) {
         let stripped =
-            path.strip_prefix("/").expect(&format!("Package path missing / prefix {}",
-                                                   path.to_string_lossy()));
+            path.strip_prefix("/")
+                .expect(&format!("Package path missing / prefix {}", path.to_string_lossy()));
         let candidate = fs_root_path.join(stripped).join(command);
         if candidate.is_file() {
             return Ok(Some(path.join(command)));

@@ -17,10 +17,12 @@ use db::migration::Migrator;
 use error::Result;
 
 pub fn migrate(migrator: &mut Migrator) -> Result<()> {
-    migrator.migrate("originsrv",
-                     r#"CREATE SEQUENCE IF NOT EXISTS origin_secret_key_id_seq;"#)?;
-    migrator.migrate("originsrv",
-                     r#"CREATE TABLE origin_secret_keys (
+    migrator
+        .migrate("originsrv",
+                 r#"CREATE SEQUENCE IF NOT EXISTS origin_secret_key_id_seq;"#)?;
+    migrator
+        .migrate("originsrv",
+                 r#"CREATE TABLE origin_secret_keys (
                     id bigint PRIMARY KEY DEFAULT next_id_v1('origin_secret_key_id_seq'),
                     origin_id bigint REFERENCES origins(id),
                     owner_id bigint,
@@ -54,8 +56,9 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                          RETURN;
                      END
                  $$ LANGUAGE plpgsql VOLATILE"#)?;
-    migrator.migrate("originsrv",
-                     r#"CREATE OR REPLACE FUNCTION get_origin_secret_key_v1 (
+    migrator
+        .migrate("originsrv",
+                 r#"CREATE OR REPLACE FUNCTION get_origin_secret_key_v1 (
                     osk_name text
                  ) RETURNS SETOF origin_secret_keys AS $$
                     BEGIN

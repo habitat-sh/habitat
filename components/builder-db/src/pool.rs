@@ -40,10 +40,12 @@ impl Pool {
                testing: bool)
                -> Result<Pool> {
         loop {
-            let pool_config_builder =
-                r2d2::Config::builder().pool_size(pool_size).connection_timeout(connection_timeout);
+            let pool_config_builder = r2d2::Config::builder()
+                .pool_size(pool_size)
+                .connection_timeout(connection_timeout);
             let pool_config = if testing {
-                pool_config_builder.connection_customizer(Box::new(TestConnectionCustomizer {}))
+                pool_config_builder
+                    .connection_customizer(Box::new(TestConnectionCustomizer {}))
                     .build()
             } else {
                 pool_config_builder.build()
@@ -88,9 +90,12 @@ impl r2d2::CustomizeConnection<postgres::Connection, r2d2_postgres::Error>
                                       schema_number);
         let sql_create_schema = format!("CREATE SCHEMA builder_db_test_{}", schema_number);
         let sql_search_path = format!("SET search_path TO builder_db_test_{}", schema_number);
-        conn.execute(&sql_drop_schema, &[]).map_err(r2d2_postgres::Error::Other)?;
-        conn.execute(&sql_create_schema, &[]).map_err(r2d2_postgres::Error::Other)?;
-        conn.execute(&sql_search_path, &[]).map_err(r2d2_postgres::Error::Other)?;
+        conn.execute(&sql_drop_schema, &[])
+            .map_err(r2d2_postgres::Error::Other)?;
+        conn.execute(&sql_create_schema, &[])
+            .map_err(r2d2_postgres::Error::Other)?;
+        conn.execute(&sql_search_path, &[])
+            .map_err(r2d2_postgres::Error::Other)?;
         Ok(())
     }
 }

@@ -112,13 +112,16 @@ impl WorkerMgr {
             let cfg = self.config.read().unwrap();
             println!("Listening for commands on {}",
                      cfg.worker_command_addr.to_addr_string());
-            try!(self.rq_sock.bind(&cfg.worker_command_addr.to_addr_string()));
+            try!(self.rq_sock
+                     .bind(&cfg.worker_command_addr.to_addr_string()));
             println!("Listening for heartbeats on {}",
                      cfg.worker_heartbeat_addr.to_addr_string());
-            try!(self.hb_sock.bind(&cfg.worker_heartbeat_addr.to_addr_string()));
+            try!(self.hb_sock
+                     .bind(&cfg.worker_heartbeat_addr.to_addr_string()));
             println!("Publishing job status on {}",
                      cfg.status_publisher_addr.to_addr_string());
-            try!(self.pub_sock.bind(&cfg.status_publisher_addr.to_addr_string()));
+            try!(self.pub_sock
+                     .bind(&cfg.status_publisher_addr.to_addr_string()));
         }
         let mut hb_sock = false;
         let mut rq_sock = false;
@@ -196,7 +199,9 @@ impl WorkerMgr {
                         self.datastore.set_job_state(&job)?;
                         continue;
                     }
-                    if self.rq_sock.send(&job.write_to_bytes().unwrap(), 0).is_err() {
+                    if self.rq_sock
+                           .send(&job.write_to_bytes().unwrap(), 0)
+                           .is_err() {
                         debug!("failed to send, worker went away, worker={:?}", worker);
                         job.set_state(jobsrv::JobState::Pending);
                         self.datastore.set_job_state(&job)?;
@@ -238,7 +243,8 @@ impl WorkerMgr {
             jobsrv::WorkerState::Ready => {
                 let now = Instant::now();
                 let expiry = now + Duration::from_millis(WORKER_TIMEOUT_MS);
-                self.workers.insert(heartbeat.get_endpoint().to_string(), expiry);
+                self.workers
+                    .insert(heartbeat.get_endpoint().to_string(), expiry);
             }
             jobsrv::WorkerState::Busy => {
                 self.workers.remove(heartbeat.get_endpoint());

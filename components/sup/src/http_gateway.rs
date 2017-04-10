@@ -159,10 +159,12 @@ impl Server {
 
     pub fn start(self) -> Result<JoinHandle<()>> {
         let handle = try!(thread::Builder::new()
-            .name("http-gateway".to_string())
-            .spawn(move || {
-                self.0.http(*self.1).expect("unable to start http-gateway thread");
-            }));
+                              .name("http-gateway".to_string())
+                              .spawn(move || {
+                                         self.0
+                                             .http(*self.1)
+                                             .expect("unable to start http-gateway thread");
+                                     }));
         Ok(handle)
     }
 }
@@ -281,9 +283,6 @@ fn build_service_group(req: &mut Request) -> Result<ServiceGroup> {
                                    .unwrap()
                                    .find("group")
                                    .unwrap_or(""),
-                               req.extensions
-                                   .get::<Router>()
-                                   .unwrap()
-                                   .find("org"))?;
+                               req.extensions.get::<Router>().unwrap().find("org"))?;
     Ok(sg)
 }

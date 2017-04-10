@@ -269,5 +269,7 @@ pub trait IndexSet: Bucket {
 }
 
 fn redis_connection_info(addr: &SocketAddr) -> redis::ConnectionInfo {
-    format!("redis://{}:{}", addr.ip(), addr.port()).into_connection_info().unwrap()
+    format!("redis://{}:{}", addr.ip(), addr.port())
+        .into_connection_info()
+        .unwrap()
 }

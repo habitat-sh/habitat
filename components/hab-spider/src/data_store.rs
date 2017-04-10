@@ -67,7 +67,8 @@ impl DataStore {
 
         let conn = self.pool.get()?;
 
-        let rows = &conn.query("SELECT * FROM get_packages_v1()", &[]).map_err(Error::PackagesGet)?;
+        let rows = &conn.query("SELECT * FROM get_packages_v1()", &[])
+                        .map_err(Error::PackagesGet)?;
 
         if rows.is_empty() {
             warn!("No packages found");

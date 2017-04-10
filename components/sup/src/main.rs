@@ -284,7 +284,8 @@ fn sub_start(m: &ArgMatches) -> Result<()> {
         Some(ident_or_artifact) => {
             let ident = if Path::new(ident_or_artifact).is_file() {
                 maybe_local_artifact = Some(ident_or_artifact);
-                PackageArchive::new(Path::new(ident_or_artifact)).ident()?
+                PackageArchive::new(Path::new(ident_or_artifact))
+                    .ident()?
             } else {
                 PackageIdent::from_str(ident_or_artifact)?
             };
@@ -437,7 +438,9 @@ fn spec_from_matches(ident: PackageIdent, m: &ArgMatches) -> Result<ServiceSpec>
         outputln!("");
         outputln!("{} Setting '{}' should only be used in development, not production!",
                   Red.bold().paint("WARNING:".to_string()),
-                  Yellow.bold().paint(format!("--config-from {}", config_from)));
+                  Yellow
+                      .bold()
+                      .paint(format!("--config-from {}", config_from)));
         outputln!("");
     }
 

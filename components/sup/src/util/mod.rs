@@ -72,10 +72,12 @@ pub fn parse_ip_port_with_defaults(s: Option<&str>,
 pub fn create_command<S: AsRef<OsStr>>(path: S, cfg: &RuntimeConfig) -> Result<Command> {
     let mut cmd = Command::new(path);
     use std::os::unix::process::CommandExt;
-    let uid = os::users::get_uid_by_name(&cfg.svc_user).ok_or(sup_error!(Error::Permissions(
-                format!("No uid for user '{}' could be found", &cfg.svc_user))))?;
-    let gid = os::users::get_gid_by_name(&cfg.svc_group).ok_or(sup_error!(Error::Permissions(
-                format!("No gid for group '{}' could be found", &cfg.svc_group))))?;
+    let uid = os::users::get_uid_by_name(&cfg.svc_user)
+        .ok_or(sup_error!(Error::Permissions(format!("No uid for user '{}' could be found",
+                                                     &cfg.svc_user))))?;
+    let gid = os::users::get_gid_by_name(&cfg.svc_group)
+        .ok_or(sup_error!(Error::Permissions(format!("No gid for group '{}' could be found",
+                                                     &cfg.svc_group))))?;
 
     cmd.stdin(Stdio::null())
         .stdout(Stdio::piped())

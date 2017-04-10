@@ -133,7 +133,10 @@ impl<T: Rumor> RumorStore<T> {
     /// Create a new RumorStore for the given type. Allows you to initialize the counter to a
     /// pre-set value. Useful mainly in testing.
     pub fn new(counter: usize) -> RumorStore<T> {
-        RumorStore { update_counter: Arc::new(AtomicUsize::new(counter)), ..Default::default() }
+        RumorStore {
+            update_counter: Arc::new(AtomicUsize::new(counter)),
+            ..Default::default()
+        }
     }
 
     /// Clear all rumors and reset update counter of RumorStore.
@@ -167,7 +170,8 @@ impl<T: Rumor> RumorStore<T> {
     /// mutated; if nothing changed, returns false.
     pub fn insert(&self, rumor: T) -> bool {
         let mut list = self.list.write().expect("Rumor store lock poisoned");
-        let mut rumors = list.entry(String::from(rumor.key())).or_insert(HashMap::new());
+        let mut rumors = list.entry(String::from(rumor.key()))
+            .or_insert(HashMap::new());
         // Result reveals if there was a change so we can increment the counter if needed.
         let result = match rumors.entry(rumor.id().into()) {
             Entry::Occupied(mut entry) => entry.get_mut().merge(rumor),
@@ -265,7 +269,9 @@ impl RumorList {
     /// Add/Update a rumor to the list.
     pub fn insert<T: Into<RumorKey>>(&self, rumor: T) {
         let rk: RumorKey = rumor.into();
-        let mut rumors = self.rumor_list.write().expect("Rumor Map lock poisoned");
+        let mut rumors = self.rumor_list
+            .write()
+            .expect("Rumor Map lock poisoned");
         rumors.insert(rk, HashMap::new());
     }
 
@@ -273,7 +279,8 @@ impl RumorList {
     /// So all the "0" rumors sort higher than the "2" rumors.
     pub fn rumors(&self, id: &str) -> RumorVec {
         let rumors = self.rumor_list.read().expect("Rumor map lock poisoned");
-        let mut rumor_vec: RumorVec = rumors.iter()
+        let mut rumor_vec: RumorVec = rumors
+            .iter()
             .map(|(rk, heat_map)| match heat_map.get(id) {
                      Some(h) => (rk.clone(), h.clone()),
                      None => (rk.clone(), 0),
@@ -286,10 +293,7 @@ impl RumorList {
 
     /// Take a certain amount of rumors.
     pub fn take(&self, id: &str, amount: usize) -> RumorVec {
-        self.rumors(id)
-            .into_iter()
-            .take(amount)
-            .collect()
+        self.rumors(id).into_iter().take(amount).collect()
     }
 
     /// Take a certain amount of rumors of a given kind.
@@ -304,7 +308,9 @@ impl RumorList {
     /// Increment the heat for a given member for the list of rumors given.
     pub fn update_heat(&self, id: &str, rumors: &RumorVec) {
         if rumors.len() > 0 {
-            let mut rumor_map = self.rumor_list.write().expect("Rumor map lock poisoned");
+            let mut rumor_map = self.rumor_list
+                .write()
+                .expect("Rumor map lock poisoned");
             for &(ref rk, ref _heat) in rumors {
                 if rumor_map.contains_key(&rk) {
                     let mut heat_map = rumor_map.get_mut(&rk).unwrap();
@@ -456,11 +462,7 @@ mod tests {
 
             assert!(rs.insert(f1));
             assert!(rs.insert(f2));
-            assert_eq!(rs.list
-                           .read()
-                           .unwrap()
-                           .len(),
-                       1);
+            assert_eq!(rs.list.read().unwrap().len(), 1);
             assert_eq!(rs.list
                            .read()
                            .unwrap()
@@ -489,13 +491,7 @@ mod tests {
             let f2 = FakeRumor::default();
             assert!(rs.insert(f1));
             assert!(rs.insert(f2));
-            assert_eq!(rs.list
-                           .read()
-                           .unwrap()
-                           .get(&key)
-                           .unwrap()
-                           .len(),
-                       2);
+            assert_eq!(rs.list.read().unwrap().get(&key).unwrap().len(), 2);
         }
 
         #[test]
@@ -571,7 +567,9 @@ mod tests {
             }
             let rumors = rl.take_by_kind(&String::from("fake"), 100, Rumor_Type::Fake2);
             assert_eq!(rumors.len(), 100);
-            assert_eq!(rumors.iter().all(|&(ref rk, ref _heat)| rk.kind == Rumor_Type::Fake2),
+            assert_eq!(rumors
+                           .iter()
+                           .all(|&(ref rk, ref _heat)| rk.kind == Rumor_Type::Fake2),
                        true);
         }
 

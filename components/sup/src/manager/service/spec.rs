@@ -111,7 +111,8 @@ impl ServiceSpec {
 
     pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self> {
         let file =
-            File::open(&path).map_err(|err| {
+            File::open(&path)
+                .map_err(|err| {
                              sup_error!(Error::ServiceSpecFileIO(path.as_ref().to_path_buf(), err))
                          })?;
         let mut file = BufReader::new(file);
@@ -125,32 +126,29 @@ impl ServiceSpec {
         debug!("Writing service spec to '{}': {:?}",
                path.as_ref().display(),
                &self);
-        let dst_path =
-            path.as_ref().parent().expect("Cannot determine parent directory for service spec");
-        let tmpfile = path.as_ref().with_extension(thread_rng()
-                                                       .gen_ascii_chars()
-                                                       .take(8)
-                                                       .collect::<String>());
-        fs::create_dir_all(dst_path).map_err(|err| {
-                         sup_error!(Error::ServiceSpecFileIO(path.as_ref()
-                                                                    .to_path_buf(),
-                                                                err))
-                     })?;
+        let dst_path = path.as_ref()
+            .parent()
+            .expect("Cannot determine parent directory for service spec");
+        let tmpfile = path.as_ref()
+            .with_extension(thread_rng()
+                                .gen_ascii_chars()
+                                .take(8)
+                                .collect::<String>());
+        fs::create_dir_all(dst_path)
+            .map_err(|err| sup_error!(Error::ServiceSpecFileIO(path.as_ref().to_path_buf(), err)))?;
         // Release the write file handle before the end of the function since we're done
         {
             let mut file =
-                File::create(&tmpfile).map_err(|err| {
+                File::create(&tmpfile)
+                    .map_err(|err| {
                                  sup_error!(Error::ServiceSpecFileIO(tmpfile.to_path_buf(), err))
                              })?;
             let toml = self.to_toml_string()?;
             file.write_all(toml.as_bytes())
                 .map_err(|err| sup_error!(Error::ServiceSpecFileIO(tmpfile.to_path_buf(), err)))?;
         }
-        fs::rename(&tmpfile, path.as_ref()).map_err(|err| {
-                         sup_error!(Error::ServiceSpecFileIO(path.as_ref()
-                                                                    .to_path_buf(),
-                                                                err))
-                     })?;
+        fs::rename(&tmpfile, path.as_ref())
+            .map_err(|err| sup_error!(Error::ServiceSpecFileIO(path.as_ref().to_path_buf(), err)))?;
 
         Ok(())
     }
@@ -165,7 +163,8 @@ impl ServiceSpec {
     }
 
     fn validate_binds(&self, package: &PackageInstall) -> Result<()> {
-        let missing: Vec<String> = package.binds()?
+        let missing: Vec<String> = package
+            .binds()?
             .into_iter()
             .filter(|bind| {
                         self.binds
@@ -202,8 +201,8 @@ impl FromStr for ServiceSpec {
     type Err = SupError;
 
     fn from_str(toml: &str) -> result::Result<Self, Self::Err> {
-        let spec: ServiceSpec =
-            toml::from_str(toml).map_err(|e| sup_error!(Error::ServiceSpecParse(e)))?;
+        let spec: ServiceSpec = toml::from_str(toml)
+            .map_err(|e| sup_error!(Error::ServiceSpecParse(e)))?;
         if spec.ident == PackageIdent::default() {
             return Err(sup_error!(Error::MissingRequiredIdent));
         }
@@ -307,18 +306,20 @@ mod test {
 
     fn file_from_str<P: AsRef<Path>>(path: P, content: &str) {
         fs::create_dir_all(path.as_ref()
-                .parent()
-                .expect("failed to determine file's parent directory"))
-            .expect("failed to create parent directory recursively");
+                               .parent()
+                               .expect("failed to determine file's parent directory"))
+                .expect("failed to create parent directory recursively");
         let mut file = File::create(path).expect("failed to create file");
-        file.write_all(content.as_bytes()).expect("failed to write content to file");
+        file.write_all(content.as_bytes())
+            .expect("failed to write content to file");
     }
 
     fn string_from_file<P: AsRef<Path>>(path: P) -> String {
         let file = File::open(path).expect("failed to open file");
         let mut file = BufReader::new(file);
         let mut buf = String::new();
-        file.read_to_string(&mut buf).expect("cannot read file to string");
+        file.read_to_string(&mut buf)
+            .expect("cannot read file to string");
         buf
     }
 

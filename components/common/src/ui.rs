@@ -120,7 +120,9 @@ impl UI {
             true => {
                 try!(write!(stream,
                             "{}\n",
-                            Colour::Yellow.bold().paint(format!("∅ {}", message.to_string()))));
+                            Colour::Yellow
+                                .bold()
+                                .paint(format!("∅ {}", message.to_string()))));
             }
             false => {
                 try!(write!(stream, "∅ {}\n", message.to_string()));
@@ -132,7 +134,8 @@ impl UI {
 
     pub fn fatal<T: fmt::Display>(&mut self, message: T) -> Result<()> {
         let ref mut stream = self.shell.err;
-        let formatted_message = message.to_string()
+        let formatted_message = message
+            .to_string()
             .lines()
             .map(|line| format!("✗✗✗ {}", line))
             .collect::<Vec<_>>()
@@ -142,8 +145,10 @@ impl UI {
             true => {
                 try!(write!(stream,
                             "{}\n",
-                            Colour::Red.bold().paint(format!("✗✗✗\n{}\n✗✗✗",
-                                                             formatted_message))));
+                            Colour::Red
+                                .bold()
+                                .paint(format!("✗✗✗\n{}\n✗✗✗",
+                                               formatted_message))));
             }
             false => {
                 try!(write!(stream, "✗✗✗\n{}\n✗✗✗\n", formatted_message));
@@ -168,9 +173,11 @@ impl UI {
                 try!(write!(stream, "{}\n", Colour::Green.bold().paint(text)));
                 try!(write!(stream,
                             "{}\n\n",
-                            Colour::Green.bold().paint(format!("{:=<width$}",
-                                                               "",
-                                                               width = text.chars().count()))));
+                            Colour::Green
+                                .bold()
+                                .paint(format!("{:=<width$}",
+                                               "",
+                                               width = text.chars().count()))));
             }
             false => {
                 try!(write!(stream, "{}\n", text));
@@ -257,10 +264,7 @@ impl UI {
                 let reference = self.shell.input.by_ref();
                 try!(BufReader::new(reference).read_line(&mut response));
             }
-            match response.trim()
-                      .chars()
-                      .next()
-                      .unwrap_or('\n') {
+            match response.trim().chars().next().unwrap_or('\n') {
                 'y' | 'Y' => return Ok(true),
                 'n' | 'N' => return Ok(false),
                 'q' | 'Q' => process::exit(0),
@@ -329,7 +333,9 @@ impl UI {
             true => {
                 try!(write!(stream,
                             "{}\n",
-                            color.bold().paint(format!("{} {}", symbol, message.to_string()))))
+                            color
+                                .bold()
+                                .paint(format!("{} {}", symbol, message.to_string()))))
             }
             false => try!(write!(stream, "{} {}\n", symbol, message.to_string())),
         }

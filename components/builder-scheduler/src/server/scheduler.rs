@@ -117,7 +117,8 @@ impl ScheduleMgr {
         rz.send(()).unwrap();
         loop {
             {
-                let mut items = [self.work_sock.as_poll_item(1), self.status_sock.as_poll_item(1)];
+                let mut items = [self.work_sock.as_poll_item(1),
+                                 self.status_sock.as_poll_item(1)];
                 try!(zmq::poll(&mut items, -1));
 
                 if (items[0].get_revents() & zmq::POLLIN) > 0 {
@@ -167,10 +168,10 @@ impl ScheduleMgr {
     }
 
     fn dispatch_group(&mut self, group: proto::Group) -> Result<()> {
-        for project in group.get_projects().into_iter().filter(|x| {
-                                                                   x.get_state() ==
-                                                                   proto::ProjectState::NotStarted
-                                                               }) {
+        for project in group
+                .get_projects()
+                .into_iter()
+                .filter(|x| x.get_state() == proto::ProjectState::NotStarted) {
             println!("Dispatching project: {:?}", project.get_name());
             assert!(project.get_state() == proto::ProjectState::NotStarted);
 
@@ -188,7 +189,8 @@ impl ScheduleMgr {
                            project.get_name(),
                            err);
 
-                    self.datastore.set_group_state(group.get_id(), proto::GroupState::Failed)?;
+                    self.datastore
+                        .set_group_state(group.get_id(), proto::GroupState::Failed)?;
                     // TBD? set_project_state(group.get_id(), project.get_name(), proto::ProjectState::Failure)?;
                     break;
                 }
@@ -251,10 +253,7 @@ impl ScheduleMgr {
         let mut msg: proto::GroupGet = proto::GroupGet::new();
         msg.set_group_id(group_id);
 
-        let group = self.datastore
-            .get_group(&msg)
-            .unwrap()
-            .unwrap(); // we know the group exists
+        let group = self.datastore.get_group(&msg).unwrap().unwrap(); // we know the group exists
 
         // Group state transition rules:
         // |   Start Group State     |  Projects State  |   New Group State   |

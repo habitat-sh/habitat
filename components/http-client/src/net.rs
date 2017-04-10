@@ -47,8 +47,8 @@ impl<S: SslClient> NetworkConnector for ProxyHttpsConnector<S> {
 
     fn connect(&self, host: &str, port: u16, scheme: &str) -> hyper::Result<Self::Stream> {
         // Initial connection to the proxy server, using an `HttpConnector`
-        let mut stream =
-            try!(self.proxy_connector.connect(self.proxy.host(), self.proxy.port(), "http"));
+        let mut stream = try!(self.proxy_connector
+                                  .connect(self.proxy.host(), self.proxy.port(), "http"));
         match scheme {
             "https" => {
                 // If the target URL is an `"https"` scheme, then we use proxy/TCP tunneling as

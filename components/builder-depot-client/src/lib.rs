@@ -114,14 +114,8 @@ impl Into<depotsrv::Package> for Package {
         out.set_ident(self.ident.into());
         out.set_checksum(self.checksum);
         out.set_manifest(self.manifest);
-        out.set_deps(self.deps
-                         .into_iter()
-                         .map(|m| m.into())
-                         .collect());
-        out.set_tdeps(self.tdeps
-                          .into_iter()
-                          .map(|m| m.into())
-                          .collect());
+        out.set_deps(self.deps.into_iter().map(|m| m.into()).collect());
+        out.set_tdeps(self.tdeps.into_iter().map(|m| m.into()).collect());
         out.set_exposes(self.exposes);
         out.set_config(self.config);
         out
@@ -196,7 +190,9 @@ impl Client {
     }
 
     pub fn show_origin_keys(&self, origin: &str) -> Result<Vec<depotsrv::OriginKeyIdent>> {
-        let mut res = try!(self.inner.get(&format!("origins/{}/keys", origin)).send());
+        let mut res = try!(self.inner
+                               .get(&format!("origins/{}/keys", origin))
+                               .send());
         debug!("Response: {:?}", res);
 
         if res.status != StatusCode::Ok {
@@ -275,8 +271,9 @@ impl Client {
     ///
     /// * Authorization token was not set on client
     pub fn fetch_origin_secret_key(&self, origin: &str, token: &str) -> Result<OriginSecretKey> {
-        let mut res = try!(self.add_authz(self.inner.get(&format!("origins/{}/secret_keys/latest",
-                                                                  origin)),
+        let mut res = try!(self.add_authz(self.inner
+                                              .get(&format!("origins/{}/secret_keys/latest",
+                                                            origin)),
                                           token)
                                .send());
         if res.status != StatusCode::Ok {
@@ -431,7 +428,9 @@ impl Client {
         let file_size = try!(file.metadata()).len();
         let path = format!("pkgs/{}", ident);
         let custom = |url: &mut Url| {
-            url.query_pairs_mut().append_pair("checksum", &checksum).append_pair("builder", "");
+            url.query_pairs_mut()
+                .append_pair("checksum", &checksum)
+                .append_pair("builder", "");
         };
         debug!("Reading from {}", &pa.path.display());
 
@@ -487,7 +486,9 @@ impl Client {
                           search_term: String)
                           -> Result<(Vec<hab_core::package::PackageIdent>, bool)> {
 
-        let mut res = try!(self.inner.get(&format!("pkgs/search/{}", search_term)).send());
+        let mut res = try!(self.inner
+                               .get(&format!("pkgs/search/{}", search_term))
+                               .send());
         match res.status {
             StatusCode::Ok |
             StatusCode::PartialContent => {
@@ -529,17 +530,20 @@ impl Client {
             Some(filename) => format!("{}", filename),
             None => return Err(Error::NoXFilename),
         };
-        let tmp_file_path =
-            dst_path.join(format!("{}.tmp-{}",
-                                  file_name,
-                                  thread_rng().gen_ascii_chars().take(8).collect::<String>()));
+        let tmp_file_path = dst_path.join(format!("{}.tmp-{}",
+                                                  file_name,
+                                                  thread_rng()
+                                                      .gen_ascii_chars()
+                                                      .take(8)
+                                                      .collect::<String>()));
         let dst_file_path = dst_path.join(file_name);
         debug!("Writing to {}", &tmp_file_path.display());
         let mut f = try!(File::create(&tmp_file_path));
         match progress {
             Some(mut progress) => {
-                let size: u64 =
-                    res.headers.get::<hyper::header::ContentLength>().map_or(0, |v| **v);
+                let size: u64 = res.headers
+                    .get::<hyper::header::ContentLength>()
+                    .map_or(0, |v| **v);
                 progress.size(size);
                 let mut writer = BroadcastWriter::new(&mut f, progress);
                 try!(io::copy(&mut res, &mut writer))

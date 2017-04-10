@@ -56,7 +56,9 @@ impl Publish {
             return false;
         };
 
-        if let Some(err) = client.promote_package(archive, &self.channel, auth_token).err() {
+        if let Some(err) = client
+               .promote_package(archive, &self.channel, auth_token)
+               .err() {
             error!("post processing error promoting package, ERR={:?}", err);
             return false;
         };
@@ -67,7 +69,9 @@ impl Publish {
 impl Default for Publish {
     fn default() -> Self {
         Publish {
-            enabled: hab_core::url::default_depot_publish().parse::<bool>().unwrap(),
+            enabled: hab_core::url::default_depot_publish()
+                .parse::<bool>()
+                .unwrap(),
             url: hab_core::url::default_depot_url(),
             channel: hab_core::url::default_depot_channel(),
         }
@@ -92,7 +96,9 @@ pub struct PostProcessor {
 
 impl PostProcessor {
     pub fn new(workspace: &Workspace) -> Self {
-        let parent_path = Path::new(workspace.job.get_project().get_plan_path()).parent().unwrap();
+        let parent_path = Path::new(workspace.job.get_project().get_plan_path())
+            .parent()
+            .unwrap();
         let file_path = workspace.src().join(parent_path.join(CONFIG_FILE));
 
         PostProcessor { config_path: file_path }

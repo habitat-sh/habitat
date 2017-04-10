@@ -90,13 +90,15 @@ impl Outbound {
                 if self.server.member_list.len() >= min_to_start {
                     have_members = true;
                 } else {
-                    self.server.member_list.with_initial_members(|member| {
-                        ping(&self.server,
-                             &self.socket,
-                             &member,
-                             member.swim_socket_address(),
-                             None);
-                    });
+                    self.server
+                        .member_list
+                        .with_initial_members(|member| {
+                                                  ping(&self.server,
+                                                       &self.socket,
+                                                       &member,
+                                                       member.swim_socket_address(),
+                                                       None);
+                                              });
                 }
             }
 
@@ -109,11 +111,13 @@ impl Outbound {
 
             let long_wait = self.timing.next_protocol_period();
 
-            let check_list = self.server.member_list.check_list(self.server
-                                                                    .member
-                                                                    .read()
-                                                                    .expect("Member is poisoned")
-                                                                    .get_id());
+            let check_list = self.server
+                .member_list
+                .check_list(self.server
+                                .member
+                                .read()
+                                .expect("Member is poisoned")
+                                .get_id());
 
             for member in check_list {
                 if self.server.member_list.pingable(&member) {
@@ -173,15 +177,15 @@ impl Outbound {
             return;
         }
 
-        self.server.member_list.with_pingreq_targets(self.server.member_id(),
-                                                     member.get_id(),
-                                                     |pingreq_target| {
-            trace_it!(PROBE: &self.server,
+        self.server
+            .member_list
+            .with_pingreq_targets(self.server.member_id(), member.get_id(), |pingreq_target| {
+                trace_it!(PROBE: &self.server,
                           TraceKind::ProbePingReq,
                           pingreq_target.get_id(),
                           pingreq_target.get_address());
-            pingreq(&self.server, &self.socket, &pingreq_target, &member);
-        });
+                pingreq(&self.server, &self.socket, &pingreq_target, &member);
+            });
         if !self.recv_ack(&member, addr, AckFrom::PingReq) {
             // We mark as suspect when we fail to get a response from the PingReq. That moves us
             // into the suspicion phase, where anyone marked as suspect has a certain number of
@@ -250,7 +254,9 @@ pub fn populate_membership_rumors(server: &Server, target: &Member, swim: &mut S
         let always_target = server.member_list.membership_for(target.get_id());
         membership_entries.push(always_target);
     }
-    let rumors = server.rumor_list.take_by_kind(target.get_id(), 5, Rumor_Type::Member);
+    let rumors = server
+        .rumor_list
+        .take_by_kind(target.get_id(), 5, Rumor_Type::Member);
     for &(ref rkey, _heat) in rumors.iter() {
         membership_entries.push(server.member_list.membership_for(&rkey.key()));
     }

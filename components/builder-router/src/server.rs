@@ -145,10 +145,7 @@ impl Server {
                         self.state = SocketState::Cleaning;
                         continue;
                     }
-                    match self.envelope
-                              .msg
-                              .get_route_info()
-                              .get_protocol() {
+                    match self.envelope.msg.get_route_info().get_protocol() {
                         Protocol::RouteSrv => try!(self.handle_message()),
                         _ => try!(self.route_message()),
                     }
@@ -184,9 +181,12 @@ impl Server {
         let registration: routesrv::Registration = try!(parse_from_bytes(&self.req));
         debug!("received server reg, {:?}", registration);
         if !self.servers.contains_key(&registration.get_protocol()) {
-            self.servers.insert(registration.get_protocol(), HashMap::new());
+            self.servers
+                .insert(registration.get_protocol(), HashMap::new());
         }
-        let shards = self.servers.get_mut(&registration.get_protocol()).unwrap();
+        let shards = self.servers
+            .get_mut(&registration.get_protocol())
+            .unwrap();
         for shard in registration.get_shards().iter() {
             let server = hab_net::ServerReg::new(registration.get_endpoint().to_string());
             shards.insert(*shard, server);
@@ -207,7 +207,9 @@ impl Server {
                 let req: routesrv::Connect = parse_from_bytes(msg.get_body()).unwrap();
                 debug!("Connect={:?}", req);
                 let rep = protocol::Message::new(&routesrv::ConnectOk::new()).build();
-                self.fe_sock.send(&rep.write_to_bytes().unwrap(), 0).unwrap();
+                self.fe_sock
+                    .send(&rep.write_to_bytes().unwrap(), 0)
+                    .unwrap();
             }
             "Disconnect" => {
                 let req: routesrv::Disconnect = parse_from_bytes(msg.get_body()).unwrap();
@@ -239,11 +241,8 @@ impl Server {
                             try!(self.fe_sock.send(&*hop, zmq::SNDMORE));
                         }
                         try!(self.fe_sock.send(&[], zmq::SNDMORE));
-                        try!(self.fe_sock.send(&self.envelope
-                                                    .msg
-                                                    .write_to_bytes()
-                                                    .unwrap(),
-                                               0));
+                        try!(self.fe_sock
+                                 .send(&self.envelope.msg.write_to_bytes().unwrap(), 0));
                     }
                     None => {
                         warn!("failed to route message, no server servicing shard, msg={:?}",

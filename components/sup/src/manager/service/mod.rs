@@ -107,7 +107,9 @@ impl Service {
         let spec_file = manager_fs_cfg.specs_path.join(spec.file_name());
         let service_group = ServiceGroup::new(&package.ident.name, spec.group, organization)?;
         let runtime_cfg = Self::runtime_config_from(&package)?;
-        let config_root = spec.config_from.clone().unwrap_or(package.installed_path.clone());
+        let config_root = spec.config_from
+            .clone()
+            .unwrap_or(package.installed_path.clone());
         let svc_cfg = ServiceConfig::new(&package,
                                          &runtime_cfg,
                                          config_root,
@@ -262,10 +264,7 @@ impl Service {
                 outputln!(preamble self.service_group, "Service restart failed: {}", err);
             }
         } else {
-            let hook = self.hooks
-                .reload
-                .as_ref()
-                .unwrap();
+            let hook = self.hooks.reload.as_ref().unwrap();
             hook.run(&self.service_group, self.runtime_cfg());
         }
     }
@@ -305,9 +304,12 @@ impl Service {
                 self.execute_hooks();
             }
             Topology::Leader => {
-                let census = census_list.get(&*self.service_group)
+                let census = census_list
+                    .get(&*self.service_group)
                     .expect("Service Group's census entry missing from list!");
-                let me = census.me().expect("Census corrupt, service can't find 'me'");
+                let me = census
+                    .me()
+                    .expect("Census corrupt, service can't find 'me'");
                 let current_election_status = me.get_election_status();
                 match current_election_status {
                     ElectionStatus::None => {
@@ -336,7 +338,8 @@ impl Service {
                         }
                     }
                     ElectionStatus::ElectionFinished => {
-                        let leader_id = census.get_leader()
+                        let leader_id = census
+                            .get_leader()
                             .expect("No leader with finished election")
                             .get_member_id();
                         if self.last_election_status != current_election_status {
@@ -412,13 +415,17 @@ impl Service {
                 return;
             }
         };
-        let config_root = self.config_from.clone().unwrap_or(package.installed_path.clone());
+        let config_root = self.config_from
+            .clone()
+            .unwrap_or(package.installed_path.clone());
         let hooks_path = fs::svc_hooks_path(self.service_group.service());
         self.hooks = HookTable::default().load_hooks(&self.service_group,
                                                      hooks_path,
                                                      &config_root.join("hooks"));
 
-        if let Some(err) = self.config.reload_package(&package, config_root, &runtime_cfg).err() {
+        if let Some(err) = self.config
+               .reload_package(&package, config_root, &runtime_cfg)
+               .err() {
             outputln!(preamble self.service_group,
                 "Failed to reload service config with updated package: {}", err);
         }
@@ -585,8 +592,9 @@ impl Service {
     }
 
     fn cache_health_check(&self, check_result: HealthCheck) {
-        let state_file =
-            self.manager_fs_cfg.data_path.join(format!("{}.health", self.service_group.service()));
+        let state_file = self.manager_fs_cfg
+            .data_path
+            .join(format!("{}.health", self.service_group.service()));
         let tmp_file = state_file.with_extension("tmp");
         let file = match File::create(&tmp_file) {
             Ok(file) => file,
@@ -598,7 +606,9 @@ impl Service {
             }
         };
         let mut writer = BufWriter::new(file);
-        if let Some(err) = writer.write_all((check_result as i8).to_string().as_bytes()).err() {
+        if let Some(err) = writer
+               .write_all((check_result as i8).to_string().as_bytes())
+               .err() {
             warn!("Couldn't write to temporary health check state file, {}, {}",
                   self.service_group,
                   err);
@@ -619,7 +629,9 @@ impl Service {
                 try!(set_permissions(&svc_run.to_str().unwrap(), HOOK_PERMISSIONS));
             }
             None => {
-                let run = self.package().installed_path().join(hooks::RunHook::file_name());
+                let run = self.package()
+                    .installed_path()
+                    .join(hooks::RunHook::file_name());
                 match std::fs::metadata(&run) {
                     Ok(_) => {
                         try!(std::fs::copy(&run, &svc_run));
@@ -684,7 +696,8 @@ impl Service {
     fn persist_service_files(&mut self, butterfly: &butterfly::Server) -> bool {
         let mut updated = false;
         for (incarnation, filename, body) in
-            butterfly.service_files_for(&*self.service_group, &self.current_service_files)
+            butterfly
+                .service_files_for(&*self.service_group, &self.current_service_files)
                 .into_iter() {
             if self.write_butterfly_service_file(filename, incarnation, body) {
                 updated = true;
@@ -733,18 +746,20 @@ impl Service {
         if let Some(cfg) = self.config.to_exported().ok() {
             let me = butterfly.member_id().to_string();
             let mut updated = None;
-            butterfly.service_store.with_rumor(&*self.service_group, &me, |rumor| {
-                if let Some(rumor) = rumor {
-                    let mut rumor = rumor.clone();
-                    let incarnation = rumor.get_incarnation() + 1;
-                    rumor.set_incarnation(incarnation);
-                    // TODO FN: the updated toml API returns a `Result` when
-                    // serializing--we should handle this and not potentially panic
-                    *rumor.mut_cfg() =
-                        toml::ser::to_vec(&cfg).expect("Can't serialize to TOML bytes");
-                    updated = Some(rumor);
-                }
-            });
+            butterfly
+                .service_store
+                .with_rumor(&*self.service_group, &me, |rumor| {
+                    if let Some(rumor) = rumor {
+                        let mut rumor = rumor.clone();
+                        let incarnation = rumor.get_incarnation() + 1;
+                        rumor.set_incarnation(incarnation);
+                        // TODO FN: the updated toml API returns a `Result` when
+                        // serializing--we should handle this and not potentially panic
+                        *rumor.mut_cfg() =
+                            toml::ser::to_vec(&cfg).expect("Can't serialize to TOML bytes");
+                        updated = Some(rumor);
+                    }
+                });
             if let Some(rumor) = updated {
                 butterfly.insert_service(rumor);
                 last_update.service_counter += 1;
@@ -757,7 +772,8 @@ impl Service {
                                     incarnation: u64,
                                     body: Vec<u8>)
                                     -> bool {
-        self.current_service_files.insert(filename.clone(), incarnation);
+        self.current_service_files
+            .insert(filename.clone(), incarnation);
         let on_disk_path = self.svc_files_path().join(filename);
         let current_checksum = match hash::hash_file(&on_disk_path) {
             Ok(current_checksum) => current_checksum,

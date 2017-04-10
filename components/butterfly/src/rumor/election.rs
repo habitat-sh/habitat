@@ -221,7 +221,9 @@ impl ElectionUpdate {
                                  suitability: u64)
                                  -> ElectionUpdate {
         let mut election = Election::new(member_id, service_group, suitability);
-        election.0.set_field_type(ProtoRumor_Type::ElectionUpdate);
+        election
+            .0
+            .set_field_type(ProtoRumor_Type::ElectionUpdate);
         ElectionUpdate(election)
     }
 }
@@ -243,7 +245,9 @@ impl DerefMut for ElectionUpdate {
 impl From<ProtoRumor> for ElectionUpdate {
     fn from(pr: ProtoRumor) -> ElectionUpdate {
         let mut election = Election::from(pr);
-        election.0.set_field_type(ProtoRumor_Type::ElectionUpdate);
+        election
+            .0
+            .set_field_type(ProtoRumor_Type::ElectionUpdate);
         ElectionUpdate(election)
     }
 }

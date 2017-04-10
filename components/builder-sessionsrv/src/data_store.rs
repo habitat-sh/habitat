@@ -84,7 +84,8 @@ impl AccountTable {
             try!(self.github.write(&req.get_extern_id(), account.get_id()));
             // TODO: route a message to the appropriate sessionsrv, and
             // that sessionsrv will write to the db
-            try!(self.user_to_account.write(&req.get_name().to_string(), account.get_id()));
+            try!(self.user_to_account
+                     .write(&req.get_name().to_string(), account.get_id()));
             Ok(account)
         }
     }
