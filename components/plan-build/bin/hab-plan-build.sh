@@ -102,7 +102,8 @@
 # ```
 #
 # ### pkg_source
-# Where to download the source from. Any valid `wget` url will work.
+# Where to download an external source from. Any valid `wget` url will work. If
+# the source is local to the `plan.sh`, then omit this value.
 # ```
 # pkg_source=http://downloads.sourceforge.net/project/libpng/$pkg_name/${pkg_version}/${pkg_name}-${pkg_version}.tar.gz
 # ```
@@ -114,8 +115,9 @@
 # ```
 #
 # ### pkg_shasum
-# The sha256 sum of the downloaded `$pkg_source`. You can easily generate by
-# downloading the source and using `sha256sum` or `gsha256sum`.
+# The sha256 sum of for the externally downloaded `$pkg_source`, if used. You
+# can easily generate by downloading the source and using `sha256sum` or
+# `gsha256sum`.
 # ```
 # pkg_shasum=36658cb768a54c1d4dec43c3116c27ed893e88b02ecfcb44f2166f9c0b7f2a0d
 # ```
@@ -241,7 +243,8 @@
 # * `$pkg_svc_var_path`: Variable state; `$pkg_svc_path/var`
 # * `$pkg_svc_config_path`: Configuration; `$pkg_svc_path/config`
 # * `$pkg_svc_static_path`: Static content; `$pkg_svc_path/static`
-# * `$HAB_CACHE_SRC_PATH`: The path to all the package sources
+# * `$HAB_CACHE_SRC_PATH`: The path to all the externally downloaded package
+#      sources
 # * `$HAB_CACHE_ARTIFACT_PATH`: The default download root path for package
 #      artifacts, used on package installation
 # * `$HAB_CACHE_KEY_PATH`: The path where cryptographic keys are stored
@@ -1862,8 +1865,8 @@ _set_environment() {
   done
 }
 
-# Download the software from `$pkg_source` and place it in
-# `$HAB_CACHE_SRC_PATH/${$pkg_filename}`. If the source already exists in the
+# If `$pkg_source` is being used, download the software and place it in
+# `$HAB_CACHE_SRC_PATH/$pkg_filename`. If the source already exists in the
 # cache, verify that the checksum is what we expect, and skip the download.
 # Delegates most of the implementation to the `do_default_download()` function.
 do_download() {
@@ -1873,12 +1876,18 @@ do_download() {
 
 # Default implementation for the `do_download()` phase.
 do_default_download() {
+  # If the source is local (and `$pkg_source` is not set) then return, nothing
+  # to do
+  if [[ -z "${pkg_source:-}" ]]; then
+    return 0
+  fi
+
   download_file $pkg_source $pkg_filename $pkg_shasum
 }
 
-# Verify that the package we have in `$HAB_CACHE_SRC_PATH/$pkg_filename` has
-# the `$pkg_shasum` we expect. Delegates most of the implementation to the
-# `do_default_verify()` function.
+# If `$pkg_source` is being used, verify that the package we have in
+# `$HAB_CACHE_SRC_PATH/$pkg_filename` has the `$pkg_shasum` we expect.
+# Delegates most of the implementation to the `do_default_verify()` function.
 do_verify() {
   do_default_verify
   return $?
@@ -1886,7 +1895,9 @@ do_verify() {
 
 # Default implementation for the `do_verify()` phase.
 do_default_verify() {
-  verify_file $pkg_filename $pkg_shasum
+  if [[ -n "${pkg_filename:-}" ]]; then
+    verify_file $pkg_filename $pkg_shasum
+  fi
 }
 
 # Clean up the remnants of any previous build job, ensuring it can't pollute
@@ -1900,12 +1911,13 @@ do_clean() {
 # Default implementation for the `do_clean()` phase.
 do_default_clean() {
   build_line "Clean the cache"
-  rm -rf "$HAB_CACHE_SRC_PATH/$pkg_dirname"
+  rm -rf "$CACHE_PATH"
   return 0
 }
 
-# Takes the `$HAB_CACHE_SRC_PATH/$pkg_filename` from the download step, and
-# unpacks it, as long as the method of extraction can be determined.
+# If `$pkg_source` is being used, we take the
+# `$HAB_CACHE_SRC_PATH/$pkg_filename` from the download step and unpack it,
+# as long as the method of extraction can be determined.
 #
 # This takes place in the $HAB_CACHE_SRC_PATH directory.
 #
@@ -1917,7 +1929,9 @@ do_unpack() {
 
 # Default implementation for the `do_unpack()` phase.
 do_default_unpack() {
-  unpack_file $pkg_filename
+  if [[ -n "${pkg_filename:-}" ]]; then
+    unpack_file $pkg_filename
+  fi
 }
 
 # **Internal** Set up our build environment. First, add any library paths
@@ -2021,8 +2035,8 @@ _build_environment() {
     fi
   done
 
-  # Create a working directory if it doesn't already exist from `do_unpack()`
-  mkdir -pv "$HAB_CACHE_SRC_PATH/$pkg_dirname"
+  # Create a cache directory if it doesn't already exist from `do_unpack()`
+  mkdir -pv "$CACHE_PATH"
 
   # Set PREFIX for maximum default software build support
   export PREFIX=$pkg_prefix
@@ -2040,7 +2054,7 @@ _build_environment() {
 # source to remove the default system search path of `/usr/lib`, etc. when
 # looking for shared libraries.
 _fix_libtool() {
-  find "$HAB_CACHE_SRC_PATH/$pkg_dirname" -iname "ltmain.sh" | while read file; do
+  find "$SRC_PATH" -iname "ltmain.sh" | while read file; do
     build_line "Fixing libtool script $file"
     sed -i -e 's^eval sys_lib_.*search_path=.*^^' "$file"
   done
@@ -2050,7 +2064,7 @@ _fix_libtool() {
 # step is correct, that is inside the extracted source directory.
 do_prepare_wrapper() {
   build_line "Preparing to build"
-  pushd "$HAB_CACHE_SRC_PATH/$pkg_dirname" > /dev/null
+  pushd "$SRC_PATH" > /dev/null
   do_prepare
   popd > /dev/null
 }
@@ -2070,11 +2084,10 @@ do_default_prepare() {
 }
 
 # Since `build` is one of the most overridden functions, this wrapper makes sure
-# that no matter how it is changed, our `$cwd` is
-# `$HAB_CACHE_SRC_PATH/$pkg_dirname`.
+# that no matter how it is changed, our `$cwd` is `$SRC_PATH`.
 do_build_wrapper() {
   build_line "Building"
-  pushd "$HAB_CACHE_SRC_PATH/$pkg_dirname" > /dev/null
+  pushd "$SRC_PATH" > /dev/null
   do_build
   popd > /dev/null
 }
@@ -2114,7 +2127,7 @@ do_default_build() {
 do_check_wrapper() {
   if [[ "$(type -t do_check)" = "function" && -n "$DO_CHECK" ]]; then
     build_line "Running post-compile tests"
-    pushd "$HAB_CACHE_SRC_PATH/$pkg_dirname" > /dev/null
+    pushd "$SRC_PATH" > /dev/null
     do_check
     popd > /dev/null
   fi
@@ -2137,7 +2150,7 @@ do_install_wrapper() {
   for dir in "${pkg_pconfig_dirs[@]}"; do
     mkdir -pv "$pkg_prefix/$dir"
   done
-  pushd "$HAB_CACHE_SRC_PATH/$pkg_dirname" > /dev/null
+  pushd "$SRC_PATH" > /dev/null
   do_install
   popd > /dev/null
 }
@@ -2316,7 +2329,7 @@ _build_metadata() {
 
   # Generate the blake2b hashes of all the files in the package. This
   # is not in the resulting MANIFEST because MANIFEST is included!
-  pushd "$HAB_CACHE_SRC_PATH/$pkg_dirname" > /dev/null
+  pushd "$CACHE_PATH" > /dev/null
   build_line "Generating blake2b hashes of all files in the package"
   find $pkg_prefix -type f \
     | $_sort_cmd \
@@ -2446,6 +2459,12 @@ _build_manifest() {
     local _upstream_url_string="[$pkg_upstream_url]($pkg_upstream_url)"
   fi
 
+  if [[ -z $pkg_source ]]; then
+    local _source_url_string="source URL not provided or required"
+  else
+    local _source_url_string="[$pkg_source]($pkg_source)"
+  fi
+
   if [[ -z $pkg_shasum ]]; then
     local _sha_string="SHA256 checksum not provided or required"
   else
@@ -2512,7 +2531,7 @@ $pkg_description
 * __Target__: $pkg_target
 * __Upstream URL__: $_upstream_url_string
 * __License__: $(printf "%s " ${pkg_license[@]})
-* __Source__: [$pkg_source]($pkg_source)
+* __Source__: $_source_url_string
 * __SHA__: $_sha_string
 * __Path__: \`$pkg_prefix\`
 * __Build Dependencies__: $_build_deps_string
@@ -2606,6 +2625,10 @@ done
 
 # Expand the context path to an absolute path
 PLAN_CONTEXT="$(abspath "$PLAN_CONTEXT")"
+# Set the initial source root to be the same as the Plan context directory.
+# This assumes that your application source is local and your Plan exists with
+# your code.
+SRC_PATH="$PLAN_CONTEXT"
 # Expand the path of this program to an absolute path
 THIS_PROGRAM=$(abspath "$0")
 
@@ -2657,7 +2680,6 @@ build_line "Validating plan metadata"
 required_variables=(
   pkg_name
   pkg_origin
-  pkg_source
   pkg_version
 )
 for var in "${required_variables[@]}"
@@ -2681,21 +2703,30 @@ if [[ -n "${pkg_svc_run+xxx}" ]]; then
   pkg_svc_run="$(echo $pkg_svc_run | sed "s|@__pkg_name__@|$pkg_name|g")"
 fi
 
-# Set `$pkg_filename` to the basename of `$pkg_source`, if it is not already
-# set by the `plan.sh`.
-if [[ -z "${pkg_filename+xxx}" ]]; then
+# If `$pkg_source` is used, default `$pkg_filename` to the basename of
+# `$pkg_source` if it is not already set by the Plan.
+if [[ -n "${pkg_source:-}" && -z "${pkg_filename+xxx}" ]]; then
   pkg_filename="$(basename "$pkg_source")"
 fi
 
 # Set `$pkg_dirname` to the `$pkg_name` and `$pkg_version`, if it is not
-# already set by the `plan.sh`.
+# already set by the Plan.
 if [[ -z "${pkg_dirname+xxx}" ]]; then
   pkg_dirname="${pkg_name}-${pkg_version}"
 fi
 
-# Set `$pkg_prefix` if not already set by the `plan.sh`.
+# Set `$pkg_prefix` if not already set by the Plan.
 if [[ -z "${pkg_prefix+xxx}" ]]; then
   pkg_prefix=$HAB_PKG_PATH/${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_release}
+fi
+
+# Set the cache path to be under the cache source root path
+CACHE_PATH="$HAB_CACHE_SRC_PATH/$pkg_dirname"
+
+# If `$pkg_source` is used, update the source path to build under the cache
+# source path.
+if [[ -n "${pkg_source:-}" ]]; then
+  SRC_PATH="$CACHE_PATH"
 fi
 
 if [[ -n "$HAB_OUTPUT_PATH" ]]; then
@@ -2801,7 +2832,7 @@ do_end
 
 # Print the results
 build_line
-build_line "Source Cache: $HAB_CACHE_SRC_PATH/$pkg_dirname"
+build_line "Source Path: $SRC_PATH"
 build_line "Installed Path: $pkg_prefix"
 build_line "Artifact: $pkg_output_path/$(basename "$pkg_artifact")"
 build_line "Build Report: $pkg_output_path/last_build.env"
