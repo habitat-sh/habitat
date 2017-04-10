@@ -26,7 +26,8 @@ impl From<depotsrv::Package> for Package {
 
         let name = format!("{}", value.get_ident());
 
-        let deps = value.get_deps()
+        let deps = value
+            .get_deps()
             .iter()
             .map(|x| format!("{}", x))
             .collect();

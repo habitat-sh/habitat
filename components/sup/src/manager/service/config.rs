@@ -255,12 +255,15 @@ impl Bind {
         for ref bind in bindings.iter() {
             match census_list.get(&*bind.service_group) {
                 Some(census) => {
-                    self.0.insert(format!("has_{}", bind.name), toml::Value::Boolean(true));
-                    self.0.insert(bind.name.to_string(),
-                                  toml::Value::Table(service_entry(census)));
+                    self.0
+                        .insert(format!("has_{}", bind.name), toml::Value::Boolean(true));
+                    self.0
+                        .insert(bind.name.to_string(),
+                                toml::Value::Table(service_entry(census)));
                 }
                 None => {
-                    self.0.insert(format!("has_{}", bind.name), toml::Value::Boolean(false));
+                    self.0
+                        .insert(format!("has_{}", bind.name), toml::Value::Boolean(false));
                 }
             }
         }
@@ -276,14 +279,16 @@ pub struct Svc(toml::value::Table);
 
 impl Svc {
     pub fn populate(&mut self, service_group: &ServiceGroup, census_list: &CensusList) {
-        let mut top = service_entry(census_list.get(&*service_group)
-            .expect("Service Group's census entry missing from list!"));
+        let mut top = service_entry(census_list
+                                        .get(&*service_group)
+                                        .expect("Service Group's census entry missing from list!"));
         let mut all: Vec<toml::Value> = Vec::new();
         let mut named = toml::value::Table::new();
         for (_sg, c) in census_list.iter() {
             all.push(toml::Value::Table(service_entry(c)));
             let mut group = if named.contains_key(c.get_service()) {
-                named.get(c.get_service())
+                named
+                    .get(c.get_service())
                     .unwrap()
                     .as_table()
                     .unwrap()
@@ -313,7 +318,8 @@ fn service_entry(census: &Census) -> toml::value::Table {
     let service = toml::Value::String(String::from(census.get_service()));
     let group = toml::Value::String(String::from(census.get_group()));
     let ident = toml::Value::String(census.get_service_group());
-    let leader = census.get_leader()
+    let leader = census
+        .get_leader()
         .map(|ce| toml::Value::try_from(ce).expect("Can't convert into TOML Value"));
     let mut members: Vec<toml::Value> = Vec::new();
     let mut member_id = toml::value::Table::new();
@@ -488,8 +494,9 @@ impl Cfg {
     }
 
     fn load_environment(&mut self, package: &str) -> Result<()> {
-        let var_name =
-            format!("{}_{}", ENV_VAR_PREFIX, package).to_ascii_uppercase().replace("-", "_");
+        let var_name = format!("{}_{}", ENV_VAR_PREFIX, package)
+            .to_ascii_uppercase()
+            .replace("-", "_");
         match env::var(&var_name) {
             Ok(config) => {
                 let toml = try!(toml::de::from_str(&config)
@@ -652,7 +659,9 @@ fn toml_merge_recurse(me: &mut toml::value::Table,
                 }
             };
             try!(toml_merge_recurse(&mut me_at_key,
-                                    other_value.as_table().expect("TOML Value should be a Table"),
+                                    other_value
+                                        .as_table()
+                                        .expect("TOML Value should be a Table"),
                                     depth + 1));
         } else {
             me.insert(key.clone(), other_value.clone());
@@ -1003,10 +1012,7 @@ mod test {
         fn to_toml() {
             let s = Sys::new(&GossipListenAddr::default(), &ListenAddr::default());
             let toml = s.to_toml().unwrap();
-            let ip = toml.get("ip")
-                .unwrap()
-                .as_str()
-                .unwrap();
+            let ip = toml.get("ip").unwrap().as_str().unwrap();
             let re = Regex::new(r"\d+\.\d+\.\d+\.\d+").unwrap();
             assert!(re.is_match(&ip));
         }
@@ -1026,10 +1032,7 @@ mod test {
         fn to_toml() {
             let h = Hab::new();
             let version_toml = h.to_toml().unwrap();
-            let version = version_toml.get("version")
-                .unwrap()
-                .as_str()
-                .unwrap();
+            let version = version_toml.get("version").unwrap().as_str().unwrap();
             assert_eq!(version, VERSION);
         }
     }

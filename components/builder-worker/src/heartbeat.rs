@@ -202,7 +202,8 @@ impl HeartbeatMgr {
     // Broadcast to subscribers the HeartbeatMgr health and state
     fn pulse(&mut self) -> Result<()> {
         debug!("heartbeat pulsed");
-        try!(self.pub_sock.send(&self.reg.write_to_bytes().unwrap(), 0));
+        try!(self.pub_sock
+                 .send(&self.reg.write_to_bytes().unwrap(), 0));
         Ok(())
     }
 

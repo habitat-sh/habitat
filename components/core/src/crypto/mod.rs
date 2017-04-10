@@ -294,8 +294,10 @@ pub mod test_support {
     use error as herror;
 
     pub fn fixture(name: &str) -> PathBuf {
-        let path =
-            PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests").join("fixtures").join(name);
+        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("tests")
+            .join("fixtures")
+            .join(name);
         if !path.is_file() {
             panic!("Fixture '{}' not found at: {:?}", name, path);
         }

@@ -76,10 +76,13 @@ impl ServiceUpdater {
         match service.update_strategy {
             UpdateStrategy::None => false,
             UpdateStrategy::AtOnce => {
-                self.states.entry(service.service_group.clone()).or_insert_with(|| {
-                    let rx = Worker::new(service).start(&service.service_group, None);
-                    UpdaterState::AtOnce(rx)
-                });
+                self.states
+                    .entry(service.service_group.clone())
+                    .or_insert_with(|| {
+                                        let rx = Worker::new(service)
+                                            .start(&service.service_group, None);
+                                        UpdaterState::AtOnce(rx)
+                                    });
                 true
             }
             UpdateStrategy::Rolling => {
@@ -122,16 +125,18 @@ impl ServiceUpdater {
                                 } else {
                                     u64::max_value()
                                 };
-                                self.butterfly.start_update_election(service.service_group.clone(),
-                                                                     suitability,
-                                                                     0);
+                                self.butterfly
+                                    .start_update_election(service.service_group.clone(),
+                                                           suitability,
+                                                           0);
                                 *st = RollingState::InElection
                             }
                             _ => return false,
                         }
                     } else {
                         debug!("Rolling update, using default suitability");
-                        self.butterfly.start_update_election(service.service_group.clone(), 0, 0);
+                        self.butterfly
+                            .start_update_election(service.service_group.clone(), 0, 0);
                         *st = RollingState::InElection;
                     }
                 }
@@ -175,14 +180,13 @@ impl ServiceUpdater {
                     LeaderState::Waiting => {
                         match census_list.get(&*service.service_group) {
                             Some(census) => {
-                                if census.members_ordered().iter().any(|ce| {
-                                    ce.pkg.as_ref().unwrap() !=
-                                    census.me()
-                                        .unwrap()
-                                        .pkg
-                                        .as_ref()
-                                        .unwrap()
-                                }) {
+                                if census
+                                       .members_ordered()
+                                       .iter()
+                                       .any(|ce| {
+                                                ce.pkg.as_ref().unwrap() !=
+                                                census.me().unwrap().pkg.as_ref().unwrap()
+                                            }) {
                                     debug!("Update leader still waiting for followers...");
                                     return false;
                                 }
@@ -244,10 +248,8 @@ impl ServiceUpdater {
                                     Err(TryRecvError::Disconnected) => {
                                         outputln!(preamble service.service_group,
                                             "Service Updater has died {}", "; restarting...");
-                                        let package = census.get_update_leader()
-                                            .unwrap()
-                                            .pkg
-                                            .clone();
+                                        let package =
+                                            census.get_update_leader().unwrap().pkg.clone();
                                         *rx = Worker::new(service).start(&service.service_group,
                                                                          package);
                                     }
@@ -372,10 +374,11 @@ impl Worker {
 
     fn download(&mut self, package: &PackageIdent) -> Result<PackageInstall> {
         outputln!("Downloading {}", package);
-        let mut archive = try!(self.depot.fetch_package(package,
-                                                        &Path::new(&*FS_ROOT_PATH)
-                                                             .join(CACHE_ARTIFACT_PATH),
-                                                        self.ui.progress()));
+        let mut archive = try!(self.depot
+                                   .fetch_package(package,
+                                                  &Path::new(&*FS_ROOT_PATH)
+                                                       .join(CACHE_ARTIFACT_PATH),
+                                                  self.ui.progress()));
         try!(archive.verify(&default_cache_key_path(None)));
         outputln!("Installing {}", package);
         try!(archive.unpack(None));

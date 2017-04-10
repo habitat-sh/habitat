@@ -163,7 +163,8 @@ mod test {
                     }
                     _ => Client::new(),
                 };
-                let mut response = client.get(url)
+                let mut response = client
+                    .get(url)
                     .header(header::Connection::close())
                     .send()
                     .unwrap();

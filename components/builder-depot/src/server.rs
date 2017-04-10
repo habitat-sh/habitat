@@ -238,14 +238,8 @@ pub fn check_origin_access<T: ToString>(req: &mut Request,
 
 pub fn invite_to_origin(req: &mut Request) -> IronResult<Response> {
     // TODO: SA - Eliminate need to clone the session and params
-    let session = req.extensions
-        .get::<Authenticated>()
-        .unwrap()
-        .clone();
-    let params = req.extensions
-        .get::<Router>()
-        .unwrap()
-        .clone();
+    let session = req.extensions.get::<Authenticated>().unwrap().clone();
+    let params = req.extensions.get::<Router>().unwrap().clone();
     let origin = match params.find("origin") {
         Some(origin) => origin,
         None => return Ok(Response::with(status::BadRequest)),
@@ -393,14 +387,8 @@ fn write_archive(filename: &PathBuf, body: &mut Body) -> Result<PackageArchive> 
 fn upload_origin_key(req: &mut Request) -> IronResult<Response> {
     debug!("Upload Origin Public Key {:?}", req);
     // TODO: SA - Eliminate need to clone the session and params
-    let session = req.extensions
-        .get::<Authenticated>()
-        .unwrap()
-        .clone();
-    let params = req.extensions
-        .get::<Router>()
-        .unwrap()
-        .clone();
+    let session = req.extensions.get::<Authenticated>().unwrap().clone();
+    let params = req.extensions.get::<Router>().unwrap().clone();
     let mut conn = Broker::connect().unwrap();
     let mut request = OriginPublicKeyCreate::new();
     request.set_owner_id(session.get_id());
@@ -470,7 +458,9 @@ fn upload_origin_key(req: &mut Request) -> IronResult<Response> {
                                 format!("/origins/{}/keys/{}", &origin, &request.get_revision())));
             let mut base_url: url::Url = req.url.clone().into();
             base_url.set_path(&format!("key/{}-{}", &origin, &request.get_revision()));
-            response.headers.set(headers::Location(format!("{}", base_url)));
+            response
+                .headers
+                .set(headers::Location(format!("{}", base_url)));
             Ok(response)
         }
         Err(err) => Ok(render_net_error(&err)),
@@ -500,14 +490,8 @@ fn download_latest_origin_secret_key(req: &mut Request) -> IronResult<Response> 
 fn upload_origin_secret_key(req: &mut Request) -> IronResult<Response> {
     debug!("Upload Origin Secret Key {:?}", req);
     // TODO: SA - Eliminate need to clone the session and params
-    let session = req.extensions
-        .get::<Authenticated>()
-        .unwrap()
-        .clone();
-    let params = req.extensions
-        .get::<Router>()
-        .unwrap()
-        .clone();
+    let session = req.extensions.get::<Authenticated>().unwrap().clone();
+    let params = req.extensions.get::<Router>().unwrap().clone();
     let mut conn = Broker::connect().unwrap();
     let mut request = OriginSecretKeyCreate::new();
     request.set_owner_id(session.get_id());
@@ -579,7 +563,8 @@ fn upload_origin_secret_key(req: &mut Request) -> IronResult<Response> {
 }
 
 fn upload_package(req: &mut Request) -> IronResult<Response> {
-    let lock = req.get::<persistent::State<Depot>>().expect("depot not found");
+    let lock = req.get::<persistent::State<Depot>>()
+        .expect("depot not found");
     let depot = lock.read().expect("depot read lock is poisoned");
     let checksum_from_param = match extract_query_value("checksum", req) {
         Some(checksum) => checksum,
@@ -600,10 +585,7 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
            ident);
 
     // TODO: SA - Eliminate need to clone the session
-    let session = req.extensions
-        .get::<Authenticated>()
-        .unwrap()
-        .clone();
+    let session = req.extensions.get::<Authenticated>().unwrap().clone();
     if !depot.config.insecure {
         if !try!(check_origin_access(req, session.get_id(), &ident.get_origin())) {
             return Ok(Response::with(status::Forbidden));
@@ -640,7 +622,10 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
         }
     };
 
-    if !depot.config.supported_targets.contains(&target_from_artifact) {
+    if !depot
+            .config
+            .supported_targets
+            .contains(&target_from_artifact) {
         debug!("Unsupported package platform or architecture {}.",
                target_from_artifact);
         return Ok(Response::with(status::NotImplemented));
@@ -696,10 +681,7 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
         }
     };
     if ident.satisfies(object.get_ident()) {
-        depot.datastore
-            .packages
-            .write(&object)
-            .unwrap();
+        depot.datastore.packages.write(&object).unwrap();
 
         log_event!(req,
                    Event::PackageUpload {
@@ -739,7 +721,9 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
                                            format!("/pkgs/{}/download", object.get_ident())));
         let mut base_url: url::Url = req.url.clone().into();
         base_url.set_path(&format!("pkgs/{}/download", object.get_ident()));
-        response.headers.set(headers::Location(format!("{}", base_url)));
+        response
+            .headers
+            .set(headers::Location(format!("{}", base_url)));
         Ok(response)
     } else {
         info!("Ident mismatch, expected={:?}, got={:?}",
@@ -750,10 +734,7 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
 }
 
 fn schedule(req: &mut Request) -> IronResult<Response> {
-    let params = req.extensions
-        .get::<Router>()
-        .unwrap()
-        .clone();
+    let params = req.extensions.get::<Router>().unwrap().clone();
     let origin = match params.find("origin") {
         Some(origin) => origin,
         None => return Ok(Response::with(status::BadRequest)),
@@ -811,10 +792,7 @@ fn get_schedule(req: &mut Request) -> IronResult<Response> {
 fn download_origin_key(req: &mut Request) -> IronResult<Response> {
     let params = req.extensions.get::<Router>().unwrap();
     // TODO: SA - Eliminate need to clone the session and params
-    let session = req.extensions
-        .get::<Authenticated>()
-        .unwrap()
-        .clone();
+    let session = req.extensions.get::<Authenticated>().unwrap().clone();
     let mut conn = Broker::connect().unwrap();
     let mut request = OriginPublicKeyGet::new();
     request.set_owner_id(session.get_id());
@@ -837,7 +815,9 @@ fn download_origin_key(req: &mut Request) -> IronResult<Response> {
 
     let xfilename = format!("{}-{}.pub", key.get_name(), key.get_revision());
     let mut response = Response::with((status::Ok, key.get_body()));
-    response.headers.set(ContentDisposition(format!("attachment; filename=\"{}\"", xfilename)));
+    response
+        .headers
+        .set(ContentDisposition(format!("attachment; filename=\"{}\"", xfilename)));
     response.headers.set(XFileName(xfilename));
     do_cache_response(&mut response);
     Ok(response)
@@ -846,10 +826,7 @@ fn download_origin_key(req: &mut Request) -> IronResult<Response> {
 fn download_latest_origin_key(req: &mut Request) -> IronResult<Response> {
     let params = req.extensions.get::<Router>().unwrap();
     // TODO: SA - Eliminate need to clone the session and params
-    let session = req.extensions
-        .get::<Authenticated>()
-        .unwrap()
-        .clone();
+    let session = req.extensions.get::<Authenticated>().unwrap().clone();
     let mut conn = Broker::connect().unwrap();
     let mut request = OriginPublicKeyLatestGet::new();
     request.set_owner_id(session.get_id());
@@ -868,7 +845,9 @@ fn download_latest_origin_key(req: &mut Request) -> IronResult<Response> {
 
     let xfilename = format!("{}-{}.pub", key.get_name(), key.get_revision());
     let mut response = Response::with((status::Ok, key.get_body()));
-    response.headers.set(ContentDisposition(format!("attachment; filename=\"{}\"", xfilename)));
+    response
+        .headers
+        .set(ContentDisposition(format!("attachment; filename=\"{}\"", xfilename)));
     response.headers.set(XFileName(xfilename));
     dont_cache_response(&mut response);
     Ok(response)
@@ -877,7 +856,8 @@ fn download_latest_origin_key(req: &mut Request) -> IronResult<Response> {
 
 
 fn download_package(req: &mut Request) -> IronResult<Response> {
-    let lock = req.get::<persistent::State<Depot>>().expect("depot not found");
+    let lock = req.get::<persistent::State<Depot>>()
+        .expect("depot not found");
     let depot = lock.read().expect("depot read lock is poisoned");
     let params = req.extensions.get::<Router>().unwrap();
     let ident = ident_from_params(params);
@@ -895,7 +875,8 @@ fn download_package(req: &mut Request) -> IronResult<Response> {
                     Ok(_) => {
                         let mut response = Response::with((status::Ok, archive.path.clone()));
                         do_cache_response(&mut response);
-                        response.headers
+                        response
+                            .headers
                             .set(ContentDisposition(format!("attachment; filename=\"{}\"",
                                                             archive.file_name())));
                         response.headers.set(XFileName(archive.file_name()));
@@ -958,7 +939,8 @@ fn list_origin_keys(req: &mut Request) -> IronResult<Response> {
 }
 
 fn list_unique_packages(req: &mut Request) -> IronResult<Response> {
-    let lock = req.get::<persistent::State<Depot>>().expect("depot not found");
+    let lock = req.get::<persistent::State<Depot>>()
+        .expect("depot not found");
     let depot = lock.read().expect("depot read lock is poisoned");
     let (start, stop) = match extract_pagination(req) {
         Ok(range) => range,
@@ -970,12 +952,14 @@ fn list_unique_packages(req: &mut Request) -> IronResult<Response> {
         None => return Ok(Response::with(status::BadRequest)),
     };
 
-    match depot.datastore
+    match depot
+              .datastore
               .packages
               .index
               .unique(&ident, start, stop) {
         Ok(packages) => {
-            let count = depot.datastore
+            let count = depot
+                .datastore
                 .packages
                 .index
                 .count_unique(&ident)
@@ -992,9 +976,11 @@ fn list_unique_packages(req: &mut Request) -> IronResult<Response> {
                 Response::with((status::Ok, body))
             };
 
-            response.headers.set(ContentType(Mime(TopLevel::Application,
-                                                  SubLevel::Json,
-                                                  vec![(Attr::Charset, Value::Utf8)])));
+            response
+                .headers
+                .set(ContentType(Mime(TopLevel::Application,
+                                      SubLevel::Json,
+                                      vec![(Attr::Charset, Value::Utf8)])));
             dont_cache_response(&mut response);
             Ok(response)
         }
@@ -1009,7 +995,8 @@ fn list_unique_packages(req: &mut Request) -> IronResult<Response> {
 }
 
 fn list_packages(req: &mut Request) -> IronResult<Response> {
-    let lock = req.get::<persistent::State<Depot>>().expect("depot not found");
+    let lock = req.get::<persistent::State<Depot>>()
+        .expect("depot not found");
     let mut depot = lock.write().expect("depot read lock is poisoned");
     let (start, stop) = match extract_pagination(req) {
         Ok(range) => range,
@@ -1046,12 +1033,17 @@ fn list_packages(req: &mut Request) -> IronResult<Response> {
     match channel {
         Some(channel) => {
             // let's make sure this channel actually exists
-            if !depot.datastore.channels.channel_exists(&origin, &channel) {
+            if !depot
+                    .datastore
+                    .channels
+                    .channel_exists(&origin, &channel) {
                 return Ok(Response::with(status::NotFound));
             }
 
-            let packages =
-                depot.datastore.channels.all_packages(&origin, &channel, &ident, start, stop);
+            let packages = depot
+                .datastore
+                .channels
+                .all_packages(&origin, &channel, &ident, start, stop);
             let count = packages.len();
             let body = package_results_json(&packages, count as isize, start, stop);
 
@@ -1061,24 +1053,23 @@ fn list_packages(req: &mut Request) -> IronResult<Response> {
                 Response::with((status::Ok, body))
             };
 
-            response.headers.set(ContentType(Mime(TopLevel::Application,
-                                                  SubLevel::Json,
-                                                  vec![(Attr::Charset, Value::Utf8)])));
+            response
+                .headers
+                .set(ContentType(Mime(TopLevel::Application,
+                                      SubLevel::Json,
+                                      vec![(Attr::Charset, Value::Utf8)])));
 
             dont_cache_response(&mut response);
             Ok(response)
         }
         None => {
-            match depot.datastore
+            match depot
+                      .datastore
                       .packages
                       .index
                       .list(&ident, start, stop) {
                 Ok(packages) => {
-                    let count = depot.datastore
-                        .packages
-                        .index
-                        .count(&ident)
-                        .unwrap();
+                    let count = depot.datastore.packages.index.count(&ident).unwrap();
                     debug!("list_packages start: {}, stop: {}, total count: {}",
                            start,
                            stop,
@@ -1091,9 +1082,11 @@ fn list_packages(req: &mut Request) -> IronResult<Response> {
                         Response::with((status::Ok, body))
                     };
 
-                    response.headers.set(ContentType(Mime(TopLevel::Application,
-                                                          SubLevel::Json,
-                                                          vec![(Attr::Charset, Value::Utf8)])));
+                    response
+                        .headers
+                        .set(ContentType(Mime(TopLevel::Application,
+                                              SubLevel::Json,
+                                              vec![(Attr::Charset, Value::Utf8)])));
                     dont_cache_response(&mut response);
                     Ok(response)
                 }
@@ -1110,7 +1103,8 @@ fn list_packages(req: &mut Request) -> IronResult<Response> {
 }
 
 fn list_channels(req: &mut Request) -> IronResult<Response> {
-    let lock = req.get::<persistent::State<Depot>>().expect("depot not found");
+    let lock = req.get::<persistent::State<Depot>>()
+        .expect("depot not found");
     let mut depot = lock.write().expect("depot read lock is poisoned");
     let params = req.extensions.get::<Router>().unwrap();
 
@@ -1126,7 +1120,8 @@ fn list_channels(req: &mut Request) -> IronResult<Response> {
 }
 
 fn create_channel(req: &mut Request) -> IronResult<Response> {
-    let lock = req.get::<persistent::State<Depot>>().expect("depot not found");
+    let lock = req.get::<persistent::State<Depot>>()
+        .expect("depot not found");
     let mut depot = lock.write().expect("depot write lock is poisoned");
 
     let session_id: u64;
@@ -1164,7 +1159,8 @@ fn create_channel(req: &mut Request) -> IronResult<Response> {
 }
 
 fn delete_channel(req: &mut Request) -> IronResult<Response> {
-    let lock = req.get::<persistent::State<Depot>>().expect("depot not found");
+    let lock = req.get::<persistent::State<Depot>>()
+        .expect("depot not found");
     let mut depot = lock.write().expect("depot write lock is poisoned");
 
     let session_id: u64;
@@ -1204,7 +1200,8 @@ fn delete_channel(req: &mut Request) -> IronResult<Response> {
 }
 
 fn show_package(req: &mut Request) -> IronResult<Response> {
-    let lock = req.get::<persistent::State<Depot>>().expect("depot not found");
+    let lock = req.get::<persistent::State<Depot>>()
+        .expect("depot not found");
     let mut depot = lock.write().expect("depot read lock is poisoned");
 
     let (origin, mut ident, channel) = {
@@ -1232,12 +1229,18 @@ fn show_package(req: &mut Request) -> IronResult<Response> {
 
     if let Some(channel) = channel {
         // let's make sure this channel actually exists
-        if !depot.datastore.channels.channel_exists(&origin, &channel) {
+        if !depot
+                .datastore
+                .channels
+                .channel_exists(&origin, &channel) {
             return Ok(Response::with(status::NotFound));
         }
 
         if !ident.fully_qualified() {
-            match depot.datastore.channels.latest(&origin, channel.as_str(), &ident.to_string()) {
+            match depot
+                      .datastore
+                      .channels
+                      .latest(&origin, channel.as_str(), &ident.to_string()) {
                 Some(ident) => {
                     match depot.datastore.packages.find(&ident) {
                         Ok(pkg) => render_package(&pkg, false),
@@ -1269,7 +1272,8 @@ fn show_package(req: &mut Request) -> IronResult<Response> {
         if !ident.fully_qualified() {
             let agent_target = target_from_headers(&req.headers.get::<UserAgent>().unwrap())
                 .unwrap();
-            match depot.datastore
+            match depot
+                      .datastore
                       .packages
                       .index
                       .latest(&ident, &agent_target.to_string()) {
@@ -1304,7 +1308,8 @@ fn show_package(req: &mut Request) -> IronResult<Response> {
 }
 
 fn search_packages(req: &mut Request) -> IronResult<Response> {
-    let lock = req.get::<persistent::State<Depot>>().expect("depot not found");
+    let lock = req.get::<persistent::State<Depot>>()
+        .expect("depot not found");
     let depot = lock.read().expect("depot read lock is poisoned");
     let (start, stop) = match extract_pagination(req) {
         Ok(range) => range,
@@ -1318,7 +1323,8 @@ fn search_packages(req: &mut Request) -> IronResult<Response> {
     Gauge::PackageCount.set(depot.datastore.key_count().unwrap() as f64);
 
     // Note: the search call takes offset and count values
-    let (packages, total_count) = depot.datastore
+    let (packages, total_count) = depot
+        .datastore
         .packages
         .index
         .search(partial, start, stop - start + 1)
@@ -1338,9 +1344,11 @@ fn search_packages(req: &mut Request) -> IronResult<Response> {
         Response::with((status::Ok, body))
     };
 
-    response.headers.set(ContentType(Mime(TopLevel::Application,
-                                          SubLevel::Json,
-                                          vec![(Attr::Charset, Value::Utf8)])));
+    response
+        .headers
+        .set(ContentType(Mime(TopLevel::Application,
+                              SubLevel::Json,
+                              vec![(Attr::Charset, Value::Utf8)])));
 
     dont_cache_response(&mut response);
     Ok(response)
@@ -1349,10 +1357,14 @@ fn search_packages(req: &mut Request) -> IronResult<Response> {
 fn render_package(pkg: &depotsrv::Package, should_cache: bool) -> IronResult<Response> {
     let body = serde_json::to_string(&pkg).unwrap();
     let mut response = Response::with((status::Ok, body));
-    response.headers.set(ETag(pkg.get_checksum().to_string()));
-    response.headers.set(ContentType(Mime(TopLevel::Application,
-                                          SubLevel::Json,
-                                          vec![(Attr::Charset, Value::Utf8)])));
+    response
+        .headers
+        .set(ETag(pkg.get_checksum().to_string()));
+    response
+        .headers
+        .set(ContentType(Mime(TopLevel::Application,
+                              SubLevel::Json,
+                              vec![(Attr::Charset, Value::Utf8)])));
     if should_cache {
         do_cache_response(&mut response);
     } else {
@@ -1362,7 +1374,8 @@ fn render_package(pkg: &depotsrv::Package, should_cache: bool) -> IronResult<Res
 }
 
 fn promote_package(req: &mut Request) -> IronResult<Response> {
-    let lock = req.get::<persistent::State<Depot>>().expect("depot not found");
+    let lock = req.get::<persistent::State<Depot>>()
+        .expect("depot not found");
     let mut depot = lock.write().expect("depot write lock is poisoned");
     let (channel, origin, mut ident, session_id) = {
         let session = req.extensions.get::<Authenticated>().unwrap();
@@ -1407,7 +1420,10 @@ fn promote_package(req: &mut Request) -> IronResult<Response> {
     }
     ident.set_origin(origin);
 
-    match depot.datastore.channels.channel_exists(&ident.get_origin(), &channel) {
+    match depot
+              .datastore
+              .channels
+              .channel_exists(&ident.get_origin(), &channel) {
         true => {
             if !try!(check_origin_access(req, session_id, &ident.get_origin())) {
                 return Ok(Response::with(status::Forbidden));
@@ -1415,7 +1431,8 @@ fn promote_package(req: &mut Request) -> IronResult<Response> {
 
             match depot.datastore.packages.find(&ident) {
                 Ok(package) => {
-                    depot.datastore
+                    depot
+                        .datastore
                         .channels
                         .associate(&channel, &package)
                         .unwrap();
@@ -1451,8 +1468,9 @@ fn target_from_headers(user_agent_header: &UserAgent) -> result::Result<PackageT
 
     let user_agent_regex = Regex::new(r"(?P<client>\.*)\s\((?P<target>\w+-\w+); (?P<kernel>.*)\)")
         .unwrap();
-    let user_agent_capture =
-        user_agent_regex.captures(user_agent).expect("Invalid user agent supplied.");
+    let user_agent_capture = user_agent_regex
+        .captures(user_agent)
+        .expect("Invalid user agent supplied.");
     match PackageTarget::from_str(&user_agent_capture["target"]) {
         Ok(target) => Ok(target),
         Err(_) => Err(Response::with(status::BadRequest)),
@@ -1500,11 +1518,15 @@ fn extract_query_value(key: &str, req: &mut Request) -> Option<String> {
 }
 
 fn do_cache_response(response: &mut Response) {
-    response.headers.set(CacheControl(format!("public, max-age={}", ONE_YEAR_IN_SECS)));
+    response
+        .headers
+        .set(CacheControl(format!("public, max-age={}", ONE_YEAR_IN_SECS)));
 }
 
 fn dont_cache_response(response: &mut Response) {
-    response.headers.set(CacheControl(format!("private, no-cache, no-store")));
+    response
+        .headers
+        .set(CacheControl(format!("private, no-cache, no-store")));
 }
 
 pub fn routes<M: BeforeMiddleware + Clone>(insecure: bool, basic: M, worker: M) -> Router {
@@ -1657,7 +1679,10 @@ mod test {
     }
 
     pub fn hart_file(name: &str) -> PathBuf {
-        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests").join("fixtures").join(name)
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("tests")
+            .join("fixtures")
+            .join(name)
     }
 
     fn iron_request(method: method::Method,

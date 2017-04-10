@@ -36,11 +36,7 @@ impl<'a, T: 'a + protobuf::Message> Message<'a, T> {
     }
 
     pub fn protocol(&self) -> net::Protocol {
-        match self.0
-                  .descriptor()
-                  .full_name()
-                  .rsplit(".")
-                  .last() {
+        match self.0.descriptor().full_name().rsplit(".").last() {
             Some("jobsrv") => net::Protocol::JobSrv,
             Some("net") => net::Protocol::Net,
             Some("routesrv") => net::Protocol::RouteSrv,
@@ -85,11 +81,7 @@ impl<'a, T: 'a + protobuf::Message> MessageBuilder<'a, T> {
                          .0
                          .write_to_bytes()
                          .expect("All message fields have been set"));
-        msg.set_message_id(self.msg
-                               .0
-                               .descriptor()
-                               .name()
-                               .to_string());
+        msg.set_message_id(self.msg.0.descriptor().name().to_string());
         if let Some(route_info) = self.route_info {
             msg.set_route_info(route_info);
         }

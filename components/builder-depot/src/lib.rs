@@ -161,7 +161,9 @@ impl DepotUtil {
         let mut output = [0; 64];
         digest.input_str(&ident.to_string());
         digest.result(&mut output);
-        self.packages_path().join(format!("{:x}", output[0])).join(format!("{:x}", output[1]))
+        self.packages_path()
+            .join(format!("{:x}", output[0]))
+            .join(format!("{:x}", output[1]))
     }
 
     fn packages_path(&self) -> PathBuf {

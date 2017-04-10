@@ -30,7 +30,7 @@ type RenderResult = Result<(), RenderError>;
 pub fn each_alive(h: &Helper, r: &Handlebars, rc: &mut RenderContext) -> RenderResult {
     let value =
         try!(h.param(0)
-            .ok_or_else(|| RenderError::new("Param not found for helper \"eachAlive\"")))
+                 .ok_or_else(|| RenderError::new("Param not found for helper \"eachAlive\"")))
                 .value();
 
     let template =
@@ -88,7 +88,11 @@ pub fn pkg_path_for(h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> Rende
         .deps
         .iter()
         .find(|ident| ident.satisfies(&param))
-        .and_then(|i| Some(fs::pkg_install_path(&i, None).to_string_lossy().into_owned()))
+        .and_then(|i| {
+                      Some(fs::pkg_install_path(&i, None)
+                               .to_string_lossy()
+                               .into_owned())
+                  })
         .unwrap_or("".to_string());
     try!(rc.writer.write(pkg.into_bytes().as_ref()));
     Ok(())
@@ -99,7 +103,8 @@ pub fn to_uppercase(h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> Rende
         try!(h.param(0)
         .and_then(|v| v.value().as_str())
         .ok_or_else(|| RenderError::new("Expected a string parameter for \"toUppercase\"")));
-    try!(rc.writer.write(param.to_uppercase().into_bytes().as_ref()));
+    try!(rc.writer
+             .write(param.to_uppercase().into_bytes().as_ref()));
     Ok(())
 }
 
@@ -108,7 +113,8 @@ pub fn to_lowercase(h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> Rende
         try!(h.param(0)
         .and_then(|v| v.value().as_str())
         .ok_or_else(|| RenderError::new("Expected a string parameter for \"toLowercase\"")));
-    try!(rc.writer.write(param.to_lowercase().into_bytes().as_ref()));
+    try!(rc.writer
+             .write(param.to_lowercase().into_bytes().as_ref()));
     Ok(())
 }
 
@@ -125,13 +131,14 @@ pub fn str_replace(h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> Render
         try!(h.param(2)
         .and_then(|v| v.value().as_str())
         .ok_or_else(|| RenderError::new("Expected 3 string parameters for \"strReplace\"")));
-    try!(rc.writer.write(param.replace(old, new).into_bytes().as_ref()));
+    try!(rc.writer
+             .write(param.replace(old, new).into_bytes().as_ref()));
     Ok(())
 }
 
 pub fn to_json(h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> RenderResult {
     let param = try!(h.param(0)
-            .ok_or_else(|| RenderError::new("Expected 1 parameter for \"toJson\"")))
+                         .ok_or_else(|| RenderError::new("Expected 1 parameter for \"toJson\"")))
             .value();
     let json =
         try!(serde_json::to_string_pretty(param)
@@ -142,7 +149,7 @@ pub fn to_json(h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> RenderResu
 
 pub fn to_toml(h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> RenderResult {
     let param = try!(h.param(0)
-            .ok_or_else(|| RenderError::new("Expected 1 parameter for \"toToml\"")))
+                         .ok_or_else(|| RenderError::new("Expected 1 parameter for \"toToml\"")))
             .value();
     let bytes =
         try!(toml::ser::to_vec(&param)

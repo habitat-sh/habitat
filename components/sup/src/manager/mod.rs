@@ -86,7 +86,8 @@ impl FsCfg {
     }
 
     pub fn health_check_cache(&self, service_group: &ServiceGroup) -> PathBuf {
-        self.data_path.join(format!("{}.health", service_group.service()))
+        self.data_path
+            .join(format!("{}.health", service_group.service()))
     }
 }
 
@@ -231,7 +232,8 @@ impl Manager {
                     if let Ok(entry) = entry {
                         match entry.path().extension().and_then(|p| p.to_str()) {
                             Some("tmp") | Some("health") => {
-                                fs::remove_file(&entry.path()).map_err(|err| {
+                                fs::remove_file(&entry.path())
+                                    .map_err(|err| {
                                                  sup_error!(Error::BadDataPath(data_path.clone(),
                                                                                err))
                                              })?;
@@ -295,11 +297,13 @@ impl Manager {
                                     self.fs_cfg.clone(),
                                     self.organization.as_ref().map(|org| &**org))?;
         service.add()?;
-        self.butterfly.insert_service(service.to_rumor(self.butterfly.member_id()));
+        self.butterfly
+            .insert_service(service.to_rumor(self.butterfly.member_id()));
         if service.topology == Topology::Leader {
             // TODO: eventually, we need to deal with suitability here. The original implementation
             // didn't have this working either.
-            self.butterfly.start_election(service.service_group.clone(), 0);
+            self.butterfly
+                .start_election(service.service_group.clone(), 0);
         }
         self.updater.add(&service);
         self.services
@@ -398,12 +402,16 @@ impl Manager {
                                let election = rumors.get("election").unwrap();
                                cl.populate_from_update_election(election);
                            });
-            self.butterfly.member_list.with_members(|member| {
-                cl.populate_from_member(member);
-                if let Some(health) = self.butterfly.member_list.health_of(member) {
-                    cl.populate_from_health(member, health);
-                }
-            });
+            self.butterfly
+                .member_list
+                .with_members(|member| {
+                                  cl.populate_from_member(member);
+                                  if let Some(health) = self.butterfly
+                                         .member_list
+                                         .health_of(member) {
+                                      cl.populate_from_health(member, health);
+                                  }
+                              });
             self.census_list = cl;
             return (true, update);
         }
@@ -425,11 +433,9 @@ impl Manager {
                         .expect("Services lock is poisoned!")
                         .iter_mut() {
                     outputln!("Shutting down {}", service);
-                    service.down().unwrap_or_else(|err| {
-                                                      outputln!("Failed to shutdown {}: {}",
-                                                                service,
-                                                                err)
-                                                  });
+                    service
+                        .down()
+                        .unwrap_or_else(|err| outputln!("Failed to shutdown {}: {}", service, err));
                 }
                 true
             }
@@ -466,7 +472,8 @@ impl Manager {
                 .write()
                 .expect("Services lock is poisoned!")
                 .iter_mut() {
-            if self.updater.check_for_updated_package(service, &self.census_list) {
+            if self.updater
+                   .check_for_updated_package(service, &self.census_list) {
                 let mut rumor = {
                     let list = self.butterfly
                         .service_store
@@ -516,9 +523,10 @@ impl Manager {
             }
         };
         let mut writer = BufWriter::new(file);
-        if let Some(err) = writer.write(serde_json::to_string(&self.census_list)
-                                            .unwrap()
-                                            .as_bytes())
+        if let Some(err) = writer
+               .write(serde_json::to_string(&self.census_list)
+                          .unwrap()
+                          .as_bytes())
                .err() {
             warn!("Couldn't write to census state file, {}", err);
         }
@@ -531,7 +539,9 @@ impl Manager {
     }
 
     fn persist_butterfly_state(&self) {
-        let tmp_file = self.fs_cfg.butterfly_data_path.with_extension("dat.tmp");
+        let tmp_file = self.fs_cfg
+            .butterfly_data_path
+            .with_extension("dat.tmp");
         let file = match File::create(&tmp_file) {
             Ok(file) => file,
             Err(err) => {
@@ -540,9 +550,10 @@ impl Manager {
             }
         };
         let mut writer = BufWriter::new(file);
-        if let Some(err) = writer.write(serde_json::to_string(&self.butterfly)
-                                            .unwrap()
-                                            .as_bytes())
+        if let Some(err) = writer
+               .write(serde_json::to_string(&self.butterfly)
+                          .unwrap()
+                          .as_bytes())
                .err() {
             warn!("Couldn't write to butterfly state file, {}", err);
         }
@@ -565,7 +576,8 @@ impl Manager {
         };
         let mut writer = BufWriter::new(file);
         let services = self.services.read().expect("Services lock poisoned");
-        if let Some(err) = writer.write(serde_json::to_string(&*services).unwrap().as_bytes())
+        if let Some(err) = writer
+               .write(serde_json::to_string(&*services).unwrap().as_bytes())
                .err() {
             warn!("Couldn't write to services state file, {}", err);
         }
@@ -583,7 +595,9 @@ impl Manager {
     }
 
     fn shutdown(&self) {
-        let mut services = self.services.write().expect("Services lock is poisend!");
+        let mut services = self.services
+            .write()
+            .expect("Services lock is poisend!");
         for mut service in services.drain(..) {
             if let Err(err) = self.remove_service(&mut service) {
                 warn!("Couldn't cleanly shutdown service, {}, {}", service, err);
@@ -630,10 +644,14 @@ impl Manager {
     }
 
     fn remove_service_for_spec(&mut self, spec: &ServiceSpec) -> Result<()> {
-        let mut services = self.services.write().expect("Services lock is poisoned");
+        let mut services = self.services
+            .write()
+            .expect("Services lock is poisoned");
         // TODO fn: storing services as a `Vec` is a bit crazy when you have to do these
         // shenanigans--maybe we want to consider changing the data structure in the future?
-        let services_idx = match services.iter().position(|ref s| s.spec_ident == spec.ident) {
+        let services_idx = match services
+                  .iter()
+                  .position(|ref s| s.spec_ident == spec.ident) {
             Some(i) => i,
             None => {
                 outputln!("Tried to remove service for {} but could not find it running, skipping",
@@ -713,7 +731,10 @@ fn release_process_lock(fs_cfg: &FsCfg) {
 fn write_process_lock<T>(lock_path: T) -> Result<()>
     where T: AsRef<Path>
 {
-    match OpenOptions::new().write(true).create_new(true).open(lock_path.as_ref()) {
+    match OpenOptions::new()
+              .write(true)
+              .create_new(true)
+              .open(lock_path.as_ref()) {
         Ok(mut file) => {
             match write!(&mut file, "{}", process::current_pid()) {
                 Ok(()) => Ok(()),

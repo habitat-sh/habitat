@@ -301,7 +301,9 @@ impl DataStore {
                                 &format!("{}-{}", osk.get_name(), osk.get_revision()),
                                 &osk.get_body()])
             .map_err(Error::OriginSecretKeyCreate)?;
-        let row = rows.iter().nth(0).expect("Insert returns row, but no row present");
+        let row = rows.iter()
+            .nth(0)
+            .expect("Insert returns row, but no row present");
         Ok(self.row_to_origin_secret_key(row))
     }
 
@@ -347,7 +349,9 @@ impl DataStore {
                                 &format!("{}-{}", opk.get_name(), opk.get_revision()),
                                 &opk.get_body()])
             .map_err(Error::OriginPublicKeyCreate)?;
-        let row = rows.iter().nth(0).expect("Insert returns row, but no row present");
+        let row = rows.iter()
+            .nth(0)
+            .expect("Insert returns row, but no row present");
         Ok(self.row_to_origin_public_key(row))
     }
 
@@ -439,7 +443,9 @@ impl DataStore {
                                 &origin.get_owner_name()])
             .map_err(Error::OriginCreate)?;
         if rows.len() == 1 {
-            let row = rows.iter().nth(0).expect("Insert returns row, but no row present");
+            let row = rows.iter()
+                .nth(0)
+                .expect("Insert returns row, but no row present");
             Ok(Some(self.row_to_origin(row)))
         } else {
             Ok(None)

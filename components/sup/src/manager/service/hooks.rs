@@ -708,10 +708,11 @@ impl HookTable {
     fn compile_one<H>(&self, hook: &H, service_group: &ServiceGroup, config: &ServiceConfig)
         where H: Hook
     {
-        hook.compile(config).unwrap_or_else(|e| {
-                                                outputln!(preamble service_group,
+        hook.compile(config)
+            .unwrap_or_else(|e| {
+                                outputln!(preamble service_group,
                 "Failed to compile {} hook: {}", H::file_name(), e);
-                                            });
+                            });
     }
 }
 
@@ -726,7 +727,8 @@ impl RenderPair {
               T: AsRef<Path>
     {
         let mut template = Template::new();
-        template.register_template_file("hook", template_path.as_ref())?;
+        template
+            .register_template_file("hook", template_path.as_ref())?;
         Ok(RenderPair {
                path: concrete_path.into(),
                template: template,
@@ -744,10 +746,7 @@ impl Serialize for RenderPair {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {
-        serializer.serialize_str(&self.path
-                                      .as_os_str()
-                                      .to_string_lossy()
-                                      .into_owned())
+        serializer.serialize_str(&self.path.as_os_str().to_string_lossy().into_owned())
     }
 }
 
@@ -790,7 +789,9 @@ impl<'a> HookOutput<'a> {
             for line in BufReader::new(stdout).lines() {
                 if let Some(ref l) = line.ok() {
                     outputln!(preamble preamble_str, l);
-                    stdout_log.write_fmt(format_args!("{}\n", l)).expect("couldn't write line");
+                    stdout_log
+                        .write_fmt(format_args!("{}\n", l))
+                        .expect("couldn't write line");
                 }
             }
         }
@@ -798,7 +799,9 @@ impl<'a> HookOutput<'a> {
             for line in BufReader::new(stderr).lines() {
                 if let Some(ref l) = line.ok() {
                     outputln!(preamble preamble_str, l);
-                    stderr_log.write_fmt(format_args!("{}\n", l)).expect("couldn't write line");
+                    stderr_log
+                        .write_fmt(format_args!("{}\n", l))
+                        .expect("couldn't write line");
                 }
             }
         }
@@ -819,21 +822,33 @@ mod tests {
 
 
     fn hook_fixtures_path() -> PathBuf {
-        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests").join("fixtures").join("hooks")
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("tests")
+            .join("fixtures")
+            .join("hooks")
     }
 
     #[test]
     fn hook_output() {
         let tmp_dir = TempDir::new("habitat_hooks_test").expect("create temp dir");
         let logs_dir = tmp_dir.path().join("logs");
-        DirBuilder::new().recursive(true).create(logs_dir).expect("couldn't create logs dir");
+        DirBuilder::new()
+            .recursive(true)
+            .create(logs_dir)
+            .expect("couldn't create logs dir");
         let mut cmd = Command::new(hook_fixtures_path().join(InitHook::file_name()));
-        cmd.stdin(Stdio::null()).stdout(Stdio::piped()).stderr(Stdio::piped());
+        cmd.stdin(Stdio::null())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped());
         let mut child = cmd.spawn().expect("couldn't run hook");
-        let stdout_log =
-            tmp_dir.path().join("logs").join(format!("{}.stdout.log", InitHook::file_name()));
-        let stderr_log =
-            tmp_dir.path().join("logs").join(format!("{}.stderr.log", InitHook::file_name()));
+        let stdout_log = tmp_dir
+            .path()
+            .join("logs")
+            .join(format!("{}.stdout.log", InitHook::file_name()));
+        let stderr_log = tmp_dir
+            .path()
+            .join("logs")
+            .join(format!("{}.stderr.log", InitHook::file_name()));
         let mut hook_output = HookOutput::new(&stdout_log, &stderr_log);
         let service_group =
             ServiceGroup::new("dummy", "service", None).expect("couldn't create ServiceGroup");
@@ -841,14 +856,16 @@ mod tests {
         hook_output.stream_output::<InitHook>(&service_group, &mut child);
 
         let mut stdout = String::new();
-        hook_output.stdout()
+        hook_output
+            .stdout()
             .unwrap()
             .read_to_string(&mut stdout)
             .expect("couldn't read stdout");
         assert_eq!(stdout, "This is stdout\n");
 
         let mut stderr = String::new();
-        hook_output.stderr()
+        hook_output
+            .stderr()
             .unwrap()
             .read_to_string(&mut stderr)
             .expect("couldn't read stderr");

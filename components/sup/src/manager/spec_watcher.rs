@@ -85,7 +85,8 @@ impl SpecWatcher {
     fn setup_watcher<W>(watch_path: PathBuf, have_events: Arc<AtomicBool>) -> Result<()>
         where W: Watcher
     {
-        thread::Builder::new().name(format!("spec-watcher-{}", watch_path.display()))
+        thread::Builder::new()
+            .name(format!("spec-watcher-{}", watch_path.display()))
             .spawn(move || {
                 debug!("SpecWatcher({}) thread starting", watch_path.display());
                 let (tx, rx) = channel();
@@ -135,7 +136,9 @@ impl SpecWatcher {
 
         // Eneueue a `RemoveService` for all services that no longer have a spec on disk.
         for name in active_names.difference(&desired_names) {
-            let remove_spec = active_specs.remove(name).expect("value should exist for key");
+            let remove_spec = active_specs
+                .remove(name)
+                .expect("value should exist for key");
             let event = SpecWatcherEvent::RemoveService(remove_spec);
             debug!("Service spec for {} is gone, enqueuing {:?} event",
                    &name,
@@ -145,7 +148,9 @@ impl SpecWatcher {
 
         // Eneueue an `AddService` for all new specs on disk without a corresponding service.
         for name in desired_names.difference(&active_names) {
-            let add_spec = desired_specs.remove(name).expect("value should exist for key");
+            let add_spec = desired_specs
+                .remove(name)
+                .expect("value should exist for key");
             let event = SpecWatcherEvent::AddService(add_spec);
             debug!("Service spec for {} is new, enqueuing {:?} event",
                    &name,
@@ -157,8 +162,12 @@ impl SpecWatcher {
         // found we're going to do the simple thing and remove, then add the service. In the future
         // we should attempt to update a service in-place, if possible.
         for name in active_names.intersection(&desired_names) {
-            let active_spec = active_specs.remove(name).expect("value should exist for key");
-            let desired_spec = desired_specs.remove(name).expect("value should exist for key");
+            let active_spec = active_specs
+                .remove(name)
+                .expect("value should exist for key");
+            let desired_spec = desired_specs
+                .remove(name)
+                .expect("value should exist for key");
             if active_spec != desired_spec {
                 let remove_event = SpecWatcherEvent::RemoveService(active_spec);
                 let add_event = SpecWatcherEvent::AddService(desired_spec);
@@ -183,8 +192,7 @@ impl SpecWatcher {
         let spec_files: Vec<PathBuf> = glob(&self.watch_path
                                                  .join(SPEC_FILE_GLOB)
                                                  .display()
-                                                 .to_string())
-                ?
+                                                 .to_string())?
                 .filter_map(|p| p.ok())
                 .filter(|p| p.is_file())
                 .collect();
@@ -495,8 +503,8 @@ mod test {
         {
             let mut bad = fs::File::create(tmpdir.path().join(format!("beta.spec"))).
                 expect("can't create file");
-            bad.write_all(r#"ident = "acme/NEAL_MORSE_BAND""#.as_bytes()).
-                expect("can't write file content");
+            bad.write_all(r#"ident = "acme/NEAL_MORSE_BAND""#.as_bytes())
+                .expect("can't write file content");
         }
 
         let mut watcher = SpecWatcher::run(tmpdir.path()).unwrap();
@@ -522,15 +530,20 @@ mod test {
         fn behavior_removed_spec<P: AsRef<Path>>(&mut self, path: P) {
             let toml_path = path.as_ref().join("oldie.spec");
             fs::remove_file(&toml_path).expect("couldn't delete spec toml");
-            self.tx.send(notify::DebouncedEvent::Remove(toml_path)).expect("couldn't send event");
+            self.tx
+                .send(notify::DebouncedEvent::Remove(toml_path))
+                .expect("couldn't send event");
         }
 
         fn behavior_changed_spec<P: AsRef<Path>>(&mut self, path: P) {
             let toml_path = path.as_ref().join("transformer.spec");
             let mut spec = ServiceSpec::from_file(&toml_path).expect("couldn't load spec file");
             spec.group = String::from("autobots");
-            spec.to_file(&toml_path).expect("couldn't write spec file");
-            self.tx.send(notify::DebouncedEvent::Write(toml_path)).expect("couldn't send event");
+            spec.to_file(&toml_path)
+                .expect("couldn't write spec file");
+            self.tx
+                .send(notify::DebouncedEvent::Write(toml_path))
+                .expect("couldn't send event");
         }
     }
 
@@ -587,8 +600,8 @@ mod test {
 
     fn new_saved_spec(tmpdir: &Path, ident: &str) -> ServiceSpec {
         let spec = new_spec(ident);
-        spec.to_file(tmpdir.join(format!("{}.spec", &spec.ident.name))).
-            expect("couldn't save spec to disk");
+        spec.to_file(tmpdir.join(format!("{}.spec", &spec.ident.name)))
+            .expect("couldn't save spec to disk");
         spec
     }
 

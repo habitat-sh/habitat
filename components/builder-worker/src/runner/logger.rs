@@ -55,18 +55,26 @@ impl Logger {
 
     /// Log message to stdout logfile
     pub fn log_stdout(&mut self, msg: &[u8]) {
-        self.stdout.write_all(msg).expect(&format!("Logger unable to write to {:?}", self.stdout));
+        self.stdout
+            .write_all(msg)
+            .expect(&format!("Logger unable to write to {:?}", self.stdout));
     }
 
     /// Log message to stderr logfile
     pub fn log_stderr(&mut self, msg: &[u8]) {
-        self.stderr.write_all(msg).expect(&format!("Logger unable to write to {:?}", self.stderr))
+        self.stderr
+            .write_all(msg)
+            .expect(&format!("Logger unable to write to {:?}", self.stderr))
     }
 }
 
 impl Drop for Logger {
     fn drop(&mut self) {
-        self.stdout.sync_all().expect("Unable to sync stdout log file");
-        self.stderr.sync_all().expect("Unable to sync stderr log file");
+        self.stdout
+            .sync_all()
+            .expect("Unable to sync stdout log file");
+        self.stderr
+            .sync_all()
+            .expect("Unable to sync stderr log file");
     }
 }

@@ -229,19 +229,25 @@ impl MemberList {
     }
 
     pub fn len_initial_members(&self) -> usize {
-        let im = self.initial_members.read().expect("Initial members lock is poisoned");
+        let im = self.initial_members
+            .read()
+            .expect("Initial members lock is poisoned");
         im.len()
     }
 
     pub fn add_initial_member(&self, member: Member) {
-        let mut im = self.initial_members.write().expect("Initial members lock is poisoned");
+        let mut im = self.initial_members
+            .write()
+            .expect("Initial members lock is poisoned");
         im.push(member);
     }
 
     pub fn with_initial_members<F>(&self, mut with_closure: F) -> ()
         where F: FnMut(&Member)
     {
-        let im = self.initial_members.read().expect("Initial members lock is poisoned");
+        let im = self.initial_members
+            .read()
+            .expect("Initial members lock is poisoned");
         for member in im.iter() {
             with_closure(member);
         }
@@ -429,9 +435,11 @@ impl MemberList {
             .get(member_id)
             .expect("Should have membership before calling membership_for")
             .into();
-        let ml = self.members.read().expect("Member list lock is poisoned");
-        let member =
-            ml.get(member_id).expect("Should have membership before calling membership_for");
+        let ml = self.members
+            .read()
+            .expect("Member list lock is poisoned");
+        let member = ml.get(member_id)
+            .expect("Should have membership before calling membership_for");
         pm.set_health(mhealth);
         pm.set_member(member.proto.clone());
         pm
@@ -469,12 +477,15 @@ impl MemberList {
     {
         // This will lead to nested read locks if you don't deal with making a copy
         let mut members: Vec<Member> = {
-            let ml = self.members.read().expect("Member list lock is poisoned");
+            let ml = self.members
+                .read()
+                .expect("Member list lock is poisoned");
             ml.values().map(|v| v.clone()).collect()
         };
         let mut rng = thread_rng();
         rng.shuffle(&mut members);
-        for member in members.into_iter()
+        for member in members
+                .into_iter()
                 .filter(|m| {
                             m.get_id() != sending_member_id && m.get_id() != target_member_id &&
                             self.check_health_of_by_id(m.get_id(), Health::Alive)
@@ -540,7 +551,9 @@ impl MemberList {
 
     /// Expires a member from the suspect list.
     pub fn expire(&self, member_id: &str) {
-        let mut suspects = self.suspect.write().expect("Suspect list lock is poisoned");
+        let mut suspects = self.suspect
+            .write()
+            .expect("Suspect list lock is poisoned");
         suspects.remove(member_id);
     }
 

@@ -185,7 +185,8 @@ fn sub_cli_setup(ui: &mut UI) -> Result<()> {
 }
 
 fn sub_cli_completers(m: &ArgMatches) -> Result<()> {
-    let shell = m.value_of("SHELL").expect("Missing Shell; A shell is required");
+    let shell = m.value_of("SHELL")
+        .expect("Missing Shell; A shell is required");
     cli::get().gen_completions_to("hab", shell.parse::<Shell>().unwrap(), &mut io::stdout());
     Ok(())
 }
@@ -402,7 +403,9 @@ fn sub_pkg_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
     let key_path = cache_key_path(Some(&*FS_ROOT));
     // don't use a pathbuf, as the P generic param for upload::start below is bound to a &str
-    let key_path = try!(key_path.to_str().ok_or(Error::CryptoCLI("Invalid key path".to_string())));
+    let key_path = try!(key_path
+                            .to_str()
+                            .ok_or(Error::CryptoCLI("Invalid key path".to_string())));
     let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
     let token = try!(auth_token_param_or_env(&m));
     let artifact_paths = m.values_of("HART_FILE").unwrap(); // Required via clap
@@ -467,12 +470,16 @@ fn sub_user_key_generate(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 }
 
 fn ui() -> UI {
-    let isatty = if henv::var(NONINTERACTIVE_ENVVAR).map(|val| val == "true").unwrap_or(false) {
+    let isatty = if henv::var(NONINTERACTIVE_ENVVAR)
+           .map(|val| val == "true")
+           .unwrap_or(false) {
         Some(false)
     } else {
         None
     };
-    let coloring = if henv::var(NOCOLORING_ENVVAR).map(|val| val == "true").unwrap_or(false) {
+    let coloring = if henv::var(NOCOLORING_ENVVAR)
+           .map(|val| val == "true")
+           .unwrap_or(false) {
         Coloring::Never
     } else {
         Coloring::Auto

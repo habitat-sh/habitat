@@ -116,9 +116,18 @@ impl FromArchive for Package {
             Err(e) => return Err(hab_core::Error::from(e)),
         };
         let manifest = try!(archive.manifest());
-        let deps = try!(archive.deps()).into_iter().map(|d| d.into()).collect();
-        let tdeps = try!(archive.tdeps()).into_iter().map(|d| d.into()).collect();
-        let exposes = try!(archive.exposes()).into_iter().map(|d| d as u32).collect();
+        let deps = try!(archive.deps())
+            .into_iter()
+            .map(|d| d.into())
+            .collect();
+        let tdeps = try!(archive.tdeps())
+            .into_iter()
+            .map(|d| d.into())
+            .collect();
+        let exposes = try!(archive.exposes())
+            .into_iter()
+            .map(|d| d as u32)
+            .collect();
         let config = try!(archive.config());
         let checksum = try!(archive.checksum());
         let target = try!(archive.target());

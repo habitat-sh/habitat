@@ -74,13 +74,13 @@ mod inner {
     pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
         let mut args = args.iter();
         let subcmd = match (args.next()
-                   .map(|a| a.to_string_lossy())
-                   .unwrap_or_default()
-                   .as_ref(),
-               args.next()
-                   .map(|a| a.to_string_lossy())
-                   .unwrap_or_default()
-                   .as_ref()) {
+                                .map(|a| a.to_string_lossy())
+                                .unwrap_or_default()
+                                .as_ref(),
+                            args.next()
+                                .map(|a| a.to_string_lossy())
+                                .unwrap_or_default()
+                                .as_ref()) {
             ("config", "apply") => "config apply",
             ("config", _) => "config",
             ("file", "upload") => "file upload",

@@ -46,10 +46,14 @@ impl Pull {
             .as_mut()
             .socket(zmq::PULL)
             .expect("Failure to create the ZMQ pull socket");
-        socket.set_linger(0).expect("Failure to set the ZMQ Pull socket to not linger");
-        socket.set_tcp_keepalive(0)
+        socket
+            .set_linger(0)
+            .expect("Failure to set the ZMQ Pull socket to not linger");
+        socket
+            .set_tcp_keepalive(0)
             .expect("Failure to set the ZMQ Pull socket to not use keepalive");
-        socket.bind(&format!("tcp://{}", self.server.gossip_addr()))
+        socket
+            .bind(&format!("tcp://{}", self.server.gossip_addr()))
             .expect("Failure to bind the ZMQ Pull socket to the port");
         'recv: loop {
             if self.server.pause.load(Ordering::Relaxed) {

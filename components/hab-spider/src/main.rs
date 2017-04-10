@@ -44,7 +44,10 @@ fn main() {
     let matches = App::new("hab-spider")
         .version("0.1.0")
         .about("Habitat package graph builder")
-        .arg(Arg::with_name("URL").help("The DB connection URL").required(true).index(1))
+        .arg(Arg::with_name("URL")
+                 .help("The DB connection URL")
+                 .required(true)
+                 .index(1))
         .get_matches();
 
     let connection_url = matches.value_of("URL").unwrap();
@@ -72,7 +75,10 @@ fn main() {
     let mut done = false;
     while !done {
         print!("spider> ");
-        io::stdout().flush().ok().expect("Could not flush stdout");
+        io::stdout()
+            .flush()
+            .ok()
+            .expect("Could not flush stdout");
 
         let mut cmd = String::new();
         io::stdin().read_line(&mut cmd).unwrap();

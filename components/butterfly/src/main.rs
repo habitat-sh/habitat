@@ -75,7 +75,9 @@ fn main() {
         server.member_list.add_initial_member(member);
     }
 
-    server.start(server::timing::Timing::default()).expect("Cannot start server");
+    server
+        .start(server::timing::Timing::default())
+        .expect("Cannot start server");
     loop {
         println!("{:#?}", server.member_list);
         thread::sleep(Duration::from_millis(1000));

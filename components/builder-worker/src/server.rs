@@ -77,7 +77,8 @@ impl Server {
         let mut runner_msg = false;
         loop {
             {
-                let mut items = [self.fe_sock.as_poll_item(1), self.runner_cli.as_poll_item(1)];
+                let mut items = [self.fe_sock.as_poll_item(1),
+                                 self.runner_cli.as_poll_item(1)];
                 try!(zmq::poll(&mut items, -1));
                 if items[0].get_revents() & zmq::POLLIN > 0 {
                     fe_msg = true;

@@ -43,7 +43,9 @@ pub fn start(filename: &str,
                 let mut comps = entry.path().components();
 
                 // skip prefix_count segments of the path
-                let _ = try!(comps.nth(prefix_count).ok_or(Error::FileNotFound(f.to_string())));
+                let _ = try!(comps
+                                 .nth(prefix_count)
+                                 .ok_or(Error::FileNotFound(f.to_string())));
 
                 let segments = if full_releases {
                     // take all 4 segments of the path
@@ -55,8 +57,9 @@ pub fn start(filename: &str,
                     comps.take(2)
                 };
 
-                let mapped_segs: Vec<String> =
-                    segments.map(|c| c.as_os_str().to_string_lossy().into_owned()).collect();
+                let mapped_segs: Vec<String> = segments
+                    .map(|c| c.as_os_str().to_string_lossy().into_owned())
+                    .collect();
                 let pkg_name = mapped_segs.join("/");
 
                 // if we show the full path, then don't bother stuffing

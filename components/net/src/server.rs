@@ -221,7 +221,9 @@ pub trait Service: NetIdent {
             try!(self.conn_mut().heartbeat.recv(&mut hb, 0));
             debug!("received reg request, {:?}", hb.as_str());
             try!(self.conn_mut().heartbeat.send_str("R", zmq::SNDMORE));
-            try!(self.conn_mut().heartbeat.send(&reg.write_to_bytes().unwrap(), 0));
+            try!(self.conn_mut()
+                     .heartbeat
+                     .send(&reg.write_to_bytes().unwrap(), 0));
             try!(self.conn_mut().heartbeat.recv(&mut hb, 0));
             ready += 1;
         }

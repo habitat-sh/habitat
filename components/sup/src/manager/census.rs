@@ -436,10 +436,7 @@ impl Census {
 
     /// Return all members.
     pub fn members(&self) -> Vec<&CensusEntry> {
-        self.population
-            .values()
-            .map(|ce| ce)
-            .collect()
+        self.population.values().map(|ce| ce).collect()
     }
 
     /// Return all members ordered by member_id.
@@ -455,31 +452,24 @@ impl Census {
 
     /// Return the leader of the currently running update election or None if there is no leader.
     pub fn get_update_leader(&self) -> Option<&CensusEntry> {
-        self.population.values().find(|&ce| ce.get_update_leader())
+        self.population
+            .values()
+            .find(|&ce| ce.get_update_leader())
     }
 
     pub fn get_service_group(&self) -> String {
         // We know we have one, because otherwise the census wouldn't exist
-        let entry = self.population
-            .values()
-            .nth(0)
-            .unwrap();
+        let entry = self.population.values().nth(0).unwrap();
         entry.get_service_group()
     }
 
     pub fn get_group(&self) -> &str {
-        let entry = self.population
-            .values()
-            .nth(0)
-            .unwrap();
+        let entry = self.population.values().nth(0).unwrap();
         entry.get_group()
     }
 
     pub fn get_service(&self) -> &str {
-        let entry = self.population
-            .values()
-            .nth(0)
-            .unwrap();
+        let entry = self.population.values().nth(0).unwrap();
         entry.get_service()
     }
 
@@ -490,7 +480,9 @@ impl Census {
         if members.len() <= 1 || self.me().is_none() {
             return None;
         }
-        match members.iter().position(|ce| ce.member_id == self.me().unwrap().member_id) {
+        match members
+                  .iter()
+                  .position(|ce| ce.member_id == self.me().unwrap().member_id) {
             Some(idx) => {
                 let peer = idx + 1;
                 if peer >= members.len() {
@@ -510,7 +502,9 @@ impl Census {
         if members.len() <= 1 || self.me().is_none() {
             return None;
         }
-        match members.iter().position(|ce| ce.member_id == self.me().unwrap().member_id) {
+        match members
+                  .iter()
+                  .position(|ce| ce.member_id == self.me().unwrap().member_id) {
             Some(idx) => {
                 if idx <= 0 {
                     Some(members[members.len() - 1])
@@ -542,8 +536,9 @@ impl CensusList {
     }
 
     pub fn insert(&mut self, member_id: String, census_entry: CensusEntry) {
-        let census =
-            self.censuses.entry(census_entry.get_service_group()).or_insert(Census::new(member_id));
+        let census = self.censuses
+            .entry(census_entry.get_service_group())
+            .or_insert(Census::new(member_id));
         if census.contains_key(census_entry.get_member_id()) {
             let entry = census.get_mut(census_entry.get_member_id()).unwrap();
             *entry = census_entry;

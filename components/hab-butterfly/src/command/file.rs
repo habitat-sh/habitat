@@ -46,7 +46,8 @@ pub mod upload {
         try!(file.read_to_end(&mut body));
 
         // Safe because clap checks that this is a real file that exists
-        let filename = file_path.file_name()
+        let filename = file_path
+            .file_name()
             .unwrap()
             .to_string_lossy()
             .into_owned();
@@ -65,11 +66,12 @@ pub mod upload {
             try!(ui.status(Status::Applying, format!("to peer {}", peer)));
             let mut client = try!(Client::new(peer, ring_key.map(|k| k.clone()))
                 .map_err(|e| Error::ButterflyError(format!("{}", e))));
-            try!(client.send_service_file(sg.clone(),
-                                          filename.clone(),
-                                          number,
-                                          body.clone(),
-                                          encrypted)
+            try!(client
+                     .send_service_file(sg.clone(),
+                                        filename.clone(),
+                                        number,
+                                        body.clone(),
+                                        encrypted)
                      .map_err(|e| Error::ButterflyError(format!("{}", e))));
 
             // please take a moment to weep over the following line

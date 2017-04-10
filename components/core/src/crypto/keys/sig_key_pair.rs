@@ -241,10 +241,7 @@ impl SigKeyPair {
         let tmpfile = {
             let mut t = keyfile.clone();
             t.set_file_name(format!("{}.{}",
-                                    &keyfile.file_name()
-                                         .unwrap()
-                                         .to_str()
-                                         .unwrap(),
+                                    &keyfile.file_name().unwrap().to_str().unwrap(),
                                     &randombytes(6).as_slice().to_hex()));
             TmpKeyfile { path: t }
         };
@@ -463,8 +460,14 @@ mod test {
             Ok(_) => assert!(true),
             Err(_) => panic!("Generated pair should have a secret key"),
         }
-        assert!(cache.path().join(format!("{}.pub", pair.name_with_rev())).exists());
-        assert!(cache.path().join(format!("{}.sig.key", pair.name_with_rev())).exists());
+        assert!(cache
+                    .path()
+                    .join(format!("{}.pub", pair.name_with_rev()))
+                    .exists());
+        assert!(cache
+                    .path()
+                    .join(format!("{}.sig.key", pair.name_with_rev()))
+                    .exists());
     }
 
     #[test]
@@ -599,7 +602,9 @@ mod test {
         let new_content = {
             let mut new_content_file = File::open(new_key_file).unwrap();
             let mut new_content = String::new();
-            new_content_file.read_to_string(&mut new_content).unwrap();
+            new_content_file
+                .read_to_string(&mut new_content)
+                .unwrap();
             new_content
         };
 
@@ -621,7 +626,9 @@ mod test {
         let new_content = {
             let mut new_content_file = File::open(new_key_file).unwrap();
             let mut new_content = String::new();
-            new_content_file.read_to_string(&mut new_content).unwrap();
+            new_content_file
+                .read_to_string(&mut new_content)
+                .unwrap();
             new_content
         };
 
@@ -742,7 +749,9 @@ mod test {
         let cache = TempDir::new("key_cache").unwrap();
         let key = fixture("keys/origin-key-valid-20160509190508.sig.key");
         fs::copy(key,
-                 cache.path().join("origin-key-valid-20160509190508.sig.key"))
+                 cache
+                     .path()
+                     .join("origin-key-valid-20160509190508.sig.key"))
                 .unwrap();
 
         SigKeyPair::write_file_from_str(

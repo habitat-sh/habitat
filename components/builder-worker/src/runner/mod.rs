@@ -149,7 +149,8 @@ impl Runner {
             warn!("WARNING: No auth token specified, will likely fail fetching secret key");
         };
 
-        match self.depot_cli.fetch_origin_secret_key(self.job().origin(), &self.auth_token) {
+        match self.depot_cli
+                  .fetch_origin_secret_key(self.job().origin(), &self.auth_token) {
             Ok(key) => {
                 let cache = crypto::default_cache_key_path(None);
                 let s: String = String::from_utf8(key.body).expect("Found invalid UTF-8");
@@ -171,10 +172,7 @@ impl Runner {
                 return self.fail(net::err(ErrCode::SECRET_KEY_FETCH, "wk:run:3"));
             }
         }
-        if let Some(err) = self.job()
-               .vcs()
-               .clone(&self.workspace.src())
-               .err() {
+        if let Some(err) = self.job().vcs().clone(&self.workspace.src()).err() {
             error!("Unable to clone remote source repository, err={}", err);
             return self.fail(net::err(ErrCode::VCS_CLONE, "wk:run:4"));
         }

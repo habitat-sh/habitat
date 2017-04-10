@@ -40,7 +40,9 @@ pub mod postgres {
 
     impl Postgres {
         fn new() -> Postgres {
-            let root_path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests").join("db");
+            let root_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                .join("tests")
+                .join("db");
             let start_path = root_path.join("start.sh");
             let child = Command::new("sudo")
                 .arg("-E")

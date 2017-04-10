@@ -258,7 +258,8 @@ impl<'a> InstallTask<'a> {
         }
 
         try!(ui.status(Status::Downloading, ident));
-        match self.depot_client.fetch_package(ident, self.cache_artifact_path, ui.progress()) {
+        match self.depot_client
+                  .fetch_package(ident, self.cache_artifact_path, ui.progress()) {
             Ok(_) => Ok(()),
             Err(depot_client::Error::APIError(StatusCode::NotImplemented, _)) => {
                 println!("Host platform or architecture not supported by the targted depot; \
@@ -273,7 +274,8 @@ impl<'a> InstallTask<'a> {
         try!(ui.status(Status::Downloading,
                        format!("{} public origin key", &name_with_rev)));
         let (name, rev) = try!(parse_name_with_rev(&name_with_rev));
-        try!(self.depot_client.fetch_origin_key(&name, &rev, self.cache_key_path, ui.progress()));
+        try!(self.depot_client
+                 .fetch_origin_key(&name, &rev, self.cache_key_path, ui.progress()));
         try!(ui.status(Status::Cached,
                        format!("{} public origin key", &name_with_rev)));
         Ok(())

@@ -59,18 +59,12 @@ impl DataStore {
     /// * If a read-write transaction could not be acquired for any of the databases in the
     ///   datastore
     pub fn clear(&self) -> Result<()> {
-        try!(redis::cmd("FLUSHDB").query(self.pool
-                                             .get()
-                                             .unwrap()
-                                             .deref()));
+        try!(redis::cmd("FLUSHDB").query(self.pool.get().unwrap().deref()));
         Ok(())
     }
 
     pub fn key_count(&self) -> Result<usize> {
-        let count = try!(redis::cmd("DBSIZE").query(self.pool
-                                                        .get()
-                                                        .unwrap()
-                                                        .deref()));
+        let count = try!(redis::cmd("DBSIZE").query(self.pool.get().unwrap().deref()));
         Ok(count)
     }
 }
@@ -152,10 +146,13 @@ impl PackagesIndex {
             Ok(ids) => {
                 // JW TODO: This in-memory sorting logic can be removed once the Redis sorted set
                 // is pre-sorted on write. For now, we'll do it on read each time.
-                let mut ids: Vec<package::PackageIdent> =
-                    ids.iter().map(|id| package::PackageIdent::from_str(id).unwrap()).collect();
+                let mut ids: Vec<package::PackageIdent> = ids.iter()
+                    .map(|id| package::PackageIdent::from_str(id).unwrap())
+                    .collect();
                 ids.sort();
-                let ids = ids.into_iter().map(|id| depotsrv::PackageIdent::from(id)).collect();
+                let ids = ids.into_iter()
+                    .map(|id| depotsrv::PackageIdent::from(id))
+                    .collect();
                 Ok(ids)
             }
             Err(e) => Err(Error::from(e)),
@@ -180,7 +177,9 @@ impl PackagesIndex {
                          })
                     .collect();
                 idz.sort();
-                let new_ids = idz.into_iter().map(|zd| depotsrv::PackageIdent::from(zd)).collect();
+                let new_ids = idz.into_iter()
+                    .map(|zd| depotsrv::PackageIdent::from(zd))
+                    .collect();
                 Ok(new_ids)
             }
             Err(e) => Err(Error::from(e)),
@@ -414,8 +413,10 @@ impl ChannelsTable {
         let key = format!("{}/{}", origin, channel);
 
         if let Some(packages) = self.channel_package_map.get(&key) {
-            let mut pkgs: Vec<&depotsrv::PackageIdent> =
-                packages.iter().filter(|pkg| pkg.to_string().contains(ident)).collect();
+            let mut pkgs: Vec<&depotsrv::PackageIdent> = packages
+                .iter()
+                .filter(|pkg| pkg.to_string().contains(ident))
+                .collect();
 
             if pkgs.is_empty() {
                 return None;
@@ -442,7 +443,8 @@ impl ChannelsTable {
         let key = format!("{}/{}", origin, channel);
 
         if let Some(packages) = self.channel_package_map.get(&key) {
-            packages.iter()
+            packages
+                .iter()
                 .enumerate()
                 .filter(|&(i, pkg)| if ident == origin {
                             i >= start as usize && i <= stop as usize
@@ -560,7 +562,8 @@ impl ChannelPkgIndex {
                 // JW TODO: This in-memory sorting logic can be removed once the Redis sorted set
                 // is pre-sorted on write. For now, we'll do it on read each time.
                 let mut set: Vec<package::PackageIdent> =
-                    set.map(|(id, _)| package::PackageIdent::from_str(&id).unwrap()).collect();
+                    set.map(|(id, _)| package::PackageIdent::from_str(&id).unwrap())
+                        .collect();
                 set.sort();
                 set.reverse();
                 Ok(set)
