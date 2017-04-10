@@ -92,32 +92,38 @@ impl SwimNet {
     }
 
     pub fn blacklist(&self, from_entry: usize, to_entry: usize) {
-        let from =
-            self.members.get(from_entry).expect("Asked for a network member who is out of bounds");
-        let to =
-            self.members.get(to_entry).expect("Asked for a network member who is out of bounds");
+        let from = self.members
+            .get(from_entry)
+            .expect("Asked for a network member who is out of bounds");
+        let to = self.members
+            .get(to_entry)
+            .expect("Asked for a network member who is out of bounds");
         trace_it!(TEST: &self.members[from_entry], format!("Blacklisted {} {}", self.members[to_entry].name(), self.members[to_entry].member_id()));
         from.add_to_blacklist(String::from(to.member
-            .read()
-            .expect("Member lock is poisoned")
-            .get_id()));
+                                               .read()
+                                               .expect("Member lock is poisoned")
+                                               .get_id()));
     }
 
     pub fn unblacklist(&self, from_entry: usize, to_entry: usize) {
-        let from =
-            self.members.get(from_entry).expect("Asked for a network member who is out of bounds");
-        let to =
-            self.members.get(to_entry).expect("Asked for a network member who is out of bounds");
+        let from = self.members
+            .get(from_entry)
+            .expect("Asked for a network member who is out of bounds");
+        let to = self.members
+            .get(to_entry)
+            .expect("Asked for a network member who is out of bounds");
         trace_it!(TEST: &self.members[from_entry], format!("Un-Blacklisted {} {}", self.members[to_entry].name(), self.members[to_entry].member_id()));
         from.remove_from_blacklist(to.member_id());
     }
 
     pub fn health_of(&self, from_entry: usize, to_entry: usize) -> Option<Health> {
-        let from =
-            self.members.get(from_entry).expect("Asked for a network member who is out of bounds");
+        let from = self.members
+            .get(from_entry)
+            .expect("Asked for a network member who is out of bounds");
 
-        let to =
-            self.members.get(to_entry).expect("Asked for a network member who is out of bounds");
+        let to = self.members
+            .get(to_entry)
+            .expect("Asked for a network member who is out of bounds");
         let to_member = to.member.read().expect("Member lock is poisoned");
         from.member_list.health_of(&to_member)
     }
@@ -151,11 +157,17 @@ impl SwimNet {
     }
 
     pub fn gossip_rounds(&self) -> Vec<isize> {
-        self.members.iter().map(|m| m.gossip_rounds()).collect()
+        self.members
+            .iter()
+            .map(|m| m.gossip_rounds())
+            .collect()
     }
 
     pub fn gossip_rounds_in(&self, count: isize) -> Vec<isize> {
-        self.gossip_rounds().iter().map(|r| r + count).collect()
+        self.gossip_rounds()
+            .iter()
+            .map(|r| r + count)
+            .collect()
     }
 
     pub fn check_rounds(&self, rounds_in: &Vec<isize>) -> bool {
@@ -227,13 +239,16 @@ impl SwimNet {
         let rounds_in = self.gossip_rounds_in(self.max_gossip_rounds());
         loop {
             let mut result = false;
-            let server =
-                self.members.get(e_num).expect("Asked for a network member who is out of bounds");
-            server.election_store.with_rumor(key, "election", |e| {
-                if e.is_some() && e.unwrap().get_status() == status {
-                    result = true;
-                }
-            });
+            let server = self.members
+                .get(e_num)
+                .expect("Asked for a network member who is out of bounds");
+            server
+                .election_store
+                .with_rumor(key,
+                            "election",
+                            |e| if e.is_some() && e.unwrap().get_status() == status {
+                                result = true;
+                            });
             if result {
                 return true;
             }
@@ -258,11 +273,15 @@ impl SwimNet {
                 .get(right)
                 .expect("Asked for a network member who is out of bounds");
 
-            left_server.election_store.with_rumor(key, "election", |l| {
-                right_server.election_store.with_rumor(key, "election", |r| {
-                    result = l.is_some() && r.is_some() && l.unwrap() == r.unwrap();
+            left_server
+                .election_store
+                .with_rumor(key, "election", |l| {
+                    right_server
+                        .election_store
+                        .with_rumor(key, "election", |r| {
+                            result = l.is_some() && r.is_some() && l.unwrap() == r.unwrap();
+                        });
                 });
-            });
             if result {
                 return true;
             }
@@ -327,11 +346,13 @@ impl SwimNet {
         let rounds_in = self.rounds_in(self.max_rounds());
         loop {
             let network_health = self.network_health_of(to_check);
-            if network_health.iter().all(|x| if let &Some(ref h) = x {
-                *h == health
-            } else {
-                false
-            }) {
+            if network_health
+                   .iter()
+                   .all(|x| if let &Some(ref h) = x {
+                            *h == health
+                        } else {
+                            false
+                        }) {
                 trace_it!(TEST_NET: self,
                           format!("Health {} {} as {}",
                                   self.members[to_check].name(),

@@ -44,7 +44,7 @@ use mount::Mount;
 use persistent;
 use protobuf::{self, parse_from_bytes};
 use protocol::{depotsrv, Routable};
-use protocol::net::{ErrCode, NetError};
+use protocol::net::{NetOk, ErrCode, NetError};
 use protocol::sessionsrv::{Account, AccountGet};
 use protocol::scheduler::{Group, GroupCreate, GroupGet};
 use protocol::originsrv::*;
@@ -232,6 +232,53 @@ pub fn check_origin_access<T: ToString>(req: &mut Request,
             let body = serde_json::to_string(&err).unwrap();
             let status = net_err_to_http(err.get_code());
             Err(IronError::new(err, (body, status)))
+        }
+    }
+}
+
+pub fn accept_invitation(req: &mut Request) -> IronResult<Response> {
+    // TODO: SA - Eliminate need to clone the session and params
+    let session = req.extensions.get::<Authenticated>().unwrap().clone();
+    let params = req.extensions.get::<Router>().unwrap().clone();
+    let origin = match params.find("origin") {
+        Some(origin) => origin,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+    let invitation = match params.find("invitation_id") {
+        Some(invitation) => invitation,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+    let invitation_id = match invitation.parse::<u64>() {
+        Ok(invitation_id) => invitation_id,
+        Err(e) => {
+            error!("Bad request; invitation ID did not parse into a u64, {}", e);
+            return Ok(Response::with(status::BadRequest));
+        }
+    };
+
+    let mut conn = Broker::connect().unwrap();
+    debug!("Accepting invitation for user {} origin {}",
+           &session.get_id(),
+           &origin);
+
+    let mut request = OriginInvitationAcceptRequest::new();
+    request.set_account_id(session.get_id());
+    request.set_invite_id(invitation_id);
+    request.set_origin_name(origin.to_string());
+    request.set_ignore(false);
+
+    match conn.route::<OriginInvitationAcceptRequest, NetOk>(&request) {
+        Ok(_) => {
+            log_event!(req,
+                       Event::OriginInvitationAccept {
+                           id: request.get_invite_id().to_string(),
+                           account: session.get_id().to_string(),
+                       });
+            Ok(Response::with(status::NoContent))
+        }
+        Err(err) => {
+            error!("Error accepting invitation, {}", err);
+            Ok(render_net_error(&err))
         }
     }
 }
@@ -1604,9 +1651,16 @@ pub fn routes<M: BeforeMiddleware + Clone>(insecure: bool, basic: M, worker: M) 
                 XHandler::new(download_latest_origin_secret_key).before(worker.clone())
             }
         },
+        // All of this API feels wrong to me.
         origin_invitation_create: post "/origins/:origin/users/:username/invitations" => {
             XHandler::new(invite_to_origin).before(basic.clone())
         },
+        origin_invitation_accept: put "/origins/:origin/invitations/:invitation_id" => {
+            XHandler::new(accept_invitation).before(basic.clone())
+        },
+        //origin_invitation_ignore: delete "/origins/:origin/invitations/:invitation_id" => {
+        //    XHandler::new(ignore_invitation).before(basic.clone())
+        //},
         origin_invitations: get "/origins/:origin/invitations" => {
             XHandler::new(list_origin_invitations).before(basic.clone())
         },

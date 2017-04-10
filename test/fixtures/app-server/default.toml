@@ -1,8 +1,0 @@
-log_level = "error"
-
-[proxy]
-port = 80
-
-[srv]
-port = 8080
-host = "127.0.0.1"

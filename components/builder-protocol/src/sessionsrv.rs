@@ -13,35 +13,21 @@
 // limitations under the License.
 
 use std::result;
-use std::str::FromStr;
 
 use serde::{Serialize, Serializer};
-use serde::ser::{SerializeSeq, SerializeStruct};
+use serde::ser::SerializeStruct;
 
-use error::{ProtocolError, ProtocolResult};
 use message::{Persistable, Routable};
-use search::FromSearchPair;
 
+use sharding::InstaId;
 pub use message::sessionsrv::*;
 
-impl FromStr for AccountSearchKey {
-    type Err = ProtocolError;
-
-    fn from_str(value: &str) -> ProtocolResult<Self> {
-        let value = value.to_lowercase();
-        match value.as_ref() {
-            "name" => Ok(AccountSearchKey::Name),
-            "id" => Ok(AccountSearchKey::Id),
-            _ => Err(ProtocolError::BadSearchKey(value)),
-        }
-    }
-}
 
 impl Routable for SessionCreate {
-    type H = u64;
+    type H = String;
 
     fn route_key(&self) -> Option<Self::H> {
-        Some(self.get_extern_id())
+        Some(String::from(self.get_name()))
     }
 }
 
@@ -49,9 +35,7 @@ impl Routable for SessionGet {
     type H = String;
 
     fn route_key(&self) -> Option<Self::H> {
-        // JW TODO: how do we know the shard from the session key? Is it embedded? Is this a
-        // composite key that contains the shard plus the token?
-        None
+        Some(String::from(self.get_name()))
     }
 }
 
@@ -82,7 +66,7 @@ impl Serialize for Account {
         where S: Serializer
     {
         let mut strukt = try!(serializer.serialize_struct("account", 3));
-        try!(strukt.serialize_field("id", &self.get_id()));
+        try!(strukt.serialize_field("id", &self.get_id().to_string()));
         try!(strukt.serialize_field("name", self.get_name()));
         try!(strukt.serialize_field("email", self.get_email()));
         strukt.end()
@@ -97,63 +81,83 @@ impl Routable for AccountGet {
     }
 }
 
-impl FromSearchPair for AccountSearch {
-    fn from_search_pair<K: AsRef<str>, V: Into<String>>(key: K, value: V) -> ProtocolResult<Self> {
-        let key = try!(AccountSearchKey::from_str(key.as_ref()));
-        let mut search = AccountSearch::new();
-        search.set_key(key);
-        search.set_value(value.into());
-        Ok(search)
+impl Routable for AccountGetId {
+    type H = InstaId;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(InstaId(self.get_id()))
     }
 }
 
-impl Routable for AccountSearch {
-    type H = String;
+
+impl Routable for AccountOriginInvitationCreate {
+    type H = InstaId;
 
     fn route_key(&self) -> Option<Self::H> {
-        Some(self.get_value().to_string())
+        Some(InstaId(self.get_account_id()))
     }
 }
 
-impl Routable for ListFlagGrants {
-    type H = String;
+impl Routable for AccountInvitationListRequest {
+    type H = InstaId;
 
     fn route_key(&self) -> Option<Self::H> {
-        // JW TODO: We need to define a new type of routable message - Broadcast. This message
-        // needs to hit every session server and not just one.
-        //
-        // An alternative implementation would be to elect a SessionServer as master and have it
-        // broadcast state to the other session servers. For now, this is fine since we run
-        // one session server in all environments.
-        None
+        Some(InstaId(self.get_account_id()))
     }
 }
 
-impl Routable for GrantFlagToTeam {
-    type H = String;
+impl Routable for AccountOriginListRequest {
+    type H = InstaId;
 
     fn route_key(&self) -> Option<Self::H> {
-        // JW TODO: We need to define a new type of routable message - Broadcast. This message
-        // needs to hit every session server and not just one.
-        //
-        // An alternative implementation would be to elect a SessionServer as master and have it
-        // broadcast state to the other session servers. For now, this is fine since we run
-        // one session server in all environments.
-        None
+        Some(InstaId(self.get_account_id()))
     }
 }
 
-impl Routable for RevokeFlagFromTeam {
-    type H = String;
+impl Routable for AccountOriginInvitationAcceptRequest {
+    type H = InstaId;
 
     fn route_key(&self) -> Option<Self::H> {
-        // JW TODO: We need to define a new type of routable message - Broadcast. This message
-        // needs to hit every session server and not just one.
-        //
-        // An alternative implementation would be to elect a SessionServer as master and have it
-        // broadcast state to the other session servers. For now, this is fine since we run
-        // one session server in all environments.
-        None
+        Some(InstaId(self.get_account_id()))
+    }
+}
+
+impl Serialize for AccountInvitationListResponse {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+        where S: Serializer
+    {
+        let mut strukt = try!(serializer.serialize_struct("account_invitation_list_response", 2));
+        try!(strukt.serialize_field("account_id", &self.get_account_id().to_string()));
+        try!(strukt.serialize_field("invitations", self.get_invitations()));
+        strukt.end()
+    }
+}
+
+impl Serialize for AccountOriginInvitation {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+        where S: Serializer
+    {
+        let mut strukt = try!(serializer.serialize_struct("account_origin_invitation", 6));
+        try!(strukt.serialize_field("id", &self.get_id().to_string()));
+        try!(strukt.serialize_field("origin_invitation_id",
+                                    &self.get_origin_invitation_id().to_string()));
+        try!(strukt.serialize_field("account_id", &self.get_account_id().to_string()));
+        try!(strukt.serialize_field("account_name", self.get_account_name()));
+        try!(strukt.serialize_field("origin_id", &self.get_origin_id().to_string()));
+        try!(strukt.serialize_field("origin_name", self.get_origin_name()));
+        try!(strukt.serialize_field("owner_id", &self.get_owner_id().to_string()));
+        strukt.end()
+    }
+}
+
+impl Serialize for AccountOriginListResponse {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+        where S: Serializer
+    {
+        let mut strukt = try!(serializer.serialize_struct("account_origin_list_response", 2));
+        try!(strukt.serialize_field("account_id", &self.get_account_id().to_string()));
+        try!(strukt.serialize_field("origins", self.get_origins()));
+        strukt.end()
     }
 }
 
@@ -169,25 +173,13 @@ impl Persistable for SessionToken {
     }
 }
 
-impl Serialize for FlagGrants {
-    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
-    {
-        let mut seq = try!(serializer.serialize_seq(Some(self.get_teams().len())));
-        for e in self.get_teams() {
-            try!(seq.serialize_element(&e));
-        }
-        seq.end()
-    }
-}
-
 impl Serialize for Session {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {
         let mut strukt = try!(serializer.serialize_struct("session", 5));
         try!(strukt.serialize_field("token", self.get_token()));
-        try!(strukt.serialize_field("id", &self.get_id()));
+        try!(strukt.serialize_field("id", &self.get_id().to_string()));
         try!(strukt.serialize_field("name", self.get_name()));
         try!(strukt.serialize_field("email", self.get_email()));
         try!(strukt.serialize_field("flags", &self.get_flags()));

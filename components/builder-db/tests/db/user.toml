@@ -1,4 +1,10 @@
 listen_addresses = "127.0.0.1"
-search_path = "pg_temp"
+search_path = "public"
 hba_file = "/hab/svc/postgresql/pg_hba.conf"
-log_statement = "mod"
+####
+# If you want database level debugging, turn these on
+###
+# log_min_messages = "debug1"
+# log_min_error_statement = "debug1"
+# log_connections = true
+# log_statement = "all"

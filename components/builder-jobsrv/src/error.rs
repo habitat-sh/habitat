@@ -31,6 +31,8 @@ pub enum Error {
     Db(db::error::Error),
     DbPoolTimeout(r2d2::GetTimeout),
     DbTransaction(postgres::error::Error),
+    DbTransactionStart(postgres::error::Error),
+    DbTransactionCommit(postgres::error::Error),
     HabitatCore(hab_core::Error),
     IO(io::Error),
     JobCreate(postgres::error::Error),
@@ -55,6 +57,12 @@ impl fmt::Display for Error {
                 format!("Timeout getting connection from the database pool, {}", e)
             }
             Error::DbTransaction(ref e) => format!("Database transaction error, {}", e),
+            Error::DbTransactionStart(ref e) => {
+                format!("Failed to start database transaction, {}", e)
+            }
+            Error::DbTransactionCommit(ref e) => {
+                format!("Failed to commit database transaction, {}", e)
+            }
             Error::HabitatCore(ref e) => format!("{}", e),
             Error::IO(ref e) => format!("{}", e),
             Error::JobCreate(ref e) => format!("Database error creating a new job, {}", e),
@@ -78,6 +86,8 @@ impl error::Error for Error {
             Error::Db(ref err) => err.description(),
             Error::DbPoolTimeout(ref err) => err.description(),
             Error::DbTransaction(ref err) => err.description(),
+            Error::DbTransactionStart(ref err) => err.description(),
+            Error::DbTransactionCommit(ref err) => err.description(),
             Error::HabitatCore(ref err) => err.description(),
             Error::IO(ref err) => err.description(),
             Error::JobCreate(ref err) => err.description(),

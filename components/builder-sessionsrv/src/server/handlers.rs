@@ -12,27 +12,45 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use dbcache::{self, ExpiringSet, InstaSet};
-use hab_net::privilege::{self, FeatureFlags};
+use std::env;
+
+use hab_net::privilege;
 use hab_net::server::Envelope;
-use protocol::net::{self, ErrCode, NetOk};
+use protocol::net::{self, ErrCode};
 use protocol::sessionsrv as proto;
 use zmq;
 
 use super::ServerState;
 use error::Result;
 
+pub fn account_get_id(req: &mut Envelope,
+                      sock: &mut zmq::Socket,
+                      state: &mut ServerState)
+                      -> Result<()> {
+    let msg: proto::AccountGetId = try!(req.parse_msg());
+    match state.datastore.get_account_by_id(&msg) {
+        Ok(Some(account)) => req.reply_complete(sock, &account)?,
+        Ok(None) => {
+            let err = net::err(ErrCode::ENTITY_NOT_FOUND, "ss:account-get-id:0");
+            try!(req.reply_complete(sock, &err));
+        }
+        Err(e) => {
+            error!("{}", e);
+            let err = net::err(ErrCode::DATA_STORE, "ss:account-get-id:1");
+            try!(req.reply_complete(sock, &err));
+        }
+    }
+    Ok(())
+}
+
 pub fn account_get(req: &mut Envelope,
                    sock: &mut zmq::Socket,
                    state: &mut ServerState)
                    -> Result<()> {
     let msg: proto::AccountGet = try!(req.parse_msg());
-    match state
-              .datastore
-              .accounts
-              .find_by_username(&msg.get_name().to_string()) {
-        Ok(account) => try!(req.reply_complete(sock, &account)),
-        Err(dbcache::Error::EntityNotFound) => {
+    match state.datastore.get_account(&msg) {
+        Ok(Some(account)) => req.reply_complete(sock, &account)?,
+        Ok(None) => {
             let err = net::err(ErrCode::ENTITY_NOT_FOUND, "ss:account-get:0");
             try!(req.reply_complete(sock, &err));
         }
@@ -45,116 +63,61 @@ pub fn account_get(req: &mut Envelope,
     Ok(())
 }
 
-pub fn account_search(req: &mut Envelope,
-                      sock: &mut zmq::Socket,
-                      state: &mut ServerState)
-                      -> Result<()> {
-    let mut msg: proto::AccountSearch = try!(req.parse_msg());
-    let result = match msg.get_key() {
-        proto::AccountSearchKey::Id => {
-            let value: u64 = msg.take_value().parse().unwrap();
-            state.datastore.accounts.find(&value)
-        }
-        proto::AccountSearchKey::Name => {
-            state
-                .datastore
-                .accounts
-                .find_by_username(&msg.take_value())
-        }
-    };
-    match result {
-        Ok(account) => try!(req.reply_complete(sock, &account)),
-        Err(dbcache::Error::EntityNotFound) => {
-            let err = net::err(ErrCode::ENTITY_NOT_FOUND, "ss:account-search:0");
-            try!(req.reply_complete(sock, &err));
-        }
-        Err(e) => {
-            error!("{}", e);
-            let err = net::err(ErrCode::DATA_STORE, "ss:account-search:1");
-            try!(req.reply_complete(sock, &err));
-        }
-    }
-    Ok(())
-}
-
-pub fn grant_flag(req: &mut Envelope,
-                  sock: &mut zmq::Socket,
-                  state: &mut ServerState)
-                  -> Result<()> {
-    let msg: proto::GrantFlagToTeam = try!(req.parse_msg());
-    try!(state
-             .datastore
-             .features
-             .grant(msg.get_flag(), msg.get_team_id()));
-    try!(req.reply_complete(sock, &NetOk::new()));
-    Ok(())
-}
-
-pub fn grant_list(req: &mut Envelope,
-                  sock: &mut zmq::Socket,
-                  state: &mut ServerState)
-                  -> Result<()> {
-    let msg: proto::ListFlagGrants = try!(req.parse_msg());
-    let teams = try!(state.datastore.features.teams(msg.get_flag()));
-    let mut grants = proto::FlagGrants::new();
-    grants.set_teams(teams);
-    try!(req.reply_complete(sock, &grants));
-    Ok(())
-}
-
-pub fn revoke_flag(req: &mut Envelope,
-                   sock: &mut zmq::Socket,
-                   state: &mut ServerState)
-                   -> Result<()> {
-    let msg: proto::RevokeFlagFromTeam = try!(req.parse_msg());
-    try!(state
-             .datastore
-             .features
-             .revoke(msg.get_flag(), msg.get_team_id()));
-    try!(req.reply_complete(sock, &NetOk::new()));
-    Ok(())
-}
-
 pub fn session_create(req: &mut Envelope,
                       sock: &mut zmq::Socket,
                       state: &mut ServerState)
                       -> Result<()> {
-    let mut msg: proto::SessionCreate = try!(req.parse_msg());
-    let account: proto::Account = match state
-              .datastore
-              .sessions
-              .find(&msg.get_token().to_string()) {
-        Ok(session) => {
-            state
-                .datastore
-                .accounts
-                .find(&session.get_owner_id())
-                .unwrap()
+    let msg: proto::SessionCreate = try!(req.parse_msg());
+
+    let mut is_admin = false;
+    let mut is_builder = false;
+    let mut is_build_worker = false;
+
+    if env::var_os("HAB_FUNC_TEST").is_some() {
+        is_admin = true;
+        is_builder = true;
+        is_build_worker = true;
+    } else {
+        let teams = match state.github.teams(msg.get_token()) {
+            Ok(teams) => teams,
+            Err(e) => {
+                error!("Cannot retrieve teams from github; failing: {}", e);
+                let err = net::err(ErrCode::DATA_STORE, "ss:session-create:0");
+                req.reply_complete(sock, &err)?;
+                return Ok(());
+            }
+        };
+        for team in teams {
+            if team.id != 0 && team.id == state.admin_team {
+                debug!("Granting feature flag={:?} for team={:?}",
+                       privilege::ADMIN,
+                       team.name);
+                is_admin = true;
+            }
+            if team.id != 0 && state.builder_teams.contains(&team.id) {
+                debug!("Granting feature flag={:?} for team={:?}",
+                       privilege::BUILDER,
+                       team.name);
+                is_builder = true;
+            }
+            if team.id != 0 && state.build_worker_teams.contains(&team.id) {
+                debug!("Granting feature flag={:?} for team={:?}",
+                       privilege::BUILD_WORKER,
+                       team.name);
+                is_build_worker = true;
+            }
         }
-        _ => try!(state.datastore.accounts.find_or_create(&msg)),
-    };
-    let mut session_token = proto::SessionToken::new();
-    session_token.set_token(msg.take_token());
-    session_token.set_owner_id(account.get_id());
-    session_token.set_provider(msg.get_provider());
-    if let Some(e) = state
-           .datastore
-           .sessions
-           .write(&mut session_token)
-           .err() {
-        error!("{}", e);
-        let err = net::err(ErrCode::DATA_STORE, "ss:session-create:0");
-        try!(req.reply_complete(sock, &err));
-        return Ok(());
     }
-    let mut session: proto::Session = account.into();
-    session.set_token(session_token.take_token());
-    if let Some(err) = set_features(&state, &mut session).err() {
-        // JW TODO: handle this and reply with a partial auth (sans features) if they can't be
-        // obtained instead of outputting an error
-        error!("unable to set features, {}", err);
+    match state
+              .datastore
+              .find_or_create_account_via_session(&msg, is_admin, is_builder, is_build_worker) {
+        Ok(session) => req.reply_complete(sock, &session)?,
+        Err(e) => {
+            error!("{}", e);
+            let err = net::err(ErrCode::DATA_STORE, "ss:session-create:1");
+            req.reply_complete(sock, &err)?;
+        }
     }
-    try!(req.reply_complete(sock, &session));
     Ok(())
 }
 
@@ -163,26 +126,11 @@ pub fn session_get(req: &mut Envelope,
                    state: &mut ServerState)
                    -> Result<()> {
     let msg: proto::SessionGet = try!(req.parse_msg());
-    match state
-              .datastore
-              .sessions
-              .find(&msg.get_token().to_string()) {
-        Ok(mut token) => {
-            let account: proto::Account = state
-                .datastore
-                .accounts
-                .find(&token.get_owner_id())
-                .unwrap();
-            let mut session: proto::Session = account.into();
-            session.set_token(token.take_token());
-            if let Some(err) = set_features(&state, &mut session).err() {
-                // JW TODO: handle this and reply with a partial auth (sans features) if they can't
-                // be obtained instead of outputting an error
-                error!("unable to set features, {}", err);
-            }
+    match state.datastore.get_session(&msg) {
+        Ok(Some(session)) => {
             try!(req.reply_complete(sock, &session));
         }
-        Err(dbcache::Error::EntityNotFound) => {
+        Ok(None) => {
             let err = net::err(ErrCode::SESSION_EXPIRED, "ss:auth:4");
             try!(req.reply_complete(sock, &err));
         }
@@ -195,28 +143,56 @@ pub fn session_get(req: &mut Envelope,
     Ok(())
 }
 
-// Determine permissions and toggle feature flags on for the given Session
-fn set_features(state: &ServerState, session: &mut proto::Session) -> Result<()> {
-    let mut flags = FeatureFlags::empty();
-    // Initialize some empty flags in case we fail to obtain teams from remote
-    session.set_flags(flags.bits());
-    let teams = try!(state.github.teams(session.get_token()));
-    for team in teams {
-        if team.id != 0 && team.id == state.admin_team {
-            debug!("Granting feature flag={:?} for team={:?}",
-                   privilege::ADMIN,
-                   team.name);
-            flags.insert(privilege::ADMIN);
-            continue;
+pub fn account_origin_invitation_create(req: &mut Envelope,
+                                        sock: &mut zmq::Socket,
+                                        state: &mut ServerState)
+                                        -> Result<()> {
+    let msg: proto::AccountOriginInvitationCreate = try!(req.parse_msg());
+    match state.datastore.create_account_origin_invitation(&msg) {
+        Ok(()) => {
+            try!(req.reply_complete(sock, &net::NetOk::new()));
         }
-        if let Some(raw_flags) = state.datastore.features.flags(team.id).ok() {
-            for raw_flag in raw_flags {
-                let flag = FeatureFlags::from_bits(raw_flag).unwrap();
-                debug!("Granting feature flag={:?} for team={:?}", flag, team.name);
-                flags.insert(flag);
-            }
+        Err(e) => {
+            error!("Error creating invitation, {}", e);
+            let err = net::err(ErrCode::DATA_STORE, "ss:account_origin_invitation_create:1");
+            try!(req.reply_complete(sock, &err));
         }
     }
-    session.set_flags(flags.bits());
+    Ok(())
+}
+
+pub fn account_origin_invitation_accept(req: &mut Envelope,
+                                        sock: &mut zmq::Socket,
+                                        state: &mut ServerState)
+                                        -> Result<()> {
+    let msg: proto::AccountOriginInvitationAcceptRequest = try!(req.parse_msg());
+    match state.datastore.accept_origin_invitation(&msg) {
+        Ok(()) => {
+            try!(req.reply_complete(sock, &net::NetOk::new()));
+        }
+        Err(e) => {
+            error!("Error accepting invitation, {}", e);
+            let err = net::err(ErrCode::DATA_STORE, "ss:account_origin_invitation_accept:1");
+            try!(req.reply_complete(sock, &err));
+        }
+    }
+    Ok(())
+}
+
+pub fn account_invitation_list(req: &mut Envelope,
+                               sock: &mut zmq::Socket,
+                               state: &mut ServerState)
+                               -> Result<()> {
+    let msg: proto::AccountInvitationListRequest = try!(req.parse_msg());
+    match state.datastore.list_invitations(&msg) {
+        Ok(response) => {
+            try!(req.reply_complete(sock, &response));
+        }
+        Err(e) => {
+            error!("Failed to list account invitations, {}", e);
+            let err = net::err(ErrCode::DATA_STORE, "ss:account_invitation_list:1");
+            try!(req.reply_complete(sock, &err));
+        }
+    }
     Ok(())
 }

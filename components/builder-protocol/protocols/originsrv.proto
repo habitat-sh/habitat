@@ -35,15 +35,6 @@ message OriginMemberListResponse {
   repeated string members = 2;
 }
 
-message AccountOriginListRequest {
-  optional uint64 account_id = 1;
-}
-
-message AccountOriginListResponse {
-  optional uint64 account_id = 1;
-  repeated string origins = 2;
-}
-
 message CheckOriginAccessRequest {
   oneof account_info {
     uint64 account_id = 1;
@@ -95,21 +86,11 @@ message OriginInvitationCreate {
 }
 
 message OriginInvitationAcceptRequest {
-  optional uint64 account_accepting_request = 1;
+  optional uint64 account_id = 1;
   optional uint64 invite_id = 2;
-  optional bool ignore = 3;
+  optional string origin_name = 3;
+  optional bool ignore = 4;
 }
-
-message OriginInvitationValidateRequest {
-  optional uint64 account_accepting_request = 1;
-  optional uint64 invite_id = 2;
-}
-
-message OriginInvitationValidateResponse {
-  optional bool is_valid = 1;
-}
-
-message OriginInvitationAcceptResponse { }
 
 message OriginSecretKey {
   optional uint64 id = 1;

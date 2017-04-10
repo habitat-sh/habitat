@@ -43,7 +43,6 @@ const ROUTE_INPROC_ADDR: &'static str = "inproc://route-broker";
 /// a running `Broker`.
 pub struct BrokerConn {
     sock: zmq::Socket,
-    hasher: FnvHasher,
 }
 
 impl BrokerConn {
@@ -58,10 +57,7 @@ impl BrokerConn {
         try!(socket.set_rcvtimeo(RECV_TIMEOUT_MS));
         try!(socket.set_sndtimeo(SEND_TIMEOUT_MS));
         try!(socket.set_immediate(true));
-        Ok(BrokerConn {
-               sock: socket,
-               hasher: FnvHasher::default(),
-           })
+        Ok(BrokerConn { sock: socket })
     }
 
     /// Connect to a running `Broker` with the given ZeroMQ address.
@@ -127,7 +123,8 @@ impl BrokerConn {
     ///
     /// * Could not serialize message
     pub fn route_async<M: Routable>(&mut self, msg: &M) -> Result<()> {
-        let route_hash = msg.route_key().map(|key| key.hash(&mut self.hasher));
+        let route_hash = msg.route_key()
+            .map(|key| key.hash(&mut FnvHasher::default()));
         let req = protocol::Message::new(msg).routing(route_hash).build();
         let bytes = req.write_to_bytes().unwrap();
         try!(self.sock.send_str("RQ", zmq::SNDMORE));

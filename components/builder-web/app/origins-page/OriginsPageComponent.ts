@@ -61,7 +61,7 @@ import {requireSignIn} from "../util";
                        <h3 class="hab-item-list--title">{{invitation.origin_name}}</h3>
                        <button
                            class="count"
-                           (click)="acceptInvitation(invitation.id)">
+                           (click)="acceptInvitation(invitation.id, invitation.origin_name)">
                            Accept Invitation
                         </button>
                     </li>
@@ -80,9 +80,10 @@ export class OriginsPageComponent implements OnInit {
 
     get ui() { return this.store.getState().origins.ui.mine; }
 
-    private acceptInvitation(invitationId) {
+    private acceptInvitation(invitationId, originName) {
         this.store.dispatch(acceptOriginInvitation(
-            invitationId,
+          invitationId,
+          originName,
             this.store.getState().gitHub.authToken
         ));
     }

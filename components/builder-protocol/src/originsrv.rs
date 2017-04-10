@@ -37,19 +37,10 @@ impl Routable for OriginGet {
 }
 
 impl Routable for OriginCreate {
-    type H = InstaId;
+    type H = String;
 
     fn route_key(&self) -> Option<Self::H> {
-        Some(InstaId(self.get_owner_id()))
-    }
-}
-
-// AJ TODO: This is the wrong key here - we need to route this request to the origin
-impl Routable for OriginInvitationValidateRequest {
-    type H = InstaId;
-
-    fn route_key(&self) -> Option<Self::H> {
-        Some(InstaId(self.get_invite_id()))
+        Some(self.get_name().to_string())
     }
 }
 
@@ -58,9 +49,9 @@ impl Serialize for Origin {
         where S: Serializer
     {
         let mut strukt = try!(serializer.serialize_struct("origin", 4));
-        try!(strukt.serialize_field("id", &self.get_id()));
+        try!(strukt.serialize_field("id", &self.get_id().to_string()));
         try!(strukt.serialize_field("name", self.get_name()));
-        try!(strukt.serialize_field("owner_id", &self.get_owner_id()));
+        try!(strukt.serialize_field("owner_id", &self.get_owner_id().to_string()));
         try!(strukt.serialize_field("private_key_name", self.get_private_key_name()));
         strukt.end()
     }
@@ -99,12 +90,12 @@ impl Serialize for OriginSecretKey {
         where S: Serializer
     {
         let mut strukt = try!(serializer.serialize_struct("origin_secret_key", 6));
-        try!(strukt.serialize_field("id", &self.get_id()));
-        try!(strukt.serialize_field("origin_id", &self.get_origin_id()));
+        try!(strukt.serialize_field("id", &self.get_id().to_string()));
+        try!(strukt.serialize_field("origin_id", &self.get_origin_id().to_string()));
         try!(strukt.serialize_field("name", self.get_name()));
         try!(strukt.serialize_field("revision", self.get_revision()));
         try!(strukt.serialize_field("body", self.get_body()));
-        try!(strukt.serialize_field("owner_id", &self.get_owner_id()));
+        try!(strukt.serialize_field("owner_id", &self.get_owner_id().to_string()));
         strukt.end()
     }
 }
@@ -113,15 +104,15 @@ impl Routable for OriginSecretKeyCreate {
     type H = InstaId;
 
     fn route_key(&self) -> Option<Self::H> {
-        Some(InstaId(self.get_owner_id()))
+        Some(InstaId(self.get_origin_id()))
     }
 }
 
 impl Routable for OriginSecretKeyGet {
-    type H = InstaId;
+    type H = String;
 
     fn route_key(&self) -> Option<Self::H> {
-        Some(InstaId(self.get_owner_id()))
+        Some(String::from(self.get_origin()))
     }
 }
 
@@ -142,12 +133,12 @@ impl Serialize for OriginPublicKey {
         where S: Serializer
     {
         let mut strukt = try!(serializer.serialize_struct("origin_public_key", 6));
-        try!(strukt.serialize_field("id", &self.get_id()));
-        try!(strukt.serialize_field("origin_id", &self.get_origin_id()));
+        try!(strukt.serialize_field("id", &self.get_id().to_string()));
+        try!(strukt.serialize_field("origin_id", &self.get_origin_id().to_string()));
         try!(strukt.serialize_field("name", self.get_name()));
         try!(strukt.serialize_field("revision", self.get_revision()));
         try!(strukt.serialize_field("body", self.get_body()));
-        try!(strukt.serialize_field("owner_id", &self.get_owner_id()));
+        try!(strukt.serialize_field("owner_id", &self.get_owner_id().to_string()));
         strukt.end()
     }
 }
@@ -156,23 +147,23 @@ impl Routable for OriginPublicKeyCreate {
     type H = InstaId;
 
     fn route_key(&self) -> Option<Self::H> {
-        Some(InstaId(self.get_owner_id()))
+        Some(InstaId(self.get_origin_id()))
     }
 }
 
 impl Routable for OriginPublicKeyGet {
-    type H = InstaId;
+    type H = String;
 
     fn route_key(&self) -> Option<Self::H> {
-        Some(InstaId(self.get_owner_id()))
+        Some(self.get_origin().to_string())
     }
 }
 
 impl Routable for OriginPublicKeyLatestGet {
-    type H = InstaId;
+    type H = String;
 
     fn route_key(&self) -> Option<Self::H> {
-        Some(InstaId(self.get_owner_id()))
+        Some(self.get_origin().to_string())
     }
 }
 
@@ -197,17 +188,17 @@ impl Serialize for OriginPublicKeyListResponse {
         where S: Serializer
     {
         let mut strukt = try!(serializer.serialize_struct("origin_public_key_list_response", 2));
-        try!(strukt.serialize_field("origin_id", &self.get_origin_id()));
+        try!(strukt.serialize_field("origin_id", &self.get_origin_id().to_string()));
         try!(strukt.serialize_field("keys", self.get_keys()));
         strukt.end()
     }
 }
 
 impl Routable for OriginInvitationCreate {
-    type H = u64;
+    type H = InstaId;
 
     fn route_key(&self) -> Option<Self::H> {
-        Some(self.get_owner_id())
+        Some(InstaId(self.get_origin_id()))
     }
 }
 
@@ -228,12 +219,12 @@ impl Serialize for OriginInvitation {
         where S: Serializer
     {
         let mut strukt = try!(serializer.serialize_struct("origin_invitation", 6));
-        try!(strukt.serialize_field("id", &self.get_id()));
-        try!(strukt.serialize_field("account_id", &self.get_account_id()));
-        try!(strukt.serialize_field("accaccount_name", self.get_account_name()));
-        try!(strukt.serialize_field("origin_id", &self.get_origin_id()));
+        try!(strukt.serialize_field("id", &self.get_id().to_string()));
+        try!(strukt.serialize_field("account_id", &self.get_account_id().to_string()));
+        try!(strukt.serialize_field("account_name", self.get_account_name()));
+        try!(strukt.serialize_field("origin_id", &self.get_origin_id().to_string()));
         try!(strukt.serialize_field("origin_name", self.get_origin_name()));
-        try!(strukt.serialize_field("owner_id", &self.get_owner_id()));
+        try!(strukt.serialize_field("owner_id", &self.get_owner_id().to_string()));
         strukt.end()
     }
 }
@@ -259,25 +250,25 @@ impl Serialize for AccountInvitationListResponse {
         where S: Serializer
     {
         let mut strukt = try!(serializer.serialize_struct("account_invitation_list_response", 2));
-        try!(strukt.serialize_field("account_id", &self.get_account_id()));
+        try!(strukt.serialize_field("account_id", &self.get_account_id().to_string()));
         try!(strukt.serialize_field("invitations", self.get_invitations()));
         strukt.end()
     }
 }
 
 impl Routable for OriginInvitationListRequest {
-    type H = u64;
+    type H = InstaId;
 
     fn route_key(&self) -> Option<Self::H> {
-        Some(self.get_origin_id())
+        Some(InstaId(self.get_origin_id()))
     }
 }
 
 impl Routable for OriginInvitationListResponse {
-    type H = u64;
+    type H = InstaId;
 
     fn route_key(&self) -> Option<Self::H> {
-        Some(self.get_origin_id())
+        Some(InstaId(self.get_origin_id()))
     }
 }
 
@@ -286,18 +277,17 @@ impl Serialize for OriginInvitationListResponse {
         where S: Serializer
     {
         let mut strukt = try!(serializer.serialize_struct("origin_invitation_list_response", 2));
-        try!(strukt.serialize_field("origin_id", &self.get_origin_id()));
+        try!(strukt.serialize_field("origin_id", &self.get_origin_id().to_string()));
         try!(strukt.serialize_field("invitations", self.get_invitations()));
         strukt.end()
     }
 }
 
 impl Routable for OriginInvitationAcceptRequest {
-    type H = u64;
+    type H = InstaId;
 
     fn route_key(&self) -> Option<Self::H> {
-        // TODO: we don't have an origin id here...
-        Some(self.get_invite_id())
+        Some(InstaId(self.get_invite_id()))
     }
 }
 
@@ -306,36 +296,17 @@ impl Serialize for OriginMemberListResponse {
         where S: Serializer
     {
         let mut strukt = try!(serializer.serialize_struct("origin_member_list_response", 2));
-        try!(strukt.serialize_field("origin_id", &self.get_origin_id()));
+        try!(strukt.serialize_field("origin_id", &self.get_origin_id().to_string()));
         try!(strukt.serialize_field("members", self.get_members()));
         strukt.end()
     }
 }
 
-impl Routable for AccountOriginListRequest {
-    type H = u64;
-
-    fn route_key(&self) -> Option<Self::H> {
-        Some(self.get_account_id())
-    }
-}
-
-impl Serialize for AccountOriginListResponse {
-    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
-    {
-        let mut strukt = try!(serializer.serialize_struct("account_origin_list_response", 2));
-        try!(strukt.serialize_field("account_id", &self.get_account_id()));
-        try!(strukt.serialize_field("origins", self.get_origins()));
-        strukt.end()
-    }
-}
-
 impl Routable for CheckOriginAccessRequest {
-    type H = u64;
+    type H = String;
 
     fn route_key(&self) -> Option<Self::H> {
-        Some(self.get_account_id())
+        Some(self.get_origin_name().to_string())
     }
 }
 
@@ -343,7 +314,16 @@ impl Routable for OriginProjectGet {
     type H = String;
 
     fn route_key(&self) -> Option<Self::H> {
-        Some(String::from(self.get_name()))
+        let name = self.get_name();
+        let origin_name = match name.split('/').nth(0) {
+            Some(origin_name) => origin_name,
+            None => {
+                println!("Cannot route origin project get; malformed project name - routing on \
+                        screwedup to not kill the service");
+                "screwedup"
+            }
+        };
+        Some(String::from(origin_name))
     }
 }
 
@@ -356,10 +336,10 @@ impl Routable for OriginProjectCreate {
 }
 
 impl Routable for OriginProjectUpdate {
-    type H = String;
+    type H = InstaId;
 
     fn route_key(&self) -> Option<Self::H> {
-        Some(String::from(self.get_project().get_origin_name()))
+        Some(InstaId(self.get_project().get_origin_id()))
     }
 }
 
@@ -367,7 +347,16 @@ impl Routable for OriginProjectDelete {
     type H = String;
 
     fn route_key(&self) -> Option<Self::H> {
-        Some(String::from(self.get_name()))
+        let name = self.get_name();
+        let origin_name = match name.split('/').nth(0) {
+            Some(origin_name) => origin_name,
+            None => {
+                println!("Cannot route origin project get; malformed project name - routing on \
+                        screwedup to not kill the service");
+                "screwedup"
+            }
+        };
+        Some(String::from(origin_name))
     }
 }
 
@@ -376,13 +365,13 @@ impl Serialize for OriginProject {
         where S: Serializer
     {
         let mut state = try!(serializer.serialize_struct("project", 2));
-        try!(state.serialize_field("id", &self.get_id()));
-        try!(state.serialize_field("origin_id", &self.get_origin_id()));
+        try!(state.serialize_field("id", &self.get_id().to_string()));
+        try!(state.serialize_field("origin_id", &self.get_origin_id().to_string()));
         try!(state.serialize_field("origin_name", self.get_origin_name()));
         try!(state.serialize_field("package_name", self.get_package_name()));
         try!(state.serialize_field("name", self.get_name()));
         try!(state.serialize_field("plan_path", self.get_plan_path()));
-        try!(state.serialize_field("owner_id", &self.get_owner_id()));
+        try!(state.serialize_field("owner_id", &self.get_owner_id().to_string()));
         try!(state.serialize_field("vcs_type", self.get_vcs_type()));
         try!(state.serialize_field("vcs_data", self.get_vcs_data()));
         state.end()

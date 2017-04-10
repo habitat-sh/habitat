@@ -55,6 +55,14 @@ impl Routable for JobGet {
     }
 }
 
+impl Routable for Job {
+    type H = InstaId;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(InstaId(self.get_id()))
+    }
+}
+
 impl Serialize for Job {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer

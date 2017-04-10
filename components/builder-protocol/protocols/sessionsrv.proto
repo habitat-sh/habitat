@@ -15,32 +15,52 @@ message AccountGet {
   optional string name = 1;
 }
 
-message AccountSearch {
-  optional AccountSearchKey key = 1;
-  optional string value = 2;
+message AccountGetId {
+  optional uint64 id = 1;
 }
 
-enum AccountSearchKey {
-  Id = 0;
-  Name = 1;
+message AccountOriginInvitation {
+  optional uint64 id = 1;
+  optional uint64 origin_invitation_id = 2;
+  optional uint64 account_id = 3;
+  optional string account_name = 4;
+  optional uint64 origin_id = 5;
+  optional string origin_name = 6;
+  optional uint64 owner_id = 7;
 }
 
-message GrantFlagToTeam {
-  optional uint32 flag = 1;
-  optional uint64 team_id = 2;
+message AccountOriginInvitationCreate {
+  optional uint64 origin_invitation_id = 1;
+  optional uint64 account_id = 2;
+  optional string account_name = 3;
+  optional uint64 origin_id = 4;
+  optional string origin_name = 5;
+  optional uint64 owner_id = 6;
 }
 
-message RevokeFlagFromTeam {
-  optional uint32 flag = 1;
-  optional uint64 team_id = 2;
+message AccountOriginInvitationAcceptRequest {
+  optional uint64 account_id = 1;
+  optional uint64 invite_id = 2;
+  optional string origin_name = 3;
+  optional bool ignore = 4;
 }
 
-message ListFlagGrants {
-  optional uint32 flag = 1;
+message AccountInvitationListRequest {
+  optional uint64 account_id = 1;
 }
 
-message FlagGrants {
-  repeated uint64 teams = 1;
+message AccountInvitationListResponse {
+  optional uint64 account_id = 1;
+  repeated AccountOriginInvitation invitations = 2;
+}
+
+message AccountOriginListRequest {
+  optional uint64 account_id = 1;
+}
+
+message AccountOriginListResponse {
+  optional uint64 account_id = 1;
+  repeated string origins = 2;
 }
 
 message Session {
@@ -51,6 +71,7 @@ message Session {
   optional uint32 flags = 5;
 }
 
+// This can be deleted
 message SessionToken {
   optional string token = 1;
   optional uint64 owner_id = 2;
@@ -66,5 +87,7 @@ message SessionCreate {
 }
 
 message SessionGet {
-  optional string token = 1;
+  optional string name = 1;
+  optional string token = 2;
 }
+

@@ -13,46 +13,12 @@
 // limitations under the License.
 
 use hab_net::server::Envelope;
-use protobuf::RepeatedField;
 use protocol::net::{self, NetOk, ErrCode};
 use protocol::originsrv as proto;
 use zmq;
 
 use super::ServerState;
 use error::Result;
-
-pub fn account_invitation_list(req: &mut Envelope,
-                               sock: &mut zmq::Socket,
-                               state: &mut ServerState)
-                               -> Result<()> {
-    let mut resp = proto::AccountInvitationListResponse::new();
-
-    let msg: proto::AccountInvitationListRequest = try!(req.parse_msg());
-
-    match state.datastore.list_origin_invitations_for_account(&msg) {
-        Ok(Some(invites)) => {
-            debug!("Got invites for account {} ", &msg.get_account_id());
-            resp.set_account_id(msg.get_account_id());
-            let mut r_invites = RepeatedField::new();
-            for invite in invites {
-                r_invites.push(invite);
-            }
-            resp.set_invitations(r_invites);
-            try!(req.reply_complete(sock, &resp));
-        }
-        Ok(None) => {
-            debug!("No invites for account {} ", &msg.get_account_id());
-            try!(req.reply_complete(sock, &resp));
-        }
-        Err(e) => {
-            error!("Account Invitation List, err={:?}", e);
-            let err = net::err(ErrCode::BUG, "vt:account_invitation_list:0");
-            try!(req.reply_complete(sock, &err));
-        }
-    }
-
-    Ok(())
-}
 
 pub fn origin_check_access(req: &mut Envelope,
                            sock: &mut zmq::Socket,
@@ -109,23 +75,6 @@ pub fn origin_get(req: &mut Envelope,
     Ok(())
 }
 
-pub fn origin_invitation_validate(req: &mut Envelope,
-                                  sock: &mut zmq::Socket,
-                                  state: &mut ServerState)
-                                  -> Result<()> {
-    let msg: proto::OriginInvitationValidateRequest = try!(req.parse_msg());
-
-    match state.datastore.validate_origin_invitation(&msg) {
-        Ok(ref response) => try!(req.reply_complete(sock, response)),
-        Err(err) => {
-            error!("OriginInvitationValidate, err={:?}", err);
-            let err = net::err(ErrCode::DATA_STORE, "vt:origin-invitation-validate:1");
-            try!(req.reply_complete(sock, &err));
-        }
-    }
-    Ok(())
-}
-
 pub fn origin_invitation_accept(req: &mut Envelope,
                                 sock: &mut zmq::Socket,
                                 state: &mut ServerState)
@@ -149,30 +98,19 @@ pub fn origin_invitation_create(req: &mut Envelope,
                                 -> Result<()> {
     let msg: proto::OriginInvitationCreate = try!(req.parse_msg());
 
-    let in_origin =
-        state
-            .datastore
-            .check_account_in_origin_by_origin_and_account_id(msg.get_origin_name(),
-                                                              msg.get_account_id() as i64)?;
-    if !in_origin {
-        debug!("Can't invite to this org unless your already a member");
-        let err = net::err(ErrCode::ACCESS_DENIED, "vt:origin-invitation-create:0");
-        try!(req.reply_complete(sock, &err));
-    } else {
-        match state.datastore.create_origin_invitation(&msg) {
-            Ok(Some(ref invite)) => try!(req.reply_complete(sock, invite)),
-            Ok(None) => {
-                debug!("User {} is already a member of the origin {}",
-                       &msg.get_origin_name(),
-                       &msg.get_account_name());
-                let err = net::err(ErrCode::ENTITY_CONFLICT, "vt:origin-invitation-create:1");
-                try!(req.reply_complete(sock, &err));
-            }
-            Err(err) => {
-                error!("OriginInvitationCreate, err={:?}", err);
-                let err = net::err(ErrCode::DATA_STORE, "vt:origin-invitation-create:1");
-                try!(req.reply_complete(sock, &err));
-            }
+    match state.datastore.create_origin_invitation(&msg) {
+        Ok(Some(ref invite)) => try!(req.reply_complete(sock, invite)),
+        Ok(None) => {
+            debug!("User {} is already a member of the origin {}",
+                   &msg.get_origin_name(),
+                   &msg.get_account_name());
+            let err = net::err(ErrCode::ENTITY_CONFLICT, "vt:origin-invitation-create:1");
+            try!(req.reply_complete(sock, &err));
+        }
+        Err(err) => {
+            error!("OriginInvitationCreate, err={:?}", err);
+            let err = net::err(ErrCode::DATA_STORE, "vt:origin-invitation-create:1");
+            try!(req.reply_complete(sock, &err));
         }
     }
     Ok(())
@@ -205,23 +143,6 @@ pub fn origin_member_list(req: &mut Envelope,
         Err(err) => {
             error!("OriginMemberList, err={:?}", err);
             let err = net::err(ErrCode::DATA_STORE, "vt:origin-member-list:1");
-            try!(req.reply_complete(sock, &err));
-        }
-    }
-    Ok(())
-}
-
-pub fn account_origin_list(req: &mut Envelope,
-                           sock: &mut zmq::Socket,
-                           state: &mut ServerState)
-                           -> Result<()> {
-    let msg: proto::AccountOriginListRequest = try!(req.parse_msg());
-
-    match state.datastore.list_origins_by_account(&msg) {
-        Ok(ref aolr) => try!(req.reply_complete(sock, aolr)),
-        Err(err) => {
-            error!("OriginAccountList, err={:?}", err);
-            let err = net::err(ErrCode::DATA_STORE, "vt:origin-account-list:1");
             try!(req.reply_complete(sock, &err));
         }
     }

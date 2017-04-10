@@ -14,6 +14,8 @@
 
 //! A collection of handlers for the HTTP server's router
 
+use std::env;
+
 use base64;
 use bodyparser;
 use depot::server::check_origin_access;
@@ -28,6 +30,7 @@ use iron::typemap;
 use persistent;
 use protocol::jobsrv::{Job, JobGet, JobSpec};
 use protocol::originsrv::*;
+use protocol::sessionsrv;
 use protocol::net::{self, NetOk, ErrCode};
 use router::Router;
 use serde_json;
@@ -65,6 +68,19 @@ pub fn github_authenticate(req: &mut Request) -> IronResult<Response> {
     };
 
     let github = req.get::<persistent::Read<GitHubCli>>().unwrap();
+
+    if env::var_os("HAB_FUNC_TEST").is_some() {
+        let session = try!(session_create(&github, &code));
+
+        log_event!(req,
+                   Event::GithubAuthenticate {
+                       user: session.get_name().to_string(),
+                       account: session.get_id().to_string(),
+                   });
+
+        return Ok(render_json(status::Ok, &session));
+    }
+
     match github.authenticate(&code) {
         Ok(token) => {
             let session = try!(session_create(&github, &token));
@@ -144,9 +160,9 @@ pub fn status(_req: &mut Request) -> IronResult<Response> {
 pub fn list_account_invitations(req: &mut Request) -> IronResult<Response> {
     let session = req.extensions.get::<Authenticated>().unwrap();
     let mut conn = Broker::connect().unwrap();
-    let mut request = AccountInvitationListRequest::new();
+    let mut request = sessionsrv::AccountInvitationListRequest::new();
     request.set_account_id(session.get_id());
-    match conn.route::<AccountInvitationListRequest, AccountInvitationListResponse>(&request) {
+    match conn.route::<sessionsrv::AccountInvitationListRequest, sessionsrv::AccountInvitationListResponse>(&request) {
         Ok(invites) => Ok(render_json(status::Ok, &invites)),
         Err(err) => Ok(render_net_error(&err)),
     }
@@ -155,91 +171,10 @@ pub fn list_account_invitations(req: &mut Request) -> IronResult<Response> {
 pub fn list_user_origins(req: &mut Request) -> IronResult<Response> {
     let session = req.extensions.get::<Authenticated>().unwrap();
     let mut conn = Broker::connect().unwrap();
-    let mut request = AccountOriginListRequest::new();
+    let mut request = sessionsrv::AccountOriginListRequest::new();
     request.set_account_id(session.get_id());
-    match conn.route::<AccountOriginListRequest, AccountOriginListResponse>(&request) {
+    match conn.route::<sessionsrv::AccountOriginListRequest, sessionsrv::AccountOriginListResponse>(&request) {
         Ok(invites) => Ok(render_json(status::Ok, &invites)),
-        Err(err) => Ok(render_net_error(&err)),
-    }
-}
-
-pub fn validate_origin_invitation(conn: &mut BrokerConn,
-                                  req: &OriginInvitationAcceptRequest)
-                                  -> IronResult<bool> {
-    let mut request = OriginInvitationValidateRequest::new();
-    request.set_invite_id(req.get_invite_id());
-    request.set_account_accepting_request(req.get_account_accepting_request());
-    match conn.route::<OriginInvitationValidateRequest, OriginInvitationValidateResponse>(&request) {
-        Ok(response) => {
-            let is_valid: bool = response.get_is_valid();
-            Ok(is_valid)
-        },
-        Err(err) => {
-            let body = serde_json::to_string(&err).unwrap();
-            let status = net_err_to_http(err.get_code());
-            Err(IronError::new(err, (body, status)))
-        }
-    }
-}
-
-pub fn accept_invitation(req: &mut Request) -> IronResult<Response> {
-    let mut request = OriginInvitationAcceptRequest::new();
-    request.set_ignore(false);
-    // TODO: SA - Eliminate need to clone the session and params
-    let session = req.extensions.get::<Authenticated>().unwrap().clone();
-    let params = &req.extensions.get::<Router>().unwrap().clone();
-
-    request.set_account_accepting_request(session.get_id());
-    match params.find("invitation_id").unwrap().parse::<u64>() {
-        Ok(value) => request.set_invite_id(value),
-        Err(_) => return Ok(Response::with(status::BadRequest)),
-    }
-
-    let mut conn = Broker::connect().unwrap();
-
-    if !try!(validate_origin_invitation(&mut conn, &request)) {
-        return Ok(Response::with(status::Forbidden));
-    }
-
-    match conn.route::<OriginInvitationAcceptRequest, OriginInvitationAcceptResponse>(&request) {
-        Ok(_invites) => {
-            log_event!(req,
-                       Event::OriginInvitationAccept {
-                           id: request.get_invite_id().to_string(),
-                           account: session.get_id().to_string(),
-                       });
-            Ok(Response::with(status::NoContent))
-        }
-        Err(err) => Ok(render_net_error(&err)),
-    }
-}
-
-pub fn ignore_invitation(req: &mut Request) -> IronResult<Response> {
-    let mut request = OriginInvitationAcceptRequest::new();
-    request.set_ignore(true);
-    // TODO: SA - Eliminate need to clone the session and params
-    let session = req.extensions.get::<Authenticated>().unwrap().clone();
-    let params = &req.extensions.get::<Router>().unwrap().clone();
-
-    request.set_account_accepting_request(session.get_id());
-    match params.find("invitation_id").unwrap().parse::<u64>() {
-        Ok(value) => request.set_invite_id(value),
-        Err(_) => return Ok(Response::with(status::BadRequest)),
-    }
-
-    let mut conn = Broker::connect().unwrap();
-    if !try!(validate_origin_invitation(&mut conn, &request)) {
-        return Ok(Response::with(status::Forbidden));
-    }
-    match conn.route::<OriginInvitationAcceptRequest, OriginInvitationAcceptResponse>(&request) {
-        Ok(_invites) => {
-            log_event!(req,
-                       Event::OriginInvitationIgnore {
-                           id: request.get_invite_id().to_string(),
-                           account: session.get_id().to_string(),
-                       });
-            Ok(Response::with(status::NoContent))
-        }
         Err(err) => Ok(render_net_error(&err)),
     }
 }

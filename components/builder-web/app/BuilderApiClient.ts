@@ -25,9 +25,9 @@ export class BuilderApiClient {
         this.headers = token ? { "Authorization": `Bearer ${token}` } : {};
     }
 
-    public acceptOriginInvitation(invitationId: string) {
+    public acceptOriginInvitation(invitationId: string, originName: string) {
         return new Promise((resolve, reject) => {
-            fetch(`${this.urlPrefix}/user/invitations/${invitationId}`, {
+          fetch(`${this.urlPrefix}/depot/origins/${originName}/invitations/${invitationId}`, {
                 headers: this.headers,
                 method: "PUT",
             }).then(response => {

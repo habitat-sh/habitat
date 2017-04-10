@@ -18,10 +18,8 @@ use protocol::jobsrv;
 
 #[test]
 fn migration() {
-    with_pool!(pool, {
-        let ds = DataStore::from_pool(pool).expect("Failed to create data store from pool");
-        ds.setup().expect("Failed to migrate data");
-    });
+    let ds = datastore_test!(DataStore);
+    ds.setup().expect("Failed to migrate data");
 }
 
 #[test]
@@ -31,11 +29,9 @@ fn create_group() {
     msg.set_origin(String::from("Foo"));
     msg.set_package(String::from("Bar"));
 
-    with_pool!(pool, {
-        let ds = DataStore::from_pool(pool).expect("Failed to create data store from pool");
-        ds.setup().expect("Failed to migrate data");
-        ds.create_group(&msg, project_names).expect("Failed to create a group");
-    });
+    let ds = datastore_test!(DataStore);
+    ds.create_group(&msg, project_names)
+        .expect("Failed to create a group");
 }
 
 #[test]
@@ -45,51 +41,44 @@ fn get_group() {
     msg.set_origin(String::from("Foo"));
     msg.set_package(String::from("Bar"));
 
-    with_pool!(pool, {
-        let ds = DataStore::from_pool(pool).expect("Failed to create data store from pool");
-        ds.setup().expect("Failed to migrate data");
-        let group1 = ds.create_group(&msg, project_names.clone())
-            .expect("Failed to create a group");
-        let group2 = ds.create_group(&msg, project_names.clone())
-            .expect("Failed to create a group");
-        let group3 = ds.create_group(&msg, project_names.clone())
-            .expect("Failed to create a group");
+    let ds = datastore_test!(DataStore);
+    let group1 = ds.create_group(&msg, project_names.clone())
+        .expect("Failed to create a group");
+    let group2 = ds.create_group(&msg, project_names.clone())
+        .expect("Failed to create a group");
+    let group3 = ds.create_group(&msg, project_names.clone())
+        .expect("Failed to create a group");
 
-        let mut get_msg1 = scheduler::GroupGet::new();
-        get_msg1.set_group_id(group1.get_id());
-        let mut get_msg2 = scheduler::GroupGet::new();
-        get_msg2.set_group_id(group2.get_id());
-        let mut get_msg3 = scheduler::GroupGet::new();
-        get_msg3.set_group_id(group3.get_id());
+    let mut get_msg1 = scheduler::GroupGet::new();
+    get_msg1.set_group_id(group1.get_id());
+    let mut get_msg2 = scheduler::GroupGet::new();
+    get_msg2.set_group_id(group2.get_id());
+    let mut get_msg3 = scheduler::GroupGet::new();
+    get_msg3.set_group_id(group3.get_id());
 
-        let g1 = ds.get_group(&get_msg1)
-            .expect("Failed to get group 1")
-            .expect("Group should exist");
-        let g2 = ds.get_group(&get_msg2)
-            .expect("Failed to get group 2")
-            .expect("Group should exist");
-        let g3 = ds.get_group(&get_msg3)
-            .expect("Failed to get group 3")
-            .expect("Group should exist");
+    let g1 = ds.get_group(&get_msg1)
+        .expect("Failed to get group 1")
+        .expect("Group should exist");
+    let g2 = ds.get_group(&get_msg2)
+        .expect("Failed to get group 2")
+        .expect("Group should exist");
+    let g3 = ds.get_group(&get_msg3)
+        .expect("Failed to get group 3")
+        .expect("Group should exist");
 
-        assert!(g1.get_id() != 0);
-        assert!(g2.get_id() != 0);
-        assert!(g3.get_id() != 0);
-    });
+    assert!(g1.get_id() != 0);
+    assert!(g2.get_id() != 0);
+    assert!(g3.get_id() != 0);
 }
 
 #[test]
 fn get_group_does_not_exist() {
-    with_pool!(pool, {
-        let ds = DataStore::from_pool(pool).expect("Failed to create data store from pool");
-        ds.setup().expect("Failed to migrate data");
+    let ds = datastore_test!(DataStore);
+    let mut get_msg = scheduler::GroupGet::new();
+    get_msg.set_group_id(0);
 
-        let mut get_msg = scheduler::GroupGet::new();
-        get_msg.set_group_id(0);
-
-        let result = ds.get_group(&get_msg).expect("Failed to get group");
-        assert!(result.is_none());
-    });
+    let result = ds.get_group(&get_msg).expect("Failed to get group");
+    assert!(result.is_none());
 }
 
 #[test]
@@ -99,42 +88,43 @@ fn pending_groups() {
     msg.set_origin(String::from("Foo"));
     msg.set_package(String::from("Bar"));
 
-    with_pool!(pool, {
-        let ds = DataStore::from_pool(pool).expect("Failed to create data store from pool");
-        ds.setup().expect("Failed to migrate data");
+    let ds = datastore_test!(DataStore);
 
-        let group1 = ds.create_group(&msg, project_names.clone())
-            .expect("Failed to create a group");
-        ds.create_group(&msg, project_names.clone()).expect("Failed to create a group");
-        ds.create_group(&msg, project_names.clone()).expect("Failed to create a group");
+    let group1 = ds.create_group(&msg, project_names.clone())
+        .expect("Failed to create a group");
+    ds.create_group(&msg, project_names.clone())
+        .expect("Failed to create a group");
+    ds.create_group(&msg, project_names.clone())
+        .expect("Failed to create a group");
 
-        // Get one group, it should be FIFO, and it should have its state set to Dispatching
-        let pending_groups = ds.pending_groups(1).expect("Failed to get pendings group");
-        assert_eq!(pending_groups.len(), 1, "Failed to find a pending group");
-        assert_eq!(pending_groups[0].get_id(),
-                   group1.get_id(),
-                   "First in is not first out");
+    // Get one group, it should be FIFO, and it should have its state set to Dispatching
+    let pending_groups = ds.pending_groups(1)
+        .expect("Failed to get pendings group");
+    assert_eq!(pending_groups.len(), 1, "Failed to find a pending group");
+    assert_eq!(pending_groups[0].get_id(),
+               group1.get_id(),
+               "First in is not first out");
 
-        let mut get_msg1 = scheduler::GroupGet::new();
-        get_msg1.set_group_id(group1.get_id());
+    let mut get_msg1 = scheduler::GroupGet::new();
+    get_msg1.set_group_id(group1.get_id());
 
-        let group1_dispatched = ds.get_group(&get_msg1)
-            .expect("Failed to get group entry")
-            .expect("Failed to find the group entry");
-        assert_eq!(group1_dispatched.get_state(),
-                   scheduler::GroupState::Dispatching);
+    let group1_dispatched = ds.get_group(&get_msg1)
+        .expect("Failed to get group entry")
+        .expect("Failed to find the group entry");
+    assert_eq!(group1_dispatched.get_state(),
+               scheduler::GroupState::Dispatching);
 
-        // Get the remaining groups; a larger number results in the total set
-        let remaining_groups = ds.pending_groups(5)
-            .expect("Failed to get remaining pending groups");
-        assert_eq!(remaining_groups.len(),
-                   2,
-                   "Failed to get all the remaining groups");
+    // Get the remaining groups; a larger number results in the total set
+    let remaining_groups = ds.pending_groups(5)
+        .expect("Failed to get remaining pending groups");
+    assert_eq!(remaining_groups.len(),
+               2,
+               "Failed to get all the remaining groups");
 
-        // No groups returns an empty array
-        let no_groups = ds.pending_groups(100).expect("Failed to get empty pending groups");
-        assert_eq!(no_groups.len(), 0);
-    });
+    // No groups returns an empty array
+    let no_groups = ds.pending_groups(100)
+        .expect("Failed to get empty pending groups");
+    assert_eq!(no_groups.len(), 0);
 }
 
 #[test]
@@ -144,28 +134,26 @@ fn set_group_state() {
     msg.set_origin(String::from("Foo"));
     msg.set_package(String::from("Bar"));
 
-    with_pool!(pool, {
-        let ds = DataStore::from_pool(pool).expect("Failed to create data store from pool");
-        ds.setup().expect("Failed to migrate data");
+    let ds = datastore_test!(DataStore);
 
-        let group = ds.create_group(&msg, project_names.clone()).expect("Failed to create a group");
+    let group = ds.create_group(&msg, project_names.clone())
+        .expect("Failed to create a group");
 
-        let mut get_msg = scheduler::GroupGet::new();
-        get_msg.set_group_id(group.get_id());
+    let mut get_msg = scheduler::GroupGet::new();
+    get_msg.set_group_id(group.get_id());
 
-        let pending_group = ds.get_group(&get_msg)
-            .expect("Failed to get group from database")
-            .expect("No group found");
-        assert_eq!(pending_group.get_state(), scheduler::GroupState::Pending);
+    let pending_group = ds.get_group(&get_msg)
+        .expect("Failed to get group from database")
+        .expect("No group found");
+    assert_eq!(pending_group.get_state(), scheduler::GroupState::Pending);
 
-        ds.set_group_state(group.get_id(), scheduler::GroupState::Complete)
-            .expect("Failed to update group state");
+    ds.set_group_state(group.get_id(), scheduler::GroupState::Complete)
+        .expect("Failed to update group state");
 
-        let completed_group = ds.get_group(&get_msg)
-            .expect("Failed to get group from database")
-            .expect("No group found");
-        assert_eq!(completed_group.get_state(), scheduler::GroupState::Complete);
-    });
+    let completed_group = ds.get_group(&get_msg)
+        .expect("Failed to get group from database")
+        .expect("No group found");
+    assert_eq!(completed_group.get_state(), scheduler::GroupState::Complete);
 }
 
 #[test]
@@ -175,29 +163,28 @@ fn set_group_job_state() {
     msg.set_origin(String::from("Foo"));
     msg.set_package(String::from("Bar"));
 
-    with_pool!(pool, {
-        let ds = DataStore::from_pool(pool).expect("Failed to create data store from pool");
-        ds.setup().expect("Failed to migrate data");
+    let ds = datastore_test!(DataStore);
 
-        let group = ds.create_group(&msg, project_names).expect("Failed to create a group");
+    let group = ds.create_group(&msg, project_names)
+        .expect("Failed to create a group");
 
-        let mut job = jobsrv::Job::new();
-        job.set_id(100);
-        job.set_owner_id(group.get_id());
-        job.set_state(jobsrv::JobState::Complete);
-        job.mut_project().set_name(String::from("Foo/Bar"));
+    let mut job = jobsrv::Job::new();
+    job.set_id(100);
+    job.set_owner_id(group.get_id());
+    job.set_state(jobsrv::JobState::Complete);
+    job.mut_project().set_name(String::from("Foo/Bar"));
 
-        ds.set_group_job_state(&job).expect("Failed to set group job state");
+    ds.set_group_job_state(&job)
+        .expect("Failed to set group job state");
 
-        let mut get_msg = scheduler::GroupGet::new();
-        get_msg.set_group_id(group.get_id());
+    let mut get_msg = scheduler::GroupGet::new();
+    get_msg.set_group_id(group.get_id());
 
-        let group = ds.get_group(&get_msg)
-            .expect("Failed to get group from database")
-            .expect("No group found");
+    let group = ds.get_group(&get_msg)
+        .expect("Failed to get group from database")
+        .expect("No group found");
 
-        assert_eq!(group.get_projects().len(), 1);
-        assert_eq!(group.get_projects().last().unwrap().get_state(),
-                   scheduler::ProjectState::Success);
-    });
+    assert_eq!(group.get_projects().len(), 1);
+    assert_eq!(group.get_projects().last().unwrap().get_state(),
+               scheduler::ProjectState::Success);
 }

@@ -99,7 +99,8 @@ fn elects_on_failure() {
     let term = sup_a.term();
 
     let og_leader_id = {
-        sup_a.stop_if_leader()
+        sup_a
+            .stop_if_leader()
             .or(sup_b.stop_if_leader())
             .or(sup_c.stop_if_leader())
             .expect("We had a leader, but then.. we couldn't find it in our list")

@@ -1,7 +1,0 @@
-#!/bin/sh
-# When the older version of hab-sup runs this script, it tries to
-# copy the file over the symlink, but they are the *same* file,
-# so we get an error. This init hook works with both old and new implementations.
-# Our tests check to see if /hab/svc/foo/run and /hab/svc/foo/static are symlinks
-# with the old and new versions of hab-sup.
-cp -a {{pkg.path}}/static/foo.static {{pkg.svc_static_path}}/foo.static || true

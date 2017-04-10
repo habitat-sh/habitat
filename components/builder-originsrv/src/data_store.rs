@@ -15,8 +15,12 @@
 //! The PostgreSQL backend for the Vault.
 
 use db::pool::Pool;
+use db::async::{AsyncServer, EventOutcome};
 use db::migration::Migrator;
-use protocol::originsrv;
+use db::error::{Error as DbError, Result as DbResult};
+use hab_net::routing::Broker;
+use protocol::{originsrv, sessionsrv};
+use protocol::net::NetOk;
 use postgres;
 use protobuf;
 
@@ -27,6 +31,13 @@ use migrations;
 #[derive(Debug, Clone)]
 pub struct DataStore {
     pub pool: Pool,
+    pub async: AsyncServer,
+}
+
+impl Drop for DataStore {
+    fn drop(&mut self) {
+        self.async.stop();
+    }
 }
 
 impl DataStore {
@@ -35,31 +46,51 @@ impl DataStore {
                              config.pool_size,
                              config.datastore_connection_retry_ms,
                              config.datastore_connection_timeout,
-                             config.datastore_connection_test)?;
-        Ok(DataStore { pool: pool })
+                             config.shards.clone())?;
+        let ap = pool.clone();
+        Ok(DataStore {
+               pool: pool,
+               async: AsyncServer::new(ap),
+           })
     }
 
     pub fn from_pool(pool: Pool) -> Result<DataStore> {
-        Ok(DataStore { pool: pool })
+        let ap = pool.clone();
+        Ok(DataStore {
+               pool: pool,
+               async: AsyncServer::new(ap),
+           })
     }
 
     pub fn setup(&self) -> Result<()> {
-        let mut migrator = Migrator::new(&self.pool);
+        let conn = self.pool.get_raw()?;
+        let xact = conn.transaction().map_err(Error::DbTransactionStart)?;
+        let mut migrator = Migrator::new(xact, self.pool.shards.clone());
+
         migrator.setup()?;
 
-        // The order here matters. Once you have deployed the software, you can never change it.
-        migrations::next_id::migrate(&mut migrator)?;
         migrations::origins::migrate(&mut migrator)?;
         migrations::origin_public_keys::migrate(&mut migrator)?;
         migrations::origin_secret_keys::migrate(&mut migrator)?;
         migrations::origin_invitations::migrate(&mut migrator)?;
         migrations::origin_projects::migrate(&mut migrator)?;
 
+        migrator.finish()?;
+
+        self.async
+            .register("sync_invitations".to_string(), sync_invitations);
+
         Ok(())
     }
 
+    pub fn start_async(&self) {
+        // This is an arc under the hood
+        let async_thread = self.async.clone();
+        async_thread.start(2);
+    }
+
     pub fn update_origin_project(&self, opc: &originsrv::OriginProjectUpdate) -> Result<()> {
-        let conn = self.pool.get()?;
+        let conn = self.pool.get(opc)?;
         let project = opc.get_project();
         conn.execute("SELECT update_origin_project_v1($1, $2, $3, $4, $5, $6, $7)",
                      &[&(project.get_id() as i64),
@@ -74,7 +105,9 @@ impl DataStore {
     }
 
     pub fn delete_origin_project_by_name(&self, name: &str) -> Result<()> {
-        let conn = self.pool.get()?;
+        let mut opd = originsrv::OriginProjectDelete::new();
+        opd.set_name(name.to_string());
+        let conn = self.pool.get(&opd)?;
         conn.execute("SELECT delete_origin_project_v1($1)", &[&name])
             .map_err(Error::OriginProjectDelete)?;
         Ok(())
@@ -83,7 +116,9 @@ impl DataStore {
     pub fn get_origin_project_by_name(&self,
                                       name: &str)
                                       -> Result<Option<originsrv::OriginProject>> {
-        let conn = self.pool.get()?;
+        let mut opg = originsrv::OriginProjectGet::new();
+        opg.set_name(name.to_string());
+        let conn = self.pool.get(&opg)?;
         let rows = &conn.query("SELECT * FROM get_origin_project_v1($1)", &[&name])
                         .map_err(Error::OriginProjectGet)?;
         if rows.len() != 0 {
@@ -114,7 +149,7 @@ impl DataStore {
     pub fn create_origin_project(&self,
                                  opc: &originsrv::OriginProjectCreate)
                                  -> Result<originsrv::OriginProject> {
-        let conn = self.pool.get()?;
+        let conn = self.pool.get(opc)?;
         let project = opc.get_project();
         let rows = conn.query("SELECT * FROM insert_origin_project_v1($1, $2, $3, $4, $5, $6)",
                               &[&project.get_origin_name(),
@@ -128,50 +163,20 @@ impl DataStore {
         Ok(self.row_to_origin_project(&row))
     }
 
-    // Take that, long line zealots - I'll out function name length you yet, I swear to all that is
-    // holy.
-    pub fn check_account_in_origin_by_origin_and_account_id(&self,
-                                                            origin_name: &str,
-                                                            account_id: i64)
-                                                            -> Result<bool> {
-        let conn = self.pool.get()?;
-        let rows = &conn.query("SELECT * FROM check_account_in_origin_members_v1($1, $2)",
-                               &[&origin_name, &account_id])
-                        .map_err(Error::OriginAccountInOrigin)?;
-        if rows.len() != 0 { Ok(true) } else { Ok(false) }
-    }
-
     pub fn check_account_in_origin(&self,
                                    coar: &originsrv::CheckOriginAccessRequest)
                                    -> Result<bool> {
-        let conn = self.pool.get()?;
+        let conn = self.pool.get(coar)?;
         let rows = &conn.query("SELECT * FROM check_account_in_origin_members_v1($1, $2)",
                                &[&coar.get_origin_name(), &(coar.get_account_id() as i64)])
                         .map_err(Error::OriginAccountInOrigin)?;
         if rows.len() != 0 { Ok(true) } else { Ok(false) }
     }
 
-    pub fn list_origins_by_account(&self,
-                                   aolr: &originsrv::AccountOriginListRequest)
-                                   -> Result<originsrv::AccountOriginListResponse> {
-        let conn = self.pool.get()?;
-        let rows = &conn.query("SELECT * FROM list_origin_by_account_id_v1($1)",
-                               &[&(aolr.get_account_id() as i64)])
-                        .map_err(Error::OriginAccountList)?;
-        let mut response = originsrv::AccountOriginListResponse::new();
-        response.set_account_id(aolr.get_account_id().clone());
-        let mut origins = protobuf::RepeatedField::new();
-        for row in rows {
-            origins.push(row.get("origin_name"));
-        }
-        response.set_origins(origins);
-        Ok(response)
-    }
-
     pub fn list_origin_members(&self,
                                omlr: &originsrv::OriginMemberListRequest)
                                -> Result<originsrv::OriginMemberListResponse> {
-        let conn = self.pool.get()?;
+        let conn = self.pool.get(omlr)?;
         let rows = &conn.query("SELECT * FROM list_origin_members_v1($1)",
                                &[&(omlr.get_origin_id() as i64)])
                         .map_err(Error::OriginMemberList)?;
@@ -188,27 +193,31 @@ impl DataStore {
         Ok(response)
     }
 
-    pub fn validate_origin_invitation(&self,
-                                      oiar: &originsrv::OriginInvitationValidateRequest)
-                                      -> Result<originsrv::OriginInvitationValidateResponse> {
-        let conn = self.pool.get()?;
-        let rows = &conn.query("SELECT * FROM validate_origin_invitation_v1($1, $2)",
-                               &[&(oiar.get_invite_id() as i64),
-                                 &(oiar.get_account_accepting_request() as i64)])
-                        .map_err(Error::OriginInvitationValidate)?;
-        let mut response = originsrv::OriginInvitationValidateResponse::new();
-        if rows.len() > 0 {
-            response.set_is_valid(true);
-        } else {
-            response.set_is_valid(false);
-        }
-        Ok(response)
-    }
-
+    // This function can fail if the corresponding sessionsrv shard is down - this is so that the
+    // user won't experience delay on seeing the invitation be accepted.
     pub fn accept_origin_invitation(&self,
                                     oiar: &originsrv::OriginInvitationAcceptRequest)
                                     -> Result<()> {
-        let conn = self.pool.get()?;
+        let mut bconn = Broker::connect()?;
+        let mut aoia = sessionsrv::AccountOriginInvitationAcceptRequest::new();
+        aoia.set_account_id(oiar.get_account_id());
+        aoia.set_invite_id(oiar.get_invite_id());
+        aoia.set_origin_name(oiar.get_origin_name().to_string());
+        aoia.set_ignore(oiar.get_ignore());
+        match bconn.route::<sessionsrv::AccountOriginInvitationAcceptRequest, NetOk>(&aoia) {
+            Ok(_) => {
+                debug!("Updated session service; accepted/ignored invitation, {:?}",
+                       aoia);
+            }
+            Err(e) => {
+                error!("Failed to update session service on invitation acceptance/ignore, {:?}, {:?}",
+                       aoia,
+                       e);
+                return Err(Error::from(e));
+            }
+        }
+
+        let conn = self.pool.get(oiar)?;
         let tr = conn.transaction().map_err(Error::DbTransactionStart)?;
         tr.execute("SELECT * FROM accept_origin_invitation_v1($1, $2)",
                      &[&(oiar.get_invite_id() as i64), &oiar.get_ignore()])
@@ -217,30 +226,11 @@ impl DataStore {
         Ok(())
     }
 
-    pub fn list_origin_invitations_for_account
-        (&self,
-         oilr: &originsrv::AccountInvitationListRequest)
-         -> Result<Option<Vec<originsrv::OriginInvitation>>> {
-        let conn = self.pool.get()?;
-        let rows = &conn.query("SELECT * FROM get_origin_invitations_for_account_v1($1)",
-                               &[&(oilr.get_account_id() as i64)])
-                        .map_err(Error::OriginInvitationListForAccount)?;
-        if rows.len() != 0 {
-            let mut list_of_oi: Vec<originsrv::OriginInvitation> = Vec::new();
-            for row in rows {
-                list_of_oi.push(self.row_to_origin_invitation(&row));
-            }
-            Ok(Some(list_of_oi))
-        } else {
-            Ok(None)
-        }
-    }
-
     pub fn list_origin_invitations_for_origin
         (&self,
          oilr: &originsrv::OriginInvitationListRequest)
          -> Result<originsrv::OriginInvitationListResponse> {
-        let conn = self.pool.get()?;
+        let conn = self.pool.get(oilr)?;
         let rows = &conn.query("SELECT * FROM get_origin_invitations_for_origin_v1($1)",
                                &[&(oilr.get_origin_id() as i64)])
                         .map_err(Error::OriginInvitationListForOrigin)?;
@@ -273,7 +263,7 @@ impl DataStore {
     pub fn create_origin_invitation(&self,
                                     oic: &originsrv::OriginInvitationCreate)
                                     -> Result<Option<originsrv::OriginInvitation>> {
-        let conn = self.pool.get()?;
+        let conn = self.pool.get(oic)?;
         let rows = conn.query("SELECT * FROM insert_origin_invitation_v1($1, $2, $3, $4, $5)",
                               &[&(oic.get_origin_id() as i64),
                                 &oic.get_origin_name(),
@@ -282,6 +272,7 @@ impl DataStore {
                                 &(oic.get_owner_id() as i64)])
             .map_err(Error::OriginInvitationCreate)?;
         if rows.len() == 1 {
+            self.async.schedule("sync_invitations")?;
             let row = rows.get(0);
             Ok(Some(self.row_to_origin_invitation(&row)))
         } else {
@@ -292,7 +283,7 @@ impl DataStore {
     pub fn create_origin_secret_key(&self,
                                     osk: &originsrv::OriginSecretKeyCreate)
                                     -> Result<originsrv::OriginSecretKey> {
-        let conn = self.pool.get()?;
+        let conn = self.pool.get(osk)?;
         let rows = conn.query("SELECT * FROM insert_origin_secret_key_v1($1, $2, $3, $4, $5, $6)",
                               &[&(osk.get_origin_id() as i64),
                                 &(osk.get_owner_id() as i64),
@@ -324,7 +315,7 @@ impl DataStore {
     pub fn get_origin_secret_key(&self,
                                  osk_get: &originsrv::OriginSecretKeyGet)
                                  -> Result<Option<originsrv::OriginSecretKey>> {
-        let conn = self.pool.get()?;
+        let conn = self.pool.get(osk_get)?;
         let rows = &conn.query("SELECT * FROM get_origin_secret_key_v1($1)",
                                &[&osk_get.get_origin()])
                         .map_err(Error::OriginSecretKeyGet)?;
@@ -340,7 +331,7 @@ impl DataStore {
     pub fn create_origin_public_key(&self,
                                     opk: &originsrv::OriginPublicKeyCreate)
                                     -> Result<originsrv::OriginPublicKey> {
-        let conn = self.pool.get()?;
+        let conn = self.pool.get(opk)?;
         let rows = conn.query("SELECT * FROM insert_origin_public_key_v1($1, $2, $3, $4, $5, $6)",
                               &[&(opk.get_origin_id() as i64),
                                 &(opk.get_owner_id() as i64),
@@ -372,7 +363,7 @@ impl DataStore {
     pub fn get_origin_public_key(&self,
                                  opk_get: &originsrv::OriginPublicKeyGet)
                                  -> Result<Option<originsrv::OriginPublicKey>> {
-        let conn = self.pool.get()?;
+        let conn = self.pool.get(opk_get)?;
         let rows = &conn.query("SELECT * FROM get_origin_public_key_v1($1, $2)",
                                &[&opk_get.get_origin(), &opk_get.get_revision()])
                         .map_err(Error::OriginPublicKeyGet)?;
@@ -388,7 +379,7 @@ impl DataStore {
     pub fn get_origin_public_key_latest(&self,
                                         opk_get: &originsrv::OriginPublicKeyLatestGet)
                                         -> Result<Option<originsrv::OriginPublicKey>> {
-        let conn = self.pool.get()?;
+        let conn = self.pool.get(opk_get)?;
         let rows = &conn.query("SELECT * FROM get_origin_public_key_latest_v1($1)",
                                &[&opk_get.get_origin()])
                         .map_err(Error::OriginPublicKeyLatestGet)?;
@@ -404,7 +395,7 @@ impl DataStore {
     pub fn list_origin_public_keys_for_origin(&self,
                                               opklr: &originsrv::OriginPublicKeyListRequest)
                                               -> Result<originsrv::OriginPublicKeyListResponse> {
-        let conn = self.pool.get()?;
+        let conn = self.pool.get(opklr)?;
         let rows = &conn.query("SELECT * FROM get_origin_public_keys_for_origin_v1($1)",
                                &[&(opklr.get_origin_id() as i64)])
                         .map_err(Error::OriginPublicKeyListForOrigin)?;
@@ -436,7 +427,7 @@ impl DataStore {
     pub fn create_origin(&self,
                          origin: &originsrv::OriginCreate)
                          -> Result<Option<originsrv::Origin>> {
-        let conn = self.pool.get()?;
+        let conn = self.pool.get(origin)?;
         let rows = conn.query("SELECT * FROM insert_origin_v1($1, $2, $3)",
                               &[&origin.get_name(),
                                 &(origin.get_owner_id() as i64),
@@ -459,7 +450,9 @@ impl DataStore {
     }
 
     pub fn get_origin_by_name(&self, origin_name: &str) -> Result<Option<originsrv::Origin>> {
-        let conn = self.pool.get()?;
+        let mut origin_get = originsrv::OriginGet::new();
+        origin_get.set_name(origin_name.to_string());
+        let conn = self.pool.get(&origin_get)?;
         let rows =
             &conn.query("SELECT * FROM origins_with_secret_key_full_name_v1 WHERE name = $1 LIMIT \
                         1",
@@ -482,4 +475,44 @@ impl DataStore {
             Ok(None)
         }
     }
+}
+
+fn sync_invitations(pool: Pool) -> DbResult<EventOutcome> {
+    let mut result = EventOutcome::Finished;
+    for shard in pool.shards.iter() {
+        let conn = pool.get_shard(*shard)?;
+        let rows = &conn.query("SELECT * FROM get_origin_invitations_not_synced_with_account_v1()",
+                               &[])
+                        .map_err(DbError::AsyncFunctionCheck)?;
+        if rows.len() > 0 {
+            let mut bconn = Broker::connect()?;
+            for row in rows.iter() {
+                let mut aoic = sessionsrv::AccountOriginInvitationCreate::new();
+                let aid: i64 = row.get("account_id");
+                aoic.set_account_id(aid as u64);
+                let oid: i64 = row.get("origin_id");
+                aoic.set_origin_id(oid as u64);
+                let oiid: i64 = row.get("id");
+                aoic.set_origin_invitation_id(oiid as u64);
+                let owner_id: i64 = row.get("owner_id");
+                aoic.set_owner_id(owner_id as u64);
+                aoic.set_account_name(row.get("account_name"));
+                aoic.set_origin_name(row.get("origin_name"));
+                match bconn.route::<sessionsrv::AccountOriginInvitationCreate, NetOk>(&aoic) {
+                    Ok(_) => {
+                        conn.query("SELECT * FROM set_account_sync_v1($1)", &[&oiid])
+                            .map_err(DbError::AsyncFunctionUpdate)?;
+                        debug!("Updated session service with origin invitation, {:?}", aoic);
+                    }
+                    Err(e) => {
+                        warn!("Failed to sync invitation with the session service, {:?}: {}",
+                              aoic,
+                              e);
+                        result = EventOutcome::Retry;
+                    }
+                }
+            }
+        }
+    }
+    Ok(result)
 }

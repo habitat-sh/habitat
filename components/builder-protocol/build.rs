@@ -43,10 +43,7 @@ fn protocol_files() -> Vec<PathBuf> {
     for entry in fs::read_dir("protocols").unwrap() {
         let file = entry.unwrap();
         // skip vim temp files
-        if file.file_name()
-               .to_str()
-               .unwrap()
-               .starts_with(".") {
+        if file.file_name().to_str().unwrap().starts_with(".") {
             continue;
         }
         if file.metadata().unwrap().is_file() {

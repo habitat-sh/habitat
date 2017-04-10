@@ -35,7 +35,7 @@ matrix:
     - os: linux
       language: rust
       env:
-        - COMPONENTS=bin LIBSODIUM_PREFIX=$HOME/pkgs/libsodium/1.0.8 LIBARCHIVE_PREFIX=$HOME/pkgs/libarchive/3.2.0 LIBZMQ_PREFIX=$HOME/pkgs/zeromq/4.1.4 PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$LIBARCHIVE_PREFIX/lib/pkgconfig:$LIBSODIUM_PREFIX/lib/pkgconfig:$LIBZMQ_PREFIX/lib/pkgconfig" LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$LIBARCHIVE_PREFIX/lib:$LIBSODIUM_PREFIX/lib:$LIBZMQ_PREFIX/lib" LIBRARY_PATH="$LIBRARY_PATH:$LIBZMQ_PREFIX/lib"
+        - COMPONENTS=bin LIBSODIUM_PREFIX=$HOME/pkgs/libsodium/1.0.12 LIBARCHIVE_PREFIX=$HOME/pkgs/libarchive/3.2.0 LIBZMQ_PREFIX=$HOME/pkgs/zeromq/4.1.4 PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$LIBARCHIVE_PREFIX/lib/pkgconfig:$LIBSODIUM_PREFIX/lib/pkgconfig:$LIBZMQ_PREFIX/lib/pkgconfig" LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$LIBARCHIVE_PREFIX/lib:$LIBSODIUM_PREFIX/lib:$LIBZMQ_PREFIX/lib" LIBRARY_PATH="$LIBRARY_PATH:$LIBZMQ_PREFIX/lib"
         - AFFECTED_DIRS="components/hab|components/sup"
       rust: stable
       sudo: false
@@ -70,7 +70,7 @@ matrix:
     - os: linux
       language: rust
       env:
-        - COMPONENTS=lib LIBSODIUM_PREFIX=$HOME/pkgs/libsodium/1.0.8 LIBARCHIVE_PREFIX=$HOME/pkgs/libarchive/3.2.0 LIBZMQ_PREFIX=$HOME/pkgs/zeromq/4.1.4 PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$LIBARCHIVE_PREFIX/lib/pkgconfig:$LIBSODIUM_PREFIX/lib/pkgconfig:$LIBZMQ_PREFIX/lib/pkgconfig" LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$LIBARCHIVE_PREFIX/lib:$LIBSODIUM_PREFIX/lib:$LIBZMQ_PREFIX/lib" LIBRARY_PATH="$LIBRARY_PATH:$LIBZMQ_PREFIX/lib"
+        - COMPONENTS=lib LIBSODIUM_PREFIX=$HOME/pkgs/libsodium/1.0.12 LIBARCHIVE_PREFIX=$HOME/pkgs/libarchive/3.2.0 LIBZMQ_PREFIX=$HOME/pkgs/zeromq/4.1.4 PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$LIBARCHIVE_PREFIX/lib/pkgconfig:$LIBSODIUM_PREFIX/lib/pkgconfig:$LIBZMQ_PREFIX/lib/pkgconfig" LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$LIBARCHIVE_PREFIX/lib:$LIBSODIUM_PREFIX/lib:$LIBZMQ_PREFIX/lib" LIBRARY_PATH="$LIBRARY_PATH:$LIBZMQ_PREFIX/lib"
         - AFFECTED_DIRS="components/builder-dbcache|components/builder-core|components/builder-protocol|components/common|components/core|components/builder-depot-client|components/http-client|components/net|components/butterfly"
       rust: stable
       sudo: false
@@ -105,7 +105,7 @@ matrix:
     - os: linux
       language: rust
       env:
-        - COMPONENTS=srv LIBSODIUM_PREFIX=$HOME/pkgs/libsodium/1.0.8 LIBARCHIVE_PREFIX=$HOME/pkgs/libarchive/3.2.0 LIBZMQ_PREFIX=$HOME/pkgs/zeromq/4.1.4 PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$LIBARCHIVE_PREFIX/lib/pkgconfig:$LIBSODIUM_PREFIX/lib/pkgconfig:$LIBZMQ_PREFIX/lib/pkgconfig" LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$LIBARCHIVE_PREFIX/lib:$LIBSODIUM_PREFIX/lib:$LIBZMQ_PREFIX/lib" LIBRARY_PATH="$LIBRARY_PATH:$LIBZMQ_PREFIX/lib"
+        - COMPONENTS=srv LIBSODIUM_PREFIX=$HOME/pkgs/libsodium/1.0.12 LIBARCHIVE_PREFIX=$HOME/pkgs/libarchive/3.2.0 LIBZMQ_PREFIX=$HOME/pkgs/zeromq/4.1.4 PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$LIBARCHIVE_PREFIX/lib/pkgconfig:$LIBSODIUM_PREFIX/lib/pkgconfig:$LIBZMQ_PREFIX/lib/pkgconfig" LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$LIBARCHIVE_PREFIX/lib:$LIBSODIUM_PREFIX/lib:$LIBZMQ_PREFIX/lib" LIBRARY_PATH="$LIBRARY_PATH:$LIBZMQ_PREFIX/lib"
         - AFFECTED_DIRS="components/builder-api|components/builder-admin|components/builder-jobsrv|components/builder-sessionsrv|components/builder-vault|components/builder-worker|components/builder-depot"
       rust: stable
       sudo: required

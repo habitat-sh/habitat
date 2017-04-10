@@ -12,52 +12,58 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::mem;
+
 use db::migration::Migrator;
 
 #[test]
 fn setup() {
     with_pool!(pool, {
-        let migrator = Migrator::new(&pool);
+        let conn = pool.get_raw().expect("cannot get connection");
+        let xact = conn.transaction().expect("cannot get transaction");
+        let mut migrator = Migrator::new(xact, vec![0, 1]);
         migrator.setup().expect("Migration setup failed");
-        migrator.setup().expect("Migration setup must be idempotent");
+        migrator
+            .setup()
+            .expect("Migration setup must be idempotent");
+        migrator.finish();
     });
 }
 
 #[test]
 fn migrate() {
-    with_migration!(pool, migration, {
-        migration.migrate("metal",
-                          r#"CREATE TABLE bands (
-                        name text PRIMARY KEY,
-                        style text
-                     )"#)
-            .expect("Migration should be run successfully");
-
-        let mut m = Migrator::new(&pool);
-        // Running the same migration twice should not fail, due to the internal migration checking
-        // logic.
-        m.migrate("metal",
-                     r#"CREATE TABLE bands (
-                        name text PRIMARY KEY,
-                        style text
-                     )"#)
-            .expect("Migration should pass if its sequence number has been used, even if it \
-                     should fail by sql");
+    with_pool!(pool, {
+        let conn = pool.get_raw().expect("cannot get connection");
+        {
+            let xact = conn.transaction().expect("cannot get transaction");
+            let mut migrator = Migrator::new(xact, vec![0, 1]);
+            migrator
+                .setup()
+                .expect("Migration setup must be idempotent");
+            migrator
+                .migrate("metal",
+                         r#"CREATE TABLE bands (
+                                    name text PRIMARY KEY,
+                                    style text
+                                 )"#)
+                .expect("Migration should be run successfully");
+            migrator.finish();
+        }
+        {
+            let xact = conn.transaction().expect("cannot get transaction");
+            let mut migrator = Migrator::new(xact, vec![0, 1]);
+            migrator
+                .setup()
+                .expect("Migration setup must be idempotent");
+            migrator
+                .migrate("metal",
+                         r#"CREATE TABLE bands (
+                                    name text PRIMARY KEY,
+                                    style text
+                                 )"#)
+                .expect("Migration should be run successfully, even thought it would fail if it \
+                         was run twice");
+            migrator.finish();
+        }
     });
-
-    // ml.migrate("packages", 1, r#"CREATE TABLE packages (
-    //     ident text PRIMARY KEY,
-    //     origin text,
-    //     name text,
-    //     version text,
-    //     release text,
-    //     checksum text,
-    //     manifest text,
-    //     deps text[],
-    //     tdeps text[],
-    //     exposes integer[],
-    //     config text,
-    //     created_at timestamptz DEFAULT now(),
-    //     updated_at timestamptz,
-    // )"#);
 }

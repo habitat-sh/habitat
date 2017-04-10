@@ -17,6 +17,14 @@
 //! The design uses a database with dynamically created schemas per test, that automatically handle
 //! running migrations (if required). Each test *must* have its schema built every time.
 
+use std::sync::atomic::{AtomicUsize, ATOMIC_USIZE_INIT};
+use std::sync::{Once, ONCE_INIT};
+
+pub use protocol::sharding::SHARD_COUNT;
+
+pub static INIT_TEMPLATE: Once = ONCE_INIT;
+pub static TEST_COUNT: AtomicUsize = ATOMIC_USIZE_INIT;
+
 pub mod postgres {
     use std::path::PathBuf;
     use std::process::{Child, Command, Stdio};
@@ -73,12 +81,60 @@ pub mod init {
                                  1,
                                  300,
                                  Duration::from_secs(3600),
-                                 false)
+                                 vec![0])
                     .expect("Failed to create pool");
-            let conn = pool.get().expect("Failed to get connection");
-            let _ = conn.execute("DROP DATABASE IF EXISTS builder_db_test", &[]);
-            let _ = conn.execute("CREATE DATABASE builder_db_test", &[]);
+            let conn = pool.get_raw().expect("Failed to get connection");
+            let _ = conn.execute("DROP DATABASE IF EXISTS builder_db_test_template", &[]);
+            let _ = conn.execute("CREATE DATABASE builder_db_test_template", &[]);
         })
+    }
+}
+
+#[macro_export]
+macro_rules! datastore_test {
+    ($datastore:ident) => {
+        {
+            use std::time::Duration;
+            use std::sync::atomic::Ordering;
+            use $crate::pool::Pool;
+
+            use $crate::test::{postgres, SHARD_COUNT, INIT_TEMPLATE, TEST_COUNT};
+
+            postgres::start();
+
+            INIT_TEMPLATE.call_once(|| {
+                let pool = Pool::new("postgresql://hab@127.0.0.1/template1",
+                                     1,
+                                     300,
+                                     Duration::from_secs(3600),
+                                     vec![0])
+                    .expect("Failed to create pool");
+                let conn = pool.get_raw().expect("Failed to get connection");
+                let _ = conn.execute("DROP DATABASE IF EXISTS builder_db_test_template", &[]).expect("Failed to drop existing template database");
+                let _ = conn.execute("CREATE DATABASE builder_db_test_template", &[]).expect("Failed to create template database");
+                let template_pool = Pool::new("postgresql://hab@127.0.0.1/builder_db_test_template", 1, 300, Duration::from_secs(3600), (0..SHARD_COUNT).collect()).expect("Failed to create pool");
+                let ds = $datastore::from_pool(template_pool).expect("Failed to create data store from pool");
+                ds.setup().expect("Failed to migrate data");
+            });
+            let test_number = TEST_COUNT.fetch_add(1, Ordering::SeqCst);
+            let db_name = format!("builder_db_test_{}", test_number);
+            let create_pool = Pool::new("postgresql://hab@127.0.0.1/template1",
+                                        1,
+                                        300,
+                                        Duration::from_secs(3600),
+                                        vec![0])
+                .expect("Failed to create pool");
+            let conn = create_pool.get_raw().expect("Failed to get connection");
+            let drop_db = format!("DROP DATABASE IF EXISTS {}", &db_name);
+            let create_db = format!("CREATE DATABASE {} TEMPLATE builder_db_test_template", &db_name);
+
+            let _ = conn.execute(&drop_db, &[]).expect("Failed to drop test database");
+            let _ = conn.execute(&create_db, &[]).expect("Failed to create test database from template");
+
+            let pool = Pool::new(&format!("postgresql://hab@127.0.0.1/{}", db_name), 5, 300, Duration::from_secs(3600), (0..SHARD_COUNT).collect()).expect("Failed to create pool");
+            let ds = $datastore::from_pool(pool).expect("Failed to create data store from pool");
+            ds
+        }
     }
 }
 
@@ -90,11 +146,11 @@ macro_rules! with_pool {
         use std::time::Duration;
         use $crate::pool::Pool;
 
-        use $crate::test::{init, postgres};
+        use $crate::test::{init, postgres, SHARD_COUNT};
 
         postgres::start();
         init::create_database();
-        let $pool = Pool::new("postgresql://hab@127.0.0.1/builder_db_test", 1, 300, Duration::from_secs(3600), true).expect("Failed to create pool");
+        let $pool = Pool::new("postgresql://hab@127.0.0.1/builder_db_test", 5, 300, Duration::from_secs(3600), (0..SHARD_COUNT).collect()).expect("Failed to create pool");
         $code
     }
 }
@@ -108,11 +164,11 @@ macro_rules! pool {
             use std::time::Duration;
             use $crate::pool::Pool;
 
-            use $crate::test::{init, postgres};
+            use $crate::test::{init, postgres, SHARD_COUNT};
 
             postgres::start();
             init::create_database();
-            Pool::new("postgresql://hab@127.0.0.1/builder_db_test", 1, 300, Duration::from_secs(3600), true).expect("Failed to create pool")
+            Pool::new("postgresql://hab@127.0.0.1/builder_db_test", 5, 300, Duration::from_secs(3600), (0..SHARD_COUNT).collect(), true).expect("Failed to create pool")
         }
     }
 }
@@ -125,12 +181,16 @@ macro_rules! with_migration {
         use $crate::migration::Migrator;
         use $crate::pool::Pool;
 
-        use $crate::test::{init, postgres};
+        use $crate::test::{init, postgres, SHARD_COUNT};
 
         postgres::start();
         init::create_database();
-        let $pool = Pool::new("postgresql://hab@127.0.0.1/builder_db_test", 1, 300, Duration::from_secs(3600), true).expect("Failed to create pool");
-        let mut $migration = Migrator::new(&$pool);
+        let $pool = Pool::new("postgresql://hab@127.0.0.1/builder_db_test", 5, 300, Duration::from_secs(3600), (0..SHARD_COUNT).collect(), true).expect("Failed to create pool");
+        let conn = $pool.get_raw().expect("Failed to get connection for migration");
+        let xact = conn.transaction().expect("Failed to get transaction for migration");
+        let mut $migration = Migrator::new(xact, (0..SHARD_COUNT).collect());
+        $migration.testing = true;
+        $migration.test_number = $pool.test_number;
         $migration.setup().expect("Migration setup failed");
         $code
     }

@@ -40,7 +40,7 @@ pub fn job_create(req: &mut Envelope,
 
 pub fn job_get(req: &mut Envelope, sock: &mut zmq::Socket, state: &mut ServerState) -> Result<()> {
     let msg: proto::JobGet = try!(req.parse_msg());
-    match state.datastore().get_job(msg.get_id()) {
+    match state.datastore().get_job(&msg) {
         Ok(Some(ref job)) => {
             //let reply: proto::Job = job.into();
             try!(req.reply_complete(sock, job));
