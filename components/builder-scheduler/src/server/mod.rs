@@ -199,6 +199,7 @@ impl Application for Server {
             let cfg = self.config.read().unwrap();
             Broker::run(Self::net_ident(), cfg.route_addrs())
         };
+        info!("builder-scheduler is ready to go.");
         try!(zmq::proxy(&mut self.router.socket, &mut self.be_sock));
         broker.join().unwrap();
         schedule_mgr.join().unwrap();

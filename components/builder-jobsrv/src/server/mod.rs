@@ -162,6 +162,7 @@ impl Application for Server {
         let worker_mgr = try!(WorkerMgr::start(cfg2, ds2));
         try!(sup.start());
         try!(self.connect());
+        info!("builder-jobsrv is ready to go.");
         try!(zmq::proxy(&mut self.router.socket, &mut self.be_sock));
         worker_mgr.join().unwrap();
         Ok(())

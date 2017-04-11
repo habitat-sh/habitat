@@ -15,10 +15,18 @@ env HAB_FUNC_TEST=1 ./support/linux/bin/forego start -f support/Procfile -e supp
 forego_pid=$!
 popd
 
-# This is so brittle. Need to figure out a better way. It works on my machine!
-# :)
-echo "**** Spinning up the services; waiting 45 seconds ****"
-sleep 45
+echo "**** Spinning up the services ****"
+count=0;
+while [ $count -ne 5 ]; do
+  count=0;
+  for svc in builder-originsrv builder-sessionsrv builder-router builder-api builder-jobsrv; do
+    if grep -q "$svc is ready to go" ./services.log; then
+      ((count++))
+    fi
+  done
+  sleep 1
+done
+echo "**** Services ready ****"
 npm run mocha
 mocha_exit_code=$?
 echo "**** Stopping services ****"

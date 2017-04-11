@@ -165,6 +165,7 @@ impl Application for Server {
             let cfg = self.config.read().unwrap();
             Broker::run(Self::net_ident(), cfg.route_addrs());
         }
+        info!("builder-sessionsrv is ready to go.");
         try!(zmq::proxy(&mut self.router.socket, &mut self.be_sock));
         Ok(())
     }

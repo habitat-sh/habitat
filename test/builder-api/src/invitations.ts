@@ -4,7 +4,7 @@ import supertest = require('supertest');
 const request = supertest('http://localhost:9636/v1');
 const globalAny:any = global;
 
-describe('Origin Invitations API', function() { 
+describe('Origin Invitations API', function() {
   describe('Invite bobo to xmen', function() {
     it('refuses invitations from non-members', function(done) {
       request.post('/depot/origins/xmen/users/bobo/invitations')
