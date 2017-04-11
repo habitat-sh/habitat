@@ -19,11 +19,11 @@
 //! protocol), expire (turning Suspect members into Confirmed members), push (the fan-out rumors),
 //! and pull (the inbound receipt of rumors.).
 
-pub mod expire;
-pub mod inbound;
-pub mod outbound;
-pub mod pull;
-pub mod push;
+mod expire;
+mod inbound;
+mod outbound;
+mod pull;
+mod push;
 pub mod timing;
 
 use std::collections::{HashSet, HashMap};
@@ -65,28 +65,28 @@ pub trait Suitability: Debug + Send + Sync {
 /// The server struct. Is thread-safe.
 #[derive(Debug, Clone)]
 pub struct Server {
-    pub name: Arc<String>,
-    pub member_id: Arc<String>,
+    name: Arc<String>,
+    member_id: Arc<String>,
     pub member: Arc<RwLock<Member>>,
     pub member_list: MemberList,
-    pub ring_key: Arc<Option<SymKey>>,
-    pub rumor_list: RumorList,
+    ring_key: Arc<Option<SymKey>>,
+    rumor_list: RumorList,
     pub service_store: RumorStore<Service>,
     pub service_config_store: RumorStore<ServiceConfig>,
     pub service_file_store: RumorStore<ServiceFile>,
     pub election_store: RumorStore<Election>,
     pub update_store: RumorStore<ElectionUpdate>,
-    pub swim_addr: Arc<RwLock<SocketAddr>>,
-    pub gossip_addr: Arc<RwLock<SocketAddr>>,
-    pub suitability_lookup: Arc<Box<Suitability>>,
-    pub data_path: Arc<Option<PathBuf>>,
+    swim_addr: Arc<RwLock<SocketAddr>>,
+    gossip_addr: Arc<RwLock<SocketAddr>>,
+    suitability_lookup: Arc<Box<Suitability>>,
+    data_path: Arc<Option<PathBuf>>,
     dat_file: Arc<RwLock<Option<DatFile>>>,
     // These are all here for testing support
-    pub pause: Arc<AtomicBool>,
+    pause: Arc<AtomicBool>,
     pub trace: Arc<RwLock<Trace>>,
-    pub swim_rounds: Arc<AtomicIsize>,
-    pub gossip_rounds: Arc<AtomicIsize>,
-    pub blacklist: Arc<RwLock<HashSet<String>>>,
+    swim_rounds: Arc<AtomicIsize>,
+    gossip_rounds: Arc<AtomicIsize>,
+    blacklist: Arc<RwLock<HashSet<String>>>,
 }
 
 impl Server {
@@ -152,7 +152,7 @@ impl Server {
     }
 
     /// Adds 1 to the current round, atomically.
-    pub fn update_swim_round(&self) {
+    fn update_swim_round(&self) {
         let current_round = self.swim_rounds.load(Ordering::SeqCst);
         match current_round.checked_add(1) {
             Some(_number) => {
@@ -176,7 +176,7 @@ impl Server {
     }
 
     /// Adds 1 to the current round, atomically.
-    pub fn update_gossip_round(&self) {
+    fn update_gossip_round(&self) {
         let current_round = self.gossip_rounds.load(Ordering::SeqCst);
         match current_round.checked_add(1) {
             Some(_number) => {
@@ -308,7 +308,7 @@ impl Server {
     }
 
     /// Check that a given address is on the blacklist.
-    pub fn check_blacklist(&self, member_id: &str) -> bool {
+    fn check_blacklist(&self, member_id: &str) -> bool {
         let blacklist = self.blacklist
             .write()
             .expect("Write lock for blacklist is poisoned");
@@ -321,19 +321,13 @@ impl Server {
             .compare_and_swap(false, true, Ordering::Relaxed);
     }
 
-    /// Allow the outbound and inbound threads to process work.
-    pub fn unpause(&mut self) {
-        self.pause
-            .compare_and_swap(true, false, Ordering::Relaxed);
-    }
-
     /// Whether this server is currently paused.
     pub fn paused(&self) -> bool {
         self.pause.load(Ordering::Relaxed)
     }
 
     /// Return the swim address we are bound to
-    pub fn swim_addr(&self) -> SocketAddr {
+    fn swim_addr(&self) -> SocketAddr {
         let sa = self.swim_addr
             .read()
             .expect("Swim Address lock poisoned");
@@ -393,27 +387,28 @@ impl Server {
         }
     }
 
-    /// Change the health of a `Member`, and update its `RumorKey`.
-    pub fn insert_health(&self, member: &Member, health: Health) {
-        let rk: RumorKey = RumorKey::from(&member);
-        // NOTE: This sucks so much right here. Check out how we allocate no matter what, because
-        // of just how the logic goes. The value of the trace is really high, though, so we suck it
-        // for now.
-        let trace_member_id = String::from(member.get_id());
-        let trace_incarnation = member.get_incarnation();
-        let trace_health = health.clone();
-        if self.member_list.insert_health(member, health) {
-            trace_it!(MEMBERSHIP: self,
-                      TraceKind::MemberUpdate,
-                      trace_member_id,
-                      trace_incarnation,
-                      trace_health);
-            self.rumor_list.insert(rk);
-        }
-    }
+    // // Currently DEAD CODE
+    // /// Change the health of a `Member`, and update its `RumorKey`.
+    // fn insert_health(&self, member: &Member, health: Health) {
+    //     let rk: RumorKey = RumorKey::from(&member);
+    //     // NOTE: This sucks so much right here. Check out how we allocate no matter what, because
+    //     // of just how the logic goes. The value of the trace is really high, though, so we suck it
+    //     // for now.
+    //     let trace_member_id = String::from(member.get_id());
+    //     let trace_incarnation = member.get_incarnation();
+    //     let trace_health = health.clone();
+    //     if self.member_list.insert_health(member, health) {
+    //         trace_it!(MEMBERSHIP: self,
+    //                   TraceKind::MemberUpdate,
+    //                   trace_member_id,
+    //                   trace_incarnation,
+    //                   trace_health);
+    //         self.rumor_list.insert(rk);
+    //     }
+    // }
 
     /// Given a membership record and some health, insert it into the Member List.
-    pub fn insert_member_from_rumor(&self, member: Member, mut health: Health) {
+    fn insert_member_from_rumor(&self, member: Member, mut health: Health) {
         let mut incremented_incarnation = false;
         let rk: RumorKey = RumorKey::from(&member);
         if member.get_id() == self.member_id() {
@@ -444,7 +439,7 @@ impl Server {
     }
 
     /// Insert members from a list of received rumors.
-    pub fn insert_member_from_rumors(&self, members: Vec<(Member, Health)>) {
+    fn insert_member_from_rumors(&self, members: Vec<(Member, Health)>) {
         for (member, health) in members.into_iter() {
             self.insert_member_from_rumor(member, health);
         }
@@ -475,7 +470,7 @@ impl Server {
     }
 
     /// Get all the Member ID's who are present in a given service group.
-    pub fn get_electorate(&self, key: &str) -> Vec<String> {
+    fn get_electorate(&self, key: &str) -> Vec<String> {
         let mut electorate = vec![];
         self.service_store
             .with_rumors(key, |s| if self.member_list
@@ -489,7 +484,7 @@ impl Server {
     ///
     /// A given group has quorum if, from this servers perspective, it has an alive population that
     /// is over 50%, and at least 3 members.
-    pub fn check_quorum(&self, key: &str) -> bool {
+    fn check_quorum(&self, key: &str) -> bool {
         let electorate = self.get_electorate(key);
 
         let total_population = self.service_store.len_for_key(key);
