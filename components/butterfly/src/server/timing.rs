@@ -22,6 +22,9 @@ const PINGREQ_TIMING_DEFAULT_MS: i64 = 2100;
 const SUSPICION_TIMEOUT_DEFAULT_PROTOCOL_PERIODS: i64 = 3;
 /// How long is the gossip period
 const GOSSIP_PERIOD_DEFAULT_MS: i64 = 1000;
+/// How long before we set a confirmed member to a departed member, removing them from quorums
+///   just for your own sanity - this is 3 days.
+const DEPARTURE_TIMEOUT_DEFAULT_MS: i64 = 259200000;
 
 /// The timing of the outbound threads.
 #[derive(Debug, Clone)]
@@ -30,6 +33,7 @@ pub struct Timing {
     pub pingreq_ms: i64,
     pub gossip_period_ms: i64,
     pub suspicion_timeout_protocol_periods: i64,
+    pub departure_timeout_ms: i64,
 }
 
 impl Default for Timing {
@@ -39,6 +43,7 @@ impl Default for Timing {
             pingreq_ms: PINGREQ_TIMING_DEFAULT_MS,
             gossip_period_ms: GOSSIP_PERIOD_DEFAULT_MS,
             suspicion_timeout_protocol_periods: SUSPICION_TIMEOUT_DEFAULT_PROTOCOL_PERIODS,
+            departure_timeout_ms: DEPARTURE_TIMEOUT_DEFAULT_MS,
         }
     }
 }
@@ -50,12 +55,14 @@ impl Timing {
         pingreq_ms: i64,
         gossip_period_ms: i64,
         suspicion_timeout_protocol_periods: i64,
+        departure_timeout_ms: i64,
     ) -> Timing {
         Timing {
             ping_ms: ping_ms,
             pingreq_ms: pingreq_ms,
             gossip_period_ms: gossip_period_ms,
             suspicion_timeout_protocol_periods: suspicion_timeout_protocol_periods,
+            departure_timeout_ms: departure_timeout_ms,
         }
     }
 
@@ -89,5 +96,9 @@ impl Timing {
         TimeDuration::milliseconds(
             self.protocol_period_ms() * self.suspicion_timeout_protocol_periods,
         )
+    }
+
+    pub fn departure_timeout_duration(&self) -> TimeDuration {
+        TimeDuration::milliseconds(self.departure_timeout_ms)
     }
 }

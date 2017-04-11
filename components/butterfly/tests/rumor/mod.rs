@@ -16,3 +16,4 @@ pub mod service;
 pub mod service_config;
 pub mod service_file;
 pub mod election;
+pub mod departure;

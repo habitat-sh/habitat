@@ -131,6 +131,22 @@ fn six_members_unmeshed_partition_and_rejoin_persistent_peers() {
 }
 
 #[test]
+fn six_members_unmeshed_allows_graceful_departure() {
+    let mut net = btest::SwimNet::new(6);
+    net.connect(0, 1);
+    net.connect(1, 2);
+    net.connect(2, 3);
+    net.connect(3, 4);
+    net.connect(4, 5);
+    assert_wait_for_health_of!(net, [0..6, 0..6], Health::Alive);
+    trace_it!(TEST: &net[0], "Departing");
+    net[0].set_departed();
+    trace_it!(TEST: &net[0], "Paused");
+    net[0].pause();
+    assert_wait_for_health_of!(net, 0, Health::Departed);
+}
+
+#[test]
 #[ignore]
 fn fifty_members_meshed_confirm_one_member() {
     let mut net = btest::SwimNet::new(50);

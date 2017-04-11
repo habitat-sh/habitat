@@ -258,6 +258,22 @@ impl PushWorker {
                         }
                     }
                 }
+                ProtoRumor_Type::Departure => {
+                    match self.server.departure_store.write_to_bytes(
+                        &rumor_key.key,
+                        &rumor_key.id,
+                    ) {
+                        Ok(bytes) => bytes,
+                        Err(e) => {
+                            println!(
+                                "Could not write our own rumor to bytes; abandoning \
+                                            sending rumor: {:?}",
+                                e
+                            );
+                            continue 'rumorlist;
+                        }
+                    }
+                }
                 ProtoRumor_Type::Election => {
                     // trace_it!(GOSSIP: &self.server,
                     //           TraceKind::SendRumor,
@@ -309,7 +325,14 @@ impl PushWorker {
             };
             match socket.send(&payload, 0) {
                 Ok(()) => debug!("Sent rumor {:?} to {:?}", rumor_key, member),
-                Err(e) => println!("Could not send rumor to {:?}; ZMQ said: {:?}", member, e),
+                Err(e) => {
+                    println!(
+                        "Could not send rumor to {:?} @ {:?}; ZMQ said: {:?}",
+                        member.get_id(),
+                        to_addr,
+                        e
+                    )
+                }
             }
         }
         self.server.rumor_list.update_heat(member.get_id(), &rumors);

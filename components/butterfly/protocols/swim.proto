@@ -7,6 +7,7 @@ message Member {
   optional int32 swim_port = 4;
   optional int32 gossip_port = 5;
   optional bool persistent = 6 [default = false];
+  optional bool departed = 7 [default = false];
 }
 
 message Ping {
@@ -25,7 +26,7 @@ message PingReq {
 }
 
 message Membership {
-  enum Health { ALIVE = 1; SUSPECT = 2; CONFIRMED = 3; };
+  enum Health { ALIVE = 1; SUSPECT = 2; CONFIRMED = 3; DEPARTED = 4; };
 
   optional Member member = 1;
   optional Health health = 2;
@@ -76,6 +77,10 @@ message SysInfo {
   optional uint32 http_gateway_port = 6;
 }
 
+message Departure {
+  optional string member_id = 1;
+}
+
 message Swim {
   enum Type { PING = 1; ACK = 2; PINGREQ = 3; };
 
@@ -99,6 +104,7 @@ message Rumor {
     Fake = 6;
     Fake2 = 7;
     ElectionUpdate = 8;
+    Departure = 9;
   }
 
   required Type type = 1;
@@ -110,6 +116,7 @@ message Rumor {
     ServiceConfig service_config = 6;
     ServiceFile service_file = 7;
     Election election = 8;
+    Departure departure = 9;
   }
 }
 

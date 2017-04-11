@@ -495,6 +495,7 @@ pub struct CensusMember {
     alive: bool,
     suspect: bool,
     confirmed: bool,
+    departed: bool,
     sys: SysInfo,
     // Maps must be represented last in a serializable struct for the current version of the toml
     // crate. Additionally, this deserialization method is required to correct any ordering issues
@@ -546,6 +547,7 @@ impl CensusMember {
         cep.set_alive(self.alive);
         cep.set_suspect(self.suspect);
         cep.set_confirmed(self.confirmed);
+        cep.set_departed(self.departed);
         cep.set_persistent(self.persistent);
 
         let cfg_str = toml::to_string(&self.cfg).unwrap();
@@ -610,6 +612,7 @@ impl CensusMember {
         self.alive = health == Health::Alive;
         self.suspect = health == Health::Suspect;
         self.confirmed = health == Health::Confirmed;
+        self.departed = health == Health::Departed;
     }
 }
 

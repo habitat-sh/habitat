@@ -212,25 +212,31 @@ impl Outbound {
             match self.rx_inbound.try_recv() {
                 Ok((real_addr, mut swim)) => {
                     let mut ack_from = swim.mut_ack().take_from();
-                    if member.get_id() != ack_from.get_id() {
-                        error!(
-                            "Discarding ack from {}@{}; expected {}",
-                            ack_from.get_id(),
-                            real_addr,
-                            member.get_id()
-                        );
-                        // Keep listening, we want the ack we expected
-                        continue;
-                    }
+
                     // If this was forwarded to us, we want to retain the address of the member who
                     // sent the ack, not the one we received on the socket.
                     if !swim.get_ack().has_forward_to() {
                         ack_from.set_address(format!("{}", real_addr.ip()));
                     }
+                    let is_departed = ack_from.get_departed();
                     let ack_from_member: Member = ack_from.into();
-                    self.server.insert_member(ack_from_member, Health::Alive);
-                    // We got the ack we are looking for; return.
-                    return true;
+                    if member.get_id() != ack_from_member.get_id() {
+                        if is_departed {
+                            self.server.insert_member(ack_from_member, Health::Departed);
+                        } else {
+                            self.server.insert_member(ack_from_member, Health::Alive);
+                        }
+                        // Keep listening, we want the ack we expected
+                        continue;
+                    } else {
+                        // We got the ack we are looking for; return.
+                        if is_departed {
+                            self.server.insert_member(ack_from_member, Health::Departed);
+                        } else {
+                            self.server.insert_member(ack_from_member, Health::Alive);
+                        }
+                        return true;
+                    }
                 }
                 Err(mpsc::TryRecvError::Empty) => {
                     if SteadyTime::now() > timeout {

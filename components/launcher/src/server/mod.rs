@@ -232,7 +232,9 @@ pub fn run(args: Vec<String>) -> Result<i32> {
     loop {
         match server.tick() {
             Ok(TickState::Continue) => thread::sleep(Duration::from_millis(100)),
-            Ok(TickState::Exit(code)) => return Ok(code),
+            Ok(TickState::Exit(code)) => {
+                return Ok(code);
+            }
             Err(_) => {
                 while server.reload().is_err() {
                     thread::sleep(Duration::from_millis(1_000));

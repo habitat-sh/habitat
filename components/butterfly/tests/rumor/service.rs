@@ -13,6 +13,7 @@
 // limitations under the License.
 
 use btest;
+use habitat_butterfly::member::Health;
 
 #[test]
 fn two_members_share_services() {
@@ -25,4 +26,30 @@ fn two_members_share_services() {
         net[0].member_id(),
         |u| assert!(u.is_some()),
     );
+}
+
+#[test]
+fn six_members_unmeshed_with_same_service_forces_departure_on_new_members() {
+    let mut net = btest::SwimNet::new(6);
+    net.connect(0, 1);
+    net.connect(1, 2);
+    net.connect(2, 3);
+    net.connect(3, 4);
+    net.connect(4, 5);
+    net.add_service(0, "core/witcher/1.2.3/20161208121212");
+    net.add_service(1, "core/witcher/1.2.3/20161208121212");
+    net.add_service(2, "core/witcher/1.2.3/20161208121212");
+    net.add_service(3, "core/witcher/1.2.3/20161208121212");
+    net.add_service(4, "core/witcher/1.2.3/20161208121212");
+    net.add_service(5, "core/witcher/1.2.3/20161208121212");
+    assert_wait_for_health_of!(net, [0..6, 0..6], Health::Alive);
+    trace_it!(TEST: &net[0], "Paused");
+    net[0].pause();
+    assert_wait_for_health_of!(net, 0, Health::Confirmed);
+
+    net.add_member();
+    net.add_service(6, "core/witcher/1.2.3/20161208121212");
+    net.mesh();
+    assert_wait_for_health_of!(net, 6, Health::Alive);
+    assert_wait_for_health_of!(net, 0, Health::Departed);
 }

@@ -13,4 +13,5 @@
 // limitations under the License.
 
 pub mod config;
+pub mod depart;
 pub mod file;

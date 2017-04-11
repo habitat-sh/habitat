@@ -34,6 +34,7 @@ pub enum TraceKind {
     ProbeComplete,
     ProbeConfirmed,
     ProbeSuspect,
+    ProbeDeparted,
     ProbePingReq,
     RecvAck,
     RecvPing,
@@ -56,6 +57,7 @@ impl fmt::Display for TraceKind {
             TraceKind::ProbeConfirmed => write!(f, "ProbeConfirmed"),
             TraceKind::ProbeComplete => write!(f, "ProbeComplete"),
             TraceKind::ProbeSuspect => write!(f, "ProbeSuspect"),
+            TraceKind::ProbeDeparted => write!(f, "ProbeDeparted"),
             TraceKind::ProbePingReq => write!(f, "ProbePingReq"),
             TraceKind::RecvAck => write!(f, "RecvAck"),
             TraceKind::RecvPing => write!(f, "RecvPing"),
@@ -392,6 +394,9 @@ macro_rules! trace_it {
                                 $payload.get_election().get_suitability(),
                                 $payload.get_election().get_status(),
                                 $payload.get_election().get_votes())
+                    }
+                    Rumor_Type::Departure => {
+                        format!("{}", $payload.get_departure().get_member_id())
                     }
                     Rumor_Type::Fake | Rumor_Type::Fake2 => format!("nothing-to-see"),
                 };

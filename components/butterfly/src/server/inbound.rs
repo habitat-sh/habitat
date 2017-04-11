@@ -253,7 +253,11 @@ impl Inbound {
             from
         };
         info!("Ping from {}@{}", from.get_id(), addr);
-        self.server.insert_member(from.into(), Health::Alive);
+        if from.get_departed() {
+            self.server.insert_member(from.into(), Health::Departed);
+        } else {
+            self.server.insert_member(from.into(), Health::Alive);
+        }
         let membership: Vec<(Member, Health)> = msg.take_membership()
             .iter()
             .map(|m| {

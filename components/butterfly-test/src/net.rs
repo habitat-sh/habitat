@@ -140,7 +140,7 @@ impl SwimNet {
     }
 
     pub fn max_rounds(&self) -> isize {
-        3
+        7
     }
 
     pub fn max_gossip_rounds(&self) -> isize {
