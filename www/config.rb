@@ -1,5 +1,8 @@
 require 'slim'
 
+activate :syntax
+set :markdown_engine, :kramdown
+set :markdown, coderay_line_numbers: :table
 ###
 # Page options, layouts, aliases and proxies
 ###
@@ -19,6 +22,21 @@ page 'tutorials/*', layout: :sidebar, locals: { sidebar_layout: 'tutorials' }
 page 'docs/*', layout: :sidebar, locals: { sidebar_layout: 'docs' }
 page 'legal/*', layout: :sidebar, locals: { sidebar_layout: 'legal' }
 page 'try/*', layout: :try
+page '/blog/index.html', layout: :blog_index
+
+activate :blog do |blog|
+  blog.prefix = "blog"
+  blog.layout = :blog_post
+  blog.permalink = "{title}.html"
+  blog.default_extension = ".md"
+  blog.summary_separator = /(READMORE)/
+  blog.summary_length = 250
+  blog.paginate = true
+  blog.per_page = 10
+  blog.page_link = "page/{num}"
+  blog.tag_template = "blog/tag.html"
+  blog.calendar_template = "blog/calendar.html"
+end
 
 # Proxy pages (http://middlemanapp.com/basics/dynamic-pages/)
 # proxy '/this-page-has-no-template.html', '/template-file.html', locals: {
@@ -44,23 +62,34 @@ helpers do
       'has-sidebar'
     elsif layout == :try
       'try-hab'
+    elsif layout == :blog_post
+      'blogs'
+    elsif layout == :blog_index
+      'blogs'
     else
       ''
     end
 
   end
+  def render_markdown(text)
+    Kramdown::Document.new(text).to_html
+  end
 end
 
+page "/blog/feed.xml", layout:false
 # Build-specific configuration
 configure :build do
   # Minify CSS on build
-  # activate :minify_css
+  #activate :minify_css
 
   # Minify Javascript on build
-  # activate :minify_javascript
+  #activate :minify_javascript
 
   # Asset hash to defeat caching between builds
   activate :asset_hash
+
+  # Minify HTML on build
+  #activate :minify_html
 end
 
 activate :autoprefixer
@@ -71,9 +100,6 @@ activate :s3_sync do |s3_sync|
   s3_sync.path_style = false
   s3_sync.region = ENV["AWS_DEFAULT_REGION"]
 end
-
-set :markdown_engine, :kramdown
-set :markdown, coderay_line_numbers: :table
 
 ###
 # Redirects

@@ -1,0 +1,29 @@
+.post-title {
+  font-size: 1.7em;
+  margin-bottom: .5em;}
+
+.posts p{
+  line-height: 1.35em;
+  font-size: 1.05em;
+  margin-bottom: 4em;}
+
+.post-date{
+  font-size: .7em;
+  color: $hab-gray;
+  margin:{
+    left: em(-80px);
+    right: em(20px);
+    bottom: 1em}}
+
+.welcomewrap{
+  width: 70%;
+  max-height: 140px;
+  padding-top: 70px;
+  margin-top: -60px;
+
+  h1 {
+    font-size: 2.3em;
+    padding-bottom: 130px;
+    margin-bottom: 25px;
+  }
+}

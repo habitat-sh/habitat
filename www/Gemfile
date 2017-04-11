@@ -16,6 +16,9 @@ gem 'middleman-autoprefixer'
 gem 'middleman-livereload'
 gem 'middleman-s3_sync'
 gem 'middleman-sprockets', '>= 4.0.0.rc.1'
+gem 'middleman-blog'
+gem 'middleman-syntax'
+gem 'middleman-minify-html'
 
 gem 'rubocop', require: false
 gem 'scss_lint', require: false

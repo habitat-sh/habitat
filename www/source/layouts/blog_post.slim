@@ -1,0 +1,34 @@
+  .containerablog
+  = wrap_layout :layout do
+    .row
+      article.article-detail
+        .columns.small-8.large-centered
+          h1.detail-post-title
+            = current_page.data.fetch("title", "[No Post Title Set]")
+          h3.detail-post-date
+            = "by #{current_page.data.fetch("author", "[Unknown author]")} on #{current_page.data.fetch("date", "[Some unknown date]").strftime('%A, %B %e %Y')}"
+        section
+          .columns.small-8.large-centered
+            == yield
+        <br>
+    .row
+        <br>
+    footer
+      .row.footer--blog
+        .posts.small-5.columns
+          .recent-posts
+            h3
+              | Random Posts
+            ul
+              - blog.articles.shuffle[0...10].each do |article|
+                li
+                  = link_to article.title, article
+        .posts.small-5.columns
+          .footer-tags
+            h3
+              | Tags
+            ul
+              - blog.tags.to_a.shuffle[0...10].each do |tag, articles|
+                li
+                  = link_to "#{tag} (#{articles.size})", tag_path(tag)
+

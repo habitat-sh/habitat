@@ -1,0 +1,11 @@
+footer{
+  @include outer-container;
+  border-top: 1px solid $hab-grey;
+  padding:{
+    top: 4em;
+    bottom: 4em;}}
+.recent-posts, .footer-tags{
+  h3{
+    font-size: 1.7em;}
+  li{
+    font-size: 1.05em;}}

@@ -1,0 +1,10 @@
+.pagination-link{
+  margin-bottom: 4em;
+  &:first-of-type{
+    float: left;
+    margin-right: 4em;}
+  a{
+    color: $hab-green;
+    font-size: 1.1em;
+    &:hover{
+      color: $hab-blue;}}}
