@@ -67,7 +67,7 @@ impl Default for Config {
         Config {
             routers: vec![SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), 5562))],
 
-            datastore_connection_url: String::from("postgresql://hab@127.0.0.1/builder_originsrv"),
+            datastore_connection_url: String::from("postgresql://hab@127.0.0.1/builder_sessionsrv"),
             datastore_connection_retry_ms: 300,
             datastore_connection_timeout: Duration::from_secs(3600),
             datastore_connection_test: false,

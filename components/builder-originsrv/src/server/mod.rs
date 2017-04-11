@@ -156,6 +156,7 @@ impl Application for Server {
         let sup: Supervisor<Worker> = Supervisor::new(cfg, init_state);
         try!(sup.start());
         try!(self.connect());
+        info!("builder-originsrv is ready to go.");
         try!(zmq::proxy(&mut self.router.socket, &mut self.be_sock));
         broker.join().unwrap();
         Ok(())

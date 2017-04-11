@@ -14,3 +14,4 @@ tmp/
 test/builder-api/node_modules
 test/builder-api/services.log
 test/builder-api/built/*
+tags

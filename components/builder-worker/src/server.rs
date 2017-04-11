@@ -75,6 +75,7 @@ impl Server {
         }
         let mut fe_msg = false;
         let mut runner_msg = false;
+        info!("builder-worker is ready to go.");
         loop {
             {
                 let mut items = [self.fe_sock.as_poll_item(1),

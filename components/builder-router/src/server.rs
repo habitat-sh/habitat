@@ -297,6 +297,7 @@ impl Application for Server {
             println!("Listening on ({})", cfg.fe_addr());
             println!("Heartbeat on ({})", cfg.hb_addr());
         }
+        info!("builder-router is ready to go.");
         let mut hb_msg = false;
         let mut fe_msg = false;
         loop {

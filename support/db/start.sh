@@ -23,16 +23,24 @@ sudo cp support/db/pg_hba.conf /hab/svc/postgresql
 sudo cp support/db/user.toml /hab/svc/postgresql
 sudo -s hab start core/postgresql &
 
-echo "Waiting for the database to start before creating databases"
+running=0;
 
-sleep 10
+echo "Waiting for postgresql to start"
+while [ $running -eq 0 ]; do
+    if sudo -E TERM=vt100 hab pkg exec core/postgresql psql -lqt --host 127.0.0.1 -U hab; then
+      running=1
+    fi
+    sleep 2
+done
 
-echo "Creating builder_jobsrv database if neccessary"
-sudo -u hab -E TERM=vt100 hab pkg exec core/postgresql createdb -O hab -h 127.0.0.1 builder_jobsrv
-echo "Creating builder_originsrv database if neccessary"
-sudo -u hab -E TERM=vt100 hab pkg exec core/postgresql createdb -O hab -h 127.0.0.1 builder_originsrv
-echo "Creating builder_scheduler database if neccessary"
-sudo -u hab -E TERM=vt100 hab pkg exec core/postgresql createdb -O hab -h 127.0.0.1 builder_scheduler
+for dbname in builder_sessionsrv builder_jobsrv builder_originsrv builder_scheduler; do
+  if sudo -E TERM=vt100 hab pkg exec core/postgresql psql -lqt --host 127.0.0.1 -U hab | cut -d \| -f 1 | grep -qw $dbname; then
+    echo "Database $dbname exists"
+  else
+    echo "Creating database $dbname"
+    sudo -u hab -E TERM=vt100 hab pkg exec core/postgresql createdb -O hab -h 127.0.0.1 $dbname
+  fi
+done
 
 while true; do
   sleep 1
