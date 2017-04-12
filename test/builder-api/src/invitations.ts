@@ -20,7 +20,6 @@ describe('Origin Invitations API', function() {
         .set('Authorization', globalAny.logan_bearer)
         .expect(201)
         .end(function(err, res) {
-          console.log(res.body);
           expect(res.body.account_id).to.equal(globalAny.session_bobo.id);
           expect(res.body.origin_id).to.equal(globalAny.origin_xmen.id);
           expect(res.body.owner_id).to.equal(globalAny.session_logan.id);
@@ -91,6 +90,18 @@ describe('Origin Invitations API', function() {
         .expect(200)
         .end(function(err, res) {
           expect(res.body.invitations.length).to.equal(0);
+          done(err);
+        });
+    });
+
+    it('xmen shows up in bobos list of organizations', function(done) {
+      request.get('/user/origins')
+        .set('Authorization', globalAny.bobo_bearer)
+        .expect(200)
+        .end(function(err, res) {
+          expect(res.body.account_id).to.equal(globalAny.session_bobo.id);
+          expect(res.body.origins.length).to.equal(1);
+          expect(res.body.origins[0]).to.equal("xmen");
           done(err);
         });
     });

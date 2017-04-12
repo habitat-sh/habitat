@@ -179,6 +179,24 @@ pub fn account_origin_invitation_accept(req: &mut Envelope,
     Ok(())
 }
 
+pub fn account_origin_list_request(req: &mut Envelope,
+                                   sock: &mut zmq::Socket,
+                                   state: &mut ServerState)
+                                   -> Result<()> {
+    let msg: proto::AccountOriginListRequest = try!(req.parse_msg());
+    match state.datastore.get_origins_by_account(&msg) {
+        Ok(reply) => {
+            try!(req.reply_complete(sock, &reply));
+        }
+        Err(e) => {
+            error!("Error listing origins for account, {}", e);
+            let err = net::err(ErrCode::DATA_STORE, "ss:account_origin_list_request:1");
+            try!(req.reply_complete(sock, &err));
+        }
+    }
+    Ok(())
+}
+
 pub fn account_invitation_list(req: &mut Envelope,
                                sock: &mut zmq::Socket,
                                state: &mut ServerState)
