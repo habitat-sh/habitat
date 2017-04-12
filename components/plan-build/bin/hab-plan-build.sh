@@ -1764,6 +1764,9 @@ _load_scaffolding() {
   if [[ "$(type -t _scaffolding_begin)" == "function" ]]; then
     _scaffolding_begin
   fi
+
+  build_line "Resolving Scaffolding dependencies"
+  _resolve_dependencies
 }
 
 # **Internal**  Build `$PATH` containing each path in our own
@@ -2769,11 +2772,11 @@ _inject_scaffolding_dependency
 # Download and resolve the dependencies
 _resolve_dependencies
 
-# Set up runtime environment
-_set_environment
-
 # Load scaffolding plans if they are being used.
 _load_scaffolding
+
+# Set up runtime environment
+_set_environment
 
 # Download the source
 mkdir -pv "$HAB_CACHE_SRC_PATH"
