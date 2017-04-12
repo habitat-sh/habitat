@@ -297,6 +297,12 @@ impl Service {
                 census_list: &CensusList,
                 census_updated: bool,
                 last_census_update: &mut CensusUpdate) {
+        if !self.initialized {
+            if !self.is_bindings_present(census_list) {
+                outputln!(preamble self.service_group, "Waiting to initialize service.");
+                return;
+            }
+        }
         self.update_configuration(butterfly, census_list, census_updated, last_census_update);
 
         match self.topology {
@@ -365,6 +371,19 @@ impl Service {
         spec.start_style = self.start_style;
         spec.config_from = self.config_from.clone();
         spec
+    }
+
+    fn is_bindings_present(&self, census_list: &CensusList) -> bool {
+        let mut ret = true;
+        for ref bind in self.spec_binds.iter() {
+            if census_list.get(&*bind.service_group).is_none() {
+                ret = false;
+                outputln!(preamble self.service_group,
+                          "The specified service group '{}' for binding '{}' is not (yet?) present in the census data.",
+                          Green.bold().paint(format!("{}", bind.service_group)), Green.bold().paint(format!("{}", bind.name)));
+            }
+        }
+        ret
     }
 
     fn update_configuration(&mut self,
