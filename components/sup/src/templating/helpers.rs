@@ -18,7 +18,7 @@ use std::collections::HashMap;
 
 use hcore::package::{PackageIdent, Identifiable};
 use hcore::fs;
-use manager::service::config::ServiceConfig;
+use manager::service::ServiceConfig;
 use handlebars::{Handlebars, Helper, Renderable, RenderContext, RenderError, Context};
 use serde_json;
 use serde_json::map::Map;

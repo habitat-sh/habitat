@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-pub mod config;
-pub mod health;
+mod health;
+mod spec;
+mod config;
 pub mod hooks;
-pub mod spec;
 
 use std;
 use std::collections::HashMap;
@@ -68,17 +68,17 @@ lazy_static! {
 #[derive(Debug, Serialize)]
 pub struct Service {
     pub config: ServiceConfig,
-    pub current_service_files: HashMap<String, u64>,
+    current_service_files: HashMap<String, u64>,
     pub depot_url: String,
-    pub health_check: HealthCheck,
-    pub initialized: bool,
-    pub last_election_status: ElectionStatus,
-    pub needs_reload: bool,
-    pub needs_reconfiguration: bool,
+    health_check: HealthCheck,
+    initialized: bool,
+    last_election_status: ElectionStatus,
+    needs_reload: bool,
+    needs_reconfiguration: bool,
     #[serde(serialize_with="serialize_lock")]
-    pub package: Arc<RwLock<PackageInstall>>,
+    package: Arc<RwLock<PackageInstall>>,
     pub service_group: ServiceGroup,
-    pub smoke_check: SmokeCheck,
+    smoke_check: SmokeCheck,
     pub spec_file: PathBuf,
     pub spec_ident: PackageIdent,
     pub start_style: StartStyle,
@@ -96,13 +96,13 @@ pub struct Service {
 }
 
 impl Service {
-    pub fn new(package: PackageInstall,
-               spec: ServiceSpec,
-               gossip_listen: &GossipListenAddr,
-               http_listen: &http_gateway::ListenAddr,
-               manager_fs_cfg: Arc<manager::FsCfg>,
-               organization: Option<&str>)
-               -> Result<Service> {
+    fn new(package: PackageInstall,
+           spec: ServiceSpec,
+           gossip_listen: &GossipListenAddr,
+           http_listen: &http_gateway::ListenAddr,
+           manager_fs_cfg: Arc<manager::FsCfg>,
+           organization: Option<&str>)
+           -> Result<Service> {
         spec.validate(&package)?;
         let spec_file = manager_fs_cfg.specs_path.join(spec.file_name());
         let service_group = ServiceGroup::new(&package.ident.name, spec.group, organization)?;
@@ -198,12 +198,8 @@ impl Service {
         Ok(())
     }
 
-    pub fn config_root(&self) -> &Path {
-        &*self.config.config_root
-    }
-
     /// Create the service path for this package.
-    pub fn create_svc_path(&self) -> Result<()> {
+    fn create_svc_path(&self) -> Result<()> {
         let (user, group) = try!(util::users::get_user_and_group(&self.package()));
 
         debug!("Creating svc paths");
@@ -242,7 +238,7 @@ impl Service {
         Ok(())
     }
 
-    pub fn start(&mut self) {
+    fn start(&mut self) {
         if let Some(err) = self.supervisor.start().err() {
             outputln!(preamble self.service_group, "Service start failed: {}", err);
         } else {
@@ -257,7 +253,7 @@ impl Service {
         }
     }
 
-    pub fn reload(&mut self) {
+    fn reload(&mut self) {
         self.needs_reload = false;
         if self.is_down() || self.hooks.reload.is_none() {
             if let Some(err) = self.supervisor.restart().err() {
@@ -283,12 +279,12 @@ impl Service {
         }
     }
 
-    pub fn is_down(&self) -> bool {
+    fn is_down(&self) -> bool {
         self.supervisor.child.is_none()
     }
 
     /// Instructs the service's process supervisor to reap dead children.
-    pub fn check_process(&mut self) {
+    fn check_process(&mut self) {
         self.supervisor.check_process()
     }
 
@@ -475,7 +471,7 @@ impl Service {
     }
 
     /// Run initialization hook if present
-    pub fn initialize(&mut self) {
+    fn initialize(&mut self) {
         if self.initialized {
             return;
         }
@@ -497,7 +493,7 @@ impl Service {
 
     /// Run reconfigure hook if present. Return false if it is not present, to trigger default
     /// restart behavior.
-    pub fn reconfigure(&mut self) {
+    fn reconfigure(&mut self) {
         self.needs_reconfiguration = false;
         if let Some(ref hook) = self.hooks.reconfigure {
             hook.run(&self.service_group, self.runtime_cfg());
@@ -533,19 +529,8 @@ impl Service {
         Ok(())
     }
 
-    pub fn runtime_cfg(&self) -> &RuntimeConfig {
+    fn runtime_cfg(&self) -> &RuntimeConfig {
         &self.supervisor.runtime_config
-    }
-
-    pub fn smoke_test(&mut self) {
-        if self.smoke_check == SmokeCheck::Pending {
-            match self.hooks.smoke_test {
-                Some(ref hook) => {
-                    self.smoke_check = hook.run(&self.service_group, self.runtime_cfg())
-                }
-                None => self.smoke_check = SmokeCheck::Ok,
-            }
-        }
     }
 
     pub fn suitability(&self) -> Option<u64> {
@@ -560,42 +545,42 @@ impl Service {
 
 
     /// Returns the root path for service configuration, files, and data.
-    pub fn svc_path(&self) -> PathBuf {
+    fn svc_path(&self) -> PathBuf {
         fs::svc_path(&self.service_group.service())
     }
 
     /// Returns the path to the service configuration.
-    pub fn svc_config_path(&self) -> PathBuf {
+    fn svc_config_path(&self) -> PathBuf {
         fs::svc_config_path(&self.service_group.service())
     }
 
     /// Returns the path to the service data.
-    pub fn svc_data_path(&self) -> PathBuf {
+    fn svc_data_path(&self) -> PathBuf {
         fs::svc_data_path(&self.service_group.service())
     }
 
     /// Returns the path to the service's gossiped config files.
-    pub fn svc_files_path(&self) -> PathBuf {
+    fn svc_files_path(&self) -> PathBuf {
         fs::svc_files_path(&self.service_group.service())
     }
 
     /// Returns the path to the service hooks.
-    pub fn svc_hooks_path(&self) -> PathBuf {
+    fn svc_hooks_path(&self) -> PathBuf {
         fs::svc_hooks_path(&self.service_group.service())
     }
 
     /// Returns the path to the service static content.
-    pub fn svc_static_path(&self) -> PathBuf {
+    fn svc_static_path(&self) -> PathBuf {
         fs::svc_static_path(&self.service_group.service())
     }
 
     /// Returns the path to the service variable state.
-    pub fn svc_var_path(&self) -> PathBuf {
+    fn svc_var_path(&self) -> PathBuf {
         fs::svc_var_path(&self.service_group.service())
     }
 
     /// Returns the path to the service logs.
-    pub fn svc_logs_path(&self) -> PathBuf {
+    fn svc_logs_path(&self) -> PathBuf {
         fs::svc_logs_path(&self.service_group.service())
     }
 
@@ -949,7 +934,7 @@ pub enum Topology {
 }
 
 impl Topology {
-    pub fn as_str(&self) -> &str {
+    fn as_str(&self) -> &str {
         match *self {
             Topology::Leader => "leader",
             Topology::Standalone => "standalone",
@@ -1005,7 +990,7 @@ pub enum UpdateStrategy {
 }
 
 impl UpdateStrategy {
-    pub fn as_str(&self) -> &str {
+    fn as_str(&self) -> &str {
         match *self {
             UpdateStrategy::None => "none",
             UpdateStrategy::AtOnce => "at-once",
@@ -1112,7 +1097,7 @@ mod test {
     fn topology_toml_deserialize() {
         #[derive(Deserialize)]
         struct Data {
-            pub key: Topology,
+            key: Topology,
         }
         let toml = r#"
             key = "leader"
@@ -1126,7 +1111,7 @@ mod test {
     fn topology_toml_serialize() {
         #[derive(Serialize)]
         struct Data {
-            pub key: Topology,
+            key: Topology,
         }
         let data = Data { key: Topology::Leader };
         let toml = toml::to_string(&data).unwrap();
@@ -1176,7 +1161,7 @@ mod test {
     fn update_strategy_toml_deserialize() {
         #[derive(Deserialize)]
         struct Data {
-            pub key: UpdateStrategy,
+            key: UpdateStrategy,
         }
         let toml = r#"
             key = "at-once"
@@ -1190,7 +1175,7 @@ mod test {
     fn update_strategy_toml_serialize() {
         #[derive(Serialize)]
         struct Data {
-            pub key: UpdateStrategy,
+            key: UpdateStrategy,
         }
         let data = Data { key: UpdateStrategy::AtOnce };
         let toml = toml::to_string(&data).unwrap();
