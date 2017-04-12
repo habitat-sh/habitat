@@ -54,6 +54,13 @@ message AccountInvitationListResponse {
   repeated AccountOriginInvitation invitations = 2;
 }
 
+message AccountOriginCreate {
+  optional uint64 account_id = 1;
+  optional string account_name = 2;
+  optional uint64 origin_id = 3;
+  optional string origin_name = 4;
+}
+
 message AccountOriginListRequest {
   optional uint64 account_id = 1;
 }

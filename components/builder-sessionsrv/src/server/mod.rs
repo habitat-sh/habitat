@@ -100,6 +100,7 @@ impl Dispatcher for Worker {
             "AccountOriginListRequest" => {
                 handlers::account_origin_list_request(message, sock, state)
             }
+            "AccountOriginCreate" => handlers::account_origin_create(message, sock, state),
             _ => panic!("unhandled message"),
         }
     }

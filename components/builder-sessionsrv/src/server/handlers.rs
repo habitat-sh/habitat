@@ -179,6 +179,24 @@ pub fn account_origin_invitation_accept(req: &mut Envelope,
     Ok(())
 }
 
+pub fn account_origin_create(req: &mut Envelope,
+                             sock: &mut zmq::Socket,
+                             state: &mut ServerState)
+                             -> Result<()> {
+    let msg: proto::AccountOriginCreate = try!(req.parse_msg());
+    match state.datastore.create_origin(&msg) {
+        Ok(()) => {
+            try!(req.reply_complete(sock, &net::NetOk::new()));
+        }
+        Err(e) => {
+            error!("Error adding origin for account, {}", e);
+            let err = net::err(ErrCode::DATA_STORE, "ss:account_origin_create:1");
+            try!(req.reply_complete(sock, &err));
+        }
+    }
+    Ok(())
+}
+
 pub fn account_origin_list_request(req: &mut Envelope,
                                    sock: &mut zmq::Socket,
                                    state: &mut ServerState)

@@ -26,6 +26,7 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                     id bigint PRIMARY KEY DEFAULT next_id_v1('origin_id_seq'),
                     name text UNIQUE,
                     owner_id bigint,
+                    session_sync bool DEFAULT false,
                     created_at timestamptz DEFAULT now(),
                     updated_at timestamptz
              )"#)?;
@@ -98,7 +99,18 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                         RETURN;
                     END
                     $$ LANGUAGE plpgsql STABLE"#)?;
-
-
+    migrator.migrate("originsrv",
+                     r#"CREATE OR REPLACE FUNCTION sync_origins_v1() RETURNS TABLE(account_id bigint, account_name text, origin_id bigint, origin_name text) AS $$
+                    BEGIN
+                        RETURN QUERY SELECT origins.owner_id, origin_members.account_name, origins.id, origins.name FROM origins, origin_members WHERE origins.session_sync = false AND origins.owner_id = origin_members.account_id;
+                        RETURN;
+                    END
+                    $$ LANGUAGE plpgsql STABLE"#)?;
+    migrator.migrate("originsrv",
+                     r#"CREATE OR REPLACE FUNCTION set_session_sync_v1(in_origin_id bigint) RETURNS VOID AS $$
+                    BEGIN
+                        UPDATE origins SET session_sync = true WHERE id = in_origin_id;
+                    END
+                    $$ LANGUAGE plpgsql VOLATILE"#)?;
     Ok(())
 }

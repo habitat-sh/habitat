@@ -100,8 +100,9 @@ describe('Origin Invitations API', function() {
         .expect(200)
         .end(function(err, res) {
           expect(res.body.account_id).to.equal(globalAny.session_bobo.id);
-          expect(res.body.origins.length).to.equal(1);
-          expect(res.body.origins[0]).to.equal("xmen");
+          expect(res.body.origins.length).to.equal(2);
+          expect(res.body.origins[0]).to.equal("neurosis");
+          expect(res.body.origins[1]).to.equal("xmen");
           done(err);
         });
     });
