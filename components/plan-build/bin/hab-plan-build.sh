@@ -949,6 +949,41 @@ _print_recursive_deps() {
   done
 }
 
+# **Internal** Returns the path for the desired build package dependency
+# on stdout from the resolved dependency set. Note that this function will
+# only look for resolved build dependencies--runtime dependencies are not
+# included in search.
+#
+# ```
+# pkg_build_deps_resolved=(
+#   /hab/pkgs/acme/zlib/1.2.8/20151216221001
+#   /hab/pkgs/acme/nginx/1.8.0/20150911120000
+#   /hab/pkgs/acme/glibc/2.22/20151216221001
+# )
+#
+# _pkg_path_for_build_deps acme/nginx
+# # /hab/pkgs/acme/nginx/1.8.0/20150911120000
+# _pkg_path_for_build_deps zlib
+# # /hab/pkgs/acme/zlib/1.2.8/20151216221001
+# _pkg_path_for_build_deps glibc/2.22
+# # /hab/pkgs/acme/glibc/2.22/20151216221001
+# ```
+#
+# Will return 0 if a package is found locally on disk, and 1 if a package
+# cannot be found. A message will be printed to stderr to provide context.
+_pkg_path_for_build_deps() {
+  local dep="$1"
+  local e
+  local cutn="$(($(echo $HAB_PKG_PATH | grep -o '/' | wc -l)+2))"
+  for e in "${pkg_build_deps_resolved[@]}"; do
+    if echo $e | cut -d "/" -f ${cutn}- | egrep -q "(^|/)${dep}(/|$)"; then
+      echo "$e"
+      return 0
+    fi
+  done
+  return 1
+}
+
 # **Internal** Returns the path for the desired runtime package dependency
 # on stdout from the resolved dependency set. Note that this function will
 # only look for resolved runtime dependencies--build dependencies are not
@@ -961,17 +996,17 @@ _print_recursive_deps() {
 #   /hab/pkgs/acme/glibc/2.22/20151216221001
 # )
 #
-# _pkg_path_for_deps_resolved acme/nginx
+# _pkg_path_for_deps acme/nginx
 # # /hab/pkgs/acme/nginx/1.8.0/20150911120000
-# _pkg_path_for_deps_resolved zlib
+# _pkg_path_for_deps zlib
 # # /hab/pkgs/acme/zlib/1.2.8/20151216221001
-# _pkg_path_for_deps_resolved glibc/2.22
+# _pkg_path_for_deps glibc/2.22
 # # /hab/pkgs/acme/glibc/2.22/20151216221001
 # ```
 #
 # Will return 0 if a package is found locally on disk, and 1 if a package
 # cannot be found. A message will be printed to stderr to provide context.
-_pkg_path_for_deps_resolved() {
+_pkg_path_for_deps() {
   local dep="$1"
   local e
   local cutn="$(($(echo $HAB_PKG_PATH | grep -o '/' | wc -l)+2))"
@@ -1586,7 +1621,7 @@ fix_interpreter() {
 pkg_interpreter_for() {
     local pkg=$1
     local int=$2
-    local path=$(_pkg_path_for_deps_resolved $pkg)
+    local path=$(_pkg_path_for_deps $pkg)
     if [[ -z $path || $? -ne 0 ]]; then
       warn "Could not resolve the path for ${pkg}, is it specified in 'pkg_deps'?"
       return 1
@@ -1627,29 +1662,20 @@ _inject_scaffolding_dependency() {
   fi
 }
 
-# **Internal** Determines suitable package identifiers for each build and
-# run dependency and populates several package-related arrays for use
-# throughout this program.
+# **Internal** Determines suitable package identifiers for each build
+# dependency and populates several package-related arrays for use throughout
+# this program.
 #
-# Walk each item in `$pkg_build_deps` and $pkg_deps`, and for each
-# item determine the absolute path to a suitable package release (which will be
-# on disk). Then, several package-related arrays are created:
+# Walk each item in `$pkg_build_deps`, and for each item determine the absolute
+# path to a suitable package release (which will be on disk). Then, several
+# package-related arrays are created:
 #
 # * `$pkg_build_deps_resolved`: A package-path array of all direct build
 #    dependencies, declared in `$pkg_build_deps`.
 # * `$pkg_build_tdeps_resolved`: A package-path array of all direct build
 #    dependencies and the run dependencies for each direct build dependency.
-# * `$pkg_deps_resolved`: A package-path array of all direct run dependencies,
-#    declared in `$pkg_deps`.
-# * `$pkg_tdeps_resolved`:  A package-path array of all direct run dependencies
-#    and the run dependencies for each direct run dependency.
-# * `$pkg_all_deps_resolved`: A package-path array of all direct build and
-#    run dependencies, declared in `$pkg_build_deps` and `$pkg_deps`.
-# * `$pkg_all_tdeps_resolved`: An ordered package-path array of all direct
-#    build and run dependencies, and the run dependencies for each direct
-#    dependency. Further details below in the function.
-_resolve_dependencies() {
-  build_line "Resolving dependencies"
+_resolve_build_dependencies() {
+  build_line "Resolving build dependencies"
   local resolved
   local dep
   local tdep
@@ -1663,19 +1689,6 @@ _resolve_dependencies() {
     if resolved="$(_resolve_dependency $dep)"; then
       build_line "Resolved build dependency '$dep' to $resolved"
       pkg_build_deps_resolved+=($resolved)
-    else
-      exit_with "Resolving '$dep' failed, should this be built first?" 1
-    fi
-  done
-
-  # Build `${pkg_deps_resolved[@]}` containing all resolved direct run
-  # dependencies.
-  pkg_deps_resolved=()
-  for dep in "${pkg_deps[@]}"; do
-    _install_dependency $dep
-    if resolved="$(_resolve_dependency $dep)"; then
-      build_line "Resolved dependency '$dep' to $resolved"
-      pkg_deps_resolved+=($resolved)
     else
       exit_with "Resolving '$dep' failed, should this be built first?" 1
     fi
@@ -1699,6 +1712,59 @@ _resolve_dependencies() {
       )
     done
   done
+}
+
+# **Internal** Loads specified scaffolding to extend plan DSL. This assumes
+# the scaffolding lives within `lib` and is named `scaffolding.sh` for each
+# application/project type.
+_load_scaffolding() {
+  local lib
+  if [[ -z "${pkg_scaffolding:-}" ]]; then
+    return 0
+  fi
+
+  lib="$(_pkg_path_for_build_deps $pkg_scaffolding)/lib/scaffolding.sh"
+  build_line "Loading Scaffolding $lib"
+  if ! source "$lib"; then
+    exit_with "Failed to load Scaffolding from $lib" 17
+  fi
+
+  if [[ "$(type -t _scaffolding_begin)" == "function" ]]; then
+    _scaffolding_begin
+  fi
+}
+
+# **Internal** Determines suitable package identifiers for each run
+# dependency and populates several package-related arrays for use throughout
+# this program.
+#
+# Walk each item in $pkg_deps`, and for each item determine the absolute path
+# to a suitable package release (which will be on disk). Then, several
+# package-related arrays are created:
+#
+# * `$pkg_deps_resolved`: A package-path array of all direct run dependencies,
+#    declared in `$pkg_deps`.
+# * `$pkg_tdeps_resolved`:  A package-path array of all direct run dependencies
+#    and the run dependencies for each direct run dependency.
+_resolve_run_dependencies() {
+  build_line "Resolving run dependencies"
+  local resolved
+  local dep
+  local tdep
+  local tdeps
+
+  # Build `${pkg_deps_resolved[@]}` containing all resolved direct run
+  # dependencies.
+  pkg_deps_resolved=()
+  for dep in "${pkg_deps[@]}"; do
+    _install_dependency $dep
+    if resolved="$(_resolve_dependency $dep)"; then
+      build_line "Resolved dependency '$dep' to $resolved"
+      pkg_deps_resolved+=($resolved)
+    else
+      exit_with "Resolving '$dep' failed, should this be built first?" 1
+    fi
+  done
 
   # Build `${pkg_tdeps_resolved[@]}` containing all the direct run
   # dependencies, and the run dependencies for each direct run dependency.
@@ -1716,6 +1782,18 @@ _resolve_dependencies() {
       )
     done
   done
+}
+
+# **Internal** Populates the remaining package-related arrays used throughout
+# this program.
+#
+# * `$pkg_all_deps_resolved`: A package-path array of all direct build and
+#    run dependencies, declared in `$pkg_build_deps` and `$pkg_deps`.
+# * `$pkg_all_tdeps_resolved`: An ordered package-path array of all direct
+#    build and run dependencies, and the run dependencies for each direct
+#    dependency. Further details below in the function.
+_finalize_dependencies() {
+  local dep
 
   # Build `${pkg_all_deps_resolved[@]}` containing all direct build and run
   # dependencies. The build dependencies appear before the run dependencies.
@@ -1744,26 +1822,6 @@ _resolve_dependencies() {
   done
 
   _validate_deps
-}
-
-# **Internal** Loads specified scaffolding to extend plan DSL. This assumes
-# the scaffolding lives within `lib` and is named `scaffolding.sh` for each
-# application/project type.
-_load_scaffolding() {
-  local scaffolding="${pkg_scaffolding:-}"
-
-  if [[ -n "$scaffolding" ]]; then
-    build_line "Loading Scaffolding $scaffolding"
-    if source "$(pkg_path_for $scaffolding)/lib/scaffolding.sh"; then
-      build_line "Scaffolding loaded"
-    else
-      exit_with "Failed to load lib/scaffolding.sh from the root of $scaffolding" 1
-    fi
-  fi
-
-  if [[ "$(type -t _scaffolding_begin)" == "function" ]]; then
-    _scaffolding_begin
-  fi
 }
 
 # **Internal**  Build `$PATH` containing each path in our own
@@ -2762,18 +2820,22 @@ _ensure_origin_key_present
 _determine_hab_bin
 
 # Inject the scaffolding plan package if pkg_scaffolding is set.
-# This needs to run before _resolve_dependencies to insure it gets installed
-# correctly and is useable.
 _inject_scaffolding_dependency
 
-# Download and resolve the dependencies
-_resolve_dependencies
-
-# Set up runtime environment
-_set_environment
+# Download and resolve the build dependencies
+_resolve_build_dependencies
 
 # Load scaffolding plans if they are being used.
 _load_scaffolding
+
+# Download and resolve the run dependencies
+_resolve_run_dependencies
+
+# Finalize, normalize, and verify all resolve dependencies
+_finalize_dependencies
+
+# Set up runtime environment
+_set_environment
 
 # Download the source
 mkdir -pv "$HAB_CACHE_SRC_PATH"
