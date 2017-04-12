@@ -1192,7 +1192,8 @@ attach() {
   set +e
   # Loop through input, REPL-style until either `"exit"` or `"quit"` is found
   while [[ "$cmd" != "exit" && "$cmd" != "quit" ]]; do
-    read -p "[$replno] ${pkg_name}($fname)> " cmd
+    read -e -r -p "[$replno] ${pkg_name}($fname)> " cmd
+    history -s $cmd
     case "$cmd" in
       vars) (set -o posix; set);;
       whereami*|\@*)
