@@ -16,7 +16,7 @@ import { Component, Input, OnInit } from "@angular/core";
 import { List, Map, OrderedSet } from "immutable";
 
 @Component({
-    selector: "github-repo-picker",
+    selector: "hab-github-repo-picker",
     template: `
     <div class="hab-github-repo-picker">
         <div class="users">
@@ -77,7 +77,7 @@ export class GitHubRepoPickerComponent implements OnInit {
     @Input() selectedOrg: string;
     @Input() user;
 
-    private clickFetchGitHubRepos: Function;
+    clickFetchGitHubRepos: Function;
 
     constructor() {
         this.clickFetchGitHubRepos = () => {

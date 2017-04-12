@@ -69,14 +69,33 @@ export class KeyAddFormComponent implements OnInit {
     @Input() originName: string;
     @Input() uploadKey: Function;
 
-    private form: FormGroup;
-    private control: FormControl;
+    form: FormGroup;
+    control: FormControl;
 
     constructor(private formBuilder: FormBuilder) {
         this.form = formBuilder.group({});
     }
 
-    private keyFormatValidator(control) {
+    ngOnInit() {
+        this.control = new FormControl(
+            "",
+            Validators.compose([
+                Validators.required,
+                this.keyFormatValidator,
+                this.keyTypeValidator.bind(this),
+                this.originMatchValidator.bind(this),
+            ])
+        );
+
+        this.form.addControl("key", this.control);
+    }
+
+    submit(key) {
+        this.uploadKey(key);
+        return false;
+    }
+
+    keyFormatValidator(control) {
         if (parseKey(control.value).valid) {
             return null;
         } else {
@@ -98,24 +117,5 @@ export class KeyAddFormComponent implements OnInit {
         } else {
             return { invalidOrigin: true };
         }
-    }
-
-    private submit(key) {
-        this.uploadKey(key);
-        return false;
-    }
-
-    public ngOnInit() {
-        this.control = new FormControl(
-            "",
-            Validators.compose([
-                Validators.required,
-                this.keyFormatValidator,
-                this.keyTypeValidator.bind(this),
-                this.originMatchValidator.bind(this),
-            ])
-        );
-
-        this.form.addControl("key", this.control);
     }
 }

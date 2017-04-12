@@ -36,7 +36,7 @@ export class SideNavComponent {
     @Input() route: string;
 
     // Return true if a route matches what we're looking at.
-    private routeMatch(s: string): boolean {
+    routeMatch(s: string): boolean {
         return this.route.match(s) !== null;
     }
 }

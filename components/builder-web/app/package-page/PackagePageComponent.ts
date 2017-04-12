@@ -28,8 +28,8 @@ import {Subscription} from "rxjs/Subscription";
     <div class="hab-package page-title">
         <h2>Package</h2>
         <h4>
-            <package-breadcrumbs [ident]="package.ident">
-            </package-breadcrumbs>
+            <hab-package-breadcrumbs [ident]="package.ident">
+            </hab-package-breadcrumbs>
         </h4>
         <hab-spinner [isSpinning]="ui.loading" [onClick]="spinnerFetchPackage">
         </hab-spinner>
@@ -49,26 +49,26 @@ import {Subscription} from "rxjs/Subscription";
     <div class="page-body has-sidebar">
       <hab-package-info [package]="package"></hab-package-info>
     </div>
-    <tabs *ngIf="!ui.loading && ui.exists && projectExists">
-      <tab tabTitle="Info">
+    <hab-tabs *ngIf="!ui.loading && ui.exists && projectExists">
+      <hab-tab tabTitle="Info">
         <div class="page-body has-sidebar">
           <hab-package-info [package]="package"></hab-package-info>
         </div>
-      </tab>
-      <tab tabTitle="Builds">
+      </hab-tab>
+      <hab-tab tabTitle="Builds">
         <div class="builds">
         </div>
-      </tab>
-      <tab tabTitle="Settings">
+      </hab-tab>
+      <hab-tab tabTitle="Settings">
         <div class="settings">
         </div>
-      </tab>
-    </tabs>
+      </hab-tab>
+    </hab-tabs>
     `,
 })
 
 export class PackagePageComponent implements OnDestroy {
-    private spinnerFetchPackage: Function;
+    spinnerFetchPackage: Function;
     private originParam: string;
     private nameParam: string;
     private versionParam: string;

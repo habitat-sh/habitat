@@ -64,8 +64,8 @@ import {RouterLink} from "@angular/router";
 })
 
 export class ProjectInfoComponent implements AfterViewInit, OnInit {
-    private form: FormGroup;
-    private doesFileExist: Function;
+    form: FormGroup;
+    doesFileExist: Function;
 
     @Input() project: Object;
     @Input() ownerAndRepo: String;
@@ -96,7 +96,7 @@ export class ProjectInfoComponent implements AfterViewInit, OnInit {
         return this.store.getState().router.redirectRoute;
     }
 
-    private submitProject(values) {
+    submitProject(values) {
         // Change the format to match what the server wants
         values.github = {
             organization: this.repoOwner,

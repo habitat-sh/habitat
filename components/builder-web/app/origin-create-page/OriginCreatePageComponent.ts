@@ -65,10 +65,11 @@ import {requireSignIn} from "../util";
 })
 
 export class OriginCreatePageComponent implements AfterViewInit, OnInit {
+    form: FormGroup;
+    isOriginAvailable: Function;
+    maxLength = 255;
+
     private builderApiClient: BuilderApiClient;
-    private form: FormGroup;
-    private isOriginAvailable: Function;
-    private maxLength = 255;
     private name: FormControl;
 
     constructor(private formBuilder: FormBuilder, private store: AppStore) {
@@ -100,7 +101,7 @@ export class OriginCreatePageComponent implements AfterViewInit, OnInit {
         requireSignIn(this);
     }
 
-    private createOrigin(origin) {
+    createOrigin(origin) {
         this.store.dispatch(createOrigin(
             origin,
             this.store.getState().gitHub.authToken,

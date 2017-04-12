@@ -12,13 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Component, ElementRef, Input} from "@angular/core";
+import {Component, ElementRef, HostListener, Input} from "@angular/core";
 
 @Component({
-    host: {
-        "(document:click)": "toggle($event)",
-    },
-    selector: "user-nav",
+    selector: "hab-user-nav",
     template: `
     <div class="main-nav--cta" *ngIf="!isSignedIn">
       <a class="button" [routerLink]="['/sign-in']">Sign In</a>
@@ -53,6 +50,7 @@ export class UserNavComponent {
     //
     // This makes it so the dropdown closes if you click somewhere you would
     // expect would make it close.
+    @HostListener("document:click", ["$event"])
     private toggle(event) {
         if ((this.isOpen && !event.target.closest(".main-nav--dropdown")) ||
             (!this.isOpen && this.element.nativeElement.contains(event.target))) {

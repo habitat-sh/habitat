@@ -16,7 +16,7 @@ import {Component, Input, Host} from "@angular/core";
 import {TabsComponent} from "./TabsComponent";
 
 @Component({
-    selector: "tab",
+    selector: "hab-tab",
     template: `
     <div [hidden]="!active">
         <ng-content></ng-content>

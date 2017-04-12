@@ -27,10 +27,10 @@ import {Subscription} from "rxjs/Subscription";
             <h2>Search Packages</h2>
             <h4>
                 <span *ngIf="searchQuery || query">Search Results</span>
-                <package-breadcrumbs
+                <hab-package-breadcrumbs
                     *ngIf="!searchQuery"
                     [ident]="packageParams()">
-                </package-breadcrumbs>
+                </hab-package-breadcrumbs>
             </h4>
             <hab-spinner [isSpinning]="ui.loading" [onClick]="spinnerFetchPackages">
             </hab-spinner>
@@ -57,14 +57,15 @@ import {Subscription} from "rxjs/Subscription";
 })
 
 export class PackagesPageComponent implements OnInit, OnDestroy {
-    private perPage: number = 50;
-    private searchBox: FormControl;
-    private spinnerFetchPackages: Function;
+    perPage: number = 50;
+    query: string;
+    searchBox: FormControl;
+    spinnerFetchPackages: Function;
+
     private name: string;
     private origin: string;
-    private version: string;
-    private query: string;
     private sub: Subscription;
+    private version: string;
 
     constructor(private store: AppStore, private route: ActivatedRoute) {
         this.spinnerFetchPackages = this.fetchPackages.bind(this);
@@ -74,6 +75,19 @@ export class PackagesPageComponent implements OnInit, OnDestroy {
             this.version = params["version"];
             this.query = params["query"];
         });
+    }
+
+    ngOnInit() {
+        if (this.query) {
+            this.search(this.query);
+        } else {
+            this.fetchPackages();
+        }
+
+        this.searchBox = new FormControl(this.searchQuery);
+
+        this.searchBox.valueChanges.debounceTime(400).distinctUntilChanged().
+            subscribe(query => this.search(query));
     }
 
     ngOnDestroy() {
@@ -96,20 +110,14 @@ export class PackagesPageComponent implements OnInit, OnDestroy {
         return this.store.getState().packages.ui.visible;
     }
 
-    public ngOnInit() {
-        if (this.query) {
-            this.search(this.query);
-        } else {
-            this.fetchPackages();
-        }
-
-        this.searchBox = new FormControl(this.searchQuery);
-
-        this.searchBox.valueChanges.debounceTime(400).distinctUntilChanged().
-            subscribe(query => this.search(query));
+    fetchMorePackages() {
+        this.store.dispatch(filterPackagesBy(this.packageParams(),
+            this.searchQuery,
+            this.store.getState().packages.nextRange));
+        return false;
     }
 
-    private packageParams() {
+    packageParams() {
         return {
             name: this.name,
             origin: this.origin,
@@ -121,13 +129,6 @@ export class PackagesPageComponent implements OnInit, OnDestroy {
     private fetchPackages() {
         this.store.dispatch(filterPackagesBy(this.packageParams(),
             this.searchQuery));
-    }
-
-    private fetchMorePackages() {
-        this.store.dispatch(filterPackagesBy(this.packageParams(),
-            this.searchQuery,
-            this.store.getState().packages.nextRange));
-        return false;
     }
 
     private search(query) {

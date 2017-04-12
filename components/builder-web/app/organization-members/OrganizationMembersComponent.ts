@@ -26,7 +26,7 @@ import { icon } from "../util";
                 *ngFor="let result of org.memberSearchResults; let i = index"
                 [class.addable]="result.canBeAdded">
                 <span class="grav">
-                    <gravatar size=16 [email]="result.email"></gravatar>
+                    <hab-gravatar size=16 [email]="result.email"></hab-gravatar>
                 </span>
                 <p class="info">
                     <span class="username">{{result.username}}</span>
@@ -41,7 +41,7 @@ import { icon } from "../util";
         </ul>
         <ul class="members">
             <li *ngFor="let member of org.members; let i = index">
-                <gravatar size=16 [email]="member.email"></gravatar>
+                <hab-gravatar size=16 [email]="member.email"></hab-gravatar>
                 <span class="username">{{member.username}}</span>
                 <span class="name">{{member.name}}</span>
                 <span class="status">{{member.status}}</span>
@@ -72,30 +72,30 @@ export class OrganizationMembersComponent {
     @Input() searchResults;
     @Input() toggleMemberActionMenu: Function;
 
-    private actionClick(index: number): boolean {
+    actionClick(index: number): boolean {
         this.toggleMemberActionMenu(index);
         return false;
     }
 
-    private addClick(result, index): boolean {
+    addClick(result, index): boolean {
         if (result.canBeAdded) {
             this.inviteMemberToOrg(result, index);
         }
         return false;
     }
 
-    private cancelInvitationClick(index): boolean {
+    cancelInvitationClick(index): boolean {
         this.cancelInvitation(index);
         return false;
     }
 
-    private icon(x) { return icon(x); }
+    icon(x) { return icon(x); }
 
-    private isMemberActionMenuOpenAt(index) {
+    isMemberActionMenuOpenAt(index) {
         return this.org.members.get(index).ui.isActionsMenuOpen;
     }
 
-    private searchKeyup(q: string): boolean {
+    searchKeyup(q: string): boolean {
         this.performSearch(q);
         return false;
     }

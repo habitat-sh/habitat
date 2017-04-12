@@ -19,7 +19,7 @@ import {List} from "immutable";
 @Component({
     selector: "hab-origin-members-tab",
     template: `
-    <tab tabTitle="Members">
+    <hab-tab tabTitle="Members">
         <div class="page-body">
             <div class="hab-origin--left">
                 <div class="hab-origin-members-tab--section invite-members">
@@ -81,7 +81,7 @@ import {List} from "immutable";
                 </p>
             </div>
         </div>
-    </tab>
+    </hab-tab>
     `,
 })
 
@@ -92,14 +92,14 @@ export class OriginMembersTabComponent implements OnInit {
     @Input() members: List<Object>;
     @Input() onSubmit: Function;
 
-    private form: FormGroup;
-    private control: FormControl;
+    form: FormGroup;
+    control: FormControl;
 
     constructor(formBuilder: FormBuilder) {
         this.form = formBuilder.group({});
     }
 
-    private submit(username: string) {
+    submit(username: string) {
         this.onSubmit(username);
     }
 

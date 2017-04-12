@@ -37,12 +37,12 @@ import config from "../config";
               </g>
             </svg>
           </div>
-          <user-nav [isOpen]="isUserNavOpen"
+          <hab-user-nav [isOpen]="isUserNavOpen"
                     [isSignedIn]="isSignedIn"
                     [username]="username"
                     [avatarUrl]="avatarUrl"
                     [signOut]="signOut"
-                    [toggleUserNavMenu]="toggleUserNavMenu"></user-nav>
+                    [toggleUserNavMenu]="toggleUserNavMenu"></hab-user-nav>
           <ul class="main-nav--links">
             <li class="main-nav--link"><a class="search-packages" [routerLink]="['/pkgs', 'core']">Search Packages</a></li>
             <li class="main-nav--link"><a class="docs" href="{{config['docs_url']}}">Docs</a></li>

@@ -99,15 +99,17 @@ export class SignInPageComponent implements OnInit {
 
     get sourceCodeUrl() { return config["source_code_url"]; }
 
-    private icon(name) { return icon(name); }
-
-    private signOut() {
+    signOut() {
         this.store.dispatch(signOut());
     }
 
-    public ngOnInit() {
+    ngOnInit() {
         // Populate the GitHub authstate (used to get a token) in SessionStorage
         // either with what's there already, or with a new UUID.
         this.store.dispatch(setGitHubAuthState());
+    }
+
+    private icon(name) {
+        return icon(name);
     }
 }

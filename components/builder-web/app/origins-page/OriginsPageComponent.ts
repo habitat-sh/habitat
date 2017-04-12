@@ -80,7 +80,7 @@ export class OriginsPageComponent implements OnInit {
 
     get ui() { return this.store.getState().origins.ui.mine; }
 
-    private acceptInvitation(invitationId, originName) {
+    acceptInvitation(invitationId, originName) {
         this.store.dispatch(acceptOriginInvitation(
           invitationId,
           originName,

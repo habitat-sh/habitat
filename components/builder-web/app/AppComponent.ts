@@ -21,7 +21,7 @@ import {authenticateWithGitHub, loadSessionState, removeNotification,
     setPackagesSearchQuery, signOut, toggleUserNavMenu, loadFeatureFlags} from "./actions/index";
 
 @Component({
-    selector: "hab",
+    selector: "hab-app",
     template: `
     <div id="main-nav">
         <hab-notifications [notifications]="state.notifications.all"
