@@ -57,8 +57,8 @@ export enum KeyType {
                 </span>
             </p>
         </div>
-        <tabs *ngIf="ui.exists && !ui.loading">
-            <tab tabTitle="Packages" [onSelect]="loadPackages">
+        <hab-tabs *ngIf="ui.exists && !ui.loading">
+            <hab-tab tabTitle="Packages" [onSelect]="loadPackages">
               <div class="page-body has-sidebar">
                 <div class="hab-origin--left hab-origin--pkg-list">
                   <div *ngIf="noPackages">
@@ -116,8 +116,8 @@ export enum KeyType {
                   <p>Read the docs for more information on <a href="#">origins</a>, <a href="#">packages</a>, and the <a href="#">build service</a>.</p>
                 </div>
               </div>
-            </tab>
-            <tab tabTitle="Keys">
+            </hab-tab>
+            <hab-tab tabTitle="Keys">
                 <div class="page-body">
                     <div class="hab-origin--left">
                         <div class="hab-origin--key-list">
@@ -192,7 +192,7 @@ export enum KeyType {
                         </p>
                     </div>
                 </div>
-            </tab>
+            </hab-tab>
             <hab-origin-members-tab
                 [docsUrl]="docsUrl"
                 [errorMessage]="ui.userInviteErrorMessage"
@@ -201,21 +201,23 @@ export enum KeyType {
                 [onSubmit]="onUserInvitationSubmit"
                 *ngIf="iAmPartOfThisOrigin">
             </hab-origin-members-tab>
-        </tabs>
+        </hab-tabs>
     </div>`,
 })
 
 export class OriginPageComponent implements OnInit, OnDestroy {
-    private onPrivateKeyCloseClick: Function;
-    private onPublicKeyCloseClick: Function;
-    private onUserInvitationSubmit: Function;
-    private uploadPrivateKey: Function;
-    private uploadPublicKey: Function;
+    keyType = KeyType;
+    loadPackages: Function;
+    onPrivateKeyCloseClick: Function;
+    onPublicKeyCloseClick: Function;
+    onUserInvitationSubmit: Function;
+    uploadPrivateKey: Function;
+    uploadPublicKey: Function;
+    perPage: number = 50;
+    projectStatus = ProjectStatus;
+
     private originParam: string;
     private sub: Subscription;
-    private projectStatus = ProjectStatus;
-    public loadPackages: Function;
-    public keyType = KeyType;
 
     constructor(private route: ActivatedRoute, private store: AppStore) {
         this.onPrivateKeyCloseClick = () =>
@@ -333,7 +335,7 @@ export class OriginPageComponent implements OnInit, OnDestroy {
         });
     }
 
-    private linkToRepo(p): boolean {
+    linkToRepo(p): boolean {
         this.store.dispatch(setProjectHint({
             originName: p.origin,
             packageName: p.name
@@ -342,7 +344,7 @@ export class OriginPageComponent implements OnInit, OnDestroy {
         return false;
     }
 
-    private projectSettings(p): boolean {
+    projectSettings(p): boolean {
         this.store.dispatch(setProjectHint({
             originName: p.origin,
             packageName: p.name
@@ -352,21 +354,17 @@ export class OriginPageComponent implements OnInit, OnDestroy {
         return false;
     }
 
-    private setOriginAddingPrivateKey(state: boolean) {
+    setOriginAddingPrivateKey(state: boolean) {
         this.store.dispatch(setCurrentOriginAddingPrivateKey(state));
         return false;
     }
 
-    private setOriginAddingPublicKey(state: boolean) {
+    setOriginAddingPublicKey(state: boolean) {
         this.store.dispatch(setCurrentOriginAddingPublicKey(state));
         return false;
     }
 
-    private projectId(p) {
-        return `${p["origin"]}/${p["name"]}`;
-    }
-
-    private projectForPackage(p) {
+    projectForPackage(p) {
         let proj = this.store.getState().projects.added.find(proj => {
             return proj["id"] === this.projectId(p);
         });
@@ -382,11 +380,11 @@ export class OriginPageComponent implements OnInit, OnDestroy {
         }
     }
 
-    public getPackages() {
+    getPackages() {
         this.store.dispatch(getUniquePackages(this.origin.name, 0, this.gitHubAuthToken));
     }
 
-    private fetchMorePackages() {
+    fetchMorePackages() {
         this.store.dispatch(getUniquePackages(
             this.origin.name,
             this.store.getState().packages.nextRange,
@@ -395,7 +393,7 @@ export class OriginPageComponent implements OnInit, OnDestroy {
         return false;
     }
 
-    public ngOnInit() {
+    ngOnInit() {
         requireSignIn(this);
         this.store.dispatch(fetchOrigin(this.origin.name));
         this.store.dispatch(fetchMyOrigins(this.gitHubAuthToken));
@@ -410,5 +408,9 @@ export class OriginPageComponent implements OnInit, OnDestroy {
         ));
         this.getPackages();
         this.loadPackages = this.getPackages.bind(this);
+    }
+
+    private projectId(p) {
+        return `${p["origin"]}/${p["name"]}`;
     }
 }

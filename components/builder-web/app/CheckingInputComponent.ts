@@ -73,37 +73,10 @@ export class CheckingInputComponent implements OnInit {
     @Input() placeholder;
     @Input() value: string;
 
-    private control: FormControl;
+    control: FormControl;
+
     private defaultMaxLength = 255;
     private defaultPattern = "^[a-z0-9][a-z0-9_-]*$";
-
-    private patternValidator(control) {
-        const value = control.value;
-
-        if (!this.pattern || !value || value.match(this.pattern)) {
-            return null;
-        } else {
-            return { invalidFormat: true };
-        }
-    }
-
-    private takenValidator(control) {
-        return new Promise(resolve => {
-            // If we're empty or invalid, don't attempt to validate.
-            if ((control.errors && control.errors.required) ||
-                (control.errors && control.errors.invalidFormat)) {
-                resolve(null);
-            }
-
-            if (this.isAvailable) {
-                this.isAvailable(control.value).
-                    then(() => resolve(null)).
-                    catch(() => resolve({ taken: true }));
-            } else {
-                resolve(null);
-            }
-        });
-    }
 
     public ngOnInit() {
         let validators = [
@@ -135,5 +108,33 @@ export class CheckingInputComponent implements OnInit {
         );
 
         this.form.addControl(this.name, this.control);
+    }
+
+    private patternValidator(control) {
+        const value = control.value;
+
+        if (!this.pattern || !value || value.match(this.pattern)) {
+            return null;
+        } else {
+            return { invalidFormat: true };
+        }
+    }
+
+    private takenValidator(control) {
+        return new Promise(resolve => {
+            // If we're empty or invalid, don't attempt to validate.
+            if ((control.errors && control.errors.required) ||
+                (control.errors && control.errors.invalidFormat)) {
+                resolve(null);
+            }
+
+            if (this.isAvailable) {
+                this.isAvailable(control.value).
+                    then(() => resolve(null)).
+                    catch(() => resolve({ taken: true }));
+            } else {
+                resolve(null);
+            }
+        });
     }
 }

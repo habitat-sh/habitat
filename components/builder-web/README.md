@@ -87,8 +87,9 @@ TASK_NAME`.
 These are guidelines for how to structure and format code in the application.
 
 * Four spaces for tabs.
-* TypeScript is linted with [TSLint](http://palantir.github.io/tslint/). The
-  rules followed in this repository are in the [tslint.json](tslint.json) file.
+* TypeScript is linted with [TSLint](http://palantir.github.io/tslint/) using
+  additional rules from the [Angular Style Guide](https://angular.io/styleguide).
+  The rules followed in this repository are in the [tslint.json](tslint.json) file.
   Check your code with `npm run lint-js`.
 * SCSS is linted with [Sass Lint](https://github.com/sasstools/sass-lint). The
   rules followed in this repository are in the [.sass-lint.yml](.sass-lint.yml)

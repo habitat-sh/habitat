@@ -16,7 +16,7 @@ import { Component, Input } from "@angular/core";
 import { isPackage, packageString } from "../util";
 
 @Component({
-    selector: "package-list",
+    selector: "hab-package-list",
     template: `
     <ul class="hab-package-list">
         <li *ngIf="!packages || packages.length === 0">None</li>
@@ -32,6 +32,6 @@ export class PackageListComponent {
     @Input() currentPackage: Object;
     @Input() packages: Array<Object>;
 
-    private isPackage(x, y) { return isPackage(x, y); }
-    private packageString(pkg) { return packageString(pkg); }
+    isPackage(x, y) { return isPackage(x, y); }
+    packageString(pkg) { return packageString(pkg); }
 }

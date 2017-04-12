@@ -16,7 +16,7 @@ import {Component} from "@angular/core";
 import {TabComponent} from "./TabComponent";
 
 @Component({
-    selector: "tabs",
+    selector: "hab-tabs",
     template: `
     <ul class="hab-tabs">
         <li *ngFor="let tab of tabs"

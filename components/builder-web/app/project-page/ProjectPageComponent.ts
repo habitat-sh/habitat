@@ -49,8 +49,8 @@ import {Subscription} from "rxjs/Subscription";
                     </span>
                 </h4>
             </header>
-            <tabs>
-                <tab tabTitle="Info">
+            <hab-tabs>
+                <hab-tab tabTitle="Info">
                     <div class="info page-body">
                         <div class="l">
                             <h4>Description</h4>
@@ -87,14 +87,14 @@ import {Subscription} from "rxjs/Subscription";
                             </ul>
                         </div>
                     </div>
-                </tab>
-                <tab tabTitle="Builds">
+                </hab-tab>
+                <hab-tab tabTitle="Builds">
                     <div class="builds page-body">
                         <div class="l">
-                            <build-list [project]="project"
+                            <hab-build-list [project]="project"
                                         [builds]="project.builds"
                                         [logs]="project.buildLogs">
-                            </build-list>
+                            </hab-build-list>
                         </div>
                         <div class="r">
                             <ul>
@@ -124,8 +124,8 @@ import {Subscription} from "rxjs/Subscription";
                             </ul>
                         </div>
                     </div>
-                </tab>
-            </tabs>
+                </hab-tab>
+            </hab-tabs>
         </div>
     </div>`
 })
@@ -171,5 +171,5 @@ export class ProjectPageComponent implements OnInit, OnDestroy {
         // this.store.dispatch(fetchBuilds(this.routeParams.params));
     }
 
-    private friendlyTime(t) { return friendlyTime(t); }
+    friendlyTime(t) { return friendlyTime(t); }
 }

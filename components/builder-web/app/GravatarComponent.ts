@@ -16,7 +16,7 @@ import { Component, Input } from "@angular/core";
 const md5 = require("blueimp-md5");
 
 @Component({
-    selector: "gravatar",
+    selector: "hab-gravatar",
     template: `
     <img class="hab-gravatar"
         width="{{size || DEFAULT_SIZE}}" height="{{size || DEFAULT_SIZE}}"
@@ -28,9 +28,9 @@ export class GravatarComponent {
     @Input() email;
     @Input() size;
 
-    private DEFAULT_SIZE = 80;
+    DEFAULT_SIZE = 80;
 
-    private gravatarUrl(defaultStyle: string = "retro",
+    gravatarUrl(defaultStyle: string = "retro",
         email: string, size: number = this.DEFAULT_SIZE) {
 
         defaultStyle = encodeURIComponent(defaultStyle || "retro");

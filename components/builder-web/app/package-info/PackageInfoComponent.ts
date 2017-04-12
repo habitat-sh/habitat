@@ -46,13 +46,13 @@ import {Component, Input} from "@angular/core";
     <div class="page-body--sidebar">
       <div class="hab-package-deps-build">
         <h3>Dependencies</h3>
-        <package-list [currentPackage]="package"
-                [packages]="package.deps"></package-list>
+        <hab-package-list [currentPackage]="package"
+                [packages]="package.deps"></hab-package-list>
       </div>
       <div class="hab-package-deps-runtime">
         <h3>Transitive Dependencies</h3>
-        <package-list [currentPackage]="package"
-                                [packages]="package.tdeps"></package-list>
+        <hab-package-list [currentPackage]="package"
+                                [packages]="package.tdeps"></hab-package-list>
       </div>
     </div>
     `

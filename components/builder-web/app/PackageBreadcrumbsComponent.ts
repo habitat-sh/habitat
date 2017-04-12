@@ -15,7 +15,7 @@
 import { Component, Input } from "@angular/core";
 
 @Component({
-    selector: "package-breadcrumbs",
+    selector: "hab-package-breadcrumbs",
     template: `
     <span class="hab-package-breadcrumbs">
         <a [routerLink]="['/pkgs', ident.origin]">

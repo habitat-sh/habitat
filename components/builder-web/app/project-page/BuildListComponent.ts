@@ -16,7 +16,7 @@ import { Component, Input } from "@angular/core";
 import { duration, friendlyTime, packageString } from "../util";
 
 @Component({
-    selector: "build-list",
+    selector: "hab-build-list",
     template: `
     <p *ngIf="!builds || builds.size === 0">
         No builds found.
@@ -62,22 +62,22 @@ export class BuildListComponent {
     @Input() logs;
     @Input() project;
 
-    private packageString(pkg) { return packageString(pkg); }
+    packageString(pkg) { return packageString(pkg); }
 
-    // Come up with an identifier for a build based on the existing package
+    duration(s) { return duration(s); }
+
+    friendlyTime(t) { return friendlyTime(t); }
+
+     // Come up with an identifier for a build based on the existing package
     // and what happened in the build.
     private ident(build) {
         return Object.assign({
             origin: this.project.origin,
             name: this.project.name,
         },
-            {
-                version: build.version,
-                release: build.release
-            });
+        {
+            version: build.version,
+            release: build.release
+        });
     }
-
-    private duration(s) { return duration(s); }
-
-    private friendlyTime(t) { return friendlyTime(t); }
 }
