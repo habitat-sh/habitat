@@ -114,6 +114,14 @@ impl Routable for AccountOriginListRequest {
     }
 }
 
+impl Routable for AccountOriginCreate {
+    type H = InstaId;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(InstaId(self.get_account_id()))
+    }
+}
+
 impl Routable for AccountOriginInvitationAcceptRequest {
     type H = InstaId;
 

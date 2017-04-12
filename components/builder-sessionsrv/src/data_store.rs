@@ -211,6 +211,17 @@ impl DataStore {
         Ok(())
     }
 
+    pub fn create_origin(&self, request: &sessionsrv::AccountOriginCreate) -> Result<()> {
+        let conn = self.pool.get(request)?;
+        conn.execute("SELECT * FROM insert_account_origin_v1($1, $2, $3, $4)",
+                     &[&(request.get_account_id() as i64),
+                       &request.get_account_name(),
+                       &(request.get_origin_id() as i64),
+                       &request.get_origin_name()])
+            .map_err(Error::OriginCreate)?;
+        Ok(())
+    }
+
     pub fn create_account_origin_invitation(&self, invitation_create:
 &sessionsrv::AccountOriginInvitationCreate) -> Result<()>{
         let conn = self.pool.get(invitation_create)?;

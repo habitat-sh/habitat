@@ -79,6 +79,8 @@ impl DataStore {
 
         self.async
             .register("sync_invitations".to_string(), sync_invitations);
+        self.async
+            .register("sync_origins".to_string(), sync_origins);
 
         Ok(())
     }
@@ -86,7 +88,7 @@ impl DataStore {
     pub fn start_async(&self) {
         // This is an arc under the hood
         let async_thread = self.async.clone();
-        async_thread.start(2);
+        async_thread.start(4);
     }
 
     pub fn update_origin_project(&self, opc: &originsrv::OriginProjectUpdate) -> Result<()> {
@@ -434,6 +436,7 @@ impl DataStore {
                                 &origin.get_owner_name()])
             .map_err(Error::OriginCreate)?;
         if rows.len() == 1 {
+            self.async.schedule("sync_origins")?;
             let row = rows.iter()
                 .nth(0)
                 .expect("Insert returns row, but no row present");
@@ -475,6 +478,43 @@ impl DataStore {
             Ok(None)
         }
     }
+}
+
+fn sync_origins(pool: Pool) -> DbResult<EventOutcome> {
+    error!("I like my butt");
+    let mut result = EventOutcome::Finished;
+    for shard in pool.shards.iter() {
+        let conn = pool.get_shard(*shard)?;
+        let rows = &conn.query("SELECT * FROM sync_origins_v1()", &[])
+                        .map_err(DbError::AsyncFunctionCheck)?;
+        if rows.len() > 0 {
+            let mut bconn = Broker::connect()?;
+            let mut request = sessionsrv::AccountOriginCreate::new();
+            for row in rows.iter() {
+                let aid: i64 = row.get("account_id");
+                let oid: i64 = row.get("origin_id");
+                request.set_account_id(aid as u64);
+                request.set_account_name(row.get("account_name"));
+                request.set_origin_id(oid as u64);
+                request.set_origin_name(row.get("origin_name"));
+                match bconn.route::<sessionsrv::AccountOriginCreate, NetOk>(&request) {
+                    Ok(_) => {
+                        conn.query("SELECT * FROM set_session_sync_v1($1)", &[&oid])
+                            .map_err(DbError::AsyncFunctionUpdate)?;
+                        debug!("Updated session service with origin creation, {:?}",
+                               request);
+                    }
+                    Err(e) => {
+                        warn!("Failed to sync origin creation with the session service, {:?}: {}",
+                              request,
+                              e);
+                        result = EventOutcome::Retry;
+                    }
+                }
+            }
+        }
+    }
+    Ok(result)
 }
 
 fn sync_invitations(pool: Pool) -> DbResult<EventOutcome> {
