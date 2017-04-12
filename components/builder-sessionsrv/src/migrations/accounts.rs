@@ -90,6 +90,16 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                         INSERT INTO account_origins (account_id, account_name, origin_id, origin_name) VALUES (o_account_id, o_account_name, o_origin_id, o_origin_name);
                      END
                  $$ LANGUAGE plpgsql VOLATILE"#)?;
+    migrator
+        .migrate("accountsrv",
+                 r#"CREATE OR REPLACE FUNCTION get_account_origins_v1 (
+                    in_account_id bigint
+                 ) RETURNS SETOF account_origins AS $$
+                     BEGIN
+                        RETURN QUERY SELECT * FROM account_origins WHERE account_id = in_account_id;
+                        RETURN;
+                     END
+                 $$ LANGUAGE plpgsql STABLE"#)?;
 
     Ok(())
 }

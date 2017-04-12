@@ -50,6 +50,7 @@ pub enum Error {
     AccountOriginInvitationCreate(postgres::error::Error),
     AccountOriginInvitationList(postgres::error::Error),
     AccountOriginInvitationAccept(postgres::error::Error),
+    OriginAccountList(postgres::error::Error),
 }
 
 pub type Result<T> = result::Result<T, Error>;
@@ -92,6 +93,9 @@ impl fmt::Display for Error {
             Error::AccountOriginInvitationAccept(ref e) => {
                 format!("Error accepting invitation in database, {}", e)
             }
+            Error::OriginAccountList(ref e) => {
+                format!("Error listing origins for account in database, {}", e)
+            }
 
         };
         write!(f, "{}", msg)
@@ -122,6 +126,7 @@ impl error::Error for Error {
             Error::AccountOriginInvitationCreate(ref err) => err.description(),
             Error::AccountOriginInvitationList(ref err) => err.description(),
             Error::AccountOriginInvitationAccept(ref err) => err.description(),
+            Error::OriginAccountList(ref err) => err.description(),
         }
     }
 }

@@ -97,6 +97,9 @@ impl Dispatcher for Worker {
             "AccountOriginInvitationAcceptRequest" => {
                 handlers::account_origin_invitation_accept(message, sock, state)
             }
+            "AccountOriginListRequest" => {
+                handlers::account_origin_list_request(message, sock, state)
+            }
             _ => panic!("unhandled message"),
         }
     }

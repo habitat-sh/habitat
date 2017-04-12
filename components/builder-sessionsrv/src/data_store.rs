@@ -179,6 +179,26 @@ impl DataStore {
         }
     }
 
+    pub fn get_origins_by_account(&self,
+                                  request: &sessionsrv::AccountOriginListRequest)
+                                  -> Result<sessionsrv::AccountOriginListResponse> {
+        let conn = self.pool.get(request)?;
+        let rows = conn.query("SELECT * FROM get_account_origins_v1($1)",
+                              &[&(request.get_account_id() as i64)])
+            .map_err(Error::OriginAccountList)?;
+        let mut response = sessionsrv::AccountOriginListResponse::new();
+        response.set_account_id(request.get_account_id());
+        let mut origins = protobuf::RepeatedField::new();
+
+        if rows.len() > 0 {
+            for row in rows.iter() {
+                origins.push(row.get("origin_name"));
+            }
+        }
+        response.set_origins(origins);
+        Ok(response)
+    }
+
     pub fn accept_origin_invitation(&self,
                                     request: &sessionsrv::AccountOriginInvitationAcceptRequest)
                                     -> Result<()> {
