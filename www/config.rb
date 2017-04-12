@@ -53,7 +53,9 @@ end
 
 # Methods defined in the helpers block are available in templates
 require 'lib/sidebar_helpers'
+require 'lib/blog_helpers'
 helpers SidebarHelpers
+helpers BlogHelpers
 
 helpers do
   def layout_class
@@ -112,7 +114,7 @@ redirect 'docs/index.html', to: 'docs/overview.html'
 redirect 'docs/build-packages-overview.html', to: 'docs/create-packages-build.html'
 redirect 'tutorials/getting-started-overview.html', to: 'tutorials/getting-started/overview.html'
 redirect 'tutorials/getting-started-basic-concepts.html', to: 'tutorials/getting-started/mac/basic-concepts.html'
-redirect 'tutorials/getting-started-setup-environment.html', to: 'tutorials/getting-started/mac/setup-environment.html' 
+redirect 'tutorials/getting-started-setup-environment.html', to: 'tutorials/getting-started/mac/setup-environment.html'
 redirect 'tutorials/getting-started-review-source-files.html', to: 'tutorials/getting-started/mac/create-plan.html'
 redirect 'tutorials/getting-started-create-plan.html', to: 'tutorials/getting-started/mac/create-plan.html'
 redirect 'tutorials/getting-started-add-hooks.html', to: 'tutorials/getting-started/mac/add-hooks.html'

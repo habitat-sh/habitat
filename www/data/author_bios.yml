@@ -1,0 +1,19 @@
+---
+authors:
+  ianhenry:
+    name: "Ian Henry"
+    email: "ian@chef.io"
+    twitter: "@eeyun___"
+    bio: "As the Technical Community Advocate for Habitat, Ian is actively helping the Community and ecosystem grow. He spends much of his time helping people learn about containerization, distributed systems, and the ways that Habitat makes those things easy. Prior to joining Chef, Ian spent a number of years as an operational and tooling engineer."
+  robbkidd:
+    name: "Robb Kidd"
+    email: "rkidd@chef.io"
+    bio: ""
+  fletchernichol:
+    name: "Fletcher Nichol"
+    email: "fnichol@chef.io"
+    bio: ""
+  adamleff:
+    name: "Adam Leff"
+    email: "aleff@chef.io"
+    bio: "Adam Leff is the Technical Community Advocate for InSpec at Chef. Prior to joining Chef, Adam held engineering and management positions at WebMD. He lives in Northern VA with his family and can frequently be found at local DevOps meetups in the DC area."

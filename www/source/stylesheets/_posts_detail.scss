@@ -11,3 +11,15 @@
   font-size: 1.05em;
   line-height: 1.35em;
 }
+.article-categories {
+  font-size: 1.05em;
+  color: $hab-orange;
+}
+.article-author{
+  border: 1px solid $hab-gray;
+  h3{
+    padding-top: 1.00em;
+    font-size: 1.05em;
+    line-height: 1.35em;
+  }
+}

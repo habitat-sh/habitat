@@ -10,9 +10,14 @@
         section
           .columns.small-8.large-centered
             == yield
-        <br>
+            <br>
+            - if current_page.data.fetch("tags") or current_page.data.fetch("category")
+            b
+              ="Posted In"
+            h3.article-categories
+              = "#{current_page.data.fetch("tags")}"
     .row
-        <br>
+      = partial("blog/partials/author_bio", :locals => { :author => author_data(current_page.data.fetch("author")) })
     footer
       .row.footer--blog
         .posts.small-5.columns
@@ -31,4 +36,3 @@
               - blog.tags.to_a.shuffle[0...10].each do |tag, articles|
                 li
                   = link_to "#{tag} (#{articles.size})", tag_path(tag)
-
