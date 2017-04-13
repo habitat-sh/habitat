@@ -32,7 +32,7 @@ use error::{Error, Result, SupError};
 
 static LOGKEY: &'static str = "SS";
 static DEFAULT_GROUP: &'static str = "default";
-pub const SPEC_FILE_EXT: &'static str = "spec";
+const SPEC_FILE_EXT: &'static str = "spec";
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub enum DesiredState {
@@ -102,7 +102,7 @@ impl ServiceSpec {
         spec
     }
 
-    pub fn to_toml_string(&self) -> Result<String> {
+    fn to_toml_string(&self) -> Result<String> {
         if self.ident == PackageIdent::default() {
             return Err(sup_error!(Error::MissingRequiredIdent));
         }
@@ -667,7 +667,7 @@ mod test {
     fn service_bind_toml_deserialize() {
         #[derive(Deserialize)]
         struct Data {
-            pub key: ServiceBind,
+            key: ServiceBind,
         }
         let toml = r#"
             key = "name:service.group@organization"
@@ -682,7 +682,7 @@ mod test {
     fn service_bind_toml_serialize() {
         #[derive(Serialize)]
         struct Data {
-            pub key: ServiceBind,
+            key: ServiceBind,
         }
         let data = Data {
             key: ServiceBind {

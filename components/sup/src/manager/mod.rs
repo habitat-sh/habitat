@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-pub mod census;
+mod census;
 pub mod service;
-pub mod signals;
-pub mod service_updater;
-pub mod spec_watcher;
+mod signals;
+mod service_updater;
+mod spec_watcher;
 
 use std::collections::HashMap;
 use std::fs::{self, File, OpenOptions};
@@ -61,16 +61,16 @@ static LOGKEY: &'static str = "MR";
 /// persistence data.
 #[derive(Debug)]
 pub struct FsCfg {
-    pub data_path: PathBuf,
+    data_path: PathBuf,
     pub butterfly_data_path: PathBuf,
     pub census_data_path: PathBuf,
     pub services_data_path: PathBuf,
-    pub specs_path: PathBuf,
-    pub proc_lock_file: PathBuf,
+    specs_path: PathBuf,
+    proc_lock_file: PathBuf,
 }
 
 impl FsCfg {
-    pub fn new<T>(sup_svc_root: T) -> Self
+    fn new<T>(sup_svc_root: T) -> Self
         where T: Into<PathBuf>
     {
         let sup_svc_root = sup_svc_root.into();
@@ -99,7 +99,7 @@ pub struct ManagerConfig {
     pub gossip_permanent: bool,
     pub ring: Option<String>,
     pub name: Option<String>,
-    pub custom_state_path: Option<PathBuf>,
+    custom_state_path: Option<PathBuf>,
     pub organization: Option<String>,
 }
 
@@ -145,7 +145,7 @@ impl Manager {
         Self::new(cfg, member, fs_cfg)
     }
 
-    pub fn new(cfg: ManagerConfig, mut member: Member, fs_cfg: FsCfg) -> Result<Manager> {
+    fn new(cfg: ManagerConfig, mut member: Member, fs_cfg: FsCfg) -> Result<Manager> {
         member.set_persistent(cfg.gossip_permanent);
         member.set_swim_port(cfg.gossip_listen.port() as i32);
         member.set_gossip_port(cfg.gossip_listen.port() as i32);
@@ -188,7 +188,7 @@ impl Manager {
            })
     }
 
-    pub fn load_member<T>(state_path: T) -> Result<Member>
+    fn load_member<T>(state_path: T) -> Result<Member>
         where T: AsRef<Path>
     {
         let mut member = Member::default();
@@ -290,7 +290,7 @@ impl Manager {
         }
     }
 
-    pub fn add_service(&mut self, spec: ServiceSpec) -> Result<()> {
+    fn add_service(&mut self, spec: ServiceSpec) -> Result<()> {
         let service = Service::load(spec,
                                     &self.gossip_listen,
                                     &self.http_listen,
@@ -313,7 +313,7 @@ impl Manager {
         Ok(())
     }
 
-    pub fn remove_service(&self, service: &mut Service) -> Result<()> {
+    fn remove_service(&self, service: &mut Service) -> Result<()> {
         // JW TODO: Update service rumor to remove service from cluster
         service.stop();
         if service.start_style == StartStyle::Transient {

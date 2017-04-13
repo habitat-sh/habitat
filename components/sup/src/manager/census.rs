@@ -58,32 +58,32 @@ pub enum ElectionStatus {
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize, Default)]
 pub struct CensusEntry {
-    pub member_id: String,
-    pub service: String,
-    pub group: String,
-    pub org: Option<String>,
-    pub cfg: toml::value::Table,
-    pub sys: SysInfo,
+    member_id: String,
+    service: String,
+    group: String,
+    org: Option<String>,
+    cfg: toml::value::Table,
+    sys: SysInfo,
     pub pkg: Option<PackageIdent>,
-    pub leader: Option<bool>,
-    pub follower: Option<bool>,
-    pub update_leader: Option<bool>,
-    pub update_follower: Option<bool>,
-    pub election_is_running: Option<bool>,
-    pub election_is_no_quorum: Option<bool>,
-    pub election_is_finished: Option<bool>,
-    pub update_election_is_running: Option<bool>,
-    pub update_election_is_no_quorum: Option<bool>,
-    pub update_election_is_finished: Option<bool>,
-    pub initialized: Option<bool>,
-    pub alive: Option<bool>,
-    pub suspect: Option<bool>,
-    pub confirmed: Option<bool>,
-    pub persistent: Option<bool>,
+    leader: Option<bool>,
+    follower: Option<bool>,
+    update_leader: Option<bool>,
+    update_follower: Option<bool>,
+    election_is_running: Option<bool>,
+    election_is_no_quorum: Option<bool>,
+    election_is_finished: Option<bool>,
+    update_election_is_running: Option<bool>,
+    update_election_is_no_quorum: Option<bool>,
+    update_election_is_finished: Option<bool>,
+    initialized: Option<bool>,
+    alive: Option<bool>,
+    suspect: Option<bool>,
+    confirmed: Option<bool>,
+    persistent: Option<bool>,
 }
 
 impl CensusEntry {
-    pub fn get_service_group(&self) -> String {
+    fn get_service_group(&self) -> String {
         if self.org.is_some() {
             format!("{}.{}@{}",
                     self.get_service(),
@@ -98,15 +98,15 @@ impl CensusEntry {
         &self.member_id
     }
 
-    pub fn set_member_id(&mut self, value: String) {
+    fn set_member_id(&mut self, value: String) {
         self.member_id = value
     }
 
-    pub fn get_service(&self) -> &str {
+    fn get_service(&self) -> &str {
         &self.service
     }
 
-    pub fn set_service(&mut self, value: String) {
+    fn set_service(&mut self, value: String) {
         self.service = value;
     }
 
@@ -114,46 +114,48 @@ impl CensusEntry {
         &self.group
     }
 
-    pub fn set_group(&mut self, value: String) {
+    fn set_group(&mut self, value: String) {
         self.group = value;
     }
 
-    pub fn get_org(&self) -> &str {
+    fn get_org(&self) -> &str {
         match self.org.as_ref() {
             Some(v) => &v,
             None => "",
         }
     }
 
-    pub fn set_org(&mut self, value: String) {
+    fn set_org(&mut self, value: String) {
         self.org = Some(value);
     }
 
-    pub fn get_pkg(&self) -> &PackageIdent {
+    #[allow(dead_code)] // only used in tests
+    fn get_pkg(&self) -> &PackageIdent {
         self.pkg.as_ref().unwrap()
     }
 
-    pub fn set_pkg(&mut self, value: PackageIdent) {
+    fn set_pkg(&mut self, value: PackageIdent) {
         self.pkg = Some(value);
     }
 
-    pub fn set_leader(&mut self, value: bool) {
+    fn set_leader(&mut self, value: bool) {
         self.leader = Some(value);
     }
 
-    pub fn get_leader(&self) -> bool {
+    fn get_leader(&self) -> bool {
         self.leader.unwrap_or(false)
     }
 
-    pub fn set_follower(&mut self, value: bool) {
+    fn set_follower(&mut self, value: bool) {
         self.follower = Some(value);
     }
 
-    pub fn get_follower(&self) -> bool {
+    #[allow(dead_code)] // only used in tests
+    fn get_follower(&self) -> bool {
         self.follower.unwrap_or(false)
     }
 
-    pub fn set_update_leader(&mut self, value: bool) {
+    fn set_update_leader(&mut self, value: bool) {
         self.update_leader = Some(value);
     }
 
@@ -161,60 +163,44 @@ impl CensusEntry {
         self.update_leader.unwrap_or(false)
     }
 
-    pub fn set_update_follower(&mut self, value: bool) {
+    fn set_update_follower(&mut self, value: bool) {
         self.update_follower = Some(value);
     }
 
-    pub fn get_update_follower(&self) -> bool {
-        self.update_follower.unwrap_or(false)
-    }
-
-    pub fn set_election_is_running(&mut self, value: bool) {
+    fn set_election_is_running(&mut self, value: bool) {
         self.election_is_running = Some(value);
     }
 
-    pub fn get_election_is_running(&self) -> bool {
+    fn get_election_is_running(&self) -> bool {
         self.election_is_running.unwrap_or(false)
     }
 
-    pub fn set_election_is_no_quorum(&mut self, value: bool) {
+    fn set_election_is_no_quorum(&mut self, value: bool) {
         self.election_is_no_quorum = Some(value);
     }
 
-    pub fn get_election_is_no_quorum(&self) -> bool {
+    fn get_election_is_no_quorum(&self) -> bool {
         self.election_is_no_quorum.unwrap_or(false)
     }
 
-    pub fn set_election_is_finished(&mut self, value: bool) {
+    fn set_election_is_finished(&mut self, value: bool) {
         self.election_is_finished = Some(value);
     }
 
-    pub fn get_election_is_finished(&self) -> bool {
+    fn get_election_is_finished(&self) -> bool {
         self.election_is_finished.unwrap_or(false)
     }
 
-    pub fn set_update_election_is_running(&mut self, value: bool) {
+    fn set_update_election_is_running(&mut self, value: bool) {
         self.update_election_is_running = Some(value);
     }
 
-    pub fn get_update_election_is_running(&self) -> bool {
-        self.update_election_is_running.unwrap_or(false)
-    }
-
-    pub fn set_update_election_is_no_quorum(&mut self, value: bool) {
+    fn set_update_election_is_no_quorum(&mut self, value: bool) {
         self.update_election_is_no_quorum = Some(value);
     }
 
-    pub fn get_update_election_is_no_quorum(&self) -> bool {
-        self.update_election_is_no_quorum.unwrap_or(false)
-    }
-
-    pub fn set_update_election_is_finished(&mut self, value: bool) {
+    fn set_update_election_is_finished(&mut self, value: bool) {
         self.update_election_is_finished = Some(value);
-    }
-
-    pub fn get_update_election_is_finished(&self) -> bool {
-        self.update_election_is_finished.unwrap_or(false)
     }
 
     pub fn get_election_status(&self) -> ElectionStatus {
@@ -229,43 +215,28 @@ impl CensusEntry {
         }
     }
 
-    pub fn set_initialized(&mut self, value: bool) {
-        self.initialized = Some(value);
-    }
-
-    pub fn get_initialized(&self) -> bool {
-        self.initialized.unwrap_or(false)
-    }
-
-    pub fn set_alive(&mut self, value: bool) {
+    fn set_alive(&mut self, value: bool) {
         self.alive = Some(value);
     }
 
-    pub fn get_alive(&self) -> bool {
+    fn get_alive(&self) -> bool {
         self.alive.unwrap_or(false)
     }
 
-    pub fn set_suspect(&mut self, value: bool) {
+    fn set_suspect(&mut self, value: bool) {
         self.suspect = Some(value);
     }
 
-    pub fn get_suspect(&self) -> bool {
-        self.suspect.unwrap_or(false)
-    }
-
-    pub fn set_confirmed(&mut self, value: bool) {
+    fn set_confirmed(&mut self, value: bool) {
         self.confirmed = Some(value);
     }
 
-    pub fn get_confirmed(&self) -> bool {
-        self.confirmed.unwrap_or(false)
-    }
-
-    pub fn set_persistent(&mut self, value: bool) {
+    fn set_persistent(&mut self, value: bool) {
         self.persistent = Some(value);
     }
 
-    pub fn get_persistent(&self) -> bool {
+    #[allow(dead_code)] // only used in tests
+    fn get_persistent(&self) -> bool {
         self.persistent.unwrap_or(false)
     }
 
@@ -293,14 +264,14 @@ impl CensusEntry {
         self.sys = toml::from_slice(rumor.get_sys()).unwrap_or(SysInfo::default());
     }
 
-    pub fn populate_from_member(&mut self, member: &Member) {
+    fn populate_from_member(&mut self, member: &Member) {
         self.set_member_id(String::from(member.get_id()));
         self.sys.gossip_ip = member.get_address().to_string();
         self.sys.gossip_port = member.get_gossip_port().to_string();
         self.set_persistent(true);
     }
 
-    pub fn populate_from_health(&mut self, health: Health) {
+    fn populate_from_health(&mut self, health: Health) {
         match health {
             Health::Alive => {
                 self.set_alive(true);
@@ -320,7 +291,7 @@ impl CensusEntry {
         }
     }
 
-    pub fn populate_from_election(&mut self, election: &ElectionRumor) {
+    fn populate_from_election(&mut self, election: &ElectionRumor) {
         match election.get_status() {
             Election_Status::Running => {
                 self.set_leader(false);
@@ -351,7 +322,7 @@ impl CensusEntry {
         }
     }
 
-    pub fn populate_from_update_election(&mut self, election: &ElectionRumor) {
+    fn populate_from_update_election(&mut self, election: &ElectionRumor) {
         match election.get_status() {
             Election_Status::Running => {
                 self.set_update_leader(false);
@@ -389,8 +360,8 @@ pub struct Census {
     // allocations when ordering the population to determine who should update next in a rolling
     // update strategy. For now, we allocate a new vector every server tick by the members() and
     // members_ordered() functions.
-    pub population: HashMap<String, CensusEntry>,
-    pub member_id: String,
+    population: HashMap<String, CensusEntry>,
+    member_id: String,
 }
 
 impl Deref for Census {
@@ -408,7 +379,7 @@ impl DerefMut for Census {
 }
 
 impl Census {
-    pub fn new(member_id: String) -> Census {
+    fn new(member_id: String) -> Census {
         Census {
             population: HashMap::new(),
             member_id: member_id,
@@ -420,7 +391,7 @@ impl Census {
     }
 
     /// Return all alive members.
-    pub fn alive_members(&self) -> Vec<&CensusEntry> {
+    fn alive_members(&self) -> Vec<&CensusEntry> {
         self.population
             .values()
             .filter(|ce| ce.get_alive())
@@ -428,14 +399,14 @@ impl Census {
     }
 
     /// Return all alive members ordered by member_id.
-    pub fn alive_members_ordered(&self) -> Vec<&CensusEntry> {
+    fn alive_members_ordered(&self) -> Vec<&CensusEntry> {
         let mut members = self.alive_members();
         members.sort_by(|a, b| a.member_id.cmp(&b.member_id));
         members
     }
 
     /// Return all members.
-    pub fn members(&self) -> Vec<&CensusEntry> {
+    fn members(&self) -> Vec<&CensusEntry> {
         self.population.values().map(|ce| ce).collect()
     }
 
@@ -473,28 +444,6 @@ impl Census {
         entry.get_service()
     }
 
-    /// Return next alive peer, the peer to your right in the ordered members list, or None if you
-    /// have no alive peers.
-    pub fn next_peer(&self) -> Option<&CensusEntry> {
-        let members = self.alive_members_ordered();
-        if members.len() <= 1 || self.me().is_none() {
-            return None;
-        }
-        match members
-                  .iter()
-                  .position(|ce| ce.member_id == self.me().unwrap().member_id) {
-            Some(idx) => {
-                let peer = idx + 1;
-                if peer >= members.len() {
-                    Some(members[0])
-                } else {
-                    Some(members[peer])
-                }
-            }
-            None => None,
-        }
-    }
-
     /// Return previous alive peer, the peer to your left in the ordered members list, or None if
     /// you have no alive peers.
     pub fn previous_peer(&self) -> Option<&CensusEntry> {
@@ -519,7 +468,7 @@ impl Census {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct CensusList {
-    pub censuses: HashMap<String, Census>,
+    censuses: HashMap<String, Census>,
 }
 
 impl Deref for CensusList {

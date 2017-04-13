@@ -46,7 +46,7 @@ use sup::command;
 use sup::http_gateway;
 use sup::manager::{Manager, ManagerConfig};
 use sup::manager::service::{DesiredState, ServiceBind, Topology, UpdateStrategy};
-use sup::manager::service::spec::{ServiceSpec, StartStyle};
+use sup::manager::service::{ServiceSpec, StartStyle};
 
 /// Our output key
 static LOGKEY: &'static str = "MN";

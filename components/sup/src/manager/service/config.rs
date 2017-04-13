@@ -55,19 +55,19 @@ static TOML_MAX_MERGE_DEPTH: u16 = 30;
 /// namespaces available in `config.toml`.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ServiceConfig {
-    pub hab: Hab,
+    hab: Hab,
     pub pkg: Pkg,
     pub sys: Sys,
-    pub cfg: Cfg,
-    pub svc: Svc,
-    pub bind: Bind,
+    cfg: Cfg,
+    svc: Svc,
+    bind: Bind,
     #[serde(skip_serializing, skip_deserializing, default="default_for_pathbuf")]
     pub config_root: PathBuf,
     #[serde(skip_serializing, skip_deserializing)]
     pub incarnation: u64,
     // Set to 'true' if we have data that needs to be sent to a configuration file
     #[serde(skip_serializing, skip_deserializing)]
-    pub needs_write: bool,
+    needs_write: bool,
     #[serde(skip_serializing, skip_deserializing)]
     supported_bindings: Vec<ServiceBind>,
 }
@@ -247,7 +247,7 @@ impl ServiceConfig {
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-pub struct Bind(toml::value::Table);
+struct Bind(toml::value::Table);
 
 impl Bind {
     fn populate(&mut self, bindings: &[ServiceBind], census_list: &CensusList) {
@@ -275,10 +275,10 @@ impl Bind {
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-pub struct Svc(toml::value::Table);
+struct Svc(toml::value::Table);
 
 impl Svc {
-    pub fn populate(&mut self, service_group: &ServiceGroup, census_list: &CensusList) {
+    fn populate(&mut self, service_group: &ServiceGroup, census_list: &CensusList) {
         let mut top = service_entry(census_list
                                         .get(&*service_group)
                                         .expect("Service Group's census entry missing from list!"));
@@ -353,11 +353,11 @@ fn service_entry(census: &Census) -> toml::value::Table {
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct Cfg {
-    pub default: Option<toml::Value>,
-    pub user: Option<toml::Value>,
-    pub gossip: Option<toml::Value>,
-    pub environment: Option<toml::Value>,
+struct Cfg {
+    default: Option<toml::Value>,
+    user: Option<toml::Value>,
+    gossip: Option<toml::Value>,
+    environment: Option<toml::Value>,
 }
 
 impl Cfg {
@@ -517,22 +517,22 @@ impl Cfg {
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Pkg {
-    pub origin: String,
+    origin: String,
     pub name: String,
-    pub version: String,
-    pub release: String,
-    pub ident: String,
+    version: String,
+    release: String,
+    ident: String,
     pub deps: Vec<PackageIdent>,
-    pub exposes: Vec<String>,
-    pub exports: HashMap<String, String>,
-    pub path: PathBuf,
-    pub svc_path: PathBuf,
-    pub svc_config_path: PathBuf,
-    pub svc_data_path: PathBuf,
-    pub svc_files_path: PathBuf,
-    pub svc_static_path: PathBuf,
-    pub svc_var_path: PathBuf,
-    pub svc_pid_file: PathBuf,
+    exposes: Vec<String>,
+    exports: HashMap<String, String>,
+    path: PathBuf,
+    svc_path: PathBuf,
+    svc_config_path: PathBuf,
+    svc_data_path: PathBuf,
+    svc_files_path: PathBuf,
+    svc_static_path: PathBuf,
+    svc_var_path: PathBuf,
+    svc_pid_file: PathBuf,
     pub svc_user: String,
     pub svc_group: String,
 }
@@ -618,8 +618,8 @@ impl DerefMut for Sys {
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct Hab {
-    pub version: String,
+struct Hab {
+    version: String,
 }
 
 impl Hab {
@@ -634,7 +634,7 @@ impl Hab {
 
 
 // Recursively merges the `other` TOML table into `me`
-pub fn toml_merge(me: &mut toml::value::Table, other: &toml::value::Table) -> Result<()> {
+fn toml_merge(me: &mut toml::value::Table, other: &toml::value::Table) -> Result<()> {
     toml_merge_recurse(me, other, 0)
 }
 
@@ -724,15 +724,15 @@ mod test {
         RuntimeConfig::new("hab".to_string(), "hab".to_string(), HashMap::new())
     }
 
-    pub fn root() -> PathBuf {
+    fn root() -> PathBuf {
         PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests")
     }
 
-    pub fn fixtures() -> PathBuf {
+    fn fixtures() -> PathBuf {
         root().join("fixtures")
     }
 
-    pub fn sample_configs() -> PathBuf {
+    fn sample_configs() -> PathBuf {
         fixtures().join("sample_configs")
     }
 

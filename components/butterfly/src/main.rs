@@ -13,7 +13,6 @@
 // limitations under the License.
 
 extern crate env_logger;
-#[macro_use]
 extern crate log;
 extern crate habitat_butterfly;
 extern crate habitat_core;
@@ -63,7 +62,7 @@ fn main() {
                                          None::<PathBuf>,
                                          Box::new(ZeroSuitability))
             .unwrap();
-    println!("Server ID: {}", server.member_id);
+    println!("Server ID: {}", server.member_id());
 
     let targets: Vec<String> = args.collect();
     for target in &targets {
