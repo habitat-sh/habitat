@@ -387,26 +387,6 @@ impl Server {
         }
     }
 
-    // // Currently DEAD CODE
-    // /// Change the health of a `Member`, and update its `RumorKey`.
-    // fn insert_health(&self, member: &Member, health: Health) {
-    //     let rk: RumorKey = RumorKey::from(&member);
-    //     // NOTE: This sucks so much right here. Check out how we allocate no matter what, because
-    //     // of just how the logic goes. The value of the trace is really high, though, so we suck it
-    //     // for now.
-    //     let trace_member_id = String::from(member.get_id());
-    //     let trace_incarnation = member.get_incarnation();
-    //     let trace_health = health.clone();
-    //     if self.member_list.insert_health(member, health) {
-    //         trace_it!(MEMBERSHIP: self,
-    //                   TraceKind::MemberUpdate,
-    //                   trace_member_id,
-    //                   trace_incarnation,
-    //                   trace_health);
-    //         self.rumor_list.insert(rk);
-    //     }
-    // }
-
     /// Given a membership record and some health, insert it into the Member List.
     fn insert_member_from_rumor(&self, member: Member, mut health: Health) {
         let mut incremented_incarnation = false;
