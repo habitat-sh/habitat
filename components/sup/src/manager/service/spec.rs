@@ -81,7 +81,6 @@ pub struct ServiceSpec {
     pub topology: Topology,
     pub update_strategy: UpdateStrategy,
     pub binds: Vec<ServiceBind>,
-    #[serde(skip_deserializing, skip_serializing)]
     pub config_from: Option<PathBuf>,
     #[serde(
         deserialize_with = "deserialize_using_from_str",
@@ -333,8 +332,8 @@ mod test {
             update_strategy = "rolling"
             binds = ["cache:redis.cache@acmecorp", "db:postgres.app@acmecorp"]
             start_style = "persistent"
+            config_from = "/only/for/development"
 
-            config_from = "should not be parsed"
             extra_stuff = "should be ignored"
             "#;
         let spec = ServiceSpec::from_str(toml).unwrap();
@@ -348,7 +347,8 @@ mod test {
         assert_eq!(spec.binds,
                    vec![ServiceBind::from_str("cache:redis.cache@acmecorp").unwrap(),
                         ServiceBind::from_str("db:postgres.app@acmecorp").unwrap()]);
-        assert_eq!(spec.config_from, None);
+        assert_eq!(spec.config_from,
+                   Some(PathBuf::from("/only/for/development")));
         assert_eq!(spec.start_style, StartStyle::Persistent);
     }
 
@@ -414,7 +414,7 @@ mod test {
             update_strategy: UpdateStrategy::AtOnce,
             binds: vec![ServiceBind::from_str("cache:redis.cache@acmecorp").unwrap(),
                         ServiceBind::from_str("db:postgres.app@acmecorp").unwrap()],
-            config_from: Some(PathBuf::from("/")),
+            config_from: Some(PathBuf::from("/only/for/development")),
             desired_state: DesiredState::Down,
             start_style: StartStyle::Persistent,
         };
@@ -429,7 +429,7 @@ mod test {
         assert!(toml.contains(r#""db:postgres.app@acmecorp""#));
         assert!(toml.contains(r#"desired_state = "down""#));
         assert!(toml.contains(r#"start_style = "persistent""#));
-        assert!(!toml.contains(r#"config_from = "#));
+        assert!(toml.contains(r#"config_from = "/only/for/development""#));
     }
 
     #[test]
@@ -460,8 +460,8 @@ mod test {
             topology = "leader"
             update_strategy = "rolling"
             binds = ["cache:redis.cache@acmecorp", "db:postgres.app@acmecorp"]
+            config_from = "/only/for/development"
 
-            config_from = "should not be parsed"
             extra_stuff = "should be ignored"
             "#;
         file_from_str(&path, toml);
@@ -476,7 +476,8 @@ mod test {
         assert_eq!(spec.binds,
                    vec![ServiceBind::from_str("cache:redis.cache@acmecorp").unwrap(),
                         ServiceBind::from_str("db:postgres.app@acmecorp").unwrap()]);
-        assert_eq!(spec.config_from, None);
+        assert_eq!(spec.config_from,
+                   Some(PathBuf::from("/only/for/development")));
     }
 
     #[test]
@@ -541,7 +542,7 @@ mod test {
             update_strategy: UpdateStrategy::AtOnce,
             binds: vec![ServiceBind::from_str("cache:redis.cache@acmecorp").unwrap(),
                         ServiceBind::from_str("db:postgres.app@acmecorp").unwrap()],
-            config_from: Some(PathBuf::from("/")),
+            config_from: Some(PathBuf::from("/only/for/development")),
             desired_state: DesiredState::Down,
             start_style: StartStyle::Persistent,
         };
@@ -557,7 +558,7 @@ mod test {
         assert!(toml.contains(r#""db:postgres.app@acmecorp""#));
         assert!(toml.contains(r#"desired_state = "down""#));
         assert!(toml.contains(r#"start_style = "persistent""#));
-        assert!(!toml.contains(r#"config_from = "#));
+        assert!(toml.contains(r#"config_from = "/only/for/development""#));
     }
 
     #[test]
