@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::fs::File;
+use std::fs::{self, File, OpenOptions};
 use std::io::{self, BufReader, BufWriter, Read, Seek, SeekFrom, Write};
 use std::mem;
 use std::path::{Path, PathBuf};
 
 use byteorder::{ByteOrder, LittleEndian};
 use protobuf::{self, Message};
-use tempfile::NamedTempFile;
+use rand::{Rng, thread_rng};
 
 use error::{Result, Error};
 use member::{Health, Member, MemberList};
@@ -199,10 +199,19 @@ impl DatFile {
 
     pub fn write(&self, server: &Server) -> Result<usize> {
         let mut header = Header::default();
-        let file = NamedTempFile::new()
-            .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
+        let tmp_path = self.path
+            .with_extension(thread_rng()
+                                .gen_ascii_chars()
+                                .take(8)
+                                .collect::<String>());
         {
-            let mut writer = BufWriter::new(&file);
+            let file = OpenOptions::new()
+                .create(true)
+                .write(true)
+                .truncate(true)
+                .open(&tmp_path)
+                .map_err(|err| Error::DatFileIO(tmp_path.clone(), err))?;
+            let mut writer = BufWriter::new(file);
             self.init(&mut writer)?;
             header.member_len = self.write_member_list(&mut writer, &server.member_list)?;
             header.service_len = self.write_rumor_store(&mut writer, &server.service_store)?;
@@ -220,8 +229,8 @@ impl DatFile {
                 .flush()
                 .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
         }
-        file.persist(&self.path)
-            .map_err(|err| Error::DatFileIO(self.path.clone(), err.error))?;
+        fs::rename(&tmp_path, &self.path)
+            .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
         Ok(0)
     }
 
