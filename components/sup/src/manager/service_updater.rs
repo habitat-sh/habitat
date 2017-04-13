@@ -280,7 +280,7 @@ struct Worker {
 }
 
 impl Worker {
-    pub fn new(service: &Service) -> Self {
+    fn new(service: &Service) -> Self {
         Worker {
             current: service.package().ident().clone(),
             spec_ident: service.spec_ident.clone(),
@@ -294,10 +294,7 @@ impl Worker {
     /// Passing an optional package identifier will make the worker perform a run-once update to
     /// retrieve a specific version from a remote Depot. If no package identifier is specified,
     /// then the updater will poll until a newer more suitable package is found.
-    pub fn start(mut self,
-                 sg: &ServiceGroup,
-                 ident: Option<PackageIdent>)
-                 -> Receiver<PackageInstall> {
+    fn start(mut self, sg: &ServiceGroup, ident: Option<PackageIdent>) -> Receiver<PackageInstall> {
         let (tx, rx) = sync_channel(0);
         thread::Builder::new()
             .name(format!("service-updater-{}", sg))
