@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-declare var expect;
 import * as util from "./util";
 
 describe("util", () => {
@@ -25,7 +24,7 @@ describe("util", () => {
                     version: "1.0.0",
                     release: "197001010000",
                 })
-                ).to.eq("testorigin/testname/1.0.0/197001010000");
+                ).toEqual("testorigin/testname/1.0.0/197001010000");
             });
         });
 
@@ -35,7 +34,7 @@ describe("util", () => {
                     origin: "testorigin",
                     name: "testname",
                 })
-                ).to.eq("testorigin/testname");
+                ).toEqual("testorigin/testname");
             });
         });
     });
@@ -43,7 +42,7 @@ describe("util", () => {
     describe("parseKey", () => {
         describe("with an invalid key", () => {
             it("has a valid:false property", () => {
-                expect(util.parseKey("").valid).to.eq(false);
+                expect(util.parseKey("").valid).toEqual(false);
             });
         });
 
@@ -58,21 +57,21 @@ Jpmj1gD9oTFCgz3wSLltt/QB6RTmNRWoUTe+xhDTIHc=`;
             });
 
             it("has a name property", () => {
-                expect(util.parseKey(keyString).name).to.eq(
+                expect(util.parseKey(keyString).name).toEqual(
                     "core-20160423193745"
                 );
             });
 
             it("has a valid:true property", () => {
-                expect(util.parseKey(keyString).valid).to.eq(true);
+                expect(util.parseKey(keyString).valid).toEqual(true);
             });
 
             it("has an origin property", () => {
-                expect(util.parseKey(keyString).origin).to.eq("core");
+                expect(util.parseKey(keyString).origin).toEqual("core");
             });
 
             it("has a text property", () => {
-                expect(util.parseKey(keyString).text).to.eq(keyString);
+                expect(util.parseKey(keyString).text).toEqual(keyString);
             });
 
             describe("with a private key", () => {
@@ -84,21 +83,19 @@ NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
                 });
 
                 it("has an uploadPath property", () => {
-                    expect(util.parseKey(keyString).uploadPath).to.eq(
-                        "core/secret_keys/20160423193745"
-                    );
+                    expect(util.parseKey(keyString).uploadPath)
+                        .toEqual("core/secret_keys/20160423193745");
                 });
             });
 
             describe("with a public key", () => {
                 it("has a type property", () => {
-                    expect(util.parseKey(keyString).type).to.eq("SIG-PUB-1");
+                    expect(util.parseKey(keyString).type).toEqual("SIG-PUB-1");
                 });
 
                 it("has an uploadPath property", () => {
-                    expect(util.parseKey(keyString).uploadPath).to.eq(
-                        "core/keys/20160423193745"
-                    );
+                    expect(util.parseKey(keyString).uploadPath)
+                        .toEqual("core/keys/20160423193745");
                 });
             });
         });

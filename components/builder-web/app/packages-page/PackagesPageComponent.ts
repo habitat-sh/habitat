@@ -32,7 +32,7 @@ import {Subscription} from "rxjs/Subscription";
                     [ident]="packageParams()">
                 </hab-package-breadcrumbs>
             </h4>
-            <hab-spinner [isSpinning]="ui.loading" [onClick]="spinnerFetchPackages">
+            <hab-spinner [isSpinning]="ui.loading" (click)="spinnerFetchPackages">
             </hab-spinner>
         </div>
         <div class="page-body">

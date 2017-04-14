@@ -12,23 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Routes, RouterModule} from "@angular/router";
-import {ExplorePageComponent} from "./explore-page/ExplorePageComponent";
-import {OriginCreatePageComponent} from "./origin-create-page/OriginCreatePageComponent";
-import {OriginPageComponent} from "./origin-page/OriginPageComponent";
-import {OriginsPageComponent} from "./origins-page/OriginsPageComponent";
-import {OrganizationCreatePageComponent} from "./organization-create-page/OrganizationCreatePageComponent";
-import {OrganizationsPageComponent} from "./organizations-page/OrganizationsPageComponent";
-import {PackagePageComponent} from "./package-page/PackagePageComponent";
-import {PackagesPageComponent} from "./packages-page/PackagesPageComponent";
-import {ProjectCreatePageComponent} from "./project-create-page/ProjectCreatePageComponent";
-import {ProjectPageComponent} from "./project-page/ProjectPageComponent";
-import {ProjectsPageComponent} from "./projects-page/ProjectsPageComponent";
-import {SCMReposPageComponent} from "./scm-repos-page/SCMReposPageComponent";
-import {SignInPageComponent} from "./sign-in-page/SignInPageComponent";
-import {ProjectSettingsPageComponent} from "./project-settings-page/ProjectSettingsPageComponent";
+import { Routes, RouterModule } from "@angular/router";
+import { ExplorePageComponent } from "./explore-page/ExplorePageComponent";
+import { OriginCreatePageComponent } from "./origin-create-page/OriginCreatePageComponent";
+import { OriginPageComponent } from "./origin-page/OriginPageComponent";
+import { OriginsPageComponent } from "./origins-page/OriginsPageComponent";
+import { OrganizationCreatePageComponent } from "./organization-create-page/OrganizationCreatePageComponent";
+import { OrganizationsPageComponent } from "./organizations-page/OrganizationsPageComponent";
+import { PackagePageComponent } from "./package-page/PackagePageComponent";
+import { PackagesPageComponent } from "./packages-page/PackagesPageComponent";
+import { ProjectCreatePageComponent } from "./project-create-page/ProjectCreatePageComponent";
+import { ProjectPageComponent } from "./project-page/ProjectPageComponent";
+import { ProjectsPageComponent } from "./projects-page/ProjectsPageComponent";
+import { SCMReposPageComponent } from "./scm-repos-page/SCMReposPageComponent";
+import { SignInPageComponent } from "./sign-in-page/SignInPageComponent";
+import { ProjectSettingsPageComponent } from "./project-settings-page/ProjectSettingsPageComponent";
 
-const appRoutes: Routes = [
+export const routes: Routes = [
     {
         path: "",
         redirectTo: "/pkgs/core",
@@ -112,4 +112,4 @@ const appRoutes: Routes = [
     }
 ];
 
-export const routing = RouterModule.forRoot(appRoutes);
+export const routing = RouterModule.forRoot(routes);
