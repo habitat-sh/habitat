@@ -4,19 +4,23 @@ module.exports = function (config) {
     config.set({
         // frameworks to use
         // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-        frameworks: ["chai", "mocha", "sinon"],
-
+        frameworks: ["jasmine"],
 
         // list of files / patterns to load in the browser
         files: [
           "node_modules/core-js/client/core.js",
+          "node_modules/zone.js/dist/zone.js",
+          "node_modules/zone.js/dist/async-test.js",
+          "node_modules/zone.js/dist/fake-async-test.js",
+          "node_modules/zone.js/dist/long-stack-trace-zone.js",
+          "node_modules/zone.js/dist/proxy.js",
+          "node_modules/zone.js/dist/sync-test.js",
+          "node_modules/zone.js/dist/jasmine-patch.js",
           "app/tests-entry.ts",
         ],
 
         plugins: [
-            require("karma-mocha"),
-            require("karma-chai"),
-            require("karma-sinon"),
+            require("karma-jasmine"),
             require("karma-phantomjs-launcher"),
             require("karma-webpack"),
             require("karma-sourcemap-loader"),
@@ -55,24 +59,19 @@ module.exports = function (config) {
         // web server port
         port: 9876,
 
-
         // enable / disable colors in the output (reporters and logs)
         colors: true,
-
 
         // level of logging
         // possible values: config.LOG_DISABLE || config.LOG_ERROR || config.LOG_WARN || config.LOG_INFO || config.LOG_DEBUG
         logLevel: config.LOG_INFO,
 
-
         // enable / disable watching file and executing tests whenever any file changes
         autoWatch: true,
-
 
         // start these browsers
         // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
         browsers: ["PhantomJS"],
-
 
         // Continuous Integration mode
         // if true, Karma captures browsers, runs the tests and exits

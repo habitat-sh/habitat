@@ -12,15 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import "reflect-metadata";
+let testing = require("@angular/core/testing");
+let browser = require("@angular/platform-browser-dynamic/testing");
 
-// Expose chai.expect globally for tests
-declare var expect: Function;
-expect = chai.expect;
+// Initialize the test environment
+testing.TestBed.initTestEnvironment(
+  browser.BrowserDynamicTestingModule,
+  browser.platformBrowserDynamicTesting()
+);
 
 // Ensure config global exists
 window["Habitat"] = { config: {} };
 
 // Load all tests
-let testContext = (<{ context?: Function }>require).context("./", true, /\.test\.ts/);
+let testContext = (<{ context?: Function }>require).context("./", true, /\.(test|spec)\.ts$/);
 testContext.keys().forEach(testContext);

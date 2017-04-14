@@ -12,14 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-declare var expect;
 import * as actions from "./actions/index";
 
 describe("actions", () => {
     describe("populateBuildLog", () => {
         describe("when data is undefined", () => {
             it("has an undefined payload", () => {
-                expect(actions.populateBuildLog(1, undefined)).to.deep.equal({
+                expect(actions.populateBuildLog(1, undefined)).toEqual({
                     type: actions.POPULATE_BUILD_LOG,
                     payload: { id: 1, data: undefined },
                 });
@@ -28,7 +27,7 @@ describe("actions", () => {
 
         describe("when data is a string", () => {
             it("has a string payload", () => {
-                expect(actions.populateBuildLog(1, "hello")).to.deep.equal({
+                expect(actions.populateBuildLog(1, "hello")).toEqual({
                     type: actions.POPULATE_BUILD_LOG,
                     payload: { id: 1, data: "hello" },
                 });

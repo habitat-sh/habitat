@@ -36,25 +36,10 @@ Run the unit tests with `npm run test-unit`. They also run in the background
 when running `npm start`.
 
 Files ending with .test.ts are unit tested. We use
-[Karma](https://karma-runner.github.io/0.13/index.html),
-[Mocha](https://mochajs.org/), and [Chai](http://chaijs.com/).
+[Karma](https://karma-runner.github.io/0.13/index.html) and
+[Jasmine](https://jasmine.github.io/).
 
 See [app/util.test.ts](app/util.test.ts) for an example.
-
-#### End-to-end Tests
-
-*THESE DO NOT PASS AND NEED TO BE REMOVED OR FIXED.*
-
-Run the end-to-end tests with `npm run test-e2e`.
-
-Files ending with .test.ts in the test/e2e directory are tested. We use
-[Protractor](https://angular.github.io/protractor/#/),
-[Mocha](https://mochajs.org/), and [Chai](http://chaijs.com/).
-
-It uses Chrome WebDriver, so Google Chrome must be installed to run the tests.
-
-By default it uses http://localhost:3000 for the URL, but you can change this
-by setting the `URL` environment variable to something else.
 
 ### Tasks
 
