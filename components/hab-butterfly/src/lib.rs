@@ -23,7 +23,6 @@ extern crate ansi_term;
 #[macro_use]
 extern crate clap;
 extern crate hyper;
-#[macro_use]
 extern crate log;
 extern crate pbr;
 extern crate retry;

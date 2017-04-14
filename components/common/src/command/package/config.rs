@@ -41,7 +41,7 @@ pub fn start<P>(ident: &PackageIdent, fs_root_path: P) -> Result<()>
             writeln!(&mut io::stderr(),
                      "No '{}' found for {}",
                      DEFAULT_CFG_FILE,
-                     &package.ident)
+                     package.ident())
                     .expect("Failed printing to stderr")
         }
     }
