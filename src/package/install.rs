@@ -36,8 +36,8 @@ pub const DEFAULT_CFG_FILE: &'static str = "default.toml";
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct PackageInstall {
     pub ident: PackageIdent,
-    pub fs_root_path: PathBuf,
-    pub package_root_path: PathBuf,
+    fs_root_path: PathBuf,
+    package_root_path: PathBuf,
     pub installed_path: PathBuf,
 }
 
@@ -207,7 +207,7 @@ impl PackageInstall {
         }
     }
 
-    pub fn binds_optional(&self) -> Result<Vec<Bind>> {
+    fn binds_optional(&self) -> Result<Vec<Bind>> {
         match self.read_metafile(MetaFile::BindsOptional) {
             Ok(body) => {
                 let mut binds = Vec::new();
@@ -245,7 +245,7 @@ impl PackageInstall {
         }
     }
 
-    pub fn deps(&self) -> Result<Vec<PackageIdent>> {
+    fn deps(&self) -> Result<Vec<PackageIdent>> {
         self.read_deps(MetaFile::Deps)
     }
 
@@ -258,7 +258,7 @@ impl PackageInstall {
     /// # Failures
     ///
     /// * The package contains a Environment metafile but it could not be read or it was malformed.
-    pub fn environment(&self) -> Result<HashMap<String, String>> {
+    fn environment(&self) -> Result<HashMap<String, String>> {
         let mut m = HashMap::new();
         match self.read_metafile(MetaFile::Environment) {
             Ok(body) => {
@@ -288,7 +288,7 @@ impl PackageInstall {
     ///
     /// * The package contains a EnvironmentSep metafile but it could not be read or it was
     ///   malformed.
-    pub fn environment_sep(&self) -> Result<HashMap<String, String>> {
+    fn environment_sep(&self) -> Result<HashMap<String, String>> {
         let mut m = HashMap::new();
         match self.read_metafile(MetaFile::EnvironmentSep) {
             Ok(body) => {
@@ -533,7 +533,7 @@ impl PackageInstall {
         }
     }
 
-    pub fn target(&self) -> Result<PackageTarget> {
+    fn target(&self) -> Result<PackageTarget> {
         match self.read_metafile(MetaFile::Target) {
             Ok(body) => PackageTarget::from_str(&body),
             Err(e) => Err(e),
