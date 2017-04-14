@@ -24,7 +24,7 @@ use std::str::FromStr;
 use std::sync::Arc;
 use std::thread::{self, JoinHandle};
 
-use hcore::service::ServiceGroup;
+use hcore::service::ServiceGroupIdent;
 use iron::prelude::*;
 use iron::{headers, status, typemap};
 use iron::modifiers::Header;
@@ -272,17 +272,17 @@ impl Into<status::Status> for HealthCheck {
     }
 }
 
-fn build_service_group(req: &mut Request) -> Result<ServiceGroup> {
-    let sg = ServiceGroup::new(req.extensions
-                                   .get::<Router>()
-                                   .unwrap()
-                                   .find("svc")
-                                   .unwrap_or(""),
-                               req.extensions
-                                   .get::<Router>()
-                                   .unwrap()
-                                   .find("group")
-                                   .unwrap_or(""),
-                               req.extensions.get::<Router>().unwrap().find("org"))?;
-    Ok(sg)
+fn build_service_group(req: &mut Request) -> Result<ServiceGroupIdent> {
+    let sg_id = ServiceGroupIdent::new(req.extensions
+                                           .get::<Router>()
+                                           .unwrap()
+                                           .find("svc")
+                                           .unwrap_or(""),
+                                       req.extensions
+                                           .get::<Router>()
+                                           .unwrap()
+                                           .find("group")
+                                           .unwrap_or(""),
+                                       req.extensions.get::<Router>().unwrap().find("org"))?;
+    Ok(sg_id)
 }

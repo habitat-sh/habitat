@@ -20,7 +20,7 @@ use std::result;
 use std::str::FromStr;
 
 use hcore::package::{PackageIdent, PackageInstall};
-use hcore::service::ServiceGroup;
+use hcore::service::ServiceGroupIdent;
 use hcore::url::DEFAULT_DEPOT_URL;
 use hcore::util::{deserialize_using_from_str, serialize_using_to_string};
 use rand::{Rng, thread_rng};
@@ -212,7 +212,7 @@ impl FromStr for ServiceSpec {
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct ServiceBind {
     pub name: String,
-    pub service_group: ServiceGroup,
+    pub service_group: ServiceGroupIdent,
 }
 
 impl FromStr for ServiceBind {
@@ -226,7 +226,7 @@ impl FromStr for ServiceBind {
 
         Ok(ServiceBind {
                name: values[0].to_string(),
-               service_group: ServiceGroup::from_str(values[1])?,
+               service_group: ServiceGroupIdent::from_str(values[1])?,
            })
     }
 }
@@ -296,7 +296,7 @@ mod test {
 
     use hcore::error::Error as HError;
     use hcore::package::PackageIdent;
-    use hcore::service::ServiceGroup;
+    use hcore::service::ServiceGroupIdent;
     use tempdir::TempDir;
     use toml;
 
@@ -594,7 +594,7 @@ mod test {
 
         assert_eq!(bind.name, String::from("name"));
         assert_eq!(bind.service_group,
-                   ServiceGroup::from_str("service.group@organization").unwrap());
+                   ServiceGroupIdent::from_str("service.group@organization").unwrap());
     }
 
     #[test]
@@ -604,7 +604,7 @@ mod test {
 
         assert_eq!(bind.name, String::from("name"));
         assert_eq!(bind.service_group,
-                   ServiceGroup::from_str("service.group").unwrap());
+                   ServiceGroupIdent::from_str("service.group").unwrap());
     }
 
     #[test]
@@ -629,7 +629,9 @@ mod test {
         match ServiceBind::from_str(bind_str) {
             Err(e) => {
                 match e.err {
-                    HabitatCore(HError::InvalidServiceGroup(val)) => assert_eq!("this:is:bad", val),
+                    HabitatCore(HError::InvalidServiceGroupIdent(val)) => {
+                        assert_eq!("this:is:bad", val)
+                    }
                     wrong => panic!("Unexpected error returned: {:?}", wrong),
                 }
             }
@@ -644,7 +646,7 @@ mod test {
         match ServiceBind::from_str(bind_str) {
             Err(e) => {
                 match e.err {
-                    HabitatCore(HError::InvalidServiceGroup(val)) => {
+                    HabitatCore(HError::InvalidServiceGroupIdent(val)) => {
                         assert_eq!("nosuchservicegroup@nope", val)
                     }
                     wrong => panic!("Unexpected error returned: {:?}", wrong),
@@ -658,7 +660,7 @@ mod test {
     fn service_bind_to_string() {
         let bind = ServiceBind {
             name: String::from("name"),
-            service_group: ServiceGroup::from_str("service.group").unwrap(),
+            service_group: ServiceGroupIdent::from_str("service.group").unwrap(),
         };
 
         assert_eq!("name:service.group", bind.to_string());
@@ -688,7 +690,7 @@ mod test {
         let data = Data {
             key: ServiceBind {
                 name: String::from("name"),
-                service_group: ServiceGroup::from_str("service.group").unwrap(),
+                service_group: ServiceGroupIdent::from_str("service.group").unwrap(),
             },
         };
         let toml = toml::to_string(&data).unwrap();

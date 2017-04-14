@@ -33,7 +33,7 @@ use std::thread;
 use hcore::os::process::{HabChild, ExitStatusExt};
 use hcore::util::perm::set_owner;
 use hcore::package::PackageInstall;
-use hcore::service::ServiceGroup;
+use hcore::service::ServiceGroupIdent;
 use serde::{Serialize, Serializer};
 use serde::ser::SerializeStruct;
 use time::SteadyTime;
@@ -111,7 +111,7 @@ pub struct Supervisor {
 
 impl Supervisor {
     pub fn new(package: Arc<RwLock<PackageInstall>>,
-               service_group: &ServiceGroup,
+               service_group: &ServiceGroupIdent,
                runtime_config: RuntimeConfig)
                -> Supervisor {
         Supervisor {

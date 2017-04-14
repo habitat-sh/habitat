@@ -34,7 +34,7 @@ use habitat_butterfly::rumor::service::{Service, SysInfo};
 use habitat_butterfly::rumor::service_config::ServiceConfig;
 use habitat_butterfly::rumor::service_file::ServiceFile;
 use habitat_butterfly::message::swim::Election_Status;
-use habitat_core::service::ServiceGroup;
+use habitat_core::service::ServiceGroupIdent;
 use habitat_core::package::{Identifiable, PackageIdent};
 use habitat_core::crypto::keys::sym_key::SymKey;
 use habitat_butterfly::trace::Trace;
@@ -44,7 +44,7 @@ static SERVER_PORT: AtomicUsize = ATOMIC_USIZE_INIT;
 #[derive(Debug)]
 struct NSuitability(u64);
 impl Suitability for NSuitability {
-    fn get(&self, _service_group: &ServiceGroup) -> u64 {
+    fn get(&self, _sg_id: &ServiceGroupIdent) -> u64 {
         self.0
     }
 }
@@ -451,12 +451,12 @@ impl SwimNet {
     }
 
     pub fn add_service(&mut self, member: usize, package: &str) {
-        let ident = PackageIdent::from_str(package)
+        let pk_id = PackageIdent::from_str(package)
             .expect("package needs to be a fully qualified package identifier");
-        let sg = ServiceGroup::new(ident.name(), "prod", None).unwrap();
+        let sg_id = ServiceGroupIdent::new(pk_id.name(), "prod", None).unwrap();
         let s = Service::new(self[member].member_id().to_string(),
-                             &ident,
-                             &sg,
+                             &pk_id,
+                             &sg_id,
                              &SysInfo::default(),
                              None);
         self[member].insert_service(s);
@@ -465,7 +465,7 @@ impl SwimNet {
     pub fn add_service_config(&mut self, member: usize, service: &str, config: &str) {
         let config_bytes: Vec<u8> = Vec::from(config);
         let s = ServiceConfig::new(self[member].member_id(),
-                                   ServiceGroup::new(service, "prod", None).unwrap(),
+                                   ServiceGroupIdent::new(service, "prod", None).unwrap(),
                                    config_bytes);
         self[member].insert_service_config(s);
     }
@@ -473,14 +473,14 @@ impl SwimNet {
     pub fn add_service_file(&mut self, member: usize, service: &str, filename: &str, body: &str) {
         let body_bytes: Vec<u8> = Vec::from(body);
         let s = ServiceFile::new(self[member].member_id(),
-                                 ServiceGroup::new(service, "prod", None).unwrap(),
+                                 ServiceGroupIdent::new(service, "prod", None).unwrap(),
                                  filename,
                                  body_bytes);
         self[member].insert_service_file(s);
     }
 
     pub fn add_election(&mut self, member: usize, service: &str) {
-        self[member].start_election(ServiceGroup::new(service, "prod", None).unwrap(), 0);
+        self[member].start_election(ServiceGroupIdent::new(service, "prod", None).unwrap(), 0);
     }
 }
 

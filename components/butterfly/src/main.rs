@@ -25,12 +25,12 @@ use std::path::PathBuf;
 
 use habitat_butterfly::{server, member, trace};
 use habitat_butterfly::server::Suitability;
-use habitat_core::service::ServiceGroup;
+use habitat_core::service::ServiceGroupIdent;
 
 #[derive(Debug)]
 struct ZeroSuitability;
 impl Suitability for ZeroSuitability {
-    fn get(&self, _service_group: &ServiceGroup) -> u64 {
+    fn get(&self, _sg_id: &ServiceGroupIdent) -> u64 {
         0
     }
 }

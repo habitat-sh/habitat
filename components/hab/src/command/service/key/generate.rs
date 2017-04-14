@@ -16,13 +16,13 @@ use std::path::Path;
 
 use common::ui::UI;
 use hcore::crypto::BoxKeyPair;
-use hcore::service::ServiceGroup;
+use hcore::service::ServiceGroupIdent;
 
 use error::Result;
 
-pub fn start(ui: &mut UI, org: &str, service_group: &ServiceGroup, cache: &Path) -> Result<()> {
-    try!(ui.begin(format!("Generating service key for {} in {}", &service_group, org)));
-    let pair = try!(BoxKeyPair::generate_pair_for_service(org, &service_group.to_string(), cache));
+pub fn start(ui: &mut UI, org: &str, sg_id: &ServiceGroupIdent, cache: &Path) -> Result<()> {
+    try!(ui.begin(format!("Generating service key for {} in {}", &sg_id, org)));
+    let pair = try!(BoxKeyPair::generate_pair_for_service(org, &sg_id.to_string(), cache));
     try!(ui.end(format!("Generated service key pair {}.", &pair.name_with_rev())));
     Ok(())
 }

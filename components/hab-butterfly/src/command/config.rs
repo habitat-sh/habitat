@@ -23,13 +23,13 @@ pub mod apply {
     use butterfly::client::Client;
     use common::ui::{Status, UI};
     use hcore::crypto::{SymKey, BoxKeyPair};
-    use hcore::service::ServiceGroup;
+    use hcore::service::ServiceGroupIdent;
     use toml;
 
     use error::{Error, Result};
 
     pub fn start(ui: &mut UI,
-                 sg: &ServiceGroup,
+                 sg_id: &ServiceGroupIdent,
                  number: u64,
                  file_path: Option<&Path>,
                  peers: &Vec<String>,
@@ -37,7 +37,7 @@ pub mod apply {
                  user_pair: Option<&BoxKeyPair>,
                  service_pair: Option<&BoxKeyPair>)
                  -> Result<()> {
-        try!(ui.begin(format!("Applying configuration for {} incarnation {}", sg, number,)));
+        try!(ui.begin(format!("Applying configuration for {} incarnation {}", sg_id, number,)));
 
         try!(ui.status(Status::Creating, format!("service configuration")));
 
@@ -79,7 +79,7 @@ pub mod apply {
             let mut client = try!(Client::new(peer, ring_key.map(|k| k.clone()))
                 .map_err(|e| Error::ButterflyError(format!("{}", e))));
             try!(client
-                     .send_service_config(sg.clone(), number, body.clone(), encrypted)
+                     .send_service_config(sg_id.clone(), number, body.clone(), encrypted)
                      .map_err(|e| Error::ButterflyError(format!("{}", e))));
 
             // please take a moment to weep over the following line

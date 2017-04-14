@@ -28,7 +28,7 @@ use ansi_term::Colour::Purple;
 use butterfly::rumor::service::SysInfo;
 use hcore::crypto;
 use hcore::package::{PackageIdent, PackageInstall};
-use hcore::service::ServiceGroup;
+use hcore::service::ServiceGroupIdent;
 use toml;
 
 use config::GossipListenAddr;
@@ -157,9 +157,9 @@ impl ServiceConfig {
         self.cfg.to_exported(&self.pkg.exports)
     }
 
-    pub fn populate(&mut self, service_group: &ServiceGroup, census_list: &CensusList) {
+    pub fn populate(&mut self, sg_id: &ServiceGroupIdent, census_list: &CensusList) {
         self.bind.populate(&self.supported_bindings, census_list);
-        self.svc.populate(service_group, census_list);
+        self.svc.populate(sg_id, census_list);
     }
 
     pub fn reload_gossip(&mut self) -> Result<()> {
@@ -278,9 +278,9 @@ impl Bind {
 struct Svc(toml::value::Table);
 
 impl Svc {
-    fn populate(&mut self, service_group: &ServiceGroup, census_list: &CensusList) {
+    fn populate(&mut self, sg_id: &ServiceGroupIdent, census_list: &CensusList) {
         let mut top = service_entry(census_list
-                                        .get(&*service_group)
+                                        .get(&*sg_id)
                                         .expect("Service Group's census entry missing from list!"));
         let mut all: Vec<toml::Value> = Vec::new();
         let mut named = toml::value::Table::new();

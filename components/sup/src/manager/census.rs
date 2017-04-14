@@ -17,7 +17,7 @@ use std::ops::{Deref, DerefMut};
 use std::str::{self, FromStr};
 
 use hcore::package::PackageIdent;
-use hcore::service::ServiceGroup;
+use hcore::service::ServiceGroupIdent;
 use butterfly;
 use butterfly::rumor::{Service as ServiceRumor, Election as ElectionRumor};
 use butterfly::rumor::election::Election_Status;
@@ -242,8 +242,8 @@ impl CensusEntry {
 
     pub fn populate_from_service(&mut self, rumor: &ServiceRumor) {
         self.set_member_id(String::from(rumor.get_member_id()));
-        let sg = match ServiceGroup::from_str(rumor.get_service_group()) {
-            Ok(sg) => sg,
+        let sg_id = match ServiceGroupIdent::from_str(rumor.get_service_group()) {
+            Ok(sg_id) => sg_id,
             Err(e) => {
                 outputln!("Malformed service group; cannot populate configuration data. \
                            Aborting.: {}",
@@ -251,9 +251,9 @@ impl CensusEntry {
                 return;
             }
         };
-        self.set_service(sg.service().to_string());
-        self.set_group(sg.group().to_string());
-        if let Some(org) = sg.org() {
+        self.set_service(sg_id.service().to_string());
+        self.set_group(sg_id.group().to_string());
+        if let Some(org) = sg_id.org() {
             self.set_org(org.to_string());
         }
         match PackageIdent::from_str(rumor.get_pkg()) {
@@ -540,7 +540,7 @@ mod tests {
 
         use butterfly::rumor::service::{Service, SysInfo};
         use butterfly::member::Member;
-        use hcore::service::ServiceGroup;
+        use hcore::service::ServiceGroupIdent;
         use hcore::package::ident::PackageIdent;
 
         use manager::census::CensusEntry;
@@ -557,10 +557,10 @@ mod tests {
         fn populate_from_service_rumor() {
             let mut ce = CensusEntry::default();
             let ident = PackageIdent::from_str("core/overwatch/1.2.3/20161208121212").unwrap();
-            let sg = ServiceGroup::new("overwatch", "times", Some("ofgrace")).unwrap();
+            let sg_id = ServiceGroupIdent::new("overwatch", "times", Some("ofgrace")).unwrap();
             let service = Service::new("neurosis".to_string(),
                                        &ident,
-                                       &sg,
+                                       &sg_id,
                                        &SysInfo::default(),
                                        None);
             ce.populate_from_service(&service);

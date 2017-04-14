@@ -20,7 +20,7 @@ use std::cmp::Ordering;
 use std::mem;
 use std::ops::{Deref, DerefMut};
 
-use habitat_core::service::ServiceGroup;
+use habitat_core::service::ServiceGroupIdent;
 use habitat_core::package::Identifiable;
 use protobuf::{self, Message};
 use toml;
@@ -81,7 +81,7 @@ impl Service {
     /// Creates a new Service.
     pub fn new<T, U>(member_id: U,
                      package: &T,
-                     service_group: &ServiceGroup,
+                     service_group: &ServiceGroupIdent,
                      sys: &SysInfo,
                      cfg: Option<&toml::value::Table>)
                      -> Self
@@ -170,7 +170,7 @@ mod tests {
     use std::cmp::Ordering;
     use std::str::FromStr;
 
-    use habitat_core::service::ServiceGroup;
+    use habitat_core::service::ServiceGroupIdent;
     use habitat_core::package::{Identifiable, PackageIdent};
 
     use super::Service;
@@ -179,7 +179,7 @@ mod tests {
 
     fn create_service(member_id: &str) -> Service {
         let pkg = PackageIdent::from_str("core/neurosis/1.2.3/20161208121212").unwrap();
-        let sg = ServiceGroup::new(pkg.name(), "production", None).unwrap();
+        let sg = ServiceGroupIdent::new(pkg.name(), "production", None).unwrap();
         Service::new(member_id.to_string(), &pkg, &sg, &SysInfo::default(), None)
     }
 
@@ -265,7 +265,7 @@ mod tests {
     #[should_panic]
     fn service_package_name_mismatch() {
         let ident = PackageIdent::from_str("core/overwatch/1.2.3/20161208121212").unwrap();
-        let sg = ServiceGroup::new("counter-strike", "times", Some("ofgrace")).unwrap();
+        let sg = ServiceGroupIdent::new("counter-strike", "times", Some("ofgrace")).unwrap();
         Service::new("bad-member".to_string(),
                      &ident,
                      &sg,

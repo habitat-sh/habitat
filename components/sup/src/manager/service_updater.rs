@@ -22,7 +22,7 @@ use butterfly;
 use common::ui::UI;
 use depot_client;
 use hcore::package::{PackageIdent, PackageInstall};
-use hcore::service::ServiceGroup;
+use hcore::service::ServiceGroupIdent;
 use hcore::crypto::default_cache_key_path;
 use hcore::fs::{CACHE_ARTIFACT_PATH, FS_ROOT_PATH};
 use time::{SteadyTime, Duration as TimeDuration};
@@ -35,7 +35,7 @@ use manager::service::{Service, Topology, UpdateStrategy};
 static LOGKEY: &'static str = "SU";
 const UPDATE_STRATEGY_FREQUENCY_MS: i64 = 60_000;
 
-type UpdaterStateList = HashMap<ServiceGroup, UpdaterState>;
+type UpdaterStateList = HashMap<ServiceGroupIdent, UpdaterState>;
 
 enum UpdaterState {
     AtOnce(Receiver<PackageInstall>),
@@ -294,7 +294,10 @@ impl Worker {
     /// Passing an optional package identifier will make the worker perform a run-once update to
     /// retrieve a specific version from a remote Depot. If no package identifier is specified,
     /// then the updater will poll until a newer more suitable package is found.
-    fn start(mut self, sg: &ServiceGroup, ident: Option<PackageIdent>) -> Receiver<PackageInstall> {
+    fn start(mut self,
+             sg: &ServiceGroupIdent,
+             ident: Option<PackageIdent>)
+             -> Receiver<PackageInstall> {
         let (tx, rx) = sync_channel(0);
         thread::Builder::new()
             .name(format!("service-updater-{}", sg))

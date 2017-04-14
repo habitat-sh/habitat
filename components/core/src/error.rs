@@ -86,7 +86,7 @@ pub enum Error {
     /// Occurs when validating a package target for an unsupported platform.
     InvalidPlatform(String),
     /// Occurs when a service group string cannot be successfully parsed.
-    InvalidServiceGroup(String),
+    InvalidServiceGroupIdent(String),
     /// Occurs when making lower level IO calls.
     IO(io::Error),
     /// Occurs when a BIND or BIND_OPTIONAL MetaFile is read and contains a bad entry.
@@ -220,7 +220,7 @@ impl fmt::Display for Error {
             }
             Error::InvalidArchitecture(ref e) => format!("Invalid architecture: {}.", e),
             Error::InvalidPlatform(ref e) => format!("Invalid platform: {}.", e),
-            Error::InvalidServiceGroup(ref e) => {
+            Error::InvalidServiceGroupIdent(ref e) => {
                 format!("Invalid service group: {}. A valid service group string is in the form \
                          service.group (example: redis.production)",
                         e)
@@ -278,7 +278,7 @@ impl error::Error for Error {
             Error::ConfigInvalidArrayTarget(_) => {
                 "Invalid array value of targets containing string fields and values encountered \
                  while parsing a configuration file"
-            }            
+            }
             Error::ConfigInvalidArrayU16(_) => "Invalid array value of u16 entries encountered while parsing a configuration file",
             Error::ConfigInvalidArrayU32(_) => "Invalid array value of u32 entries encountered while parsing a configuration file",
             Error::ConfigInvalidArrayU64(_) => "Invalid array value of u64 entries encountered while parsing a configuration file",
@@ -308,7 +308,7 @@ impl error::Error for Error {
             Error::InvalidPackageTarget(_) => "Package targets must be in architecture-platform format (example: x86_64-linux)",
             Error::InvalidArchitecture(_) => "Unsupported target architecture supplied.",
             Error::InvalidPlatform(_) => "Unsupported target platform supplied.",
-            Error::InvalidServiceGroup(_) => "Service group strings must be in service.group format (example: redis.production)",
+            Error::InvalidServiceGroupIdent(_) => "Service group strings must be in service.group format (example: redis.production)",
             Error::IO(ref err) => err.description(),
             Error::MetaFileBadBind => "Bad value parsed from BIND or BIND_OPTIONAL MetaFile",
             Error::MetaFileMalformed(_) => "MetaFile didn't contain a valid UTF-8 string",

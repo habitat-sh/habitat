@@ -17,7 +17,7 @@
 //! This will connect to a given butterfly members `Pull` thread, and inject a rumor.
 
 use habitat_core::crypto::SymKey;
-use habitat_core::service::ServiceGroup;
+use habitat_core::service::ServiceGroupIdent;
 use zmq;
 
 use ZMQ_CONTEXT;
@@ -65,12 +65,12 @@ impl Client {
 
     /// Create a service configuration and send it to the server.
     pub fn send_service_config(&mut self,
-                               service_group: ServiceGroup,
+                               sg_id: ServiceGroupIdent,
                                incarnation: u64,
                                config: Vec<u8>,
                                encrypted: bool)
                                -> Result<()> {
-        let mut sc = ServiceConfig::new("butterflyclient", service_group, config);
+        let mut sc = ServiceConfig::new("butterflyclient", sg_id, config);
         sc.set_incarnation(incarnation);
         sc.set_encrypted(encrypted);
         self.send(sc)
@@ -78,13 +78,13 @@ impl Client {
 
     /// Create a service file and send it to the server.
     pub fn send_service_file<S: Into<String>>(&mut self,
-                                              service_group: ServiceGroup,
+                                              sg_id: ServiceGroupIdent,
                                               filename: S,
                                               incarnation: u64,
                                               body: Vec<u8>,
                                               encrypted: bool)
                                               -> Result<()> {
-        let mut sf = ServiceFile::new("butterflyclient", service_group, filename, body);
+        let mut sf = ServiceFile::new("butterflyclient", sg_id, filename, body);
         sf.set_incarnation(incarnation);
         sf.set_encrypted(encrypted);
         self.send(sf)

@@ -22,7 +22,7 @@ use std::ops::{Deref, DerefMut};
 use std::str::{self, FromStr};
 
 use habitat_core::crypto::{BoxKeyPair, default_cache_key_path};
-use habitat_core::service::ServiceGroup;
+use habitat_core::service::ServiceGroupIdent;
 use protobuf::{self, Message};
 use toml;
 
@@ -81,7 +81,7 @@ impl DerefMut for ServiceConfig {
 
 impl ServiceConfig {
     /// Creates a new ServiceConfig.
-    pub fn new<S1>(member_id: S1, service_group: ServiceGroup, config: Vec<u8>) -> Self
+    pub fn new<S1>(member_id: S1, sg_id: ServiceGroupIdent, config: Vec<u8>) -> Self
         where S1: Into<String>
     {
         let mut rumor = ProtoRumor::new();
@@ -90,7 +90,7 @@ impl ServiceConfig {
         rumor.set_field_type(ProtoRumor_Type::ServiceConfig);
 
         let mut proto = ProtoServiceConfig::new();
-        proto.set_service_group(format!("{}", service_group));
+        proto.set_service_group(format!("{}", sg_id));
         proto.set_incarnation(0);
         proto.set_config(config);
 
@@ -167,7 +167,7 @@ mod tests {
     use std::cmp::Ordering;
     use std::str::FromStr;
 
-    use habitat_core::service::ServiceGroup;
+    use habitat_core::service::ServiceGroupIdent;
     use toml;
 
     use super::ServiceConfig;
@@ -176,7 +176,7 @@ mod tests {
     fn create_service_config(member_id: &str, config: &str) -> ServiceConfig {
         let config_bytes: Vec<u8> = Vec::from(config);
         ServiceConfig::new(member_id,
-                           ServiceGroup::new("neurosis", "production", None).unwrap(),
+                           ServiceGroupIdent::new("neurosis", "production", None).unwrap(),
                            config_bytes)
     }
 

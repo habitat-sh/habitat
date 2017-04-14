@@ -33,7 +33,7 @@ use butterfly::trace::Trace;
 use butterfly::server::timing::Timing;
 use butterfly::server::Suitability;
 use hcore::crypto::{default_cache_key_path, SymKey};
-use hcore::service::ServiceGroup;
+use hcore::service::ServiceGroupIdent;
 use hcore::os::process;
 use serde_json;
 use time::{SteadyTime, Duration as TimeDuration};
@@ -85,9 +85,9 @@ impl FsCfg {
         }
     }
 
-    pub fn health_check_cache(&self, service_group: &ServiceGroup) -> PathBuf {
+    pub fn health_check_cache(&self, sg_id: &ServiceGroupIdent) -> PathBuf {
         self.data_path
-            .join(format!("{}.health", service_group.service()))
+            .join(format!("{}.health", sg_id.service()))
     }
 }
 
@@ -669,12 +669,12 @@ impl Manager {
 struct SuitabilityLookup(Arc<RwLock<Vec<Service>>>);
 
 impl Suitability for SuitabilityLookup {
-    fn get(&self, service_group: &ServiceGroup) -> u64 {
+    fn get(&self, sg_id: &ServiceGroupIdent) -> u64 {
         self.0
             .read()
             .expect("Services lock is poisoned!")
             .iter()
-            .find(|s| s.service_group == *service_group)
+            .find(|s| s.service_group == *sg_id)
             .and_then(|s| s.suitability())
             .unwrap_or(u64::min_value())
     }

@@ -16,7 +16,7 @@ use std::path::Path;
 use std::result;
 
 use clap::App;
-use hcore::service::ServiceGroup;
+use hcore::service::ServiceGroupIdent;
 
 pub fn get() -> App<'static, 'static> {
     clap_app!(hab_butterfly =>
@@ -87,7 +87,7 @@ fn file_exists_or_stdin(val: String) -> result::Result<(), String> {
 }
 
 fn valid_service_group(val: String) -> result::Result<(), String> {
-    match ServiceGroup::validate(&val) {
+    match ServiceGroupIdent::validate(&val) {
         Ok(()) => Ok(()),
         Err(err) => Err(err.to_string()),
     }

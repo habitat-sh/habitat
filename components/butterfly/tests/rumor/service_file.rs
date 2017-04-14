@@ -13,7 +13,7 @@
 // limitations under the License.
 
 use btest;
-use habitat_core::service::ServiceGroup;
+use habitat_core::service::ServiceGroupIdent;
 use habitat_butterfly::client::Client;
 
 #[test]
@@ -40,7 +40,7 @@ fn service_file_via_client() {
         Client::new(net[0].gossip_addr(), None).expect("Cannot create Butterfly Client");
     let payload = Vec::from("I want to get lost in you, tokyo".as_bytes());
     client
-        .send_service_file(ServiceGroup::new("witcher", "prod", None).unwrap(),
+        .send_service_file(ServiceGroupIdent::new("witcher", "prod", None).unwrap(),
                            "devil-wears-prada.txt",
                            0,
                            payload,

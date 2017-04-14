@@ -24,7 +24,7 @@
 
 use std::ops::{Deref, DerefMut};
 
-use habitat_core::service::ServiceGroup;
+use habitat_core::service::ServiceGroupIdent;
 use protobuf::{self, Message, RepeatedField};
 
 pub use message::swim::Election_Status;
@@ -65,7 +65,7 @@ impl Election {
     /// Create a new election, voting for the given member id, for the given service group, and
     /// with the given suitability.
     pub fn new<S1: Into<String>>(member_id: S1,
-                                 service_group: ServiceGroup,
+                                 sg_id: ServiceGroupIdent,
                                  suitability: u64)
                                  -> Election {
         let mut rumor = ProtoRumor::new();
@@ -77,7 +77,7 @@ impl Election {
 
         let mut proto = ProtoElection::new();
         proto.set_member_id(real_member_id);
-        proto.set_service_group(format!("{}", service_group));
+        proto.set_service_group(format!("{}", sg_id));
         proto.set_term(0);
         proto.set_suitability(suitability);
         proto.set_status(Election_Status::Running);
@@ -217,10 +217,10 @@ pub struct ElectionUpdate(Election);
 
 impl ElectionUpdate {
     pub fn new<S1: Into<String>>(member_id: S1,
-                                 service_group: ServiceGroup,
+                                 sg_id: ServiceGroupIdent,
                                  suitability: u64)
                                  -> ElectionUpdate {
-        let mut election = Election::new(member_id, service_group, suitability);
+        let mut election = Election::new(member_id, sg_id, suitability);
         election
             .0
             .set_field_type(ProtoRumor_Type::ElectionUpdate);
@@ -289,11 +289,11 @@ impl Rumor for ElectionUpdate {
 mod tests {
     use rumor::Rumor;
     use rumor::election::Election;
-    use habitat_core::service::ServiceGroup;
+    use habitat_core::service::ServiceGroupIdent;
 
     fn create_election(member_id: &str, suitability: u64) -> Election {
         Election::new(member_id,
-                      ServiceGroup::new("tdep", "prod", None).unwrap(),
+                      ServiceGroupIdent::new("tdep", "prod", None).unwrap(),
                       suitability)
     }
 

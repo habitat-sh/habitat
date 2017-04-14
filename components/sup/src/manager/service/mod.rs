@@ -35,7 +35,7 @@ use butterfly;
 use butterfly::rumor::service::Service as ServiceRumor;
 use common::ui::UI;
 use hcore::fs::FS_ROOT_PATH;
-use hcore::service::ServiceGroup;
+use hcore::service::ServiceGroupIdent;
 use hcore::crypto::hash;
 use hcore::package::{PackageIdent, PackageInstall};
 use hcore::util::deserialize_using_from_str;
@@ -77,7 +77,7 @@ pub struct Service {
     needs_reconfiguration: bool,
     #[serde(serialize_with="serialize_lock")]
     package: Arc<RwLock<PackageInstall>>,
-    pub service_group: ServiceGroup,
+    pub service_group: ServiceGroupIdent,
     smoke_check: SmokeCheck,
     pub spec_file: PathBuf,
     pub spec_ident: PackageIdent,
@@ -105,7 +105,7 @@ impl Service {
            -> Result<Service> {
         spec.validate(&package)?;
         let spec_file = manager_fs_cfg.specs_path.join(spec.file_name());
-        let service_group = ServiceGroup::new(&package.ident.name, spec.group, organization)?;
+        let service_group = ServiceGroupIdent::new(&package.ident.name, spec.group, organization)?;
         let runtime_cfg = Self::runtime_config_from(&package)?;
         let config_root = spec.config_from
             .clone()

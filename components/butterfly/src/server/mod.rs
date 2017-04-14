@@ -41,7 +41,7 @@ use std::sync::mpsc::channel;
 use std::time::{Instant, Duration};
 use std::thread;
 
-use habitat_core::service::ServiceGroup;
+use habitat_core::service::ServiceGroupIdent;
 use habitat_core::crypto::SymKey;
 use serde::{Serialize, Serializer};
 use serde::ser::SerializeStruct;
@@ -59,7 +59,7 @@ use rumor::election::{Election, ElectionUpdate};
 use trace::{Trace, TraceKind};
 
 pub trait Suitability: Debug + Send + Sync {
-    fn get(&self, service_group: &ServiceGroup) -> u64;
+    fn get(&self, sg_id: &ServiceGroupIdent) -> u64;
 }
 
 /// The server struct. Is thread-safe.
@@ -481,7 +481,7 @@ impl Server {
 
     /// Start an election for the given service group, declaring this members suitability and the
     /// term for the election.
-    pub fn start_election(&self, sg: ServiceGroup, term: u64) {
+    pub fn start_election(&self, sg: ServiceGroupIdent, term: u64) {
         let suitability = self.suitability_lookup.get(&sg);
         let mut e = Election::new(self.member_id(), sg, suitability);
         e.set_term(term);
@@ -493,7 +493,7 @@ impl Server {
         self.rumor_list.insert(ek);
     }
 
-    pub fn start_update_election(&self, sg: ServiceGroup, suitability: u64, term: u64) {
+    pub fn start_update_election(&self, sg: ServiceGroupIdent, suitability: u64, term: u64) {
         let mut e = ElectionUpdate::new(self.member_id(), sg, suitability);
         e.set_term(term);
         let ek = RumorKey::from(&e);
@@ -571,7 +571,7 @@ impl Server {
         });
 
         for (service_group, old_term) in elections_to_restart {
-            let sg = match ServiceGroup::from_str(&service_group) {
+            let sg = match ServiceGroupIdent::from_str(&service_group) {
                 Ok(sg) => sg,
                 Err(e) => {
                     error!("Failed to process service group from string '{}': {}",
@@ -587,7 +587,7 @@ impl Server {
         }
 
         for (service_group, old_term) in update_elections_to_restart {
-            let sg = match ServiceGroup::from_str(&service_group) {
+            let sg = match ServiceGroupIdent::from_str(&service_group) {
                 Ok(sg) => sg,
                 Err(e) => {
                     error!("Failed to process service group from string '{}': {}",
@@ -622,7 +622,7 @@ impl Server {
                                 |ce| new_term = election.get_term() > ce.unwrap().get_term());
                 if new_term {
                     self.election_store.remove(election.key(), election.id());
-                    let sg = match ServiceGroup::from_str(election.get_service_group()) {
+                    let sg = match ServiceGroupIdent::from_str(election.get_service_group()) {
                         Ok(sg) => sg,
                         Err(e) => {
                             error!("Election malformed; cannot parse service group: {}", e);
@@ -658,7 +658,7 @@ impl Server {
             } else {
                 // Otherwise, we need to create a new election object for ourselves prior to
                 // merging.
-                let sg = match ServiceGroup::from_str(election.get_service_group()) {
+                let sg = match ServiceGroupIdent::from_str(election.get_service_group()) {
                     Ok(sg) => sg,
                     Err(e) => {
                         error!("Election malformed; cannot parse service group: {}", e);
@@ -697,7 +697,7 @@ impl Server {
                                 |ce| new_term = election.get_term() > ce.unwrap().get_term());
                 if new_term {
                     self.update_store.remove(election.key(), election.id());
-                    let sg = match ServiceGroup::from_str(election.get_service_group()) {
+                    let sg = match ServiceGroupIdent::from_str(election.get_service_group()) {
                         Ok(sg) => sg,
                         Err(e) => {
                             error!("Election malformed; cannot parse service group: {}", e);
@@ -733,7 +733,7 @@ impl Server {
             } else {
                 // Otherwise, we need to create a new election object for ourselves prior to
                 // merging.
-                let sg = match ServiceGroup::from_str(election.get_service_group()) {
+                let sg = match ServiceGroupIdent::from_str(election.get_service_group()) {
                     Ok(sg) => sg,
                     Err(e) => {
                         error!("Election malformed; cannot parse service group: {}", e);
@@ -867,7 +867,7 @@ fn persist_loop(server: Server) {
 #[cfg(test)]
 mod tests {
     mod server {
-        use habitat_core::service::ServiceGroup;
+        use habitat_core::service::ServiceGroupIdent;
         use server::{Server, Suitability};
         use server::timing::Timing;
         use member::Member;
@@ -881,7 +881,7 @@ mod tests {
         #[derive(Debug)]
         struct ZeroSuitability;
         impl Suitability for ZeroSuitability {
-            fn get(&self, _service_group: &ServiceGroup) -> u64 {
+            fn get(&self, _sg_id: &ServiceGroupIdent) -> u64 {
                 0
             }
         }
