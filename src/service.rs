@@ -39,7 +39,7 @@ impl ServiceGroup {
         Ok(ServiceGroup(formatted))
     }
 
-    pub fn format<S1, S2>(service: S1, group: S2, organization: Option<&str>) -> String
+    fn format<S1, S2>(service: S1, group: S2, organization: Option<&str>) -> String
         where S1: AsRef<str>,
               S2: AsRef<str>
     {
@@ -92,7 +92,7 @@ impl ServiceGroup {
     /// Set a new organization for this Service Group.
     ///
     /// This is useful if the organization was lazily loaded or added after creation.
-    pub fn set_org<T: AsRef<str>>(&mut self, org: T) {
+    fn set_org<T: AsRef<str>>(&mut self, org: T) {
         self.0 = Self::format(self.service(), self.group(), Some(org.as_ref()));
     }
 }
