@@ -27,16 +27,16 @@ lazy_static! {
 }
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Deserialize, Serialize)]
-pub struct ServiceGroup(String);
+pub struct ServiceGroupIdent(String);
 
-impl ServiceGroup {
+impl ServiceGroupIdent {
     pub fn new<S1, S2>(service: S1, group: S2, organization: Option<&str>) -> Result<Self>
         where S1: AsRef<str>,
               S2: AsRef<str>
     {
         let formatted = Self::format(service, group, organization);
         try!(Self::validate(&formatted));
-        Ok(ServiceGroup(formatted))
+        Ok(ServiceGroupIdent(formatted))
     }
 
     fn format<S1, S2>(service: S1, group: S2, organization: Option<&str>) -> String
@@ -53,12 +53,12 @@ impl ServiceGroup {
     pub fn validate(value: &str) -> Result<()> {
         let caps = FROM_STR_RE
             .captures(value)
-            .ok_or(Error::InvalidServiceGroup(value.to_string()))?;
+            .ok_or(Error::InvalidServiceGroupIdent(value.to_string()))?;
         if caps.name("service").is_none() {
-            return Err(Error::InvalidServiceGroup(value.to_string()));
+            return Err(Error::InvalidServiceGroupIdent(value.to_string()));
         }
         if caps.name("group").is_none() {
-            return Err(Error::InvalidServiceGroup(value.to_string()));
+            return Err(Error::InvalidServiceGroupIdent(value.to_string()));
         }
         Ok(())
     }
@@ -88,22 +88,15 @@ impl ServiceGroup {
             .name("organization")
             .and_then(|v| Some(v.as_str()))
     }
-
-    /// Set a new organization for this Service Group.
-    ///
-    /// This is useful if the organization was lazily loaded or added after creation.
-    fn set_org<T: AsRef<str>>(&mut self, org: T) {
-        self.0 = Self::format(self.service(), self.group(), Some(org.as_ref()));
-    }
 }
 
-impl AsRef<str> for ServiceGroup {
+impl AsRef<str> for ServiceGroupIdent {
     fn as_ref(&self) -> &str {
         &self.0
     }
 }
 
-impl Deref for ServiceGroup {
+impl Deref for ServiceGroupIdent {
     type Target = String;
 
     fn deref(&self) -> &String {
@@ -111,39 +104,39 @@ impl Deref for ServiceGroup {
     }
 }
 
-impl DerefMut for ServiceGroup {
+impl DerefMut for ServiceGroupIdent {
     fn deref_mut(&mut self) -> &mut String {
         &mut self.0
     }
 }
 
-impl fmt::Display for ServiceGroup {
+impl fmt::Display for ServiceGroupIdent {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.0)
     }
 }
 
-impl FromStr for ServiceGroup {
+impl FromStr for ServiceGroupIdent {
     type Err = Error;
 
     fn from_str(value: &str) -> result::Result<Self, Self::Err> {
         let caps = match FROM_STR_RE.captures(value) {
             Some(c) => c,
-            None => return Err(Error::InvalidServiceGroup(value.to_string())),
+            None => return Err(Error::InvalidServiceGroupIdent(value.to_string())),
         };
         let service = match caps.name("service") {
             Some(s) => s.as_str(),
-            None => return Err(Error::InvalidServiceGroup(value.to_string())),
+            None => return Err(Error::InvalidServiceGroupIdent(value.to_string())),
         };
         let group = match caps.name("group") {
             Some(g) => g.as_str(),
-            None => return Err(Error::InvalidServiceGroup(value.to_string())),
+            None => return Err(Error::InvalidServiceGroupIdent(value.to_string())),
         };
         let org = match caps.name("organization") {
             Some(o) => Some(o.as_str()),
             None => None,
         };
-        Ok(ServiceGroup(ServiceGroup::format(service, group, org)))
+        Ok(ServiceGroupIdent(ServiceGroupIdent::format(service, group, org)))
     }
 }
 
@@ -151,40 +144,40 @@ impl FromStr for ServiceGroup {
 mod test {
     use std::str::FromStr;
 
-    use super::ServiceGroup;
+    use super::ServiceGroupIdent;
 
     #[test]
     fn service_groups_with_org() {
-        let x = ServiceGroup::from_str("foo.bar").unwrap();
+        let x = ServiceGroupIdent::from_str("foo.bar").unwrap();
         assert_eq!(x.service(), "foo");
         assert_eq!(x.group(), "bar");
         assert!(x.org().is_none());
 
-        let y = ServiceGroup::from_str("foo.bar@baz").unwrap();
+        let y = ServiceGroupIdent::from_str("foo.bar@baz").unwrap();
         assert_eq!(y.service(), "foo");
         assert_eq!(y.group(), "bar");
         assert_eq!(y.org().unwrap(), "baz");
 
-        assert!(ServiceGroup::from_str("foo.bar@").is_err());
-        assert!(ServiceGroup::from_str("f.oo.bar@baz").is_err());
-        assert!(ServiceGroup::from_str("foo@baz").is_err());
+        assert!(ServiceGroupIdent::from_str("foo.bar@").is_err());
+        assert!(ServiceGroupIdent::from_str("f.oo.bar@baz").is_err());
+        assert!(ServiceGroupIdent::from_str("foo@baz").is_err());
     }
 
     #[test]
     #[should_panic(expected = "not.allowed@")]
     fn from_str_ending_with_at() {
-        ServiceGroup::from_str("not.allowed@").unwrap();
+        ServiceGroupIdent::from_str("not.allowed@").unwrap();
     }
 
     #[test]
     #[should_panic(expected = "only.one.period@allowed")]
     fn from_str_too_many_periods() {
-        ServiceGroup::from_str("only.one.period@allowed").unwrap();
+        ServiceGroupIdent::from_str("only.one.period@allowed").unwrap();
     }
 
     #[test]
     #[should_panic(expected = "oh-noes")]
     fn from_str_not_enough_periods() {
-        ServiceGroup::from_str("oh-noes").unwrap();
+        ServiceGroupIdent::from_str("oh-noes").unwrap();
     }
 }
