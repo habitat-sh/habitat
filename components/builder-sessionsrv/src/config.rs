@@ -93,11 +93,11 @@ impl ConfigFile for Config {
         let mut cfg = Config::default();
         try!(toml.parse_into("cfg.routers", &mut cfg.routers));
 
-        let mut connection_user = String::new();
+        let mut connection_user = String::from("hab");
         try!(toml.parse_into("cfg.datastore_connection_user", &mut connection_user));
-        let mut connection_address = String::new();
+        let mut connection_address = String::from("127.0.0.1");
         try!(toml.parse_into("cfg.datastore_connection_address", &mut connection_address));
-        let mut connection_db = String::new();
+        let mut connection_db = String::from("builder_sessionsrv");
         try!(toml.parse_into("cfg.datastore_connection_db", &mut connection_db));
 
         cfg.datastore_connection_url = format!("postgresql://{}@{}/{}",
