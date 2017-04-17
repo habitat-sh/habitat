@@ -120,7 +120,7 @@ curl -H "authorization:Bearer 7798a535d5dba1b9fbf9694cb51a1f4ccf3f28d8" -X POST 
 
 > Note: some manual setup is required to run a Builder cluster on your host machine. This process will be automated in the future, but for now your mileage may vary.
 
-Also be aware that if you need to run the web services from anyehere other than localhost or port 3000, seethe `builder-web` [readme](https://github.com/habitat-sh/habitat/blob/master/components/builder-web/README.md) for how to configure oath with an alternate endpoint.
+Also be aware that if you need to run the web services from anywhere other than localhost or port 3000, see the `builder-web` [readme](https://github.com/habitat-sh/habitat/blob/master/components/builder-web/README.md) for how to configure oath with an alternate endpoint.
 
 ### Documentation for Rust Crates
 
