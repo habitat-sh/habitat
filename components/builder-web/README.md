@@ -4,15 +4,7 @@ This is the web application for the Habitat SaaS.
 
 This is a single page app built using [Angular 2](https://angular.io/).
 
-## Development
-
-The stable LTS version of Node must be installed (specified in [.nvmrc](.nvmrc).
-
-Run `npm install` to install dependencies.
-
-To run a development web server, run `npm start`.
-
-### Configuration
+## Configuration
 
 Copy habitat.conf.sample.js to habitat.conf.js to enable runtime configuration
 in development.
@@ -21,10 +13,77 @@ The configuration file looks like:
 
 ```js
 habitatConfig({
-    habitat_api_url: "https://my-api-url:1234/v1",
-    some_other-config_option: true,
+    habitat_api_url: "http://localhost:9636/v1",
+    community_url: "https://www.habitat.sh/community",
+    docs_url: "https://www.habitat.sh/docs",
+    environment: "production",
+    github_client_id: "0c2f738a7d0bd300de10",
+    source_code_url: "https://github.com/habitat-sh/habitat",
+    tutorials_url: "https://www.habitat.sh/tutorials",
+    version: "",
+    www_url: "https://www.habitat.sh",
 });
 ```
+
+## Installing Node
+
+The stable LTS version of Node must be installed (specified in [.nvmrc](.nvmrc)). You can use nvm (Node Version Manager) to install the desired version:
+
+```
+curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.1/install.sh | bash
+export NVM_DIR="$HOME/.nvm" \. "$
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+nvm install $(cat .nvmrc)
+```
+
+## Github OAuth
+
+By default, `builder-web` is configured to use a preconfigured dev github oauth application. This should suffice as long as you intend to use `http://localhost:3000` as the homepage. If you need to use an alternate host name or port, you will need to setup a separate oauth application and configure `builder-api` and `builder-sessionsrv` with its generated credentials.
+
+To register a new oauth application, go to your github user account settings and navigate to `OAuth Applications` and then click on `Register a new application`.
+
+It is important that the homepage is set to `http://<hostname>:<port>` and the Authorization callback URL is set to `http://<hostname>:<port>/#/sign-in`.
+
+Set the `github_client_id` to the client ID assigned to the oauth application. If you are running the API services, add `cvonfig.toml` files for the `builder-sessionsrv` and `builder-api` services:
+
+```
+mkdir -p /hab/svc/hab-builder-api
+mkdir -p /hab/svc/hab-builder-sessionsrv
+
+cat <<-EOF > /hab/svc/hab-builder-api/config.toml
+[cfg.github]
+client_id       = "<Client ID>"
+client_secret   = "<Client Sescret>"
+EOF
+
+cat <<-EOF > /hab/svc/hab-builder-sessionsrv/config.toml
+[cfg.github]
+client_id       = "<Client ID>"
+client_secret   = "<Client Sescret>"
+EOF
+```
+
+## Running the builder-api services
+
+If you want a full depot and api services to run along with the website, you can start these services by running `make bldr-run`.
+
+## Running `builder-web` server
+
+To start the node web server:
+
+```
+npm install
+npm start
+```
+
+The service can be reached at `http://localhost:3000` by default. This can be changed by exporting the `URL` environment variable with the value of the endpoint you want to run prior to running `npm start`:
+
+```
+export URL=http://123.45.7.8:5656
+```
+
+Remember to adjust your `habitat.conf.js` and oath application settings if you change the default endpoint.
 
 ### Tests
 

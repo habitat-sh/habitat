@@ -210,6 +210,11 @@ echo jdoe:1234 | chpasswd
 sudo su - jdoe
 ```
 
+## VM vs. Docker development
+
+While the available docker images can provide a convenient contributor onboarding experience, they may not prove ideal for extensive habitat development. Building habitat components is a disk intensive operation. Mounted file systems accross network boundaries, even when confined to a single local host, can yield build times dramatically slower than building against a locally attached file system. Build times will be best on either a bare metal linux environment or a dedicated linux vm. Also note that when using vagrant to provision a vm for habitat development, it is strongly advised that you do not put your habitat repo on a synced folder or at least do not use that folder as your build target. You should copy or clone the repository to a local directory in order to realize much faster build times.
+
+Here is a [vagrantfile](https://github.com/mwrock/vagrantfile/blob/master/UbuHab) that provisions an ubuntu environment for habitat development. It leverages a Hyper-V provisioner but its provisioning script can be used in any hypervisor that uses an ubuntu 14.04 box.
 
 ## Windows
 
