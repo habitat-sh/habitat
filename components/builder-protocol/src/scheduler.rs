@@ -86,8 +86,9 @@ impl Serialize for Project {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {
-        let mut strukt = try!(serializer.serialize_struct("project", 3));
+        let mut strukt = try!(serializer.serialize_struct("project", 4));
         try!(strukt.serialize_field("name", &self.get_name()));
+        try!(strukt.serialize_field("ident", &self.get_ident()));
         try!(strukt.serialize_field("state", &self.get_state()));
         try!(strukt.serialize_field("job_id", &self.get_job_id()));
         strukt.end()

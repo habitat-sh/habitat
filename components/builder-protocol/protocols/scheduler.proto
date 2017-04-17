@@ -10,8 +10,9 @@ enum ProjectState {
 
 message Project {
   optional string name = 1;
-  optional ProjectState state = 2;
-  optional uint64 job_id = 3;
+  optional string ident = 2;
+  optional ProjectState state = 3;
+  optional uint64 job_id = 4;
 }
 
 enum GroupState {

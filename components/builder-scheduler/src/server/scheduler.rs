@@ -168,21 +168,14 @@ impl ScheduleMgr {
     }
 
     fn dispatch_group(&mut self, group: proto::Group) -> Result<()> {
-        for project in group
-                .get_projects()
-                .into_iter()
-                .filter(|x| x.get_state() == proto::ProjectState::NotStarted) {
+        let dispatchable = self.dispatchable_projects(&group)?;
+        for project in dispatchable {
             println!("Dispatching project: {:?}", project.get_name());
             assert!(project.get_state() == proto::ProjectState::NotStarted);
 
             match self.schedule_job(group.get_id(), project.get_name()) {
                 Ok(job) => {
                     self.datastore.set_group_job_state(&job).unwrap();
-
-                    // TBD - eventually, dispatch more than one at a time
-                    // For now, we dispatch one at a time to strictly preserve the
-                    // desired dependency order.
-                    break;
                 }
                 Err(err) => {
                     error!("Failed to schedule job for {}, err: {:?}",
@@ -197,6 +190,45 @@ impl ScheduleMgr {
             }
         }
         Ok(())
+    }
+
+    fn dispatchable_projects(&mut self, group: &proto::Group) -> Result<Vec<proto::Project>> {
+        let mut projects = Vec::new();
+        for project in group
+                .get_projects()
+                .into_iter()
+                .filter(|x| x.get_state() == proto::ProjectState::NotStarted) {
+            // Check the deps for the project. If we don't find any dep that
+            // is in our project list and needs to be built, we can dispatch the project.
+            let package = self.datastore.get_package(&project.get_ident())?;
+            let deps = package.get_deps();
+
+            let mut dispatchable = true;
+            for dep in deps {
+                let parts: Vec<&str> = dep.split("/").collect();
+                assert!(parts.len() >= 2);
+                let name = format!("{}/{}", parts[0], parts[1]);
+
+                if !self.check_dispatchable(group, &name) {
+                    dispatchable = false;
+                    break
+                };
+            }
+
+            if dispatchable {
+                projects.push(project.clone());
+            }
+        }
+        Ok(projects)
+    }
+
+    fn check_dispatchable(&mut self, group: &proto::Group, name: &str) -> bool {
+        for project in group.get_projects() {
+            if (project.get_name() == name) && (project.get_state() != proto::ProjectState::Success) {
+                return false;
+            }
+        }
+        true
     }
 
     fn schedule_job(&mut self, group_id: u64, project_name: &str) -> Result<Job> {
