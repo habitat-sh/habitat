@@ -31,7 +31,7 @@ The stable LTS version of Node must be installed (specified in [.nvmrc](.nvmrc))
 
 ```
 curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.1/install.sh | bash
-export NVM_DIR="$HOME/.nvm" \. "$
+export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
 nvm install $(cat .nvmrc)
@@ -66,7 +66,7 @@ EOF
 
 ## Running the builder-api services
 
-If you want a full depot and api services to run along with the website, you can start these services by running `make bldr-run`.
+If you want a full depot and api services to run along with the website, you can start these services by running `make bldr-run`. Note that `make bldr-run` includes running the `builder-web` service so you can skip the `npm` commands below.
 
 ## Running `builder-web` server
 
