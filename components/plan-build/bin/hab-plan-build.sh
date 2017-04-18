@@ -1414,7 +1414,7 @@ add_build_path_env() {
 }
 
 # **Internal** Convert a string into a numerical value.
-function _to_int() {
+_to_int() {
     local -i num="10#${1}"
     echo "${num}"
 }
@@ -1429,7 +1429,7 @@ function _to_int() {
 # _port_is_valid "hello"
 # # 1
 # ```
-function _port_is_valid() {
+_port_is_valid() {
     local port="$1"
     local -i port_num=$(_to_int $port 2>/dev/null)
     if (( $port_num < 1 || $port_num > 65535 )) ; then
