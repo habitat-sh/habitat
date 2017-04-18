@@ -736,6 +736,33 @@ _get_tdeps_for() {
   return 0
 }
 
+# **Internal** Returns (on stdout) the `DEPS` file contents of another locally
+# installed package which contain the set of all direct run dependencies. An
+# empty set could be returned as whitespace and/or newlines.  The lack of a
+# `DEPS` file in the desired package will be considered an unset, or empty set.
+#
+# ```
+# _get_deps_for /hab/pkgs/acme/a/4.2.2/20160113044458
+# # /hab/pkgs/acme/dep-b/1.2.3/20160113033619
+# # /hab/pkgs/acme/dep-c/5.0.1/20160113033507
+# # /hab/pkgs/acme/dep-d/2.0.0/20160113033539
+# # /hab/pkgs/acme/dep-e/10.0.1/20160113033453
+# # /hab/pkgs/acme/dep-f/4.2.2/20160113033338
+# # /hab/pkgs/acme/dep-g/4.2.2/20160113033319
+# ```
+#
+# Will return 0 in any case and the contents of `DEPS` if the file exists.
+_get_deps_for() {
+  local pkg_path="$1"
+  if [[ -f "$pkg_path/DEPS" ]]; then
+    cat $pkg_path/DEPS
+  else
+    # No file, meaning an empty set
+    echo
+  fi
+  return 0
+}
+
 # **Internal** Appends an entry to the given array only if the entry is not
 # already present and returns the resulting array back on stdout. In so doing,
 # this function mimics a set when adding new entries. Note that any array can
@@ -1654,12 +1681,118 @@ do_default_begin() {
   return 0
 }
 
-# **Internal** Injects the defined scaffolding into `pkg_build_deps` if the
-# variable is set to ensure the dependencies are resolved and installed.
-_inject_scaffolding_dependency() {
-  if [[ -n "${pkg_scaffolding:-}" ]]; then
-    pkg_build_deps=($pkg_scaffolding ${pkg_build_deps[@]})
+# **Internal** Downloads, resolves, and normalizes all build and run
+# dependencies. If Scaffolding is being used, this function also injects the
+# relevant packages into the build dependencies and allows Scaffolding packages
+# to further mutate the run dependencies for the Plan.
+#
+# Several package-related arrays are created as a result:
+#
+# * `$pkg_build_deps_resolved`: A package-path array of all direct build
+#    dependencies, declared in `$pkg_build_deps`.
+# * `$pkg_build_tdeps_resolved`: A package-path array of all direct build
+#    dependencies and the run dependencies for each direct build dependency.
+# * `$pkg_deps_resolved`: A package-path array of all direct run dependencies,
+#    declared in `$pkg_deps`.
+# * `$pkg_tdeps_resolved`:  A package-path array of all direct run dependencies
+#    and the run dependencies for each direct run dependency.
+# * `$pkg_all_deps_resolved`: A package-path array of all direct build and
+#    run dependencies, declared in `$pkg_build_deps` and `$pkg_deps`.
+# * `$pkg_all_tdeps_resolved`: An ordered package-path array of all direct
+#    build and run dependencies, and the run dependencies for each direct
+#    dependency. Further details for this array is described in the
+#    `_populate_dependency_arrays()` function.
+_resolve_dependencies() {
+  # Create initial package arrays
+  _init_dependencies
+
+  # Inject, download, and resolve the scaffolding dependencies
+  _resolve_scaffolding_dependencies
+
+  # Download and resolve the build dependencies
+  _resolve_build_dependencies
+
+  # Populate package arrays to enable helper functions for early scaffolding
+  # load hooks
+  _populate_dependency_arrays
+
+  # Load scaffolding packages if they are being used.
+  _load_scaffolding
+
+  # Download and resolve the run dependencies
+  _resolve_run_dependencies
+
+  # Finalize and normalize all resolved dependencies with all build and run
+  # dependencies
+  _populate_dependency_arrays
+
+  # Validate the dependency arrays
+  _validate_deps
+}
+
+# **Internal** Create initial pacakge-related arrays.
+_init_dependencies() {
+  # Create `${pkg_build_deps_resolved[@]}` containing all resolved direct build
+  # dependencies.
+  pkg_build_deps_resolved=()
+
+  # Create `${pkg_build_tdeps_resolved[@]}` containing all the direct build
+  # dependencies, and the run dependencies for each direct build dependency.
+  pkg_build_tdeps_resolved=()
+
+  # Create `${pkg_deps_resolved[@]}` containing all resolved direct run
+  # dependencies.
+  pkg_deps_resolved=()
+
+  # Create `${pkg_tdeps_resolved[@]}` containing all the direct run
+  # dependencies, and the run dependencies for each direct run dependency.
+  pkg_tdeps_resolved=()
+}
+
+# **Internal** Installs the scaffolding dependencies and for each scaffolding
+# package, add itself and each direct run dependency to the start of
+# `${pkg_build_deps[@]}`. In this way, it would be as if the Plan author had
+# added each of these dependencies directly into their `${pkg_build_deps[@]}`.
+# Each of these direct run dependencies are fully qualified so that when
+# resolving all build dependencies, only each specific package is locked down.
+_resolve_scaffolding_dependencies() {
+  if [[ -z "${pkg_scaffolding:-}" ]]; then
+    return 0
   fi
+
+  build_line "Resolving scaffolding dependencies"
+  local resolved
+  local dep
+  local tdep
+  local tdeps
+  local sdep
+  local sdeps
+  local scaff_build_deps
+
+  scaff_build_deps=()
+
+  for dep in "${pkg_scaffolding}"; do
+    _install_dependency $dep
+    # Add scaffolding pacakge to the list of scaffolding build deps
+    scaff_build_deps+=($dep)
+    if resolved="$(_resolve_dependency $dep)"; then
+      build_line "Resolved scaffolding dependency '$dep' to $resolved"
+      # Add each (fully qualified) direct run dependency of the scaffolding
+      # package.
+      sdeps=($(_get_deps_for "$resolved"))
+      for sdep in "${sdeps[@]}"; do
+        scaff_build_deps+=($sdep)
+      done
+    else
+      exit_with "Resolving '$dep' failed, should this be built first?" 1
+    fi
+  done
+
+  # Add all of the ordered scaffolding dependencies to the start of
+  # `${pkg_build_deps[@]}` to make sure they could be ovveridden by a Plan
+  # author if required.
+  pkg_build_deps=(${scaff_build_deps[@]} ${pkg_build_deps[@]})
+  debug "Updating pkg_build_deps=(${pkg_build_deps[*]}) from Scaffolding deps"
 }
 
 # **Internal** Determines suitable package identifiers for each build
@@ -1667,13 +1800,7 @@ _inject_scaffolding_dependency() {
 # this program.
 #
 # Walk each item in `$pkg_build_deps`, and for each item determine the absolute
-# path to a suitable package release (which will be on disk). Then, several
-# package-related arrays are created:
-#
-# * `$pkg_build_deps_resolved`: A package-path array of all direct build
-#    dependencies, declared in `$pkg_build_deps`.
-# * `$pkg_build_tdeps_resolved`: A package-path array of all direct build
-#    dependencies and the run dependencies for each direct build dependency.
+# path to a suitable package release (which will be on disk).
 _resolve_build_dependencies() {
   build_line "Resolving build dependencies"
   local resolved
@@ -1681,9 +1808,8 @@ _resolve_build_dependencies() {
   local tdep
   local tdeps
 
-  # Build `${pkg_build_deps_resolved[@]}` containing all resolved direct build
+  # Append to `${pkg_build_deps_resolved[@]}` all resolved direct build
   # dependencies.
-  pkg_build_deps_resolved=()
   for dep in "${pkg_build_deps[@]}"; do
     _install_dependency $dep
     if resolved="$(_resolve_dependency $dep)"; then
@@ -1694,7 +1820,7 @@ _resolve_build_dependencies() {
     fi
   done
 
-  # Build `${pkg_build_tdeps_resolved[@]}` containing all the direct build
+  # Append to `${pkg_build_tdeps_resolved[@]}` all the direct build
   # dependencies, and the run dependencies for each direct build dependency.
 
   # Copy all direct build dependencies into a new array
@@ -1739,13 +1865,7 @@ _load_scaffolding() {
 # this program.
 #
 # Walk each item in $pkg_deps`, and for each item determine the absolute path
-# to a suitable package release (which will be on disk). Then, several
-# package-related arrays are created:
-#
-# * `$pkg_deps_resolved`: A package-path array of all direct run dependencies,
-#    declared in `$pkg_deps`.
-# * `$pkg_tdeps_resolved`:  A package-path array of all direct run dependencies
-#    and the run dependencies for each direct run dependency.
+# to a suitable package release (which will be on disk).
 _resolve_run_dependencies() {
   build_line "Resolving run dependencies"
   local resolved
@@ -1753,9 +1873,7 @@ _resolve_run_dependencies() {
   local tdep
   local tdeps
 
-  # Build `${pkg_deps_resolved[@]}` containing all resolved direct run
-  # dependencies.
-  pkg_deps_resolved=()
+  # Append to `${pkg_deps_resolved[@]}` all resolved direct run dependencies.
   for dep in "${pkg_deps[@]}"; do
     _install_dependency $dep
     if resolved="$(_resolve_dependency $dep)"; then
@@ -1766,8 +1884,8 @@ _resolve_run_dependencies() {
     fi
   done
 
-  # Build `${pkg_tdeps_resolved[@]}` containing all the direct run
-  # dependencies, and the run dependencies for each direct run dependency.
+  # Append to `${pkg_tdeps_resolved[@]}` all the direct run dependencies, and
+  # the run dependencies for each direct run dependency.
 
   # Copy all direct dependencies into a new array
   pkg_tdeps_resolved=("${pkg_deps_resolved[@]}")
@@ -1786,13 +1904,7 @@ _resolve_run_dependencies() {
 
 # **Internal** Populates the remaining package-related arrays used throughout
 # this program.
-#
-# * `$pkg_all_deps_resolved`: A package-path array of all direct build and
-#    run dependencies, declared in `$pkg_build_deps` and `$pkg_deps`.
-# * `$pkg_all_tdeps_resolved`: An ordered package-path array of all direct
-#    build and run dependencies, and the run dependencies for each direct
-#    dependency. Further details below in the function.
-_finalize_dependencies() {
+_populate_dependency_arrays() {
   local dep
 
   # Build `${pkg_all_deps_resolved[@]}` containing all direct build and run
@@ -1820,8 +1932,6 @@ _finalize_dependencies() {
       $(_return_or_append_to_set "$dep" "${pkg_all_tdeps_resolved[@]}")
     )
   done
-
-  _validate_deps
 }
 
 # **Internal**  Build `$PATH` containing each path in our own
@@ -2819,20 +2929,7 @@ _ensure_origin_key_present
 
 _determine_hab_bin
 
-# Inject the scaffolding plan package if pkg_scaffolding is set.
-_inject_scaffolding_dependency
-
-# Download and resolve the build dependencies
-_resolve_build_dependencies
-
-# Load scaffolding plans if they are being used.
-_load_scaffolding
-
-# Download and resolve the run dependencies
-_resolve_run_dependencies
-
-# Finalize, normalize, and verify all resolve dependencies
-_finalize_dependencies
+_resolve_dependencies
 
 # Set up runtime environment
 _set_environment
