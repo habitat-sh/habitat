@@ -32,7 +32,7 @@
     padding: 0 1em;
 
     a {
-      color: $hab-off-white;
+      color: $hab-white;
     }
   }
 
@@ -40,6 +40,7 @@
     font-size: 75%;
     margin-left: rem(15);
     white-space: nowrap;
+    color: $hab-white;
   }
 
   hr {
@@ -52,7 +53,7 @@
     margin-left: rem(15);
 
     a {
-      color: $base-font-color;
+      color: $hab-white;
       display: block;
 
       &:hover {
@@ -62,7 +63,8 @@
       &.active {
         background: url("../assets/images/sidebar-active.png") no-repeat right;
         background-size: 10px;
-        color: $hover-color;
+        color: $hab-green;
+        font-weight: 600;
       }
     }
   }
