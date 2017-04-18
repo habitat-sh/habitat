@@ -20,7 +20,7 @@ use std::sync::{Arc, RwLock};
 use protocol::net;
 use zmq;
 
-use hab_net::config::RouteAddrs;
+use hab_net::config::RouterCfg;
 use hab_net::routing::Broker;
 use hab_net::{Application, Supervisor};
 use hab_net::dispatcher::prelude::*;

@@ -26,7 +26,7 @@ use hab_core::package::{Identifiable, FromArchive, PackageArchive, PackageTarget
 use hab_core::crypto::keys::{self, PairType};
 use hab_core::crypto::SigKeyPair;
 use hab_core::event::*;
-use hab_net::config::RouteAddrs;
+use hab_net::config::RouterCfg;
 use hab_net::http::controller::*;
 use hab_net::privilege;
 use hab_net::routing::{Broker, RouteResult};

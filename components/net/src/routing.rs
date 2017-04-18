@@ -26,7 +26,7 @@ use protocol::{self, Routable, RouteKey};
 use protocol::net::{ErrCode, NetError};
 use zmq;
 
-use config::ToAddrString;
+use config::{RouterAddr, ToAddrString};
 use error::{Error, Result};
 use server::ZMQ_CONTEXT;
 
@@ -199,7 +199,7 @@ impl Broker {
     /// # Panics
     ///
     /// * Broker crashed during startup
-    pub fn run<T: ToAddrString>(net_ident: String, routers: &Vec<T>) -> JoinHandle<()> {
+    pub fn run(net_ident: String, routers: &Vec<RouterAddr>) -> JoinHandle<()> {
         let (tx, rx) = mpsc::sync_channel(1);
         let addrs = routers.iter().map(|a| a.to_addr_string()).collect();
         let handle = thread::Builder::new()

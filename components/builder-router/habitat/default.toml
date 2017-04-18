@@ -1,3 +1,3 @@
-[srv]
-port = 5562
-heartbeat = 5563
+listen = "0.0.0.0"
+client_port = 5562
+heartbeat_port = 5563

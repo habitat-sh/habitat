@@ -274,7 +274,7 @@ impl DataStore {
     }
 
     pub fn create_group(&self,
-                        msg: &GroupCreate,
+                        _msg: &GroupCreate,
                         project_tuples: Vec<(String, String)>)
                         -> Result<Group> {
         let conn = self.pool.get_shard(0)?;

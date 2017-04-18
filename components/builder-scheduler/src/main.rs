@@ -17,7 +17,6 @@ extern crate clap;
 extern crate env_logger;
 extern crate habitat_builder_scheduler as scheduler;
 extern crate habitat_core as hab_core;
-#[macro_use]
 extern crate builder_core as bldr_core;
 #[macro_use]
 extern crate log;
