@@ -841,6 +841,210 @@ _determine_hab_bin() {
   build_line "Using HAB_BIN=$HAB_BIN for installs, signing, and hashing"
 }
 
+# **Internal** Create initial pacakge-related arrays.
+_init_dependencies() {
+  # Create `${pkg_build_deps_resolved[@]}` containing all resolved direct build
+  # dependencies.
+  pkg_build_deps_resolved=()
+
+  # Create `${pkg_build_tdeps_resolved[@]}` containing all the direct build
+  # dependencies, and the run dependencies for each direct build dependency.
+  pkg_build_tdeps_resolved=()
+
+  # Create `${pkg_deps_resolved[@]}` containing all resolved direct run
+  # dependencies.
+  pkg_deps_resolved=()
+
+  # Create `${pkg_tdeps_resolved[@]}` containing all the direct run
+  # dependencies, and the run dependencies for each direct run dependency.
+  pkg_tdeps_resolved=()
+}
+
+# **Internal** Installs the scaffolding dependencies and for each scaffolding
+# package, add itself and each direct run dependency to the start of
+# `${pkg_build_deps[@]}`. In this way, it would be as if the Plan author had
+# added each of these dependencies directly into their `${pkg_build_deps[@]}`.
+# Each of these direct run dependencies are fully qualified so that when
+# resolving all build dependencies, only each specific package is locked down.
+_resolve_scaffolding_dependencies() {
+  if [[ -z "${pkg_scaffolding:-}" ]]; then
+    return 0
+  fi
+
+  build_line "Resolving scaffolding dependencies"
+  local resolved
+  local dep
+  local tdep
+  local tdeps
+  local sdep
+  local sdeps
+  local scaff_build_deps
+
+  scaff_build_deps=()
+
+  for dep in "${pkg_scaffolding}"; do
+    _install_dependency $dep
+    # Add scaffolding pacakge to the list of scaffolding build deps
+    scaff_build_deps+=($dep)
+    if resolved="$(_resolve_dependency $dep)"; then
+      build_line "Resolved scaffolding dependency '$dep' to $resolved"
+      # Add each (fully qualified) direct run dependency of the scaffolding
+      # package.
+      sdeps=($(_get_deps_for "$resolved"))
+      for sdep in "${sdeps[@]}"; do
+        scaff_build_deps+=($sdep)
+      done
+    else
+      exit_with "Resolving '$dep' failed, should this be built first?" 1
+    fi
+  done
+
+  # Add all of the ordered scaffolding dependencies to the start of
+  # `${pkg_build_deps[@]}` to make sure they could be ovveridden by a Plan
+  # author if required.
+  pkg_build_deps=(${scaff_build_deps[@]} ${pkg_build_deps[@]})
+  debug "Updating pkg_build_deps=(${pkg_build_deps[*]}) from Scaffolding deps"
+}
+
+# **Internal** Determines suitable package identifiers for each build
+# dependency and populates several package-related arrays for use throughout
+# this program.
+#
+# Walk each item in `$pkg_build_deps`, and for each item determine the absolute
+# path to a suitable package release (which will be on disk).
+_resolve_build_dependencies() {
+  build_line "Resolving build dependencies"
+  local resolved
+  local dep
+  local tdep
+  local tdeps
+
+  # Append to `${pkg_build_deps_resolved[@]}` all resolved direct build
+  # dependencies.
+  for dep in "${pkg_build_deps[@]}"; do
+    _install_dependency $dep
+    if resolved="$(_resolve_dependency $dep)"; then
+      build_line "Resolved build dependency '$dep' to $resolved"
+      pkg_build_deps_resolved+=($resolved)
+    else
+      exit_with "Resolving '$dep' failed, should this be built first?" 1
+    fi
+  done
+
+  # Append to `${pkg_build_tdeps_resolved[@]}` all the direct build
+  # dependencies, and the run dependencies for each direct build dependency.
+
+  # Copy all direct build dependencies into a new array
+  pkg_build_tdeps_resolved=("${pkg_build_deps_resolved[@]}")
+  # Append all non-direct (transitive) run dependencies for each direct build
+  # dependency. That's right, not a typo ;) This is how a `acme/gcc` build
+  # dependency could pull in `acme/binutils` for us, as an example. Any
+  # duplicate entries are dropped to produce a proper set.
+  for dep in "${pkg_build_deps_resolved[@]}"; do
+    tdeps=($(_get_tdeps_for $dep))
+    for tdep in "${tdeps[@]}"; do
+      tdep="$HAB_PKG_PATH/$tdep"
+      pkg_build_tdeps_resolved=(
+        $(_return_or_append_to_set "$tdep" "${pkg_build_tdeps_resolved[@]}")
+      )
+    done
+  done
+}
+
+# **Internal** Loads specified scaffolding to extend plan DSL. This assumes
+# the scaffolding lives within `lib` and is named `scaffolding.sh` for each
+# application/project type.
+_load_scaffolding() {
+  local lib
+  if [[ -z "${pkg_scaffolding:-}" ]]; then
+    return 0
+  fi
+
+  lib="$(_pkg_path_for_build_deps $pkg_scaffolding)/lib/scaffolding.sh"
+  build_line "Loading Scaffolding $lib"
+  if ! source "$lib"; then
+    exit_with "Failed to load Scaffolding from $lib" 17
+  fi
+
+  if [[ "$(type -t _scaffolding_begin)" == "function" ]]; then
+    _scaffolding_begin
+  fi
+}
+
+# **Internal** Determines suitable package identifiers for each run
+# dependency and populates several package-related arrays for use throughout
+# this program.
+#
+# Walk each item in $pkg_deps`, and for each item determine the absolute path
+# to a suitable package release (which will be on disk).
+_resolve_run_dependencies() {
+  build_line "Resolving run dependencies"
+  local resolved
+  local dep
+  local tdep
+  local tdeps
+
+  # Append to `${pkg_deps_resolved[@]}` all resolved direct run dependencies.
+  for dep in "${pkg_deps[@]}"; do
+    _install_dependency $dep
+    if resolved="$(_resolve_dependency $dep)"; then
+      build_line "Resolved dependency '$dep' to $resolved"
+      pkg_deps_resolved+=($resolved)
+    else
+      exit_with "Resolving '$dep' failed, should this be built first?" 1
+    fi
+  done
+
+  # Append to `${pkg_tdeps_resolved[@]}` all the direct run dependencies, and
+  # the run dependencies for each direct run dependency.
+
+  # Copy all direct dependencies into a new array
+  pkg_tdeps_resolved=("${pkg_deps_resolved[@]}")
+  # Append all non-direct (transitive) run dependencies for each direct run
+  # dependency. Any duplicate entries are dropped to produce a proper set.
+  for dep in "${pkg_deps_resolved[@]}"; do
+    tdeps=($(_get_tdeps_for $dep))
+    for tdep in "${tdeps[@]}"; do
+      tdep="$HAB_PKG_PATH/$tdep"
+      pkg_tdeps_resolved=(
+        $(_return_or_append_to_set "$tdep" "${pkg_tdeps_resolved[@]}")
+      )
+    done
+  done
+}
+
+# **Internal** Populates the remaining package-related arrays used throughout
+# this program.
+_populate_dependency_arrays() {
+  local dep
+
+  # Build `${pkg_all_deps_resolved[@]}` containing all direct build and run
+  # dependencies. The build dependencies appear before the run dependencies.
+  pkg_all_deps_resolved=(
+    "${pkg_deps_resolved[@]}"
+    "${pkg_build_deps_resolved[@]}"
+  )
+
+  # Build an ordered set of all build and run dependencies (direct and
+  # transitive). The order is important as this gets used when setting the
+  # `$PATH` ordering in the build environment. To give priority to direct
+  # dependencies over transitive ones the order of packages is the following:
+  #
+  # 1. All direct run dependencies
+  # 2. All direct build dependencies
+  # 3. All unique transitive run dependencies that aren't already added
+  # 4. All unique transitive build dependencies that aren't already added
+  pkg_all_tdeps_resolved=(
+    "${pkg_deps_resolved[@]}"
+    "${pkg_build_deps_resolved[@]}"
+  )
+  for dep in "${pkg_tdeps_resolved[@]}" "${pkg_build_tdeps_resolved[@]}"; do
+    pkg_all_tdeps_resolved=(
+      $(_return_or_append_to_set "$dep" "${pkg_all_tdeps_resolved[@]}")
+    )
+  done
+}
+
 # **Internal** Validates that the computed dependencies are reasonable and that
 # the full runtime set is unique--that is, there are no duplicate entries of
 # the same `ORIGIN/NAME` tokens. An example would be a Plan which has a
@@ -1728,210 +1932,6 @@ _resolve_dependencies() {
 
   # Validate the dependency arrays
   _validate_deps
-}
-
-# **Internal** Create initial pacakge-related arrays.
-_init_dependencies() {
-  # Create `${pkg_build_deps_resolved[@]}` containing all resolved direct build
-  # dependencies.
-  pkg_build_deps_resolved=()
-
-  # Create `${pkg_build_tdeps_resolved[@]}` containing all the direct build
-  # dependencies, and the run dependencies for each direct build dependency.
-  pkg_build_tdeps_resolved=()
-
-  # Create `${pkg_deps_resolved[@]}` containing all resolved direct run
-  # dependencies.
-  pkg_deps_resolved=()
-
-  # Create `${pkg_tdeps_resolved[@]}` containing all the direct run
-  # dependencies, and the run dependencies for each direct run dependency.
-  pkg_tdeps_resolved=()
-}
-
-# **Internal** Installs the scaffolding dependencies and for each scaffolding
-# package, add itself and each direct run dependency to the start of
-# `${pkg_build_deps[@]}`. In this way, it would be as if the Plan author had
-# added each of these dependencies directly into their `${pkg_build_deps[@]}`.
-# Each of these direct run dependencies are fully qualified so that when
-# resolving all build dependencies, only each specific package is locked down.
-_resolve_scaffolding_dependencies() {
-  if [[ -z "${pkg_scaffolding:-}" ]]; then
-    return 0
-  fi
-
-  build_line "Resolving scaffolding dependencies"
-  local resolved
-  local dep
-  local tdep
-  local tdeps
-  local sdep
-  local sdeps
-  local scaff_build_deps
-
-  scaff_build_deps=()
-
-  for dep in "${pkg_scaffolding}"; do
-    _install_dependency $dep
-    # Add scaffolding pacakge to the list of scaffolding build deps
-    scaff_build_deps+=($dep)
-    if resolved="$(_resolve_dependency $dep)"; then
-      build_line "Resolved scaffolding dependency '$dep' to $resolved"
-      # Add each (fully qualified) direct run dependency of the scaffolding
-      # package.
-      sdeps=($(_get_deps_for "$resolved"))
-      for sdep in "${sdeps[@]}"; do
-        scaff_build_deps+=($sdep)
-      done
-    else
-      exit_with "Resolving '$dep' failed, should this be built first?" 1
-    fi
-  done
-
-  # Add all of the ordered scaffolding dependencies to the start of
-  # `${pkg_build_deps[@]}` to make sure they could be ovveridden by a Plan
-  # author if required.
-  pkg_build_deps=(${scaff_build_deps[@]} ${pkg_build_deps[@]})
-  debug "Updating pkg_build_deps=(${pkg_build_deps[*]}) from Scaffolding deps"
-}
-
-# **Internal** Determines suitable package identifiers for each build
-# dependency and populates several package-related arrays for use throughout
-# this program.
-#
-# Walk each item in `$pkg_build_deps`, and for each item determine the absolute
-# path to a suitable package release (which will be on disk).
-_resolve_build_dependencies() {
-  build_line "Resolving build dependencies"
-  local resolved
-  local dep
-  local tdep
-  local tdeps
-
-  # Append to `${pkg_build_deps_resolved[@]}` all resolved direct build
-  # dependencies.
-  for dep in "${pkg_build_deps[@]}"; do
-    _install_dependency $dep
-    if resolved="$(_resolve_dependency $dep)"; then
-      build_line "Resolved build dependency '$dep' to $resolved"
-      pkg_build_deps_resolved+=($resolved)
-    else
-      exit_with "Resolving '$dep' failed, should this be built first?" 1
-    fi
-  done
-
-  # Append to `${pkg_build_tdeps_resolved[@]}` all the direct build
-  # dependencies, and the run dependencies for each direct build dependency.
-
-  # Copy all direct build dependencies into a new array
-  pkg_build_tdeps_resolved=("${pkg_build_deps_resolved[@]}")
-  # Append all non-direct (transitive) run dependencies for each direct build
-  # dependency. That's right, not a typo ;) This is how a `acme/gcc` build
-  # dependency could pull in `acme/binutils` for us, as an example. Any
-  # duplicate entries are dropped to produce a proper set.
-  for dep in "${pkg_build_deps_resolved[@]}"; do
-    tdeps=($(_get_tdeps_for $dep))
-    for tdep in "${tdeps[@]}"; do
-      tdep="$HAB_PKG_PATH/$tdep"
-      pkg_build_tdeps_resolved=(
-        $(_return_or_append_to_set "$tdep" "${pkg_build_tdeps_resolved[@]}")
-      )
-    done
-  done
-}
-
-# **Internal** Loads specified scaffolding to extend plan DSL. This assumes
-# the scaffolding lives within `lib` and is named `scaffolding.sh` for each
-# application/project type.
-_load_scaffolding() {
-  local lib
-  if [[ -z "${pkg_scaffolding:-}" ]]; then
-    return 0
-  fi
-
-  lib="$(_pkg_path_for_build_deps $pkg_scaffolding)/lib/scaffolding.sh"
-  build_line "Loading Scaffolding $lib"
-  if ! source "$lib"; then
-    exit_with "Failed to load Scaffolding from $lib" 17
-  fi
-
-  if [[ "$(type -t _scaffolding_begin)" == "function" ]]; then
-    _scaffolding_begin
-  fi
-}
-
-# **Internal** Determines suitable package identifiers for each run
-# dependency and populates several package-related arrays for use throughout
-# this program.
-#
-# Walk each item in $pkg_deps`, and for each item determine the absolute path
-# to a suitable package release (which will be on disk).
-_resolve_run_dependencies() {
-  build_line "Resolving run dependencies"
-  local resolved
-  local dep
-  local tdep
-  local tdeps
-
-  # Append to `${pkg_deps_resolved[@]}` all resolved direct run dependencies.
-  for dep in "${pkg_deps[@]}"; do
-    _install_dependency $dep
-    if resolved="$(_resolve_dependency $dep)"; then
-      build_line "Resolved dependency '$dep' to $resolved"
-      pkg_deps_resolved+=($resolved)
-    else
-      exit_with "Resolving '$dep' failed, should this be built first?" 1
-    fi
-  done
-
-  # Append to `${pkg_tdeps_resolved[@]}` all the direct run dependencies, and
-  # the run dependencies for each direct run dependency.
-
-  # Copy all direct dependencies into a new array
-  pkg_tdeps_resolved=("${pkg_deps_resolved[@]}")
-  # Append all non-direct (transitive) run dependencies for each direct run
-  # dependency. Any duplicate entries are dropped to produce a proper set.
-  for dep in "${pkg_deps_resolved[@]}"; do
-    tdeps=($(_get_tdeps_for $dep))
-    for tdep in "${tdeps[@]}"; do
-      tdep="$HAB_PKG_PATH/$tdep"
-      pkg_tdeps_resolved=(
-        $(_return_or_append_to_set "$tdep" "${pkg_tdeps_resolved[@]}")
-      )
-    done
-  done
-}
-
-# **Internal** Populates the remaining package-related arrays used throughout
-# this program.
-_populate_dependency_arrays() {
-  local dep
-
-  # Build `${pkg_all_deps_resolved[@]}` containing all direct build and run
-  # dependencies. The build dependencies appear before the run dependencies.
-  pkg_all_deps_resolved=(
-    "${pkg_deps_resolved[@]}"
-    "${pkg_build_deps_resolved[@]}"
-  )
-
-  # Build an ordered set of all build and run dependencies (direct and
-  # transitive). The order is important as this gets used when setting the
-  # `$PATH` ordering in the build environment. To give priority to direct
-  # dependencies over transitive ones the order of packages is the following:
-  #
-  # 1. All direct run dependencies
-  # 2. All direct build dependencies
-  # 3. All unique transitive run dependencies that aren't already added
-  # 4. All unique transitive build dependencies that aren't already added
-  pkg_all_tdeps_resolved=(
-    "${pkg_deps_resolved[@]}"
-    "${pkg_build_deps_resolved[@]}"
-  )
-  for dep in "${pkg_tdeps_resolved[@]}" "${pkg_build_tdeps_resolved[@]}"; do
-    pkg_all_tdeps_resolved=(
-      $(_return_or_append_to_set "$dep" "${pkg_all_tdeps_resolved[@]}")
-    )
-  done
 }
 
 # **Internal**  Build `$PATH` containing each path in our own
