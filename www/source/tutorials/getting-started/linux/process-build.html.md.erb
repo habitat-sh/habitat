@@ -80,7 +80,7 @@ To natively run services on your Linux host machine, do the following:
 1. Build your package in the studio and then exit back to your host machine.
 2. Add the `hab` user and group to your machine. This is the default user and group for the child process in a service and they must be present for your service to run.
 
-       sudo adduser --group hab
+       sudo groupadd hab
        sudo useradd -g hab hab
 
    > Note: One of the reasons you can run a service from within the studio is that the `hab` user is created for you when you enter the studio environment.
