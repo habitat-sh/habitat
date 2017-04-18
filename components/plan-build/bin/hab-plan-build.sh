@@ -1174,7 +1174,7 @@ pkg_path_for() {
     fi
   done
   warn "pkg_path_for() '$dep' did not find a suitable installed package"
-  warn "Resolved package set: ${pkg_all_deps_resolved}"
+  warn "Resolved package set: (${pkg_all_deps_resolved[*]})"
   return 1
 }
 
