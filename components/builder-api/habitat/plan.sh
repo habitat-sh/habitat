@@ -62,7 +62,6 @@ do_build() {
     echo $b
     fix_interpreter $(readlink -f -n $b) core/coreutils bin/env
   done
-  npm run postinstall
   npm run dist
   popd > /dev/null
 
