@@ -379,6 +379,60 @@ impl Hook for RunHook {
 }
 
 #[derive(Debug, Serialize)]
+pub struct PostRunHook {
+    render_pair: RenderPair,
+    stdout_log_path: PathBuf,
+    stderr_log_path: PathBuf,
+}
+
+impl Hook for PostRunHook {
+    type ExitValue = ExitCode;
+
+    fn file_name() -> &'static str {
+        "post-run"
+    }
+
+    fn new(service_group: &ServiceGroup, pair: RenderPair) -> Self {
+        PostRunHook {
+            render_pair: pair,
+            stdout_log_path: stdout_log_path::<Self>(service_group),
+            stderr_log_path: stderr_log_path::<Self>(service_group),
+        }
+    }
+
+    fn handle_exit<'a>(&self,
+                       service_group: &ServiceGroup,
+                       _: &'a HookOutput,
+                       status: &ExitStatus)
+                       -> Self::ExitValue {
+        match status.code() {
+            Some(code) => ExitCode(code),
+            None => {
+                outputln!(preamble service_group,
+                    "{} exited without a status code", Self::file_name());
+                ExitCode::default()
+            }
+        }
+    }
+
+    fn path(&self) -> &Path {
+        &self.render_pair.path
+    }
+
+    fn template(&self) -> &Template {
+        &self.render_pair.template
+    }
+
+    fn stdout_log_path(&self) -> &Path {
+        &self.stdout_log_path
+    }
+
+    fn stderr_log_path(&self) -> &Path {
+        &self.stderr_log_path
+    }
+}
+
+#[derive(Debug, Serialize)]
 pub struct ReloadHook {
     render_pair: RenderPair,
     stdout_log_path: PathBuf,
@@ -640,6 +694,7 @@ pub struct HookTable {
     pub reconfigure: Option<ReconfigureHook>,
     pub suitability: Option<SuitabilityHook>,
     pub run: Option<RunHook>,
+    pub post_run: Option<PostRunHook>,
     pub smoke_test: Option<SmokeTestHook>,
     cfg_incarnation: u64,
 }
@@ -675,6 +730,9 @@ impl HookTable {
         if let Some(ref hook) = self.run {
             self.compile_one(hook, service_group, config);
         }
+        if let Some(ref hook) = self.post_run {
+            self.compile_one(hook, service_group, config);
+        }
         if let Some(ref hook) = self.smoke_test {
             self.compile_one(hook, service_group, config);
         }
@@ -695,6 +753,7 @@ impl HookTable {
                 self.reload = ReloadHook::load(service_group, &hooks, &templates);
                 self.reconfigure = ReconfigureHook::load(service_group, &hooks, &templates);
                 self.run = RunHook::load(service_group, &hooks, &templates);
+                self.post_run = PostRunHook::load(service_group, &hooks, &templates);
                 self.smoke_test = SmokeTestHook::load(service_group, &hooks, &templates);
             }
         }

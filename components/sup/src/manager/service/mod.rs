@@ -500,6 +500,12 @@ impl Service {
         }
     }
 
+    fn post_run(&mut self) {
+        if let Some(ref hook) = self.hooks.post_run {
+            hook.run(&self.service_group, self.runtime_cfg());
+        }
+    }
+
     /// Modifies PATH env with the full run path for this package. This path is composed of any
     /// binary paths specified by this package, or its TDEPS, plus a path to a BusyBox(non-windows),
     /// plus the existing value of the PATH variable.
@@ -655,6 +661,7 @@ impl Service {
             self.initialize();
             if self.initialized {
                 self.start();
+                self.post_run();
             }
         } else {
             self.check_process();
