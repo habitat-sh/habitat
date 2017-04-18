@@ -23,6 +23,7 @@ use hab_core;
 use hab_core::package::{self, Identifiable};
 use hab_net;
 use hyper;
+use protocol::net::NetError;
 use redis;
 
 #[derive(Debug)]
@@ -41,6 +42,7 @@ pub enum Error {
     NoFilePart,
     NulError(ffi::NulError),
     PackageIsAlreadyInChannel(String, String),
+    ProtocolNetError(NetError),
     RemotePackageNotFound(package::PackageIdent),
     WriteSyncFailed,
 }
@@ -73,6 +75,7 @@ impl fmt::Display for Error {
             Error::PackageIsAlreadyInChannel(ref p, ref c) => {
                 format!("{} is already in the {} channel.", p, c)
             }
+            Error::ProtocolNetError(ref e) => format!("{}", e),
             Error::RemotePackageNotFound(ref pkg) => {
                 if pkg.fully_qualified() {
                     format!("Cannot find package in any sources: {}", pkg)
@@ -100,6 +103,7 @@ impl error::Error for Error {
             Error::IO(ref err) => err.description(),
             Error::NulError(_) => "An attempt was made to build a CString with a null byte inside it",
             Error::PackageIsAlreadyInChannel(_, _) => "Package is already in channel",
+            Error::ProtocolNetError(ref err) => err.description(),
             Error::RemotePackageNotFound(_) => "Cannot find a package in any sources",
             Error::NoXFilename => "Invalid download from a Depot - missing X-Filename header",
             Error::NoFilePart => "An invalid path was passed - we needed a filename, and this path does not have one",
@@ -143,5 +147,11 @@ impl From<io::Error> for Error {
 impl From<hab_net::Error> for Error {
     fn from(err: hab_net::Error) -> Error {
         Error::HabitatNet(err)
+    }
+}
+
+impl From<NetError> for Error {
+    fn from(err: NetError) -> Error {
+        Error::ProtocolNetError(err)
     }
 }

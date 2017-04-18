@@ -18,3 +18,5 @@ pub mod origin_secret_keys;
 pub mod origin_public_keys;
 pub mod origin_invitations;
 pub mod origin_projects;
+pub mod origin_packages;
+pub mod origin_channels;

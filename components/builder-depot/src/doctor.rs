@@ -16,15 +16,14 @@ use std::fs;
 use std::io;
 use std::path::PathBuf;
 
-use dbcache::BasicSet;
 use hab_core;
 use hab_core::package::{FromArchive, PackageArchive};
-use protocol::depotsrv;
+use hab_net::routing::Broker;
+use protocol::originsrv;
 use time;
 use walkdir::WalkDir;
 
-use super::Depot;
-use data_store::DataStore;
+use super::DepotUtil;
 use error::Result;
 
 #[derive(Debug)]
@@ -135,12 +134,12 @@ pub enum Operation {
 
 struct Doctor<'a> {
     report: ReportBuilder,
-    depot: &'a Depot,
+    depot: &'a DepotUtil,
     packages_path: PathBuf,
 }
 
 impl<'a> Doctor<'a> {
-    pub fn new(depot: &'a Depot) -> Self {
+    pub fn new(depot: &'a DepotUtil) -> Self {
         let report = ReportBuilder::new();
         let mut packages = depot.packages_path().clone();
         packages.pop();
@@ -154,7 +153,6 @@ impl<'a> Doctor<'a> {
 
     fn run(mut self) -> Result<Report> {
         try!(self.init_fs());
-        try!(self.truncate_datastore(&self.depot.datastore));
         try!(self.rebuild_metadata());
         Ok(self.report.generate())
     }
@@ -192,9 +190,10 @@ impl<'a> Doctor<'a> {
             let mut archive = PackageArchive::new(PathBuf::from(entry.path()));
             match archive.ident() {
                 Ok(ident) => {
-                    match depotsrv::Package::from_archive(&mut archive) {
-                        Ok(object) => {
-                            try!(self.depot.datastore.packages.write(&object));
+                    match originsrv::OriginPackageCreate::from_archive(&mut archive) {
+                        Ok(package) => {
+                            let mut conn = Broker::connect().unwrap();
+                            conn.route::<originsrv::OriginPackageCreate, originsrv::OriginPackage>(&package)?;
                             let path = self.depot.archive_path(&ident, &try!(archive.target()));
                             if let Some(e) = fs::create_dir_all(path.parent().unwrap()).err() {
                                 self.report
@@ -252,14 +251,6 @@ impl<'a> Doctor<'a> {
         }
         Ok(())
     }
-
-    fn truncate_datastore(&mut self, datastore: &DataStore) -> Result<()> {
-        let count = try!(datastore.key_count());
-        try!(datastore.clear());
-        self.report
-            .success(OperationType::TruncateDataStore(count));
-        Ok(())
-    }
 }
 
 /// Runs the repair tool on the given Depot and returns a Report containing the results. A repair
@@ -268,6 +259,6 @@ impl<'a> Doctor<'a> {
 ///
 /// Any files found within the metastore which are not valid or readable archives are moved into a
 /// garbage directory for the user to examine.
-pub fn repair(depot: &Depot) -> Result<Report> {
+pub fn repair(depot: &DepotUtil) -> Result<Report> {
     Doctor::new(depot).run()
 }

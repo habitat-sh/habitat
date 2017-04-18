@@ -90,6 +90,26 @@ impl Dispatcher for Worker {
             "OriginProjectDelete" => handlers::project_delete(message, sock, state),
             "OriginProjectGet" => handlers::project_get(message, sock, state),
             "OriginProjectUpdate" => handlers::project_update(message, sock, state),
+            "OriginPackageCreate" => handlers::origin_package_create(message, sock, state),
+            "OriginPackageGet" => handlers::origin_package_get(message, sock, state),
+            "OriginPackageLatestGet" => handlers::origin_package_latest_get(message, sock, state),
+            "OriginPackageListRequest" => handlers::origin_package_list(message, sock, state),
+            "OriginPackagePromote" => handlers::origin_package_promote(message, sock, state),
+            "OriginPackageUniqueListRequest" => {
+                handlers::origin_package_unique_list(message, sock, state)
+            }
+            "OriginPackageSearchRequest" => handlers::origin_package_search(message, sock, state),
+            "OriginChannelCreate" => handlers::origin_channel_create(message, sock, state),
+            "OriginChannelDelete" => handlers::origin_channel_delete(message, sock, state),
+            "OriginChannelGet" => handlers::origin_channel_get(message, sock, state),
+            "OriginChannelListRequest" => handlers::origin_channel_list(message, sock, state),
+            "OriginChannelPackageGet" => handlers::origin_channel_package_get(message, sock, state),
+            "OriginChannelPackageLatestGet" => {
+                handlers::origin_channel_package_latest_get(message, sock, state)
+            }
+            "OriginChannelPackageListRequest" => {
+                handlers::origin_channel_package_list(message, sock, state)
+            }
             _ => {
                 debug!("dispatch: unhandled message: {}", message.message_id());
                 Ok(())

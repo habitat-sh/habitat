@@ -85,7 +85,7 @@ pub fn run(config: Arc<Config>) -> Result<JoinHandle<()>> {
     let (tx, rx) = mpsc::sync_channel(1);
 
     let addr = config.http_addr.clone();
-    let depot = try!(depot::Depot::new(config.depot.clone()));
+    let depot = depot::DepotUtil::new(config.depot.clone());
     let depot_chain = try!(depot::server::router(depot));
 
     let mut mount = Mount::new();

@@ -15,7 +15,7 @@
 use std::path::{Path, PathBuf};
 use walkdir::{WalkDir, Iter};
 use hab_core::package::{FromArchive, PackageArchive};
-use protocol::depotsrv;
+use protocol::originsrv::OriginPackage;
 use protocol::scheduler;
 
 pub struct FileWalker {
@@ -32,12 +32,12 @@ impl FileWalker {
     }
 }
 
-pub fn extract_package<T: AsRef<Path>>(path: T) -> Option<depotsrv::Package> {
+pub fn extract_package<T: AsRef<Path>>(path: T) -> Option<OriginPackage> {
     let mut archive = PackageArchive::new(PathBuf::from(path.as_ref()));
 
     match archive.ident() {
         Ok(_) => {
-            match depotsrv::Package::from_archive(&mut archive) {
+            match OriginPackage::from_archive(&mut archive) {
                 Ok(p) => {
                     return Some(p);
                 }

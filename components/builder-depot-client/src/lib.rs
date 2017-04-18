@@ -47,7 +47,7 @@ use hyper::status::StatusCode;
 use hyper::header::{Authorization, Bearer};
 use hyper::Url;
 use protobuf::core::ProtobufEnum;
-use protocol::{depotsrv, net};
+use protocol::{originsrv, net};
 use rand::{Rng, thread_rng};
 use tee::TeeReader;
 
@@ -77,9 +77,9 @@ pub struct OriginKeyIdent {
     pub location: String,
 }
 
-impl Into<depotsrv::OriginKeyIdent> for OriginKeyIdent {
-    fn into(self) -> depotsrv::OriginKeyIdent {
-        let mut out = depotsrv::OriginKeyIdent::new();
+impl Into<originsrv::OriginKeyIdent> for OriginKeyIdent {
+    fn into(self) -> originsrv::OriginKeyIdent {
+        let mut out = originsrv::OriginKeyIdent::new();
         out.set_origin(self.origin);
         out.set_revision(self.revision);
         out.set_location(self.location);
@@ -108,9 +108,9 @@ pub struct Package {
     pub config: String,
 }
 
-impl Into<depotsrv::Package> for Package {
-    fn into(self) -> depotsrv::Package {
-        let mut out = depotsrv::Package::new();
+impl Into<originsrv::OriginPackage> for Package {
+    fn into(self) -> originsrv::OriginPackage {
+        let mut out = originsrv::OriginPackage::new();
         out.set_ident(self.ident.into());
         out.set_checksum(self.checksum);
         out.set_manifest(self.manifest);
@@ -130,9 +130,9 @@ pub struct PackageIdent {
     pub release: String,
 }
 
-impl Into<depotsrv::PackageIdent> for PackageIdent {
-    fn into(self) -> depotsrv::PackageIdent {
-        let mut out = depotsrv::PackageIdent::new();
+impl Into<originsrv::OriginPackageIdent> for PackageIdent {
+    fn into(self) -> originsrv::OriginPackageIdent {
+        let mut out = originsrv::OriginPackageIdent::new();
         out.set_origin(self.origin);
         out.set_name(self.name);
         out.set_version(self.version);
@@ -189,7 +189,7 @@ impl Client {
                       progress)
     }
 
-    pub fn show_origin_keys(&self, origin: &str) -> Result<Vec<depotsrv::OriginKeyIdent>> {
+    pub fn show_origin_keys(&self, origin: &str) -> Result<Vec<originsrv::OriginKeyIdent>> {
         let mut res = try!(self.inner
                                .get(&format!("origins/{}/keys", origin))
                                .send());
@@ -202,7 +202,7 @@ impl Client {
         let mut encoded = String::new();
         try!(res.read_to_string(&mut encoded));
         debug!("Response body: {:?}", encoded);
-        let revisions: Vec<depotsrv::OriginKeyIdent> =
+        let revisions: Vec<originsrv::OriginKeyIdent> =
             try!(serde_json::from_str::<Vec<OriginKeyIdent>>(&encoded))
                 .into_iter()
                 .map(|m| m.into())
@@ -364,7 +364,7 @@ impl Client {
     ///
     /// * Package cannot be found
     /// * Remote Depot is not available
-    pub fn show_package<I: Identifiable>(&self, ident: &I) -> Result<depotsrv::Package> {
+    pub fn show_package<I: Identifiable>(&self, ident: &I) -> Result<originsrv::OriginPackage> {
         let mut res = try!(self.inner.get(&self.path_show_package(ident)).send());
 
         if res.status != StatusCode::Ok {
@@ -374,7 +374,8 @@ impl Client {
         let mut encoded = String::new();
         try!(res.read_to_string(&mut encoded));
         debug!("Body: {:?}", encoded);
-        let package: depotsrv::Package = try!(serde_json::from_str::<Package>(&encoded)).into();
+        let package: originsrv::OriginPackage = try!(serde_json::from_str::<Package>(&encoded))
+            .into();
         Ok(package)
     }
 

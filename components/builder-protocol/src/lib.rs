@@ -20,7 +20,6 @@ extern crate serde;
 extern crate serde_derive;
 extern crate time;
 
-pub mod depotsrv;
 pub mod error;
 pub mod jobsrv;
 pub mod net;

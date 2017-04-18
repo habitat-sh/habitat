@@ -127,7 +127,7 @@ fn start(config: Config) -> Result<()> {
 /// * The database cannot be read
 /// * A write transaction cannot be acquired
 pub fn repair(config: Config) -> Result<()> {
-    let depot = try!(depot::Depot::new(config));
+    let depot = depot::DepotUtil::new(config);
     let report = try!(depot::doctor::repair(&depot));
     println!("Report: {:?}", &report);
     Ok(())
