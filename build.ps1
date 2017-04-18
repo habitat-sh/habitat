@@ -22,7 +22,11 @@ param (
     # When specified a build will not be run.
     [switch]$SkipBuild,
     # Use a optimized release build
-    [switch]$Release
+    [switch]$Release,
+    # Run a cargo check instead of build
+    [switch]$Check,
+    # Add protocol feature
+    [switch]$protocols
 )
 
 if(!$env:ChocolateyInstall) {
@@ -141,7 +145,7 @@ function Write-RustToolVersion {
     Write-Host ""
 }
 
-function Invoke-Build([string]$Path, [switch]$Clean, [switch]$Release) {
+function Invoke-Build([string]$Path, [switch]$Clean, [switch]$Release, [switch]$Check, [switch]$Protocols) {
     $Path = Resolve-Path $Path
 
     $cargo = Get-CargoCommand
@@ -150,7 +154,12 @@ function Invoke-Build([string]$Path, [switch]$Clean, [switch]$Release) {
     if($Clean) {
         invoke-expression "$cargo clean"
     }
-    Invoke-Expression "$cargo build $(if ($Release) { '--release' })" -ErrorAction Stop
+    if($Check) {
+        Invoke-Expression "$cargo check" -ErrorAction Stop
+    }
+    else {
+        Invoke-Expression "$cargo build $(if ($Release) { '--release' }) $(if ($Protocols) { '--features protocols' })" -ErrorAction Stop
+    }
     Pop-Location
 }
 
@@ -204,7 +213,7 @@ if ($Test) {
     Invoke-Test $Path -Clean:$Clean -Release:$Release
 }
 if (!$SkipBuild) {
-    Invoke-Build $Path -Clean:$Clean -Release:$Release
+    Invoke-Build $Path -Clean:$Clean -Release:$Release -Check:$Check -Protocols:$protocols
 }
 
 exit $LASTEXITCODE

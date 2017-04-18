@@ -340,3 +340,255 @@ pub fn project_update(req: &mut Envelope,
     }
     Ok(())
 }
+
+pub fn origin_channel_create(req: &mut Envelope,
+                             sock: &mut zmq::Socket,
+                             state: &mut ServerState)
+                             -> Result<()> {
+    let msg: proto::OriginChannelCreate = try!(req.parse_msg());
+
+    match state.datastore.create_origin_channel(&msg) {
+        Ok(ref occ) => try!(req.reply_complete(sock, occ)),
+        Err(err) => {
+            error!("OriginChannelCreate, err={:?}", err);
+            let err = net::err(ErrCode::DATA_STORE, "vt:origin-channel-create:1");
+            try!(req.reply_complete(sock, &err));
+        }
+    }
+    Ok(())
+}
+
+pub fn origin_channel_delete(req: &mut Envelope,
+                             sock: &mut zmq::Socket,
+                             state: &mut ServerState)
+                             -> Result<()> {
+    let msg: proto::OriginChannelDelete = try!(req.parse_msg());
+    match state.datastore.delete_origin_channel_by_id(&msg) {
+        Ok(()) =>  try!(req.reply_complete(sock, &net::NetOk::new())),
+        Err(err) => {
+            error!("OriginChannelDelete, err={:?}", err);
+            let err = net::err(ErrCode::DATA_STORE, "vt:origin-channel-delete:1");
+            try!(req.reply_complete(sock, &err));
+        }
+    }
+    Ok(())
+}
+
+pub fn origin_channel_get(req: &mut Envelope,
+                          sock: &mut zmq::Socket,
+                          state: &mut ServerState)
+                          -> Result<()> {
+    let msg: proto::OriginChannelGet = try!(req.parse_msg());
+    match state.datastore.get_origin_channel(&msg) {
+        Ok(Some(ref channel)) => try!(req.reply_complete(sock, channel)),
+        Ok(None) => {
+            let err = net::err(ErrCode::ENTITY_NOT_FOUND, "vt:origin-channel-get:0");
+            try!(req.reply_complete(sock, &err));
+        }
+        Err(err) => {
+            error!("OriginChannelGet, err={:?}", err);
+            let err = net::err(ErrCode::DATA_STORE, "vt:origin-channel-get:1");
+            try!(req.reply_complete(sock, &err));
+        }
+    }
+    Ok(())
+}
+
+pub fn origin_channel_list(req: &mut Envelope,
+                           sock: &mut zmq::Socket,
+                           state: &mut ServerState)
+                           -> Result<()> {
+    let msg: proto::OriginChannelListRequest = try!(req.parse_msg());
+    match state.datastore.list_origin_channels(&msg) {
+        Ok(ref oclr) => try!(req.reply_complete(sock, oclr)),
+        Err(err) => {
+            error!("OriginChannelList, err={:?}", err);
+            let err = net::err(ErrCode::DATA_STORE, "vt:origin-channel-list:1");
+            try!(req.reply_complete(sock, &err));
+        }
+    }
+    Ok(())
+}
+
+pub fn origin_package_create(req: &mut Envelope,
+                             sock: &mut zmq::Socket,
+                             state: &mut ServerState)
+                             -> Result<()> {
+    let msg: proto::OriginPackageCreate = try!(req.parse_msg());
+
+    match state.datastore.create_origin_package(&msg) {
+        Ok(ref opc) => try!(req.reply_complete(sock, opc)),
+        Err(err) => {
+            error!("OriginPackageCreate, err={:?}", err);
+            let err = net::err(ErrCode::DATA_STORE, "vt:origin-package-create:1");
+            try!(req.reply_complete(sock, &err));
+        }
+    }
+    Ok(())
+}
+
+pub fn origin_package_get(req: &mut Envelope,
+                          sock: &mut zmq::Socket,
+                          state: &mut ServerState)
+                          -> Result<()> {
+    let msg: proto::OriginPackageGet = try!(req.parse_msg());
+    match state.datastore.get_origin_package(&msg) {
+        Ok(Some(ref package)) => try!(req.reply_complete(sock, package)),
+        Ok(None) => {
+            let err = net::err(ErrCode::ENTITY_NOT_FOUND, "vt:origin-package-get:0");
+            try!(req.reply_complete(sock, &err));
+        }
+        Err(err) => {
+            error!("OriginPackageGet, err={:?}", err);
+            let err = net::err(ErrCode::DATA_STORE, "vt:origin-package-get:1");
+            try!(req.reply_complete(sock, &err));
+        }
+    }
+    Ok(())
+}
+
+pub fn origin_channel_package_get(req: &mut Envelope,
+                                  sock: &mut zmq::Socket,
+                                  state: &mut ServerState)
+                                  -> Result<()> {
+    let msg: proto::OriginChannelPackageGet = try!(req.parse_msg());
+    match state.datastore.get_origin_channel_package(&msg) {
+        Ok(Some(ref package)) => try!(req.reply_complete(sock, package)),
+        Ok(None) => {
+            let err = net::err(ErrCode::ENTITY_NOT_FOUND, "vt:origin-channel-package-get:0");
+            try!(req.reply_complete(sock, &err));
+        }
+        Err(err) => {
+            error!("OriginChannelPackageGet, err={:?}", err);
+            let err = net::err(ErrCode::DATA_STORE, "vt:origin-channel-package-get:1");
+            try!(req.reply_complete(sock, &err));
+        }
+    }
+    Ok(())
+}
+
+pub fn origin_package_latest_get(req: &mut Envelope,
+                                 sock: &mut zmq::Socket,
+                                 state: &mut ServerState)
+                                 -> Result<()> {
+    let msg: proto::OriginPackageLatestGet = try!(req.parse_msg());
+    match state.datastore.get_origin_package_latest(&msg) {
+        Ok(Some(ref package)) => try!(req.reply_complete(sock, package)),
+        Ok(None) => {
+            let err = net::err(ErrCode::ENTITY_NOT_FOUND, "vt:origin-package-latest-get:0");
+            try!(req.reply_complete(sock, &err));
+        }
+        Err(err) => {
+            error!("OriginPackageLatestGet, err={:?}", err);
+            let err = net::err(ErrCode::DATA_STORE, "vt:origin-package-latest-get:1");
+            try!(req.reply_complete(sock, &err));
+        }
+    }
+    Ok(())
+}
+
+pub fn origin_channel_package_latest_get(req: &mut Envelope,
+                                         sock: &mut zmq::Socket,
+                                         state: &mut ServerState)
+                                         -> Result<()> {
+    let msg: proto::OriginChannelPackageLatestGet = try!(req.parse_msg());
+    match state.datastore.get_origin_channel_package_latest(&msg) {
+        Ok(Some(ref package)) => try!(req.reply_complete(sock, package)),
+        Ok(None) => {
+            let err = net::err(ErrCode::ENTITY_NOT_FOUND,
+                               "vt:origin-channel-package-latest-get:0");
+            try!(req.reply_complete(sock, &err));
+        }
+        Err(err) => {
+            error!("OriginChannelPackageLatestGet, err={:?}", err);
+            let err = net::err(ErrCode::DATA_STORE,
+                               "vt:origin-channel-package-latest-get:1");
+            try!(req.reply_complete(sock, &err));
+        }
+    }
+    Ok(())
+}
+
+pub fn origin_package_list(req: &mut Envelope,
+                           sock: &mut zmq::Socket,
+                           state: &mut ServerState)
+                           -> Result<()> {
+    let msg: proto::OriginPackageListRequest = try!(req.parse_msg());
+    match state.datastore.list_origin_package_for_origin(&msg) {
+        Ok(ref oplr) => try!(req.reply_complete(sock, oplr)),
+        Err(err) => {
+            error!("OriginPackageList, err={:?}", err);
+            let err = net::err(ErrCode::DATA_STORE, "vt:origin-package-list:1");
+            try!(req.reply_complete(sock, &err));
+        }
+    }
+    Ok(())
+}
+
+pub fn origin_channel_package_list(req: &mut Envelope,
+                                   sock: &mut zmq::Socket,
+                                   state: &mut ServerState)
+                                   -> Result<()> {
+    let msg: proto::OriginChannelPackageListRequest = try!(req.parse_msg());
+    match state
+              .datastore
+              .list_origin_channel_package_for_channel(&msg) {
+        Ok(ref oplr) => try!(req.reply_complete(sock, oplr)),
+        Err(err) => {
+            error!("OriginChannelPackageList, err={:?}", err);
+            let err = net::err(ErrCode::DATA_STORE, "vt:origin-channel-package-list:1");
+            try!(req.reply_complete(sock, &err));
+        }
+    }
+    Ok(())
+}
+
+pub fn origin_package_promote(req: &mut Envelope,
+                              sock: &mut zmq::Socket,
+                              state: &mut ServerState)
+                              -> Result<()> {
+    let msg: proto::OriginPackagePromote = try!(req.parse_msg());
+    match state.datastore.promote_origin_package(&msg) {
+        Ok(()) =>  try!(req.reply_complete(sock, &net::NetOk::new())),
+        Err(err) => {
+            error!("OriginPackagePromote, err={:?}", err);
+            let err = net::err(ErrCode::DATA_STORE, "vt:origin-package-promote:1");
+            try!(req.reply_complete(sock, &err));
+        }
+    }
+    Ok(())
+}
+
+pub fn origin_package_unique_list(req: &mut Envelope,
+                                  sock: &mut zmq::Socket,
+                                  state: &mut ServerState)
+                                  -> Result<()> {
+    let msg: proto::OriginPackageUniqueListRequest = try!(req.parse_msg());
+    match state
+              .datastore
+              .list_origin_package_unique_for_origin(&msg) {
+        Ok(ref opulr) => try!(req.reply_complete(sock, opulr)),
+        Err(err) => {
+            error!("OriginPackageUniqueList, err={:?}", err);
+            let err = net::err(ErrCode::DATA_STORE, "vt:origin-package-unique-list:1");
+            try!(req.reply_complete(sock, &err));
+        }
+    }
+    Ok(())
+}
+
+pub fn origin_package_search(req: &mut Envelope,
+                             sock: &mut zmq::Socket,
+                             state: &mut ServerState)
+                             -> Result<()> {
+    let msg: proto::OriginPackageSearchRequest = try!(req.parse_msg());
+    match state.datastore.search_origin_package_for_origin(&msg) {
+        Ok(ref opsr) => try!(req.reply_complete(sock, opsr)),
+        Err(err) => {
+            error!("OriginPackageSearch, err={:?}", err);
+            let err = net::err(ErrCode::DATA_STORE, "vt:origin-package-search:1");
+            try!(req.reply_complete(sock, &err));
+        }
+    }
+    Ok(())
+}

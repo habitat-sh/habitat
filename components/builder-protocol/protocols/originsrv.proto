@@ -1,5 +1,31 @@
 package originsrv;
 
+// Account
+message AccountInvitationListRequest {
+  optional uint64 account_id = 1;
+}
+
+message AccountInvitationListResponse {
+  optional uint64 account_id = 1;
+  repeated OriginInvitation invitations = 2;
+}
+
+message CheckOriginAccessRequest {
+  oneof account_info {
+    uint64 account_id = 1;
+    string account_name = 2;
+  }
+  oneof origin_info {
+    uint64 origin_id = 3;
+    string origin_name = 4;
+  }
+}
+
+message CheckOriginAccessResponse {
+  optional bool has_access = 1;
+}
+
+// Origin
 message Origin {
   optional uint64 id = 1;
   optional string name = 2;
@@ -21,42 +47,86 @@ message OriginGet {
   optional string name = 1;
 }
 
-message OriginMemberRemove {
+// Origin Channel
+message OriginChannel {
+  optional uint64 id = 1;
+  optional uint64 origin_id = 2;
+  optional string name = 3;
+  optional uint64 owner_id = 4;
+}
+
+message OriginChannelIdent {
+  optional string origin = 1;
+  optional string name = 2;
+}
+
+message OriginChannelCreate {
   optional uint64 origin_id = 1;
-  optional uint64 user_id = 2;
+  optional string origin_name = 2;
+  optional string name = 3;
+  optional uint64 owner_id = 4;
 }
 
-message OriginMemberListRequest {
+message OriginChannelGet {
+  optional string origin_name = 1;
+  optional string name = 2;
+}
+
+message OriginChannelListRequest {
   optional uint64 origin_id = 1;
 }
 
-message OriginMemberListResponse {
+message OriginChannelListResponse {
   optional uint64 origin_id = 1;
-  repeated string members = 2;
+  repeated OriginChannel channels = 2;
 }
 
-message CheckOriginAccessRequest {
-  oneof account_info {
-    uint64 account_id = 1;
-    string account_name = 2;
-  }
-  oneof origin_info {
-    uint64 origin_id = 3;
-    string origin_name = 4;
-  }
+message OriginChannelPackageGet {
+  optional string name = 1;
+  optional OriginPackageIdent ident = 2;
 }
 
-message CheckOriginAccessResponse {
-  optional bool has_access = 1;
+message OriginChannelPackageLatestGet {
+  optional string name = 1;
+  optional OriginPackageIdent ident = 2;
+  optional string target = 3;
 }
 
-message AccountInvitationListRequest {
+message OriginChannelPackageListRequest {
+  optional string name = 1;
+  optional OriginPackageIdent ident = 2;
+  optional uint64 start = 3;
+  optional uint64 stop = 4;
+}
+
+message OriginChannelDelete {
+  optional uint64 id = 1;
+  optional uint64 origin_id = 2;
+}
+
+// Origin Invitation
+message OriginInvitation {
+  optional uint64 id = 1;
+  optional uint64 account_id = 2;
+  optional string account_name = 3;
+  optional uint64 origin_id = 4;
+  optional string origin_name = 5;
+  optional uint64 owner_id = 6;
+}
+
+message OriginInvitationAcceptRequest {
   optional uint64 account_id = 1;
+  optional uint64 invite_id = 2;
+  optional string origin_name = 3;
+  optional bool ignore = 4;
 }
 
-message AccountInvitationListResponse {
+message OriginInvitationCreate {
   optional uint64 account_id = 1;
-  repeated OriginInvitation invitations = 2;
+  optional string account_name = 2;
+  optional uint64 origin_id = 3;
+  optional string origin_name = 4;
+  optional uint64 owner_id = 5;
 }
 
 message OriginInvitationListRequest {
@@ -68,52 +138,142 @@ message OriginInvitationListResponse {
   repeated OriginInvitation invitations = 2;
 }
 
-message OriginInvitation {
+message OriginKeyIdent {
+  optional string origin = 1;
+  optional string revision = 2;
+  optional string location = 3;
+}
+
+// Origin Member
+message OriginMemberListRequest {
+  optional uint64 origin_id = 1;
+}
+
+message OriginMemberListResponse {
+  optional uint64 origin_id = 1;
+  repeated string members = 2;
+}
+
+message OriginMemberRemove {
+  optional uint64 origin_id = 1;
+  optional uint64 user_id = 2;
+}
+
+// Origin Package
+message OriginPackage {
   optional uint64 id = 1;
-  optional uint64 account_id = 2;
-  optional string account_name = 3;
-  optional uint64 origin_id = 4;
-  optional string origin_name = 5;
-  optional uint64 owner_id = 6;
-}
-
-message OriginInvitationCreate {
-  optional uint64 account_id = 1;
-  optional string account_name = 2;
+  optional uint64 owner_id = 2;
   optional uint64 origin_id = 3;
-  optional string origin_name = 4;
-  optional uint64 owner_id = 5;
+  optional OriginPackageIdent ident = 4;
+  optional string checksum = 5;
+  optional string manifest = 6;
+  repeated OriginPackageIdent deps = 7;
+  repeated OriginPackageIdent tdeps = 8;
+  repeated uint32 exposes = 9 [packed=true];
+  optional string config = 10;
+  optional string target = 11;
 }
 
-message OriginInvitationAcceptRequest {
-  optional uint64 account_id = 1;
-  optional uint64 invite_id = 2;
-  optional string origin_name = 3;
-  optional bool ignore = 4;
+message OriginPackageIdent {
+  optional string origin = 1;
+  optional string name = 2;
+  optional string version = 3;
+  optional string release = 4;
 }
 
-message OriginSecretKey {
+message OriginPackageCreate {
+  optional uint64 owner_id = 1;
+  optional uint64 origin_id = 2;
+  optional OriginPackageIdent ident = 3;
+  optional string checksum = 4;
+  optional string manifest = 5;
+  repeated OriginPackageIdent deps = 6;
+  repeated OriginPackageIdent tdeps = 7;
+  repeated uint32 exposes = 8 [packed=true];
+  optional string config = 9;
+  optional string target = 10;
+}
+
+message OriginPackageGet {
+  optional OriginPackageIdent ident = 1;
+}
+
+message OriginPackageLatestGet {
+  optional OriginPackageIdent ident = 1;
+  optional string target = 2;
+}
+
+message OriginPackageListRequest {
+  optional OriginPackageIdent ident = 1;
+  optional uint64 start = 2;
+  optional uint64 stop = 3;
+}
+
+message OriginPackageListResponse {
+  optional uint64 start = 1;
+  optional uint64 stop = 2;
+  optional uint64 count = 3;
+  repeated OriginPackageIdent idents = 4;
+}
+
+message OriginPackagePromote {
+  optional uint64 channel_id = 1;
+  optional uint64 package_id = 2;
+  optional OriginPackageIdent ident = 3;
+}
+
+message OriginPackageSearchRequest {
+  optional string origin = 1;
+  optional string query = 2;
+  optional uint64 start = 3;
+  optional uint64 stop = 4;
+}
+
+message OriginPackageUniqueListRequest {
+  optional string origin = 1;
+  optional uint64 start = 2;
+  optional uint64 stop = 3;
+}
+
+message OriginPackageUniqueListResponse {
+  optional uint64 start = 1;
+  optional uint64 stop = 2;
+  optional uint64 count = 3;
+  repeated OriginPackageIdent idents = 4;
+}
+
+// Origin Project
+message OriginProject {
   optional uint64 id = 1;
   optional uint64 origin_id = 2;
-  optional string name = 3;
-  optional string revision = 4;
-  optional bytes body = 5;
-  optional uint64 owner_id = 6;
+  optional string origin_name = 3;
+  optional string package_name = 4;
+  optional string name = 5;
+  optional string plan_path = 6;
+  optional uint64 owner_id = 7;
+  optional string vcs_type = 8;
+  optional string vcs_data = 9;
 }
 
-message OriginSecretKeyCreate {
-  optional uint64 origin_id = 1;
-  optional string name = 2;
-  optional string revision = 3;
-  optional bytes body = 4;
-  optional uint64 owner_id = 5;
+message OriginProjectCreate {
+  optional OriginProject project = 1;
 }
 
-message OriginSecretKeyGet {
-  optional uint64 owner_id = 1;
-  optional string origin = 2;
+message OriginProjectDelete {
+  optional string name = 1;
+  optional uint64 requestor_id = 2;
 }
 
+message OriginProjectGet {
+  optional string name = 1;
+}
+
+message OriginProjectUpdate {
+  optional uint64 requestor_id = 1;
+  optional OriginProject project = 2;
+}
+
+// Origin Public Key
 message OriginPublicKey {
   optional uint64 id = 1;
   optional uint64 origin_id = 2;
@@ -152,33 +312,25 @@ message OriginPublicKeyListResponse {
   repeated OriginPublicKey keys = 2;
 }
 
-message OriginProject {
+// Origin Secret Key
+message OriginSecretKey {
   optional uint64 id = 1;
   optional uint64 origin_id = 2;
-  optional string origin_name = 3;
-  optional string package_name = 4;
-  optional string name = 5;
-  optional string plan_path = 6;
-  optional uint64 owner_id = 7;
-  optional string vcs_type = 8;
-  optional string vcs_data = 9;
+  optional string name = 3;
+  optional string revision = 4;
+  optional bytes body = 5;
+  optional uint64 owner_id = 6;
 }
 
-message OriginProjectCreate {
-  optional OriginProject project = 1;
+message OriginSecretKeyCreate {
+  optional uint64 origin_id = 1;
+  optional string name = 2;
+  optional string revision = 3;
+  optional bytes body = 4;
+  optional uint64 owner_id = 5;
 }
 
-message OriginProjectUpdate {
-  optional uint64 requestor_id = 1;
-  optional OriginProject project = 2;
+message OriginSecretKeyGet {
+  optional uint64 owner_id = 1;
+  optional string origin = 2;
 }
-
-message OriginProjectDelete {
-  optional string name = 1;
-  optional uint64 requestor_id = 2;
-}
-
-message OriginProjectGet {
-  optional string name = 1;
-}
-

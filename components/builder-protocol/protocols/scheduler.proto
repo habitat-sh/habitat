@@ -1,5 +1,4 @@
 package scheduler;
-import "protocols/depotsrv.proto";
 
 enum ProjectState {
   NotStarted = 0;

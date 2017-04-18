@@ -19,7 +19,6 @@ use protobuf;
 
 use sharding::InstaId;
 
-pub mod depotsrv;
 pub mod jobsrv;
 pub mod net;
 pub mod routesrv;

@@ -16,12 +16,12 @@ use std::result;
 use message::Routable;
 
 pub use message::scheduler::*;
-use message::depotsrv;
+use message::originsrv::OriginPackage;
 use serde::{Serialize, Serializer};
 use serde::ser::SerializeStruct;
 
-impl From<depotsrv::Package> for Package {
-    fn from(value: depotsrv::Package) -> Package {
+impl From<OriginPackage> for Package {
+    fn from(value: OriginPackage) -> Package {
         let mut package = Package::new();
 
         let name = format!("{}", value.get_ident());

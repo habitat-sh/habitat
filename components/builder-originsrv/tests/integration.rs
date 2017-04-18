@@ -16,5 +16,6 @@
 extern crate habitat_builder_db as db;
 extern crate habitat_builder_originsrv as originsrv;
 extern crate habitat_builder_protocol as protocol;
+extern crate protobuf;
 
 mod data_store;

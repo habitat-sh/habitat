@@ -38,6 +38,13 @@ pub enum Error {
     IO(io::Error),
     NetError(hab_net::Error),
     OriginCreate(postgres::error::Error),
+    OriginChannelCreate(postgres::error::Error),
+    OriginChannelGet(postgres::error::Error),
+    OriginChannelList(postgres::error::Error),
+    OriginChannelDelete(postgres::error::Error),
+    OriginChannelPackageGet(postgres::error::Error),
+    OriginChannelPackageLatestGet(postgres::error::Error),
+    OriginChannelPackageList(postgres::error::Error),
     OriginCheckAccess(postgres::error::Error),
     OriginGet(postgres::error::Error),
     OriginMemberList(postgres::error::Error),
@@ -46,6 +53,13 @@ pub enum Error {
     OriginInvitationListForOrigin(postgres::error::Error),
     OriginInvitationListForAccount(postgres::error::Error),
     OriginInvitationValidate(postgres::error::Error),
+    OriginPackageCreate(postgres::error::Error),
+    OriginPackageGet(postgres::error::Error),
+    OriginPackageLatestGet(postgres::error::Error),
+    OriginPackageList(postgres::error::Error),
+    OriginPackagePromote(postgres::error::Error),
+    OriginPackageSearch(postgres::error::Error),
+    OriginPackageUniqueList(postgres::error::Error),
     OriginProjectCreate(postgres::error::Error),
     OriginProjectDelete(postgres::error::Error),
     OriginProjectGet(postgres::error::Error),
@@ -87,6 +101,26 @@ impl fmt::Display for Error {
             Error::IO(ref e) => format!("{}", e),
             Error::NetError(ref e) => format!("{}", e),
             Error::OriginCreate(ref e) => format!("Error creating origin in database, {}", e),
+            Error::OriginChannelCreate(ref e) => {
+                format!("Error creating channel in database, {}", e)
+            }
+            Error::OriginChannelGet(ref e) => format!("Error getting channel from database, {}", e),
+            Error::OriginChannelList(ref e) => {
+                format!("Error listing channels for an origin from database, {}", e)
+            }
+            Error::OriginChannelDelete(ref e) => {
+                format!("Error deleting channel in database, {}", e)
+            }
+            Error::OriginChannelPackageGet(ref e) => {
+                format!("Error getting package for a channel from database, {}", e)
+            }
+            Error::OriginChannelPackageLatestGet(ref e) => {
+                format!("Error getting the latest package for a channel from database, {}",
+                        e)
+            }
+            Error::OriginChannelPackageList(ref e) => {
+                format!("Error listing packages for a channel from database, {}", e)
+            }
             Error::OriginCheckAccess(ref e) => {
                 format!("Error checking access to origin in database, {}", e)
             }
@@ -112,7 +146,26 @@ impl fmt::Display for Error {
                 format!("Error validating origin invitation for an account in database, {}",
                         e)
             }
-
+            Error::OriginPackageCreate(ref e) => {
+                format!("Error creating package in database, {}", e)
+            }
+            Error::OriginPackageGet(ref e) => format!("Error getting package in database, {}", e),
+            Error::OriginPackageLatestGet(ref e) => {
+                format!("Error getting latest package in database, {}", e)
+            }
+            Error::OriginPackageList(ref e) => {
+                format!("Error getting list of packages for this origin, {}", e)
+            }
+            Error::OriginPackagePromote(ref e) => {
+                format!("Error promoting package to channel, {}", e)
+            }
+            Error::OriginPackageSearch(ref e) => {
+                format!("Error searching list of packages for this origin, {}", e)
+            }
+            Error::OriginPackageUniqueList(ref e) => {
+                format!("Error getting unique list of packages for this origin, {}",
+                        e)
+            }
             Error::OriginProjectCreate(ref e) => {
                 format!("Error creating project in database, {}", e)
             }
@@ -175,7 +228,14 @@ impl error::Error for Error {
             Error::IO(ref err) => err.description(),
             Error::NetError(ref err) => err.description(),
             Error::OriginCreate(ref err) => err.description(),
+            Error::OriginChannelCreate(ref err) => err.description(),
+            Error::OriginChannelGet(ref err) => err.description(),
+            Error::OriginChannelList(ref err) => err.description(),
+            Error::OriginChannelPackageGet(ref err) => err.description(),
+            Error::OriginChannelPackageLatestGet(ref err) => err.description(),
+            Error::OriginChannelPackageList(ref err) => err.description(),
             Error::OriginCheckAccess(ref err) => err.description(),
+            Error::OriginChannelDelete(ref err) => err.description(),
             Error::OriginGet(ref err) => err.description(),
             Error::OriginMemberList(ref err) => err.description(),
             Error::OriginInvitationAccept(ref err) => err.description(),
@@ -183,6 +243,13 @@ impl error::Error for Error {
             Error::OriginInvitationListForOrigin(ref err) => err.description(),
             Error::OriginInvitationListForAccount(ref err) => err.description(),
             Error::OriginInvitationValidate(ref err) => err.description(),
+            Error::OriginPackageCreate(ref err) => err.description(),
+            Error::OriginPackageGet(ref err) => err.description(),
+            Error::OriginPackageLatestGet(ref err) => err.description(),
+            Error::OriginPackageList(ref err) => err.description(),
+            Error::OriginPackagePromote(ref err) => err.description(),
+            Error::OriginPackageSearch(ref err) => err.description(),
+            Error::OriginPackageUniqueList(ref err) => err.description(),
             Error::OriginProjectCreate(ref err) => err.description(),
             Error::OriginProjectDelete(ref err) => err.description(),
             Error::OriginProjectGet(ref err) => err.description(),
