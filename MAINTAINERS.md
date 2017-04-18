@@ -107,3 +107,4 @@ tutorials and reference materials.
 * [Matt Wrock](https://github.com/mwrock)
 * [Salim Alam](https://github.com/chefsalim)
 * [Nell Shamrell-Harrington](https://github.com/nellshamrell)
+* [Robb Kidd](https://github.com/robbkidd)
