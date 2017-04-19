@@ -47,7 +47,7 @@
 body {
   -moz-osx-font-smoothing: grayscale;
   -webkit-font-smoothing: antialiased;
-  background-color: $off-white;
+  background: linear-gradient(to top, $medium-blue, $dark-blue);
   margin: 0;
 }
 

@@ -28,7 +28,6 @@ $main-nav-breakpoint: 710px;
 
 #main-nav {
   z-index: 100;
-  background: $hab-off-white;
   min-height: $header-height-mobile;
   width: 100%;
   transition: top 0.4s ease;
@@ -40,12 +39,8 @@ $main-nav-breakpoint: 710px;
     &.is-sticky {
       position: fixed;
       top: -100%;
+      background-color: $dark-blue;
     }
-  }
-
-  &.is-open,
-  &.is-sticky {
-    box-shadow: 0 0 50px 2px $hab-gray;
   }
 
   &.is-visible {
@@ -148,7 +143,7 @@ $main-nav-breakpoint: 710px;
 .main-nav--link {
   a {
     position: relative;
-    color: $base-font-color;
+    color: $hab-white;
     transition: color 0.2s ease;
 
     &:hover,
@@ -189,7 +184,7 @@ $main-nav-breakpoint: 710px;
   .button {
     background: transparent;
     border: 1px solid $hab-orange;
-    color: $base-font-color;
+    color: $hab-orange;
     border-radius: rem(6);
     font-size: 1em;
     text-shadow: none;
