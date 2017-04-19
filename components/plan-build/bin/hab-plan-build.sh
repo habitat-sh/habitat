@@ -2271,7 +2271,7 @@ do_build() {
 # Default implementation for the `do_build()` phase.
 do_default_build() {
   ./configure --prefix=$pkg_prefix
-  make
+  make -j
 }
 
 # Will run post-compile tests and checks, provided 2 conditions are true:
@@ -2333,7 +2333,7 @@ do_install() {
 
 # Default implementation for the `do_install()` phase.
 do_default_install() {
-  make install
+  make -j install
 }
 
 # **Internal** Write out the package data to files:
