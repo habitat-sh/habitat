@@ -53,7 +53,7 @@ use manager::census::{CensusList, CensusUpdate, ElectionStatus};
 use supervisor::{Supervisor, RuntimeConfig};
 use util;
 
-pub use self::config::ServiceConfig;
+pub use self::config::{ServiceConfig, Pkg};
 pub use self::health::{HealthCheck, SmokeCheck};
 pub use self::spec::{DesiredState, ServiceBind, ServiceSpec, StartStyle};
 

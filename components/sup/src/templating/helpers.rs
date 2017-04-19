@@ -18,7 +18,7 @@ use std::collections::HashMap;
 
 use hcore::package::{PackageIdent, Identifiable};
 use hcore::fs;
-use manager::service::ServiceConfig;
+use manager::service::Pkg;
 use handlebars::{Handlebars, Helper, Renderable, RenderContext, RenderError, Context};
 use serde_json;
 use serde_json::map::Map;
@@ -79,13 +79,16 @@ pub fn pkg_path_for(h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> Rende
     let param = try!(PackageIdent::from_str(param).map_err(|e| {
             RenderError::new(format!("Bad package identifier for \"pkgPathFor\", {}", e))
         }));
-    let cfg = try!(serde_json::from_value::<ServiceConfig>(rc.context().data().clone())
+
+    let pkg_data = {
+        rc.context().data()["pkg"].clone()
+    };
+    let pkg = try!(serde_json::from_value::<Pkg>(pkg_data)
         .map_err(|_| {
-            RenderError::new("\"pkgPathFor\" can only be used on a template bound to a service \
-                              config.")
+            RenderError::new("\"pkgPathFor\" requires valid package metadata. \
+                              Please check the config.toml in the service directory.")
         }));
-    let pkg = cfg.pkg
-        .deps
+    let target_pkg = pkg.deps
         .iter()
         .find(|ident| ident.satisfies(&param))
         .and_then(|i| {
@@ -94,7 +97,7 @@ pub fn pkg_path_for(h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> Rende
                                .into_owned())
                   })
         .unwrap_or("".to_string());
-    try!(rc.writer.write(pkg.into_bytes().as_ref()));
+    try!(rc.writer.write(target_pkg.into_bytes().as_ref()));
     Ok(())
 }
 

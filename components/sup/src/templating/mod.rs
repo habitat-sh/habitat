@@ -180,14 +180,14 @@ mod test {
 
     #[test]
     fn pkg_path_for_helper() {
-        let content = "{{pkgPathFor \"core/jq-static\"}}".to_string();
+        let content = "{{pkgPathFor \"core/acl\"}}".to_string();
         let mut template = Template::new();
         template.register_template_string("t", content).unwrap();
 
-        let data = service_config_json_from_toml_file("simple_config.toml");
+        let data = service_config_json_from_toml_file("complex_config.toml");
         let rendered = template.render("t", &data).unwrap();
         assert_eq!(PathBuf::from(rendered),
-                   PathBuf::from("/hab/pkgs/core/jq-static/1.10/20160909011845"));
+                   PathBuf::from("/hab/pkgs/core/acl/2.2.52/20161208223311"));
     }
 
     #[test]
