@@ -21,7 +21,7 @@ import { AppComponent } from "./AppComponent";
 import { BuildListComponent } from "./project-page/BuildListComponent";
 import { CheckingInputComponent } from "./CheckingInputComponent";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
-import { ExplorePageComponent } from "./explore-page/ExplorePageComponent";
+import { ExplorePageComponent } from "./explore-page/explore-page.component";
 import { FooterComponent } from "./footer/FooterComponent";
 import { GitHubRepoPickerComponent } from "./github-repo-picker/GitHubRepoPickerComponent";
 import { GravatarComponent } from "./GravatarComponent";

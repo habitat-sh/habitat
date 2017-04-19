@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import { Routes, RouterModule } from "@angular/router";
-import { ExplorePageComponent } from "./explore-page/ExplorePageComponent";
+import { ExplorePageComponent } from "./explore-page/explore-page.component";
 import { OriginCreatePageComponent } from "./origin-create-page/OriginCreatePageComponent";
 import { OriginPageComponent } from "./origin-page/OriginPageComponent";
 import { OriginsPageComponent } from "./origins-page/OriginsPageComponent";

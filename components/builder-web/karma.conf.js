@@ -17,7 +17,14 @@ module.exports = function (config) {
           "node_modules/zone.js/dist/sync-test.js",
           "node_modules/zone.js/dist/jasmine-patch.js",
           "app/tests-entry.ts",
+
+          // handle asset requests
+          { pattern: 'assets/**/*', watched: false, included: false, served: true },
         ],
+
+        proxies: {
+            "/assets": "/base/assets"
+        },
 
         plugins: [
             require("karma-jasmine"),
@@ -47,6 +54,7 @@ module.exports = function (config) {
             module: {
                 loaders: [
                     { test: /\.ts$/, loader: "awesome-typescript-loader", exclude: /node_modules/ },
+                    { test: /\.html$/, loader: "raw-loader" },
                 ]
             },
             debug: false
