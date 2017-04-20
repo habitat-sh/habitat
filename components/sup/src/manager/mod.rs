@@ -375,7 +375,7 @@ impl Manager {
                         ee.set_field_type(EventEnvelope_Type::ProtoBuf);
                         ee.set_payload(payload_buf);
                         ee.set_member_id(member_id);
-                        ee.set_service("habitat-supervisor".to_string());
+                        ee.set_service("habitat-sup".to_string());
                         let _ = client.send(ee);
                         Ok(())
                     }

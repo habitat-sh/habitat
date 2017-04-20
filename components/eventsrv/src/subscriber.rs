@@ -81,6 +81,9 @@ fn main() {
                             let data = parse_from_bytes::<CensusEntryProto>(&payload_buf).unwrap();
                             println!("SUBSCRIBER: Census Entry Member ID {}",
                                      data.get_member_id());
+                            let cfg = data.get_cfg().to_vec();
+                            let cfg_str = String::from_utf8(cfg).unwrap();
+                            println!("SUBSCRIBER: Census Entry Config {}", cfg_str);
 
                         }
                         EventEnvelope_Type::JSON |
