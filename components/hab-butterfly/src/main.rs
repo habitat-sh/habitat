@@ -35,7 +35,7 @@ use clap::ArgMatches;
 use common::ui::{Coloring, UI, NOCOLORING_ENVVAR, NONINTERACTIVE_ENVVAR};
 use hcore::env as henv;
 use hcore::crypto::{init, default_cache_key_path, BoxKeyPair, SymKey};
-use hcore::service::ServiceGroupIdent;
+use hcore::service::ServiceGroup;
 
 use hab_butterfly::{analytics, cli, command};
 use hab_butterfly::error::{Error, Result};
@@ -121,13 +121,12 @@ fn sub_config_apply(ui: &mut UI, m: &ArgMatches) -> Result<()> {
         None => None,
     };
 
-    let mut sg_name = m.value_of("SERVICE_GROUP").unwrap().to_string();
+    let mut sg = try!(ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap()));
     if let Some(org) = org_param_or_env(&m) {
-        sg_name.push_str(&format!("@{}", org));
+        sg.set_org(org);
     }
-    let sg_id = try!(ServiceGroupIdent::from_str(&sg_name));
-    let service_pair = if sg_id.org().is_some() {
-        Some(try!(BoxKeyPair::get_latest_pair_for(&sg_id, &cache)))
+    let service_pair = if sg.org().is_some() {
+        Some(try!(BoxKeyPair::get_latest_pair_for(&sg, &cache)))
     } else {
         None
     };
@@ -136,7 +135,7 @@ fn sub_config_apply(ui: &mut UI, m: &ArgMatches) -> Result<()> {
         None => None,
     };
     command::config::apply::start(ui,
-                                  &sg_id,
+                                  &sg,
                                   number,
                                   file_path,
                                   &peers,
@@ -176,13 +175,12 @@ fn sub_file_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
         None => None,
     };
 
-    let mut sg_name = m.value_of("SERVICE_GROUP").unwrap().to_string();
+    let mut sg = try!(ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap()));
     if let Some(org) = org_param_or_env(&m) {
-        sg_name.push_str(&format!("@{}", org));
+        sg.set_org(org);
     }
-    let sg_id = try!(ServiceGroupIdent::from_str(&sg_name));
-    let service_pair = if sg_id.org().is_some() {
-        Some(try!(BoxKeyPair::get_latest_pair_for(&sg_id, &cache)))
+    let service_pair = if sg.org().is_some() {
+        Some(try!(BoxKeyPair::get_latest_pair_for(&sg, &cache)))
     } else {
         None
     };
@@ -191,7 +189,7 @@ fn sub_file_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
         None => None,
     };
     command::file::upload::start(ui,
-                                 &sg_id,
+                                 &sg,
                                  number,
                                  file_path,
                                  &peers,

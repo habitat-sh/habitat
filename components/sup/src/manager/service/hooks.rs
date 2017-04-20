@@ -23,7 +23,7 @@ use std::result;
 
 use ansi_term::Colour;
 use hcore;
-use hcore::service::ServiceGroupIdent;
+use hcore::service::ServiceGroup;
 use serde::{Serialize, Serializer};
 
 use super::health;
@@ -37,16 +37,16 @@ use util;
 pub const HOOK_PERMISSIONS: u32 = 0o755;
 static LOGKEY: &'static str = "HK";
 
-pub fn stdout_log_path<T>(sg_id: &ServiceGroupIdent) -> PathBuf
+pub fn stdout_log_path<T>(service_group: &ServiceGroup) -> PathBuf
     where T: Hook
 {
-    fs::svc_logs_path(sg_id.service()).join(format!("{}.stdout.log", T::file_name()))
+    fs::svc_logs_path(service_group.service()).join(format!("{}.stdout.log", T::file_name()))
 }
 
-pub fn stderr_log_path<T>(sg_id: &ServiceGroupIdent) -> PathBuf
+pub fn stderr_log_path<T>(service_group: &ServiceGroup) -> PathBuf
     where T: Hook
 {
-    fs::svc_logs_path(sg_id.service()).join(format!("{}.stderr.log", T::file_name()))
+    fs::svc_logs_path(service_group.service()).join(format!("{}.stderr.log", T::file_name()))
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -63,7 +63,7 @@ pub trait Hook: fmt::Debug + Sized {
 
     fn file_name() -> &'static str;
 
-    fn load<C, T>(sg_id: &ServiceGroupIdent, concrete_path: C, template_path: T) -> Option<Self>
+    fn load<C, T>(service_group: &ServiceGroup, concrete_path: C, template_path: T) -> Option<Self>
         where C: AsRef<Path>,
               T: AsRef<Path>
     {
@@ -74,11 +74,11 @@ pub trait Hook: fmt::Debug + Sized {
                 let pair = match RenderPair::new(concrete, &template) {
                     Ok(pair) => pair,
                     Err(err) => {
-                        outputln!(preamble sg_id, "Failed to load hook: {}", err);
+                        outputln!(preamble service_group, "Failed to load hook: {}", err);
                         return None;
                     }
                 };
-                Some(Self::new(sg_id, pair))
+                Some(Self::new(service_group, pair))
             }
             Err(_) => {
                 debug!("{} not found at {}, not loading",
@@ -89,7 +89,7 @@ pub trait Hook: fmt::Debug + Sized {
         }
     }
 
-    fn new(sg_id: &ServiceGroupIdent, render_pair: RenderPair) -> Self;
+    fn new(service_group: &ServiceGroup, render_pair: RenderPair) -> Self;
 
     /// Compile a hook into it's destination service directory.
     fn compile(&self, cfg: &ServiceConfig) -> Result<()> {
@@ -107,11 +107,11 @@ pub trait Hook: fmt::Debug + Sized {
     }
 
     /// Run a compiled hook.
-    fn run(&self, sg_id: &ServiceGroupIdent, cfg: &RuntimeConfig) -> Self::ExitValue {
+    fn run(&self, service_group: &ServiceGroup, cfg: &RuntimeConfig) -> Self::ExitValue {
         let mut cmd = match util::create_command(self.path(), cfg) {
             Ok(c) => c,
             Err(err) => {
-                outputln!(preamble sg_id,
+                outputln!(preamble service_group,
                     "Hook command failed to be created, {}, {}", Self::file_name(), err);
                 return Self::ExitValue::default();
             }
@@ -119,17 +119,17 @@ pub trait Hook: fmt::Debug + Sized {
         let mut child = match cmd.spawn() {
             Ok(child) => child,
             Err(err) => {
-                outputln!(preamble sg_id,
+                outputln!(preamble service_group,
                     "Hook failed to run, {}, {}", Self::file_name(), err);
                 return Self::ExitValue::default();
             }
         };
         let mut hook_output = HookOutput::new(self.stdout_log_path(), self.stderr_log_path());
-        hook_output.stream_output::<Self>(sg_id, &mut child);
+        hook_output.stream_output::<Self>(service_group, &mut child);
         match child.wait() {
-            Ok(status) => self.handle_exit(sg_id, &hook_output, &status),
+            Ok(status) => self.handle_exit(service_group, &hook_output, &status),
             Err(err) => {
-                outputln!(preamble sg_id,
+                outputln!(preamble service_group,
                     "Hook failed to run, {}, {}", Self::file_name(), err);
                 Self::ExitValue::default()
             }
@@ -137,7 +137,7 @@ pub trait Hook: fmt::Debug + Sized {
     }
 
     fn handle_exit<'a>(&self,
-                       group: &ServiceGroupIdent,
+                       group: &ServiceGroup,
                        output: &'a HookOutput,
                        status: &ExitStatus)
                        -> Self::ExitValue;
@@ -165,16 +165,16 @@ impl Hook for FileUpdatedHook {
         "file_updated"
     }
 
-    fn new(sg_id: &ServiceGroupIdent, pair: RenderPair) -> Self {
+    fn new(service_group: &ServiceGroup, pair: RenderPair) -> Self {
         FileUpdatedHook {
             render_pair: pair,
-            stdout_log_path: stdout_log_path::<Self>(sg_id),
-            stderr_log_path: stderr_log_path::<Self>(sg_id),
+            stdout_log_path: stdout_log_path::<Self>(service_group),
+            stderr_log_path: stderr_log_path::<Self>(service_group),
         }
     }
 
     fn handle_exit<'a>(&self,
-                       _: &ServiceGroupIdent,
+                       _: &ServiceGroup,
                        _: &'a HookOutput,
                        status: &ExitStatus)
                        -> Self::ExitValue {
@@ -212,16 +212,16 @@ impl Hook for HealthCheckHook {
         "health_check"
     }
 
-    fn new(sg_id: &ServiceGroupIdent, pair: RenderPair) -> Self {
+    fn new(service_group: &ServiceGroup, pair: RenderPair) -> Self {
         HealthCheckHook {
             render_pair: pair,
-            stdout_log_path: stdout_log_path::<Self>(sg_id),
-            stderr_log_path: stderr_log_path::<Self>(sg_id),
+            stdout_log_path: stdout_log_path::<Self>(service_group),
+            stderr_log_path: stderr_log_path::<Self>(service_group),
         }
     }
 
     fn handle_exit<'a>(&self,
-                       sg_id: &ServiceGroupIdent,
+                       service_group: &ServiceGroup,
                        _: &'a HookOutput,
                        status: &ExitStatus)
                        -> Self::ExitValue {
@@ -231,12 +231,12 @@ impl Hook for HealthCheckHook {
             Some(2) => health::HealthCheck::Critical,
             Some(3) => health::HealthCheck::Unknown,
             Some(code) => {
-                outputln!(preamble sg_id,
+                outputln!(preamble service_group,
                     "Health check exited with an unknown status code, {}", code);
                 health::HealthCheck::default()
             }
             None => {
-                outputln!(preamble sg_id,
+                outputln!(preamble service_group,
                     "{} exited without a status code", Self::file_name());
                 health::HealthCheck::default()
             }
@@ -274,28 +274,28 @@ impl Hook for InitHook {
         "init"
     }
 
-    fn new(sg_id: &ServiceGroupIdent, pair: RenderPair) -> Self {
+    fn new(service_group: &ServiceGroup, pair: RenderPair) -> Self {
         InitHook {
             render_pair: pair,
-            stdout_log_path: stdout_log_path::<Self>(sg_id),
-            stderr_log_path: stderr_log_path::<Self>(sg_id),
+            stdout_log_path: stdout_log_path::<Self>(service_group),
+            stderr_log_path: stderr_log_path::<Self>(service_group),
         }
     }
 
     fn handle_exit<'a>(&self,
-                       sg_id: &ServiceGroupIdent,
+                       service_group: &ServiceGroup,
                        _: &'a HookOutput,
                        status: &ExitStatus)
                        -> Self::ExitValue {
         match status.code() {
             Some(0) => true,
             Some(code) => {
-                outputln!(preamble sg_id, "Initialization failed! '{}' exited with \
+                outputln!(preamble service_group, "Initialization failed! '{}' exited with \
                     status code {}", Self::file_name(), code);
                 false
             }
             None => {
-                outputln!(preamble sg_id, "Initialization failed! '{}' exited without a \
+                outputln!(preamble service_group, "Initialization failed! '{}' exited without a \
                     status code", Self::file_name());
                 false
             }
@@ -333,28 +333,28 @@ impl Hook for RunHook {
         "run"
     }
 
-    fn new(sg_id: &ServiceGroupIdent, pair: RenderPair) -> Self {
+    fn new(service_group: &ServiceGroup, pair: RenderPair) -> Self {
         RunHook {
             render_pair: pair,
-            stdout_log_path: stdout_log_path::<Self>(sg_id),
-            stderr_log_path: stderr_log_path::<Self>(sg_id),
+            stdout_log_path: stdout_log_path::<Self>(service_group),
+            stderr_log_path: stderr_log_path::<Self>(service_group),
         }
     }
 
-    fn run(&self, _: &ServiceGroupIdent, _: &RuntimeConfig) -> Self::ExitValue {
+    fn run(&self, _: &ServiceGroup, _: &RuntimeConfig) -> Self::ExitValue {
         panic!("The run hook is a an exception to the lifetime of a service. It should only be \
                 run by the supervisor module!");
     }
 
     fn handle_exit<'a>(&self,
-                       sg_id: &ServiceGroupIdent,
+                       service_group: &ServiceGroup,
                        _: &'a HookOutput,
                        status: &ExitStatus)
                        -> Self::ExitValue {
         match status.code() {
             Some(code) => ExitCode(code),
             None => {
-                outputln!(preamble sg_id,
+                outputln!(preamble service_group,
                     "{} exited without a status code", Self::file_name());
                 ExitCode::default()
             }
@@ -446,28 +446,28 @@ impl Hook for ReloadHook {
         "reload"
     }
 
-    fn new(sg_id: &ServiceGroupIdent, pair: RenderPair) -> Self {
+    fn new(service_group: &ServiceGroup, pair: RenderPair) -> Self {
         ReloadHook {
             render_pair: pair,
-            stdout_log_path: stdout_log_path::<Self>(sg_id),
-            stderr_log_path: stderr_log_path::<Self>(sg_id),
+            stdout_log_path: stdout_log_path::<Self>(service_group),
+            stderr_log_path: stderr_log_path::<Self>(service_group),
         }
     }
 
     fn handle_exit<'a>(&self,
-                       sg_id: &ServiceGroupIdent,
+                       service_group: &ServiceGroup,
                        _: &'a HookOutput,
                        status: &ExitStatus)
                        -> Self::ExitValue {
         match status.code() {
             Some(0) => ExitCode(0),
             Some(code) => {
-                outputln!(preamble sg_id, "Reload failed! '{}' exited with \
+                outputln!(preamble service_group, "Reload failed! '{}' exited with \
                     status code {}", Self::file_name(), code);
                 ExitCode(code)
             }
             None => {
-                outputln!(preamble sg_id, "Reload failed! '{}' exited without a \
+                outputln!(preamble service_group, "Reload failed! '{}' exited without a \
                     status code", Self::file_name());
                 ExitCode::default()
             }
@@ -505,23 +505,23 @@ impl Hook for ReconfigureHook {
         "reconfigure"
     }
 
-    fn new(sg_id: &ServiceGroupIdent, pair: RenderPair) -> Self {
+    fn new(service_group: &ServiceGroup, pair: RenderPair) -> Self {
         ReconfigureHook {
             render_pair: pair,
-            stdout_log_path: stdout_log_path::<Self>(sg_id),
-            stderr_log_path: stderr_log_path::<Self>(sg_id),
+            stdout_log_path: stdout_log_path::<Self>(service_group),
+            stderr_log_path: stderr_log_path::<Self>(service_group),
         }
     }
 
     fn handle_exit<'a>(&self,
-                       sg_id: &ServiceGroupIdent,
+                       service_group: &ServiceGroup,
                        _: &'a HookOutput,
                        status: &ExitStatus)
                        -> Self::ExitValue {
         match status.code() {
             Some(code) => ExitCode(code),
             None => {
-                outputln!(preamble sg_id,
+                outputln!(preamble service_group,
                     "{} exited without a status code", Self::file_name());
                 ExitCode::default()
             }
@@ -559,16 +559,16 @@ impl Hook for SmokeTestHook {
         "smoke_test"
     }
 
-    fn new(sg_id: &ServiceGroupIdent, pair: RenderPair) -> Self {
+    fn new(service_group: &ServiceGroup, pair: RenderPair) -> Self {
         SmokeTestHook {
             render_pair: pair,
-            stdout_log_path: stdout_log_path::<Self>(sg_id),
-            stderr_log_path: stderr_log_path::<Self>(sg_id),
+            stdout_log_path: stdout_log_path::<Self>(service_group),
+            stderr_log_path: stderr_log_path::<Self>(service_group),
         }
     }
 
     fn handle_exit<'a>(&self,
-                       sg_id: &ServiceGroupIdent,
+                       service_group: &ServiceGroup,
                        _: &'a HookOutput,
                        status: &ExitStatus)
                        -> Self::ExitValue {
@@ -576,7 +576,7 @@ impl Hook for SmokeTestHook {
             Some(0) => health::SmokeCheck::Ok,
             Some(code) => health::SmokeCheck::Failed(code),
             None => {
-                outputln!(preamble sg_id,
+                outputln!(preamble service_group,
                     "{} exited without a status code", Self::file_name());
                 health::SmokeCheck::Failed(-1)
             }
@@ -614,16 +614,16 @@ impl Hook for SuitabilityHook {
         "suitability"
     }
 
-    fn new(sg_id: &ServiceGroupIdent, pair: RenderPair) -> Self {
+    fn new(service_group: &ServiceGroup, pair: RenderPair) -> Self {
         SuitabilityHook {
             render_pair: pair,
-            stdout_log_path: stdout_log_path::<Self>(sg_id),
-            stderr_log_path: stderr_log_path::<Self>(sg_id),
+            stdout_log_path: stdout_log_path::<Self>(service_group),
+            stderr_log_path: stderr_log_path::<Self>(service_group),
         }
     }
 
     fn handle_exit<'a>(&self,
-                       sg_id: &ServiceGroupIdent,
+                       service_group: &ServiceGroup,
                        hook_output: &'a HookOutput,
                        status: &ExitStatus)
                        -> Self::ExitValue {
@@ -635,33 +635,33 @@ impl Hook for SuitabilityHook {
                             Ok(line) => {
                                 match line.trim().parse::<u64>() {
                                     Ok(suitability) => {
-                                        outputln!(preamble sg_id, "Reporting suitability \
+                                        outputln!(preamble service_group, "Reporting suitability \
                                     of: {}", Colour::Green.bold().paint(format!("{}",suitability)));
                                         return Some(suitability);
                                     }
                                     Err(err) => {
-                                        outputln!(preamble sg_id,
+                                        outputln!(preamble service_group,
                                             "Parsing suitability failed: {}", err);
                                     }
                                 };
                             }
                             Err(err) => {
-                                outputln!(preamble sg_id,
+                                outputln!(preamble service_group,
                                     "Failed to read last line of stdout: {}", err);
                             }
                         };
                     } else {
-                        outputln!(preamble sg_id,
+                        outputln!(preamble service_group,
                                   "{} did not print anything to stdout", Self::file_name());
                     }
                 }
             }
             Some(code) => {
-                outputln!(preamble sg_id,
+                outputln!(preamble service_group,
                     "{} exited with status code {}", Self::file_name(), code);
             }
             None => {
-                outputln!(preamble sg_id,
+                outputln!(preamble service_group,
                     "{} exited without a status code", Self::file_name());
             }
         }
@@ -701,46 +701,46 @@ pub struct HookTable {
 
 impl HookTable {
     /// Compile all loaded hooks from the table into their destination service directory.
-    pub fn compile(&mut self, sg_id: &ServiceGroupIdent, config: &ServiceConfig) {
+    pub fn compile(&mut self, service_group: &ServiceGroup, config: &ServiceConfig) {
         if self.cfg_incarnation != 0 && config.incarnation <= self.cfg_incarnation {
             debug!("{}, Hooks already compiled with the latest configuration incarnation, \
                     skipping",
-                   sg_id);
+                   service_group);
             return;
         }
         self.cfg_incarnation = config.incarnation;
         if let Some(ref hook) = self.file_updated {
-            self.compile_one(hook, sg_id, config);
+            self.compile_one(hook, service_group, config);
         }
         if let Some(ref hook) = self.health_check {
-            self.compile_one(hook, sg_id, config);
+            self.compile_one(hook, service_group, config);
         }
         if let Some(ref hook) = self.init {
-            self.compile_one(hook, sg_id, config);
+            self.compile_one(hook, service_group, config);
         }
         if let Some(ref hook) = self.reload {
-            self.compile_one(hook, sg_id, config);
+            self.compile_one(hook, service_group, config);
         }
         if let Some(ref hook) = self.reconfigure {
-            self.compile_one(hook, sg_id, config);
+            self.compile_one(hook, service_group, config);
         }
         if let Some(ref hook) = self.suitability {
-            self.compile_one(hook, sg_id, config);
+            self.compile_one(hook, service_group, config);
         }
         if let Some(ref hook) = self.run {
-            self.compile_one(hook, sg_id, config);
+            self.compile_one(hook, service_group, config);
         }
         if let Some(ref hook) = self.post_run {
             self.compile_one(hook, service_group, config);
         }
         if let Some(ref hook) = self.smoke_test {
-            self.compile_one(hook, sg_id, config);
+            self.compile_one(hook, service_group, config);
         }
-        debug!("{}, Hooks compiled", sg_id);
+        debug!("{}, Hooks compiled", service_group);
     }
 
     /// Read all available hook templates from the table's package directory into the table.
-    pub fn load_hooks<T, U>(mut self, sg_id: &ServiceGroupIdent, hooks: T, templates: U) -> Self
+    pub fn load_hooks<T, U>(mut self, service_group: &ServiceGroup, hooks: T, templates: U) -> Self
         where T: AsRef<Path>,
               U: AsRef<Path>
     {
@@ -758,18 +758,18 @@ impl HookTable {
             }
         }
         debug!("{}, Hooks loaded, destination={}, templates={}",
-               sg_id,
+               service_group,
                hooks.as_ref().display(),
                templates.as_ref().display());
         self
     }
 
-    fn compile_one<H>(&self, hook: &H, sg_id: &ServiceGroupIdent, config: &ServiceConfig)
+    fn compile_one<H>(&self, hook: &H, service_group: &ServiceGroup, config: &ServiceConfig)
         where H: Hook
     {
         hook.compile(config)
             .unwrap_or_else(|e| {
-                                outputln!(preamble sg_id,
+                                outputln!(preamble service_group,
                 "Failed to compile {} hook: {}", H::file_name(), e);
                             });
     }
@@ -837,13 +837,13 @@ impl<'a> HookOutput<'a> {
         }
     }
 
-    fn stream_output<H: Hook>(&mut self, sg_id: &ServiceGroupIdent, process: &mut Child) {
+    fn stream_output<H: Hook>(&mut self, service_group: &ServiceGroup, process: &mut Child) {
         let mut stdout_log =
             File::create(&self.stdout_log_file).expect("couldn't create log output file");
         let mut stderr_log =
             File::create(&self.stderr_log_file).expect("couldn't create log output file");
 
-        let preamble_str = self.stream_preamble::<H>(sg_id);
+        let preamble_str = self.stream_preamble::<H>(service_group);
         if let Some(ref mut stdout) = process.stdout {
             for line in BufReader::new(stdout).lines() {
                 if let Some(ref l) = line.ok() {
@@ -866,8 +866,8 @@ impl<'a> HookOutput<'a> {
         }
     }
 
-    fn stream_preamble<H: Hook>(&self, sg_id: &ServiceGroupIdent) -> String {
-        format!("{} hook[{}]:", sg_id, H::file_name())
+    fn stream_preamble<H: Hook>(&self, service_group: &ServiceGroup) -> String {
+        format!("{} hook[{}]:", service_group, H::file_name())
     }
 }
 
@@ -909,10 +909,10 @@ mod tests {
             .join("logs")
             .join(format!("{}.stderr.log", InitHook::file_name()));
         let mut hook_output = HookOutput::new(&stdout_log, &stderr_log);
-        let sg_id =
-            ServiceGroupIdent::new("dummy", "service", None).expect("couldn't create ServiceGroupIdent");
+        let service_group =
+            ServiceGroup::new("dummy", "service", None).expect("couldn't create ServiceGroup");
 
-        hook_output.stream_output::<InitHook>(&sg_id, &mut child);
+        hook_output.stream_output::<InitHook>(&service_group, &mut child);
 
         let mut stdout = String::new();
         hook_output

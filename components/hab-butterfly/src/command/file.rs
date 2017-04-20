@@ -22,12 +22,12 @@ pub mod upload {
     use butterfly::client::Client;
     use common::ui::{Status, UI};
     use hcore::crypto::{SymKey, BoxKeyPair};
-    use hcore::service::ServiceGroupIdent;
+    use hcore::service::ServiceGroup;
 
     use error::{Error, Result};
 
     pub fn start(ui: &mut UI,
-                 sg_id: &ServiceGroupIdent,
+                 sg: &ServiceGroup,
                  number: u64,
                  file_path: &Path,
                  peers: &Vec<String>,
@@ -37,7 +37,7 @@ pub mod upload {
                  -> Result<()> {
         try!(ui.begin(format!("Uploading file {} to {} incarnation {}",
                               &file_path.display(),
-                              sg_id,
+                              sg,
                               number)));
         try!(ui.status(Status::Creating, format!("service file")));
 
@@ -67,7 +67,7 @@ pub mod upload {
             let mut client = try!(Client::new(peer, ring_key.map(|k| k.clone()))
                 .map_err(|e| Error::ButterflyError(format!("{}", e))));
             try!(client
-                     .send_service_file(sg_id.clone(),
+                     .send_service_file(sg.clone(),
                                         filename.clone(),
                                         number,
                                         body.clone(),

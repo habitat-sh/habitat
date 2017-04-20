@@ -38,7 +38,7 @@ use hcore::env as henv;
 use hcore::crypto::{init, default_cache_key_path, SigKeyPair};
 use hcore::crypto::keys::PairType;
 use hcore::fs::{cache_artifact_path, cache_analytics_path, cache_key_path};
-use hcore::service::ServiceGroupIdent;
+use hcore::service::ServiceGroup;
 use hcore::package::PackageIdent;
 use hcore::url::{DEFAULT_DEPOT_URL, DEPOT_URL_ENVVAR};
 
@@ -453,12 +453,12 @@ fn sub_ring_key_import(ui: &mut UI) -> Result<()> {
 
 fn sub_service_key_generate(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let org = try!(org_param_or_env(&m));
-    let sg_id = try!(ServiceGroupIdent::from_str(m.value_of("SERVICE_GROUP").unwrap()));
+    let service_group = try!(ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap()));
     init();
 
     command::service::key::generate::start(ui,
                                            &org,
-                                           &sg_id,
+                                           &service_group,
                                            &default_cache_key_path(Some(&*FS_ROOT)))
 }
 

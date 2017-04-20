@@ -21,7 +21,7 @@ use std::mem;
 use std::ops::{Deref, DerefMut};
 
 use habitat_core::crypto::{BoxKeyPair, default_cache_key_path};
-use habitat_core::service::ServiceGroupIdent;
+use habitat_core::service::ServiceGroup;
 use protobuf::{self, Message};
 
 use error::Result;
@@ -79,7 +79,11 @@ impl DerefMut for ServiceFile {
 
 impl ServiceFile {
     /// Creates a new ServiceFile.
-    pub fn new<S1, S2>(member_id: S1, sg_id: ServiceGroupIdent, filename: S2, body: Vec<u8>) -> Self
+    pub fn new<S1, S2>(member_id: S1,
+                       service_group: ServiceGroup,
+                       filename: S2,
+                       body: Vec<u8>)
+                       -> Self
         where S1: Into<String>,
               S2: Into<String>
     {
@@ -89,7 +93,7 @@ impl ServiceFile {
         rumor.set_field_type(ProtoRumor_Type::ServiceFile);
 
         let mut proto = ProtoServiceFile::new();
-        proto.set_service_group(format!("{}", sg_id));
+        proto.set_service_group(format!("{}", service_group));
         proto.set_incarnation(0);
         proto.set_filename(filename.into());
         proto.set_body(body);
@@ -157,7 +161,7 @@ impl Rumor for ServiceFile {
 mod tests {
     use std::cmp::Ordering;
 
-    use habitat_core::service::ServiceGroupIdent;
+    use habitat_core::service::ServiceGroup;
 
     use super::ServiceFile;
     use rumor::Rumor;
@@ -165,7 +169,7 @@ mod tests {
     fn create_service_file(member_id: &str, filename: &str, body: &str) -> ServiceFile {
         let body_bytes: Vec<u8> = Vec::from(body);
         ServiceFile::new(member_id,
-                         ServiceGroupIdent::new("neurosis", "production", None).unwrap(),
+                         ServiceGroup::new("neurosis", "production", None).unwrap(),
                          filename,
                          body_bytes)
     }
