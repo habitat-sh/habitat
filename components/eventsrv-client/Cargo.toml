@@ -1,17 +1,18 @@
 [package]
-name = "habitat_eventsrv"
+name = "habitat_eventsrv_client"
 version = "0.1.0"
 authors = ["Josh Black <raskchanky@gmail.com>",
            "Christopher Maier <cmaier@chef.io>"]
-description = "Habitat event service"
-build = "build.rs"
+description = "Habitat event service client"
 workspace = "../../"
 
 [dependencies]
 byteorder = "*"
 env_logger = "*"
+habitat_eventsrv = { path = "../eventsrv" }
 log = "*"
 protobuf = "*"
+rand="*"
 time = "*"
 
 [dependencies.zmq]
@@ -21,14 +22,6 @@ branch = "release/v0.8"
 [build-dependencies]
 pkg-config = "0.3"
 
-[features]
-protocols = []
-
 [[bin]]
-name = "eventsrv"
+name = "eventsrv-client"
 path = "src/main.rs"
-
-# this is used for testing
-[[bin]]
-name = "subscriber"
-path = "src/subscriber.rs"

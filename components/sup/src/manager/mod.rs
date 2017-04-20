@@ -25,16 +25,21 @@ use std::net::SocketAddr;
 use std::path::{Path, PathBuf};
 use std::thread;
 use std::sync::{Arc, RwLock};
+use std::sync::mpsc::channel;
 use std::time::Duration;
 
+use byteorder::{ByteOrder, LittleEndian};
 use butterfly;
 use butterfly::member::Member;
 use butterfly::trace::Trace;
 use butterfly::server::timing::Timing;
 use butterfly::server::Suitability;
+use eventsrv::message::event::{EventEnvelope, EventEnvelope_Type, CensusEntry as CensusEntryProto};
+use eventsrv_client::EventSrvClient;
 use hcore::crypto::{default_cache_key_path, SymKey};
 use hcore::service::ServiceGroup;
 use hcore::os::process;
+use protobuf::Message;
 use serde_json;
 use time::{SteadyTime, Duration as TimeDuration};
 use toml;
@@ -338,6 +343,47 @@ impl Manager {
         try!(http_gateway::Server::new(self.fs_cfg.clone(), self.http_listen.clone()).start());
         debug!("http-gateway server started");
 
+        let (event_tx, event_rx) = channel::<Vec<CensusEntryProto>>();
+        let member_id = String::from(self.butterfly.member_id());
+
+        thread::Builder::new()
+            .name("sup-eventsrv".to_string())
+            .spawn(move || {
+                // JB TODO: these ports can't be hardcoded
+                let ports = vec!["10001".to_string(),
+                                 "10011".to_string(),
+                                 "10021".to_string()];
+                let client = EventSrvClient::new(ports);
+                client.connect();
+
+                match event_rx.recv() {
+                    Ok(census_entries) => {
+                        // We're going to send a vector of bytes over the wire. The format will be
+                        // the length of the thing we're sending, followed by that thing itself,
+                        // repeated.
+                        let mut payload_buf: Vec<u8> = vec![];
+
+                        for entry in census_entries {
+                            let mut proto_size = vec![0; 8];
+                            let mut bytes = entry.write_to_bytes().unwrap();
+                            LittleEndian::write_u64(&mut proto_size, bytes.len() as u64);
+                            payload_buf.append(&mut proto_size);
+                            payload_buf.append(&mut bytes);
+                        }
+
+                        let mut ee = EventEnvelope::new();
+                        ee.set_field_type(EventEnvelope_Type::ProtoBuf);
+                        ee.set_payload(payload_buf);
+                        ee.set_member_id(member_id);
+                        ee.set_service("habitat-supervisor".to_string());
+                        let _ = client.send(ee);
+                        Ok(())
+                    }
+                    Err(e) => return Err(e),
+                }
+            })
+            .expect("unable to start sup-eventsrv thread");
+
         let mut last_census_update = CensusUpdate::default();
 
         loop {
@@ -350,10 +396,31 @@ impl Manager {
             self.check_for_updated_packages(&mut last_census_update);
             self.restart_elections();
             let (census_updated, ncu) = self.build_census(&last_census_update);
+
             if census_updated {
                 last_census_update = ncu;
                 self.persist_state();
+
+                let mut censuses = Vec::<CensusEntryProto>::new();
+                for service in self.services
+                        .read()
+                        .expect("Services lock is poisoned!")
+                        .iter() {
+                    if let Some(census) = self.census_list.get(service.service_group.as_ref()) {
+                        if let Some(entry) = census.me() {
+                            let cep = entry.as_protobuf();
+                            censuses.push(cep);
+                        }
+                    }
+                }
+
+                if censuses.is_empty() {
+                    debug!("There's nothing to send to the EventSrv this tick.");
+                } else {
+                    let _ = event_tx.send(censuses);
+                }
             }
+
             for service in self.services
                     .write()
                     .expect("Services lock is poisoned!")

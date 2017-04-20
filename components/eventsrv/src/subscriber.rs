@@ -15,6 +15,7 @@
 // NOTE: The sole purpose of this subscriber is testing and debugging. It's not
 // required for normal operation.
 
+extern crate byteorder;
 extern crate env_logger;
 extern crate habitat_eventsrv;
 extern crate log;
@@ -24,9 +25,13 @@ extern crate zmq;
 mod message;
 
 use std::env;
-use message::event::EventEnvelope;
+use std::io::Read;
+
+use byteorder::{ByteOrder, LittleEndian};
 use protobuf::parse_from_bytes;
 use zmq::{Context, SUB};
+
+use message::event::{EventEnvelope, EventEnvelope_Type, CensusEntry as CensusEntryProto};
 
 fn main() {
     let ctx = Context::new();
@@ -46,14 +51,47 @@ fn main() {
         match socket.recv_bytes(0) {
             Ok(bytes) => {
                 let event = parse_from_bytes::<EventEnvelope>(&bytes).unwrap();
-                let received_payload = String::from_utf8(event.get_payload().to_vec()).unwrap();
+                let mut bytes_read = 0;
+                let mut payload_buf: Vec<u8> = vec![];
+                let mut size_buf = [0; 8];
+                let current_payload = event.get_payload().to_vec();
+                let mut payload_slice: &[u8] = &current_payload[..];
+                let current_num_bytes = current_payload.len() as u64;
+
                 let member_id = event.get_member_id();
                 let timestamp = event.get_timestamp();
                 let service = event.get_service();
+
                 println!("SUBSCRIBER: Timestamp {}", timestamp);
                 println!("SUBSCRIBER: Member ID {}", member_id);
                 println!("SUBSCRIBER: Service {}", service);
-                println!("SUBSCRIBER: Payload {}\n", received_payload);
+
+                loop {
+                    if bytes_read >= current_num_bytes {
+                        break;
+                    }
+
+                    payload_slice.read_exact(&mut size_buf).unwrap();
+                    let payload_size = LittleEndian::read_u64(&size_buf);
+                    payload_buf.resize(payload_size as usize, 0);
+                    payload_slice.read_exact(&mut payload_buf).unwrap();
+
+                    match event.get_field_type() {
+                        EventEnvelope_Type::ProtoBuf => {
+                            let data = parse_from_bytes::<CensusEntryProto>(&payload_buf).unwrap();
+                            println!("SUBSCRIBER: Census Entry Member ID {}",
+                                     data.get_member_id());
+
+                        }
+                        EventEnvelope_Type::JSON |
+                        EventEnvelope_Type::TOML => {
+                            let data = String::from_utf8(payload_buf.clone()).unwrap();
+                            println!("Data: {}", data);
+                        }
+                    };
+
+                    bytes_read += size_buf.len() as u64 + payload_size;
+                }
             }
             Err(e) => panic!("zeromq socket error: {:?}", e),
         }

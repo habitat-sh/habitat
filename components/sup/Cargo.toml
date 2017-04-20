@@ -18,6 +18,7 @@ name = "functional"
 [dependencies]
 ansi_term = "*"
 bitflags = "*"
+byteorder = "*"
 clap = { version = "*", features = [ "suggestions", "color", "unstable" ] }
 env_logger = "*"
 features = "*"
@@ -26,6 +27,8 @@ habitat_butterfly = { path = "../butterfly" }
 habitat_common = { path = "../common" }
 habitat_core = { path = "../core" }
 habitat_depot_client = { path = "../builder-depot-client" }
+habitat_eventsrv = { path = "../eventsrv" }
+habitat_eventsrv_client = { path = "../eventsrv-client" }
 handlebars = { version = "*", features = ["serde_type", "partial4"], default-features = false }
 iron = "*"
 lazy_static = "*"
@@ -34,6 +37,7 @@ log = "*"
 notify = "*"
 persistent = "*"
 prometheus = "*"
+protobuf = "*"
 rand = "*"
 regex = "*"
 router = "*"
