@@ -47,7 +47,6 @@ impl EventSrvClient {
         }
     }
 
-    // connect to an external process
     pub fn connect(&self) {
         for p in &self.ports {
             let push_connect = format!("tcp://localhost:{}", p);

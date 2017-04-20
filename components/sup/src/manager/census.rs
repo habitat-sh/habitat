@@ -275,9 +275,8 @@ impl CensusEntry {
         cep.set_group(self.group.clone());
         cep.set_org(String::from(self.get_org()));
 
-        // JB TODO: cfg needs to be converted from a toml::Table::Value into a string first, then
-        // from a string to bytes.
-        // cep.set_cfg()
+        let cfg_str = toml::to_string(&self.cfg).unwrap();
+        cep.set_cfg(cfg_str.into_bytes());
 
         let mut sys_info = SysInfoProto::new();
         sys_info.set_ip(self.sys.ip.clone());
