@@ -39,7 +39,7 @@ impl ServiceGroup {
         Ok(ServiceGroup(formatted))
     }
 
-    pub fn format<S1, S2>(service: S1, group: S2, organization: Option<&str>) -> String
+    fn format<S1, S2>(service: S1, group: S2, organization: Option<&str>) -> String
         where S1: AsRef<str>,
               S2: AsRef<str>
     {

@@ -105,7 +105,7 @@ impl Service {
            -> Result<Service> {
         spec.validate(&package)?;
         let spec_file = manager_fs_cfg.specs_path.join(spec.file_name());
-        let service_group = ServiceGroup::new(&package.ident.name, spec.group, organization)?;
+        let service_group = ServiceGroup::new(&package.ident().name, spec.group, organization)?;
         let runtime_cfg = Self::runtime_config_from(&package)?;
         let config_root = spec.config_from
             .clone()
