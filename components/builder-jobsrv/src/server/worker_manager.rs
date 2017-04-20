@@ -126,6 +126,7 @@ impl WorkerMgr {
         let mut hb_sock = false;
         let mut rq_sock = false;
         let mut work_mgr_sock = false;
+        let mut process_work = false;
         rz.send(()).unwrap();
         loop {
             {
@@ -148,7 +149,7 @@ impl WorkerMgr {
                 }
             }
             if hb_sock {
-                try!(self.process_heartbeat());
+                process_work = try!(self.process_heartbeat());
                 hb_sock = false;
             }
             self.expire_workers();
@@ -157,8 +158,14 @@ impl WorkerMgr {
                 rq_sock = false;
             }
             if work_mgr_sock {
-                try!(self.distribute_work());
+                process_work = true;
                 work_mgr_sock = false;
+                try!(self.work_mgr_sock.recv(&mut self.msg, 0));
+            }
+
+            // Handle potential work in pending_jobs queue
+            if process_work {
+                try!(self.process_work());
             }
         }
     }
@@ -172,13 +179,13 @@ impl WorkerMgr {
         }
     }
 
-    fn distribute_work(&mut self) -> Result<()> {
+    fn process_work(&mut self) -> Result<()> {
         loop {
             // Take one job from the pending list
             let mut jobs = self.datastore.pending_jobs(1)?;
-            // 0 means there are no pending jobs, so we should consume our notice that we have work
+            // 0 means there are no pending jobs, so we can exit
             if jobs.len() == 0 {
-                try!(self.work_mgr_sock.recv(&mut self.msg, 0));
+                debug!("process_work, no pending jobs");
                 break;
             }
             // This unwrap is fine, because we just checked our length
@@ -212,7 +219,6 @@ impl WorkerMgr {
                     debug!("no workers available - bailing for now");
                     job.set_state(jobsrv::JobState::Pending);
                     self.datastore.set_job_state(&job)?;
-                    try!(self.work_mgr_sock.recv(&mut self.msg, 0));
                     return Ok(());
                 }
             }
@@ -235,22 +241,24 @@ impl WorkerMgr {
         }
     }
 
-    fn process_heartbeat(&mut self) -> Result<()> {
+    fn process_heartbeat(&mut self) -> Result<bool> {
         try!(self.hb_sock.recv(&mut self.msg, 0));
         let heartbeat: jobsrv::Heartbeat = try!(parse_from_bytes(&self.msg));
         debug!("heartbeat={:?}", heartbeat);
-        match heartbeat.get_state() {
+        let result = match heartbeat.get_state() {
             jobsrv::WorkerState::Ready => {
                 let now = Instant::now();
                 let expiry = now + Duration::from_millis(WORKER_TIMEOUT_MS);
                 self.workers
                     .insert(heartbeat.get_endpoint().to_string(), expiry);
+                true
             }
             jobsrv::WorkerState::Busy => {
                 self.workers.remove(heartbeat.get_endpoint());
+                false
             }
-        }
-        Ok(())
+        };
+        Ok(result)
     }
 
     fn process_job_status(&mut self) -> Result<()> {

@@ -26,6 +26,16 @@ fn create_origin_poop() {
     origin.set_owner_id(1);
     origin.set_owner_name(String::from("scottkelly"));
     ds.create_origin(&origin).expect("Should create origin");
+
+    // Create new database connection
+    let conn = ds.pool
+        .get(&origin)
+        .expect("Cannot get connection from pool");
+
+    let rows = conn.query("SELECT COUNT(*) FROM origin_channels", &[])
+        .expect("Failed to query database for number of channels");
+    let count: i64 = rows.iter().nth(0).unwrap().get(0);
+    assert_eq!(count, 2); // note: count of 2 is the 'unstable' and 'stable' channels
 }
 
 #[test]
@@ -1083,7 +1093,7 @@ fn create_origin_channel() {
     let rows = conn.query("SELECT COUNT(*) FROM origin_channels", &[])
         .expect("Failed to query database for number of channels");
     let count: i64 = rows.iter().nth(0).unwrap().get(0);
-    assert_eq!(count, 1);
+    assert_eq!(count, 3); // note: count of 3 includes the default 'unstable' and 'stable' channels
 }
 
 #[test]
