@@ -128,6 +128,10 @@ impl WorkerMgr {
         let mut work_mgr_sock = false;
         let mut process_work = false;
         rz.send(()).unwrap();
+
+        // Reset any Dispatched jobs to Pending
+        self.datastore.reset_jobs()?;
+
         loop {
             {
                 let timeout = self.poll_timeout();

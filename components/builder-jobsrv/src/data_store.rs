@@ -154,6 +154,14 @@ impl DataStore {
                                 END
                                 $$ LANGUAGE plpgsql VOLATILE"#)?;
 
+        // Reset the state of Dispatched jobs back to Pending (for failure recovery)
+        migrator.migrate("jobsrv",
+                         r#"CREATE OR REPLACE FUNCTION reset_jobs_v1 () RETURNS void AS $$
+                                BEGIN
+                                    UPDATE jobs SET job_state='Pending', updated_at=now() WHERE job_state='Dispatched';
+                                END
+                                $$ LANGUAGE plpgsql VOLATILE"#)?;
+
         // Update the state of a job. Takes a job id and a state, and updates that row.
         migrator.migrate("jobsrv",
                          r#"CREATE OR REPLACE FUNCTION set_job_state_v1 (jid bigint, jstate text) RETURNS void AS $$
@@ -161,6 +169,8 @@ impl DataStore {
                                 UPDATE jobs SET job_state=jstate, updated_at=now() WHERE id=jid;
                             END
                          $$ LANGUAGE plpgsql VOLATILE"#)?;
+
+        migrator.migrate("jobsrv", r#"DROP INDEX IF EXISTS pending_jobs_index_v1;"#)?;
         migrator.migrate("jobsrv",
                          r#"CREATE INDEX pending_jobs_index_v1 on jobs(created_at) WHERE job_state = 'Pending'"#)?;
 
@@ -282,6 +292,19 @@ impl DataStore {
             jobs.push(job);
         }
         Ok(jobs)
+    }
+
+    /// Reset any Dispatched jobs back to Pending state
+    /// This is used for recovery scenario
+    ///
+    /// # Errors
+    /// * If a connection cannot be gotten from the pool
+    /// * If the dispatched jobs cannot be selected from the database
+    pub fn reset_jobs(&self) -> Result<()> {
+        let conn = self.pool.get_shard(0)?;
+        let rows = &conn.query("SELECT reset_jobs_v1()", &[])
+                        .map_err(Error::JobReset)?;
+        Ok(())
     }
 
     /// Set the state of a job. If the job does not exist in the database, its basically a no-op.
