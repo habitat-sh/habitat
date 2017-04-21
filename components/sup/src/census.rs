@@ -59,9 +59,6 @@ impl CensusRing {
         self.census_groups.get(sg)
     }
 
-<<<<<<< HEAD
-    fn update_from_service_store(&mut self, service_rumors: &RumorStore<ServiceRumor>) {
-=======
     pub fn groups(&self) -> Vec<&CensusGroup> {
         self.census_groups.values().map(|cg| cg).collect()
     }
@@ -70,7 +67,6 @@ impl CensusRing {
                                  service_rumor_offset: usize,
                                  service_rumors: &RumorStore<ServiceRumor>) {
         self.last_service_counter += service_rumor_offset;
->>>>>>> 0ce66899... Update census
         if service_rumors.get_update_counter() <= self.last_service_counter {
             return;
         }
@@ -215,7 +211,7 @@ impl CensusGroup {
     }
 
     pub fn members(&self) -> Vec<&CensusMember> {
-        self.population.values().map(|ce| ce).collect()
+        self.population.values().map(|cm| cm).collect()
     }
 
     /// Return previous alive peer, the peer to your left in the ordered members list, or None if
@@ -285,11 +281,14 @@ impl CensusGroup {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize,Default)]
 pub struct CensusMember {
     pub member_id: MemberId,
     pub pkg: Option<PackageIdent>,
 
+    service: String,
+    group: String,
+    org: Option<String>,
     cfg: toml::value::Table,
     sys: SysInfo,
     leader: Option<bool>,

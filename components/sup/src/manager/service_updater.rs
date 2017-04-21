@@ -30,6 +30,7 @@ use time::{SteadyTime, Duration as TimeDuration};
 use {PRODUCT, VERSION};
 use error::Result;
 use manager::census::CensusList;
+use census::CensusRing;
 use manager::service::{Service, Topology, UpdateStrategy};
 
 static LOGKEY: &'static str = "SU";

@@ -32,7 +32,7 @@ use hcore::service::ServiceGroup;
 use toml;
 
 use config::GossipListenAddr;
-use manager::census::{Census, CensusList};
+use census::{CensusRing, CensusGroup};
 use error::{Error, Result};
 use fs;
 use http_gateway;
@@ -157,9 +157,9 @@ impl ServiceConfig {
         self.cfg.to_exported(&self.pkg.exports)
     }
 
-    pub fn populate(&mut self, service_group: &ServiceGroup, census_list: &CensusList) {
-        self.bind.populate(&self.supported_bindings, census_list);
-        self.svc.populate(service_group, census_list);
+    pub fn populate(&mut self, service_group: &ServiceGroup, census_ring: &CensusRing) {
+        self.bind.populate(&self.supported_bindings, census_ring);
+        self.svc.populate(service_group, census_ring);
     }
 
     pub fn reload_gossip(&mut self) -> Result<()> {
@@ -250,16 +250,16 @@ impl ServiceConfig {
 struct Bind(toml::value::Table);
 
 impl Bind {
-    fn populate(&mut self, bindings: &[ServiceBind], census_list: &CensusList) {
+    fn populate(&mut self, bindings: &[ServiceBind], census_ring: &CensusRing) {
         self.0.clear();
         for ref bind in bindings.iter() {
-            match census_list.get(&*bind.service_group) {
-                Some(census) => {
+            match census_ring.census_group_for(&bind.service_group) {
+                Some(census_group) => {
                     self.0
                         .insert(format!("has_{}", bind.name), toml::Value::Boolean(true));
                     self.0
                         .insert(bind.name.to_string(),
-                                toml::Value::Table(service_entry(census)));
+                                toml::Value::Table(serialize_census_group(census_group)));
                 }
                 None => {
                     self.0
@@ -278,17 +278,20 @@ impl Bind {
 struct Svc(toml::value::Table);
 
 impl Svc {
-    fn populate(&mut self, service_group: &ServiceGroup, census_list: &CensusList) {
-        let mut top = service_entry(census_list
-                                        .get(&*service_group)
-                                        .expect("Service Group's census entry missing from list!"));
+    fn populate(&mut self, service_group: &ServiceGroup, census_ring: &CensusRing) {
+        let mut top =
+            serialize_census_group(census_ring
+                                       .census_group_for(service_group)
+                                       .expect("Service Group's census entry missing from list!"));
         let mut all: Vec<toml::Value> = Vec::new();
         let mut named = toml::value::Table::new();
-        for (_sg, c) in census_list.iter() {
-            all.push(toml::Value::Table(service_entry(c)));
-            let mut group = if named.contains_key(c.get_service()) {
+        for census_group in census_ring.groups() {
+            let group_toml = serialize_census_group(census_group);
+            all.push(toml::Value::Table(group_toml.clone()));
+            let sg = &census_group.service_group;
+            let mut group = if named.contains_key(sg.service()) {
                 named
-                    .get(c.get_service())
+                    .get(sg.service())
                     .unwrap()
                     .as_table()
                     .unwrap()
@@ -296,9 +299,8 @@ impl Svc {
             } else {
                 toml::value::Table::new()
             };
-            group.insert(String::from(c.get_group()),
-                         toml::Value::Table(service_entry(c)));
-            named.insert(String::from(c.get_service()), toml::Value::Table(group));
+            group.insert(sg.group().to_string(), toml::Value::Table(group_toml));
+            named.insert(sg.service().to_string(), toml::Value::Table(group));
         }
         top.insert("all".to_string(), toml::Value::Array(all));
         top.insert("named".to_string(), toml::Value::Table(named));
@@ -314,31 +316,32 @@ impl Svc {
 // which begs the question: how should we handle conversion failures in this function? We currently
 // don't return a `Result<toml::value::Table>`--maybe we should? Remember--`.expect()` is a panic
 // by a nicer name ;)
-fn service_entry(census: &Census) -> toml::value::Table {
-    let service = toml::Value::String(String::from(census.get_service()));
-    let group = toml::Value::String(String::from(census.get_group()));
-    let ident = toml::Value::String(census.get_service_group());
-    let leader = census
-        .get_leader()
-        .map(|ce| toml::Value::try_from(ce).expect("Can't convert into TOML Value"));
+fn serialize_census_group(census_group: &CensusGroup) -> toml::value::Table {
+    let sg = &census_group.service_group;
+    let service = toml::Value::String(sg.service().to_string());
+    let group = toml::Value::String(sg.group().to_string());
+    let ident = toml::Value::String(sg.to_string());
+    let leader = census_group
+        .leader()
+        .map(|cm| toml::Value::try_from(cm).expect("Can't convert into TOML Value"));
     let mut members: Vec<toml::Value> = Vec::new();
     let mut member_id = toml::value::Table::new();
     let mut first: bool = true;
     let mut result = toml::value::Table::new();
-    for ce in census.members_ordered() {
-        let toml_member = toml::Value::try_from(ce).expect("Can't convert into TOML Value");
+    for cm in census_group.members() {
+        let toml_member = toml::Value::try_from(cm).expect("Can't convert into TOML Value");
         if first {
             result.insert("first".to_string(), toml_member.clone());
             first = false;
         }
         members.push(toml_member);
-        member_id.insert(format!("{}", ce.get_member_id()),
-                         toml::Value::try_from(ce).expect("Can't convert into TOML Value"));
+        member_id.insert(cm.member_id.clone(),
+                         toml::Value::try_from(cm).expect("Can't convert into TOML Value"));
     }
     result.insert("service".to_string(), service);
     result.insert("group".to_string(), group);
     result.insert("ident".to_string(), ident);
-    if let Some(me) = census.me() {
+    if let Some(me) = census_group.me() {
         let toml_me = toml::Value::try_from(me).expect("Can't convert into TOML Value");
         result.insert("me".to_string(), toml_me);
     }

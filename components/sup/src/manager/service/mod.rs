@@ -49,7 +49,8 @@ use error::{Error, Result, SupError};
 use http_gateway;
 use fs;
 use manager::{self, signals};
-use manager::census::{CensusList, CensusUpdate, ElectionStatus};
+use manager::census::{CensusList, CensusUpdate};
+use census::{CensusRing, ElectionStatus};
 use supervisor::{Supervisor, RuntimeConfig};
 use util;
 
@@ -290,65 +291,62 @@ impl Service {
 
     pub fn tick(&mut self,
                 butterfly: &butterfly::Server,
-                census_list: &CensusList,
                 census_updated: bool,
+                census_ring: &CensusRing,
                 last_census_update: &mut CensusUpdate) {
         if !self.initialized {
-            if !self.is_bindings_present(census_list) {
+            if !self.all_bindings_present(census_ring) {
                 outputln!(preamble self.service_group, "Waiting to initialize service.");
                 return;
             }
         }
-        self.update_configuration(butterfly, census_list, census_updated, last_census_update);
+        self.update_configuration(butterfly, census_updated, census_ring, last_census_update);
 
         match self.topology {
             Topology::Standalone => {
                 self.execute_hooks();
             }
             Topology::Leader => {
-                let census = census_list
-                    .get(&*self.service_group)
+                let census_group = census_ring
+                    .census_group_for(&self.service_group)
                     .expect("Service Group's census entry missing from list!");
-                let me = census
-                    .me()
-                    .expect("Census corrupt, service can't find 'me'");
-                let current_election_status = me.get_election_status();
-                match current_election_status {
+                let current_election_status = &census_group.election_status;
+                match census_group.election_status {
                     ElectionStatus::None => {
-                        if self.last_election_status != current_election_status {
+                        if self.last_election_status != *current_election_status {
                             outputln!(preamble self.service_group,
                                       "Waiting to execute hooks; {}",
                                       Yellow.bold().paint("election hasn't started"));
-                            self.last_election_status = current_election_status;
+                            self.last_election_status = *current_election_status;
                         }
                     }
                     ElectionStatus::ElectionInProgress => {
-                        if self.last_election_status != current_election_status {
+                        if self.last_election_status != *current_election_status {
                             outputln!(preamble self.service_group,
                                       "Waiting to execute hooks; {}",
                                       Yellow.bold().paint("election in progress."));
-                            self.last_election_status = current_election_status;
+                            self.last_election_status = *current_election_status;
                         }
                     }
                     ElectionStatus::ElectionNoQuorum => {
-                        if self.last_election_status != current_election_status {
+                        if self.last_election_status != *current_election_status {
                             outputln!(preamble self.service_group,
                                       "Waiting to execute hooks; {}, {}.",
                                       Yellow.bold().paint("election in progress"),
                                       Red.bold().paint("and we have no quorum"));
-                            self.last_election_status = current_election_status
+                            self.last_election_status = *current_election_status
                         }
                     }
                     ElectionStatus::ElectionFinished => {
-                        let leader_id = census
-                            .get_leader()
-                            .expect("No leader with finished election")
-                            .get_member_id();
-                        if self.last_election_status != current_election_status {
+                        let leader_id = census_group
+                            .leader_id
+                            .as_ref()
+                            .expect("No leader with finished election");
+                        if self.last_election_status != *current_election_status {
                             outputln!(preamble self.service_group,
                                       "Executing hooks; {} is the leader",
-                                      Green.bold().paint(leader_id));
-                            self.last_election_status = current_election_status;
+                                      Green.bold().paint(leader_id.to_string()));
+                            self.last_election_status = *current_election_status;
                         }
                         self.execute_hooks()
                     }
@@ -369,10 +367,12 @@ impl Service {
         spec
     }
 
-    fn is_bindings_present(&self, census_list: &CensusList) -> bool {
+    fn all_bindings_present(&self, census_ring: &CensusRing) -> bool {
         let mut ret = true;
         for ref bind in self.spec_binds.iter() {
-            if census_list.get(&*bind.service_group).is_none() {
+            if census_ring
+                   .census_group_for(&bind.service_group)
+                   .is_none() {
                 ret = false;
                 outputln!(preamble self.service_group,
                           "The specified service group '{}' for binding '{}' is not (yet?) present in the census data.",
@@ -384,10 +384,10 @@ impl Service {
 
     fn update_configuration(&mut self,
                             butterfly: &butterfly::Server,
-                            census_list: &CensusList,
                             census_updated: bool,
+                            census_ring: &CensusRing,
                             last_census_update: &mut CensusUpdate) {
-        self.config.populate(&self.service_group, census_list);
+        self.config.populate(&self.service_group, census_ring);
         self.persist_service_files(butterfly);
 
         let svc_cfg_updated = self.persist_service_config(butterfly);
@@ -487,8 +487,8 @@ impl Service {
         }
     }
 
-    pub fn populate(&mut self, census: &CensusList) {
-        self.config.populate(&self.service_group, census)
+    pub fn populate(&mut self, census_ring: &CensusRing) {
+        self.config.populate(&self.service_group, census_ring)
     }
 
     /// Run reconfigure hook if present. Return false if it is not present, to trigger default

@@ -51,6 +51,7 @@ use self::spec_watcher::{SpecWatcher, SpecWatcherEvent};
 use error::{Error, Result, SupError};
 use config::GossipListenAddr;
 use manager::census::{CensusUpdate, CensusList, CensusEntry};
+use census::CensusRing;
 use manager::signals::SignalEvent;
 use http_gateway;
 
@@ -111,6 +112,7 @@ pub struct ManagerConfig {
 pub struct Manager {
     butterfly: butterfly::Server,
     census_list: CensusList,
+    census_ring: CensusRing,
     fs_cfg: Arc<FsCfg>,
     services: Arc<RwLock<Vec<Service>>>,
     updater: ServiceUpdater,
@@ -182,8 +184,9 @@ impl Manager {
         }
         Ok(Manager {
                updater: ServiceUpdater::new(server.clone()),
-               butterfly: server,
                census_list: CensusList::new(),
+               census_ring: CensusRing::new(server.member_id()),
+               butterfly: server,
                services: services,
                watcher: SpecWatcher::run(&fs_cfg.specs_path)?,
                fs_cfg: Arc::new(fs_cfg),
@@ -305,8 +308,6 @@ impl Manager {
         self.butterfly
             .insert_service(service.to_rumor(self.butterfly.member_id()));
         if service.topology == Topology::Leader {
-            // TODO: eventually, we need to deal with suitability here. The original implementation
-            // didn't have this working either.
             self.butterfly
                 .start_election(service.service_group.clone(), 0);
         }
@@ -395,6 +396,11 @@ impl Manager {
             self.update_running_services_from_watcher()?;
             self.check_for_updated_packages(&mut last_census_update);
             self.restart_elections();
+            self.census_ring
+                .update_from_rumors(&self.butterfly.service_store,
+                                    &self.butterfly.election_store,
+                                    &self.butterfly.update_store,
+                                    &self.butterfly.member_list);
             let (census_updated, ncu) = self.build_census(&last_census_update);
 
             if census_updated {
@@ -426,8 +432,8 @@ impl Manager {
                     .expect("Services lock is poisoned!")
                     .iter_mut() {
                 service.tick(&self.butterfly,
-                             &self.census_list,
                              census_updated,
+                             &self.census_ring,
                              &mut last_census_update)
             }
             let time_to_wait = (next_check - SteadyTime::now()).num_milliseconds();
@@ -555,7 +561,7 @@ impl Manager {
                 let incarnation = rumor.get_incarnation() + 1;
                 rumor.set_pkg(service.package().to_string());
                 rumor.set_incarnation(incarnation);
-                service.populate(&self.census_list);
+                service.populate(&self.census_ring);
                 // TODO FN: the updated toml API returns a `Result` when serializing--we should
                 // handle this and not potentially panic
                 match service.config.to_exported() {
