@@ -679,9 +679,23 @@ enter_studio() {
     set -x
   fi
 
+  echo "$studio_supervisor_start_command" | $bb chroot "$HAB_STUDIO_ROOT" \
+    $studio_env_command -i $env $studio_run_command
+
+  trap stop_supervisor EXIT
+
   # Become the `chroot` process
-  exec $bb chroot "$HAB_STUDIO_ROOT" \
+  $bb chroot "$HAB_STUDIO_ROOT" \
     $studio_env_command -i $env $studio_enter_command $*
+}
+
+# **Internal** Run when an entered studio exits.
+stop_supervisor() {
+  lock_file="$HAB_STUDIO_ROOT/hab/sup/default/LOCK"
+
+  if [ -f $lock_file ]; then
+    $bb kill $($bb cat $lock_file)
+  fi
 }
 
 # **Internal** Run a build command using a Studio.

@@ -6,6 +6,7 @@ studio_build_environment=
 studio_build_command="record \${1:-} $HAB_ROOT_PATH/bin/build"
 studio_run_environment=
 studio_run_command="$HAB_ROOT_PATH/bin/hab pkg exec core/hab-backline bash -l"
+studio_supervisor_start_command="start_supervisor"
 
 pkgs="${HAB_BACKLINE_PKG:-core/hab-backline}"
 
@@ -65,6 +66,7 @@ finish_setup() {
   local coreutils_path=$(_pkgpath_for core/coreutils)
 
   $bb mkdir -p $v $HAB_STUDIO_ROOT$HAB_ROOT_PATH/bin
+  $bb mkdir -p $v $HAB_STUDIO_ROOT$HAB_ROOT_PATH/sup/default
 
   # Put `hab` on the default `$PATH`
   _hab pkg binlink --dest $HAB_ROOT_PATH/bin core/hab hab
@@ -83,6 +85,12 @@ finish_setup() {
 exec $HAB_ROOT_PATH/bin/hab pkg exec core/hab-plan-build hab-plan-build \$*
 EOF
   $bb chmod $v 755 $HAB_STUDIO_ROOT$HAB_ROOT_PATH/bin/build
+
+  $bb cat <<TAIL_SUP > $HAB_STUDIO_ROOT$HAB_ROOT_PATH/bin/slog
+#!$bash_path/bin/sh
+exec tail -f /hab/sup/default/log.out
+TAIL_SUP
+  $bb chmod $v 755 $HAB_STUDIO_ROOT$HAB_ROOT_PATH/bin/slog
 
   # Set the login shell for any relevant user to be `/bin/bash`
   $bb sed -e "s,/bin/sh,$bash_path/bin/bash,g" -i $HAB_STUDIO_ROOT/etc/passwd
@@ -104,6 +112,20 @@ export TERMINFO=$(_pkgpath_for core/ncurses)/share/terminfo
 if [ -f /src/.studiorc ];then
   source /src/.studiorc
 fi
+
+start_supervisor() {
+  if [ -z \$NO_BG_SUP ]; then
+    $HAB_ROOT_PATH/bin/hab sup run > /hab/sup/default/log.out &
+    echo "** The Habitat Supervisor has been started in the background."
+    echo "** Use 'hab sup start' and 'hab sup stop' to start and stop services."
+    echo "** Use the 'slog' command to stream the supervisor log."
+    echo "** Adding '\\\NO_BG_SUP=1' to your .studiorc file will disable the background supervisor."
+    echo ""
+  else
+    echo "** \\\$NO_BG_SUP was set. The Habitat Supervisor is not running."
+    echo ""
+  fi
+}
 
 # Add command line completion
 source <(hab cli completers --shell bash)
