@@ -1155,22 +1155,14 @@ fn list_packages(req: &mut Request) -> IronResult<Response> {
 }
 
 fn list_channels(req: &mut Request) -> IronResult<Response> {
-    let session_id: u64;
-    let origin_name: String;
-    {
-        let session = req.extensions.get::<Authenticated>().unwrap();
-        session_id = session.get_id();
-
+    let origin_name = {
         let params = req.extensions.get::<Router>().unwrap();
-        origin_name = match params.find("origin") {
+
+        match params.find("origin") {
             Some(origin) => origin.to_string(),
             None => return Ok(Response::with(status::BadRequest)),
         }
     };
-
-    if !try!(check_origin_access(req, session_id, &origin_name)) {
-        return Ok(Response::with(status::Forbidden));
-    }
 
     let mut request = OriginChannelListRequest::new();
     match try!(get_origin(req, origin_name.as_str())) {
@@ -1216,10 +1208,21 @@ fn create_channel(req: &mut Request) -> IronResult<Response> {
         };
     }
 
+    let origin_id = match try!(get_origin(req, &origin)) {
+        Some(origin) => {
+            origin.get_id()
+        }
+        None => {
+            debug!("Origin {} not found!", origin);
+            return Ok(Response::with(status::NotFound));
+        },
+    };
+
     let mut request = OriginChannelCreate::new();
 
     request.set_owner_id(session_id);
     request.set_origin_name(origin);
+    request.set_origin_id(origin_id);
     request.set_name(channel);
 
     match route_message::<OriginChannelCreate, OriginChannel>(req, &request) {

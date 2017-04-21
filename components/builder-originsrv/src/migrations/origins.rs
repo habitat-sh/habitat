@@ -51,7 +51,7 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                      BEGIN
                          INSERT INTO origin_members (origin_id, origin_name, account_id, account_name)
                                 VALUES (om_origin_id, om_origin_name, om_account_id, om_account_name);
-                     END 
+                     END
                  $$ LANGUAGE plpgsql VOLATILE"#)?;
     migrator.migrate("originsrv",
                      r#"CREATE OR REPLACE FUNCTION insert_origin_v1 (
@@ -65,9 +65,11 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                          INSERT INTO origins (name, owner_id)
                                 VALUES (origin_name, origin_owner_id) RETURNING * into inserted_origin;
                          PERFORM insert_origin_member_v1(inserted_origin.id, origin_name, origin_owner_id, origin_owner_name);
+                         PERFORM insert_origin_channel_v1(inserted_origin.id, origin_owner_id, 'unstable');
+                         PERFORM insert_origin_channel_v1(inserted_origin.id, origin_owner_id, 'stable');
                          RETURN NEXT inserted_origin;
                          RETURN;
-                     END 
+                     END
                  $$ LANGUAGE plpgsql VOLATILE"#)?;
     migrator.migrate("originsrv",
                      r#"CREATE OR REPLACE FUNCTION list_origin_members_v1 (
