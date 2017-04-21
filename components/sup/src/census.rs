@@ -1,8 +1,21 @@
+// Copyright (c) 2017 Chef Software Inc. and/or applicable contributors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 use std::str::FromStr;
 use std::collections::HashMap;
 use std::collections::BTreeMap;
-use hcore::service::ServiceGroup;
-use hcore::package::PackageIdent;
+
 use butterfly;
 use butterfly::member::{MemberList, Member, Health};
 use butterfly::rumor::service::Service as ServiceRumor;
@@ -12,6 +25,8 @@ use butterfly::rumor::RumorStore;
 use butterfly::rumor::service::SysInfo;
 use eventsrv::message::event::{CensusEntry as CensusEntryProto, PackageIdent as PackageIdentProto,
                                SysInfo as SysInfoProto};
+use hcore::service::ServiceGroup;
+use hcore::package::PackageIdent;
 use toml;
 
 static LOGKEY: &'static str = "CE";
@@ -28,6 +43,7 @@ pub struct CensusRing {
     last_election_update_counter: usize,
     last_membership_counter: usize,
 }
+
 impl CensusRing {
     pub fn new<I: Into<MemberId>>(local_member_id: I) -> Self {
         CensusRing {
@@ -55,7 +71,6 @@ impl CensusRing {
     }
 
     pub fn census_group_for(&self, sg: &ServiceGroup) -> Option<&CensusGroup> {
-
         self.census_groups.get(sg)
     }
 
