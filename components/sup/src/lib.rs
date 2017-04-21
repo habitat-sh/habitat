@@ -283,6 +283,7 @@ macro_rules! output_format {
 
 pub mod command;
 pub mod config;
+pub mod census;
 pub mod error;
 pub mod fs;
 pub mod http_gateway;
