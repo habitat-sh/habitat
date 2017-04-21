@@ -49,7 +49,6 @@ use error::{Error, Result, SupError};
 use http_gateway;
 use fs;
 use manager::{self, signals};
-use manager::census::{CensusList, CensusUpdate};
 use census::{CensusRing, ElectionStatus};
 use supervisor::{Supervisor, RuntimeConfig};
 use util;
@@ -289,18 +288,15 @@ impl Service {
         self.supervisor.check_process()
     }
 
-    pub fn tick(&mut self,
-                butterfly: &butterfly::Server,
-                census_updated: bool,
-                census_ring: &CensusRing,
-                last_census_update: &mut CensusUpdate) {
+    pub fn tick(&mut self, butterfly: &butterfly::Server, census_ring: &CensusRing) -> bool {
+        let mut service_rumor_written = false;
         if !self.initialized {
             if !self.all_bindings_present(census_ring) {
                 outputln!(preamble self.service_group, "Waiting to initialize service.");
-                return;
+                return service_rumor_written;
             }
         }
-        self.update_configuration(butterfly, census_updated, census_ring, last_census_update);
+        service_rumor_written = self.update_configuration(butterfly, census_ring);
 
         match self.topology {
             Topology::Standalone => {
@@ -353,6 +349,7 @@ impl Service {
                 }
             }
         }
+        service_rumor_written
     }
 
     pub fn to_spec(&self) -> ServiceSpec {
@@ -384,16 +381,17 @@ impl Service {
 
     fn update_configuration(&mut self,
                             butterfly: &butterfly::Server,
-                            census_updated: bool,
-                            census_ring: &CensusRing,
-                            last_census_update: &mut CensusUpdate) {
+                            census_ring: &CensusRing)
+                            -> bool {
+        let mut service_rumor_written = false;
+
         self.config.populate(&self.service_group, census_ring);
         self.persist_service_files(butterfly);
 
         let svc_cfg_updated = self.persist_service_config(butterfly);
-        if svc_cfg_updated || census_updated {
+        if svc_cfg_updated || census_ring.changed {
             if svc_cfg_updated {
-                self.update_service_rumor_cfg(butterfly, last_census_update);
+                service_rumor_written = self.update_service_rumor_cfg(butterfly);
                 if let Some(err) = self.config.reload_gossip().err() {
                     outputln!(preamble self.service_group, "error loading gossip config, {}", err);
                 }
@@ -414,6 +412,7 @@ impl Service {
                 }
             }
         }
+        service_rumor_written
     }
 
     pub fn package(&self) -> RwLockReadGuard<PackageInstall> {
@@ -751,9 +750,7 @@ impl Service {
     ///
     /// The run loop's last updated census is a required parameter on this function to inform the
     /// main loop that we, ourselves, updated the service counter when we updated ourselves.
-    fn update_service_rumor_cfg(&self,
-                                butterfly: &butterfly::Server,
-                                last_update: &mut CensusUpdate) {
+    fn update_service_rumor_cfg(&self, butterfly: &butterfly::Server) -> bool {
         if let Some(cfg) = self.config.to_exported().ok() {
             let me = butterfly.member_id().to_string();
             let mut updated = None;
@@ -773,9 +770,10 @@ impl Service {
                 });
             if let Some(rumor) = updated {
                 butterfly.insert_service(rumor);
-                last_update.service_counter += 1;
+                return true;
             }
         }
+        false
     }
 
     fn write_butterfly_service_file(&mut self,

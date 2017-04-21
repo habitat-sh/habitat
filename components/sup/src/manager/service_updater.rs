@@ -29,7 +29,6 @@ use time::{SteadyTime, Duration as TimeDuration};
 
 use {PRODUCT, VERSION};
 use error::Result;
-use manager::census::CensusList;
 use census::CensusRing;
 use manager::service::{Service, Topology, UpdateStrategy};
 
@@ -97,7 +96,7 @@ impl ServiceUpdater {
 
     pub fn check_for_updated_package(&mut self,
                                      service: &mut Service,
-                                     census_list: &CensusList)
+                                     census_ring: &CensusRing)
                                      -> bool {
         let mut updated = false;
         match self.states.get_mut(&service.service_group) {
@@ -115,11 +114,11 @@ impl ServiceUpdater {
                 *rx = Worker::new(service).start(&service.service_group, None);
             }
             Some(&mut UpdaterState::Rolling(ref mut st @ RollingState::AwaitingElection)) => {
-                if let Some(census) = census_list.get(&*service.service_group) {
+                if let Some(census_group) = census_ring.census_group_for(&service.service_group) {
                     if service.topology == Topology::Leader {
                         debug!("Rolling Update, determining proper suitability because we're in \
                                 a leader topology");
-                        match (census.me(), census.get_leader()) {
+                        match (census_group.me(), census_group.leader()) {
                             (Some(me), Some(leader)) => {
                                 let suitability = if me == leader {
                                     u64::min_value()
@@ -143,8 +142,8 @@ impl ServiceUpdater {
                 }
             }
             Some(&mut UpdaterState::Rolling(ref mut st @ RollingState::InElection)) => {
-                if let Some(census) = census_list.get(&*service.service_group) {
-                    match (census.me(), census.get_update_leader()) {
+                if let Some(census_group) = census_ring.census_group_for(&service.service_group) {
+                    match (census_group.me(), census_group.update_leader()) {
                         (Some(me), Some(leader)) => {
                             if me == leader {
                                 debug!("We're the leader");
@@ -179,14 +178,14 @@ impl ServiceUpdater {
                         }
                     }
                     LeaderState::Waiting => {
-                        match census_list.get(&*service.service_group) {
-                            Some(census) => {
-                                if census
-                                       .members_ordered()
+                        match census_ring.census_group_for(&service.service_group) {
+                            Some(census_group) => {
+                                if census_group
+                                       .members()
                                        .iter()
-                                       .any(|ce| {
-                                                ce.pkg.as_ref().unwrap() !=
-                                                census.me().unwrap().pkg.as_ref().unwrap()
+                                       .any(|cm| {
+                                                cm.pkg.as_ref().unwrap() !=
+                                                census_group.me().unwrap().pkg.as_ref().unwrap()
                                             }) {
                                     debug!("Update leader still waiting for followers...");
                                     return false;
@@ -208,11 +207,11 @@ impl ServiceUpdater {
             Some(&mut UpdaterState::Rolling(RollingState::Follower(ref mut state))) => {
                 match *state {
                     FollowerState::Waiting => {
-                        match census_list.get(&*service.service_group) {
-                            Some(census) => {
-                                match (census.get_update_leader(),
-                                       census.previous_peer(),
-                                       census.me()) {
+                        match census_ring.census_group_for(&service.service_group) {
+                            Some(census_group) => {
+                                match (census_group.update_leader(),
+                                       census_group.previous_peer(),
+                                       census_group.me()) {
                                     (Some(leader), Some(peer), Some(me)) => {
                                         if leader.pkg == me.pkg {
                                             debug!("We're not in an update");
@@ -238,8 +237,8 @@ impl ServiceUpdater {
                         }
                     }
                     FollowerState::Updating(ref mut rx) => {
-                        match census_list.get(&*service.service_group) {
-                            Some(census) => {
+                        match census_ring.census_group_for(&service.service_group) {
+                            Some(census_group) => {
                                 match rx.try_recv() {
                                     Ok(package) => {
                                         service.update_package(package);
@@ -250,7 +249,7 @@ impl ServiceUpdater {
                                         outputln!(preamble service.service_group,
                                             "Service Updater has died {}", "; restarting...");
                                         let package =
-                                            census.get_update_leader().unwrap().pkg.clone();
+                                            census_group.update_leader().unwrap().pkg.clone();
                                         *rx = Worker::new(service).start(&service.service_group,
                                                                          package);
                                     }

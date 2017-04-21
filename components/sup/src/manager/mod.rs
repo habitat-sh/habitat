@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-mod census;
 pub mod service;
 mod signals;
 mod service_updater;
@@ -50,7 +49,6 @@ use self::service_updater::ServiceUpdater;
 use self::spec_watcher::{SpecWatcher, SpecWatcherEvent};
 use error::{Error, Result, SupError};
 use config::GossipListenAddr;
-use manager::census::{CensusUpdate, CensusList, CensusEntry};
 use census::CensusRing;
 use manager::signals::SignalEvent;
 use http_gateway;
@@ -111,7 +109,6 @@ pub struct ManagerConfig {
 
 pub struct Manager {
     butterfly: butterfly::Server,
-    census_list: CensusList,
     census_ring: CensusRing,
     fs_cfg: Arc<FsCfg>,
     services: Arc<RwLock<Vec<Service>>>,
@@ -184,7 +181,6 @@ impl Manager {
         }
         Ok(Manager {
                updater: ServiceUpdater::new(server.clone()),
-               census_list: CensusList::new(),
                census_ring: CensusRing::new(server.member_id()),
                butterfly: server,
                services: services,
@@ -385,7 +381,7 @@ impl Manager {
             })
             .expect("unable to start sup-eventsrv thread");
 
-        let mut last_census_update = CensusUpdate::default();
+        let mut service_rumor_offset = 0;
 
         loop {
             let next_check = SteadyTime::now() + TimeDuration::milliseconds(1000);
@@ -394,17 +390,17 @@ impl Manager {
                 return Ok(());
             }
             self.update_running_services_from_watcher()?;
-            self.check_for_updated_packages(&mut last_census_update);
+            service_rumor_offset += self.check_for_updated_packages();
             self.restart_elections();
             self.census_ring
-                .update_from_rumors(&self.butterfly.service_store,
+                .update_from_rumors(service_rumor_offset,
+                                    &self.butterfly.service_store,
                                     &self.butterfly.election_store,
                                     &self.butterfly.update_store,
                                     &self.butterfly.member_list);
-            let (census_updated, ncu) = self.build_census(&last_census_update);
+            service_rumor_offset = 0;
 
-            if census_updated {
-                last_census_update = ncu;
+            if self.census_ring.changed {
                 self.persist_state();
 
                 let mut censuses = Vec::<CensusEntryProto>::new();
@@ -412,9 +408,10 @@ impl Manager {
                         .read()
                         .expect("Services lock is poisoned!")
                         .iter() {
-                    if let Some(census) = self.census_list.get(service.service_group.as_ref()) {
-                        if let Some(entry) = census.me() {
-                            let cep = entry.as_protobuf();
+                    if let Some(census_group) =
+                        self.census_ring.census_group_for(&service.service_group) {
+                        if let Some(member) = census_group.me() {
+                            let cep = member.as_protobuf();
                             censuses.push(cep);
                         }
                     }
@@ -431,64 +428,15 @@ impl Manager {
                     .write()
                     .expect("Services lock is poisoned!")
                     .iter_mut() {
-                service.tick(&self.butterfly,
-                             census_updated,
-                             &self.census_ring,
-                             &mut last_census_update)
+                if service.tick(&self.butterfly, &self.census_ring) {
+                    service_rumor_offset += 1;
+                }
             }
             let time_to_wait = (next_check - SteadyTime::now()).num_milliseconds();
             if time_to_wait > 0 {
                 thread::sleep(Duration::from_millis(time_to_wait as u64));
             }
         }
-    }
-
-    // Try and build the census from the gossip data, updating the last_census_update with
-    // the resulting checkpoints. The census is our representation of the data produced
-    // by Butterfly.
-    fn build_census(&mut self, last_update: &CensusUpdate) -> (bool, CensusUpdate) {
-        let update = CensusUpdate::new(&self.butterfly);
-        if update != *last_update {
-            // JW TODO: We should re-use the already allocated census list and entries instead of
-            // recreating entirely new structures. We can, and should, only modify structures which
-            // have had their incarnation updated.
-            let mut cl = CensusList::new();
-            debug!("Updating census from butterfly data");
-            self.butterfly
-                .service_store
-                .with_keys(|(_group, rumors)| for (_member_id, service) in rumors.iter() {
-                               let mut ce = CensusEntry::default();
-                               ce.populate_from_service(service);
-                               cl.insert(String::from(self.butterfly.member_id()), ce);
-                           });
-            self.butterfly
-                .election_store
-                .with_keys(|(_service_group, rumors)| {
-                               // We know you have an election, and this is the only key in the hash
-                               let election = rumors.get("election").unwrap();
-                               cl.populate_from_election(election);
-                           });
-            self.butterfly
-                .update_store
-                .with_keys(|(_service_group, rumors)| {
-                               // We know you have an election, and this is the only key in the hash
-                               let election = rumors.get("election").unwrap();
-                               cl.populate_from_update_election(election);
-                           });
-            self.butterfly
-                .member_list
-                .with_members(|member| {
-                                  cl.populate_from_member(member);
-                                  if let Some(health) = self.butterfly
-                                         .member_list
-                                         .health_of(member) {
-                                      cl.populate_from_health(member, health);
-                                  }
-                              });
-            self.census_list = cl;
-            return (true, update);
-        }
-        (false, update)
     }
 
     // Takes signals passed to `hab-sup` and either shuts down all the services, or
@@ -537,7 +485,8 @@ impl Manager {
     ///
     /// The run loop's last updated census is a required parameter on this function to inform the
     /// main loop that we, ourselves, updated the service counter when we updated ourselves.
-    fn check_for_updated_packages(&mut self, last_update: &mut CensusUpdate) {
+    fn check_for_updated_packages(&mut self) -> usize {
+        let mut updated_services = 0;
         let member_id = {
             self.butterfly.member_id().to_string()
         };
@@ -546,7 +495,7 @@ impl Manager {
                 .expect("Services lock is poisoned!")
                 .iter_mut() {
             if self.updater
-                   .check_for_updated_package(service, &self.census_list) {
+                   .check_for_updated_package(service, &self.census_ring) {
                 let mut rumor = {
                     let list = self.butterfly
                         .service_store
@@ -572,9 +521,10 @@ impl Manager {
                     Err(err) => warn!("Error loading service config after update, err={}", err),
                 }
                 self.butterfly.insert_service(rumor);
-                last_update.service_counter += 1;
+                updated_services += 1;
             }
         }
+        updated_services
     }
 
     fn persist_state(&self) {
@@ -597,7 +547,7 @@ impl Manager {
         };
         let mut writer = BufWriter::new(file);
         if let Some(err) = writer
-               .write(serde_json::to_string(&self.census_list)
+               .write(serde_json::to_string(&self.census_ring)
                           .unwrap()
                           .as_bytes())
                .err() {
