@@ -13,11 +13,12 @@
 // limitations under the License.
 
 use std::path::{Path, PathBuf};
+use hcore::fs::FS_ROOT_PATH;
 
 lazy_static! {
     /// The root path containing all runtime service directories and files
     pub static ref SVC_ROOT: PathBuf = {
-        PathBuf::from("/hab/svc")
+        Path::new(&*FS_ROOT_PATH).join("hab/svc")
     };
 }
 

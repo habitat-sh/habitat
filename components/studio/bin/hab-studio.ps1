@@ -269,9 +269,9 @@ function Enter-Studio {
     Write-EnterHelp
     return
   }
+  $env:HAB_STUDIO_ENTER_ROOT = Resolve-Path $HAB_STUDIO_ROOT
   New-Studio
   Write-HabInfo "Entering Studio at $HAB_STUDIO_ROOT"
-  $env:HAB_STUDIO_ENTER_ROOT = $HAB_STUDIO_ROOT
   $env:STUDIO_SCRIPT_ROOT = $PSScriptRoot
   & "$PSScriptRoot\powershell\powershell.exe" -NoProfile -ExecutionPolicy bypass -NoLogo -NoExit -Command {
     function prompt {
@@ -281,19 +281,26 @@ function Enter-Studio {
     function build {
       & "$env:STUDIO_SCRIPT_ROOT\hab-plan-build.ps1" @args
     }
-    # This captures 'hab start' commands and launches them in a new window
-    # We do this because breaking out of a service via ctrl-C breaks
-    # nested shells. Any other hab command should simply be passed through
-    function hab {
-      if($args.length -gt 1 -and ($args[0] -eq "start")) {
-        Start-Process hab.exe -ArgumentList $args
-      }
-      else {
-        & hab.exe @args
-      }
+    # This streams the tail of the supervisor log in a new window
+    # We do this because breaking out of the tail stream via ctrl-C breaks
+    # nested shells.
+    function slog {
+      Start-Process "$env:STUDIO_SCRIPT_ROOT\powershell\powershell.exe" -ArgumentList "-Command `"& {Get-Content $env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\log.out -Tail 100 -Wait}`""
     }
+
     New-PSDrive -Name "Habitat" -PSProvider FileSystem -Root $env:HAB_STUDIO_ENTER_ROOT | Out-Null
+    mkdir $env:HAB_STUDIO_ENTER_ROOT\hab\sup\default -Force | Out-Null
+    Start-Process hab.exe -ArgumentList "sup run" -NoNewWindow -RedirectStandardOutput $env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\log.out
+    Write-Host  "** The Habitat Supervisor has been started in the background." -ForegroundColor Cyan
+    Write-Host  "** Use 'hab sup start' and 'hab sup stop' to start and stop services." -ForegroundColor Cyan
+    Write-Host  "** Use the 'slog' command to stream the supervisor log." -ForegroundColor Cyan
+    Write-Host  ""
+    
     Set-Location "Habitat:\src"
+  }
+
+  if(Test-Path "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK") {
+    Stop-Process -Id (Get-Content "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK")
   }
 }
 
