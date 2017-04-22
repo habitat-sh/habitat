@@ -25,9 +25,6 @@ features = [ "suggestions", "color", "unstable" ]
 git = "https://github.com/erickt/rust-zmq"
 branch = "release/v0.8"
 
-[dependencies.habitat_builder_dbcache]
-path = "../builder-dbcache"
-
 [dependencies.habitat_builder_protocol]
 path = "../builder-protocol"
 

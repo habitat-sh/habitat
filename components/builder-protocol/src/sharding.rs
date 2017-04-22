@@ -16,7 +16,6 @@ use std::cmp::{Ordering, PartialOrd};
 use std::fmt;
 use std::ops::Deref;
 
-use redis;
 use time;
 
 /// Time from which we begin issuing identifiers. This number can be used to determine how old
@@ -104,19 +103,6 @@ impl PartialOrd for InstaId {
             }
             ordering => Some(ordering),
         }
-    }
-}
-
-impl redis::FromRedisValue for InstaId {
-    fn from_redis_value(value: &redis::Value) -> redis::RedisResult<InstaId> {
-        let id = try!(redis::from_redis_value::<u64>(value));
-        Ok(InstaId(id))
-    }
-}
-
-impl redis::ToRedisArgs for InstaId {
-    fn to_redis_args(&self) -> Vec<Vec<u8>> {
-        self.0.to_redis_args()
     }
 }
 

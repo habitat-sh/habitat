@@ -16,7 +16,6 @@ bodyparser = "*"
 env_logger = "*"
 hyper = "*"
 iron = "*"
-lazy_static = "*"
 log = "*"
 mount = "*"
 persistent = "*"
@@ -53,10 +52,6 @@ path = "../builder-protocol"
 
 [dependencies.habitat_net]
 path = "../net"
-
-[dependencies.redis]
-git = "https://github.com/habitat-sh/redis-rs"
-branch = "habitat"
 
 [features]
 functional = []
