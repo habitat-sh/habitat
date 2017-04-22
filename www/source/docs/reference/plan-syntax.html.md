@@ -422,6 +422,13 @@ run
   exec my_command --option {{cfg.option}} --option2 {{cfg.option2}}
   ~~~
 
+post-run
+: File location: `<plan>/hooks/post-run`
+
+The post run hook will get executed after initial startup.
+
+For many data services creation of specific users / roles or datastores is required. This needs to happen once the service has already started.
+
 ***
 
 ## Runtime configuration settings
