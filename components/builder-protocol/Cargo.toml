@@ -15,10 +15,6 @@ time = "*"
 [dependencies.habitat_core]
 path = "../core"
 
-[dependencies.redis]
-git = "https://github.com/habitat-sh/redis-rs"
-branch = "habitat"
-
 [build-dependencies]
 pkg-config = "0.3"
 

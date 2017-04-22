@@ -18,20 +18,17 @@ use std::io;
 use std::fmt;
 use std::result;
 
-use dbcache;
 use hab_core;
 use hab_core::package::{self, Identifiable};
 use hab_net;
 use hyper;
 use protocol::net::NetError;
-use redis;
 
 #[derive(Debug)]
 pub enum Error {
     BadPort(String),
     ChannelAlreadyExists(String),
     ChannelDoesNotExist(String),
-    DataStore(dbcache::Error),
     HabitatCore(hab_core::Error),
     HabitatNet(hab_net::Error),
     HTTP(hyper::status::StatusCode),
@@ -55,7 +52,6 @@ impl fmt::Display for Error {
             Error::BadPort(ref e) => format!("{} is an invalid port. Valid range 1-65535.", e),
             Error::ChannelAlreadyExists(ref e) => format!("{} already exists.", e),
             Error::ChannelDoesNotExist(ref e) => format!("{} does not exist.", e),
-            Error::DataStore(ref e) => format!("DataStore error, {}", e),
             Error::HabitatCore(ref e) => format!("{}", e),
             Error::HabitatNet(ref e) => format!("{}", e),
             Error::HTTP(ref e) => format!("{}", e),
@@ -95,7 +91,6 @@ impl error::Error for Error {
             Error::BadPort(_) => "Received an invalid port or a number outside of the valid range.",
             Error::ChannelAlreadyExists(_) => "Channel already exists.",
             Error::ChannelDoesNotExist(_) => "Channel does not exist.",
-            Error::DataStore(ref err) => err.description(),
             Error::HabitatCore(ref err) => err.description(),
             Error::HabitatNet(ref err) => err.description(),
             Error::HTTP(_) => "Received an HTTP error",
@@ -113,12 +108,6 @@ impl error::Error for Error {
     }
 }
 
-impl From<dbcache::Error> for Error {
-    fn from(err: dbcache::Error) -> Error {
-        Error::DataStore(err)
-    }
-}
-
 impl From<hab_core::Error> for Error {
     fn from(err: hab_core::Error) -> Error {
         Error::HabitatCore(err)
@@ -128,13 +117,6 @@ impl From<hab_core::Error> for Error {
 impl From<ffi::NulError> for Error {
     fn from(err: ffi::NulError) -> Error {
         Error::NulError(err)
-    }
-}
-
-impl From<redis::RedisError> for Error {
-    fn from(err: redis::RedisError) -> Self {
-        let e = dbcache::Error::from(err);
-        Error::DataStore(e)
     }
 }
 

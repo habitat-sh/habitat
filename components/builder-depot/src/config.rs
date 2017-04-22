@@ -19,7 +19,6 @@ use hab_core::config::{ConfigFile, ParseInto};
 use hab_core::os::system::{Architecture, Platform};
 use hab_net::config::{GitHubOAuth, RouteAddrs};
 use hab_core::package::PackageTarget;
-use redis;
 use toml;
 
 use error::{Error, Result};
@@ -93,15 +92,6 @@ impl Default for Config {
             supported_targets: vec![PackageTarget::new(Platform::Linux, Architecture::X86_64),
                                     PackageTarget::new(Platform::Windows, Architecture::X86_64)],
         }
-    }
-}
-
-impl<'a> redis::IntoConnectionInfo for &'a Config {
-    fn into_connection_info(self) -> redis::RedisResult<redis::ConnectionInfo> {
-        format!("redis://{}:{}",
-                self.datastore_addr.ip(),
-                self.datastore_addr.port())
-                .into_connection_info()
     }
 }
 

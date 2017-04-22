@@ -14,7 +14,6 @@
 
 extern crate habitat_core as hab_core;
 extern crate protobuf;
-extern crate redis;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;

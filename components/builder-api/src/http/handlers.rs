@@ -23,7 +23,7 @@ use hab_core::package::Plan;
 use hab_core::event::*;
 use hab_net;
 use hab_net::http::controller::*;
-use hab_net::routing::{Broker, BrokerConn};
+use hab_net::routing::Broker;
 use iron::prelude::*;
 use iron::status;
 use iron::typemap;
@@ -33,7 +33,6 @@ use protocol::originsrv::*;
 use protocol::sessionsrv;
 use protocol::net::{self, NetOk, ErrCode};
 use router::Router;
-use serde_json;
 
 define_event_log!();
 

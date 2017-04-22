@@ -17,7 +17,6 @@ hyper = "*"
 iron = "*"
 iron-test = "*"
 libc = "*"
-lazy_static = "*"
 libarchive = "*"
 log = "*"
 mount = "*"
@@ -43,9 +42,6 @@ uuid = { version = "0.4", features = ["v4"] }
 version = "*"
 features = [ "suggestions", "color", "unstable" ]
 
-[dependencies.habitat_builder_dbcache]
-path = "../builder-dbcache"
-
 [dependencies.habitat_builder_protocol]
 path = "../builder-protocol"
 
@@ -57,14 +53,6 @@ path = "../core"
 
 [dependencies.habitat_net]
 path = "../net"
-
-[dependencies.r2d2_redis]
-git = "https://github.com/habitat-sh/r2d2-redis.git"
-branch = "habitat"
-
-[dependencies.redis]
-git = "https://github.com/habitat-sh/redis-rs"
-branch = "habitat"
 
 [dependencies.zmq]
 git = "https://github.com/erickt/rust-zmq"
