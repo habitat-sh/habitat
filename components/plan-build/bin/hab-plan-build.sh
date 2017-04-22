@@ -780,17 +780,33 @@ _get_deps_for() {
 #
 # Will return 0 in any case.
 _return_or_append_to_set() {
-  local e
   local appended_set
-  for e in "${@:2}"; do
-    if [[ "$e" == "$1" ]]; then
-      echo "${@:2}"
-      return 0
-    fi
-  done
+  if _array_contains "$1" "${@:2}"; then
+    echo "${@:2}"
+    return 0
+  fi
   appended_set=("${@:2}" "$1")
   echo "${appended_set[@]}"
   return 0
+}
+
+# **Internal** Returns 0 (true) if the element is present in the array and
+# non-zero (false) otherwise.
+#
+# ```
+# arr=(a b c)
+# [[ $(_array_contains "b" "${arr[@]}") -eq 0 ]]
+#
+# [[ $(_array_contains "nope" "${arr[@]}") -ne 0 ]]
+# ```
+_array_contains() {
+  local e
+  for e in "${@:2}"; do
+    if [[ "$e" == "$1" ]]; then
+      return 0
+    fi
+  done
+  return 1
 }
 
 # **Internal** Prints the source file, line number, and lines of context around
