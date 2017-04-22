@@ -36,6 +36,7 @@ use butterfly::server::Suitability;
 use eventsrv::message::event::{EventEnvelope, EventEnvelope_Type, CensusEntry as CensusEntryProto};
 use eventsrv_client::EventSrvClient;
 use hcore::crypto::{default_cache_key_path, SymKey};
+use hcore::fs::FS_ROOT_PATH;
 use hcore::service::ServiceGroup;
 use hcore::os::process;
 use protobuf::Message;
@@ -53,11 +54,17 @@ use census::CensusRing;
 use manager::signals::SignalEvent;
 use http_gateway;
 
-const STATE_PATH_PREFIX: &'static str = "/hab/sup";
 const MEMBER_ID_FILE: &'static str = "MEMBER_ID";
 const PROC_LOCK_FILE: &'static str = "LOCK";
 
 static LOGKEY: &'static str = "MR";
+
+lazy_static! {
+    /// The root path containing all runtime service directories and files
+    pub static ref STATE_PATH_PREFIX: PathBuf = {
+        Path::new(&*FS_ROOT_PATH).join("hab/sup")
+    };
+}
 
 /// FileSystem paths that the Manager uses to persist data to disk.
 ///
@@ -287,8 +294,8 @@ impl Manager {
             Some(ref custom) => custom.clone(),
             None => {
                 match cfg.name {
-                    Some(ref name) => PathBuf::from(STATE_PATH_PREFIX).join(name),
-                    None => PathBuf::from(STATE_PATH_PREFIX).join("default"),
+                    Some(ref name) => STATE_PATH_PREFIX.join(name),
+                    None => STATE_PATH_PREFIX.join("default"),
                 }
             }
         }
@@ -781,7 +788,7 @@ mod test {
         let cfg = ManagerConfig::default();
         let path = Manager::state_path_from(&cfg);
 
-        assert_eq!(PathBuf::from(format!("{}/default", STATE_PATH_PREFIX)),
+        assert_eq!(PathBuf::from(format!("{}/default", STATE_PATH_PREFIX.to_string_lossy())),
                    path);
     }
 
@@ -791,7 +798,7 @@ mod test {
         cfg.name = Some(String::from("peanuts"));
         let path = Manager::state_path_from(&cfg);
 
-        assert_eq!(PathBuf::from(format!("{}/peanuts", STATE_PATH_PREFIX)),
+        assert_eq!(PathBuf::from(format!("{}/peanuts", STATE_PATH_PREFIX.to_string_lossy())),
                    path);
     }
 
