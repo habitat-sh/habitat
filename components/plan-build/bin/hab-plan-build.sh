@@ -879,8 +879,10 @@ _resolve_scaffolding_dependencies() {
   local sdep
   local sdeps
   local scaff_build_deps
+  local scaff_build_deps_resolved
 
   scaff_build_deps=()
+  scaff_build_deps_resolved=()
 
   for dep in "${pkg_scaffolding}"; do
     _install_dependency $dep
@@ -888,11 +890,13 @@ _resolve_scaffolding_dependencies() {
     scaff_build_deps+=($dep)
     if resolved="$(_resolve_dependency $dep)"; then
       build_line "Resolved scaffolding dependency '$dep' to $resolved"
+      scaff_build_deps_resolved+=($resolved)
       # Add each (fully qualified) direct run dependency of the scaffolding
       # package.
       sdeps=($(_get_deps_for "$resolved"))
       for sdep in "${sdeps[@]}"; do
         scaff_build_deps+=($sdep)
+        scaff_build_deps_resolved+=($HAB_PKG_PATH/$sdep)
       done
     else
       exit_with "Resolving '$dep' failed, should this be built first?" 1
@@ -904,6 +908,17 @@ _resolve_scaffolding_dependencies() {
   # author if required.
   pkg_build_deps=(${scaff_build_deps[@]} ${pkg_build_deps[@]})
   debug "Updating pkg_build_deps=(${pkg_build_deps[*]}) from Scaffolding deps"
+
+  # Set `pkg_build_deps_resolved[@]}` to all resolved scaffolding dependencies.
+  # This will be used for early scaffolding package loading to mimick the state
+  # where all dependencies are known for helpers such as `pkg_path_for` and
+  # will be re-set later when the full build dependency set is known.
+  pkg_build_deps_resolved=("${scaff_build_deps_resolved[@]}")
+  # Set `${pkg_build_tdeps_resolved[@]}` to all the direct scaffolding
+  # dependencies, and the run dependencies for each direct scaffolding
+  # dependency. As above, this will be re-set later when the full dependency
+  # set is known.
+  _set_build_tdeps_resolved
 }
 
 # **Internal** Determines suitable package identifiers for each build
@@ -919,6 +934,12 @@ _resolve_build_dependencies() {
   local tdep
   local tdeps
 
+  # Clear out any pre-existing entries for `${pkg_build_deps_resolved[@]}`
+  # which may have been set by scaffolding preparation. All build dependencies
+  # will now be processed together including any scaffolding-injected
+  # dependencies.
+  pkg_build_deps_resolved=()
+
   # Append to `${pkg_build_deps_resolved[@]}` all resolved direct build
   # dependencies.
   for dep in "${pkg_build_deps[@]}"; do
@@ -931,9 +952,15 @@ _resolve_build_dependencies() {
     fi
   done
 
-  # Append to `${pkg_build_tdeps_resolved[@]}` all the direct build
-  # dependencies, and the run dependencies for each direct build dependency.
+  # Set `${pkg_build_tdeps_resolved[@]}` to all the direct build dependencies,
+  # and the run dependencies for each direct build dependency.
+  _set_build_tdeps_resolved
+}
 
+# **Internal** Sets the value of `${pkg_build_tdeps_resolved[@]}`. This
+# function completely re-sets the value of `${pkg_build_tdeps_resolved[@]}`
+# using the current value of `${pkg_build_deps_resolved[@]}`.
+_set_build_tdeps_resolved() {
   # Copy all direct build dependencies into a new array
   pkg_build_tdeps_resolved=("${pkg_build_deps_resolved[@]}")
   # Append all non-direct (transitive) run dependencies for each direct build
@@ -1913,15 +1940,15 @@ _resolve_dependencies() {
   # Inject, download, and resolve the scaffolding dependencies
   _resolve_scaffolding_dependencies
 
-  # Download and resolve the build dependencies
-  _resolve_build_dependencies
-
   # Populate package arrays to enable helper functions for early scaffolding
   # load hooks
   _populate_dependency_arrays
 
   # Load scaffolding packages if they are being used.
   _load_scaffolding
+
+  # Download and resolve the build dependencies
+  _resolve_build_dependencies
 
   # Download and resolve the run dependencies
   _resolve_run_dependencies
