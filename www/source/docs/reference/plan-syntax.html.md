@@ -422,8 +422,8 @@ run
   exec my_command --option {{cfg.option}} --option2 {{cfg.option2}}
   ~~~
 
-post_run
-: File location: `<plan>/hooks/post_run`
+post-run
+: File location: `<plan>/hooks/post-run`
 
 The post run hook will get executed after initial startup.
 
