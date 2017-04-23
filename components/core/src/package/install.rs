@@ -207,7 +207,7 @@ impl PackageInstall {
         }
     }
 
-    fn binds_optional(&self) -> Result<Vec<Bind>> {
+    pub fn binds_optional(&self) -> Result<Vec<Bind>> {
         match self.read_metafile(MetaFile::BindsOptional) {
             Ok(body) => {
                 let mut binds = Vec::new();

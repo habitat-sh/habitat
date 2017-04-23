@@ -17,7 +17,6 @@ extern crate clap;
 extern crate env_logger;
 extern crate habitat_builder_scheduler as scheduler;
 extern crate habitat_core as hab_core;
-#[macro_use]
 extern crate builder_core as bldr_core;
 #[macro_use]
 extern crate log;
@@ -27,9 +26,8 @@ use std::process;
 use hab_core::config::ConfigFile;
 use scheduler::{Config, Error, Result};
 
-
 const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
-const CFG_DEFAULT_PATH: &'static str = "/hab/svc/hab-builder-scheduler/config.toml";
+const CFG_DEFAULT_PATH: &'static str = "/hab/svc/builder-scheduler/config.toml";
 
 fn main() {
     env_logger::init().unwrap();
@@ -55,13 +53,13 @@ fn app<'a, 'b>() -> clap::App<'a, 'b> {
             (about: "Run a Habitat Builder scheduler service")
             (@arg config: -c --config +takes_value
                 "Filepath to configuration file. \
-                [default: /hab/svc/hab-builder-scheduler/config.toml]")
+                [default: /hab/svc/builder-scheduler/config.toml]")
         )
         (@subcommand migrate =>
             (about: "Migrate data from package archives on-disk into the DB")
             (@arg config: -c --config +takes_value
                 "Filepath to configuration file. \
-                [default: /hab/svc/hab-builder-scheduler/config.toml]")
+                [default: /hab/svc/builder-scheduler/config.toml]")
         )
     )
 }

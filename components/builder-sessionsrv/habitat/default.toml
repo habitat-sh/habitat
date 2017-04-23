@@ -1,0 +1,15 @@
+github_admin_team = 0
+github_builder_teams = []
+github_build_worker_teams = []
+shards = []
+
+[datastore]
+user = "hab"
+database = "builder_sessionsrv"
+connection_retry_ms = 300
+connection_timeout_sec = 3600
+
+[github]
+url = "https://api.github.com"
+client_id = "0c2f738a7d0bd300de10"
+client_secret = "438223113eeb6e7edf2d2f91a232b72de72b9bdf"

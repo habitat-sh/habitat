@@ -1,0 +1,9 @@
+{{toToml cfg}}
+data_path = "{{pkg.svc_data_path}}"
+
+{{~#eachAlive bind.jobsrv.members}}
+[[jobsrv]]
+host = "{{sys.ip}}"
+port = {{cfg.port}}
+heartbeat = {{cfg.heartbeat}}
+{{~/eachAlive}}

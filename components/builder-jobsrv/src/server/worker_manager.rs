@@ -17,7 +17,6 @@ use std::time::{Duration, Instant};
 use std::thread::{self, JoinHandle};
 
 use linked_hash_map::LinkedHashMap;
-use hab_net::config::ToAddrString;
 use hab_net::server::ZMQ_CONTEXT;
 use protobuf::{parse_from_bytes, Message};
 use protocol::jobsrv;
@@ -110,18 +109,15 @@ impl WorkerMgr {
         try!(self.work_mgr_sock.bind(WORKER_MGR_ADDR));
         {
             let cfg = self.config.read().unwrap();
-            println!("Listening for commands on {}",
-                     cfg.worker_command_addr.to_addr_string());
-            try!(self.rq_sock
-                     .bind(&cfg.worker_command_addr.to_addr_string()));
-            println!("Listening for heartbeats on {}",
-                     cfg.worker_heartbeat_addr.to_addr_string());
-            try!(self.hb_sock
-                     .bind(&cfg.worker_heartbeat_addr.to_addr_string()));
-            println!("Publishing job status on {}",
-                     cfg.status_publisher_addr.to_addr_string());
-            try!(self.pub_sock
-                     .bind(&cfg.status_publisher_addr.to_addr_string()));
+            let worker_command = cfg.net.worker_command_addr();
+            let worker_heartbeat = cfg.net.worker_heartbeat_addr();
+            let publisher = cfg.net.publisher_addr();
+            println!("Listening for commands on {}", worker_command);
+            self.rq_sock.bind(&worker_command)?;
+            println!("Listening for heartbeats on {}", worker_heartbeat);
+            self.hb_sock.bind(&worker_heartbeat)?;
+            println!("Publishing job status on {}", publisher);
+            self.pub_sock.bind(&publisher)?;
         }
         let mut hb_sock = false;
         let mut rq_sock = false;

@@ -16,7 +16,7 @@
 
 use std::sync::Arc;
 
-use hab_net::config::RouteAddrs;
+use hab_net::config::RouterCfg;
 use hab_net::routing::Broker;
 use hab_net::server::NetIdent;
 
@@ -46,7 +46,9 @@ impl Server {
         let broker = Broker::run(Self::net_ident(), self.config.route_addrs());
         let http = try!(http::run(cfg1));
 
-        println!("Builder Admin listening on {}", &self.config.http_addr);
+        println!("Builder Admin listening on {}:{}",
+                 self.config.http.listen,
+                 self.config.http.port);
         http.join().unwrap();
         broker.join().unwrap();
         Ok(())

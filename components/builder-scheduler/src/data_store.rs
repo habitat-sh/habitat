@@ -36,11 +36,7 @@ impl DataStore {
     /// * Can fail if the pool cannot be created
     /// * Blocks creation of the datastore on the existince of the pool; might wait indefinetly.
     pub fn new(config: &Config) -> Result<DataStore> {
-        let pool = Pool::new(&config.datastore_connection_url,
-                             config.pool_size,
-                             config.datastore_connection_retry_ms,
-                             config.datastore_connection_timeout,
-                             vec![0])?;
+        let pool = Pool::new(&config.datastore, vec![0])?;
         Ok(DataStore { pool: pool })
     }
 
@@ -274,7 +270,7 @@ impl DataStore {
     }
 
     pub fn create_group(&self,
-                        msg: &GroupCreate,
+                        _msg: &GroupCreate,
                         project_tuples: Vec<(String, String)>)
                         -> Result<Group> {
         let conn = self.pool.get_shard(0)?;

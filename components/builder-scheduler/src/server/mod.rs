@@ -19,7 +19,7 @@ use std::ops::Deref;
 use std::sync::{Arc, RwLock};
 use time::PreciseTime;
 
-use hab_net::config::RouteAddrs;
+use hab_net::config::RouterCfg;
 use hab_net::dispatcher::prelude::*;
 use hab_net::{Application, Supervisor};
 use hab_net::routing::Broker;

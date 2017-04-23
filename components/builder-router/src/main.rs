@@ -27,7 +27,7 @@ use hab_core::config::ConfigFile;
 use router::{Config, Error, Result};
 
 const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
-const CFG_DEFAULT_PATH: &'static str = "/hab/svc/hab-builder-router/config.toml";
+const CFG_DEFAULT_PATH: &'static str = "/hab/svc/builder-router/config.toml";
 
 fn main() {
     env_logger::init().unwrap();
@@ -53,7 +53,7 @@ fn app<'a, 'b>() -> clap::App<'a, 'b> {
             (about: "Run a Habitat-Builder router")
             (@arg config: -c --config +takes_value
                 "Filepath to configuration file. \
-                [default: /hab/svc/hab-builder-router/config.toml]")
+                [default: /hab/svc/builder-router/config.toml]")
             (@arg port: --port +takes_value "Listen port. [default: 5560]")
         )
     )
@@ -67,7 +67,9 @@ fn config_from_args(matches: &clap::ArgMatches) -> Result<Config> {
         None => Config::from_file(CFG_DEFAULT_PATH).unwrap_or(Config::default()),
     };
     if let Some(port) = args.value_of("port") {
-        if u16::from_str(port).map(|p| config.set_port(p)).is_err() {
+        if u16::from_str(port)
+               .map(|p| config.client_port = p)
+               .is_err() {
             return Err(Error::BadPort(port.to_string()));
         }
     }

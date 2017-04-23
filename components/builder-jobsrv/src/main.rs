@@ -26,7 +26,7 @@ use hab_core::config::ConfigFile;
 use jobsrv::{Config, Error, Result};
 
 const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
-const CFG_DEFAULT_PATH: &'static str = "/hab/svc/hab-builder-jobsrv/config.toml";
+const CFG_DEFAULT_PATH: &'static str = "/hab/svc/builder-jobsrv/config.toml";
 
 fn main() {
     env_logger::init().unwrap();
@@ -51,7 +51,7 @@ fn app<'a, 'b>() -> clap::App<'a, 'b> {
         (@subcommand start =>
             (about: "Run a Habitat Builder job server")
             (@arg config: -c --config +takes_value
-                "Filepath to configuration file. [default: /hab/svc/hab-builder-jobsrv/config.toml]")
+                "Filepath to configuration file. [default: /hab/svc/builder-jobsrv/config.toml]")
         )
     )
 }

@@ -25,7 +25,7 @@ use protocol::{self, Routable, RouteKey};
 use time;
 use zmq;
 
-use config::{self, RouteAddrs, Shards, ToAddrString};
+use config::{self, RouterCfg, Shards, ToAddrString};
 use error::{Error, Result};
 
 const PING_INTERVAL: i64 = 2000;
@@ -182,7 +182,7 @@ pub trait NetIdent {
 
 pub trait Service: NetIdent {
     type Application: Application;
-    type Config: config::RouteAddrs + config::Shards;
+    type Config: config::RouterCfg + config::Shards;
     type Error: error::Error + From<Error> + From<zmq::Error>;
 
     fn protocol() -> protocol::net::Protocol;
@@ -201,7 +201,7 @@ pub trait Service: NetIdent {
             reg.set_shards(cfg.shards().clone());
             let hb_addrs: Vec<String> = cfg.route_addrs()
                 .iter()
-                .map(|f| format!("tcp://{}:{}", f.ip(), cfg.heartbeat_port()))
+                .map(|f| format!("tcp://{}:{}", f.host, f.heartbeat))
                 .collect();
             let addrs: Vec<String> = cfg.route_addrs()
                 .iter()

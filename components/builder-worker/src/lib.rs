@@ -22,6 +22,9 @@ extern crate log;
 #[macro_use]
 extern crate lazy_static;
 extern crate protobuf;
+extern crate serde;
+#[macro_use]
+extern crate serde_derive;
 extern crate toml;
 extern crate zmq;
 

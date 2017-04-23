@@ -14,50 +14,36 @@
 
 //! Configuration for a Habitat Scheduler service
 
-use std::collections::BTreeMap;
-use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
-use std::time::Duration;
+use std::net::{IpAddr, Ipv4Addr};
 
-use db;
-use hab_core::config::{ConfigFile, ParseInto};
-use hab_net::config::{DispatcherCfg, RouteAddrs, Shards};
+use db::config::DataStoreCfg;
+use hab_core::config::ConfigFile;
+use hab_net::config::{DispatcherCfg, RouterAddr, RouterCfg, Shards};
 use protocol::sharding::{ShardId, SHARD_COUNT};
-use toml;
 
-use error::{Error, Result};
+use error::Error;
 
+#[derive(Debug, Deserialize)]
+#[serde(default)]
 pub struct Config {
-    /// List of net addresses for routing servers to connect to
-    pub routers: Vec<SocketAddr>,
-    /// List of Job Servers to subscribe for status
-    pub job_servers: Vec<BTreeMap<String, String>>,
-    /// PostgreSQL connection URL
-    pub datastore_connection_url: String,
-    /// Timing to retry the connection to the data store if it cannot be established
-    pub datastore_connection_retry_ms: u64,
-    /// How often to cycle a connection from the pool
-    pub datastore_connection_timeout: Duration,
-    /// If the datastore connection is under test
-    pub datastore_connection_test: bool,
-    /// Number of database connections to start in pool.
-    pub pool_size: u32,
-    /// Router's heartbeat port to connect to.
-    pub heartbeat_port: u16,
     /// List of shard identifiers serviced by the running service.
     pub shards: Vec<ShardId>,
     /// Number of threads to process queued messages.
     pub worker_threads: usize,
     /// Path to packages on-disk (for migration)
     pub migration_path: String,
+    /// List of net addresses for routing servers to connect to
+    pub routers: Vec<RouterAddr>,
+    /// List of Job Servers to subscribe for status
+    pub jobsrv: JobSrvCfg,
+    pub datastore: DataStoreCfg,
 }
 
 impl Config {
     pub fn jobsrv_addrs(&self) -> Vec<String> {
         let mut addrs = vec![];
-        for job_server in &self.job_servers {
-            let ip = job_server.get("ip").unwrap();
-            let port = job_server.get("port").unwrap();
-            let addr = format!("tcp://{}:{}", ip, port);
+        for job_server in &self.jobsrv {
+            let addr = format!("tcp://{}:{}", job_server.host, job_server.port);
             addrs.push(addr);
         }
         addrs
@@ -66,55 +52,21 @@ impl Config {
 
 impl Default for Config {
     fn default() -> Self {
-        let mut jobsrv = BTreeMap::new();
-        jobsrv.insert("ip".to_string(), "127.0.0.1".to_string());
-        jobsrv.insert("port".to_string(), "5568".to_string());
-
+        let mut datastore = DataStoreCfg::default();
+        datastore.database = String::from("builder_scheduler");
         Config {
-            routers: vec![SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), 5562))],
-            job_servers: vec![jobsrv],
-            datastore_connection_url: String::from("postgresql://hab@127.0.0.1/builder_scheduler"),
-            datastore_connection_retry_ms: 300,
-            datastore_connection_timeout: Duration::from_secs(3600),
-            datastore_connection_test: false,
-            pool_size: db::config::default_pool_size(),
             shards: (0..SHARD_COUNT).collect(),
-            heartbeat_port: 5563,
             worker_threads: Self::default_worker_count(),
-            migration_path: String::from("/hab/svc/hab-builder-scheduler/pkgs"),
+            migration_path: String::from("/hab/svc/builder-scheduler/pkgs"),
+            routers: vec![RouterAddr::default()],
+            jobsrv: vec![JobSrvAddr::default()],
+            datastore: datastore,
         }
     }
 }
 
 impl ConfigFile for Config {
     type Error = Error;
-
-    fn from_toml(toml: toml::Value) -> Result<Self> {
-        let mut cfg = Config::default();
-        try!(toml.parse_into("cfg.routers", &mut cfg.routers));
-        let mut connection_user = String::from("hab");
-        try!(toml.parse_into("cfg.datastore_connection_user", &mut connection_user));
-        let mut connection_address = String::from("127.0.0.1");
-        try!(toml.parse_into("cfg.datastore_connection_address", &mut connection_address));
-        let mut connection_db = String::from("builder_scheduler");
-        try!(toml.parse_into("cfg.datastore_connection_db", &mut connection_db));
-
-        cfg.datastore_connection_url = format!("postgresql://{}@{}/{}",
-                                               connection_user,
-                                               connection_address,
-                                               connection_db);
-        try!(toml.parse_into("cfg.datastore_connection_retry_ms",
-                             &mut cfg.datastore_connection_retry_ms));
-        let mut timeout_seconds = 3600;
-        try!(toml.parse_into("cfg.datastore_connection_timeout", &mut timeout_seconds));
-        cfg.datastore_connection_timeout = Duration::from_secs(timeout_seconds);
-        try!(toml.parse_into("cfg.pool_size", &mut cfg.pool_size));
-        try!(toml.parse_into("cfg.heartbeat_port", &mut cfg.heartbeat_port));
-        try!(toml.parse_into("cfg.shards", &mut cfg.shards));
-        try!(toml.parse_into("cfg.worker_threads", &mut cfg.worker_threads));
-        try!(toml.parse_into("cfg.migration_path", &mut cfg.migration_path));
-        Ok(cfg)
-    }
 }
 
 impl DispatcherCfg for Config {
@@ -123,18 +75,94 @@ impl DispatcherCfg for Config {
     }
 }
 
-impl RouteAddrs for Config {
-    fn route_addrs(&self) -> &Vec<SocketAddr> {
+impl RouterCfg for Config {
+    fn route_addrs(&self) -> &Vec<RouterAddr> {
         &self.routers
-    }
-
-    fn heartbeat_port(&self) -> u16 {
-        self.heartbeat_port
     }
 }
 
 impl Shards for Config {
     fn shards(&self) -> &Vec<u32> {
         &self.shards
+    }
+}
+
+pub type JobSrvCfg = Vec<JobSrvAddr>;
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(default)]
+pub struct JobSrvAddr {
+    pub host: IpAddr,
+    pub port: u16,
+}
+
+impl Default for JobSrvAddr {
+    fn default() -> Self {
+        JobSrvAddr {
+            host: IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
+            port: 5568,
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn config_from_file() {
+        let content = r#"
+        shards = [
+            0
+        ]
+        worker_threads = 1
+
+        [[jobsrv]]
+        host = "1:1:1:1:1:1:1:1"
+        port = 9000
+
+        [[jobsrv]]
+        host = "2.2.2.2"
+        port = 9000
+
+        [[routers]]
+        host = "1.1.1.1"
+        port = 9000
+
+        [datastore]
+        host = "1.1.1.1"
+        port = 9000
+        user = "test"
+        database = "test_scheduler"
+        connection_retry_ms = 500
+        connection_timeout_sec = 4800
+        connection_test = true
+        pool_size = 1
+        "#;
+
+        let config = Config::from_raw(&content).unwrap();
+        assert_eq!(&format!("{}", config.jobsrv[0].host), "1:1:1:1:1:1:1:1");
+        assert_eq!(config.jobsrv[0].port, 9000);
+        assert_eq!(&format!("{}", config.jobsrv[1].host), "2.2.2.2");
+        assert_eq!(config.jobsrv[1].port, 9000);
+        assert_eq!(config.datastore.port, 9000);
+        assert_eq!(config.datastore.user, "test");
+        assert_eq!(config.datastore.database, "test_scheduler");
+        assert_eq!(config.datastore.connection_retry_ms, 500);
+        assert_eq!(config.datastore.connection_timeout_sec, 4800);
+        assert_eq!(config.datastore.connection_test, true);
+        assert_eq!(config.datastore.pool_size, 1);
+        assert_eq!(config.shards, vec![0]);
+        assert_eq!(config.worker_threads, 1);
+    }
+
+    #[test]
+    fn config_from_file_defaults() {
+        let content = r#"
+        worker_threads = 0
+        "#;
+
+        let config = Config::from_raw(&content).unwrap();
+        assert_eq!(config.worker_threads, 0);
     }
 }

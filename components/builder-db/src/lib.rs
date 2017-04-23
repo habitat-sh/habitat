@@ -71,6 +71,9 @@ extern crate rand;
 extern crate time;
 extern crate r2d2;
 extern crate r2d2_postgres;
+extern crate serde;
+#[macro_use]
+extern crate serde_derive;
 extern crate fallible_iterator;
 extern crate habitat_builder_protocol as protocol;
 extern crate habitat_net as hab_net;

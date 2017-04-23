@@ -22,8 +22,9 @@ use rand::{self, Rng};
 use r2d2;
 use r2d2_postgres::{self, PostgresConnectionManager, TlsMode};
 
-use protocol::{Routable, RouteKey, ShardId, SHARD_COUNT};
+use config::DataStoreCfg;
 use error::{Error, Result};
+use protocol::{Routable, RouteKey, ShardId, SHARD_COUNT};
 
 #[derive(Clone)]
 pub struct Pool {
@@ -41,18 +42,14 @@ impl fmt::Debug for Pool {
 }
 
 impl Pool {
-    pub fn new(connection_url: &str,
-               pool_size: u32,
-               connection_retry_ms: u64,
-               connection_timeout: Duration,
-               shards: Vec<ShardId>)
-               -> Result<Pool> {
+    pub fn new(config: &DataStoreCfg, shards: Vec<ShardId>) -> Result<Pool> {
         loop {
-            let pool_config_builder = r2d2::Config::builder()
-                .pool_size(pool_size)
-                .connection_timeout(connection_timeout);
+            let pool_config_builder =
+                r2d2::Config::builder()
+                    .pool_size(config.pool_size)
+                    .connection_timeout(Duration::from_secs(config.connection_timeout_sec));
             let pool_config = pool_config_builder.build();
-            let manager = PostgresConnectionManager::new(connection_url, TlsMode::None)?;
+            let manager = PostgresConnectionManager::new(config, TlsMode::None)?;
             match r2d2::Pool::new(pool_config, manager) {
                 Ok(pool) => {
                     return Ok(Pool {
@@ -65,7 +62,7 @@ impl Pool {
                            e)
                 }
             }
-            thread::sleep(Duration::from_millis(connection_retry_ms));
+            thread::sleep(Duration::from_millis(config.connection_retry_ms));
         }
     }
 

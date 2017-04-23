@@ -1,0 +1,19 @@
+log_dir = "{{pkg.svc_var_path}}"
+
+[ui]
+root = "{{pkg.svc_static_path}}"
+
+{{toToml cfg}}
+
+{{~#eachAlive bind.router.members}}
+[[router]]
+host = "{{sys.ip}}"
+port = {{cfg.port}}
+{{~/eachAlive}}
+
+[depot]
+data_path = "{{pkg.svc_data_path}}"
+log_dir = "{{pkg.svc_var_path}}"
+
+[depot.github]
+{{toToml cfg.github}}
