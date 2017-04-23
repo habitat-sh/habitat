@@ -56,7 +56,7 @@ Create release in [GitHub](https://github.com/habitat-sh/habitat/releases)
 On the Github releases page, there should already be a tag for the release (pushed up previously).
 Draft a new Release, specify the tag, and title it with the same (eg, 0.18.0). Then hit Publish Release.
 
-# Drink beer
+# Drink. It. In. 
 
 ## Bump Version
 
@@ -65,12 +65,13 @@ Draft a new Release, specify the tag, and title it with the same (eg, 0.18.0). T
 
 > Example: If the release version was `0.9.0` then the contents of `VERSION` might read `0.10.0-dev` if your next target is `0.10.0`.
 
-# Release Notification
+# Release Notification 
 
 1. Create a new post in [Habitat Announcements](https://forums.habitat.sh/c/habitat-announcements)
 1. Message Slack channels and include the link to the release post
   1. cft-announce (Chef Slack)
   1. eng-announce (Chef Slack)
-  1. habitat (Chef Slack)
+  1. product-marketing (Chef Slack)
   1. general (Habitat Slack)
   1. announcements (Habitat Slack)
+1. Tweet a link to the announcement @habicatsh
