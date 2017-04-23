@@ -10,3 +10,7 @@ sendfile = "on"
 tcp_nopush = "on"
 tcp_nodelay = "on"
 keepalive_timeout = "20s"
+
+# This disables the SSL redirect in the nginx.conf configuration.
+# DO NOT DISABLE THIS IN PRODUCTION ENVIRONMENTS!
+enable_ssl = true
