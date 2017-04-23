@@ -56,7 +56,7 @@ Create release in [GitHub](https://github.com/habitat-sh/habitat/releases)
 On the Github releases page, there should already be a tag for the release (pushed up previously).
 Draft a new Release, specify the tag, and title it with the same (eg, 0.18.0). Then hit Publish Release.
 
-# Drink beer
+# Drink a fine glass of Cabernet Sauvignon, preferably from the Stag's Leap District
 
 ## Bump Version
 
@@ -71,6 +71,6 @@ Draft a new Release, specify the tag, and title it with the same (eg, 0.18.0). T
 1. Message Slack channels and include the link to the release post
   1. cft-announce (Chef Slack)
   1. eng-announce (Chef Slack)
-  1. habitat (Chef Slack)
+  1. product-marketing (Chef Slack)
   1. general (Habitat Slack)
   1. announcements (Habitat Slack)
