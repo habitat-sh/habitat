@@ -56,7 +56,7 @@ Create release in [GitHub](https://github.com/habitat-sh/habitat/releases)
 On the Github releases page, there should already be a tag for the release (pushed up previously).
 Draft a new Release, specify the tag, and title it with the same (eg, 0.18.0). Then hit Publish Release.
 
-# Drink beer
+# Drink wine
 
 ## Bump Version
 
