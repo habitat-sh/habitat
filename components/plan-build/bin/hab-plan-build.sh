@@ -2536,8 +2536,13 @@ _build_metadata() {
   echo "${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_release}" \
     >> $pkg_prefix/IDENT
 
-  echo "$pkg_svc_user" > $pkg_prefix/SVC_USER
-  echo "$pkg_svc_group" > $pkg_prefix/SVC_GROUP
+  # Only generate `SVC_USER` & `SVC_GROUP` files if this package is a service.
+  # We determine this by checking if there is a `hooks/run` script and/or
+  # a set `$pkg_svc_run` value.
+  if [[ -f "$PLAN_CONTEXT/hooks/run" || -n "${pkg_svc_run:-}" ]]; then
+    echo "$pkg_svc_user" > $pkg_prefix/SVC_USER
+    echo "$pkg_svc_group" > $pkg_prefix/SVC_GROUP
+  fi
 
   # Generate the blake2b hashes of all the files in the package. This
   # is not in the resulting MANIFEST because MANIFEST is included!
