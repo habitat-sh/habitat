@@ -41,3 +41,12 @@ message Package {
   optional string ident = 1;
   repeated string deps = 2;
 }
+
+message PackageStatsGet {
+  optional string origin = 1;
+}
+
+message PackageStats {
+  optional uint64 plans = 1;
+  optional uint64 builds = 2;
+}
