@@ -244,6 +244,11 @@ impl Runner {
     }
 
     fn setup(&mut self) -> Result<()> {
+        if let Some(err) = fs::remove_dir_all(self.workspace.src()).err() {
+            error!("unable to remove out directory ({}), ERR={:?}",
+                   self.workspace.out().display(),
+                   err)
+        }
         if let Some(err) = fs::create_dir_all(self.workspace.src()).err() {
             return Err(Error::WorkspaceSetup(format!("{}", self.workspace.src().display()), err));
         }
