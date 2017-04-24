@@ -12,28 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-@import "neat-helpers"; // or "../neat/neat-helpers" when not in Rails
+import { AppStore } from "../AppStore";
+import { Component, OnInit } from "@angular/core";
+import { Router } from "@angular/router";
+import { fetchExplore } from "../actions/index";
 
-// Neat Overrides
-// $column: 90px;
-// $gutter: 30px;
-// $grid-columns: 12;
-$max-width: 100%;
+@Component({
+    template: require("./explore-page.component.html"),
+})
+export class ExplorePageComponent implements OnInit {
 
-// Neat Breakpoints
-$medium-screen: 600px;
-$large-screen: 900px;
+    constructor(
+        private store: AppStore,
+        private router: Router
+    ) { }
 
-$medium-screen-up: new-breakpoint(min-width $medium-screen 4);
-$large-screen-up: new-breakpoint(min-width $large-screen 8);
+    ngOnInit() {
+        this.store.dispatch(fetchExplore());
+    }
 
-$grid-column-gutter: (
-  small: 20px,
-  medium: 30px,
-);
-$grid-column-align-edge: true;
-$block-grid-max: 8;
-
-// Overrides for omega-rest mixin (http://www.joshfry.me/blog/2013/05/13/omega-reset-for-bourbon-neat)
-$fg-column: $column;
-$fg-gutter: $gutter;
+    search(term) {
+        this.router.navigate(["pkgs", "search", encodeURIComponent(term.trim())]);
+    }
+}

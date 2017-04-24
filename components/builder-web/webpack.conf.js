@@ -3,13 +3,16 @@
 const webpack = require("webpack");
 const isProduction = process.env.NODE_ENV == "production";
 
-// Set up compression to only happen if NODE_ENV = production
 let loaders = [
     { test: /\.ts$/, loader: "awesome-typescript-loader" },
+    { test: /\.html$/, loader: "raw-loader" }
 ];
+
 let plugins = [];
 
 if (isProduction) {
+
+    // Set up compression to only happen if NODE_ENV = production
     loaders.push({ test: "app.js", loader: "uglify" });
     plugins.push(
         new webpack.optimize.UglifyJsPlugin({

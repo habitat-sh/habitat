@@ -1,0 +1,21 @@
+
+<svg width="8px" height="12px" viewBox="0 0 8 12" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 43.2 (39069) - http://www.bohemiancoding.com/sketch -->
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Depot-Explore" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="depot-home" transform="translate(-552.000000, -593.000000)" fill="#87B09A">
+            <g id="Body" transform="translate(50.000000, 18.000000)">
+                <g id="Hero">
+                    <g id="Feature-packages" transform="translate(230.000000, 423.000000)">
+                        <g id="Popular">
+                            <g id="row" transform="translate(0.000000, 139.000000)">
+                                <path d="M275.178306,15.4853825 C275.632115,14.8268273 276.366295,14.82452 276.821694,15.4853825 L281.178306,21.8075803 C281.632115,22.4661355 281.354828,23 280.55252,23 L271.44748,23 C270.648059,23 270.366295,22.4684428 270.821694,21.8075803 L275.178306,15.4853825 Z" id="Triangle" transform="translate(276.000000, 19.000000) rotate(90.000000) translate(-276.000000, -19.000000) "></path>
+                            </g>
+                        </g>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

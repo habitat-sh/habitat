@@ -64,6 +64,25 @@ body {
   @include outer-container;
   max-width: rem(1200);
   min-height: 70vh;
+
+  &.full {
+    max-width: $max-width;
+
+    .hab-main {
+      @include span-columns(12);
+      background: none;
+    }
+
+    .hab-side-nav {
+      display: none;
+    }
+
+    + hab-footer {
+      footer {
+        margin-top: 0;
+      }
+    }
+  }
 }
 
 .hab-main {

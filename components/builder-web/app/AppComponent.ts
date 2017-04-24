@@ -35,12 +35,12 @@ import {authenticateWithGitHub, loadSessionState, removeNotification,
                     [signOut]="signOut"
                     [toggleUserNavMenu]="toggleUserNavMenu"></hab-header>
     </div>
-    <div class="hab-container">
+    <div class="hab-container" [class.full]="fullView">
         <hab-side-nav [isSignedIn]="user.isSignedIn"
                       [route]="state.router.route"
                       *ngIf="!hideNav">
         </hab-side-nav>
-        <section class="hab-main" [ngClass]="{centered: hideNav}">
+        <section class="hab-main" [class.centered]="hideNav">
             <router-outlet></router-outlet>
         </section>
     </div>
@@ -52,6 +52,7 @@ export class AppComponent implements OnInit, OnDestroy {
     signOut: Function;
     toggleUserNavMenu: Function;
     hideNav: boolean;
+
     private sub: Subscription;
 
     constructor(private router: Router, private store: AppStore) {
@@ -123,5 +124,9 @@ export class AppComponent implements OnInit, OnDestroy {
         );
 
         this.store.dispatch(loadFeatureFlags());
+    }
+
+    get fullView() {
+        return !!this.state.router.route.match(/explore/);
     }
 }
