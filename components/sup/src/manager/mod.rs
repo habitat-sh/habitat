@@ -451,6 +451,7 @@ impl Manager {
                     .expect("Services lock is poisoned!")
                     .iter_mut() {
                 if service.tick(&self.butterfly, &self.census_ring) {
+                    self.gossip_latest_service_rumor(&service);
                     service_rumor_offset += 1;
                 }
             }
@@ -509,44 +510,38 @@ impl Manager {
     /// main loop that we, ourselves, updated the service counter when we updated ourselves.
     fn check_for_updated_packages(&mut self) -> usize {
         let mut updated_services = 0;
-        let member_id = {
-            self.butterfly.member_id().to_string()
-        };
         for service in self.services
                 .write()
                 .expect("Services lock is poisoned!")
                 .iter_mut() {
             if self.updater
                    .check_for_updated_package(service, &self.census_ring) {
-                let mut rumor = {
-                    let list = self.butterfly
-                        .service_store
-                        .list
-                        .read()
-                        .expect("Rumor store lock poisoned");
-                    list.get(&*service.service_group)
-                        .and_then(|r| r.get(&member_id))
-                        .unwrap()
-                        .clone()
-                };
-                let incarnation = rumor.get_incarnation() + 1;
-                rumor.set_pkg(service.package().to_string());
-                rumor.set_incarnation(incarnation);
                 service.populate(&self.census_ring);
-                // TODO FN: the updated toml API returns a `Result` when serializing--we should
-                // handle this and not potentially panic
-                match service.config.to_exported() {
-                    Ok(cfg) => {
-                        *rumor.mut_cfg() =
-                            toml::ser::to_vec(&cfg).expect("Can't serialize to TOML bytes")
-                    }
-                    Err(err) => warn!("Error loading service config after update, err={}", err),
-                }
-                self.butterfly.insert_service(rumor);
+                self.gossip_latest_service_rumor(&service);
                 updated_services += 1;
             }
         }
         updated_services
+    }
+
+    fn gossip_latest_service_rumor(&self, service: &Service) {
+        let member_id = {
+            self.butterfly.member_id().to_string()
+        };
+        let last_rumor = {
+            let list = self.butterfly
+                .service_store
+                .list
+                .read()
+                .expect("Rumor store lock poisoned");
+            list.get(&*service.service_group)
+                .and_then(|r| r.get(&member_id))
+                .unwrap()
+                .clone()
+        };
+        let incarnation = last_rumor.get_incarnation() + 1;
+        self.butterfly
+            .insert_service(service.to_rumor(incarnation));
     }
 
     fn persist_state(&self) {

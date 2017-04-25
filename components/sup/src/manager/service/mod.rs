@@ -291,14 +291,13 @@ impl Service {
     }
 
     pub fn tick(&mut self, butterfly: &butterfly::Server, census_ring: &CensusRing) -> bool {
-        let mut service_rumor_written = false;
         if !self.initialized {
             if !self.all_bindings_present(census_ring) {
                 outputln!(preamble self.service_group, "Waiting to initialize service.");
-                return service_rumor_written;
+                return false;
             }
         }
-        service_rumor_written = self.update_configuration(butterfly, census_ring);
+        let svc_cfg_updated = self.update_configuration(butterfly, census_ring);
 
         match self.topology {
             Topology::Standalone => {
@@ -351,7 +350,7 @@ impl Service {
                 }
             }
         }
-        service_rumor_written
+        svc_cfg_updated
     }
 
     pub fn to_spec(&self) -> ServiceSpec {
@@ -387,15 +386,12 @@ impl Service {
                             butterfly: &butterfly::Server,
                             census_ring: &CensusRing)
                             -> bool {
-        let mut service_rumor_written = false;
-
         self.config.populate(&self.service_group, census_ring);
         self.persist_service_files(butterfly);
 
         let svc_cfg_updated = self.persist_service_config(butterfly);
         if svc_cfg_updated || census_ring.changed {
             if svc_cfg_updated {
-                service_rumor_written = self.update_service_rumor_cfg(butterfly);
                 if let Some(err) = self.config.reload_gossip().err() {
                     outputln!(preamble self.service_group, "error loading gossip config, {}", err);
                 }
@@ -416,7 +412,7 @@ impl Service {
                 }
             }
         }
-        service_rumor_written
+        svc_cfg_updated
     }
 
     pub fn package(&self) -> RwLockReadGuard<PackageInstall> {
@@ -749,37 +745,6 @@ impl Service {
         };
         self.last_health_check = Instant::now();
         self.cache_health_check(check_result);
-    }
-
-    /// Update our own service rumor with a new configuration from the packages exported
-    /// configuration data.
-    ///
-    /// The run loop's last updated census is a required parameter on this function to inform the
-    /// main loop that we, ourselves, updated the service counter when we updated ourselves.
-    fn update_service_rumor_cfg(&self, butterfly: &butterfly::Server) -> bool {
-        if let Some(cfg) = self.config.to_exported().ok() {
-            let me = butterfly.member_id().to_string();
-            let mut updated = None;
-            butterfly
-                .service_store
-                .with_rumor(&*self.service_group, &me, |rumor| {
-                    if let Some(rumor) = rumor {
-                        let mut rumor = rumor.clone();
-                        let incarnation = rumor.get_incarnation() + 1;
-                        rumor.set_incarnation(incarnation);
-                        // TODO FN: the updated toml API returns a `Result` when
-                        // serializing--we should handle this and not potentially panic
-                        *rumor.mut_cfg() =
-                            toml::ser::to_vec(&cfg).expect("Can't serialize to TOML bytes");
-                        updated = Some(rumor);
-                    }
-                });
-            if let Some(rumor) = updated {
-                butterfly.insert_service(rumor);
-                return true;
-            }
-        }
-        false
     }
 
     fn write_butterfly_service_file(&mut self,
