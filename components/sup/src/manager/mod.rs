@@ -419,7 +419,8 @@ impl Manager {
                                     &self.butterfly.service_store,
                                     &self.butterfly.election_store,
                                     &self.butterfly.update_store,
-                                    &self.butterfly.member_list);
+                                    &self.butterfly.member_list,
+                                    &self.butterfly.service_file_store);
             service_rumor_offset = 0;
 
             if self.census_ring.changed {
