@@ -54,6 +54,14 @@ impl Routable for GroupGet {
     }
 }
 
+impl Routable for PackageStatsGet {
+    type H = String;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(self.get_origin().to_string())
+    }
+}
+
 impl Serialize for GroupState {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
@@ -103,6 +111,17 @@ impl Serialize for Group {
         try!(strukt.serialize_field("id", &self.get_id()));
         try!(strukt.serialize_field("state", &self.get_state()));
         try!(strukt.serialize_field("projects", &self.get_projects()));
+        strukt.end()
+    }
+}
+
+impl Serialize for PackageStats {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+        where S: Serializer
+    {
+        let mut strukt = try!(serializer.serialize_struct("packagestats", 2));
+        try!(strukt.serialize_field("plans", &self.get_plans()));
+        try!(strukt.serialize_field("builds", &self.get_builds()));
         strukt.end()
     }
 }

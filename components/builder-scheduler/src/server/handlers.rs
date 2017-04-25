@@ -132,3 +132,24 @@ pub fn group_get(req: &mut Envelope,
 
     Ok(())
 }
+
+pub fn package_stats_get(req: &mut Envelope,
+                 sock: &mut zmq::Socket,
+                 state: &mut ServerState)
+                 -> Result<()> {
+    let msg: proto::PackageStatsGet = try!(req.parse_msg());
+    println!("package_stats_get message: {:?}", msg);
+
+    match state.datastore().get_package_stats(&msg) {
+        Ok(package_stats) => try!(req.reply_complete(sock, &package_stats)),
+        Err(err) => {
+            error!("Unable to retrieve package stats for {}, err: {:?}",
+                   msg.get_origin(),
+                   err);
+            let err = net::err(ErrCode::ENTITY_NOT_FOUND, "sc:package-stats-get:1");
+            try!(req.reply_complete(sock, &err));
+        }
+    };
+
+    Ok(())
+}

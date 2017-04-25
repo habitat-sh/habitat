@@ -45,7 +45,7 @@ use protobuf::{self, parse_from_bytes};
 use protocol::net::{NetOk, ErrCode, NetError};
 use protocol::originsrv::*;
 use protocol::Routable;
-use protocol::scheduler::{Group, GroupCreate, GroupGet};
+use protocol::scheduler::{Group, GroupCreate, GroupGet, PackageStatsGet, PackageStats};
 use protocol::sessionsrv::{Account, AccountGet};
 use regex::Regex;
 use router::{Params, Router};
@@ -790,6 +790,30 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
               ident,
               package.get_ident());
         Ok(Response::with(status::UnprocessableEntity))
+    }
+}
+
+fn package_stats(req: &mut Request) -> IronResult<Response> {
+    let origin = {
+        let params = req.extensions.get::<Router>().unwrap();
+        match params.find("origin") {
+            Some(s) => s,
+            None => return Ok(Response::with(status::BadRequest)),
+        }
+    };
+
+    let mut conn = Broker::connect().unwrap();
+
+    let mut request = PackageStatsGet::new();
+    request.set_origin(String::from(origin));
+
+    match conn.route::<PackageStatsGet, PackageStats>(&request) {
+        Ok(stats) => {
+            let mut response = render_json(status::Ok, &stats);
+            dont_cache_response(&mut response);
+            Ok(response)
+        }
+        Err(err) => Ok(render_net_error(&err)),
     }
 }
 
@@ -1673,6 +1697,7 @@ pub fn routes<M: BeforeMiddleware + Clone>(insecure: bool, basic: M, worker: M) 
                 XHandler::new(upload_package).before(basic.clone())
             }
         },
+        packages_stats: get "/pkgs/origins/:origin/stats" => package_stats,
         schedule: post "/pkgs/schedule/:origin/:pkg" => {
             if insecure {
                 XHandler::new(schedule)

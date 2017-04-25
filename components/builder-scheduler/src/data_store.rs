@@ -91,6 +91,15 @@ impl DataStore {
                             END
                             $$ LANGUAGE plpgsql STABLE"#)?;
 
+        // Count all packages from the packages table that belong to specific origin
+        migrator
+            .migrate("scheduler",
+                     r#"CREATE OR REPLACE FUNCTION count_packages_v1 (origin text) RETURNS bigint AS $$
+                            BEGIN
+                              RETURN COUNT(*) FROM packages WHERE ident ~ ('^' || origin || '/');
+                            END
+                            $$ LANGUAGE plpgsql STABLE"#)?;
+
         // Retrieve a single packages from the packages table
         migrator
             .migrate("scheduler",
@@ -166,6 +175,15 @@ impl DataStore {
                             END
                             $$ LANGUAGE plpgsql STABLE"#)?;
 
+        // Count all projects from the projects table that belong to specific origin
+        migrator
+            .migrate("scheduler",
+                     r#"CREATE OR REPLACE FUNCTION count_projects_v1 (origin text) RETURNS bigint AS $$
+                            BEGIN
+                              RETURN COUNT(*) FROM projects WHERE project_ident ~ ('^' || origin || '/');
+                            END
+                            $$ LANGUAGE plpgsql STABLE"#)?;
+
         // Retrieve Pending groups, while atomically setting their state to Dispatched
         migrator.migrate("scheduler",
                          r#"CREATE OR REPLACE FUNCTION pending_groups_v1 (integer) RETURNS SETOF groups AS
@@ -203,6 +221,7 @@ impl DataStore {
                              END
                           $$ LANGUAGE plpgsql VOLATILE"#)?;
 
+        migrator.migrate("scheduler", r#"DROP INDEX IF EXISTS pending_groups_index_v1;"#)?;
         migrator.migrate("scheduler",
                          r#"CREATE INDEX pending_groups_index_v1 on groups(created_at) WHERE group_state = 'Pending'"#)?;
 
@@ -267,6 +286,28 @@ impl DataStore {
         assert!(rows.len() == 1);
         let package = self.row_to_package(&rows.get(0))?;
         Ok(package)
+    }
+
+    pub fn get_package_stats(&self, msg: &PackageStatsGet) -> Result<PackageStats> {
+        let conn = self.pool.get_shard(0)?;
+
+        let origin = msg.get_origin();
+        let rows = &conn.query("SELECT * FROM count_packages_v1($1)", &[&origin])
+                        .map_err(Error::PackageStats)?;
+        assert!(rows.len() == 1); // should never have more than one
+
+        let package_count: i64 = rows.get(0).get("count_packages_v1");
+
+        let rows = &conn.query("SELECT * FROM count_projects_v1($1)", &[&origin])
+                        .map_err(Error::PackageStats)?;
+        assert!(rows.len() == 1); // should never have more than one
+        let build_count: i64 = rows.get(0).get("count_projects_v1");
+
+        let mut package_stats = PackageStats::new();
+        package_stats.set_plans(package_count as u64);
+        package_stats.set_builds(build_count as u64);
+
+        Ok(package_stats)
     }
 
     pub fn create_group(&self,
