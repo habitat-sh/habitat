@@ -2583,7 +2583,7 @@ do_default_build_config() {
     find "$PLAN_CONTEXT/config" $find_exclusions | while read FILE
     do
       if [[ -d "$FILE" ]]; then
-        mkdir "$pkg_prefix${FILE#$PLAN_CONTEXT}"
+        mkdir -p "$pkg_prefix${FILE#$PLAN_CONTEXT}"
       else
         cp "$FILE" "$pkg_prefix${FILE#$PLAN_CONTEXT}"
       fi
