@@ -49,7 +49,7 @@ use error::{Error, Result, SupError};
 use http_gateway;
 use fs;
 use manager::{self, signals};
-use census::{MemberId, CensusRing, ElectionStatus};
+use census::{MemberId, ServiceFile, CensusRing, CensusGroup, ElectionStatus};
 use supervisor::{Supervisor, RuntimeConfig};
 use util;
 
@@ -77,8 +77,6 @@ pub struct Service {
     pub update_strategy: UpdateStrategy,
 
     local_member_id: MemberId,
-
-    current_service_files: HashMap<String, u64>,
     health_check: HealthCheck,
     initialized: bool,
     last_election_status: ElectionStatus,
@@ -126,7 +124,6 @@ impl Service {
         Ok(Service {
                local_member_id: local_member_id,
                config: svc_cfg,
-               current_service_files: HashMap::new(),
                depot_url: spec.depot_url,
                health_check: HealthCheck::default(),
                hooks: HookTable::default().load_hooks(&service_group,
@@ -386,8 +383,9 @@ impl Service {
                             butterfly: &butterfly::Server,
                             census_ring: &CensusRing)
                             -> bool {
+        let sg = self.service_group.clone();
         self.config.populate(&self.service_group, census_ring);
-        self.persist_service_files(butterfly);
+        self.persist_service_files(census_ring.census_group_for(&sg).unwrap());
 
         let svc_cfg_updated = self.persist_service_config(butterfly);
         if svc_cfg_updated || census_ring.changed {
@@ -705,13 +703,10 @@ impl Service {
     /// Write service files from gossip data to disk.
     ///
     /// Returnst rue if a file was changed, added, or removed, and false if there were no updates.
-    fn persist_service_files(&mut self, butterfly: &butterfly::Server) -> bool {
+    fn persist_service_files(&mut self, census_group: &CensusGroup) -> bool {
         let mut updated = false;
-        for (incarnation, filename, body) in
-            butterfly
-                .service_files_for(&*self.service_group, &self.current_service_files)
-                .into_iter() {
-            if self.write_butterfly_service_file(filename, incarnation, body) {
+        for service_file in census_group.changed_service_files() {
+            if self.write_service_file(&service_file) {
                 updated = true;
             }
         }
@@ -747,14 +742,8 @@ impl Service {
         self.cache_health_check(check_result);
     }
 
-    fn write_butterfly_service_file(&mut self,
-                                    filename: String,
-                                    incarnation: u64,
-                                    body: Vec<u8>)
-                                    -> bool {
-        self.current_service_files
-            .insert(filename.clone(), incarnation);
-        let on_disk_path = self.svc_files_path().join(filename);
+    fn write_service_file(&mut self, service_file: &ServiceFile) -> bool {
+        let on_disk_path = self.svc_files_path().join(&service_file.filename);
         let current_checksum = match hash::hash_file(&on_disk_path) {
             Ok(current_checksum) => current_checksum,
             Err(e) => {
@@ -764,7 +753,7 @@ impl Service {
                 String::new()
             }
         };
-        let new_checksum = hash::hash_bytes(&body)
+        let new_checksum = hash::hash_bytes(&service_file.body)
             .expect("We failed to hash a Vec<u8> in a method that can't return an error; not \
                      even sure what this means");
         if new_checksum != current_checksum {
@@ -781,7 +770,7 @@ impl Service {
                 }
             };
 
-            if let Err(e) = new_file.write_all(&body) {
+            if let Err(e) = new_file.write_all(&service_file.body) {
                 outputln!(preamble self.service_group,
                               "Service file from butterfly failed to write {}: {}",
                               new_filename,
