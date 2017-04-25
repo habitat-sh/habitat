@@ -1,8 +1,11 @@
-pkg_version=undefined
 builder_build_type="--release"
 
-do_begin() {
-  do_builder_begin
+pkg_version() {
+  git rev-list master --count
+}
+
+do_before() {
+  do_builder_before
 }
 
 do_prepare() {
@@ -21,7 +24,7 @@ do_strip() {
   do_builder_strip
 }
 
-do_builder_begin() {
+do_builder_before() {
   update_pkg_version
 }
 
@@ -56,36 +59,4 @@ do_builder_strip() {
   if [[ "$builder_build_type" != "--debug" ]]; then
     do_default_strip
   fi
-}
-
-update_pkg_version() {
-  # Update the `$pkg_version` using Git to determine the value
-  pkg_version="$(git rev-list master --count)"
-  build_line "Version updated to $pkg_version"
-
-  # Several metadata values get their defaults from the value of `$pkg_version`
-  # so we must update these as well
-  pkg_dirname=${pkg_name}-${pkg_version}
-  pkg_prefix=$HAB_PKG_PATH/${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_release}
-  pkg_artifact="$HAB_CACHE_ARTIFACT_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_release}-${pkg_target}.${_artifact_ext}"
-  if [[ "$CACHE_PATH" == "$SRC_PATH" ]]; then
-    local update_src_path=true
-  fi
-  CACHE_PATH="$HAB_CACHE_SRC_PATH/$pkg_dirname"
-  if [[ "${update_src_path:-}" == true ]]; then
-    SRC_PATH="$CACHE_PATH"
-  fi
-}
-
-# Turn the remaining default phases into no-ops
-do_download() {
-  return 0
-}
-
-do_unpack() {
-  return 0
-}
-
-do_verify() {
-  return 0
 }

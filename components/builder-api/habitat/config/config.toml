@@ -3,17 +3,20 @@ log_dir = "{{pkg.svc_var_path}}"
 [ui]
 root = "{{pkg.svc_static_path}}"
 
-{{toToml cfg}}
+[http]
+{{toToml cfg.http}}
+[web]
+{{toToml cfg.web}}
+[github]
+{{toToml cfg.github}}
 
-{{~#eachAlive bind.router.members}}
+{{~#eachAlive bind.router.members as |member|}}
 [[router]]
-host = "{{sys.ip}}"
-port = {{cfg.port}}
+host = "{{member.sys.ip}}"
+port = {{member.cfg.port}}
 {{~/eachAlive}}
 
 [depot]
 data_path = "{{pkg.svc_data_path}}"
 log_dir = "{{pkg.svc_var_path}}"
-
-[depot.github]
-{{toToml cfg.github}}
+{{toToml cfg.depot}}

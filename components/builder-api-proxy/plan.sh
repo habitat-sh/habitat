@@ -9,10 +9,13 @@ pkg_build_deps=(core/git)
 pkg_svc_run="nginx -c ${pkg_svc_config_path}/nginx.conf"
 pkg_svc_user="root"
 pkg_svc_group="root"
-
-do_begin() {
-  return 0
-}
+pkg_exports=(
+  [port]=http.listen_port
+)
+pkg_binds=(
+  [http]="port"
+)
+pkg_exposes=(port)
 
 do_build() {
   return 0
