@@ -42,7 +42,7 @@ fn main() {
 
     for p in args {
         let sub_connect = format!("tcp://localhost:{}", p);
-        println!("connecting to {}", sub_connect);
+        debug!("EventSrvSubscriber connecting to {}", sub_connect);
         assert!(socket.connect(&sub_connect).is_ok());
     }
     assert!(socket.set_subscribe(b"").is_ok()); // Subscribe to everything
