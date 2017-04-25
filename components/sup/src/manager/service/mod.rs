@@ -456,7 +456,7 @@ impl Service {
         self.initialized = false;
     }
 
-    pub fn to_rumor<T: ToString>(&self, member_id: T) -> ServiceRumor {
+    pub fn to_rumor(&self, incarnation: u64) -> ServiceRumor {
         let exported = match self.config.to_exported() {
             Ok(exported) => Some(exported),
             Err(err) => {
@@ -466,11 +466,13 @@ impl Service {
                 None
             }
         };
-        ServiceRumor::new(member_id.to_string(),
-                          &self.package().ident,
-                          &self.service_group,
-                          &*self.config.sys,
-                          exported.as_ref())
+        let mut rumor = ServiceRumor::new(self.local_member_id.clone(),
+                                          &self.package().ident,
+                                          &self.service_group,
+                                          &*self.config.sys,
+                                          exported.as_ref());
+        rumor.set_incarnation(incarnation);
+        rumor
     }
 
     /// Run initialization hook if present

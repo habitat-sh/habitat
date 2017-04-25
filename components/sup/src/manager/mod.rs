@@ -309,7 +309,7 @@ impl Manager {
         // `Service::load()` eventually delegates to we just can't have that. We should clean
         // this up in the future.
         let service = match Service::load(self.butterfly.member_id(),
-            spec.clone(),
+                                          spec.clone(),
                                           &self.gossip_listen,
                                           &self.http_listen,
                                           self.fs_cfg.clone(),
@@ -323,8 +323,7 @@ impl Manager {
                 return;
             }
         };
-        self.butterfly
-            .insert_service(service.to_rumor(self.butterfly.member_id()));
+        self.butterfly.insert_service(service.to_rumor(1));
         if service.topology == Topology::Leader {
             self.butterfly
                 .start_election(service.service_group.clone(), 0);
