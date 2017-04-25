@@ -845,7 +845,7 @@ _attach_whereami() {
 # * Otherwise `$_hab_cmd` is used, set in the `_find_system_commands()`
 #   function
 _determine_hab_bin() {
-  if [ -n "${NO_INSTALL_DEPS:-}" ]; then
+  if [[ -n "${NO_INSTALL_DEPS:-}" ]]; then
     build_line "NO_INSTALL_DEPS set: no package dependencies will be installed"
   fi
 
@@ -857,7 +857,7 @@ _determine_hab_bin() {
   build_line "Using HAB_BIN=$HAB_BIN for installs, signing, and hashing"
 }
 
-# **Internal** Create initial pacakge-related arrays.
+# **Internal** Create initial package-related arrays.
 _init_dependencies() {
   # Create `${pkg_build_deps_resolved[@]}` containing all resolved direct build
   # dependencies.
@@ -902,7 +902,7 @@ _resolve_scaffolding_dependencies() {
 
   for dep in "${pkg_scaffolding}"; do
     _install_dependency $dep
-    # Add scaffolding pacakge to the list of scaffolding build deps
+    # Add scaffolding package to the list of scaffolding build deps
     scaff_build_deps+=($dep)
     if resolved="$(_resolve_dependency $dep)"; then
       build_line "Resolved scaffolding dependency '$dep' to $resolved"
@@ -920,13 +920,13 @@ _resolve_scaffolding_dependencies() {
   done
 
   # Add all of the ordered scaffolding dependencies to the start of
-  # `${pkg_build_deps[@]}` to make sure they could be ovveridden by a Plan
+  # `${pkg_build_deps[@]}` to make sure they could be overridden by a Plan
   # author if required.
   pkg_build_deps=(${scaff_build_deps[@]} ${pkg_build_deps[@]})
   debug "Updating pkg_build_deps=(${pkg_build_deps[*]}) from Scaffolding deps"
 
   # Set `pkg_build_deps_resolved[@]}` to all resolved scaffolding dependencies.
-  # This will be used for early scaffolding package loading to mimick the state
+  # This will be used for early scaffolding package loading to mimic the state
   # where all dependencies are known for helpers such as `pkg_path_for` and
   # will be re-set later when the full build dependency set is known.
   pkg_build_deps_resolved=("${scaff_build_deps_resolved[@]}")
@@ -1601,18 +1601,18 @@ add_env() {
   shift
   local values=($*)
 
-  if [ ${pkg_env[$key]+abc} ]; then
+  if [[ ${pkg_env[$key]+abc} ]]; then
     exit_with "Cannot add $key to pkg_env once the value is already set"
   fi
 
-  if [ -n ${values} ]; then
+  if [[ -n ${values} ]]; then
     # Set a default separator if none is defined
-    if [ ! ${pkg_env_sep[$key]+abc} ] && [ ${_env_default_sep[$key]+abc} ]; then
+    if [[ ! ${pkg_env_sep[$key]+abc} && ${_env_default_sep[$key]+abc} ]]; then
       pkg_env_sep[$key]=${_env_default_sep[$key]}
     fi
 
-    if [ ${#values[@]} -gt 1 ]; then
-      if [ ${pkg_env_sep[$key]+abc} ]; then
+    if [[ ${#values[@]} -gt 1 ]]; then
+      if [[ ${pkg_env_sep[$key]+abc} ]]; then
         pkg_env[$key]=$(join_by ${pkg_env_sep[$key]} ${values[@]})
       else
         exit_with "Cannot add multiple values without setting a separator for $key"
@@ -1650,18 +1650,18 @@ add_build_env() {
   shift
   local values=($*)
 
-  if [ ${pkg_build_env[$key]+abc} ]; then
+  if [[ ${pkg_build_env[$key]+abc} ]]; then
     exit_with "Cannot add $key to pkg_build_env once the value is already set"
   fi
 
-  if [ -n ${values} ]; then
+  if [[ -n ${values} ]]; then
     # Set a default separator if none is defined
-    if [ ! ${pkg_env_sep[$key]+abc} ] && [ ${_env_default_sep[$key]+abc} ]; then
+    if [[ ! ${pkg_env_sep[$key]+abc} && ${_env_default_sep[$key]+abc} ]]; then
       pkg_env_sep[$key]=${_env_default_sep[$key]}
     fi
 
-    if [ ${#values[@]} -gt 1 ]; then
-      if [ ${pkg_env_sep[$key]+abc} ]; then
+    if [[ ${#values[@]} -gt 1 ]]; then
+      if [[ ${pkg_env_sep[$key]+abc} ]]; then
         pkg_build_env[$key]=$(join_by ${pkg_env_sep[$key]} ${values[@]})
       else
         exit_with "Cannot add multiple values without setting a separator for $key"
@@ -1902,8 +1902,8 @@ pkg_interpreter_for() {
     fi
 
    local int_path=$(grep -x ".*${int}" ${path}/INTERPRETERS)
-    if [[ ! -z "$int_path" ]]; then
-      echo $int_path
+    if [[ -n "$int_path" ]]; then
+      echo "$int_path"
       return 0
     fi
     warn "Could not find interpreter ${int} in package ${pkg}"
@@ -1986,7 +1986,7 @@ _set_environment() {
   local -A _environment
 
   # Set any package pre-build environment variables
-  if [ -n ${pkg_bin_dirs} ]; then
+  if [[ -n ${pkg_bin_dirs} ]]; then
     add_path_env 'PATH' ${pkg_bin_dirs[@]}
   fi
 
@@ -2072,7 +2072,7 @@ _set_environment() {
 
   # Export out computed environment
   for env in "${!_environment[@]}"; do
-    build_line "Settings $env=${_environment[$env]}"
+    build_line "Setting $env=${_environment[$env]}"
     export ${env}=${_environment[$env]}
   done
 }
@@ -2172,7 +2172,7 @@ _build_environment() {
       ld_run_path_part+=("$trimmed")
     fi
   done
-  if [[ ! -z $ld_run_path_part ]]; then
+  if [[ -n $ld_run_path_part ]]; then
     export LD_RUN_PATH=$(join_by ':' ${ld_run_path_part[@]})
   fi
 
@@ -2435,7 +2435,7 @@ _build_metadata() {
   fi
 
   local pconfig_path_part=()
-  if [ ${#pkg_pconfig_dirs[@]} -eq 0 ]; then
+  if [[ ${#pkg_pconfig_dirs[@]} -eq 0 ]]; then
     # Plan doesn't define pkg-config paths so let's try to find them in the conventional locations
     local locations=(lib/pkgconfig share/pkgconfig)
     for dir in "${locations[@]}"; do
@@ -2466,7 +2466,7 @@ _build_metadata() {
   done
 
   # Create PATH metadata for older versions of Habitat
-  if [ ${pkg_env[PATH]+abc} ]; then
+  if [[ ${pkg_env[PATH]+abc} ]]; then
     echo "${pkg_env[PATH]}" > "$pkg_prefix/PATH"
   fi
 
@@ -2484,7 +2484,7 @@ _build_metadata() {
 
   local port_part=""
   for export in "${pkg_exposes[@]}"; do
-    if ! [ ${pkg_exports[$export]+abc} ]; then
+    if [[ ! ${pkg_exports[$export]+abc} ]]; then
       exit_with "Bad value in pkg_exposes; No pkg_export found matching key: ${export}"
     fi
     key=${pkg_exports[$export]}
@@ -2570,7 +2570,7 @@ do_build_config() {
 do_default_build_config() {
   build_line "Writing configuration"
   if [[ -d "$PLAN_CONTEXT/config" ]]; then
-    if [ -z "${HAB_CONFIG_EXCLUDE:-}" ]; then
+    if [[ -z "${HAB_CONFIG_EXCLUDE:-}" ]]; then
       # HAB_CONFIG_EXCLUDE not set, use defaults
       config_exclude_exts=("*.sw?" "*~" "*.bak")
     else
@@ -2730,7 +2730,7 @@ _build_manifest() {
     local _ldflags_string="$LDFLAGS"
   fi
 
-    if [[ -z "$LD_RUN_PATH" ]]; then
+  if [[ -z "$LD_RUN_PATH" ]]; then
     local _ldrunpath_string="no LD_RUN_PATH"
   else
     local _ldrunpath_string="$LD_RUN_PATH"
