@@ -35,6 +35,8 @@ the latest version of rustfmt. An easy way to install it (assuming you have
 Rust installed as above), is to run `cargo install rustfmt` and adding
 `$HOME/.cargo/bin` to your `PATH`.
 
+**Note2:** While this Docker container will work well for getting started with Habitat development, you may want to consider using a VM as you start compiling Habitat components.  To do this, create a VM with your preferred flavor of Linux and follow the appropriate instructions for that flavor below.
+
 
 ## Mac OS X for Native Development
 
@@ -94,20 +96,45 @@ Then, run the system preparation scripts and try to compile the project:
 cp components/hab/install.sh /tmp/
 sh support/linux/install_dev_0_ubuntu_latest.sh
 sh support/linux/install_dev_9_linux.sh
+```
+
+When you run the install_dev_9_linux.sh script, you may see this error.
+
+```
+The following packages have unmet dependencies:
+ gdb : Depends: libreadline7 (>= 6.0) but it is not installable
+E: Unmet dependencies. Try 'apt-get -f install' with no packages (or specify a solution).
+```
+
+Unfortunately, running apt-get -f install does not currently fix the issue. To get around this,
+
+cd ~
+wget https://launchpad.net/ubuntu/+archive/primary/+files/readline_7.0.orig.tar.gz
+tar xzf readline_7.0.orig.tar.gz
+cd readline-7.0
+./configure
+make
+sudo make install
+make clean
+cd habitat
+sh support/linux/install_dev_9_linux.sh
+```
+
+You can ignore this error:
+
+```
+error: binary `protobuf-bin-gen-rust-do-not-use` already exists in destination as part of `protobuf v1.2.2`
+binary `protoc-gen-rust` already exists in destination as part of `protobuf v1.2.2`
+```
+
+Then go ahead a complete the setup with these commands.
+
+```
 . ~/.profile
 make
 ```
 
-These docs were tested with a Docker image, created as follows:
-
-```
-docker run --rm -it ubuntu:yakkety bash
-apt-get update && apt-get install -y sudo git-core
-useradd -m -s /bin/bash -G sudo jdoe
-echo jdoe:1234 | chpasswd
-sudo su - jdoe
-```
-
+These docs were tested with an Ubuntu 16.04 VM.
 
 ## Ubuntu: 14.04+ (Trusty+)
 
