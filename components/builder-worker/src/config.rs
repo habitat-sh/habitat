@@ -71,7 +71,7 @@ impl Default for JobSrvAddr {
     fn default() -> Self {
         JobSrvAddr {
             host: IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
-            port: 5568,
+            port: 5566,
             heartbeat: 5567,
         }
     }

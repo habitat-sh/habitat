@@ -22,10 +22,9 @@ Create the following files somewhere on your local filesystem (Note: the client_
 
 config_api.toml:
 ```
-[cfg]
 builds_enabled = true
 
-[cfg.github]
+[github]
 url = "https://api.github.com"
 client_id = "0c2f738a7d0bd300de10"
 client_secret = "438223113eeb6e7edf2d2f91a232b72de72b9bdf"
@@ -33,12 +32,11 @@ client_secret = "438223113eeb6e7edf2d2f91a232b72de72b9bdf"
 
 config_sessionsrv.toml:
 ```
-[cfg]
 github_admin_team = 1995301
 github_builder_teams = [1995301]
 github_build_worker_teams = [1995301]
 
-[cfg.github]
+[github]
 url = "https://api.github.com"
 client_id = "0c2f738a7d0bd300de10"
 client_secret = "438223113eeb6e7edf2d2f91a232b72de72b9bdf"
@@ -46,7 +44,6 @@ client_secret = "438223113eeb6e7edf2d2f91a232b72de72b9bdf"
 
 config_worker.toml:
 ```
-[cfg]
 auth_token = "<your github token>"
 ```
 
