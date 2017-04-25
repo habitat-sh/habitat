@@ -49,7 +49,7 @@ use error::{Error, Result, SupError};
 use http_gateway;
 use fs;
 use manager::{self, signals};
-use census::{CensusRing, ElectionStatus};
+use census::{MemberId, CensusRing, ElectionStatus};
 use supervisor::{Supervisor, RuntimeConfig};
 use util;
 
@@ -67,9 +67,18 @@ lazy_static! {
 
 #[derive(Debug, Serialize)]
 pub struct Service {
+    pub service_group: ServiceGroup,
     pub config: ServiceConfig,
-    current_service_files: HashMap<String, u64>,
     pub depot_url: String,
+    pub spec_file: PathBuf,
+    pub spec_ident: PackageIdent,
+    pub start_style: StartStyle,
+    pub topology: Topology,
+    pub update_strategy: UpdateStrategy,
+
+    local_member_id: MemberId,
+
+    current_service_files: HashMap<String, u64>,
     health_check: HealthCheck,
     initialized: bool,
     last_election_status: ElectionStatus,
@@ -77,13 +86,7 @@ pub struct Service {
     needs_reconfiguration: bool,
     #[serde(serialize_with="serialize_lock")]
     package: Arc<RwLock<PackageInstall>>,
-    pub service_group: ServiceGroup,
     smoke_check: SmokeCheck,
-    pub spec_file: PathBuf,
-    pub spec_ident: PackageIdent,
-    pub start_style: StartStyle,
-    pub topology: Topology,
-    pub update_strategy: UpdateStrategy,
     #[serde(skip_serializing)]
     spec_binds: Vec<ServiceBind>,
     hooks: HookTable,
@@ -96,7 +99,8 @@ pub struct Service {
 }
 
 impl Service {
-    fn new(package: PackageInstall,
+    fn new(local_member_id: MemberId,
+           package: PackageInstall,
            spec: ServiceSpec,
            gossip_listen: &GossipListenAddr,
            http_listen: &http_gateway::ListenAddr,
@@ -120,6 +124,7 @@ impl Service {
         let hooks_path = fs::svc_hooks_path(service_group.service());
         let locked_package = Arc::new(RwLock::new(package));
         Ok(Service {
+               local_member_id: local_member_id,
                config: svc_cfg,
                current_service_files: HashMap::new(),
                depot_url: spec.depot_url,
@@ -160,12 +165,13 @@ impl Service {
         Ok(RuntimeConfig::new(svc_user, svc_group, env))
     }
 
-    pub fn load(spec: ServiceSpec,
-                gossip_listen: &GossipListenAddr,
-                http_listen: &http_gateway::ListenAddr,
-                manager_fs_cfg: Arc<manager::FsCfg>,
-                organization: Option<&str>)
-                -> Result<Service> {
+    pub fn load<I: Into<MemberId>>(local_member_id: I,
+                                   spec: ServiceSpec,
+                                   gossip_listen: &GossipListenAddr,
+                                   http_listen: &http_gateway::ListenAddr,
+                                   manager_fs_cfg: Arc<manager::FsCfg>,
+                                   organization: Option<&str>)
+                                   -> Result<Service> {
         let mut ui = UI::default();
         let package = match PackageInstall::load(&spec.ident, Some(&Path::new(&*FS_ROOT_PATH))) {
             Ok(package) => {
@@ -183,7 +189,8 @@ impl Service {
                 util::pkg::install(&mut ui, &spec.depot_url, &spec.ident)?
             }
         };
-        let service = Self::new(package,
+        let service = Self::new(local_member_id.into(),
+                                package,
                                 spec,
                                 gossip_listen,
                                 http_listen,

@@ -31,7 +31,7 @@ use toml;
 
 static LOGKEY: &'static str = "CE";
 
-type MemberId = String;
+pub type MemberId = String;
 #[derive(Debug, Deserialize, Serialize)]
 pub struct CensusRing {
     pub changed: bool,

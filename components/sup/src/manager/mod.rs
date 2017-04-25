@@ -308,7 +308,8 @@ impl Manager {
         // back to us. Since we consume and deconstruct the spec in `Service::new()` which
         // `Service::load()` eventually delegates to we just can't have that. We should clean
         // this up in the future.
-        let service = match Service::load(spec.clone(),
+        let service = match Service::load(self.butterfly.member_id(),
+            spec.clone(),
                                           &self.gossip_listen,
                                           &self.http_listen,
                                           self.fs_cfg.clone(),
