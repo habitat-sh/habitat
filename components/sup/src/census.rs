@@ -27,6 +27,7 @@ use butterfly::rumor::RumorStore;
 use butterfly::rumor::service::SysInfo;
 use eventsrv::message::event::{CensusEntry as CensusEntryProto, PackageIdent as PackageIdentProto,
                                SysInfo as SysInfoProto};
+use hcore;
 use hcore::service::ServiceGroup;
 use hcore::package::PackageIdent;
 use toml;
@@ -96,22 +97,14 @@ impl CensusRing {
             return;
         }
         self.changed = true;
-        service_rumors.with_keys(|(service_group, rumors)| {
-            match ServiceGroup::from_str(service_group) {
-                Ok(sg) => {
-                    let mut census_group =
-                        self.census_groups
-                            .entry(sg.clone())
-                            .or_insert(CensusGroup::new(sg, &self.local_member_id));
-                    census_group.update_from_service_rumors(rumors)
-                }
-                Err(e) => {
-                    outputln!("Malformed service group; cannot populate configuration data. \
-                           Aborting.: {}",
-                              e);
-                }
-            };
-        });
+        service_rumors.with_keys(|(service_group, rumors)| if let Ok(sg) =
+            service_group_from_str(service_group) {
+                                     let mut census_group =
+                    self.census_groups
+                    .entry(sg.clone())
+                    .or_insert(CensusGroup::new(sg, &self.local_member_id));
+                                     census_group.update_from_service_rumors(rumors);
+                                 });
         self.last_service_counter = service_rumors.get_update_counter();
     }
 
@@ -122,18 +115,11 @@ impl CensusRing {
         self.changed = true;
         election_rumors.with_keys(|(service_group, rumors)| {
             let election = rumors.get("election").unwrap();
-            match ServiceGroup::from_str(service_group) {
-                Ok(sg) => {
-                    if let Some(census_group) = self.census_groups.get_mut(&sg) {
-                        census_group.update_from_election_rumor(election);
-                    }
+            if let Ok(sg) = service_group_from_str(service_group) {
+                if let Some(census_group) = self.census_groups.get_mut(&sg) {
+                    census_group.update_from_election_rumor(election);
                 }
-                Err(e) => {
-                    outputln!("Malformed service group; cannot populate configuration data. \
-                           Aborting.: {}",
-                              e);
-                }
-            };
+            }
         });
         self.last_election_counter = election_rumors.get_update_counter();
     }
@@ -145,19 +131,12 @@ impl CensusRing {
         }
         self.changed = true;
         election_update_rumors.with_keys(|(service_group, rumors)| {
-            match ServiceGroup::from_str(service_group) {
-                Ok(sg) => {
+            if let Ok(sg) = service_group_from_str(service_group) {
+                if let Some(census_group) = self.census_groups.get_mut(&sg) {
                     let election = rumors.get("election").unwrap();
-                    if let Some(census_group) = self.census_groups.get_mut(&sg) {
-                        census_group.update_from_election_update_rumor(election);
-                    }
+                    census_group.update_from_election_update_rumor(election);
                 }
-                Err(e) => {
-                    outputln!("Malformed service group; cannot populate configuration data. \
-                           Aborting.: {}",
-                              e);
-                }
-            };
+            }
         });
         self.last_election_update_counter = election_update_rumors.get_update_counter();
     }
@@ -184,20 +163,13 @@ impl CensusRing {
         }
         self.changed = true;
         service_config_rumors.with_keys(|(service_group, rumors)| {
-            match ServiceGroup::from_str(service_group) {
-                Ok(sg) => {
-                    if let Some(service_config) = rumors.get("service_config") {
-                        if let Some(census_group) = self.census_groups.get_mut(&sg) {
-                            census_group.update_from_service_config_rumor(service_config);
-                        }
+            if let Ok(sg) = service_group_from_str(service_group) {
+                if let Some(service_config) = rumors.get("service_config") {
+                    if let Some(census_group) = self.census_groups.get_mut(&sg) {
+                        census_group.update_from_service_config_rumor(service_config);
                     }
                 }
-                Err(e) => {
-                    outputln!("Malformed service group; cannot populate configuration data. \
-                           Aborting.: {}",
-                              e);
-                }
-            };
+            }
         });
         self.last_service_config_counter = service_config_rumors.get_update_counter();
     }
@@ -207,23 +179,14 @@ impl CensusRing {
             return;
         }
         self.changed = true;
-        service_file_rumors.with_keys(|(service_group, rumors)| {
-            match ServiceGroup::from_str(service_group) {
-                Ok(sg) => {
-                    let mut census_group =
-                        self.census_groups
-                            .entry(sg.clone())
-                            .or_insert(CensusGroup::new(sg, &self.local_member_id));
-                    census_group.update_from_service_file_rumors(rumors);
-
-                }
-                Err(e) => {
-                    outputln!("Malformed service group; cannot populate configuration data. \
-                           Aborting.: {}",
-                              e);
-                }
-            };
-        });
+        service_file_rumors.with_keys(|(service_group, rumors)| if let Ok(sg) =
+            service_group_from_str(service_group) {
+                                          let mut census_group =
+                    self.census_groups
+                    .entry(sg.clone())
+                    .or_insert(CensusGroup::new(sg, &self.local_member_id));
+                                          census_group.update_from_service_file_rumors(rumors);
+                                      });
         self.last_service_file_counter = service_file_rumors.get_update_counter();
     }
 
@@ -609,6 +572,16 @@ impl CensusMember {
             }
         }
     }
+}
+
+fn service_group_from_str(sg: &str) -> Result<ServiceGroup, hcore::Error> {
+    ServiceGroup::from_str(sg)
+            .map_err(|e| {
+                         outputln!("Malformed service group; cannot populate configuration data. \
+                           Aborting.: {}",
+                                   e);
+                         e
+                     })
 }
 
 #[cfg(test)]
