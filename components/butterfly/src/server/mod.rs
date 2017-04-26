@@ -26,7 +26,7 @@ mod pull;
 mod push;
 pub mod timing;
 
-use std::collections::{HashSet, HashMap};
+use std::collections::HashSet;
 use std::ffi;
 use std::fmt::{self, Debug};
 use std::fs;
@@ -45,7 +45,6 @@ use habitat_core::service::ServiceGroup;
 use habitat_core::crypto::SymKey;
 use serde::{Serialize, Serializer};
 use serde::ser::SerializeStruct;
-use toml;
 
 use error::{Result, Error};
 use member::{Member, Health, MemberList};
@@ -754,57 +753,6 @@ impl Server {
         if self.update_store.insert(election) {
             self.rumor_list.insert(rk);
         }
-    }
-
-    pub fn service_files_for(&self,
-                             service_group: &str,
-                             current_service_files: &HashMap<String, u64>)
-                             -> Vec<(u64, String, Vec<u8>)> {
-        let mut service_files = Vec::new();
-
-        self.service_file_store
-            .with_rumors(service_group, |sf| {
-                let current_incarnation = current_service_files.get(sf.get_filename());
-                if current_incarnation.is_none() ||
-                   sf.get_incarnation() > *current_incarnation.unwrap() {
-                    match sf.body() {
-                        Ok(body) => {
-                            service_files.push((sf.get_incarnation(),
-                                                String::from(sf.get_filename()),
-                                                body))
-                        }
-                        Err(e) => {
-                            warn!("Cannot decrypt service file for {} {} {}: {}",
-                                  service_group,
-                                  sf.get_filename(),
-                                  sf.get_incarnation(),
-                                  e)
-                        }
-                    }
-                }
-            });
-        service_files
-    }
-
-    /// Returns (incarnation, config) if the service group has a configuration.
-    pub fn service_config_for(&self,
-                              service_group: &str,
-                              incarnation: Option<u64>)
-                              -> Option<(u64, toml::Value)> {
-        let mut result = None;
-        self.service_config_store
-            .with_rumor(service_group,
-                        "service_config",
-                        |maybe_sc| if let Some(sc) = maybe_sc {
-                            if incarnation.is_none() ||
-                               sc.get_incarnation() > incarnation.unwrap() {
-                                match sc.config() {
-                                    Ok(config) => result = Some((sc.get_incarnation(), config)),
-                                    Err(err) => warn!("{}", err),
-                                }
-                            }
-                        });
-        result
     }
 
     fn generate_wire(&self, payload: Vec<u8>) -> Result<Vec<u8>> {

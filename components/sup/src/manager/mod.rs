@@ -308,7 +308,8 @@ impl Manager {
         // back to us. Since we consume and deconstruct the spec in `Service::new()` which
         // `Service::load()` eventually delegates to we just can't have that. We should clean
         // this up in the future.
-        let service = match Service::load(spec.clone(),
+        let service = match Service::load(self.butterfly.member_id(),
+                                          spec.clone(),
                                           &self.gossip_listen,
                                           &self.http_listen,
                                           self.fs_cfg.clone(),
@@ -322,8 +323,7 @@ impl Manager {
                 return;
             }
         };
-        self.butterfly
-            .insert_service(service.to_rumor(self.butterfly.member_id()));
+        self.butterfly.insert_service(service.to_rumor(1));
         if service.topology == Topology::Leader {
             self.butterfly
                 .start_election(service.service_group.clone(), 0);
@@ -419,7 +419,9 @@ impl Manager {
                                     &self.butterfly.service_store,
                                     &self.butterfly.election_store,
                                     &self.butterfly.update_store,
-                                    &self.butterfly.member_list);
+                                    &self.butterfly.member_list,
+                                    &self.butterfly.service_config_store,
+                                    &self.butterfly.service_file_store);
             service_rumor_offset = 0;
 
             if self.census_ring.changed {
@@ -450,7 +452,8 @@ impl Manager {
                     .write()
                     .expect("Services lock is poisoned!")
                     .iter_mut() {
-                if service.tick(&self.butterfly, &self.census_ring) {
+                if service.tick(&self.census_ring) {
+                    self.gossip_latest_service_rumor(&service);
                     service_rumor_offset += 1;
                 }
             }
@@ -509,44 +512,38 @@ impl Manager {
     /// main loop that we, ourselves, updated the service counter when we updated ourselves.
     fn check_for_updated_packages(&mut self) -> usize {
         let mut updated_services = 0;
-        let member_id = {
-            self.butterfly.member_id().to_string()
-        };
         for service in self.services
                 .write()
                 .expect("Services lock is poisoned!")
                 .iter_mut() {
             if self.updater
                    .check_for_updated_package(service, &self.census_ring) {
-                let mut rumor = {
-                    let list = self.butterfly
-                        .service_store
-                        .list
-                        .read()
-                        .expect("Rumor store lock poisoned");
-                    list.get(&*service.service_group)
-                        .and_then(|r| r.get(&member_id))
-                        .unwrap()
-                        .clone()
-                };
-                let incarnation = rumor.get_incarnation() + 1;
-                rumor.set_pkg(service.package().to_string());
-                rumor.set_incarnation(incarnation);
                 service.populate(&self.census_ring);
-                // TODO FN: the updated toml API returns a `Result` when serializing--we should
-                // handle this and not potentially panic
-                match service.config.to_exported() {
-                    Ok(cfg) => {
-                        *rumor.mut_cfg() =
-                            toml::ser::to_vec(&cfg).expect("Can't serialize to TOML bytes")
-                    }
-                    Err(err) => warn!("Error loading service config after update, err={}", err),
-                }
-                self.butterfly.insert_service(rumor);
+                self.gossip_latest_service_rumor(&service);
                 updated_services += 1;
             }
         }
         updated_services
+    }
+
+    fn gossip_latest_service_rumor(&self, service: &Service) {
+        let member_id = {
+            self.butterfly.member_id().to_string()
+        };
+        let last_rumor = {
+            let list = self.butterfly
+                .service_store
+                .list
+                .read()
+                .expect("Rumor store lock poisoned");
+            list.get(&*service.service_group)
+                .and_then(|r| r.get(&member_id))
+                .unwrap()
+                .clone()
+        };
+        let incarnation = last_rumor.get_incarnation() + 1;
+        self.butterfly
+            .insert_service(service.to_rumor(incarnation));
     }
 
     fn persist_state(&self) {

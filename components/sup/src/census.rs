@@ -19,19 +19,22 @@ use std::collections::BTreeMap;
 use butterfly;
 use butterfly::member::{MemberList, Member, Health};
 use butterfly::rumor::service::Service as ServiceRumor;
+use butterfly::rumor::service_file::ServiceFile as ServiceFileRumor;
+use butterfly::rumor::service_config::ServiceConfig as ServiceConfigRumor;
 use butterfly::rumor::election::Election as ElectionRumor;
 use butterfly::rumor::election::ElectionUpdate as ElectionUpdateRumor;
 use butterfly::rumor::RumorStore;
 use butterfly::rumor::service::SysInfo;
 use eventsrv::message::event::{CensusEntry as CensusEntryProto, PackageIdent as PackageIdentProto,
                                SysInfo as SysInfoProto};
+use hcore;
 use hcore::service::ServiceGroup;
 use hcore::package::PackageIdent;
 use toml;
 
 static LOGKEY: &'static str = "CE";
 
-type MemberId = String;
+pub type MemberId = String;
 #[derive(Debug, Deserialize, Serialize)]
 pub struct CensusRing {
     pub changed: bool,
@@ -42,6 +45,8 @@ pub struct CensusRing {
     last_election_counter: usize,
     last_election_update_counter: usize,
     last_membership_counter: usize,
+    last_service_config_counter: usize,
+    last_service_file_counter: usize,
 }
 
 impl CensusRing {
@@ -54,6 +59,8 @@ impl CensusRing {
             last_election_counter: 0,
             last_election_update_counter: 0,
             last_membership_counter: 0,
+            last_service_config_counter: 0,
+            last_service_file_counter: 0,
         }
     }
 
@@ -62,12 +69,16 @@ impl CensusRing {
                               service_rumors: &RumorStore<ServiceRumor>,
                               election_rumors: &RumorStore<ElectionRumor>,
                               election_update_rumors: &RumorStore<ElectionUpdateRumor>,
-                              member_list: &MemberList) {
+                              member_list: &MemberList,
+                              service_config_rumors: &RumorStore<ServiceConfigRumor>,
+                              service_file_rumors: &RumorStore<ServiceFileRumor>) {
         self.changed = false;
         self.update_from_service_store(service_rumor_offset, service_rumors);
         self.update_from_election_store(election_rumors);
         self.update_from_election_update_store(election_update_rumors);
         self.update_from_member_list(member_list);
+        self.update_from_service_config(service_config_rumors);
+        self.update_from_service_files(service_file_rumors);
     }
 
     pub fn census_group_for(&self, sg: &ServiceGroup) -> Option<&CensusGroup> {
@@ -86,22 +97,14 @@ impl CensusRing {
             return;
         }
         self.changed = true;
-        service_rumors.with_keys(|(service_group, rumors)| {
-            match ServiceGroup::from_str(service_group) {
-                Ok(sg) => {
-                    let mut census_group =
-                        self.census_groups
-                            .entry(sg.clone())
-                            .or_insert(CensusGroup::new(sg, &self.local_member_id));
-                    census_group.update_from_service_rumors(rumors)
-                }
-                Err(e) => {
-                    outputln!("Malformed service group; cannot populate configuration data. \
-                           Aborting.: {}",
-                              e);
-                }
-            };
-        });
+        service_rumors.with_keys(|(service_group, rumors)| if let Ok(sg) =
+            service_group_from_str(service_group) {
+                                     let mut census_group =
+                    self.census_groups
+                    .entry(sg.clone())
+                    .or_insert(CensusGroup::new(sg, &self.local_member_id));
+                                     census_group.update_from_service_rumors(rumors);
+                                 });
         self.last_service_counter = service_rumors.get_update_counter();
     }
 
@@ -112,18 +115,11 @@ impl CensusRing {
         self.changed = true;
         election_rumors.with_keys(|(service_group, rumors)| {
             let election = rumors.get("election").unwrap();
-            match ServiceGroup::from_str(service_group) {
-                Ok(sg) => {
-                    if let Some(census_group) = self.census_groups.get_mut(&sg) {
-                        census_group.update_from_election_rumor(election);
-                    }
+            if let Ok(sg) = service_group_from_str(service_group) {
+                if let Some(census_group) = self.census_groups.get_mut(&sg) {
+                    census_group.update_from_election_rumor(election);
                 }
-                Err(e) => {
-                    outputln!("Malformed service group; cannot populate configuration data. \
-                           Aborting.: {}",
-                              e);
-                }
-            };
+            }
         });
         self.last_election_counter = election_rumors.get_update_counter();
     }
@@ -135,19 +131,12 @@ impl CensusRing {
         }
         self.changed = true;
         election_update_rumors.with_keys(|(service_group, rumors)| {
-            let election = rumors.get("election").unwrap();
-            match ServiceGroup::from_str(service_group) {
-                Ok(sg) => {
-                    if let Some(census_group) = self.census_groups.get_mut(&sg) {
-                        census_group.update_from_election_update_rumor(election);
-                    }
+            if let Ok(sg) = service_group_from_str(service_group) {
+                if let Some(census_group) = self.census_groups.get_mut(&sg) {
+                    let election = rumors.get("election").unwrap();
+                    census_group.update_from_election_update_rumor(election);
                 }
-                Err(e) => {
-                    outputln!("Malformed service group; cannot populate configuration data. \
-                           Aborting.: {}",
-                              e);
-                }
-            };
+            }
         });
         self.last_election_update_counter = election_update_rumors.get_update_counter();
     }
@@ -165,6 +154,40 @@ impl CensusRing {
                                      }
                                  });
         self.last_membership_counter = member_list.get_update_counter();
+    }
+
+    fn update_from_service_config(&mut self,
+                                  service_config_rumors: &RumorStore<ServiceConfigRumor>) {
+        if service_config_rumors.get_update_counter() <= self.last_service_config_counter {
+            return;
+        }
+        self.changed = true;
+        service_config_rumors.with_keys(|(service_group, rumors)| {
+            if let Ok(sg) = service_group_from_str(service_group) {
+                if let Some(service_config) = rumors.get("service_config") {
+                    if let Some(census_group) = self.census_groups.get_mut(&sg) {
+                        census_group.update_from_service_config_rumor(service_config);
+                    }
+                }
+            }
+        });
+        self.last_service_config_counter = service_config_rumors.get_update_counter();
+    }
+
+    fn update_from_service_files(&mut self, service_file_rumors: &RumorStore<ServiceFileRumor>) {
+        if service_file_rumors.get_update_counter() <= self.last_service_file_counter {
+            return;
+        }
+        self.changed = true;
+        service_file_rumors.with_keys(|(service_group, rumors)| if let Ok(sg) =
+            service_group_from_str(service_group) {
+                                          let mut census_group =
+                    self.census_groups
+                    .entry(sg.clone())
+                    .or_insert(CensusGroup::new(sg, &self.local_member_id));
+                                          census_group.update_from_service_file_rumors(rumors);
+                                      });
+        self.last_service_file_counter = service_file_rumors.get_update_counter();
     }
 
     fn find_member_mut(&mut self, member_id: &MemberId) -> Option<&mut CensusMember> {
@@ -185,16 +208,33 @@ pub enum ElectionStatus {
     ElectionFinished,
 }
 
+#[derive(Debug, Default, Deserialize, Serialize)]
+pub struct ServiceFile {
+    pub filename: String,
+    pub incarnation: u64,
+    pub body: Vec<u8>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct ServiceConfig {
+    pub incarnation: u64,
+    pub value: toml::Value,
+}
+
 #[derive(Debug, Deserialize, Serialize)]
 pub struct CensusGroup {
     pub service_group: ServiceGroup,
     pub election_status: ElectionStatus,
     pub leader_id: Option<MemberId>,
+    pub service_config: Option<ServiceConfig>,
 
     local_member_id: MemberId,
     population: BTreeMap<MemberId, CensusMember>,
     update_leader_id: Option<MemberId>,
+    changed_service_files: Vec<String>,
+    service_files: HashMap<String, ServiceFile>,
 }
+
 impl CensusGroup {
     fn new(sg: ServiceGroup, local_member_id: &MemberId) -> Self {
         CensusGroup {
@@ -204,6 +244,9 @@ impl CensusGroup {
             population: BTreeMap::new(),
             leader_id: None,
             update_leader_id: None,
+            service_config: None,
+            service_files: HashMap::new(),
+            changed_service_files: Vec::new(),
         }
     }
 
@@ -227,6 +270,13 @@ impl CensusGroup {
 
     pub fn members(&self) -> Vec<&CensusMember> {
         self.population.values().map(|cm| cm).collect()
+    }
+
+    pub fn changed_service_files(&self) -> Vec<&ServiceFile> {
+        self.changed_service_files
+            .iter()
+            .map(|f| self.service_files.get(f).unwrap())
+            .collect()
     }
 
     /// Return previous alive peer, the peer to your left in the ordered members list, or None if
@@ -287,6 +337,51 @@ impl CensusGroup {
         for census_member in self.population.values_mut() {
             if census_member.update_from_election_update_rumor(election) {
                 self.update_leader_id = Some(census_member.member_id.clone());
+            }
+        }
+    }
+
+    fn update_from_service_config_rumor(&mut self, service_config: &ServiceConfigRumor) {
+        match service_config.config() {
+            Ok(config) => {
+                if self.service_config.is_none() ||
+                   service_config.get_incarnation() >
+                   self.service_config.as_ref().unwrap().incarnation {
+                    self.service_config = Some(ServiceConfig {
+                                                   incarnation: service_config.get_incarnation(),
+                                                   value: config,
+                                               });
+                }
+            }
+            Err(err) => warn!("{}", err),
+        }
+    }
+
+    fn update_from_service_file_rumors(&mut self,
+                                       service_file_rumors: &HashMap<String, ServiceFileRumor>) {
+        self.changed_service_files.clear();
+        for (_m_id, service_file_rumor) in service_file_rumors.iter() {
+            let filename = service_file_rumor.get_filename().to_string();
+            let file = self.service_files
+                .entry(filename.clone())
+                .or_insert(ServiceFile::default());
+
+            if service_file_rumor.get_incarnation() > file.incarnation {
+                match service_file_rumor.body() {
+                    Ok(body) => {
+                        self.changed_service_files.push(filename.clone());
+                        file.filename = filename.clone();
+                        file.incarnation = service_file_rumor.get_incarnation();
+                        file.body = body;
+                    }
+                    Err(e) => {
+                        warn!("Cannot decrypt service file for {} {} {}: {}",
+                              self.service_group,
+                              service_file_rumor.get_filename(),
+                              service_file_rumor.get_incarnation(),
+                              e)
+                    }
+                }
             }
         }
     }
@@ -479,6 +574,16 @@ impl CensusMember {
     }
 }
 
+fn service_group_from_str(sg: &str) -> Result<ServiceGroup, hcore::Error> {
+    ServiceGroup::from_str(sg)
+            .map_err(|e| {
+                         outputln!("Malformed service group; cannot populate configuration data. \
+                           Aborting.: {}",
+                                   e);
+                         e
+                     })
+}
+
 #[cfg(test)]
 mod tests {
     mod census {
@@ -486,6 +591,8 @@ mod tests {
         use hcore::service::ServiceGroup;
         use butterfly::member::MemberList;
         use butterfly::rumor::service::Service as ServiceRumor;
+        use butterfly::rumor::service_config::ServiceConfig as ServiceConfigRumor;
+        use butterfly::rumor::service_file::ServiceFile as ServiceFileRumor;
         use butterfly::rumor::election::Election as ElectionRumor;
         use butterfly::rumor::election::ElectionUpdate as ElectionUpdateRumor;
         use butterfly::rumor::service::SysInfo;
@@ -533,12 +640,16 @@ mod tests {
 
             let member_list = MemberList::new();
 
+            let service_config_store: RumorStore<ServiceConfigRumor> = RumorStore::default();
+            let service_file_store: RumorStore<ServiceFileRumor> = RumorStore::default();
             let mut ring = CensusRing::new("member-b".to_string());
             ring.update_from_rumors(0,
                                     &service_store,
                                     &election_store,
                                     &election_update_store,
-                                    &member_list);
+                                    &member_list,
+                                    &service_config_store,
+                                    &service_file_store);
             let census_group_one = ring.census_group_for(&sg_one).unwrap();
             assert_eq!(census_group_one.me(), None);
             assert_eq!(census_group_one.leader().unwrap().member_id, "member-a");

@@ -31,7 +31,6 @@ use std::sync::{Arc, RwLock, RwLockReadGuard};
 use std::time::{Duration, Instant};
 
 use ansi_term::Colour::{Yellow, Red, Green};
-use butterfly;
 use butterfly::rumor::service::Service as ServiceRumor;
 use common::ui::UI;
 use hcore::fs::FS_ROOT_PATH;
@@ -49,7 +48,7 @@ use error::{Error, Result, SupError};
 use http_gateway;
 use fs;
 use manager::{self, signals};
-use census::{CensusRing, ElectionStatus};
+use census::{MemberId, ServiceFile, CensusRing, CensusGroup, ElectionStatus};
 use supervisor::{Supervisor, RuntimeConfig};
 use util;
 
@@ -67,9 +66,16 @@ lazy_static! {
 
 #[derive(Debug, Serialize)]
 pub struct Service {
+    pub service_group: ServiceGroup,
     pub config: ServiceConfig,
-    current_service_files: HashMap<String, u64>,
     pub depot_url: String,
+    pub spec_file: PathBuf,
+    pub spec_ident: PackageIdent,
+    pub start_style: StartStyle,
+    pub topology: Topology,
+    pub update_strategy: UpdateStrategy,
+
+    local_member_id: MemberId,
     health_check: HealthCheck,
     initialized: bool,
     last_election_status: ElectionStatus,
@@ -77,13 +83,7 @@ pub struct Service {
     needs_reconfiguration: bool,
     #[serde(serialize_with="serialize_lock")]
     package: Arc<RwLock<PackageInstall>>,
-    pub service_group: ServiceGroup,
     smoke_check: SmokeCheck,
-    pub spec_file: PathBuf,
-    pub spec_ident: PackageIdent,
-    pub start_style: StartStyle,
-    pub topology: Topology,
-    pub update_strategy: UpdateStrategy,
     #[serde(skip_serializing)]
     spec_binds: Vec<ServiceBind>,
     hooks: HookTable,
@@ -96,7 +96,8 @@ pub struct Service {
 }
 
 impl Service {
-    fn new(package: PackageInstall,
+    fn new(local_member_id: MemberId,
+           package: PackageInstall,
            spec: ServiceSpec,
            gossip_listen: &GossipListenAddr,
            http_listen: &http_gateway::ListenAddr,
@@ -120,8 +121,8 @@ impl Service {
         let hooks_path = fs::svc_hooks_path(service_group.service());
         let locked_package = Arc::new(RwLock::new(package));
         Ok(Service {
+               local_member_id: local_member_id,
                config: svc_cfg,
-               current_service_files: HashMap::new(),
                depot_url: spec.depot_url,
                health_check: HealthCheck::default(),
                hooks: HookTable::default().load_hooks(&service_group,
@@ -160,12 +161,13 @@ impl Service {
         Ok(RuntimeConfig::new(svc_user, svc_group, env))
     }
 
-    pub fn load(spec: ServiceSpec,
-                gossip_listen: &GossipListenAddr,
-                http_listen: &http_gateway::ListenAddr,
-                manager_fs_cfg: Arc<manager::FsCfg>,
-                organization: Option<&str>)
-                -> Result<Service> {
+    pub fn load<I: Into<MemberId>>(local_member_id: I,
+                                   spec: ServiceSpec,
+                                   gossip_listen: &GossipListenAddr,
+                                   http_listen: &http_gateway::ListenAddr,
+                                   manager_fs_cfg: Arc<manager::FsCfg>,
+                                   organization: Option<&str>)
+                                   -> Result<Service> {
         let mut ui = UI::default();
         let package = match PackageInstall::load(&spec.ident, Some(&Path::new(&*FS_ROOT_PATH))) {
             Ok(package) => {
@@ -183,7 +185,8 @@ impl Service {
                 util::pkg::install(&mut ui, &spec.depot_url, &spec.ident)?
             }
         };
-        let service = Self::new(package,
+        let service = Self::new(local_member_id.into(),
+                                package,
                                 spec,
                                 gossip_listen,
                                 http_listen,
@@ -283,15 +286,14 @@ impl Service {
         self.supervisor.check_process()
     }
 
-    pub fn tick(&mut self, butterfly: &butterfly::Server, census_ring: &CensusRing) -> bool {
-        let mut service_rumor_written = false;
+    pub fn tick(&mut self, census_ring: &CensusRing) -> bool {
         if !self.initialized {
             if !self.all_bindings_present(census_ring) {
                 outputln!(preamble self.service_group, "Waiting to initialize service.");
-                return service_rumor_written;
+                return false;
             }
         }
-        service_rumor_written = self.update_configuration(butterfly, census_ring);
+        let svc_cfg_updated = self.update_configuration(census_ring);
 
         match self.topology {
             Topology::Standalone => {
@@ -344,7 +346,7 @@ impl Service {
                 }
             }
         }
-        service_rumor_written
+        svc_cfg_updated
     }
 
     pub fn to_spec(&self) -> ServiceSpec {
@@ -376,19 +378,15 @@ impl Service {
         ret
     }
 
-    fn update_configuration(&mut self,
-                            butterfly: &butterfly::Server,
-                            census_ring: &CensusRing)
-                            -> bool {
-        let mut service_rumor_written = false;
-
+    fn update_configuration(&mut self, census_ring: &CensusRing) -> bool {
+        let sg = self.service_group.clone();
+        let census_group = census_ring.census_group_for(&sg).unwrap();
         self.config.populate(&self.service_group, census_ring);
-        self.persist_service_files(butterfly);
+        self.persist_service_files(census_group);
 
-        let svc_cfg_updated = self.persist_service_config(butterfly);
+        let svc_cfg_updated = self.persist_service_config(census_group);
         if svc_cfg_updated || census_ring.changed {
             if svc_cfg_updated {
-                service_rumor_written = self.update_service_rumor_cfg(butterfly);
                 if let Some(err) = self.config.reload_gossip().err() {
                     outputln!(preamble self.service_group, "error loading gossip config, {}", err);
                 }
@@ -409,7 +407,7 @@ impl Service {
                 }
             }
         }
-        service_rumor_written
+        svc_cfg_updated
     }
 
     pub fn package(&self) -> RwLockReadGuard<PackageInstall> {
@@ -449,7 +447,7 @@ impl Service {
         self.initialized = false;
     }
 
-    pub fn to_rumor<T: ToString>(&self, member_id: T) -> ServiceRumor {
+    pub fn to_rumor(&self, incarnation: u64) -> ServiceRumor {
         let exported = match self.config.to_exported() {
             Ok(exported) => Some(exported),
             Err(err) => {
@@ -459,11 +457,13 @@ impl Service {
                 None
             }
         };
-        ServiceRumor::new(member_id.to_string(),
-                          &self.package().ident,
-                          &self.service_group,
-                          &*self.config.sys,
-                          exported.as_ref())
+        let mut rumor = ServiceRumor::new(self.local_member_id.clone(),
+                                          &self.package().ident,
+                                          &self.service_group,
+                                          &*self.config.sys,
+                                          exported.as_ref());
+        rumor.set_incarnation(incarnation);
+        rumor
     }
 
     /// Run initialization hook if present
@@ -687,11 +687,11 @@ impl Service {
     /// Write service configuration from gossip data to disk.
     ///
     /// Returns true if a change was made and false if there were no updates.
-    fn persist_service_config(&mut self, butterfly: &butterfly::Server) -> bool {
-        if let Some((incarnation, config)) =
-            butterfly.service_config_for(&*self.service_group, Some(self.config.incarnation)) {
-            self.config.incarnation = incarnation;
-            self.write_butterfly_service_config(config)
+    fn persist_service_config(&mut self, census_group: &CensusGroup) -> bool {
+        if let Some(service_config) = census_group.service_config.as_ref() {
+
+            self.config.incarnation = service_config.incarnation;
+            self.write_gossiped_service_config(&service_config.value)
         } else {
             false
         }
@@ -700,13 +700,10 @@ impl Service {
     /// Write service files from gossip data to disk.
     ///
     /// Returnst rue if a file was changed, added, or removed, and false if there were no updates.
-    fn persist_service_files(&mut self, butterfly: &butterfly::Server) -> bool {
+    fn persist_service_files(&mut self, census_group: &CensusGroup) -> bool {
         let mut updated = false;
-        for (incarnation, filename, body) in
-            butterfly
-                .service_files_for(&*self.service_group, &self.current_service_files)
-                .into_iter() {
-            if self.write_butterfly_service_file(filename, incarnation, body) {
+        for service_file in census_group.changed_service_files() {
+            if self.write_service_file(&service_file) {
                 updated = true;
             }
         }
@@ -742,45 +739,8 @@ impl Service {
         self.cache_health_check(check_result);
     }
 
-    /// Update our own service rumor with a new configuration from the packages exported
-    /// configuration data.
-    ///
-    /// The run loop's last updated census is a required parameter on this function to inform the
-    /// main loop that we, ourselves, updated the service counter when we updated ourselves.
-    fn update_service_rumor_cfg(&self, butterfly: &butterfly::Server) -> bool {
-        if let Some(cfg) = self.config.to_exported().ok() {
-            let me = butterfly.member_id().to_string();
-            let mut updated = None;
-            butterfly
-                .service_store
-                .with_rumor(&*self.service_group, &me, |rumor| {
-                    if let Some(rumor) = rumor {
-                        let mut rumor = rumor.clone();
-                        let incarnation = rumor.get_incarnation() + 1;
-                        rumor.set_incarnation(incarnation);
-                        // TODO FN: the updated toml API returns a `Result` when
-                        // serializing--we should handle this and not potentially panic
-                        *rumor.mut_cfg() =
-                            toml::ser::to_vec(&cfg).expect("Can't serialize to TOML bytes");
-                        updated = Some(rumor);
-                    }
-                });
-            if let Some(rumor) = updated {
-                butterfly.insert_service(rumor);
-                return true;
-            }
-        }
-        false
-    }
-
-    fn write_butterfly_service_file(&mut self,
-                                    filename: String,
-                                    incarnation: u64,
-                                    body: Vec<u8>)
-                                    -> bool {
-        self.current_service_files
-            .insert(filename.clone(), incarnation);
-        let on_disk_path = self.svc_files_path().join(filename);
+    fn write_service_file(&mut self, service_file: &ServiceFile) -> bool {
+        let on_disk_path = self.svc_files_path().join(&service_file.filename);
         let current_checksum = match hash::hash_file(&on_disk_path) {
             Ok(current_checksum) => current_checksum,
             Err(e) => {
@@ -790,7 +750,7 @@ impl Service {
                 String::new()
             }
         };
-        let new_checksum = hash::hash_bytes(&body)
+        let new_checksum = hash::hash_bytes(&service_file.body)
             .expect("We failed to hash a Vec<u8> in a method that can't return an error; not \
                      even sure what this means");
         if new_checksum != current_checksum {
@@ -807,7 +767,7 @@ impl Service {
                 }
             };
 
-            if let Err(e) = new_file.write_all(&body) {
+            if let Err(e) = new_file.write_all(&service_file.body) {
                 outputln!(preamble self.service_group,
                               "Service file from butterfly failed to write {}: {}",
                               new_filename,
@@ -852,8 +812,8 @@ impl Service {
         }
     }
 
-    fn write_butterfly_service_config(&mut self, config: toml::Value) -> bool {
-        let encoded = toml::ser::to_string(&config)
+    fn write_gossiped_service_config(&mut self, config: &toml::Value) -> bool {
+        let encoded = toml::ser::to_string(config)
             .expect("Failed to serialize service configuration to a string in a method that \
                      can't return an error; this could be made better");
         let on_disk_path = self.svc_path().join("gossip.toml");
