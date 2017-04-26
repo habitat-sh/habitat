@@ -31,7 +31,6 @@ use std::sync::{Arc, RwLock, RwLockReadGuard};
 use std::time::{Duration, Instant};
 
 use ansi_term::Colour::{Yellow, Red, Green};
-use butterfly;
 use butterfly::rumor::service::Service as ServiceRumor;
 use common::ui::UI;
 use hcore::fs::FS_ROOT_PATH;
@@ -287,14 +286,14 @@ impl Service {
         self.supervisor.check_process()
     }
 
-    pub fn tick(&mut self, butterfly: &butterfly::Server, census_ring: &CensusRing) -> bool {
+    pub fn tick(&mut self, census_ring: &CensusRing) -> bool {
         if !self.initialized {
             if !self.all_bindings_present(census_ring) {
                 outputln!(preamble self.service_group, "Waiting to initialize service.");
                 return false;
             }
         }
-        let svc_cfg_updated = self.update_configuration(butterfly, census_ring);
+        let svc_cfg_updated = self.update_configuration(census_ring);
 
         match self.topology {
             Topology::Standalone => {
@@ -379,15 +378,13 @@ impl Service {
         ret
     }
 
-    fn update_configuration(&mut self,
-                            butterfly: &butterfly::Server,
-                            census_ring: &CensusRing)
-                            -> bool {
+    fn update_configuration(&mut self, census_ring: &CensusRing) -> bool {
         let sg = self.service_group.clone();
+        let census_group = census_ring.census_group_for(&sg).unwrap();
         self.config.populate(&self.service_group, census_ring);
-        self.persist_service_files(census_ring.census_group_for(&sg).unwrap());
+        self.persist_service_files(census_group);
 
-        let svc_cfg_updated = self.persist_service_config(butterfly);
+        let svc_cfg_updated = self.persist_service_config(census_group);
         if svc_cfg_updated || census_ring.changed {
             if svc_cfg_updated {
                 if let Some(err) = self.config.reload_gossip().err() {
@@ -690,11 +687,11 @@ impl Service {
     /// Write service configuration from gossip data to disk.
     ///
     /// Returns true if a change was made and false if there were no updates.
-    fn persist_service_config(&mut self, butterfly: &butterfly::Server) -> bool {
-        if let Some((incarnation, config)) =
-            butterfly.service_config_for(&*self.service_group, Some(self.config.incarnation)) {
-            self.config.incarnation = incarnation;
-            self.write_butterfly_service_config(config)
+    fn persist_service_config(&mut self, census_group: &CensusGroup) -> bool {
+        if let Some(service_config) = census_group.service_config.as_ref() {
+
+            self.config.incarnation = service_config.incarnation;
+            self.write_gossiped_service_config(&service_config.value)
         } else {
             false
         }
@@ -815,8 +812,8 @@ impl Service {
         }
     }
 
-    fn write_butterfly_service_config(&mut self, config: toml::Value) -> bool {
-        let encoded = toml::ser::to_string(&config)
+    fn write_gossiped_service_config(&mut self, config: &toml::Value) -> bool {
+        let encoded = toml::ser::to_string(config)
             .expect("Failed to serialize service configuration to a string in a method that \
                      can't return an error; this could be made better");
         let on_disk_path = self.svc_path().join("gossip.toml");

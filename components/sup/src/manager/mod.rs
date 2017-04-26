@@ -452,7 +452,7 @@ impl Manager {
                     .write()
                     .expect("Services lock is poisoned!")
                     .iter_mut() {
-                if service.tick(&self.butterfly, &self.census_ring) {
+                if service.tick(&self.census_ring) {
                     self.gossip_latest_service_rumor(&service);
                     service_rumor_offset += 1;
                 }
