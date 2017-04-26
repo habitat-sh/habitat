@@ -34,4 +34,14 @@ describe("actions", () => {
             });
         });
     });
+
+    describe("populateExploreStats", () => {
+        it("has an object payload", () => {
+            let data = { plans: 123, builds: 456 };
+            expect(actions.populateExploreStats(data)).toEqual({
+                type: actions.POPULATE_EXPLORE_STATS,
+                payload: data
+            });
+        });
+    });
 });

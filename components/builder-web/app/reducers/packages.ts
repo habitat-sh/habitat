@@ -31,7 +31,10 @@ export default function packages(state = initialState["packages"], action) {
                 setIn(["ui", "visible", "exists"], false);
 
         case actionTypes.POPULATE_EXPLORE:
-            return state.setIn(["explore"], List(action.payload));
+            return state.setIn(["explore", "popular"], List(action.payload));
+
+        case actionTypes.POPULATE_EXPLORE_STATS:
+            return state.setIn(["explore", "stats"], Record(action.payload)());
 
         case actionTypes.SET_CURRENT_PACKAGE:
             if (action.error) {

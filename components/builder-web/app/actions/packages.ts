@@ -18,6 +18,7 @@ import {fetchProjectsForPackages} from "./projects";
 
 export const CLEAR_PACKAGES = "CLEAR_PACKAGES";
 export const POPULATE_EXPLORE = "POPULATE_EXPLORE";
+export const POPULATE_EXPLORE_STATS = "POPULATE_EXPLORE_STATS";
 export const SET_CURRENT_PACKAGE = "SET_CURRENT_PACKAGE";
 export const SET_PACKAGES_NEXT_RANGE = "SET_PACKAGES_NEXT_RANGE";
 export const SET_PACKAGES_SEARCH_QUERY = "SET_PACKAGES_SEARCH_QUERY";
@@ -33,9 +34,14 @@ function clearPackages() {
 // Fetch the explore endpoint
 export function fetchExplore() {
     return dispatch => {
-        fakeApi.get("explore.json").then(response => {
-            dispatch(populateExplore(response));
-        }).catch(error => console.error(error));
+        Promise.all([
+            fakeApi.get("explore.json")
+                .then(response => dispatch(populateExplore(response)))
+                .catch(error => console.error(error)),
+            depotApi.getStats("core")
+                .then(data => dispatch(populateExploreStats(data)))
+                .catch(error => console.error(error))
+        ]);
     };
 }
 
@@ -98,6 +104,13 @@ export function filterPackagesBy(
 export function populateExplore(data) {
     return {
         type: POPULATE_EXPLORE,
+        payload: data,
+    };
+}
+
+export function populateExploreStats(data) {
+    return {
+        type: POPULATE_EXPLORE_STATS,
         payload: data,
     };
 }

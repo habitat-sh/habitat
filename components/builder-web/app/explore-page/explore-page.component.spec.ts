@@ -5,34 +5,41 @@ import { By } from "@angular/platform-browser";
 import { FormsModule } from "@angular/forms";
 import { Router } from "@angular/router";
 import { AppStore } from "../AppStore";
+import { fetchExplore } from "../actions/index";
 import { ExplorePageComponent } from "./explore-page.component";
 
 class MockAppStore {
   getState() {
     return {
       packages: {
-        explore: [
-          {
-              "name": "glibc",
-              "originCount": 4,
-              "starCount": 2345
-          },
-          {
-              "name": "mongodb",
-              "originCount": 3,
-              "starCount": 2340
-          },
-          {
-              "name": "redis",
-              "originCount": 16,
-              "starCount": 234
-          },
-          {
-              "name": "couchdb",
-              "originCount": 1,
-              "starCount": 23
+        explore: {
+          popular: [
+            {
+                "name": "glibc",
+                "originCount": 4,
+                "starCount": 2345
+            },
+            {
+                "name": "mongodb",
+                "originCount": 3,
+                "starCount": 2340
+            },
+            {
+                "name": "redis",
+                "originCount": 16,
+                "starCount": 234
+            },
+            {
+                "name": "couchdb",
+                "originCount": 1,
+                "starCount": 23
+            }
+          ],
+          stats: {
+            plans: 324,
+            builds: 12378
           }
-        ]
+        }
       }
     };
   }
@@ -43,6 +50,7 @@ describe("ExplorePageComponent", () => {
   let fixture: ComponentFixture<ExplorePageComponent>;
   let component: ExplorePageComponent;
   let element: DebugElement;
+  let store: AppStore;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -61,6 +69,15 @@ describe("ExplorePageComponent", () => {
     fixture = TestBed.createComponent(ExplorePageComponent);
     component = fixture.componentInstance;
     element = fixture.debugElement;
+    store = TestBed.get(AppStore);
+  });
+
+  describe("init", () => {
+    it("dispatches a request for the data the view needs", () => {
+      spyOn(store, "dispatch");
+      fixture.detectChanges();
+      expect(store.dispatch).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe("heading", () => {
@@ -127,13 +144,14 @@ describe("ExplorePageComponent", () => {
     });
 
     it("renders plan and build counts", () => {
+      fixture.detectChanges();
 
       function countFor(selector) {
         return element.query(By.css(`.stats .${selector} strong`)).nativeElement.textContent;
       }
 
       expect(countFor("plans")).toBe("324");
-      expect(countFor("builds")).toBe("12,378");
+      expect(countFor("builds")).toBe("12378");
     });
   });
 

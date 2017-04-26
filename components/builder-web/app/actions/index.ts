@@ -74,6 +74,7 @@ export const TOGGLE_ORIGIN_PICKER = originActions.TOGGLE_ORIGIN_PICKER;
 
 export const CLEAR_PACKAGES = packageActions.CLEAR_PACKAGES;
 export const POPULATE_EXPLORE = packageActions.POPULATE_EXPLORE;
+export const POPULATE_EXPLORE_STATS = packageActions.POPULATE_EXPLORE_STATS;
 export const SET_CURRENT_PACKAGE = packageActions.SET_CURRENT_PACKAGE;
 export const SET_PACKAGES_NEXT_RANGE = packageActions.SET_PACKAGES_NEXT_RANGE;
 export const SET_PACKAGES_SEARCH_QUERY =
@@ -150,6 +151,7 @@ export const fetchExplore = packageActions.fetchExplore;
 export const fetchPackage = packageActions.fetchPackage;
 export const filterPackagesBy = packageActions.filterPackagesBy;
 export const populateExplore = packageActions.populateExplore;
+export const populateExploreStats = packageActions.populateExploreStats;
 export const setCurrentPackage = packageActions.setCurrentPackage;
 export const setPackagesSearchQuery = packageActions.setPackagesSearchQuery;
 export const setVisiblePackages = packageActions.setVisiblePackages;
