@@ -37,3 +37,9 @@ Because Habitat provides for automation that is built into the application packa
        {{/if}}
 
 This logic says that if this peer is a follower, it will become a read replica of the IP and port of service leader (`svc.leader`), which is has found by service discovery through the ring. However, if this peer is the leader, the entire list of statements here evaluate to empty text -- meaning that the peer starts up as the leader.
+
+<hr>
+<ul class="main-content--link-nav">
+  <li>Continue to the next topic</li>
+  <li><a href="/docs/run-packages-apply-config-updates">Configuration updates</a></li>
+</ul>
