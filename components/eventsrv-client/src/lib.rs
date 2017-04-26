@@ -14,6 +14,7 @@
 
 extern crate env_logger;
 extern crate habitat_eventsrv;
+#[macro_use]
 extern crate log;
 extern crate protobuf;
 extern crate time;
@@ -32,14 +33,15 @@ pub struct EventSrvClient {
 impl EventSrvClient {
     pub fn new(ports: Vec<String>) -> Self {
         let ctx = Context::new();
-        let socket = ctx.socket(PUSH).expect("error creating socket");
+        let socket = ctx.socket(PUSH)
+            .expect("unable to create EventSrvClient push socket");
 
         // We want to intentionally set the high water mark for this socket to a low number. In the
         // event that one of our eventsrv processes crashes, this provides two benefits: it reduces
         // the number of message frames that get backed up and it also reduces the impact those
         // stale messages have when the dead process comes back and those messages get sent
         // through.
-        let _ = socket.set_sndhwm(2);
+        socket.set_sndhwm(2).unwrap();
 
         EventSrvClient {
             ports: ports,
@@ -50,7 +52,7 @@ impl EventSrvClient {
     pub fn connect(&self) {
         for p in &self.ports {
             let push_connect = format!("tcp://localhost:{}", p);
-            println!("connecting to {}", push_connect);
+            debug!("EventSrvClient connecting to {}", push_connect);
             assert!(self.socket.connect(&push_connect).is_ok());
         }
     }

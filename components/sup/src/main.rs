@@ -325,17 +325,8 @@ fn sub_stop(m: &ArgMatches) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
     let spec_file = Manager::spec_path_for(&cfg, &ServiceSpec::default_for(ident));
     let mut spec = ServiceSpec::from_file(&spec_file)?;
-    match spec.start_style {
-        StartStyle::Transient => {
-            std::fs::remove_file(&spec_file).map_err(|err| {
-                sup_error!(Error::ServiceSpecFileIO(spec_file, err))
-            })
-        }
-        StartStyle::Persistent => {
-            spec.desired_state = DesiredState::Down;
-            Manager::save_spec_for(&cfg, spec)
-        }
-    }
+    spec.desired_state = DesiredState::Down;
+    Manager::save_spec_for(&cfg, spec)
 }
 
 fn mgrcfg_from_matches(m: &ArgMatches) -> Result<ManagerConfig> {

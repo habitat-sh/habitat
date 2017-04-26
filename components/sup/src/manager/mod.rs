@@ -301,13 +301,27 @@ impl Manager {
         }
     }
 
-    fn add_service(&mut self, spec: ServiceSpec) -> Result<()> {
-        let service = Service::load(spec,
-                                    &self.gossip_listen,
-                                    &self.http_listen,
-                                    self.fs_cfg.clone(),
-                                    self.organization.as_ref().map(|org| &**org))?;
-        service.add()?;
+    fn add_service(&mut self, spec: ServiceSpec) {
+        outputln!("Starting {}", &spec.ident);
+        // JW TODO: This clone sucks, but our data structures are a bit messy here. What we really
+        // want is the service to hold the spec and, on failure, return an error with the spec
+        // back to us. Since we consume and deconstruct the spec in `Service::new()` which
+        // `Service::load()` eventually delegates to we just can't have that. We should clean
+        // this up in the future.
+        let service = match Service::load(spec.clone(),
+                                          &self.gossip_listen,
+                                          &self.http_listen,
+                                          self.fs_cfg.clone(),
+                                          self.organization.as_ref().map(|org| &**org)) {
+            Ok(service) => service,
+            Err(err) => {
+                outputln!("Unable to start {}, {}", &spec.ident, err);
+                if spec.start_style == StartStyle::Transient {
+                    self.remove_spec(&spec);
+                }
+                return;
+            }
+        };
         self.butterfly
             .insert_service(service.to_rumor(self.butterfly.member_id()));
         if service.topology == Topology::Leader {
@@ -319,20 +333,21 @@ impl Manager {
             .write()
             .expect("Services lock is poisoned!")
             .push(service);
-        Ok(())
     }
 
-    fn remove_service(&self, service: &mut Service) -> Result<()> {
+    fn remove_service(&self, service: &mut Service) {
         // JW TODO: Update service rumor to remove service from cluster
         service.stop();
         if service.start_style == StartStyle::Transient {
+            // JW TODO: If we cleanup our Service structure to hold the ServiceSpec instead of
+            // deconstruct it (see my comments in `add_service()` in this module) then we could
+            // leverage `remove_spec()` instead of duplicaing this logic here.
             if let Err(err) = fs::remove_file(&service.spec_file) {
                 outputln!("Unable to cleanup service spec for transient service, {}, {}",
                           service,
                           err);
             }
         }
-        Ok(())
     }
 
     pub fn run(&mut self) -> Result<()> {
@@ -629,9 +644,7 @@ impl Manager {
             .write()
             .expect("Services lock is poisend!");
         for mut service in services.drain(..) {
-            if let Err(err) = self.remove_service(&mut service) {
-                warn!("Couldn't cleanly shutdown service, {}, {}", service, err);
-            }
+            self.remove_service(&mut service);
         }
         release_process_lock(&self.fs_cfg);
         outputln!("Habitat thanks you - shutting down!");
@@ -642,7 +655,8 @@ impl Manager {
             match service_event {
                 SpecWatcherEvent::AddService(spec) => {
                     if spec.desired_state == DesiredState::Up {
-                        self.add_service(spec)?;
+                        // JW TODO: Should we retry starting services which we failed to add?
+                        self.add_service(spec);
                     }
                 }
                 _ => warn!("Skipping unexpected watcher event: {:?}", service_event),
@@ -664,7 +678,7 @@ impl Manager {
             match service_event {
                 SpecWatcherEvent::AddService(spec) => {
                     if spec.desired_state == DesiredState::Up {
-                        self.add_service(spec)?;
+                        self.add_service(spec);
                     }
                 }
                 SpecWatcherEvent::RemoveService(spec) => self.remove_service_for_spec(&spec)?,
@@ -690,8 +704,17 @@ impl Manager {
             }
         };
         let mut service = services.remove(services_idx);
-        self.remove_service(&mut service)?;
+        self.remove_service(&mut service);
         Ok(())
+    }
+
+    /// Remove the on disk representation of the given service spec
+    fn remove_spec(&self, spec: &ServiceSpec) {
+        if let Err(err) = fs::remove_file(self.fs_cfg.specs_path.join(spec.file_name())) {
+            outputln!("Unable to cleanup service spec for transient service, {}, {}",
+                      spec.ident,
+                      err);
+        }
     }
 }
 
