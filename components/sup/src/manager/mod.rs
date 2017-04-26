@@ -301,13 +301,20 @@ impl Manager {
         }
     }
 
-    fn add_service(&mut self, spec: ServiceSpec) -> Result<()> {
-        let service = Service::load(spec,
-                                    &self.gossip_listen,
-                                    &self.http_listen,
-                                    self.fs_cfg.clone(),
-                                    self.organization.as_ref().map(|org| &**org))?;
-        service.add()?;
+    fn add_service(&mut self, spec: ServiceSpec) {
+        let package_ident = spec.ident.to_string();
+        outputln!("Starting {}", package_ident);
+        let service = match Service::load(spec,
+                                          &self.gossip_listen,
+                                          &self.http_listen,
+                                          self.fs_cfg.clone(),
+                                          self.organization.as_ref().map(|org| &**org)) {
+            Ok(service) => service,
+            Err(err) => {
+                outputln!("Unable to start {}, {}", package_ident, err);
+                return;
+            }
+        };
         self.butterfly
             .insert_service(service.to_rumor(self.butterfly.member_id()));
         if service.topology == Topology::Leader {
@@ -319,10 +326,9 @@ impl Manager {
             .write()
             .expect("Services lock is poisoned!")
             .push(service);
-        Ok(())
     }
 
-    fn remove_service(&self, service: &mut Service) -> Result<()> {
+    fn remove_service(&self, service: &mut Service) {
         // JW TODO: Update service rumor to remove service from cluster
         service.stop();
         if service.start_style == StartStyle::Transient {
@@ -332,7 +338,6 @@ impl Manager {
                           err);
             }
         }
-        Ok(())
     }
 
     pub fn run(&mut self) -> Result<()> {
@@ -629,9 +634,7 @@ impl Manager {
             .write()
             .expect("Services lock is poisend!");
         for mut service in services.drain(..) {
-            if let Err(err) = self.remove_service(&mut service) {
-                warn!("Couldn't cleanly shutdown service, {}, {}", service, err);
-            }
+            self.remove_service(&mut service);
         }
         release_process_lock(&self.fs_cfg);
         outputln!("Habitat thanks you - shutting down!");
@@ -642,7 +645,8 @@ impl Manager {
             match service_event {
                 SpecWatcherEvent::AddService(spec) => {
                     if spec.desired_state == DesiredState::Up {
-                        self.add_service(spec)?;
+                        // JW TODO: Should we retry starting services which we failed to add?
+                        self.add_service(spec);
                     }
                 }
                 _ => warn!("Skipping unexpected watcher event: {:?}", service_event),
@@ -664,7 +668,7 @@ impl Manager {
             match service_event {
                 SpecWatcherEvent::AddService(spec) => {
                     if spec.desired_state == DesiredState::Up {
-                        self.add_service(spec)?;
+                        self.add_service(spec);
                     }
                 }
                 SpecWatcherEvent::RemoveService(spec) => self.remove_service_for_spec(&spec)?,
@@ -690,7 +694,7 @@ impl Manager {
             }
         };
         let mut service = services.remove(services_idx);
-        self.remove_service(&mut service)?;
+        self.remove_service(&mut service);
         Ok(())
     }
 }

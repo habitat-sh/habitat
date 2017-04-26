@@ -171,31 +171,26 @@ impl Service {
             Ok(package) => {
                 match spec.update_strategy {
                     UpdateStrategy::AtOnce => {
-                        try!(util::pkg::maybe_install_newer(&mut ui, &spec, package))
+                        util::pkg::maybe_install_newer(&mut ui, &spec, package)?
                     }
                     UpdateStrategy::None | UpdateStrategy::Rolling => package,
                 }
             }
             Err(_) => {
-                outputln!("Package {} not found locally, installing from {}",
+                outputln!("{} not found in local package cache, installing from {}",
                           Yellow.bold().paint(spec.ident.to_string()),
                           &spec.depot_url);
-                try!(util::pkg::install(&mut ui, &spec.depot_url, &spec.ident))
+                util::pkg::install(&mut ui, &spec.depot_url, &spec.ident)?
             }
         };
-        Self::new(package,
-                  spec,
-                  gossip_listen,
-                  http_listen,
-                  manager_fs_cfg,
-                  organization)
-    }
-
-    pub fn add(&self) -> Result<()> {
-        outputln!("Adding {}",
-                  Yellow.bold().paint(self.package().ident().to_string()));
-        self.create_svc_path()?;
-        Ok(())
+        let service = Self::new(package,
+                                spec,
+                                gossip_listen,
+                                http_listen,
+                                manager_fs_cfg,
+                                organization)?;
+        service.create_svc_path()?;
+        Ok(service)
     }
 
     /// Create the service path for this package.
@@ -372,8 +367,10 @@ impl Service {
                    .is_none() {
                 ret = false;
                 outputln!(preamble self.service_group,
-                          "The specified service group '{}' for binding '{}' is not (yet?) present in the census data.",
-                          Green.bold().paint(format!("{}", bind.service_group)), Green.bold().paint(format!("{}", bind.name)));
+                          "The specified service group '{}' for binding '{}' is not (yet?) present \
+                          in the census data.",
+                          Green.bold().paint(format!("{}", bind.service_group)),
+                          Green.bold().paint(format!("{}", bind.name)));
             }
         }
         ret
