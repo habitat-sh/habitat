@@ -106,7 +106,13 @@ export default Record({
     })(),
     packages: Record({
         current: undefined,
-        explore: List(),
+        explore: Record({
+            popular: List(),
+            stats: Record({
+                plans: 0,
+                builds: 0
+            })()
+        })(),
         visible: List(),
         nextRange: 0,
         searchQuery: "",
