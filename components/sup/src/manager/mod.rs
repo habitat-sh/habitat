@@ -302,16 +302,23 @@ impl Manager {
     }
 
     fn add_service(&mut self, spec: ServiceSpec) {
-        let package_ident = spec.ident.to_string();
-        outputln!("Starting {}", package_ident);
-        let service = match Service::load(spec,
+        outputln!("Starting {}", &spec.ident);
+        // JW TODO: This clone sucks, but our data structures are a bit messy here. What we really
+        // want is the service to hold the spec and, on failure, return an error with the spec
+        // back to us. Since we consume and deconstruct the spec in `Service::new()` which
+        // `Service::load()` eventually delegates to we just can't have that. We should clean
+        // this up in the future.
+        let service = match Service::load(spec.clone(),
                                           &self.gossip_listen,
                                           &self.http_listen,
                                           self.fs_cfg.clone(),
                                           self.organization.as_ref().map(|org| &**org)) {
             Ok(service) => service,
             Err(err) => {
-                outputln!("Unable to start {}, {}", package_ident, err);
+                outputln!("Unable to start {}, {}", &spec.ident, err);
+                if spec.start_style == StartStyle::Transient {
+                    self.remove_spec(&spec);
+                }
                 return;
             }
         };
@@ -332,6 +339,9 @@ impl Manager {
         // JW TODO: Update service rumor to remove service from cluster
         service.stop();
         if service.start_style == StartStyle::Transient {
+            // JW TODO: If we cleanup our Service structure to hold the ServiceSpec instead of
+            // deconstruct it (see my comments in `add_service()` in this module) then we could
+            // leverage `remove_spec()` instead of duplicaing this logic here.
             if let Err(err) = fs::remove_file(&service.spec_file) {
                 outputln!("Unable to cleanup service spec for transient service, {}, {}",
                           service,
@@ -696,6 +706,15 @@ impl Manager {
         let mut service = services.remove(services_idx);
         self.remove_service(&mut service);
         Ok(())
+    }
+
+    /// Remove the on disk representation of the given service spec
+    fn remove_spec(&self, spec: &ServiceSpec) {
+        if let Err(err) = fs::remove_file(self.fs_cfg.specs_path.join(spec.file_name())) {
+            outputln!("Unable to cleanup service spec for transient service, {}, {}",
+                      spec.ident,
+                      err);
+        }
     }
 }
 
