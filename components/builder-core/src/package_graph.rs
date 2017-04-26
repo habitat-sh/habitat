@@ -113,6 +113,22 @@ impl PackageGraph {
         (self.graph.node_count(), self.graph.edge_count())
     }
 
+    pub fn extend(&mut self, package: &scheduler::Package) -> (usize, usize) {
+        let name = format!("{}", package.get_ident());
+        let (pkg_id, pkg_node) = self.generate_id(&name);
+
+        assert_eq!(pkg_id, pkg_node.index());
+
+        let deps = package.get_deps();
+        for dep in deps {
+            let depname = format!("{}", dep);
+            let (_, dep_node) = self.generate_id(&depname);
+            self.graph.extend_with_edges(&[(dep_node, pkg_node)]);
+        }
+
+        (self.graph.node_count(), self.graph.edge_count())
+    }
+
     pub fn rdeps(&self, name: &str) -> Option<Vec<(String, String)>> {
         let mut v = Vec::new();
 

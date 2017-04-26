@@ -20,7 +20,7 @@ use db::migration::Migrator;
 use db::error::{Error as DbError, Result as DbResult};
 use hab_net::routing::Broker;
 use postgres::rows::Rows;
-use protocol::{originsrv, sessionsrv};
+use protocol::{originsrv, sessionsrv, scheduler};
 use protocol::net::NetOk;
 use protocol::originsrv::Pageable;
 use postgres;
@@ -85,6 +85,8 @@ impl DataStore {
             .register("sync_invitations".to_string(), sync_invitations);
         self.async
             .register("sync_origins".to_string(), sync_origins);
+        self.async
+            .register("sync_packages".to_string(), sync_packages);
 
         Ok(())
     }
@@ -501,6 +503,9 @@ impl DataStore {
                                 &self.into_delimited(opc.get_tdeps().to_vec()),
                                 &self.into_delimited(opc.get_exposes().to_vec())])
             .map_err(Error::OriginPackageCreate)?;
+
+        self.async.schedule("sync_packages")?;
+
         let row = rows.get(0);
         Ok(self.row_to_origin_package(&row))
     }
@@ -853,6 +858,39 @@ fn sync_origins(pool: Pool) -> DbResult<EventOutcome> {
                     }
                     Err(e) => {
                         warn!("Failed to sync origin creation with the session service, {:?}: {}",
+                              request,
+                              e);
+                        result = EventOutcome::Retry;
+                    }
+                }
+            }
+        }
+    }
+    Ok(result)
+}
+
+fn sync_packages(pool: Pool) -> DbResult<EventOutcome> {
+    let mut result = EventOutcome::Finished;
+    for shard in pool.shards.iter() {
+        let conn = pool.get_shard(*shard)?;
+        let rows = &conn.query("SELECT * FROM sync_packages_v1()", &[])
+                        .map_err(DbError::AsyncFunctionCheck)?;
+        if rows.len() > 0 {
+            let mut bconn = Broker::connect()?;
+            let mut request = scheduler::PackageCreate::new();
+            for row in rows.iter() {
+                let pid: i64 = row.get("package_id");
+                let ident: String = row.get("package_ident");
+                request.set_ident(ident);
+                match bconn.route::<scheduler::PackageCreate, NetOk>(&request) {
+                    Ok(_) => {
+                        conn.query("SELECT * FROM set_packages_sync_v1($1)", &[&pid])
+                            .map_err(DbError::AsyncFunctionUpdate)?;
+                        debug!("Updated scheduler service with package creation, {:?}",
+                               request);
+                    }
+                    Err(e) => {
+                        warn!("Failed to sync package creation with the scheduler service, {:?}: {}",
                               request,
                               e);
                         result = EventOutcome::Retry;

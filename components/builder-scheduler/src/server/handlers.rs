@@ -133,10 +133,36 @@ pub fn group_get(req: &mut Envelope,
     Ok(())
 }
 
+pub fn package_create(req: &mut Envelope,
+                      sock: &mut zmq::Socket,
+                      state: &mut ServerState)
+                      -> Result<()> {
+    let msg: proto::PackageCreate = try!(req.parse_msg());
+    println!("package_create message: {:?}", msg);
+
+    let package = state.datastore().create_package(&msg)?;
+
+    // Extend the graph with new package
+    {
+        let mut graph = state.graph().write().unwrap();
+        let start_time = PreciseTime::now();
+        let (ncount, ecount) = graph.extend(&package);
+        let end_time = PreciseTime::now();
+
+        println!("Extended graph, nodes: {}, edges: {} ({} sec)\n",
+                 ncount,
+                 ecount,
+                 start_time.to(end_time));
+    };
+
+    try!(req.reply_complete(sock, &package));
+    Ok(())
+}
+
 pub fn package_stats_get(req: &mut Envelope,
-                 sock: &mut zmq::Socket,
-                 state: &mut ServerState)
-                 -> Result<()> {
+                         sock: &mut zmq::Socket,
+                         state: &mut ServerState)
+                         -> Result<()> {
     let msg: proto::PackageStatsGet = try!(req.parse_msg());
     println!("package_stats_get message: {:?}", msg);
 

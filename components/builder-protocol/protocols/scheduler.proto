@@ -42,6 +42,11 @@ message Package {
   repeated string deps = 2;
 }
 
+message PackageCreate {
+  optional string ident = 1;
+  repeated string deps = 2;
+}
+
 message PackageStatsGet {
   optional string origin = 1;
 }
