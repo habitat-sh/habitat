@@ -10,8 +10,11 @@ workspace = "../../"
 [dependencies]
 byteorder = "*"
 env_logger = "*"
+habitat_core = { path = "../core" }
 log = "*"
 protobuf = "*"
+serde = "*"
+serde_derive = "*"
 time = "*"
 
 [dependencies.zmq]

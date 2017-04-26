@@ -12,19 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+extern crate habitat_core as core;
 #[macro_use]
 extern crate log;
 extern crate protobuf;
+extern crate serde;
+#[macro_use]
+extern crate serde_derive;
 extern crate time;
 extern crate zmq;
 
+pub mod config;
+pub mod error;
 pub mod message;
 
-use message::event::EventEnvelope;
-use protobuf::parse_from_bytes;
 use std::collections::HashMap;
 use std::collections::HashSet;
+
+use protobuf::parse_from_bytes;
 use zmq::{Context, PULL, XPUB};
+
+use message::event::EventEnvelope;
 
 /// Proxies messages coming into `frontend_port` out through
 /// `backend_port`, caching recent messages for new subscribers.
@@ -48,7 +56,7 @@ use zmq::{Context, PULL, XPUB};
 ///
 /// If either `frontend_port` or `backend_port` cannot be bound to
 /// sockets (e.g., they're already in use), the thread will panic.
-pub fn proxy(frontend_port: i32, backend_port: i32) {
+pub fn proxy(frontend_port: u16, backend_port: u16) {
     let ctx = Context::new();
 
     let pull_sock = ctx.socket(PULL).unwrap();

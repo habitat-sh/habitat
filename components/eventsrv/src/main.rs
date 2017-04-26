@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-extern crate habitat_eventsrv;
+extern crate habitat_core as core;
+extern crate habitat_eventsrv as eventsrv;
 extern crate log;
 extern crate protobuf;
 
@@ -20,20 +21,21 @@ mod message;
 
 use std::env;
 
+use core::config::ConfigFile;
+use eventsrv::config::Config;
+
 fn main() {
-    let mut args: Vec<_> = env::args().collect();
+    let config = if let Some(path) = env::args().nth(1) {
+        Config::from_file(&path).unwrap_or(Config::default())
+    } else {
+        Config::default()
+    };
 
-    let port1 = args.remove(1);
-    let frontend_port: i32 = port1.parse().unwrap();
+    assert!(config.producer_port != config.consumer_port);
 
-    let port2 = args.remove(1);
-    let backend_port: i32 = port2.parse().unwrap();
-
-    assert!(frontend_port != backend_port);
-
-    println!("Frontend port is {}", frontend_port);
-    println!("Backend port is {}", backend_port);
+    println!("Producer port is {}", config.producer_port);
+    println!("Consumer port is {}", config.consumer_port);
     println!("Starting proxy service...");
 
-    habitat_eventsrv::proxy(frontend_port, backend_port);
+    eventsrv::proxy(config.producer_port, config.consumer_port);
 }
