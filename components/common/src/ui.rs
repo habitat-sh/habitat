@@ -13,7 +13,7 @@
 // limitations under the License.
 
 use std::fmt;
-use std::io::{self, BufRead, BufReader, Read, Write};
+use std::io::{self, BufRead, BufReader, Read, Stdout, Write};
 use std::process;
 
 use ansi_term::Colour;
@@ -640,7 +640,7 @@ mod tty {
 /// writer (i.e. implementing the `Write` trait) as a means to increase progress towards
 /// completion.
 pub struct ProgressBar {
-    bar: pbr::ProgressBar,
+    bar: pbr::ProgressBar<Stdout>,
     total: u64,
     current: u64,
 }

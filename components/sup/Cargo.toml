@@ -29,7 +29,7 @@ habitat_core = { path = "../core" }
 habitat_depot_client = { path = "../builder-depot-client" }
 habitat_eventsrv = { path = "../eventsrv" }
 habitat_eventsrv_client = { path = "../eventsrv-client" }
-handlebars = { version = "*", features = ["serde_type", "partial4"], default-features = false }
+handlebars = { version = "*", features = ["partial4"], default-features = false }
 iron = "*"
 lazy_static = "*"
 libc = "*"
@@ -46,7 +46,7 @@ serde_derive = "*"
 serde_json = "*"
 tempdir = "*"
 time = "*"
-toml = { version = "*", features = ["serde"], default-features = false, git = "https://github.com/alexcrichton/toml-rs" , rev = "d39c3f7b3ec95cb3cc1e579d7d747206c66aab74"}
+toml = { version = "*", features = ["serde"], default-features = false }
 url = "*"
 
 [target.'cfg(windows)'.dependencies]
