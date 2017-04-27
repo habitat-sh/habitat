@@ -96,45 +96,11 @@ Then, run the system preparation scripts and try to compile the project:
 cp components/hab/install.sh /tmp/
 sh support/linux/install_dev_0_ubuntu_latest.sh
 sh support/linux/install_dev_9_linux.sh
-```
-
-When you run the install_dev_9_linux.sh script, you may see this error.
-
-```
-The following packages have unmet dependencies:
- gdb : Depends: libreadline7 (>= 6.0) but it is not installable
-E: Unmet dependencies. Try 'apt-get -f install' with no packages (or specify a solution).
-```
-
-Unfortunately, running apt-get -f install does not currently fix the issue. To get around this,
-
-cd ~
-wget https://launchpad.net/ubuntu/+archive/primary/+files/readline_7.0.orig.tar.gz
-tar xzf readline_7.0.orig.tar.gz
-cd readline-7.0
-./configure
-make
-sudo make install
-make clean
-cd habitat
-sh support/linux/install_dev_9_linux.sh
-```
-
-You can ignore this error:
-
-```
-error: binary `protobuf-bin-gen-rust-do-not-use` already exists in destination as part of `protobuf v1.2.2`
-binary `protoc-gen-rust` already exists in destination as part of `protobuf v1.2.2`
-```
-
-Then go ahead a complete the setup with these commands.
-
-```
 . ~/.profile
 make
 ```
 
-These docs were tested with an Ubuntu 16.04 VM.
+These docs were tested with Ubuntu 16.04 and 16.10 VMs.
 
 ## Ubuntu: 14.04+ (Trusty+)
 
