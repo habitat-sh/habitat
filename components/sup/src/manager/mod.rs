@@ -42,7 +42,6 @@ use hcore::os::process;
 use protobuf::Message;
 use serde_json;
 use time::{SteadyTime, Duration as TimeDuration};
-use toml;
 
 pub use manager::service::{Service, ServiceConfig, ServiceSpec, UpdateStrategy, Topology};
 use self::service::{DesiredState, StartStyle};

@@ -9,12 +9,12 @@ ansi_term = "*"
 hyper = "*"
 libc = "*"
 log = "*"
-pbr = "0.2" # lock until ready to support 0.3+ interface
+pbr = "*"
 regex = "*"
 retry = "*"
 term = "*"
 time = "*"
-toml = { version = "*", features = ["serde"], default-features = false, git = "https://github.com/alexcrichton/toml-rs" , rev = "d39c3f7b3ec95cb3cc1e579d7d747206c66aab74" }
+toml = { version = "*", features = ["serde"], default-features = false }
 
 [dependencies.habitat_core]
 path = "../core"

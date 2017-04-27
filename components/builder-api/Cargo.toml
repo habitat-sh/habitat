@@ -24,18 +24,13 @@ router = "*"
 serde = "*"
 serde_derive = "*"
 serde_json = "*"
-toml = { version = "*", features = ["serde"], default-features = false, git = "https://github.com/alexcrichton/toml-rs" , rev = "d39c3f7b3ec95cb3cc1e579d7d747206c66aab74" }
+staticfile = "*"
+toml = { version = "*", features = ["serde"], default-features = false }
 unicase = "*"
 
 [dependencies.clap]
 version = "*"
 features = [ "suggestions", "color", "unstable" ]
-
-# JW TODO: Move back to a crate dependency once https://github.com/iron/staticfile/pull/91 has
-# been merged into master and released
-[dependencies.staticfile]
-git = "https://github.com/onur/staticfile"
-branch = "iron-0.5"
 
 [dependencies.zmq]
 git = "https://github.com/erickt/rust-zmq"

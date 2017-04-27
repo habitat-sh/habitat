@@ -20,7 +20,7 @@ pbr = "*"
 retry = "*"
 # Temporary depdency for gossip/rumor injection code duplication.
 temp_utp = "*"
-toml = { version = "*", features = ["serde"], default-features = false, git = "https://github.com/alexcrichton/toml-rs" , rev = "d39c3f7b3ec95cb3cc1e579d7d747206c66aab74"}
+toml = { version = "*", features = ["serde"], default-features = false }
 url = "*"
 walkdir = "*"
 

@@ -237,9 +237,9 @@ impl fmt::Display for ServiceBind {
     }
 }
 
-impl serde::Deserialize for ServiceBind {
+impl<'de> serde::Deserialize<'de> for ServiceBind {
     fn deserialize<D>(deserializer: D) -> result::Result<Self, D::Error>
-        where D: serde::Deserializer
+        where D: serde::Deserializer<'de>
     {
         deserialize_using_from_str(deserializer)
     }

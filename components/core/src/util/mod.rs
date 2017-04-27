@@ -23,14 +23,14 @@ use std::str::FromStr;
 
 use serde;
 
-pub fn deserialize_using_from_str<T, E, D>(d: D) -> result::Result<T, D::Error>
+pub fn deserialize_using_from_str<'de, T, E, D>(d: D) -> result::Result<T, D::Error>
     where T: FromStr<Err = E>,
           E: error::Error,
-          D: serde::Deserializer
+          D: serde::Deserializer<'de>
 {
     struct FromStringable<T, E>(PhantomData<T>, PhantomData<E>);
 
-    impl<T, E> serde::de::Visitor for FromStringable<T, E>
+    impl<'de, T, E> serde::de::Visitor<'de> for FromStringable<T, E>
         where T: FromStr<Err = E>,
               E: error::Error
     {
@@ -54,7 +54,7 @@ pub fn deserialize_using_from_str<T, E, D>(d: D) -> result::Result<T, D::Error>
         }
     }
 
-    d.deserialize(FromStringable(PhantomData, PhantomData))
+    d.deserialize_any(FromStringable(PhantomData, PhantomData))
 }
 
 pub fn serialize_using_to_string<T, S>(t: &T, s: S) -> result::Result<S::Ok, S::Error>

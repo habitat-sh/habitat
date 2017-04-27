@@ -928,9 +928,9 @@ impl Default for Topology {
     }
 }
 
-impl serde::Deserialize for Topology {
+impl<'de> serde::Deserialize<'de> for Topology {
     fn deserialize<D>(deserializer: D) -> result::Result<Self, D::Error>
-        where D: serde::Deserializer
+        where D: serde::Deserializer<'de>
     {
         deserialize_using_from_str(deserializer)
     }
@@ -986,9 +986,9 @@ impl Default for UpdateStrategy {
     }
 }
 
-impl serde::Deserialize for UpdateStrategy {
+impl<'de> serde::Deserialize<'de> for UpdateStrategy {
     fn deserialize<D>(deserializer: D) -> result::Result<Self, D::Error>
-        where D: serde::Deserializer
+        where D: serde::Deserializer<'de>
     {
         deserialize_using_from_str(deserializer)
     }
