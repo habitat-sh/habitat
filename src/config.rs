@@ -17,12 +17,12 @@ use std::fs::File;
 use std::io::Read;
 use std::path::Path;
 
-use serde::Deserialize;
+use serde::de::DeserializeOwned;
 use toml;
 
 use error::Error;
 
-pub trait ConfigFile: Deserialize + Sized {
+pub trait ConfigFile: DeserializeOwned + Sized {
     type Error: StdError + From<Error>;
 
     fn from_file<T: AsRef<Path>>(filepath: T) -> Result<Self, Self::Error> {
