@@ -211,7 +211,7 @@ impl ScheduleMgr {
 
                 if !self.check_dispatchable(group, &name) {
                     dispatchable = false;
-                    break
+                    break;
                 };
             }
 
@@ -224,7 +224,8 @@ impl ScheduleMgr {
 
     fn check_dispatchable(&mut self, group: &proto::Group, name: &str) -> bool {
         for project in group.get_projects() {
-            if (project.get_name() == name) && (project.get_state() != proto::ProjectState::Success) {
+            if (project.get_name() == name) &&
+               (project.get_state() != proto::ProjectState::Success) {
                 return false;
             }
         }

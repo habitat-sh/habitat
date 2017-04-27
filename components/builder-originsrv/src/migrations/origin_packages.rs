@@ -35,6 +35,7 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                     deps text,
                     tdeps text,
                     exposes text,
+                    scheduler_sync bool DEFAULT false,
                     created_at timestamptz DEFAULT now(),
                     updated_at timestamptz
              )"#)?;
@@ -53,7 +54,7 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                     op_exposes text
                  ) RETURNS SETOF origin_packages AS $$
                      BEGIN
-                         RETURN QUERY INSERT INTO origin_packages (origin_id, owner_id, name, ident, checksum, manifest, config, target, deps, tdeps, exposes) 
+                         RETURN QUERY INSERT INTO origin_packages (origin_id, owner_id, name, ident, checksum, manifest, config, target, deps, tdeps, exposes)
                                 VALUES (op_origin_id, op_owner_id, op_name, op_ident, op_checksum, op_manifest, op_config, op_target, op_deps, op_tdeps, op_exposes)
                                 RETURNING *;
                          RETURN;
@@ -122,5 +123,18 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                         RETURN;
                     END
                     $$ LANGUAGE plpgsql STABLE"#)?;
+    migrator.migrate("originsrv",
+                     r#"CREATE OR REPLACE FUNCTION sync_packages_v1() RETURNS TABLE(account_id bigint, package_id bigint, package_ident text) AS $$
+                    BEGIN
+                        RETURN QUERY SELECT origin_packages.owner_id, origin_packages.id, origin_packages.ident FROM origin_packages WHERE origin_packages.scheduler_sync = false;
+                        RETURN;
+                    END
+                    $$ LANGUAGE plpgsql STABLE"#)?;
+    migrator.migrate("originsrv",
+                     r#"CREATE OR REPLACE FUNCTION set_packages_sync_v1(in_package_id bigint) RETURNS VOID AS $$
+                    BEGIN
+                        UPDATE origin_packages SET scheduler_sync = true WHERE id = in_package_id;
+                    END
+                    $$ LANGUAGE plpgsql VOLATILE"#)?;
     Ok(())
 }

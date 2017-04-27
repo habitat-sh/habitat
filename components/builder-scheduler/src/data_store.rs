@@ -72,11 +72,13 @@ impl DataStore {
                      r#"CREATE OR REPLACE FUNCTION insert_package_v1 (
                                     pident text,
                                     pdeps text[]
-                                    ) RETURNS void AS $$
+                                ) RETURNS SETOF packages AS $$
                                         BEGIN
-                                            INSERT INTO packages (ident, deps)
+                                            RETURN QUERY INSERT INTO packages (ident, deps)
                                             VALUES
-                                                (pident, pdeps);
+                                                (pident, pdeps)
+                                            RETURNING *;
+                                            RETURN;
                                         END
                                     $$ LANGUAGE plpgsql VOLATILE
                                 "#)?;
@@ -221,7 +223,9 @@ impl DataStore {
                              END
                           $$ LANGUAGE plpgsql VOLATILE"#)?;
 
-        migrator.migrate("scheduler", r#"DROP INDEX IF EXISTS pending_groups_index_v1;"#)?;
+        migrator
+            .migrate("scheduler",
+                     r#"DROP INDEX IF EXISTS pending_groups_index_v1;"#)?;
         migrator.migrate("scheduler",
                          r#"CREATE INDEX pending_groups_index_v1 on groups(created_at) WHERE group_state = 'Pending'"#)?;
 
@@ -239,16 +243,15 @@ impl DataStore {
         Ok(())
     }
 
-    pub fn insert_package(&self, msg: &Package) -> Result<()> {
+    pub fn create_package(&self, msg: &PackageCreate) -> Result<Package> {
         let conn = self.pool.get_shard(0)?;
 
-        conn.execute("SELECT insert_package_v1($1, $2)",
-                     &[&msg.get_ident(), &msg.get_deps()])
+        let rows = conn.query("SELECT * FROM insert_package_v1($1, $2)",
+                              &[&msg.get_ident(), &msg.get_deps()])
             .map_err(Error::PackageInsert)?;
 
-        debug!("Package inserted: {}", msg.get_ident());
-
-        Ok(())
+        let row = rows.get(0);
+        self.row_to_package(&row)
     }
 
     pub fn get_packages(&self) -> Result<RepeatedField<Package>> {

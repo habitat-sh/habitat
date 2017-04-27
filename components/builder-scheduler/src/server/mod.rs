@@ -110,6 +110,7 @@ impl Dispatcher for Worker {
         match message.message_id() {
             "GroupCreate" => handlers::group_create(message, sock, state).unwrap(),
             "GroupGet" => handlers::group_get(message, sock, state).unwrap(),
+            "PackageCreate" => handlers::package_create(message, sock, state).unwrap(),            
             "PackageStatsGet" => handlers::package_stats_get(message, sock, state).unwrap(),
             _ => panic!("unexpected message: {:?}", message.message_id()),
         };

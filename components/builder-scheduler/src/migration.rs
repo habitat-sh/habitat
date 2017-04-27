@@ -41,9 +41,9 @@ impl DataMigrator {
         let packages = FileWalker::new(&self.packages_path);
 
         for p in packages {
-            let msg = proto::Package::from(p);
+            let msg = proto::PackageCreate::from(p);
             println!("Migrating package: {}", msg.get_ident());
-            self.datastore.insert_package(&msg)?;
+            self.datastore.create_package(&msg)?;
         }
 
         Ok(())

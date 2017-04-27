@@ -166,7 +166,8 @@ impl DataStore {
                             END
                          $$ LANGUAGE plpgsql VOLATILE"#)?;
 
-        migrator.migrate("jobsrv", r#"DROP INDEX IF EXISTS pending_jobs_index_v1;"#)?;
+        migrator
+            .migrate("jobsrv", r#"DROP INDEX IF EXISTS pending_jobs_index_v1;"#)?;
         migrator.migrate("jobsrv",
                          r#"CREATE INDEX pending_jobs_index_v1 on jobs(created_at) WHERE job_state = 'Pending'"#)?;
 
@@ -298,8 +299,8 @@ impl DataStore {
     /// * If the dispatched jobs cannot be selected from the database
     pub fn reset_jobs(&self) -> Result<()> {
         let conn = self.pool.get_shard(0)?;
-        let rows = &conn.query("SELECT reset_jobs_v1()", &[])
-                        .map_err(Error::JobReset)?;
+        conn.query("SELECT reset_jobs_v1()", &[])
+            .map_err(Error::JobReset)?;
         Ok(())
     }
 

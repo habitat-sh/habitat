@@ -38,6 +38,24 @@ impl From<OriginPackage> for Package {
     }
 }
 
+impl From<Package> for PackageCreate {
+    fn from(value: Package) -> PackageCreate {
+        let mut package = PackageCreate::new();
+
+        let name = format!("{}", value.get_ident());
+
+        let deps = value
+            .get_deps()
+            .iter()
+            .map(|x| format!("{}", x))
+            .collect();
+
+        package.set_ident(name);
+        package.set_deps(deps);
+        package
+    }
+}
+
 impl Routable for GroupCreate {
     type H = String;
 
@@ -51,6 +69,14 @@ impl Routable for GroupGet {
 
     fn route_key(&self) -> Option<Self::H> {
         Some(self.get_group_id().to_string())
+    }
+}
+
+impl Routable for PackageCreate {
+    type H = String;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(self.get_ident().to_string())
     }
 }
 
