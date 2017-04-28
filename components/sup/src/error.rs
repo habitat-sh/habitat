@@ -57,6 +57,7 @@ use handlebars;
 use hcore::{self, package};
 use hcore::package::Identifiable;
 use notify;
+use serde_json;
 use toml;
 
 use output::StructuredOutput;
@@ -131,7 +132,10 @@ pub enum Error {
     ProcessLockCorrupt,
     ProcessLocked(u32),
     ProcessLockIO(PathBuf, io::Error),
+    ServiceDeserializationError(serde_json::Error),
     ServiceLoaded(package::PackageIdent),
+    ServiceNotLoaded(package::PackageIdent),
+    ServiceSerializationError(serde_json::Error),
     ServiceSpecFileIO(PathBuf, io::Error),
     ServiceSpecParse(toml::de::Error),
     ServiceSpecRender(toml::ser::Error),
@@ -225,8 +229,15 @@ impl fmt::Display for SupError {
                         path.display(),
                         err)
             }
+            Error::ServiceDeserializationError(ref e) => {
+                format!("Can't deserialize service status: {}", e)
+            }
+            Error::ServiceNotLoaded(ref ident) => format!("Service {} not loaded", ident),
             Error::ServiceLoaded(ref ident) => {
                 format!("Service already loaded, unload '{}' and try again", ident)
+            }
+            Error::ServiceSerializationError(ref e) => {
+                format!("Can't serialize service to file: {}", e)
             }
             Error::ServiceSpecFileIO(ref path, ref err) => {
                 format!("Unable to write or read to a service spec file at {}, {}",
@@ -301,7 +312,10 @@ impl error::Error for SupError {
             Error::ProcessLockCorrupt => "Unable to decode contents of process lock",
             Error::ProcessLocked(_) => "Another instance of the Habitat Supervisor is already running",
             Error::ProcessLockIO(_, _) => "Unable to write or read to a process lock",
+            Error::ServiceDeserializationError(_) => "Can't deserialize service status",
+            Error::ServiceNotLoaded(_) => "Service status called when service not loaded",
             Error::ServiceLoaded(_) => "Service load or start called when service already loaded",
+            Error::ServiceSerializationError(_) => "Can't serialize service to file",
             Error::ServiceSpecFileIO(_, _) => "Unable to write or read to a service spec file",
             Error::ServiceSpecParse(_) => "Service spec could not be parsed successfully",
             Error::ServiceSpecRender(_) => "Service spec TOML could not be rendered successfully",

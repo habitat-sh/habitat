@@ -188,7 +188,7 @@ impl SpecWatcher {
         Ok(events)
     }
 
-    fn specs_from_watch_path<'a>(&self) -> Result<HashMap<String, ServiceSpec>> {
+    pub fn specs_from_watch_path<'a>(&self) -> Result<HashMap<String, ServiceSpec>> {
         let spec_files: Vec<PathBuf> = glob(&self.watch_path
                                                  .join(SPEC_FILE_GLOB)
                                                  .display()

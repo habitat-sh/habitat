@@ -59,6 +59,20 @@ To resume running a service which has been loaded but stopped (via the `hab serv
 
 		hab service start core/redis
 
+## Querying the supervisor for service status
+You can query all services currently loaded or running under the local supervisor using the `hab sup status` command. This command will list all persistent services loaded by the supervisor along with their current state. It will also list transient services that are currently running or in a `starting` or `restarting` state. The `status` command includes the version and release of the servicwe and for services that are running, it will include the `PID` of the running service.
+
+To retrieve status for an individual service, you can pass the service identifier:
+
+      hab sup status core/mysql
+
+The following exit codes are emitted by the `status` command:
+
+* `0` - The status command successfully reports status on loaded services
+* `1` - A generic error has occured calling the `hab` cli
+* `2` - A service identifier was passed to `hab sup status` and that service is not loaded by the supervisor
+* `3` - There is no local running supervisor
+
 <hr>
 <ul class="main-content--link-nav">
   <li>Continue to the next topic</li>

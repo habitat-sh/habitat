@@ -36,7 +36,7 @@ use hcore::package::PackageInstall;
 use hcore::service::ServiceGroup;
 use serde::{Serialize, Serializer};
 use serde::ser::SerializeStruct;
-use time::SteadyTime;
+use time::{self, Timespec};
 
 use error::{Result, Error};
 use fs;
@@ -104,7 +104,7 @@ pub struct Supervisor {
     pub package: Arc<RwLock<PackageInstall>>,
     pub preamble: String,
     pub state: ProcessState,
-    pub state_entered: SteadyTime,
+    pub state_entered: Timespec,
     pub has_started: bool,
     pub runtime_config: RuntimeConfig,
 }
@@ -119,7 +119,7 @@ impl Supervisor {
             package: package,
             preamble: format!("{}", service_group),
             state: ProcessState::Down,
-            state_entered: SteadyTime::now(),
+            state_entered: time::get_time(),
             has_started: false,
             runtime_config: runtime_config,
         }
@@ -127,14 +127,14 @@ impl Supervisor {
 
     fn enter_state(&mut self, state: ProcessState) {
         self.state = state;
-        self.state_entered = SteadyTime::now();
+        self.state_entered = time::get_time();
     }
 
     pub fn status(&self) -> (bool, String) {
         let status = format!("{}: {} for {}",
                              self.preamble,
                              self.state,
-                             SteadyTime::now() - self.state_entered);
+                             time::get_time() - self.state_entered);
         let healthy = match self.state {
             ProcessState::Up | ProcessState::Start | ProcessState::Restart => true,
             ProcessState::Down => false,
@@ -355,7 +355,7 @@ impl Serialize for Supervisor {
                                          .to_string()));
         try!(strukt.serialize_field("preamble", &self.preamble));
         try!(strukt.serialize_field("state", &self.state));
-        try!(strukt.serialize_field("state_entered", &self.state_entered.to_string()));
+        try!(strukt.serialize_field("state_entered", &self.state_entered.sec));
         try!(strukt.serialize_field("started", &self.has_started));
         try!(strukt.serialize_field("runtime_config", &self.runtime_config));
         strukt.end()

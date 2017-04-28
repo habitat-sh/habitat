@@ -44,9 +44,10 @@ use sup::error::{Error, Result};
 use sup::feat;
 use sup::command;
 use sup::http_gateway;
-use sup::manager::{Manager, ManagerConfig};
+use sup::manager::{Manager, ManagerConfig, ServiceStatus};
 use sup::manager::service::{DesiredState, ServiceBind, Topology, UpdateStrategy};
 use sup::manager::service::{ServiceSpec, StartStyle};
+use sup::supervisor::ProcessState;
 
 /// Our output key
 static LOGKEY: &'static str = "MN";
@@ -73,6 +74,7 @@ fn start() -> Result<()> {
         ("run", Some(m)) => sub_run(m),
         ("sh", Some(m)) => sub_sh(m),
         ("start", Some(m)) => sub_start(m),
+        ("status", Some(m)) => sub_status(m),
         ("stop", Some(m)) => sub_stop(m),
         ("unload", Some(m)) => sub_unload(m),
         _ => unreachable!(),
@@ -186,6 +188,14 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                 "One or more service groups to bind to a configuration")
             (@arg CONFIG_DIR: --("config-from") +takes_value {dir_exists}
                 "Use package config from this path, rather than the package itself")
+        )
+        (@subcommand status =>
+            (about: "Query the status of Habitat services.")
+            (aliases: &["stat", "statu", "status"])
+            (@arg PKG_IDENT: +takes_value "A Habitat package identifier (ex: core/redis)")
+            (@arg NAME: --("override-name") +takes_value
+                "The name for the state directory if there is more than one Supervisor running \
+                [default: default]")
         )
         (@subcommand stop =>
             (about: "Stop a running Habitat service.")
@@ -312,6 +322,63 @@ fn sub_start(m: &ArgMatches) -> Result<()> {
     };
     try!(command::start::run(cfg, maybe_spec, maybe_local_artifact));
     Ok(())
+}
+
+fn sub_status(m: &ArgMatches) -> Result<()> {
+    if m.is_present("VERBOSE") {
+        sup::output::set_verbose(true);
+    }
+    if m.is_present("NO_COLOR") {
+        sup::output::set_no_color(true);
+    }
+    let cfg = mgrcfg_from_matches(m)?;
+    let mut services: Vec<ServiceStatus> = Vec::new();
+
+    if !Manager::is_running(&cfg)? {
+        outputln!("The supervisor is not running.");
+        std::process::exit(3);
+    }
+
+    match m.value_of("PKG_IDENT") {
+        Some(pkg) => {
+            match Manager::service_status(cfg, PackageIdent::from_str(pkg)?) {
+                Ok(status) => {
+                    services.push(status);
+                }
+                Err(_) => {
+                    outputln!("The {} service is not currently loaded.", pkg);
+                    std::process::exit(2);
+                }
+            }
+        }
+        None => services.append(&mut Manager::status(cfg)?),
+    }
+
+    for status in services {
+        match status.process.state {
+            ProcessState::Up => {
+                outputln!("The {} service entered the running state with PID: {} {} seconds ago.",
+                          status.package,
+                          status.process.pid.unwrap(),
+                          status.process.elapsed.num_seconds())
+            }
+            ProcessState::Down => {
+                outputln!("The {} service is not currently running.", status.package);
+            }
+            ProcessState::Start => {
+                outputln!("The {} service entered the starting state {} seconds ago.",
+                          status.package,
+                          status.process.elapsed.num_seconds());
+            }
+            ProcessState::Restart => {
+                outputln!("The {} service entered the restarting state {} seconds ago.",
+                          status.package,
+                          status.process.elapsed.num_seconds());
+            }
+        }
+    }
+
+    return Ok(());
 }
 
 fn sub_stop(m: &ArgMatches) -> Result<()> {
