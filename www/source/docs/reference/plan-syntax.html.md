@@ -641,6 +641,13 @@ exit_with "Something bad happened" 55
 trim()
 : Trims leading and trailing whitespace characters from a bash variable.
 
+disable_callbacks()
+: Disables one or more callbacks by forcing them to only execute `return 0`. Only supports callbacks which are prefixed with `do_` to limit unexpected behaviors in disabling other functions. All arguments must be quoted, otherwise it will attempt to execute the callbacks rather than disable them.
+
+~~~
+disable_callbacks "do_download" "do_verify" "do_unpack"
+~~~
+
 ***
 
 ## Iterative Development

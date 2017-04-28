@@ -1910,6 +1910,26 @@ pkg_interpreter_for() {
     return 1
 }
 
+# Disables callbacks if they exist. Accepts multiple arguments.
+# Callbacks must be prefixed with `do_` to provide some level of
+# safety for disabling functions.
+# ```
+# disable_callbacks "do_download" "do_verify" "do_unpack"
+# ```
+disable_callbacks() {
+  local callback_names
+  callback_names=("$@")
+
+  for callback in "${callback_names[@]}"; do
+    if [[ "$callback" =~ ^do_.* ]] && [[ "$(type -t "$callback")" == "function" ]]; then
+      build_line "Disabling callback $callback"
+      eval "$callback() { return 0; }"
+    else
+      build_line "Unable to disable callback $callback"
+    fi
+  done
+}
+
 # ## Build Phases
 #
 # Stub build phases, in the order they are executed. These can be overridden by
