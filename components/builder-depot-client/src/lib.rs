@@ -87,14 +87,40 @@ impl Into<originsrv::OriginKeyIdent> for OriginKeyIdent {
     }
 }
 
-#[derive(Clone, Serialize, Deserialize)]
+/// Custom conversion logic to allow `serde` to successfully
+/// round-trip `u64` datatypes through JSON serialization.
+///
+/// To use it, add `#[serde(with = "json_u64")]` to any `u64`-typed struct
+/// fields.
+mod json_u64 {
+    use serde::{self, Deserialize, Serializer, Deserializer};
+
+    pub fn serialize<S>(num: &u64, serializer: S) -> Result<S::Ok, S::Error>
+        where S: Serializer
+    {
+        let s = format!("{}", num);
+        serializer.serialize_str(&s)
+    }
+
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<u64, D::Error>
+        where D: Deserializer<'de>
+    {
+        let s = String::deserialize(deserializer)?;
+        s.parse::<u64>().map_err(serde::de::Error::custom)
+    }
+}
+
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct OriginSecretKey {
+    #[serde(with = "json_u64")]
     pub id: u64,
+    #[serde(with = "json_u64")]
     pub origin_id: u64,
     pub name: String,
     pub revision: String,
     pub body: Vec<u8>,
-    pub owner_id: u64,
+    #[serde(with = "json_u64")]
+    pub owner_id: u64
 }
 
 #[derive(Clone, Deserialize)]
@@ -572,5 +598,34 @@ fn err_from_response(mut response: hyper::client::Response) -> Error {
             buff.truncate(0);
             Error::APIError(response.status, buff)
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn json_round_trip_u64_fields() {
+        let pre = OriginSecretKey {
+            id: 705705315793903646,
+            origin_id: 705705305031319582,
+            name: "core".to_string(),
+            revision: "20160810182414".to_string(),
+            body: vec![1,2,3],
+            owner_id: 0
+        };
+
+        // Confirm that u64s serialize to strings
+        let as_json = serde_json::to_string(&pre).unwrap();
+        let expected = "{\"id\":\"705705315793903646\",\"origin_id\":\"705705305031319582\",\"name\":\"core\",\"revision\":\"20160810182414\",\"body\":[1,2,3],\"owner_id\":\"0\"}".to_string();
+        assert_eq!(as_json, expected);
+
+        let post: OriginSecretKey = serde_json::from_str(&as_json).unwrap();
+
+        // Confirm that strings deserialize back to u64s
+        assert_eq!(pre.id, post.id);
+        assert_eq!(pre.origin_id, post.origin_id);
+        assert_eq!(pre.owner_id, post.owner_id);
     }
 }
