@@ -402,7 +402,6 @@ impl Manager {
             })
             .expect("unable to start sup-eventsrv thread");
 
-        let mut service_rumor_offset = 0;
 
         loop {
             let next_check = SteadyTime::now() + TimeDuration::milliseconds(1000);
@@ -411,17 +410,15 @@ impl Manager {
                 return Ok(());
             }
             self.update_running_services_from_watcher()?;
-            service_rumor_offset += self.check_for_updated_packages();
+            self.check_for_updated_packages();
             self.restart_elections();
             self.census_ring
-                .update_from_rumors(service_rumor_offset,
-                                    &self.butterfly.service_store,
+                .update_from_rumors(&self.butterfly.service_store,
                                     &self.butterfly.election_store,
                                     &self.butterfly.update_store,
                                     &self.butterfly.member_list,
                                     &self.butterfly.service_config_store,
                                     &self.butterfly.service_file_store);
-            service_rumor_offset = 0;
 
             if self.census_ring.changed {
                 self.persist_state();
@@ -453,7 +450,6 @@ impl Manager {
                     .iter_mut() {
                 if service.tick(&self.census_ring) {
                     self.gossip_latest_service_rumor(&service);
-                    service_rumor_offset += 1;
                 }
             }
             let time_to_wait = (next_check - SteadyTime::now()).num_milliseconds();
@@ -509,8 +505,7 @@ impl Manager {
     ///
     /// The run loop's last updated census is a required parameter on this function to inform the
     /// main loop that we, ourselves, updated the service counter when we updated ourselves.
-    fn check_for_updated_packages(&mut self) -> usize {
-        let mut updated_services = 0;
+    fn check_for_updated_packages(&mut self) {
         for service in self.services
                 .write()
                 .expect("Services lock is poisoned!")
@@ -519,10 +514,8 @@ impl Manager {
                    .check_for_updated_package(service, &self.census_ring) {
                 service.populate(&self.census_ring);
                 self.gossip_latest_service_rumor(&service);
-                updated_services += 1;
             }
         }
-        updated_services
     }
 
     fn gossip_latest_service_rumor(&self, service: &Service) {

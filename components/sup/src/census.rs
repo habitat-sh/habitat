@@ -65,7 +65,6 @@ impl CensusRing {
     }
 
     pub fn update_from_rumors(&mut self,
-                              service_rumor_offset: usize,
                               service_rumors: &RumorStore<ServiceRumor>,
                               election_rumors: &RumorStore<ElectionRumor>,
                               election_update_rumors: &RumorStore<ElectionUpdateRumor>,
@@ -73,7 +72,7 @@ impl CensusRing {
                               service_config_rumors: &RumorStore<ServiceConfigRumor>,
                               service_file_rumors: &RumorStore<ServiceFileRumor>) {
         self.changed = false;
-        self.update_from_service_store(service_rumor_offset, service_rumors);
+        self.update_from_service_store(service_rumors);
         self.update_from_election_store(election_rumors);
         self.update_from_election_update_store(election_update_rumors);
         self.update_from_member_list(member_list);
@@ -90,9 +89,7 @@ impl CensusRing {
     }
 
     fn update_from_service_store(&mut self,
-                                 service_rumor_offset: usize,
                                  service_rumors: &RumorStore<ServiceRumor>) {
-        self.last_service_counter += service_rumor_offset;
         if service_rumors.get_update_counter() <= self.last_service_counter {
             return;
         }
@@ -643,8 +640,7 @@ mod tests {
             let service_config_store: RumorStore<ServiceConfigRumor> = RumorStore::default();
             let service_file_store: RumorStore<ServiceFileRumor> = RumorStore::default();
             let mut ring = CensusRing::new("member-b".to_string());
-            ring.update_from_rumors(0,
-                                    &service_store,
+            ring.update_from_rumors(&service_store,
                                     &election_store,
                                     &election_update_store,
                                     &member_list,
