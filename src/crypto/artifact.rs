@@ -23,6 +23,7 @@ use sodiumoxide::crypto::sign;
 
 use error::{Error, Result};
 use super::{HART_FORMAT_VERSION, SIG_HASH_TYPE, SigKeyPair};
+use super::hash;
 use super::keys::parse_name_with_rev;
 
 /// Generate and sign a package
@@ -30,7 +31,7 @@ pub fn sign<P1: ?Sized, P2: ?Sized>(src: &P1, dst: &P2, pair: &SigKeyPair) -> Re
     where P1: AsRef<Path>,
           P2: AsRef<Path>
 {
-    let hash = try!(super::hash::hash_file(&src));
+    let hash = hash::hash_file(&src)?;
     debug!("File hash for {} = {}", src.as_ref().display(), &hash);
 
     let signature = sign::sign(&hash.as_bytes(), try!(pair.secret()));
@@ -212,7 +213,7 @@ pub fn verify<P1: ?Sized, P2: ?Sized>(src: &P1, cache_key_path: &P2) -> Result<(
         }
         Err(_) => return Err(Error::CryptoError("Verification failed".to_string())),
     };
-    let computed_hash = try!(super::hash::hash_reader(&mut reader));
+    let computed_hash = hash::hash_reader(&mut reader)?;
     if computed_hash == expected_hash {
         Ok((pair.name_with_rev(), expected_hash))
     } else {
