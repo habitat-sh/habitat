@@ -29,12 +29,12 @@ const BUF_SIZE: usize = 1024;
 /// digest size = 32 BYTES
 /// NOTE: the hashing is keyless
 pub fn hash_file<P: AsRef<Path>>(filename: &P) -> Result<String> {
-    let file = try!(File::open(filename.as_ref()));
+    let file = File::open(filename.as_ref())?;
     let mut reader = BufReader::new(file);
     hash_reader(&mut reader)
 }
 
-pub fn hash_string(data: &str) -> Result<String> {
+pub fn hash_string(data: &str) -> String {
     let mut out = [0u8; libsodium_sys::crypto_generichash_BYTES];
     let mut st = vec![0u8; (unsafe { libsodium_sys::crypto_generichash_statebytes() })];
     let pst =
@@ -47,10 +47,10 @@ pub fn hash_string(data: &str) -> Result<String> {
         libsodium_sys::crypto_generichash_update(pst, data[..].as_ptr(), data.len() as u64);
         libsodium_sys::crypto_generichash_final(pst, out.as_mut_ptr(), out.len());
     }
-    Ok(out.to_hex())
+    out.to_hex()
 }
 
-pub fn hash_bytes(data: &[u8]) -> Result<String> {
+pub fn hash_bytes(data: &[u8]) -> String {
     let mut out = [0u8; libsodium_sys::crypto_generichash_BYTES];
     let mut st = vec![0u8; (unsafe { libsodium_sys::crypto_generichash_statebytes() })];
     let pst =
@@ -63,7 +63,7 @@ pub fn hash_bytes(data: &[u8]) -> Result<String> {
         libsodium_sys::crypto_generichash_update(pst, data[..].as_ptr(), data.len() as u64);
         libsodium_sys::crypto_generichash_final(pst, out.as_mut_ptr(), out.len());
     }
-    Ok(out.to_hex())
+    out.to_hex()
 }
 
 pub fn hash_reader(reader: &mut BufReader<File>) -> Result<String> {
@@ -74,11 +74,9 @@ pub fn hash_reader(reader: &mut BufReader<File>) -> Result<String> {
             mem::transmute::<*mut u8,
                              *mut libsodium_sys::crypto_generichash_state>(st.as_mut_ptr())
         };
-
     unsafe {
         libsodium_sys::crypto_generichash_init(pst, ptr::null_mut(), 0, out.len());
     }
-
     let mut buf = [0u8; BUF_SIZE];
     loop {
         let bytes_read = try!(reader.read(&mut buf));
@@ -173,7 +171,7 @@ mod test {
             }
             file
         };
-        let computed = hash_file(&dst).unwrap();
+        let computed = hash_file(&dst);
         let expected = "ba640dc063f0ed27e60b38dbb7cf19778cf7805d9fc91eb129fb68b409d46414";
         assert_eq!(computed, expected);
     }

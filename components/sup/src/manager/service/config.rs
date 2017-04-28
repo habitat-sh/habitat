@@ -16,33 +16,23 @@
 
 use std;
 use std::ascii::AsciiExt;
-use std::collections::HashMap;
 use std::env;
-use std::fmt;
 use std::fs::File;
 use std::io::prelude::*;
-use std::ops::{Deref, DerefMut};
 use std::path::{Path, PathBuf};
+use std::result;
 
 use ansi_term::Colour::Purple;
-use butterfly::rumor::service::SysInfo;
 use hcore::crypto;
-use hcore::package::{PackageIdent, PackageInstall};
-use hcore::service::ServiceGroup;
+use serde::{Serialize, Serializer};
 use toml;
 
-use config::GossipListenAddr;
-use census::{CensusRing, CensusGroup};
+use super::Pkg;
+use census::CensusGroup;
 use error::{Error, Result};
-use fs;
-use http_gateway;
-use supervisor::RuntimeConfig;
-use templating::Template;
-use util::{self, convert};
-use VERSION;
-use super::ServiceBind;
+use templating::{TemplateRenderer, RenderContext};
 
-static LOGKEY: &'static str = "SC";
+static LOGKEY: &'static str = "CF";
 static ENV_VAR_PREFIX: &'static str = "HAB";
 /// The maximum TOML table merge depth allowed before failing the operation. The value here is
 /// somewhat arbitrary (stack size cannot be easily computed beforehand and different libc
@@ -51,354 +41,56 @@ static ENV_VAR_PREFIX: &'static str = "HAB";
 /// for a single service.
 static TOML_MAX_MERGE_DEPTH: u16 = 30;
 
-/// The top level struct for all our configuration - this corresponds to the top level
-/// namespaces available in `config.toml`.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct ServiceConfig {
-    hab: Hab,
-    pub pkg: Pkg,
-    pub sys: Sys,
-    cfg: Cfg,
-    svc: Svc,
-    bind: Bind,
-    #[serde(skip_serializing, skip_deserializing, default="default_for_pathbuf")]
-    pub config_root: PathBuf,
-    #[serde(skip_serializing, skip_deserializing)]
-    pub incarnation: u64,
-    // Set to 'true' if we have data that needs to be sent to a configuration file
-    #[serde(skip_serializing, skip_deserializing)]
-    needs_write: bool,
-    #[serde(skip_serializing, skip_deserializing)]
-    supported_bindings: Vec<ServiceBind>,
-}
+#[derive(Clone, Debug, Default)]
+pub struct Cfg {
+    /// Default level configuration loaded by a Package's `default.toml`
+    pub default: Option<toml::Value>,
+    /// User level configuration loaded by a Service's `user.toml`
+    pub user: Option<toml::Value>,
+    /// Gossip level configuration loaded by a census group
+    pub gossip: Option<toml::Value>,
+    /// Environment level configuration loaded by the Supervisor's process environment
+    pub environment: Option<toml::Value>,
 
-fn default_for_pathbuf() -> PathBuf {
-    PathBuf::new()
-}
-
-impl ServiceConfig {
-    /// Takes a new package and a new census list, and returns a ServiceConfig. This function can
-    /// fail, and indeed, we want it to - it causes the program to crash if we can not render the
-    /// first pass of the configuration file.
-    pub fn new(package: &PackageInstall,
-               runtime_cfg: &RuntimeConfig,
-               config_root: PathBuf,
-               bindings: Vec<ServiceBind>,
-               gossip_listen: &GossipListenAddr,
-               http_listen: &http_gateway::ListenAddr)
-               -> Result<ServiceConfig> {
-        Ok(ServiceConfig {
-               pkg: Pkg::new(package, runtime_cfg)?,
-               hab: Hab::new(),
-               sys: Sys::new(gossip_listen, http_listen),
-               cfg: Cfg::new(package, &config_root)?,
-               svc: Svc::default(),
-               bind: Bind::default(),
-               incarnation: 0,
-               needs_write: true,
-               supported_bindings: bindings,
-               config_root: config_root,
-           })
-    }
-
-    /// Return an iterator of the configuration file names to render.
-    ///
-    /// This does not return the full path, for convenience with the path
-    /// helpers above.
-    fn config_files<T: AsRef<Path> + fmt::Debug>(config_path: T) -> Result<Vec<String>> {
-        let mut files: Vec<String> = Vec::new();
-        debug!("Loading configuration from {:?}", config_path);
-        match std::fs::read_dir(config_path) {
-            Ok(config_path) => {
-                for config in config_path {
-                    let config = try!(config);
-                    match config.path().file_name() {
-                        Some(filename) => {
-                            debug!("Looking in {:?}", filename);
-                            files.push(filename.to_string_lossy().into_owned().to_string());
-                        }
-                        None => unreachable!(),
-                    }
-                }
-            }
-            Err(e) => {
-                debug!("No config directory in package: {}", e);
-            }
-        }
-        Ok(files)
-    }
-
-    /// Render this struct as toml.
-    pub fn to_toml(&self) -> Result<toml::Value> {
-        let mut top = toml::value::Table::new();
-
-        let hab = try!(self.hab.to_toml());
-        top.insert(String::from("hab"), hab);
-
-        let pkg = try!(self.pkg.to_toml());
-        top.insert(String::from("pkg"), pkg);
-
-        let sys = try!(self.sys.to_toml());
-        top.insert(String::from("sys"), sys);
-
-        let cfg = try!(self.cfg.to_toml());
-        top.insert(String::from("cfg"), cfg);
-
-        let svc = self.svc.to_toml();
-        top.insert(String::from("svc"), svc);
-
-        let bind = self.bind.to_toml();
-        top.insert(String::from("bind"), bind);
-
-        Ok(toml::Value::Table(top))
-    }
-
-    pub fn to_exported(&self) -> Result<toml::value::Table> {
-        self.cfg.to_exported(&self.pkg.exports)
-    }
-
-    pub fn populate(&mut self, service_group: &ServiceGroup, census_ring: &CensusRing) {
-        self.bind.populate(&self.supported_bindings, census_ring);
-        self.svc.populate(service_group, census_ring);
-    }
-
-    pub fn reload_gossip(&mut self) -> Result<()> {
-        self.cfg.load_gossip(&self.pkg.name)
-    }
-
-    /// Write the configuration to `config.toml`, and render the templated configuration files.
-    pub fn write(&mut self) -> Result<bool> {
-        let final_toml = try!(self.to_toml());
-        {
-            let mut last_toml = try!(File::create(fs::svc_config_file(&self.pkg.name)));
-            try!(last_toml.write_all(&try!(toml::to_vec(&final_toml))));
-        }
-        let mut template = Template::new();
-
-        // Register all the templates; this makes them available as partials!
-        // I suspect this will be useful, but I think we'll want to make this
-        // more explicit... in a minute, we render all the config files anyway.
-        let config_path = self.config_root.join("config");
-        let config_files = try!(Self::config_files(&config_path));
-        for config in config_files.iter() {
-            let path = config_path.join(config);
-            debug!("Config template {} from {:?}", config, &path);
-            if let Err(e) = template.register_template_file(config, &path) {
-                outputln!("Error parsing config template file {}: {}",
-                          path.to_string_lossy(),
-                          e);
-                return Err(sup_error!(Error::TemplateFileError(e)));
-            }
-        }
-
-        let final_data = convert::toml_to_json(final_toml);
-        let mut should_restart = false;
-        for config in config_files {
-            debug!("Rendering template {}", &config);
-            let template_data = try!(template.render(&config, &final_data));
-            let template_hash = try!(crypto::hash::hash_string(&template_data));
-            let cfg_dest = self.pkg
-                .svc_config_path
-                .join(&config)
-                .to_string_lossy()
-                .into_owned();
-            let file_hash = match crypto::hash::hash_file(&cfg_dest) {
-                Ok(file_hash) => file_hash,
-                Err(e) => {
-                    debug!("Cannot read the file in order to hash it: {}", e);
-                    String::new()
-                }
-            };
-            if file_hash.is_empty() {
-                debug!("Configuration {} does not exist; restarting", cfg_dest);
-                outputln!("Updated {} {}", Purple.bold().paint(config), template_hash);
-                let mut config_file = try!(File::create(&cfg_dest));
-                try!(config_file.write_all(&template_data.into_bytes()));
-                should_restart = true
-            } else {
-                if file_hash == template_hash {
-                    debug!("Configuration {} {} has not changed; not restarting.",
-                           cfg_dest,
-                           file_hash);
-                    continue;
-                } else {
-                    debug!("Configuration {} has changed; restarting", cfg_dest);
-                    outputln!("Updated {} {}", Purple.bold().paint(config), template_hash);
-                    let mut config_file = try!(File::create(&cfg_dest));
-                    try!(config_file.write_all(&template_data.into_bytes()));
-                    should_restart = true;
-                }
-            }
-        }
-        self.needs_write = false;
-        Ok(should_restart)
-    }
-
-    pub fn reload_package(&mut self,
-                          package: &PackageInstall,
-                          config_root: PathBuf,
-                          runtime: &RuntimeConfig)
-                          -> Result<()> {
-        self.config_root = config_root;
-        self.pkg = Pkg::new(package, runtime)?;
-        self.cfg = Cfg::new(package, &self.config_root)?;
-        Ok(())
-    }
-}
-
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
-struct Bind(toml::value::Table);
-
-impl Bind {
-    fn populate(&mut self, bindings: &[ServiceBind], census_ring: &CensusRing) {
-        self.0.clear();
-        for ref bind in bindings.iter() {
-            match census_ring.census_group_for(&bind.service_group) {
-                Some(census_group) => {
-                    self.0
-                        .insert(format!("has_{}", bind.name), toml::Value::Boolean(true));
-                    self.0
-                        .insert(bind.name.to_string(),
-                                toml::Value::Table(serialize_census_group(census_group)));
-                }
-                None => {
-                    self.0
-                        .insert(format!("has_{}", bind.name), toml::Value::Boolean(false));
-                }
-            }
-        }
-    }
-
-    fn to_toml(&self) -> toml::Value {
-        toml::Value::Table(self.0.clone())
-    }
-}
-
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
-struct Svc(toml::value::Table);
-
-impl Svc {
-    fn populate(&mut self, service_group: &ServiceGroup, census_ring: &CensusRing) {
-        let mut top =
-            serialize_census_group(census_ring
-                                       .census_group_for(service_group)
-                                       .expect("Service Group's census entry missing from list!"));
-        let mut all: Vec<toml::Value> = Vec::new();
-        let mut named = toml::value::Table::new();
-        for census_group in census_ring.groups() {
-            let group_toml = serialize_census_group(census_group);
-            all.push(toml::Value::Table(group_toml.clone()));
-            let sg = &census_group.service_group;
-            let mut group = if named.contains_key(sg.service()) {
-                named
-                    .get(sg.service())
-                    .unwrap()
-                    .as_table()
-                    .unwrap()
-                    .clone()
-            } else {
-                toml::value::Table::new()
-            };
-            group.insert(sg.group().to_string(), toml::Value::Table(group_toml));
-            named.insert(sg.service().to_string(), toml::Value::Table(group));
-        }
-        top.insert("all".to_string(), toml::Value::Array(all));
-        top.insert("named".to_string(), toml::Value::Table(named));
-        self.0 = top;
-    }
-
-    fn to_toml(&self) -> toml::Value {
-        toml::Value::Table(self.0.clone())
-    }
-}
-
-// TODO FN: The newer toml crate API return a `Result` when converting (as it always should have)
-// which begs the question: how should we handle conversion failures in this function? We currently
-// don't return a `Result<toml::value::Table>`--maybe we should? Remember--`.expect()` is a panic
-// by a nicer name ;)
-fn serialize_census_group(census_group: &CensusGroup) -> toml::value::Table {
-    let sg = &census_group.service_group;
-    let service = toml::Value::String(sg.service().to_string());
-    let group = toml::Value::String(sg.group().to_string());
-    let ident = toml::Value::String(sg.to_string());
-    let leader = census_group
-        .leader()
-        .map(|cm| toml::Value::try_from(cm).expect("Can't convert into TOML Value"));
-    let mut members: Vec<toml::Value> = Vec::new();
-    let mut member_id = toml::value::Table::new();
-    let mut first: bool = true;
-    let mut result = toml::value::Table::new();
-    for cm in census_group.members() {
-        let toml_member = toml::Value::try_from(cm).expect("Can't convert into TOML Value");
-        if first {
-            result.insert("first".to_string(), toml_member.clone());
-            first = false;
-        }
-        members.push(toml_member);
-        member_id.insert(cm.member_id.clone(),
-                         toml::Value::try_from(cm).expect("Can't convert into TOML Value"));
-    }
-    result.insert("service".to_string(), service);
-    result.insert("group".to_string(), group);
-    result.insert("ident".to_string(), ident);
-    if let Some(me) = census_group.me() {
-        let toml_me = toml::Value::try_from(me).expect("Can't convert into TOML Value");
-        result.insert("me".to_string(), toml_me);
-    }
-    if let Some(l) = leader {
-        result.insert("leader".to_string(), l.clone());
-        result.insert("first".to_string(), l);
-    }
-
-    result.insert("members".to_string(), toml::Value::Array(members));
-    result.insert("member_id".to_string(), toml::Value::Table(member_id));
-    result
-}
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
-struct Cfg {
-    default: Option<toml::Value>,
-    user: Option<toml::Value>,
-    gossip: Option<toml::Value>,
-    environment: Option<toml::Value>,
+    /// Last known incarnation number of the census group's service config
+    gossip_incarnation: u64,
 }
 
 impl Cfg {
-    fn new<T: AsRef<Path>>(package: &PackageInstall, config_root: T) -> Result<Cfg> {
-        let mut cfg = Cfg {
-            default: None,
-            user: None,
-            gossip: None,
-            environment: None,
-        };
-        try!(cfg.load_default(&config_root));
-        try!(cfg.load_user(&package.ident.name));
-        try!(cfg.load_gossip(&package.ident.name));
-        try!(cfg.load_environment(&package.ident.name));
+    pub fn new(package: &Pkg, config_from: Option<&PathBuf>) -> Result<Cfg> {
+        let pkg_root = config_from
+            .and_then(|p| Some(p.as_path()))
+            .unwrap_or(&package.path);
+        let mut cfg = Cfg::default();
+        cfg.load_default(&pkg_root)?;
+        cfg.load_user(&package)?;
+        cfg.load_environment(&package)?;
         Ok(cfg)
     }
 
-    pub fn to_toml(&self) -> Result<toml::Value> {
-        let mut output_toml = toml::value::Table::new();
-        if let Some(toml::Value::Table(ref default_cfg)) = self.default {
-            try!(toml_merge(&mut output_toml, default_cfg));
+    /// Updates the service configuration with data from a census group if the census group has
+    /// newer data than the current configuration.
+    ///
+    /// Returns true if the configuration was updated.
+    pub fn update(&mut self, census_group: &CensusGroup) -> bool {
+        match census_group.service_config {
+            Some(ref config) => {
+                if config.incarnation <= self.gossip_incarnation {
+                    return false;
+                }
+                self.gossip_incarnation = config.incarnation;
+                self.gossip = Some(config.value.clone());
+                true
+            }
+            None => false,
         }
-        if let Some(toml::Value::Table(ref env_cfg)) = self.environment {
-            try!(toml_merge(&mut output_toml, env_cfg));
-        }
-        if let Some(toml::Value::Table(ref user_cfg)) = self.user {
-            try!(toml_merge(&mut output_toml, user_cfg));
-        }
-        if let Some(toml::Value::Table(ref gossip_cfg)) = self.gossip {
-            try!(toml_merge(&mut output_toml, gossip_cfg));
-        }
-        Ok(toml::Value::Table(output_toml))
     }
 
-    fn to_exported(&self, exports: &HashMap<String, String>) -> Result<toml::value::Table> {
+    /// Returns a subset of the overall configuration whitelisted by the given package's exports.
+    pub fn to_exported(&self, pkg: &Pkg) -> Result<toml::value::Table> {
         let mut map = toml::value::Table::default();
-        let cfg = try!(self.to_toml());
-        for (key, path) in exports.iter() {
+        let cfg = toml::Value::try_from(&self).unwrap();
+        for (key, path) in pkg.exports.iter() {
             let fields: Vec<&str> = path.split('.').collect();
             let mut curr = &cfg;
             let mut found = false;
@@ -424,11 +116,12 @@ impl Cfg {
         Ok(map)
     }
 
-    fn load_default<T: AsRef<Path>>(&mut self, config_root: T) -> Result<()> {
-        let mut file = match File::open(config_root.as_ref().join("default.toml")) {
+    fn load_default<T: AsRef<Path>>(&mut self, config_from: T) -> Result<()> {
+        let path = config_from.as_ref().join("default.toml");
+        let mut file = match File::open(&path) {
             Ok(file) => file,
             Err(e) => {
-                debug!("Failed to open default.toml: {}", e);
+                debug!("Failed to open 'default.toml', {}, {}", path.display(), e);
                 self.default = None;
                 return Ok(());
             }
@@ -441,18 +134,19 @@ impl Cfg {
                 self.default = Some(toml::Value::Table(toml));
             }
             Err(e) => {
-                outputln!("Failed to read default.toml: {}", e);
+                outputln!("Failed to read 'default.toml', {}, {}", path.display(), e);
                 self.default = None;
             }
         }
         Ok(())
     }
 
-    fn load_user(&mut self, package: &str) -> Result<()> {
-        let mut file = match File::open(fs::svc_path(package).join("user.toml")) {
+    fn load_user(&mut self, package: &Pkg) -> Result<()> {
+        let path = package.svc_path.join("user.toml");
+        let mut file = match File::open(&path) {
             Ok(file) => file,
             Err(e) => {
-                debug!("Failed to open user.toml: {}", e);
+                debug!("Failed to open 'user.toml', {}, {}", path.display(), e);
                 self.user = None;
                 return Ok(());
             }
@@ -465,39 +159,15 @@ impl Cfg {
                 self.user = Some(toml::Value::Table(toml));
             }
             Err(e) => {
-                outputln!("Failed to load user.toml: {}", e);
+                outputln!("Failed to load 'user.toml', {}, {}", path.display(), e);
                 self.user = None;
             }
         }
         Ok(())
     }
 
-    fn load_gossip(&mut self, package: &str) -> Result<()> {
-        let mut file = match File::open(fs::svc_path(package).join("gossip.toml")) {
-            Ok(file) => file,
-            Err(e) => {
-                debug!("Failed to open gossip.toml: {}", e);
-                self.gossip = None;
-                return Ok(());
-            }
-        };
-        let mut config = String::new();
-        match file.read_to_string(&mut config) {
-            Ok(_) => {
-                let toml = try!(toml::de::from_str(&config)
-                    .map_err(|e| sup_error!(Error::TomlParser(e))));
-                self.gossip = Some(toml::Value::Table(toml));
-            }
-            Err(e) => {
-                outputln!("Failed to load gossip.toml: {}", e);
-                self.gossip = None;
-            }
-        }
-        Ok(())
-    }
-
-    fn load_environment(&mut self, package: &str) -> Result<()> {
-        let var_name = format!("{}_{}", ENV_VAR_PREFIX, package)
+    fn load_environment(&mut self, package: &Pkg) -> Result<()> {
+        let var_name = format!("{}_{}", ENV_VAR_PREFIX, package.name)
             .to_ascii_uppercase()
             .replace("-", "_");
         match env::var(&var_name) {
@@ -518,123 +188,117 @@ impl Cfg {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct Pkg {
-    origin: String,
-    pub name: String,
-    version: String,
-    release: String,
-    ident: String,
-    pub deps: Vec<PackageIdent>,
-    exposes: Vec<String>,
-    exports: HashMap<String, String>,
-    path: PathBuf,
-    svc_path: PathBuf,
-    svc_config_path: PathBuf,
-    svc_data_path: PathBuf,
-    svc_files_path: PathBuf,
-    svc_static_path: PathBuf,
-    svc_var_path: PathBuf,
-    svc_pid_file: PathBuf,
-    pub svc_user: String,
-    pub svc_group: String,
-}
-
-impl Pkg {
-    fn new(package: &PackageInstall, runtime: &RuntimeConfig) -> Result<Pkg> {
-        let ident = package.ident().clone();
-        Ok(Pkg {
-               ident: ident.to_string(),
-               origin: ident.origin,
-               name: ident.name,
-               version: ident.version.expect("Couldn't read package version"),
-               release: ident.release.expect("Couldn't read package release"),
-               deps: package.tdeps()?,
-               exposes: package.exposes()?,
-               exports: package.exports()?,
-               path: package.installed_path.clone(),
-               svc_path: fs::svc_path(&package.ident.name),
-               svc_config_path: fs::svc_config_path(&package.ident.name),
-               svc_data_path: fs::svc_data_path(&package.ident.name),
-               svc_files_path: fs::svc_files_path(&package.ident.name),
-               svc_static_path: fs::svc_static_path(&package.ident.name),
-               svc_var_path: fs::svc_var_path(&package.ident.name),
-               svc_pid_file: fs::svc_pid_file(&package.ident.name),
-               svc_user: runtime.svc_user.to_string(),
-               svc_group: runtime.svc_group.to_string(),
-           })
-    }
-
-    fn to_toml(&self) -> Result<toml::Value> {
-        Ok(try!(toml::Value::try_from(&self)))
-    }
-}
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct Sys(SysInfo);
-
-impl Sys {
-    fn new(gossip_listen: &GossipListenAddr, http_listen: &http_gateway::ListenAddr) -> Sys {
-        let ip = match util::sys::ip() {
-            Ok(ip) => ip.to_string(),
-            Err(e) => {
-                outputln!("IP Address lookup failed; using fallback of 127.0.0.1 ({})",
-                          e);
-                String::from("127.0.0.1")
+impl Serialize for Cfg {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+        where S: Serializer
+    {
+        let mut table = toml::value::Table::new();
+        if let Some(toml::Value::Table(ref default_cfg)) = self.default {
+            if let Err(err) = toml_merge(&mut table, default_cfg) {
+                outputln!("Error merging default-cfg into config, {}", err);
             }
-        };
-        let hostname = match util::sys::hostname() {
-            Ok(ip) => ip,
-            Err(e) => {
-                outputln!("Hostname lookup failed; using fallback of localhost ({})",
-                          e);
-                String::from("localhost")
+        }
+        if let Some(toml::Value::Table(ref env_cfg)) = self.environment {
+            if let Err(err) = toml_merge(&mut table, env_cfg) {
+                outputln!("Error merging environment-cfg into config, {}", err);
             }
-        };
-        Sys(SysInfo {
-                ip: ip,
-                hostname: hostname,
-                gossip_ip: gossip_listen.ip().to_string(),
-                gossip_port: gossip_listen.port().to_string(),
-                http_gateway_ip: http_listen.ip().to_string(),
-                http_gateway_port: http_listen.port().to_string(),
-            })
-    }
-
-    fn to_toml(&self) -> Result<toml::Value> {
-        Ok(try!(toml::Value::try_from(&self)))
-    }
-}
-
-impl Deref for Sys {
-    type Target = SysInfo;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
+        }
+        if let Some(toml::Value::Table(ref user_cfg)) = self.user {
+            if let Err(err) = toml_merge(&mut table, user_cfg) {
+                outputln!("Error merging user-cfg into config, {}", err);
+            }
+        }
+        if let Some(toml::Value::Table(ref gossip_cfg)) = self.gossip {
+            if let Err(err) = toml_merge(&mut table, gossip_cfg) {
+                outputln!("Error merging gossip-cfg into config, {}", err);
+            }
+        }
+        table.serialize(serializer)
     }
 }
 
-impl DerefMut for Sys {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
+#[derive(Debug)]
+pub struct CfgRenderer(TemplateRenderer);
+
+impl CfgRenderer {
+    pub fn new<T>(templates_path: T) -> Result<Self>
+        where T: AsRef<Path>
+    {
+        let mut template = TemplateRenderer::new();
+        if let Ok(entries) = std::fs::read_dir(templates_path) {
+            for entry in entries {
+                if let Ok(entry) = entry {
+                    // Skip any entries in the template directory which aren't files. Currently we
+                    // don't support recursing into directories to retrieve templates. If you want
+                    // to add that feature, this is largely the function you change.
+                    match entry.file_type() {
+                        Ok(file_type) => {
+                            if !file_type.is_file() {
+                                continue;
+                            }
+                        }
+                        Err(_) => continue,
+                    }
+                    let file = entry.path();
+                    let name = entry.file_name().to_string_lossy().into_owned();
+                    // JW TODO: This error needs improvement. TemplateFileError is too generic.
+                    template
+                        .register_template_file(&name, &file)
+                        .map_err(|err| sup_error!(Error::TemplateFileError(err)))?;
+                }
+            }
+        }
+        Ok(CfgRenderer(template))
+    }
+
+    /// Compile and write all configuration files to the configuration directory.
+    pub fn compile(&self, pkg: &Pkg, ctx: &RenderContext) -> Result<bool> {
+        // JW TODO: This function is loaded with IO errors that will be converted a Supervisor
+        // error resulting in the end-user not knowing what the fuck happned at all. We need to go
+        // through this and pipe the service group through to let people know which service is
+        // having issues and be more descriptive about what happened.
+        let mut changed = false;
+        for (template, _) in self.0.get_templates() {
+            let compiled = self.0.render(&template, ctx)?;
+            let compiled_hash = crypto::hash::hash_string(&compiled);
+            let cfg_dest = pkg.svc_config_path.join(&template);
+            let file_hash = match crypto::hash::hash_file(&cfg_dest) {
+                Ok(file_hash) => file_hash,
+                Err(e) => {
+                    debug!("Cannot read the file in order to hash it: {}", e);
+                    String::new()
+                }
+            };
+            if file_hash.is_empty() {
+                debug!("Configuration {} does not exist; restarting",
+                       cfg_dest.display());
+                outputln!(preamble ctx.svc.group, "Updated {} {}",
+                          Purple.bold().paint(template.as_str()),
+                          compiled_hash);
+                let mut config_file = File::create(&cfg_dest)?;
+                config_file.write_all(&compiled.into_bytes())?;
+                changed = true
+            } else {
+                if file_hash == compiled_hash {
+                    debug!("Configuration {} {} has not changed; not restarting.",
+                           cfg_dest.display(),
+                           file_hash);
+                    continue;
+                } else {
+                    debug!("Configuration {} has changed; restarting",
+                           cfg_dest.display());
+                    outputln!(preamble ctx.svc.group,"Updated {} {}",
+                              Purple.bold().paint(template.as_str()),
+                              compiled_hash);
+                    let mut config_file = File::create(&cfg_dest)?;
+                    config_file.write_all(&compiled.into_bytes())?;
+                    changed = true;
+                }
+            }
+        }
+        Ok(changed)
     }
 }
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
-struct Hab {
-    version: String,
-}
-
-impl Hab {
-    fn new() -> Self {
-        Hab { version: VERSION.to_string() }
-    }
-
-    fn to_toml(&self) -> Result<toml::Value> {
-        Ok(try!(toml::Value::try_from(&self)))
-    }
-}
-
 
 // Recursively merges the `other` TOML table into `me`
 fn toml_merge(me: &mut toml::value::Table, other: &toml::value::Table) -> Result<()> {
@@ -687,162 +351,13 @@ fn is_toml_value_a_table(key: &str, table: &toml::value::Table) -> bool {
 
 #[cfg(test)]
 mod test {
-    use std::path::PathBuf;
-    use std::str::FromStr;
-
-    use hcore::package::{PackageIdent, PackageInstall};
-    use util::convert;
-    use regex::Regex;
-    use serde_json;
     use toml;
 
     use super::*;
-    use config::GossipListenAddr;
     use error::Error;
-    use http_gateway::ListenAddr;
-    use supervisor::RuntimeConfig;
-    use VERSION;
-
-    fn gen_pkg() -> PackageInstall {
-        PackageInstall::new_from_parts(PackageIdent::from_str("neurosis/redis/2000/20160222201258")
-                                           .unwrap(),
-                                       PathBuf::from("/"),
-                                       PathBuf::from("/fakeo"),
-                                       PathBuf::from("/fakeo/here"))
-    }
-
-    fn gen_exporting_pkg() -> PackageInstall {
-        PackageInstall::new_from_parts(PackageIdent::from_str("neurosis/redis/2000/20160222201258")
-                                           .unwrap(),
-                                       PathBuf::from("/"),
-                                       PathBuf::from("/fakeo"),
-                                       fixtures().join("exporting_service"))
-    }
 
     fn toml_from_str(content: &str) -> toml::value::Table {
         toml::from_str(content).expect(&format!("Content should parse as TOML: {}", content))
-    }
-
-    fn runtime_config() -> RuntimeConfig {
-        RuntimeConfig::new("hab".to_string(), "hab".to_string(), HashMap::new())
-    }
-
-    fn root() -> PathBuf {
-        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests")
-    }
-
-    fn fixtures() -> PathBuf {
-        root().join("fixtures")
-    }
-
-    fn sample_configs() -> PathBuf {
-        fixtures().join("sample_configs")
-    }
-
-    #[test]
-    fn service_config_to_toml_string() {
-        let mut file = File::open(sample_configs().join("simple_config.toml")).unwrap();
-        let mut config = String::new();
-        let _ = file.read_to_string(&mut config).unwrap();
-        let toml_in = toml::de::from_str(&config).unwrap();
-        let data = convert::toml_to_json(toml::Value::Table(toml_in));
-        let sc = serde_json::from_value::<ServiceConfig>(data).unwrap();
-        let _ = sc.to_toml().unwrap().to_string();
-    }
-
-    #[test]
-    fn to_toml_hab() {
-        let pkg = gen_pkg();
-        let sc = ServiceConfig::new(&pkg,
-                                    &runtime_config(),
-                                    PathBuf::from("/hab/pkgs/neurosis/redis/2000/20160222201258"),
-                                    Vec::new(),
-                                    &GossipListenAddr::default(),
-                                    &ListenAddr::default())
-                .unwrap();
-        let toml = sc.to_toml().unwrap();
-        let version = toml.get("hab")
-            .unwrap()
-            .as_table()
-            .unwrap()
-            .get("version")
-            .unwrap()
-            .as_str()
-            .unwrap();
-        assert_eq!(version, VERSION);
-    }
-
-    #[test]
-    fn to_toml_pkg() {
-        let pkg = gen_pkg();
-        let sc = ServiceConfig::new(&pkg,
-                                    &runtime_config(),
-                                    PathBuf::from("/hab/pkgs/neurosis/redis/2000/20160222201258"),
-                                    Vec::new(),
-                                    &GossipListenAddr::default(),
-                                    &ListenAddr::default())
-                .unwrap();
-        let toml = sc.to_toml().unwrap();
-        let name = toml.get("pkg")
-            .unwrap()
-            .as_table()
-            .unwrap()
-            .get("name")
-            .unwrap()
-            .as_str()
-            .unwrap();
-        assert_eq!(name, "redis");
-    }
-
-    #[test]
-    fn to_toml_sys() {
-        let pkg = gen_pkg();
-        let sc = ServiceConfig::new(&pkg,
-                                    &runtime_config(),
-                                    PathBuf::from("/hab/pkgs/neurosis/redis/2000/20160222201258"),
-                                    Vec::new(),
-                                    &GossipListenAddr::default(),
-                                    &ListenAddr::default())
-                .unwrap();
-        let toml = sc.to_toml().unwrap();
-        let ip = toml.get("sys")
-            .unwrap()
-            .as_table()
-            .unwrap()
-            .get("ip")
-            .unwrap()
-            .as_str()
-            .unwrap();
-        let re = Regex::new(r"\d+\.\d+\.\d+\.\d+").unwrap();
-        assert!(re.is_match(&ip));
-    }
-
-    #[test]
-    fn to_toml_exported_cfg() {
-        let pkg = gen_exporting_pkg();
-        let sc = ServiceConfig::new(&pkg,
-                                    &runtime_config(),
-                                    fixtures().join("exporting_service"),
-                                    Vec::new(),
-                                    &GossipListenAddr::default(),
-                                    &ListenAddr::default())
-                .unwrap();
-        let exported_toml = sc.to_exported().unwrap();
-        assert_eq!(exported_toml["ip"].as_str(), Some("1.2.3.4"));
-    }
-
-    #[test]
-    fn to_toml_exported_table_cfg() {
-        let pkg = gen_exporting_pkg();
-        let sc = ServiceConfig::new(&pkg,
-                                    &runtime_config(),
-                                    fixtures().join("exporting_service"),
-                                    Vec::new(),
-                                    &GossipListenAddr::default(),
-                                    &ListenAddr::default())
-                .unwrap();
-        let exported_toml = sc.to_exported().unwrap();
-        assert_eq!(exported_toml["port"].as_integer(), Some(443));
     }
 
     #[test]
@@ -988,55 +503,6 @@ mod test {
                 }
             }
             Ok(_) => panic!("Should not complete successfully"),
-        }
-    }
-
-    mod sys {
-        use super::super::Sys;
-        use config::GossipListenAddr;
-        use http_gateway::ListenAddr;
-        use regex::Regex;
-
-        #[test]
-        fn ip() {
-            let s = Sys::new(&GossipListenAddr::default(), &ListenAddr::default());
-            let re = Regex::new(r"\d+\.\d+\.\d+\.\d+").unwrap();
-            assert!(re.is_match(&s.ip));
-        }
-
-        #[test]
-        fn hostname() {
-            let s = Sys::new(&GossipListenAddr::default(), &ListenAddr::default());
-            let re = Regex::new(r"\w+").unwrap();
-            assert!(re.is_match(&s.hostname));
-        }
-
-        #[test]
-        fn to_toml() {
-            let s = Sys::new(&GossipListenAddr::default(), &ListenAddr::default());
-            let toml = s.to_toml().unwrap();
-            let ip = toml.get("ip").unwrap().as_str().unwrap();
-            let re = Regex::new(r"\d+\.\d+\.\d+\.\d+").unwrap();
-            assert!(re.is_match(&ip));
-        }
-    }
-
-    mod hab {
-        use super::super::Hab;
-        use VERSION;
-
-        #[test]
-        fn version() {
-            let h = Hab::new();
-            assert_eq!(h.version, VERSION);
-        }
-
-        #[test]
-        fn to_toml() {
-            let h = Hab::new();
-            let version_toml = h.to_toml().unwrap();
-            let version = version_toml.get("version").unwrap().as_str().unwrap();
-            assert_eq!(version, VERSION);
         }
     }
 }

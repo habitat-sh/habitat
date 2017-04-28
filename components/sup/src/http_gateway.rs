@@ -72,6 +72,12 @@ lazy_static! {
 #[derive(PartialEq, Eq, Debug, Clone)]
 pub struct ListenAddr(SocketAddr);
 
+impl ListenAddr {
+    pub fn new(ip: IpAddr, port: u16) -> ListenAddr {
+        ListenAddr(SocketAddr::new(ip, port))
+    }
+}
+
 impl Default for ListenAddr {
     fn default() -> ListenAddr {
         ListenAddr(SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(0, 0, 0, 0), 9631)))

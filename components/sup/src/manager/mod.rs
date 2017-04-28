@@ -16,6 +16,7 @@ pub mod service;
 mod signals;
 mod service_updater;
 mod spec_watcher;
+mod sys;
 
 use std::collections::HashMap;
 use std::fmt;
@@ -48,8 +49,9 @@ use serde;
 use serde_json;
 use time::{self, Timespec, Duration as TimeDuration};
 
-pub use manager::service::{Service, ServiceConfig, ServiceSpec, UpdateStrategy, Topology};
-use self::service::{DesiredState, StartStyle};
+pub use self::service::{Service, ServiceSpec, UpdateStrategy, Topology};
+pub use self::sys::Sys;
+use self::service::{DesiredState, ProcessState, StartStyle};
 use self::service_updater::ServiceUpdater;
 use self::spec_watcher::{SpecWatcher, SpecWatcherEvent};
 use error::{Error, Result, SupError};
@@ -57,7 +59,6 @@ use config::GossipListenAddr;
 use census::CensusRing;
 use manager::signals::SignalEvent;
 use http_gateway;
-use supervisor::ProcessState;
 
 const MEMBER_ID_FILE: &'static str = "MEMBER_ID";
 const PROC_LOCK_FILE: &'static str = "LOCK";
@@ -121,11 +122,13 @@ pub fn deserialize_time<'de, D>(d: D) -> result::Result<TimeDuration, D::Error>
 /// persistence data.
 #[derive(Debug)]
 pub struct FsCfg {
-    data_path: PathBuf,
     pub butterfly_data_path: PathBuf,
     pub census_data_path: PathBuf,
     pub services_data_path: PathBuf,
+
+    data_path: PathBuf,
     specs_path: PathBuf,
+    member_id_file: PathBuf,
     proc_lock_file: PathBuf,
 }
 
@@ -141,6 +144,7 @@ impl FsCfg {
             services_data_path: data_path.join("services.dat"),
             specs_path: sup_svc_root.join("specs"),
             data_path: data_path,
+            member_id_file: sup_svc_root.join(MEMBER_ID_FILE),
             proc_lock_file: sup_svc_root.join(PROC_LOCK_FILE),
         }
     }
@@ -170,13 +174,13 @@ pub struct Manager {
     services: Arc<RwLock<Vec<Service>>>,
     updater: ServiceUpdater,
     watcher: SpecWatcher,
-    gossip_listen: GossipListenAddr,
-    http_listen: http_gateway::ListenAddr,
     organization: Option<String>,
     service_states: Vec<Timespec>,
+    sys: Arc<Sys>,
 }
 
 impl Manager {
+    /// Determines if there is already a Habitat Supervisor running on the host system.
     pub fn is_running(cfg: &ManagerConfig) -> Result<bool> {
         let state_path = Self::state_path_from(&cfg);
         let fs_cfg = FsCfg::new(state_path);
@@ -195,15 +199,18 @@ impl Manager {
         }
     }
 
+    /// Load a Manager with the given configuration.
+    ///
+    /// The returned Manager will be pre-populated with any cached data from disk from a previous
+    /// run if available.
     pub fn load(cfg: ManagerConfig) -> Result<Manager> {
         let state_path = Self::state_path_from(&cfg);
         Self::create_state_path_dirs(&state_path)?;
         Self::clean_dirty_state(&state_path)?;
-        let member = Self::load_member(&state_path)?;
         let fs_cfg = FsCfg::new(state_path);
         obtain_process_lock(&fs_cfg)?;
 
-        Self::new(cfg, member, fs_cfg)
+        Self::new(cfg, fs_cfg)
     }
 
     pub fn service_status(cfg: ManagerConfig, ident: PackageIdent) -> Result<ServiceStatus> {
@@ -226,10 +233,9 @@ impl Manager {
         serde_json::from_reader(&dat).map_err(|e| sup_error!(Error::ServiceDeserializationError(e)))
     }
 
-    fn new(cfg: ManagerConfig, mut member: Member, fs_cfg: FsCfg) -> Result<Manager> {
-        member.set_persistent(cfg.gossip_permanent);
-        member.set_swim_port(cfg.gossip_listen.port() as i32);
-        member.set_gossip_port(cfg.gossip_listen.port() as i32);
+    fn new(cfg: ManagerConfig, fs_cfg: FsCfg) -> Result<Manager> {
+        let mut sys = Sys::new(cfg.gossip_permanent, cfg.gossip_listen, cfg.http_listen);
+        let member = Self::load_member(&mut sys, &fs_cfg)?;
 
         let ring_key = match cfg.ring {
             Some(ref ring_with_revision) => {
@@ -240,15 +246,15 @@ impl Manager {
         };
 
         let services = Arc::new(RwLock::new(Vec::new()));
-        let server = butterfly::Server::new(&cfg.gossip_listen,
-                                            &cfg.gossip_listen,
+        let server = butterfly::Server::new(sys.gossip_listen(),
+                                            sys.gossip_listen(),
                                             member,
                                             Trace::default(),
                                             ring_key,
                                             None,
                                             Some(&fs_cfg.data_path),
                                             Box::new(SuitabilityLookup(services.clone())))?;
-        outputln!("Butterfly Member ID {}", server.member_id());
+        outputln!("Supervisor Member-ID {}", sys.member_id);
         for peer_addr in &cfg.gossip_peers {
             let mut peer = Member::default();
             peer.set_address(format!("{}", peer_addr.ip()));
@@ -258,40 +264,52 @@ impl Manager {
         }
         Ok(Manager {
                updater: ServiceUpdater::new(server.clone()),
-               census_ring: CensusRing::new(server.member_id()),
+               census_ring: CensusRing::new(sys.member_id.clone()),
                butterfly: server,
                services: services,
                watcher: SpecWatcher::run(&fs_cfg.specs_path)?,
                fs_cfg: Arc::new(fs_cfg),
-               gossip_listen: cfg.gossip_listen,
-               http_listen: cfg.http_listen,
                organization: cfg.organization,
                service_states: Vec::new(),
+               sys: Arc::new(sys),
            })
     }
 
-    fn load_member<T>(state_path: T) -> Result<Member>
-        where T: AsRef<Path>
-    {
+    /// Load the initial Butterly Member which is used in initializing the Butterfly server. This
+    /// will load the member-id for the initial Member from disk if a previous manager has been
+    /// run.
+    ///
+    /// The mutable ref to `Sys` will be configured with Butterfly Member details and will also
+    /// populate the initial Member.
+    fn load_member(sys: &mut Sys, fs_cfg: &FsCfg) -> Result<Member> {
         let mut member = Member::default();
-        let file_path = state_path.as_ref().join(MEMBER_ID_FILE);
-        match File::open(&file_path) {
+        match File::open(&fs_cfg.member_id_file) {
             Ok(mut file) => {
                 let mut member_id = String::new();
                 file.read_to_string(&mut member_id)
-                    .map_err(|e| sup_error!(Error::BadDataFile(file_path, e)))?;
+                    .map_err(|e| sup_error!(Error::BadDataFile(fs_cfg.member_id_file.clone(), e)))?;
                 member.set_id(member_id);
             }
             Err(_) => {
-                match File::create(&file_path) {
+                match File::create(&fs_cfg.member_id_file) {
                     Ok(mut file) => {
                         file.write(member.get_id().as_bytes())
-                            .map_err(|e| sup_error!(Error::BadDataFile(file_path.clone(), e)))?;
+                            .map_err(|e| {
+                                         sup_error!(Error::BadDataFile(fs_cfg
+                                                                           .member_id_file
+                                                                           .clone(),
+                                                                       e))
+                                     })?;
                     }
-                    Err(err) => return Err(sup_error!(Error::BadDataFile(file_path.clone(), err))),
+                    Err(err) => {
+                        return Err(sup_error!(Error::BadDataFile(fs_cfg.member_id_file.clone(),
+                                                                 err)))
+                    }
                 }
             }
         }
+        sys.member_id = member.get_id().to_string();
+        member.set_persistent(sys.permanent);
         Ok(member)
     }
 
@@ -379,10 +397,8 @@ impl Manager {
         // back to us. Since we consume and deconstruct the spec in `Service::new()` which
         // `Service::load()` eventually delegates to we just can't have that. We should clean
         // this up in the future.
-        let service = match Service::load(self.butterfly.member_id(),
+        let service = match Service::load(self.sys.clone(),
                                           spec.clone(),
-                                          &self.gossip_listen,
-                                          &self.http_listen,
                                           self.fs_cfg.clone(),
                                           self.organization.as_ref().map(|org| &**org)) {
             Ok(service) => service,
@@ -431,16 +447,19 @@ impl Manager {
         signals::init();
         self.start_initial_services_from_watcher()?;
 
-        outputln!("Starting butterfly on {}", self.butterfly.gossip_addr());
-        try!(self.butterfly.start(Timing::default()));
-        debug!("butterfly server started");
+        outputln!("Starting gossip-listener on {}",
+                  self.butterfly.gossip_addr());
+        self.butterfly.start(Timing::default())?;
+        debug!("gossip-listener started");
         self.persist_state();
-        outputln!("Starting http-gateway on {}", self.http_listen);
-        try!(http_gateway::Server::new(self.fs_cfg.clone(), self.http_listen.clone()).start());
-        debug!("http-gateway server started");
+        let http_listen_addr = self.sys.http_listen();
+        outputln!("Starting http-gateway on {}", &http_listen_addr);
+        http_gateway::Server::new(self.fs_cfg.clone(), http_listen_addr)
+            .start()?;
+        debug!("http-gateway started");
 
         let (event_tx, event_rx) = channel::<Vec<CensusEntryProto>>();
-        let member_id = String::from(self.butterfly.member_id());
+        let member_id = self.sys.member_id.clone();
 
         thread::Builder::new()
             .name("sup-eventsrv".to_string())
@@ -592,19 +611,13 @@ impl Manager {
                 .write()
                 .expect("Services lock is poisoned!")
                 .iter_mut() {
-            if self.updater
-                   .check_for_updated_package(service, &self.census_ring) {
-                service.populate(&self.census_ring);
-                self.gossip_latest_service_rumor(&service);
-            }
+            self.updater
+                .check_for_updated_package(service, &self.census_ring);
         }
     }
 
     fn gossip_latest_service_rumor(&self, service: &Service) {
         let mut incarnation = 1;
-        let member_id = {
-            self.butterfly.member_id().to_string()
-        };
         {
             let list = self.butterfly
                 .service_store
@@ -612,10 +625,10 @@ impl Manager {
                 .read()
                 .expect("Rumor store lock poisoned");
             if let Some(rumor) = list.get(&*service.service_group)
-                   .and_then(|r| r.get(&member_id)) {
+                   .and_then(|r| r.get(&self.sys.member_id)) {
                 incarnation = rumor.clone().get_incarnation() + 1;
             }
-        };
+        }
         self.butterfly
             .insert_service(service.to_rumor(incarnation));
     }
@@ -729,10 +742,8 @@ impl Manager {
                 .unwrap()
                 .values()
                 .filter(|s| s.desired_state == DesiredState::Down) {
-            match Service::load("",
+            match Service::load(self.sys.clone(),
                                 down.clone(),
-                                &self.gossip_listen,
-                                &self.http_listen,
                                 self.fs_cfg.clone(),
                                 self.organization.as_ref().map(|org| &**org)) {
                 Ok(service) => {
@@ -767,7 +778,9 @@ impl Manager {
         if !is_first {
             writer.write(",".as_bytes())?;
         }
-        serde_json::to_writer(writer, service).map_err(|e| sup_error!(Error::ServiceSerializationError(e)))
+        serde_json::to_writer(writer, service).map_err(|e| {
+            sup_error!(Error::ServiceSerializationError(e))
+        })
     }
 
     /// Check if any elections need restarting.

@@ -36,75 +36,6 @@ group = "mylab"
 ident = "testplan.mylab"
 service = "testplan"
 
-[[svc.all]]
-group = "mylab"
-ident = "testplan.mylab"
-service = "testplan"
-
-[svc.all.me]
-group = "mylab"
-member_id = "4ae2fbfbf3b74b2695071a61074f1798"
-service = "testplan"
-
-[svc.all.me.cfg]
-
-[svc.all.me.pkg]
-name = "testplan"
-origin = "core"
-release = "20170208180805"
-version = "0.1.0"
-
-[svc.all.me.sys]
-gossip_ip = "127.0.0.1"
-gossip_port = "9010"
-hostname = "privatedepot"
-http_gateway_ip = "0.0.0.0"
-http_gateway_port = "8010"
-ip = "10.0.0.4"
-
-[svc.all.member_id]
-[svc.all.member_id.4ae2fbfbf3b74b2695071a61074f1798]
-group = "mylab"
-member_id = "4ae2fbfbf3b74b2695071a61074f1798"
-service = "testplan"
-
-[svc.all.member_id.4ae2fbfbf3b74b2695071a61074f1798.cfg]
-
-[svc.all.member_id.4ae2fbfbf3b74b2695071a61074f1798.pkg]
-name = "testplan"
-origin = "core"
-release = "20170208180805"
-version = "0.1.0"
-
-[svc.all.member_id.4ae2fbfbf3b74b2695071a61074f1798.sys]
-gossip_ip = "127.0.0.1"
-gossip_port = "9010"
-hostname = "privatedepot"
-http_gateway_ip = "0.0.0.0"
-http_gateway_port = "8010"
-ip = "10.0.0.4"
-
-[[svc.all.members]]
-group = "mylab"
-member_id = "4ae2fbfbf3b74b2695071a61074f1798"
-service = "testplan"
-
-[svc.all.members.cfg]
-
-[svc.all.members.pkg]
-name = "testplan"
-origin = "core"
-release = "20170208180805"
-version = "0.1.0"
-
-[svc.all.members.sys]
-gossip_ip = "127.0.0.1"
-gossip_port = "9010"
-hostname = "privatedepot"
-http_gateway_ip = "0.0.0.0"
-http_gateway_port = "8010"
-ip = "10.0.0.4"
-
 [svc.me]
 group = "mylab"
 member_id = "4ae2fbfbf3b74b2695071a61074f1798"
@@ -126,28 +57,6 @@ http_gateway_ip = "0.0.0.0"
 http_gateway_port = "8010"
 ip = "10.0.0.4"
 
-[svc.member_id]
-[svc.member_id.4ae2fbfbf3b74b2695071a61074f1798]
-group = "mylab"
-member_id = "4ae2fbfbf3b74b2695071a61074f1798"
-service = "testplan"
-
-[svc.member_id.4ae2fbfbf3b74b2695071a61074f1798.cfg]
-
-[svc.member_id.4ae2fbfbf3b74b2695071a61074f1798.pkg]
-name = "testplan"
-origin = "core"
-release = "20170208180805"
-version = "0.1.0"
-
-[svc.member_id.4ae2fbfbf3b74b2695071a61074f1798.sys]
-gossip_ip = "127.0.0.1"
-gossip_port = "9010"
-hostname = "privatedepot"
-http_gateway_ip = "0.0.0.0"
-http_gateway_port = "8010"
-ip = "10.0.0.4"
-
 [[svc.members]]
 group = "mylab"
 member_id = "4ae2fbfbf3b74b2695071a61074f1798"
@@ -162,77 +71,6 @@ release = "20170208180805"
 version = "0.1.0"
 
 [svc.members.sys]
-gossip_ip = "127.0.0.1"
-gossip_port = "9010"
-hostname = "privatedepot"
-http_gateway_ip = "0.0.0.0"
-http_gateway_port = "8010"
-ip = "10.0.0.4"
-
-[svc.named]
-[svc.named.testplan]
-[svc.named.testplan.mylab]
-group = "mylab"
-ident = "testplan.mylab"
-service = "testplan"
-
-[svc.named.testplan.mylab.me]
-group = "mylab"
-member_id = "4ae2fbfbf3b74b2695071a61074f1798"
-service = "testplan"
-
-[svc.named.testplan.mylab.me.cfg]
-
-[svc.named.testplan.mylab.me.pkg]
-name = "testplan"
-origin = "core"
-release = "20170208180805"
-version = "0.1.0"
-
-[svc.named.testplan.mylab.me.sys]
-gossip_ip = "127.0.0.1"
-gossip_port = "9010"
-hostname = "privatedepot"
-http_gateway_ip = "0.0.0.0"
-http_gateway_port = "8010"
-ip = "10.0.0.4"
-
-[svc.named.testplan.mylab.member_id]
-[svc.named.testplan.mylab.member_id.4ae2fbfbf3b74b2695071a61074f1798]
-group = "mylab"
-member_id = "4ae2fbfbf3b74b2695071a61074f1798"
-service = "testplan"
-
-[svc.named.testplan.mylab.member_id.4ae2fbfbf3b74b2695071a61074f1798.cfg]
-
-[svc.named.testplan.mylab.member_id.4ae2fbfbf3b74b2695071a61074f1798.pkg]
-name = "testplan"
-origin = "core"
-release = "20170208180805"
-version = "0.1.0"
-
-[svc.named.testplan.mylab.member_id.4ae2fbfbf3b74b2695071a61074f1798.sys]
-gossip_ip = "127.0.0.1"
-gossip_port = "9010"
-hostname = "privatedepot"
-http_gateway_ip = "0.0.0.0"
-http_gateway_port = "8010"
-ip = "10.0.0.4"
-
-[[svc.named.testplan.mylab.members]]
-group = "mylab"
-member_id = "4ae2fbfbf3b74b2695071a61074f1798"
-service = "testplan"
-
-[svc.named.testplan.mylab.members.cfg]
-
-[svc.named.testplan.mylab.members.pkg]
-name = "testplan"
-origin = "core"
-release = "20170208180805"
-version = "0.1.0"
-
-[svc.named.testplan.mylab.members.sys]
 gossip_ip = "127.0.0.1"
 gossip_port = "9010"
 hostname = "privatedepot"

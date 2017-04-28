@@ -20,6 +20,7 @@ use std::iter::IntoIterator;
 use std::net::SocketAddr;
 use std::ops::{Deref, DerefMut};
 use std::result;
+use std::str::FromStr;
 use std::sync::{Arc, RwLock};
 use std::sync::atomic::{AtomicUsize, Ordering};
 
@@ -30,6 +31,7 @@ use uuid::Uuid;
 use serde::{Serialize, Serializer};
 use serde::ser::SerializeStruct;
 
+use error::Error;
 use message::swim::{Member as ProtoMember, Membership as ProtoMembership,
                     Membership_Health as ProtoMembership_Health, Rumor_Type};
 use rumor::RumorKey;
@@ -38,11 +40,30 @@ use rumor::RumorKey;
 const PINGREQ_TARGETS: usize = 5;
 
 /// The health of a node.
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
 pub enum Health {
     Alive,
     Suspect,
     Confirmed,
+}
+
+impl Default for Health {
+    fn default() -> Health {
+        Health::Alive
+    }
+}
+
+impl FromStr for Health {
+    type Err = Error;
+
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        match value.to_lowercase().as_ref() {
+            "alive" => Ok(Health::Alive),
+            "suspect" => Ok(Health::Suspect),
+            "confirmed" => Ok(Health::Confirmed),
+            _ => Ok(Health::Alive),
+        }
+    }
 }
 
 impl From<i32> for Health {
@@ -82,13 +103,15 @@ impl<'a> From<&'a Health> for ProtoMembership_Health {
     }
 }
 
+
 impl fmt::Display for Health {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            &Health::Alive => write!(f, "Alive"),
-            &Health::Suspect => write!(f, "Suspect"),
-            &Health::Confirmed => write!(f, "Confirmed"),
-        }
+        let value = match *self {
+            Health::Alive => "alive",
+            Health::Suspect => "suspect",
+            Health::Confirmed => "confirmed",
+        };
+        write!(f, "{}", value)
     }
 }
 

@@ -19,7 +19,6 @@
 /// If the process dies, the supervisor will restart it.
 
 use std;
-use std::collections::HashMap;
 use std::fmt;
 use std::fs::File;
 use std::io::BufReader;
@@ -27,20 +26,18 @@ use std::io::prelude::*;
 use std::path::PathBuf;
 use std::process::Child;
 use std::result;
-use std::sync::{Arc, RwLock};
 use std::thread;
 
 use hcore::os::process::{HabChild, ExitStatusExt};
 use hcore::util::perm::set_owner;
-use hcore::package::PackageInstall;
 use hcore::service::ServiceGroup;
 use serde::{Serialize, Serializer};
 use serde::ser::SerializeStruct;
 use time::{self, Timespec};
 
+use super::exec;
 use error::{Result, Error};
-use fs;
-use util;
+use manager::service::Pkg;
 
 static LOGKEY: &'static str = "SV";
 
@@ -64,64 +61,25 @@ impl fmt::Display for ProcessState {
     }
 }
 
-/// Additional params used to start the Supervisor.
-/// These params are outside the scope of what is in
-/// Supervisor.package.ident, and aren't runtime params that are stored
-/// in the top-level Supervisor struct (such as PID etc)
-#[derive(Debug, Deserialize, Serialize)]
-pub struct RuntimeConfig {
-    pub svc_user: String,
-    pub svc_group: String,
-    pub env_vars: HashMap<String, String>,
-}
-
-impl RuntimeConfig {
-    pub fn new(svc_user: String,
-               svc_group: String,
-               env_vars: HashMap<String, String>)
-               -> RuntimeConfig {
-        RuntimeConfig {
-            svc_user: svc_user,
-            svc_group: svc_group,
-            env_vars: env_vars,
-        }
-    }
-}
-
-impl Default for RuntimeConfig {
-    fn default() -> RuntimeConfig {
-        RuntimeConfig {
-            svc_user: util::users::DEFAULT_USER.to_string(),
-            svc_group: util::users::DEFAULT_GROUP.to_string(),
-            env_vars: HashMap::new(),
-        }
-    }
-}
-
 #[derive(Debug)]
 pub struct Supervisor {
     pub child: Option<HabChild>,
-    pub package: Arc<RwLock<PackageInstall>>,
     pub preamble: String,
     pub state: ProcessState,
     pub state_entered: Timespec,
     pub has_started: bool,
-    pub runtime_config: RuntimeConfig,
+    pid: Option<PathBuf>,
 }
 
 impl Supervisor {
-    pub fn new(package: Arc<RwLock<PackageInstall>>,
-               service_group: &ServiceGroup,
-               runtime_config: RuntimeConfig)
-               -> Supervisor {
+    pub fn new(service_group: &ServiceGroup) -> Supervisor {
         Supervisor {
             child: None,
-            package: package,
             preamble: format!("{}", service_group),
             state: ProcessState::Down,
             state_entered: time::get_time(),
             has_started: false,
-            runtime_config: runtime_config,
+            pid: None,
         }
     }
 
@@ -142,34 +100,31 @@ impl Supervisor {
         (healthy, status)
     }
 
-    pub fn start(&mut self) -> Result<()> {
-        if self.child.is_none() {
-            debug!("Setting PATH for {} to PATH='{}'",
-                   &self.preamble,
-                   self.runtime_config
-                       .env_vars
-                       .get("PATH")
-                       .map(|v| &**v)
-                       .unwrap_or("<unknown>"));
-            outputln!(preamble self.preamble,
-                      "Starting process as user={}, group={}",
-                      &self.runtime_config.svc_user,
-                      &self.runtime_config.svc_group);
-            self.enter_state(ProcessState::Start);
-            let mut child = try!(try!(util::create_command(self.run_cmd(), &self.runtime_config))
-                                     .spawn());
-            let hab_child = try!(HabChild::from(&mut child));
-            self.child = Some(hab_child);
-            try!(self.create_pidfile());
-            let package_name = self.preamble.clone();
-            try!(thread::Builder::new()
-                     .name(String::from("sup-service-read"))
-                     .spawn(move || -> Result<()> { child_reader(&mut child, package_name) }));
-            self.enter_state(ProcessState::Up);
-            self.has_started = true;
-        } else {
+    pub fn start(&mut self, pkg: &Pkg) -> Result<()> {
+        if self.child.is_some() {
             outputln!(preamble & self.preamble, "Already started");
+            return Ok(());
         }
+        debug!("Setting PATH for {} to PATH='{}'",
+               &self.preamble,
+               pkg.env
+                   .get("PATH")
+                   .map(|v| &**v)
+                   .unwrap_or("<unknown>"));
+        outputln!(preamble self.preamble,
+                  "Starting process as user={}, group={}",
+                  &pkg.svc_user,
+                  &pkg.svc_group);
+        self.enter_state(ProcessState::Start);
+        let mut child = exec::run_cmd(&pkg.svc_run, &pkg)?.spawn()?;
+        self.child = Some(HabChild::from(&mut child)?);
+        self.create_pidfile(pkg)?;
+        let package_name = self.preamble.clone();
+        thread::Builder::new()
+            .name(String::from("sup-service-read"))
+            .spawn(move || -> Result<()> { child_reader(&mut child, package_name) })?;
+        self.enter_state(ProcessState::Up);
+        self.has_started = true;
         Ok(())
     }
 
@@ -187,22 +142,6 @@ impl Supervisor {
         Ok(())
     }
 
-    pub fn is_up(&self) -> bool {
-        if let ProcessState::Up = self.state {
-            true
-        } else {
-            false
-        }
-    }
-
-    pub fn is_down(&self) -> bool {
-        if let ProcessState::Down = self.state {
-            true
-        } else {
-            false
-        }
-    }
-
     pub fn down(&mut self) -> Result<()> {
         self.enter_state(ProcessState::Down);
         try!(self.stop());
@@ -210,10 +149,10 @@ impl Supervisor {
         Ok(())
     }
 
-    pub fn restart(&mut self) -> Result<()> {
+    pub fn restart(&mut self, pkg: &Pkg) -> Result<()> {
         self.enter_state(ProcessState::Restart);
         try!(self.stop());
-        try!(self.start());
+        try!(self.start(pkg));
         Ok(())
     }
 
@@ -259,42 +198,20 @@ impl Supervisor {
         }
     }
 
-    pub fn run_cmd(&self) -> PathBuf {
-        self.service_dir().join("run")
-    }
-
-    pub fn service_dir(&self) -> PathBuf {
-        fs::svc_path(&self.package
-                          .read()
-                          .expect("Package lock poisoned")
-                          .ident()
-                          .name)
-    }
-
-    pub fn pid_file(&self) -> PathBuf {
-        fs::svc_pid_file(&self.package
-                              .read()
-                              .expect("Package lock poisoned")
-                              .ident()
-                              .name)
-    }
-
     /// Create a pid file for a package
     /// The existence of this file does not guarantee that a
     /// process exists at the PID contained within.
-    pub fn create_pidfile(&self) -> Result<()> {
+    pub fn create_pidfile(&mut self, pkg: &Pkg) -> Result<()> {
         match self.child {
             Some(ref child) => {
-                let pid_file = self.pid_file();
                 let ref pid = child.id();
                 debug!("Creating PID file for child {} -> {:?}",
-                       pid_file.display(),
+                       pkg.svc_pid_file.display(),
                        pid);
-                let mut f = try!(File::create(&pid_file));
-                try!(set_owner(pid_file,
-                               &self.runtime_config.svc_user,
-                               &self.runtime_config.svc_group));
-                try!(write!(f, "{}", pid));
+                let mut f = try!(File::create(&pkg.svc_pid_file));
+                set_owner(&pkg.svc_pid_file, &pkg.svc_user, &pkg.svc_group)?;
+                write!(f, "{}", pid)?;
+                self.pid = Some(pkg.svc_pid_file.clone());
                 Ok(())
             }
             None => Ok(()),
@@ -303,38 +220,15 @@ impl Supervisor {
 
     /// Remove a pidfile for this package if it exists.
     /// Do NOT fail if there is an error removing the PIDFILE
-    pub fn cleanup_pidfile(&self) {
-        let pid_file = self.pid_file();
-        debug!("Attempting to clean up pid file {}", &pid_file.display());
-        match std::fs::remove_file(pid_file) {
-            Ok(_) => {
-                debug!("Removed pid file");
+    pub fn cleanup_pidfile(&mut self) {
+        if let Some(ref pid_file) = self.pid {
+            debug!("Attempting to clean up pid file {}", &pid_file.display());
+            match std::fs::remove_file(pid_file) {
+                Ok(_) => debug!("Removed pid file"),
+                Err(e) => debug!("Error removing pidfile: {}, continuing", e),
             }
-            Err(e) => {
-                debug!("Error removing pidfile: {}, continuing", e);
-            }
-        };
-    }
-
-    /// attempt to read the pidfile for this package.
-    /// If the pidfile does not exist, then return None,
-    /// otherwise, return Some(pid, uptime_seconds).
-    pub fn read_pidfile(&self) -> Result<Option<u32>> {
-        let pid_file = self.pid_file();
-        debug!("Reading pidfile {}", &pid_file.display());
-
-        let mut f = try!(File::open(pid_file));
-        let mut contents = String::new();
-        try!(f.read_to_string(&mut contents));
-        debug!("pidfile contents = {}", contents);
-        let pid = match contents.parse::<u32>() {
-            Ok(pid) => pid,
-            Err(e) => {
-                debug!("Error reading pidfile: {}", e);
-                return Err(sup_error!(Error::InvalidPidFile));
-            }
-        };
-        Ok(Some(pid))
+        }
+        self.pid = None;
     }
 }
 
@@ -346,18 +240,12 @@ impl Serialize for Supervisor {
             Some(ref child) => Some(child.id()),
             None => None,
         };
-        let mut strukt = try!(serializer.serialize_struct("supervisor", 7));
+        let mut strukt = try!(serializer.serialize_struct("supervisor", 5));
         try!(strukt.serialize_field("pid", &pid));
-        try!(strukt.serialize_field("package",
-                                    &self.package
-                                         .read()
-                                         .expect("Package lock poisoned")
-                                         .to_string()));
         try!(strukt.serialize_field("preamble", &self.preamble));
         try!(strukt.serialize_field("state", &self.state));
         try!(strukt.serialize_field("state_entered", &self.state_entered.sec));
         try!(strukt.serialize_field("started", &self.has_started));
-        try!(strukt.serialize_field("runtime_config", &self.runtime_config));
         strukt.end()
     }
 }

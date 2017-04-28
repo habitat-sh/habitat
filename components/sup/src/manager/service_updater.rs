@@ -283,7 +283,7 @@ struct Worker {
 impl Worker {
     fn new(service: &Service) -> Self {
         Worker {
-            current: service.package().ident().clone(),
+            current: service.pkg.ident.clone(),
             spec_ident: service.spec_ident.clone(),
             depot: depot_client::Client::new(&service.depot_url, PRODUCT, VERSION, None).unwrap(),
             update_strategy: service.update_strategy.clone(),

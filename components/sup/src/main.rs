@@ -51,8 +51,7 @@ use sup::command;
 use sup::http_gateway;
 use sup::manager::{Manager, ManagerConfig, ServiceStatus};
 use sup::manager::service::{DesiredState, ServiceBind, Topology, UpdateStrategy};
-use sup::manager::service::{ServiceSpec, StartStyle};
-use sup::supervisor::ProcessState;
+use sup::manager::service::{ProcessState, ServiceSpec, StartStyle};
 use sup::util;
 
 /// Our output key
