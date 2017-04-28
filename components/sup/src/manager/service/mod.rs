@@ -40,6 +40,7 @@ use hcore::package::{PackageIdent, PackageInstall};
 use hcore::util::deserialize_using_from_str;
 use hcore::util::perm::{set_owner, set_permissions};
 use serde;
+use time::Timespec;
 use toml;
 
 use self::hooks::{HOOK_PERMISSIONS, Hook, HookTable};
@@ -92,6 +93,7 @@ pub struct Service {
     last_health_check: Instant,
     #[serde(skip_serializing)]
     manager_fs_cfg: Arc<manager::FsCfg>,
+    #[serde(rename="process")]
     supervisor: Supervisor,
 }
 
@@ -284,6 +286,10 @@ impl Service {
     /// Instructs the service's process supervisor to reap dead children.
     fn check_process(&mut self) {
         self.supervisor.check_process()
+    }
+
+    pub fn last_state_change(&self) -> Timespec {
+        self.supervisor.state_entered
     }
 
     pub fn tick(&mut self, census_ring: &CensusRing) -> bool {

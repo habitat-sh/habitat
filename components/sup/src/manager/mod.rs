@@ -18,10 +18,12 @@ mod service_updater;
 mod spec_watcher;
 
 use std::collections::HashMap;
+use std::fmt;
 use std::fs::{self, File, OpenOptions};
-use std::io::{BufRead, BufReader, BufWriter, Read, Write};
+use std::io::{self, BufRead, BufReader, BufWriter, Read, Write};
 use std::net::SocketAddr;
 use std::path::{Path, PathBuf};
+use std::result;
 use std::thread;
 use std::sync::{Arc, RwLock};
 use std::sync::mpsc::channel;
@@ -38,10 +40,13 @@ use eventsrv_client::EventSrvClient;
 use hcore::crypto::{default_cache_key_path, SymKey};
 use hcore::fs::FS_ROOT_PATH;
 use hcore::service::ServiceGroup;
+use hcore::util::deserialize_using_from_str;
 use hcore::os::process;
+use hcore::package::{Identifiable, PackageIdent};
 use protobuf::Message;
+use serde;
 use serde_json;
-use time::{SteadyTime, Duration as TimeDuration};
+use time::{self, Timespec, Duration as TimeDuration};
 
 pub use manager::service::{Service, ServiceConfig, ServiceSpec, UpdateStrategy, Topology};
 use self::service::{DesiredState, StartStyle};
@@ -52,6 +57,7 @@ use config::GossipListenAddr;
 use census::CensusRing;
 use manager::signals::SignalEvent;
 use http_gateway;
+use supervisor::ProcessState;
 
 const MEMBER_ID_FILE: &'static str = "MEMBER_ID";
 const PROC_LOCK_FILE: &'static str = "LOCK";
@@ -63,6 +69,50 @@ lazy_static! {
     pub static ref STATE_PATH_PREFIX: PathBuf = {
         Path::new(&*FS_ROOT_PATH).join("hab/sup")
     };
+}
+
+#[derive(Deserialize)]
+pub struct ServiceStatus {
+    #[serde(deserialize_with = "deserialize_using_from_str")]
+    pub package: PackageIdent,
+    pub process: ProcessStatus,
+}
+
+#[derive(Deserialize)]
+pub struct ProcessStatus {
+    pub pid: Option<u32>,
+    #[serde(
+        deserialize_with = "deserialize_time",
+        rename = "state_entered"
+    )]
+    pub elapsed: TimeDuration,
+    pub state: ProcessState,
+}
+
+pub fn deserialize_time<'de, D>(d: D) -> result::Result<TimeDuration, D::Error>
+    where D: serde::Deserializer<'de>
+{
+    struct FromTimespec;
+
+    impl<'de> serde::de::Visitor<'de> for FromTimespec {
+        type Value = TimeDuration;
+
+        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+            formatter.write_str("a i64 integer")
+        }
+
+        fn visit_u64<R>(self, value: u64) -> result::Result<TimeDuration, R>
+            where R: serde::de::Error
+        {
+            let tspec = Timespec {
+                sec: (value as i64),
+                nsec: 0,
+            };
+            Ok(time::get_time() - tspec)
+        }
+    }
+
+    d.deserialize_u64(FromTimespec)
 }
 
 /// FileSystem paths that the Manager uses to persist data to disk.
@@ -123,6 +173,7 @@ pub struct Manager {
     gossip_listen: GossipListenAddr,
     http_listen: http_gateway::ListenAddr,
     organization: Option<String>,
+    service_states: Vec<Timespec>,
 }
 
 impl Manager {
@@ -153,6 +204,26 @@ impl Manager {
         obtain_process_lock(&fs_cfg)?;
 
         Self::new(cfg, member, fs_cfg)
+    }
+
+    pub fn service_status(cfg: ManagerConfig, ident: PackageIdent) -> Result<ServiceStatus> {
+        let services = Self::status(cfg)?;
+
+        for status in services {
+            if status.package.satisfies(&ident) {
+                return Ok(status);
+            }
+        }
+
+        Err(sup_error!(Error::ServiceNotLoaded(ident)))
+    }
+
+    pub fn status(cfg: ManagerConfig) -> Result<Vec<ServiceStatus>> {
+        let state_path = Self::state_path_from(&cfg);
+        let fs_cfg = FsCfg::new(state_path);
+
+        let dat = File::open(&fs_cfg.services_data_path)?;
+        serde_json::from_reader(&dat).map_err(|e| sup_error!(Error::ServiceDeserializationError(e)))
     }
 
     fn new(cfg: ManagerConfig, mut member: Member, fs_cfg: FsCfg) -> Result<Manager> {
@@ -195,6 +266,7 @@ impl Manager {
                gossip_listen: cfg.gossip_listen,
                http_listen: cfg.http_listen,
                organization: cfg.organization,
+               service_states: Vec::new(),
            })
     }
 
@@ -405,7 +477,7 @@ impl Manager {
         let mut service_rumor_offset = 0;
 
         loop {
-            let next_check = SteadyTime::now() + TimeDuration::milliseconds(1000);
+            let next_check = time::get_time() + TimeDuration::milliseconds(1000);
             if self.check_for_incoming_signals() {
                 self.shutdown();
                 return Ok(());
@@ -422,6 +494,10 @@ impl Manager {
                                     &self.butterfly.service_config_store,
                                     &self.butterfly.service_file_store);
             service_rumor_offset = 0;
+
+            if self.check_for_changed_services() {
+                self.persist_state();
+            }
 
             if self.census_ring.changed {
                 self.persist_state();
@@ -456,7 +532,7 @@ impl Manager {
                     service_rumor_offset += 1;
                 }
             }
-            let time_to_wait = (next_check - SteadyTime::now()).num_milliseconds();
+            let time_to_wait = (next_check - time::get_time()).num_milliseconds();
             if time_to_wait > 0 {
                 thread::sleep(Duration::from_millis(time_to_wait as u64));
             }
@@ -545,6 +621,22 @@ impl Manager {
             .insert_service(service.to_rumor(incarnation));
     }
 
+    fn check_for_changed_services(&mut self) -> bool {
+        let mut service_states = Vec::new();
+        for service in self.services
+                .write()
+                .expect("Services lock is poisoned!")
+                .iter_mut() {
+            service_states.push(service.last_state_change());
+        }
+        if service_states != self.service_states {
+            self.service_states = service_states.clone();
+            true
+        } else {
+            false
+        }
+    }
+
     fn persist_state(&self) {
         debug!("Writing census state to disk");
         self.persist_census_state();
@@ -616,11 +708,47 @@ impl Manager {
             }
         };
         let mut writer = BufWriter::new(file);
-        let services = self.services.read().expect("Services lock poisoned");
-        if let Some(err) = writer
-               .write(serde_json::to_string(&*services).unwrap().as_bytes())
-               .err() {
-            warn!("Couldn't write to services state file, {}", err);
+        if let Some(err) = writer.get_mut().write("[".as_bytes()).err() {
+            warn!("Couldn't write to service state file, {}", err);
+        }
+
+        let mut is_first = true;
+
+        for service in self.services
+                .read()
+                .expect("Services lock is poisoned!")
+                .iter() {
+            if let Some(err) = self.write_service(service, is_first, writer.get_mut())
+                   .err() {
+                warn!("Couldn't write to service state file, {}", err);
+            }
+            is_first = false;
+        }
+
+        for down in self.watcher
+                .specs_from_watch_path()
+                .unwrap()
+                .values()
+                .filter(|s| s.desired_state == DesiredState::Down) {
+            match Service::load("",
+                                down.clone(),
+                                &self.gossip_listen,
+                                &self.http_listen,
+                                self.fs_cfg.clone(),
+                                self.organization.as_ref().map(|org| &**org)) {
+                Ok(service) => {
+                    if let Some(err) = self.write_service(&service, is_first, writer.get_mut())
+                           .err() {
+                        warn!("Couldn't write to service state file, {}", err);
+                    }
+                    is_first = false;
+                }
+                Err(_) => {}
+            };
+        }
+
+        if let Some(err) = writer.get_mut().write("]".as_bytes()).err() {
+            warn!("Couldn't write to service state file, {}", err);
         }
         if let Some(err) = writer.flush().err() {
             warn!("Couldn't flush services state buffer to disk, {}", err);
@@ -628,6 +756,19 @@ impl Manager {
         if let Some(err) = fs::rename(&tmp_file, &self.fs_cfg.services_data_path).err() {
             warn!("Couldn't finalize services state on disk, {}", err);
         }
+    }
+
+    fn write_service<W: ?Sized>(&self,
+                                service: &Service,
+                                is_first: bool,
+                                writer: &mut W)
+                                -> Result<()>
+        where W: io::Write
+    {
+        if !is_first {
+            writer.write(",".as_bytes())?;
+        }
+        serde_json::to_writer(writer, service).map_err(|e| sup_error!(Error::ServiceSerializationError(e)))
     }
 
     /// Check if any elections need restarting.
