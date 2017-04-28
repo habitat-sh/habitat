@@ -718,7 +718,6 @@ dependencies = [
  "url 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "urlencoded 0.5.0 (git+https://github.com/iron/urlencoded)",
  "uuid 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "uuid 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "walkdir 1.0.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "zmq 0.8.1 (git+https://github.com/erickt/rust-zmq?branch=release/v0.8)",
 ]

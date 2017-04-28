@@ -49,6 +49,7 @@ pub enum Error {
     Protobuf(protobuf::ProtobufError),
     UnknownGroupState,
     UnknownProjectState,
+    UnknownJobState,
     UnknownPackage,
     Zmq(zmq::Error),
 }
@@ -72,7 +73,9 @@ impl fmt::Display for Error {
             Error::IO(ref e) => format!("{}", e),
             Error::PackageInsert(ref e) => format!("Database error inserting a new package, {}", e),
             Error::PackagesGet(ref e) => format!("Database error retrieving packages, {}", e),
-            Error::PackageStats(ref e) => format!("Database error retrieving package statistics, {}", e),
+            Error::PackageStats(ref e) => {
+                format!("Database error retrieving package statistics, {}", e)
+            }
             Error::GroupCreate(ref e) => format!("Database error creating a new group, {}", e),
             Error::GroupGet(ref e) => format!("Database error getting group data, {}", e),
             Error::GroupPending(ref e) => format!("Database error getting pending group, {}", e),
@@ -83,6 +86,7 @@ impl fmt::Display for Error {
             Error::Protobuf(ref e) => format!("{}", e),
             Error::UnknownGroupState => format!("Unknown Group State"),
             Error::UnknownProjectState => format!("Unknown Project State"),
+            Error::UnknownJobState => format!("Unknown Job State"),
             Error::UnknownPackage => format!("Unknown Package"),
             Error::Zmq(ref e) => format!("{}", e),
         };
@@ -114,6 +118,7 @@ impl error::Error for Error {
             Error::Protobuf(ref err) => err.description(),
             Error::UnknownGroupState => "Unknown Group State",
             Error::UnknownProjectState => "Unknown Project State",
+            Error::UnknownJobState => "Unknown Job State",            
             Error::UnknownPackage => "Unknown Package",
             Error::Zmq(ref err) => err.description(),
         }

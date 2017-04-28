@@ -61,7 +61,6 @@ pub struct WorkerMgr {
     hb_sock: zmq::Socket,
     rq_sock: zmq::Socket,
     work_mgr_sock: zmq::Socket,
-    pub_sock: zmq::Socket,
     msg: zmq::Message,
     workers: LinkedHashMap<String, Instant>,
 }
@@ -71,7 +70,6 @@ impl WorkerMgr {
         let hb_sock = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::SUB));
         let rq_sock = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::ROUTER));
         let work_mgr_sock = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER));
-        let pub_sock = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::PUB));
         try!(rq_sock.set_router_mandatory(true));
         try!(hb_sock.set_subscribe(&[]));
         try!(work_mgr_sock.set_rcvhwm(1));
@@ -84,7 +82,6 @@ impl WorkerMgr {
                hb_sock: hb_sock,
                rq_sock: rq_sock,
                work_mgr_sock: work_mgr_sock,
-               pub_sock: pub_sock,
                msg: msg,
                workers: LinkedHashMap::new(),
            })
@@ -111,13 +108,10 @@ impl WorkerMgr {
             let cfg = self.config.read().unwrap();
             let worker_command = cfg.net.worker_command_addr();
             let worker_heartbeat = cfg.net.worker_heartbeat_addr();
-            let publisher = cfg.net.publisher_addr();
             println!("Listening for commands on {}", worker_command);
             self.rq_sock.bind(&worker_command)?;
             println!("Listening for heartbeats on {}", worker_heartbeat);
             self.hb_sock.bind(&worker_heartbeat)?;
-            println!("Publishing job status on {}", publisher);
-            self.pub_sock.bind(&publisher)?;
         }
         let mut hb_sock = false;
         let mut rq_sock = false;
@@ -269,9 +263,6 @@ impl WorkerMgr {
         let job: jobsrv::Job = try!(parse_from_bytes(&self.msg));
         debug!("job_status={:?}", job);
         try!(self.datastore.set_job_state(&job));
-
-        // Publish job status to any subscribers
-        try!(self.pub_sock.send(&job.write_to_bytes().unwrap(), 0));
 
         Ok(())
     }

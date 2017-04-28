@@ -1,4 +1,5 @@
 package scheduler;
+import "protocols/jobsrv.proto";
 
 enum ProjectState {
   NotStarted = 0;
@@ -54,4 +55,8 @@ message PackageStatsGet {
 message PackageStats {
   optional uint64 plans = 1;
   optional uint64 builds = 2;
+}
+
+message JobStatus {
+  optional jobsrv.Job job = 1;
 }

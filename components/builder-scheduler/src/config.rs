@@ -14,8 +14,6 @@
 
 //! Configuration for a Habitat Scheduler service
 
-use std::net::{IpAddr, Ipv4Addr};
-
 use db::config::DataStoreCfg;
 use hab_core::config::ConfigFile;
 use hab_net::config::{DispatcherCfg, RouterAddr, RouterCfg, Shards};
@@ -34,20 +32,7 @@ pub struct Config {
     pub migration_path: String,
     /// List of net addresses for routing servers to connect to
     pub routers: Vec<RouterAddr>,
-    /// List of Job Servers to subscribe for status
-    pub jobsrv: JobSrvCfg,
     pub datastore: DataStoreCfg,
-}
-
-impl Config {
-    pub fn jobsrv_addrs(&self) -> Vec<String> {
-        let mut addrs = vec![];
-        for job_server in &self.jobsrv {
-            let addr = format!("tcp://{}:{}", job_server.host, job_server.port);
-            addrs.push(addr);
-        }
-        addrs
-    }
 }
 
 impl Default for Config {
@@ -59,7 +44,6 @@ impl Default for Config {
             worker_threads: Self::default_worker_count(),
             migration_path: String::from("/hab/svc/builder-scheduler/pkgs"),
             routers: vec![RouterAddr::default()],
-            jobsrv: vec![JobSrvAddr::default()],
             datastore: datastore,
         }
     }
@@ -87,24 +71,6 @@ impl Shards for Config {
     }
 }
 
-pub type JobSrvCfg = Vec<JobSrvAddr>;
-
-#[derive(Clone, Debug, Deserialize)]
-#[serde(default)]
-pub struct JobSrvAddr {
-    pub host: IpAddr,
-    pub port: u16,
-}
-
-impl Default for JobSrvAddr {
-    fn default() -> Self {
-        JobSrvAddr {
-            host: IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
-            port: 5568,
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -119,10 +85,6 @@ mod tests {
 
         [[jobsrv]]
         host = "1:1:1:1:1:1:1:1"
-        port = 9000
-
-        [[jobsrv]]
-        host = "2.2.2.2"
         port = 9000
 
         [[routers]]
@@ -141,10 +103,6 @@ mod tests {
         "#;
 
         let config = Config::from_raw(&content).unwrap();
-        assert_eq!(&format!("{}", config.jobsrv[0].host), "1:1:1:1:1:1:1:1");
-        assert_eq!(config.jobsrv[0].port, 9000);
-        assert_eq!(&format!("{}", config.jobsrv[1].host), "2.2.2.2");
-        assert_eq!(config.jobsrv[1].port, 9000);
         assert_eq!(config.datastore.port, 9000);
         assert_eq!(config.datastore.user, "test");
         assert_eq!(config.datastore.database, "test_scheduler");

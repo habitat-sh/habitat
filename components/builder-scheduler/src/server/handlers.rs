@@ -29,7 +29,7 @@ pub fn group_create(req: &mut Envelope,
                     state: &mut ServerState)
                     -> Result<()> {
     let msg: proto::GroupCreate = try!(req.parse_msg());
-    println!("group_create message: {:?}", msg);
+    debug!("group_create message: {:?}", msg);
 
     let project_name = format!("{}/{}", msg.get_origin(), msg.get_package());
     let mut projects = Vec::new();
@@ -44,7 +44,7 @@ pub fn group_create(req: &mut Envelope,
         let ret = match graph.resolve(&project_name) {
             Some(s) => s,
             None => {
-                error!("GroupCreate, project ident not found");
+                warn!("GroupCreate, project ident not found");
                 let err = net::err(ErrCode::ENTITY_NOT_FOUND, "sc:group-create:1");
                 try!(req.reply_complete(sock, &err));
                 return Ok(());
@@ -53,7 +53,7 @@ pub fn group_create(req: &mut Envelope,
         end_time = PreciseTime::now();
         ret
     };
-    println!("Resolved project name: {} sec\n", start_time.to(end_time));
+    debug!("Resolved project name: {} sec\n", start_time.to(end_time));
 
     // Add the root package if needed
     if !msg.get_deps_only() {
@@ -71,22 +71,23 @@ pub fn group_create(req: &mut Envelope,
 
     match rdeps_opt {
         Some(rdeps) => {
-            println!("Graph rdeps: {} items ({} sec)\n",
-                     rdeps.len(),
-                     start_time.to(end_time));
+            debug!("Graph rdeps: {} items ({} sec)\n",
+                   rdeps.len(),
+                   start_time.to(end_time));
 
             for s in rdeps {
-                println!("Adding to projects: {} ({})", s.0, s.1);
+                debug!("Adding to projects: {} ({})", s.0, s.1);
                 projects.push(s);
             }
         }
         None => {
-            println!("Graph rdeps: no entries found");
+            debug!("Graph rdeps: no entries found");
         }
     }
 
     let group = if projects.is_empty() {
-        println!("No projects need building - group is complete");
+        debug!("No projects need building - group is complete");
+
         let mut new_group = proto::Group::new();
         let projects = RepeatedField::new();
         new_group.set_id(0);
@@ -108,14 +109,14 @@ pub fn group_get(req: &mut Envelope,
                  state: &mut ServerState)
                  -> Result<()> {
     let msg: proto::GroupGet = try!(req.parse_msg());
-    println!("group_get message: {:?}", msg);
+    debug!("group_get message: {:?}", msg);
 
     let group_opt = match state.datastore().get_group(&msg) {
         Ok(group_opt) => group_opt,
         Err(err) => {
-            error!("Unable to retrieve group {}, err: {:?}",
-                   msg.get_group_id(),
-                   err);
+            warn!("Unable to retrieve group {}, err: {:?}",
+                  msg.get_group_id(),
+                  err);
             None
         }
     };
@@ -138,7 +139,7 @@ pub fn package_create(req: &mut Envelope,
                       state: &mut ServerState)
                       -> Result<()> {
     let msg: proto::PackageCreate = try!(req.parse_msg());
-    println!("package_create message: {:?}", msg);
+    debug!("package_create message: {:?}", msg);
 
     let package = state.datastore().create_package(&msg)?;
 
@@ -149,13 +150,26 @@ pub fn package_create(req: &mut Envelope,
         let (ncount, ecount) = graph.extend(&package);
         let end_time = PreciseTime::now();
 
-        println!("Extended graph, nodes: {}, edges: {} ({} sec)\n",
-                 ncount,
-                 ecount,
-                 start_time.to(end_time));
+        debug!("Extended graph, nodes: {}, edges: {} ({} sec)\n",
+               ncount,
+               ecount,
+               start_time.to(end_time));
     };
 
     try!(req.reply_complete(sock, &package));
+    Ok(())
+}
+
+pub fn job_status(req: &mut Envelope,
+                  sock: &mut zmq::Socket,
+                  state: &mut ServerState)
+                  -> Result<()> {
+    let msg: proto::JobStatus = try!(req.parse_msg());
+    debug!("job_status message: {:?}", msg);
+
+    try!(state.schedule_cli().notify_status(&msg.get_job()));
+
+    try!(req.reply_complete(sock, &msg));
     Ok(())
 }
 
@@ -164,14 +178,14 @@ pub fn package_stats_get(req: &mut Envelope,
                          state: &mut ServerState)
                          -> Result<()> {
     let msg: proto::PackageStatsGet = try!(req.parse_msg());
-    println!("package_stats_get message: {:?}", msg);
+    debug!("package_stats_get message: {:?}", msg);
 
     match state.datastore().get_package_stats(&msg) {
         Ok(package_stats) => try!(req.reply_complete(sock, &package_stats)),
         Err(err) => {
-            error!("Unable to retrieve package stats for {}, err: {:?}",
-                   msg.get_origin(),
-                   err);
+            warn!("Unable to retrieve package stats for {}, err: {:?}",
+                  msg.get_origin(),
+                  err);
             let err = net::err(ErrCode::ENTITY_NOT_FOUND, "sc:package-stats-get:1");
             try!(req.reply_complete(sock, &err));
         }

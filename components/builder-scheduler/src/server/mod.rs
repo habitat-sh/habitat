@@ -110,7 +110,8 @@ impl Dispatcher for Worker {
         match message.message_id() {
             "GroupCreate" => handlers::group_create(message, sock, state).unwrap(),
             "GroupGet" => handlers::group_get(message, sock, state).unwrap(),
-            "PackageCreate" => handlers::package_create(message, sock, state).unwrap(),            
+            "PackageCreate" => handlers::package_create(message, sock, state).unwrap(),
+            "JobStatus" => handlers::job_status(message, sock, state).unwrap(),
             "PackageStatsGet" => handlers::package_stats_get(message, sock, state).unwrap(),
             _ => panic!("unexpected message: {:?}", message.message_id()),
         };
@@ -183,18 +184,17 @@ impl Application for Server {
         let (ncount, ecount) = graph.build(packages.into_iter());
         let end_time = PreciseTime::now();
 
-        println!("Graph build stats: {} nodes, {} edges ({} sec)",
-                 ncount,
-                 ecount,
-                 start_time.to(end_time));
+        info!("Graph build stats: {} nodes, {} edges ({} sec)",
+              ncount,
+              ecount,
+              start_time.to(end_time));
 
         let cfg = self.config.clone();
-        let cfg2 = self.config.clone();
         let init_state = InitServerState::new(datastore, Arc::new(RwLock::new(graph)));
         let ds2 = init_state.datastore.clone();
         let sup: Supervisor<Worker> = Supervisor::new(cfg, init_state);
 
-        let schedule_mgr = try!(ScheduleMgr::start(cfg2, ds2));
+        let schedule_mgr = try!(ScheduleMgr::start(ds2));
         try!(sup.start());
         try!(self.connect());
         let broker = {
