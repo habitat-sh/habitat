@@ -67,7 +67,7 @@ helpers do
     elsif layout == :blog_post
       'blogs'
     elsif layout == :blog_index
-      'blogs'
+      'has-sidebar'
     else
       ''
     end

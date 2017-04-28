@@ -35,7 +35,8 @@ html prefix="og: http://ogp.me/ns#"
     = partial "layouts/nav"
 
     #content-outer
-      == yield
+      .container__has-sidebar
+        == yield
 
     = partial "layouts/footer"
 
