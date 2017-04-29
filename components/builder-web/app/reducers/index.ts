@@ -22,6 +22,7 @@ import packages from "./packages";
 import projects from "./projects";
 import router from "./router";
 import users from "./users";
+import ui from "./ui";
 
 export default combineReducers({
     app,
@@ -32,5 +33,6 @@ export default combineReducers({
     packages,
     projects,
     router,
-    users,
+    ui,
+    users
 });

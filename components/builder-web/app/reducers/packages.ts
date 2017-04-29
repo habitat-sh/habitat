@@ -30,6 +30,9 @@ export default function packages(state = initialState["packages"], action) {
                 setIn(["ui", "visible", "loading"], true).
                 setIn(["ui", "visible", "exists"], false);
 
+        case actionTypes.POPULATE_DASHBOARD_RECENT:
+            return state.setIn(["dashboard", "recent"], List(action.payload));
+
         case actionTypes.POPULATE_EXPLORE:
             return state.setIn(["explore", "popular"], List(action.payload));
 

@@ -51,7 +51,6 @@ export class AppComponent implements OnInit, OnDestroy {
     removeNotification: Function;
     signOut: Function;
     toggleUserNavMenu: Function;
-    hideNav: boolean;
 
     private sub: Subscription;
 
@@ -60,8 +59,7 @@ export class AppComponent implements OnInit, OnDestroy {
         // route data.
         this.sub = this.router.events.subscribe(event => {
             let eventName = event.toString();
-            // Don't show the side nav on the Sign In screen
-            this.hideNav = eventName.indexOf("sign-in") !== -1;
+
             store.dispatch(routeChange(eventName));
             // Clear the package search when the route changes
             store.dispatch(setPackagesSearchQuery(""));
@@ -127,6 +125,10 @@ export class AppComponent implements OnInit, OnDestroy {
     }
 
     get fullView() {
-        return !!this.state.router.route.match(/explore/);
+        return this.store.getState().ui.layout === "full";
+    }
+
+    get hideNav() {
+        return this.store.getState().ui.layout === "centered";
     }
 }

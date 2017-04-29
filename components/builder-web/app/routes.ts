@@ -13,7 +13,9 @@
 // limitations under the License.
 
 import { Routes, RouterModule } from "@angular/router";
-import { ExplorePageComponent } from "./explore-page/explore-page.component";
+import { DashboardComponent } from "./dashboard/dashboard.component";
+import { DashboardGuard } from "./dashboard/dashboard.guard";
+import { ExploreComponent } from "./explore/explore.component";
 import { OriginCreatePageComponent } from "./origin-create-page/OriginCreatePageComponent";
 import { OriginPageComponent } from "./origin-page/OriginPageComponent";
 import { OriginsPageComponent } from "./origins-page/OriginsPageComponent";
@@ -31,12 +33,12 @@ import { ProjectSettingsPageComponent } from "./project-settings-page/ProjectSet
 export const routes: Routes = [
     {
         path: "",
-        redirectTo: "/pkgs/core",
-        pathMatch: "full"
+        component: DashboardComponent,
+        canActivate: [ DashboardGuard ]
     },
     {
         path: "explore",
-        component: ExplorePageComponent
+        component: ExploreComponent
     },
     {
         path: "origins",

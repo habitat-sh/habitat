@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Component, OnInit} from "@angular/core";
-import {AppStore} from "../AppStore";
-import {setGitHubAuthState, signOut} from "../actions/index";
+import { Component, OnInit } from "@angular/core";
+import { AppStore } from "../AppStore";
+import { setGitHubAuthState, signOut, setLayout } from "../actions/index";
 import config from "../config";
-import {createGitHubLoginUrl, icon} from "../util";
+import { createGitHubLoginUrl, icon } from "../util";
 
 @Component({
     template: `
@@ -107,6 +107,8 @@ export class SignInPageComponent implements OnInit {
         // Populate the GitHub authstate (used to get a token) in SessionStorage
         // either with what's there already, or with a new UUID.
         this.store.dispatch(setGitHubAuthState());
+        // Don't show the side nav on this screen
+        this.store.dispatch(setLayout("centered"));
     }
 
     private icon(name) {

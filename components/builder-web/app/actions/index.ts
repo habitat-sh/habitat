@@ -20,6 +20,7 @@ import * as packageActions from "./packages";
 import * as projectActions from "./projects";
 import * as routerActions from "./router";
 import * as usersActions from "./users";
+import * as uiActions from "./ui";
 
 // Action types
 export const LOAD_SESSION_STATE = gitHubActions.LOAD_SESSION_STATE;
@@ -73,6 +74,7 @@ export const SET_ORIGIN_USER_INVITE_ERROR_MESSAGE =
 export const TOGGLE_ORIGIN_PICKER = originActions.TOGGLE_ORIGIN_PICKER;
 
 export const CLEAR_PACKAGES = packageActions.CLEAR_PACKAGES;
+export const POPULATE_DASHBOARD_RECENT = packageActions.POPULATE_DASHBOARD_RECENT;
 export const POPULATE_EXPLORE = packageActions.POPULATE_EXPLORE;
 export const POPULATE_EXPLORE_STATS = packageActions.POPULATE_EXPLORE_STATS;
 export const SET_CURRENT_PACKAGE = packageActions.SET_CURRENT_PACKAGE;
@@ -104,6 +106,8 @@ export const SET_FEATURE_FLAGS = usersActions.SET_FEATURE_FLAGS;
 export const SET_SIGNING_IN_FLAG = usersActions.SET_SIGNING_IN_FLAG;
 export const SIGN_IN_ATTEMPT = usersActions.SIGN_IN_ATTEMPT;
 export const TOGGLE_USER_NAV_MENU = usersActions.TOGGLE_USER_NAV_MENU;
+
+export const SET_LAYOUT = uiActions.SET_LAYOUT;
 
 // Used by redux-reset to reset the app state
 export const RESET = "RESET";
@@ -147,6 +151,7 @@ export const setCurrentOriginAddingPublicKey =
 export const uploadOriginPrivateKey = originActions.uploadOriginPrivateKey;
 export const uploadOriginPublicKey = originActions.uploadOriginPublicKey;
 
+export const fetchDashboardRecent = packageActions.fetchDashboardRecent;
 export const fetchExplore = packageActions.fetchExplore;
 export const fetchPackage = packageActions.fetchPackage;
 export const filterPackagesBy = packageActions.filterPackagesBy;
@@ -181,8 +186,11 @@ export const toggleUserNavMenu = usersActions.toggleUserNavMenu;
 export const signOut = usersActions.signOut;
 export const loadFeatureFlags = usersActions.loadFeatureFlags;
 
+export const setLayout = uiActions.setLayout;
+
 export function resetAppState() {
     return {
         type: RESET,
     };
 }
+

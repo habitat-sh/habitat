@@ -77,6 +77,11 @@
       "from": "js-cookie@>=2.1.4 <3.0.0",
       "resolved": "https://registry.npmjs.org/js-cookie/-/js-cookie-2.1.4.tgz"
     },
+    "lodash": {
+      "version": "4.17.4",
+      "from": "lodash@latest",
+      "resolved": "https://registry.npmjs.org/lodash/-/lodash-4.17.4.tgz"
+    },
     "marked": {
       "version": "0.3.6",
       "from": "marked@>=0.3.6 <0.4.0",

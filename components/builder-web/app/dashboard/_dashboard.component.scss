@@ -1,0 +1,275 @@
+.hab-dashboard {
+
+  .page-title {
+
+    h3.username {
+      font-family: $base-font-family;
+      font-weight: normal;
+    }
+  }
+
+  section {
+    @include row;
+
+    &.intro {
+      background-color: $hab-blue;
+      border-radius: 5px;
+      height: 84px;
+      margin-bottom: 44px;
+
+      .image, .text, .buttons {
+        height: 100%;
+      }
+
+      .image {
+        @include span-columns(2 of 12, 'block-collapse');
+        position: relative;
+        text-align: center;
+
+        img {
+          position: relative;
+          height: 96px;
+          top: 2px;
+        }
+      }
+
+      .text, .buttons {
+        position: relative;
+
+        > div {
+          position: absolute;
+          top: 50%;
+          transform: translateY(-50%);
+        }
+      }
+
+      .text {
+        @include span-columns(6 of 12);
+        font-size: rem(12);
+        color: $hab-white;
+
+        strong {
+          font-size: rem(14);
+          display: block;
+          margin-bottom: 4px;
+        }
+
+        p {
+          margin: 0;
+          line-height: rem(18);
+        }
+      }
+
+      .buttons {
+        @include span-columns(4 of 12);
+        text-align: right;
+
+        a {
+          font-size: rem(12);
+          padding: 5px 15px;
+          margin: 0 10px;
+        }
+      }
+    }
+
+    &.upper {
+      height: 230px;
+      border-radius: 5px;
+      background-color: $hab-white;
+      box-shadow: 0 1px 25px 0 $very-light-gray;
+      margin-bottom: 30px;
+
+      .origins, .top, .favorites {
+        @include span-columns(4, 'block-collapse');
+        height: 100%;
+      }
+
+      .top, .favorites {
+        border-left: 1px solid $very-light-gray;
+      }
+
+      .origins .heading {
+        border-radius: 5px 0 0 0;
+      }
+
+      .favorites .heading {
+        border-radius: 0 5px 0 0;
+      }
+
+      .heading {
+        position: relative;
+        padding: 10px 20px;
+        background-color: $very-light-gray;
+
+        h4 {
+          margin: 0;
+          font-family: $base-font-family;
+          text-transform: none;
+          font-size: rem(16);
+          line-height: rem(24);
+        }
+
+        .controls {
+          position: absolute;
+          right: 20px;
+          top: 50%;
+          transform: translateY(-50%);
+
+          a {
+            display: inline-block;
+            margin-left: rem(16);
+          }
+        }
+      }
+
+      .content {
+        ul {
+          padding: 12px 0;
+
+          li {
+            position: relative;
+
+            &:hover {
+              font-weight: bold;
+              background-color: rgba(232,240,246,0.2);
+
+              .octicon {
+                display: block;
+              }
+            }
+
+            a {
+              padding: 6px 20px;
+              display: block;
+              font-size: rem(14);
+              color: $dark-gray;
+              line-height: rem(28);
+            }
+
+            .octicon {
+              display: none;
+              position: absolute;
+              right: 20px;
+              top: 50%;
+              transform: translateY(-50%);
+            }
+          }
+        }
+
+        .none {
+          padding: 8px 20px;
+          color: $medium-gray;
+          font-size: rem(14);
+          line-height: rem(22);
+        }
+      }
+    }
+
+    &.lower {
+
+      .recent {
+        @include span-columns(9);
+
+        // Use this border when we have right-hand side elements to display
+        // border-right: 1px solid rgba(216,216,216,0.4);
+      }
+
+      .new {
+        @include span-columns(3);
+
+        li {
+          margin-bottom: 10px;
+        }
+
+        a {
+          font-size: rem(14);
+        }
+      }
+
+      h4 {
+        font-size: rem(16);
+        color: $dark-gray;
+        font-weight: normal;
+        text-transform: none;
+        margin-bottom: 20px;
+      }
+
+      label {
+        font-size: rem(10);
+        text-transform: uppercase;
+        color: rgba(125,134,140,0.6);
+        line-height: rem(16);
+      }
+
+      select {
+        min-width: 160px;
+        border: 1px solid $very-light-gray;
+        border-radius: 5px;
+        background-color: $very-light-gray;
+        font-size: rem(14);
+        color: $dark-gray;
+      }
+
+      ul.packages {
+        li {
+          @include row;
+          position: relative;
+          color: #7D868C;
+          font-size: rem(14);
+          line-height: rem(48);
+          border-bottom: 1px solid rgba(216,216,216,0.4);
+          margin-right: 20px;
+
+          .package-name, .package-origin, .package-updated {
+            @include span-columns(2.8 of 9);
+          }
+
+          .package-name, .package-origin {
+            font-weight: 600;
+          }
+
+          &:hover {
+            cursor: pointer;
+            background-color: rgba(232,240,246,0.2);
+
+            .octicon {
+              display: block;
+            }
+          }
+
+          .octicon {
+            display: none;
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+          }
+
+          &.heading {
+
+            h5 {
+              font-size: rem(12);
+              text-transform: uppercase;
+            }
+          }
+        }
+      }
+
+      .none {
+        color: $medium-gray;
+        font-size: rem(14);
+        line-height: rem(22);
+
+        p {
+          padding: 0;
+          margin-bottom: 0;
+
+          a {
+            color: $medium-gray;
+            text-decoration: underline;
+          }
+        }
+      }
+    }
+  }
+}

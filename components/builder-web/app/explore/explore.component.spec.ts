@@ -5,8 +5,8 @@ import { By } from "@angular/platform-browser";
 import { FormsModule } from "@angular/forms";
 import { Router } from "@angular/router";
 import { AppStore } from "../AppStore";
-import { fetchExplore } from "../actions/index";
-import { ExplorePageComponent } from "./explore-page.component";
+import * as actions from "../actions/index";
+import { ExploreComponent } from "./explore.component";
 
 class MockAppStore {
   getState() {
@@ -46,9 +46,9 @@ class MockAppStore {
   dispatch() {}
 }
 
-describe("ExplorePageComponent", () => {
-  let fixture: ComponentFixture<ExplorePageComponent>;
-  let component: ExplorePageComponent;
+describe("ExploreComponent", () => {
+  let fixture: ComponentFixture<ExploreComponent>;
+  let component: ExploreComponent;
   let element: DebugElement;
   let store: AppStore;
 
@@ -59,24 +59,32 @@ describe("ExplorePageComponent", () => {
         RouterTestingModule
       ],
       declarations: [
-        ExplorePageComponent
+        ExploreComponent
       ],
       providers: [
         { provide: AppStore, useClass: MockAppStore }
       ]
     });
 
-    fixture = TestBed.createComponent(ExplorePageComponent);
+    fixture = TestBed.createComponent(ExploreComponent);
     component = fixture.componentInstance;
     element = fixture.debugElement;
     store = TestBed.get(AppStore);
   });
 
   describe("init", () => {
-    it("dispatches a request for the data the view needs", () => {
+    it("dispatches a request for data", () => {
+      spyOn(actions, "fetchExplore");
       spyOn(store, "dispatch");
       fixture.detectChanges();
-      expect(store.dispatch).toHaveBeenCalledTimes(1);
+      expect(store.dispatch).toHaveBeenCalledWith(actions.fetchExplore());
+    });
+
+    it("dispatches a request to set the layout", () => {
+      spyOn(actions, "setLayout").and.callThrough();
+      spyOn(store, "dispatch");
+      fixture.detectChanges();
+      expect(store.dispatch).toHaveBeenCalledWith(actions.setLayout("full"));
     });
   });
 

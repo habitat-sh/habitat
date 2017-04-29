@@ -13,14 +13,15 @@
 // limitations under the License.
 
 import { AppStore } from "../AppStore";
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, OnDestroy } from "@angular/core";
 import { Router } from "@angular/router";
-import { fetchExplore } from "../actions/index";
+import { fetchExplore, setLayout } from "../actions/index";
 
 @Component({
-    template: require("./explore-page.component.html"),
+    selector: "hab-explore",
+    template: require("./explore.component.html"),
 })
-export class ExplorePageComponent implements OnInit {
+export class ExploreComponent implements OnInit, OnDestroy {
 
     constructor(
         private store: AppStore,
@@ -29,6 +30,11 @@ export class ExplorePageComponent implements OnInit {
 
     ngOnInit() {
         this.store.dispatch(fetchExplore());
+        this.store.dispatch(setLayout("full"));
+    }
+
+    ngOnDestroy() {
+        this.store.dispatch(setLayout("default"));
     }
 
     search(term) {

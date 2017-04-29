@@ -1,4 +1,5 @@
-import { ExplorePageComponent } from "./explore-page/explore-page.component";
+import { DashboardComponent } from "./dashboard/dashboard.component";
+import { ExploreComponent } from "./explore/explore.component";
 import { OriginCreatePageComponent } from "./origin-create-page/OriginCreatePageComponent";
 import { OriginPageComponent } from "./origin-page/OriginPageComponent";
 import { OriginsPageComponent } from "./origins-page/OriginsPageComponent";
@@ -21,17 +22,16 @@ describe("Routes", () => {
   }
 
   describe("/", () => {
-    it("redirects to /pkgs/core", () => {
-      let r = route("");
-      expect(r.redirectTo).toBe("/pkgs/core");
-      expect(r.pathMatch).toBe("full");
+    it("routes to ExploreComponent", () => {
+      let r = route("explore");
+      expect(r.component).toBe(ExploreComponent);
     });
   });
 
   describe("/explore", () => {
-    it("routes to ExplorePageComponent", () => {
-      let r = route("explore");
-      expect(r.component).toBe(ExplorePageComponent);
+    it("routes to DashboardComponent", () => {
+      let r = route("");
+      expect(r.component).toBe(DashboardComponent);
     });
   });
 
