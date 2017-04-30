@@ -185,7 +185,7 @@ mod tests {
         } else if cfg!(target_os = "linux") {
             PackageTarget::from_str("x86_64-linux").unwrap()
         } else if cfg!(target_os = "macos") {
-            PackageTarget::from_str("x86_64-macos").unwrap()
+            PackageTarget::from_str("x86_64-darwin").unwrap()
         } else {
             unreachable!("Test case not defined for target_os! Fix this by adding a conditional \
                           compilation to tests::current_platform_target()");
