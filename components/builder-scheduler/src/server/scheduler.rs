@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::sync::{mpsc, Arc, RwLock};
+use std::sync::mpsc;
 use std::thread::{self, JoinHandle};
 
-use protobuf::parse_from_bytes;
+use protobuf::{parse_from_bytes, Message};
 use hab_net::server::ZMQ_CONTEXT;
 use hab_net::routing::Broker;
 use zmq;
@@ -23,24 +23,31 @@ use zmq;
 use protocol::jobsrv::{self, Job, JobSpec};
 use protocol::originsrv::*;
 use protocol::scheduler as proto;
-use config::Config;
 use data_store::DataStore;
 use error::{Result, Error};
 
 const SCHEDULER_ADDR: &'static str = "inproc://scheduler";
+const STATUS_ADDR: &'static str = "inproc://scheduler-status";
 
 pub struct ScheduleClient {
     socket: zmq::Socket,
+    status_sock: zmq::Socket,
 }
 
 impl ScheduleClient {
     pub fn connect(&mut self) -> Result<()> {
         try!(self.socket.connect(SCHEDULER_ADDR));
+        try!(self.status_sock.connect(STATUS_ADDR));
         Ok(())
     }
 
     pub fn notify_work(&mut self) -> Result<()> {
         try!(self.socket.send(&[1], 0));
+        Ok(())
+    }
+
+    pub fn notify_status(&mut self, job: &Job) -> Result<()> {
+        try!(self.status_sock.send(&job.write_to_bytes().unwrap(), 0));
         Ok(())
     }
 }
@@ -51,12 +58,20 @@ impl Default for ScheduleClient {
         socket.set_sndhwm(1).unwrap();
         socket.set_linger(0).unwrap();
         socket.set_immediate(true).unwrap();
-        ScheduleClient { socket: socket }
+
+        let status_sock = (**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER).unwrap();
+        status_sock.set_sndhwm(1).unwrap();
+        status_sock.set_linger(0).unwrap();
+        status_sock.set_immediate(true).unwrap();
+
+        ScheduleClient {
+            socket: socket,
+            status_sock: status_sock,
+        }
     }
 }
 
 pub struct ScheduleMgr {
-    config: Arc<RwLock<Config>>,
     datastore: DataStore,
     work_sock: zmq::Socket,
     status_sock: zmq::Socket,
@@ -65,19 +80,22 @@ pub struct ScheduleMgr {
 }
 
 impl ScheduleMgr {
-    pub fn new(config: Arc<RwLock<Config>>, datastore: DataStore) -> Result<Self> {
-        let status_sock = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::SUB));
+    pub fn new(datastore: DataStore) -> Result<Self> {
         let work_sock = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER));
-        try!(status_sock.set_subscribe(&[]));
         try!(work_sock.set_rcvhwm(1));
         try!(work_sock.set_linger(0));
         try!(work_sock.set_immediate(true));
+
+        let status_sock = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER));
+        try!(status_sock.set_rcvhwm(1));
+        try!(status_sock.set_linger(0));
+        try!(status_sock.set_immediate(true));
+
         let msg = try!(zmq::Message::new());
         let mut schedule_cli = ScheduleClient::default();
         try!(schedule_cli.connect());
 
         Ok(ScheduleMgr {
-               config: config,
                datastore: datastore,
                work_sock: work_sock,
                status_sock: status_sock,
@@ -86,12 +104,12 @@ impl ScheduleMgr {
            })
     }
 
-    pub fn start(cfg: Arc<RwLock<Config>>, ds: DataStore) -> Result<JoinHandle<()>> {
+    pub fn start(ds: DataStore) -> Result<JoinHandle<()>> {
         let (tx, rx) = mpsc::sync_channel(1);
         let handle = thread::Builder::new()
             .name("scheduler".to_string())
             .spawn(move || {
-                       let mut schedule_mgr = Self::new(cfg, ds).unwrap();
+                       let mut schedule_mgr = Self::new(ds).unwrap();
                        schedule_mgr.run(tx).unwrap();
                    })
             .unwrap();
@@ -103,14 +121,7 @@ impl ScheduleMgr {
 
     fn run(&mut self, rz: mpsc::SyncSender<()>) -> Result<()> {
         try!(self.work_sock.bind(SCHEDULER_ADDR));
-        {
-            let cfg = self.config.read().unwrap();
-
-            for addr in cfg.jobsrv_addrs() {
-                println!("Connecting to job status publisher: {}", addr);
-                try!(self.status_sock.connect(&addr));
-            }
-        }
+        try!(self.status_sock.bind(STATUS_ADDR));
 
         let mut status_sock = false;
         let mut work_sock = false;
@@ -131,14 +142,14 @@ impl ScheduleMgr {
 
             if work_sock {
                 if let Err(err) = self.process_work() {
-                    error!("Unable to process work: err {:?}", err);
+                    warn!("Unable to process work: err {:?}", err);
                 }
                 work_sock = false;
             }
 
             if status_sock {
                 if let Err(err) = self.process_status() {
-                    error!("Unable to process status: err {:?}", err);
+                    warn!("Unable to process status: err {:?}", err);
                 }
                 status_sock = false;
             }
@@ -152,14 +163,14 @@ impl ScheduleMgr {
 
             // 0 means there are no pending groups, so we should consume our notice that we have work
             if groups.len() == 0 {
-                println!("No more pending groups - exiting process_work");
+                info!("No more pending groups - exiting process_work");
                 try!(self.work_sock.recv(&mut self.msg, 0));
                 break;
             }
 
             // This unwrap is fine, because we just checked our length
             let group = groups.pop().unwrap();
-            println!("Got pending group {}", group.get_id());
+            info!("Got pending group {}", group.get_id());
             assert!(group.get_state() == proto::GroupState::Dispatching);
 
             self.dispatch_group(group)?;
@@ -170,7 +181,7 @@ impl ScheduleMgr {
     fn dispatch_group(&mut self, group: proto::Group) -> Result<()> {
         let dispatchable = self.dispatchable_projects(&group)?;
         for project in dispatchable {
-            println!("Dispatching project: {:?}", project.get_name());
+            debug!("Dispatching project: {:?}", project.get_name());
             assert!(project.get_state() == proto::ProjectState::NotStarted);
 
             match self.schedule_job(group.get_id(), project.get_name()) {
@@ -178,9 +189,9 @@ impl ScheduleMgr {
                     self.datastore.set_group_job_state(&job).unwrap();
                 }
                 Err(err) => {
-                    error!("Failed to schedule job for {}, err: {:?}",
-                           project.get_name(),
-                           err);
+                    warn!("Failed to schedule job for {}, err: {:?}",
+                          project.get_name(),
+                          err);
 
                     self.datastore
                         .set_group_state(group.get_id(), proto::GroupState::Failed)?;
@@ -241,9 +252,9 @@ impl ScheduleMgr {
         let project = match conn.route::<OriginProjectGet, OriginProject>(&project_get) {
             Ok(project) => project,
             Err(err) => {
-                error!("Unable to retrieve project: {:?}, error: {:?}",
-                       project_name,
-                       err);
+                warn!("Unable to retrieve project: {:?}, error: {:?}",
+                      project_name,
+                      err);
 
                 return Err(Error::ProtoNetError(err));
             }
@@ -255,11 +266,11 @@ impl ScheduleMgr {
 
         match conn.route::<JobSpec, Job>(&job_spec) {
             Ok(job) => {
-                println!("Job created: {:?}", job);
+                debug!("Job created: {:?}", job);
                 Ok(job)
             }
             Err(err) => {
-                error!("Job creation error: {:?}", err);
+                warn!("Job creation error: {:?}", err);
                 Err(Error::ProtoNetError(err))
             }
         }
@@ -268,16 +279,18 @@ impl ScheduleMgr {
     fn process_status(&mut self) -> Result<()> {
         try!(self.status_sock.recv(&mut self.msg, 0));
         let job: Job = try!(parse_from_bytes(&self.msg));
-        println!("Received job status: {:?}", job);
 
-        self.datastore.set_group_job_state(&job).unwrap();
-
-        match job.get_state() {
-            jobsrv::JobState::Complete |
-            jobsrv::JobState::Rejected |
-            jobsrv::JobState::Failed => self.update_group_state(job.get_owner_id())?,
-            _ => (),
-        };
+        match self.datastore.set_group_job_state(&job) {
+            Ok(_) => {
+                match job.get_state() {
+                    jobsrv::JobState::Complete |
+                    jobsrv::JobState::Rejected |
+                    jobsrv::JobState::Failed => self.update_group_state(job.get_owner_id())?,
+                    _ => (),
+                }
+            }
+            Err(err) => debug!("Did not set job state: {:?}", err),
+        }
 
         Ok(())
     }

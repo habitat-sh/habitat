@@ -475,10 +475,10 @@ impl DataStore {
                                &[&(job.get_owner_id() as i64), &job.get_project().get_name()])
                         .map_err(Error::ProjectSetState)?;
 
-        // No rows is ok, as this job might not be one we care about
+        // No rows means this job might not be one we care about
         if rows.is_empty() {
             warn!("No project found for job id: {}", job.get_id());
-            return Ok(());
+            return Err(Error::UnknownJobState);
         }
 
         assert!(rows.len() == 1); // should never have more than one

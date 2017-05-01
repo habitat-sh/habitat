@@ -15,17 +15,28 @@
 //! The PostgreSQL backend for the Jobsrv.
 
 use db::pool::Pool;
+use db::async::{AsyncServer, EventOutcome};
 use db::migration::Migrator;
-use protocol::{originsrv, jobsrv};
+use db::error::{Error as DbError, Result as DbResult};
+use protocol::{originsrv, jobsrv, scheduler};
+use protocol::net::NetOk;
 use postgres;
 
 use config::Config;
 use error::{Result, Error};
+use hab_net::routing::Broker;
 
 /// DataStore inherints being Send + Sync by virtue of having only one member, the pool itself.
 #[derive(Debug, Clone)]
 pub struct DataStore {
     pool: Pool,
+    pub async: AsyncServer,
+}
+
+impl Drop for DataStore {
+    fn drop(&mut self) {
+        self.async.stop();
+    }
 }
 
 impl DataStore {
@@ -35,12 +46,20 @@ impl DataStore {
     /// * Blocks creation of the datastore on the existince of the pool; might wait indefinetly.
     pub fn new(config: &Config) -> Result<DataStore> {
         let pool = Pool::new(&config.datastore, config.shards.clone())?;
-        Ok(DataStore { pool: pool })
+        let ap = pool.clone();
+        Ok(DataStore {
+               pool: pool,
+               async: AsyncServer::new(ap),
+           })
     }
 
     /// Create a new DataStore from a pre-existing pool; useful for testing the database.
     pub fn from_pool(pool: Pool) -> Result<DataStore> {
-        Ok(DataStore { pool: pool })
+        let ap = pool.clone();
+        Ok(DataStore {
+               pool: pool,
+               async: AsyncServer::new(ap),
+           })
     }
 
     /// Setup the datastore.
@@ -72,6 +91,7 @@ impl DataStore {
                                     vcs_arguments text[],
                                     net_error_code int,
                                     net_error_msg text,
+                                    scheduler_sync bool DEFAULT false,
                                     created_at timestamptz DEFAULT now(),
                                     updated_at timestamptz
                              )"#)?;
@@ -162,8 +182,24 @@ impl DataStore {
         migrator.migrate("jobsrv",
                          r#"CREATE OR REPLACE FUNCTION set_job_state_v1 (jid bigint, jstate text) RETURNS void AS $$
                             BEGIN
-                                UPDATE jobs SET job_state=jstate, updated_at=now() WHERE id=jid;
+                                UPDATE jobs SET job_state=jstate, scheduler_sync=false, updated_at=now() WHERE id=jid;
                             END
+                         $$ LANGUAGE plpgsql VOLATILE"#)?;
+
+        // Helpers to sync job state notifications
+        migrator
+            .migrate("jobsrv",
+                     r#"CREATE OR REPLACE FUNCTION sync_jobs_v1() RETURNS SETOF jobs AS $$
+                         BEGIN
+                             RETURN QUERY SELECT * FROM jobs WHERE scheduler_sync = false;
+                             RETURN;
+                         END
+                         $$ LANGUAGE plpgsql STABLE"#)?;
+        migrator.migrate("jobsrv",
+                          r#"CREATE OR REPLACE FUNCTION set_jobs_sync_v1(in_job_id bigint) RETURNS VOID AS $$
+                         BEGIN
+                             UPDATE jobs SET scheduler_sync = true WHERE id = in_job_id;
+                         END
                          $$ LANGUAGE plpgsql VOLATILE"#)?;
 
         migrator
@@ -173,7 +209,15 @@ impl DataStore {
 
         migrator.finish()?;
 
+        self.async.register("sync_jobs".to_string(), sync_jobs);
+
         Ok(())
+    }
+
+    pub fn start_async(&self) {
+        // This is an arc under the hood
+        let async_thread = self.async.clone();
+        async_thread.start(4);
     }
 
     /// Create a new job. Sets the state to Pending.
@@ -198,59 +242,11 @@ impl DataStore {
                                     &project.get_vcs_type(),
                                     &vec![project.get_vcs_data()]])
                 .map_err(Error::JobCreate)?;
-            let job = self.row_to_job(&rows.get(0))?;
+            let job = row_to_job(&rows.get(0))?;
             return Ok(job);
         } else {
             return Err(Error::UnknownVCS);
         }
-    }
-
-    /// Translate a database `jobs` row to a `jobsrv::Job`.
-    ///
-    /// # Errors
-    ///
-    /// * If the job state is unknown
-    /// * If the VCS type is unknown
-    fn row_to_job(&self, row: &postgres::rows::Row) -> Result<jobsrv::Job> {
-        let mut job = jobsrv::Job::new();
-        let id: i64 = row.get("id");
-        job.set_id(id as u64);
-        let owner_id: i64 = row.get("owner_id");
-        job.set_owner_id(owner_id as u64);
-        let js: String = row.get("job_state");
-        let job_state = match &js[..] {
-            "Dispatched" => jobsrv::JobState::Dispatched,
-            "Pending" => jobsrv::JobState::Pending,
-            "Processing" => jobsrv::JobState::Processing,
-            "Complete" => jobsrv::JobState::Complete,
-            "Rejected" => jobsrv::JobState::Rejected,
-            "Failed" => jobsrv::JobState::Failed,
-            _ => return Err(Error::UnknownJobState),
-        };
-        job.set_state(job_state);
-
-        let mut project = originsrv::OriginProject::new();
-        let project_id: i64 = row.get("project_id");
-        project.set_id(project_id as u64);
-        project.set_name(row.get("project_name"));
-        let project_owner_id: i64 = row.get("project_owner_id");
-        project.set_owner_id(project_owner_id as u64);
-        project.set_plan_path(row.get("project_plan_path"));
-
-        let rvcs: String = row.get("vcs");
-        match rvcs.as_ref() {
-            "git" => {
-                let mut vcsa: Vec<String> = row.get("vcs_arguments");
-                project.set_vcs_type(String::from("git"));
-                project.set_vcs_data(vcsa.remove(0));
-            }
-            e => {
-                error!("Unknown VCS, {}", e);
-                return Err(Error::UnknownVCS);
-            }
-        }
-        job.set_project(project);
-        Ok(job)
     }
 
     /// Get a job from the database. If the job does not exist, but the database was active, we'll
@@ -266,7 +262,7 @@ impl DataStore {
                                &[&(get_job.get_id() as i64)])
                         .map_err(Error::JobGet)?;
         for row in rows {
-            let job = self.row_to_job(&row)?;
+            let job = row_to_job(&row)?;
             return Ok(Some(job));
         }
         Ok(None)
@@ -285,7 +281,7 @@ impl DataStore {
         let rows = &conn.query("SELECT * FROM pending_jobs_v1($1)", &[&count])
                         .map_err(Error::JobPending)?;
         for row in rows {
-            let job = self.row_to_job(&row)?;
+            let job = row_to_job(&row)?;
             jobs.push(job);
         }
         Ok(jobs)
@@ -323,6 +319,95 @@ impl DataStore {
         };
         conn.execute("SELECT set_job_state_v1($1, $2)", &[&job_id, &job_state])
             .map_err(Error::JobSetState)?;
+
+        self.async.schedule("sync_jobs")?;
+
         Ok(())
     }
+}
+
+/// Translate a database `jobs` row to a `jobsrv::Job`.
+///
+/// # Errors
+///
+/// * If the job state is unknown
+/// * If the VCS type is unknown
+fn row_to_job(row: &postgres::rows::Row) -> Result<jobsrv::Job> {
+    let mut job = jobsrv::Job::new();
+    let id: i64 = row.get("id");
+    job.set_id(id as u64);
+    let owner_id: i64 = row.get("owner_id");
+    job.set_owner_id(owner_id as u64);
+    let js: String = row.get("job_state");
+    let job_state = match &js[..] {
+        "Dispatched" => jobsrv::JobState::Dispatched,
+        "Pending" => jobsrv::JobState::Pending,
+        "Processing" => jobsrv::JobState::Processing,
+        "Complete" => jobsrv::JobState::Complete,
+        "Rejected" => jobsrv::JobState::Rejected,
+        "Failed" => jobsrv::JobState::Failed,
+        _ => return Err(Error::UnknownJobState),
+    };
+    job.set_state(job_state);
+
+    let mut project = originsrv::OriginProject::new();
+    let project_id: i64 = row.get("project_id");
+    project.set_id(project_id as u64);
+    project.set_name(row.get("project_name"));
+    let project_owner_id: i64 = row.get("project_owner_id");
+    project.set_owner_id(project_owner_id as u64);
+    project.set_plan_path(row.get("project_plan_path"));
+
+    let rvcs: String = row.get("vcs");
+    match rvcs.as_ref() {
+        "git" => {
+            let mut vcsa: Vec<String> = row.get("vcs_arguments");
+            project.set_vcs_type(String::from("git"));
+            project.set_vcs_data(vcsa.remove(0));
+        }
+        e => {
+            error!("Unknown VCS, {}", e);
+            return Err(Error::UnknownVCS);
+        }
+    }
+    job.set_project(project);
+    Ok(job)
+}
+
+fn sync_jobs(pool: Pool) -> DbResult<EventOutcome> {
+    let mut result = EventOutcome::Finished;
+    for shard in pool.shards.iter() {
+        let conn = pool.get_shard(*shard)?;
+        let rows = &conn.query("SELECT * FROM sync_jobs_v1()", &[])
+                        .map_err(DbError::AsyncFunctionCheck)?;
+        if rows.len() > 0 {
+            let mut bconn = Broker::connect()?;
+            let mut request = scheduler::JobStatus::new();
+            for row in rows.iter() {
+                let job = match row_to_job(&row) {
+                    Ok(job) => job,
+                    Err(e) => {
+                        warn!("Failed to convert row to job {}", e);
+                        return Ok(EventOutcome::Retry);
+                    }
+                };
+                let id = job.get_id();
+                request.set_job(job);
+                match bconn.route::<scheduler::JobStatus, NetOk>(&request) {
+                    Ok(_) => {
+                        conn.query("SELECT * FROM set_jobs_sync_v1($1)", &[&(id as i64)])
+                            .map_err(DbError::AsyncFunctionUpdate)?;
+                        debug!("Updated scheduler service with job status, {:?}", request);
+                    }
+                    Err(e) => {
+                        warn!("Failed to sync job status with the scheduler service, {:?}: {}",
+                              request,
+                              e);
+                        result = EventOutcome::Retry;
+                    }
+                }
+            }
+        }
+    }
+    Ok(result)
 }

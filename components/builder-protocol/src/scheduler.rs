@@ -88,6 +88,14 @@ impl Routable for PackageStatsGet {
     }
 }
 
+impl Routable for JobStatus {
+    type H = String;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(self.get_job().get_id().to_string())
+    }
+}
+
 impl Serialize for GroupState {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
