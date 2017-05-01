@@ -28,7 +28,11 @@ extern crate clap;
 extern crate postgres;
 extern crate protobuf;
 extern crate r2d2;
+extern crate serde;
+#[macro_use]
+extern crate serde_derive;
 
+pub mod config;
 pub mod data_store;
 pub mod error;
 
@@ -36,6 +40,8 @@ use std::io::{self, Write};
 use clap::{Arg, App};
 use time::PreciseTime;
 use bldr_core::package_graph::PackageGraph;
+use hab_core::config::ConfigFile;
+use config::Config;
 use data_store::DataStore;
 
 fn main() {
@@ -44,17 +50,20 @@ fn main() {
     let matches = App::new("hab-spider")
         .version("0.1.0")
         .about("Habitat package graph builder")
-        .arg(Arg::with_name("URL")
-                 .help("The DB connection URL")
-                 .required(true)
+        .arg(Arg::with_name("config")
+                 .help("Filepath to configuration file")
+                 .required(false)
                  .index(1))
         .get_matches();
 
-    let connection_url = matches.value_of("URL").unwrap();
+    let config = match matches.value_of("config") {
+        Some(cfg_path) => Config::from_file(cfg_path).unwrap(),
+        None => Config::default(),
+    };
 
-    println!("Connecting to {}", connection_url);
+    println!("Connecting to {}", config.datastore.database);
 
-    let datastore = DataStore::new(connection_url).unwrap();
+    let datastore = DataStore::new(&config).unwrap();
     datastore.setup().unwrap();
 
     println!("Building graph... please wait.");
@@ -152,7 +161,8 @@ fn do_stats(graph: &PackageGraph) {
     println!("Node count: {}", stats.node_count);
     println!("Edge count: {}", stats.edge_count);
     println!("Connected components: {}", stats.connected_comp);
-    println!("Is cyclic: {}\n", stats.is_cyclic);
+    println!("Is cyclic: {}", stats.is_cyclic);
+    println!("Plan count: {}\n", stats.plan_count);
 }
 
 fn do_top(graph: &PackageGraph, count: usize) {
@@ -220,8 +230,8 @@ fn do_rdeps(graph: &PackageGraph, name: &str, max: usize) {
                 rdeps.drain(max..);
             }
 
-            for s in rdeps {
-                println!("{}", s);
+            for (s1, s2) in rdeps {
+                println!("{} ({})", s1, s2);
             }
         }
         None => println!("No entries found"),

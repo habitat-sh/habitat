@@ -15,6 +15,8 @@ clap = "2"
 protobuf = "*"
 postgres = "*"
 r2d2 = "*"
+serde = "*"
+serde_derive = "*"
 
 [dependencies.habitat_core]
 path = "../core"
