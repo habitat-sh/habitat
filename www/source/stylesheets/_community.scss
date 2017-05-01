@@ -38,8 +38,6 @@ $community-medium-breakpoint: rem-calc(880);
 // Hero
 .community--hero {
   min-height: rem-calc(600);
-  background: url('/images/graphics/hero-pattern.svg') no-repeat rem-calc(-100) 111%;
-  background-size: rem-calc(730) auto;
 
   @include medium-community {
     background-position: rem-calc(-100) 118%;
@@ -94,9 +92,14 @@ $community-medium-breakpoint: rem-calc(880);
   }
 
   @include section-left-margin;
+
+  li a.button {
+    min-width: 200px;
+  }
 }
 
 .community--hero--heading {
+  color: $white;
   font-size: rem-calc(36);
 
   @include small-community {
@@ -106,6 +109,7 @@ $community-medium-breakpoint: rem-calc(880);
 
 .community--hero--text {
   margin-bottom: rem-calc(40);
+  color: $white;
 
   & + .community--hero--text {
     margin-top: rem-calc(-20px);
@@ -121,7 +125,9 @@ $community-medium-breakpoint: rem-calc(880);
 
   & > img {
     position: relative;
-    right: -40px;
+    right: 0px;
+    top: -40px;
+    width: 560px;
 
     @media (max-width: 420px) {
       left: -10%;
@@ -154,19 +160,7 @@ $sub-hero-skew: 5deg;
   padding: rem-calc(160) 0 rem-calc(200);
   margin-top: rem-calc(-100);
   margin-bottom: rem-calc(-100);
-  background-image: linear-gradient(240deg, $hab-blue-grey, darken($hab-blue-grey, 5%));
   color: $white;
-  transform: skewY(-($sub-hero-skew));
-
-  &:after {
-    content: "";
-    position: absolute;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    height: 4px;
-    background-image: linear-gradient(to right, $hab-green, $hab-blue-grey);
-  }
 
   @include small-community {
     padding-bottom: rem-calc(90);
@@ -175,7 +169,6 @@ $sub-hero-skew: 5deg;
 
 .community--sub-hero--content {
   position: relative;
-  transform: skewY($sub-hero-skew);
   @include section-left-margin;
 }
 

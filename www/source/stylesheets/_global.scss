@@ -19,7 +19,7 @@
 // ---------
 body {
   background: $body-background;
-  background: linear-gradient(0deg, $hab-navy-light 0%, $hab-navy 100%);
+  background: linear-gradient(0deg, $hab-navy-light 0%, $hab-navy 100%) fixed;
 }
 
 .page-title {
@@ -283,7 +283,7 @@ code {
 .main-sidebar--heading h4 {
     margin-bottom: rem-calc(10);
     text-transform: uppercase;
-    color: $white;    
+    color: $white;
 }
 
 h2:not(:first-child) {

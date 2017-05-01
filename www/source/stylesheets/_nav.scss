@@ -15,7 +15,7 @@ $main-nav-breakpoint: 769px;
 #main-nav {
   position: relative;
   z-index: 100;
-  background: $white;
+  background: transparent;
   min-height: $header-height-mobile;
   width: 100%;
   transition: top 0.4s ease;
@@ -32,7 +32,8 @@ $main-nav-breakpoint: 769px;
 
   &.is-open,
   &.is-sticky {
-    box-shadow: 0 0 50px 2px $hab-gray;
+    background-color: $hab-navy;
+    box-shadow: 0 0 50px 2px rgba(0, 0, 0, 0.10);
   }
 
   &.is-visible {
@@ -52,22 +53,12 @@ $main-nav-breakpoint: 769px;
   .home &:not(.is-sticky) {
     @include large-nav {
         background: transparent;
-
-      .main-nav--links-wrap a {
-        color: $white;
-
-        &:hover,
-        &:active,
-        &:focus {
-          color: $hab-green-light;
-        }
-      }
     }
 
     .main-nav--logo {
       @media (min-width: 973px) {
-        width: rem-calc(260);
-        height: rem-calc(117);
+        width: rem-calc(240);
+        height: rem-calc(108);
       }
 
       @media (max-width: 1550px) and (min-width: 973px) {
