@@ -17,6 +17,11 @@
 
 // 1. Global
 // ---------
+body {
+  background: $body-background;
+  background: linear-gradient(0deg, $hab-navy-light 0%, $hab-navy 100%);
+}
+
 .page-title {
   @include grid-column-row;
   @include linear-gradient(205deg, #e9f1f7 5%, #dce6ed 100%);
@@ -277,7 +282,8 @@ code {
 // ---------
 .main-sidebar--heading h4 {
     margin-bottom: rem-calc(10);
-    text-transform: uppercase;;
+    text-transform: uppercase;
+    color: $white;    
 }
 
 h2:not(:first-child) {

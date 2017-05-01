@@ -41,7 +41,7 @@ $main-nav-breakpoint: 769px;
 
   &.has-sidebar,
   &.try-hab {
-    background: $hab-off-white;
+    background: transparent;
   }
 
   @include small-nav {
@@ -105,7 +105,7 @@ $main-nav-breakpoint: 769px;
     overflow: hidden;
     text-indent: 400%;
     white-space: nowrap;
-    background: url("../images/habitat-logo.svg") no-repeat left 40%;
+    background: url("../images/habitat-logo-light.svg") no-repeat left 40%;
     background-size: rem-calc(89) auto;
     color: $white;
     height: $header-height-mobile;
@@ -162,13 +162,7 @@ $main-nav-breakpoint: 769px;
     }
 
     .main-nav--link {
-      padding: 0 rem-calc(25) 0 0;
-    }
-  }
-
-  @media (min-width: 820px) {
-    .main-nav--link {
-      padding: 0 rem-calc(30) 0 0;
+      padding: 0 rem-calc(40) 0 0;
     }
   }
 }
@@ -176,7 +170,7 @@ $main-nav-breakpoint: 769px;
 .main-nav--link {
   a {
     position: relative;
-    color: $body-font-color;
+    color: $white;
     transition: color 0.2s ease;
 
     &:hover,
@@ -195,9 +189,21 @@ $main-nav-breakpoint: 769px;
         background-size: auto 100%;
         width: 120%;
         height: rem-calc(18);
-        top: rem-calc(-45);
+        top: rem-calc(30);
         left: -10%;
       }
+    }
+  }
+
+  &.cta-link a {
+    margin-left: rem-calc(60);
+    color: $hab-orange;
+
+    &:hover,
+    &:active,
+    &:focus,
+    &.is-current-page {
+      color: lighten($hab-orange, 10);
     }
   }
 
@@ -218,10 +224,6 @@ $main-nav-breakpoint: 769px;
 
     @include large-nav {
       margin: 0;
-    }
-
-    &:hover {
-      @include shadow-float;
     }
   }
 
