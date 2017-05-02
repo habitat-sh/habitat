@@ -23,7 +23,6 @@ use std::net::{Ipv4Addr, SocketAddrV4};
 use std::str::FromStr;
 use std::process::{Command, Stdio};
 
-use hcore::os;
 use time;
 
 use error::{Error, Result};
@@ -71,6 +70,8 @@ pub fn parse_ip_port_with_defaults(s: Option<&str>,
 #[cfg(any(target_os="linux", target_os="macos"))]
 pub fn create_command<S: AsRef<OsStr>>(path: S, cfg: &RuntimeConfig) -> Result<Command> {
     let mut cmd = Command::new(path);
+    use hcore::os;
+    use libc;
     use std::os::unix::process::CommandExt;
     let uid = os::users::get_uid_by_name(&cfg.svc_user)
         .ok_or(sup_error!(Error::Permissions(format!("No uid for user '{}' could be found",
@@ -78,7 +79,15 @@ pub fn create_command<S: AsRef<OsStr>>(path: S, cfg: &RuntimeConfig) -> Result<C
     let gid = os::users::get_gid_by_name(&cfg.svc_group)
         .ok_or(sup_error!(Error::Permissions(format!("No gid for group '{}' could be found",
                                                      &cfg.svc_group))))?;
-
+    // we want the command to spawn processes in their own process group
+    // and not the same group as the supervisor. Otherwise if a child process
+    // sends SIGTERM to the group, the supervisor could be terminated.
+    cmd.before_exec(|| {
+                        unsafe {
+                            libc::setpgid(0, 0);
+                        }
+                        Ok(())
+                    });
     cmd.stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
