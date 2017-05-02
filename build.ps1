@@ -204,7 +204,14 @@ Write-RustToolVersion
 
 if(!(Test-Path "$env:TEMP\cacert.pem")) {
     Write-Host "Downloading cacerts.pem"
-    Invoke-WebRequest -UseBasicParsing -Uri "http://curl.haxx.se/ca/cacert.pem" -OutFile "$env:TEMP\cacert.pem"
+    $protocols = [Net.ServicePointManager]::SecurityProtocol
+    try {
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+        Invoke-WebRequest -UseBasicParsing -Uri "http://curl.haxx.se/ca/cacert.pem" -OutFile "$env:TEMP\cacert.pem"
+    }
+    finally {
+        [Net.ServicePointManager]::SecurityProtocol = $protocols
+    }
 }
 $env:SSL_CERT_FILE="$env:TEMP\cacert.pem"
 $env:PROTOBUF_PREFIX=$env:ChocolateyInstall
