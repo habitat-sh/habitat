@@ -15,6 +15,7 @@
 use libc;
 use std::ffi::OsString;
 use std::path::PathBuf;
+use std::ops::Neg;
 use std::os::unix::process::CommandExt;
 use std::process::{self, Command};
 use time::{Duration, SteadyTime};
@@ -39,7 +40,7 @@ pub fn is_alive(pid: u32) -> bool {
 }
 
 /// send a Unix signal to a pid
-fn send_signal(pid: u32, sig: libc::c_int) -> Result<()> {
+fn send_signal(pid: i32, sig: libc::c_int) -> Result<()> {
     unsafe {
         match libc::kill(pid as i32, sig) {
             0 => Ok(()),
@@ -102,7 +103,21 @@ impl Child {
     }
 
     pub fn kill(&mut self) -> Result<ShutdownMethod> {
-        try!(send_signal(self.pid, libc::SIGTERM));
+        // check the group of the process being killed
+        // if it is the root process of the process group
+        // we send our signals to the entire process group
+        // to prevent orphaned processes.
+        let mut kill_pid = self.pid as i32;
+        let pgid = unsafe { libc::getpgid(kill_pid) };
+        if kill_pid == pgid {
+            debug!("pid to kill {} is the process group root. Sending signal to process group.",
+                   kill_pid);
+            // sending a signal to the negative pid sends it to the
+            // entire process group instead just the single pid
+            kill_pid = kill_pid.neg();
+        }
+
+        try!(send_signal(kill_pid, libc::SIGTERM));
 
         let stop_time = SteadyTime::now() + Duration::seconds(8);
         loop {
@@ -116,7 +131,7 @@ impl Child {
             }
 
             if SteadyTime::now() > stop_time {
-                try!(send_signal(self.pid, libc::SIGKILL));
+                try!(send_signal(kill_pid, libc::SIGKILL));
                 return Ok(ShutdownMethod::Killed);
             }
         }
