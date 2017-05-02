@@ -419,6 +419,12 @@ impl Manager {
                           err);
             }
         }
+
+        if let Err(err) = fs::remove_file(self.fs_cfg.health_check_cache(&service.service_group)) {
+            outputln!("Unable to cleanup service health cache, {}, {}",
+                      service,
+                      err);
+        }
     }
 
     pub fn run(&mut self) -> Result<()> {

@@ -605,8 +605,7 @@ impl Service {
 
     fn cache_health_check(&self, check_result: HealthCheck) {
         let state_file = self.manager_fs_cfg
-            .data_path
-            .join(format!("{}.health", self.service_group.service()));
+            .health_check_cache(&self.service_group);
         let tmp_file = state_file.with_extension("tmp");
         let file = match File::create(&tmp_file) {
             Ok(file) => file,
