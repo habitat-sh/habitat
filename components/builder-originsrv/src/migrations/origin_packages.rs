@@ -117,7 +117,7 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                    op_offset bigint
                  ) RETURNS TABLE(total_count bigint, ident text) AS $$
                     BEGIN
-                        RETURN QUERY SELECT COUNT(*) OVER () AS total_count, origin_packages.ident FROM origins INNER JOIN origin_packages ON origins.id = origin_packages.origin_id WHERE origins.name = op_origin and origin_packages.name LIKE (op_query  || '%')
+                        RETURN QUERY SELECT COUNT(*) OVER () AS total_count, origin_packages.ident FROM origins INNER JOIN origin_packages ON origins.id = origin_packages.origin_id WHERE origins.name = op_origin and origin_packages.name LIKE ('%' || op_query || '%')
                           ORDER BY ident ASC
                           LIMIT op_limit OFFSET op_offset;
                         RETURN;

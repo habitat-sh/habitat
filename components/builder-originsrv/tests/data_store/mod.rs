@@ -1062,6 +1062,18 @@ fn search_origin_package_for_origin() {
     assert_eq!(pkg1.to_string(), ident2.to_string());
     let pkg2 = result2.get_idents().iter().nth(1).unwrap();
     assert_eq!(pkg2.to_string(), ident4.to_string());
+
+    ops.set_query("do".to_string());
+    ops.set_start(0);
+    ops.set_stop(2);
+    let result3 = ds.search_origin_package_for_origin(&ops)
+        .expect("Could not get the packages from the database");
+    assert_eq!(result3.get_idents().len(), 1);
+    assert_eq!(result3.get_start(), 0);
+    assert_eq!(result3.get_stop(), 0);
+    assert_eq!(result3.get_count(), 1);
+    let pkg1 = result3.get_idents().iter().nth(0).unwrap();
+    assert_eq!(pkg1.to_string(), ident4.to_string());
 }
 
 #[test]
