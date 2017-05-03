@@ -29,6 +29,7 @@ pub struct Stats {
     pub edge_count: usize,
     pub connected_comp: usize,
     pub is_cyclic: bool,
+    pub plan_count: usize,
 }
 
 #[derive(Eq)]
@@ -58,6 +59,7 @@ impl PartialEq for HeapEntry {
 pub struct PackageGraph {
     package_max: usize,
     package_map: HashMap<String, (usize, NodeIndex)>,
+    latest_map: HashMap<String, PackageIdent>,
     package_names: Vec<String>,
     graph: Graph<usize, usize>,
 }
@@ -67,6 +69,7 @@ impl PackageGraph {
         PackageGraph {
             package_max: 0,
             package_map: HashMap::new(),
+            latest_map: HashMap::new(),
             package_names: Vec::new(),
             graph: Graph::<usize, usize>::new(),
         }
@@ -84,6 +87,19 @@ impl PackageGraph {
             self.package_map
                 .insert(String::from(name), (self.package_max, node_index));
             self.package_max = self.package_max + 1;
+
+            let parts: Vec<&str> = name.split("/").collect();
+            assert!(parts.len() >= 2);
+            let short_name = format!("{}/{}", parts[0], parts[1]);
+
+            let pkg_ident = PackageIdent::from_str(name).unwrap();
+
+            let entry = self.latest_map
+                .entry(short_name)
+                .or_insert(pkg_ident.clone());
+            if pkg_ident > *entry {
+                *entry = pkg_ident;
+            };
 
             (self.package_max - 1, node_index)
         };
@@ -130,7 +146,8 @@ impl PackageGraph {
     }
 
     pub fn rdeps(&self, name: &str) -> Option<Vec<(String, String)>> {
-        let mut v = Vec::new();
+        let mut v: Vec<(String, String)> = Vec::new();
+        let mut map: HashMap<String, bool> = HashMap::new();
 
         match self.package_map.get(name) {
             Some(&(_, pkg_node)) => {
@@ -140,7 +157,12 @@ impl PackageGraph {
                             let parts: Vec<&str> = self.package_names[n].split("/").collect();
                             assert!(parts.len() >= 2);
                             let name = format!("{}/{}", parts[0], parts[1]);
-                            v.push((name, self.package_names[n].clone()));
+
+                            if !map.contains_key(&name) {
+                                let s = format!("{}", self.latest_map.get(&name).unwrap());
+                                map.insert(name.clone(), true);
+                                v.push((name, s));
+                            }
                         }
                     }
                     Err(e) => panic!("Error: {:?}", e),
@@ -218,6 +240,7 @@ impl PackageGraph {
             edge_count: self.graph.edge_count(),
             connected_comp: connected_components(&self.graph),
             is_cyclic: is_cyclic_directed(&self.graph),
+            plan_count: self.latest_map.len(),
         }
     }
 

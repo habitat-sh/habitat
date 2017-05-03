@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::time::Duration;
+use config::Config;
 use db::pool::Pool;
 use postgres;
 use protocol::scheduler::*;
@@ -32,8 +32,8 @@ impl DataStore {
     ///
     /// * Can fail if the pool cannot be created
     /// * Blocks creation of the datastore on the existince of the pool; might wait indefinetly.
-    pub fn new(connection_url: &str) -> Result<DataStore> {
-        let pool = Pool::new(connection_url, 2, 300, Duration::from_secs(3600), false)?;
+    pub fn new(config: &Config) -> Result<DataStore> {
+        let pool = Pool::new(&config.datastore, vec![0])?;
         Ok(DataStore { pool: pool })
     }
 
@@ -51,7 +51,7 @@ impl DataStore {
     }
 
     pub fn insert_package(&self, msg: &Package) -> Result<()> {
-        let conn = self.pool.get()?;
+        let conn = self.pool.get_shard(0)?;
 
         conn.execute("SELECT insert_package_v1($1, $2)",
                      &[&msg.get_ident(), &msg.get_deps()])
@@ -65,7 +65,7 @@ impl DataStore {
     pub fn get_packages(&self) -> Result<RepeatedField<Package>> {
         let mut packages = RepeatedField::new();
 
-        let conn = self.pool.get()?;
+        let conn = self.pool.get_shard(0)?;
 
         let rows = &conn.query("SELECT * FROM get_packages_v1()", &[])
                         .map_err(Error::PackagesGet)?;
