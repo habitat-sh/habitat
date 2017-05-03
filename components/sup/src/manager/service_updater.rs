@@ -276,6 +276,7 @@ struct Worker {
     current: PackageIdent,
     spec_ident: PackageIdent,
     depot: depot_client::Client,
+    update_strategy: UpdateStrategy,
     ui: UI,
 }
 
@@ -285,6 +286,7 @@ impl Worker {
             current: service.package().ident().clone(),
             spec_ident: service.spec_ident.clone(),
             depot: depot_client::Client::new(&service.depot_url, PRODUCT, VERSION, None).unwrap(),
+            update_strategy: service.update_strategy.clone(),
             ui: UI::default(),
         }
     }
@@ -330,17 +332,14 @@ impl Worker {
         loop {
             let next_check = SteadyTime::now() +
                              TimeDuration::milliseconds(UPDATE_STRATEGY_FREQUENCY_MS);
+            let mut package: Option<PackageInstall> = None;
             match self.depot.show_package(&self.spec_ident) {
                 Ok(remote) => {
                     let latest: PackageIdent = remote.get_ident().clone().into();
                     if latest > self.current {
                         outputln!("Updating from {} to {}", self.current, latest);
                         match self.install(&latest, true) {
-                            Ok(package) => {
-                                self.current = latest;
-                                sender.send(package).expect("Main thread has gone away!");
-                                break;
-                            }
+                            Ok(pkg) => package = Some(pkg),
                             Err(e) => warn!("Failed to install updated package: {:?}", e),
                         }
                     } else {
@@ -348,6 +347,25 @@ impl Worker {
                     }
                 }
                 Err(e) => warn!("Updater failed to get latest package: {:?}", e),
+            }
+            if self.update_strategy == UpdateStrategy::AtOnce {
+                if let Ok(cached) = PackageInstall::load(&self.spec_ident,
+                                                         Some(&Path::new(&*FS_ROOT_PATH))) {
+                    let compare = match package {
+                        Some(ref pkg) => pkg.ident.clone(),
+                        None => self.current.clone(),
+                    };
+
+                    if cached.ident > compare {
+                        package = Some(cached);
+                    }
+                }
+            }
+
+            if let Some(pkg) = package {
+                self.current = pkg.ident.clone();
+                sender.send(pkg).expect("Main thread has gone away!");
+                break;
             }
             let time_to_wait = (next_check - SteadyTime::now()).num_milliseconds();
             if time_to_wait > 0 {
