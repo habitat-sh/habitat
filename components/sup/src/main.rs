@@ -31,6 +31,7 @@ use std::str::FromStr;
 
 use ansi_term::Colour::{Red, Yellow};
 use clap::{App, ArgMatches};
+use common::ui::UI;
 use hcore::env as henv;
 use hcore::crypto::{default_cache_key_path, SymKey};
 use hcore::crypto::init as crypto_init;
@@ -48,6 +49,7 @@ use sup::manager::{Manager, ManagerConfig, ServiceStatus};
 use sup::manager::service::{DesiredState, ServiceBind, Topology, UpdateStrategy};
 use sup::manager::service::{ServiceSpec, StartStyle};
 use sup::supervisor::ProcessState;
+use sup::util;
 
 /// Our output key
 static LOGKEY: &'static str = "MN";
@@ -244,6 +246,7 @@ fn sub_load(m: &ArgMatches) -> Result<()> {
     }
     let mut spec = spec_from_matches(default_spec.ident, m)?;
     spec.start_style = StartStyle::Persistent;
+    util::pkg::install_from_spec(&mut UI::default(), &spec)?;
     Manager::save_spec_for(&cfg, spec)
 }
 
@@ -315,7 +318,11 @@ fn sub_start(m: &ArgMatches) -> Result<()> {
                         }
                     }
                 }
-                Err(_) => Some(spec_from_matches(default_spec.ident, m)?),
+                Err(_) => {
+                    let spec = spec_from_matches(default_spec.ident, m)?;
+                    util::pkg::install_from_spec(&mut UI::default(), &spec)?;
+                    Some(spec)
+                }
             }
         }
         None => None,
