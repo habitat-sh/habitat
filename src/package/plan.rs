@@ -42,10 +42,20 @@ impl Plan {
                 }
             }
         }
-        if name.is_none() || version.is_none() {
+
+        // Only the name is required to be present initiallly in the plan.sh
+        if name.is_none() {
             return Err(Error::PlanMalformed);
         }
-        let plan = Plan::new(name.unwrap(), version.unwrap());
+
+        // Default the version to 'undefined' if it's not present
+        let v = if version.is_none() {
+            String::from("undefined")
+        } else {
+            version.unwrap()
+        };
+
+        let plan = Plan::new(name.unwrap(), v);
         Ok(plan)
     }
 }
