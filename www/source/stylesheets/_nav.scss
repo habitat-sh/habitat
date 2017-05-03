@@ -46,6 +46,11 @@ $main-nav-breakpoint: 769px;
 
   @include small-nav {
     position: fixed;
+    top: 0;
+
+    &.has-sidebar {
+      background-color: $hab-navy;
+    }
   }
 
   // modifiers for nav on homepage on large screens
@@ -136,7 +141,7 @@ $main-nav-breakpoint: 769px;
   }
 
   @include breakpoint(medium) {
-    left: 0;
+    left: rem-calc(15);
   }
 
   @include large-nav {
@@ -200,6 +205,10 @@ $main-nav-breakpoint: 769px;
   @include small-nav {
     &:last-child {
       padding-bottom: rem-calc(30);
+    }
+
+    &.cta-link a {
+      margin-left: 0;
     }
   }
 }

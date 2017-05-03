@@ -118,7 +118,7 @@ $community-medium-breakpoint: rem-calc(880);
 
 .community--hero--graphic {
   position: absolute;
-  bottom: rem-calc(-100);
+  bottom: 0;
   z-index: 3;
   overflow: hidden;
   right: 0;

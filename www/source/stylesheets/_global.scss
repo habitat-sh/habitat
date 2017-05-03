@@ -14,6 +14,19 @@
 //  9. Global Message
 //  10. 404
 
+$main-nav-breakpoint: 769px;
+
+@mixin large-nav {
+  @media (min-width: $main-nav-breakpoint) {
+    @content;
+  }
+}
+
+@mixin small-nav {
+  @media (max-width: $main-nav-breakpoint - 1px) {
+    @content;
+  }
+}
 
 // 1. Global
 // ---------
@@ -331,6 +344,10 @@ img {
 
 .callout-box--container {
   padding: rem-calc(15) rem-calc(60);
+
+  @include small-nav {
+    padding: rem-calc(10) rem-calc(20);
+  }
 }
 
 .callout-box {
