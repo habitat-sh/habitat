@@ -22,6 +22,9 @@
 }
 
 .container__try {
+  background-color: $white;
+  border-radius: $global-radius;
+
   h2,
   p {
     max-width: rem-calc(760);

@@ -26,6 +26,7 @@ body {
   @include grid-column-row;
   @include linear-gradient(205deg, #e9f1f7 5%, #dce6ed 100%);
   padding: 1em 1.5em;
+  border-radius: $global-radius $global-radius 0 0;
 
   &--heading {
     margin: 0;
