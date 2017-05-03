@@ -14,6 +14,7 @@
 
 use std::path::Path;
 
+use ansi_term::Colour::Yellow;
 use common;
 use common::ui::UI;
 use depot_client::Client;
@@ -23,6 +24,7 @@ use hcore::package::{PackageIdent, PackageInstall};
 use {PRODUCT, VERSION};
 use error::Result;
 use manager::ServiceSpec;
+use manager::service::UpdateStrategy;
 
 static LOGKEY: &'static str = "PK";
 
@@ -63,5 +65,22 @@ pub fn maybe_install_newer(ui: &mut UI,
                   spec.ident,
                   current.ident());
         Ok(current)
+    }
+}
+
+pub fn install_from_spec(ui: &mut UI, spec: &ServiceSpec) -> Result<PackageInstall> {
+    match PackageInstall::load(&spec.ident, Some(&Path::new(&*FS_ROOT_PATH))) {
+        Ok(package) => {
+            match spec.update_strategy {
+                UpdateStrategy::AtOnce => Ok(maybe_install_newer(ui, spec, package)?),
+                UpdateStrategy::None | UpdateStrategy::Rolling => Ok(package),
+            }
+        }
+        Err(_) => {
+            outputln!("{} not found in local package cache, installing from {}",
+                      Yellow.bold().paint(spec.ident.to_string()),
+                      &spec.depot_url);
+            Ok(install(ui, spec.depot_url.as_str(), &spec.ident)?)
+        }
     }
 }

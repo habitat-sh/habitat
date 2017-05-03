@@ -170,23 +170,7 @@ impl Service {
                                    manager_fs_cfg: Arc<manager::FsCfg>,
                                    organization: Option<&str>)
                                    -> Result<Service> {
-        let mut ui = UI::default();
-        let package = match PackageInstall::load(&spec.ident, Some(&Path::new(&*FS_ROOT_PATH))) {
-            Ok(package) => {
-                match spec.update_strategy {
-                    UpdateStrategy::AtOnce => {
-                        util::pkg::maybe_install_newer(&mut ui, &spec, package)?
-                    }
-                    UpdateStrategy::None | UpdateStrategy::Rolling => package,
-                }
-            }
-            Err(_) => {
-                outputln!("{} not found in local package cache, installing from {}",
-                          Yellow.bold().paint(spec.ident.to_string()),
-                          &spec.depot_url);
-                util::pkg::install(&mut ui, &spec.depot_url, &spec.ident)?
-            }
-        };
+        let package = util::pkg::install_from_spec(&mut UI::default(), &spec)?;
         let service = Self::new(local_member_id.into(),
                                 package,
                                 spec,
