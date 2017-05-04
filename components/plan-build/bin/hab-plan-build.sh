@@ -2077,6 +2077,21 @@ _set_environment() {
   done
 }
 
+# At this phase of the build, all dependencies are downloaded, the build
+# environment is set, but this is just before any source downloading would
+# occur (if `$pkg_source` is set). This could be a suitable phase in which to
+# compute a dynamic version of a pacakge given the state of a Git repository,
+# fire an API call, start timing something, etc.
+do_before() {
+  do_default_before
+  return $?
+}
+
+# Default implementation for the `do_before()` phase.
+do_default_before() {
+  return 0
+}
+
 # If `$pkg_source` is being used, download the software and place it in
 # `$HAB_CACHE_SRC_PATH/$pkg_filename`. If the source already exists in the
 # cache, verify that the checksum is what we expect, and skip the download.
@@ -2667,6 +2682,19 @@ do_default_strip() {
     done
 }
 
+# At this phase of the build, the package has been built, installed, and
+# stripped, but before the package metadata is written and the artifact is
+# created and signed.
+do_after() {
+  do_default_after
+  return $?
+}
+
+# Default implementation for the `do_after()` phase.
+do_default_after() {
+  return 0
+}
+
 # **Internal** Write the `$pkg_prefix/MANIFEST`.
 _build_manifest() {
   build_line "Creating manifest"
@@ -2982,8 +3010,12 @@ _resolve_dependencies
 # Set up runtime environment
 _set_environment
 
-# Download the source
 mkdir -pv "$HAB_CACHE_SRC_PATH"
+
+# Run any code after the environment is set but before the build starts
+do_before
+
+# Download the source
 do_download
 
 # Verify the source
@@ -3021,6 +3053,10 @@ do_build_service
 
 # Strip the binaries
 do_strip
+
+# Run any code after the package has finished building and installing, but
+# before the artifact metadata is generated and the artifact is signed.
+do_after
 
 # Write the manifest
 _build_manifest
