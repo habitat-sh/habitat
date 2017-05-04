@@ -1131,6 +1131,7 @@ fn list_packages(req: &mut Request) -> IronResult<Response> {
             let mut request = OriginPackageListRequest::new();
             request.set_start(start as u64);
             request.set_stop(stop as u64);
+            request.set_distinct(true);
             request.set_ident(OriginPackageIdent::from_str(ident.as_str()).expect("invalid package identifier"));
             packages = route_message::<OriginPackageListRequest,
                                        OriginPackageListResponse>(req, &request);
@@ -1230,13 +1231,11 @@ fn create_channel(req: &mut Request) -> IronResult<Response> {
     }
 
     let origin_id = match try!(get_origin(req, &origin)) {
-        Some(origin) => {
-            origin.get_id()
-        }
+        Some(origin) => origin.get_id(),
         None => {
             debug!("Origin {} not found!", origin);
             return Ok(Response::with(status::NotFound));
-        },
+        }
     };
 
     let mut request = OriginChannelCreate::new();
@@ -1436,6 +1435,7 @@ fn search_packages(req: &mut Request) -> IronResult<Response> {
 
     // TODO MW: constraining to core is temporary until we have a cross origin index
     request.set_origin("core".to_string());
+    request.set_distinct(true);
     match route_message::<OriginPackageSearchRequest, OriginPackageListResponse>(req, &request) {
         Ok(packages) => {
             debug!("search_packages start: {}, stop: {}, total count: {}",
@@ -1771,7 +1771,9 @@ pub fn run(config: Config) -> Result<()> {
 
     let mut mount = Mount::new();
     mount.mount("/v1", v1);
-    Iron::new(mount).http(&config.http).expect("Unable to start HTTP listener");
+    Iron::new(mount)
+        .http(&config.http)
+        .expect("Unable to start HTTP listener");
     broker.join().unwrap();
     Ok(())
 }

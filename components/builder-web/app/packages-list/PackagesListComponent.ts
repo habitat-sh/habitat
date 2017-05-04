@@ -12,42 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Component, Input} from "@angular/core";
-import {List} from "immutable";
+import { Component, Input } from "@angular/core";
+import { List } from "immutable";
 
 @Component({
     selector: "hab-packages-list",
-    template: `
-    <ul class="hab-packages-plan-list">
-        <div *ngIf="noPackages">
-            <p>
-                No packages found.
-                <span *ngIf="errorMessage">
-                    Error: {{errorMessage}}
-                </span>
-            </p>
-        </div>
-        <li class="hab-packages-package" *ngFor="let pkg of packages">
-            <a [routerLink]="['/pkgs', pkg.origin,
-                                      pkg.name,
-                                      pkg.version,
-                                      pkg.release]">
-                <div class="item-title">
-                    <h3>{{pkg.origin}} / {{pkg.name}}</h3>
-                    <h4>{{pkg.version}} / {{pkg.release}}</h4>
-                </div>
-                <div class="item-info">
-                    <span class="count" *ngIf="pkg.starCount">
-                        <!-- TODO: import octicons -->
-                        <span class="octicon octicon-star"></span>
-                        {{pkg.starCount}}
-                    </span>
-                    <img src="/node_modules/octicons/svg/chevron-right.svg" />
-                </div>
-            </a>
-        </li>
-    </ul>
-    `
+    template: require("./packages-list.component.html")
 })
 
 export class PackagesListComponent {

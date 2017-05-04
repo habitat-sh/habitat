@@ -869,6 +869,19 @@ fn list_origin_package_for_origin() {
     assert_eq!(result3.get_start(), 0);
     assert_eq!(result3.get_stop(), 20);
     assert_eq!(result3.get_count(), 0);
+
+    opl.set_ident(originsrv::OriginPackageIdent::from_str("core/cacerts").unwrap());
+    opl.set_distinct(true);
+    opl.set_start(0);
+    opl.set_stop(20);
+    let result4 = ds.list_origin_package_for_origin(&opl)
+        .expect("Could not get the packages from the database");
+    assert_eq!(result4.get_idents().len(), 1);
+    assert_eq!(result4.get_start(), 0);
+    assert_eq!(result4.get_stop(), 0);
+    assert_eq!(result4.get_count(), 1);
+    let pkg3 = result4.get_idents().iter().nth(0).unwrap();
+    assert_eq!(pkg3.to_string(), "core/cacerts");
 }
 
 #[test]
@@ -1074,6 +1087,21 @@ fn search_origin_package_for_origin() {
     assert_eq!(result3.get_count(), 1);
     let pkg1 = result3.get_idents().iter().nth(0).unwrap();
     assert_eq!(pkg1.to_string(), ident4.to_string());
+
+    ops.set_query("re".to_string());
+    ops.set_start(0);
+    ops.set_stop(20);
+    ops.set_distinct(true);
+    let result2 = ds.search_origin_package_for_origin(&ops)
+        .expect("Could not get the packages from the database");
+    assert_eq!(result2.get_idents().len(), 2);
+    assert_eq!(result2.get_start(), 0);
+    assert_eq!(result2.get_stop(), 1);
+    assert_eq!(result2.get_count(), 2);
+    let pkg1 = result2.get_idents().iter().nth(0).unwrap();
+    assert_eq!(pkg1.to_string(), "core/red");
+    let pkg2 = result2.get_idents().iter().nth(1).unwrap();
+    assert_eq!(pkg2.to_string(), "core/red_dog");
 }
 
 #[test]
