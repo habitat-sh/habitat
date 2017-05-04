@@ -994,9 +994,10 @@ _set_build_tdeps_resolved() {
   done
 }
 
-# **Internal** Loads specified scaffolding to extend plan DSL. This assumes
-# the scaffolding lives within `lib` and is named `scaffolding.sh` for each
-# application/project type.
+# **Internal** Loads a Scaffolding package if `$pkg_scaffolding` is set. If the
+# Scaffolding package's implementation contains a `scaffolding_load()`
+# function, it is executed here so that the package can further influence the
+# run and build dependencies of the Plan.
 _load_scaffolding() {
   local lib
   if [[ -z "${pkg_scaffolding:-}" ]]; then
@@ -1009,8 +1010,8 @@ _load_scaffolding() {
     exit_with "Failed to load Scaffolding from $lib" 17
   fi
 
-  if [[ "$(type -t _scaffolding_begin)" == "function" ]]; then
-    _scaffolding_begin
+  if [[ "$(type -t scaffolding_load)" == "function" ]]; then
+    scaffolding_load
   fi
 }
 

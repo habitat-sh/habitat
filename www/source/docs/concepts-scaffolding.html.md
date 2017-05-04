@@ -58,7 +58,7 @@ Each scaffolding defines a set of callbacks which are unique to the scaffolding 
 
 ### Internal Callbacks
 
-#### `_scaffolding_begin`
+#### `scaffolding_load`
 
 The default_begin phase is executed prior to loading the scaffolding. This internal callback allow the scaffolding to run anything we need to execute before the download and build.
 
