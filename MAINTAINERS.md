@@ -41,7 +41,6 @@ Lieutenant and may have many maintainers.
 
 * [Adam Jacob](https://github.com/adamhjk)
 * [Fletcher Nichol](https://github.com/fnichol)
-* [Dave Parfitt](https://github.com/metadave)
 * [Nathan L Smith](https://github.com/smith)
 * [Joshua Timberman](https://github.com/jtimberman)
 * [Brian Scott](https://github.com/bscott)
@@ -80,7 +79,6 @@ The web application for the Habitat builder and depot.
 
 * [Adam Jacob](https://github.com/adamhjk)
 * [Fletcher Nichol](https://github.com/fnichol)
-* [Dave Parfitt](https://github.com/metadave)
 * [Brian Scott](https://github.com/bscott)
 * [Steven Murawski](https://github.com/smurawski)
 * [Ian Henry](https://github.com/eeyun)
