@@ -22,12 +22,15 @@ extern crate ansi_term;
 extern crate libc;
 #[macro_use]
 extern crate clap;
+extern crate time;
 extern crate url;
 
+use std::io::{self, Write};
 use std::net::{SocketAddr, ToSocketAddrs};
 use std::path::{Path, PathBuf};
 use std::result;
 use std::str::FromStr;
+use std::thread;
 
 use ansi_term::Colour::{Red, Yellow};
 use clap::{App, ArgMatches};
@@ -37,6 +40,7 @@ use hcore::crypto::{default_cache_key_path, SymKey};
 use hcore::crypto::init as crypto_init;
 use hcore::package::{PackageArchive, PackageIdent};
 use hcore::url::{DEFAULT_DEPOT_URL, DEPOT_URL_ENVVAR};
+use time::Duration;
 use url::Url;
 
 use sup::VERSION;
@@ -247,7 +251,38 @@ fn sub_load(m: &ArgMatches) -> Result<()> {
     let mut spec = spec_from_matches(default_spec.ident, m)?;
     spec.start_style = StartStyle::Persistent;
     util::pkg::install_from_spec(&mut UI::default(), &spec)?;
-    Manager::save_spec_for(&cfg, spec)
+
+    Manager::save_spec_for(&cfg, spec.clone())?;
+    if !Manager::is_running(&cfg)? {
+        outputln!("The {} service was succesfully loaded", spec.ident);
+        return Ok(());
+    }
+
+    let wait_state = match spec.desired_state {
+        DesiredState::Up => ProcessState::Up,
+        DesiredState::Down => ProcessState::Down,
+    };
+    match wait_for_status(cfg, spec.ident.clone(), &wait_state) {
+        Ok(status) => {
+            if status.process.state == wait_state {
+                outputln!("The {} service was succesfully loaded with current state: {}",
+                          spec.ident,
+                          wait_state);
+                std::process::exit(0);
+            } else {
+                outputln!("The {} service was succesfully loaded but is not in the desired state. Current state: {}",
+                          spec.ident,
+                          status.process.state);
+                std::process::exit(1);
+            }
+        }
+        Err(e) => {
+            outputln!("The {} service was not succesfully loaded: {}",
+                      spec.ident,
+                      e);
+            std::process::exit(1);
+        }
+    }
 }
 
 fn sub_unload(m: &ArgMatches) -> Result<()> {
@@ -327,7 +362,38 @@ fn sub_start(m: &ArgMatches) -> Result<()> {
         }
         None => None,
     };
-    try!(command::start::run(cfg, maybe_spec, maybe_local_artifact));
+
+    let running = Manager::is_running(&cfg)?;
+
+    try!(command::start::run(cfg.clone(), maybe_spec.clone(), maybe_local_artifact));
+    if !running {
+        return Ok(());
+    }
+    if let Some(spec) = maybe_spec {
+        match wait_for_status(cfg, spec.ident.clone(), &ProcessState::Up) {
+            Ok(status) => {
+                match status.process.state {
+                    ProcessState::Up => {
+                        outputln!("The {} service was succesfully started with PID {}",
+                                  spec.ident,
+                                  status.process.pid.unwrap());
+                    }
+                    _ => {
+                        outputln!("The {} service was not succesfully started. Current state: {}",
+                                  spec.ident,
+                                  status.process.state);
+                        std::process::exit(1);
+                    }
+                }
+            }
+            Err(e) => {
+                outputln!("The {} service was not succesfully started: {}",
+                          spec.ident,
+                          e);
+                std::process::exit(1);
+            }
+        }
+    }
     Ok(())
 }
 
@@ -401,6 +467,52 @@ fn sub_stop(m: &ArgMatches) -> Result<()> {
     let mut spec = ServiceSpec::from_file(&spec_file)?;
     spec.desired_state = DesiredState::Down;
     Manager::save_spec_for(&cfg, spec)
+}
+
+fn wait_for_status(cfg: ManagerConfig,
+                   ident: PackageIdent,
+                   state: &ProcessState)
+                   -> Result<ServiceStatus> {
+    let stop_time = time::get_time() + Duration::seconds(10);
+    print!("Waiting for the {} service to enter the {} state...",
+           ident,
+           state);
+    // need to flush when not printing a newline
+    io::stdout()
+        .flush()
+        .ok()
+        .expect("Could not flush stdout");
+
+    loop {
+        print!(".");
+        io::stdout()
+            .flush()
+            .ok()
+            .expect("Could not flush stdout");
+        let next_check = time::get_time() + Duration::seconds(1);
+
+        let status = Manager::service_status(cfg.clone(), ident.clone());
+        let has_state = if let Ok(ref status) = status {
+            &status.process.state == state
+        } else {
+            false
+        };
+
+        if has_state {
+            println!("");
+            return status;
+        }
+
+        if time::get_time() > stop_time {
+            println!("");
+            return status;
+        }
+
+        let time_to_wait = (next_check - time::get_time()).num_milliseconds();
+        if time_to_wait > 0 {
+            thread::sleep(std::time::Duration::from_millis(time_to_wait as u64));
+        }
+    }
 }
 
 fn mgrcfg_from_matches(m: &ArgMatches) -> Result<ManagerConfig> {

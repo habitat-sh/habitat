@@ -151,7 +151,7 @@ impl FsCfg {
     }
 }
 
-#[derive(Default)]
+#[derive(Clone, Default)]
 pub struct ManagerConfig {
     pub gossip_listen: GossipListenAddr,
     pub http_listen: http_gateway::ListenAddr,
