@@ -44,7 +44,7 @@ use util;
 
 static LOGKEY: &'static str = "SV";
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, PartialEq, Deserialize, Serialize)]
 pub enum ProcessState {
     Down,
     Up,

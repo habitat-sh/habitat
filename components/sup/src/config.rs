@@ -34,7 +34,7 @@ pub const GOSSIP_DEFAULT_PORT: u16 = 9638;
 
 static LOGKEY: &'static str = "CFG";
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(Clone, PartialEq, Eq, Debug)]
 pub struct GossipListenAddr(SocketAddr);
 
 impl Default for GossipListenAddr {
