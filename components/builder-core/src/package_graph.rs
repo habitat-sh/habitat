@@ -16,8 +16,9 @@ use std::collections::{HashMap, BinaryHeap};
 use std::cmp::Ordering;
 use std::str::FromStr;
 use protocol::scheduler;
-use petgraph::Graph;
-use petgraph::graph::NodeIndex;
+use petgraph::{Graph, Direction};
+use petgraph::graph::{NodeIndex, EdgeIndex};
+use petgraph::visit::EdgeRef;
 use petgraph::algo::{is_cyclic_directed, connected_components};
 use hab_core::package::PackageIdent;
 
@@ -29,7 +30,6 @@ pub struct Stats {
     pub edge_count: usize,
     pub connected_comp: usize,
     pub is_cyclic: bool,
-    pub plan_count: usize,
 }
 
 #[derive(Eq)]
@@ -56,6 +56,12 @@ impl PartialEq for HeapEntry {
     }
 }
 
+fn short_name(name: &str) -> String {
+    let parts: Vec<&str> = name.split("/").collect();
+    assert!(parts.len() >= 2);
+    format!("{}/{}", parts[0], parts[1])
+}
+
 pub struct PackageGraph {
     package_max: usize,
     package_map: HashMap<String, (usize, NodeIndex)>,
@@ -76,30 +82,19 @@ impl PackageGraph {
     }
 
     fn generate_id(&mut self, name: &str) -> (usize, NodeIndex) {
-        let id = if self.package_map.contains_key(name) {
-            let val = *self.package_map.get(name).unwrap();
+        let short_name = short_name(name);
+
+        let id = if self.package_map.contains_key(&short_name) {
+            let val = *self.package_map.get(&short_name).unwrap();
             val
         } else {
-            self.package_names.push(String::from(name.clone()));
-            assert_eq!(self.package_names[self.package_max], name);
+            self.package_names.push(short_name.clone());
+            assert_eq!(self.package_names[self.package_max], short_name);
 
             let node_index = self.graph.add_node(self.package_max);
             self.package_map
-                .insert(String::from(name), (self.package_max, node_index));
+                .insert(short_name.clone(), (self.package_max, node_index));
             self.package_max = self.package_max + 1;
-
-            let parts: Vec<&str> = name.split("/").collect();
-            assert!(parts.len() >= 2);
-            let short_name = format!("{}/{}", parts[0], parts[1]);
-
-            let pkg_ident = PackageIdent::from_str(name).unwrap();
-
-            let entry = self.latest_map
-                .entry(short_name)
-                .or_insert(pkg_ident.clone());
-            if pkg_ident > *entry {
-                *entry = pkg_ident;
-            };
 
             (self.package_max - 1, node_index)
         };
@@ -113,17 +108,7 @@ impl PackageGraph {
         assert!(self.package_max == 0);
 
         for p in packages {
-            let name = format!("{}", p.get_ident());
-            let (pkg_id, pkg_node) = self.generate_id(&name);
-
-            assert_eq!(pkg_id, pkg_node.index());
-
-            let deps = p.get_deps();
-            for dep in deps {
-                let depname = format!("{}", dep);
-                let (_, dep_node) = self.generate_id(&depname);
-                self.graph.extend_with_edges(&[(dep_node, pkg_node)]);
-            }
+            self.extend(&p);
         }
 
         (self.graph.node_count(), self.graph.edge_count())
@@ -135,11 +120,38 @@ impl PackageGraph {
 
         assert_eq!(pkg_id, pkg_node.index());
 
-        let deps = package.get_deps();
-        for dep in deps {
-            let depname = format!("{}", dep);
-            let (_, dep_node) = self.generate_id(&depname);
-            self.graph.extend_with_edges(&[(dep_node, pkg_node)]);
+        let pkg_ident = PackageIdent::from_str(&name).unwrap();
+        let short_name = short_name(&name);
+
+        let add_deps = if self.latest_map.contains_key(&short_name) {
+            let latest = self.latest_map.get(&short_name).unwrap();
+
+            if pkg_ident < *latest {
+                false
+            } else {
+                assert!(pkg_ident > *latest);
+
+                let edge_ids: Vec<EdgeIndex> = self.graph
+                    .edges_directed(pkg_node, Direction::Incoming)
+                    .map(|e| e.id())
+                    .collect();
+                for edge_id in edge_ids {
+                    self.graph.remove_edge(edge_id).unwrap();
+                }
+                true
+            }
+        } else {
+            self.latest_map.insert(short_name, pkg_ident.clone());
+            true
+        };
+
+        if add_deps {
+            let deps = package.get_deps();
+            for dep in deps {
+                let depname = format!("{}", dep);
+                let (_, dep_node) = self.generate_id(&depname);
+                self.graph.extend_with_edges(&[(dep_node, pkg_node)]);
+            }
         }
 
         (self.graph.node_count(), self.graph.edge_count())
@@ -147,22 +159,15 @@ impl PackageGraph {
 
     pub fn rdeps(&self, name: &str) -> Option<Vec<(String, String)>> {
         let mut v: Vec<(String, String)> = Vec::new();
-        let mut map: HashMap<String, bool> = HashMap::new();
 
         match self.package_map.get(name) {
             Some(&(_, pkg_node)) => {
                 match rdeps(&self.graph, pkg_node) {
                     Ok(deps) => {
                         for n in deps {
-                            let parts: Vec<&str> = self.package_names[n].split("/").collect();
-                            assert!(parts.len() >= 2);
-                            let name = format!("{}/{}", parts[0], parts[1]);
-
-                            if !map.contains_key(&name) {
-                                let s = format!("{}", self.latest_map.get(&name).unwrap());
-                                map.insert(name.clone(), true);
-                                v.push((name, s));
-                            }
+                            let name = self.package_names[n].clone();
+                            let ident = format!("{}", self.latest_map.get(&name).unwrap());
+                            v.push((name, ident));
                         }
                     }
                     Err(e) => panic!("Error: {:?}", e),
@@ -206,32 +211,10 @@ impl PackageGraph {
     // Given an identifier in 'origin/name' format, returns the
     // most recent version (fully-qualified package ident string)
     pub fn resolve(&self, name: &str) -> Option<String> {
-        let v: Vec<&str> = name.split('/').collect();
-        if v.len() == 2 {
-            let phrase = format!("{}/", name);
-
-            let v: Vec<String> = self.package_names
-                .iter()
-                .cloned()
-                .filter(|s| s.starts_with(&phrase))
-                .collect();
-
-            // We can safely unwrap below since we checked the format
-            let mut pkgs: Vec<PackageIdent> = v.iter()
-                .map(|x| PackageIdent::from_str(x).unwrap())
-                .collect();
-
-            // TODO: The PackageIdent compare is extremely slow, causing even small lists
-            // to take significant time to sort. Look at speeding this up if it becomes a
-            // bottleneck.
-            pkgs.sort();
-
-            return match pkgs.pop() {
-                       Some(p) => Some(format!("{}", p)),
-                       None => None,
-                   };
+        match self.latest_map.get(name) {
+            Some(ident) => Some(format!("{}", ident)),
+            None => None,
         }
-        None
     }
 
     pub fn stats(&self) -> Stats {
@@ -240,7 +223,6 @@ impl PackageGraph {
             edge_count: self.graph.edge_count(),
             connected_comp: connected_components(&self.graph),
             is_cyclic: is_cyclic_directed(&self.graph),
-            plan_count: self.latest_map.len(),
         }
     }
 

@@ -64,7 +64,7 @@ pub fn group_create(req: &mut Envelope,
     let rdeps_opt = {
         let graph = state.graph().read().unwrap();
         start_time = PreciseTime::now();
-        let ret = graph.rdeps(&project_ident);
+        let ret = graph.rdeps(&project_name);
         end_time = PreciseTime::now();
         ret
     };
@@ -76,8 +76,15 @@ pub fn group_create(req: &mut Envelope,
                    start_time.to(end_time));
 
             for s in rdeps {
-                debug!("Adding to projects: {} ({})", s.0, s.1);
-                projects.push(s);
+                let origin = s.0.split("/").nth(0).unwrap();
+
+                // We only build core packages for now
+                if origin == "core" {
+                    debug!("Adding to projects: {} ({})", s.0, s.1);
+                    projects.push(s.clone());
+                } else {
+                    debug!("Skipping non-core project: {} ({})", s.0, s.1);
+                }
             }
         }
         None => {

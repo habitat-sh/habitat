@@ -881,7 +881,19 @@ fn sync_packages(pool: Pool) -> DbResult<EventOutcome> {
             for row in rows.iter() {
                 let pid: i64 = row.get("package_id");
                 let ident: String = row.get("package_ident");
+                let deps_column: String = row.get("package_deps");
+
+                let mut deps = protobuf::RepeatedField::new();
+                for ident in deps_column.split(":") {
+                    if !ident.is_empty() {
+                        let opi = originsrv::OriginPackageIdent::from_str(ident).unwrap();
+                        let dep_str = format!("{}", opi);
+                        deps.push(dep_str);
+                    }
+                }
                 request.set_ident(ident);
+                request.set_deps(deps);
+
                 match bconn.route::<scheduler::PackageCreate, NetOk>(&request) {
                     Ok(_) => {
                         conn.query("SELECT * FROM set_packages_sync_v1($1)", &[&pid])

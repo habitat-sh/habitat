@@ -124,9 +124,9 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                     END
                     $$ LANGUAGE plpgsql STABLE"#)?;
     migrator.migrate("originsrv",
-                     r#"CREATE OR REPLACE FUNCTION sync_packages_v1() RETURNS TABLE(account_id bigint, package_id bigint, package_ident text) AS $$
+                     r#"CREATE OR REPLACE FUNCTION sync_packages_v1() RETURNS TABLE(account_id bigint, package_id bigint, package_ident text, package_deps text) AS $$
                     BEGIN
-                        RETURN QUERY SELECT origin_packages.owner_id, origin_packages.id, origin_packages.ident FROM origin_packages WHERE origin_packages.scheduler_sync = false;
+                        RETURN QUERY SELECT origin_packages.owner_id, origin_packages.id, origin_packages.ident, origin_packages.deps FROM origin_packages WHERE origin_packages.scheduler_sync = false;
                         RETURN;
                     END
                     $$ LANGUAGE plpgsql STABLE"#)?;
