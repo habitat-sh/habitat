@@ -203,9 +203,22 @@ impl PartialOrd for PackageIdent {
             ord @ Ok(Ordering::Greater) |
             ord @ Ok(Ordering::Less) => ord.ok(),
             Ok(Ordering::Equal) => Some(self.release.cmp(&other.release)),
-            Err(e) => {
-                error!("This was a very bad version number: {:?}", e);
-                return None;
+            Err(_) => {
+                // TODO: Can we do better than this? As long as we allow
+                // non-numeric versions to co-exist with numeric ones, we
+                // always have potential for incorrect ordering no matter
+                // what we choose - eg, "master" vs. "0.x.x" (real examples)
+                warn!("Comparing non-numeric versions: {} {}",
+                      self.version.as_ref().unwrap(),
+                      other.version.as_ref().unwrap());
+                match self.version
+                          .as_ref()
+                          .unwrap()
+                          .cmp(other.version.as_ref().unwrap()) {
+                    ord @ Ordering::Greater |
+                    ord @ Ordering::Less => Some(ord),
+                    Ordering::Equal => Some(self.release.cmp(&other.release)),
+                }
             }
         }
     }
@@ -370,6 +383,30 @@ mod tests {
     }
 
     #[test]
+    fn package_ident_non_numeric_version_ord() {
+        let a = PackageIdent::new("ty".to_string(),
+                                  "tabor".to_string(),
+                                  Some("random".to_string()),
+                                  Some("20150521131556".to_string()));
+        let b = PackageIdent::new("ty".to_string(),
+                                  "tabor".to_string(),
+                                  Some("random".to_string()),
+                                  Some("20150521131555".to_string()));
+        let c = PackageIdent::new("ty".to_string(),
+                                  "tabor".to_string(),
+                                  Some("undefined".to_string()),
+                                  Some("20150521131555".to_string()));
+        match a.partial_cmp(&b) {
+            Some(ord) => assert_eq!(ord, Ordering::Greater),
+            None => panic!("Ordering should be greater"),
+        }
+        match b.partial_cmp(&c) {
+            Some(ord) => assert_eq!(ord, Ordering::Less),
+            None => panic!("Ordering should be less"),
+        }
+    }
+
+    #[test]
     fn package_ident_partial_ord_bad_name() {
         let a = PackageIdent::new("awesome".to_string(),
                                   "snoopy".to_string(),
@@ -475,6 +512,14 @@ mod tests {
     }
 
     #[test]
+    fn version_sort_error() {
+        match version_sort("1.0.0-alpha1", "undefined") {
+            Ok(compare) => panic!("unexpected {:?}", compare),
+            Err(_) => (),
+        }
+    }
+
+    #[test]
     fn check_fully_qualified_package_id() {
         let partial = PackageIdent::new("acme", "rocket", None, None);
         let full = PackageIdent::new("acme", "rocket", Some("1.2.3"), Some("1234"));
@@ -487,12 +532,14 @@ mod tests {
         let valid1 = PackageIdent::new("acme", "rocket", Some("1.2.3"), Some("1234"));
         let valid2 = PackageIdent::new("acme", "rocket-one", Some("1.2.3"), Some("1234"));
         let valid3 = PackageIdent::new("acme", "rocket_one", Some("1.2.3"), Some("1234"));
+        let valid4 = PackageIdent::new("acme", "rocket_one", Some("foo-bar"), Some("1234"));
         let invalid1 = PackageIdent::new("acme", "rocket.one", Some("1.2.3"), Some("1234"));
         let invalid2 = PackageIdent::new("acme", "rocket%one", Some("1.2.3"), Some("1234"));
 
         assert!(valid1.valid());
         assert!(valid2.valid());
         assert!(valid3.valid());
+        assert!(valid4.valid());
         assert!(!invalid1.valid());
         assert!(!invalid2.valid());
     }
