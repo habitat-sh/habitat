@@ -15,4 +15,4 @@ pkg_binds=(
   [router]="port"
 )
 pkg_exposes=(port)
-pkg_svc_run="$bin start -c ${pkg_svc_path}/config/config.toml"
+pkg_svc_run="$bin start -c ${pkg_svc_config_path}/config.toml"

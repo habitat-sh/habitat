@@ -16,7 +16,7 @@ pkg_binds=(
   [router]="port"
 )
 bin="bldr-api"
-pkg_svc_run="$bin start -c ${pkg_svc_path}/config.toml"
+pkg_svc_run="$bin start -c ${pkg_svc_config_path}/config.toml"
 
 do_prepare() {
   rm -Rdf $HAB_CACHE_SRC_PATH/ui-$pkg_name-$pkg_version
