@@ -2490,7 +2490,7 @@ _build_metadata() {
     key=${pkg_exports[$export]}
     port=$($_rq_cmd -t < $PLAN_CONTEXT/default.toml "at \"${key}\"" | tr -d '"')
     if ! _port_is_valid $port; then
-      exit_with "Bad pkg_export in pkg_exposes; Value of key does not contain a valid port: ${key}"
+      exit_with "Bad pkg_export in pkg_exposes; Value of key \"${key}\" does not contain a valid TCP or UDP port number: ${port}"
     fi
 
     if [[ -z "$port_part" ]]; then
