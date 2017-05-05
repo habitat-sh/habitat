@@ -288,7 +288,10 @@ When defining your plan, you have the flexibility to override the default behavi
 These callbacks are listed in the order that they are called by the package build script.
 
 do_begin()
-: There is no default implementation of this callback. You can use it to execute any arbitrary commands before anything else happens.
+: There is an empty default implementation of this callback. You can use it to execute any arbitrary commands before anything else happens. Note that at this phase of the build, no dependencies are resolved, the `$PATH` and environment is not set, and no external source has been downloaded. For a phase that is more completely set up, see the `do_before()` phase.
+
+do_before()
+: There is an empty default implementation of this callback. At this phase, the origin key has been checked for, all package dependencies have been resolved and downloaded, and the `$PATH` and environment are set.
 
 do_download()
 : The default implementation is that the software specified in $pkg_source is downloaded, checksum-verified, and placed in *$HAB_CACHE_SRC_PATH/$pkg_filename*, which resolves to a path like `/hab/cache/src/filename.tar.gz`. You should override this behavior if you need to change how your binary source is downloaded, if you are not downloading any source code at all, or if you are cloning from git. If you do clone a repo from git, you must override **do_verify()** to return 0.
@@ -318,8 +321,11 @@ do_install()
 do_strip()
 : The default implementation is to strip any binaries in $pkg_prefix of their debugging symbols. You should override this behavior if you want to change how the binaries are stripped, which additional binaries located in subdirectories might also need to be stripped, or whether you do not want the binaries stripped at all.
 
+do_after()
+: There is an empty default implementation of this callback. At this phase, the package has been built, installed, stripped, but before the package metadata is written and the artifact is created and signed.
+
 do_end()
-: There is no default implementation of this callback. This is called after the package has been built and installed. You can use this callback to remove any temporary files or perform other post-install clean-up actions.
+: There is an empty default implementation of this callback. This is called after the package artifact has been created. You can use this callback to remove any temporary files or perform other post-build clean-up actions.
 
 
 ***
