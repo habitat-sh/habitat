@@ -162,7 +162,6 @@ fn do_stats(graph: &PackageGraph) {
     println!("Edge count: {}", stats.edge_count);
     println!("Connected components: {}", stats.connected_comp);
     println!("Is cyclic: {}", stats.is_cyclic);
-    println!("Plan count: {}\n", stats.plan_count);
 }
 
 fn do_top(graph: &PackageGraph, count: usize) {
