@@ -9,53 +9,87 @@ footer#main-footer class="#{layout_class}"
 
   .footer--sitemap
     .row
-      .columns.medium-4
+      .columns.medium-12
         a.footer--logo.habitat href="/" title="Habitat Home"
           img[src="/images/habitat-logo-by-chef-white.svg"
             onerror="this.src='/images/habitat-logo-by-chef-white.png'" alt="Habitat by Chef"]
-        a.footer--logo.chef href="https://www.chef.io" title="Chef Software Website"
-          img[src="/images/chef-logo-white.svg"
-            onerror="this.src='/images/chef-logo-white.png'" alt="Chef Logo"]
-
-      .columns.medium-8
+    .row
+      .columns.medium-12
         .row
-          .columns.medium-3.small-6
+          .columns.medium-2.small-6
             ul.no-bullet
               li
-                h4 Habitat
+                h4 About Habitat
               li.footer--sitemap--link
                 a href="/" Home
               li.footer--sitemap--link
-                a href="/docs" Docs
+                a href="/about" Why Habitat
+              li.footer--sitemap--link
+                a href="/try" Get Started
+
+
+          .columns.medium-2.small-6
+            ul.no-bullet
+              li
+                h4 Build Service
+              li.footer--sitemap--link
+                a href="https://app.habitat.sh/" Find Packages
+              li.footer--sitemap--link
+                a href="https://app.habitat.sh/#/sign-in" Sign In
+              li.footer--sitemap--link
+                a href="/docs/get-habitat/" Download CLI
+
+          .columns.medium-2.small-6
+            ul.no-bullet
+              li
+                h4 Resources
               li.footer--sitemap--link
                 a href="/tutorials" Tutorials
+              li.footer--sitemap--link
+                a href="/docs" Docs
+              li.footer--sitemap--link
+                a href="https://blog.chef.io/category/habitat/" Blog
 
-          .columns.medium-3.small-6
+          .columns.medium-2.small-6
             ul.no-bullet
               li
-                h4 Habitat Web
+                h4 Community
               li.footer--sitemap--link
-                a href="https://app.habitat.sh/#/sign-in" Sign Up
+                a href="http://slack.habitat.sh/" Habitat Slack
               li.footer--sitemap--link
-                a href="https://app.habitat.sh/#/sign-in" Log In
+                a href="https://events.chef.io/events/categories/habitat/" Events
               li.footer--sitemap--link
-                a href="https://app.habitat.sh/" Search Packages
+                a href="https://ext.prodpad.com/ext/roadmap/d2938aed0d0ad1dd62669583e108357efd53b3a6" Roadmap
+              li.footer--sitemap--link
+                a href="https://github.com/habitat-sh/habitat/projects/1" GitHub Tracker
 
-          .columns.medium-3.small-6
+          .columns.medium-2.small-6
             ul.no-bullet
               li
-                h4 More
+                h4 Support
               li.footer--sitemap--link
-                a href="/about" About
+                a href="https://github.com/habitat-sh/habitat/issues" New Issues
               li.footer--sitemap--link
-                a href="/community" Community
+                a href="https://portal.prodpad.com/24539" Feature Request
               li.footer--sitemap--link
-                a href="https://github.com/habitat-sh/habitat" GitHub
+                a href="https://forums.habitat.sh/" Forums
 
-          .columns.medium-3.small-6
-            ul.no-bullet
+          .columns.medium-2.small-6
+            ul.no-bullet.social
               li
-                h4 Legal
+                h4 Get in Touch
+              li.footer--sitemap--link
+                a.github href="https://github.com/habitat-sh/habitat" GitHub
+              li.footer--sitemap--link
+                a.slack href="http://slack.habitat.sh/" Slack
+              li.footer--sitemap--link
+                a.youtube href="https://www.youtube.com/playlist?list=PL11cZfNdwNyOxlvI1Kq6ae8eVBl5S3IKk" YouTube
+
+        .row
+          .columns.medium-12
+            ul.no-bullet.footer--copyright
+              li.footer--sitemap--link
+                p &copy; #{Time.now.year} Chef Software, Inc. All Rights Reserved. Patent Pending.
               li.footer--sitemap--link
                 a href="/legal/licensing" Licensing
               li.footer--sitemap--link
@@ -64,6 +98,3 @@ footer#main-footer class="#{layout_class}"
                 a href="/legal/trademark-policy" Trademark Policy
               li.footer--sitemap--link
                 a href="/legal/privacy-policy" Privacy Policy
-        .row
-          .columns.medium-12
-            p.footer--copyright &copy; #{Time.now.year} Chef Software, Inc. All Rights Reserved. Patent Pending.

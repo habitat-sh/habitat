@@ -15,7 +15,7 @@ $main-nav-breakpoint: 769px;
 #main-nav {
   position: relative;
   z-index: 100;
-  background: $white;
+  background: transparent;
   min-height: $header-height-mobile;
   width: 100%;
   transition: top 0.4s ease;
@@ -32,42 +32,37 @@ $main-nav-breakpoint: 769px;
 
   &.is-open,
   &.is-sticky {
-    box-shadow: 0 0 50px 2px $hab-gray;
+    background-color: $hab-navy;
+    box-shadow: 0 0 50px 2px rgba(0, 0, 0, 0.10);
   }
 
   &.is-visible {
     top: 0;
   }
 
-  &.has-sidebar,
-  &.try-hab {
-    background: $hab-off-white;
+  &.has-sidebar {
+    background: transparent;
   }
 
   @include small-nav {
     position: fixed;
+    top: 0;
+
+    &.has-sidebar {
+      background-color: $hab-navy;
+    }
   }
 
   // modifiers for nav on homepage on large screens
   .home &:not(.is-sticky) {
     @include large-nav {
         background: transparent;
-
-      .main-nav--links-wrap a {
-        color: $white;
-
-        &:hover,
-        &:active,
-        &:focus {
-          color: $hab-green-light;
-        }
-      }
     }
 
     .main-nav--logo {
       @media (min-width: 973px) {
-        width: rem-calc(260);
-        height: rem-calc(117);
+        width: rem-calc(240);
+        height: rem-calc(108);
       }
 
       @media (max-width: 1550px) and (min-width: 973px) {
@@ -105,7 +100,7 @@ $main-nav-breakpoint: 769px;
     overflow: hidden;
     text-indent: 400%;
     white-space: nowrap;
-    background: url("../images/habitat-logo.svg") no-repeat left 40%;
+    background: url("../images/habitat-logo-light.svg") no-repeat left 40%;
     background-size: rem-calc(89) auto;
     color: $white;
     height: $header-height-mobile;
@@ -146,7 +141,7 @@ $main-nav-breakpoint: 769px;
   }
 
   @include breakpoint(medium) {
-    left: 0;
+    left: rem-calc(15);
   }
 
   @include large-nav {
@@ -162,13 +157,7 @@ $main-nav-breakpoint: 769px;
     }
 
     .main-nav--link {
-      padding: 0 rem-calc(25) 0 0;
-    }
-  }
-
-  @media (min-width: 820px) {
-    .main-nav--link {
-      padding: 0 rem-calc(30) 0 0;
+      padding: 0 rem-calc(40) 0 0;
     }
   }
 }
@@ -176,7 +165,7 @@ $main-nav-breakpoint: 769px;
 .main-nav--link {
   a {
     position: relative;
-    color: $body-font-color;
+    color: $white;
     transition: color 0.2s ease;
 
     &:hover,
@@ -195,15 +184,31 @@ $main-nav-breakpoint: 769px;
         background-size: auto 100%;
         width: 120%;
         height: rem-calc(18);
-        top: rem-calc(-45);
+        top: rem-calc(30);
         left: -10%;
       }
+    }
+  }
+
+  &.cta-link a {
+    margin-left: rem-calc(60);
+    color: $hab-orange;
+
+    &:hover,
+    &:active,
+    &:focus,
+    &.is-current-page {
+      color: lighten($hab-orange, 10);
     }
   }
 
   @include small-nav {
     &:last-child {
       padding-bottom: rem-calc(30);
+    }
+
+    &.cta-link a {
+      margin-left: 0;
     }
   }
 }
@@ -218,10 +223,6 @@ $main-nav-breakpoint: 769px;
 
     @include large-nav {
       margin: 0;
-    }
-
-    &:hover {
-      @include shadow-float;
     }
   }
 

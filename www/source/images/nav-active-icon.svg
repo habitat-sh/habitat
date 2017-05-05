@@ -1,9 +1,16 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- Generator: Adobe Illustrator 19.1.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
-<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-	 viewBox="0 0 44.9 19.6" style="enable-background:new 0 0 44.9 19.6;" xml:space="preserve">
-<style type="text/css">
-	.st0{fill:#87AF99;}
-</style>
-<path class="st0" d="M0,0l17.5,17.5c2.7,2.7,7.1,2.7,9.8,0L44.9,0H0z"/>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="29px" height="19px" viewBox="0 0 29 19" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 43.2 (39069) - http://www.bohemiancoding.com/sketch -->
+    <title>nav-active-icon</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="nav-active-icon">
+            <path d="M14.5345238,9.25571429 L14.5345238,18.6607143" id="Shape" stroke="#BADB8D" stroke-width="3"></path>
+            <path d="M0.69047619,1.30964286 C3.53389813,-0.42709968 7.13395901,-0.42709968 9.97738095,1.30964286 C12.9092362,2.90003549 14.6679233,5.98846836 14.5138095,9.27607143 C11.6703876,11.012814 8.0703267,11.012814 5.22690476,9.27607143 C2.29504952,7.6856788 0.53636243,4.59724593 0.69047619,1.30964286 L0.69047619,1.30964286 Z" id="Shape" fill="#86B37D" fill-rule="nonzero"></path>
+            <path d="M0.69047619,1.30964286 C3.53389813,-0.42709968 7.13395901,-0.42709968 9.97738095,1.30964286 C12.9092362,2.90003549 14.6679233,5.98846836 14.5138095,9.27607143 L0.69047619,1.30964286 Z" id="Shape" fill="#B9DA8D" fill-rule="nonzero"></path>
+            <path d="M28.4061905,1.30964286 C25.5627685,-0.42709968 21.9627077,-0.42709968 19.1192857,1.30964286 C16.1874305,2.90003549 14.4287434,5.98846836 14.5828571,9.27607143 C17.4262791,11.012814 21.02634,11.012814 23.8697619,9.27607143 C26.8016171,7.6856788 28.5603042,4.59724593 28.4061905,1.30964286 L28.4061905,1.30964286 Z" id="Shape" fill="#86B37D" fill-rule="nonzero"></path>
+            <path d="M28.4061905,1.30964286 C25.5627685,-0.42709968 21.9627077,-0.42709968 19.1192857,1.30964286 C16.1874305,2.90003549 14.4287434,5.98846836 14.5828571,9.27607143 L28.4061905,1.30964286 Z" id="Shape" fill="#B9DA8D" fill-rule="nonzero"></path>
+        </g>
+    </g>
 </svg>

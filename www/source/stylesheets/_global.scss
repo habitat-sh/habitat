@@ -14,13 +14,32 @@
 //  9. Global Message
 //  10. 404
 
+$main-nav-breakpoint: 769px;
+
+@mixin large-nav {
+  @media (min-width: $main-nav-breakpoint) {
+    @content;
+  }
+}
+
+@mixin small-nav {
+  @media (max-width: $main-nav-breakpoint - 1px) {
+    @content;
+  }
+}
 
 // 1. Global
 // ---------
+body {
+  background: $body-background;
+  background: linear-gradient(0deg, $hab-navy-light 0%, $hab-navy 100%) fixed;
+}
+
 .page-title {
   @include grid-column-row;
   @include linear-gradient(205deg, #e9f1f7 5%, #dce6ed 100%);
   padding: 1em 1.5em;
+  border-radius: $global-radius $global-radius 0 0;
 
   &--heading {
     margin: 0;
@@ -277,7 +296,8 @@ code {
 // ---------
 .main-sidebar--heading h4 {
     margin-bottom: rem-calc(10);
-    text-transform: uppercase;;
+    text-transform: uppercase;
+    color: $white;
 }
 
 h2:not(:first-child) {
@@ -324,6 +344,10 @@ img {
 
 .callout-box--container {
   padding: rem-calc(15) rem-calc(60);
+
+  @include small-nav {
+    padding: rem-calc(10) rem-calc(20);
+  }
 }
 
 .callout-box {

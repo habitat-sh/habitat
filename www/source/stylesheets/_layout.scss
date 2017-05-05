@@ -2,10 +2,10 @@ $sidebar-breakpoint: 720px;
 
 body.has-sidebar,
 body.try-hab {
-  background: $hab-off-white;
+  background: linear-gradient(0deg, $hab-navy-light, $hab-navy) fixed;
 
   #content-outer {
-    margin-bottom: rem-calc(90);
+    margin: rem-calc(60) 0 rem-calc(90);
   }
 }
 
@@ -24,7 +24,6 @@ body.try-hab {
 
 .container {
   @include grid-column-row(0);
-  background-color: $white;
 }
 
 .container__has-sidebar {
@@ -41,14 +40,13 @@ body.try-hab {
 
 .main-sidebar {
   @include grid-column(12);
-  padding: rem-calc(40) rem-calc(20);
-  background: $hab-off-white;
+  padding: rem-calc(20);
 
   a {
     display: block;
     position: relative;
     padding-right: rem-calc(15);
-    color: $body-font-color;
+    color: $white;
 
     &:hover,
     &:active,
@@ -82,12 +80,21 @@ body.try-hab {
 
   @include breakpoint(medium) {
     @include grid-column(3);
-    padding: rem-calc(40) 0;
+    padding: rem-calc(20) 0;
   }
 }
 
 .main-sidebar--search {
   margin-bottom: rem-calc(30);
+
+  [type='text'] {
+    padding: rem-calc(10) rem-calc(20);
+    background-color: transparent;
+    border-color: $hab-green;
+    color: $white;
+    line-height: 1rem;
+    height: auto;
+  }
 }
 
 .main-sidebar--list {
@@ -104,13 +111,18 @@ body.try-hab {
   line-height: rem-calc(24);
   margin-bottom: rem-calc(8);
   padding-left: 0;
+
+  &:last-child {
+    margin-bottom: rem-calc(24);
+  }
 }
 
 .main-content__has-sidebar {
   @include grid-column(12);
-  background-color: $hab-white;
-  background: url("/images/graphics/article-watermark.png") no-repeat right bottom $hab-white;
-  background: url("/images/graphics/article-watermark.svg") no-repeat right bottom $hab-white;
+  background-color: $hab-white; // fallback
+  background: url("/images/graphics/article-watermark.png") no-repeat right bottom $white-slightly-transparent;
+  background: url("/images/graphics/article-watermark.svg") no-repeat right bottom $white-slightly-transparent;
+  border-radius: $global-radius;
   height: 100%;
   min-height: 70vh;
   padding: rem-calc(30) rem-calc(20) rem-calc(90);

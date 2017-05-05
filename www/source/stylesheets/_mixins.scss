@@ -1,7 +1,7 @@
 // Sass Mixins
 
 @mixin shadow-float {
-  box-shadow: 0px 2px 14px 0px rgba(216,216,216,0.70);
+  box-shadow: 0px 2px 14px 0px rgba(0,0,0,0.10);
 }
 
 @mixin hide-text() {
@@ -13,8 +13,8 @@
 @mixin button {
   background: transparent;
   border: 1px solid $hab-orange;
-  border-radius: 7px;
-  color: $body-font-color;
+  border-radius: $global-radius;
+  color: $hab-orange;
   font-size: rem-calc(16);
   letter-spacing: rem-calc(1);
   padding: rem-calc(15) rem-calc(20);
@@ -22,7 +22,7 @@
 
   &:hover {
     background-color: transparent;
-    box-shadow: 0px 1px 24px 0px rgba(0,0,0,0.20);
+    box-shadow: $input-shadow-focus;
   }
 }
 
