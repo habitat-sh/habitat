@@ -1911,6 +1911,67 @@ pkg_interpreter_for() {
     return 1
 }
 
+# Updates the value of `$pkg_version` and recomputes any relevant variables.
+# This function must be called before the `do_prepare()` build phase otherwise
+# it will fail the build process.
+#
+# This function depends on the Plan author implementing a `pkg_version()`
+# function which prints a computed version string on standard output. Then,
+# this function must be explicitly called in an appropriate build phase--most
+# likely `do_before()`. For example:
+#
+# ```sh
+# pkg_origin=acme
+# pkg_name=myapp
+#
+# pkg_version() {
+#   cat "$SRC_PATH/version.txt"
+# }
+#
+# do_before() {
+#   do_default_before
+#   update_pkg_version
+# }
+# ```
+update_pkg_version() {
+  local update_src_path
+
+  if [[ "${_verify_vars:-}" == true ]]; then
+    local e
+    e="Plan called 'update_pkg_version()' in phase 'do_prepare()' or later"
+    e="$e which is not supported. Package version must be determined before"
+    e="$e 'do_prepare()' phase."
+    exit_with "$e" 21
+  fi
+
+  if [[ "$(type -t pkg_version)" == "function" ]]; then
+    pkg_version="$(pkg_version)"
+    build_line "Version updated to '$pkg_version'"
+  else
+    debug "pkg_version() function not found, retaining pkg_version=$pkg_version"
+  fi
+
+  # `$pkg_dirname` needs to be recomputed, unless it was explicitly set by the
+  # Plan author.
+  if [[ "${_pkg_dirname_initially_unset:-}" == true ]]; then
+    pkg_dirname="${pkg_name}-${pkg_version}"
+  fi
+  pkg_prefix=$HAB_PKG_PATH/${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_release}
+  pkg_artifact="$HAB_CACHE_ARTIFACT_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_release}-${pkg_target}.${_artifact_ext}"
+  # If the `$CACHE_PATH` and `$SRC_PATH` are the same, then we are building
+  # third party software using `$pkg_source` and
+  # downloading/verifying/unpacking it.
+  if [[ "$CACHE_PATH" == "$SRC_PATH" ]]; then
+    update_src_path=true
+  fi
+  CACHE_PATH="$HAB_CACHE_SRC_PATH/$pkg_dirname"
+  # Only update `$SRC_PATH` if we are building third party software using
+  # `$pkg_source`.
+  if [[ "${update_src_path:-}" == true ]]; then
+    SRC_PATH="$CACHE_PATH"
+  fi
+}
+
 # ## Build Phases
 #
 # Stub build phases, in the order they are executed. These can be overridden by
@@ -2286,6 +2347,19 @@ _fix_libtool() {
     build_line "Fixing libtool script $file"
     sed -i -e 's^eval sys_lib_.*search_path=.*^^' "$file"
   done
+}
+
+# **Internal** Verifies that any lazily-computed, required variables have been
+# set, otherwise it fails the build.
+_verify_vars() {
+  if [[ "${pkg_version:-}" == "__pkg__version__unset__" ]]; then
+    local e
+    e="Plan did not set 'pkg_version' and did not call 'update_pkg_version()'"
+    e="$e before the 'do_prepare()' build phase."
+    exit_with "$e" 2
+  fi
+
+  _verify_vars=true
 }
 
 # This function simply makes sure that the working directory for the prepare
@@ -2926,7 +3000,6 @@ build_line "Validating plan metadata"
 required_variables=(
   pkg_name
   pkg_origin
-  pkg_version
 )
 for var in "${required_variables[@]}"
 do
@@ -2949,6 +3022,14 @@ if [[ -n "${pkg_svc_run+xxx}" ]]; then
   pkg_svc_run="$(echo $pkg_svc_run | sed "s|@__pkg_name__@|$pkg_name|g")"
 fi
 
+if [[ -z "${pkg_version:-}" && "$(type -t pkg_version)" == "function" ]]; then
+  pkg_version="__pkg__version__unset__"
+elif [[ -z "${pkg_version:-}" ]]; then
+  e="Failed to build. 'pkg_version' must be set or 'pkg_version()' function"
+  e="$e must be implemented and then invoking by calling 'update_pkg_version()'."
+  exit_with "$e" 1
+fi
+
 # If `$pkg_source` is used, default `$pkg_filename` to the basename of
 # `$pkg_source` if it is not already set by the Plan.
 if [[ -n "${pkg_source:-}" && -z "${pkg_filename+xxx}" ]]; then
@@ -2959,6 +3040,7 @@ fi
 # already set by the Plan.
 if [[ -z "${pkg_dirname+xxx}" ]]; then
   pkg_dirname="${pkg_name}-${pkg_version}"
+  _pkg_dirname_initially_unset=true
 fi
 
 # Set `$pkg_prefix` if not already set by the Plan.
@@ -3033,6 +3115,9 @@ _build_environment
 
 # Fix any libtool scripts in the source
 _fix_libtool
+
+# Make sure all required variables are set
+_verify_vars
 
 # Prepare the source
 do_prepare_wrapper

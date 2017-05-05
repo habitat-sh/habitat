@@ -35,7 +35,7 @@ pkg_origin
   ~~~
 
 pkg_version
-: Required. Sets the version of the package.
+: Optional (Required unless `pkg_version()` function is defined). Sets the version of the package.
 
   ~~~
   pkg_version=1.2.8
@@ -58,13 +58,11 @@ pkg_license
 > Note: If your package has a custom license, use a string literal matching the title of the license. For example, you'll see `pkg_license=('Boost Software License')` for the `cmake` plan.
 
 pkg_source
-: Required. A URL that specifies where to download the source from. Any valid `wget` url will work. Typically, the relative path for the URL is partially constructed from the `pkg_name` and `pkg_version` values; however, this convention is not required.
+: Optional. A URL that specifies where to download an external source from. Any valid `wget` url will work. Typically, the relative path for the URL is partially constructed from the `pkg_name` and `pkg_version` values; however, this convention is not required.
 
   ~~~
   pkg_source=http://downloads.sourceforge.net/project/libpng/$pkg_name/${pkg_version}/${pkg_name}-${pkg_version}.tar.gz
   ~~~
-
-> Note: If your package does not require downloading any source code, you must enter a non-empty string for the value and override callbacks for **do_download()** and **do_unpack()**. See [Plan callbacks](#plan-callbacks) for more information.
 
 pkg_filename
 : Optional. The resulting filename for the download, typically constructed from the `pkg_name` and `pkg_version` values.
@@ -608,6 +606,12 @@ pkg_interpreter_for()
   ~~~
 
   This function will return 0 if the specified package and interpreter were found, and 1 if the package could not be found or the interpreter is not specified for that package.
+
+pkg_version()
+: An optional way to determine the value for `$pkg_version`. The function must print the computed version string to standard output and will be called when the Plan author invokes the `update_pkg_version()` helper.
+
+update_pkg_version()
+: Updates the value for `$pkg_version` by calling a Plan author-provided `pkg_version()` function. This function must be explicitly called in a Plan in or after the `do_before()` build phase but before the `do_prepare()` build phase. The `$pkg_version` variable will be updated and any other relevant variables will be recomputed.
 
 abspath()
 : Return the absolute path for a path, which might be absolute or relative.
