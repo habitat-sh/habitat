@@ -4,6 +4,7 @@
     <h3 class="username">{{ store.getState().users.current.username }}</h3>
   </div>
   <div class="page-body">
+    <hab-spinner [isSpinning]="loading" *ngIf="loading"></hab-spinner>
     <section class="intro" *ngIf="noOrigins">
       <div class="image">
         <img src="/assets/images/run-icon.svg">

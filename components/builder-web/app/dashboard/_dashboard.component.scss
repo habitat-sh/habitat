@@ -8,6 +8,16 @@
     }
   }
 
+  .page-body {
+    position: relative;
+
+    .hab-spinner {
+      color: $dark-gray;
+      top: 26px;
+      left: 12px;
+    }
+  }
+
   section {
     @include row;
 
@@ -131,7 +141,7 @@
 
             &:hover {
               font-weight: bold;
-              background-color: rgba(232,240,246,0.2);
+              background-color: rgba($very-light-gray, 0.2);
 
               .octicon {
                 display: block;
@@ -171,7 +181,7 @@
         @include span-columns(9);
 
         // Use this border when we have right-hand side elements to display
-        // border-right: 1px solid rgba(216,216,216,0.4);
+        // border-right: 1px solid rgba($light-gray, 0.4);
       }
 
       .new {
@@ -197,7 +207,7 @@
       label {
         font-size: rem(10);
         text-transform: uppercase;
-        color: rgba(125,134,140,0.6);
+        color: rgba($dim-slate-gray, 0.6);
         line-height: rem(16);
       }
 
@@ -217,7 +227,7 @@
           color: #7D868C;
           font-size: rem(14);
           line-height: rem(48);
-          border-bottom: 1px solid rgba(216,216,216,0.4);
+          border-bottom: 1px solid rgba($light-gray, 0.4);
           margin-right: 20px;
 
           .package-name, .package-origin, .package-updated {
@@ -230,7 +240,7 @@
 
           &:hover {
             cursor: pointer;
-            background-color: rgba(232,240,246,0.2);
+            background-color: rgba($very-light-gray, 0.2);
 
             .octicon {
               display: block;

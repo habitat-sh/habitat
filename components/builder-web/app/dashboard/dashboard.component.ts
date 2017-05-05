@@ -34,6 +34,10 @@ export class DashboardComponent implements OnInit {
         return config;
     }
 
+    get loading() {
+        return this.store.getState().origins.ui.mine.loading;
+    }
+
     get myOrigins() {
         return this.store.getState().origins.mine;
     }

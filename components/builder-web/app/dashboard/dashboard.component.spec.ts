@@ -2,9 +2,10 @@ import { DebugElement } from "@angular/core";
 import { TestBed, ComponentFixture } from "@angular/core/testing";
 import { By } from "@angular/platform-browser";
 import { RouterTestingModule } from "@angular/router/testing";
+import { List } from "immutable";
+import { MockComponent } from "ng2-mock-component";
 import { AppStore } from "../AppStore";
 import *  as actions from "../actions";
-import { List } from "immutable";
 import { DashboardComponent } from "./dashboard.component";
 
 class MockAppStore {
@@ -52,7 +53,8 @@ describe("DashboardComponent", () => {
         RouterTestingModule
       ],
       declarations: [
-        DashboardComponent
+        DashboardComponent,
+        MockComponent({ selector: "hab-spinner", inputs: [ "isSpinning" ]})
       ],
       providers: [
         { provide: AppStore, useClass: MockAppStore }
