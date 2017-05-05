@@ -153,7 +153,13 @@ This sets `my_value` to "this is new".
 
 ### pkgPathFor Helper
 
-Returns the absolute filepath to the package directory of the package best resolved from the given package identifier. The `pkgPathFor` helper will only resolve against dependent packages of the package the template belongs to - in other words, you will always get what you expect and the template won't leak to other packages on the system.
+Returns the absolute filepath to the package directory of the package best resolved from the given package identifier. The named package must exist in the `pkg_deps` of the plan from which the template resides. The helper will return a nil string if the named package is not listed in the `pkg_deps`. As result you will always get what you expect and the template won't leak to other packages on the system.
+
+Example Plan Contents:
+
+    pkg_deps=("core/jre8")
+
+Example Template:
 
     export JAVA_HOME={{pkgPathFor "core/jre8"}}
 
