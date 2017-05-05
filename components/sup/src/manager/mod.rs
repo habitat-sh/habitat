@@ -394,7 +394,7 @@ impl Manager {
                 return;
             }
         };
-        self.butterfly.insert_service(service.to_rumor(1));
+        self.gossip_latest_service_rumor(&service);
         if service.topology == Topology::Leader {
             self.butterfly
                 .start_election(service.service_group.clone(), 0);
@@ -601,21 +601,21 @@ impl Manager {
     }
 
     fn gossip_latest_service_rumor(&self, service: &Service) {
+        let mut incarnation = 1;
         let member_id = {
             self.butterfly.member_id().to_string()
         };
-        let last_rumor = {
+        {
             let list = self.butterfly
                 .service_store
                 .list
                 .read()
                 .expect("Rumor store lock poisoned");
-            list.get(&*service.service_group)
-                .and_then(|r| r.get(&member_id))
-                .unwrap()
-                .clone()
+            if let Some(rumor) = list.get(&*service.service_group)
+                   .and_then(|r| r.get(&member_id)) {
+                incarnation = rumor.clone().get_incarnation() + 1;
+            }
         };
-        let incarnation = last_rumor.get_incarnation() + 1;
         self.butterfly
             .insert_service(service.to_rumor(incarnation));
     }
