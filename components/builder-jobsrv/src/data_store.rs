@@ -256,6 +256,16 @@ impl DataStore {
                            WHERE id = p_job_id;
                          $$"#)?;
 
+        migrator.migrate("jobsrv", r#"ALTER TABLE jobs ADD COLUMN IF NOT EXISTS log_url TEXT DEFAULT NULL "#)?;
+        migrator.migrate("jobsrv",
+                         r#"CREATE OR REPLACE FUNCTION set_log_url_v1(p_job_id BIGINT, p_url TEXT)
+                         RETURNS VOID
+                         LANGUAGE SQL VOLATILE as $$
+                           UPDATE jobs
+                           SET log_url = p_url
+                           WHERE id = p_job_id;
+                         $$"#)?;
+
         migrator.finish()?;
 
         self.async.register("sync_jobs".to_string(), sync_jobs);
@@ -416,6 +426,18 @@ impl DataStore {
 
         Ok(())
     }
+
+    /// Once all the logs have been collected for a job, we'll ship it
+    /// off somewhere else for long-term storage (e.g., S3 or a local
+    /// clone thereof). Once we do, this will serve as a pointer to
+    /// that remote content.
+    pub fn set_log_url(&self, job_id: u64, url: &str) -> Result<()> {
+        let conn = self.pool.get_shard(0)?;
+        conn.execute("SELECT set_log_url_v1($1, $2)",
+                     &[&(job_id as i64), &url])
+            .map_err(Error::JobSetLogUrl)?;
+        Ok(())
+    }
 }
 
 /// Translate a database `jobs` row to a `jobsrv::Job`.
@@ -494,6 +516,16 @@ fn row_to_job(row: &postgres::rows::Row) -> Result<jobsrv::Job> {
         }
     }
     job.set_project(project);
+
+    // A log URL can be null (e.g., the job may be running right now).
+    //
+    // Note that it's possible for the job itself to be marked as
+    // "Complete" and to have no log URL set yet; log processing can
+    // lag behind job execution.
+    if let Some(Ok(url)) = row.get_opt::<&str, String>("log_url") {
+        job.set_log_url(url);
+    }
+
     Ok(job)
 }
 

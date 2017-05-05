@@ -160,7 +160,7 @@ impl HeartbeatMgr {
     fn run(&mut self, rz: mpsc::SyncSender<()>) -> Result<()> {
         {
             let cfg = self.config.read().unwrap();
-            for (hb, _) in cfg.jobsrv_addrs() {
+            for (hb, _, _) in cfg.jobsrv_addrs() {
                 println!("Connecting to heartbeat, {}", hb);
                 try!(self.pub_sock.connect(&hb));
             }

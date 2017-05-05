@@ -32,12 +32,13 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn jobsrv_addrs(&self) -> Vec<(String, String)> {
+    pub fn jobsrv_addrs(&self) -> Vec<(String, String, String)> {
         let mut addrs = vec![];
         for job_server in &self.jobsrv {
             let hb = format!("tcp://{}:{}", job_server.host, job_server.heartbeat);
             let queue = format!("tcp://{}:{}", job_server.host, job_server.port);
-            addrs.push((hb, queue));
+            let log = format!("tcp://{}:{}", job_server.host, job_server.log_port);
+            addrs.push((hb, queue, log));
         }
         addrs
     }
@@ -65,6 +66,7 @@ pub struct JobSrvAddr {
     pub host: IpAddr,
     pub port: u16,
     pub heartbeat: u16,
+    pub log_port: u16,
 }
 
 impl Default for JobSrvAddr {
@@ -73,6 +75,7 @@ impl Default for JobSrvAddr {
             host: IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
             port: 5566,
             heartbeat: 5567,
+            log_port: 5569
         }
     }
 }

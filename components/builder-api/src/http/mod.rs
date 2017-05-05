@@ -47,6 +47,7 @@ pub fn router(config: Arc<Config>) -> Result<Chain> {
 
         jobs: post "/jobs" => XHandler::new(job_create).before(bldr.clone()),
         job: get "/jobs/:id" => XHandler::new(job_show).before(bldr.clone()),
+        job_log: get "/jobs/:id/log" => XHandler::new(job_log).before(bldr.clone()),
 
         user_invitations: get "/user/invitations" => {
             XHandler::new(list_account_invitations).before(basic.clone())

@@ -22,6 +22,7 @@ use zmq;
 use config::Config;
 use error::Result;
 use heartbeat::{HeartbeatCli, HeartbeatMgr};
+use log_forwarder::LogForwarder;
 use runner::{RunnerCli, RunnerMgr};
 
 enum State {
@@ -64,11 +65,12 @@ impl Server {
     pub fn run(&mut self) -> Result<()> {
         try!(HeartbeatMgr::start(self.config.clone()));
         try!(RunnerMgr::start(self.config.clone()));
+        try!(LogForwarder::start(self.config.clone()));
         try!(self.hb_cli.connect());
         try!(self.runner_cli.connect());
         {
             let cfg = self.config.read().unwrap();
-            for (_, queue) in cfg.jobsrv_addrs() {
+            for (_, queue, _) in cfg.jobsrv_addrs() {
                 println!("Connecting to job queue, {}", queue);
                 try!(self.fe_sock.connect(&queue));
             }

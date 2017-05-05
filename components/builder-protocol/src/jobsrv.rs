@@ -47,6 +47,14 @@ impl Routable for JobSpec {
     }
 }
 
+impl Routable for JobLogGet {
+    type H = InstaId;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(InstaId(self.get_id()))
+    }
+}
+
 impl Routable for JobGet {
     type H = InstaId;
 
@@ -140,6 +148,19 @@ impl Serialize for ProjectJobsGetResponse {
         let mut strukt = try!(serializer.serialize_struct("project_jobs_get_response", 1));
         try!(strukt.serialize_field("jobs", self.get_jobs()));
         strukt.end()
+    }
+}
+
+impl Serialize for JobLog {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+        where S: Serializer
+    {
+        let mut log = try!(serializer.serialize_struct("JobLog", 4));
+        log.serialize_field("start", &self.get_start())?;
+        log.serialize_field("stop", &self.get_stop())?;
+        log.serialize_field("content", &self.get_content())?;
+        log.serialize_field("is_complete", &self.get_is_complete())?;
+        log.end()
     }
 }
 

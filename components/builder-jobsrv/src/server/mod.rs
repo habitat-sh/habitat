@@ -14,6 +14,8 @@
 
 pub mod handlers;
 pub mod worker_manager;
+pub mod log;
+pub mod log_ingester;
 
 use std::ops::Deref;
 use std::sync::{Arc, RwLock};
@@ -30,17 +32,23 @@ use self::worker_manager::{WorkerMgr, WorkerMgrClient};
 use config::Config;
 use data_store::DataStore;
 use error::{Error, Result};
+use self::log_ingester::LogIngester;
+use self::log::LogDirectory;
 
 const BE_LISTEN_ADDR: &'static str = "inproc://backend";
 
 #[derive(Clone)]
 pub struct InitServerState {
     datastore: DataStore,
+    log_dir: LogDirectory,
 }
 
 impl InitServerState {
-    pub fn new(datastore: DataStore) -> Self {
-        InitServerState { datastore: datastore }
+    pub fn new(datastore: DataStore, log_dir: LogDirectory) -> Self {
+        InitServerState {
+            datastore: datastore,
+            log_dir: log_dir,
+        }
     }
 }
 
@@ -48,6 +56,7 @@ impl Into<ServerState> for InitServerState {
     fn into(self) -> ServerState {
         let mut state = ServerState::default();
         state.datastore = Some(self.datastore);
+        state.log_dir = Some(self.log_dir);
         state
     }
 }
@@ -56,6 +65,7 @@ impl Into<ServerState> for InitServerState {
 pub struct ServerState {
     datastore: Option<DataStore>,
     worker_mgr: Option<WorkerMgrClient>,
+    log_dir: Option<LogDirectory>,
 }
 
 impl ServerState {
@@ -65,6 +75,10 @@ impl ServerState {
 
     fn worker_mgr(&mut self) -> &mut WorkerMgrClient {
         self.worker_mgr.as_mut().unwrap()
+    }
+
+    fn log_dir(&self) -> &LogDirectory {
+        self.log_dir.as_ref().unwrap()
     }
 }
 
@@ -97,6 +111,7 @@ impl Dispatcher for Worker {
             "JobSpec" => handlers::job_create(message, sock, state),
             "JobGet" => handlers::job_get(message, sock, state),
             "ProjectJobsGet" => handlers::project_jobs_get(message, sock, state),
+            "JobLogGet" => handlers::job_log_get(message, sock, state),
             _ => panic!("unexpected message: {:?}", message.message_id()),
         }
     }
@@ -114,6 +129,7 @@ impl Dispatcher for Worker {
         try!(worker_mgr.connect());
         let mut state: ServerState = init_state.into();
         state.worker_mgr = Some(worker_mgr);
+
         Ok(state)
     }
 }
@@ -151,29 +167,47 @@ impl Application for Server {
     type Error = Error;
 
     fn run(&mut self) -> Result<()> {
-        try!(self.be_sock.bind(BE_LISTEN_ADDR));
+        self.be_sock.bind(BE_LISTEN_ADDR)?;
         let broker = {
             let cfg = self.config.read().unwrap();
             Broker::run(Self::net_ident(), cfg.route_addrs())
         };
+
         let datastore = {
             let cfg = self.config.read().unwrap();
-            try!(DataStore::new(cfg.deref()))
+            let ds = DataStore::new(cfg.deref())?;
+            ds.setup()?;
+            ds
         };
-        try!(datastore.setup());
-        datastore.start_async();
+
+        let ds2 = datastore.clone();
+        let ingester_datastore = datastore.clone();
+
+        let log_dir = {
+            let dir = self.config.read().unwrap().log_dir.clone();
+            let log_dir = LogDirectory::new(&dir);
+            log_dir.validate()?;
+            log_dir
+        };
+
         let cfg = self.config.clone();
-        let cfg2 = self.config.clone();
-        let init_state = InitServerState::new(datastore);
-        let ds2 = init_state.datastore.clone();
+        let sup_log_dir = log_dir.clone();
+        let init_state = InitServerState::new(datastore, sup_log_dir);
         let sup: Supervisor<Worker> = Supervisor::new(cfg, init_state);
-        let worker_mgr = try!(WorkerMgr::start(cfg2, ds2));
+
+        let cfg2 = self.config.clone();
+        let log_ingester = LogIngester::start(cfg2, log_dir, ingester_datastore)?;
+
+        let cfg3 = self.config.clone();
+        let worker_mgr = try!(WorkerMgr::start(cfg3, ds2));
+
         try!(sup.start());
         try!(self.connect());
         info!("builder-jobsrv is ready to go.");
         try!(zmq::proxy(&mut self.router.socket, &mut self.be_sock));
         worker_mgr.join().unwrap();
         broker.join().unwrap();
+        log_ingester.join().unwrap();
         Ok(())
     }
 }
