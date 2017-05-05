@@ -3090,13 +3090,13 @@ _determine_hab_bin
 
 _resolve_dependencies
 
-# Set up runtime environment
-_set_environment
-
 mkdir -pv "$HAB_CACHE_SRC_PATH"
 
-# Run any code after the environment is set but before the build starts
+# Run any code before environment is set and the build starts
 do_before
+
+# Set up runtime environment
+_set_environment
 
 # Download the source
 do_download
