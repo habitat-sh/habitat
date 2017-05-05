@@ -17,10 +17,6 @@ pkg_binds=(
 )
 pkg_exposes=(port)
 
-do_begin() {
-  return 0
-}
-
 do_build() {
   return 0
 }

@@ -27,10 +27,10 @@ running=0;
 
 echo "Waiting for postgresql to start"
 while [ $running -eq 0 ]; do
-    if sudo -E TERM=vt100 hab pkg exec core/postgresql psql -lqt --host 127.0.0.1 -U hab; then
-      running=1
-    fi
-    sleep 2
+  if sudo -E TERM=vt100 hab pkg exec core/postgresql psql -lqt --host 127.0.0.1 -U hab; then
+    running=1
+  fi
+  sleep 2
 done
 
 for dbname in builder_sessionsrv builder_jobsrv builder_originsrv builder_scheduler; do

@@ -3,8 +3,8 @@ root = "{{pkg.svc_static_path}}"
 
 {{toToml cfg}}
 
-{{~#eachAlive bind.router.members}}
+{{~#eachAlive bind.router.members as |member|}}
 [[router]]
-host = "{{sys.ip}}"
-port = {{cfg.port}}
+host = "{{member.sys.ip}}"
+port = {{member.cfg.port}}
 {{~/eachAlive}}

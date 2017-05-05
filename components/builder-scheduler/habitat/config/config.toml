@@ -2,24 +2,18 @@ shards = [
   0
 ]
 
-{{~#eachAlive bind.router.members}}
+{{~#eachAlive bind.router.members as |member|}}
 [[router]]
-host = "{{sys.ip}}"
-port = {{cfg.port}}
-heartbeat = {{cfg.heartbeat}}
+host = "{{member.sys.ip}}"
+port = {{member.cfg.port}}
+heartbeat = {{member.cfg.heartbeat}}
 {{~/eachAlive}}
 
-{{~#eachAlive bind.jobsrv.members}}
-[[jobsrv]]
-host = "{{sys.ip}}"
-port = {{cfg.port}}
-heartbeat = {{cfg.heartbeat}}
-{{~/eachAlive}}
-
-{{~#eachAlive bind.datastore.members}}
 [datastore]
-host = "{{sys.ip}}"
-port = {{cfg.port}}
+{{toToml cfg.datastore}}
+{{~#eachAlive bind.datastore.members as |member|}}
+{{~#if @first}}
+host = "{{member.sys.ip}}"
+port = {{member.cfg.port}}
+{{~/if}}
 {{~/eachAlive}}
-
-{{toToml cfg}}

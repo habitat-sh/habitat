@@ -83,10 +83,6 @@ mod tests {
         ]
         worker_threads = 1
 
-        [[jobsrv]]
-        host = "1:1:1:1:1:1:1:1"
-        port = 9000
-
         [[routers]]
         host = "1.1.1.1"
         port = 9000
