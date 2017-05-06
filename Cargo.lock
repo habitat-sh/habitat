@@ -671,13 +671,13 @@ dependencies = [
  "lazy_static 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "libarchive 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.2.22 (registry+https://github.com/rust-lang/crates.io-index)",
- "libsodium-sys 0.0.14 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libsodium-sys 0.0.14 (git+https://github.com/dnaq/sodiumoxide)",
  "log 0.3.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_derive 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_json 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sodiumoxide 0.0.14 (registry+https://github.com/rust-lang/crates.io-index)",
+ "sodiumoxide 0.0.14 (git+https://github.com/dnaq/sodiumoxide)",
  "tempdir 0.3.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "time 0.1.37 (registry+https://github.com/rust-lang/crates.io-index)",
  "toml 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1024,7 +1024,7 @@ dependencies = [
 [[package]]
 name = "libsodium-sys"
 version = "0.0.14"
-source = "registry+https://github.com/rust-lang/crates.io-index"
+source = "git+https://github.com/dnaq/sodiumoxide#77bc149ed67681f6504439098297021ca1e6869f"
 dependencies = [
  "libc 0.2.22 (registry+https://github.com/rust-lang/crates.io-index)",
  "pkg-config 0.3.9 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1566,11 +1566,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "serde"
-version = "0.9.15"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-
-[[package]]
-name = "serde"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
@@ -1617,11 +1612,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "sodiumoxide"
 version = "0.0.14"
-source = "registry+https://github.com/rust-lang/crates.io-index"
+source = "git+https://github.com/dnaq/sodiumoxide#77bc149ed67681f6504439098297021ca1e6869f"
 dependencies = [
  "libc 0.2.22 (registry+https://github.com/rust-lang/crates.io-index)",
- "libsodium-sys 0.0.14 (registry+https://github.com/rust-lang/crates.io-index)",
- "serde 0.9.15 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libsodium-sys 0.0.14 (git+https://github.com/dnaq/sodiumoxide)",
+ "serde 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -2058,7 +2053,7 @@ dependencies = [
 "checksum libc 0.1.12 (registry+https://github.com/rust-lang/crates.io-index)" = "e32a70cf75e5846d53a673923498228bbec6a8624708a9ea5645f075d6276122"
 "checksum libc 0.2.22 (registry+https://github.com/rust-lang/crates.io-index)" = "babb8281da88cba992fa1f4ddec7d63ed96280a1a53ec9b919fd37b53d71e502"
 "checksum libgit2-sys 0.6.8 (registry+https://github.com/rust-lang/crates.io-index)" = "68bed1d1198da5d2b047af68fd71613ddfaa3d5b68797181b33e9d8547263b4b"
-"checksum libsodium-sys 0.0.14 (registry+https://github.com/rust-lang/crates.io-index)" = "cbbc6e46017815abf8698de0ed4847fad45fd8cad2909ac38ac6de79673c1ad1"
+"checksum libsodium-sys 0.0.14 (git+https://github.com/dnaq/sodiumoxide)" = "<none>"
 "checksum libssh2-sys 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)" = "91e135645c2e198a39552c8c7686bb5b83b1b99f64831c040a6c2798a1195934"
 "checksum libz-sys 1.0.13 (registry+https://github.com/rust-lang/crates.io-index)" = "e5ee912a45d686d393d5ac87fac15ba0ba18daae14e8e7543c63ebf7fb7e970c"
 "checksum linked-hash-map 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)" = "7860ec297f7008ff7a1e3382d7f7e1dcd69efc94751a2284bafc3d013c2aa939"
@@ -2122,14 +2117,13 @@ dependencies = [
 "checksum scheduled-thread-pool 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "2d9fbe48ead32343b76f544c85953bf260ed39219a8bbbb62cd85f6a00f9644f"
 "checksum semver 0.1.20 (registry+https://github.com/rust-lang/crates.io-index)" = "d4f410fedcf71af0345d7607d246e7ad15faaadd49d240ee3b24e5dc21a820ac"
 "checksum sequence_trie 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)" = "c915714ca833b1d4d6b8f6a9d72a3ff632fe45b40a8d184ef79c81bec6327eed"
-"checksum serde 0.9.15 (registry+https://github.com/rust-lang/crates.io-index)" = "34b623917345a631dc9608d5194cc206b3fe6c3554cd1c75b937e55e285254af"
 "checksum serde 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)" = "3b46a59dd63931010fdb1d88538513f3279090d88b5c22ef4fe8440cfffcc6e3"
 "checksum serde_derive 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)" = "6c06b68790963518008b8ae0152d48be4bbbe77015d2c717f6282eea1824be9a"
 "checksum serde_derive_internals 0.15.0 (registry+https://github.com/rust-lang/crates.io-index)" = "021c338d22c7e30f957a6ab7e388cb6098499dda9fd4ba1661ee074ca7a180d1"
 "checksum serde_json 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)" = "e9b1ec939469a124b27e208106550c38358ed4334d2b1b5b3825bc1ee37d946a"
 "checksum siphasher 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)" = "0df90a788073e8d0235a67e50441d47db7c8ad9debd91cbf43736a2a92d36537"
 "checksum slab 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)" = "d807fd58c4181bbabed77cb3b891ba9748241a552bcc5be698faaebefc54f46e"
-"checksum sodiumoxide 0.0.14 (registry+https://github.com/rust-lang/crates.io-index)" = "bc02c0bc77ffed8e8eaef004399b825cf4fd8aa02d0af6e473225affd583ff4d"
+"checksum sodiumoxide 0.0.14 (git+https://github.com/dnaq/sodiumoxide)" = "<none>"
 "checksum staticfile 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)" = "31493480e073d52522a94cdf56269dd8eb05f99549effd1826b0271690608878"
 "checksum statsd 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)" = "b74ffc96c6385b77582c9fad1c32652e5c997cfb5edb4f574e767174d769ff8a"
 "checksum strsim 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)" = "b4d15c810519a91cf877e7e36e63fe068815c678181439f2f29e2562147c3694"

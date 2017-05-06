@@ -16,6 +16,7 @@ use std::error;
 use std::io;
 use std::fmt;
 use std::num;
+use std::path::PathBuf;
 use std::result;
 use std::str;
 use std::string;
@@ -36,7 +37,7 @@ pub enum Error {
     /// An invalid path to a keyfile was given.
     BadKeyPath(String),
     /// Error reading raw contents of configuration file.
-    ConfigFileIO(io::Error),
+    ConfigFileIO(PathBuf, io::Error),
     /// Parsing error while reading a configuration file.
     ConfigFileSyntax(toml::de::Error),
     /// Expected an array of socket addrs for configuration field value.
@@ -138,7 +139,9 @@ impl fmt::Display for Error {
                 format!("Invalid keypath: {}. Specify an absolute path to a file on disk.",
                         e)
             }
-            Error::ConfigFileIO(ref e) => format!("Error reading configuration file: {}", e),
+            Error::ConfigFileIO(ref f, ref e) => {
+                format!("Error reading configuration file, {}, {}", f.display(), e)
+            }
             Error::ConfigFileSyntax(ref e) => {
                 format!("Syntax errors while parsing TOML configuration file:\n\n{}",
                         e)
@@ -266,7 +269,7 @@ impl error::Error for Error {
         match *self {
             Error::ArchiveError(ref err) => err.description(),
             Error::BadKeyPath(_) => "An absolute path to a file on disk is required",
-            Error::ConfigFileIO(_) => "Unable to read the raw contents of a configuration file",
+            Error::ConfigFileIO(_, _) => "Unable to read the raw contents of a configuration file",
             Error::ConfigFileSyntax(_) => "Error parsing contents of configuration file",
             Error::ConfigInvalidArraySocketAddr(_) => {
                 "Invalid array value of network address pair strings encountered while parsing a \

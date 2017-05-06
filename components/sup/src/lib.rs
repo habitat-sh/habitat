@@ -289,7 +289,6 @@ pub mod fs;
 pub mod http_gateway;
 pub mod manager;
 pub mod output;
-pub mod supervisor;
 pub mod templating;
 pub mod util;
 

@@ -138,75 +138,6 @@ group = "default"
 ident = "lsyncd.default"
 service = "lsyncd"
 
-[[svc.all]]
-group = "default"
-ident = "lsyncd.default"
-service = "lsyncd"
-
-[svc.all.me]
-group = "default"
-member_id = "b3130c943a2d481492af62891f34cad3"
-service = "lsyncd"
-
-[svc.all.me.cfg]
-
-[svc.all.me.pkg]
-name = "lsyncd"
-origin = "smith"
-release = "20170215230753"
-version = "0.1.0"
-
-[svc.all.me.sys]
-gossip_ip = "0.0.0.0"
-gossip_port = "9638"
-hostname = "ef8549a34328"
-http_gateway_ip = "0.0.0.0"
-http_gateway_port = "9631"
-ip = "172.17.0.4"
-
-[svc.all.member_id]
-[svc.all.member_id.b3130c943a2d481492af62891f34cad3]
-group = "default"
-member_id = "b3130c943a2d481492af62891f34cad3"
-service = "lsyncd"
-
-[svc.all.member_id.b3130c943a2d481492af62891f34cad3.cfg]
-
-[svc.all.member_id.b3130c943a2d481492af62891f34cad3.pkg]
-name = "lsyncd"
-origin = "smith"
-release = "20170215230753"
-version = "0.1.0"
-
-[svc.all.member_id.b3130c943a2d481492af62891f34cad3.sys]
-gossip_ip = "0.0.0.0"
-gossip_port = "9638"
-hostname = "ef8549a34328"
-http_gateway_ip = "0.0.0.0"
-http_gateway_port = "9631"
-ip = "172.17.0.4"
-
-[[svc.all.members]]
-group = "default"
-member_id = "b3130c943a2d481492af62891f34cad3"
-service = "lsyncd"
-
-[svc.all.members.cfg]
-
-[svc.all.members.pkg]
-name = "lsyncd"
-origin = "smith"
-release = "20170215230753"
-version = "0.1.0"
-
-[svc.all.members.sys]
-gossip_ip = "0.0.0.0"
-gossip_port = "9638"
-hostname = "ef8549a34328"
-http_gateway_ip = "0.0.0.0"
-http_gateway_port = "9631"
-ip = "172.17.0.4"
-
 [svc.me]
 group = "default"
 member_id = "b3130c943a2d481492af62891f34cad3"
@@ -228,28 +159,6 @@ http_gateway_ip = "0.0.0.0"
 http_gateway_port = "9631"
 ip = "172.17.0.4"
 
-[svc.member_id]
-[svc.member_id.b3130c943a2d481492af62891f34cad3]
-group = "default"
-member_id = "b3130c943a2d481492af62891f34cad3"
-service = "lsyncd"
-
-[svc.member_id.b3130c943a2d481492af62891f34cad3.cfg]
-
-[svc.member_id.b3130c943a2d481492af62891f34cad3.pkg]
-name = "lsyncd"
-origin = "smith"
-release = "20170215230753"
-version = "0.1.0"
-
-[svc.member_id.b3130c943a2d481492af62891f34cad3.sys]
-gossip_ip = "0.0.0.0"
-gossip_port = "9638"
-hostname = "ef8549a34328"
-http_gateway_ip = "0.0.0.0"
-http_gateway_port = "9631"
-ip = "172.17.0.4"
-
 [[svc.members]]
 group = "default"
 member_id = "b3130c943a2d481492af62891f34cad3"
@@ -264,77 +173,6 @@ release = "20170215230753"
 version = "0.1.0"
 
 [svc.members.sys]
-gossip_ip = "0.0.0.0"
-gossip_port = "9638"
-hostname = "ef8549a34328"
-http_gateway_ip = "0.0.0.0"
-http_gateway_port = "9631"
-ip = "172.17.0.4"
-
-[svc.named]
-[svc.named.lsyncd]
-[svc.named.lsyncd.default]
-group = "default"
-ident = "lsyncd.default"
-service = "lsyncd"
-
-[svc.named.lsyncd.default.me]
-group = "default"
-member_id = "b3130c943a2d481492af62891f34cad3"
-service = "lsyncd"
-
-[svc.named.lsyncd.default.me.cfg]
-
-[svc.named.lsyncd.default.me.pkg]
-name = "lsyncd"
-origin = "smith"
-release = "20170215230753"
-version = "0.1.0"
-
-[svc.named.lsyncd.default.me.sys]
-gossip_ip = "0.0.0.0"
-gossip_port = "9638"
-hostname = "ef8549a34328"
-http_gateway_ip = "0.0.0.0"
-http_gateway_port = "9631"
-ip = "172.17.0.4"
-
-[svc.named.lsyncd.default.member_id]
-[svc.named.lsyncd.default.member_id.b3130c943a2d481492af62891f34cad3]
-group = "default"
-member_id = "b3130c943a2d481492af62891f34cad3"
-service = "lsyncd"
-
-[svc.named.lsyncd.default.member_id.b3130c943a2d481492af62891f34cad3.cfg]
-
-[svc.named.lsyncd.default.member_id.b3130c943a2d481492af62891f34cad3.pkg]
-name = "lsyncd"
-origin = "smith"
-release = "20170215230753"
-version = "0.1.0"
-
-[svc.named.lsyncd.default.member_id.b3130c943a2d481492af62891f34cad3.sys]
-gossip_ip = "0.0.0.0"
-gossip_port = "9638"
-hostname = "ef8549a34328"
-http_gateway_ip = "0.0.0.0"
-http_gateway_port = "9631"
-ip = "172.17.0.4"
-
-[[svc.named.lsyncd.default.members]]
-group = "default"
-member_id = "b3130c943a2d481492af62891f34cad3"
-service = "lsyncd"
-
-[svc.named.lsyncd.default.members.cfg]
-
-[svc.named.lsyncd.default.members.pkg]
-name = "lsyncd"
-origin = "smith"
-release = "20170215230753"
-version = "0.1.0"
-
-[svc.named.lsyncd.default.members.sys]
 gossip_ip = "0.0.0.0"
 gossip_port = "9638"
 hostname = "ef8549a34328"

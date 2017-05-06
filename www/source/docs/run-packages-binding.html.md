@@ -34,14 +34,10 @@ This says that `session-server` needs to bind to a service aliased as `database`
 Once you've defined both ends of the contract you can leverage the bind in any of your package's hooks or configuration files. Given the two example services above, a section of a configuration file for `session-server` might look like this:
 
 ~~~
-{{#if bind.has_database }}
-{{~#each bind.database.members as |member| }}
-{{~#if member.alive }}
+{{~#eachAlive bind.database.members as |member| }}
   database = "{{member.sys.ip}}:{{member.cfg.port}}"
   database-secure = "{{member.sys.ip}}:{{member.cfg.ssl-port}}"
-{{~/if}}
-{{~/each}}
-{{~/if}}
+{{~/eachAlive}}
 ~~~
 
 ## Starting A Consumer

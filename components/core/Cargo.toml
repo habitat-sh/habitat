@@ -15,13 +15,15 @@ hex = "*"
 lazy_static = "*"
 libarchive = "*"
 libc = "*"
-libsodium-sys = "*"
+# JW: Temporarily use master branch of git until serde 1.0+ is available in crate release
+libsodium-sys = { git = "https://github.com/dnaq/sodiumoxide" }
 log = "*"
 regex = "*"
 serde = "*"
 serde_derive = "*"
 serde_json = "*"
-sodiumoxide = "*"
+# JW: Temporarily use master branch of git until serde 1.0+ is available in crate release
+sodiumoxide = { git = "https://github.com/dnaq/sodiumoxide" }
 time = "*"
 toml = { version = "*", features = ["serde"], default-features = false }
 url = "*"

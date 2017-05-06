@@ -41,7 +41,7 @@ protobuf = "*"
 rand = "*"
 regex = "*"
 router = "*"
-serde = "*"
+serde = { version = "*", features = ["rc"] }
 serde_derive = "*"
 serde_json = "*"
 tempdir = "*"

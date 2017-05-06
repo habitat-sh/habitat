@@ -18,6 +18,7 @@
 
 use std::cmp::Ordering;
 use std::mem;
+use std::net::{IpAddr, Ipv4Addr};
 use std::ops::{Deref, DerefMut};
 
 use habitat_core::service::ServiceGroup;
@@ -151,18 +152,27 @@ impl Rumor for Service {
     }
 }
 
-#[derive(Debug, Default, Clone, PartialEq, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 pub struct SysInfo {
-    pub ip: String,
+    pub ip: IpAddr,
     pub hostname: String,
-    pub gossip_ip: String,
-    // TODO: revert to u16 when deserializing in the handlebars template
-    // works properly
-    pub gossip_port: String,
-    pub http_gateway_ip: String,
-    // TODO: revert to u16 when deserializing in the handlebars template
-    // works properly
-    pub http_gateway_port: String,
+    pub gossip_ip: IpAddr,
+    pub gossip_port: u16,
+    pub http_gateway_ip: IpAddr,
+    pub http_gateway_port: u16,
+}
+
+impl Default for SysInfo {
+    fn default() -> SysInfo {
+        SysInfo {
+            ip: IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
+            hostname: String::from("localhost"),
+            gossip_ip: IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
+            gossip_port: 0,
+            http_gateway_ip: IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
+            http_gateway_port: 0,
+        }
+    }
 }
 
 #[cfg(test)]

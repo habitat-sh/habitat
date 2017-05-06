@@ -93,7 +93,7 @@ impl Server {
     /// `Trace` struct, a ring_key if you want encryption on the wire, and an optional server name.
     pub fn new<T, U, P>(swim_addr: T,
                         gossip_addr: U,
-                        member: Member,
+                        mut member: Member,
                         trace: Trace,
                         ring_key: Option<SymKey>,
                         name: Option<String>,
@@ -109,6 +109,8 @@ impl Server {
 
         match (maybe_swim_socket_addr, maybe_gossip_socket_addr) {
             (Ok(Some(swim_socket_addr)), Ok(Some(gossip_socket_addr))) => {
+                member.set_swim_port(swim_socket_addr.port() as i32);
+                member.set_gossip_port(gossip_socket_addr.port() as i32);
                 Ok(Server {
                        name: Arc::new(name.unwrap_or(String::from(member.get_id()))),
                        member_id: Arc::new(String::from(member.get_id())),

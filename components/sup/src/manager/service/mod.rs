@@ -12,14 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-mod health;
-mod spec;
-mod config;
 pub mod hooks;
+mod config;
+mod exec;
+mod health;
+mod package;
+mod spec;
+mod supervisor;
 
 use std;
-use std::collections::HashMap;
-use std::env;
 use std::fmt;
 use std::fs::File;
 use std::io::BufWriter;
@@ -27,13 +28,12 @@ use std::io::prelude::*;
 use std::path::{Path, PathBuf};
 use std::result;
 use std::str::FromStr;
-use std::sync::{Arc, RwLock, RwLockReadGuard};
+use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use ansi_term::Colour::{Yellow, Red, Green};
 use butterfly::rumor::service::Service as ServiceRumor;
 use common::ui::UI;
-use hcore::fs::FS_ROOT_PATH;
 use hcore::service::ServiceGroup;
 use hcore::crypto::hash;
 use hcore::package::{PackageIdent, PackageInstall};
@@ -41,21 +41,23 @@ use hcore::util::deserialize_using_from_str;
 use hcore::util::perm::{set_owner, set_permissions};
 use serde;
 use time::Timespec;
-use toml;
 
+use super::Sys;
+use self::config::CfgRenderer;
 use self::hooks::{HOOK_PERMISSIONS, Hook, HookTable};
-use config::GossipListenAddr;
+use self::supervisor::Supervisor;
 use error::{Error, Result, SupError};
-use http_gateway;
 use fs;
 use manager::{self, signals};
-use census::{MemberId, ServiceFile, CensusRing, CensusGroup, ElectionStatus};
-use supervisor::{Supervisor, RuntimeConfig};
+use census::{ServiceFile, CensusRing, ElectionStatus};
+use templating::RenderContext;
 use util;
 
-pub use self::config::{ServiceConfig, Pkg};
+pub use self::config::Cfg;
 pub use self::health::{HealthCheck, SmokeCheck};
+pub use self::package::Pkg;
 pub use self::spec::{DesiredState, ServiceBind, ServiceSpec, StartStyle};
+pub use self::supervisor::ProcessState;
 
 static LOGKEY: &'static str = "SR";
 
@@ -65,25 +67,33 @@ lazy_static! {
     };
 }
 
+fn serialize_pkg<S>(x: &Pkg, s: S) -> result::Result<S::Ok, S::Error>
+    where S: serde::Serializer
+{
+    s.serialize_str(&x.ident.to_string())
+}
+
 #[derive(Debug, Serialize)]
 pub struct Service {
     pub service_group: ServiceGroup,
-    pub config: ServiceConfig,
     pub depot_url: String,
     pub spec_file: PathBuf,
     pub spec_ident: PackageIdent,
     pub start_style: StartStyle,
     pub topology: Topology,
     pub update_strategy: UpdateStrategy,
+    pub cfg: Cfg,
+    #[serde(serialize_with="serialize_pkg")]
+    pub pkg: Pkg,
+    pub sys: Arc<Sys>,
 
-    local_member_id: MemberId,
+    #[serde(skip_serializing)]
+    config_renderer: CfgRenderer,
     health_check: HealthCheck,
     initialized: bool,
     last_election_status: ElectionStatus,
     needs_reload: bool,
     needs_reconfiguration: bool,
-    #[serde(serialize_with="serialize_lock")]
-    package: Arc<RwLock<PackageInstall>>,
     smoke_check: SmokeCheck,
     #[serde(skip_serializing)]
     spec_binds: Vec<ServiceBind>,
@@ -98,45 +108,32 @@ pub struct Service {
 }
 
 impl Service {
-    fn new(local_member_id: MemberId,
+    fn new(sys: Arc<Sys>,
            package: PackageInstall,
            spec: ServiceSpec,
-           gossip_listen: &GossipListenAddr,
-           http_listen: &http_gateway::ListenAddr,
            manager_fs_cfg: Arc<manager::FsCfg>,
            organization: Option<&str>)
            -> Result<Service> {
         spec.validate(&package)?;
+        let pkg = Pkg::from_install(package)?;
         let spec_file = manager_fs_cfg.specs_path.join(spec.file_name());
-        let service_group = ServiceGroup::new(&package.ident().name, spec.group, organization)?;
-        let runtime_cfg = Self::runtime_config_from(&package)?;
-        let config_root = spec.config_from
-            .clone()
-            .unwrap_or(package.installed_path.clone());
-        let svc_cfg = ServiceConfig::new(&package,
-                                         &runtime_cfg,
-                                         config_root,
-                                         spec.binds.clone(),
-                                         &gossip_listen,
-                                         &http_listen)?;
-        let hook_template_path = svc_cfg.config_root.join("hooks");
-        let hooks_path = fs::svc_hooks_path(service_group.service());
-        let locked_package = Arc::new(RwLock::new(package));
+        let service_group = ServiceGroup::new(&pkg.name, spec.group, organization)?;
+        let config_root = Self::config_root(&pkg, spec.config_from.as_ref());
+        let hooks_root = Self::hooks_root(&pkg, spec.config_from.as_ref());
         Ok(Service {
-               local_member_id: local_member_id,
-               config: svc_cfg,
+               sys: sys,
+               cfg: Cfg::new(&pkg, spec.config_from.as_ref())?,
+               config_renderer: CfgRenderer::new(&config_root)?,
                depot_url: spec.depot_url,
                health_check: HealthCheck::default(),
-               hooks: HookTable::default().load_hooks(&service_group,
-                                                      &hooks_path,
-                                                      &hook_template_path),
+               hooks: HookTable::load(&service_group, &hooks_root),
                initialized: false,
                last_election_status: ElectionStatus::None,
                needs_reload: false,
                needs_reconfiguration: false,
                manager_fs_cfg: manager_fs_cfg,
-               supervisor: Supervisor::new(locked_package.clone(), &service_group, runtime_cfg),
-               package: locked_package,
+               supervisor: Supervisor::new(&service_group),
+               pkg: pkg,
                service_group: service_group,
                smoke_check: SmokeCheck::default(),
                spec_binds: spec.binds,
@@ -150,80 +147,80 @@ impl Service {
            })
     }
 
-    fn runtime_config_from(package: &PackageInstall) -> Result<RuntimeConfig> {
-        let (svc_user, svc_group) = util::users::get_user_and_group(&package)?;
-        let mut env = match package.runtime_environment() {
-            Ok(r) => r,
-            Err(e) => return Err(sup_error!(Error::HabitatCore(e))),
-        };
-
-        // FIXME: Devise a way to make OS independent so we don't have to muck with env.
-        Self::run_path(&mut env)?;
-
-        Ok(RuntimeConfig::new(svc_user, svc_group, env))
+    /// Returns the config root given the package and optional config-from path.
+    fn config_root(package: &Pkg, config_from: Option<&PathBuf>) -> PathBuf {
+        config_from
+            .and_then(|p| Some(p.as_path()))
+            .unwrap_or(&package.path)
+            .join("config")
     }
 
-    pub fn load<I: Into<MemberId>>(local_member_id: I,
-                                   spec: ServiceSpec,
-                                   gossip_listen: &GossipListenAddr,
-                                   http_listen: &http_gateway::ListenAddr,
-                                   manager_fs_cfg: Arc<manager::FsCfg>,
-                                   organization: Option<&str>)
-                                   -> Result<Service> {
+    /// Returns the hooks root given the package and optional config-from path.
+    fn hooks_root(package: &Pkg, config_from: Option<&PathBuf>) -> PathBuf {
+        config_from
+            .and_then(|p| Some(p.as_path()))
+            .unwrap_or(&package.path)
+            .join("hooks")
+    }
+
+    pub fn load(sys: Arc<Sys>,
+                spec: ServiceSpec,
+                manager_fs_cfg: Arc<manager::FsCfg>,
+                organization: Option<&str>)
+                -> Result<Service> {
         let package = util::pkg::install_from_spec(&mut UI::default(), &spec)?;
-        let service = Self::new(local_member_id.into(),
-                                package,
-                                spec,
-                                gossip_listen,
-                                http_listen,
-                                manager_fs_cfg,
-                                organization)?;
-        service.create_svc_path()?;
+        let service = Self::new(sys, package, spec, manager_fs_cfg, organization)?;
+        if let Err(e) = service.create_svc_path() {
+            outputln!("Can't create directory {}", service.pkg.svc_path.display());
+            outputln!("If this service is running as non-root, you'll need to create \
+                       {} and give the current user write access to it",
+                      service.pkg.svc_path.display());
+            return Err(e);
+        }
         Ok(service)
     }
 
     /// Create the service path for this package.
     fn create_svc_path(&self) -> Result<()> {
-        let (user, group) = try!(util::users::get_user_and_group(&self.package()));
+        debug!("{}, Creating svc paths", self.service_group);
+        Self::create_dir_all(&self.pkg.svc_path)?;
 
-        debug!("Creating svc paths");
+        // Create supervisor writable directories
+        Self::create_dir_all(fs::svc_hooks_path(&self.pkg.name))?;
+        Self::create_dir_all(fs::svc_logs_path(&self.pkg.name))?;
 
-        if let Err(e) = Self::create_dir_all(self.svc_path()) {
-            outputln!("Can't create directory {}",
-                      self.svc_path().to_str().unwrap());
-            outputln!("If this service is running as non-root, you'll need to create \
-                       {} and give the current user write access to it",
-                      self.svc_path().to_str().unwrap());
-            return Err(e);
-        }
-
-        try!(Self::create_dir_all(self.svc_config_path()));
-        try!(set_owner(self.svc_config_path(), &user, &group));
-        try!(set_permissions(self.svc_config_path(), 0o700));
-        try!(Self::create_dir_all(self.svc_data_path()));
-        try!(set_owner(self.svc_data_path(), &user, &group));
-        try!(set_permissions(self.svc_data_path(), 0o700));
-        try!(Self::create_dir_all(self.svc_files_path()));
-        try!(set_owner(self.svc_files_path(), &user, &group));
-        try!(set_permissions(self.svc_files_path(), 0o700));
-        try!(Self::create_dir_all(self.svc_hooks_path()));
-        try!(Self::create_dir_all(self.svc_var_path()));
-        try!(set_owner(self.svc_var_path(), &user, &group));
-        try!(set_permissions(self.svc_var_path(), 0o700));
-        try!(Self::remove_symlink(self.svc_static_path()));
-        try!(Self::create_dir_all(self.svc_static_path()));
-        try!(set_owner(self.svc_static_path(), &user, &group));
-        try!(set_permissions(self.svc_static_path(), 0o700));
-        try!(Self::create_dir_all(self.svc_logs_path()));
-        // TODO: Not 100% if this directory is still needed, but for the moment it's still here -
-        // FIN
-        try!(Self::create_dir_all(self.svc_path().join("toml")));
-        try!(set_permissions(self.svc_path().join("toml"), 0o700));
+        // Create service writable directories
+        Self::create_dir_all(&self.pkg.svc_config_path)?;
+        set_owner(&self.pkg.svc_config_path,
+                  &self.pkg.svc_user,
+                  &self.pkg.svc_group)?;
+        set_permissions(&self.pkg.svc_config_path, 0o700)?;
+        Self::create_dir_all(&self.pkg.svc_data_path)?;
+        set_owner(&self.pkg.svc_data_path,
+                  &self.pkg.svc_user,
+                  &self.pkg.svc_group)?;
+        set_permissions(&self.pkg.svc_data_path, 0o700)?;
+        Self::create_dir_all(&self.pkg.svc_files_path)?;
+        set_owner(&self.pkg.svc_files_path,
+                  &self.pkg.svc_user,
+                  &self.pkg.svc_group)?;
+        set_permissions(&self.pkg.svc_files_path, 0o700)?;
+        Self::create_dir_all(&self.pkg.svc_var_path)?;
+        set_owner(&self.pkg.svc_var_path,
+                  &self.pkg.svc_user,
+                  &self.pkg.svc_group)?;
+        set_permissions(&self.pkg.svc_var_path, 0o700)?;
+        Self::remove_symlink(&self.pkg.svc_static_path)?;
+        Self::create_dir_all(&self.pkg.svc_static_path)?;
+        set_owner(&self.pkg.svc_static_path,
+                  &self.pkg.svc_user,
+                  &self.pkg.svc_group)?;
+        set_permissions(&self.pkg.svc_static_path, 0o700)?;
         Ok(())
     }
 
     fn start(&mut self) {
-        if let Some(err) = self.supervisor.start().err() {
+        if let Some(err) = self.supervisor.start(&self.pkg).err() {
             outputln!(preamble self.service_group, "Service start failed: {}", err);
         } else {
             self.needs_reload = false;
@@ -240,12 +237,12 @@ impl Service {
     fn reload(&mut self) {
         self.needs_reload = false;
         if self.is_down() || self.hooks.reload.is_none() {
-            if let Some(err) = self.supervisor.restart().err() {
+            if let Some(err) = self.supervisor.restart(&self.pkg).err() {
                 outputln!(preamble self.service_group, "Service restart failed: {}", err);
             }
         } else {
             let hook = self.hooks.reload.as_ref().unwrap();
-            hook.run(&self.service_group, self.runtime_cfg());
+            hook.run(&self.service_group, &self.pkg);
         }
     }
 
@@ -279,11 +276,15 @@ impl Service {
     pub fn tick(&mut self, census_ring: &CensusRing) -> bool {
         if !self.initialized {
             if !self.all_bindings_present(census_ring) {
-                outputln!(preamble self.service_group, "Waiting to initialize service.");
+                outputln!(preamble self.service_group, "Waiting for service binds...");
                 return false;
             }
         }
-        let svc_cfg_updated = self.update_configuration(census_ring);
+
+        let svc_updated = self.update_templates(census_ring);
+        if self.update_service_files(census_ring) {
+            self.file_updated();
+        }
 
         match self.topology {
             Topology::Standalone => {
@@ -293,31 +294,30 @@ impl Service {
                 let census_group = census_ring
                     .census_group_for(&self.service_group)
                     .expect("Service Group's census entry missing from list!");
-                let current_election_status = &census_group.election_status;
                 match census_group.election_status {
                     ElectionStatus::None => {
-                        if self.last_election_status != *current_election_status {
+                        if self.last_election_status != census_group.election_status {
                             outputln!(preamble self.service_group,
                                       "Waiting to execute hooks; {}",
                                       Yellow.bold().paint("election hasn't started"));
-                            self.last_election_status = *current_election_status;
+                            self.last_election_status = census_group.election_status;
                         }
                     }
                     ElectionStatus::ElectionInProgress => {
-                        if self.last_election_status != *current_election_status {
+                        if self.last_election_status != census_group.election_status {
                             outputln!(preamble self.service_group,
                                       "Waiting to execute hooks; {}",
                                       Yellow.bold().paint("election in progress."));
-                            self.last_election_status = *current_election_status;
+                            self.last_election_status = census_group.election_status;
                         }
                     }
                     ElectionStatus::ElectionNoQuorum => {
-                        if self.last_election_status != *current_election_status {
+                        if self.last_election_status != census_group.election_status {
                             outputln!(preamble self.service_group,
                                       "Waiting to execute hooks; {}, {}.",
                                       Yellow.bold().paint("election in progress"),
                                       Red.bold().paint("and we have no quorum"));
-                            self.last_election_status = *current_election_status
+                            self.last_election_status = census_group.election_status
                         }
                     }
                     ElectionStatus::ElectionFinished => {
@@ -325,18 +325,18 @@ impl Service {
                             .leader_id
                             .as_ref()
                             .expect("No leader with finished election");
-                        if self.last_election_status != *current_election_status {
+                        if self.last_election_status != census_group.election_status {
                             outputln!(preamble self.service_group,
                                       "Executing hooks; {} is the leader",
                                       Green.bold().paint(leader_id.to_string()));
-                            self.last_election_status = *current_election_status;
+                            self.last_election_status = census_group.election_status;
                         }
                         self.execute_hooks()
                     }
                 }
             }
         }
-        svc_cfg_updated
+        svc_updated
     }
 
     pub fn to_spec(&self) -> ServiceSpec {
@@ -368,68 +368,36 @@ impl Service {
         ret
     }
 
-    fn update_configuration(&mut self, census_ring: &CensusRing) -> bool {
-        let sg = self.service_group.clone();
-        let census_group = census_ring.census_group_for(&sg).unwrap();
-        self.config.populate(&self.service_group, census_ring);
-        self.persist_service_files(census_group);
+    /// Compares the current state of the service to the current state of the census ring and
+    /// re-renders all templatable content to disk.
+    ///
+    /// Returns true if any modifications were made.
+    fn update_templates(&mut self, census_ring: &CensusRing) -> bool {
+        let census_group = census_ring
+            .census_group_for(&self.service_group)
+            .expect("Service update failed; unable to find own service group");
 
-        let svc_cfg_updated = self.persist_service_config(census_group);
-        if svc_cfg_updated || census_ring.changed {
-            if svc_cfg_updated {
-                if let Some(err) = self.config.reload_gossip().err() {
-                    outputln!(preamble self.service_group, "error loading gossip config, {}", err);
-                }
-            }
-            match self.config.write() {
-                Ok(true) => {
-                    self.needs_reconfiguration = true;
-                    self.hooks.compile(&self.service_group, &self.config);
-                    if let Some(err) = self.copy_run().err() {
-                        outputln!(preamble self.service_group, "Failed to copy run hook: {}", err);
-                    }
-                }
-                Ok(false) => (),
-                Err(e) => {
-                    outputln!(preamble self.service_group,
-                              "Failed to write service configuration: {}",
-                              e);
-                }
-            }
+        let cfg_updated = self.cfg.update(census_group);
+        if cfg_updated || census_ring.changed {
+            self.needs_reconfiguration = {
+                let ctx = self.render_context(census_ring);
+                self.compile_hooks(&ctx);
+                self.compile_configuration(&ctx)
+            };
         }
-        svc_cfg_updated
+        cfg_updated
     }
 
-    pub fn package(&self) -> RwLockReadGuard<PackageInstall> {
-        self.package.read().expect("Package lock poisoned")
-    }
-
+    /// Replace the package of the running service and restart it's system process.
     pub fn update_package(&mut self, package: PackageInstall) {
-        let runtime_cfg = match Self::runtime_config_from(&package) {
-            Ok(c) => c,
+        match Pkg::from_install(package) {
+            Ok(pkg) => self.pkg = pkg,
             Err(err) => {
                 outputln!(preamble self.service_group,
-                          "Unable to extract svc_user, svc_group, and env_vars \
-                          from updated package, {}", err);
+                          "Unexpected error while updating package, {}", err);
                 return;
             }
-        };
-        let config_root = self.config_from
-            .clone()
-            .unwrap_or(package.installed_path.clone());
-        let hooks_path = fs::svc_hooks_path(self.service_group.service());
-        self.hooks = HookTable::default().load_hooks(&self.service_group,
-                                                     hooks_path,
-                                                     &config_root.join("hooks"));
-
-        if let Some(err) = self.config
-               .reload_package(&package, config_root, &runtime_cfg)
-               .err() {
-            outputln!(preamble self.service_group,
-                "Failed to reload service config with updated package: {}", err);
         }
-        *self.package.write().expect("Package lock poisoned") = package;
-
         if let Err(err) = self.supervisor.down() {
             outputln!(preamble self.service_group,
                       "Error stopping process while updating package: {}", err);
@@ -438,7 +406,7 @@ impl Service {
     }
 
     pub fn to_rumor(&self, incarnation: u64) -> ServiceRumor {
-        let exported = match self.config.to_exported() {
+        let exported = match self.cfg.to_exported(&self.pkg) {
             Ok(exported) => Some(exported),
             Err(err) => {
                 outputln!(preamble self.service_group,
@@ -447,10 +415,10 @@ impl Service {
                 None
             }
         };
-        let mut rumor = ServiceRumor::new(self.local_member_id.clone(),
-                                          &self.package().ident,
+        let mut rumor = ServiceRumor::new(self.sys.member_id.as_str(),
+                                          &self.pkg.ident,
                                           &self.service_group,
-                                          &*self.config.sys,
+                                          &self.sys.as_sys_info(),
                                           exported.as_ref());
         rumor.set_incarnation(incarnation);
         rumor
@@ -462,19 +430,10 @@ impl Service {
             return;
         }
         outputln!(preamble self.service_group, "Initializing");
-        self.hooks.compile(&self.service_group, &self.config);
-        if let Some(err) = self.copy_run().err() {
-            outputln!(preamble self.service_group, "Failed to copy run hook: {}", err);
-        }
-
         self.initialized = true;
         if let Some(ref hook) = self.hooks.init {
-            self.initialized = hook.run(&self.service_group, self.runtime_cfg())
+            self.initialized = hook.run(&self.service_group, &self.pkg)
         }
-    }
-
-    pub fn populate(&mut self, census_ring: &CensusRing) {
-        self.config.populate(&self.service_group, census_ring)
     }
 
     /// Run reconfigure hook if present. Return false if it is not present, to trigger default
@@ -482,47 +441,14 @@ impl Service {
     fn reconfigure(&mut self) {
         self.needs_reconfiguration = false;
         if let Some(ref hook) = self.hooks.reconfigure {
-            hook.run(&self.service_group, self.runtime_cfg());
+            hook.run(&self.service_group, &self.pkg);
         }
     }
 
     fn post_run(&mut self) {
         if let Some(ref hook) = self.hooks.post_run {
-            hook.run(&self.service_group, self.runtime_cfg());
+            hook.run(&self.service_group, &self.pkg);
         }
-    }
-
-    /// Modifies PATH env with the full run path for this package. This path is composed of any
-    /// binary paths specified by this package, or its TDEPS, plus a path to a BusyBox(non-windows),
-    /// plus the existing value of the PATH variable.
-    ///
-    /// This means we work on any operating system, as long as you can invoke the Supervisor,
-    /// without having to worry much about context.
-    fn run_path(run_env: &mut HashMap<String, String>) -> Result<()> {
-        let path_key = "PATH".to_string();
-        let mut paths: Vec<PathBuf> = match run_env.get(&path_key) {
-            Some(path) => env::split_paths(&path).collect(),
-            None => vec![],
-        };
-
-        // Lets join the run paths to the FS_ROOT
-        // In most cases, this does nothing and should only mutate
-        // the paths in a windows studio where FS_ROOT_PATH will
-        // be the studio root path (ie c:\hab\studios\...). In any other
-        // environment FS_ROOT will be "/" and this will not make any
-        // meaningful change.
-        for i in 0..paths.len() {
-            if paths[i].starts_with("/") {
-                paths[i] = Path::new(&*FS_ROOT_PATH).join(paths[i].strip_prefix("/").unwrap());
-            }
-        }
-        run_env.insert(path_key,
-                       util::path::append_interpreter_and_path(&mut paths)?);
-        Ok(())
-    }
-
-    fn runtime_cfg(&self) -> &RuntimeConfig {
-        &self.supervisor.runtime_config
     }
 
     pub fn suitability(&self) -> Option<u64> {
@@ -532,48 +458,7 @@ impl Service {
         self.hooks
             .suitability
             .as_ref()
-            .and_then(|hook| hook.run(&self.service_group, self.runtime_cfg()))
-    }
-
-
-    /// Returns the root path for service configuration, files, and data.
-    fn svc_path(&self) -> PathBuf {
-        fs::svc_path(&self.service_group.service())
-    }
-
-    /// Returns the path to the service configuration.
-    fn svc_config_path(&self) -> PathBuf {
-        fs::svc_config_path(&self.service_group.service())
-    }
-
-    /// Returns the path to the service data.
-    fn svc_data_path(&self) -> PathBuf {
-        fs::svc_data_path(&self.service_group.service())
-    }
-
-    /// Returns the path to the service's gossiped config files.
-    fn svc_files_path(&self) -> PathBuf {
-        fs::svc_files_path(&self.service_group.service())
-    }
-
-    /// Returns the path to the service hooks.
-    fn svc_hooks_path(&self) -> PathBuf {
-        fs::svc_hooks_path(&self.service_group.service())
-    }
-
-    /// Returns the path to the service static content.
-    fn svc_static_path(&self) -> PathBuf {
-        fs::svc_static_path(&self.service_group.service())
-    }
-
-    /// Returns the path to the service variable state.
-    fn svc_var_path(&self) -> PathBuf {
-        fs::svc_var_path(&self.service_group.service())
-    }
-
-    /// Returns the path to the service logs.
-    fn svc_logs_path(&self) -> PathBuf {
-        fs::svc_logs_path(&self.service_group.service())
+            .and_then(|hook| hook.run(&self.service_group, &self.pkg))
     }
 
     /// this function wraps create_dir_all so we can give friendly error
@@ -615,18 +500,44 @@ impl Service {
         }
     }
 
+    /// Helper for compiling configuration templates into configuration files.
+    fn compile_configuration(&self, ctx: &RenderContext) -> bool {
+        match self.config_renderer.compile(&self.pkg, ctx) {
+            Ok(true) => {
+                outputln!(preamble self.service_group, "Configuration recompiled");
+                true
+            }
+            Ok(false) => false,
+            Err(e) => {
+                outputln!(preamble self.service_group,
+                          "Failed to compile configuration: {}",
+                          e);
+                false
+            }
+        }
+    }
+
+    /// Helper for compiling hook templates into hooks.
+    ///
+    /// This function will also perform any necessary post-compilation tasks.
+    fn compile_hooks(&self, ctx: &RenderContext) {
+        self.hooks.compile(&self.service_group, ctx);
+        outputln!(preamble self.service_group, "Hooks recompiled");
+        if let Some(err) = self.copy_run().err() {
+            outputln!(preamble self.service_group, "Failed to copy run hook: {}", err);
+        }
+    }
+
     // Copy the "run" file to the svc path.
     fn copy_run(&self) -> Result<()> {
-        let svc_run = self.svc_path().join(hooks::RunHook::file_name());
+        let svc_run = self.pkg.svc_path.join(hooks::RunHook::file_name());
         match self.hooks.run {
             Some(ref hook) => {
                 try!(std::fs::copy(hook.path(), &svc_run));
                 try!(set_permissions(&svc_run.to_str().unwrap(), HOOK_PERMISSIONS));
             }
             None => {
-                let run = self.package()
-                    .installed_path()
-                    .join(hooks::RunHook::file_name());
+                let run = self.pkg.path.join(hooks::RunHook::file_name());
                 match std::fs::metadata(&run) {
                     Ok(_) => {
                         try!(std::fs::copy(&run, &svc_run));
@@ -667,36 +578,29 @@ impl Service {
     fn file_updated(&self) -> bool {
         if self.initialized {
             if let Some(ref hook) = self.hooks.file_updated {
-                return hook.run(&self.service_group, self.runtime_cfg());
+                return hook.run(&self.service_group, &self.pkg);
             }
         }
         false
     }
 
-    /// Write service configuration from gossip data to disk.
-    ///
-    /// Returns true if a change was made and false if there were no updates.
-    fn persist_service_config(&mut self, census_group: &CensusGroup) -> bool {
-        if let Some(service_config) = census_group.service_config.as_ref() {
-
-            self.config.incarnation = service_config.incarnation;
-            self.write_gossiped_service_config(&service_config.value)
-        } else {
-            false
-        }
-    }
-
     /// Write service files from gossip data to disk.
     ///
-    /// Returnst rue if a file was changed, added, or removed, and false if there were no updates.
-    fn persist_service_files(&mut self, census_group: &CensusGroup) -> bool {
+    /// Returns true if a file was changed, added, or removed, and false if there were no updates.
+    fn update_service_files(&mut self, census_ring: &CensusRing) -> bool {
+        let census_group =
+            census_ring
+                .census_group_for(&self.service_group)
+                .expect("Service update service files failed; unable to find own service group");
         let mut updated = false;
         for service_file in census_group.changed_service_files() {
-            if self.write_service_file(&service_file) {
+            if self.cache_service_file(&service_file) {
+                outputln!(preamble self.service_group, "Service file updated, {}",
+                    service_file.filename);
                 updated = true;
             }
         }
-        if updated { self.file_updated() } else { false }
+        updated
     }
 
     /// attempt to remove a symlink in the /svc/run/foo/ directory if
@@ -715,9 +619,19 @@ impl Service {
         Ok(())
     }
 
+    /// Helper for constructing a new render context for the service.
+    fn render_context<'a>(&'a self, census: &'a CensusRing) -> RenderContext<'a> {
+        RenderContext::new(&self.service_group,
+                           &self.sys,
+                           &self.pkg,
+                           &self.cfg,
+                           census,
+                           &self.spec_binds)
+    }
+
     fn run_health_check_hook(&mut self) {
         let check_result = if let Some(ref hook) = self.hooks.health_check {
-            hook.run(&self.service_group, self.runtime_cfg())
+            hook.run(&self.service_group, &self.pkg)
         } else {
             match self.supervisor.status() {
                 (true, _) => HealthCheck::Ok,
@@ -728,153 +642,68 @@ impl Service {
         self.cache_health_check(check_result);
     }
 
-    fn write_service_file(&mut self, service_file: &ServiceFile) -> bool {
-        let on_disk_path = self.svc_files_path().join(&service_file.filename);
-        let current_checksum = match hash::hash_file(&on_disk_path) {
-            Ok(current_checksum) => current_checksum,
-            Err(e) => {
-                debug!("Failed to get current checksum for {:?}: {}",
-                       on_disk_path,
-                       e);
-                String::new()
-            }
-        };
-        let new_checksum = hash::hash_bytes(&service_file.body)
-            .expect("We failed to hash a Vec<u8> in a method that can't return an error; not \
-                     even sure what this means");
-        if new_checksum != current_checksum {
-            let new_filename = format!("{}.write", on_disk_path.to_string_lossy());
-
-            let mut new_file = match File::create(&new_filename) {
-                Ok(new_file) => new_file,
-                Err(e) => {
-                    outputln!(preamble self.service_group,
-                                  "Service file from butterfly failed to open the new file {}: {}",
-                                  new_filename,
-                                  Red.bold().paint(format!("{}", e)));
-                    return false;
-                }
-            };
-
-            if let Err(e) = new_file.write_all(&service_file.body) {
-                outputln!(preamble self.service_group,
-                              "Service file from butterfly failed to write {}: {}",
-                              new_filename,
-                              Red.bold().paint(format!("{}", e)));
-                return false;
-            }
-
-            if let Err(e) = std::fs::rename(&new_filename, &on_disk_path) {
-                outputln!(preamble self.service_group,
-                              "Service file from butterfly failed to rename {} to {}: {}",
-                              new_filename,
-                              on_disk_path.to_string_lossy(),
-                              Red.bold().paint(format!("{}", e)));
-                return false;
-            }
-
-            if let Err(e) = set_owner(&on_disk_path,
-                                      &self.supervisor.runtime_config.svc_user,
-                                      &self.supervisor.runtime_config.svc_group) {
-                outputln!(preamble self.service_group,
-                              "Service file from butterfly failed to set ownership on {}: {}",
-                              on_disk_path.to_string_lossy(),
-                              Red.bold().paint(format!("{}", e)));
-                return false;
-            }
-
-            if let Err(e) = set_permissions(&on_disk_path, 0o640) {
-                outputln!(preamble self.service_group,
-                              "Service file from butterfly failed to set permissions on {}: {}",
-                              on_disk_path.to_string_lossy(),
-                              Red.bold().paint(format!("{}", e)));
-                return false;
-            }
-
-            outputln!(preamble self.service_group,
-                          "Service file updated from butterfly {}: {}",
-                          on_disk_path.to_string_lossy(),
-                          Green.bold().paint(new_checksum));
-            true
-        } else {
-            false
-        }
+    fn cache_service_file(&mut self, service_file: &ServiceFile) -> bool {
+        let file = self.pkg.svc_files_path.join(&service_file.filename);
+        self.write_cache_file(file, &service_file.body)
     }
 
-    fn write_gossiped_service_config(&mut self, config: &toml::Value) -> bool {
-        let encoded = toml::ser::to_string(config)
-            .expect("Failed to serialize service configuration to a string in a method that \
-                     can't return an error; this could be made better");
-        let on_disk_path = self.svc_path().join("gossip.toml");
-        let current_checksum = match hash::hash_file(&on_disk_path) {
+    fn write_cache_file<T>(&self, file: T, contents: &[u8]) -> bool
+        where T: AsRef<Path>
+    {
+        let current_checksum = match hash::hash_file(&file) {
             Ok(current_checksum) => current_checksum,
-            Err(e) => {
-                debug!("Failed to get current checksum for {:?}: {}",
-                       on_disk_path,
-                       e);
+            Err(err) => {
+                outputln!(preamble self.service_group, "Failed to get current checksum for {}, {}",
+                       file.as_ref().display(),
+                       err);
                 String::new()
             }
         };
-        let new_checksum = hash::hash_string(&encoded)
-            .expect("We failed to hash a string in a method that can't return an error; not even \
-                     sure what this means");
-        if new_checksum != current_checksum {
-            let new_filename = format!("{}.write", on_disk_path.to_string_lossy());
-
-            let mut new_file = match File::create(&new_filename) {
-                Ok(new_file) => new_file,
-                Err(e) => {
-                    outputln!(preamble self.service_group,
-                              "Service configuration from butterfly failed to open the new file: \
-                               {}",
-                              Red.bold().paint(format!("{}", e)));
-                    return false;
-                }
-            };
-
-            if let Err(e) = new_file.write_all(encoded.as_bytes()) {
-                outputln!(preamble self.service_group,
-                          "Service configuration from butterfly failed to write: {}",
-                          Red.bold().paint(format!("{}", e)));
-                return false;
-            }
-
-            if let Err(e) = std::fs::rename(&new_filename, &on_disk_path) {
-                outputln!(preamble self.service_group,
-                          "Service configuration from butterfly failed to rename: {}",
-                          Red.bold().paint(format!("{}", e)));
-                return false;
-            }
-
-            if let Err(e) = set_owner(&on_disk_path,
-                                      &self.supervisor.runtime_config.svc_user,
-                                      &self.supervisor.runtime_config.svc_group) {
-                outputln!(preamble self.service_group,
-                          "Service configuration from butterfly failed to set ownership: {}",
-                          Red.bold().paint(format!("{}", e)));
-                return false;
-            }
-
-            if let Err(e) = set_permissions(&on_disk_path, 0o640) {
-                outputln!(preamble self.service_group,
-                          "Service configuration from butterfly failed to set permissions: {}",
-                          Red.bold().paint(format!("{}", e)));
-                return false;
-            }
-
-            outputln!(preamble self.service_group,
-                      "Service configuration updated from butterfly: {}",
-                      Green.bold().paint(new_checksum));
-            true
-        } else {
-            false
+        let new_checksum = hash::hash_bytes(&contents);
+        if new_checksum == current_checksum {
+            return false;
         }
+        let new_filename = format!("{}.write", file.as_ref().to_string_lossy());
+        let mut new_file = match File::create(&new_filename) {
+            Ok(new_file) => new_file,
+            Err(e) => {
+                outputln!(preamble self.service_group,
+                          "Failed to create cache file {}",
+                          Red.bold().paint(format!("{}, {}", file.as_ref().display(), e)));
+                return false;
+            }
+        };
+        if let Err(e) = new_file.write_all(contents) {
+            outputln!(preamble self.service_group,
+                      "Failed to write to cache file {}",
+                      Red.bold().paint(format!("{}, {}", file.as_ref().display(), e)));
+            return false;
+        }
+        if let Err(e) = std::fs::rename(&new_filename, &file) {
+            outputln!(preamble self.service_group,
+                      "Failed to move cache file {}",
+                      Red.bold().paint(format!("{}, {}", file.as_ref().display(), e)));
+            return false;
+        }
+        if let Err(e) = set_owner(&file, &self.pkg.svc_user, &self.pkg.svc_group) {
+            outputln!(preamble self.service_group,
+                      "Failed to set ownership of cache file {}",
+                      Red.bold().paint(format!("{}, {}", file.as_ref().display(), e)));
+            return false;
+        }
+        if let Err(e) = set_permissions(&file, 0o640) {
+            outputln!(preamble self.service_group,
+                      "Failed to set permissions on cache file {}",
+                      Red.bold().paint(format!("{}, {}", file.as_ref().display(), e)));
+            return false;
+        }
+        true
     }
 }
 
 impl fmt::Display for Service {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.package().to_string())
+        write!(f, "{} [{}]", self.service_group, self.pkg.ident)
     }
 }
 
@@ -989,12 +818,6 @@ impl serde::Serialize for UpdateStrategy {
     {
         serializer.serialize_str(self.as_str())
     }
-}
-
-fn serialize_lock<S>(x: &Arc<RwLock<PackageInstall>>, s: S) -> result::Result<S::Ok, S::Error>
-    where S: serde::Serializer
-{
-    s.serialize_str(&x.read().expect("Package lock poisoned").to_string())
 }
 
 #[cfg(test)]

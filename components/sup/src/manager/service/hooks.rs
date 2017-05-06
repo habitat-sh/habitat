@@ -26,13 +26,10 @@ use hcore;
 use hcore::service::ServiceGroup;
 use serde::{Serialize, Serializer};
 
-use super::health;
+use super::{exec, health, Pkg};
 use error::Result;
 use fs;
-use manager::service::ServiceConfig;
-use supervisor::RuntimeConfig;
-use templating::Template;
-use util;
+use templating::{RenderContext, TemplateRenderer};
 
 pub const HOOK_PERMISSIONS: u32 = 0o755;
 static LOGKEY: &'static str = "HK";
@@ -92,14 +89,12 @@ pub trait Hook: fmt::Debug + Sized {
     fn new(service_group: &ServiceGroup, render_pair: RenderPair) -> Self;
 
     /// Compile a hook into it's destination service directory.
-    fn compile(&self, cfg: &ServiceConfig) -> Result<()> {
-        let toml = try!(cfg.to_toml());
-        let svc_data = util::convert::toml_to_json(toml);
-        let data = try!(self.template().render("hook", &svc_data));
-        let mut file = try!(File::create(self.path()));
-        try!(file.write_all(data.as_bytes()));
-        try!(hcore::util::perm::set_owner(self.path(), &cfg.pkg.svc_user, &cfg.pkg.svc_group));
-        try!(hcore::util::perm::set_permissions(self.path(), HOOK_PERMISSIONS));
+    fn compile(&self, ctx: &RenderContext) -> Result<()> {
+        let data = self.renderer().render("hook", ctx)?;
+        let mut file = File::create(self.path())?;
+        file.write_all(data.as_bytes())?;
+        hcore::util::perm::set_owner(self.path(), &ctx.pkg.svc_user, &ctx.pkg.svc_group)?;
+        hcore::util::perm::set_permissions(self.path(), HOOK_PERMISSIONS)?;
         debug!("{} compiled to {}",
                Self::file_name(),
                self.path().display());
@@ -107,8 +102,8 @@ pub trait Hook: fmt::Debug + Sized {
     }
 
     /// Run a compiled hook.
-    fn run(&self, service_group: &ServiceGroup, cfg: &RuntimeConfig) -> Self::ExitValue {
-        let mut cmd = match util::create_command(self.path(), cfg) {
+    fn run(&self, service_group: &ServiceGroup, pkg: &Pkg) -> Self::ExitValue {
+        let mut cmd = match exec::run_cmd(self.path(), &pkg) {
             Ok(c) => c,
             Err(err) => {
                 outputln!(preamble service_group,
@@ -144,7 +139,7 @@ pub trait Hook: fmt::Debug + Sized {
 
     fn path(&self) -> &Path;
 
-    fn template(&self) -> &Template;
+    fn renderer(&self) -> &TemplateRenderer;
 
     fn stdout_log_path(&self) -> &Path;
 
@@ -185,8 +180,8 @@ impl Hook for FileUpdatedHook {
         &self.render_pair.path
     }
 
-    fn template(&self) -> &Template {
-        &self.render_pair.template
+    fn renderer(&self) -> &TemplateRenderer {
+        &self.render_pair.renderer
     }
 
     fn stdout_log_path(&self) -> &Path {
@@ -247,8 +242,8 @@ impl Hook for HealthCheckHook {
         &self.render_pair.path
     }
 
-    fn template(&self) -> &Template {
-        &self.render_pair.template
+    fn renderer(&self) -> &TemplateRenderer {
+        &self.render_pair.renderer
     }
 
     fn stdout_log_path(&self) -> &Path {
@@ -306,8 +301,8 @@ impl Hook for InitHook {
         &self.render_pair.path
     }
 
-    fn template(&self) -> &Template {
-        &self.render_pair.template
+    fn renderer(&self) -> &TemplateRenderer {
+        &self.render_pair.renderer
     }
 
     fn stdout_log_path(&self) -> &Path {
@@ -341,7 +336,7 @@ impl Hook for RunHook {
         }
     }
 
-    fn run(&self, _: &ServiceGroup, _: &RuntimeConfig) -> Self::ExitValue {
+    fn run(&self, _: &ServiceGroup, _: &Pkg) -> Self::ExitValue {
         panic!("The run hook is a an exception to the lifetime of a service. It should only be \
                 run by the supervisor module!");
     }
@@ -365,8 +360,8 @@ impl Hook for RunHook {
         &self.render_pair.path
     }
 
-    fn template(&self) -> &Template {
-        &self.render_pair.template
+    fn renderer(&self) -> &TemplateRenderer {
+        &self.render_pair.renderer
     }
 
     fn stdout_log_path(&self) -> &Path {
@@ -419,8 +414,8 @@ impl Hook for PostRunHook {
         &self.render_pair.path
     }
 
-    fn template(&self) -> &Template {
-        &self.render_pair.template
+    fn renderer(&self) -> &TemplateRenderer {
+        &self.render_pair.renderer
     }
 
     fn stdout_log_path(&self) -> &Path {
@@ -478,8 +473,8 @@ impl Hook for ReloadHook {
         &self.render_pair.path
     }
 
-    fn template(&self) -> &Template {
-        &self.render_pair.template
+    fn renderer(&self) -> &TemplateRenderer {
+        &self.render_pair.renderer
     }
 
     fn stdout_log_path(&self) -> &Path {
@@ -532,8 +527,8 @@ impl Hook for ReconfigureHook {
         &self.render_pair.path
     }
 
-    fn template(&self) -> &Template {
-        &self.render_pair.template
+    fn renderer(&self) -> &TemplateRenderer {
+        &self.render_pair.renderer
     }
 
     fn stdout_log_path(&self) -> &Path {
@@ -587,8 +582,8 @@ impl Hook for SmokeTestHook {
         &self.render_pair.path
     }
 
-    fn template(&self) -> &Template {
-        &self.render_pair.template
+    fn renderer(&self) -> &TemplateRenderer {
+        &self.render_pair.renderer
     }
 
     fn stdout_log_path(&self) -> &Path {
@@ -672,8 +667,8 @@ impl Hook for SuitabilityHook {
         &self.render_pair.path
     }
 
-    fn template(&self) -> &Template {
-        &self.render_pair.template
+    fn renderer(&self) -> &TemplateRenderer {
+        &self.render_pair.renderer
     }
 
     fn stdout_log_path(&self) -> &Path {
@@ -696,78 +691,71 @@ pub struct HookTable {
     pub run: Option<RunHook>,
     pub post_run: Option<PostRunHook>,
     pub smoke_test: Option<SmokeTestHook>,
-    cfg_incarnation: u64,
 }
 
 impl HookTable {
-    /// Compile all loaded hooks from the table into their destination service directory.
-    pub fn compile(&mut self, service_group: &ServiceGroup, config: &ServiceConfig) {
-        if self.cfg_incarnation != 0 && config.incarnation <= self.cfg_incarnation {
-            debug!("{}, Hooks already compiled with the latest configuration incarnation, \
-                    skipping",
-                   service_group);
-            return;
-        }
-        self.cfg_incarnation = config.incarnation;
-        if let Some(ref hook) = self.file_updated {
-            self.compile_one(hook, service_group, config);
-        }
-        if let Some(ref hook) = self.health_check {
-            self.compile_one(hook, service_group, config);
-        }
-        if let Some(ref hook) = self.init {
-            self.compile_one(hook, service_group, config);
-        }
-        if let Some(ref hook) = self.reload {
-            self.compile_one(hook, service_group, config);
-        }
-        if let Some(ref hook) = self.reconfigure {
-            self.compile_one(hook, service_group, config);
-        }
-        if let Some(ref hook) = self.suitability {
-            self.compile_one(hook, service_group, config);
-        }
-        if let Some(ref hook) = self.run {
-            self.compile_one(hook, service_group, config);
-        }
-        if let Some(ref hook) = self.post_run {
-            self.compile_one(hook, service_group, config);
-        }
-        if let Some(ref hook) = self.smoke_test {
-            self.compile_one(hook, service_group, config);
-        }
-        debug!("{}, Hooks compiled", service_group);
-    }
-
     /// Read all available hook templates from the table's package directory into the table.
-    pub fn load_hooks<T, U>(mut self, service_group: &ServiceGroup, hooks: T, templates: U) -> Self
-        where T: AsRef<Path>,
-              U: AsRef<Path>
+    pub fn load<T>(service_group: &ServiceGroup, templates: T) -> Self
+        where T: AsRef<Path>
     {
+        let mut table = HookTable::default();
+        let hooks = fs::svc_hooks_path(service_group.service());
         if let Some(meta) = std::fs::metadata(templates.as_ref()).ok() {
             if meta.is_dir() {
-                self.file_updated = FileUpdatedHook::load(service_group, &hooks, &templates);
-                self.health_check = HealthCheckHook::load(service_group, &hooks, &templates);
-                self.suitability = SuitabilityHook::load(service_group, &hooks, &templates);
-                self.init = InitHook::load(service_group, &hooks, &templates);
-                self.reload = ReloadHook::load(service_group, &hooks, &templates);
-                self.reconfigure = ReconfigureHook::load(service_group, &hooks, &templates);
-                self.run = RunHook::load(service_group, &hooks, &templates);
-                self.post_run = PostRunHook::load(service_group, &hooks, &templates);
-                self.smoke_test = SmokeTestHook::load(service_group, &hooks, &templates);
+                table.file_updated = FileUpdatedHook::load(service_group, &hooks, &templates);
+                table.health_check = HealthCheckHook::load(service_group, &hooks, &templates);
+                table.suitability = SuitabilityHook::load(service_group, &hooks, &templates);
+                table.init = InitHook::load(service_group, &hooks, &templates);
+                table.reload = ReloadHook::load(service_group, &hooks, &templates);
+                table.reconfigure = ReconfigureHook::load(service_group, &hooks, &templates);
+                table.run = RunHook::load(service_group, &hooks, &templates);
+                table.post_run = PostRunHook::load(service_group, &hooks, &templates);
+                table.smoke_test = SmokeTestHook::load(service_group, &hooks, &templates);
             }
         }
         debug!("{}, Hooks loaded, destination={}, templates={}",
                service_group,
-               hooks.as_ref().display(),
+               hooks.display(),
                templates.as_ref().display());
-        self
+        table
     }
 
-    fn compile_one<H>(&self, hook: &H, service_group: &ServiceGroup, config: &ServiceConfig)
+    /// Compile all loaded hooks from the table into their destination service directory.
+    pub fn compile(&self, service_group: &ServiceGroup, ctx: &RenderContext) {
+        if let Some(ref hook) = self.file_updated {
+            self.compile_one(hook, service_group, ctx);
+        }
+        if let Some(ref hook) = self.health_check {
+            self.compile_one(hook, service_group, ctx);
+        }
+        if let Some(ref hook) = self.init {
+            self.compile_one(hook, service_group, ctx);
+        }
+        if let Some(ref hook) = self.reload {
+            self.compile_one(hook, service_group, ctx);
+        }
+        if let Some(ref hook) = self.reconfigure {
+            self.compile_one(hook, service_group, ctx);
+        }
+        if let Some(ref hook) = self.suitability {
+            self.compile_one(hook, service_group, ctx);
+        }
+        if let Some(ref hook) = self.run {
+            self.compile_one(hook, service_group, ctx);
+        }
+        if let Some(ref hook) = self.post_run {
+            self.compile_one(hook, service_group, ctx);
+        }
+        if let Some(ref hook) = self.smoke_test {
+            self.compile_one(hook, service_group, ctx);
+        }
+        debug!("{}, Hooks compiled", service_group);
+    }
+
+    fn compile_one<H>(&self, hook: &H, service_group: &ServiceGroup, ctx: &RenderContext)
         where H: Hook
     {
-        hook.compile(config)
+        hook.compile(ctx)
             .unwrap_or_else(|e| {
                                 outputln!(preamble service_group,
                 "Failed to compile {} hook: {}", H::file_name(), e);
@@ -777,7 +765,7 @@ impl HookTable {
 
 pub struct RenderPair {
     pub path: PathBuf,
-    pub template: Template,
+    pub renderer: TemplateRenderer,
 }
 
 impl RenderPair {
@@ -785,12 +773,12 @@ impl RenderPair {
         where C: Into<PathBuf>,
               T: AsRef<Path>
     {
-        let mut template = Template::new();
-        template
+        let mut renderer = TemplateRenderer::new();
+        renderer
             .register_template_file("hook", template_path.as_ref())?;
         Ok(RenderPair {
                path: concrete_path.into(),
-               template: template,
+               renderer: renderer,
            })
     }
 }

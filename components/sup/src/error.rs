@@ -54,8 +54,8 @@ use common;
 use depot_client;
 use glob;
 use handlebars;
-use hcore::{self, package};
-use hcore::package::Identifiable;
+use hcore;
+use hcore::package::{self, Identifiable, PackageInstall};
 use notify;
 use serde_json;
 use toml;
@@ -104,6 +104,8 @@ pub enum Error {
     BadDataFile(PathBuf, io::Error),
     BadDataPath(PathBuf, io::Error),
     BadDesiredState(String),
+    BadElectionStatus(String),
+    BadPackage(PackageInstall, hcore::error::Error),
     BadSpecsPath(PathBuf, io::Error),
     BadStartStyle(String),
     ButterflyError(butterfly::error::Error),
@@ -132,6 +134,7 @@ pub enum Error {
     ProcessLockCorrupt,
     ProcessLocked(u32),
     ProcessLockIO(PathBuf, io::Error),
+    RenderContextSerialization(serde_json::Error),
     ServiceDeserializationError(serde_json::Error),
     ServiceLoaded(package::PackageIdent),
     ServiceNotLoaded(package::PackageIdent),
@@ -170,6 +173,8 @@ impl fmt::Display for SupError {
             Error::BadDesiredState(ref state) => {
                 format!("Unknown service desired state style '{}'", state)
             }
+            Error::BadElectionStatus(ref status) => format!("Unknown election status '{}'", status),
+            Error::BadPackage(ref pkg, ref err) => format!("Bad package, {}, {}", pkg, err),
             Error::BadSpecsPath(ref path, ref err) => {
                 format!("Unable to create the specs directory '{}' ({})",
                         path.display(),
@@ -229,6 +234,9 @@ impl fmt::Display for SupError {
                         path.display(),
                         err)
             }
+            Error::RenderContextSerialization(ref e) => {
+                format!("Unable to serialize rendering context, {}", e)
+            }
             Error::ServiceDeserializationError(ref e) => {
                 format!("Can't deserialize service status: {}", e)
             }
@@ -283,7 +291,9 @@ impl error::Error for SupError {
         match self.err {
             Error::BadDataFile(_, _) => "Unable to read or write to a data file",
             Error::BadDataPath(_, _) => "Unable to read or write to data directory",
+            Error::BadElectionStatus(_) => "Unknown election status",
             Error::BadDesiredState(_) => "Unknown desired state in service spec",
+            Error::BadPackage(_, _) => "Package was malformed or contained malformed contents",
             Error::BadSpecsPath(_, _) => "Unable to create the specs directory",
             Error::BadStartStyle(_) => "Unknown start style in service spec",
             Error::ButterflyError(ref err) => err.description(),
@@ -312,6 +322,7 @@ impl error::Error for SupError {
             Error::ProcessLockCorrupt => "Unable to decode contents of process lock",
             Error::ProcessLocked(_) => "Another instance of the Habitat Supervisor is already running",
             Error::ProcessLockIO(_, _) => "Unable to write or read to a process lock",
+            Error::RenderContextSerialization(_) => "Unable to serialize rendering context",
             Error::ServiceDeserializationError(_) => "Can't deserialize service status",
             Error::ServiceNotLoaded(_) => "Service status called when service not loaded",
             Error::ServiceLoaded(_) => "Service load or start called when service already loaded",
