@@ -21,7 +21,9 @@ import { AppComponent } from "./AppComponent";
 import { BuildListComponent } from "./project-page/BuildListComponent";
 import { CheckingInputComponent } from "./CheckingInputComponent";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
-import { ExplorePageComponent } from "./explore-page/explore-page.component";
+import { DashboardComponent } from "./dashboard/dashboard.component";
+import { DashboardGuard } from "./dashboard/dashboard.guard";
+import { ExploreComponent } from "./explore/explore.component";
 import { FooterComponent } from "./footer/FooterComponent";
 import { GitHubRepoPickerComponent } from "./github-repo-picker/GitHubRepoPickerComponent";
 import { GravatarComponent } from "./GravatarComponent";
@@ -66,7 +68,8 @@ import { UserNavComponent } from "./header/user-nav/UserNavComponent";
         AppComponent,
         BuildListComponent,
         CheckingInputComponent,
-        ExplorePageComponent,
+        DashboardComponent,
+        ExploreComponent,
         FooterComponent,
         GitHubRepoPickerComponent,
         GravatarComponent,
@@ -102,7 +105,8 @@ import { UserNavComponent } from "./header/user-nav/UserNavComponent";
     ],
     providers: [
         { provide: LocationStrategy, useClass: HashLocationStrategy },
-        AppStore
+        AppStore,
+        DashboardGuard
     ],
     bootstrap: [ AppComponent ]
 })

@@ -32,12 +32,12 @@ $main-nav-breakpoint: 710px;
   width: 100%;
   transition: top 0.4s ease;
   box-shadow: 0 0 50px 2px transparent;
-  background-color: $dark-blue;
 
   @include large-nav {
     min-height: $header-height;
 
     &.is-sticky {
+      background-color: $dark-blue;
       position: fixed;
       top: -100%;
     }
@@ -52,6 +52,7 @@ $main-nav-breakpoint: 710px;
   }
 
   @include small-nav {
+    background-color: $dark-blue;
     position: fixed;
   }
 }

@@ -21,7 +21,7 @@ import config from "../config";
     template: `
       <div class="main-nav--container clearfix">
         <div class="main-nav--logo">
-          <a [routerLink]="['/pkgs', 'core']"><h1>{{appName}}</h1></a>
+          <a [routerLink]="['/']"><h1>{{appName}}</h1></a>
         </div>
         <nav class="main-nav--links-wrap">
           <div class="main-nav--toggle">
@@ -44,13 +44,13 @@ import config from "../config";
                     [signOut]="signOut"
                     [toggleUserNavMenu]="toggleUserNavMenu"></hab-user-nav>
           <ul class="main-nav--links">
-            <li class="main-nav--link"><a class="search-packages" [routerLink]="['/pkgs', 'core']">Search Packages</a></li>
-            <li class="main-nav--link"><a class="docs" href="{{config['docs_url']}}">Docs</a></li>
+            <li class="main-nav--link"><a class="about" [routerLink]="['/explore']">Explore</a></li>
             <li class="main-nav--link"><a class="tutorials" href="{{config['tutorials_url']}}">Tutorials</a></li>
+            <li class="main-nav--link"><a class="docs" href="{{config['docs_url']}}">Docs</a></li>
             <li class="main-nav--link"><a class="community" href="{{config['community_url']}}">Community</a></li>
           </ul>
         </nav>
-      </div>`,
+      </div>`
 })
 
 export class HeaderComponent {

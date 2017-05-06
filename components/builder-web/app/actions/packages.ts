@@ -12,11 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { groupBy, map } from "lodash";
 import * as depotApi from "../depotApi";
 import * as fakeApi from "../fakeApi";
-import {fetchProjectsForPackages} from "./projects";
+import { fetchProjectsForPackages } from "./projects";
 
 export const CLEAR_PACKAGES = "CLEAR_PACKAGES";
+export const POPULATE_DASHBOARD_RECENT = "POPULATE_DASHBOARD_RECENT";
 export const POPULATE_EXPLORE = "POPULATE_EXPLORE";
 export const POPULATE_EXPLORE_STATS = "POPULATE_EXPLORE_STATS";
 export const SET_CURRENT_PACKAGE = "SET_CURRENT_PACKAGE";
@@ -28,6 +30,14 @@ export const SET_VISIBLE_PACKAGES = "SET_VISIBLE_PACKAGES";
 function clearPackages() {
     return {
         type: CLEAR_PACKAGES,
+    };
+}
+
+export function fetchDashboardRecent(origin: string) {
+    return dispatch => {
+        return depotApi.get({ origin: origin })
+            .then(data => dispatch(populateDashboardRecent(data)))
+            .catch(error => console.error(error));
     };
 }
 
@@ -98,6 +108,20 @@ export function filterPackagesBy(
         }).catch(error => {
             dispatch(setVisiblePackages(undefined, error));
         });
+    };
+}
+
+export function populateDashboardRecent(data) {
+    let grouped = groupBy(data.results, "name");
+    let mapped = [];
+
+    for (let k in grouped) {
+        mapped.push(grouped[k][0]);
+    }
+
+    return {
+        type: POPULATE_DASHBOARD_RECENT,
+        payload: mapped
     };
 }
 

@@ -46,6 +46,7 @@
     "core-js": "^2.4.1",
     "immutable": "^3.8.1",
     "js-cookie": "^2.1.4",
+    "lodash": "^4.17.4",
     "marked": "^0.3.6",
     "moment": "^2.18.1",
     "normalize-scss": "^4.0.3",

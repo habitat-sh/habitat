@@ -106,6 +106,10 @@ export default Record({
     })(),
     packages: Record({
         current: undefined,
+        dashboard: Record({
+            origin: undefined,
+            recent: List()
+        })(),
         explore: Record({
             popular: List(),
             stats: Record({
@@ -163,6 +167,9 @@ export default Record({
         requestedRoute: "",
         route: "",
         redirectRoute: ""
+    })(),
+    ui: Record({
+        layout: "default"
     })(),
     users: Record({
         current: Record({
