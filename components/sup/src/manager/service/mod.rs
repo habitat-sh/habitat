@@ -67,6 +67,12 @@ lazy_static! {
     };
 }
 
+fn serialize_pkg<S>(x: &Pkg, s: S) -> result::Result<S::Ok, S::Error>
+    where S: serde::Serializer
+{
+    s.serialize_str(&x.ident.to_string())
+}
+
 #[derive(Debug, Serialize)]
 pub struct Service {
     pub service_group: ServiceGroup,
@@ -77,6 +83,7 @@ pub struct Service {
     pub topology: Topology,
     pub update_strategy: UpdateStrategy,
     pub cfg: Cfg,
+    #[serde(serialize_with="serialize_pkg")]
     pub pkg: Pkg,
     pub sys: Arc<Sys>,
 

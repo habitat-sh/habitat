@@ -74,7 +74,10 @@ lazy_static! {
 
 #[derive(Deserialize)]
 pub struct ServiceStatus {
-    #[serde(deserialize_with = "deserialize_using_from_str")]
+    #[serde(
+        deserialize_with = "deserialize_using_from_str",
+        rename = "pkg"
+    )]
     pub package: PackageIdent,
     pub process: ProcessStatus,
 }
