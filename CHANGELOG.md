@@ -1,5 +1,100 @@
 # Habitat CHANGELOG
 
+## [0.22.0](https://github.com/habitat-sh/habitat/tree/0.22.0) (05-06-2017)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.21.0...0.22.0)
+
+## Features & Enhancements
+
+- Remove `hab pkg exec` calls from Builder Plan hooks [\#2239](https://github.com/habitat-sh/habitat/issues/2239)
+- Hard to dynamically calculate version [\#2212](https://github.com/habitat-sh/habitat/issues/2212)
+- Run supervisor in the background inside a studio [\#2131](https://github.com/habitat-sh/habitat/issues/2131)
+- hab sup status command [\#2118](https://github.com/habitat-sh/habitat/issues/2118)
+- The builder-scheduler should be able to recover gracefully on restart / missed notifications [\#2032](https://github.com/habitat-sh/habitat/issues/2032)
+- Simplify language around `pkgPathFor` helper. [\#2240](https://github.com/habitat-sh/habitat/pull/2240) ([rhass](https://github.com/rhass))
+- Fixes for builder plans [\#2238](https://github.com/habitat-sh/habitat/pull/2238) ([reset](https://github.com/reset))
+- \[plan-build\] Add optional helper to dynamically compute pkg\_version. [\#2235](https://github.com/habitat-sh/habitat/pull/2235) ([fnichol](https://github.com/fnichol))
+- \[plan-build\] Introduce `do\_before\(\)` & `do\_after\(\)` build phases. [\#2234](https://github.com/habitat-sh/habitat/pull/2234) ([fnichol](https://github.com/fnichol))
+- Update package graph module [\#2231](https://github.com/habitat-sh/habitat/pull/2231) ([chefsalim](https://github.com/chefsalim))
+- \[plan-build\] Rename Scaffolding load function to `scaffolding\_load\(\)`. [\#2229](https://github.com/habitat-sh/habitat/pull/2229) ([fnichol](https://github.com/fnichol))
+- Build the dashboard view [\#2227](https://github.com/habitat-sh/habitat/pull/2227) ([cnunciato](https://github.com/cnunciato))
+- Refactor ServiceConfig into RenderContext in supervisor [\#2226](https://github.com/habitat-sh/habitat/pull/2226) ([reset](https://github.com/reset))
+- at-once update strategy updates from local package cache as well as depot [\#2219](https://github.com/habitat-sh/habitat/pull/2219) ([mwrock](https://github.com/mwrock))
+- fix appveyor download of ssl certs [\#2207](https://github.com/habitat-sh/habitat/pull/2207) ([mwrock](https://github.com/mwrock))
+- Bump crate dependencies and fix API breakages [\#2180](https://github.com/habitat-sh/habitat/pull/2180) ([reset](https://github.com/reset))
+- Service butterfly decoupling [\#2171](https://github.com/habitat-sh/habitat/pull/2171) ([bodymindarts](https://github.com/bodymindarts))
+- Add Habitat plan for EventSrv [\#2169](https://github.com/habitat-sh/habitat/pull/2169) ([reset](https://github.com/reset))
+- Use the stats API in the Explore view [\#2168](https://github.com/habitat-sh/habitat/pull/2168) ([cnunciato](https://github.com/cnunciato))
+- General quality of life improvements to Supervisor [\#2167](https://github.com/habitat-sh/habitat/pull/2167) ([reset](https://github.com/reset))
+- Add API for package stats [\#2162](https://github.com/habitat-sh/habitat/pull/2162) ([chefsalim](https://github.com/chefsalim))
+- Build out the Explore view [\#2159](https://github.com/habitat-sh/habitat/pull/2159) ([cnunciato](https://github.com/cnunciato))
+- Fix spelling mistakes and cleanup conditionals [\#2156](https://github.com/habitat-sh/habitat/pull/2156) ([georgemarshall](https://github.com/georgemarshall))
+- Update release slack channels [\#2154](https://github.com/habitat-sh/habitat/pull/2154) ([tashimi](https://github.com/tashimi))
+- Update release slack channels [\#2154](https://github.com/habitat-sh/habitat/pull/2154) ([tashimi](https://github.com/tashimi))
+- \[plan-build\] Allow Scaffolding packages to add build deps for Plans. [\#2152](https://github.com/habitat-sh/habitat/pull/2152) ([fnichol](https://github.com/fnichol))
+- add readme for building studios [\#2151](https://github.com/habitat-sh/habitat/pull/2151) ([mwrock](https://github.com/mwrock))
+- add readme for building studios [\#2151](https://github.com/habitat-sh/habitat/pull/2151) ([mwrock](https://github.com/mwrock))
+- Remove builder-dbcache crate and all dependencies on redis [\#2148](https://github.com/habitat-sh/habitat/pull/2148) ([reset](https://github.com/reset))
+- travis should deploy to unstable when the version changes and also on studio changes [\#2147](https://github.com/habitat-sh/habitat/pull/2147) ([mwrock](https://github.com/mwrock))
+- Census refactoring [\#2141](https://github.com/habitat-sh/habitat/pull/2141) ([bodymindarts](https://github.com/bodymindarts))
+- Add HAB\_DOCKER\_OPTS to env var docs [\#2140](https://github.com/habitat-sh/habitat/pull/2140) ([smith](https://github.com/smith))
+- Refactor Builder Plans to leverage `pkg\_bind`/`pkg\_export` [\#2114](https://github.com/habitat-sh/habitat/pull/2114) ([reset](https://github.com/reset))
+
+## Bug fixes
+
+- Supervisor needs to be restarted for new or update config files to be rendered [\#2220](https://github.com/habitat-sh/habitat/issues/2220)
+- Supervisor stops running when core/httpd is stopped [\#2153](https://github.com/habitat-sh/habitat/issues/2153)
+- `at-once` strategy kills the supervisor when new packages are not in depot [\#2144](https://github.com/habitat-sh/habitat/issues/2144)
+- `hab sup start myorigin/myservice` does not start correctly. [\#2110](https://github.com/habitat-sh/habitat/issues/2110)
+- health check caching incorrectly [\#2103](https://github.com/habitat-sh/habitat/issues/2103)
+- Supervisor exits and fails to clean-up running services [\#2065](https://github.com/habitat-sh/habitat/issues/2065)
+- multi-service hab-sup exits if pkg\_svc\_user not found [\#2061](https://github.com/habitat-sh/habitat/issues/2061)
+- pkg\_exports values are not gossiped when updated on  hab config apply [\#1816](https://github.com/habitat-sh/habitat/issues/1816)
+- Setup environment before determining version in plan build [\#2237](https://github.com/habitat-sh/habitat/pull/2237) ([reset](https://github.com/reset))
+- Fix start command for builder/eventsrv plans [\#2233](https://github.com/habitat-sh/habitat/pull/2233) ([reset](https://github.com/reset))
+- bump rumor incarnation when starting a service already in the census [\#2232](https://github.com/habitat-sh/habitat/pull/2232) ([mwrock](https://github.com/mwrock))
+- Refactor ServiceConfig into RenderContext in supervisor [\#2226](https://github.com/habitat-sh/habitat/pull/2226) ([reset](https://github.com/reset))
+- install package on load and start in the cli [\#2216](https://github.com/habitat-sh/habitat/pull/2216) ([mwrock](https://github.com/mwrock))
+- remove health cache when removing service [\#2210](https://github.com/habitat-sh/habitat/pull/2210) ([mwrock](https://github.com/mwrock))
+- \[plan-build\] Only write SVC\_USER/SVC\_GROUP metafiles if pkg is a svc. [\#2155](https://github.com/habitat-sh/habitat/pull/2155) ([fnichol](https://github.com/fnichol))
+
+**Closed issues:**
+
+- Improve discoverability of release notes [\#2202](https://github.com/habitat-sh/habitat/issues/2202)
+- \[builder-web\] Use the stats API in the Explore view [\#2166](https://github.com/habitat-sh/habitat/issues/2166)
+
+**Merged pull requests:**
+
+- Clarify pkg\_export error message. [\#2228](https://github.com/habitat-sh/habitat/pull/2228) ([rhass](https://github.com/rhass))
+- remove @metadave from maintainers [\#2225](https://github.com/habitat-sh/habitat/pull/2225) ([metadave](https://github.com/metadave))
+- sup start and load report status on loaded/started service [\#2222](https://github.com/habitat-sh/habitat/pull/2222) ([mwrock](https://github.com/mwrock))
+- Relax requirement for version in plan deserialize [\#2218](https://github.com/habitat-sh/habitat/pull/2218) ([chefsalim](https://github.com/chefsalim))
+- Update hab-spider [\#2215](https://github.com/habitat-sh/habitat/pull/2215) ([chefsalim](https://github.com/chefsalim))
+- Updated release notes  [\#2211](https://github.com/habitat-sh/habitat/pull/2211) ([tashimi](https://github.com/tashimi))
+- Hands on Habitat is headed to Austin! [\#2205](https://github.com/habitat-sh/habitat/pull/2205) ([nathenharvey](https://github.com/nathenharvey))
+- supervisor starts and kills processes in their own process group [\#2204](https://github.com/habitat-sh/habitat/pull/2204) ([mwrock](https://github.com/mwrock))
+- Fix typo that caused macOS builds to fail [\#2201](https://github.com/habitat-sh/habitat/pull/2201) ([georgemarshall](https://github.com/georgemarshall))
+- Sync job status notifications with builder-scheduler [\#2198](https://github.com/habitat-sh/habitat/pull/2198) ([chefsalim](https://github.com/chefsalim))
+- Custom serialization logic for u64 [\#2196](https://github.com/habitat-sh/habitat/pull/2196) ([christophermaier](https://github.com/christophermaier))
+- remove service rumor offset to avoid dropping rumors [\#2190](https://github.com/habitat-sh/habitat/pull/2190) ([mwrock](https://github.com/mwrock))
+- Remove gdb install step from ubuntu\_latest script [\#2187](https://github.com/habitat-sh/habitat/pull/2187) ([cnunciato](https://github.com/cnunciato))
+- Update pbr to 1.0.0 [\#2179](https://github.com/habitat-sh/habitat/pull/2179) ([chefsalim](https://github.com/chefsalim))
+- Adjustments to builder-web support script [\#2175](https://github.com/habitat-sh/habitat/pull/2175) ([cnunciato](https://github.com/cnunciato))
+- Sync origin packages with scheduler [\#2174](https://github.com/habitat-sh/habitat/pull/2174) ([chefsalim](https://github.com/chefsalim))
+- add missing link to the run package topologies page [\#2173](https://github.com/habitat-sh/habitat/pull/2173) ([johnlonganecker](https://github.com/johnlonganecker))
+- Singapore is the next stop on the HoH tour [\#2172](https://github.com/habitat-sh/habitat/pull/2172) ([nathenharvey](https://github.com/nathenharvey))
+- implement supervisor status command [\#2170](https://github.com/habitat-sh/habitat/pull/2170) ([mwrock](https://github.com/mwrock))
+- Fix builder services breakage [\#2165](https://github.com/habitat-sh/habitat/pull/2165) ([chefsalim](https://github.com/chefsalim))
+- updates the ubuntu setup docs with workaround for libreadline 7 error [\#2164](https://github.com/habitat-sh/habitat/pull/2164) ([nellshamrell](https://github.com/nellshamrell))
+- Don't fail when directory exists. [\#2161](https://github.com/habitat-sh/habitat/pull/2161) ([rhass](https://github.com/rhass))
+- Job server failure recovery [\#2158](https://github.com/habitat-sh/habitat/pull/2158) ([chefsalim](https://github.com/chefsalim))
+- Tokyo is the next stop on the tour [\#2157](https://github.com/habitat-sh/habitat/pull/2157) ([nathenharvey](https://github.com/nathenharvey))
+- Add post run hook docs [\#2149](https://github.com/habitat-sh/habitat/pull/2149) ([tashimi](https://github.com/tashimi))
+- add studio supervisor to windows studio [\#2146](https://github.com/habitat-sh/habitat/pull/2146) ([mwrock](https://github.com/mwrock))
+- Add missing license header to census module [\#2145](https://github.com/habitat-sh/habitat/pull/2145) ([reset](https://github.com/reset))
+- bump dev version to 0.22.0-dev [\#2139](https://github.com/habitat-sh/habitat/pull/2139) ([mwrock](https://github.com/mwrock))
+- Handle pending jobs when workers are ready [\#2135](https://github.com/habitat-sh/habitat/pull/2135) ([chefsalim](https://github.com/chefsalim))
+- Update process-build.html.md.erb [\#2113](https://github.com/habitat-sh/habitat/pull/2113) ([dmp1ce](https://github.com/dmp1ce))
+
 ## [0.21.0](https://github.com/habitat-sh/habitat/tree/0.21.0) (04-20-2017)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.20.0...0.21.0)
 
@@ -62,6 +157,7 @@
 
 **Merged pull requests:**
 
+- release 0.21.0 [\#2138](https://github.com/habitat-sh/habitat/pull/2138) ([mwrock](https://github.com/mwrock))
 - Add the config data to the CensusEntry protobuf [\#2136](https://github.com/habitat-sh/habitat/pull/2136) ([raskchanky](https://github.com/raskchanky))
 - Add Builder dev doc [\#2130](https://github.com/habitat-sh/habitat/pull/2130) ([chefsalim](https://github.com/chefsalim))
 - Remove postinstall step from builder-api plan. [\#2127](https://github.com/habitat-sh/habitat/pull/2127) ([rhass](https://github.com/rhass))
@@ -1007,7 +1103,6 @@
 **Closed issues:**
 
 - init hook returning invalid exit code [\#1222](https://github.com/habitat-sh/habitat/issues/1222)
-- 3e [\#1215](https://github.com/habitat-sh/habitat/issues/1215)
 
 **Merged pull requests:**
 
