@@ -1,0 +1,24 @@
+#!/bin/sh
+#
+
+exec 2>&1
+
+export RANDFILE="{{pkg.svc_var_path}}/.rnd"
+
+mkdir -p {{pkg.svc_config_path}}/conf.d
+mkdir -p {{pkg.svc_var_path}}/pg_stat_tmp
+
+chown -R hab:hab {{pkg.svc_var_path}}
+touch $RANDFILE
+
+if [[ ! -f "{{pkg.svc_data_path}}/PG_VERSION" ]]; then
+  echo " Database does not exist, creating with 'initdb'"
+  openssl rand -base64 32 > {{pkg.svc_config_path}}/pwfile
+  initdb -U hab \
+         -E {{cfg.init.encoding}} \
+         -D {{pkg.svc_data_path}} \
+         --pwfile {{pkg.svc_config_path}}/pwfile \
+         --no-locale
+fi
+
+chmod 400 {{pkg.svc_config_path}}/pwfile

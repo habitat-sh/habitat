@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# pg_isready returns 0 to the shell if the server is accepting connections
+# normally, 1 if the server is rejecting connections (for example during
+# startup), 2 if there was no response to the connection attempt, and 3 if no
+# attempt was made (for example due to invalid parameters).
+#
+# The options --dbname and --username can be used to avoid gratuitous error
+# messages in the logs, but are not necessary for proper functionality.
+pg_isready --dbname=postgres --quiet
