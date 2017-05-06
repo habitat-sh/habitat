@@ -1,6 +1,7 @@
 # Habitat CHANGELOG
 
 ## [0.22.0](https://github.com/habitat-sh/habitat/tree/0.22.0) (05-06-2017)
+[Release Notes](https://forums.habitat.sh/t/habitat-0-22-0-released/326)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.21.0...0.22.0)
 
 ## Features & Enhancements
