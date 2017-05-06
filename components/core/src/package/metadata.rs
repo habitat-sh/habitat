@@ -12,7 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::collections::HashMap;
 use std::fmt;
+use std::iter::FromIterator;
 use std::str::FromStr;
 
 use error::{Error, Result};
@@ -40,6 +42,47 @@ impl FromStr for Bind {
                service: service,
                exports: exports,
            })
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub struct EnvVar {
+    pub key: String,
+    pub value: String,
+    pub separator: Option<char>,
+}
+
+#[derive(Debug)]
+pub struct EnvVars {
+    inner: Vec<EnvVar>,
+}
+
+pub fn parse_key_value(s: &str) -> Result<HashMap<String, String>> {
+    Ok(HashMap::from_iter(s.lines()
+                              .map(|l| l.splitn(2, '=').collect::<Vec<_>>())
+                              .map(|kv| (kv[0].to_string(), kv[1].to_string()))))
+}
+
+impl EnvVars {
+    pub fn new(values: HashMap<String, String>, separators: HashMap<String, String>) -> Self {
+        Self {
+            inner: values
+                .into_iter()
+                .map(|(key, value)| if let Some(sep) = separators.get(&key) {
+                         EnvVar {
+                             key,
+                             value,
+                             separator: sep.to_owned().pop(),
+                         }
+                     } else {
+                         EnvVar {
+                             key,
+                             value,
+                             separator: None,
+                         }
+                     })
+                .collect(),
+        }
     }
 }
 
@@ -88,5 +131,64 @@ impl fmt::Display for MetaFile {
             MetaFile::Target => "TARGET",
         };
         write!(f, "{}", id)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    static ENVIRONMENT: &str = r#"PATH=/hab/pkgs/python/setuptools/35.0.1/20170424072606/bin
+PYTHONPATH=/hab/pkgs/python/setuptools/35.0.1/20170424072606/lib/python3.6/site-packages
+"#;
+    static ENVIRONMENT_SEP: &str = r#"PATH=:
+PYTHONPATH=:
+"#;
+
+    #[test]
+    #[should_panic]
+    fn malformed_file() {
+        parse_key_value(&"PATH").unwrap();
+    }
+
+    #[test]
+    fn can_parse_environment_file() {
+        let mut m: HashMap<String, String> = HashMap::new();
+        m.insert("PATH".to_string(),
+                 "/hab/pkgs/python/setuptools/35.0.1/20170424072606/bin".to_string());
+        m.insert("PYTHONPATH".to_string(),
+                 "/hab/pkgs/python/setuptools/35.0.1/20170424072606/lib/python3.6/site-packages"
+                     .to_string());
+
+        assert_eq!(parse_key_value(&ENVIRONMENT).unwrap(), m);
+    }
+
+    #[test]
+    fn can_parse_environment_sep_file() {
+        let mut m: HashMap<String, String> = HashMap::new();
+        m.insert("PATH".to_string(), ":".to_string());
+        m.insert("PYTHONPATH".to_string(), ":".to_string());
+
+        assert_eq!(parse_key_value(&ENVIRONMENT_SEP).unwrap(), m);
+    }
+
+    #[test]
+    fn new_env_vars() {
+        let ev = EnvVars::new(parse_key_value(&ENVIRONMENT).unwrap(),
+                              parse_key_value(&ENVIRONMENT_SEP).unwrap());
+        let r =
+            vec![EnvVar {
+                     key: "PATH".to_string(),
+                     value: "/hab/pkgs/python/setuptools/35.0.1/20170424072606/bin".to_string(),
+                     separator: Some(':'),
+                 },
+                 EnvVar {
+                     key: "PYTHONPATH".to_string(),
+                     value: "/hab/pkgs/python/setuptools/35.0.1/20170424072606/lib/python3.6/site-packages"
+                         .to_string(),
+                     separator: Some(':'),
+                 }];
+
+        assert_eq!(ev.inner, r);
     }
 }
