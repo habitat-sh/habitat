@@ -13,4 +13,5 @@ brew install \
   libsodium \
   node \
   openssl \
+  pkg-config \
   zeromq
