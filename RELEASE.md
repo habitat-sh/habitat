@@ -71,9 +71,9 @@ Draft a new Release, specify the tag, and title it with the same (eg, 0.18.0). T
 1. Link forum post to the github release
 1. Link github release to forum post 
 1. Message Slack channels and include the link to the release post
-  1. cft-announce (Chef Slack)
-  1. eng-announce (Chef Slack)
-  1. product-marketing (Chef Slack)
-  1. general (Habitat Slack)
-  1. announcements (Habitat Slack)
-1. Tweet a link to the announcement @habicatsh
+   1. cft-announce (Chef Slack)
+   1. eng-announce (Chef Slack)
+   1. product-marketing (Chef Slack)
+   1. general (Habitat Slack)
+   1. announcements (Habitat Slack)
+1. Tweet a link to the announcement @habitatsh
