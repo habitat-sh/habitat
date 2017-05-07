@@ -6,6 +6,7 @@
 
 ## Features & Enhancements
 
+- Implement MVP Ruby-based Scaffolding, initially targeting Rails 5 [\#2142](https://github.com/habitat-sh/habitat/issues/2142)
 - Remove `hab pkg exec` calls from Builder Plan hooks [\#2239](https://github.com/habitat-sh/habitat/issues/2239)
 - Hard to dynamically calculate version [\#2212](https://github.com/habitat-sh/habitat/issues/2212)
 - Run supervisor in the background inside a studio [\#2131](https://github.com/habitat-sh/habitat/issues/2131)
@@ -65,6 +66,7 @@
 
 **Merged pull requests:**
 
+- release 0.22.0 [\#2243](https://github.com/habitat-sh/habitat/pull/2243) ([mwrock](https://github.com/mwrock))
 - Clarify pkg\_export error message. [\#2228](https://github.com/habitat-sh/habitat/pull/2228) ([rhass](https://github.com/rhass))
 - remove @metadave from maintainers [\#2225](https://github.com/habitat-sh/habitat/pull/2225) ([metadave](https://github.com/metadave))
 - sup start and load report status on loaded/started service [\#2222](https://github.com/habitat-sh/habitat/pull/2222) ([mwrock](https://github.com/mwrock))
