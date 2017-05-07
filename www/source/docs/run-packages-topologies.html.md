@@ -31,9 +31,7 @@ Once you have quorum, one member is elected a leader, the supervisors in the ser
 Because Habitat provides for automation that is built into the application package, this includes letting the application developer define the application's behavior when run under different topologies, even from the same immutable package. Here is an example of a configuration template marked up with conditional logic that will cause the running application to behave differently based on whether it is a leader or a follower:
 
        {{#if svc.me.follower}}
-       {{#with svc.leader}}
-       slaveof {{sys.ip}} {{cfg.port}}
-       {{/with}}
+       slaveof {{svc.leader.sys.ip}} {{svc.leader.cfg.port}}
        {{/if}}
 
 This logic says that if this peer is a follower, it will become a read replica of the IP and port of service leader (`svc.leader`), which is has found by service discovery through the ring. However, if this peer is the leader, the entire list of statements here evaluate to empty text -- meaning that the peer starts up as the leader.
