@@ -13,8 +13,10 @@
 // limitations under the License.
 
 use std::collections::HashMap;
+use std::env;
 use std::fmt;
 use std::iter::{FromIterator, IntoIterator};
+use std::path::PathBuf;
 use std::str::FromStr;
 use std::vec::IntoIter;
 
@@ -60,11 +62,11 @@ pub struct EnvVar {
 }
 
 #[derive(Debug)]
-pub struct EnvVars {
+pub struct PkgEnv {
     inner: Vec<EnvVar>,
 }
 
-impl EnvVars {
+impl PkgEnv {
     pub fn new(values: HashMap<String, String>, separators: HashMap<String, String>) -> Self {
         Self {
             inner: values
@@ -85,9 +87,25 @@ impl EnvVars {
                 .collect(),
         }
     }
+
+    pub fn from_paths(paths: Vec<PathBuf>) -> Self {
+        let p = env::join_paths(&paths).expect("Failed to build path string");
+        Self {
+            inner: vec![EnvVar {
+                            key: "PATH".to_string(),
+                            value: p.into_string()
+                                .expect("Failed to convert path to utf8 string"),
+                            separator: Some(':'),
+                        }],
+        }
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.inner.is_empty()
+    }
 }
 
-impl IntoIterator for EnvVars {
+impl IntoIterator for PkgEnv {
     type Item = EnvVar;
     type IntoIter = IntoIter<EnvVar>;
 
@@ -157,6 +175,7 @@ PYTHONPATH=:
     static EXPORTS: &str = r#"status-port=status.port
 port=front-end.port
 "#;
+    static PATH: &str = "/hab/pkgs/python/setuptools/35.0.1/20170424072606/bin";
 
     #[test]
     #[should_panic]
@@ -195,9 +214,9 @@ port=front-end.port
     }
 
     #[test]
-    fn new_env_vars() {
-        let mut result = EnvVars::new(parse_key_value(&ENVIRONMENT).unwrap(),
-                                      parse_key_value(&ENVIRONMENT_SEP).unwrap())
+    fn build_pkg_env() {
+        let mut result = PkgEnv::new(parse_key_value(&ENVIRONMENT).unwrap(),
+                                     parse_key_value(&ENVIRONMENT_SEP).unwrap())
                 .into_iter()
                 .collect::<Vec<_>>();
         // Sort the result by key, so we have a guarantee of order
@@ -215,6 +234,28 @@ port=front-end.port
                          .to_string(),
                      separator: Some(':'),
                  }];
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn build_pkg_env_is_empty() {
+        let result = PkgEnv::new(HashMap::new(), HashMap::new());
+        assert!(result.is_empty());
+    }
+
+    #[test]
+    fn build_pkg_env_from_path() {
+        let result = PkgEnv::from_paths(vec![PathBuf::from(PATH)])
+            .into_iter()
+            .collect::<Vec<_>>();
+
+        let expected = vec![EnvVar {
+                                key: "PATH".to_string(),
+                                value: "/hab/pkgs/python/setuptools/35.0.1/20170424072606/bin"
+                                    .to_string(),
+                                separator: Some(':'),
+                            }];
 
         assert_eq!(result, expected);
     }

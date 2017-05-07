@@ -27,7 +27,7 @@ use toml;
 use toml::Value;
 
 use super::{Identifiable, PackageIdent, Target, PackageTarget};
-use super::metadata::{Bind, MetaFile, parse_key_value};
+use super::metadata::{Bind, MetaFile, PkgEnv, parse_key_value};
 use error::{Error, Result};
 use fs;
 
@@ -353,66 +353,23 @@ impl PackageInstall {
     /// legacy `PATH` metadata files.
     pub fn runtime_environment(&self) -> Result<HashMap<String, String>> {
         let mut idents = HashSet::new();
-        let mut run_envs = HashMap::new();
-
-        // This is a special storage so that we can use the old `paths()`
-        // method and not have to repeatedly convert when concatenating.
-        let mut legacy_run_paths: Vec<PathBuf> = Vec::new();
-        let mut has_legacy_run_paths = false;
+        let mut pkg_envs: Vec<PkgEnv> = Vec::new();
 
         let env = self.environment()?;
-        if !env.is_empty() {
-            if let Some(path) = env.get("PATH") {
-                let mut v: Vec<PathBuf> = env::split_paths(&path)
-                    .map(|p| PathBuf::from(&p))
-                    .collect();
-                legacy_run_paths.append(&mut v);
-            }
-
-            for (key, value) in env.into_iter() {
-                run_envs.insert(key, value);
-            }
-        } else {
-            let mut p = self.paths()?;
-            legacy_run_paths.append(&mut p);
-            has_legacy_run_paths = true;
-        }
+        pkg_envs.push(if !env.is_empty() {
+                          PkgEnv::new(env, self.environment_sep()?)
+                      } else {
+                          PkgEnv::from_paths(self.paths()?)
+                      });
 
         let deps = self.load_deps()?;
         for dep in deps.iter() {
             let env = dep.environment()?;
-            let env_sep = dep.environment_sep()?;
-            if !env.is_empty() {
-                if let Some(path) = env.get("PATH") {
-                    let mut v: Vec<PathBuf> = env::split_paths(&path)
-                        .map(|p| PathBuf::from(&p))
-                        .collect();
-                    legacy_run_paths.append(&mut v);
-                }
-
-                for (key, value) in env.into_iter() {
-                    match run_envs.entry(key) {
-                        Occupied(entry) => {
-                            match env_sep.get(entry.key()) {
-                                Some(sep) => {
-                                    let v = entry.into_mut();
-                                    v.push_str(sep);
-                                    v.push_str(&value);
-                                }
-                                None => warn!("Cannot join {}, no separator defined", entry.key()),
-                            }
-                        }
-                        Vacant(entry) => {
-                            entry.insert(value);
-                            ()
-                        }
-                    }
-                }
-            } else {
-                let mut p = dep.paths()?;
-                legacy_run_paths.append(&mut p);
-                has_legacy_run_paths = true;
-            }
+            pkg_envs.push(if !env.is_empty() {
+                              PkgEnv::new(env, dep.environment_sep()?)
+                          } else {
+                              PkgEnv::from_paths(dep.paths()?)
+                          });
             idents.insert(dep.ident().clone());
         }
 
@@ -422,50 +379,36 @@ impl PackageInstall {
                 continue;
             }
             let env = dep.environment()?;
-            let env_sep = dep.environment_sep()?;
-            if !env.is_empty() {
-                if let Some(path) = env.get("PATH") {
-                    let mut v: Vec<PathBuf> = env::split_paths(&path)
-                        .map(|p| PathBuf::from(&p))
-                        .collect();
-                    legacy_run_paths.append(&mut v);
-                }
-
-                for (key, value) in env.into_iter() {
-                    match run_envs.entry(key) {
-                        Occupied(entry) => {
-                            match env_sep.get(entry.key()) {
-                                Some(sep) => {
-                                    let v = entry.into_mut();
-                                    v.push_str(sep);
-                                    v.push_str(&value);
-                                }
-                                None => warn!("Cannot join {}, no separator defined", entry.key()),
-                            }
-                        }
-                        Vacant(entry) => {
-                            entry.insert(value);
-                            ()
-                        }
-                    }
-                }
-            } else {
-                let mut p = dep.paths()?;
-                legacy_run_paths.append(&mut p);
-                has_legacy_run_paths = true;
-            }
+            pkg_envs.push(if !env.is_empty() {
+                              PkgEnv::new(env, dep.environment_sep()?)
+                          } else {
+                              PkgEnv::from_paths(dep.paths()?)
+                          });
             idents.insert(dep.ident().clone());
         }
 
-        if has_legacy_run_paths {
-            // Overwrite PATH with legacy_run_paths
-            let p = env::join_paths(&legacy_run_paths).expect("Failed to build path string");
-            let v = p.into_string()
-                .expect("Failed to convert path to utf8 string");
-            run_envs.insert("PATH".to_string(), v);
+        let mut env: HashMap<String, String> = HashMap::new();
+
+        for pkg_env in pkg_envs.into_iter() {
+            for env_var in pkg_env.into_iter() {
+                match env.entry(env_var.key) {
+                    Occupied(entry) => {
+                        if let Some(sep) = env_var.separator {
+                            let v = entry.into_mut();
+                            v.push(sep);
+                            v.push_str(&env_var.value);
+                        } else {
+                            warn!("Cannot join {}, no separator defined", entry.key());
+                        }
+                    }
+                    Vacant(entry) => {
+                        entry.insert(env_var.value);
+                    }
+                }
+            }
         }
 
-        Ok(run_envs)
+        Ok(env)
     }
 
     pub fn installed_path(&self) -> &Path {
