@@ -13,6 +13,24 @@
 // limitations under the License.
 
 .hab-packages {
+
+  .builds {
+    font-family: $heading-font-family;
+    font-size: rem(12);
+    text-transform: uppercase;
+
+    a {
+      display: inline-block;
+      color: $dark-gray;
+      padding-bottom: 8px;
+
+      &:hover {
+        padding-bottom: 6px;
+        border-bottom: 2px solid $hab-green;
+      }
+    }
+  }
+
   .hab-spinner {
     float: right;
   }

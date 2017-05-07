@@ -5,6 +5,8 @@ import { OriginPageComponent } from "./origin-page/OriginPageComponent";
 import { OriginsPageComponent } from "./origins-page/OriginsPageComponent";
 import { OrganizationCreatePageComponent } from "./organization-create-page/OrganizationCreatePageComponent";
 import { OrganizationsPageComponent } from "./organizations-page/OrganizationsPageComponent";
+import { PackageBuildsComponent } from "./package-builds/package-builds.component";
+import { BuildComponent } from "./build/build.component";
 import { PackagePageComponent } from "./package-page/PackagePageComponent";
 import { PackagesPageComponent } from "./packages-page/PackagesPageComponent";
 import { ProjectCreatePageComponent } from "./project-create-page/ProjectCreatePageComponent";
@@ -32,6 +34,13 @@ describe("Routes", () => {
     it("routes to DashboardComponent", () => {
       let r = route("");
       expect(r.component).toBe(DashboardComponent);
+    });
+  });
+
+  describe("/builds/:id", () => {
+    it("routes to BuildComponent", () => {
+      let r = route("builds/:id");
+      expect(r.component).toBe(BuildComponent);
     });
   });
 
@@ -95,6 +104,13 @@ describe("Routes", () => {
     it("routes to PackagesPageComponent", () => {
       let r = route("pkgs/:origin/:name");
       expect(r.component).toBe(PackagesPageComponent);
+    });
+  });
+
+  describe("/pkgs/:origin/:name/builds", () => {
+    it("routes to PackageBuildsComponent", () => {
+      let r = route("pkgs/:origin/:name/builds");
+      expect(r.component).toBe(PackageBuildsComponent);
     });
   });
 

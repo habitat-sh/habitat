@@ -12,9 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {combineReducers} from "redux";
+import { combineReducers } from "redux";
 import app from "./app";
 import gitHub from "./gitHub";
+import builds from "./builds";
 import notifications from "./notifications";
 import orgs from "./orgs";
 import origins from "./origins";
@@ -27,6 +28,7 @@ import ui from "./ui";
 export default combineReducers({
     app,
     gitHub,
+    builds,
     notifications,
     orgs,
     origins,

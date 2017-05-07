@@ -116,6 +116,57 @@ export class BuilderApiClient {
         });
     }
 
+    public getBuild(id: string) {
+        return new Promise((resolve, reject) => {
+            fetch(`${this.urlPrefix}/jobs/${id}`, {
+                method: "GET",
+                headers: this.headers
+            })
+            .then(response => {
+                if (response.ok) {
+                    resolve(response.json());
+                } else {
+                    reject(new Error(response.statusText));
+                }
+            })
+            .catch(error => reject(error));
+        });
+    }
+
+    public getBuildLog(id: string, start = 0) {
+        return new Promise((resolve, reject) => {
+            fetch(`${this.urlPrefix}/jobs/${id}/log?start=${start}`, {
+                method: "GET",
+                headers: this.headers
+            })
+            .then(response => {
+                if (response.ok) {
+                    resolve(response.json());
+                } else {
+                    reject(new Error(response.statusText));
+                }
+            })
+            .catch(error => reject(error));
+        });
+    }
+
+    public getBuilds(origin: string, name: string) {
+        return new Promise((resolve, reject) => {
+            fetch(`${this.urlPrefix}/projects/${origin}/${name}/jobs`, {
+                method: "GET",
+                headers: this.headers
+            })
+            .then(response => {
+                if (response.ok) {
+                    resolve(response.json());
+                } else {
+                    reject(new Error(response.statusText));
+                }
+            })
+            .catch(error => reject(error));
+        });
+    }
+
     public getProject(projectId) {
         return new Promise((resolve, reject) => {
             fetch(`${this.urlPrefix}/projects/${projectId}`, {

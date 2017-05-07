@@ -31,6 +31,9 @@ import {Subscription} from "rxjs/Subscription";
             <hab-package-breadcrumbs [ident]="package.ident">
             </hab-package-breadcrumbs>
         </h4>
+        <div class="builds" *ngIf="originParam === 'core'">
+            <a [routerLink]="['/pkgs', originParam, nameParam, 'builds']">Builds</a>
+        </div>
         <hab-spinner [isSpinning]="ui.loading" [onClick]="spinnerFetchPackage">
         </hab-spinner>
         <button class="origin" (click)="viewOrigin()">View {{origin}} origin</button>
@@ -69,10 +72,11 @@ import {Subscription} from "rxjs/Subscription";
 
 export class PackagePageComponent implements OnDestroy {
     spinnerFetchPackage: Function;
-    private originParam: string;
-    private nameParam: string;
-    private versionParam: string;
-    private releaseParam: string;
+    originParam: string;
+    nameParam: string;
+    versionParam: string;
+    releaseParam: string;
+
     private sub: Subscription;
 
     constructor(private route: ActivatedRoute, private store: AppStore) {

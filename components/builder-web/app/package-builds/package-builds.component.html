@@ -1,0 +1,15 @@
+<div class="hab-pkg-builds">
+  <div class="page-title">
+    <h2>
+      <hab-package-breadcrumbs [ident]="ident"></hab-package-breadcrumbs>
+    </h2>
+    <h4>
+      package
+    </h4>
+  </div>
+  <div class="page-body">
+    <hab-build-list
+      [builds]="builds.visible"
+      (select)="onSelect($event)"></hab-build-list>
+  </div>
+</div>

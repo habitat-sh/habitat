@@ -30,12 +30,15 @@
 @import "github-repo-picker/github-repo-picker";
 @import "header/header";
 @import "header/user-nav/user-nav";
+@import "build-list/build-list.component";
 @import "notifications/notifications";
 @import "origin-create-page/origin-create-page";
 @import "origin-page/origin-page";
 @import "organization-create-page/organization-create-page";
 @import "organization-members/organization-members";
 @import "organizations-page/organizations-page";
+@import "build/build.component";
+@import "package-builds/package-builds.component";
 @import "package-page/package-page";
 @import "packages-page/packages-page";
 @import "project-create-page/project-create-page";
