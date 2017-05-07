@@ -154,6 +154,9 @@ PYTHONPATH=/hab/pkgs/python/setuptools/35.0.1/20170424072606/lib/python3.6/site-
     static ENVIRONMENT_SEP: &str = r#"PATH=:
 PYTHONPATH=:
 "#;
+    static EXPORTS: &str = r#"status-port=status.port
+port=front-end.port
+"#;
 
     #[test]
     #[should_panic]
@@ -180,6 +183,15 @@ PYTHONPATH=:
         m.insert("PYTHONPATH".to_string(), ":".to_string());
 
         assert_eq!(parse_key_value(&ENVIRONMENT_SEP).unwrap(), m);
+    }
+
+    #[test]
+    fn can_parse_exports_file() {
+        let mut m: HashMap<String, String> = HashMap::new();
+        m.insert("status-port".to_string(), "status.port".to_string());
+        m.insert("port".to_string(), "front-end.port".to_string());
+
+        assert_eq!(parse_key_value(&EXPORTS).unwrap(), m);
     }
 
     #[test]
