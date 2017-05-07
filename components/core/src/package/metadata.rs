@@ -14,10 +14,17 @@
 
 use std::collections::HashMap;
 use std::fmt;
-use std::iter::FromIterator;
+use std::iter::{FromIterator, IntoIterator};
 use std::str::FromStr;
+use std::vec::IntoIter;
 
 use error::{Error, Result};
+
+pub fn parse_key_value(s: &str) -> Result<HashMap<String, String>> {
+    Ok(HashMap::from_iter(s.lines()
+                              .map(|l| l.splitn(2, '=').collect::<Vec<_>>())
+                              .map(|kv| (kv[0].to_string(), kv[1].to_string()))))
+}
 
 #[derive(Debug)]
 pub struct Bind {
@@ -57,12 +64,6 @@ pub struct EnvVars {
     inner: Vec<EnvVar>,
 }
 
-pub fn parse_key_value(s: &str) -> Result<HashMap<String, String>> {
-    Ok(HashMap::from_iter(s.lines()
-                              .map(|l| l.splitn(2, '=').collect::<Vec<_>>())
-                              .map(|kv| (kv[0].to_string(), kv[1].to_string()))))
-}
-
 impl EnvVars {
     pub fn new(values: HashMap<String, String>, separators: HashMap<String, String>) -> Self {
         Self {
@@ -83,6 +84,15 @@ impl EnvVars {
                      })
                 .collect(),
         }
+    }
+}
+
+impl IntoIterator for EnvVars {
+    type Item = EnvVar;
+    type IntoIter = IntoIter<EnvVar>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.inner.into_iter()
     }
 }
 
@@ -174,9 +184,14 @@ PYTHONPATH=:
 
     #[test]
     fn new_env_vars() {
-        let ev = EnvVars::new(parse_key_value(&ENVIRONMENT).unwrap(),
-                              parse_key_value(&ENVIRONMENT_SEP).unwrap());
-        let r =
+        let mut result = EnvVars::new(parse_key_value(&ENVIRONMENT).unwrap(),
+                                      parse_key_value(&ENVIRONMENT_SEP).unwrap())
+                .into_iter()
+                .collect::<Vec<_>>();
+        // Sort the result by key, so we have a guarantee of order
+        result.sort_by_key(|v| v.key.to_owned());
+
+        let expected =
             vec![EnvVar {
                      key: "PATH".to_string(),
                      value: "/hab/pkgs/python/setuptools/35.0.1/20170424072606/bin".to_string(),
@@ -189,6 +204,6 @@ PYTHONPATH=:
                      separator: Some(':'),
                  }];
 
-        assert_eq!(ev.inner, r);
+        assert_eq!(result, expected);
     }
 }
