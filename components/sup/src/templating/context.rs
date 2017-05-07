@@ -79,35 +79,39 @@ impl<'a> RenderContext<'a> {
 #[derive(Clone, Debug, Serialize)]
 pub struct Svc<'a> {
     pub group: &'a ServiceGroup,
-    pub election_running: bool,
-    pub election_no_quorum: bool,
-    pub election_finished: bool,
-    pub update_election_running: bool,
-    pub update_election_no_quorum: bool,
-    pub update_election_finished: bool,
+    pub election_is_running: bool,
+    pub election_is_no_quorum: bool,
+    pub election_is_finished: bool,
+    pub update_election_is_running: bool,
+    pub update_election_is_no_quorum: bool,
+    pub update_election_is_finished: bool,
     pub me: SvcMember<'a>,
     pub members: Vec<SvcMember<'a>>,
+    pub leader: Option<SvcMember<'a>>,
+    pub update_leader: Option<SvcMember<'a>>,
 }
 
 impl<'a> Svc<'a> {
     fn new(census_group: &'a CensusGroup) -> Self {
         Svc {
             group: &census_group.service_group,
-            election_running: census_group.election_status == ElectionStatus::ElectionInProgress,
-            election_no_quorum: census_group.election_status == ElectionStatus::ElectionNoQuorum,
-            election_finished: census_group.election_status == ElectionStatus::ElectionFinished,
-            update_election_running: census_group.election_status ==
-                                     ElectionStatus::ElectionInProgress,
-            update_election_no_quorum: census_group.election_status ==
-                                       ElectionStatus::ElectionNoQuorum,
-            update_election_finished: census_group.election_status ==
-                                      ElectionStatus::ElectionFinished,
+            election_is_running: census_group.election_status == ElectionStatus::ElectionInProgress,
+            election_is_no_quorum: census_group.election_status == ElectionStatus::ElectionNoQuorum,
+            election_is_finished: census_group.election_status == ElectionStatus::ElectionFinished,
+            update_election_is_running: census_group.election_status ==
+                                        ElectionStatus::ElectionInProgress,
+            update_election_is_no_quorum: census_group.election_status ==
+                                          ElectionStatus::ElectionNoQuorum,
+            update_election_is_finished: census_group.election_status ==
+                                         ElectionStatus::ElectionFinished,
             me: SvcMember(census_group.me().expect("Missing 'me'")),
             members: census_group
                 .members()
                 .iter()
                 .map(|m| SvcMember(m))
                 .collect(),
+            leader: census_group.leader().map(|m| SvcMember(m)),
+            update_leader: census_group.update_leader().map(|m| SvcMember(m)),
         }
     }
 }
