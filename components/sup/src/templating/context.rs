@@ -87,6 +87,8 @@ pub struct Svc<'a> {
     pub update_election_finished: bool,
     pub me: SvcMember<'a>,
     pub members: Vec<SvcMember<'a>>,
+    pub leader: Option<SvcMember<'a>>,
+    pub update_leader: Option<SvcMember<'a>>,
 }
 
 impl<'a> Svc<'a> {
@@ -108,6 +110,8 @@ impl<'a> Svc<'a> {
                 .iter()
                 .map(|m| SvcMember(m))
                 .collect(),
+            leader: census_group.leader().map(|m| SvcMember(m)),
+            update_leader: census_group.update_leader().map(|m| SvcMember(m)),
         }
     }
 }
