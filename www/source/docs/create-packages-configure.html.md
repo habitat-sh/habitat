@@ -109,12 +109,12 @@ You would specify the corresponding values in a TOML file using an
 [array of tables](https://github.com/toml-lang/toml#array-of-tables)
 like this:
 
-    [["servers"]]
-    host = host-1
+    [[servers]]
+    host = "host-1"
     port = 4545
 
-    [["servers"]]
-    host = host-2
+    [[servers]]
+    host = "host-2"
     port = 3434
 
 ## Advanced Helpers
@@ -177,11 +177,11 @@ Given a default.toml that looks like:
 
     [web]
 
-    [["servers"]]
+    [[servers]]
     host = "host-1"
     port = 4545
 
-    [["servers"]]
+    [[servers]]
     host = "host-2"
     port = 3434
 
