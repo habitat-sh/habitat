@@ -22,6 +22,7 @@ Create the following files somewhere on your local filesystem (Note: the client_
 
 config_api.toml:
 ```
+[depot]
 builds_enabled = true
 
 [github]
@@ -63,6 +64,7 @@ worker: target/debug/bldr-worker start --config /home/your_alias/habitat/config_
 export HAB_AUTH_TOKEN=<your github token>
 export HAB_DEPOT_URL=http://localhost:9636/v1/depot
 export HAB_ORIGIN=<your origin>
+export HAB_DEPOT_PUBLISH=true
 ```
 4. Now, do a `make bldr-run` from the root of your hab repo.
 
