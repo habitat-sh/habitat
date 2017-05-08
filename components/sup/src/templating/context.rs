@@ -78,7 +78,9 @@ impl<'a> RenderContext<'a> {
 
 #[derive(Clone, Debug, Serialize)]
 pub struct Svc<'a> {
-    pub group: &'a ServiceGroup,
+    pub service: &'a str,
+    pub group: &'a str,
+    pub org: Option<&'a str>,
     pub election_is_running: bool,
     pub election_is_no_quorum: bool,
     pub election_is_finished: bool,
@@ -98,8 +100,11 @@ impl<'a> Svc<'a> {
             Some(member) => SvcMember(member),
             None => SvcMember(census_group.members()[0]),
         };
+        let sg = &census_group.service_group;
         Svc {
-            group: &census_group.service_group,
+            service: sg.service(),
+            group: sg.group(),
+            org: sg.org(),
             election_is_running: census_group.election_status == ElectionStatus::ElectionInProgress,
             election_is_no_quorum: census_group.election_status == ElectionStatus::ElectionNoQuorum,
             election_is_finished: census_group.election_status == ElectionStatus::ElectionFinished,
