@@ -146,6 +146,12 @@ impl Server {
             census: get "/census" => with_metrics!(census, "census"),
             metrics: get "/metrics" => with_metrics!(metrics, "metrics"),
             services: get "/services" => with_metrics!(services, "services"),
+            service: get "/services/:svc/:group" => {
+                with_metrics!(service, "service")
+            },
+            service_org: get "/services/:svc/:group/:org" => {
+                with_metrics!(service, "service")
+            },
             service_config: get "/services/:svc/:group/config" => {
                 with_metrics!(config, "config")
             },
@@ -210,7 +216,11 @@ fn config(req: &mut Request) -> IronResult<Response> {
                       .unwrap()
                       .iter()
                       .find(|s| s["service_group"] == service_group.as_ref()) {
-                Some(service) => Ok(Response::with((status::Ok, service["cfg"].to_string()))),
+                Some(service) => {
+                    Ok(Response::with((status::Ok,
+                                       Header(headers::ContentType::json()),
+                                       service["cfg"].to_string())))
+                }
                 None => Ok(Response::with(status::NotFound)),
             }
         }
@@ -246,6 +256,32 @@ fn health(req: &mut Request) -> IronResult<Response> {
                                serde_json::to_string(&body).unwrap())))
         }
         Err(_) => Ok(Response::with(status::NotFound)),
+    }
+}
+
+fn service(req: &mut Request) -> IronResult<Response> {
+    let state = req.get::<persistent::Read<ManagerFs>>().unwrap();
+    let service_group = match build_service_group(req) {
+        Ok(sg) => sg,
+        Err(_) => return Ok(Response::with(status::BadRequest)),
+    };
+    match File::open(&state.services_data_path) {
+        Ok(file) => {
+            let services: serde_json::Value = serde_json::from_reader(file).unwrap();
+            match services
+                      .as_array()
+                      .unwrap()
+                      .iter()
+                      .find(|s| s["service_group"] == service_group.as_ref()) {
+                Some(service) => {
+                    Ok(Response::with((status::Ok,
+                                       Header(headers::ContentType::json()),
+                                       service.to_string())))
+                }
+                None => Ok(Response::with(status::NotFound)),
+            }
+        }
+        Err(_) => Ok(Response::with(status::ServiceUnavailable)),
     }
 }
 
