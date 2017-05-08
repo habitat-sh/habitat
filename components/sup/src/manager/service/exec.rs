@@ -16,8 +16,9 @@ use std::ffi::OsStr;
 use std::process::{Command, Stdio};
 
 use super::Pkg;
-use error::{Error, Result};
+use error::Result;
 
+#[cfg(any(target_os="linux", target_os="macos"))]
 static LOGKEY: &'static str = "EX";
 
 pub fn run_cmd<S: AsRef<OsStr>>(path: S, pkg: &Pkg) -> Result<Command> {
@@ -27,6 +28,7 @@ pub fn run_cmd<S: AsRef<OsStr>>(path: S, pkg: &Pkg) -> Result<Command> {
 #[cfg(any(target_os="linux", target_os="macos"))]
 fn exec<S: AsRef<OsStr>>(path: S, pkg: &Pkg) -> Result<Command> {
     let mut cmd = Command::new(path);
+    use error::Error;
     use hcore::os;
     use libc;
     use std::os::unix::process::CommandExt;

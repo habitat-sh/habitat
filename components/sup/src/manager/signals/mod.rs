@@ -14,6 +14,7 @@
 
 //! Contains the cross-platform signal behavior.
 
+#[allow(dead_code)]
 pub enum SignalEvent {
     Shutdown,
     Passthrough(u32),
