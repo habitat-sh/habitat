@@ -16,11 +16,11 @@ In a leader-follower topology, one of the members of the service group is electe
 
 As with any topology using leader election, you must start at least three peers using the `--topology leader` flag to the supervisor.
 
-       hab start yourname/yourdb --topology leader --group production
+    hab start yourname/yourdb --topology leader --group production
 
 The first supervisor will block until it has quorum. You would start additional members by pointing them at the ring, using the `--peer` argument:
 
-       hab start yourname/yourdb --topology leader --group production --peer 192.168.5.4
+    hab start yourname/yourdb --topology leader --group production --peer 192.168.5.4
 
 > Note: The `--peer` service does not need to be a peer that is in the same service group; it merely needs to be in the same ring that the other member(s) are in.
 
@@ -30,9 +30,11 @@ Once you have quorum, one member is elected a leader, the supervisors in the ser
 
 Because Habitat provides for automation that is built into the application package, this includes letting the application developer define the application's behavior when run under different topologies, even from the same immutable package. Here is an example of a configuration template marked up with conditional logic that will cause the running application to behave differently based on whether it is a leader or a follower:
 
-       {{#if svc.me.follower}}
-       slaveof {{svc.leader.sys.ip}} {{svc.leader.cfg.port}}
-       {{/if}}
+    {{#if svc.me.follower}}
+       {{#with svc.leader as |leader|}}
+         slaveof {{leader.sys.ip}} {{leader.cfg.port}}
+       {{/with}}
+    {{/if}}
 
 This logic says that if this peer is a follower, it will become a read replica of the IP and port of service leader (`svc.leader`), which is has found by service discovery through the ring. However, if this peer is the leader, the entire list of statements here evaluate to empty text -- meaning that the peer starts up as the leader.
 
