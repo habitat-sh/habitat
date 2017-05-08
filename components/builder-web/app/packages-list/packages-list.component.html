@@ -10,8 +10,7 @@
     <li class="hab-packages-package" *ngFor="let pkg of packages">
         <a [routerLink]="['/pkgs', pkg.origin,
         pkg.name,
-        pkg.version,
-        pkg.release]">
+        'versions']">
             <div class="item-title">
                 <h3>{{pkg.origin}} / {{pkg.name}}</h3>
             </div>

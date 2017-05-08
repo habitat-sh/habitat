@@ -94,6 +94,9 @@ impl Dispatcher for Worker {
             "OriginPackageGet" => handlers::origin_package_get(message, sock, state),
             "OriginPackageLatestGet" => handlers::origin_package_latest_get(message, sock, state),
             "OriginPackageListRequest" => handlers::origin_package_list(message, sock, state),
+            "OriginPackageVersionListRequest" => {
+                handlers::origin_package_version_list(message, sock, state)
+            }
             "OriginPackagePromote" => handlers::origin_package_promote(message, sock, state),
             "OriginPackageUniqueListRequest" => {
                 handlers::origin_package_unique_list(message, sock, state)

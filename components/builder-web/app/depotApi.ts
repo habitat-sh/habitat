@@ -83,6 +83,22 @@ export function get(params, nextRange: number = 0) {
     });
 }
 
+export function getPackageVersions(origin: string, pkg: string) {
+    const url = `${urlPrefix}/depot/pkgs/${origin}/${pkg}/versions`;
+
+    return new Promise((resolve, reject) => {
+        fetch(url).then(response => {
+            if (response.status >= 400) {
+                reject(new Error(response.statusText));
+            }
+
+            response.json().then(results => {
+                resolve(results);
+            });
+        }).catch(error => reject(error));
+    });
+}
+
 export function getStats(origin: string) {
     const url = `${urlPrefix}/depot/pkgs/origins/${origin}/stats`;
 

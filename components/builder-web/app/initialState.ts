@@ -142,11 +142,17 @@ export default Record({
             })()
         })(),
         visible: List(),
+        versions: undefined,
         nextRange: 0,
         searchQuery: "",
         totalCount: 0,
         ui: Record({
             current: Record({
+                errorMessage: undefined,
+                exists: false,
+                loading: true,
+            })(),
+            versions: Record({
                 errorMessage: undefined,
                 exists: false,
                 loading: true,

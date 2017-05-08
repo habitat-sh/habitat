@@ -509,6 +509,25 @@ pub fn origin_channel_package_latest_get(req: &mut Envelope,
     Ok(())
 }
 
+pub fn origin_package_version_list(req: &mut Envelope,
+                                   sock: &mut zmq::Socket,
+                                   state: &mut ServerState)
+                                   -> Result<()> {
+    let msg: proto::OriginPackageVersionListRequest = try!(req.parse_msg());
+
+    match state
+              .datastore
+              .list_origin_package_versions_for_origin(&msg) {
+        Ok(ref opvlr) => try!(req.reply_complete(sock, opvlr)),
+        Err(err) => {
+            error!("OriginPackageVersionList, err={:?}", err);
+            let err = net::err(ErrCode::DATA_STORE, "vt:origin-package-version-list:1");
+            try!(req.reply_complete(sock, &err));
+        }
+    }
+    Ok(())
+}
+
 pub fn origin_package_list(req: &mut Envelope,
                            sock: &mut zmq::Socket,
                            state: &mut ServerState)

@@ -15,8 +15,8 @@
 import * as marked from "marked";
 import * as actionTypes from "../actions/index";
 import initialState from "../initialState";
-import {Package} from "../records/Package";
-import {fromJS, List, Record} from "immutable";
+import { Package } from "../records/Package";
+import { fromJS, List, Record } from "immutable";
 
 export default function packages(state = initialState["packages"], action) {
     switch (action.type) {
@@ -32,6 +32,9 @@ export default function packages(state = initialState["packages"], action) {
 
         case actionTypes.POPULATE_DASHBOARD_RECENT:
             return state.setIn(["dashboard", "recent"], List(action.payload));
+
+        case actionTypes.CLEAR_PACKAGE_VERSIONS:
+            return state.set("versions", undefined);
 
         case actionTypes.POPULATE_EXPLORE:
             return state.setIn(["explore", "popular"], List(action.payload));
@@ -53,6 +56,20 @@ export default function packages(state = initialState["packages"], action) {
                     setIn(["ui", "current", "errorMessage"], undefined).
                     setIn(["ui", "current", "exists"], true).
                     setIn(["ui", "current", "loading"], false);
+            }
+
+        case actionTypes.SET_CURRENT_PACKAGE_VERSIONS:
+            if (action.error) {
+                return state.set("versions", undefined).
+                    setIn(["ui", "versions", "errorMessage"],
+                    action.error.message).
+                    setIn(["ui", "versions", "loading"], false).
+                    setIn(["ui", "versions", "exists"], false);
+            } else {
+                return state.set("versions", action.payload).
+                    setIn(["ui", "versions", "errorMessage"], undefined).
+                    setIn(["ui", "versions", "exists"], true).
+                    setIn(["ui", "versions", "loading"], false);
             }
 
         case actionTypes.SET_PACKAGES_NEXT_RANGE:

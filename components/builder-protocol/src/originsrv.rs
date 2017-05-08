@@ -530,6 +530,19 @@ impl Serialize for OriginPackageIdent {
     }
 }
 
+impl Serialize for OriginPackageVersion {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+        where S: Serializer
+    {
+        let mut strukt = try!(serializer.serialize_struct("origin_package_version", 4));
+        try!(strukt.serialize_field("origin", self.get_origin()));
+        try!(strukt.serialize_field("name", self.get_name()));
+        try!(strukt.serialize_field("version", self.get_version()));
+        try!(strukt.serialize_field("release_count", &self.get_release_count().to_string()));
+        strukt.end()
+    }
+}
+
 impl Routable for OriginPackageLatestGet {
     type H = String;
 
@@ -549,6 +562,14 @@ impl Routable for OriginPackageListRequest {
 
     fn route_key(&self) -> Option<Self::H> {
         Some(String::from(self.get_ident().get_origin()))
+    }
+}
+
+impl Routable for OriginPackageVersionListRequest {
+    type H = String;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(String::from(self.get_origin()))
     }
 }
 

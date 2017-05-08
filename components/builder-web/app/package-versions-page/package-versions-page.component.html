@@ -1,0 +1,47 @@
+<div class="hab-origin">
+    <div class="page-title">
+        <h2>Package</h2>
+        <h4>{{origin}} / {{name}}</h4>
+    </div>
+    <div *ngIf="!ui.exists && !ui.loading" class="page-body">
+        <p>
+        Failed to load package.
+        <span *ngIf="ui.errorMessage">
+            Error: {{ui.errorMessage}}
+        </span>
+        </p>
+    </div>
+    <hab-tabs *ngIf="ui.exists && !ui.loading">
+        <hab-tab tabTitle="All Versions" [onSelect]="fetchVersions">
+            <div class="page-body has-sidebar">
+                <div class="hab-origin--left hab-origin--pkg-list">
+                    <div class="pkg-container">
+                        <div class="pkg-col-1">Version</div>
+                        <div class="pkg-col-2">Releases</div>
+                        <div class="pkg-col-3">Latest Build</div>
+                    </div>
+                    <div *ngFor="let v of versions" class="pkg-container">
+                        <div class="pkg-col-1">{{v.version}}</div>
+                        <div class="pkg-col-2">{{v.release_count}}</div>
+                        <div class="pkg-col-3"></div>
+                    </div>
+                </div>
+                <div class="hab-origin--right hab-origin--pkg-list">
+                    <div class="pkg-container">
+                        <div class="pkg-col-1">Build</div>
+                    </div>
+                </div>
+            </div>
+        </hab-tab>
+        <hab-tab tabTitle="Latest">
+            <div class="page-body">
+                <div class="hab-origin--left">
+                    <div class="hab-origin--key-list">
+                    </div>
+                </div>
+                <div class="hab-origin--right">
+                </div>
+            </div>
+        </hab-tab>
+    </hab-tabs>
+</div>

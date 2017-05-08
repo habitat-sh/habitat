@@ -1088,6 +1088,57 @@ fn list_unique_packages(req: &mut Request) -> IronResult<Response> {
     }
 }
 
+fn list_package_versions(req: &mut Request) -> IronResult<Response> {
+    let (origin, name) = {
+        let params = req.extensions.get::<Router>().unwrap();
+
+        let origin = match params.find("origin") {
+            Some(origin) => origin.to_string(),
+            _ => return Ok(Response::with(status::BadRequest)),
+        };
+
+        let name = match params.find("pkg") {
+            Some(pkg) => pkg.to_string(),
+            _ => return Ok(Response::with(status::BadRequest)),
+        };
+
+        (origin, name)
+    };
+
+    let packages: RouteResult<OriginPackageVersionListResponse>;
+
+    let mut request = OriginPackageVersionListRequest::new();
+    request.set_origin(origin);
+    request.set_name(name);
+    packages = route_message::<OriginPackageVersionListRequest,
+                               OriginPackageVersionListResponse>(req, &request);
+
+    match packages {
+        Ok(packages) => {
+            debug!("packages = {:?}", &packages);
+            let body = serde_json::to_string(&packages.get_versions().to_vec()).unwrap();
+            let mut response = Response::with((status::Ok, body));
+
+            response
+                .headers
+                .set(ContentType(Mime(TopLevel::Application,
+                                      SubLevel::Json,
+                                      vec![(Attr::Charset, Value::Utf8)])));
+            dont_cache_response(&mut response);
+            Ok(response)
+        }
+        Err(err) => {
+            match err.get_code() {
+                ErrCode::ENTITY_NOT_FOUND => Ok(Response::with((status::NotFound))),
+                _ => {
+                    error!("list_package_versions:1, err={:?}", err);
+                    Ok(Response::with(status::InternalServerError))
+                }
+            }
+        }
+    }
+}
+
 fn list_packages(req: &mut Request) -> IronResult<Response> {
     let (start, stop) = match extract_pagination(req) {
         Ok(range) => range,
@@ -1682,6 +1733,7 @@ pub fn routes<M: BeforeMiddleware + Clone>(insecure: bool, basic: M, worker: M) 
         packages: get "/pkgs/:origin" => list_packages,
         packages_unique: get "/:origin/pkgs" => list_unique_packages,
         packages_pkg: get "/pkgs/:origin/:pkg" => list_packages,
+        package_pkg_versions: get "/pkgs/:origin/:pkg/versions" => list_package_versions,
         package_pkg_latest: get "/pkgs/:origin/:pkg/latest" => show_package,
         packages_version: get "/pkgs/:origin/:pkg/:version" => list_packages,
         package_version_latest: get "/pkgs/:origin/:pkg/:version/latest" => show_package,
