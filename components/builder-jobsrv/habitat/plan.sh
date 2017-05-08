@@ -10,9 +10,8 @@ pkg_build_deps=(core/protobuf core/protobuf-rust core/coreutils core/cacerts
 pkg_exports=(
   [worker_port]=net.worker_command_port
   [worker_heartbeat]=net.worker_heartbeat_port
-  [publisher_port]=net.publisher_port
 )
-pkg_exposes=(worker_port worker_heartbeat publisher_port)
+pkg_exposes=(worker_port worker_heartbeat)
 pkg_binds=(
   [router]="port heartbeat"
   [datastore]="port"
