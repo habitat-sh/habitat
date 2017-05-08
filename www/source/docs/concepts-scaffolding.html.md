@@ -1,25 +1,17 @@
 # Scaffolding
 
-Scaffolding is default implementations of the build phases and runtime hooks for your application. They also provide some default health check hooks where appropriate to ensure your application is functioning reliably. Customized Scaffolding can be created to facilitate re-usability of common patterns in your organization for developing, building, and running your applications.
+Scaffolding is default implementations of the build phases and runtime hooks for your application. Each scaffolding understands how your application was built, which allows it to can create the appropriate hooks and add in the correct runtime dependnencies when creating the package for your application. Scaffoldings also provide some default health check hooks where appropriate to ensure your application is functioning reliably. Customized Scaffolding can be created to facilitate re-usability of common patterns in your organization for developing, building, and running your applications.
+
+> Note: Currently only the Ruby scaffolding automatically adds in the appropriate dependencies and configuration settings based on how your application is currently being built. This behavior will be pushed into the other available scaffoldings soon.
 
 ## Getting Started
 
-### New Projects (Coming Soon!)
+To begin using Scaffolding, you will need to add the appropriate `pkg_scaffolding` setting to your plan.sh file.
 
-Simply run `hab plan init` to leverage the scaffolding. Habitat will look in your application code for known project types and add the appropriate scaffolding.
-
-If you would like to specify the desired scaffolding to use, you can run `hab plan init --scaffolding core/java8-maven-tomcat`
-
-The resulting plan will contain all the available callbacks and variables relevant to the scaffolding type.
-
-### Existing Plans
-
-To begin using Scaffolding, you will need to add the appropriate `pkg_scaffolding`.
-
-    ```
-    pkg_name="my_java_app"
-    pkg_scaffolding="core/scaffolding-java8-maven-tomcat"
-    ```
+    pkg_name=MY_APP
+    pkg_origin=MY_ORIGIN
+    pkg_version=MY_VERSION
+    pkg_scaffolding=core/scaffolding-ruby
 
 ## Embedded Plans (Coming Soon!)
 Each scaffolding defines a default value for `pkg_source` in [URI syntax](https://tools.ietf.org/html/rfc3986). You can override this value within your plan should you application source live in a non-standard location.
@@ -30,6 +22,7 @@ Each scaffolding defines a default value for `pkg_source` in [URI syntax](https:
 * [core/scaffolding-go17](https://github.com/habitat-sh/core-plans/tree/master/scaffolding-go17)
 * [core/scaffolding-python](https://github.com/habitat-sh/core-plans/tree/master/scaffolding-python)
 * [core/scaffolding-python2](https://github.com/habitat-sh/core-plans/tree/master/scaffolding-python2)
+* [core/scaffolding-ruby](https://github.com/habitat-sh/core-plans/blob/master/scaffolding-ruby/doc/reference.md)
 
 ### Coming Soon!
 
@@ -37,7 +30,6 @@ Each scaffolding defines a default value for `pkg_source` in [URI syntax](https:
 * core/scaffolding-python2-gunicorn
 * core/scaffolding-python-uwsgi
 * core/scaffolding-python2-uwsgi
-* core/scaffolding-ruby
 * core/scaffolding-ruby23
 * core/scaffolding-ruby-rails-unicorn
 * core/scaffolding-ruby-rails41-unicorn
@@ -68,7 +60,7 @@ These are variables which each scaffolding honors, allowing the plan author to c
 
 ## Run Hooks (Coming Soon!)
 
-#### Health Checks
+#### Health Checks (Coming Soon!)
 
 Each scaffolding comes with a default health check for your application.
 
