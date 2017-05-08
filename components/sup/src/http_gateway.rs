@@ -34,7 +34,6 @@ use router::Router;
 use serde_json;
 
 use error::{Result, Error, SupError};
-use fs;
 use manager;
 use manager::service::HealthCheck;
 use manager::service::hooks::{self, HealthCheckHook};
@@ -198,18 +197,24 @@ fn census(req: &mut Request) -> IronResult<Response> {
 }
 
 fn config(req: &mut Request) -> IronResult<Response> {
-    // JW TODO: We don't really care about the other parts of the service group. This is because
-    // we're maybe doing the wrong thing by placing all services in /hab/svc without including
-    // any information about the group name or organization perhaps? Either way - this isn't
-    // harmful for now - we'll either include that or change the URI to this endpoint to only
-    // require service name.
-    let config_file = match build_service_group(req) {
-        Ok(sg) => fs::svc_config_file(sg.service()),
+    let state = req.get::<persistent::Read<ManagerFs>>().unwrap();
+    let service_group = match build_service_group(req) {
+        Ok(sg) => sg,
         Err(_) => return Ok(Response::with(status::BadRequest)),
     };
-    match File::open(&config_file) {
-        Ok(file) => Ok(Response::with((status::Ok, file))),
-        Err(_) => Ok(Response::with(status::NotFound)),
+    match File::open(&state.services_data_path) {
+        Ok(file) => {
+            let services: serde_json::Value = serde_json::from_reader(file).unwrap();
+            match services
+                      .as_array()
+                      .unwrap()
+                      .iter()
+                      .find(|s| s["service_group"] == service_group.as_ref()) {
+                Some(service) => Ok(Response::with((status::Ok, service["cfg"].to_string()))),
+                None => Ok(Response::with(status::NotFound)),
+            }
+        }
+        Err(_) => Ok(Response::with(status::ServiceUnavailable)),
     }
 }
 

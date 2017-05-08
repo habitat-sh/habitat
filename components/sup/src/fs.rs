@@ -27,11 +27,6 @@ pub fn svc_path<T: AsRef<Path>>(service_name: T) -> PathBuf {
     SVC_ROOT.join(service_name)
 }
 
-/// Returns the path to the config.toml file for a given service.
-pub fn svc_config_file<T: AsRef<Path>>(service_name: T) -> PathBuf {
-    svc_path(service_name).join("config.toml")
-}
-
 /// Returns the path to the configuration directory for a given service.
 pub fn svc_config_path<T: AsRef<Path>>(service_name: T) -> PathBuf {
     svc_path(service_name).join("config")
