@@ -124,13 +124,14 @@ impl PackageGraph {
         let short_name = short_name(&name);
 
         let add_deps = if self.latest_map.contains_key(&short_name) {
-            let latest = self.latest_map.get(&short_name).unwrap();
+            let skip_update = {
+                let latest = self.latest_map.get(&short_name).unwrap();
+                pkg_ident < *latest
+            };
 
-            if pkg_ident < *latest {
+            if skip_update {
                 false
             } else {
-                assert!(pkg_ident > *latest);
-
                 let edge_ids: Vec<EdgeIndex> = self.graph
                     .edges_directed(pkg_node, Direction::Incoming)
                     .map(|e| e.id())
@@ -138,6 +139,7 @@ impl PackageGraph {
                 for edge_id in edge_ids {
                     self.graph.remove_edge(edge_id).unwrap();
                 }
+                self.latest_map.insert(short_name, pkg_ident.clone());
                 true
             }
         } else {
