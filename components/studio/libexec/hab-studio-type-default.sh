@@ -119,7 +119,7 @@ start_supervisor() {
     echo "** The Habitat Supervisor has been started in the background."
     echo "** Use 'hab sup start' and 'hab sup stop' to start and stop services."
     echo "** Use the 'slog' command to stream the supervisor log."
-    echo "** Adding '\\NO_BG_SUP=1' to your .studiorc file will disable the background supervisor."
+    echo "** Adding 'NO_BG_SUP=1' to your .studiorc file will disable the background supervisor."
     echo ""
   else
     echo "** \\\$NO_BG_SUP was set. The Habitat Supervisor is not running."
