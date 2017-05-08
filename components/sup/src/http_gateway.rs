@@ -19,6 +19,7 @@ use std::io::{self, Read};
 use std::net::{IpAddr, Ipv4Addr, ToSocketAddrs, SocketAddr, SocketAddrV4};
 use std::ops::{Deref, DerefMut};
 use std::option;
+use std::path::Path;
 use std::result;
 use std::str::FromStr;
 use std::sync::Arc;
@@ -31,7 +32,7 @@ use iron::modifiers::Header;
 use persistent;
 use prometheus::{self, CounterVec, HistogramVec, TextEncoder, Encoder};
 use router::Router;
-use serde_json;
+use serde_json::{self, Value as Json};
 
 use error::{Result, Error, SupError};
 use manager;
@@ -208,22 +209,13 @@ fn config(req: &mut Request) -> IronResult<Response> {
         Ok(sg) => sg,
         Err(_) => return Ok(Response::with(status::BadRequest)),
     };
-    match File::open(&state.services_data_path) {
-        Ok(file) => {
-            let services: serde_json::Value = serde_json::from_reader(file).unwrap();
-            match services
-                      .as_array()
-                      .unwrap()
-                      .iter()
-                      .find(|s| s["service_group"] == service_group.as_ref()) {
-                Some(service) => {
-                    Ok(Response::with((status::Ok,
-                                       Header(headers::ContentType::json()),
-                                       service["cfg"].to_string())))
-                }
-                None => Ok(Response::with(status::NotFound)),
-            }
+    match service_from_file(&service_group, &state.services_data_path) {
+        Ok(Some(service)) => {
+            Ok(Response::with((status::Ok,
+                               Header(headers::ContentType::json()),
+                               service["cfg"].to_string())))
         }
+        Ok(None) => Ok(Response::with(status::NotFound)),
         Err(_) => Ok(Response::with(status::ServiceUnavailable)),
     }
 }
@@ -265,22 +257,13 @@ fn service(req: &mut Request) -> IronResult<Response> {
         Ok(sg) => sg,
         Err(_) => return Ok(Response::with(status::BadRequest)),
     };
-    match File::open(&state.services_data_path) {
-        Ok(file) => {
-            let services: serde_json::Value = serde_json::from_reader(file).unwrap();
-            match services
-                      .as_array()
-                      .unwrap()
-                      .iter()
-                      .find(|s| s["service_group"] == service_group.as_ref()) {
-                Some(service) => {
-                    Ok(Response::with((status::Ok,
-                                       Header(headers::ContentType::json()),
-                                       service.to_string())))
-                }
-                None => Ok(Response::with(status::NotFound)),
-            }
+    match service_from_file(&service_group, &state.services_data_path) {
+        Ok(Some(service)) => {
+            Ok(Response::with((status::Ok,
+                               Header(headers::ContentType::json()),
+                               service.to_string())))
         }
+        Ok(None) => Ok(Response::with(status::NotFound)),
         Err(_) => Ok(Response::with(status::ServiceUnavailable)),
     }
 }
@@ -332,4 +315,24 @@ fn build_service_group(req: &mut Request) -> Result<ServiceGroup> {
                                    .unwrap_or(""),
                                req.extensions.get::<Router>().unwrap().find("org"))?;
     Ok(sg)
+}
+
+fn service_from_file<T>(service_group: &ServiceGroup,
+                        services_data_path: T)
+                        -> result::Result<Option<Json>, io::Error>
+    where T: AsRef<Path>
+{
+    match File::open(services_data_path) {
+        Ok(file) => {
+            match serde_json::from_reader(file) {
+                Ok(Json::Array(services)) => {
+                    Ok(services
+                           .into_iter()
+                           .find(|s| s["service_group"] == service_group.as_ref()))
+                }
+                _ => Ok(None),
+            }
+        }
+        Err(err) => Err(err),
+    }
 }
