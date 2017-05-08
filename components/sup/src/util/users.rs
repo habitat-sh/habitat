@@ -28,6 +28,7 @@ static LOGKEY: &'static str = "UR";
 ///     b) we are the specified user:group
 ///     c) fail otherwise
 /// If pkg_svc_user and pkg_svc_group have NOT been defined, return None.
+#[cfg(unix)]
 fn check_pkg_user_and_group(pkg_install: &PackageInstall) -> Result<Option<(String, String)>> {
     let svc_user = try!(pkg_install.svc_user());
     let svc_group = try!(pkg_install.svc_group());
@@ -63,7 +64,7 @@ fn check_pkg_user_and_group(pkg_install: &PackageInstall) -> Result<Option<(Stri
             if current_user == users::root_level_account() {
                 Ok(Some((user, group)))
             } else {
-                if current_user == user && (cfg!(target_os = "windows") || current_group == group) {
+                if current_user == user && current_group == group {
                     // ok, sup is running as svc_user/svc_group already
                     Ok(Some((user, group)))
                 } else {
@@ -122,6 +123,7 @@ pub fn get_user_and_group(pkg_install: &PackageInstall) -> Result<(String, Strin
 /// because we do not start the supervisor on windows under
 /// alternate credentials
 #[cfg(windows)]
+#[allow(unused)]
 pub fn get_user_and_group(pkg_install: &PackageInstall) -> Result<(String, String)> {
     let defaults = try!(get_default_user_and_group());
     Ok(defaults)

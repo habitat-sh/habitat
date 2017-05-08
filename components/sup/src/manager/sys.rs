@@ -17,6 +17,7 @@ use std::str;
 
 use butterfly::rumor::service::SysInfo;
 use hcore;
+#[cfg(any(target_os="linux", target_os="macos"))]
 use libc;
 
 use VERSION;
@@ -128,6 +129,7 @@ pub fn lookup_hostname() -> Result<String> {
     }
 }
 
+#[cfg(any(target_os="linux", target_os="macos"))]
 extern "C" {
     pub fn gethostname(name: *mut libc::c_char, size: libc::size_t) -> libc::c_int;
 }
