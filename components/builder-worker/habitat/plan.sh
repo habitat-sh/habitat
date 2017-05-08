@@ -13,7 +13,7 @@ pkg_svc_run="$bin start -c ${pkg_svc_config_path}/config.toml"
 pkg_svc_user="root"
 pkg_svc_group="root"
 pkg_binds=(
-  [jobsrv]="worker_port worker_heartbeat publisher_port"
+  [jobsrv]="worker_port worker_heartbeat"
 )
 
 do_prepare() {

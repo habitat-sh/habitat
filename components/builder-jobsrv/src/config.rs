@@ -75,10 +75,6 @@ impl Shards for Config {
 #[derive(Debug, Deserialize)]
 #[serde(default)]
 pub struct NetCfg {
-    /// Publisher socket's listening address
-    pub publisher_listen: IpAddr,
-    /// Publisher socket's port
-    pub publisher_port: u16,
     /// Worker Command socket's listening address
     pub worker_command_listen: IpAddr,
     /// Worker Command socket's port
@@ -90,10 +86,6 @@ pub struct NetCfg {
 }
 
 impl NetCfg {
-    pub fn publisher_addr(&self) -> String {
-        format!("tcp://{}:{}", self.publisher_listen, self.publisher_port)
-    }
-
     pub fn worker_command_addr(&self) -> String {
         format!("tcp://{}:{}",
                 self.worker_command_listen,
@@ -114,8 +106,6 @@ impl Default for NetCfg {
             worker_command_port: 5566,
             worker_heartbeat_listen: IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)),
             worker_heartbeat_port: 5567,
-            publisher_listen: IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)),
-            publisher_port: 5568,
         }
     }
 }
@@ -137,8 +127,6 @@ mod tests {
         worker_command_port = 9000
         worker_heartbeat_listen = "1.1.1.1"
         worker_heartbeat_port = 9000
-        publisher_listen = "1.1.1.1"
-        publisher_port = 9000
 
         [[routers]]
         host = "1.1.1.1"
@@ -161,10 +149,8 @@ mod tests {
                    "1:1:1:1:1:1:1:1");
         assert_eq!(&format!("{}", config.net.worker_heartbeat_listen),
                    "1.1.1.1");
-        assert_eq!(&format!("{}", config.net.publisher_listen), "1.1.1.1");
         assert_eq!(config.net.worker_command_port, 9000);
         assert_eq!(config.net.worker_heartbeat_port, 9000);
-        assert_eq!(config.net.publisher_port, 9000);
         assert_eq!(config.shards, vec![0]);
         assert_eq!(config.worker_threads, 1);
         assert_eq!(config.datastore.port, 9000);
