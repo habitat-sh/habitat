@@ -86,6 +86,7 @@ pub struct Svc<'a> {
     pub update_election_is_no_quorum: bool,
     pub update_election_is_finished: bool,
     pub me: SvcMember<'a>,
+    pub first: SvcMember<'a>,
     pub members: Vec<SvcMember<'a>>,
     pub leader: Option<SvcMember<'a>>,
     pub update_leader: Option<SvcMember<'a>>,
@@ -93,6 +94,10 @@ pub struct Svc<'a> {
 
 impl<'a> Svc<'a> {
     fn new(census_group: &'a CensusGroup) -> Self {
+        let first = match census_group.leader() {
+            Some(member) => SvcMember(member),
+            None => SvcMember(census_group.members()[0]),
+        };
         Svc {
             group: &census_group.service_group,
             election_is_running: census_group.election_status == ElectionStatus::ElectionInProgress,
@@ -111,6 +116,7 @@ impl<'a> Svc<'a> {
                 .map(|m| SvcMember(m))
                 .collect(),
             leader: census_group.leader().map(|m| SvcMember(m)),
+            first: first,
             update_leader: census_group.update_leader().map(|m| SvcMember(m)),
         }
     }
