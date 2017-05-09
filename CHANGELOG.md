@@ -1,12 +1,62 @@
 # Habitat CHANGELOG
 
+## [0.22.1](https://github.com/habitat-sh/habitat/tree/0.22.1) (05-09-2017)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.22.0...0.22.1)
+
+## Features & Enhancements
+
+- Doc update: [\#2248](https://github.com/habitat-sh/habitat/issues/2248)
+- Doc Bug [\#2230](https://github.com/habitat-sh/habitat/issues/2230)
+- Implement MVP Ruby-based Scaffolding, initially targeting Rails 5 [\#2142](https://github.com/habitat-sh/habitat/issues/2142)
+- Add builder-datastore plan to components [\#2278](https://github.com/habitat-sh/habitat/pull/2278) ([reset](https://github.com/reset))
+- Remove debug output from EachAlive helper [\#2277](https://github.com/habitat-sh/habitat/pull/2277) ([reset](https://github.com/reset))
+- Fix formatting in sup/build.rs [\#2276](https://github.com/habitat-sh/habitat/pull/2276) ([reset](https://github.com/reset))
+- Added API docs to be served on sup :9631/ [\#2270](https://github.com/habitat-sh/habitat/pull/2270) ([eeyun](https://github.com/eeyun))
+- Fix travis deploy for PRs redux [\#2236](https://github.com/habitat-sh/habitat/pull/2236) ([georgemarshall](https://github.com/georgemarshall))
+
+## Bug fixes
+
+- Inconsistency between sup load and status [\#2273](https://github.com/habitat-sh/habitat/issues/2273)
+- Fix `PATH` setting timing in the build program [\#2265](https://github.com/habitat-sh/habitat/issues/2265)
+- `{{svc.group}}` not just rendering the 'group' [\#2254](https://github.com/habitat-sh/habitat/issues/2254)
+- `bind.database.first` is missing [\#2252](https://github.com/habitat-sh/habitat/issues/2252)
+- Doc update: [\#2248](https://github.com/habitat-sh/habitat/issues/2248)
+- Doc Bug [\#2230](https://github.com/habitat-sh/habitat/issues/2230)
+- Service bind data does not contain service group members within the same supervisor [\#2150](https://github.com/habitat-sh/habitat/issues/2150)
+- \[plan-build\] Recompute `PATH` when using `pkg\_version\(\)` helper. [\#2286](https://github.com/habitat-sh/habitat/pull/2286) ([fnichol](https://github.com/fnichol))
+- Pipe optional binds through to RenderContext [\#2284](https://github.com/habitat-sh/habitat/pull/2284) ([reset](https://github.com/reset))
+- move user and group validation outside of service struct constructor so failed services can have persisted state [\#2279](https://github.com/habitat-sh/habitat/pull/2279) ([mwrock](https://github.com/mwrock))
+- Fix `/services/{svc}/{group}/config` endpoint in http-gateway and add docs [\#2269](https://github.com/habitat-sh/habitat/pull/2269) ([reset](https://github.com/reset))
+- Add `leader` and `update\_leader` fields to svc in rendering context [\#2251](https://github.com/habitat-sh/habitat/pull/2251) ([reset](https://github.com/reset))
+- Fix travis deploy for PRs redux [\#2236](https://github.com/habitat-sh/habitat/pull/2236) ([georgemarshall](https://github.com/georgemarshall))
+
+**Closed issues:**
+
+- NPM error when running make bldr-run from root of Habitat directory [\#2282](https://github.com/habitat-sh/habitat/issues/2282)
+- {{ has\_\<bind\>}} removed [\#2257](https://github.com/habitat-sh/habitat/issues/2257)
+
+**Merged pull requests:**
+
+- Remove deprecated publisher port [\#2268](https://github.com/habitat-sh/habitat/pull/2268) ([chefsalim](https://github.com/chefsalim))
+- remove warnings in windows supervisor compiles [\#2267](https://github.com/habitat-sh/habitat/pull/2267) ([mwrock](https://github.com/mwrock))
+- Bugfix in package graph [\#2266](https://github.com/habitat-sh/habitat/pull/2266) ([chefsalim](https://github.com/chefsalim))
+- do not wait for services to start on load and start commands [\#2264](https://github.com/habitat-sh/habitat/pull/2264) ([mwrock](https://github.com/mwrock))
+- remove unintentional backslash from initial studio message [\#2263](https://github.com/habitat-sh/habitat/pull/2263) ([mwrock](https://github.com/mwrock))
+- Corrected TOML example in docs [\#2262](https://github.com/habitat-sh/habitat/pull/2262) ([davidwrede](https://github.com/davidwrede))
+- Made Handlebars example easier to understand [\#2260](https://github.com/habitat-sh/habitat/pull/2260) ([davidwrede](https://github.com/davidwrede))
+- Updated to reference new ruby scaffolding [\#2259](https://github.com/habitat-sh/habitat/pull/2259) ([davidwrede](https://github.com/davidwrede))
+- Fix svc rendering [\#2255](https://github.com/habitat-sh/habitat/pull/2255) ([bodymindarts](https://github.com/bodymindarts))
+- Add Svc.first to templating/context [\#2253](https://github.com/habitat-sh/habitat/pull/2253) ([bodymindarts](https://github.com/bodymindarts))
+- add ruby scaffolding to changelog [\#2247](https://github.com/habitat-sh/habitat/pull/2247) ([mwrock](https://github.com/mwrock))
+- Adding release notes and updating release instructions for 0.22.0 [\#2246](https://github.com/habitat-sh/habitat/pull/2246) ([tashimi](https://github.com/tashimi))
+- Fix missing dep in mac/install\_dev\_0\_mac\_latest.sh [\#2245](https://github.com/habitat-sh/habitat/pull/2245) ([georgemarshall](https://github.com/georgemarshall))
+- bump dev version [\#2244](https://github.com/habitat-sh/habitat/pull/2244) ([mwrock](https://github.com/mwrock))
+
 ## [0.22.0](https://github.com/habitat-sh/habitat/tree/0.22.0) (05-06-2017)
-[Release Notes](https://forums.habitat.sh/t/habitat-0-22-0-released/326)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.21.0...0.22.0)
 
 ## Features & Enhancements
 
-- Implement MVP Ruby-based Scaffolding, initially targeting Rails 5 [\#2142](https://github.com/habitat-sh/habitat/issues/2142)
 - Remove `hab pkg exec` calls from Builder Plan hooks [\#2239](https://github.com/habitat-sh/habitat/issues/2239)
 - Hard to dynamically calculate version [\#2212](https://github.com/habitat-sh/habitat/issues/2212)
 - Run supervisor in the background inside a studio [\#2131](https://github.com/habitat-sh/habitat/issues/2131)
