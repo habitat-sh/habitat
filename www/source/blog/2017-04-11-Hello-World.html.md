@@ -2,7 +2,7 @@
 title: Hello World!
 date: 2017-04-11
 author: Ian Henry
-tags: community
+tags: community, gossip
 category: Community
 ---
 

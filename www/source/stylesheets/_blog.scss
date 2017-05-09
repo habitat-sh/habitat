@@ -22,13 +22,22 @@
 }
 
 .tag-list {
-  li a {
+  li.tag a {
     display: inline-block;
     padding: 0 1rem .25rem;
     color: $hab-orange;
     border: 1px solid currentColor;
     border-radius: $global-radius - 2;
     line-height: 1.5rem;
+  }
+}
+
+.tag_title {
+  color: $hab-white;
+  text-transform: capitalize;
+
+  span {
+    color: $hab-orange;
   }
 }
 

@@ -1,12 +1,15 @@
 ---
 pageable: true
-per_page: 10
+per_page: 12
 ---
 .row
   .main-sidebar
     = partial("blog/partials/blog_sidebar")
 
   .main-content__has-sidebar
+    h2.tag_title
+      = tagname
+
     - page_articles.each_with_index do |article, i|
       .blog-index--post-summary
         .blog-index--post-summary--header

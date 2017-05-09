@@ -1,0 +1,20 @@
+ul.no-bullet
+  li.main-sidebar--heading
+    h4 Blog Posts by Tag
+    ul.main-sidebar--list.no-bullet.tag-list
+      li.main-sidebar--list--item
+        a href="/blog" view all posts
+      - blog.tags.each do |tag, articles|
+        li.main-sidebar--list--item.tag
+          = link_to "#{tag}", tag_path(tag)
+  li.main-sidebar--heading
+    h4 Follow Habitat
+    ul.main-sidebar--list.no-bullet.social
+      li.main-sidebar--list--item
+        = link_to 'RSS', "blog/feed.xml", class: "rss"
+      li.main-sidebar--list--item
+        = link_to 'Twitter', "https://twitter.com/habitatsh", class: "twitter"
+      li.main-sidebar--list--item
+        = link_to 'YouTube', "https://www.youtube.com/channel/UC0wJZeP2dfPZaDUPgvpVpSg", class: "youtube"
+      li.main-sidebar--list--item
+        = link_to 'GitHub', "https://www.github.com/habitat-sh/", class: "github"

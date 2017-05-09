@@ -22,7 +22,8 @@ page 'tutorials/*', layout: :sidebar, locals: { sidebar_layout: 'tutorials' }
 page 'docs/*', layout: :sidebar, locals: { sidebar_layout: 'docs' }
 page 'legal/*', layout: :sidebar, locals: { sidebar_layout: 'legal' }
 page 'try/*', layout: :try
-page '/blog/index.html', layout: :blog_index
+# page '/blog/*', layout: :sidebar, locals: { sidebar_layout: 'docs' }
+page '/blog/*', layout: :blog_index
 
 activate :blog do |blog|
   blog.prefix = "blog"
@@ -36,8 +37,8 @@ activate :blog do |blog|
   blog.page_link = "page/{num}"
   blog.taglink = ":tag.html"
   blog.tag_template = "blog/tag.html"
-  blog.year_template = "blog/calendar.html"
-  blog.month_template = "blog/calendar.html"
+  blog.calendar_template = "blog/calendar.html"
+  # blog.month_template = "blog/calendar.html"
 end
 
 # Proxy pages (http://middlemanapp.com/basics/dynamic-pages/)
