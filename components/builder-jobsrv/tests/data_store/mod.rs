@@ -27,7 +27,7 @@ fn create_job() {
     job.mut_project().set_vcs_type(String::from("git"));
     job.mut_project()
         .set_vcs_data(String::from("http://github.com/habitat-sh/habitat"));
-
+    job.mut_project().set_name("core/habitat".to_string());
     let ds = datastore_test!(DataStore);
     ds.setup().expect("Failed to migrate data");
     ds.create_job(&mut job).expect("Failed to create a job");
@@ -39,6 +39,7 @@ fn test_job() -> jobsrv::Job {
     job.mut_project().set_vcs_type(String::from("git"));
     job.mut_project()
         .set_vcs_data(String::from("http://github.com/habitat-sh/habitat"));
+    job.mut_project().set_name("core/habitat".to_string());
     job
 }
 
@@ -125,7 +126,7 @@ fn pending_jobs() {
 }
 
 #[test]
-fn set_job_state() {
+fn update_job() {
     let mut job1 = test_job();
     let ds = datastore_test!(DataStore);
     ds.setup().expect("Failed to migrate data");
@@ -139,7 +140,7 @@ fn set_job_state() {
     assert_eq!(pending_job.get_state(), jobsrv::JobState::Pending);
 
     rjob1.set_state(jobsrv::JobState::Failed);
-    ds.set_job_state(&rjob1)
+    ds.update_job(&rjob1)
         .expect("Failed to update job state");
     let failed_job = ds.get_job(&get_job)
         .expect("Failed to get job from database")

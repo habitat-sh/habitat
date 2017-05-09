@@ -191,13 +191,13 @@ impl WorkerMgr {
                     if self.rq_sock.send_str(&worker, zmq::SNDMORE).is_err() {
                         debug!("failed to send, worker went away, worker={:?}", worker);
                         job.set_state(jobsrv::JobState::Pending);
-                        self.datastore.set_job_state(&job)?;
+                        self.datastore.update_job(&job)?;
                         continue;
                     }
                     if self.rq_sock.send(&[], zmq::SNDMORE).is_err() {
                         debug!("failed to send, worker went away, worker={:?}", worker);
                         job.set_state(jobsrv::JobState::Pending);
-                        self.datastore.set_job_state(&job)?;
+                        self.datastore.update_job(&job)?;
                         continue;
                     }
                     if self.rq_sock
@@ -205,14 +205,14 @@ impl WorkerMgr {
                            .is_err() {
                         debug!("failed to send, worker went away, worker={:?}", worker);
                         job.set_state(jobsrv::JobState::Pending);
-                        self.datastore.set_job_state(&job)?;
+                        self.datastore.update_job(&job)?;
                         continue;
                     }
                 }
                 None => {
                     debug!("no workers available - bailing for now");
                     job.set_state(jobsrv::JobState::Pending);
-                    self.datastore.set_job_state(&job)?;
+                    self.datastore.update_job(&job)?;
                     return Ok(());
                 }
             }
@@ -262,7 +262,7 @@ impl WorkerMgr {
         try!(self.rq_sock.recv(&mut self.msg, 0));
         let job: jobsrv::Job = try!(parse_from_bytes(&self.msg));
         debug!("job_status={:?}", job);
-        try!(self.datastore.set_job_state(&job));
+        try!(self.datastore.update_job(&job));
 
         Ok(())
     }

@@ -31,15 +31,55 @@ schemas:
                     "type": "string",
                     "required": true
                 },
+                "origin": {
+                  "type": "string",
+                  "required": true
+                },
+                "name": {
+                  "type": "string",
+                  "required": true
+                },
+                "version": {
+                  "type": "string",
+                  "required": true
+                },
+                "release": {
+                  "type": "string",
+                  "required": true
+                },
                 "state": {
-                    "type": "integer",
+                    "type": "string",
+                    "enum": ["Complete", "Dispatched", "Failed", "Pending", "Processing", "Rejected"],
                     "required": true
+                },
+                "created_at":{
+                  "type": "string",
+                  "required": false
+                },
+                "build_started_at":{
+                  "type": "string",
+                  "required": false
+                },
+                "build_finished_at":{
+                  "type": "string",
+                  "required": false
                 },
                 "error": {
                     "type": "netError",
                     "required": false
                 }
             }
+        }
+    - jobs: |
+        {
+            "properties": {
+              "jobs": {
+                "type": "array",
+                "minItems": 0,
+                "items": { "type": "job" },
+                "uniqueItems": true
+              }
+           }
         }
     - jobCreate: |
         {
@@ -208,10 +248,17 @@ securitySchemes:
                         application/json:
                             schema: job
                             example: |
-                                {
-                                    "id": 73089155726360582,
-                                    "state": 0
-                                }
+                              {
+                                  "id": "73089155726360582",
+                                  "origin": "core",
+                                  "project": "nginx",
+                                  "version": "1.0.0",
+                                  "release": "20170505001756",
+                                  "state": "Complete",
+                                  "created_at": "2017-05-05 00:42:35.213765+00",
+                                  "build_started_at": "2017-05-05 00:43:11.729835+00",
+                                  "build_finished_at": "2017-05-05 00:44:00.896919+00"
+                              }
                 400:
                     description: Received a jobId that was not a number
 /user:
@@ -323,3 +370,34 @@ securitySchemes:
                     description: Project deleted successfully
                 404:
                     description: Project not found
+
+        /jobs:
+            get:
+                description: |
+                    Retrieve the 50 most recently started jobs for the given project.
+
+                    Pagination and sort options to come later!
+                responses:
+                    200:
+                        body:
+                            application/json:
+                                schema:
+                                  jobs
+                                example: |
+                                  {
+                                      "jobs": [
+                                          {
+                                              "id": "73089155726360582",
+                                              "origin": "core",
+                                              "project": "nginx",
+                                              "version": "1.0.0",
+                                              "release": "20170505001756",
+                                              "state": "Complete",
+                                              "created_at": "2017-05-05 00:42:35.213765+00",
+                                              "build_started_at": "2017-05-05 00:43:11.729835+00",
+                                              "build_finished_at": "2017-05-05 00:44:00.896919+00"
+                                          }
+                                      ]
+                                  }
+                    404:
+                        description: Project not found

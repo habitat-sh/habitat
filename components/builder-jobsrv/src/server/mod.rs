@@ -96,6 +96,7 @@ impl Dispatcher for Worker {
         match message.message_id() {
             "JobSpec" => handlers::job_create(message, sock, state),
             "JobGet" => handlers::job_get(message, sock, state),
+            "ProjectJobsGet" => handlers::project_jobs_get(message, sock, state),
             _ => panic!("unexpected message: {:?}", message.message_id()),
         }
     }

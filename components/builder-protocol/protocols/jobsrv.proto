@@ -34,8 +34,22 @@ message Job {
   optional JobState state = 3;
   optional originsrv.OriginProject project = 4;
   optional net.NetError error = 5;
+  // The RFC3339-formatted time the job was entered into the
+  // system. It may not begin processing for some time after this,
+  // based on current system load.
+  optional string created_at = 6;
+  // The RFC3339-formatted time the `hab studio build` process
+  // started.
+  optional string build_started_at = 7;
+  // The RFC3339-formatted time the `hab studio build` process
+  // stopped, successful or not.
+  optional string build_finished_at = 8;
+  // The identifier of the package built by the job. Set only a
+  // successfully-built Job.
+  optional originsrv.OriginPackageIdent package_ident = 9;
 }
 
+// Retrieve a single job by ID
 message JobGet {
   optional uint64 id = 1;
 }
@@ -43,4 +57,17 @@ message JobGet {
 message JobSpec {
   optional uint64 owner_id = 1;
   optional originsrv.OriginProject project = 2;
+}
+
+// Retrieve jobs for a specific project.
+//
+// Currently retrieves 50 most recent; additional filtering and
+// sorting comes later.
+message ProjectJobsGet {
+  // The origin-qualified name of a project, e.g. "core/nginx"
+  optional string name = 1;
+}
+
+message ProjectJobsGetResponse {
+  repeated Job jobs = 1;
 }

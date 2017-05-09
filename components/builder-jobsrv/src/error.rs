@@ -41,6 +41,7 @@ pub enum Error {
     JobReset(postgres::error::Error),
     JobSetState(postgres::error::Error),
     NetError(hab_net::Error),
+    ProjectJobsGet(postgres::error::Error),
     Protobuf(protobuf::ProtobufError),
     UnknownVCS,
     UnknownJobState,
@@ -73,6 +74,9 @@ impl fmt::Display for Error {
             Error::JobSetState(ref e) => format!("Database error setting job state, {}", e),
             Error::NetError(ref e) => format!("{}", e),
             Error::Protobuf(ref e) => format!("{}", e),
+            Error::ProjectJobsGet(ref e) => {
+                format!("Database error getting jobs for project, {}", e)
+            }
             Error::UnknownVCS => format!("Unknown VCS"),
             Error::UnknownJobState => format!("Unknown Job State"),
             Error::Zmq(ref e) => format!("{}", e),
@@ -99,6 +103,7 @@ impl error::Error for Error {
             Error::JobSetState(ref err) => err.description(),
             Error::NetError(ref err) => err.description(),
             Error::Protobuf(ref err) => err.description(),
+            Error::ProjectJobsGet(ref err) => err.description(),
             Error::UnknownVCS => "Unknown VCS",
             Error::UnknownJobState => "Unknown Job State",
             Error::Zmq(ref err) => err.description(),

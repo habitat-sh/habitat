@@ -55,6 +55,10 @@ pub fn router(config: Arc<Config>) -> Result<Chain> {
 
         projects: post "/projects" => XHandler::new(project_create).before(bldr.clone()),
         project: get "/projects/:origin/:name" => XHandler::new(project_show).before(bldr.clone()),
+
+        project_jobs: get "/projects/:origin/:name/jobs" => {
+            XHandler::new(project_jobs).before(bldr.clone())
+        },
         edit_project: put "/projects/:origin/:name" => {
             XHandler::new(project_update).before(bldr.clone())
         },

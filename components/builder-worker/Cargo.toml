@@ -11,6 +11,7 @@ name = "bldr-worker"
 doc = false
 
 [dependencies]
+chrono = { version = "*", features = ["serde"] }
 env_logger = "*"
 git2 = "*"
 lazy_static = "*"

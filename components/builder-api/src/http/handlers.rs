@@ -28,7 +28,7 @@ use iron::prelude::*;
 use iron::status;
 use iron::typemap;
 use persistent;
-use protocol::jobsrv::{Job, JobGet, JobSpec};
+use protocol::jobsrv::{Job, JobGet, JobSpec, ProjectJobsGet, ProjectJobsGetResponse};
 use protocol::originsrv::*;
 use protocol::sessionsrv;
 use protocol::net::{self, NetOk, ErrCode};
@@ -389,6 +389,25 @@ pub fn project_show(req: &mut Request) -> IronResult<Response> {
     let mut conn = Broker::connect().unwrap();
     match conn.route::<OriginProjectGet, OriginProject>(&project_get) {
         Ok(project) => Ok(render_json(status::Ok, &project)),
+        Err(err) => Ok(render_net_error(&err)),
+    }
+}
+
+/// Retrieve the most recent 50 jobs for a project.
+///
+/// Later, we'll add more options for pagination, sorting, filtering,
+/// etc.
+pub fn project_jobs(req: &mut Request) -> IronResult<Response> {
+    let mut jobs_get = ProjectJobsGet::new();
+    let params = req.extensions.get::<Router>().unwrap();
+    {
+        let origin = params.find("origin").unwrap();
+        let name = params.find("name").unwrap();
+        jobs_get.set_name(format!("{}/{}", origin, name));
+    }
+    let mut conn = Broker::connect().unwrap();
+    match conn.route::<ProjectJobsGet, ProjectJobsGetResponse>(&jobs_get) {
+        Ok(jobs) => Ok(render_json(status::Ok, &jobs)),
         Err(err) => Ok(render_net_error(&err)),
     }
 }
