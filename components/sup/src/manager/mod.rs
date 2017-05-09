@@ -178,7 +178,7 @@ pub struct Manager {
     updater: ServiceUpdater,
     watcher: SpecWatcher,
     organization: Option<String>,
-    service_states: Vec<Timespec>,
+    service_states: HashMap<PackageIdent, Timespec>,
     sys: Arc<Sys>,
 }
 
@@ -273,7 +273,7 @@ impl Manager {
                watcher: SpecWatcher::run(&fs_cfg.specs_path)?,
                fs_cfg: Arc::new(fs_cfg),
                organization: cfg.organization,
-               service_states: Vec::new(),
+               service_states: HashMap::new(),
                sys: Arc::new(sys),
            })
     }
@@ -413,6 +413,18 @@ impl Manager {
                 return;
             }
         };
+
+        if let Err(e) = service.create_svc_path() {
+            outputln!("Can't create directory {}: {}",
+                      service.pkg.svc_path.display(),
+                      e);
+            outputln!("If this service is running as non-root, you'll need to create \
+                       {} and give the current user write access to it",
+                      service.pkg.svc_path.display());
+            outputln!("{} failed to start", &spec.ident);
+            return;
+        }
+
         self.gossip_latest_service_rumor(&service);
         if service.topology == Topology::Leader {
             self.butterfly
@@ -637,13 +649,24 @@ impl Manager {
     }
 
     fn check_for_changed_services(&mut self) -> bool {
-        let mut service_states = Vec::new();
+        let mut service_states = HashMap::new();
+        let mut active_services = Vec::new();
         for service in self.services
                 .write()
                 .expect("Services lock is poisoned!")
                 .iter_mut() {
-            service_states.push(service.last_state_change());
+            service_states.insert(service.spec_ident.clone(), service.last_state_change());
+            active_services.push(service.spec_ident.clone());
         }
+
+        for loaded in self.watcher
+                .specs_from_watch_path()
+                .unwrap()
+                .values()
+                .filter(|s| !active_services.contains(&s.ident)) {
+            service_states.insert(loaded.ident.clone(), Timespec::new(0, 0));
+        }
+
         if service_states != self.service_states {
             self.service_states = service_states.clone();
             true
@@ -728,11 +751,13 @@ impl Manager {
         }
 
         let mut is_first = true;
+        let mut persisted_idents = Vec::new();
 
         for service in self.services
                 .read()
                 .expect("Services lock is poisoned!")
                 .iter() {
+            persisted_idents.push(service.spec_ident.clone());
             if let Some(err) = self.write_service(service, is_first, writer.get_mut())
                    .err() {
                 warn!("Couldn't write to service state file, {}", err);
@@ -740,11 +765,14 @@ impl Manager {
             is_first = false;
         }
 
+        // add services that are not active but are being watched for changes
+        // These would include stopped persistent services or other
+        // persistent services that failed to load
         for down in self.watcher
                 .specs_from_watch_path()
                 .unwrap()
                 .values()
-                .filter(|s| s.desired_state == DesiredState::Down) {
+                .filter(|s| !persisted_idents.contains(&s.ident)) {
             match Service::load(self.sys.clone(),
                                 down.clone(),
                                 self.fs_cfg.clone(),
@@ -756,8 +784,8 @@ impl Manager {
                     }
                     is_first = false;
                 }
-                Err(_) => {}
-            };
+                Err(e) => debug!("Error loading inactive service struct: {}", e),
+            }
         }
 
         if let Some(err) = writer.get_mut().write("]".as_bytes()).err() {
@@ -826,6 +854,7 @@ impl Manager {
             let spec = service.to_spec();
             active_specs.insert(spec.ident.name.clone(), spec);
         }
+
         for service_event in self.watcher.new_events(active_specs)? {
             match service_event {
                 SpecWatcherEvent::AddService(spec) => {
@@ -836,6 +865,7 @@ impl Manager {
                 SpecWatcherEvent::RemoveService(spec) => self.remove_service_for_spec(&spec)?,
             }
         }
+
         Ok(())
     }
 

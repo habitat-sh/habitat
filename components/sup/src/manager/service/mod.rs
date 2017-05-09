@@ -169,20 +169,15 @@ impl Service {
                 organization: Option<&str>)
                 -> Result<Service> {
         let package = util::pkg::install_from_spec(&mut UI::default(), &spec)?;
-        let service = Self::new(sys, package, spec, manager_fs_cfg, organization)?;
-        if let Err(e) = service.create_svc_path() {
-            outputln!("Can't create directory {}", service.pkg.svc_path.display());
-            outputln!("If this service is running as non-root, you'll need to create \
-                       {} and give the current user write access to it",
-                      service.pkg.svc_path.display());
-            return Err(e);
-        }
-        Ok(service)
+        Ok(Self::new(sys, package, spec, manager_fs_cfg, organization)?)
     }
 
     /// Create the service path for this package.
-    fn create_svc_path(&self) -> Result<()> {
+    pub fn create_svc_path(&self) -> Result<()> {
         debug!("{}, Creating svc paths", self.service_group);
+        util::users::assert_pkg_user_and_group(self.pkg.svc_user.clone(),
+                                               self.pkg.svc_group.clone())?;
+
         Self::create_dir_all(&self.pkg.svc_path)?;
 
         // Create supervisor writable directories
