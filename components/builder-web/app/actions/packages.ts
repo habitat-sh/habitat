@@ -74,6 +74,16 @@ export function fetchPackage(pkg) {
     };
 }
 
+export function fetchLatestPackage(origin: string, name: string) {
+    return dispatch => {
+        depotApi.getLatest(origin, name).then(response => {
+            dispatch(setCurrentPackage(response));
+        }).catch(error => {
+            dispatch(setCurrentPackage(undefined, error));
+        });
+    };
+}
+
 export function fetchPackageVersions(origin: string, name: string) {
     return dispatch => {
         dispatch(clearPackageVersions());

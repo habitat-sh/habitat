@@ -15,7 +15,7 @@
 import { Component, OnInit, OnDestroy } from "@angular/core";
 import { RouterLink, ActivatedRoute } from "@angular/router";
 import { AppStore } from "../AppStore";
-import { fetchPackageVersions } from "../actions/index";
+import { fetchLatestPackage, fetchPackageVersions } from "../actions/index";
 import { Subscription } from "rxjs/Subscription";
 
 @Component({
@@ -36,6 +36,8 @@ export class PackageVersionsPageComponent implements OnInit, OnDestroy {
 
     ngOnInit() {
         this.fetchVersions();
+        this.fetchLatest();
+        this.loadVersions = this.fetchVersions.bind(this);
     }
 
     ngOnDestroy() {
@@ -50,7 +52,15 @@ export class PackageVersionsPageComponent implements OnInit, OnDestroy {
         return this.store.getState().packages.versions || [];
     }
 
+    get latestPackage() {
+        return this.store.getState().packages.current;
+    }
+
     private fetchVersions() {
         this.store.dispatch(fetchPackageVersions(this.origin, this.name));
+    }
+
+    private fetchLatest() {
+        this.store.dispatch(fetchLatestPackage(this.origin, this.name));
     }
 }

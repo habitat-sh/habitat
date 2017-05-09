@@ -12,7 +12,7 @@
         </p>
     </div>
     <hab-tabs *ngIf="ui.exists && !ui.loading">
-        <hab-tab tabTitle="All Versions" [onSelect]="fetchVersions">
+        <hab-tab tabTitle="All Versions" [onSelect]="loadVersions">
             <div class="page-body has-sidebar">
                 <div class="hab-origin--left hab-origin--pkg-list">
                     <div class="pkg-container">
@@ -34,13 +34,8 @@
             </div>
         </hab-tab>
         <hab-tab tabTitle="Latest">
-            <div class="page-body">
-                <div class="hab-origin--left">
-                    <div class="hab-origin--key-list">
-                    </div>
-                </div>
-                <div class="hab-origin--right">
-                </div>
+            <div class="page-body has-sidebar">
+                <hab-package-info [package]="latestPackage"></hab-package-info>
             </div>
         </hab-tab>
     </hab-tabs>

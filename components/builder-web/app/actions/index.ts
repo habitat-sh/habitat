@@ -167,6 +167,7 @@ export const uploadOriginPublicKey = originActions.uploadOriginPublicKey;
 export const fetchDashboardRecent = packageActions.fetchDashboardRecent;
 export const fetchExplore = packageActions.fetchExplore;
 export const fetchPackage = packageActions.fetchPackage;
+export const fetchLatestPackage = packageActions.fetchLatestPackage;
 export const fetchPackageVersions = packageActions.fetchPackageVersions;
 export const filterPackagesBy = packageActions.filterPackagesBy;
 export const populateExplore = packageActions.populateExplore;

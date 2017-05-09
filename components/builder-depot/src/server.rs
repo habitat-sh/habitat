@@ -1644,13 +1644,25 @@ fn target_from_headers(user_agent_header: &UserAgent) -> result::Result<PackageT
     let user_agent = user_agent_header.as_str();
     debug!("Headers = {}", &user_agent);
 
-    let user_agent_regex = Regex::new(r"(?P<client>\.*)\s\((?P<target>\w+-\w+); (?P<kernel>.*)\)")
-        .unwrap();
+    let user_agent_regex =
+        Regex::new(r"(?P<client>[^\s]+)\s?(\((?P<target>\w+-\w+); (?P<kernel>.*)\))?").unwrap();
     let user_agent_capture = user_agent_regex
         .captures(user_agent)
         .expect("Invalid user agent supplied.");
-    match PackageTarget::from_str(&user_agent_capture["target"]) {
-        Ok(target) => Ok(target),
+
+    // All of our tooling that depends on this function to return a target will have a user
+    // agent that includes the platform. Therefore, if we can't find a target, it's safe to
+    // assume that some other kind of HTTP tool is being used, e.g. curl. For those kinds
+    // of clients, the target platform isn't important, so let's default it to linux
+    // instead of returning a bad request.
+    let target = if let Some(target_match) = user_agent_capture.name("target") {
+        target_match.as_str()
+    } else {
+        "x86_64-linux"
+    };
+
+    match PackageTarget::from_str(target) {
+        Ok(t) => Ok(t),
         Err(_) => Err(Response::with(status::BadRequest)),
     }
 }
