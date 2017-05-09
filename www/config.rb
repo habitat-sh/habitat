@@ -25,9 +25,9 @@ page 'try/*', layout: :try
 page '/blog/index.html', layout: :blog_index
 
 activate :blog do |blog|
-  blog.prefix = "source/blog"
+  blog.prefix = "blog"
   blog.layout = :blog_post
-  blog.sources = "{year}-{month}-{day}-{title}.html"
+  # blog.sources = "{year}-{month}-{day}-{title}.html"
   blog.permalink = "{year}/{month}/{day}/{title}.html"
   blog.default_extension = ".md"
   blog.summary_separator = /READMORE/
@@ -35,8 +35,10 @@ activate :blog do |blog|
   blog.paginate = true
   blog.per_page = 10
   blog.page_link = "page/{num}"
+  blog.taglink = "metadata/:tag.html"
   blog.tag_template = "blog/tag.html"
-  blog.calendar_template = "blog/calendar.html"
+  blog.year_template = "blog/calendar.html"
+  blog.month_template = "blog/calendar.html"
 end
 
 # Proxy pages (http://middlemanapp.com/basics/dynamic-pages/)
@@ -97,6 +99,8 @@ end
 
 activate :autoprefixer
 activate :directory_indexes
+# page "/blog/*.html", :directory_index => false
+
 set :trailing_slash, false
 
 activate :s3_sync do |s3_sync|

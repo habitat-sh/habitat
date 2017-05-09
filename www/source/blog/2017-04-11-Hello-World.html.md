@@ -1,6 +1,6 @@
 ---
 title: Hello World!
-date: 2017/04/11
+date: 2017-04-11
 author: Ian Henry
 tags: community
 category: Community
