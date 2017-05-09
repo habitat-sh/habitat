@@ -1,4 +1,4 @@
-{{toToml cfg}}
+shards = {{toToml cfg.shards}}
 
 {{~#eachAlive bind.router.members as |member|}}
 [[router]]
@@ -7,8 +7,11 @@ port = {{member.cfg.port}}
 heartbeat = {{member.cfg.heartbeat}}
 {{~/eachAlive}}
 
-{{~#eachAlive bind.datastore.members as |member|}}
 [datastore]
+{{toToml cfg.datastore}}
+{{~#eachAlive bind.datastore.members as |member|}}
+{{~#if @first}}
 host = "{{member.sys.ip}}"
 port = {{member.cfg.port}}
+{{~/if}}
 {{~/eachAlive}}
