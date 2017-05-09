@@ -40,6 +40,7 @@ use manager::service::HealthCheck;
 use manager::service::hooks::{self, HealthCheckHook};
 
 static LOGKEY: &'static str = "HG";
+const APIDOCS: &'static str = include_str!(concat!(env!("OUT_DIR"), "/api.html"));
 
 // Simple macro to encapsulate the HTTP metrics for each endpoint
 macro_rules! with_metrics {
@@ -143,6 +144,7 @@ pub struct Server(Iron<Chain>, ListenAddr);
 impl Server {
     pub fn new(manager_state: Arc<manager::FsCfg>, listen_addr: ListenAddr) -> Self {
         let router = router!(
+            doc: get "/" => with_metrics!(doc, "doc"),
             butterfly: get "/butterfly" => with_metrics!(butterfly, "butterfly"),
             census: get "/census" => with_metrics!(census, "census"),
             metrics: get "/metrics" => with_metrics!(metrics, "metrics"),
@@ -274,6 +276,10 @@ fn services(req: &mut Request) -> IronResult<Response> {
         Ok(file) => Ok(Response::with((status::Ok, Header(headers::ContentType::json()), file))),
         Err(_) => Ok(Response::with(status::ServiceUnavailable)),
     }
+}
+
+fn doc(_req: &mut Request) -> IronResult<Response> {
+    Ok(Response::with((status::Ok, Header(headers::ContentType::html()), APIDOCS)))
 }
 
 fn metrics(_req: &mut Request) -> IronResult<Response> {

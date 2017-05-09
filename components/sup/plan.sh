@@ -4,12 +4,11 @@ pkg_origin=core
 pkg_version=$(cat "$PLAN_CONTEXT/../../VERSION")
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('Apache-2.0')
-pkg_source=nosuchfile.tar.gz
 pkg_deps=(
   core/busybox-static
   core/glibc core/gcc-libs core/libarchive core/libsodium core/openssl core/zeromq
 )
-pkg_build_deps=(core/coreutils core/cacerts core/rust core/gcc core/protobuf)
+pkg_build_deps=(core/coreutils core/cacerts core/rust core/gcc core/protobuf core/raml2html)
 pkg_bin_dirs=(bin)
 
 bin=$_pkg_distname
@@ -52,7 +51,7 @@ do_prepare() {
 do_build() {
   export LIBRARY_PATH=$LIBZMQ_PREFIX/lib
   pushd $PLAN_CONTEXT > /dev/null
-  cargo build ${build_type#--debug} --target=$rustc_target --verbose
+  cargo build ${build_type#--debug} --target=$rustc_target --verbose --features apidocs
   popd > /dev/null
 }
 
@@ -65,17 +64,4 @@ do_strip() {
   if [[ "$build_type" != "--debug" ]]; then
     do_default_strip
   fi
-}
-
-# Turn the remaining default phases into no-ops
-do_download() {
-  return 0
-}
-
-do_verify() {
-  return 0
-}
-
-do_unpack() {
-  return 0
 }
