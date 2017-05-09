@@ -1934,7 +1934,7 @@ pkg_interpreter_for() {
 # }
 # ```
 update_pkg_version() {
-  local update_src_path
+  local update_src_path val
 
   if [[ "${_verify_vars:-}" == true ]]; then
     local e
@@ -1970,6 +1970,11 @@ update_pkg_version() {
   if [[ "${update_src_path:-}" == true ]]; then
     SRC_PATH="$CACHE_PATH"
   fi
+  # Replace the unset placeholders with the computed value
+  val="$(echo "$PATH" | sed "s,__pkg__version__unset__,${pkg_version},g")"
+  pkg_env[PATH]="$val"
+  PATH="$val"
+  build_line "Updating PATH=$PATH"
 }
 
 # ## Build Phases
@@ -3090,13 +3095,13 @@ _determine_hab_bin
 
 _resolve_dependencies
 
-mkdir -pv "$HAB_CACHE_SRC_PATH"
-
-# Run any code before environment is set and the build starts
-do_before
-
 # Set up runtime environment
 _set_environment
+
+mkdir -pv "$HAB_CACHE_SRC_PATH"
+
+# Run any code after the environment is set but before the build starts
+do_before
 
 # Download the source
 do_download
