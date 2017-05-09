@@ -344,14 +344,14 @@ impl PackageInstall {
         }
     }
 
-    /// Returns a `HashMap<String, String>` with the full runtime environment for this package.
-    /// This is constructed from all `ENVIRONMENT` and `ENVIRONMENT_SEP` metadata entries from the
+    /// Returns a `Vec<PkgEnv>` with the full runtime environment for this package. This is
+    /// constructed from all `ENVIRONMENT` and `ENVIRONMENT_SEP` metadata entries from the
     /// *direct* dependencies first (in declared order) and then from any remaining transitive
     /// dependencies last (in lexically sorted order).
     ///
     /// If a package is missing the aforementioned metadata files, fall back to the
     /// legacy `PATH` metadata files.
-    pub fn runtime_environment(&self) -> Result<HashMap<String, String>> {
+    pub fn package_environments(&self) -> Result<Vec<PkgEnv>> {
         let mut idents = HashSet::new();
         let mut pkg_envs: Vec<PkgEnv> = Vec::new();
 
@@ -387,7 +387,14 @@ impl PackageInstall {
             idents.insert(dep.ident().clone());
         }
 
+        Ok(pkg_envs)
+    }
+
+    /// Returns a flattened `HashMap<String, String>` with the runtime environment, omitting
+    /// overwritten values.
+    pub fn runtime_environment(&self) -> Result<HashMap<String, String>> {
         let mut env: HashMap<String, String> = HashMap::new();
+        let pkg_envs = self.package_environments()?;
 
         for pkg_env in pkg_envs.into_iter() {
             for env_var in pkg_env.into_iter() {
