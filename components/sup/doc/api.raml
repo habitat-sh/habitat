@@ -8,20 +8,166 @@ baseUriParameters:
         description: The root URI for the Habitat Supervisor
         example: localhost:9631
 mediaType: application/json
-schemas:
-    - healthCheckOutput: |
-        {
-            "properties": {
-                "stdout": {
-                    "type": "string",
-                    "required": false
-                },
-                "stderr": {
-                    "type": "string",
-                    "required": false
-                }
-            }
-        }
+types:
+    healthCheckOutput:
+        type: object
+        properties:
+            stdout:
+                type: string
+            stderr:
+                type: string
+    hookInfo:
+        type: object
+        properties:
+            render_pair:
+                type: string
+            stdout_log_path:
+                type: string
+            stderr_log_path:
+                type: string
+    hookTable:
+        type: object
+        properties:
+            health_check:
+                type: hookInfo
+                required: false
+            init:
+                type: hookInfo
+                required: false
+            file_updated:
+                type: hookInfo
+                required: false
+            reload:
+                type: hookInfo
+                required: false
+            reconfigure:
+                type: hookInfo
+                required: false
+            suitability:
+                type: hookInfo
+                required: false
+            run:
+                type: hookInfo
+                required: false
+            post_run:
+                type: hookInfo
+                required: false
+            smoke_test:
+                type: hookInfo
+                required: false
+    processInfo:
+        type: object
+        properties:
+            pid:
+                type: integer
+            preamble:
+                type: string
+            state:
+                enum: [
+                    "Up",
+                    "Down",
+                    "Start",
+                    "Restart",
+                ]
+            state_entered:
+                type: integer
+            started:
+                type: boolean
+    specIdent:
+        type: object
+        properties:
+            origin:
+                type: string
+            name:
+                type: string
+            version:
+                type: string
+                required: false
+            release:
+                type: integer
+                required: false
+    service:
+        type: object
+        properties:
+            service_group:
+                type: string
+            depot_url:
+                type: string
+            spec_file:
+                type: string
+            spec_ident:
+                type: specIdent
+            start_style:
+                enum: [
+                    "Transient",
+                    "Permanent",
+                ]
+            topology:
+                enum: [
+                    "standalone",
+                    "leader",
+                ]
+            update_strategy:
+                enum: [
+                    "none",
+                    "rolling",
+                    "at-once",
+                ]
+            cfg:
+                type: object
+            pkg:
+                type: string
+            sys:
+                type: systemInfo
+            health_check:
+                enum: [
+                    "Ok",
+                    "Warning",
+                    "Critical",
+                    "Unknown",
+                ]
+            initialized:
+                type: boolean
+            last_election_status:
+            needs_reload:
+                type: boolean
+            needs_reconfiguration:
+                type: boolean
+            smoke_check:
+                enum: [
+                    "Ok",
+                    "Failed",
+                    "Pending",
+                ]
+            hooks:
+                type: hookTable
+            config_from:
+                type: string
+                required: false
+            process:
+                type: processInfo
+    systemInfo:
+        type: object
+        properties:
+            version:
+                type: string
+            member_id:
+                type: string
+            ip:
+                type: string
+            hostname:
+                type: string
+            gossip_ip:
+                type: string
+            gossip_port:
+                type: integer
+            http_gateway_ip:
+                type: string
+            http_gateway_port:
+                type: integer
+            permanent:
+                type: boolean
+
 /butterfly:
     get:
         description: Butterfly debug output
@@ -38,11 +184,38 @@ schemas:
                     application/json:
 /services:
     get:
-        description: Service debug output
+        description: List information of all loaded services
         responses:
             200:
                 body:
                     application/json:
+                        type: service[]
+            503:
+                description: Supervisor hasn't fully started. Try again later.
+    /{name}/{group}:
+        get:
+            description: Show information of a single loaded service
+            responses:
+                200:
+                    body:
+                        application/json:
+                            type: service
+                404:
+                    description: Service not loaded
+                503:
+                    description: Supervisor hasn't fully started. Try again later.
+    /{name}/{group}/{org}:
+        get:
+            description: Show information of a single loaded service
+            responses:
+                200:
+                    body:
+                        application/json:
+                            type: service
+                404:
+                    description: Service not loaded
+                503:
+                    description: Supervisor hasn't fully started. Try again later.
     /{name}/{group}/config:
         get:
             description: Get last configuration for the given service group
@@ -50,10 +223,11 @@ schemas:
                 200:
                     body:
                         application/toml:
+                            type: object
                 404:
-                    description: Service not found
+                    description: Service not loaded
                 503:
-                    description: Temporarily couldn't load configuration
+                    description: Supervisor hasn't fully started. Try again later.
     /{name}/{group}/health:
         get:
             description: Health check status and output for the given service group
@@ -62,9 +236,9 @@ schemas:
                     description: Health Check - Ok / Warning
                     body:
                         application/json:
-                            schema: healthCheckOutput
+                            type: healthCheckOutput
                 404:
-                    description: Service not found
+                    description: Service not loaded
                 500:
                     description: Health Check - Unknown
                 503:
@@ -76,8 +250,9 @@ schemas:
                 200:
                     body:
                         application/toml:
+                            type: object
                 404:
-                    description: Service not found
+                    description: Service not loaded
                 503:
                     description: Temporarily couldn't load configuration
     /{name}/{group}/{organization}/health:
@@ -88,9 +263,9 @@ schemas:
                     description: Health Check - Ok / Warning
                     body:
                         application/json:
-                            schema: healthCheckOutput
+                            type: healthCheckOutput
                 404:
-                    description: Service not found
+                    description: Service not loaded
                 500:
                     description: Health Check - Unknown
                 503:

@@ -19,6 +19,7 @@ use std::io::{self, Read};
 use std::net::{IpAddr, Ipv4Addr, ToSocketAddrs, SocketAddr, SocketAddrV4};
 use std::ops::{Deref, DerefMut};
 use std::option;
+use std::path::Path;
 use std::result;
 use std::str::FromStr;
 use std::sync::Arc;
@@ -31,9 +32,9 @@ use iron::modifiers::Header;
 use persistent;
 use prometheus::{self, CounterVec, HistogramVec, TextEncoder, Encoder};
 use router::Router;
-use serde_json;
+use serde_json::{self, Value as Json};
+
 use error::{Result, Error, SupError};
-use fs;
 use manager;
 use manager::service::HealthCheck;
 use manager::service::hooks::{self, HealthCheckHook};
@@ -148,6 +149,12 @@ impl Server {
             census: get "/census" => with_metrics!(census, "census"),
             metrics: get "/metrics" => with_metrics!(metrics, "metrics"),
             services: get "/services" => with_metrics!(services, "services"),
+            service: get "/services/:svc/:group" => {
+                with_metrics!(service, "service")
+            },
+            service_org: get "/services/:svc/:group/:org" => {
+                with_metrics!(service, "service")
+            },
             service_config: get "/services/:svc/:group/config" => {
                 with_metrics!(config, "config")
             },
@@ -172,7 +179,6 @@ impl Server {
                                              .http(*self.1)
                                              .expect("unable to start http-gateway thread");
                                      }));
-
         Ok(handle)
     }
 }
@@ -200,18 +206,19 @@ fn census(req: &mut Request) -> IronResult<Response> {
 }
 
 fn config(req: &mut Request) -> IronResult<Response> {
-    // JW TODO: We don't really care about the other parts of the service group. This is because
-    // we're maybe doing the wrong thing by placing all services in /hab/svc without including
-    // any information about the group name or organization perhaps? Either way - this isn't
-    // harmful for now - we'll either include that or change the URI to this endpoint to only
-    // require service name.
-    let config_file = match build_service_group(req) {
-        Ok(sg) => fs::svc_config_file(sg.service()),
+    let state = req.get::<persistent::Read<ManagerFs>>().unwrap();
+    let service_group = match build_service_group(req) {
+        Ok(sg) => sg,
         Err(_) => return Ok(Response::with(status::BadRequest)),
     };
-    match File::open(&config_file) {
-        Ok(file) => Ok(Response::with((status::Ok, file))),
-        Err(_) => Ok(Response::with(status::NotFound)),
+    match service_from_file(&service_group, &state.services_data_path) {
+        Ok(Some(service)) => {
+            Ok(Response::with((status::Ok,
+                               Header(headers::ContentType::json()),
+                               service["cfg"].to_string())))
+        }
+        Ok(None) => Ok(Response::with(status::NotFound)),
+        Err(_) => Ok(Response::with(status::ServiceUnavailable)),
     }
 }
 
@@ -246,6 +253,23 @@ fn health(req: &mut Request) -> IronResult<Response> {
     }
 }
 
+fn service(req: &mut Request) -> IronResult<Response> {
+    let state = req.get::<persistent::Read<ManagerFs>>().unwrap();
+    let service_group = match build_service_group(req) {
+        Ok(sg) => sg,
+        Err(_) => return Ok(Response::with(status::BadRequest)),
+    };
+    match service_from_file(&service_group, &state.services_data_path) {
+        Ok(Some(service)) => {
+            Ok(Response::with((status::Ok,
+                               Header(headers::ContentType::json()),
+                               service.to_string())))
+        }
+        Ok(None) => Ok(Response::with(status::NotFound)),
+        Err(_) => Ok(Response::with(status::ServiceUnavailable)),
+    }
+}
+
 fn services(req: &mut Request) -> IronResult<Response> {
     let state = req.get::<persistent::Read<ManagerFs>>().unwrap();
     match File::open(&state.services_data_path) {
@@ -255,7 +279,7 @@ fn services(req: &mut Request) -> IronResult<Response> {
 }
 
 fn doc(_req: &mut Request) -> IronResult<Response> {
-   Ok(Response::with((status::Ok, Header(headers::ContentType::html()), APIDOCS)))
+    Ok(Response::with((status::Ok, Header(headers::ContentType::html()), APIDOCS)))
 }
 
 fn metrics(_req: &mut Request) -> IronResult<Response> {
@@ -297,4 +321,24 @@ fn build_service_group(req: &mut Request) -> Result<ServiceGroup> {
                                    .unwrap_or(""),
                                req.extensions.get::<Router>().unwrap().find("org"))?;
     Ok(sg)
+}
+
+fn service_from_file<T>(service_group: &ServiceGroup,
+                        services_data_path: T)
+                        -> result::Result<Option<Json>, io::Error>
+    where T: AsRef<Path>
+{
+    match File::open(services_data_path) {
+        Ok(file) => {
+            match serde_json::from_reader(file) {
+                Ok(Json::Array(services)) => {
+                    Ok(services
+                           .into_iter()
+                           .find(|s| s["service_group"] == service_group.as_ref()))
+                }
+                _ => Ok(None),
+            }
+        }
+        Err(err) => Err(err),
+    }
 }
