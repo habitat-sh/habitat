@@ -3,35 +3,53 @@ pageable: true
 per_page: 10
 ---
 .main-sidebar
-  ul.main-sidebar--list.no-bullet
-    li.main-sidebar--list--item
-      = link_to 'RSS', "blog/feed.xml"
-    li.main-sidebar--list--item
-      = link_to 'Twitter', "https://twitter.com/habitatsh"
-    li.main-sidebar--list--item
-      = link_to 'Youtube', "https://www.youtube.com/channel/UC0wJZeP2dfPZaDUPgvpVpSg"
-    li.main-sidebar--list--item
-      = link_to 'GitHub', "https://www.github.com/habitat-sh/"
+  ul.no-bullet
+    li.main-sidebar--heading
+      h4 Filter by Tag
+      ul.main-sidebar--list.no-bullet.tag-list
+        - blog.tags.each do |tag, articles|
+          li.main-sidebar--list--item.tag
+            = link_to "#{tag}", tag_path(tag)
+    li.main-sidebar--heading
+      h4 Follow Habitat
+      ul.main-sidebar--list.no-bullet.social
+        li.main-sidebar--list--item
+          = link_to 'RSS', "blog/feed.xml", class: "rss"
+        li.main-sidebar--list--item
+          = link_to 'Twitter', "https://twitter.com/habitatsh", class: "twitter"
+        li.main-sidebar--list--item
+          = link_to 'YouTube', "https://www.youtube.com/channel/UC0wJZeP2dfPZaDUPgvpVpSg", class: "youtube"
+        li.main-sidebar--list--item
+          = link_to 'GitHub', "https://www.github.com/habitat-sh/", class: "github"
+
 .main-content__has-sidebar
-  .container.blog
-    .row
-      .posts.small-8.large-centered.columns
-        - page_articles.each_with_index do |article, i|
-          h2.post-title
-            = link_to article.title, article
-          - if article.data.author
-            - if article.data.category
-              .detail-post-date= "#{article.date.strftime('%b %e, %Y')} | #{article.data.author} | #{article.data.category}"
-            - else
-              .detail-post-date= "#{article.date.strftime('%b %e, %Y')} | #{article.data.author}"
-          - else
-            .detail-post-date= article.date.strftime('%b %e, %Y')
-          = article.summary
-          = link_to 'Read more...', article
-        - if paginate
-          - if prev_page
-            p.pagination-link
-              = link_to '<< Previous page', prev_page
-          - if next_page
-            p.pagination-link
-              = link_to 'Next page >>', next_page
+  - page_articles.each_with_index do |article, i|
+    .blog-index--post-summary
+      .blog-index--post-summary--header
+        ul.no-bullet
+          - article.tags.each do |tag|
+            li
+              = link_to "#{tag}", tag_path(tag)
+      .blog-index--post-summary--body
+        h2
+          = link_to article.title, article
+        = article.summary
+        = link_to 'Read more...', article, class: 'read-more'
+        footer
+          ul.no-bullet
+            - if article.data.author
+                li
+                  img[src="/images/icons/icon-person.svg"
+                    onerror="this.src='/images/icons/icon-person.png'" alt="person icon"]
+                  | #{article.data.author}
+            li
+              img[src="/images/icons/icon-calendar.svg"
+                onerror="this.src='/images/icons/icon-calendar.png'" alt="calendar icon"]
+              | #{article.date.strftime('%b %e, %Y')}
+  - if paginate
+    - if prev_page
+      p.pagination-link
+        = link_to '<< Previous page', prev_page
+    - if next_page
+      p.pagination-link
+        = link_to 'Next page >>', next_page

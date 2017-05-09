@@ -89,6 +89,12 @@ $black: #0a0a0a;
 $white: #fefefe;
 $white-slightly-transparent: rgba(255, 255, 255, 0.97);
 
+// Habitat Gradient Colors
+%hab-gradient-green {
+  background: #62AAA7;
+  background: linear-gradient(90deg, #62AAA7 0%, #BADB8D 100%);
+}
+
 $body-background: $hab-white;
 $body-font-color: $hab-blue-grey;
 $body-font-family: 'Titillium Web', 'Helvetica Neue', Helvetica, Roboto, Arial, sans-serif;

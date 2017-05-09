@@ -13,6 +13,7 @@
 //  8. Anchor Links
 //  9. Global Message
 //  10. 404
+//  11. Social links
 
 $main-nav-breakpoint: 769px;
 
@@ -426,5 +427,40 @@ img {
     margin: 0 auto rem-calc(10);
     max-width: 65%;
     text-align: center;
+  }
+}
+
+// 11. Social links
+// -------------------
+
+%social-icons {
+  .social {
+    li {
+      margin-bottom: .625rem;
+    }
+    a {
+      padding-left: rem-calc(30);
+      background: url('/images/icons/icons-social.svg') no-repeat;
+
+      &.github {
+        background-position: left top;
+      }
+
+      &.slack {
+        background-position: left -32px;
+      }
+
+      &.youtube {
+        background-position: left -64px;
+      }
+
+      &.rss {
+        background-position: left -94px;
+      }
+
+      &.twitter {
+        background-position: left bottom;
+      }
+    }
   }
 }

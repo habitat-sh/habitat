@@ -65,26 +65,7 @@
     color: lighten($hab-green-light, 25%);
   }
 
-  .social a {
-    padding-left: rem-calc(30);
-    background: url('/images/icons/icons-social.svg') no-repeat;
-
-    &.github {
-      background-position: left top;
-    }
-
-    &.slack {
-      background-position: left -32px;
-    }
-
-    &.youtube {
-      background-position: left -64px;
-    }
-
-    &.rss {
-      background-position: left bottom;
-    }
-  }
+  @extend %social-icons;
 }
 
 .footer--sitemap--link {

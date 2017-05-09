@@ -27,7 +27,6 @@ page '/blog/index.html', layout: :blog_index
 activate :blog do |blog|
   blog.prefix = "blog"
   blog.layout = :blog_post
-  # blog.sources = "{year}-{month}-{day}-{title}.html"
   blog.permalink = "{year}/{month}/{day}/{title}.html"
   blog.default_extension = ".md"
   blog.summary_separator = /READMORE/
@@ -35,7 +34,7 @@ activate :blog do |blog|
   blog.paginate = true
   blog.per_page = 10
   blog.page_link = "page/{num}"
-  blog.taglink = "metadata/:tag.html"
+  blog.taglink = ":tag.html"
   blog.tag_template = "blog/tag.html"
   blog.year_template = "blog/calendar.html"
   blog.month_template = "blog/calendar.html"
