@@ -15,7 +15,8 @@ env_logger = "*"
 linked-hash-map = "*"
 log = "*"
 protobuf = "*"
-postgres = "*"
+postgres = { version = "*", features = ["with-chrono"] }
+chrono = { version = "*", features = ["serde"] }
 rand = "*"
 r2d2 = "*"
 serde = "*"

@@ -57,3 +57,23 @@ pub fn job_get(req: &mut Envelope, sock: &mut zmq::Socket, state: &mut ServerSta
     }
     Ok(())
 }
+
+pub fn project_jobs_get(req: &mut Envelope,
+                        sock: &mut zmq::Socket,
+                        state: &mut ServerState)
+                        -> Result<()> {
+    let msg: proto::ProjectJobsGet = try!(req.parse_msg());
+    match state.datastore().get_jobs_for_project(&msg) {
+        Ok(ref jobs) => {
+            // NOTE: Currently no difference between "project has no jobs" and "no
+            // such project"
+            try!(req.reply_complete(sock, jobs));
+        }
+        Err(e) => {
+            error!("datastore error, err={:?}", e);
+            let err = net::err(ErrCode::DATA_STORE, "jb:project-jobs-get:2");
+            try!(req.reply_complete(sock, &err));
+        }
+    }
+    Ok(())
+}

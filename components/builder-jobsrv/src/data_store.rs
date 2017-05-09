@@ -14,17 +14,19 @@
 
 //! The PostgreSQL backend for the Jobsrv.
 
-use db::pool::Pool;
-use db::async::{AsyncServer, EventOutcome};
-use db::migration::Migrator;
-use db::error::{Error as DbError, Result as DbResult};
-use protocol::{originsrv, jobsrv, scheduler};
-use protocol::net::NetOk;
-use postgres;
-
+use chrono::{DateTime, UTC};
 use config::Config;
+use db::async::{AsyncServer, EventOutcome};
+use db::error::{Error as DbError, Result as DbResult};
+use db::migration::Migrator;
+use db::pool::Pool;
 use error::{Result, Error};
 use hab_net::routing::Broker;
+use postgres;
+use protobuf;
+use protocol::net::NetOk;
+use protocol::{originsrv, jobsrv, scheduler};
+use std::str::FromStr;
 
 /// DataStore inherints being Send + Sync by virtue of having only one member, the pool itself.
 #[derive(Debug, Clone)]
@@ -207,6 +209,53 @@ impl DataStore {
         migrator.migrate("jobsrv",
                          r#"CREATE INDEX pending_jobs_index_v1 on jobs(created_at) WHERE job_state = 'Pending'"#)?;
 
+        // We're deliberately returning only the 50 most
+        // recently-created jobs here. A future version of this
+        // function may take additional parameters for sorting,
+        // filtering, and pagination.
+        //
+        // Also deliberately using `SELECT *` here, for the same
+        // reasons listed above for `get_job_v1`.
+        //
+        // Note that `project_name` here is an origin-qualified
+        // project name, e.g. "core/nginx".
+        migrator.migrate("jobsrv",
+                         r#"CREATE OR REPLACE FUNCTION get_jobs_for_project_v1(p_project_name TEXT)
+                         RETURNS SETOF jobs
+                         LANGUAGE SQL STABLE AS $$
+                           SELECT *
+                           FROM jobs
+                           WHERE project_name = p_project_name
+                           ORDER BY created_at DESC
+                           LIMIT 50;
+                         $$"#)?;
+
+        migrator.migrate("jobsrv", r#"ALTER TABLE jobs ADD COLUMN IF NOT EXISTS build_started_at TIMESTAMPTZ DEFAULT NULL"#)?;
+        migrator.migrate("jobsrv", r#"ALTER TABLE jobs ADD COLUMN IF NOT EXISTS build_finished_at TIMESTAMPTZ DEFAULT NULL"#)?;
+        migrator.migrate("jobsrv", r#"ALTER TABLE jobs ADD COLUMN IF NOT EXISTS package_ident TEXT DEFAULT NULL"#)?;
+
+        // Removing the `set_job_state_v1` function in favor of a more
+        // general `update_job_v1` function.
+        migrator.migrate("jobsrv", r#"DROP FUNCTION IF EXISTS set_job_state_v1(bigint, text)"#)?;
+        migrator.migrate("jobsrv",
+                         r#"CREATE OR REPLACE FUNCTION update_job_v1(
+                           p_job_id bigint,
+                           p_state text,
+                           p_build_started_at timestamptz,
+                           p_build_finished_at timestamptz,
+                           p_package_ident text)
+                         RETURNS VOID
+                         LANGUAGE SQL VOLATILE AS $$
+                           UPDATE jobs
+                           SET job_state = p_state,
+                               scheduler_sync = false,
+                               updated_at = now(),
+                               build_started_at = p_build_started_at,
+                               build_finished_at = p_build_finished_at,
+                               package_ident = p_package_ident
+                           WHERE id = p_job_id;
+                         $$"#)?;
+
         migrator.finish()?;
 
         self.async.register("sync_jobs".to_string(), sync_jobs);
@@ -268,6 +317,28 @@ impl DataStore {
         Ok(None)
     }
 
+    /// Get the 50 most recently-created jobs for a given project
+    /// (specified as an origin-qualified name, e.g., "core/nginx").
+    ///
+    /// # Errors
+    ///
+    /// * If a connection cannot be gotten from the pool
+    /// * If a row returned cannot be translated into a Job
+    pub fn get_jobs_for_project(&self, project: &jobsrv::ProjectJobsGet) -> Result<jobsrv::ProjectJobsGetResponse> {
+        let conn = self.pool.get_shard(0)?;
+        let rows = &conn.query("SELECT * FROM get_jobs_for_project_v1($1)",
+                               &[&(project.get_name())])
+            .map_err(Error::ProjectJobsGet)?;
+
+        let mut response = jobsrv::ProjectJobsGetResponse::new();
+        let mut jobs = protobuf::RepeatedField::new();
+        for row in rows {
+            jobs.push(row_to_job(&row)?)
+        }
+        response.set_jobs(jobs);
+        Ok(response)
+    }
+
     /// Get a list of pending jobs, up to a maximum count of jobs.
     ///
     /// # Errors
@@ -300,13 +371,15 @@ impl DataStore {
         Ok(())
     }
 
-    /// Set the state of a job. If the job does not exist in the database, its basically a no-op.
+    /// Updates a job. Currently, this entails updating the state,
+    /// build start and stop times, and recording the identifier of
+    /// the package the job produced, if any.
     ///
     /// # Errors
     ///
     /// * If a connection cannot be gotten from the pool
-    /// * If the jobs state cannot be updated in the database
-    pub fn set_job_state(&self, job: &jobsrv::Job) -> Result<()> {
+    /// * If the job cannot be updated in the database
+    pub fn update_job(&self, job: &jobsrv::Job) -> Result<()> {
         let conn = self.pool.get_shard(0)?;
         let job_id = job.get_id() as i64;
         let job_state = match job.get_state() {
@@ -317,8 +390,27 @@ impl DataStore {
             jobsrv::JobState::Rejected => "Rejected",
             jobsrv::JobState::Failed => "Failed",
         };
-        conn.execute("SELECT set_job_state_v1($1, $2)", &[&job_id, &job_state])
-            .map_err(Error::JobSetState)?;
+        
+        // Note: the following fields may all be NULL. As currently
+        // coded, if they are NULL, then the corresponding fields in
+        // the database will also be updated to be NULL. This should
+        // be OK, though, because they shouldn't be changing anyway.
+        let build_started_at = match job.has_build_started_at() {
+            true => Some(DateTime::<UTC>::from_str(job.get_build_started_at()).unwrap()),
+            false => None
+        };
+        let build_finished_at = match job.has_build_finished_at() {
+            true => Some(DateTime::<UTC>::from_str(job.get_build_finished_at()).unwrap()),
+            false => None
+        };
+        let ident = match job.has_package_ident() {
+            true => Some(job.get_package_ident().to_string()),
+            false => None
+        };
+
+        conn.execute("SELECT update_job_v1($1, $2, $3, $4, $5)",
+                     &[&job_id, &job_state, &build_started_at, &build_finished_at, &ident])
+            .map_err(Error::JobSetState)?; 
 
         self.async.schedule("sync_jobs")?;
 
@@ -350,10 +442,41 @@ fn row_to_job(row: &postgres::rows::Row) -> Result<jobsrv::Job> {
     };
     job.set_state(job_state);
 
+    let created_at = row.get::<&str, DateTime<UTC>>("created_at");
+    job.set_created_at(created_at.to_rfc3339());
+    
+    // Note: these may be null (e.g., a job is scheduled, but hasn't
+    // started; a job has started and is currently running)
+    if let Some(Ok(start)) = row.get_opt::<&str, DateTime<UTC>>("build_started_at") {
+        job.set_build_started_at(start.to_rfc3339());
+    }
+    if let Some(Ok(stop)) = row.get_opt::<&str, DateTime<UTC>>("build_finished_at") {
+        job.set_build_finished_at(stop.to_rfc3339());
+    }
+
+    // package_ident will only be present if the build succeeded
+    if let Some(Ok(ident_str)) = row.get_opt::<&str, String>("package_ident") {
+        let ident: originsrv::OriginPackageIdent = ident_str.parse().unwrap();
+        job.set_package_ident(ident);
+    }
+    
     let mut project = originsrv::OriginProject::new();
     let project_id: i64 = row.get("project_id");
     project.set_id(project_id as u64);
-    project.set_name(row.get("project_name"));
+
+    // only 'project_name' exists in the jobs table, but it's just
+    // "origin/name", so we can set those fields in the Project
+    // struct.
+    //
+    // 'package_ident' may be null, though, so we shouldn't use it to
+    // get the origin and name.
+    let name: String = row.get("project_name");
+    let name_for_split = name.clone();
+    let name_split: Vec<&str> = name_for_split.split("/").collect();
+    project.set_origin_name(name_split[0].to_string());
+    project.set_package_name(name_split[1].to_string());
+    project.set_name(name);
+    
     let project_owner_id: i64 = row.get("project_owner_id");
     project.set_owner_id(project_owner_id as u64);
     project.set_plan_path(row.get("project_plan_path"));

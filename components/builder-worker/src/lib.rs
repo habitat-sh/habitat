@@ -12,15 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+extern crate chrono;
 extern crate habitat_builder_protocol as protocol;
-extern crate habitat_depot_client as depot_client;
 extern crate habitat_core as hab_core;
+extern crate habitat_depot_client as depot_client;
 extern crate habitat_net as hab_net;
 extern crate git2;
 #[macro_use]
-extern crate log;
-#[macro_use]
 extern crate lazy_static;
+#[macro_use]
+extern crate log;
 extern crate protobuf;
 extern crate serde;
 #[macro_use]

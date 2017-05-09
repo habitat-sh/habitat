@@ -11,7 +11,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
 pub mod logger;
 pub mod workspace;
 pub mod postprocessor;
@@ -27,6 +26,7 @@ use std::str::FromStr;
 use std::sync::{mpsc, Arc, RwLock};
 use std::thread::{self, JoinHandle};
 
+use chrono::UTC;
 use depot_client;
 use hab_core::{self, crypto};
 use hab_core::package::archive::PackageArchive;
@@ -35,6 +35,7 @@ use hab_core::package::PackageIdent;
 use hab_net::server::ZMQ_CONTEXT;
 use protobuf::{parse_from_bytes, Message};
 use protocol::jobsrv as proto;
+use protocol::originsrv::OriginPackageIdent;
 use protocol::net::{self, ErrCode};
 use zmq;
 
@@ -45,6 +46,7 @@ use self::workspace::Workspace;
 use config::Config;
 use error::{Error, Result};
 use vcs;
+
 
 /// In-memory zmq address of Job RunnerMgr
 const INPROC_ADDR: &'static str = "inproc://runner";
@@ -176,13 +178,46 @@ impl Runner {
             error!("Unable to clone remote source repository, err={}", err);
             return self.fail(net::err(ErrCode::VCS_CLONE, "wk:run:4"));
         }
+
+        self.workspace
+            .job
+            .set_build_started_at(UTC::now().to_rfc3339());
+
+        // TODO: We don't actually update the state of the job to
+        // "Processing" (that should happen here), so an outside
+        // observer will see a job up going from "Dispatched" directly
+        // to "Complete" (or "Failed", etc.). As a result, we won't
+        // get the `build_started_at` time set until the job is actually
+        // finished.
         let mut archive = match self.build() {
-            Ok(archive) => archive,
+            Ok(archive) => {
+                self.workspace
+                    .job
+                    .set_build_finished_at(UTC::now().to_rfc3339());
+                archive
+            }
             Err(err) => {
+                self.workspace
+                    .job
+                    .set_build_finished_at(UTC::now().to_rfc3339());
                 error!("Unable to build in studio, err={}", err);
                 return self.fail(net::err(ErrCode::BUILD, "wk:run:5"));
             }
         };
+
+        // TODO: It doesn't appear that we can currently get a package
+        // identifier out of the build process unless it successfully
+        // completes. This means that only jobs that are successful
+        // will have complete identifiers, but that makes it difficult
+        // (impossible?) to associate failed jobs with specific
+        // package versions. We may be able to do some kind of log
+        // output snooping (or something more robust than that :) and
+        // cross-thread communication to retrieve this information for
+        // *all* job runs. But not today.
+
+        // Converting from a core::PackageIdent to an OriginPackageIdent
+        let ident = OriginPackageIdent::from(archive.ident().unwrap());
+        self.workspace.job.set_package_ident(ident);
 
         let mut post_processor = PostProcessor::new(&self.workspace);
         if !post_processor.run(&mut archive, &self.auth_token) {
