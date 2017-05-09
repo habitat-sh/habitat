@@ -14,7 +14,7 @@ You interact with a depot by performing the following operations:
 * Uploading the keys for that origin.
 * Uploading one or more packages into that origin.
 
-We will use the public depot provided by the Habitat project for this section. However, it is possible to run your own depot by installing and running the `core/hab-depot` package.
+We will use the public depot provided by the Habitat project for this section. However, it is planned to be able to run your own depot. Today the Habitat team does not officially support private package depots.
 
 ## Creating an account in the depot
 
