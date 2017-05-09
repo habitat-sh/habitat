@@ -36,6 +36,7 @@ message Group {
   optional uint64 id = 1;
   optional GroupState state = 2;
   repeated Project projects = 3;
+  optional string created_at = 4;
 }
 
 message Package {

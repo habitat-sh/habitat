@@ -145,6 +145,7 @@ impl Serialize for Group {
         try!(strukt.serialize_field("id", &self.get_id()));
         try!(strukt.serialize_field("state", &self.get_state()));
         try!(strukt.serialize_field("projects", &self.get_projects()));
+        try!(strukt.serialize_field("created_at", &self.get_created_at()));
         strukt.end()
     }
 }

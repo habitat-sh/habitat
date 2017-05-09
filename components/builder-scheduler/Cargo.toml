@@ -17,11 +17,12 @@ log = "*"
 rand = "*"
 time = "*"
 protobuf = "*"
-postgres = "*"
+postgres = { version = "*", features = ["with-chrono"] }
 r2d2 = "*"
 serde = "*"
 serde_derive = "*"
 toml = { version = "*", features = ["serde"], default-features = false }
+chrono = { version = "*", features = ["serde"] }
 
 [dependencies.clap]
 version = "*"

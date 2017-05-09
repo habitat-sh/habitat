@@ -13,7 +13,9 @@
 // limitations under the License.
 
 use std::sync::mpsc;
+use std::sync::{Arc, RwLock};
 use std::thread::{self, JoinHandle};
+use std::path::PathBuf;
 
 use protobuf::{parse_from_bytes, Message};
 use hab_net::server::ZMQ_CONTEXT;
@@ -25,6 +27,9 @@ use protocol::originsrv::*;
 use protocol::scheduler as proto;
 use data_store::DataStore;
 use error::{Result, Error};
+
+use config::Config;
+use server::logger::Logger;
 
 const SCHEDULER_ADDR: &'static str = "inproc://scheduler";
 const STATUS_ADDR: &'static str = "inproc://scheduler-status";
@@ -77,10 +82,11 @@ pub struct ScheduleMgr {
     status_sock: zmq::Socket,
     schedule_cli: ScheduleClient,
     msg: zmq::Message,
+    logger: Logger,
 }
 
 impl ScheduleMgr {
-    pub fn new(datastore: DataStore) -> Result<Self> {
+    pub fn new(datastore: DataStore, config: Arc<RwLock<Config>>) -> Result<Self> {
         let work_sock = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER));
         try!(work_sock.set_rcvhwm(1));
         try!(work_sock.set_linger(0));
@@ -95,21 +101,28 @@ impl ScheduleMgr {
         let mut schedule_cli = ScheduleClient::default();
         try!(schedule_cli.connect());
 
+        let log_path = {
+            let cfg = config.read().unwrap();
+            PathBuf::from(cfg.log_path.clone())
+        };
+        let logger = Logger::init(log_path);
+
         Ok(ScheduleMgr {
                datastore: datastore,
                work_sock: work_sock,
                status_sock: status_sock,
                schedule_cli: schedule_cli,
                msg: msg,
+               logger: logger,
            })
     }
 
-    pub fn start(ds: DataStore) -> Result<JoinHandle<()>> {
+    pub fn start(ds: DataStore, config: Arc<RwLock<Config>>) -> Result<JoinHandle<()>> {
         let (tx, rx) = mpsc::sync_channel(1);
         let handle = thread::Builder::new()
             .name("scheduler".to_string())
             .spawn(move || {
-                       let mut schedule_mgr = Self::new(ds).unwrap();
+                       let mut schedule_mgr = Self::new(ds, config).unwrap();
                        schedule_mgr.run(tx).unwrap();
                    })
             .unwrap();
@@ -179,9 +192,13 @@ impl ScheduleMgr {
     }
 
     fn dispatch_group(&mut self, group: proto::Group) -> Result<()> {
+        self.logger.log_group(&group);
+
         let dispatchable = self.dispatchable_projects(&group)?;
         for project in dispatchable {
             debug!("Dispatching project: {:?}", project.get_name());
+            self.logger.log_project(&group, &project);
+
             assert!(project.get_state() == proto::ProjectState::NotStarted);
 
             match self.schedule_job(group.get_id(), project.get_name()) {
@@ -196,6 +213,12 @@ impl ScheduleMgr {
                     self.datastore
                         .set_group_state(group.get_id(), proto::GroupState::Failed)?;
                     // TBD? set_project_state(group.get_id(), project.get_name(), proto::ProjectState::Failure)?;
+
+                    // TODO: Make this cleaner later
+                    let mut updated_group = group.clone();
+                    updated_group.set_state(proto::GroupState::Failed);
+                    self.logger.log_group(&updated_group);
+
                     break;
                 }
             }
@@ -276,9 +299,30 @@ impl ScheduleMgr {
         }
     }
 
+    fn get_group(&mut self, group_id: u64) -> Result<proto::Group> {
+        let mut msg: proto::GroupGet = proto::GroupGet::new();
+        msg.set_group_id(group_id);
+
+        match self.datastore.get_group(&msg) {
+            Ok(group_opt) => {
+                match group_opt {
+                    Some(group) => Ok(group),
+                    None => Err(Error::UnknownGroup),
+                }
+            }
+            Err(err) => {
+                warn!("Group retrieve error: {:?}", err);
+                Err(Error::UnknownGroup)
+            }
+        }
+    }
+
     fn process_status(&mut self) -> Result<()> {
         try!(self.status_sock.recv(&mut self.msg, 0));
-        let job: Job = try!(parse_from_bytes(&self.msg));
+        let job: Job = parse_from_bytes(&self.msg)?;
+        let group: proto::Group = self.get_group(job.get_owner_id())?;
+
+        self.logger.log_job(&group, &job);
 
         match self.datastore.set_group_job_state(&job) {
             Ok(_) => {
@@ -296,10 +340,7 @@ impl ScheduleMgr {
     }
 
     fn update_group_state(&mut self, group_id: u64) -> Result<()> {
-        let mut msg: proto::GroupGet = proto::GroupGet::new();
-        msg.set_group_id(group_id);
-
-        let group = self.datastore.get_group(&msg).unwrap().unwrap(); // we know the group exists
+        let group = self.get_group(group_id)?;
 
         // Group state transition rules:
         // |   Start Group State     |  Projects State  |   New Group State   |
@@ -334,11 +375,16 @@ impl ScheduleMgr {
 
             if new_state == proto::GroupState::Pending {
                 try!(self.schedule_cli.notify_work());
+            } else {
+                // TODO: Make this cleaner later
+                let mut updated_group = group.clone();
+                updated_group.set_state(new_state);
+                self.logger.log_group(&updated_group);
             }
         } else {
-            error!("Unexpected group state {:?} for group id: {}",
-                   group.get_state(),
-                   group_id);
+            warn!("Unexpected group state {:?} for group id: {}",
+                  group.get_state(),
+                  group_id);
         }
 
         Ok(())

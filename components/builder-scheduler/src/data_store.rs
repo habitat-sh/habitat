@@ -19,6 +19,7 @@ use postgres;
 use config::Config;
 use error::{Result, Error};
 use rand::{Rng, thread_rng};
+use chrono::{DateTime, UTC};
 
 use protocol::jobsrv::{Job, JobState};
 use protocol::scheduler::*;
@@ -418,6 +419,9 @@ impl DataStore {
             _ => return Err(Error::UnknownGroupState),
         };
         group.set_state(group_state);
+
+        let created_at = row.get::<&str, DateTime<UTC>>("created_at");
+        group.set_created_at(created_at.to_rfc3339());
 
         Ok(group)
     }

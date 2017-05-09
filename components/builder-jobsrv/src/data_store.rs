@@ -165,7 +165,7 @@ impl DataStore {
                                         FOR UPDATE SKIP LOCKED
                                         LIMIT $1
                                     LOOP
-                                        UPDATE jobs SET job_state='Dispatched', updated_at=now() WHERE id=r.id RETURNING * INTO r;
+                                        UPDATE jobs SET job_state='Dispatched', scheduler_sync=false, updated_at=now() WHERE id=r.id RETURNING * INTO r;
                                         RETURN NEXT r;
                                     END LOOP;
                                   RETURN;
@@ -176,7 +176,7 @@ impl DataStore {
         migrator.migrate("jobsrv",
                          r#"CREATE OR REPLACE FUNCTION reset_jobs_v1 () RETURNS void AS $$
                                 BEGIN
-                                    UPDATE jobs SET job_state='Pending', updated_at=now() WHERE job_state='Dispatched';
+                                    UPDATE jobs SET job_state='Pending', scheduler_sync=false, updated_at=now() WHERE job_state='Dispatched';
                                 END
                                 $$ LANGUAGE plpgsql VOLATILE"#)?;
 
