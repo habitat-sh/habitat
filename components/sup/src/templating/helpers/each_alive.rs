@@ -33,7 +33,6 @@ impl HelperDef for EachAliveHelper {
             let local_path_root = value
                 .path_root()
                 .map(|p| format!("{}/{}", rc.get_path(), p));
-            println!("{}", value.value());
             let rendered = match (value.value().is_truthy(), value.value()) {
                 (true, &Json::Array(ref list)) => {
                     let len = list.len();
