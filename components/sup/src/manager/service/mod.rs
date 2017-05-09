@@ -95,8 +95,8 @@ pub struct Service {
     needs_reload: bool,
     needs_reconfiguration: bool,
     smoke_check: SmokeCheck,
-    #[serde(skip_serializing)]
-    spec_binds: Vec<ServiceBind>,
+    binds: Vec<ServiceBind>,
+    binds_optional: Vec<ServiceBind>,
     hooks: HookTable,
     config_from: Option<PathBuf>,
     #[serde(skip_serializing)]
@@ -136,7 +136,8 @@ impl Service {
                pkg: pkg,
                service_group: service_group,
                smoke_check: SmokeCheck::default(),
-               spec_binds: spec.binds,
+               binds: spec.binds,
+               binds_optional: spec.binds_optional,
                spec_ident: spec.ident,
                spec_file: spec_file,
                start_style: spec.start_style,
@@ -275,8 +276,8 @@ impl Service {
 
     pub fn tick(&mut self, census_ring: &CensusRing) -> bool {
         if !self.initialized {
-            if !self.all_bindings_present(census_ring) {
-                outputln!(preamble self.service_group, "Waiting for service binds...");
+            if !self.all_required_binds_present(census_ring) {
+                outputln!(preamble self.service_group, "Waiting for required service binds...");
                 return false;
             }
         }
@@ -345,15 +346,16 @@ impl Service {
         spec.depot_url = self.depot_url.clone();
         spec.topology = self.topology;
         spec.update_strategy = self.update_strategy;
-        spec.binds = self.spec_binds.clone();
+        spec.binds = self.binds.clone();
+        spec.binds_optional = self.binds_optional.clone();
         spec.start_style = self.start_style;
         spec.config_from = self.config_from.clone();
         spec
     }
 
-    fn all_bindings_present(&self, census_ring: &CensusRing) -> bool {
+    fn all_required_binds_present(&self, census_ring: &CensusRing) -> bool {
         let mut ret = true;
-        for ref bind in self.spec_binds.iter() {
+        for ref bind in self.binds.iter() {
             if census_ring
                    .census_group_for(&bind.service_group)
                    .is_none() {
@@ -626,7 +628,7 @@ impl Service {
                            &self.pkg,
                            &self.cfg,
                            census,
-                           &self.spec_binds)
+                           self.binds.iter().chain(self.binds_optional.iter()))
     }
 
     fn run_health_check_hook(&mut self) {

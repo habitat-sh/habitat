@@ -24,7 +24,9 @@ use manager::service::{Cfg, Pkg, ServiceBind};
 pub struct Binds<'a>(HashMap<String, BindGroup<'a>>);
 
 impl<'a> Binds<'a> {
-    fn new(bindings: &[ServiceBind], census: &'a CensusRing) -> Self {
+    fn new<T>(bindings: T, census: &'a CensusRing) -> Self
+        where T: Iterator<Item = &'a ServiceBind>
+    {
         let mut map = HashMap::default();
         for bind in bindings {
             if let Some(group) = census.census_group_for(&bind.service_group) {
@@ -60,13 +62,15 @@ pub struct RenderContext<'a> {
 }
 
 impl<'a> RenderContext<'a> {
-    pub fn new(service_group: &ServiceGroup,
-               sys: &'a Sys,
-               pkg: &'a Pkg,
-               cfg: &'a Cfg,
-               census: &'a CensusRing,
-               bindings: &[ServiceBind])
-               -> RenderContext<'a> {
+    pub fn new<T>(service_group: &ServiceGroup,
+                  sys: &'a Sys,
+                  pkg: &'a Pkg,
+                  cfg: &'a Cfg,
+                  census: &'a CensusRing,
+                  bindings: T)
+                  -> RenderContext<'a>
+        where T: Iterator<Item = &'a ServiceBind>
+    {
         let census_group = census
             .census_group_for(&service_group)
             .expect("Census Group missing from list!");
