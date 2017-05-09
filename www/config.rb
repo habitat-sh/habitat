@@ -25,11 +25,12 @@ page 'try/*', layout: :try
 page '/blog/index.html', layout: :blog_index
 
 activate :blog do |blog|
-  blog.prefix = "blog"
+  blog.prefix = "source/blog"
   blog.layout = :blog_post
-  blog.permalink = "{title}.html"
+  blog.sources = "{year}-{month}-{day}-{title}.html"
+  blog.permalink = "{year}/{month}/{day}/{title}.html"
   blog.default_extension = ".md"
-  blog.summary_separator = /(READMORE)/
+  blog.summary_separator = /READMORE/
   blog.summary_length = 250
   blog.paginate = true
   blog.per_page = 10
