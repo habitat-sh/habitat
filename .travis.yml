@@ -216,23 +216,12 @@ matrix:
           - /root/travis_bootstrap
           - /hab/studios/home--travis--build--habitat-sh
           - /root/.cargo
-      script:
+      before_install:
         - ./support/ci/fast_pass.sh || exit 0
-      before_deploy:
         - if [[ ! -x ./support/ci/deploy.sh ]]; then chmod +x ./support/ci/deploy.sh; fi
         - openssl aes-256-cbc -K $encrypted_50e90ce07941_key -iv $encrypted_50e90ce07941_iv -in ./support/ci/habitat-srv-admin.enc -out /tmp/habitat-srv-admin -d
-      deploy:
-        # This is split into two because tags overrides branch setting
-        - provider: script
-          script:
-            - sudo ./support/ci/deploy.sh
-          on:
-            branch: master
-        - provider: script
-          script:
-            - sudo ./support/ci/deploy.sh
-          on:
-            tags: true
+      script:
+        - sudo ./support/ci/deploy.sh
 notifications:
   webhooks:
     urls:
