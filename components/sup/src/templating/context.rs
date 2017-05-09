@@ -37,12 +37,16 @@ impl<'a> Binds<'a> {
 
 #[derive(Clone, Debug, Serialize)]
 pub struct BindGroup<'a> {
-    members: Vec<SvcMember<'a>>,
+    pub first: Option<SvcMember<'a>>,
+    pub members: Vec<SvcMember<'a>>,
 }
 
 impl<'a> BindGroup<'a> {
     fn new(group: &'a CensusGroup) -> Self {
-        BindGroup { members: group.members().iter().map(|m| SvcMember(m)).collect() }
+        BindGroup {
+            first: select_first(group),
+            members: group.members().iter().map(|m| SvcMember(m)).collect(),
+        }
     }
 }
 
@@ -96,15 +100,10 @@ pub struct Svc<'a> {
 
 impl<'a> Svc<'a> {
     fn new(census_group: &'a CensusGroup) -> Self {
-        let first = match census_group.leader() {
-            Some(member) => SvcMember(member),
-            None => SvcMember(census_group.members()[0]),
-        };
-        let sg = &census_group.service_group;
         Svc {
-            service: sg.service(),
-            group: sg.group(),
-            org: sg.org(),
+            service: census_group.service_group.service(),
+            group: census_group.service_group.group(),
+            org: census_group.service_group.org(),
             election_is_running: census_group.election_status == ElectionStatus::ElectionInProgress,
             election_is_no_quorum: census_group.election_status == ElectionStatus::ElectionNoQuorum,
             election_is_finished: census_group.election_status == ElectionStatus::ElectionFinished,
@@ -121,7 +120,7 @@ impl<'a> Svc<'a> {
                 .map(|m| SvcMember(m))
                 .collect(),
             leader: census_group.leader().map(|m| SvcMember(m)),
-            first: first,
+            first: select_first(census_group).expect("First should always be present on svc"),
             update_leader: census_group.update_leader().map(|m| SvcMember(m)),
         }
     }
@@ -130,3 +129,17 @@ impl<'a> Svc<'a> {
 /// A friendly representation of a `CensusMember` to the templating system.
 #[derive(Clone, Debug, Serialize)]
 pub struct SvcMember<'a>(&'a CensusMember);
+
+/// Helper for pulling the leader or first member from a census group. This is used to populate the
+/// `.first` field in `bind` and `svc`.
+fn select_first(census_group: &CensusGroup) -> Option<SvcMember> {
+    match census_group.leader() {
+        Some(member) => Some(SvcMember(member)),
+        None => {
+            census_group
+                .members()
+                .first()
+                .and_then(|m| Some(SvcMember(m)))
+        }
+    }
+}

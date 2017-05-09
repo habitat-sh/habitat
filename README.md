@@ -36,9 +36,6 @@ If you are running on a Mac or Linux, you can also use the Habitat install scrip
   $ curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh | sudo bash
 ```
 
-###
-
-
 ## Web Application
 
 The Habitat Builder web application is in the components/builder-web directory. See
@@ -65,7 +62,6 @@ See [BUILDING.md](BUILDING.md) for platform specific info on building Habitat fr
 * [Wikibook: Bourne Shell Scripting](https://en.wikibooks.org/wiki/Bourne_Shell_Scripting)
 * [What is the difference between test, \[ and \[\[ ?](http://mywiki.wooledge.org/BashFAQ/031)
 * [POSIX Shell Command Language](http://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html)
-
 
 ## License
 
