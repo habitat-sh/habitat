@@ -75,7 +75,7 @@ impl Default for JobSrvAddr {
             host: IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
             port: 5566,
             heartbeat: 5567,
-            log_port: 5569
+            log_port: 5568
         }
     }
 }
