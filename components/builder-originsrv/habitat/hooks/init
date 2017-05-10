@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-PGPASSWORD={{cfg.datastore.password}}
+export PGPASSWORD="{{cfg.datastore.password}}"
 
 if [ $(psql -lw -U hab -h {{bind.datastore.first.sys.ip}} | grep {{cfg.datastore.database}} | wc -l) -eq 0 ]; then
   createdb -w -h {{bind.datastore.first.sys.ip}} -p {{bind.datastore.first.cfg.port}} -U hab {{cfg.datastore.database}}
