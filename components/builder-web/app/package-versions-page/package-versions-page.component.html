@@ -33,7 +33,7 @@
                 </div>
             </div>
         </hab-tab>
-        <hab-tab tabTitle="Latest">
+        <hab-tab tabTitle="Latest" *ngIf="latestPackage">
             <div class="page-body has-sidebar">
                 <hab-package-info [package]="latestPackage"></hab-package-info>
             </div>

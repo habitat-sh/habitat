@@ -23,6 +23,8 @@ import { Subscription } from "rxjs/Subscription";
 })
 
 export class PackageVersionsPageComponent implements OnInit, OnDestroy {
+    loadVersions: Function;
+
     private name: string;
     private origin: string;
     private sub: Subscription;
@@ -31,12 +33,12 @@ export class PackageVersionsPageComponent implements OnInit, OnDestroy {
         this.sub = route.params.subscribe(params => {
             this.name = params["name"];
             this.origin = params["origin"];
+            this.fetchVersions();
+            this.fetchLatest();
         });
     }
 
     ngOnInit() {
-        this.fetchVersions();
-        this.fetchLatest();
         this.loadVersions = this.fetchVersions.bind(this);
     }
 
