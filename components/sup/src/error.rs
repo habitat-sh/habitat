@@ -118,6 +118,7 @@ pub enum Error {
     TemplateFileError(handlebars::TemplateFileError),
     TemplateRenderError(handlebars::RenderError),
     InvalidBinding(String),
+    InvalidBinds(Vec<String>),
     InvalidKeyParameter(String),
     InvalidPidFile,
     InvalidTopology(String),
@@ -198,6 +199,7 @@ impl fmt::Display for SupError {
                          <NAME> is a service name and <SERVICE_GROUP> is a valid service group",
                         binding)
             }
+            Error::InvalidBinds(ref e) => format!("Invalid bind(s), {}", e.join(", ")),
             Error::InvalidKeyParameter(ref e) => {
                 format!("Invalid parameter for key generation: {:?}", e)
             }
@@ -306,6 +308,7 @@ impl error::Error for SupError {
             Error::EnvJoinPathsError(ref err) => err.description(),
             Error::FileNotFound(_) => "File not found",
             Error::InvalidBinding(_) => "Invalid binding parameter",
+            Error::InvalidBinds(_) => "Service binds detected that are neither required nor optional package binds",
             Error::InvalidKeyParameter(_) => "Key parameter error",
             Error::InvalidPidFile => "Invalid child process PID file",
             Error::InvalidTopology(_) => "Invalid topology",

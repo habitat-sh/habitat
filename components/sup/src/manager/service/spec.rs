@@ -12,9 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::collections::HashSet;
 use std::fmt;
 use std::fs::{self, File};
 use std::io::{BufReader, Read, Write};
+use std::iter::FromIterator;
 use std::path::{Path, PathBuf};
 use std::result;
 use std::str::FromStr;
@@ -81,7 +83,6 @@ pub struct ServiceSpec {
     pub topology: Topology,
     pub update_strategy: UpdateStrategy,
     pub binds: Vec<ServiceBind>,
-    pub binds_optional: Vec<ServiceBind>,
     pub config_from: Option<PathBuf>,
     #[serde(
         deserialize_with = "deserialize_using_from_str",
@@ -162,22 +163,44 @@ impl ServiceSpec {
         Ok(())
     }
 
-    /// Validates that all required binds are present
+    /// Validates that all required package binds are present in service binds and all remaining
+    /// service binds are optional package binds.
+    ///
+    /// # Errors
+    ///
+    /// * If any required required package binds are missing in service binds
+    /// * If any given service binds are in neither required nor optional package binds
     fn validate_binds(&self, package: &PackageInstall) -> Result<()> {
-        let missing: Vec<String> = package
-            .binds()?
-            .into_iter()
-            .filter(|bind| {
-                        self.binds
-                            .iter()
-                            .find(|ref service_bind| &bind.service == &service_bind.name)
-                            .is_none()
-                    })
-            .map(|bind| bind.service)
-            .collect();
-        if !missing.is_empty() {
-            return Err(sup_error!(Error::MissingRequiredBind(missing)));
+        let mut svc_binds: HashSet<String> =
+            HashSet::from_iter(self.binds.iter().cloned().map(|b| b.name));
+
+        let mut missing_req_binds = Vec::new();
+        // Remove each service bind that matches a required package bind. If a required package
+        // bind is not found, add the bind to the missing list to return an `Err`.
+        for req_bind in package.binds()?.iter().map(|b| &b.service) {
+            if svc_binds.contains(req_bind) {
+                svc_binds.remove(req_bind);
+            } else {
+                missing_req_binds.push(req_bind.clone());
+            }
         }
+        // If we have missing required binds, return an `Err`.
+        if !missing_req_binds.is_empty() {
+            return Err(sup_error!(Error::MissingRequiredBind(missing_req_binds)));
+        }
+
+        // Remove each service bind that matches an optional package bind.
+        for opt_bind in package.binds_optional()?.iter().map(|b| &b.service) {
+            if svc_binds.contains(opt_bind) {
+                svc_binds.remove(opt_bind);
+            }
+        }
+        // If we have remaining service binds then they are neither required nor optional package
+        // binds. In this case, return an `Err`.
+        if !svc_binds.is_empty() {
+            return Err(sup_error!(Error::InvalidBinds(svc_binds.into_iter().collect())));
+        }
+
         Ok(())
     }
 }
@@ -191,7 +214,6 @@ impl Default for ServiceSpec {
             topology: Topology::default(),
             update_strategy: UpdateStrategy::default(),
             binds: Vec::default(),
-            binds_optional: Vec::default(),
             config_from: None,
             desired_state: DesiredState::default(),
             start_style: StartStyle::default(),
@@ -417,7 +439,6 @@ mod test {
             update_strategy: UpdateStrategy::AtOnce,
             binds: vec![ServiceBind::from_str("cache:redis.cache@acmecorp").unwrap(),
                         ServiceBind::from_str("db:postgres.app@acmecorp").unwrap()],
-            binds_optional: vec![ServiceBind::from_str("butts:myapp.live@acmecorp").unwrap()],
             config_from: Some(PathBuf::from("/only/for/development")),
             desired_state: DesiredState::Down,
             start_style: StartStyle::Persistent,
@@ -431,7 +452,6 @@ mod test {
         assert!(toml.contains(r#"update_strategy = "at-once""#));
         assert!(toml.contains(r#""cache:redis.cache@acmecorp""#));
         assert!(toml.contains(r#""db:postgres.app@acmecorp""#));
-        assert!(toml.contains(r#""butts:myapp.live@acmecorp""#));
         assert!(toml.contains(r#"desired_state = "down""#));
         assert!(toml.contains(r#"start_style = "persistent""#));
         assert!(toml.contains(r#"config_from = "/only/for/development""#));
@@ -465,7 +485,6 @@ mod test {
             topology = "leader"
             update_strategy = "rolling"
             binds = ["cache:redis.cache@acmecorp", "db:postgres.app@acmecorp"]
-            binds_optional = ["butts:myapp.live@acmecorp"]
             config_from = "/only/for/development"
 
             extra_stuff = "should be ignored"
@@ -482,8 +501,6 @@ mod test {
         assert_eq!(spec.binds,
                    vec![ServiceBind::from_str("cache:redis.cache@acmecorp").unwrap(),
                         ServiceBind::from_str("db:postgres.app@acmecorp").unwrap()]);
-        assert_eq!(spec.binds_optional,
-                   vec![ServiceBind::from_str("butts:myapp.live@acmecorp").unwrap()]);
         assert_eq!(spec.config_from,
                    Some(PathBuf::from("/only/for/development")));
     }
@@ -550,7 +567,6 @@ mod test {
             update_strategy: UpdateStrategy::AtOnce,
             binds: vec![ServiceBind::from_str("cache:redis.cache@acmecorp").unwrap(),
                         ServiceBind::from_str("db:postgres.app@acmecorp").unwrap()],
-            binds_optional: vec![ServiceBind::from_str("butts:myapp.live@acmecorp").unwrap()],
             config_from: Some(PathBuf::from("/only/for/development")),
             desired_state: DesiredState::Down,
             start_style: StartStyle::Persistent,
@@ -565,7 +581,6 @@ mod test {
         assert!(toml.contains(r#"update_strategy = "at-once""#));
         assert!(toml.contains(r#""cache:redis.cache@acmecorp""#));
         assert!(toml.contains(r#""db:postgres.app@acmecorp""#));
-        assert!(toml.contains(r#""butts:myapp.live@acmecorp""#));
         assert!(toml.contains(r#"desired_state = "down""#));
         assert!(toml.contains(r#"start_style = "persistent""#));
         assert!(toml.contains(r#"config_from = "/only/for/development""#));
