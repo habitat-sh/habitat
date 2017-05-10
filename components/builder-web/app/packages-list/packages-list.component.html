@@ -1,0 +1,27 @@
+<ul class="hab-packages-plan-list">
+    <div *ngIf="noPackages">
+        <p>
+        No packages found.
+        <span *ngIf="errorMessage">
+            Error: {{errorMessage}}
+        </span>
+        </p>
+    </div>
+    <li class="hab-packages-package" *ngFor="let pkg of packages">
+        <a [routerLink]="['/pkgs', pkg.origin,
+        pkg.name,
+        'versions']">
+            <div class="item-title">
+                <h3>{{pkg.origin}} / {{pkg.name}}</h3>
+            </div>
+            <div class="item-info">
+                <span class="count" *ngIf="pkg.starCount">
+                    <!-- TODO: import octicons -->
+                    <span class="octicon octicon-star"></span>
+                    {{pkg.starCount}}
+                </span>
+                <img src="/node_modules/octicons/svg/chevron-right.svg" />
+            </div>
+        </a>
+    </li>
+</ul>

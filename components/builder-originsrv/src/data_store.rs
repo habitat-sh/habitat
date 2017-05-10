@@ -575,11 +575,44 @@ impl DataStore {
         }
     }
 
+    pub fn list_origin_package_versions_for_origin
+        (&self,
+         opvl: &originsrv::OriginPackageVersionListRequest)
+         -> Result<originsrv::OriginPackageVersionListResponse> {
+        let conn = self.pool.get(opvl)?;
+
+        let rows = conn.query("SELECT * FROM get_origin_package_versions_for_origin_v1($1, $2)",
+                              &[&opvl.get_origin(), &opvl.get_name()])
+            .map_err(Error::OriginPackageVersionList)?;
+
+        let mut response = originsrv::OriginPackageVersionListResponse::new();
+        let mut versions = protobuf::RepeatedField::new();
+        for row in rows.iter() {
+            let ver: String = row.get("version");
+            let release_count: i64 = row.get("release_count");
+            let mut version = originsrv::OriginPackageVersion::new();
+            version.set_origin(opvl.get_origin().to_string());
+            version.set_name(opvl.get_name().to_string());
+            version.set_version(ver);
+            version.set_release_count(release_count as u64);
+            versions.push(version);
+        }
+        response.set_versions(versions);
+        Ok(response)
+    }
+
     pub fn list_origin_package_for_origin(&self,
                                           opl: &originsrv::OriginPackageListRequest)
                                           -> Result<originsrv::OriginPackageListResponse> {
         let conn = self.pool.get(opl)?;
-        let rows = conn.query("SELECT * FROM get_origin_packages_for_origin_v1($1, $2, $3)",
+
+        let query = if *&opl.get_distinct() {
+            "SELECT * FROM get_origin_packages_for_origin_distinct_v1($1, $2, $3)"
+        } else {
+            "SELECT * FROM get_origin_packages_for_origin_v1($1, $2, $3)"
+        };
+
+        let rows = conn.query(query,
                               &[&self.searchable_ident(opl.get_ident()),
                                 &opl.limit(),
                                 &(opl.get_start() as i64)])
@@ -674,7 +707,14 @@ impl DataStore {
                                             ops: &originsrv::OriginPackageSearchRequest)
                                             -> Result<originsrv::OriginPackageListResponse> {
         let conn = self.pool.get(ops)?;
-        let rows = conn.query("SELECT * FROM search_origin_packages_for_origin_v1($1, $2, $3, $4)",
+
+        let query = if *&ops.get_distinct() {
+            "SELECT * FROM search_origin_packages_for_origin_distinct_v1($1, $2, $3, $4)"
+        } else {
+            "SELECT * FROM search_origin_packages_for_origin_v1($1, $2, $3, $4)"
+        };
+
+        let rows = conn.query(query,
                               &[&ops.get_origin(),
                                 &ops.get_query(),
                                 &ops.limit(),

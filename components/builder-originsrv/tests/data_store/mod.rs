@@ -778,6 +778,85 @@ fn get_latest_package() {
 }
 
 #[test]
+fn list_origin_package_verisons_for_origin() {
+    let ds = datastore_test!(DataStore);
+    let mut origin = originsrv::OriginCreate::new();
+    origin.set_name(String::from("core"));
+    origin.set_owner_id(1);
+    origin.set_owner_name(String::from("scottkelly"));
+    let origin = ds.create_origin(&origin)
+        .expect("Should create origin")
+        .unwrap();
+
+    let mut ident1 = originsrv::OriginPackageIdent::new();
+    ident1.set_origin("core".to_string());
+    ident1.set_name("cacerts".to_string());
+    ident1.set_version("2017.01.17".to_string());
+    ident1.set_release("20170209064044".to_string());
+
+    let mut ident2 = originsrv::OriginPackageIdent::new();
+    ident2.set_origin("core".to_string());
+    ident2.set_name("cacerts".to_string());
+    ident2.set_version("2017.01.18".to_string());
+    ident2.set_release("20170209064044".to_string());
+
+    let mut ident3 = originsrv::OriginPackageIdent::new();
+    ident3.set_origin("core".to_string());
+    ident3.set_name("cacerts".to_string());
+    ident3.set_version("2017.01.18".to_string());
+    ident3.set_release("20170209064045".to_string());
+
+    let mut ident4 = originsrv::OriginPackageIdent::new();
+    ident4.set_origin("core".to_string());
+    ident4.set_name("cacerts2".to_string());
+    ident4.set_version("2017.01.19".to_string());
+    ident4.set_release("20170209064045".to_string());
+
+    let mut package = originsrv::OriginPackageCreate::new();
+    package.set_owner_id(1);
+    package.set_origin_id(origin.get_id());
+    package.set_ident(ident1.clone());
+    package.set_checksum("checksum".to_string());
+    package.set_manifest("manifest".to_string());
+    package.set_config("config".to_string());
+    package.set_target("x86_64-windows".to_string());
+    package.set_exposes(vec![1, 2]);
+    ds.create_origin_package(&package.clone())
+        .expect("Failed to create origin package");
+
+    package.set_ident(ident2.clone());
+    ds.create_origin_package(&package.clone())
+        .expect("Failed to create origin package");
+
+    package.set_ident(ident3.clone());
+    ds.create_origin_package(&package.clone())
+        .expect("Failed to create origin package");
+
+    package.set_ident(ident4.clone());
+    ds.create_origin_package(&package.clone())
+        .expect("Failed to create origin package");
+
+    let mut opvl = originsrv::OriginPackageVersionListRequest::new();
+    opvl.set_origin("core".to_string());
+    opvl.set_name("cacerts".to_string());
+
+    let result = ds.list_origin_package_versions_for_origin(&opvl.clone())
+        .expect("Could not get the packages from the database");
+    assert_eq!(result.get_versions().len(), 2);
+    let v1 = result.get_versions().iter().nth(0).unwrap();
+    assert_eq!(v1.get_version(), "2017.01.17");
+    assert_eq!(v1.get_release_count(), 1);
+    let v2 = result.get_versions().iter().nth(1).unwrap();
+    assert_eq!(v2.get_version(), "2017.01.18");
+    assert_eq!(v2.get_release_count(), 2);
+
+    opvl.set_name("crazy".to_string());
+    let result2 = ds.list_origin_package_versions_for_origin(&opvl)
+        .expect("Could not get the packages from the database");
+    assert_eq!(result2.get_versions().len(), 0);
+}
+
+#[test]
 fn list_origin_package_for_origin() {
     let ds = datastore_test!(DataStore);
     let mut origin = originsrv::OriginCreate::new();
@@ -869,6 +948,19 @@ fn list_origin_package_for_origin() {
     assert_eq!(result3.get_start(), 0);
     assert_eq!(result3.get_stop(), 20);
     assert_eq!(result3.get_count(), 0);
+
+    opl.set_ident(originsrv::OriginPackageIdent::from_str("core/cacerts").unwrap());
+    opl.set_distinct(true);
+    opl.set_start(0);
+    opl.set_stop(20);
+    let result4 = ds.list_origin_package_for_origin(&opl)
+        .expect("Could not get the packages from the database");
+    assert_eq!(result4.get_idents().len(), 1);
+    assert_eq!(result4.get_start(), 0);
+    assert_eq!(result4.get_stop(), 0);
+    assert_eq!(result4.get_count(), 1);
+    let pkg3 = result4.get_idents().iter().nth(0).unwrap();
+    assert_eq!(pkg3.to_string(), "core/cacerts");
 }
 
 #[test]
@@ -1062,6 +1154,33 @@ fn search_origin_package_for_origin() {
     assert_eq!(pkg1.to_string(), ident2.to_string());
     let pkg2 = result2.get_idents().iter().nth(1).unwrap();
     assert_eq!(pkg2.to_string(), ident4.to_string());
+
+    ops.set_query("do".to_string());
+    ops.set_start(0);
+    ops.set_stop(2);
+    let result3 = ds.search_origin_package_for_origin(&ops)
+        .expect("Could not get the packages from the database");
+    assert_eq!(result3.get_idents().len(), 1);
+    assert_eq!(result3.get_start(), 0);
+    assert_eq!(result3.get_stop(), 0);
+    assert_eq!(result3.get_count(), 1);
+    let pkg1 = result3.get_idents().iter().nth(0).unwrap();
+    assert_eq!(pkg1.to_string(), ident4.to_string());
+
+    ops.set_query("re".to_string());
+    ops.set_start(0);
+    ops.set_stop(20);
+    ops.set_distinct(true);
+    let result2 = ds.search_origin_package_for_origin(&ops)
+        .expect("Could not get the packages from the database");
+    assert_eq!(result2.get_idents().len(), 2);
+    assert_eq!(result2.get_start(), 0);
+    assert_eq!(result2.get_stop(), 1);
+    assert_eq!(result2.get_count(), 2);
+    let pkg1 = result2.get_idents().iter().nth(0).unwrap();
+    assert_eq!(pkg1.to_string(), "core/red");
+    let pkg2 = result2.get_idents().iter().nth(1).unwrap();
+    assert_eq!(pkg2.to_string(), "core/red_dog");
 }
 
 #[test]

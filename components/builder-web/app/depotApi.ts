@@ -46,6 +46,22 @@ export function getUnique(origin: string, nextRange: number = 0) {
     });
 }
 
+export function getLatest(origin: string, pkg: string) {
+    const url = `${urlPrefix}/depot/pkgs/${origin}/${pkg}/latest`;
+
+    return new Promise((resolve, reject) => {
+        fetch(url).then(response => {
+            if (response.status >= 400) {
+                reject(new Error(response.statusText));
+            }
+
+            response.json().then(results => {
+                resolve(results);
+            });
+        }).catch(error => reject(error));
+    });
+}
+
 export function get(params, nextRange: number = 0) {
     const url = `${urlPrefix}/depot/pkgs/` +
         (params["query"] ? `search/${params["query"]}`
@@ -79,6 +95,22 @@ export function get(params, nextRange: number = 0) {
                 resolve({ results, totalCount, nextRange });
             });
 
+        }).catch(error => reject(error));
+    });
+}
+
+export function getPackageVersions(origin: string, pkg: string) {
+    const url = `${urlPrefix}/depot/pkgs/${origin}/${pkg}/versions`;
+
+    return new Promise((resolve, reject) => {
+        fetch(url).then(response => {
+            if (response.status >= 400) {
+                reject(new Error(response.statusText));
+            }
+
+            response.json().then(results => {
+                resolve(results);
+            });
         }).catch(error => reject(error));
     });
 }

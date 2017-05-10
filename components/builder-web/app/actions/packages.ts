@@ -19,9 +19,11 @@ import { fetchProjectsForPackages } from "./projects";
 
 export const CLEAR_PACKAGES = "CLEAR_PACKAGES";
 export const POPULATE_DASHBOARD_RECENT = "POPULATE_DASHBOARD_RECENT";
+export const CLEAR_PACKAGE_VERSIONS = "CLEAR_PACKAGE_VERSIONS";
 export const POPULATE_EXPLORE = "POPULATE_EXPLORE";
 export const POPULATE_EXPLORE_STATS = "POPULATE_EXPLORE_STATS";
 export const SET_CURRENT_PACKAGE = "SET_CURRENT_PACKAGE";
+export const SET_CURRENT_PACKAGE_VERSIONS = "SET_CURRENT_PACKAGE_VERSIONS";
 export const SET_PACKAGES_NEXT_RANGE = "SET_PACKAGES_NEXT_RANGE";
 export const SET_PACKAGES_SEARCH_QUERY = "SET_PACKAGES_SEARCH_QUERY";
 export const SET_PACKAGES_TOTAL_COUNT = "SET_PACKAGES_TOTAL_COUNT";
@@ -38,6 +40,12 @@ export function fetchDashboardRecent(origin: string) {
         return depotApi.get({ origin: origin })
             .then(data => dispatch(populateDashboardRecent(data)))
             .catch(error => console.error(error));
+    };
+}
+
+function clearPackageVersions() {
+    return {
+        type: CLEAR_PACKAGE_VERSIONS
     };
 }
 
@@ -62,6 +70,27 @@ export function fetchPackage(pkg) {
             dispatch(setCurrentPackage(response["results"]));
         }).catch(error => {
             dispatch(setCurrentPackage(undefined, error));
+        });
+    };
+}
+
+export function fetchLatestPackage(origin: string, name: string) {
+    return dispatch => {
+        depotApi.getLatest(origin, name).then(response => {
+            dispatch(setCurrentPackage(response));
+        }).catch(error => {
+            dispatch(setCurrentPackage(undefined, error));
+        });
+    };
+}
+
+export function fetchPackageVersions(origin: string, name: string) {
+    return dispatch => {
+        dispatch(clearPackageVersions());
+        depotApi.getPackageVersions(origin, name).then(response => {
+            dispatch(setCurrentPackageVersions(response));
+        }).catch(error => {
+            dispatch(setCurrentPackageVersions(undefined, error));
         });
     };
 }
@@ -143,6 +172,14 @@ export function setCurrentPackage(pkg, error = undefined) {
     return {
         type: SET_CURRENT_PACKAGE,
         payload: pkg,
+        error: error,
+    };
+}
+
+export function setCurrentPackageVersions(versions, error = undefined) {
+    return {
+        type: SET_CURRENT_PACKAGE_VERSIONS,
+        payload: versions,
         error: error,
     };
 }

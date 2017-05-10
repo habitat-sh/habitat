@@ -79,6 +79,8 @@ impl DataStore {
                                                 (pident, pdeps)
                                             RETURNING *;
                                             RETURN;
+                                        EXCEPTION WHEN unique_violation THEN
+                                          -- Don't raise an exception, just move on
                                         END
                                     $$ LANGUAGE plpgsql VOLATILE
                                 "#)?;

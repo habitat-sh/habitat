@@ -1,0 +1,100 @@
+// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+.hab-pkg-version {
+  &--left {
+    @include span-columns(8);
+
+    .pkg-container {
+      @include span-columns(8 of 8);
+      padding: rem(10);
+      border-bottom: 1px solid $light-gray;
+    }
+
+    .pkg-col-1 {
+      text-align: left;
+      @include span-columns(4 of 8);
+      font-family: $heading-font-family;
+      font-size: rem(12);
+      text-transform: uppercase;
+    }
+
+    .pkg-col-2 {
+      @include span-columns(2 of 8);
+      font-family: $heading-font-family;
+      font-size: rem(12);
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    .pkg-col-3 {
+      text-align: right;
+      @include span-columns(2 of 8);
+      @include omega();
+      font-family: $heading-font-family;
+      font-size: rem(12);
+      text-transform: uppercase;
+    }
+
+    .disabled-settings {
+      opacity: 0.2;
+    }
+  }
+
+  &--right {
+    @include span-columns(4);
+    border-left: 1px solid $light-gray;
+    padding-left: $base-spacing;
+  }
+
+  &--deny-delete {
+    background-color: $hab-red;
+    color: $off-white;
+    padding: $small-spacing;
+    text-align: center;
+  }
+
+  &--pkgs-link.button {
+    @include primary-button;
+    float: right;
+  }
+
+  &--key-list {
+    margin-bottom: rem(60);
+
+    > h3 {
+      margin-bottom: rem(30);
+    }
+  }
+
+  &--pkg-list {
+    margin-top: rem(30);
+  }
+
+  .sidebar-header {
+    font-family: $heading-font-family;
+    font-size: rem(12);
+    text-transform: uppercase;
+  }
+
+  .install-box {
+    border: 1px solid $light-gray;
+    padding: 10px;
+    font-weight: bold;
+  }
+
+  .help-link {
+    float: right;
+  }
+}

@@ -83,9 +83,11 @@ export const TOGGLE_ORIGIN_PICKER = originActions.TOGGLE_ORIGIN_PICKER;
 
 export const CLEAR_PACKAGES = packageActions.CLEAR_PACKAGES;
 export const POPULATE_DASHBOARD_RECENT = packageActions.POPULATE_DASHBOARD_RECENT;
+export const CLEAR_PACKAGE_VERSIONS = packageActions.CLEAR_PACKAGE_VERSIONS;
 export const POPULATE_EXPLORE = packageActions.POPULATE_EXPLORE;
 export const POPULATE_EXPLORE_STATS = packageActions.POPULATE_EXPLORE_STATS;
 export const SET_CURRENT_PACKAGE = packageActions.SET_CURRENT_PACKAGE;
+export const SET_CURRENT_PACKAGE_VERSIONS = packageActions.SET_CURRENT_PACKAGE_VERSIONS;
 export const SET_PACKAGES_NEXT_RANGE = packageActions.SET_PACKAGES_NEXT_RANGE;
 export const SET_PACKAGES_SEARCH_QUERY =
     packageActions.SET_PACKAGES_SEARCH_QUERY;
@@ -165,6 +167,8 @@ export const uploadOriginPublicKey = originActions.uploadOriginPublicKey;
 export const fetchDashboardRecent = packageActions.fetchDashboardRecent;
 export const fetchExplore = packageActions.fetchExplore;
 export const fetchPackage = packageActions.fetchPackage;
+export const fetchLatestPackage = packageActions.fetchLatestPackage;
+export const fetchPackageVersions = packageActions.fetchPackageVersions;
 export const filterPackagesBy = packageActions.filterPackagesBy;
 export const populateExplore = packageActions.populateExplore;
 export const populateExploreStats = packageActions.populateExploreStats;

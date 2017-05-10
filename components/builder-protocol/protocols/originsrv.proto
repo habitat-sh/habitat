@@ -181,6 +181,13 @@ message OriginPackageIdent {
   optional string release = 4;
 }
 
+message OriginPackageVersion {
+  optional string origin = 1;
+  optional string name = 2;
+  optional string version = 3;
+  optional uint64 release_count = 4;
+}
+
 message OriginPackageCreate {
   optional uint64 owner_id = 1;
   optional uint64 origin_id = 2;
@@ -207,6 +214,7 @@ message OriginPackageListRequest {
   optional OriginPackageIdent ident = 1;
   optional uint64 start = 2;
   optional uint64 stop = 3;
+  optional bool distinct = 4;
 }
 
 message OriginPackageListResponse {
@@ -227,6 +235,7 @@ message OriginPackageSearchRequest {
   optional string query = 2;
   optional uint64 start = 3;
   optional uint64 stop = 4;
+  optional bool distinct = 5;
 }
 
 message OriginPackageUniqueListRequest {
@@ -240,6 +249,15 @@ message OriginPackageUniqueListResponse {
   optional uint64 stop = 2;
   optional uint64 count = 3;
   repeated OriginPackageIdent idents = 4;
+}
+
+message OriginPackageVersionListRequest {
+  optional string origin = 1;
+  optional string name = 2;
+}
+
+message OriginPackageVersionListResponse {
+  repeated OriginPackageVersion versions = 1;
 }
 
 // Origin Project

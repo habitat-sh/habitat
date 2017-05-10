@@ -83,6 +83,16 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                     END
                     $$ LANGUAGE plpgsql STABLE"#)?;
     migrator.migrate("originsrv",
+                     r#"CREATE OR REPLACE FUNCTION get_origin_package_versions_for_origin_v1 (
+                    op_origin text,
+                    op_pkg text
+                 ) RETURNS TABLE(version text, release_count bigint) AS $$
+                    BEGIN
+                        RETURN QUERY SELECT p.partial_ident[3] AS version, COUNT(p.partial_ident[4]) AS release_count FROM (SELECT regexp_split_to_array(op.ident, '/') AS partial_ident FROM origin_packages op INNER JOIN origins o ON o.id = op.origin_id WHERE o.name = op_origin AND op.name = op_pkg) AS p GROUP BY version;
+                        RETURN;
+                    END
+                    $$ LANGUAGE plpgsql STABLE"#)?;
+    migrator.migrate("originsrv",
                      r#"CREATE OR REPLACE FUNCTION get_origin_packages_for_origin_v1 (
                     op_ident text,
                     op_limit bigint,
@@ -92,6 +102,20 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                         RETURN QUERY SELECT COUNT(*) OVER () AS total_count, origin_packages.ident FROM origin_packages WHERE origin_packages.ident LIKE (op_ident  || '%')
                           ORDER BY ident ASC
                           LIMIT op_limit OFFSET op_offset;
+                        RETURN;
+                    END
+                    $$ LANGUAGE plpgsql STABLE"#)?;
+    migrator.migrate("originsrv",
+                     r#"CREATE OR REPLACE FUNCTION get_origin_packages_for_origin_distinct_v1 (
+                    op_ident text,
+                    op_limit bigint,
+                    op_offset bigint
+                 ) RETURNS TABLE(total_count bigint, ident text) AS $$
+                    BEGIN
+                        RETURN QUERY SELECT COUNT(p.partial_ident[1] || '/' || p.partial_ident[2]) OVER () AS total_count, p.partial_ident[1] || '/' || p.partial_ident[2] AS ident
+                        FROM (SELECT regexp_split_to_array(op.ident, '/') as partial_ident FROM origin_packages op WHERE op.ident LIKE ('%' || op_ident || '%')) AS p
+                        GROUP BY (p.partial_ident[1] || '/' || p.partial_ident[2])
+                        LIMIT op_limit OFFSET op_offset;
                         RETURN;
                     END
                     $$ LANGUAGE plpgsql STABLE"#)?;
@@ -117,9 +141,24 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                    op_offset bigint
                  ) RETURNS TABLE(total_count bigint, ident text) AS $$
                     BEGIN
-                        RETURN QUERY SELECT COUNT(*) OVER () AS total_count, origin_packages.ident FROM origins INNER JOIN origin_packages ON origins.id = origin_packages.origin_id WHERE origins.name = op_origin and origin_packages.name LIKE (op_query  || '%')
+                        RETURN QUERY SELECT COUNT(*) OVER () AS total_count, origin_packages.ident FROM origins INNER JOIN origin_packages ON origins.id = origin_packages.origin_id WHERE origins.name = op_origin and origin_packages.name LIKE ('%' || op_query || '%')
                           ORDER BY ident ASC
                           LIMIT op_limit OFFSET op_offset;
+                        RETURN;
+                    END
+                    $$ LANGUAGE plpgsql STABLE"#)?;
+    migrator.migrate("originsrv",
+                     r#"CREATE OR REPLACE FUNCTION search_origin_packages_for_origin_distinct_v1 (
+                   op_origin text,
+                   op_query text,
+                   op_limit bigint,
+                   op_offset bigint
+                 ) RETURNS TABLE(total_count bigint, ident text) AS $$
+                    BEGIN
+                        RETURN QUERY SELECT COUNT(p.partial_ident[1] || '/' || p.partial_ident[2]) OVER () AS total_count, p.partial_ident[1] || '/' || p.partial_ident[2] AS ident
+                        FROM (SELECT regexp_split_to_array(op.ident, '/') as partial_ident FROM origins o INNER JOIN origin_packages op ON o.id = op.origin_id WHERE o.name = op_origin AND op.name LIKE ('%' || op_query || '%')) AS p
+                        GROUP BY (p.partial_ident[1] || '/' || p.partial_ident[2])
+                        LIMIT op_limit OFFSET op_offset;
                         RETURN;
                     END
                     $$ LANGUAGE plpgsql STABLE"#)?;

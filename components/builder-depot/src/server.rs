@@ -1088,6 +1088,57 @@ fn list_unique_packages(req: &mut Request) -> IronResult<Response> {
     }
 }
 
+fn list_package_versions(req: &mut Request) -> IronResult<Response> {
+    let (origin, name) = {
+        let params = req.extensions.get::<Router>().unwrap();
+
+        let origin = match params.find("origin") {
+            Some(origin) => origin.to_string(),
+            _ => return Ok(Response::with(status::BadRequest)),
+        };
+
+        let name = match params.find("pkg") {
+            Some(pkg) => pkg.to_string(),
+            _ => return Ok(Response::with(status::BadRequest)),
+        };
+
+        (origin, name)
+    };
+
+    let packages: RouteResult<OriginPackageVersionListResponse>;
+
+    let mut request = OriginPackageVersionListRequest::new();
+    request.set_origin(origin);
+    request.set_name(name);
+    packages = route_message::<OriginPackageVersionListRequest,
+                               OriginPackageVersionListResponse>(req, &request);
+
+    match packages {
+        Ok(packages) => {
+            debug!("packages = {:?}", &packages);
+            let body = serde_json::to_string(&packages.get_versions().to_vec()).unwrap();
+            let mut response = Response::with((status::Ok, body));
+
+            response
+                .headers
+                .set(ContentType(Mime(TopLevel::Application,
+                                      SubLevel::Json,
+                                      vec![(Attr::Charset, Value::Utf8)])));
+            dont_cache_response(&mut response);
+            Ok(response)
+        }
+        Err(err) => {
+            match err.get_code() {
+                ErrCode::ENTITY_NOT_FOUND => Ok(Response::with((status::NotFound))),
+                _ => {
+                    error!("list_package_versions:1, err={:?}", err);
+                    Ok(Response::with(status::InternalServerError))
+                }
+            }
+        }
+    }
+}
+
 fn list_packages(req: &mut Request) -> IronResult<Response> {
     let (start, stop) = match extract_pagination(req) {
         Ok(range) => range,
@@ -1131,6 +1182,7 @@ fn list_packages(req: &mut Request) -> IronResult<Response> {
             let mut request = OriginPackageListRequest::new();
             request.set_start(start as u64);
             request.set_stop(stop as u64);
+            request.set_distinct(true);
             request.set_ident(OriginPackageIdent::from_str(ident.as_str()).expect("invalid package identifier"));
             packages = route_message::<OriginPackageListRequest,
                                        OriginPackageListResponse>(req, &request);
@@ -1230,13 +1282,11 @@ fn create_channel(req: &mut Request) -> IronResult<Response> {
     }
 
     let origin_id = match try!(get_origin(req, &origin)) {
-        Some(origin) => {
-            origin.get_id()
-        }
+        Some(origin) => origin.get_id(),
         None => {
             debug!("Origin {} not found!", origin);
             return Ok(Response::with(status::NotFound));
-        },
+        }
     };
 
     let mut request = OriginChannelCreate::new();
@@ -1436,6 +1486,7 @@ fn search_packages(req: &mut Request) -> IronResult<Response> {
 
     // TODO MW: constraining to core is temporary until we have a cross origin index
     request.set_origin("core".to_string());
+    request.set_distinct(true);
     match route_message::<OriginPackageSearchRequest, OriginPackageListResponse>(req, &request) {
         Ok(packages) => {
             debug!("search_packages start: {}, stop: {}, total count: {}",
@@ -1593,13 +1644,25 @@ fn target_from_headers(user_agent_header: &UserAgent) -> result::Result<PackageT
     let user_agent = user_agent_header.as_str();
     debug!("Headers = {}", &user_agent);
 
-    let user_agent_regex = Regex::new(r"(?P<client>\.*)\s\((?P<target>\w+-\w+); (?P<kernel>.*)\)")
-        .unwrap();
+    let user_agent_regex =
+        Regex::new(r"(?P<client>[^\s]+)\s?(\((?P<target>\w+-\w+); (?P<kernel>.*)\))?").unwrap();
     let user_agent_capture = user_agent_regex
         .captures(user_agent)
         .expect("Invalid user agent supplied.");
-    match PackageTarget::from_str(&user_agent_capture["target"]) {
-        Ok(target) => Ok(target),
+
+    // All of our tooling that depends on this function to return a target will have a user
+    // agent that includes the platform. Therefore, if we can't find a target, it's safe to
+    // assume that some other kind of HTTP tool is being used, e.g. curl. For those kinds
+    // of clients, the target platform isn't important, so let's default it to linux
+    // instead of returning a bad request.
+    let target = if let Some(target_match) = user_agent_capture.name("target") {
+        target_match.as_str()
+    } else {
+        "x86_64-linux"
+    };
+
+    match PackageTarget::from_str(target) {
+        Ok(t) => Ok(t),
         Err(_) => Err(Response::with(status::BadRequest)),
     }
 }
@@ -1682,6 +1745,7 @@ pub fn routes<M: BeforeMiddleware + Clone>(insecure: bool, basic: M, worker: M) 
         packages: get "/pkgs/:origin" => list_packages,
         packages_unique: get "/:origin/pkgs" => list_unique_packages,
         packages_pkg: get "/pkgs/:origin/:pkg" => list_packages,
+        package_pkg_versions: get "/pkgs/:origin/:pkg/versions" => list_package_versions,
         package_pkg_latest: get "/pkgs/:origin/:pkg/latest" => show_package,
         packages_version: get "/pkgs/:origin/:pkg/:version" => list_packages,
         package_version_latest: get "/pkgs/:origin/:pkg/:version/latest" => show_package,
@@ -1771,7 +1835,9 @@ pub fn run(config: Config) -> Result<()> {
 
     let mut mount = Mount::new();
     mount.mount("/v1", v1);
-    Iron::new(mount).http(&config.http).expect("Unable to start HTTP listener");
+    Iron::new(mount)
+        .http(&config.http)
+        .expect("Unable to start HTTP listener");
     broker.join().unwrap();
     Ok(())
 }

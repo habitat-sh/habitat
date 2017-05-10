@@ -212,6 +212,21 @@ securitySchemes:
                     400:
                     404:
                     500:
+            /versions:
+                get:
+                    description: Returns all versions and a count of releases for each version for a given package
+                    responses:
+                        200:
+                            body:
+                                application/json:
+                                    example: |
+                                        [{"origin":"core","name":"redis","version":"3.2.1","release_count":"3"}]
+                        400:
+                            description: Origin or package name not supplied
+                        404:
+                            description: Package not found
+                        500:
+                            description: Server error
             /latest:
                 get:
                     description: TODO

@@ -41,9 +41,10 @@ import { OrganizationsPageComponent } from "./organizations-page/OrganizationsPa
 import { PackageBreadcrumbsComponent } from "./PackageBreadcrumbsComponent";
 import { BuildComponent } from "./build/build.component";
 import { PackageBuildsComponent } from "./package-builds/package-builds.component";
-import { PackagePageComponent } from "./package-page/PackagePageComponent";
 import { PackageInfoComponent } from "./package-info/PackageInfoComponent";
 import { PackageListComponent } from "./package-page/PackageListComponent";
+import { PackagePageComponent } from "./package-page/PackagePageComponent";
+import { PackageVersionsPageComponent } from "./package-versions-page/package-versions-page.component";
 import { PackagesListComponent } from "./packages-list/PackagesListComponent";
 import { PackagesPageComponent } from "./packages-page/PackagesPageComponent";
 import { ProjectSettingsPageComponent } from "./project-settings-page/ProjectSettingsPageComponent";
@@ -90,9 +91,10 @@ import { UserNavComponent } from "./header/user-nav/UserNavComponent";
         PackageBreadcrumbsComponent,
         BuildComponent,
         PackageBuildsComponent,
-        PackageListComponent,
         PackageInfoComponent,
+        PackageListComponent,
         PackagePageComponent,
+        PackageVersionsPageComponent,
         PackagesListComponent,
         PackagesPageComponent,
         ProjectCreatePageComponent,
