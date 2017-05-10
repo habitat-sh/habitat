@@ -13,7 +13,7 @@
 // limitations under the License.
 
 //! Configuration for a Habitat JobSrv service
-
+use std::env;
 use std::net::{IpAddr, Ipv4Addr};
 
 use db::config::DataStoreCfg;
@@ -34,6 +34,11 @@ pub struct Config {
     /// List of net addresses for routing servers to connect to
     pub routers: Vec<RouterAddr>,
     pub datastore: DataStoreCfg,
+
+    /// Directory to which log output of running build processes will
+    /// be written. Defaults to the system temp directory. Must exist
+    /// and be writable by the server process.
+    pub log_dir: String,
 }
 
 impl Default for Config {
@@ -46,6 +51,7 @@ impl Default for Config {
             net: NetCfg::default(),
             routers: vec![RouterAddr::default()],
             datastore: datastore,
+            log_dir: env::temp_dir().to_string_lossy().into_owned(),
         }
     }
 }
@@ -83,6 +89,10 @@ pub struct NetCfg {
     pub worker_heartbeat_listen: IpAddr,
     /// Worker Heartbeat socket's port
     pub worker_heartbeat_port: u16,
+    /// Worker Log Ingestion socket's listening address
+    pub log_ingestion_listen: IpAddr,
+    /// Worker Log Ingestion socket's port
+    pub log_ingestion_port: u16,
 }
 
 impl NetCfg {
@@ -97,6 +107,12 @@ impl NetCfg {
                 self.worker_heartbeat_listen,
                 self.worker_heartbeat_port)
     }
+
+    pub fn log_ingestion_addr(&self) -> String {
+        format!("tcp://{}:{}",
+                self.log_ingestion_listen,
+                self.log_ingestion_port)
+    }
 }
 
 impl Default for NetCfg {
@@ -106,6 +122,8 @@ impl Default for NetCfg {
             worker_command_port: 5566,
             worker_heartbeat_listen: IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)),
             worker_heartbeat_port: 5567,
+            log_ingestion_listen: IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)),
+            log_ingestion_port: 5569,
         }
     }
 }
@@ -127,6 +145,8 @@ mod tests {
         worker_command_port = 9000
         worker_heartbeat_listen = "1.1.1.1"
         worker_heartbeat_port = 9000
+        log_ingestion_listen = "2.2.2.2"
+        log_ingestion_port = 9999
 
         [[routers]]
         host = "1.1.1.1"
@@ -149,8 +169,11 @@ mod tests {
                    "1:1:1:1:1:1:1:1");
         assert_eq!(&format!("{}", config.net.worker_heartbeat_listen),
                    "1.1.1.1");
+        assert_eq!(&format!("{}", config.net.log_ingestion_listen), "2.2.2.2");
+
         assert_eq!(config.net.worker_command_port, 9000);
         assert_eq!(config.net.worker_heartbeat_port, 9000);
+        assert_eq!(config.net.log_ingestion_port, 9999);
         assert_eq!(config.shards, vec![0]);
         assert_eq!(config.worker_threads, 1);
         assert_eq!(config.datastore.port, 9000);

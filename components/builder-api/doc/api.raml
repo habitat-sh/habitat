@@ -90,6 +90,34 @@ schemas:
                 }
             }
         }
+    - jobLog: |
+        {
+            "properties": {
+                "start": {
+                    "description": "The zero-indexed line number (inclusive) of the first line of log output in `content`.",
+                    "type": "integer",
+                    "required": true
+                },
+                "stop": {
+                    "description": "The zero-indexed line number (exclusive) of the last line of log output in `content`. Pass this number as the `start` query parameter on your next log request to retrieve the next portion of the log.",
+                    "type": "integer",
+                    "required": true
+                },
+                "content": {
+                    "description": "A subset of the log output, presented as individual lines. Trailing newline characters are not present. May be empty.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "required": true
+                },
+                "is_complete": {
+                    "description": "Indicates whether the job log is complete; i.e. additional polling for new lines is not required. Note that a job itself may be complete (i.e., finished running) but the log may not, as log processing is decoupled from build processing.",
+                    "type": "boolean",
+                    "required": true
+                }
+            }
+        }
     - project: |
         {
             "properties": {
@@ -261,6 +289,54 @@ securitySchemes:
                               }
                 400:
                     description: Received a jobId that was not a number
+        /log:
+            get:
+                description: |
+                  Get the build log (or a portion thereof) for the
+                  given job. Until an SSE endpoint can be implemented,
+                  this endpoint can be used to poll for the logs of a
+                  currently-running job; use of the `start` query
+                  parameter ensures that only the portion of the log
+                  that is "new", relative to a prior request, will be
+                  retrieved.
+                queryParameters:
+                    start:
+                        description: |
+                            Return the portion of the log output that
+                            starts at the zero-indexed line
+                            specified. A request with no given value
+                            defaults to `0`; in other words, the
+                            entire log will be sent back.
+                        type: integer
+                        required: false
+                        default: 0
+                        minimum: 0
+                        example: 100
+                responses:
+                    200:
+                        body:
+                            application/json:
+                                schema: jobLog
+                                example: |
+                                    {
+                                        "start": 0,
+                                        "stop": 2,
+                                        "content": [
+                                            "this is the first line",
+                                            "this is the second line"
+                                        ],
+                                        is_complete: false
+                                    }
+                    400:
+                        description: |
+                          Received a jobId that was not a number, or
+                          an invalid value for the `start` query
+                          parameter (e.g., negative, or larger than
+                          the actual size of the log file.
+                    404:
+                        description: |
+                          Job does not exist with corresponding jobId,
+                          or no log was found for the given job.
 /user:
     /invitations:
         get:

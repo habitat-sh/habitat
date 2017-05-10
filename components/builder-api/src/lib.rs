@@ -24,6 +24,7 @@ extern crate iron;
 #[macro_use]
 extern crate log;
 extern crate mount;
+extern crate params;
 extern crate persistent;
 extern crate protobuf;
 #[macro_use]

@@ -47,6 +47,8 @@ message Job {
   // The identifier of the package built by the job. Set only a
   // successfully-built Job.
   optional originsrv.OriginPackageIdent package_ident = 9;
+  // Location of remote long-term storage for build logs
+  optional string log_url = 10;
 }
 
 // Retrieve a single job by ID
@@ -70,4 +72,44 @@ message ProjectJobsGet {
 
 message ProjectJobsGetResponse {
   repeated Job jobs = 1;
+}
+
+// Sent from a worker to the job server's log ingester during a build.
+message JobLogChunk {
+  optional uint64 job_id = 1;
+ // Ordering of this chunk in the overall log output, starting at 1;
+ // We currently send one line at a time, so this corresponds to line
+ // number.
+  optional uint64 seq = 2;
+  // The log content being sent
+  // TODO: Make this a repeated field for future compatibility
+  optional string content = 3;
+}
+
+// Sent from a worker to the job server's log ingester when a build is
+// complete.
+message JobLogComplete {
+  optional uint64 job_id = 1;
+}
+
+// Initiated by API request to retrieve a portion of a job's log data,
+// beginning at line `start`
+message JobLogGet {
+  optional uint64 id = 1;
+  // Zero-indexed line of the log output to start with
+  optional uint64 start = 2;
+}
+
+// Sent in reply to a JobLogGet
+message JobLog {
+  // Zero-indexed (inclusive) line of the log output in `content`
+  optional uint64 start = 1;
+  // Zero-indexed (exclusive) line of the log output in `content`
+  optional uint64 stop = 2;
+  // Lines of log output
+  repeated string content = 3;
+  // While we need to poll for logs, this serves as an indicator to
+  // clients if they need to continue polling to receive more logs, or
+  // can stop.
+  optional bool is_complete = 4;
 }

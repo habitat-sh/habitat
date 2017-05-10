@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-pub mod logger;
+pub mod log_pipe;
 pub mod workspace;
 pub mod postprocessor;
 
@@ -40,13 +40,12 @@ use protocol::net::{self, ErrCode};
 use zmq;
 
 use {PRODUCT, VERSION};
-use self::logger::Logger;
+use self::log_pipe::LogPipe;
 use self::postprocessor::PostProcessor;
 use self::workspace::Workspace;
 use config::Config;
 use error::{Error, Result};
 use vcs;
-
 
 /// In-memory zmq address of Job RunnerMgr
 const INPROC_ADDR: &'static str = "inproc://runner";
@@ -112,7 +111,7 @@ impl DerefMut for Job {
 pub struct Runner {
     workspace: Workspace,
     auth_token: String,
-    logger: Option<Logger>,
+    log_pipe: Option<LogPipe>,
     depot_cli: depot_client::Client,
 }
 
@@ -124,7 +123,7 @@ impl Runner {
         Runner {
             auth_token: config.auth_token.clone(),
             workspace: Workspace::new(config.data_path.clone(), job),
-            logger: None,
+            log_pipe: None,
             depot_cli: depot_cli,
         }
     }
@@ -137,8 +136,8 @@ impl Runner {
         &mut self.workspace.job
     }
 
-    pub fn logger(&mut self) -> &mut Logger {
-        self.logger.as_mut().expect("logger not initialized")
+    pub fn log_pipe(&mut self) -> &mut LogPipe {
+        self.log_pipe.as_mut().expect("LogPipe not initialized")
     }
 
     pub fn run(mut self) -> Job {
@@ -250,11 +249,14 @@ impl Runner {
         let mut child = Command::new(command)
             .args(&args)
             .env_clear()
+            // This disables download progress bars; otherwise we have
+            // to filter out loads of carriage returns!
+            .env("HAB_NONINTERACTIVE", "true")
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .spawn()
             .expect("failed to spawn child");
-        self.logger().pipe(&mut child);
+        self.log_pipe().pipe(&mut child);
         let exit_status = child.wait().expect("failed to wait on child");
         debug!("build complete, status={:?}", exit_status);
         if exit_status.success() {
@@ -287,7 +289,7 @@ impl Runner {
         if let Some(err) = fs::create_dir_all(self.workspace.src()).err() {
             return Err(Error::WorkspaceSetup(format!("{}", self.workspace.src().display()), err));
         }
-        self.logger = Some(Logger::init(&self.workspace));
+        self.log_pipe = Some(LogPipe::new(&self.workspace));
         Ok(())
     }
 
@@ -309,7 +311,7 @@ impl Runner {
             .stderr(Stdio::piped())
             .spawn()
             .expect("failed to spawn child");
-        self.logger().pipe(&mut child);
+        self.log_pipe().pipe(&mut child);
         let exit_status = child.wait().expect("failed to wait on child");
         debug!("studio removal complete, status={:?}", exit_status);
         if exit_status.success() {
