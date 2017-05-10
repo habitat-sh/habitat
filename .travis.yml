@@ -218,6 +218,7 @@ matrix:
           - /root/.cargo
       before_install:
         - ./support/ci/fast_pass.sh || exit 0
+        - ./support/ci/only_master_or_release.sh || exit 0
         - if [[ ! -x ./support/ci/deploy.sh ]]; then chmod +x ./support/ci/deploy.sh; fi
         - openssl aes-256-cbc -K $encrypted_50e90ce07941_key -iv $encrypted_50e90ce07941_iv -in ./support/ci/habitat-srv-admin.enc -out /tmp/habitat-srv-admin -d
       script:
