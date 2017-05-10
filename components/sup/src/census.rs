@@ -549,7 +549,9 @@ impl CensusMember {
         if self.election_is_finished {
             if self.member_id == election.get_member_id() {
                 self.leader = true;
+                self.follower = false;
             } else {
+                self.leader = false;
                 self.follower = true;
             }
         }
@@ -563,7 +565,9 @@ impl CensusMember {
         if self.update_election_is_finished {
             if self.member_id == election.get_member_id() {
                 self.update_leader = true;
+                self.update_follower = false;
             } else {
+                self.update_leader = false;
                 self.update_follower = true;
             }
         }
