@@ -4,8 +4,8 @@ data_path = "{{pkg.svc_data_path}}"
 {{~#eachAlive bind.jobsrv.members as |member|}}
 [[jobsrv]]
 host = "{{member.sys.ip}}"
-port = {{member.cfg.port}}
-heartbeat = {{member.cfg.heartbeat}}
+port = {{member.cfg.worker_port}}
+heartbeat = {{member.cfg.worker_heartbeat}}
 {{~/eachAlive}}
 
 {{~#eachAlive bind.datastore.members as |member|}}
