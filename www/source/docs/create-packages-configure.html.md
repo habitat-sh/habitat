@@ -166,7 +166,7 @@ Example Template:
 Iterates over a collection of members and renders the template for members that are marked alive.
 
     {{~#eachAlive bind.backend.members as |member|}}
-    server ip {{member.ip}}:{{member.port}}
+    server ip {{member.sys.ip}}:{{member.cfg.port}}
     {{~/eachAlive}}
 
 ### toJson Helper
