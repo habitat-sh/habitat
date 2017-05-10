@@ -177,7 +177,7 @@ docs: image ## build the docs
 		echo "<meta http-equiv=refresh content=0;url=habitat_sup/index.html>" > target/doc/index.html;'
 
 tag-release:
-	sh -c 'git tag -a $(VERSION) -m \"$(VERSION)\"'
+	sh -c 'git tag $(VERSION)'
 
 define BUILD
 build-$1: image ## builds the $1 component
