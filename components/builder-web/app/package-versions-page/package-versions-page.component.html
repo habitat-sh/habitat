@@ -1,4 +1,4 @@
-<div class="hab-origin">
+<div class="hab-pkg-version">
     <div class="page-title">
         <h2>Package</h2>
         <h4>{{origin}} / {{name}}</h4>
@@ -14,7 +14,7 @@
     <hab-tabs *ngIf="ui.exists && !ui.loading">
         <hab-tab tabTitle="All Versions" [onSelect]="loadVersions">
             <div class="page-body has-sidebar">
-                <div class="hab-origin--left hab-origin--pkg-list">
+                <div class="hab-pkg-version--left hab-pkg-version--pkg-list">
                     <div class="pkg-container">
                         <div class="pkg-col-1">Version</div>
                         <div class="pkg-col-2">Releases</div>
@@ -26,9 +26,19 @@
                         <div class="pkg-col-3"></div>
                     </div>
                 </div>
-                <div class="hab-origin--right hab-origin--pkg-list">
-                    <div class="pkg-container">
-                        <div class="pkg-col-1">Build</div>
+                <div class="hab-pkg-version--right hab-pkg-version--pkg-list">
+                    <div>
+                        <p class="sidebar-header">Build</p>
+                        <a href="#" class="help-link">Help</a>
+                    </div>
+                    <div>
+                        <a class="button" href="#">
+                            Request new build
+                        </a>
+                    </div>
+                    <div>
+                        <p class="sidebar-header">Install latest version</p>
+                        <p class="install-box">hab install {{origin}}/{{name}}</p>
                     </div>
                 </div>
             </div>

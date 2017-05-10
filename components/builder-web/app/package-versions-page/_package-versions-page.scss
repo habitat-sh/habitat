@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-.hab-origin {
+.hab-pkg-version {
   &--left {
     @include span-columns(8);
 
@@ -25,40 +25,31 @@
     .pkg-col-1 {
       text-align: left;
       @include span-columns(4 of 8);
+      font-family: $heading-font-family;
+      font-size: rem(12);
+      text-transform: uppercase;
     }
 
     .pkg-col-2 {
       text-align: right;
       @include span-columns(2 of 8);
+      font-family: $heading-font-family;
+      font-size: rem(12);
+      text-transform: uppercase;
+      text-align: center;
     }
 
     .pkg-col-3 {
       text-align: right;
       @include span-columns(2 of 8);
       @include omega();
+      font-family: $heading-font-family;
+      font-size: rem(12);
+      text-transform: uppercase;
     }
 
     .disabled-settings {
       opacity: 0.2;
-    }
-
-    .origin-package-item {
-      border: 1px solid $light-gray;
-      border-color: $hab-blue-light;
-      border-radius: $global-radius;
-      color: inherit;
-      display: block;
-      margin-bottom: 0.5em;
-      padding: 1em 1.5em;
-      position: relative;
-
-      a {
-        position: static;
-        border: 0;
-        padding: 0;
-        margin: 0;
-        display: inline;
-      }
     }
   }
 
@@ -91,77 +82,20 @@
   &--pkg-list {
     margin-top: rem(30);
   }
-}
 
-.hab-key-list {
-  &--list {
-    margin-top: $base-spacing;
+  .sidebar-header {
+    font-family: $heading-font-family;
+    font-size: rem(12);
+    text-transform: uppercase;
   }
-}
 
-.hab-key-add-form {
-  @include shadow-float-more;
-  border-radius: $global-radius;
-  margin-bottom: rem(30);
-  padding: rem(20);
+  .install-box {
+    border: 1px solid $light-gray;
+    padding: 10px;
+    font-weight: bold;
+  }
 
-  &--close {
+  .help-link {
     float: right;
   }
-
-  &--label {
-    color: $hab-gray-dark;
-    font-size: rem(16);
-    margin-top: $base-spacing;
-  }
-
-  &--submit {
-    @include outer-container;
-  }
-
-  &--save {
-    @include span-columns(4);
-    margin-top: 0;
-  }
-
-  &--errors {
-    @include span-columns(8);
-    @include omega;
-    color: $hab-red;
-    font-size: $error-font;
-  }
-}
-
-.hab-origin-members-tab {
-  &--section {
-    margin-bottom: rem(60);
-
-    > h3 {
-      margin-bottom: rem(30);
-    }
-
-    &.invite-members > h3 {
-      margin-bottom: rem(10);
-    }
-  }
-
-  &--submit {
-     @include outer-container;
-  }
-
-  &--save {
-    @include span-columns(4);
-    margin-top: 0;
-  }
-
-  &--errors {
-    @include span-columns(8);
-    @include omega;
-    color: $hab-red;
-    font-size: $error-font;
-  }
-}
-
-.hab-origins-list {
-  margin-bottom: rem(30);
 }
