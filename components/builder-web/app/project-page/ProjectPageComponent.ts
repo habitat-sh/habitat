@@ -91,10 +91,7 @@ import {Subscription} from "rxjs/Subscription";
                 <hab-tab tabTitle="Builds">
                     <div class="builds page-body">
                         <div class="l">
-                            <hab-build-list [project]="project"
-                                        [builds]="project.builds"
-                                        [logs]="project.buildLogs">
-                            </hab-build-list>
+
                         </div>
                         <div class="r">
                             <ul>

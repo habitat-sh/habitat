@@ -1,0 +1,39 @@
+<div class="hab-package-job">
+  <div class="page-title">
+    <h2>
+      <hab-package-breadcrumbs [ident]="ident"></hab-package-breadcrumbs>
+    </h2>
+    <h4>
+      build
+    </h4>
+  </div>
+  <div class="page-body">
+    <div class="back">
+      <a [routerLink]="['/pkgs', ident.origin, ident.name, 'builds']">
+        <span class="octicon octicon-chevron-left"></span>
+        Back to build history
+      </a>
+    </div>
+    <div class="summary" *ngIf="info.state">
+      <div class="status">
+        <div class="octicon octicon-{{ iconFor(info.state) }} {{ info.state | lowercase }}"></div>
+        <strong>Build {{ info.state }}</strong>
+      </div>
+      <div class="detail">
+        <div class="item">
+          <div class="label">Created</div>
+          <div class="data">{{ info.created_at || "&mdash;" }}</div>
+        </div>
+        <div class="item">
+          <div class="label">Started</div>
+          <div class="data">{{ info.build_started_at || "&mdash;" }}</div>
+        </div>
+        <div class="item">
+          <div class="label">Finished</div>
+          <div class="data">{{ info.build_finished_at || "&mdash;" }}</div>
+        </div>
+      </div>
+    </div>
+    <pre class="output" *ngIf="log">{{ log }}</pre>
+  </div>
+</div>

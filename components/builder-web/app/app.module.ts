@@ -18,7 +18,6 @@ import { BrowserModule } from "@angular/platform-browser";
 import { routing } from "./routes";
 import { AppStore } from "./AppStore";
 import { AppComponent } from "./AppComponent";
-import { BuildListComponent } from "./project-page/BuildListComponent";
 import { CheckingInputComponent } from "./CheckingInputComponent";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { DashboardComponent } from "./dashboard/dashboard.component";
@@ -28,6 +27,7 @@ import { FooterComponent } from "./footer/FooterComponent";
 import { GitHubRepoPickerComponent } from "./github-repo-picker/GitHubRepoPickerComponent";
 import { GravatarComponent } from "./GravatarComponent";
 import { HeaderComponent } from "./header/HeaderComponent";
+import { BuildListComponent } from "./build-list/build-list.component";
 import { KeyAddFormComponent } from "./origin-page/KeyAddFormComponent";
 import { KeyListComponent } from "./origin-page/KeyListComponent";
 import { NotificationsComponent } from "./notifications/NotificationsComponent";
@@ -39,6 +39,8 @@ import { OrganizationCreatePageComponent } from "./organization-create-page/Orga
 import { OrganizationMembersComponent } from "./organization-members/OrganizationMembersComponent";
 import { OrganizationsPageComponent } from "./organizations-page/OrganizationsPageComponent";
 import { PackageBreadcrumbsComponent } from "./PackageBreadcrumbsComponent";
+import { BuildComponent } from "./build/build.component";
+import { PackageBuildsComponent } from "./package-builds/package-builds.component";
 import { PackagePageComponent } from "./package-page/PackagePageComponent";
 import { PackageInfoComponent } from "./package-info/PackageInfoComponent";
 import { PackageListComponent } from "./package-page/PackageListComponent";
@@ -74,6 +76,7 @@ import { UserNavComponent } from "./header/user-nav/UserNavComponent";
         GitHubRepoPickerComponent,
         GravatarComponent,
         HeaderComponent,
+        BuildListComponent,
         KeyAddFormComponent,
         KeyListComponent,
         NotificationsComponent,
@@ -85,6 +88,8 @@ import { UserNavComponent } from "./header/user-nav/UserNavComponent";
         OrganizationMembersComponent,
         OrganizationsPageComponent,
         PackageBreadcrumbsComponent,
+        BuildComponent,
+        PackageBuildsComponent,
         PackageListComponent,
         PackageInfoComponent,
         PackagePageComponent,

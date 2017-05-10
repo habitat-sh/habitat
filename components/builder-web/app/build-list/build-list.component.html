@@ -1,0 +1,39 @@
+<div class="hab-build-list">
+  <div class="active {{ activeBuild.state | lowercase }}" *ngIf="activeBuild">
+    A build is in progress.
+    <a [routerLink]="['/builds', activeBuild.id]">View streaming output</a>.
+  </div>
+  <ol *ngIf="builds && builds.size">
+    <li class="heading">
+      <div class="version">
+        <h5>Version</h5>
+      </div>
+      <div class="count">
+        <h5>Name</h5>
+      </div>
+      <div class="created">
+        <h5>Created</h5>
+      </div>
+      <div class="status">
+      </div>
+    </li>
+    <li class="item" *ngFor="let build of builds" (click)="onClick(build)">
+      <div class="version">
+        {{ build.version || "&mdash;" }}
+      </div>
+      <div class="count">
+        {{ build.origin }} / {{ build.name }}
+      </div>
+      <div class="created">
+        {{ dateFor(build.created_at) }}
+      </div>
+      <div class="status" title="{{ build.state | titlecase }}">
+        <div class="octicon octicon-{{ iconFor(build.state) }} {{ build.state | lowercase }}"></div>
+        <div class="octicon octicon-chevron-right"></div>
+      </div>
+    </li>
+  </ol>
+  <div class="none" *ngIf="!builds || builds.size === 0">
+    There are no available builds for this package.
+  </div>
+</div>

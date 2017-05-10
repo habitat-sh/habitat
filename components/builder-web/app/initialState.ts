@@ -36,6 +36,30 @@ export default Record({
             })()
         })()
     })(),
+    builds: Record({
+        visible: List(),
+        selected: Record({
+            info: Record({
+                id: undefined,
+                origin: undefined,
+                name: undefined,
+                version: undefined,
+                release: undefined,
+                state: undefined,
+                build_start: undefined,
+                build_stop: undefined,
+                created_at: undefined
+            })(),
+            log: Record({
+                start: undefined,
+                stop: undefined,
+                content: undefined,
+                is_complete: undefined,
+                stream: undefined
+            })(),
+            stream: false
+        })()
+    })(),
     notifications: Record({
         all: List(),
     })(),
@@ -155,8 +179,6 @@ export default Record({
                 type: "git",
                 url: undefined
             }),
-            builds: List(),
-            buildLogs: Map(),
             ui: Record({
                 exists: false,
                 loading: true,

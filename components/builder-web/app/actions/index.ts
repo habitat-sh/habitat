@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import * as gitHubActions from "./gitHub";
+import * as buildActions from "./builds";
 import * as notificationActions from "./notifications";
 import * as orgActions from "./orgs";
 import * as originActions from "./origins";
@@ -36,6 +37,13 @@ export const SET_GITHUB_REPOS_LOADING_FLAG =
 export const SET_GITHUB_AUTH_STATE = gitHubActions.SET_GITHUB_AUTH_STATE;
 export const SET_GITHUB_AUTH_TOKEN = gitHubActions.SET_GITHUB_AUTH_TOKEN;
 export const SET_SELECTED_GITHUB_ORG = gitHubActions.SET_SELECTED_GITHUB_ORG;
+
+export const CLEAR_BUILD = buildActions.CLEAR_BUILD;
+export const CLEAR_BUILDS = buildActions.CLEAR_BUILDS;
+export const POPULATE_BUILD = buildActions.POPULATE_BUILD;
+export const POPULATE_BUILDS = buildActions.POPULATE_BUILDS;
+export const POPULATE_BUILD_LOG = buildActions.POPULATE_BUILD_LOG;
+export const STREAM_BUILD_LOG = buildActions.STREAM_BUILD_LOG;
 
 export const ADD_NOTIFICATION = notificationActions.ADD_NOTIFICATION;
 export const REMOVE_NOTIFICATION = notificationActions.REMOVE_NOTIFICATION;
@@ -85,10 +93,6 @@ export const SET_PACKAGES_TOTAL_COUNT = packageActions.SET_PACKAGES_TOTAL_COUNT;
 
 export const SET_VISIBLE_PACKAGES = packageActions.SET_VISIBLE_PACKAGES;
 
-export const APPEND_TO_BUILD_LOG = projectActions.APPEND_TO_BUILD_LOG;
-export const FINISH_BUILD_STREAM = projectActions.FINISH_BUILD_STREAM;
-export const POPULATE_BUILDS = projectActions.POPULATE_BUILDS;
-export const POPULATE_BUILD_LOG = projectActions.POPULATE_BUILD_LOG;
 export const POPULATE_PROJECT = projectActions.POPULATE_PROJECT;
 export const SET_CURRENT_PROJECT = projectActions.SET_CURRENT_PROJECT;
 export const SET_PROJECTS = projectActions.SET_PROJECTS;
@@ -122,6 +126,13 @@ export const removeSessionStorage = gitHubActions.removeSessionStorage;
 export const requestGitHubAuthToken = gitHubActions.requestGitHubAuthToken;
 export const setGitHubAuthState = gitHubActions.setGitHubAuthState;
 export const setSelectedGitHubOrg = gitHubActions.setSelectedGitHubOrg;
+
+export const clearBuild = buildActions.clearBuild;
+export const clearBuilds = buildActions.clearBuilds;
+export const fetchBuild = buildActions.fetchBuild;
+export const fetchBuildLog = buildActions.fetchBuildLog;
+export const fetchBuilds = buildActions.fetchBuilds;
+export const streamBuildLog = buildActions.streamBuildLog;
 
 export const addNotification = notificationActions.addNotification;
 export const removeNotification = notificationActions.removeNotification;
@@ -163,11 +174,9 @@ export const setVisiblePackages = packageActions.setVisiblePackages;
 export const getUniquePackages = packageActions.getUniquePackages;
 
 export const addProject = projectActions.addProject;
-export const fetchBuilds = projectActions.fetchBuilds;
 export const fetchProject = projectActions.fetchProject;
 export const fetchProjects = projectActions.fetchProjects;
 export const fetchProjectsForPackages = projectActions.fetchProjectsForPackages;
-export const populateBuildLog = projectActions.populateBuildLog;
 export const setCurrentProject = projectActions.setCurrentProject;
 export const deleteProject = projectActions.deleteProject;
 export const updateProject = projectActions.updateProject;
@@ -193,4 +202,3 @@ export function resetAppState() {
         type: RESET,
     };
 }
-

@@ -22,35 +22,6 @@ export default function projects(state = initialState["projects"], action) {
     let p;
 
     switch (action.type) {
-        // When we're simulating streaming and adding to a build log
-        case actionTypes.APPEND_TO_BUILD_LOG:
-            p = state.get("current");
-            const id = action.payload.buildId;
-            return state.setIn(["current", "buildLogs", id],
-                (p.buildLogs.get(id) || "") + action.payload.text + "\n");
-
-        // Set a build to successful when its log is done streaming
-        case actionTypes.FINISH_BUILD_STREAM:
-            p = state.get("current");
-            const keyPath = List(["current", "builds",
-                p.builds.findIndex(x => x.id === action.payload.buildId)
-            ]);
-            let build = Object.assign({}, state.getIn(keyPath));
-
-            build.status = "success";
-            build.duration = action.payload.duration;
-
-            return state.setIn(keyPath, build);
-
-        case actionTypes.POPULATE_BUILD_LOG:
-            return state.setIn(
-                ["current", "buildLogs", action.payload.id],
-                action.payload.data
-            );
-
-        case actionTypes.POPULATE_BUILDS:
-            return state.setIn(["current", "builds"],
-                List(action.payload));
 
         case actionTypes.POPULATE_PROJECT:
             let padded = state.get("added");
