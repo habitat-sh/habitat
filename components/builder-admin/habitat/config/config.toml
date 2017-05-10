@@ -1,7 +1,11 @@
 [ui]
 root = "{{pkg.svc_static_path}}"
 
-{{toToml cfg}}
+[http]
+{{toToml cfg.http}}
+
+[github]
+{{toToml cfg.github}}
 
 {{~#eachAlive bind.router.members as |member|}}
 [[router]]

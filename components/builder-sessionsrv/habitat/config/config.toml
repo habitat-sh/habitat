@@ -1,4 +1,10 @@
+github_admin_team = {{cfg.github_admin_team}}
+github_builder_teams = {{cfg.github_builder_teams}}
+github_build_worker_teams = {{cfg.github_build_worker_teams}}
 shards = {{toToml cfg.shards}}
+
+[github]
+{{toToml cfg.github}}
 
 {{~#eachAlive bind.router.members as |member|}}
 [[router]]

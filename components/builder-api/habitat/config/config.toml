@@ -5,8 +5,10 @@ root = "{{pkg.svc_static_path}}"
 
 [http]
 {{toToml cfg.http}}
+
 [web]
 {{toToml cfg.web}}
+
 [github]
 {{toToml cfg.github}}
 
