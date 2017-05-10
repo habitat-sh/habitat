@@ -123,7 +123,7 @@ impl Default for NetCfg {
             worker_heartbeat_listen: IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)),
             worker_heartbeat_port: 5567,
             log_ingestion_listen: IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)),
-            log_ingestion_port: 5569,
+            log_ingestion_port: 5568,
         }
     }
 }

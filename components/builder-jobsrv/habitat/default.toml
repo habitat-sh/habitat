@@ -7,7 +7,7 @@ worker_heartbeat_listen = "0.0.0.0"
 worker_heartbeat_port = 5567
 publisher_listen = "0.0.0.0"
 log_ingestion_listen = "0.0.0.0"
-log_ingestion_port = 5569
+log_ingestion_port = 5568
 
 [datastore]
 user = "hab"

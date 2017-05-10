@@ -101,7 +101,7 @@ resource "aws_security_group" "jobsrv" {
 
   ingress {
     from_port = 5566
-    to_port   = 5567
+    to_port   = 5568
     protocol  = "tcp"
 
     security_groups = [
