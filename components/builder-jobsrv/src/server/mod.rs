@@ -16,6 +16,7 @@ pub mod handlers;
 pub mod worker_manager;
 pub mod log_directory;
 pub mod log_ingester;
+pub mod log_archiver;
 
 use std::ops::Deref;
 use std::sync::{Arc, RwLock};
@@ -34,6 +35,7 @@ use data_store::DataStore;
 use error::{Error, Result};
 use self::log_ingester::LogIngester;
 use self::log_directory::LogDirectory;
+use self::log_archiver::LogArchiver;
 
 const BE_LISTEN_ADDR: &'static str = "inproc://backend";
 
@@ -57,6 +59,7 @@ impl Into<ServerState> for InitServerState {
         let mut state = ServerState::default();
         state.datastore = Some(self.datastore);
         state.log_dir = Some(self.log_dir);
+        state.archiver = None;
         state
     }
 }
@@ -66,6 +69,7 @@ pub struct ServerState {
     datastore: Option<DataStore>,
     worker_mgr: Option<WorkerMgrClient>,
     log_dir: Option<LogDirectory>,
+    archiver: Option<Box<LogArchiver + 'static>>,
 }
 
 impl ServerState {
@@ -79,6 +83,10 @@ impl ServerState {
 
     fn log_dir(&self) -> &LogDirectory {
         self.log_dir.as_ref().unwrap()
+    }
+
+    fn archiver<'a>(&'a self) -> &'a LogArchiver {
+        &*self.archiver.as_ref().unwrap().deref()
     }
 }
 
@@ -127,7 +135,14 @@ impl Dispatcher for Worker {
     fn init(&mut self, init_state: Self::InitState) -> Result<Self::State> {
         let mut worker_mgr = WorkerMgrClient::default();
         try!(worker_mgr.connect());
+
         let mut state: ServerState = init_state.into();
+
+        // EWWWWW... have to do this (I think) because the S3Client
+        // inside the archiver isn't clonable
+        let archiver = log_archiver::from_config(self.config.read().unwrap().archive.clone())?;
+        state.archiver = Some(archiver);
+
         state.worker_mgr = Some(worker_mgr);
 
         Ok(state)

@@ -11,6 +11,7 @@ name = "bldr-job-srv"
 doc = false
 
 [dependencies]
+aws-sdk-rust = "*"
 env_logger = "*"
 linked-hash-map = "*"
 log = "*"
@@ -21,7 +22,10 @@ rand = "*"
 r2d2 = "*"
 serde = "*"
 serde_derive = "*"
+sha2 = "*"
 toml = { version = "*", features = ["serde"], default-features = false }
+url = "*"
+hyper = "*"
 
 [dependencies.clap]
 version = "*"

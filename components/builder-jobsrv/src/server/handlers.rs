@@ -14,16 +14,16 @@
 
 //! A collection of handlers for the JobSrv dispatcher
 
+use error::{Error, Result};
 use hab_net::server::Envelope;
-use protocol::net::{self, ErrCode};
-use protocol::jobsrv as proto;
-use zmq;
 use protobuf::RepeatedField;
-use super::ServerState;
-use error::Result;
-use std::path::PathBuf;
+use protocol::jobsrv as proto;
+use protocol::net::{self, ErrCode};
 use std::fs::OpenOptions;
 use std::io::{BufRead, BufReader};
+use std::path::PathBuf;
+use super::ServerState;
+use zmq;
 
 pub fn job_create(req: &mut Envelope,
                   sock: &mut zmq::Socket,
@@ -108,40 +108,56 @@ pub fn job_log_get(req: &mut Envelope,
         }
     };
 
-    // If the job has a log URL set, then we need to retrieve the
-    // contents from that location. (once we start shipping them
-    // somewhere else; for now we're just keeping the files on the
-    // filesystem and setting a file:// URL).
-    //
-    // If it does NOT have a log URL set, we operate under the
-    // assumption that the build could be running right now and thus
-    // log output is accumulating in the filesystem. We try to read
-    // the file; if it's not there then we just don't have any data.
-    //
-    // Once we start deleting the local files, there's a possibility
-    // for a race condition here (we backup and delete the local file
-    // before we can access it). We could potentially deal with that
-    // by delaying the deletion of the local files by some small
-    // amount of time.
+    if job.get_is_archived() {
+        match state.archiver().retrieve(job.get_id()) {
+            Ok(lines) => {
+                let log_content = RepeatedField::from_vec(lines);
+                let num_lines = log_content.len();
 
-    let start = msg.get_start();
-    let file = state.log_dir().log_file_path(msg.get_id());
+                let mut log = proto::JobLog::new();
+                log.set_start(0);
+                log.set_stop(num_lines as u64);
+                log.set_is_complete(true); // by definition
+                log.set_content(log_content);
 
-    match get_log_content(&file, start) {
-        Some(content) => {
-            let num_lines = content.len() as u64;
-            let mut log = proto::JobLog::new();
-            log.set_start(start);
-            log.set_content(RepeatedField::from_vec(content));
-            log.set_stop(start + num_lines);
-            log.set_is_complete(job.has_log_url());
-            req.reply_complete(sock, &log)?;
+                req.reply_complete(sock, &log)?;
+            }
+            Err(e @ Error::CaughtPanic(_, _)) => {
+                // Generally, this happens when the archiver can't
+                // reach it's S3 object store
+                warn!("Error retrieving log: {}", e);
+
+                // TODO: Need to return a different error here... it's
+                // not quite ENTITY_NOT_FOUND
+                let err = net::err(ErrCode::ENTITY_NOT_FOUND, "jb:job-log-get:5");
+                req.reply_complete(sock, &err)?;
+            }
+            Err(_) => {
+                let err = net::err(ErrCode::ENTITY_NOT_FOUND, "jb:job-log-get:4");
+                req.reply_complete(sock, &err)?;
+            }
         }
-        None => {
-            // The job exists, but there are no logs (either yet, or
-            // ever).
-            let err = net::err(ErrCode::ENTITY_NOT_FOUND, "jb:job-log-get:3");
-            req.reply_complete(sock, &err)?;
+    } else {
+        // retrieve fragment from on-disk file
+        let start = msg.get_start();
+        let file = state.log_dir().log_file_path(msg.get_id());
+
+        match get_log_content(&file, start) {
+            Some(content) => {
+                let num_lines = content.len() as u64;
+                let mut log = proto::JobLog::new();
+                log.set_start(start);
+                log.set_content(RepeatedField::from_vec(content));
+                log.set_stop(start + num_lines);
+                log.set_is_complete(false);
+                req.reply_complete(sock, &log)?;
+            }
+            None => {
+                // The job exists, but there are no logs (either yet, or
+                // ever).
+                let err = net::err(ErrCode::ENTITY_NOT_FOUND, "jb:job-log-get:3");
+                req.reply_complete(sock, &err)?;
+            }
         }
     }
     Ok(())

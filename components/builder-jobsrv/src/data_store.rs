@@ -266,6 +266,22 @@ impl DataStore {
                            WHERE id = p_job_id;
                          $$"#)?;
 
+        migrator.migrate("jobsrv", r#"ALTER TABLE jobs ADD COLUMN IF NOT EXISTS archived BOOLEAN DEFAULT FALSE NOT NULL"#)?;
+        migrator.migrate("jobsrv",
+                         r#"CREATE OR REPLACE FUNCTION mark_as_archived_v1(p_job_id BIGINT)
+                         RETURNS VOID
+                         LANGUAGE SQL VOLATILE as $$
+                           UPDATE jobs
+                           SET archived = TRUE
+                           WHERE id = p_job_id;
+                         $$"#)?;
+
+        // We switched away from storing the URL in the database
+        // before we released, so we don't need to worry about
+        // migrating any old data.
+        migrator.migrate("jobsrv", r#"ALTER TABLE jobs DROP COLUMN IF EXISTS log_url"#)?;
+        migrator.migrate("jobsrv", r#"DROP FUNCTION IF EXISTS set_log_url_v1(bigint, text)"#)?;
+        
         migrator.finish()?;
 
         self.async.register("sync_jobs".to_string(), sync_jobs);
@@ -427,15 +443,14 @@ impl DataStore {
         Ok(())
     }
 
-    /// Once all the logs have been collected for a job, we'll ship it
-    /// off somewhere else for long-term storage (e.g., S3 or a local
-    /// clone thereof). Once we do, this will serve as a pointer to
-    /// that remote content.
-    pub fn set_log_url(&self, job_id: u64, url: &str) -> Result<()> {
+    /// Marks a given job's logs as having been archived. The location
+    /// and mechanism for retrieval are dependent on the configured archiving
+    /// mechanism.
+    pub fn mark_as_archived(&self, job_id: u64) -> Result<()> {
         let conn = self.pool.get_shard(0)?;
-        conn.execute("SELECT set_log_url_v1($1, $2)",
-                     &[&(job_id as i64), &url])
-            .map_err(Error::JobSetLogUrl)?;
+        conn.execute("SELECT mark_as_archived_v1($1)",
+                     &[&(job_id as i64)])
+            .map_err(Error::JobMarkArchived)?;
         Ok(())
     }
 }
@@ -517,14 +532,7 @@ fn row_to_job(row: &postgres::rows::Row) -> Result<jobsrv::Job> {
     }
     job.set_project(project);
 
-    // A log URL can be null (e.g., the job may be running right now).
-    //
-    // Note that it's possible for the job itself to be marked as
-    // "Complete" and to have no log URL set yet; log processing can
-    // lag behind job execution.
-    if let Some(Ok(url)) = row.get_opt::<&str, String>("log_url") {
-        job.set_log_url(url);
-    }
+    job.set_is_archived(row.get("archived"));
 
     Ok(job)
 }

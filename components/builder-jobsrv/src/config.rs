@@ -40,6 +40,9 @@ pub struct Config {
     /// be written. Defaults to the system temp directory. Must exist
     /// and be writable by the server process.
     pub log_dir: PathBuf,
+
+    /// Configuration for the job log archiver
+    pub archive: ArchiveCfg,
 }
 
 impl Default for Config {
@@ -53,6 +56,7 @@ impl Default for Config {
             routers: vec![RouterAddr::default()],
             datastore: datastore,
             log_dir: env::temp_dir(),
+            archive: ArchiveCfg::default(),
         }
     }
 }
@@ -129,6 +133,40 @@ impl Default for NetCfg {
     }
 }
 
+////////////////////////////////////////////////////////////////////////
+// Archive Configuration
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(default)]
+pub struct ArchiveCfg {
+    // These are for S3 archiving
+    pub key: Option<String>,
+    pub secret: Option<String>,
+    pub endpoint: Option<String>,
+    pub bucket: Option<String>,
+    pub region: String,
+
+    // These are for local log archiving
+    pub local: bool,
+    pub local_dir: Option<PathBuf>,
+}
+
+impl Default for ArchiveCfg {
+    fn default() -> Self {
+        ArchiveCfg {
+            key: None,
+            secret: None,
+            endpoint: None,
+            bucket: None,
+            region: String::from("us-east-1"),
+
+            // you must explicitly opt in to local
+            local: false,
+            local_dir: None,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -148,6 +186,12 @@ mod tests {
         worker_heartbeat_port = 9000
         log_ingestion_listen = "2.2.2.2"
         log_ingestion_port = 9999
+
+        [archive]
+        key = "THIS_IS_THE_KEY"
+        secret = "THIS_IS_THE_SECRET"
+        bucket = "bukkit"
+        endpoint = "http://minio.mycompany.com:9000"
 
         [[routers]]
         host = "1.1.1.1"
@@ -184,6 +228,18 @@ mod tests {
         assert_eq!(config.datastore.connection_timeout_sec, 4800);
         assert_eq!(config.datastore.connection_test, true);
         assert_eq!(config.datastore.pool_size, 1);
+
+        assert_eq!(config.archive.key, Some("THIS_IS_THE_KEY".to_string()));
+        assert_eq!(config.archive.secret,
+                   Some("THIS_IS_THE_SECRET".to_string()));
+        assert_eq!(config.archive.bucket, Some("bukkit".to_string()));
+        assert_eq!(config.archive.endpoint,
+                   Some("http://minio.mycompany.com:9000".to_string()));
+        assert_eq!(config.archive.region, "us-east-1");
+
+        assert_eq!(config.archive.local, false);
+        assert_eq!(config.archive.local_dir, None);
+
     }
 
     #[test]
