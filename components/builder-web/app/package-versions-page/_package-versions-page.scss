@@ -31,7 +31,6 @@
     }
 
     .pkg-col-2 {
-      text-align: right;
       @include span-columns(2 of 8);
       font-family: $heading-font-family;
       font-size: rem(12);
