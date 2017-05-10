@@ -1,0 +1,8 @@
+[Unit]
+Description=Habitat Supervisor
+
+[Service]
+ExecStart=/bin/hab sup run --peer ${peer_ip}:${gossip_listen_port} ${flags}
+
+[Install]
+WantedBy=default.target

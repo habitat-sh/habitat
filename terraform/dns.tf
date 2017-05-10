@@ -3,7 +3,7 @@ resource "aws_route53_record" "app" {
   name    = "app-${var.env}"
   type    = "CNAME"
   ttl     = "300"
-  records = ["${aws_elb.builder_api.dns_name}"]
+  records = ["${aws_elb.api.dns_name}"]
 }
 
 resource "aws_route53_record" "build" {
@@ -11,7 +11,7 @@ resource "aws_route53_record" "build" {
   name    = "build-${var.env}"
   type    = "CNAME"
   ttl     = "300"
-  records = ["${aws_elb.builder_api.dns_name}"]
+  records = ["${aws_elb.api.dns_name}"]
 }
 
 resource "aws_route53_record" "builder" {
@@ -19,7 +19,7 @@ resource "aws_route53_record" "builder" {
   name    = "builder-${var.env}"
   type    = "CNAME"
   ttl     = "300"
-  records = ["${aws_elb.builder_api.dns_name}"]
+  records = ["${aws_elb.api.dns_name}"]
 }
 
 resource "aws_route53_record" "depot" {
@@ -27,7 +27,7 @@ resource "aws_route53_record" "depot" {
   name    = "depot-${var.env}"
   type    = "CNAME"
   ttl     = "300"
-  records = ["${aws_elb.builder_api.dns_name}"]
+  records = ["${aws_elb.api.dns_name}"]
 }
 
 resource "aws_route53_record" "willem" {
@@ -35,7 +35,7 @@ resource "aws_route53_record" "willem" {
   name    = "willem-${var.env}"
   type    = "CNAME"
   ttl     = "300"
-  records = ["${aws_elb.builder_api.dns_name}"]
+  records = ["${aws_elb.api.dns_name}"]
 }
 
 resource "aws_route53_record" "admin" {
@@ -43,5 +43,5 @@ resource "aws_route53_record" "admin" {
   name    = "admin.${var.env}"
   type    = "CNAME"
   ttl     = "300"
-  records = ["${aws_elb.admin_gateway.dns_name}"]
+  records = ["${aws_elb.admin.dns_name}"]
 }

@@ -15,7 +15,7 @@ variable "aws_ami" {
   description = "Base AMI for all nodes"
 
   default = {
-    us-west-2 = "ami-06b94666"
+    us-west-2 = "ami-efd0428f"
   }
 }
 
@@ -39,6 +39,16 @@ variable "hab_sup_sg" {
   description = "Identifier for AWS security group for habitat supervisor connectivity"
 }
 
+variable "gossip_listen_port" {
+  description = "Port for Habitat Supervisor's --gossip-listen"
+  default     = 9638
+}
+
+variable "http_listen_port" {
+  description = "Port for Habitat Supervisor's --http-listen"
+  default     = 9631
+}
+
 variable "ssl_certificate_arn" {
   description = "Amazon Resource Name (ARN) for the environment's ssl certificate"
 }
@@ -51,20 +61,8 @@ variable "private_subnet_id" {
   description = "Identifier for private AWS subnet"
 }
 
-variable "monolith_count" {
-  description = "Number of monolithic servers to start"
-}
-
-variable "rest_api_count" {
-  description = "Number of Builder REST API servers to start"
-}
-
 variable "router_count" {
   description = "Number of RouteSrv to start"
-}
-
-variable "service_count" {
-  description = "Number of service servers to start"
 }
 
 variable "jobsrv_worker_count" {
