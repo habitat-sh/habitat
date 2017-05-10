@@ -1,6 +1,7 @@
 ---
 pageable: true
 per_page: 12
+layout: blog_index
 ---
 .row
   .main-sidebar
@@ -8,7 +9,9 @@ per_page: 12
 
   .main-content__has-sidebar
     h2.tag_title
-      = tagname
+      | Articles tagged with:
+      span
+        = tagname
 
     - page_articles.each_with_index do |article, i|
       .blog-index--post-summary
@@ -22,7 +25,7 @@ per_page: 12
             = link_to article.title, article
           = article.summary
           = link_to 'Read more...', article, class: 'read-more'
-          footer
+          .article-detail--meta
             ul.no-bullet
               - if article.data.author
                   li

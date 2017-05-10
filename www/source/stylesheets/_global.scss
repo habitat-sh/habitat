@@ -153,10 +153,24 @@ body {
   }
 }
 
+.main-sidebar--heading {
+  @extend %social-icons;
+
+  a.twitter {
+    background-position: left -126px !important;
+  }
+  a.youtube {
+    background-position: left -62px !important;
+  }
+  a.github {
+    background-position: left 2px !important;
+  }
+}
+
 // 2. Code Overrides
 // ---------
 pre {
-  background-color: $black;
+  background-color: $hab-navy;
   border: none;
   border-radius: $global-radius;
   color: $hab-gray-light;
@@ -296,7 +310,7 @@ code {
 // 4. Typography Overrides
 // ---------
 .main-sidebar--heading h4 {
-    margin-bottom: rem-calc(10);
+    margin-bottom: rem-calc(15);
     text-transform: uppercase;
     color: $white;
 }

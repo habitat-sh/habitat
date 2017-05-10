@@ -22,13 +22,13 @@ page 'tutorials/*', layout: :sidebar, locals: { sidebar_layout: 'tutorials' }
 page 'docs/*', layout: :sidebar, locals: { sidebar_layout: 'docs' }
 page 'legal/*', layout: :sidebar, locals: { sidebar_layout: 'legal' }
 page 'try/*', layout: :try
-# page '/blog/*', layout: :sidebar, locals: { sidebar_layout: 'docs' }
-page '/blog/*', layout: :blog_index
+page '/blog/index.html', layout: :blog_index
+# page '/blog/*', layout: :blog_index
 
 activate :blog do |blog|
   blog.prefix = "blog"
-  blog.layout = :blog_post
-  blog.permalink = "{year}/{month}/{day}/{title}.html"
+  blog.layout = 'layouts/blog_post'
+  blog.permalink = "{year}/{month}/{title}.html"
   blog.default_extension = ".md"
   blog.summary_separator = /READMORE/
   blog.summary_length = 250
@@ -38,7 +38,6 @@ activate :blog do |blog|
   blog.taglink = ":tag.html"
   blog.tag_template = "blog/tag.html"
   blog.calendar_template = "blog/calendar.html"
-  # blog.month_template = "blog/calendar.html"
 end
 
 # Proxy pages (http://middlemanapp.com/basics/dynamic-pages/)
@@ -99,7 +98,6 @@ end
 
 activate :autoprefixer
 activate :directory_indexes
-# page "/blog/*.html", :directory_index => false
 
 set :trailing_slash, false
 

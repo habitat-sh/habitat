@@ -211,7 +211,7 @@ DEPENDENCIES
   checker
   middleman (>= 4.0.0.rc.1)
   middleman-autoprefixer
-  middleman-blog
+  middleman-blog (~> 4.0)
   middleman-livereload
   middleman-minify-html
   middleman-s3_sync

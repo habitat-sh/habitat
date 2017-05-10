@@ -1,9 +1,10 @@
 ---
 title: Hello World!
 date: 2017-04-11
-author: Ian Henry
+author: Adam Leff
 tags: community, gossip
 category: Community
+classes: body-article
 ---
 
 As we mentioned during the weekly issue triage this week we've decided to move some of the project's communication over to an "engineering blog". Now, if you're reading this then congratulations you found it! It's basically going to function an awful lot like the currently existing [blog on chef.io](https://blog.chef.io). In fact a majority of the content that will be available here, will also be available over there.
