@@ -8,7 +8,7 @@ root = "{{pkg.svc_static_path}}"
 {{toToml cfg.github}}
 
 {{~#eachAlive bind.router.members as |member|}}
-[[router]]
+[[routers]]
 host = "{{member.sys.ip}}"
 port = {{member.cfg.port}}
 {{~/eachAlive}}

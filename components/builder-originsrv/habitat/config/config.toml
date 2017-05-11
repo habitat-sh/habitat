@@ -1,7 +1,7 @@
 shards = {{toToml cfg.shards}}
 
 {{~#eachAlive bind.router.members as |member|}}
-[[router]]
+[[routers]]
 host = "{{member.sys.ip}}"
 port = {{member.cfg.port}}
 heartbeat = {{member.cfg.heartbeat}}
