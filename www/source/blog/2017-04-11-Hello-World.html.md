@@ -20,7 +20,7 @@ Since the blog is going to exist in our repo with everything else it also provid
 title: Hello World!
 date: 2017-04-11
 author: Ian Henry
-tags: community-updates
+tags: community
 category: Community
 classes: body-article
 ---
