@@ -15,6 +15,7 @@
 use std::error;
 use std::fmt;
 use std::io;
+use std::path::PathBuf;
 use std::result;
 
 use db;
@@ -41,6 +42,9 @@ pub enum Error {
     JobReset(postgres::error::Error),
     JobSetLogUrl(postgres::error::Error),
     JobSetState(postgres::error::Error),
+    LogDirDoesNotExist(PathBuf, io::Error),
+    LogDirIsNotDir(PathBuf),
+    LogDirNotWritable(PathBuf),
     NetError(hab_net::Error),
     ProjectJobsGet(postgres::error::Error),
     Protobuf(protobuf::ProtobufError),
@@ -74,6 +78,15 @@ impl fmt::Display for Error {
             Error::JobReset(ref e) => format!("Database error reseting jobs, {}", e),
             Error::JobSetLogUrl(ref e) => format!("Database error setting job log URL, {}", e),
             Error::JobSetState(ref e) => format!("Database error setting job state, {}", e),
+            Error::LogDirDoesNotExist(ref path, ref e) => {
+                format!("Build log directory {:?} doesn't exist!: {:?}", path, e)
+            }
+            Error::LogDirIsNotDir(ref path) => {
+                format!("Build log directory {:?} is not a directory!", path)
+            }
+            Error::LogDirNotWritable(ref path) => {
+                format!("Build log directory {:?} is not writable!", path)
+            }
             Error::NetError(ref e) => format!("{}", e),
             Error::Protobuf(ref e) => format!("{}", e),
             Error::ProjectJobsGet(ref e) => {
@@ -104,6 +117,9 @@ impl error::Error for Error {
             Error::JobReset(ref err) => err.description(),
             Error::JobSetLogUrl(ref err) => err.description(),
             Error::JobSetState(ref err) => err.description(),
+            Error::LogDirDoesNotExist(_, ref err) => err.description(),
+            Error::LogDirIsNotDir(_) => "Build log directory is not a directory",
+            Error::LogDirNotWritable(_) => "Build log directory is not writable",
             Error::NetError(ref err) => err.description(),
             Error::Protobuf(ref err) => err.description(),
             Error::ProjectJobsGet(ref err) => err.description(),

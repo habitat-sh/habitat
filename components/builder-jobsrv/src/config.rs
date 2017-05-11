@@ -15,6 +15,7 @@
 //! Configuration for a Habitat JobSrv service
 use std::env;
 use std::net::{IpAddr, Ipv4Addr};
+use std::path::PathBuf;
 
 use db::config::DataStoreCfg;
 use hab_core::config::ConfigFile;
@@ -38,7 +39,7 @@ pub struct Config {
     /// Directory to which log output of running build processes will
     /// be written. Defaults to the system temp directory. Must exist
     /// and be writable by the server process.
-    pub log_dir: String,
+    pub log_dir: PathBuf,
 }
 
 impl Default for Config {
@@ -51,7 +52,7 @@ impl Default for Config {
             net: NetCfg::default(),
             routers: vec![RouterAddr::default()],
             datastore: datastore,
-            log_dir: env::temp_dir().to_string_lossy().into_owned(),
+            log_dir: env::temp_dir(),
         }
     }
 }
