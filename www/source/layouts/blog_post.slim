@@ -44,7 +44,7 @@
             - blog.articles.shuffle[0...2].each do |article|
               li.medium-6.columns
                 .blog-index--post-summary
-                  .blog-index--post-summary--header
+                  .blog-index--post-summary--header class=(['orange','blue','green'].sample)
                     ul.no-bullet
                       - article.tags.each do |tag|
                         li

@@ -85,6 +85,14 @@ a.icon-back {
   border-radius: $global-radius $global-radius 0 0;
   font-size: .875rem;
 
+  &.orange {
+    @extend %hab-gradient-orange;
+  }
+
+  &.blue {
+    @extend %hab-gradient-blue;
+  }
+
   ul {
     margin-bottom: 0;
   }

@@ -23,7 +23,6 @@ page 'docs/*', layout: :sidebar, locals: { sidebar_layout: 'docs' }
 page 'legal/*', layout: :sidebar, locals: { sidebar_layout: 'legal' }
 page 'try/*', layout: :try
 page '/blog/index.html', layout: :blog_index
-# page '/blog/*', layout: :blog_index
 
 activate :blog do |blog|
   blog.prefix = "blog"

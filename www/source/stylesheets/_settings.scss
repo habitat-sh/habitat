@@ -95,6 +95,16 @@ $white-slightly-transparent: rgba(255, 255, 255, 0.97);
   background: linear-gradient(90deg, #62AAA7 0%, #BADB8D 100%);
 }
 
+%hab-gradient-orange {
+  background: #F59B51;
+  background: linear-gradient(270deg, #F59B51 0%, #F58251 100%);
+}
+
+%hab-gradient-blue {
+  background: #77C7DB;
+  background: linear-gradient(270deg, #77C7DB 0%, #4296B4 100%);
+}
+
 $body-background: $hab-white;
 $body-font-color: $hab-blue-grey;
 $body-font-family: 'Titillium Web', 'Helvetica Neue', Helvetica, Roboto, Arial, sans-serif;
