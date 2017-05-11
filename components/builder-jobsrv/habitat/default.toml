@@ -1,5 +1,3 @@
-shards = []
-
 [net]
 worker_command_listen = "0.0.0.0"
 worker_command_port = 5566

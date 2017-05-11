@@ -1,7 +1,3 @@
-shards = [
-  0
-]
-
 {{~#eachAlive bind.router.members as |member|}}
 [[routers]]
 host = "{{member.sys.ip}}"
