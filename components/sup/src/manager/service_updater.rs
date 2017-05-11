@@ -120,7 +120,7 @@ impl ServiceUpdater {
                                 a leader topology");
                         match (census_group.me(), census_group.leader()) {
                             (Some(me), Some(leader)) => {
-                                let suitability = if me == leader {
+                                let suitability = if me.member_id == leader.member_id {
                                     u64::min_value()
                                 } else {
                                     u64::max_value()
@@ -145,7 +145,7 @@ impl ServiceUpdater {
                 if let Some(census_group) = census_ring.census_group_for(&service.service_group) {
                     match (census_group.me(), census_group.update_leader()) {
                         (Some(me), Some(leader)) => {
-                            if me == leader {
+                            if me.member_id == leader.member_id {
                                 debug!("We're the leader");
                                 // Start in waiting state to ensure all members agree with our
                                 // version before attempting a new rolling upgrade.

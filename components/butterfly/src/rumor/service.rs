@@ -18,7 +18,6 @@
 
 use std::cmp::Ordering;
 use std::mem;
-use std::net::{IpAddr, Ipv4Addr};
 use std::ops::{Deref, DerefMut};
 
 use habitat_core::service::ServiceGroup;
@@ -26,8 +25,9 @@ use habitat_core::package::Identifiable;
 use protobuf::{self, Message};
 use toml;
 
+pub use message::swim::SysInfo;
 use error::Result;
-use message::swim::{Service as ProtoService, Rumor as ProtoRumor, Rumor_Type as ProtoRumor_Type};
+use message::swim::{Rumor as ProtoRumor, Rumor_Type as ProtoRumor_Type, Service as ProtoService};
 use rumor::Rumor;
 
 #[derive(Debug, Clone, Serialize)]
@@ -104,9 +104,7 @@ impl Service {
         proto.set_service_group(service_group.to_string());
         proto.set_incarnation(0);
         proto.set_pkg(package.to_string());
-        // TODO FN: Can we really expect this all the time, should we return a `Result<Self>` in
-        // this constructor?
-        proto.set_sys(toml::ser::to_vec(&sys).expect("Struct should serialize to bytes"));
+        proto.set_sys(sys.deref().clone());
         if let Some(cfg) = cfg {
             // TODO FN: Can we really expect this all the time, should we return a `Result<Self>`
             // in this constructor?
@@ -149,29 +147,6 @@ impl Rumor for Service {
 
     fn write_to_bytes(&self) -> Result<Vec<u8>> {
         Ok(try!(self.0.write_to_bytes()))
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
-pub struct SysInfo {
-    pub ip: IpAddr,
-    pub hostname: String,
-    pub gossip_ip: IpAddr,
-    pub gossip_port: u16,
-    pub http_gateway_ip: IpAddr,
-    pub http_gateway_port: u16,
-}
-
-impl Default for SysInfo {
-    fn default() -> SysInfo {
-        SysInfo {
-            ip: IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
-            hostname: String::from("localhost"),
-            gossip_ip: IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
-            gossip_port: 0,
-            http_gateway_ip: IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
-            http_gateway_port: 0,
-        }
     }
 }
 

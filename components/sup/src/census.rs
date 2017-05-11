@@ -14,7 +14,6 @@
 
 use std::collections::{BTreeMap, HashMap};
 use std::fmt;
-use std::net::IpAddr;
 use std::str::FromStr;
 
 use butterfly::member::{MemberList, Member, Health};
@@ -39,7 +38,7 @@ static LOGKEY: &'static str = "CE";
 
 type MemberId = String;
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Serialize)]
 pub struct CensusRing {
     pub changed: bool,
 
@@ -200,7 +199,7 @@ impl CensusRing {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 pub enum ElectionStatus {
     None,
     ElectionInProgress,
@@ -250,20 +249,20 @@ impl From<ElectionStatusRumor> for ElectionStatus {
     }
 }
 
-#[derive(Debug, Default, Deserialize, Serialize)]
+#[derive(Debug, Default, Serialize)]
 pub struct ServiceFile {
     pub filename: String,
     pub incarnation: u64,
     pub body: Vec<u8>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Serialize)]
 pub struct ServiceConfig {
     pub incarnation: u64,
     pub value: toml::Value,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Serialize)]
 pub struct CensusGroup {
     pub service_group: ServiceGroup,
     pub election_status: ElectionStatus,
@@ -448,7 +447,7 @@ impl CensusGroup {
     }
 }
 
-#[derive(Clone, Debug, Default, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Serialize)]
 pub struct CensusMember {
     pub member_id: MemberId,
     pub pkg: Option<PackageIdent>,
@@ -487,16 +486,15 @@ impl CensusMember {
         cep.set_group(self.group.clone());
         cep.set_org(self.org.as_ref().unwrap_or(&"".to_string()).clone());
 
-        let cfg_str = toml::to_string(&self.cfg).unwrap();
-        cep.set_cfg(cfg_str.into_bytes());
-
+        // JW TODO: We need to leverage `swim.SysInfo` inside of the EventSrv protobufs. That
+        // will alleviate this translation and make things more re-usable.
         let mut sys_info = SysInfoProto::new();
-        sys_info.set_ip(self.sys.ip.to_string());
-        sys_info.set_hostname(self.sys.hostname.clone());
-        sys_info.set_gossip_ip(self.sys.gossip_ip.to_string());
-        sys_info.set_gossip_port(self.sys.gossip_port.to_string());
-        sys_info.set_http_gateway_ip(self.sys.http_gateway_ip.to_string());
-        sys_info.set_http_gateway_port(self.sys.http_gateway_port.to_string());
+        sys_info.set_ip(self.sys.get_ip().to_string());
+        sys_info.set_hostname(self.sys.get_hostname().to_string());
+        sys_info.set_gossip_ip(self.sys.get_gossip_ip().to_string());
+        sys_info.set_gossip_port(self.sys.get_gossip_port().to_string());
+        sys_info.set_http_gateway_ip(self.sys.get_http_gateway_ip().to_string());
+        sys_info.set_http_gateway_port(self.sys.get_http_gateway_port().to_string());
         cep.set_sys(sys_info);
         if self.pkg.is_some() {
             let pkg = self.pkg.clone().unwrap();
@@ -524,6 +522,9 @@ impl CensusMember {
         cep.set_suspect(self.suspect);
         cep.set_confirmed(self.confirmed);
         cep.set_persistent(self.persistent);
+
+        let cfg_str = toml::to_string(&self.cfg).unwrap();
+        cep.set_cfg(cfg_str.into_bytes());
         cep
     }
 
@@ -538,8 +539,8 @@ impl CensusMember {
             Ok(ident) => self.pkg = Some(ident),
             Err(err) => warn!("Received a bad package ident from gossip data, err={}", err),
         };
+        self.sys = rumor.get_sys().clone().into();
         self.cfg = toml::from_slice(rumor.get_cfg()).unwrap_or(toml::value::Table::default());
-        self.sys = toml::from_slice(rumor.get_sys()).unwrap_or(SysInfo::default());
     }
 
     fn update_from_election_rumor(&mut self, election: &ElectionRumor) -> bool {
@@ -575,10 +576,8 @@ impl CensusMember {
     }
 
     fn update_from_member(&mut self, member: &Member) {
-        if let Ok(addr) = IpAddr::from_str(member.get_address()) {
-            self.sys.gossip_ip = addr;
-        }
-        self.sys.gossip_port = member.get_gossip_port() as u16;
+        self.sys.set_gossip_ip(member.get_address().to_string());
+        self.sys.set_gossip_port(member.get_gossip_port() as u32);
         self.persistent = true;
     }
 
@@ -601,7 +600,6 @@ fn service_group_from_str(sg: &str) -> Result<ServiceGroup, hcore::Error> {
 
 #[cfg(test)]
 mod tests {
-    use std::net::{IpAddr, Ipv4Addr};
     use hcore::package::ident::PackageIdent;
     use hcore::service::ServiceGroup;
     use butterfly::member::MemberList;
@@ -616,14 +614,13 @@ mod tests {
 
     #[test]
     fn update_from_rumors() {
-        let sys_info = SysInfo {
-            ip: IpAddr::V4(Ipv4Addr::new(1, 2, 3, 4)),
-            hostname: "hostname".to_string(),
-            gossip_ip: IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)),
-            gossip_port: 7777,
-            http_gateway_ip: IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)),
-            http_gateway_port: 9631,
-        };
+        let mut sys_info = SysInfo::new();
+        sys_info.set_ip("1.2.3.4".to_string());
+        sys_info.set_hostname("hostname".to_string());
+        sys_info.set_gossip_ip("0.0.0.0".to_string());
+        sys_info.set_gossip_port(7777);
+        sys_info.set_http_gateway_ip("0.0.0.0".to_string());
+        sys_info.set_http_gateway_port(9631);
         let pg_id = PackageIdent::new("starkandwayne",
                                       "shield",
                                       Some("0.10.4"),
@@ -665,9 +662,9 @@ mod tests {
                                 &service_config_store,
                                 &service_file_store);
         let census_group_one = ring.census_group_for(&sg_one).unwrap();
-        assert_eq!(census_group_one.me(), None);
+        assert!(census_group_one.me().is_none());
         assert_eq!(census_group_one.leader().unwrap().member_id, "member-a");
-        assert_eq!(census_group_one.update_leader(), None);
+        assert!(census_group_one.update_leader().is_none());
 
         let census_group_two = ring.census_group_for(&sg_two).unwrap();
         assert_eq!(census_group_two.me().unwrap().member_id,

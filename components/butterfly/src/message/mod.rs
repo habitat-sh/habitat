@@ -24,7 +24,6 @@ use toml;
 
 use error::Result;
 use message::swim::Wire;
-use rumor::service::SysInfo;
 use protobuf::{self, Message};
 
 pub fn generate_wire(payload: Vec<u8>, ring_key: &Option<SymKey>) -> Result<Vec<u8>> {
@@ -121,16 +120,19 @@ impl Serialize for swim::Service {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {
-        let mut strukt = try!(serializer.serialize_struct("service", 11));
+        let mut strukt = serializer.serialize_struct("service", 7)?;
         let cfg = toml::from_slice(self.get_cfg()).unwrap_or(toml::value::Table::default());
-        let sys = toml::from_slice(self.get_sys()).unwrap_or(SysInfo::default());
-        try!(strukt.serialize_field("member_id", self.get_member_id()));
-        try!(strukt.serialize_field("service_group", self.get_service_group()));
-        try!(strukt.serialize_field("package", self.get_pkg()));
-        try!(strukt.serialize_field("incarnation", &self.get_incarnation()));
-        try!(strukt.serialize_field("cfg", &cfg));
-        try!(strukt.serialize_field("sys", &sys));
-        try!(strukt.serialize_field("initialized", &self.get_initialized()));
+        strukt
+            .serialize_field("member_id", self.get_member_id())?;
+        strukt
+            .serialize_field("service_group", self.get_service_group())?;
+        strukt.serialize_field("package", self.get_pkg())?;
+        strukt
+            .serialize_field("incarnation", &self.get_incarnation())?;
+        strukt.serialize_field("cfg", &cfg)?;
+        strukt.serialize_field("sys", &self.get_sys())?;
+        strukt
+            .serialize_field("initialized", &self.get_initialized())?;
         strukt.end()
     }
 }
@@ -164,6 +166,25 @@ impl Serialize for swim::ServiceFile {
             Ok(c) => try!(strukt.serialize_field("body", c)),
             Err(_) => try!(strukt.serialize_field("body", self.get_body())),
         };
+        strukt.end()
+    }
+}
+
+impl Serialize for swim::SysInfo {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+        where S: Serializer
+    {
+        let mut strukt = serializer.serialize_struct("sys_info", 6)?;
+        strukt.serialize_field("ip", self.get_ip())?;
+        strukt.serialize_field("hostname", self.get_hostname())?;
+        strukt
+            .serialize_field("gossip_ip", self.get_gossip_ip())?;
+        strukt
+            .serialize_field("gossip_port", &self.get_gossip_port())?;
+        strukt
+            .serialize_field("http_gateway_ip", self.get_http_gateway_ip())?;
+        strukt
+            .serialize_field("http_gateway_port", &self.get_http_gateway_port())?;
         strukt.end()
     }
 }

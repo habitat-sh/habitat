@@ -72,14 +72,14 @@ impl Sys {
     }
 
     pub fn as_sys_info(&self) -> SysInfo {
-        SysInfo {
-            ip: self.ip.clone(),
-            hostname: self.hostname.clone(),
-            gossip_ip: self.gossip_ip.clone(),
-            gossip_port: self.gossip_port.clone(),
-            http_gateway_ip: self.http_gateway_ip.clone(),
-            http_gateway_port: self.http_gateway_port.clone(),
-        }
+        let mut sys_info = SysInfo::new();
+        sys_info.set_ip(self.ip.to_string());
+        sys_info.set_hostname(self.hostname.clone());
+        sys_info.set_gossip_ip(self.gossip_ip.to_string());
+        sys_info.set_gossip_port(self.gossip_port as u32);
+        sys_info.set_http_gateway_ip(self.http_gateway_ip.to_string());
+        sys_info.set_http_gateway_port(self.http_gateway_port as u32);
+        sys_info
     }
 
     pub fn gossip_listen(&self) -> SocketAddr {
