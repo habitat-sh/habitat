@@ -30,9 +30,15 @@ export class BuilderApiClient {
           fetch(`${this.urlPrefix}/depot/origins/${originName}/invitations/${invitationId}`, {
                 headers: this.headers,
                 method: "PUT",
-            }).then(response => {
-                resolve(true);
-            }).catch(error => reject(error));
+            })
+            .then(response => {
+                if (response.ok) {
+                    resolve(true);
+                } else {
+                    reject(new Error(response.statusText));
+                }
+            })
+            .catch(error => reject(error));
         });
     }
 
