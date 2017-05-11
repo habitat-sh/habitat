@@ -1,8 +1,8 @@
 ---
 title: Hello World!
 date: 2017-04-11
-author: Adam Leff
-tags: community, gossip
+author: Ian Henry
+tags: community
 category: Community
 classes: body-article
 ---
@@ -22,6 +22,7 @@ date: 2017-04-11
 author: Ian Henry
 tags: community-updates
 category: Community
+classes: body-article
 ---
 ~~~
 Obviously with _your_ name and the date you wrote your article. Once you've opened that PR we can vet the content and on approval it should get published out to the habitat.sh site! All in all we're perpetually trying to find ways to communicate with the community more effectively and create more content to help you with doing things in Habitat. Hopefully this change will push us further down the path of useful community interaction and contribution.
