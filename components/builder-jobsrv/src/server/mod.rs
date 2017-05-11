@@ -14,7 +14,7 @@
 
 pub mod handlers;
 pub mod worker_manager;
-pub mod log;
+pub mod log_directory;
 pub mod log_ingester;
 
 use std::ops::Deref;
@@ -33,7 +33,7 @@ use config::Config;
 use data_store::DataStore;
 use error::{Error, Result};
 use self::log_ingester::LogIngester;
-use self::log::LogDirectory;
+use self::log_directory::LogDirectory;
 
 const BE_LISTEN_ADDR: &'static str = "inproc://backend";
 
