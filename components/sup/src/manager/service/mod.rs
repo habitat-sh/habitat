@@ -386,8 +386,16 @@ impl Service {
     pub fn update_package(&mut self, package: PackageInstall) {
         match Pkg::from_install(package) {
             Ok(pkg) => {
-                let hooks_root = Self::hooks_root(&pkg, self.config_from.as_ref());
-                self.hooks = HookTable::load(&self.service_group, &hooks_root);
+                match CfgRenderer::new(&Self::config_root(&pkg, self.config_from.as_ref())) {
+                    Ok(renderer) => self.config_renderer = renderer,
+                    Err(e) => {
+                        outputln!(preamble self.service_group,
+                                  "Failed to load config templates after updating package, {}", e);
+                        return;
+                    }
+                }
+                self.hooks = HookTable::load(&self.service_group,
+                                             &Self::hooks_root(&pkg, self.config_from.as_ref()));
                 self.pkg = pkg;
             }
             Err(err) => {
