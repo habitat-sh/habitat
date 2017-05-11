@@ -385,7 +385,11 @@ impl Service {
     /// Replace the package of the running service and restart it's system process.
     pub fn update_package(&mut self, package: PackageInstall) {
         match Pkg::from_install(package) {
-            Ok(pkg) => self.pkg = pkg,
+            Ok(pkg) => {
+                let hooks_root = Self::hooks_root(&pkg, self.config_from.as_ref());
+                self.hooks = HookTable::load(&self.service_group, &hooks_root);
+                self.pkg = pkg;
+            }
             Err(err) => {
                 outputln!(preamble self.service_group,
                           "Unexpected error while updating package, {}", err);

@@ -626,8 +626,10 @@ impl Manager {
                 .write()
                 .expect("Services lock is poisoned!")
                 .iter_mut() {
-            self.updater
-                .check_for_updated_package(service, &self.census_ring);
+            if self.updater
+                   .check_for_updated_package(service, &self.census_ring) {
+                self.gossip_latest_service_rumor(&service);
+            }
         }
     }
 
