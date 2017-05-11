@@ -386,6 +386,8 @@ impl Service {
     pub fn update_package(&mut self, package: PackageInstall) {
         match Pkg::from_install(package) {
             Ok(pkg) => {
+                outputln!(preamble self.service_group,
+                            "Updating service {} to {}", self.pkg.ident, pkg.ident);
                 match CfgRenderer::new(&Self::config_root(&pkg, self.config_from.as_ref())) {
                     Ok(renderer) => self.config_renderer = renderer,
                     Err(e) => {
