@@ -18,7 +18,7 @@ use error::Result;
 use hab_net::server::ZMQ_CONTEXT;
 use protobuf::parse_from_bytes;
 use protocol::jobsrv::{JobLogComplete, JobLogChunk};
-use server::log::LogDirectory;
+use server::log_directory::LogDirectory;
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::str;
