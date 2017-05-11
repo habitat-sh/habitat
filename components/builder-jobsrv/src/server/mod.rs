@@ -180,6 +180,9 @@ impl Application for Server {
             ds
         };
 
+        // Start the background sync
+        datastore.start_async();
+
         let ds2 = datastore.clone();
         let ingester_datastore = datastore.clone();
 
