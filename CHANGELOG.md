@@ -1,5 +1,52 @@
 # Habitat CHANGELOG
 
+## [0.23.0](https://github.com/habitat-sh/habitat/tree/0.23.0) (05-11-2017)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.22.1...0.23.0)
+
+## Features & Enhancements
+
+- \[builder-web\] Show build output from streaming logs  [\#2183](https://github.com/habitat-sh/habitat/issues/2183)
+- \[builder-web\] Improve package search [\#2182](https://github.com/habitat-sh/habitat/issues/2182)
+- Update the acceptance environment with the latest builder service [\#2035](https://github.com/habitat-sh/habitat/issues/2035)
+- Streaming log output for Builder and long term storage on job complete [\#2024](https://github.com/habitat-sh/habitat/issues/2024)
+- configurable update strategy frequency and better update messaging [\#2320](https://github.com/habitat-sh/habitat/pull/2320) ([mwrock](https://github.com/mwrock))
+- Address review comments on PR \#2241 \(Log streaming\) [\#2319](https://github.com/habitat-sh/habitat/pull/2319) ([christophermaier](https://github.com/christophermaier))
+- Change JobSrv log-ingestion to 5568 from 5569 [\#2309](https://github.com/habitat-sh/habitat/pull/2309) ([reset](https://github.com/reset))
+- Refactor Terraform module to support latest supervisor [\#2301](https://github.com/habitat-sh/habitat/pull/2301) ([reset](https://github.com/reset))
+- Minor doc change to eachAlive sections [\#2293](https://github.com/habitat-sh/habitat/pull/2293) ([reset](https://github.com/reset))
+- Add an endpoint for getting jobs from a project [\#2283](https://github.com/habitat-sh/habitat/pull/2283) ([christophermaier](https://github.com/christophermaier))
+- Logs! [\#2241](https://github.com/habitat-sh/habitat/pull/2241) ([christophermaier](https://github.com/christophermaier))
+
+## Bug fixes
+
+- sys.ip always reports 127.0.0.1 \(when 0.22.\* and 0.21.0 supervisors are communicating\) [\#2298](https://github.com/habitat-sh/habitat/issues/2298)
+- Census can report multiple members as leaders of their group [\#2297](https://github.com/habitat-sh/habitat/issues/2297)
+- Use protobuf to represent sys information in swim.Service proto [\#2314](https://github.com/habitat-sh/habitat/pull/2314) ([reset](https://github.com/reset))
+- Reload config templates on package update [\#2313](https://github.com/habitat-sh/habitat/pull/2313) ([reset](https://github.com/reset))
+- builder service plan bug fixes [\#2312](https://github.com/habitat-sh/habitat/pull/2312) ([reset](https://github.com/reset))
+- fix updated package template rendering [\#2311](https://github.com/habitat-sh/habitat/pull/2311) ([mwrock](https://github.com/mwrock))
+- Various plan fixes for builder-admin, builder-api, and builder-sessionsrv [\#2310](https://github.com/habitat-sh/habitat/pull/2310) ([reset](https://github.com/reset))
+- Point to proper static directory in builder-proxy configs [\#2307](https://github.com/habitat-sh/habitat/pull/2307) ([reset](https://github.com/reset))
+- Fix issue in worker plan not configuring to JobSrv [\#2302](https://github.com/habitat-sh/habitat/pull/2302) ([reset](https://github.com/reset))
+- Remove leader / follower bit in CensusMember on every ElectionRumor [\#2296](https://github.com/habitat-sh/habitat/pull/2296) ([bodymindarts](https://github.com/bodymindarts))
+- Export and quote PGPASSWORD in builder init hooks [\#2295](https://github.com/habitat-sh/habitat/pull/2295) ([reset](https://github.com/reset))
+- \[sup\] Support optional package bind validation. [\#2294](https://github.com/habitat-sh/habitat/pull/2294) ([fnichol](https://github.com/fnichol))
+- Disable password prompt in builder init hooks [\#2292](https://github.com/habitat-sh/habitat/pull/2292) ([reset](https://github.com/reset))
+
+**Closed issues:**
+
+- Make UPDATE\_STRATEGY\_FREQUENCY\_MS configurable from env var [\#2316](https://github.com/habitat-sh/habitat/issues/2316)
+
+**Merged pull requests:**
+
+- Add back async start to jobsrv [\#2318](https://github.com/habitat-sh/habitat/pull/2318) ([chefsalim](https://github.com/chefsalim))
+- Show build log output in the UI [\#2306](https://github.com/habitat-sh/habitat/pull/2306) ([cnunciato](https://github.com/cnunciato))
+- Dallas is the next Hands on Habitat event [\#2300](https://github.com/habitat-sh/habitat/pull/2300) ([nathenharvey](https://github.com/nathenharvey))
+- cancel deployment for PRs before accessing secure variables [\#2291](https://github.com/habitat-sh/habitat/pull/2291) ([mwrock](https://github.com/mwrock))
+- do not use annotaded tags to fix appveyor deployments [\#2290](https://github.com/habitat-sh/habitat/pull/2290) ([mwrock](https://github.com/mwrock))
+- bumping dev version [\#2289](https://github.com/habitat-sh/habitat/pull/2289) ([mwrock](https://github.com/mwrock))
+- Improve package search [\#2214](https://github.com/habitat-sh/habitat/pull/2214) ([raskchanky](https://github.com/raskchanky))
+
 ## [0.22.1](https://github.com/habitat-sh/habitat/tree/0.22.1) (05-09-2017)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.22.0...0.22.1)
 
@@ -37,6 +84,9 @@
 
 **Merged pull requests:**
 
+- Revert "Fix travis deploy for PRs redux" [\#2288](https://github.com/habitat-sh/habitat/pull/2288) ([mwrock](https://github.com/mwrock))
+- release 0.22.1 [\#2287](https://github.com/habitat-sh/habitat/pull/2287) ([mwrock](https://github.com/mwrock))
+- tweak language around private repos [\#2285](https://github.com/habitat-sh/habitat/pull/2285) ([mwrock](https://github.com/mwrock))
 - Remove deprecated publisher port [\#2268](https://github.com/habitat-sh/habitat/pull/2268) ([chefsalim](https://github.com/chefsalim))
 - remove warnings in windows supervisor compiles [\#2267](https://github.com/habitat-sh/habitat/pull/2267) ([mwrock](https://github.com/mwrock))
 - Bugfix in package graph [\#2266](https://github.com/habitat-sh/habitat/pull/2266) ([chefsalim](https://github.com/chefsalim))
