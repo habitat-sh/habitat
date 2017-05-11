@@ -21,6 +21,7 @@ use std::time::Duration;
 use butterfly;
 use common::ui::UI;
 use depot_client;
+use env;
 use hcore::package::{PackageIdent, PackageInstall};
 use hcore::service::ServiceGroup;
 use hcore::crypto::default_cache_key_path;
@@ -33,7 +34,8 @@ use census::CensusRing;
 use manager::service::{Service, Topology, UpdateStrategy};
 
 static LOGKEY: &'static str = "SU";
-const UPDATE_STRATEGY_FREQUENCY_MS: i64 = 60_000;
+const FREQUENCY_ENVVAR: &'static str = "HAB_UPDATE_STRATEGY_FREQUENCY_MS";
+const DEFAULT_FREQUENCY: i64 = 60_000;
 
 type UpdaterStateList = HashMap<ServiceGroup, UpdaterState>;
 
@@ -109,8 +111,7 @@ impl ServiceUpdater {
                     Err(TryRecvError::Empty) => return false,
                     Err(TryRecvError::Disconnected) => {}
                 }
-                outputln!(preamble service.service_group,
-                    "Service Updater worker has died {}", "; restarting...");
+                debug!("Service Updater worker has died; restarting...");
                 *rx = Worker::new(service).start(&service.service_group, None);
             }
             Some(&mut UpdaterState::Rolling(ref mut st @ RollingState::AwaitingElection)) => {
@@ -171,8 +172,7 @@ impl ServiceUpdater {
                             }
                             Err(TryRecvError::Empty) => return false,
                             Err(TryRecvError::Disconnected) => {
-                                outputln!(preamble service.service_group,
-                                    "Service Updater has died {}", "; restarting...");
+                                debug!("Service Updater worker has died; restarting...");
                                 *rx = Worker::new(service).start(&service.service_group, None);
                             }
                         }
@@ -246,8 +246,7 @@ impl ServiceUpdater {
                                     }
                                     Err(TryRecvError::Empty) => return false,
                                     Err(TryRecvError::Disconnected) => {
-                                        outputln!(preamble service.service_group,
-                                            "Service Updater has died {}", "; restarting...");
+                                        debug!("Service Updater worker has died; restarting...");
                                         let package =
                                             census_group.update_leader().unwrap().pkg.clone();
                                         *rx = Worker::new(service).start(&service.service_group,
@@ -312,7 +311,7 @@ impl Worker {
         outputln!("Updating from {} to {}", self.current, ident);
         loop {
             let next_check = SteadyTime::now() +
-                             TimeDuration::milliseconds(UPDATE_STRATEGY_FREQUENCY_MS);
+                             TimeDuration::milliseconds(self.update_frequency());
             match self.install(&ident, true) {
                 Ok(package) => {
                     self.current = package.ident().clone();
@@ -331,7 +330,7 @@ impl Worker {
     fn run_poll(&mut self, sender: SyncSender<PackageInstall>) {
         loop {
             let next_check = SteadyTime::now() +
-                             TimeDuration::milliseconds(UPDATE_STRATEGY_FREQUENCY_MS);
+                             TimeDuration::milliseconds(self.update_frequency());
             let mut package: Option<PackageInstall> = None;
             match self.depot.show_package(&self.spec_ident) {
                 Ok(remote) => {
@@ -399,5 +398,23 @@ impl Worker {
         try!(archive.unpack(None));
         let pkg = PackageInstall::load(archive.ident().as_ref().unwrap(), Some(&*FS_ROOT_PATH))?;
         Ok(pkg)
+    }
+
+    fn update_frequency(&self) -> i64 {
+        match env::var(FREQUENCY_ENVVAR) {
+            Ok(val) => {
+                match val.parse::<i64>() {
+                    Ok(num) => num,
+                    Err(_) => {
+                        outputln!("Unable to parse '{}' from {} as a valid integer. Falling back to defailt {} MS frequency.",
+                                  val,
+                                  FREQUENCY_ENVVAR,
+                                  DEFAULT_FREQUENCY);
+                        DEFAULT_FREQUENCY
+                    }
+                }
+            }
+            Err(_) => DEFAULT_FREQUENCY,
+        }
     }
 }

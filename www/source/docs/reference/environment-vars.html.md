@@ -21,6 +21,7 @@ This is a list of all environment variables that can be used to modify the opera
 | `HAB_RING_KEY` | supervisor | no default | The name of the ring key when running with [wire encryption](/docs/run-packages-security/#wire-encryption) |
 | `HAB_STUDIOS_HOME` | build system | `/hab/studios` if running as root; `$HOME/.hab/studios` if running as non-root | Directory in which to create build studios |
 | `HAB_STUDIO_ROOT` | build system | no default | Root of the current studio under `$HAB_STUDIOS_HOME`. Infrequently overridden. |
+| `HAB_UPDATE_STRATEGY_FREQUENCY_MS` | supervisor | 60000 | Frequency of milliseconds to check for updates when running with an [update strategy](/docs/run-packages-update-strategy) |
 | `HAB_USER` | supervisor | no default | User key to use when running with [service group encryption](/docs/run-packages-security/#service-group-encryption) |
 | `http_proxy` | build system, supervisor | no default | A URL for a local HTTP proxy server optionally supporting basic authentication |
 | `https_proxy` | build system, supervisor | no default | A URL for a local HTTPS proxy server optionally supporting basic authentication |
