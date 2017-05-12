@@ -298,10 +298,8 @@ impl Runner {
                         OsString::from(self.workspace.src()),
                         OsString::from("-r"),
                         OsString::from(self.workspace.studio()),
-                        OsString::from("rm"),
-                        OsString::from(Path::new(self.job().get_project().get_plan_path())
-                                           .parent()
-                                           .unwrap())];
+                        OsString::from("rm")];
+
         let command = studio_cmd();
         debug!("removing studio, cmd={:?}, args={:?}", command, args);
         let mut child = Command::new(command)
