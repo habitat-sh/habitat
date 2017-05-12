@@ -1489,7 +1489,13 @@ fn search_packages(req: &mut Request) -> IronResult<Response> {
 
     // TODO MW: constraining to core is temporary until we have a cross origin index
     request.set_origin("core".to_string());
+
+    // Setting distinct to true makes this query ignore the origin set above, because it's going to
+    // search both the origin name and the package name for the query string provided. This is
+    // likely sub-optimal for performance but it makes things work right now and we should probably
+    // switch to some kind of full-text search engine in the future anyway.
     request.set_distinct(true);
+
     match route_message::<OriginPackageSearchRequest, OriginPackageListResponse>(req, &request) {
         Ok(packages) => {
             debug!("search_packages start: {}, stop: {}, total count: {}",

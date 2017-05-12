@@ -708,18 +708,18 @@ impl DataStore {
                                             -> Result<originsrv::OriginPackageListResponse> {
         let conn = self.pool.get(ops)?;
 
-        let query = if *&ops.get_distinct() {
-            "SELECT * FROM search_origin_packages_for_origin_distinct_v1($1, $2, $3, $4)"
+        let rows = if *&ops.get_distinct() {
+            conn.query("SELECT * FROM search_all_origin_packages_dynamic_v1($1, $2, $3)",
+                       &[&ops.get_query(), &ops.limit(), &(ops.get_start() as i64)])
+                .map_err(Error::OriginPackageSearch)?
         } else {
-            "SELECT * FROM search_origin_packages_for_origin_v1($1, $2, $3, $4)"
+            conn.query("SELECT * FROM search_origin_packages_for_origin_v1($1, $2, $3, $4)",
+                       &[&ops.get_origin(),
+                         &ops.get_query(),
+                         &ops.limit(),
+                         &(ops.get_start() as i64)])
+                .map_err(Error::OriginPackageSearch)?
         };
-
-        let rows = conn.query(query,
-                              &[&ops.get_origin(),
-                                &ops.get_query(),
-                                &ops.limit(),
-                                &(ops.get_start() as i64)])
-            .map_err(Error::OriginPackageSearch)?;
 
         let mut response = originsrv::OriginPackageListResponse::new();
         response.set_start(ops.get_start());
