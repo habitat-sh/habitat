@@ -1,5 +1,6 @@
 {{toToml cfg}}
 data_path = "{{pkg.svc_data_path}}"
+depot_url = "{{bind.depot.first.cfg.url}}"
 
 {{~#eachAlive bind.jobsrv.members as |member|}}
 [[jobsrv]]

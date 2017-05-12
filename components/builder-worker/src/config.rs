@@ -15,18 +15,28 @@
 //! Configuration for a Habitat JobSrv Worker
 
 use std::net::{IpAddr, Ipv4Addr};
+use std::path::PathBuf;
 
 use hab_core::config::ConfigFile;
+use hab_core::url;
 
 use error::Error;
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 #[serde(default)]
 pub struct Config {
     /// Token for authenticating with the public builder-api
     pub auth_token: String,
+    /// Enable automatic publishing for all builds by default
+    pub auto_publish: bool,
     /// Filepath where persistent application data is stored
-    pub data_path: String,
+    pub data_path: PathBuf,
+    /// Default channel name for Publish post-processor to use to determine which channel to
+    /// publish artifacts to
+    pub depot_channel: String,
+    /// Default URL for Publish post-processor to use to determine which Builder Depot to use
+    /// for retrieving signing keys and publishing artifacts
+    pub depot_url: String,
     /// List of Job Servers to connect to
     pub jobsrv: JobSrvCfg,
 }
@@ -48,7 +58,10 @@ impl Default for Config {
     fn default() -> Self {
         Config {
             auth_token: "".to_string(),
-            data_path: "/tmp".to_string(),
+            auto_publish: true,
+            data_path: PathBuf::from("/tmp"),
+            depot_channel: String::from("unstable"),
+            depot_url: url::default_depot_url(),
             jobsrv: vec![JobSrvAddr::default()],
         }
     }
@@ -75,7 +88,7 @@ impl Default for JobSrvAddr {
             host: IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
             port: 5566,
             heartbeat: 5567,
-            log_port: 5568
+            log_port: 5568,
         }
     }
 }

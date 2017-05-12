@@ -30,8 +30,10 @@ pub struct Workspace {
 }
 
 impl Workspace {
-    pub fn new(data_path: String, job: Job) -> Self {
-        let root = PathBuf::from(data_path).join(job.get_id().to_string());
+    pub fn new<T>(data_path: T, job: Job) -> Self
+        where T: AsRef<Path>
+    {
+        let root = data_path.as_ref().join(job.get_id().to_string());
         Workspace {
             job: job,
             out: root.join("out"),

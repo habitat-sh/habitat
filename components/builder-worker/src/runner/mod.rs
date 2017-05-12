@@ -28,7 +28,7 @@ use std::thread::{self, JoinHandle};
 pub use protocol::jobsrv::JobState;
 use chrono::UTC;
 use depot_client;
-use hab_core::{self, crypto, env};
+use hab_core::{crypto, env};
 use hab_core::package::archive::PackageArchive;
 use hab_core::package::install::PackageInstall;
 use hab_core::package::PackageIdent;
@@ -111,22 +111,21 @@ impl DerefMut for Job {
 }
 
 pub struct Runner {
-    workspace: Workspace,
-    auth_token: String,
-    log_pipe: Option<LogPipe>,
+    config: Config,
     depot_cli: depot_client::Client,
+    log_pipe: Option<LogPipe>,
+    workspace: Workspace,
 }
 
 impl Runner {
-    pub fn new(job: Job, config: &Config) -> Self {
-        let depot_cli =
-            depot_client::Client::new(&hab_core::url::default_depot_url(), PRODUCT, VERSION, None)
-                .unwrap();
+    pub fn new(job: Job, config: Config) -> Self {
+        let url = format!("{}/depot", config.depot_url);
+        let depot_cli = depot_client::Client::new(&url, PRODUCT, VERSION, None).unwrap();
         Runner {
-            auth_token: config.auth_token.clone(),
             workspace: Workspace::new(config.data_path.clone(), job),
-            log_pipe: None,
+            config: config,
             depot_cli: depot_cli,
+            log_pipe: None,
         }
     }
 
@@ -148,12 +147,12 @@ impl Runner {
             return self.fail(net::err(ErrCode::WORKSPACE_SETUP, "wk:run:1"));
         }
 
-        if self.auth_token.is_empty() {
+        if self.config.auth_token.is_empty() {
             warn!("WARNING: No auth token specified, will likely fail fetching secret key");
         };
 
         match self.depot_cli
-                  .fetch_origin_secret_key(self.job().origin(), &self.auth_token) {
+                  .fetch_origin_secret_key(self.job().origin(), &self.config.auth_token) {
             Ok(key) => {
                 let cache = crypto::default_cache_key_path(None);
                 let s: String = String::from_utf8(key.body).expect("Found invalid UTF-8");
@@ -221,7 +220,7 @@ impl Runner {
         self.workspace.job.set_package_ident(ident);
 
         let mut post_processor = PostProcessor::new(&self.workspace);
-        if !post_processor.run(&mut archive, &self.auth_token) {
+        if !post_processor.run(&mut archive, &self.config) {
             // JW TODO: We should shelve the built artifacts and allow a retry on post-processing.
             // If the job is killed then we can kill the shelved artifacts.
             return self.fail(net::err(ErrCode::POST_PROCESSOR, "wk:run:6"));
@@ -453,7 +452,7 @@ impl RunnerMgr {
 
     fn execute_job(&mut self, job: Job) -> Result<()> {
         let runner = {
-            Runner::new(job, &self.config.read().unwrap())
+            Runner::new(job, (*self.config.read().unwrap()).clone())
         };
         debug!("executing work, job={:?}", runner.job());
         let job = runner.run();

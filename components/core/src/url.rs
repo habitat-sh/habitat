@@ -12,43 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use env as henv;
+use env;
 
 /// Default Depot URL
 pub const DEFAULT_DEPOT_URL: &'static str = "https://willem.habitat.sh/v1/depot";
 
-/// Default Depot channel
-pub const DEFAULT_DEPOT_CHANNEL: &'static str = "unstable";
-
-/// Default Depot publishing
-pub const DEFAULT_DEPOT_PUBLISH: &'static str = "false";
-
 /// Default Depot URL environment variable
 pub const DEPOT_URL_ENVVAR: &'static str = "HAB_DEPOT_URL";
 
-/// Default Depot Channel environment variable
-pub const DEPOT_CHANNEL_ENVVAR: &'static str = "HAB_DEPOT_CHANNEL";
-
-/// Default Depot Builder publishing environment variable
-pub const DEPOT_PUBLISH_ENVVAR: &'static str = "HAB_DEPOT_PUBLISH";
-
 pub fn default_depot_url() -> String {
-    match henv::var(DEPOT_URL_ENVVAR) {
+    match env::var(DEPOT_URL_ENVVAR) {
         Ok(val) => val,
         Err(_) => DEFAULT_DEPOT_URL.to_string(),
-    }
-}
-
-pub fn default_depot_channel() -> String {
-    match henv::var(DEPOT_CHANNEL_ENVVAR) {
-        Ok(val) => val,
-        Err(_) => DEFAULT_DEPOT_CHANNEL.to_string(),
-    }
-}
-
-pub fn default_depot_publish() -> String {
-    match henv::var(DEPOT_PUBLISH_ENVVAR) {
-        Ok(val) => val,
-        Err(_) => DEFAULT_DEPOT_PUBLISH.to_string(),
     }
 }
