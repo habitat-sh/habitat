@@ -19,6 +19,6 @@ port = {{member.cfg.port}}
 {{~/eachAlive}}
 
 [depot]
-data_path = "{{pkg.svc_data_path}}"
+path = "{{pkg.svc_data_path}}"
 log_dir = "{{pkg.svc_var_path}}"
 {{toToml cfg.depot}}
