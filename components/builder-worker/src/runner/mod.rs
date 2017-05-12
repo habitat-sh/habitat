@@ -305,11 +305,8 @@ impl Runner {
         let mut child = Command::new(command)
             .args(&args)
             .env_clear()
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
             .spawn()
             .expect("failed to spawn child");
-        self.log_pipe().pipe(&mut child);
         let exit_status = child.wait().expect("failed to wait on child");
         debug!("studio removal complete, status={:?}", exit_status);
         if exit_status.success() {
