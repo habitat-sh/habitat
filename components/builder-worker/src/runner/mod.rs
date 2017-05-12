@@ -234,11 +234,11 @@ impl Runner {
     }
 
     fn build(&mut self) -> Result<PackageArchive> {
-        let args = vec![OsString::from("-s"),
+        let args = vec![OsString::from("-s"), // source path
                         OsString::from(self.workspace.src()),
-                        OsString::from("-r"),
+                        OsString::from("-r"), // hab studio root
                         OsString::from(self.workspace.studio()),
-                        OsString::from("-k"),
+                        OsString::from("-k"), // origin keys to use
                         OsString::from(self.job().origin()),
                         OsString::from("build"),
                         OsString::from(Path::new(self.job().get_project().get_plan_path())
@@ -294,9 +294,9 @@ impl Runner {
     }
 
     fn teardown(&mut self) -> Result<()> {
-        let args = vec![OsString::from("-s"),
+        let args = vec![OsString::from("-s"), // source path
                         OsString::from(self.workspace.src()),
-                        OsString::from("-r"),
+                        OsString::from("-r"), // hab studio root
                         OsString::from(self.workspace.studio()),
                         OsString::from("rm")];
 
