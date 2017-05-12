@@ -39,6 +39,7 @@ export const SET_GITHUB_AUTH_TOKEN = gitHubActions.SET_GITHUB_AUTH_TOKEN;
 export const SET_SELECTED_GITHUB_ORG = gitHubActions.SET_SELECTED_GITHUB_ORG;
 
 export const CLEAR_BUILD = buildActions.CLEAR_BUILD;
+export const CLEAR_BUILD_LOG = buildActions.CLEAR_BUILD_LOG;
 export const CLEAR_BUILDS = buildActions.CLEAR_BUILDS;
 export const POPULATE_BUILD = buildActions.POPULATE_BUILD;
 export const POPULATE_BUILDS = buildActions.POPULATE_BUILDS;

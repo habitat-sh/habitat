@@ -73,25 +73,45 @@ describe("BuildComponent", () => {
     expect(util.requireSignIn).toHaveBeenCalledWith(fixture.componentInstance);
   });
 
-  it("fetches the specified build", () => {
-    spyOn(actions, "fetchBuild");
-    fixture.detectChanges();
+  describe("on init", () => {
 
-    expect(actions.fetchBuild).toHaveBeenCalledWith(
-      store.getState().builds.selected.info.id,
-      store.getState().gitHub.authToken
-    );
+    it("fetches the specified build", () => {
+      spyOn(actions, "fetchBuild");
+      fixture.detectChanges();
+
+      expect(actions.fetchBuild).toHaveBeenCalledWith(
+        store.getState().builds.selected.info.id,
+        store.getState().gitHub.authToken
+      );
+    });
+
+    it("fetches the specified build log", () => {
+      spyOn(actions, "fetchBuildLog");
+      fixture.detectChanges();
+
+      expect(actions.fetchBuildLog).toHaveBeenCalledWith(
+        store.getState().builds.selected.info.id,
+        store.getState().gitHub.authToken,
+        0
+      );
+    });
+
+    it("initiates log streaming", () => {
+      spyOn(actions, "streamBuildLog");
+      fixture.detectChanges();
+
+      expect(actions.streamBuildLog).toHaveBeenCalledWith(true);
+    });
   });
 
-  it("fetches the specified build log", () => {
-    spyOn(actions, "fetchBuildLog");
-    fixture.detectChanges();
+  describe("on destroy", () => {
 
-    expect(actions.fetchBuildLog).toHaveBeenCalledWith(
-      store.getState().builds.selected.info.id,
-      store.getState().gitHub.authToken,
-      0
-    );
+    it("terminates log streaming", () => {
+      spyOn(actions, "streamBuildLog");
+      component.ngOnDestroy();
+
+      expect(actions.streamBuildLog).toHaveBeenCalledWith(false);
+    });
   });
 
   xit("shows the selected build status", () => {
