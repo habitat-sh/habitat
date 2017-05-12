@@ -5,7 +5,7 @@ resource "aws_elb" "admin" {
   instances       = ["${aws_instance.admin.*.id}"]
 
   listener {
-    instance_port      = 80
+    instance_port      = 8081
     instance_protocol  = "HTTP"
     lb_port            = 443
     lb_protocol        = "HTTPS"
@@ -16,7 +16,7 @@ resource "aws_elb" "admin" {
     healthy_threshold   = 2
     unhealthy_threshold = 5
     timeout             = 5
-    target              = "HTTP:80/v1/status"
+    target              = "HTTP:8081/v1/status"
     interval            = 30
   }
 

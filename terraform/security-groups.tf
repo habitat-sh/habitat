@@ -54,6 +54,16 @@ resource "aws_security_group" "gateway" {
     ]
   }
 
+  ingress {
+    from_port = 8081
+    to_port   = 8081
+    protocol  = "tcp"
+
+    security_groups = [
+      "${aws_security_group.gateway_elb.id}",
+    ]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
