@@ -634,6 +634,9 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
     let session = req.extensions.get::<Authenticated>().unwrap().clone();
     if !depot.config.insecure {
         if !try!(check_origin_access(req, session.get_id(), &ident.get_origin())) {
+            debug!("Failed origin access check, session: {}, ident: {}",
+                   session.get_id(),
+                   ident);
             return Ok(Response::with(status::Forbidden));
         }
         if !ident.fully_qualified() {
