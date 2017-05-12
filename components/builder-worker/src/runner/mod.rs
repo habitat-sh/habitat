@@ -234,11 +234,11 @@ impl Runner {
     }
 
     fn build(&mut self) -> Result<PackageArchive> {
-        let args = vec![OsString::from("-s"),
+        let args = vec![OsString::from("-s"), // source path
                         OsString::from(self.workspace.src()),
-                        OsString::from("-r"),
+                        OsString::from("-r"), // hab studio root
                         OsString::from(self.workspace.studio()),
-                        OsString::from("-k"),
+                        OsString::from("-k"), // origin keys to use
                         OsString::from(self.job().origin()),
                         OsString::from("build"),
                         OsString::from(Path::new(self.job().get_project().get_plan_path())
@@ -294,24 +294,19 @@ impl Runner {
     }
 
     fn teardown(&mut self) -> Result<()> {
-        let args = vec![OsString::from("-s"),
+        let args = vec![OsString::from("-s"), // source path
                         OsString::from(self.workspace.src()),
-                        OsString::from("-r"),
+                        OsString::from("-r"), // hab studio root
                         OsString::from(self.workspace.studio()),
-                        OsString::from("rm"),
-                        OsString::from(Path::new(self.job().get_project().get_plan_path())
-                                           .parent()
-                                           .unwrap())];
+                        OsString::from("rm")];
+
         let command = studio_cmd();
         debug!("removing studio, cmd={:?}, args={:?}", command, args);
         let mut child = Command::new(command)
             .args(&args)
             .env_clear()
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
             .spawn()
             .expect("failed to spawn child");
-        self.log_pipe().pipe(&mut child);
         let exit_status = child.wait().expect("failed to wait on child");
         debug!("studio removal complete, status={:?}", exit_status);
         if exit_status.success() {
