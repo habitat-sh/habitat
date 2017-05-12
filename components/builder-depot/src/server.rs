@@ -873,13 +873,12 @@ fn get_schedule(req: &mut Request) -> IronResult<Response> {
     }
 }
 
+// This function should not require authentication (session/auth token)
 fn download_origin_key(req: &mut Request) -> IronResult<Response> {
     let params = req.extensions.get::<Router>().unwrap();
-    // TODO: SA - Eliminate need to clone the session and params
-    let session = req.extensions.get::<Authenticated>().unwrap().clone();
     let mut conn = Broker::connect().unwrap();
     let mut request = OriginPublicKeyGet::new();
-    request.set_owner_id(session.get_id());
+
     match params.find("origin") {
         Some(origin) => request.set_origin(origin.to_string()),
         None => return Ok(Response::with(status::BadRequest)),
@@ -907,13 +906,12 @@ fn download_origin_key(req: &mut Request) -> IronResult<Response> {
     Ok(response)
 }
 
+// This function should not require authentication (session/auth token)
 fn download_latest_origin_key(req: &mut Request) -> IronResult<Response> {
     let params = req.extensions.get::<Router>().unwrap();
-    // TODO: SA - Eliminate need to clone the session and params
-    let session = req.extensions.get::<Authenticated>().unwrap().clone();
     let mut conn = Broker::connect().unwrap();
     let mut request = OriginPublicKeyLatestGet::new();
-    request.set_owner_id(session.get_id());
+
     match params.find("origin") {
         Some(origin) => request.set_origin(origin.to_string()),
         None => return Ok(Response::with(status::BadRequest)),
