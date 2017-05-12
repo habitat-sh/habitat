@@ -61,7 +61,7 @@ import {requireSignIn} from "../util";
                        <h3 class="hab-item-list--title">{{invitation.origin_name}}</h3>
                        <button
                            class="count"
-                           (click)="acceptInvitation(invitation.id, invitation.origin_name)">
+                           (click)="acceptInvitation(invitation.origin_invitation_id, invitation.origin_name)">
                            Accept Invitation
                         </button>
                     </li>
