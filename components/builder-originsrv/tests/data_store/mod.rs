@@ -1076,6 +1076,11 @@ fn search_origin_package_for_origin() {
         .expect("Should create origin")
         .unwrap();
 
+    origin.set_name(String::from("josh"));
+    let origin3 = ds.create_origin(&origin)
+        .expect("Should create origin")
+        .unwrap();
+
     let mut ident1 = originsrv::OriginPackageIdent::new();
     ident1.set_origin("core".to_string());
     ident1.set_name("red".to_string());
@@ -1099,6 +1104,12 @@ fn search_origin_package_for_origin() {
     ident4.set_name("red_dog".to_string());
     ident4.set_version("2017.01.19".to_string());
     ident4.set_release("20170209064045".to_string());
+
+    let mut ident5 = originsrv::OriginPackageIdent::new();
+    ident5.set_origin("josh".to_string());
+    ident5.set_name("red_dog".to_string());
+    ident5.set_version("2017.01.19".to_string());
+    ident5.set_release("20170209064045".to_string());
 
     let mut package = originsrv::OriginPackageCreate::new();
     package.set_owner_id(1);
@@ -1124,6 +1135,11 @@ fn search_origin_package_for_origin() {
 
     package.set_ident(ident4.clone());
     package.set_origin_id(origin1.get_id());
+    ds.create_origin_package(&package.clone())
+        .expect("Failed to create origin package");
+
+    package.set_ident(ident5.clone());
+    package.set_origin_id(origin3.get_id());
     ds.create_origin_package(&package.clone())
         .expect("Failed to create origin package");
 
@@ -1173,14 +1189,18 @@ fn search_origin_package_for_origin() {
     ops.set_distinct(true);
     let result2 = ds.search_origin_package_for_origin(&ops)
         .expect("Could not get the packages from the database");
-    assert_eq!(result2.get_idents().len(), 2);
+    assert_eq!(result2.get_idents().len(), 4);
     assert_eq!(result2.get_start(), 0);
-    assert_eq!(result2.get_stop(), 1);
-    assert_eq!(result2.get_count(), 2);
+    assert_eq!(result2.get_stop(), 3);
+    assert_eq!(result2.get_count(), 1);
     let pkg1 = result2.get_idents().iter().nth(0).unwrap();
-    assert_eq!(pkg1.to_string(), "core/red");
+    assert_eq!(pkg1.to_string(), "core/red_dog");
     let pkg2 = result2.get_idents().iter().nth(1).unwrap();
-    assert_eq!(pkg2.to_string(), "core/red_dog");
+    assert_eq!(pkg2.to_string(), "core/red");
+    let pkg3 = result2.get_idents().iter().nth(2).unwrap();
+    assert_eq!(pkg3.to_string(), "core2/red");
+    let pkg4 = result2.get_idents().iter().nth(3).unwrap();
+    assert_eq!(pkg4.to_string(), "josh/red_dog");
 }
 
 #[test]
