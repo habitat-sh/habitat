@@ -49,7 +49,7 @@ As explained in the [security overview](/docs/internals-crypto), this process al
 
 1. Generate a service group key using the `hab` command-line tool. This can be done on your workstation. Because asymmetric encryption is being used, two files will be generated: a file with a `.box.key` extension, which is the service group's private key, and a file with a `.pub` extension, which is the service group's public key.
 
-       hab service key generate servicegroupname.example yourorg
+       hab svc key generate servicegroupname.example yourorg
 
 2. This generated a service group key for the service group `servicegroupname.example` in the organization `yourorg`. Copy the `.box.key` private key to the environment where the supervisor will run into the `/hab/cache/keys` directory. Ensure that it has the appropriate permissions so that only the supervisor can read it.
 3. Start the supervisor, specifying both the service group and organization that it belongs to:
