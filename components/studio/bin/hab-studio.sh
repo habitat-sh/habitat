@@ -375,6 +375,10 @@ new_studio() {
       ;;
   esac
 
+  # Properly canonicalize the root path of the Studio by following all symlinks.
+  $bb mkdir -p $HAB_STUDIO_ROOT
+  HAB_STUDIO_ROOT="$($bb readlink -f $HAB_STUDIO_ROOT)"
+
   info "Creating Studio at $HAB_STUDIO_ROOT ($STUDIO_TYPE)"
 
   # Set the verbose flag (i.e. `-v`) for any coreutils-like commands if verbose
@@ -770,6 +774,11 @@ rm_studio() {
     STUDIO_TYPE=$studio_type
   else
     STUDIO_TYPE=unknown
+  fi
+
+  if [ -d "$HAB_STUDIO_ROOT" ]; then
+    # Properly canonicalize the root path of the Studio by following all symlinks.
+    HAB_STUDIO_ROOT="$($bb readlink -f $HAB_STUDIO_ROOT)"
   fi
 
   info "Destroying Studio at $HAB_STUDIO_ROOT ($STUDIO_TYPE)"
