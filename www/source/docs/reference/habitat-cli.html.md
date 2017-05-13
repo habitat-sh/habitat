@@ -30,7 +30,7 @@ The commands and sub-commands for the Habitat CLI (`hab`) are listed below.
 - [hab ring key export](#hab-ring-key-export)
 - [hab ring key generate](#hab-ring-key-generate)
 - [hab ring key import](#hab-ring-key-import)
-- [hab service key generate](#hab-service-key-generate)
+- [hab svc key generate](#hab-service-key-generate)
 - [hab studio](#hab-studio)
 - [hab sup](#hab-sup)
 - [hab user key generate](#hab-user-key-generate)
@@ -506,12 +506,12 @@ Reads a stdin stream containing ring key contents and writes the key to disk
     -h, --help       Prints help information
     -V, --version    Prints version information
 
-<h2 id="hab-service-key-generate" class="anchor">hab service key generate</h2>
+<h2 id="hab-service-key-generate" class="anchor">hab svc key generate</h2>
 Generates a Habitat service key
 
 **USAGE**
 
-    hab service key generate [FLAGS] <SERVICE_GROUP> [ARGS]
+    hab svc key generate [FLAGS] <SERVICE_GROUP> [ARGS]
 
 **FLAGS**
 

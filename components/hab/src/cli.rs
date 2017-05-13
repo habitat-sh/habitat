@@ -279,9 +279,9 @@ pub fn get() -> App<'static, 'static> {
                 )
             )
         )
-        (@subcommand service =>
+        (@subcommand svc =>
             (about: "Commands relating to Habitat services")
-            (aliases: &["se", "ser", "serv", "servi", "servic"])
+            (aliases: &["sv", "ser", "serv", "service"])
             (@setting ArgRequiredElseHelp)
             (@subcommand key =>
                 (about: "Commands relating to Habitat service keys")
@@ -322,6 +322,7 @@ pub fn get() -> App<'static, 'static> {
                 \n    unload     Alias for: 'sup unload'\
                 \n    start      Alias for: 'sup start'\
                 \n    stop       Alias for: 'sup stop'\
+                \n    status     Alias for: 'sup status'\
                 \n"
             )
         )

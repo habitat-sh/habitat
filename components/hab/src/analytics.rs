@@ -277,7 +277,7 @@ pub fn instrument_subcommand() {
         // subcommand.
         ("origin", "key", "generate") |
         ("ring", "key", "generate") |
-        ("service", "key", "generate") |
+        ("svc", "key", "generate") |
         ("user", "key", "generate") => {
             record_event(Event::Subcommand,
                          &format!("{}--{}--{}--{}", PRODUCT, arg1, arg2, arg3))
@@ -321,7 +321,7 @@ pub fn instrument_clap_error(err: &clap::Error) {
                          &format!("{:?}--{}--{}--{}", err.kind, PRODUCT, arg1, arg2))
         }
         // Match against subcommands which are 3 levels deep.
-        "origin" | "ring" | "service" | "user" => {
+        "origin" | "ring" | "svc" | "user" => {
             record_event(Event::CliError,
                          &format!("{:?}--{}--{}--{}--{}", err.kind, PRODUCT, arg1, arg2, arg3))
         }

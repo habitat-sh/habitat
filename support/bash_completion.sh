@@ -29,7 +29,7 @@ _hab()
     if [ $COMP_CWORD -eq 1 ]; then
         case $prev in
             hab)
-                COMPREPLY=( $( compgen -W "apply artifact config file help install origin pkg ring service setup start studio sup user" -- "$cur" ) )
+                COMPREPLY=( $( compgen -W "apply artifact config file help install origin pkg ring svc setup start studio sup user" -- "$cur" ) )
                 ;;
                    esac
     elif [ $COMP_CWORD -eq 2 ]; then
@@ -62,7 +62,7 @@ _hab()
                 cmds=( "help key" )
                 COMPREPLY=( $( compgen -W "$cmds" -- "$cur") )
                 ;;
-            service)
+            svc)
                 cmds=( "help key" )
                 COMPREPLY=( $( compgen -W "$cmds" -- "$cur") )
                 ;;
@@ -99,7 +99,7 @@ _hab()
                     ;;
                 esac
             ;;
-            service) # hab service key
+            svc) # hab svc key
                 case "$prev" in
                     key)
                         cmds=( "generate help" )

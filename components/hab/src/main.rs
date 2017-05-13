@@ -148,7 +148,7 @@ fn start(ui: &mut UI) -> Result<()> {
                 _ => unreachable!(),
             }
         }
-        ("service", Some(matches)) => {
+        ("svc", Some(matches)) => {
             match matches.subcommand() {
                 ("key", Some(m)) => {
                     match m.subcommand() {
@@ -504,10 +504,11 @@ fn exec_subcommand_if_called(ui: &mut UI) -> Result<()> {
         }
         ("sup", _) => command::sup::start(ui, env::args_os().skip(2).collect()),
         ("start", _) => command::sup::start(ui, env::args_os().skip(1).collect()),
-        ("service", "load") |
-        ("service", "unload") |
-        ("service", "start") |
-        ("service", "stop") => command::sup::start(ui, env::args_os().skip(2).collect()),
+        ("svc", "load") |
+        ("svc", "unload") |
+        ("svc", "start") |
+        ("svc", "status") |
+        ("svc", "stop") => command::sup::start(ui, env::args_os().skip(2).collect()),
         _ => Ok(()),
     }
 }
