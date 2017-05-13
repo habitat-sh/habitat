@@ -46,6 +46,8 @@ client_secret = "438223113eeb6e7edf2d2f91a232b72de72b9bdf"
 config_worker.toml:
 ```
 auth_token = "<your github token>"
+depot_url = "http://localhost:9636/v1/depot"
+auto_publish = true
 ```
 
 Now, modify the `Procfile` (located in your hab repo in the `support` folder) to point the api, sessionsrv, and worker services to the previously created config files.  Eg:
