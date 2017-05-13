@@ -13,30 +13,47 @@
 // limitations under the License.
 
 import { Component, Input, OnInit } from "@angular/core";
+import * as config from "../config";
 
 @Component({
     selector: "hab-side-nav",
     template: `
     <nav class="hab-side-nav">
-        <h4>Dashboard</h4>
+        <h4>Depot</h4>
         <ul class="hab-side-nav--list">
-            <li><a [class.active]='routeMatch("pkgs\/core")'
-                   [routerLink]="['/pkgs', 'core']">
-                Packages
-            </a></li>
-            <li *ngIf="isSignedIn"><a
-                   [class.active]='routeMatch("origins")'
-                   [routerLink]="['/origins']">Origins</a></li>
+            <li *ngIf="isSignedIn">
+                <a [routerLink]="['/']"
+                    routerLinkActive="active"
+                    [routerLinkActiveOptions]="{exact: true}">Dashboard</a>
+            </li>
+            <li *ngIf="isSignedIn">
+                <a [routerLink]="['/origins']"
+                    routerLinkActive="active"
+                    [routerLinkActiveOptions]="{exact: true}">My Origins</a>
+            </li>
+            <li>
+                <a [routerLink]="['/pkgs', 'core']"
+                    routerLinkActive="active">Search Packages</a>
+            </li>
+        </ul>
+        <h4>Quick Links</h4>
+        <ul class="hab-side-nav--list">
+            <li>
+                <a href="{{ config['docs_url'] }}">Habitat Docs</a>
+            </li>
+            <li>
+                <a href="{{ config['tutorials_url'] }}/getting-started/overview">Getting Started</a>
+            </li>
+            <li>
+                <a href="{{ config['www_url'] }}/about">Why Habitat?</a>
+            </li>
         </ul>
     </nav>`
 })
-
 export class SideNavComponent {
     @Input() isSignedIn;
-    @Input() route: string;
 
-    // Return true if a route matches what we're looking at.
-    routeMatch(s: string): boolean {
-        return this.route.match(s) !== null;
+    get config() {
+        return config;
     }
 }

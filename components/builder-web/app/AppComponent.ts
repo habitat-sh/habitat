@@ -37,7 +37,6 @@ import {authenticateWithGitHub, loadSessionState, removeNotification,
     </div>
     <div class="hab-container" [class.full]="fullView">
         <hab-side-nav [isSignedIn]="user.isSignedIn"
-                      [route]="state.router.route"
                       *ngIf="!hideNav">
         </hab-side-nav>
         <section class="hab-main" [class.centered]="hideNav">

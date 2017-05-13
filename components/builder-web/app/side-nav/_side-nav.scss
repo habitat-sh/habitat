@@ -37,10 +37,12 @@
   }
 
   h4 {
-    font-size: 75%;
+    text-transform: uppercase;
     margin-left: rem(15);
+    margin-bottom: 8px;
     white-space: nowrap;
     color: $hab-white;
+    font-size: rem(14);
   }
 
   hr {
@@ -64,7 +66,6 @@
         background: url("../assets/images/sidebar-active.png") no-repeat right;
         background-size: 10px;
         color: $hab-green;
-        font-weight: 600;
       }
     }
   }
