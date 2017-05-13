@@ -1492,7 +1492,11 @@ fn search_packages(req: &mut Request) -> IronResult<Response> {
     // search both the origin name and the package name for the query string provided. This is
     // likely sub-optimal for performance but it makes things work right now and we should probably
     // switch to some kind of full-text search engine in the future anyway.
-    request.set_distinct(true);
+    // Also, to get this behavior, you need to ensure that "distinct" is a URL parameter in your
+    // request, e.g. blah?distinct=true
+    if extract_query_value("distinct", req).is_some() {
+        request.set_distinct(true);
+    }
 
     match route_message::<OriginPackageSearchRequest, OriginPackageListResponse>(req, &request) {
         Ok(packages) => {
