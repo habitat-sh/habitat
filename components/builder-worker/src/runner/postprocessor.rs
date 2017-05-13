@@ -14,26 +14,22 @@
 
 use std::path::{Path, PathBuf};
 
-use hab_core;
 use hab_core::package::archive::PackageArchive;
 use hab_core::config::ConfigFile;
 
 use super::workspace::Workspace;
-use depot_client;
-use error::Error;
 use {PRODUCT, VERSION};
+use config::Config;
+use depot_client;
+use error::{Error, Result};
 
 /// Postprocessing config file name
 const CONFIG_FILE: &'static str = "builder.toml";
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
-#[serde(default)]
 pub struct Publish {
-    /// Whether publish is enabled
     pub enabled: bool,
-    /// URL to Depot API
     pub url: String,
-    /// Channel to publish to
     pub channel: String,
 }
 
@@ -66,19 +62,40 @@ impl Publish {
     }
 }
 
-impl Default for Publish {
-    fn default() -> Self {
+#[derive(Default, Deserialize)]
+#[serde(default)]
+struct PublishBuilder {
+    /// Whether publish is enabled
+    enabled: Option<bool>,
+    /// URL to Depot API
+    url: Option<String>,
+    /// Channel to publish to
+    channel: Option<String>,
+}
+
+impl PublishBuilder {
+    fn new(config_path: &Path) -> Result<Self> {
+        let builder = if config_path.exists() {
+            debug!("using post processing config from {}",
+                   config_path.display());
+            PublishBuilder::from_file(config_path)?
+        } else {
+            debug!("no post processing config - using defaults");
+            PublishBuilder::default()
+        };
+        Ok(builder)
+    }
+
+    fn build(self, config: &Config) -> Publish {
         Publish {
-            enabled: hab_core::url::default_depot_publish()
-                .parse::<bool>()
-                .unwrap(),
-            url: hab_core::url::default_depot_url(),
-            channel: hab_core::url::default_depot_channel(),
+            enabled: self.enabled.unwrap_or(config.auto_publish),
+            url: self.url.unwrap_or(config.depot_url.clone()),
+            channel: self.channel.unwrap_or(config.depot_channel.clone()),
         }
     }
 }
 
-impl ConfigFile for Publish {
+impl ConfigFile for PublishBuilder {
     type Error = Error;
 }
 
@@ -92,27 +109,19 @@ impl PostProcessor {
             .parent()
             .unwrap();
         let file_path = workspace.src().join(parent_path.join(CONFIG_FILE));
-
         PostProcessor { config_path: file_path }
     }
 
-    pub fn run(&mut self, archive: &mut PackageArchive, auth_token: &str) -> bool {
-        let mut cfg = if !self.config_path.exists() {
-            debug!("no post processing config - using defaults");
-            Publish::default()
-        } else {
-            debug!("using post processing config from builder.toml");
-            match Publish::from_file(&self.config_path) {
-                Ok(value) => value,
-                Err(e) => {
-                    debug!("failed to parse config file! {:?}", e);
-                    return false;
-                }
+    pub fn run(&mut self, archive: &mut PackageArchive, config: &Config) -> bool {
+        let mut publisher = match PublishBuilder::new(&self.config_path) {
+            Ok(builder) => builder.build(config),
+            Err(err) => {
+                warn!("Failed to parse builder config, {}", err);
+                return false;
             }
         };
-
         debug!("starting post processing");
-        cfg.run(archive, auth_token)
+        publisher.run(archive, &config.auth_token)
     }
 }
 

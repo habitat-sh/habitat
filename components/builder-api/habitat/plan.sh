@@ -10,6 +10,7 @@ pkg_build_deps=(core/protobuf core/protobuf-rust core/coreutils core/cacerts
   core/rust core/gcc core/git core/pkg-config core/node core/phantomjs core/python2 core/make)
 pkg_exports=(
   [port]=http.port
+  [url]=web.app_url
 )
 pkg_exposes=(port)
 pkg_binds=(

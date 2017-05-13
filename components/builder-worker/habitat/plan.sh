@@ -14,6 +14,7 @@ pkg_svc_user="root"
 pkg_svc_group="root"
 pkg_binds=(
   [jobsrv]="worker_port worker_heartbeat"
+  [depot]="url"
 )
 
 do_prepare() {
