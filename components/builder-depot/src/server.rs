@@ -1183,7 +1183,12 @@ fn list_packages(req: &mut Request) -> IronResult<Response> {
             let mut request = OriginPackageListRequest::new();
             request.set_start(start as u64);
             request.set_stop(stop as u64);
-            request.set_distinct(true);
+
+            // only set this if "distinct" is present as a URL parameter, e.g. ?distinct=true
+            if extract_query_value("distinct", req).is_some() {
+                request.set_distinct(true);
+            }
+
             request.set_ident(OriginPackageIdent::from_str(ident.as_str()).expect("invalid package identifier"));
             packages = route_message::<OriginPackageListRequest,
                                        OriginPackageListResponse>(req, &request);
