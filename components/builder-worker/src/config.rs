@@ -115,7 +115,7 @@ mod tests {
 
         let config = Config::from_raw(&content).unwrap();
         assert_eq!(&config.auth_token, "mytoken");
-        assert_eq!(&config.data_path, "/path/to/data");
+        assert_eq!(&format!("{}", config.data_path.display()), "/path/to/data");
         assert_eq!(&format!("{}", config.jobsrv[0].host), "1:1:1:1:1:1:1:1");
         assert_eq!(config.jobsrv[0].port, 9000);
         assert_eq!(config.jobsrv[0].heartbeat, 9001);

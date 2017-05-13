@@ -123,17 +123,18 @@ impl PostProcessor {
 mod tests {
     use hab_core::config::ConfigFile;
     use super::*;
+    use config::Config;
 
     #[test]
     fn test_publish_config_from_toml() {
         let toml = r#"
-        [publish]
         enabled = false
         url = "https://willem.habitat.sh/v1/depot"
         channel = "unstable"
         "#;
 
-        let cfg = Publish::from_raw(toml).unwrap();
+        let config = Config::default();
+        let cfg = PublishBuilder::from_raw(toml).unwrap().build(&config);
         assert_eq!("https://willem.habitat.sh/v1/depot", cfg.url);
         assert_eq!(false, cfg.enabled);
         assert_eq!("unstable", cfg.channel);
