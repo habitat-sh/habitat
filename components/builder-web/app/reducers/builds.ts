@@ -7,7 +7,10 @@ export default function builds(state = initialState["builds"], action) {
 
         case actionTypes.CLEAR_BUILD:
             return state
-                .setIn(["selected", "info"], Record({})())
+                .setIn(["selected", "info"], Record({})());
+
+        case actionTypes.CLEAR_BUILD_LOG:
+            return state
                 .setIn(["selected", "log"], Record({})());
 
         case actionTypes.CLEAR_BUILDS:
@@ -19,6 +22,14 @@ export default function builds(state = initialState["builds"], action) {
 
         case actionTypes.POPULATE_BUILD_LOG:
             let payload = action.payload;
+
+            // It'll be common to get log requests for builds that haven't
+            // started yet (which will surface as errors), so in that case,
+            // we'll just hand back the current state.
+            if (action.error) {
+                return state;
+            }
+
             let content = ((payload.start === 0) ? [] : state.get("selected").log.content) || [];
 
             return state.setIn(["selected", "log"], {

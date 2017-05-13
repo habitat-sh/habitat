@@ -26,12 +26,11 @@ export class BuildComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy() {
+        this.store.dispatch(streamBuildLog(false));
+
         if (this.sub) {
             this.sub.unsubscribe();
         }
-
-        this.store.dispatch(streamBuildLog(false));
-        this.store.dispatch(clearBuild());
     }
 
     iconFor(state) {
