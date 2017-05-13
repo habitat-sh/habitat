@@ -46,8 +46,8 @@ pub fn router(config: Arc<Config>) -> Result<Chain> {
         authenticate: get "/authenticate/:code" => github_authenticate,
 
         jobs: post "/jobs" => XHandler::new(job_create).before(bldr.clone()),
-        job: get "/jobs/:id" => XHandler::new(job_show).before(bldr.clone()),
-        job_log: get "/jobs/:id/log" => XHandler::new(job_log).before(bldr.clone()),
+        job: get "/jobs/:id" => XHandler::new(job_show).before(basic.clone()),
+        job_log: get "/jobs/:id/log" => XHandler::new(job_log).before(basic.clone()),
 
         user_invitations: get "/user/invitations" => {
             XHandler::new(list_account_invitations).before(basic.clone())
@@ -55,10 +55,9 @@ pub fn router(config: Arc<Config>) -> Result<Chain> {
         user_origins: get "/user/origins" => XHandler::new(list_user_origins).before(basic.clone()),
 
         projects: post "/projects" => XHandler::new(project_create).before(bldr.clone()),
-        project: get "/projects/:origin/:name" => XHandler::new(project_show).before(bldr.clone()),
-
+        project: get "/projects/:origin/:name" => XHandler::new(project_show).before(basic.clone()),
         project_jobs: get "/projects/:origin/:name/jobs" => {
-            XHandler::new(project_jobs).before(bldr.clone())
+            XHandler::new(project_jobs).before(basic.clone())
         },
         edit_project: put "/projects/:origin/:name" => {
             XHandler::new(project_update).before(bldr.clone())
