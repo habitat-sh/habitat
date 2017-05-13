@@ -13,6 +13,7 @@
 //  8. Anchor Links
 //  9. Global Message
 //  10. 404
+//  11. Social links
 
 $main-nav-breakpoint: 769px;
 
@@ -152,10 +153,24 @@ body {
   }
 }
 
+.main-sidebar--heading {
+  @extend %social-icons;
+
+  a.twitter {
+    background-position: left -126px !important;
+  }
+  a.youtube {
+    background-position: left -62px !important;
+  }
+  a.github {
+    background-position: left 2px !important;
+  }
+}
+
 // 2. Code Overrides
 // ---------
 pre {
-  background-color: $black;
+  background-color: $hab-navy;
   border: none;
   border-radius: $global-radius;
   color: $hab-gray-light;
@@ -295,7 +310,7 @@ code {
 // 4. Typography Overrides
 // ---------
 .main-sidebar--heading h4 {
-    margin-bottom: rem-calc(10);
+    margin-bottom: rem-calc(15);
     text-transform: uppercase;
     color: $white;
 }
@@ -426,5 +441,40 @@ img {
     margin: 0 auto rem-calc(10);
     max-width: 65%;
     text-align: center;
+  }
+}
+
+// 11. Social links
+// -------------------
+
+%social-icons {
+  .social {
+    li {
+      margin-bottom: .625rem;
+    }
+    a {
+      padding-left: rem-calc(30);
+      background: url('/images/icons/icons-social.svg') no-repeat;
+
+      &.github {
+        background-position: left top;
+      }
+
+      &.slack {
+        background-position: left -32px;
+      }
+
+      &.youtube {
+        background-position: left -64px;
+      }
+
+      &.rss {
+        background-position: left -94px;
+      }
+
+      &.twitter {
+        background-position: left bottom;
+      }
+    }
   }
 }

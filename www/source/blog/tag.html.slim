@@ -1,0 +1,45 @@
+---
+pageable: true
+per_page: 12
+layout: blog_index
+---
+.row
+  .main-sidebar
+    = partial("blog/partials/blog_sidebar")
+
+  .main-content__has-sidebar
+    h2.tag_title
+      | Articles tagged with:
+      span
+        = tagname
+
+    - page_articles.each_with_index do |article, i|
+      .blog-index--post-summary
+        .blog-index--post-summary--header
+          ul.no-bullet
+            - article.tags.each do |tag|
+              li
+                = link_to "#{tag}", tag_path(tag)
+        .blog-index--post-summary--body
+          h2
+            = link_to article.title, article
+          = article.summary
+          = link_to 'Read more...', article, class: 'read-more'
+          .article-detail--meta
+            ul.no-bullet
+              - if article.data.author
+                  li
+                    img[src="/images/icons/icon-person.svg"
+                      onerror="this.src='/images/icons/icon-person.png'" alt="person icon"]
+                    | #{article.data.author}
+              li
+                img[src="/images/icons/icon-calendar.svg"
+                  onerror="this.src='/images/icons/icon-calendar.png'" alt="calendar icon"]
+                | #{article.date.strftime('%b %e, %Y')}
+    - if paginate
+      - if prev_page
+        p.pagination-link
+          = link_to '<< Previous page', prev_page
+      - if next_page
+        p.pagination-link
+          = link_to 'Next page >>', next_page

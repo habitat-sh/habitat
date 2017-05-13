@@ -1,7 +1,8 @@
 $sidebar-breakpoint: 720px;
 
 body.has-sidebar,
-body.try-hab {
+body.try-hab,
+body.body-article {
   background: linear-gradient(0deg, $hab-navy-light, $hab-navy) fixed;
 
   #content-outer {
