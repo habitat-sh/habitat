@@ -141,7 +141,7 @@ export class BuilderApiClient {
 
     public getBuildLog(id: string, start = 0) {
         return new Promise((resolve, reject) => {
-            fetch(`${this.urlPrefix}/jobs/${id}/log?start=${start}`, {
+            fetch(`${this.urlPrefix}/jobs/${id}/log?start=${start}&color=true`, {
                 method: "GET",
                 headers: this.headers
             })
@@ -157,6 +157,12 @@ export class BuilderApiClient {
     }
 
     public getBuilds(origin: string, name: string) {
+
+        // Don't bother requesting unless the origin is core
+        if (origin !== "core") {
+            Promise.resolve({ jobs: [] });
+        }
+
         return new Promise((resolve, reject) => {
             fetch(`${this.urlPrefix}/projects/${origin}/${name}/jobs`, {
                 method: "GET",

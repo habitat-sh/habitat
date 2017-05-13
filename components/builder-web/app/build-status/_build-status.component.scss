@@ -1,0 +1,46 @@
+hab-build-status {
+
+  .octicon {
+    font-size: rem(20);
+
+    &.complete {
+      color: $hab-green;
+    }
+
+    &.dispatched, &.processing {
+      color: $hab-orange;
+      height: rem(20);
+      width: rem(16);
+      animation-duration: 1s;
+      animation-iteration-count: infinite;
+      animation-name: spinning;
+      animation-timing-function: linear;
+    }
+
+    &.pending {
+      color: $hab-blue;
+    }
+
+    &.failed, &.rejected {
+      color: $hab-red;
+    }
+
+    @keyframes spinning {
+      from {
+        transform: rotate(0deg);
+      }
+
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    &.octicon-chevron-right {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+  }
+}

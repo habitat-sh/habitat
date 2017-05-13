@@ -178,13 +178,20 @@
     &.lower {
 
       .recent {
-        @include span-columns(9);
+        @include span-columns(12);
 
-        // Use this border when we have right-hand side elements to display
+        // TODO: Replace the above span-columns setting with the settings
+        // below when we have right-hand side content to display.
+        // @include span-columns(9);
         // border-right: 1px solid rgba($light-gray, 0.4);
       }
 
       .new {
+
+        // TODO: As above, remove this display: none when we have content
+        // for this section.
+        display: none;
+
         @include span-columns(3);
 
         li {

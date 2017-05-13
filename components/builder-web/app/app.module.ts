@@ -40,6 +40,7 @@ import { OrganizationMembersComponent } from "./organization-members/Organizatio
 import { OrganizationsPageComponent } from "./organizations-page/OrganizationsPageComponent";
 import { PackageBreadcrumbsComponent } from "./PackageBreadcrumbsComponent";
 import { BuildComponent } from "./build/build.component";
+import { BuildStatusComponent } from "./build-status/build-status.component";
 import { PackageBuildsComponent } from "./package-builds/package-builds.component";
 import { PackageInfoComponent } from "./package-info/PackageInfoComponent";
 import { PackageListComponent } from "./package-page/PackageListComponent";
@@ -70,6 +71,7 @@ import { UserNavComponent } from "./header/user-nav/UserNavComponent";
     declarations: [
         AppComponent,
         BuildListComponent,
+        BuildStatusComponent,
         CheckingInputComponent,
         DashboardComponent,
         ExploreComponent,

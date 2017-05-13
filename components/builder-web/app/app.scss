@@ -31,6 +31,7 @@
 @import "header/header";
 @import "header/user-nav/user-nav";
 @import "build-list/build-list.component";
+@import "build-status/build-status.component";
 @import "notifications/notifications";
 @import "origin-create-page/origin-create-page";
 @import "origin-page/origin-page";
@@ -41,6 +42,7 @@
 @import "package-builds/package-builds.component";
 @import "package-page/package-page";
 @import "package-versions-page/package-versions-page";
+@import "packages-list/packages-list.component";
 @import "packages-page/packages-page";
 @import "project-create-page/project-create-page";
 @import "project-page/project-page";
@@ -130,6 +132,12 @@ body {
 
     &:last-child {
       margin-bottom: 0;
+    }
+  }
+
+  .hab-package-breadcrumbs {
+    span {
+      color: $hab-green;
     }
   }
 }

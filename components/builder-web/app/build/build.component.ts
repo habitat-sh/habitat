@@ -1,4 +1,5 @@
 import { Component, OnInit, OnDestroy } from "@angular/core";
+import { DomSanitizer } from "@angular/platform-browser";
 import { ActivatedRoute } from "@angular/router";
 import { Subscription } from "rxjs";
 import { clearBuild, fetchBuild, fetchBuildLog, streamBuildLog } from "../actions/index";
@@ -13,7 +14,8 @@ export class BuildComponent implements OnInit, OnDestroy {
 
     constructor(
         private store: AppStore,
-        private route: ActivatedRoute) {
+        private route: ActivatedRoute,
+        private sanitizer: DomSanitizer) {
         requireSignIn(this);
     }
 
@@ -63,9 +65,7 @@ export class BuildComponent implements OnInit, OnDestroy {
         let content = selected.log.content;
 
         if (content && content.length) {
-            return content.join("\n")
-                // TODO: Remove this once the debug output is cleaned up.
-                .replace(/^ ?[\d: ]+/gm, "");
+            return this.sanitizer.bypassSecurityTrustHtml(content.join("\n"));
         }
     }
 

@@ -63,7 +63,7 @@ import config from "../config";
             </li>
             <li class="main-nav--link">
               <a class="depot"
-                [routerLink]="['/']"
+                [routerLink]="['/pkgs']"
                 [class.is-current-page]="area === 'depot'">Depot</a>
             </li>
           </ul>

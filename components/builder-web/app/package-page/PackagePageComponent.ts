@@ -19,24 +19,17 @@ import {AppStore} from "../AppStore";
 import {Package} from "../records/Package";
 import {Origin} from "../records/Origin";
 import {isPackage, isSignedIn} from "../util";
-import {fetchPackage, fetchProject, setProjectHint, requestRoute} from "../actions/index";
+import {fetchPackage, setProjectHint, requestRoute} from "../actions/index";
 import {BuilderApiClient} from "../BuilderApiClient";
 import {Subscription} from "rxjs/Subscription";
 
 @Component({
     template: `
     <div class="hab-package page-title">
-        <h2>Package</h2>
-        <h4>
-            <hab-package-breadcrumbs [ident]="package.ident">
-            </hab-package-breadcrumbs>
-        </h4>
-        <div class="builds" *ngIf="originParam === 'core'">
-            <a [routerLink]="['/pkgs', originParam, nameParam, 'builds']">Builds</a>
-        </div>
-        <hab-spinner [isSpinning]="ui.loading" [onClick]="spinnerFetchPackage">
-        </hab-spinner>
-        <button class="origin" (click)="viewOrigin()">View {{origin}} origin</button>
+        <h2>
+            <hab-package-breadcrumbs [ident]="package.ident"></hab-package-breadcrumbs>
+        </h2>
+        <h4 *ngIf="releaseParam">{{ releaseParam }}</h4>
     </div>
     <div *ngIf="!ui.loading && !ui.exists">
       <p>
@@ -46,27 +39,9 @@ import {Subscription} from "rxjs/Subscription";
           </span>
       </p>
     </div>
-    <div *ngIf="showRepoButton" class="project-header">
-      <button class="build-project-button" (click)="createProject()">Connect a repo</button> As a member of the {{origin}} origin, you can setup automated builds for this package by connecting a repo.
-    </div>
     <div class="page-body has-sidebar">
       <hab-package-info [package]="package"></hab-package-info>
     </div>
-    <hab-tabs *ngIf="!ui.loading && ui.exists && projectExists">
-      <hab-tab tabTitle="Info">
-        <div class="page-body has-sidebar">
-          <hab-package-info [package]="package"></hab-package-info>
-        </div>
-      </hab-tab>
-      <hab-tab tabTitle="Builds">
-        <div class="builds">
-        </div>
-      </hab-tab>
-      <hab-tab tabTitle="Settings">
-        <div class="settings">
-        </div>
-      </hab-tab>
-    </hab-tabs>
     `,
 })
 
@@ -88,7 +63,6 @@ export class PackagePageComponent implements OnDestroy {
             this.versionParam = params["version"];
             this.releaseParam = params["release"];
             this.fetchPackage();
-            this.fetchProject();
         });
     }
 
@@ -135,20 +109,8 @@ export class PackagePageComponent implements OnDestroy {
         return this.store.getState().packages.ui.current;
     }
 
-    get projectExists() {
-        return this.project !== undefined;
-    }
-
     get memberOfOrigin() {
         return this.store.getState().origins.mine.includes(Origin({name: this.package.ident.origin}));
-    }
-
-    get showRepoButton() {
-        return !this.ui.loading && this.ui.exists && !this.projectExists && this.memberOfOrigin;
-    }
-
-    viewOrigin() {
-        this.store.dispatch(requestRoute(["/origins", this.origin]));
     }
 
     createProject() {
@@ -170,11 +132,5 @@ export class PackagePageComponent implements OnDestroy {
 
     private fetchPackage () {
         this.store.dispatch(fetchPackage(this.package));
-    }
-
-    private fetchProject() {
-        if (isSignedIn()) {
-            this.store.dispatch(fetchProject(this.projectId, this.token, false));
-        }
     }
 }

@@ -60,27 +60,7 @@ export const routes: Routes = [
         component: OriginPageComponent,
     },
     {
-        path: "orgs",
-        component: OrganizationsPageComponent,
-    },
-    {
-        path: "orgs/create",
-        component: OrganizationCreatePageComponent,
-    },
-    {
-        path: "pkgs",
-        component: PackagesPageComponent
-    },
-    {
-        path: "pkgs/*/:name",
-        component: PackagesPageComponent
-    },
-    {
-        path: "pkgs/:origin",
-        component: PackagesPageComponent
-    },
-    {
-        path: "pkgs/:origin/:name",
+        path: "pkgs/search/:query",
         component: PackagesPageComponent,
     },
     {
@@ -88,20 +68,28 @@ export const routes: Routes = [
         component: PackageBuildsComponent
     },
     {
-        path: "pkgs/:origin/:name/versions",
-        component: PackageVersionsPageComponent,
+        path: "pkgs/:origin/:name/:version/:release",
+        component: PackagePageComponent
     },
     {
         path: "pkgs/:origin/:name/:version",
         component: PackagesPageComponent,
     },
     {
-        path: "pkgs/search/:query",
-        component: PackagesPageComponent,
+        path: "pkgs/:origin/:name",
+        component: PackagesPageComponent
     },
     {
-        path: "pkgs/:origin/:name/:version/:release",
-        component: PackagePageComponent
+        path: "pkgs/:origin",
+        component: PackagesPageComponent
+    },
+    {
+        path: "pkgs",
+        redirectTo: "/pkgs/core"
+    },
+    {
+        path: "sign-in",
+        component: SignInPageComponent
     },
     {
         path: "projects",
@@ -123,9 +111,15 @@ export const routes: Routes = [
         path: "scm-repos",
         component: SCMReposPageComponent,
     },
+
+    // TODO: Remove these and their associated actions and reducers.
     {
-        path: "sign-in",
-        component: SignInPageComponent
+        path: "orgs",
+        component: OrganizationsPageComponent,
+    },
+    {
+        path: "orgs/create",
+        component: OrganizationCreatePageComponent,
     }
 ];
 

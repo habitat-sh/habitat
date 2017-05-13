@@ -14,6 +14,7 @@
 
 import { Component, Input } from "@angular/core";
 import { List } from "immutable";
+import { packageString } from "../util";
 
 @Component({
     selector: "hab-packages-list",
@@ -21,7 +22,25 @@ import { List } from "immutable";
 })
 
 export class PackagesListComponent {
+    @Input() errorMessage: string;
     @Input() noPackages: boolean;
     @Input() packages: List<Object>;
-    @Input() errorMessage: string;
+    @Input() versions: List<Object>;
+    @Input() layout: string;
+
+    routeFor(pkg) {
+        let link = ["/pkgs", pkg.origin];
+
+        [pkg.name, pkg.version, pkg.release].forEach((p) => {
+            if (p) {
+                link.push(p);
+            }
+        });
+
+        return link;
+    }
+
+    packageString(pkg) {
+        return packageString(pkg);
+    }
 }

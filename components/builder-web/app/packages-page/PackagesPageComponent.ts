@@ -12,40 +12,51 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {FormControl} from "@angular/forms";
-import {Component, OnInit, OnDestroy} from "@angular/core";
-import {ActivatedRoute} from "@angular/router";
-import {AppStore} from "../AppStore";
-import {filterPackagesBy, setPackagesSearchQuery} from "../actions/index";
-import {requireSignIn} from "../util";
-import {Subscription} from "rxjs/Subscription";
+import { FormControl } from "@angular/forms";
+import { Component, OnInit, OnDestroy } from "@angular/core";
+import { ActivatedRoute, Router } from "@angular/router";
+import { AppStore } from "../AppStore";
+import { clearBuilds, fetchBuilds, fetchPackageVersions, filterPackagesBy, setPackagesSearchQuery } from "../actions/index";
+import { requireSignIn } from "../util";
+import { Subscription } from "rxjs/Subscription";
 
 @Component({
     template: `
     <div class="hab-packages">
         <div class="page-title">
-            <h2>Search Packages</h2>
-            <h4>
-                <span *ngIf="searchQuery || query">Search Results</span>
-                <hab-package-breadcrumbs
-                    *ngIf="!searchQuery"
-                    [ident]="packageParams()">
-                </hab-package-breadcrumbs>
-            </h4>
-            <div class="builds" *ngIf="origin === 'core' && name">
-                <a [routerLink]="['/pkgs', origin, name, 'builds']">Builds</a>
+            <div *ngIf="showSearch">
+                <h2>Search Packages</h2>
+                 <h4>
+                    <span *ngIf="searchQuery || query">Search Results</span>
+                </h4>
+                <hab-spinner [isSpinning]="ui.loading" (click)="spinnerFetchPackages"></hab-spinner>
             </div>
-            <hab-spinner [isSpinning]="ui.loading" (click)="spinnerFetchPackages">
-            </hab-spinner>
+            <div *ngIf="showBreadcrumbs">
+                <h2>
+                    <hab-package-breadcrumbs
+                        *ngIf="!searchQuery"
+                        [ident]="packageParams()">
+                    </hab-package-breadcrumbs>
+                </h2>
+                <h4>{{ subtitle }}</h4>
+            </div>
         </div>
         <div class="page-body">
-            <input type="search" autofocus
+            <input *ngIf="origin && !name"
+                type="search" autofocus
                 [formControl]="searchBox"
                 placeholder="Search Packages&hellip;">
+
+            <div class="active {{ activeBuild.state | lowercase }}" *ngIf="activeBuild">
+                A build is in progress.
+                <a [routerLink]="['/builds', activeBuild.id]">View streaming output</a>.
+            </div>
 
             <hab-packages-list
                 [noPackages]="(!ui.exists || packages.size === 0) && !ui.loading"
                 [packages]="packages"
+                [versions]="versions"
+                [layout]="layout"
                 [errorMessage]="ui.errorMessage"></hab-packages-list>
 
             <div *ngIf="packages.size < totalCount">
@@ -70,23 +81,19 @@ export class PackagesPageComponent implements OnInit, OnDestroy {
 
     private sub: Subscription;
 
-    constructor(private store: AppStore, private route: ActivatedRoute) {
+    constructor(private store: AppStore, private route: ActivatedRoute, private router: Router) {
         this.spinnerFetchPackages = this.fetchPackages.bind(this);
+
         this.sub = route.params.subscribe(params => {
             this.name = params["name"];
             this.origin = params["origin"];
             this.version = params["version"];
             this.query = params["query"];
+            this.fetch();
         });
     }
 
     ngOnInit() {
-        if (this.query) {
-            this.search(this.query);
-        } else {
-            this.fetchPackages();
-        }
-
         this.searchBox = new FormControl(this.searchQuery);
 
         this.searchBox.valueChanges.debounceTime(400).distinctUntilChanged().
@@ -94,7 +101,53 @@ export class PackagesPageComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy() {
-        this.sub.unsubscribe();
+        if (this.sub) {
+            this.sub.unsubscribe();
+        }
+    }
+
+    get activeBuild() {
+        for (let i = 0; i < this.builds.size; i++ ) {
+            let build = this.builds.get(i);
+
+            if (build["state"] === "Dispatched" || build["state"] === "Pending") {
+                return build;
+            }
+        }
+
+        return null;
+    }
+
+    fetch() {
+        if (this.query) {
+            this.search(this.query);
+        } else {
+            this.fetchBuilds();
+
+            if (this.name && !this.version) {
+                this.fetchVersions();
+            }
+            else {
+                this.fetchPackages();
+            }
+        }
+    }
+
+    get builds() {
+        return this.store.getState().builds.visible;
+    }
+
+    get layout() {
+        let s = "origin";
+
+        if (this.version) {
+            s = "builds";
+        }
+        else if (this.name) {
+            s = "versions";
+        }
+
+        return s;
     }
 
     get packages() {
@@ -105,6 +158,18 @@ export class PackagesPageComponent implements OnInit, OnDestroy {
         return this.store.getState().packages.searchQuery;
     }
 
+    get showBreadcrumbs() {
+        return this.origin && this.name;
+    }
+
+    get showSearch() {
+        return this.origin && !this.name;
+    }
+
+    get subtitle() {
+        return this.version ? "builds" : "package";
+    }
+
     get totalCount() {
         return this.store.getState().packages.totalCount;
     }
@@ -113,12 +178,20 @@ export class PackagesPageComponent implements OnInit, OnDestroy {
         return this.store.getState().packages.ui.visible;
     }
 
+    get versions() {
+        return this.store.getState().packages.versions;
+    }
+
     fetchMorePackages() {
         this.store.dispatch(filterPackagesBy(this.packageParams(),
             this.searchQuery,
-            true,
+            this.distinct(),
             this.store.getState().packages.nextRange));
         return false;
+    }
+
+    onBuildSelect(build) {
+        this.router.navigate(["/builds", build.id]);
     }
 
     packageParams() {
@@ -130,9 +203,32 @@ export class PackagesPageComponent implements OnInit, OnDestroy {
         };
     }
 
+    private fetchBuilds() {
+        this.store.dispatch(clearBuilds());
+
+        if (this.origin && this.name) {
+            let token = this.store.getState().gitHub.authToken;
+
+            if (token) {
+                this.store.dispatch(fetchBuilds(this.origin, this.name, token));
+            }
+        }
+    }
+
     private fetchPackages() {
         this.store.dispatch(filterPackagesBy(this.packageParams(),
-            this.searchQuery, true));
+            this.searchQuery, this.distinct()));
+    }
+
+    private fetchVersions() {
+        this.store.dispatch(fetchPackageVersions(this.origin, this.name));
+    }
+
+    private distinct() {
+        if ((this.origin && !this.name) || (this.name && !this.version)) {
+            return true;
+        }
+        return false;
     }
 
     private search(query) {

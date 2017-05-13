@@ -1,4 +1,5 @@
 import { List, Record } from "immutable";
+import * as AnsiUp from "ansi_up";
 import * as actionTypes from "../actions/index";
 import initialState from "../initialState";
 
@@ -31,11 +32,16 @@ export default function builds(state = initialState["builds"], action) {
             }
 
             let content = ((payload.start === 0) ? [] : state.get("selected").log.content) || [];
+            let appended = content.concat(payload.content);
+
+            let asHTML = appended.map((line) => {
+                return AnsiUp.ansi_to_html(line);
+            });
 
             return state.setIn(["selected", "log"], {
                 start: payload.start,
                 stop: payload.stop,
-                content: content.concat(payload.content),
+                content: asHTML,
                 is_complete: payload.is_complete
             });
 
