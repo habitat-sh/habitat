@@ -14,6 +14,7 @@
 
 pub mod handlers;
 pub mod scheduler;
+pub mod logger;
 
 use std::ops::Deref;
 use std::sync::{Arc, RwLock};
@@ -105,18 +106,16 @@ impl Dispatcher for Worker {
                 sock: &mut zmq::Socket,
                 state: &mut Self::State)
                 -> Result<()> {
-        println!("Message received: {}", message.message_id());
+        debug!("Message received: {}", message.message_id());
 
         match message.message_id() {
-            "GroupCreate" => handlers::group_create(message, sock, state).unwrap(),
-            "GroupGet" => handlers::group_get(message, sock, state).unwrap(),
-            "PackageCreate" => handlers::package_create(message, sock, state).unwrap(),
-            "JobStatus" => handlers::job_status(message, sock, state).unwrap(),
-            "PackageStatsGet" => handlers::package_stats_get(message, sock, state).unwrap(),
+            "GroupCreate" => handlers::group_create(message, sock, state),
+            "GroupGet" => handlers::group_get(message, sock, state),
+            "PackageCreate" => handlers::package_create(message, sock, state),
+            "JobStatus" => handlers::job_status(message, sock, state),
+            "PackageStatsGet" => handlers::package_stats_get(message, sock, state),
             _ => panic!("unexpected message: {:?}", message.message_id()),
-        };
-
-        Ok(())
+        }
     }
 
     fn context(&mut self) -> &mut zmq::Context {
@@ -194,7 +193,8 @@ impl Application for Server {
         let ds2 = init_state.datastore.clone();
         let sup: Supervisor<Worker> = Supervisor::new(cfg, init_state);
 
-        let schedule_mgr = try!(ScheduleMgr::start(ds2));
+        let cfg2 = self.config.clone();
+        let schedule_mgr = try!(ScheduleMgr::start(ds2, cfg2));
         try!(sup.start());
         try!(self.connect());
         let broker = {

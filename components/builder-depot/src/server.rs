@@ -744,7 +744,15 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
             None => return Ok(Response::with(status::NotFound)),
         };
 
-        route_message::<OriginPackageCreate, OriginPackage>(req, &package).unwrap();
+        match route_message::<OriginPackageCreate, OriginPackage>(req, &package) {
+            Ok(_) => (),
+            Err(err) => {
+                error!("Unable to create origin package for {:?}, err={:?}",
+                       ident,
+                       err);
+                return Ok(Response::with(status::InternalServerError));
+            }
+        }
 
         log_event!(req,
                    Event::PackageUpload {

@@ -30,6 +30,7 @@ extern crate serde;
 extern crate serde_derive;
 extern crate toml;
 extern crate zmq;
+extern crate chrono;
 
 pub mod config;
 pub mod data_store;

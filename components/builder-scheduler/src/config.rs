@@ -14,6 +14,7 @@
 
 //! Configuration for a Habitat Scheduler service
 
+use std::path::PathBuf;
 use db::config::DataStoreCfg;
 use hab_core::config::ConfigFile;
 use hab_net::config::{DispatcherCfg, RouterAddr, RouterCfg, Shards};
@@ -30,6 +31,8 @@ pub struct Config {
     pub worker_threads: usize,
     /// Path to packages on-disk (for migration)
     pub migration_path: String,
+    /// Path to scheduler event logs
+    pub log_path: PathBuf,
     /// List of net addresses for routing servers to connect to
     pub routers: Vec<RouterAddr>,
     pub datastore: DataStoreCfg,
@@ -43,6 +46,7 @@ impl Default for Config {
             shards: (0..SHARD_COUNT).collect(),
             worker_threads: Self::default_worker_count(),
             migration_path: String::from("/hab/svc/builder-scheduler/pkgs"),
+            log_path: PathBuf::from("/tmp"),
             routers: vec![RouterAddr::default()],
             datastore: datastore,
         }
