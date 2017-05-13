@@ -119,8 +119,8 @@ pub struct Runner {
 
 impl Runner {
     pub fn new(job: Job, config: Config) -> Self {
-        let url = format!("{}/depot", config.depot_url);
-        let depot_cli = depot_client::Client::new(&url, PRODUCT, VERSION, None).unwrap();
+        let depot_cli = depot_client::Client::new(&config.depot_url, PRODUCT, VERSION, None)
+            .unwrap();
         Runner {
             workspace: Workspace::new(config.data_path.clone(), job),
             config: config,

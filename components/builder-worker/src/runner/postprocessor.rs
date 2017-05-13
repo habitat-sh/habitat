@@ -38,20 +38,14 @@ impl Publish {
         if !self.enabled {
             return true;
         }
-
         debug!("post process: publish (url: {}, channel: {})",
                self.url,
                self.channel);
-
-        // Things to solve right now
-        // * Where do we get the token for authentication?
-        // * Should the workers ask for a lease from the JobSrv?
         let client = depot_client::Client::new(&self.url, PRODUCT, VERSION, None).unwrap();
         if let Some(err) = client.x_put_package(archive, auth_token).err() {
             error!("post processing error uploading package, ERR={:?}", err);
             return false;
         };
-
         if let Some(err) = client
                .promote_package(archive, &self.channel, auth_token)
                .err() {
