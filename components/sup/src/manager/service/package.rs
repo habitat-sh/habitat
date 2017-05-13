@@ -19,6 +19,7 @@ use std::path::{Path, PathBuf};
 
 use hcore::fs::FS_ROOT_PATH;
 use hcore::package::{PackageIdent, PackageInstall};
+use hcore::util::{deserialize_using_from_str, serialize_using_to_string};
 
 use error::{Error, Result};
 use fs;
@@ -76,6 +77,10 @@ impl Env {
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Pkg {
+    #[serde(
+        deserialize_with = "deserialize_using_from_str",
+        serialize_with = "serialize_using_to_string"
+    )]
     pub ident: PackageIdent,
     pub origin: String,
     pub name: String,
