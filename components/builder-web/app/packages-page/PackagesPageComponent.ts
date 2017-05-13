@@ -116,6 +116,7 @@ export class PackagesPageComponent implements OnInit, OnDestroy {
     fetchMorePackages() {
         this.store.dispatch(filterPackagesBy(this.packageParams(),
             this.searchQuery,
+            true,
             this.store.getState().packages.nextRange));
         return false;
     }
@@ -131,7 +132,7 @@ export class PackagesPageComponent implements OnInit, OnDestroy {
 
     private fetchPackages() {
         this.store.dispatch(filterPackagesBy(this.packageParams(),
-            this.searchQuery));
+            this.searchQuery, true));
     }
 
     private search(query) {

@@ -196,9 +196,34 @@ securitySchemes:
                                         "origin_id": "77731431660388352"
                                     }
 /pkgs:
+    /search:
+        /{query}:
+            get:
+                description: Search for packages with a query string
+                queryParameters:
+                    distinct:
+                        description: Whether to show a distinct list of packages or not
+                        type: boolean
+                        required: false
+                        default: false
+                        example: true
+                responses:
+                    200:
+                        description: Packages were found and fit on one page
+                    206:
+                        description: Packages were found and require pagination
+                    500:
+                        description: Internal server error
     /{origin}:
         get:
             description: List packages for an origin
+            queryParameters:
+                distinct:
+                    description: Whether to show a distinct list of packages or not
+                    type: boolean
+                    required: false
+                    default: false
+                    example: true
             responses:
                 200:
                 400:

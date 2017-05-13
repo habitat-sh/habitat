@@ -63,10 +63,14 @@ export function getLatest(origin: string, pkg: string) {
 }
 
 export function get(params, nextRange: number = 0) {
-    const url = `${urlPrefix}/depot/pkgs/` +
+    let url = `${urlPrefix}/depot/pkgs/` +
         (params["query"] ? `search/${params["query"]}`
                            : packageString(params)) +
         `?range=${nextRange}`;
+
+    if (params["distinct"]) {
+        url += "&distinct=true";
+    }
 
     return new Promise((resolve, reject) => {
         fetch(url).then(response => {

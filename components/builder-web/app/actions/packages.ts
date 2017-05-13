@@ -119,6 +119,7 @@ export function getUniquePackages(
 export function filterPackagesBy(
     params,
     query: string,
+    distinct: boolean,
     nextRange: number = 0
 ) {
     return dispatch => {
@@ -128,6 +129,10 @@ export function filterPackagesBy(
 
         if (query) {
             params = { query };
+        }
+
+        if (distinct) {
+            params["distinct"] = true;
         }
 
         depotApi.get(params, nextRange).then(response => {
