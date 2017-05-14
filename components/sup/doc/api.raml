@@ -73,7 +73,50 @@ types:
                 type: integer
             started:
                 type: boolean
-    specIdent:
+    pkg:
+        type: object
+        properties:
+            ident:
+                type: string
+            origin:
+                type: string
+            name:
+                type: string
+            version:
+                type: string
+            release:
+                type: string
+            deps:
+                type: pkgIdent[]
+            env:
+                type: object
+            exposes:
+                type: string[]
+            exports:
+                type: object
+            path:
+                type: string
+            svc_path:
+                type: string
+            svc_config_path:
+                type: string
+            svc_data_path:
+                type: string
+            svc_files_path:
+                type: string
+            svc_static_path:
+                type: string
+            svc_var_path:
+                type: string
+            svc_pid_file:
+                type: string
+            svc_run:
+                type: string
+            svc_user:
+                type: string
+            svc_group:
+                type: string
+    pkgIdent:
         type: object
         properties:
             origin:
@@ -96,7 +139,7 @@ types:
             spec_file:
                 type: string
             spec_ident:
-                type: specIdent
+                type: pkgIdent
             start_style:
                 enum: [
                     "Transient",
@@ -116,7 +159,7 @@ types:
             cfg:
                 type: object
             pkg:
-                type: string
+                type: pkg
             sys:
                 type: systemInfo
             health_check:

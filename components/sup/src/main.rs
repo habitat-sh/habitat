@@ -336,7 +336,8 @@ fn sub_start(m: &ArgMatches) -> Result<()> {
     try!(command::start::run(cfg.clone(), maybe_spec.clone(), maybe_local_artifact));
     if running {
         if let Some(spec) = maybe_spec {
-            outputln!("The supervisor is starting the {} service. See the supervisor output for more details.",
+            outputln!("The supervisor is starting the {} service. See the supervisor output for \
+                      more details.",
                       spec.ident);
         }
     }
@@ -377,21 +378,21 @@ fn sub_status(m: &ArgMatches) -> Result<()> {
         match status.process.state {
             ProcessState::Up => {
                 outputln!("The {} service entered the running state with PID: {} {} seconds ago.",
-                          status.package,
+                          status.pkg.ident,
                           status.process.pid.unwrap(),
                           status.process.elapsed.num_seconds())
             }
             ProcessState::Down => {
-                outputln!("The {} service is not currently running.", status.package);
+                outputln!("The {} service is not currently running.", status.pkg.ident);
             }
             ProcessState::Start => {
                 outputln!("The {} service entered the starting state {} seconds ago.",
-                          status.package,
+                          status.pkg.ident,
                           status.process.elapsed.num_seconds());
             }
             ProcessState::Restart => {
                 outputln!("The {} service entered the restarting state {} seconds ago.",
-                          status.package,
+                          status.pkg.ident,
                           status.process.elapsed.num_seconds());
             }
         }
