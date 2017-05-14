@@ -35,6 +35,11 @@ use protocol::sessionsrv;
 use protocol::net::{self, NetOk, ErrCode};
 use router::Router;
 
+// For the initial release, Builder will only be enabled on the "core"
+// origin. Later, we'll roll it out to other origins; at that point,
+// we should consider other options, such as configurable middleware.
+const BUILDER_ENABLED_ORIGIN: &'static str = "core";
+
 define_event_log!();
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -214,7 +219,11 @@ pub fn list_user_origins(req: &mut Request) -> IronResult<Response> {
     }
 }
 
-/// Create a new project as the authenticated user and associated to the given origin
+/// Create a new project as the authenticated user and associated to
+/// the given origin.
+///
+/// NOTE: This currently only allows creation of projects in the
+/// "core" origin.
 pub fn project_create(req: &mut Request) -> IronResult<Response> {
     let mut request = OriginProjectCreate::new();
     let mut project = OriginProject::new();
@@ -257,6 +266,12 @@ pub fn project_create(req: &mut Request) -> IronResult<Response> {
         Ok(response) => response,
         Err(err) => return Ok(render_net_error(&err)),
     };
+
+    // Only allow projects to be created for the core origin initially.
+    if origin.get_name() != BUILDER_ENABLED_ORIGIN {
+        return Ok(Response::with((status::UnprocessableEntity, "rg:pc:5")))
+    }
+    
     match github.contents(&session.get_token(),
                           &organization,
                           &repo,
