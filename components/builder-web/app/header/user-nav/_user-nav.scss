@@ -14,23 +14,27 @@
 
 .main-nav--profile {
   float: right;
-  margin: rem(20) rem(10) 0 0;
+  margin: rem(10) 0;
   position: relative;
 
   @include large-nav{
-    margin: rem(40) 0 0;
+    margin: rem(32) 0 0;
   }
 }
 
 .main-nav--avatar {
-  background-color: $hab-gray-light;
-  border-radius: $global-radius;
-  color: $hab-off-white;
-  padding: rem(8) rem(10) rem(12);
+  display: block;
+  border-radius: 50%;
+  border: 1px solid $hab-orange;
+  padding: 2px;
+  cursor: pointer;
 
   img {
-    border-radius: $global-radius -3;
-    vertical-align: middle;
+    display: block;
+    border: solid 2px $hab-white;
+    border-radius: 50%;
+    height: 40px;
+    width: 40px;
   }
 
   span {
@@ -47,7 +51,7 @@
   color: $hab-gray;
   position: absolute;
   right: 0;
-  top: 44px;
+  top: 52px;
   z-index: 9999;
 
   li {
