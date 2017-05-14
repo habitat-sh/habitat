@@ -25,7 +25,7 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                         provider text,
                         extern_id bigint,
                         is_admin bool DEFAULT false,
-                        is_builder bool DEFAULT false,
+                        is_early_access bool DEFAULT false,
                         is_build_worker bool DEFAULT false,
                         created_at timestamptz DEFAULT now(),
                         expires_at timestamptz DEFAULT now() + interval '1 day',
@@ -38,14 +38,14 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                     account_provider text,
                     account_extern_id bigint,
                     account_is_admin bool,
-                    account_is_builder bool,
+                    account_is_early_access bool,
                     account_is_build_worker bool
                  ) RETURNS SETOF account_sessions AS $$
                      BEGIN
-                        RETURN QUERY INSERT INTO account_sessions (account_id, token, provider, extern_id, is_admin, is_builder, is_build_worker)
-                                        VALUES (a_account_id, account_token, account_provider, account_extern_id, account_is_admin, account_is_builder, account_is_build_worker) 
+                        RETURN QUERY INSERT INTO account_sessions (account_id, token, provider, extern_id, is_admin, is_early_access, is_build_worker)
+                                        VALUES (a_account_id, account_token, account_provider, account_extern_id, account_is_admin, account_is_early_access, account_is_build_worker)
                                         ON CONFLICT (account_id) DO UPDATE
-                                        SET token = account_token, expires_at = now() + interval '1 day', provider = account_provider, extern_id = account_extern_id, is_admin = account_is_admin, is_builder = account_is_builder, is_build_worker = account_is_build_worker
+                                        SET token = account_token, expires_at = now() + interval '1 day', provider = account_provider, extern_id = account_extern_id, is_admin = account_is_admin, is_early_access = account_is_early_access, is_build_worker = account_is_build_worker
                                         RETURNING *;
                         RETURN;
                      END
@@ -54,7 +54,7 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                  r#"CREATE OR REPLACE FUNCTION get_account_session_v1 (
                     account_name text,
                     account_token text
-                 ) RETURNS TABLE(id bigint, email text, name text, token text, is_admin bool, is_builder bool, is_build_worker bool) AS $$
+                 ) RETURNS TABLE(id bigint, email text, name text, token text, is_admin bool, is_early_access bool, is_build_worker bool) AS $$
                      DECLARE
                         this_account accounts%rowtype;
                      BEGIN
@@ -62,15 +62,15 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                         IF FOUND THEN
                             DELETE FROM account_sessions WHERE account_id = this_account.id AND account_sessions.token = account_token AND expires_at < now();
                             IF NOT FOUND THEN
-                                RETURN QUERY 
-                                    SELECT accounts.id, accounts.email, 
-                                           accounts.name, account_sessions.token, 
-                                           account_sessions.is_admin, 
-                                           account_sessions.is_builder, 
-                                           account_sessions.is_build_worker 
-                                      FROM accounts 
-                                        INNER JOIN account_sessions ON account_sessions.account_id = accounts.id 
-                                      WHERE accounts.id = this_account.id 
+                                RETURN QUERY
+                                    SELECT accounts.id, accounts.email,
+                                           accounts.name, account_sessions.token,
+                                           account_sessions.is_admin,
+                                           account_sessions.is_early_access,
+                                           account_sessions.is_build_worker
+                                      FROM accounts
+                                        INNER JOIN account_sessions ON account_sessions.account_id = accounts.id
+                                      WHERE accounts.id = this_account.id
                                         AND account_sessions.token = account_token;
                             END IF;
                         END IF;

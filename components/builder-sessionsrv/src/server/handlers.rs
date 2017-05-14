@@ -70,12 +70,12 @@ pub fn session_create(req: &mut Envelope,
     let msg: proto::SessionCreate = try!(req.parse_msg());
 
     let mut is_admin = false;
-    let mut is_builder = false;
+    let mut is_early_access = false;
     let mut is_build_worker = false;
 
     if env::var_os("HAB_FUNC_TEST").is_some() {
         is_admin = true;
-        is_builder = true;
+        is_early_access = true;
         is_build_worker = true;
     } else {
         let teams = match state.github.teams(msg.get_token()) {
@@ -88,19 +88,19 @@ pub fn session_create(req: &mut Envelope,
             }
         };
         for team in teams {
-            if team.id != 0 && team.id == state.admin_team {
+            if team.id != 0 && team.id == state.permissions.admin_team {
                 debug!("Granting feature flag={:?} for team={:?}",
                        privilege::ADMIN,
                        team.name);
                 is_admin = true;
             }
-            if team.id != 0 && state.builder_teams.contains(&team.id) {
+            if team.id != 0 && state.permissions.early_access_teams.contains(&team.id) {
                 debug!("Granting feature flag={:?} for team={:?}",
-                       privilege::BUILDER,
+                       privilege::EARLY_ACCESS,
                        team.name);
-                is_builder = true;
+                is_early_access = true;
             }
-            if team.id != 0 && state.build_worker_teams.contains(&team.id) {
+            if team.id != 0 && state.permissions.build_worker_teams.contains(&team.id) {
                 debug!("Granting feature flag={:?} for team={:?}",
                        privilege::BUILD_WORKER,
                        team.name);
@@ -110,7 +110,10 @@ pub fn session_create(req: &mut Envelope,
     }
     match state
               .datastore
-              .find_or_create_account_via_session(&msg, is_admin, is_builder, is_build_worker) {
+              .find_or_create_account_via_session(&msg,
+                                                  is_admin,
+                                                  is_early_access,
+                                                  is_build_worker) {
         Ok(session) => req.reply_complete(sock, &session)?,
         Err(e) => {
             error!("{}", e);

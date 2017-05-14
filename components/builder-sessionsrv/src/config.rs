@@ -23,13 +23,6 @@ use error::Error;
 #[derive(Debug, Deserialize)]
 #[serde(default)]
 pub struct Config {
-    /// A GitHub Team identifier for which members will automatically have administration
-    /// privileges assigned to their session
-    pub github_admin_team: u64,
-    /// GitHub team identifiers for builders
-    pub github_builder_teams: Vec<u64>,
-    /// GitHub team identifiers for build workers
-    pub github_build_worker_teams: Vec<u64>,
     /// List of shard identifiers serviced by the running service.
     pub shards: Vec<ShardId>,
     /// Number of threads to process queued messages.
@@ -38,6 +31,7 @@ pub struct Config {
     pub routers: Vec<RouterAddr>,
     pub datastore: DataStoreCfg,
     pub github: GitHubCfg,
+    pub permissions: PermissionsCfg,
 }
 
 impl Default for Config {
@@ -45,14 +39,12 @@ impl Default for Config {
         let mut datastore = DataStoreCfg::default();
         datastore.database = String::from("builder_sessionsrv");
         Config {
-            github_admin_team: 0,
-            github_builder_teams: Vec::default(),
-            github_build_worker_teams: Vec::default(),
             shards: (0..SHARD_COUNT).collect(),
             worker_threads: Self::default_worker_count(),
             routers: vec![RouterAddr::default()],
             datastore: datastore,
             github: GitHubCfg::default(),
+            permissions: PermissionsCfg::default(),
         }
     }
 }
@@ -93,6 +85,21 @@ impl Shards for Config {
     }
 }
 
+#[derive(Clone, Debug, Default, Deserialize)]
+#[serde(default)]
+pub struct PermissionsCfg {
+    /// A GitHub Team identifier for which members will automatically have administration
+    /// privileges assigned to their session
+    pub admin_team: u64,
+    /// GitHub team's whose members are granted Builder Worker abilities. These abilities
+    /// include downloading the latest private key for any origin and uploading a package into
+    /// any origin regardless of membership. This is essentially a user who ignores all rules.
+    pub build_worker_teams: Vec<u64>,
+    /// GitHub team's assigned to the early access group who may have access to features in Builder
+    /// before a normal user.
+    pub early_access_teams: Vec<u64>,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -100,19 +107,21 @@ mod tests {
     #[test]
     fn config_from_file() {
         let content = r#"
-        github_admin_team = 2000
-        github_builder_teams = [
-            2000,
-            2001
-        ]
-        github_build_worker_teams = [
-            3000,
-            3001
-        ]
         shards = [
             0
         ]
         worker_threads = 1
+
+        [permissions]
+        admin_team = 2000
+        build_worker_teams = [
+            3000,
+            3001
+        ]
+        early_access_teams = [
+            4000,
+            4001
+        ]
 
         [[routers]]
         host = "1:1:1:1:1:1:1:1"
@@ -135,11 +144,11 @@ mod tests {
         "#;
 
         let config = Config::from_raw(&content).unwrap();
-        assert_eq!(config.github_admin_team, 2000);
-        assert_eq!(config.github_builder_teams, vec![2000, 2001]);
-        assert_eq!(config.github_build_worker_teams, vec![3000, 3001]);
         assert_eq!(config.shards, vec![0]);
         assert_eq!(config.worker_threads, 1);
+        assert_eq!(config.permissions.admin_team, 2000);
+        assert_eq!(config.permissions.build_worker_teams, vec![3000, 3001]);
+        assert_eq!(config.permissions.early_access_teams, vec![4000, 4001]);
         assert_eq!(&format!("{}", config.datastore.host), "1.1.1.1");
         assert_eq!(config.datastore.port, 9000);
         assert_eq!(config.datastore.user, "test");

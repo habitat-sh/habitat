@@ -68,7 +68,7 @@ impl DataStore {
     pub fn find_or_create_account_via_session(&self,
                                               session_create: &sessionsrv::SessionCreate,
                                               is_admin: bool,
-                                              is_builder: bool,
+                                              is_early_access: bool,
                                               is_build_worker: bool)
                                               -> Result<sessionsrv::Session> {
         let conn = self.pool.get(session_create)?;
@@ -87,7 +87,7 @@ impl DataStore {
                                 &provider,
                                 &(session_create.get_extern_id() as i64),
                                 &is_admin,
-                                &is_builder,
+                                &is_early_access,
                                 &is_build_worker])
             .map_err(Error::AccountGetById)?;
         let session_row = rows.get(0);
@@ -99,8 +99,8 @@ impl DataStore {
         if session_row.get("is_admin") {
             flags.insert(privilege::ADMIN);
         }
-        if session_row.get("is_builder") {
-            flags.insert(privilege::BUILDER);
+        if session_row.get("is_early_access") {
+            flags.insert(privilege::EARLY_ACCESS);
         }
         if session_row.get("is_build_worker") {
             flags.insert(privilege::BUILD_WORKER);
@@ -162,8 +162,8 @@ impl DataStore {
             if row.get("is_admin") {
                 flags.insert(privilege::ADMIN);
             }
-            if row.get("is_builder") {
-                flags.insert(privilege::BUILDER);
+            if row.get("is_early_access") {
+                flags.insert(privilege::EARLY_ACCESS);
             }
             if row.get("is_build_worker") {
                 flags.insert(privilege::BUILD_WORKER);

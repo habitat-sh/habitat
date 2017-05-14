@@ -144,8 +144,7 @@ export class PackagePageComponent implements OnDestroy {
     }
 
     get showRepoButton() {
-        return (this.features & FeatureFlags.BUILDER) && !this.ui.loading && this.ui.exists &&
-            !this.projectExists && this.memberOfOrigin;
+        return !this.ui.loading && this.ui.exists && !this.projectExists && this.memberOfOrigin;
     }
 
     viewOrigin() {

@@ -33,9 +33,10 @@ client_secret = "438223113eeb6e7edf2d2f91a232b72de72b9bdf"
 
 config_sessionsrv.toml:
 ```
-github_admin_team = 1995301
-github_builder_teams = [1995301]
-github_build_worker_teams = [1995301]
+[permissions]
+admin_team = 1995301
+build_worker_teams = [1995301]
+early_access_teams = [1995301]
 
 [github]
 url = "https://api.github.com"
