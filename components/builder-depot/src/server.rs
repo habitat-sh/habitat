@@ -1743,7 +1743,9 @@ fn dont_cache_response(response: &mut Response) {
         .set(CacheControl(format!("private, no-cache, no-store")));
 }
 
-pub fn routes<M: BeforeMiddleware + Clone>(insecure: bool, basic: M, worker: M) -> Router {
+pub fn routes<M>(insecure: bool, basic: M, worker: M) -> Router
+    where M: BeforeMiddleware + Clone
+{
     router!(
         channels: get "/channels/:origin" => list_channels,
         channel_packages: get "/channels/:origin/:channel/pkgs" => list_packages,

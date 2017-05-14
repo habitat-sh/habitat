@@ -22,7 +22,6 @@ use std::thread::{self, JoinHandle};
 use depot;
 use hab_net::http::middleware::*;
 use hab_net::oauth::github::GitHubClient;
-use hab_net::privilege;
 use hab_core::event::EventLogger;
 use iron::prelude::*;
 use mount::Mount;
@@ -40,30 +39,27 @@ const HTTP_THREAD_COUNT: usize = 128;
 /// Create a new `iron::Chain` containing a Router and it's required middleware
 pub fn router(config: Arc<Config>) -> Result<Chain> {
     let basic = Authenticated::new(&*config);
-    let bldr = Authenticated::new(&*config).require(privilege::BUILDER);
     let router = router!(
         status: get "/status" => status,
         authenticate: get "/authenticate/:code" => github_authenticate,
 
-        jobs: post "/jobs" => XHandler::new(job_create).before(bldr.clone()),
-        job: get "/jobs/:id" => XHandler::new(job_show).before(basic.clone()),
-        job_log: get "/jobs/:id/log" => XHandler::new(job_log).before(basic.clone()),
+        jobs: post "/jobs" => XHandler::new(job_create).before(basic.clone()),
+        job: get "/jobs/:id" => job_show,
+        job_log: get "/jobs/:id/log" => job_log,
 
         user_invitations: get "/user/invitations" => {
             XHandler::new(list_account_invitations).before(basic.clone())
         },
         user_origins: get "/user/origins" => XHandler::new(list_user_origins).before(basic.clone()),
 
-        projects: post "/projects" => XHandler::new(project_create).before(bldr.clone()),
-        project: get "/projects/:origin/:name" => XHandler::new(project_show).before(basic.clone()),
-        project_jobs: get "/projects/:origin/:name/jobs" => {
-            XHandler::new(project_jobs).before(basic.clone())
-        },
+        projects: post "/projects" => XHandler::new(project_create).before(basic.clone()),
+        project: get "/projects/:origin/:name" => project_show,
+        project_jobs: get "/projects/:origin/:name/jobs" => project_jobs,
         edit_project: put "/projects/:origin/:name" => {
-            XHandler::new(project_update).before(bldr.clone())
+            XHandler::new(project_update).before(basic.clone())
         },
         delete_project: delete "/projects/:origin/:name" => {
-            XHandler::new(project_delete).before(bldr.clone())
+            XHandler::new(project_delete).before(basic.clone())
         }
     );
     let mut chain = Chain::new(router);

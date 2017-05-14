@@ -35,7 +35,6 @@ impl Default for FeatureFlagList {
     fn default() -> Self {
         let mut list = vec![];
         list.push(FeatureFlag::new("Admin", privilege::ADMIN.bits()));
-        list.push(FeatureFlag::new("Builder", privilege::BUILDER.bits()));
         FeatureFlagList(list)
     }
 }

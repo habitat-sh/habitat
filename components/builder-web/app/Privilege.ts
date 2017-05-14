@@ -14,5 +14,5 @@
 
 export enum FeatureFlags {
     ADMIN = 1,
-    BUILDER = 2,
+    EARLY_ACCESS = 2,
 }

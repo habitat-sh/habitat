@@ -26,7 +26,7 @@ use hab_net::server::{Envelope, NetIdent, RouteConn, Service, ZMQ_CONTEXT};
 use protocol::net;
 use zmq;
 
-use config::Config;
+use config::{Config, PermissionsCfg};
 use data_store::DataStore;
 use error::{Error, Result};
 
@@ -36,24 +36,15 @@ const BE_LISTEN_ADDR: &'static str = "inproc://backend";
 pub struct ServerState {
     datastore: DataStore,
     github: Arc<Box<GitHubClient>>,
-    admin_team: u64,
-    builder_teams: Arc<Vec<u64>>,
-    build_worker_teams: Arc<Vec<u64>>,
+    permissions: Arc<PermissionsCfg>,
 }
 
 impl ServerState {
-    pub fn new(datastore: DataStore,
-               gh: GitHubClient,
-               team: u64,
-               builder_teams: Vec<u64>,
-               build_worker_teams: Vec<u64>)
-               -> Self {
+    pub fn new(datastore: DataStore, gh: GitHubClient, permissions: PermissionsCfg) -> Self {
         ServerState {
             datastore: datastore,
             github: Arc::new(Box::new(gh)),
-            admin_team: team,
-            builder_teams: Arc::new(builder_teams),
-            build_worker_teams: Arc::new(build_worker_teams),
+            permissions: Arc::new(permissions),
         }
     }
 }
@@ -148,20 +139,15 @@ impl Application for Server {
 
     fn run(&mut self) -> Result<()> {
         try!(self.be_sock.bind(BE_LISTEN_ADDR));
-        let (datastore, gh, admin_team, builder_teams, build_worker_teams) = {
+        let (datastore, gh, permissions) = {
             let cfg = self.config.read().unwrap();
             let ds = DataStore::new(cfg.deref())?;
             let gh = GitHubClient::new(cfg.deref());
-            (ds,
-             gh,
-             cfg.github_admin_team,
-             cfg.github_builder_teams.clone(),
-             cfg.github_build_worker_teams.clone())
+            (ds, gh, cfg.permissions.clone())
         };
         let cfg = self.config.clone();
         try!(datastore.setup());
-        let init_state =
-            ServerState::new(datastore, gh, admin_team, builder_teams, build_worker_teams);
+        let init_state = ServerState::new(datastore, gh, permissions);
         let sup: Supervisor<Worker> = Supervisor::new(cfg, init_state);
         try!(sup.start());
         try!(self.connect());

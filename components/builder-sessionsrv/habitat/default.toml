@@ -1,7 +1,9 @@
-github_admin_team = 0
-github_builder_teams = []
-github_build_worker_teams = []
 shards = []
+
+[permissions]
+admin_team = 0
+build_worker_teams = []
+early_access_teams = []
 
 [datastore]
 user = "hab"

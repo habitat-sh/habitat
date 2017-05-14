@@ -15,7 +15,7 @@
 bitflags! {
     pub flags FeatureFlags: u32 {
         const ADMIN = 0b00000001,
-        const BUILDER = 0b00000010,
+        const EARLY_ACCESS = 0b00000010,
         const BUILD_WORKER = 0b00000100,
     }
 }
