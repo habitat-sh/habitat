@@ -41,7 +41,6 @@ use eventsrv_client::EventSrvClient;
 use hcore::crypto::{default_cache_key_path, SymKey};
 use hcore::fs::FS_ROOT_PATH;
 use hcore::service::ServiceGroup;
-use hcore::util::deserialize_using_from_str;
 use hcore::os::process;
 use hcore::package::{Identifiable, PackageIdent};
 use protobuf::Message;
@@ -51,7 +50,7 @@ use time::{self, Timespec, Duration as TimeDuration};
 
 pub use self::service::{Service, ServiceSpec, UpdateStrategy, Topology};
 pub use self::sys::Sys;
-use self::service::{DesiredState, ProcessState, StartStyle};
+use self::service::{DesiredState, Pkg, ProcessState, StartStyle};
 use self::service_updater::ServiceUpdater;
 use self::spec_watcher::{SpecWatcher, SpecWatcherEvent};
 use error::{Error, Result, SupError};
@@ -74,11 +73,7 @@ lazy_static! {
 
 #[derive(Deserialize)]
 pub struct ServiceStatus {
-    #[serde(
-        deserialize_with = "deserialize_using_from_str",
-        rename = "pkg"
-    )]
-    pub package: PackageIdent,
+    pub pkg: Pkg,
     pub process: ProcessStatus,
 }
 
@@ -123,7 +118,7 @@ pub fn deserialize_time<'de, D>(d: D) -> result::Result<TimeDuration, D::Error>
 ///
 /// This is shared with the `http_gateway` and `service` modules for reading and writing
 /// persistence data.
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct FsCfg {
     pub butterfly_data_path: PathBuf,
     pub census_data_path: PathBuf,
@@ -217,14 +212,11 @@ impl Manager {
     }
 
     pub fn service_status(cfg: ManagerConfig, ident: PackageIdent) -> Result<ServiceStatus> {
-        let services = Self::status(cfg)?;
-
-        for status in services {
-            if status.package.satisfies(&ident) {
+        for status in Self::status(cfg)? {
+            if status.pkg.ident.satisfies(&ident) {
                 return Ok(status);
             }
         }
-
         Err(sup_error!(Error::ServiceNotLoaded(ident)))
     }
 
