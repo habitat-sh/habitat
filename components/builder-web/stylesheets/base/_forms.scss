@@ -59,11 +59,10 @@ select[multiple] {
   background-color: $base-background-color;
   border: $base-border;
   border-radius: $base-border-radius;
-  box-shadow: $form-box-shadow;
   box-sizing: border-box;
   font-family: $base-font-family;
-  font-size: $base-font-size;
-  margin-bottom: $small-spacing;
+  font-size: rem(14);
+  margin-bottom: $base-spacing;
   padding: $base-spacing / 3;
   transition: border-color $base-duration $base-timing;
   width: 100%;

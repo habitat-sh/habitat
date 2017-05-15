@@ -155,7 +155,7 @@ $main-nav-breakpoint: 710px;
     }
 
     @include large-nav {
-      &.router-link-active:before {
+      &.is-current-page:before {
         content: "";
         position: absolute;
         background-image: url("/assets/images/nav-active-icon.png");
@@ -165,7 +165,7 @@ $main-nav-breakpoint: 710px;
         background-size: auto 100%;
         width: 120%;
         height: rem(18);
-        top: rem(-45);
+        top: rem(30);
         left: -10%;
       }
     }

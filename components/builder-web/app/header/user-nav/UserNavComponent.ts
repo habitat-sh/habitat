@@ -21,9 +21,9 @@ import {Component, ElementRef, HostListener, Input} from "@angular/core";
       <a class="button" [routerLink]="['/sign-in']">Sign In</a>
     </div>
     <div class="main-nav--profile" *ngIf="isSignedIn">
-        <a class="main-nav--avatar" href="#">
-            <img height=24 src="{{avatarUrl}}" />
-        </a>
+        <span class="main-nav--avatar">
+            <img src="{{avatarUrl}}" />
+        </span>
         <ul class="main-nav--dropdown" *ngIf="isOpen">
             <li>{{username}}</li>
             <li><a href="#" (click)="signOut()">
