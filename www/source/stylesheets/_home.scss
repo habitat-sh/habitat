@@ -1,7 +1,7 @@
 // homepage
 body.home {
   position: relative;
-  background: $hab-white;  
+  background: $hab-white;
 }
 
 // hero banner
@@ -370,7 +370,8 @@ body.home {
   padding-bottom: rem-calc(90);
 
   &:nth-child(even) {
-    background: radial-gradient(center rem-calc(120), $hab-blue-2, $hab-navy-2);
+    background-color: $hab-blue-2;
+    background: radial-gradient($hab-blue-2, $hab-navy-2);
     color: $white;
 
     .main-section--heading {
@@ -401,7 +402,8 @@ body.home {
 // callouts
 .home--callout {
   position: relative;
-  background: radial-gradient(center rem-calc(60), $hab-blue-2, $hab-navy-2);
+  background-color: $hab-blue-2;
+  background: radial-gradient($hab-blue-2, $hab-navy-2);
   color: $white;
   overflow: hidden;
   border-radius: 5px;

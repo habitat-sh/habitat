@@ -128,9 +128,9 @@ GEM
       parallel
       ruby-progressbar
       unf
-    middleman-sprockets (4.1.0)
-      middleman-core (~> 4.0)
-      sprockets (>= 3.0)
+    middleman-sprockets (4.0.0.rc.1)
+      middleman-core (>= 4.0.0.rc.1)
+      sprockets (~> 3.0)
     middleman-syntax (3.0.0)
       middleman-core (>= 3.2)
       rouge (~> 2.0)
@@ -208,7 +208,7 @@ DEPENDENCIES
   middleman-livereload
   middleman-minify-html
   middleman-s3_sync
-  middleman-sprockets (~> 4.0)
+  middleman-sprockets (~> 4.0.0.rc.1)
   middleman-syntax
   mime-types
   pry
