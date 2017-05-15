@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import { Component, Input } from "@angular/core";
-import { RouterLink } from "@angular/router";
+import { Router, RouterLink } from "@angular/router";
 import config from "../config";
 
 @Component({
@@ -44,10 +44,28 @@ import config from "../config";
                     [signOut]="signOut"
                     [toggleUserNavMenu]="toggleUserNavMenu"></hab-user-nav>
           <ul class="main-nav--links">
-            <li class="main-nav--link"><a class="about" [routerLink]="['/explore']">Explore</a></li>
-            <li class="main-nav--link"><a class="tutorials" href="{{config['tutorials_url']}}">Tutorials</a></li>
-            <li class="main-nav--link"><a class="docs" href="{{config['docs_url']}}">Docs</a></li>
-            <li class="main-nav--link"><a class="community" href="{{config['community_url']}}">Community</a></li>
+            <li class="main-nav--link">
+              <a class="about"
+                [routerLink]="['/explore']"
+                [class.is-current-page]="area === 'explore'">Explore</a>
+            </li>
+            <li class="main-nav--link">
+              <a class="tutorials" href="{{config['tutorials_url']}}">Tutorials</a>
+            </li>
+            <li class="main-nav--link">
+              <a class="docs" href="{{config['docs_url']}}">Docs</a>
+            </li>
+            <li class="main-nav--link">
+              <a class="community" href="{{config['community_url']}}">Community</a>
+            </li>
+            <li class="main-nav--link">
+              <a class="blog" href="{{config['www_url']}}/blog">Blog</a>
+            </li>
+            <li class="main-nav--link">
+              <a class="depot"
+                [routerLink]="['/']"
+                [class.is-current-page]="area === 'depot'">Depot</a>
+            </li>
           </ul>
         </nav>
       </div>`
@@ -62,5 +80,18 @@ export class HeaderComponent {
     @Input() signOut;
     @Input() toggleUserNavMenu;
 
-    get config() { return config; }
+    constructor(private router: Router) {}
+
+    get config() {
+      return config;
+    }
+
+    get area() {
+      if (this.router.url === "/explore") {
+        return "explore";
+      }
+      else {
+        return "depot";
+      }
+    }
 }
