@@ -17,6 +17,11 @@ authors:
     name: "Adam Leff"
     email: "aleff@chef.io"
     bio: "Adam Leff is the Technical Community Advocate for InSpec at Chef. Prior to joining Chef, Adam held engineering and management positions at WebMD. He lives in Northern VA with his family and can frequently be found at local DevOps meetups in the DC area."
+  reset:
+    name: "Jamie Winsor"
+    email: "reset@habitat.sh"
+    twitter: "@resetexistence"
+    bio: "Jamie Winsor is the lead engineer of Habitat. Jamie is a versatile programmer with an affinity for network programming and video games. Jamie is focused on enabling all software developers, regardless of their experience, to bring their ideas to life without investing heavily in the details of operationalizing an application."
   pauladams:
     name: "Paul Adams"
     email: "paul@baggerspion.net"
