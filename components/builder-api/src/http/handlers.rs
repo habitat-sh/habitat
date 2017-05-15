@@ -326,8 +326,15 @@ pub fn project_delete(req: &mut Request) -> IronResult<Response> {
         let params = req.extensions.get::<Router>().unwrap();
         let origin = params.find("origin").unwrap().to_owned();
         let name = params.find("name").unwrap();
-        project_del.set_name(format!("{}/{}", origin, name));
 
+        // We're only allowing projects to be created for the core
+        // origin initially. Thus, if we try to delete a project for any
+        // other origin, we can safely short-circuit processing.
+        if origin != BUILDER_ENABLED_ORIGIN {
+            return Ok(Response::with((status::NotFound, "rg:pd:1")))
+        }
+
+        project_del.set_name(format!("{}/{}", origin, name));
         (session_id, origin)
     };
 
@@ -345,6 +352,21 @@ pub fn project_delete(req: &mut Request) -> IronResult<Response> {
 
 /// Update the given project
 pub fn project_update(req: &mut Request) -> IronResult<Response> {
+  
+    let (name, origin) = {
+        let params = req.extensions.get::<Router>().unwrap();
+        let origin = params.find("origin").unwrap().to_owned();
+        let name = params.find("name").unwrap().to_owned();
+
+        // We're only allowing projects to be created for the core
+        // origin initially. Thus, if we try to update a project for
+        // any other origin, we can safely short-circuit processing.
+        if origin != BUILDER_ENABLED_ORIGIN {
+            return Ok(Response::with((status::NotFound, "rg:pu:6")))
+        }
+        (name, origin)
+    };
+
     let mut request = OriginProjectUpdate::new();
     let mut project = OriginProject::new();
     let github = req.get::<persistent::Read<GitHubCli>>().unwrap();
@@ -391,14 +413,7 @@ pub fn project_update(req: &mut Request) -> IronResult<Response> {
                 Ok(ref bytes) => {
                     match Plan::from_bytes(bytes) {
                         Ok(plan) => {
-                            let (name, origin) = {
-                                let params = req.extensions.get::<Router>().unwrap();
-                                let origin = params.find("origin").unwrap().to_owned();
-                                let name = params.find("name").unwrap().to_owned();
-
-                                (name, origin)
-                            };
-                            if !try!(check_origin_access(req, session_id, &origin)) {
+                           if !try!(check_origin_access(req, session_id, &origin)) {
                                 return Ok(Response::with(status::Forbidden));
                             }
                             if plan.name != name {
@@ -434,6 +449,14 @@ pub fn project_show(req: &mut Request) -> IronResult<Response> {
     let params = req.extensions.get::<Router>().unwrap();
     {
         let origin = params.find("origin").unwrap();
+
+        // We're only allowing projects to be created for the core
+        // origin initially. Thus, if we try to get a project for any
+        // other origin, we can safely short-circuit processing.
+        if origin != BUILDER_ENABLED_ORIGIN {
+            return Ok(Response::with((status::NotFound, "rg:ps:1")))
+        }
+        
         let name = params.find("name").unwrap();
         project_get.set_name(format!("{}/{}", origin, name));
     }
@@ -453,6 +476,14 @@ pub fn project_jobs(req: &mut Request) -> IronResult<Response> {
     let params = req.extensions.get::<Router>().unwrap();
     {
         let origin = params.find("origin").unwrap();
+
+        // We're only allowing projects to be created for the core
+        // origin initially. Thus, if we try to get jobs for any
+        // project in another, we can safely short-circuit processing.
+        if origin != BUILDER_ENABLED_ORIGIN {
+            return Ok(Response::with((status::NotFound, "rg:pj:1")))
+        }
+
         let name = params.find("name").unwrap();
         jobs_get.set_name(format!("{}/{}", origin, name));
     }
