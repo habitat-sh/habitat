@@ -11,6 +11,8 @@ protobuf = "*"
 serde = "*"
 serde_derive = "*"
 time = "*"
+regex = "*"
+lazy_static = "*"
 
 [dependencies.habitat_core]
 path = "../core"

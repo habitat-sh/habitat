@@ -13,7 +13,10 @@
 // limitations under the License.
 
 extern crate habitat_core as hab_core;
+#[macro_use]
+extern crate lazy_static;
 extern crate protobuf;
+extern crate regex;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;

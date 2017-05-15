@@ -264,6 +264,7 @@ impl Runner {
                     .args(&args)
                     .env_clear()
                     .env("HAB_NONINTERACTIVE", "true")
+                    .env("TERM", "xterm-256color") // Gives us ANSI color codes
                     .stdout(Stdio::piped())
                     .stderr(Stdio::piped())
                     .spawn()
