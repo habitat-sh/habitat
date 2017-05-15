@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import { Component, Input, OnInit } from "@angular/core";
-import * as config from "../config";
+import config from "../config";
 
 @Component({
     selector: "hab-side-nav",
