@@ -195,5 +195,15 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                         UPDATE origin_packages SET scheduler_sync = true WHERE id = in_package_id;
                     END
                     $$ LANGUAGE plpgsql VOLATILE"#)?;
+    migrator.migrate("originsrv",
+                     r#"CREATE OR REPLACE FUNCTION get_origin_package_versions_for_origin_v2 (
+                    op_origin text,
+                    op_pkg text
+                 ) RETURNS TABLE(version text, release_count bigint, latest text) AS $$
+                    BEGIN
+                        RETURN QUERY SELECT p.partial_ident[3] AS version, COUNT(p.partial_ident[4]) AS release_count, MAX(p.partial_ident[4]) as latest FROM (SELECT regexp_split_to_array(op.ident, '/') AS partial_ident FROM origin_packages op INNER JOIN origins o ON o.id = op.origin_id WHERE o.name = op_origin AND op.name = op_pkg) AS p GROUP BY version;
+                        RETURN;
+                    END
+                    $$ LANGUAGE plpgsql STABLE"#)?;
     Ok(())
 }
