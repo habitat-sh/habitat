@@ -63,3 +63,39 @@
   &:nth-child(#{$nth}) { margin-right: flex-gutter($columns); }
   &:nth-child(#{$nth}+1) { clear: none; }
 }
+
+// ------------------------------------------------------------
+// Social links
+// ------------------------------------------------------------
+
+%social-icons {
+  .social {
+    li {
+      margin-bottom: .625rem;
+    }
+    a {
+      padding-left: 1.875rem;
+      background: url('/assets/images/icons-social.svg') no-repeat;
+
+      &.github {
+        background-position: left top;
+      }
+
+      &.slack {
+        background-position: left -32px;
+      }
+
+      &.youtube {
+        background-position: left -64px;
+      }
+
+      &.rss {
+        background-position: left -94px;
+      }
+
+      &.twitter {
+        background-position: left bottom;
+      }
+    }
+  }
+}

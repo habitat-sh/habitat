@@ -20,6 +20,12 @@ habitatConfig({
     github_client_id: "0c2f738a7d0bd300de10",
     source_code_url: "https://github.com/habitat-sh/habitat",
     tutorials_url: "https://www.habitat.sh/tutorials",
+    slack_url: "http://slack.habitat.sh/",
+    youtube_url: "https://www.youtube.com/playlist?list=PL11cZfNdwNyOxlvI1Kq6ae8eVBl5S3IKk",
+    events_url: "https://events.chef.io/events/categories/habitat/",
+    roadmap_url: "https://ext.prodpad.com/ext/roadmap/d2938aed0d0ad1dd62669583e108357efd53b3a6",
+    feature_requests_url: "https://portal.prodpad.com/24539",
+    forums_url: "https://forums.habitat.sh/",    
     version: "",
     www_url: "https://www.habitat.sh",
 });
