@@ -339,6 +339,7 @@
 
         img {
           padding-bottom: 20px;
+          max-width: 85%;
 
           @include media($medium-screen) {
             padding: 0 $default-sep;
@@ -359,10 +360,10 @@
     }
 
     .compliance {
-      margin-bottom: $default-sep;
+      padding-bottom: $default-sep;
 
       @include media($medium-screen) {
-        margin-bottom: $medium-sep;
+        padding-bottom: $medium-sep;
       }
 
       iframe {
@@ -379,21 +380,23 @@
         }
       }
     }
+  }
+  .community {
+    padding: $default-sep 0;
 
-    .community {
-      border-top: 1px solid $very-light-gray;
-      padding: $default-sep 0;
+    @include media($medium-screen) {
+      padding: $medium-sep 0;
+    }
 
-      @include media($medium-screen) {
-        padding: $medium-sep 0;
+    .content {
+      text-align: center;
+
+      h3 {
+        font-size: rem(24);
       }
 
-      .content {
-        text-align: center;
-
-        h3 {
-          font-size: rem(24);
-        }
+      h3, p {
+        color: $hab-white;
       }
     }
   }
