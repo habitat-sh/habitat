@@ -32,7 +32,7 @@
           <li class="heading">
             <h4>Packaging Your App</h4>
           </li>
-          <li *ngFor="let item of store.getState().packages.explore.popular">
+          <li *ngFor="let item of store.getState().packages.explore.your_app">
             <a [routerLink]="['/pkgs', 'core', item.name]">
               <span class="title">{{item.origin}} / {{item.name}}</span>
             </a>
@@ -45,7 +45,7 @@
           <li class="heading">
             <h4>From the Community</h4>
           </li>
-          <li *ngFor="let item of store.getState().packages.explore.popular">
+          <li *ngFor="let item of store.getState().packages.explore.community">
             <a [routerLink]="['/pkgs', 'core', item.name]">
               <span class="title">{{item.origin}} / {{item.name}}</span>
             </a>
@@ -166,5 +166,5 @@
         <a href="https://www.habitat.sh/community/" class="button cta">Join the Community</a>
       </div>
     </div>
-  </section>  
+  </section>
 </div>

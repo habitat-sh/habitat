@@ -136,6 +136,8 @@ export default Record({
         })(),
         explore: Record({
             popular: List(),
+            your_app: List(),
+            community: List(),
             stats: Record({
                 plans: 0,
                 builds: 0
