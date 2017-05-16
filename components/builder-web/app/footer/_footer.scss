@@ -1,12 +1,10 @@
 .hab-footer {
   background-color: $hab-green-light;
-  background-image: url("../assets/images/footer-mask.png"), linear-gradient(240deg, lighten($hab-green-light, 3%), $hab-green-light);
-  background-position: center top;
-  background-repeat: repeat-x, no-repeat;
-  background-size: auto rem(247), cover;
+  background: url('/assets/images/footer-background.svg');
+  background: url('/assets/images/footer-background.svg') left top repeat-x, linear-gradient($hab-green-light-2, $hab-blue-green) left 84px no-repeat;
   color: $white;
   margin-top: rem(90);
-  padding: rem(30) 0 rem(90);
+  padding: rem(90) 0 0;
   position: relative;
   z-index: 5;
 
@@ -15,7 +13,19 @@
   }
 
   h4 {
+    margin-bottom: rem(16);
     color: $white;
+    font-size: .875rem;
+  }
+
+  a {
+    color: lighten($hab-green-light, 25%);
+  }
+
+  a:hover,
+  a:focus,
+  a:active {
+    color: $hab-white;
   }
 }
 
@@ -45,57 +55,32 @@
 }
 
 .footer--logos {
-  @include span-columns(12);
-  margin-bottom: rem(30);
-
-  @include media($medium-screen) {
-    @include span-columns(6);
-  }
-
-  @include media($large-screen) {
-    @include span-columns(4);
-  }
+  @include row;
+  margin-bottom: rem(60);
 }
 
 .footer--logo {
   display: block;
   margin-bottom: rem(20);
+  width: 160px;
 }
 
 .footer--sitemap {
-  @include outer-container;
+  @include outer-container(1200px);
   @include pad(default 15px 0);
-
-  a {
-    color: lighten($hab-green-light, 25%);
-  }
 }
 
 .footer--links {
-  @include span-columns(12);
-
-  @include media($medium-screen) {
-    @include span-columns(6);
-  }
-
-  @include media($large-screen) {
-    @include span-columns(8);
-  }
+  @include row;
+  @extend %social-icons;
 
   ul {
-    @include span-columns(6 of 12);
-    @include omega(2n);
+    @include span-columns(6);
     display: block;
     margin-bottom: rem(30);
 
     @include media($medium-screen) {
-      @include span-columns(4 of 8);
-    }
-
-    @include media($large-screen) {
-      @include span-columns(2 of 8);
-      @include omega-reset(2n, 8);
-      @include omega(4n);
+      @include span-columns(2);
     }
   }
 }
@@ -105,21 +90,21 @@
 }
 
 .footer--legal {
-  @include outer-container;
+  @include row;
+  padding-bottom: rem(16);
+  border-top: 1px solid rgba($hab-white, .20);
+
+  li {
+    display: inline-block;
+    margin-right: rem(25);
+  }
 }
 
 .footer--copyright {
   @include span-columns(12);
   color: lighten($hab-green-light, 25%);
   font-size: rem(12);
-  margin-top: rem(30);
-
-  @include media($medium-screen) {
-    @include span-columns(8);
-    @include shift(4);
-  }
-
-  a { color: $white; }
+  margin-top: rem(16);
 }
 
 .footer--version {
