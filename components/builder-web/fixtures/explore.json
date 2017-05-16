@@ -1,21 +1,31 @@
 [
     {
-        "name": "glibc",
+        "origin": "core",
+        "name": "ruby",
         "originCount": 4,
         "starCount": 2345
     },
     {
-        "name": "mongodb",
+        "origin": "core",
+        "name": "python2",
         "originCount": 3,
         "starCount": 2340
     },
     {
-        "name": "redis",
+        "origin": "core",
+        "name": "php",
         "originCount": 16,
         "starCount": 234
     },
     {
-        "name": "couchdb",
+        "origin": "core",
+        "name": "node",
+        "originCount": 1,
+        "starCount": 23
+    },
+    {
+        "origin": "core",
+        "name": "jdk8",
         "originCount": 1,
         "starCount": 23
     }
