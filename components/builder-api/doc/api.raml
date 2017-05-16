@@ -312,6 +312,34 @@ securitySchemes:
                         default: 0
                         minimum: 0
                         example: 100
+                    strip:
+                      description: |
+                        Strip ANSI color codes from the log output. By
+                        default, all ANSI sequences are left in the
+                        output.
+
+                        The following values are interpreted as `true`:
+                          * `true`
+                          * `TRUE`
+                          * `t`
+                          * `T`
+                          * `1`
+                          * `on`
+                          * `ON`
+
+                        The following values are interpreted as `false`:
+                          * `false`
+                          * `FALSE`
+                          * `f`
+                          * `F`
+                          * `0`
+                          * `off`
+                          * `OFF`
+
+                        All other values are considered `false`.
+                      type: boolean
+                      default: false
+                      required: false
                 responses:
                     200:
                         body:

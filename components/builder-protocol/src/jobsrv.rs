@@ -12,15 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use message::{Persistable, Routable};
+use protobuf::{ProtobufEnum, RepeatedField};
+use regex::Regex;
+use serde::ser::SerializeStruct;
+use serde::{Serialize, Serializer};
+use sharding::InstaId;
 use std::result;
 use std::str::FromStr;
-
-use protobuf::ProtobufEnum;
-use serde::{Serialize, Serializer};
-use serde::ser::SerializeStruct;
-
-use message::{Persistable, Routable};
-use sharding::InstaId;
 
 pub use message::jobsrv::*;
 
@@ -151,6 +150,27 @@ impl Serialize for ProjectJobsGetResponse {
     }
 }
 
+impl JobLog {
+    /// Strip any ANSI control codes from the contents of the log
+    /// chunk. Useful mainly for removing color codes.
+    pub fn strip_ansi(&mut self) {
+        lazy_static! {
+            // https://github.com/chalk/ansi-regex/blob/master/index.js
+            static ref RE: Regex = Regex::new(
+                r"[\x1b\x9b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-PRZcf-nqry=><]")
+                .unwrap();
+        }
+
+        let mut stripped = RepeatedField::new();
+        for line in self.get_content() {
+            let after = RE.replace_all(line, "");
+            stripped.push(after);
+        }
+
+        self.set_content(stripped);
+    }
+}
+
 impl Serialize for JobLog {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
@@ -213,4 +233,41 @@ impl Persistable for Job {
     fn set_primary_key(&mut self, value: Self::Key) {
         self.set_id(value);
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::iter::FromIterator;
+
+    #[test]
+    fn test_ansi_stripping() {
+        let mut log = JobLog::new();
+        log.set_is_complete(false);
+        log.set_start(0);
+        log.set_stop(4);
+
+        let lines = vec!["[1;33m» Importing origin key from standard log[0m",
+                         "[1;34m★ Imported secret origin key core-20160810182414.[0m",
+                         "[1;33m» Installing core/hab-backline[0m",
+                         "[1;32m↓ Downloading[0m core/hab-backline/0.23.0/20170511220008"];
+
+        let input_lines = lines.iter().map(|l| l.to_string());
+        let content = RepeatedField::from_iter(input_lines);
+        log.set_content(content);
+
+        log.strip_ansi();
+
+        let stripped_lines: Vec<String> = log.get_content()
+            .into_iter()
+            .map(|l| l.to_string())
+            .collect();
+
+        let expected = vec!["» Importing origin key from standard log",
+                            "★ Imported secret origin key core-20160810182414.",
+                            "» Installing core/hab-backline",
+                            "↓ Downloading core/hab-backline/0.23.0/20170511220008"];
+        assert_eq!(stripped_lines, expected);
+    }
+
 }

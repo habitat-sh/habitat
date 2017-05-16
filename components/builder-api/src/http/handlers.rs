@@ -27,7 +27,7 @@ use hab_net::routing::Broker;
 use iron::prelude::*;
 use iron::status;
 use iron::typemap;
-use params::{Params, Value};
+use params::{Params, Value, FromValue};
 use persistent;
 use protocol::jobsrv::{Job, JobGet, JobLogGet, JobLog, JobSpec, ProjectJobsGet, ProjectJobsGetResponse};
 use protocol::originsrv::*;
@@ -172,6 +172,12 @@ pub fn job_log(req: &mut Request) -> IronResult<Response> {
         }
     };
 
+    let strip = req.get_ref::<Params>()
+        .unwrap()
+        .find(&["strip"])
+        .and_then(FromValue::from_value)
+        .unwrap_or(false);
+    
     let params = req.extensions.get::<Router>().unwrap();
     let id = match params.find("id").unwrap().parse::<u64>() {
         Ok(id) => id,
@@ -184,7 +190,12 @@ pub fn job_log(req: &mut Request) -> IronResult<Response> {
     request.set_start(start);
 
     match conn.route::<JobLogGet, JobLog>(&request) {
-        Ok(log) => Ok(render_json(status::Ok, &log)),
+        Ok(mut log) => {
+            if strip {
+                log.strip_ansi();
+            }
+            Ok(render_json(status::Ok, &log))
+        }
         Err(err) => Ok(render_net_error(&err))
     }
 
