@@ -2,7 +2,9 @@ import { DebugElement } from "@angular/core";
 import { TestBed, ComponentFixture } from "@angular/core/testing";
 import { ReactiveFormsModule } from "@angular/forms";
 import { By } from "@angular/platform-browser";
+import { ActivatedRoute } from "@angular/router";
 import { RouterTestingModule } from "@angular/router/testing";
+import { Observable } from "rxjs";
 import { MockComponent } from "ng2-mock-component";
 import { AppStore } from "../AppStore";
 import { PackagesPageComponent } from "./PackagesPageComponent";
@@ -10,9 +12,20 @@ import { PackagesPageComponent } from "./PackagesPageComponent";
 class MockAppStore {
   getState() {
     return {
-      packages: []
+      packages: [],
+      gitHub: {
+        authToken: undefined
+      }
     };
   }
+}
+
+class MockRoute {
+  get params() {
+    return {
+      subscribe: () => {}
+    };
+  };
 }
 
 describe("PackagesPageComponent", () => {
@@ -31,16 +44,18 @@ describe("PackagesPageComponent", () => {
         MockComponent({ selector: "hab-spinner", inputs: ["isSpinning"] }),
         MockComponent({
           selector: "hab-packages-list",
-          inputs: ["noPackages", "packages", "errorMessage"]
+          inputs: [ "errorMessage", "noPackages", "packages", "versions" ]
         }),
         PackagesPageComponent
       ],
       providers: [
-        { provide: AppStore, useClass: MockAppStore }
+        { provide: AppStore, useClass: MockAppStore },
+        { provide: ActivatedRoute, useClass: MockRoute }
       ]
     });
 
     fixture = TestBed.createComponent(PackagesPageComponent);
+    component = fixture.componentInstance;
     element = fixture.debugElement;
   });
 

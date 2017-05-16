@@ -64,7 +64,7 @@ export class DashboardComponent implements OnInit {
     }
 
     navigateToPackage(pkg) {
-        this.router.navigate(["pkgs", pkg.origin, pkg.name, pkg.version, pkg.release]);
+        this.router.navigate(["pkgs", pkg.origin, pkg.name]);
     }
 
     selectOrigin(name: string) {

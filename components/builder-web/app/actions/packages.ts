@@ -86,6 +86,7 @@ export function fetchLatestPackage(origin: string, name: string) {
 
 export function fetchPackageVersions(origin: string, name: string) {
     return dispatch => {
+        dispatch(clearPackages());
         dispatch(clearPackageVersions());
         depotApi.getPackageVersions(origin, name).then(response => {
             dispatch(setCurrentPackageVersions(response));
@@ -109,7 +110,11 @@ export function getUniquePackages(
             dispatch(setVisiblePackages(response["results"]));
             dispatch(setPackagesTotalCount(response["totalCount"]));
             dispatch(setPackagesNextRange(response["nextRange"]));
-            dispatch(fetchProjectsForPackages(response["results"], token));
+
+            // Only for core
+            if (origin === "core") {
+                dispatch(fetchProjectsForPackages(response["results"], token));
+            }
         }).catch(error => {
             dispatch(setVisiblePackages(undefined, error));
         });
@@ -125,6 +130,7 @@ export function filterPackagesBy(
     return dispatch => {
         if (nextRange === 0) {
             dispatch(clearPackages());
+            dispatch(clearPackageVersions());
         }
 
         if (query) {

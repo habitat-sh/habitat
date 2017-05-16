@@ -116,22 +116,22 @@
         </div>
         <ul class="packages" *ngIf="myPackages.size">
           <li class="heading">
-            <div class="package-name">
-              <h5>Package</h5>
-            </div>
             <div class="package-origin">
               <h5>Origin</h5>
             </div>
+            <div class="package-name">
+              <h5>Package</h5>
+            </div>
             <div class="package-updated">
-              <h5>Last Updated</h5>
+              <h5>Last Update</h5>
             </div>
           </li>
           <li class="item" *ngFor="let pkg of myPackages" (click)="navigateToPackage(pkg)">
-            <div class="package-name">
-              {{ pkg.name }}
-            </div>
             <div class="package-origin">
               {{ pkg.origin }}
+            </div>
+            <div class="package-name">
+              {{ pkg.name }}
             </div>
             <div class="package-updated">
               {{ fromNow(pkg.release) }}

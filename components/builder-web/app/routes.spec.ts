@@ -80,16 +80,9 @@ describe("Routes", () => {
   });
 
   describe("/pkgs", () => {
-    it("routes to PackagesPageComponent", () => {
+    it("redirects to /pkgs/core", () => {
       let r = route("pkgs");
-      expect(r.component).toBe(PackagesPageComponent);
-    });
-  });
-
-  describe("/pkgs/*/:name", () => {
-    it("routes to PackagesPageComponent", () => {
-      let r = route("pkgs/*/:name");
-      expect(r.component).toBe(PackagesPageComponent);
+      expect(r.redirectTo).toBe("/pkgs/core");
     });
   });
 

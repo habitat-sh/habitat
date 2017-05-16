@@ -29,10 +29,6 @@ import { Component, Input } from "@angular/core";
         <a [routerLink]="['/pkgs', ident.origin, ident.name, ident.version]">
             {{ident.version}}
         </a>
-        <span *ngIf="ident.release">/</span>
-        <a [routerLink]="['/pkgs', ident.origin, ident.name, ident.version, ident.release]">
-            {{ident.release}}
-        </a>
     </span>`
 })
 

@@ -1,0 +1,162 @@
+.hab-packages-list {
+
+  .pkg-versions {
+    li.heading {
+      @include row;
+
+      border-bottom: 1px solid $very-light-gray;
+      padding: 1em 1.5em;
+
+      h3 {
+        text-transform: uppercase;
+      }
+
+      .name {
+        @include span-columns(2);
+      }
+
+      .build-count {
+        @include span-columns(2);
+        text-align: center;
+      }
+
+      .latest-release {
+        @include span-columns(2);
+        @include omega;
+        text-align: center;
+      }
+    }
+  }
+
+  .pkg-builds {
+
+    li.heading {
+      @include row;
+
+      border-bottom: 1px solid $very-light-gray;
+      padding: 1em 1.5em;
+
+      h3 {
+        text-transform: uppercase;
+      }
+
+      .name {
+        @include span-columns(4);
+      }
+
+      .completed {
+        @include span-columns(2);
+        @include omega;
+        text-align: center;
+      }
+    }
+
+    .hab-packages-package {
+
+      a {
+        @include row;
+        @include transform(none);
+
+        border-radius: 0;
+        border: none;
+        border-bottom: 1px solid $very-light-gray;
+
+        &:hover {
+          box-shadow: none;
+          background-color: rgba($medium-gray, 0.05);
+        }
+
+        .name {
+          @include span-columns(4);
+        }
+
+        .completed {
+          @include span-columns(2);
+          @include omega;
+          text-align: center;
+        }
+      }
+    }
+  }
+
+  li {
+    position: relative;
+    cursor: pointer;
+    font-size: rem(12);
+
+    a {
+      display: block;
+
+      .octicon-chevron-right {
+        position: absolute;
+        display: none;
+        right: 24px;
+        top: 50%;
+        transform: translateY(-50%);
+      }
+
+      &:hover {
+
+        .octicon-chevron-right {
+          display: block;
+        }
+      }
+
+      .name {
+        font-family: $heading-font-family;
+      }
+
+      hab-build-status {
+
+        .octicon {
+          position: absolute;
+          right: 52px;
+          top: 50%;
+          transform: translateY(-50%);
+        }
+      }
+    }
+
+    &.hab-packages-package {
+
+      .name {
+
+        &.large {
+          font-size: rem(16);
+        }
+      }
+    }
+
+    &.hab-packages-version {
+
+      a {
+        @include row;
+        @include transform(none);
+
+        border-radius: 0;
+        border: none;
+        border-bottom: 1px solid $very-light-gray;
+
+        &:hover {
+          box-shadow: none;
+          background-color: rgba($medium-gray, 0.05);
+        }
+
+        .name {
+          @include span-columns(2);
+        }
+
+        .build-count {
+          @include span-columns(2);
+          text-align: center;
+        }
+
+        .latest-release {
+          @include span-columns(2);
+          @include omega;
+          text-align: center;
+        }
+      }
+    }
+  }
+}

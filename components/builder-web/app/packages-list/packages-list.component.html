@@ -1,4 +1,4 @@
-<ul class="hab-packages-plan-list">
+<ul class="hab-packages-list">
     <div *ngIf="noPackages">
         <p>
         No packages found.
@@ -7,21 +7,50 @@
         </span>
         </p>
     </div>
-    <li class="hab-packages-package" *ngFor="let pkg of packages">
-        <a [routerLink]="['/pkgs', pkg.origin,
-        pkg.name,
-        'versions']">
-            <div class="item-title">
-                <h3>{{pkg.origin}} / {{pkg.name}}</h3>
-            </div>
-            <div class="item-info">
-                <span class="count" *ngIf="pkg.starCount">
-                    <!-- TODO: import octicons -->
-                    <span class="octicon octicon-star"></span>
-                    {{pkg.starCount}}
+    <div *ngIf="layout === 'versions'" class="pkg-{{ layout }}">
+        <li class="heading">
+            <h3 class="name">Version</h3>
+            <h3 class="build-count">Builds</h3>
+            <h3 class="latest-release">Latest</h3>
+        </li>
+        <li class="hab-packages-version" *ngFor="let version of versions">
+            <a [routerLink]="routeFor(version)">
+                <span class="name">
+                    {{ version.version }}
                 </span>
-                <img src="/node_modules/octicons/svg/chevron-right.svg" />
-            </div>
-        </a>
-    </li>
+                <span class="build-count">
+                    {{ version.release_count }}
+                </span>
+                <span class="latest-release">
+                    {{ version.latest }}
+                </span>
+                <hab-build-status
+                    [origin]="version.origin"
+                    [name]="version.name"
+                    [version]="version.version"></hab-build-status>
+                <div class="octicon octicon-chevron-right"></div>
+            </a>
+        </li>
+    </div>
+    <div class="pkg-{{ layout }}">
+        <li *ngIf="layout === 'builds'" class="heading">
+            <h3 class="name">Build</h3>
+            <h3 class="completed">Completed</h3>
+        </li>
+        <li class="hab-packages-package" *ngFor="let pkg of packages" (click)="select(pkg)">
+            <a [routerLink]="routeFor(pkg)">
+                <span class="name" [class.large]="!pkg.version">
+                    {{ packageString(pkg) }}
+                </span>
+                <span *ngIf="layout === 'builds'" class="completed">
+                    {{ pkg.release }}
+                </span>
+                <hab-build-status
+                    [origin]="pkg.origin"
+                    [name]="pkg.name"
+                    [version]="pkg.version"></hab-build-status>
+                <div class="octicon octicon-chevron-right"></div>
+            </a>
+        </li>
+    </div>
 </ul>

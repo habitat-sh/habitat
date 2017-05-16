@@ -70,12 +70,14 @@
 
 %social-icons {
   .social {
+
     li {
-      margin-bottom: .625rem;
+      margin-bottom: 0.625rem;
     }
+
     a {
+      background: url("/assets/images/icons-social.svg") no-repeat;
       padding-left: 1.875rem;
-      background: url('/assets/images/icons-social.svg') no-repeat;
 
       &.github {
         background-position: left top;

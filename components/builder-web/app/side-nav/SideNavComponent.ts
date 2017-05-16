@@ -28,11 +28,10 @@ import config from "../config";
             </li>
             <li *ngIf="isSignedIn">
                 <a [routerLink]="['/origins']"
-                    routerLinkActive="active"
-                    [routerLinkActiveOptions]="{exact: true}">My Origins</a>
+                    routerLinkActive="active">My Origins</a>
             </li>
             <li>
-                <a [routerLink]="['/pkgs', 'core']"
+                <a [routerLink]="['/pkgs']"
                     routerLinkActive="active">Search Packages</a>
             </li>
         </ul>

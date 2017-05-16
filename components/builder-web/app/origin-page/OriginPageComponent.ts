@@ -73,7 +73,7 @@ export enum KeyType {
                   <div *ngIf="!noPackages">
                     <div class="pkg-container">
                         <div class="pkg-col-1">Package Name</div>
-                        <div class="pkg-col-2">Build Settings</div>
+                        <div class="pkg-col-2">&nbsp;</div>
                         <div class="pkg-col-3">Versions</div>
                     </div>
 
@@ -82,13 +82,7 @@ export enum KeyType {
                         <h3>{{pkg.name}}</h3>
                       </div>
                       <div class="pkg-col-2">
-                        <a href (click)="projectSettings(pkg)" *ngIf="projectForPackage(pkg) === projectStatus.Settings">
-                          <img src="../assets/images/icon-gear.svg" alt="Settings" title="Settings">
-                        </a>
-                        <a href (click)="linkToRepo(pkg)" *ngIf="projectForPackage(pkg) === projectStatus.Connect">
-                          <img src="../assets/images/icon-link.svg" alt="Connect a Repo" title="Connect a Repo">
-                        </a>
-                        <img src="../assets/images/icon-gear.svg" alt="Settings" title="Settings" class="disabled-settings" *ngIf="projectForPackage(pkg) === projectStatus.Lacking">
+                        &nbsp;
                       </div>
                       <div class="pkg-col-3">
                         <a [routerLink]="['/pkgs', pkg.origin, pkg.name]">

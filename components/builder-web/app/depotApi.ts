@@ -26,23 +26,25 @@ export function getUnique(origin: string, nextRange: number = 0) {
             if (response.status >= 400) {
                 reject(new Error(response.statusText));
             }
+            else {
+                response.json().then(resultsObj => {
+                    let results;
 
-            response.json().then(resultsObj => {
-                let results;
+                    const endRange = parseInt(resultsObj.range_end, 10);
+                    const totalCount = parseInt(resultsObj.total_count, 10);
+                    const nextRange = totalCount > (endRange + 1) ? endRange + 1 : 0;
 
-                const endRange = parseInt(resultsObj.range_end, 10);
-                const totalCount = parseInt(resultsObj.total_count, 10);
-                const nextRange = totalCount > (endRange + 1) ? endRange + 1 : 0;
+                    if (resultsObj["package_list"]) {
+                        results = resultsObj["package_list"];
+                    } else {
+                        results = resultsObj;
+                    }
 
-                if (resultsObj["package_list"]) {
-                    results = resultsObj["package_list"];
-                } else {
-                    results = resultsObj;
-                }
-
-                resolve({ results, totalCount, nextRange });
-            });
-        }).catch(error => reject(error));
+                    resolve({ results, totalCount, nextRange });
+                });
+            }
+        })
+        .catch(error => reject(error));
     });
 }
 
@@ -54,11 +56,13 @@ export function getLatest(origin: string, pkg: string) {
             if (response.status >= 400) {
                 reject(new Error(response.statusText));
             }
-
-            response.json().then(results => {
-                resolve(results);
-            });
-        }).catch(error => reject(error));
+            else {
+                response.json().then(results => {
+                    resolve(results);
+                });
+            }
+        })
+        .catch(error => reject(error));
     });
 }
 
@@ -82,24 +86,25 @@ export function get(params, nextRange: number = 0) {
             if (response.status >= 400) {
                 reject(new Error(response.statusText));
             }
+            else {
+                response.json().then(resultsObj => {
+                    let results;
 
-            response.json().then(resultsObj => {
-                let results;
+                    const endRange = parseInt(resultsObj.range_end, 10);
+                    const totalCount = parseInt(resultsObj.total_count, 10);
+                    const nextRange = totalCount > (endRange + 1) ? endRange + 1 : 0;
 
-                const endRange = parseInt(resultsObj.range_end, 10);
-                const totalCount = parseInt(resultsObj.total_count, 10);
-                const nextRange = totalCount > (endRange + 1) ? endRange + 1 : 0;
+                    if (resultsObj["package_list"]) {
+                        results = resultsObj["package_list"];
+                    } else {
+                        results = resultsObj;
+                    }
 
-                if (resultsObj["package_list"]) {
-                    results = resultsObj["package_list"];
-                } else {
-                    results = resultsObj;
-                }
-
-                resolve({ results, totalCount, nextRange });
-            });
-
-        }).catch(error => reject(error));
+                    resolve({ results, totalCount, nextRange });
+                });
+            }
+        })
+        .catch(error => reject(error));
     });
 }
 
@@ -111,11 +116,13 @@ export function getPackageVersions(origin: string, pkg: string) {
             if (response.status >= 400) {
                 reject(new Error(response.statusText));
             }
-
-            response.json().then(results => {
-                resolve(results);
-            });
-        }).catch(error => reject(error));
+            else {
+                response.json().then(results => {
+                    resolve(results);
+                });
+            }
+        })
+        .catch(error => reject(error));
     });
 }
 
