@@ -18,6 +18,7 @@ extern crate habitat_builder_protocol as protocol;
 #[macro_use]
 extern crate habitat_core as hab_core;
 extern crate habitat_depot as depot;
+extern crate habitat_http_client as http_client;
 extern crate habitat_net as hab_net;
 extern crate hyper;
 extern crate iron;
@@ -29,12 +30,15 @@ extern crate persistent;
 extern crate protobuf;
 #[macro_use]
 extern crate router;
+extern crate rss;
+extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_json;
 extern crate staticfile;
 extern crate toml;
 extern crate unicase;
+extern crate url;
 extern crate zmq;
 
 pub mod config;
@@ -44,3 +48,6 @@ pub mod server;
 
 pub use self::config::Config;
 pub use self::error::{Error, Result};
+
+pub const PRODUCT: &'static str = "hab";
+pub const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));

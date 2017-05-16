@@ -241,6 +241,23 @@ securitySchemes:
                                 "id": "73089155726360582",
                                 "flags": 0
                             }
+/chef-events-feed:
+    get:
+        responses:
+            200:
+                body:
+                    application/json:
+                        example: |
+                        [
+                            {
+                                "title": "A sweet event",
+                                "link": "https://events.chef.io/events/a-sweet-event",
+                                "pub_date": "Wed, 17 May 2017 18:00:00 +0000",
+                                "description": "Some really awesome stuff is going to happen at this sweet event."
+                            }
+                        ]
+            500:
+                description: Failed to fetch the events
 /jobs:
     post:
         description: Create a new job for the given project

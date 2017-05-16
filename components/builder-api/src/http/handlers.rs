@@ -15,6 +15,8 @@
 //! A collection of handlers for the HTTP server's router
 
 use std::env;
+use std::io::Read;
+use std::str::FromStr;
 
 use base64;
 use bodyparser;
@@ -24,16 +26,23 @@ use hab_core::event::*;
 use hab_net;
 use hab_net::http::controller::*;
 use hab_net::routing::Broker;
+use http_client::ApiClient;
+use hyper::status::StatusCode;
 use iron::prelude::*;
 use iron::status;
 use iron::typemap;
 use params::{Params, Value, FromValue};
 use persistent;
-use protocol::jobsrv::{Job, JobGet, JobLogGet, JobLog, JobSpec, ProjectJobsGet, ProjectJobsGetResponse};
+use protocol::jobsrv::{Job, JobGet, JobLogGet, JobLog, JobSpec, ProjectJobsGet,
+                       ProjectJobsGetResponse};
 use protocol::originsrv::*;
 use protocol::sessionsrv;
 use protocol::net::{self, NetOk, ErrCode};
 use router::Router;
+use rss::{Channel, Item};
+use url::Url;
+
+use {PRODUCT, VERSION};
 
 // For the initial release, Builder will only be enabled on the "core"
 // origin. Later, we'll roll it out to other origins; at that point,
@@ -64,6 +73,25 @@ struct ProjectUpdateReq {
 struct GitHubProject {
     organization: String,
     repo: String,
+}
+
+#[derive(Serialize)]
+struct ChefEvent {
+    title: String,
+    link: String,
+    pub_date: String,
+    description: String,
+}
+
+impl ChefEvent {
+    fn from_item(item: Item) -> ChefEvent {
+        ChefEvent {
+            title: item.title.unwrap_or(String::new()),
+            link: item.link.unwrap_or(String::new()),
+            pub_date: item.pub_date.unwrap_or(String::new()),
+            description: item.description.unwrap_or(String::new()),
+        }
+    }
 }
 
 pub fn github_authenticate(req: &mut Request) -> IronResult<Response> {
@@ -105,6 +133,35 @@ pub fn github_authenticate(req: &mut Request) -> IronResult<Response> {
             Ok(render_net_error(&err))
         }
     }
+}
+
+pub fn chef_events_feed(_req: &mut Request) -> IronResult<Response> {
+    let mut events = Vec::new();
+    let url = Url::parse("https://events.chef.io").unwrap();
+    let client = ApiClient::new(&url, PRODUCT, VERSION, None).unwrap();
+    let mut res = match client.get("events/categories/habitat/feed").send() {
+        Ok(r) => r,
+        Err(e) => {
+            error!("error fetching chef events feed, err={:?}", e);
+            let err = net::err(ErrCode::BUG, "rg:chef_events_feed:0");
+            return Ok(render_net_error(&err));
+        }
+    };
+
+    let mut body = String::new();
+    res.read_to_string(&mut body).unwrap();
+
+    if res.status != StatusCode::Ok {
+        return Ok(Response::with(res.status));
+    }
+
+    let channel = Channel::from_str(&body).unwrap();
+    for item in channel.items {
+        let event = ChefEvent::from_item(item);
+        events.push(event);
+    }
+
+    Ok(render_json(status::Ok, &events))
 }
 
 pub fn job_create(req: &mut Request) -> IronResult<Response> {
@@ -163,12 +220,13 @@ pub fn job_log(req: &mut Request) -> IronResult<Response> {
                 match val.parse::<u64>() {
                     Ok(num) => num,
                     Err(e) => {
-                        debug!("Tried to parse 'start' parameter as a number but failed: {:?}", e);
-                        return Ok(Response::with(status::BadRequest))
+                        debug!("Tried to parse 'start' parameter as a number but failed: {:?}",
+                               e);
+                        return Ok(Response::with(status::BadRequest));
                     }
                 }
-            },
-            _ => 0
+            }
+            _ => 0,
         }
     };
 
@@ -177,7 +235,7 @@ pub fn job_log(req: &mut Request) -> IronResult<Response> {
         .find(&["color"])
         .and_then(FromValue::from_value)
         .unwrap_or(false);
-    
+
     let params = req.extensions.get::<Router>().unwrap();
     let id = match params.find("id").unwrap().parse::<u64>() {
         Ok(id) => id,
@@ -196,7 +254,7 @@ pub fn job_log(req: &mut Request) -> IronResult<Response> {
             }
             Ok(render_json(status::Ok, &log))
         }
-        Err(err) => Ok(render_net_error(&err))
+        Err(err) => Ok(render_net_error(&err)),
     }
 
 }
@@ -280,9 +338,9 @@ pub fn project_create(req: &mut Request) -> IronResult<Response> {
 
     // Only allow projects to be created for the core origin initially.
     if origin.get_name() != BUILDER_ENABLED_ORIGIN {
-        return Ok(Response::with((status::UnprocessableEntity, "rg:pc:5")))
+        return Ok(Response::with((status::UnprocessableEntity, "rg:pc:5")));
     }
-    
+
     match github.contents(&session.get_token(),
                           &organization,
                           &repo,
@@ -342,7 +400,7 @@ pub fn project_delete(req: &mut Request) -> IronResult<Response> {
         // origin initially. Thus, if we try to delete a project for any
         // other origin, we can safely short-circuit processing.
         if origin != BUILDER_ENABLED_ORIGIN {
-            return Ok(Response::with((status::NotFound, "rg:pd:1")))
+            return Ok(Response::with((status::NotFound, "rg:pd:1")));
         }
 
         project_del.set_name(format!("{}/{}", origin, name));
@@ -363,7 +421,7 @@ pub fn project_delete(req: &mut Request) -> IronResult<Response> {
 
 /// Update the given project
 pub fn project_update(req: &mut Request) -> IronResult<Response> {
-  
+
     let (name, origin) = {
         let params = req.extensions.get::<Router>().unwrap();
         let origin = params.find("origin").unwrap().to_owned();
@@ -373,7 +431,7 @@ pub fn project_update(req: &mut Request) -> IronResult<Response> {
         // origin initially. Thus, if we try to update a project for
         // any other origin, we can safely short-circuit processing.
         if origin != BUILDER_ENABLED_ORIGIN {
-            return Ok(Response::with((status::NotFound, "rg:pu:6")))
+            return Ok(Response::with((status::NotFound, "rg:pu:6")));
         }
         (name, origin)
     };
@@ -424,7 +482,7 @@ pub fn project_update(req: &mut Request) -> IronResult<Response> {
                 Ok(ref bytes) => {
                     match Plan::from_bytes(bytes) {
                         Ok(plan) => {
-                           if !try!(check_origin_access(req, session_id, &origin)) {
+                            if !try!(check_origin_access(req, session_id, &origin)) {
                                 return Ok(Response::with(status::Forbidden));
                             }
                             if plan.name != name {
@@ -465,9 +523,9 @@ pub fn project_show(req: &mut Request) -> IronResult<Response> {
         // origin initially. Thus, if we try to get a project for any
         // other origin, we can safely short-circuit processing.
         if origin != BUILDER_ENABLED_ORIGIN {
-            return Ok(Response::with((status::NotFound, "rg:ps:1")))
+            return Ok(Response::with((status::NotFound, "rg:ps:1")));
         }
-        
+
         let name = params.find("name").unwrap();
         project_get.set_name(format!("{}/{}", origin, name));
     }
@@ -492,7 +550,7 @@ pub fn project_jobs(req: &mut Request) -> IronResult<Response> {
         // origin initially. Thus, if we try to get jobs for any
         // project in another, we can safely short-circuit processing.
         if origin != BUILDER_ENABLED_ORIGIN {
-            return Ok(Response::with((status::NotFound, "rg:pj:1")))
+            return Ok(Response::with((status::NotFound, "rg:pj:1")));
         }
 
         let name = params.find("name").unwrap();
