@@ -186,6 +186,7 @@ message OriginPackageVersion {
   optional string name = 2;
   optional string version = 3;
   optional uint64 release_count = 4;
+  optional string latest = 5;
 }
 
 message OriginPackageCreate {

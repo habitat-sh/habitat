@@ -581,7 +581,7 @@ impl DataStore {
          -> Result<originsrv::OriginPackageVersionListResponse> {
         let conn = self.pool.get(opvl)?;
 
-        let rows = conn.query("SELECT * FROM get_origin_package_versions_for_origin_v1($1, $2)",
+        let rows = conn.query("SELECT * FROM get_origin_package_versions_for_origin_v2($1, $2)",
                               &[&opvl.get_origin(), &opvl.get_name()])
             .map_err(Error::OriginPackageVersionList)?;
 
@@ -590,11 +590,13 @@ impl DataStore {
         for row in rows.iter() {
             let ver: String = row.get("version");
             let release_count: i64 = row.get("release_count");
+            let latest: String = row.get("latest");
             let mut version = originsrv::OriginPackageVersion::new();
             version.set_origin(opvl.get_origin().to_string());
             version.set_name(opvl.get_name().to_string());
             version.set_version(ver);
             version.set_release_count(release_count as u64);
+            version.set_latest(latest);
             versions.push(version);
         }
         response.set_versions(versions);

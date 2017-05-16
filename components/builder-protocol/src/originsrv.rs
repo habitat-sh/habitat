@@ -539,6 +539,7 @@ impl Serialize for OriginPackageVersion {
         try!(strukt.serialize_field("name", self.get_name()));
         try!(strukt.serialize_field("version", self.get_version()));
         try!(strukt.serialize_field("release_count", &self.get_release_count().to_string()));
+        try!(strukt.serialize_field("latest", &self.get_latest()));
         strukt.end()
     }
 }
