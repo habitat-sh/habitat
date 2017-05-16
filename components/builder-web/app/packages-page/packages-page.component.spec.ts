@@ -5,6 +5,7 @@ import { By } from "@angular/platform-browser";
 import { ActivatedRoute } from "@angular/router";
 import { RouterTestingModule } from "@angular/router/testing";
 import { Observable } from "rxjs";
+import { List } from "immutable";
 import { MockComponent } from "ng2-mock-component";
 import { AppStore } from "../AppStore";
 import { PackagesPageComponent } from "./PackagesPageComponent";
@@ -12,7 +13,15 @@ import { PackagesPageComponent } from "./PackagesPageComponent";
 class MockAppStore {
   getState() {
     return {
-      packages: [],
+      builds: {
+        visible: List()
+      },
+      packages: {
+        visible: List(),
+        ui: {
+          visible: {}
+        }
+      },
       gitHub: {
         authToken: undefined
       }
@@ -44,7 +53,7 @@ describe("PackagesPageComponent", () => {
         MockComponent({ selector: "hab-spinner", inputs: ["isSpinning"] }),
         MockComponent({
           selector: "hab-packages-list",
-          inputs: [ "errorMessage", "noPackages", "packages", "versions" ]
+          inputs: [ "errorMessage", "noPackages", "layout", "packages", "versions" ]
         }),
         PackagesPageComponent
       ],
@@ -59,8 +68,16 @@ describe("PackagesPageComponent", () => {
     element = fixture.debugElement;
   });
 
-  it("shows all packages", () => {
-    let heading = element.query(By.css(".hab-packages h2"));
-    expect(heading.nativeElement.textContent).toBe("Search Packages");
+  describe("given only an origin", () => {
+
+    beforeEach(() => {
+      component.origin = "core";
+      fixture.detectChanges();
+    });
+
+    it("shows the Search Packages heading", () => {
+      let heading = element.query(By.css(".hab-packages h2"));
+      expect(heading.nativeElement.textContent).toBe("Search Packages");
+    });
   });
 });
