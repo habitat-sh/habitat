@@ -172,9 +172,9 @@ pub fn job_log(req: &mut Request) -> IronResult<Response> {
         }
     };
 
-    let strip = req.get_ref::<Params>()
+    let include_color = req.get_ref::<Params>()
         .unwrap()
-        .find(&["strip"])
+        .find(&["color"])
         .and_then(FromValue::from_value)
         .unwrap_or(false);
     
@@ -191,7 +191,7 @@ pub fn job_log(req: &mut Request) -> IronResult<Response> {
 
     match conn.route::<JobLogGet, JobLog>(&request) {
         Ok(mut log) => {
-            if strip {
+            if !include_color {
                 log.strip_ansi();
             }
             Ok(render_json(status::Ok, &log))

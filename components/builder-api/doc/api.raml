@@ -312,11 +312,11 @@ securitySchemes:
                         default: 0
                         minimum: 0
                         example: 100
-                    strip:
+                    color:
                       description: |
-                        Strip ANSI color codes from the log output. By
-                        default, all ANSI sequences are left in the
-                        output.
+                        Whether or not to include embedded ANSI color
+                        codes in the log output. By default, all ANSI
+                        sequences are removed, yielding plain output.
 
                         The following values are interpreted as `true`:
                           * `true`
