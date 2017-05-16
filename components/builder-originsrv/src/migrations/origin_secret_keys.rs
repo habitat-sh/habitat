@@ -28,7 +28,7 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                     owner_id bigint,
                     name text,
                     revision text,
-                    full_name text,
+                    full_name text UNIQUE,
                     body bytea,
                     created_at timestamptz DEFAULT now(),
                     updated_at timestamptz
