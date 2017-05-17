@@ -46,8 +46,8 @@ resource "aws_instance" "api" {
       "sudo systemctl daemon-reload",
       "sudo systemctl start hab-sup",
       "sudo systemctl enable hab-sup",
-      "sudo hab svc load core/builder-api --group ${var.env} --bind router:builder-router.${var.env}",
-      "sudo hab svc load core/builder-api-proxy --group ${var.env} --bind http:builder-api.${var.env}",
+      "sudo hab service load core/builder-api --group ${var.env} --bind router:builder-router.${var.env}",
+      "sudo hab service load core/builder-api-proxy --group ${var.env} --bind http:builder-api.${var.env}",
     ]
   }
 
@@ -104,8 +104,8 @@ resource "aws_instance" "admin" {
       "sudo systemctl daemon-reload",
       "sudo systemctl start hab-sup",
       "sudo systemctl enable hab-sup",
-      "sudo hab svc load core/builder-admin --group ${var.env} --bind router:builder-router.${var.env}",
-      "sudo hab svc load core/builder-admin-proxy --group ${var.env} --bind http:builder-admin.${var.env}",
+      "sudo hab service load core/builder-admin --group ${var.env} --bind router:builder-router.${var.env}",
+      "sudo hab service load core/builder-admin-proxy --group ${var.env} --bind http:builder-admin.${var.env}",
     ]
   }
 
@@ -165,7 +165,7 @@ resource "aws_instance" "datastore" {
       "sudo systemctl daemon-reload",
       "sudo systemctl start hab-sup",
       "sudo systemctl enable hab-sup",
-      "sudo hab svc load core/builder-datastore --group ${var.env}"
+      "sudo hab service load core/builder-datastore --group ${var.env}"
     ]
   }
 
@@ -225,7 +225,7 @@ resource "aws_instance" "jobsrv" {
       "sudo systemctl daemon-reload",
       "sudo systemctl start hab-sup",
       "sudo systemctl enable hab-sup",
-      "sudo hab svc load core/builder-jobsrv --group ${var.env} --bind router:builder-router.${var.env} --bind datastore:builder-datastore.${var.env}"
+      "sudo hab service load core/builder-jobsrv --group ${var.env} --bind router:builder-router.${var.env} --bind datastore:builder-datastore.${var.env}"
     ]
   }
 
@@ -284,7 +284,7 @@ resource "aws_instance" "originsrv" {
       "sudo systemctl daemon-reload",
       "sudo systemctl start hab-sup",
       "sudo systemctl enable hab-sup",
-      "sudo hab svc load core/builder-originsrv --group ${var.env} --bind router:builder-router.${var.env} --bind datastore:builder-datastore.${var.env}"
+      "sudo hab service load core/builder-originsrv --group ${var.env} --bind router:builder-router.${var.env} --bind datastore:builder-datastore.${var.env}"
     ]
   }
 
@@ -342,7 +342,7 @@ resource "aws_instance" "router" {
       "sudo systemctl daemon-reload",
       "sudo systemctl start hab-sup",
       "sudo systemctl enable hab-sup",
-      "sudo hab svc load core/builder-router --group ${var.env}"
+      "sudo hab service load core/builder-router --group ${var.env}"
     ]
   }
 
@@ -401,7 +401,7 @@ resource "aws_instance" "scheduler" {
       "sudo systemctl daemon-reload",
       "sudo systemctl start hab-sup",
       "sudo systemctl enable hab-sup",
-      "sudo hab svc load core/builder-scheduler --group ${var.env} --bind router:builder-router.${var.env} --bind datastore:builder-datastore.${var.env}"
+      "sudo hab service load core/builder-scheduler --group ${var.env} --bind router:builder-router.${var.env} --bind datastore:builder-datastore.${var.env}"
     ]
   }
 
@@ -460,7 +460,7 @@ resource "aws_instance" "sessionsrv" {
       "sudo systemctl daemon-reload",
       "sudo systemctl start hab-sup",
       "sudo systemctl enable hab-sup",
-      "sudo hab svc load core/builder-sessionsrv --group ${var.env} --bind router:builder-router.${var.env} --bind datastore:builder-datastore.${var.env}"
+      "sudo hab service load core/builder-sessionsrv --group ${var.env} --bind router:builder-router.${var.env} --bind datastore:builder-datastore.${var.env}"
     ]
   }
 
@@ -519,7 +519,7 @@ resource "aws_instance" "worker" {
       "sudo systemctl daemon-reload",
       "sudo systemctl start hab-sup",
       "sudo systemctl enable hab-sup",
-      "sudo hab svc load core/builder-worker --group ${var.env} --bind jobsrv:builder-jobsrv.${var.env} --bind depot:builder-api.${var.env}",
+      "sudo hab service load core/builder-worker --group ${var.env} --bind jobsrv:builder-jobsrv.${var.env} --bind depot:builder-api.${var.env}",
     ]
   }
 
