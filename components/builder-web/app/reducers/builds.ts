@@ -11,8 +11,14 @@ export default function builds(state = initialState["builds"], action) {
                 .setIn(["selected", "info"], Record({})());
 
         case actionTypes.CLEAR_BUILD_LOG:
-            return state
-                .setIn(["selected", "log"], Record({})());
+            state.get("selected").log.content.next([]);
+
+            return state.setIn(["selected", "log"], {
+                start: undefined,
+                stop: undefined,
+                content: state.get("selected").log.content,
+                is_complete: undefined
+            });
 
         case actionTypes.CLEAR_BUILDS:
             return state
@@ -23,6 +29,7 @@ export default function builds(state = initialState["builds"], action) {
 
         case actionTypes.POPULATE_BUILD_LOG:
             let payload = action.payload;
+            let content = state.get("selected").log.content;
 
             // It'll be common to get log requests for builds that haven't
             // started yet (which will surface as errors), so in that case,
@@ -31,17 +38,17 @@ export default function builds(state = initialState["builds"], action) {
                 return state;
             }
 
-            let content = ((payload.start === 0) ? [] : state.get("selected").log.content) || [];
-            let appended = content.concat(payload.content);
-
-            let asHTML = appended.map((line) => {
-                return AnsiUp.ansi_to_html(line);
-            });
+            if (payload.start === 0 && !payload.is_complete) {
+                content.next(payload.content || []);
+            }
+            else if (payload.content.length) {
+                content.next(payload.content);
+            }
 
             return state.setIn(["selected", "log"], {
                 start: payload.start,
                 stop: payload.stop,
-                content: asHTML,
+                content: content,
                 is_complete: payload.is_complete
             });
 

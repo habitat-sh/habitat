@@ -59,11 +59,13 @@ export function fetchBuildLog(id: string, token: string, start = 0) {
       .then((data) => {
           dispatch(populateBuildLog(data));
 
-          if (data["is_complete"] && start !== 0) {
+          let complete = data["is_complete"];
+
+          if (complete && data["start"] !== 0) {
             setTimeout(() => { dispatch(fetchBuild(id, token)); }, 5000);
           }
-          else if (getState().builds.selected.stream) {
-            setTimeout(() => { dispatch(fetchBuildLog(id, token, data["stop"])); }, 1000);
+          else if (!complete && getState().builds.selected.stream) {
+            setTimeout(() => { dispatch(fetchBuildLog(id, token, data["stop"])); }, 2000);
           }
       })
       .catch((error) => dispatch(populateBuildLog(null, error)));
