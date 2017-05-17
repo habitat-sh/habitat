@@ -474,7 +474,7 @@ resource "aws_instance" "sessionsrv" {
 
 resource "aws_instance" "worker" {
   ami           = "${lookup(var.aws_ami, var.aws_region)}"
-  instance_type = "t2.medium"
+  instance_type = "i3.xlarge"
   key_name      = "${var.aws_key_pair}"
   // JW TODO: switch to private subnet after VPN is ready
   subnet_id     = "${var.public_subnet_id}"
@@ -495,15 +495,9 @@ resource "aws_instance" "worker" {
     agent       = "${var.connection_agent}"
   }
 
-  ebs_block_device {
-    device_name = "/dev/xvdf"
-    volume_size = 100
-    volume_type = "gp2"
-  }
-
   provisioner "remote-exec" {
     scripts = [
-      "${path.module}/scripts/filesystem.sh",
+      "${path.module}/scripts/filesystem_ssd.sh",
       "${path.module}/scripts/bootstrap.sh",
     ]
   }
