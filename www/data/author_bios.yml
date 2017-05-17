@@ -17,3 +17,8 @@ authors:
     name: "Adam Leff"
     email: "aleff@chef.io"
     bio: "Adam Leff is the Technical Community Advocate for InSpec at Chef. Prior to joining Chef, Adam held engineering and management positions at WebMD. He lives in Northern VA with his family and can frequently be found at local DevOps meetups in the DC area."
+  pauladams:
+    name: "Paul Adams"
+    email: "paul@baggerspion.net"
+    twitter: "@therealpadams"
+    bio: "Paul Adams is an engineering manager with a passion for open source; he has contributed to many communities, including Plone, KDE and CrateDB. By day he is a servant leader, helping teams survive distributed agility (the topic of his PhD). He is based in Berlin, Germany.
