@@ -3,7 +3,7 @@ import { Component, DebugElement } from "@angular/core";
 import { By } from "@angular/platform-browser";
 import { ActivatedRoute, Router } from "@angular/router";
 import { RouterTestingModule } from "@angular/router/testing";
-import { Observable } from "rxjs";
+import { BehaviorSubject, Observable } from "rxjs";
 import { Record } from "immutable";
 import { MockComponent } from "ng2-mock-component";
 import { AppStore } from "../AppStore";
@@ -20,7 +20,7 @@ class MockAppStore {
             id: "123"
           },
           log: {
-            content: []
+            content: new BehaviorSubject([])
           }
         })()
       },

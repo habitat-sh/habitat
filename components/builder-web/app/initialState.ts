@@ -12,8 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {List, Map, Record} from "immutable";
-import {Origin} from "./records/Origin";
+import { List, Map, Record } from "immutable";
+import { BehaviorSubject } from "rxjs";
+import { Origin } from "./records/Origin";
 
 export default Record({
     app: Record({
@@ -53,7 +54,7 @@ export default Record({
             log: Record({
                 start: undefined,
                 stop: undefined,
-                content: undefined,
+                content: new BehaviorSubject([]),
                 is_complete: undefined,
                 stream: undefined
             })(),
