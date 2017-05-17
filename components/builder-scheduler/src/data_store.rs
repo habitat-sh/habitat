@@ -81,7 +81,10 @@ impl DataStore {
                                             RETURNING *;
                                             RETURN;
                                         EXCEPTION WHEN unique_violation THEN
-                                          -- Don't raise an exception, just move on
+                                            -- Don't raise an exception, just return existing package
+                                            RETURN QUERY SELECT * FROM packages
+                                            WHERE ident = pident;
+                                            RETURN;
                                         END
                                     $$ LANGUAGE plpgsql VOLATILE
                                 "#)?;
