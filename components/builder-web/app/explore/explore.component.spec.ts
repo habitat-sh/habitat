@@ -28,7 +28,7 @@ class MockAppStore {
                 },
                 {
                     "origin": "core",
-                    "name": "php",
+                    "name": "go",
                     "originCount": 4,
                     "starCount": 2345
                 },
@@ -98,13 +98,13 @@ class MockAppStore {
                 },
                 {
                     "origin": "starkandwayne",
-                    "name": "consul",
+                    "name": "postgresql",
                     "originCount": 4,
                     "starCount": 2345
                 },
                 {
                     "origin": "starkandwayne",
-                    "name": "rabbitmq",
+                    "name": "mysql",
                     "originCount": 4,
                     "starCount": 2345
                 }
@@ -279,4 +279,3 @@ describe("ExploreComponent", () => {
     });
   });
 });
-

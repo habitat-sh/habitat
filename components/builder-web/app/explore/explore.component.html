@@ -20,7 +20,7 @@
             <h4>Popular Packages</h4>
           </li>
           <li *ngFor="let item of store.getState().packages.explore.popular">
-            <a [routerLink]="['/pkgs', 'core', item.name]">
+            <a [routerLink]="['/pkgs', item.origin, item.name]">
               <span class="title">{{item.origin}} / {{item.name}}</span>
             </a>
             <div class="caret">
@@ -33,7 +33,7 @@
             <h4>Packaging Your App</h4>
           </li>
           <li *ngFor="let item of store.getState().packages.explore.your_app">
-            <a [routerLink]="['/pkgs', 'core', item.name]">
+            <a [routerLink]="['/pkgs', item.origin, item.name]">
               <span class="title">{{item.origin}} / {{item.name}}</span>
             </a>
             <div class="caret">
@@ -46,7 +46,7 @@
             <h4>From the Community</h4>
           </li>
           <li *ngFor="let item of store.getState().packages.explore.community">
-            <a [routerLink]="['/pkgs', 'core', item.name]">
+            <a [routerLink]="['/pkgs', item.origin, item.name]">
               <span class="title">{{item.origin}} / {{item.name}}</span>
             </a>
             <div class="caret">
@@ -113,20 +113,18 @@
             </p>
             <div class="links">
               <a href="https://www.habitat.sh/docs/create-plans/">Write your first plan</a>
-              <a href="https://www.habitat.sh/docs/concepts-scaffolding/">Learn about scaffolding</a>
             </div>
-            <p>Have a ruby app? It's even easier. With a very simple plan.sh file, you can use
+            <p>Packaging a node or ruby app? It's even easier. With a very minimal plan.sh file, you can use
               scaffolding to generate common, pre-configured hook and config files.
             </p>
             <div class="links">
-              <a href="https://github.com/habitat-sh/core-plans/tree/master/scaffolding-ruby">Try ruby scaffolding Now</a>
+              <a href="https://www.habitat.sh/docs/concepts-scaffolding/">Learn about scaffolding</a>
+              <a href="https://github.com/habitat-sh/core-plans/tree/master/scaffolding-node">Try node scaffolding</a>
+              <a href="https://github.com/habitat-sh/core-plans/tree/master/scaffolding-ruby">Try ruby scaffolding</a>
             </div>
             <!-- <ul class="tags">
               <li><a href="https://github.com/habitat-sh/core-plans/tree/master/scaffolding-ruby">ruby</a></li>
             </ul> -->
-            <p class="footnote">
-              More scaffolding is on the way, next up is node.
-            </p>
           </div>
         </div>
        </div>

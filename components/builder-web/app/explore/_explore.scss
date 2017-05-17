@@ -266,6 +266,14 @@
           text-decoration: underline;
           font-weight: normal;
           line-height: 30px;
+          transition: color .2s;
+        }
+
+        a:hover,
+        a:focus,
+        a:active {
+          color: darken($hab-red, 10);
+          transition: color .2s;
         }
       }
 
@@ -339,7 +347,6 @@
 
         img {
           padding-bottom: 20px;
-          max-width: 85%;
 
           @include media($medium-screen) {
             padding: 0 $default-sep;
@@ -350,9 +357,25 @@
           @include row;
           padding: 60px;
 
-          > div {
+          .image {
             @include media($medium-screen) {
-              @include span-columns(5 of 10);
+              @include span-columns(4 of 10);
+            }
+          }
+
+          .content {
+            @include media($medium-screen) {
+              @include span-columns(6 of 10);
+            }
+          }
+          .links a {
+            display: inline-block;
+            line-height: 20px;
+
+            + a {
+              margin-left: 1rem;
+              padding-left: 1rem;
+              border-left: 1px solid currentColor;
             }
           }
         }
