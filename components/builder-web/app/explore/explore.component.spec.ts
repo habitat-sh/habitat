@@ -13,28 +13,102 @@ class MockAppStore {
     return {
       packages: {
         explore: {
-          popular: [
-            {
-                "name": "glibc",
-                "originCount": 4,
-                "starCount": 2345
-            },
-            {
-                "name": "mongodb",
-                "originCount": 3,
-                "starCount": 2340
-            },
-            {
-                "name": "redis",
-                "originCount": 16,
-                "starCount": 234
-            },
-            {
-                "name": "couchdb",
-                "originCount": 1,
-                "starCount": 23
-            }
-          ],
+            popular: [
+                {
+                    "origin": "core",
+                    "name": "python2",
+                    "originCount": 4,
+                    "starCount": 2345
+                },
+                {
+                    "origin": "core",
+                    "name": "ruby",
+                    "originCount": 4,
+                    "starCount": 2345
+                },
+                {
+                    "origin": "core",
+                    "name": "go",
+                    "originCount": 4,
+                    "starCount": 2345
+                },
+                {
+                    "origin": "core",
+                    "name": "node",
+                    "originCount": 4,
+                    "starCount": 2345
+                },
+                {
+                    "origin": "core",
+                    "name": "jdk8",
+                    "originCount": 4,
+                    "starCount": 2345
+                }
+            ],
+            your_app: [
+                {
+                    "origin": "core",
+                    "name": "scaffolding-ruby",
+                    "originCount": 4,
+                    "starCount": 2345
+                },
+                {
+                    "origin": "core",
+                    "name": "scaffolding-node",
+                    "originCount": 4,
+                    "starCount": 2345
+                },
+                {
+                    "origin": "core",
+                    "name": "nginx",
+                    "originCount": 4,
+                    "starCount": 2345
+                },
+                {
+                    "origin": "core",
+                    "name": "tomcat8",
+                    "originCount": 4,
+                    "starCount": 2345
+                },
+                {
+                    "origin": "core",
+                    "name": "docker",
+                    "originCount": 4,
+                    "starCount": 2345
+                }
+            ],
+            community: [
+                {
+                    "origin": "endocode",
+                    "name": "drupal",
+                    "originCount": 4,
+                    "starCount": 2345
+                },
+                {
+                    "origin": "endocode",
+                    "name": "jenkins",
+                    "originCount": 4,
+                    "starCount": 2345
+                },
+                {
+                    "origin": "starkandwayne",
+                    "name": "wordpress",
+                    "originCount": 4,
+                    "starCount": 2345
+                },
+                {
+                    "origin": "starkandwayne",
+                    "name": "postgresql",
+                    "originCount": 4,
+                    "starCount": 2345
+                },
+                {
+                    "origin": "starkandwayne",
+                    "name": "mysql",
+                    "originCount": 4,
+                    "starCount": 2345
+                }
+            ],
           stats: {
             plans: 324,
             builds: 12378
@@ -140,9 +214,9 @@ describe("ExploreComponent", () => {
         return element.queryAll(By.css(`.packages .${selector} li a`));
       }
 
-      expect(listFor("popular").length).toBe(4);
-      expect(listFor("top").length).toBe(4);
-      expect(listFor("recent").length).toBe(4);
+      expect(listFor("popular").length).toBe(5);
+      expect(listFor("top").length).toBe(5);
+      expect(listFor("recent").length).toBe(5);
     });
   });
 
@@ -163,11 +237,13 @@ describe("ExploreComponent", () => {
     });
   });
 
-  describe("getting-started section", () => {
-    it("exists", () => {
-      expect(element.query(By.css("section.getting-started"))).not.toBeNull();
-    });
-  });
+  // JB TODO: commenting this test out for now because this section was removed
+  // from the explore page until the content is available for it.
+  // describe("getting-started section", () => {
+  //   it("exists", () => {
+  //     expect(element.query(By.css("section.getting-started"))).not.toBeNull();
+  //   });
+  // });
 
   describe("scaffolding section", () => {
     it("exists", () => {
@@ -203,4 +279,3 @@ describe("ExploreComponent", () => {
     });
   });
 });
-

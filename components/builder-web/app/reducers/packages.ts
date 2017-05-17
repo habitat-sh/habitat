@@ -37,7 +37,9 @@ export default function packages(state = initialState["packages"], action) {
             return state.set("versions", undefined);
 
         case actionTypes.POPULATE_EXPLORE:
-            return state.setIn(["explore", "popular"], List(action.payload));
+            return state.setIn(["explore", "popular"], List(action.payload["popular"])).
+            setIn(["explore", "your_app"], List(action.payload["your_app"])).
+            setIn(["explore", "community"], List(action.payload["community"]));
 
         case actionTypes.POPULATE_EXPLORE_STATS:
             return state.setIn(["explore", "stats"], Record(action.payload)());

@@ -31,8 +31,8 @@
         @include shift(1);
 
         @include media($large-screen) {
-          @include span-columns(4.5);
-          @include shift(3.75);
+          @include span-columns(5.5);
+          @include shift(3.25);
         }
       }
     }
@@ -228,6 +228,13 @@
       }
     }
 
+    .community .content {
+      @include media($medium-screen) {
+        @include span-columns(8 of 8);
+        margin-left: 0;
+      }
+    }
+
     .image {
       text-align: center;
     }
@@ -241,7 +248,7 @@
       }
 
       p {
-        margin-bottom: $base-spacing * 1.2;
+        margin-bottom: $base-spacing;
         font-style: italic;
         color: $dark-gray;
         opacity: 0.6;
@@ -256,10 +263,17 @@
           display: block;
           font-size: rem(16);
           color: $hab-red;
-          font-family: $heading-font-family;
           text-decoration: underline;
           font-weight: normal;
           line-height: 30px;
+          transition: color .2s;
+        }
+
+        a:hover,
+        a:focus,
+        a:active {
+          color: darken($hab-red, 10);
+          transition: color .2s;
         }
       }
 
@@ -343,9 +357,25 @@
           @include row;
           padding: 60px;
 
-          > div {
+          .image {
             @include media($medium-screen) {
-              @include span-columns(5 of 10);
+              @include span-columns(4 of 10);
+            }
+          }
+
+          .content {
+            @include media($medium-screen) {
+              @include span-columns(6 of 10);
+            }
+          }
+          .links a {
+            display: inline-block;
+            line-height: 20px;
+
+            + a {
+              margin-left: 1rem;
+              padding-left: 1rem;
+              border-left: 1px solid currentColor;
             }
           }
         }
@@ -353,10 +383,10 @@
     }
 
     .compliance {
-      margin-bottom: $default-sep;
+      padding-bottom: $default-sep;
 
       @include media($medium-screen) {
-        margin-bottom: $medium-sep;
+        padding-bottom: $medium-sep;
       }
 
       iframe {
@@ -373,25 +403,23 @@
         }
       }
     }
+  }
+  .community {
+    padding: $default-sep 0;
 
-    .community {
-      border-top: 1px solid $very-light-gray;
-      padding: $default-sep 0;
+    @include media($medium-screen) {
+      padding: $medium-sep 0;
+    }
 
-      @include media($medium-screen) {
-        padding: $medium-sep 0;
+    .content {
+      text-align: center;
+
+      h3 {
+        font-size: rem(24);
       }
 
-      .content {
-        text-align: center;
-
-        @include media($medium-screen) {
-          @include shift(2);
-        }
-
-        h3 {
-          font-size: rem(24);
-        }
+      h3, p {
+        color: $hab-white;
       }
     }
   }

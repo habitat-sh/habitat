@@ -20,8 +20,8 @@
             <h4>Popular Packages</h4>
           </li>
           <li *ngFor="let item of store.getState().packages.explore.popular">
-            <a [routerLink]="['/pkgs', 'core', item.name]">
-              <span class="title">{{item.name}}</span>
+            <a [routerLink]="['/pkgs', item.origin, item.name]">
+              <span class="title">{{item.origin}} / {{item.name}}</span>
             </a>
             <div class="caret">
               <img src="/assets/images/icon-caret-right.svg">
@@ -30,11 +30,11 @@
         </ul>
         <ul class="top">
           <li class="heading">
-            <h4>Top Dependencies</h4>
+            <h4>Packaging Your App</h4>
           </li>
-          <li *ngFor="let item of store.getState().packages.explore.popular">
-            <a [routerLink]="['/pkgs', 'core', item.name]">
-              <span class="title">{{item.name}}</span>
+          <li *ngFor="let item of store.getState().packages.explore.your_app">
+            <a [routerLink]="['/pkgs', item.origin, item.name]">
+              <span class="title">{{item.origin}} / {{item.name}}</span>
             </a>
             <div class="caret">
               <img src="/assets/images/icon-caret-right.svg">
@@ -43,11 +43,11 @@
         </ul>
         <ul class="recent">
           <li class="heading">
-            <h4>Recently Added</h4>
+            <h4>From the Community</h4>
           </li>
-          <li *ngFor="let item of store.getState().packages.explore.popular">
-            <a [routerLink]="['/pkgs', 'core', item.name]">
-              <span class="title">{{item.name}}</span>
+          <li *ngFor="let item of store.getState().packages.explore.community">
+            <a [routerLink]="['/pkgs', item.origin, item.name]">
+              <span class="title">{{item.origin}} / {{item.name}}</span>
             </a>
             <div class="caret">
               <img src="/assets/images/icon-caret-right.svg">
@@ -76,7 +76,7 @@
     </section>
   </div>
   <div class="lower">
-    <section class="getting-started">
+    <!-- <section class="getting-started">
       <div>
         <div class="image">
           <img src="/assets/images/habitat-box.svg">
@@ -96,7 +96,7 @@
           </div>
         </div>
       </div>
-    </section>
+    </section> -->
     <section class="scaffolding">
       <div>
         <div>
@@ -109,22 +109,22 @@
             <p>
               Ready to add Habitat to your application? Unleash all the great features of
               Habitat by simply adding a plan.sh file and optional configuration files to
-              your source code repo. Better yet, you can use scaffolding (for several
-              popular setups) that will generate common, pre-configured hook and config
-              files for you.
+              your source code repo.
             </p>
             <div class="links">
-              <a href="https://www.habitat.sh/docs/concepts-scaffolding/">Learn About Scaffolding</a>
+              <a href="https://www.habitat.sh/docs/create-plans/">Write your first plan</a>
             </div>
-            <ul class="tags">
-              <li><a href="https://github.com/habitat-sh/core-plans/tree/master/scaffolding-go">go</a></li>
-              <li><a href="https://github.com/habitat-sh/core-plans/tree/master/scaffolding-go17">go-1.7</a></li>
-              <li><a href="https://github.com/habitat-sh/core-plans/tree/master/scaffolding-python">python</a></li>
-              <li><a href="https://github.com/habitat-sh/core-plans/tree/master/scaffolding-python2">python2</a></li>
-            </ul>
-            <p class="footnote">
-              See the full list of available scaffoldings in the docs.
+            <p>Packaging a node or ruby app? It's even easier. With a very minimal plan.sh file, you can use
+              scaffolding to generate common, pre-configured hook and config files.
             </p>
+            <div class="links">
+              <a href="https://www.habitat.sh/docs/concepts-scaffolding/">Learn about scaffolding</a>
+              <a href="https://github.com/habitat-sh/core-plans/tree/master/scaffolding-node">Try node scaffolding</a>
+              <a href="https://github.com/habitat-sh/core-plans/tree/master/scaffolding-ruby">Try ruby scaffolding</a>
+            </div>
+            <!-- <ul class="tags">
+              <li><a href="https://github.com/habitat-sh/core-plans/tree/master/scaffolding-ruby">ruby</a></li>
+            </ul> -->
           </div>
         </div>
        </div>
@@ -152,17 +152,17 @@
         </div>
       </div>
     </section>
-    <section class="community">
-      <div>
-        <div class="content">
-          <h3>Habitat is free open-source software.</h3>
-          <p>
-            Join the community today to ramp up your knowledge, share your ideas,
-            and contribute to the project.
-          </p>
-          <a href="https://www.habitat.sh/community/" class="button cta">Join the Community</a>
-        </div>
-      </div>
-    </section>
   </div>
+  <section class="community">
+    <div>
+      <div class="content">
+        <h3>Habitat is free open-source software.</h3>
+        <p>
+          Join the community today to ramp up your knowledge, share your ideas,
+          and contribute to the project.
+        </p>
+        <a href="https://www.habitat.sh/community/" class="button cta">Join the Community</a>
+      </div>
+    </div>
+  </section>
 </div>
