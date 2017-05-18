@@ -76,16 +76,16 @@ struct GitHubProject {
 }
 
 #[derive(Serialize)]
-struct ChefEvent {
+struct CommunityEvent {
     title: String,
     link: String,
     pub_date: String,
     description: String,
 }
 
-impl ChefEvent {
-    fn from_item(item: Item) -> ChefEvent {
-        ChefEvent {
+impl CommunityEvent {
+    fn from_item(item: Item) -> CommunityEvent {
+        CommunityEvent {
             title: item.title.unwrap_or(String::new()),
             link: item.link.unwrap_or(String::new()),
             pub_date: item.pub_date.unwrap_or(String::new()),
@@ -157,7 +157,7 @@ pub fn chef_events_feed(_req: &mut Request) -> IronResult<Response> {
 
     let channel = Channel::from_str(&body).unwrap();
     for item in channel.items {
-        let event = ChefEvent::from_item(item);
+        let event = CommunityEvent::from_item(item);
         events.push(event);
     }
 

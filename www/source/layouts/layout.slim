@@ -40,6 +40,9 @@ html prefix="og: http://ogp.me/ns#"
 
     = partial "layouts/footer"
 
+    javascript:
+      var DEPOT_API = "#{config[:depot_api]}";
+
     == javascript_include_tag  "all"
     javascript:
       $(document).foundation();

@@ -50,6 +50,7 @@ end
 # Reload the browser automatically whenever files change
 configure :development do
   activate :livereload
+  config[:depot_api] = "http://localhost:9636/v1"
 end
 
 # Methods defined in the helpers block are available in templates
@@ -97,6 +98,8 @@ configure :build do
 
   # Minify HTML on build
   #activate :minify_html
+
+  config[:depot_api] = "http://app.habitat.sh/v1"
 end
 
 activate :autoprefixer
