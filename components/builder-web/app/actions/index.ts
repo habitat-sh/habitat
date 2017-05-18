@@ -136,6 +136,7 @@ export const fetchBuild = buildActions.fetchBuild;
 export const fetchBuildLog = buildActions.fetchBuildLog;
 export const fetchBuilds = buildActions.fetchBuilds;
 export const streamBuildLog = buildActions.streamBuildLog;
+export const scheduleBuild = buildActions.scheduleBuild;
 
 export const addNotification = notificationActions.addNotification;
 export const removeNotification = notificationActions.removeNotification;

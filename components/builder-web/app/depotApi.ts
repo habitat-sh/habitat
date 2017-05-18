@@ -126,6 +126,26 @@ export function getPackageVersions(origin: string, pkg: string) {
     });
 }
 
+export function scheduleBuild(origin: string, pkg: string, token: string) {
+    const url = `${urlPrefix}/depot/pkgs/schedule/${origin}/${pkg}`;
+
+    return new Promise((resolve, reject) => {
+        fetch(url, {
+            headers: {
+                "Authorization": `Bearer ${token}`,
+            },
+            method: "POST"
+        }).then(response => {
+            if (response.ok) {
+                resolve(true);
+            } else {
+                reject(new Error(response.statusText));
+            }
+        })
+            .catch(error => reject(error));
+    });
+}
+
 export function getStats(origin: string) {
     const url = `${urlPrefix}/depot/pkgs/origins/${origin}/stats`;
 
