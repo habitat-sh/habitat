@@ -111,10 +111,13 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
             (@arg NAME: --("override-name") +takes_value
                 "The name for the state directory if there is more than one Supervisor running \
                 [default: default]")
+            (@arg CHANNEL: --channel +takes_value
+                "Receive package updates from the specified release channel")
             (@arg GROUP: --group +takes_value
                 "The service group; shared config and topology [default: default].")
             (@arg DEPOT_URL: --url -u +takes_value {valid_url}
-                "Use a specific Depot URL (ex: http://depot.example.com/v1/depot)")
+                "Receive package updates from the Depot at the specified URL \
+                [default: https://app.habitat.sh/v1/depot]")
             (@arg TOPOLOGY: --topology -t +takes_value {valid_topology}
                 "Service topology; [default: none]")
             (@arg STRATEGY: --strategy -s +takes_value {valid_update_strategy}
@@ -178,10 +181,13 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
             (@arg PKG_IDENT_OR_ARTIFACT: +required +takes_value
                 "A Habitat package identifier (ex: core/redis) or filepath to a Habitat Artifact \
                 (ex: /home/core-redis-3.0.7-21120102031201-x86_64-linux.hart)")
+            (@arg CHANNEL: --channel +takes_value
+                "Receive package updates from the specified release channel")
             (@arg GROUP: --group +takes_value
                 "The service group; shared config and topology [default: default].")
             (@arg DEPOT_URL: --url -u +takes_value {valid_url}
-                "Use a specific Depot URL (ex: http://depot.example.com/v1/depot)")
+                "Receive package updates from the Depot at the specified URL \
+                [default: https://app.habitat.sh/v1/depot]")
             (@arg TOPOLOGY: --topology -t +takes_value {valid_topology}
                 "Service topology; [default: none]")
             (@arg STRATEGY: --strategy -s +takes_value {valid_update_strategy}
@@ -496,8 +502,10 @@ fn spec_from_matches(ident: PackageIdent, m: &ArgMatches) -> Result<ServiceSpec>
         spec.group = group.to_string();
     }
     let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
-    let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
-    spec.depot_url = String::from(url);
+    spec.depot_url = m.value_of("DEPOT_URL")
+        .unwrap_or(&env_or_default)
+        .to_string();
+    spec.channel = m.value_of("CHANNEL").map(|c| c.to_string());
     if let Some(topology) = m.value_of("TOPOLOGY") {
         spec.topology = Topology::from_str(topology)?;
     }

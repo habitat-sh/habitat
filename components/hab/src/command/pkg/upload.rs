@@ -89,7 +89,7 @@ pub fn start<P: AsRef<Path>>(ui: &mut UI,
     try!(ui.begin(format!("Uploading {}", archive_path.as_ref().display())));
     let tdeps = try!(archive.tdeps());
     for dep in tdeps.into_iter() {
-        match depot_client.show_package(&dep) {
+        match depot_client.show_package(&dep, None) {
             Ok(_) => try!(ui.status(Status::Using, format!("existing {}", &dep))),
             Err(depot_client::Error::APIError(StatusCode::NotFound, _)) => {
                 let candidate_path = match archive_path.as_ref().parent() {
@@ -115,7 +115,7 @@ pub fn start<P: AsRef<Path>>(ui: &mut UI,
         }
     }
     let ident = try!(archive.ident());
-    match depot_client.show_package(&ident) {
+    match depot_client.show_package(&ident, None) {
         Ok(_) => {
             try!(ui.status(Status::Using, format!("existing {}", &ident)));
             Ok(())
@@ -157,7 +157,10 @@ fn upload_into_depot(ui: &mut UI,
         Err(depot_client::Error::APIError(StatusCode::UnprocessableEntity, _)) => {
             return Err(Error::PackageArchiveMalformed(format!("{}", archive.path.display())));
         }
-        Err(depot_client::Error::APIError(StatusCode::NotImplemented, _)) => println!("Package platform or architecture not supported by the targted depot; skipping."),
+        Err(depot_client::Error::APIError(StatusCode::NotImplemented, _)) => {
+            println!("Package platform or architecture not supported by the targted \
+                    depot; skipping.");
+        }
         Err(e) => return Err(Error::from(e)),
     };
     try!(ui.status(Status::Uploaded, ident));

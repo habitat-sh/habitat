@@ -71,6 +71,7 @@ lazy_static! {
 pub struct Service {
     pub service_group: ServiceGroup,
     pub depot_url: String,
+    pub channel: Option<String>,
     pub spec_file: PathBuf,
     pub spec_ident: PackageIdent,
     pub start_style: StartStyle,
@@ -116,6 +117,7 @@ impl Service {
                cfg: Cfg::new(&pkg, spec.config_from.as_ref())?,
                config_renderer: CfgRenderer::new(&config_root)?,
                depot_url: spec.depot_url,
+               channel: spec.channel,
                health_check: HealthCheck::default(),
                hooks: HookTable::load(&service_group, &hooks_root),
                initialized: false,
@@ -329,6 +331,7 @@ impl Service {
         let mut spec = ServiceSpec::default_for(self.spec_ident.clone());
         spec.group = self.service_group.group().to_string();
         spec.depot_url = self.depot_url.clone();
+        spec.channel = self.channel.clone();
         spec.topology = self.topology;
         spec.update_strategy = self.update_strategy;
         spec.binds = self.binds.clone();

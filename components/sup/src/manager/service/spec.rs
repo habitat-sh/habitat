@@ -80,6 +80,7 @@ pub struct ServiceSpec {
     pub ident: PackageIdent,
     pub group: String,
     pub depot_url: String,
+    pub channel: Option<String>,
     pub topology: Topology,
     pub update_strategy: UpdateStrategy,
     pub binds: Vec<ServiceBind>,
@@ -211,6 +212,7 @@ impl Default for ServiceSpec {
             ident: PackageIdent::default(),
             group: DEFAULT_GROUP.to_string(),
             depot_url: DEFAULT_DEPOT_URL.to_string(),
+            channel: None,
             topology: Topology::default(),
             update_strategy: UpdateStrategy::default(),
             binds: Vec::default(),
@@ -435,6 +437,7 @@ mod test {
             ident: PackageIdent::from_str("origin/name/1.2.3/20170223130020").unwrap(),
             group: String::from("jobs"),
             depot_url: String::from("http://example.com/depot"),
+            channel: Some(String::from("stable")),
             topology: Topology::Leader,
             update_strategy: UpdateStrategy::AtOnce,
             binds: vec![ServiceBind::from_str("cache:redis.cache@acmecorp").unwrap(),
@@ -448,6 +451,7 @@ mod test {
         assert!(toml.contains(r#"ident = "origin/name/1.2.3/20170223130020""#));
         assert!(toml.contains(r#"group = "jobs""#));
         assert!(toml.contains(r#"depot_url = "http://example.com/depot""#));
+        assert!(toml.contains(r#"channel = "stable""#));
         assert!(toml.contains(r#"topology = "leader""#));
         assert!(toml.contains(r#"update_strategy = "at-once""#));
         assert!(toml.contains(r#""cache:redis.cache@acmecorp""#));
@@ -563,6 +567,7 @@ mod test {
             ident: PackageIdent::from_str("origin/name/1.2.3/20170223130020").unwrap(),
             group: String::from("jobs"),
             depot_url: String::from("http://example.com/depot"),
+            channel: Some(String::from("stable")),
             topology: Topology::Leader,
             update_strategy: UpdateStrategy::AtOnce,
             binds: vec![ServiceBind::from_str("cache:redis.cache@acmecorp").unwrap(),
@@ -577,6 +582,7 @@ mod test {
         assert!(toml.contains(r#"ident = "origin/name/1.2.3/20170223130020""#));
         assert!(toml.contains(r#"group = "jobs""#));
         assert!(toml.contains(r#"depot_url = "http://example.com/depot""#));
+        assert!(toml.contains(r#"channel = "stable""#));
         assert!(toml.contains(r#"topology = "leader""#));
         assert!(toml.contains(r#"update_strategy = "at-once""#));
         assert!(toml.contains(r#""cache:redis.cache@acmecorp""#));

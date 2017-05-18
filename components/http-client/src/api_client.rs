@@ -16,8 +16,7 @@ use std::path::Path;
 use std::time::Duration;
 
 use hab_core::util::sys;
-use hyper::client::Client as HyperClient;
-use hyper::client::RequestBuilder;
+use hyper::client::{Client as HyperClient, IntoUrl, RequestBuilder};
 use hyper::client::pool::{Config, Pool};
 use hyper::header::UserAgent;
 use hyper::http::h1::Http11Protocol;
@@ -66,17 +65,20 @@ impl ApiClient {
     /// * If a suitable SSL context cannot be established
     /// * If an HTTP proxy cannot be correctly setup
     /// * If a `User-Agent` HTTP header string cannot be constructed
-    pub fn new(endpoint: &Url,
-               product: &str,
-               version: &str,
-               fs_root_path: Option<&Path>)
-               -> Result<Self> {
+    pub fn new<T>(endpoint: T,
+                  product: &str,
+                  version: &str,
+                  fs_root_path: Option<&Path>)
+                  -> Result<Self>
+        where T: IntoUrl
+    {
+        let endpoint = endpoint.into_url()?;
         Ok(ApiClient {
-               endpoint: endpoint.clone(),
-               inner: try!(new_hyper_client(Some(endpoint), fs_root_path)),
-               proxy: try!(proxy_unless_domain_exempted(Some(endpoint))),
+               inner: new_hyper_client(&endpoint, fs_root_path)?,
+               proxy: proxy_unless_domain_exempted(Some(&endpoint))?,
                target_scheme: endpoint.scheme().to_string(),
-               user_agent_header: try!(user_agent(product, version)),
+               endpoint: endpoint,
+               user_agent_header: user_agent(product, version)?,
            })
     }
 
@@ -231,12 +233,12 @@ impl ApiClient {
 /// library will default to using this on the Mac. Therefore the behavior on the Mac remains
 /// unchanged and will use the system's certificates.
 ///
-fn new_hyper_client(for_domain: Option<&Url>, fs_root_path: Option<&Path>) -> Result<HyperClient> {
+fn new_hyper_client(url: &Url, fs_root_path: Option<&Path>) -> Result<HyperClient> {
     let connector = try!(ssl_connector(fs_root_path));
     let ssl_client = OpensslClient::from(connector);
     let timeout = Some(Duration::from_secs(CLIENT_SOCKET_RW_TIMEOUT));
 
-    match try!(proxy_unless_domain_exempted(for_domain)) {
+    match proxy_unless_domain_exempted(Some(url))? {
         Some(proxy) => {
             debug!("Using proxy {}:{}...", proxy.host(), proxy.port());
             let connector = try!(ProxyHttpsConnector::new(proxy, ssl_client));

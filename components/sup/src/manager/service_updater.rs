@@ -275,6 +275,7 @@ struct Worker {
     current: PackageIdent,
     spec_ident: PackageIdent,
     depot: depot_client::Client,
+    channel: Option<String>,
     update_strategy: UpdateStrategy,
     ui: UI,
 }
@@ -285,6 +286,7 @@ impl Worker {
             current: service.pkg.ident.clone(),
             spec_ident: service.spec_ident.clone(),
             depot: depot_client::Client::new(&service.depot_url, PRODUCT, VERSION, None).unwrap(),
+            channel: service.channel.clone(),
             update_strategy: service.update_strategy.clone(),
             ui: UI::default(),
         }
@@ -332,7 +334,9 @@ impl Worker {
             let next_check = SteadyTime::now() +
                              TimeDuration::milliseconds(self.update_frequency());
             let mut package: Option<PackageInstall> = None;
-            match self.depot.show_package(&self.spec_ident) {
+            match self.depot
+                      .show_package(&self.spec_ident,
+                                    self.channel.as_ref().map(String::as_ref)) {
                 Ok(remote) => {
                     let latest: PackageIdent = remote.get_ident().clone().into();
                     if latest > self.current {
@@ -406,7 +410,8 @@ impl Worker {
                 match val.parse::<i64>() {
                     Ok(num) => num,
                     Err(_) => {
-                        outputln!("Unable to parse '{}' from {} as a valid integer. Falling back to defailt {} MS frequency.",
+                        outputln!("Unable to parse '{}' from {} as a valid integer. Falling back \
+                                  to defailt {} MS frequency.",
                                   val,
                                   FREQUENCY_ENVVAR,
                                   DEFAULT_FREQUENCY);

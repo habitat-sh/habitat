@@ -76,6 +76,7 @@ pub fn run(cfg: ManagerConfig,
                       Yellow.bold().paint(artifact));
             common::command::package::install::start(&mut ui,
                                                      &spec.depot_url,
+                                                     spec.channel.as_ref().map(String::as_ref),
                                                      artifact,
                                                      PRODUCT,
                                                      VERSION,

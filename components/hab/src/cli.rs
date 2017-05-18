@@ -443,8 +443,10 @@ fn sub_pkg_build() -> App<'static, 'static> {
 fn sub_pkg_install() -> App<'static, 'static> {
     let sub = clap_app!(@subcommand install =>
         (about: "Installs a Habitat package from a Depot or locally from a Habitat Artifact")
-        (@arg DEPOT_URL: -u --url +takes_value {valid_url}
-            "Use a specific Depot URL (ex: http://depot.example.com/v1/depot)")
+        (@arg DEPOT_URL: --url -u +takes_value {valid_url}
+            "Use a specific Depot URL [default: https://app.habitat.sh/v1/depot]")
+        (@arg CHANNEL: --channel +takes_value
+            "Install from the specified release channel")
         (@arg PKG_IDENT_OR_ARTIFACT: +required +multiple
             "One or more Habitat package identifiers (ex: acme/redis) and/or filepaths \
             to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
