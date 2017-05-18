@@ -245,6 +245,11 @@
             font-weight: 600;
           }
 
+          .package-updated {
+            color: $dim-slate-gray;
+            font-size: rem(12);
+          }
+
           &:hover {
             cursor: pointer;
             background-color: rgba($very-light-gray, 0.2);
@@ -265,6 +270,7 @@
           &.heading {
 
             h5 {
+              color: $dark-gray;
               font-size: rem(12);
               text-transform: uppercase;
             }

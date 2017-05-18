@@ -30,6 +30,7 @@
 @import "github-repo-picker/github-repo-picker";
 @import "header/header";
 @import "header/user-nav/user-nav";
+@import "build/build.component";
 @import "build-list/build-list.component";
 @import "build-status/build-status.component";
 @import "notifications/notifications";
@@ -38,7 +39,6 @@
 @import "organization-create-page/organization-create-page";
 @import "organization-members/organization-members";
 @import "organizations-page/organizations-page";
-@import "build/build.component";
 @import "package-builds/package-builds.component";
 @import "package-page/package-page";
 @import "package-versions-page/package-versions-page";

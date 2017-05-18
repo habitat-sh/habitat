@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Component, OnDestroy} from "@angular/core";
-import {ActivatedRoute} from "@angular/router";
-import {FeatureFlags} from "../Privilege";
-import {AppStore} from "../AppStore";
-import {Package} from "../records/Package";
-import {Origin} from "../records/Origin";
-import {isPackage, isSignedIn} from "../util";
-import {fetchPackage, setProjectHint, requestRoute} from "../actions/index";
-import {BuilderApiClient} from "../BuilderApiClient";
-import {Subscription} from "rxjs/Subscription";
+import { Component, OnDestroy } from "@angular/core";
+import { ActivatedRoute } from "@angular/router";
+import { FeatureFlags } from "../Privilege";
+import { AppStore } from "../AppStore";
+import { Package } from "../records/Package";
+import { Origin } from "../records/Origin";
+import { isPackage, isSignedIn } from "../util";
+import { fetchBuild, fetchBuilds, fetchPackage, setProjectHint, requestRoute } from "../actions/index";
+import { BuilderApiClient } from "../BuilderApiClient";
+import { Subscription } from "rxjs/Subscription";
 
 @Component({
     template: `
@@ -39,19 +39,29 @@ import {Subscription} from "rxjs/Subscription";
           </span>
       </p>
     </div>
-    <div class="page-body has-sidebar">
-      <hab-package-info [package]="package"></hab-package-info>
-    </div>
+    <hab-tabs>
+        <hab-tab *ngIf="build" tabTitle="Build Output">
+            <div class="page-body has-sidebar">
+                <hab-build [build]="build" stream="false"></hab-build>
+            </div>
+        </hab-tab>
+        <hab-tab tabTitle="Manifest">
+            <div class="page-body has-sidebar">
+                <hab-package-info [package]="package"></hab-package-info>
+            </div>
+        </hab-tab>
+    </hab-tabs>
     `,
 })
 
 export class PackagePageComponent implements OnDestroy {
-    spinnerFetchPackage: Function;
     originParam: string;
     nameParam: string;
-    versionParam: string;
     releaseParam: string;
+    spinnerFetchPackage: Function;
+    versionParam: string;
 
+    private fetched: boolean;
     private sub: Subscription;
 
     constructor(private route: ActivatedRoute, private store: AppStore) {
@@ -63,11 +73,25 @@ export class PackagePageComponent implements OnDestroy {
             this.versionParam = params["version"];
             this.releaseParam = params["release"];
             this.fetchPackage();
+            this.fetchBuilds();
         });
     }
 
     ngOnDestroy() {
         this.sub.unsubscribe();
+    }
+
+    get build() {
+        let b = this.store.getState().builds.visible.find((b) => {
+            return b.release === this.package.ident.release;
+        });
+
+        if (b && !this.fetched) {
+            this.store.dispatch(fetchBuild(b.id, this.token));
+            this.fetched = true;
+        }
+
+        return b;
     }
 
     get features() {
@@ -128,6 +152,14 @@ export class PackagePageComponent implements OnDestroy {
             version: this.versionParam,
             release: this.releaseParam
         };
+    }
+
+    private fetchBuilds() {
+        if (this.token) {
+            this.store.dispatch(
+                fetchBuilds(this.package.ident.origin, this.package.ident.name, this.token)
+            );
+        }
     }
 
     private fetchPackage () {

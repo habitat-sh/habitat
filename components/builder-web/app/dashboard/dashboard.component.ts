@@ -3,7 +3,7 @@ import * as cookies from "js-cookie";
 import { AppStore } from "../AppStore";
 import { Router } from "@angular/router";
 import { fetchMyOrigins, fetchDashboardRecent } from "../actions";
-import * as moment from "moment";
+import { releaseToDate } from "../util";
 import config from "../config";
 
 @Component({
@@ -55,8 +55,8 @@ export class DashboardComponent implements OnInit {
         return this.store.getState().packages.dashboard.origin;
     }
 
-    fromNow(release) {
-        return moment(release, "YYYYMMDDHHmmss").fromNow();
+    releaseToDate(release) {
+        return releaseToDate(release);
     }
 
     showSection(section) {

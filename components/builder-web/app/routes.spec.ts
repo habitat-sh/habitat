@@ -1,3 +1,4 @@
+import { BuildPageComponent } from "./build-page/build-page.component";
 import { DashboardComponent } from "./dashboard/dashboard.component";
 import { ExploreComponent } from "./explore/explore.component";
 import { OriginCreatePageComponent } from "./origin-create-page/OriginCreatePageComponent";
@@ -6,7 +7,6 @@ import { OriginsPageComponent } from "./origins-page/OriginsPageComponent";
 import { OrganizationCreatePageComponent } from "./organization-create-page/OrganizationCreatePageComponent";
 import { OrganizationsPageComponent } from "./organizations-page/OrganizationsPageComponent";
 import { PackageBuildsComponent } from "./package-builds/package-builds.component";
-import { BuildComponent } from "./build/build.component";
 import { PackagePageComponent } from "./package-page/PackagePageComponent";
 import { PackagesPageComponent } from "./packages-page/PackagesPageComponent";
 import { ProjectCreatePageComponent } from "./project-create-page/ProjectCreatePageComponent";
@@ -38,9 +38,9 @@ describe("Routes", () => {
   });
 
   describe("/builds/:id", () => {
-    it("routes to BuildComponent", () => {
+    it("routes to BuildPageComponent", () => {
       let r = route("builds/:id");
-      expect(r.component).toBe(BuildComponent);
+      expect(r.component).toBe(BuildPageComponent);
     });
   });
 
