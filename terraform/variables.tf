@@ -39,6 +39,16 @@ variable "hab_sup_sg" {
   description = "Identifier for AWS security group for habitat supervisor connectivity"
 }
 
+variable "depot_url" {
+  description = "URL of Depot to receive package updates from"
+  default     = "https://app.habitat.sh/v1/depot"
+}
+
+variable "release_channel" {
+  description = "Release channel in Depot to receive package updates from"
+  default     = "stable"
+}
+
 variable "gossip_listen_port" {
   description = "Port for Habitat Supervisor's --gossip-listen"
   default     = 9638
