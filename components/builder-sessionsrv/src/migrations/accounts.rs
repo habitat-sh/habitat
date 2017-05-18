@@ -53,7 +53,7 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                     account_name text
                  ) RETURNS SETOF accounts AS $$
                      BEGIN
-                        RETURN QUERY SELECT * FROM accounts WHERE name = name;
+                        RETURN QUERY SELECT * FROM accounts WHERE name = account_name;
                         RETURN;
                      END
                  $$ LANGUAGE plpgsql STABLE"#)?;
