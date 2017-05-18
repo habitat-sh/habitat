@@ -35,7 +35,7 @@ Connect to the supervisor of the running service using the following syntax. Thi
 
       curl http://172.17.0.2:9631/services
 
-> Note: The default listening port on the supervisor is 9631; however, that can be changed by using the `--listen-http` option when starting a service.
+> Note: The default listening port on the supervisor is 9631; however, that can be changed by using the `--listen-http` option when starting a service.  Additionally the HTTP API port will only listen if the sup was started with the `--peer` or `--topology` flags
 
 Depending on the endpoint you hit, the data may be formatted in JSON, TOML, or plain text.
 

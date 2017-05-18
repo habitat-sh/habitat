@@ -17,6 +17,8 @@ When entering an interactive studio, a supervisor is started for you in the back
 
 Because the supervisor is running in the background, you will not see the supervisor output as you start your service. However you can use the `slog` (supervisor log) command that will stream the tail of the supervisor output.
 
+You can use the `HAB_DOCKER_OPTS` ENV variable to pass flags to the docker run that starts the studio. e.g. `HAB_DOCKER_OPTS="-p 8080:8080"` to expose port 8080 for the service you are running inside the studio out to your controlling host.
+
 If your host machine is running Linux, do the following to run your packages:
 
 * Add the `hab` user and group.
