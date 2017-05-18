@@ -277,11 +277,10 @@ impl Server {
     }
 
     fn select_shard(&mut self) -> u32 {
-        let route_hash = self.envelope.route_info().get_hash();
-        if route_hash == 0 {
-            (self.rng.gen::<u64>() % SHARD_COUNT as u64) as u32
+        if self.envelope.route_info().has_hash() {
+            (self.envelope.route_info().get_hash() % SHARD_COUNT as u64) as u32
         } else {
-            (route_hash % SHARD_COUNT as u64) as u32
+            (self.rng.gen::<u64>() % SHARD_COUNT as u64) as u32
         }
     }
 }
