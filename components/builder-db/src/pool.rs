@@ -95,17 +95,7 @@ impl Pool {
             .map(|k| k.hash(&mut FnvHasher::default()));
 
         let shard_id = match optional_shard_id {
-            Some(id) => {
-                if id == 0 {
-                    let mut rng = rand::thread_rng();
-                    match rng.choose(&self.shards) {
-                        Some(shard) => *shard,
-                        None => 0,
-                    }
-                } else {
-                    (id % SHARD_COUNT as u64) as u32
-                }
-            }
+            Some(id) => (id % SHARD_COUNT as u64) as u32,
             None => {
                 let mut rng = rand::thread_rng();
                 match rng.choose(&self.shards) {
