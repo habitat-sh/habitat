@@ -19,6 +19,7 @@ import { routing } from "./routes";
 import { AppStore } from "./AppStore";
 import { AppComponent } from "./AppComponent";
 import { BuildComponent } from "./build/build.component";
+import { BuildPageComponent } from "./build-page/build-page.component";
 import { BuildStatusComponent } from "./build-status/build-status.component";
 import { CheckingInputComponent } from "./CheckingInputComponent";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
@@ -70,6 +71,8 @@ import { UserNavComponent } from "./header/user-nav/UserNavComponent";
     ],
     declarations: [
         AppComponent,
+        BuildComponent,
+        BuildPageComponent,
         BuildListComponent,
         BuildStatusComponent,
         CheckingInputComponent,
@@ -91,7 +94,6 @@ import { UserNavComponent } from "./header/user-nav/UserNavComponent";
         OrganizationMembersComponent,
         OrganizationsPageComponent,
         PackageBreadcrumbsComponent,
-        BuildComponent,
         PackageBuildsComponent,
         PackageInfoComponent,
         PackageListComponent,

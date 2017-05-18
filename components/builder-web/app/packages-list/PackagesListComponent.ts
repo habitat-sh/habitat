@@ -14,7 +14,7 @@
 
 import { Component, Input } from "@angular/core";
 import { List } from "immutable";
-import { packageString } from "../util";
+import { packageString, releaseToDate } from "../util";
 
 @Component({
     selector: "hab-packages-list",
@@ -42,5 +42,9 @@ export class PackagesListComponent {
 
     packageString(pkg) {
         return packageString(pkg);
+    }
+
+    releaseToDate(release) {
+        return releaseToDate(release);
     }
 }

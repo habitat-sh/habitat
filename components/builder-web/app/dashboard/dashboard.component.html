@@ -123,7 +123,7 @@
               <h5>Package</h5>
             </div>
             <div class="package-updated">
-              <h5>Last Update</h5>
+              <h5>Latest</h5>
             </div>
           </li>
           <li class="item" *ngFor="let pkg of myPackages" (click)="navigateToPackage(pkg)">
@@ -134,7 +134,7 @@
               {{ pkg.name }}
             </div>
             <div class="package-updated">
-              {{ fromNow(pkg.release) }}
+              {{ releaseToDate(pkg.release) }}
             </div>
             <span class="octicon octicon-chevron-right"></span>
           </li>

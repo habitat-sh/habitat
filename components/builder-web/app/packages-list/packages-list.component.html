@@ -22,7 +22,7 @@
                     {{ version.release_count }}
                 </span>
                 <span class="latest-release">
-                    {{ version.latest }}
+                    {{ releaseToDate(version.latest) || "&mdash;" }}
                 </span>
                 <hab-build-status
                     [origin]="version.origin"
@@ -43,7 +43,7 @@
                     {{ packageString(pkg) }}
                 </span>
                 <span *ngIf="layout === 'builds'" class="completed">
-                    {{ pkg.release }}
+                    {{ releaseToDate(pkg.release) || "&mdash;" }}
                 </span>
                 <hab-build-status
                     [origin]="pkg.origin"

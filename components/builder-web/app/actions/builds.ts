@@ -3,7 +3,6 @@ import { BuilderApiClient } from "../BuilderApiClient";
 export const CLEAR_BUILD = "CLEAR_BUILD";
 export const CLEAR_BUILD_LOG = "CLEAR_BUILD_LOG";
 export const CLEAR_BUILDS = "CLEAR_BUILDS";
-export const FETCH_BUILDS = "FETCH_BUILDS";
 export const POPULATE_BUILD = "POPULATE_BUILD";
 export const POPULATE_BUILDS = "POPULATE_BUILDS";
 export const POPULATE_BUILD_LOG = "POPULATE_BUILD_LOG";

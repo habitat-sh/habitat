@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import { Routes, RouterModule } from "@angular/router";
+import { BuildPageComponent } from "./build-page/build-page.component";
 import { DashboardComponent } from "./dashboard/dashboard.component";
 import { DashboardGuard } from "./dashboard/dashboard.guard";
 import { ExploreComponent } from "./explore/explore.component";
@@ -21,7 +22,6 @@ import { OriginPageComponent } from "./origin-page/OriginPageComponent";
 import { OriginsPageComponent } from "./origins-page/OriginsPageComponent";
 import { OrganizationCreatePageComponent } from "./organization-create-page/OrganizationCreatePageComponent";
 import { OrganizationsPageComponent } from "./organizations-page/OrganizationsPageComponent";
-import { BuildComponent } from "./build/build.component";
 import { PackageBuildsComponent } from "./package-builds/package-builds.component";
 import { PackagePageComponent } from "./package-page/PackagePageComponent";
 import { PackageVersionsPageComponent } from "./package-versions-page/package-versions-page.component";
@@ -45,7 +45,7 @@ export const routes: Routes = [
     },
     {
         path: "builds/:id",
-        component: BuildComponent
+        component: BuildPageComponent
     },
     {
         path: "origins",

@@ -45,6 +45,12 @@ export function duration(s) {
     return moment.utc(s * 1000).format("m [min] s [sec]");
 }
 
+// Parse a release and return a formatted date
+export function releaseToDate(release) {
+    let m = moment.utc(release, "YYYYMMDDHHmmss");
+    return m.isValid() ? m.format("YYYY-MM-DD") : null;
+}
+
 // Pretty-printed time
 export function friendlyTime(t) {
     return moment(t).fromNow();

@@ -32,14 +32,6 @@ class MockAppStore {
   dispatch() {}
 }
 
-class MockRoute {
-  params = Observable.of({
-    origin: "core",
-    name: "nginx",
-    id: "123"
-  });
-}
-
 describe("BuildComponent", () => {
   let fixture: ComponentFixture<BuildComponent>;
   let component: BuildComponent;
@@ -58,8 +50,7 @@ describe("BuildComponent", () => {
         MockComponent({ selector: "hab-package-breadcrumbs", inputs: [ "ident" ] })
       ],
       providers: [
-        { provide: AppStore, useClass: MockAppStore },
-        { provide: ActivatedRoute, useClass: MockRoute }
+        { provide: AppStore, useClass: MockAppStore }
       ]
     });
 
@@ -75,32 +66,67 @@ describe("BuildComponent", () => {
 
   describe("on init", () => {
 
-    it("fetches the specified build", () => {
-      spyOn(actions, "fetchBuild");
-      fixture.detectChanges();
-
-      expect(actions.fetchBuild).toHaveBeenCalledWith(
-        store.getState().builds.selected.info.id,
-        store.getState().gitHub.authToken
-      );
+    beforeEach(() => {
+      component.build = {
+        origin: "core",
+        name: "nginx",
+        id: "123"
+      };
     });
+  });
 
-    it("fetches the specified build log", () => {
-      spyOn(actions, "fetchBuildLog");
-      fixture.detectChanges();
+  describe("on changes", () => {
 
-      expect(actions.fetchBuildLog).toHaveBeenCalledWith(
-        store.getState().builds.selected.info.id,
-        store.getState().gitHub.authToken,
-        0
-      );
-    });
+    describe("when a build is provided", () => {
+      let changes;
 
-    it("initiates log streaming", () => {
-      spyOn(actions, "streamBuildLog");
-      fixture.detectChanges();
+      beforeEach(() => {
+        changes = {
+          build: {
+            currentValue: {
+              id: "123"
+            }
+          }
+        };
+      });
 
-      expect(actions.streamBuildLog).toHaveBeenCalledWith(true);
+      it("fetches the specified build log", () => {
+        spyOn(actions, "fetchBuildLog");
+        component.ngOnChanges(changes);
+
+        expect(actions.fetchBuildLog).toHaveBeenCalledWith(
+          store.getState().builds.selected.info.id,
+          store.getState().gitHub.authToken,
+          0
+        );
+      });
+
+      describe("log streaming", () => {
+
+        describe("by default", () => {
+
+          it("is set to false", () => {
+            spyOn(actions, "streamBuildLog");
+            component.ngOnChanges(changes);
+
+            expect(actions.streamBuildLog).toHaveBeenCalledWith(false);
+          });
+        });
+
+        describe("when requested", () => {
+
+          beforeEach(() => {
+            component.stream = true;
+          });
+
+          it("is set to true", () => {
+            spyOn(actions, "streamBuildLog");
+            component.ngOnChanges(changes);
+
+            expect(actions.streamBuildLog).toHaveBeenCalledWith(true);
+          });
+        });
+      });
     });
   });
 

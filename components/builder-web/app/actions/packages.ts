@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { groupBy, map } from "lodash";
+import { groupBy } from "lodash";
 import * as depotApi from "../depotApi";
 import * as fakeApi from "../fakeApi";
 import { fetchProjectsForPackages } from "./projects";
@@ -152,7 +152,7 @@ export function filterPackagesBy(
 }
 
 export function populateDashboardRecent(data) {
-    let grouped = groupBy(data.results, "name");
+    let grouped = groupBy(data.results.reverse(), "name");
     let mapped = [];
 
     for (let k in grouped) {
