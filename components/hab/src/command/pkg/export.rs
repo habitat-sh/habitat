@@ -101,6 +101,7 @@ mod inner {
                 try!(ui.status(Status::Missing, format!("package for {}", &format_ident)));
                 try!(install::start(ui,
                                     &default_depot_url(),
+                                    None,
                                     &format_ident.to_string(),
                                     PRODUCT,
                                     VERSION,

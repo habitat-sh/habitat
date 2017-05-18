@@ -196,7 +196,6 @@ use clap;
 use common::ui::{Status, UI};
 use hcore;
 use http_client::ApiClient;
-use url::Url;
 use url::percent_encoding::{utf8_percent_encode, PATH_SEGMENT_ENCODE_SET};
 use uuid::Uuid;
 
@@ -493,15 +492,6 @@ fn should_send() -> bool {
 /// The presence of a `false` return value is enough to assume that we want to save this event to
 /// disk for later retry.
 fn send_event(payload: &str) -> bool {
-    // Take the analytics URL string slice and parse it into a `Url` struct. Despite the fact that
-    // the string value is a constant, this could still fail and therefore has to be accounted for.
-    let url = match Url::parse(GOOGLE_ANALYTICS_URL) {
-        Ok(url) => url,
-        Err(e) => {
-            debug!("Error parsing URL: {}", e);
-            return false;
-        }
-    };
     // Create a new Hyper HTTP client, using a helper from the `habitat_http_client` crate. This
     // function is responsible for setting up the SSL context, finding suitable SSL root certificate
     // files, etc. The `None` reference is for a more advanced use case which is the Rust way of
@@ -513,10 +503,10 @@ fn send_event(payload: &str) -> bool {
     // matching arm is when something (or anything) goes wrong. In this case we absolutely do not
     // want to crash, panic this thread, or otherwise impact the real operation potentially running
     // concurrently. So, the strategy here is to report and early return.
-    let client = match ApiClient::new(&url, PRODUCT, super::VERSION, None) {
+    let client = match ApiClient::new(GOOGLE_ANALYTICS_URL, PRODUCT, super::VERSION, None) {
         Ok(c) => c,
         Err(e) => {
-            debug!("Error create HTTP client: {}", e);
+            debug!("Unable to create HTTP client for analytics: {}", e);
             return false;
         }
     };

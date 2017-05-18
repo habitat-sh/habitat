@@ -342,6 +342,7 @@ fn sub_plan_init(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 fn sub_pkg_install(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
     let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
+    let channel = m.value_of("CHANNEL");
     let ident_or_artifacts = m.values_of("PKG_IDENT_OR_ARTIFACT").unwrap(); // Required via clap
     let ignore_target = if m.is_present("IGNORE_TARGET") {
         true
@@ -353,6 +354,7 @@ fn sub_pkg_install(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     for ident_or_artifact in ident_or_artifacts {
         let pkg_ident = try!(common::command::package::install::start(ui,
                                                       url,
+                                                      channel,
                                                       ident_or_artifact,
                                                       PRODUCT,
                                                       VERSION,

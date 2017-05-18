@@ -60,6 +60,7 @@ pub fn command_from_min_pkg(ui: &mut UI,
             try!(ui.status(Status::Missing, format!("package for {}", &ident)));
             try!(common::command::package::install::start(ui,
                                                           &default_depot_url(),
+                                                          None,
                                                           &ident.to_string(),
                                                           PRODUCT,
                                                           VERSION,

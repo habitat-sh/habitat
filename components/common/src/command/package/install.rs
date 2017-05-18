@@ -55,17 +55,18 @@ use retry::retry;
 pub const RETRIES: u64 = 5;
 pub const RETRY_WAIT: u64 = 3000;
 
-pub fn start<P1: ?Sized, P2: ?Sized>(ui: &mut UI,
-                                     url: &str,
-                                     ident_or_archive: &str,
-                                     product: &str,
-                                     version: &str,
-                                     fs_root_path: &P1,
-                                     cache_artifact_path: &P2,
-                                     ignore_target: bool)
-                                     -> Result<PackageIdent>
-    where P1: AsRef<Path>,
-          P2: AsRef<Path>
+pub fn start<P1, P2>(ui: &mut UI,
+                     url: &str,
+                     channel: Option<&str>,
+                     ident_or_archive: &str,
+                     product: &str,
+                     version: &str,
+                     fs_root_path: &P1,
+                     cache_artifact_path: &P2,
+                     ignore_target: bool)
+                     -> Result<PackageIdent>
+    where P1: AsRef<Path> + ?Sized,
+          P2: AsRef<Path> + ?Sized
 {
     if !am_i_root() {
         try!(ui.warn("Installing a package requires root or administrator privileges. Please retry \
@@ -89,7 +90,7 @@ pub fn start<P1: ?Sized, P2: ?Sized>(ui: &mut UI,
     if Path::new(ident_or_archive).is_file() {
         task.from_artifact(ui, &Path::new(ident_or_archive))
     } else {
-        task.from_ident(ui, try!(PackageIdent::from_str(ident_or_archive)))
+        task.from_ident(ui, PackageIdent::from_str(ident_or_archive)?, channel)
     }
 }
 
@@ -119,11 +120,15 @@ impl<'a> InstallTask<'a> {
            })
     }
 
-    pub fn from_ident(&self, ui: &mut UI, ident: PackageIdent) -> Result<PackageIdent> {
+    pub fn from_ident(&self,
+                      ui: &mut UI,
+                      ident: PackageIdent,
+                      channel: Option<&str>)
+                      -> Result<PackageIdent> {
         try!(ui.begin(format!("Installing {}", &ident)));
         let mut ident = ident;
         if !ident.fully_qualified() {
-            ident = try!(self.fetch_latest_pkg_ident_for(&ident));
+            ident = self.fetch_latest_pkg_ident_for(&ident, channel)?;
         }
         if try!(self.is_package_installed(&ident)) {
             try!(ui.status(Status::Using, &ident));
@@ -235,8 +240,11 @@ impl<'a> InstallTask<'a> {
         Ok(self.cache_artifact_path.join(name))
     }
 
-    fn fetch_latest_pkg_ident_for(&self, fuzzy_ident: &PackageIdent) -> Result<PackageIdent> {
-        Ok(try!(self.depot_client.show_package(fuzzy_ident)).into())
+    fn fetch_latest_pkg_ident_for(&self,
+                                  ident: &PackageIdent,
+                                  channel: Option<&str>)
+                                  -> Result<PackageIdent> {
+        Ok(self.depot_client.show_package(ident, channel)?.into())
     }
 
     fn fetch_artifact(&self,

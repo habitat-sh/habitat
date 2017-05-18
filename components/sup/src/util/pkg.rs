@@ -28,10 +28,15 @@ use manager::service::UpdateStrategy;
 
 static LOGKEY: &'static str = "PK";
 
-pub fn install(ui: &mut UI, depot_url: &str, ident: &PackageIdent) -> Result<PackageInstall> {
+pub fn install(ui: &mut UI,
+               url: &str,
+               ident: &PackageIdent,
+               channel: Option<&str>)
+               -> Result<PackageInstall> {
     let fs_root_path = Path::new(&*FS_ROOT_PATH);
     let installed_ident = common::command::package::install::start(ui,
-                                                                   depot_url,
+                                                                   url,
+                                                                   channel,
                                                                    &ident.to_string(),
                                                                    PRODUCT,
                                                                    VERSION,
@@ -47,7 +52,7 @@ pub fn maybe_install_newer(ui: &mut UI,
                            -> Result<PackageInstall> {
     let latest_ident: PackageIdent = {
         let depot_client = Client::new(&spec.depot_url, PRODUCT, VERSION, None)?;
-        match depot_client.show_package(&spec.ident) {
+        match depot_client.show_package(&spec.ident, spec.channel.as_ref().map(String::as_ref)) {
             Ok(pkg) => pkg.get_ident().clone().into(),
             Err(_) => return Ok(current),
         }
@@ -58,7 +63,10 @@ pub fn maybe_install_newer(ui: &mut UI,
                   spec.ident,
                   latest_ident,
                   spec.depot_url);
-        self::install(ui, &spec.depot_url, &latest_ident)
+        self::install(ui,
+                      &spec.depot_url,
+                      &latest_ident,
+                      spec.channel.as_ref().map(String::as_ref))
     } else {
         outputln!("Confirmed latest version of {} is {}",
                   spec.ident,
@@ -79,7 +87,10 @@ pub fn install_from_spec(ui: &mut UI, spec: &ServiceSpec) -> Result<PackageInsta
             outputln!("{} not found in local package cache, installing from {}",
                       Yellow.bold().paint(spec.ident.to_string()),
                       &spec.depot_url);
-            Ok(install(ui, spec.depot_url.as_str(), &spec.ident)?)
+            Ok(install(ui,
+                       spec.depot_url.as_str(),
+                       &spec.ident,
+                       spec.channel.as_ref().map(String::as_ref))?)
         }
     }
 }

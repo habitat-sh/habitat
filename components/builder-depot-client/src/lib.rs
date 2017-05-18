@@ -27,6 +27,8 @@ extern crate rand;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
+#[allow(unused_imports)]
+#[macro_use]
 extern crate serde_json;
 extern crate tee;
 extern crate url;
@@ -120,7 +122,7 @@ pub struct OriginSecretKey {
     pub revision: String,
     pub body: Vec<u8>,
     #[serde(with = "json_u64")]
-    pub owner_id: u64
+    pub owner_id: u64,
 }
 
 #[derive(Clone, Deserialize)]
@@ -180,18 +182,17 @@ pub trait DisplayProgress: Write {
     fn finish(&mut self);
 }
 
-pub struct Client {
-    inner: ApiClient,
-}
+pub struct Client(ApiClient);
 
 impl Client {
-    pub fn new<U: IntoUrl>(hab_depot_url: U,
-                           product: &str,
-                           version: &str,
-                           fs_root_path: Option<&Path>)
-                           -> Result<Self> {
-        let url = try!(hab_depot_url.into_url());
-        Ok(Client { inner: try!(ApiClient::new(&url, product, version, fs_root_path)) })
+    pub fn new<U>(depot_url: U,
+                  product: &str,
+                  version: &str,
+                  fs_root_path: Option<&Path>)
+                  -> Result<Self>
+        where U: IntoUrl
+    {
+        Ok(Client(ApiClient::new(depot_url, product, version, fs_root_path)?))
     }
 
     /// Download a public key from a remote Depot to the given filepath.
@@ -216,9 +217,7 @@ impl Client {
     }
 
     pub fn show_origin_keys(&self, origin: &str) -> Result<Vec<originsrv::OriginKeyIdent>> {
-        let mut res = try!(self.inner
-                               .get(&format!("origins/{}/keys", origin))
-                               .send());
+        let mut res = self.0.get(&origin_keys_path(origin)).send()?;
         debug!("Response: {:?}", res);
 
         if res.status != StatusCode::Ok {
@@ -262,11 +261,11 @@ impl Client {
         let result = if let Some(mut progress) = progress {
             progress.size(file_size);
             let mut reader = TeeReader::new(file, progress);
-            self.add_authz(self.inner.post(&path), token)
+            self.add_authz(self.0.post(&path), token)
                 .body(Body::SizedBody(&mut reader, file_size))
                 .send()
         } else {
-            self.add_authz(self.inner.post(&path), token)
+            self.add_authz(self.0.post(&path), token)
                 .body(Body::SizedBody(&mut file, file_size))
                 .send()
         };
@@ -297,11 +296,8 @@ impl Client {
     ///
     /// * Authorization token was not set on client
     pub fn fetch_origin_secret_key(&self, origin: &str, token: &str) -> Result<OriginSecretKey> {
-        let mut res = try!(self.add_authz(self.inner
-                                              .get(&format!("origins/{}/secret_keys/latest",
-                                                            origin)),
-                                          token)
-                               .send());
+        let mut res = self.add_authz(self.0.get(&origin_secret_keys_latest(origin)), token)
+            .send()?;
         if res.status != StatusCode::Ok {
             return Err(err_from_response(res));
         }
@@ -337,11 +333,11 @@ impl Client {
         let result = if let Some(mut progress) = progress {
             progress.size(file_size);
             let mut reader = TeeReader::new(file, progress);
-            self.add_authz(self.inner.post(&path), token)
+            self.add_authz(self.0.post(&path), token)
                 .body(Body::SizedBody(&mut reader, file_size))
                 .send()
         } else {
-            self.add_authz(self.inner.post(&path), token)
+            self.add_authz(self.0.post(&path), token)
                 .body(Body::SizedBody(&mut file, file_size))
                 .send()
         };
@@ -364,18 +360,19 @@ impl Client {
     /// * Package cannot be found
     /// * Remote Depot is not available
     /// * File cannot be created and written to
-    pub fn fetch_package<D, I, P: ?Sized>(&self,
-                                          ident: &I,
-                                          dst_path: &P,
-                                          progress: Option<D>)
-                                          -> Result<PackageArchive>
-        where P: AsRef<Path>,
+    pub fn fetch_package<D, I, P>(&self,
+                                  ident: &I,
+                                  dst_path: &P,
+                                  progress: Option<D>)
+                                  -> Result<PackageArchive>
+        where P: AsRef<Path> + ?Sized,
               I: Identifiable,
               D: DisplayProgress + Sized
     {
-        match self.download(&format!("pkgs/{}/download", ident),
-                            dst_path.as_ref(),
-                            progress) {
+        // JW TODO: We need to add a channel scoped /download route to the API server. Technically
+        // this is wrong because we only want to download packages that are in the channel we
+        // specified to the API client
+        match self.download(&package_download(ident), dst_path.as_ref(), progress) {
             Ok(file) => Ok(PackageArchive::new(PathBuf::from(file))),
             Err(e) => Err(e),
         }
@@ -390,9 +387,21 @@ impl Client {
     ///
     /// * Package cannot be found
     /// * Remote Depot is not available
-    pub fn show_package<I: Identifiable>(&self, ident: &I) -> Result<originsrv::OriginPackage> {
-        let mut res = try!(self.inner.get(&self.path_show_package(ident)).send());
-
+    pub fn show_package<I>(&self,
+                           package: &I,
+                           channel: Option<&str>)
+                           -> Result<originsrv::OriginPackage>
+        where I: Identifiable
+    {
+        let mut url = if let Some(channel) = channel {
+            channel_package_path(channel, package)
+        } else {
+            package_path(package)
+        };
+        if !package.fully_qualified() {
+            url.push_str("/latest");
+        }
+        let mut res = self.0.get(&url).send()?;
         if res.status != StatusCode::Ok {
             return Err(err_from_response(res));
         }
@@ -426,18 +435,18 @@ impl Client {
         let ident = try!(pa.ident());
         let mut file = try!(File::open(&pa.path));
         let file_size = try!(file.metadata()).len();
-        let path = format!("pkgs/{}", ident);
+        let path = package_path(&ident);
         let custom = |url: &mut Url| { url.query_pairs_mut().append_pair("checksum", &checksum); };
         debug!("Reading from {}", &pa.path.display());
 
         let result = if let Some(mut progress) = progress {
             progress.size(file_size);
             let mut reader = TeeReader::new(file, progress);
-            self.add_authz(self.inner.post_with_custom_url(&path, custom), token)
+            self.add_authz(self.0.post_with_custom_url(&path, custom), token)
                 .body(Body::SizedBody(&mut reader, file_size))
                 .send()
         } else {
-            self.add_authz(self.inner.post_with_custom_url(&path, custom), token)
+            self.add_authz(self.0.post_with_custom_url(&path, custom), token)
                 .body(Body::SizedBody(&mut file, file_size))
                 .send()
         };
@@ -453,7 +462,7 @@ impl Client {
         let ident = try!(pa.ident());
         let mut file = try!(File::open(&pa.path));
         let file_size = try!(file.metadata()).len();
-        let path = format!("pkgs/{}", ident);
+        let path = package_path(&ident);
         let custom = |url: &mut Url| {
             url.query_pairs_mut()
                 .append_pair("checksum", &checksum)
@@ -461,7 +470,7 @@ impl Client {
         };
         debug!("Reading from {}", &pa.path.display());
 
-        let result = self.add_authz(self.inner.post_with_custom_url(&path, custom), token)
+        let result = self.add_authz(self.0.post_with_custom_url(&path, custom), token)
             .body(Body::SizedBody(&mut file, file_size))
             .send();
         match result {
@@ -486,16 +495,10 @@ impl Client {
                            token: &str)
                            -> Result<()> {
         let ident = try!(pa.ident());
-        let path = format!("channels/{}/{}/pkgs/{}/{}/{}/promote",
-                           ident.origin,
-                           channel,
-                           ident.name,
-                           ident.version.unwrap(),
-                           ident.release.unwrap());
+        let path = channel_package_promote(channel, &ident);
+        debug!("Promoting package, path: {:?}", path);
 
-        debug!("Promoting package, path: {}", path);
-
-        let res = self.add_authz(self.inner.put(&path), token).send()?;
+        let res = self.add_authz(self.0.put(&path), token).send()?;
 
         if res.status != StatusCode::Ok {
             return Err(err_from_response(res));
@@ -510,12 +513,9 @@ impl Client {
     ///
     /// * Remote depot unavailable
     pub fn search_package(&self,
-                          search_term: String)
+                          search_term: &str)
                           -> Result<(Vec<hab_core::package::PackageIdent>, bool)> {
-
-        let mut res = try!(self.inner
-                               .get(&format!("pkgs/search/{}", search_term))
-                               .send());
+        let mut res = self.0.get(&package_search(search_term)).send()?;
         match res.status {
             StatusCode::Ok |
             StatusCode::PartialContent => {
@@ -534,18 +534,10 @@ impl Client {
         rb.header(Authorization(Bearer { token: token.to_string() }))
     }
 
-    fn path_show_package<I: Identifiable>(&self, package: &I) -> String {
-        if package.fully_qualified() {
-            format!("pkgs/{}", package)
-        } else {
-            format!("pkgs/{}/latest", package)
-        }
-    }
-
     fn download<D>(&self, path: &str, dst_path: &Path, progress: Option<D>) -> Result<PathBuf>
         where D: DisplayProgress + Sized
     {
-        let mut res = try!(self.inner.get(path).send());
+        let mut res = try!(self.0.get(path).send());
         debug!("Response: {:?}", res);
 
         if res.status != hyper::status::StatusCode::Ok {
@@ -601,8 +593,62 @@ fn err_from_response(mut response: hyper::client::Response) -> Error {
     }
 }
 
+fn origin_keys_path(origin: &str) -> String {
+    format!("origins/{}/keys", origin)
+}
+
+fn origin_secret_keys_latest(origin: &str) -> String {
+    format!("origins/{}/secret_keys/latest", origin)
+}
+
+fn package_download<I>(package: &I) -> String
+    where I: Identifiable
+{
+    format!("{}/download", package_path(package))
+}
+
+fn package_path<I>(package: &I) -> String
+    where I: Identifiable
+{
+    format!("pkgs/{}", package)
+}
+
+fn package_search(term: &str) -> String {
+    format!("pkgs/search/{}", term)
+}
+
+fn channel_package_path<I>(channel: &str, package: &I) -> String
+    where I: Identifiable
+{
+    let mut path = format!("channels/{}/{}/pkgs/{}",
+                           package.origin(),
+                           channel,
+                           package.name());
+    if let Some(version) = package.version() {
+        path.push_str("/");
+        path.push_str(version);
+        if let Some(release) = package.release() {
+            path.push_str("/");
+            path.push_str(release);
+        }
+    }
+    path
+}
+
+fn channel_package_promote<I>(channel: &str, package: &I) -> String
+    where I: Identifiable
+{
+    format!("channels/{}/{}/pkgs/{}/{}/{}/promote",
+            package.origin(),
+            channel,
+            package.name(),
+            package.version().unwrap(),
+            package.release().unwrap())
+}
+
 #[cfg(test)]
 mod tests {
+    use serde_json;
     use super::*;
 
     #[test]
@@ -612,18 +658,26 @@ mod tests {
             origin_id: 705705305031319582,
             name: "core".to_string(),
             revision: "20160810182414".to_string(),
-            body: vec![1,2,3],
-            owner_id: 0
+            body: vec![1, 2, 3],
+            owner_id: 0,
         };
 
-        // Confirm that u64s serialize to strings
-        let as_json = serde_json::to_string(&pre).unwrap();
-        let expected = "{\"id\":\"705705315793903646\",\"origin_id\":\"705705305031319582\",\"name\":\"core\",\"revision\":\"20160810182414\",\"body\":[1,2,3],\"owner_id\":\"0\"}".to_string();
+        let as_json = serde_json::to_value(&pre).unwrap();
+        let expected = json!({
+            "id": "705705315793903646",
+            "origin_id": "705705305031319582",
+            "name": "core",
+            "revision": "20160810182414",
+            "body": [
+                1,
+                2,
+                3
+            ],
+            "owner_id": "0"
+        });
         assert_eq!(as_json, expected);
 
-        let post: OriginSecretKey = serde_json::from_str(&as_json).unwrap();
-
-        // Confirm that strings deserialize back to u64s
+        let post: OriginSecretKey = serde_json::from_value(as_json).unwrap();
         assert_eq!(pre.id, post.id);
         assert_eq!(pre.origin_id, post.origin_id);
         assert_eq!(pre.owner_id, post.owner_id);
