@@ -21,6 +21,9 @@ You can create a Docker container image for any package by performing the follow
 
 5. You can now exit the studio. The new Docker container image exists on your computer and can be examined with `docker images` or run with `docker run`.
 
+
+Note that the `hab pkg install <local artifact>` command will only work if the studio has a copy of the origin's public key. If the install command fails with a 404 on the origin in question, make sure the public depot has a copy of the origin's public key.
+ 
 For an example of running a Habitat service in a Docker container, see the [Run your service](/tutorials/getting-started-process-build) step in the Getting Started tutorial.
 
 ## Exporting to an Application Container Image (ACI)

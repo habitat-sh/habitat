@@ -22,6 +22,8 @@ An example is leader election; it's handled here by having a consistent (and sim
 
 The Habitat supervisor provides a HTTP API to expose cluster metadata, statistics, and general diagnostic information useful for monitoring and support in the form of a JSON document. It also provides detailed information about the Habitat package that it is supervising, including metadata such as the build and runtime dependencies and their versions.
 
+Note: The HTTP API for the supervisor will only be available if the sup process is started with a `--topology` or `--peer`. The default port is TCP 9631
+
 <hr>
 <ul class="main-content--link-nav">
   <li>Continue to the next topic</li>

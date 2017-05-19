@@ -20,12 +20,12 @@ Each scaffolding defines a default value for `pkg_source` in [URI syntax](https:
 
 * [core/scaffolding-go](https://github.com/habitat-sh/core-plans/tree/master/scaffolding-go)
 * [core/scaffolding-go17](https://github.com/habitat-sh/core-plans/tree/master/scaffolding-go17)
-* [core/scaffolding-python](https://github.com/habitat-sh/core-plans/tree/master/scaffolding-python)
-* [core/scaffolding-python2](https://github.com/habitat-sh/core-plans/tree/master/scaffolding-python2)
 * [core/scaffolding-ruby](https://github.com/habitat-sh/core-plans/blob/master/scaffolding-ruby/doc/reference.md)
 
 ### Coming Soon!
 
+* core/scaffolding-python
+* core/scaffolding-python2
 * core/scaffolding-python-gunicorn
 * core/scaffolding-python2-gunicorn
 * core/scaffolding-python-uwsgi
