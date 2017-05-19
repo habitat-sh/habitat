@@ -685,23 +685,11 @@ enter_studio() {
     set -x
   fi
 
-  echo "$studio_supervisor_start_command" | $bb chroot "$HAB_STUDIO_ROOT" \
-    $studio_env_command -i $env $studio_run_command
-
-  trap stop_supervisor EXIT
+  trap cleanup_studio EXIT
 
   # Become the `chroot` process
   $bb chroot "$HAB_STUDIO_ROOT" \
     $studio_env_command -i $env $studio_enter_command $*
-}
-
-# **Internal** Run when an entered studio exits.
-stop_supervisor() {
-  lock_file="$HAB_STUDIO_ROOT/hab/sup/default/LOCK"
-
-  if [ -f $lock_file ]; then
-    $bb kill $($bb cat $lock_file)
-  fi
 }
 
 # **Internal** Run a build command using a Studio.
@@ -956,6 +944,13 @@ chroot_env() {
   if [ -n "${HAB_ORIGIN:-}" ]; then
     env="$env HAB_ORIGIN=$HAB_ORIGIN"
   fi
+  # Used to customize the arguments to pass to an automatically launched
+  # Supervisor, or to disable the automatic launching (by setting to 'false').
+  if [ -n "${HAB_STUDIO_SUP:-}" ]; then
+    # We want to pass a value that contains spaces, so we'll encode the spaces
+    # for unpacking inside the Studio. Sorry world, but it's after 11pm.
+    env="$env HAB_STUDIO_SUP=$(echo $HAB_STUDIO_SUP | $bb sed 's/ /__sp__/g')"
+  fi
   # If HTTP proxy variables are detected in the current environment, propagate
   # them into the Studio's environment.
   if [ -n "${http_proxy:-}" ]; then
@@ -995,6 +990,9 @@ report_env_vars() {
   if [ -n "${HAB_NONINTERACTIVE:-}" ]; then
     info "Exported: HAB_NONINTERACTIVE=$HAB_NONINTERACTIVE"
   fi
+  if [ -n "${HAB_STUDIO_SUP:-}" ]; then
+    info "Exported: HAB_STUDIO_SUP=$HAB_STUDIO_SUP"
+  fi
   if [ -n "${http_proxy:-}" ]; then
     info "Exported: http_proxy=$http_proxy"
   fi
@@ -1003,6 +1001,16 @@ report_env_vars() {
   fi
   if [ -n "${no_proxy:-}" ]; then
     info "Exported: no_proxy=$no_proxy"
+  fi
+}
+
+# **Internal** Run when an interactive studio exits.
+cleanup_studio() {
+  local lock_file
+  lock_file="$HAB_STUDIO_ROOT/hab/sup/default/LOCK"
+
+  if [ -f $lock_file ]; then
+    $bb kill $($bb cat $lock_file)
   fi
 }
 

@@ -6,7 +6,6 @@ studio_build_environment=
 studio_build_command="record \${1:-} $HAB_ROOT_PATH/bin/build"
 studio_run_environment=
 studio_run_command="$HAB_ROOT_PATH/bin/hab pkg exec core/hab-backline bash -l"
-studio_supervisor_start_command="start_supervisor"
 
 pkgs="${HAB_BACKLINE_PKG:-core/hab-backline}"
 
@@ -66,7 +65,6 @@ finish_setup() {
   local coreutils_path=$(_pkgpath_for core/coreutils)
 
   $bb mkdir -p $v $HAB_STUDIO_ROOT$HAB_ROOT_PATH/bin
-  $bb mkdir -p $v $HAB_STUDIO_ROOT$HAB_ROOT_PATH/sup/default
 
   # Put `hab` on the default `$PATH`
   _hab pkg binlink --dest $HAB_ROOT_PATH/bin core/hab hab
@@ -85,12 +83,6 @@ finish_setup() {
 exec $HAB_ROOT_PATH/bin/hab pkg exec core/hab-plan-build hab-plan-build \$*
 EOF
   $bb chmod $v 755 $HAB_STUDIO_ROOT$HAB_ROOT_PATH/bin/build
-
-  $bb cat <<TAIL_SUP > $HAB_STUDIO_ROOT$HAB_ROOT_PATH/bin/slog
-#!$bash_path/bin/sh
-exec tail -f /hab/sup/default/out.log
-TAIL_SUP
-  $bb chmod $v 755 $HAB_STUDIO_ROOT$HAB_ROOT_PATH/bin/slog
 
   # Set the login shell for any relevant user to be `/bin/bash`
   $bb sed -e "s,/bin/sh,$bash_path/bin/bash,g" -i $HAB_STUDIO_ROOT/etc/passwd
@@ -121,19 +113,63 @@ emacs() {
   fi
 }
 
-start_supervisor() {
-  if [ -z \$NO_BG_SUP ]; then
-    $HAB_ROOT_PATH/bin/hab sup run > /hab/sup/default/out.log &
-    echo "** The Habitat Supervisor has been started in the background."
-    echo "** Use 'hab sup start' and 'hab sup stop' to start and stop services."
-    echo "** Use the 'slog' command to stream the supervisor log."
-    echo "** Adding 'NO_BG_SUP=1' to your .studiorc file will disable the background supervisor."
-    echo ""
+if [[ -n "\${HAB_STUDIO_SUP}" ]]; then
+  # This environment variable does not handle spaces well, so we'll re-add
+  # them...
+  HAB_STUDIO_SUP="\$(echo \$HAB_STUDIO_SUP | sed 's/__sp__/ /g')"
+fi
+
+sup-run() {
+  mkdir -p /hab/sup/default
+  echo "--> Launching the Habitat Supervisor in the background..."
+  echo "    Running: hab sup run \$*"
+  hab sup run \$* > /hab/sup/default/sup.log &
+  echo "    * Use 'hab svc start' & 'hab svc stop' to start and stop services"
+  echo "    * Use 'sup-log' to tail the Supervisor's output (Ctrl+c to stop)"
+  echo "    * Use 'sup-term' to terminate the Supervisor"
+  if [[ -z "\${HAB_STUDIO_SUP:-}" ]]; then
+    echo "    * To pass custom arguments to run the Supervisor, export"
+    echo "      'HAB_STUDIO_SUP' with the arguments before running"
+    echo "      'hab studio enter'."
+  fi
+  echo ""
+}
+
+sup-term() {
+  if [ -f /hab/sup/default/LOCK ]; then
+    echo "--> Killing Habitat Supervisor running in the background..."
+    kill \$(cat /hab/sup/default/LOCK) \\
+      && echo "    Supervisor killed." \\
+      || echo "--> Error killing Supervisor."
   else
-    echo "** \\\$NO_BG_SUP was set. The Habitat Supervisor is not running."
-    echo ""
+    echo "--> No Supervisor lock file found, Supervisor may not be running."
   fi
 }
+
+sup-log() {
+  mkdir -p /hab/sup/default
+  touch /hab/sup/default/sup.log
+  echo "--> Tailing the Habitat Supervisor's output (use 'Ctrl+c' to stop)"
+  tail -f /hab/sup/default/sup.log
+}
+
+alias sr='sup-run'
+alias st='sup-term'
+alias sl='sup-log'
+
+# Automatically run the Habitat Supervisor
+case "\${HAB_STUDIO_SUP:-}" in
+  false|FALSE|no|NO|0)
+    # If false, we don't run the Supervisor
+    ;;
+  *)
+    sup-run \${HAB_STUDIO_SUP:-}
+    echo "--> To prevent a Supervisor from running automatically in your"
+    echo "    Studio, export 'HAB_STUDIO_SUP=false' before running"
+    echo "    'hab studio enter'."
+    echo ""
+    ;;
+esac
 
 # Add command line completion
 source <(hab cli completers --shell bash)

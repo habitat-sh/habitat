@@ -5,7 +5,6 @@ studio_build_environment=
 studio_build_command=
 studio_run_environment=
 studio_run_command=
-studio_supervisor_start_command=
 
 base_pkgs="core/hab core/hab-sup"
 : ${PKGS:=}

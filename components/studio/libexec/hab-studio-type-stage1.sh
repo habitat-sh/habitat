@@ -7,7 +7,6 @@ studio_build_environment=
 studio_build_command=
 studio_run_environment=
 studio_run_command=
-studio_supervisor_start_command=
 
 : ${STAGE1_TOOLS_URL:=https://s3-us-west-2.amazonaws.com/habitat-studio-stage1/habitat-studio-stage1-20160612022150.tar.xz}
 : ${TAR_DIR:=/tmp}
