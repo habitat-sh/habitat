@@ -162,4 +162,13 @@ describe("Routes", () => {
       expect(r.component).toBe(SignInPageComponent);
     });
   });
+
+  describe("non-existent routes", () => {
+    it("redirect to /pkgs/core", () => {
+      let r = route("*");
+      let lastRoute = routes[routes.length - 1];
+      expect(r.redirectTo).toBe("/pkgs/core");
+      expect(lastRoute).toBe(r);
+    });
+  });
 });

@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import * as cookies from "js-cookie";
+import * as gitHub from "./actions/gitHub";
 import * as actions from "./actions/index";
 
 describe("actions", () => {
@@ -36,6 +38,34 @@ describe("actions", () => {
             expect(actions.populateExploreStats(data)).toEqual({
                 type: actions.POPULATE_EXPLORE_STATS,
                 payload: data
+            });
+        });
+    });
+
+    describe("gitHub", () => {
+
+        describe("setCookie", () => {
+
+            it("applies the proper domain", () => {
+                spyOn(cookies, "set");
+
+                spyOn(gitHub, "currentHostname").and.returnValues(
+                    "localhost",
+                    "builder.habitat.sh",
+                    "builder.acceptance.habitat.foo"
+                );
+
+                gitHub.setCookie("gitHubAuthToken", "some-token");
+                gitHub.setCookie("gitHubAuthToken", "some-token");
+                gitHub.setCookie("gitHubAuthToken", "some-token");
+
+                expect(cookies.set.calls.allArgs()).toEqual(
+                    [
+                        [ "gitHubAuthToken", "some-token", { domain: "localhost", secure: false } ],
+                        [ "gitHubAuthToken", "some-token", { domain: "habitat.sh", secure: false } ],
+                        [ "gitHubAuthToken", "some-token", { domain: "habitat.foo", secure: false } ]
+                    ]
+                );
             });
         });
     });

@@ -13,12 +13,13 @@
 // limitations under the License.
 
 import {Component, ElementRef, HostListener, Input} from "@angular/core";
+import config from "../../config";
 
 @Component({
     selector: "hab-user-nav",
     template: `
     <div class="main-nav--cta" *ngIf="!isSignedIn">
-      <a class="button" [routerLink]="['/sign-in']">Sign In</a>
+      <a class="button" href="{{ config['www_url'] }}/try">Get Started</a>
     </div>
     <div class="main-nav--profile" *ngIf="isSignedIn">
         <span class="main-nav--avatar">
@@ -56,5 +57,9 @@ export class UserNavComponent {
             (!this.isOpen && this.element.nativeElement.contains(event.target))) {
             this.toggleUserNavMenu();
         }
+    }
+
+    get config() {
+        return config;
     }
 }

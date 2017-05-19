@@ -120,6 +120,10 @@ export const routes: Routes = [
     {
         path: "orgs/create",
         component: OrganizationCreatePageComponent,
+    },
+    {
+        path: "*",
+        redirectTo: "/pkgs/core"
     }
 ];
 

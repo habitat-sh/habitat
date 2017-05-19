@@ -171,9 +171,9 @@ function populateGitHubUserData(payload) {
 
 export function removeSessionStorage() {
     return dispatch => {
-        cookies.remove("gitHubAuthState");
-        cookies.remove("gitHubAuthToken");
-        cookies.remove("featureFlags");
+        cookies.remove("gitHubAuthState", { domain: cookieDomain() });
+        cookies.remove("gitHubAuthToken", { domain: cookieDomain() });
+        cookies.remove("featureFlags", { domain: cookieDomain() });
     };
 }
 
@@ -222,8 +222,24 @@ function resetGitHubRepos() {
     };
 }
 
+// Return up to two trailing segments of the current hostname
+// for purposes of setting the cookie domain.
+function cookieDomain() {
+    let delim = ".";
+
+    return currentHostname()
+        .split(delim)
+        .splice(-2)
+        .join(delim);
+}
+
+export const currentHostname = () => {
+    return location.hostname;
+};
+
 export function setCookie (key, value) {
     return cookies.set(key, value, {
+        domain: cookieDomain(),
         secure: window.location.protocol === "https"
     });
 }

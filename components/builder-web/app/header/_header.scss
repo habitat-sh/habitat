@@ -136,7 +136,7 @@ $main-nav-breakpoint: 710px;
 
   @media (min-width: 820px) {
     .main-nav--link {
-      padding: 0 rem(44) 0 0;
+      padding: 0 rem(30) 0 0;
     }
   }
 }
@@ -176,11 +176,19 @@ $main-nav-breakpoint: 710px;
       padding-bottom: rem(30);
     }
   }
+
+  &.cta-link {
+    a {
+      margin-left: rem(60);
+      color: $hab-orange;
+    }
+  }
 }
 
 .main-nav--cta {
   float: right;
-  margin: rem(10) rem(10) 0 0;
+  padding: 0;
+  margin: 0;
 
   .button {
     background: transparent;
