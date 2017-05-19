@@ -285,17 +285,17 @@ function Enter-Studio {
     # We do this because breaking out of the tail stream via ctrl-C breaks
     # nested shells.
     function slog {
-      Start-Process "$env:STUDIO_SCRIPT_ROOT\powershell\powershell.exe" -ArgumentList "-Command `"& {Get-Content $env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\log.out -Tail 100 -Wait}`""
+      Start-Process "$env:STUDIO_SCRIPT_ROOT\powershell\powershell.exe" -ArgumentList "-Command `"& {Get-Content $env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\out.log -Tail 100 -Wait}`""
     }
 
     New-PSDrive -Name "Habitat" -PSProvider FileSystem -Root $env:HAB_STUDIO_ENTER_ROOT | Out-Null
     mkdir $env:HAB_STUDIO_ENTER_ROOT\hab\sup\default -Force | Out-Null
-    Start-Process hab.exe -ArgumentList "sup run" -NoNewWindow -RedirectStandardOutput $env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\log.out
+    Start-Process hab.exe -ArgumentList "sup run" -NoNewWindow -RedirectStandardOutput $env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\out.log
     Write-Host  "** The Habitat Supervisor has been started in the background." -ForegroundColor Cyan
     Write-Host  "** Use 'hab sup start' and 'hab sup stop' to start and stop services." -ForegroundColor Cyan
     Write-Host  "** Use the 'slog' command to stream the supervisor log." -ForegroundColor Cyan
     Write-Host  ""
-    
+
     Set-Location "Habitat:\src"
   }
 
