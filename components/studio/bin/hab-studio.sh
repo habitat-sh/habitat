@@ -599,6 +599,8 @@ if command -v dircolors > /dev/null; then
   eval "$(dircolors -b)"
 fi
 alias ls="ls --color=auto"
+alias ll="ls -l"
+alias la="ls -al"
 
 # Set a prompt which tells us what kind of Studio we're in
 if [ "${HAB_NOCOLORING:-}" = "true" ]; then
