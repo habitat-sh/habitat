@@ -24,9 +24,22 @@ use winapi;
 
 use error::{Error, Result};
 
-use super::{HabExitStatus, ExitStatusExt, ShutdownMethod};
+use super::{HabExitStatus, ExitStatusExt, ShutdownMethod, OsSignal, Signal};
 
 const STILL_ACTIVE: u32 = 259;
+
+pub type Pid = winapi::DWORD;
+pub type SignalCode = winapi::DWORD;
+
+impl OsSignal for Signal {
+    fn from_signal_code(code: SignalCode) -> Option<Signal> {
+        None
+    }
+
+    fn os_signal(&self) -> SignalCode {
+        0
+    }
+}
 
 pub fn become_command(command: PathBuf, args: Vec<OsString>) -> Result<()> {
     become_child_command(command, args)
@@ -38,7 +51,7 @@ pub fn current_pid() -> u32 {
 }
 
 /// Determines if a process is running with the given process identifier.
-pub fn is_alive(pid: u32) -> bool {
+pub fn is_alive(pid: Pid) -> bool {
     match handle_from_pid(pid) {
         Some(handle) => {
             let exit_status = exit_status(handle).expect("Failed to get exit status");
@@ -49,6 +62,13 @@ pub fn is_alive(pid: u32) -> bool {
         }
         None => false,
     }
+}
+
+pub fn signal(pid: Pid, signal: Signal) -> Result<()> {
+    debug!("sending no-op(windows) signal {} to pid {}",
+           signal.os_signal(),
+           pid);
+    Ok(())
 }
 
 /// Executes a command as a child process and exits with the child's exit code.
@@ -67,12 +87,12 @@ fn become_child_command(command: PathBuf, args: Vec<OsString>) -> Result<()> {
     process::exit(status.code().unwrap())
 }
 
-fn handle_from_pid(pid: u32) -> Option<winapi::HANDLE> {
+fn handle_from_pid(pid: Pid) -> Option<winapi::HANDLE> {
     unsafe {
         let proc_handle = kernel32::OpenProcess(winapi::PROCESS_QUERY_LIMITED_INFORMATION |
                                                 winapi::PROCESS_TERMINATE,
                                                 winapi::FALSE,
-                                                pid as winapi::DWORD);
+                                                pid);
 
         // we expect this to happen if the process died
         // before OpenProcess completes

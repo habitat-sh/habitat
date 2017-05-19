@@ -26,7 +26,29 @@ mod imp;
 #[path = "linux.rs"]
 mod imp;
 
-pub use self::imp::{become_command, current_pid, is_alive};
+pub use self::imp::{become_command, current_pid, is_alive, signal, Pid, SignalCode};
+
+pub trait OsSignal {
+    fn os_signal(&self) -> SignalCode;
+    fn from_signal_code(SignalCode) -> Option<Signal>;
+}
+
+#[allow(non_snake_case)]
+#[derive(Clone, Copy, Debug)]
+pub enum Signal {
+    INT,
+    ILL,
+    ABRT,
+    FPE,
+    KILL,
+    SEGV,
+    TERM,
+    HUP,
+    QUIT,
+    ALRM,
+    USR1,
+    USR2,
+}
 
 pub enum ShutdownMethod {
     AlreadyExited,
@@ -57,7 +79,7 @@ impl HabChild {
         }
     }
 
-    pub fn id(&self) -> u32 {
+    pub fn id(&self) -> Pid {
         self.inner.id()
     }
 

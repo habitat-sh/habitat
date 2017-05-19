@@ -22,7 +22,42 @@ use time::{Duration, SteadyTime};
 
 use error::{Error, Result};
 
-use super::{HabExitStatus, ExitStatusExt, ShutdownMethod};
+use super::{HabExitStatus, ExitStatusExt, OsSignal, ShutdownMethod, Signal};
+
+pub type Pid = libc::pid_t;
+pub type SignalCode = libc::c_int;
+
+impl OsSignal for Signal {
+    fn from_signal_code(code: SignalCode) -> Option<Signal> {
+        match code {
+            libc::SIGINT => Some(Signal::INT),
+            libc::SIGILL => Some(Signal::ILL),
+            libc::SIGABRT => Some(Signal::ABRT),
+            libc::SIGFPE => Some(Signal::FPE),
+            libc::SIGKILL => Some(Signal::KILL),
+            libc::SIGSEGV => Some(Signal::SEGV),
+            libc::SIGTERM => Some(Signal::TERM),
+            _ => None,
+        }
+    }
+
+    fn os_signal(&self) -> SignalCode {
+        match *self {
+            Signal::INT => libc::SIGINT,
+            Signal::ILL => libc::SIGILL,
+            Signal::ABRT => libc::SIGABRT,
+            Signal::FPE => libc::SIGFPE,
+            Signal::KILL => libc::SIGKILL,
+            Signal::SEGV => libc::SIGSEGV,
+            Signal::TERM => libc::SIGTERM,
+            Signal::HUP => libc::SIGHUP,
+            Signal::QUIT => libc::SIGQUIT,
+            Signal::ALRM => libc::SIGALRM,
+            Signal::USR1 => libc::SIGUSR1,
+            Signal::USR2 => libc::SIGUSR2,
+        }
+    }
+}
 
 pub fn become_command(command: PathBuf, args: Vec<OsString>) -> Result<()> {
     become_exec_command(command, args)
@@ -34,15 +69,14 @@ pub fn current_pid() -> u32 {
 }
 
 /// Determines if a process is running with the given process identifier.
-pub fn is_alive(pid: u32) -> bool {
-    let process_group_id = unsafe { libc::getpgid(pid as i32) };
+pub fn is_alive(pid: Pid) -> bool {
+    let process_group_id = unsafe { libc::getpgid(pid) };
     process_group_id >= 0
 }
 
-/// send a Unix signal to a pid
-fn send_signal(pid: i32, sig: libc::c_int) -> Result<()> {
+pub fn signal(pid: Pid, signal: Signal) -> Result<()> {
     unsafe {
-        match libc::kill(pid as i32, sig) {
+        match libc::kill(pid, signal.os_signal()) {
             0 => Ok(()),
             e => return Err(Error::SignalFailed(e)),
         }
@@ -65,19 +99,19 @@ fn become_exec_command(command: PathBuf, args: Vec<OsString>) -> Result<()> {
 }
 
 pub struct Child {
-    pid: u32,
+    pid: Pid,
     last_status: Option<i32>,
 }
 
 impl Child {
     pub fn new(child: &mut process::Child) -> Result<Child> {
         Ok(Child {
-               pid: child.id(),
+               pid: child.id() as Pid,
                last_status: None,
            })
     }
 
-    pub fn id(&self) -> u32 {
+    pub fn id(&self) -> Pid {
         self.pid
     }
 
@@ -107,31 +141,25 @@ impl Child {
         // if it is the root process of the process group
         // we send our signals to the entire process group
         // to prevent orphaned processes.
-        let mut kill_pid = self.pid as i32;
-        let pgid = unsafe { libc::getpgid(kill_pid) };
-        if kill_pid == pgid {
+        let pgid = unsafe { libc::getpgid(self.pid) };
+        if self.pid == pgid {
             debug!("pid to kill {} is the process group root. Sending signal to process group.",
-                   kill_pid);
+                   self.pid);
             // sending a signal to the negative pid sends it to the
             // entire process group instead just the single pid
-            kill_pid = kill_pid.neg();
+            self.pid = self.pid.neg();
         }
 
-        try!(send_signal(kill_pid, libc::SIGTERM));
-
+        signal(self.pid, Signal::TERM)?;
         let stop_time = SteadyTime::now() + Duration::seconds(8);
         loop {
-            match self.status() {
-                Ok(status) => {
-                    if !status.no_status() {
-                        break;
-                    }
+            if let Ok(status) = self.status() {
+                if !status.no_status() {
+                    break;
                 }
-                _ => {}
             }
-
             if SteadyTime::now() > stop_time {
-                try!(send_signal(kill_pid, libc::SIGKILL));
+                signal(self.pid, Signal::KILL)?;
                 return Ok(ShutdownMethod::Killed);
             }
         }
