@@ -139,8 +139,10 @@ EXPOSE 9631 $(package_exposes $1)
 ENTRYPOINT ["/init.sh"]
 CMD ["start", "$1"]
 EOT
-  docker build --force-rm --no-cache -t $version_tag .
-  docker tag $version_tag $latest_tag
+  # Docker tags downcased via ${string,,}
+  # https://www.gnu.org/software/bash/manual/bashref.html#Shell-Parameter-Expansion
+  docker build --force-rm --no-cache -t ${version_tag,,} .
+  docker tag ${version_tag,,} ${latest_tag,,}
 }
 
 # The root of the filesystem. If the program is running on a separate
