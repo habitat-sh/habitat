@@ -71,49 +71,6 @@ lazy_static! {
     };
 }
 
-#[derive(Deserialize)]
-pub struct ServiceStatus {
-    pub pkg: Pkg,
-    pub process: ProcessStatus,
-}
-
-#[derive(Deserialize)]
-pub struct ProcessStatus {
-    pub pid: Option<u32>,
-    #[serde(
-        deserialize_with = "deserialize_time",
-        rename = "state_entered"
-    )]
-    pub elapsed: TimeDuration,
-    pub state: ProcessState,
-}
-
-pub fn deserialize_time<'de, D>(d: D) -> result::Result<TimeDuration, D::Error>
-    where D: serde::Deserializer<'de>
-{
-    struct FromTimespec;
-
-    impl<'de> serde::de::Visitor<'de> for FromTimespec {
-        type Value = TimeDuration;
-
-        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-            formatter.write_str("a i64 integer")
-        }
-
-        fn visit_u64<R>(self, value: u64) -> result::Result<TimeDuration, R>
-            where R: serde::de::Error
-        {
-            let tspec = Timespec {
-                sec: (value as i64),
-                nsec: 0,
-            };
-            Ok(time::get_time() - tspec)
-        }
-    }
-
-    d.deserialize_u64(FromTimespec)
-}
-
 /// FileSystem paths that the Manager uses to persist data to disk.
 ///
 /// This is shared with the `http_gateway` and `service` modules for reading and writing
@@ -894,6 +851,52 @@ impl Manager {
     }
 }
 
+#[derive(Deserialize)]
+pub struct ProcessStatus {
+    #[serde(
+        deserialize_with = "deserialize_time",
+        rename = "state_entered"
+    )]
+    pub elapsed: TimeDuration,
+    pub pid: Option<u32>,
+    pub state: ProcessState,
+}
+
+impl fmt::Display for ProcessStatus {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self.pid {
+            Some(pid) => {
+                write!(f,
+                       "state:{}, time:{}, pid:{}",
+                       self.state,
+                       self.elapsed,
+                       pid)
+            }
+            None => write!(f, "state:{}, time:{}", self.state, self.elapsed),
+        }
+
+    }
+}
+
+#[derive(Deserialize)]
+pub struct ServiceStatus {
+    pub pkg: Pkg,
+    pub process: ProcessStatus,
+    pub service_group: ServiceGroup,
+    pub start_style: StartStyle,
+}
+
+impl fmt::Display for ServiceStatus {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f,
+               "{}, {}, group:{}, style:{}",
+               self.pkg.ident,
+               self.process,
+               self.service_group,
+               self.start_style)
+    }
+}
+
 #[derive(Debug)]
 struct SuitabilityLookup(Arc<RwLock<Vec<Service>>>);
 
@@ -907,6 +910,32 @@ impl Suitability for SuitabilityLookup {
             .and_then(|s| s.suitability())
             .unwrap_or(u64::min_value())
     }
+}
+
+fn deserialize_time<'de, D>(d: D) -> result::Result<TimeDuration, D::Error>
+    where D: serde::Deserializer<'de>
+{
+    struct FromTimespec;
+
+    impl<'de> serde::de::Visitor<'de> for FromTimespec {
+        type Value = TimeDuration;
+
+        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+            formatter.write_str("a i64 integer")
+        }
+
+        fn visit_u64<R>(self, value: u64) -> result::Result<TimeDuration, R>
+            where R: serde::de::Error
+        {
+            let tspec = Timespec {
+                sec: (value as i64),
+                nsec: 0,
+            };
+            Ok(time::get_time() - tspec)
+        }
+    }
+
+    d.deserialize_u64(FromTimespec)
 }
 
 fn obtain_process_lock(fs_cfg: &FsCfg) -> Result<()> {

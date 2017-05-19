@@ -46,9 +46,9 @@ use sup::error::{Error, Result};
 use sup::feat;
 use sup::command;
 use sup::http_gateway;
-use sup::manager::{Manager, ManagerConfig, ServiceStatus};
+use sup::manager::{Manager, ManagerConfig};
 use sup::manager::service::{DesiredState, ServiceBind, Topology, UpdateStrategy};
-use sup::manager::service::{ProcessState, ServiceSpec, StartStyle};
+use sup::manager::service::{ServiceSpec, StartStyle};
 use sup::util;
 
 /// Our output key
@@ -358,53 +358,32 @@ fn sub_status(m: &ArgMatches) -> Result<()> {
         sup::output::set_no_color(true);
     }
     let cfg = mgrcfg_from_matches(m)?;
-    let mut services: Vec<ServiceStatus> = Vec::new();
-
     if !Manager::is_running(&cfg)? {
-        outputln!("The supervisor is not running.");
+        println!("The supervisor is not running.");
         std::process::exit(3);
     }
-
     match m.value_of("PKG_IDENT") {
         Some(pkg) => {
             match Manager::service_status(cfg, PackageIdent::from_str(pkg)?) {
-                Ok(status) => {
-                    services.push(status);
-                }
+                Ok(status) => outputln!("{}", status),
                 Err(_) => {
-                    outputln!("The {} service is not currently loaded.", pkg);
+                    println!("{} is not currently loaded.", pkg);
                     std::process::exit(2);
                 }
             }
         }
-        None => services.append(&mut Manager::status(cfg)?),
-    }
-
-    for status in services {
-        match status.process.state {
-            ProcessState::Up => {
-                outputln!("The {} service entered the running state with PID: {} {} seconds ago.",
-                          status.pkg.ident,
-                          status.process.pid.unwrap(),
-                          status.process.elapsed.num_seconds())
+        None => {
+            let statuses = Manager::status(cfg)?;
+            if statuses.is_empty() {
+                println!("No services loaded.");
+                return Ok(());
             }
-            ProcessState::Down => {
-                outputln!("The {} service is not currently running.", status.pkg.ident);
-            }
-            ProcessState::Start => {
-                outputln!("The {} service entered the starting state {} seconds ago.",
-                          status.pkg.ident,
-                          status.process.elapsed.num_seconds());
-            }
-            ProcessState::Restart => {
-                outputln!("The {} service entered the restarting state {} seconds ago.",
-                          status.pkg.ident,
-                          status.process.elapsed.num_seconds());
+            for status in statuses {
+                println!("{}", status);
             }
         }
     }
-
-    return Ok(());
+    Ok(())
 }
 
 fn sub_stop(m: &ArgMatches) -> Result<()> {
