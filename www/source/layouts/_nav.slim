@@ -11,16 +11,16 @@
 
   .main-nav--container.clearfix
     .main-nav--logo
-      a href="/"
+      a href="/" data-builder-url="#{builder_web_url}"
         h1 habitat
     nav.main-nav--links-wrap
       .main-nav--toggle
         = partial "layouts/nav-toggle-icon.svg"
-      .main-nav--cta
-        a.button href="/try" Try Habitat
+      .main-nav--cta.signed-out
+        a.button href="/try" Get Started
       ul.main-nav--links
         li.main-nav--link
-          = link_to 'Why Habitat', '/about/index.html', class: 'about'
+          = link_to 'Explore', "#{builder_web_url}/#/explore"
         li.main-nav--link
           a.tutorials href="/tutorials" Tutorials
         li.main-nav--link
@@ -30,6 +30,14 @@
         li.main-nav--link
           a.blog href="/blog" Blog
         li.main-nav--link
-          a.chefconf href="https://chefconf.chef.io/2017/" ChefConf
-        li.main-nav--link.cta-link
-          a.login href="https://bldr.habitat.sh/#/sign-in" Sign In
+          = link_to 'Depot', "#{builder_web_url}/#/pkgs"
+        li.main-nav--link.cta-link.signed-out
+          a.login href="#{builder_web_url}/#/sign-in" Sign In
+        li.main-nav--link.signed-in
+          .avatar
+            img
+          .dropdown
+            ul
+              li.username
+              li.sign-out
+                a href="#" Sign Out
