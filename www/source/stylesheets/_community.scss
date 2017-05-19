@@ -57,6 +57,21 @@ $community-medium-breakpoint: rem-calc(880);
   li + li a {
     margin-left: rem-calc(20);
   }
+
+  &.community--roadmap {
+    margin-bottom: 0;
+  }
+
+  &.community--tracker {
+    margin-top: 0;
+  }
+
+  &.community--tracker,
+  &.community--cta {
+    h2 {
+      margin-bottom: rem-calc(20);
+    }
+  }
 }
 
 // Hero
@@ -109,75 +124,44 @@ $community-medium-breakpoint: rem-calc(880);
   background-color: $hab-white;
 }
 
+.community--roadmap {
+  .roadmap-headings {
+    margin-bottom: rem-calc(10);
+    text-align: center;
+
+    h5 {
+      display: inline-block;
+      padding: rem-calc(5) rem-calc(30);
+      border: 1px solid currentColor;
+      border-radius: 30px;
+      font-family: $body-font-family;
+      font-size: rem-calc(16);
+      color: $hab-green;
+    }
+  }
+}
 // ProdPad Roadmap iframe overrides
 iframe {
   border: 1px solid $hab-gray-light;
   border-radius: $global-radius !important;
 }
 
-// Sub hero
-$sub-hero-skew: 5deg;
+.community--tracker {
+  .callout-box {
+    padding: rem-calc(40);
+    border: 1px solid $hab-gray-light;
+    border-radius: $global-radius;
 
-.community--sub-hero {
-  position: relative;
-  z-index: 2;
-  padding: rem-calc(160) 0 rem-calc(200);
-  margin-top: rem-calc(-100);
-  margin-bottom: rem-calc(-100);
-  color: $white;
-
-  @include small-community {
-    padding-bottom: rem-calc(90);
+    ul {
+      margin-bottom: 0;
+    }
   }
 }
 
-.community--sub-hero--content {
-  position: relative;
-  @include section-left-margin;
+.community--cta {
+  color: $hab-white;
 }
 
-.community--sub-hero--heading,
-.community--sub-hero--blurb {
-  position: relative;
-  z-index: 3;
-}
-
-.community--sub-hero--heading {
-  margin-bottom: rem-calc(60);
-  @extend %section-heading;
-}
-
-.community--sub-hero--icon {
-  margin-bottom: rem-calc(20);
-}
-
-.community--sub-hero--blurb {
-  @include small-community {
-    padding: 0 8%;
-    margin-bottom: 5%;
-  }
-
-  p {
-    color: darken($white, 15%);
-  }
-}
-
-.community--sub-hero--graphic {
-  position: absolute;
-  z-index: 2;
-  left: 0.9375rem;
-  top: rem-calc(-200);
-
-  @include small-community {
-    width: 90%;
-    top: rem-calc(-215);
-  }
-}
-
-.community--sub-hero--button {
-  margin: rem-calc(40) 0 rem-calc(-35);
-
-  @include small-community {
-    margin: rem-calc(20) 0 0 6%;
-  }
+.community .footer--cta {
+  display: none;
 }
