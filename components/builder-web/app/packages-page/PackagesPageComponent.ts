@@ -72,7 +72,7 @@ import { Subscription } from "rxjs/Subscription";
             <div class="page-body--sidebar" *ngIf="iCanRequestABuild">
                 <h4>Build</h4>
                 <p>
-                    <button class="button" (click)="requestNewBuild()">
+                    <button class="button" (click)="requestNewBuild()" [disabled]="!!activeBuild">
                         Request new build
                     </button>
                 </p>
