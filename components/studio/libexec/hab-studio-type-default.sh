@@ -48,7 +48,7 @@ finish_setup() {
         echo "This test will print your signing key to the console or error if it cannot find the key."
         echo "To create a signing key, you can run 'hab origin key generate $key'"
         echo "You'll also be prompted to create an origin signing key when you run 'hab setup'"
-        
+
         exit 1
       fi
     done
@@ -88,7 +88,7 @@ EOF
 
   $bb cat <<TAIL_SUP > $HAB_STUDIO_ROOT$HAB_ROOT_PATH/bin/slog
 #!$bash_path/bin/sh
-exec tail -f /hab/sup/default/log.out
+exec tail -f /hab/sup/default/out.log
 TAIL_SUP
   $bb chmod $v 755 $HAB_STUDIO_ROOT$HAB_ROOT_PATH/bin/slog
 
@@ -115,7 +115,7 @@ fi
 
 start_supervisor() {
   if [ -z \$NO_BG_SUP ]; then
-    $HAB_ROOT_PATH/bin/hab sup run > /hab/sup/default/log.out &
+    $HAB_ROOT_PATH/bin/hab sup run > /hab/sup/default/out.log &
     echo "** The Habitat Supervisor has been started in the background."
     echo "** Use 'hab sup start' and 'hab sup stop' to start and stop services."
     echo "** Use the 'slog' command to stream the supervisor log."
