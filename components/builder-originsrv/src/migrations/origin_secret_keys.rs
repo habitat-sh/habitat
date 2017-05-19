@@ -69,5 +69,10 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                     END
                     $$ LANGUAGE plpgsql STABLE"#)?;
 
+    migrator.migrate("originsrv",
+                     r#"ALTER TABLE origin_secret_keys
+                        DROP CONSTRAINT IF EXISTS
+                          origin_secret_keys_full_name_key"#)?;
+
     Ok(())
 }
