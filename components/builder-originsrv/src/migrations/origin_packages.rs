@@ -53,10 +53,18 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                     op_tdeps text,
                     op_exposes text
                  ) RETURNS SETOF origin_packages AS $$
+                     DECLARE
+                        inserted_package origin_packages;
+                        channel_id bigint;
                      BEGIN
-                         RETURN QUERY INSERT INTO origin_packages (origin_id, owner_id, name, ident, checksum, manifest, config, target, deps, tdeps, exposes)
+                         INSERT INTO origin_packages (origin_id, owner_id, name, ident, checksum, manifest, config, target, deps, tdeps, exposes)
                                 VALUES (op_origin_id, op_owner_id, op_name, op_ident, op_checksum, op_manifest, op_config, op_target, op_deps, op_tdeps, op_exposes)
-                                RETURNING *;
+                                RETURNING * into inserted_package;
+
+                         SELECT id FROM origin_channels WHERE origin_id = op_origin_id AND name = 'unstable' INTO channel_id;
+                         PERFORM promote_origin_package_v1(channel_id, inserted_package.id);
+
+                         RETURN NEXT inserted_package;
                          RETURN;
                      END
                  $$ LANGUAGE plpgsql VOLATILE"#)?;
