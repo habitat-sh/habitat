@@ -66,6 +66,9 @@ import config from "../config";
                 [routerLink]="['/pkgs']"
                 [class.is-current-page]="area === 'depot'">Depot</a>
             </li>
+            <li class="main-nav--link cta-link" *ngIf="!isSignedIn">
+              <a [routerLink]="['/sign-in']">Sign In</a>
+            </li>
           </ul>
         </nav>
       </div>`
