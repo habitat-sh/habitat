@@ -1,5 +1,90 @@
 # Habitat CHANGELOG
 
+## [0.24.0](https://github.com/habitat-sh/habitat/tree/0.24.0) (05-19-2017)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.23.0...0.24.0)
+
+## Features & Enhancements
+
+- \[web ui\] Add new blog [\#2336](https://github.com/habitat-sh/habitat/issues/2336)
+- Finish implementing MVP Node-based Scaffolding, initially targeting web apps [\#2321](https://github.com/habitat-sh/habitat/issues/2321)
+- \[builder-web\] Build the new initial front page  [\#2181](https://github.com/habitat-sh/habitat/issues/2181)
+- Schedule reverse dependency builds when new core packages uploaded [\#2031](https://github.com/habitat-sh/habitat/issues/2031)
+- Add `hab sup term` command and additional aliases to `hab` [\#2419](https://github.com/habitat-sh/habitat/pull/2419) ([reset](https://github.com/reset))
+- Various Studio Tapas, nom nom [\#2418](https://github.com/habitat-sh/habitat/pull/2418) ([fnichol](https://github.com/fnichol))
+- Downcases tags used for docker images. [\#2417](https://github.com/habitat-sh/habitat/pull/2417) ([mattray](https://github.com/mattray))
+- Improve output of `hab svc status` command [\#2414](https://github.com/habitat-sh/habitat/pull/2414) ([reset](https://github.com/reset))
+- \[plan-build\] Set the ownership of `results/\*` to the same as the Plan. [\#2413](https://github.com/habitat-sh/habitat/pull/2413) ([fnichol](https://github.com/fnichol))
+- Auto update [\#2410](https://github.com/habitat-sh/habitat/pull/2410) ([reset](https://github.com/reset))
+- prevent "API API" in raml titles [\#2399](https://github.com/habitat-sh/habitat/pull/2399) ([juliandunn](https://github.com/juliandunn))
+- Fix package navigation, add status indicators and log coloring [\#2383](https://github.com/habitat-sh/habitat/pull/2383) ([cnunciato](https://github.com/cnunciato))
+- Default to plain log output [\#2381](https://github.com/habitat-sh/habitat/pull/2381) ([christophermaier](https://github.com/christophermaier))
+- Use ANSI color codes in build output [\#2380](https://github.com/habitat-sh/habitat/pull/2380) ([christophermaier](https://github.com/christophermaier))
+- Add a "latest" field to the package versions API response [\#2372](https://github.com/habitat-sh/habitat/pull/2372) ([raskchanky](https://github.com/raskchanky))
+- Fixes homepage scripts and in turn fixes css rendering [\#2371](https://github.com/habitat-sh/habitat/pull/2371) ([ryankeairns](https://github.com/ryankeairns))
+- Fixes homepage scripts and in turn fixes css rendering [\#2371](https://github.com/habitat-sh/habitat/pull/2371) ([ryankeairns](https://github.com/ryankeairns))
+- Fix deployment of middleman site [\#2370](https://github.com/habitat-sh/habitat/pull/2370) ([reset](https://github.com/reset))
+- Short-circuit project API processing for non-core origins [\#2369](https://github.com/habitat-sh/habitat/pull/2369) ([christophermaier](https://github.com/christophermaier))
+- Only create new projects in the core origin [\#2362](https://github.com/habitat-sh/habitat/pull/2362) ([christophermaier](https://github.com/christophermaier))
+- Replace BUILDER permission flag with EARLY\_ACCESS and enable builder [\#2360](https://github.com/habitat-sh/habitat/pull/2360) ([reset](https://github.com/reset))
+- Rename `hab service` to `hab svc` and add `hab svc status` [\#2359](https://github.com/habitat-sh/habitat/pull/2359) ([reset](https://github.com/reset))
+- Relax authorization checks on Builder API read-only endpoints [\#2354](https://github.com/habitat-sh/habitat/pull/2354) ([christophermaier](https://github.com/christophermaier))
+- Fix builder-worker tests [\#2352](https://github.com/habitat-sh/habitat/pull/2352) ([reset](https://github.com/reset))
+- Automatically determine default publish settings for builder-worker [\#2347](https://github.com/habitat-sh/habitat/pull/2347) ([reset](https://github.com/reset))
+- Add BUILDER\_RUNNER\_DEBUG env var to builder-worker [\#2342](https://github.com/habitat-sh/habitat/pull/2342) ([reset](https://github.com/reset))
+- Runner tweaks [\#2339](https://github.com/habitat-sh/habitat/pull/2339) ([christophermaier](https://github.com/christophermaier))
+- Start 0.24.0-dev [\#2323](https://github.com/habitat-sh/habitat/pull/2323) ([reset](https://github.com/reset))
+
+## Bug fixes
+
+- Links in the dashboard's recent-packages list are broken  [\#2346](https://github.com/habitat-sh/habitat/issues/2346)
+- Service config not available via API [\#2250](https://github.com/habitat-sh/habitat/issues/2250)
+- Remove uniqueness constraints on keys [\#2424](https://github.com/habitat-sh/habitat/pull/2424) ([christophermaier](https://github.com/christophermaier))
+- ensure keys inserted into postgres remain unique [\#2382](https://github.com/habitat-sh/habitat/pull/2382) ([mwrock](https://github.com/mwrock))
+- ARM returns u8, x86 i8, changed from hard-coded to whatever libc reco… [\#2363](https://github.com/habitat-sh/habitat/pull/2363) ([lamont](https://github.com/lamont))
+- Fully serialize the `pkg` field of the Service struct [\#2361](https://github.com/habitat-sh/habitat/pull/2361) ([reset](https://github.com/reset))
+- Render `pkg.ident` as string in RenderContext [\#2355](https://github.com/habitat-sh/habitat/pull/2355) ([reset](https://github.com/reset))
+- \[studio\] Fully canonicalize the Studio root path through symlinks. [\#2349](https://github.com/habitat-sh/habitat/pull/2349) ([fnichol](https://github.com/fnichol))
+- Fix auth for public keys [\#2344](https://github.com/habitat-sh/habitat/pull/2344) ([chefsalim](https://github.com/chefsalim))
+- Use origin\_invitation\_id for invitation acceptance [\#2343](https://github.com/habitat-sh/habitat/pull/2343) ([christophermaier](https://github.com/christophermaier))
+- Set proper default path for depot data path in builder-api plan [\#2333](https://github.com/habitat-sh/habitat/pull/2333) ([reset](https://github.com/reset))
+- Fix builder-admin ELB configuration [\#2332](https://github.com/habitat-sh/habitat/pull/2332) ([reset](https://github.com/reset))
+- Always config scheduler & jobsrv with all shards [\#2329](https://github.com/habitat-sh/habitat/pull/2329) ([reset](https://github.com/reset))
+
+**Closed issues:**
+
+- RFE: hab sup status should print some logs of the service [\#2402](https://github.com/habitat-sh/habitat/issues/2402)
+- hab stop command [\#2377](https://github.com/habitat-sh/habitat/issues/2377)
+- pkg expose does not allow binding optional services [\#2365](https://github.com/habitat-sh/habitat/issues/2365)
+
+**Merged pull requests:**
+
+- Add inserted packages to unstable channel [\#2428](https://github.com/habitat-sh/habitat/pull/2428) ([chefsalim](https://github.com/chefsalim))
+- Inter-site navigation improvements, Part I [\#2422](https://github.com/habitat-sh/habitat/pull/2422) ([cnunciato](https://github.com/cnunciato))
+- Join us at ChefConf! [\#2421](https://github.com/habitat-sh/habitat/pull/2421) ([nathenharvey](https://github.com/nathenharvey))
+- fixes stored procedure for looking up account by name [\#2409](https://github.com/habitat-sh/habitat/pull/2409) ([nellshamrell](https://github.com/nellshamrell))
+- do not randomize shard 0 [\#2408](https://github.com/habitat-sh/habitat/pull/2408) ([mwrock](https://github.com/mwrock))
+- Fix missing quote in author bios [\#2407](https://github.com/habitat-sh/habitat/pull/2407) ([cnunciato](https://github.com/cnunciato))
+- fix blog link in footer [\#2406](https://github.com/habitat-sh/habitat/pull/2406) ([smith](https://github.com/smith))
+- Add a Build Output tab to the manifest view [\#2401](https://github.com/habitat-sh/habitat/pull/2401) ([cnunciato](https://github.com/cnunciato))
+- Fail gracefully on duplicate package insert [\#2398](https://github.com/habitat-sh/habitat/pull/2398) ([chefsalim](https://github.com/chefsalim))
+- Fix log-streaming performance [\#2394](https://github.com/habitat-sh/habitat/pull/2394) ([cnunciato](https://github.com/cnunciato))
+- Corrects website home copy and footer link [\#2393](https://github.com/habitat-sh/habitat/pull/2393) ([ryankeairns](https://github.com/ryankeairns))
+- Use `hab service` for now in terraform files [\#2388](https://github.com/habitat-sh/habitat/pull/2388) ([reset](https://github.com/reset))
+- Finalizing content for Explore page [\#2387](https://github.com/habitat-sh/habitat/pull/2387) ([ryankeairns](https://github.com/ryankeairns))
+- New blog post: Packaging Drupal [\#2385](https://github.com/habitat-sh/habitat/pull/2385) ([therealpadams](https://github.com/therealpadams))
+- Fix failing component test [\#2384](https://github.com/habitat-sh/habitat/pull/2384) ([cnunciato](https://github.com/cnunciato))
+- Updates web app footer to new style and IA [\#2379](https://github.com/habitat-sh/habitat/pull/2379) ([ryankeairns](https://github.com/ryankeairns))
+- Update styles and navigation [\#2366](https://github.com/habitat-sh/habitat/pull/2366) ([cnunciato](https://github.com/cnunciato))
+- Update builder dev doc [\#2358](https://github.com/habitat-sh/habitat/pull/2358) ([chefsalim](https://github.com/chefsalim))
+- Basic file log for builder-scheduler [\#2356](https://github.com/habitat-sh/habitat/pull/2356) ([chefsalim](https://github.com/chefsalim))
+- Only return distinct results on package search if specified in the URL [\#2348](https://github.com/habitat-sh/habitat/pull/2348) ([raskchanky](https://github.com/raskchanky))
+- Clear logs before fetching, and only poll for updates when necessary [\#2345](https://github.com/habitat-sh/habitat/pull/2345) ([cnunciato](https://github.com/cnunciato))
+- Add a debug log line [\#2341](https://github.com/habitat-sh/habitat/pull/2341) ([chefsalim](https://github.com/chefsalim))
+- Allow package search to work across origins. [\#2340](https://github.com/habitat-sh/habitat/pull/2340) ([raskchanky](https://github.com/raskchanky))
+- Next stop for Hands on Habitat is NYC [\#2335](https://github.com/habitat-sh/habitat/pull/2335) ([nathenharvey](https://github.com/nathenharvey))
+- Handle failed acceptance of origin invites [\#2328](https://github.com/habitat-sh/habitat/pull/2328) ([cnunciato](https://github.com/cnunciato))
+- Added Eng blog to habitat.sh site [\#2079](https://github.com/habitat-sh/habitat/pull/2079) ([eeyun](https://github.com/eeyun))
+
 ## [0.23.0](https://github.com/habitat-sh/habitat/tree/0.23.0) (05-11-2017)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.22.1...0.23.0)
 
@@ -39,6 +124,7 @@
 
 **Merged pull requests:**
 
+- 0.23.0 [\#2322](https://github.com/habitat-sh/habitat/pull/2322) ([reset](https://github.com/reset))
 - Add back async start to jobsrv [\#2318](https://github.com/habitat-sh/habitat/pull/2318) ([chefsalim](https://github.com/chefsalim))
 - Show build log output in the UI [\#2306](https://github.com/habitat-sh/habitat/pull/2306) ([cnunciato](https://github.com/cnunciato))
 - Dallas is the next Hands on Habitat event [\#2300](https://github.com/habitat-sh/habitat/pull/2300) ([nathenharvey](https://github.com/nathenharvey))
