@@ -113,6 +113,14 @@ if [ -f /src/.studiorc ];then
   source /src/.studiorc
 fi
 
+emacs() {
+  if command -v emacs > /dev/null; then
+    emacs \$*
+  else
+    mg \$*
+  fi
+}
+
 start_supervisor() {
   if [ -z \$NO_BG_SUP ]; then
     $HAB_ROOT_PATH/bin/hab sup run > /hab/sup/default/out.log &
