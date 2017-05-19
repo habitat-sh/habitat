@@ -18,18 +18,19 @@ Each scaffolding defines a default value for `pkg_source` in [URI syntax](https:
 
 ## Available Scaffolding
 
-* [core/scaffolding-go](https://github.com/habitat-sh/core-plans/tree/master/scaffolding-go)
-* [core/scaffolding-go17](https://github.com/habitat-sh/core-plans/tree/master/scaffolding-go17)
-* [core/scaffolding-python](https://github.com/habitat-sh/core-plans/tree/master/scaffolding-python)
-* [core/scaffolding-python2](https://github.com/habitat-sh/core-plans/tree/master/scaffolding-python2)
 * [core/scaffolding-ruby](https://github.com/habitat-sh/core-plans/blob/master/scaffolding-ruby/doc/reference.md)
+* [core/scaffolding-node](https://github.com/habitat-sh/core-plans/tree/master/scaffolding-node)
+* [core/scaffolding-go](https://github.com/habitat-sh/core-plans/tree/master/scaffolding-go)
 
 ### Coming Soon!
 
+* core/scaffolding-python
+* core/scaffolding-python2
 * core/scaffolding-python-gunicorn
 * core/scaffolding-python2-gunicorn
 * core/scaffolding-python-uwsgi
 * core/scaffolding-python2-uwsgi
+* core/scaffolding-go17
 * core/scaffolding-ruby23
 * core/scaffolding-ruby-rails-unicorn
 * core/scaffolding-ruby-rails41-unicorn
