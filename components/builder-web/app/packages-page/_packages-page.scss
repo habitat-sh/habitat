@@ -72,4 +72,21 @@
       @extend .hab-item-list;
     }
   }
+
+  .page-body--sidebar {
+
+    h4 {
+      text-transform: uppercase;
+    }
+
+    .install-box {
+      border: 1px solid $medium-gray;
+      font-family: $monospace-font-family;
+      font-size: $monospace-font-size;
+      padding: 12px;
+      color: $dark-gray;
+      font-weight: 600;
+      overflow: auto;
+    }
+  }
 }

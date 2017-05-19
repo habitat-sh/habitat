@@ -1,4 +1,7 @@
 import { BuilderApiClient } from "../BuilderApiClient";
+import * as depotApi from "../depotApi";
+import { addNotification } from "./notifications";
+import { SUCCESS } from "./notifications";
 
 export const CLEAR_BUILD = "CLEAR_BUILD";
 export const CLEAR_BUILD_LOG = "CLEAR_BUILD_LOG";
@@ -24,6 +27,21 @@ export function clearBuilds() {
   return {
     type: CLEAR_BUILDS
   };
+}
+
+export function scheduleBuild(origin: string, name: string, token: string) {
+    return dispatch => {
+        return depotApi.scheduleBuild(origin, name, token)
+            .then(response => {
+                dispatch(addNotification({
+                    title: "Build submitted",
+                    body: `A new build for ${origin}/${name} has been submitted.`,
+                    type: SUCCESS
+                }));
+                setTimeout(() => { dispatch(fetchBuilds(origin, name, token)); }, 5000);
+            })
+            .catch(error => console.error(error));
+    };
 }
 
 export function fetchBuilds(origin: string, name: string, token: string) {
