@@ -2899,10 +2899,18 @@ _generate_artifact() {
 }
 
 _prepare_build_outputs() {
+  local plan_owner
   _pkg_sha256sum=$($_shasum_cmd $pkg_artifact | cut -d " " -f 1)
   _pkg_blake2bsum=$($HAB_BIN pkg hash $pkg_artifact | cut -d " " -f 1)
+  plan_owner="$(stat -c '%u:%g' "$PLAN_CONTEXT/plan.sh")"
+
   mkdir -pv "$pkg_output_path"
+  # Attempt to set user/group ownership to the same as the ownership of the
+  # `plan.sh` file. If the `chown` fails, then don't stop the build--this is
+  # only best effort.
+  chown "$plan_owner" "$pkg_output_path" || true
   cp -v "$pkg_artifact" "$pkg_output_path"/
+  chown "$plan_owner" "$pkg_output_path/$(basename "$pkg_artifact")" || true
 
   cat <<-EOF > "$pkg_output_path"/last_build.env
 pkg_origin=$pkg_origin
@@ -2914,6 +2922,7 @@ pkg_artifact=$(basename $pkg_artifact)
 pkg_sha256sum=$_pkg_sha256sum
 pkg_blake2bsum=$_pkg_blake2bsum
 EOF
+  chown "$plan_owner" "$pkg_output_path/last_build.env" || true
 }
 
 # A function for cleaning up after yourself. Delegates most of the
