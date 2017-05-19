@@ -7,56 +7,82 @@ section.community--hero
   .row
     .columns.medium-12
       .community--hero--content
-        h1.community--hero--heading Let's build together
+        h1.community--hero--heading Habitat Open Source Community
         p.community--hero--text
-          | Habitat is an open source project created and supported
-            by a passionate group of people. Our vision is grand — to bring automation
-            to places previously unconsidered.
+          | We are a passionate group of people, dedicated to bringing automation to places previously unconsidered.
+            Let’s connect at upcoming meetups, training and conferences!
         .row
           .columns.medium-12
             ul.no-bullet
               li
-                a.button.cta href="http://slack.habitat.sh" target="_blank" Join us on Slack
+                a.button.cta href="http://slack.habitat.sh" target="_blank" Join Habitat Slack
               li
-                a.button.cta href="https://forums.habitat.sh/" target="_blank" Visit the Forums
-              li
-                a.button.cta href="https://events.chef.io/events/categories/habitat/" target="_blank" Meet at Events
-              li
-                a.button.cta href="https://blog.chef.io/category/habitat/" target="_blank" Read Blog Posts
+                a.button.outline href="/docs/contribute-help-build/" Contribute to Habitat
 
-    .community--hero--graphic
-      img[src="/images/homepage/container-icon-3.svg"
-        onerror="this.src='/images/homepage/container-icon-3.png'" alt=""]
-
-section.community--sub-hero
+section.community--events
   .row
     .columns.medium-12
-      .community--sub-hero--content
-        .community-events
-
-section.community--sub-hero
-  .row
-    .columns.medium-12
-      .community--sub-hero--content
-        h2.community--sub-hero--heading Looking for Habitat support?
+      .community--events--content
+        h2 Upcoming Events
         .row
-          .community--sub-hero--blurb.columns.medium-4
-            h4 Get answers
-            p
-              | Is something unclear or just feeling stuck? We're here
-                to help keep you moving.
-            a.button.outline href="https://forums.habitat.sh/" target="_blank" Ask a Question
+          .community--events--card.columns.medium-4
+            .community--events--card-heading.heading
+              ul.no-bullet
+                li Meetup
+            .body-content
+              h4 Event Title
+              p
+                | Description of the event goes here.
+              .article-detail--meta
+                ul.no-bullet
+                  li
+                    img[src="/images/icons/icon-calendar.svg"
+                      onerror="this.src='/images/icons/icon-calendar.png'" alt="calendar icon"]
+                    | Jun 1, 2017
+                  li
+                    img[src="/images/icons/icon-pin.svg"
+                      onerror="this.src='/images/icons/icon-pin.png'" alt="map pin icon"]
+                    | City, State/Country
 
-          .community--sub-hero--blurb.columns.medium-4
-            h4 Send feedback
-            p
-              | We rely on your feedback to improve Habitat and look
-                forward to hearing from you.
-            a.button.outline href="https://forums.habitat.sh/" target="_blank" Report an issue
+section.community--roadmap
+  .row
+    .columns.medium-12
+      .community--roadmap--content
+        h2 Product Roadmap
+        .row
+          .columns.medium-12
+            ul.no-bullet
+              li
+                a.button.cta href="https://portal.prodpad.com/24539" Request New Features
+              li
+                a.button.outline href="https://ext.prodpad.com/ext/roadmap/d2938aed0d0ad1dd62669583e108357efd53b3a6" View Complete Roadmap
+        .row
+          <iframe src="https://ext.prodpad.com/ext/roadmap/0fe93038ea3ea1f8f4589ada044eaf0898658a83" height="900" width="100%"></iframe>
 
-          .community--sub-hero--blurb.columns.medium-4
-            h4 Contribute to Habitat
-            p
-              | We're off to a good start but would appreciate your
-                expertise in building the core.
-            a.button.outline href="/docs/contribute-help-build/" Become a maintainer
+section.community--tracker
+  .row
+    .columns.medium-12
+      .community--roadmap--content
+        h2 GitHub Project Tracker
+        p
+          | We use GitHub project tracker to track and share our engineering progress. Check it out now to see all the work currently in flight.
+        .row
+          .columns.medium-12
+            ul.no-bullet
+              li
+                a.button.cta href="/docs/contribute-help-build/" target="_blank" Become a Contributor
+              li
+                a.button.outline href="https://github.com/habitat-sh/habitat/projects/1" View Tracker on GitHub
+
+section.community--cta
+  .row
+    .columns.medium-12
+      .community--roadmap--content
+        h2 Habitat Open Source Community
+        .row
+          .columns.medium-12
+            ul.no-bullet
+              li
+                a.button.cta href="http://slack.habitat.sh" target="_blank" Join Habitat Slack
+              li
+                a.button.outline href="/docs/contribute-help-build/" Contribute to Habitat

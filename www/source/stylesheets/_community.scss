@@ -35,20 +35,32 @@ $community-medium-breakpoint: rem-calc(880);
   }
 }
 
+// Page level styles
+.community section {
+  margin: rem-calc(60) 0;
+  text-align: center;
+
+  h2 {
+    margin-bottom: rem-calc(60);
+    font-size: rem-calc(24);
+  }
+
+  li {
+    display: inline-block;
+
+    a.button {
+      display: block;
+      min-width: 200px;
+    }
+  }
+
+  li + li a {
+    margin-left: rem-calc(20);
+  }
+}
+
 // Hero
 .community--hero {
-  min-height: rem-calc(600);
-
-  @include medium-community {
-    background-position: rem-calc(-100) 118%;
-    background-size: rem-calc(730) auto;
-  }
-
-  @include large-community {
-    background-position: -16% 165%;
-    background-position: calc(50% - rem-calc(400px)) 165%;
-    background-size: auto;
-  }
 
   & > .row {
     position: relative;
@@ -56,45 +68,6 @@ $community-medium-breakpoint: rem-calc(880);
 
   .cta-subtext a {
     color: $hab-orange-dark;
-  }
-}
-
-.community--hero--content {
-  margin: rem-calc(60) 0 rem-calc(400);
-
-  @media (max-width: rem-calc(400)) {
-    margin-bottom: 112%;
-  }
-
-  @media (min-width: 376px) {
-    .button + .button {
-      margin-left: rem-calc(10);
-    }
-  }
-
-  @include medium-community {
-    max-width: 80%;
-    margin: rem-calc(90) 0 rem-calc(400);
-  }
-
-  @media (max-width: 940px) and (min-width: $community-medium-breakpoint) {
-    max-width: 50%;
-    margin: rem-calc(90) 0 rem-calc(150);
-  }
-
-  @media (min-width: 941px) {
-    max-width: 55%;
-    margin: rem-calc(94) 0 rem-calc(180);
-
-    .community & {
-      max-width: 50%;
-    }
-  }
-
-  @include section-left-margin;
-
-  li a.button {
-    min-width: 200px;
   }
 }
 
@@ -108,7 +81,8 @@ $community-medium-breakpoint: rem-calc(880);
 }
 
 .community--hero--text {
-  margin-bottom: rem-calc(40);
+  margin: 0 auto rem-calc(40);
+  max-width: rem-calc(600);
   color: $white;
 
   & + .community--hero--text {
@@ -116,39 +90,29 @@ $community-medium-breakpoint: rem-calc(880);
   }
 }
 
-.community--hero--graphic {
-  position: absolute;
-  bottom: 0;
-  z-index: 3;
-  overflow: hidden;
-  right: 0;
+// Events
+.community--events {
 
-  & > img {
-    position: relative;
-    right: 0px;
-    top: -40px;
-    width: 560px;
-
-    @media (max-width: 420px) {
-      left: -10%;
-    }
+  h2 {
+    color: $hab-white;
   }
 
-  @include small-community {
-    width: 100%;
-    text-align: center;
-
-    & > img {
-      position: relative;
-      width: 120%;
-      max-width: 450px;
-      right: 0;
-    }
-
-    .community & {
-      bottom: rem-calc(-50);
-    }
+  .community--events--card {
+    @extend %card-box;
   }
+}
+
+// Roadmap
+.community--roadmap,
+.community--tracker {
+  padding: rem-calc(60) 0;
+  background-color: $hab-white;
+}
+
+// ProdPad Roadmap iframe overrides
+iframe {
+  border: 1px solid $hab-gray-light;
+  border-radius: $global-radius !important;
 }
 
 // Sub hero
