@@ -11,21 +11,10 @@ import { AppStore } from "../AppStore";
 import { PackagesPageComponent } from "./PackagesPageComponent";
 
 class MockAppStore {
+  static state;
+
   getState() {
-    return {
-      builds: {
-        visible: List()
-      },
-      packages: {
-        visible: List(),
-        ui: {
-          visible: {}
-        }
-      },
-      gitHub: {
-        authToken: undefined
-      }
-    };
+    return MockAppStore.state;
   }
 }
 
@@ -41,6 +30,7 @@ describe("PackagesPageComponent", () => {
   let fixture: ComponentFixture<PackagesPageComponent>;
   let component: PackagesPageComponent;
   let element: DebugElement;
+  let store: AppStore;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -66,9 +56,30 @@ describe("PackagesPageComponent", () => {
     fixture = TestBed.createComponent(PackagesPageComponent);
     component = fixture.componentInstance;
     element = fixture.debugElement;
+    store = TestBed.get(AppStore);
   });
 
-  describe("given only an origin", () => {
+  beforeEach(() => {
+    MockAppStore.state = {
+      builds: {
+        visible: List()
+      },
+      packages: {
+        visible: List(),
+        ui: {
+          visible: {}
+        }
+      },
+      gitHub: {
+        authToken: undefined
+      },
+      origins: {
+        mine: List()
+      }
+    };
+  });
+
+  describe("given the core origin", () => {
 
     beforeEach(() => {
       component.origin = "core";
@@ -78,6 +89,39 @@ describe("PackagesPageComponent", () => {
     it("shows the Search Packages heading", () => {
       let heading = element.query(By.css(".hab-packages h2"));
       expect(heading.nativeElement.textContent).toBe("Search Packages");
+    });
+
+    describe("and a package name", () => {
+
+      beforeEach(() => {
+        component.name = "linux-headers";
+      });
+
+      describe("when the user belongs to the core origin", () => {
+
+        beforeEach(() => {
+          MockAppStore.state.origins.mine = List([ { name: "core" } ]);
+          MockAppStore.state.gitHub.authToken = "some-token";
+        });
+
+        it("shows the build-request button", () => {
+          fixture.detectChanges();
+          expect(element.query(By.css(".page-body--sidebar button"))).not.toBeNull();
+        });
+      });
+
+      describe("when the user does not belong to the core origin", () => {
+
+        beforeEach(() => {
+          MockAppStore.state.origins.mine = List([ { name: "so-not-core" } ]);
+          MockAppStore.state.gitHub.authToken = "some-token";
+        });
+
+        it("does not show the build-request button", () => {
+          fixture.detectChanges();
+          expect(element.query(By.css(".page-body--sidebar button"))).toBeNull();
+        });
+      });
     });
   });
 });

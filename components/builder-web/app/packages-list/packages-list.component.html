@@ -31,21 +31,6 @@
                 <div class="octicon octicon-chevron-right"></div>
             </a>
         </li>
-        <div class="sidebar" *ngIf="iCanRequestABuild">
-            <div>
-                <p class="sidebar-header">Build</p>
-                <a href="#" class="help-link">Help</a>
-            </div>
-            <div>
-                <a class="button" href="#" (click)="requestNewBuild(versions)">
-                    Request new build
-                </a>
-            </div>
-            <div>
-                <p class="sidebar-header">Install latest version</p>
-                <p class="install-box">hab install {{origin}}/{{name}}</p>
-            </div>
-        </div>
     </div>
     <div class="pkg-{{ layout }}">
         <li *ngIf="layout === 'builds'" class="heading">

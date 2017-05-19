@@ -16,7 +16,8 @@ import { FormControl } from "@angular/forms";
 import { Component, OnInit, OnDestroy } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
 import { AppStore } from "../AppStore";
-import { clearBuilds, fetchBuilds, fetchPackageVersions, filterPackagesBy, setPackagesSearchQuery } from "../actions/index";
+import { clearBuilds, fetchBuilds, fetchPackageVersions, filterPackagesBy,
+         scheduleBuild, setPackagesSearchQuery } from "../actions/index";
 import { requireSignIn } from "../util";
 import { Subscription } from "rxjs/Subscription";
 
@@ -41,30 +42,44 @@ import { Subscription } from "rxjs/Subscription";
                 <h4>{{ subtitle }}</h4>
             </div>
         </div>
-        <div class="page-body">
-            <input *ngIf="origin && !name"
-                type="search" autofocus
-                [formControl]="searchBox"
-                placeholder="Search Packages&hellip;">
+        <div class="page-body" [class.has-sidebar]="iCanRequestABuild">
+            <div [class.page-body--main]="iCanRequestABuild">
+                <input *ngIf="origin && !name"
+                    type="search" autofocus
+                    [formControl]="searchBox"
+                    placeholder="Search Packages&hellip;">
 
-            <div class="active {{ activeBuild.state | lowercase }}" *ngIf="activeBuild">
-                A build is in progress.
-                <a [routerLink]="['/builds', activeBuild.id]">View streaming output</a>.
+                <div class="active {{ activeBuild.state | lowercase }}" *ngIf="activeBuild">
+                    A build is in progress.
+                    <a [routerLink]="['/builds', activeBuild.id]">View streaming output</a>.
+                </div>
+
+                <hab-packages-list
+                    [noPackages]="(!ui.exists || packages.size === 0) && !ui.loading"
+                    [packages]="packages"
+                    [versions]="versions"
+                    [layout]="layout"
+                    [errorMessage]="ui.errorMessage"></hab-packages-list>
+
+                <div *ngIf="packages.size < totalCount">
+                    Showing {{packages.size}} of {{totalCount}} packages.
+                    <a href="#" (click)="fetchMorePackages()">
+                        Load
+                        {{(totalCount - packages.size) > perPage ? perPage : totalCount - packages.size }}
+                        more</a>.
+                </div>
             </div>
-
-            <hab-packages-list
-                [noPackages]="(!ui.exists || packages.size === 0) && !ui.loading"
-                [packages]="packages"
-                [versions]="versions"
-                [layout]="layout"
-                [errorMessage]="ui.errorMessage"></hab-packages-list>
-
-            <div *ngIf="packages.size < totalCount">
-                Showing {{packages.size}} of {{totalCount}} packages.
-                <a href="#" (click)="fetchMorePackages()">
-                    Load
-                    {{(totalCount - packages.size) > perPage ? perPage : totalCount - packages.size }}
-                    more</a>.
+            <div class="page-body--sidebar" *ngIf="iCanRequestABuild">
+                <h4>Build</h4>
+                <p>
+                    <button class="button" (click)="requestNewBuild()">
+                        Request new build
+                    </button>
+                </p>
+                <h4>Install Latest Version</h4>
+                <div>
+                    <pre class="install-box">hab install {{origin}}/{{name}}</pre>
+                </div>
             </div>
         </div>
     </div>`,
@@ -137,6 +152,16 @@ export class PackagesPageComponent implements OnInit, OnDestroy {
         return this.store.getState().builds.visible;
     }
 
+    get iCanRequestABuild() {
+        let isMember = !!this.store.getState().origins.mine.find(o => o.name === "core");
+
+        if (this.origin === "core" && isMember && this.layout === "versions") {
+            return true;
+        }
+
+        return false;
+    }
+
     get layout() {
         let s = "origin";
 
@@ -201,6 +226,11 @@ export class PackagesPageComponent implements OnInit, OnDestroy {
             version: this.version,
             query: this.query
         };
+    }
+
+    requestNewBuild() {
+        let token = this.store.getState().gitHub.authToken;
+        this.store.dispatch(scheduleBuild(this.origin, this.name, token));
     }
 
     private fetchBuilds() {

@@ -12,37 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Component, Input, OnInit } from "@angular/core";
+import { Component, Input } from "@angular/core";
 import { List } from "immutable";
-import { fetchMyOrigins, scheduleBuild } from "../actions/index";
-import { packageString, releaseToDate, isSignedIn } from "../util";
-import { AppStore } from "../AppStore";
+import { packageString, releaseToDate } from "../util";
 
 @Component({
     selector: "hab-packages-list",
     template: require("./packages-list.component.html")
 })
 
-export class PackagesListComponent implements OnInit {
+export class PackagesListComponent {
     @Input() errorMessage: string;
     @Input() noPackages: boolean;
     @Input() packages: List<Object>;
     @Input() versions: List<Object>;
     @Input() layout: string;
-
-    constructor(private store: AppStore) {}
-
-    ngOnInit() {
-        this.store.dispatch(fetchMyOrigins(this.gitHubAuthToken));
-    }
-
-    get gitHubAuthToken() {
-        return this.store.getState().gitHub.authToken;
-    }
-
-    get myOrigins() {
-        return this.store.getState().origins.mine;
-    }
 
     routeFor(pkg) {
         let link = ["/pkgs", pkg.origin];
@@ -62,15 +46,5 @@ export class PackagesListComponent implements OnInit {
 
     releaseToDate(release) {
         return releaseToDate(release);
-    }
-
-    get iCanRequestABuild() {
-        return isSignedIn() && this.myOrigins.find(org => { return org["name"] === "core"; });
-    }
-
-    requestNewBuild(versions) {
-        let version = versions[0];
-
-        this.store.dispatch(scheduleBuild(version["origin"], version["name"], this.gitHubAuthToken));
     }
 }
