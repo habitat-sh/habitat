@@ -353,6 +353,7 @@ pub fn get() -> App<'static, 'static> {
         (subcommand: alias_run())
         (subcommand: alias_setup)
         (subcommand: alias_start())
+        (subcommand: alias_stop())
         (subcommand: alias_term())
         (after_help: "\nALIASES:\
             \n    apply      Alias for: 'config apply'\
@@ -360,6 +361,7 @@ pub fn get() -> App<'static, 'static> {
             \n    run        Alias for: 'sup run'\
             \n    setup      Alias for: 'cli setup'\
             \n    start      Alias for: 'svc start'\
+            \n    stop       Alias for: 'svc stop'\
             \n    term       Alias for: 'sup term'\
             \n"
         )
@@ -377,6 +379,14 @@ fn alias_start() -> App<'static, 'static> {
     clap_app!(@subcommand start =>
         (about: "Starts a Habitat-supervised service")
         (aliases: &["sta", "star"])
+        (@setting Hidden)
+    )
+}
+
+fn alias_stop() -> App<'static, 'static> {
+    clap_app!(@subcommand stop =>
+        (about: "Stop a running Habitat service.")
+        (aliases: &["sto"])
         (@setting Hidden)
     )
 }
