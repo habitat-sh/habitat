@@ -17,7 +17,8 @@
 use std::sync::{Once, ONCE_INIT};
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering, ATOMIC_USIZE_INIT, ATOMIC_BOOL_INIT};
 
-use error::{Error, Result};
+use hcore::os::process::{OsSignal, Signal, SignalCode};
+
 use super::SignalEvent;
 
 static LOGKEY: &'static str = "SI";
@@ -30,35 +31,14 @@ static SIGNAL: AtomicUsize = ATOMIC_USIZE_INIT;
 
 // Functions from POSIX libc.
 extern "C" {
-    fn signal(sig: u32, cb: unsafe extern "C" fn(u32)) -> unsafe extern "C" fn(u32);
-    fn kill(pid: i32, sig: u32) -> u32;
+    fn signal(sig: SignalCode,
+              cb: unsafe extern "C" fn(SignalCode))
+              -> unsafe extern "C" fn(SignalCode);
 }
 
-unsafe extern "C" fn handle_signal(signal: u32) {
+unsafe extern "C" fn handle_signal(signal: SignalCode) {
     CAUGHT.store(true, Ordering::SeqCst);
     SIGNAL.store(signal as usize, Ordering::SeqCst);
-}
-
-/// `i32` representation of each Unix Signal of interest.
-#[allow(dead_code)]
-#[derive(Debug, Clone)]
-pub enum Signal {
-    /// terminate process - terminal line hangup
-    SIGHUP = 1,
-    /// terminate process - interrupt program
-    SIGINT = 2,
-    /// create core image - quit program
-    SIGQUIT = 3,
-    /// Kill a process
-    SIGKILL = 9,
-    /// terminate process - real-time timer expired
-    SIGALRM = 14,
-    /// terminate process - software termination signal
-    SIGTERM = 15,
-    /// terminate process - User defined signal 1
-    SIGUSR1 = 30,
-    /// terminate process - User defined signal 2
-    SIGUSR2 = 31,
 }
 
 pub fn init() {
@@ -71,33 +51,21 @@ pub fn init() {
 
 pub fn check_for_signal() -> Option<SignalEvent> {
     if CAUGHT.load(Ordering::SeqCst) {
-        let result = match SIGNAL.load(Ordering::SeqCst) {
-            signal if signal == Signal::SIGHUP as usize => {
-                SignalEvent::Passthrough(Signal::SIGHUP as u32)
+        let code = SIGNAL.load(Ordering::SeqCst) as SignalCode;
+        match Signal::from_signal_code(code) {
+            Some(Signal::INT) |
+            Some(Signal::TERM) => Some(SignalEvent::Shutdown),
+            Some(signal) => {
+                // clear out the signal so we don't sent it repeatedly
+                CAUGHT.store(false, Ordering::SeqCst);
+                SIGNAL.store(0 as usize, Ordering::SeqCst);
+                Some(SignalEvent::Passthrough(signal))
             }
-            signal if signal == Signal::SIGINT as usize => SignalEvent::Shutdown,
-            signal if signal == Signal::SIGQUIT as usize => {
-                SignalEvent::Passthrough(Signal::SIGQUIT as u32)
+            None => {
+                outputln!("Received invalid signal: #{}", code);
+                None
             }
-            signal if signal == Signal::SIGALRM as usize => {
-                SignalEvent::Passthrough(Signal::SIGALRM as u32)
-            }
-            signal if signal == Signal::SIGTERM as usize => SignalEvent::Shutdown,
-            signal if signal == Signal::SIGUSR1 as usize => {
-                SignalEvent::Passthrough(Signal::SIGUSR1 as u32)
-            }
-            signal if signal == Signal::SIGUSR2 as usize => {
-                SignalEvent::Passthrough(Signal::SIGUSR2 as u32)
-            }
-            signal => {
-                outputln!("Received invalid signal: #{}", signal);
-                return None;
-            }
-        };
-        // clear out the signal so we don't sent it repeatedly
-        CAUGHT.store(false, Ordering::SeqCst);
-        SIGNAL.store(0 as usize, Ordering::SeqCst);
-        Some(result)
+        }
     } else {
         None
     }
@@ -105,24 +73,12 @@ pub fn check_for_signal() -> Option<SignalEvent> {
 
 fn set_signal_handlers() {
     unsafe {
-        signal(Signal::SIGHUP as u32, handle_signal);
-        signal(Signal::SIGINT as u32, handle_signal);
-        signal(Signal::SIGQUIT as u32, handle_signal);
-        signal(Signal::SIGALRM as u32, handle_signal);
-        signal(Signal::SIGTERM as u32, handle_signal);
-        signal(Signal::SIGUSR1 as u32, handle_signal);
-        signal(Signal::SIGUSR2 as u32, handle_signal);
-    }
-}
-
-/// send a Unix signal to a pid
-pub fn send_signal(pid: u32, sig: u32) -> Result<()> {
-    debug!("sending signal {} to pid {}", sig, pid);
-    unsafe {
-        let result = kill(pid as i32, sig);
-        match result {
-            0 => Ok(()),
-            _ => return Err(sup_error!(Error::SignalFailed)),
-        }
+        signal(Signal::HUP.os_signal(), handle_signal);
+        signal(Signal::INT.os_signal(), handle_signal);
+        signal(Signal::QUIT.os_signal(), handle_signal);
+        signal(Signal::ALRM.os_signal(), handle_signal);
+        signal(Signal::TERM.os_signal(), handle_signal);
+        signal(Signal::USR1.os_signal(), handle_signal);
+        signal(Signal::USR2.os_signal(), handle_signal);
     }
 }

@@ -55,6 +55,7 @@ use depot_client;
 use glob;
 use handlebars;
 use hcore;
+use hcore::os::process;
 use hcore::package::{self, Identifiable, PackageInstall};
 use notify;
 use serde_json;
@@ -133,7 +134,7 @@ pub enum Error {
     PackageNotFound(package::PackageIdent),
     Permissions(String),
     ProcessLockCorrupt,
-    ProcessLocked(u32),
+    ProcessLocked(process::Pid),
     ProcessLockIO(PathBuf, io::Error),
     RenderContextSerialization(serde_json::Error),
     ServiceDeserializationError(serde_json::Error),

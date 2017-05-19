@@ -34,9 +34,10 @@ use std::time::{Duration, Instant};
 use ansi_term::Colour::{Yellow, Red, Green};
 use butterfly::rumor::service::Service as ServiceRumor;
 use common::ui::UI;
-use hcore::service::ServiceGroup;
 use hcore::crypto::hash;
+use hcore::os::process;
 use hcore::package::{PackageIdent, PackageInstall};
+use hcore::service::ServiceGroup;
 use hcore::util::deserialize_using_from_str;
 use hcore::util::perm::{set_owner, set_permissions};
 use serde;
@@ -48,7 +49,7 @@ use self::hooks::{HOOK_PERMISSIONS, Hook, HookTable};
 use self::supervisor::Supervisor;
 use error::{Error, Result, SupError};
 use fs;
-use manager::{self, signals};
+use manager;
 use census::{ServiceFile, CensusRing, ElectionStatus};
 use templating::RenderContext;
 use util;
@@ -238,9 +239,11 @@ impl Service {
         self.supervisor.down()
     }
 
-    pub fn send_signal(&self, signal: u32) -> Result<()> {
+    pub fn send_signal(&self, signal: process::Signal) -> Result<()> {
         match self.supervisor.child {
-            Some(ref child) => signals::send_signal(child.id(), signal),
+            Some(ref child) => {
+                process::signal(child.id(), signal).map_err(|_| sup_error!(Error::SignalFailed))
+            }
             None => {
                 debug!("No process to send the signal to");
                 Ok(())
