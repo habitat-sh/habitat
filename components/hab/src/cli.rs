@@ -34,7 +34,6 @@ pub fn get() -> App<'static, 'static> {
         .about("Alias for 'cli setup'")
         .aliases(&["set", "setu"])
         .setting(AppSettings::Hidden);
-    let alias_start = alias_start().aliases(&["st", "sta", "star"]);
 
     clap_app!(hab =>
         (about: "\"A Habitat is the natural environment for your services\" - Alan Turing")
@@ -351,21 +350,40 @@ pub fn get() -> App<'static, 'static> {
         )
         (subcommand: alias_apply)
         (subcommand: alias_install)
+        (subcommand: alias_run())
         (subcommand: alias_setup)
-        (subcommand: alias_start)
+        (subcommand: alias_start())
+        (subcommand: alias_term())
         (after_help: "\nALIASES:\
             \n    apply      Alias for: 'config apply'\
             \n    install    Alias for: 'pkg install'\
+            \n    run        Alias for: 'sup run'\
             \n    setup      Alias for: 'cli setup'\
-            \n    start      Alias for: 'sup start'\
+            \n    start      Alias for: 'svc start'\
+            \n    term       Alias for: 'sup term'\
             \n"
         )
+    )
+}
+
+fn alias_run() -> App<'static, 'static> {
+    clap_app!(@subcommand run =>
+        (about: "Run the Habitat Supervisor")
+        (@setting Hidden)
     )
 }
 
 fn alias_start() -> App<'static, 'static> {
     clap_app!(@subcommand start =>
         (about: "Starts a Habitat-supervised service")
+        (aliases: &["sta", "star"])
+        (@setting Hidden)
+    )
+}
+
+fn alias_term() -> App<'static, 'static> {
+    clap_app!(@subcommand term =>
+        (about: "Gracefully terminate the Habitat Supervisor and all of it's running services")
         (@setting Hidden)
     )
 }

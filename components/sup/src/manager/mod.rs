@@ -41,7 +41,7 @@ use eventsrv_client::EventSrvClient;
 use hcore::crypto::{default_cache_key_path, SymKey};
 use hcore::fs::FS_ROOT_PATH;
 use hcore::service::ServiceGroup;
-use hcore::os::process;
+use hcore::os::process::{self, OsSignal, Signal};
 use hcore::package::{Identifiable, PackageIdent};
 use protobuf::Message;
 use serde;
@@ -183,6 +183,19 @@ impl Manager {
 
         let dat = File::open(&fs_cfg.services_data_path)?;
         serde_json::from_reader(&dat).map_err(|e| sup_error!(Error::ServiceDeserializationError(e)))
+    }
+
+    pub fn term(cfg: &ManagerConfig) -> Result<()> {
+        let state_path = Self::state_path_from(&cfg);
+        let fs_cfg = FsCfg::new(state_path);
+        match read_process_lock(&fs_cfg.proc_lock_file) {
+            Ok(pid) => {
+                process::signal(pid, Signal::TERM)
+                    .map_err(|_| sup_error!(Error::SignalFailed))?;
+                Ok(())
+            }
+            Err(err) => Err(err),
+        }
     }
 
     fn new(cfg: ManagerConfig, fs_cfg: FsCfg) -> Result<Manager> {
@@ -545,15 +558,16 @@ impl Manager {
                 }
                 true
             }
-            Some(SignalEvent::Passthrough(signal_code)) => {
+            Some(SignalEvent::Passthrough(signal)) => {
+                println!("GOT PASSTHROUGH {:?}", signal);
                 for service in self.services
                         .read()
                         .expect("Services lock is poisoned!")
                         .iter() {
-                    outputln!("Forwarding signal {} to {}", signal_code, service);
-                    if let Err(e) = service.send_signal(signal_code) {
+                    outputln!("Forwarding signal {} to {}", signal.os_signal(), service);
+                    if let Err(e) = service.send_signal(signal) {
                         outputln!("Failed to send signal {} to {}: {}",
-                                  signal_code,
+                                  signal.os_signal(),
                                   service,
                                   e);
                     }
@@ -778,7 +792,7 @@ impl Manager {
             self.remove_service(&mut service);
         }
         release_process_lock(&self.fs_cfg);
-        outputln!("Habitat thanks you - shutting down!");
+        outputln!("Hasta la vista, services.");
     }
 
     fn start_initial_services_from_watcher(&mut self) -> Result<()> {
@@ -960,7 +974,7 @@ fn obtain_process_lock(fs_cfg: &FsCfg) -> Result<()> {
     }
 }
 
-fn read_process_lock<T>(lock_path: T) -> Result<u32>
+fn read_process_lock<T>(lock_path: T) -> Result<process::Pid>
     where T: AsRef<Path>
 {
     match File::open(lock_path.as_ref()) {
@@ -968,7 +982,7 @@ fn read_process_lock<T>(lock_path: T) -> Result<u32>
             let reader = BufReader::new(file);
             match reader.lines().next() {
                 Some(Ok(line)) => {
-                    match line.parse::<u32>() {
+                    match line.parse::<process::Pid>() {
                         Ok(pid) => Ok(pid),
                         Err(_) => Err(sup_error!(Error::ProcessLockCorrupt)),
                     }

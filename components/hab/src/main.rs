@@ -501,6 +501,7 @@ fn exec_subcommand_if_called(ui: &mut UI) -> Result<()> {
         ("config", _) | ("file", _) => {
             command::butterfly::start(ui, env::args_os().skip(1).collect())
         }
+        ("run", _) => command::sup::start(ui, env::args_os().skip(1).collect()),
         ("stu", _) | ("stud", _) | ("studi", _) | ("studio", _) => {
             command::studio::start(ui, env::args_os().skip(2).collect())
         }
@@ -511,6 +512,7 @@ fn exec_subcommand_if_called(ui: &mut UI) -> Result<()> {
         ("svc", "start") |
         ("svc", "status") |
         ("svc", "stop") => command::sup::start(ui, env::args_os().skip(2).collect()),
+        ("term", _) => command::sup::start(ui, env::args_os().skip(1).collect()),
         _ => Ok(()),
     }
 }

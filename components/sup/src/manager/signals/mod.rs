@@ -14,10 +14,12 @@
 
 //! Contains the cross-platform signal behavior.
 
+use hcore::os::process;
+
 #[allow(dead_code)]
 pub enum SignalEvent {
     Shutdown,
-    Passthrough(u32),
+    Passthrough(process::Signal),
 }
 
 #[cfg(unix)]
@@ -27,7 +29,7 @@ mod unix;
 mod windows;
 
 #[cfg(unix)]
-pub use manager::signals::unix::{init, check_for_signal, send_signal, Signal};
+pub use manager::signals::unix::{init, check_for_signal};
 
 #[cfg(windows)]
-pub use manager::signals::windows::{init, check_for_signal, send_signal, Signal};
+pub use manager::signals::windows::{init, check_for_signal};

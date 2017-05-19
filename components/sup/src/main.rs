@@ -42,7 +42,7 @@ use url::Url;
 
 use sup::VERSION;
 use sup::config::{GossipListenAddr, GOSSIP_DEFAULT_PORT};
-use sup::error::{Error, Result};
+use sup::error::{Error, Result, SupError};
 use sup::feat;
 use sup::command;
 use sup::http_gateway;
@@ -78,6 +78,7 @@ fn start() -> Result<()> {
         ("start", Some(m)) => sub_start(m),
         ("status", Some(m)) => sub_status(m),
         ("stop", Some(m)) => sub_stop(m),
+        ("term", Some(m)) => sub_term(m),
         ("unload", Some(m)) => sub_unload(m),
         _ => unreachable!(),
     }
@@ -138,15 +139,14 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                 [default: default]")
         )
         (@subcommand run =>
-            (about: "Start the Habitat Supervisor")
+            (about: "Run the Habitat Supervisor")
             (aliases: &["r", "ru"])
             (@arg LISTEN_GOSSIP: --("listen-gossip") +takes_value
                 "The listen address for the gossip system [default: 0.0.0.0:9638]")
             (@arg LISTEN_HTTP: --("listen-http") +takes_value
                 "The listen address for the HTTP gateway [default: 0.0.0.0:9631]")
             (@arg NAME: --("override-name") +takes_value
-                "The name for the state directory if launching more than one Supervisor \
-                [default: default]")
+                "The name of the Supervisor if launching more than one [default: default]")
             (@arg ORGANIZATION: --org +takes_value
                 "The organization that the supervisor and it's subsequent services are part of \
                 [default: default]")
@@ -212,6 +212,11 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
             (@arg NAME: --("override-name") +takes_value
                 "The name for the state directory if there is more than one Supervisor running \
                 [default: default]")
+        )
+        (@subcommand term =>
+            (about: "Gracefully terminate the Habitat Supervisor and all of it's running services")
+            (@arg NAME: --("override-name") +takes_value
+                "The name of the Supervisor if more than one is running [default: default]")
         )
     )
 }
@@ -399,6 +404,17 @@ fn sub_stop(m: &ArgMatches) -> Result<()> {
     let mut spec = ServiceSpec::from_file(&spec_file)?;
     spec.desired_state = DesiredState::Down;
     Manager::save_spec_for(&cfg, spec)
+}
+
+fn sub_term(m: &ArgMatches) -> Result<()> {
+    let cfg = mgrcfg_from_matches(m)?;
+    match Manager::term(&cfg) {
+        Err(SupError { err: Error::ProcessLockIO(_, _), .. }) => {
+            println!("Supervisor not started.");
+            Ok(())
+        }
+        result => result,
+    }
 }
 
 fn mgrcfg_from_matches(m: &ArgMatches) -> Result<ManagerConfig> {
