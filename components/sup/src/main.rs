@@ -118,7 +118,7 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                 "The service group; shared config and topology [default: default].")
             (@arg DEPOT_URL: --url -u +takes_value {valid_url}
                 "Receive package updates from the Depot at the specified URL \
-                [default: https://app.habitat.sh/v1/depot]")
+                [default: https://bldr.habitat.sh/v1/depot]")
             (@arg TOPOLOGY: --topology -t +takes_value {valid_topology}
                 "Service topology; [default: none]")
             (@arg STRATEGY: --strategy -s +takes_value {valid_update_strategy}
@@ -187,7 +187,7 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                 "The service group; shared config and topology [default: default].")
             (@arg DEPOT_URL: --url -u +takes_value {valid_url}
                 "Receive package updates from the Depot at the specified URL \
-                [default: https://app.habitat.sh/v1/depot]")
+                [default: https://bldr.habitat.sh/v1/depot]")
             (@arg TOPOLOGY: --topology -t +takes_value {valid_topology}
                 "Service topology; [default: none]")
             (@arg STRATEGY: --strategy -s +takes_value {valid_update_strategy}

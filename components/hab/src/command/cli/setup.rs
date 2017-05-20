@@ -45,7 +45,7 @@ pub fn start(ui: &mut UI, cache_path: &Path, analytics_path: &Path) -> Result<()
         try!(ui.br());
         try!(ui.para("Enter the name of your origin. If you plan to publish your packages \
                       publicly, we recommend that you select one that is not already in use \
-                      on the Habitat build service found at https://app.habitat.sh/."));
+                      on the Habitat build service found at https://bldr.habitat.sh/."));
         let origin = try!(prompt_origin(ui));
         try!(write_cli_config_origin(&origin));
         try!(ui.br());

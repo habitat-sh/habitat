@@ -18,7 +18,7 @@ We will use the public depot provided by the Habitat project for this section. H
 
 ## Creating an account in the depot
 
-The depot software presently only supports GitHub authentication. For the public depot, visit <https://app.habitat.sh/> in your browser and sign up for an account. Allow it to use GitHub for authorization.
+The depot software presently only supports GitHub authentication. For the public depot, visit <https://bldr.habitat.sh/> in your browser and sign up for an account. Allow it to use GitHub for authorization.
 
 ## Creating an origin or joining an existing origin
 
@@ -26,7 +26,7 @@ You can create your own origin in the depot or be invited to join an existing on
 
 ## Setting up hab to authenticate to the depot
 
-When you upload a package to a depot, you are required to supply an OAuth token as part of the `hab pkg upload` subcommand. Because the depot uses GitHub to authenticate, you must generate a [GitHub access token](https://help.github.com/articles/creating-an-access-token-for-command-line-use/) for use with the `hab` command-line utility. 
+When you upload a package to a depot, you are required to supply an OAuth token as part of the `hab pkg upload` subcommand. Because the depot uses GitHub to authenticate, you must generate a [GitHub access token](https://help.github.com/articles/creating-an-access-token-for-command-line-use/) for use with the `hab` command-line utility.
 
 The depot uses the following OAuth scopes when performing GitHub authentication: `user:email` and `read:org`; therefore, you must enable these [scopes](https://developer.github.com/v3/oauth/#scopes) for your personal access token. Habitat uses the information provided through these scopes for authentication and to determine features based on team membership.
 

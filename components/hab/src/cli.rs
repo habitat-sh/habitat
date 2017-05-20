@@ -472,7 +472,7 @@ fn sub_pkg_install() -> App<'static, 'static> {
     let sub = clap_app!(@subcommand install =>
         (about: "Installs a Habitat package from a Depot or locally from a Habitat Artifact")
         (@arg DEPOT_URL: --url -u +takes_value {valid_url}
-            "Use a specific Depot URL [default: https://app.habitat.sh/v1/depot]")
+            "Use a specific Depot URL [default: https://bldr.habitat.sh/v1/depot]")
         (@arg CHANNEL: --channel +takes_value
             "Install from the specified release channel")
         (@arg PKG_IDENT_OR_ARTIFACT: +required +multiple
