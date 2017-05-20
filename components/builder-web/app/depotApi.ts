@@ -152,7 +152,11 @@ export function getStats(origin: string) {
     return new Promise((resolve, reject) => {
         fetch(url)
             .then(response => {
-                response.json().then(data => resolve(data));
+                if (response.ok) {
+                    response.json().then(data => resolve(data));
+                } else {
+                    reject(new Error(response.statusText));
+                }
             })
             .catch(error => reject(error));
     });
