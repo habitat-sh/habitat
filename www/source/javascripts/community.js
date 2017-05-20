@@ -16,4 +16,4 @@ var community_events = function(data) {
             });
         }
     }
-});
+};
