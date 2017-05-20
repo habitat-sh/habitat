@@ -2,6 +2,7 @@
 // Community Page media queries
 $community-small-breakpoint: rem-calc(650);
 $community-medium-breakpoint: rem-calc(880);
+$community-xlarge-breakpoint: rem-calc(1060);
 
 @mixin small-community {
   @media (max-width: $community-small-breakpoint - rem-calc(1)) {
@@ -17,6 +18,12 @@ $community-medium-breakpoint: rem-calc(880);
 
 @mixin large-community {
   @media (min-width: $community-medium-breakpoint) {
+    @content;
+  }
+}
+
+@mixin x-large-community {
+  @media (min-width: $community-xlarge-breakpoint) {
     @content;
   }
 }
@@ -107,6 +114,13 @@ $community-medium-breakpoint: rem-calc(880);
 
 // Events
 .community--events {
+  margin-bottom: -240px !important;
+  padding-bottom: 240px;
+  position: relative;
+  z-index: 10;
+  min-height: 600px;
+  background: url(../images/graphics/bg-mountains-blue.png) no-repeat center bottom;
+  background-size: 100% 430px;
 
   h2 {
     color: $hab-white;
@@ -118,13 +132,15 @@ $community-medium-breakpoint: rem-calc(880);
 }
 
 // Roadmap
-.community--roadmap,
-.community--tracker {
-  padding: rem-calc(60) 0;
+.community--roadmap {
   background-color: $hab-white;
 }
 
 .community--roadmap {
+  padding: rem-calc(240) 0 rem-calc(60);
+  position: relative;
+  z-index: 5;
+
   .roadmap-headings {
     margin-bottom: rem-calc(10);
     text-align: center;
@@ -147,10 +163,40 @@ iframe {
 }
 
 .community--tracker {
+  margin-bottom: -100px !important;
+  padding-bottom: 100px;
+  position: relative;
+  z-index: 10;
+  min-height: 560px;
+  background: url(../images/graphics/bg-mountains-green.png) no-repeat center bottom;
+  background-size: 100% 560px;
+
+  .foreground-github {
+    display: none;
+    margin: 0 auto;
+    position: absolute;
+    padding-left: 160px;
+    bottom: 100px;
+    z-index: 15;
+
+    img {
+      max-width: 960px;
+      width: 100%;
+    }
+
+    @include x-large-community {
+      display: block;
+    }
+  }
+
   .callout-box {
+    @include shadow-float;
+    margin-top: 100px;
     padding: rem-calc(40);
+    background-color: $hab-white;
     border: 1px solid $hab-gray-light;
     border-radius: $global-radius;
+    z-index: 12;
 
     ul {
       margin-bottom: 0;
@@ -159,7 +205,12 @@ iframe {
 }
 
 .community--cta {
+  padding: rem-calc(150) 0 rem-calc(60);
   color: $hab-white;
+
+  ul {
+    margin-top: rem-calc(30);
+  }
 }
 
 .community .footer--cta {
