@@ -72,8 +72,12 @@ helpers do
     else
       ''
     end
-
   end
+
+  def builder_web_url
+    ENV["BUILDER_WEB_URL"] || "https://bldr.habitat.sh"
+  end
+
   def render_markdown(text)
     Kramdown::Document.new(text).to_html
   end

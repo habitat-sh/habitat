@@ -61,7 +61,7 @@ $button-opacity-disabled: 0.25 !default;
   @include disable-mouse-outline;
   display: inline-block;
   text-align: center;
-  line-height: 1;
+  line-height: 1.5;
   cursor: pointer;
   -webkit-appearance: none;
   transition: background-color 0.25s ease-out, color 0.25s ease-out;

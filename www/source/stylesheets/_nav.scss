@@ -133,15 +133,81 @@ $main-nav-breakpoint: 769px;
 
     &.main-nav--link {
       margin-top: 0;
+
+      &.signed-out, &.signed-in {
+        display: none;
+      }
+
+      &.signed-in {
+        position: relative;
+        padding-right: 0;
+        margin-right: 12px;
+
+        .avatar {
+          display: block;
+          float: right;
+          border-radius: 50%;
+          border: 1px solid $hab-orange;
+          padding: 2px;
+          cursor: pointer;
+
+          img {
+            display: block;
+            border: solid 2px $hab-white;
+            border-radius: 50%;
+            height: 40px;
+            width: 40px;
+          }
+
+          @include breakpoint(small only) {
+            display: none;
+          }
+        }
+
+        .dropdown {
+          display: none;
+          box-shadow: 0 2px 20px 0 rgba(195,198,200,0.4);
+          background-color: $hab-white;
+          border-radius: 7px;
+          height: auto;
+          padding: 0.9375rem;
+          width: auto;
+          color: #a8adb0;
+          position: absolute;
+          right: 0;
+          top: 52px;
+          z-index: 9999;
+
+          ul {
+            margin-left: 0;
+
+            li {
+              display: block;
+              min-width: 8em;
+              padding-bottom: 0.625rem;
+              text-align: left;
+
+              &:last-child {
+                border-top: 1px solid #D8D8D8;
+                margin-top: 0.5rem;
+                padding-bottom: 0;
+                padding-top: 0.75rem;
+              }
+
+              a {
+                color: #87B09B;
+                line-height: 1.5em;
+                margin-left: 0;
+              }
+            }
+          }
+        }
+      }
     }
   }
 
   @include breakpoint(small only) {
     left: map-get($grid-column-gutter, small)/2;
-  }
-
-  @include breakpoint(medium) {
-    left: rem-calc(15);
   }
 
   @include large-nav {
@@ -157,7 +223,7 @@ $main-nav-breakpoint: 769px;
     }
 
     .main-nav--link {
-      padding: 0 rem-calc(40) 0 0;
+      padding: 0 rem-calc(30) 0 0;
     }
   }
 }
@@ -216,6 +282,10 @@ $main-nav-breakpoint: 769px;
 .main-nav--cta {
   float: right;
   padding: rem-calc(4) rem-calc(20) 0 0;
+
+  &.signed-in, &.signed-out {
+    display: none;
+  }
 
   .button {
     @include button;
