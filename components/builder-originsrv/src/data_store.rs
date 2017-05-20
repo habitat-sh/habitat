@@ -19,6 +19,7 @@ use db::async::{AsyncServer, EventOutcome};
 use db::migration::Migrator;
 use db::error::{Error as DbError, Result as DbResult};
 use hab_net::routing::Broker;
+use hab_core::package::PackageIdent;
 use postgres::rows::Rows;
 use protocol::{originsrv, sessionsrv, scheduler};
 use protocol::net::NetOk;
@@ -550,8 +551,21 @@ impl DataStore {
                               &[&opc.get_ident().to_string(), &opc.get_target()])
             .map_err(Error::OriginPackageLatestGet)?;
         if rows.len() != 0 {
-            let row = rows.get(0);
-            Ok(Some(self.row_to_origin_package_ident(&row)))
+            let mut pkgs: Vec<PackageIdent> = Vec::new();
+
+            for row in rows.iter() {
+                let ident: String = row.get("ident");
+                let pkg_ident = PackageIdent::from_str(ident.as_str()).unwrap();
+                pkgs.push(pkg_ident);
+            }
+
+            // TODO: The PackageIdent compare is extremely slow, causing even small lists
+            // to take significant time to sort. Look at speeding this up if it becomes a
+            // bottleneck.
+            pkgs.sort();
+            let latest_ident = pkgs.pop().unwrap();
+            let ident_str = format!("{}", latest_ident);
+            Ok(Some(originsrv::OriginPackageIdent::from_str(ident_str.as_str()).unwrap()))
         } else {
             Ok(None)
         }
