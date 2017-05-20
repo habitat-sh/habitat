@@ -15,8 +15,6 @@
 //! A collection of handlers for the HTTP server's router
 
 use std::env;
-use std::io::Read;
-use std::str::FromStr;
 
 use base64;
 use bodyparser;
@@ -26,8 +24,6 @@ use hab_core::event::*;
 use hab_net;
 use hab_net::http::controller::*;
 use hab_net::routing::Broker;
-use http_client::ApiClient;
-use hyper::status::StatusCode;
 use iron::prelude::*;
 use iron::status;
 use iron::typemap;
@@ -39,10 +35,6 @@ use protocol::originsrv::*;
 use protocol::sessionsrv;
 use protocol::net::{self, NetOk, ErrCode};
 use router::Router;
-use rss::{Channel, Item};
-use url::Url;
-
-use {PRODUCT, VERSION};
 
 // For the initial release, Builder will only be enabled on the "core"
 // origin. Later, we'll roll it out to other origins; at that point,
@@ -73,25 +65,6 @@ struct ProjectUpdateReq {
 struct GitHubProject {
     organization: String,
     repo: String,
-}
-
-#[derive(Serialize)]
-struct CommunityEvent {
-    title: String,
-    link: String,
-    pub_date: String,
-    description: String,
-}
-
-impl CommunityEvent {
-    fn from_item(item: Item) -> CommunityEvent {
-        CommunityEvent {
-            title: item.title.unwrap_or(String::new()),
-            link: item.link.unwrap_or(String::new()),
-            pub_date: item.pub_date.unwrap_or(String::new()),
-            description: item.description.unwrap_or(String::new()),
-        }
-    }
 }
 
 pub fn github_authenticate(req: &mut Request) -> IronResult<Response> {
@@ -133,35 +106,6 @@ pub fn github_authenticate(req: &mut Request) -> IronResult<Response> {
             Ok(render_net_error(&err))
         }
     }
-}
-
-pub fn chef_events_feed(_req: &mut Request) -> IronResult<Response> {
-    let mut events = Vec::new();
-    let url = Url::parse("https://events.chef.io").unwrap();
-    let client = ApiClient::new(&url, PRODUCT, VERSION, None).unwrap();
-    let mut res = match client.get("events/categories/habitat/feed").send() {
-        Ok(r) => r,
-        Err(e) => {
-            error!("error fetching chef events feed, err={:?}", e);
-            let err = net::err(ErrCode::BUG, "rg:chef_events_feed:0");
-            return Ok(render_net_error(&err));
-        }
-    };
-
-    let mut body = String::new();
-    res.read_to_string(&mut body).unwrap();
-
-    if res.status != StatusCode::Ok {
-        return Ok(Response::with(res.status));
-    }
-
-    let channel = Channel::from_str(&body).unwrap();
-    for item in channel.items {
-        let event = CommunityEvent::from_item(item);
-        events.push(event);
-    }
-
-    Ok(render_json(status::Ok, &events))
 }
 
 pub fn job_create(req: &mut Request) -> IronResult<Response> {

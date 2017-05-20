@@ -22,14 +22,12 @@ params = "*"
 persistent = "*"
 protobuf = "*"
 router = "*"
-rss = "*"
 serde = "*"
 serde_derive = "*"
 serde_json = "*"
 staticfile = "*"
 toml = { version = "*", features = ["serde"], default-features = false }
 unicase = "*"
-url = "*"
 
 [dependencies.clap]
 version = "*"
@@ -47,9 +45,6 @@ path = "../builder-depot"
 
 [dependencies.habitat_builder_protocol]
 path = "../builder-protocol"
-
-[dependencies.habitat_http_client]
-path = "../http-client"
 
 [dependencies.habitat_net]
 path = "../net"

@@ -1,25 +1,19 @@
-$(function() {
-  if ($(".community-events")) {
-    var url = DEPOT_API + "/community-events";
+var community_events = function(data) {
+    if ($(".community-events")) {
+        if (Array.isArray(data)) {
+            data.forEach(function(e) {
+                var ev = "<p>";
+                ev += e.title;
+                ev += "<br>";
+                ev += e.link;
+                ev += "<br>";
+                ev += e.pub_date;
+                ev += "<br>";
+                ev += e.description;
+                ev += "</p>";
 
-    $.ajax(url, {
-      success: function(data, status, xhr) {
-        if (typeof data === "object" && typeof data.length === "number") {
-          data.forEach(function(e) {
-            var ev = "<p>";
-            ev += e.title;
-            ev += "<br>";
-            ev += e.link;
-            ev += "<br>";
-            ev += e.pub_date;
-            ev += "<br>";
-            ev += e.description;
-            ev += "</p>";
-
-            $(".community-events").append(ev);
-          });
+                $(".community-events").append(ev);
+            });
         }
-      }
-    });
-  }
+    }
 });

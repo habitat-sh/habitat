@@ -47,8 +47,6 @@ pub fn router(config: Arc<Config>) -> Result<Chain> {
         job: get "/jobs/:id" => job_show,
         job_log: get "/jobs/:id/log" => job_log,
 
-        events_rss: get "/community-events" => chef_events_feed,
-
         user_invitations: get "/user/invitations" => {
             XHandler::new(list_account_invitations).before(basic.clone())
         },
