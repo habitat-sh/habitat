@@ -16,6 +16,7 @@ use std::sync::mpsc;
 use std::sync::{Arc, RwLock};
 use std::thread::{self, JoinHandle};
 use std::path::PathBuf;
+use std::collections::HashMap;
 
 use protobuf::{parse_from_bytes, Message};
 use hab_net::server::ZMQ_CONTEXT;
@@ -143,7 +144,7 @@ impl ScheduleMgr {
             {
                 let mut items = [self.work_sock.as_poll_item(1),
                                  self.status_sock.as_poll_item(1)];
-                try!(zmq::poll(&mut items, -1));
+                try!(zmq::poll(&mut items, 60000));
 
                 if (items[0].get_revents() & zmq::POLLIN) > 0 {
                     work_sock = true;
@@ -153,10 +154,17 @@ impl ScheduleMgr {
                 }
             }
 
+            if !work_sock && !status_sock {
+                if let Err(err) = self.process_work() {
+                    warn!("Unable to process work: err {:?}", err);
+                }
+            }
+
             if work_sock {
                 if let Err(err) = self.process_work() {
                     warn!("Unable to process work: err {:?}", err);
                 }
+                try!(self.work_sock.recv(&mut self.msg, 0));
                 work_sock = false;
             }
 
@@ -177,7 +185,6 @@ impl ScheduleMgr {
             // 0 means there are no pending groups, so we should consume our notice that we have work
             if groups.len() == 0 {
                 info!("No more pending groups - exiting process_work");
-                try!(self.work_sock.recv(&mut self.msg, 0));
                 break;
             }
 
@@ -186,24 +193,47 @@ impl ScheduleMgr {
             info!("Got pending group {}", group.get_id());
             assert!(group.get_state() == proto::GroupState::Dispatching);
 
-            self.dispatch_group(group)?;
+            self.dispatch_group(&group)?;
+            self.update_group_state(group.get_id())?;
         }
         Ok(())
     }
 
-    fn dispatch_group(&mut self, group: proto::Group) -> Result<()> {
+    fn dispatch_group(&mut self, group: &proto::Group) -> Result<()> {
         self.logger.log_group(&group);
 
+        let mut skipped = HashMap::new();
         let dispatchable = self.dispatchable_projects(&group)?;
+
         for project in dispatchable {
+            if skipped.contains_key(project.get_name()) {
+                continue;
+            }
+
             debug!("Dispatching project: {:?}", project.get_name());
             self.logger.log_project(&group, &project);
 
             assert!(project.get_state() == proto::ProjectState::NotStarted);
 
             match self.schedule_job(group.get_id(), project.get_name()) {
-                Ok(job) => {
-                    self.datastore.set_group_job_state(&job).unwrap();
+                Ok(job_opt) => {
+                    match job_opt {
+                        Some(job) => self.datastore.set_group_job_state(&job).unwrap(),
+                        None => {
+                            let skip_list = match self.skip_projects(&group, &project) {
+                                Ok(v) => v,
+                                Err(e) => {
+                                    warn!("Error skipping project {:?}: {:?}",
+                                          project.get_name(),
+                                          e);
+                                    return Err(e);
+                                }
+                            };
+                            for name in skip_list {
+                                skipped.insert(name, true);
+                            }
+                        }
+                    }
                 }
                 Err(err) => {
                     warn!("Failed to schedule job for {}, err: {:?}",
@@ -212,7 +242,10 @@ impl ScheduleMgr {
 
                     self.datastore
                         .set_group_state(group.get_id(), proto::GroupState::Failed)?;
-                    // TBD? set_project_state(group.get_id(), project.get_name(), proto::ProjectState::Failure)?;
+                    self.datastore
+                        .set_group_project_state(group.get_id(),
+                                                 project.get_name(),
+                                                 proto::ProjectState::Failure)?;
 
                     // TODO: Make this cleaner later
                     let mut updated_group = group.clone();
@@ -266,7 +299,50 @@ impl ScheduleMgr {
         true
     }
 
-    fn schedule_job(&mut self, group_id: u64, project_name: &str) -> Result<Job> {
+    fn skip_projects(&mut self,
+                     group: &proto::Group,
+                     project: &proto::Project)
+                     -> Result<Vec<String>> {
+        let mut skipped = HashMap::new();
+
+        debug!("Skipping project: {:?}", project.get_name());
+        skipped.insert(project.get_name().to_string(), true);
+
+        self.datastore
+            .set_group_project_state(group.get_id(),
+                                     &project.get_name(),
+                                     proto::ProjectState::Skipped)?;
+
+        for project in group
+                .get_projects()
+                .into_iter()
+                .filter(|x| x.get_state() == proto::ProjectState::NotStarted) {
+            // Check the deps for the project. If we find any dep that is in the
+            // skipped list, we set the project status to Skipped and add it to the list
+            let package = self.datastore.get_package(&project.get_ident())?;
+            let deps = package.get_deps();
+
+            for dep in deps {
+                let parts: Vec<&str> = dep.split("/").collect();
+                assert!(parts.len() >= 2);
+                let name = format!("{}/{}", parts[0], parts[1]);
+
+                if skipped.contains_key(&name) {
+                    debug!("Skipping project {:?}", project.get_name());
+                    self.datastore
+                        .set_group_project_state(group.get_id(),
+                                                 project.get_name(),
+                                                 proto::ProjectState::Skipped)?;
+                    skipped.insert(project.get_name().to_string(), true);
+                    break;
+                }
+            }
+        }
+
+        Ok(skipped.keys().map(|s| s.to_string()).collect())
+    }
+
+    fn schedule_job(&mut self, group_id: u64, project_name: &str) -> Result<Option<Job>> {
         let mut project_get = OriginProjectGet::new();
 
         project_get.set_name(String::from(project_name));
@@ -275,11 +351,11 @@ impl ScheduleMgr {
         let project = match conn.route::<OriginProjectGet, OriginProject>(&project_get) {
             Ok(project) => project,
             Err(err) => {
-                warn!("Unable to retrieve project: {:?}, error: {:?}",
+                warn!("Unable to retrieve project: {:?}, error: {:?} - Skipping",
                       project_name,
                       err);
 
-                return Err(Error::ProtoNetError(err));
+                return Ok(None);
             }
         };
 
@@ -290,7 +366,7 @@ impl ScheduleMgr {
         match conn.route::<JobSpec, Job>(&job_spec) {
             Ok(job) => {
                 debug!("Job created: {:?}", job);
-                Ok(job)
+                Ok(Some(job))
             }
             Err(err) => {
                 warn!("Job creation error: {:?}", err);
@@ -348,27 +424,35 @@ impl ScheduleMgr {
         // |     Pending             |     N/A          |        N/A          |
         // |     Dispatching         |   any Failure    |      Failed         |
         // |     Dispatching         |   all Success    |      Complete       |
-        // |     Dispatching         |   otherwise      |      Pending        |
+        // |     Dispatching         |   dispatchable?  |      Pending        |
+        // |     Dispatching         |   otherwise      |      Dispatching    |
         // |     Complete            |     N/A          |        N/A          |
         // |     Failed              |     N/A          |        N/A          |
 
         if group.get_state() == proto::GroupState::Dispatching {
             let mut failed = 0;
             let mut succeeded = 0;
+            let mut skipped = 0;
+
             for project in group.get_projects() {
                 match project.get_state() {
                     proto::ProjectState::Failure => failed = failed + 1,
                     proto::ProjectState::Success => succeeded = succeeded + 1,
+                    proto::ProjectState::Skipped => skipped = skipped + 1,
                     _ => (),
                 }
             }
 
+            let dispatchable = self.dispatchable_projects(&group)?;
+
             let new_state = if failed > 0 {
                 proto::GroupState::Failed
-            } else if succeeded == group.get_projects().len() {
+            } else if (succeeded + skipped) == group.get_projects().len() {
                 proto::GroupState::Complete
-            } else {
+            } else if dispatchable.len() > 0 {
                 proto::GroupState::Pending
+            } else {
+                proto::GroupState::Dispatching
             };
 
             self.datastore.set_group_state(group_id, new_state)?;

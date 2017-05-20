@@ -6,6 +6,7 @@ enum ProjectState {
   InProgress = 1;
   Success = 2;
   Failure = 3;
+  Skipped = 4;
 }
 
 message Project {
