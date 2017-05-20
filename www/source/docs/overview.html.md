@@ -28,7 +28,7 @@ The Habitat documentation is broken out into the following sections:
 
 - [CLI reference](/docs/reference/habitat-cli): Usage and basic help documentation for all `hab` CLI commands and subcommands.
 - [Plan syntax](/docs/reference/plan-syntax): All settings, variables, callbacks, functions, and other configuration options that can be used when creating your plan.
-- [Environment variables](/docs/reference/environment-vars): All environment variables that you can modify when using the `hab` CLI. 
+- [Environment variables](/docs/reference/environment-vars): All environment variables that you can modify when using the `hab` CLI.
 - [Package contents](/docs/reference/package-contents): Dependency, build, and configuration files that are included in a Habitat package.
 
 **Contribute**
@@ -75,7 +75,7 @@ code and get cookin', then these links should provide everything you need.
     <p>Habitat is open source;<br>let's build together</p>
   </div>
   <div class="callout-box columns medium-4">
-    <a href="https://app.habitat.sh/#/sign-in" class="button secondary">Sign in to Web App</a>
+    <a href="https://bldr.habitat.sh/#/sign-in" class="button secondary">Sign in to Web App</a>
     <p>Manage your information and<br>browse official packages</p>
   </div>
 </div>

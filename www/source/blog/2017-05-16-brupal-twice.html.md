@@ -45,7 +45,7 @@ could access it and then point NGINX to my PHP-FPM socket/ip. This is
 all easy enough when you know how.
 
 I didn't know how. Thankfully, the [Habitat public
-depot](https://app.habitat.sh) has a plan available for Wordpress [^2]
+depot](https://bldr.habitat.sh) has a plan available for Wordpress [^2]
 which gave me some insight. The "trick" here is to launch PHP-FPM and
 then use an init hook to also launch NGINX with a config you give it.
 
@@ -58,7 +58,7 @@ The first attempt a Drupal was easy enough:
 - The sources of the plan can be found
 [here](https://github.com/endocode/habitat-plans/tree/master/drupal);
 - The final package is available
-[here](https://app.habitat.sh/#/pkgs/endocode/drupal/8.3.2/20170515200337).
+[here](https://bldr.habitat.sh/#/pkgs/endocode/drupal/8.3.2/20170515200337).
 
 This plan was built exactly as I described above: I download the
 source tarball, unpack it in a specific location and configure NGINX
@@ -81,7 +81,7 @@ comes my first problem: there's no Habitat package for `drush`.
 Not to worry: `drush` could not be any simpler to install; it is used
 as a dependency in composer. Thankfully, there _is_ a `core/composer`
 package I can use for this purpose. I rolled out a `baggerspion/drush`
-package with minimal effort. It can be found [here](https://app.habitat.sh/#/pkgs/baggerspion/drush/8/20170515140815).
+package with minimal effort. It can be found [here](https://bldr.habitat.sh/#/pkgs/baggerspion/drush/8/20170515140815).
 
 Drush is important for one particular reason: having installed the
 base Drupal ("core"?) system, drush can be used to build a
@@ -121,7 +121,7 @@ This is much better. I think.
 
 I'm offering 10 points [^3] for the first comment telling me where the
 default password (account_password) in the
-[baggerspion/drupal](https://app.habitat.sh/#/pkgs/baggerspion/drupal/8.3.2/20170516112409)
+[baggerspion/drupal](https://bldr.habitat.sh/#/pkgs/baggerspion/drupal/8.3.2/20170516112409)
 plan comes from! No Googling! Answers below!
 
 ## Footnotes
