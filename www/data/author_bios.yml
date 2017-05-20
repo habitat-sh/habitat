@@ -9,10 +9,11 @@ authors:
     name: "Robb Kidd"
     email: "rkidd@chef.io"
     bio: ""
-  fletchernichol:
+  fnichol:
     name: "Fletcher Nichol"
-    email: "fnichol@chef.io"
-    bio: ""
+    email: "fnichol@habitat.sh"
+    twitter: "@fnichol"
+    bio: "Fletcher Nichol is a senior engineer who works on Habitat. He spends far too much time writing open source software and far too little playing the drums. In previous jobs he has been a web application developer, a systems administrator, and even an infrastructure-as-code koolaid barista."
   adamleff:
     name: "Adam Leff"
     email: "aleff@chef.io"
