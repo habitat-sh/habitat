@@ -259,22 +259,7 @@ code {
   }
 
   &.outline {
-    border-radius: 7px;
-    background: transparent;
-    border: 1px solid $hab-orange;
-    color: $hab-orange;
-
-    &.footer--cta-button {
-      box-shadow: none;
-      margin-left: rem-calc(20);
-      text-shadow: none;
-      color: $hab-white;
-
-      &:hover {
-        @include shadow-float;
-        transition: all .2s;
-      }
-    }
+    @include button;
   }
 }
 
@@ -284,6 +269,7 @@ code {
   &.outline {
     background-image: none;
     color: $body-font-color;
+    font-weight: normal;
     text-shadow: none;
   }
 }

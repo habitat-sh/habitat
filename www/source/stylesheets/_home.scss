@@ -102,6 +102,7 @@ body.home {
       top: 50%;
       transform: translateY(-50%);
       right: 15px;
+      transition: right .1s;
     }
   }
 
@@ -109,7 +110,12 @@ body.home {
   &:focus,
   &:active {
     color: $white;
-    box-shadow: 0 0 36px 0 rgba(164, 207, 241, 0.21);
+    box-shadow: 0 0 30px 0 rgba(164, 207, 241, 0.12);
+
+    &:after {
+      right: 12px;
+      transition: right .2s;
+    }
   }
 }
 
@@ -121,25 +127,21 @@ body.home {
   min-width: 50px;
   height: 50px;
   background: linear-gradient(to bottom, #BBDB8D, #62AAA8);
-  border-radius: 5px;
+  border-radius: $global-radius 0 0 $global-radius;
   text-align: center;
-  font-size: 12px;
+  font-size: rem-calc(12);
 
   & > span {
     display: block;
-    font-size: 22px;
+    font-size: rem-calc(18);
+    font-weight: 700;
     line-height: 19px;
   }
 
   @include breakpoint(medium) {
     min-width: 72px;
     height: 72px;
-    font-size: 16px;
-
-    & > span {
-      font-size: 25px;
-      line-height: 20px;
-    }
+    font-size: rem-calc(16);
   }
 }
 
@@ -289,8 +291,12 @@ body.home {
   }
 
   & > .button.cta {
-    margin: 1rem;
-    color: $white;
+    @include primary-button;
+    margin-right: 1rem;
+  }
+
+  & > .button.outline {
+    @include button;
   }
 
   & > p {
