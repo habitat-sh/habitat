@@ -14,6 +14,7 @@
 //  9. Global Message
 //  10. 404
 //  11. Social links
+//  12. Cards
 
 $main-nav-breakpoint: 769px;
 
@@ -261,11 +262,13 @@ code {
     border-radius: 7px;
     background: transparent;
     border: 1px solid $hab-orange;
+    color: $hab-orange;
 
     &.footer--cta-button {
       box-shadow: none;
       margin-left: rem-calc(20);
       text-shadow: none;
+      color: $hab-white;
 
       &:hover {
         @include shadow-float;
@@ -476,5 +479,70 @@ img {
         background-position: left bottom;
       }
     }
+  }
+}
+
+// 11. Cards
+// -------------------
+
+%card-box {
+  margin-bottom: 1.5rem;
+  padding: 0;
+  background-color: $hab-white;
+  border-radius: $global-radius;
+  text-align: left;
+
+  p {
+    margin-bottom: .75rem;
+  }
+
+  .heading {
+    @extend %hab-gradient-green;
+    padding: .75rem 1.5rem;
+    border-radius: $global-radius $global-radius 0 0;
+    font-size: .875rem;
+
+    &.orange {
+      @extend %hab-gradient-orange;
+    }
+
+    &.blue {
+      @extend %hab-gradient-blue;
+    }
+
+    ul {
+      margin-bottom: 0;
+    }
+
+    li {
+      display: inline-block;
+      margin-left: 1rem;
+      padding-left: 1rem;
+      border-left: 1px solid rgba($hab-white,.80);
+      text-transform: capitalize;
+      color: $hab-white;
+
+      &:first-child {
+        margin-left: 0;
+        padding-left: 0;
+        border-left: none;
+      }
+    }
+
+    a {
+      color: $hab-white;
+      transition: color .2s;
+
+      &:hover,
+      &:active,
+      &:focus {
+        color: rgba($hab-white,.80);
+        transition: color .2s;
+      }
+    }
+  }
+
+  .body-content {
+    padding: 1.5rem;
   }
 }

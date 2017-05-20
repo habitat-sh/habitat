@@ -281,7 +281,7 @@ $breadcrumbs-item-slash: true;
 // 11. Button
 // ----------
 
-$button-padding: 0.85em 1em;
+$button-padding: rem-calc(15) rem-calc(20);
 $button-margin: 0 0 $global-margin 0;
 $button-fill: solid;
 $button-background: $hab-cta;

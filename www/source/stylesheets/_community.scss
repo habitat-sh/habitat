@@ -2,6 +2,7 @@
 // Community Page media queries
 $community-small-breakpoint: rem-calc(650);
 $community-medium-breakpoint: rem-calc(880);
+$community-xlarge-breakpoint: rem-calc(1060);
 
 @mixin small-community {
   @media (max-width: $community-small-breakpoint - rem-calc(1)) {
@@ -21,6 +22,12 @@ $community-medium-breakpoint: rem-calc(880);
   }
 }
 
+@mixin x-large-community {
+  @media (min-width: $community-xlarge-breakpoint) {
+    @content;
+  }
+}
+
 @mixin section-left-margin {
   @media (min-width: 1040px) {
     margin-left: rem-calc(104);
@@ -35,20 +42,47 @@ $community-medium-breakpoint: rem-calc(880);
   }
 }
 
+// Page level styles
+.community section {
+  margin: rem-calc(60) 0;
+  text-align: center;
+
+  h2 {
+    margin-bottom: rem-calc(60);
+    font-size: rem-calc(24);
+  }
+
+  li {
+    display: inline-block;
+
+    a.button {
+      display: block;
+      min-width: 200px;
+    }
+  }
+
+  li + li a {
+    margin-left: rem-calc(20);
+  }
+
+  &.community--roadmap {
+    margin-bottom: 0;
+  }
+
+  &.community--tracker {
+    margin-top: 0;
+  }
+
+  &.community--tracker,
+  &.community--cta {
+    h2 {
+      margin-bottom: rem-calc(20);
+    }
+  }
+}
+
 // Hero
 .community--hero {
-  min-height: rem-calc(600);
-
-  @include medium-community {
-    background-position: rem-calc(-100) 118%;
-    background-size: rem-calc(730) auto;
-  }
-
-  @include large-community {
-    background-position: -16% 165%;
-    background-position: calc(50% - rem-calc(400px)) 165%;
-    background-size: auto;
-  }
 
   & > .row {
     position: relative;
@@ -56,45 +90,6 @@ $community-medium-breakpoint: rem-calc(880);
 
   .cta-subtext a {
     color: $hab-orange-dark;
-  }
-}
-
-.community--hero--content {
-  margin: rem-calc(60) 0 rem-calc(400);
-
-  @media (max-width: rem-calc(400)) {
-    margin-bottom: 112%;
-  }
-
-  @media (min-width: 376px) {
-    .button + .button {
-      margin-left: rem-calc(10);
-    }
-  }
-
-  @include medium-community {
-    max-width: 80%;
-    margin: rem-calc(90) 0 rem-calc(400);
-  }
-
-  @media (max-width: 940px) and (min-width: $community-medium-breakpoint) {
-    max-width: 50%;
-    margin: rem-calc(90) 0 rem-calc(150);
-  }
-
-  @media (min-width: 941px) {
-    max-width: 55%;
-    margin: rem-calc(94) 0 rem-calc(180);
-
-    .community & {
-      max-width: 50%;
-    }
-  }
-
-  @include section-left-margin;
-
-  li a.button {
-    min-width: 200px;
   }
 }
 
@@ -108,7 +103,8 @@ $community-medium-breakpoint: rem-calc(880);
 }
 
 .community--hero--text {
-  margin-bottom: rem-calc(40);
+  margin: 0 auto rem-calc(40);
+  max-width: rem-calc(600);
   color: $white;
 
   & + .community--hero--text {
@@ -116,104 +112,107 @@ $community-medium-breakpoint: rem-calc(880);
   }
 }
 
-.community--hero--graphic {
-  position: absolute;
-  bottom: 0;
-  z-index: 3;
-  overflow: hidden;
-  right: 0;
+// Events
+.community--events {
+  margin-bottom: -240px !important;
+  padding-bottom: 240px;
+  position: relative;
+  z-index: 10;
+  min-height: 600px;
+  background: url(../images/graphics/bg-mountains-blue.png) no-repeat center bottom;
+  background-size: 100% 430px;
 
-  & > img {
-    position: relative;
-    right: 0px;
-    top: -40px;
-    width: 560px;
-
-    @media (max-width: 420px) {
-      left: -10%;
-    }
+  h2 {
+    color: $hab-white;
   }
 
-  @include small-community {
-    width: 100%;
+  .community--events--card {
+    @extend %card-box;
+  }
+}
+
+// Roadmap
+.community--roadmap {
+  background-color: $hab-white;
+}
+
+.community--roadmap {
+  padding: rem-calc(240) 0 rem-calc(60);
+  position: relative;
+  z-index: 5;
+
+  .roadmap-headings {
+    margin-bottom: rem-calc(10);
     text-align: center;
 
-    & > img {
-      position: relative;
-      width: 120%;
-      max-width: 450px;
-      right: 0;
+    h5 {
+      display: inline-block;
+      padding: rem-calc(5) rem-calc(30);
+      border: 1px solid currentColor;
+      border-radius: 30px;
+      font-family: $body-font-family;
+      font-size: rem-calc(16);
+      color: $hab-green;
+    }
+  }
+}
+// ProdPad Roadmap iframe overrides
+iframe {
+  border: 1px solid $hab-gray-light;
+  border-radius: $global-radius !important;
+}
+
+.community--tracker {
+  margin-bottom: -100px !important;
+  padding-bottom: 100px;
+  position: relative;
+  z-index: 10;
+  min-height: 560px;
+  background: url(../images/graphics/bg-mountains-green.png) no-repeat center bottom;
+  background-size: 100% 560px;
+
+  .foreground-github {
+    display: none;
+    margin: 0 auto;
+    position: absolute;
+    padding-left: 160px;
+    bottom: 100px;
+    z-index: 15;
+
+    img {
+      max-width: 960px;
+      width: 100%;
     }
 
-    .community & {
-      bottom: rem-calc(-50);
+    @include x-large-community {
+      display: block;
+    }
+  }
+
+  .callout-box {
+    @include shadow-float;
+    margin-top: 100px;
+    padding: rem-calc(40);
+    background-color: $hab-white;
+    border: 1px solid $hab-gray-light;
+    border-radius: $global-radius;
+    z-index: 12;
+
+    ul {
+      margin-bottom: 0;
     }
   }
 }
 
-// Sub hero
-$sub-hero-skew: 5deg;
+.community--cta {
+  padding: rem-calc(150) 0 rem-calc(60);
+  color: $hab-white;
 
-.community--sub-hero {
-  position: relative;
-  z-index: 2;
-  padding: rem-calc(160) 0 rem-calc(200);
-  margin-top: rem-calc(-100);
-  margin-bottom: rem-calc(-100);
-  color: $white;
-
-  @include small-community {
-    padding-bottom: rem-calc(90);
+  ul {
+    margin-top: rem-calc(30);
   }
 }
 
-.community--sub-hero--content {
-  position: relative;
-  @include section-left-margin;
-}
-
-.community--sub-hero--heading,
-.community--sub-hero--blurb {
-  position: relative;
-  z-index: 3;
-}
-
-.community--sub-hero--heading {
-  margin-bottom: rem-calc(60);
-  @extend %section-heading;
-}
-
-.community--sub-hero--icon {
-  margin-bottom: rem-calc(20);
-}
-
-.community--sub-hero--blurb {
-  @include small-community {
-    padding: 0 8%;
-    margin-bottom: 5%;
-  }
-
-  p {
-    color: darken($white, 15%);
-  }
-}
-
-.community--sub-hero--graphic {
-  position: absolute;
-  z-index: 2;
-  left: 0.9375rem;
-  top: rem-calc(-200);
-
-  @include small-community {
-    width: 90%;
-    top: rem-calc(-215);
-  }
-}
-
-.community--sub-hero--button {
-  margin: rem-calc(40) 0 rem-calc(-35);
-
-  @include small-community {
-    margin: rem-calc(20) 0 0 6%;
-  }
+.community .footer--cta {
+  display: none;
 }

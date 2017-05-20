@@ -15,12 +15,12 @@ layout: blog_index
 
     - page_articles.each_with_index do |article, i|
       .blog-index--post-summary
-        .blog-index--post-summary--header
+        .blog-index--post-summary--header.heading
           ul.no-bullet
             - article.tags.each do |tag|
               li
                 = link_to "#{tag}", tag_path(tag)
-        .blog-index--post-summary--body
+        .blog-index--post-summary--body.body-content
           h2
             = link_to article.title, article
           = article.summary

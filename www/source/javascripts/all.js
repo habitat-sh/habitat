@@ -4,3 +4,4 @@
 //= require vendor/js.cookie
 //= require nav.js
 //= require home.js
+//= require community.js
