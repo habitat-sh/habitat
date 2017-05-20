@@ -83,12 +83,12 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                     opp_channel_id bigint,
                     opp_package_id bigint
                  ) RETURNS void AS $$
-                    BEGIN
-                        INSERT INTO origin_channel_packages (channel_id, package_id) VALUES (opp_channel_id, opp_package_id);
-                    END
-                 $$ LANGUAGE plpgsql VOLATILE"#)?;
-    migrator.migrate("originsrv",
-                           r#"CREATE OR REPLACE FUNCTION delete_origin_channel_v1 (
+                        INSERT INTO origin_channel_packages (channel_id, package_id) VALUES (opp_channel_id, opp_package_id)
+                        ON CONFLICT ON CONSTRAINT origin_channel_packages_pkey DO NOTHING;
+                 $$ LANGUAGE SQL VOLATILE"#)?;
+    migrator
+        .migrate("originsrv",
+                 r#"CREATE OR REPLACE FUNCTION delete_origin_channel_v1 (
                     channel_id bigint
                  ) RETURNS void AS $$
                     BEGIN
