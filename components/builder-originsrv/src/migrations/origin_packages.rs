@@ -84,7 +84,7 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                     op_target text
                  ) RETURNS SETOF origin_packages AS $$
                     BEGIN
-                        RETURN QUERY SELECT * FROM origin_packages WHERE ident LIKE (op_ident  || '%') AND target = op_target;
+                        RETURN QUERY SELECT * FROM origin_packages WHERE ident LIKE (op_ident  || '/%') AND target = op_target;
                         RETURN;
                     END
                     $$ LANGUAGE plpgsql STABLE"#)?;
