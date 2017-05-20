@@ -450,6 +450,9 @@ impl DataStore {
                 .expect("Insert returns row, but no row present");
             Ok(Some(self.row_to_origin(row)))
         } else {
+            // I don't think this will ever happen because a unique constraint violation (or any
+            // other error) will trigger an error on the query and return from this function
+            // before this if statement ever executes.
             Ok(None)
         }
     }

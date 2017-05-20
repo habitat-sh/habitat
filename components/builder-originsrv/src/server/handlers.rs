@@ -13,12 +13,15 @@
 // limitations under the License.
 
 use hab_net::server::Envelope;
+use postgres::error::Error as PostgresError;
+use postgres::error::SqlState::UniqueViolation;
 use protocol::net::{self, NetOk, ErrCode};
 use protocol::originsrv as proto;
 use zmq;
 
 use super::ServerState;
 use error::Result;
+use error::Error;
 
 pub fn origin_check_access(req: &mut Envelope,
                            sock: &mut zmq::Socket,
@@ -42,12 +45,19 @@ pub fn origin_create(req: &mut Envelope,
     match state.datastore.create_origin(&msg) {
         Ok(Some(ref origin)) => try!(req.reply_complete(sock, origin)),
         Ok(None) => {
+            // this match branch is likely unnecessary because of the way a unique constraint
+            // violation will be handled. see the matching comment in data_store.rs for the
+            // create_origin function.
             let err = net::err(ErrCode::ENTITY_CONFLICT, "vt:origin-create:0");
+            try!(req.reply_complete(sock, &err));
+        }
+        Err(Error::OriginCreate(PostgresError::Db(ref db))) if db.code == UniqueViolation => {
+            let err = net::err(ErrCode::ENTITY_CONFLICT, "vt:origin-create:1");
             try!(req.reply_complete(sock, &err));
         }
         Err(err) => {
             error!("OriginCreate, err={:?}", err);
-            let err = net::err(ErrCode::DATA_STORE, "vt:origin-create:1");
+            let err = net::err(ErrCode::DATA_STORE, "vt:origin-create:2");
             try!(req.reply_complete(sock, &err));
         }
     }

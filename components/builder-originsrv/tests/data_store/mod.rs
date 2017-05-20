@@ -39,6 +39,24 @@ fn create_origin_poop() {
 }
 
 #[test]
+fn create_origin_handles_unique_constraint_violations_correctly() {
+    let ds = datastore_test!(DataStore);
+    let mut origin = originsrv::OriginCreate::new();
+    origin.set_name(String::from("neurosis"));
+    origin.set_owner_id(1);
+    origin.set_owner_name(String::from("scottkelly"));
+    ds.create_origin(&origin).expect("Should create origin");
+
+    let mut origin2 = originsrv::OriginCreate::new();
+    origin2.set_name(String::from("neurosis"));
+    origin2.set_owner_id(1);
+    origin2.set_owner_name(String::from("scottkelly"));
+    let resp2 = ds.create_origin(&origin2);
+
+    assert!(resp2.is_err(), "Insertion should've triggered an error");
+}
+
+#[test]
 fn get_origin_by_name() {
     let ds = datastore_test!(DataStore);
     let mut origin = originsrv::OriginCreate::new();
@@ -287,9 +305,7 @@ fn create_origin_invitation() {
         .expect("Failed to create the origin invitation again, which should be a no-op");
 
     // We should never create an invitation for the same person and org
-    let conn = ds.pool
-        .get(&oic)
-        .expect("Cannot get connection from pool");
+    let conn = ds.pool.get(&oic).expect("Cannot get connection from pool");
     let rows = conn.query("SELECT COUNT(*) FROM origin_invitations", &[])
         .expect("Failed to query database for number of invitations");
     let count: i64 = rows.iter().nth(0).unwrap().get(0);
@@ -758,19 +774,16 @@ fn get_latest_package() {
     search_ident.set_name("cacerts".to_string());
     package_get.set_ident(search_ident.clone());
     package_get.set_target("x86_64-windows".to_string());
-    let result1 = ds.get_origin_package_latest(&package_get.clone())
-        .unwrap();
+    let result1 = ds.get_origin_package_latest(&package_get.clone()).unwrap();
 
     search_ident.set_version("2017.01.18".to_string());
     package_get.set_ident(search_ident.clone());
     package_get.set_target("x86_64-linux".to_string());
-    let result2 = ds.get_origin_package_latest(&package_get.clone())
-        .unwrap();
+    let result2 = ds.get_origin_package_latest(&package_get.clone()).unwrap();
 
     package_get.set_ident(search_ident.clone());
     package_get.set_target("x86_64-windows".to_string());
-    let result3 = ds.get_origin_package_latest(&package_get.clone())
-        .unwrap();
+    let result3 = ds.get_origin_package_latest(&package_get.clone()).unwrap();
 
     assert_eq!(result1.unwrap().to_string(), ident1.to_string());
     assert_eq!(result2.unwrap().to_string(), ident3.to_string());
@@ -1223,9 +1236,7 @@ fn create_origin_channel() {
         .expect("Failed to create origin public key");
 
     // Create new database connection
-    let conn = ds.pool
-        .get(&oscc)
-        .expect("Cannot get connection from pool");
+    let conn = ds.pool.get(&oscc).expect("Cannot get connection from pool");
 
     let rows = conn.query("SELECT COUNT(*) FROM origin_channels", &[])
         .expect("Failed to query database for number of channels");
