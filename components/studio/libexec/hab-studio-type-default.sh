@@ -1,11 +1,11 @@
 studio_type="default"
 studio_path="$HAB_ROOT_PATH/bin"
-studio_enter_environment=
+studio_enter_environment="STUDIO_ENTER=true"
 studio_enter_command="$HAB_ROOT_PATH/bin/hab pkg exec core/hab-backline bash --login +h"
 studio_build_environment=
 studio_build_command="record \${1:-} $HAB_ROOT_PATH/bin/build"
 studio_run_environment=
-studio_run_command="$HAB_ROOT_PATH/bin/hab pkg exec core/hab-backline bash -l"
+studio_run_command="$HAB_ROOT_PATH/bin/hab pkg exec core/hab-backline bash --login"
 
 pkgs="${HAB_BACKLINE_PKG:-core/hab-backline}"
 
@@ -157,6 +157,16 @@ alias sr='sup-run'
 alias st='sup-term'
 alias sl='sup-log'
 
+if [[ -n "\${STUDIO_ENTER:-}" ]]; then
+  unset STUDIO_ENTER
+  source /etc/profile.enter
+fi
+
+# Add command line completion
+source <(hab cli completers --shell bash)
+PROFILE
+
+  $bb cat > $HAB_STUDIO_ROOT/etc/profile.enter <<PROFILE_ENTER
 # Automatically run the Habitat Supervisor
 case "\${HAB_STUDIO_SUP:-}" in
   false|FALSE|no|NO|0)
@@ -170,10 +180,7 @@ case "\${HAB_STUDIO_SUP:-}" in
     echo ""
     ;;
 esac
-
-# Add command line completion
-source <(hab cli completers --shell bash)
-PROFILE
+PROFILE_ENTER
 
   echo "${run_user}:x:42:42:root:/:/bin/sh" >> $HAB_STUDIO_ROOT/etc/passwd
   echo "${run_group}:x:42:${run_user}" >> $HAB_STUDIO_ROOT/etc/group
