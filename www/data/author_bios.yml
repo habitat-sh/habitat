@@ -28,3 +28,8 @@ authors:
     email: "paul@baggerspion.net"
     twitter: "@therealpadams"
     bio: "Paul Adams is an engineering manager with a passion for open source; he has contributed to many communities, including Plone, KDE and CrateDB. By day he is a servant leader, helping teams survive distributed agility (the topic of his PhD). He is based in Berlin, Germany."
+  justincarter:
+    name: "Justin Carter"
+    email: "justin@starkandwayne.com"
+    twitter: "@bodymindarts"
+    bio: "Previously composer, performer and high stakes gambler. Currently PaaS/automation/cloud native consultant @starkandwayne and @habitatsh core contributor."
