@@ -7,6 +7,7 @@ import { RouterTestingModule } from "@angular/router/testing";
 import { Observable } from "rxjs";
 import { List } from "immutable";
 import { MockComponent } from "ng2-mock-component";
+import * as actions from "../actions/index";
 import { AppStore } from "../AppStore";
 import { PackagesPageComponent } from "./PackagesPageComponent";
 
@@ -16,6 +17,8 @@ class MockAppStore {
   getState() {
     return MockAppStore.state;
   }
+
+  dispatch() {}
 }
 
 class MockRoute {
@@ -122,6 +125,58 @@ describe("PackagesPageComponent", () => {
           expect(element.query(By.css(".page-body--sidebar button"))).toBeNull();
         });
       });
+    });
+  });
+
+  describe("search", () => {
+
+    describe("given a query", () => {
+
+      beforeEach(() => {
+        let query = "foo";
+        component.query = query;
+        MockAppStore.state.packages.searchQuery = query;
+        fixture.detectChanges();
+      });
+
+      it("shows the Search Packages heading", () => {
+        let heading = element.query(By.css(".hab-packages h2"));
+        expect(heading.nativeElement.textContent).toBe("Search Packages");
+      });
+
+      it("shows the search box", () => {
+        expect(element.query(By.css(".page-body input[type='search']"))).not.toBeNull();
+      });
+
+      describe("fetch", () => {
+
+        it ("clears the list of builds", () => {
+          spyOn(actions, "clearBuilds");
+
+          component.fetch();
+
+          expect(actions.clearBuilds).toHaveBeenCalled();
+        });
+
+        it ("fetches with the distinct parameter", () => {
+          spyOn(actions, "filterPackagesBy");
+
+          component.fetch();
+
+          expect(actions.filterPackagesBy).toHaveBeenCalledWith(
+            { name: undefined, origin: undefined, version: undefined }, "foo", true
+          );
+        });
+      });
+    });
+  });
+
+  describe("on destroy", () => {
+
+    it("clears the list of visible builds", () => {
+      spyOn(actions, "clearBuilds");
+      component.ngOnDestroy();
+      expect(actions.clearBuilds).toHaveBeenCalled();
     });
   });
 });
