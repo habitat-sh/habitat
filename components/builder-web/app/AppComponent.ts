@@ -60,8 +60,12 @@ export class AppComponent implements OnInit, OnDestroy {
             let eventName = event.toString();
 
             store.dispatch(routeChange(eventName));
+
             // Clear the package search when the route changes
             store.dispatch(setPackagesSearchQuery(""));
+
+            // Scroll to the top of the view
+            window.scrollTo(0, 0);
         });
 
         // Listen for changes on the state.
