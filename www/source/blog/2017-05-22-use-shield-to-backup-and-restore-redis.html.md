@@ -1,5 +1,5 @@
 ---
-title: Hello World!
+title: Use Shield to backup and restore Redis
 date: 2017-05-22
 author: Justin Carter
 tags: community
