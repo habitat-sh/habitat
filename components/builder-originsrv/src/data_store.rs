@@ -31,6 +31,7 @@ use config::Config;
 use error::{Result, Error};
 use migrations;
 
+use std::collections::HashMap;
 use std::fmt::Display;
 use std::str::FromStr;
 
@@ -600,9 +601,15 @@ impl DataStore {
             .map_err(Error::OriginPackageVersionList)?;
 
         let mut response = originsrv::OriginPackageVersionListResponse::new();
-        let mut versions = protobuf::RepeatedField::new();
+        let mut idents = Vec::new();
+        let mut version_map = HashMap::new();
         for row in rows.iter() {
             let ver: String = row.get("version");
+            let ident = PackageIdent::new(opvl.get_origin(),
+                                          opvl.get_name(),
+                                          Some(ver.as_str()),
+                                          None);
+
             let release_count: i64 = row.get("release_count");
             let latest: String = row.get("latest");
             let mut version = originsrv::OriginPackageVersion::new();
@@ -611,7 +618,15 @@ impl DataStore {
             version.set_version(ver);
             version.set_release_count(release_count as u64);
             version.set_latest(latest);
-            versions.push(version);
+
+            version_map.insert(ident.clone(), version);
+            idents.push(ident);
+        }
+        idents.sort();
+
+        let mut versions = protobuf::RepeatedField::new();
+        for ident in idents {
+            versions.insert(0, version_map.remove(&ident).unwrap());
         }
         response.set_versions(versions);
         Ok(response)
