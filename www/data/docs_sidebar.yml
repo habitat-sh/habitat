@@ -101,6 +101,8 @@ sidebar_links:
     link: "/docs/reference/package-contents/"
   - title: Supervisor log keys
     link: "/docs/reference/log-keys/"
+  - title: Habitat infographics
+    link: "/docs/reference/habitat-infographics/"    
 - title: Contribute
   links:
   - title: Help build Habitat
