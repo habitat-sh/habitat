@@ -29,6 +29,8 @@ message Heartbeat {
 }
 
 message Job {
+  reserved 10;
+  reserved "log_url";
   optional uint64 id = 1;
   optional uint64 owner_id = 2;
   optional JobState state = 3;
@@ -47,8 +49,8 @@ message Job {
   // The identifier of the package built by the job. Set only a
   // successfully-built Job.
   optional originsrv.OriginPackageIdent package_ident = 9;
-  // Location of remote long-term storage for build logs
-  optional string log_url = 10;
+  // Whether or not the log for the job has been archived
+  optional bool is_archived = 11;
 }
 
 // Retrieve a single job by ID
