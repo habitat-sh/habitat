@@ -27,6 +27,13 @@
 .footer--cta-button {
   @extend .button;
   @include primary-button;
+
+  &.outline {
+    margin-left: 1rem;
+    font-weight: normal;
+    color: $hab-white !important;
+    text-shadow: none;
+  }
 }
 
 .footer--cta-subtext {

@@ -49,7 +49,7 @@
                       - article.tags.each do |tag|
                         li
                           = link_to "#{tag}", tag_path(tag)
-                  .blog-index--post-summary--body
+                  .blog-index--post-summary--body.body-content
                     h2
                       = link_to article.title, article
                     = article.summary
