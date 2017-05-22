@@ -350,9 +350,15 @@ impl CensusGroup {
 
     fn update_from_service_rumors(&mut self, rumors: &HashMap<String, ServiceRumor>) {
         for (member_id, service_rumor) in rumors.iter() {
+            // Yeah - we are ourself - we're alive.
+            let is_self = member_id == &self.local_member_id;
             let mut member = self.population
                 .entry(member_id.to_string())
-                .or_insert(CensusMember::default());
+                .or_insert_with(|| {
+                                    let mut new_member = CensusMember::default();
+                                    new_member.alive = is_self;
+                                    new_member
+                                });
             member.update_from_service_rumor(&self.service_group, service_rumor);
         }
     }
