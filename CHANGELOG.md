@@ -1,5 +1,47 @@
 # Habitat CHANGELOG
 
+## [0.24.1](https://github.com/habitat-sh/habitat/tree/0.24.1) (05-22-2017)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.24.0...0.24.1)
+
+## Features & Enhancements
+
+- Origin packages uploaded should land in the unstable channel by default [\#2425](https://github.com/habitat-sh/habitat/issues/2425)
+- Write a blog about Scaffolding: Simple 'tutorial' post with example. [\#2272](https://github.com/habitat-sh/habitat/issues/2272)
+- Write a blog about Hab Builder: Full exploration and how it all works together. [\#2271](https://github.com/habitat-sh/habitat/issues/2271)
+- \[build-web\] add builder.habitat.sh [\#2195](https://github.com/habitat-sh/habitat/issues/2195)
+- \[blog\] Add `published: false` to Scaffolding articles. [\#2462](https://github.com/habitat-sh/habitat/pull/2462) ([fnichol](https://github.com/fnichol))
+- Bump VERSION to 0.25.0-dev. [\#2460](https://github.com/habitat-sh/habitat/pull/2460) ([fnichol](https://github.com/fnichol))
+- \[docs\] Update Scaffolding docs to reflect the current releases. [\#2446](https://github.com/habitat-sh/habitat/pull/2446) ([fnichol](https://github.com/fnichol))
+- \[blog\] Add Scaffolding blog posts. [\#2445](https://github.com/habitat-sh/habitat/pull/2445) ([fnichol](https://github.com/fnichol))
+- Update FASTLY\_SERVICE\_KEY in travis [\#2437](https://github.com/habitat-sh/habitat/pull/2437) ([reset](https://github.com/reset))
+- Use larger instance for Builder Worker & small refactors to Terraform [\#2436](https://github.com/habitat-sh/habitat/pull/2436) ([reset](https://github.com/reset))
+- Change subdomain from app.\* to bldr.\* for builder application [\#2435](https://github.com/habitat-sh/habitat/pull/2435) ([reset](https://github.com/reset))
+- Builder blog article [\#2389](https://github.com/habitat-sh/habitat/pull/2389) ([reset](https://github.com/reset))
+
+## Bug fixes
+
+- Scheduler API responding with 503 [\#2443](https://github.com/habitat-sh/habitat/issues/2443)
+- Jobs API responding with 503 [\#2442](https://github.com/habitat-sh/habitat/issues/2442)
+- CensusMember is alive if it is ourself [\#2466](https://github.com/habitat-sh/habitat/pull/2466) ([reset](https://github.com/reset))
+- \[studio\] Ensure that background hab-sup only runs in `enter`. [\#2461](https://github.com/habitat-sh/habitat/pull/2461) ([fnichol](https://github.com/fnichol))
+- Less greedy when attempting to query latest packages [\#2439](https://github.com/habitat-sh/habitat/pull/2439) ([reset](https://github.com/reset))
+- Properly sort latest origin packages [\#2438](https://github.com/habitat-sh/habitat/pull/2438) ([chefsalim](https://github.com/chefsalim))
+
+**Closed issues:**
+
+- Update the CNAME for www.acceptance.habitat.sh [\#2426](https://github.com/habitat-sh/habitat/issues/2426)
+- \[www\] Update copy and footer link on habitat.sh [\#2392](https://github.com/habitat-sh/habitat/issues/2392)
+
+**Merged pull requests:**
+
+- Tweak the query for get\_origin\_package\_latest\_v1 [\#2451](https://github.com/habitat-sh/habitat/pull/2451) ([chefsalim](https://github.com/chefsalim))
+- Handle errors from the stats API [\#2449](https://github.com/habitat-sh/habitat/pull/2449) ([cnunciato](https://github.com/cnunciato))
+- Don't fail on non-unique channel promote [\#2434](https://github.com/habitat-sh/habitat/pull/2434) ([chefsalim](https://github.com/chefsalim))
+- Updated scaffolding docs [\#2432](https://github.com/habitat-sh/habitat/pull/2432) ([tashimi](https://github.com/tashimi))
+- Inter-site navigation improvements, Part II [\#2423](https://github.com/habitat-sh/habitat/pull/2423) ([cnunciato](https://github.com/cnunciato))
+- Hook up the "Request New Build" button [\#2412](https://github.com/habitat-sh/habitat/pull/2412) ([raskchanky](https://github.com/raskchanky))
+- \[www\] Update Community Page [\#2400](https://github.com/habitat-sh/habitat/pull/2400) ([raskchanky](https://github.com/raskchanky))
+
 ## [0.24.0](https://github.com/habitat-sh/habitat/tree/0.24.0) (05-19-2017)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.23.0...0.24.0)
 
@@ -58,6 +100,7 @@
 
 **Merged pull requests:**
 
+- 0-24-0 [\#2429](https://github.com/habitat-sh/habitat/pull/2429) ([reset](https://github.com/reset))
 - Add inserted packages to unstable channel [\#2428](https://github.com/habitat-sh/habitat/pull/2428) ([chefsalim](https://github.com/chefsalim))
 - Inter-site navigation improvements, Part I [\#2422](https://github.com/habitat-sh/habitat/pull/2422) ([cnunciato](https://github.com/cnunciato))
 - Join us at ChefConf! [\#2421](https://github.com/habitat-sh/habitat/pull/2421) ([nathenharvey](https://github.com/nathenharvey))
