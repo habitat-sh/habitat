@@ -549,7 +549,7 @@ impl DataStore {
                                      -> Result<Option<originsrv::OriginPackageIdent>> {
         let conn = self.pool.get(opc)?;
         let rows = conn.query("SELECT * FROM get_origin_package_latest_v1($1, $2)",
-                              &[&self.searchable_ident(opc.get_ident().to_string()),
+                              &[&self.searchable_ident(opc.get_ident()),
                                 &opc.get_target()])
             .map_err(Error::OriginPackageLatestGet)?;
         if rows.len() != 0 {
@@ -578,9 +578,9 @@ impl DataStore {
                                              -> Result<Option<originsrv::OriginPackageIdent>> {
         let conn = self.pool.get(ocpg)?;
         let rows = conn.query("SELECT * FROM get_origin_channel_package_latest_v1($1, $2, $3, $4)",
-                              &[&self.searchable_ident(ocpg.get_ident().get_origin()),
+                              &[&ocpg.get_ident().get_origin(),
                                 &ocpg.get_name(),
-                                &ocpg.get_ident().to_string(),
+                                &self.searchable_ident(ocpg.get_ident()),
                                 &ocpg.get_target()])
             .map_err(Error::OriginChannelPackageLatestGet)?;
         if rows.len() != 0 {
