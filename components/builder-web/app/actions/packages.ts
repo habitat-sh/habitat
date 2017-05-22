@@ -134,11 +134,11 @@ export function filterPackagesBy(
         }
 
         if (query) {
-            params = { query };
+            params.query = encodeURIComponent(query);
         }
 
         if (distinct) {
-            params["distinct"] = true;
+            params.distinct = true;
         }
 
         depotApi.get(params, nextRange).then(response => {

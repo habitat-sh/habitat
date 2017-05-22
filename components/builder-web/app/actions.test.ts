@@ -15,6 +15,7 @@
 import * as cookies from "js-cookie";
 import * as gitHub from "./actions/gitHub";
 import * as actions from "./actions/index";
+import * as depotApi from "./depotApi";
 
 describe("actions", () => {
 
@@ -38,6 +39,18 @@ describe("actions", () => {
             expect(actions.populateExploreStats(data)).toEqual({
                 type: actions.POPULATE_EXPLORE_STATS,
                 payload: data
+            });
+        });
+    });
+
+    describe("filterPackagesBy", () => {
+
+        describe("given a query parameter", () => {
+
+            it("encodes the parameter before sending it", () => {
+                spyOn(depotApi, "get").and.returnValue(new Promise(() => {}));
+                actions.filterPackagesBy({}, "core/awesome", false)(() => {});
+                expect(depotApi.get).toHaveBeenCalledWith({ query: "core%2Fawesome" }, 0);
             });
         });
     });
