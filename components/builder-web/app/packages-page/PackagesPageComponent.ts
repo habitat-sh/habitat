@@ -44,7 +44,7 @@ import { Subscription } from "rxjs/Subscription";
         </div>
         <div class="page-body" [class.has-sidebar]="iCanRequestABuild">
             <div [class.page-body--main]="iCanRequestABuild">
-                <input *ngIf="origin && !name"
+                <input *ngIf="showSearch"
                     type="search" autofocus
                     [formControl]="searchBox"
                     placeholder="Search Packages&hellip;">
@@ -116,6 +116,8 @@ export class PackagesPageComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy() {
+        this.store.dispatch(clearBuilds());
+
         if (this.sub) {
             this.sub.unsubscribe();
         }
@@ -134,6 +136,8 @@ export class PackagesPageComponent implements OnInit, OnDestroy {
     }
 
     fetch() {
+        this.store.dispatch(clearBuilds());
+
         if (this.query) {
             this.search(this.query);
         } else {
@@ -188,7 +192,7 @@ export class PackagesPageComponent implements OnInit, OnDestroy {
     }
 
     get showSearch() {
-        return this.origin && !this.name;
+        return (this.origin && !this.name || this.query);
     }
 
     get subtitle() {
@@ -208,23 +212,20 @@ export class PackagesPageComponent implements OnInit, OnDestroy {
     }
 
     fetchMorePackages() {
-        this.store.dispatch(filterPackagesBy(this.packageParams(),
+        this.store.dispatch(filterPackagesBy(
+            this.packageParams(),
             this.searchQuery,
             this.distinct(),
-            this.store.getState().packages.nextRange));
+            this.store.getState().packages.nextRange)
+        );
         return false;
-    }
-
-    onBuildSelect(build) {
-        this.router.navigate(["/builds", build.id]);
     }
 
     packageParams() {
         return {
             name: this.name,
             origin: this.origin,
-            version: this.version,
-            query: this.query
+            version: this.version
         };
     }
 
@@ -234,8 +235,6 @@ export class PackagesPageComponent implements OnInit, OnDestroy {
     }
 
     private fetchBuilds() {
-        this.store.dispatch(clearBuilds());
-
         if (this.origin && this.name) {
             let token = this.store.getState().gitHub.authToken;
 
@@ -246,8 +245,11 @@ export class PackagesPageComponent implements OnInit, OnDestroy {
     }
 
     private fetchPackages() {
-        this.store.dispatch(filterPackagesBy(this.packageParams(),
-            this.searchQuery, this.distinct()));
+        this.store.dispatch(filterPackagesBy(
+            this.packageParams(),
+            this.searchQuery,
+            this.distinct())
+        );
     }
 
     private fetchVersions() {
@@ -255,15 +257,19 @@ export class PackagesPageComponent implements OnInit, OnDestroy {
     }
 
     private distinct() {
-        if ((this.origin && !this.name) || (this.name && !this.version)) {
-            return true;
-        }
-        return false;
+        return !this.version;
     }
 
     private search(query) {
         this.store.dispatch(setPackagesSearchQuery(query));
-        this.fetchPackages();
+
+        if (query === "") {
+            this.router.navigate(["/pkgs"]);
+        }
+        else {
+            this.fetchPackages();
+        }
+
         return false;
     }
 }
