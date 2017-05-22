@@ -106,7 +106,7 @@ matrix:
       language: rust
       env:
         - COMPONENTS=srv LIBSODIUM_PREFIX=$HOME/pkgs/libsodium/1.0.12 LIBARCHIVE_PREFIX=$HOME/pkgs/libarchive/3.2.0 LIBZMQ_PREFIX=$HOME/pkgs/zeromq/4.1.4 PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$LIBARCHIVE_PREFIX/lib/pkgconfig:$LIBSODIUM_PREFIX/lib/pkgconfig:$LIBZMQ_PREFIX/lib/pkgconfig" LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$LIBARCHIVE_PREFIX/lib:$LIBSODIUM_PREFIX/lib:$LIBZMQ_PREFIX/lib" LIBRARY_PATH="$LIBRARY_PATH:$LIBZMQ_PREFIX/lib"
-        - AFFECTED_DIRS="components/builder-api|components/builder-admin|components/builder-jobsrv|components/builder-sessionsrv|components/builder-vault|components/builder-worker|components/builder-depot"
+        - AFFECTED_DIRS="components/builder-api|components/builder-admin|components/builder-jobsrv|components/builder-sessionsrv|components/builder-originsrv|components/builder-worker|components/builder-depot"
       rust: stable
       sudo: required
       addons:
