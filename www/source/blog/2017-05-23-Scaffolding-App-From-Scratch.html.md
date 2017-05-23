@@ -5,7 +5,7 @@ author: fnichol
 tags: scaffolding
 category: Build
 classes: body-article
-published: false
+published: true
 ---
 
 Hey there, fellow developer, let's make ourselves a quick [Express](https://expressjs.com/) app and wrap it up in a Habitat package. Ready? Me too, I like to learn.

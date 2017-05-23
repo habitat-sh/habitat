@@ -5,7 +5,7 @@ author: fnichol
 tags: scaffolding
 category: Build
 classes: body-article
-published: false
+published: true
 ---
 
 > "The best plan is to barely have one at all." - Ancient Habitat proverb
@@ -86,4 +86,3 @@ From the initial concept to early prototypes through to the first two releases s
 ## Try It!
 
 Will a Scaffolding help you build and package your application? There's only one way to find out--jump in and see. If you want to see Scaffolding work on a small Node.js app, check out the [Packaging an App from Scratch with Scaffolding](/blog/2017/05/Scaffolding-App-From-Scratch) blog post. Any questions or feedback are most welcome on our [community Slack](http://slack.habitat.sh/). Happy packaging!
-
