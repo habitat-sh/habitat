@@ -328,7 +328,7 @@ pub fn version_sort(a_version: &str, b_version: &str) -> Result<Ordering> {
 }
 
 fn split_version(version: &str) -> Result<(Vec<&str>, Option<String>)> {
-    let re = try!(Regex::new(r"([\d\.]+)(-.+)?"));
+    let re = try!(Regex::new(r"([\d\.]+)(.+)?"));
     let caps = match re.captures(version) {
         Some(caps) => caps,
         None => return Err(Error::InvalidPackageIdent(version.to_string())),
@@ -337,7 +337,9 @@ fn split_version(version: &str) -> Result<(Vec<&str>, Option<String>)> {
     let extension = match caps.get(2) {
         Some(e) => {
             let mut estr: String = e.as_str().to_string();
-            estr.remove(0);
+            if estr.len() > 1 && estr.chars().nth(0).unwrap() == '-' {
+                estr.remove(0);
+            }
             Some(estr)
         }
         None => None,
@@ -469,6 +471,10 @@ mod tests {
 
     #[test]
     fn version_sort_simple() {
+        match version_sort("1.0", "2.0") {
+            Ok(compare) => assert_eq!(compare, Ordering::Less),
+            Err(e) => panic!("{:?}", e),
+        }
         match version_sort("1.0.0", "2.0.0") {
             Ok(compare) => assert_eq!(compare, Ordering::Less),
             Err(e) => panic!("{:?}", e),
@@ -479,6 +485,10 @@ mod tests {
         }
         match version_sort("2.1.1", "2.1.1") {
             Ok(compare) => assert_eq!(compare, Ordering::Equal),
+            Err(e) => panic!("{:?}", e),
+        }
+        match version_sort("2.1.1.4", "2.1.1.5") {
+            Ok(compare) => assert_eq!(compare, Ordering::Less),
             Err(e) => panic!("{:?}", e),
         }
         match version_sort("20150521131347", "20150521131346") {
@@ -506,6 +516,14 @@ mod tests {
             Err(e) => panic!("{:?}", e),
         }
         match version_sort("2.1.1-alpha2", "2.1.1") {
+            Ok(compare) => assert_eq!(compare, Ordering::Less),
+            Err(e) => panic!("{:?}", e),
+        }
+        match version_sort("2.1.1-alpha2", "3.2.0-rc.0") {
+            Ok(compare) => assert_eq!(compare, Ordering::Less),
+            Err(e) => panic!("{:?}", e),
+        }
+        match version_sort("2016i", "2016j") {
             Ok(compare) => assert_eq!(compare, Ordering::Less),
             Err(e) => panic!("{:?}", e),
         }
