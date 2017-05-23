@@ -18,8 +18,8 @@ Before we can run our service, we need to rebuild our package to include the cha
 
 1. If you are not in the studio environment, change over to your plan directory and enter the studio.
 
-        cd ~/habitat-example-plans/mytutorialapp
-        hab studio enter
+        $ cd ~/habitat-example-plans/mytutorialapp
+        $ hab studio enter
 
 2. Build your mytutorialapp package.
 
@@ -29,27 +29,18 @@ Before we can run our service, we need to rebuild our package to include the cha
 
 3. Because the studio is running natively in Linux, you can run your package from within the studio for quick testing purposes.
 
-        [2][default:/src:0]# hab start /src/results/myorigin-mytutorialapp-0.2.0-20160829231756-x86_64-linux.hart
+        [2][default:/src:0]# hab start myorigin/mytutorialapp
 
     You should see the supervisor start your Node.js application.
 
-       hab-sup(MN): Starting myorigin/mytutorialapp/0.2.0/20160829231756
-       hab-sup(TP): Child process will run as user=hab, group=hab
-       hab-sup(GS): Supervisor 172.16.235.169: cee61553-b7a6-4e1b-b771-838dcb8a6376
-       hab-sup(GS): Census mytutorialapp.default: 4e457dde-5f63-4a10-8a44-02e782748667
-       hab-sup(GS): Starting inbound gossip listener
-       hab-sup(GS): Starting outbound gossip distributor
-       hab-sup(GS): Starting gossip failure detector
-       hab-sup(CN): Starting census health adjuster
-       hab-sup(SC): Updated config.json
-       hab-sup(TP): Restarting because the service config was updated via the census
-       mytutorialapp(SV): Starting
-       mytutorialapp(O):
-       mytutorialapp(O): > mytutorialapp@0.2.0 start /hab/svc/mytutorialapp/var
-       mytutorialapp(O): > node server.js
-       mytutorialapp(O):
-       mytutorialapp(O): Running on http://0.0.0.0:8080
-
+       hab-sup(MR): Supervisor Member-ID 013f00cc50f4414ebdb419e05eeebf3a
+       hab-sup(MR): Starting myorigin/mytutorialapp
+       hab-sup(MR): Starting gossip-listener on 0.0.0.0:9638
+       hab-sup(MR): Starting http-gateway on 0.0.0.0:9631
+       mytutorialapp.default(SR): Hooks recompiled
+       mytutorialapp.default(SR): Initializing
+       mytutorialapp.default(SV): Starting process as user=hab, group=hab
+       mytutorialapp.default(O): Running on http://0.0.0.0:8080
 
 4. Connect to the Node.js app through your <a href="http://localhost:8080" target="_blank">localhost</a>.
 
@@ -66,7 +57,7 @@ file and pass it in using `HAB_PACKAGENAME="$(cat foo.toml)"`.
 
     Here is how you change the message for mytutorialapp:
 
-       [3][default:/src:0]# HAB_MYTUTORIALAPP='message = "Habitat rocks!"' hab start /src/results/blarg-mytutorialapp-0.2.0-20160829231756-x86_64-linux.hart
+       [3][default:/src:0]# HAB_MYTUTORIALAPP='message = "Habitat rocks!"' hab start myorigin/mytutorialapp
 
     Now refresh, or connect again to the local URL through your web browser.
 
@@ -80,24 +71,24 @@ To natively run services on your Linux host machine, do the following:
 1. Build your package in the studio and then exit back to your host machine.
 2. Add the `hab` user and group to your machine. This is the default user and group for the child process in a service and they must be present for your service to run.
 
-       sudo groupadd hab
-       sudo useradd -g hab hab
+       $ sudo groupadd hab
+       $ sudo useradd -g hab hab
 
    > Note: One of the reasons you can run a service from within the studio is that the `hab` user is created for you when you enter the studio environment.
 
 3. Export the origin public key you created during `hab setup` and pipe the output into the `hab origin key import` subcommand. This will place the public key in the global keys cache on your machine. Before a package can be installed, the public key for that package must either be downloaded from a depot or placed in the correct cache location manually. The public key is then used to verify the integrity of the package.
 
-       hab origin key export myorigin --type public | sudo hab origin key import 
+       $hab origin key export myorigin --type public | sudo hab origin key import
 
 4. Run `sudo hab install path/to/results/packagefilename.hart`. This will install your package in the same location on the host machine as it does in the studio (i.e. `/hab/pkgs`). Make sure you are in the
 `results` directory of `mytutorialapp` and the install the package.
 
-       cd ~/habitat-example-plans/mytutorialapp/results
-       sudo hab install myorigin-mytutorialapp-0.2.0-20160902224802-x86_64-linux.hart
+       $ cd ~/habitat-example-plans/mytutorialapp/results
+       $ sudo hab install myorigin-mytutorialapp-0.2.0-20160902224802-x86_64-linux.hart
 
 5. Run `sudo hab start origin/packagename`.
 
-       sudo hab start myorigin/mytutorialapp
+       $ sudo hab start myorigin/mytutorialapp
 
    You can now connect to the Node.js app as you did earlier when running the service in the studio environment.
 
