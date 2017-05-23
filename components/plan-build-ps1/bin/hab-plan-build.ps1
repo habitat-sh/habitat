@@ -1088,8 +1088,22 @@ function _Write-Metadata {
             Out-File "$pkg_prefix\EXPOSES" -Encoding ascii
     }
 
-    foreach ($export in $pkg_exports.GetEnumerator()) {
-        "$($export.Key)=$($export.Value)" | Out-File "$pkg_prefix\EXPORTS" -Encoding ascii -Append
+    if ($pkg_exports) {
+        foreach ($export in $pkg_exports.GetEnumerator()) {
+            "$($export.Key)=$($export.Value)" | Out-File "$pkg_prefix\EXPORTS" -Encoding ascii -Append
+        }
+    }
+
+    if ($pkg_binds) {
+        foreach ($bind in $pkg_binds.GetEnumerator()) {
+            "$($bind.Key)=$($bind.Value)" | Out-File "$pkg_prefix\BINDS" -Encoding ascii -Append
+        }
+    }
+
+    if ($pkg_binds_optional) {
+        foreach ($bind in $pkg_binds_optional.GetEnumerator()) {
+            "$($bind.Key)=$($bind.Value)" | Out-File "$pkg_prefix\BINDS_OPTIONAL" -Encoding ascii -Append
+        }
     }
 
     $pkg_build_deps_resolved | % {
