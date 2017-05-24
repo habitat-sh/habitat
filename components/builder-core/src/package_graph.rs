@@ -17,8 +17,7 @@ use std::cmp::Ordering;
 use std::str::FromStr;
 use protocol::scheduler;
 use petgraph::{Graph, Direction};
-use petgraph::graph::{NodeIndex, EdgeIndex};
-use petgraph::visit::EdgeRef;
+use petgraph::graph::NodeIndex;
 use petgraph::algo::{is_cyclic_directed, connected_components};
 use hab_core::package::PackageIdent;
 
@@ -132,12 +131,12 @@ impl PackageGraph {
             if skip_update {
                 false
             } else {
-                let edge_ids: Vec<EdgeIndex> = self.graph
-                    .edges_directed(pkg_node, Direction::Incoming)
-                    .map(|e| e.id())
+                let neighbors: Vec<NodeIndex> = self.graph
+                    .neighbors_directed(pkg_node, Direction::Incoming)
                     .collect();
-                for edge_id in edge_ids {
-                    self.graph.remove_edge(edge_id).unwrap();
+                for n in neighbors {
+                    let e = self.graph.find_edge(n, pkg_node).unwrap();
+                    self.graph.remove_edge(e).unwrap();
                 }
                 self.latest_map.insert(short_name, pkg_ident.clone());
                 true
