@@ -34,7 +34,7 @@ pkg_license={{ pkg_license }}
 {{else ~}}
 # pkg_license=('Apache-2.0')
 {{/if}}
-# Required.
+# Optional.
 # A URL that specifies where to download the source from. Any valid wget url
 # will work. Typically, the relative path for the URL is partially constructed
 # from the pkg_name and pkg_version values; however, this convention is not
