@@ -46,7 +46,7 @@ The Habitat Builder web application is in the components/builder-web directory. 
 Habitat's website and documentation is located in the `www` directory of the Habitat source code. See [its README](www/README.md) for more information.
 
 ## Contributing
-We are always looking for more opportunities for community involvement. Interested in contributing? Check out our [CONTRIBUTING.md](CONTRIBUTING.md) the [Rustlang](https://rust-lang.org) reference materials below or our [UX_PRINCIPLES doc](UX_PRINCIPLES.md)to get started!
+We are always looking for more opportunities for community involvement. Interested in contributing? Check out our [CONTRIBUTING.md](CONTRIBUTING.md) the [Rustlang](https://rust-lang.org) reference materials below or our [UX_PRINCIPLES doc](UX_PRINCIPLES.md) to get started!
 
 ## Building
 See [BUILDING.md](BUILDING.md) for platform specific info on building Habitat from source.
