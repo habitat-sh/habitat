@@ -228,7 +228,6 @@ impl DataStore {
                                  UPDATE projects SET project_state=state, job_id=jid, updated_at=now() WHERE id=pid;
                              END
                           $$ LANGUAGE plpgsql VOLATILE"#)?;
-
         migrator
             .migrate("scheduler",
                      r#"DROP INDEX IF EXISTS pending_groups_index_v1;"#)?;
@@ -243,7 +242,13 @@ impl DataStore {
                            RETURN;
                          END
                          $$ LANGUAGE plpgsql STABLE"#)?;
-
+        // Update the state of a project given its name
+        migrator.migrate("scheduler-v2",
+                             r#"CREATE OR REPLACE FUNCTION set_project_name_state_v1 (gid bigint, pname text, state text) RETURNS void AS $$
+                                BEGIN
+                                    UPDATE projects SET project_state=state, updated_at=now() WHERE owner_id=gid AND project_name=pname;
+                                END
+                             $$ LANGUAGE plpgsql VOLATILE"#)?;
         migrator.finish()?;
 
         Ok(())
@@ -442,6 +447,7 @@ impl DataStore {
             "InProgress" => ProjectState::InProgress,
             "Success" => ProjectState::Success,
             "Failure" => ProjectState::Failure,
+            "Skipped" => ProjectState::Skipped,
             _ => return Err(Error::UnknownProjectState),
         };
 
@@ -475,6 +481,25 @@ impl DataStore {
         conn.execute("SELECT set_group_state_v1($1, $2)",
                      &[&(group_id as i64), &state])
             .map_err(Error::GroupSetState)?;
+        Ok(())
+    }
+
+    pub fn set_group_project_state(&self,
+                                   group_id: u64,
+                                   project_name: &str,
+                                   project_state: ProjectState)
+                                   -> Result<()> {
+        let conn = self.pool.get_shard(0)?;
+        let state = match project_state {
+            ProjectState::NotStarted => "NotStarted",
+            ProjectState::InProgress => "InProgress",
+            ProjectState::Success => "Success",
+            ProjectState::Failure => "Failure",
+            ProjectState::Skipped => "Skipped",
+        };
+        conn.execute("SELECT set_project_name_state_v1($1, $2, $3)",
+                     &[&(group_id as i64), &project_name, &state])
+            .map_err(Error::ProjectSetState)?;
         Ok(())
     }
 

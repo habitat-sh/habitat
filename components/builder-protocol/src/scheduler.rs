@@ -119,6 +119,7 @@ impl Serialize for ProjectState {
             1 => serializer.serialize_str("InProgress"),
             2 => serializer.serialize_str("Success"),
             3 => serializer.serialize_str("Failure"),
+            4 => serializer.serialize_str("Skipped"),
             _ => panic!("Unexpected enum value"),
         }
     }
