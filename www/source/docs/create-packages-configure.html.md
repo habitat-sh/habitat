@@ -128,6 +128,7 @@ Habitat's templating flavour includes a number of useful helpers for writing con
 * [`eachAlive`](#eachalive-helper)
 * [`toJson`](#tojson-helper)
 * [`toToml`](#totoml-helper)
+* [`toYaml`](#toyaml-helper)
 
 ### toLowercase Helper
 
@@ -228,6 +229,30 @@ when rendered, it will look like:
 This can be useful if you have an app that uses TOML as its configuration file
 format, but may have not been designed for Habitat, and you only need certain
 parts of the configuration data in the rendered TOML file.
+
+### toYaml Helper
+
+The `toYaml` helper can be used to output [YAML](http://yaml.org/).
+
+Given a default.toml that looks like:
+
+    [web]
+
+    port = 80
+
+and a template:
+
+    {{toYaml cfg}}
+
+when rendered, it will look like:
+
+    ---
+    web:
+      port: 80
+
+The helper outputs a YAML document (with a line beginning with `---`), so it
+must be used to create complete documents: you cannot insert a section of YAML
+into an existing YAML document with this helper.
 
 ## Further examples
 
