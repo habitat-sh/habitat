@@ -44,6 +44,7 @@ router = "*"
 serde = { version = "*", features = ["rc"] }
 serde_derive = "*"
 serde_json = "*"
+serde_yaml = "*"
 tempdir = "*"
 time = "*"
 toml = { version = "*", features = ["serde"], default-features = false }

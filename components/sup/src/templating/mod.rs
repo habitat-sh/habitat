@@ -42,6 +42,7 @@ impl TemplateRenderer {
         handlebars.register_helper("toLowercase", Box::new(helpers::TO_LOWERCASE));
         handlebars.register_helper("toJson", Box::new(helpers::TO_JSON));
         handlebars.register_helper("toToml", Box::new(helpers::TO_TOML));
+        handlebars.register_helper("toYaml", Box::new(helpers::TO_YAML));
 
         handlebars.register_escape_fn(never_escape);
         TemplateRenderer(handlebars)
@@ -159,6 +160,26 @@ mod test {
         assert_eq!(r.ok().unwrap(),
                    r#"test = "something"
 "#
+                           .to_string());
+    }
+
+    #[test]
+    fn test_handlebars_yaml_helper() {
+        let content = "{{toYaml x}}".to_string();
+        let mut data = BTreeMap::new();
+        data.insert("test".into(), "something".into());
+
+        let mut renderer = TemplateRenderer::new();
+        renderer.register_template_string("t", content).unwrap();
+
+        let mut m: BTreeMap<String, BTreeMap<String, String>> = BTreeMap::new();
+        m.insert("x".into(), data);
+
+        let r = renderer.render("t", &m);
+
+        assert_eq!(r.ok().unwrap(),
+                   r#"---
+test: something"#
                            .to_string());
     }
 

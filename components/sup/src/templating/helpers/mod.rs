@@ -19,6 +19,7 @@ mod to_json;
 mod to_lowercase;
 mod to_toml;
 mod to_uppercase;
+mod to_yaml;
 
 use serde::Serialize;
 use serde_json::{self, Value as Json};
@@ -30,6 +31,7 @@ pub use self::to_json::TO_JSON;
 pub use self::to_lowercase::TO_LOWERCASE;
 pub use self::to_toml::TO_TOML;
 pub use self::to_uppercase::TO_UPPERCASE;
+pub use self::to_yaml::TO_YAML;
 
 // Taken from `handlebars::context::JsonTruthy`. The trait is marked public but it's in a private
 // module. It's super useful so let's pull it into here.
