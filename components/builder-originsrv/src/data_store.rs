@@ -569,7 +569,7 @@ impl DataStore {
                                      opc: &originsrv::OriginPackageLatestGet)
                                      -> Result<Option<originsrv::OriginPackageIdent>> {
         let conn = self.pool.get(opc)?;
-        let rows = conn.query("SELECT * FROM get_origin_package_latest_v1($1, $2)",
+        let rows = conn.query("SELECT * FROM get_origin_package_latest_v2($1, $2)",
                               &[&self.searchable_ident(opc.get_ident()), &opc.get_target()])
             .map_err(Error::OriginPackageLatestGet)?;
         if rows.len() != 0 {
