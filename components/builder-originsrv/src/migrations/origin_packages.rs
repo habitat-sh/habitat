@@ -211,7 +211,7 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                         RETURN;
                     END
                     $$ LANGUAGE plpgsql STABLE"#)?;
-    migrator.migrate("originsrv",
+    migrator.migrate("originsrv-v3",
                  r#"CREATE OR REPLACE FUNCTION get_origin_package_latest_v2 (
                     op_ident text,
                     op_target text
