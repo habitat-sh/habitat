@@ -544,30 +544,37 @@ impl DataStore {
         }
     }
 
+    fn rows_to_latest_ident(&self,
+                            rows: &postgres::rows::Rows)
+                            -> Result<originsrv::OriginPackageIdent> {
+
+        let mut pkgs: Vec<PackageIdent> = Vec::new();
+
+        for row in rows.iter() {
+            let ident: String = row.get("ident");
+            let pkg_ident = PackageIdent::from_str(ident.as_str()).unwrap();
+            pkgs.push(pkg_ident);
+        }
+
+        // TODO: The PackageIdent compare is extremely slow, causing even small lists
+        // to take significant time to sort. Look at speeding this up if it becomes a
+        // bottleneck.
+        pkgs.sort();
+        let latest_ident = pkgs.pop().unwrap();
+        let ident_str = format!("{}", latest_ident);
+        Ok(originsrv::OriginPackageIdent::from_str(ident_str.as_str()).unwrap())
+    }
+
     pub fn get_origin_package_latest(&self,
                                      opc: &originsrv::OriginPackageLatestGet)
                                      -> Result<Option<originsrv::OriginPackageIdent>> {
         let conn = self.pool.get(opc)?;
         let rows = conn.query("SELECT * FROM get_origin_package_latest_v1($1, $2)",
-                              &[&self.searchable_ident(opc.get_ident()),
-                                &opc.get_target()])
+                              &[&self.searchable_ident(opc.get_ident()), &opc.get_target()])
             .map_err(Error::OriginPackageLatestGet)?;
         if rows.len() != 0 {
-            let mut pkgs: Vec<PackageIdent> = Vec::new();
-
-            for row in rows.iter() {
-                let ident: String = row.get("ident");
-                let pkg_ident = PackageIdent::from_str(ident.as_str()).unwrap();
-                pkgs.push(pkg_ident);
-            }
-
-            // TODO: The PackageIdent compare is extremely slow, causing even small lists
-            // to take significant time to sort. Look at speeding this up if it becomes a
-            // bottleneck.
-            pkgs.sort();
-            let latest_ident = pkgs.pop().unwrap();
-            let ident_str = format!("{}", latest_ident);
-            Ok(Some(originsrv::OriginPackageIdent::from_str(ident_str.as_str()).unwrap()))
+            let latest = self.rows_to_latest_ident(&rows).unwrap();
+            Ok(Some(latest))
         } else {
             Ok(None)
         }
@@ -577,15 +584,16 @@ impl DataStore {
                                              ocpg: &originsrv::OriginChannelPackageLatestGet)
                                              -> Result<Option<originsrv::OriginPackageIdent>> {
         let conn = self.pool.get(ocpg)?;
-        let rows = conn.query("SELECT * FROM get_origin_channel_package_latest_v1($1, $2, $3, $4)",
+        let rows = conn.query("SELECT * FROM get_origin_channel_package_latest_v2($1, $2, $3, $4)",
                               &[&ocpg.get_ident().get_origin(),
                                 &ocpg.get_name(),
                                 &self.searchable_ident(ocpg.get_ident()),
                                 &ocpg.get_target()])
             .map_err(Error::OriginChannelPackageLatestGet)?;
+
         if rows.len() != 0 {
-            let row = rows.get(0);
-            Ok(Some(self.row_to_origin_package_ident(&row)))
+            let latest = self.rows_to_latest_ident(&rows).unwrap();
+            Ok(Some(latest))
         } else {
             Ok(None)
         }
@@ -606,10 +614,8 @@ impl DataStore {
         let mut version_map = HashMap::new();
         for row in rows.iter() {
             let ver: String = row.get("version");
-            let ident = PackageIdent::new(opvl.get_origin(),
-                                          opvl.get_name(),
-                                          Some(ver.as_str()),
-                                          None);
+            let ident =
+                PackageIdent::new(opvl.get_origin(), opvl.get_name(), Some(ver.as_str()), None);
 
             let release_count: i64 = row.get("release_count");
             let latest: String = row.get("latest");

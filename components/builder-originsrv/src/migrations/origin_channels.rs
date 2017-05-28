@@ -159,5 +159,26 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                         RETURN;
                     END
                     $$ LANGUAGE plpgsql STABLE"#)?;
+    migrator
+        .migrate("originsrv-v2",
+                 r#"CREATE OR REPLACE FUNCTION get_origin_channel_package_latest_v2 (
+                    op_origin text,
+                    op_channel text,
+                    op_ident text,
+                    op_target text
+                 ) RETURNS SETOF origin_packages AS $$
+                    BEGIN
+                        RETURN QUERY SELECT op.*
+                          FROM origin_packages op
+                          INNER JOIN origin_channel_packages ocp on ocp.package_id = op.id
+                          INNER JOIN origin_channels oc on ocp.channel_id = oc.id
+                          INNER JOIN origins o on oc.origin_id = o.id
+                          WHERE o.name = op_origin
+                          AND oc.name = op_channel
+                          AND op.ident LIKE (op_ident  || '%')
+                          AND op.target = op_target;
+                        RETURN;
+                    END
+                    $$ LANGUAGE plpgsql STABLE"#)?;
     Ok(())
 }
