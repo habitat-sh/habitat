@@ -302,7 +302,11 @@ mod inner {
             cmd_args.extend_from_slice(opts.as_slice());
         }
 
-        let env_vars = vec!["HAB_DEPOT_URL", "HAB_ORIGIN", "http_proxy", "https_proxy"];
+        let env_vars = vec!["HAB_DEPOT_URL",
+                            "HAB_ORIGIN",
+                            "HAB_STUDIO_SUP",
+                            "http_proxy",
+                            "https_proxy"];
         for var in env_vars {
             if let Ok(val) = henv::var(var) {
                 debug!("Propagating environment variable into container: {}={}",
