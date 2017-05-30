@@ -317,9 +317,7 @@ pub fn project_get(req: &mut Envelope,
                    state: &mut ServerState)
                    -> Result<()> {
     let msg: proto::OriginProjectGet = try!(req.parse_msg());
-    match state
-              .datastore
-              .get_origin_project_by_name(&msg.get_name()) {
+    match state.datastore.get_origin_project_by_name(&msg.get_name()) {
         Ok(Some(ref project)) => try!(req.reply_complete(sock, project)),
         Ok(None) => {
             let err = net::err(ErrCode::ENTITY_NOT_FOUND, "vt:origin-project-get:0");
@@ -359,9 +357,14 @@ pub fn origin_channel_create(req: &mut Envelope,
 
     match state.datastore.create_origin_channel(&msg) {
         Ok(ref occ) => try!(req.reply_complete(sock, occ)),
+        Err(Error::OriginChannelCreate(PostgresError::Db(ref db))) if db.code ==
+                                                                      UniqueViolation => {
+            let err = net::err(ErrCode::ENTITY_CONFLICT, "vt:origin-channel-create:1");
+            try!(req.reply_complete(sock, &err));
+        }
         Err(err) => {
             error!("OriginChannelCreate, err={:?}", err);
-            let err = net::err(ErrCode::DATA_STORE, "vt:origin-channel-create:1");
+            let err = net::err(ErrCode::DATA_STORE, "vt:origin-channel-create:2");
             try!(req.reply_complete(sock, &err));
         }
     }
@@ -593,9 +596,7 @@ pub fn origin_package_unique_list(req: &mut Envelope,
                                   state: &mut ServerState)
                                   -> Result<()> {
     let msg: proto::OriginPackageUniqueListRequest = try!(req.parse_msg());
-    match state
-              .datastore
-              .list_origin_package_unique_for_origin(&msg) {
+    match state.datastore.list_origin_package_unique_for_origin(&msg) {
         Ok(ref opulr) => try!(req.reply_complete(sock, opulr)),
         Err(err) => {
             error!("OriginPackageUniqueList, err={:?}", err);

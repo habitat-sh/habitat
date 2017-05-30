@@ -1245,6 +1245,37 @@ fn create_origin_channel() {
 }
 
 #[test]
+fn create_origin_channel_handles_unique_constraint_violations_correctly() {
+    let ds = datastore_test!(DataStore);
+    let mut origin = originsrv::OriginCreate::new();
+    origin.set_name(String::from("neurosis"));
+    origin.set_owner_id(1);
+    origin.set_owner_name(String::from("scottkelly"));
+    ds.create_origin(&origin).expect("Should create origin");
+
+    let neurosis = ds.get_origin_by_name("neurosis")
+        .expect("Could not retrieve origin")
+        .expect("Origin does not exist");
+
+    // Create a new origin channel
+    let mut oscc = originsrv::OriginChannelCreate::new();
+    oscc.set_origin_id(neurosis.get_id());
+    oscc.set_origin_name(neurosis.get_name().to_string());
+    oscc.set_name(String::from("eve"));
+    ds.create_origin_channel(&oscc)
+        .expect("Failed to create origin public key");
+
+    // Create a duplicate origin channel which should fail
+    let mut occ = originsrv::OriginChannelCreate::new();
+    occ.set_origin_id(neurosis.get_id());
+    occ.set_origin_name(neurosis.get_name().to_string());
+    occ.set_name(String::from("eve"));
+    let resp = ds.create_origin_channel(&oscc);
+
+    assert!(resp.is_err(), "Insertion should've triggered an error");
+}
+
+#[test]
 fn list_origin_channel() {
     let ds = datastore_test!(DataStore);
     let mut origin = originsrv::OriginCreate::new();
