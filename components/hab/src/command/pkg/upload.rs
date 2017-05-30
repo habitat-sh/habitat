@@ -88,32 +88,6 @@ pub fn start<P: AsRef<Path>>(ui: &mut UI,
 
     try!(ui.begin(format!("Uploading {}", archive_path.as_ref().display())));
     let tdeps = try!(archive.tdeps());
-    for dep in tdeps.into_iter() {
-        match depot_client.show_package(&dep, None) {
-            Ok(_) => try!(ui.status(Status::Using, format!("existing {}", &dep))),
-            Err(depot_client::Error::APIError(StatusCode::NotFound, _)) => {
-                let candidate_path = match archive_path.as_ref().parent() {
-                    Some(p) => PathBuf::from(p),
-                    None => unreachable!(),
-                };
-                if retry(RETRIES,
-                         RETRY_WAIT,
-                         || attempt_upload_dep(ui, &depot_client, token, &dep, &candidate_path),
-                         |res| res.is_ok())
-                           .is_err() {
-                    return Err(Error::from(depot_client::Error::UploadFailed(format!("We tried \
-                                                                                      {} times \
-                                                                                      but could \
-                                                                                      not upload \
-                                                                                      {}. Giving \
-                                                                                      up.",
-                                                                                     RETRIES,
-                                                                                     &dep))));
-                }
-            }
-            Err(e) => return Err(Error::from(e)),
-        }
-    }
     let ident = try!(archive.ident());
     match depot_client.show_package(&ident, None) {
         Ok(_) => {
@@ -121,6 +95,39 @@ pub fn start<P: AsRef<Path>>(ui: &mut UI,
             Ok(())
         }
         Err(depot_client::Error::APIError(StatusCode::NotFound, _)) => {
+            for dep in tdeps.into_iter() {
+                match depot_client.show_package(&dep, None) {
+                    Ok(_) => try!(ui.status(Status::Using, format!("existing {}", &dep))),
+                    Err(depot_client::Error::APIError(StatusCode::NotFound, _)) => {
+                        let candidate_path = match archive_path.as_ref().parent() {
+                            Some(p) => PathBuf::from(p),
+                            None => unreachable!(),
+                        };
+                        if retry(RETRIES,
+                                 RETRY_WAIT,
+                                 || {
+                                     attempt_upload_dep(ui,
+                                                        &depot_client,
+                                                        token,
+                                                        &dep,
+                                                        &candidate_path)
+                                 },
+                                 |res| res.is_ok())
+                                   .is_err() {
+                            return Err(Error::from(depot_client::Error::UploadFailed(format!("We tried \
+                                                                                      {} times \
+                                                                                      but could \
+                                                                                      not upload \
+                                                                                      {}. Giving \
+                                                                                      up.",
+                                                                                             RETRIES,
+                                                                                             &dep))));
+                        }
+                    }
+                    Err(e) => return Err(Error::from(e)),
+                }
+            }
+
             if retry(RETRIES,
                      RETRY_WAIT,
                      || upload_into_depot(ui, &depot_client, token, &ident, &mut archive),
@@ -158,7 +165,7 @@ fn upload_into_depot(ui: &mut UI,
             return Err(Error::PackageArchiveMalformed(format!("{}", archive.path.display())));
         }
         Err(depot_client::Error::APIError(StatusCode::NotImplemented, _)) => {
-            println!("Package platform or architecture not supported by the targted \
+            println!("Package platform or architecture not supported by the targeted \
                     depot; skipping.");
         }
         Err(e) => return Err(Error::from(e)),
