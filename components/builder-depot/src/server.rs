@@ -1489,7 +1489,13 @@ fn search_packages(req: &mut Request) -> IronResult<Response> {
 
     {
         let params = req.extensions.get::<Router>().unwrap();
-        request.set_query(params.find("query").unwrap().to_string());
+        request.set_query(url::percent_encoding::percent_decode(params
+                                                                    .find("query")
+                                                                    .unwrap()
+                                                                    .as_bytes())
+                                  .decode_utf8()
+                                  .unwrap()
+                                  .to_string());
     };
 
     debug!("search_packages called with: {}", request.get_query());
@@ -2713,7 +2719,7 @@ mod test {
         broker.setup::<OriginPackageSearchRequest, OriginPackageListResponse>(&pkg_res);
 
         let (response, msgs) = iron_request(method::Get,
-                                            "http://localhost/pkgs/search/name?range=2",
+                                            "http://localhost/pkgs/search/org%2Fname?range=2",
                                             &mut Vec::new(),
                                             Headers::new(),
                                             broker);
@@ -2748,7 +2754,7 @@ mod test {
         let package_req = msgs.get::<OriginPackageSearchRequest>().unwrap();
         assert_eq!(package_req.get_start(), 2);
         assert_eq!(package_req.get_stop(), 51);
-        assert_eq!(package_req.get_query(), "name".to_string());
+        assert_eq!(package_req.get_query(), "org/name".to_string());
     }
 
     #[test]

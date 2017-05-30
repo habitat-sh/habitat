@@ -747,7 +747,7 @@ impl DataStore {
         let conn = self.pool.get(ops)?;
 
         let rows = if *&ops.get_distinct() {
-            conn.query("SELECT * FROM search_all_origin_packages_dynamic_v1($1, $2, $3)",
+            conn.query("SELECT * FROM search_all_origin_packages_dynamic_v2($1, $2, $3)",
                        &[&ops.get_query(), &ops.limit(), &(ops.get_start() as i64)])
                 .map_err(Error::OriginPackageSearch)?
         } else {

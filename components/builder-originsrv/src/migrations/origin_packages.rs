@@ -221,5 +221,25 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                         RETURN;
                     END
                     $$ LANGUAGE plpgsql STABLE"#)?;
+    migrator.migrate("originsrv-v4",
+                     r#"CREATE OR REPLACE FUNCTION search_all_origin_packages_dynamic_v2 (
+                    op_query text,
+                    op_limit bigint,
+                    op_offset bigint
+                    ) RETURNS TABLE(total_count bigint, ident text) AS $$
+                    DECLARE
+                      schema RECORD;
+                    BEGIN
+                      FOR schema IN EXECUTE
+                        format(
+                          'SELECT schema_name FROM information_schema.schemata WHERE left(schema_name, 6) = %L',
+                          'shard_'
+                        )
+                      LOOP
+                        RETURN QUERY EXECUTE
+                        format('SELECT COUNT(p.partial_ident[1] || %L || p.partial_ident[2]) OVER () AS total_count, p.partial_ident[1] || %L || p.partial_ident[2] AS ident FROM (SELECT regexp_split_to_array(op.ident, %L) as partial_ident FROM %I.origin_packages op WHERE op.ident LIKE (%L || %L || %L)) AS p GROUP BY (p.partial_ident[1] || %L || p.partial_ident[2]) LIMIT %L OFFSET %L', '/', '/', '/', schema.schema_name, '%', op_query, '%', '/', op_limit, op_offset);
+                      END LOOP;
+                    END;
+                    $$ LANGUAGE plpgsql STABLE"#)?;
     Ok(())
 }
