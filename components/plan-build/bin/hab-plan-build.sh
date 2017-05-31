@@ -1806,7 +1806,7 @@ unpack_file() {
       *.bz2)  bunzip2 $unpack_file    ;;
       *.rar)  rar x $unpack_file      ;;
       *.gz)   gunzip $unpack_file     ;;
-      *.zip)  unzip $unpack_file      ;;
+      *.zip)  unzip -o $unpack_file   ;;
       *.Z)    uncompress $unpack_file ;;
       *.7z)   7z x $unpack_file       ;;
       *)
