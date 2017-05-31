@@ -1185,24 +1185,20 @@ fn search_origin_package_for_origin() {
     let pkg1 = result3.get_idents().iter().nth(0).unwrap();
     assert_eq!(pkg1.to_string(), ident4.to_string());
 
-    ops.set_query("re".to_string());
+    ops.set_query("core/re".to_string());
     ops.set_start(0);
     ops.set_stop(20);
     ops.set_distinct(true);
     let result2 = ds.search_origin_package_for_origin(&ops)
         .expect("Could not get the packages from the database");
-    assert_eq!(result2.get_idents().len(), 4);
+    assert_eq!(result2.get_idents().len(), 2);
     assert_eq!(result2.get_start(), 0);
-    assert_eq!(result2.get_stop(), 3);
-    assert_eq!(result2.get_count(), 1);
+    assert_eq!(result2.get_stop(), 1);
+    assert_eq!(result2.get_count(), 2);
     let pkg1 = result2.get_idents().iter().nth(0).unwrap();
-    assert_eq!(pkg1.to_string(), "core/red_dog");
+    assert_eq!(pkg1.to_string(), "core/red");
     let pkg2 = result2.get_idents().iter().nth(1).unwrap();
-    assert_eq!(pkg2.to_string(), "core/red");
-    let pkg3 = result2.get_idents().iter().nth(2).unwrap();
-    assert_eq!(pkg3.to_string(), "core2/red");
-    let pkg4 = result2.get_idents().iter().nth(3).unwrap();
-    assert_eq!(pkg4.to_string(), "josh/red_dog");
+    assert_eq!(pkg2.to_string(), "core/red_dog");
 }
 
 #[test]
