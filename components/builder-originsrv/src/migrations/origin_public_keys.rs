@@ -43,7 +43,7 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                     opk_body bytea
                  ) RETURNS SETOF origin_public_keys AS $$
                      BEGIN
-                         RETURN QUERY INSERT INTO origin_public_keys (origin_id, owner_id, name, revision, full_name, body) 
+                         RETURN QUERY INSERT INTO origin_public_keys (origin_id, owner_id, name, revision, full_name, body)
                                 VALUES (opk_origin_id, opk_owner_id, opk_name, opk_revision, opk_full_name, opk_body)
                                 RETURNING *;
                          RETURN;
@@ -83,11 +83,15 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                         RETURN;
                     END
                     $$ LANGUAGE plpgsql STABLE"#)?;
-
-    migrator.migrate("originsrv",
-                     r#"ALTER TABLE origin_public_keys
+    migrator
+        .migrate("originsrv",
+                 r#"ALTER TABLE origin_public_keys
                         DROP CONSTRAINT IF EXISTS
                           origin_public_keys_full_name_key"#)?;
-
+    migrator
+        .migrate("originsrv-2",
+                 r#"ALTER TABLE origin_public_keys
+                        ADD CONSTRAINT origin_public_keys_full_name_key
+                        UNIQUE (full_name)"#)?;
     Ok(())
 }

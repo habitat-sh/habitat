@@ -206,9 +206,14 @@ pub fn origin_public_key_create(req: &mut Envelope,
 
     match state.datastore.create_origin_public_key(&msg) {
         Ok(ref osk) => try!(req.reply_complete(sock, osk)),
+        Err(Error::OriginPublicKeyCreate(PostgresError::Db(ref db))) if db.code ==
+                                                                        UniqueViolation => {
+            let err = net::err(ErrCode::ENTITY_CONFLICT, "vt:origin-public-key-create:1");
+            try!(req.reply_complete(sock, &err));
+        }
         Err(err) => {
             error!("OriginPublicKeyCreate, err={:?}", err);
-            let err = net::err(ErrCode::DATA_STORE, "vt:origin-public-key-create:1");
+            let err = net::err(ErrCode::DATA_STORE, "vt:origin-public-key-create:2");
             try!(req.reply_complete(sock, &err));
         }
     }
