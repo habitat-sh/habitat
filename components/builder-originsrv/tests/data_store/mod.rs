@@ -490,6 +490,40 @@ fn create_origin_project() {
 }
 
 #[test]
+fn create_origin_project_handles_unique_constraint_violations_correctly() {
+    let ds = datastore_test!(DataStore);
+    let mut origin = originsrv::OriginCreate::new();
+    origin.set_name(String::from("neurosis"));
+    origin.set_owner_id(1);
+    origin.set_owner_name(String::from("scottkelly"));
+    let neurosis = ds.create_origin(&origin)
+        .expect("Should create origin")
+        .expect("Should return the origin");
+
+    let mut op = originsrv::OriginProject::new();
+    op.set_origin_name(String::from(neurosis.get_name()));
+    op.set_origin_id(neurosis.get_id());
+    op.set_package_name(String::from("zeal"));
+    op.set_plan_path(String::from("foo"));
+    op.set_vcs_type(String::from("git"));
+    op.set_vcs_data(String::from("git://github.com/habitat-sh/core-plans"));
+    op.set_owner_id(1);
+
+    let mut opc = originsrv::OriginProjectCreate::new();
+    opc.set_project(op.clone());
+
+    ds.create_origin_project(&opc)
+        .expect("Failed to create origin project");
+
+    // Now let's insert a duplicate, which should throw an error
+    let mut opc2 = originsrv::OriginProjectCreate::new();
+    opc2.set_project(op);
+
+    let resp = ds.create_origin_project(&opc2);
+    assert!(resp.is_err(), "Insertion should've triggered an error");
+}
+
+#[test]
 fn get_origin_project_by_name() {
     let ds = datastore_test!(DataStore);
     let mut origin = originsrv::OriginCreate::new();

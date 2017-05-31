@@ -294,9 +294,14 @@ pub fn project_create(req: &mut Envelope,
 
     match state.datastore.create_origin_project(&opc) {
         Ok(ref project) => try!(req.reply_complete(sock, project)),
+        Err(Error::OriginProjectCreate(PostgresError::Db(ref db))) if db.code ==
+                                                                      UniqueViolation => {
+            let err = net::err(ErrCode::ENTITY_CONFLICT, "vt:origin-project-create:1");
+            try!(req.reply_complete(sock, &err));
+        }
         Err(err) => {
             error!("ProjectCreate, err={:?}", err);
-            let err = net::err(ErrCode::DATA_STORE, "vt:origin-project-create:1");
+            let err = net::err(ErrCode::DATA_STORE, "vt:origin-project-create:2");
             try!(req.reply_complete(sock, &err));
         }
     }
