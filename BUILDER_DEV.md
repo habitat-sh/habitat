@@ -20,8 +20,8 @@ Some capabilities (such as allowing builder permissions, and turning on auto-bui
 
 Create the following files somewhere on your local filesystem (Note: the client_id and client_secret below are for development purposes only):
 
-config_api.toml:
-```
+`config_api.toml`
+```toml
 [depot]
 builds_enabled = true
 
@@ -31,8 +31,8 @@ client_id = "0c2f738a7d0bd300de10"
 client_secret = "438223113eeb6e7edf2d2f91a232b72de72b9bdf"
 ```
 
-config_sessionsrv.toml:
-```
+`config_sessionsrv.toml`
+```toml
 [permissions]
 admin_team = 1995301
 build_worker_teams = [1995301]
@@ -44,19 +44,28 @@ client_id = "0c2f738a7d0bd300de10"
 client_secret = "438223113eeb6e7edf2d2f91a232b72de72b9bdf"
 ```
 
-config_worker.toml:
-```
+`config_worker.toml`
+```toml
 auth_token = "<your github token>"
 depot_url = "http://localhost:9636/v1/depot"
 auto_publish = true
 ```
 
-Now, modify the `Procfile` (located in your hab repo in the `support` folder) to point the api, sessionsrv, and worker services to the previously created config files.  Eg:
+`config_jobsrv.toml`
+```toml
+[archive]
+local = true
+local_dir = "/tmp"
+```
+(Note: If you want your log files to persist across restarts of your development machine, replace `/tmp` with some other directory. It *must* exist and be writable before you start the job server).
+
+Now, modify the `Procfile` (located in your hab repo in the `support` folder) to point the api, sessionsrv, jobsrv, and worker services to the previously created config files, e.g.
 
 ```
 api: target/debug/bldr-api start --path /tmp/depot --config /home/your_alias/habitat/config_api.toml
 sessionsrv: target/debug/bldr-session-srv start --config /home/your_alias/habitat/config_sessionsrv.toml
 worker: target/debug/bldr-worker start --config /home/your_alias/habitat/config_worker.toml
+jobsrv: target/debug/bldr-job-srv start --config /home/your_alias/habitat/config_jobsrv.toml
 ```
 
 ## Run the Builder services

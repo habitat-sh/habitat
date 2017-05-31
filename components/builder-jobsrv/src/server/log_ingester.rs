@@ -18,8 +18,9 @@ use error::Result;
 use hab_net::server::ZMQ_CONTEXT;
 use protobuf::parse_from_bytes;
 use protocol::jobsrv::{JobLogComplete, JobLogChunk};
+use server::log_archiver::{self, LogArchiver};
 use server::log_directory::LogDirectory;
-use std::fs::OpenOptions;
+use std::fs::{self, OpenOptions};
 use std::io::Write;
 use std::str;
 use std::sync::{mpsc, Arc, RwLock};
@@ -39,6 +40,7 @@ pub struct LogIngester {
     msg: zmq::Message,
     log_dir: LogDirectory,
     data_store: DataStore,
+    archiver: Box<LogArchiver + 'static>,
 }
 
 impl LogIngester {
@@ -49,12 +51,15 @@ impl LogIngester {
         let intake_sock = (**ZMQ_CONTEXT).as_mut().socket(zmq::ROUTER)?;
         intake_sock.set_router_mandatory(true)?;
         let msg = zmq::Message::new()?;
+        let archiver = log_archiver::from_config(config.read().unwrap().archive.clone()).unwrap();
+
         Ok(LogIngester {
                intake_sock: intake_sock,
                config: config,
                msg: msg,
                log_dir: log_dir,
                data_store: data_store,
+               archiver: archiver,
            })
     }
 
@@ -129,17 +134,11 @@ impl LogIngester {
                     self.intake_sock.recv(&mut self.msg, 0)?; // protobuf message frame
                     match parse_from_bytes::<JobLogComplete>(&self.msg) {
                         Ok(complete) => {
-                            let id = complete.get_job_id();
-                            debug!("Log complete for job {:?}", id);
-
-                            // TODO: Save logs in long-term storage,
-                            // like S3
-                            let log_file = self.log_dir.log_file_path(id);
-
-                            // Until we can ship things off to an
-                            // S3-alike, we'll just use a file URL
-                            let url = format!("file://{}", log_file.to_str().unwrap());
-                            self.data_store.set_log_url(id, &url)?;
+                            if let Err(e) = self.complete_log(&complete) {
+                                // TODO: Investigate error and attempt
+                                // to remediate as appropriate.
+                                warn!("Error completing log: {}", e);
+                            }
                         }
                         Err(e) => {
                             warn!("ERROR parsing JobLogComplete: {:?}", e);
@@ -151,5 +150,33 @@ impl LogIngester {
                 }
             }
         }
+    }
+
+    /// Factored out the above loop to take advantage of ?'s behavior
+    /// in Result-returning functions to collapse deeply branching
+    /// code.
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error in the following scenarios:
+    ///
+    /// * Failure to archive the log file
+    /// * Failure to mark job as archived in database
+    /// * Failure to remove local log file
+    ///
+    /// This is also the _order_ in which these errors would occur, so
+    /// a local log file is only removed after the log is successfully
+    /// archived and marked as such in the database.
+    fn complete_log(&self, complete: &JobLogComplete) -> Result<()> {
+        let id = complete.get_job_id();
+        debug!("Log complete for job {:?}", id);
+        let log_file = self.log_dir.log_file_path(id);
+
+        self.archiver.archive(id, &log_file)?;
+        debug!("Archived log for job {}", id);
+        self.data_store.mark_as_archived(id)?;
+        fs::remove_file(&log_file)?;
+        debug!("Successfully deleted local log file {:?}", log_file);
+        Ok(())
     }
 }
