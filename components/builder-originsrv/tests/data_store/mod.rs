@@ -114,6 +114,41 @@ fn create_origin_secret_key() {
 }
 
 #[test]
+fn create_origin_secret_key_handles_unique_constraint_violations_correctly() {
+    let ds = datastore_test!(DataStore);
+    let mut origin = originsrv::OriginCreate::new();
+    origin.set_name(String::from("neurosis"));
+    origin.set_owner_id(1);
+    origin.set_owner_name(String::from("scottkelly"));
+    ds.create_origin(&origin).expect("Should create origin");
+
+    let neurosis = ds.get_origin_by_name("neurosis")
+        .expect("Could not retrieve origin")
+        .expect("Origin does not exist");
+
+    // Create a new origin secret key
+    let mut oskc = originsrv::OriginSecretKeyCreate::new();
+    oskc.set_name(String::from("neurosis"));
+    oskc.set_revision(String::from("20160612031944"));
+    oskc.set_origin_id(neurosis.get_id());
+    oskc.set_owner_id(1);
+    oskc.set_body(String::from("very_secret").into_bytes());
+    ds.create_origin_secret_key(&oskc)
+        .expect("Failed to create origin secret key");
+
+    // Create a duplicate origin secret key, which should fail
+    let mut oskc2 = originsrv::OriginSecretKeyCreate::new();
+    oskc2.set_name(String::from("neurosis"));
+    oskc2.set_revision(String::from("20160612031944"));
+    oskc2.set_origin_id(neurosis.get_id());
+    oskc2.set_owner_id(1);
+    oskc2.set_body(String::from("very_secret").into_bytes());
+    let resp = ds.create_origin_secret_key(&oskc2);
+
+    assert!(resp.is_err(), "Insertion should've triggered an error");
+}
+
+#[test]
 fn get_origin_secret_key() {
     let ds = datastore_test!(DataStore);
     let mut origin = originsrv::OriginCreate::new();

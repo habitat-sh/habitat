@@ -167,9 +167,14 @@ pub fn origin_secret_key_create(req: &mut Envelope,
 
     match state.datastore.create_origin_secret_key(&msg) {
         Ok(ref osk) => try!(req.reply_complete(sock, osk)),
+        Err(Error::OriginSecretKeyCreate(PostgresError::Db(ref db))) if db.code ==
+                                                                        UniqueViolation => {
+            let err = net::err(ErrCode::ENTITY_CONFLICT, "vt:origin-secret-key-create:1");
+            try!(req.reply_complete(sock, &err));
+        }
         Err(err) => {
             error!("OriginSecretKeyCreate, err={:?}", err);
-            let err = net::err(ErrCode::DATA_STORE, "vt:origin-secret-key-create:1");
+            let err = net::err(ErrCode::DATA_STORE, "vt:origin-secret-key-create:2");
             try!(req.reply_complete(sock, &err));
         }
     }

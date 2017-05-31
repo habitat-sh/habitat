@@ -50,7 +50,7 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                     osk_body bytea
                  ) RETURNS SETOF origin_secret_keys AS $$
                      BEGIN
-                         RETURN QUERY INSERT INTO origin_secret_keys (origin_id, owner_id, name, revision, full_name, body) 
+                         RETURN QUERY INSERT INTO origin_secret_keys (origin_id, owner_id, name, revision, full_name, body)
                                 VALUES (osk_origin_id, osk_owner_id, osk_name, osk_revision, osk_full_name, osk_body)
                                 RETURNING *;
                          RETURN;
@@ -62,17 +62,21 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                     osk_name text
                  ) RETURNS SETOF origin_secret_keys AS $$
                     BEGIN
-                        RETURN QUERY SELECT * FROM origin_secret_keys WHERE name = osk_name 
+                        RETURN QUERY SELECT * FROM origin_secret_keys WHERE name = osk_name
                           ORDER BY full_name DESC
                           LIMIT 1;
                         RETURN;
                     END
                     $$ LANGUAGE plpgsql STABLE"#)?;
-
-    migrator.migrate("originsrv",
-                     r#"ALTER TABLE origin_secret_keys
+    migrator
+        .migrate("originsrv",
+                 r#"ALTER TABLE origin_secret_keys
                         DROP CONSTRAINT IF EXISTS
                           origin_secret_keys_full_name_key"#)?;
-
+    migrator
+        .migrate("originsrv-2",
+                 r#"ALTER TABLE origin_secret_keys
+                        ADD CONSTRAINT origin_secret_keys_full_name_key
+                        UNIQUE (full_name)"#)?;
     Ok(())
 }
