@@ -24,10 +24,11 @@ use std::fs::File;
 use std::io::BufReader;
 use std::io::prelude::*;
 use std::path::PathBuf;
-use std::process::Child;
+use std::process::{ChildStderr, ChildStdout};
 use std::result;
 use std::thread;
 
+use ansi_term::Colour;
 use hcore::os::process::{HabChild, ExitStatusExt};
 use hcore::util::perm::set_owner;
 use hcore::service::ServiceGroup;
@@ -118,11 +119,17 @@ impl Supervisor {
         self.enter_state(ProcessState::Start);
         let mut child = exec::run_cmd(&pkg.svc_run, &pkg)?.spawn()?;
         self.child = Some(HabChild::from(&mut child)?);
+        let c_stdout = child.stdout;
+        let c_stderr = child.stderr;
         self.create_pidfile(pkg)?;
-        let package_name = self.preamble.clone();
+        let out_package_name = self.preamble.clone();
+        let err_package_name = self.preamble.clone();
         thread::Builder::new()
-            .name(String::from("sup-service-read"))
-            .spawn(move || -> Result<()> { child_reader(&mut child, package_name) })?;
+            .name(String::from("sup-service-read-out"))
+            .spawn(move || -> Result<()> { child_out_reader(c_stdout, out_package_name) })?;
+        thread::Builder::new()
+            .name(String::from("sup-service-read-err"))
+            .spawn(move || -> Result<()> { child_err_reader(c_stderr, err_package_name) })?;
         self.enter_state(ProcessState::Up);
         self.has_started = true;
         Ok(())
@@ -257,13 +264,12 @@ impl Drop for Supervisor {
 }
 
 /// Consume output from a child process until EOF, then finish
-fn child_reader(child: &mut Child, package_name: String) -> Result<()> {
-    let c_stdout = match child.stdout {
-        Some(ref mut s) => s,
+fn child_out_reader(c_stdout: Option<ChildStdout>, package_name: String) -> Result<()> {
+    let out = match c_stdout {
+        Some(s) => s,
         None => return Err(sup_error!(Error::UnpackFailed)),
     };
-
-    let mut reader = BufReader::new(c_stdout);
+    let mut reader = BufReader::new(out);
     let mut buffer = String::new();
 
     while reader.read_line(&mut buffer).unwrap() > 0 {
@@ -272,6 +278,26 @@ fn child_reader(child: &mut Child, package_name: String) -> Result<()> {
         print!("{}", line);
         buffer.clear();
     }
-    debug!("child_reader exiting");
+    debug!("child_out_reader exiting");
+    Ok(())
+}
+
+/// Consume standard error from a child process until EOF, then finish
+fn child_err_reader(c_stderr: Option<ChildStderr>, package_name: String) -> Result<()> {
+    let err = match c_stderr {
+        Some(s) => s,
+        None => return Err(sup_error!(Error::UnpackFailed)),
+    };
+    let mut reader = BufReader::new(err);
+    let mut buffer = String::new();
+
+    while reader.read_line(&mut buffer).unwrap() > 0 {
+        let mut line = output_format!(preamble &package_name, logkey "E");
+        let c = format!("{}", Colour::Red.bold().paint(buffer.clone()));
+        line.push_str(c.as_str());
+        let _ = write!(&mut std::io::stderr(), "{}", line);
+        buffer.clear();
+    }
+    debug!("child_err_reader exiting");
     Ok(())
 }
