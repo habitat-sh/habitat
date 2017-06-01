@@ -101,6 +101,8 @@ securitySchemes:
                                 "name": "reset",
                                 "owner_id": "77730215748435968"
                             }
+            409:
+                description: The origin already exists
             422:
                 description: Malformed origin in request body
     /{originId}:
@@ -181,6 +183,8 @@ securitySchemes:
                                             "body": "",
                                             "owner_id": ""
                                         }
+                        409:
+                            description: Secret key already exists in origin
         /users:
             get:
                 description: List all members of an origin
