@@ -100,11 +100,6 @@ alias fgrep='fgrep --color=auto'
 # Set TERMINFO so hab can give us a delightful experience.
 export TERMINFO=$(_pkgpath_for core/ncurses)/share/terminfo
 
-# Source /src/.studiorc so we can set some user environment vars quicker.
-if [ -f /src/.studiorc ];then
-  source /src/.studiorc
-fi
-
 emacs() {
   if command -v emacs > /dev/null; then
     emacs \$*
@@ -160,6 +155,11 @@ alias sl='sup-log'
 if [[ -n "\${STUDIO_ENTER:-}" ]]; then
   unset STUDIO_ENTER
   source /etc/profile.enter
+fi
+
+# Source /src/.studiorc so we can apply user-specific configuration
+if [ -f /src/.studiorc ];then
+  source /src/.studiorc
 fi
 
 # Add command line completion
