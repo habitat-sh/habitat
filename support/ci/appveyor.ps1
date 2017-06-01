@@ -1,4 +1,6 @@
-pushd c:\projects\habitat
+function Test-ReleaseBuild {
+    $env:APPVEYOR_REPO_TAG_NAME -eq "$(Get-Content c:/projects/habitat/VERSION)" -and (!$env:APPVEYOR_REPO_TAG_NAME.EndsWith("dev"))
+}
 
 function Test-ComponentChanged ($path) {
     $component = $path -replace 'components/(\w+-*\w*)/.*$', '$1'
@@ -43,6 +45,11 @@ Write-Host "Configuring build environment"
 write-host "TAG: $env:APPVEYOR_REPO_TAG_NAME"
 Write-Host "VERSION: $(Get-Content VERSION)"
 if (($env:APPVEYOR_REPO_TAG_NAME -eq "$(Get-Content VERSION)") -or (Test-SourceChanged) -or (test-path env:HAB_FORCE_TEST)) {
+    if(Test-ReleaseBuild) {
+        # appveyor.yml sets this to acceptance
+        $env:HAB_DEPOT_URL=$null
+    }
+
     foreach ($BuildAction in ($env:hab_build_action -split ';')) {
         if ($BuildAction -like 'build') {
             
@@ -101,7 +108,7 @@ if (($env:APPVEYOR_REPO_TAG_NAME -eq "$(Get-Content VERSION)") -or (Test-SourceC
                 & $habExe pkg install $hart.FullName
                 if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
 
-                if($env:HAB_AUTH_TOKEN) {
+                if($env:HAB_AUTH_TOKEN -and (!Test-PullRequest)) {
                     & $habExe pkg upload $hart
                     if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
                 }
@@ -118,7 +125,7 @@ if (($env:APPVEYOR_REPO_TAG_NAME -eq "$(Get-Content VERSION)") -or (Test-SourceC
 
                     mkdir $stagingZipDir -Force
                     Compress-Archive -Path $zipDir -DestinationPath "$stagingZipDir/$zip" 
-                    if($env:APPVEYOR_REPO_TAG_NAME -eq "$(Get-Content VERSION)" -and (!$env:APPVEYOR_REPO_TAG_NAME.EndsWith("dev"))) {
+                    if(Test-ReleaseBuild) {
                         mkdir "results/prod" -Force
                         Compress-Archive -Path ./windows -DestinationPath "results/prod/$zip"
                     }
