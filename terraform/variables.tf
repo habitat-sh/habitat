@@ -49,6 +49,11 @@ variable "release_channel" {
   default     = "stable"
 }
 
+variable "log_level" {
+  description = "The RUST_LOG logging level for the builder services"
+  default     = "error"
+}
+
 variable "gossip_listen_port" {
   description = "Port for Habitat Supervisor's --gossip-listen"
   default     = 9638
