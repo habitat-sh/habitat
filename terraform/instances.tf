@@ -541,6 +541,7 @@ data "template_file" "hab_sup" {
     flags               = "--listen-gossip 0.0.0.0:${var.gossip_listen_port} --listen-http 0.0.0.0:${var.http_listen_port}"
     gossip_listen_port  = "${var.gossip_listen_port}"
     peer_ip             = "${aws_instance.datastore.0.private_ip}"
+    log_level           = "${var.log_level}"
   }
 }
 
@@ -551,6 +552,7 @@ data "template_file" "hab_sup_permanent" {
     flags               = "--listen-gossip 0.0.0.0:${var.gossip_listen_port} --listen-http 0.0.0.0:${var.http_listen_port} --permanent-peer"
     gossip_listen_port  = "${var.gossip_listen_port}"
     peer_ip             = "${aws_instance.datastore.0.private_ip}"
+    log_level           = "${var.log_level}"
   }
 }
 
@@ -561,5 +563,6 @@ data "template_file" "hab_sup_seed" {
     flags               = "--listen-gossip 0.0.0.0:${var.gossip_listen_port} --listen-http 0.0.0.0:${var.http_listen_port} --permanent-peer"
     gossip_listen_port  = "${var.gossip_listen_port}"
     peer_ip             = "127.0.0.1"
+    log_level           = "${var.log_level}"
   }
 }
