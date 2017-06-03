@@ -14,6 +14,10 @@ resource "aws_s3_bucket" "jobs" {
   bucket = "habitat-jobs-${var.env}"
   acl    = "private"
   region = "${var.aws_region}"
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 // The job user (and only the job user) can put / get objects in the

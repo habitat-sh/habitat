@@ -33,6 +33,10 @@ resource "aws_s3_bucket" "www" {
   bucket = "habitat-www-${var.env}"
   acl    = "public-read"
 
+  lifecycle {
+    prevent_destroy = true
+  }
+
   website {
     index_document = "index.html"
     error_document = "404/index.html"
