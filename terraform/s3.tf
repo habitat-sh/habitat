@@ -4,6 +4,7 @@
 // Currently, we need to get a key and secret for this user and put
 // those into the jobsrv config. In the future, we may be able to just
 // use instance roles.
+
 resource "aws_iam_user" "jobs" {
   name = "jobs-${var.env}"
 }
@@ -20,25 +21,19 @@ resource "aws_s3_bucket" "jobs" {
   }
 }
 
-// The job user (and only the job user) can put / get objects in the
-// bucket!
+data "aws_iam_policy_document" "job_user_can_get_and_put_logs" {
+  statement = {
+    effect = "Allow"
+    actions = ["s3:GetObject", "s3:PutObject"]
+    resources = ["${aws_s3_bucket.jobs.arn}/*"]
+    principals = {
+      type = "AWS"
+      identifiers = ["${aws_iam_user.jobs.arn}"]
+    }
+  }
+}
+
 resource "aws_s3_bucket_policy" "jobs" {
   bucket = "${aws_s3_bucket.jobs.id}"
-  policy = <<EOF
-{
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "AWS": "${aws_iam_user.jobs.arn}"
-      },
-      "Resource": "${aws_s3_bucket.jobs.arn}/*",
-      "Action": [
-        "s3:GetObject",
-        "s3:PutObject"
-      ]
-    }
-  ]
-}
-EOF
+  policy = "${data.aws_iam_policy_document.job_user_can_get_and_put_logs.json}"
 }
