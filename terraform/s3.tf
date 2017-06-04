@@ -7,6 +7,7 @@
 
 resource "aws_iam_user" "jobs" {
   name = "jobs-${var.env}"
+  force_destroy = false # be explicit here, because we will have access keys
 }
 
 // Job log storage; the server retrieves logs on behalf of requestors,
