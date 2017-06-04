@@ -24,6 +24,7 @@ resource "aws_security_group" "datastore" {
     X-Contact     = "The Habitat Maintainers <humans@habitat.sh>"
     X-Environment = "${var.env}"
     X-Application = "builder"
+    X-ManagedBy   = "Terraform"
   }
 }
 
@@ -36,6 +37,7 @@ resource "aws_security_group" "datastore_client" {
     X-Contact     = "The Habitat Maintainers <humans@habitat.sh>"
     X-Environment = "${var.env}"
     X-Application = "builder"
+    X-ManagedBy   = "Terraform"
   }
 }
 
@@ -75,6 +77,7 @@ resource "aws_security_group" "gateway" {
     X-Contact     = "The Habitat Maintainers <humans@habitat.sh>"
     X-Environment = "${var.env}"
     X-Application = "builder"
+    X-ManagedBy   = "Terraform"
   }
 }
 
@@ -101,6 +104,7 @@ resource "aws_security_group" "gateway_elb" {
     X-Contact     = "The Habitat Maintainers <humans@habitat.sh>"
     X-Environment = "${var.env}"
     X-Application = "builder"
+    X-ManagedBy   = "Terraform"
   }
 }
 
@@ -123,6 +127,7 @@ resource "aws_security_group" "jobsrv" {
     X-Contact     = "The Habitat Maintainers <humans@habitat.sh>"
     X-Environment = "${var.env}"
     X-Application = "builder"
+    X-ManagedBy   = "Terraform"
   }
 }
 
@@ -135,6 +140,7 @@ resource "aws_security_group" "jobsrv_client" {
     X-Contact     = "The Habitat Maintainers <humans@habitat.sh>"
     X-Environment = "${var.env}"
     X-Application = "builder"
+    X-ManagedBy   = "Terraform"
   }
 }
 
@@ -174,6 +180,7 @@ resource "aws_security_group" "router" {
     X-Contact     = "The Habitat Maintainers <humans@habitat.sh>"
     X-Environment = "${var.env}"
     X-Application = "builder"
+    X-ManagedBy   = "Terraform"
   }
 }
 
@@ -192,6 +199,7 @@ resource "aws_security_group" "service" {
     X-Contact     = "The Habitat Maintainers <humans@habitat.sh>"
     X-Environment = "${var.env}"
     X-Application = "builder"
+    X-ManagedBy   = "Terraform"
   }
 }
 
@@ -210,5 +218,6 @@ resource "aws_security_group" "worker" {
     X-Contact     = "The Habitat Maintainers <humans@habitat.sh>"
     X-Environment = "${var.env}"
     X-Application = "builder"
+    X-ManagedBy   = "Terraform"
   }
 }

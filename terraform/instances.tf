@@ -56,6 +56,7 @@ resource "aws_instance" "api" {
     X-Contact     = "The Habitat Maintainers <humans@habitat.sh>"
     X-Environment = "${var.env}"
     X-Application = "builder"
+    X-ManagedBy   = "Terraform"
   }
 }
 
@@ -114,6 +115,7 @@ resource "aws_instance" "admin" {
     X-Contact     = "The Habitat Maintainers <humans@habitat.sh>"
     X-Environment = "${var.env}"
     X-Application = "builder"
+    X-ManagedBy   = "Terraform"
   }
 }
 
@@ -174,6 +176,7 @@ resource "aws_instance" "datastore" {
     X-Contact     = "The Habitat Maintainers <humans@habitat.sh>"
     X-Environment = "${var.env}"
     X-Application = "builder"
+    X-ManagedBy   = "Terraform"
   }
 }
 
@@ -234,6 +237,7 @@ resource "aws_instance" "jobsrv" {
     X-Contact     = "The Habitat Maintainers <humans@habitat.sh>"
     X-Environment = "${var.env}"
     X-Application = "builder"
+    X-ManagedBy   = "Terraform"
   }
 }
 
@@ -293,6 +297,7 @@ resource "aws_instance" "originsrv" {
     X-Contact     = "The Habitat Maintainers <humans@habitat.sh>"
     X-Environment = "${var.env}"
     X-Application = "builder"
+    X-ManagedBy   = "Terraform"
   }
 }
 
@@ -351,6 +356,7 @@ resource "aws_instance" "router" {
     X-Contact     = "The Habitat Maintainers <humans@habitat.sh>"
     X-Environment = "${var.env}"
     X-Application = "builder"
+    X-ManagedBy   = "Terraform"
   }
 }
 
@@ -410,6 +416,7 @@ resource "aws_instance" "scheduler" {
     X-Contact     = "The Habitat Maintainers <humans@habitat.sh>"
     X-Environment = "${var.env}"
     X-Application = "builder"
+    X-ManagedBy   = "Terraform"
   }
 }
 
@@ -469,6 +476,7 @@ resource "aws_instance" "sessionsrv" {
     X-Contact     = "The Habitat Maintainers <humans@habitat.sh>"
     X-Environment = "${var.env}"
     X-Application = "builder"
+    X-ManagedBy   = "Terraform"
   }
 }
 
@@ -528,6 +536,7 @@ resource "aws_instance" "worker" {
     X-Contact     = "The Habitat Maintainers <humans@habitat.sh>"
     X-Environment = "${var.env}"
     X-Application = "builder"
+    X-ManagedBy   = "Terraform"
   }
 }
 

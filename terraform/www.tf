@@ -41,6 +41,7 @@ resource "aws_s3_bucket" "www" {
     Name          = "habitat-www-${var.env}"
     X-Contact     = "The Habitat Maintainers <humans@habitat.sh>"
     X-Environment = "${var.env}"
+    X-ManagedBy   = "Terraform"
   }
 
   website {
