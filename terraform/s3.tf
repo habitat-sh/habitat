@@ -20,6 +20,12 @@ resource "aws_s3_bucket" "jobs" {
   lifecycle {
     prevent_destroy = true
   }
+
+  tags {
+    Name          = "habitat-jobs-${var.env}"
+    X-Contact     = "The Habitat Maintainers <humans@habitat.sh>"
+    X-Environment = "${var.env}"
+  }
 }
 
 data "aws_iam_policy_document" "job_user_can_get_and_put_logs" {
