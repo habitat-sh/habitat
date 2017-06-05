@@ -220,10 +220,16 @@ impl ScheduleMgr {
                     match job_opt {
                         Some(job) => self.datastore.set_group_job_state(&job).unwrap(),
                         None => {
-                            let skip_list = match self.skip_projects(&group, &project) {
+                            debug!("Skipping project: {:?}", project.get_name());
+                            self.datastore
+                                .set_group_project_state(group.get_id(),
+                                                         project.get_name(),
+                                                         proto::ProjectState::Skipped)?;
+
+                            let skip_list = match self.skip_projects(&group, project.get_name()) {
                                 Ok(v) => v,
                                 Err(e) => {
-                                    warn!("Error skipping project {:?}: {:?}",
+                                    warn!("Error skipping projects for {:?}: {:?}",
                                           project.get_name(),
                                           e);
                                     return Err(e);
@@ -299,19 +305,9 @@ impl ScheduleMgr {
         true
     }
 
-    fn skip_projects(&mut self,
-                     group: &proto::Group,
-                     project: &proto::Project)
-                     -> Result<Vec<String>> {
+    fn skip_projects(&mut self, group: &proto::Group, project_name: &str) -> Result<Vec<String>> {
         let mut skipped = HashMap::new();
-
-        debug!("Skipping project: {:?}", project.get_name());
-        skipped.insert(project.get_name().to_string(), true);
-
-        self.datastore
-            .set_group_project_state(group.get_id(),
-                                     &project.get_name(),
-                                     proto::ProjectState::Skipped)?;
+        skipped.insert(project_name.to_string(), true);
 
         for project in group
                 .get_projects()
@@ -402,9 +398,19 @@ impl ScheduleMgr {
 
         match self.datastore.set_group_job_state(&job) {
             Ok(_) => {
+                if job.get_state() == jobsrv::JobState::Failed {
+                    match self.skip_projects(&group, job.get_project().get_name()) {
+                        Ok(_) => (),
+                        Err(e) => {
+                            warn!("Error skipping projects for {:?}: {:?}",
+                                  job.get_project().get_name(),
+                                  e);
+                        }
+                    };
+                }
+
                 match job.get_state() {
                     jobsrv::JobState::Complete |
-                    jobsrv::JobState::Rejected |
                     jobsrv::JobState::Failed => self.update_group_state(job.get_owner_id())?,
                     _ => (),
                 }
@@ -445,9 +451,7 @@ impl ScheduleMgr {
 
             let dispatchable = self.dispatchable_projects(&group)?;
 
-            let new_state = if failed > 0 {
-                proto::GroupState::Failed
-            } else if (succeeded + skipped) == group.get_projects().len() {
+            let new_state = if (succeeded + skipped + failed) == group.get_projects().len() {
                 proto::GroupState::Complete
             } else if dispatchable.len() > 0 {
                 proto::GroupState::Pending

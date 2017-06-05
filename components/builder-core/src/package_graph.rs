@@ -152,6 +152,15 @@ impl PackageGraph {
                 let depname = format!("{}", dep);
                 let (_, dep_node) = self.generate_id(&depname);
                 self.graph.extend_with_edges(&[(dep_node, pkg_node)]);
+
+                // sanity check
+                if is_cyclic_directed(&self.graph) {
+                    warn!("graph is cyclic after adding {} -> {} - rolling back",
+                          depname,
+                          name);
+                    let e = self.graph.find_edge(dep_node, pkg_node).unwrap();
+                    self.graph.remove_edge(e).unwrap();
+                }
             }
         }
 
