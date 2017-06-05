@@ -90,6 +90,15 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                           origin_public_keys_full_name_key"#)?;
     migrator
         .migrate("originsrv-2",
+                 r#"DELETE FROM origin_public_keys
+                        WHERE id IN (
+                            SELECT id FROM (
+                                SELECT id, ROW_NUMBER() OVER (
+                                    partition BY full_name ORDER BY id
+                                ) AS rnum FROM origin_public_keys
+                            ) t WHERE t.rnum > 1)"#)?;
+    migrator
+        .migrate("originsrv-3",
                  r#"ALTER TABLE origin_public_keys
                         ADD CONSTRAINT origin_public_keys_full_name_key
                         UNIQUE (full_name)"#)?;
