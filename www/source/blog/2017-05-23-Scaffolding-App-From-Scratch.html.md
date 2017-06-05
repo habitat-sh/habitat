@@ -88,7 +88,7 @@ This command looks more complicated than it is. We're piping in some inline TOML
 If you want to see the Habitat Supervisor reacting to this change, run `sup-log` and hit `Ctrl+c` when you're done. You can verify the port change was applied with `wget`:
 
 ~~~sh
-wget -q -O - http://localhost:8000
+wget -q -O - http://localhost:3000
 ~~~
 
 You can exit your Studio session with `exit` (I guessed this too), and you will find a Habitat package waiting for you in a `./results/` directory. The `.hart` file extension is for "Habitat ARTifact". This is because we take puns seriously. We're punstoppable.
