@@ -47,7 +47,7 @@ exit_with() {
 }
 
 program=$(basename $0)
-rf_version="0.8.3"
+rf_version="0.8.4"
 
 # Fix commit range in Travis, if set.
 # See: https://github.com/travis-ci/travis-ci/issues/4596
