@@ -51,9 +51,9 @@ artifacts:
 
 deploy:
 - provider: BinTray
-  username: mwrock
+  username: chef-releng-ops
   api_key:
-    secure: 2DkUS4TNHW1uGjGTkNaepmkZ7lesimoVVWzM29tfGvcbBOuL7MeRjxcRd4PIY5X1
+    secure: KGpNfhM18alwGRviNGcMUStNMw3W2u002bf38+fs+mt9wf+4BGGuiUMKtu7Nrs8i
   subject: habitat
   explode: true
   repo: unstable
@@ -64,9 +64,9 @@ deploy:
     branch: master
 
 - provider: BinTray
-  username: mwrock
+  username: chef-releng-ops
   api_key:
-    secure: 2DkUS4TNHW1uGjGTkNaepmkZ7lesimoVVWzM29tfGvcbBOuL7MeRjxcRd4PIY5X1
+    secure: KGpNfhM18alwGRviNGcMUStNMw3W2u002bf38+fs+mt9wf+4BGGuiUMKtu7Nrs8i
   subject: habitat
   explode: true
   repo: stable
