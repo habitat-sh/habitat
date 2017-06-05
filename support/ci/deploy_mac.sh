@@ -5,20 +5,11 @@
 # BINTRAY_PASSPHRASE
 # BINTRAY_KEY
 # BINTRAY_REPO
+# TRAVIS_BUILD_NUMBER
 
 set -eu
 
-hab_src_dir="$HOME/code/habitat"
-bootstrap_dir="$HOME/mac_unstable"
 var_file="$HOME/tmp/our-awesome-vars"
-mac_dir="${hab_src_dir}/components/hab/mac"
-mac_hab="${bootstrap_dir}/hab"
-gnu_tar=/usr/local/bin/tar
-hab_download_url="https://api.bintray.com/content/habitat/stable/darwin/x86_64/hab-%24latest-x86_64-darwin.zip?bt_package=hab-x86_64-darwin"
-our_path="$HOME/.cargo/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/bin:/usr/sbin:/sbin"
-export HAB_ORIGIN=core
-export PATH="${our_path}"
-
 if [[ -f ${var_file} ]]; then
   echo "Located the file with the magic environment variables."
   source ${var_file}
@@ -27,6 +18,21 @@ else
   echo "${var_file} does not appear to exist or at least not pass the -f test."
   echo "This script will likely abort shortly."
 fi
+
+hab_src_dir="$HOME/code/$TRAVIS_BUILD_NUMBER/habitat"
+function cleanup {
+  rm -rf "$hab_src_dir"
+}
+trap cleanup EXIT
+
+bootstrap_dir="$HOME/mac_unstable/$TRAVIS_BUILD_NUMBER"
+mac_dir="${hab_src_dir}/components/hab/mac"
+mac_hab="${bootstrap_dir}/hab"
+gnu_tar=/usr/local/bin/tar
+hab_download_url="https://api.bintray.com/content/habitat/stable/darwin/x86_64/hab-%24latest-x86_64-darwin.zip?bt_package=hab-x86_64-darwin"
+our_path="${HOME}/.cargo/bin:${PATH}"
+export HAB_ORIGIN=core
+export PATH="${our_path}"
 
 # start fresh
 rm -fr ${bootstrap_dir}

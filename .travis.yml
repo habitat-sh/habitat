@@ -195,11 +195,11 @@ matrix:
         - secure: "OCq9oDAEP3Cc0BiGrnZHE0FoNdyqsAy2LPTwEoOKvgiZdrw5o2bvpN1Kl+DKpw2auKtkeAS1aVSE/CMrglxrDs+VolvK9ttW3kj8c7+AeuCYjBsyWqdnZ1/24u6P+20fKanYrsMsnFb2r9OWwxZVlFnfmks81LWToOlGFJpL5KnmSPrB2vlWPbiaH9+yg8aslrmCq0reSoSVSnoZHoTolWtjzx2WdPYqA4gu0HHASVbH5qP+PoQSGIWvwbBaU4xhwkp1K8rWCjI8lre2YpBMOdfZv+9arMjc3Xg/kgD9oGU9DN7Q3UzAWxTSJv/3Cm4LArwiI57rXMLDKf8N1MhvGMHP1xgbuN8JWFKqFuWpqCf6qJkYG8+VZkruKYOo/2tXtBY4hpbR2abcWvYU/S9AQFHKGJQ2vcArnp5SKO+Oq/fNVneeHli4RbGMRQCMVq+X0SSC148F0zEVVwkNM5eq4askfc/2y4asySrH0MT/5T3yBp8fr3zXpnj82h2ytCZOUs0o+La9+wt5gSDUJHdY/BwSSPrgnKSp7ixslM/g7lMy3nAOs6qLql8/vW543CXBurCACWTqwKcy3/wRparTkmZcs1d7vUrbcfYv7XJzh0pw2P1hCjWD9BtkowbuLVo8K9ndPl2rbFY9XljqFXMTcHxp4ETeCc23azHCs+SYFb0="
         # HAB_ORIGIN_KEY
         - secure: "uZ70GE8qK3GBgs7ZIsoy5DhPlHNs2hoLxLBGKq+u+0XrE017pOnW6mNHsn7J7i2r8CPtd4KFsFEN52wZSA+Sf96MFIL2w9E+geykBgbRMZzv4icuCf0xSGwm4iRMgZ9A08TfurMX6y6N+4JNsrCv9syVNuGq09EL2wLHPXOQhesMpodijQLcFikxfEXXbaWla1xHnYxJk+fbvYDoXVCbdqnpdeLTmGuQHFaaNI7jm1B3L/dl+IGZxwFdvqBT3G9mHiXBdyi8bALs7rcZNdV7PqtFFpp98zIeqwNHtHPd5cBRmqDRTRxucRSACS/lurrz9J+001a9RjPvUkYlLrn0hQY9pN6oo+kCpN/1r0bc17i4FbGx7R73FnFgPK/cno0ENBFygNZn7/jg6cENgjkBlHsZhc1+L1xhILo46nQU9XbWJrwelVYUOOGXI76tECOkGhkglx1vYK8fcMVLJMhL7psgPpbGbDJQDuAKhHS+75txNK+356ompNL+YUzeWZc4KSGZCNTQsPK+rsGttmA+JXtAaquFaY5xwSgyKHwETiSVg4dYXb3xh6goNxf2JTOZOosWaypyykHqcqsqCu2fzIDdmkgCx6I5/5q8I/7Z0es0jlUpHamlihZwe4E5YdYFCSouaDoeTnVdJKVI1p9fnAjpFqjivFgqLE/Z504vCNU="
-        - BINTRAY_USER=smurawski
+        - BINTRAY_USER=mwrock
         # BINTRAY_KEY
-        - secure: "CHOiAfgFYbUBwYNIx7yJ7Y6697IzoX5zZtxHnByblU7Mei990vP+wUMjWrp2OY4I5UKdfSg5bkUtkEHBMUdoaiZZB+420dnZWPX94hQEYAGSdFzsgZlNZlu9vwnHout6+tDhylW0eIv7yMB1BViyOpeGxJ5rgCCmdDBEF5uWfnzuOMSeaOmcMQe24mzHY7vxIwfqJwEbVD08AOtJXVp2Kk0nLoA0GfJS1ZCcibK6TbXuZfUwYmF9jaZZdQj26UH8KtkiKYLy4Ti1c54XLwVahGeszBdi3xCAY6OWidAaTtnvEahtltXRl0HQCmhgLxpuZ/94lB4Mo4TqSf9NgZS7pqDB35YpYddy2hwW5HZFZlZoXgAqCTT+70NB0hoICpvNlvo4p7zRB7PVHbipgg64eA/OlLW+Bd4KXTHn+y+JrN1g9pDR9YF2lVewbmtzKbmxgQZYIrSK9SVZNP30DeN6uoedAxFFZGqgmPoC6Fcu5HG9Y1BY08HRVwRxLtLj8bciKgMHLNSKfVOdNlFac9nGn65aqenRGEmCd4wyjMZ7gd74V75aMdZozhFacDva0Qw5hRzhnJ8rYXBzG0juyodznMtVCARlRijPn0TW9LjYNb8+5f7LoxtywRmCNwYBB1OWghOePhWGMHBVAYTLzalIkX4WR0fc+xdhOq6lfAbgU4s="
+        - secure: "KjnlECRQiJ5wNVKHTVYBDmpT0RuZfCXPPvJmqL42Pgec8NZuII/uVJlp+YMFiTqkE1nCfbOHIn9/7XfHwMhigUofQkkojFyVaNhYsJ09PCo80cK60cVD38S8zcu8dOL0JN1iNhivr3FvCo9Q2w04o8eR0rYgHzXw/n7E1j8Hvedph9odKCUZKjTHneL6ENON4Wl5trtEdJLN+WxWst7s3Kjl5BKNcmGIrvstjBhSsuhpIGikW2OECKCAWKbYsDB87jUsr9kVuoppBfu5jkMHZIwxgEkHZWcpZwMJqciX/w13igkNYIxJChl0qTygI8xDEqk04wNpciCItoX8pvzEF1MC+F7gmNE+Ga9N/Dw0c2MGSIlrGlCvcHkwxaJuXj0wD8ZsJZD3I7M3uA7r+FmPh7n43GX4MHQxSDWNJhLupvS/4rT5j3fdw1AKoD6LAjAaT2R5OzDVY2qhONeT/B4a3tlMhfTRDxd+PjUY/jUE1kOLdctl+6rKCTHmNxUO6MWnMN1ZWfbZSitfAkrkinmJ0APzhphvYB1r59PDQoLqNOSZS8iEtq7S9xVx+YWzx7KaTZhorHmaXu0iYm6VnoGeupJnEZcpJC98deRGhiSBaiZflmVkyh5w9z/2hLMkM7zVDxBMN8GqZjizJtGTK96ZgNJYI7DryAoYIcGa6ZIEeds="
         # BINTRAY_PASSPHRASE
-        - secure: "XkZuLadu8aGACYdDN9QLUvuuGciiC8PahELGn2gfI8ILeIozzsWCclmNp2eKfduYsAu0otdps2dHAI1VwYH6+xGq+6byMMpXaXbQl3fahMe2vwaREpstmjbglWMNHcBqH4Bccx3aMxZjROO6NeT1U49uk7lKW+Enf+Dhw90L8sVP3v/xbmynYnue32heeQklkNH57RZ3uWJOUOPxOn5vcXsI0PqvJ8i53qIiUDQLivjLmOJUuudQiU/WP6rpewiIMoPO/REfyxq3gkCcYkzeXxytpVLEFwWjS6mvpLQbTJ+8/tp06sLXBxqknFboEWsqcraswROXi4ZXpubraFFNO/9jn9c1RaSmJqBEIQEK0/4K5VDYjukWMWpMQcwGq/I5dqUaDZJpoWPGqvw9b3zgsZNjlvLq2FEeuQEj2eD2Z4S5/PpgQRFhJMS+uMdPpingQMQAn9y83bZeDdtakWcX/IRjMBSF+UXCaXfTF9SWwURsCqakMEQhtZ+A3g5MAtZ6N/2QMsUcI7K56PjxXJiRSnZw821+VJgkpbk8Z8M2koZ6+Jy4jOGrUvDVGZ8umj3ipNmX8nFjP2s8jS7ihfIuG33p1fNw2397dEf0pDnPdsCnT/43c1RgTunpjla8486GirOApl/P8B0VXimwrquhkXxVItOYHX+O400UtC6C7MQ="
+        - secure: "jOhfYhQShwodrNuXwkh1PMiVBPgokP8Q+orBTampINoTJ/P4W6vNiXbc1VaAHhqxqvTebIiB2CkNICLSt/Fys9eO0d7DQREhhkvQIjhX9rFs3AYYop5HZ+m+uZYGfqSY1G298XaCA0IAGfl2EWp5VFM/+NENCFtdlUSDaVHekmWKgGbfzhmL7Ho+jRas4naIehDSUBJZfQ837DJ8Xeew2Ec3wPnbsU+NeE/Fv042QmOGsmEoKlUf9Ak/6jAc6sOQl+84UKB7xrIpA5BOHq3DA2td+vgFEByBfthvDsF6VexISARFk36M5OC4EtjjZ3hkJA47AlE1jdPlo1PbNOwoPhWLsfHbCqffg3VAmiY5horPZoyGuyFQsXq6DHhyiiYUAqSMuRYwEzpp3dl3g1lK1Y7akgqSqxrNcjgwmExwt9ncfTTC2jjN+nzLD3zAruuNpqHOnrK6xLG4JfvpC53o+LvmTjuUPEe2q7LgixjWid+Zk8AezfndtKVk0T+0JJk+XAmq/MQIHTKQOy1hJGFUkBEi8xM0hFw6+h/PXqhsuv0J2dwDuLhhXtvYExyTLJEo0qIUAPnnAFmBI/rR4KjSpv4I1A6cw8i1prrGOMQ+BK5xqXArixR6HUooq4KmWGoBf2E8tgJOJRYXBPrTFpL9/e5fy4+jNgUDcpFwlTKhXUM="
       sudo: required
       services:
         - docker
@@ -223,6 +223,33 @@ matrix:
         - openssl aes-256-cbc -K $encrypted_50e90ce07941_key -iv $encrypted_50e90ce07941_iv -in ./support/ci/habitat-srv-admin.enc -out /tmp/habitat-srv-admin -d
       script:
         - sudo ./support/ci/deploy.sh
+    - os: linux
+      env:
+        - COMPONENTS="sup hab-butterfly hab plan-build backline bintray-publish studio pkg-aci pkg-dockerize pkg-mesosize pkg-tarize"
+        - AFFECTED_DIRS="support/ci/deploy\.sh|Cargo\.toml|Cargo\.lock|components/hab|components/common|components/core|components/builder-depot-client|components/http-client|components/sup|components/hab-butterfly|components/butterfly|components/studio|VERSION"
+        # HAB_ORIGIN_KEY
+        - secure: "uZ70GE8qK3GBgs7ZIsoy5DhPlHNs2hoLxLBGKq+u+0XrE017pOnW6mNHsn7J7i2r8CPtd4KFsFEN52wZSA+Sf96MFIL2w9E+geykBgbRMZzv4icuCf0xSGwm4iRMgZ9A08TfurMX6y6N+4JNsrCv9syVNuGq09EL2wLHPXOQhesMpodijQLcFikxfEXXbaWla1xHnYxJk+fbvYDoXVCbdqnpdeLTmGuQHFaaNI7jm1B3L/dl+IGZxwFdvqBT3G9mHiXBdyi8bALs7rcZNdV7PqtFFpp98zIeqwNHtHPd5cBRmqDRTRxucRSACS/lurrz9J+001a9RjPvUkYlLrn0hQY9pN6oo+kCpN/1r0bc17i4FbGx7R73FnFgPK/cno0ENBFygNZn7/jg6cENgjkBlHsZhc1+L1xhILo46nQU9XbWJrwelVYUOOGXI76tECOkGhkglx1vYK8fcMVLJMhL7psgPpbGbDJQDuAKhHS+75txNK+356ompNL+YUzeWZc4KSGZCNTQsPK+rsGttmA+JXtAaquFaY5xwSgyKHwETiSVg4dYXb3xh6goNxf2JTOZOosWaypyykHqcqsqCu2fzIDdmkgCx6I5/5q8I/7Z0es0jlUpHamlihZwe4E5YdYFCSouaDoeTnVdJKVI1p9fnAjpFqjivFgqLE/Z504vCNU="
+        - BINTRAY_USER=mwrock
+        # BINTRAY_KEY
+        - secure: "KjnlECRQiJ5wNVKHTVYBDmpT0RuZfCXPPvJmqL42Pgec8NZuII/uVJlp+YMFiTqkE1nCfbOHIn9/7XfHwMhigUofQkkojFyVaNhYsJ09PCo80cK60cVD38S8zcu8dOL0JN1iNhivr3FvCo9Q2w04o8eR0rYgHzXw/n7E1j8Hvedph9odKCUZKjTHneL6ENON4Wl5trtEdJLN+WxWst7s3Kjl5BKNcmGIrvstjBhSsuhpIGikW2OECKCAWKbYsDB87jUsr9kVuoppBfu5jkMHZIwxgEkHZWcpZwMJqciX/w13igkNYIxJChl0qTygI8xDEqk04wNpciCItoX8pvzEF1MC+F7gmNE+Ga9N/Dw0c2MGSIlrGlCvcHkwxaJuXj0wD8ZsJZD3I7M3uA7r+FmPh7n43GX4MHQxSDWNJhLupvS/4rT5j3fdw1AKoD6LAjAaT2R5OzDVY2qhONeT/B4a3tlMhfTRDxd+PjUY/jUE1kOLdctl+6rKCTHmNxUO6MWnMN1ZWfbZSitfAkrkinmJ0APzhphvYB1r59PDQoLqNOSZS8iEtq7S9xVx+YWzx7KaTZhorHmaXu0iYm6VnoGeupJnEZcpJC98deRGhiSBaiZflmVkyh5w9z/2hLMkM7zVDxBMN8GqZjizJtGTK96ZgNJYI7DryAoYIcGa6ZIEeds="
+        # BINTRAY_PASSPHRASE
+        - secure: "jOhfYhQShwodrNuXwkh1PMiVBPgokP8Q+orBTampINoTJ/P4W6vNiXbc1VaAHhqxqvTebIiB2CkNICLSt/Fys9eO0d7DQREhhkvQIjhX9rFs3AYYop5HZ+m+uZYGfqSY1G298XaCA0IAGfl2EWp5VFM/+NENCFtdlUSDaVHekmWKgGbfzhmL7Ho+jRas4naIehDSUBJZfQ837DJ8Xeew2Ec3wPnbsU+NeE/Fv042QmOGsmEoKlUf9Ak/6jAc6sOQl+84UKB7xrIpA5BOHq3DA2td+vgFEByBfthvDsF6VexISARFk36M5OC4EtjjZ3hkJA47AlE1jdPlo1PbNOwoPhWLsfHbCqffg3VAmiY5horPZoyGuyFQsXq6DHhyiiYUAqSMuRYwEzpp3dl3g1lK1Y7akgqSqxrNcjgwmExwt9ncfTTC2jjN+nzLD3zAruuNpqHOnrK6xLG4JfvpC53o+LvmTjuUPEe2q7LgixjWid+Zk8AezfndtKVk0T+0JJk+XAmq/MQIHTKQOy1hJGFUkBEi8xM0hFw6+h/PXqhsuv0J2dwDuLhhXtvYExyTLJEo0qIUAPnnAFmBI/rR4KjSpv4I1A6cw8i1prrGOMQ+BK5xqXArixR6HUooq4KmWGoBf2E8tgJOJRYXBPrTFpL9/e5fy4+jNgUDcpFwlTKhXUM="
+      sudo: required
+      addons:
+        apt:
+          packages:
+          - ca-certificates
+      cache:
+        apt: true
+        directories:
+          - /root/travis_bootstrap
+      before_install:
+        - ./support/ci/fast_pass.sh || exit 0
+        - ./support/ci/only_master_or_release.sh || exit 0
+        - if [[ ! -x ./support/ci/deploy_mac_launcher.sh ]]; then chmod +x ./support/ci/deploy_mac_launcher.sh; fi
+        - openssl aes-256-cbc -K $encrypted_50e90ce07941_key -iv $encrypted_50e90ce07941_iv -in ./support/ci/habitat-srv-admin.enc -out /tmp/habitat-srv-admin -d
+      script:
+        - sudo ./support/ci/deploy_mac_launcher.sh
 notifications:
   webhooks:
     urls:
