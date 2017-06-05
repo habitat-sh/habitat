@@ -1,3 +1,4 @@
+web: support/builder_web.sh
 postgres: support/db/start.sh
 api: target/debug/bldr-api start --path /tmp/depot
 admin: target/debug/bldr-admin start
