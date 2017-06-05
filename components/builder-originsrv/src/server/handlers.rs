@@ -13,12 +13,15 @@
 // limitations under the License.
 
 use hab_net::server::Envelope;
+use postgres::error::Error as PostgresError;
+use postgres::error::SqlState::UniqueViolation;
 use protocol::net::{self, NetOk, ErrCode};
 use protocol::originsrv as proto;
 use zmq;
 
 use super::ServerState;
 use error::Result;
+use error::Error;
 
 pub fn origin_check_access(req: &mut Envelope,
                            sock: &mut zmq::Socket,
@@ -42,12 +45,19 @@ pub fn origin_create(req: &mut Envelope,
     match state.datastore.create_origin(&msg) {
         Ok(Some(ref origin)) => try!(req.reply_complete(sock, origin)),
         Ok(None) => {
+            // this match branch is likely unnecessary because of the way a unique constraint
+            // violation will be handled. see the matching comment in data_store.rs for the
+            // create_origin function.
             let err = net::err(ErrCode::ENTITY_CONFLICT, "vt:origin-create:0");
+            try!(req.reply_complete(sock, &err));
+        }
+        Err(Error::OriginCreate(PostgresError::Db(ref db))) if db.code == UniqueViolation => {
+            let err = net::err(ErrCode::ENTITY_CONFLICT, "vt:origin-create:1");
             try!(req.reply_complete(sock, &err));
         }
         Err(err) => {
             error!("OriginCreate, err={:?}", err);
-            let err = net::err(ErrCode::DATA_STORE, "vt:origin-create:1");
+            let err = net::err(ErrCode::DATA_STORE, "vt:origin-create:2");
             try!(req.reply_complete(sock, &err));
         }
     }
@@ -157,9 +167,14 @@ pub fn origin_secret_key_create(req: &mut Envelope,
 
     match state.datastore.create_origin_secret_key(&msg) {
         Ok(ref osk) => try!(req.reply_complete(sock, osk)),
+        Err(Error::OriginSecretKeyCreate(PostgresError::Db(ref db))) if db.code ==
+                                                                        UniqueViolation => {
+            let err = net::err(ErrCode::ENTITY_CONFLICT, "vt:origin-secret-key-create:1");
+            try!(req.reply_complete(sock, &err));
+        }
         Err(err) => {
             error!("OriginSecretKeyCreate, err={:?}", err);
-            let err = net::err(ErrCode::DATA_STORE, "vt:origin-secret-key-create:1");
+            let err = net::err(ErrCode::DATA_STORE, "vt:origin-secret-key-create:2");
             try!(req.reply_complete(sock, &err));
         }
     }
@@ -196,9 +211,14 @@ pub fn origin_public_key_create(req: &mut Envelope,
 
     match state.datastore.create_origin_public_key(&msg) {
         Ok(ref osk) => try!(req.reply_complete(sock, osk)),
+        Err(Error::OriginPublicKeyCreate(PostgresError::Db(ref db))) if db.code ==
+                                                                        UniqueViolation => {
+            let err = net::err(ErrCode::ENTITY_CONFLICT, "vt:origin-public-key-create:1");
+            try!(req.reply_complete(sock, &err));
+        }
         Err(err) => {
             error!("OriginPublicKeyCreate, err={:?}", err);
-            let err = net::err(ErrCode::DATA_STORE, "vt:origin-public-key-create:1");
+            let err = net::err(ErrCode::DATA_STORE, "vt:origin-public-key-create:2");
             try!(req.reply_complete(sock, &err));
         }
     }
@@ -274,9 +294,14 @@ pub fn project_create(req: &mut Envelope,
 
     match state.datastore.create_origin_project(&opc) {
         Ok(ref project) => try!(req.reply_complete(sock, project)),
+        Err(Error::OriginProjectCreate(PostgresError::Db(ref db))) if db.code ==
+                                                                      UniqueViolation => {
+            let err = net::err(ErrCode::ENTITY_CONFLICT, "vt:origin-project-create:1");
+            try!(req.reply_complete(sock, &err));
+        }
         Err(err) => {
             error!("ProjectCreate, err={:?}", err);
-            let err = net::err(ErrCode::DATA_STORE, "vt:origin-project-create:1");
+            let err = net::err(ErrCode::DATA_STORE, "vt:origin-project-create:2");
             try!(req.reply_complete(sock, &err));
         }
     }
@@ -307,9 +332,7 @@ pub fn project_get(req: &mut Envelope,
                    state: &mut ServerState)
                    -> Result<()> {
     let msg: proto::OriginProjectGet = try!(req.parse_msg());
-    match state
-              .datastore
-              .get_origin_project_by_name(&msg.get_name()) {
+    match state.datastore.get_origin_project_by_name(&msg.get_name()) {
         Ok(Some(ref project)) => try!(req.reply_complete(sock, project)),
         Ok(None) => {
             let err = net::err(ErrCode::ENTITY_NOT_FOUND, "vt:origin-project-get:0");
@@ -349,9 +372,14 @@ pub fn origin_channel_create(req: &mut Envelope,
 
     match state.datastore.create_origin_channel(&msg) {
         Ok(ref occ) => try!(req.reply_complete(sock, occ)),
+        Err(Error::OriginChannelCreate(PostgresError::Db(ref db))) if db.code ==
+                                                                      UniqueViolation => {
+            let err = net::err(ErrCode::ENTITY_CONFLICT, "vt:origin-channel-create:1");
+            try!(req.reply_complete(sock, &err));
+        }
         Err(err) => {
             error!("OriginChannelCreate, err={:?}", err);
-            let err = net::err(ErrCode::DATA_STORE, "vt:origin-channel-create:1");
+            let err = net::err(ErrCode::DATA_STORE, "vt:origin-channel-create:2");
             try!(req.reply_complete(sock, &err));
         }
     }
@@ -583,9 +611,7 @@ pub fn origin_package_unique_list(req: &mut Envelope,
                                   state: &mut ServerState)
                                   -> Result<()> {
     let msg: proto::OriginPackageUniqueListRequest = try!(req.parse_msg());
-    match state
-              .datastore
-              .list_origin_package_unique_for_origin(&msg) {
+    match state.datastore.list_origin_package_unique_for_origin(&msg) {
         Ok(ref opulr) => try!(req.reply_complete(sock, opulr)),
         Err(err) => {
             error!("OriginPackageUniqueList, err={:?}", err);

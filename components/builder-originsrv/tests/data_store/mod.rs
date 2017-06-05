@@ -39,6 +39,24 @@ fn create_origin_poop() {
 }
 
 #[test]
+fn create_origin_handles_unique_constraint_violations_correctly() {
+    let ds = datastore_test!(DataStore);
+    let mut origin = originsrv::OriginCreate::new();
+    origin.set_name(String::from("neurosis"));
+    origin.set_owner_id(1);
+    origin.set_owner_name(String::from("scottkelly"));
+    ds.create_origin(&origin).expect("Should create origin");
+
+    let mut origin2 = originsrv::OriginCreate::new();
+    origin2.set_name(String::from("neurosis"));
+    origin2.set_owner_id(1);
+    origin2.set_owner_name(String::from("scottkelly"));
+    let resp2 = ds.create_origin(&origin2);
+
+    assert!(resp2.is_err(), "Insertion should've triggered an error");
+}
+
+#[test]
 fn get_origin_by_name() {
     let ds = datastore_test!(DataStore);
     let mut origin = originsrv::OriginCreate::new();
@@ -93,6 +111,41 @@ fn create_origin_secret_key() {
         .expect("Could not get the origin")
         .expect("origin did not exist");
     assert_eq!(second.get_private_key_name(), "neurosis-20160612031945");
+}
+
+#[test]
+fn create_origin_secret_key_handles_unique_constraint_violations_correctly() {
+    let ds = datastore_test!(DataStore);
+    let mut origin = originsrv::OriginCreate::new();
+    origin.set_name(String::from("neurosis"));
+    origin.set_owner_id(1);
+    origin.set_owner_name(String::from("scottkelly"));
+    ds.create_origin(&origin).expect("Should create origin");
+
+    let neurosis = ds.get_origin_by_name("neurosis")
+        .expect("Could not retrieve origin")
+        .expect("Origin does not exist");
+
+    // Create a new origin secret key
+    let mut oskc = originsrv::OriginSecretKeyCreate::new();
+    oskc.set_name(String::from("neurosis"));
+    oskc.set_revision(String::from("20160612031944"));
+    oskc.set_origin_id(neurosis.get_id());
+    oskc.set_owner_id(1);
+    oskc.set_body(String::from("very_secret").into_bytes());
+    ds.create_origin_secret_key(&oskc)
+        .expect("Failed to create origin secret key");
+
+    // Create a duplicate origin secret key, which should fail
+    let mut oskc2 = originsrv::OriginSecretKeyCreate::new();
+    oskc2.set_name(String::from("neurosis"));
+    oskc2.set_revision(String::from("20160612031944"));
+    oskc2.set_origin_id(neurosis.get_id());
+    oskc2.set_owner_id(1);
+    oskc2.set_body(String::from("very_secret").into_bytes());
+    let resp = ds.create_origin_secret_key(&oskc2);
+
+    assert!(resp.is_err(), "Insertion should've triggered an error");
 }
 
 #[test]
@@ -173,6 +226,49 @@ fn create_origin_public_key() {
         .expect("Could not get the key")
         .expect("key did not exist");
     assert_eq!(key.get_body(), oskc.get_body());
+}
+
+#[test]
+fn create_origin_public_key_handles_unique_constraint_violations_correctly() {
+    let ds = datastore_test!(DataStore);
+    let mut origin = originsrv::OriginCreate::new();
+    origin.set_name(String::from("neurosis"));
+    origin.set_owner_id(1);
+    origin.set_owner_name(String::from("scottkelly"));
+    ds.create_origin(&origin).expect("Should create origin");
+
+    let neurosis = ds.get_origin_by_name("neurosis")
+        .expect("Could not retrieve origin")
+        .expect("Origin does not exist");
+
+    // Create a new origin public key
+    let mut oskc = originsrv::OriginPublicKeyCreate::new();
+    oskc.set_name(String::from("neurosis"));
+    oskc.set_revision(String::from("20160612031944"));
+    oskc.set_origin_id(neurosis.get_id());
+    oskc.set_owner_id(1);
+    oskc.set_body(String::from("very_public").into_bytes());
+    ds.create_origin_public_key(&oskc)
+        .expect("Failed to create origin public key");
+    let mut oskc2 = originsrv::OriginPublicKeyCreate::new();
+    oskc2.set_name(String::from("neurosis"));
+    oskc2.set_origin_id(neurosis.get_id());
+    oskc2.set_owner_id(1);
+    oskc2.set_revision(String::from("20160612031945"));
+    oskc2.set_body(String::from("very_very_public").into_bytes());
+    ds.create_origin_public_key(&oskc2)
+        .expect("Failed to create origin public key");
+
+    // Create a duplicate origin public key, which should fail
+    let mut opkc = originsrv::OriginPublicKeyCreate::new();
+    opkc.set_name(String::from("neurosis"));
+    opkc.set_revision(String::from("20160612031944"));
+    opkc.set_origin_id(neurosis.get_id());
+    opkc.set_owner_id(1);
+    opkc.set_body(String::from("very_public").into_bytes());
+    let resp = ds.create_origin_public_key(&opkc);
+
+    assert!(resp.is_err(), "Insertion should've triggered an error");
 }
 
 #[test]
@@ -287,9 +383,7 @@ fn create_origin_invitation() {
         .expect("Failed to create the origin invitation again, which should be a no-op");
 
     // We should never create an invitation for the same person and org
-    let conn = ds.pool
-        .get(&oic)
-        .expect("Cannot get connection from pool");
+    let conn = ds.pool.get(&oic).expect("Cannot get connection from pool");
     let rows = conn.query("SELECT COUNT(*) FROM origin_invitations", &[])
         .expect("Failed to query database for number of invitations");
     let count: i64 = rows.iter().nth(0).unwrap().get(0);
@@ -393,6 +487,40 @@ fn create_origin_project() {
 
     ds.create_origin_project(&opc)
         .expect("Failed to create origin project");
+}
+
+#[test]
+fn create_origin_project_handles_unique_constraint_violations_correctly() {
+    let ds = datastore_test!(DataStore);
+    let mut origin = originsrv::OriginCreate::new();
+    origin.set_name(String::from("neurosis"));
+    origin.set_owner_id(1);
+    origin.set_owner_name(String::from("scottkelly"));
+    let neurosis = ds.create_origin(&origin)
+        .expect("Should create origin")
+        .expect("Should return the origin");
+
+    let mut op = originsrv::OriginProject::new();
+    op.set_origin_name(String::from(neurosis.get_name()));
+    op.set_origin_id(neurosis.get_id());
+    op.set_package_name(String::from("zeal"));
+    op.set_plan_path(String::from("foo"));
+    op.set_vcs_type(String::from("git"));
+    op.set_vcs_data(String::from("git://github.com/habitat-sh/core-plans"));
+    op.set_owner_id(1);
+
+    let mut opc = originsrv::OriginProjectCreate::new();
+    opc.set_project(op.clone());
+
+    ds.create_origin_project(&opc)
+        .expect("Failed to create origin project");
+
+    // Now let's insert a duplicate, which should throw an error
+    let mut opc2 = originsrv::OriginProjectCreate::new();
+    opc2.set_project(op);
+
+    let resp = ds.create_origin_project(&opc2);
+    assert!(resp.is_err(), "Insertion should've triggered an error");
 }
 
 #[test]
@@ -758,19 +886,16 @@ fn get_latest_package() {
     search_ident.set_name("cacerts".to_string());
     package_get.set_ident(search_ident.clone());
     package_get.set_target("x86_64-windows".to_string());
-    let result1 = ds.get_origin_package_latest(&package_get.clone())
-        .unwrap();
+    let result1 = ds.get_origin_package_latest(&package_get.clone()).unwrap();
 
     search_ident.set_version("2017.01.18".to_string());
     package_get.set_ident(search_ident.clone());
     package_get.set_target("x86_64-linux".to_string());
-    let result2 = ds.get_origin_package_latest(&package_get.clone())
-        .unwrap();
+    let result2 = ds.get_origin_package_latest(&package_get.clone()).unwrap();
 
     package_get.set_ident(search_ident.clone());
     package_get.set_target("x86_64-windows".to_string());
-    let result3 = ds.get_origin_package_latest(&package_get.clone())
-        .unwrap();
+    let result3 = ds.get_origin_package_latest(&package_get.clone()).unwrap();
 
     assert_eq!(result1.unwrap().to_string(), ident1.to_string());
     assert_eq!(result2.unwrap().to_string(), ident3.to_string());
@@ -1223,14 +1348,43 @@ fn create_origin_channel() {
         .expect("Failed to create origin public key");
 
     // Create new database connection
-    let conn = ds.pool
-        .get(&oscc)
-        .expect("Cannot get connection from pool");
+    let conn = ds.pool.get(&oscc).expect("Cannot get connection from pool");
 
     let rows = conn.query("SELECT COUNT(*) FROM origin_channels", &[])
         .expect("Failed to query database for number of channels");
     let count: i64 = rows.iter().nth(0).unwrap().get(0);
     assert_eq!(count, 3); // note: count of 3 includes the default 'unstable' and 'stable' channels
+}
+
+#[test]
+fn create_origin_channel_handles_unique_constraint_violations_correctly() {
+    let ds = datastore_test!(DataStore);
+    let mut origin = originsrv::OriginCreate::new();
+    origin.set_name(String::from("neurosis"));
+    origin.set_owner_id(1);
+    origin.set_owner_name(String::from("scottkelly"));
+    ds.create_origin(&origin).expect("Should create origin");
+
+    let neurosis = ds.get_origin_by_name("neurosis")
+        .expect("Could not retrieve origin")
+        .expect("Origin does not exist");
+
+    // Create a new origin channel
+    let mut oscc = originsrv::OriginChannelCreate::new();
+    oscc.set_origin_id(neurosis.get_id());
+    oscc.set_origin_name(neurosis.get_name().to_string());
+    oscc.set_name(String::from("eve"));
+    ds.create_origin_channel(&oscc)
+        .expect("Failed to create origin public key");
+
+    // Create a duplicate origin channel which should fail
+    let mut occ = originsrv::OriginChannelCreate::new();
+    occ.set_origin_id(neurosis.get_id());
+    occ.set_origin_name(neurosis.get_name().to_string());
+    occ.set_name(String::from("eve"));
+    let resp = ds.create_origin_channel(&oscc);
+
+    assert!(resp.is_err(), "Insertion should've triggered an error");
 }
 
 #[test]

@@ -29,7 +29,8 @@ use iron::status;
 use iron::typemap;
 use params::{Params, Value, FromValue};
 use persistent;
-use protocol::jobsrv::{Job, JobGet, JobLogGet, JobLog, JobSpec, ProjectJobsGet, ProjectJobsGetResponse};
+use protocol::jobsrv::{Job, JobGet, JobLogGet, JobLog, JobSpec, ProjectJobsGet,
+                       ProjectJobsGetResponse};
 use protocol::originsrv::*;
 use protocol::sessionsrv;
 use protocol::net::{self, NetOk, ErrCode};
@@ -163,12 +164,13 @@ pub fn job_log(req: &mut Request) -> IronResult<Response> {
                 match val.parse::<u64>() {
                     Ok(num) => num,
                     Err(e) => {
-                        debug!("Tried to parse 'start' parameter as a number but failed: {:?}", e);
-                        return Ok(Response::with(status::BadRequest))
+                        debug!("Tried to parse 'start' parameter as a number but failed: {:?}",
+                               e);
+                        return Ok(Response::with(status::BadRequest));
                     }
                 }
-            },
-            _ => 0
+            }
+            _ => 0,
         }
     };
 
@@ -177,7 +179,7 @@ pub fn job_log(req: &mut Request) -> IronResult<Response> {
         .find(&["color"])
         .and_then(FromValue::from_value)
         .unwrap_or(false);
-    
+
     let params = req.extensions.get::<Router>().unwrap();
     let id = match params.find("id").unwrap().parse::<u64>() {
         Ok(id) => id,
@@ -196,7 +198,7 @@ pub fn job_log(req: &mut Request) -> IronResult<Response> {
             }
             Ok(render_json(status::Ok, &log))
         }
-        Err(err) => Ok(render_net_error(&err))
+        Err(err) => Ok(render_net_error(&err)),
     }
 
 }
@@ -280,9 +282,9 @@ pub fn project_create(req: &mut Request) -> IronResult<Response> {
 
     // Only allow projects to be created for the core origin initially.
     if origin.get_name() != BUILDER_ENABLED_ORIGIN {
-        return Ok(Response::with((status::UnprocessableEntity, "rg:pc:5")))
+        return Ok(Response::with((status::UnprocessableEntity, "rg:pc:5")));
     }
-    
+
     match github.contents(&session.get_token(),
                           &organization,
                           &repo,
@@ -342,7 +344,7 @@ pub fn project_delete(req: &mut Request) -> IronResult<Response> {
         // origin initially. Thus, if we try to delete a project for any
         // other origin, we can safely short-circuit processing.
         if origin != BUILDER_ENABLED_ORIGIN {
-            return Ok(Response::with((status::NotFound, "rg:pd:1")))
+            return Ok(Response::with((status::NotFound, "rg:pd:1")));
         }
 
         project_del.set_name(format!("{}/{}", origin, name));
@@ -363,7 +365,7 @@ pub fn project_delete(req: &mut Request) -> IronResult<Response> {
 
 /// Update the given project
 pub fn project_update(req: &mut Request) -> IronResult<Response> {
-  
+
     let (name, origin) = {
         let params = req.extensions.get::<Router>().unwrap();
         let origin = params.find("origin").unwrap().to_owned();
@@ -373,7 +375,7 @@ pub fn project_update(req: &mut Request) -> IronResult<Response> {
         // origin initially. Thus, if we try to update a project for
         // any other origin, we can safely short-circuit processing.
         if origin != BUILDER_ENABLED_ORIGIN {
-            return Ok(Response::with((status::NotFound, "rg:pu:6")))
+            return Ok(Response::with((status::NotFound, "rg:pu:6")));
         }
         (name, origin)
     };
@@ -424,7 +426,7 @@ pub fn project_update(req: &mut Request) -> IronResult<Response> {
                 Ok(ref bytes) => {
                     match Plan::from_bytes(bytes) {
                         Ok(plan) => {
-                           if !try!(check_origin_access(req, session_id, &origin)) {
+                            if !try!(check_origin_access(req, session_id, &origin)) {
                                 return Ok(Response::with(status::Forbidden));
                             }
                             if plan.name != name {
@@ -465,9 +467,9 @@ pub fn project_show(req: &mut Request) -> IronResult<Response> {
         // origin initially. Thus, if we try to get a project for any
         // other origin, we can safely short-circuit processing.
         if origin != BUILDER_ENABLED_ORIGIN {
-            return Ok(Response::with((status::NotFound, "rg:ps:1")))
+            return Ok(Response::with((status::NotFound, "rg:ps:1")));
         }
-        
+
         let name = params.find("name").unwrap();
         project_get.set_name(format!("{}/{}", origin, name));
     }
@@ -492,7 +494,7 @@ pub fn project_jobs(req: &mut Request) -> IronResult<Response> {
         // origin initially. Thus, if we try to get jobs for any
         // project in another, we can safely short-circuit processing.
         if origin != BUILDER_ENABLED_ORIGIN {
-            return Ok(Response::with((status::NotFound, "rg:pj:1")))
+            return Ok(Response::with((status::NotFound, "rg:pj:1")));
         }
 
         let name = params.find("name").unwrap();
