@@ -951,6 +951,12 @@ chroot_env() {
     # for unpacking inside the Studio. Sorry world, but it's after 11pm.
     env="$env HAB_STUDIO_SUP=$(echo $HAB_STUDIO_SUP | $bb sed 's/ /__sp__/g')"
   fi
+  # If a Habitat update strategy frequency is set, then propagate it into the
+  # Studio's environment.
+  if [ -n "${HAB_UPDATE_STRATEGY_FREQUENCY_MS:-}" ]; then
+    env="$env HAB_UPDATE_STRATEGY_FREQUENCY_MS=$HAB_UPDATE_STRATEGY_FREQUENCY_MS"
+  fi
+
   # If HTTP proxy variables are detected in the current environment, propagate
   # them into the Studio's environment.
   if [ -n "${http_proxy:-}" ]; then
@@ -992,6 +998,9 @@ report_env_vars() {
   fi
   if [ -n "${HAB_STUDIO_SUP:-}" ]; then
     info "Exported: HAB_STUDIO_SUP=$HAB_STUDIO_SUP"
+  fi
+  if [ -n "${HAB_UPDATE_STRATEGY_FREQUENCY_MS:-}" ]; then
+    info "Exported: HAB_UPDATE_STRATEGY_FREQUENCY_MS=$HAB_UPDATE_STRATEGY_FREQUENCY_MS"
   fi
   if [ -n "${http_proxy:-}" ]; then
     info "Exported: http_proxy=$http_proxy"
