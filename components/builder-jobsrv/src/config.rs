@@ -21,6 +21,7 @@ use db::config::DataStoreCfg;
 use hab_core::config::ConfigFile;
 use hab_net::config::{DispatcherCfg, RouterAddr, RouterCfg, Shards};
 use protocol::sharding::{ShardId, SHARD_COUNT};
+use server::log_archiver::ArchiveBackend;
 
 use error::Error;
 
@@ -139,6 +140,8 @@ impl Default for NetCfg {
 #[derive(Debug, Clone, Deserialize)]
 #[serde(default)]
 pub struct ArchiveCfg {
+    pub backend: Option<ArchiveBackend>,
+
     // These are for S3 archiving
     pub key: Option<String>,
     pub secret: Option<String>,
@@ -147,21 +150,20 @@ pub struct ArchiveCfg {
     pub region: String,
 
     // These are for local log archiving
-    pub local: bool,
     pub local_dir: Option<PathBuf>,
 }
 
 impl Default for ArchiveCfg {
     fn default() -> Self {
         ArchiveCfg {
+            backend: None,
+
             key: None,
             secret: None,
             endpoint: None,
             bucket: None,
             region: String::from("us-east-1"),
 
-            // you must explicitly opt in to local
-            local: false,
             local_dir: None,
         }
     }
@@ -188,6 +190,7 @@ mod tests {
         log_ingestion_port = 9999
 
         [archive]
+        backend = "s3"
         key = "THIS_IS_THE_KEY"
         secret = "THIS_IS_THE_SECRET"
         bucket = "bukkit"
@@ -229,6 +232,7 @@ mod tests {
         assert_eq!(config.datastore.connection_test, true);
         assert_eq!(config.datastore.pool_size, 1);
 
+        assert_eq!(config.archive.backend, Some(ArchiveBackend::S3));
         assert_eq!(config.archive.key, Some("THIS_IS_THE_KEY".to_string()));
         assert_eq!(config.archive.secret,
                    Some("THIS_IS_THE_SECRET".to_string()));
@@ -237,7 +241,6 @@ mod tests {
                    Some("http://minio.mycompany.com:9000".to_string()));
         assert_eq!(config.archive.region, "us-east-1");
 
-        assert_eq!(config.archive.local, false);
         assert_eq!(config.archive.local_dir, None);
 
     }

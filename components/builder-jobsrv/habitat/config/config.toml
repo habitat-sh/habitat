@@ -13,3 +13,6 @@ host = "{{member.sys.ip}}"
 port = {{member.cfg.port}}
 {{~/if}}
 {{~/eachAlive}}
+
+[archive]
+{{toToml cfg.archive}}
