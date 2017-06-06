@@ -4,7 +4,7 @@
 
 These install instructions assume you want to develop, build, and run the
 various Habitat software components in a Linux environment. The Habitat core
-team suggests that you use our consistent development environment that we can
+team suggests that you use our consistent development environment that we call
 the "devshell" as the easiest way to get started.
 
 1. [Install Docker for Mac](https://www.docker.com/products/docker)
@@ -35,7 +35,7 @@ the latest version of rustfmt. An easy way to install it (assuming you have
 Rust installed as above), is to run `cargo install rustfmt` and adding
 `$HOME/.cargo/bin` to your `PATH`.
 
-**Note2:** While this Docker container will work well for getting started with Habitat development, you may want to consider using a VM as you start compiling Habitat components.  To do this, create a VM with your preferred flavor of Linux and follow the appropriate instructions for that flavor below.
+**Note2:** While this Docker container will work well for getting started with Habitat development, [you may want to consider using a VM](#vm-vs-docker-development) as you start compiling Habitat components.  To do this, create a VM with your preferred flavor of Linux and follow the appropriate instructions for that flavor below.
 
 
 ## Mac OS X for Native Development
@@ -59,7 +59,7 @@ cp components/hab/install.sh /tmp/
 sh support/mac/install_dev_0_mac_latest.sh
 sh support/mac/install_dev_9_mac.sh
 . ~/.profile
-export PKG_CONFIG_PATH="/usr/local/opt/libarchive/lib/pkgconfig:/usr/local/opt/openssl/lib/pkgconfig:$PKG_CONFIG_PATH"
+export PKG_CONFIG_PATH="/usr/local/opt/libarchive/lib/pkgconfig:/usr/local/opt/openssl/lib/pkgconfig:/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH"
 export IN_DOCKER=false
 make
 ```
@@ -73,7 +73,7 @@ such as [direnv](https://direnv.net/), you can set up the following in the root
 of the git repository:
 
 ```
-echo 'export PKG_CONFIG_PATH="/usr/local/opt/libarchive/lib/pkgconfig:/usr/local/opt/openssl/lib/pkgconfig:$PKG_CONFIG_PATH"' > .direnv
+echo 'export PKG_CONFIG_PATH="/usr/local/opt/libarchive/lib/pkgconfig:/usr/local/opt/openssl/lib/pkgconfig:/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH"' > .direnv
 direnv allow
 ```
 
@@ -206,7 +206,20 @@ sudo su - jdoe
 
 While the available docker images can provide a convenient contributor onboarding experience, they may not prove ideal for extensive habitat development. Building habitat components is a disk intensive operation. Mounted file systems accross network boundaries, even when confined to a single local host, can yield build times dramatically slower than building against a locally attached file system. Build times will be best on either a bare metal linux environment or a dedicated linux vm. Also note that when using vagrant to provision a vm for habitat development, it is strongly advised that you do not put your habitat repo on a synced folder or at least do not use that folder as your build target. You should copy or clone the repository to a local directory in order to realize much faster build times.
 
-Here is a [vagrantfile](https://github.com/mwrock/vagrantfile/blob/master/UbuHab) that provisions an ubuntu environment for habitat development. It leverages a Hyper-V provisioner but its provisioning script can be used in any hypervisor that uses an ubuntu 14.04 box.
+In the root of the project is a Vagrantfile that provisions an Ubuntu environment for Habitat development:
+
+```
+vagrant up --provider virtualbox  # See the Vagrantfile for additional providers and boxes
+```
+
+Feel free to use this file as a jumping-off point for customizing your own Habitat development environment.
+
+Once your VM is up and running, SSH into it (`vagrant ssh`), change to the location of the Habitat source (e.g., `cd /vagrant`), and get started:
+
+```
+cd components/builder-api
+cargo test
+```
 
 ## Windows
 
@@ -222,9 +235,7 @@ making `git` better in your PowerShell console (`install-module posh-git`).
 git clone https://github.com/habitat-sh/habitat.git
 
 cd habitat
-
 ./build.ps1 components/hab -configure
-
 ```
 
 
@@ -236,9 +247,8 @@ cd habitat
 - Executable names are specified in each components `Cargo.toml` file in a TOML
   table like this:
 
-		[[bin]]
-		name = "hab-depot"
-
+	  [[bin]]
+	  name = "hab-depot"
 
 ## Windows build notes
 
@@ -261,13 +271,13 @@ Let's say you want to do this with the supervisor (which lives in the components
 Change directories into the component you want to build
 
 ```
-  $ cd habitat/components/sup
+cd components/sup
 ```
 
 Then run
 
 ```
-  $ cargo build
+cargo build
 ```
 
 Once it is finished compiling, you can find the new build in root hab_repo/target/debug
@@ -275,7 +285,7 @@ Once it is finished compiling, you can find the new build in root hab_repo/targe
 Head back to the root of the Habitat repo
 
 ```
-  $ cd ../..
+cd ../..
 ```
 
 And you will find your build in target/debug
@@ -283,7 +293,7 @@ And you will find your build in target/debug
 If you built the sup component, this is where you would find the new build
 
 ```
-  $ target/debug/hab-sup
+target/debug/hab-sup
 ```
 
 ## Running
@@ -291,5 +301,5 @@ If you built the sup component, this is where you would find the new build
 You can now run this newly built component with
 
 ```
-  $ ./target/debug/hab-sup
+./target/debug/hab-sup
 ```

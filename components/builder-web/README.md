@@ -1,15 +1,14 @@
-# Habitat Web
+# Builder Web
 
-This is the web application for the Habitat SaaS.
+This is the web application for the Habitat Depot. It's a single-page application built with [Angular](https://angular.io/), [TypeScript](https://www.typescriptlang.org/), [Redux](http://redux.js.org/) and [Immutable.js](https://facebook.github.io/immutable-js/).
 
-This is a single page app built using [Angular 2](https://angular.io/).
+## Development Setup
 
-## Configuration
+### Configuration
 
-Copy habitat.conf.sample.js to habitat.conf.js to enable runtime configuration
-in development.
+Copy habitat.conf.sample.js to habitat.conf.js to enable runtime configuration in development.
 
-The configuration file looks like:
+The configuration file looks like this:
 
 ```js
 habitatConfig({
@@ -25,25 +24,69 @@ habitatConfig({
     events_url: "https://events.chef.io/events/categories/habitat/",
     roadmap_url: "https://ext.prodpad.com/ext/roadmap/d2938aed0d0ad1dd62669583e108357efd53b3a6",
     feature_requests_url: "https://portal.prodpad.com/24539",
-    forums_url: "https://forums.habitat.sh/",    
+    forums_url: "https://forums.habitat.sh/",
     version: "",
     www_url: "https://www.habitat.sh",
 });
 ```
+### Running the Builder API Service
 
-## Installing Node
+While it's possible to run this application without a concurrently running Builder API service, you won't be able to perform the kinds of actions that rely on that API (like create an origin, list and browse packages, sign in and out, and so on). To stand up a Builder API service locally, see the [BUILDER_DEV](../../BUILDER_DEV.md) doc.
 
-The stable LTS version of Node must be installed (specified in [.nvmrc](.nvmrc)). You can use nvm (Node Version Manager) to install the desired version:
+Also note that by default, the `bldr-run` task described in that document builds this app and starts a `web` process that serves it over port 3000. Since the dev-setup instructions below are also configured to use port 3000 (the OAuth app we use in development requires it), you could end up with a port conflict or a dev service running on a port other than 3000.
+
+There are couple of things you can do to avoid this:
+
+  * If you're running `bldr-run` in a container or VM, and you've mapped port 3000 from the guest onto your local machine, remove that mapping to allow the `web` process to continue running on port 3000 on the guest, and you to run on port 3000 locally without a conflict. This is a good option of you're a regular contributor to the UI. Some providers (e.g., VirtualBox) also allow you to change this mapping in the UI without requiring a restart.
+
+  * Prevent `bldr-run` from starting the `web` process by commenting the `web` line in `support/Procfile` and restarting the `bldr-run` task.
+
+  * Set up a custom GitHub OAuth application to run the dev service somewhere other than `localhost:3000`. See below for instructions on how to do that.
+
+### Installing Node
+
+We suggest using [NVM](https://github.com/creationix/nvm) (Node Version Manager) to install the version of Node specified in  [.nvmrc](.nvmrc). Follow [the instructions in the NVM docs](https://github.com/creationix/nvm#installation) to set that up.
+
+Once NVM is installed (you can verify with `nvm --version`), `cd` into `components/builder-web` and run:
 
 ```
-curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.1/install.sh | bash
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-
-nvm install $(cat .nvmrc)
+nvm install
 ```
 
-## Github OAuth
+When that completes, verify the installation:
+
+```
+node --version
+```
+
+... which should now match what's in `.nvmrc`.
+
+### Running the `builder-web` server
+
+To start the node web server on your local machine:
+
+```
+npm install
+npm start
+```
+
+You should now be able to browse to the UI at `http://localhost:3000/#/pkgs`.
+
+Note that browsing to `http://localhost:3000/` (i.e., at the root level) will activate the application's default route, which is configured to redirect signed-out users to the Habitat home page (http://habitat.sh), and various navigation links will operate similarly. If you plan on developing for both the Builder UI and the [Web site](../../www), consider changing some of your configuration entries to allow for easier navigation between the two:
+
+```
+...
+community_url: "http://localhost:4567/community",
+docs_url: "http://localhost:4567/docs",
+home_url: "http://localhost:4567/",
+tutorials_url: "http://localhost:4567/tutorials",
+www_url: "http://localhost:4567",
+...
+```
+
+See the [www README](../../www/README.md) for help setting it up.
+
+## Setting up a Custom OAuth Application
 
 By default, `builder-web` is configured to use a preconfigured dev github oauth application. This should suffice as long as you intend to use `http://localhost:3000` as the homepage. If you need to use an alternate host name or port, you will need to setup a separate oauth application and configure `builder-api` and `builder-sessionsrv` with its generated credentials.
 
@@ -51,62 +94,45 @@ To register a new oauth application, go to your github user account settings and
 
 It is important that the homepage is set to `http://<hostname>:<port>` and the Authorization callback URL is set to `http://<hostname>:<port>/#/sign-in`.
 
-Set the `github_client_id` to the client ID assigned to the oauth application. If you are running the API services, add `config.toml` files for the `builder-sessionsrv` and `builder-api` services:
+Set the `github.client_id` to the client ID assigned to the oauth application. If you are running the API services, add `config.toml` files for the `builder-sessionsrv` and `builder-api` services:
 
 ```
 mkdir -p /hab/svc/builder-api
 mkdir -p /hab/svc/builder-sessionsrv
 
 cat <<-EOF > /hab/svc/builder-api/config.toml
-[cfg.github]
+[github]
 client_id       = "<Client ID>"
 client_secret   = "<Client Sescret>"
 EOF
 
 cat <<-EOF > /hab/svc/builder-sessionsrv/config.toml
-[cfg.github]
+[github]
 client_id       = "<Client ID>"
 client_secret   = "<Client Sescret>"
 EOF
 ```
 
-## Running the builder-api services
+See the [Create Configuration Files](/BUILDER_DEV.md#create-configuration-files) section of the BUILDER_DEV doc for more information.
 
-If you want a full depot and api services to run along with the website, you can start these services by running `make bldr-run`. Note that `make bldr-run` includes running the `builder-web` service so you can skip the `npm` commands below.
-
-## Running `builder-web` server
-
-To start the node web server:
-
-```
-npm install
-npm start
-```
-
-The service can be reached at `http://localhost:3000` by default. This can be changed by exporting the `URL` environment variable with the value of the endpoint you want to run prior to running `npm start`:
+Once your GitHub OAuth application is created, and the Builder services have been configured with your client ID and secret, you can start the web application by exporting the `URL` environment variable with the value of the endpoint you want to run prior to running `npm start`:
 
 ```
 export URL=http://123.45.7.8:5656
+npm start
 ```
 
 Remember to adjust your `habitat.conf.js` and oath application settings if you change the default endpoint.
 
-### Tests
+## Tests
 
-Run all the tests with `npm test`.
+Run the unit tests with `npm test`. They also run in the background when running `npm start`.
 
-#### Unit Tests
-
-Run the unit tests with `npm run test-unit`. They also run in the background
-when running `npm start`.
-
-Files ending with .test.ts are unit tested. We use
-[Karma](https://karma-runner.github.io/0.13/index.html) and
-[Jasmine](https://jasmine.github.io/).
-
+Files ending with .test.ts and .spec.ts are unit tested. We use
+[Karma](https://karma-runner.github.io/0.13/index.html) and [Jasmine](https://jasmine.github.io/).
 See [app/util.test.ts](app/util.test.ts) for an example.
 
-### Tasks
+## Tasks
 
 These are defined in [package.json](package.json) and can be run with `npm run
 TASK_NAME`.
@@ -132,7 +158,7 @@ TASK_NAME`.
 * `test-unit-watch`
 * `travis`: For running the build and tests on Travis CI
 
-### Code Style Conventions
+## Code Style Conventions
 
 These are guidelines for how to structure and format code in the application.
 
@@ -161,7 +187,7 @@ These are guidelines for how to structure and format code in the application.
   can be loaded into other files. [app/app.scss](app/app.scss) imports these
   files.)
 
-### Tools
+## Tools
 
 * [Visual Studio Code](https://code.visualstudio.com/) works very well with
   TypeScript. There's also a tslint extension.

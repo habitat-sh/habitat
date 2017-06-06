@@ -15,6 +15,13 @@ if [ ! -f habitat.conf.js ]; then
     cp habitat.conf.sample.js habitat.conf.js
 fi
 
+# When the Habitat source tree is shared with a guest OS, the builder-web/node_modules
+# directories get shared as well -- including their bundled/compiled native binaries,
+# which is rarely what you want.  This keeps the guest-built stuff on the guest
+# and the host-built stuff on the host.
+mkdir -p "$HOME/.builder_web_node_modules" ./node_modules
+sudo mount --bind "$HOME/.builder_web_node_modules" ./node_modules
+
 nvm install
 npm install
 npm run build
