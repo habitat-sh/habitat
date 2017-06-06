@@ -127,6 +127,49 @@ describe("BuildComponent", () => {
           });
         });
       });
+
+      describe("log navigation", () => {
+
+        describe("jump-to-top button", () => {
+
+          it("scrolls to top", () => {
+            spyOn(window, "scrollTo");
+            element.query(By.css("button.jump-to-top")).triggerEventHandler("click", {});
+            expect(window.scrollTo).toHaveBeenCalledWith(0, 0);
+          });
+
+          describe("when log following is enabled", () => {
+
+            beforeEach(() => {
+              component.followLog = true;
+            });
+
+            it("disables log following", () => {
+              element.query(By.css("button.jump-to-top")).triggerEventHandler("click", {});
+              expect(component.followLog).toBe(false);
+            });
+          });
+        });
+
+        describe("follow-log button", () => {
+
+          it("enables log following", () => {
+            expect(component.followLog).toBe(false);
+
+            spyOn(window, "scrollTo");
+            spyOn(document, "querySelector").and.returnValues(
+              { getBoundingClientRect: () => { return { height: 100 }; } }, // contentHeight
+              { getBoundingClientRect: () => { return { height: 50 }; } },  // footerHeight
+              { getBoundingClientRect: () => { return { height: 10 }; } }   // navHeight
+            );
+
+            element.query(By.css("button.jump-to-end")).triggerEventHandler("click", {});
+
+            expect(window.scrollTo).toHaveBeenCalledWith(0, 30);
+            expect(component.followLog).toBe(true);
+          });
+        });
+      });
     });
   });
 

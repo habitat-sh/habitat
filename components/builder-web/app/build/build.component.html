@@ -21,5 +21,15 @@
       </div>
     </div>
   </div>
+  <div class="controls" [ngStyle]="controlsStyles">
+    <button type="button" class="jump-to-top" (click)="scrollToTop()">
+      <span class="octicon octicon-chevron-up"></span>
+      <span>Jump to top</span>
+    </button>
+    <button type="button" class="jump-to-end" (click)="toggleFollow()" [class.active]="followLog">
+      <span class="octicon octicon-chevron-down"></span>
+      <span>{{ completed ? "Jump to end" : "Follow log" }}</span>
+    </button>
+  </div>
   <pre class="output"></pre>
 </div>
