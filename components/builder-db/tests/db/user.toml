@@ -1,6 +1,7 @@
-listen_addresses = "127.0.0.1"
-search_path = "public"
-hba_file = "/hab/svc/postgresql/pg_hba.conf"
+[superuser]
+name = 'hab'
+password = 'hab'
+
 ####
 # If you want database level debugging, turn these on
 ###
