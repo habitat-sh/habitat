@@ -1,4 +1,5 @@
 .hab-build {
+  position: relative;
 
   .back {
     margin-bottom: 20px;
@@ -80,6 +81,45 @@
         .data {
           @include span-columns(5 of 6);
         }
+      }
+    }
+  }
+
+  .controls {
+    padding: 4px;
+    background: $hab-white;
+    border-radius: $global-radius;
+    box-shadow: 0 1px 14px 0 $hab-gray-dark;
+
+    button {
+      display: block;
+      background: $dark-blue;
+      font-size: rem(12);
+      text-transform: none;
+      text-align: left;
+      width: 100%;
+      padding: 2px 8px;
+      outline: none;
+
+      &:first-child {
+        border-radius: 4px 4px 0 0;
+      }
+
+      &:last-child {
+        margin-top: 1px;
+        border-radius: 0 0 4px 4px;
+      }
+
+      &:hover {
+        background-color: $hab-green-dark;
+      }
+
+      &.active {
+        background-color: $hab-green;
+      }
+
+      .octicon {
+        margin-right: 4px;
       }
     }
   }
