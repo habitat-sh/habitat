@@ -14,8 +14,8 @@
 
 use std::env;
 use std::fs::create_dir_all;
-use std::fs::{File, canonicalize};
-use std::io::Write;
+use std::fs::{File, canonicalize, OpenOptions};
+use std::io::{Write, BufRead, BufReader};
 use std::path::Path;
 use std::collections::HashMap;
 
@@ -28,6 +28,8 @@ const PLAN_TEMPLATE: &'static str = include_str!(concat!(env!("CARGO_MANIFEST_DI
                                                          "/static/template_plan.sh"));
 const DEFAULT_TOML_TEMPLATE: &'static str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"),
                                                                  "/static/template_default.toml"));
+const GITIGNORE_TEMPLATE: &'static str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"),
+                                                              "/static/template_gitignore"));
 
 pub fn start(ui: &mut UI,
              origin: String,
@@ -115,8 +117,63 @@ pub fn start(ui: &mut UI,
                your habitat. There are several hooks to create and tweak! See the full list \
                with info here: https://www.habitat.sh/docs/reference/plan-syntax/#hooks"));
 
+    try!(render_ignorefile(ui, &root));
+
     try!(ui.end("A happy abode for your code has been initialized! Now it's time to explore!"));
     Ok(())
+}
+
+fn render_ignorefile(ui: &mut UI, root: &str) -> Result<()> {
+    let parent = format!("{}/..", root);
+    let expanded = canonicalize(&parent)?;
+    let current_path = Path::new(&expanded);
+
+    if is_git_managed(&current_path) {
+        let target = format!("{}/.gitignore", parent);
+        let target_path = Path::new(&target);
+
+        if !target_path.exists() {
+            create_with_template(ui, &target, GITIGNORE_TEMPLATE)?
+        } else {
+            let file = OpenOptions::new()
+                .read(true)
+                .append(true)
+                .open(target_path)?;
+
+            let entries: Vec<String> = BufReader::new(&file)
+                .lines()
+                .map(|l| l.expect("Failed to parse line"))
+                .collect();
+
+            let mut appended = 0;
+
+            for line in GITIGNORE_TEMPLATE.lines() {
+                let s = line.to_string();
+
+                if !entries.contains(&s) {
+                    writeln!(&file, "{}", s)?;
+                    appended += 1;
+                }
+            }
+
+            ui.status(Status::Using,
+                        format!("existing file: {} ({} lines appended)", &target, appended))?;
+        }
+    }
+    Ok(())
+}
+
+fn is_git_managed(path: &Path) -> bool {
+
+    if path.join(".git").is_dir() {
+        return true;
+    }
+
+    if let Some(parent) = path.parent() {
+        return is_git_managed(&parent);
+    }
+
+    return false;
 }
 
 fn create_with_template(ui: &mut UI, location: &str, template: &str) -> Result<()> {
