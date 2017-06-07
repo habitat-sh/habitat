@@ -52,17 +52,21 @@ $(function() {
   if ($(".community--events--content").length) {
     $.getJSON("https://events.chef.io/wp-json/events/category/habitat", function(data) {
       if (Array.isArray(data)) {
-        for (var i=0; i < data.length; i+=2) {
+        for (var i=0; i < data.length; i+=3) {
           var row = $("<div>", {
             class: "row"
           });
 
           var first = makeCommunityEvent(data[i]);
           var second = makeCommunityEvent(data[i+1]);
+          var third = makeCommunityEvent(data[i+2]);
 
           row.append(first);
           if (second) {
             row.append(second);
+          }
+          if (third) {
+            row.append(third);
           }
 
           $("div.community--events--content").append(row);

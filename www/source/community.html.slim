@@ -20,14 +20,15 @@ section.community--hero
                 a.button.outline href="/docs/contribute-help-build/" Contribute to Habitat
 
 #community-event-template
-  .community--events--card.columns.medium-5
+  .community--events--card.columns.medium-4
     .community--events--card-heading.heading.a
       ul.no-bullet
         li
           | {{ event_type }}
     .body-content
-      a.h4 href="{{ event_link }}"
-        | {{ event_name }}
+      h4
+        a href="{{ event_link }}"
+          | {{ event_name }}
       p
         | {{ event_description }}
       .article-detail--meta

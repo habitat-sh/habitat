@@ -128,6 +128,12 @@ $community-xlarge-breakpoint: rem-calc(1060);
 
   .community--events--card {
     @extend %card-box;
+    padding: 1rem;
+
+    .body-content > p {
+      max-height: 240px;
+      overflow-y: scroll;
+    }
   }
 }
 
