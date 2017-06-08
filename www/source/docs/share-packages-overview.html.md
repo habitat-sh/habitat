@@ -38,7 +38,7 @@ If you created a new origin and the depot does not already have the keys for tha
 
 Providing the public key for the origin allows supervisors to verify the integrity of the Habitat packages (`.hart` files).
 
-You can upload keys for the origin through the web interface for the depot, or by using the `hab origin key upload` command. You must be authenticated using the access token described in the previous step before you can upload keys.
+You can upload public keys for the origin through the web interface for the depot, or by using the `hab origin key upload` command. You must be authenticated using the access token described in the previous step before you can upload keys.
 
 ## Uploading packages to the depot
 
