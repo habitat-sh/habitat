@@ -520,7 +520,8 @@ impl DataStore {
 
         let state = match job.get_state() {
             JobState::Complete => "Success",
-            JobState::Failed | JobState::Rejected => "Failure",
+            JobState::Rejected => "NotStarted", // retry submission
+            JobState::Failed => "Failure",
             _ => "InProgress",
         };
 
