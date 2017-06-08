@@ -54,7 +54,7 @@ auto_publish = true
 `config_jobsrv.toml`
 ```toml
 [archive]
-local = true
+backend = "local"
 local_dir = "/tmp"
 ```
 

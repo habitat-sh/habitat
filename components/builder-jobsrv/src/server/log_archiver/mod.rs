@@ -27,6 +27,14 @@ use config::ArchiveCfg;
 use error::Result;
 use std::path::PathBuf;
 
+/// Currently implemented log archiving backends
+#[derive(Clone, Debug, Deserialize, PartialEq)]
+#[serde(rename_all = "lowercase")]
+pub enum ArchiveBackend {
+    Local,
+    S3,
+}
+
 pub trait LogArchiver {
     /// Given a `job_id` and the path to the log output for that job,
     /// places the log in an archive for long-term storage.
@@ -41,8 +49,12 @@ pub trait LogArchiver {
 /// values.
 // TODO: Once TryFrom is stable we might try implementing that instead
 pub fn from_config(config: ArchiveCfg) -> Result<Box<LogArchiver + 'static>> {
-    match config.local {
-        true => Ok(Box::new(local::LocalArchiver::new(config)?)),
-        false => Ok(Box::new(s3::S3Archiver::new(config)?)),
+    let backend = config
+        .backend
+        .clone()
+        .expect("Did not specify an archive backend!");
+    match backend {
+        ArchiveBackend::Local => Ok(Box::new(local::LocalArchiver::new(config)?)),
+        ArchiveBackend::S3 => Ok(Box::new(s3::S3Archiver::new(config)?)),
     }
 }
