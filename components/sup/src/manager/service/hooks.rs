@@ -18,7 +18,10 @@ use std::io::BufReader;
 use std::io::prelude::*;
 use std::fs::File;
 use std::path::{Path, PathBuf};
+#[cfg(not(windows))]
 use std::process::{Child, ExitStatus};
+#[cfg(windows)]
+use hcore::os::process::windows_child::{Child, ExitStatus};
 use std::result;
 
 use ansi_term::Colour;
@@ -103,15 +106,7 @@ pub trait Hook: fmt::Debug + Sized {
 
     /// Run a compiled hook.
     fn run(&self, service_group: &ServiceGroup, pkg: &Pkg) -> Self::ExitValue {
-        let mut cmd = match exec::run_cmd(self.path(), &pkg) {
-            Ok(c) => c,
-            Err(err) => {
-                outputln!(preamble service_group,
-                    "Hook command failed to be created, {}, {}", Self::file_name(), err);
-                return Self::ExitValue::default();
-            }
-        };
-        let mut child = match cmd.spawn() {
+        let mut child = match exec::run_cmd(self.path(), &pkg) {
             Ok(child) => child,
             Err(err) => {
                 outputln!(preamble service_group,
@@ -757,9 +752,9 @@ impl HookTable {
     {
         hook.compile(ctx)
             .unwrap_or_else(|e| {
-                                outputln!(preamble service_group,
+                outputln!(preamble service_group,
                 "Failed to compile {} hook: {}", H::file_name(), e);
-                            });
+            });
     }
 }
 
@@ -826,10 +821,10 @@ impl<'a> HookOutput<'a> {
     }
 
     fn stream_output<H: Hook>(&mut self, service_group: &ServiceGroup, process: &mut Child) {
-        let mut stdout_log =
-            File::create(&self.stdout_log_file).expect("couldn't create log output file");
-        let mut stderr_log =
-            File::create(&self.stderr_log_file).expect("couldn't create log output file");
+        let mut stdout_log = File::create(&self.stdout_log_file)
+            .expect("couldn't create log output file");
+        let mut stderr_log = File::create(&self.stderr_log_file)
+            .expect("couldn't create log output file");
 
         let preamble_str = self.stream_preamble::<H>(service_group);
         if let Some(ref mut stdout) = process.stdout {
@@ -897,8 +892,8 @@ mod tests {
             .join("logs")
             .join(format!("{}.stderr.log", InitHook::file_name()));
         let mut hook_output = HookOutput::new(&stdout_log, &stderr_log);
-        let service_group =
-            ServiceGroup::new("dummy", "service", None).expect("couldn't create ServiceGroup");
+        let service_group = ServiceGroup::new("dummy", "service", None)
+            .expect("couldn't create ServiceGroup");
 
         hook_output.stream_output::<InitHook>(&service_group, &mut child);
 

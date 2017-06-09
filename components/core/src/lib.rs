@@ -23,6 +23,7 @@ extern crate libc;
 extern crate libarchive;
 #[macro_use]
 extern crate log;
+extern crate rand;
 extern crate regex;
 extern crate serde;
 #[macro_use]

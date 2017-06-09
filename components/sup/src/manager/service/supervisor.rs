@@ -24,7 +24,10 @@ use std::fs::File;
 use std::io::BufReader;
 use std::io::prelude::*;
 use std::path::PathBuf;
+#[cfg(not(windows))]
 use std::process::{ChildStderr, ChildStdout};
+#[cfg(windows)]
+use hcore::os::process::windows_child::{ChildStderr, ChildStdout};
 use std::result;
 use std::thread;
 
@@ -108,16 +111,13 @@ impl Supervisor {
         }
         debug!("Setting PATH for {} to PATH='{}'",
                &self.preamble,
-               pkg.env
-                   .get("PATH")
-                   .map(|v| &**v)
-                   .unwrap_or("<unknown>"));
+               pkg.env.get("PATH").map(|v| &**v).unwrap_or("<unknown>"));
         outputln!(preamble self.preamble,
                   "Starting process as user={}, group={}",
                   &pkg.svc_user,
                   &pkg.svc_group);
         self.enter_state(ProcessState::Start);
-        let mut child = exec::run_cmd(&pkg.svc_run, &pkg)?.spawn()?;
+        let mut child = exec::run_cmd(&pkg.svc_run, &pkg)?;
         self.child = Some(HabChild::from(&mut child)?);
         let c_stdout = child.stdout;
         let c_stderr = child.stderr;

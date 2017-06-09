@@ -13,7 +13,12 @@
 // limitations under the License.
 
 use std::ffi::OsStr;
-use std::process::{Command, Stdio};
+
+#[cfg(not(windows))]
+use std::process::Child;
+
+#[cfg(windows)]
+use hcore::os::process::windows_child::Child;
 
 use super::Pkg;
 use error::Result;
@@ -21,12 +26,14 @@ use error::Result;
 #[cfg(any(target_os="linux", target_os="macos"))]
 static LOGKEY: &'static str = "EX";
 
-pub fn run_cmd<S: AsRef<OsStr>>(path: S, pkg: &Pkg) -> Result<Command> {
+pub fn run_cmd<S: AsRef<OsStr>>(path: S, pkg: &Pkg) -> Result<Child> {
     exec(path, pkg)
 }
 
 #[cfg(any(target_os="linux", target_os="macos"))]
-fn exec<S: AsRef<OsStr>>(path: S, pkg: &Pkg) -> Result<Command> {
+fn exec<S: AsRef<OsStr>>(path: S, pkg: &Pkg) -> Result<Child> {
+    use std::process::{Command, Stdio};
+
     let mut cmd = Command::new(path);
     use error::Error;
     use hcore::os;
@@ -55,20 +62,12 @@ fn exec<S: AsRef<OsStr>>(path: S, pkg: &Pkg) -> Result<Command> {
     for (key, val) in pkg.env.iter() {
         cmd.env(key, val);
     }
-    Ok(cmd)
+    Ok(cmd.spawn()?)
 }
 
 #[cfg(target_os = "windows")]
-fn exec<S: AsRef<OsStr>>(path: S, pkg: &Pkg) -> Result<Command> {
-    let mut cmd = Command::new("powershell.exe");
-    let ps_command = format!("iex $(gc {} | out-string)", path.as_ref().to_string_lossy());
-    cmd.arg("-command")
-        .arg(ps_command)
-        .stdin(Stdio::null())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped());
-    for (key, val) in pkg.env.iter() {
-        cmd.env(key, val);
-    }
-    Ok(cmd)
+fn exec<S: AsRef<OsStr>>(path: S, pkg: &Pkg) -> Result<Child> {
+    let ps_cmd = format!("iex $(gc {} | out-string)", path.as_ref().to_string_lossy());
+    let args = vec!["-command", ps_cmd.as_str()];
+    Ok(Child::spawn("powershell.exe", args, &pkg.env)?)
 }

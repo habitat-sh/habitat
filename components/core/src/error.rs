@@ -123,6 +123,8 @@ pub enum Error {
     SignalFailed(i32),
     /// Occurs when a `GetExitCodeProcess` win32 call returns an error.
     GetExitCodeProcessFailed(String),
+    /// Occurs when a `WaitForSingleObject` win32 call returns an error.
+    WaitForSingleObjectFailed(String),
     /// Occurs when a `HabChild` constructor fails to return a process.
     GetHabChildFailed(String),
     /// Occurs when a `TerminateProcess` win32 call returns an error.
@@ -256,6 +258,7 @@ impl fmt::Display for Error {
                 format!("Failed to send a signal to the child process: {}", e)
             }
             Error::GetExitCodeProcessFailed(ref e) => format!("{}", e),
+            Error::WaitForSingleObjectFailed(ref e) => format!("{}", e),
             Error::GetHabChildFailed(ref e) => format!("{}", e),
             Error::TerminateProcessFailed(ref e) => format!("{}", e),
             Error::Utf8Error(ref e) => format!("{}", e),
@@ -283,36 +286,64 @@ impl error::Error for Error {
                 "Invalid array value of targets containing string fields and values encountered \
                  while parsing a configuration file"
             }
-            Error::ConfigInvalidArrayU16(_) => "Invalid array value of u16 entries encountered while parsing a configuration file",
-            Error::ConfigInvalidArrayU32(_) => "Invalid array value of u32 entries encountered while parsing a configuration file",
-            Error::ConfigInvalidArrayU64(_) => "Invalid array value of u64 entries encountered while parsing a configuration file",
-            Error::ConfigInvalidBool(_) => "Invalid boolean value encountered while parsing a configuration file",
+            Error::ConfigInvalidArrayU16(_) => {
+                "Invalid array value of u16 entries encountered while parsing a configuration file"
+            }
+            Error::ConfigInvalidArrayU32(_) => {
+                "Invalid array value of u32 entries encountered while parsing a configuration file"
+            }
+            Error::ConfigInvalidArrayU64(_) => {
+                "Invalid array value of u64 entries encountered while parsing a configuration file"
+            }
+            Error::ConfigInvalidBool(_) => {
+                "Invalid boolean value encountered while parsing a configuration file"
+            }
             Error::ConfigInvalidIdent(_) => {
                 "Invalid package identifier string value encountered while parsing a configuration \
                  file"
             }
-            Error::ConfigInvalidIpAddr(_) => "Invalid IP address string value encountered while parsing a configuration file",
+            Error::ConfigInvalidIpAddr(_) => {
+                "Invalid IP address string value encountered while parsing a configuration file"
+            }
             Error::ConfigInvalidSocketAddr(_) => {
                 "Invalid network address pair string value encountered while parsing a \
                  configuration file"
             }
-            Error::ConfigInvalidString(_) => "Invalid string value encountered while parsing a configuration file",
+            Error::ConfigInvalidString(_) => {
+                "Invalid string value encountered while parsing a configuration file"
+            }
             Error::ConfigInvalidTableString(_) => {
                 "Invalid table value of string fields and values encountered while parsing a \
                  configuration file"
             }
-            Error::ConfigInvalidTarget(_) => "Invalid package target string value encountered while parsing a configuration file",
-            Error::ConfigInvalidU16(_) => "Invalid u16 value encountered while parsing a configuration file",
-            Error::ConfigInvalidU32(_) => "Invalid u32 value encountered while parsing a configuration file",
-            Error::ConfigInvalidU64(_) => "Invalid u64 value encountered while parsing a configuration file",
-            Error::ConfigInvalidUsize(_) => "Invalid usize value encountered while parsing a configuration file",
+            Error::ConfigInvalidTarget(_) => {
+                "Invalid package target string value encountered while parsing a configuration file"
+            }
+            Error::ConfigInvalidU16(_) => {
+                "Invalid u16 value encountered while parsing a configuration file"
+            }
+            Error::ConfigInvalidU32(_) => {
+                "Invalid u32 value encountered while parsing a configuration file"
+            }
+            Error::ConfigInvalidU64(_) => {
+                "Invalid u64 value encountered while parsing a configuration file"
+            }
+            Error::ConfigInvalidUsize(_) => {
+                "Invalid usize value encountered while parsing a configuration file"
+            }
             Error::CryptoError(_) => "Crypto error",
             Error::FileNotFound(_) => "File not found",
-            Error::InvalidPackageIdent(_) => "Package identifiers must be in origin/name format (example: acme/redis)",
-            Error::InvalidPackageTarget(_) => "Package targets must be in architecture-platform format (example: x86_64-linux)",
+            Error::InvalidPackageIdent(_) => {
+                "Package identifiers must be in origin/name format (example: acme/redis)"
+            }
+            Error::InvalidPackageTarget(_) => {
+                "Package targets must be in architecture-platform format (example: x86_64-linux)"
+            }
             Error::InvalidArchitecture(_) => "Unsupported target architecture supplied.",
             Error::InvalidPlatform(_) => "Unsupported target platform supplied.",
-            Error::InvalidServiceGroup(_) => "Service group strings must be in service.group format (example: redis.production)",
+            Error::InvalidServiceGroup(_) => {
+                "Service group strings must be in service.group format (example: redis.production)"
+            }
             Error::IO(ref err) => err.description(),
             Error::MetaFileBadBind => "Bad value parsed from BIND or BIND_OPTIONAL MetaFile",
             Error::MetaFileMalformed(_) => "MetaFile didn't contain a valid UTF-8 string",
@@ -330,6 +361,7 @@ impl error::Error for Error {
             Error::SignalFailed(_) => "Failed to send a signal to the child process",
             Error::WaitpidFailed(_) => "waitpid failed",
             Error::GetExitCodeProcessFailed(_) => "GetExitCodeProcess failed",
+            Error::WaitForSingleObjectFailed(_) => "WaitForSingleObjectFailed failed",
             Error::GetHabChildFailed(_) => "Failed to return a HabChild",
             Error::TerminateProcessFailed(_) => "Failed to call TerminateProcess",
             Error::Utf8Error(_) => "Failed to interpret a sequence of bytes as a string",
