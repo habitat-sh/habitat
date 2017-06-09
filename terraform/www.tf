@@ -33,6 +33,17 @@ resource "aws_s3_bucket" "www" {
   bucket = "habitat-www-${var.env}"
   acl    = "public-read"
 
+  lifecycle {
+    prevent_destroy = true
+  }
+
+  tags {
+    Name          = "habitat-www-${var.env}"
+    X-Contact     = "The Habitat Maintainers <humans@habitat.sh>"
+    X-Environment = "${var.env}"
+    X-ManagedBy   = "Terraform"
+  }
+
   website {
     index_document = "index.html"
     error_document = "404/index.html"

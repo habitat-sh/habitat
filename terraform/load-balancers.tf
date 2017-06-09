@@ -23,6 +23,7 @@ resource "aws_elb" "admin" {
   tags {
     X-Environment = "${var.env}"
     X-Application = "builder"
+    X-ManagedBy   = "Terraform"
   }
 }
 
@@ -51,6 +52,7 @@ resource "aws_elb" "api" {
   tags {
     X-Environment = "${var.env}"
     X-Application = "builder"
+    X-ManagedBy   = "Terraform"
   }
 }
 
