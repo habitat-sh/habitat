@@ -24,6 +24,7 @@ use winapi;
 
 use error::{Error, Result};
 
+use super::windows_child;
 use super::{HabExitStatus, ExitStatusExt, ShutdownMethod, OsSignal, Signal};
 
 const STILL_ACTIVE: u32 = 259;
@@ -130,7 +131,7 @@ impl Child {
     // process dies before we can get it, we will just wait() on the
     // std::process::Child and cache the exit_status which we will return
     // when status is called.
-    pub fn new(child: &mut process::Child) -> Result<Child> {
+    pub fn new(child: &mut windows_child::Child) -> Result<Child> {
         let (win_handle, status) = match handle_from_pid(child.id()) {
             Some(handle) => (Some(handle), Ok(None)),
             _ => {
@@ -273,17 +274,15 @@ impl ExitStatusExt for HabExitStatus {
 
 #[cfg(test)]
 mod tests {
-    use std::process::Command;
+    use std::collections::HashMap;
     use super::super::*;
 
     #[test]
     fn running_process_returns_no_exit_status() {
-        let mut cmd = Command::new("C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.\
-                                    exe");
-        cmd.arg("-noprofile")
-            .arg("-command")
-            .arg("while($true) { Start-Sleep 1 }");
-        let mut child = cmd.spawn().unwrap();
+        let mut child = windows_child::Child::spawn(
+            "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+            vec!["-noprofile", "-command", "while($true) { Start-Sleep 1 }"],
+            &HashMap::new()).unwrap();
 
         let mut hab_child = HabChild::from(&mut child).unwrap();
 
@@ -292,12 +291,11 @@ mod tests {
 
     #[test]
     fn successfully_run_process_exits_zero() {
-        let mut cmd = Command::new("C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.\
-                                    exe");
-        cmd.arg("-noprofile").arg("-command").arg("$a='b'");
-        let mut child = cmd.spawn().unwrap();
-
+        let mut child = windows_child::Child::spawn(
+            "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+            vec!["-noprofile", "-command", "$a='b'"], &HashMap::new()).unwrap();
         let mut hab_child = HabChild::from(&mut child).unwrap();
+
         let _ = child.wait();
 
         assert_eq!(hab_child.status().unwrap().code(), Some(0))
@@ -305,12 +303,10 @@ mod tests {
 
     #[test]
     fn terminated_process_returns_non_zero_exit() {
-        let mut cmd = Command::new("C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.\
-                                    exe");
-        cmd.arg("-noprofile")
-            .arg("-command")
-            .arg("while($true) { Start-Sleep 1 }");
-        let mut child = cmd.spawn().unwrap();
+        let mut child = windows_child::Child::spawn(
+            "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+            vec!["-noprofile", "-command", "while($true) { Start-Sleep 1 }"],
+            &HashMap::new()).unwrap();
 
         let mut hab_child = HabChild::from(&mut child).unwrap();
         let _ = child.kill();
@@ -320,10 +316,9 @@ mod tests {
 
     #[test]
     fn process_that_exits_with_specific_code_has_same_exit_code() {
-        let mut cmd = Command::new("C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.\
-                                    exe");
-        cmd.arg("-noprofile").arg("-command").arg("exit 5000");
-        let mut child = cmd.spawn().unwrap();
+        let mut child = windows_child::Child::spawn(
+            "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+            vec!["-noprofile", "-command", "exit 5000"], &HashMap::new()).unwrap();
 
         let mut hab_child = HabChild::from(&mut child).unwrap();
         let _ = child.wait();

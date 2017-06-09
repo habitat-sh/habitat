@@ -12,10 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::fmt;
-use std::process::Child;
-
-use error::Result;
+#[cfg(windows)]
+pub mod windows_child;
 
 #[allow(unused_variables)]
 #[cfg(windows)]
@@ -25,6 +23,16 @@ mod imp;
 #[cfg(not(windows))]
 #[path = "linux.rs"]
 mod imp;
+
+use std::fmt;
+
+#[cfg(not(windows))]
+use std::process::Child;
+
+#[cfg(windows)]
+use self::windows_child::Child;
+
+use error::Result;
 
 pub use self::imp::{become_command, current_pid, is_alive, signal, Pid, SignalCode};
 
