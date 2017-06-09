@@ -4,12 +4,14 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
+use std::cmp::{Eq, Ordering, PartialOrd};
 use std::fmt;
 use std::result;
 use std::str::FromStr;
 
 use hab_core;
 use hab_core::package::{self, Identifiable, FromArchive, PackageArchive};
+use hab_core::package::ident::version_sort;
 
 use serde::{Serialize, Serializer};
 use serde::ser::SerializeStruct;
@@ -308,10 +310,7 @@ impl FromArchive for OriginPackage {
             Err(e) => return Err(hab_core::Error::from(e)),
         };
         let manifest = try!(archive.manifest());
-        let deps = try!(archive.deps())
-            .into_iter()
-            .map(|d| d.into())
-            .collect();
+        let deps = try!(archive.deps()).into_iter().map(|d| d.into()).collect();
         let tdeps = try!(archive.tdeps())
             .into_iter()
             .map(|d| d.into())
@@ -371,10 +370,7 @@ impl FromArchive for OriginPackageCreate {
             Err(e) => return Err(hab_core::Error::from(e)),
         };
         let manifest = try!(archive.manifest());
-        let deps = try!(archive.deps())
-            .into_iter()
-            .map(|d| d.into())
-            .collect();
+        let deps = try!(archive.deps()).into_iter().map(|d| d.into()).collect();
         let tdeps = try!(archive.tdeps())
             .into_iter()
             .map(|d| d.into())
@@ -512,6 +508,72 @@ impl Into<package::PackageIdent> for OriginPackageIdent {
                                    Some(self.get_release()))
     }
 }
+
+impl PartialOrd for OriginPackageIdent {
+    fn partial_cmp(&self, other: &OriginPackageIdent) -> Option<Ordering> {
+        if self.get_name() != other.get_name() {
+            return None;
+        }
+        if self.get_version() == "" && other.get_version() == "" {
+            return None;
+        }
+        if self.get_version() == "" && other.get_version() != "" {
+            return Some(Ordering::Less);
+        }
+        if self.get_version() != "" && other.get_version() == "" {
+            return Some(Ordering::Greater);
+        }
+        if self.get_release() == "" && other.get_release() == "" {
+            return None;
+        }
+        if self.get_release() == "" && other.get_release() != "" {
+            return Some(Ordering::Less);
+        }
+        if self.get_release() != "" && other.get_release() == "" {
+            return Some(Ordering::Greater);
+        }
+        match version_sort(self.get_version(), other.get_version()) {
+            ord @ Ok(Ordering::Greater) |
+            ord @ Ok(Ordering::Less) => ord.ok(),
+            Ok(Ordering::Equal) => Some(self.get_release().cmp(&other.get_release())),
+            Err(_) => {
+                match self.get_version().cmp(other.get_version()) {
+                    ord @ Ordering::Greater |
+                    ord @ Ordering::Less => Some(ord),
+                    Ordering::Equal => Some(self.get_release().cmp(&other.get_release())),
+                }
+            }
+        }
+    }
+}
+
+impl Ord for OriginPackageIdent {
+    fn cmp(&self, other: &OriginPackageIdent) -> Ordering {
+        // We purposely want core to show up first, before all other origins, so we rig the sorting
+        if self.get_origin() == "core" && other.get_origin() != "core" {
+            return Ordering::Less;
+        } else if other.get_origin() == "core" && self.get_origin() != "core" {
+            return Ordering::Greater;
+        } else {
+            if self.get_origin() != other.get_origin() {
+                return self.get_origin().cmp(&other.get_origin());
+            }
+        }
+
+        if self.get_name() != other.get_name() {
+            return self.get_name().cmp(&other.get_name());
+        }
+
+        match version_sort(self.get_version(), other.get_version()) {
+            ord @ Ok(Ordering::Greater) |
+            ord @ Ok(Ordering::Less) => ord.unwrap(),
+            Ok(Ordering::Equal) => self.get_release().cmp(&other.get_release()),
+            Err(_) => Ordering::Less,
+        }
+    }
+}
+
+impl Eq for OriginPackageIdent {}
 
 impl Serialize for OriginPackageIdent {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>

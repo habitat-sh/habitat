@@ -771,6 +771,8 @@ impl DataStore {
             response.set_count(count as u64);
             idents.push(self.row_to_origin_package_ident(&row));
         }
+
+        idents.sort_by(|a, b| a.cmp(b));
         response.set_idents(idents);
         Ok(response)
     }
