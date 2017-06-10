@@ -20,8 +20,10 @@ extern crate statsd;
 extern crate time;
 extern crate petgraph;
 extern crate walkdir;
+extern crate chrono;
 
 pub mod metrics;
 pub mod rdeps;
 pub mod package_graph;
 pub mod file_walker;
+pub mod logger;

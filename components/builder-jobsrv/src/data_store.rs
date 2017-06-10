@@ -24,9 +24,10 @@ use error::{Result, Error};
 use hab_net::routing::Broker;
 use postgres;
 use protobuf;
-use protocol::net::NetOk;
+use protocol::net::{NetOk, NetError, ErrCode};
 use protocol::{originsrv, jobsrv, scheduler};
 use std::str::FromStr;
+use protobuf::ProtobufEnum;
 
 /// DataStore inherints being Send + Sync by virtue of having only one member, the pool itself.
 #[derive(Debug, Clone)]
@@ -219,8 +220,9 @@ impl DataStore {
         //
         // Note that `project_name` here is an origin-qualified
         // project name, e.g. "core/nginx".
-        migrator.migrate("jobsrv",
-                         r#"CREATE OR REPLACE FUNCTION get_jobs_for_project_v1(p_project_name TEXT)
+        migrator
+            .migrate("jobsrv",
+                     r#"CREATE OR REPLACE FUNCTION get_jobs_for_project_v1(p_project_name TEXT)
                          RETURNS SETOF jobs
                          LANGUAGE SQL STABLE AS $$
                            SELECT *
@@ -236,9 +238,12 @@ impl DataStore {
 
         // Removing the `set_job_state_v1` function in favor of a more
         // general `update_job_v1` function.
-        migrator.migrate("jobsrv", r#"DROP FUNCTION IF EXISTS set_job_state_v1(bigint, text)"#)?;
-        migrator.migrate("jobsrv",
-                         r#"CREATE OR REPLACE FUNCTION update_job_v1(
+        migrator
+            .migrate("jobsrv",
+                     r#"DROP FUNCTION IF EXISTS set_job_state_v1(bigint, text)"#)?;
+        migrator
+            .migrate("jobsrv",
+                     r#"CREATE OR REPLACE FUNCTION update_job_v1(
                            p_job_id bigint,
                            p_state text,
                            p_build_started_at timestamptz,
@@ -256,9 +261,12 @@ impl DataStore {
                            WHERE id = p_job_id;
                          $$"#)?;
 
-        migrator.migrate("jobsrv", r#"ALTER TABLE jobs ADD COLUMN IF NOT EXISTS log_url TEXT DEFAULT NULL "#)?;
-        migrator.migrate("jobsrv",
-                         r#"CREATE OR REPLACE FUNCTION set_log_url_v1(p_job_id BIGINT, p_url TEXT)
+        migrator
+            .migrate("jobsrv",
+                     r#"ALTER TABLE jobs ADD COLUMN IF NOT EXISTS log_url TEXT DEFAULT NULL "#)?;
+        migrator
+            .migrate("jobsrv",
+                     r#"CREATE OR REPLACE FUNCTION set_log_url_v1(p_job_id BIGINT, p_url TEXT)
                          RETURNS VOID
                          LANGUAGE SQL VOLATILE as $$
                            UPDATE jobs
@@ -267,8 +275,9 @@ impl DataStore {
                          $$"#)?;
 
         migrator.migrate("jobsrv", r#"ALTER TABLE jobs ADD COLUMN IF NOT EXISTS archived BOOLEAN DEFAULT FALSE NOT NULL"#)?;
-        migrator.migrate("jobsrv",
-                         r#"CREATE OR REPLACE FUNCTION mark_as_archived_v1(p_job_id BIGINT)
+        migrator
+            .migrate("jobsrv",
+                     r#"CREATE OR REPLACE FUNCTION mark_as_archived_v1(p_job_id BIGINT)
                          RETURNS VOID
                          LANGUAGE SQL VOLATILE as $$
                            UPDATE jobs
@@ -279,9 +288,36 @@ impl DataStore {
         // We switched away from storing the URL in the database
         // before we released, so we don't need to worry about
         // migrating any old data.
-        migrator.migrate("jobsrv", r#"ALTER TABLE jobs DROP COLUMN IF EXISTS log_url"#)?;
-        migrator.migrate("jobsrv", r#"DROP FUNCTION IF EXISTS set_log_url_v1(bigint, text)"#)?;
-        
+        migrator
+            .migrate("jobsrv",
+                     r#"ALTER TABLE jobs DROP COLUMN IF EXISTS log_url"#)?;
+        migrator
+            .migrate("jobsrv",
+                     r#"DROP FUNCTION IF EXISTS set_log_url_v1(bigint, text)"#)?;
+
+        migrator
+            .migrate("jobsrv-2",
+                     r#"CREATE OR REPLACE FUNCTION update_job_v2(
+                           p_job_id bigint,
+                           p_state text,
+                           p_build_started_at timestamptz,
+                           p_build_finished_at timestamptz,
+                           p_package_ident text,
+                           p_err_code int,
+                           p_err_msg text)
+                         RETURNS VOID
+                         LANGUAGE SQL VOLATILE AS $$
+                           UPDATE jobs
+                           SET job_state = p_state,
+                               scheduler_sync = false,
+                               updated_at = now(),
+                               build_started_at = p_build_started_at,
+                               build_finished_at = p_build_finished_at,
+                               package_ident = p_package_ident,
+                               net_error_code = p_err_code,
+                               net_error_msg = p_err_msg
+                           WHERE id = p_job_id;
+                         $$"#)?;
         migrator.finish()?;
 
         self.async.register("sync_jobs".to_string(), sync_jobs);
@@ -350,11 +386,13 @@ impl DataStore {
     ///
     /// * If a connection cannot be gotten from the pool
     /// * If a row returned cannot be translated into a Job
-    pub fn get_jobs_for_project(&self, project: &jobsrv::ProjectJobsGet) -> Result<jobsrv::ProjectJobsGetResponse> {
+    pub fn get_jobs_for_project(&self,
+                                project: &jobsrv::ProjectJobsGet)
+                                -> Result<jobsrv::ProjectJobsGetResponse> {
         let conn = self.pool.get_shard(0)?;
         let rows = &conn.query("SELECT * FROM get_jobs_for_project_v1($1)",
                                &[&(project.get_name())])
-            .map_err(Error::ProjectJobsGet)?;
+                        .map_err(Error::ProjectJobsGet)?;
 
         let mut response = jobsrv::ProjectJobsGetResponse::new();
         let mut jobs = protobuf::RepeatedField::new();
@@ -416,27 +454,39 @@ impl DataStore {
             jobsrv::JobState::Rejected => "Rejected",
             jobsrv::JobState::Failed => "Failed",
         };
-        
+
         // Note: the following fields may all be NULL. As currently
         // coded, if they are NULL, then the corresponding fields in
         // the database will also be updated to be NULL. This should
         // be OK, though, because they shouldn't be changing anyway.
         let build_started_at = match job.has_build_started_at() {
             true => Some(DateTime::<UTC>::from_str(job.get_build_started_at()).unwrap()),
-            false => None
+            false => None,
         };
         let build_finished_at = match job.has_build_finished_at() {
             true => Some(DateTime::<UTC>::from_str(job.get_build_finished_at()).unwrap()),
-            false => None
+            false => None,
         };
         let ident = match job.has_package_ident() {
             true => Some(job.get_package_ident().to_string()),
-            false => None
+            false => None,
         };
 
-        conn.execute("SELECT update_job_v1($1, $2, $3, $4, $5)",
-                     &[&job_id, &job_state, &build_started_at, &build_finished_at, &ident])
-            .map_err(Error::JobSetState)?; 
+        let (err_code, err_msg) = if job.has_error() {
+            (Some(job.get_error().get_code() as i32), Some(job.get_error().get_msg()))
+        } else {
+            (None, None)
+        };
+
+        conn.execute("SELECT update_job_v2($1, $2, $3, $4, $5, $6, $7)",
+                     &[&job_id,
+                       &job_state,
+                       &build_started_at,
+                       &build_finished_at,
+                       &ident,
+                       &err_code,
+                       &err_msg])
+            .map_err(Error::JobSetState)?;
 
         self.async.schedule("sync_jobs")?;
 
@@ -448,8 +498,7 @@ impl DataStore {
     /// mechanism.
     pub fn mark_as_archived(&self, job_id: u64) -> Result<()> {
         let conn = self.pool.get_shard(0)?;
-        conn.execute("SELECT mark_as_archived_v1($1)",
-                     &[&(job_id as i64)])
+        conn.execute("SELECT mark_as_archived_v1($1)", &[&(job_id as i64)])
             .map_err(Error::JobMarkArchived)?;
         Ok(())
     }
@@ -481,7 +530,7 @@ fn row_to_job(row: &postgres::rows::Row) -> Result<jobsrv::Job> {
 
     let created_at = row.get::<&str, DateTime<UTC>>("created_at");
     job.set_created_at(created_at.to_rfc3339());
-    
+
     // Note: these may be null (e.g., a job is scheduled, but hasn't
     // started; a job has started and is currently running)
     if let Some(Ok(start)) = row.get_opt::<&str, DateTime<UTC>>("build_started_at") {
@@ -496,7 +545,7 @@ fn row_to_job(row: &postgres::rows::Row) -> Result<jobsrv::Job> {
         let ident: originsrv::OriginPackageIdent = ident_str.parse().unwrap();
         job.set_package_ident(ident);
     }
-    
+
     let mut project = originsrv::OriginProject::new();
     let project_id: i64 = row.get("project_id");
     project.set_id(project_id as u64);
@@ -513,7 +562,7 @@ fn row_to_job(row: &postgres::rows::Row) -> Result<jobsrv::Job> {
     project.set_origin_name(name_split[0].to_string());
     project.set_package_name(name_split[1].to_string());
     project.set_name(name);
-    
+
     let project_owner_id: i64 = row.get("project_owner_id");
     project.set_owner_id(project_owner_id as u64);
     project.set_plan_path(row.get("project_plan_path"));
@@ -531,6 +580,17 @@ fn row_to_job(row: &postgres::rows::Row) -> Result<jobsrv::Job> {
         }
     }
     job.set_project(project);
+
+    if let Some(Ok(err_msg)) = row.get_opt::<&str, String>("net_error_msg") {
+        let err_code: i32 = row.get("net_error_code");
+        let mut err = NetError::new();
+
+        if let Some(net_err_code) = ErrCode::from_i32(err_code) {
+            err.set_code(net_err_code);
+            err.set_msg(err_msg);
+            job.set_error(err);
+        }
+    }
 
     job.set_is_archived(row.get("archived"));
 

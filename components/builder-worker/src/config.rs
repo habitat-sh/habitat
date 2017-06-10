@@ -31,6 +31,8 @@ pub struct Config {
     pub auto_publish: bool,
     /// Filepath where persistent application data is stored
     pub data_path: PathBuf,
+    /// Path to worker event logs
+    pub log_path: PathBuf,
     /// Default channel name for Publish post-processor to use to determine which channel to
     /// publish artifacts to
     pub depot_channel: String,
@@ -60,6 +62,7 @@ impl Default for Config {
             auth_token: "".to_string(),
             auto_publish: true,
             data_path: PathBuf::from("/tmp"),
+            log_path: PathBuf::from("/tmp"),
             depot_channel: String::from("unstable"),
             depot_url: url::default_depot_url(),
             jobsrv: vec![JobSrvAddr::default()],
@@ -102,6 +105,7 @@ mod tests {
         let content = r#"
         auth_token = "mytoken"
         data_path = "/path/to/data"
+        log_path = "/path/to/logs"
 
         [[jobsrv]]
         host = "1:1:1:1:1:1:1:1"
@@ -116,6 +120,7 @@ mod tests {
         let config = Config::from_raw(&content).unwrap();
         assert_eq!(&config.auth_token, "mytoken");
         assert_eq!(&format!("{}", config.data_path.display()), "/path/to/data");
+        assert_eq!(&format!("{}", config.log_path.display()), "/path/to/logs");
         assert_eq!(&format!("{}", config.jobsrv[0].host), "1:1:1:1:1:1:1:1");
         assert_eq!(config.jobsrv[0].port, 9000);
         assert_eq!(config.jobsrv[0].heartbeat, 9001);

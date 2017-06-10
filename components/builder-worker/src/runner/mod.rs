@@ -16,6 +16,7 @@ pub mod log_pipe;
 pub mod workspace;
 pub mod postprocessor;
 
+use std::path::PathBuf;
 use std::ffi::OsString;
 use std::fs;
 use std::ops::{Deref, DerefMut};
@@ -25,6 +26,7 @@ use std::str::FromStr;
 use std::sync::{mpsc, Arc, RwLock};
 use std::thread::{self, JoinHandle};
 
+use bldr_core::logger::Logger;
 pub use protocol::jobsrv::JobState;
 use chrono::UTC;
 use depot_client;
@@ -45,6 +47,8 @@ use self::postprocessor::PostProcessor;
 use self::workspace::Workspace;
 use config::Config;
 use error::{Error, Result};
+use server::Server;
+use hab_net::server::NetIdent;
 use vcs;
 
 /// Environment variable to enable or disable debug output in runner's studio
@@ -115,17 +119,24 @@ pub struct Runner {
     depot_cli: depot_client::Client,
     log_pipe: Option<LogPipe>,
     workspace: Workspace,
+    logger: Logger,
 }
 
 impl Runner {
     pub fn new(job: Job, config: Config) -> Self {
         let depot_cli = depot_client::Client::new(&config.depot_url, PRODUCT, VERSION, None)
             .unwrap();
+
+        let log_path = config.log_path.clone();
+        let mut logger = Logger::init(PathBuf::from(log_path), "builder-worker.log");
+        logger.log_ident(&Server::net_ident());
+
         Runner {
             workspace: Workspace::new(config.data_path.clone(), job),
             config: config,
             depot_cli: depot_cli,
             log_pipe: None,
+            logger: logger,
         }
     }
 
@@ -253,6 +264,7 @@ impl Runner {
                     .args(&args)
                     .env_clear()
                     .env("HAB_NONINTERACTIVE", "true")
+                    .env("HAB_DEPOT_URL", &self.config.depot_url)
                     .env("DEBUG", val)
                     .stdout(Stdio::piped())
                     .stderr(Stdio::piped())
@@ -264,6 +276,7 @@ impl Runner {
                     .args(&args)
                     .env_clear()
                     .env("HAB_NONINTERACTIVE", "true")
+                    .env("HAB_DEPOT_URL", &self.config.depot_url)
                     .env("TERM", "xterm-256color") // Gives us ANSI color codes
                     .stdout(Stdio::piped())
                     .stderr(Stdio::piped())
@@ -285,6 +298,7 @@ impl Runner {
     fn complete(mut self) -> Job {
         self.teardown().err().map(|e| error!("{}", e));
         self.workspace.job.set_state(JobState::Complete);
+        self.logger.log_worker_job(&self.workspace.job);
         self.workspace.job
     }
 
@@ -292,10 +306,13 @@ impl Runner {
         self.teardown().err().map(|e| error!("{}", e));
         self.workspace.job.set_state(JobState::Failed);
         self.workspace.job.set_error(err);
+        self.logger.log_worker_job(&self.workspace.job);
         self.workspace.job
     }
 
     fn setup(&mut self) -> Result<()> {
+        self.logger.log_worker_job(&self.workspace.job);
+
         if let Some(err) = fs::remove_dir_all(self.workspace.src()).err() {
             error!("unable to remove out directory ({}), ERR={:?}",
                    self.workspace.out().display(),
