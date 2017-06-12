@@ -968,14 +968,14 @@ fn list_origin_package_versions_for_origin() {
     let result = ds.list_origin_package_versions_for_origin(&opvl.clone())
         .expect("Could not get the packages from the database");
     assert_eq!(result.get_versions().len(), 2);
-    let v1 = result.get_versions().iter().nth(1).unwrap();
-    assert_eq!(v1.get_version(), "2017.01.17");
-    assert_eq!(v1.get_release_count(), 1);
-    assert_eq!(v1.get_latest(), "20170209064044");
-    let v2 = result.get_versions().iter().nth(0).unwrap();
-    assert_eq!(v2.get_version(), "2017.01.18");
-    assert_eq!(v2.get_release_count(), 2);
-    assert_eq!(v2.get_latest(), "20170209064045");
+    let v1 = result.get_versions().iter().nth(0).unwrap();
+    assert_eq!(v1.get_version(), "2017.01.18");
+    assert_eq!(v1.get_release_count(), 2);
+    assert_eq!(v1.get_latest(), "20170209064045");
+    let v2 = result.get_versions().iter().nth(1).unwrap();
+    assert_eq!(v2.get_version(), "2017.01.17");
+    assert_eq!(v2.get_release_count(), 1);
+    assert_eq!(v2.get_latest(), "20170209064044");
 
     opvl.set_name("crazy".to_string());
     let result2 = ds.list_origin_package_versions_for_origin(&opvl)

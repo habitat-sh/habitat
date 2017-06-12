@@ -241,5 +241,28 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                       END LOOP;
                     END;
                     $$ LANGUAGE plpgsql STABLE"#)?;
+    migrator.migrate("originsrv-v5",
+                     r#"CREATE OR REPLACE FUNCTION get_origin_package_versions_for_origin_v3 (
+                    op_origin text,
+                    op_pkg text
+                 ) RETURNS TABLE(version text, release_count bigint, latest text) AS $$
+                    BEGIN
+                        RETURN QUERY SELECT p.partial_ident[3] AS version, COUNT(p.partial_ident[4]) AS release_count, MAX(p.partial_ident[4]) as latest FROM (SELECT regexp_split_to_array(op.ident, '/') AS partial_ident FROM origin_packages op INNER JOIN origins o ON o.id = op.origin_id WHERE o.name = op_origin AND op.name = op_pkg) AS p GROUP BY version ORDER BY version DESC;
+                        RETURN;
+                    END
+                    $$ LANGUAGE plpgsql STABLE"#)?;
+    migrator.migrate("originsrv-v6",
+                     r#"CREATE OR REPLACE FUNCTION get_origin_packages_for_origin_v2 (
+                    op_ident text,
+                    op_limit bigint,
+                    op_offset bigint
+                 ) RETURNS TABLE(total_count bigint, ident text) AS $$
+                    BEGIN
+                        RETURN QUERY SELECT COUNT(*) OVER () AS total_count, origin_packages.ident FROM origin_packages WHERE origin_packages.ident LIKE (op_ident  || '%')
+                          ORDER BY ident DESC
+                          LIMIT op_limit OFFSET op_offset;
+                        RETURN;
+                    END
+                    $$ LANGUAGE plpgsql STABLE"#)?;
     Ok(())
 }

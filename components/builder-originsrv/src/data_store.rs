@@ -608,7 +608,7 @@ impl DataStore {
          -> Result<originsrv::OriginPackageVersionListResponse> {
         let conn = self.pool.get(opvl)?;
 
-        let rows = conn.query("SELECT * FROM get_origin_package_versions_for_origin_v2($1, $2)",
+        let rows = conn.query("SELECT * FROM get_origin_package_versions_for_origin_v3($1, $2)",
                               &[&opvl.get_origin(), &opvl.get_name()])
             .map_err(Error::OriginPackageVersionList)?;
 
@@ -632,11 +632,10 @@ impl DataStore {
             version_map.insert(ident.clone(), version);
             idents.push(ident);
         }
-        idents.sort();
 
         let mut versions = protobuf::RepeatedField::new();
         for ident in idents {
-            versions.insert(0, version_map.remove(&ident).unwrap());
+            versions.push(version_map.remove(&ident).unwrap());
         }
         response.set_versions(versions);
         Ok(response)
@@ -650,7 +649,7 @@ impl DataStore {
         let query = if *&opl.get_distinct() {
             "SELECT * FROM get_origin_packages_for_origin_distinct_v1($1, $2, $3)"
         } else {
-            "SELECT * FROM get_origin_packages_for_origin_v1($1, $2, $3)"
+            "SELECT * FROM get_origin_packages_for_origin_v2($1, $2, $3)"
         };
 
         let rows = conn.query(query,
