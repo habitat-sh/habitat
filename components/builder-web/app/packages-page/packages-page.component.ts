@@ -22,67 +22,7 @@ import { requireSignIn } from "../util";
 import { Subscription } from "rxjs/Subscription";
 
 @Component({
-    template: `
-    <div class="hab-packages">
-        <div class="page-title">
-            <div *ngIf="showSearch">
-                <h2>Search Packages</h2>
-                 <h4>
-                    <span *ngIf="searchQuery || query">Search Results</span>
-                </h4>
-                <hab-spinner [isSpinning]="ui.loading" (click)="spinnerFetchPackages"></hab-spinner>
-            </div>
-            <div *ngIf="showBreadcrumbs">
-                <h2>
-                    <hab-package-breadcrumbs
-                        *ngIf="!searchQuery"
-                        [ident]="packageParams()">
-                    </hab-package-breadcrumbs>
-                </h2>
-                <h4>{{ subtitle }}</h4>
-            </div>
-        </div>
-        <div class="page-body" [class.has-sidebar]="iCanRequestABuild">
-            <div [class.page-body--main]="iCanRequestABuild">
-                <input *ngIf="showSearch"
-                    type="search" autofocus
-                    [formControl]="searchBox"
-                    placeholder="Search Packages&hellip;">
-
-                <div class="active {{ activeBuild.state | lowercase }}" *ngIf="activeBuild">
-                    A build is in progress.
-                    <a [routerLink]="['/builds', activeBuild.id]">View streaming output</a>.
-                </div>
-
-                <hab-packages-list
-                    [noPackages]="(!ui.exists || packages.size === 0) && !ui.loading"
-                    [packages]="packages"
-                    [versions]="versions"
-                    [layout]="layout"
-                    [errorMessage]="ui.errorMessage"></hab-packages-list>
-
-                <div *ngIf="packages.size < totalCount">
-                    Showing {{packages.size}} of {{totalCount}} packages.
-                    <a href="#" (click)="fetchMorePackages()">
-                        Load
-                        {{(totalCount - packages.size) > perPage ? perPage : totalCount - packages.size }}
-                        more</a>.
-                </div>
-            </div>
-            <div class="page-body--sidebar" *ngIf="iCanRequestABuild">
-                <h4>Build</h4>
-                <p>
-                    <button class="button" (click)="requestNewBuild()" [disabled]="!!activeBuild">
-                        Request new build
-                    </button>
-                </p>
-                <h4>Install Latest Version</h4>
-                <div>
-                    <pre class="install-box">hab install {{origin}}/{{name}}</pre>
-                </div>
-            </div>
-        </div>
-    </div>`,
+    template: require("./packages-page.component.html")
 })
 
 export class PackagesPageComponent implements OnInit, OnDestroy {
@@ -145,8 +85,7 @@ export class PackagesPageComponent implements OnInit, OnDestroy {
 
             if (this.name && !this.version) {
                 this.fetchVersions();
-            }
-            else {
+            } else {
                 this.fetchPackages();
             }
         }
