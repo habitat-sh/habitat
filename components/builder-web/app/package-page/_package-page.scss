@@ -73,6 +73,12 @@
     }
   }
 
+  &-latest-build {
+    div {
+      margin-bottom: $base-spacing;
+    }
+  }
+
   &-manifest .manifest,
   &-config pre {
     background-color: darken($hab-off-white, 2);
