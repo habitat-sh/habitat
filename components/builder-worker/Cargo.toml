@@ -32,6 +32,9 @@ branch = "release/v0.8"
 [dependencies.habitat_core]
 path = "../core"
 
+[dependencies.builder_core]
+path = "../builder-core"
+
 [dependencies.habitat_net]
 path = "../net"
 

@@ -985,11 +985,9 @@ fn download_package(req: &mut Request) -> IronResult<Response> {
                     Err(_) => Ok(Response::with(status::NotFound)),
                 }
             } else {
-                // This should never happen. Writing the package to disk and recording it's
-                // existence in the metadata is a transactional operation and one cannot exist
-                // without the other.
-                panic!("Inconsistent package metadata! Exit and run `hab-depot repair` to fix \
-                        data integrity.");
+                // This can happen if the package is not found in the file system for some reason
+                error!("package not found - inconsistentcy between metadata and filesystem. download_package:2");
+                Ok(Response::with(status::InternalServerError))
             }
         }
         Err(err) => {

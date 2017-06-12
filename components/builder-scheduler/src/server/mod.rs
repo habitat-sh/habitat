@@ -14,7 +14,6 @@
 
 pub mod handlers;
 pub mod scheduler;
-pub mod logger;
 
 use std::ops::Deref;
 use std::sync::{Arc, RwLock};

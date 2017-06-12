@@ -130,6 +130,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "builder_core"
 version = "0.0.0"
 dependencies = [
+ "chrono 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "habitat_builder_protocol 0.0.0",
  "habitat_core 0.0.0",
  "libarchive 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -704,6 +705,7 @@ dependencies = [
 name = "habitat_builder_worker"
 version = "0.0.0"
 dependencies = [
+ "builder_core 0.0.0",
  "chrono 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 2.23.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",

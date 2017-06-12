@@ -30,7 +30,7 @@ use data_store::DataStore;
 use error::{Result, Error};
 
 use config::Config;
-use server::logger::Logger;
+use bldr_core::logger::Logger;
 
 const SCHEDULER_ADDR: &'static str = "inproc://scheduler";
 const STATUS_ADDR: &'static str = "inproc://scheduler-status";
@@ -106,7 +106,7 @@ impl ScheduleMgr {
             let cfg = config.read().unwrap();
             PathBuf::from(cfg.log_path.clone())
         };
-        let logger = Logger::init(log_path);
+        let logger = Logger::init(log_path, "builder-scheduler.log");
 
         Ok(ScheduleMgr {
                datastore: datastore,
@@ -211,7 +211,7 @@ impl ScheduleMgr {
             }
 
             debug!("Dispatching project: {:?}", project.get_name());
-            self.logger.log_project(&group, &project);
+            self.logger.log_group_project(&group, &project);
 
             assert!(project.get_state() == proto::ProjectState::NotStarted);
 
@@ -394,7 +394,7 @@ impl ScheduleMgr {
         let job: Job = parse_from_bytes(&self.msg)?;
         let group: proto::Group = self.get_group(job.get_owner_id())?;
 
-        self.logger.log_job(&group, &job);
+        self.logger.log_group_job(&group, &job);
 
         match self.datastore.set_group_job_state(&job) {
             Ok(_) => {

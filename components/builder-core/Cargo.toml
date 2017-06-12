@@ -12,6 +12,7 @@ petgraph = "*"
 walkdir = "*"
 libarchive = "*"
 time = "*"
+chrono = { version = "*", features = ["serde"] }
 
 [dependencies.habitat_core]
 path = "../core"
