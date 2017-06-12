@@ -1055,7 +1055,7 @@ fn list_origin_package_for_origin() {
     let pkg1 = result.get_idents().iter().nth(0).unwrap();
     assert_eq!(pkg1.to_string(), ident2.to_string());
     let pkg2 = result.get_idents().iter().nth(1).unwrap();
-    assert_eq!(pkg2.to_string(), ident3.to_string());
+    assert_eq!(pkg2.to_string(), ident1.to_string());
 
     opl.set_start(1);
     opl.set_stop(20);
