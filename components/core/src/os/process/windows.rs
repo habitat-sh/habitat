@@ -12,7 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::collections::HashMap;
 use std::ffi::OsString;
+use std::mem;
 use std::path::PathBuf;
 use std::process::{self, Command};
 use std::ptr;
@@ -184,24 +186,14 @@ impl Child {
             return Ok(ShutdownMethod::AlreadyExited);
         }
 
-        let mut ret;
+        let ret;
         unsafe {
-            // Turn off ctrl-C handling for current process
-            ret = kernel32::SetConsoleCtrlHandler(None, winapi::TRUE);
+            // Send a ctrl-BREAK
+            ret = kernel32::GenerateConsoleCtrlEvent(1, self.pid);
             if ret == 0 {
-                debug!("Failed to call SetConsoleCtrlHandler on pid {}: {}",
+                debug!("Failed to send ctrl-break to pid {}: {}",
                        self.pid,
                        io::Error::last_os_error());
-            }
-
-            if ret != 0 {
-                // Send a ctrl-C
-                ret = kernel32::GenerateConsoleCtrlEvent(0, 0);
-                if ret == 0 {
-                    debug!("Failed to send ctrl-c to pid {}: {}",
-                           self.pid,
-                           io::Error::last_os_error());
-                }
             }
         }
 
@@ -210,18 +202,10 @@ impl Child {
         let result;
         loop {
             if ret == 0 || SteadyTime::now() > stop_time {
-                unsafe {
-                    ret = kernel32::TerminateProcess(self.handle.unwrap(), 1);
-                    if ret == 0 {
-                        result = Err(Error::TerminateProcessFailed(format!("Failed to call \
-                                                                       terminate pid {}: {}",
-                                                                      self.pid,
-                                                                      io::Error::last_os_error())));
-                    } else {
-                        result = Ok(ShutdownMethod::Killed);
-                    }
-                    break;
-                }
+                let proc_table = self.build_proc_table()?;
+                self.terminate_process_descendants(&proc_table, self.pid)?;
+                result = Ok(ShutdownMethod::Killed);
+                break;
             }
 
             match self.status() {
@@ -235,15 +219,83 @@ impl Child {
             }
         }
 
-        // turn Ctrl-C handling back on for current process
-        ret = unsafe { kernel32::SetConsoleCtrlHandler(None, winapi::FALSE) };
-        if ret == 0 {
-            debug!("Failed to call SetConsoleCtrlHandler on pid {}: {}",
-                   self.pid,
-                   io::Error::last_os_error());
+        result
+    }
+
+    fn terminate_process_descendants(&self,
+                                     table: &HashMap<winapi::DWORD, Vec<winapi::DWORD>>,
+                                     pid: winapi::DWORD)
+                                     -> Result<()> {
+        if let Some(children) = table.get(&pid) {
+            for child in children {
+                self.terminate_process_descendants(table, child.clone())?;
+            }
+        }
+        unsafe {
+            match handle_from_pid(pid) {
+                Some(h) => {
+                    if kernel32::TerminateProcess(h, 1) == 0 {
+                        return Err(Error::TerminateProcessFailed(format!(
+                            "Failed to call TerminateProcess on pid {}: {}",
+                            pid,
+                            io::Error::last_os_error())));
+                    }
+                }
+                None => {}
+            }
+        }
+        Ok(())
+    }
+
+    fn build_proc_table(&self) -> Result<HashMap<winapi::DWORD, Vec<winapi::DWORD>>> {
+        let processes_snap_handle =
+            unsafe { kernel32::CreateToolhelp32Snapshot(winapi::TH32CS_SNAPPROCESS, 0) };
+
+        if processes_snap_handle == winapi::INVALID_HANDLE_VALUE {
+            return Err(Error::CreateToolhelp32SnapshotFailed(format!("Failed to call CreateToolhelp32Snapshot: {}",
+                                                                     io::Error::last_os_error())));
         }
 
-        result
+        let mut table: HashMap<winapi::DWORD, Vec<winapi::DWORD>> = HashMap::new();
+        let mut process_entry = winapi::PROCESSENTRY32W {
+            dwSize: mem::size_of::<winapi::PROCESSENTRY32W>() as u32,
+            cntUsage: 0,
+            th32ProcessID: 0,
+            th32DefaultHeapID: 0,
+            th32ModuleID: 0,
+            cntThreads: 0,
+            th32ParentProcessID: 0,
+            pcPriClassBase: 0,
+            dwFlags: 0,
+            szExeFile: [0; winapi::MAX_PATH],
+        };
+
+        // Get the first process from the snapshot.
+        match unsafe { kernel32::Process32FirstW(processes_snap_handle, &mut process_entry) } {
+            1 => {
+                // First process worked, loop to find the process with the correct name.
+                let mut process_success: i32 = 1;
+
+                // Loop through all processes until we find one hwere `szExeFile` == `name`.
+                while process_success == 1 {
+                    let children = table
+                        .entry(process_entry.th32ParentProcessID)
+                        .or_insert(Vec::new());
+                    (*children).push(process_entry.th32ProcessID);
+
+                    process_success = unsafe {
+                        kernel32::Process32NextW(processes_snap_handle, &mut process_entry)
+                    };
+                }
+
+                unsafe { kernel32::CloseHandle(processes_snap_handle) };
+            }
+            0 | _ => {
+                unsafe { kernel32::CloseHandle(processes_snap_handle) };
+            }
+        }
+
+        Ok(table)
     }
 }
 

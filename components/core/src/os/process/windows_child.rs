@@ -43,7 +43,6 @@ lazy_static! {
     static ref CREATE_PROCESS_LOCK: Mutex<()> = Mutex::new(());
 }
 
-const INVALID_HANDLE_VALUE: winapi::HANDLE = !0 as winapi::HANDLE;
 const HANDLE_FLAG_INHERIT: winapi::DWORD = 0x00000001;
 
 pub struct Child {
@@ -115,6 +114,7 @@ impl Child {
         si.hStdInput = stdin.raw();
         si.hStdOutput = stdout.raw();
         si.hStdError = stderr.raw();
+        let flags = winapi::CREATE_UNICODE_ENVIRONMENT | winapi::CREATE_NEW_PROCESS_GROUP;
 
         unsafe {
             cvt(kernel32::CreateProcessW(ptr::null(),
@@ -122,7 +122,7 @@ impl Child {
                                          ptr::null_mut(),
                                          ptr::null_mut(),
                                          winapi::TRUE,
-                                         winapi::CREATE_UNICODE_ENVIRONMENT,
+                                         flags,
                                          envp,
                                          ptr::null(),
                                          &mut si,
@@ -542,7 +542,7 @@ impl File {
                                   opts.get_flags_and_attributes(),
                                   ptr::null_mut())
         };
-        if handle == INVALID_HANDLE_VALUE {
+        if handle == winapi::INVALID_HANDLE_VALUE {
             Err(io::Error::last_os_error())
         } else {
             Ok(File { handle: Handle::new(handle) })
@@ -937,9 +937,9 @@ fn zeroed_startupinfo() -> winapi::STARTUPINFOW {
         wShowWindow: 0,
         cbReserved2: 0,
         lpReserved2: ptr::null_mut(),
-        hStdInput: INVALID_HANDLE_VALUE,
-        hStdOutput: INVALID_HANDLE_VALUE,
-        hStdError: INVALID_HANDLE_VALUE,
+        hStdInput: winapi::INVALID_HANDLE_VALUE,
+        hStdOutput: winapi::INVALID_HANDLE_VALUE,
+        hStdError: winapi::INVALID_HANDLE_VALUE,
     }
 }
 
