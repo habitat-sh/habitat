@@ -2,7 +2,7 @@
 title: Habitat Infographics
 ---
 
-# Habitat Inforgraphics
+# Habitat Infographics
 With Habitat comes a number of concepts - some you may be familiar with, some you may not. Not to worry, here you'll find a set of graphics that will help you and your team better understand the concepts and how they fit together into the larger Habitat ecosystem.
 
 ### Habitat Architecture Overview
