@@ -791,6 +791,7 @@ dependencies = [
  "libc 0.2.22 (registry+https://github.com/rust-lang/crates.io-index)",
  "libsodium-sys 0.0.14 (git+https://github.com/dnaq/sodiumoxide)",
  "log 0.3.7 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rand 0.3.15 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_derive 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",

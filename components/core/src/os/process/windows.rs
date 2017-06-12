@@ -12,7 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::collections::HashMap;
 use std::ffi::OsString;
+use std::mem;
 use std::path::PathBuf;
 use std::process::{self, Command};
 use std::ptr;
@@ -24,6 +26,7 @@ use winapi;
 
 use error::{Error, Result};
 
+use super::windows_child;
 use super::{HabExitStatus, ExitStatusExt, ShutdownMethod, OsSignal, Signal};
 
 const STILL_ACTIVE: u32 = 259;
@@ -130,7 +133,7 @@ impl Child {
     // process dies before we can get it, we will just wait() on the
     // std::process::Child and cache the exit_status which we will return
     // when status is called.
-    pub fn new(child: &mut process::Child) -> Result<Child> {
+    pub fn new(child: &mut windows_child::Child) -> Result<Child> {
         let (win_handle, status) = match handle_from_pid(child.id()) {
             Some(handle) => (Some(handle), Ok(None)),
             _ => {
@@ -183,24 +186,14 @@ impl Child {
             return Ok(ShutdownMethod::AlreadyExited);
         }
 
-        let mut ret;
+        let ret;
         unsafe {
-            // Turn off ctrl-C handling for current process
-            ret = kernel32::SetConsoleCtrlHandler(None, winapi::TRUE);
+            // Send a ctrl-BREAK
+            ret = kernel32::GenerateConsoleCtrlEvent(1, self.pid);
             if ret == 0 {
-                debug!("Failed to call SetConsoleCtrlHandler on pid {}: {}",
+                debug!("Failed to send ctrl-break to pid {}: {}",
                        self.pid,
                        io::Error::last_os_error());
-            }
-
-            if ret != 0 {
-                // Send a ctrl-C
-                ret = kernel32::GenerateConsoleCtrlEvent(0, 0);
-                if ret == 0 {
-                    debug!("Failed to send ctrl-c to pid {}: {}",
-                           self.pid,
-                           io::Error::last_os_error());
-                }
             }
         }
 
@@ -209,18 +202,10 @@ impl Child {
         let result;
         loop {
             if ret == 0 || SteadyTime::now() > stop_time {
-                unsafe {
-                    ret = kernel32::TerminateProcess(self.handle.unwrap(), 1);
-                    if ret == 0 {
-                        result = Err(Error::TerminateProcessFailed(format!("Failed to call \
-                                                                       terminate pid {}: {}",
-                                                                      self.pid,
-                                                                      io::Error::last_os_error())));
-                    } else {
-                        result = Ok(ShutdownMethod::Killed);
-                    }
-                    break;
-                }
+                let proc_table = self.build_proc_table()?;
+                self.terminate_process_descendants(&proc_table, self.pid)?;
+                result = Ok(ShutdownMethod::Killed);
+                break;
             }
 
             match self.status() {
@@ -234,15 +219,83 @@ impl Child {
             }
         }
 
-        // turn Ctrl-C handling back on for current process
-        ret = unsafe { kernel32::SetConsoleCtrlHandler(None, winapi::FALSE) };
-        if ret == 0 {
-            debug!("Failed to call SetConsoleCtrlHandler on pid {}: {}",
-                   self.pid,
-                   io::Error::last_os_error());
+        result
+    }
+
+    fn terminate_process_descendants(&self,
+                                     table: &HashMap<winapi::DWORD, Vec<winapi::DWORD>>,
+                                     pid: winapi::DWORD)
+                                     -> Result<()> {
+        if let Some(children) = table.get(&pid) {
+            for child in children {
+                self.terminate_process_descendants(table, child.clone())?;
+            }
+        }
+        unsafe {
+            match handle_from_pid(pid) {
+                Some(h) => {
+                    if kernel32::TerminateProcess(h, 1) == 0 {
+                        return Err(Error::TerminateProcessFailed(format!(
+                            "Failed to call TerminateProcess on pid {}: {}",
+                            pid,
+                            io::Error::last_os_error())));
+                    }
+                }
+                None => {}
+            }
+        }
+        Ok(())
+    }
+
+    fn build_proc_table(&self) -> Result<HashMap<winapi::DWORD, Vec<winapi::DWORD>>> {
+        let processes_snap_handle =
+            unsafe { kernel32::CreateToolhelp32Snapshot(winapi::TH32CS_SNAPPROCESS, 0) };
+
+        if processes_snap_handle == winapi::INVALID_HANDLE_VALUE {
+            return Err(Error::CreateToolhelp32SnapshotFailed(format!("Failed to call CreateToolhelp32Snapshot: {}",
+                                                                     io::Error::last_os_error())));
         }
 
-        result
+        let mut table: HashMap<winapi::DWORD, Vec<winapi::DWORD>> = HashMap::new();
+        let mut process_entry = winapi::PROCESSENTRY32W {
+            dwSize: mem::size_of::<winapi::PROCESSENTRY32W>() as u32,
+            cntUsage: 0,
+            th32ProcessID: 0,
+            th32DefaultHeapID: 0,
+            th32ModuleID: 0,
+            cntThreads: 0,
+            th32ParentProcessID: 0,
+            pcPriClassBase: 0,
+            dwFlags: 0,
+            szExeFile: [0; winapi::MAX_PATH],
+        };
+
+        // Get the first process from the snapshot.
+        match unsafe { kernel32::Process32FirstW(processes_snap_handle, &mut process_entry) } {
+            1 => {
+                // First process worked, loop to find the process with the correct name.
+                let mut process_success: i32 = 1;
+
+                // Loop through all processes until we find one hwere `szExeFile` == `name`.
+                while process_success == 1 {
+                    let children = table
+                        .entry(process_entry.th32ParentProcessID)
+                        .or_insert(Vec::new());
+                    (*children).push(process_entry.th32ProcessID);
+
+                    process_success = unsafe {
+                        kernel32::Process32NextW(processes_snap_handle, &mut process_entry)
+                    };
+                }
+
+                unsafe { kernel32::CloseHandle(processes_snap_handle) };
+            }
+            0 | _ => {
+                unsafe { kernel32::CloseHandle(processes_snap_handle) };
+            }
+        }
+
+        Ok(table)
     }
 }
 
@@ -273,17 +326,15 @@ impl ExitStatusExt for HabExitStatus {
 
 #[cfg(test)]
 mod tests {
-    use std::process::Command;
+    use std::collections::HashMap;
     use super::super::*;
 
     #[test]
     fn running_process_returns_no_exit_status() {
-        let mut cmd = Command::new("C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.\
-                                    exe");
-        cmd.arg("-noprofile")
-            .arg("-command")
-            .arg("while($true) { Start-Sleep 1 }");
-        let mut child = cmd.spawn().unwrap();
+        let mut child = windows_child::Child::spawn(
+            "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+            vec!["-noprofile", "-command", "while($true) { Start-Sleep 1 }"],
+            &HashMap::new()).unwrap();
 
         let mut hab_child = HabChild::from(&mut child).unwrap();
 
@@ -292,12 +343,11 @@ mod tests {
 
     #[test]
     fn successfully_run_process_exits_zero() {
-        let mut cmd = Command::new("C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.\
-                                    exe");
-        cmd.arg("-noprofile").arg("-command").arg("$a='b'");
-        let mut child = cmd.spawn().unwrap();
-
+        let mut child = windows_child::Child::spawn(
+            "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+            vec!["-noprofile", "-command", "$a='b'"], &HashMap::new()).unwrap();
         let mut hab_child = HabChild::from(&mut child).unwrap();
+
         let _ = child.wait();
 
         assert_eq!(hab_child.status().unwrap().code(), Some(0))
@@ -305,12 +355,10 @@ mod tests {
 
     #[test]
     fn terminated_process_returns_non_zero_exit() {
-        let mut cmd = Command::new("C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.\
-                                    exe");
-        cmd.arg("-noprofile")
-            .arg("-command")
-            .arg("while($true) { Start-Sleep 1 }");
-        let mut child = cmd.spawn().unwrap();
+        let mut child = windows_child::Child::spawn(
+            "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+            vec!["-noprofile", "-command", "while($true) { Start-Sleep 1 }"],
+            &HashMap::new()).unwrap();
 
         let mut hab_child = HabChild::from(&mut child).unwrap();
         let _ = child.kill();
@@ -320,10 +368,9 @@ mod tests {
 
     #[test]
     fn process_that_exits_with_specific_code_has_same_exit_code() {
-        let mut cmd = Command::new("C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.\
-                                    exe");
-        cmd.arg("-noprofile").arg("-command").arg("exit 5000");
-        let mut child = cmd.spawn().unwrap();
+        let mut child = windows_child::Child::spawn(
+            "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+            vec!["-noprofile", "-command", "exit 5000"], &HashMap::new()).unwrap();
 
         let mut hab_child = HabChild::from(&mut child).unwrap();
         let _ = child.wait();
