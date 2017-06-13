@@ -260,6 +260,13 @@ Currently the `hab` command will build (as well as the dependent crates).
 
 Work is in progress on the supervisor and other parts of the toolchain.
 
+# Running all builder components
+
+Run this command:
+```
+make bldr-run
+```
+
 # Building and running individual components
 
 When you are working on an individual component in the /components directory, you may wish to build, install, then use that individual component.
