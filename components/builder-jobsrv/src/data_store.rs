@@ -82,7 +82,7 @@ impl DataStore {
         // The core jobs table
         migrator
             .migrate("jobsrv",
-                     r#"CREATE TABLE jobs (
+                     r#"CREATE TABLE IF NOT EXISTS jobs (
                                     id bigint PRIMARY KEY DEFAULT next_id_v1('job_id_seq'),
                                     owner_id bigint,
                                     job_state text,

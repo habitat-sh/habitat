@@ -19,6 +19,9 @@ fnv = "*"
 fallible-iterator = "*"
 threadpool = "*"
 
+[dependencies.habitat_core]
+path = "../core"
+
 [dependencies.habitat_net]
 path = "../net"
 

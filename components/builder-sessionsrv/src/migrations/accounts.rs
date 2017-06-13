@@ -22,7 +22,7 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                  r#"CREATE SEQUENCE IF NOT EXISTS accounts_id_seq;"#)?;
     migrator
         .migrate("accountsrv",
-                 r#"CREATE TABLE accounts (
+                 r#"CREATE TABLE IF NOT EXISTS accounts (
                         id bigint PRIMARY KEY DEFAULT next_id_v1('accounts_id_seq'),
                         name text UNIQUE,
                         email text UNIQUE,
@@ -70,7 +70,7 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                  $$ LANGUAGE plpgsql STABLE"#)?;
     migrator
         .migrate("accountsrv",
-                 r#"CREATE TABLE account_origins (
+                 r#"CREATE TABLE IF NOT EXISTS account_origins (
                         account_id bigint,
                         account_name text,
                         origin_id bigint,

@@ -22,7 +22,7 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                  r#"CREATE SEQUENCE IF NOT EXISTS origin_channel_id_seq;"#)?;
     migrator
         .migrate("originsrv",
-                 r#"CREATE TABLE origin_channels (
+                 r#"CREATE TABLE IF NOT EXISTS origin_channels (
                     id bigint PRIMARY KEY DEFAULT next_id_v1('origin_channel_id_seq'),
                     origin_id bigint REFERENCES origins(id),
                     owner_id bigint,
@@ -33,7 +33,7 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
              )"#)?;
     migrator
         .migrate("originsrv",
-                 r#"CREATE TABLE origin_channel_packages (
+                 r#"CREATE TABLE IF NOT EXISTS origin_channel_packages (
                     channel_id bigint REFERENCES origin_channels(id) ON DELETE CASCADE,
                     package_id bigint REFERENCES origin_packages(id),
                     created_at timestamptz DEFAULT now(),

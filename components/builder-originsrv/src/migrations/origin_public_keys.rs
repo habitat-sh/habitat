@@ -22,7 +22,7 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                  r#"CREATE SEQUENCE IF NOT EXISTS origin_public_key_id_seq;"#)?;
     migrator
         .migrate("originsrv",
-                 r#"CREATE TABLE origin_public_keys (
+                 r#"CREATE TABLE IF NOT EXISTS origin_public_keys (
                     id bigint PRIMARY KEY DEFAULT next_id_v1('origin_public_key_id_seq'),
                     origin_id bigint REFERENCES origins(id),
                     owner_id bigint,

@@ -67,3 +67,109 @@ fn migrate() {
         }
     });
 }
+
+#[test]
+#[allow(unused_must_use)]
+fn migrate_out_of_order_edits() {
+    with_pool!(pool, {
+        let conn = pool.get_raw().expect("cannot get connection");
+        {
+            let xact = conn.transaction().expect("cannot get transaction");
+            let mut migrator = Migrator::new(xact, vec![0, 1]);
+            migrator
+                .setup()
+                .expect("Migration setup must be idempotent");
+            migrator
+                .migrate("metal",
+                         r#"CREATE TABLE bands (
+                                    name text PRIMARY KEY,
+                                    style text
+                                 )"#)
+                .expect("Migration should be run successfully");
+            migrator
+                .migrate("metal",
+                         r#"CREATE TABLE cars (
+                                    name text PRIMARY KEY,
+                                    style text
+                                 )"#)
+                .expect("Migration should be run successfully");
+            migrator.finish();
+        }
+        {
+            let xact = conn.transaction().expect("cannot get transaction");
+            let mut migrator = Migrator::new(xact, vec![0, 1]);
+            migrator
+                .setup()
+                .expect("Migration setup must be idempotent");
+            migrator
+                .migrate("metal",
+                         r#"CREATE TABLE bands (
+                                    name text PRIMARY KEY,
+                                    style text
+                                 )"#)
+                .expect("Migration should be run successfully");
+            migrator
+                .migrate("metal",
+                         r#"CREATE TABLE hats (
+                                    name text PRIMARY KEY,
+                                    style text
+                                 )"#)
+                .expect("Migration should be run successfully");
+            migrator
+                .migrate("metal",
+                         r#"CREATE TABLE cars (
+                                    name text PRIMARY KEY,
+                                    style text
+                                 )"#)
+                .expect("Migration should be run successfully");
+            migrator.finish();
+        }
+        {
+            let xact = conn.transaction().expect("cannot get transaction");
+            let mut migrator = Migrator::new(xact, vec![0, 1]);
+            migrator
+                .setup()
+                .expect("Migration setup must be idempotent");
+            migrator
+                .migrate("metal",
+                         r#"CREATE TABLE bands (
+                                    name text PRIMARY KEY,
+                                    style text
+                                 )"#)
+                .expect("Migration should be run successfully");
+            migrator
+                .migrate("metal",
+                         r#"CREATE TABLE hats (
+                                    name text PRIMARY KEY,
+                                    style text
+                                 )"#)
+                .expect("Migration should be run successfully");
+            migrator
+                .migrate("metal",
+                         r#"CREATE TABLE cars (
+                                    name text PRIMARY KEY,
+                                    style text
+                                 )"#)
+                .expect("Migration should be run successfully");
+            migrator
+                .migrate("metal",
+                         r#"CREATE TABLE forks (
+                                    name text PRIMARY KEY,
+                                    style text
+                                 )"#)
+                .expect("Migration should be run successfully");
+            migrator.finish();
+        }
+        {
+            let xact = conn.transaction().expect("cannot get transaction");
+            xact.execute("SELECT * FROM bands", &[])
+                .expect("Table should exist");
+            xact.execute("SELECT * FROM hats", &[])
+                .expect("Table should exist");
+            xact.execute("SELECT * FROM cars", &[])
+                .expect("Table should exist");
+            xact.execute("SELECT * FROM forks", &[])
+                .expect("Table should exist");
+        }
+    });
+}
