@@ -167,6 +167,22 @@ The response should be something like this:
 
 Repeat the above steps for any other projects that you want to build.
 
+## Upload any dependent packages to disk
+
+During a build, the hab studio will look to download dependent packages from
+your local machine. If the package metadata is present, but the on-disk
+archive is not accessible, the builds will fail.
+
+Make sure you do a `hab pkg upload` to your environment
+```
+export HAB_DEPOT_URL=http://localhost:9636/v1/depot
+hab pkg upload <package>
+```
+
+You can get the packages from the production or acceptance environments
+by pointing `HAB_DEPOT_URL` to https://app.habitat.sh or
+http://app.acceptance.habitat.sh, and then doing a ```hab pkg install <package>```.
+
 ## Run a build
 
 Issue the following command (replace `core/nginx` with your origin and package names):
@@ -241,6 +257,21 @@ http GET http://localhost:9636/v1/depot/origins/core/users Authorization:Bearer:
 
 1. If you get a `NOSPC` error when starting depot UI, see the following:
 http://stackoverflow.com/questions/22475849/node-js-error-enospc
+
+1. If you get a `404 Not Found` error during a build, make sure that you
+have uploaded any dependent packages locally.
+
+```
+hab-studio: Destroying Studio at /tmp/739078532143013888/studio (unknown)
+hab-studio: Creating Studio at /tmp/739078532143013888/studio (default)
+hab-studio: Importing core secret origin key
+» Importing origin key from standard input
+★ Imported secret origin key core-20160810182414.
+» Installing core/hab-backline
+✗✗✗
+✗✗✗ [404 Not Found]
+✗✗✗
+```
 
 ### Postgres troubleshooting:
 1. If you are not able to connect at all, check the `pg_hba.conf` file in `/hab/svc/postgresql` or `/hab/svc/postgres/config`.
