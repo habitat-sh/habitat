@@ -19,13 +19,24 @@ elif [ "$(cat VERSION)" == "$TRAVIS_TAG" ]; then
   echo "This is a release tag. Congrats on the new  $TRAVIS_TAG release!!"
 else
   # If $AFFECTED_DIRS (a "|" separated list of directories) is set, see if we have
-  # any changes
+  # any changes. To figure this out, we need to compare the contents of all commits
+  # since the last merge commit (excluding the most recent one, if it is one).
 
-  # TRAVIS_COMMIT_RANGE is empty for the first push to a new branch (which is how our bot
-  # validates before merge), so if TRAVIS_COMMIT_RANGE is empty, we'll look for the
-  # last merge commit and check from there.
-  COMMIT_RANGE=${TRAVIS_COMMIT_RANGE:-$(git show :/^Merge --pretty=format:%H)}
-  git diff --name-only "$COMMIT_RANGE" | grep -qE "^($AFFECTED_DIRS)" || {
+  LATEST_MERGE_COMMIT=$(git log --merges --max-count=1 --pretty=format:%H)
+
+  if [ "$TRAVIS_COMMIT" == "$LATEST_MERGE_COMMIT" ]; then
+    COMMIT_RANGE="$TRAVIS_COMMIT"
+  else
+    COMMIT_RANGE="$TRAVIS_COMMIT...$LATEST_MERGE_COMMIT"
+  fi
+
+  CHANGED_FILES=$(git log -m --max-count=1 --name-only --pretty=format: "$COMMIT_RANGE")
+
+  echo "LATEST_MERGE_COMMIT: $LATEST_MERGE_COMMIT"
+  echo "COMMIT_RANGE: $COMMIT_RANGE"
+  echo "CHANGED_FILES: $CHANGED_FILES"
+
+  echo "$CHANGED_FILES" | grep -qE "^($AFFECTED_DIRS)" || {
     echo "No files in $AFFECTED_DIRS have changed. Skipping CI run."
     exit 1
   }
