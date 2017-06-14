@@ -52,7 +52,14 @@ export class PackagesPageComponent implements OnInit, OnDestroy {
         this.searchBox = new FormControl(this.searchQuery);
 
         this.searchBox.valueChanges.debounceTime(400).distinctUntilChanged().
-            subscribe(query => this.search(query));
+            subscribe(query => {
+                if (query) {
+                    this.search(query);
+                } else {
+                    this.store.dispatch(setPackagesSearchQuery(""));
+                    this.fetch();
+                }
+            });
     }
 
     ngOnDestroy() {
