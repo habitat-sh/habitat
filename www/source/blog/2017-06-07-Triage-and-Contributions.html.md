@@ -20,6 +20,7 @@ The first change is relatively low impact but if you spend time tracking our dev
 | *EFFORT TAGS* Prefix "E-"         | Should a contributor undertake, what is the estimated effort level. |
 | *LANGUAGE TAGS* Prefix "L-"       | Pretty straightforward right? What language the work will involve.  |
 | *STATUS TAGS* Prefix "S-"         | The current status of an issue or pull request.   |
+| *PLATFORM TAGS* Prefix "P-"       | Issue is in regards to specific platform.         |
 
 Obviously these specific labels might change in the future and for a full breakdown of what each individual tag means you can check out the [Label Names and Definitions](https://github.com/habitat-sh/habitat/wiki/Label-Names-and-Definitions) post in the [wiki](https://github.com/habitat-sh/habitat/wiki) (side note on the wiki: this is another item we plan on fleshing out with content as we continue forward with the project!).
 
