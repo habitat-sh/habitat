@@ -246,24 +246,27 @@ fn do_rdeps(graph: &PackageGraph, name: &str, filter: &str, max: usize) {
     let start_time = PreciseTime::now();
 
     match graph.rdeps(name) {
-        Some(mut rdeps) => {
+        Some(rdeps) => {
             let end_time = PreciseTime::now();
+            let mut filtered: Vec<(String, String)> = rdeps
+                .into_iter()
+                .filter(|&(ref x, _)| x.starts_with(filter))
+                .collect();
+
             println!("OK: {} items ({} sec)\n",
-                     rdeps.len(),
+                     filtered.len(),
                      start_time.to(end_time));
 
-            if rdeps.len() > max {
-                rdeps.drain(max..);
+            if filtered.len() > max {
+                filtered.drain(max..);
             }
 
             if filter.len() > 0 {
                 println!("Results filtered by: {}", filter);
             }
 
-            for (s1, s2) in rdeps {
-                if s1.starts_with(filter) {
-                    println!("{} ({})", s1, s2);
-                }
+            for (s1, s2) in filtered {
+                println!("{} ({})", s1, s2);
             }
         }
         None => println!("No entries found"),
