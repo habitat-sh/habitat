@@ -48,7 +48,7 @@ import { PackageListComponent } from "./package-page/PackageListComponent";
 import { PackagePageComponent } from "./package-page/PackagePageComponent";
 import { PackageVersionsPageComponent } from "./package-versions-page/package-versions-page.component";
 import { PackagesListComponent } from "./packages-list/PackagesListComponent";
-import { PackagesPageComponent } from "./packages-page/PackagesPageComponent";
+import { PackagesPageComponent } from "./packages-page/packages-page.component";
 import { ProjectSettingsPageComponent } from "./project-settings-page/ProjectSettingsPageComponent";
 import { ProjectCreatePageComponent } from "./project-create-page/ProjectCreatePageComponent";
 import { ProjectInfoComponent } from "./project-info/ProjectInfoComponent";

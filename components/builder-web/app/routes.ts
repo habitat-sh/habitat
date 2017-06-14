@@ -25,7 +25,7 @@ import { OrganizationsPageComponent } from "./organizations-page/OrganizationsPa
 import { PackageBuildsComponent } from "./package-builds/package-builds.component";
 import { PackagePageComponent } from "./package-page/PackagePageComponent";
 import { PackageVersionsPageComponent } from "./package-versions-page/package-versions-page.component";
-import { PackagesPageComponent } from "./packages-page/PackagesPageComponent";
+import { PackagesPageComponent } from "./packages-page/packages-page.component";
 import { ProjectCreatePageComponent } from "./project-create-page/ProjectCreatePageComponent";
 import { ProjectPageComponent } from "./project-page/ProjectPageComponent";
 import { ProjectsPageComponent } from "./projects-page/ProjectsPageComponent";

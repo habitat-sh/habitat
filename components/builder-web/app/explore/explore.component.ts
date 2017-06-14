@@ -38,6 +38,6 @@ export class ExploreComponent implements OnInit, OnDestroy {
     }
 
     search(term) {
-        this.router.navigate(["pkgs", "search", encodeURIComponent(term.trim())]);
+        this.router.navigate(["pkgs", "search", term.trim()]);
     }
 }

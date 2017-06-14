@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import { Component, Input } from "@angular/core";
+import { releaseToDate } from "../util";
 
 @Component({
     selector: "hab-package-info",
@@ -44,6 +45,10 @@ import { Component, Input } from "@angular/core";
       </div>
     </div>
     <div class="page-body--sidebar">
+      <div class="hab-package-latest-build">
+        <h3>Latest Build</h3>
+        <div>{{releaseToDate(package.ident.release)}}</div>
+      </div>
       <div class="hab-package-deps-build">
         <h3>Dependencies</h3>
         <hab-package-list [currentPackage]="package"
@@ -60,4 +65,8 @@ import { Component, Input } from "@angular/core";
 
 export class PackageInfoComponent {
     @Input() package: Object;
+
+    releaseToDate(release) {
+        return releaseToDate(release);
+    }
 }

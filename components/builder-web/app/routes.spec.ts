@@ -8,7 +8,7 @@ import { OrganizationCreatePageComponent } from "./organization-create-page/Orga
 import { OrganizationsPageComponent } from "./organizations-page/OrganizationsPageComponent";
 import { PackageBuildsComponent } from "./package-builds/package-builds.component";
 import { PackagePageComponent } from "./package-page/PackagePageComponent";
-import { PackagesPageComponent } from "./packages-page/PackagesPageComponent";
+import { PackagesPageComponent } from "./packages-page/packages-page.component";
 import { ProjectCreatePageComponent } from "./project-create-page/ProjectCreatePageComponent";
 import { ProjectPageComponent } from "./project-page/ProjectPageComponent";
 import { ProjectsPageComponent } from "./projects-page/ProjectsPageComponent";

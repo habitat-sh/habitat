@@ -9,7 +9,7 @@ import { List } from "immutable";
 import { MockComponent } from "ng2-mock-component";
 import * as actions from "../actions/index";
 import { AppStore } from "../AppStore";
-import { PackagesPageComponent } from "./PackagesPageComponent";
+import { PackagesPageComponent } from "./packages-page.component";
 
 class MockAppStore {
   static state;

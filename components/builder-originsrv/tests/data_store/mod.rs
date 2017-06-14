@@ -546,7 +546,7 @@ fn get_origin_project_by_name() {
     let mut opc = originsrv::OriginProjectCreate::new();
     opc.set_project(op);
 
-    ds.create_origin_project(&opc);
+    let _ = ds.create_origin_project(&opc);
 
     let project = ds.get_origin_project_by_name("neurosis/zeal")
         .expect("Error getting project form database")
@@ -968,14 +968,14 @@ fn list_origin_package_versions_for_origin() {
     let result = ds.list_origin_package_versions_for_origin(&opvl.clone())
         .expect("Could not get the packages from the database");
     assert_eq!(result.get_versions().len(), 2);
-    let v1 = result.get_versions().iter().nth(1).unwrap();
-    assert_eq!(v1.get_version(), "2017.01.17");
-    assert_eq!(v1.get_release_count(), 1);
-    assert_eq!(v1.get_latest(), "20170209064044");
-    let v2 = result.get_versions().iter().nth(0).unwrap();
-    assert_eq!(v2.get_version(), "2017.01.18");
-    assert_eq!(v2.get_release_count(), 2);
-    assert_eq!(v2.get_latest(), "20170209064045");
+    let v1 = result.get_versions().iter().nth(0).unwrap();
+    assert_eq!(v1.get_version(), "2017.01.18");
+    assert_eq!(v1.get_release_count(), 2);
+    assert_eq!(v1.get_latest(), "20170209064045");
+    let v2 = result.get_versions().iter().nth(1).unwrap();
+    assert_eq!(v2.get_version(), "2017.01.17");
+    assert_eq!(v2.get_release_count(), 1);
+    assert_eq!(v2.get_latest(), "20170209064044");
 
     opvl.set_name("crazy".to_string());
     let result2 = ds.list_origin_package_versions_for_origin(&opvl)
@@ -1055,7 +1055,7 @@ fn list_origin_package_for_origin() {
     let pkg1 = result.get_idents().iter().nth(0).unwrap();
     assert_eq!(pkg1.to_string(), ident2.to_string());
     let pkg2 = result.get_idents().iter().nth(1).unwrap();
-    assert_eq!(pkg2.to_string(), ident3.to_string());
+    assert_eq!(pkg2.to_string(), ident1.to_string());
 
     opl.set_start(1);
     opl.set_stop(20);
@@ -1208,6 +1208,11 @@ fn search_origin_package_for_origin() {
         .expect("Should create origin")
         .unwrap();
 
+    origin.set_name(String::from("ace"));
+    let origin4 = ds.create_origin(&origin)
+        .expect("Should create origin")
+        .unwrap();
+
     let mut ident1 = originsrv::OriginPackageIdent::new();
     ident1.set_origin("core".to_string());
     ident1.set_name("red".to_string());
@@ -1238,6 +1243,12 @@ fn search_origin_package_for_origin() {
     ident5.set_version("2017.01.19".to_string());
     ident5.set_release("20170209064045".to_string());
 
+    let mut ident6 = originsrv::OriginPackageIdent::new();
+    ident6.set_origin("ace".to_string());
+    ident6.set_name("red_dog".to_string());
+    ident6.set_version("2017.01.19".to_string());
+    ident6.set_release("20170209064045".to_string());
+
     let mut package = originsrv::OriginPackageCreate::new();
     package.set_owner_id(1);
     package.set_origin_id(origin1.get_id());
@@ -1267,6 +1278,11 @@ fn search_origin_package_for_origin() {
 
     package.set_ident(ident5.clone());
     package.set_origin_id(origin3.get_id());
+    ds.create_origin_package(&package.clone())
+        .expect("Failed to create origin package");
+
+    package.set_ident(ident6.clone());
+    package.set_origin_id(origin4.get_id());
     ds.create_origin_package(&package.clone())
         .expect("Failed to create origin package");
 
@@ -1314,16 +1330,37 @@ fn search_origin_package_for_origin() {
     ops.set_start(0);
     ops.set_stop(20);
     ops.set_distinct(true);
-    let result2 = ds.search_origin_package_for_origin(&ops)
+    let result4 = ds.search_origin_package_for_origin(&ops)
         .expect("Could not get the packages from the database");
-    assert_eq!(result2.get_idents().len(), 2);
-    assert_eq!(result2.get_start(), 0);
-    assert_eq!(result2.get_stop(), 1);
-    assert_eq!(result2.get_count(), 2);
-    let pkg1 = result2.get_idents().iter().nth(0).unwrap();
+    assert_eq!(result4.get_idents().len(), 2);
+    assert_eq!(result4.get_start(), 0);
+    assert_eq!(result4.get_stop(), 1);
+    assert_eq!(result4.get_count(), 2);
+    let pkg1 = result4.get_idents().iter().nth(0).unwrap();
     assert_eq!(pkg1.to_string(), "core/red");
-    let pkg2 = result2.get_idents().iter().nth(1).unwrap();
+    let pkg2 = result4.get_idents().iter().nth(1).unwrap();
     assert_eq!(pkg2.to_string(), "core/red_dog");
+
+    ops.set_query("red".to_string());
+    ops.set_start(0);
+    ops.set_stop(20);
+    ops.set_distinct(true);
+    let result5 = ds.search_origin_package_for_origin(&ops)
+        .expect("Could not get the packages from the database");
+    assert_eq!(result5.get_idents().len(), 5);
+    assert_eq!(result5.get_start(), 0);
+    assert_eq!(result5.get_stop(), 4);
+    assert_eq!(result5.get_count(), 1);
+    let pkg1 = result5.get_idents().iter().nth(0).unwrap();
+    assert_eq!(pkg1.to_string(), "core/red");
+    let pkg2 = result5.get_idents().iter().nth(1).unwrap();
+    assert_eq!(pkg2.to_string(), "core/red_dog");
+    let pkg3 = result5.get_idents().iter().nth(2).unwrap();
+    assert_eq!(pkg3.to_string(), "ace/red_dog");
+    let pkg4 = result5.get_idents().iter().nth(3).unwrap();
+    assert_eq!(pkg4.to_string(), "core2/red");
+    let pkg5 = result5.get_idents().iter().nth(4).unwrap();
+    assert_eq!(pkg5.to_string(), "josh/red_dog");
 }
 
 #[test]
@@ -1882,7 +1919,7 @@ fn delete_origin_channel_by_name() {
     let mut ocg = originsrv::OriginChannelGet::new();
     ocg.set_origin_name(neurosis.get_name().to_string());
     ocg.set_name(channel1.get_name().to_string());
-    let channel = ds.get_origin_channel(&ocg)
+    let _ = ds.get_origin_channel(&ocg)
         .expect("Could not get the channels from the database")
         .unwrap();
 
@@ -1918,7 +1955,7 @@ fn delete_origin_channel_by_name() {
     let mut ocg2 = originsrv::OriginChannelGet::new();
     ocg2.set_origin_name(neurosis.get_name().to_string());
     ocg2.set_name(channel2.get_name().to_string());
-    let channel = ds.get_origin_channel(&ocg2)
+    let _ = ds.get_origin_channel(&ocg2)
         .expect("Could not get the channels from the database")
         .unwrap();
 
@@ -1949,7 +1986,7 @@ fn delete_origin_channel_by_name() {
     let mut package_get = originsrv::OriginChannelPackageGet::new();
     package_get.set_ident(ident1.clone());
     package_get.set_name(channel2.get_name().to_string());
-    let result = ds.get_origin_channel_package(&package_get)
+    let _ = ds.get_origin_channel_package(&package_get)
         .expect("Failed to get origin channel package")
         .unwrap();
 
@@ -1963,7 +2000,7 @@ fn delete_origin_channel_by_name() {
     // Check that the package still exists
     let mut package_get = originsrv::OriginPackageGet::new();
     package_get.set_ident(ident1.clone());
-    let result = ds.get_origin_package(&package_get)
+    let _ = ds.get_origin_package(&package_get)
         .expect("Failed to get origin package")
         .unwrap();
 
