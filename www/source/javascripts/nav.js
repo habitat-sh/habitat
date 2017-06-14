@@ -7,6 +7,9 @@ const navPageLinks = ['about', 'docs', 'tutorials', 'community', 'blog'];
 const stickyBreakpoint = 280;
 const stickyVisibleBreakpoint = 300;
 
+console.log("Just testing a few things; don't mind me....");
+console.log("And now I'm adding another line here.");
+
 (function nav($, cookies) {
   var profile;
 
