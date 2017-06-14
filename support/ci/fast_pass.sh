@@ -24,8 +24,19 @@ else
   # TRAVIS_COMMIT_RANGE is empty for the first push to a new branch (which is how our bot
   # validates before merge), so if TRAVIS_COMMIT_RANGE is empty, we'll look for the
   # last merge commit and check from there.
-  COMMIT_RANGE=${TRAVIS_COMMIT_RANGE:-$(git show :/^Merge --pretty=format:%H)}
-  git diff --name-only "$COMMIT_RANGE" | grep -qE "^($AFFECTED_DIRS)" || {
+  echo "TRAVIS_COMMIT_RANGE: $TRAVIS_COMMIT_RANGE"
+
+  LATEST_MERGE_COMMIT="$(git log --merges --max-count=1 --pretty=format:%H)"
+  echo "LATEST_MERGE_COMMIT: $LATEST_MERGE_COMMIT"
+
+  COMMIT_RANGE=${TRAVIS_COMMIT_RANGE:-$LATEST_MERGE_COMMIT}
+  echo "COMMIT_RANGE: $COMMIT_RANGE"
+
+  AFFECTED_FILES="$(git log -m --max-count=1 --name-only --pretty=format: $COMMIT_RANGE)"
+  echo "AFFECTED_FILES: $AFFECTED_FILES"
+
+  # The -m flag makes merge commits show the full diff like regular commits.
+  echo "$AFFECTED_FILES" | grep -qE "^($AFFECTED_DIRS)" || {
     echo "No files in $AFFECTED_DIRS have changed. Skipping CI run."
     exit 1
   }
