@@ -1,8 +1,14 @@
 [package]
-name = "hab-spider"
-version = "0.1.0"
-authors = ["Salim Alam <salam@chef.io>"]
+name = "habitat_builder_graph"
+version = "0.0.0"
+authors = ["The Habitat Maintainers <humans@habitat.sh>"]
+description = "Habitat-Builder Graph Dev Tool"
+build = "../bldr-build.rs"
 workspace = "../../"
+
+[[bin]]
+name = "bldr-graph"
+doc = false
 
 [dependencies]
 log = "*"
