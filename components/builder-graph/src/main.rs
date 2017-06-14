@@ -43,13 +43,16 @@ use bldr_core::package_graph::PackageGraph;
 use hab_core::config::ConfigFile;
 use config::Config;
 use data_store::DataStore;
+use std::collections::HashMap;
+
+const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 
 fn main() {
     env_logger::init().unwrap();
 
-    let matches = App::new("hab-spider")
-        .version("0.1.0")
-        .about("Habitat package graph builder")
+    let matches = App::new("bldr-graph")
+        .version(VERSION)
+        .about("Habitat Graph Dev Tool")
         .arg(Arg::with_name("config")
                  .help("Filepath to configuration file")
                  .required(false)
@@ -79,15 +82,13 @@ fn main() {
              ecount,
              start_time.to(end_time));
 
-    println!("\nAvailable commands: help, stats, top, find, resolve, rdeps, exit\n");
+    println!("\nAvailable commands: help, stats, top, find, resolve, filter, rdeps, deps, check, exit\n",);
 
+    let mut filter = String::from("");
     let mut done = false;
     while !done {
-        print!("spider> ");
-        io::stdout()
-            .flush()
-            .ok()
-            .expect("Could not flush stdout");
+        print!("command> ");
+        io::stdout().flush().ok().expect("Could not flush stdout");
 
         let mut cmd = String::new();
         io::stdin().read_line(&mut cmd).unwrap();
@@ -105,6 +106,15 @@ fn main() {
                         v[1].parse::<usize>().unwrap()
                     };
                     do_top(&graph, count);
+                }
+                "filter" => {
+                    if v.len() < 2 {
+                        filter = String::from("");
+                        println!("Removed filter\n");
+                    } else {
+                        filter = String::from(v[1]);
+                        println!("New filter: {}\n", filter);
+                    }
                 }
                 "find" => {
                     if v.len() < 2 {
@@ -134,7 +144,21 @@ fn main() {
                         } else {
                             10
                         };
-                        do_rdeps(&graph, v[1].to_lowercase().as_str(), max)
+                        do_rdeps(&graph, v[1].to_lowercase().as_str(), &filter, max)
+                    }
+                }
+                "deps" => {
+                    if v.len() < 2 {
+                        println!("Missing package name\n")
+                    } else {
+                        do_deps(&datastore, &graph, v[1].to_lowercase().as_str(), &filter)
+                    }
+                }
+                "check" => {
+                    if v.len() < 2 {
+                        println!("Missing package name\n")
+                    } else {
+                        do_check(&datastore, &graph, v[1].to_lowercase().as_str(), &filter)
                     }
                 }
                 "exit" => done = true,
@@ -145,13 +169,16 @@ fn main() {
 }
 
 fn do_help() {
-    println!("COMMANDS:");
+    println!("Commands:");
     println!("  help                    Print this message");
     println!("  stats                   Print graph statistics");
     println!("  top     [<count>]       Print nodes with the most reverse dependencies");
+    println!("  filter  [<origin>]      Filter outputs to the specified origin");
     println!("  resolve <name>          Find the most recent version of the package 'origin/name'");
     println!("  find    <term> [<max>]  Find packages that match the search term, up to max items");
     println!("  rdeps   <name> [<max>]  Print the reverse dependencies for the package, up to max");
+    println!("  deps    <name>|<ident>  Print the forward dependencies for the package");
+    println!("  check   <name>|<ident>  Validate the latest dependencies for the package");
     println!("  exit                    Exit the application\n");
 }
 
@@ -215,7 +242,7 @@ fn do_resolve(graph: &PackageGraph, name: &str) {
     println!("");
 }
 
-fn do_rdeps(graph: &PackageGraph, name: &str, max: usize) {
+fn do_rdeps(graph: &PackageGraph, name: &str, filter: &str, max: usize) {
     let start_time = PreciseTime::now();
 
     match graph.rdeps(name) {
@@ -229,12 +256,126 @@ fn do_rdeps(graph: &PackageGraph, name: &str, max: usize) {
                 rdeps.drain(max..);
             }
 
+            if filter.len() > 0 {
+                println!("Results filtered by: {}", filter);
+            }
+
             for (s1, s2) in rdeps {
-                println!("{} ({})", s1, s2);
+                if s1.starts_with(filter) {
+                    println!("{} ({})", s1, s2);
+                }
             }
         }
         None => println!("No entries found"),
     }
 
     println!("");
+}
+
+fn resolve_name(graph: &PackageGraph, name: &str) -> String {
+    let parts: Vec<&str> = name.split("/").collect();
+    if parts.len() == 2 {
+        match graph.resolve(name) {
+            Some(s) => s,
+            None => String::from(name),
+        }
+    } else {
+        String::from(name)
+    }
+}
+
+fn do_deps(datastore: &DataStore, graph: &PackageGraph, name: &str, filter: &str) {
+    let start_time = PreciseTime::now();
+    let ident = resolve_name(graph, name);
+
+    println!("Dependencies for: {}", ident);
+
+    match datastore.get_package(&ident) {
+        Ok(package) => {
+            let end_time = PreciseTime::now();
+            println!("OK: {} items ({} sec)\n",
+                     package.get_deps().len(),
+                     start_time.to(end_time));
+
+            if filter.len() > 0 {
+                println!("Results filtered by: {}\n", filter);
+            }
+
+            for dep in package.get_deps() {
+                if dep.starts_with(filter) {
+                    println!("{}", dep)
+                }
+            }
+        }
+        Err(_) => println!("No matching package found"),
+    }
+
+    println!("");
+}
+
+fn short_name(ident: &str) -> String {
+    let parts: Vec<&str> = ident.split("/").collect();
+    assert!(parts.len() >= 2);
+    format!("{}/{}", parts[0], parts[1])
+}
+
+fn do_check(datastore: &DataStore, graph: &PackageGraph, name: &str, filter: &str) {
+    let start_time = PreciseTime::now();
+    let mut deps_map = HashMap::new();
+    let mut new_deps = Vec::new();
+    let ident = resolve_name(graph, name);
+
+    match datastore.get_package(&ident) {
+        Ok(package) => {
+            if filter.len() > 0 {
+                println!("Checks filtered by: {}\n", filter);
+            }
+
+            println!("Dependecy version updates:");
+            for dep in package.get_deps() {
+                if dep.starts_with(filter) {
+                    let dep_name = short_name(dep);
+                    let dep_latest = resolve_name(graph, &dep_name);
+                    deps_map.insert(dep_name, dep_latest.clone());
+                    new_deps.push(dep_latest.clone());
+                    println!("{} -> {}", dep, dep_latest);
+                }
+            }
+
+            println!("");
+
+            for new_dep in new_deps {
+                check_package(datastore, &mut deps_map, &new_dep, filter);
+            }
+        }
+        Err(_) => println!("No matching package found"),
+    }
+
+    let end_time = PreciseTime::now();
+    println!("\nTime: {} sec\n", start_time.to(end_time));
+}
+
+fn check_package(datastore: &DataStore,
+                 mut deps_map: &mut HashMap<String, String>,
+                 ident: &str,
+                 filter: &str) {
+    match datastore.get_package(ident) {
+        Ok(package) => {
+            for dep in package.get_deps() {
+                if dep.starts_with(filter) {
+                    let name = short_name(dep);
+                    {
+                        let entry = deps_map.entry(name).or_insert(dep.clone());
+                        if *entry != *dep {
+                            println!("Conflict: {}", ident);
+                            println!("  {}", *entry);
+                            println!("  {}", dep);
+                        }
+                    }
+                    check_package(datastore, deps_map, dep, filter);
+                }
+            }
+        }
+        Err(_) => println!("No matching package found for {}", ident),
+    };
 }

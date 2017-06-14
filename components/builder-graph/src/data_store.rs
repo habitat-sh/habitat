@@ -83,6 +83,22 @@ impl DataStore {
         Ok(packages)
     }
 
+    pub fn get_package(&self, ident: &str) -> Result<Package> {
+        let conn = self.pool.get_shard(0)?;
+
+        let rows = &conn.query("SELECT * FROM get_package_v1($1)", &[&ident])
+                        .map_err(Error::PackagesGet)?;
+
+        if rows.is_empty() {
+            error!("No package found");
+            return Err(Error::UnknownPackage);
+        }
+
+        assert!(rows.len() == 1);
+        let package = self.row_to_package(&rows.get(0))?;
+        Ok(package)
+    }
+
     fn row_to_package(&self, row: &postgres::rows::Row) -> Result<Package> {
         let mut package = Package::new();
 

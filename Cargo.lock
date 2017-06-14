@@ -475,30 +475,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "hab-spider"
-version = "0.1.0"
-dependencies = [
- "builder_core 0.0.0",
- "clap 2.23.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "env_logger 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "habitat_builder_db 0.0.0",
- "habitat_builder_protocol 0.0.0",
- "habitat_core 0.0.0",
- "habitat_net 0.0.0",
- "libarchive 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "log 0.3.7 (registry+https://github.com/rust-lang/crates.io-index)",
- "petgraph 0.4.4 (registry+https://github.com/rust-lang/crates.io-index)",
- "pkg-config 0.3.9 (registry+https://github.com/rust-lang/crates.io-index)",
- "postgres 0.14.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "protobuf 1.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "r2d2 0.7.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "serde 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "serde_derive 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "time 0.1.37 (registry+https://github.com/rust-lang/crates.io-index)",
- "walkdir 1.0.7 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
 name = "habitat_builder_admin"
 version = "0.0.0"
 dependencies = [
@@ -573,6 +549,30 @@ dependencies = [
  "serde_derive 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "threadpool 1.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "time 0.1.37 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "habitat_builder_graph"
+version = "0.0.0"
+dependencies = [
+ "builder_core 0.0.0",
+ "clap 2.23.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "env_logger 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "habitat_builder_db 0.0.0",
+ "habitat_builder_protocol 0.0.0",
+ "habitat_core 0.0.0",
+ "habitat_net 0.0.0",
+ "libarchive 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "log 0.3.7 (registry+https://github.com/rust-lang/crates.io-index)",
+ "petgraph 0.4.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "pkg-config 0.3.9 (registry+https://github.com/rust-lang/crates.io-index)",
+ "postgres 0.14.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "protobuf 1.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "r2d2 0.7.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde_derive 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "time 0.1.37 (registry+https://github.com/rust-lang/crates.io-index)",
+ "walkdir 1.0.7 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]

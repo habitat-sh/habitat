@@ -38,6 +38,7 @@ pub enum Error {
     NetError(hab_net::Error),
     ProtoNetError(protocol::net::NetError),
     Protobuf(protobuf::ProtobufError),
+    UnknownPackage,
 }
 
 pub type Result<T> = result::Result<T, Error>;
@@ -58,6 +59,7 @@ impl fmt::Display for Error {
             Error::NetError(ref e) => format!("{}", e),
             Error::ProtoNetError(ref e) => format!("{}", e),
             Error::Protobuf(ref e) => format!("{}", e),
+            Error::UnknownPackage => format!("Unknown Package"),
         };
         write!(f, "{}", msg)
     }
@@ -77,6 +79,7 @@ impl error::Error for Error {
             Error::NetError(ref err) => err.description(),
             Error::ProtoNetError(ref err) => err.description(),
             Error::Protobuf(ref err) => err.description(),
+            Error::UnknownPackage => "Unknown Package",
         }
     }
 }

@@ -6,6 +6,7 @@ members = [
   "components/builder-db",
   "components/builder-depot",
   "components/builder-depot-client",
+  "components/builder-graph",
   "components/builder-jobsrv",
   "components/builder-scheduler",
   "components/builder-protocol",
@@ -23,6 +24,5 @@ members = [
   "components/sup",
   "components/butterfly",
   "components/butterfly-test",
-  "components/hab-butterfly",
-  "components/hab-spider"
+  "components/hab-butterfly"
 ]
