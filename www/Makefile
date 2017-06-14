@@ -24,9 +24,9 @@ deploy: build sync purge_cache
 
 acceptance: build prep
 	curl -H "Content-Type: application/zip" \
-    -H "Authorization: Bearer $NETLIFYKEY" \
+    -H "Authorization: Bearer $(NETLIFYKEY)" \
     --data-binary "@website.zip" \
-    --url https://api.netlify.com/api/v1/sites/habitat-acceptance.netlify.com/deploys
+    --url "https://api.netlify.com/api/v1/sites/habitat-acceptance.netlify.com/deploys"
 
 check-env:
 ifndef AWS_ACCESS_KEY_ID
