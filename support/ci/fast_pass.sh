@@ -19,13 +19,13 @@ elif [ "$(cat VERSION)" == "$TRAVIS_TAG" ]; then
   echo "This is a release tag. Congrats on the new  $TRAVIS_TAG release!!"
 else
   # If $AFFECTED_DIRS (a "|" separated list of directories) is set, see if we have
-  # any changes
+  # any changes. To make this determination, we can always use the most recent merge
+  # commit on the target branch, since Travis will have created one for us.
 
-  # TRAVIS_COMMIT_RANGE is empty for the first push to a new branch (which is how our bot
-  # validates before merge), so if TRAVIS_COMMIT_RANGE is empty, we'll look for the
-  # last merge commit and check from there.
-  COMMIT_RANGE=${TRAVIS_COMMIT_RANGE:-$(git show :/^Merge --pretty=format:%H)}
-  git diff --name-only "$COMMIT_RANGE" | grep -qE "^($AFFECTED_DIRS)" || {
+  LATEST_MERGE_COMMIT="$(git log --merges --max-count=1 --pretty=format:%H)"
+  CHANGED_FILES="$(git log -m --max-count=1 --name-only --pretty=format: $LATEST_MERGE_COMMIT)"
+
+  echo "$CHANGED_FILES" | grep -qE "^($AFFECTED_DIRS)" || {
     echo "No files in $AFFECTED_DIRS have changed. Skipping CI run."
     exit 1
   }
