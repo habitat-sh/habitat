@@ -84,6 +84,10 @@ FLAGS:
     -h    Prints help information
     -v    Specifies a version (ex: 0.15.0, 0.15.0/20161222215311)
 
+ENVIRONMENT VARIABLES:
+    $SSL_CERT_FILE   allows you to verify against a custom cert such as one
+                     generated from a corporate firewall
+
 USAGE
 }
 
@@ -297,11 +301,17 @@ dl_file() {
   local _url="${1}"
   local _dst="${2}"
   local _code
+  local _wget_extra_args=""
+  local _curl_extra_args=""
 
   # Attempt to download with wget, if found. If successful, quick return
   if command -v wget > /dev/null; then
     info "Downlading via wget: ${_url}"
-    wget -q -O "${_dst}" "${_url}"
+    if [ -n "${SSL_CERT_FILE:-}" ]; then
+      wget ${_wget_extra_args:+"--ca-certificate=${SSL_CERT_FILE}"} -q -O "${_dst}" "${_url}"
+    else
+      wget -q -O "${_dst}" "${_url}"
+    fi
     _code="$?"
     if [ $_code -eq 0 ]; then
       return 0
@@ -315,7 +325,11 @@ dl_file() {
   # Attempt to download with curl, if found. If successful, quick return
   if command -v curl > /dev/null; then
     info "Downlading via curl: ${_url}"
-    curl -sSfL "${_url}" -o "${_dst}"
+    if [ -n "${SSL_CERT_FILE:-}" ]; then
+      curl ${_curl_extra_args:+"--cacert ${SSL_CERT_FILE}"} -sSfL "${_url}" -o "${_dst}"
+    else
+      curl -sSfL "${_url}" -o "${_dst}"
+    fi
     _code="$?"
     if [ $_code -eq 0 ]; then
       return 0
