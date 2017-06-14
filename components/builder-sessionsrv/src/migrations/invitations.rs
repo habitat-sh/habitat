@@ -22,7 +22,7 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                  r#"CREATE SEQUENCE IF NOT EXISTS account_invitations_id_seq;"#)?;
     migrator
         .migrate("accountsrv",
-                 r#"CREATE TABLE account_invitations (
+                 r#"CREATE TABLE IF NOT EXISTS account_invitations (
                         id bigint PRIMARY KEY DEFAULT next_id_v1('account_invitations_id_seq'),
                         origin_invitation_id bigint,
                         origin_id bigint,

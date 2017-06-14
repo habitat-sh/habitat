@@ -31,6 +31,7 @@ pub enum Error {
     AsyncFunctionUpdate(postgres::error::Error),
     ConnectionTimeout(r2d2::GetTimeout),
     FunctionCreate(postgres::error::Error),
+    FunctionDrop(postgres::error::Error),
     FunctionRun(postgres::error::Error),
     NetError(hab_net::Error),
     Migration(postgres::error::Error),
@@ -69,6 +70,7 @@ impl fmt::Display for Error {
             }
             Error::ConnectionTimeout(ref e) => format!("Connection timeout, {}", e),
             Error::FunctionCreate(ref e) => format!("Error creating a function: {}", e),
+            Error::FunctionDrop(ref e) => format!("Error dropping a function: {}", e),
             Error::FunctionRun(ref e) => format!("Error running a function: {}", e),
             Error::NetError(ref e) => format!("{}", e),
             Error::Migration(ref e) => format!("Error executing migration: {}", e),
@@ -103,6 +105,7 @@ impl error::Error for Error {
             Error::AsyncFunctionUpdate(ref e) => e.description(),
             Error::ConnectionTimeout(ref e) => e.description(),
             Error::FunctionCreate(_) => "Error creating database function",
+            Error::FunctionDrop(_) => "Error dropping database function",
             Error::FunctionRun(_) => "Error running a database function",
             Error::NetError(ref err) => err.description(),
             Error::Migration(_) => "Error executing migration",

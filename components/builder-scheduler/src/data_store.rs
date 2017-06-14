@@ -60,7 +60,7 @@ impl DataStore {
         // The packages table
         migrator
             .migrate("scheduler",
-                     r#"CREATE TABLE packages (
+                     r#"CREATE TABLE IF NOT EXISTS packages (
                                      id bigserial PRIMARY KEY,
                                      ident text UNIQUE,
                                      deps text[],
@@ -122,7 +122,7 @@ impl DataStore {
         // The groups table
         migrator
             .migrate("scheduler",
-                     r#"CREATE TABLE groups (
+                     r#"CREATE TABLE IF NOT EXISTS groups (
                                     id bigint PRIMARY KEY,
                                     group_state text,
                                     created_at timestamptz DEFAULT now(),
@@ -132,7 +132,7 @@ impl DataStore {
         // The projects table
         migrator
             .migrate("scheduler",
-                     r#"CREATE TABLE projects (
+                     r#"CREATE TABLE IF NOT EXISTS projects (
                                      id bigserial PRIMARY KEY,
                                      owner_id bigint,
                                      project_name text,

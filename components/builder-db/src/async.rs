@@ -85,9 +85,7 @@ impl AsyncServer {
                 // Safe because we checked above
                 d.get(dispatch_key).unwrap().clone()
             };
-            let mut r = self.retry
-                .write()
-                .expect("Async retry lock is poisoned");
+            let mut r = self.retry.write().expect("Async retry lock is poisoned");
             r.insert(dispatch_key.to_string(), (SteadyTime::now(), function));
         }
         Ok(())
@@ -101,9 +99,7 @@ impl AsyncServer {
             d.insert(dispatch_key.clone(), callback.clone());
         }
         {
-            let mut r = self.retry
-                .write()
-                .expect("Async retry lock is poisoned");
+            let mut r = self.retry.write().expect("Async retry lock is poisoned");
             r.insert(dispatch_key, (SteadyTime::now(), callback));
         }
     }
@@ -192,10 +188,8 @@ impl AsyncServer {
                     let events = server.get_num_events(available_jobs);
                     for (key, event) in events.into_iter() {
                         let is_running = {
-                            let running_events = server
-                                .running
-                                .read()
-                                .expect("Running events lock poisoned");
+                            let running_events =
+                                server.running.read().expect("Running events lock poisoned");
                             running_events.contains(&key)
                         };
                         if !is_running {

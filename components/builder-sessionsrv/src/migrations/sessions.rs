@@ -19,7 +19,7 @@ use error::Result;
 pub fn migrate(migrator: &mut Migrator) -> Result<()> {
     migrator
         .migrate("accountsrv",
-                 r#"CREATE TABLE account_sessions (
+                 r#"CREATE TABLE IF NOT EXISTS account_sessions (
                         account_id bigint REFERENCES accounts(id),
                         token text,
                         provider text,
