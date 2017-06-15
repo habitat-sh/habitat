@@ -29,6 +29,18 @@ acceptance: build prep
     --url "https://api.netlify.com/api/v1/sites/habitat-acceptance.netlify.com/deploys"
 
 check-env:
+ifndef AWS_ACCESS_KEY_ID
+	$(error AWS_ACCESS_KEY_ID is undefined)
+endif
+ifndef AWS_BUCKET
+	$(error AWS_BUCKET is undefined)
+endif
+ifndef AWS_DEFAULT_REGION
+	$(error AWS_DEFAULT_REGION is undefined)
+endif
+ifndef AWS_SECRET_ACCESS_KEY
+	$(error AWS_SECRET_ACCESS_KEY is undefined)
+endif
 ifndef FASTLY_API_KEY
 	$(error FASTLY_API_KEY is undefined)
 endif
@@ -38,4 +50,3 @@ endif
 ifndef NETLIFYKEY
 	$(error NETLIFYKEY is undefined)
 endif
-
