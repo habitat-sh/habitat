@@ -45,6 +45,11 @@ message Package {
   repeated string deps = 2;
 }
 
+message PackagePreCreate {
+  optional string ident = 1;
+  repeated string deps = 2;
+}
+
 message PackageCreate {
   optional string ident = 1;
   repeated string deps = 2;
