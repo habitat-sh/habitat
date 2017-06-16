@@ -111,6 +111,7 @@ impl Dispatcher for Worker {
             "GroupCreate" => handlers::group_create(message, sock, state),
             "GroupGet" => handlers::group_get(message, sock, state),
             "PackageCreate" => handlers::package_create(message, sock, state),
+            "PackagePreCreate" => handlers::package_precreate(message, sock, state),
             "JobStatus" => handlers::job_status(message, sock, state),
             "PackageStatsGet" => handlers::package_stats_get(message, sock, state),
             _ => panic!("unexpected message: {:?}", message.message_id()),

@@ -26,11 +26,7 @@ impl From<OriginPackage> for Package {
 
         let name = format!("{}", value.get_ident());
 
-        let deps = value
-            .get_deps()
-            .iter()
-            .map(|x| format!("{}", x))
-            .collect();
+        let deps = value.get_deps().iter().map(|x| format!("{}", x)).collect();
 
         package.set_ident(name);
         package.set_deps(deps);
@@ -44,11 +40,21 @@ impl From<Package> for PackageCreate {
 
         let name = format!("{}", value.get_ident());
 
-        let deps = value
-            .get_deps()
-            .iter()
-            .map(|x| format!("{}", x))
-            .collect();
+        let deps = value.get_deps().iter().map(|x| format!("{}", x)).collect();
+
+        package.set_ident(name);
+        package.set_deps(deps);
+        package
+    }
+}
+
+impl Into<Package> for PackagePreCreate {
+    fn into(self) -> Package {
+        let mut package = Package::new();
+
+        let name = format!("{}", self.get_ident());
+
+        let deps = self.get_deps().iter().map(|x| format!("{}", x)).collect();
 
         package.set_ident(name);
         package.set_deps(deps);
@@ -73,6 +79,14 @@ impl Routable for GroupGet {
 }
 
 impl Routable for PackageCreate {
+    type H = String;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(self.get_ident().to_string())
+    }
+}
+
+impl Routable for PackagePreCreate {
     type H = String;
 
     fn route_key(&self) -> Option<Self::H> {

@@ -113,6 +113,68 @@ impl PackageGraph {
         (self.graph.node_count(), self.graph.edge_count())
     }
 
+    pub fn check_extend(&mut self, package: &scheduler::Package) -> bool {
+        let name = format!("{}", package.get_ident());
+        let pkg_short_name = short_name(&name);
+
+        // If package is brand new, we can't have a circular dependency
+        if !self.package_map.contains_key(&pkg_short_name) {
+            debug!("check_extend: no package found - OK");
+            return true;
+        }
+
+        let (_, pkg_node) = *self.package_map.get(&pkg_short_name).unwrap();
+        let pkg_ident = PackageIdent::from_str(&name).unwrap();
+        let latest = self.latest_map.get(&pkg_short_name).unwrap();
+        assert!(pkg_ident > *latest);
+
+        // Temporarily remove edges
+        let mut saved_nodes = Vec::new();
+        let neighbors: Vec<NodeIndex> = self.graph
+            .neighbors_directed(pkg_node, Direction::Incoming)
+            .collect();
+        for n in neighbors {
+            let e = self.graph.find_edge(n, pkg_node).unwrap();
+            saved_nodes.push(n);
+            self.graph.remove_edge(e).unwrap();
+        }
+
+        // Check to see if extension would create a circular dependency
+        let mut circular_dep = false;
+        let mut dep_nodes = Vec::new();
+        let deps = package.get_deps();
+        for dep in deps {
+            let dep_name = format!("{}", dep);
+            let dep_short_name = short_name(&dep_name);
+            assert!(self.package_map.contains_key(&dep_short_name));
+            let (_, dep_node) = *self.package_map.get(&dep_short_name).unwrap();
+            dep_nodes.push(dep_node);
+
+            self.graph.extend_with_edges(&[(dep_node, pkg_node)]);
+
+            // Check for circular dependency
+            if is_cyclic_directed(&self.graph) {
+                debug!("graph is cyclic after adding {} -> {} - failing check_extend",
+                       dep_name,
+                       name);
+                circular_dep = true;
+                break;
+            }
+        }
+
+        // Undo the edge changes
+        for dep_node in dep_nodes {
+            let e = self.graph.find_edge(dep_node, pkg_node).unwrap();
+            self.graph.remove_edge(e).unwrap();
+        }
+
+        for saved_node in saved_nodes {
+            self.graph.extend_with_edges(&[(saved_node, pkg_node)]);
+        }
+
+        !circular_dep
+    }
+
     pub fn extend(&mut self, package: &scheduler::Package) -> (usize, usize) {
         let name = format!("{}", package.get_ident());
         let (pkg_id, pkg_node) = self.generate_id(&name);
