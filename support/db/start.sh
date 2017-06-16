@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/bash
 #
 # Oh habitat, how you bring me back to my most hack-worthy roots. I love you for it.
 #
@@ -19,7 +19,6 @@ trap stop_pg SIGHUP SIGINT SIGTERM
 
 pwd
 sudo mkdir -p /hab/svc/postgresql
-sudo cp support/db/pg_hba.conf /hab/svc/postgresql
 sudo cp support/db/user.toml /hab/svc/postgresql
 sudo -s hab start core/postgresql &
 
