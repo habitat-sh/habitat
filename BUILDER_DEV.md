@@ -289,3 +289,7 @@ Add the following line if not present to see if it resolves your issue:
     su - hab
     /hab/pkgs/core/postgresql/9.6.1/20170215221136/bin/psql -h 127.0.0.1 <db_name>
     ```
+1. If Postgres dies when you run `make bldr-run` with an error message that
+   says `WARNING: out of shared memory`, edit the `postgresql.conf` file in
+   `/hab/pkgs/core/postgresql/$VERSION/$RELEASE/config` and add
+   `max_locks_per_transaction=128` to it.
