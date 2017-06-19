@@ -14,7 +14,7 @@ Supervisors are configured to form a ring by starting new supervisors using the 
 
 Supervisor rings can be very large, comprising potentially thousands of supervisors. The [inter-supervisor communication protocol](#protocols) is low-bandwidth and designed to not interfere with your application's actual production traffic.
 
-Rings are further divided into _service groups_, each of which has a name. All supervisors within a service group share the same configuration and topology. It is typical to name each service group using the pattern `service_name`.`environment` and have these service group names correspond to a _view_ within the depot. In this way, the supervisors can self-update whenever the view is updated. For more information on this, please read the [continuous deployment](/docs/continuous-deployment-overview) topic.
+Rings are further divided into _service groups_, each of which has a name. All supervisors within a service group share the same configuration and topology. It is typical to name each service group using the pattern `service_name`.`environment` and have these service group names correspond to a _channel_ within the depot. In this way, the supervisors can self-update whenever the channel is updated. For more information on this, please read the [continuous deployment](/docs/continuous-deployment-overview) topic.
 
 ## Butterfly
 
