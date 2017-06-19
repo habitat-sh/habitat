@@ -315,7 +315,7 @@ Add the following line if not present to see if it resolves your issue:
      cat .nvmrc
    ```
 
-1.  If they are not the same, then you will need to run:
+1.  If they are not the same, then you will need to run nvm install
 
    ```
      nvm install
