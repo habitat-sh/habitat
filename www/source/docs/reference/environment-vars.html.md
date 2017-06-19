@@ -10,7 +10,7 @@ This is a list of all environment variables that can be used to modify the opera
 |----------|---------|---------|-------------|
 | `HAB_AUTH_TOKEN` | build system | no default | Authorization token used to perform privileged operations against the depot, e.g. uploading packages or keys.
 | `HAB_CACHE_KEY_PATH` | build system, supervisor | `/hab/cache/keys` if running as root; `$HOME/.hab/cache/keys` if running as non-root | Cache directory for origin signing keys |
-| `HAB_DEPOT_URL` | build system, supervisor | `https://willem.habitat.sh/v1/depot` | The depot (or materialized view in the depot) used by the Habitat build system or supervisor |
+| `HAB_DEPOT_URL` | build system, supervisor | `https://willem.habitat.sh/v1/depot` | The depot (or channel in the depot) used by the Habitat build system or supervisor |
 | `HAB_DOCKER_OPTS` | build system | no default | When running a studio on a platform that uses Docker (MacOS), additional command line options to pass to the `docker` command. |
 | `HAB_NOCOLORING` | build system | no default | If set to the lowercase string `"true"` this environment variable will unconditionally disable text coloring where possible |
 | `HAB_NONINTERACTIVE` | build system | no default | If set to the lowercase string `"true"` this environment variable will unconditionally disable interactive progress bars (i.e. "spinners") where possible |
