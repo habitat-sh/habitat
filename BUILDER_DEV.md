@@ -299,8 +299,7 @@ Add the following line if not present to see if it resolves your issue:
 1. If you are seeing an error similar to this:
 
    ```
-      web.1       | /home/nell/habitat/support/builder_web.sh: line 38: ./node_modules/.bi
-n/lite-server: No such file or directory
+      web.1       | /home/nell/habitat/support/builder_web.sh: line 38: ./node_modules/.bin/lite-server: No such file or directory
    ```
 
 1. Then check whether you are having node version issues.  Get the version builder-web expects like this:
@@ -342,16 +341,13 @@ n/lite-server: No such file or directory
 	web.1       | npm ERR! code ELIFECYCLE
 	web.1       | npm ERR! errno ENOENT
 	web.1       | npm ERR! syscall spawn
-	originsrv.1 | DEBUG:postgres: preparing query with name ``: INSERT INTO builder_db_m
-	igrations (prefix, hashed_content) VALUES ($1, $2)
-	web.1       | npm ERR! habitat@0.8.0 build: `concurrently "npm run build-js" "npm ru
-	n build-css"`
+	originsrv.1 | DEBUG:postgres: preparing query with name ``: INSERT INTO builder_db_migrations (prefix, hashed_content) VALUES ($1, $2)
+	web.1       | npm ERR! habitat@0.8.0 build: `concurrently "npm run build-js" "npm run build-css"`
 	web.1       | npm ERR! spawn ENOENT
 	web.1       | npm ERR! 
 	originsrv.1 | DEBUG:postgres: executing statement  with parameters: ["originsrv-3", 
 	"57008e56eec0f5eb1b406c74974f65ecf5e05db08010c20a2d1884e8dfdfde64"]
-	web.1       | npm ERR! Failed at the habitat@0.8.0 build script 'concurrently "npm r
-	un build-js" "npm run build-css"'.
+	web.1       | npm ERR! Failed at the habitat@0.8.0 build script 'concurrently "npm run build-js" "npm run build-css"'.
 	web.1       | npm ERR! This is most likely a problem with the habitat package,
 	web.1       | npm ERR! not with npm itself.
    ```
