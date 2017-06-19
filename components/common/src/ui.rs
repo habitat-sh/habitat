@@ -45,6 +45,7 @@ pub enum Status {
     Uploading,
     Using,
     Verified,
+    Promoted,
     Custom(char, String),
 }
 
@@ -66,6 +67,7 @@ impl Status {
             Status::Uploading => ('↑', "Uploading".into(), Colour::Green),
             Status::Using => ('→', "Using".into(), Colour::Green),
             Status::Verified => ('✓', "Verified".into(), Colour::Green),
+            Status::Promoted => ('✓', "Promoted".into(), Colour::Green),
             Status::Custom(c, ref s) => (c, s.to_string(), Colour::Green),
         }
     }
