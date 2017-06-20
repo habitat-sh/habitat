@@ -1,0 +1,18 @@
+[package]
+name = "op"
+version = "0.1.0"
+authors = ["Josh Black <raskchanky@gmail.com>"]
+description = "Operational tools for Habitat developers"
+workspace = "../../"
+
+[dependencies]
+fnv = "*"
+log = "*"
+habitat_core = { path = "../core" }
+
+[dependencies.habitat_builder_protocol]
+path = "../builder-protocol"
+
+[dependencies.clap]
+version = "*"
+features = [ "suggestions", "color", "unstable" ]
