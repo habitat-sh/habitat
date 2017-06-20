@@ -36,9 +36,10 @@
 
     li {
       @include row;
+      position: relative;
 
       font-size: rem(12);
-      border-bottom: 1px solid $light-gray;
+      border-bottom: 1px solid $very-light-gray;
       padding: 0 10px;
 
       &.heading {
@@ -55,7 +56,7 @@
           cursor: pointer;
           background-color: rgba($medium-gray, 0.05);
 
-          .status {
+          .icons {
             .octicon-chevron-right {
               display: block;
             }
@@ -81,12 +82,19 @@
         @include span-columns(3);
       }
 
-      .status {
+      .icons {
         @include span-columns(3);
-        position: relative;
 
         .octicon {
           font-size: rem(20);
+          position: absolute;
+          right: 0;
+          top: 50%;
+          transform: translateY(-50%);
+
+          &.status {
+            right: 52px;
+          }
 
           &.complete {
             color: $hab-green;
@@ -96,6 +104,8 @@
             color: $hab-orange;
             height: rem(20);
             width: rem(16);
+            top: 36%;
+            transform: translateY(-36%);
             animation-duration: 1s;
             animation-iteration-count: infinite;
             animation-name: spinning;
@@ -110,6 +120,14 @@
             color: $hab-red;
           }
 
+          &.octicon-chevron-right {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+          }
+
           @keyframes spinning {
             from {
               transform: rotate(0deg);
@@ -118,14 +136,6 @@
             to {
               transform: rotate(360deg);
             }
-          }
-
-          &.octicon-chevron-right {
-            display: none;
-            position: absolute;
-            right: 0;
-            top: 50%;
-            transform: translateY(-50%);
           }
         }
       }

@@ -18,7 +18,6 @@ import { ActivatedRoute, Router } from "@angular/router";
 import { AppStore } from "../AppStore";
 import { clearBuilds, fetchBuilds, fetchPackageVersions, filterPackagesBy,
          scheduleBuild, setPackagesSearchQuery } from "../actions/index";
-import { requireSignIn } from "../util";
 import { Subscription } from "rxjs/Subscription";
 
 @Component({
@@ -110,6 +109,12 @@ export class PackagesPageComponent implements OnInit, OnDestroy {
         }
 
         return false;
+    }
+
+    get showBuildHistoryLink() {
+        return !!this.store.getState().gitHub.authToken &&
+            this.layout !== "origin" &&
+            this.origin === "core";
     }
 
     get layout() {

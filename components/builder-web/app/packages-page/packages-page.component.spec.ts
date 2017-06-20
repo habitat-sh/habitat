@@ -124,6 +124,29 @@ describe("PackagesPageComponent", () => {
           fixture.detectChanges();
           expect(element.query(By.css(".page-body--sidebar button"))).toBeNull();
         });
+
+        it("shows a link to the build-history list", () => {
+          fixture.detectChanges();
+          let link = element.query(By.css(".build-history a")).nativeElement;
+
+          expect(link.getAttribute("href")).toBe("/pkgs/core/linux-headers/builds");
+          expect(link.textContent).toContain("View full build history");
+        });
+      });
+
+      describe("when the user is not signed in", () => {
+
+        beforeEach(() => {
+          MockAppStore.state.origins.mine = List();
+          MockAppStore.state.gitHub.authToken = undefined;
+        });
+
+        it("does not show a link to the build-history list", () => {
+          fixture.detectChanges();
+          let link = element.query(By.css(".build-history a"));
+
+          expect(link).toBeNull();
+        });
       });
     });
   });

@@ -27,8 +27,9 @@
       <div class="created">
         {{ dateFor(build.created_at) }}
       </div>
-      <div class="status" title="{{ build.state | titlecase }}">
-        <div class="octicon octicon-{{ iconFor(build.state) }} {{ build.state | lowercase }}"></div>
+      <div class="icons">
+        <div class="status octicon octicon-{{ iconFor(build.state) }} {{ build.state | lowercase }}"
+           title="{{ build.state | titlecase }}"></div>
         <div class="octicon octicon-chevron-right"></div>
       </div>
     </li>

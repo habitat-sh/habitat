@@ -72,6 +72,16 @@ describe("BuildComponent", () => {
         name: "nginx",
         id: "123"
       };
+
+      fixture.detectChanges();
+    });
+
+    describe("the return-to-builds link", () => {
+
+      it("links to the build-history list", () => {
+        let link = element.query(By.css(".back a")).nativeElement;
+        expect(link.getAttribute("href")).toBe("/pkgs/core/nginx/builds");
+      });
     });
   });
 

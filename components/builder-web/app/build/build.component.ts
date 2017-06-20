@@ -100,13 +100,7 @@ export class BuildComponent implements OnChanges, OnDestroy {
     }
 
     get buildsLink() {
-        let link = ["/pkgs", this.build.origin, this.build.name];
-
-        if (this.build.version) {
-            link.push(this.build.version);
-        }
-
-        return link;
+        return ["/pkgs", this.build.origin, this.build.name, "builds"];
     }
 
     get elapsed() {

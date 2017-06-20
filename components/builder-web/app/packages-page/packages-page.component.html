@@ -20,9 +20,9 @@
     <div class="page-body" [class.has-sidebar]="iCanRequestABuild">
         <div [class.page-body--main]="iCanRequestABuild">
             <input *ngIf="showSearch"
-         type="search" autofocus
-         [formControl]="searchBox"
-         placeholder="Search Packages&hellip;">
+                type="search" autofocus
+                [formControl]="searchBox"
+                placeholder="Search Packages&hellip;">
 
             <div class="active {{ activeBuild.state | lowercase }}" *ngIf="activeBuild">
                 A build is in progress.
@@ -43,6 +43,13 @@
                      {{(totalCount - packages.size) > perPage ? perPage : totalCount - packages.size }}
                      more</a>.
              </div>
+
+             <div class="build-history" *ngIf="showBuildHistoryLink">
+                <a [routerLink]="['/pkgs', origin, name, 'builds']">
+                    View full build history
+                    <span class="octicon octicon-chevron-right"></span>
+                </a>
+            </div>
         </div>
         <div class="page-body--sidebar" *ngIf="iCanRequestABuild">
             <h4>Build</h4>
