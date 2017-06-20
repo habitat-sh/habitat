@@ -14,16 +14,23 @@ section.home--hero
     .home--button-wrap.hero
       = link_to 'Try Habitat Now', '/try', class: "button cta"
       = link_to 'Download Habitat', '/docs/get-habitat', class: "button outline"
-  .home--hero--highlight-wrap
-    a.home--hero--highlight href="https://events.chef.io/events/chef-london-meetup/" target="_blank"
-      .home--hero--highlight--left
-        span 12
-        | June
-      .home--hero--highlight--right
-        p.home--hero--highlight--title London Chef Meetup
-        p.home--hero--highlight--subtitle London, United Kingdom | Monday, June 12th
     img.home--hero--highlight--img[src="/images/homepage/architecture-diagram-mobile.svg"
       onerror="this.src='/images/homepage/architecture-diagram-mobile.png'" alt=""]
+
+#homepage-event-template
+  a.home--hero--highlight href="{{ event_link }}" target="_blank"
+    .home--hero--highlight--left
+      span <b>{{ day_of_month }}</b>
+      | {{ month_name }}
+    .home--hero--highlight--right
+      p.home--hero--highlight--title
+        | {{ event_name }}
+      p.home--hero--highlight--subtitle
+        | {{ event_location }} | {{ event_date }}
+  img.home--hero--highlight--img[src="/images/homepage/architecture-diagram-mobile.svg"
+    onerror="this.src='/images/homepage/architecture-diagram-mobile.png'" alt=""]
+
+.homepage--events--content
 
 section.home--sub-hero
   .row

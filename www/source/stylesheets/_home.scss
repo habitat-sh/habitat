@@ -62,7 +62,7 @@ body.home {
   font-size: rem-calc(14);
 }
 
-.home--hero--highlight-wrap {
+.home--hero--highlight--wrap {
   position: relative;
   z-index: 10;
 
@@ -547,4 +547,8 @@ $testimonials-slider-transition: 1s;
       0 0 0 4px $hab-orange-dark;
     background: $hab-orange-dark;
   }
+}
+
+#homepage-event-template {
+  display: none
 }
