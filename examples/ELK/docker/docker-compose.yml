@@ -1,0 +1,19 @@
+version: '2'
+
+services:
+  logstash:
+    image: $HAB_ORIGIN/logstash
+    links:
+      - elasticsearch
+    command: "start $HAB_ORIGIN/logstash --peer elasticsearch --bind elasticsearch:elasticsearch.default"
+  elasticsearch:
+    image: core/elasticsearch
+    ports:
+      - 9200
+  kibana:
+    image: core/kibana
+    ports:
+      - 5601
+    links:
+      - elasticsearch
+    command: "start core/kibana --peer elasticsearch --bind elasticsearch:elasticsearch.default"
