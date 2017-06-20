@@ -95,4 +95,75 @@ var homepageScripts = function() {
   }, function () {
     $('#hab-logo-tip').removeClass('its-on');
   })
+
+  $(function() {
+    var htmlDecode = function(input) {
+      var doc = new DOMParser().parseFromString(input, "text/html");
+      return doc.documentElement.textContent;
+    }
+    var makeCommunityEvent = function(e) {
+      if (e === undefined) {
+        return e;
+      }
+
+      var eventType;
+
+      if (e["event_category"]) {
+        var parts = e["event_category"].split(",");
+        var index = parts.indexOf("Habitat");
+
+        if (index >= 0) {
+          parts.splice(index, 1);
+        }
+
+        eventType = parts[0];
+      } else {
+        eventType = "Conference";
+      }
+
+      var eventLink = htmlDecode(e["guid"]);
+      var eventName = e["event_name"];
+      var eventDateUrl = "https://events.chef.io/events/s/category/habitat/?scope[0]=" + e["start_date"] + "&scope[1]=" + e["start_date"];
+      var eventDateEncoded = encodeURI(eventDateUrl);
+      var eventDate = e["start_date"];
+      var eventLocation = "";
+
+      if (e.event_location && e.event_location.city && e.event_location.country) {
+        eventLocation = e.event_location.city + ", " + e.event_location.country;
+      }
+      var weekdayNames = ["Monday", "Tuesday", "Thursday", "Friday", "Saturday", "Sunday"]
+      var monthNames = [ "January", "February", "March", "April", "May", "June",
+          "July", "August", "September", "October", "November", "December" ];
+      var newDate = new Date(e["start_date"]);
+      var formattedDate = weekdayNames[newDate.getDay()] + ', '  + monthNames[newDate.getMonth()] + ' ' + newDate.getDate();
+
+      var t = $("#homepage-event-template").clone().show().html();
+      var template = t.replace("{{ event_link }}", eventLink)
+                      .replace("{{ event_name }}", eventName)
+                      .replace("{{ day_of_month }}", newDate.getDate())
+                      .replace("{{ event_date_url }}", eventDateEncoded)
+                      .replace("{{ event_date }}", formattedDate)
+                      .replace("{{ event_location }}", eventLocation);
+
+      return template;
+    }
+
+    if ($(".homepage--events--content").length) {
+      $.getJSON("https://events.chef.io/wp-json/events/category/habitat", function(data) {
+        if (Array.isArray(data)) {
+          for (var i=0; i < 1; i+=1) {
+            var row = $("<div>", {
+              class: "home--hero--highlight--wrap"
+            });
+
+            var eventHome = makeCommunityEvent(data[i]);
+
+            row.append(eventHome);
+
+            $("div.homepage--events--content").append(row);
+          }
+        }
+      });
+    }
+  });
 };
