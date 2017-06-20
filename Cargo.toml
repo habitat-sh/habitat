@@ -21,6 +21,7 @@ members = [
   "components/hab",
   "components/http-client",
   "components/net",
+  "components/op",
   "components/sup",
   "components/butterfly",
   "components/butterfly-test",
