@@ -45,7 +45,8 @@ use protobuf::{self, parse_from_bytes};
 use protocol::net::{NetOk, ErrCode, NetError};
 use protocol::originsrv::*;
 use protocol::Routable;
-use protocol::scheduler::{Group, GroupCreate, GroupGet, PackageStatsGet, PackageStats};
+use protocol::scheduler::{Group, GroupCreate, GroupGet, PackageStatsGet, PackageStats,
+                          PackagePreCreate};
 use protocol::sessionsrv::{Account, AccountGet};
 use regex::Regex;
 use router::{Params, Router};
@@ -108,8 +109,8 @@ impl RoutedMessages {
         let msg_type = &TypeId::of::<M>();
         match self.0.get(msg_type) {
             Some(msg) => {
-                Ok(parse_from_bytes::<M>(msg).expect(&format!("Unable to parse {:?} message",
-                                                              msg_type)))
+                Ok(parse_from_bytes::<M>(msg)
+                       .expect(&format!("Unable to parse {:?} message", msg_type)))
             }
             None => Err(Error::MessageTypeNotFound),
         }
@@ -711,6 +712,35 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
         return Ok(Response::with(status::UnprocessableEntity));
     }
 
+    // Check with scheduler to ensure we don't have circular deps
+    let mut pcr_req = PackagePreCreate::new();
+    pcr_req.set_ident(format!("{}", ident));
+
+    let mut pcr_deps = protobuf::RepeatedField::new();
+    let deps_from_artifact = match archive.deps() {
+        Ok(deps) => deps,
+        Err(e) => {
+            info!("Could not get deps from {:#?}: {:#?}", archive, e);
+            return Ok(Response::with(status::UnprocessableEntity));
+        }
+    };
+
+    for ident in deps_from_artifact {
+        let dep_str = format!("{}", ident);
+        pcr_deps.push(dep_str);
+    }
+    pcr_req.set_deps(pcr_deps);
+
+    match route_message::<PackagePreCreate, NetOk>(req, &pcr_req) {
+        Ok(_) => (),
+        Err(e) => {
+            debug!("Failed package circular dependency check: {:?}, err: {:?}",
+                   ident,
+                   e);
+            return Ok(Response::with(status::FailedDependency));
+        }
+    }
+
     let filename = depot.archive_path(&ident, &target_from_artifact);
 
     match fs::rename(&temp_path, &filename) {
@@ -986,7 +1016,7 @@ fn download_package(req: &mut Request) -> IronResult<Response> {
                 }
             } else {
                 // This can happen if the package is not found in the file system for some reason
-                error!("package not found - inconsistentcy between metadata and filesystem. download_package:2");
+                error!("package not found - inconsistentcy between metadata and filesystem. download_package:2",);
                 Ok(Response::with(status::InternalServerError))
             }
         }
@@ -1181,7 +1211,8 @@ fn list_packages(req: &mut Request) -> IronResult<Response> {
             request.set_name(channel);
             request.set_start(start as u64);
             request.set_stop(stop as u64);
-            request.set_ident(OriginPackageIdent::from_str(ident.as_str()).expect("invalid package identifier"));
+            request.set_ident(OriginPackageIdent::from_str(ident.as_str())
+                                  .expect("invalid package identifier"));
             packages = route_message::<OriginChannelPackageListRequest,
                                        OriginPackageListResponse>(req, &request);
         }
@@ -1195,7 +1226,8 @@ fn list_packages(req: &mut Request) -> IronResult<Response> {
                 request.set_distinct(true);
             }
 
-            request.set_ident(OriginPackageIdent::from_str(ident.as_str()).expect("invalid package identifier"));
+            request.set_ident(OriginPackageIdent::from_str(ident.as_str())
+                                  .expect("invalid package identifier"));
             packages = route_message::<OriginPackageListRequest,
                                        OriginPackageListResponse>(req, &request);
         }
@@ -1551,9 +1583,7 @@ fn search_packages(req: &mut Request) -> IronResult<Response> {
 fn render_package(pkg: &OriginPackage, should_cache: bool) -> IronResult<Response> {
     let body = serde_json::to_string(&pkg).unwrap();
     let mut response = Response::with((status::Ok, body));
-    response
-        .headers
-        .set(ETag(pkg.get_checksum().to_string()));
+    response.headers.set(ETag(pkg.get_checksum().to_string()));
     response
         .headers
         .set(ContentType(Mime(TopLevel::Application,
@@ -2046,15 +2076,13 @@ mod test {
         origin_res.set_id(5000);
         broker.setup::<OriginGet, Origin>(&origin_res);
 
+        broker.setup::<PackagePreCreate, NetOk>(&NetOk::new());
         broker.setup::<OriginPackageCreate, OriginPackage>(&OriginPackage::new());
 
         //inject hart fixture to upload
         let mut body: Vec<u8> = Vec::new();
         let path = hart_file("core-cacerts-2017.01.17-20170209064044-x86_64-windows.hart");
-        File::open(&path)
-            .unwrap()
-            .read_to_end(&mut body)
-            .unwrap();
+        File::open(&path).unwrap().read_to_end(&mut body).unwrap();
         let checksum = hash::hash_file(&path).unwrap();
 
         let (resp, msgs) = iron_request(method::Post,
@@ -2068,7 +2096,7 @@ mod test {
         assert_eq!(response.status, Some(status::Created));
         assert_eq!(response.headers.get::<headers::Location>(),
                    Some(&headers::Location(format!("http://localhost/pkgs/core/cacerts/2017.01.17/20170209064044/download?checksum={}",
-                                                   checksum))));
+                                                  checksum))));
 
         //assert body
         let result_body = response::extract_body_to_string(response);
@@ -2091,14 +2119,12 @@ mod test {
         access_res.set_has_access(true);
         upload_broker.setup::<CheckOriginAccessRequest, CheckOriginAccessResponse>(&access_res);
         upload_broker.setup_error::<OriginPackageGet>(net::err(ErrCode::ENTITY_NOT_FOUND, ""));
+        upload_broker.setup::<PackagePreCreate, NetOk>(&NetOk::new());
         upload_broker.setup::<OriginPackageCreate, OriginPackage>(&OriginPackage::new());
 
         let mut body: Vec<u8> = Vec::new();
         let path = hart_file("core-cacerts-2017.01.17-20170209064045-x86_64-windows.hart");
-        File::open(&path)
-            .unwrap()
-            .read_to_end(&mut body)
-            .unwrap();
+        File::open(&path).unwrap().read_to_end(&mut body).unwrap();
         let checksum = hash::hash_file(&path).unwrap();
 
         iron_request(method::Post,
@@ -2124,11 +2150,12 @@ mod test {
         headers.set(UserAgent("hab/0.20.0-dev/20170326090935 (x86_64-windows; 10.0.14915)"
                                   .to_string()));
 
-        let (response, _) = iron_request(method::Get,
-                                         "http://localhost/pkgs/core/cacerts/2017.01.17/20170209064045/download",
-                                         &mut Vec::new(),
-                                         headers,
-                                         download_broker);
+        let (response, _) =
+            iron_request(method::Get,
+                         "http://localhost/pkgs/core/cacerts/2017.01.17/20170209064045/download",
+                         &mut Vec::new(),
+                         headers,
+                         download_broker);
 
         //assert headers
         let response = response.unwrap();
@@ -2456,11 +2483,12 @@ mod test {
 
         show_broker.setup::<OriginChannelPackageGet, OriginPackage>(&package);
 
-        let (response, msgs) = iron_request(method::Get,
-                                            "http://localhost/channels/org/channel/pkgs/name/1.1.1/20170101010101",
-                                            &mut Vec::new(),
-                                            Headers::new(),
-                                            show_broker);
+        let (response, msgs) =
+            iron_request(method::Get,
+                         "http://localhost/channels/org/channel/pkgs/name/1.1.1/20170101010101",
+                         &mut Vec::new(),
+                         Headers::new(),
+                         show_broker);
 
         let response = response.unwrap();
         assert_eq!(response.status, Some(status::Ok));
@@ -2641,11 +2669,12 @@ mod test {
         //set the user agent to look like a linux download
         let mut headers = Headers::new();
         headers.set(UserAgent("hab/0.20.0-dev/20170326090935 (x86_64-linux; 9.9.9)".to_string()));
-        let (response, msgs) = iron_request(method::Get,
-                                            "http://localhost/channels/org/channel/pkgs/name/latest",
-                                            &mut Vec::new(),
-                                            headers,
-                                            show_broker);
+        let (response, msgs) =
+            iron_request(method::Get,
+                         "http://localhost/channels/org/channel/pkgs/name/latest",
+                         &mut Vec::new(),
+                         headers,
+                         show_broker);
 
         let response = response.unwrap();
         assert_eq!(response.status, Some(status::Ok));

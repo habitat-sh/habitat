@@ -168,6 +168,10 @@ fn upload_into_depot(ui: &mut UI,
             println!("Package platform or architecture not supported by the targeted \
                     depot; skipping.");
         }
+        Err(depot_client::Error::APIError(StatusCode::FailedDependency, _)) => {
+            try!(ui.fatal("Package upload introduces a circular dependency - please check \
+                    pkg_deps; skipping."));
+        }
         Err(e) => return Err(Error::from(e)),
     };
     try!(ui.status(Status::Uploaded, ident));

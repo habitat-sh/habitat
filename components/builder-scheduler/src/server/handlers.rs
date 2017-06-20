@@ -167,6 +167,39 @@ pub fn package_create(req: &mut Envelope,
     Ok(())
 }
 
+pub fn package_precreate(req: &mut Envelope,
+                         sock: &mut zmq::Socket,
+                         state: &mut ServerState)
+                         -> Result<()> {
+    let msg: proto::PackagePreCreate = try!(req.parse_msg());
+    debug!("package_precreate message: {:?}", msg);
+
+    let package: proto::Package = msg.into();
+
+    // Check that we can safely extend the graph with new package
+    let can_extend = {
+        let mut graph = state.graph().write().unwrap();
+        let start_time = PreciseTime::now();
+        let ret = graph.check_extend(&package);
+        let end_time = PreciseTime::now();
+
+        debug!("Graph pre-check: {} ({} sec)\n",
+               ret,
+               start_time.to(end_time));
+
+        ret
+    };
+
+    if can_extend {
+        try!(req.reply_complete(sock, &net::NetOk::new()))
+    } else {
+        let err = net::err(ErrCode::ENTITY_CONFLICT, "sc:schedule-pc:1");
+        try!(req.reply_complete(sock, &err));
+    }
+
+    Ok(())
+}
+
 pub fn job_status(req: &mut Envelope,
                   sock: &mut zmq::Socket,
                   state: &mut ServerState)
