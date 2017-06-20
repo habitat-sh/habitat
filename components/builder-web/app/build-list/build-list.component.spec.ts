@@ -74,9 +74,9 @@ describe("BuildListComponent", () => {
       expect(items.length).toBe(3);
       expect(items[0].query(By.css(".version")).nativeElement.textContent).toContain("1.0.0");
       expect(items[0].query(By.css(".status")).nativeElement.getAttribute("title")).toBe("Complete");
-      expect(items[0].query(By.css(".status .octicon")).nativeElement.getAttribute("class")).toContain("complete");
-      expect(items[1].query(By.css(".status .octicon")).nativeElement.getAttribute("class")).toContain("pending");
-      expect(items[2].query(By.css(".status .octicon")).nativeElement.getAttribute("class")).toContain("failed");
+      expect(items[0].query(By.css(".status")).nativeElement.getAttribute("class")).toContain("complete");
+      expect(items[1].query(By.css(".status")).nativeElement.getAttribute("class")).toContain("pending");
+      expect(items[2].query(By.css(".status")).nativeElement.getAttribute("class")).toContain("failed");
     });
 
     describe("when a build item is clicked", () => {

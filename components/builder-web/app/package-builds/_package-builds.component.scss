@@ -10,9 +10,8 @@
 
   .page-body {
 
-    hab-build-list {
-      margin-top: 8px;
-      @include span-columns(9);
+    .hab-build-list {
+      margin-top: 14px;
     }
   }
 }
