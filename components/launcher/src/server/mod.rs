@@ -15,9 +15,8 @@
 mod handlers;
 
 use std::collections::HashMap;
-use std::env;
 use std::path::PathBuf;
-use std::process::{self, Child, Command, Stdio};
+use std::process::{Child, Command, Stdio};
 use std::str::FromStr;
 use std::thread;
 use std::time::Duration;
@@ -28,7 +27,7 @@ use core::os::process::Signal;
 use core::os::signals::{self, SignalEvent};
 use ipc_channel::ipc::{IpcOneShotServer, IpcReceiver, IpcSender};
 use protobuf;
-use protocol;
+use protocol::{self, ERR_NO_RETRY_EXCODE, OK_NO_RETRY_EXCODE};
 
 use self::handlers::Handler;
 use {SUP_CMD, SUP_PACKAGE_IDENT};
@@ -41,45 +40,47 @@ static LOGKEY: &'static str = "SV";
 type Receiver = IpcReceiver<Vec<u8>>;
 type Sender = IpcSender<Vec<u8>>;
 
+enum TickState {
+    Continue,
+    Exit(i32),
+}
+
 pub struct Server {
     services: ServiceTable,
     tx: Sender,
     rx: Receiver,
     supervisor: Child,
+    args: Vec<String>,
 }
 
 impl Server {
-    fn init() -> Result<Self> {
-        let (server, pipe) = IpcOneShotServer::new().map_err(Error::OpenPipe)?;
-        let supervisor = spawn_supervisor(&pipe)?;
-        let (rx, tx) = setup_connection(server)?;
+    pub fn new(args: Vec<String>) -> Result<Self> {
+        let ((rx, tx), supervisor) = Self::init(&args)?;
         Ok(Server {
             services: ServiceTable::default(),
             tx: tx,
             rx: rx,
             supervisor: supervisor,
+            args: args,
         })
     }
 
-    #[allow(unused_must_use)]
-    pub fn reload(&mut self) -> Result<()> {
-        self.supervisor.kill();
-        self.supervisor.wait();
-        let server = Self::init()?;
-        self.tx = server.tx;
-        self.rx = server.rx;
-        self.supervisor = server.supervisor;
-        Ok(())
+    fn init(args: &[String]) -> Result<((Receiver, Sender), Child)> {
+        let (server, pipe) = IpcOneShotServer::new().map_err(Error::OpenPipe)?;
+        let supervisor = spawn_supervisor(&pipe, args)?;
+        let channel = setup_connection(server)?;
+        Ok((channel, supervisor))
     }
 
-    pub fn tick(&mut self) -> Result<()> {
-        self.reap_zombies();
-        match signals::check_for_signal() {
-            Some(SignalEvent::Shutdown) => self.shutdown(),
-            Some(SignalEvent::Passthrough(signal)) => self.forward_signal(signal),
-            None => (),
-        }
-        self.handle_message()
+    #[allow(unused_must_use)]
+    fn reload(&mut self) -> Result<()> {
+        self.supervisor.kill();
+        self.supervisor.wait();
+        let ((rx, tx), supervisor) = Self::init(&self.args)?;
+        self.tx = tx;
+        self.rx = rx;
+        self.supervisor = supervisor;
+        Ok(())
     }
 
     fn forward_signal(&self, signal: Signal) {
@@ -92,17 +93,24 @@ impl Server {
         }
     }
 
-    fn handle_message(&mut self) -> Result<()> {
+    fn handle_message(&mut self) -> Result<TickState> {
         match self.rx.try_recv() {
             Ok(bytes) => {
                 dispatch(&self.tx, &bytes, &mut self.services);
-                Ok(())
+                Ok(TickState::Continue)
             }
             Err(_) => {
                 match self.supervisor.try_wait() {
-                    Ok(None) => Ok(()),
+                    Ok(None) => Ok(TickState::Continue),
                     Ok(Some(status)) => {
                         debug!("Supervisor exited: {}", status);
+                        match status.code() {
+                            Some(ERR_NO_RETRY_EXCODE) => {
+                                return Ok(TickState::Exit(ERR_NO_RETRY_EXCODE))
+                            }
+                            Some(OK_NO_RETRY_EXCODE) => return Ok(TickState::Exit(0)),
+                            _ => (),
+                        }
                         Err(Error::SupShutdown)
                     }
                     Err(err) => {
@@ -133,7 +141,19 @@ impl Server {
         self.supervisor.wait().ok();
         self.services.kill_all();
         outputln!("Hasta la vista, services.");
-        process::exit(0);
+    }
+
+    fn tick(&mut self) -> Result<TickState> {
+        self.reap_zombies();
+        match signals::check_for_signal() {
+            Some(SignalEvent::Shutdown) => {
+                self.shutdown();
+                return Ok(TickState::Exit(0));
+            }
+            Some(SignalEvent::Passthrough(signal)) => self.forward_signal(signal),
+            None => (),
+        }
+        self.handle_message()
     }
 }
 
@@ -202,15 +222,17 @@ where
     Ok(())
 }
 
-pub fn run() -> Result<()> {
-    let mut server = Server::init()?;
+pub fn run(args: Vec<String>) -> Result<i32> {
+    let mut server = Server::new(args)?;
     signals::init();
     loop {
-        if server.tick().is_ok() {
-            thread::sleep(Duration::from_millis(1_000));
-        } else {
-            while server.reload().is_err() {
-                thread::sleep(Duration::from_millis(5_000));
+        match server.tick() {
+            Ok(TickState::Continue) => thread::sleep(Duration::from_millis(100)),
+            Ok(TickState::Exit(code)) => return Ok(code),
+            Err(_) => {
+                while server.reload().is_err() {
+                    thread::sleep(Duration::from_millis(1_000));
+                }
             }
         }
     }
@@ -265,10 +287,9 @@ fn setup_connection(server: IpcOneShotServer<Vec<u8>>) -> Result<(Receiver, Send
     Ok((rx, tx))
 }
 
-fn spawn_supervisor(pipe: &str) -> Result<Child> {
+fn spawn_supervisor(pipe: &str, args: &[String]) -> Result<Child> {
     let binary = supervisor_cmd()?;
     let mut command = Command::new(&binary);
-    let args: Vec<String> = env::args().skip(1).collect();
     debug!("Starting Supervisor...");
     let child = command
         .stdout(Stdio::inherit())

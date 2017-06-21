@@ -93,27 +93,24 @@ mod inner {
             Err(_) => {
                 init();
                 let version: Vec<&str> = VERSION.split("/").collect();
-                let ident = try!(PackageIdent::from_str(
+                let ident = PackageIdent::from_str(
                     &format!("{}/{}", super::STUDIO_PACKAGE_IDENT, version[0]),
-                ));
-                try!(exec::command_from_min_pkg(
+                )?;
+                exec::command_from_min_pkg(
                     ui,
                     super::STUDIO_CMD,
                     &ident,
                     &default_cache_key_path(None),
                     0,
-                ))
+                )?
             }
         };
 
         if let Some(cmd) = find_command(command.to_string_lossy().as_ref()) {
-            try!(process::become_command(cmd, args));
+            Ok(process::become_command(cmd, args)?)
         } else {
-            return Err(Error::ExecCommandNotFound(
-                command.to_string_lossy().into_owned(),
-            ));
+            Err(Error::ExecCommandNotFound(command))
         }
-        Ok(())
     }
 
     pub fn rerun_with_sudo_if_needed(ui: &mut UI) -> Result<()> {

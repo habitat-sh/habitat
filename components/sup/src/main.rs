@@ -15,6 +15,7 @@
 extern crate habitat_common as common;
 #[macro_use]
 extern crate habitat_core as hcore;
+extern crate habitat_launcher_client as launcher_client;
 #[macro_use]
 extern crate habitat_sup as sup;
 extern crate log;
@@ -26,8 +27,10 @@ extern crate clap;
 extern crate time;
 extern crate url;
 
+use std::io::{self, Write};
 use std::net::{SocketAddr, ToSocketAddrs};
 use std::path::{Path, PathBuf};
+use std::process;
 use std::result;
 use std::str::FromStr;
 
@@ -40,6 +43,7 @@ use hcore::crypto::{self, default_cache_key_path, SymKey};
 use hcore::crypto::dpapi::encrypt;
 use hcore::package::{PackageArchive, PackageIdent};
 use hcore::url::{DEFAULT_DEPOT_URL, DEPOT_URL_ENVVAR};
+use launcher_client::{LauncherCli, ERR_NO_RETRY_EXCODE, OK_NO_RETRY_EXCODE};
 use url::Url;
 
 use sup::VERSION;
@@ -60,28 +64,56 @@ static RING_ENVVAR: &'static str = "HAB_RING";
 static RING_KEY_ENVVAR: &'static str = "HAB_RING_KEY";
 
 fn main() {
-    boot();
-    if let Err(e) = start() {
-        println!("{}", e);
-        std::process::exit(1);
+    if let Err(err) = start() {
+        println!("{}", err);
+        match err {
+            SupError { err: Error::ProcessLocked(_), .. } => process::exit(ERR_NO_RETRY_EXCODE),
+            _ => process::exit(1),
+        }
     }
 }
 
-fn boot() {
+fn boot() -> Option<LauncherCli> {
     env_logger::init().unwrap();
     enable_features_from_env();
     crypto::init();
+    match launcher_client::env_pipe() {
+        Some(pipe) => {
+            match LauncherCli::connect(pipe) {
+                Ok(launcher) => Some(launcher),
+                Err(err) => {
+                    println!("{}", err);
+                    process::exit(1);
+                }
+            }
+        }
+        None => None,
+    }
 }
 
 fn start() -> Result<()> {
-    let app_matches = cli().get_matches();
+    let launcher = boot();
+    let app_matches = match cli().get_matches_safe() {
+        Ok(matches) => matches,
+        Err(err) => {
+            let out = io::stdout();
+            writeln!(&mut out.lock(), "{}", err.message).expect("Error writing Error to stdout");
+            process::exit(ERR_NO_RETRY_EXCODE);
+        }
+    };
     match app_matches.subcommand() {
         ("bash", Some(m)) => sub_bash(m),
         ("config", Some(m)) => sub_config(m),
         ("load", Some(m)) => sub_load(m),
-        ("run", Some(m)) => sub_run(m),
+        ("run", Some(m)) => {
+            let launcher = launcher.ok_or(sup_error!(Error::NoLauncher))?;
+            sub_run(m, launcher)
+        }
         ("sh", Some(m)) => sub_sh(m),
-        ("start", Some(m)) => sub_start(m),
+        ("start", Some(m)) => {
+            let launcher = launcher.ok_or(sup_error!(Error::NoLauncher))?;
+            sub_start(m, launcher)
+        }
         ("status", Some(m)) => sub_status(m),
         ("stop", Some(m)) => sub_stop(m),
         ("term", Some(m)) => sub_term(m),
@@ -429,9 +461,9 @@ fn sub_unload(m: &ArgMatches) -> Result<()> {
     })
 }
 
-fn sub_run(m: &ArgMatches) -> Result<()> {
+fn sub_run(m: &ArgMatches, launcher: LauncherCli) -> Result<()> {
     let cfg = mgrcfg_from_matches(m)?;
-    let mut manager = Manager::load(cfg)?;
+    let mut manager = Manager::load(cfg, launcher)?;
     manager.run()
 }
 
@@ -446,7 +478,7 @@ fn sub_sh(m: &ArgMatches) -> Result<()> {
     command::shell::sh()
 }
 
-fn sub_start(m: &ArgMatches) -> Result<()> {
+fn sub_start(m: &ArgMatches, launcher: LauncherCli) -> Result<()> {
     if m.is_present("VERBOSE") {
         hcore::output::set_verbose(true);
     }
@@ -472,10 +504,10 @@ fn sub_start(m: &ArgMatches) -> Result<()> {
                         Some(spec)
                     } else {
                         if !Manager::is_running(&cfg)? {
-                            let mut manager = Manager::load(cfg)?;
+                            let mut manager = Manager::load(cfg, launcher)?;
                             return manager.run();
                         } else {
-                            return Ok(());
+                            process::exit(OK_NO_RETRY_EXCODE);
                         }
                     }
                 }
@@ -490,17 +522,17 @@ fn sub_start(m: &ArgMatches) -> Result<()> {
     };
 
     let running = Manager::is_running(&cfg)?;
-
-    try!(command::start::run(
+    command::start::run(
         cfg.clone(),
+        launcher,
         maybe_spec.clone(),
         maybe_local_artifact,
-    ));
+    )?;
+
     if running {
         if let Some(spec) = maybe_spec {
             outputln!(
-                "The supervisor is starting the {} service. See the supervisor output for \
-                 more details.",
+                "Supervisor starting {}. See the Supervisor output for more details.",
                 spec.ident
             );
         }
@@ -518,7 +550,7 @@ fn sub_status(m: &ArgMatches) -> Result<()> {
     let cfg = mgrcfg_from_matches(m)?;
     if !Manager::is_running(&cfg)? {
         println!("The supervisor is not running.");
-        std::process::exit(3);
+        process::exit(3);
     }
     match m.value_of("PKG_IDENT") {
         Some(pkg) => {
@@ -526,7 +558,7 @@ fn sub_status(m: &ArgMatches) -> Result<()> {
                 Ok(status) => outputln!("{}", status),
                 Err(_) => {
                     println!("{} is not currently loaded.", pkg);
-                    std::process::exit(2);
+                    process::exit(2);
                 }
             }
         }
@@ -574,10 +606,10 @@ fn mgrcfg_from_matches(m: &ArgMatches) -> Result<ManagerConfig> {
     let mut cfg = ManagerConfig::default();
 
     if let Some(addr_str) = m.value_of("LISTEN_GOSSIP") {
-        cfg.gossip_listen = try!(GossipListenAddr::from_str(addr_str));
+        cfg.gossip_listen = GossipListenAddr::from_str(addr_str)?;
     }
     if let Some(addr_str) = m.value_of("LISTEN_HTTP") {
-        cfg.http_listen = try!(http_gateway::ListenAddr::from_str(addr_str));
+        cfg.http_listen = http_gateway::ListenAddr::from_str(addr_str)?;
     }
     if let Some(name_str) = m.value_of("NAME") {
         cfg.name = Some(String::from(name_str));

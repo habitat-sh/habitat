@@ -557,16 +557,19 @@ fn exec_subcommand_if_called(ui: &mut UI) -> Result<()> {
         ("config", _) | ("file", _) => {
             command::butterfly::start(ui, env::args_os().skip(1).collect())
         }
-        ("run", _) => command::sup::start(ui, env::args_os().skip(1).collect()),
+        ("run", _) => command::launcher::start(ui, env::args_os().skip(1).collect()),
         ("stu", _) | ("stud", _) | ("studi", _) | ("studio", _) => {
             command::studio::start(ui, env::args_os().skip(2).collect())
         }
+        ("sup", "run") | ("sup", "start") => {
+            command::launcher::start(ui, env::args_os().skip(2).collect())
+        }
         ("sup", _) => command::sup::start(ui, env::args_os().skip(2).collect()),
-        ("start", _) => command::sup::start(ui, env::args_os().skip(1).collect()),
+        ("start", _) => command::launcher::start(ui, env::args_os().skip(1).collect()),
         ("stop", _) => command::sup::start(ui, env::args_os().skip(1).collect()),
+        ("svc", "start") => command::launcher::start(ui, env::args_os().skip(2).collect()),
         ("svc", "load") |
         ("svc", "unload") |
-        ("svc", "start") |
         ("svc", "status") |
         ("svc", "stop") => command::sup::start(ui, env::args_os().skip(2).collect()),
         ("term", _) => command::sup::start(ui, env::args_os().skip(1).collect()),

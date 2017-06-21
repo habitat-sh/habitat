@@ -31,7 +31,6 @@ pub enum Error {
     Deserialize(protobuf::ProtobufError),
     IPCBincode(String),
     IPCIO(io::ErrorKind),
-    NoEnvPipe,
     Protocol(protocol::NetErr),
     Send(ipc_channel::Error),
     Serialize(protobuf::ProtobufError),
@@ -52,7 +51,6 @@ impl fmt::Display for Error {
                 format!("Unable to read message frame from Launcher, {}", e)
             }
             Error::IPCIO(ref e) => format!("Unable to receive message from Launcher, {:?}", e),
-            Error::NoEnvPipe => format!("Unable to determine named pipe from ENV var"),
             Error::Protocol(ref e) => format!("{}", e),
             Error::Send(ref e) => format!("Unable to send to Launcher's pipe, {}", e),
             Error::Serialize(ref e) => format!("Unable to serialize message to Launcher, {}", e),
@@ -70,7 +68,6 @@ impl error::Error for Error {
             Error::Deserialize(_) => "Unable to deserialize message from Launcher",
             Error::IPCBincode(_) => "Unable to encode/decode message framing to/from Launcher",
             Error::IPCIO(_) => "Unable to receive message from Launcher",
-            Error::NoEnvPipe => "Launcher Pipe ENV var not present or did not contain a value",
             Error::Protocol(_) => "Received an error from Launcher",
             Error::Send(_) => "Unable to send to Launcher's pipe",
             Error::Serialize(_) => "Unable to serialize message to Launcher",

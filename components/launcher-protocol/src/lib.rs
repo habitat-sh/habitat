@@ -26,6 +26,13 @@ pub use message::supervisor::*;
 use message::net::*;
 
 pub const LAUNCHER_PIPE_ENV: &'static str = "HAB_LAUNCHER_PIPE";
+/// Process exit code from Supervisor which indicates to Launcher that the Supervisor
+/// ran to completion with a successful result. The Launcher should not attempt to restart
+/// the Supervisor and should exit immediately with a successful exit code.
+pub const OK_NO_RETRY_EXCODE: i32 = 84;
+/// Same as `OK_NO_RETRY_EXCODE` except the Supervisor ran to completion with an unsuccessful
+/// exit code. The Launcher should exit immediately with a non-zero exit code.
+pub const ERR_NO_RETRY_EXCODE: i32 = 86;
 
 pub struct NetTxn(Envelope);
 

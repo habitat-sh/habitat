@@ -15,14 +15,16 @@
 extern crate env_logger;
 extern crate habitat_launcher as launcher;
 
+use std::env;
 use std::process;
 
 use launcher::server;
 
 fn main() {
     env_logger::init().unwrap();
+    let args = env::args().skip(1).collect();
 
-    if let Err(err) = server::run() {
+    if let Err(err) = server::run(args) {
         println!("{}", err);
         process::exit(1);
     }

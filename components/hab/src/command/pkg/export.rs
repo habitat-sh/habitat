@@ -110,7 +110,7 @@ mod inner {
                     PRODUCT,
                     VERSION,
                     Path::new(&*FS_ROOT_PATH),
-                    &cache_artifact_path(None),
+                    &cache_artifact_path(None::<String>),
                     false,
                 ));
             }

@@ -247,19 +247,20 @@ where
 /// assert_eq!(result.is_some(), false);
 /// ```
 ///
-pub fn find_command(command: &str) -> Option<PathBuf> {
+pub fn find_command<T>(command: T) -> Option<PathBuf>
+where
+    T: AsRef<Path>,
+{
     // If the command path is absolute and a file exists, then use that.
-    let candidate = PathBuf::from(command);
-    if candidate.is_absolute() && candidate.is_file() {
-        return Some(candidate);
+    if command.as_ref().is_absolute() && command.as_ref().is_file() {
+        return Some(command.as_ref().to_path_buf());
     }
-
     // Find the command by checking each entry in `PATH`. If we still can't find it, give up and
     // return `None`.
     match henv::var_os("PATH") {
         Some(paths) => {
             for path in env::split_paths(&paths) {
-                let candidate = PathBuf::from(&path).join(command);
+                let candidate = PathBuf::from(&path).join(command.as_ref());
                 if candidate.is_file() {
                     return Some(candidate);
                 } else {
@@ -282,22 +283,23 @@ pub fn find_command(command: &str) -> Option<PathBuf> {
 /// # Failures
 ///
 /// * The path entries metadata cannot be loaded
-pub fn find_command_in_pkg<T>(
-    command: &str,
+pub fn find_command_in_pkg<T, U>(
+    command: T,
     pkg_install: &PackageInstall,
-    fs_root_path: T,
+    fs_root_path: U,
 ) -> Result<Option<PathBuf>>
 where
     T: AsRef<Path>,
+    U: AsRef<Path>,
 {
     for path in pkg_install.paths()? {
         let stripped = path.strip_prefix("/").expect(&format!(
             "Package path missing / prefix {}",
             path.to_string_lossy()
         ));
-        let candidate = fs_root_path.as_ref().join(stripped).join(command);
+        let candidate = fs_root_path.as_ref().join(stripped).join(command.as_ref());
         if candidate.is_file() {
-            return Ok(Some(path.join(command)));
+            return Ok(Some(path.join(command.as_ref())));
         } else {
             match find_command_with_pathext(&candidate) {
                 Some(result) => return Ok(Some(result)),

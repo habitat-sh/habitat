@@ -18,6 +18,10 @@ use common::ui::UI;
 
 use error::Result;
 
+const LAUNCH_CMD: &'static str = "hab-launch";
+const LAUNCH_CMD_ENVVAR: &'static str = "HAB_LAUNCH_BINARY";
+const LAUNCH_PKG_IDENT: &'static str = "core/hab-launch";
+
 pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
     inner::start(ui, args)
 }
@@ -35,28 +39,29 @@ mod inner {
     use hcore::os::process;
     use hcore::package::PackageIdent;
 
+    use super::{LAUNCH_CMD, LAUNCH_CMD_ENVVAR, LAUNCH_PKG_IDENT};
     use error::{Error, Result};
     use exec;
     use VERSION;
 
-    const CMD: &'static str = "hab-butterfly";
-    const CMD_ENVVAR: &'static str = "HAB_BUTTERFLY_BINARY";
-
     pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
-        let butterfly_ident = "core/hab-butterfly";
-        let command = match henv::var(CMD_ENVVAR) {
+        let command = match henv::var(LAUNCH_CMD_ENVVAR) {
             Ok(command) => PathBuf::from(command),
             Err(_) => {
                 init();
                 let version: Vec<&str> = VERSION.split("/").collect();
-                let ident = try!(PackageIdent::from_str(
-                    &format!("{}/{}", butterfly_ident, version[0]),
-                ));
-                exec::command_from_min_pkg(ui, CMD, &ident, &default_cache_key_path(None), 0)?
+                let cmd =
+                    exec::command_from_min_pkg(
+                        ui,
+                        LAUNCH_CMD,
+                        &PackageIdent::from_str(&format!("{}/{}", LAUNCH_PKG_IDENT, version[0]))?,
+                        &default_cache_key_path(None),
+                        0,
+                    )?;
+                PathBuf::from(cmd)
             }
         };
-
-        if let Some(cmd) = find_command(command.to_string_lossy().as_ref()) {
+        if let Some(cmd) = find_command(&command) {
             Ok(process::become_command(cmd, args)?)
         } else {
             Err(Error::ExecCommandNotFound(command))
@@ -66,37 +71,20 @@ mod inner {
 
 #[cfg(target_os = "macos")]
 mod inner {
+    use std::env;
     use std::ffi::OsString;
 
     use common::ui::UI;
 
     use error::{Error, Result};
 
-    pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
-        let mut args = args.iter();
-        let subcmd = match (
-            args.next()
-                .map(|a| a.to_string_lossy())
-                .unwrap_or_default()
-                .as_ref(),
-            args.next()
-                .map(|a| a.to_string_lossy())
-                .unwrap_or_default()
-                .as_ref(),
-        ) {
-            ("config", "apply") => "config apply",
-            ("config", _) => "config",
-            ("file", "upload") => "file upload",
-            ("file", _) => "file",
-            (_, _) => unreachable!(),
-        };
-        try!(ui.warn(format!(
-            "Running `{}` on this operating system is not currently \
-                              supported. Try running this command again on a 64-bit Linux \
-                              operating system.",
-            &subcmd
-        )));
-        try!(ui.br());
-        Err(Error::SubcommandNotSupported(String::from(subcmd)))
+    pub fn start(ui: &mut UI, _args: Vec<OsString>) -> Result<()> {
+        let subcmd = env::args().nth(1).unwrap_or("<unknown>".to_string());
+        ui.warn(
+            "Launching a native Supervisor on this operating system is not yet supported. \
+            Try running this command again on 64-bit Linux or Windows.",
+        )?;
+        ui.br()?;
+        Err(Error::SubcommandNotSupported(subcmd))
     }
 }

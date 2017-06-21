@@ -464,10 +464,7 @@ impl From<env::JoinPathsError> for SupError {
 
 impl From<launcher_client::Error> for SupError {
     fn from(err: launcher_client::Error) -> SupError {
-        match err {
-            launcher_client::Error::NoEnvPipe => sup_error!(Error::NoLauncher),
-            _ => sup_error!(Error::Launcher(err)),
-        }
+        sup_error!(Error::Launcher(err))
     }
 }
 

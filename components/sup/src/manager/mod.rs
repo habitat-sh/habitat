@@ -42,7 +42,7 @@ use hcore::fs::FS_ROOT_PATH;
 use hcore::service::ServiceGroup;
 use hcore::os::process::{self, Signal};
 use hcore::package::{Identifiable, PackageIdent};
-use launcher_client::{self, LauncherCli};
+use launcher_client::LauncherCli;
 use protobuf::Message;
 use serde;
 use serde_json;
@@ -160,9 +160,7 @@ impl Manager {
     ///
     /// The returned Manager will be pre-populated with any cached data from disk from a previous
     /// run if available.
-    pub fn load(cfg: ManagerConfig) -> Result<Manager> {
-        let pipe = launcher_client::env_pipe()?;
-        let launcher = LauncherCli::connect(pipe)?;
+    pub fn load(cfg: ManagerConfig, launcher: LauncherCli) -> Result<Manager> {
         let state_path = Self::state_path_from(&cfg);
         Self::create_state_path_dirs(&state_path)?;
         Self::clean_dirty_state(&state_path)?;
@@ -418,9 +416,13 @@ impl Manager {
             .push(service);
     }
 
-    fn remove_service(&self, service: &mut Service) {
+    fn remove_service(&self, service: &mut Service, term: bool) {
         // JW TODO: Update service rumor to remove service from cluster
-        service.stop();
+        if term {
+            service.stop(Some(&self.launcher));
+        } else {
+            service.stop(None);
+        }
         if service.start_style == StartStyle::Transient {
             // JW TODO: If we cleanup our Service structure to hold the ServiceSpec instead of
             // deconstruct it (see my comments in `add_service()` in this module) then we could
@@ -783,7 +785,7 @@ impl Manager {
     fn shutdown(&self) {
         let mut services = self.services.write().expect("Services lock is poisend!");
         for mut service in services.drain(..) {
-            self.remove_service(&mut service);
+            self.remove_service(&mut service, false);
         }
         release_process_lock(&self.fs_cfg);
     }
@@ -843,7 +845,7 @@ impl Manager {
             }
         };
         let mut service = services.remove(services_idx);
-        self.remove_service(&mut service);
+        self.remove_service(&mut service, true);
         Ok(())
     }
 

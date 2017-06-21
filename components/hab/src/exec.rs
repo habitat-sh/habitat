@@ -38,31 +38,35 @@ const MAX_RETRIES: u8 = 4;
 /// * If the package is installed but the command cannot be found in the package
 /// * If an error occurs when loading the local package from disk
 /// * If the maximum number of installation retries has been exceeded
-pub fn command_from_min_pkg(
+pub fn command_from_min_pkg<T>(
     ui: &mut UI,
-    command: &str,
+    command: T,
     ident: &PackageIdent,
     cache_key_path: &Path,
     retry: u8,
-) -> Result<PathBuf> {
+) -> Result<PathBuf>
+where
+    T: Into<PathBuf>,
+{
+    let command = command.into();
     if retry > MAX_RETRIES {
-        return Err(Error::ExecCommandNotFound(command.to_string()));
+        return Err(Error::ExecCommandNotFound(command));
     }
 
     let fs_root_path = Path::new("/");
     match PackageInstall::load_at_least(ident, None) {
         Ok(pi) => {
-            match try!(fs::find_command_in_pkg(&command, &pi, fs_root_path)) {
+            match fs::find_command_in_pkg(&command, &pi, fs_root_path)? {
                 Some(cmd) => Ok(cmd),
-                None => return Err(Error::ExecCommandNotFound(command.to_string())),
+                None => Err(Error::ExecCommandNotFound(command)),
             }
         }
         Err(hcore::Error::PackageNotFound(_)) => {
-            try!(ui.status(
+            ui.status(
                 Status::Missing,
                 format!("package for {}", &ident),
-            ));
-            try!(common::command::package::install::start(
+            )?;
+            common::command::package::install::start(
                 ui,
                 &default_depot_url(),
                 None,
@@ -70,11 +74,11 @@ pub fn command_from_min_pkg(
                 PRODUCT,
                 VERSION,
                 fs_root_path,
-                &cache_artifact_path(None),
+                &cache_artifact_path(None::<String>),
                 false,
-            ));
+            )?;
             command_from_min_pkg(ui, &command, &ident, &cache_key_path, retry + 1)
         }
-        Err(e) => return Err(Error::from(e)),
+        Err(e) => Err(Error::from(e)),
     }
 }

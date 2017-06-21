@@ -241,8 +241,8 @@ impl Service {
         }
     }
 
-    pub fn stop(&mut self) {
-        if let Err(err) = self.supervisor.stop() {
+    pub fn stop(&mut self, launcher: Option<&LauncherCli>) {
+        if let Err(err) = self.supervisor.stop(launcher) {
             outputln!(preamble self.service_group, "Service stop failed: {}", err);
         }
     }
@@ -423,7 +423,8 @@ impl Service {
                 return;
             }
         }
-        if let Err(err) = self.supervisor.stop() {
+        // JW TODO: Do I need to ask the launcher to terminate this process here?
+        if let Err(err) = self.supervisor.stop(None) {
             outputln!(preamble self.service_group,
                       "Error stopping process while updating package: {}", err);
         }
