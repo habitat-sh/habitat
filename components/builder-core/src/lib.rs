@@ -21,6 +21,7 @@ extern crate time;
 extern crate petgraph;
 extern crate walkdir;
 extern crate chrono;
+extern crate protobuf;
 
 pub mod metrics;
 pub mod rdeps;

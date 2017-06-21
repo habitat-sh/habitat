@@ -125,8 +125,10 @@ impl PackageGraph {
 
         let (_, pkg_node) = *self.package_map.get(&pkg_short_name).unwrap();
         let pkg_ident = PackageIdent::from_str(&name).unwrap();
-        let latest = self.latest_map.get(&pkg_short_name).unwrap();
-        assert!(pkg_ident > *latest);
+        match self.latest_map.get(&pkg_short_name) {
+            Some(latest) => assert!(pkg_ident >= *latest),
+            None => (),
+        }
 
         // Temporarily remove edges
         let mut saved_nodes = Vec::new();
@@ -146,19 +148,22 @@ impl PackageGraph {
         for dep in deps {
             let dep_name = format!("{}", dep);
             let dep_short_name = short_name(&dep_name);
-            assert!(self.package_map.contains_key(&dep_short_name));
-            let (_, dep_node) = *self.package_map.get(&dep_short_name).unwrap();
-            dep_nodes.push(dep_node);
 
-            self.graph.extend_with_edges(&[(dep_node, pkg_node)]);
+            // No-op if dep hasn't been added yet
+            if self.package_map.contains_key(&dep_short_name) {
+                let (_, dep_node) = *self.package_map.get(&dep_short_name).unwrap();
+                dep_nodes.push(dep_node);
 
-            // Check for circular dependency
-            if is_cyclic_directed(&self.graph) {
-                debug!("graph is cyclic after adding {} -> {} - failing check_extend",
-                       dep_name,
-                       name);
-                circular_dep = true;
-                break;
+                self.graph.extend_with_edges(&[(dep_node, pkg_node)]);
+
+                // Check for circular dependency
+                if is_cyclic_directed(&self.graph) {
+                    debug!("graph is cyclic after adding {} -> {} - failing check_extend",
+                           dep_name,
+                           name);
+                    circular_dep = true;
+                    break;
+                }
             }
         }
 
@@ -325,5 +330,79 @@ impl PackageGraph {
         }
 
         v
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use protobuf::RepeatedField;
+    use super::*;
+
+    #[test]
+    fn empty_graph() {
+        let mut graph = PackageGraph::new();
+        let packages = Vec::new();
+
+        let (ncount, ecount) = graph.build(packages.into_iter());
+        assert_eq!(ncount, 0);
+        assert_eq!(ecount, 0);
+    }
+
+    #[test]
+    fn disallow_circular_dependency() {
+        let mut graph = PackageGraph::new();
+        let mut packages = Vec::new();
+
+        let mut package1 = scheduler::Package::new();
+        package1.set_ident("foo/bar/1/2".to_string());
+        let mut package1_deps = RepeatedField::new();
+        package1_deps.push("foo/baz/1/2".to_string());
+        package1.set_deps(package1_deps);
+        packages.push(package1);
+
+        let mut package2 = scheduler::Package::new();
+        package2.set_ident("foo/baz/1/2".to_string());
+        let mut package2_deps = RepeatedField::new();
+        package2_deps.push("foo/bar/1/2".to_string());
+        package2.set_deps(package2_deps);
+        packages.push(package2.clone());
+
+        let (ncount, ecount) = graph.build(packages.into_iter());
+
+        assert_eq!(ncount, 2);
+        assert_eq!(ecount, 1); // only the first edge added
+
+        let stats = graph.stats();
+        assert_eq!(stats.is_cyclic, false);
+
+        let pre_check = graph.check_extend(&package2);
+        assert_eq!(pre_check, false);
+    }
+
+    #[test]
+    fn pre_check_with_dep_not_present() {
+        let mut graph = PackageGraph::new();
+
+        let mut package1 = scheduler::Package::new();
+        package1.set_ident("foo/bar/1/2".to_string());
+        let mut package1_deps = RepeatedField::new();
+        package1_deps.push("foo/baz/1/2".to_string());
+        package1.set_deps(package1_deps);
+
+        let mut package2 = scheduler::Package::new();
+        package2.set_ident("foo/baz/1/2".to_string());
+        let mut package2_deps = RepeatedField::new();
+        package2_deps.push("foo/xyz/1/2".to_string());
+        package2.set_deps(package2_deps);
+
+        let pre_check1 = graph.check_extend(&package1);
+        assert_eq!(pre_check1, true);
+
+        let (_, _) = graph.extend(&package1);
+
+        let pre_check2 = graph.check_extend(&package2);
+        assert_eq!(pre_check2, true);
+
+        let (_, _) = graph.extend(&package2);
     }
 }
