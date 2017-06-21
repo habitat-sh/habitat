@@ -24,12 +24,13 @@ use error::{Error, Result};
 
 use retry::retry;
 
-pub fn start(ui: &mut UI,
-             depot: &str,
-             origin: &str,
-             revision: Option<&str>,
-             cache: &Path)
-             -> Result<()> {
+pub fn start(
+    ui: &mut UI,
+    depot: &str,
+    origin: &str,
+    revision: Option<&str>,
+    cache: &Path,
+) -> Result<()> {
     let depot_client = try!(Client::new(depot, PRODUCT, VERSION, None));
     match revision {
         Some(revision) => {
@@ -45,7 +46,9 @@ pub fn start(ui: &mut UI,
             }
         }
         None => {
-            try!(ui.begin(format!("Downloading public origin keys for {}", origin)));
+            try!(ui.begin(
+                format!("Downloading public origin keys for {}", origin),
+            ));
             match depot_client.show_origin_keys(origin) {
                 Ok(ref keys) if keys.len() == 0 => {
                     try!(ui.end(format!("No public keys for {}.", origin)));
@@ -54,14 +57,19 @@ pub fn start(ui: &mut UI,
                 Ok(keys) => {
                     for key in keys {
                         let nwr = format!("{}-{}", key.get_origin(), key.get_revision());
-                        try!(download_key(ui,
-                                          &depot_client,
-                                          &nwr,
-                                          key.get_origin(),
-                                          key.get_revision(),
-                                          cache));
+                        try!(download_key(
+                            ui,
+                            &depot_client,
+                            &nwr,
+                            key.get_origin(),
+                            key.get_revision(),
+                            cache,
+                        ));
                     }
-                    try!(ui.end(format!("Download of {} public origin keys completed.", &origin)));
+                    try!(ui.end(format!(
+                        "Download of {} public origin keys completed.",
+                        &origin
+                    )));
                     Ok(())
                 }
                 Err(e) => Err(Error::from(e)),
@@ -70,33 +78,41 @@ pub fn start(ui: &mut UI,
     }
 }
 
-fn download_key(ui: &mut UI,
-                depot_client: &Client,
-                nwr: &str,
-                name: &str,
-                rev: &str,
-                cache: &Path)
-                -> Result<()> {
+fn download_key(
+    ui: &mut UI,
+    depot_client: &Client,
+    nwr: &str,
+    name: &str,
+    rev: &str,
+    cache: &Path,
+) -> Result<()> {
     match SigKeyPair::get_public_key_path(&nwr, &cache) {
         Ok(_) => try!(ui.status(Status::Using, &nwr)),
         Err(_) => {
             let download_fn = || -> Result<()> {
                 try!(ui.status(Status::Downloading, &nwr));
-                try!(depot_client.fetch_origin_key(name, rev, cache, ui.progress()));
+                try!(depot_client.fetch_origin_key(
+                    name,
+                    rev,
+                    cache,
+                    ui.progress(),
+                ));
                 try!(ui.status(Status::Cached, &nwr));
                 Ok(())
             };
 
             if retry(RETRIES, RETRY_WAIT, download_fn, |res| res.is_ok()).is_err() {
-                return Err(Error::from(depot_client::Error::DownloadFailed(format!("We tried {} \
+                return Err(Error::from(depot_client::Error::DownloadFailed(format!(
+                    "We tried {} \
                                                                                     times but \
                                                                                     could not \
                                                                                     download {}/{} \
                                                                                     origin key. \
                                                                                     Giving up.",
-                                                                                   RETRIES,
-                                                                                   &name,
-                                                                                   &rev))));
+                    RETRIES,
+                    &name,
+                    &rev
+                ))));
             }
         }
     }

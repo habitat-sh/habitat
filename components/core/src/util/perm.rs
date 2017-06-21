@@ -20,17 +20,21 @@ use users;
 use error::{Error, Result};
 
 pub fn set_owner<T: AsRef<Path>, X: AsRef<str>>(path: T, owner: X, group: X) -> Result<()> {
-    debug!("Attempting to set owner of {:?} to {:?}",
-           &path.as_ref(),
-           &owner.as_ref());
+    debug!(
+        "Attempting to set owner of {:?} to {:?}",
+        &path.as_ref(),
+        &owner.as_ref()
+    );
 
     let uid = match users::get_uid_by_name(&owner.as_ref()) {
         Some(user) => user,
         None => {
-            let msg = format!("Can't change owner of {:?} to {:?}:{:?}, error getting user.",
-                              &path.as_ref(),
-                              &owner.as_ref(),
-                              &group.as_ref());
+            let msg = format!(
+                "Can't change owner of {:?} to {:?}:{:?}, error getting user.",
+                &path.as_ref(),
+                &owner.as_ref(),
+                &group.as_ref()
+            );
             return Err(Error::PermissionFailed(msg));
         }
     };
@@ -38,17 +42,23 @@ pub fn set_owner<T: AsRef<Path>, X: AsRef<str>>(path: T, owner: X, group: X) -> 
     let gid = match users::get_gid_by_name(&group.as_ref()) {
         Some(group) => group,
         None => {
-            let msg = format!("Can't change owner of {:?} to {:?}:{:?}, error getting group.",
-                              &path.as_ref(),
-                              &owner.as_ref(),
-                              &group.as_ref());
+            let msg = format!(
+                "Can't change owner of {:?} to {:?}:{:?}, error getting group.",
+                &path.as_ref(),
+                &owner.as_ref(),
+                &group.as_ref()
+            );
             return Err(Error::PermissionFailed(msg));
         }
     };
 
     let s_path = match path.as_ref().to_str() {
         Some(s) => s,
-        None => return Err(Error::PermissionFailed(format!("Invalid path {:?}", &path.as_ref()))),
+        None => {
+            return Err(Error::PermissionFailed(
+                format!("Invalid path {:?}", &path.as_ref()),
+            ))
+        }
 
     };
     let result = filesystem::chown(s_path, uid, gid);
@@ -57,9 +67,11 @@ pub fn set_owner<T: AsRef<Path>, X: AsRef<str>>(path: T, owner: X, group: X) -> 
         Err(err) => Err(err),
         Ok(0) => Ok(()),
         _ => {
-            Err(Error::PermissionFailed(format!("Can't change owner of {:?} to {:?}",
-                                                &path.as_ref(),
-                                                &owner.as_ref())))
+            Err(Error::PermissionFailed(format!(
+                "Can't change owner of {:?} to {:?}",
+                &path.as_ref(),
+                &owner.as_ref()
+            )))
         }
     }
 }
@@ -67,7 +79,11 @@ pub fn set_owner<T: AsRef<Path>, X: AsRef<str>>(path: T, owner: X, group: X) -> 
 pub fn set_permissions<T: AsRef<Path>>(path: T, mode: u32) -> Result<()> {
     let s_path = match path.as_ref().to_str() {
         Some(s) => s,
-        None => return Err(Error::PermissionFailed(format!("Invalid path {:?}", &path.as_ref()))),
+        None => {
+            return Err(Error::PermissionFailed(
+                format!("Invalid path {:?}", &path.as_ref()),
+            ))
+        }
 
     };
 
@@ -76,9 +92,11 @@ pub fn set_permissions<T: AsRef<Path>>(path: T, mode: u32) -> Result<()> {
         Err(err) => Err(err),
         Ok(0) => Ok(()),
         _ => {
-            Err(Error::PermissionFailed(format!("Can't set permissions on {:?} to {:?}",
-                                                &path.as_ref(),
-                                                &mode)))
+            Err(Error::PermissionFailed(format!(
+                "Can't set permissions on {:?} to {:?}",
+                &path.as_ref(),
+                &mode
+            )))
         }
     }
 }

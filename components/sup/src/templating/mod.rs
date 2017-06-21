@@ -49,14 +49,16 @@ impl TemplateRenderer {
     }
 
     pub fn render<T>(&self, template: &str, ctx: &T) -> Result<String>
-        where T: Serialize
+    where
+        T: Serialize,
     {
-        let raw = serde_json::to_value(ctx)
-            .map_err(|e| sup_error!(Error::RenderContextSerialization(e)))?;
+        let raw = serde_json::to_value(ctx).map_err(|e| {
+            sup_error!(Error::RenderContextSerialization(e))
+        })?;
         debug!("Rendering template with context, {}, {}", template, raw);
-        self.0
-            .render(template, &raw)
-            .map_err(|e| sup_error!(Error::TemplateRenderError(e)))
+        self.0.render(template, &raw).map_err(|e| {
+            sup_error!(Error::TemplateRenderError(e))
+        })
     }
 }
 
@@ -136,11 +138,13 @@ mod test {
 
         let r = renderer.render("t", &m);
 
-        assert_eq!(r.ok().unwrap(),
-                   r#"{
+        assert_eq!(
+            r.ok().unwrap(),
+            r#"{
   "test": "something"
 }"#
-                           .to_string());
+                .to_string()
+        );
     }
 
     #[test]
@@ -157,10 +161,12 @@ mod test {
 
         let r = renderer.render("t", &m);
 
-        assert_eq!(r.ok().unwrap(),
-                   r#"test = "something"
+        assert_eq!(
+            r.ok().unwrap(),
+            r#"test = "something"
 "#
-                           .to_string());
+                .to_string()
+        );
     }
 
     #[test]
@@ -177,10 +183,12 @@ mod test {
 
         let r = renderer.render("t", &m);
 
-        assert_eq!(r.ok().unwrap(),
-                   r#"---
+        assert_eq!(
+            r.ok().unwrap(),
+            r#"---
 test: something"#
-                           .to_string());
+                .to_string()
+        );
     }
 
     #[test]
@@ -229,8 +237,10 @@ test: something"#
 
         let data = service_config_json_from_toml_file("complex_config.toml");
         let rendered = renderer.render("t", &data).unwrap();
-        assert_eq!(PathBuf::from(rendered),
-                   PathBuf::from("/hab/pkgs/core/acl/2.2.52/20161208223311"));
+        assert_eq!(
+            PathBuf::from(rendered),
+            PathBuf::from("/hab/pkgs/core/acl/2.2.52/20161208223311")
+        );
     }
 
     #[test]
@@ -280,8 +290,10 @@ test: something"#
         let mut renderer = TemplateRenderer::new();
         // template using the new `eachAlive` helper
         renderer
-            .register_template_file("each_alive",
-                                    templates().join("each_alive_with_identifier.txt"))
+            .register_template_file(
+                "each_alive",
+                templates().join("each_alive_with_identifier.txt"),
+            )
             .unwrap();
 
         // template using an each block with a nested if block filtering on `alive`

@@ -103,21 +103,27 @@ pub struct NetCfg {
 
 impl NetCfg {
     pub fn worker_command_addr(&self) -> String {
-        format!("tcp://{}:{}",
-                self.worker_command_listen,
-                self.worker_command_port)
+        format!(
+            "tcp://{}:{}",
+            self.worker_command_listen,
+            self.worker_command_port
+        )
     }
 
     pub fn worker_heartbeat_addr(&self) -> String {
-        format!("tcp://{}:{}",
-                self.worker_heartbeat_listen,
-                self.worker_heartbeat_port)
+        format!(
+            "tcp://{}:{}",
+            self.worker_heartbeat_listen,
+            self.worker_heartbeat_port
+        )
     }
 
     pub fn log_ingestion_addr(&self) -> String {
-        format!("tcp://{}:{}",
-                self.log_ingestion_listen,
-                self.log_ingestion_port)
+        format!(
+            "tcp://{}:{}",
+            self.log_ingestion_listen,
+            self.log_ingestion_port
+        )
     }
 }
 
@@ -213,10 +219,14 @@ mod tests {
 
         let config = Config::from_raw(&content).unwrap();
         assert_eq!(&format!("{}", config.routers[0]), "1.1.1.1:9000");
-        assert_eq!(&format!("{}", config.net.worker_command_listen),
-                   "1:1:1:1:1:1:1:1");
-        assert_eq!(&format!("{}", config.net.worker_heartbeat_listen),
-                   "1.1.1.1");
+        assert_eq!(
+            &format!("{}", config.net.worker_command_listen),
+            "1:1:1:1:1:1:1:1"
+        );
+        assert_eq!(
+            &format!("{}", config.net.worker_heartbeat_listen),
+            "1.1.1.1"
+        );
         assert_eq!(&format!("{}", config.net.log_ingestion_listen), "2.2.2.2");
 
         assert_eq!(config.net.worker_command_port, 9000);
@@ -234,11 +244,15 @@ mod tests {
 
         assert_eq!(config.archive.backend, Some(ArchiveBackend::S3));
         assert_eq!(config.archive.key, Some("THIS_IS_THE_KEY".to_string()));
-        assert_eq!(config.archive.secret,
-                   Some("THIS_IS_THE_SECRET".to_string()));
+        assert_eq!(
+            config.archive.secret,
+            Some("THIS_IS_THE_SECRET".to_string())
+        );
         assert_eq!(config.archive.bucket, Some("bukkit".to_string()));
-        assert_eq!(config.archive.endpoint,
-                   Some("http://minio.mycompany.com:9000".to_string()));
+        assert_eq!(
+            config.archive.endpoint,
+            Some("http://minio.mycompany.com:9000".to_string())
+        );
         assert_eq!(config.archive.region, "us-east-1");
 
         assert_eq!(config.archive.local_dir, None);

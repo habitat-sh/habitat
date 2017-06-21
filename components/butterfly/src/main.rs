@@ -53,15 +53,16 @@ fn main() {
     member.set_swim_port(bind_port as i32);
     member.set_gossip_port(gport as i32);
 
-    let mut server = server::Server::new(bind_to_addr,
-                                         gossip_bind_addr,
-                                         member,
-                                         trace::Trace::default(),
-                                         None,
-                                         None,
-                                         None::<PathBuf>,
-                                         Box::new(ZeroSuitability))
-            .unwrap();
+    let mut server = server::Server::new(
+        bind_to_addr,
+        gossip_bind_addr,
+        member,
+        trace::Trace::default(),
+        None,
+        None,
+        None::<PathBuf>,
+        Box::new(ZeroSuitability),
+    ).unwrap();
     println!("Server ID: {}", server.member_id());
 
     let targets: Vec<String> = args.collect();
@@ -74,9 +75,9 @@ fn main() {
         server.member_list.add_initial_member(member);
     }
 
-    server
-        .start(server::timing::Timing::default())
-        .expect("Cannot start server");
+    server.start(server::timing::Timing::default()).expect(
+        "Cannot start server",
+    );
     loop {
         println!("{:#?}", server.member_list);
         thread::sleep(Duration::from_millis(1000));

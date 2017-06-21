@@ -44,25 +44,33 @@ fn get_pkg_user_and_group(pkg_install: &PackageInstall) -> Result<Option<(String
 #[cfg(unix)]
 pub fn assert_pkg_user_and_group(user: String, group: String) -> Result<()> {
     if let None = users::get_uid_by_name(&user) {
-        return Err(sup_error!(Error::Permissions(format!("Package requires user {} to \
+        return Err(sup_error!(Error::Permissions(format!(
+            "Package requires user {} to \
                                                             exist, but it doesn't",
-                                                         user))));
+            user
+        ))));
     }
     if let None = users::get_gid_by_name(&group) {
-        return Err(sup_error!(Error::Permissions(format!("Package requires group {} \
+        return Err(sup_error!(Error::Permissions(format!(
+            "Package requires group {} \
                                                             to exist, but it doesn't",
-                                                         group))));
+            group
+        ))));
     }
 
     let current_user = users::get_current_username();
     let current_group = users::get_current_groupname();
 
     if let None = current_user {
-        return Err(sup_error!(Error::Permissions("Can't determine current user".to_string())));
+        return Err(sup_error!(Error::Permissions(
+            "Can't determine current user".to_string(),
+        )));
     }
 
     if let None = current_group {
-        return Err(sup_error!(Error::Permissions("Can't determine current group".to_string())));
+        return Err(sup_error!(Error::Permissions(
+            "Can't determine current group".to_string(),
+        )));
     }
 
     let current_user = current_user.unwrap();
@@ -105,8 +113,9 @@ fn get_default_user_and_group() -> Result<(String, String)> {
                     return Ok((user, group));
                 }
                 _ => {
-                    return Err(sup_error!(Error::Permissions("Can't determine current user:group"
-                                                                 .to_string())))
+                    return Err(sup_error!(Error::Permissions(
+                        "Can't determine current user:group".to_string(),
+                    )))
                 }
             }
         }

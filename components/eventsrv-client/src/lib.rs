@@ -33,8 +33,9 @@ pub struct EventSrvClient {
 impl EventSrvClient {
     pub fn new(ports: Vec<String>) -> Self {
         let ctx = Context::new();
-        let socket = ctx.socket(PUSH)
-            .expect("unable to create EventSrvClient push socket");
+        let socket = ctx.socket(PUSH).expect(
+            "unable to create EventSrvClient push socket",
+        );
 
         // We want to intentionally set the high water mark for this socket to a low number. In the
         // event that one of our eventsrv processes crashes, this provides two benefits: it reduces

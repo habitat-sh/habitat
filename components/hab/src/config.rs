@@ -58,7 +58,11 @@ pub fn save(config: &Config) -> Result<()> {
     let config_path = cli_config_path(false);
     let parent_path = match config_path.parent() {
         Some(p) => p,
-        None => return Err(Error::FileNotFound(config_path.to_string_lossy().into_owned())),
+        None => {
+            return Err(Error::FileNotFound(
+                config_path.to_string_lossy().into_owned(),
+            ))
+        }
     };
     try!(fs::create_dir_all(&parent_path));
     let raw = try!(toml::ser::to_string(config));

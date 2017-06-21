@@ -98,7 +98,10 @@ fn get_session() {
     // Should expire sessions that are more than a day old
     {
         let conn = ds.pool.get(&sg).expect("get the connection back");
-        conn.execute("UPDATE account_sessions SET expires_at = now() - interval '2 day' WHERE token = $1", &[&sg.get_token()]).expect("Execute successfully");
+        conn.execute(
+            "UPDATE account_sessions SET expires_at = now() - interval '2 day' WHERE token = $1",
+            &[&sg.get_token()],
+        ).expect("Execute successfully");
     }
     assert_eq!(None, ds.get_session(&sg).expect("Should run without error"));
 }

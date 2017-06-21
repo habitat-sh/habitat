@@ -77,14 +77,14 @@ impl WorkerMgr {
         try!(work_mgr_sock.set_immediate(true));
         let msg = try!(zmq::Message::new());
         Ok(WorkerMgr {
-               config: config,
-               datastore: datastore,
-               hb_sock: hb_sock,
-               rq_sock: rq_sock,
-               work_mgr_sock: work_mgr_sock,
-               msg: msg,
-               workers: LinkedHashMap::new(),
-           })
+            config: config,
+            datastore: datastore,
+            hb_sock: hb_sock,
+            rq_sock: rq_sock,
+            work_mgr_sock: work_mgr_sock,
+            msg: msg,
+            workers: LinkedHashMap::new(),
+        })
     }
 
     pub fn start(cfg: Arc<RwLock<Config>>, ds: DataStore) -> Result<JoinHandle<()>> {
@@ -92,9 +92,9 @@ impl WorkerMgr {
         let handle = thread::Builder::new()
             .name("worker-manager".to_string())
             .spawn(move || {
-                       let mut manager = Self::new(cfg, ds).unwrap();
-                       manager.run(tx).unwrap();
-                   })
+                let mut manager = Self::new(cfg, ds).unwrap();
+                manager.run(tx).unwrap();
+            })
             .unwrap();
         match rx.recv() {
             Ok(()) => Ok(handle),
@@ -125,9 +125,11 @@ impl WorkerMgr {
         loop {
             {
                 let timeout = self.poll_timeout();
-                let mut items = [self.hb_sock.as_poll_item(1),
-                                 self.rq_sock.as_poll_item(1),
-                                 self.work_mgr_sock.as_poll_item(1)];
+                let mut items = [
+                    self.hb_sock.as_poll_item(1),
+                    self.rq_sock.as_poll_item(1),
+                    self.work_mgr_sock.as_poll_item(1),
+                ];
                 // Poll until timeout or message is received. Checking for the zmq::POLLIN flag on
                 // a poll item's revents will let you know if you have received a message or not
                 // on that socket.
@@ -201,8 +203,9 @@ impl WorkerMgr {
                         continue;
                     }
                     if self.rq_sock
-                           .send(&job.write_to_bytes().unwrap(), 0)
-                           .is_err() {
+                        .send(&job.write_to_bytes().unwrap(), 0)
+                        .is_err()
+                    {
                         debug!("failed to send, worker went away, worker={:?}", worker);
                         job.set_state(jobsrv::JobState::Pending);
                         self.datastore.update_job(&job)?;
@@ -243,8 +246,10 @@ impl WorkerMgr {
             jobsrv::WorkerState::Ready => {
                 let now = Instant::now();
                 let expiry = now + Duration::from_millis(WORKER_TIMEOUT_MS);
-                self.workers
-                    .insert(heartbeat.get_endpoint().to_string(), expiry);
+                self.workers.insert(
+                    heartbeat.get_endpoint().to_string(),
+                    expiry,
+                );
                 true
             }
             jobsrv::WorkerState::Busy => {

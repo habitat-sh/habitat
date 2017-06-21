@@ -69,18 +69,18 @@ impl Env {
                 paths[i] = Path::new(&*FS_ROOT_PATH).join(paths[i].strip_prefix("/").unwrap());
             }
         }
-        env.insert(PATH_KEY.to_string(),
-                   util::path::append_interpreter_and_path(&mut paths)?);
+        env.insert(
+            PATH_KEY.to_string(),
+            util::path::append_interpreter_and_path(&mut paths)?,
+        );
         Ok(Env(env))
     }
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Pkg {
-    #[serde(
-        deserialize_with = "deserialize_using_from_str",
-        serialize_with = "serialize_using_to_string"
-    )]
+    #[serde(deserialize_with = "deserialize_using_from_str",
+            serialize_with = "serialize_using_to_string")]
     pub ident: PackageIdent,
     pub origin: String,
     pub name: String,
@@ -118,27 +118,25 @@ impl Pkg {
             svc_user: svc_user,
             svc_group: svc_group,
             env: Env::new(&package)?,
-            deps: package
-                .tdeps()
-                .map_err(|e| sup_error!(Error::BadPackage(package.clone(), e)))?,
-            exposes: package
-                .exposes()
-                .map_err(|e| sup_error!(Error::BadPackage(package.clone(), e)))?,
-            exports: package
-                .exports()
-                .map_err(|e| sup_error!(Error::BadPackage(package.clone(), e)))?,
+            deps: package.tdeps().map_err(|e| {
+                sup_error!(Error::BadPackage(package.clone(), e))
+            })?,
+            exposes: package.exposes().map_err(|e| {
+                sup_error!(Error::BadPackage(package.clone(), e))
+            })?,
+            exports: package.exports().map_err(|e| {
+                sup_error!(Error::BadPackage(package.clone(), e))
+            })?,
             path: package.installed_path,
             ident: package.ident.clone(),
             origin: package.ident.origin.clone(),
             name: package.ident.name.clone(),
-            version: package
-                .ident
-                .version
-                .expect("No package version in PackageInstall"),
-            release: package
-                .ident
-                .release
-                .expect("No package release in PackageInstall"),
+            version: package.ident.version.expect(
+                "No package version in PackageInstall",
+            ),
+            release: package.ident.release.expect(
+                "No package release in PackageInstall",
+            ),
         };
         Ok(pkg)
     }

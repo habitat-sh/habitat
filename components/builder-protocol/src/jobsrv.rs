@@ -85,7 +85,8 @@ impl Routable for ProjectJobsGet {
 
 impl Serialize for Job {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         let mut strukt = try!(serializer.serialize_struct("job", 10));
 
@@ -104,17 +105,20 @@ impl Serialize for Job {
         // treat all our structs consistently.
         strukt.serialize_field("id", &self.get_id().to_string())?;
 
-        strukt
-            .serialize_field("created_at", &self.get_created_at())?;
+        strukt.serialize_field("created_at", &self.get_created_at())?;
 
         // Technically, we could get the origin and name from the
         // package identifier, but we'll only have that if the job was
         // complete. The project information will always be present,
         // however.
-        strukt
-            .serialize_field("origin", &self.get_project().get_origin_name())?;
-        strukt
-            .serialize_field("name", &self.get_project().get_package_name())?;
+        strukt.serialize_field(
+            "origin",
+            &self.get_project().get_origin_name(),
+        )?;
+        strukt.serialize_field(
+            "name",
+            &self.get_project().get_package_name(),
+        )?;
 
         if self.has_package_ident() {
             let ident = self.get_package_ident();
@@ -123,12 +127,16 @@ impl Serialize for Job {
         }
 
         if self.has_build_started_at() {
-            strukt
-                .serialize_field("build_started_at", &self.get_build_started_at())?;
+            strukt.serialize_field(
+                "build_started_at",
+                &self.get_build_started_at(),
+            )?;
         }
         if self.has_build_finished_at() {
-            strukt
-                .serialize_field("build_finished_at", &self.get_build_finished_at())?;
+            strukt.serialize_field(
+                "build_finished_at",
+                &self.get_build_finished_at(),
+            )?;
         }
 
         strukt.serialize_field("state", &self.get_state())?;
@@ -142,7 +150,8 @@ impl Serialize for Job {
 
 impl Serialize for ProjectJobsGetResponse {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         let mut strukt = try!(serializer.serialize_struct("project_jobs_get_response", 1));
         try!(strukt.serialize_field("jobs", self.get_jobs()));
@@ -173,7 +182,8 @@ impl JobLog {
 
 impl Serialize for JobLog {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         let mut log = try!(serializer.serialize_struct("JobLog", 4));
         log.serialize_field("start", &self.get_start())?;
@@ -192,7 +202,8 @@ impl Default for JobState {
 
 impl Serialize for JobState {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         match *self as u64 {
             0 => serializer.serialize_str("Pending"),
@@ -247,10 +258,12 @@ mod tests {
         log.set_start(0);
         log.set_stop(4);
 
-        let lines = vec!["[1;33m» Importing origin key from standard log[0m",
-                         "[1;34m★ Imported secret origin key core-20160810182414.[0m",
-                         "[1;33m» Installing core/hab-backline[0m",
-                         "[1;32m↓ Downloading[0m core/hab-backline/0.23.0/20170511220008"];
+        let lines = vec![
+            "[1;33m» Importing origin key from standard log[0m",
+            "[1;34m★ Imported secret origin key core-20160810182414.[0m",
+            "[1;33m» Installing core/hab-backline[0m",
+            "[1;32m↓ Downloading[0m core/hab-backline/0.23.0/20170511220008",
+        ];
 
         let input_lines = lines.iter().map(|l| l.to_string());
         let content = RepeatedField::from_iter(input_lines);
@@ -263,10 +276,12 @@ mod tests {
             .map(|l| l.to_string())
             .collect();
 
-        let expected = vec!["» Importing origin key from standard log",
-                            "★ Imported secret origin key core-20160810182414.",
-                            "» Installing core/hab-backline",
-                            "↓ Downloading core/hab-backline/0.23.0/20170511220008"];
+        let expected = vec![
+            "» Importing origin key from standard log",
+            "★ Imported secret origin key core-20160810182414.",
+            "» Installing core/hab-backline",
+            "↓ Downloading core/hab-backline/0.23.0/20170511220008",
+        ];
         assert_eq!(stripped_lines, expected);
     }
 

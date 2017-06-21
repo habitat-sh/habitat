@@ -90,8 +90,10 @@ pub fn search(req: &mut Request) -> IronResult<Response> {
             match &*body.entity.to_lowercase() {
                 "account" => search_account(body.attr, body.value),
                 entity => {
-                    Ok(Response::with((status::UnprocessableEntity,
-                                       format!("Unknown search entity: {}", entity))))
+                    Ok(Response::with((
+                        status::UnprocessableEntity,
+                        format!("Unknown search entity: {}", entity),
+                    )))
                 }
             }
         }

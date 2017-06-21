@@ -24,15 +24,17 @@ use std::str::FromStr;
 use serde;
 
 pub fn deserialize_using_from_str<'de, T, E, D>(d: D) -> result::Result<T, D::Error>
-    where T: FromStr<Err = E>,
-          E: error::Error,
-          D: serde::Deserializer<'de>
+where
+    T: FromStr<Err = E>,
+    E: error::Error,
+    D: serde::Deserializer<'de>,
 {
     struct FromStringable<T, E>(PhantomData<T>, PhantomData<E>);
 
     impl<'de, T, E> serde::de::Visitor<'de> for FromStringable<T, E>
-        where T: FromStr<Err = E>,
-              E: error::Error
+    where
+        T: FromStr<Err = E>,
+        E: error::Error,
     {
         type Value = T;
 
@@ -41,14 +43,17 @@ pub fn deserialize_using_from_str<'de, T, E, D>(d: D) -> result::Result<T, D::Er
         }
 
         fn visit_str<R>(self, value: &str) -> result::Result<T, R>
-            where R: serde::de::Error
+        where
+            R: serde::de::Error,
         {
             match FromStr::from_str(value) {
                 Ok(t) => Ok(t),
                 Err(err) => {
-                    Err(R::custom(format!("string cannot be parsed: \"{}\" ({})",
-                                          value,
-                                          err.description())))
+                    Err(R::custom(format!(
+                        "string cannot be parsed: \"{}\" ({})",
+                        value,
+                        err.description()
+                    )))
                 }
             }
         }
@@ -58,8 +63,9 @@ pub fn deserialize_using_from_str<'de, T, E, D>(d: D) -> result::Result<T, D::Er
 }
 
 pub fn serialize_using_to_string<T, S>(t: &T, s: S) -> result::Result<S::Ok, S::Error>
-    where T: ToString,
-          S: serde::Serializer
+where
+    T: ToString,
+    S: serde::Serializer,
 {
     s.serialize_str(&t.to_string())
 }

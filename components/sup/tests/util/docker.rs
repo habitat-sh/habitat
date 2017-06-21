@@ -31,21 +31,27 @@ pub struct Docker {
 }
 
 fn docker_cmd(args: &[&str]) -> Docker {
-    println!("{}: Starting docker with {:?}",
-             thread::current().name().unwrap_or("main"),
-             args);
+    println!(
+        "{}: Starting docker with {:?}",
+        thread::current().name().unwrap_or("main"),
+        args
+    );
     let mut cmd = command::run("docker", args).unwrap_or_else(|x| panic!("{:?}", x));
     cmd.wait_with_output();
     let mut id = String::from(cmd.stdout());
     id.pop();
-    println!("{}: Docker exited with: {:?}, stdout: {}, stderr: {}",
-             thread::current().name().unwrap_or("main"),
-             cmd.status().code(),
-             cmd.stdout(),
-             cmd.stderr());
-    println!("{}: Docker container: {}",
-             id,
-             thread::current().name().unwrap_or("main"));
+    println!(
+        "{}: Docker exited with: {:?}, stdout: {}, stderr: {}",
+        thread::current().name().unwrap_or("main"),
+        cmd.status().code(),
+        cmd.stdout(),
+        cmd.stderr()
+    );
+    println!(
+        "{}: Docker container: {}",
+        id,
+        thread::current().name().unwrap_or("main")
+    );
     Docker { container_id: String::from(id) }
 }
 
@@ -54,149 +60,202 @@ pub fn run(image: &str) -> Docker {
 }
 
 pub fn run_with_topology(image: &str, topology: &str) -> Docker {
-    docker_cmd(&["run",
-                 "-d",
-                 "--cap-add=NET_ADMIN",
-                 image,
-                 "start",
-                 image,
-                 &format!("--group={}", thread::current().name().unwrap_or("main")),
-                 &format!("--topology={}", topology)])
+    docker_cmd(
+        &[
+            "run",
+            "-d",
+            "--cap-add=NET_ADMIN",
+            image,
+            "start",
+            image,
+            &format!("--group={}", thread::current().name().unwrap_or("main")),
+            &format!("--topology={}", topology),
+        ],
+    )
 }
 
 pub fn depot(image: &str) -> Docker {
-    docker_cmd(&["run",
-                 "-d",
-                 "--cap-add=NET_ADMIN",
-                 "--expose=9632",
-                 image,
-                 "depot"])
+    docker_cmd(
+        &[
+            "run",
+            "-d",
+            "--cap-add=NET_ADMIN",
+            "--expose=9632",
+            image,
+            "depot",
+        ],
+    )
 }
 
 pub fn run_with_env(image: &str, env: &str) -> Docker {
-    docker_cmd(&["run",
-                 "-d",
-                 "--cap-add=NET_ADMIN",
-                 &format!("-e={}", env),
-                 image])
+    docker_cmd(
+        &[
+            "run",
+            "-d",
+            "--cap-add=NET_ADMIN",
+            &format!("-e={}", env),
+            image,
+        ],
+    )
 }
 
 pub fn run_with_peer(image: &str, peer: &str) -> Docker {
-    docker_cmd(&["run",
-                 "-d",
-                 "--cap-add=NET_ADMIN",
-                 image,
-                 "start",
-                 image,
-                 &format!("--peer={}", peer),
-                 &format!("--group={}", thread::current().name().unwrap_or("main"))])
+    docker_cmd(
+        &[
+            "run",
+            "-d",
+            "--cap-add=NET_ADMIN",
+            image,
+            "start",
+            image,
+            &format!("--peer={}", peer),
+            &format!("--group={}", thread::current().name().unwrap_or("main")),
+        ],
+    )
 }
 
 pub fn run_with_peer_permanent(image: &str, peer: &str) -> Docker {
-    docker_cmd(&["run",
-                 "-d",
-                 "--cap-add=NET_ADMIN",
-                 image,
-                 "start",
-                 image,
-                 &format!("--peer={}", peer),
-                 &format!("--group={}", thread::current().name().unwrap_or("main")),
-                 &format!("--permanent-peer")])
+    docker_cmd(
+        &[
+            "run",
+            "-d",
+            "--cap-add=NET_ADMIN",
+            image,
+            "start",
+            image,
+            &format!("--peer={}", peer),
+            &format!("--group={}", thread::current().name().unwrap_or("main")),
+            &format!("--permanent-peer"),
+        ],
+    )
 }
 
 pub fn run_with_permanent(image: &str) -> Docker {
-    docker_cmd(&["run",
-                 "-d",
-                 "--cap-add=NET_ADMIN",
-                 image,
-                 "start",
-                 image,
-                 &format!("--group={}", thread::current().name().unwrap_or("main")),
-                 &format!("--permanent-peer")])
+    docker_cmd(
+        &[
+            "run",
+            "-d",
+            "--cap-add=NET_ADMIN",
+            image,
+            "start",
+            image,
+            &format!("--group={}", thread::current().name().unwrap_or("main")),
+            &format!("--permanent-peer"),
+        ],
+    )
 }
 
 pub fn run_with_peer_topology(image: &str, peer: &str, topology: &str) -> Docker {
-    docker_cmd(&["run",
-                 "-d",
-                 "--cap-add=NET_ADMIN",
-                 image,
-                 "start",
-                 image,
-                 &format!("--topology={}", topology),
-                 &format!("--peer={}", peer),
-                 &format!("--group={}", thread::current().name().unwrap_or("main"))])
+    docker_cmd(
+        &[
+            "run",
+            "-d",
+            "--cap-add=NET_ADMIN",
+            image,
+            "start",
+            image,
+            &format!("--topology={}", topology),
+            &format!("--peer={}", peer),
+            &format!("--group={}", thread::current().name().unwrap_or("main")),
+        ],
+    )
 }
 
 pub fn run_with_peer_permanent_topology(image: &str, peer: &str, topology: &str) -> Docker {
-    docker_cmd(&["run",
-                 "-d",
-                 "--cap-add=NET_ADMIN",
-                 image,
-                 "start",
-                 image,
-                 &format!("--topology={}", topology),
-                 &format!("--peer={}", peer),
-                 &format!("--group={}", thread::current().name().unwrap_or("main")),
-                 &format!("--permanent-peer")])
+    docker_cmd(
+        &[
+            "run",
+            "-d",
+            "--cap-add=NET_ADMIN",
+            image,
+            "start",
+            image,
+            &format!("--topology={}", topology),
+            &format!("--peer={}", peer),
+            &format!("--group={}", thread::current().name().unwrap_or("main")),
+            &format!("--permanent-peer"),
+        ],
+    )
 }
 
 pub fn run_with_permanent_topology(image: &str, topology: &str) -> Docker {
-    docker_cmd(&["run",
-                 "-d",
-                 "--cap-add=NET_ADMIN",
-                 image,
-                 "start",
-                 image,
-                 &format!("--topology={}", topology),
-                 &format!("--group={}", thread::current().name().unwrap_or("main")),
-                 &format!("--permanent-peer")])
+    docker_cmd(
+        &[
+            "run",
+            "-d",
+            "--cap-add=NET_ADMIN",
+            image,
+            "start",
+            image,
+            &format!("--topology={}", topology),
+            &format!("--group={}", thread::current().name().unwrap_or("main")),
+            &format!("--permanent-peer"),
+        ],
+    )
 }
 
 
 pub fn run_with_etcd(image: &str) -> Docker {
-    docker_cmd(&["run",
-                 "-d",
-                 "--link=bldr_etcd_1:etcd",
-                 "-e=BLDR_CONFIG_ETCD=http://etcd:4001",
-                 image,
-                 "start",
-                 "test/simple_service",
-                 &format!("--group={}", thread::current().name().unwrap_or("main"))])
+    docker_cmd(
+        &[
+            "run",
+            "-d",
+            "--link=bldr_etcd_1:etcd",
+            "-e=BLDR_CONFIG_ETCD=http://etcd:4001",
+            image,
+            "start",
+            "test/simple_service",
+            &format!("--group={}", thread::current().name().unwrap_or("main")),
+        ],
+    )
 }
 
 pub fn run_with_etcd_watch(image: &str, watch: &str) -> Docker {
-    docker_cmd(&["run",
-                 "-d",
-                 "--link=bldr_etcd_1:etcd",
-                 "-e=BLDR_CONFIG_ETCD=http://etcd:4001",
-                 image,
-                 "start",
-                 "test/simple_service",
-                 &format!("--group={}", thread::current().name().unwrap_or("main")),
-                 &format!("--watch={}", watch)])
+    docker_cmd(
+        &[
+            "run",
+            "-d",
+            "--link=bldr_etcd_1:etcd",
+            "-e=BLDR_CONFIG_ETCD=http://etcd:4001",
+            image,
+            "start",
+            "test/simple_service",
+            &format!("--group={}", thread::current().name().unwrap_or("main")),
+            &format!("--watch={}", watch),
+        ],
+    )
 }
 
 pub fn run_with_etcd_topology(image: &str, topology: &str) -> Docker {
-    docker_cmd(&["run",
-                 "-d",
-                 "--link=bldr_etcd_1:etcd",
-                 "-e=BLDR_CONFIG_ETCD=http://etcd:4001",
-                 image,
-                 "start",
-                 "test/simple_service",
-                 &format!("--group={}", thread::current().name().unwrap_or("main")),
-                 &format!("--topology={}", topology)])
+    docker_cmd(
+        &[
+            "run",
+            "-d",
+            "--link=bldr_etcd_1:etcd",
+            "-e=BLDR_CONFIG_ETCD=http://etcd:4001",
+            image,
+            "start",
+            "test/simple_service",
+            &format!("--group={}", thread::current().name().unwrap_or("main")),
+            &format!("--topology={}", topology),
+        ],
+    )
 }
 
 impl Docker {
     pub fn ipaddress(&self) -> String {
-        let mut cmd = command::run("sh",
-                                   &["-c",
-                                     &format!("docker inspect --format='{}' {}",
-                                              "{{range .NetworkSettings.Networks}}{{.\
+        let mut cmd = command::run(
+            "sh",
+            &[
+                "-c",
+                &format!(
+                    "docker inspect --format='{}' {}",
+                    "{{range .NetworkSettings.Networks}}{{.\
                                                IPAddress}}{{end}}",
-                                              &self.container_id)])
-                .unwrap_or_else(|x| panic!("{:?}", x));
+                    &self.container_id
+                ),
+            ],
+        ).unwrap_or_else(|x| panic!("{:?}", x));
         cmd.wait_with_output();
         let ipaddress = String::from(cmd.stdout().trim());
         println!("I have ipaddress {}", &ipaddress);
@@ -214,13 +273,17 @@ impl Docker {
             let error = String::from(cmd.stderr());
             let re = Regex::new(r"i/o timeout").unwrap();
             if re.is_match(&output) {
-                println!("{}: An i/o error failed, retrying",
-                         thread::current().name().unwrap_or("main"));
+                println!(
+                    "{}: An i/o error failed, retrying",
+                    thread::current().name().unwrap_or("main")
+                );
                 continue;
             }
             if re.is_match(&error) {
-                println!("{}: An i/o error failed, retrying",
-                         thread::current().name().unwrap_or("main"));
+                println!(
+                    "{}: An i/o error failed, retrying",
+                    thread::current().name().unwrap_or("main")
+                );
                 continue;
             }
             println!("{}: {}", thread::current().name().unwrap_or("main"), output);
@@ -238,8 +301,10 @@ impl Docker {
                 return true;
             }
         }
-        println!("Container not ready after 30 seconds, looking for {}",
-                 ready_regex);
+        println!(
+            "Container not ready after 30 seconds, looking for {}",
+            ready_regex
+        );
         false
     }
 
@@ -257,10 +322,12 @@ impl Docker {
         let mut cmd = command::run("docker", &real_args).unwrap_or_else(|x| panic!("{:?}", x));
         cmd.wait_with_output();
         if !cmd.status.unwrap().success() {
-            panic!("Failed to run `docker {:#?}`: STDOUT - {:?} STDERR - {:?}",
-                   real_args,
-                   cmd.stdout,
-                   cmd.stderr);
+            panic!(
+                "Failed to run `docker {:#?}`: STDOUT - {:?} STDERR - {:?}",
+                real_args,
+                cmd.stdout,
+                cmd.stderr
+            );
         }
     }
 }

@@ -40,9 +40,7 @@ impl LocalArchiver {
     pub fn new(config: ArchiveCfg) -> Result<LocalArchiver> {
         // TODO: Only using LogDirectory for the validation
         // logic; we should extract / consolidate this somehow
-        let archive_dir = config
-            .local_dir
-            .expect("Missing local archive directory!");
+        let archive_dir = config.local_dir.expect("Missing local archive directory!");
         let ld = LogDirectory::new(&archive_dir);
         ld.validate()?;
         Ok(LocalArchiver(archive_dir))

@@ -99,9 +99,9 @@ impl ProxyInfo {
         }
 
         Ok(ProxyInfo {
-               url: url,
-               authorization: authorization,
-           })
+            url: url,
+            authorization: authorization,
+        })
     }
 
     /// Returns the scheme for the proxy server.
@@ -164,8 +164,10 @@ impl ProxyBasicAuthorization {
 
     /// Returns a `String` containing the value for a `Proxy-Authorization` HTTP header.
     pub fn header_value(&self) -> String {
-        format!("Basic {}",
-                base64::encode(format!("{}:{}", self.username, self.password).as_bytes()))
+        format!(
+            "Basic {}",
+            base64::encode(format!("{}:{}", self.username, self.password).as_bytes())
+        )
     }
 }
 
@@ -471,20 +473,23 @@ pub fn proxy_unless_domain_exempted(for_domain: Option<&Url>) -> Result<Option<P
     }
 }
 
-fn process_no_proxy(for_domain: Option<&Url>,
-                    scheme: &str,
-                    domains: String)
-                    -> Result<Option<ProxyInfo>> {
+fn process_no_proxy(
+    for_domain: Option<&Url>,
+    scheme: &str,
+    domains: String,
+) -> Result<Option<ProxyInfo>> {
     let domain = match for_domain {
         Some(url) => url.host_str().unwrap_or(""),
         None => "",
     };
     for extension in domains.split(',') {
         if domain.ends_with(extension) {
-            debug!("Domain {} matches domain extension {} from no_proxy='{}'",
-                   &domain,
-                   &extension,
-                   &domains);
+            debug!(
+                "Domain {} matches domain extension {} from no_proxy='{}'",
+                &domain,
+                &extension,
+                &domains
+            );
             return Ok(None);
         }
     }
@@ -498,12 +503,14 @@ fn parse_proxy_url(url: &str) -> Result<Option<ProxyInfo>> {
     let url = try!(Url::parse(&url));
     let auth = match url.password() {
         Some(password) => {
-            Some(ProxyBasicAuthorization::new(percent_decode(url.username().as_bytes())
-                                                  .decode_utf8_lossy()
-                                                  .into_owned(),
-                                              percent_decode(password.as_bytes())
-                                                  .decode_utf8_lossy()
-                                                  .into_owned()))
+            Some(ProxyBasicAuthorization::new(
+                percent_decode(url.username().as_bytes())
+                    .decode_utf8_lossy()
+                    .into_owned(),
+                percent_decode(password.as_bytes())
+                    .decode_utf8_lossy()
+                    .into_owned(),
+            ))
         }
         None => None,
     };

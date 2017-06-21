@@ -38,12 +38,13 @@ const MAX_RETRIES: u8 = 4;
 /// * If the package is installed but the command cannot be found in the package
 /// * If an error occurs when loading the local package from disk
 /// * If the maximum number of installation retries has been exceeded
-pub fn command_from_min_pkg(ui: &mut UI,
-                            command: &str,
-                            ident: &PackageIdent,
-                            cache_key_path: &Path,
-                            retry: u8)
-                            -> Result<PathBuf> {
+pub fn command_from_min_pkg(
+    ui: &mut UI,
+    command: &str,
+    ident: &PackageIdent,
+    cache_key_path: &Path,
+    retry: u8,
+) -> Result<PathBuf> {
     if retry > MAX_RETRIES {
         return Err(Error::ExecCommandNotFound(command.to_string()));
     }
@@ -57,16 +58,21 @@ pub fn command_from_min_pkg(ui: &mut UI,
             }
         }
         Err(hcore::Error::PackageNotFound(_)) => {
-            try!(ui.status(Status::Missing, format!("package for {}", &ident)));
-            try!(common::command::package::install::start(ui,
-                                                          &default_depot_url(),
-                                                          None,
-                                                          &ident.to_string(),
-                                                          PRODUCT,
-                                                          VERSION,
-                                                          fs_root_path,
-                                                          &cache_artifact_path(None),
-                                                          false));
+            try!(ui.status(
+                Status::Missing,
+                format!("package for {}", &ident),
+            ));
+            try!(common::command::package::install::start(
+                ui,
+                &default_depot_url(),
+                None,
+                &ident.to_string(),
+                PRODUCT,
+                VERSION,
+                fs_root_path,
+                &cache_artifact_path(None),
+                false,
+            ));
             command_from_min_pkg(ui, &command, &ident, &cache_key_path, retry + 1)
         }
         Err(e) => return Err(Error::from(e)),

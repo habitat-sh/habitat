@@ -25,7 +25,9 @@ use super::net_err_to_http;
 
 pub fn render_json<T: Serialize>(status: status::Status, response: &T) -> Response {
     let encoded = serde_json::to_string(response).unwrap();
-    let headers = Header(ContentType(Mime(TopLevel::Application, SubLevel::Json, vec![])));
+    let headers = Header(ContentType(
+        Mime(TopLevel::Application, SubLevel::Json, vec![]),
+    ));
     Response::with((status, encoded, headers))
 }
 

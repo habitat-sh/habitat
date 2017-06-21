@@ -23,10 +23,11 @@ use zmq;
 use super::ServerState;
 use error::Result;
 
-pub fn account_get_id(req: &mut Envelope,
-                      sock: &mut zmq::Socket,
-                      state: &mut ServerState)
-                      -> Result<()> {
+pub fn account_get_id(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
     let msg: proto::AccountGetId = try!(req.parse_msg());
     match state.datastore.get_account_by_id(&msg) {
         Ok(Some(account)) => req.reply_complete(sock, &account)?,
@@ -43,10 +44,11 @@ pub fn account_get_id(req: &mut Envelope,
     Ok(())
 }
 
-pub fn account_get(req: &mut Envelope,
-                   sock: &mut zmq::Socket,
-                   state: &mut ServerState)
-                   -> Result<()> {
+pub fn account_get(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
     let msg: proto::AccountGet = try!(req.parse_msg());
     match state.datastore.get_account(&msg) {
         Ok(Some(account)) => req.reply_complete(sock, &account)?,
@@ -63,10 +65,11 @@ pub fn account_get(req: &mut Envelope,
     Ok(())
 }
 
-pub fn session_create(req: &mut Envelope,
-                      sock: &mut zmq::Socket,
-                      state: &mut ServerState)
-                      -> Result<()> {
+pub fn session_create(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
     let msg: proto::SessionCreate = try!(req.parse_msg());
 
     let mut is_admin = false;
@@ -89,31 +92,37 @@ pub fn session_create(req: &mut Envelope,
         };
         for team in teams {
             if team.id != 0 && team.id == state.permissions.admin_team {
-                debug!("Granting feature flag={:?} for team={:?}",
-                       privilege::ADMIN,
-                       team.name);
+                debug!(
+                    "Granting feature flag={:?} for team={:?}",
+                    privilege::ADMIN,
+                    team.name
+                );
                 is_admin = true;
             }
             if team.id != 0 && state.permissions.early_access_teams.contains(&team.id) {
-                debug!("Granting feature flag={:?} for team={:?}",
-                       privilege::EARLY_ACCESS,
-                       team.name);
+                debug!(
+                    "Granting feature flag={:?} for team={:?}",
+                    privilege::EARLY_ACCESS,
+                    team.name
+                );
                 is_early_access = true;
             }
             if team.id != 0 && state.permissions.build_worker_teams.contains(&team.id) {
-                debug!("Granting feature flag={:?} for team={:?}",
-                       privilege::BUILD_WORKER,
-                       team.name);
+                debug!(
+                    "Granting feature flag={:?} for team={:?}",
+                    privilege::BUILD_WORKER,
+                    team.name
+                );
                 is_build_worker = true;
             }
         }
     }
-    match state
-              .datastore
-              .find_or_create_account_via_session(&msg,
-                                                  is_admin,
-                                                  is_early_access,
-                                                  is_build_worker) {
+    match state.datastore.find_or_create_account_via_session(
+        &msg,
+        is_admin,
+        is_early_access,
+        is_build_worker,
+    ) {
         Ok(session) => req.reply_complete(sock, &session)?,
         Err(e) => {
             error!("{}", e);
@@ -124,10 +133,11 @@ pub fn session_create(req: &mut Envelope,
     Ok(())
 }
 
-pub fn session_get(req: &mut Envelope,
-                   sock: &mut zmq::Socket,
-                   state: &mut ServerState)
-                   -> Result<()> {
+pub fn session_get(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
     let msg: proto::SessionGet = try!(req.parse_msg());
     match state.datastore.get_session(&msg) {
         Ok(Some(session)) => {
@@ -146,10 +156,11 @@ pub fn session_get(req: &mut Envelope,
     Ok(())
 }
 
-pub fn account_origin_invitation_create(req: &mut Envelope,
-                                        sock: &mut zmq::Socket,
-                                        state: &mut ServerState)
-                                        -> Result<()> {
+pub fn account_origin_invitation_create(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
     let msg: proto::AccountOriginInvitationCreate = try!(req.parse_msg());
     match state.datastore.create_account_origin_invitation(&msg) {
         Ok(()) => {
@@ -164,10 +175,11 @@ pub fn account_origin_invitation_create(req: &mut Envelope,
     Ok(())
 }
 
-pub fn account_origin_invitation_accept(req: &mut Envelope,
-                                        sock: &mut zmq::Socket,
-                                        state: &mut ServerState)
-                                        -> Result<()> {
+pub fn account_origin_invitation_accept(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
     let msg: proto::AccountOriginInvitationAcceptRequest = try!(req.parse_msg());
     match state.datastore.accept_origin_invitation(&msg) {
         Ok(()) => {
@@ -182,10 +194,11 @@ pub fn account_origin_invitation_accept(req: &mut Envelope,
     Ok(())
 }
 
-pub fn account_origin_create(req: &mut Envelope,
-                             sock: &mut zmq::Socket,
-                             state: &mut ServerState)
-                             -> Result<()> {
+pub fn account_origin_create(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
     let msg: proto::AccountOriginCreate = try!(req.parse_msg());
     match state.datastore.create_origin(&msg) {
         Ok(()) => {
@@ -200,10 +213,11 @@ pub fn account_origin_create(req: &mut Envelope,
     Ok(())
 }
 
-pub fn account_origin_list_request(req: &mut Envelope,
-                                   sock: &mut zmq::Socket,
-                                   state: &mut ServerState)
-                                   -> Result<()> {
+pub fn account_origin_list_request(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
     let msg: proto::AccountOriginListRequest = try!(req.parse_msg());
     match state.datastore.get_origins_by_account(&msg) {
         Ok(reply) => {
@@ -218,10 +232,11 @@ pub fn account_origin_list_request(req: &mut Envelope,
     Ok(())
 }
 
-pub fn account_invitation_list(req: &mut Envelope,
-                               sock: &mut zmq::Socket,
-                               state: &mut ServerState)
-                               -> Result<()> {
+pub fn account_invitation_list(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
     let msg: proto::AccountInvitationListRequest = try!(req.parse_msg());
     match state.datastore.list_invitations(&msg) {
         Ok(response) => {

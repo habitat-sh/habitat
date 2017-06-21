@@ -44,9 +44,11 @@ impl Server {
     pub fn run(&mut self) -> Result<()> {
         let cfg1 = self.config.clone();
         let broker = Broker::run(Self::net_ident(), self.config.route_addrs());
-        println!("Builder API listening on {}:{}",
-                 self.config.http.listen,
-                 self.config.http.port);
+        println!(
+            "Builder API listening on {}:{}",
+            self.config.http.listen,
+            self.config.http.port
+        );
         info!("builder-api is ready to go.");
         let http = try!(http::run(cfg1));
 

@@ -21,8 +21,19 @@ use hcore::service::ServiceGroup;
 use error::Result;
 
 pub fn start(ui: &mut UI, org: &str, service_group: &ServiceGroup, cache: &Path) -> Result<()> {
-    try!(ui.begin(format!("Generating service key for {} in {}", &service_group, org)));
-    let pair = try!(BoxKeyPair::generate_pair_for_service(org, &service_group.to_string(), cache));
-    try!(ui.end(format!("Generated service key pair {}.", &pair.name_with_rev())));
+    try!(ui.begin(format!(
+        "Generating service key for {} in {}",
+        &service_group,
+        org
+    )));
+    let pair = try!(BoxKeyPair::generate_pair_for_service(
+        org,
+        &service_group.to_string(),
+        cache,
+    ));
+    try!(ui.end(format!(
+        "Generated service key pair {}.",
+        &pair.name_with_rev()
+    )));
     Ok(())
 }

@@ -69,8 +69,9 @@ impl Child {
                 // Split the value and test each path to see if the
                 // program exists.
                 for path in env::split_paths(&v) {
-                    let path = path.join(program)
-                        .with_extension(env::consts::EXE_EXTENSION);
+                    let path = path.join(program).with_extension(
+                        env::consts::EXE_EXTENSION,
+                    );
                     if fs::metadata(&path).is_ok() {
                         res = Some(path.into_os_string());
                     }
@@ -117,16 +118,18 @@ impl Child {
         let flags = winapi::CREATE_UNICODE_ENVIRONMENT | winapi::CREATE_NEW_PROCESS_GROUP;
 
         unsafe {
-            cvt(kernel32::CreateProcessW(ptr::null(),
-                                         cmd_str.as_mut_ptr(),
-                                         ptr::null_mut(),
-                                         ptr::null_mut(),
-                                         winapi::TRUE,
-                                         flags,
-                                         envp,
-                                         ptr::null(),
-                                         &mut si,
-                                         &mut pi))
+            cvt(kernel32::CreateProcessW(
+                ptr::null(),
+                cmd_str.as_mut_ptr(),
+                ptr::null_mut(),
+                ptr::null_mut(),
+                winapi::TRUE,
+                flags,
+                envp,
+                ptr::null(),
+                &mut si,
+                &mut pi,
+            ))
         }?;
 
         // We close the thread handle because we don't care about keeping
@@ -135,10 +138,10 @@ impl Child {
         unsafe { kernel32::CloseHandle(pi.hThread) };
 
         Ok(Child {
-               handle: Handle::new(pi.hProcess),
-               stdout: pipes.stdout.map(ChildStdout::from_inner),
-               stderr: pipes.stderr.map(ChildStderr::from_inner),
-           })
+            handle: Handle::new(pi.hProcess),
+            stdout: pipes.stdout.map(ChildStdout::from_inner),
+            stderr: pipes.stderr.map(ChildStderr::from_inner),
+        })
     }
 
     pub fn id(&self) -> u32 {
@@ -154,8 +157,10 @@ impl Child {
         unsafe {
             let res = kernel32::WaitForSingleObject(self.handle.raw(), winapi::INFINITE);
             if res != winapi::WAIT_OBJECT_0 {
-                return Err(Error::WaitForSingleObjectFailed(format!("Failed calling WaitForSingleObjectFailed: {}",
-                                                                    io::Error::last_os_error())));
+                return Err(Error::WaitForSingleObjectFailed(format!(
+                    "Failed calling WaitForSingleObjectFailed: {}",
+                    io::Error::last_os_error()
+                )));
             }
             let mut status = 0;
             cvt(kernel32::GetExitCodeProcess(self.handle.raw(), &mut status))?;
@@ -302,9 +307,11 @@ pub fn anon_pipe(ours_readable: bool) -> io::Result<Pipes> {
         loop {
             tries += 1;
             let key: u64 = rand::thread_rng().gen();
-            name = format!(r"\\.\pipe\__rust_anonymous_pipe1__.{}.{}",
-                           kernel32::GetCurrentProcessId(),
-                           key);
+            name = format!(
+                r"\\.\pipe\__rust_anonymous_pipe1__.{}.{}",
+                kernel32::GetCurrentProcessId(),
+                key
+            );
             let wide_name = OsStr::new(&name)
                 .encode_wide()
                 .chain(Some(0))
@@ -316,17 +323,17 @@ pub fn anon_pipe(ours_readable: bool) -> io::Result<Pipes> {
                 flags |= winapi::PIPE_ACCESS_OUTBOUND;
             }
 
-            let handle = kernel32::CreateNamedPipeW(wide_name.as_ptr(),
-                                                    flags,
-                                                    winapi::PIPE_TYPE_BYTE |
-                                                    winapi::PIPE_READMODE_BYTE |
-                                                    winapi::PIPE_WAIT |
-                                                    reject_remote_clients_flag,
-                                                    1,
-                                                    4096,
-                                                    4096,
-                                                    0,
-                                                    ptr::null_mut());
+            let handle = kernel32::CreateNamedPipeW(
+                wide_name.as_ptr(),
+                flags,
+                winapi::PIPE_TYPE_BYTE | winapi::PIPE_READMODE_BYTE | winapi::PIPE_WAIT |
+                    reject_remote_clients_flag,
+                1,
+                4096,
+                4096,
+                0,
+                ptr::null_mut(),
+            );
 
             // We pass the FILE_FLAG_FIRST_PIPE_INSTANCE flag above, and we're
             // also just doing a best effort at selecting a unique name. If
@@ -352,7 +359,8 @@ pub fn anon_pipe(ours_readable: bool) -> io::Result<Pipes> {
                     if raw_os_err == Some(winapi::ERROR_ACCESS_DENIED as i32) {
                         continue;
                     } else if reject_remote_clients_flag != 0 &&
-                              raw_os_err == Some(winapi::ERROR_INVALID_PARAMETER as i32) {
+                               raw_os_err == Some(winapi::ERROR_INVALID_PARAMETER as i32)
+                    {
                         reject_remote_clients_flag = 0;
                         tries -= 1;
                         continue;
@@ -379,9 +387,9 @@ pub fn anon_pipe(ours_readable: bool) -> io::Result<Pipes> {
         let theirs = AnonPipe { inner: theirs.into_handle() };
 
         Ok(Pipes {
-               ours: AnonPipe { inner: ours },
-               theirs: AnonPipe { inner: theirs.into_handle() },
-           })
+            ours: AnonPipe { inner: ours },
+            theirs: AnonPipe { inner: theirs.into_handle() },
+        })
     }
 }
 
@@ -444,7 +452,7 @@ impl OpenOptions {
             custom_flags: 0,
             access_mode: None,
             share_mode: winapi::FILE_SHARE_READ | winapi::FILE_SHARE_WRITE |
-                        winapi::FILE_SHARE_DELETE,
+                winapi::FILE_SHARE_DELETE,
             attributes: 0,
             security_qos_flags: 0,
             security_attributes: 0,
@@ -477,7 +485,9 @@ impl OpenOptions {
             (true, true, false, None) => Ok(winapi::GENERIC_READ | winapi::GENERIC_WRITE),
             (false, _, true, None) => Ok(winapi::FILE_GENERIC_WRITE & !winapi::FILE_WRITE_DATA),
             (true, _, true, None) => {
-                Ok(winapi::GENERIC_READ | (winapi::FILE_GENERIC_WRITE & !winapi::FILE_WRITE_DATA))
+                Ok(
+                    winapi::GENERIC_READ | (winapi::FILE_GENERIC_WRITE & !winapi::FILE_WRITE_DATA),
+                )
             }
             (false, false, false, None) => {
                 Err(io::Error::from_raw_os_error(ERROR_INVALID_PARAMETER))
@@ -503,26 +513,26 @@ impl OpenOptions {
         }
 
         Ok(match (self.create, self.truncate, self.create_new) {
-               (false, false, false) => winapi::OPEN_EXISTING,
-               (true, false, false) => winapi::OPEN_ALWAYS,
-               (false, true, false) => winapi::TRUNCATE_EXISTING,
-               (true, true, false) => winapi::CREATE_ALWAYS,
-               (_, _, true) => winapi::CREATE_NEW,
-           })
+            (false, false, false) => winapi::OPEN_EXISTING,
+            (true, false, false) => winapi::OPEN_ALWAYS,
+            (false, true, false) => winapi::TRUNCATE_EXISTING,
+            (true, true, false) => winapi::CREATE_ALWAYS,
+            (_, _, true) => winapi::CREATE_NEW,
+        })
     }
 
     fn get_flags_and_attributes(&self) -> winapi::DWORD {
         self.custom_flags | self.attributes | self.security_qos_flags |
-        if self.security_qos_flags != 0 {
-            winapi::SECURITY_SQOS_PRESENT
-        } else {
-            0
-        } |
-        if self.create_new {
-            winapi::FILE_FLAG_OPEN_REPARSE_POINT
-        } else {
-            0
-        }
+            if self.security_qos_flags != 0 {
+                winapi::SECURITY_SQOS_PRESENT
+            } else {
+                0
+            } |
+            if self.create_new {
+                winapi::FILE_FLAG_OPEN_REPARSE_POINT
+            } else {
+                0
+            }
     }
 }
 
@@ -534,13 +544,15 @@ impl File {
     pub fn open(path: &Path, opts: &OpenOptions) -> io::Result<File> {
         let path = to_u16s(path)?;
         let handle = unsafe {
-            kernel32::CreateFileW(path.as_ptr(),
-                                  opts.get_access_mode()?,
-                                  opts.share_mode,
-                                  opts.security_attributes as *mut _,
-                                  opts.get_creation_mode()?,
-                                  opts.get_flags_and_attributes(),
-                                  ptr::null_mut())
+            kernel32::CreateFileW(
+                path.as_ptr(),
+                opts.get_access_mode()?,
+                opts.share_mode,
+                opts.security_attributes as *mut _,
+                opts.get_creation_mode()?,
+                opts.get_flags_and_attributes(),
+                ptr::null_mut(),
+            )
         };
         if handle == winapi::INVALID_HANDLE_VALUE {
             Err(io::Error::last_os_error())
@@ -569,10 +581,12 @@ impl Handle {
 
     pub fn new_event(manual: bool, init: bool) -> io::Result<Handle> {
         unsafe {
-            let event = kernel32::CreateEventW(ptr::null_mut(),
-                                               manual as winapi::BOOL,
-                                               init as winapi::BOOL,
-                                               ptr::null());
+            let event = kernel32::CreateEventW(
+                ptr::null_mut(),
+                manual as winapi::BOOL,
+                init as winapi::BOOL,
+                ptr::null(),
+            );
             if event.is_null() {
                 Err(io::Error::last_os_error())
             } else {
@@ -616,12 +630,14 @@ impl RawHandle {
         let mut read = 0;
         let len = cmp::min(buf.len(), <winapi::DWORD>::max_value() as usize) as winapi::DWORD;
         let res = cvt(unsafe {
-                          kernel32::ReadFile(self.0,
-                                             buf.as_mut_ptr() as winapi::LPVOID,
-                                             len,
-                                             &mut read,
-                                             ptr::null_mut())
-                      });
+            kernel32::ReadFile(
+                self.0,
+                buf.as_mut_ptr() as winapi::LPVOID,
+                len,
+                &mut read,
+                ptr::null_mut(),
+            )
+        });
 
         match res {
             Ok(_) => Ok(read as usize),
@@ -643,11 +659,13 @@ impl RawHandle {
             let mut overlapped: winapi::OVERLAPPED = mem::zeroed();
             overlapped.Offset = offset as u32;
             overlapped.OffsetHigh = (offset >> 32) as u32;
-            cvt(kernel32::ReadFile(self.0,
-                                   buf.as_mut_ptr() as winapi::LPVOID,
-                                   len,
-                                   &mut read,
-                                   &mut overlapped))
+            cvt(kernel32::ReadFile(
+                self.0,
+                buf.as_mut_ptr() as winapi::LPVOID,
+                len,
+                &mut read,
+                &mut overlapped,
+            ))
         };
         match res {
             Ok(_) => Ok(read as usize),
@@ -656,19 +674,22 @@ impl RawHandle {
         }
     }
 
-    pub unsafe fn read_overlapped(&self,
-                                  buf: &mut [u8],
-                                  overlapped: *mut winapi::OVERLAPPED)
-                                  -> io::Result<Option<usize>> {
+    pub unsafe fn read_overlapped(
+        &self,
+        buf: &mut [u8],
+        overlapped: *mut winapi::OVERLAPPED,
+    ) -> io::Result<Option<usize>> {
         let len = cmp::min(buf.len(), <winapi::DWORD>::max_value() as usize) as winapi::DWORD;
         let mut amt = 0;
         let res = cvt({
-                          kernel32::ReadFile(self.0,
-                                             buf.as_ptr() as winapi::LPVOID,
-                                             len,
-                                             &mut amt,
-                                             overlapped)
-                      });
+            kernel32::ReadFile(
+                self.0,
+                buf.as_ptr() as winapi::LPVOID,
+                len,
+                &mut amt,
+                overlapped,
+            )
+        });
         match res {
             Ok(_) => Ok(Some(amt as usize)),
             Err(e) => {
@@ -683,22 +704,23 @@ impl RawHandle {
         }
     }
 
-    pub fn overlapped_result(&self,
-                             overlapped: *mut winapi::OVERLAPPED,
-                             wait: bool)
-                             -> io::Result<usize> {
+    pub fn overlapped_result(
+        &self,
+        overlapped: *mut winapi::OVERLAPPED,
+        wait: bool,
+    ) -> io::Result<usize> {
         unsafe {
             let mut bytes = 0;
             let wait = if wait { winapi::TRUE } else { winapi::FALSE };
-            let res =
-                cvt({
-                        kernel32::GetOverlappedResult(self.raw(), overlapped, &mut bytes, wait)
-                    });
+            let res = cvt({
+                kernel32::GetOverlappedResult(self.raw(), overlapped, &mut bytes, wait)
+            });
             match res {
                 Ok(_) => Ok(bytes as usize),
                 Err(e) => {
                     if e.raw_os_error() == Some(winapi::ERROR_HANDLE_EOF as i32) ||
-                       e.raw_os_error() == Some(winapi::ERROR_BROKEN_PIPE as i32) {
+                        e.raw_os_error() == Some(winapi::ERROR_BROKEN_PIPE as i32)
+                    {
                         Ok(0)
                     } else {
                         Err(e)
@@ -721,12 +743,14 @@ impl RawHandle {
         let mut amt = 0;
         let len = cmp::min(buf.len(), <winapi::DWORD>::max_value() as usize) as winapi::DWORD;
         cvt(unsafe {
-                kernel32::WriteFile(self.0,
-                                    buf.as_ptr() as winapi::LPVOID,
-                                    len,
-                                    &mut amt,
-                                    ptr::null_mut())
-            })?;
+            kernel32::WriteFile(
+                self.0,
+                buf.as_ptr() as winapi::LPVOID,
+                len,
+                &mut amt,
+                ptr::null_mut(),
+            )
+        })?;
         Ok(amt as usize)
     }
 
@@ -737,11 +761,13 @@ impl RawHandle {
             let mut overlapped: winapi::OVERLAPPED = mem::zeroed();
             overlapped.Offset = offset as u32;
             overlapped.OffsetHigh = (offset >> 32) as u32;
-            cvt(kernel32::WriteFile(self.0,
-                                    buf.as_ptr() as winapi::LPVOID,
-                                    len,
-                                    &mut written,
-                                    &mut overlapped))?;
+            cvt(kernel32::WriteFile(
+                self.0,
+                buf.as_ptr() as winapi::LPVOID,
+                len,
+                &mut written,
+                &mut overlapped,
+            ))?;
         }
         Ok(written as usize)
     }
@@ -767,7 +793,10 @@ fn cvt(i: i32) -> io::Result<i32> {
 
 fn ensure_no_nuls<T: AsRef<OsStr>>(str: T) -> io::Result<T> {
     if str.as_ref().encode_wide().any(|b| b == 0) {
-        Err(io::Error::new(ErrorKind::InvalidInput, "nul byte found in provided data"))
+        Err(io::Error::new(
+            ErrorKind::InvalidInput,
+            "nul byte found in provided data",
+        ))
     } else {
         Ok(str)
     }
@@ -856,8 +885,9 @@ fn null_stdio_handle() -> Result<Handle> {
     opts.read(true);
     opts.write(false);
     opts.security_attributes(&mut sa);
-    Ok(File::open(Path::new("NUL"), &opts)
-           .map(|file| file.into_handle())?)
+    Ok(File::open(Path::new("NUL"), &opts).map(
+        |file| file.into_handle(),
+    )?)
 }
 
 unsafe fn read_to_end_uninitialized(r: &mut Read, buf: &mut Vec<u8>) -> io::Result<usize> {
@@ -876,8 +906,10 @@ unsafe fn read_to_end_uninitialized(r: &mut Read, buf: &mut Vec<u8>) -> io::Resu
             buf.reserve(1);
         }
 
-        let buf_slice = from_raw_parts_mut(buf.as_mut_ptr().offset(buf.len() as isize),
-                                           buf.capacity() - buf.len());
+        let buf_slice = from_raw_parts_mut(
+            buf.as_mut_ptr().offset(buf.len() as isize),
+            buf.capacity() - buf.len(),
+        );
 
         match r.read(buf_slice) {
             Ok(0) => {
@@ -900,10 +932,12 @@ fn stdio_piped_handle(stdio_id: winapi::DWORD, pipe: &mut Option<AnonPipe>) -> i
     let pipes = anon_pipe(ours_readable)?;
     *pipe = Some(pipes.ours);
     cvt(unsafe {
-            kernel32::SetHandleInformation(pipes.theirs.handle().raw(),
-                                           HANDLE_FLAG_INHERIT,
-                                           HANDLE_FLAG_INHERIT)
-        })?;
+        kernel32::SetHandleInformation(
+            pipes.theirs.handle().raw(),
+            HANDLE_FLAG_INHERIT,
+            HANDLE_FLAG_INHERIT,
+        )
+    })?;
     Ok(pipes.theirs.into_handle())
 }
 
@@ -911,8 +945,10 @@ fn to_u16s<S: AsRef<OsStr>>(s: S) -> io::Result<Vec<u16>> {
     fn inner(s: &OsStr) -> io::Result<Vec<u16>> {
         let mut maybe_result: Vec<u16> = s.encode_wide().collect();
         if maybe_result.iter().any(|&u| u == 0) {
-            return Err(io::Error::new(io::ErrorKind::InvalidInput,
-                                      "strings passed to WinAPI cannot contain NULs"));
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "strings passed to WinAPI cannot contain NULs",
+            ));
         }
         maybe_result.push(0);
         Ok(maybe_result)

@@ -82,13 +82,14 @@ pub struct StructuredOutput<'a> {
 
 impl<'a> StructuredOutput<'a> {
     /// Return a new StructuredOutput struct.
-    pub fn new(preamble: &'a str,
-               logkey: &'static str,
-               line: u32,
-               file: &'static str,
-               column: u32,
-               content: &'a str)
-               -> StructuredOutput<'a> {
+    pub fn new(
+        preamble: &'a str,
+        logkey: &'static str,
+        line: u32,
+        file: &'static str,
+        column: u32,
+        content: &'a str,
+    ) -> StructuredOutput<'a> {
         StructuredOutput {
             preamble: preamble,
             logkey: logkey,
@@ -116,31 +117,40 @@ impl<'a> fmt::Display for StructuredOutput<'a> {
         };
         if verbose {
             if color {
-                write!(f,
-                       "{}({})[{}]: {}",
-                       preamble_color.paint(self.preamble),
-                       White.bold().paint(self.logkey),
-                       White
-                           .underline()
-                           .paint(format!("{}:{}:{}", self.file, self.line, self.column)),
-                       self.content)
+                write!(
+                    f,
+                    "{}({})[{}]: {}",
+                    preamble_color.paint(self.preamble),
+                    White.bold().paint(self.logkey),
+                    White.underline().paint(format!(
+                        "{}:{}:{}",
+                        self.file,
+                        self.line,
+                        self.column
+                    )),
+                    self.content
+                )
             } else {
-                write!(f,
-                       "{}({})[{}:{}:{}]: {}",
-                       self.preamble,
-                       self.logkey,
-                       self.file,
-                       self.line,
-                       self.column,
-                       self.content)
+                write!(
+                    f,
+                    "{}({})[{}:{}:{}]: {}",
+                    self.preamble,
+                    self.logkey,
+                    self.file,
+                    self.line,
+                    self.column,
+                    self.content
+                )
             }
         } else {
             if color {
-                write!(f,
-                       "{}({}): {}",
-                       preamble_color.paint(self.preamble),
-                       White.bold().paint(self.logkey),
-                       self.content)
+                write!(
+                    f,
+                    "{}({}): {}",
+                    preamble_color.paint(self.preamble),
+                    White.bold().paint(self.logkey),
+                    self.content
+                )
             } else {
                 write!(f, "{}({}): {}", self.preamble, self.logkey, self.content)
             }
@@ -183,9 +193,13 @@ mod tests {
         let mut so = so(progname, "opeth is amazing");
         so.verbose = Some(false);
         so.color = Some(true);
-        assert_eq!(format!("{}", so),
-                   format!("{}({}): opeth is amazing",
-                           Cyan.paint(progname),
-                           White.bold().paint("SOT")));
+        assert_eq!(
+            format!("{}", so),
+            format!(
+                "{}({}): opeth is amazing",
+                Cyan.paint(progname),
+                White.bold().paint("SOT")
+            )
+        );
     }
 }

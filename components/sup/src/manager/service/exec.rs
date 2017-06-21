@@ -23,14 +23,14 @@ use hcore::os::process::windows_child::Child;
 use super::Pkg;
 use error::Result;
 
-#[cfg(any(target_os="linux", target_os="macos"))]
+#[cfg(any(target_os = "linux", target_os = "macos"))]
 static LOGKEY: &'static str = "EX";
 
 pub fn run_cmd<S: AsRef<OsStr>>(path: S, pkg: &Pkg) -> Result<Child> {
     exec(path, pkg)
 }
 
-#[cfg(any(target_os="linux", target_os="macos"))]
+#[cfg(any(target_os = "linux", target_os = "macos"))]
 fn exec<S: AsRef<OsStr>>(path: S, pkg: &Pkg) -> Result<Child> {
     use std::process::{Command, Stdio};
 
@@ -39,21 +39,29 @@ fn exec<S: AsRef<OsStr>>(path: S, pkg: &Pkg) -> Result<Child> {
     use hcore::os;
     use libc;
     use std::os::unix::process::CommandExt;
-    let uid = os::users::get_uid_by_name(&pkg.svc_user)
-        .ok_or(sup_error!(Error::Permissions(format!("No uid for user '{}' could be found",
-                                                     &pkg.svc_user))))?;
-    let gid = os::users::get_gid_by_name(&pkg.svc_group)
-        .ok_or(sup_error!(Error::Permissions(format!("No gid for group '{}' could be found",
-                                                     &pkg.svc_group))))?;
+    let uid = os::users::get_uid_by_name(&pkg.svc_user).ok_or(sup_error!(
+        Error::Permissions(format!(
+            "No uid for user '{}' could be found",
+            &pkg.svc_user
+        ))
+    ))?;
+    let gid = os::users::get_gid_by_name(&pkg.svc_group).ok_or(
+        sup_error!(
+            Error::Permissions(format!(
+                "No gid for group '{}' could be found",
+                &pkg.svc_group
+            ))
+        ),
+    )?;
     // we want the command to spawn processes in their own process group
     // and not the same group as the supervisor. Otherwise if a child process
     // sends SIGTERM to the group, the supervisor could be terminated.
     cmd.before_exec(|| {
-                        unsafe {
-                            libc::setpgid(0, 0);
-                        }
-                        Ok(())
-                    });
+        unsafe {
+            libc::setpgid(0, 0);
+        }
+        Ok(())
+    });
     cmd.stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())

@@ -25,7 +25,8 @@ pub struct Binds<'a>(HashMap<String, BindGroup<'a>>);
 
 impl<'a> Binds<'a> {
     fn new<T>(bindings: T, census: &'a CensusRing) -> Self
-        where T: Iterator<Item = &'a ServiceBind>
+    where
+        T: Iterator<Item = &'a ServiceBind>,
     {
         let mut map = HashMap::default();
         for bind in bindings {
@@ -62,18 +63,20 @@ pub struct RenderContext<'a> {
 }
 
 impl<'a> RenderContext<'a> {
-    pub fn new<T>(service_group: &ServiceGroup,
-                  sys: &'a Sys,
-                  pkg: &'a Pkg,
-                  cfg: &'a Cfg,
-                  census: &'a CensusRing,
-                  bindings: T)
-                  -> RenderContext<'a>
-        where T: Iterator<Item = &'a ServiceBind>
+    pub fn new<T>(
+        service_group: &ServiceGroup,
+        sys: &'a Sys,
+        pkg: &'a Pkg,
+        cfg: &'a Cfg,
+        census: &'a CensusRing,
+        bindings: T,
+    ) -> RenderContext<'a>
+    where
+        T: Iterator<Item = &'a ServiceBind>,
     {
-        let census_group = census
-            .census_group_for(&service_group)
-            .expect("Census Group missing from list!");
+        let census_group = census.census_group_for(&service_group).expect(
+            "Census Group missing from list!",
+        );
         RenderContext {
             sys: sys,
             pkg: pkg,
@@ -112,11 +115,11 @@ impl<'a> Svc<'a> {
             election_is_no_quorum: census_group.election_status == ElectionStatus::ElectionNoQuorum,
             election_is_finished: census_group.election_status == ElectionStatus::ElectionFinished,
             update_election_is_running: census_group.election_status ==
-                                        ElectionStatus::ElectionInProgress,
+                ElectionStatus::ElectionInProgress,
             update_election_is_no_quorum: census_group.election_status ==
-                                          ElectionStatus::ElectionNoQuorum,
+                ElectionStatus::ElectionNoQuorum,
             update_election_is_finished: census_group.election_status ==
-                                         ElectionStatus::ElectionFinished,
+                ElectionStatus::ElectionFinished,
             me: SvcMember(census_group.me().expect("Missing 'me'")),
             members: census_group
                 .members()
@@ -140,10 +143,9 @@ fn select_first(census_group: &CensusGroup) -> Option<SvcMember> {
     match census_group.leader() {
         Some(member) => Some(SvcMember(member)),
         None => {
-            census_group
-                .members()
-                .first()
-                .and_then(|m| Some(SvcMember(m)))
+            census_group.members().first().and_then(
+                |m| Some(SvcMember(m)),
+            )
         }
     }
 }

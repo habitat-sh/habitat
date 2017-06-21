@@ -57,12 +57,13 @@ impl GitHubClient {
     }
 
     pub fn authenticate(&self, code: &str) -> Result<String> {
-        let url = Url::parse(&format!("https://github.com/login/oauth/access_token?\
+        let url = Url::parse(&format!(
+            "https://github.com/login/oauth/access_token?\
                                 client_id={}&client_secret={}&code={}",
-                                      self.client_id,
-                                      self.client_secret,
-                                      code))
-                .unwrap();
+            self.client_id,
+            self.client_secret,
+            code
+        )).unwrap();
         let mut rep = try!(http_post(url));
         if rep.status.is_success() {
             let mut encoded = String::new();
@@ -98,8 +99,13 @@ impl GitHubClient {
 
     /// Returns the contents of a file or directory in a repository.
     pub fn contents(&self, token: &str, owner: &str, repo: &str, path: &str) -> Result<Contents> {
-        let url = Url::parse(&format!("{}/repos/{}/{}/contents/{}", self.url, owner, repo, path))
-            .unwrap();
+        let url = Url::parse(&format!(
+            "{}/repos/{}/{}/contents/{}",
+            self.url,
+            owner,
+            repo,
+            path
+        )).unwrap();
         let mut rep = try!(http_get(url, token));
         let mut body = String::new();
         try!(rep.read_to_string(&mut body));
@@ -405,11 +411,12 @@ impl AuthOk {
     pub fn missing_auth_scopes(&self) -> Vec<&'static str> {
         let mut scopes = vec![];
         for scope in AUTH_SCOPES.iter() {
-            if !self.scope
-                    .split(",")
-                    .collect::<Vec<&str>>()
-                    .iter()
-                    .any(|p| p == scope) {
+            if !self.scope.split(",").collect::<Vec<&str>>().iter().any(
+                |p| {
+                    p == scope
+                },
+            )
+            {
                 scopes.push(*scope);
             }
         }
@@ -426,11 +433,13 @@ pub struct AuthErr {
 
 impl fmt::Display for AuthErr {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f,
-               "err={}, desc={}, uri={}",
-               self.error,
-               self.error_description,
-               self.error_uri)
+        write!(
+            f,
+            "err={}, desc={}, uri={}",
+            self.error,
+            self.error_description,
+            self.error_uri
+        )
     }
 }
 
@@ -443,7 +452,11 @@ pub enum AuthResp {
 fn http_get(url: Url, token: &str) -> StdResult<hyper::client::response::Response, net::NetError> {
     hyper_client()
         .get(url)
-        .header(Accept(vec![qitem(Mime(TopLevel::Application, SubLevel::Json, vec![]))]))
+        .header(Accept(vec![
+            qitem(
+                Mime(TopLevel::Application, SubLevel::Json, vec![])
+            ),
+        ]))
         .header(Authorization(Bearer { token: token.to_owned() }))
         .header(UserAgent(USER_AGENT.to_string()))
         .send()
@@ -453,7 +466,11 @@ fn http_get(url: Url, token: &str) -> StdResult<hyper::client::response::Respons
 fn http_post(url: Url) -> StdResult<hyper::client::response::Response, net::NetError> {
     hyper_client()
         .post(url)
-        .header(Accept(vec![qitem(Mime(TopLevel::Application, SubLevel::Json, vec![]))]))
+        .header(Accept(vec![
+            qitem(
+                Mime(TopLevel::Application, SubLevel::Json, vec![])
+            ),
+        ]))
         .header(UserAgent(USER_AGENT.to_string()))
         .send()
         .map_err(hyper_to_net_err)

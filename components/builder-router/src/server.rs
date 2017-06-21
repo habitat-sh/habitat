@@ -140,8 +140,10 @@ impl Server {
                         }
                     }
                     if !self.envelope.msg.has_route_info() {
-                        warn!("received message without route-info, msg={:?}",
-                              self.envelope.msg);
+                        warn!(
+                            "received message without route-info, msg={:?}",
+                            self.envelope.msg
+                        );
                         self.state = SocketState::Cleaning;
                         continue;
                     }
@@ -181,12 +183,12 @@ impl Server {
         let registration: routesrv::Registration = try!(parse_from_bytes(&self.req));
         debug!("received server reg, {:?}", registration);
         if !self.servers.contains_key(&registration.get_protocol()) {
-            self.servers
-                .insert(registration.get_protocol(), HashMap::new());
+            self.servers.insert(
+                registration.get_protocol(),
+                HashMap::new(),
+            );
         }
-        let shards = self.servers
-            .get_mut(&registration.get_protocol())
-            .unwrap();
+        let shards = self.servers.get_mut(&registration.get_protocol()).unwrap();
         for shard in registration.get_shards().iter() {
             let server = hab_net::ServerReg::new(registration.get_endpoint().to_string());
             shards.insert(*shard, server);
@@ -232,24 +234,30 @@ impl Server {
             Some(shards) => {
                 match shards.get(&shard) {
                     Some(server) => {
-                        debug!("routing, srv={:?}, hops={:?}, msg={:?}",
-                               server.endpoint,
-                               self.envelope.hops().len(),
-                               self.envelope.msg);
+                        debug!(
+                            "routing, srv={:?}, hops={:?}, msg={:?}",
+                            server.endpoint,
+                            self.envelope.hops().len(),
+                            self.envelope.msg
+                        );
                         try!(self.fe_sock.send_str(&server.endpoint, zmq::SNDMORE));
                         for hop in self.envelope.hops() {
                             try!(self.fe_sock.send(&*hop, zmq::SNDMORE));
                         }
                         try!(self.fe_sock.send(&[], zmq::SNDMORE));
-                        try!(self.fe_sock
-                                 .send(&self.envelope.msg.write_to_bytes().unwrap(), 0));
+                        try!(self.fe_sock.send(
+                            &self.envelope.msg.write_to_bytes().unwrap(),
+                            0,
+                        ));
                     }
                     None => {
-                        warn!("failed to route message, no server servicing shard, msg={:?}",
-                              self.envelope.msg);
-                        let err = protocol::Message::new(&protocol::net::err(ErrCode::NO_SHARD,
-                                                                             "rt:route:1"))
-                                .build();
+                        warn!(
+                            "failed to route message, no server servicing shard, msg={:?}",
+                            self.envelope.msg
+                        );
+                        let err = protocol::Message::new(
+                            &protocol::net::err(ErrCode::NO_SHARD, "rt:route:1"),
+                        ).build();
                         let bytes = try!(err.write_to_bytes());
                         for hop in self.envelope.hops() {
                             try!(self.fe_sock.send(&*hop, zmq::SNDMORE));
@@ -260,11 +268,13 @@ impl Server {
                 }
             }
             None => {
-                warn!("failed to route message, no servers registered for protocol, msg={:?}",
-                      self.envelope.msg);
-                let err = protocol::Message::new(&protocol::net::err(ErrCode::NO_SHARD,
-                                                                     "rt:route:2"))
-                        .build();
+                warn!(
+                    "failed to route message, no servers registered for protocol, msg={:?}",
+                    self.envelope.msg
+                );
+                let err = protocol::Message::new(
+                    &protocol::net::err(ErrCode::NO_SHARD, "rt:route:2"),
+                ).build();
                 let bytes = try!(err.write_to_bytes());
                 for hop in self.envelope.hops() {
                     try!(self.fe_sock.send(&*hop, zmq::SNDMORE));

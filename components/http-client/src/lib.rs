@@ -57,8 +57,10 @@ mod ssl {
             try!(ctx.set_default_verify_paths());
         } else if let Ok(pkg_install) = PackageInstall::load(&cacerts_ident, fs_root_path) {
             let pkg_certs = pkg_install.installed_path().join("ssl/cert.pem");
-            debug!("Setting CA file for SSL context to: {}",
-                   pkg_certs.display());
+            debug!(
+                "Setting CA file for SSL context to: {}",
+                pkg_certs.display()
+            );
             try!(ctx.set_ca_file(pkg_certs));
         } else {
             let cached_certs = cache_ssl_path(fs_root_path).join("cert.pem");
@@ -68,8 +70,10 @@ mod ssl {
                 let mut file = try!(File::create(&cached_certs));
                 try!(file.write_all(CACERT_PEM.as_bytes()));
             }
-            debug!("Setting CA file for SSL context to: {}",
-                   cached_certs.display());
+            debug!(
+                "Setting CA file for SSL context to: {}",
+                cached_certs.display()
+            );
             try!(ctx.set_ca_file(cached_certs));
         }
         Ok(())

@@ -96,17 +96,18 @@ pub struct Service {
     #[serde(skip_serializing)]
     last_health_check: Instant,
     manager_fs_cfg: Arc<manager::FsCfg>,
-    #[serde(rename="process")]
+    #[serde(rename = "process")]
     supervisor: Supervisor,
 }
 
 impl Service {
-    fn new(sys: Arc<Sys>,
-           package: PackageInstall,
-           spec: ServiceSpec,
-           manager_fs_cfg: Arc<manager::FsCfg>,
-           organization: Option<&str>)
-           -> Result<Service> {
+    fn new(
+        sys: Arc<Sys>,
+        package: PackageInstall,
+        spec: ServiceSpec,
+        manager_fs_cfg: Arc<manager::FsCfg>,
+        organization: Option<&str>,
+    ) -> Result<Service> {
         spec.validate(&package)?;
         let pkg = Pkg::from_install(package)?;
         let spec_file = manager_fs_cfg.specs_path.join(spec.file_name());
@@ -114,31 +115,31 @@ impl Service {
         let config_root = Self::config_root(&pkg, spec.config_from.as_ref());
         let hooks_root = Self::hooks_root(&pkg, spec.config_from.as_ref());
         Ok(Service {
-               sys: sys,
-               cfg: Cfg::new(&pkg, spec.config_from.as_ref())?,
-               config_renderer: CfgRenderer::new(&config_root)?,
-               depot_url: spec.depot_url,
-               channel: spec.channel,
-               health_check: HealthCheck::default(),
-               hooks: HookTable::load(&service_group, &hooks_root),
-               initialized: false,
-               last_election_status: ElectionStatus::None,
-               needs_reload: false,
-               needs_reconfiguration: false,
-               manager_fs_cfg: manager_fs_cfg,
-               supervisor: Supervisor::new(&service_group),
-               pkg: pkg,
-               service_group: service_group,
-               smoke_check: SmokeCheck::default(),
-               binds: spec.binds,
-               spec_ident: spec.ident,
-               spec_file: spec_file,
-               start_style: spec.start_style,
-               topology: spec.topology,
-               update_strategy: spec.update_strategy,
-               config_from: spec.config_from,
-               last_health_check: Instant::now() - *HEALTH_CHECK_INTERVAL,
-           })
+            sys: sys,
+            cfg: Cfg::new(&pkg, spec.config_from.as_ref())?,
+            config_renderer: CfgRenderer::new(&config_root)?,
+            depot_url: spec.depot_url,
+            channel: spec.channel,
+            health_check: HealthCheck::default(),
+            hooks: HookTable::load(&service_group, &hooks_root),
+            initialized: false,
+            last_election_status: ElectionStatus::None,
+            needs_reload: false,
+            needs_reconfiguration: false,
+            manager_fs_cfg: manager_fs_cfg,
+            supervisor: Supervisor::new(&service_group),
+            pkg: pkg,
+            service_group: service_group,
+            smoke_check: SmokeCheck::default(),
+            binds: spec.binds,
+            spec_ident: spec.ident,
+            spec_file: spec_file,
+            start_style: spec.start_style,
+            topology: spec.topology,
+            update_strategy: spec.update_strategy,
+            config_from: spec.config_from,
+            last_health_check: Instant::now() - *HEALTH_CHECK_INTERVAL,
+        })
     }
 
     /// Returns the config root given the package and optional config-from path.
@@ -157,11 +158,12 @@ impl Service {
             .join("hooks")
     }
 
-    pub fn load(sys: Arc<Sys>,
-                spec: ServiceSpec,
-                manager_fs_cfg: Arc<manager::FsCfg>,
-                organization: Option<&str>)
-                -> Result<Service> {
+    pub fn load(
+        sys: Arc<Sys>,
+        spec: ServiceSpec,
+        manager_fs_cfg: Arc<manager::FsCfg>,
+        organization: Option<&str>,
+    ) -> Result<Service> {
         let package = util::pkg::install_from_spec(&mut UI::default(), &spec)?;
         Ok(Self::new(sys, package, spec, manager_fs_cfg, organization)?)
     }
@@ -169,8 +171,10 @@ impl Service {
     /// Create the service path for this package.
     pub fn create_svc_path(&self) -> Result<()> {
         debug!("{}, Creating svc paths", self.service_group);
-        util::users::assert_pkg_user_and_group(self.pkg.svc_user.clone(),
-                                               self.pkg.svc_group.clone())?;
+        util::users::assert_pkg_user_and_group(
+            self.pkg.svc_user.clone(),
+            self.pkg.svc_group.clone(),
+        )?;
 
         Self::create_dir_all(&self.pkg.svc_path)?;
 
@@ -180,30 +184,40 @@ impl Service {
 
         // Create service writable directories
         Self::create_dir_all(&self.pkg.svc_config_path)?;
-        set_owner(&self.pkg.svc_config_path,
-                  &self.pkg.svc_user,
-                  &self.pkg.svc_group)?;
+        set_owner(
+            &self.pkg.svc_config_path,
+            &self.pkg.svc_user,
+            &self.pkg.svc_group,
+        )?;
         set_permissions(&self.pkg.svc_config_path, 0o700)?;
         Self::create_dir_all(&self.pkg.svc_data_path)?;
-        set_owner(&self.pkg.svc_data_path,
-                  &self.pkg.svc_user,
-                  &self.pkg.svc_group)?;
+        set_owner(
+            &self.pkg.svc_data_path,
+            &self.pkg.svc_user,
+            &self.pkg.svc_group,
+        )?;
         set_permissions(&self.pkg.svc_data_path, 0o700)?;
         Self::create_dir_all(&self.pkg.svc_files_path)?;
-        set_owner(&self.pkg.svc_files_path,
-                  &self.pkg.svc_user,
-                  &self.pkg.svc_group)?;
+        set_owner(
+            &self.pkg.svc_files_path,
+            &self.pkg.svc_user,
+            &self.pkg.svc_group,
+        )?;
         set_permissions(&self.pkg.svc_files_path, 0o700)?;
         Self::create_dir_all(&self.pkg.svc_var_path)?;
-        set_owner(&self.pkg.svc_var_path,
-                  &self.pkg.svc_user,
-                  &self.pkg.svc_group)?;
+        set_owner(
+            &self.pkg.svc_var_path,
+            &self.pkg.svc_user,
+            &self.pkg.svc_group,
+        )?;
         set_permissions(&self.pkg.svc_var_path, 0o700)?;
         Self::remove_symlink(&self.pkg.svc_static_path)?;
         Self::create_dir_all(&self.pkg.svc_static_path)?;
-        set_owner(&self.pkg.svc_static_path,
-                  &self.pkg.svc_user,
-                  &self.pkg.svc_group)?;
+        set_owner(
+            &self.pkg.svc_static_path,
+            &self.pkg.svc_user,
+            &self.pkg.svc_group,
+        )?;
         set_permissions(&self.pkg.svc_static_path, 0o700)?;
         Ok(())
     }
@@ -282,9 +296,9 @@ impl Service {
                 self.execute_hooks();
             }
             Topology::Leader => {
-                let census_group = census_ring
-                    .census_group_for(&self.service_group)
-                    .expect("Service Group's census entry missing from list!");
+                let census_group = census_ring.census_group_for(&self.service_group).expect(
+                    "Service Group's census entry missing from list!",
+                );
                 match census_group.election_status {
                     ElectionStatus::None => {
                         if self.last_election_status != census_group.election_status {
@@ -312,10 +326,9 @@ impl Service {
                         }
                     }
                     ElectionStatus::ElectionFinished => {
-                        let leader_id = census_group
-                            .leader_id
-                            .as_ref()
-                            .expect("No leader with finished election");
+                        let leader_id = census_group.leader_id.as_ref().expect(
+                            "No leader with finished election",
+                        );
                         if self.last_election_status != census_group.election_status {
                             outputln!(preamble self.service_group,
                                       "Executing hooks; {} is the leader",
@@ -346,9 +359,7 @@ impl Service {
     fn all_binds_satisfied(&self, census_ring: &CensusRing) -> bool {
         let mut ret = true;
         for ref bind in self.binds.iter() {
-            if census_ring
-                   .census_group_for(&bind.service_group)
-                   .is_none() {
+            if census_ring.census_group_for(&bind.service_group).is_none() {
                 ret = false;
                 outputln!(preamble self.service_group,
                           "The specified service group '{}' for binding '{}' is not (yet?) present \
@@ -365,9 +376,9 @@ impl Service {
     ///
     /// Returns true if any modifications were made.
     fn update_templates(&mut self, census_ring: &CensusRing) -> bool {
-        let census_group = census_ring
-            .census_group_for(&self.service_group)
-            .expect("Service update failed; unable to find own service group");
+        let census_group = census_ring.census_group_for(&self.service_group).expect(
+            "Service update failed; unable to find own service group",
+        );
 
         let cfg_updated = self.cfg.update(census_group);
         if cfg_updated || census_ring.changed {
@@ -394,8 +405,10 @@ impl Service {
                         return;
                     }
                 }
-                self.hooks = HookTable::load(&self.service_group,
-                                             &Self::hooks_root(&pkg, self.config_from.as_ref()));
+                self.hooks = HookTable::load(
+                    &self.service_group,
+                    &Self::hooks_root(&pkg, self.config_from.as_ref()),
+                );
                 self.pkg = pkg;
             }
             Err(err) => {
@@ -421,11 +434,13 @@ impl Service {
                 None
             }
         };
-        let mut rumor = ServiceRumor::new(self.sys.member_id.as_str(),
-                                          &self.pkg.ident,
-                                          &self.service_group,
-                                          &self.sys.as_sys_info(),
-                                          exported.as_ref());
+        let mut rumor = ServiceRumor::new(
+            self.sys.member_id.as_str(),
+            &self.pkg.ident,
+            &self.service_group,
+            &self.sys.as_sys_info(),
+            exported.as_ref(),
+        );
         rumor.set_incarnation(incarnation);
         rumor
     }
@@ -461,10 +476,9 @@ impl Service {
         if !self.initialized {
             return None;
         }
-        self.hooks
-            .suitability
-            .as_ref()
-            .and_then(|hook| hook.run(&self.service_group, &self.pkg))
+        self.hooks.suitability.as_ref().and_then(|hook| {
+            hook.run(&self.service_group, &self.pkg)
+        })
     }
 
     /// this function wraps create_dir_all so we can give friendly error
@@ -472,37 +486,45 @@ impl Service {
     fn create_dir_all<P: AsRef<Path>>(path: P) -> Result<()> {
         debug!("Creating dir with subdirs: {:?}", &path.as_ref());
         if let Err(e) = std::fs::create_dir_all(&path) {
-            Err(sup_error!(Error::Permissions(format!("Can't create {:?}, {}", &path.as_ref(), e))))
+            Err(sup_error!(Error::Permissions(
+                format!("Can't create {:?}, {}", &path.as_ref(), e),
+            )))
         } else {
             Ok(())
         }
     }
 
     fn cache_health_check(&self, check_result: HealthCheck) {
-        let state_file = self.manager_fs_cfg
-            .health_check_cache(&self.service_group);
+        let state_file = self.manager_fs_cfg.health_check_cache(&self.service_group);
         let tmp_file = state_file.with_extension("tmp");
         let file = match File::create(&tmp_file) {
             Ok(file) => file,
             Err(err) => {
-                warn!("Couldn't open temporary health check file, {}, {}",
-                      self.service_group,
-                      err);
+                warn!(
+                    "Couldn't open temporary health check file, {}, {}",
+                    self.service_group,
+                    err
+                );
                 return;
             }
         };
         let mut writer = BufWriter::new(file);
         if let Some(err) = writer
-               .write_all((check_result as i8).to_string().as_bytes())
-               .err() {
-            warn!("Couldn't write to temporary health check state file, {}, {}",
-                  self.service_group,
-                  err);
+            .write_all((check_result as i8).to_string().as_bytes())
+            .err()
+        {
+            warn!(
+                "Couldn't write to temporary health check state file, {}, {}",
+                self.service_group,
+                err
+            );
         }
         if let Some(err) = std::fs::rename(&tmp_file, &state_file).err() {
-            warn!("Couldn't finalize health check state file, {}, {}",
-                  self.service_group,
-                  err);
+            warn!(
+                "Couldn't finalize health check state file, {}, {}",
+                self.service_group,
+                err
+            );
         }
     }
 
@@ -540,7 +562,10 @@ impl Service {
         match self.hooks.run {
             Some(ref hook) => {
                 try!(std::fs::copy(hook.path(), &svc_run));
-                try!(set_permissions(&svc_run.to_str().unwrap(), HOOK_PERMISSIONS));
+                try!(set_permissions(
+                    &svc_run.to_str().unwrap(),
+                    HOOK_PERMISSIONS,
+                ));
             }
             None => {
                 let run = self.pkg.path.join(hooks::RunHook::file_name());
@@ -594,10 +619,9 @@ impl Service {
     ///
     /// Returns true if a file was changed, added, or removed, and false if there were no updates.
     fn update_service_files(&mut self, census_ring: &CensusRing) -> bool {
-        let census_group =
-            census_ring
-                .census_group_for(&self.service_group)
-                .expect("Service update service files failed; unable to find own service group");
+        let census_group = census_ring.census_group_for(&self.service_group).expect(
+            "Service update service files failed; unable to find own service group",
+        );
         let mut updated = false;
         for service_file in census_group.changed_service_files() {
             if self.cache_service_file(&service_file) {
@@ -627,12 +651,14 @@ impl Service {
 
     /// Helper for constructing a new render context for the service.
     fn render_context<'a>(&'a self, census: &'a CensusRing) -> RenderContext<'a> {
-        RenderContext::new(&self.service_group,
-                           &self.sys,
-                           &self.pkg,
-                           &self.cfg,
-                           census,
-                           self.binds.iter())
+        RenderContext::new(
+            &self.service_group,
+            &self.sys,
+            &self.pkg,
+            &self.cfg,
+            census,
+            self.binds.iter(),
+        )
     }
 
     fn run_health_check_hook(&mut self) {
@@ -654,7 +680,8 @@ impl Service {
     }
 
     fn write_cache_file<T>(&self, file: T, contents: &[u8]) -> bool
-        where T: AsRef<Path>
+    where
+        T: AsRef<Path>,
     {
         let current_checksum = match hash::hash_file(&file) {
             Ok(current_checksum) => current_checksum,
@@ -754,7 +781,8 @@ impl Default for Topology {
 
 impl<'de> serde::Deserialize<'de> for Topology {
     fn deserialize<D>(deserializer: D) -> result::Result<Self, D::Error>
-        where D: serde::Deserializer<'de>
+    where
+        D: serde::Deserializer<'de>,
     {
         deserialize_using_from_str(deserializer)
     }
@@ -762,7 +790,8 @@ impl<'de> serde::Deserialize<'de> for Topology {
 
 impl serde::Serialize for Topology {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: serde::Serializer
+    where
+        S: serde::Serializer,
     {
         serializer.serialize_str(self.as_str())
     }
@@ -793,7 +822,9 @@ impl FromStr for UpdateStrategy {
             "none" => Ok(UpdateStrategy::None),
             "at-once" => Ok(UpdateStrategy::AtOnce),
             "rolling" => Ok(UpdateStrategy::Rolling),
-            _ => Err(sup_error!(Error::InvalidUpdateStrategy(String::from(strategy)))),
+            _ => Err(sup_error!(
+                Error::InvalidUpdateStrategy(String::from(strategy))
+            )),
         }
     }
 }
@@ -812,7 +843,8 @@ impl Default for UpdateStrategy {
 
 impl<'de> serde::Deserialize<'de> for UpdateStrategy {
     fn deserialize<D>(deserializer: D) -> result::Result<Self, D::Error>
-        where D: serde::Deserializer<'de>
+    where
+        D: serde::Deserializer<'de>,
     {
         deserialize_using_from_str(deserializer)
     }
@@ -820,7 +852,8 @@ impl<'de> serde::Deserialize<'de> for UpdateStrategy {
 
 impl serde::Serialize for UpdateStrategy {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: serde::Serializer
+    where
+        S: serde::Serializer,
     {
         serializer.serialize_str(self.as_str())
     }

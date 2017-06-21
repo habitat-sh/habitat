@@ -103,7 +103,9 @@ fn elects_on_failure() {
             .stop_if_leader()
             .or(sup_b.stop_if_leader())
             .or(sup_c.stop_if_leader())
-            .expect("We had a leader, but then.. we couldn't find it in our list")
+            .expect(
+                "We had a leader, but then.. we couldn't find it in our list",
+            )
     };
 
     if sup_a.id != og_leader_id {

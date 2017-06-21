@@ -31,23 +31,25 @@ unsafe fn uname_libc() -> Result<Uname> {
     if rv < 0 {
         let errno = errno();
         let code = errno.0 as i32;
-        return Err(Error::UnameFailed(format!("Error {} when calling uname: {}", code, errno)));
+        return Err(Error::UnameFailed(
+            format!("Error {} when calling uname: {}", code, errno),
+        ));
     }
     Ok(Uname {
-           sys_name: CStr::from_ptr(utsname.sysname.as_ptr())
-               .to_string_lossy()
-               .into_owned(),
-           node_name: CStr::from_ptr(utsname.nodename.as_ptr())
-               .to_string_lossy()
-               .into_owned(),
-           release: CStr::from_ptr(utsname.release.as_ptr())
-               .to_string_lossy()
-               .into_owned(),
-           version: CStr::from_ptr(utsname.version.as_ptr())
-               .to_string_lossy()
-               .into_owned(),
-           machine: CStr::from_ptr(utsname.machine.as_ptr())
-               .to_string_lossy()
-               .into_owned(),
-       })
+        sys_name: CStr::from_ptr(utsname.sysname.as_ptr())
+            .to_string_lossy()
+            .into_owned(),
+        node_name: CStr::from_ptr(utsname.nodename.as_ptr())
+            .to_string_lossy()
+            .into_owned(),
+        release: CStr::from_ptr(utsname.release.as_ptr())
+            .to_string_lossy()
+            .into_owned(),
+        version: CStr::from_ptr(utsname.version.as_ptr())
+            .to_string_lossy()
+            .into_owned(),
+        machine: CStr::from_ptr(utsname.machine.as_ptr())
+            .to_string_lossy()
+            .into_owned(),
+    })
 }

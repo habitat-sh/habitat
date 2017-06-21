@@ -54,13 +54,19 @@ impl fmt::Display for Error {
             Error::IO(ref e) => format!("{}", e),
             Error::Json(ref e) => format!("{}", e),
             Error::NoFilePart => {
-                format!("An invalid path was passed - we needed a filename, and this path does \
-                         not have one")
+                format!(
+                    "An invalid path was passed - we needed a filename, and this path does \
+                         not have one"
+                )
             }
-            Error::NoXFilename => format!("Invalid download from a Depot - missing X-Filename header"),
+            Error::NoXFilename => {
+                format!("Invalid download from a Depot - missing X-Filename header")
+            }
             Error::UploadFailed(ref s) => format!("Upload failed: {}", s),
             Error::UrlParseError(ref e) => format!("{}", e),
-            Error::WriteSyncFailed => format!("Could not write to destination; perhaps the disk is full?"),
+            Error::WriteSyncFailed => {
+                format!("Could not write to destination; perhaps the disk is full?")
+            }
         };
         write!(f, "{}", msg)
     }
@@ -76,11 +82,15 @@ impl error::Error for Error {
             Error::HyperError(ref err) => err.description(),
             Error::IO(ref err) => err.description(),
             Error::Json(ref err) => err.description(),
-            Error::NoFilePart => "An invalid path was passed - we needed a filename, and this path does not have one",
+            Error::NoFilePart => {
+                "An invalid path was passed - we needed a filename, and this path does not have one"
+            }
             Error::NoXFilename => "Invalid download from a Depot - missing X-Filename header",
             Error::UploadFailed(_) => "Upload failed",
             Error::UrlParseError(ref err) => err.description(),
-            Error::WriteSyncFailed => "Could not write to destination; bytes written was 0 on a non-0 buffer",
+            Error::WriteSyncFailed => {
+                "Could not write to destination; bytes written was 0 on a non-0 buffer"
+            }
         }
     }
 }

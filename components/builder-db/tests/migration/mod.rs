@@ -22,9 +22,9 @@ fn setup() {
         let xact = conn.transaction().expect("cannot get transaction");
         let migrator = Migrator::new(xact, vec![0, 1]);
         migrator.setup().expect("Migration setup failed");
-        migrator
-            .setup()
-            .expect("Migration setup must be idempotent");
+        migrator.setup().expect(
+            "Migration setup must be idempotent",
+        );
         migrator.finish();
     });
 }
@@ -37,32 +37,38 @@ fn migrate() {
         {
             let xact = conn.transaction().expect("cannot get transaction");
             let mut migrator = Migrator::new(xact, vec![0, 1]);
+            migrator.setup().expect(
+                "Migration setup must be idempotent",
+            );
             migrator
-                .setup()
-                .expect("Migration setup must be idempotent");
-            migrator
-                .migrate("metal",
-                         r#"CREATE TABLE bands (
+                .migrate(
+                    "metal",
+                    r#"CREATE TABLE bands (
                                     name text PRIMARY KEY,
                                     style text
-                                 )"#)
+                                 )"#,
+                )
                 .expect("Migration should be run successfully");
             migrator.finish();
         }
         {
             let xact = conn.transaction().expect("cannot get transaction");
             let mut migrator = Migrator::new(xact, vec![0, 1]);
+            migrator.setup().expect(
+                "Migration setup must be idempotent",
+            );
             migrator
-                .setup()
-                .expect("Migration setup must be idempotent");
-            migrator
-                .migrate("metal",
-                         r#"CREATE TABLE bands (
+                .migrate(
+                    "metal",
+                    r#"CREATE TABLE bands (
                                     name text PRIMARY KEY,
                                     style text
-                                 )"#)
-                .expect("Migration should be run successfully, even thought it would fail if it \
-                         was run twice");
+                                 )"#,
+                )
+                .expect(
+                    "Migration should be run successfully, even thought it would fail if it \
+                         was run twice",
+                );
             migrator.finish();
         }
     });
@@ -76,100 +82,122 @@ fn migrate_out_of_order_edits() {
         {
             let xact = conn.transaction().expect("cannot get transaction");
             let mut migrator = Migrator::new(xact, vec![0, 1]);
+            migrator.setup().expect(
+                "Migration setup must be idempotent",
+            );
             migrator
-                .setup()
-                .expect("Migration setup must be idempotent");
-            migrator
-                .migrate("metal",
-                         r#"CREATE TABLE bands (
+                .migrate(
+                    "metal",
+                    r#"CREATE TABLE bands (
                                     name text PRIMARY KEY,
                                     style text
-                                 )"#)
+                                 )"#,
+                )
                 .expect("Migration should be run successfully");
             migrator
-                .migrate("metal",
-                         r#"CREATE TABLE cars (
+                .migrate(
+                    "metal",
+                    r#"CREATE TABLE cars (
                                     name text PRIMARY KEY,
                                     style text
-                                 )"#)
-                .expect("Migration should be run successfully");
-            migrator.finish();
-        }
-        {
-            let xact = conn.transaction().expect("cannot get transaction");
-            let mut migrator = Migrator::new(xact, vec![0, 1]);
-            migrator
-                .setup()
-                .expect("Migration setup must be idempotent");
-            migrator
-                .migrate("metal",
-                         r#"CREATE TABLE bands (
-                                    name text PRIMARY KEY,
-                                    style text
-                                 )"#)
-                .expect("Migration should be run successfully");
-            migrator
-                .migrate("metal",
-                         r#"CREATE TABLE hats (
-                                    name text PRIMARY KEY,
-                                    style text
-                                 )"#)
-                .expect("Migration should be run successfully");
-            migrator
-                .migrate("metal",
-                         r#"CREATE TABLE cars (
-                                    name text PRIMARY KEY,
-                                    style text
-                                 )"#)
+                                 )"#,
+                )
                 .expect("Migration should be run successfully");
             migrator.finish();
         }
         {
             let xact = conn.transaction().expect("cannot get transaction");
             let mut migrator = Migrator::new(xact, vec![0, 1]);
+            migrator.setup().expect(
+                "Migration setup must be idempotent",
+            );
             migrator
-                .setup()
-                .expect("Migration setup must be idempotent");
-            migrator
-                .migrate("metal",
-                         r#"CREATE TABLE bands (
+                .migrate(
+                    "metal",
+                    r#"CREATE TABLE bands (
                                     name text PRIMARY KEY,
                                     style text
-                                 )"#)
+                                 )"#,
+                )
                 .expect("Migration should be run successfully");
             migrator
-                .migrate("metal",
-                         r#"CREATE TABLE hats (
+                .migrate(
+                    "metal",
+                    r#"CREATE TABLE hats (
                                     name text PRIMARY KEY,
                                     style text
-                                 )"#)
+                                 )"#,
+                )
                 .expect("Migration should be run successfully");
             migrator
-                .migrate("metal",
-                         r#"CREATE TABLE cars (
+                .migrate(
+                    "metal",
+                    r#"CREATE TABLE cars (
                                     name text PRIMARY KEY,
                                     style text
-                                 )"#)
-                .expect("Migration should be run successfully");
-            migrator
-                .migrate("metal",
-                         r#"CREATE TABLE forks (
-                                    name text PRIMARY KEY,
-                                    style text
-                                 )"#)
+                                 )"#,
+                )
                 .expect("Migration should be run successfully");
             migrator.finish();
         }
         {
             let xact = conn.transaction().expect("cannot get transaction");
-            xact.execute("SELECT * FROM bands", &[])
-                .expect("Table should exist");
-            xact.execute("SELECT * FROM hats", &[])
-                .expect("Table should exist");
-            xact.execute("SELECT * FROM cars", &[])
-                .expect("Table should exist");
-            xact.execute("SELECT * FROM forks", &[])
-                .expect("Table should exist");
+            let mut migrator = Migrator::new(xact, vec![0, 1]);
+            migrator.setup().expect(
+                "Migration setup must be idempotent",
+            );
+            migrator
+                .migrate(
+                    "metal",
+                    r#"CREATE TABLE bands (
+                                    name text PRIMARY KEY,
+                                    style text
+                                 )"#,
+                )
+                .expect("Migration should be run successfully");
+            migrator
+                .migrate(
+                    "metal",
+                    r#"CREATE TABLE hats (
+                                    name text PRIMARY KEY,
+                                    style text
+                                 )"#,
+                )
+                .expect("Migration should be run successfully");
+            migrator
+                .migrate(
+                    "metal",
+                    r#"CREATE TABLE cars (
+                                    name text PRIMARY KEY,
+                                    style text
+                                 )"#,
+                )
+                .expect("Migration should be run successfully");
+            migrator
+                .migrate(
+                    "metal",
+                    r#"CREATE TABLE forks (
+                                    name text PRIMARY KEY,
+                                    style text
+                                 )"#,
+                )
+                .expect("Migration should be run successfully");
+            migrator.finish();
+        }
+        {
+            let xact = conn.transaction().expect("cannot get transaction");
+            xact.execute("SELECT * FROM bands", &[]).expect(
+                "Table should exist",
+            );
+            xact.execute("SELECT * FROM hats", &[]).expect(
+                "Table should exist",
+            );
+            xact.execute("SELECT * FROM cars", &[]).expect(
+                "Table should exist",
+            );
+            xact.execute("SELECT * FROM forks", &[]).expect(
+                "Table should exist",
+            );
         }
     });
 }

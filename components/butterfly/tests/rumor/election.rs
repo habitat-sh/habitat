@@ -87,11 +87,13 @@ fn five_members_elect_a_new_leader_when_the_old_one_dies() {
     assert_wait_for_equal_election!(net, [0..5, 0..5], "witcher.prod");
 
     let mut leader_id = String::from("");
-    net[0]
-        .election_store
-        .with_rumor("witcher.prod",
-                    "election",
-                    |e| { leader_id = String::from(e.unwrap().get_member_id()); });
+    net[0].election_store.with_rumor(
+        "witcher.prod",
+        "election",
+        |e| {
+            leader_id = String::from(e.unwrap().get_member_id());
+        },
+    );
 
     let mut paused = 0;
     for (index, server) in net.iter_mut().enumerate() {
@@ -121,19 +123,23 @@ fn five_members_elect_a_new_leader_when_the_old_one_dies() {
     }
 
     if paused == 0 {
-        net[1]
-            .election_store
-            .with_rumor("witcher.prod", "election", |e| {
+        net[1].election_store.with_rumor(
+            "witcher.prod",
+            "election",
+            |e| {
                 assert!(e.unwrap().get_term() == 1);
                 assert!(e.unwrap().get_member_id() != paused_id);
-            });
+            },
+        );
     } else {
-        net[0]
-            .election_store
-            .with_rumor("witcher.prod", "election", |e| {
+        net[0].election_store.with_rumor(
+            "witcher.prod",
+            "election",
+            |e| {
                 assert!(e.unwrap().get_term() == 1);
                 assert!(e.unwrap().get_member_id() != paused_id);
-            });
+            },
+        );
     }
 }
 
@@ -165,11 +171,13 @@ fn five_members_elect_a_new_leader_when_they_are_quorum_partitioned() {
     assert_wait_for_equal_election!(net, [0..5, 0..5], "witcher.prod");
 
     let mut leader_id = String::from("");
-    net[0]
-        .election_store
-        .with_rumor("witcher.prod",
-                    "election",
-                    |e| { leader_id = String::from(e.unwrap().get_member_id()); });
+    net[0].election_store.with_rumor(
+        "witcher.prod",
+        "election",
+        |e| {
+            leader_id = String::from(e.unwrap().get_member_id());
+        },
+    );
 
     assert_eq!(leader_id, net[0].member_id());
 
@@ -191,18 +199,22 @@ fn five_members_elect_a_new_leader_when_they_are_quorum_partitioned() {
     assert_wait_for_election_status!(net, 2, "witcher.prod", Election_Status::Finished);
     assert_wait_for_election_status!(net, 3, "witcher.prod", Election_Status::Finished);
     assert_wait_for_election_status!(net, 4, "witcher.prod", Election_Status::Finished);
-    net[0]
-        .election_store
-        .with_rumor("witcher.prod", "election", |e| {
+    net[0].election_store.with_rumor(
+        "witcher.prod",
+        "election",
+        |e| {
             println!("OLD: {:#?}", e);
             new_leader_id = String::from(e.unwrap().get_member_id());
-        });
-    net[2]
-        .election_store
-        .with_rumor("witcher.prod", "election", |e| {
+        },
+    );
+    net[2].election_store.with_rumor(
+        "witcher.prod",
+        "election",
+        |e| {
             println!("NEW: {:#?}", e);
             new_leader_id = String::from(e.unwrap().get_member_id());
-        });
+        },
+    );
     assert!(leader_id != new_leader_id);
     println!("Leader {} New {}", leader_id, new_leader_id);
     net.unpartition(0..2, 2..5);
@@ -210,16 +222,20 @@ fn five_members_elect_a_new_leader_when_they_are_quorum_partitioned() {
     assert_wait_for_election_status!(net, 0, "witcher.prod", Election_Status::Finished);
     assert_wait_for_election_status!(net, 1, "witcher.prod", Election_Status::Finished);
 
-    net[4]
-        .election_store
-        .with_rumor("witcher.prod", "election", |e| {
+    net[4].election_store.with_rumor(
+        "witcher.prod",
+        "election",
+        |e| {
             println!("MAJORITY: {:#?}", e);
-        });
+        },
+    );
 
-    net[0]
-        .election_store
-        .with_rumor("witcher.prod", "election", |e| {
+    net[0].election_store.with_rumor(
+        "witcher.prod",
+        "election",
+        |e| {
             println!("MINORITY: {:#?}", e);
             assert_eq!(new_leader_id, String::from(e.unwrap().get_member_id()));
-        });
+        },
+    );
 }

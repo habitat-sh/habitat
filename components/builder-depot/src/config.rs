@@ -60,8 +60,10 @@ impl Default for Config {
             events_enabled: false, // TODO: change to default to true later
             builds_enabled: false,
             log_dir: env::temp_dir().to_string_lossy().into_owned(),
-            targets: vec![PackageTarget::new(Platform::Linux, Architecture::X86_64),
-                          PackageTarget::new(Platform::Windows, Architecture::X86_64)],
+            targets: vec![
+                PackageTarget::new(Platform::Linux, Architecture::X86_64),
+                PackageTarget::new(Platform::Windows, Architecture::X86_64),
+            ],
         }
     }
 }
@@ -160,8 +162,10 @@ mod tests {
         assert_eq!(&format!("{}", config.routers[0]), "172.18.0.2:9001");
         assert_eq!(config.github.url, "https://api.github.com");
         assert_eq!(config.github.client_id, "0c2f738a7d0bd300de10");
-        assert_eq!(config.github.client_secret,
-                   "438223113eeb6e7edf2d2f91a232b72de72b9bdf");
+        assert_eq!(
+            config.github.client_secret,
+            "438223113eeb6e7edf2d2f91a232b72de72b9bdf"
+        );
         assert_eq!(config.targets.len(), 2);
         assert_eq!(config.targets[0].platform, Platform::Linux);
         assert_eq!(config.targets[0].architecture, Architecture::X86_64);

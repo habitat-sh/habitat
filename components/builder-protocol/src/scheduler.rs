@@ -112,7 +112,8 @@ impl Routable for JobStatus {
 
 impl Serialize for GroupState {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         match *self as u64 {
             0 => serializer.serialize_str("Pending"),
@@ -126,7 +127,8 @@ impl Serialize for GroupState {
 
 impl Serialize for ProjectState {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         match *self as u64 {
             0 => serializer.serialize_str("NotStarted"),
@@ -141,7 +143,8 @@ impl Serialize for ProjectState {
 
 impl Serialize for Project {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         let mut strukt = try!(serializer.serialize_struct("project", 4));
         try!(strukt.serialize_field("name", &self.get_name()));
@@ -154,7 +157,8 @@ impl Serialize for Project {
 
 impl Serialize for Group {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         let mut strukt = try!(serializer.serialize_struct("group", 3));
         try!(strukt.serialize_field("id", &self.get_id()));
@@ -167,7 +171,8 @@ impl Serialize for Group {
 
 impl Serialize for PackageStats {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         let mut strukt = try!(serializer.serialize_struct("packagestats", 2));
         try!(strukt.serialize_field("plans", &self.get_plans()));

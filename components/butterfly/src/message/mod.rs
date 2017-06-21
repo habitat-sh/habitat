@@ -50,13 +50,20 @@ pub fn unwrap_wire(payload: &[u8], ring_key: &Option<SymKey>) -> Result<Vec<u8>>
 
 impl Serialize for swim::Election {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         let mut strukt = try!(serializer.serialize_struct("election", 6));
         try!(strukt.serialize_field("member_id", self.get_member_id()));
-        try!(strukt.serialize_field("service_group", self.get_service_group()));
+        try!(strukt.serialize_field(
+            "service_group",
+            self.get_service_group(),
+        ));
         try!(strukt.serialize_field("term", &self.get_term()));
-        try!(strukt.serialize_field("suitability", &self.get_suitability()));
+        try!(strukt.serialize_field(
+            "suitability",
+            &self.get_suitability(),
+        ));
         try!(strukt.serialize_field("status", &self.get_status()));
         try!(strukt.serialize_field("votes", self.get_votes()));
         strukt.end()
@@ -65,14 +72,21 @@ impl Serialize for swim::Election {
 
 impl Serialize for swim::Member {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         let mut strukt = try!(serializer.serialize_struct("member", 6));
         try!(strukt.serialize_field("id", self.get_id()));
-        try!(strukt.serialize_field("incarnation", &self.get_incarnation()));
+        try!(strukt.serialize_field(
+            "incarnation",
+            &self.get_incarnation(),
+        ));
         try!(strukt.serialize_field("address", self.get_address()));
         try!(strukt.serialize_field("swim_port", &self.get_swim_port()));
-        try!(strukt.serialize_field("gossip_port", &self.get_gossip_port()));
+        try!(strukt.serialize_field(
+            "gossip_port",
+            &self.get_gossip_port(),
+        ));
         try!(strukt.serialize_field("persistent", &self.get_persistent()));
         strukt.end()
     }
@@ -80,7 +94,8 @@ impl Serialize for swim::Member {
 
 impl Serialize for swim::Membership {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         let mut strukt = try!(serializer.serialize_struct("membership", 2));
         try!(strukt.serialize_field("member", self.get_member()));
@@ -91,7 +106,8 @@ impl Serialize for swim::Membership {
 
 impl Serialize for swim::Rumor {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         let mut strukt = try!(serializer.serialize_struct("rumor", 8));
         try!(strukt.serialize_field("type", &self.get_field_type()));
@@ -104,10 +120,16 @@ impl Serialize for swim::Rumor {
             try!(strukt.serialize_field("service", self.get_service()));
         }
         if self.has_service_config() {
-            try!(strukt.serialize_field("service_config", self.get_service_config()));
+            try!(strukt.serialize_field(
+                "service_config",
+                self.get_service_config(),
+            ));
         }
         if self.has_service_file() {
-            try!(strukt.serialize_field("service_file", self.get_service_file()));
+            try!(strukt.serialize_field(
+                "service_file",
+                self.get_service_file(),
+            ));
         }
         if self.has_election() {
             try!(strukt.serialize_field("election", self.get_election()));
@@ -118,32 +140,45 @@ impl Serialize for swim::Rumor {
 
 impl Serialize for swim::Service {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         let mut strukt = serializer.serialize_struct("service", 7)?;
         let cfg = toml::from_slice(self.get_cfg()).unwrap_or(toml::value::Table::default());
-        strukt
-            .serialize_field("member_id", self.get_member_id())?;
-        strukt
-            .serialize_field("service_group", self.get_service_group())?;
+        strukt.serialize_field("member_id", self.get_member_id())?;
+        strukt.serialize_field(
+            "service_group",
+            self.get_service_group(),
+        )?;
         strukt.serialize_field("package", self.get_pkg())?;
-        strukt
-            .serialize_field("incarnation", &self.get_incarnation())?;
+        strukt.serialize_field(
+            "incarnation",
+            &self.get_incarnation(),
+        )?;
         strukt.serialize_field("cfg", &cfg)?;
         strukt.serialize_field("sys", &self.get_sys())?;
-        strukt
-            .serialize_field("initialized", &self.get_initialized())?;
+        strukt.serialize_field(
+            "initialized",
+            &self.get_initialized(),
+        )?;
         strukt.end()
     }
 }
 
 impl Serialize for swim::ServiceConfig {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         let mut strukt = try!(serializer.serialize_struct("service_config", 4));
-        try!(strukt.serialize_field("service_group", self.get_service_group()));
-        try!(strukt.serialize_field("incarnation", &self.get_incarnation()));
+        try!(strukt.serialize_field(
+            "service_group",
+            self.get_service_group(),
+        ));
+        try!(strukt.serialize_field(
+            "incarnation",
+            &self.get_incarnation(),
+        ));
         try!(strukt.serialize_field("encrypted", &self.get_encrypted()));
         match str::from_utf8(self.get_config()) {
             Ok(c) => try!(strukt.serialize_field("config", c)),
@@ -155,11 +190,18 @@ impl Serialize for swim::ServiceConfig {
 
 impl Serialize for swim::ServiceFile {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         let mut strukt = try!(serializer.serialize_struct("service_file", 5));
-        try!(strukt.serialize_field("service_group", self.get_service_group()));
-        try!(strukt.serialize_field("incarnation", &self.get_incarnation()));
+        try!(strukt.serialize_field(
+            "service_group",
+            self.get_service_group(),
+        ));
+        try!(strukt.serialize_field(
+            "incarnation",
+            &self.get_incarnation(),
+        ));
         try!(strukt.serialize_field("encrypted", &self.get_encrypted()));
         try!(strukt.serialize_field("filename", self.get_filename()));
         match str::from_utf8(self.get_body()) {
@@ -172,26 +214,33 @@ impl Serialize for swim::ServiceFile {
 
 impl Serialize for swim::SysInfo {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         let mut strukt = serializer.serialize_struct("sys_info", 6)?;
         strukt.serialize_field("ip", self.get_ip())?;
         strukt.serialize_field("hostname", self.get_hostname())?;
-        strukt
-            .serialize_field("gossip_ip", self.get_gossip_ip())?;
-        strukt
-            .serialize_field("gossip_port", &self.get_gossip_port())?;
-        strukt
-            .serialize_field("http_gateway_ip", self.get_http_gateway_ip())?;
-        strukt
-            .serialize_field("http_gateway_port", &self.get_http_gateway_port())?;
+        strukt.serialize_field("gossip_ip", self.get_gossip_ip())?;
+        strukt.serialize_field(
+            "gossip_port",
+            &self.get_gossip_port(),
+        )?;
+        strukt.serialize_field(
+            "http_gateway_ip",
+            self.get_http_gateway_ip(),
+        )?;
+        strukt.serialize_field(
+            "http_gateway_port",
+            &self.get_http_gateway_port(),
+        )?;
         strukt.end()
     }
 }
 
 impl Serialize for swim::Election_Status {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         serializer.serialize_u8(*self as u8)
     }
@@ -199,7 +248,8 @@ impl Serialize for swim::Election_Status {
 
 impl Serialize for swim::Membership_Health {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         serializer.serialize_u8(*self as u8)
     }
@@ -207,7 +257,8 @@ impl Serialize for swim::Membership_Health {
 
 impl Serialize for swim::Rumor_Type {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         serializer.serialize_u8(*self as u8)
     }

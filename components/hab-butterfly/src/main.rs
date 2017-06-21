@@ -78,9 +78,9 @@ fn start(ui: &mut UI) -> Result<()> {
     let app_matches = cli::get()
         .get_matches_from_safe_borrow(&mut args.iter())
         .unwrap_or_else(|e| {
-                            analytics::instrument_clap_error(&e);
-                            e.exit();
-                        });
+            analytics::instrument_clap_error(&e);
+            e.exit();
+        });
     match app_matches.subcommand() {
         ("config", Some(matches)) => {
             match matches.subcommand() {
@@ -134,14 +134,16 @@ fn sub_config_apply(ui: &mut UI, m: &ArgMatches) -> Result<()> {
         Some(username) => Some(try!(BoxKeyPair::get_latest_pair_for(username, &cache))),
         None => None,
     };
-    command::config::apply::start(ui,
-                                  &sg,
-                                  number,
-                                  file_path,
-                                  &peers,
-                                  ring_key.as_ref(),
-                                  user_pair.as_ref(),
-                                  service_pair.as_ref())
+    command::config::apply::start(
+        ui,
+        &sg,
+        number,
+        file_path,
+        &peers,
+        ring_key.as_ref(),
+        user_pair.as_ref(),
+        service_pair.as_ref(),
+    )
 }
 
 fn sub_file_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
@@ -158,12 +160,16 @@ fn sub_file_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     match file_path.metadata() {
         Ok(md) => {
             if md.len() > MAX_FILE_UPLOAD_SIZE_BYTES {
-                return Err(Error::CryptoCLI(format!("Maximum encrypted file size is {} bytes",
-                                                    MAX_FILE_UPLOAD_SIZE_BYTES)));
+                return Err(Error::CryptoCLI(format!(
+                    "Maximum encrypted file size is {} bytes",
+                    MAX_FILE_UPLOAD_SIZE_BYTES
+                )));
             }
         }
         Err(e) => {
-            return Err(Error::CryptoCLI(format!("Error checking file metadata: {}", e)));
+            return Err(Error::CryptoCLI(
+                format!("Error checking file metadata: {}", e),
+            ));
 
         }
     };
@@ -188,27 +194,31 @@ fn sub_file_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
         Some(username) => Some(try!(BoxKeyPair::get_latest_pair_for(username, &cache))),
         None => None,
     };
-    command::file::upload::start(ui,
-                                 &sg,
-                                 number,
-                                 file_path,
-                                 &peers,
-                                 ring_key.as_ref(),
-                                 user_pair.as_ref(),
-                                 service_pair.as_ref())
+    command::file::upload::start(
+        ui,
+        &sg,
+        number,
+        file_path,
+        &peers,
+        ring_key.as_ref(),
+        user_pair.as_ref(),
+        service_pair.as_ref(),
+    )
 }
 
 fn ui() -> UI {
     let isatty = if henv::var(NONINTERACTIVE_ENVVAR)
-           .map(|val| val == "true")
-           .unwrap_or(false) {
+        .map(|val| val == "true")
+        .unwrap_or(false)
+    {
         Some(false)
     } else {
         None
     };
     let coloring = if henv::var(NOCOLORING_ENVVAR)
-           .map(|val| val == "true")
-           .unwrap_or(false) {
+        .map(|val| val == "true")
+        .unwrap_or(false)
+    {
         Coloring::Never
     } else {
         Coloring::Auto
@@ -222,10 +232,16 @@ fn ui() -> UI {
 /// certain point, especially if those arguments look like further options and flags.
 fn raw_parse_args() -> (Vec<OsString>, Vec<OsString>) {
     let mut args = env::args();
-    match (args.nth(1).unwrap_or_default().as_str(), args.next().unwrap_or_default().as_str()) {
+    match (
+        args.nth(1).unwrap_or_default().as_str(),
+        args.next().unwrap_or_default().as_str(),
+    ) {
         ("pkg", "exec") => {
             if args.by_ref().count() > 2 {
-                return (env::args_os().take(5).collect(), env::args_os().skip(5).collect());
+                return (
+                    env::args_os().take(5).collect(),
+                    env::args_os().skip(5).collect(),
+                );
             } else {
                 (env::args_os().collect(), Vec::new())
             }

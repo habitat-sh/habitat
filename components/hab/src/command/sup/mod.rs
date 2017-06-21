@@ -49,8 +49,10 @@ mod inner {
     pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
         let sup_ident = match henv::var(FEAT_STATIC) {
             Ok(_) => {
-                debug!("Enabling statically compiled Supervisor from {}",
-                       SUP_STATIC_PACKAGE_IDENT);
+                debug!(
+                    "Enabling statically compiled Supervisor from {}",
+                    SUP_STATIC_PACKAGE_IDENT
+                );
                 SUP_STATIC_PACKAGE_IDENT
             }
             Err(_) => SUP_PACKAGE_IDENT,
@@ -60,19 +62,25 @@ mod inner {
             Err(_) => {
                 init();
                 let version: Vec<&str> = VERSION.split("/").collect();
-                let ident = try!(PackageIdent::from_str(&format!("{}/{}", sup_ident, version[0])));
-                try!(exec::command_from_min_pkg(ui,
-                                                SUP_CMD,
-                                                &ident,
-                                                &default_cache_key_path(None),
-                                                0))
+                let ident = try!(PackageIdent::from_str(
+                    &format!("{}/{}", sup_ident, version[0]),
+                ));
+                try!(exec::command_from_min_pkg(
+                    ui,
+                    SUP_CMD,
+                    &ident,
+                    &default_cache_key_path(None),
+                    0,
+                ))
             }
         };
 
         if let Some(cmd) = find_command(command.to_string_lossy().as_ref()) {
             Ok(try!(process::become_command(cmd, args)))
         } else {
-            Err(Error::ExecCommandNotFound(command.to_string_lossy().into_owned()))
+            Err(Error::ExecCommandNotFound(
+                command.to_string_lossy().into_owned(),
+            ))
         }
     }
 }
@@ -88,8 +96,10 @@ mod inner {
 
     pub fn start(ui: &mut UI, _args: Vec<OsString>) -> Result<()> {
         let subcmd = env::args().nth(1).unwrap_or("<unknown>".to_string());
-        try!(ui.warn("Launching a native Supervisor on this operating system is not yet supported. \
-                   Try running this command again on a 64-bit Linux operating system."));
+        try!(ui.warn(
+            "Launching a native Supervisor on this operating system is not yet supported. \
+                   Try running this command again on a 64-bit Linux operating system.",
+        ));
         try!(ui.br());
         Err(Error::SubcommandNotSupported(subcmd))
     }

@@ -39,7 +39,8 @@ const HTTP_THREAD_COUNT: usize = 128;
 /// Create a new `iron::Chain` containing a Router and it's required middleware
 pub fn router(config: Arc<Config>) -> Result<Chain> {
     let basic = Authenticated::new(&*config);
-    let router = router!(
+    let router =
+        router!(
         status: get "/status" => status,
         authenticate: get "/authenticate/:code" => github_authenticate,
 
@@ -67,8 +68,12 @@ pub fn router(config: Arc<Config>) -> Result<Chain> {
         }
     );
     let mut chain = Chain::new(router);
-    chain.link(persistent::Read::<GitHubCli>::both(GitHubClient::new(&*config)));
-    chain.link(Read::<EventLog>::both(EventLogger::new(&config.log_dir, config.events_enabled)));
+    chain.link(persistent::Read::<GitHubCli>::both(
+        GitHubClient::new(&*config),
+    ));
+    chain.link(Read::<EventLog>::both(
+        EventLogger::new(&config.log_dir, config.events_enabled),
+    ));
     chain.link_before(RouteBroker);
     chain.link_after(Cors);
     Ok(chain)
@@ -102,11 +107,11 @@ pub fn run(config: Arc<Config>) -> Result<JoinHandle<()>> {
     let handle = thread::Builder::new()
         .name("http-srv".to_string())
         .spawn(move || {
-                   let mut server = Iron::new(mount);
-                   server.threads = HTTP_THREAD_COUNT;
-                   server.http(&config.http).unwrap();
-                   tx.send(()).unwrap();
-               })
+            let mut server = Iron::new(mount);
+            server.threads = HTTP_THREAD_COUNT;
+            server.http(&config.http).unwrap();
+            tx.send(()).unwrap();
+        })
         .unwrap();
     match rx.recv() {
         Ok(()) => Ok(handle),

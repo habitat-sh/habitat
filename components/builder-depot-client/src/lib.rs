@@ -98,14 +98,16 @@ mod json_u64 {
     use serde::{self, Deserialize, Serializer, Deserializer};
 
     pub fn serialize<S>(num: &u64, serializer: S) -> Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         let s = format!("{}", num);
         serializer.serialize_str(&s)
     }
 
     pub fn deserialize<'de, D>(deserializer: D) -> Result<u64, D::Error>
-        where D: Deserializer<'de>
+    where
+        D: Deserializer<'de>,
     {
         let s = String::deserialize(deserializer)?;
         s.parse::<u64>().map_err(serde::de::Error::custom)
@@ -185,14 +187,18 @@ pub trait DisplayProgress: Write {
 pub struct Client(ApiClient);
 
 impl Client {
-    pub fn new<U>(depot_url: U,
-                  product: &str,
-                  version: &str,
-                  fs_root_path: Option<&Path>)
-                  -> Result<Self>
-        where U: IntoUrl
+    pub fn new<U>(
+        depot_url: U,
+        product: &str,
+        version: &str,
+        fs_root_path: Option<&Path>,
+    ) -> Result<Self>
+    where
+        U: IntoUrl,
     {
-        Ok(Client(ApiClient::new(depot_url, product, version, fs_root_path)?))
+        Ok(Client(
+            ApiClient::new(depot_url, product, version, fs_root_path)?,
+        ))
     }
 
     /// Download a public key from a remote Depot to the given filepath.
@@ -202,18 +208,22 @@ impl Client {
     /// * Key cannot be found
     /// * Remote Depot is not available
     /// * File cannot be created and written to
-    pub fn fetch_origin_key<D, P: ?Sized>(&self,
-                                          origin: &str,
-                                          revision: &str,
-                                          dst_path: &P,
-                                          progress: Option<D>)
-                                          -> Result<PathBuf>
-        where P: AsRef<Path>,
-              D: DisplayProgress + Sized
+    pub fn fetch_origin_key<D, P: ?Sized>(
+        &self,
+        origin: &str,
+        revision: &str,
+        dst_path: &P,
+        progress: Option<D>,
+    ) -> Result<PathBuf>
+    where
+        P: AsRef<Path>,
+        D: DisplayProgress + Sized,
     {
-        self.download(&format!("origins/{}/keys/{}", origin, revision),
-                      dst_path.as_ref(),
-                      progress)
+        self.download(
+            &format!("origins/{}/keys/{}", origin, revision),
+            dst_path.as_ref(),
+            progress,
+        )
     }
 
     pub fn show_origin_keys(&self, origin: &str) -> Result<Vec<originsrv::OriginKeyIdent>> {
@@ -227,11 +237,11 @@ impl Client {
         let mut encoded = String::new();
         try!(res.read_to_string(&mut encoded));
         debug!("Response body: {:?}", encoded);
-        let revisions: Vec<originsrv::OriginKeyIdent> =
-            try!(serde_json::from_str::<Vec<OriginKeyIdent>>(&encoded))
-                .into_iter()
-                .map(|m| m.into())
-                .collect();
+        let revisions: Vec<originsrv::OriginKeyIdent> = try!(
+            serde_json::from_str::<Vec<OriginKeyIdent>>(&encoded)
+        ).into_iter()
+            .map(|m| m.into())
+            .collect();
         Ok(revisions)
     }
 
@@ -245,14 +255,16 @@ impl Client {
     /// # Panics
     ///
     /// * Authorization token was not set on client
-    pub fn put_origin_key<D>(&self,
-                             origin: &str,
-                             revision: &str,
-                             src_path: &Path,
-                             token: &str,
-                             progress: Option<D>)
-                             -> Result<()>
-        where D: DisplayProgress + Sized
+    pub fn put_origin_key<D>(
+        &self,
+        origin: &str,
+        revision: &str,
+        src_path: &Path,
+        token: &str,
+        progress: Option<D>,
+    ) -> Result<()>
+    where
+        D: DisplayProgress + Sized,
     {
         let path = format!("origins/{}/keys/{}", &origin, &revision);
         let mut file = try!(File::open(src_path));
@@ -273,10 +285,12 @@ impl Client {
             Ok(Response { status: StatusCode::Created, .. }) => Ok(()),
             Ok(response) => {
                 if response.status == StatusCode::Unauthorized {
-                    Err(Error::APIError(response.status,
-                                        "Your GitHub token requires both user:email and read:org \
+                    Err(Error::APIError(
+                        response.status,
+                        "Your GitHub token requires both user:email and read:org \
                                          permissions."
-                                                .to_string()))
+                            .to_string(),
+                    ))
                 } else {
                     Err(err_from_response(response))
                 }
@@ -317,14 +331,16 @@ impl Client {
     /// # Panics
     ///
     /// * Authorization token was not set on client
-    pub fn put_origin_secret_key<D>(&self,
-                                    origin: &str,
-                                    revision: &str,
-                                    src_path: &Path,
-                                    token: &str,
-                                    progress: Option<D>)
-                                    -> Result<()>
-        where D: DisplayProgress + Sized
+    pub fn put_origin_secret_key<D>(
+        &self,
+        origin: &str,
+        revision: &str,
+        src_path: &Path,
+        token: &str,
+        progress: Option<D>,
+    ) -> Result<()>
+    where
+        D: DisplayProgress + Sized,
     {
         let path = format!("origins/{}/secret_keys/{}", &origin, &revision);
         let mut file = try!(File::open(src_path));
@@ -360,14 +376,16 @@ impl Client {
     /// * Package cannot be found
     /// * Remote Depot is not available
     /// * File cannot be created and written to
-    pub fn fetch_package<D, I, P>(&self,
-                                  ident: &I,
-                                  dst_path: &P,
-                                  progress: Option<D>)
-                                  -> Result<PackageArchive>
-        where P: AsRef<Path> + ?Sized,
-              I: Identifiable,
-              D: DisplayProgress + Sized
+    pub fn fetch_package<D, I, P>(
+        &self,
+        ident: &I,
+        dst_path: &P,
+        progress: Option<D>,
+    ) -> Result<PackageArchive>
+    where
+        P: AsRef<Path> + ?Sized,
+        I: Identifiable,
+        D: DisplayProgress + Sized,
     {
         // JW TODO: We need to add a channel scoped /download route to the API server. Technically
         // this is wrong because we only want to download packages that are in the channel we
@@ -387,11 +405,13 @@ impl Client {
     ///
     /// * Package cannot be found
     /// * Remote Depot is not available
-    pub fn show_package<I>(&self,
-                           package: &I,
-                           channel: Option<&str>)
-                           -> Result<originsrv::OriginPackage>
-        where I: Identifiable
+    pub fn show_package<I>(
+        &self,
+        package: &I,
+        channel: Option<&str>,
+    ) -> Result<originsrv::OriginPackage>
+    where
+        I: Identifiable,
     {
         let mut url = if let Some(channel) = channel {
             channel_package_path(channel, package)
@@ -424,12 +444,14 @@ impl Client {
     /// # Panics
     ///
     /// * Authorization token was not set on client
-    pub fn put_package<D>(&self,
-                          pa: &mut PackageArchive,
-                          token: &str,
-                          progress: Option<D>)
-                          -> Result<()>
-        where D: DisplayProgress + Sized
+    pub fn put_package<D>(
+        &self,
+        pa: &mut PackageArchive,
+        token: &str,
+        progress: Option<D>,
+    ) -> Result<()>
+    where
+        D: DisplayProgress + Sized,
     {
         let checksum = try!(pa.checksum());
         let ident = try!(pa.ident());
@@ -489,11 +511,12 @@ impl Client {
     /// # Panics
     /// * If package archive does not have a version/release
     /// * Authorization token was not set on client
-    pub fn promote_package(&self,
-                           pa: &mut PackageArchive,
-                           channel: &str,
-                           token: &str)
-                           -> Result<()> {
+    pub fn promote_package(
+        &self,
+        pa: &mut PackageArchive,
+        channel: &str,
+        token: &str,
+    ) -> Result<()> {
         let ident = try!(pa.ident());
         let path = channel_package_promote(channel, &ident);
         debug!("Promoting package, path: {:?}", path);
@@ -512,9 +535,10 @@ impl Client {
     /// # Failures
     ///
     /// * Remote depot unavailable
-    pub fn search_package(&self,
-                          search_term: &str)
-                          -> Result<(Vec<hab_core::package::PackageIdent>, bool)> {
+    pub fn search_package(
+        &self,
+        search_term: &str,
+    ) -> Result<(Vec<hab_core::package::PackageIdent>, bool)> {
         let mut res = self.0.get(&package_search(search_term)).send()?;
         match res.status {
             StatusCode::Ok |
@@ -535,7 +559,8 @@ impl Client {
     }
 
     fn download<D>(&self, path: &str, dst_path: &Path, progress: Option<D>) -> Result<PathBuf>
-        where D: DisplayProgress + Sized
+    where
+        D: DisplayProgress + Sized,
     {
         let mut res = try!(self.0.get(path).send());
         debug!("Response: {:?}", res);
@@ -549,29 +574,31 @@ impl Client {
             Some(filename) => format!("{}", filename),
             None => return Err(Error::NoXFilename),
         };
-        let tmp_file_path = dst_path.join(format!("{}.tmp-{}",
-                                                  file_name,
-                                                  thread_rng()
-                                                      .gen_ascii_chars()
-                                                      .take(8)
-                                                      .collect::<String>()));
+        let tmp_file_path = dst_path.join(format!(
+            "{}.tmp-{}",
+            file_name,
+            thread_rng().gen_ascii_chars().take(8).collect::<String>()
+        ));
         let dst_file_path = dst_path.join(file_name);
         debug!("Writing to {}", &tmp_file_path.display());
         let mut f = try!(File::create(&tmp_file_path));
         match progress {
             Some(mut progress) => {
-                let size: u64 = res.headers
-                    .get::<hyper::header::ContentLength>()
-                    .map_or(0, |v| **v);
+                let size: u64 = res.headers.get::<hyper::header::ContentLength>().map_or(
+                    0,
+                    |v| **v,
+                );
                 progress.size(size);
                 let mut writer = BroadcastWriter::new(&mut f, progress);
                 try!(io::copy(&mut res, &mut writer))
             }
             None => try!(io::copy(&mut res, &mut f)),
         };
-        debug!("Moving {} to {}",
-               &tmp_file_path.display(),
-               &dst_file_path.display());
+        debug!(
+            "Moving {} to {}",
+            &tmp_file_path.display(),
+            &dst_file_path.display()
+        );
         try!(fs::rename(&tmp_file_path, &dst_file_path));
         Ok(dst_file_path)
     }
@@ -602,13 +629,15 @@ fn origin_secret_keys_latest(origin: &str) -> String {
 }
 
 fn package_download<I>(package: &I) -> String
-    where I: Identifiable
+where
+    I: Identifiable,
 {
     format!("{}/download", package_path(package))
 }
 
 fn package_path<I>(package: &I) -> String
-    where I: Identifiable
+where
+    I: Identifiable,
 {
     format!("pkgs/{}", package)
 }
@@ -618,12 +647,15 @@ fn package_search(term: &str) -> String {
 }
 
 fn channel_package_path<I>(channel: &str, package: &I) -> String
-    where I: Identifiable
+where
+    I: Identifiable,
 {
-    let mut path = format!("channels/{}/{}/pkgs/{}",
-                           package.origin(),
-                           channel,
-                           package.name());
+    let mut path = format!(
+        "channels/{}/{}/pkgs/{}",
+        package.origin(),
+        channel,
+        package.name()
+    );
     if let Some(version) = package.version() {
         path.push_str("/");
         path.push_str(version);
@@ -636,14 +668,17 @@ fn channel_package_path<I>(channel: &str, package: &I) -> String
 }
 
 fn channel_package_promote<I>(channel: &str, package: &I) -> String
-    where I: Identifiable
+where
+    I: Identifiable,
 {
-    format!("channels/{}/{}/pkgs/{}/{}/{}/promote",
-            package.origin(),
-            channel,
-            package.name(),
-            package.version().unwrap(),
-            package.release().unwrap())
+    format!(
+        "channels/{}/{}/pkgs/{}/{}/{}/promote",
+        package.origin(),
+        channel,
+        package.name(),
+        package.version().unwrap(),
+        package.release().unwrap()
+    )
 }
 
 #[cfg(test)]

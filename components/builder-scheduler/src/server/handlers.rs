@@ -24,10 +24,11 @@ use zmq;
 use super::ServerState;
 use error::Result;
 
-pub fn group_create(req: &mut Envelope,
-                    sock: &mut zmq::Socket,
-                    state: &mut ServerState)
-                    -> Result<()> {
+pub fn group_create(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
     let msg: proto::GroupCreate = try!(req.parse_msg());
     debug!("group_create message: {:?}", msg);
 
@@ -71,9 +72,11 @@ pub fn group_create(req: &mut Envelope,
 
     match rdeps_opt {
         Some(rdeps) => {
-            debug!("Graph rdeps: {} items ({} sec)\n",
-                   rdeps.len(),
-                   start_time.to(end_time));
+            debug!(
+                "Graph rdeps: {} items ({} sec)\n",
+                rdeps.len(),
+                start_time.to(end_time)
+            );
 
             for s in rdeps {
                 let origin = s.0.split("/").nth(0).unwrap();
@@ -111,19 +114,22 @@ pub fn group_create(req: &mut Envelope,
     Ok(())
 }
 
-pub fn group_get(req: &mut Envelope,
-                 sock: &mut zmq::Socket,
-                 state: &mut ServerState)
-                 -> Result<()> {
+pub fn group_get(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
     let msg: proto::GroupGet = try!(req.parse_msg());
     debug!("group_get message: {:?}", msg);
 
     let group_opt = match state.datastore().get_group(&msg) {
         Ok(group_opt) => group_opt,
         Err(err) => {
-            warn!("Unable to retrieve group {}, err: {:?}",
-                  msg.get_group_id(),
-                  err);
+            warn!(
+                "Unable to retrieve group {}, err: {:?}",
+                msg.get_group_id(),
+                err
+            );
             None
         }
     };
@@ -141,10 +147,11 @@ pub fn group_get(req: &mut Envelope,
     Ok(())
 }
 
-pub fn package_create(req: &mut Envelope,
-                      sock: &mut zmq::Socket,
-                      state: &mut ServerState)
-                      -> Result<()> {
+pub fn package_create(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
     let msg: proto::PackageCreate = try!(req.parse_msg());
     debug!("package_create message: {:?}", msg);
 
@@ -157,20 +164,23 @@ pub fn package_create(req: &mut Envelope,
         let (ncount, ecount) = graph.extend(&package);
         let end_time = PreciseTime::now();
 
-        debug!("Extended graph, nodes: {}, edges: {} ({} sec)\n",
-               ncount,
-               ecount,
-               start_time.to(end_time));
+        debug!(
+            "Extended graph, nodes: {}, edges: {} ({} sec)\n",
+            ncount,
+            ecount,
+            start_time.to(end_time)
+        );
     };
 
     try!(req.reply_complete(sock, &package));
     Ok(())
 }
 
-pub fn package_precreate(req: &mut Envelope,
-                         sock: &mut zmq::Socket,
-                         state: &mut ServerState)
-                         -> Result<()> {
+pub fn package_precreate(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
     let msg: proto::PackagePreCreate = try!(req.parse_msg());
     debug!("package_precreate message: {:?}", msg);
 
@@ -183,9 +193,11 @@ pub fn package_precreate(req: &mut Envelope,
         let ret = graph.check_extend(&package);
         let end_time = PreciseTime::now();
 
-        debug!("Graph pre-check: {} ({} sec)\n",
-               ret,
-               start_time.to(end_time));
+        debug!(
+            "Graph pre-check: {} ({} sec)\n",
+            ret,
+            start_time.to(end_time)
+        );
 
         ret
     };
@@ -200,10 +212,11 @@ pub fn package_precreate(req: &mut Envelope,
     Ok(())
 }
 
-pub fn job_status(req: &mut Envelope,
-                  sock: &mut zmq::Socket,
-                  state: &mut ServerState)
-                  -> Result<()> {
+pub fn job_status(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
     let msg: proto::JobStatus = try!(req.parse_msg());
     debug!("job_status message: {:?}", msg);
 
@@ -213,19 +226,22 @@ pub fn job_status(req: &mut Envelope,
     Ok(())
 }
 
-pub fn package_stats_get(req: &mut Envelope,
-                         sock: &mut zmq::Socket,
-                         state: &mut ServerState)
-                         -> Result<()> {
+pub fn package_stats_get(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
     let msg: proto::PackageStatsGet = try!(req.parse_msg());
     debug!("package_stats_get message: {:?}", msg);
 
     match state.datastore().get_package_stats(&msg) {
         Ok(package_stats) => try!(req.reply_complete(sock, &package_stats)),
         Err(err) => {
-            warn!("Unable to retrieve package stats for {}, err: {:?}",
-                  msg.get_origin(),
-                  err);
+            warn!(
+                "Unable to retrieve package stats for {}, err: {:?}",
+                msg.get_origin(),
+                err
+            );
             let err = net::err(ErrCode::ENTITY_NOT_FOUND, "sc:package-stats-get:1");
             try!(req.reply_complete(sock, &err));
         }

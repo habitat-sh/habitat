@@ -160,8 +160,10 @@ mod tests {
         assert_eq!(&format!("{}", config.routers[0]), "172.18.0.2:9632");
         assert_eq!(config.github.url, "https://api.github.com");
         assert_eq!(config.github.client_id, "0c2f738a7d0bd300de10");
-        assert_eq!(config.github.client_secret,
-                   "438223113eeb6e7edf2d2f91a232b72de72b9bdf");
+        assert_eq!(
+            config.github.client_secret,
+            "438223113eeb6e7edf2d2f91a232b72de72b9bdf"
+        );
         assert_eq!(config.ui.root, Some("/some/path".to_string()));
     }
 

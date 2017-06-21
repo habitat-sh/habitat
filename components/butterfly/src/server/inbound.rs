@@ -38,10 +38,11 @@ pub struct Inbound {
 
 impl Inbound {
     /// Create a new Inbound.
-    pub fn new(server: Server,
-               socket: UdpSocket,
-               tx_outbound: mpsc::Sender<(SocketAddr, Swim)>)
-               -> Inbound {
+    pub fn new(
+        server: Server,
+        socket: UdpSocket,
+        tx_outbound: mpsc::Sender<(SocketAddr, Swim)>,
+    ) -> Inbound {
         Inbound {
             server: server,
             socket: socket,
@@ -81,29 +82,40 @@ impl Inbound {
                     debug!("SWIM Message: {:?}", msg);
                     match msg.get_field_type() {
                         Swim_Type::PING => {
-                            if self.server
-                                   .check_blacklist(msg.get_ping().get_from().get_id()) {
-                                debug!("Not processing message from {} - it is blacklisted",
-                                       msg.get_ping().get_from().get_id());
+                            if self.server.check_blacklist(
+                                msg.get_ping().get_from().get_id(),
+                            )
+                            {
+                                debug!(
+                                    "Not processing message from {} - it is blacklisted",
+                                    msg.get_ping().get_from().get_id()
+                                );
                                 continue;
                             }
                             self.process_ping(addr, msg);
                         }
                         Swim_Type::ACK => {
-                            if self.server
-                                   .check_blacklist(msg.get_ack().get_from().get_id()) &&
-                               !msg.get_ack().has_forward_to() {
-                                debug!("Not processing message from {} - it is blacklisted",
-                                       msg.get_ack().get_from().get_id());
+                            if self.server.check_blacklist(
+                                msg.get_ack().get_from().get_id(),
+                            ) && !msg.get_ack().has_forward_to()
+                            {
+                                debug!(
+                                    "Not processing message from {} - it is blacklisted",
+                                    msg.get_ack().get_from().get_id()
+                                );
                                 continue;
                             }
                             self.process_ack(addr, msg);
                         }
                         Swim_Type::PINGREQ => {
-                            if self.server
-                                   .check_blacklist(msg.get_pingreq().get_from().get_id()) {
-                                debug!("Not processing message from {} - it is blacklisted",
-                                       msg.get_pingreq().get_from().get_id());
+                            if self.server.check_blacklist(
+                                msg.get_pingreq().get_from().get_id(),
+                            )
+                            {
+                                debug!(
+                                    "Not processing message from {} - it is blacklisted",
+                                    msg.get_pingreq().get_from().get_id()
+                                );
                                 continue;
                             }
                             self.process_pingreq(addr, msg);
@@ -138,25 +150,25 @@ impl Inbound {
         // We need to get msg to be owned by the closure, so we're going to have to
         // allocate here to get the id. Kind of a bummer, but life goes on.
         let mid = String::from(msg.get_pingreq().get_target().get_id());
-        self.server
-            .member_list
-            .with_member(&mid, |m| {
-                let target = match m {
-                    Some(target) => target,
-                    None => {
-                        error!("PingReq request {:?} for invalid target", msg);
-                        return;
-                    }
-                };
-                // Set the route-back address to the one we received the pingreq from
-                let mut from = msg.mut_pingreq().take_from();
-                from.set_address(format!("{}", addr.ip()));
-                outbound::ping(&self.server,
-                               &self.socket,
-                               target,
-                               target.swim_socket_address(),
-                               Some(from.into()));
-            });
+        self.server.member_list.with_member(&mid, |m| {
+            let target = match m {
+                Some(target) => target,
+                None => {
+                    error!("PingReq request {:?} for invalid target", msg);
+                    return;
+                }
+            };
+            // Set the route-back address to the one we received the pingreq from
+            let mut from = msg.mut_pingreq().take_from();
+            from.set_address(format!("{}", addr.ip()));
+            outbound::ping(
+                &self.server,
+                &self.socket,
+                target,
+                target.swim_socket_address(),
+                Some(from.into()),
+            );
+        });
     }
 
     /// Process ack messages; forwards to the outbound thread.
@@ -169,15 +181,19 @@ impl Inbound {
         info!("Ack from {}@{}", msg.get_ack().get_from().get_id(), addr);
         if msg.get_ack().has_forward_to() {
             if self.server.member_id() != msg.get_ack().get_forward_to().get_id() {
-                let forward_addr_str = format!("{}:{}",
-                                               msg.get_ack().get_forward_to().get_address(),
-                                               msg.get_ack().get_forward_to().get_swim_port());
+                let forward_addr_str = format!(
+                    "{}:{}",
+                    msg.get_ack().get_forward_to().get_address(),
+                    msg.get_ack().get_forward_to().get_swim_port()
+                );
                 let forward_to_addr = match forward_addr_str.parse() {
                     Ok(addr) => addr,
                     Err(e) => {
-                        error!("Abandoning Ack forward: cannot parse member address: {}, {}",
-                               msg.get_ack().get_forward_to().get_address(),
-                               e);
+                        error!(
+                            "Abandoning Ack forward: cannot parse member address: {}, {}",
+                            msg.get_ack().get_forward_to().get_address(),
+                            e
+                        );
                         return;
                     }
                 };
@@ -187,9 +203,9 @@ impl Inbound {
                       msg.get_ack().get_forward_to().get_id(),
                       msg.get_ack().get_forward_to().get_address(),
                       );
-                msg.mut_ack()
-                    .mut_from()
-                    .set_address(format!("{}", addr.ip()));
+                msg.mut_ack().mut_from().set_address(
+                    format!("{}", addr.ip()),
+                );
                 outbound::forward_ack(&self.server, &self.socket, forward_to_addr, msg);
                 return;
             }
@@ -197,7 +213,9 @@ impl Inbound {
         let membership = {
             let membership: Vec<(Member, Health)> = msg.take_membership()
                 .iter()
-                .map(|m| (Member::from(m.get_member()), Health::from(m.get_health())))
+                .map(|m| {
+                    (Member::from(m.get_member()), Health::from(m.get_health()))
+                })
                 .collect();
             membership
         };
@@ -217,11 +235,13 @@ impl Inbound {
                   &msg);
         let target: Member = msg.get_ping().get_from().into();
         if msg.get_ping().has_forward_to() {
-            outbound::ack(&self.server,
-                          &self.socket,
-                          &target,
-                          addr,
-                          Some(msg.mut_ping().take_forward_to().into()));
+            outbound::ack(
+                &self.server,
+                &self.socket,
+                &target,
+                addr,
+                Some(msg.mut_ping().take_forward_to().into()),
+            );
         } else {
             outbound::ack(&self.server, &self.socket, &target, addr, None);
         }
@@ -236,7 +256,9 @@ impl Inbound {
         self.server.insert_member(from.into(), Health::Alive);
         let membership: Vec<(Member, Health)> = msg.take_membership()
             .iter()
-            .map(|m| (Member::from(m.get_member()), Health::from(m.get_health())))
+            .map(|m| {
+                (Member::from(m.get_member()), Health::from(m.get_health()))
+            })
             .collect();
         self.server.insert_member_from_rumors(membership);
     }

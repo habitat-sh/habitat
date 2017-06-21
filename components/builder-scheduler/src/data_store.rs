@@ -58,14 +58,15 @@ impl DataStore {
         migrator.setup()?;
 
         // The packages table
-        migrator
-            .migrate("scheduler",
-                     r#"CREATE TABLE IF NOT EXISTS packages (
+        migrator.migrate(
+            "scheduler",
+            r#"CREATE TABLE IF NOT EXISTS packages (
                                      id bigserial PRIMARY KEY,
                                      ident text UNIQUE,
                                      deps text[],
                                      created_at timestamptz DEFAULT now()
-                              )"#)?;
+                              )"#,
+        )?;
 
         // Insert a new package into the packages table
         migrator
@@ -90,23 +91,25 @@ impl DataStore {
                                 "#)?;
 
         // Retrieve all packages from the packages table
-        migrator
-            .migrate("scheduler",
-                     r#"CREATE OR REPLACE FUNCTION get_packages_v1 () RETURNS SETOF packages AS $$
+        migrator.migrate(
+            "scheduler",
+            r#"CREATE OR REPLACE FUNCTION get_packages_v1 () RETURNS SETOF packages AS $$
                             BEGIN
                               RETURN QUERY SELECT * FROM packages;
                               RETURN;
                             END
-                            $$ LANGUAGE plpgsql STABLE"#)?;
+                            $$ LANGUAGE plpgsql STABLE"#,
+        )?;
 
         // Count all packages from the packages table that belong to specific origin
-        migrator
-            .migrate("scheduler",
-                     r#"CREATE OR REPLACE FUNCTION count_packages_v1 (origin text) RETURNS bigint AS $$
+        migrator.migrate(
+            "scheduler",
+            r#"CREATE OR REPLACE FUNCTION count_packages_v1 (origin text) RETURNS bigint AS $$
                             BEGIN
                               RETURN COUNT(*) FROM packages WHERE ident ~ ('^' || origin || '/');
                             END
-                            $$ LANGUAGE plpgsql STABLE"#)?;
+                            $$ LANGUAGE plpgsql STABLE"#,
+        )?;
 
         // Retrieve a single packages from the packages table
         migrator
@@ -120,19 +123,20 @@ impl DataStore {
                             $$ LANGUAGE plpgsql STABLE"#)?;
 
         // The groups table
-        migrator
-            .migrate("scheduler",
-                     r#"CREATE TABLE IF NOT EXISTS groups (
+        migrator.migrate(
+            "scheduler",
+            r#"CREATE TABLE IF NOT EXISTS groups (
                                     id bigint PRIMARY KEY,
                                     group_state text,
                                     created_at timestamptz DEFAULT now(),
                                     updated_at timestamptz
-                             )"#)?;
+                             )"#,
+        )?;
 
         // The projects table
-        migrator
-            .migrate("scheduler",
-                     r#"CREATE TABLE IF NOT EXISTS projects (
+        migrator.migrate(
+            "scheduler",
+            r#"CREATE TABLE IF NOT EXISTS projects (
                                      id bigserial PRIMARY KEY,
                                      owner_id bigint,
                                      project_name text,
@@ -141,7 +145,8 @@ impl DataStore {
                                      job_id bigint DEFAULT 0,
                                      created_at timestamptz DEFAULT now(),
                                      updated_at timestamptz
-                              )"#)?;
+                              )"#,
+        )?;
 
         // Insert a new group into the groups table, and add it's projects to the projects table
         migrator.migrate("scheduler",
@@ -166,13 +171,15 @@ impl DataStore {
                                 "#)?;
 
         // Retrieve a group from the groups table
-        migrator.migrate("scheduler",
-                     r#"CREATE OR REPLACE FUNCTION get_group_v1 (gid bigint) RETURNS SETOF groups AS $$
+        migrator.migrate(
+            "scheduler",
+            r#"CREATE OR REPLACE FUNCTION get_group_v1 (gid bigint) RETURNS SETOF groups AS $$
                             BEGIN
                               RETURN QUERY SELECT * FROM groups WHERE id = gid;
                               RETURN;
                             END
-                            $$ LANGUAGE plpgsql STABLE"#)?;
+                            $$ LANGUAGE plpgsql STABLE"#,
+        )?;
 
         // Retrieve the projects for a group
         migrator.migrate("scheduler",
@@ -228,9 +235,10 @@ impl DataStore {
                                  UPDATE projects SET project_state=state, job_id=jid, updated_at=now() WHERE id=pid;
                              END
                           $$ LANGUAGE plpgsql VOLATILE"#)?;
-        migrator
-            .migrate("scheduler",
-                     r#"DROP INDEX IF EXISTS pending_groups_index_v1;"#)?;
+        migrator.migrate(
+            "scheduler",
+            r#"DROP INDEX IF EXISTS pending_groups_index_v1;"#,
+        )?;
         migrator.migrate("scheduler",
                          r#"CREATE INDEX pending_groups_index_v1 on groups(created_at) WHERE group_state = 'Pending'"#)?;
 
@@ -257,9 +265,10 @@ impl DataStore {
     pub fn create_package(&self, msg: &PackageCreate) -> Result<Package> {
         let conn = self.pool.get_shard(0)?;
 
-        let rows = conn.query("SELECT * FROM insert_package_v1($1, $2)",
-                              &[&msg.get_ident(), &msg.get_deps()])
-            .map_err(Error::PackageInsert)?;
+        let rows = conn.query(
+            "SELECT * FROM insert_package_v1($1, $2)",
+            &[&msg.get_ident(), &msg.get_deps()],
+        ).map_err(Error::PackageInsert)?;
 
         let row = rows.get(0);
         self.row_to_package(&row)
@@ -270,8 +279,9 @@ impl DataStore {
 
         let conn = self.pool.get_shard(0)?;
 
-        let rows = &conn.query("SELECT * FROM get_packages_v1()", &[])
-                        .map_err(Error::PackagesGet)?;
+        let rows = &conn.query("SELECT * FROM get_packages_v1()", &[]).map_err(
+            Error::PackagesGet,
+        )?;
 
         if rows.is_empty() {
             warn!("No packages found");
@@ -290,7 +300,7 @@ impl DataStore {
         let conn = self.pool.get_shard(0)?;
 
         let rows = &conn.query("SELECT * FROM get_package_v1($1)", &[&ident])
-                        .map_err(Error::PackagesGet)?;
+            .map_err(Error::PackagesGet)?;
 
         if rows.is_empty() {
             error!("No package found");
@@ -307,13 +317,13 @@ impl DataStore {
 
         let origin = msg.get_origin();
         let rows = &conn.query("SELECT * FROM count_packages_v1($1)", &[&origin])
-                        .map_err(Error::PackageStats)?;
+            .map_err(Error::PackageStats)?;
         assert!(rows.len() == 1); // should never have more than one
 
         let package_count: i64 = rows.get(0).get("count_packages_v1");
 
         let rows = &conn.query("SELECT * FROM count_projects_v1($1)", &[&origin])
-                        .map_err(Error::PackageStats)?;
+            .map_err(Error::PackageStats)?;
         assert!(rows.len() == 1); // should never have more than one
         let build_count: i64 = rows.get(0).get("count_projects_v1");
 
@@ -324,10 +334,11 @@ impl DataStore {
         Ok(package_stats)
     }
 
-    pub fn create_group(&self,
-                        _msg: &GroupCreate,
-                        project_tuples: Vec<(String, String)>)
-                        -> Result<Group> {
+    pub fn create_group(
+        &self,
+        _msg: &GroupCreate,
+        project_tuples: Vec<(String, String)>,
+    ) -> Result<Group> {
         let conn = self.pool.get_shard(0)?;
 
         assert!(!project_tuples.is_empty());
@@ -343,9 +354,10 @@ impl DataStore {
         let (project_names, project_idents): (Vec<String>, Vec<String>) =
             project_tuples.iter().cloned().unzip();
 
-        conn.execute("SELECT insert_group_v1($1, $2, $3)",
-                     &[&(id as i64), &project_names, &project_idents])
-            .map_err(Error::GroupCreate)?;
+        conn.execute(
+            "SELECT insert_group_v1($1, $2, $3)",
+            &[&(id as i64), &project_names, &project_idents],
+        ).map_err(Error::GroupCreate)?;
 
         let mut projects = RepeatedField::new();
 
@@ -372,7 +384,7 @@ impl DataStore {
 
         let conn = self.pool.get_shard(0)?;
         let rows = &conn.query("SELECT * FROM get_group_v1($1)", &[&(group_id as i64)])
-                        .map_err(Error::GroupGet)?;
+            .map_err(Error::GroupGet)?;
 
         if rows.is_empty() {
             warn!("Group id {} not found", group_id);
@@ -383,9 +395,10 @@ impl DataStore {
 
         let mut group = self.row_to_group(&rows.get(0))?;
 
-        let project_rows = &conn.query("SELECT * FROM get_projects_for_group_v1($1)",
-                                       &[&(group_id as i64)])
-                                .map_err(Error::GroupGet)?;
+        let project_rows = &conn.query(
+            "SELECT * FROM get_projects_for_group_v1($1)",
+            &[&(group_id as i64)],
+        ).map_err(Error::GroupGet)?;
 
         assert!(project_rows.len() > 0); // should at least have one
         let projects = self.rows_to_projects(&project_rows)?;
@@ -478,17 +491,19 @@ impl DataStore {
             GroupState::Complete => "Complete",
             GroupState::Failed => "Failed",
         };
-        conn.execute("SELECT set_group_state_v1($1, $2)",
-                     &[&(group_id as i64), &state])
-            .map_err(Error::GroupSetState)?;
+        conn.execute(
+            "SELECT set_group_state_v1($1, $2)",
+            &[&(group_id as i64), &state],
+        ).map_err(Error::GroupSetState)?;
         Ok(())
     }
 
-    pub fn set_group_project_state(&self,
-                                   group_id: u64,
-                                   project_name: &str,
-                                   project_state: ProjectState)
-                                   -> Result<()> {
+    pub fn set_group_project_state(
+        &self,
+        group_id: u64,
+        project_name: &str,
+        project_state: ProjectState,
+    ) -> Result<()> {
         let conn = self.pool.get_shard(0)?;
         let state = match project_state {
             ProjectState::NotStarted => "NotStarted",
@@ -497,17 +512,19 @@ impl DataStore {
             ProjectState::Failure => "Failure",
             ProjectState::Skipped => "Skipped",
         };
-        conn.execute("SELECT set_project_name_state_v1($1, $2, $3)",
-                     &[&(group_id as i64), &project_name, &state])
-            .map_err(Error::ProjectSetState)?;
+        conn.execute(
+            "SELECT set_project_name_state_v1($1, $2, $3)",
+            &[&(group_id as i64), &project_name, &state],
+        ).map_err(Error::ProjectSetState)?;
         Ok(())
     }
 
     pub fn set_group_job_state(&self, job: &Job) -> Result<()> {
         let conn = self.pool.get_shard(0)?;
-        let rows = &conn.query("SELECT * FROM find_project_v1($1, $2)",
-                               &[&(job.get_owner_id() as i64), &job.get_project().get_name()])
-                        .map_err(Error::ProjectSetState)?;
+        let rows = &conn.query(
+            "SELECT * FROM find_project_v1($1, $2)",
+            &[&(job.get_owner_id() as i64), &job.get_project().get_name()],
+        ).map_err(Error::ProjectSetState)?;
 
         // No rows means this job might not be one we care about
         if rows.is_empty() {
@@ -525,9 +542,10 @@ impl DataStore {
             _ => "InProgress",
         };
 
-        conn.execute("SELECT set_project_state_v1($1, $2, $3)",
-                     &[&pid, &(job.get_id() as i64), &state])
-            .map_err(Error::ProjectSetState)?;
+        conn.execute(
+            "SELECT set_project_state_v1($1, $2, $3)",
+            &[&pid, &(job.get_id() as i64), &state],
+        ).map_err(Error::ProjectSetState)?;
 
         Ok(())
     }
@@ -537,14 +555,15 @@ impl DataStore {
 
         let conn = self.pool.get_shard(0)?;
         let group_rows = &conn.query("SELECT * FROM pending_groups_v1($1)", &[&count])
-                              .map_err(Error::GroupPending)?;
+            .map_err(Error::GroupPending)?;
 
         for group_row in group_rows {
             let mut group = self.row_to_group(&group_row)?;
 
-            let project_rows = &conn.query("SELECT * FROM get_projects_for_group_v1($1)",
-                                           &[&(group.get_id() as i64)])
-                                    .map_err(Error::GroupPending)?;
+            let project_rows = &conn.query(
+                "SELECT * FROM get_projects_for_group_v1($1)",
+                &[&(group.get_id() as i64)],
+            ).map_err(Error::GroupPending)?;
             let projects = self.rows_to_projects(&project_rows)?;
 
             group.set_projects(projects);

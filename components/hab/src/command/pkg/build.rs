@@ -19,13 +19,14 @@ use common::ui::UI;
 use error::Result;
 use command::studio;
 
-pub fn start(ui: &mut UI,
-             plan_context: &str,
-             root: Option<&str>,
-             src: Option<&str>,
-             keys: Option<&str>,
-             reuse: bool)
-             -> Result<()> {
+pub fn start(
+    ui: &mut UI,
+    plan_context: &str,
+    root: Option<&str>,
+    src: Option<&str>,
+    keys: Option<&str>,
+    reuse: bool,
+) -> Result<()> {
     let mut args: Vec<OsString> = Vec::new();
     if let Some(root) = root {
         args.push("-r".into());

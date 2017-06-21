@@ -61,11 +61,12 @@ pub struct Outbound {
 
 impl Outbound {
     /// Creates a new Outbound struct.
-    pub fn new(server: Server,
-               socket: UdpSocket,
-               rx_inbound: mpsc::Receiver<(SocketAddr, Swim)>,
-               timing: Timing)
-               -> Outbound {
+    pub fn new(
+        server: Server,
+        socket: UdpSocket,
+        rx_inbound: mpsc::Receiver<(SocketAddr, Swim)>,
+        timing: Timing,
+    ) -> Outbound {
         Outbound {
             server: server,
             socket: socket,
@@ -90,15 +91,15 @@ impl Outbound {
                 if self.server.member_list.len() >= min_to_start {
                     have_members = true;
                 } else {
-                    self.server
-                        .member_list
-                        .with_initial_members(|member| {
-                                                  ping(&self.server,
-                                                       &self.socket,
-                                                       &member,
-                                                       member.swim_socket_address(),
-                                                       None);
-                                              });
+                    self.server.member_list.with_initial_members(|member| {
+                        ping(
+                            &self.server,
+                            &self.socket,
+                            &member,
+                            member.swim_socket_address(),
+                            None,
+                        );
+                    });
                 }
             }
 
@@ -111,13 +112,13 @@ impl Outbound {
 
             let long_wait = self.timing.next_protocol_period();
 
-            let check_list = self.server
-                .member_list
-                .check_list(self.server
-                                .member
-                                .read()
-                                .expect("Member is poisoned")
-                                .get_id());
+            let check_list = self.server.member_list.check_list(
+                self.server
+                    .member
+                    .read()
+                    .expect("Member is poisoned")
+                    .get_id(),
+            );
 
             for member in check_list {
                 if self.server.member_list.pingable(&member) {
@@ -177,15 +178,17 @@ impl Outbound {
             return;
         }
 
-        self.server
-            .member_list
-            .with_pingreq_targets(self.server.member_id(), member.get_id(), |pingreq_target| {
+        self.server.member_list.with_pingreq_targets(
+            self.server.member_id(),
+            member.get_id(),
+            |pingreq_target| {
                 trace_it!(PROBE: &self.server,
                           TraceKind::ProbePingReq,
                           pingreq_target.get_id(),
                           pingreq_target.get_address());
                 pingreq(&self.server, &self.socket, &pingreq_target, &member);
-            });
+            },
+        );
         if !self.recv_ack(&member, addr, AckFrom::PingReq) {
             // We mark as suspect when we fail to get a response from the PingReq. That moves us
             // into the suspicion phase, where anyone marked as suspect has a certain number of
@@ -210,10 +213,12 @@ impl Outbound {
                 Ok((real_addr, mut swim)) => {
                     let mut ack_from = swim.mut_ack().take_from();
                     if member.get_id() != ack_from.get_id() {
-                        error!("Discarding ack from {}@{}; expected {}",
-                               ack_from.get_id(),
-                               real_addr,
-                               member.get_id());
+                        error!(
+                            "Discarding ack from {}@{}; expected {}",
+                            ack_from.get_id(),
+                            real_addr,
+                            member.get_id()
+                        );
                         // Keep listening, we want the ack we expected
                         continue;
                     }
@@ -229,9 +234,11 @@ impl Outbound {
                 }
                 Err(mpsc::TryRecvError::Empty) => {
                     if SteadyTime::now() > timeout {
-                        warn!("Timed out waiting for Ack from {}@{}",
-                              member.get_id(),
-                              addr);
+                        warn!(
+                            "Timed out waiting for Ack from {}@{}",
+                            member.get_id(),
+                            addr
+                        );
                         return false;
                     }
                     thread::sleep(Duration::from_millis(PING_RECV_QUEUE_EMPTY_SLEEP_MS));
@@ -254,9 +261,11 @@ pub fn populate_membership_rumors(server: &Server, target: &Member, swim: &mut S
         let always_target = server.member_list.membership_for(target.get_id());
         membership_entries.push(always_target);
     }
-    let rumors = server
-        .rumor_list
-        .take_by_kind(target.get_id(), 5, Rumor_Type::Member);
+    let rumors = server.rumor_list.take_by_kind(
+        target.get_id(),
+        5,
+        Rumor_Type::Member,
+    );
     for &(ref rkey, _heat) in rumors.iter() {
         membership_entries.push(server.member_list.membership_for(&rkey.key()));
     }
@@ -298,34 +307,42 @@ pub fn pingreq(server: &Server, socket: &UdpSocket, pingreq_target: &Member, tar
     };
     match socket.send_to(&payload, addr) {
         Ok(_s) => {
-            info!("Sent PingReq to {}@{} for {}@{}",
-                  pingreq_target.get_id(),
-                  addr,
-                  target.get_id(),
-                  target.swim_socket_address())
+            info!(
+                "Sent PingReq to {}@{} for {}@{}",
+                pingreq_target.get_id(),
+                addr,
+                target.get_id(),
+                target.swim_socket_address()
+            )
         }
         Err(e) => {
-            error!("Failed PingReq to {}@{} for {}@{}: {}",
-                   pingreq_target.get_id(),
-                   addr,
-                   target.get_id(),
-                   target.swim_socket_address(),
-                   e)
+            error!(
+                "Failed PingReq to {}@{} for {}@{}: {}",
+                pingreq_target.get_id(),
+                addr,
+                target.get_id(),
+                target.swim_socket_address(),
+                e
+            )
         }
     }
-    trace_it!(SWIM: server,
-              TraceKind::SendPingReq,
-              pingreq_target.get_id(),
-              addr,
-              &swim);
+    trace_it!(
+        SWIM: server,
+        TraceKind::SendPingReq,
+        pingreq_target.get_id(),
+        addr,
+        &swim
+    );
 }
 
 /// Send a Ping.
-pub fn ping(server: &Server,
-            socket: &UdpSocket,
-            target: &Member,
-            addr: SocketAddr,
-            mut forward_to: Option<Member>) {
+pub fn ping(
+    server: &Server,
+    socket: &UdpSocket,
+    target: &Member,
+    addr: SocketAddr,
+    mut forward_to: Option<Member>,
+) {
     let mut swim = Swim::new();
     swim.set_field_type(Swim_Type::PING);
     let mut ping = Ping::new();
@@ -358,30 +375,36 @@ pub fn ping(server: &Server,
     match socket.send_to(&payload, addr) {
         Ok(_s) => {
             if forward_to.is_some() {
-                info!("Sent Ping to {} on behalf of {}@{}",
-                      addr,
-                      swim.get_ping().get_forward_to().get_id(),
-                      swim.get_ping().get_forward_to().get_address());
+                info!(
+                    "Sent Ping to {} on behalf of {}@{}",
+                    addr,
+                    swim.get_ping().get_forward_to().get_id(),
+                    swim.get_ping().get_forward_to().get_address()
+                );
             } else {
                 info!("Sent Ping to {}", addr);
             }
         }
         Err(e) => error!("Failed Ping to {}: {}", addr, e),
     }
-    trace_it!(SWIM: server,
-              TraceKind::SendPing,
-              target.get_id(),
-              addr,
-              &swim);
+    trace_it!(
+        SWIM: server,
+        TraceKind::SendPing,
+        target.get_id(),
+        addr,
+        &swim
+    );
 }
 
 /// Forward an ack on.
 pub fn forward_ack(server: &Server, socket: &UdpSocket, addr: SocketAddr, swim: Swim) {
-    trace_it!(SWIM: server,
-              TraceKind::SendForwardAck,
-              swim.get_ack().get_from().get_id(),
-              addr,
-              &swim);
+    trace_it!(
+        SWIM: server,
+        TraceKind::SendForwardAck,
+        swim.get_ack().get_from().get_id(),
+        addr,
+        &swim
+    );
 
     let bytes = match swim.write_to_bytes() {
         Ok(bytes) => bytes,
@@ -400,25 +423,31 @@ pub fn forward_ack(server: &Server, socket: &UdpSocket, addr: SocketAddr, swim: 
 
     match socket.send_to(&payload, addr) {
         Ok(_s) => {
-            info!("Forwarded ack to {}@{}",
-                  swim.get_ack().get_from().get_id(),
-                  addr)
+            info!(
+                "Forwarded ack to {}@{}",
+                swim.get_ack().get_from().get_id(),
+                addr
+            )
         }
         Err(e) => {
-            error!("Failed ack to {}@{}: {}",
-                   swim.get_ack().get_from().get_id(),
-                   addr,
-                   e)
+            error!(
+                "Failed ack to {}@{}: {}",
+                swim.get_ack().get_from().get_id(),
+                addr,
+                e
+            )
         }
     }
 }
 
 /// Send an Ack.
-pub fn ack(server: &Server,
-           socket: &UdpSocket,
-           target: &Member,
-           addr: SocketAddr,
-           mut forward_to: Option<Member>) {
+pub fn ack(
+    server: &Server,
+    socket: &UdpSocket,
+    target: &Member,
+    addr: SocketAddr,
+    mut forward_to: Option<Member>,
+) {
     let mut swim = Swim::new();
     swim.set_field_type(Swim_Type::ACK);
     let mut ack = Ack::new();
@@ -450,20 +479,26 @@ pub fn ack(server: &Server,
 
     match socket.send_to(&payload, addr) {
         Ok(_s) => {
-            info!("Sent ack to {}@{}",
-                  swim.get_ack().get_from().get_id(),
-                  addr)
+            info!(
+                "Sent ack to {}@{}",
+                swim.get_ack().get_from().get_id(),
+                addr
+            )
         }
         Err(e) => {
-            error!("Failed ack to {}@{}: {}",
-                   swim.get_ack().get_from().get_id(),
-                   addr,
-                   e)
+            error!(
+                "Failed ack to {}@{}: {}",
+                swim.get_ack().get_from().get_id(),
+                addr,
+                e
+            )
         }
     }
-    trace_it!(SWIM: server,
-              TraceKind::SendAck,
-              target.get_id(),
-              addr,
-              &swim);
+    trace_it!(
+        SWIM: server,
+        TraceKind::SendAck,
+        target.get_id(),
+        addr,
+        &swim
+    );
 }

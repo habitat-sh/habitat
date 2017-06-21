@@ -61,28 +61,35 @@ use manager::ServiceSpec;
 
 static LOGKEY: &'static str = "CS";
 
-pub fn run(cfg: ManagerConfig,
-           service_spec: Option<ServiceSpec>,
-           local_artifact: Option<&str>)
-           -> Result<()> {
+pub fn run(
+    cfg: ManagerConfig,
+    service_spec: Option<ServiceSpec>,
+    local_artifact: Option<&str>,
+) -> Result<()> {
     let mut ui = UI::default();
     if !fs::am_i_root() {
-        ui.warn("Running the Habitat Supervisor with root or superuser privileges is recommended")?;
+        ui.warn(
+            "Running the Habitat Supervisor with root or superuser privileges is recommended",
+        )?;
         ui.br()?;
     }
     if let Some(spec) = service_spec {
         if let Some(artifact) = local_artifact {
-            outputln!("Installing local artifact {}",
-                      Yellow.bold().paint(artifact));
-            common::command::package::install::start(&mut ui,
-                                                     &spec.depot_url,
-                                                     spec.channel.as_ref().map(String::as_ref),
-                                                     artifact,
-                                                     PRODUCT,
-                                                     VERSION,
-                                                     Path::new(&*FS_ROOT_PATH),
-                                                     &fs::cache_artifact_path(None),
-                                                     false)?;
+            outputln!(
+                "Installing local artifact {}",
+                Yellow.bold().paint(artifact)
+            );
+            common::command::package::install::start(
+                &mut ui,
+                &spec.depot_url,
+                spec.channel.as_ref().map(String::as_ref),
+                artifact,
+                PRODUCT,
+                VERSION,
+                Path::new(&*FS_ROOT_PATH),
+                &fs::cache_artifact_path(None),
+                false,
+            )?;
         }
         Manager::save_spec_for(&cfg, spec)?;
     }

@@ -53,10 +53,12 @@ fn main() {
     let matches = App::new("bldr-graph")
         .version(VERSION)
         .about("Habitat Graph Dev Tool")
-        .arg(Arg::with_name("config")
-                 .help("Filepath to configuration file")
-                 .required(false)
-                 .index(1))
+        .arg(
+            Arg::with_name("config")
+                .help("Filepath to configuration file")
+                .required(false)
+                .index(1),
+        )
         .get_matches();
 
     let config = match matches.value_of("config") {
@@ -77,10 +79,12 @@ fn main() {
     let (ncount, ecount) = graph.build(packages.into_iter());
     let end_time = PreciseTime::now();
 
-    println!("OK: {} nodes, {} edges ({} sec)",
-             ncount,
-             ecount,
-             start_time.to(end_time));
+    println!(
+        "OK: {} nodes, {} edges ({} sec)",
+        ncount,
+        ecount,
+        start_time.to(end_time)
+    );
 
     println!("\nAvailable commands: help, stats, top, find, resolve, filter, rdeps, deps, check, exit\n",);
 
@@ -196,9 +200,11 @@ fn do_top(graph: &PackageGraph, count: usize) {
     let top = graph.top(count);
     let end_time = PreciseTime::now();
 
-    println!("OK: {} items ({} sec)\n",
-             top.len(),
-             start_time.to(end_time));
+    println!(
+        "OK: {} items ({} sec)\n",
+        top.len(),
+        start_time.to(end_time)
+    );
 
     for (name, count) in top {
         println!("{}: {}", name, count);
@@ -253,9 +259,11 @@ fn do_rdeps(graph: &PackageGraph, name: &str, filter: &str, max: usize) {
                 .filter(|&(ref x, _)| x.starts_with(filter))
                 .collect();
 
-            println!("OK: {} items ({} sec)\n",
-                     filtered.len(),
-                     start_time.to(end_time));
+            println!(
+                "OK: {} items ({} sec)\n",
+                filtered.len(),
+                start_time.to(end_time)
+            );
 
             if filtered.len() > max {
                 filtered.drain(max..);
@@ -296,9 +304,11 @@ fn do_deps(datastore: &DataStore, graph: &PackageGraph, name: &str, filter: &str
     match datastore.get_package(&ident) {
         Ok(package) => {
             let end_time = PreciseTime::now();
-            println!("OK: {} items ({} sec)\n",
-                     package.get_deps().len(),
-                     start_time.to(end_time));
+            println!(
+                "OK: {} items ({} sec)\n",
+                package.get_deps().len(),
+                start_time.to(end_time)
+            );
 
             if filter.len() > 0 {
                 println!("Results filtered by: {}\n", filter);
@@ -358,10 +368,12 @@ fn do_check(datastore: &DataStore, graph: &PackageGraph, name: &str, filter: &st
     println!("\nTime: {} sec\n", start_time.to(end_time));
 }
 
-fn check_package(datastore: &DataStore,
-                 mut deps_map: &mut HashMap<String, String>,
-                 ident: &str,
-                 filter: &str) {
+fn check_package(
+    datastore: &DataStore,
+    mut deps_map: &mut HashMap<String, String>,
+    ident: &str,
+    filter: &str,
+) {
     match datastore.get_package(ident) {
         Ok(package) => {
             for dep in package.get_deps() {

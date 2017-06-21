@@ -78,11 +78,13 @@ pub fn github_authenticate(req: &mut Request) -> IronResult<Response> {
     if env::var_os("HAB_FUNC_TEST").is_some() {
         let session = try!(session_create(&github, &code));
 
-        log_event!(req,
-                   Event::GithubAuthenticate {
-                       user: session.get_name().to_string(),
-                       account: session.get_id().to_string(),
-                   });
+        log_event!(
+            req,
+            Event::GithubAuthenticate {
+                user: session.get_name().to_string(),
+                account: session.get_id().to_string(),
+            }
+        );
 
         return Ok(render_json(status::Ok, &session));
     }
@@ -91,11 +93,13 @@ pub fn github_authenticate(req: &mut Request) -> IronResult<Response> {
         Ok(token) => {
             let session = try!(session_create(&github, &token));
 
-            log_event!(req,
-                       Event::GithubAuthenticate {
-                           user: session.get_name().to_string(),
-                           account: session.get_id().to_string(),
-                       });
+            log_event!(
+                req,
+                Event::GithubAuthenticate {
+                    user: session.get_name().to_string(),
+                    account: session.get_id().to_string(),
+                }
+            );
 
             Ok(render_json(status::Ok, &session))
         }
@@ -130,11 +134,13 @@ pub fn job_create(req: &mut Request) -> IronResult<Response> {
 
     match conn.route::<JobSpec, Job>(&job_spec) {
         Ok(job) => {
-            log_event!(req,
-                       Event::JobCreate {
-                           package: job.get_project().get_id().to_string(),
-                           account: session.get_id().to_string(),
-                       });
+            log_event!(
+                req,
+                Event::JobCreate {
+                    package: job.get_project().get_id().to_string(),
+                    account: session.get_id().to_string(),
+                }
+            );
             Ok(render_json(status::Created, &job))
         }
         Err(err) => Ok(render_net_error(&err)),
@@ -164,8 +170,10 @@ pub fn job_log(req: &mut Request) -> IronResult<Response> {
                 match val.parse::<u64>() {
                     Ok(num) => num,
                     Err(e) => {
-                        debug!("Tried to parse 'start' parameter as a number but failed: {:?}",
-                               e);
+                        debug!(
+                            "Tried to parse 'start' parameter as a number but failed: {:?}",
+                            e
+                        );
                         return Ok(Response::with(status::BadRequest));
                     }
                 }
@@ -246,27 +254,37 @@ pub fn project_create(req: &mut Request) -> IronResult<Response> {
     let (organization, repo) = match req.get::<bodyparser::Struct<ProjectCreateReq>>() {
         Ok(Some(body)) => {
             if body.origin.len() <= 0 {
-                return Ok(Response::with((status::UnprocessableEntity,
-                                          "Missing value for field: `origin`")));
+                return Ok(Response::with((
+                    status::UnprocessableEntity,
+                    "Missing value for field: `origin`",
+                )));
             }
             if body.plan_path.len() <= 0 {
-                return Ok(Response::with((status::UnprocessableEntity,
-                                          "Missing value for field: `plan_path`")));
+                return Ok(Response::with((
+                    status::UnprocessableEntity,
+                    "Missing value for field: `plan_path`",
+                )));
             }
             if body.github.organization.len() <= 0 {
-                return Ok(Response::with((status::UnprocessableEntity,
-                                          "Missing value for field: `github.organization`")));
+                return Ok(Response::with((
+                    status::UnprocessableEntity,
+                    "Missing value for field: `github.organization`",
+                )));
             }
             if body.github.repo.len() <= 0 {
-                return Ok(Response::with((status::UnprocessableEntity,
-                                          "Missing value for field: `github.repo`")));
+                return Ok(Response::with((
+                    status::UnprocessableEntity,
+                    "Missing value for field: `github.repo`",
+                )));
             }
             origin_get.set_name(body.origin);
             project.set_plan_path(body.plan_path);
             project.set_vcs_type(String::from("git"));
-            match github.repo(&session.get_token(),
-                              &body.github.organization,
-                              &body.github.repo) {
+            match github.repo(
+                &session.get_token(),
+                &body.github.organization,
+                &body.github.repo,
+            ) {
                 Ok(repo) => project.set_vcs_data(repo.clone_url),
                 Err(_) => return Ok(Response::with((status::UnprocessableEntity, "rg:pc:1"))),
             }
@@ -285,10 +303,12 @@ pub fn project_create(req: &mut Request) -> IronResult<Response> {
         return Ok(Response::with((status::UnprocessableEntity, "rg:pc:5")));
     }
 
-    match github.contents(&session.get_token(),
-                          &organization,
-                          &repo,
-                          &project.get_plan_path()) {
+    match github.contents(
+        &session.get_token(),
+        &organization,
+        &repo,
+        &project.get_plan_path(),
+    ) {
         Ok(contents) => {
             match base64::decode(&contents.content) {
                 Ok(ref bytes) => {
@@ -316,12 +336,14 @@ pub fn project_create(req: &mut Request) -> IronResult<Response> {
     request.set_project(project);
     match conn.route::<OriginProjectCreate, OriginProject>(&request) {
         Ok(response) => {
-            log_event!(req,
-                       Event::ProjectCreate {
-                           origin: origin.get_name().to_string(),
-                           package: request.get_project().get_id().to_string(),
-                           account: session.get_id().to_string(),
-                       });
+            log_event!(
+                req,
+                Event::ProjectCreate {
+                    origin: origin.get_name().to_string(),
+                    package: request.get_project().get_id().to_string(),
+                    account: session.get_id().to_string(),
+                }
+            );
             Ok(render_json(status::Created, &response))
         }
         Err(err) => Ok(render_net_error(&err)),
@@ -395,16 +417,22 @@ pub fn project_update(req: &mut Request) -> IronResult<Response> {
     let (organization, repo) = match req.get::<bodyparser::Struct<ProjectCreateReq>>() {
         Ok(Some(body)) => {
             if body.plan_path.len() <= 0 {
-                return Ok(Response::with((status::UnprocessableEntity,
-                                          "Missing value for field: `plan_path`")));
+                return Ok(Response::with((
+                    status::UnprocessableEntity,
+                    "Missing value for field: `plan_path`",
+                )));
             }
             if body.github.organization.len() <= 0 {
-                return Ok(Response::with((status::UnprocessableEntity,
-                                          "Missing value for field: `github.organization`")));
+                return Ok(Response::with((
+                    status::UnprocessableEntity,
+                    "Missing value for field: `github.organization`",
+                )));
             }
             if body.github.repo.len() <= 0 {
-                return Ok(Response::with((status::UnprocessableEntity,
-                                          "Missing value for field: `github.repo`")));
+                return Ok(Response::with((
+                    status::UnprocessableEntity,
+                    "Missing value for field: `github.repo`",
+                )));
             }
             project.set_vcs_type(String::from("git"));
             project.set_plan_path(body.plan_path);
@@ -417,10 +445,12 @@ pub fn project_update(req: &mut Request) -> IronResult<Response> {
         _ => return Ok(Response::with(status::UnprocessableEntity)),
     };
     let mut conn = Broker::connect().unwrap();
-    match github.contents(&session_token,
-                          &organization,
-                          &repo,
-                          &project.get_plan_path()) {
+    match github.contents(
+        &session_token,
+        &organization,
+        &repo,
+        &project.get_plan_path(),
+    ) {
         Ok(contents) => {
             match base64::decode(&contents.content) {
                 Ok(ref bytes) => {

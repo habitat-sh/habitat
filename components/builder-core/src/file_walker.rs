@@ -24,11 +24,7 @@ pub struct FileWalker {
 
 impl FileWalker {
     pub fn new<T: AsRef<Path>>(path: T) -> Self {
-        FileWalker {
-            walker: WalkDir::new(path.as_ref())
-                .follow_links(false)
-                .into_iter(),
-        }
+        FileWalker { walker: WalkDir::new(path.as_ref()).follow_links(false).into_iter() }
     }
 }
 

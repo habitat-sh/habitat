@@ -22,9 +22,11 @@ fn two_members_share_service_config() {
     net.mesh();
     net.add_service_config(0, "witcher", "tcp-backlog = 128");
     net.wait_for_gossip_rounds(1);
-    net[1]
-        .service_config_store
-        .with_rumor("witcher.prod", "service_config", |u| assert!(u.is_some()));
+    net[1].service_config_store.with_rumor(
+        "witcher.prod",
+        "service_config",
+        |u| assert!(u.is_some()),
+    );
 }
 
 #[test]
@@ -37,13 +39,17 @@ fn service_config_via_client() {
         Client::new(net[0].gossip_addr(), None).expect("Cannot create Butterfly Client");
     let payload = Vec::from("I want to get lost in you, tokyo".as_bytes());
     client
-        .send_service_config(ServiceGroup::new("witcher", "prod", None).unwrap(),
-                             0,
-                             payload,
-                             false)
+        .send_service_config(
+            ServiceGroup::new("witcher", "prod", None).unwrap(),
+            0,
+            payload,
+            false,
+        )
         .expect("Cannot send the service configuration");
     net.wait_for_gossip_rounds(1);
-    net[1]
-        .service_config_store
-        .with_rumor("witcher.prod", "service_config", |u| assert!(u.is_some()));
+    net[1].service_config_store.with_rumor(
+        "witcher.prod",
+        "service_config",
+        |u| assert!(u.is_some()),
+    );
 }

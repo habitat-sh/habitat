@@ -25,25 +25,25 @@ pub struct EachAliveHelper;
 
 impl HelperDef for EachAliveHelper {
     fn call(&self, h: &Helper, r: &Handlebars, rc: &mut RenderContext) -> RenderResult<()> {
-        let value =
-            h.param(0)
-                .ok_or_else(|| RenderError::new("Param not found for helper \"eachAlive\""))?;
+        let value = h.param(0).ok_or_else(|| {
+            RenderError::new("Param not found for helper \"eachAlive\"")
+        })?;
         if let Some(template) = h.template() {
             rc.promote_local_vars();
-            let local_path_root = value
-                .path_root()
-                .map(|p| format!("{}/{}", rc.get_path(), p));
+            let local_path_root = value.path_root().map(
+                |p| format!("{}/{}", rc.get_path(), p),
+            );
             let rendered = match (value.value().is_truthy(), value.value()) {
                 (true, &Json::Array(ref list)) => {
                     let len = list.len();
                     for i in 0..len {
-                        let member = list[i]
-                            .as_object()
-                            .ok_or_else(|| {
-                                RenderError::new(format!("Param value is not a valid census \
+                        let member = list[i].as_object().ok_or_else(|| {
+                            RenderError::new(format!(
+                                "Param value is not a valid census \
                                 member. Parameter content is: {:?}",
-                                                         list[i]))
-                            })?;
+                                list[i]
+                            ))
+                        })?;
                         if member.contains_key("alive") && member["alive"].as_bool().unwrap() {
                             let mut local_rc = rc.derive();
                             local_rc.set_local_var("@first".to_string(), to_json(&(i == 0usize)));
@@ -113,7 +113,9 @@ impl HelperDef for EachAliveHelper {
                     }
                     Ok(())
                 }
-                _ => Err(RenderError::new(format!("Param type is not iterable: {:?}", template))),
+                _ => Err(RenderError::new(
+                    format!("Param type is not iterable: {:?}", template),
+                )),
             };
 
             rc.demote_local_vars();

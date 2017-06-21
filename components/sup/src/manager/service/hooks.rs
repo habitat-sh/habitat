@@ -38,13 +38,15 @@ pub const HOOK_PERMISSIONS: u32 = 0o755;
 static LOGKEY: &'static str = "HK";
 
 pub fn stdout_log_path<T>(service_group: &ServiceGroup) -> PathBuf
-    where T: Hook
+where
+    T: Hook,
 {
     fs::svc_logs_path(service_group.service()).join(format!("{}.stdout.log", T::file_name()))
 }
 
 pub fn stderr_log_path<T>(service_group: &ServiceGroup) -> PathBuf
-    where T: Hook
+where
+    T: Hook,
 {
     fs::svc_logs_path(service_group.service()).join(format!("{}.stderr.log", T::file_name()))
 }
@@ -64,8 +66,9 @@ pub trait Hook: fmt::Debug + Sized {
     fn file_name() -> &'static str;
 
     fn load<C, T>(service_group: &ServiceGroup, concrete_path: C, template_path: T) -> Option<Self>
-        where C: AsRef<Path>,
-              T: AsRef<Path>
+    where
+        C: AsRef<Path>,
+        T: AsRef<Path>,
     {
         let concrete = concrete_path.as_ref().join(Self::file_name());
         let template = template_path.as_ref().join(Self::file_name());
@@ -81,9 +84,11 @@ pub trait Hook: fmt::Debug + Sized {
                 Some(Self::new(service_group, pair))
             }
             Err(_) => {
-                debug!("{} not found at {}, not loading",
-                       Self::file_name(),
-                       template.display());
+                debug!(
+                    "{} not found at {}, not loading",
+                    Self::file_name(),
+                    template.display()
+                );
                 None
             }
         }
@@ -98,9 +103,11 @@ pub trait Hook: fmt::Debug + Sized {
         file.write_all(data.as_bytes())?;
         hcore::util::perm::set_owner(self.path(), &ctx.pkg.svc_user, &ctx.pkg.svc_group)?;
         hcore::util::perm::set_permissions(self.path(), HOOK_PERMISSIONS)?;
-        debug!("{} compiled to {}",
-               Self::file_name(),
-               self.path().display());
+        debug!(
+            "{} compiled to {}",
+            Self::file_name(),
+            self.path().display()
+        );
         Ok(())
     }
 
@@ -126,11 +133,12 @@ pub trait Hook: fmt::Debug + Sized {
         }
     }
 
-    fn handle_exit<'a>(&self,
-                       group: &ServiceGroup,
-                       output: &'a HookOutput,
-                       status: &ExitStatus)
-                       -> Self::ExitValue;
+    fn handle_exit<'a>(
+        &self,
+        group: &ServiceGroup,
+        output: &'a HookOutput,
+        status: &ExitStatus,
+    ) -> Self::ExitValue;
 
     fn path(&self) -> &Path;
 
@@ -163,11 +171,12 @@ impl Hook for FileUpdatedHook {
         }
     }
 
-    fn handle_exit<'a>(&self,
-                       _: &ServiceGroup,
-                       _: &'a HookOutput,
-                       status: &ExitStatus)
-                       -> Self::ExitValue {
+    fn handle_exit<'a>(
+        &self,
+        _: &ServiceGroup,
+        _: &'a HookOutput,
+        status: &ExitStatus,
+    ) -> Self::ExitValue {
         status.success()
     }
 
@@ -210,11 +219,12 @@ impl Hook for HealthCheckHook {
         }
     }
 
-    fn handle_exit<'a>(&self,
-                       service_group: &ServiceGroup,
-                       _: &'a HookOutput,
-                       status: &ExitStatus)
-                       -> Self::ExitValue {
+    fn handle_exit<'a>(
+        &self,
+        service_group: &ServiceGroup,
+        _: &'a HookOutput,
+        status: &ExitStatus,
+    ) -> Self::ExitValue {
         match status.code() {
             Some(0) => health::HealthCheck::Ok,
             Some(1) => health::HealthCheck::Warning,
@@ -272,11 +282,12 @@ impl Hook for InitHook {
         }
     }
 
-    fn handle_exit<'a>(&self,
-                       service_group: &ServiceGroup,
-                       _: &'a HookOutput,
-                       status: &ExitStatus)
-                       -> Self::ExitValue {
+    fn handle_exit<'a>(
+        &self,
+        service_group: &ServiceGroup,
+        _: &'a HookOutput,
+        status: &ExitStatus,
+    ) -> Self::ExitValue {
         match status.code() {
             Some(0) => true,
             Some(code) => {
@@ -332,15 +343,18 @@ impl Hook for RunHook {
     }
 
     fn run(&self, _: &ServiceGroup, _: &Pkg) -> Self::ExitValue {
-        panic!("The run hook is a an exception to the lifetime of a service. It should only be \
-                run by the supervisor module!");
+        panic!(
+            "The run hook is a an exception to the lifetime of a service. It should only be \
+                run by the supervisor module!"
+        );
     }
 
-    fn handle_exit<'a>(&self,
-                       service_group: &ServiceGroup,
-                       _: &'a HookOutput,
-                       status: &ExitStatus)
-                       -> Self::ExitValue {
+    fn handle_exit<'a>(
+        &self,
+        service_group: &ServiceGroup,
+        _: &'a HookOutput,
+        status: &ExitStatus,
+    ) -> Self::ExitValue {
         match status.code() {
             Some(code) => ExitCode(code),
             None => {
@@ -390,11 +404,12 @@ impl Hook for PostRunHook {
         }
     }
 
-    fn handle_exit<'a>(&self,
-                       service_group: &ServiceGroup,
-                       _: &'a HookOutput,
-                       status: &ExitStatus)
-                       -> Self::ExitValue {
+    fn handle_exit<'a>(
+        &self,
+        service_group: &ServiceGroup,
+        _: &'a HookOutput,
+        status: &ExitStatus,
+    ) -> Self::ExitValue {
         match status.code() {
             Some(code) => ExitCode(code),
             None => {
@@ -444,11 +459,12 @@ impl Hook for ReloadHook {
         }
     }
 
-    fn handle_exit<'a>(&self,
-                       service_group: &ServiceGroup,
-                       _: &'a HookOutput,
-                       status: &ExitStatus)
-                       -> Self::ExitValue {
+    fn handle_exit<'a>(
+        &self,
+        service_group: &ServiceGroup,
+        _: &'a HookOutput,
+        status: &ExitStatus,
+    ) -> Self::ExitValue {
         match status.code() {
             Some(0) => ExitCode(0),
             Some(code) => {
@@ -503,11 +519,12 @@ impl Hook for ReconfigureHook {
         }
     }
 
-    fn handle_exit<'a>(&self,
-                       service_group: &ServiceGroup,
-                       _: &'a HookOutput,
-                       status: &ExitStatus)
-                       -> Self::ExitValue {
+    fn handle_exit<'a>(
+        &self,
+        service_group: &ServiceGroup,
+        _: &'a HookOutput,
+        status: &ExitStatus,
+    ) -> Self::ExitValue {
         match status.code() {
             Some(code) => ExitCode(code),
             None => {
@@ -557,11 +574,12 @@ impl Hook for SmokeTestHook {
         }
     }
 
-    fn handle_exit<'a>(&self,
-                       service_group: &ServiceGroup,
-                       _: &'a HookOutput,
-                       status: &ExitStatus)
-                       -> Self::ExitValue {
+    fn handle_exit<'a>(
+        &self,
+        service_group: &ServiceGroup,
+        _: &'a HookOutput,
+        status: &ExitStatus,
+    ) -> Self::ExitValue {
         match status.code() {
             Some(0) => health::SmokeCheck::Ok,
             Some(code) => health::SmokeCheck::Failed(code),
@@ -612,11 +630,12 @@ impl Hook for SuitabilityHook {
         }
     }
 
-    fn handle_exit<'a>(&self,
-                       service_group: &ServiceGroup,
-                       hook_output: &'a HookOutput,
-                       status: &ExitStatus)
-                       -> Self::ExitValue {
+    fn handle_exit<'a>(
+        &self,
+        service_group: &ServiceGroup,
+        hook_output: &'a HookOutput,
+        status: &ExitStatus,
+    ) -> Self::ExitValue {
         match status.code() {
             Some(0) => {
                 if let Some(reader) = hook_output.stdout() {
@@ -691,7 +710,8 @@ pub struct HookTable {
 impl HookTable {
     /// Read all available hook templates from the table's package directory into the table.
     pub fn load<T>(service_group: &ServiceGroup, templates: T) -> Self
-        where T: AsRef<Path>
+    where
+        T: AsRef<Path>,
     {
         let mut table = HookTable::default();
         let hooks = fs::svc_hooks_path(service_group.service());
@@ -708,10 +728,12 @@ impl HookTable {
                 table.smoke_test = SmokeTestHook::load(service_group, &hooks, &templates);
             }
         }
-        debug!("{}, Hooks loaded, destination={}, templates={}",
-               service_group,
-               hooks.display(),
-               templates.as_ref().display());
+        debug!(
+            "{}, Hooks loaded, destination={}, templates={}",
+            service_group,
+            hooks.display(),
+            templates.as_ref().display()
+        );
         table
     }
 
@@ -748,13 +770,13 @@ impl HookTable {
     }
 
     fn compile_one<H>(&self, hook: &H, service_group: &ServiceGroup, ctx: &RenderContext)
-        where H: Hook
+    where
+        H: Hook,
     {
-        hook.compile(ctx)
-            .unwrap_or_else(|e| {
-                outputln!(preamble service_group,
+        hook.compile(ctx).unwrap_or_else(|e| {
+            outputln!(preamble service_group,
                 "Failed to compile {} hook: {}", H::file_name(), e);
-            });
+        });
     }
 }
 
@@ -765,16 +787,19 @@ pub struct RenderPair {
 
 impl RenderPair {
     pub fn new<C, T>(concrete_path: C, template_path: T) -> Result<Self>
-        where C: Into<PathBuf>,
-              T: AsRef<Path>
+    where
+        C: Into<PathBuf>,
+        T: AsRef<Path>,
     {
         let mut renderer = TemplateRenderer::new();
-        renderer
-            .register_template_file("hook", template_path.as_ref())?;
+        renderer.register_template_file(
+            "hook",
+            template_path.as_ref(),
+        )?;
         Ok(RenderPair {
-               path: concrete_path.into(),
-               renderer: renderer,
-           })
+            path: concrete_path.into(),
+            renderer: renderer,
+        })
     }
 }
 
@@ -786,7 +811,8 @@ impl fmt::Debug for RenderPair {
 
 impl Serialize for RenderPair {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         serializer.serialize_str(&self.path.as_os_str().to_string_lossy().into_owned())
     }
@@ -821,19 +847,19 @@ impl<'a> HookOutput<'a> {
     }
 
     fn stream_output<H: Hook>(&mut self, service_group: &ServiceGroup, process: &mut Child) {
-        let mut stdout_log = File::create(&self.stdout_log_file)
-            .expect("couldn't create log output file");
-        let mut stderr_log = File::create(&self.stderr_log_file)
-            .expect("couldn't create log output file");
+        let mut stdout_log =
+            File::create(&self.stdout_log_file).expect("couldn't create log output file");
+        let mut stderr_log =
+            File::create(&self.stderr_log_file).expect("couldn't create log output file");
 
         let preamble_str = self.stream_preamble::<H>(service_group);
         if let Some(ref mut stdout) = process.stdout {
             for line in BufReader::new(stdout).lines() {
                 if let Some(ref l) = line.ok() {
                     outputln!(preamble preamble_str, l);
-                    stdout_log
-                        .write_fmt(format_args!("{}\n", l))
-                        .expect("couldn't write line");
+                    stdout_log.write_fmt(format_args!("{}\n", l)).expect(
+                        "couldn't write line",
+                    );
                 }
             }
         }
@@ -841,9 +867,9 @@ impl<'a> HookOutput<'a> {
             for line in BufReader::new(stderr).lines() {
                 if let Some(ref l) = line.ok() {
                     outputln!(preamble preamble_str, l);
-                    stderr_log
-                        .write_fmt(format_args!("{}\n", l))
-                        .expect("couldn't write line");
+                    stderr_log.write_fmt(format_args!("{}\n", l)).expect(
+                        "couldn't write line",
+                    );
                 }
             }
         }
@@ -874,26 +900,25 @@ mod tests {
     fn hook_output() {
         let tmp_dir = TempDir::new("habitat_hooks_test").expect("create temp dir");
         let logs_dir = tmp_dir.path().join("logs");
-        DirBuilder::new()
-            .recursive(true)
-            .create(logs_dir)
-            .expect("couldn't create logs dir");
+        DirBuilder::new().recursive(true).create(logs_dir).expect(
+            "couldn't create logs dir",
+        );
         let mut cmd = Command::new(hook_fixtures_path().join(InitHook::file_name()));
-        cmd.stdin(Stdio::null())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped());
+        cmd.stdin(Stdio::null()).stdout(Stdio::piped()).stderr(
+            Stdio::piped(),
+        );
         let mut child = cmd.spawn().expect("couldn't run hook");
-        let stdout_log = tmp_dir
-            .path()
-            .join("logs")
-            .join(format!("{}.stdout.log", InitHook::file_name()));
-        let stderr_log = tmp_dir
-            .path()
-            .join("logs")
-            .join(format!("{}.stderr.log", InitHook::file_name()));
+        let stdout_log = tmp_dir.path().join("logs").join(format!(
+            "{}.stdout.log",
+            InitHook::file_name()
+        ));
+        let stderr_log = tmp_dir.path().join("logs").join(format!(
+            "{}.stderr.log",
+            InitHook::file_name()
+        ));
         let mut hook_output = HookOutput::new(&stdout_log, &stderr_log);
-        let service_group = ServiceGroup::new("dummy", "service", None)
-            .expect("couldn't create ServiceGroup");
+        let service_group =
+            ServiceGroup::new("dummy", "service", None).expect("couldn't create ServiceGroup");
 
         hook_output.stream_output::<InitHook>(&service_group, &mut child);
 

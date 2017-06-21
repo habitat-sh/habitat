@@ -116,8 +116,10 @@ impl fmt::Display for Error {
                 format!("Error getting package for a channel from database, {}", e)
             }
             Error::OriginChannelPackageLatestGet(ref e) => {
-                format!("Error getting the latest package for a channel from database, {}",
-                        e)
+                format!(
+                    "Error getting the latest package for a channel from database, {}",
+                    e
+                )
             }
             Error::OriginChannelPackageList(ref e) => {
                 format!("Error listing packages for a channel from database, {}", e)
@@ -136,16 +138,22 @@ impl fmt::Display for Error {
                 format!("Error creating origin invitation in database, {}", e)
             }
             Error::OriginInvitationListForOrigin(ref e) => {
-                format!("Error listing origin invitations for an origin in database, {}",
-                        e)
+                format!(
+                    "Error listing origin invitations for an origin in database, {}",
+                    e
+                )
             }
             Error::OriginInvitationListForAccount(ref e) => {
-                format!("Error listing origin invitations for an account in database, {}",
-                        e)
+                format!(
+                    "Error listing origin invitations for an account in database, {}",
+                    e
+                )
             }
             Error::OriginInvitationValidate(ref e) => {
-                format!("Error validating origin invitation for an account in database, {}",
-                        e)
+                format!(
+                    "Error validating origin invitation for an account in database, {}",
+                    e
+                )
             }
             Error::OriginPackageCreate(ref e) => {
                 format!("Error creating package in database, {}", e)
@@ -158,8 +166,10 @@ impl fmt::Display for Error {
                 format!("Error getting list of packages for this origin, {}", e)
             }
             Error::OriginPackageVersionList(ref e) => {
-                format!("Error getting list of package versions for this origin, {}",
-                        e)
+                format!(
+                    "Error getting list of package versions for this origin, {}",
+                    e
+                )
             }
             Error::OriginPackagePromote(ref e) => {
                 format!("Error promoting package to channel, {}", e)
@@ -168,8 +178,10 @@ impl fmt::Display for Error {
                 format!("Error searching list of packages for this origin, {}", e)
             }
             Error::OriginPackageUniqueList(ref e) => {
-                format!("Error getting unique list of packages for this origin, {}",
-                        e)
+                format!(
+                    "Error getting unique list of packages for this origin, {}",
+                    e
+                )
             }
             Error::OriginProjectCreate(ref e) => {
                 format!("Error creating project in database, {}", e)
@@ -194,12 +206,16 @@ impl fmt::Display for Error {
                 format!("Error getting origin public key from database, {}", e)
             }
             Error::OriginPublicKeyLatestGet(ref e) => {
-                format!("Error getting latest origin public key from database, {}",
-                        e)
+                format!(
+                    "Error getting latest origin public key from database, {}",
+                    e
+                )
             }
             Error::OriginPublicKeyListForOrigin(ref e) => {
-                format!("Error listing origin public keys for an origin from database, {}",
-                        e)
+                format!(
+                    "Error listing origin public keys for an origin from database, {}",
+                    e
+                )
             }
             Error::OriginAccountList(ref e) => {
                 format!("Error getting list of origins for this account, {}", e)

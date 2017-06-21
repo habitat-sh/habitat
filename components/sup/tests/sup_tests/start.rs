@@ -53,8 +53,10 @@ fn standalone_with_environment_config() {
     setup::origin_setup();
     setup::simple_service();
 
-    let d = docker::run_with_env("test/simple_service",
-                                 "HAB_simple_service=setting=\"blarg\"");
+    let d = docker::run_with_env(
+        "test/simple_service",
+        "HAB_simple_service=setting=\"blarg\"",
+    );
     if d.wait_until(r"End Configuration") {
         let output = d.logs();
         assert_regex!(&output, r"setting: blarg");

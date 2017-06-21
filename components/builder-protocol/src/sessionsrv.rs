@@ -63,7 +63,8 @@ impl Into<Session> for Account {
 
 impl Serialize for Account {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         let mut strukt = try!(serializer.serialize_struct("account", 3));
         try!(strukt.serialize_field("id", &self.get_id().to_string()));
@@ -132,38 +133,73 @@ impl Routable for AccountOriginInvitationAcceptRequest {
 
 impl Serialize for AccountInvitationListResponse {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
-        let mut strukt = try!(serializer.serialize_struct("account_invitation_list_response", 2));
-        try!(strukt.serialize_field("account_id", &self.get_account_id().to_string()));
-        try!(strukt.serialize_field("invitations", self.get_invitations()));
+        let mut strukt = try!(serializer.serialize_struct(
+            "account_invitation_list_response",
+            2,
+        ));
+        try!(strukt.serialize_field(
+            "account_id",
+            &self.get_account_id().to_string(),
+        ));
+        try!(strukt.serialize_field(
+            "invitations",
+            self.get_invitations(),
+        ));
         strukt.end()
     }
 }
 
 impl Serialize for AccountOriginInvitation {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         let mut strukt = try!(serializer.serialize_struct("account_origin_invitation", 6));
         try!(strukt.serialize_field("id", &self.get_id().to_string()));
-        try!(strukt.serialize_field("origin_invitation_id",
-                                    &self.get_origin_invitation_id().to_string()));
-        try!(strukt.serialize_field("account_id", &self.get_account_id().to_string()));
-        try!(strukt.serialize_field("account_name", self.get_account_name()));
-        try!(strukt.serialize_field("origin_id", &self.get_origin_id().to_string()));
-        try!(strukt.serialize_field("origin_name", self.get_origin_name()));
-        try!(strukt.serialize_field("owner_id", &self.get_owner_id().to_string()));
+        try!(strukt.serialize_field(
+            "origin_invitation_id",
+            &self.get_origin_invitation_id().to_string(),
+        ));
+        try!(strukt.serialize_field(
+            "account_id",
+            &self.get_account_id().to_string(),
+        ));
+        try!(strukt.serialize_field(
+            "account_name",
+            self.get_account_name(),
+        ));
+        try!(strukt.serialize_field(
+            "origin_id",
+            &self.get_origin_id().to_string(),
+        ));
+        try!(strukt.serialize_field(
+            "origin_name",
+            self.get_origin_name(),
+        ));
+        try!(strukt.serialize_field(
+            "owner_id",
+            &self.get_owner_id().to_string(),
+        ));
         strukt.end()
     }
 }
 
 impl Serialize for AccountOriginListResponse {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
-        let mut strukt = try!(serializer.serialize_struct("account_origin_list_response", 2));
-        try!(strukt.serialize_field("account_id", &self.get_account_id().to_string()));
+        let mut strukt = try!(serializer.serialize_struct(
+            "account_origin_list_response",
+            2,
+        ));
+        try!(strukt.serialize_field(
+            "account_id",
+            &self.get_account_id().to_string(),
+        ));
         try!(strukt.serialize_field("origins", self.get_origins()));
         strukt.end()
     }
@@ -183,7 +219,8 @@ impl Persistable for SessionToken {
 
 impl Serialize for Session {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         let mut strukt = try!(serializer.serialize_struct("session", 5));
         try!(strukt.serialize_field("token", self.get_token()));

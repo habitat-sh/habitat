@@ -123,7 +123,8 @@ impl fmt::Display for Event {
 
 impl Serialize for Event {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         let strukt = match *self {
             Event::ProjectCreate {
@@ -258,7 +259,8 @@ impl Envelope {
 
 impl Serialize for Envelope {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         let mut strukt = try!(serializer.serialize_struct("envelope", 3));
         try!(strukt.serialize_field("version", &self.version));
@@ -269,7 +271,8 @@ impl Serialize for Envelope {
 }
 
 fn write_file<T: ?Sized>(parent_dir: &Path, file_path: &Path, val: &T)
-    where T: Serialize
+where
+    T: Serialize,
 {
     fs::create_dir_all(parent_dir).expect("Unable to create directory");
     let mut file = File::create(&file_path).expect("Unable to create file");
@@ -303,8 +306,9 @@ impl EventLogger {
     pub fn record_event(&self, event: Event) {
         if self.enabled {
             let envelope = Envelope::new(&event);
-            let file_path = self.log_dir
-                .join(format!("event-{}.json", &envelope.timestamp));
+            let file_path = self.log_dir.join(
+                format!("event-{}.json", &envelope.timestamp),
+            );
             write_file(&self.log_dir, &file_path, &envelope);
         }
     }

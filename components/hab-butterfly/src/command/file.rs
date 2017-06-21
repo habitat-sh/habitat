@@ -26,19 +26,22 @@ pub mod upload {
 
     use error::{Error, Result};
 
-    pub fn start(ui: &mut UI,
-                 sg: &ServiceGroup,
-                 number: u64,
-                 file_path: &Path,
-                 peers: &Vec<String>,
-                 ring_key: Option<&SymKey>,
-                 user_pair: Option<&BoxKeyPair>,
-                 service_pair: Option<&BoxKeyPair>)
-                 -> Result<()> {
-        try!(ui.begin(format!("Uploading file {} to {} incarnation {}",
-                              &file_path.display(),
-                              sg,
-                              number)));
+    pub fn start(
+        ui: &mut UI,
+        sg: &ServiceGroup,
+        number: u64,
+        file_path: &Path,
+        peers: &Vec<String>,
+        ring_key: Option<&SymKey>,
+        user_pair: Option<&BoxKeyPair>,
+        service_pair: Option<&BoxKeyPair>,
+    ) -> Result<()> {
+        try!(ui.begin(format!(
+            "Uploading file {} to {} incarnation {}",
+            &file_path.display(),
+            sg,
+            number
+        )));
         try!(ui.status(Status::Creating, format!("service file")));
 
         let mut body = Vec::new();
@@ -54,25 +57,36 @@ pub mod upload {
 
         let mut encrypted = false;
         if service_pair.is_some() && user_pair.is_some() {
-            try!(ui.status(Status::Encrypting,
-                           format!("file as {} for {}",
-                                   user_pair.unwrap().name_with_rev(),
-                                   service_pair.unwrap().name_with_rev())));
+            try!(ui.status(
+                Status::Encrypting,
+                format!(
+                    "file as {} for {}",
+                    user_pair.unwrap().name_with_rev(),
+                    service_pair.unwrap().name_with_rev()
+                ),
+            ));
             body = try!(user_pair.unwrap().encrypt(&body, service_pair.unwrap()));
             encrypted = true;
         }
 
         for peer in peers.iter() {
             try!(ui.status(Status::Applying, format!("to peer {}", peer)));
-            let mut client = try!(Client::new(peer, ring_key.map(|k| k.clone()))
-                .map_err(|e| Error::ButterflyError(format!("{}", e))));
-            try!(client
-                     .send_service_file(sg.clone(),
-                                        filename.clone(),
-                                        number,
-                                        body.clone(),
-                                        encrypted)
-                     .map_err(|e| Error::ButterflyError(format!("{}", e))));
+            let mut client = try!(Client::new(peer, ring_key.map(|k| k.clone())).map_err(
+                |e| {
+                    Error::ButterflyError(format!("{}", e))
+                },
+            ));
+            try!(
+                client
+                    .send_service_file(
+                        sg.clone(),
+                        filename.clone(),
+                        number,
+                        body.clone(),
+                        encrypted,
+                    )
+                    .map_err(|e| Error::ButterflyError(format!("{}", e)))
+            );
 
             // please take a moment to weep over the following line
             // of code. We must sleep to allow messages to be sent

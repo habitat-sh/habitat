@@ -23,10 +23,11 @@ use super::ServerState;
 use error::Result;
 use error::Error;
 
-pub fn origin_check_access(req: &mut Envelope,
-                           sock: &mut zmq::Socket,
-                           state: &mut ServerState)
-                           -> Result<()> {
+pub fn origin_check_access(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
     let msg: proto::CheckOriginAccessRequest = try!(req.parse_msg());
 
     let is_member = try!(state.datastore.check_account_in_origin(&msg));
@@ -36,10 +37,11 @@ pub fn origin_check_access(req: &mut Envelope,
     Ok(())
 }
 
-pub fn origin_create(req: &mut Envelope,
-                     sock: &mut zmq::Socket,
-                     state: &mut ServerState)
-                     -> Result<()> {
+pub fn origin_create(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
     let msg: proto::OriginCreate = try!(req.parse_msg());
 
     match state.datastore.create_origin(&msg) {
@@ -64,10 +66,11 @@ pub fn origin_create(req: &mut Envelope,
     Ok(())
 }
 
-pub fn origin_get(req: &mut Envelope,
-                  sock: &mut zmq::Socket,
-                  state: &mut ServerState)
-                  -> Result<()> {
+pub fn origin_get(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
     let msg: proto::OriginGet = try!(req.parse_msg());
 
     match state.datastore.get_origin(&msg) {
@@ -85,10 +88,11 @@ pub fn origin_get(req: &mut Envelope,
     Ok(())
 }
 
-pub fn origin_invitation_accept(req: &mut Envelope,
-                                sock: &mut zmq::Socket,
-                                state: &mut ServerState)
-                                -> Result<()> {
+pub fn origin_invitation_accept(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
     let msg: proto::OriginInvitationAcceptRequest = try!(req.parse_msg());
 
     match state.datastore.accept_origin_invitation(&msg) {
@@ -102,18 +106,21 @@ pub fn origin_invitation_accept(req: &mut Envelope,
     Ok(())
 }
 
-pub fn origin_invitation_create(req: &mut Envelope,
-                                sock: &mut zmq::Socket,
-                                state: &mut ServerState)
-                                -> Result<()> {
+pub fn origin_invitation_create(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
     let msg: proto::OriginInvitationCreate = try!(req.parse_msg());
 
     match state.datastore.create_origin_invitation(&msg) {
         Ok(Some(ref invite)) => try!(req.reply_complete(sock, invite)),
         Ok(None) => {
-            debug!("User {} is already a member of the origin {}",
-                   &msg.get_origin_name(),
-                   &msg.get_account_name());
+            debug!(
+                "User {} is already a member of the origin {}",
+                &msg.get_origin_name(),
+                &msg.get_account_name()
+            );
             let err = net::err(ErrCode::ENTITY_CONFLICT, "vt:origin-invitation-create:1");
             try!(req.reply_complete(sock, &err));
         }
@@ -126,10 +133,11 @@ pub fn origin_invitation_create(req: &mut Envelope,
     Ok(())
 }
 
-pub fn origin_invitation_list(req: &mut Envelope,
-                              sock: &mut zmq::Socket,
-                              state: &mut ServerState)
-                              -> Result<()> {
+pub fn origin_invitation_list(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
     let msg: proto::OriginInvitationListRequest = try!(req.parse_msg());
 
     match state.datastore.list_origin_invitations_for_origin(&msg) {
@@ -143,10 +151,11 @@ pub fn origin_invitation_list(req: &mut Envelope,
     Ok(())
 }
 
-pub fn origin_member_list(req: &mut Envelope,
-                          sock: &mut zmq::Socket,
-                          state: &mut ServerState)
-                          -> Result<()> {
+pub fn origin_member_list(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
     let msg: proto::OriginMemberListRequest = try!(req.parse_msg());
     match state.datastore.list_origin_members(&msg) {
         Ok(ref omlr) => try!(req.reply_complete(sock, omlr)),
@@ -159,16 +168,17 @@ pub fn origin_member_list(req: &mut Envelope,
     Ok(())
 }
 
-pub fn origin_secret_key_create(req: &mut Envelope,
-                                sock: &mut zmq::Socket,
-                                state: &mut ServerState)
-                                -> Result<()> {
+pub fn origin_secret_key_create(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
     let msg: proto::OriginSecretKeyCreate = try!(req.parse_msg());
 
     match state.datastore.create_origin_secret_key(&msg) {
         Ok(ref osk) => try!(req.reply_complete(sock, osk)),
-        Err(Error::OriginSecretKeyCreate(PostgresError::Db(ref db))) if db.code ==
-                                                                        UniqueViolation => {
+        Err(Error::OriginSecretKeyCreate(PostgresError::Db(ref db)))
+            if db.code == UniqueViolation => {
             let err = net::err(ErrCode::ENTITY_CONFLICT, "vt:origin-secret-key-create:1");
             try!(req.reply_complete(sock, &err));
         }
@@ -181,10 +191,11 @@ pub fn origin_secret_key_create(req: &mut Envelope,
     Ok(())
 }
 
-pub fn origin_secret_key_get(req: &mut Envelope,
-                             sock: &mut zmq::Socket,
-                             state: &mut ServerState)
-                             -> Result<()> {
+pub fn origin_secret_key_get(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
     let msg: proto::OriginSecretKeyGet = try!(req.parse_msg());
     match state.datastore.get_origin_secret_key(&msg) {
         Ok(Some(ref key)) => {
@@ -203,16 +214,17 @@ pub fn origin_secret_key_get(req: &mut Envelope,
     Ok(())
 }
 
-pub fn origin_public_key_create(req: &mut Envelope,
-                                sock: &mut zmq::Socket,
-                                state: &mut ServerState)
-                                -> Result<()> {
+pub fn origin_public_key_create(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
     let msg: proto::OriginPublicKeyCreate = try!(req.parse_msg());
 
     match state.datastore.create_origin_public_key(&msg) {
         Ok(ref osk) => try!(req.reply_complete(sock, osk)),
-        Err(Error::OriginPublicKeyCreate(PostgresError::Db(ref db))) if db.code ==
-                                                                        UniqueViolation => {
+        Err(Error::OriginPublicKeyCreate(PostgresError::Db(ref db)))
+            if db.code == UniqueViolation => {
             let err = net::err(ErrCode::ENTITY_CONFLICT, "vt:origin-public-key-create:1");
             try!(req.reply_complete(sock, &err));
         }
@@ -225,10 +237,11 @@ pub fn origin_public_key_create(req: &mut Envelope,
     Ok(())
 }
 
-pub fn origin_public_key_get(req: &mut Envelope,
-                             sock: &mut zmq::Socket,
-                             state: &mut ServerState)
-                             -> Result<()> {
+pub fn origin_public_key_get(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
     let msg: proto::OriginPublicKeyGet = try!(req.parse_msg());
     match state.datastore.get_origin_public_key(&msg) {
         Ok(Some(ref key)) => {
@@ -247,18 +260,21 @@ pub fn origin_public_key_get(req: &mut Envelope,
     Ok(())
 }
 
-pub fn origin_public_key_latest_get(req: &mut Envelope,
-                                    sock: &mut zmq::Socket,
-                                    state: &mut ServerState)
-                                    -> Result<()> {
+pub fn origin_public_key_latest_get(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
     let msg: proto::OriginPublicKeyLatestGet = try!(req.parse_msg());
     match state.datastore.get_origin_public_key_latest(&msg) {
         Ok(Some(ref key)) => {
             try!(req.reply_complete(sock, key));
         }
         Ok(None) => {
-            let err = net::err(ErrCode::ENTITY_NOT_FOUND,
-                               "vt:origin-public-key-latest-get:0");
+            let err = net::err(
+                ErrCode::ENTITY_NOT_FOUND,
+                "vt:origin-public-key-latest-get:0",
+            );
             try!(req.reply_complete(sock, &err));
         }
         Err(err) => {
@@ -270,10 +286,11 @@ pub fn origin_public_key_latest_get(req: &mut Envelope,
     Ok(())
 }
 
-pub fn origin_public_key_list(req: &mut Envelope,
-                              sock: &mut zmq::Socket,
-                              state: &mut ServerState)
-                              -> Result<()> {
+pub fn origin_public_key_list(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
     let msg: proto::OriginPublicKeyListRequest = try!(req.parse_msg());
     match state.datastore.list_origin_public_keys_for_origin(&msg) {
         Ok(ref opklr) => try!(req.reply_complete(sock, opklr)),
@@ -286,16 +303,17 @@ pub fn origin_public_key_list(req: &mut Envelope,
     Ok(())
 }
 
-pub fn project_create(req: &mut Envelope,
-                      sock: &mut zmq::Socket,
-                      state: &mut ServerState)
-                      -> Result<()> {
+pub fn project_create(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
     let opc = try!(req.parse_msg::<proto::OriginProjectCreate>());
 
     match state.datastore.create_origin_project(&opc) {
         Ok(ref project) => try!(req.reply_complete(sock, project)),
-        Err(Error::OriginProjectCreate(PostgresError::Db(ref db))) if db.code ==
-                                                                      UniqueViolation => {
+        Err(Error::OriginProjectCreate(PostgresError::Db(ref db)))
+            if db.code == UniqueViolation => {
             let err = net::err(ErrCode::ENTITY_CONFLICT, "vt:origin-project-create:1");
             try!(req.reply_complete(sock, &err));
         }
@@ -308,15 +326,16 @@ pub fn project_create(req: &mut Envelope,
     Ok(())
 }
 
-pub fn project_delete(req: &mut Envelope,
-                      sock: &mut zmq::Socket,
-                      state: &mut ServerState)
-                      -> Result<()> {
+pub fn project_delete(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
     let msg: proto::OriginProjectDelete = try!(req.parse_msg());
 
-    match state
-              .datastore
-              .delete_origin_project_by_name(&msg.get_name()) {
+    match state.datastore.delete_origin_project_by_name(
+        &msg.get_name(),
+    ) {
         Ok(()) => try!(req.reply_complete(sock, &NetOk::new())),
         Err(err) => {
             error!("OriginProjectGet, err={:?}", err);
@@ -327,10 +346,11 @@ pub fn project_delete(req: &mut Envelope,
     Ok(())
 }
 
-pub fn project_get(req: &mut Envelope,
-                   sock: &mut zmq::Socket,
-                   state: &mut ServerState)
-                   -> Result<()> {
+pub fn project_get(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
     let msg: proto::OriginProjectGet = try!(req.parse_msg());
     match state.datastore.get_origin_project_by_name(&msg.get_name()) {
         Ok(Some(ref project)) => try!(req.reply_complete(sock, project)),
@@ -347,10 +367,11 @@ pub fn project_get(req: &mut Envelope,
     Ok(())
 }
 
-pub fn project_update(req: &mut Envelope,
-                      sock: &mut zmq::Socket,
-                      state: &mut ServerState)
-                      -> Result<()> {
+pub fn project_update(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
     let msg: proto::OriginProjectUpdate = try!(req.parse_msg());
 
     match state.datastore.update_origin_project(&msg) {
@@ -364,16 +385,17 @@ pub fn project_update(req: &mut Envelope,
     Ok(())
 }
 
-pub fn origin_channel_create(req: &mut Envelope,
-                             sock: &mut zmq::Socket,
-                             state: &mut ServerState)
-                             -> Result<()> {
+pub fn origin_channel_create(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
     let msg: proto::OriginChannelCreate = try!(req.parse_msg());
 
     match state.datastore.create_origin_channel(&msg) {
         Ok(ref occ) => try!(req.reply_complete(sock, occ)),
-        Err(Error::OriginChannelCreate(PostgresError::Db(ref db))) if db.code ==
-                                                                      UniqueViolation => {
+        Err(Error::OriginChannelCreate(PostgresError::Db(ref db)))
+            if db.code == UniqueViolation => {
             let err = net::err(ErrCode::ENTITY_CONFLICT, "vt:origin-channel-create:1");
             try!(req.reply_complete(sock, &err));
         }
@@ -386,10 +408,11 @@ pub fn origin_channel_create(req: &mut Envelope,
     Ok(())
 }
 
-pub fn origin_channel_delete(req: &mut Envelope,
-                             sock: &mut zmq::Socket,
-                             state: &mut ServerState)
-                             -> Result<()> {
+pub fn origin_channel_delete(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
     let msg: proto::OriginChannelDelete = try!(req.parse_msg());
     match state.datastore.delete_origin_channel_by_id(&msg) {
         Ok(()) =>  try!(req.reply_complete(sock, &net::NetOk::new())),
@@ -402,10 +425,11 @@ pub fn origin_channel_delete(req: &mut Envelope,
     Ok(())
 }
 
-pub fn origin_channel_get(req: &mut Envelope,
-                          sock: &mut zmq::Socket,
-                          state: &mut ServerState)
-                          -> Result<()> {
+pub fn origin_channel_get(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
     let msg: proto::OriginChannelGet = try!(req.parse_msg());
     match state.datastore.get_origin_channel(&msg) {
         Ok(Some(ref channel)) => try!(req.reply_complete(sock, channel)),
@@ -422,10 +446,11 @@ pub fn origin_channel_get(req: &mut Envelope,
     Ok(())
 }
 
-pub fn origin_channel_list(req: &mut Envelope,
-                           sock: &mut zmq::Socket,
-                           state: &mut ServerState)
-                           -> Result<()> {
+pub fn origin_channel_list(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
     let msg: proto::OriginChannelListRequest = try!(req.parse_msg());
     match state.datastore.list_origin_channels(&msg) {
         Ok(ref oclr) => try!(req.reply_complete(sock, oclr)),
@@ -438,10 +463,11 @@ pub fn origin_channel_list(req: &mut Envelope,
     Ok(())
 }
 
-pub fn origin_package_create(req: &mut Envelope,
-                             sock: &mut zmq::Socket,
-                             state: &mut ServerState)
-                             -> Result<()> {
+pub fn origin_package_create(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
     let msg: proto::OriginPackageCreate = try!(req.parse_msg());
 
     match state.datastore.create_origin_package(&msg) {
@@ -455,10 +481,11 @@ pub fn origin_package_create(req: &mut Envelope,
     Ok(())
 }
 
-pub fn origin_package_get(req: &mut Envelope,
-                          sock: &mut zmq::Socket,
-                          state: &mut ServerState)
-                          -> Result<()> {
+pub fn origin_package_get(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
     let msg: proto::OriginPackageGet = try!(req.parse_msg());
     match state.datastore.get_origin_package(&msg) {
         Ok(Some(ref package)) => try!(req.reply_complete(sock, package)),
@@ -475,10 +502,11 @@ pub fn origin_package_get(req: &mut Envelope,
     Ok(())
 }
 
-pub fn origin_channel_package_get(req: &mut Envelope,
-                                  sock: &mut zmq::Socket,
-                                  state: &mut ServerState)
-                                  -> Result<()> {
+pub fn origin_channel_package_get(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
     let msg: proto::OriginChannelPackageGet = try!(req.parse_msg());
     match state.datastore.get_origin_channel_package(&msg) {
         Ok(Some(ref package)) => try!(req.reply_complete(sock, package)),
@@ -495,10 +523,11 @@ pub fn origin_channel_package_get(req: &mut Envelope,
     Ok(())
 }
 
-pub fn origin_package_latest_get(req: &mut Envelope,
-                                 sock: &mut zmq::Socket,
-                                 state: &mut ServerState)
-                                 -> Result<()> {
+pub fn origin_package_latest_get(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
     let msg: proto::OriginPackageLatestGet = try!(req.parse_msg());
     match state.datastore.get_origin_package_latest(&msg) {
         Ok(Some(ref package)) => try!(req.reply_complete(sock, package)),
@@ -515,37 +544,43 @@ pub fn origin_package_latest_get(req: &mut Envelope,
     Ok(())
 }
 
-pub fn origin_channel_package_latest_get(req: &mut Envelope,
-                                         sock: &mut zmq::Socket,
-                                         state: &mut ServerState)
-                                         -> Result<()> {
+pub fn origin_channel_package_latest_get(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
     let msg: proto::OriginChannelPackageLatestGet = try!(req.parse_msg());
     match state.datastore.get_origin_channel_package_latest(&msg) {
         Ok(Some(ref package)) => try!(req.reply_complete(sock, package)),
         Ok(None) => {
-            let err = net::err(ErrCode::ENTITY_NOT_FOUND,
-                               "vt:origin-channel-package-latest-get:0");
+            let err = net::err(
+                ErrCode::ENTITY_NOT_FOUND,
+                "vt:origin-channel-package-latest-get:0",
+            );
             try!(req.reply_complete(sock, &err));
         }
         Err(err) => {
             error!("OriginChannelPackageLatestGet, err={:?}", err);
-            let err = net::err(ErrCode::DATA_STORE,
-                               "vt:origin-channel-package-latest-get:1");
+            let err = net::err(
+                ErrCode::DATA_STORE,
+                "vt:origin-channel-package-latest-get:1",
+            );
             try!(req.reply_complete(sock, &err));
         }
     }
     Ok(())
 }
 
-pub fn origin_package_version_list(req: &mut Envelope,
-                                   sock: &mut zmq::Socket,
-                                   state: &mut ServerState)
-                                   -> Result<()> {
+pub fn origin_package_version_list(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
     let msg: proto::OriginPackageVersionListRequest = try!(req.parse_msg());
 
-    match state
-              .datastore
-              .list_origin_package_versions_for_origin(&msg) {
+    match state.datastore.list_origin_package_versions_for_origin(
+        &msg,
+    ) {
         Ok(ref opvlr) => try!(req.reply_complete(sock, opvlr)),
         Err(err) => {
             error!("OriginPackageVersionList, err={:?}", err);
@@ -556,10 +591,11 @@ pub fn origin_package_version_list(req: &mut Envelope,
     Ok(())
 }
 
-pub fn origin_package_list(req: &mut Envelope,
-                           sock: &mut zmq::Socket,
-                           state: &mut ServerState)
-                           -> Result<()> {
+pub fn origin_package_list(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
     let msg: proto::OriginPackageListRequest = try!(req.parse_msg());
     match state.datastore.list_origin_package_for_origin(&msg) {
         Ok(ref oplr) => try!(req.reply_complete(sock, oplr)),
@@ -572,14 +608,15 @@ pub fn origin_package_list(req: &mut Envelope,
     Ok(())
 }
 
-pub fn origin_channel_package_list(req: &mut Envelope,
-                                   sock: &mut zmq::Socket,
-                                   state: &mut ServerState)
-                                   -> Result<()> {
+pub fn origin_channel_package_list(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
     let msg: proto::OriginChannelPackageListRequest = try!(req.parse_msg());
-    match state
-              .datastore
-              .list_origin_channel_package_for_channel(&msg) {
+    match state.datastore.list_origin_channel_package_for_channel(
+        &msg,
+    ) {
         Ok(ref oplr) => try!(req.reply_complete(sock, oplr)),
         Err(err) => {
             error!("OriginChannelPackageList, err={:?}", err);
@@ -590,10 +627,11 @@ pub fn origin_channel_package_list(req: &mut Envelope,
     Ok(())
 }
 
-pub fn origin_package_promote(req: &mut Envelope,
-                              sock: &mut zmq::Socket,
-                              state: &mut ServerState)
-                              -> Result<()> {
+pub fn origin_package_promote(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
     let msg: proto::OriginPackagePromote = try!(req.parse_msg());
     match state.datastore.promote_origin_package(&msg) {
         Ok(()) =>  try!(req.reply_complete(sock, &net::NetOk::new())),
@@ -606,10 +644,11 @@ pub fn origin_package_promote(req: &mut Envelope,
     Ok(())
 }
 
-pub fn origin_package_unique_list(req: &mut Envelope,
-                                  sock: &mut zmq::Socket,
-                                  state: &mut ServerState)
-                                  -> Result<()> {
+pub fn origin_package_unique_list(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
     let msg: proto::OriginPackageUniqueListRequest = try!(req.parse_msg());
     match state.datastore.list_origin_package_unique_for_origin(&msg) {
         Ok(ref opulr) => try!(req.reply_complete(sock, opulr)),
@@ -622,10 +661,11 @@ pub fn origin_package_unique_list(req: &mut Envelope,
     Ok(())
 }
 
-pub fn origin_package_search(req: &mut Envelope,
-                             sock: &mut zmq::Socket,
-                             state: &mut ServerState)
-                             -> Result<()> {
+pub fn origin_package_search(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
     let msg: proto::OriginPackageSearchRequest = try!(req.parse_msg());
     match state.datastore.search_origin_package_for_origin(&msg) {
         Ok(ref opsr) => try!(req.reply_complete(sock, opsr)),

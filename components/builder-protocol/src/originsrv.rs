@@ -46,11 +46,21 @@ impl Routable for AccountInvitationListResponse {
 
 impl Serialize for AccountInvitationListResponse {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
-        let mut strukt = try!(serializer.serialize_struct("account_invitation_list_response", 2));
-        try!(strukt.serialize_field("account_id", &self.get_account_id().to_string()));
-        try!(strukt.serialize_field("invitations", self.get_invitations()));
+        let mut strukt = try!(serializer.serialize_struct(
+            "account_invitation_list_response",
+            2,
+        ));
+        try!(strukt.serialize_field(
+            "account_id",
+            &self.get_account_id().to_string(),
+        ));
+        try!(strukt.serialize_field(
+            "invitations",
+            self.get_invitations(),
+        ));
         strukt.end()
     }
 }
@@ -65,20 +75,28 @@ impl Routable for CheckOriginAccessRequest {
 
 impl Serialize for Origin {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         let mut strukt = try!(serializer.serialize_struct("origin", 4));
         try!(strukt.serialize_field("id", &self.get_id().to_string()));
         try!(strukt.serialize_field("name", self.get_name()));
-        try!(strukt.serialize_field("owner_id", &self.get_owner_id().to_string()));
-        try!(strukt.serialize_field("private_key_name", self.get_private_key_name()));
+        try!(strukt.serialize_field(
+            "owner_id",
+            &self.get_owner_id().to_string(),
+        ));
+        try!(strukt.serialize_field(
+            "private_key_name",
+            self.get_private_key_name(),
+        ));
         strukt.end()
     }
 }
 
 impl Serialize for OriginChannel {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         let mut strukt = try!(serializer.serialize_struct("origin", 4));
         try!(strukt.serialize_field("id", &self.get_id()));
@@ -106,7 +124,8 @@ impl Routable for OriginChannelGet {
 
 impl Serialize for OriginChannelIdent {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         let mut strukt = try!(serializer.serialize_struct("origin_key", 3));
         try!(strukt.serialize_field("name", self.get_name()));
@@ -132,9 +151,13 @@ impl Routable for OriginChannelListResponse {
 
 impl Serialize for OriginChannelListResponse {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
-        let mut strukt = try!(serializer.serialize_struct("origin_channel_list_response", 2));
+        let mut strukt = try!(serializer.serialize_struct(
+            "origin_channel_list_response",
+            2,
+        ));
         try!(strukt.serialize_field("channels", self.get_channels()));
         strukt.end()
     }
@@ -200,15 +223,31 @@ impl Routable for OriginGet {
 
 impl Serialize for OriginInvitation {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         let mut strukt = try!(serializer.serialize_struct("origin_invitation", 6));
         try!(strukt.serialize_field("id", &self.get_id().to_string()));
-        try!(strukt.serialize_field("account_id", &self.get_account_id().to_string()));
-        try!(strukt.serialize_field("account_name", self.get_account_name()));
-        try!(strukt.serialize_field("origin_id", &self.get_origin_id().to_string()));
-        try!(strukt.serialize_field("origin_name", self.get_origin_name()));
-        try!(strukt.serialize_field("owner_id", &self.get_owner_id().to_string()));
+        try!(strukt.serialize_field(
+            "account_id",
+            &self.get_account_id().to_string(),
+        ));
+        try!(strukt.serialize_field(
+            "account_name",
+            self.get_account_name(),
+        ));
+        try!(strukt.serialize_field(
+            "origin_id",
+            &self.get_origin_id().to_string(),
+        ));
+        try!(strukt.serialize_field(
+            "origin_name",
+            self.get_origin_name(),
+        ));
+        try!(strukt.serialize_field(
+            "owner_id",
+            &self.get_owner_id().to_string(),
+        ));
         strukt.end()
     }
 }
@@ -247,18 +286,29 @@ impl Routable for OriginInvitationListResponse {
 
 impl Serialize for OriginInvitationListResponse {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
-        let mut strukt = try!(serializer.serialize_struct("origin_invitation_list_response", 2));
-        try!(strukt.serialize_field("origin_id", &self.get_origin_id().to_string()));
-        try!(strukt.serialize_field("invitations", self.get_invitations()));
+        let mut strukt = try!(serializer.serialize_struct(
+            "origin_invitation_list_response",
+            2,
+        ));
+        try!(strukt.serialize_field(
+            "origin_id",
+            &self.get_origin_id().to_string(),
+        ));
+        try!(strukt.serialize_field(
+            "invitations",
+            self.get_invitations(),
+        ));
         strukt.end()
     }
 }
 
 impl Serialize for OriginKeyIdent {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         let mut strukt = try!(serializer.serialize_struct("origin_key", 3));
         try!(strukt.serialize_field("origin", self.get_origin()));
@@ -278,10 +328,17 @@ impl Routable for OriginMemberListRequest {
 
 impl Serialize for OriginMemberListResponse {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
-        let mut strukt = try!(serializer.serialize_struct("origin_member_list_response", 2));
-        try!(strukt.serialize_field("origin_id", &self.get_origin_id().to_string()));
+        let mut strukt = try!(serializer.serialize_struct(
+            "origin_member_list_response",
+            2,
+        ));
+        try!(strukt.serialize_field(
+            "origin_id",
+            &self.get_origin_id().to_string(),
+        ));
         try!(strukt.serialize_field("members", self.get_members()));
         strukt.end()
     }
@@ -346,7 +403,8 @@ impl Into<package::PackageIdent> for OriginPackage {
 
 impl Serialize for OriginPackage {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         let mut strukt = try!(serializer.serialize_struct("origin_package", 8));
         try!(strukt.serialize_field("ident", self.get_ident()));
@@ -417,18 +475,22 @@ impl Routable for OriginPackageGet {
 impl fmt::Display for OriginPackageIdent {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         if !self.get_version().is_empty() && !self.get_release().is_empty() {
-            write!(f,
-                   "{}/{}/{}/{}",
-                   self.get_origin(),
-                   self.get_name(),
-                   self.get_version(),
-                   self.get_release())
+            write!(
+                f,
+                "{}/{}/{}/{}",
+                self.get_origin(),
+                self.get_name(),
+                self.get_version(),
+                self.get_release()
+            )
         } else if !self.get_version().is_empty() {
-            write!(f,
-                   "{}/{}/{}",
-                   self.get_origin(),
-                   self.get_name(),
-                   self.get_version())
+            write!(
+                f,
+                "{}/{}/{}",
+                self.get_origin(),
+                self.get_name(),
+                self.get_version()
+            )
         } else {
             write!(f, "{}/{}", self.get_origin(), self.get_name())
         }
@@ -502,10 +564,12 @@ impl Identifiable for OriginPackageIdent {
 
 impl Into<package::PackageIdent> for OriginPackageIdent {
     fn into(self) -> package::PackageIdent {
-        package::PackageIdent::new(self.get_origin(),
-                                   self.get_name(),
-                                   Some(self.get_version()),
-                                   Some(self.get_release()))
+        package::PackageIdent::new(
+            self.get_origin(),
+            self.get_name(),
+            Some(self.get_version()),
+            Some(self.get_release()),
+        )
     }
 }
 
@@ -577,7 +641,8 @@ impl Eq for OriginPackageIdent {}
 
 impl Serialize for OriginPackageIdent {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         let mut strukt = try!(serializer.serialize_struct("origin_package_ident", 4));
         try!(strukt.serialize_field("origin", self.get_origin()));
@@ -594,13 +659,17 @@ impl Serialize for OriginPackageIdent {
 
 impl Serialize for OriginPackageVersion {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         let mut strukt = try!(serializer.serialize_struct("origin_package_version", 4));
         try!(strukt.serialize_field("origin", self.get_origin()));
         try!(strukt.serialize_field("name", self.get_name()));
         try!(strukt.serialize_field("version", self.get_version()));
-        try!(strukt.serialize_field("release_count", &self.get_release_count().to_string()));
+        try!(strukt.serialize_field(
+            "release_count",
+            &self.get_release_count().to_string(),
+        ));
         try!(strukt.serialize_field("latest", &self.get_latest()));
         strukt.end()
     }
@@ -674,16 +743,26 @@ impl Routable for OriginPackageUniqueListRequest {
 
 impl Serialize for OriginProject {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         let mut state = try!(serializer.serialize_struct("project", 2));
         try!(state.serialize_field("id", &self.get_id().to_string()));
-        try!(state.serialize_field("origin_id", &self.get_origin_id().to_string()));
+        try!(state.serialize_field(
+            "origin_id",
+            &self.get_origin_id().to_string(),
+        ));
         try!(state.serialize_field("origin_name", self.get_origin_name()));
-        try!(state.serialize_field("package_name", self.get_package_name()));
+        try!(state.serialize_field(
+            "package_name",
+            self.get_package_name(),
+        ));
         try!(state.serialize_field("name", self.get_name()));
         try!(state.serialize_field("plan_path", self.get_plan_path()));
-        try!(state.serialize_field("owner_id", &self.get_owner_id().to_string()));
+        try!(state.serialize_field(
+            "owner_id",
+            &self.get_owner_id().to_string(),
+        ));
         try!(state.serialize_field("vcs_type", self.get_vcs_type()));
         try!(state.serialize_field("vcs_data", self.get_vcs_data()));
         state.end()
@@ -706,8 +785,10 @@ impl Routable for OriginProjectDelete {
         let origin_name = match name.split('/').nth(0) {
             Some(origin_name) => origin_name,
             None => {
-                println!("Cannot route origin project get; malformed project name - routing on \
-                        screwedup to not kill the service");
+                println!(
+                    "Cannot route origin project get; malformed project name - routing on \
+                        screwedup to not kill the service"
+                );
                 "screwedup"
             }
         };
@@ -723,8 +804,10 @@ impl Routable for OriginProjectGet {
         let origin_name = match name.split('/').nth(0) {
             Some(origin_name) => origin_name,
             None => {
-                println!("Cannot route origin project get; malformed project name - routing on \
-                        screwedup to not kill the service");
+                println!(
+                    "Cannot route origin project get; malformed project name - routing on \
+                        screwedup to not kill the service"
+                );
                 "screwedup"
             }
         };
@@ -742,15 +825,22 @@ impl Routable for OriginProjectUpdate {
 
 impl Serialize for OriginPublicKey {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         let mut strukt = try!(serializer.serialize_struct("origin_public_key", 6));
         try!(strukt.serialize_field("id", &self.get_id().to_string()));
-        try!(strukt.serialize_field("origin_id", &self.get_origin_id().to_string()));
+        try!(strukt.serialize_field(
+            "origin_id",
+            &self.get_origin_id().to_string(),
+        ));
         try!(strukt.serialize_field("name", self.get_name()));
         try!(strukt.serialize_field("revision", self.get_revision()));
         try!(strukt.serialize_field("body", self.get_body()));
-        try!(strukt.serialize_field("owner_id", &self.get_owner_id().to_string()));
+        try!(strukt.serialize_field(
+            "owner_id",
+            &self.get_owner_id().to_string(),
+        ));
         strukt.end()
     }
 }
@@ -797,10 +887,17 @@ impl Routable for OriginPublicKeyListResponse {
 
 impl Serialize for OriginPublicKeyListResponse {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
-        let mut strukt = try!(serializer.serialize_struct("origin_public_key_list_response", 2));
-        try!(strukt.serialize_field("origin_id", &self.get_origin_id().to_string()));
+        let mut strukt = try!(serializer.serialize_struct(
+            "origin_public_key_list_response",
+            2,
+        ));
+        try!(strukt.serialize_field(
+            "origin_id",
+            &self.get_origin_id().to_string(),
+        ));
         try!(strukt.serialize_field("keys", self.get_keys()));
         strukt.end()
     }
@@ -808,15 +905,22 @@ impl Serialize for OriginPublicKeyListResponse {
 
 impl Serialize for OriginSecretKey {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         let mut strukt = try!(serializer.serialize_struct("origin_secret_key", 6));
         try!(strukt.serialize_field("id", &self.get_id().to_string()));
-        try!(strukt.serialize_field("origin_id", &self.get_origin_id().to_string()));
+        try!(strukt.serialize_field(
+            "origin_id",
+            &self.get_origin_id().to_string(),
+        ));
         try!(strukt.serialize_field("name", self.get_name()));
         try!(strukt.serialize_field("revision", self.get_revision()));
         try!(strukt.serialize_field("body", self.get_body()));
-        try!(strukt.serialize_field("owner_id", &self.get_owner_id().to_string()));
+        try!(strukt.serialize_field(
+            "owner_id",
+            &self.get_owner_id().to_string(),
+        ));
         strukt.end()
     }
 }

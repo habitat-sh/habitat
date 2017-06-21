@@ -65,9 +65,10 @@ impl PackageInstall {
     ///
     /// An optional `fs_root` path may be provided to search for a package that is mounted on a
     /// filesystem not currently rooted at `/`.
-    pub fn load_at_least(ident: &PackageIdent,
-                         fs_root_path: Option<&Path>)
-                         -> Result<PackageInstall> {
+    pub fn load_at_least(
+        ident: &PackageIdent,
+        fs_root_path: Option<&Path>,
+    ) -> Result<PackageInstall> {
         let package_install = Self::resolve_package_install_min(ident, fs_root_path)?;
         let package_target = package_install.target()?;
         match package_target.validate() {
@@ -76,10 +77,12 @@ impl PackageInstall {
         }
     }
 
-    fn resolve_package_install<T>(ident: &PackageIdent,
-                                  fs_root_path: Option<T>)
-                                  -> Result<PackageInstall>
-        where T: AsRef<Path>
+    fn resolve_package_install<T>(
+        ident: &PackageIdent,
+        fs_root_path: Option<T>,
+    ) -> Result<PackageInstall>
+    where
+        T: AsRef<Path>,
     {
         let fs_root_path = fs_root_path.map_or(PathBuf::from("/"), |p| p.as_ref().into());
         let package_root_path = fs::pkg_root_path(Some(&fs_root_path));
@@ -90,35 +93,39 @@ impl PackageInstall {
         if ident.fully_qualified() {
             if pl.iter().any(|ref p| p.satisfies(ident)) {
                 Ok(PackageInstall {
-                       installed_path: fs::pkg_install_path(&ident, Some(&fs_root_path)),
-                       fs_root_path: fs_root_path,
-                       package_root_path: package_root_path,
-                       ident: ident.clone(),
-                   })
+                    installed_path: fs::pkg_install_path(&ident, Some(&fs_root_path)),
+                    fs_root_path: fs_root_path,
+                    package_root_path: package_root_path,
+                    ident: ident.clone(),
+                })
             } else {
                 Err(Error::PackageNotFound(ident.clone()))
             }
         } else {
-            let latest: Option<PackageIdent> = pl.iter()
-                .filter(|&p| p.satisfies(ident))
-                .fold(None, |winner, b| match winner {
-                    Some(a) => {
-                        match a.partial_cmp(&b) {
-                            Some(Ordering::Greater) => Some(a),
-                            Some(Ordering::Equal) => Some(a),
-                            Some(Ordering::Less) => Some(b.clone()),
-                            None => Some(a),
+            let latest: Option<PackageIdent> = pl.iter().filter(|&p| p.satisfies(ident)).fold(
+                None,
+                |winner,
+                 b| {
+                    match winner {
+                        Some(a) => {
+                            match a.partial_cmp(&b) {
+                                Some(Ordering::Greater) => Some(a),
+                                Some(Ordering::Equal) => Some(a),
+                                Some(Ordering::Less) => Some(b.clone()),
+                                None => Some(a),
+                            }
                         }
+                        None => Some(b.clone()),
                     }
-                    None => Some(b.clone()),
-                });
+                },
+            );
             if let Some(id) = latest {
                 Ok(PackageInstall {
-                       installed_path: fs::pkg_install_path(&id, Some(&fs_root_path)),
-                       fs_root_path: PathBuf::from(fs_root_path),
-                       package_root_path: package_root_path,
-                       ident: id.clone(),
-                   })
+                    installed_path: fs::pkg_install_path(&id, Some(&fs_root_path)),
+                    fs_root_path: PathBuf::from(fs_root_path),
+                    package_root_path: package_root_path,
+                    ident: id.clone(),
+                })
             } else {
                 Err(Error::PackageNotFound(ident.clone()))
             }
@@ -126,18 +133,22 @@ impl PackageInstall {
     }
 
     /// Find an installed package that is at minimum the version of the given ident.
-    fn resolve_package_install_min<T>(ident: &PackageIdent,
-                                      fs_root_path: Option<T>)
-                                      -> Result<PackageInstall>
-        where T: AsRef<Path>
+    fn resolve_package_install_min<T>(
+        ident: &PackageIdent,
+        fs_root_path: Option<T>,
+    ) -> Result<PackageInstall>
+    where
+        T: AsRef<Path>,
     {
         // If the PackageIndent is does not have a version, use a reasonable minimum version that
         // will be satisfied by any installed package with the same origin/name
         let ident = if None == ident.version {
-            PackageIdent::new(ident.origin.clone(),
-                              ident.name.clone(),
-                              Some("0".into()),
-                              Some("0".into()))
+            PackageIdent::new(
+                ident.origin.clone(),
+                ident.name.clone(),
+                Some("0".into()),
+                Some("0".into()),
+            )
         } else {
             ident.clone()
         };
@@ -167,21 +178,22 @@ impl PackageInstall {
         match latest {
             Some(id) => {
                 Ok(PackageInstall {
-                       installed_path: fs::pkg_install_path(&id, Some(&fs_root_path)),
-                       fs_root_path: fs_root_path,
-                       package_root_path: package_root_path,
-                       ident: id.clone(),
-                   })
+                    installed_path: fs::pkg_install_path(&id, Some(&fs_root_path)),
+                    fs_root_path: fs_root_path,
+                    package_root_path: package_root_path,
+                    ident: id.clone(),
+                })
             }
             None => Err(Error::PackageNotFound(ident.clone())),
         }
     }
 
-    pub fn new_from_parts(ident: PackageIdent,
-                          fs_root_path: PathBuf,
-                          package_root_path: PathBuf,
-                          installed_path: PathBuf)
-                          -> PackageInstall {
+    pub fn new_from_parts(
+        ident: PackageIdent,
+        fs_root_path: PathBuf,
+        package_root_path: PathBuf,
+        installed_path: PathBuf,
+    ) -> PackageInstall {
         PackageInstall {
             ident: ident,
             fs_root_path: fs_root_path,
@@ -261,8 +273,9 @@ impl PackageInstall {
     fn environment(&self) -> Result<HashMap<String, String>> {
         match self.read_metafile(MetaFile::Environment) {
             Ok(body) => {
-                Ok(parse_key_value(&body)
-                       .map_err(|_| Error::MetaFileMalformed(MetaFile::Environment))?)
+                Ok(parse_key_value(&body).map_err(|_| {
+                    Error::MetaFileMalformed(MetaFile::Environment)
+                })?)
             }
             Err(Error::MetaFileNotFound(MetaFile::Environment)) => Ok(HashMap::new()),
             Err(e) => Err(e),
@@ -278,8 +291,9 @@ impl PackageInstall {
     fn environment_sep(&self) -> Result<HashMap<String, String>> {
         match self.read_metafile(MetaFile::EnvironmentSep) {
             Ok(body) => {
-                Ok(parse_key_value(&body)
-                       .map_err(|_| Error::MetaFileMalformed(MetaFile::EnvironmentSep))?)
+                Ok(parse_key_value(&body).map_err(|_| {
+                    Error::MetaFileMalformed(MetaFile::EnvironmentSep)
+                })?)
             }
             Err(Error::MetaFileNotFound(MetaFile::EnvironmentSep)) => Ok(HashMap::new()),
             Err(e) => Err(e),
@@ -294,8 +308,9 @@ impl PackageInstall {
     pub fn exports(&self) -> Result<HashMap<String, String>> {
         match self.read_metafile(MetaFile::Exports) {
             Ok(body) => {
-                Ok(parse_key_value(&body)
-                       .map_err(|_| Error::MetaFileMalformed(MetaFile::Exports))?)
+                Ok(parse_key_value(&body).map_err(|_| {
+                    Error::MetaFileMalformed(MetaFile::Exports)
+                })?)
             }
             Err(Error::MetaFileNotFound(MetaFile::Exports)) => Ok(HashMap::new()),
             Err(e) => Err(e),
@@ -331,9 +346,7 @@ impl PackageInstall {
     pub fn paths(&self) -> Result<Vec<PathBuf>> {
         match self.read_metafile(MetaFile::Path) {
             Ok(body) => {
-                let v = env::split_paths(&body)
-                    .map(|p| PathBuf::from(&p))
-                    .collect();
+                let v = env::split_paths(&body).map(|p| PathBuf::from(&p)).collect();
                 Ok(v)
             }
             Err(Error::MetaFileNotFound(MetaFile::Path)) => {
@@ -357,19 +370,19 @@ impl PackageInstall {
 
         let env = self.environment()?;
         pkg_envs.push(if !env.is_empty() {
-                          PkgEnv::new(env, self.environment_sep()?)
-                      } else {
-                          PkgEnv::from_paths(self.paths()?)
-                      });
+            PkgEnv::new(env, self.environment_sep()?)
+        } else {
+            PkgEnv::from_paths(self.paths()?)
+        });
 
         let deps = self.load_deps()?;
         for dep in deps.iter() {
             let env = dep.environment()?;
             pkg_envs.push(if !env.is_empty() {
-                              PkgEnv::new(env, dep.environment_sep()?)
-                          } else {
-                              PkgEnv::from_paths(dep.paths()?)
-                          });
+                PkgEnv::new(env, dep.environment_sep()?)
+            } else {
+                PkgEnv::from_paths(dep.paths()?)
+            });
             idents.insert(dep.ident().clone());
         }
 
@@ -380,10 +393,10 @@ impl PackageInstall {
             }
             let env = dep.environment()?;
             pkg_envs.push(if !env.is_empty() {
-                              PkgEnv::new(env, dep.environment_sep()?)
-                          } else {
-                              PkgEnv::from_paths(dep.paths()?)
-                          });
+                PkgEnv::new(env, dep.environment_sep()?)
+            } else {
+                PkgEnv::from_paths(dep.paths()?)
+            });
             idents.insert(dep.ident().clone());
         }
 
@@ -579,16 +592,14 @@ impl PackageInstall {
 
     /// Helper function for walk_names. Walks the given name DirEntry for directories and recurses
     /// into them to find release directories.
-    fn walk_versions(origin: &String,
-                     name: &DirEntry,
-                     packages: &mut Vec<PackageIdent>)
-                     -> Result<()> {
+    fn walk_versions(
+        origin: &String,
+        name: &DirEntry,
+        packages: &mut Vec<PackageIdent>,
+    ) -> Result<()> {
         for version in std::fs::read_dir(name.path())? {
             let version = version?;
-            let name = name.file_name()
-                .to_string_lossy()
-                .into_owned()
-                .to_string();
+            let name = name.file_name().to_string_lossy().into_owned().to_string();
             if std::fs::metadata(version.path())?.is_dir() {
                 Self::walk_releases(origin, &name, &version, packages)?;
             }
@@ -600,11 +611,12 @@ impl PackageInstall {
     /// recurses into them to find version directories. Finally, a Package struct is built and
     /// concatenated onto the given packages vector with the origin, name, version, and release of
     /// each.
-    fn walk_releases(origin: &String,
-                     name: &String,
-                     version: &DirEntry,
-                     packages: &mut Vec<PackageIdent>)
-                     -> Result<()> {
+    fn walk_releases(
+        origin: &String,
+        name: &String,
+        version: &DirEntry,
+        packages: &mut Vec<PackageIdent>,
+    ) -> Result<()> {
         for release in std::fs::read_dir(version.path())? {
             let release = release?
                 .file_name()

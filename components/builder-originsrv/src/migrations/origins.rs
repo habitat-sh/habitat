@@ -17,22 +17,24 @@ use db::migration::Migrator;
 use error::Result;
 
 pub fn migrate(migrator: &mut Migrator) -> Result<()> {
-    migrator
-        .migrate("originsrv",
-                 r#"CREATE SEQUENCE IF NOT EXISTS origin_id_seq;"#)?;
-    migrator
-        .migrate("originsrv",
-                 r#"CREATE TABLE IF NOT EXISTS origins (
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE SEQUENCE IF NOT EXISTS origin_id_seq;"#,
+    )?;
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE TABLE IF NOT EXISTS origins (
                     id bigint PRIMARY KEY DEFAULT next_id_v1('origin_id_seq'),
                     name text UNIQUE,
                     owner_id bigint,
                     session_sync bool DEFAULT false,
                     created_at timestamptz DEFAULT now(),
                     updated_at timestamptz
-             )"#)?;
-    migrator
-        .migrate("originsrv",
-                 r#"CREATE TABLE IF NOT EXISTS origin_members (
+             )"#,
+    )?;
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE TABLE IF NOT EXISTS origin_members (
                     origin_id bigint REFERENCES origins(id),
                     origin_name text,
                     account_id bigint,
@@ -40,7 +42,8 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                     created_at timestamptz DEFAULT now(),
                     updated_at timestamptz,
                     PRIMARY KEY (origin_id, account_id)
-                )"#)?;
+                )"#,
+    )?;
     migrator.migrate("originsrv",
                      r#"CREATE OR REPLACE FUNCTION insert_origin_member_v1 (
                      om_origin_id bigint,

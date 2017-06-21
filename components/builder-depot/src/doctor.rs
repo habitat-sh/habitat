@@ -161,14 +161,16 @@ impl<'a> Doctor<'a> {
         match fs::metadata(&self.depot.config.path) {
             Ok(meta) => {
                 if meta.is_file() {
-                    self.report
-                        .failure(OperationType::InitDepotFs(self.depot.config.path.clone()),
-                                 Reason::FileExists);
+                    self.report.failure(
+                        OperationType::InitDepotFs(self.depot.config.path.clone()),
+                        Reason::FileExists,
+                    );
                 }
                 if meta.permissions().readonly() {
-                    self.report
-                        .failure(OperationType::InitDepotFs(self.depot.config.path.clone()),
-                                 Reason::BadPermissions);
+                    self.report.failure(
+                        OperationType::InitDepotFs(self.depot.config.path.clone()),
+                        Reason::BadPermissions,
+                    );
                 }
                 try!(fs::create_dir_all(&self.depot.packages_path()));
             }
@@ -196,45 +198,47 @@ impl<'a> Doctor<'a> {
                             conn.route::<originsrv::OriginPackageCreate, originsrv::OriginPackage>(&package)?;
                             let path = self.depot.archive_path(&ident, &try!(archive.target()));
                             if let Some(e) = fs::create_dir_all(path.parent().unwrap()).err() {
-                                self.report
-                                    .failure(OperationType::ArchiveInsert(entry.path()
-                                                 .to_string_lossy()
-                                                 .to_string()),
-                                             Reason::IO(e));
+                                self.report.failure(
+                                    OperationType::ArchiveInsert(
+                                        entry.path().to_string_lossy().to_string(),
+                                    ),
+                                    Reason::IO(e),
+                                );
                                 break;
                             }
                             if let Some(e) = fs::rename(entry.path(), &path).err() {
-                                self.report
-                                    .failure(OperationType::ArchiveInsert(entry.path()
-                                                 .to_string_lossy()
-                                                 .to_string()),
-                                             Reason::IO(e));
+                                self.report.failure(
+                                    OperationType::ArchiveInsert(
+                                        entry.path().to_string_lossy().to_string(),
+                                    ),
+                                    Reason::IO(e),
+                                );
                                 break;
                             }
-                            self.report
-                                .success(OperationType::ArchiveInsert(path.to_string_lossy()
-                                                                          .to_string()));
+                            self.report.success(OperationType::ArchiveInsert(
+                                path.to_string_lossy().to_string(),
+                            ));
                         }
                         Err(e) => {
                             // We should be moving this back to the garbage directory and recording
                             // the path of it there in this failure
-                            self.report
-                                .failure(OperationType::ArchiveInsert(entry
-                                                                          .path()
-                                                                          .to_string_lossy()
-                                                                          .to_string()),
-                                         Reason::BadMetadata(e));
+                            self.report.failure(
+                                OperationType::ArchiveInsert(
+                                    entry.path().to_string_lossy().to_string(),
+                                ),
+                                Reason::BadMetadata(e),
+                            );
                         }
                     }
                 }
                 Err(e) => {
                     debug!("Error reading, archive={:?} error={:?}", &archive, &e);
-                    self.report
-                        .failure(OperationType::ArchiveInsert(entry
-                                                                  .path()
-                                                                  .to_string_lossy()
-                                                                  .to_string()),
-                                 Reason::BadArchive);
+                    self.report.failure(
+                        OperationType::ArchiveInsert(
+                            entry.path().to_string_lossy().to_string(),
+                        ),
+                        Reason::BadArchive,
+                    );
                 }
             }
         }
@@ -242,11 +246,12 @@ impl<'a> Doctor<'a> {
         for dir in directories.iter() {
             if let Some(e) = fs::remove_dir(dir.path()).err() {
                 debug!("Error deleting: {:?}", &e);
-                self.report
-                    .failure(OperationType::CleanupTrash(self.packages_path
-                                                             .to_string_lossy()
-                                                             .to_string()),
-                             Reason::NotEmpty);
+                self.report.failure(
+                    OperationType::CleanupTrash(
+                        self.packages_path.to_string_lossy().to_string(),
+                    ),
+                    Reason::NotEmpty,
+                );
             }
         }
         Ok(())

@@ -20,11 +20,12 @@ use walkdir::WalkDir;
 use error::{Error, Result};
 use hcore::fs::PKG_PATH;
 
-pub fn start(filename: &str,
-             fs_root_path: &Path,
-             full_releases: bool,
-             full_path: bool)
-             -> Result<()> {
+pub fn start(
+    filename: &str,
+    fs_root_path: &Path,
+    full_releases: bool,
+    full_path: bool,
+) -> Result<()> {
     let mut found = HashSet::new();
     // count the # of directories in the path to the package dir
     // ex: /hab/pkg == 2
@@ -43,9 +44,9 @@ pub fn start(filename: &str,
                 let mut comps = entry.path().components();
 
                 // skip prefix_count segments of the path
-                let _ = try!(comps
-                                 .nth(prefix_count)
-                                 .ok_or(Error::FileNotFound(f.to_string())));
+                let _ = try!(comps.nth(prefix_count).ok_or(
+                    Error::FileNotFound(f.to_string()),
+                ));
 
                 let segments = if full_releases {
                     // take all 4 segments of the path

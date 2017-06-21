@@ -46,9 +46,11 @@ impl Server {
         let broker = Broker::run(Self::net_ident(), self.config.route_addrs());
         let http = try!(http::run(cfg1));
 
-        println!("Builder Admin listening on {}:{}",
-                 self.config.http.listen,
-                 self.config.http.port);
+        println!(
+            "Builder Admin listening on {}:{}",
+            self.config.http.listen,
+            self.config.http.port
+        );
         http.join().unwrap();
         broker.join().unwrap();
         Ok(())

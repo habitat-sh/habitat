@@ -109,8 +109,10 @@ impl RoutedMessages {
         let msg_type = &TypeId::of::<M>();
         match self.0.get(msg_type) {
             Some(msg) => {
-                Ok(parse_from_bytes::<M>(msg)
-                       .expect(&format!("Unable to parse {:?} message", msg_type)))
+                Ok(parse_from_bytes::<M>(msg).expect(&format!(
+                    "Unable to parse {:?} message",
+                    msg_type
+                )))
             }
             None => Err(Error::MessageTypeNotFound),
         }
@@ -134,9 +136,10 @@ const PAGINATION_RANGE_DEFAULT: isize = 0;
 const PAGINATION_RANGE_MAX: isize = 50;
 const ONE_YEAR_IN_SECS: usize = 31536000;
 
-fn route_message<M: Routable, R: protobuf::MessageStatic>(req: &mut Request,
-                                                          msg: &M)
-                                                          -> RouteResult<R> {
+fn route_message<M: Routable, R: protobuf::MessageStatic>(
+    req: &mut Request,
+    msg: &M,
+) -> RouteResult<R> {
     if let Some(broker) = req.extensions.get_mut::<TestableBroker>() {
         return broker.route::<M, R>(msg);
     }
@@ -144,11 +147,12 @@ fn route_message<M: Routable, R: protobuf::MessageStatic>(req: &mut Request,
     Broker::connect().unwrap().route::<M, R>(msg)
 }
 
-fn package_results_json<T: Serialize>(packages: &Vec<T>,
-                                      count: isize,
-                                      start: isize,
-                                      end: isize)
-                                      -> String {
+fn package_results_json<T: Serialize>(
+    packages: &Vec<T>,
+    count: isize,
+    start: isize,
+    end: isize,
+) -> String {
     let results = PackageResults {
         range_start: start,
         range_end: end,
@@ -219,10 +223,11 @@ pub fn get_origin<T: ToString>(req: &mut Request, origin: T) -> IronResult<Optio
     }
 }
 
-pub fn check_origin_access<T: ToString>(req: &mut Request,
-                                        account_id: u64,
-                                        origin: T)
-                                        -> IronResult<bool> {
+pub fn check_origin_access<T: ToString>(
+    req: &mut Request,
+    account_id: u64,
+    origin: T,
+) -> IronResult<bool> {
     let mut request = CheckOriginAccessRequest::new();
     request.set_account_id(account_id);
     request.set_origin_name(origin.to_string());
@@ -257,9 +262,11 @@ pub fn accept_invitation(req: &mut Request) -> IronResult<Response> {
     };
 
     let mut conn = Broker::connect().unwrap();
-    debug!("Accepting invitation for user {} origin {}",
-           &session.get_id(),
-           &origin);
+    debug!(
+        "Accepting invitation for user {} origin {}",
+        &session.get_id(),
+        &origin
+    );
 
     let mut request = OriginInvitationAcceptRequest::new();
     request.set_account_id(session.get_id());
@@ -269,11 +276,13 @@ pub fn accept_invitation(req: &mut Request) -> IronResult<Response> {
 
     match conn.route::<OriginInvitationAcceptRequest, NetOk>(&request) {
         Ok(_) => {
-            log_event!(req,
-                       Event::OriginInvitationAccept {
-                           id: request.get_invite_id().to_string(),
-                           account: session.get_id().to_string(),
-                       });
+            log_event!(
+                req,
+                Event::OriginInvitationAccept {
+                    id: request.get_invite_id().to_string(),
+                    account: session.get_id().to_string(),
+                }
+            );
             Ok(Response::with(status::NoContent))
         }
         Err(err) => {
@@ -296,9 +305,11 @@ pub fn invite_to_origin(req: &mut Request) -> IronResult<Response> {
         None => return Ok(Response::with(status::BadRequest)),
     };
     let mut conn = Broker::connect().unwrap();
-    debug!("Creating invitation for user {} origin {}",
-           &user_to_invite,
-           &origin);
+    debug!(
+        "Creating invitation for user {} origin {}",
+        &user_to_invite,
+        &origin
+    );
     if !try!(check_origin_access(req, session.get_id(), &origin)) {
         return Ok(Response::with(status::Forbidden));
     }
@@ -325,13 +336,15 @@ pub fn invite_to_origin(req: &mut Request) -> IronResult<Response> {
     // store invitations in the originsrv
     match conn.route::<OriginInvitationCreate, OriginInvitation>(&invite_request) {
         Ok(invitation) => {
-            log_event!(req,
-                       Event::OriginInvitationSend {
-                           origin: origin.to_string(),
-                           user: user_to_invite.to_string(),
-                           id: invitation.get_id().to_string(),
-                           account: session.get_id().to_string(),
-                       });
+            log_event!(
+                req,
+                Event::OriginInvitationSend {
+                    origin: origin.to_string(),
+                    user: user_to_invite.to_string(),
+                    id: invitation.get_id().to_string(),
+                    account: session.get_id().to_string(),
+                }
+            );
             Ok(render_json(status::Created, &invitation))
         }
         Err(err) => Ok(render_net_error(&err)),
@@ -494,20 +507,27 @@ fn upload_origin_key(req: &mut Request) -> IronResult<Response> {
 
     match conn.route::<OriginPublicKeyCreate, OriginPublicKey>(&request) {
         Ok(_) => {
-            log_event!(req,
-                       Event::OriginKeyUpload {
-                           origin: origin.to_string(),
-                           version: request.get_revision().to_string(),
-                           account: session.get_id().to_string(),
-                       });
-            let mut response =
-                Response::with((status::Created,
-                                format!("/origins/{}/keys/{}", &origin, &request.get_revision())));
+            log_event!(
+                req,
+                Event::OriginKeyUpload {
+                    origin: origin.to_string(),
+                    version: request.get_revision().to_string(),
+                    account: session.get_id().to_string(),
+                }
+            );
+            let mut response = Response::with((
+                status::Created,
+                format!(
+                    "/origins/{}/keys/{}",
+                    &origin,
+                    &request.get_revision()
+                ),
+            ));
             let mut base_url: url::Url = req.url.clone().into();
             base_url.set_path(&format!("key/{}-{}", &origin, &request.get_revision()));
-            response
-                .headers
-                .set(headers::Location(format!("{}", base_url)));
+            response.headers.set(
+                headers::Location(format!("{}", base_url)),
+            );
             Ok(response)
         }
         Err(err) => Ok(render_net_error(&err)),
@@ -597,12 +617,14 @@ fn upload_origin_secret_key(req: &mut Request) -> IronResult<Response> {
 
     match conn.route::<OriginSecretKeyCreate, OriginSecretKey>(&request) {
         Ok(_) => {
-            log_event!(req,
-                       Event::OriginSecretKeyUpload {
-                           origin: origin.to_string(),
-                           version: request.take_revision(),
-                           account: session.get_id().to_string(),
-                       });
+            log_event!(
+                req,
+                Event::OriginSecretKeyUpload {
+                    origin: origin.to_string(),
+                    version: request.take_revision(),
+                    account: session.get_id().to_string(),
+                }
+            );
             Ok(Response::with(status::Created))
         }
         Err(err) => Ok(render_net_error(&err)),
@@ -610,8 +632,9 @@ fn upload_origin_secret_key(req: &mut Request) -> IronResult<Response> {
 }
 
 fn upload_package(req: &mut Request) -> IronResult<Response> {
-    let lock = req.get::<persistent::State<DepotUtil>>()
-        .expect("depot not found");
+    let lock = req.get::<persistent::State<DepotUtil>>().expect(
+        "depot not found",
+    );
     let depot = lock.read().expect("depot read lock is poisoned");
     let checksum_from_param = match extract_query_value("checksum", req) {
         Some(checksum) => checksum,
@@ -627,17 +650,26 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
         return Ok(Response::with(status::BadRequest));
     }
 
-    debug!("UPLOADING checksum={}, ident={}",
-           checksum_from_param,
-           ident);
+    debug!(
+        "UPLOADING checksum={}, ident={}",
+        checksum_from_param,
+        ident
+    );
 
     // TODO: SA - Eliminate need to clone the session
     let session = req.extensions.get::<Authenticated>().unwrap().clone();
     if !depot.config.insecure {
-        if !try!(check_origin_access(req, session.get_id(), &ident.get_origin())) {
-            debug!("Failed origin access check, session: {}, ident: {}",
-                   session.get_id(),
-                   ident);
+        if !try!(check_origin_access(
+            req,
+            session.get_id(),
+            &ident.get_origin(),
+        ))
+        {
+            debug!(
+                "Failed origin access check, session: {}, ident: {}",
+                session.get_id(),
+                ident
+            );
             return Ok(Response::with(status::Forbidden));
         }
         if !ident.fully_qualified() {
@@ -673,8 +705,10 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
     };
 
     if !depot.config.targets.contains(&target_from_artifact) {
-        debug!("Unsupported package platform or architecture {}.",
-               target_from_artifact);
+        debug!(
+            "Unsupported package platform or architecture {}.",
+            target_from_artifact
+        );
         return Ok(Response::with(status::NotImplemented));
     };
 
@@ -706,9 +740,11 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
         }
     };
     if checksum_from_param != checksum_from_artifact {
-        info!("Checksums did not match: from_param={:?}, from_artifact={:?}",
-              checksum_from_param,
-              checksum_from_artifact);
+        info!(
+            "Checksums did not match: from_param={:?}, from_artifact={:?}",
+            checksum_from_param,
+            checksum_from_artifact
+        );
         return Ok(Response::with(status::UnprocessableEntity));
     }
 
@@ -734,9 +770,11 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
     match route_message::<PackagePreCreate, NetOk>(req, &pcr_req) {
         Ok(_) => (),
         Err(e) => {
-            debug!("Failed package circular dependency check: {:?}, err: {:?}",
-                   ident,
-                   e);
+            debug!(
+                "Failed package circular dependency check: {:?}, err: {:?}",
+                ident,
+                e
+            );
             return Ok(Response::with(status::FailedDependency));
         }
     }
@@ -746,10 +784,12 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
     match fs::rename(&temp_path, &filename) {
         Ok(_) => {}
         Err(e) => {
-            error!("Unable to rename temp archive {:?} to {:?}, err={:?}",
-                   temp_path,
-                   filename,
-                   e);
+            error!(
+                "Unable to rename temp archive {:?} to {:?}, err={:?}",
+                temp_path,
+                filename,
+                e
+            );
             return Ok(Response::with(status::InternalServerError));
         }
     }
@@ -777,31 +817,36 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
         match route_message::<OriginPackageCreate, OriginPackage>(req, &package) {
             Ok(_) => (),
             Err(err) => {
-                error!("Unable to create origin package for {:?}, err={:?}",
-                       ident,
-                       err);
+                error!(
+                    "Unable to create origin package for {:?}, err={:?}",
+                    ident,
+                    err
+                );
                 return Ok(Response::with(status::InternalServerError));
             }
         }
 
-        log_event!(req,
-                   Event::PackageUpload {
-                       origin: ident.get_origin().to_string(),
-                       package: ident.get_name().to_string(),
-                       version: ident.get_version().to_string(),
-                       release: ident.get_release().to_string(),
-                       target: target_from_artifact.to_string(),
-                       account: session.get_id().to_string(),
-                   });
+        log_event!(
+            req,
+            Event::PackageUpload {
+                origin: ident.get_origin().to_string(),
+                package: ident.get_name().to_string(),
+                version: ident.get_version().to_string(),
+                release: ident.get_release().to_string(),
+                target: target_from_artifact.to_string(),
+                account: session.get_id().to_string(),
+            }
+        );
 
         // Schedule re-build of dependent packages (if requested)
         // Don't schedule builds if the upload is being done by the builder
         // Currently, we only do dep builds of 'core' packages
         if depot.config.builds_enabled && ident.get_origin() == "core" &&
-           !match extract_query_value("builder", req) {
+            !match extract_query_value("builder", req) {
                 Some(_) => true,
                 None => false,
-            } {
+            }
+        {
             let mut conn = Broker::connect().unwrap();
 
             let mut request = GroupCreate::new();
@@ -811,25 +856,31 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
 
             match conn.route::<GroupCreate, Group>(&request) {
                 Ok(group) => {
-                    debug!("Scheduled reverse dependecy build, group id: {}",
-                           group.get_id())
+                    debug!(
+                        "Scheduled reverse dependecy build, group id: {}",
+                        group.get_id()
+                    )
                 }
                 Err(err) => error!("Unable to schedule build, err: {:?}", err),
             }
         }
 
-        let mut response = Response::with((status::Created,
-                                           format!("/pkgs/{}/download", package.get_ident())));
+        let mut response = Response::with((
+            status::Created,
+            format!("/pkgs/{}/download", package.get_ident()),
+        ));
         let mut base_url: url::Url = req.url.clone().into();
         base_url.set_path(&format!("pkgs/{}/download", package.get_ident()));
-        response
-            .headers
-            .set(headers::Location(format!("{}", base_url)));
+        response.headers.set(
+            headers::Location(format!("{}", base_url)),
+        );
         Ok(response)
     } else {
-        info!("Ident mismatch, expected={:?}, got={:?}",
-              ident,
-              package.get_ident());
+        info!(
+            "Ident mismatch, expected={:?}, got={:?}",
+            ident,
+            package.get_ident()
+        );
         Ok(Response::with(status::UnprocessableEntity))
     }
 }
@@ -939,9 +990,9 @@ fn download_origin_key(req: &mut Request) -> IronResult<Response> {
 
     let xfilename = format!("{}-{}.pub", key.get_name(), key.get_revision());
     let mut response = Response::with((status::Ok, key.get_body()));
-    response
-        .headers
-        .set(ContentDisposition(format!("attachment; filename=\"{}\"", xfilename)));
+    response.headers.set(ContentDisposition(
+        format!("attachment; filename=\"{}\"", xfilename),
+    ));
     response.headers.set(XFileName(xfilename));
     do_cache_response(&mut response);
     Ok(response)
@@ -968,17 +1019,18 @@ fn download_latest_origin_key(req: &mut Request) -> IronResult<Response> {
 
     let xfilename = format!("{}-{}.pub", key.get_name(), key.get_revision());
     let mut response = Response::with((status::Ok, key.get_body()));
-    response
-        .headers
-        .set(ContentDisposition(format!("attachment; filename=\"{}\"", xfilename)));
+    response.headers.set(ContentDisposition(
+        format!("attachment; filename=\"{}\"", xfilename),
+    ));
     response.headers.set(XFileName(xfilename));
     dont_cache_response(&mut response);
     Ok(response)
 }
 
 fn download_package(req: &mut Request) -> IronResult<Response> {
-    let lock = req.get::<persistent::State<DepotUtil>>()
-        .expect("depot not found");
+    let lock = req.get::<persistent::State<DepotUtil>>().expect(
+        "depot not found",
+    );
     let depot = lock.read().expect("depot read lock is poisoned");
     let mut ident_req = OriginPackageGet::new();
     {
@@ -987,8 +1039,10 @@ fn download_package(req: &mut Request) -> IronResult<Response> {
     };
     let agent_target = target_from_headers(&req.headers.get::<UserAgent>().unwrap()).unwrap();
     if !depot.config.targets.contains(&agent_target) {
-        error!("Unsupported client platform ({}) for this depot.",
-               agent_target);
+        error!(
+            "Unsupported client platform ({}) for this depot.",
+            agent_target
+        );
         return Ok(Response::with(status::NotImplemented));
     }
 
@@ -1001,12 +1055,13 @@ fn download_package(req: &mut Request) -> IronResult<Response> {
                         do_cache_response(&mut response);
                         let disp = ContentDisposition {
                             disposition: DispositionType::Attachment,
-                            parameters: vec![DispositionParam::Filename(Charset::Iso_8859_1,
-                                                                        None,
-                                                                        archive
-                                                                            .file_name()
-                                                                            .as_bytes()
-                                                                            .to_vec())],
+                            parameters: vec![
+                                DispositionParam::Filename(
+                                    Charset::Iso_8859_1,
+                                    None,
+                                    archive.file_name().as_bytes().to_vec()
+                                ),
+                            ],
                         };
                         response.headers.set(disp);
                         response.headers.set(XFileName(archive.file_name()));
@@ -1053,9 +1108,11 @@ fn list_origin_keys(req: &mut Request) -> IronResult<Response> {
                 .iter()
                 .map(|key| {
                     let mut ident = OriginKeyIdent::new();
-                    ident.set_location(format!("/origins/{}/keys/{}",
-                                               &key.get_name(),
-                                               &key.get_revision()));
+                    ident.set_location(format!(
+                        "/origins/{}/keys/{}",
+                        &key.get_name(),
+                        &key.get_revision()
+                    ));
                     ident.set_origin(key.get_name().to_string());
                     ident.set_revision(key.get_revision().to_string());
                     ident
@@ -1086,30 +1143,36 @@ fn list_unique_packages(req: &mut Request) -> IronResult<Response> {
         }
     };
 
-    match route_message::<OriginPackageUniqueListRequest,
-                          OriginPackageUniqueListResponse>(req, &request) {
+    match route_message::<OriginPackageUniqueListRequest, OriginPackageUniqueListResponse>(
+        req,
+        &request,
+    ) {
         Ok(packages) => {
-            debug!("list_unique_packages start: {}, stop: {}, total count: {}",
-                   packages.get_start(),
-                   packages.get_stop(),
-                   packages.get_count());
-            let body = package_results_json(&packages.get_idents().to_vec(),
-                                            packages.get_count() as isize,
-                                            packages.get_start() as isize,
-                                            packages.get_stop() as isize);
+            debug!(
+                "list_unique_packages start: {}, stop: {}, total count: {}",
+                packages.get_start(),
+                packages.get_stop(),
+                packages.get_count()
+            );
+            let body = package_results_json(
+                &packages.get_idents().to_vec(),
+                packages.get_count() as isize,
+                packages.get_start() as isize,
+                packages.get_stop() as isize,
+            );
 
-            let mut response = if packages.get_count() as isize >
-                                  (packages.get_stop() as isize + 1) {
-                Response::with((status::PartialContent, body))
-            } else {
-                Response::with((status::Ok, body))
-            };
+            let mut response =
+                if packages.get_count() as isize > (packages.get_stop() as isize + 1) {
+                    Response::with((status::PartialContent, body))
+                } else {
+                    Response::with((status::Ok, body))
+                };
 
-            response
-                .headers
-                .set(ContentType(Mime(TopLevel::Application,
-                                      SubLevel::Json,
-                                      vec![(Attr::Charset, Value::Utf8)])));
+            response.headers.set(ContentType(Mime(
+                TopLevel::Application,
+                SubLevel::Json,
+                vec![(Attr::Charset, Value::Utf8)],
+            )));
             dont_cache_response(&mut response);
             Ok(response)
         }
@@ -1147,8 +1210,10 @@ fn list_package_versions(req: &mut Request) -> IronResult<Response> {
     let mut request = OriginPackageVersionListRequest::new();
     request.set_origin(origin);
     request.set_name(name);
-    packages = route_message::<OriginPackageVersionListRequest,
-                               OriginPackageVersionListResponse>(req, &request);
+    packages = route_message::<OriginPackageVersionListRequest, OriginPackageVersionListResponse>(
+        req,
+        &request,
+    );
 
     match packages {
         Ok(packages) => {
@@ -1156,11 +1221,11 @@ fn list_package_versions(req: &mut Request) -> IronResult<Response> {
             let body = serde_json::to_string(&packages.get_versions().to_vec()).unwrap();
             let mut response = Response::with((status::Ok, body));
 
-            response
-                .headers
-                .set(ContentType(Mime(TopLevel::Application,
-                                      SubLevel::Json,
-                                      vec![(Attr::Charset, Value::Utf8)])));
+            response.headers.set(ContentType(Mime(
+                TopLevel::Application,
+                SubLevel::Json,
+                vec![(Attr::Charset, Value::Utf8)],
+            )));
             dont_cache_response(&mut response);
             Ok(response)
         }
@@ -1211,10 +1276,14 @@ fn list_packages(req: &mut Request) -> IronResult<Response> {
             request.set_name(channel);
             request.set_start(start as u64);
             request.set_stop(stop as u64);
-            request.set_ident(OriginPackageIdent::from_str(ident.as_str())
-                                  .expect("invalid package identifier"));
-            packages = route_message::<OriginChannelPackageListRequest,
-                                       OriginPackageListResponse>(req, &request);
+            request.set_ident(OriginPackageIdent::from_str(ident.as_str()).expect(
+                "invalid package identifier",
+            ));
+            packages =
+                route_message::<OriginChannelPackageListRequest, OriginPackageListResponse>(
+                    req,
+                    &request,
+                );
         }
         None => {
             let mut request = OriginPackageListRequest::new();
@@ -1226,36 +1295,41 @@ fn list_packages(req: &mut Request) -> IronResult<Response> {
                 request.set_distinct(true);
             }
 
-            request.set_ident(OriginPackageIdent::from_str(ident.as_str())
-                                  .expect("invalid package identifier"));
-            packages = route_message::<OriginPackageListRequest,
-                                       OriginPackageListResponse>(req, &request);
+            request.set_ident(OriginPackageIdent::from_str(ident.as_str()).expect(
+                "invalid package identifier",
+            ));
+            packages =
+                route_message::<OriginPackageListRequest, OriginPackageListResponse>(req, &request);
         }
     }
 
     match packages {
         Ok(packages) => {
-            debug!("list_packages start: {}, stop: {}, total count: {}",
-                   packages.get_start(),
-                   packages.get_stop(),
-                   packages.get_count());
-            let body = package_results_json(&packages.get_idents().to_vec(),
-                                            packages.get_count() as isize,
-                                            packages.get_start() as isize,
-                                            packages.get_stop() as isize);
+            debug!(
+                "list_packages start: {}, stop: {}, total count: {}",
+                packages.get_start(),
+                packages.get_stop(),
+                packages.get_count()
+            );
+            let body = package_results_json(
+                &packages.get_idents().to_vec(),
+                packages.get_count() as isize,
+                packages.get_start() as isize,
+                packages.get_stop() as isize,
+            );
 
-            let mut response = if packages.get_count() as isize >
-                                  (packages.get_stop() as isize + 1) {
-                Response::with((status::PartialContent, body))
-            } else {
-                Response::with((status::Ok, body))
-            };
+            let mut response =
+                if packages.get_count() as isize > (packages.get_stop() as isize + 1) {
+                    Response::with((status::PartialContent, body))
+                } else {
+                    Response::with((status::Ok, body))
+                };
 
-            response
-                .headers
-                .set(ContentType(Mime(TopLevel::Application,
-                                      SubLevel::Json,
-                                      vec![(Attr::Charset, Value::Utf8)])));
+            response.headers.set(ContentType(Mime(
+                TopLevel::Application,
+                SubLevel::Json,
+                vec![(Attr::Charset, Value::Utf8)],
+            )));
             dont_cache_response(&mut response);
             Ok(response)
         }
@@ -1292,10 +1366,10 @@ fn list_channels(req: &mut Request) -> IronResult<Response> {
             let list: Vec<OriginChannelIdent> = list.get_channels()
                 .iter()
                 .map(|channel| {
-                         let mut ident = OriginChannelIdent::new();
-                         ident.set_name(channel.get_name().to_string());
-                         ident
-                     })
+                    let mut ident = OriginChannelIdent::new();
+                    ident.set_name(channel.get_name().to_string());
+                    ident
+                })
                 .collect();
             let body = serde_json::to_string(&list).unwrap();
             let mut response = Response::with((status::Ok, body));
@@ -1431,8 +1505,10 @@ fn show_package(req: &mut Request) -> IronResult<Response> {
             request.set_name(channel.clone());
             request.set_ident(ident);
             request.set_target(target);
-            match route_message::<OriginChannelPackageLatestGet, OriginPackageIdent>(req,
-                                                                                     &request) {
+            match route_message::<OriginChannelPackageLatestGet, OriginPackageIdent>(
+                req,
+                &request,
+            ) {
                 Ok(id) => ident = id.into(),
                 Err(err) => {
                     match err.get_code() {
@@ -1519,13 +1595,12 @@ fn search_packages(req: &mut Request) -> IronResult<Response> {
 
     {
         let params = req.extensions.get::<Router>().unwrap();
-        request.set_query(url::percent_encoding::percent_decode(params
-                                                                    .find("query")
-                                                                    .unwrap()
-                                                                    .as_bytes())
-                                  .decode_utf8()
-                                  .unwrap()
-                                  .to_string());
+        request.set_query(
+            url::percent_encoding::percent_decode(params.find("query").unwrap().as_bytes())
+                .decode_utf8()
+                .unwrap()
+                .to_string(),
+        );
     };
 
     debug!("search_packages called with: {}", request.get_query());
@@ -1549,27 +1624,31 @@ fn search_packages(req: &mut Request) -> IronResult<Response> {
 
     match route_message::<OriginPackageSearchRequest, OriginPackageListResponse>(req, &request) {
         Ok(packages) => {
-            debug!("search_packages start: {}, stop: {}, total count: {}",
-                   packages.get_start(),
-                   packages.get_stop(),
-                   packages.get_count());
-            let body = package_results_json(&packages.get_idents().to_vec(),
-                                            packages.get_count() as isize,
-                                            packages.get_start() as isize,
-                                            packages.get_stop() as isize);
+            debug!(
+                "search_packages start: {}, stop: {}, total count: {}",
+                packages.get_start(),
+                packages.get_stop(),
+                packages.get_count()
+            );
+            let body = package_results_json(
+                &packages.get_idents().to_vec(),
+                packages.get_count() as isize,
+                packages.get_start() as isize,
+                packages.get_stop() as isize,
+            );
 
-            let mut response = if packages.get_count() as isize >
-                                  (packages.get_stop() as isize + 1) {
-                Response::with((status::PartialContent, body))
-            } else {
-                Response::with((status::Ok, body))
-            };
+            let mut response =
+                if packages.get_count() as isize > (packages.get_stop() as isize + 1) {
+                    Response::with((status::PartialContent, body))
+                } else {
+                    Response::with((status::Ok, body))
+                };
 
-            response
-                .headers
-                .set(ContentType(Mime(TopLevel::Application,
-                                      SubLevel::Json,
-                                      vec![(Attr::Charset, Value::Utf8)])));
+            response.headers.set(ContentType(Mime(
+                TopLevel::Application,
+                SubLevel::Json,
+                vec![(Attr::Charset, Value::Utf8)],
+            )));
             dont_cache_response(&mut response);
             Ok(response)
         }
@@ -1584,11 +1663,11 @@ fn render_package(pkg: &OriginPackage, should_cache: bool) -> IronResult<Respons
     let body = serde_json::to_string(&pkg).unwrap();
     let mut response = Response::with((status::Ok, body));
     response.headers.set(ETag(pkg.get_checksum().to_string()));
-    response
-        .headers
-        .set(ContentType(Mime(TopLevel::Application,
-                              SubLevel::Json,
-                              vec![(Attr::Charset, Value::Utf8)])));
+    response.headers.set(ContentType(Mime(
+        TopLevel::Application,
+        SubLevel::Json,
+        vec![(Attr::Charset, Value::Utf8)],
+    )));
     if should_cache {
         do_cache_response(&mut response);
     } else {
@@ -1702,11 +1781,12 @@ fn target_from_headers(user_agent_header: &UserAgent) -> result::Result<PackageT
     let user_agent = user_agent_header.as_str();
     debug!("Headers = {}", &user_agent);
 
-    let user_agent_regex =
-        Regex::new(r"(?P<client>[^\s]+)\s?(\((?P<target>\w+-\w+); (?P<kernel>.*)\))?").unwrap();
-    let user_agent_capture = user_agent_regex
-        .captures(user_agent)
-        .expect("Invalid user agent supplied.");
+    let user_agent_regex = Regex::new(
+        r"(?P<client>[^\s]+)\s?(\((?P<target>\w+-\w+); (?P<kernel>.*)\))?",
+    ).unwrap();
+    let user_agent_capture = user_agent_regex.captures(user_agent).expect(
+        "Invalid user agent supplied.",
+    );
 
     // All of our tooling that depends on this function to return a target will have a user
     // agent that includes the platform. Therefore, if we can't find a target, it's safe to
@@ -1742,9 +1822,11 @@ fn extract_pagination(req: &mut Request) -> result::Result<(isize, isize), Respo
         }
     };
 
-    debug!("extract_pagination range: (start, end): ({}, {})",
-           offset,
-           (offset + PAGINATION_RANGE_MAX - 1));
+    debug!(
+        "extract_pagination range: (start, end): ({}, {})",
+        offset,
+        (offset + PAGINATION_RANGE_MAX - 1)
+    );
     Ok((offset, offset + PAGINATION_RANGE_MAX - 1))
 }
 
@@ -1766,19 +1848,20 @@ fn extract_query_value(key: &str, req: &mut Request) -> Option<String> {
 }
 
 fn do_cache_response(response: &mut Response) {
-    response
-        .headers
-        .set(CacheControl(format!("public, max-age={}", ONE_YEAR_IN_SECS)));
+    response.headers.set(CacheControl(
+        format!("public, max-age={}", ONE_YEAR_IN_SECS),
+    ));
 }
 
 fn dont_cache_response(response: &mut Response) {
-    response
-        .headers
-        .set(CacheControl(format!("private, no-cache, no-store")));
+    response.headers.set(CacheControl(
+        format!("private, no-cache, no-store"),
+    ));
 }
 
 pub fn routes<M>(insecure: bool, basic: M, worker: M) -> Router
-    where M: BeforeMiddleware + Clone
+where
+    M: BeforeMiddleware + Clone,
 {
     router!(
         channels: get "/channels/:origin" => list_channels,
@@ -1880,8 +1963,10 @@ pub fn router(depot: DepotUtil) -> Result<Chain> {
     let worker = Authenticated::new(&depot.config).require(privilege::BUILD_WORKER);
     let router = routes(depot.config.insecure, basic, worker);
     let mut chain = Chain::new(router);
-    chain.link(persistent::Read::<EventLog>::both(EventLogger::new(&depot.config.log_dir,
-                                                                   depot.config.events_enabled)));
+    chain.link(persistent::Read::<EventLog>::both(EventLogger::new(
+        &depot.config.log_dir,
+        depot.config.events_enabled,
+    )));
     chain.link(persistent::State::<DepotUtil>::both(depot));
 
     chain.link_after(Cors);
@@ -1895,9 +1980,9 @@ pub fn run(config: Config) -> Result<()> {
 
     let mut mount = Mount::new();
     mount.mount("/v1", v1);
-    Iron::new(mount)
-        .http(&config.http)
-        .expect("Unable to start HTTP listener");
+    Iron::new(mount).http(&config.http).expect(
+        "Unable to start HTTP listener",
+    );
     broker.join().unwrap();
     Ok(())
 }
@@ -1952,12 +2037,13 @@ mod test {
             .join(name)
     }
 
-    fn iron_request(method: method::Method,
-                    path: &str,
-                    body: &mut Vec<u8>,
-                    headers: Headers,
-                    broker: TestableBroker)
-                    -> (IronResult<Response>, RoutedMessages) {
+    fn iron_request(
+        method: method::Method,
+        path: &str,
+        body: &mut Vec<u8>,
+        headers: Headers,
+        broker: TestableBroker,
+    ) -> (IronResult<Response>, RoutedMessages) {
         let url = Url::parse(path).unwrap();
         let mut buffer = String::new();
         buffer.push_str(&format!("{} {} HTTP/1.1\r\n", &method, url));
@@ -1990,7 +2076,9 @@ mod test {
         let router = routes(true, basic, worker);
         let mut chain = Chain::new(router);
         chain.link(persistent::State::<DepotUtil>::both(depot));
-        chain.link(persistent::Read::<EventLog>::both(EventLogger::new("", false)));
+        chain.link(persistent::Read::<EventLog>::both(
+            EventLogger::new("", false),
+        ));
         let resp = chain.handle(&mut req);
         let req_broker = req.extensions.get::<TestableBroker>().unwrap();
         let msgs = req_broker.routed_messages();
@@ -2025,15 +2113,18 @@ mod test {
         key_res.set_keys(keys);
         broker.setup::<OriginPublicKeyListRequest, OriginPublicKeyListResponse>(&key_res);
 
-        let (response, _) = iron_request(method::Get,
-                                         "http://localhost/origins/org/keys",
-                                         &mut Vec::new(),
-                                         Headers::new(),
-                                         broker);
+        let (response, _) = iron_request(
+            method::Get,
+            "http://localhost/origins/org/keys",
+            &mut Vec::new(),
+            Headers::new(),
+            broker,
+        );
         let result_body = response::extract_body_to_string(response.unwrap());
 
-        assert_eq!(result_body,
-                   "[\
+        assert_eq!(
+            result_body,
+            "[\
             {\
                 \"origin\":\"my_name\",\
                 \"revision\":\"my_rev\",\
@@ -2044,7 +2135,8 @@ mod test {
                 \"revision\":\"my_rev2\",\
                 \"location\":\"/origins/my_name2/keys/my_rev2\"\
             }\
-        ]");
+        ]"
+        );
     }
 
     #[test]
@@ -2085,23 +2177,34 @@ mod test {
         File::open(&path).unwrap().read_to_end(&mut body).unwrap();
         let checksum = hash::hash_file(&path).unwrap();
 
-        let (resp, msgs) = iron_request(method::Post,
-                                    format!("http://localhost/pkgs/core/cacerts/2017.01.17/20170209064044?checksum={}", checksum).as_str(),
-                                    &mut body,
-                                    Headers::new(),
-                                    broker);
+        let (resp, msgs) = iron_request(
+            method::Post,
+            format!(
+                "http://localhost/pkgs/core/cacerts/2017.01.17/20170209064044?checksum={}",
+                checksum
+            ).as_str(),
+            &mut body,
+            Headers::new(),
+            broker,
+        );
 
         //assert headers
         let response = resp.unwrap();
         assert_eq!(response.status, Some(status::Created));
-        assert_eq!(response.headers.get::<headers::Location>(),
-                   Some(&headers::Location(format!("http://localhost/pkgs/core/cacerts/2017.01.17/20170209064044/download?checksum={}",
-                                                  checksum))));
+        assert_eq!(
+            response.headers.get::<headers::Location>(),
+            Some(&headers::Location(format!(
+                "http://localhost/pkgs/core/cacerts/2017.01.17/20170209064044/download?checksum={}",
+                checksum
+            )))
+        );
 
         //assert body
         let result_body = response::extract_body_to_string(response);
-        assert_eq!(result_body,
-                   "/pkgs/core/cacerts/2017.01.17/20170209064044/download");
+        assert_eq!(
+            result_body,
+            "/pkgs/core/cacerts/2017.01.17/20170209064044/download"
+        );
         assert!(fs::metadata(&file_name).is_ok());
 
         //assert we sent the corect data to postgres
@@ -2127,11 +2230,16 @@ mod test {
         File::open(&path).unwrap().read_to_end(&mut body).unwrap();
         let checksum = hash::hash_file(&path).unwrap();
 
-        iron_request(method::Post,
-                                    format!("http://localhost/pkgs/core/cacerts/2017.01.17/20170209064045?checksum={}", checksum).as_str(),
-                                    &mut body.clone(),
-                                    Headers::new(),
-                                    upload_broker);
+        iron_request(
+            method::Post,
+            format!(
+                "http://localhost/pkgs/core/cacerts/2017.01.17/20170209064045?checksum={}",
+                checksum
+            ).as_str(),
+            &mut body.clone(),
+            Headers::new(),
+            upload_broker,
+        );
 
         let mut download_broker: TestableBroker = Default::default();
 
@@ -2147,26 +2255,31 @@ mod test {
 
         //set the user agent to look like a windows download
         let mut headers = Headers::new();
-        headers.set(UserAgent("hab/0.20.0-dev/20170326090935 (x86_64-windows; 10.0.14915)"
-                                  .to_string()));
+        headers.set(UserAgent(
+            "hab/0.20.0-dev/20170326090935 (x86_64-windows; 10.0.14915)"
+                .to_string(),
+        ));
 
-        let (response, _) =
-            iron_request(method::Get,
-                         "http://localhost/pkgs/core/cacerts/2017.01.17/20170209064045/download",
-                         &mut Vec::new(),
-                         headers,
-                         download_broker);
+        let (response, _) = iron_request(
+            method::Get,
+            "http://localhost/pkgs/core/cacerts/2017.01.17/20170209064045/download",
+            &mut Vec::new(),
+            headers,
+            download_broker,
+        );
 
         //assert headers
         let response = response.unwrap();
         assert_eq!(response.status, Some(status::Ok));
         let disp = ContentDisposition {
             disposition: DispositionType::Attachment,
-            parameters: vec![DispositionParam::Filename(
-                Charset::Iso_8859_1,
-                None,
-                b"core-cacerts-2017.01.17-20170209064045-x86_64-windows.hart".to_vec()
-            )],
+            parameters: vec![
+                DispositionParam::Filename(
+                    Charset::Iso_8859_1,
+                    None,
+                    b"core-cacerts-2017.01.17-20170209064045-x86_64-windows.hart".to_vec()
+                ),
+            ],
         };
         assert_eq!(response.headers.get::<ContentDisposition>(), Some(&disp));
 
@@ -2198,19 +2311,22 @@ mod test {
         pkg_res.set_idents(idents);
         broker.setup::<OriginPackageUniqueListRequest, OriginPackageUniqueListResponse>(&pkg_res);
 
-        let (response, msgs) = iron_request(method::Get,
-                                            "http://localhost/org/pkgs?range=2",
-                                            &mut Vec::new(),
-                                            Headers::new(),
-                                            broker);
+        let (response, msgs) = iron_request(
+            method::Get,
+            "http://localhost/org/pkgs?range=2",
+            &mut Vec::new(),
+            Headers::new(),
+            broker,
+        );
 
         let response = response.unwrap();
         assert_eq!(response.status, Some(status::Ok));
 
         let result_body = response::extract_body_to_string(response);
 
-        assert_eq!(result_body,
-                   "{\
+        assert_eq!(
+            result_body,
+            "{\
             \"range_start\":0,\
             \"range_end\":1,\
             \"total_count\":2,\
@@ -2224,7 +2340,8 @@ mod test {
                     \"name\":\"name2\"\
                 }\
             ]\
-        }");
+        }"
+        );
 
         //assert we sent the corect range to postgres
         let package_req = msgs.get::<OriginPackageUniqueListRequest>().unwrap();
@@ -2259,19 +2376,22 @@ mod test {
         pkg_res.set_idents(packages);
         broker.setup::<OriginPackageListRequest, OriginPackageListResponse>(&pkg_res);
 
-        let (response, msgs) = iron_request(method::Get,
-                                            "http://localhost/pkgs/org?range=2",
-                                            &mut Vec::new(),
-                                            Headers::new(),
-                                            broker);
+        let (response, msgs) = iron_request(
+            method::Get,
+            "http://localhost/pkgs/org?range=2",
+            &mut Vec::new(),
+            Headers::new(),
+            broker,
+        );
 
         let response = response.unwrap();
         assert_eq!(response.status, Some(status::Ok));
 
         let result_body = response::extract_body_to_string(response);
 
-        assert_eq!(result_body,
-                   "{\
+        assert_eq!(
+            result_body,
+            "{\
             \"range_start\":0,\
             \"range_end\":1,\
             \"total_count\":2,\
@@ -2289,7 +2409,8 @@ mod test {
                     \"release\":\"20170202020202\"\
                 }\
             ]\
-        }");
+        }"
+        );
 
         //assert we sent the corect range to postgres
         let package_req = msgs.get::<OriginPackageListRequest>().unwrap();
@@ -2325,19 +2446,22 @@ mod test {
         pkg_res.set_idents(packages);
         broker.setup::<OriginChannelPackageListRequest, OriginPackageListResponse>(&pkg_res);
 
-        let (response, msgs) = iron_request(method::Get,
-                                            "http://localhost/channels/org/channel/pkgs?range=2",
-                                            &mut Vec::new(),
-                                            Headers::new(),
-                                            broker);
+        let (response, msgs) = iron_request(
+            method::Get,
+            "http://localhost/channels/org/channel/pkgs?range=2",
+            &mut Vec::new(),
+            Headers::new(),
+            broker,
+        );
 
         let response = response.unwrap();
         assert_eq!(response.status, Some(status::Ok));
 
         let result_body = response::extract_body_to_string(response);
 
-        assert_eq!(result_body,
-                   "{\
+        assert_eq!(
+            result_body,
+            "{\
             \"range_start\":0,\
             \"range_end\":1,\
             \"total_count\":2,\
@@ -2355,7 +2479,8 @@ mod test {
                     \"release\":\"20170202020202\"\
                 }\
             ]\
-        }");
+        }"
+        );
 
         //assert we sent the corect range to postgres
         let package_req = msgs.get::<OriginChannelPackageListRequest>().unwrap();
@@ -2403,18 +2528,21 @@ mod test {
 
         show_broker.setup::<OriginPackageGet, OriginPackage>(&package);
 
-        let (response, msgs) = iron_request(method::Get,
-                                            "http://localhost/pkgs/org/name/1.1.1/20170101010101",
-                                            &mut Vec::new(),
-                                            Headers::new(),
-                                            show_broker);
+        let (response, msgs) = iron_request(
+            method::Get,
+            "http://localhost/pkgs/org/name/1.1.1/20170101010101",
+            &mut Vec::new(),
+            Headers::new(),
+            show_broker,
+        );
 
         let response = response.unwrap();
         assert_eq!(response.status, Some(status::Ok));
 
         let result_body = response::extract_body_to_string(response);
-        assert_eq!(result_body,
-                   "{\
+        assert_eq!(
+            result_body,
+            "{\
             \"ident\":{\
                 \"origin\":\"org\",\
                 \"name\":\"name\",\
@@ -2438,7 +2566,8 @@ mod test {
             }],\
             \"exposes\":[],\
             \"config\":\"config\"\
-        }");
+        }"
+        );
 
         //assert we sent the corect range to postgres
         let package_req = msgs.get::<OriginPackageGet>().unwrap();
@@ -2483,19 +2612,21 @@ mod test {
 
         show_broker.setup::<OriginChannelPackageGet, OriginPackage>(&package);
 
-        let (response, msgs) =
-            iron_request(method::Get,
-                         "http://localhost/channels/org/channel/pkgs/name/1.1.1/20170101010101",
-                         &mut Vec::new(),
-                         Headers::new(),
-                         show_broker);
+        let (response, msgs) = iron_request(
+            method::Get,
+            "http://localhost/channels/org/channel/pkgs/name/1.1.1/20170101010101",
+            &mut Vec::new(),
+            Headers::new(),
+            show_broker,
+        );
 
         let response = response.unwrap();
         assert_eq!(response.status, Some(status::Ok));
 
         let result_body = response::extract_body_to_string(response);
-        assert_eq!(result_body,
-                   "{\
+        assert_eq!(
+            result_body,
+            "{\
             \"ident\":{\
                 \"origin\":\"org\",\
                 \"name\":\"name\",\
@@ -2519,7 +2650,8 @@ mod test {
             }],\
             \"exposes\":[],\
             \"config\":\"config\"\
-        }");
+        }"
+        );
 
         //assert we sent the corect range to postgres
         let package_req = msgs.get::<OriginChannelPackageGet>().unwrap();
@@ -2574,19 +2706,25 @@ mod test {
 
         //set the user agent to look like a linux download
         let mut headers = Headers::new();
-        headers.set(UserAgent("hab/0.20.0-dev/20170326090935 (x86_64-linux; 9.9.9)".to_string()));
-        let (response, msgs) = iron_request(method::Get,
-                                            "http://localhost/pkgs/org/name/latest",
-                                            &mut Vec::new(),
-                                            headers,
-                                            show_broker);
+        headers.set(UserAgent(
+            "hab/0.20.0-dev/20170326090935 (x86_64-linux; 9.9.9)"
+                .to_string(),
+        ));
+        let (response, msgs) = iron_request(
+            method::Get,
+            "http://localhost/pkgs/org/name/latest",
+            &mut Vec::new(),
+            headers,
+            show_broker,
+        );
 
         let response = response.unwrap();
         assert_eq!(response.status, Some(status::Ok));
 
         let result_body = response::extract_body_to_string(response);
-        assert_eq!(result_body,
-                   "{\
+        assert_eq!(
+            result_body,
+            "{\
             \"ident\":{\
                 \"origin\":\"org\",\
                 \"name\":\"name\",\
@@ -2610,13 +2748,16 @@ mod test {
             }],\
             \"exposes\":[],\
             \"config\":\"config\"\
-        }");
+        }"
+        );
 
         //assert we sent the corect requests to postgres
         let latest_req = msgs.get::<OriginPackageLatestGet>().unwrap();
         assert_eq!(latest_req.get_ident().to_string(), "org/name".to_string());
-        assert_eq!(latest_req.get_target().to_string(),
-                   "x86_64-linux".to_string());
+        assert_eq!(
+            latest_req.get_target().to_string(),
+            "x86_64-linux".to_string()
+        );
         let package_req = msgs.get::<OriginPackageGet>().unwrap();
         assert_eq!(package_req.get_ident().to_string(), ident.to_string());
     }
@@ -2668,20 +2809,25 @@ mod test {
 
         //set the user agent to look like a linux download
         let mut headers = Headers::new();
-        headers.set(UserAgent("hab/0.20.0-dev/20170326090935 (x86_64-linux; 9.9.9)".to_string()));
-        let (response, msgs) =
-            iron_request(method::Get,
-                         "http://localhost/channels/org/channel/pkgs/name/latest",
-                         &mut Vec::new(),
-                         headers,
-                         show_broker);
+        headers.set(UserAgent(
+            "hab/0.20.0-dev/20170326090935 (x86_64-linux; 9.9.9)"
+                .to_string(),
+        ));
+        let (response, msgs) = iron_request(
+            method::Get,
+            "http://localhost/channels/org/channel/pkgs/name/latest",
+            &mut Vec::new(),
+            headers,
+            show_broker,
+        );
 
         let response = response.unwrap();
         assert_eq!(response.status, Some(status::Ok));
 
         let result_body = response::extract_body_to_string(response);
-        assert_eq!(result_body,
-                   "{\
+        assert_eq!(
+            result_body,
+            "{\
             \"ident\":{\
                 \"origin\":\"org\",\
                 \"name\":\"name\",\
@@ -2705,13 +2851,16 @@ mod test {
             }],\
             \"exposes\":[],\
             \"config\":\"config\"\
-        }");
+        }"
+        );
 
         //assert we sent the corect requests to postgres
         let latest_req = msgs.get::<OriginChannelPackageLatestGet>().unwrap();
         assert_eq!(latest_req.get_ident().to_string(), "org/name".to_string());
-        assert_eq!(latest_req.get_target().to_string(),
-                   "x86_64-linux".to_string());
+        assert_eq!(
+            latest_req.get_target().to_string(),
+            "x86_64-linux".to_string()
+        );
         assert_eq!(latest_req.get_name().to_string(), "channel".to_string());
         let package_req = msgs.get::<OriginChannelPackageGet>().unwrap();
         assert_eq!(package_req.get_ident().to_string(), ident.to_string());
@@ -2745,19 +2894,22 @@ mod test {
         pkg_res.set_idents(packages);
         broker.setup::<OriginPackageSearchRequest, OriginPackageListResponse>(&pkg_res);
 
-        let (response, msgs) = iron_request(method::Get,
-                                            "http://localhost/pkgs/search/org%2Fname?range=2",
-                                            &mut Vec::new(),
-                                            Headers::new(),
-                                            broker);
+        let (response, msgs) = iron_request(
+            method::Get,
+            "http://localhost/pkgs/search/org%2Fname?range=2",
+            &mut Vec::new(),
+            Headers::new(),
+            broker,
+        );
 
         let response = response.unwrap();
         assert_eq!(response.status, Some(status::Ok));
 
         let result_body = response::extract_body_to_string(response);
 
-        assert_eq!(result_body,
-                   "{\
+        assert_eq!(
+            result_body,
+            "{\
             \"range_start\":0,\
             \"range_end\":1,\
             \"total_count\":2,\
@@ -2775,7 +2927,8 @@ mod test {
                     \"release\":\"20170202020202\"\
                 }\
             ]\
-        }");
+        }"
+        );
 
         //assert we sent the corect range to postgres
         let package_req = msgs.get::<OriginPackageSearchRequest>().unwrap();
@@ -2811,22 +2964,26 @@ mod test {
 
         broker.setup::<OriginChannelListRequest, OriginChannelListResponse>(&channel_res);
 
-        let (response, _) = iron_request(method::Get,
-                                         "http://localhost/channels/org",
-                                         &mut Vec::new(),
-                                         Headers::new(),
-                                         broker);
+        let (response, _) = iron_request(
+            method::Get,
+            "http://localhost/channels/org",
+            &mut Vec::new(),
+            Headers::new(),
+            broker,
+        );
         let result_body = response::extract_body_to_string(response.unwrap());
 
-        assert_eq!(result_body,
-                   "[\
+        assert_eq!(
+            result_body,
+            "[\
             {\
                 \"name\":\"my_channel\"\
             },\
             {\
                 \"name\":\"my_channel2\"\
             }\
-        ]");
+        ]"
+        );
     }
 
     #[test]
@@ -2848,11 +3005,13 @@ mod test {
 
         broker.setup::<OriginChannelCreate, OriginChannel>(&channel_res);
 
-        let (resp, msgs) = iron_request(method::Post,
-                                        "http://localhost/channels/neurosis/my_channel",
-                                        &mut Vec::new(),
-                                        Headers::new(),
-                                        broker);
+        let (resp, msgs) = iron_request(
+            method::Post,
+            "http://localhost/channels/neurosis/my_channel",
+            &mut Vec::new(),
+            Headers::new(),
+            broker,
+        );
         let response = resp.unwrap();
         assert_eq!(response.status, Some(status::Created));
 
@@ -2892,11 +3051,13 @@ mod test {
 
         broker.setup::<OriginPackagePromote, NetOk>(&NetOk::new());
 
-        let (response, msgs) = iron_request(method::Put,
-                                            "http://localhost/channels/org/my_channel/pkgs/name/1.1.1/20170101010101/promote",
-                                            &mut Vec::new(),
-                                            Headers::new(),
-                                            broker);
+        let (response, msgs) = iron_request(
+            method::Put,
+            "http://localhost/channels/org/my_channel/pkgs/name/1.1.1/20170101010101/promote",
+            &mut Vec::new(),
+            Headers::new(),
+            broker,
+        );
 
         let response = response.unwrap();
         assert_eq!(response.status, Some(status::Ok));
@@ -2930,11 +3091,13 @@ mod test {
 
         broker.setup::<OriginChannelDelete, NetOk>(&NetOk::new());
 
-        let (response, msgs) = iron_request(method::Delete,
-                                            "http://localhost/channels/org/my_channel",
-                                            &mut Vec::new(),
-                                            Headers::new(),
-                                            broker);
+        let (response, msgs) = iron_request(
+            method::Delete,
+            "http://localhost/channels/org/my_channel",
+            &mut Vec::new(),
+            Headers::new(),
+            broker,
+        );
 
         let response = response.unwrap();
         assert_eq!(response.status, Some(status::Ok));

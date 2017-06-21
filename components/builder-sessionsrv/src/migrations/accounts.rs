@@ -17,18 +17,20 @@ use db::migration::Migrator;
 use error::Result;
 
 pub fn migrate(migrator: &mut Migrator) -> Result<()> {
-    migrator
-        .migrate("accountsrv",
-                 r#"CREATE SEQUENCE IF NOT EXISTS accounts_id_seq;"#)?;
-    migrator
-        .migrate("accountsrv",
-                 r#"CREATE TABLE IF NOT EXISTS accounts (
+    migrator.migrate(
+        "accountsrv",
+        r#"CREATE SEQUENCE IF NOT EXISTS accounts_id_seq;"#,
+    )?;
+    migrator.migrate(
+        "accountsrv",
+        r#"CREATE TABLE IF NOT EXISTS accounts (
                         id bigint PRIMARY KEY DEFAULT next_id_v1('accounts_id_seq'),
                         name text UNIQUE,
                         email text UNIQUE,
                         created_at timestamptz DEFAULT now(),
                         updated_at timestamptz
-                        )"#)?;
+                        )"#,
+    )?;
     migrator.migrate("accountsrv",
                  r#"CREATE OR REPLACE FUNCTION select_or_insert_account_v1 (
                     account_name text,
@@ -47,30 +49,32 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                      END
                  $$ LANGUAGE plpgsql VOLATILE"#)?;
 
-    migrator
-        .migrate("accountsrv",
-                 r#"CREATE OR REPLACE FUNCTION get_account_by_name_v1 (
+    migrator.migrate(
+        "accountsrv",
+        r#"CREATE OR REPLACE FUNCTION get_account_by_name_v1 (
                     account_name text
                  ) RETURNS SETOF accounts AS $$
                      BEGIN
                         RETURN QUERY SELECT * FROM accounts WHERE name = account_name;
                         RETURN;
                      END
-                 $$ LANGUAGE plpgsql STABLE"#)?;
+                 $$ LANGUAGE plpgsql STABLE"#,
+    )?;
 
-    migrator
-        .migrate("accountsrv",
-                 r#"CREATE OR REPLACE FUNCTION get_account_by_id_v1 (
+    migrator.migrate(
+        "accountsrv",
+        r#"CREATE OR REPLACE FUNCTION get_account_by_id_v1 (
                     account_id bigint
                  ) RETURNS SETOF accounts AS $$
                      BEGIN
                         RETURN QUERY SELECT * FROM accounts WHERE id = account_id;
                         RETURN;
                      END
-                 $$ LANGUAGE plpgsql STABLE"#)?;
-    migrator
-        .migrate("accountsrv",
-                 r#"CREATE TABLE IF NOT EXISTS account_origins (
+                 $$ LANGUAGE plpgsql STABLE"#,
+    )?;
+    migrator.migrate(
+        "accountsrv",
+        r#"CREATE TABLE IF NOT EXISTS account_origins (
                         account_id bigint,
                         account_name text,
                         origin_id bigint,
@@ -78,7 +82,8 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                         created_at timestamptz DEFAULT now(),
                         updated_at timestamptz,
                         UNIQUE(account_id, origin_id)
-                        )"#)?;
+                        )"#,
+    )?;
     migrator.migrate("accountsrv",
                  r#"CREATE OR REPLACE FUNCTION insert_account_origin_v1 (
                     o_account_id bigint,
@@ -90,16 +95,17 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                         INSERT INTO account_origins (account_id, account_name, origin_id, origin_name) VALUES (o_account_id, o_account_name, o_origin_id, o_origin_name);
                      END
                  $$ LANGUAGE plpgsql VOLATILE"#)?;
-    migrator
-        .migrate("accountsrv",
-                 r#"CREATE OR REPLACE FUNCTION get_account_origins_v1 (
+    migrator.migrate(
+        "accountsrv",
+        r#"CREATE OR REPLACE FUNCTION get_account_origins_v1 (
                     in_account_id bigint
                  ) RETURNS SETOF account_origins AS $$
                      BEGIN
                         RETURN QUERY SELECT * FROM account_origins WHERE account_id = in_account_id;
                         RETURN;
                      END
-                 $$ LANGUAGE plpgsql STABLE"#)?;
+                 $$ LANGUAGE plpgsql STABLE"#,
+    )?;
 
     Ok(())
 }

@@ -65,31 +65,36 @@ impl DataStore {
         account
     }
 
-    pub fn find_or_create_account_via_session(&self,
-                                              session_create: &sessionsrv::SessionCreate,
-                                              is_admin: bool,
-                                              is_early_access: bool,
-                                              is_build_worker: bool)
-                                              -> Result<sessionsrv::Session> {
+    pub fn find_or_create_account_via_session(
+        &self,
+        session_create: &sessionsrv::SessionCreate,
+        is_admin: bool,
+        is_early_access: bool,
+        is_build_worker: bool,
+    ) -> Result<sessionsrv::Session> {
         let conn = self.pool.get(session_create)?;
-        let rows = conn.query("SELECT * FROM select_or_insert_account_v1($1, $2)",
-                              &[&session_create.get_name(), &session_create.get_email()])
-            .map_err(Error::AccountCreate)?;
+        let rows = conn.query(
+            "SELECT * FROM select_or_insert_account_v1($1, $2)",
+            &[&session_create.get_name(), &session_create.get_email()],
+        ).map_err(Error::AccountCreate)?;
         let row = rows.get(0);
         let account = self.row_to_account(row);
 
         let provider = match session_create.get_provider() {
             sessionsrv::OAuthProvider::GitHub => "github",
         };
-        let rows = conn.query("SELECT * FROM insert_account_session_v1($1, $2, $3, $4, $5, $6, $7)",
-                              &[&(account.get_id() as i64),
-                                &session_create.get_token(),
-                                &provider,
-                                &(session_create.get_extern_id() as i64),
-                                &is_admin,
-                                &is_early_access,
-                                &is_build_worker])
-            .map_err(Error::AccountGetById)?;
+        let rows = conn.query(
+            "SELECT * FROM insert_account_session_v1($1, $2, $3, $4, $5, $6, $7)",
+            &[
+                &(account.get_id() as i64),
+                &session_create.get_token(),
+                &provider,
+                &(session_create.get_extern_id() as i64),
+                &is_admin,
+                &is_early_access,
+                &is_build_worker,
+            ],
+        ).map_err(Error::AccountGetById)?;
         let session_row = rows.get(0);
 
         let mut session: sessionsrv::Session = account.into();
@@ -110,13 +115,15 @@ impl DataStore {
         Ok(session)
     }
 
-    pub fn get_account(&self,
-                       account_get: &sessionsrv::AccountGet)
-                       -> Result<Option<sessionsrv::Account>> {
+    pub fn get_account(
+        &self,
+        account_get: &sessionsrv::AccountGet,
+    ) -> Result<Option<sessionsrv::Account>> {
         let conn = self.pool.get(account_get)?;
-        let rows = conn.query("SELECT * FROM get_account_by_name_v1($1)",
-                              &[&account_get.get_name()])
-            .map_err(Error::AccountGet)?;
+        let rows = conn.query(
+            "SELECT * FROM get_account_by_name_v1($1)",
+            &[&account_get.get_name()],
+        ).map_err(Error::AccountGet)?;
         if rows.len() != 0 {
             let row = rows.get(0);
             Ok(Some(self.row_to_account(row)))
@@ -125,13 +132,15 @@ impl DataStore {
         }
     }
 
-    pub fn get_account_by_id(&self,
-                             account_get_id: &sessionsrv::AccountGetId)
-                             -> Result<Option<sessionsrv::Account>> {
+    pub fn get_account_by_id(
+        &self,
+        account_get_id: &sessionsrv::AccountGetId,
+    ) -> Result<Option<sessionsrv::Account>> {
         let conn = self.pool.get(account_get_id)?;
-        let rows = conn.query("SELECT * FROM get_account_by_id_v1($1)",
-                              &[&(account_get_id.get_id() as i64)])
-            .map_err(Error::AccountGetById)?;
+        let rows = conn.query(
+            "SELECT * FROM get_account_by_id_v1($1)",
+            &[&(account_get_id.get_id() as i64)],
+        ).map_err(Error::AccountGetById)?;
         if rows.len() != 0 {
             let row = rows.get(0);
             Ok(Some(self.row_to_account(row)))
@@ -140,13 +149,15 @@ impl DataStore {
         }
     }
 
-    pub fn get_session(&self,
-                       session_get: &sessionsrv::SessionGet)
-                       -> Result<Option<sessionsrv::Session>> {
+    pub fn get_session(
+        &self,
+        session_get: &sessionsrv::SessionGet,
+    ) -> Result<Option<sessionsrv::Session>> {
         let conn = self.pool.get(session_get)?;
-        let rows = conn.query("SELECT * FROM get_account_session_v1($1, $2)",
-                              &[&session_get.get_name(), &session_get.get_token()])
-            .map_err(Error::SessionGet)?;
+        let rows = conn.query(
+            "SELECT * FROM get_account_session_v1($1, $2)",
+            &[&session_get.get_name(), &session_get.get_token()],
+        ).map_err(Error::SessionGet)?;
         if rows.len() != 0 {
             let row = rows.get(0);
             let mut session = sessionsrv::Session::new();
@@ -175,13 +186,15 @@ impl DataStore {
         }
     }
 
-    pub fn get_origins_by_account(&self,
-                                  request: &sessionsrv::AccountOriginListRequest)
-                                  -> Result<sessionsrv::AccountOriginListResponse> {
+    pub fn get_origins_by_account(
+        &self,
+        request: &sessionsrv::AccountOriginListRequest,
+    ) -> Result<sessionsrv::AccountOriginListResponse> {
         let conn = self.pool.get(request)?;
-        let rows = conn.query("SELECT * FROM get_account_origins_v1($1)",
-                              &[&(request.get_account_id() as i64)])
-            .map_err(Error::OriginAccountList)?;
+        let rows = conn.query(
+            "SELECT * FROM get_account_origins_v1($1)",
+            &[&(request.get_account_id() as i64)],
+        ).map_err(Error::OriginAccountList)?;
         let mut response = sessionsrv::AccountOriginListResponse::new();
         response.set_account_id(request.get_account_id());
         let mut origins = protobuf::RepeatedField::new();
@@ -195,50 +208,62 @@ impl DataStore {
         Ok(response)
     }
 
-    pub fn accept_origin_invitation(&self,
-                                    request: &sessionsrv::AccountOriginInvitationAcceptRequest)
-                                    -> Result<()> {
+    pub fn accept_origin_invitation(
+        &self,
+        request: &sessionsrv::AccountOriginInvitationAcceptRequest,
+    ) -> Result<()> {
         let conn = self.pool.get(request)?;
         let tr = conn.transaction().map_err(Error::DbTransactionStart)?;
-        tr.execute("SELECT * FROM accept_account_invitation_v1($1, $2)",
-                     &[&(request.get_invite_id() as i64), &request.get_ignore()])
-            .map_err(Error::AccountOriginInvitationAccept)?;
+        tr.execute(
+            "SELECT * FROM accept_account_invitation_v1($1, $2)",
+            &[&(request.get_invite_id() as i64), &request.get_ignore()],
+        ).map_err(Error::AccountOriginInvitationAccept)?;
         tr.commit().map_err(Error::DbTransactionCommit)?;
         Ok(())
     }
 
     pub fn create_origin(&self, request: &sessionsrv::AccountOriginCreate) -> Result<()> {
         let conn = self.pool.get(request)?;
-        conn.execute("SELECT * FROM insert_account_origin_v1($1, $2, $3, $4)",
-                     &[&(request.get_account_id() as i64),
-                       &request.get_account_name(),
-                       &(request.get_origin_id() as i64),
-                       &request.get_origin_name()])
-            .map_err(Error::OriginCreate)?;
+        conn.execute(
+            "SELECT * FROM insert_account_origin_v1($1, $2, $3, $4)",
+            &[
+                &(request.get_account_id() as i64),
+                &request.get_account_name(),
+                &(request.get_origin_id() as i64),
+                &request.get_origin_name(),
+            ],
+        ).map_err(Error::OriginCreate)?;
         Ok(())
     }
 
-    pub fn create_account_origin_invitation(&self, invitation_create:
-&sessionsrv::AccountOriginInvitationCreate) -> Result<()>{
+    pub fn create_account_origin_invitation(
+        &self,
+        invitation_create: &sessionsrv::AccountOriginInvitationCreate,
+    ) -> Result<()> {
         let conn = self.pool.get(invitation_create)?;
-        let _rows = conn.query("SELECT * FROM insert_account_invitation_v1($1, $2, $3, $4, $5, $6)",
-                               &[&(invitation_create.get_origin_id() as i64),
-                                 &invitation_create.get_origin_name(),
-                                 &(invitation_create.get_origin_invitation_id() as i64),
-                                 &(invitation_create.get_account_id() as i64),
-                                 &invitation_create.get_account_name(),
-                                 &(invitation_create.get_owner_id() as i64)])
-            .map_err(Error::AccountOriginInvitationCreate)?;
+        let _rows = conn.query(
+            "SELECT * FROM insert_account_invitation_v1($1, $2, $3, $4, $5, $6)",
+            &[
+                &(invitation_create.get_origin_id() as i64),
+                &invitation_create.get_origin_name(),
+                &(invitation_create.get_origin_invitation_id() as i64),
+                &(invitation_create.get_account_id() as i64),
+                &invitation_create.get_account_name(),
+                &(invitation_create.get_owner_id() as i64),
+            ],
+        ).map_err(Error::AccountOriginInvitationCreate)?;
         Ok(())
     }
 
-    pub fn list_invitations(&self,
-                            ailr: &sessionsrv::AccountInvitationListRequest)
-                            -> Result<sessionsrv::AccountInvitationListResponse> {
+    pub fn list_invitations(
+        &self,
+        ailr: &sessionsrv::AccountInvitationListRequest,
+    ) -> Result<sessionsrv::AccountInvitationListResponse> {
         let conn = self.pool.get(ailr)?;
-        let rows = &conn.query("SELECT * FROM get_invitations_for_account_v1($1)",
-                               &[&(ailr.get_account_id() as i64)])
-                        .map_err(Error::AccountOriginInvitationList)?;
+        let rows = &conn.query(
+            "SELECT * FROM get_invitations_for_account_v1($1)",
+            &[&(ailr.get_account_id() as i64)],
+        ).map_err(Error::AccountOriginInvitationList)?;
 
         let mut response = sessionsrv::AccountInvitationListResponse::new();
         response.set_account_id(ailr.get_account_id());

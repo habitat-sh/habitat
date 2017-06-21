@@ -88,20 +88,23 @@ pub struct TraceWrite<'a> {
 }
 
 impl<'a> TraceWrite<'a> {
-    pub fn new(kind: TraceKind,
-               module_path: &'a str,
-               line: u32,
-               thread_name: &'a str)
-               -> TraceWrite<'a> {
+    pub fn new(
+        kind: TraceKind,
+        module_path: &'a str,
+        line: u32,
+        thread_name: &'a str,
+    ) -> TraceWrite<'a> {
         let now = time::now_utc();
-        let time_string = format!("{}-{}-{}-{}-{}-{}-{}",
-                                  1900 + now.tm_year,
-                                  now.tm_mon + 1,
-                                  now.tm_mday,
-                                  now.tm_hour,
-                                  now.tm_min,
-                                  now.tm_sec,
-                                  now.tm_nsec);
+        let time_string = format!(
+            "{}-{}-{}-{}-{}-{}-{}",
+            1900 + now.tm_year,
+            now.tm_mon + 1,
+            now.tm_mday,
+            now.tm_hour,
+            now.tm_min,
+            now.tm_sec,
+            now.tm_nsec
+        );
         TraceWrite {
             kind: kind,
             time: time_string,
@@ -164,9 +167,11 @@ impl Trace {
             match fs::File::create(self.directory.join(&filename)) {
                 Ok(f) => self.file = Some(f),
                 Err(e) => {
-                    panic!("Trace requested, but cannot create file {:?}: {}",
-                           self.directory.join(&filename),
-                           e)
+                    panic!(
+                        "Trace requested, but cannot create file {:?}: {}",
+                        self.directory.join(&filename),
+                        e
+                    )
                 }
             }
         }
@@ -191,9 +196,11 @@ impl Trace {
                 }
             }
             None => {
-                panic!("Trace requested, but init was never called; use the trace! macro \
+                panic!(
+                    "Trace requested, but init was never called; use the trace! macro \
                         instead: {:#?}",
-                       dump);
+                    dump
+                );
             }
         }
     }

@@ -276,9 +276,8 @@ fn sub_unload(m: &ArgMatches) -> Result<()> {
     let spec = spec_from_matches(ident, m)?;
     let spec_file = Manager::spec_path_for(&cfg, &spec);
     std::fs::remove_file(&spec_file).map_err(|err| {
-                                                 sup_error!(Error::ServiceSpecFileIO(spec_file,
-                                                                                     err))
-                                             })
+        sup_error!(Error::ServiceSpecFileIO(spec_file, err))
+    })
 }
 
 fn sub_run(m: &ArgMatches) -> Result<()> {
@@ -311,8 +310,7 @@ fn sub_start(m: &ArgMatches) -> Result<()> {
         Some(ident_or_artifact) => {
             let ident = if Path::new(ident_or_artifact).is_file() {
                 maybe_local_artifact = Some(ident_or_artifact);
-                PackageArchive::new(Path::new(ident_or_artifact))
-                    .ident()?
+                PackageArchive::new(Path::new(ident_or_artifact)).ident()?
             } else {
                 PackageIdent::from_str(ident_or_artifact)?
             };
@@ -344,12 +342,18 @@ fn sub_start(m: &ArgMatches) -> Result<()> {
 
     let running = Manager::is_running(&cfg)?;
 
-    try!(command::start::run(cfg.clone(), maybe_spec.clone(), maybe_local_artifact));
+    try!(command::start::run(
+        cfg.clone(),
+        maybe_spec.clone(),
+        maybe_local_artifact,
+    ));
     if running {
         if let Some(spec) = maybe_spec {
-            outputln!("The supervisor is starting the {} service. See the supervisor output for \
+            outputln!(
+                "The supervisor is starting the {} service. See the supervisor output for \
                       more details.",
-                      spec.ident);
+                spec.ident
+            );
         }
     }
     Ok(())
@@ -429,15 +433,23 @@ fn mgrcfg_from_matches(m: &ArgMatches) -> Result<ManagerConfig> {
     if let Some(name_str) = m.value_of("NAME") {
         cfg.name = Some(String::from(name_str));
         outputln!("");
-        outputln!("{} Running more than one Habitat Supervisor is not recommended for most",
-                  Red.bold().paint("CAUTION:".to_string()));
-        outputln!("{} users in most use cases. Using one Supervisor per host for multiple",
-                  Red.bold().paint("CAUTION:".to_string()));
-        outputln!("{} services in one ring will yield much better performance.",
-                  Red.bold().paint("CAUTION:".to_string()));
+        outputln!(
+            "{} Running more than one Habitat Supervisor is not recommended for most",
+            Red.bold().paint("CAUTION:".to_string())
+        );
+        outputln!(
+            "{} users in most use cases. Using one Supervisor per host for multiple",
+            Red.bold().paint("CAUTION:".to_string())
+        );
+        outputln!(
+            "{} services in one ring will yield much better performance.",
+            Red.bold().paint("CAUTION:".to_string())
+        );
         outputln!("");
-        outputln!("{} If you know what you're doing, carry on!",
-                  Red.bold().paint("CAUTION:".to_string()));
+        outputln!(
+            "{} If you know what you're doing, carry on!",
+            Red.bold().paint("CAUTION:".to_string())
+        );
         outputln!("");
     }
     cfg.organization = m.value_of("ORGANIZATION").map(|org| org.to_string());
@@ -465,19 +477,26 @@ fn mgrcfg_from_matches(m: &ArgMatches) -> Result<ManagerConfig> {
     }
     cfg.gossip_peers = gossip_peers;
     let ring = match m.value_of("RING") {
-        Some(val) => Some(try!(SymKey::get_latest_pair_for(&val, &default_cache_key_path(None)))),
+        Some(val) => Some(try!(SymKey::get_latest_pair_for(
+            &val,
+            &default_cache_key_path(None),
+        ))),
         None => {
             match henv::var(RING_KEY_ENVVAR) {
                 Ok(val) => {
-                    let (key, _) = try!(SymKey::write_file_from_str(&val,
-                                                                    &default_cache_key_path(None)));
+                    let (key, _) = try!(SymKey::write_file_from_str(
+                        &val,
+                        &default_cache_key_path(None),
+                    ));
                     Some(key)
                 }
                 Err(_) => {
                     match henv::var(RING_ENVVAR) {
                         Ok(val) => {
-                            Some(try!(SymKey::get_latest_pair_for(&val,
-                                                                  &default_cache_key_path(None))))
+                            Some(try!(SymKey::get_latest_pair_for(
+                                &val,
+                                &default_cache_key_path(None),
+                            )))
                         }
                         Err(_) => None,
                     }
@@ -517,11 +536,13 @@ fn spec_from_matches(ident: PackageIdent, m: &ArgMatches) -> Result<ServiceSpec>
     if let Some(ref config_from) = m.value_of("CONFIG_DIR") {
         spec.config_from = Some(PathBuf::from(config_from));
         outputln!("");
-        outputln!("{} Setting '{}' should only be used in development, not production!",
-                  Red.bold().paint("WARNING:".to_string()),
-                  Yellow
-                      .bold()
-                      .paint(format!("--config-from {}", config_from)));
+        outputln!(
+            "{} Setting '{}' should only be used in development, not production!",
+            Red.bold().paint("WARNING:".to_string()),
+            Yellow.bold().paint(
+                format!("--config-from {}", config_from),
+            )
+        );
         outputln!("");
     }
 

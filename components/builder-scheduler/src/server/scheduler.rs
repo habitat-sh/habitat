@@ -109,13 +109,13 @@ impl ScheduleMgr {
         let logger = Logger::init(log_path, "builder-scheduler.log");
 
         Ok(ScheduleMgr {
-               datastore: datastore,
-               work_sock: work_sock,
-               status_sock: status_sock,
-               schedule_cli: schedule_cli,
-               msg: msg,
-               logger: logger,
-           })
+            datastore: datastore,
+            work_sock: work_sock,
+            status_sock: status_sock,
+            schedule_cli: schedule_cli,
+            msg: msg,
+            logger: logger,
+        })
     }
 
     pub fn start(ds: DataStore, config: Arc<RwLock<Config>>) -> Result<JoinHandle<()>> {
@@ -123,9 +123,9 @@ impl ScheduleMgr {
         let handle = thread::Builder::new()
             .name("scheduler".to_string())
             .spawn(move || {
-                       let mut schedule_mgr = Self::new(ds, config).unwrap();
-                       schedule_mgr.run(tx).unwrap();
-                   })
+                let mut schedule_mgr = Self::new(ds, config).unwrap();
+                schedule_mgr.run(tx).unwrap();
+            })
             .unwrap();
         match rx.recv() {
             Ok(()) => Ok(handle),
@@ -142,8 +142,10 @@ impl ScheduleMgr {
         rz.send(()).unwrap();
         loop {
             {
-                let mut items = [self.work_sock.as_poll_item(1),
-                                 self.status_sock.as_poll_item(1)];
+                let mut items = [
+                    self.work_sock.as_poll_item(1),
+                    self.status_sock.as_poll_item(1),
+                ];
                 try!(zmq::poll(&mut items, 60000));
 
                 if (items[0].get_revents() & zmq::POLLIN) > 0 {
@@ -221,17 +223,20 @@ impl ScheduleMgr {
                         Some(job) => self.datastore.set_group_job_state(&job).unwrap(),
                         None => {
                             debug!("Skipping project: {:?}", project.get_name());
-                            self.datastore
-                                .set_group_project_state(group.get_id(),
-                                                         project.get_name(),
-                                                         proto::ProjectState::Skipped)?;
+                            self.datastore.set_group_project_state(
+                                group.get_id(),
+                                project.get_name(),
+                                proto::ProjectState::Skipped,
+                            )?;
 
                             let skip_list = match self.skip_projects(&group, project.get_name()) {
                                 Ok(v) => v,
                                 Err(e) => {
-                                    warn!("Error skipping projects for {:?}: {:?}",
-                                          project.get_name(),
-                                          e);
+                                    warn!(
+                                        "Error skipping projects for {:?}: {:?}",
+                                        project.get_name(),
+                                        e
+                                    );
                                     return Err(e);
                                 }
                             };
@@ -242,16 +247,21 @@ impl ScheduleMgr {
                     }
                 }
                 Err(err) => {
-                    warn!("Failed to schedule job for {}, err: {:?}",
-                          project.get_name(),
-                          err);
+                    warn!(
+                        "Failed to schedule job for {}, err: {:?}",
+                        project.get_name(),
+                        err
+                    );
 
-                    self.datastore
-                        .set_group_state(group.get_id(), proto::GroupState::Failed)?;
-                    self.datastore
-                        .set_group_project_state(group.get_id(),
-                                                 project.get_name(),
-                                                 proto::ProjectState::Failure)?;
+                    self.datastore.set_group_state(
+                        group.get_id(),
+                        proto::GroupState::Failed,
+                    )?;
+                    self.datastore.set_group_project_state(
+                        group.get_id(),
+                        project.get_name(),
+                        proto::ProjectState::Failure,
+                    )?;
 
                     // TODO: Make this cleaner later
                     let mut updated_group = group.clone();
@@ -267,10 +277,10 @@ impl ScheduleMgr {
 
     fn dispatchable_projects(&mut self, group: &proto::Group) -> Result<Vec<proto::Project>> {
         let mut projects = Vec::new();
-        for project in group
-                .get_projects()
-                .into_iter()
-                .filter(|x| x.get_state() == proto::ProjectState::NotStarted) {
+        for project in group.get_projects().into_iter().filter(|x| {
+            x.get_state() == proto::ProjectState::NotStarted
+        })
+        {
             // Check the deps for the project. If we don't find any dep that
             // is in our project list and needs to be built, we can dispatch the project.
             let package = self.datastore.get_package(&project.get_ident())?;
@@ -298,7 +308,8 @@ impl ScheduleMgr {
     fn check_dispatchable(&mut self, group: &proto::Group, name: &str) -> bool {
         for project in group.get_projects() {
             if (project.get_name() == name) &&
-               (project.get_state() != proto::ProjectState::Success) {
+                (project.get_state() != proto::ProjectState::Success)
+            {
                 return false;
             }
         }
@@ -309,10 +320,10 @@ impl ScheduleMgr {
         let mut skipped = HashMap::new();
         skipped.insert(project_name.to_string(), true);
 
-        for project in group
-                .get_projects()
-                .into_iter()
-                .filter(|x| x.get_state() == proto::ProjectState::NotStarted) {
+        for project in group.get_projects().into_iter().filter(|x| {
+            x.get_state() == proto::ProjectState::NotStarted
+        })
+        {
             // Check the deps for the project. If we find any dep that is in the
             // skipped list, we set the project status to Skipped and add it to the list
             let package = self.datastore.get_package(&project.get_ident())?;
@@ -325,10 +336,11 @@ impl ScheduleMgr {
 
                 if skipped.contains_key(&name) {
                     debug!("Skipping project {:?}", project.get_name());
-                    self.datastore
-                        .set_group_project_state(group.get_id(),
-                                                 project.get_name(),
-                                                 proto::ProjectState::Skipped)?;
+                    self.datastore.set_group_project_state(
+                        group.get_id(),
+                        project.get_name(),
+                        proto::ProjectState::Skipped,
+                    )?;
                     skipped.insert(project.get_name().to_string(), true);
                     break;
                 }
@@ -347,9 +359,11 @@ impl ScheduleMgr {
         let project = match conn.route::<OriginProjectGet, OriginProject>(&project_get) {
             Ok(project) => project,
             Err(err) => {
-                warn!("Unable to retrieve project: {:?}, error: {:?} - Skipping",
-                      project_name,
-                      err);
+                warn!(
+                    "Unable to retrieve project: {:?}, error: {:?} - Skipping",
+                    project_name,
+                    err
+                );
 
                 return Ok(None);
             }
@@ -402,9 +416,11 @@ impl ScheduleMgr {
                     match self.skip_projects(&group, job.get_project().get_name()) {
                         Ok(_) => (),
                         Err(e) => {
-                            warn!("Error skipping projects for {:?}: {:?}",
-                                  job.get_project().get_name(),
-                                  e);
+                            warn!(
+                                "Error skipping projects for {:?}: {:?}",
+                                job.get_project().get_name(),
+                                e
+                            );
                         }
                     };
                 }
@@ -470,9 +486,11 @@ impl ScheduleMgr {
                 self.logger.log_group(&updated_group);
             }
         } else {
-            warn!("Unexpected group state {:?} for group id: {}",
-                  group.get_state(),
-                  group_id);
+            warn!(
+                "Unexpected group state {:?} for group id: {}",
+                group.get_state(),
+                group_id
+            );
         }
 
         Ok(())

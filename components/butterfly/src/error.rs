@@ -49,27 +49,35 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
             Error::BadDataPath(ref path, ref err) => {
-                format!("Unable to read or write to data directory, {}, {}",
-                        path.display(),
-                        err)
+                format!(
+                    "Unable to read or write to data directory, {}, {}",
+                    path.display(),
+                    err
+                )
             }
             Error::BadDatFile(ref path, ref err) => {
-                format!("Unable to decode contents of DatFile, {}, {}",
-                        path.display(),
-                        err)
+                format!(
+                    "Unable to decode contents of DatFile, {}, {}",
+                    path.display(),
+                    err
+                )
             }
             Error::BadMessage(ref err) => format!("Bad Message: {:?}", err),
             Error::CannotBind(ref err) => format!("Cannot bind to port: {:?}", err),
             Error::DatFileIO(ref path, ref err) => {
-                format!("Error reading or writing to DatFile, {}, {}",
-                        path.display(),
-                        err)
+                format!(
+                    "Error reading or writing to DatFile, {}, {}",
+                    path.display(),
+                    err
+                )
             }
             Error::HabitatCore(ref err) => format!("{}", err),
             Error::NonExistentRumor(ref member_id, ref rumor_id) => {
-                format!("Non existent rumor asked to be written to bytes: {} {}",
-                        member_id,
-                        rumor_id)
+                format!(
+                    "Non existent rumor asked to be written to bytes: {} {}",
+                    member_id,
+                    rumor_id
+                )
             }
             Error::ProtobufError(ref err) => format!("ProtoBuf Error: {}", err),
             Error::ServiceConfigDecode(ref sg, ref err) => {
@@ -104,7 +112,9 @@ impl error::Error for Error {
             Error::CannotBind(_) => "Cannot bind to port",
             Error::DatFileIO(_, _) => "Error reading or writing to DatFile",
             Error::HabitatCore(_) => "Habitat core error",
-            Error::NonExistentRumor(_, _) => "Cannot write rumor to bytes because it does not exist",
+            Error::NonExistentRumor(_, _) => {
+                "Cannot write rumor to bytes because it does not exist"
+            }
             Error::ProtobufError(ref err) => err.description(),
             Error::ServiceConfigDecode(_, _) => "Cannot decode service config into TOML",
             Error::ServiceConfigNotUtf8(_, _) => "Cannot read service config bytes to UTF-8",

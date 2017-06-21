@@ -31,9 +31,10 @@ static SIGNAL: AtomicUsize = ATOMIC_USIZE_INIT;
 
 // Functions from POSIX libc.
 extern "C" {
-    fn signal(sig: SignalCode,
-              cb: unsafe extern "C" fn(SignalCode))
-              -> unsafe extern "C" fn(SignalCode);
+    fn signal(
+        sig: SignalCode,
+        cb: unsafe extern "C" fn(SignalCode),
+    ) -> unsafe extern "C" fn(SignalCode);
 }
 
 unsafe extern "C" fn handle_signal(signal: SignalCode) {
@@ -43,10 +44,10 @@ unsafe extern "C" fn handle_signal(signal: SignalCode) {
 
 pub fn init() {
     INIT.call_once(|| {
-                       self::set_signal_handlers();
-                       CAUGHT.store(false, Ordering::SeqCst);
-                       SIGNAL.store(0 as usize, Ordering::SeqCst);
-                   });
+        self::set_signal_handlers();
+        CAUGHT.store(false, Ordering::SeqCst);
+        SIGNAL.store(0 as usize, Ordering::SeqCst);
+    });
 }
 
 pub fn check_for_signal() -> Option<SignalEvent> {

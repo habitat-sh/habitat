@@ -49,10 +49,9 @@ pub trait LogArchiver {
 /// values.
 // TODO: Once TryFrom is stable we might try implementing that instead
 pub fn from_config(config: ArchiveCfg) -> Result<Box<LogArchiver + 'static>> {
-    let backend = config
-        .backend
-        .clone()
-        .expect("Did not specify an archive backend!");
+    let backend = config.backend.clone().expect(
+        "Did not specify an archive backend!",
+    );
     match backend {
         ArchiveBackend::Local => Ok(Box::new(local::LocalArchiver::new(config)?)),
         ArchiveBackend::S3 => Ok(Box::new(s3::S3Archiver::new(config)?)),

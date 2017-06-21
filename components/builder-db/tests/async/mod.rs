@@ -21,23 +21,29 @@ fn finishes() {
     with_pool!(pool, {
         let server = async::AsyncServer::new(pool);
         server.register("event1".to_string(), will_finish);
-        assert!(server
-                    .dispatch
-                    .read()
-                    .expect("Dispatch lock poisoned")
-                    .contains_key("event1"));
-        assert!(server
-                    .retry
-                    .read()
-                    .expect("Retry lock poisoned")
-                    .contains_key("event1"));
+        assert!(
+            server
+                .dispatch
+                .read()
+                .expect("Dispatch lock poisoned")
+                .contains_key("event1")
+        );
+        assert!(
+            server
+                .retry
+                .read()
+                .expect("Retry lock poisoned")
+                .contains_key("event1")
+        );
         server.run_event("event1".to_string(), will_finish);
-        assert_eq!(server
-                       .retry
-                       .read()
-                       .expect("Dispatch lock poisoned")
-                       .contains_key("event1"),
-                   false);
+        assert_eq!(
+            server
+                .retry
+                .read()
+                .expect("Dispatch lock poisoned")
+                .contains_key("event1"),
+            false
+        );
     });
 }
 
@@ -47,27 +53,33 @@ fn retries() {
         let server = async::AsyncServer::new(pool);
         server.register("event1".to_string(), will_retry);
         server.run_event("event1".to_string(), will_retry);
-        assert_eq!(server
-                       .retry
-                       .read()
-                       .expect("Dispatch lock poisoned")
-                       .contains_key("event1"),
-                   true);
-        assert_eq!(server
-                       .failure_count
-                       .read()
-                       .expect("Dispatch lock poisoned")
-                       .get("event1")
-                       .unwrap(),
-                   &1);
+        assert_eq!(
+            server
+                .retry
+                .read()
+                .expect("Dispatch lock poisoned")
+                .contains_key("event1"),
+            true
+        );
+        assert_eq!(
+            server
+                .failure_count
+                .read()
+                .expect("Dispatch lock poisoned")
+                .get("event1")
+                .unwrap(),
+            &1
+        );
         server.run_event("event1".to_string(), will_retry);
-        assert_eq!(server
-                       .failure_count
-                       .read()
-                       .expect("Dispatch lock poisoned")
-                       .get("event1")
-                       .unwrap(),
-                   &2);
+        assert_eq!(
+            server
+                .failure_count
+                .read()
+                .expect("Dispatch lock poisoned")
+                .get("event1")
+                .unwrap(),
+            &2
+        );
     });
 }
 

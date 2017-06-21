@@ -101,10 +101,11 @@ impl Dispatcher for Worker {
         BE_LISTEN_ADDR
     }
 
-    fn dispatch(message: &mut Envelope,
-                sock: &mut zmq::Socket,
-                state: &mut Self::State)
-                -> Result<()> {
+    fn dispatch(
+        message: &mut Envelope,
+        sock: &mut zmq::Socket,
+        state: &mut Self::State,
+    ) -> Result<()> {
         debug!("Message received: {}", message.message_id());
 
         match message.message_id() {
@@ -148,10 +149,10 @@ impl Server {
         let router = try!(RouteConn::new(Self::net_ident(), (**ZMQ_CONTEXT).as_mut()));
         let be = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER));
         Ok(Server {
-               config: Arc::new(RwLock::new(config)),
-               router: router,
-               be_sock: be,
-           })
+            config: Arc::new(RwLock::new(config)),
+            router: router,
+            be_sock: be,
+        })
     }
 
     pub fn reconfigure(&self, config: Config) -> Result<()> {
@@ -183,10 +184,12 @@ impl Application for Server {
         let (ncount, ecount) = graph.build(packages.into_iter());
         let end_time = PreciseTime::now();
 
-        info!("Graph build stats: {} nodes, {} edges ({} sec)",
-              ncount,
-              ecount,
-              start_time.to(end_time));
+        info!(
+            "Graph build stats: {} nodes, {} edges ({} sec)",
+            ncount,
+            ecount,
+            start_time.to(end_time)
+        );
 
         let cfg = self.config.clone();
         let init_state = InitServerState::new(datastore, Arc::new(RwLock::new(graph)));

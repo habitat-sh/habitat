@@ -129,12 +129,14 @@ impl CommandArgs {
 
 impl fmt::Display for CommandArgs {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f,
-               "Command: C: {} A: {:?} E: {:?} CWD: {:?}",
-               self.cmd,
-               self.args,
-               self.env,
-               self.cwd)
+        write!(
+            f,
+            "Command: C: {} A: {:?} E: {:?} CWD: {:?}",
+            self.cmd,
+            self.args,
+            self.env,
+            self.cwd
+        )
     }
 }
 
@@ -157,9 +159,11 @@ pub fn command_with_env(cmd: &str, args: &[&str], env: Option<&HashMap<&str, &st
 }
 
 pub fn run_command(cmd_args: CommandArgs) -> Command {
-    println!("{}: {}",
-             thread::current().name().unwrap_or("main"),
-             cmd_args);
+    println!(
+        "{}: {}",
+        thread::current().name().unwrap_or("main"),
+        cmd_args
+    );
 
     let mut command = Command::new(&cmd_args.cmd);
     command.args(&cmd_args.args);
@@ -177,11 +181,11 @@ pub fn run_command(cmd_args: CommandArgs) -> Command {
 pub fn spawn(mut command: Command) -> CmdResult<Cmd> {
     let child = try!(command.spawn());
     Ok(Cmd {
-           child: Some(child),
-           status: None,
-           stdout: None,
-           stderr: None,
-       })
+        child: Some(child),
+        status: None,
+        stdout: None,
+        stderr: None,
+    })
 }
 
 pub fn studio_run(cmd: &str, args: &[&str]) -> CmdResult<Cmd> {
@@ -199,8 +203,10 @@ pub fn run(cmd: &str, args: &[&str]) -> CmdResult<Cmd> {
 }
 
 pub fn plan_build(to_build: &str) -> CmdResult<Cmd> {
-    studio_run("/src/components/plan-build/bin/hab-plan-build.sh",
-               &[to_build])
+    studio_run(
+        "/src/components/plan-build/bin/hab-plan-build.sh",
+        &[to_build],
+    )
 }
 
 pub fn sup(args: &[&str]) -> CmdResult<Cmd> {

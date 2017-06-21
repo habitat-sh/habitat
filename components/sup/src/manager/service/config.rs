@@ -58,9 +58,9 @@ pub struct Cfg {
 
 impl Cfg {
     pub fn new(package: &Pkg, config_from: Option<&PathBuf>) -> Result<Cfg> {
-        let pkg_root = config_from
-            .and_then(|p| Some(p.as_path()))
-            .unwrap_or(&package.path);
+        let pkg_root = config_from.and_then(|p| Some(p.as_path())).unwrap_or(
+            &package.path,
+        );
         let mut cfg = Cfg::default();
         cfg.load_default(&pkg_root)?;
         cfg.load_user(&package)?;
@@ -129,8 +129,9 @@ impl Cfg {
         let mut config = String::new();
         match file.read_to_string(&mut config) {
             Ok(_) => {
-                let toml = try!(toml::de::from_str(&config)
-                    .map_err(|e| sup_error!(Error::TomlParser(e))));
+                let toml = try!(toml::de::from_str(&config).map_err(|e| {
+                    sup_error!(Error::TomlParser(e))
+                }));
                 self.default = Some(toml::Value::Table(toml));
             }
             Err(e) => {
@@ -154,8 +155,9 @@ impl Cfg {
         let mut config = String::new();
         match file.read_to_string(&mut config) {
             Ok(_) => {
-                let toml = try!(toml::de::from_str(&config)
-                    .map_err(|e| sup_error!(Error::TomlParser(e))));
+                let toml = try!(toml::de::from_str(&config).map_err(|e| {
+                    sup_error!(Error::TomlParser(e))
+                }));
                 self.user = Some(toml::Value::Table(toml));
             }
             Err(e) => {
@@ -172,15 +174,18 @@ impl Cfg {
             .replace("-", "_");
         match env::var(&var_name) {
             Ok(config) => {
-                let toml = try!(toml::de::from_str(&config)
-                    .map_err(|e| sup_error!(Error::TomlParser(e))));
+                let toml = try!(toml::de::from_str(&config).map_err(|e| {
+                    sup_error!(Error::TomlParser(e))
+                }));
                 self.environment = Some(toml::Value::Table(toml));
 
             }
             Err(e) => {
-                debug!("Looking up environment variable {} failed: {:?}",
-                       var_name,
-                       e);
+                debug!(
+                    "Looking up environment variable {} failed: {:?}",
+                    var_name,
+                    e
+                );
                 self.environment = None;
             }
         };
@@ -190,7 +195,8 @@ impl Cfg {
 
 impl Serialize for Cfg {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         let mut table = toml::value::Table::new();
         if let Some(toml::Value::Table(ref default_cfg)) = self.default {
@@ -222,7 +228,8 @@ pub struct CfgRenderer(TemplateRenderer);
 
 impl CfgRenderer {
     pub fn new<T>(templates_path: T) -> Result<Self>
-        where T: AsRef<Path>
+    where
+        T: AsRef<Path>,
     {
         let mut template = TemplateRenderer::new();
         if let Ok(entries) = std::fs::read_dir(templates_path) {
@@ -242,9 +249,11 @@ impl CfgRenderer {
                     let file = entry.path();
                     let name = entry.file_name().to_string_lossy().into_owned();
                     // JW TODO: This error needs improvement. TemplateFileError is too generic.
-                    template
-                        .register_template_file(&name, &file)
-                        .map_err(|err| sup_error!(Error::TemplateFileError(err)))?;
+                    template.register_template_file(&name, &file).map_err(
+                        |err| {
+                            sup_error!(Error::TemplateFileError(err))
+                        },
+                    )?;
                 }
             }
         }
@@ -270,8 +279,10 @@ impl CfgRenderer {
                 }
             };
             if file_hash.is_empty() {
-                debug!("Configuration {} does not exist; restarting",
-                       cfg_dest.display());
+                debug!(
+                    "Configuration {} does not exist; restarting",
+                    cfg_dest.display()
+                );
                 outputln!(preamble ctx.svc.group, "Updated {} {}",
                           Purple.bold().paint(template.as_str()),
                           compiled_hash);
@@ -280,13 +291,17 @@ impl CfgRenderer {
                 changed = true
             } else {
                 if file_hash == compiled_hash {
-                    debug!("Configuration {} {} has not changed; not restarting.",
-                           cfg_dest.display(),
-                           file_hash);
+                    debug!(
+                        "Configuration {} {} has not changed; not restarting.",
+                        cfg_dest.display(),
+                        file_hash
+                    );
                     continue;
                 } else {
-                    debug!("Configuration {} has changed; restarting",
-                           cfg_dest.display());
+                    debug!(
+                        "Configuration {} has changed; restarting",
+                        cfg_dest.display()
+                    );
                     outputln!(preamble ctx.svc.group,"Updated {} {}",
                               Purple.bold().paint(template.as_str()),
                               compiled_hash);
@@ -305,14 +320,17 @@ fn toml_merge(me: &mut toml::value::Table, other: &toml::value::Table) -> Result
     toml_merge_recurse(me, other, 0)
 }
 
-fn toml_merge_recurse(me: &mut toml::value::Table,
-                      other: &toml::value::Table,
-                      depth: u16)
-                      -> Result<()> {
+fn toml_merge_recurse(
+    me: &mut toml::value::Table,
+    other: &toml::value::Table,
+    depth: u16,
+) -> Result<()> {
     if depth > TOML_MAX_MERGE_DEPTH {
-        return Err(sup_error!(Error::TomlMergeError(format!("Max recursive merge depth of {} \
+        return Err(sup_error!(Error::TomlMergeError(format!(
+            "Max recursive merge depth of {} \
                                                              exceeded.",
-                                                            TOML_MAX_MERGE_DEPTH))));
+            TOML_MAX_MERGE_DEPTH
+        ))));
     }
 
     for (key, other_value) in other.iter() {
@@ -320,16 +338,20 @@ fn toml_merge_recurse(me: &mut toml::value::Table,
             let mut me_at_key = match *(me.get_mut(key).expect("Key should exist in Table")) {
                 toml::Value::Table(ref mut t) => t,
                 _ => {
-                    return Err(sup_error!(Error::TomlMergeError(format!("Value at key {} \
+                    return Err(sup_error!(Error::TomlMergeError(format!(
+                        "Value at key {} \
                                                                          should be a Table",
-                                                                        &key))));
+                        &key
+                    ))));
                 }
             };
-            try!(toml_merge_recurse(&mut me_at_key,
-                                    other_value
-                                        .as_table()
-                                        .expect("TOML Value should be a Table"),
-                                    depth + 1));
+            try!(toml_merge_recurse(
+                &mut me_at_key,
+                other_value.as_table().expect(
+                    "TOML Value should be a Table",
+                ),
+                depth + 1,
+            ));
         } else {
             me.insert(key.clone(), other_value.clone());
         }
@@ -363,10 +385,12 @@ mod test {
     #[test]
     fn merge_with_empty_me_table() {
         let mut me = toml_from_str("");
-        let other = toml_from_str(r#"
+        let other = toml_from_str(
+            r#"
             fruit = "apple"
             veggie = "carrot"
-            "#);
+            "#,
+        );
         let expected = other.clone();
         toml_merge(&mut me, &other).unwrap();
 
@@ -375,10 +399,12 @@ mod test {
 
     #[test]
     fn merge_with_empty_other_table() {
-        let mut me = toml_from_str(r#"
+        let mut me = toml_from_str(
+            r#"
             fruit = "apple"
             veggie = "carrot"
-            "#);
+            "#,
+        );
         let other = toml_from_str("");
         let expected = me.clone();
         toml_merge(&mut me, &other).unwrap();
@@ -388,20 +414,26 @@ mod test {
 
     #[test]
     fn merge_with_shallow_tables() {
-        let mut me = toml_from_str(r#"
+        let mut me = toml_from_str(
+            r#"
             fruit = "apple"
             veggie = "carrot"
             awesomeness = 10
-            "#);
-        let other = toml_from_str(r#"
+            "#,
+        );
+        let other = toml_from_str(
+            r#"
             fruit = "orange"
             awesomeness = 99
-            "#);
-        let expected = toml_from_str(r#"
+            "#,
+        );
+        let expected = toml_from_str(
+            r#"
             fruit = "orange"
             veggie = "carrot"
             awesomeness = 99
-            "#);
+            "#,
+        );
         toml_merge(&mut me, &other).unwrap();
 
         assert_eq!(me, expected);
@@ -409,22 +441,28 @@ mod test {
 
     #[test]
     fn merge_with_differing_value_types() {
-        let mut me = toml_from_str(r#"
+        let mut me = toml_from_str(
+            r#"
             fruit = "apple"
             veggie = "carrot"
             awesome_things = ["carrots", "kitties", "unicorns"]
             heat = 42
-            "#);
-        let other = toml_from_str(r#"
+            "#,
+        );
+        let other = toml_from_str(
+            r#"
             heat = "hothothot"
             awesome_things = "habitat"
-            "#);
-        let expected = toml_from_str(r#"
+            "#,
+        );
+        let expected = toml_from_str(
+            r#"
             heat = "hothothot"
             fruit = "apple"
             veggie = "carrot"
             awesome_things = "habitat"
-            "#);
+            "#,
+        );
         toml_merge(&mut me, &other).unwrap();
 
         assert_eq!(me, expected);
@@ -432,26 +470,32 @@ mod test {
 
     #[test]
     fn merge_with_table_values() {
-        let mut me = toml_from_str(r#"
+        let mut me = toml_from_str(
+            r#"
             frubnub = "foobar"
 
             [server]
             some-details = "initial"
             port = 1000
-            "#);
-        let other = toml_from_str(r#"
+            "#,
+        );
+        let other = toml_from_str(
+            r#"
             [server]
             port = 5000
             more-details = "yep"
-            "#);
-        let expected = toml_from_str(r#"
+            "#,
+        );
+        let expected = toml_from_str(
+            r#"
             frubnub = "foobar"
 
             [server]
             port = 5000
             some-details = "initial"
             more-details = "yep"
-            "#);
+            "#,
+        );
         toml_merge(&mut me, &other).unwrap();
 
         assert_eq!(me, expected);
@@ -459,26 +503,32 @@ mod test {
 
     #[test]
     fn merge_with_deep_table_values() {
-        let mut me = toml_from_str(r#"
+        let mut me = toml_from_str(
+            r#"
             [a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.aa.ab.ac.ad]
             stew = "carrot"
             [a.b.c.d.e.f.foxtrot]
             fancy = "fork"
-            "#);
-        let other = toml_from_str(r#"
+            "#,
+        );
+        let other = toml_from_str(
+            r#"
             [a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.aa.ab.ac.ad]
             stew = "beef"
             [a.b.c.d.e.f.foxtrot]
             fancy = "feast"
             funny = "farm"
-            "#);
-        let expected = toml_from_str(r#"
+            "#,
+        );
+        let expected = toml_from_str(
+            r#"
             [a.b.c.d.e.f.foxtrot]
             funny = "farm"
             fancy = "feast"
             [a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.aa.ab.ac.ad]
             stew = "beef"
-            "#);
+            "#,
+        );
         toml_merge(&mut me, &other).unwrap();
 
         assert_eq!(me, expected);
@@ -486,14 +536,18 @@ mod test {
 
     #[test]
     fn merge_with_dangerously_deep_table_values() {
-        let mut me = toml_from_str(r#"
+        let mut me = toml_from_str(
+            r#"
             [a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.aa.ab.ac.ad.ae.af]
             stew = "carrot"
-            "#);
-        let other = toml_from_str(r#"
+            "#,
+        );
+        let other = toml_from_str(
+            r#"
             [a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.aa.ab.ac.ad.ae.af]
             stew = "beef"
-            "#);
+            "#,
+        );
 
         match toml_merge(&mut me, &other) {
             Err(e) => {

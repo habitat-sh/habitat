@@ -42,10 +42,11 @@ pub trait Dispatcher: Sized + Send {
     type InitState: Clone + Send + Into<Self::State>;
     type State: DispatcherState;
 
-    fn dispatch(message: &mut Envelope,
-                socket: &mut zmq::Socket,
-                state: &mut Self::State)
-                -> result::Result<(), Self::Error>;
+    fn dispatch(
+        message: &mut Envelope,
+        socket: &mut zmq::Socket,
+        state: &mut Self::State,
+    ) -> result::Result<(), Self::Error>;
 
     /// Address to the ZeroMQ message queue that dispatcher workers will consume from.
     fn message_queue() -> &'static str;

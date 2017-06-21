@@ -26,21 +26,24 @@ pub struct PkgPathForHelper;
 
 impl HelperDef for PkgPathForHelper {
     fn call(&self, h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> RenderResult<()> {
-        let param =
-            h.param(0)
-                .and_then(|v| v.value().as_str())
-                .and_then(|v| PackageIdent::from_str(v).ok())
-                .ok_or_else(|| RenderError::new("Invalid package identifier for \"pkgPathFor\""))?;
-        let deps = serde_json::from_value::<Vec<PackageIdent>>(rc.context().data()["pkg"]["deps"]
-                                                                   .clone())
-                .unwrap();
+        let param = h.param(0)
+            .and_then(|v| v.value().as_str())
+            .and_then(|v| PackageIdent::from_str(v).ok())
+            .ok_or_else(|| {
+                RenderError::new("Invalid package identifier for \"pkgPathFor\"")
+            })?;
+        let deps = serde_json::from_value::<Vec<PackageIdent>>(
+            rc.context().data()["pkg"]["deps"].clone(),
+        ).unwrap();
         let target_pkg = deps.iter()
             .find(|ident| ident.satisfies(&param))
             .and_then(|i| {
-                          Some(fs::pkg_install_path(&i, None)
-                                   .to_string_lossy()
-                                   .into_owned())
-                      })
+                Some(
+                    fs::pkg_install_path(&i, None)
+                        .to_string_lossy()
+                        .into_owned(),
+                )
+            })
             .unwrap_or("".to_string());
         rc.writer.write(target_pkg.into_bytes().as_ref())?;
         Ok(())
