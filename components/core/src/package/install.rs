@@ -27,7 +27,7 @@ use toml;
 use toml::Value;
 
 use super::{Identifiable, PackageIdent, Target, PackageTarget};
-use super::metadata::{Bind, MetaFile};
+use super::metadata::{Bind, MetaFile, PkgEnv, parse_key_value};
 use error::{Error, Result};
 use fs;
 
@@ -52,8 +52,8 @@ impl PackageInstall {
     /// An optional `fs_root` path may be provided to search for a package that is mounted on a
     /// filesystem not currently rooted at `/`.
     pub fn load(ident: &PackageIdent, fs_root_path: Option<&Path>) -> Result<PackageInstall> {
-        let package_install = try!(Self::resolve_package_install(ident, fs_root_path));
-        let package_target = try!(package_install.target());
+        let package_install = Self::resolve_package_install(ident, fs_root_path)?;
+        let package_target = package_install.target()?;
         match package_target.validate() {
             Ok(()) => Ok(package_install),
             Err(e) => Err(e),
@@ -68,8 +68,8 @@ impl PackageInstall {
     pub fn load_at_least(ident: &PackageIdent,
                          fs_root_path: Option<&Path>)
                          -> Result<PackageInstall> {
-        let package_install = try!(Self::resolve_package_install_min(ident, fs_root_path));
-        let package_target = try!(package_install.target());
+        let package_install = Self::resolve_package_install_min(ident, fs_root_path)?;
+        let package_target = package_install.target()?;
         match package_target.validate() {
             Ok(()) => Ok(package_install),
             Err(e) => Err(e),
@@ -86,7 +86,7 @@ impl PackageInstall {
         if !package_root_path.exists() {
             return Err(Error::PackageNotFound(ident.clone()));
         }
-        let pl = try!(Self::package_list(&package_root_path));
+        let pl = Self::package_list(&package_root_path)?;
         if ident.fully_qualified() {
             if pl.iter().any(|ref p| p.satisfies(ident)) {
                 Ok(PackageInstall {
@@ -147,7 +147,7 @@ impl PackageInstall {
             return Err(Error::PackageNotFound(ident.clone()));
         }
 
-        let pl = try!(Self::package_list(&package_root_path));
+        let pl = Self::package_list(&package_root_path)?;
         let latest: Option<PackageIdent> = pl.iter()
             .filter(|ref p| p.origin == ident.origin && p.name == ident.name)
             .fold(None, |winner, b| match winner {
@@ -259,25 +259,12 @@ impl PackageInstall {
     ///
     /// * The package contains a Environment metafile but it could not be read or it was malformed.
     fn environment(&self) -> Result<HashMap<String, String>> {
-        let mut m = HashMap::new();
         match self.read_metafile(MetaFile::Environment) {
             Ok(body) => {
-                for line in body.lines() {
-                    let mut parts = line.splitn(2, '=');
-                    let key = parts
-                        .next()
-                        .and_then(|p| Some(p.to_string()))
-                        .ok_or_else(|| Error::MetaFileMalformed(MetaFile::Environment))?;
-                    let value =
-                        parts
-                            .next()
-                            .and_then(|p| Some(p.to_string()))
-                            .ok_or_else(|| Error::MetaFileMalformed(MetaFile::Environment))?;
-                    m.insert(key, value);
-                }
-                Ok(m)
+                Ok(parse_key_value(&body)
+                       .map_err(|_| Error::MetaFileMalformed(MetaFile::Environment))?)
             }
-            Err(Error::MetaFileNotFound(MetaFile::Environment)) => Ok(m),
+            Err(Error::MetaFileNotFound(MetaFile::Environment)) => Ok(HashMap::new()),
             Err(e) => Err(e),
         }
     }
@@ -289,26 +276,12 @@ impl PackageInstall {
     /// * The package contains a EnvironmentSep metafile but it could not be read or it was
     ///   malformed.
     fn environment_sep(&self) -> Result<HashMap<String, String>> {
-        let mut m = HashMap::new();
         match self.read_metafile(MetaFile::EnvironmentSep) {
             Ok(body) => {
-                for line in body.lines() {
-                    let mut parts = line.splitn(2, '=');
-                    let key =
-                        parts
-                            .next()
-                            .and_then(|p| Some(p.to_string()))
-                            .ok_or_else(|| Error::MetaFileMalformed(MetaFile::EnvironmentSep))?;
-                    let value =
-                        parts
-                            .next()
-                            .and_then(|p| Some(p.to_string()))
-                            .ok_or_else(|| Error::MetaFileMalformed(MetaFile::EnvironmentSep))?;
-                    m.insert(key, value);
-                }
-                Ok(m)
+                Ok(parse_key_value(&body)
+                       .map_err(|_| Error::MetaFileMalformed(MetaFile::EnvironmentSep))?)
             }
-            Err(Error::MetaFileNotFound(MetaFile::EnvironmentSep)) => Ok(m),
+            Err(Error::MetaFileNotFound(MetaFile::EnvironmentSep)) => Ok(HashMap::new()),
             Err(e) => Err(e),
         }
     }
@@ -321,24 +294,10 @@ impl PackageInstall {
     pub fn exports(&self) -> Result<HashMap<String, String>> {
         match self.read_metafile(MetaFile::Exports) {
             Ok(body) => {
-                let mut m = HashMap::<String, String>::new();
-                for line in body.lines() {
-                    let mut parts = line.split('=');
-                    let key =
-                        try!(parts
-                                 .next()
-                                 .and_then(|p| Some(p.to_string()))
-                                 .ok_or_else(|| Error::MetaFileMalformed(MetaFile::Exports)));
-                    let value =
-                        try!(parts
-                                 .next()
-                                 .and_then(|p| Some(p.to_string()))
-                                 .ok_or_else(|| Error::MetaFileMalformed(MetaFile::Exports)));
-                    m.insert(key, value);
-                }
-                Ok(m)
+                Ok(parse_key_value(&body)
+                       .map_err(|_| Error::MetaFileMalformed(MetaFile::Exports))?)
             }
-            Err(Error::MetaFileNotFound(MetaFile::Exports)) => Ok(HashMap::<String, String>::new()),
+            Err(Error::MetaFileNotFound(MetaFile::Exports)) => Ok(HashMap::new()),
             Err(e) => Err(e),
         }
     }
@@ -385,75 +344,32 @@ impl PackageInstall {
         }
     }
 
-    /// Returns a `HashMap<String, String>` with the full runtime environment for this package.
-    /// This is constructed from all `ENVIRONMENT` and `ENVIRONMENT_SEP` metadata entries from the
+    /// Returns a `Vec<PkgEnv>` with the full runtime environment for this package. This is
+    /// constructed from all `ENVIRONMENT` and `ENVIRONMENT_SEP` metadata entries from the
     /// *direct* dependencies first (in declared order) and then from any remaining transitive
     /// dependencies last (in lexically sorted order).
     ///
     /// If a package is missing the aforementioned metadata files, fall back to the
     /// legacy `PATH` metadata files.
-    pub fn runtime_environment(&self) -> Result<HashMap<String, String>> {
+    pub fn package_environments(&self) -> Result<Vec<PkgEnv>> {
         let mut idents = HashSet::new();
-        let mut run_envs = HashMap::new();
-
-        // This is a special storage so that we can use the old `paths()`
-        // method and not have to repeatedly convert when concatenating.
-        let mut legacy_run_paths: Vec<PathBuf> = Vec::new();
-        let mut has_legacy_run_paths = false;
+        let mut pkg_envs: Vec<PkgEnv> = Vec::new();
 
         let env = self.environment()?;
-        if !env.is_empty() {
-            if let Some(path) = env.get("PATH") {
-                let mut v: Vec<PathBuf> = env::split_paths(&path)
-                    .map(|p| PathBuf::from(&p))
-                    .collect();
-                legacy_run_paths.append(&mut v);
-            }
-
-            for (key, value) in env.into_iter() {
-                run_envs.insert(key, value);
-            }
-        } else {
-            let mut p = self.paths()?;
-            legacy_run_paths.append(&mut p);
-            has_legacy_run_paths = true;
-        }
+        pkg_envs.push(if !env.is_empty() {
+                          PkgEnv::new(env, self.environment_sep()?)
+                      } else {
+                          PkgEnv::from_paths(self.paths()?)
+                      });
 
         let deps = self.load_deps()?;
         for dep in deps.iter() {
             let env = dep.environment()?;
-            let env_sep = dep.environment_sep()?;
-            if !env.is_empty() {
-                if let Some(path) = env.get("PATH") {
-                    let mut v: Vec<PathBuf> = env::split_paths(&path)
-                        .map(|p| PathBuf::from(&p))
-                        .collect();
-                    legacy_run_paths.append(&mut v);
-                }
-
-                for (key, value) in env.into_iter() {
-                    match run_envs.entry(key) {
-                        Occupied(entry) => {
-                            match env_sep.get(entry.key()) {
-                                Some(sep) => {
-                                    let v = entry.into_mut();
-                                    v.push_str(sep);
-                                    v.push_str(&value);
-                                }
-                                None => warn!("Cannot join {}, no separator defined", entry.key()),
-                            }
-                        }
-                        Vacant(entry) => {
-                            entry.insert(value);
-                            ()
-                        }
-                    }
-                }
-            } else {
-                let mut p = dep.paths()?;
-                legacy_run_paths.append(&mut p);
-                has_legacy_run_paths = true;
-            }
+            pkg_envs.push(if !env.is_empty() {
+                              PkgEnv::new(env, dep.environment_sep()?)
+                          } else {
+                              PkgEnv::from_paths(dep.paths()?)
+                          });
             idents.insert(dep.ident().clone());
         }
 
@@ -463,50 +379,43 @@ impl PackageInstall {
                 continue;
             }
             let env = dep.environment()?;
-            let env_sep = dep.environment_sep()?;
-            if !env.is_empty() {
-                if let Some(path) = env.get("PATH") {
-                    let mut v: Vec<PathBuf> = env::split_paths(&path)
-                        .map(|p| PathBuf::from(&p))
-                        .collect();
-                    legacy_run_paths.append(&mut v);
-                }
-
-                for (key, value) in env.into_iter() {
-                    match run_envs.entry(key) {
-                        Occupied(entry) => {
-                            match env_sep.get(entry.key()) {
-                                Some(sep) => {
-                                    let v = entry.into_mut();
-                                    v.push_str(sep);
-                                    v.push_str(&value);
-                                }
-                                None => warn!("Cannot join {}, no separator defined", entry.key()),
-                            }
-                        }
-                        Vacant(entry) => {
-                            entry.insert(value);
-                            ()
-                        }
-                    }
-                }
-            } else {
-                let mut p = dep.paths()?;
-                legacy_run_paths.append(&mut p);
-                has_legacy_run_paths = true;
-            }
+            pkg_envs.push(if !env.is_empty() {
+                              PkgEnv::new(env, dep.environment_sep()?)
+                          } else {
+                              PkgEnv::from_paths(dep.paths()?)
+                          });
             idents.insert(dep.ident().clone());
         }
 
-        if has_legacy_run_paths {
-            // Overwrite PATH with legacy_run_paths
-            let p = env::join_paths(&legacy_run_paths).expect("Failed to build path string");
-            let v = p.into_string()
-                .expect("Failed to convert path to utf8 string");
-            run_envs.insert("PATH".to_string(), v);
+        Ok(pkg_envs)
+    }
+
+    /// Returns a flattened `HashMap<String, String>` with the runtime environment, omitting
+    /// overwritten values.
+    pub fn runtime_environment(&self) -> Result<HashMap<String, String>> {
+        let mut env: HashMap<String, String> = HashMap::new();
+        let pkg_envs = self.package_environments()?;
+
+        for pkg_env in pkg_envs.into_iter() {
+            for env_var in pkg_env.into_iter() {
+                match env.entry(env_var.key) {
+                    Occupied(entry) => {
+                        if let Some(sep) = env_var.separator {
+                            let v = entry.into_mut();
+                            v.push(sep);
+                            v.push_str(&env_var.value);
+                        } else {
+                            warn!("Cannot join {}, no separator defined", entry.key());
+                        }
+                    }
+                    Vacant(entry) => {
+                        entry.insert(env_var.value);
+                    }
+                }
+            }
         }
 
-        Ok(run_envs)
+        Ok(env)
     }
 
     pub fn installed_path(&self) -> &Path {
@@ -581,7 +490,7 @@ impl PackageInstall {
                 if body.len() > 0 {
                     let ids: Vec<String> = body.split("\n").map(|d| d.to_string()).collect();
                     for id in &ids {
-                        let package = try!(PackageIdent::from_str(id));
+                        let package = PackageIdent::from_str(id)?;
                         if !package.fully_qualified() {
                             return Err(Error::InvalidPackageIdent(package.to_string()));
                         }
@@ -603,10 +512,10 @@ impl PackageInstall {
     /// * Any direct dependency could not be located or it's contents could not be read
     ///   from disk
     fn load_deps(&self) -> Result<Vec<PackageInstall>> {
-        let ddeps = try!(self.deps());
+        let ddeps = self.deps()?;
         let mut deps = Vec::with_capacity(ddeps.len());
         for dep in ddeps.iter() {
-            let dep_install = try!(Self::load(dep, Some(&*self.fs_root_path)));
+            let dep_install = Self::load(dep, Some(&*self.fs_root_path))?;
             deps.push(dep_install);
         }
         Ok(deps)
@@ -620,10 +529,10 @@ impl PackageInstall {
     /// * Any transitive dependency could not be located or it's contents could not be read
     ///   from disk
     fn load_tdeps(&self) -> Result<Vec<PackageInstall>> {
-        let tdeps = try!(self.tdeps());
+        let tdeps = self.tdeps()?;
         let mut deps = Vec::with_capacity(tdeps.len());
         for dep in tdeps.iter() {
-            let dep_install = try!(Self::load(dep, Some(&*self.fs_root_path)));
+            let dep_install = Self::load(dep, Some(&*self.fs_root_path))?;
             deps.push(dep_install);
         }
         Ok(deps)
@@ -632,8 +541,8 @@ impl PackageInstall {
     /// Returns a list of package structs built from the contents of the given directory.
     fn package_list(path: &Path) -> Result<Vec<PackageIdent>> {
         let mut package_list: Vec<PackageIdent> = vec![];
-        if try!(std::fs::metadata(path)).is_dir() {
-            try!(Self::walk_origins(&path, &mut package_list));
+        if std::fs::metadata(path)?.is_dir() {
+            Self::walk_origins(&path, &mut package_list)?;
         }
         Ok(package_list)
     }
@@ -642,10 +551,10 @@ impl PackageInstall {
     /// and builds on the given package list by recursing into name, version, and release
     /// directories.
     fn walk_origins(path: &Path, packages: &mut Vec<PackageIdent>) -> Result<()> {
-        for entry in try!(std::fs::read_dir(path)) {
-            let origin = try!(entry);
-            if try!(std::fs::metadata(origin.path())).is_dir() {
-                try!(Self::walk_names(&origin, packages));
+        for entry in std::fs::read_dir(path)? {
+            let origin = entry?;
+            if std::fs::metadata(origin.path())?.is_dir() {
+                Self::walk_names(&origin, packages)?;
             }
         }
         Ok(())
@@ -654,15 +563,15 @@ impl PackageInstall {
     /// Helper function for walk_origins. Walks the given origin DirEntry for name
     /// directories and recurses into them to find version and release directories.
     fn walk_names(origin: &DirEntry, packages: &mut Vec<PackageIdent>) -> Result<()> {
-        for name in try!(std::fs::read_dir(origin.path())) {
-            let name = try!(name);
+        for name in std::fs::read_dir(origin.path())? {
+            let name = name?;
             let origin = origin
                 .file_name()
                 .to_string_lossy()
                 .into_owned()
                 .to_string();
-            if try!(std::fs::metadata(name.path())).is_dir() {
-                try!(Self::walk_versions(&origin, &name, packages));
+            if std::fs::metadata(name.path())?.is_dir() {
+                Self::walk_versions(&origin, &name, packages)?;
             }
         }
         Ok(())
@@ -674,14 +583,14 @@ impl PackageInstall {
                      name: &DirEntry,
                      packages: &mut Vec<PackageIdent>)
                      -> Result<()> {
-        for version in try!(std::fs::read_dir(name.path())) {
-            let version = try!(version);
+        for version in std::fs::read_dir(name.path())? {
+            let version = version?;
             let name = name.file_name()
                 .to_string_lossy()
                 .into_owned()
                 .to_string();
-            if try!(std::fs::metadata(version.path())).is_dir() {
-                try!(Self::walk_releases(origin, &name, &version, packages));
+            if std::fs::metadata(version.path())?.is_dir() {
+                Self::walk_releases(origin, &name, &version, packages)?;
             }
         }
         Ok(())
@@ -696,8 +605,8 @@ impl PackageInstall {
                      version: &DirEntry,
                      packages: &mut Vec<PackageIdent>)
                      -> Result<()> {
-        for release in try!(std::fs::read_dir(version.path())) {
-            let release = try!(release)
+        for release in std::fs::read_dir(version.path())? {
+            let release = release?
                 .file_name()
                 .to_string_lossy()
                 .into_owned()
