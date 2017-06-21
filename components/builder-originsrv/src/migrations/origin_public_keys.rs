@@ -17,12 +17,13 @@ use db::migration::Migrator;
 use error::Result;
 
 pub fn migrate(migrator: &mut Migrator) -> Result<()> {
-    migrator
-        .migrate("originsrv",
-                 r#"CREATE SEQUENCE IF NOT EXISTS origin_public_key_id_seq;"#)?;
-    migrator
-        .migrate("originsrv",
-                 r#"CREATE TABLE IF NOT EXISTS origin_public_keys (
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE SEQUENCE IF NOT EXISTS origin_public_key_id_seq;"#,
+    )?;
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE TABLE IF NOT EXISTS origin_public_keys (
                     id bigint PRIMARY KEY DEFAULT next_id_v1('origin_public_key_id_seq'),
                     origin_id bigint REFERENCES origins(id),
                     owner_id bigint,
@@ -32,7 +33,8 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                     body bytea,
                     created_at timestamptz DEFAULT now(),
                     updated_at timestamptz
-             )"#)?;
+             )"#,
+    )?;
     migrator.migrate("originsrv",
                  r#"CREATE OR REPLACE FUNCTION insert_origin_public_key_v1 (
                     opk_origin_id bigint,
@@ -61,9 +63,9 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                         RETURN;
                     END
                     $$ LANGUAGE plpgsql STABLE"#)?;
-    migrator
-        .migrate("originsrv",
-                 r#"CREATE OR REPLACE FUNCTION get_origin_public_key_latest_v1 (
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE OR REPLACE FUNCTION get_origin_public_key_latest_v1 (
                     opk_name text
                  ) RETURNS SETOF origin_public_keys AS $$
                     BEGIN
@@ -72,7 +74,8 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                           LIMIT 1;
                         RETURN;
                     END
-                    $$ LANGUAGE plpgsql STABLE"#)?;
+                    $$ LANGUAGE plpgsql STABLE"#,
+    )?;
     migrator.migrate("originsrv",
                      r#"CREATE OR REPLACE FUNCTION get_origin_public_keys_for_origin_v1 (
                    opk_origin_id bigint
@@ -83,24 +86,27 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                         RETURN;
                     END
                     $$ LANGUAGE plpgsql STABLE"#)?;
-    migrator
-        .migrate("originsrv",
-                 r#"ALTER TABLE origin_public_keys
+    migrator.migrate(
+        "originsrv",
+        r#"ALTER TABLE origin_public_keys
                         DROP CONSTRAINT IF EXISTS
-                          origin_public_keys_full_name_key"#)?;
-    migrator
-        .migrate("originsrv-2",
-                 r#"DELETE FROM origin_public_keys
+                          origin_public_keys_full_name_key"#,
+    )?;
+    migrator.migrate(
+        "originsrv-2",
+        r#"DELETE FROM origin_public_keys
                         WHERE id IN (
                             SELECT id FROM (
                                 SELECT id, ROW_NUMBER() OVER (
                                     partition BY full_name ORDER BY id
                                 ) AS rnum FROM origin_public_keys
-                            ) t WHERE t.rnum > 1)"#)?;
-    migrator
-        .migrate("originsrv-3",
-                 r#"ALTER TABLE origin_public_keys
+                            ) t WHERE t.rnum > 1)"#,
+    )?;
+    migrator.migrate(
+        "originsrv-3",
+        r#"ALTER TABLE origin_public_keys
                         ADD CONSTRAINT origin_public_keys_full_name_key
-                        UNIQUE (full_name)"#)?;
+                        UNIQUE (full_name)"#,
+    )?;
     Ok(())
 }

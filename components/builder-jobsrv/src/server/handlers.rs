@@ -25,17 +25,20 @@ use std::path::PathBuf;
 use super::ServerState;
 use zmq;
 
-pub fn job_create(req: &mut Envelope,
-                  sock: &mut zmq::Socket,
-                  state: &mut ServerState)
-                  -> Result<()> {
+pub fn job_create(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
     let msg: proto::JobSpec = try!(req.parse_msg());
     let mut job: proto::Job = msg.into();
     state.datastore().create_job(&mut job)?;
-    debug!("Job created: id={} owner_id={} state={:?}",
-           job.get_id(),
-           job.get_owner_id(),
-           job.get_state());
+    debug!(
+        "Job created: id={} owner_id={} state={:?}",
+        job.get_id(),
+        job.get_owner_id(),
+        job.get_state()
+    );
     try!(state.worker_mgr().notify_work());
     try!(req.reply_complete(sock, &job));
     Ok(())
@@ -61,10 +64,11 @@ pub fn job_get(req: &mut Envelope, sock: &mut zmq::Socket, state: &mut ServerSta
     Ok(())
 }
 
-pub fn project_jobs_get(req: &mut Envelope,
-                        sock: &mut zmq::Socket,
-                        state: &mut ServerState)
-                        -> Result<()> {
+pub fn project_jobs_get(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
     let msg: proto::ProjectJobsGet = try!(req.parse_msg());
     match state.datastore().get_jobs_for_project(&msg) {
         Ok(ref jobs) => {
@@ -82,10 +86,11 @@ pub fn project_jobs_get(req: &mut Envelope,
 
 }
 
-pub fn job_log_get(req: &mut Envelope,
-                   sock: &mut zmq::Socket,
-                   state: &mut ServerState)
-                   -> Result<()> {
+pub fn job_log_get(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
 
     let msg: proto::JobLogGet = req.parse_msg()?;
 

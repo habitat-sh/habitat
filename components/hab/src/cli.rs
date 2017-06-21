@@ -414,14 +414,18 @@ fn sub_cli_completers() -> App<'static, 'static> {
     // possible values. We wanted to fail here with an unsupported shell instead of pushing off a
     // bad value to clap.
 
-    sub.arg(Arg::with_name("SHELL")
-        .help("The name of the shell you want to generate the command-completion. Supported \
-               Shells: bash, fish, zsh, powershell")
-        .short("s")
-        .long("shell")
-        .required(true)
-        .takes_value(true)
-        .possible_values(&supported_shells))
+    sub.arg(
+        Arg::with_name("SHELL")
+            .help(
+                "The name of the shell you want to generate the command-completion. Supported \
+               Shells: bash, fish, zsh, powershell",
+            )
+            .short("s")
+            .long("shell")
+            .required(true)
+            .takes_value(true)
+            .possible_values(&supported_shells),
+    )
 }
 
 fn sub_config_apply() -> App<'static, 'static> {
@@ -459,10 +463,14 @@ fn sub_pkg_build() -> App<'static, 'static> {
     // Only a truly native/local Studio can be reused--the Docker implementation will always be
     // ephemeral
     if cfg!(target_os = "linux") {
-        sub.arg(Arg::with_name("REUSE")
-            .help("Reuses a previous Studio for the build (default: clean up before building)")
-            .short("R")
-            .long("reuse"))
+        sub.arg(
+            Arg::with_name("REUSE")
+                .help(
+                    "Reuses a previous Studio for the build (default: clean up before building)",
+                )
+                .short("R")
+                .long("reuse"),
+        )
     } else {
         sub
     }
@@ -480,11 +488,13 @@ fn sub_pkg_install() -> App<'static, 'static> {
             to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
         (@arg BINLINK: -b --binlink "Binlink all binaries from installed package(s)")
     );
-    sub.arg(Arg::with_name("IGNORE_TARGET")
-                .help("Skips target validation for package installation.")
-                .short("i")
-                .long("ignore-target")
-                .hidden(true))
+    sub.arg(
+        Arg::with_name("IGNORE_TARGET")
+            .help("Skips target validation for package installation.")
+            .short("i")
+            .long("ignore-target")
+            .hidden(true),
+    )
 }
 
 fn file_exists(val: String) -> result::Result<(), String> {
@@ -503,8 +513,10 @@ fn valid_pair_type(val: String) -> result::Result<(), String> {
     match PairType::from_str(&val) {
         Ok(_) => Ok(()),
         Err(_) => {
-            Err(format!("PAIR_TYPE: {} is invalid, must be one of (public, secret)",
-                        &val))
+            Err(format!(
+                "PAIR_TYPE: {} is invalid, must be one of (public, secret)",
+                &val
+            ))
         }
     }
 }

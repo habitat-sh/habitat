@@ -52,12 +52,13 @@ use retry::retry;
 /// * Fails if it cannot find a package
 /// * Fails if the package doesn't have a `.hart` file in the cache
 /// * Fails if it cannot upload the file
-pub fn start<P: AsRef<Path>>(ui: &mut UI,
-                             url: &str,
-                             token: &str,
-                             archive_path: &P,
-                             key_path: &P)
-                             -> Result<()> {
+pub fn start<P: AsRef<Path>>(
+    ui: &mut UI,
+    url: &str,
+    token: &str,
+    archive_path: &P,
+    key_path: &P,
+) -> Result<()> {
     let mut archive = PackageArchive::new(PathBuf::from(archive_path.as_ref()));
 
     let hart_header = try!(get_artifact_header(&archive_path.as_ref()));
@@ -66,13 +67,18 @@ pub fn start<P: AsRef<Path>>(ui: &mut UI,
     let public_keyfile_name = format!("{}.pub", &hart_header.key_name);
     let public_keyfile = key_buf.join(&public_keyfile_name);
 
-    try!(ui.status(Status::Signed,
-                   format!("artifact with {}", &public_keyfile_name)));
+    try!(ui.status(
+        Status::Signed,
+        format!("artifact with {}", &public_keyfile_name),
+    ));
 
     let (name, rev) = try!(parse_name_with_rev(&hart_header.key_name));
     let depot_client = try!(Client::new(url, PRODUCT, VERSION, None));
 
-    try!(ui.begin(format!("Uploading public origin key {}", &public_keyfile_name)));
+    try!(ui.begin(format!(
+        "Uploading public origin key {}",
+        &public_keyfile_name
+    )));
 
     match depot_client.put_origin_key(&name, &rev, &public_keyfile, token, ui.progress()) {
         Ok(()) => {
@@ -80,13 +86,20 @@ pub fn start<P: AsRef<Path>>(ui: &mut UI,
                            format!("public origin key {}", &public_keyfile_name)));
         }
         Err(depot_client::Error::APIError(StatusCode::Conflict, _)) => {
-            try!(ui.status(Status::Using,
-                           format!("existing public origin key {}", &public_keyfile_name)));
+            try!(ui.status(
+                Status::Using,
+                format!(
+                    "existing public origin key {}",
+                    &public_keyfile_name
+                ),
+            ));
         }
         Err(err) => return Err(Error::from(err)),
     };
 
-    try!(ui.begin(format!("Uploading {}", archive_path.as_ref().display())));
+    try!(ui.begin(
+        format!("Uploading {}", archive_path.as_ref().display()),
+    ));
     let tdeps = try!(archive.tdeps());
     let ident = try!(archive.ident());
     match depot_client.show_package(&ident, None) {
@@ -149,12 +162,13 @@ pub fn start<P: AsRef<Path>>(ui: &mut UI,
     }
 }
 
-fn upload_into_depot(ui: &mut UI,
-                     depot_client: &Client,
-                     token: &str,
-                     ident: &PackageIdent,
-                     mut archive: &mut PackageArchive)
-                     -> Result<()> {
+fn upload_into_depot(
+    ui: &mut UI,
+    depot_client: &Client,
+    token: &str,
+    ident: &PackageIdent,
+    mut archive: &mut PackageArchive,
+) -> Result<()> {
     try!(ui.status(Status::Uploading, archive.path.display()));
     match depot_client.put_package(&mut archive, token, ui.progress()) {
         Ok(_) => (),
@@ -162,15 +176,21 @@ fn upload_into_depot(ui: &mut UI,
             println!("Package already exists on remote; skipping.");
         }
         Err(depot_client::Error::APIError(StatusCode::UnprocessableEntity, _)) => {
-            return Err(Error::PackageArchiveMalformed(format!("{}", archive.path.display())));
+            return Err(Error::PackageArchiveMalformed(
+                format!("{}", archive.path.display()),
+            ));
         }
         Err(depot_client::Error::APIError(StatusCode::NotImplemented, _)) => {
-            println!("Package platform or architecture not supported by the targeted \
-                    depot; skipping.");
+            println!(
+                "Package platform or architecture not supported by the targeted \
+                    depot; skipping."
+            );
         }
         Err(depot_client::Error::APIError(StatusCode::FailedDependency, _)) => {
-            try!(ui.fatal("Package upload introduces a circular dependency - please check \
-                    pkg_deps; skipping."));
+            try!(ui.fatal(
+                "Package upload introduces a circular dependency - please check \
+                    pkg_deps; skipping.",
+            ));
         }
         Err(e) => return Err(Error::from(e)),
     };
@@ -178,21 +198,28 @@ fn upload_into_depot(ui: &mut UI,
     Ok(())
 }
 
-fn attempt_upload_dep(ui: &mut UI,
-                      depot_client: &Client,
-                      token: &str,
-                      ident: &PackageIdent,
-                      archives_dir: &PathBuf)
-                      -> Result<()> {
+fn attempt_upload_dep(
+    ui: &mut UI,
+    depot_client: &Client,
+    token: &str,
+    ident: &PackageIdent,
+    archives_dir: &PathBuf,
+) -> Result<()> {
     let candidate_path = archives_dir.join(ident.archive_name().unwrap());
     if candidate_path.is_file() {
         let mut archive = PackageArchive::new(candidate_path);
         upload_into_depot(ui, &depot_client, token, &ident, &mut archive)
     } else {
-        try!(ui.status(Status::Missing,
-                       format!("artifact for {} was not found in {}",
-                               ident.archive_name().unwrap(),
-                               archives_dir.display())));
-        Err(Error::FileNotFound(archives_dir.to_string_lossy().into_owned()))
+        try!(ui.status(
+            Status::Missing,
+            format!(
+                "artifact for {} was not found in {}",
+                ident.archive_name().unwrap(),
+                archives_dir.display()
+            ),
+        ));
+        Err(Error::FileNotFound(
+            archives_dir.to_string_lossy().into_owned(),
+        ))
     }
 }

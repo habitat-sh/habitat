@@ -74,8 +74,9 @@ impl FromStr for PairType {
             "public" => Ok(PairType::Public),
             "secret" => Ok(PairType::Secret),
             _ => {
-                return Err(Error::CryptoError(format!("Invalid PairType conversion from {}",
-                                                      value)))
+                return Err(Error::CryptoError(
+                    format!("Invalid PairType conversion from {}", value),
+                ))
             }
         }
     }
@@ -131,8 +132,10 @@ impl<P, S> KeyPair<P, S> {
         match self.public.as_ref() {
             Some(s) => Ok(s),
             None => {
-                let msg = format!("Public key is required but not present for {}",
-                                  self.name_with_rev());
+                let msg = format!(
+                    "Public key is required but not present for {}",
+                    self.name_with_rev()
+                );
                 return Err(Error::CryptoError(msg));
             }
         }
@@ -142,8 +145,10 @@ impl<P, S> KeyPair<P, S> {
         match self.secret.as_ref() {
             Some(s) => Ok(s),
             None => {
-                let msg = format!("Secret key is required but not present for {}",
-                                  self.name_with_rev());
+                let msg = format!(
+                    "Secret key is required but not present for {}",
+                    self.name_with_rev()
+                );
                 return Err(Error::CryptoError(msg));
             }
         }
@@ -187,7 +192,8 @@ fn check_filename(keyname: &str, filename: String, candidates: &mut HashSet<Stri
     };
 
     if suffix == PUBLIC_KEY_SUFFIX || suffix == SECRET_SIG_KEY_SUFFIX ||
-       suffix == SECRET_BOX_KEY_SUFFIX || suffix == SECRET_SYM_KEY_SUFFIX {
+        suffix == SECRET_BOX_KEY_SUFFIX || suffix == SECRET_SYM_KEY_SUFFIX
+    {
         debug!("valid key suffix");
     } else {
         debug!("check_filename: Invalid key suffix from {}", &filename);
@@ -203,16 +209,19 @@ fn check_filename(keyname: &str, filename: String, candidates: &mut HashSet<Stri
 /// Take a key name (ex "habitat"), and find all revisions of that
 /// keyname in the default_cache_key_path().
 fn get_key_revisions<P>(keyname: &str, cache_key_path: P) -> Result<Vec<String>>
-    where P: AsRef<Path>
+where
+    P: AsRef<Path>,
 {
     // accumulator for files that match
     let mut candidates = HashSet::new();
     let paths = match fs::read_dir(cache_key_path.as_ref()) {
         Ok(p) => p,
         Err(e) => {
-            return Err(Error::CryptoError(format!("Error reading key directory {}: {}",
-                                                  cache_key_path.as_ref().display(),
-                                                  e)))
+            return Err(Error::CryptoError(format!(
+                "Error reading key directory {}: {}",
+                cache_key_path.as_ref().display(),
+                e
+            )))
         }
     };
     for path in paths {
@@ -259,12 +268,16 @@ fn get_key_revisions<P>(keyname: &str, cache_key_path: P) -> Result<Vec<String>>
 }
 
 fn mk_key_filename<P, S1, S2>(path: P, keyname: S1, suffix: S2) -> PathBuf
-    where P: AsRef<Path>,
-          S1: AsRef<str>,
-          S2: AsRef<str>
+where
+    P: AsRef<Path>,
+    S1: AsRef<str>,
+    S2: AsRef<str>,
 {
-    path.as_ref()
-        .join(format!("{}.{}", keyname.as_ref(), suffix.as_ref()))
+    path.as_ref().join(format!(
+        "{}.{}",
+        keyname.as_ref(),
+        suffix.as_ref()
+    ))
 }
 
 /// generates a revision string in the form:
@@ -281,29 +294,36 @@ fn mk_revision_string() -> Result<String> {
 }
 
 pub fn parse_name_with_rev<T>(name_with_rev: T) -> Result<(String, String)>
-    where T: AsRef<str>
+where
+    T: AsRef<str>,
 {
     let caps = match NAME_WITH_REV_RE.captures(name_with_rev.as_ref()) {
         Some(c) => c,
         None => {
-            let msg = format!("parse_name_with_rev:1 Cannot parse {}",
-                              name_with_rev.as_ref());
+            let msg = format!(
+                "parse_name_with_rev:1 Cannot parse {}",
+                name_with_rev.as_ref()
+            );
             return Err(Error::CryptoError(msg));
         }
     };
     let name = match caps.name("name") {
         Some(r) => r.as_str().to_string(),
         None => {
-            let msg = format!("parse_name_with_rev:2 Cannot parse name from {}",
-                              name_with_rev.as_ref());
+            let msg = format!(
+                "parse_name_with_rev:2 Cannot parse name from {}",
+                name_with_rev.as_ref()
+            );
             return Err(Error::CryptoError(msg));
         }
     };
     let rev = match caps.name("rev") {
         Some(r) => r.as_str().to_string(),
         None => {
-            let msg = format!("parse_name_with_rev:3 Cannot parse rev from {}",
-                              name_with_rev.as_ref());
+            let msg = format!(
+                "parse_name_with_rev:3 Cannot parse rev from {}",
+                name_with_rev.as_ref()
+            );
             return Err(Error::CryptoError(msg));
         }
     };
@@ -324,23 +344,30 @@ fn read_key_bytes(keyfile: &Path) -> Result<Vec<u8>> {
     match s.lines().nth(3) {
         Some(encoded) => {
             let v = try!(base64::decode(encoded).map_err(|e| {
-                Error::CryptoError(format!("Can't read raw key from {}: {}", keyfile.display(), e))
+                Error::CryptoError(format!(
+                    "Can't read raw key from {}: {}",
+                    keyfile.display(),
+                    e
+                ))
             }));
             Ok(v)
         }
         None => {
-            Err(Error::CryptoError(format!("Malformed key contents for: {}", keyfile.display())))
+            Err(Error::CryptoError(
+                format!("Malformed key contents for: {}", keyfile.display()),
+            ))
         }
     }
 }
 
-fn write_keypair_files(key_type: KeyType,
-                       keyname: &str,
-                       public_keyfile: Option<&Path>,
-                       public_content: Option<&[u8]>,
-                       secret_keyfile: Option<&Path>,
-                       secret_content: Option<&[u8]>)
-                       -> Result<()> {
+fn write_keypair_files(
+    key_type: KeyType,
+    keyname: &str,
+    public_keyfile: Option<&Path>,
+    public_content: Option<&[u8]>,
+    secret_keyfile: Option<&Path>,
+    secret_content: Option<&[u8]>,
+) -> Result<()> {
     if let Some(public_keyfile) = public_keyfile {
         let public_version = match key_type {
             KeyType::Sig => PUBLIC_SIG_KEY_VERSION,
@@ -356,18 +383,25 @@ fn write_keypair_files(key_type: KeyType,
         if let Some(pk_dir) = public_keyfile.parent() {
             try!(fs::create_dir_all(pk_dir));
         } else {
-            return Err(Error::BadKeyPath(public_keyfile.to_string_lossy().into_owned()));
+            return Err(Error::BadKeyPath(
+                public_keyfile.to_string_lossy().into_owned(),
+            ));
         }
         if public_keyfile.exists() {
-            return Err(Error::CryptoError(format!("Public keyfile or a directory already \
+            return Err(Error::CryptoError(format!(
+                "Public keyfile or a directory already \
                                                    exists {}",
-                                                  public_keyfile.display())));
+                public_keyfile.display()
+            )));
         }
         let public_file = try!(File::create(public_keyfile));
         let mut public_writer = BufWriter::new(&public_file);
         try!(write!(public_writer, "{}\n{}\n\n", public_version, keyname));
         try!(public_writer.write_all(public_content));
-        try!(perm::set_permissions(public_keyfile, PUBLIC_KEY_PERMISSIONS));
+        try!(perm::set_permissions(
+            public_keyfile,
+            PUBLIC_KEY_PERMISSIONS,
+        ));
     }
 
     if let Some(secret_keyfile) = secret_keyfile {
@@ -385,18 +419,25 @@ fn write_keypair_files(key_type: KeyType,
         if let Some(sk_dir) = secret_keyfile.parent() {
             try!(fs::create_dir_all(sk_dir));
         } else {
-            return Err(Error::BadKeyPath(secret_keyfile.to_string_lossy().into_owned()));
+            return Err(Error::BadKeyPath(
+                secret_keyfile.to_string_lossy().into_owned(),
+            ));
         }
         if secret_keyfile.exists() {
-            return Err(Error::CryptoError(format!("Secret keyfile or a directory already \
+            return Err(Error::CryptoError(format!(
+                "Secret keyfile or a directory already \
                                                    exists {}",
-                                                  secret_keyfile.display())));
+                secret_keyfile.display()
+            )));
         }
         let secret_file = try!(File::create(secret_keyfile));
         let mut secret_writer = BufWriter::new(&secret_file);
         try!(write!(secret_writer, "{}\n{}\n\n", secret_version, keyname));
         try!(secret_writer.write_all(secret_content));
-        try!(perm::set_permissions(secret_keyfile, SECRET_KEY_PERMISSIONS));
+        try!(perm::set_permissions(
+            secret_keyfile,
+            SECRET_KEY_PERMISSIONS,
+        ));
     }
     Ok(())
 }
@@ -512,7 +553,9 @@ mod test {
     fn get_user_key_revisions() {
         let cache = TempDir::new("key_cache").unwrap();
         for _ in 0..3 {
-            wait_until_ok(|| BoxKeyPair::generate_pair_for_user("wecoyote", cache.path()));
+            wait_until_ok(|| {
+                BoxKeyPair::generate_pair_for_user("wecoyote", cache.path())
+            });
         }
         let _ = BoxKeyPair::generate_pair_for_user("wecoyote-foo", cache.path()).unwrap();
 
@@ -530,10 +573,8 @@ mod test {
 
         for _ in 0..3 {
             wait_until_ok(|| {
-                              BoxKeyPair::generate_pair_for_service("acme",
-                                                                    "tnt.default",
-                                                                    cache.path())
-                          });
+                BoxKeyPair::generate_pair_for_service("acme", "tnt.default", cache.path())
+            });
         }
 
         let _ = BoxKeyPair::generate_pair_for_service("acyou", "tnt.default", cache.path())
@@ -568,7 +609,9 @@ mod test {
         let cache = TempDir::new("key_cache").unwrap();
 
         for _ in 0..3 {
-            wait_until_ok(|| SigKeyPair::generate_pair_for_origin("mutants", cache.path()));
+            wait_until_ok(|| {
+                SigKeyPair::generate_pair_for_origin("mutants", cache.path())
+            });
         }
 
         let _ = SigKeyPair::generate_pair_for_origin("mutants-x", cache.path()).unwrap();
@@ -584,18 +627,26 @@ mod test {
     fn check_filename_key_without_dash() {
         // look for a keyname that doesn't include a dash
         let mut candidates = HashSet::new();
-        super::check_filename("wecoyote",
-                              "wecoyote-20160519203610.pub".to_string(),
-                              &mut candidates);
-        super::check_filename("wecoyote",
-                              "wecoyote-foo-20160519203610.pub".to_string(),
-                              &mut candidates);
-        super::check_filename("wecoyote",
-                              "wecoyote-20160519203610.box.key".to_string(),
-                              &mut candidates);
-        super::check_filename("wecoyote",
-                              "wecoyote-foo-20160519203610.box.key".to_string(),
-                              &mut candidates);
+        super::check_filename(
+            "wecoyote",
+            "wecoyote-20160519203610.pub".to_string(),
+            &mut candidates,
+        );
+        super::check_filename(
+            "wecoyote",
+            "wecoyote-foo-20160519203610.pub".to_string(),
+            &mut candidates,
+        );
+        super::check_filename(
+            "wecoyote",
+            "wecoyote-20160519203610.box.key".to_string(),
+            &mut candidates,
+        );
+        super::check_filename(
+            "wecoyote",
+            "wecoyote-foo-20160519203610.box.key".to_string(),
+            &mut candidates,
+        );
         assert_eq!(1, candidates.len());
     }
 
@@ -604,18 +655,26 @@ mod test {
     fn check_filename_key_with_dash() {
         // look for a keyname that includes a dash
         let mut candidates = HashSet::new();
-        super::check_filename("wecoyote-foo",
-                              "wecoyote-20160519203610.pub".to_string(),
-                              &mut candidates);
-        super::check_filename("wecoyote-foo",
-                              "wecoyote-foo-20160519203610.pub".to_string(),
-                              &mut candidates);
-        super::check_filename("wecoyote-foo",
-                              "wecoyote-20160519203610.box.key".to_string(),
-                              &mut candidates);
-        super::check_filename("wecoyote-foo",
-                              "wecoyote-foo-20160519203610.box.key".to_string(),
-                              &mut candidates);
+        super::check_filename(
+            "wecoyote-foo",
+            "wecoyote-20160519203610.pub".to_string(),
+            &mut candidates,
+        );
+        super::check_filename(
+            "wecoyote-foo",
+            "wecoyote-foo-20160519203610.pub".to_string(),
+            &mut candidates,
+        );
+        super::check_filename(
+            "wecoyote-foo",
+            "wecoyote-20160519203610.box.key".to_string(),
+            &mut candidates,
+        );
+        super::check_filename(
+            "wecoyote-foo",
+            "wecoyote-foo-20160519203610.box.key".to_string(),
+            &mut candidates,
+        );
         assert_eq!(1, candidates.len());
     }
 

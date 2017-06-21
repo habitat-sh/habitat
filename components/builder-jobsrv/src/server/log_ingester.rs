@@ -44,36 +44,38 @@ pub struct LogIngester {
 }
 
 impl LogIngester {
-    pub fn new(config: Arc<RwLock<Config>>,
-               log_dir: LogDirectory,
-               data_store: DataStore)
-               -> Result<Self> {
+    pub fn new(
+        config: Arc<RwLock<Config>>,
+        log_dir: LogDirectory,
+        data_store: DataStore,
+    ) -> Result<Self> {
         let intake_sock = (**ZMQ_CONTEXT).as_mut().socket(zmq::ROUTER)?;
         intake_sock.set_router_mandatory(true)?;
         let msg = zmq::Message::new()?;
         let archiver = log_archiver::from_config(config.read().unwrap().archive.clone()).unwrap();
 
         Ok(LogIngester {
-               intake_sock: intake_sock,
-               config: config,
-               msg: msg,
-               log_dir: log_dir,
-               data_store: data_store,
-               archiver: archiver,
-           })
+            intake_sock: intake_sock,
+            config: config,
+            msg: msg,
+            log_dir: log_dir,
+            data_store: data_store,
+            archiver: archiver,
+        })
     }
 
-    pub fn start(cfg: Arc<RwLock<Config>>,
-                 log_dir: LogDirectory,
-                 data_store: DataStore)
-                 -> Result<JoinHandle<()>> {
+    pub fn start(
+        cfg: Arc<RwLock<Config>>,
+        log_dir: LogDirectory,
+        data_store: DataStore,
+    ) -> Result<JoinHandle<()>> {
         let (tx, rx) = mpsc::sync_channel(1);
         let handle = thread::Builder::new()
             .name("log-ingester".to_string())
             .spawn(move || {
-                       let mut ingester = Self::new(cfg, log_dir, data_store).unwrap();
-                       ingester.run(tx).unwrap();
-                   })
+                let mut ingester = Self::new(cfg, log_dir, data_store).unwrap();
+                ingester.run(tx).unwrap();
+            })
             .unwrap();
         match rx.recv() {
             Ok(()) => Ok(handle),
@@ -110,10 +112,10 @@ impl LogIngester {
 
                             // TODO: Consider caching file handles for
                             // currently-processing logs.
-                            let open = OpenOptions::new()
-                                .create(true)
-                                .append(true)
-                                .open(log_file.as_path());
+                            let open = OpenOptions::new().create(true).append(true).open(
+                                log_file
+                                    .as_path(),
+                            );
 
                             match open {
                                 Ok(mut file) => {

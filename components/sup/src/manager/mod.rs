@@ -89,7 +89,8 @@ pub struct FsCfg {
 
 impl FsCfg {
     fn new<T>(sup_svc_root: T) -> Self
-        where T: Into<PathBuf>
+    where
+        T: Into<PathBuf>,
     {
         let sup_svc_root = sup_svc_root.into();
         let data_path = sup_svc_root.join("data");
@@ -105,8 +106,9 @@ impl FsCfg {
     }
 
     pub fn health_check_cache(&self, service_group: &ServiceGroup) -> PathBuf {
-        self.data_path
-            .join(format!("{}.health", service_group.service()))
+        self.data_path.join(
+            format!("{}.health", service_group.service()),
+        )
     }
 }
 
@@ -190,8 +192,9 @@ impl Manager {
         let fs_cfg = FsCfg::new(state_path);
         match read_process_lock(&fs_cfg.proc_lock_file) {
             Ok(pid) => {
-                process::signal(pid, Signal::TERM)
-                    .map_err(|_| sup_error!(Error::SignalFailed))?;
+                process::signal(pid, Signal::TERM).map_err(|_| {
+                    sup_error!(Error::SignalFailed)
+                })?;
                 Ok(())
             }
             Err(err) => Err(err),
@@ -205,20 +208,25 @@ impl Manager {
         let ring_key = match cfg.ring {
             Some(ref ring_with_revision) => {
                 outputln!("Joining ring {}", ring_with_revision);
-                Some(SymKey::get_pair_for(&ring_with_revision, &default_cache_key_path(None))?)
+                Some(SymKey::get_pair_for(
+                    &ring_with_revision,
+                    &default_cache_key_path(None),
+                )?)
             }
             None => None,
         };
 
         let services = Arc::new(RwLock::new(Vec::new()));
-        let server = butterfly::Server::new(sys.gossip_listen(),
-                                            sys.gossip_listen(),
-                                            member,
-                                            Trace::default(),
-                                            ring_key,
-                                            None,
-                                            Some(&fs_cfg.data_path),
-                                            Box::new(SuitabilityLookup(services.clone())))?;
+        let server = butterfly::Server::new(
+            sys.gossip_listen(),
+            sys.gossip_listen(),
+            member,
+            Trace::default(),
+            ring_key,
+            None,
+            Some(&fs_cfg.data_path),
+            Box::new(SuitabilityLookup(services.clone())),
+        )?;
         outputln!("Supervisor Member-ID {}", sys.member_id);
         for peer_addr in &cfg.gossip_peers {
             let mut peer = Member::default();
@@ -228,16 +236,16 @@ impl Manager {
             server.member_list.add_initial_member(peer);
         }
         Ok(Manager {
-               updater: ServiceUpdater::new(server.clone()),
-               census_ring: CensusRing::new(sys.member_id.clone()),
-               butterfly: server,
-               services: services,
-               watcher: SpecWatcher::run(&fs_cfg.specs_path)?,
-               fs_cfg: Arc::new(fs_cfg),
-               organization: cfg.organization,
-               service_states: HashMap::new(),
-               sys: Arc::new(sys),
-           })
+            updater: ServiceUpdater::new(server.clone()),
+            census_ring: CensusRing::new(sys.member_id.clone()),
+            butterfly: server,
+            services: services,
+            watcher: SpecWatcher::run(&fs_cfg.specs_path)?,
+            fs_cfg: Arc::new(fs_cfg),
+            organization: cfg.organization,
+            service_states: HashMap::new(),
+            sys: Arc::new(sys),
+        })
     }
 
     /// Load the initial Butterly Member which is used in initializing the Butterfly server. This
@@ -251,24 +259,22 @@ impl Manager {
         match File::open(&fs_cfg.member_id_file) {
             Ok(mut file) => {
                 let mut member_id = String::new();
-                file.read_to_string(&mut member_id)
-                    .map_err(|e| sup_error!(Error::BadDataFile(fs_cfg.member_id_file.clone(), e)))?;
+                file.read_to_string(&mut member_id).map_err(|e| {
+                    sup_error!(Error::BadDataFile(fs_cfg.member_id_file.clone(), e))
+                })?;
                 member.set_id(member_id);
             }
             Err(_) => {
                 match File::create(&fs_cfg.member_id_file) {
                     Ok(mut file) => {
-                        file.write(member.get_id().as_bytes())
-                            .map_err(|e| {
-                                         sup_error!(Error::BadDataFile(fs_cfg
-                                                                           .member_id_file
-                                                                           .clone(),
-                                                                       e))
-                                     })?;
+                        file.write(member.get_id().as_bytes()).map_err(|e| {
+                            sup_error!(Error::BadDataFile(fs_cfg.member_id_file.clone(), e))
+                        })?;
                     }
                     Err(err) => {
-                        return Err(sup_error!(Error::BadDataFile(fs_cfg.member_id_file.clone(),
-                                                                 err)))
+                        return Err(sup_error!(
+                            Error::BadDataFile(fs_cfg.member_id_file.clone(), err)
+                        ))
                     }
                 }
             }
@@ -287,7 +293,8 @@ impl Manager {
     }
 
     fn clean_dirty_state<T>(state_path: T) -> Result<()>
-        where T: AsRef<Path>
+    where
+        T: AsRef<Path>,
     {
         let data_path = Self::data_path(&state_path);
         debug!("Cleaning cached health checks");
@@ -297,11 +304,9 @@ impl Manager {
                     if let Ok(entry) = entry {
                         match entry.path().extension().and_then(|p| p.to_str()) {
                             Some("tmp") | Some("health") => {
-                                fs::remove_file(&entry.path())
-                                    .map_err(|err| {
-                                                 sup_error!(Error::BadDataPath(data_path.clone(),
-                                                                               err))
-                                             })?;
+                                fs::remove_file(&entry.path()).map_err(|err| {
+                                    sup_error!(Error::BadDataPath(data_path.clone(), err))
+                                })?;
                             }
                             _ => continue,
                         }
@@ -314,7 +319,8 @@ impl Manager {
     }
 
     fn create_state_path_dirs<T>(state_path: T) -> Result<()>
-        where T: AsRef<Path>
+    where
+        T: AsRef<Path>,
     {
         let data_path = Self::data_path(&state_path);
         debug!("Creating data directory: {}", data_path.display());
@@ -331,14 +337,16 @@ impl Manager {
 
     #[inline]
     fn data_path<T>(state_path: T) -> PathBuf
-        where T: AsRef<Path>
+    where
+        T: AsRef<Path>,
     {
         state_path.as_ref().join("data")
     }
 
     #[inline]
     fn specs_path<T>(state_path: T) -> PathBuf
-        where T: AsRef<Path>
+    where
+        T: AsRef<Path>,
     {
         state_path.as_ref().join("specs")
     }
@@ -362,10 +370,12 @@ impl Manager {
         // back to us. Since we consume and deconstruct the spec in `Service::new()` which
         // `Service::load()` eventually delegates to we just can't have that. We should clean
         // this up in the future.
-        let service = match Service::load(self.sys.clone(),
-                                          spec.clone(),
-                                          self.fs_cfg.clone(),
-                                          self.organization.as_ref().map(|org| &**org)) {
+        let service = match Service::load(
+            self.sys.clone(),
+            spec.clone(),
+            self.fs_cfg.clone(),
+            self.organization.as_ref().map(|org| &**org),
+        ) {
             Ok(service) => service,
             Err(err) => {
                 outputln!("Unable to start {}, {}", &spec.ident, err);
@@ -377,20 +387,26 @@ impl Manager {
         };
 
         if let Err(e) = service.create_svc_path() {
-            outputln!("Can't create directory {}: {}",
-                      service.pkg.svc_path.display(),
-                      e);
-            outputln!("If this service is running as non-root, you'll need to create \
+            outputln!(
+                "Can't create directory {}: {}",
+                service.pkg.svc_path.display(),
+                e
+            );
+            outputln!(
+                "If this service is running as non-root, you'll need to create \
                        {} and give the current user write access to it",
-                      service.pkg.svc_path.display());
+                service.pkg.svc_path.display()
+            );
             outputln!("{} failed to start", &spec.ident);
             return;
         }
 
         self.gossip_latest_service_rumor(&service);
         if service.topology == Topology::Leader {
-            self.butterfly
-                .start_election(service.service_group.clone(), 0);
+            self.butterfly.start_election(
+                service.service_group.clone(),
+                0,
+            );
         }
         self.updater.add(&service);
         self.services
@@ -407,16 +423,20 @@ impl Manager {
             // deconstruct it (see my comments in `add_service()` in this module) then we could
             // leverage `remove_spec()` instead of duplicaing this logic here.
             if let Err(err) = fs::remove_file(&service.spec_file) {
-                outputln!("Unable to cleanup service spec for transient service, {}, {}",
-                          service,
-                          err);
+                outputln!(
+                    "Unable to cleanup service spec for transient service, {}, {}",
+                    service,
+                    err
+                );
             }
         }
 
         if let Err(err) = fs::remove_file(self.fs_cfg.health_check_cache(&service.service_group)) {
-            outputln!("Unable to cleanup service health cache, {}, {}",
-                      service,
-                      err);
+            outputln!(
+                "Unable to cleanup service health cache, {}, {}",
+                service,
+                err
+            );
         }
     }
 
@@ -424,8 +444,10 @@ impl Manager {
         signals::init();
         self.start_initial_services_from_watcher()?;
 
-        outputln!("Starting gossip-listener on {}",
-                  self.butterfly.gossip_addr());
+        outputln!(
+            "Starting gossip-listener on {}",
+            self.butterfly.gossip_addr()
+        );
         self.butterfly.start(Timing::default())?;
         debug!("gossip-listener started");
         self.persist_state();
@@ -442,9 +464,11 @@ impl Manager {
             .name("sup-eventsrv".to_string())
             .spawn(move || {
                 // JB TODO: these ports can't be hardcoded
-                let ports = vec!["10001".to_string(),
-                                 "10011".to_string(),
-                                 "10021".to_string()];
+                let ports = vec![
+                    "10001".to_string(),
+                    "10011".to_string(),
+                    "10021".to_string(),
+                ];
                 let client = EventSrvClient::new(ports);
                 client.connect();
 
@@ -486,13 +510,14 @@ impl Manager {
             self.update_running_services_from_watcher()?;
             self.check_for_updated_packages();
             self.restart_elections();
-            self.census_ring
-                .update_from_rumors(&self.butterfly.service_store,
-                                    &self.butterfly.election_store,
-                                    &self.butterfly.update_store,
-                                    &self.butterfly.member_list,
-                                    &self.butterfly.service_config_store,
-                                    &self.butterfly.service_file_store);
+            self.census_ring.update_from_rumors(
+                &self.butterfly.service_store,
+                &self.butterfly.election_store,
+                &self.butterfly.update_store,
+                &self.butterfly.member_list,
+                &self.butterfly.service_config_store,
+                &self.butterfly.service_file_store,
+            );
 
             if self.check_for_changed_services() {
                 self.persist_state();
@@ -503,11 +528,13 @@ impl Manager {
 
                 let mut censuses = Vec::<CensusEntryProto>::new();
                 for service in self.services
-                        .read()
-                        .expect("Services lock is poisoned!")
-                        .iter() {
+                    .read()
+                    .expect("Services lock is poisoned!")
+                    .iter()
+                {
                     if let Some(census_group) =
-                        self.census_ring.census_group_for(&service.service_group) {
+                        self.census_ring.census_group_for(&service.service_group)
+                    {
                         if let Some(member) = census_group.me() {
                             let cep = member.as_protobuf();
                             censuses.push(cep);
@@ -523,9 +550,10 @@ impl Manager {
             }
 
             for service in self.services
-                    .write()
-                    .expect("Services lock is poisoned!")
-                    .iter_mut() {
+                .write()
+                .expect("Services lock is poisoned!")
+                .iter_mut()
+            {
                 if service.tick(&self.census_ring) {
                     self.gossip_latest_service_rumor(&service);
                 }
@@ -548,28 +576,32 @@ impl Manager {
         match signals::check_for_signal() {
             Some(SignalEvent::Shutdown) => {
                 for service in self.services
-                        .write()
-                        .expect("Services lock is poisoned!")
-                        .iter_mut() {
+                    .write()
+                    .expect("Services lock is poisoned!")
+                    .iter_mut()
+                {
                     outputln!("Shutting down {}", service);
-                    service
-                        .down()
-                        .unwrap_or_else(|err| outputln!("Failed to shutdown {}: {}", service, err));
+                    service.down().unwrap_or_else(|err| {
+                        outputln!("Failed to shutdown {}: {}", service, err)
+                    });
                 }
                 true
             }
             Some(SignalEvent::Passthrough(signal)) => {
                 println!("GOT PASSTHROUGH {:?}", signal);
                 for service in self.services
-                        .read()
-                        .expect("Services lock is poisoned!")
-                        .iter() {
+                    .read()
+                    .expect("Services lock is poisoned!")
+                    .iter()
+                {
                     outputln!("Forwarding signal {} to {}", signal.os_signal(), service);
                     if let Err(e) = service.send_signal(signal) {
-                        outputln!("Failed to send signal {} to {}: {}",
-                                  signal.os_signal(),
-                                  service,
-                                  e);
+                        outputln!(
+                            "Failed to send signal {} to {}: {}",
+                            signal.os_signal(),
+                            service,
+                            e
+                        );
                     }
                 }
                 false
@@ -586,11 +618,15 @@ impl Manager {
     /// main loop that we, ourselves, updated the service counter when we updated ourselves.
     fn check_for_updated_packages(&mut self) {
         for service in self.services
-                .write()
-                .expect("Services lock is poisoned!")
-                .iter_mut() {
-            if self.updater
-                   .check_for_updated_package(service, &self.census_ring) {
+            .write()
+            .expect("Services lock is poisoned!")
+            .iter_mut()
+        {
+            if self.updater.check_for_updated_package(
+                service,
+                &self.census_ring,
+            )
+            {
                 self.gossip_latest_service_rumor(&service);
             }
         }
@@ -599,36 +635,37 @@ impl Manager {
     fn gossip_latest_service_rumor(&self, service: &Service) {
         let mut incarnation = 1;
         {
-            let list = self.butterfly
-                .service_store
-                .list
-                .read()
-                .expect("Rumor store lock poisoned");
-            if let Some(rumor) = list.get(&*service.service_group)
-                   .and_then(|r| r.get(&self.sys.member_id)) {
+            let list = self.butterfly.service_store.list.read().expect(
+                "Rumor store lock poisoned",
+            );
+            if let Some(rumor) = list.get(&*service.service_group).and_then(|r| {
+                r.get(&self.sys.member_id)
+            })
+            {
                 incarnation = rumor.clone().get_incarnation() + 1;
             }
         }
-        self.butterfly
-            .insert_service(service.to_rumor(incarnation));
+        self.butterfly.insert_service(service.to_rumor(incarnation));
     }
 
     fn check_for_changed_services(&mut self) -> bool {
         let mut service_states = HashMap::new();
         let mut active_services = Vec::new();
         for service in self.services
-                .write()
-                .expect("Services lock is poisoned!")
-                .iter_mut() {
+            .write()
+            .expect("Services lock is poisoned!")
+            .iter_mut()
+        {
             service_states.insert(service.spec_ident.clone(), service.last_state_change());
             active_services.push(service.spec_ident.clone());
         }
 
         for loaded in self.watcher
-                .specs_from_watch_path()
-                .unwrap()
-                .values()
-                .filter(|s| !active_services.contains(&s.ident)) {
+            .specs_from_watch_path()
+            .unwrap()
+            .values()
+            .filter(|s| !active_services.contains(&s.ident))
+        {
             service_states.insert(loaded.ident.clone(), Timespec::new(0, 0));
         }
 
@@ -660,10 +697,9 @@ impl Manager {
         };
         let mut writer = BufWriter::new(file);
         if let Some(err) = writer
-               .write(serde_json::to_string(&self.census_ring)
-                          .unwrap()
-                          .as_bytes())
-               .err() {
+            .write(serde_json::to_string(&self.census_ring).unwrap().as_bytes())
+            .err()
+        {
             warn!("Couldn't write to census state file, {}", err);
         }
         if let Some(err) = writer.flush().err() {
@@ -675,9 +711,7 @@ impl Manager {
     }
 
     fn persist_butterfly_state(&self) {
-        let tmp_file = self.fs_cfg
-            .butterfly_data_path
-            .with_extension("dat.tmp");
+        let tmp_file = self.fs_cfg.butterfly_data_path.with_extension("dat.tmp");
         let file = match File::create(&tmp_file) {
             Ok(file) => file,
             Err(err) => {
@@ -687,10 +721,9 @@ impl Manager {
         };
         let mut writer = BufWriter::new(file);
         if let Some(err) = writer
-               .write(serde_json::to_string(&self.butterfly)
-                          .unwrap()
-                          .as_bytes())
-               .err() {
+            .write(serde_json::to_string(&self.butterfly).unwrap().as_bytes())
+            .err()
+        {
             warn!("Couldn't write to butterfly state file, {}", err);
         }
         if let Some(err) = writer.flush().err() {
@@ -719,12 +752,14 @@ impl Manager {
         let mut persisted_idents = Vec::new();
 
         for service in self.services
-                .read()
-                .expect("Services lock is poisoned!")
-                .iter() {
+            .read()
+            .expect("Services lock is poisoned!")
+            .iter()
+        {
             persisted_idents.push(service.spec_ident.clone());
             if let Some(err) = self.write_service(service, is_first, writer.get_mut())
-                   .err() {
+                .err()
+            {
                 warn!("Couldn't write to service state file, {}", err);
             }
             is_first = false;
@@ -734,17 +769,21 @@ impl Manager {
         // These would include stopped persistent services or other
         // persistent services that failed to load
         for down in self.watcher
-                .specs_from_watch_path()
-                .unwrap()
-                .values()
-                .filter(|s| !persisted_idents.contains(&s.ident)) {
-            match Service::load(self.sys.clone(),
-                                down.clone(),
-                                self.fs_cfg.clone(),
-                                self.organization.as_ref().map(|org| &**org)) {
+            .specs_from_watch_path()
+            .unwrap()
+            .values()
+            .filter(|s| !persisted_idents.contains(&s.ident))
+        {
+            match Service::load(
+                self.sys.clone(),
+                down.clone(),
+                self.fs_cfg.clone(),
+                self.organization.as_ref().map(|org| &**org),
+            ) {
                 Ok(service) => {
                     if let Some(err) = self.write_service(&service, is_first, writer.get_mut())
-                           .err() {
+                        .err()
+                    {
                         warn!("Couldn't write to service state file, {}", err);
                     }
                     is_first = false;
@@ -764,12 +803,14 @@ impl Manager {
         }
     }
 
-    fn write_service<W: ?Sized>(&self,
-                                service: &Service,
-                                is_first: bool,
-                                writer: &mut W)
-                                -> Result<()>
-        where W: io::Write
+    fn write_service<W: ?Sized>(
+        &self,
+        service: &Service,
+        is_first: bool,
+        writer: &mut W,
+    ) -> Result<()>
+    where
+        W: io::Write,
     {
         if !is_first {
             writer.write(",".as_bytes())?;
@@ -785,9 +826,7 @@ impl Manager {
     }
 
     fn shutdown(&self) {
-        let mut services = self.services
-            .write()
-            .expect("Services lock is poisend!");
+        let mut services = self.services.write().expect("Services lock is poisend!");
         for mut service in services.drain(..) {
             self.remove_service(&mut service);
         }
@@ -813,9 +852,10 @@ impl Manager {
     fn update_running_services_from_watcher(&mut self) -> Result<()> {
         let mut active_specs = HashMap::new();
         for service in self.services
-                .read()
-                .expect("Services lock is poisoned!")
-                .iter() {
+            .read()
+            .expect("Services lock is poisoned!")
+            .iter()
+        {
             let spec = service.to_spec();
             active_specs.insert(spec.ident.name.clone(), spec);
         }
@@ -835,18 +875,16 @@ impl Manager {
     }
 
     fn remove_service_for_spec(&mut self, spec: &ServiceSpec) -> Result<()> {
-        let mut services = self.services
-            .write()
-            .expect("Services lock is poisoned");
+        let mut services = self.services.write().expect("Services lock is poisoned");
         // TODO fn: storing services as a `Vec` is a bit crazy when you have to do these
         // shenanigans--maybe we want to consider changing the data structure in the future?
-        let services_idx = match services
-                  .iter()
-                  .position(|ref s| s.spec_ident == spec.ident) {
+        let services_idx = match services.iter().position(|ref s| s.spec_ident == spec.ident) {
             Some(i) => i,
             None => {
-                outputln!("Tried to remove service for {} but could not find it running, skipping",
-                          &spec.ident);
+                outputln!(
+                    "Tried to remove service for {} but could not find it running, skipping",
+                    &spec.ident
+                );
                 return Ok(());
             }
         };
@@ -858,19 +896,18 @@ impl Manager {
     /// Remove the on disk representation of the given service spec
     fn remove_spec(&self, spec: &ServiceSpec) {
         if let Err(err) = fs::remove_file(self.fs_cfg.specs_path.join(spec.file_name())) {
-            outputln!("Unable to cleanup service spec for transient service, {}, {}",
-                      spec.ident,
-                      err);
+            outputln!(
+                "Unable to cleanup service spec for transient service, {}, {}",
+                spec.ident,
+                err
+            );
         }
     }
 }
 
 #[derive(Deserialize)]
 pub struct ProcessStatus {
-    #[serde(
-        deserialize_with = "deserialize_time",
-        rename = "state_entered"
-    )]
+    #[serde(deserialize_with = "deserialize_time", rename = "state_entered")]
     pub elapsed: TimeDuration,
     pub pid: Option<u32>,
     pub state: ProcessState,
@@ -880,11 +917,13 @@ impl fmt::Display for ProcessStatus {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self.pid {
             Some(pid) => {
-                write!(f,
-                       "state:{}, time:{}, pid:{}",
-                       self.state,
-                       self.elapsed,
-                       pid)
+                write!(
+                    f,
+                    "state:{}, time:{}, pid:{}",
+                    self.state,
+                    self.elapsed,
+                    pid
+                )
             }
             None => write!(f, "state:{}, time:{}", self.state, self.elapsed),
         }
@@ -902,12 +941,14 @@ pub struct ServiceStatus {
 
 impl fmt::Display for ServiceStatus {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f,
-               "{}, {}, group:{}, style:{}",
-               self.pkg.ident,
-               self.process,
-               self.service_group,
-               self.start_style)
+        write!(
+            f,
+            "{}, {}, group:{}, style:{}",
+            self.pkg.ident,
+            self.process,
+            self.service_group,
+            self.start_style
+        )
     }
 }
 
@@ -927,7 +968,8 @@ impl Suitability for SuitabilityLookup {
 }
 
 fn deserialize_time<'de, D>(d: D) -> result::Result<TimeDuration, D::Error>
-    where D: serde::Deserializer<'de>
+where
+    D: serde::Deserializer<'de>,
 {
     struct FromTimespec;
 
@@ -939,7 +981,8 @@ fn deserialize_time<'de, D>(d: D) -> result::Result<TimeDuration, D::Error>
         }
 
         fn visit_u64<R>(self, value: u64) -> result::Result<TimeDuration, R>
-            where R: serde::de::Error
+        where
+            R: serde::de::Error,
         {
             let tspec = Timespec {
                 sec: (value as i64),
@@ -975,7 +1018,8 @@ fn obtain_process_lock(fs_cfg: &FsCfg) -> Result<()> {
 }
 
 fn read_process_lock<T>(lock_path: T) -> Result<process::Pid>
-    where T: AsRef<Path>
+where
+    T: AsRef<Path>,
 {
     match File::open(lock_path.as_ref()) {
         Ok(file) => {
@@ -990,7 +1034,9 @@ fn read_process_lock<T>(lock_path: T) -> Result<process::Pid>
                 _ => Err(sup_error!(Error::ProcessLockCorrupt)),
             }
         }
-        Err(err) => Err(sup_error!(Error::ProcessLockIO(lock_path.as_ref().to_path_buf(), err))),
+        Err(err) => Err(sup_error!(
+            Error::ProcessLockIO(lock_path.as_ref().to_path_buf(), err)
+        )),
     }
 }
 
@@ -1001,21 +1047,26 @@ fn release_process_lock(fs_cfg: &FsCfg) {
 }
 
 fn write_process_lock<T>(lock_path: T) -> Result<()>
-    where T: AsRef<Path>
+where
+    T: AsRef<Path>,
 {
-    match OpenOptions::new()
-              .write(true)
-              .create_new(true)
-              .open(lock_path.as_ref()) {
+    match OpenOptions::new().write(true).create_new(true).open(
+        lock_path
+            .as_ref(),
+    ) {
         Ok(mut file) => {
             match write!(&mut file, "{}", process::current_pid()) {
                 Ok(()) => Ok(()),
                 Err(err) => {
-                    Err(sup_error!(Error::ProcessLockIO(lock_path.as_ref().to_path_buf(), err)))
+                    Err(sup_error!(
+                        Error::ProcessLockIO(lock_path.as_ref().to_path_buf(), err)
+                    ))
                 }
             }
         }
-        Err(err) => Err(sup_error!(Error::ProcessLockIO(lock_path.as_ref().to_path_buf(), err))),
+        Err(err) => Err(sup_error!(
+            Error::ProcessLockIO(lock_path.as_ref().to_path_buf(), err)
+        )),
     }
 }
 
@@ -1030,8 +1081,10 @@ mod test {
         let cfg = ManagerConfig::default();
         let path = Manager::state_path_from(&cfg);
 
-        assert_eq!(PathBuf::from(format!("{}/default", STATE_PATH_PREFIX.to_string_lossy())),
-                   path);
+        assert_eq!(
+            PathBuf::from(format!("{}/default", STATE_PATH_PREFIX.to_string_lossy())),
+            path
+        );
     }
 
     #[test]
@@ -1040,8 +1093,10 @@ mod test {
         cfg.name = Some(String::from("peanuts"));
         let path = Manager::state_path_from(&cfg);
 
-        assert_eq!(PathBuf::from(format!("{}/peanuts", STATE_PATH_PREFIX.to_string_lossy())),
-                   path);
+        assert_eq!(
+            PathBuf::from(format!("{}/peanuts", STATE_PATH_PREFIX.to_string_lossy())),
+            path
+        );
     }
 
     #[test]

@@ -312,7 +312,8 @@ pub mod test_support {
     }
 
     pub fn wait_until_ok<F, T>(some_fn: F) -> Option<T>
-        where F: Fn() -> Result<T, herror::Error>
+    where
+        F: Fn() -> Result<T, herror::Error>,
     {
         let wait_duration = time::Duration::seconds(30);
         let current_time = time::now_utc().to_timespec();

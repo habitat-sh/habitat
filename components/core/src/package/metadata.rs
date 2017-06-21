@@ -23,9 +23,11 @@ use std::vec::IntoIter;
 use error::{Error, Result};
 
 pub fn parse_key_value(s: &str) -> Result<HashMap<String, String>> {
-    Ok(HashMap::from_iter(s.lines()
-                              .map(|l| l.splitn(2, '=').collect::<Vec<_>>())
-                              .map(|kv| (kv[0].to_string(), kv[1].to_string()))))
+    Ok(HashMap::from_iter(
+        s.lines()
+            .map(|l| l.splitn(2, '=').collect::<Vec<_>>())
+            .map(|kv| (kv[0].to_string(), kv[1].to_string())),
+    ))
 }
 
 #[derive(Debug)]
@@ -48,9 +50,9 @@ impl FromStr for Bind {
             Some(exports) => exports.split(' ').map(|t| t.to_string()).collect(),
         };
         Ok(Bind {
-               service: service,
-               exports: exports,
-           })
+            service: service,
+            exports: exports,
+        })
     }
 }
 
@@ -72,18 +74,18 @@ impl PkgEnv {
             inner: values
                 .into_iter()
                 .map(|(key, value)| if let Some(sep) = separators.get(&key) {
-                         EnvVar {
-                             key,
-                             value,
-                             separator: sep.to_owned().pop(),
-                         }
-                     } else {
-                         EnvVar {
-                             key,
-                             value,
-                             separator: None,
-                         }
-                     })
+                    EnvVar {
+                        key: key,
+                        value: value,
+                        separator: sep.to_owned().pop(),
+                    }
+                } else {
+                    EnvVar {
+                        key: key,
+                        value: value,
+                        separator: None,
+                    }
+                })
                 .collect(),
         }
     }
@@ -91,12 +93,15 @@ impl PkgEnv {
     pub fn from_paths(paths: Vec<PathBuf>) -> Self {
         let p = env::join_paths(&paths).expect("Failed to build path string");
         Self {
-            inner: vec![EnvVar {
-                            key: "PATH".to_string(),
-                            value: p.into_string()
-                                .expect("Failed to convert path to utf8 string"),
-                            separator: Some(':'),
-                        }],
+            inner: vec![
+                EnvVar {
+                    key: "PATH".to_string(),
+                    value: p.into_string().expect(
+                        "Failed to convert path to utf8 string"
+                    ),
+                    separator: Some(':'),
+                },
+            ],
         }
     }
 
@@ -186,11 +191,15 @@ port=front-end.port
     #[test]
     fn can_parse_environment_file() {
         let mut m: HashMap<String, String> = HashMap::new();
-        m.insert("PATH".to_string(),
-                 "/hab/pkgs/python/setuptools/35.0.1/20170424072606/bin".to_string());
-        m.insert("PYTHONPATH".to_string(),
-                 "/hab/pkgs/python/setuptools/35.0.1/20170424072606/lib/python3.6/site-packages"
-                     .to_string());
+        m.insert(
+            "PATH".to_string(),
+            "/hab/pkgs/python/setuptools/35.0.1/20170424072606/bin".to_string(),
+        );
+        m.insert(
+            "PYTHONPATH".to_string(),
+            "/hab/pkgs/python/setuptools/35.0.1/20170424072606/lib/python3.6/site-packages"
+                .to_string(),
+        );
 
         assert_eq!(parse_key_value(&ENVIRONMENT).unwrap(), m);
     }
@@ -215,25 +224,27 @@ port=front-end.port
 
     #[test]
     fn build_pkg_env() {
-        let mut result = PkgEnv::new(parse_key_value(&ENVIRONMENT).unwrap(),
-                                     parse_key_value(&ENVIRONMENT_SEP).unwrap())
-                .into_iter()
-                .collect::<Vec<_>>();
+        let mut result = PkgEnv::new(
+            parse_key_value(&ENVIRONMENT).unwrap(),
+            parse_key_value(&ENVIRONMENT_SEP).unwrap(),
+        ).into_iter()
+            .collect::<Vec<_>>();
         // Sort the result by key, so we have a guarantee of order
         result.sort_by_key(|v| v.key.to_owned());
 
-        let expected =
-            vec![EnvVar {
-                     key: "PATH".to_string(),
-                     value: "/hab/pkgs/python/setuptools/35.0.1/20170424072606/bin".to_string(),
-                     separator: Some(':'),
-                 },
-                 EnvVar {
-                     key: "PYTHONPATH".to_string(),
-                     value: "/hab/pkgs/python/setuptools/35.0.1/20170424072606/lib/python3.6/site-packages"
-                         .to_string(),
-                     separator: Some(':'),
-                 }];
+        let expected = vec![
+            EnvVar {
+                key: "PATH".to_string(),
+                value: "/hab/pkgs/python/setuptools/35.0.1/20170424072606/bin".to_string(),
+                separator: Some(':'),
+            },
+            EnvVar {
+                key: "PYTHONPATH".to_string(),
+                value: "/hab/pkgs/python/setuptools/35.0.1/20170424072606/lib/python3.6/site-packages"
+                    .to_string(),
+                separator: Some(':'),
+            },
+        ];
 
         assert_eq!(result, expected);
     }
@@ -250,12 +261,13 @@ port=front-end.port
             .into_iter()
             .collect::<Vec<_>>();
 
-        let expected = vec![EnvVar {
-                                key: "PATH".to_string(),
-                                value: "/hab/pkgs/python/setuptools/35.0.1/20170424072606/bin"
-                                    .to_string(),
-                                separator: Some(':'),
-                            }];
+        let expected = vec![
+            EnvVar {
+                key: "PATH".to_string(),
+                value: "/hab/pkgs/python/setuptools/35.0.1/20170424072606/bin".to_string(),
+                separator: Some(':'),
+            },
+        ];
 
         assert_eq!(result, expected);
     }

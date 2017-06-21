@@ -35,10 +35,10 @@ impl<S: SslClient> ProxyHttpsConnector<S> {
     /// implementation.
     pub fn new(proxy: ProxyInfo, ssl: S) -> hyper::Result<Self> {
         Ok(ProxyHttpsConnector {
-               proxy: proxy,
-               proxy_connector: HttpConnector,
-               ssl_client: ssl,
-           })
+            proxy: proxy,
+            proxy_connector: HttpConnector,
+            ssl_client: ssl,
+        })
     }
 }
 
@@ -47,8 +47,11 @@ impl<S: SslClient> NetworkConnector for ProxyHttpsConnector<S> {
 
     fn connect(&self, host: &str, port: u16, scheme: &str) -> hyper::Result<Self::Stream> {
         // Initial connection to the proxy server, using an `HttpConnector`
-        let mut stream = try!(self.proxy_connector
-                                  .connect(self.proxy.host(), self.proxy.port(), "http"));
+        let mut stream = try!(self.proxy_connector.connect(
+            self.proxy.host(),
+            self.proxy.port(),
+            "http",
+        ));
         match scheme {
             "https" => {
                 // If the target URL is an `"https"` scheme, then we use proxy/TCP tunneling as
@@ -59,20 +62,24 @@ impl<S: SslClient> NetworkConnector for ProxyHttpsConnector<S> {
                 // We can't yet use hyper directly and therefore use the underlying http parsing
                 // library to establish the connection and parse the response. This implementation
                 // is largely based on hyper's internal proxy tunneling code.
-                let mut connect_msg = format!("{method} {host}:{port} {version}\r\nHost: \
+                let mut connect_msg = format!(
+                    "{method} {host}:{port} {version}\r\nHost: \
                                                {host}:{port}\r\n",
-                                              method = Method::Connect,
-                                              version = HttpVersion::Http11,
-                                              host = host,
-                                              port = port);
+                    method = Method::Connect,
+                    version = HttpVersion::Http11,
+                    host = host,
+                    port = port
+                );
                 if let Some(header_value) = self.proxy.authorization_header_value() {
                     connect_msg.push_str(&format!("Proxy-Authorization: {}\r\n", header_value));
                 };
                 connect_msg.push_str("\r\n");
-                debug!("Proxy {}:{} {:?}",
-                       self.proxy.host(),
-                       self.proxy.port(),
-                       connect_msg.trim().replace("\r\n", ", "));
+                debug!(
+                    "Proxy {}:{} {:?}",
+                    self.proxy.host(),
+                    self.proxy.port(),
+                    connect_msg.trim().replace("\r\n", ", ")
+                );
                 try!(stream.write_all(connect_msg.as_bytes()));
                 try!(stream.flush());
                 let mut buf = [0; 1024];
@@ -84,18 +91,22 @@ impl<S: SslClient> NetworkConnector for ProxyHttpsConnector<S> {
                     if try!(res.parse(&buf[..n])).is_complete() {
                         let code = res.code.expect("complete parsing lost code");
                         if code >= 200 && code < 300 {
-                            debug!("Proxy {}:{} CONNECT success = {}",
-                                   self.proxy.host(),
-                                   self.proxy.port(),
-                                   code);
-                            return self.ssl_client
-                                       .wrap_client(stream, host)
-                                       .map(HttpsStream::Https);
+                            debug!(
+                                "Proxy {}:{} CONNECT success = {}",
+                                self.proxy.host(),
+                                self.proxy.port(),
+                                code
+                            );
+                            return self.ssl_client.wrap_client(stream, host).map(
+                                HttpsStream::Https,
+                            );
                         } else {
-                            debug!("Proxy {}:{} CONNECT failed response = {}",
-                                   self.proxy.host(),
-                                   self.proxy.port(),
-                                   code);
+                            debug!(
+                                "Proxy {}:{} CONNECT failed response = {}",
+                                self.proxy.host(),
+                                self.proxy.port(),
+                                code
+                            );
                             return Err(hyper::Error::Status);
                         }
                     }

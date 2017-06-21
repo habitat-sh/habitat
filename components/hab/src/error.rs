@@ -63,36 +63,48 @@ impl fmt::Display for Error {
             Error::ArgumentError(ref e) => format!("{}", e),
             Error::ButterflyError(ref e) => format!("{}", e),
             Error::CommandNotFoundInPkg((ref p, ref c)) => {
-                format!("`{}' was not found under any 'PATH' directories in the {} package",
-                        c,
-                        p)
+                format!(
+                    "`{}' was not found under any 'PATH' directories in the {} package",
+                    c,
+                    p
+                )
             }
             Error::CryptoCLI(ref e) => format!("{}", e),
             Error::DepotClient(ref err) => format!("{}", err),
-            Error::DockerDaemonDown => format!("Can not connect to Docker. Is the Docker daemon running?"),
+            Error::DockerDaemonDown => {
+                format!("Can not connect to Docker. Is the Docker daemon running?")
+            }
             #[cfg(not(windows))]
             Error::DockerFileSharingNotEnabled => {
-                format!("File Sharing must be enabled in order to enter a studio.\nPlease enable \
+                format!(
+                    "File Sharing must be enabled in order to enter a studio.\nPlease enable \
                          it in the Docker preferences and share (at a minimum) your home \
-                         directory.")
+                         directory."
+                )
             }
             #[cfg(windows)]
             Error::DockerFileSharingNotEnabled => {
-                format!("File Sharing must be enabled in order to enter a studio.\nPlease select \
-                         a drive to share in the Docker preferences.")
+                format!(
+                    "File Sharing must be enabled in order to enter a studio.\nPlease select \
+                         a drive to share in the Docker preferences."
+                )
             }
             Error::DockerImageNotFound(ref e) => {
-                format!("The Docker image {} was not found in the docker registry.\nYou can \
+                format!(
+                    "The Docker image {} was not found in the docker registry.\nYou can \
                          specify your own Docker image using the HAB_DOCKER_STUDIO_IMAGE \
                          environment variable.",
-                        e)
+                    e
+                )
             }
             Error::DockerNetworkDown(ref e) => {
-                format!("The Docker image {} is unreachable due to a network error.\nThe \
+                format!(
+                    "The Docker image {} is unreachable due to a network error.\nThe \
                          image must be reachable to ensure the versions of hab inside and \
                          outside the studio match.\nYou can specify your own Docker image using \
                          the HAB_DOCKER_STUDIO_IMAGE environment variable.",
-                        e)
+                    e
+                )
             }
             Error::ExecCommandNotFound(ref c) => {
                 format!("`{}' was not found on the filesystem or in PATH", c)
@@ -104,8 +116,10 @@ impl fmt::Display for Error {
             Error::HandlebarsRenderError(ref e) => format!("{}", e),
             Error::IO(ref err) => format!("{}", err),
             Error::PackageArchiveMalformed(ref e) => {
-                format!("Package archive was unreadable or contained unexpected contents: {:?}",
-                        e)
+                format!(
+                    "Package archive was unreadable or contained unexpected contents: {:?}",
+                    e
+                )
             }
             Error::PathPrefixError(ref err) => format!("{}", err),
             Error::ProvidesError(ref err) => format!("Can't find {}", err),
@@ -129,7 +143,9 @@ impl error::Error for Error {
         match *self {
             Error::ArgumentError(_) => "There was an error parsing an error or with it's value",
             Error::ButterflyError(_) => "Butterfly has had an error",
-            Error::CommandNotFoundInPkg(_) => "Command was not found under any 'PATH' directories in the package",
+            Error::CommandNotFoundInPkg(_) => {
+                "Command was not found under any 'PATH' directories in the package"
+            }
             Error::CryptoCLI(_) => "A cryptographic error has occurred",
             Error::DepotClient(ref err) => err.description(),
             Error::DockerDaemonDown => "The Docker daemon could not be found.",
@@ -143,10 +159,16 @@ impl error::Error for Error {
             Error::HabitatCore(ref err) => err.description(),
             Error::HandlebarsRenderError(ref err) => err.description(),
             Error::IO(ref err) => err.description(),
-            Error::PackageArchiveMalformed(_) => "Package archive was unreadable or had unexpected contents",
+            Error::PackageArchiveMalformed(_) => {
+                "Package archive was unreadable or had unexpected contents"
+            }
             Error::PathPrefixError(ref err) => err.description(),
-            Error::ProvidesError(_) => "Can't find a package that provides the given search parameter",
-            Error::RootRequired => "Root or administrator permissions required to complete operation",
+            Error::ProvidesError(_) => {
+                "Can't find a package that provides the given search parameter"
+            }
+            Error::RootRequired => {
+                "Root or administrator permissions required to complete operation"
+            }
             Error::SubcommandNotSupported(_) => "Subcommand not supported on this operating system",
             Error::UnsupportedExportFormat(_) => "Unsupported export format",
             Error::TomlDeserializeError(_) => "Can't deserialize TOML",

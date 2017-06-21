@@ -113,9 +113,11 @@ fn dispatch(config: Config, matches: &clap::ArgMatches) -> Result<()> {
 /// * Fails if the depot server fails to start - cannot bind to the port, etc.
 fn start(config: Config) -> Result<()> {
     println!("Starting package Depot at {}", config.path);
-    println!("Depot listening on {}:{}",
-             config.http.listen,
-             config.http.port);
+    println!(
+        "Depot listening on {}:{}",
+        config.http.listen,
+        config.http.port
+    );
     server::run(config)
 }
 

@@ -113,10 +113,11 @@ impl Envelope {
         Ok(())
     }
 
-    pub fn reply_complete<M: ProtoBufMessage>(&mut self,
-                                              sock: &mut zmq::Socket,
-                                              msg: &M)
-                                              -> Result<()> {
+    pub fn reply_complete<M: ProtoBufMessage>(
+        &mut self,
+        sock: &mut zmq::Socket,
+        msg: &M,
+    ) -> Result<()> {
         try!(self.send_header(sock));
         let rep = protocol::Message::new(msg).build();
         let bytes = try!(rep.write_to_bytes());
@@ -221,9 +222,10 @@ pub trait Service: NetIdent {
             try!(self.conn_mut().heartbeat.recv(&mut hb, 0));
             debug!("received reg request, {:?}", hb.as_str());
             try!(self.conn_mut().heartbeat.send_str("R", zmq::SNDMORE));
-            try!(self.conn_mut()
-                     .heartbeat
-                     .send(&reg.write_to_bytes().unwrap(), 0));
+            try!(self.conn_mut().heartbeat.send(
+                &reg.write_to_bytes().unwrap(),
+                0,
+            ));
             try!(self.conn_mut().heartbeat.recv(&mut hb, 0));
             ready += 1;
         }
@@ -299,10 +301,10 @@ impl RouteConn {
         try!(heartbeat.set_identity(format!("hb#{}", ident).as_bytes()));
         try!(heartbeat.set_probe_router(true));
         Ok(RouteConn {
-               ident: ident,
-               socket: socket,
-               heartbeat: heartbeat,
-           })
+            ident: ident,
+            socket: socket,
+            heartbeat: heartbeat,
+        })
     }
 
     pub fn connect(&mut self, addr: &str) -> Result<()> {
@@ -322,8 +324,9 @@ impl RouteConn {
     }
 
     pub fn route<M: Routable>(&mut self, msg: &M) -> Result<()> {
-        let route_hash = msg.route_key()
-            .map(|key| key.hash(&mut FnvHasher::default()));
+        let route_hash = msg.route_key().map(
+            |key| key.hash(&mut FnvHasher::default()),
+        );
         let req = protocol::Message::new(msg).routing(route_hash).build();
         let bytes = try!(req.write_to_bytes());
         try!(self.socket.send(&bytes, 0));

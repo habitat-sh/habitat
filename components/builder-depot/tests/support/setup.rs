@@ -40,20 +40,24 @@ pub fn key_install() {
 }
 
 fn dockerize(ident_str: &str) {
-    let mut install = match super::command::studio_run("hab",
-                                                       &["install", "core/hab-pkg-dockerize"]) {
-        Ok(cmd) => cmd,
-        Err(e) => panic!("{:?}", e),
-    };
+    let mut install =
+        match super::command::studio_run("hab", &["install", "core/hab-pkg-dockerize"]) {
+            Ok(cmd) => cmd,
+            Err(e) => panic!("{:?}", e),
+        };
     install.wait_with_output();
     if !install.status.unwrap().success() {
         panic!("Failed to install 'core/hab-pkg-dockerize'");
     }
-    let mut docker = match super::command::studio_run("hab",
-                                                      &["exec",
-                                                        "core/hab-pkg-dockerize",
-                                                        "hab-pkg-dockerize",
-                                                        ident_str]) {
+    let mut docker = match super::command::studio_run(
+        "hab",
+        &[
+            "exec",
+            "core/hab-pkg-dockerize",
+            "hab-pkg-dockerize",
+            ident_str,
+        ],
+    ) {
         Ok(cmd) => cmd,
         Err(e) => panic!("{:?}", e),
     };

@@ -123,8 +123,9 @@ impl BrokerConn {
     ///
     /// * Could not serialize message
     pub fn route_async<M: Routable>(&mut self, msg: &M) -> Result<()> {
-        let route_hash = msg.route_key()
-            .map(|key| key.hash(&mut FnvHasher::default()));
+        let route_hash = msg.route_key().map(
+            |key| key.hash(&mut FnvHasher::default()),
+        );
         let req = protocol::Message::new(msg).routing(route_hash).build();
         let bytes = req.write_to_bytes().unwrap();
         try!(self.sock.send_str("RQ", zmq::SNDMORE));
@@ -172,9 +173,9 @@ impl Broker {
         try!(be.set_sndtimeo(SEND_TIMEOUT_MS));
         try!(be.set_immediate(true));
         Ok(Broker {
-               client_sock: fe,
-               router_sock: be,
-           })
+            client_sock: fe,
+            router_sock: be,
+        })
     }
 
     /// Helper function for creating a new `BrokerConn` and connecting to the application's `Broker`
@@ -205,9 +206,9 @@ impl Broker {
         let handle = thread::Builder::new()
             .name("router-broker".to_string())
             .spawn(move || {
-                       let mut broker = Self::new(net_ident).unwrap();
-                       broker.start(tx, addrs).unwrap();
-                   })
+                let mut broker = Self::new(net_ident).unwrap();
+                broker.start(tx, addrs).unwrap();
+            })
             .unwrap();
         match rx.recv() {
             Ok(()) => handle,

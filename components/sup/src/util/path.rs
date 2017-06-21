@@ -28,9 +28,9 @@ static LOGKEY: &'static str = "PT";
 
 /// The package identifier for the OS specific interpreter which the Supervisor is built with,
 /// or which may be independently installed
-#[cfg(any(target_os="linux", target_os="macos"))]
+#[cfg(any(target_os = "linux", target_os = "macos"))]
 const INTERPRETER_IDENT: &'static str = "core/busybox-static";
-#[cfg(any(target_os="linux", target_os="macos"))]
+#[cfg(any(target_os = "linux", target_os = "macos"))]
 const INTERPRETER_COMMAND: &'static str = "busybox";
 
 #[cfg(target_os = "windows")]
@@ -110,11 +110,13 @@ pub fn interpreter_paths() -> Result<Vec<PathBuf>> {
                                 Some(dir) => vec![dir.to_path_buf()],
                                 None => {
                                     let path = bin.to_string_lossy().into_owned();
-                                    outputln!("An unexpected error has occurred. {} was \
+                                    outputln!(
+                                        "An unexpected error has occurred. {} was \
                                                found at {}, yet the parent directory could not \
                                                be computed. Aborting...",
-                                              INTERPRETER_COMMAND,
-                                              &path);
+                                        INTERPRETER_COMMAND,
+                                        &path
+                                    );
                                     return Err(sup_error!(Error::FileNotFound(path)));
                                 }
                             }
@@ -123,10 +125,12 @@ pub fn interpreter_paths() -> Result<Vec<PathBuf>> {
                         // installed, it's not on `PATH`, what more can we do. Time to give up the
                         // chase. Too bad, we were really trying to be helpful here.
                         None => {
-                            outputln!("A interpreter installation is required but could not be \
+                            outputln!(
+                                "A interpreter installation is required but could not be \
                                        found. Please install '{}' or put the \
                                        interpreter's command on your $PATH. Aborting...",
-                                      INTERPRETER_IDENT);
+                                INTERPRETER_IDENT
+                            );
                             return Err(sup_error!(Error::PackageNotFound(ident)));
                         }
                     }
@@ -145,9 +149,9 @@ pub fn append_interpreter_and_path(orig_paths: &mut Vec<PathBuf>) -> Result<Stri
         orig_paths.append(&mut os_paths);
     }
     let joined = try!(env::join_paths(orig_paths));
-    let path_str = joined
-        .into_string()
-        .expect("Unable to convert OsStr path to string!");
+    let path_str = joined.into_string().expect(
+        "Unable to convert OsStr path to string!",
+    );
     Ok(path_str)
 }
 

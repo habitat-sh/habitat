@@ -48,16 +48,22 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
             Error::ArtifactIdentMismatch((ref a, ref ai, ref i)) => {
-                format!("Artifact ident {} for `{}' does not match expected ident {}",
-                        ai,
-                        a,
-                        i)
+                format!(
+                    "Artifact ident {} for `{}' does not match expected ident {}",
+                    ai,
+                    a,
+                    i
+                )
             }
-            Error::CantUploadGossipToml => format!("Can't upload gossip.toml, it's a reserved file name"),
+            Error::CantUploadGossipToml => {
+                format!("Can't upload gossip.toml, it's a reserved file name")
+            }
             Error::CryptoKeyError(ref s) => format!("Missing or invalid key: {}", s),
             Error::GossipFileRelativePath(ref s) => {
-                format!("Path for gossip file cannot have relative components (eg: ..): {}",
-                        s)
+                format!(
+                    "Path for gossip file cannot have relative components (eg: ..): {}",
+                    s
+                )
             }
             Error::DepotClient(ref err) => format!("{}", err),
             Error::FileNameError => format!("Failed to extract a filename"),
@@ -78,15 +84,21 @@ impl fmt::Display for Error {
 impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
-            Error::ArtifactIdentMismatch((_, _, _)) => "Artifact ident does not match expected ident",
+            Error::ArtifactIdentMismatch((_, _, _)) => {
+                "Artifact ident does not match expected ident"
+            }
             Error::CantUploadGossipToml => "Can't upload gossip.toml, it's a reserved filename",
             Error::CryptoKeyError(_) => "Missing or invalid key",
-            Error::GossipFileRelativePath(_) => "Path for gossip file cannot have relative components (eg: ..)",
+            Error::GossipFileRelativePath(_) => {
+                "Path for gossip file cannot have relative components (eg: ..)"
+            }
             Error::DepotClient(ref err) => err.description(),
             Error::FileNameError => "Failed to extract a filename from a path",
             Error::HabitatCore(ref err) => err.description(),
             Error::IO(ref err) => err.description(),
-            Error::RootRequired => "Root or administrator permissions required to complete operation",
+            Error::RootRequired => {
+                "Root or administrator permissions required to complete operation"
+            }
             Error::StrFromUtf8Error(_) => "Failed to convert a string as UTF-8",
             Error::StringFromUtf8Error(_) => "Failed to convert a string as UTF-8",
             Error::TomlSerializeError(_) => "Can't serialize TOML",

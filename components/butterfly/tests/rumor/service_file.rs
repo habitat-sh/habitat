@@ -20,14 +20,18 @@ use habitat_butterfly::client::Client;
 fn two_members_share_service_files() {
     let mut net = btest::SwimNet::new(2);
     net.mesh();
-    net.add_service_file(0,
-                         "witcher",
-                         "yeppers",
-                         "I like to have contents in my file");
+    net.add_service_file(
+        0,
+        "witcher",
+        "yeppers",
+        "I like to have contents in my file",
+    );
     net.wait_for_gossip_rounds(1);
-    net[1]
-        .service_file_store
-        .with_rumor("witcher.prod", "yeppers", |u| assert!(u.is_some()));
+    net[1].service_file_store.with_rumor(
+        "witcher.prod",
+        "yeppers",
+        |u| assert!(u.is_some()),
+    );
 }
 
 #[test]
@@ -40,16 +44,18 @@ fn service_file_via_client() {
         Client::new(net[0].gossip_addr(), None).expect("Cannot create Butterfly Client");
     let payload = Vec::from("I want to get lost in you, tokyo".as_bytes());
     client
-        .send_service_file(ServiceGroup::new("witcher", "prod", None).unwrap(),
-                           "devil-wears-prada.txt",
-                           0,
-                           payload,
-                           false)
+        .send_service_file(
+            ServiceGroup::new("witcher", "prod", None).unwrap(),
+            "devil-wears-prada.txt",
+            0,
+            payload,
+            false,
+        )
         .expect("Cannot send the service file");
     net.wait_for_gossip_rounds(1);
-    net[1]
-        .service_file_store
-        .with_rumor("witcher.prod",
-                    "devil-wears-prada.txt",
-                    |u| assert!(u.is_some()));
+    net[1].service_file_store.with_rumor(
+        "witcher.prod",
+        "devil-wears-prada.txt",
+        |u| assert!(u.is_some()),
+    );
 }

@@ -25,8 +25,9 @@ fn migration() {
 fn create_job() {
     let mut job = jobsrv::Job::new();
     job.mut_project().set_vcs_type(String::from("git"));
-    job.mut_project()
-        .set_vcs_data(String::from("http://github.com/habitat-sh/habitat"));
+    job.mut_project().set_vcs_data(String::from(
+        "http://github.com/habitat-sh/habitat",
+    ));
     job.mut_project().set_name("core/habitat".to_string());
     let ds = datastore_test!(DataStore);
     ds.setup().expect("Failed to migrate data");
@@ -37,8 +38,9 @@ fn test_job() -> jobsrv::Job {
     let mut job = jobsrv::Job::new();
     job.set_id(0);
     job.mut_project().set_vcs_type(String::from("git"));
-    job.mut_project()
-        .set_vcs_data(String::from("http://github.com/habitat-sh/habitat"));
+    job.mut_project().set_vcs_data(String::from(
+        "http://github.com/habitat-sh/habitat",
+    ));
     job.mut_project().set_name("core/habitat".to_string());
     job
 }
@@ -56,19 +58,19 @@ fn get_job() {
     let rjob3 = ds.create_job(&mut job3).expect("Failed to create a job");
     let mut get_job = jobsrv::JobGet::new();
     get_job.set_id(rjob1.get_id());
-    let j1 = ds.get_job(&get_job)
-        .expect("Failed to get job 0")
-        .expect("Job should exist");
+    let j1 = ds.get_job(&get_job).expect("Failed to get job 0").expect(
+        "Job should exist",
+    );
 
     get_job.set_id(rjob2.get_id());
-    let j2 = ds.get_job(&get_job)
-        .expect("Failed to get job 2")
-        .expect("Job should exist");
+    let j2 = ds.get_job(&get_job).expect("Failed to get job 2").expect(
+        "Job should exist",
+    );
 
     get_job.set_id(rjob3.get_id());
-    let j3 = ds.get_job(&get_job)
-        .expect("Failed to get job 3")
-        .expect("Job should exist");
+    let j3 = ds.get_job(&get_job).expect("Failed to get job 3").expect(
+        "Job should exist",
+    );
     assert!(j1.get_id() != 0);
     assert!(j2.get_id() != 0);
     assert!(j3.get_id() != 0);
@@ -100,9 +102,11 @@ fn pending_jobs() {
     // Get one job, it should be FIFO, and it should have its status set to Dispatched
     let pending_jobs = ds.pending_jobs(1).expect("Failed to get pendings job");
     assert_eq!(pending_jobs.len(), 1, "Failed to find a pending job");
-    assert_eq!(pending_jobs[0].get_id(),
-               rjob1.get_id(),
-               "First in is not first out");
+    assert_eq!(
+        pending_jobs[0].get_id(),
+        rjob1.get_id(),
+        "First in is not first out"
+    );
 
     let mut get_job = jobsrv::JobGet::new();
     get_job.set_id(rjob1.get_id());
@@ -113,15 +117,19 @@ fn pending_jobs() {
     assert_eq!(job1_dispatched.get_state(), jobsrv::JobState::Dispatched);
 
     // Get the remaining jobs; a larger number results in the total set
-    let remaining_jobs = ds.pending_jobs(5)
-        .expect("Failed to get remaining pending jobs");
-    assert_eq!(remaining_jobs.len(),
-               3,
-               "Failed to get all the remaining jobs");
+    let remaining_jobs = ds.pending_jobs(5).expect(
+        "Failed to get remaining pending jobs",
+    );
+    assert_eq!(
+        remaining_jobs.len(),
+        3,
+        "Failed to get all the remaining jobs"
+    );
 
     // No jobs returns an empty array
-    let no_jobs = ds.pending_jobs(100)
-        .expect("Failed to get empty pending jobs");
+    let no_jobs = ds.pending_jobs(100).expect(
+        "Failed to get empty pending jobs",
+    );
     assert_eq!(no_jobs.len(), 0);
 }
 
@@ -140,8 +148,7 @@ fn update_job() {
     assert_eq!(pending_job.get_state(), jobsrv::JobState::Pending);
 
     rjob1.set_state(jobsrv::JobState::Failed);
-    ds.update_job(&rjob1)
-        .expect("Failed to update job state");
+    ds.update_job(&rjob1).expect("Failed to update job state");
     let failed_job = ds.get_job(&get_job)
         .expect("Failed to get job from database")
         .expect("No job found");

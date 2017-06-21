@@ -53,13 +53,13 @@ impl Server {
         let runner_cli = RunnerCli::new();
         try!(fe_sock.set_identity(Self::net_ident().as_bytes()));
         Ok(Server {
-               config: Arc::new(RwLock::new(config)),
-               fe_sock: fe_sock,
-               hb_cli: hb_cli,
-               runner_cli: runner_cli,
-               state: State::default(),
-               msg: try!(zmq::Message::new()),
-           })
+            config: Arc::new(RwLock::new(config)),
+            fe_sock: fe_sock,
+            hb_cli: hb_cli,
+            runner_cli: runner_cli,
+            state: State::default(),
+            msg: try!(zmq::Message::new()),
+        })
     }
 
     pub fn run(&mut self) -> Result<()> {
@@ -80,8 +80,10 @@ impl Server {
         info!("builder-worker is ready to go.");
         loop {
             {
-                let mut items = [self.fe_sock.as_poll_item(1),
-                                 self.runner_cli.as_poll_item(1)];
+                let mut items = [
+                    self.fe_sock.as_poll_item(1),
+                    self.runner_cli.as_poll_item(1),
+                ];
                 try!(zmq::poll(&mut items, -1));
                 if items[0].get_revents() & zmq::POLLIN > 0 {
                     fe_msg = true;

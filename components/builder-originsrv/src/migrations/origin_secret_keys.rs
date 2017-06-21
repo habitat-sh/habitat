@@ -17,12 +17,13 @@ use db::migration::Migrator;
 use error::Result;
 
 pub fn migrate(migrator: &mut Migrator) -> Result<()> {
-    migrator
-        .migrate("originsrv",
-                 r#"CREATE SEQUENCE IF NOT EXISTS origin_secret_key_id_seq;"#)?;
-    migrator
-        .migrate("originsrv",
-                 r#"CREATE TABLE IF NOT EXISTS origin_secret_keys (
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE SEQUENCE IF NOT EXISTS origin_secret_key_id_seq;"#,
+    )?;
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE TABLE IF NOT EXISTS origin_secret_keys (
                     id bigint PRIMARY KEY DEFAULT next_id_v1('origin_secret_key_id_seq'),
                     origin_id bigint REFERENCES origins(id),
                     owner_id bigint,
@@ -32,7 +33,8 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                     body bytea,
                     created_at timestamptz DEFAULT now(),
                     updated_at timestamptz
-             )"#)?;
+             )"#,
+    )?;
     migrator.migrate("originsrv",
                  r#"CREATE OR REPLACE VIEW origins_with_secret_key_full_name_v1 AS
                         SELECT origins.id, origins.name, origins.owner_id,
@@ -56,9 +58,9 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                          RETURN;
                      END
                  $$ LANGUAGE plpgsql VOLATILE"#)?;
-    migrator
-        .migrate("originsrv",
-                 r#"CREATE OR REPLACE FUNCTION get_origin_secret_key_v1 (
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE OR REPLACE FUNCTION get_origin_secret_key_v1 (
                     osk_name text
                  ) RETURNS SETOF origin_secret_keys AS $$
                     BEGIN
@@ -67,25 +69,29 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                           LIMIT 1;
                         RETURN;
                     END
-                    $$ LANGUAGE plpgsql STABLE"#)?;
-    migrator
-        .migrate("originsrv",
-                 r#"ALTER TABLE origin_secret_keys
+                    $$ LANGUAGE plpgsql STABLE"#,
+    )?;
+    migrator.migrate(
+        "originsrv",
+        r#"ALTER TABLE origin_secret_keys
                         DROP CONSTRAINT IF EXISTS
-                          origin_secret_keys_full_name_key"#)?;
-    migrator
-        .migrate("originsrv-2",
-                 r#"DELETE FROM origin_secret_keys
+                          origin_secret_keys_full_name_key"#,
+    )?;
+    migrator.migrate(
+        "originsrv-2",
+        r#"DELETE FROM origin_secret_keys
                         WHERE id IN (
                             SELECT id FROM (
                                 SELECT id, ROW_NUMBER() OVER (
                                     partition BY full_name ORDER BY id
                                 ) AS rnum FROM origin_secret_keys
-                            ) t WHERE t.rnum > 1)"#)?;
-    migrator
-        .migrate("originsrv-3",
-                 r#"ALTER TABLE origin_secret_keys
+                            ) t WHERE t.rnum > 1)"#,
+    )?;
+    migrator.migrate(
+        "originsrv-3",
+        r#"ALTER TABLE origin_secret_keys
                         ADD CONSTRAINT origin_secret_keys_full_name_key
-                        UNIQUE (full_name)"#)?;
+                        UNIQUE (full_name)"#,
+    )?;
     Ok(())
 }

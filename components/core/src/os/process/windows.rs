@@ -68,9 +68,11 @@ pub fn is_alive(pid: Pid) -> bool {
 }
 
 pub fn signal(pid: Pid, signal: Signal) -> Result<()> {
-    debug!("sending no-op(windows) signal {} to pid {}",
-           signal.os_signal(),
-           pid);
+    debug!(
+        "sending no-op(windows) signal {} to pid {}",
+        signal.os_signal(),
+        pid
+    );
     Ok(())
 }
 
@@ -82,9 +84,11 @@ pub fn signal(pid: Pid, signal: Signal) -> Result<()> {
 ///
 /// * If the child process cannot be created
 fn become_child_command(command: PathBuf, args: Vec<OsString>) -> Result<()> {
-    debug!("Calling child process: ({:?}) {:?}",
-           command.display(),
-           &args);
+    debug!(
+        "Calling child process: ({:?}) {:?}",
+        command.display(),
+        &args
+    );
     let status = try!(Command::new(command).args(&args).status());
     // Let's honor the exit codes from the child process we finished running
     process::exit(status.code().unwrap())
@@ -92,10 +96,11 @@ fn become_child_command(command: PathBuf, args: Vec<OsString>) -> Result<()> {
 
 fn handle_from_pid(pid: Pid) -> Option<winapi::HANDLE> {
     unsafe {
-        let proc_handle = kernel32::OpenProcess(winapi::PROCESS_QUERY_LIMITED_INFORMATION |
-                                                winapi::PROCESS_TERMINATE,
-                                                winapi::FALSE,
-                                                pid);
+        let proc_handle = kernel32::OpenProcess(
+            winapi::PROCESS_QUERY_LIMITED_INFORMATION | winapi::PROCESS_TERMINATE,
+            winapi::FALSE,
+            pid,
+        );
 
         // we expect this to happen if the process died
         // before OpenProcess completes
@@ -113,8 +118,10 @@ fn exit_status(handle: winapi::HANDLE) -> Result<u32> {
     unsafe {
         let ret = kernel32::GetExitCodeProcess(handle, &mut exit_status as winapi::LPDWORD);
         if ret == 0 {
-            return Err(Error::GetExitCodeProcessFailed(format!("Failed to retrieve Exit Code: {}",
-                                                               io::Error::last_os_error())));
+            return Err(Error::GetExitCodeProcessFailed(format!(
+                "Failed to retrieve Exit Code: {}",
+                io::Error::last_os_error()
+            )));
         }
     }
 
@@ -137,27 +144,28 @@ impl Child {
         let (win_handle, status) = match handle_from_pid(child.id()) {
             Some(handle) => (Some(handle), Ok(None)),
             _ => {
-                (None,
-                 {
-                     match child.wait() {
-                         Ok(exit) => Ok(Some(exit.code().unwrap() as u32)),
-                         Err(e) => {
-                             Err(format!("Failed to retrieve exit code for pid {} : {}",
-                                         child.id(),
-                                         e))
-                         }
-                     }
-                 })
+                (None, {
+                    match child.wait() {
+                        Ok(exit) => Ok(Some(exit.code().unwrap() as u32)),
+                        Err(e) => {
+                            Err(format!(
+                                "Failed to retrieve exit code for pid {} : {}",
+                                child.id(),
+                                e
+                            ))
+                        }
+                    }
+                })
             }
         };
 
         match status {
             Ok(status) => {
                 Ok(Child {
-                       handle: win_handle,
-                       last_status: status,
-                       pid: child.id(),
-                   })
+                    handle: win_handle,
+                    last_status: status,
+                    pid: child.id(),
+                })
             }
             Err(e) => Err(Error::GetHabChildFailed(e)),
         }
@@ -191,9 +199,11 @@ impl Child {
             // Send a ctrl-BREAK
             ret = kernel32::GenerateConsoleCtrlEvent(1, self.pid);
             if ret == 0 {
-                debug!("Failed to send ctrl-break to pid {}: {}",
-                       self.pid,
-                       io::Error::last_os_error());
+                debug!(
+                    "Failed to send ctrl-break to pid {}: {}",
+                    self.pid,
+                    io::Error::last_os_error()
+                );
             }
         }
 
@@ -222,10 +232,11 @@ impl Child {
         result
     }
 
-    fn terminate_process_descendants(&self,
-                                     table: &HashMap<winapi::DWORD, Vec<winapi::DWORD>>,
-                                     pid: winapi::DWORD)
-                                     -> Result<()> {
+    fn terminate_process_descendants(
+        &self,
+        table: &HashMap<winapi::DWORD, Vec<winapi::DWORD>>,
+        pid: winapi::DWORD,
+    ) -> Result<()> {
         if let Some(children) = table.get(&pid) {
             for child in children {
                 self.terminate_process_descendants(table, child.clone())?;
@@ -238,7 +249,8 @@ impl Child {
                         return Err(Error::TerminateProcessFailed(format!(
                             "Failed to call TerminateProcess on pid {}: {}",
                             pid,
-                            io::Error::last_os_error())));
+                            io::Error::last_os_error()
+                        )));
                     }
                 }
                 None => {}
@@ -252,8 +264,10 @@ impl Child {
             unsafe { kernel32::CreateToolhelp32Snapshot(winapi::TH32CS_SNAPPROCESS, 0) };
 
         if processes_snap_handle == winapi::INVALID_HANDLE_VALUE {
-            return Err(Error::CreateToolhelp32SnapshotFailed(format!("Failed to call CreateToolhelp32Snapshot: {}",
-                                                                     io::Error::last_os_error())));
+            return Err(Error::CreateToolhelp32SnapshotFailed(format!(
+                "Failed to call CreateToolhelp32Snapshot: {}",
+                io::Error::last_os_error()
+            )));
         }
 
         let mut table: HashMap<winapi::DWORD, Vec<winapi::DWORD>> = HashMap::new();
@@ -278,9 +292,9 @@ impl Child {
 
                 // Loop through all processes until we find one hwere `szExeFile` == `name`.
                 while process_success == 1 {
-                    let children = table
-                        .entry(process_entry.th32ParentProcessID)
-                        .or_insert(Vec::new());
+                    let children = table.entry(process_entry.th32ParentProcessID).or_insert(
+                        Vec::new(),
+                    );
                     (*children).push(process_entry.th32ProcessID);
 
                     process_success = unsafe {
@@ -334,7 +348,8 @@ mod tests {
         let mut child = windows_child::Child::spawn(
             "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
             vec!["-noprofile", "-command", "while($true) { Start-Sleep 1 }"],
-            &HashMap::new()).unwrap();
+            &HashMap::new(),
+        ).unwrap();
 
         let mut hab_child = HabChild::from(&mut child).unwrap();
 
@@ -345,7 +360,9 @@ mod tests {
     fn successfully_run_process_exits_zero() {
         let mut child = windows_child::Child::spawn(
             "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
-            vec!["-noprofile", "-command", "$a='b'"], &HashMap::new()).unwrap();
+            vec!["-noprofile", "-command", "$a='b'"],
+            &HashMap::new(),
+        ).unwrap();
         let mut hab_child = HabChild::from(&mut child).unwrap();
 
         let _ = child.wait();
@@ -358,7 +375,8 @@ mod tests {
         let mut child = windows_child::Child::spawn(
             "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
             vec!["-noprofile", "-command", "while($true) { Start-Sleep 1 }"],
-            &HashMap::new()).unwrap();
+            &HashMap::new(),
+        ).unwrap();
 
         let mut hab_child = HabChild::from(&mut child).unwrap();
         let _ = child.kill();
@@ -370,7 +388,9 @@ mod tests {
     fn process_that_exits_with_specific_code_has_same_exit_code() {
         let mut child = windows_child::Child::spawn(
             "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
-            vec!["-noprofile", "-command", "exit 5000"], &HashMap::new()).unwrap();
+            vec!["-noprofile", "-command", "exit 5000"],
+            &HashMap::new(),
+        ).unwrap();
 
         let mut hab_child = HabChild::from(&mut child).unwrap();
         let _ = child.wait();

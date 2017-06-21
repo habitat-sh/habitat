@@ -52,10 +52,13 @@ impl S3Archiver {
     pub fn new(config: ArchiveCfg) -> Result<S3Archiver> {
         let region = Region::from_str(config.region.as_str()).unwrap();
         let param_provider: Option<ParametersProvider>;
-        param_provider = Some(ParametersProvider::with_parameters(config.key.expect("Missing S3 key!"),
-                                                                  config.secret.expect("Missing S3 secret!").as_str(),
-                                                                  None)
-                              .unwrap());
+        param_provider = Some(
+            ParametersProvider::with_parameters(
+                config.key.expect("Missing S3 key!"),
+                config.secret.expect("Missing S3 secret!").as_str(),
+                None,
+            ).unwrap(),
+        );
         // If given an endpoint, don't use virtual buckets... if not,
         // assume AWS and use virtual buckets.
         //
@@ -73,12 +76,14 @@ impl S3Archiver {
         let user_agent = format!("Habitat-Builder/{}", VERSION);
 
         let provider = DefaultCredentialsProvider::new(param_provider).unwrap();
-        let endpoint = Endpoint::new(region,
-                                     signature_type,
-                                     final_endpoint,
-                                     None,
-                                     Some(user_agent),
-                                     Some(use_virtual_buckets));
+        let endpoint = Endpoint::new(
+            region,
+            signature_type,
+            final_endpoint,
+            None,
+            Some(user_agent),
+            Some(use_virtual_buckets),
+        );
 
         let client = S3Client::new(provider, endpoint);
 
@@ -99,7 +104,7 @@ impl LogArchiver for S3Archiver {
     fn archive(&self, job_id: u64, file_path: &PathBuf) -> Result<()> {
         let mut buffer = Vec::new();
         let mut put_object = PutObjectRequest::default();
-        put_object.bucket = self.bucket.clone(); 
+        put_object.bucket = self.bucket.clone();
         put_object.key = Self::key(job_id);
 
         let mut file = OpenOptions::new().read(true).open(file_path)?;
@@ -112,8 +117,9 @@ impl LogArchiver for S3Archiver {
         //
         // The code in the S3 library we're currently using isn't
         // UnwindSafe, so we need to deal with that, too.
-        let result =
-            panic::catch_unwind(AssertUnwindSafe(|| self.client.put_object(&put_object, None)));
+        let result = panic::catch_unwind(AssertUnwindSafe(
+            || self.client.put_object(&put_object, None),
+        ));
 
         match result {
             Ok(Ok(_)) => Ok(()), // normal result
@@ -121,14 +127,16 @@ impl LogArchiver for S3Archiver {
                 // This is a "normal", non-panicking error, e.g.,
                 // they're configured with a non-existent bucket.
                 Err(Error::JobLogArchive(job_id, e))
-            }, 
+            } 
             Err(e) => {
                 let source = match e.downcast_ref::<String>() {
                     Some(string) => string.to_string(),
-                    None => format!("{:?}", e)
+                    None => format!("{:?}", e),
                 };
-                Err(Error::CaughtPanic(format!("Failure to archive log for job {}", job_id),
-                                       source))
+                Err(Error::CaughtPanic(
+                    format!("Failure to archive log for job {}", job_id),
+                    source,
+                ))
             }
         }
     }
@@ -148,19 +156,23 @@ impl LogArchiver for S3Archiver {
             Ok(Err(e)) => {
                 // This is a "normal", non-panicking error, e.g.,
                 // they're configured with a non-existent bucket.
-                return Err(Error::JobLogRetrieval(job_id, e))
-            }, 
+                return Err(Error::JobLogRetrieval(job_id, e));
+            } 
             Err(e) => {
                 let source = match e.downcast_ref::<String>() {
                     Some(string) => string.to_string(),
-                    None => format!("{:?}", e)
+                    None => format!("{:?}", e),
                 };
                 return Err(Error::CaughtPanic(
-                    format!("Failure to retrieve archived log for job {}", job_id),
-                    source))
+                    format!(
+                        "Failure to retrieve archived log for job {}",
+                        job_id
+                    ),
+                    source,
+                ));
             }
         };
-        
+
         let lines = String::from_utf8_lossy(body.as_slice())
             .lines()
             .map(|l| l.to_string())
@@ -169,6 +181,3 @@ impl LogArchiver for S3Archiver {
         Ok(lines)
     }
 }
-
-
-

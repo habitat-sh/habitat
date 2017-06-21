@@ -65,21 +65,23 @@ impl ApiClient {
     /// * If a suitable SSL context cannot be established
     /// * If an HTTP proxy cannot be correctly setup
     /// * If a `User-Agent` HTTP header string cannot be constructed
-    pub fn new<T>(endpoint: T,
-                  product: &str,
-                  version: &str,
-                  fs_root_path: Option<&Path>)
-                  -> Result<Self>
-        where T: IntoUrl
+    pub fn new<T>(
+        endpoint: T,
+        product: &str,
+        version: &str,
+        fs_root_path: Option<&Path>,
+    ) -> Result<Self>
+    where
+        T: IntoUrl,
     {
         let endpoint = endpoint.into_url()?;
         Ok(ApiClient {
-               inner: new_hyper_client(&endpoint, fs_root_path)?,
-               proxy: proxy_unless_domain_exempted(Some(&endpoint))?,
-               target_scheme: endpoint.scheme().to_string(),
-               endpoint: endpoint,
-               user_agent_header: user_agent(product, version)?,
-           })
+            inner: new_hyper_client(&endpoint, fs_root_path)?,
+            proxy: proxy_unless_domain_exempted(Some(&endpoint))?,
+            target_scheme: endpoint.scheme().to_string(),
+            endpoint: endpoint,
+            user_agent_header: user_agent(product, version)?,
+        })
     }
 
     /// Builds an HTTP GET request for a given path.
@@ -89,7 +91,8 @@ impl ApiClient {
 
     /// Builds an HTTP GET request for a given path with the ability to customize the target URL.
     pub fn get_with_custom_url<F>(&self, path: &str, mut customize_url: F) -> RequestBuilder
-        where F: FnMut(&mut Url)
+    where
+        F: FnMut(&mut Url),
     {
         let mut url = self.url_for(path);
         customize_url(&mut url);
@@ -104,7 +107,8 @@ impl ApiClient {
 
     /// Builds an HTTP HEAD request for a given path with the ability to customize the target URL.
     pub fn head_with_custom_url<F>(&self, path: &str, mut customize_url: F) -> RequestBuilder
-        where F: FnMut(&mut Url)
+    where
+        F: FnMut(&mut Url),
     {
         let mut url = self.url_for(path);
         customize_url(&mut url);
@@ -119,7 +123,8 @@ impl ApiClient {
 
     /// Builds an HTTP PATCH request for a given path with the ability to customize the target URL.
     pub fn patch_with_custom_url<F>(&self, path: &str, mut customize_url: F) -> RequestBuilder
-        where F: FnMut(&mut Url)
+    where
+        F: FnMut(&mut Url),
     {
         let mut url = self.url_for(path);
         customize_url(&mut url);
@@ -134,7 +139,8 @@ impl ApiClient {
 
     /// Builds an HTTP POST request for a given path with the ability to customize the target URL.
     pub fn post_with_custom_url<F>(&self, path: &str, mut customize_url: F) -> RequestBuilder
-        where F: FnMut(&mut Url)
+    where
+        F: FnMut(&mut Url),
     {
         let mut url = self.url_for(path);
         customize_url(&mut url);
@@ -149,7 +155,8 @@ impl ApiClient {
 
     /// Builds an HTTP PUT request for a given path with the ability to customize the target URL.
     pub fn put_with_custom_url<F>(&self, path: &str, mut customize_url: F) -> RequestBuilder
-        where F: FnMut(&mut Url)
+    where
+        F: FnMut(&mut Url),
     {
         let mut url = self.url_for(path);
         customize_url(&mut url);
@@ -164,7 +171,8 @@ impl ApiClient {
 
     /// Builds an HTTP DELETE request for a given path with the ability to customize the target URL.
     pub fn delete_with_custom_url<F>(&self, path: &str, mut customize_url: F) -> RequestBuilder
-        where F: FnMut(&mut Url)
+    where
+        F: FnMut(&mut Url),
     {
         let mut url = self.url_for(path);
         customize_url(&mut url);
@@ -285,12 +293,14 @@ fn new_hyper_client(url: &Url, fs_root_path: Option<&Path>) -> Result<HyperClien
 /// * If system information cannot be obtained via `uname`
 fn user_agent(product: &str, version: &str) -> Result<UserAgent> {
     let uname = try!(sys::uname());
-    let ua = format!("{}/{} ({}-{}; {})",
-                     product.trim(),
-                     version.trim(),
-                     uname.machine.trim().to_lowercase(),
-                     uname.sys_name.trim().to_lowercase(),
-                     uname.release.trim().to_lowercase());
+    let ua = format!(
+        "{}/{} ({}-{}; {})",
+        product.trim(),
+        version.trim(),
+        uname.machine.trim().to_lowercase(),
+        uname.sys_name.trim().to_lowercase(),
+        uname.release.trim().to_lowercase()
+    );
     debug!("User-Agent: {}", &ua);
     Ok(UserAgent(ua))
 }
@@ -303,7 +313,8 @@ fn ssl_connector(fs_root_path: Option<&Path>) -> Result<SslConnector> {
     options.toggle(SSL_OP_NO_COMPRESSION);
     try!(ssl::set_ca(conn.builder_mut(), fs_root_path));
     conn.builder_mut().set_options(options);
-    try!(conn.builder_mut()
-             .set_cipher_list("ALL!EXPORT!EXPORT40!EXPORT56!aNULL!LOW!RC4@STRENGTH"));
+    try!(conn.builder_mut().set_cipher_list(
+        "ALL!EXPORT!EXPORT40!EXPORT56!aNULL!LOW!RC4@STRENGTH",
+    ));
     Ok(conn.build())
 }

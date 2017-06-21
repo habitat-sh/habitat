@@ -71,11 +71,12 @@ pub trait Identifiable: fmt::Display + Into<PackageIdent> {
 
 impl PackageIdent {
     /// Creates a new package identifier
-    pub fn new<T: Into<String>>(origin: T,
-                                name: T,
-                                version: Option<T>,
-                                release: Option<T>)
-                                -> Self {
+    pub fn new<T: Into<String>>(
+        origin: T,
+        name: T,
+        version: Option<T>,
+        release: Option<T>,
+    ) -> Self {
         PackageIdent {
             origin: origin.into(),
             name: name.into(),
@@ -87,13 +88,15 @@ impl PackageIdent {
     pub fn archive_name(&self) -> Option<String> {
         if self.fully_qualified() {
             let default_target = PackageTarget::default();
-            Some(format!("{}-{}-{}-{}-{}-{}.hart",
-                         self.origin,
-                         self.name,
-                         self.version.as_ref().unwrap(),
-                         self.release.as_ref().unwrap(),
-                         default_target.architecture,
-                         default_target.platform))
+            Some(format!(
+                "{}-{}-{}-{}-{}-{}.hart",
+                self.origin,
+                self.name,
+                self.version.as_ref().unwrap(),
+                self.release.as_ref().unwrap(),
+                default_target.architecture,
+                default_target.platform
+            ))
         } else {
             None
         }
@@ -127,18 +130,22 @@ impl Default for PackageIdent {
 impl fmt::Display for PackageIdent {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         if self.version.is_some() && self.release.is_some() {
-            write!(f,
-                   "{}/{}/{}/{}",
-                   self.origin,
-                   self.name,
-                   self.version.as_ref().unwrap(),
-                   self.release.as_ref().unwrap())
+            write!(
+                f,
+                "{}/{}/{}/{}",
+                self.origin,
+                self.name,
+                self.version.as_ref().unwrap(),
+                self.release.as_ref().unwrap()
+            )
         } else if self.version.is_some() {
-            write!(f,
-                   "{}/{}/{}",
-                   self.origin,
-                   self.name,
-                   self.version.as_ref().unwrap())
+            write!(
+                f,
+                "{}/{}/{}",
+                self.origin,
+                self.name,
+                self.version.as_ref().unwrap()
+            )
         } else {
             write!(f, "{}/{}", self.origin, self.name)
         }
@@ -198,8 +205,10 @@ impl PartialOrd for PackageIdent {
         if self.release.is_some() && other.release.is_none() {
             return Some(Ordering::Greater);
         }
-        match version_sort(self.version.as_ref().unwrap(),
-                           other.version.as_ref().unwrap()) {
+        match version_sort(
+            self.version.as_ref().unwrap(),
+            other.version.as_ref().unwrap(),
+        ) {
             ord @ Ok(Ordering::Greater) |
             ord @ Ok(Ordering::Less) => ord.ok(),
             Ok(Ordering::Equal) => Some(self.release.cmp(&other.release)),
@@ -208,13 +217,17 @@ impl PartialOrd for PackageIdent {
                 // non-numeric versions to co-exist with numeric ones, we
                 // always have potential for incorrect ordering no matter
                 // what we choose - eg, "master" vs. "0.x.x" (real examples)
-                warn!("Comparing non-numeric versions: {} {}",
-                      self.version.as_ref().unwrap(),
-                      other.version.as_ref().unwrap());
-                match self.version
-                          .as_ref()
-                          .unwrap()
-                          .cmp(other.version.as_ref().unwrap()) {
+                warn!(
+                    "Comparing non-numeric versions: {} {}",
+                    self.version.as_ref().unwrap(),
+                    other.version.as_ref().unwrap()
+                );
+                match self.version.as_ref().unwrap().cmp(
+                    other
+                        .version
+                        .as_ref()
+                        .unwrap(),
+                ) {
                     ord @ Ordering::Greater |
                     ord @ Ordering::Less => Some(ord),
                     Ordering::Equal => Some(self.release.cmp(&other.release)),
@@ -238,8 +251,10 @@ impl Ord for PackageIdent {
         if self.name != other.name {
             return self.name.cmp(&other.name);
         }
-        match version_sort(self.version.as_ref().unwrap(),
-                           other.version.as_ref().unwrap()) {
+        match version_sort(
+            self.version.as_ref().unwrap(),
+            other.version.as_ref().unwrap(),
+        ) {
             ord @ Ok(Ordering::Greater) |
             ord @ Ok(Ordering::Less) => ord.unwrap(),
             Ok(Ordering::Equal) => self.release.cmp(&other.release),
@@ -357,27 +372,35 @@ mod tests {
 
     #[test]
     fn package_ident_partial_eq() {
-        let a = PackageIdent::new("ty".to_string(),
-                                  "tabor".to_string(),
-                                  Some("1.0.0".to_string()),
-                                  Some("20150521131555".to_string()));
-        let b = PackageIdent::new("ty".to_string(),
-                                  "tabor".to_string(),
-                                  Some("1.0.0".to_string()),
-                                  Some("20150521131555".to_string()));
+        let a = PackageIdent::new(
+            "ty".to_string(),
+            "tabor".to_string(),
+            Some("1.0.0".to_string()),
+            Some("20150521131555".to_string()),
+        );
+        let b = PackageIdent::new(
+            "ty".to_string(),
+            "tabor".to_string(),
+            Some("1.0.0".to_string()),
+            Some("20150521131555".to_string()),
+        );
         assert_eq!(a, b);
     }
 
     #[test]
     fn package_ident_partial_ord() {
-        let a = PackageIdent::new("ty".to_string(),
-                                  "tabor".to_string(),
-                                  Some("1.0.1".to_string()),
-                                  Some("20150521131555".to_string()));
-        let b = PackageIdent::new("ty".to_string(),
-                                  "tabor".to_string(),
-                                  Some("1.0.0".to_string()),
-                                  Some("20150521131555".to_string()));
+        let a = PackageIdent::new(
+            "ty".to_string(),
+            "tabor".to_string(),
+            Some("1.0.1".to_string()),
+            Some("20150521131555".to_string()),
+        );
+        let b = PackageIdent::new(
+            "ty".to_string(),
+            "tabor".to_string(),
+            Some("1.0.0".to_string()),
+            Some("20150521131555".to_string()),
+        );
         match a.partial_cmp(&b) {
             Some(ord) => assert_eq!(ord, Ordering::Greater),
             None => panic!("Ordering should be greater"),
@@ -386,18 +409,24 @@ mod tests {
 
     #[test]
     fn package_ident_non_numeric_version_ord() {
-        let a = PackageIdent::new("ty".to_string(),
-                                  "tabor".to_string(),
-                                  Some("random".to_string()),
-                                  Some("20150521131556".to_string()));
-        let b = PackageIdent::new("ty".to_string(),
-                                  "tabor".to_string(),
-                                  Some("random".to_string()),
-                                  Some("20150521131555".to_string()));
-        let c = PackageIdent::new("ty".to_string(),
-                                  "tabor".to_string(),
-                                  Some("undefined".to_string()),
-                                  Some("20150521131555".to_string()));
+        let a = PackageIdent::new(
+            "ty".to_string(),
+            "tabor".to_string(),
+            Some("random".to_string()),
+            Some("20150521131556".to_string()),
+        );
+        let b = PackageIdent::new(
+            "ty".to_string(),
+            "tabor".to_string(),
+            Some("random".to_string()),
+            Some("20150521131555".to_string()),
+        );
+        let c = PackageIdent::new(
+            "ty".to_string(),
+            "tabor".to_string(),
+            Some("undefined".to_string()),
+            Some("20150521131555".to_string()),
+        );
         match a.partial_cmp(&b) {
             Some(ord) => assert_eq!(ord, Ordering::Greater),
             None => panic!("Ordering should be greater"),
@@ -410,14 +439,18 @@ mod tests {
 
     #[test]
     fn package_ident_partial_ord_bad_name() {
-        let a = PackageIdent::new("awesome".to_string(),
-                                  "snoopy".to_string(),
-                                  Some("1.0.1".to_string()),
-                                  Some("20150521131555".to_string()));
-        let b = PackageIdent::new("awesome".to_string(),
-                                  "banana".to_string(),
-                                  Some("1.0.0".to_string()),
-                                  Some("20150521131555".to_string()));
+        let a = PackageIdent::new(
+            "awesome".to_string(),
+            "snoopy".to_string(),
+            Some("1.0.1".to_string()),
+            Some("20150521131555".to_string()),
+        );
+        let b = PackageIdent::new(
+            "awesome".to_string(),
+            "banana".to_string(),
+            Some("1.0.0".to_string()),
+            Some("20150521131555".to_string()),
+        );
         match a.partial_cmp(&b) {
             Some(_) => panic!("We tried to return an order"),
             None => assert!(true),
@@ -426,14 +459,18 @@ mod tests {
 
     #[test]
     fn package_ident_partial_ord_different_origin() {
-        let a = PackageIdent::new("adam".to_string(),
-                                  "blueberry".to_string(),
-                                  Some("1.0.0".to_string()),
-                                  Some("20150521131555".to_string()));
-        let b = PackageIdent::new("banana".to_string(),
-                                  "blueberry".to_string(),
-                                  Some("1.0.0".to_string()),
-                                  Some("20150521131555".to_string()));
+        let a = PackageIdent::new(
+            "adam".to_string(),
+            "blueberry".to_string(),
+            Some("1.0.0".to_string()),
+            Some("20150521131555".to_string()),
+        );
+        let b = PackageIdent::new(
+            "banana".to_string(),
+            "blueberry".to_string(),
+            Some("1.0.0".to_string()),
+            Some("20150521131555".to_string()),
+        );
         match a.partial_cmp(&b) {
             Some(ord) => assert_eq!(ord, Ordering::Equal),
             None => panic!("We failed to return an order"),
@@ -442,14 +479,18 @@ mod tests {
 
     #[test]
     fn package_ident_partial_ord_release() {
-        let a = PackageIdent::new("adam".to_string(),
-                                  "brown".to_string(),
-                                  Some("1.0.0".to_string()),
-                                  Some("20150521131556".to_string()));
-        let b = PackageIdent::new("boulder".to_string(),
-                                  "brown".to_string(),
-                                  Some("1.0.0".to_string()),
-                                  Some("20150521131555".to_string()));
+        let a = PackageIdent::new(
+            "adam".to_string(),
+            "brown".to_string(),
+            Some("1.0.0".to_string()),
+            Some("20150521131556".to_string()),
+        );
+        let b = PackageIdent::new(
+            "boulder".to_string(),
+            "brown".to_string(),
+            Some("1.0.0".to_string()),
+            Some("20150521131555".to_string()),
+        );
         match a.partial_cmp(&b) {
             Some(ord) => assert_eq!(ord, Ordering::Greater),
             None => panic!("We failed to return an order"),

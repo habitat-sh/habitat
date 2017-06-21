@@ -93,10 +93,12 @@ impl Supervisor {
     }
 
     pub fn status(&self) -> (bool, String) {
-        let status = format!("{}: {} for {}",
-                             self.preamble,
-                             self.state,
-                             time::get_time() - self.state_entered);
+        let status = format!(
+            "{}: {} for {}",
+            self.preamble,
+            self.state,
+            time::get_time() - self.state_entered
+        );
         let healthy = match self.state {
             ProcessState::Up | ProcessState::Start | ProcessState::Restart => true,
             ProcessState::Down => false,
@@ -109,9 +111,11 @@ impl Supervisor {
             outputln!(preamble & self.preamble, "Already started");
             return Ok(());
         }
-        debug!("Setting PATH for {} to PATH='{}'",
-               &self.preamble,
-               pkg.env.get("PATH").map(|v| &**v).unwrap_or("<unknown>"));
+        debug!(
+            "Setting PATH for {} to PATH='{}'",
+            &self.preamble,
+            pkg.env.get("PATH").map(|v| &**v).unwrap_or("<unknown>")
+        );
         outputln!(preamble self.preamble,
                   "Starting process as user={}, group={}",
                   &pkg.svc_user,
@@ -126,10 +130,14 @@ impl Supervisor {
         let err_package_name = self.preamble.clone();
         thread::Builder::new()
             .name(String::from("sup-service-read-out"))
-            .spawn(move || -> Result<()> { child_out_reader(c_stdout, out_package_name) })?;
+            .spawn(move || -> Result<()> {
+                child_out_reader(c_stdout, out_package_name)
+            })?;
         thread::Builder::new()
             .name(String::from("sup-service-read-err"))
-            .spawn(move || -> Result<()> { child_err_reader(c_stderr, err_package_name) })?;
+            .spawn(move || -> Result<()> {
+                child_err_reader(c_stderr, err_package_name)
+            })?;
         self.enter_state(ProcessState::Up);
         self.has_started = true;
         Ok(())
@@ -172,15 +180,19 @@ impl Supervisor {
                     Ok(ref status) if status.no_status() => false,
                     Ok(ref status) => {
                         if status.code().is_some() {
-                            outputln!("{} - process {} died with exit code {}",
-                                      self.preamble,
-                                      child.id(),
-                                      status.code().unwrap());
+                            outputln!(
+                                "{} - process {} died with exit code {}",
+                                self.preamble,
+                                child.id(),
+                                status.code().unwrap()
+                            );
                         } else if status.signal().is_some() {
-                            outputln!("{} - process {} died with signal {}",
-                                      self.preamble,
-                                      child.id(),
-                                      status.signal().unwrap());
+                            outputln!(
+                                "{} - process {} died with signal {}",
+                                self.preamble,
+                                child.id(),
+                                status.signal().unwrap()
+                            );
                         }
                         true
                     }
@@ -212,9 +224,11 @@ impl Supervisor {
         match self.child {
             Some(ref child) => {
                 let ref pid = child.id();
-                debug!("Creating PID file for child {} -> {:?}",
-                       pkg.svc_pid_file.display(),
-                       pid);
+                debug!(
+                    "Creating PID file for child {} -> {:?}",
+                    pkg.svc_pid_file.display(),
+                    pid
+                );
                 let mut f = try!(File::create(&pkg.svc_pid_file));
                 set_owner(&pkg.svc_pid_file, &pkg.svc_user, &pkg.svc_group)?;
                 write!(f, "{}", pid)?;
@@ -241,7 +255,8 @@ impl Supervisor {
 
 impl Serialize for Supervisor {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         let pid = match self.child {
             Some(ref child) => Some(child.id()),
@@ -251,7 +266,10 @@ impl Serialize for Supervisor {
         try!(strukt.serialize_field("pid", &pid));
         try!(strukt.serialize_field("preamble", &self.preamble));
         try!(strukt.serialize_field("state", &self.state));
-        try!(strukt.serialize_field("state_entered", &self.state_entered.sec));
+        try!(strukt.serialize_field(
+            "state_entered",
+            &self.state_entered.sec,
+        ));
         try!(strukt.serialize_field("started", &self.has_started));
         strukt.end()
     }

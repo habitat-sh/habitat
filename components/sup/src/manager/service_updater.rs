@@ -81,25 +81,25 @@ impl ServiceUpdater {
                 self.states
                     .entry(service.service_group.clone())
                     .or_insert_with(|| {
-                                        let rx = Worker::new(service)
-                                            .start(&service.service_group, None);
-                                        UpdaterState::AtOnce(rx)
-                                    });
+                        let rx = Worker::new(service).start(&service.service_group, None);
+                        UpdaterState::AtOnce(rx)
+                    });
                 true
             }
             UpdateStrategy::Rolling => {
-                self.states
-                    .entry(service.service_group.clone())
-                    .or_insert(UpdaterState::Rolling(RollingState::AwaitingElection));
+                self.states.entry(service.service_group.clone()).or_insert(
+                    UpdaterState::Rolling(RollingState::AwaitingElection),
+                );
                 true
             }
         }
     }
 
-    pub fn check_for_updated_package(&mut self,
-                                     service: &mut Service,
-                                     census_ring: &CensusRing)
-                                     -> bool {
+    pub fn check_for_updated_package(
+        &mut self,
+        service: &mut Service,
+        census_ring: &CensusRing,
+    ) -> bool {
         let mut updated = false;
         match self.states.get_mut(&service.service_group) {
             Some(&mut UpdaterState::AtOnce(ref mut rx)) => {
@@ -117,8 +117,10 @@ impl ServiceUpdater {
             Some(&mut UpdaterState::Rolling(ref mut st @ RollingState::AwaitingElection)) => {
                 if let Some(census_group) = census_ring.census_group_for(&service.service_group) {
                     if service.topology == Topology::Leader {
-                        debug!("Rolling Update, determining proper suitability because we're in \
-                                a leader topology");
+                        debug!(
+                            "Rolling Update, determining proper suitability because we're in \
+                                a leader topology"
+                        );
                         match (census_group.me(), census_group.leader()) {
                             (Some(me), Some(leader)) => {
                                 let suitability = if me.member_id == leader.member_id {
@@ -126,18 +128,22 @@ impl ServiceUpdater {
                                 } else {
                                     u64::max_value()
                                 };
-                                self.butterfly
-                                    .start_update_election(service.service_group.clone(),
-                                                           suitability,
-                                                           0);
+                                self.butterfly.start_update_election(
+                                    service.service_group.clone(),
+                                    suitability,
+                                    0,
+                                );
                                 *st = RollingState::InElection
                             }
                             _ => return false,
                         }
                     } else {
                         debug!("Rolling update, using default suitability");
-                        self.butterfly
-                            .start_update_election(service.service_group.clone(), 0, 0);
+                        self.butterfly.start_update_election(
+                            service.service_group.clone(),
+                            0,
+                            0,
+                        );
                         *st = RollingState::InElection;
                     }
                 }
@@ -180,13 +186,11 @@ impl ServiceUpdater {
                     LeaderState::Waiting => {
                         match census_ring.census_group_for(&service.service_group) {
                             Some(census_group) => {
-                                if census_group
-                                       .members()
-                                       .iter()
-                                       .any(|cm| {
-                                                cm.pkg.as_ref().unwrap() !=
-                                                census_group.me().unwrap().pkg.as_ref().unwrap()
-                                            }) {
+                                if census_group.members().iter().any(|cm| {
+                                    cm.pkg.as_ref().unwrap() !=
+                                        census_group.me().unwrap().pkg.as_ref().unwrap()
+                                })
+                                {
                                     debug!("Update leader still waiting for followers...");
                                     return false;
                                 }
@@ -194,8 +198,10 @@ impl ServiceUpdater {
                                 *state = LeaderState::Polling(rx);
                             }
                             None => {
-                                panic!("Expected census list to have service group '{}'!",
-                                       &*service.service_group)
+                                panic!(
+                                    "Expected census list to have service group '{}'!",
+                                    &*service.service_group
+                                )
                             }
                         }
                     }
@@ -209,9 +215,11 @@ impl ServiceUpdater {
                     FollowerState::Waiting => {
                         match census_ring.census_group_for(&service.service_group) {
                             Some(census_group) => {
-                                match (census_group.update_leader(),
-                                       census_group.previous_peer(),
-                                       census_group.me()) {
+                                match (
+                                    census_group.update_leader(),
+                                    census_group.previous_peer(),
+                                    census_group.me(),
+                                ) {
                                     (Some(leader), Some(peer), Some(me)) => {
                                         if leader.pkg == me.pkg {
                                             debug!("We're not in an update");
@@ -222,17 +230,20 @@ impl ServiceUpdater {
                                             return false;
                                         }
                                         debug!("We're in an update and it's our turn");
-                                        let rx =
-                                            Worker::new(service).start(&service.service_group,
-                                                                       leader.pkg.clone());
+                                        let rx = Worker::new(service).start(
+                                            &service.service_group,
+                                            leader.pkg.clone(),
+                                        );
                                         *state = FollowerState::Updating(rx);
                                     }
                                     _ => return false,
                                 }
                             }
                             None => {
-                                panic!("Expected census list to have service group '{}'!",
-                                       &*service.service_group)
+                                panic!(
+                                    "Expected census list to have service group '{}'!",
+                                    &*service.service_group
+                                )
                             }
                         }
                     }
@@ -249,14 +260,18 @@ impl ServiceUpdater {
                                         debug!("Service Updater worker has died; restarting...");
                                         let package =
                                             census_group.update_leader().unwrap().pkg.clone();
-                                        *rx = Worker::new(service).start(&service.service_group,
-                                                                         package);
+                                        *rx = Worker::new(service).start(
+                                            &service.service_group,
+                                            package,
+                                        );
                                     }
                                 }
                             }
                             None => {
-                                panic!("Expected census list to have service group '{}'!",
-                                       &*service.service_group)
+                                panic!(
+                                    "Expected census list to have service group '{}'!",
+                                    &*service.service_group
+                                )
                             }
                         }
                     }
@@ -302,9 +317,9 @@ impl Worker {
         thread::Builder::new()
             .name(format!("service-updater-{}", sg))
             .spawn(move || match ident {
-                       Some(latest) => self.run_once(tx, latest),
-                       None => self.run_poll(tx),
-                   })
+                Some(latest) => self.run_once(tx, latest),
+                None => self.run_poll(tx),
+            })
             .expect("unable to start service-updater thread");
         rx
     }
@@ -313,7 +328,7 @@ impl Worker {
         outputln!("Updating from {} to {}", self.current, ident);
         loop {
             let next_check = SteadyTime::now() +
-                             TimeDuration::milliseconds(self.update_frequency());
+                TimeDuration::milliseconds(self.update_frequency());
             match self.install(&ident, true) {
                 Ok(package) => {
                     self.current = package.ident().clone();
@@ -332,11 +347,12 @@ impl Worker {
     fn run_poll(&mut self, sender: SyncSender<PackageInstall>) {
         loop {
             let next_check = SteadyTime::now() +
-                             TimeDuration::milliseconds(self.update_frequency());
+                TimeDuration::milliseconds(self.update_frequency());
             let mut package: Option<PackageInstall> = None;
-            match self.depot
-                      .show_package(&self.spec_ident,
-                                    self.channel.as_ref().map(String::as_ref)) {
+            match self.depot.show_package(
+                &self.spec_ident,
+                self.channel.as_ref().map(String::as_ref),
+            ) {
                 Ok(remote) => {
                     let latest: PackageIdent = remote.get_ident().clone().into();
                     if latest > self.current {
@@ -352,8 +368,11 @@ impl Worker {
                 Err(e) => warn!("Updater failed to get latest package: {:?}", e),
             }
             if self.update_strategy == UpdateStrategy::AtOnce {
-                if let Ok(cached) = PackageInstall::load(&self.spec_ident,
-                                                         Some(&Path::new(&*FS_ROOT_PATH))) {
+                if let Ok(cached) = PackageInstall::load(
+                    &self.spec_ident,
+                    Some(&Path::new(&*FS_ROOT_PATH)),
+                )
+                {
                     let compare = match package {
                         Some(ref pkg) => pkg.ident.clone(),
                         None => self.current.clone(),
@@ -392,11 +411,13 @@ impl Worker {
 
     fn download(&mut self, package: &PackageIdent) -> Result<PackageInstall> {
         outputln!("Downloading {}", package);
-        let mut archive = try!(self.depot
-                                   .fetch_package(package,
-                                                  &Path::new(&*FS_ROOT_PATH)
-                                                       .join(CACHE_ARTIFACT_PATH),
-                                                  self.ui.progress()));
+        let mut archive = try!(self.depot.fetch_package(
+            package,
+            &Path::new(&*FS_ROOT_PATH).join(
+                CACHE_ARTIFACT_PATH,
+            ),
+            self.ui.progress(),
+        ));
         try!(archive.verify(&default_cache_key_path(None)));
         outputln!("Installing {}", package);
         try!(archive.unpack(None));
@@ -410,11 +431,13 @@ impl Worker {
                 match val.parse::<i64>() {
                     Ok(num) => num,
                     Err(_) => {
-                        outputln!("Unable to parse '{}' from {} as a valid integer. Falling back \
+                        outputln!(
+                            "Unable to parse '{}' from {} as a valid integer. Falling back \
                                   to defailt {} MS frequency.",
-                                  val,
-                                  FREQUENCY_ENVVAR,
-                                  DEFAULT_FREQUENCY);
+                            val,
+                            FREQUENCY_ENVVAR,
+                            DEFAULT_FREQUENCY
+                        );
                         DEFAULT_FREQUENCY
                     }
                 }

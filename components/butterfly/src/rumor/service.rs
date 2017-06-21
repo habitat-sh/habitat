@@ -36,7 +36,8 @@ pub struct Service(ProtoRumor);
 impl PartialOrd for Service {
     fn partial_cmp(&self, other: &Service) -> Option<Ordering> {
         if self.get_member_id() != other.get_member_id() ||
-           self.get_service_group() != other.get_service_group() {
+            self.get_service_group() != other.get_service_group()
+        {
             None
         } else {
             Some(self.get_incarnation().cmp(&other.get_incarnation()))
@@ -47,8 +48,8 @@ impl PartialOrd for Service {
 impl PartialEq for Service {
     fn eq(&self, other: &Service) -> bool {
         self.get_member_id() == other.get_member_id() &&
-        self.get_service_group() == other.get_service_group() &&
-        self.get_incarnation() == other.get_incarnation()
+            self.get_service_group() == other.get_service_group() &&
+            self.get_incarnation() == other.get_incarnation()
     }
 }
 
@@ -80,21 +81,27 @@ impl DerefMut for Service {
 
 impl Service {
     /// Creates a new Service.
-    pub fn new<T, U>(member_id: U,
-                     package: &T,
-                     service_group: &ServiceGroup,
-                     sys: &SysInfo,
-                     cfg: Option<&toml::value::Table>)
-                     -> Self
-        where T: Identifiable,
-              U: Into<String>
+    pub fn new<T, U>(
+        member_id: U,
+        package: &T,
+        service_group: &ServiceGroup,
+        sys: &SysInfo,
+        cfg: Option<&toml::value::Table>,
+    ) -> Self
+    where
+        T: Identifiable,
+        U: Into<String>,
     {
-        assert!(package.fully_qualified(),
-                "Service constructor requires a fully qualified package identifier");
-        assert_eq!(service_group.service(),
-                   package.name(),
-                   "Service constructor requires the given package name to match the service \
-                    group's name");
+        assert!(
+            package.fully_qualified(),
+            "Service constructor requires a fully qualified package identifier"
+        );
+        assert_eq!(
+            service_group.service(),
+            package.name(),
+            "Service constructor requires the given package name to match the service \
+                    group's name"
+        );
         let mut rumor = ProtoRumor::new();
         rumor.set_from_id(member_id.into());
         rumor.set_field_type(ProtoRumor_Type::Service);
@@ -108,7 +115,9 @@ impl Service {
         if let Some(cfg) = cfg {
             // TODO FN: Can we really expect this all the time, should we return a `Result<Self>`
             // in this constructor?
-            proto.set_cfg(toml::ser::to_vec(cfg).expect("Struct should serialize to bytes"));
+            proto.set_cfg(toml::ser::to_vec(cfg).expect(
+                "Struct should serialize to bytes",
+            ));
         }
 
         rumor.set_service(proto);
@@ -251,10 +260,12 @@ mod tests {
     fn service_package_name_mismatch() {
         let ident = PackageIdent::from_str("core/overwatch/1.2.3/20161208121212").unwrap();
         let sg = ServiceGroup::new("counter-strike", "times", Some("ofgrace")).unwrap();
-        Service::new("bad-member".to_string(),
-                     &ident,
-                     &sg,
-                     &SysInfo::default(),
-                     None);
+        Service::new(
+            "bad-member".to_string(),
+            &ident,
+            &sg,
+            &SysInfo::default(),
+            None,
+        );
     }
 }

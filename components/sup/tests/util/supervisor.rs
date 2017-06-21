@@ -39,7 +39,10 @@ impl Supervisor {
     }
 
     pub fn new_with_topology(topology: &str) -> Supervisor {
-        Supervisor::from_docker(docker::run_with_topology("test/simple_service_gossip", topology))
+        Supervisor::from_docker(docker::run_with_topology(
+            "test/simple_service_gossip",
+            topology,
+        ))
     }
 
     pub fn new_with_permanent() -> Supervisor {
@@ -47,30 +50,40 @@ impl Supervisor {
     }
 
     pub fn new_with_permanent_topology(topology: &str) -> Supervisor {
-        Supervisor::from_docker(docker::run_with_permanent_topology("test/simple_service_gossip",
-                                                                    topology))
+        Supervisor::from_docker(docker::run_with_permanent_topology(
+            "test/simple_service_gossip",
+            topology,
+        ))
     }
 
     pub fn with_peer(peer: &Supervisor) -> Supervisor {
-        Supervisor::from_docker(docker::run_with_peer("test/simple_service_gossip",
-                                                      &peer.peer_addr))
+        Supervisor::from_docker(docker::run_with_peer(
+            "test/simple_service_gossip",
+            &peer.peer_addr,
+        ))
     }
 
     pub fn with_peer_topology(peer: &Supervisor, topology: &str) -> Supervisor {
-        Supervisor::from_docker(docker::run_with_peer_topology("test/simple_service_gossip",
-                                                               &peer.peer_addr,
-                                                               topology))
+        Supervisor::from_docker(docker::run_with_peer_topology(
+            "test/simple_service_gossip",
+            &peer.peer_addr,
+            topology,
+        ))
     }
 
     pub fn with_peer_permanent(peer: &Supervisor) -> Supervisor {
-        Supervisor::from_docker(docker::run_with_peer_permanent("test/simple_service_gossip",
-                                                                &peer.peer_addr))
+        Supervisor::from_docker(docker::run_with_peer_permanent(
+            "test/simple_service_gossip",
+            &peer.peer_addr,
+        ))
     }
 
     pub fn with_peer_permanent_topology(peer: &Supervisor, topology: &str) -> Supervisor {
-        Supervisor::from_docker(docker::run_with_peer_permanent_topology("test/simple_service_gossip",
-                                                                         &peer.peer_addr,
-                                                                         topology))
+        Supervisor::from_docker(docker::run_with_peer_permanent_topology(
+            "test/simple_service_gossip",
+            &peer.peer_addr,
+            topology,
+        ))
     }
 
     pub fn from_docker(sup: Docker) -> Supervisor {
@@ -111,8 +124,8 @@ impl Supervisor {
         let mut retry_count = 0;
         while retry_count < retry_max {
             let mut res = match client
-                      .get(&format!("http://{}:9631/{}", self.ip, path))
-                      .send() {
+                .get(&format!("http://{}:9631/{}", self.ip, path))
+                .send() {
                 Ok(res) => res,
                 Err(e) => {
                     println!("Cannot get {}: {:?}", path, e);
@@ -146,8 +159,8 @@ impl Supervisor {
         let mut retry_count = 0;
         while retry_count < retry_max {
             let mut res = match client
-                      .get(&format!("http://{}:9631/status", self.ip))
-                      .send() {
+                .get(&format!("http://{}:9631/status", self.ip))
+                .send() {
                 Ok(res) => res,
                 Err(e) => {
                     println!("Cannot get /status: {:?}", e);
@@ -215,29 +228,41 @@ impl Supervisor {
     }
 
     pub fn netsplit(&self, sup: &Supervisor) {
-        self.docker
-            .exec(&["/bin/sh",
-                    "-l",
-                    "-c",
-                    &format!("iptables -A INPUT -s {} -j DROP", &sup.ip)]);
-        sup.docker
-            .exec(&["/bin/sh",
-                    "-l",
-                    "-c",
-                    &format!("iptables -A INPUT -s {} -j DROP", &self.ip)]);
+        self.docker.exec(
+            &[
+                "/bin/sh",
+                "-l",
+                "-c",
+                &format!("iptables -A INPUT -s {} -j DROP", &sup.ip),
+            ],
+        );
+        sup.docker.exec(
+            &[
+                "/bin/sh",
+                "-l",
+                "-c",
+                &format!("iptables -A INPUT -s {} -j DROP", &self.ip),
+            ],
+        );
     }
 
     pub fn netjoin(&self, sup: &Supervisor) {
-        self.docker
-            .exec(&["/bin/sh",
-                    "-l",
-                    "-c",
-                    &format!("iptables -D INPUT -s {} -j DROP", &sup.ip)]);
-        sup.docker
-            .exec(&["/bin/sh",
-                    "-l",
-                    "-c",
-                    &format!("iptables -D INPUT -s {} -j DROP", &self.ip)]);
+        self.docker.exec(
+            &[
+                "/bin/sh",
+                "-l",
+                "-c",
+                &format!("iptables -D INPUT -s {} -j DROP", &sup.ip),
+            ],
+        );
+        sup.docker.exec(
+            &[
+                "/bin/sh",
+                "-l",
+                "-c",
+                &format!("iptables -D INPUT -s {} -j DROP", &self.ip),
+            ],
+        );
     }
 
     pub fn keeps_member_alive(&self, sup: &Supervisor) -> bool {
@@ -278,7 +303,8 @@ impl Supervisor {
     }
 
     pub fn wait_for_it<F>(&self, timeout: Duration, check_it: F) -> bool
-        where F: Fn() -> bool
+    where
+        F: Fn() -> bool,
     {
         let mut now = SteadyTime::now();
         let end_time = SteadyTime::now() + timeout;

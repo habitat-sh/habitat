@@ -28,42 +28,57 @@ pub struct Docker {
 }
 
 fn docker_cmd(args: &[&str]) -> Docker {
-    println!("{}: Starting docker with {:?}",
-             thread::current().name().unwrap_or("main"),
-             args);
+    println!(
+        "{}: Starting docker with {:?}",
+        thread::current().name().unwrap_or("main"),
+        args
+    );
     let mut cmd = command::run("docker", args).unwrap_or_else(|x| panic!("{:?}", x));
     cmd.wait_with_output();
     let mut id = String::from(cmd.stdout());
     id.pop();
-    println!("{}: Docker exited with: {:?}, stdout: {}, stderr: {}",
-             thread::current().name().unwrap_or("main"),
-             cmd.status().code(),
-             cmd.stdout(),
-             cmd.stderr());
-    println!("{}: Docker container: {}",
-             id,
-             thread::current().name().unwrap_or("main"));
+    println!(
+        "{}: Docker exited with: {:?}, stdout: {}, stderr: {}",
+        thread::current().name().unwrap_or("main"),
+        cmd.status().code(),
+        cmd.stdout(),
+        cmd.stderr()
+    );
+    println!(
+        "{}: Docker container: {}",
+        id,
+        thread::current().name().unwrap_or("main")
+    );
     Docker { container_id: String::from(id) }
 }
 
 pub fn depot(image: &str) -> Docker {
-    docker_cmd(&["run",
-                 "-d",
-                 "--cap-add=NET_ADMIN",
-                 "--expose=9632",
-                 image,
-                 "depot"])
+    docker_cmd(
+        &[
+            "run",
+            "-d",
+            "--cap-add=NET_ADMIN",
+            "--expose=9632",
+            image,
+            "depot",
+        ],
+    )
 }
 
 impl Docker {
     pub fn ipaddress(&self) -> String {
-        let mut cmd = command::run("sh",
-                                   &["-c",
-                                     &format!("docker inspect --format='{}' {}",
-                                              "{{range .NetworkSettings.Networks}}{{.\
+        let mut cmd = command::run(
+            "sh",
+            &[
+                "-c",
+                &format!(
+                    "docker inspect --format='{}' {}",
+                    "{{range .NetworkSettings.Networks}}{{.\
                                                IPAddress}}{{end}}",
-                                              &self.container_id)])
-                .unwrap_or_else(|x| panic!("{:?}", x));
+                    &self.container_id
+                ),
+            ],
+        ).unwrap_or_else(|x| panic!("{:?}", x));
         cmd.wait_with_output();
         let ipaddress = String::from(cmd.stdout().trim());
         println!("I have ipaddress {}", &ipaddress);

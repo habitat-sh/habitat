@@ -1,10 +1,10 @@
 #!/bin/bash
 set -eu
 
-version=0.8.4
+version=0.9.0
 
 if command -v rustfmt >/dev/null; then
-  if [[ $(rustfmt --version | cut -d ' ' -f 1) = "$version" ]]; then
+  if [[ $(rustfmt --version | cut -d ' ' -f 1) = "$version-nightly" ]]; then
     echo "--> Detected rustfmt version $version, skipping install"
     exit 0
   fi

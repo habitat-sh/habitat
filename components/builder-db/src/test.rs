@@ -39,11 +39,11 @@ pub mod postgres {
 
     pub fn start() {
         POSTGRES.call_once(|| {
-                               thread::spawn(move || {
-                                                 let mut postgres = Postgres::new();
-                                                 let _ = postgres.inner.wait();
-                                             });
-                           });
+            thread::spawn(move || {
+                let mut postgres = Postgres::new();
+                let _ = postgres.inner.wait();
+            });
+        });
     }
 
     impl Postgres {

@@ -39,8 +39,10 @@ pub struct GossipListenAddr(SocketAddr);
 
 impl Default for GossipListenAddr {
     fn default() -> GossipListenAddr {
-        GossipListenAddr(SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(0, 0, 0, 0),
-                                                          GOSSIP_DEFAULT_PORT)))
+        GossipListenAddr(SocketAddr::V4(SocketAddrV4::new(
+            Ipv4Addr::new(0, 0, 0, 0),
+            GOSSIP_DEFAULT_PORT,
+        )))
     }
 }
 

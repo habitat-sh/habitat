@@ -91,8 +91,10 @@ impl PackageGraph {
             assert_eq!(self.package_names[self.package_max], short_name);
 
             let node_index = self.graph.add_node(self.package_max);
-            self.package_map
-                .insert(short_name.clone(), (self.package_max, node_index));
+            self.package_map.insert(short_name.clone(), (
+                self.package_max,
+                node_index,
+            ));
             self.package_max = self.package_max + 1;
 
             (self.package_max - 1, node_index)
@@ -102,7 +104,8 @@ impl PackageGraph {
     }
 
     pub fn build<T>(&mut self, packages: T) -> (usize, usize)
-        where T: Iterator<Item = scheduler::Package>
+    where
+        T: Iterator<Item = scheduler::Package>,
     {
         assert!(self.package_max == 0);
 
@@ -158,9 +161,11 @@ impl PackageGraph {
 
                 // Check for circular dependency
                 if is_cyclic_directed(&self.graph) {
-                    debug!("graph is cyclic after adding {} -> {} - failing check_extend",
-                           dep_name,
-                           name);
+                    debug!(
+                        "graph is cyclic after adding {} -> {} - failing check_extend",
+                        dep_name,
+                        name
+                    );
                     circular_dep = true;
                     break;
                 }
@@ -222,9 +227,11 @@ impl PackageGraph {
 
                 // sanity check
                 if is_cyclic_directed(&self.graph) {
-                    warn!("graph is cyclic after adding {} -> {} - rolling back",
-                          depname,
-                          name);
+                    warn!(
+                        "graph is cyclic after adding {} -> {} - rolling back",
+                        depname,
+                        name
+                    );
                     let e = self.graph.find_edge(dep_node, pkg_node).unwrap();
                     self.graph.remove_edge(e).unwrap();
                 }

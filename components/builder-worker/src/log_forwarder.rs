@@ -44,10 +44,10 @@ impl LogForwarder {
         output_sock.set_immediate(true)?;
 
         Ok(LogForwarder {
-               intake_sock: intake_sock,
-               output_sock: output_sock,
-               config: config,
-           })
+            intake_sock: intake_sock,
+            output_sock: output_sock,
+            config: config,
+        })
     }
 
     pub fn start(config: Arc<RwLock<Config>>) -> Result<JoinHandle<()>> {
@@ -55,9 +55,9 @@ impl LogForwarder {
         let handle = thread::Builder::new()
             .name("log".to_string())
             .spawn(move || {
-                       let mut log = Self::new(config).unwrap();
-                       log.run(tx).unwrap();
-                   })
+                let mut log = Self::new(config).unwrap();
+                log.run(tx).unwrap();
+            })
             .unwrap();
         match rx.recv() {
             Ok(()) => Ok(handle),

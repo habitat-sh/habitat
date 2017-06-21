@@ -74,10 +74,11 @@ impl DepotUtil {
 
     // Return a PackageArchive representing the given package. None is returned if the Depot
     // doesn't have an archive for the given package.
-    fn archive<T: Identifiable>(&self,
-                                ident: &T,
-                                target: &PackageTarget)
-                                -> Option<PackageArchive> {
+    fn archive<T: Identifiable>(
+        &self,
+        ident: &T,
+        target: &PackageTarget,
+    ) -> Option<PackageArchive> {
         let file = self.archive_path(ident, target);
         match fs::metadata(&file) {
             Ok(_) => Some(PackageArchive::new(file)),
@@ -95,13 +96,15 @@ impl DepotUtil {
         self.packages_path()
             .join(format!("{:x}", output[0]))
             .join(format!("{:x}", output[1]))
-            .join(format!("{}-{}-{}-{}-{}-{}.hart",
-                          ident.origin(),
-                          ident.name(),
-                          ident.version().unwrap(),
-                          ident.release().unwrap(),
-                          target.architecture,
-                          target.platform))
+            .join(format!(
+                "{}-{}-{}-{}-{}-{}.hart",
+                ident.origin(),
+                ident.name(),
+                ident.version().unwrap(),
+                ident.release().unwrap(),
+                target.architecture,
+                target.platform
+            ))
     }
 
     // Return a formatted string representing the folder location for an archive.
@@ -110,9 +113,9 @@ impl DepotUtil {
         let mut output = [0; 64];
         digest.input_str(&ident.to_string());
         digest.result(&mut output);
-        self.packages_path()
-            .join(format!("{:x}", output[0]))
-            .join(format!("{:x}", output[1]))
+        self.packages_path().join(format!("{:x}", output[0])).join(
+            format!("{:x}", output[1]),
+        )
     }
 
     fn packages_path(&self) -> PathBuf {

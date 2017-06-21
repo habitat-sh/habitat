@@ -28,28 +28,32 @@ use manager::service::UpdateStrategy;
 
 static LOGKEY: &'static str = "PK";
 
-pub fn install(ui: &mut UI,
-               url: &str,
-               ident: &PackageIdent,
-               channel: Option<&str>)
-               -> Result<PackageInstall> {
+pub fn install(
+    ui: &mut UI,
+    url: &str,
+    ident: &PackageIdent,
+    channel: Option<&str>,
+) -> Result<PackageInstall> {
     let fs_root_path = Path::new(&*FS_ROOT_PATH);
-    let installed_ident = common::command::package::install::start(ui,
-                                                                   url,
-                                                                   channel,
-                                                                   &ident.to_string(),
-                                                                   PRODUCT,
-                                                                   VERSION,
-                                                                   fs_root_path,
-                                                                   &fs::cache_artifact_path(None),
-                                                                   false)?;
+    let installed_ident = common::command::package::install::start(
+        ui,
+        url,
+        channel,
+        &ident.to_string(),
+        PRODUCT,
+        VERSION,
+        fs_root_path,
+        &fs::cache_artifact_path(None),
+        false,
+    )?;
     Ok(PackageInstall::load(&installed_ident, Some(&fs_root_path))?)
 }
 
-pub fn maybe_install_newer(ui: &mut UI,
-                           spec: &ServiceSpec,
-                           current: PackageInstall)
-                           -> Result<PackageInstall> {
+pub fn maybe_install_newer(
+    ui: &mut UI,
+    spec: &ServiceSpec,
+    current: PackageInstall,
+) -> Result<PackageInstall> {
     let latest_ident: PackageIdent = {
         let depot_client = Client::new(&spec.depot_url, PRODUCT, VERSION, None)?;
         match depot_client.show_package(&spec.ident, spec.channel.as_ref().map(String::as_ref)) {
@@ -59,18 +63,24 @@ pub fn maybe_install_newer(ui: &mut UI,
     };
 
     if &latest_ident > current.ident() {
-        outputln!("Newer version of {} detected. Installing {} from {}",
-                  spec.ident,
-                  latest_ident,
-                  spec.depot_url);
-        self::install(ui,
-                      &spec.depot_url,
-                      &latest_ident,
-                      spec.channel.as_ref().map(String::as_ref))
+        outputln!(
+            "Newer version of {} detected. Installing {} from {}",
+            spec.ident,
+            latest_ident,
+            spec.depot_url
+        );
+        self::install(
+            ui,
+            &spec.depot_url,
+            &latest_ident,
+            spec.channel.as_ref().map(String::as_ref),
+        )
     } else {
-        outputln!("Confirmed latest version of {} is {}",
-                  spec.ident,
-                  current.ident());
+        outputln!(
+            "Confirmed latest version of {} is {}",
+            spec.ident,
+            current.ident()
+        );
         Ok(current)
     }
 }
@@ -84,13 +94,17 @@ pub fn install_from_spec(ui: &mut UI, spec: &ServiceSpec) -> Result<PackageInsta
             }
         }
         Err(_) => {
-            outputln!("{} not found in local package cache, installing from {}",
-                      Yellow.bold().paint(spec.ident.to_string()),
-                      &spec.depot_url);
-            Ok(install(ui,
-                       spec.depot_url.as_str(),
-                       &spec.ident,
-                       spec.channel.as_ref().map(String::as_ref))?)
+            outputln!(
+                "{} not found in local package cache, installing from {}",
+                Yellow.bold().paint(spec.ident.to_string()),
+                &spec.depot_url
+            );
+            Ok(install(
+                ui,
+                spec.depot_url.as_str(),
+                &spec.ident,
+                spec.channel.as_ref().map(String::as_ref),
+            )?)
         }
     }
 }

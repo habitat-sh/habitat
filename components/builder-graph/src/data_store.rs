@@ -53,9 +53,10 @@ impl DataStore {
     pub fn insert_package(&self, msg: &Package) -> Result<()> {
         let conn = self.pool.get_shard(0)?;
 
-        conn.execute("SELECT insert_package_v1($1, $2)",
-                     &[&msg.get_ident(), &msg.get_deps()])
-            .map_err(Error::PackageInsert)?;
+        conn.execute(
+            "SELECT insert_package_v1($1, $2)",
+            &[&msg.get_ident(), &msg.get_deps()],
+        ).map_err(Error::PackageInsert)?;
 
         debug!("Package inserted: {}", msg.get_ident());
 
@@ -67,8 +68,9 @@ impl DataStore {
 
         let conn = self.pool.get_shard(0)?;
 
-        let rows = &conn.query("SELECT * FROM get_packages_v1()", &[])
-                        .map_err(Error::PackagesGet)?;
+        let rows = &conn.query("SELECT * FROM get_packages_v1()", &[]).map_err(
+            Error::PackagesGet,
+        )?;
 
         if rows.is_empty() {
             warn!("No packages found");
@@ -87,7 +89,7 @@ impl DataStore {
         let conn = self.pool.get_shard(0)?;
 
         let rows = &conn.query("SELECT * FROM get_package_v1($1)", &[&ident])
-                        .map_err(Error::PackagesGet)?;
+            .map_err(Error::PackagesGet)?;
 
         if rows.is_empty() {
             error!("No package found");

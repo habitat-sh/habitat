@@ -47,9 +47,9 @@ impl PartialOrd for ServiceConfig {
 impl PartialEq for ServiceConfig {
     fn eq(&self, other: &ServiceConfig) -> bool {
         self.get_service_group() == other.get_service_group() &&
-        self.get_incarnation() == other.get_incarnation() &&
-        self.get_encrypted() == other.get_encrypted() &&
-        self.get_config() == other.get_config()
+            self.get_incarnation() == other.get_incarnation() &&
+            self.get_encrypted() == other.get_encrypted() &&
+            self.get_config() == other.get_config()
     }
 }
 
@@ -82,7 +82,8 @@ impl DerefMut for ServiceConfig {
 impl ServiceConfig {
     /// Creates a new ServiceConfig.
     pub fn new<S1>(member_id: S1, service_group: ServiceGroup, config: Vec<u8>) -> Self
-        where S1: Into<String>
+    where
+        S1: Into<String>,
     {
         let mut rumor = ProtoRumor::new();
         let from_id = member_id.into();
@@ -108,23 +109,27 @@ impl ServiceConfig {
 
     pub fn config(&self) -> Result<toml::Value> {
         let config = if self.get_encrypted() {
-            let bytes = try!(BoxKeyPair::decrypt(self.get_config(), &default_cache_key_path(None)));
-            let encoded =
-                try!(str::from_utf8(&bytes)
-                .map_err(|e| Error::ServiceConfigNotUtf8(self.get_service_group().to_string(), e)));
+            let bytes = try!(BoxKeyPair::decrypt(
+                self.get_config(),
+                &default_cache_key_path(None),
+            ));
+            let encoded = try!(str::from_utf8(&bytes).map_err(|e| {
+                Error::ServiceConfigNotUtf8(self.get_service_group().to_string(), e)
+            }));
             try!(self.parse_config(&encoded))
         } else {
-            let encoded =
-                try!(str::from_utf8(self.get_config())
-                .map_err(|e| Error::ServiceConfigNotUtf8(self.get_service_group().to_string(), e)));
+            let encoded = try!(str::from_utf8(self.get_config()).map_err(|e| {
+                Error::ServiceConfigNotUtf8(self.get_service_group().to_string(), e)
+            }));
             try!(self.parse_config(&encoded))
         };
         Ok(config)
     }
 
     fn parse_config(&self, encoded: &str) -> Result<toml::Value> {
-        toml::Value::from_str(encoded)
-            .map_err(|e| Error::ServiceConfigDecode(self.get_service_group().to_string(), e))
+        toml::Value::from_str(encoded).map_err(|e| {
+            Error::ServiceConfigDecode(self.get_service_group().to_string(), e)
+        })
     }
 }
 
@@ -175,9 +180,11 @@ mod tests {
 
     fn create_service_config(member_id: &str, config: &str) -> ServiceConfig {
         let config_bytes: Vec<u8> = Vec::from(config);
-        ServiceConfig::new(member_id,
-                           ServiceGroup::new("neurosis", "production", None).unwrap(),
-                           config_bytes)
+        ServiceConfig::new(
+            member_id,
+            ServiceGroup::new("neurosis", "production", None).unwrap(),
+            config_bytes,
+        )
     }
 
     #[test]
@@ -245,7 +252,9 @@ mod tests {
     #[test]
     fn config_comes_back_as_a_toml_value() {
         let s1 = create_service_config("adam", "yep=1");
-        assert_eq!(s1.config().unwrap(),
-                   toml::Value::from_str("yep=1").unwrap());
+        assert_eq!(
+            s1.config().unwrap(),
+            toml::Value::from_str("yep=1").unwrap()
+        );
     }
 }

@@ -51,9 +51,11 @@ pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
         if let Some(sudo_user) = henv::sudo_user() {
             if let Some(home) = users::get_home_for_user(&sudo_user) {
                 let cache_key_path = home.join(format!(".{}", CACHE_KEY_PATH));
-                debug!("Setting cache_key_path for SUDO_USER={} to: {}",
-                       &sudo_user,
-                       cache_key_path.display());
+                debug!(
+                    "Setting cache_key_path for SUDO_USER={} to: {}",
+                    &sudo_user,
+                    cache_key_path.display()
+                );
                 env::set_var(CACHE_KEY_PATH_ENV_VAR, cache_key_path);
                 // Prevent any inner `hab` invocations from triggering similar logic: we will be
                 // operating in the context `hab-studio` which is running with root like privileges.
@@ -91,21 +93,25 @@ mod inner {
             Err(_) => {
                 init();
                 let version: Vec<&str> = VERSION.split("/").collect();
-                let ident = try!(PackageIdent::from_str(&format!("{}/{}",
-                                                                super::STUDIO_PACKAGE_IDENT,
-                                                                version[0])));
-                try!(exec::command_from_min_pkg(ui,
-                                                super::STUDIO_CMD,
-                                                &ident,
-                                                &default_cache_key_path(None),
-                                                0))
+                let ident = try!(PackageIdent::from_str(
+                    &format!("{}/{}", super::STUDIO_PACKAGE_IDENT, version[0]),
+                ));
+                try!(exec::command_from_min_pkg(
+                    ui,
+                    super::STUDIO_CMD,
+                    &ident,
+                    &default_cache_key_path(None),
+                    0,
+                ))
             }
         };
 
         if let Some(cmd) = find_command(command.to_string_lossy().as_ref()) {
             try!(process::become_command(cmd, args));
         } else {
-            return Err(Error::ExecCommandNotFound(command.to_string_lossy().into_owned()));
+            return Err(Error::ExecCommandNotFound(
+                command.to_string_lossy().into_owned(),
+            ));
         }
         Ok(())
     }
@@ -119,18 +125,24 @@ mod inner {
         // Otherwise we will try to re-run this program using `sudo`
         match find_command(SUDO_CMD) {
             Some(sudo_prog) => {
-                let mut args: Vec<OsString> = vec!["-p".into(),
-                                                   "[sudo hab-studio] password for %u: ".into(),
-                                                   "-E".into()];
+                let mut args: Vec<OsString> = vec![
+                    "-p".into(),
+                    "[sudo hab-studio] password for %u: ".into(),
+                    "-E".into(),
+                ];
                 args.append(&mut env::args_os().collect());
                 Ok(try!(process::become_command(sudo_prog, args)))
             }
             None => {
-                try!(ui.warn(format!("Could not find the `{}' command, is it in your PATH?",
-                                     SUDO_CMD)));
-                try!(ui.warn("Running Habitat Studio requires root or administrator privileges. \
+                try!(ui.warn(format!(
+                    "Could not find the `{}' command, is it in your PATH?",
+                    SUDO_CMD
+                )));
+                try!(ui.warn(
+                    "Running Habitat Studio requires root or administrator privileges. \
                               Please retry this command as a super user or use a \
-                              privilege-granting facility such as sudo."));
+                              privilege-granting facility such as sudo.",
+                ));
                 try!(ui.br());
                 Err(Error::RootRequired)
             }
@@ -180,21 +192,25 @@ mod inner {
             Err(_) => {
                 init();
                 let version: Vec<&str> = VERSION.split("/").collect();
-                let ident = try!(PackageIdent::from_str(&format!("{}/{}",
-                                                                super::STUDIO_PACKAGE_IDENT,
-                                                                version[0])));
-                try!(exec::command_from_min_pkg(ui,
-                                                super::STUDIO_CMD,
-                                                &ident,
-                                                &default_cache_key_path(None),
-                                                0))
+                let ident = try!(PackageIdent::from_str(
+                    &format!("{}/{}", super::STUDIO_PACKAGE_IDENT, version[0]),
+                ));
+                try!(exec::command_from_min_pkg(
+                    ui,
+                    super::STUDIO_CMD,
+                    &ident,
+                    &default_cache_key_path(None),
+                    0,
+                ))
             }
         };
 
         if let Some(cmd) = find_command(command.to_string_lossy().as_ref()) {
             try!(process::become_command(cmd, args));
         } else {
-            return Err(Error::ExecCommandNotFound(command.to_string_lossy().into_owned()));
+            return Err(Error::ExecCommandNotFound(
+                command.to_string_lossy().into_owned(),
+            ));
         }
         Ok(())
     }
@@ -231,8 +247,10 @@ mod inner {
             if output.status.success() {
                 debug!("Docker image is reachable. Proceeding with launching docker.");
             } else {
-                debug!("Docker image is unreachable. Exit code = {:?}",
-                       output.status);
+                debug!(
+                    "Docker image is unreachable. Exit code = {:?}",
+                    output.status
+                );
 
                 let err_output = String::from_utf8(output.stderr).unwrap();
 
@@ -256,9 +274,11 @@ mod inner {
         // requiring a TTY.
 
         let current_dir = format!("{}:/src", env::current_dir().unwrap().to_string_lossy());
-        let key_cache_path = format!("{}:/{}",
-                                     default_cache_key_path(None).to_string_lossy(),
-                                     CACHE_KEY_PATH);
+        let key_cache_path = format!(
+            "{}:/{}",
+            default_cache_key_path(None).to_string_lossy(),
+            CACHE_KEY_PATH
+        );
         let version_output = Command::new(&cmd)
             .arg("run")
             .arg("--rm")
@@ -274,19 +294,22 @@ mod inner {
 
         let stderr = String::from_utf8(version_output.stderr).unwrap();
         if !stderr.is_empty() &&
-           (stderr.as_str().contains("Mounts denied") ||
-            stderr.as_str().contains("drive is not shared")) {
+            (stderr.as_str().contains("Mounts denied") ||
+                 stderr.as_str().contains("drive is not shared"))
+        {
             return Err(Error::DockerFileSharingNotEnabled);
         }
 
         // If we make it here, filesystem sharing has been setup correctly, so let's proceed like
         // normal.
 
-        let mut cmd_args: Vec<OsString> = vec!["run".into(),
-                                               "--rm".into(),
-                                               "--tty".into(),
-                                               "--interactive".into(),
-                                               "--privileged".into()];
+        let mut cmd_args: Vec<OsString> = vec![
+            "run".into(),
+            "--rm".into(),
+            "--tty".into(),
+            "--interactive".into(),
+            "--privileged".into(),
+        ];
 
         // All the args already placed in `cmd_args` are things that we don't want to insert again.
         // Later args such as `--env` will overwrite any options (potentially) set mistakenly here.
@@ -300,17 +323,21 @@ mod inner {
             cmd_args.extend_from_slice(opts.as_slice());
         }
 
-        let env_vars = vec!["HAB_DEPOT_URL",
-                            "HAB_ORIGIN",
-                            "HAB_STUDIO_SUP",
-                            "HAB_UPDATE_STRATEGY_FREQUENCY_MS",
-                            "http_proxy",
-                            "https_proxy"];
+        let env_vars = vec![
+            "HAB_DEPOT_URL",
+            "HAB_ORIGIN",
+            "HAB_STUDIO_SUP",
+            "HAB_UPDATE_STRATEGY_FREQUENCY_MS",
+            "http_proxy",
+            "https_proxy",
+        ];
         for var in env_vars {
             if let Ok(val) = henv::var(var) {
-                debug!("Propagating environment variable into container: {}={}",
-                       var,
-                       val);
+                debug!(
+                    "Propagating environment variable into container: {}={}",
+                    var,
+                    val
+                );
                 cmd_args.push("--env".into());
                 cmd_args.push(format!("{}={}", var, val).into());
             }
@@ -328,9 +355,11 @@ mod inner {
 
         for var in vec!["http_proxy", "https_proxy"] {
             if let Ok(_) = henv::var(var) {
-                debug!("Unsetting proxy environment variable '{}' before calling `{}'",
-                       var,
-                       docker);
+                debug!(
+                    "Unsetting proxy environment variable '{}' before calling `{}'",
+                    var,
+                    docker
+                );
                 env::remove_var(var);
             }
         }

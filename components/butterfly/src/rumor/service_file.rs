@@ -45,9 +45,10 @@ impl PartialOrd for ServiceFile {
 impl PartialEq for ServiceFile {
     fn eq(&self, other: &ServiceFile) -> bool {
         self.get_service_group() == other.get_service_group() &&
-        self.get_incarnation() == other.get_incarnation() &&
-        self.get_encrypted() == other.get_encrypted() &&
-        self.get_filename() == other.get_filename() && self.get_body() == other.get_body()
+            self.get_incarnation() == other.get_incarnation() &&
+            self.get_encrypted() == other.get_encrypted() &&
+            self.get_filename() == other.get_filename() &&
+            self.get_body() == other.get_body()
     }
 }
 
@@ -79,13 +80,15 @@ impl DerefMut for ServiceFile {
 
 impl ServiceFile {
     /// Creates a new ServiceFile.
-    pub fn new<S1, S2>(member_id: S1,
-                       service_group: ServiceGroup,
-                       filename: S2,
-                       body: Vec<u8>)
-                       -> Self
-        where S1: Into<String>,
-              S2: Into<String>
+    pub fn new<S1, S2>(
+        member_id: S1,
+        service_group: ServiceGroup,
+        filename: S2,
+        body: Vec<u8>,
+    ) -> Self
+    where
+        S1: Into<String>,
+        S2: Into<String>,
     {
         let mut rumor = ProtoRumor::new();
         let from_id = member_id.into();
@@ -115,7 +118,10 @@ impl ServiceFile {
     /// the fact that we might be encrypted.
     pub fn body(&self) -> Result<Vec<u8>> {
         if self.get_encrypted() {
-            let bytes = try!(BoxKeyPair::decrypt(self.get_body(), &default_cache_key_path(None)));
+            let bytes = try!(BoxKeyPair::decrypt(
+                self.get_body(),
+                &default_cache_key_path(None),
+            ));
             Ok(bytes)
         } else {
             Ok(self.get_body().to_vec())
@@ -168,10 +174,12 @@ mod tests {
 
     fn create_service_file(member_id: &str, filename: &str, body: &str) -> ServiceFile {
         let body_bytes: Vec<u8> = Vec::from(body);
-        ServiceFile::new(member_id,
-                         ServiceGroup::new("neurosis", "production", None).unwrap(),
-                         filename,
-                         body_bytes)
+        ServiceFile::new(
+            member_id,
+            ServiceGroup::new("neurosis", "production", None).unwrap(),
+            filename,
+            body_bytes,
+        )
     }
 
     #[test]
@@ -239,8 +247,9 @@ mod tests {
     #[test]
     fn config_comes_back_as_a_string() {
         let s1 = create_service_file("adam", "yep", "tcp-backlog = 128");
-        assert_eq!(String::from_utf8(s1.body().unwrap())
-                       .expect("cannot get a utf-8 string for the body"),
-                   String::from("tcp-backlog = 128"));
+        assert_eq!(
+            String::from_utf8(s1.body().unwrap()).expect("cannot get a utf-8 string for the body"),
+            String::from("tcp-backlog = 128")
+        );
     }
 }

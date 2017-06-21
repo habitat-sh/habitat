@@ -36,8 +36,10 @@ impl Cmd {
                 child.kill().unwrap_or_else(|x| panic!("{:?}", x));
             }
             None => {
-                panic!("Cannot kill a child that does not exist - you have probably called \
-                        wait_with_output already")
+                panic!(
+                    "Cannot kill a child that does not exist - you have probably called \
+                        wait_with_output already"
+                )
             }
         }
         self
@@ -143,12 +145,14 @@ impl CommandArgs {
 
 impl fmt::Display for CommandArgs {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f,
-               "Command: C: {} A: {:?} E: {:?} CWD: {:?}",
-               self.cmd,
-               self.args,
-               self.env,
-               self.cwd)
+        write!(
+            f,
+            "Command: C: {} A: {:?} E: {:?} CWD: {:?}",
+            self.cmd,
+            self.args,
+            self.env,
+            self.cwd
+        )
     }
 }
 
@@ -171,9 +175,11 @@ pub fn command_with_env(cmd: &str, args: &[&str], env: Option<&HashMap<&str, &st
 }
 
 pub fn run_command(cmd_args: CommandArgs) -> Command {
-    println!("{}: {}",
-             thread::current().name().unwrap_or("main"),
-             cmd_args);
+    println!(
+        "{}: {}",
+        thread::current().name().unwrap_or("main"),
+        cmd_args
+    );
 
     let mut command = Command::new(&cmd_args.cmd);
     command.args(&cmd_args.args);
@@ -191,11 +197,11 @@ pub fn run_command(cmd_args: CommandArgs) -> Command {
 pub fn spawn(mut command: Command) -> CmdResult<Cmd> {
     let child = try!(command.spawn());
     Ok(Cmd {
-           child: Some(child),
-           status: None,
-           stdout: None,
-           stderr: None,
-       })
+        child: Some(child),
+        status: None,
+        stdout: None,
+        stderr: None,
+    })
 }
 
 pub fn studio_run(cmd: &str, args: &[&str]) -> CmdResult<Cmd> {
@@ -216,11 +222,15 @@ pub fn dockerize(ident_str: &str) {
     if !install.status.unwrap().success() {
         panic!("Failed to install 'core/hab-pkg-dockerize'");
     }
-    let mut docker = match studio_run("hab",
-                                      &["exec",
-                                        "core/hab-pkg-dockerize",
-                                        "hab-pkg-dockerize",
-                                        ident_str]) {
+    let mut docker = match studio_run(
+        "hab",
+        &[
+            "exec",
+            "core/hab-pkg-dockerize",
+            "hab-pkg-dockerize",
+            ident_str,
+        ],
+    ) {
         Ok(cmd) => cmd,
         Err(e) => panic!("{:?}", e),
     };
@@ -241,8 +251,10 @@ pub fn run_with_env(cmd: &str, args: &[&str], env: &HashMap<&str, &str>) -> CmdR
 }
 
 pub fn plan_build(to_build: &str) -> CmdResult<Cmd> {
-    studio_run("/src/components/plan-build/bin/hab-plan-build.sh",
-               &[to_build])
+    studio_run(
+        "/src/components/plan-build/bin/hab-plan-build.sh",
+        &[to_build],
+    )
 }
 
 pub fn sup(args: &[&str]) -> CmdResult<Cmd> {

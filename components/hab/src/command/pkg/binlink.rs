@@ -22,29 +22,35 @@ use hcore::fs as hfs;
 
 use error::{Error, Result};
 
-pub fn start(ui: &mut UI,
-             ident: &PackageIdent,
-             binary: &str,
-             dest_path: &Path,
-             fs_root_path: &Path)
-             -> Result<()> {
+pub fn start(
+    ui: &mut UI,
+    ident: &PackageIdent,
+    binary: &str,
+    dest_path: &Path,
+    fs_root_path: &Path,
+) -> Result<()> {
     let dst_path = fs_root_path.join(try!(dest_path.strip_prefix("/")));
     let dst = dst_path.join(&binary);
-    try!(ui.begin(format!("Symlinking {} from {} into {}",
-                          &binary,
-                          &ident,
-                          dst_path.display())));
+    try!(ui.begin(format!(
+        "Symlinking {} from {} into {}",
+        &binary,
+        &ident,
+        dst_path.display()
+    )));
     let pkg_install = try!(PackageInstall::load(&ident, Some(fs_root_path)));
     let src = match try!(hfs::find_command_in_pkg(binary, &pkg_install, fs_root_path)) {
         Some(c) => c,
         None => {
-            return Err(Error::CommandNotFoundInPkg((pkg_install.ident().to_string(),
-                                                    binary.to_string())))
+            return Err(Error::CommandNotFoundInPkg(
+                (pkg_install.ident().to_string(), binary.to_string()),
+            ))
         }
     };
     if !dst_path.is_dir() {
-        try!(ui.status(Status::Creating,
-                       format!("parent directory {}", dst_path.display())));
+        try!(ui.status(
+            Status::Creating,
+            format!("parent directory {}", dst_path.display()),
+        ));
         try!(fs::create_dir_all(&dst_path))
     }
     match fs::read_link(&dst) {
@@ -56,18 +62,21 @@ pub fn start(ui: &mut UI,
         }
         Err(_) => try!(filesystem::symlink(&src, &dst)),
     }
-    try!(ui.end(format!("Binary {} from {} symlinked to {}",
-                        &binary,
-                        &pkg_install.ident(),
-                        &dst.display())));
+    try!(ui.end(format!(
+        "Binary {} from {} symlinked to {}",
+        &binary,
+        &pkg_install.ident(),
+        &dst.display()
+    )));
     Ok(())
 }
 
-pub fn binlink_all_in_pkg(ui: &mut UI,
-                          pkg_ident: &PackageIdent,
-                          dest_path: &Path,
-                          fs_root_path: &Path)
-                          -> Result<()> {
+pub fn binlink_all_in_pkg(
+    ui: &mut UI,
+    pkg_ident: &PackageIdent,
+    dest_path: &Path,
+    fs_root_path: &Path,
+) -> Result<()> {
     let pkg_path = PackageInstall::load(&pkg_ident, Some(fs_root_path))?;
     for bin_path in pkg_path.paths()? {
         for bin in fs::read_dir(&bin_path)? {
@@ -75,7 +84,9 @@ pub fn binlink_all_in_pkg(ui: &mut UI,
             let bin_name = match bin_file.file_name().to_str() {
                 Some(bn) => bn.to_owned(),
                 None => {
-                    try!(ui.warn("Found a binary with an invalid name.  Skipping binlink."));
+                    try!(ui.warn(
+                        "Found a binary with an invalid name.  Skipping binlink.",
+                    ));
                     continue;
                 }
             };

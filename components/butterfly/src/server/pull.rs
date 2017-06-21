@@ -42,16 +42,15 @@ impl Pull {
     /// Run this thread. Creates a socket, binds to the `gossip_addr`, then processes messages as
     /// they are received. Uses a ZMQ pull socket, so inbound messages are fair-queued.
     pub fn run(&mut self) {
-        let socket = (**ZMQ_CONTEXT)
-            .as_mut()
-            .socket(zmq::PULL)
-            .expect("Failure to create the ZMQ pull socket");
-        socket
-            .set_linger(0)
-            .expect("Failure to set the ZMQ Pull socket to not linger");
-        socket
-            .set_tcp_keepalive(0)
-            .expect("Failure to set the ZMQ Pull socket to not use keepalive");
+        let socket = (**ZMQ_CONTEXT).as_mut().socket(zmq::PULL).expect(
+            "Failure to create the ZMQ pull socket",
+        );
+        socket.set_linger(0).expect(
+            "Failure to set the ZMQ Pull socket to not linger",
+        );
+        socket.set_tcp_keepalive(0).expect(
+            "Failure to set the ZMQ Pull socket to not use keepalive",
+        );
         socket
             .bind(&format!("tcp://{}", self.server.gossip_addr()))
             .expect("Failure to bind the ZMQ Pull socket to the port");
@@ -84,8 +83,10 @@ impl Pull {
                 }
             };
             if self.server.check_blacklist(proto.get_from_id()) {
-                warn!("Not processing message from {} - it is blacklisted",
-                      proto.get_from_id());
+                warn!(
+                    "Not processing message from {} - it is blacklisted",
+                    proto.get_from_id()
+                );
                 continue 'recv;
             }
             trace_it!(GOSSIP: &self.server, TraceKind::RecvRumor, proto.get_from_id(), &proto);

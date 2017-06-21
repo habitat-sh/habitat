@@ -22,8 +22,10 @@ use error::Result;
 pub fn start(ui: &mut UI, content: &str, cache: &Path) -> Result<()> {
     try!(ui.begin("Importing ring key from standard input"));
     let (pair, pair_type) = try!(SymKey::write_file_from_str(content, cache));
-    try!(ui.end(format!("Imported {} ring key {}.",
-                        &pair_type,
-                        &pair.name_with_rev())));
+    try!(ui.end(format!(
+        "Imported {} ring key {}.",
+        &pair_type,
+        &pair.name_with_rev()
+    )));
     Ok(())
 }

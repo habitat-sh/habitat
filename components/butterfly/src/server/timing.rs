@@ -45,11 +45,12 @@ impl Default for Timing {
 
 impl Timing {
     /// Set up a new Timing
-    pub fn new(ping_ms: i64,
-               pingreq_ms: i64,
-               gossip_period_ms: i64,
-               suspicion_timeout_protocol_periods: i64)
-               -> Timing {
+    pub fn new(
+        ping_ms: i64,
+        pingreq_ms: i64,
+        gossip_period_ms: i64,
+        suspicion_timeout_protocol_periods: i64,
+    ) -> Timing {
         Timing {
             ping_ms: ping_ms,
             pingreq_ms: pingreq_ms,
@@ -85,7 +86,8 @@ impl Timing {
 
     /// How long before this suspect entry times out
     pub fn suspicion_timeout_duration(&self) -> TimeDuration {
-        TimeDuration::milliseconds(self.protocol_period_ms() *
-                                   self.suspicion_timeout_protocol_periods)
+        TimeDuration::milliseconds(
+            self.protocol_period_ms() * self.suspicion_timeout_protocol_periods,
+        )
     }
 }

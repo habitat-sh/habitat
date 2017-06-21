@@ -17,9 +17,9 @@ use db::migration::Migrator;
 use error::Result;
 
 pub fn migrate(migrator: &mut Migrator) -> Result<()> {
-    migrator
-        .migrate("accountsrv",
-                 r#"CREATE TABLE IF NOT EXISTS account_sessions (
+    migrator.migrate(
+        "accountsrv",
+        r#"CREATE TABLE IF NOT EXISTS account_sessions (
                         account_id bigint REFERENCES accounts(id),
                         token text,
                         provider text,
@@ -30,7 +30,8 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                         created_at timestamptz DEFAULT now(),
                         expires_at timestamptz DEFAULT now() + interval '1 day',
                         UNIQUE (account_id)
-                        )"#)?;
+                        )"#,
+    )?;
     migrator.migrate("accountsrv",
                  r#"CREATE OR REPLACE FUNCTION insert_account_session_v1 (
                     a_account_id bigint,

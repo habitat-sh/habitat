@@ -126,9 +126,9 @@ impl HeartbeatMgr {
         let handle = thread::Builder::new()
             .name("heartbeat".to_string())
             .spawn(move || {
-                       let mut heartbeat = Self::new(config).unwrap();
-                       heartbeat.run(tx).unwrap();
-                   })
+                let mut heartbeat = Self::new(config).unwrap();
+                heartbeat.run(tx).unwrap();
+            })
             .unwrap();
         match rx.recv() {
             Ok(()) => Ok(handle),
@@ -147,13 +147,13 @@ impl HeartbeatMgr {
         reg.set_os(worker_os());
         reg.set_state(proto::WorkerState::Ready);
         Ok(HeartbeatMgr {
-               state: PulseState::default(),
-               config: config,
-               pub_sock: pub_sock,
-               cli_sock: cli_sock,
-               reg: reg,
-               msg: zmq::Message::new().unwrap(),
-           })
+            state: PulseState::default(),
+            config: config,
+            pub_sock: pub_sock,
+            cli_sock: cli_sock,
+            reg: reg,
+            msg: zmq::Message::new().unwrap(),
+        })
     }
 
     // Main loop for server
@@ -202,8 +202,7 @@ impl HeartbeatMgr {
     // Broadcast to subscribers the HeartbeatMgr health and state
     fn pulse(&mut self) -> Result<()> {
         debug!("heartbeat pulsed");
-        try!(self.pub_sock
-                 .send(&self.reg.write_to_bytes().unwrap(), 0));
+        try!(self.pub_sock.send(&self.reg.write_to_bytes().unwrap(), 0));
         Ok(())
     }
 

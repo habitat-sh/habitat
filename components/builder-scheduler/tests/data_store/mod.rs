@@ -30,8 +30,9 @@ fn create_group() {
     msg.set_package(String::from("Bar"));
 
     let ds = datastore_test!(DataStore);
-    ds.create_group(&msg, project_names)
-        .expect("Failed to create a group");
+    ds.create_group(&msg, project_names).expect(
+        "Failed to create a group",
+    );
 }
 
 #[test]
@@ -42,12 +43,15 @@ fn get_group() {
     msg.set_package(String::from("Bar"));
 
     let ds = datastore_test!(DataStore);
-    let group1 = ds.create_group(&msg, project_names.clone())
-        .expect("Failed to create a group");
-    let group2 = ds.create_group(&msg, project_names.clone())
-        .expect("Failed to create a group");
-    let group3 = ds.create_group(&msg, project_names.clone())
-        .expect("Failed to create a group");
+    let group1 = ds.create_group(&msg, project_names.clone()).expect(
+        "Failed to create a group",
+    );
+    let group2 = ds.create_group(&msg, project_names.clone()).expect(
+        "Failed to create a group",
+    );
+    let group3 = ds.create_group(&msg, project_names.clone()).expect(
+        "Failed to create a group",
+    );
 
     let mut get_msg1 = scheduler::GroupGet::new();
     get_msg1.set_group_id(group1.get_id());
@@ -90,20 +94,24 @@ fn pending_groups() {
 
     let ds = datastore_test!(DataStore);
 
-    let group1 = ds.create_group(&msg, project_names.clone())
-        .expect("Failed to create a group");
-    ds.create_group(&msg, project_names.clone())
-        .expect("Failed to create a group");
-    ds.create_group(&msg, project_names.clone())
-        .expect("Failed to create a group");
+    let group1 = ds.create_group(&msg, project_names.clone()).expect(
+        "Failed to create a group",
+    );
+    ds.create_group(&msg, project_names.clone()).expect(
+        "Failed to create a group",
+    );
+    ds.create_group(&msg, project_names.clone()).expect(
+        "Failed to create a group",
+    );
 
     // Get one group, it should be FIFO, and it should have its state set to Dispatching
-    let pending_groups = ds.pending_groups(1)
-        .expect("Failed to get pendings group");
+    let pending_groups = ds.pending_groups(1).expect("Failed to get pendings group");
     assert_eq!(pending_groups.len(), 1, "Failed to find a pending group");
-    assert_eq!(pending_groups[0].get_id(),
-               group1.get_id(),
-               "First in is not first out");
+    assert_eq!(
+        pending_groups[0].get_id(),
+        group1.get_id(),
+        "First in is not first out"
+    );
 
     let mut get_msg1 = scheduler::GroupGet::new();
     get_msg1.set_group_id(group1.get_id());
@@ -111,19 +119,25 @@ fn pending_groups() {
     let group1_dispatched = ds.get_group(&get_msg1)
         .expect("Failed to get group entry")
         .expect("Failed to find the group entry");
-    assert_eq!(group1_dispatched.get_state(),
-               scheduler::GroupState::Dispatching);
+    assert_eq!(
+        group1_dispatched.get_state(),
+        scheduler::GroupState::Dispatching
+    );
 
     // Get the remaining groups; a larger number results in the total set
-    let remaining_groups = ds.pending_groups(5)
-        .expect("Failed to get remaining pending groups");
-    assert_eq!(remaining_groups.len(),
-               2,
-               "Failed to get all the remaining groups");
+    let remaining_groups = ds.pending_groups(5).expect(
+        "Failed to get remaining pending groups",
+    );
+    assert_eq!(
+        remaining_groups.len(),
+        2,
+        "Failed to get all the remaining groups"
+    );
 
     // No groups returns an empty array
-    let no_groups = ds.pending_groups(100)
-        .expect("Failed to get empty pending groups");
+    let no_groups = ds.pending_groups(100).expect(
+        "Failed to get empty pending groups",
+    );
     assert_eq!(no_groups.len(), 0);
 }
 
@@ -136,8 +150,9 @@ fn set_group_state() {
 
     let ds = datastore_test!(DataStore);
 
-    let group = ds.create_group(&msg, project_names.clone())
-        .expect("Failed to create a group");
+    let group = ds.create_group(&msg, project_names.clone()).expect(
+        "Failed to create a group",
+    );
 
     let mut get_msg = scheduler::GroupGet::new();
     get_msg.set_group_id(group.get_id());
@@ -165,8 +180,9 @@ fn set_group_job_state() {
 
     let ds = datastore_test!(DataStore);
 
-    let group = ds.create_group(&msg, project_names)
-        .expect("Failed to create a group");
+    let group = ds.create_group(&msg, project_names).expect(
+        "Failed to create a group",
+    );
 
     let mut job = jobsrv::Job::new();
     job.set_id(100);
@@ -174,8 +190,9 @@ fn set_group_job_state() {
     job.set_state(jobsrv::JobState::Complete);
     job.mut_project().set_name(String::from("Foo/Bar"));
 
-    ds.set_group_job_state(&job)
-        .expect("Failed to set group job state");
+    ds.set_group_job_state(&job).expect(
+        "Failed to set group job state",
+    );
 
     let mut get_msg = scheduler::GroupGet::new();
     get_msg.set_group_id(group.get_id());
@@ -185,6 +202,8 @@ fn set_group_job_state() {
         .expect("No group found");
 
     assert_eq!(group.get_projects().len(), 1);
-    assert_eq!(group.get_projects().last().unwrap().get_state(),
-               scheduler::ProjectState::Success);
+    assert_eq!(
+        group.get_projects().last().unwrap().get_state(),
+        scheduler::ProjectState::Success
+    );
 }

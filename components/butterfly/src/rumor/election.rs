@@ -64,10 +64,11 @@ impl DerefMut for Election {
 impl Election {
     /// Create a new election, voting for the given member id, for the given service group, and
     /// with the given suitability.
-    pub fn new<S1: Into<String>>(member_id: S1,
-                                 service_group: ServiceGroup,
-                                 suitability: u64)
-                                 -> Election {
+    pub fn new<S1: Into<String>>(
+        member_id: S1,
+        service_group: ServiceGroup,
+        suitability: u64,
+    ) -> Election {
         let mut rumor = ProtoRumor::new();
         let from_id = member_id.into();
         let real_member_id = from_id.clone();
@@ -126,10 +127,10 @@ impl PartialEq for Election {
     /// We ignore id in equality checking, because we only have one per service group
     fn eq(&self, other: &Election) -> bool {
         self.get_service_group() == other.get_service_group() &&
-        self.get_member_id() == other.get_member_id() &&
-        self.get_suitability() == other.get_suitability() &&
-        self.get_votes() == other.get_votes() && self.get_status() == other.get_status() &&
-        self.get_term() == other.get_term()
+            self.get_member_id() == other.get_member_id() &&
+            self.get_suitability() == other.get_suitability() &&
+            self.get_votes() == other.get_votes() &&
+            self.get_status() == other.get_status() && self.get_term() == other.get_term()
     }
 }
 
@@ -146,13 +147,15 @@ impl Rumor for Election {
             // println!("Equal: {:?} {:?}", self, other);
             false
         } else if other.get_term() >= self.get_term() &&
-                  other.get_status() == Election_Status::Finished {
+                   other.get_status() == Election_Status::Finished
+        {
             // If the new rumors term is bigger or equal to ours, and it has a leader, we take it as
             // the leader and move on.
             *self = other;
             true
         } else if other.get_term() == self.get_term() &&
-                  self.get_status() == Election_Status::Finished {
+                   self.get_status() == Election_Status::Finished
+        {
             // If the terms are equal, and we are finished, then we drop the other side on the
             // floor
             false
@@ -216,14 +219,13 @@ impl Rumor for Election {
 pub struct ElectionUpdate(Election);
 
 impl ElectionUpdate {
-    pub fn new<S1: Into<String>>(member_id: S1,
-                                 service_group: ServiceGroup,
-                                 suitability: u64)
-                                 -> ElectionUpdate {
+    pub fn new<S1: Into<String>>(
+        member_id: S1,
+        service_group: ServiceGroup,
+        suitability: u64,
+    ) -> ElectionUpdate {
         let mut election = Election::new(member_id, service_group, suitability);
-        election
-            .0
-            .set_field_type(ProtoRumor_Type::ElectionUpdate);
+        election.0.set_field_type(ProtoRumor_Type::ElectionUpdate);
         ElectionUpdate(election)
     }
 }
@@ -245,9 +247,7 @@ impl DerefMut for ElectionUpdate {
 impl From<ProtoRumor> for ElectionUpdate {
     fn from(pr: ProtoRumor) -> ElectionUpdate {
         let mut election = Election::from(pr);
-        election
-            .0
-            .set_field_type(ProtoRumor_Type::ElectionUpdate);
+        election.0.set_field_type(ProtoRumor_Type::ElectionUpdate);
         ElectionUpdate(election)
     }
 }
@@ -292,9 +292,11 @@ mod tests {
     use habitat_core::service::ServiceGroup;
 
     fn create_election(member_id: &str, suitability: u64) -> Election {
-        Election::new(member_id,
-                      ServiceGroup::new("tdep", "prod", None).unwrap(),
-                      suitability)
+        Election::new(
+            member_id,
+            ServiceGroup::new("tdep", "prod", None).unwrap(),
+            suitability,
+        )
     }
 
     #[test]

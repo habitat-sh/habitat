@@ -17,12 +17,13 @@ use db::migration::Migrator;
 use error::Result;
 
 pub fn migrate(migrator: &mut Migrator) -> Result<()> {
-    migrator
-        .migrate("originsrv",
-                 r#"CREATE SEQUENCE IF NOT EXISTS origin_channel_id_seq;"#)?;
-    migrator
-        .migrate("originsrv",
-                 r#"CREATE TABLE IF NOT EXISTS origin_channels (
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE SEQUENCE IF NOT EXISTS origin_channel_id_seq;"#,
+    )?;
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE TABLE IF NOT EXISTS origin_channels (
                     id bigint PRIMARY KEY DEFAULT next_id_v1('origin_channel_id_seq'),
                     origin_id bigint REFERENCES origins(id),
                     owner_id bigint,
@@ -30,19 +31,21 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                     created_at timestamptz DEFAULT now(),
                     updated_at timestamptz,
                     UNIQUE(origin_id, name)
-             )"#)?;
-    migrator
-        .migrate("originsrv",
-                 r#"CREATE TABLE IF NOT EXISTS origin_channel_packages (
+             )"#,
+    )?;
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE TABLE IF NOT EXISTS origin_channel_packages (
                     channel_id bigint REFERENCES origin_channels(id) ON DELETE CASCADE,
                     package_id bigint REFERENCES origin_packages(id),
                     created_at timestamptz DEFAULT now(),
                     updated_at timestamptz,
                     PRIMARY KEY (channel_id, package_id)
-             )"#)?;
-    migrator
-        .migrate("originsrv",
-                 r#"CREATE OR REPLACE FUNCTION insert_origin_channel_v1 (
+             )"#,
+    )?;
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE OR REPLACE FUNCTION insert_origin_channel_v1 (
                     occ_origin_id bigint,
                     occ_owner_id bigint,
                     occ_name text
@@ -53,7 +56,8 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                                 RETURNING *;
                          RETURN;
                      END
-                 $$ LANGUAGE plpgsql VOLATILE"#)?;
+                 $$ LANGUAGE plpgsql VOLATILE"#,
+    )?;
     migrator
         .migrate("originsrv",
                  r#"CREATE OR REPLACE FUNCTION get_origin_channel_v1 (
@@ -67,9 +71,9 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                         RETURN;
                     END
                     $$ LANGUAGE plpgsql STABLE"#)?;
-    migrator
-        .migrate("originsrv",
-                 r#"CREATE OR REPLACE FUNCTION get_origin_channels_for_origin_v1 (
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE OR REPLACE FUNCTION get_origin_channels_for_origin_v1 (
                    occ_origin_id bigint
                  ) RETURNS SETOF origin_channels AS $$
                     BEGIN
@@ -77,7 +81,8 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                           ORDER BY name ASC;
                         RETURN;
                     END
-                    $$ LANGUAGE plpgsql STABLE"#)?;
+                    $$ LANGUAGE plpgsql STABLE"#,
+    )?;
     migrator.migrate("originsrv",
                      r#"CREATE OR REPLACE FUNCTION promote_origin_package_v1 (
                     opp_channel_id bigint,
@@ -86,19 +91,20 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                         INSERT INTO origin_channel_packages (channel_id, package_id) VALUES (opp_channel_id, opp_package_id)
                         ON CONFLICT ON CONSTRAINT origin_channel_packages_pkey DO NOTHING;
                  $$ LANGUAGE SQL VOLATILE"#)?;
-    migrator
-        .migrate("originsrv",
-                 r#"CREATE OR REPLACE FUNCTION delete_origin_channel_v1 (
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE OR REPLACE FUNCTION delete_origin_channel_v1 (
                     channel_id bigint
                  ) RETURNS void AS $$
                     BEGIN
                         DELETE FROM origin_channels WHERE id = channel_id;
                     END
-                    $$ LANGUAGE plpgsql VOLATILE"#)?;
+                    $$ LANGUAGE plpgsql VOLATILE"#,
+    )?;
 
-    migrator
-        .migrate("originsrv",
-                 r#"CREATE OR REPLACE FUNCTION get_origin_channel_package_v1 (
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE OR REPLACE FUNCTION get_origin_channel_package_v1 (
                     op_origin text,
                     op_channel text,
                     op_ident text
@@ -112,10 +118,11 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                           WHERE op.ident = op_ident AND o.name = op_origin AND oc.name = op_channel;
                         RETURN;
                     END
-                    $$ LANGUAGE plpgsql STABLE"#)?;
-    migrator
-        .migrate("originsrv",
-                 r#"CREATE OR REPLACE FUNCTION get_origin_channel_package_latest_v1 (
+                    $$ LANGUAGE plpgsql STABLE"#,
+    )?;
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE OR REPLACE FUNCTION get_origin_channel_package_latest_v1 (
                     op_origin text,
                     op_channel text,
                     op_ident text,
@@ -135,10 +142,11 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                           LIMIT 1;
                         RETURN;
                     END
-                    $$ LANGUAGE plpgsql STABLE"#)?;
-    migrator
-        .migrate("originsrv",
-                 r#"CREATE OR REPLACE FUNCTION get_origin_channel_packages_for_channel_v1 (
+                    $$ LANGUAGE plpgsql STABLE"#,
+    )?;
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE OR REPLACE FUNCTION get_origin_channel_packages_for_channel_v1 (
                     op_origin text,
                     op_channel text,
                     op_ident text,
@@ -158,10 +166,11 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                           LIMIT op_limit OFFSET op_offset;
                         RETURN;
                     END
-                    $$ LANGUAGE plpgsql STABLE"#)?;
-    migrator
-        .migrate("originsrv-v2",
-                 r#"CREATE OR REPLACE FUNCTION get_origin_channel_package_latest_v2 (
+                    $$ LANGUAGE plpgsql STABLE"#,
+    )?;
+    migrator.migrate(
+        "originsrv-v2",
+        r#"CREATE OR REPLACE FUNCTION get_origin_channel_package_latest_v2 (
                     op_origin text,
                     op_channel text,
                     op_ident text,
@@ -179,6 +188,7 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                           AND op.target = op_target;
                         RETURN;
                     END
-                    $$ LANGUAGE plpgsql STABLE"#)?;
+                    $$ LANGUAGE plpgsql STABLE"#,
+    )?;
     Ok(())
 }

@@ -83,12 +83,13 @@ pub struct SupError {
 impl SupError {
     /// Create a new `SupError`. Usually accessed through the `sup_error!` macro, rather than
     /// called directly.
-    pub fn new(err: Error,
-               logkey: &'static str,
-               file: &'static str,
-               line: u32,
-               column: u32)
-               -> SupError {
+    pub fn new(
+        err: Error,
+        logkey: &'static str,
+        file: &'static str,
+        line: u32,
+        column: u32,
+    ) -> SupError {
         SupError {
             err: err,
             logkey: logkey,
@@ -163,14 +164,18 @@ impl fmt::Display for SupError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let content = match self.err {
             Error::BadDataFile(ref path, ref err) => {
-                format!("Unable to read or write to data file, {}, {}",
-                        path.display(),
-                        err)
+                format!(
+                    "Unable to read or write to data file, {}, {}",
+                    path.display(),
+                    err
+                )
             }
             Error::BadDataPath(ref path, ref err) => {
-                format!("Unable to read or write to data directory, {}, {}",
-                        path.display(),
-                        err)
+                format!(
+                    "Unable to read or write to data directory, {}, {}",
+                    path.display(),
+                    err
+                )
             }
             Error::BadDesiredState(ref state) => {
                 format!("Unknown service desired state style '{}'", state)
@@ -178,9 +183,11 @@ impl fmt::Display for SupError {
             Error::BadElectionStatus(ref status) => format!("Unknown election status '{}'", status),
             Error::BadPackage(ref pkg, ref err) => format!("Bad package, {}, {}", pkg, err),
             Error::BadSpecsPath(ref path, ref err) => {
-                format!("Unable to create the specs directory '{}' ({})",
-                        path.display(),
-                        err)
+                format!(
+                    "Unable to create the specs directory '{}' ({})",
+                    path.display(),
+                    err
+                )
             }
             Error::BadStartStyle(ref style) => format!("Unknown service start style '{}'", style),
             Error::ButterflyError(ref err) => format!("Butterfly error: {}", err),
@@ -196,9 +203,11 @@ impl fmt::Display for SupError {
             Error::EnvJoinPathsError(ref err) => format!("{}", err),
             Error::FileNotFound(ref e) => format!("File not found at: {}", e),
             Error::InvalidBinding(ref binding) => {
-                format!("Invalid binding \"{}\", must be of the form <NAME>:<SERVICE_GROUP> where \
+                format!(
+                    "Invalid binding \"{}\", must be of the form <NAME>:<SERVICE_GROUP> where \
                          <NAME> is a service name and <SERVICE_GROUP> is a valid service group",
-                        binding)
+                    binding
+                )
             }
             Error::InvalidBinds(ref e) => format!("Invalid bind(s), {}", e.join(", ")),
             Error::InvalidKeyParameter(ref e) => {
@@ -212,7 +221,9 @@ impl fmt::Display for SupError {
             Error::MissingRequiredBind(ref e) => {
                 format!("Missing required bind(s), {}", e.join(", "))
             }
-            Error::MissingRequiredIdent => format!("Missing required ident field: (example: ident = \"core/redis\")"),
+            Error::MissingRequiredIdent => {
+                format!("Missing required ident field: (example: ident = \"core/redis\")")
+            }
             Error::NameLookup(ref e) => format!("Error resolving a name or IP address: {}", e),
             Error::NetParseError(ref e) => format!("Can't parse ip:port: {}", e),
             Error::NulError(ref e) => format!("{}", e),
@@ -225,17 +236,21 @@ impl fmt::Display for SupError {
             }
             Error::ProcessLockCorrupt => format!("Unable to decode contents of process lock"),
             Error::ProcessLocked(ref pid) => {
-                format!("Unable to start Habitat Supervisor because another instance is already \
+                format!(
+                    "Unable to start Habitat Supervisor because another instance is already \
                     running with the pid {}. If your intention was to run multiple Supervisors - \
                     that can be done by setting a value for `--override-name` at startup - but \
                     it is not recommended.",
-                        pid)
+                    pid
+                )
             }
             Error::ProcessLockIO(ref path, ref err) => {
-                format!("Unable to start Habitat Supervisor because we weren't able to write or \
+                format!(
+                    "Unable to start Habitat Supervisor because we weren't able to write or \
                     read to a process lock at {}, {}",
-                        path.display(),
-                        err)
+                    path.display(),
+                    err
+                )
             }
             Error::RenderContextSerialization(ref e) => {
                 format!("Unable to serialize rendering context, {}", e)
@@ -251,9 +266,11 @@ impl fmt::Display for SupError {
                 format!("Can't serialize service to file: {}", e)
             }
             Error::ServiceSpecFileIO(ref path, ref err) => {
-                format!("Unable to write or read to a service spec file at {}, {}",
-                        path.display(),
-                        err)
+                format!(
+                    "Unable to write or read to a service spec file at {}, {}",
+                    path.display(),
+                    err
+                )
             }
             Error::ServiceSpecParse(ref err) => {
                 format!("Unable to parse contents of service spec file, {}", err)
@@ -263,8 +280,10 @@ impl fmt::Display for SupError {
             }
             Error::SignalFailed => format!("Failed to send a signal to the child process"),
             Error::SpecWatcherDirNotFound(ref path) => {
-                format!("Spec directory '{}' not created or is not a directory",
-                        path)
+                format!(
+                    "Spec directory '{}' not created or is not a directory",
+                    path
+                )
             }
             Error::SpecWatcherGlob(ref e) => format!("{}", e),
             Error::SpecWatcherNotify(ref e) => format!("{}", e),
@@ -278,12 +297,14 @@ impl fmt::Display for SupError {
         };
         let cstring = Red.bold().paint(content).to_string();
         let progname = PROGRAM_NAME.as_str();
-        let mut so = StructuredOutput::new(progname,
-                                           self.logkey,
-                                           self.line,
-                                           self.file,
-                                           self.column,
-                                           &cstring);
+        let mut so = StructuredOutput::new(
+            progname,
+            self.logkey,
+            self.line,
+            self.file,
+            self.column,
+            &cstring,
+        );
         so.verbose = Some(true);
         write!(f, "{}", so)
     }
@@ -309,22 +330,32 @@ impl error::Error for SupError {
             Error::EnvJoinPathsError(ref err) => err.description(),
             Error::FileNotFound(_) => "File not found",
             Error::InvalidBinding(_) => "Invalid binding parameter",
-            Error::InvalidBinds(_) => "Service binds detected that are neither required nor optional package binds",
+            Error::InvalidBinds(_) => {
+                "Service binds detected that are neither required nor optional package binds"
+            }
             Error::InvalidKeyParameter(_) => "Key parameter error",
             Error::InvalidPidFile => "Invalid child process PID file",
             Error::InvalidTopology(_) => "Invalid topology",
             Error::InvalidUpdateStrategy(_) => "Invalid update strategy",
             Error::Io(ref err) => err.description(),
             Error::IPFailed => "Failed to discover the outbound IP address",
-            Error::MissingRequiredBind(_) => "A service to start without specifying a service group for all required binds",
-            Error::MissingRequiredIdent => "Missing required ident field: (example: ident = \"core/redis\")",
+            Error::MissingRequiredBind(_) => {
+                "A service to start without specifying a service group for all required binds"
+            }
+            Error::MissingRequiredIdent => {
+                "Missing required ident field: (example: ident = \"core/redis\")"
+            }
             Error::NetParseError(_) => "Can't parse IP:port",
             Error::NameLookup(_) => "Error resolving a name or IP address",
-            Error::NulError(_) => "An attempt was made to build a CString with a null byte inside it",
+            Error::NulError(_) => {
+                "An attempt was made to build a CString with a null byte inside it"
+            }
             Error::PackageNotFound(_) => "Cannot find a package",
             Error::Permissions(_) => "File system permissions error",
             Error::ProcessLockCorrupt => "Unable to decode contents of process lock",
-            Error::ProcessLocked(_) => "Another instance of the Habitat Supervisor is already running",
+            Error::ProcessLocked(_) => {
+                "Another instance of the Habitat Supervisor is already running"
+            }
             Error::ProcessLockIO(_, _) => "Unable to write or read to a process lock",
             Error::RenderContextSerialization(_) => "Unable to serialize rendering context",
             Error::ServiceDeserializationError(_) => "Can't deserialize service status",

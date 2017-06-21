@@ -22,6 +22,9 @@ use error::Result;
 pub fn start(ui: &mut UI, ring: &str, cache: &Path) -> Result<()> {
     try!(ui.begin(format!("Generating ring key for {}", &ring)));
     let pair = try!(SymKey::generate_pair_for_ring(ring, cache));
-    try!(ui.end(format!("Generated ring key pair {}.", &pair.name_with_rev())));
+    try!(ui.end(format!(
+        "Generated ring key pair {}.",
+        &pair.name_with_rev()
+    )));
     Ok(())
 }

@@ -98,16 +98,21 @@ mod inner {
         match PackageInstall::load(format.pkg_ident(), None) {
             Ok(_) => {}
             _ => {
-                try!(ui.status(Status::Missing, format!("package for {}", &format_ident)));
-                try!(install::start(ui,
-                                    &default_depot_url(),
-                                    None,
-                                    &format_ident.to_string(),
-                                    PRODUCT,
-                                    VERSION,
-                                    Path::new(&*FS_ROOT_PATH),
-                                    &cache_artifact_path(None),
-                                    false));
+                try!(ui.status(
+                    Status::Missing,
+                    format!("package for {}", &format_ident),
+                ));
+                try!(install::start(
+                    ui,
+                    &default_depot_url(),
+                    None,
+                    &format_ident.to_string(),
+                    PRODUCT,
+                    VERSION,
+                    Path::new(&*FS_ROOT_PATH),
+                    &cache_artifact_path(None),
+                    false,
+                ));
             }
         }
         let pkg_arg = OsString::from(&ident.to_string());
@@ -124,10 +129,12 @@ mod inner {
     use super::ExportFormat;
 
     pub fn format_for(ui: &mut UI, value: &str) -> Result<ExportFormat> {
-        try!(ui.warn(format!("∅ Exporting {} packages from this operating system is not yet \
+        try!(ui.warn(format!(
+            "∅ Exporting {} packages from this operating system is not yet \
                            supported. Try running this command again on a 64-bit Linux \
                            operating system.\n",
-                             value)));
+            value
+        )));
         try!(ui.br());
         let e = Error::UnsupportedExportFormat(value.to_string());
         Err(e)
@@ -136,10 +143,14 @@ mod inner {
     pub fn start(ui: &mut UI, _ident: &PackageIdent, _format: &ExportFormat) -> Result<()> {
         let subcmd = env::args().nth(1).unwrap_or("<unknown>".to_string());
         let subsubcmd = env::args().nth(2).unwrap_or("<unknown>".to_string());
-        try!(ui.warn("Exporting packages from this operating system is not yet supported. Try \
-                   running this command again on a 64-bit Linux operating system."));
+        try!(ui.warn(
+            "Exporting packages from this operating system is not yet supported. Try \
+                   running this command again on a 64-bit Linux operating system.",
+        ));
         try!(ui.br());
-        Err(Error::SubcommandNotSupported(format!("{} {}", subcmd, subsubcmd)))
+        Err(Error::SubcommandNotSupported(
+            format!("{} {}", subcmd, subsubcmd),
+        ))
 
     }
 }

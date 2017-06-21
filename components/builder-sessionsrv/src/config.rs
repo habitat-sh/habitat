@@ -159,8 +159,10 @@ mod tests {
         assert_eq!(config.datastore.pool_size, 1);
         assert_eq!(config.github.url, "https://api.github.com");
         assert_eq!(config.github.client_id, "0c2f738a7d0bd300de10");
-        assert_eq!(config.github.client_secret,
-                   "438223113eeb6e7edf2d2f91a232b72de72b9bdf");
+        assert_eq!(
+            config.github.client_secret,
+            "438223113eeb6e7edf2d2f91a232b72de72b9bdf"
+        );
     }
 
     #[test]

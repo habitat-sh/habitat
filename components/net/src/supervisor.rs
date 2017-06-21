@@ -21,7 +21,8 @@ use config::DispatcherCfg;
 use dispatcher::Dispatcher;
 
 pub struct Supervisor<T>
-    where T: Dispatcher
+where
+    T: Dispatcher,
 {
     config: Arc<RwLock<T::Config>>,
     workers: Vec<mpsc::Receiver<()>>,
@@ -29,7 +30,8 @@ pub struct Supervisor<T>
 }
 
 impl<T> Supervisor<T>
-    where T: Dispatcher + 'static
+where
+    T: Dispatcher + 'static,
 {
     // JW TODO: this should take a struct that implements "application config"
     pub fn new(config: Arc<RwLock<T::Config>>, state: <T as Dispatcher>::InitState) -> Self {
@@ -92,9 +94,9 @@ impl<T> Supervisor<T>
         let mut worker = T::new(cfg);
         let init_state = self.init_state.clone();
         thread::spawn(move || {
-                          let state = try!(worker.init(init_state));
-                          worker.start(tx, state)
-                      });
+            let state = try!(worker.init(init_state));
+            worker.start(tx, state)
+        });
         if rx.recv().is_ok() {
             debug!("Worker[{}] ready", worker_id);
             self.workers.insert(worker_id, rx);

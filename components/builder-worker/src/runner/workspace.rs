@@ -31,7 +31,8 @@ pub struct Workspace {
 
 impl Workspace {
     pub fn new<T>(data_path: T, job: Job) -> Self
-        where T: AsRef<Path>
+    where
+        T: AsRef<Path>,
     {
         let root = data_path.as_ref().join(job.get_id().to_string());
         Workspace {
@@ -149,11 +150,17 @@ mod tests {
         assert_eq!(build.pkg_name, "valgrind");
         assert_eq!(build.pkg_version, "3.12.0");
         assert_eq!(build.pkg_ident, "core/valgrind/3.12.0/20161031181251");
-        assert_eq!(build.pkg_artifact,
-                   "core-valgrind-3.12.0-20161031181251-x86_64-linux.hart");
-        assert_eq!(build.pkg_sha256sum,
-                   "3aeacaca8cf8274740863caae350f545cf97b15c79bdf6f873c0811b1a1ffbcf");
-        assert_eq!(build.pkg_blake2bsum,
-                   "3b38af666a8f307b89ae47ff098cb75503ee15892d1a8a98d0ae24da1cfd153b");
+        assert_eq!(
+            build.pkg_artifact,
+            "core-valgrind-3.12.0-20161031181251-x86_64-linux.hart"
+        );
+        assert_eq!(
+            build.pkg_sha256sum,
+            "3aeacaca8cf8274740863caae350f545cf97b15c79bdf6f873c0811b1a1ffbcf"
+        );
+        assert_eq!(
+            build.pkg_blake2bsum,
+            "3b38af666a8f307b89ae47ff098cb75503ee15892d1a8a98d0ae24da1cfd153b"
+        );
     }
 }

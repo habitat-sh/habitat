@@ -17,12 +17,13 @@ use db::migration::Migrator;
 use error::Result;
 
 pub fn migrate(migrator: &mut Migrator) -> Result<()> {
-    migrator
-        .migrate("accountsrv",
-                 r#"CREATE SEQUENCE IF NOT EXISTS account_invitations_id_seq;"#)?;
-    migrator
-        .migrate("accountsrv",
-                 r#"CREATE TABLE IF NOT EXISTS account_invitations (
+    migrator.migrate(
+        "accountsrv",
+        r#"CREATE SEQUENCE IF NOT EXISTS account_invitations_id_seq;"#,
+    )?;
+    migrator.migrate(
+        "accountsrv",
+        r#"CREATE TABLE IF NOT EXISTS account_invitations (
                         id bigint PRIMARY KEY DEFAULT next_id_v1('account_invitations_id_seq'),
                         origin_invitation_id bigint,
                         origin_id bigint,
@@ -34,7 +35,8 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                         created_at timestamptz DEFAULT now(),
                         updated_at timestamptz,
                         UNIQUE (origin_id, account_id)
-                        )"#)?;
+                        )"#,
+    )?;
     migrator.migrate("accountsrv",
                  r#"CREATE OR REPLACE FUNCTION insert_account_invitation_v1 (
                     oi_origin_id bigint,

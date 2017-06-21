@@ -56,16 +56,22 @@ impl fmt::Display for Error {
             Error::HabitatNet(ref e) => format!("{}", e),
             Error::HTTP(ref e) => format!("{}", e),
             Error::InvalidPackageIdent(ref e) => {
-                format!("Invalid package identifier: {:?}. A valid identifier is in the form \
+                format!(
+                    "Invalid package identifier: {:?}. A valid identifier is in the form \
                          origin/name (example: acme/redis)",
-                        e)
+                    e
+                )
             }
             Error::IO(ref e) => format!("{}", e),
             Error::MessageTypeNotFound => format!("Unable to find message for given type"),
-            Error::NoXFilename => format!("Invalid download from a Depot - missing X-Filename header"),
+            Error::NoXFilename => {
+                format!("Invalid download from a Depot - missing X-Filename header")
+            }
             Error::NoFilePart => {
-                format!("An invalid path was passed - we needed a filename, and this path does \
-                         not have one")
+                format!(
+                    "An invalid path was passed - we needed a filename, and this path does \
+                         not have one"
+                )
             }
             Error::NulError(ref e) => format!("{}", e),
             Error::PackageIsAlreadyInChannel(ref p, ref c) => {
@@ -79,7 +85,9 @@ impl fmt::Display for Error {
                     format!("Cannot find a release of package in any sources: {}", pkg)
                 }
             }
-            Error::WriteSyncFailed => format!("Could not write to destination; perhaps the disk is full?"),
+            Error::WriteSyncFailed => {
+                format!("Could not write to destination; perhaps the disk is full?")
+            }
         };
         write!(f, "{}", msg)
     }
@@ -94,16 +102,24 @@ impl error::Error for Error {
             Error::HabitatCore(ref err) => err.description(),
             Error::HabitatNet(ref err) => err.description(),
             Error::HTTP(_) => "Received an HTTP error",
-            Error::InvalidPackageIdent(_) => "Package identifiers must be in origin/name format (example: acme/redis)",
+            Error::InvalidPackageIdent(_) => {
+                "Package identifiers must be in origin/name format (example: acme/redis)"
+            }
             Error::IO(ref err) => err.description(),
-            Error::NulError(_) => "An attempt was made to build a CString with a null byte inside it",
+            Error::NulError(_) => {
+                "An attempt was made to build a CString with a null byte inside it"
+            }
             Error::PackageIsAlreadyInChannel(_, _) => "Package is already in channel",
             Error::ProtocolNetError(ref err) => err.description(),
             Error::RemotePackageNotFound(_) => "Cannot find a package in any sources",
             Error::NoXFilename => "Invalid download from a Depot - missing X-Filename header",
-            Error::NoFilePart => "An invalid path was passed - we needed a filename, and this path does not have one",
+            Error::NoFilePart => {
+                "An invalid path was passed - we needed a filename, and this path does not have one"
+            }
             Error::MessageTypeNotFound => "Unable to find message for given type",
-            Error::WriteSyncFailed => "Could not write to destination; bytes written was 0 on a non-0 buffer",
+            Error::WriteSyncFailed => {
+                "Could not write to destination; bytes written was 0 on a non-0 buffer"
+            }
         }
     }
 }

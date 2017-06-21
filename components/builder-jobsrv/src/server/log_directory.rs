@@ -25,7 +25,8 @@ pub struct LogDirectory(PathBuf);
 impl LogDirectory {
     /// Create a new `LogDirectory` wrapping `path`.
     pub fn new<T>(path: T) -> Self
-        where T: AsRef<Path>
+    where
+        T: AsRef<Path>,
     {
         LogDirectory(path.as_ref().to_path_buf())
     }
@@ -37,8 +38,9 @@ impl LogDirectory {
     /// * the path is not a directory
     /// * the path is not writable
     pub fn validate(&self) -> Result<()> {
-        let meta = fs::metadata(&self.0)
-            .map_err(|e| Error::LogDirDoesNotExist(self.0.clone(), e))?;
+        let meta = fs::metadata(&self.0).map_err(|e| {
+            Error::LogDirDoesNotExist(self.0.clone(), e)
+        })?;
         if !meta.is_dir() {
             return Err(Error::LogDirIsNotDir(self.0.clone()));
         }

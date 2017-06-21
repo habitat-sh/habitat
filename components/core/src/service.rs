@@ -31,8 +31,9 @@ pub struct ServiceGroup(String);
 
 impl ServiceGroup {
     pub fn new<S1, S2>(service: S1, group: S2, organization: Option<&str>) -> Result<Self>
-        where S1: AsRef<str>,
-              S2: AsRef<str>
+    where
+        S1: AsRef<str>,
+        S2: AsRef<str>,
     {
         let formatted = Self::format(service, group, organization);
         try!(Self::validate(&formatted));
@@ -40,8 +41,9 @@ impl ServiceGroup {
     }
 
     fn format<S1, S2>(service: S1, group: S2, organization: Option<&str>) -> String
-        where S1: AsRef<str>,
-              S2: AsRef<str>
+    where
+        S1: AsRef<str>,
+        S2: AsRef<str>,
     {
         if let Some(org) = organization {
             format!("{}.{}@{}", service.as_ref(), group.as_ref(), org)
@@ -51,9 +53,11 @@ impl ServiceGroup {
     }
 
     pub fn validate(value: &str) -> Result<()> {
-        let caps = FROM_STR_RE
-            .captures(value)
-            .ok_or(Error::InvalidServiceGroup(value.to_string()))?;
+        let caps = FROM_STR_RE.captures(value).ok_or(
+            Error::InvalidServiceGroup(
+                value.to_string(),
+            ),
+        )?;
         if caps.name("service").is_none() {
             return Err(Error::InvalidServiceGroup(value.to_string()));
         }

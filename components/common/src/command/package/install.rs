@@ -55,23 +55,27 @@ use retry::retry;
 pub const RETRIES: u64 = 5;
 pub const RETRY_WAIT: u64 = 3000;
 
-pub fn start<P1, P2>(ui: &mut UI,
-                     url: &str,
-                     channel: Option<&str>,
-                     ident_or_archive: &str,
-                     product: &str,
-                     version: &str,
-                     fs_root_path: &P1,
-                     cache_artifact_path: &P2,
-                     ignore_target: bool)
-                     -> Result<PackageIdent>
-    where P1: AsRef<Path> + ?Sized,
-          P2: AsRef<Path> + ?Sized
+pub fn start<P1, P2>(
+    ui: &mut UI,
+    url: &str,
+    channel: Option<&str>,
+    ident_or_archive: &str,
+    product: &str,
+    version: &str,
+    fs_root_path: &P1,
+    cache_artifact_path: &P2,
+    ignore_target: bool,
+) -> Result<PackageIdent>
+where
+    P1: AsRef<Path> + ?Sized,
+    P2: AsRef<Path> + ?Sized,
 {
     if !am_i_root() {
-        try!(ui.warn("Installing a package requires root or administrator privileges. Please retry \
+        try!(ui.warn(
+            "Installing a package requires root or administrator privileges. Please retry \
                    this command as a super user or use a privilege-granting facility such as \
-                   sudo."));
+                   sudo.",
+        ));
         try!(ui.br());
         return Err(Error::RootRequired);
     }
@@ -79,13 +83,15 @@ pub fn start<P1, P2>(ui: &mut UI,
     let cache_key_path = cache_key_path(Some(fs_root_path.as_ref()));
     debug!("install cache_key_path: {}", cache_key_path.display());
 
-    let task = try!(InstallTask::new(url,
-                                     product,
-                                     version,
-                                     fs_root_path.as_ref(),
-                                     cache_artifact_path.as_ref(),
-                                     &cache_key_path,
-                                     ignore_target));
+    let task = try!(InstallTask::new(
+        url,
+        product,
+        version,
+        fs_root_path.as_ref(),
+        cache_artifact_path.as_ref(),
+        &cache_key_path,
+        ignore_target,
+    ));
 
     if Path::new(ident_or_archive).is_file() {
         task.from_artifact(ui, &Path::new(ident_or_archive))
@@ -103,28 +109,30 @@ struct InstallTask<'a> {
 }
 
 impl<'a> InstallTask<'a> {
-    pub fn new(url: &str,
-               product: &str,
-               version: &str,
-               fs_root_path: &'a Path,
-               cache_artifact_path: &'a Path,
-               cache_key_path: &'a Path,
-               ignore_target: bool)
-               -> Result<Self> {
+    pub fn new(
+        url: &str,
+        product: &str,
+        version: &str,
+        fs_root_path: &'a Path,
+        cache_artifact_path: &'a Path,
+        cache_key_path: &'a Path,
+        ignore_target: bool,
+    ) -> Result<Self> {
         Ok(InstallTask {
-               depot_client: try!(Client::new(url, product, version, Some(fs_root_path))),
-               fs_root_path: fs_root_path,
-               cache_artifact_path: cache_artifact_path,
-               cache_key_path: cache_key_path,
-               ignore_target: ignore_target,
-           })
+            depot_client: try!(Client::new(url, product, version, Some(fs_root_path))),
+            fs_root_path: fs_root_path,
+            cache_artifact_path: cache_artifact_path,
+            cache_key_path: cache_key_path,
+            ignore_target: ignore_target,
+        })
     }
 
-    pub fn from_ident(&self,
-                      ui: &mut UI,
-                      ident: PackageIdent,
-                      channel: Option<&str>)
-                      -> Result<PackageIdent> {
+    pub fn from_ident(
+        &self,
+        ui: &mut UI,
+        ident: PackageIdent,
+        channel: Option<&str>,
+    ) -> Result<PackageIdent> {
         try!(ui.begin(format!("Installing {}", &ident)));
         let mut ident = ident;
         if !ident.fully_qualified() {
@@ -132,9 +140,11 @@ impl<'a> InstallTask<'a> {
         }
         if try!(self.is_package_installed(&ident)) {
             try!(ui.status(Status::Using, &ident));
-            try!(ui.end(format!("Install of {} complete with {} new packages installed.",
-                                &ident,
-                                0)));
+            try!(ui.end(format!(
+                "Install of {} complete with {} new packages installed.",
+                &ident,
+                0
+            )));
             return Ok(ident);
         }
 
@@ -145,9 +155,11 @@ impl<'a> InstallTask<'a> {
         let ident = try!(PackageArchive::new(artifact_path).ident());
         if try!(self.is_package_installed(&ident)) {
             try!(ui.status(Status::Using, &ident));
-            try!(ui.end(format!("Install of {} complete with {} new packages installed.",
-                                &ident,
-                                0)));
+            try!(ui.end(format!(
+                "Install of {} complete with {} new packages installed.",
+                &ident,
+                0
+            )));
             return Ok(ident);
         }
         try!(self.cache_artifact(&ident, artifact_path));
@@ -156,11 +168,12 @@ impl<'a> InstallTask<'a> {
         self.install_package(ui, ident, Some(src_path))
     }
 
-    fn install_package(&self,
-                       ui: &mut UI,
-                       ident: PackageIdent,
-                       src_path: Option<&Path>)
-                       -> Result<PackageIdent> {
+    fn install_package(
+        &self,
+        ui: &mut UI,
+        ident: PackageIdent,
+        src_path: Option<&Path>,
+    ) -> Result<PackageIdent> {
         let mut artifact = try!(self.get_cached_artifact(ui, ident.clone(), src_path));
         let mut artifacts: Vec<PackageArchive> = Vec::new();
 
@@ -177,20 +190,25 @@ impl<'a> InstallTask<'a> {
         for mut artifact in artifacts {
             try!(self.extract_artifact(ui, &mut artifact));
         }
-        try!(ui.end(format!("Install of {} complete with {} new packages installed.",
-                            &ident,
-                            num_installed)));
+        try!(ui.end(format!(
+            "Install of {} complete with {} new packages installed.",
+            &ident,
+            num_installed
+        )));
         Ok(ident)
     }
 
-    fn get_cached_artifact(&self,
-                           ui: &mut UI,
-                           ident: PackageIdent,
-                           src_path: Option<&Path>)
-                           -> Result<PackageArchive> {
+    fn get_cached_artifact(
+        &self,
+        ui: &mut UI,
+        ident: PackageIdent,
+        src_path: Option<&Path>,
+    ) -> Result<PackageArchive> {
         if try!(self.is_artifact_cached(&ident)) {
-            debug!("Found {} in artifact cache, skipping remote download",
-                   &ident);
+            debug!(
+                "Found {} in artifact cache, skipping remote download",
+                &ident
+            );
         } else {
             if retry(RETRIES,
                      RETRY_WAIT,
@@ -234,29 +252,36 @@ impl<'a> InstallTask<'a> {
         let name = match ident.archive_name() {
             Some(n) => n,
             None => {
-                return Err(Error::HabitatCore(hcore::Error::InvalidPackageIdent(ident.to_string())))
+                return Err(Error::HabitatCore(
+                    hcore::Error::InvalidPackageIdent(ident.to_string()),
+                ))
             }
         };
         Ok(self.cache_artifact_path.join(name))
     }
 
-    fn fetch_latest_pkg_ident_for(&self,
-                                  ident: &PackageIdent,
-                                  channel: Option<&str>)
-                                  -> Result<PackageIdent> {
+    fn fetch_latest_pkg_ident_for(
+        &self,
+        ident: &PackageIdent,
+        channel: Option<&str>,
+    ) -> Result<PackageIdent> {
         Ok(self.depot_client.show_package(ident, channel)?.into())
     }
 
-    fn fetch_artifact(&self,
-                      ui: &mut UI,
-                      ident: &PackageIdent,
-                      src_path: Option<&Path>)
-                      -> Result<()> {
+    fn fetch_artifact(
+        &self,
+        ui: &mut UI,
+        ident: &PackageIdent,
+        src_path: Option<&Path>,
+    ) -> Result<()> {
         if let Some(src_path) = src_path {
             let name = match ident.archive_name() {
                 Some(n) => n,
-                None => return Err(
-                    Error::HabitatCore(hcore::Error::InvalidPackageIdent(ident.to_string()))),
+                None => {
+                    return Err(Error::HabitatCore(
+                        hcore::Error::InvalidPackageIdent(ident.to_string()),
+                    ))
+                }
             };
             let local_artifact = src_path.join(name);
             if local_artifact.is_file() {
@@ -266,12 +291,17 @@ impl<'a> InstallTask<'a> {
         }
 
         try!(ui.status(Status::Downloading, ident));
-        match self.depot_client
-                  .fetch_package(ident, self.cache_artifact_path, ui.progress()) {
+        match self.depot_client.fetch_package(
+            ident,
+            self.cache_artifact_path,
+            ui.progress(),
+        ) {
             Ok(_) => Ok(()),
             Err(depot_client::Error::APIError(StatusCode::NotImplemented, _)) => {
-                println!("Host platform or architecture not supported by the targted depot; \
-                          skipping.");
+                println!(
+                    "Host platform or architecture not supported by the targted depot; \
+                          skipping."
+                );
                 Ok(())
             }
             Err(e) => Err(Error::from(e)),
@@ -279,13 +309,21 @@ impl<'a> InstallTask<'a> {
     }
 
     fn fetch_origin_key(&self, ui: &mut UI, name_with_rev: &str) -> Result<()> {
-        try!(ui.status(Status::Downloading,
-                       format!("{} public origin key", &name_with_rev)));
+        try!(ui.status(
+            Status::Downloading,
+            format!("{} public origin key", &name_with_rev),
+        ));
         let (name, rev) = try!(parse_name_with_rev(&name_with_rev));
-        try!(self.depot_client
-                 .fetch_origin_key(&name, &rev, self.cache_key_path, ui.progress()));
-        try!(ui.status(Status::Cached,
-                       format!("{} public origin key", &name_with_rev)));
+        try!(self.depot_client.fetch_origin_key(
+            &name,
+            &rev,
+            self.cache_key_path,
+            ui.progress(),
+        ));
+        try!(ui.status(
+            Status::Cached,
+            format!("{} public origin key", &name_with_rev),
+        ));
         Ok(())
     }
 
@@ -293,7 +331,9 @@ impl<'a> InstallTask<'a> {
         let name = match ident.archive_name() {
             Some(n) => n,
             None => {
-                return Err(Error::HabitatCore(hcore::Error::InvalidPackageIdent(ident.to_string())))
+                return Err(Error::HabitatCore(
+                    hcore::Error::InvalidPackageIdent(ident.to_string()),
+                ))
             }
         };
         try!(fs::create_dir_all(self.cache_artifact_path));
@@ -301,16 +341,19 @@ impl<'a> InstallTask<'a> {
         Ok(())
     }
 
-    fn verify_artifact(&self,
-                       ui: &mut UI,
-                       ident: &PackageIdent,
-                       artifact: &mut PackageArchive)
-                       -> Result<()> {
+    fn verify_artifact(
+        &self,
+        ui: &mut UI,
+        ident: &PackageIdent,
+        artifact: &mut PackageArchive,
+    ) -> Result<()> {
         let artifact_ident = try!(artifact.ident());
         if ident != &artifact_ident {
-            return Err(Error::ArtifactIdentMismatch((artifact.file_name(),
-                                                     artifact_ident.to_string(),
-                                                     ident.to_string())));
+            return Err(Error::ArtifactIdentMismatch((
+                artifact.file_name(),
+                artifact_ident.to_string(),
+                ident.to_string(),
+            )));
         }
 
         if self.ignore_target {

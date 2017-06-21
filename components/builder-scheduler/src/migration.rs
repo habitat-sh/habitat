@@ -35,8 +35,10 @@ impl DataMigrator {
     }
 
     fn run(self) -> Result<()> {
-        println!("DataMigrator running, packages path is: {:?}",
-                 self.packages_path);
+        println!(
+            "DataMigrator running, packages path is: {:?}",
+            self.packages_path
+        );
 
         let packages = FileWalker::new(&self.packages_path);
 

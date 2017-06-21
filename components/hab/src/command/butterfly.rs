@@ -49,16 +49,25 @@ mod inner {
             Err(_) => {
                 init();
                 let version: Vec<&str> = VERSION.split("/").collect();
-                let ident =
-                    try!(PackageIdent::from_str(&format!("{}/{}", butterfly_ident, version[0])));
-                try!(exec::command_from_min_pkg(ui, CMD, &ident, &default_cache_key_path(None), 0))
+                let ident = try!(PackageIdent::from_str(
+                    &format!("{}/{}", butterfly_ident, version[0]),
+                ));
+                try!(exec::command_from_min_pkg(
+                    ui,
+                    CMD,
+                    &ident,
+                    &default_cache_key_path(None),
+                    0,
+                ))
             }
         };
 
         if let Some(cmd) = find_command(command.to_string_lossy().as_ref()) {
             Ok(try!(process::become_command(cmd, args)))
         } else {
-            Err(Error::ExecCommandNotFound(command.to_string_lossy().into_owned()))
+            Err(Error::ExecCommandNotFound(
+                command.to_string_lossy().into_owned(),
+            ))
         }
     }
 }
@@ -73,24 +82,28 @@ mod inner {
 
     pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
         let mut args = args.iter();
-        let subcmd = match (args.next()
-                                .map(|a| a.to_string_lossy())
-                                .unwrap_or_default()
-                                .as_ref(),
-                            args.next()
-                                .map(|a| a.to_string_lossy())
-                                .unwrap_or_default()
-                                .as_ref()) {
+        let subcmd = match (
+            args.next()
+                .map(|a| a.to_string_lossy())
+                .unwrap_or_default()
+                .as_ref(),
+            args.next()
+                .map(|a| a.to_string_lossy())
+                .unwrap_or_default()
+                .as_ref(),
+        ) {
             ("config", "apply") => "config apply",
             ("config", _) => "config",
             ("file", "upload") => "file upload",
             ("file", _) => "file",
             (_, _) => unreachable!(),
         };
-        try!(ui.warn(format!("Running `{}` on this operating system is not currently \
+        try!(ui.warn(format!(
+            "Running `{}` on this operating system is not currently \
                               supported. Try running this command again on a 64-bit Linux \
                               operating system.",
-                             &subcmd)));
+            &subcmd
+        )));
         try!(ui.br());
         Err(Error::SubcommandNotSupported(String::from(subcmd)))
     }

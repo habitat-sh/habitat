@@ -17,12 +17,13 @@ use db::migration::Migrator;
 use error::Result;
 
 pub fn migrate(migrator: &mut Migrator) -> Result<()> {
-    migrator
-        .migrate("originsrv",
-                 r#"CREATE SEQUENCE IF NOT EXISTS origin_invitations_id_seq;"#)?;
-    migrator
-        .migrate("originsrv",
-                 r#"CREATE TABLE IF NOT EXISTS origin_invitations (
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE SEQUENCE IF NOT EXISTS origin_invitations_id_seq;"#,
+    )?;
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE TABLE IF NOT EXISTS origin_invitations (
                         id bigint PRIMARY KEY DEFAULT next_id_v1('origin_invitations_id_seq'),
                         origin_id bigint REFERENCES origins(id),
                         origin_name text,
@@ -34,7 +35,8 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                         updated_at timestamptz,
                         account_sync bool DEFAULT false,
                         UNIQUE (origin_id, account_id)
-                        )"#)?;
+                        )"#,
+    )?;
     migrator.migrate("originsrv",
                  r#"CREATE OR REPLACE FUNCTION insert_origin_invitation_v1 (
                     oi_origin_id bigint,
@@ -53,9 +55,9 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                         END IF;
                      END
                  $$ LANGUAGE plpgsql VOLATILE"#)?;
-    migrator
-        .migrate("originsrv",
-                 r#"CREATE OR REPLACE FUNCTION get_origin_invitations_for_origin_v1 (
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE OR REPLACE FUNCTION get_origin_invitations_for_origin_v1 (
                    oi_origin_id bigint
                  ) RETURNS SETOF origin_invitations AS $$
                     BEGIN
@@ -63,7 +65,8 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                           ORDER BY account_name ASC;
                         RETURN;
                     END
-                    $$ LANGUAGE plpgsql STABLE"#)?;
+                    $$ LANGUAGE plpgsql STABLE"#,
+    )?;
     migrator.migrate("originsrv",
                      r#"CREATE OR REPLACE FUNCTION get_origin_invitations_for_account_v1 (
                    oi_account_id bigint

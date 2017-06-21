@@ -64,10 +64,11 @@ impl Dispatcher for Worker {
         BE_LISTEN_ADDR
     }
 
-    fn dispatch(message: &mut Envelope,
-                sock: &mut zmq::Socket,
-                state: &mut ServerState)
-                -> Result<()> {
+    fn dispatch(
+        message: &mut Envelope,
+        sock: &mut zmq::Socket,
+        state: &mut ServerState,
+    ) -> Result<()> {
         match message.message_id() {
             "CheckOriginAccessRequest" => handlers::origin_check_access(message, sock, state),
             "OriginCreate" => handlers::origin_create(message, sock, state),
@@ -141,10 +142,10 @@ impl Server {
         let router = try!(RouteConn::new(Self::net_ident(), (**ZMQ_CONTEXT).as_mut()));
         let be = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER));
         Ok(Server {
-               config: Arc::new(RwLock::new(config)),
-               router: router,
-               be_sock: be,
-           })
+            config: Arc::new(RwLock::new(config)),
+            router: router,
+            be_sock: be,
+        })
     }
 
     pub fn reconfigure(&self, config: Config) -> Result<()> {

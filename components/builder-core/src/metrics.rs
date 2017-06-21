@@ -136,14 +136,24 @@ fn statsd_client() -> Option<Client> {
 
 impl Counter {
     pub fn increment(&self) {
-        match sender().send((MetricType::Counter, MetricOperation::Increment, &self.id(), None)) {
+        match sender().send((
+            MetricType::Counter,
+            MetricOperation::Increment,
+            &self.id(),
+            None,
+        )) {
             Ok(_) => (),
             Err(e) => error!("Failed to increment counter, error: {:?}", e),
         }
     }
 
     pub fn decrement(&self) {
-        match sender().send((MetricType::Counter, MetricOperation::Decrement, &self.id(), None)) {
+        match sender().send((
+            MetricType::Counter,
+            MetricOperation::Decrement,
+            &self.id(),
+            None,
+        )) {
             Ok(_) => (),
             Err(e) => error!("Failed to decrement counter, error: {:?}", e),
         }
@@ -152,7 +162,12 @@ impl Counter {
 
 impl Gauge {
     pub fn set(&self, val: f64) {
-        match sender().send((MetricType::Gauge, MetricOperation::SetValue, &self.id(), Some(val))) {
+        match sender().send((
+            MetricType::Gauge,
+            MetricOperation::SetValue,
+            &self.id(),
+            Some(val),
+        )) {
             Ok(_) => (),
             Err(e) => error!("Failed to set gauge, error: {:?}", e),
         }
@@ -219,10 +234,10 @@ mod test {
     fn calls_from_multiple_threads() {
         for n in 0..10 {
             thread::spawn(move || {
-                              Counter::SearchPackages.increment();
-                              Gauge::PackageCount.set(n as f64);
-                              Counter::SearchPackages.decrement();
-                          });
+                Counter::SearchPackages.increment();
+                Gauge::PackageCount.set(n as f64);
+                Counter::SearchPackages.decrement();
+            });
         }
 
         thread::sleep(Duration::from_millis(500))

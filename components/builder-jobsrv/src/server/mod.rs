@@ -111,10 +111,11 @@ impl Dispatcher for Worker {
         BE_LISTEN_ADDR
     }
 
-    fn dispatch(message: &mut Envelope,
-                sock: &mut zmq::Socket,
-                state: &mut Self::State)
-                -> Result<()> {
+    fn dispatch(
+        message: &mut Envelope,
+        sock: &mut zmq::Socket,
+        state: &mut Self::State,
+    ) -> Result<()> {
         match message.message_id() {
             "JobSpec" => handlers::job_create(message, sock, state),
             "JobGet" => handlers::job_get(message, sock, state),
@@ -160,10 +161,10 @@ impl Server {
         let router = try!(RouteConn::new(Self::net_ident(), (**ZMQ_CONTEXT).as_mut()));
         let be = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER));
         Ok(Server {
-               config: Arc::new(RwLock::new(config)),
-               router: router,
-               be_sock: be,
-           })
+            config: Arc::new(RwLock::new(config)),
+            router: router,
+            be_sock: be,
+        })
     }
 
     pub fn reconfigure(&self, config: Config) -> Result<()> {

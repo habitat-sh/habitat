@@ -38,17 +38,20 @@ impl Publish {
         if !self.enabled {
             return true;
         }
-        debug!("post process: publish (url: {}, channel: {})",
-               self.url,
-               self.channel);
+        debug!(
+            "post process: publish (url: {}, channel: {})",
+            self.url,
+            self.channel
+        );
         let client = depot_client::Client::new(&self.url, PRODUCT, VERSION, None).unwrap();
         if let Some(err) = client.x_put_package(archive, auth_token).err() {
             error!("post processing error uploading package, ERR={:?}", err);
             return false;
         };
         if let Some(err) = client
-               .promote_package(archive, &self.channel, auth_token)
-               .err() {
+            .promote_package(archive, &self.channel, auth_token)
+            .err()
+        {
             error!("post processing error promoting package, ERR={:?}", err);
             return false;
         };
@@ -70,8 +73,10 @@ struct PublishBuilder {
 impl PublishBuilder {
     fn new(config_path: &Path) -> Result<Self> {
         let builder = if config_path.exists() {
-            debug!("using post processing config from {}",
-                   config_path.display());
+            debug!(
+                "using post processing config from {}",
+                config_path.display()
+            );
             PublishBuilder::from_file(config_path)?
         } else {
             debug!("no post processing config - using defaults");

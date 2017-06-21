@@ -34,9 +34,10 @@ impl Logger {
         let dt: DateTime<UTC> = UTC::now();
         let fmt_msg = format!("{},{}\n", dt.format("%Y-%m-%d %H:%M:%S"), msg);
 
-        self.file
-            .write_all(fmt_msg.as_bytes())
-            .expect(&format!("Logger unable to write to {:?}", self.file));
+        self.file.write_all(fmt_msg.as_bytes()).expect(&format!(
+            "Logger unable to write to {:?}",
+            self.file
+        ));
     }
 
     // Log format (fields are comma-separated)
@@ -62,10 +63,12 @@ impl Logger {
     }
 
     pub fn log_group_project(&mut self, group: &Group, project: &Project) {
-        let msg = format!("P,{},{:?},{},",
-                          group.get_id(),
-                          project.get_state(),
-                          project.get_name());
+        let msg = format!(
+            "P,{},{:?},{},",
+            group.get_id(),
+            project.get_state(),
+            project.get_name()
+        );
         self.log(&msg);
     }
 
@@ -87,11 +90,13 @@ impl Logger {
                 .unwrap()
                 .as_secs();
 
-            format!("{},{},{},{}",
-                    offset,
-                    duration,
-                    start.format("%Y-%m-%d %H:%M:%S").to_string(),
-                    stop.format("%Y-%m-%d %H:%M:%S").to_string())
+            format!(
+                "{},{},{},{}",
+                offset,
+                duration,
+                start.format("%Y-%m-%d %H:%M:%S").to_string(),
+                stop.format("%Y-%m-%d %H:%M:%S").to_string()
+            )
         } else {
             "".to_string()
         };
@@ -102,12 +107,14 @@ impl Logger {
             "".to_string()
         };
 
-        let msg = format!("J,{},{:?},{},{},{}",
-                          job.get_owner_id(),
-                          job.get_state(),
-                          job.get_project().get_name(),
-                          suffix,
-                          error);
+        let msg = format!(
+            "J,{},{:?},{},{},{}",
+            job.get_owner_id(),
+            job.get_state(),
+            job.get_project().get_name(),
+            suffix,
+            error
+        );
 
         self.log(&msg);
     }
@@ -133,13 +140,15 @@ impl Logger {
             "".to_string()
         };
 
-        let msg = format!("W,{},{:?},{},,,{},{},{:?}",
-                          job.get_id(),
-                          job.get_state(),
-                          job.get_project().get_name(),
-                          start,
-                          stop,
-                          job.get_error());
+        let msg = format!(
+            "W,{},{:?},{},,,{},{},{:?}",
+            job.get_id(),
+            job.get_state(),
+            job.get_project().get_name(),
+            start,
+            stop,
+            job.get_error()
+        );
         self.log(&msg);
     }
 }

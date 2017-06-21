@@ -68,9 +68,9 @@ impl AsyncServer {
 
     pub fn schedule(&self, dispatch_key: &str) -> Result<()> {
         let has_key = {
-            let d = self.dispatch
-                .read()
-                .expect("Async dispatch lock is poisoned");
+            let d = self.dispatch.read().expect(
+                "Async dispatch lock is poisoned",
+            );
             d.contains_key(dispatch_key)
         };
         let is_scheduled = {
@@ -79,9 +79,9 @@ impl AsyncServer {
         };
         if has_key && !is_scheduled {
             let function = {
-                let d = self.dispatch
-                    .read()
-                    .expect("Async dispatch lock is poisoned");
+                let d = self.dispatch.read().expect(
+                    "Async dispatch lock is poisoned",
+                );
                 // Safe because we checked above
                 d.get(dispatch_key).unwrap().clone()
             };
@@ -93,9 +93,9 @@ impl AsyncServer {
 
     pub fn register(&self, dispatch_key: DispatchKey, callback: EventFunction) {
         {
-            let mut d = self.dispatch
-                .write()
-                .expect("Async dispatch lock is poisoned");
+            let mut d = self.dispatch.write().expect(
+                "Async dispatch lock is poisoned",
+            );
             d.insert(dispatch_key.clone(), callback.clone());
         }
         {
@@ -107,11 +107,13 @@ impl AsyncServer {
     fn get_num_events(&self, available_jobs: usize) -> Vec<(DispatchKey, EventFunction)> {
         let r = self.retry.read().expect("Async retry lock is poisoned");
         r.iter()
-            .filter(|&(_dispatch_key, &(event_time, _callback))| SteadyTime::now() >= event_time)
+            .filter(|&(_dispatch_key, &(event_time, _callback))| {
+                SteadyTime::now() >= event_time
+            })
             .take(available_jobs)
             .map(|(dispatch_key, &(_event_time, callback))| {
-                     (dispatch_key.to_string(), callback.clone())
-                 })
+                (dispatch_key.to_string(), callback.clone())
+            })
             .collect()
     }
 
@@ -121,9 +123,9 @@ impl AsyncServer {
             Ok(EventOutcome::Finished) => {
                 debug!("Event finished {}", key);
                 let mut r = self.retry.write().expect("Async retry lock poisoned");
-                let mut f = self.failure_count
-                    .write()
-                    .expect("Async failure count lock poisoned");
+                let mut f = self.failure_count.write().expect(
+                    "Async failure count lock poisoned",
+                );
                 f.remove(&key);
                 r.remove(&key);
             }
@@ -142,9 +144,9 @@ impl AsyncServer {
     fn retry_failed_event(&self, key: DispatchKey, event: EventFunction) {
         warn!("Scheduling retry of {:?}", key);
         let failure_count = {
-            let mut f = self.failure_count
-                .write()
-                .expect("Async failure count lock poisoned");
+            let mut f = self.failure_count.write().expect(
+                "Async failure count lock poisoned",
+            );
             let mut value = f.entry(key.clone()).or_insert(0);
             *value += 1;
             if *value >= FAILURE_COUNT_UPPER_BOUND {
@@ -157,7 +159,7 @@ impl AsyncServer {
         let high_end = 2u64.pow(failure_count as u32);
         let cycles = rng.gen_range(0, high_end);
         let next_event = SteadyTime::now() +
-                         SteadyDuration::milliseconds((cycles * BACKOFF_SLOT_TIME_MS) as i64);
+            SteadyDuration::milliseconds((cycles * BACKOFF_SLOT_TIME_MS) as i64);
         info!("Backing off {:?} for {:?}", key, next_event);
         let mut r = self.retry.write().expect("Async retry lock poisoned");
         r.insert(key, (next_event, event));
@@ -173,8 +175,8 @@ impl AsyncServer {
         let _ = thread::Builder::new()
             .name("async-events".to_string())
             .spawn(move || {
-                let threadpool = ThreadPool::new_with_name("async-event-worker".to_string(),
-                                                           workers);
+                let threadpool =
+                    ThreadPool::new_with_name("async-event-worker".to_string(), workers);
                 loop {
                     if server.stop.load(Ordering::SeqCst) {
                         return;
@@ -196,11 +198,9 @@ impl AsyncServer {
                             let sa = server.clone();
                             error!("Dispatching {}", key);
                             {
-                                let mut running_events =
-                                    server
-                                        .running
-                                        .write()
-                                        .expect("Running events lock poisoned");
+                                let mut running_events = server.running.write().expect(
+                                    "Running events lock poisoned",
+                                );
                                 running_events.insert(key.clone());
                             }
                             {

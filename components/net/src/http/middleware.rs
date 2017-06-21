@@ -165,11 +165,13 @@ pub struct Cors;
 impl AfterMiddleware for Cors {
     fn after(&self, _req: &mut Request, mut res: Response) -> IronResult<Response> {
         res.headers.set(headers::AccessControlAllowOrigin::Any);
-        res.headers
-            .set(headers::AccessControlAllowHeaders(vec![UniCase("authorization".to_string()),
-                                                         UniCase("range".to_string())]));
-        res.headers
-            .set(headers::AccessControlAllowMethods(vec![Method::Put, Method::Delete]));
+        res.headers.set(headers::AccessControlAllowHeaders(vec![
+            UniCase("authorization".to_string()),
+            UniCase("range".to_string()),
+        ]));
+        res.headers.set(headers::AccessControlAllowMethods(
+            vec![Method::Put, Method::Delete],
+        ));
         Ok(res)
     }
 }
@@ -196,8 +198,10 @@ pub fn session_create(github: &GitHubClient, token: &str) -> IronResult<Session>
                 request
             }
             user => {
-                panic!("You need to define the stub user {} during HAB_FUNC_TEST",
-                       user)
+                panic!(
+                    "You need to define the stub user {} during HAB_FUNC_TEST",
+                    user
+                )
             }
         };
         let mut conn = Broker::connect().unwrap();
