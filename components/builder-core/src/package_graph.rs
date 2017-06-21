@@ -127,11 +127,6 @@ impl PackageGraph {
         }
 
         let (_, pkg_node) = *self.package_map.get(&pkg_short_name).unwrap();
-        let pkg_ident = PackageIdent::from_str(&name).unwrap();
-        match self.latest_map.get(&pkg_short_name) {
-            Some(latest) => assert!(pkg_ident >= *latest),
-            None => (),
-        }
 
         // Temporarily remove edges
         let mut saved_nodes = Vec::new();
