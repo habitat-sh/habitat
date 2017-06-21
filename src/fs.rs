@@ -166,8 +166,10 @@ pub fn pkg_root_path(fs_root: Option<&Path>) -> PathBuf {
 }
 
 pub fn pkg_install_path(ident: &PackageIdent, fs_root: Option<&Path>) -> PathBuf {
-    assert!(ident.fully_qualified(),
-            "Cannot determine install path without fully qualified ident");
+    assert!(
+        ident.fully_qualified(),
+        "Cannot determine install path without fully qualified ident"
+    );
     let mut pkg_path = pkg_root_path(fs_root);
     pkg_path.push(&ident.origin);
     pkg_path.push(&ident.name);
@@ -258,14 +260,16 @@ pub fn find_command(command: &str) -> Option<PathBuf> {
 /// # Failures
 ///
 /// * The path entries metadata cannot be loaded
-pub fn find_command_in_pkg(command: &str,
-                           pkg_install: &PackageInstall,
-                           fs_root_path: &Path)
-                           -> Result<Option<PathBuf>> {
+pub fn find_command_in_pkg(
+    command: &str,
+    pkg_install: &PackageInstall,
+    fs_root_path: &Path,
+) -> Result<Option<PathBuf>> {
     for path in try!(pkg_install.paths()) {
-        let stripped =
-            path.strip_prefix("/")
-                .expect(&format!("Package path missing / prefix {}", path.to_string_lossy()));
+        let stripped = path.strip_prefix("/").expect(&format!(
+            "Package path missing / prefix {}",
+            path.to_string_lossy()
+        ));
         let candidate = fs_root_path.join(stripped).join(command);
         if candidate.is_file() {
             return Ok(Some(path.join(command)));
@@ -406,7 +410,7 @@ mod test_find_command {
         }
     }
 
-    #[cfg(target_os="windows")]
+    #[cfg(target_os = "windows")]
     mod with_pathext_set {
         use super::{setup_path, setup_pathext};
         pub use super::find_command;

@@ -28,15 +28,11 @@ pub trait Target: fmt::Display + Into<PackageTarget> {
 /// and architecture (x86_64, i386, etc..) that a package is built for
 #[derive(Deserialize, Serialize, Eq, PartialEq, Debug, Clone, Hash)]
 pub struct PackageTarget {
-    #[serde(
-        deserialize_with = "deserialize_using_from_str",
-        serialize_with = "serialize_using_to_string"
-    )]
+    #[serde(deserialize_with = "deserialize_using_from_str",
+            serialize_with = "serialize_using_to_string")]
     pub platform: Platform,
-    #[serde(
-        deserialize_with = "deserialize_using_from_str",
-        serialize_with = "serialize_using_to_string"
-    )]
+    #[serde(deserialize_with = "deserialize_using_from_str",
+            serialize_with = "serialize_using_to_string")]
     pub architecture: Architecture,
 }
 
@@ -80,12 +76,14 @@ impl Target for PackageTarget {
         if self.architecture == default.architecture && self.platform == default.platform {
             Ok(())
         } else {
-            Err(Error::TargetMatchError(format!("Package target ({}-{}) does not match system \
+            Err(Error::TargetMatchError(
+                format!("Package target ({}-{}) does not match system \
                                                  target ({}-{}).",
                                                 self.architecture,
                                                 self.platform,
                                                 default.architecture,
-                                                default.platform,)))
+                                                default.platform,),
+            ))
         }
     }
 }
@@ -112,8 +110,10 @@ impl FromStr for PackageTarget {
         let items: Vec<&str> = value.split("-").collect();
         let (architecture, platform) = match items.len() {
             2 => {
-                (try!(Architecture::from_str(items[0].into())),
-                 try!(Platform::from_str(items[1]).into()))
+                (
+                    try!(Architecture::from_str(items[0].into())),
+                    try!(Platform::from_str(items[1]).into()),
+                )
             }
             _ => return Err(Error::InvalidPackageTarget(value.to_string())),
         };
@@ -137,8 +137,10 @@ mod tests {
         } else if cfg!(target_os = "macos") {
             assert_eq!(target.platform, Platform::Darwin);
         } else {
-            unreachable!("Platform not defined for target_os! Fix this by adding a conditional \
-                          compilation to PackageTarget::current_platform()");
+            unreachable!(
+                "Platform not defined for target_os! Fix this by adding a conditional \
+                          compilation to PackageTarget::current_platform()"
+            );
         }
         assert_eq!(target.architecture, Architecture::X86_64);
     }
@@ -187,8 +189,10 @@ mod tests {
         } else if cfg!(target_os = "macos") {
             PackageTarget::from_str("x86_64-darwin").unwrap()
         } else {
-            unreachable!("Test case not defined for target_os! Fix this by adding a conditional \
-                          compilation to tests::current_platform_target()");
+            unreachable!(
+                "Test case not defined for target_os! Fix this by adding a conditional \
+                          compilation to tests::current_platform_target()"
+            );
         }
     }
 
@@ -200,8 +204,10 @@ mod tests {
         } else if cfg!(target_os = "macos") {
             PackageTarget::from_str("x86_64-windows").unwrap()
         } else {
-            unreachable!("Test case not defined for target_os! Fix this by adding a conditional \
-                          compilation to tests::unsupported_platform_target()");
+            unreachable!(
+                "Test case not defined for target_os! Fix this by adding a conditional \
+                          compilation to tests::unsupported_platform_target()"
+            );
         }
     }
 }

@@ -140,73 +140,101 @@ impl fmt::Display for Error {
         let msg = match *self {
             Error::ArchiveError(ref err) => format!("{}", err),
             Error::BadKeyPath(ref e) => {
-                format!("Invalid keypath: {}. Specify an absolute path to a file on disk.",
-                        e)
+                format!(
+                    "Invalid keypath: {}. Specify an absolute path to a file on disk.",
+                    e
+                )
             }
             Error::ConfigFileIO(ref f, ref e) => {
                 format!("Error reading configuration file, {}, {}", f.display(), e)
             }
             Error::ConfigFileSyntax(ref e) => {
-                format!("Syntax errors while parsing TOML configuration file:\n\n{}",
-                        e)
+                format!(
+                    "Syntax errors while parsing TOML configuration file:\n\n{}",
+                    e
+                )
             }
             Error::ConfigInvalidArraySocketAddr(ref f) => {
-                format!("Invalid array value of network address pair strings config, field={}. \
+                format!(
+                    "Invalid array value of network address pair strings config, field={}. \
                          (example: [\"127.0.0.1:8080\", \"10.0.0.4:22\"])",
-                        f)
+                    f
+                )
             }
             Error::ConfigInvalidArrayTableString(ref f) => {
-                format!("Invalid array value of tables containing string fields and values in \
+                format!(
+                    "Invalid array value of tables containing string fields and values in \
                          config, field={}",
-                        f)
+                    f
+                )
             }
             Error::ConfigInvalidArrayTarget(ref f) => {
-                format!("Invalid array value of targets containing string fields and values in \
+                format!(
+                    "Invalid array value of targets containing string fields and values in \
                          config, field={}",
-                        f)
+                    f
+                )
             }
             Error::ConfigInvalidArrayU16(ref f) => {
-                format!("Invalid array value of u16 entries in config, field={}. (example: [1, 2])",
-                        f)
+                format!(
+                    "Invalid array value of u16 entries in config, field={}. (example: [1, 2])",
+                    f
+                )
             }
             Error::ConfigInvalidArrayU32(ref f) => {
-                format!("Invalid array value of u32 entries in config, field={}. (example: [1, 2])",
-                        f)
+                format!(
+                    "Invalid array value of u32 entries in config, field={}. (example: [1, 2])",
+                    f
+                )
             }
             Error::ConfigInvalidArrayU64(ref f) => {
-                format!("Invalid array value of u64 entries in config, field={}. (example: [1, 2])",
-                        f)
+                format!(
+                    "Invalid array value of u64 entries in config, field={}. (example: [1, 2])",
+                    f
+                )
             }
             Error::ConfigInvalidBool(ref f) => {
-                format!("Invalid boolean value in config, field={}. (example: true)",
-                        f)
+                format!(
+                    "Invalid boolean value in config, field={}. (example: true)",
+                    f
+                )
             }
             Error::ConfigInvalidIdent(ref f) => {
-                format!("Invalid package identifier string value in config, field={}. (example: \
+                format!(
+                    "Invalid package identifier string value in config, field={}. (example: \
                          \"core/redis\")",
-                        f)
+                    f
+                )
             }
             Error::ConfigInvalidIpAddr(ref f) => {
-                format!("Invalid IP address string value in config, field={}. (example: \
+                format!(
+                    "Invalid IP address string value in config, field={}. (example: \
                          \"127.0.0.0\")",
-                        f)
+                    f
+                )
             }
             Error::ConfigInvalidSocketAddr(ref f) => {
-                format!("Invalid network address pair string value in config, field={}. (example: \
+                format!(
+                    "Invalid network address pair string value in config, field={}. (example: \
                          \"127.0.0.0:8080\")",
-                        f)
+                    f
+                )
             }
             Error::ConfigInvalidString(ref f) => {
                 format!("Invalid string value in config, field={}.", f)
             }
             Error::ConfigInvalidTableString(ref f) => {
-                format!("Invalid table value of string fields and values in config, field={}",
-                        f)
+                format!(
+                    "Invalid table value of string fields and values in config, field={}",
+                    f
+                )
             }
             Error::ConfigInvalidTarget(ref f) => {
-                format!("Invalid package target string value in config, field={}. (example: \
+                format!(
+                    "Invalid package target string value in config, field={}. (example: \
                          \"x86_64-linux\")",
-                        f)
+                    f
+                )
             }
             Error::ConfigInvalidU16(ref f) => format!("Invalid u16 value in config, field={}", f),
             Error::ConfigInvalidU32(ref f) => format!("Invalid u32 value in config, field={}", f),
@@ -217,21 +245,27 @@ impl fmt::Display for Error {
             Error::CryptoError(ref e) => format!("Crypto error: {}", e),
             Error::FileNotFound(ref e) => format!("File not found at: {}", e),
             Error::InvalidPackageIdent(ref e) => {
-                format!("Invalid package identifier: {:?}. A valid identifier is in the form \
+                format!(
+                    "Invalid package identifier: {:?}. A valid identifier is in the form \
                          origin/name (example: acme/redis)",
-                        e)
+                    e
+                )
             }
             Error::InvalidPackageTarget(ref e) => {
-                format!("Invalid package target: {}. A valid target is in the form \
+                format!(
+                    "Invalid package target: {}. A valid target is in the form \
                          architecture-platform (example: x86_64-linux)",
-                        e)
+                    e
+                )
             }
             Error::InvalidArchitecture(ref e) => format!("Invalid architecture: {}.", e),
             Error::InvalidPlatform(ref e) => format!("Invalid platform: {}.", e),
             Error::InvalidServiceGroup(ref e) => {
-                format!("Invalid service group: {}. A valid service group string is in the form \
+                format!(
+                    "Invalid service group: {}. A valid service group string is in the form \
                          service.group (example: redis.production)",
-                        e)
+                    e
+                )
             }
             Error::IO(ref err) => format!("{}", err),
             Error::MetaFileBadBind => format!("Bad value parsed from BIND or BIND_OPTIONAL"),

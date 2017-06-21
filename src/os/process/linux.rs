@@ -106,9 +106,9 @@ pub struct Child {
 impl Child {
     pub fn new(child: &mut process::Child) -> Result<Child> {
         Ok(Child {
-               pid: child.id() as Pid,
-               last_status: None,
-           })
+            pid: child.id() as Pid,
+            last_status: None,
+        })
     }
 
     pub fn id(&self) -> Pid {
@@ -124,8 +124,9 @@ impl Child {
                 match unsafe { libc::waitpid(self.pid as i32, &mut exit_status, libc::WNOHANG) } {
                     0 => Ok(HabExitStatus { status: None }),
                     -1 => {
-                        Err(Error::WaitpidFailed(format!("Error calling waitpid on pid: {}",
-                                                         self.pid)))
+                        Err(Error::WaitpidFailed(
+                            format!("Error calling waitpid on pid: {}", self.pid),
+                        ))
                     }
                     _ => {
                         self.last_status = Some(exit_status);
@@ -143,8 +144,10 @@ impl Child {
         // to prevent orphaned processes.
         let pgid = unsafe { libc::getpgid(self.pid) };
         if self.pid == pgid {
-            debug!("pid to kill {} is the process group root. Sending signal to process group.",
-                   self.pid);
+            debug!(
+                "pid to kill {} is the process group root. Sending signal to process group.",
+                self.pid
+            );
             // sending a signal to the negative pid sends it to the
             // entire process group instead just the single pid
             self.pid = self.pid.neg();
