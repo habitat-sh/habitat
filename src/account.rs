@@ -22,14 +22,15 @@ use winapi::winerror::*;
 use super::sid::Sid;
 
 extern "system" {
-    fn LookupAccountNameW(lpSystemName: LPCWSTR,
-                          lpAccountName: LPCWSTR,
-                          Sid: PSID,
-                          cbSid: LPDWORD,
-                          ReferencedDomainName: LPCWSTR,
-                          cchReferencedDomainName: LPDWORD,
-                          peUse: PSID_NAME_USE)
-                          -> BOOL;
+    fn LookupAccountNameW(
+        lpSystemName: LPCWSTR,
+        lpAccountName: LPCWSTR,
+        Sid: PSID,
+        cbSid: LPDWORD,
+        ReferencedDomainName: LPCWSTR,
+        cchReferencedDomainName: LPDWORD,
+        peUse: PSID_NAME_USE,
+    ) -> BOOL;
 }
 
 pub struct Account {
@@ -55,21 +56,25 @@ fn lookup_account(name: &str, system_name: Option<String>) -> Option<Account> {
     let mut domain_size: u32 = 0;
     let wide = WideCString::from_str(name).unwrap();
     unsafe {
-        LookupAccountNameW(null_mut(),
-                           wide.as_ptr(),
-                           null_mut(),
-                           &mut sid_size as LPDWORD,
-                           null_mut(),
-                           &mut domain_size as LPDWORD,
-                           null_mut())
+        LookupAccountNameW(
+            null_mut(),
+            wide.as_ptr(),
+            null_mut(),
+            &mut sid_size as LPDWORD,
+            null_mut(),
+            &mut domain_size as LPDWORD,
+            null_mut(),
+        )
     };
     match Error::last_os_error().raw_os_error().unwrap() as u32 {
         ERROR_INSUFFICIENT_BUFFER => {}
         ERROR_NONE_MAPPED => return None,
         _ => {
-            panic!("Error while looking up account for {}: {}",
-                   name,
-                   Error::last_os_error())
+            panic!(
+                "Error while looking up account for {}: {}",
+                name,
+                Error::last_os_error()
+            )
         }
     }
 
@@ -78,18 +83,22 @@ fn lookup_account(name: &str, system_name: Option<String>) -> Option<Account> {
     let mut sid_type = SID_NAME_USE(0);
 
     let ret = unsafe {
-        LookupAccountNameW(null_mut(),
-                           wide.as_ptr(),
-                           sid.as_mut_ptr() as PSID,
-                           &mut sid_size as LPDWORD,
-                           domain.as_mut_ptr(),
-                           &mut domain_size as LPDWORD,
-                           &mut sid_type as PSID_NAME_USE)
+        LookupAccountNameW(
+            null_mut(),
+            wide.as_ptr(),
+            sid.as_mut_ptr() as PSID,
+            &mut sid_size as LPDWORD,
+            domain.as_mut_ptr(),
+            &mut domain_size as LPDWORD,
+            &mut sid_type as PSID_NAME_USE,
+        )
     };
     if ret == 0 {
-        panic!("Failed to retrieve SID for {}: {}",
-               name,
-               Error::last_os_error());
+        panic!(
+            "Failed to retrieve SID for {}: {}",
+            name,
+            Error::last_os_error()
+        );
     }
     unsafe {
         domain.set_len(domain_size as usize);
@@ -97,12 +106,12 @@ fn lookup_account(name: &str, system_name: Option<String>) -> Option<Account> {
     }
     let domain_str = WideCString::from_vec(domain).unwrap().to_string_lossy();
     Some(Account {
-             name: name.to_string(),
-             system_name: system_name,
-             domain: domain_str,
-             account_type: sid_type,
-             sid: Sid { raw: sid },
-         })
+        name: name.to_string(),
+        system_name: system_name,
+        domain: domain_str,
+        account_type: sid_type,
+        sid: Sid { raw: sid },
+    })
 }
 
 #[cfg(test)]

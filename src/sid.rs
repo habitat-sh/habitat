@@ -31,12 +31,16 @@ impl Sid {
     pub fn to_string(&self) -> String {
         let mut buffer: LPCWSTR = null_mut();
         let ret = unsafe {
-            ConvertSidToStringSidW(self.raw.as_ptr() as PSID,
-                                   (&mut buffer as *mut LPCWSTR) as LPCWSTR)
+            ConvertSidToStringSidW(
+                self.raw.as_ptr() as PSID,
+                (&mut buffer as *mut LPCWSTR) as LPCWSTR,
+            )
         };
         if ret == 0 {
-            panic!("Failed to convert sid to string: {}",
-                   Error::last_os_error());
+            panic!(
+                "Failed to convert sid to string: {}",
+                Error::last_os_error()
+            );
         } else {
             let widestr = unsafe { WideCString::from_ptr_str(buffer) };
             unsafe { LocalFree(buffer as HLOCAL) };
