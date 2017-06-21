@@ -116,15 +116,23 @@ pub fn job_log_get(
     if job.get_is_archived() {
         match state.archiver().retrieve(job.get_id()) {
             Ok(lines) => {
-                let log_content = RepeatedField::from_vec(lines);
-                let num_lines = log_content.len();
+                let start = msg.get_start();
+                let num_lines = lines.len() as u64;
+                let segment;
+
+                if start > num_lines - 1 {
+                    segment = vec![];
+                } else {
+                    segment = lines[start as usize..].to_vec();
+                }
 
                 let mut log = proto::JobLog::new();
-                log.set_start(0);
-                log.set_stop(num_lines as u64);
+                let log_content = RepeatedField::from_vec(segment);
+
+                log.set_start(start);
+                log.set_stop(num_lines);
                 log.set_is_complete(true); // by definition
                 log.set_content(log_content);
-
                 req.reply_complete(sock, &log)?;
             }
             Err(e @ Error::CaughtPanic(_, _)) => {
