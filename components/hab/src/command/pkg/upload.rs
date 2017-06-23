@@ -108,7 +108,7 @@ pub fn start<P: AsRef<Path>>(
             Ok(())
         }
         Err(depot_client::Error::APIError(StatusCode::NotFound, _)) => {
-            for dep in tdeps.into_iter() {
+            for dep in tdeps {
                 match depot_client.show_package(&dep, None) {
                     Ok(_) => try!(ui.status(Status::Using, format!("existing {}", &dep))),
                     Err(depot_client::Error::APIError(StatusCode::NotFound, _)) => {
