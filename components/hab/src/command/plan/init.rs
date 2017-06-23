@@ -164,7 +164,7 @@ fn render_ignorefile(ui: &mut UI, root: &str) -> Result<()> {
     let expanded = canonicalize(&parent)?;
     let current_path = Path::new(&expanded);
 
-    if is_git_managed(&current_path) {
+    if is_git_managed(current_path) {
         let target = format!("{}/.gitignore", parent);
         let target_path = Path::new(&target);
 
@@ -207,7 +207,7 @@ fn is_git_managed(path: &Path) -> bool {
         true
     }
     else if let Some(parent) = path.parent() {
-        is_git_managed(&parent)
+        is_git_managed(parent)
     } else {
         false
     }

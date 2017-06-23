@@ -208,7 +208,7 @@ fn attempt_upload_dep(
     let candidate_path = archives_dir.join(ident.archive_name().unwrap());
     if candidate_path.is_file() {
         let mut archive = PackageArchive::new(candidate_path);
-        upload_into_depot(ui, &depot_client, token, &ident, &mut archive)
+        upload_into_depot(ui, depot_client, token, ident, &mut archive)
     } else {
         try!(ui.status(
             Status::Missing,
