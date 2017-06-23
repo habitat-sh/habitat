@@ -60,12 +60,12 @@ $main-nav-breakpoint: 769px;
     }
 
     .main-nav--logo {
-      @media (min-width: 973px) {
+      @media (min-width: 1150px) {
         width: rem-calc(240);
         height: rem-calc(108);
       }
 
-      @media (max-width: 1550px) and (min-width: 973px) {
+      @media (max-width: 1550px) and (min-width: 1150px) {
         position: absolute;
         left: rem-calc(180);
       }
@@ -362,7 +362,7 @@ $main-nav-breakpoint: 769px;
   position: absolute;
   left: 0;
 
-  @media (min-width: 973px) {
+  @media (min-width: 1150px) {
     .home & {
       display: block;
     }
