@@ -296,7 +296,7 @@ Add the following line if not present to see if it resolves your issue:
 
 ### Node troubleshooting
 
-1. If you are seeing an error similar to this:
+If you are seeing an error similar to this:
 
    ```
       web.1       | /home/nell/habitat/support/builder_web.sh: line 38: ./node_modules/.bin/lite-server: No such file or directory
