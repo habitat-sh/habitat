@@ -48,7 +48,7 @@ mod inner {
             Ok(command) => PathBuf::from(command),
             Err(_) => {
                 init();
-                let version: Vec<&str> = VERSION.split("/").collect();
+                let version: Vec<&str> = VERSION.split('/').collect();
                 let ident = try!(PackageIdent::from_str(
                     &format!("{}/{}", butterfly_ident, version[0]),
                 ));
