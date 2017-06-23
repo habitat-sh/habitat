@@ -302,20 +302,20 @@ Add the following line if not present to see if it resolves your issue:
       web.1       | /home/nell/habitat/support/builder_web.sh: line 38: ./node_modules/.bin/lite-server: No such file or directory
    ```
 
-1. Then check whether you are having node version issues.  Get the version builder-web expects like this:
+Check what version of node that builder-web expects
 
    ```
      cd components/builder-web
-     node -v
-   ```
-
-1. Then compare that version to the one in your .nvmrc (also in components/builder-web)
-
-   ```
      cat .nvmrc
    ```
 
-1.  If they are not the same, then you will need to run nvm install
+Then check which one you are running:
+
+   ```
+     node -v
+   ```
+
+If they are not the same, then you will need to run nvm install within the components/builder-web directory.
 
    ```
      nvm install
@@ -327,13 +327,13 @@ Add the following line if not present to see if it resolves your issue:
      $HOME/.nvm/nvm.sh
    ```
 
-1. Then try running builder again
+Then try running builder again
 
    ```
      make bldr-run
    ```
 
-1. If you see errors along these lines:
+1.  If you see errors along these lines:
 
    ```
 	web.1       | npm ERR! npm  v2.15.1
@@ -341,21 +341,18 @@ Add the following line if not present to see if it resolves your issue:
 	web.1       | npm ERR! code ELIFECYCLE
 	web.1       | npm ERR! errno ENOENT
 	web.1       | npm ERR! syscall spawn
-	originsrv.1 | DEBUG:postgres: preparing query with name ``: INSERT INTO builder_db_migrations (prefix, hashed_content) VALUES ($1, $2)
 	web.1       | npm ERR! habitat@0.8.0 build: `concurrently "npm run build-js" "npm run build-css"`
 	web.1       | npm ERR! spawn ENOENT
 	web.1       | npm ERR! 
-	originsrv.1 | DEBUG:postgres: executing statement  with parameters: ["originsrv-3", 
-	"57008e56eec0f5eb1b406c74974f65ecf5e05db08010c20a2d1884e8dfdfde64"]
 	web.1       | npm ERR! Failed at the habitat@0.8.0 build script 'concurrently "npm run build-js" "npm run build-css"'.
 	web.1       | npm ERR! This is most likely a problem with the habitat package,
 	web.1       | npm ERR! not with npm itself.
    ```
 
-1. Then you will need to remove your node_modules directory, then run npm install:
+Then you will need to remove your node_modules directory, then run npm install:
 
    ```
-     cd path/to/habitat/repo
+     cd path/to/habitat/repo/components/builder-web
      rm -rf node_modules
      npm install  
    ```
