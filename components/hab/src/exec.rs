@@ -54,7 +54,7 @@ pub fn command_from_min_pkg(
         Ok(pi) => {
             match try!(fs::find_command_in_pkg(&command, &pi, fs_root_path)) {
                 Some(cmd) => Ok(cmd),
-                None => return Err(Error::ExecCommandNotFound(command.to_string())),
+                None => Err(Error::ExecCommandNotFound(command.to_string()))
             }
         }
         Err(hcore::Error::PackageNotFound(_)) => {
@@ -75,6 +75,6 @@ pub fn command_from_min_pkg(
             ));
             command_from_min_pkg(ui, &command, &ident, &cache_key_path, retry + 1)
         }
-        Err(e) => return Err(Error::from(e)),
+        Err(e) => Err(Error::from(e))
     }
 }
