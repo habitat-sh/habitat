@@ -321,7 +321,7 @@ If they are not the same, then you will need to run nvm install within the compo
      nvm install
    ```
 
-1. If you get this error "No command 'nvm' found, did you mean:", you will need to re-run your $HOME/.nvm/nvm.sh script
+If you get this error "No command 'nvm' found, did you mean:", you will need to re-run your $HOME/.nvm/nvm.sh script
 
    ```
      $HOME/.nvm/nvm.sh
@@ -333,7 +333,7 @@ Then try running builder again
      make bldr-run
    ```
 
-1.  If you see errors along these lines:
+If you see errors along these lines:
 
    ```
 	web.1       | npm ERR! npm  v2.15.1
