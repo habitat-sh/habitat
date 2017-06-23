@@ -116,7 +116,7 @@ mod inner {
             }
         }
         let pkg_arg = OsString::from(&ident.to_string());
-        exec::start(&format_ident, &format.cmd(), vec![pkg_arg])
+        exec::start(format_ident, format.cmd(), vec![pkg_arg])
     }
 }
 

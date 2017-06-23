@@ -60,7 +60,7 @@ pub enum Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
-            Error::ArgumentError(ref e) => format!("{}", e),
+            Error::ArgumentError(e) => format!("{}", e),
             Error::ButterflyError(ref e) => format!("{}", e),
             Error::CommandNotFoundInPkg((ref p, ref c)) => {
                 format!(

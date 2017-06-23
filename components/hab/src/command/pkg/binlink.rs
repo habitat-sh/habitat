@@ -37,7 +37,7 @@ pub fn start(
         &ident,
         dst_path.display()
     )));
-    let pkg_install = try!(PackageInstall::load(&ident, Some(fs_root_path)));
+    let pkg_install = try!(PackageInstall::load(ident, Some(fs_root_path)));
     let src = match try!(hfs::find_command_in_pkg(binary, &pkg_install, fs_root_path)) {
         Some(c) => c,
         None => {
@@ -77,7 +77,7 @@ pub fn binlink_all_in_pkg(
     dest_path: &Path,
     fs_root_path: &Path,
 ) -> Result<()> {
-    let pkg_path = PackageInstall::load(&pkg_ident, Some(fs_root_path))?;
+    let pkg_path = PackageInstall::load(pkg_ident, Some(fs_root_path))?;
     for bin_path in pkg_path.paths()? {
         for bin in fs::read_dir(&bin_path)? {
             let bin_file = bin?;
@@ -90,7 +90,7 @@ pub fn binlink_all_in_pkg(
                     continue;
                 }
             };
-            self::start(ui, &pkg_ident, &bin_name, &dest_path, &fs_root_path)?;
+            self::start(ui, pkg_ident, &bin_name, dest_path, fs_root_path)?;
         }
     }
     Ok(())

@@ -86,7 +86,7 @@ fn download_key(
     rev: &str,
     cache: &Path,
 ) -> Result<()> {
-    match SigKeyPair::get_public_key_path(&nwr, &cache) {
+    match SigKeyPair::get_public_key_path(nwr, &cache) {
         Ok(_) => try!(ui.status(Status::Using, &nwr)),
         Err(_) => {
             let download_fn = || -> Result<()> {

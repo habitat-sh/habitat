@@ -39,7 +39,7 @@ pub fn start(
         public_keyfile.display()
     )));
 
-    let name_with_rev = try!(get_name_with_rev(&public_keyfile, PUBLIC_SIG_KEY_VERSION));
+    let name_with_rev = try!(get_name_with_rev(public_keyfile, PUBLIC_SIG_KEY_VERSION));
     let (name, rev) = try!(parse_name_with_rev(&name_with_rev));
 
     {
@@ -85,7 +85,7 @@ pub fn start(
     )));
 
     if let Some(secret_keyfile) = secret_keyfile {
-        let name_with_rev = try!(get_name_with_rev(&secret_keyfile, SECRET_SIG_KEY_VERSION));
+        let name_with_rev = try!(get_name_with_rev(secret_keyfile, SECRET_SIG_KEY_VERSION));
         let (name, rev) = try!(parse_name_with_rev(&name_with_rev));
 
         let upload_fn = || -> Result<()> {

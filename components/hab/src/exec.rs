@@ -52,7 +52,7 @@ pub fn command_from_min_pkg(
     let fs_root_path = Path::new("/");
     match PackageInstall::load_at_least(ident, None) {
         Ok(pi) => {
-            match try!(fs::find_command_in_pkg(&command, &pi, fs_root_path)) {
+            match try!(fs::find_command_in_pkg(command, &pi, fs_root_path)) {
                 Some(cmd) => Ok(cmd),
                 None => Err(Error::ExecCommandNotFound(command.to_string()))
             }
@@ -73,7 +73,7 @@ pub fn command_from_min_pkg(
                 &cache_artifact_path(None),
                 false,
             ));
-            command_from_min_pkg(ui, &command, &ident, &cache_key_path, retry + 1)
+            command_from_min_pkg(ui, command, ident, cache_key_path, retry + 1)
         }
         Err(e) => Err(Error::from(e))
     }
