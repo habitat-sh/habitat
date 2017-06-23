@@ -76,6 +76,19 @@ unit-lib: $(addprefix unit-,$(LIB)) ## executes the library components' unit tes
 unit-srv: $(addprefix unit-,$(SRV)) ## executes the service components' unit test suites
 .PHONY: unit-srv
 
+lint: lint-bin lint-lib lint-srv ## executs all components' lints
+lint-all: lint
+.PHONY: lint lint-all
+
+lint-bin: $(addprefix lint-,$(BIN))
+.PHONY: lint-bin
+
+lint-lib: $(addprefix lint-,$(LIB))
+.PHONY: lint-lib
+
+lint-srv: $(addprefix lint-,$(SRV))
+.PHONY: lint-srv
+
 functional: functional-bin functional-lib functional-srv ## executes all the components' functional test suites
 functional-all: functional
 test: functional ## executes all components' test suites
@@ -191,9 +204,15 @@ define UNIT
 unit-$1: image ## executes the $1 component's unit test suite
 	$(run) sh -c 'cd components/$1 && cargo test'
 .PHONY: unit-$1
-
 endef
 $(foreach component,$(ALL),$(eval $(call UNIT,$(component))))
+
+define LINT
+lint-$1: image ## executes the $1 component's linter checks
+	$(run) sh -c 'cd components/$1 && cargo clippy'
+.PHONY: lint-$1
+endef
+$(foreach component,$(ALL),$(eval $(call LINT,$(component))))
 
 define FUNCTIONAL
 functional-$1: image ## executes the $1 component's functional test suite
