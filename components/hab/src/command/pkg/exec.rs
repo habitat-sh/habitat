@@ -24,7 +24,7 @@ use error::{Error, Result};
 pub fn start(ident: &PackageIdent, command: &str, args: Vec<OsString>) -> Result<()> {
     let pkg_install = PackageInstall::load(ident, None)?;
     let run_env = pkg_install.runtime_environment()?;
-    for (key, value) in run_env.into_iter() {
+    for (key, value) in run_env {
         info!("Setting: {}='{}'", key, value);
         env::set_var(key, value);
     }
