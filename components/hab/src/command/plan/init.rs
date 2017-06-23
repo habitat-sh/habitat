@@ -203,16 +203,14 @@ fn render_ignorefile(ui: &mut UI, root: &str) -> Result<()> {
 }
 
 fn is_git_managed(path: &Path) -> bool {
-
     if path.join(".git").is_dir() {
-        return true;
+        true
     }
-
-    if let Some(parent) = path.parent() {
-        return is_git_managed(&parent);
+    else if let Some(parent) = path.parent() {
+        is_git_managed(&parent)
+    } else {
+        false
     }
-
-    return false;
 }
 
 fn create_with_template(ui: &mut UI, location: &str, template: &str) -> Result<()> {

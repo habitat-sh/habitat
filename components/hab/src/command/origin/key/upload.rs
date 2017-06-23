@@ -104,7 +104,7 @@ pub fn start(
                     Ok(())
                 }
                 Err(e) => {
-                    return Err(Error::DepotClient(e));
+                    Err(Error::DepotClient(e))
                 }
             }
         };
