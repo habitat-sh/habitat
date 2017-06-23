@@ -366,6 +366,13 @@ PLAN_CONTEXT=${1:-.}
 : ${HAB_DEPOT_URL:=https://willem.habitat.sh/v1/depot}
 # Export the Depot URL so all other programs and subshells use this same one
 export HAB_DEPOT_URL
+# The default Habitat channel from where to download dependencies. If
+# `HAB_DEPOT_CHANNEL` is set, this value is overridden.
+: ${HAB_DEPOT_CHANNEL:=stable}
+# Export the Depot channel so all other programs and subshells use this same one
+export HAB_DEPOT_CHANNEL
+# Fall back here if package can't be installed from $HAB_DEPOT_CHANNEL
+FALLBACK_CHANNEL="stable"
 # The value of `$PATH` on initial start of this program
 INITIAL_PATH="$PATH"
 # The value of `pwd` on initial start of this program
@@ -703,7 +710,12 @@ _resolve_dependency() {
 # ```
 _install_dependency() {
   if [[ -z "${NO_INSTALL_DEPS:-}" ]]; then
-    $HAB_BIN install -u $HAB_DEPOT_URL "$dep" || true
+    $HAB_BIN install -u $HAB_DEPOT_URL --channel $HAB_DEPOT_CHANNEL "$dep" || {
+      if [[ "$HAB_DEPOT_CHANNEL" != "$FALLBACK_CHANNEL" ]]; then
+        build_line "Trying to install '$dep' from '$FALLBACK_CHANNEL'"
+        $HAB_BIN install -u $HAB_DEPOT_URL --channel "$FALLBACK_CHANNEL" "$dep" || true
+      fi
+    }
   fi
   return 0
 }
