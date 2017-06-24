@@ -560,10 +560,10 @@ fn raw_parse_args() -> (Vec<OsString>, Vec<OsString>) {
     ) {
         ("pkg", "exec") => {
             if args.by_ref().count() > 2 {
-                return (
+                (
                     env::args_os().take(5).collect(),
                     env::args_os().skip(5).collect(),
-                );
+                )
             } else {
                 (env::args_os().collect(), Vec::new())
             }
@@ -585,7 +585,7 @@ fn auth_token_param_or_env(m: &ArgMatches) -> Result<String> {
                     let config = try!(config::load());
                     match config.auth_token {
                         Some(v) => Ok(v),
-                        None => return Err(Error::ArgumentError("No auth token specified")),
+                        None => Err(Error::ArgumentError("No auth token specified")),
                     }
                 }
             }
@@ -606,7 +606,7 @@ fn origin_param_or_env(m: &ArgMatches) -> Result<String> {
                     let config = try!(config::load());
                     match config.origin {
                         Some(v) => Ok(v),
-                        None => return Err(Error::CryptoCLI("No origin specified".to_string())),
+                        None => Err(Error::CryptoCLI("No origin specified".to_string())),
                     }
                 }
             }
@@ -623,7 +623,7 @@ fn org_param_or_env(m: &ArgMatches) -> Result<String> {
         None => {
             match henv::var(HABITAT_ORG_ENVVAR) {
                 Ok(v) => Ok(v),
-                Err(_) => return Err(Error::CryptoCLI("No organization specified".to_string())),
+                Err(_) => Err(Error::CryptoCLI("No organization specified".to_string())),
             }
         }
     }
