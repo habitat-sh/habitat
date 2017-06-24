@@ -199,7 +199,8 @@ fn sub_cli_completers(m: &ArgMatches) -> Result<()> {
 fn sub_origin_key_download(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let origin = m.value_of("ORIGIN").unwrap(); // Required via clap
     let revision = m.value_of("REVISION");
-    let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or_else(|_| DEFAULT_DEPOT_URL.to_string());
+    let env_or_default =
+        henv::var(DEPOT_URL_ENVVAR).unwrap_or_else(|_| DEFAULT_DEPOT_URL.to_string());
     let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
 
     command::origin::key::download::start(
@@ -237,7 +238,8 @@ fn sub_origin_key_import(ui: &mut UI) -> Result<()> {
 }
 
 fn sub_origin_key_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
-    let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or_else(|_| DEFAULT_DEPOT_URL.to_string());
+    let env_or_default =
+        henv::var(DEPOT_URL_ENVVAR).unwrap_or_else(|_| DEFAULT_DEPOT_URL.to_string());
     let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
     let token = try!(auth_token_param_or_env(m));
 
@@ -353,12 +355,13 @@ fn sub_plan_init(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_pkg_install(ui: &mut UI, m: &ArgMatches) -> Result<()> {
-    let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or_else(|_| DEFAULT_DEPOT_URL.to_string());
+    let env_or_default =
+        henv::var(DEPOT_URL_ENVVAR).unwrap_or_else(|_| DEFAULT_DEPOT_URL.to_string());
     let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
     let channel = m.value_of("CHANNEL");
     let ident_or_artifacts = m.values_of("PKG_IDENT_OR_ARTIFACT").unwrap(); // Required via clap
     let ignore_target = m.is_present("IGNORE_TARGET");
-    
+
     init();
 
     for ident_or_artifact in ident_or_artifacts {
@@ -397,7 +400,8 @@ fn sub_pkg_provides(m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_pkg_search(m: &ArgMatches) -> Result<()> {
-    let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or_else(|_| DEFAULT_DEPOT_URL.to_string());
+    let env_or_default =
+        henv::var(DEPOT_URL_ENVVAR).unwrap_or_else(|_| DEFAULT_DEPOT_URL.to_string());
     let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
     let search_term = m.value_of("SEARCH_TERM").unwrap(); // Required via clap
     command::pkg::search::start(search_term, url)
@@ -416,12 +420,13 @@ fn sub_pkg_sign(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_pkg_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
-    let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or_else(|_| DEFAULT_DEPOT_URL.to_string());
+    let env_or_default =
+        henv::var(DEPOT_URL_ENVVAR).unwrap_or_else(|_| DEFAULT_DEPOT_URL.to_string());
     let key_path = cache_key_path(Some(&*FS_ROOT));
     // don't use a pathbuf, as the P generic param for upload::start below is bound to a &str
-    let key_path = try!(key_path.to_str().ok_or_else(|| Error::CryptoCLI(
-        "Invalid key path".to_string(),
-    )));
+    let key_path = try!(key_path.to_str().ok_or_else(|| {
+        Error::CryptoCLI("Invalid key path".to_string())
+    }));
     let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
     let token = try!(auth_token_param_or_env(m));
     let artifact_paths = m.values_of("HART_FILE").unwrap(); // Required via clap
@@ -528,19 +533,18 @@ fn exec_subcommand_if_called(ui: &mut UI) -> Result<()> {
         ("config", _) | ("file", _) => {
             command::butterfly::start(ui, env::args_os().skip(1).collect())
         }
-        ("run", _) => command::sup::start(ui, env::args_os().skip(1).collect()),
         ("stu", _) | ("stud", _) | ("studi", _) | ("studio", _) => {
             command::studio::start(ui, env::args_os().skip(2).collect())
         }
-        ("sup", _) => command::sup::start(ui, env::args_os().skip(2).collect()),
-        ("start", _) => command::sup::start(ui, env::args_os().skip(1).collect()),
-        ("stop", _) => command::sup::start(ui, env::args_os().skip(1).collect()),
+        ("run", _) | ("start", _) | ("term", _) | ("stop", _) => {
+            command::sup::start(ui, env::args_os().skip(1).collect())
+        }
+        ("sup", _) |
         ("svc", "load") |
         ("svc", "unload") |
         ("svc", "start") |
         ("svc", "status") |
         ("svc", "stop") => command::sup::start(ui, env::args_os().skip(2).collect()),
-        ("term", _) => command::sup::start(ui, env::args_os().skip(1).collect()),
         _ => Ok(()),
     }
 }
