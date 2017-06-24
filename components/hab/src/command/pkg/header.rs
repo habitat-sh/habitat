@@ -26,19 +26,19 @@ pub fn start(ui: &mut UI, src: &Path) -> Result<()> {
     ));
     try!(ui.para(""));
     if let Ok(header) = artifact::get_artifact_header(src) {
-        try!(io::stdout().write(
+        try!(io::stdout().write_all(
             format!("Package        : {}\n", &src.display()).as_bytes(),
         ));
-        try!(io::stdout().write(
+        try!(io::stdout().write_all(
             format!("Format Version : {}\n", header.format_version).as_bytes(),
         ));
-        try!(io::stdout().write(
+        try!(io::stdout().write_all(
             format!("Key Name       : {}\n", header.key_name).as_bytes(),
         ));
-        try!(io::stdout().write(
+        try!(io::stdout().write_all(
             format!("Hash Type      : {}\n", header.hash_type).as_bytes(),
         ));
-        try!(io::stdout().write(
+        try!(io::stdout().write_all(
             format!("Raw Signature  : {}\n", header.signature_raw).as_bytes(),
         ));
     } else {
