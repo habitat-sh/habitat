@@ -13,6 +13,7 @@
 // limitations under the License.
 
 pub mod service;
+mod self_updater;
 mod service_updater;
 mod spec_watcher;
 mod sys;
@@ -25,6 +26,7 @@ use std::net::SocketAddr;
 use std::path::{Path, PathBuf};
 use std::result;
 use std::thread;
+use std::str::FromStr;
 use std::sync::{Arc, RwLock};
 use std::sync::mpsc::channel;
 use std::time::Duration;
@@ -41,7 +43,7 @@ use hcore::crypto::{default_cache_key_path, SymKey};
 use hcore::fs::FS_ROOT_PATH;
 use hcore::service::ServiceGroup;
 use hcore::os::process::{self, Signal};
-use hcore::package::{Identifiable, PackageIdent};
+use hcore::package::{Identifiable, PackageIdent, PackageInstall};
 use launcher_client::LauncherCli;
 use protobuf::Message;
 use serde;
@@ -50,9 +52,11 @@ use time::{self, Timespec, Duration as TimeDuration};
 
 pub use self::service::{Service, ServiceSpec, UpdateStrategy, Topology};
 pub use self::sys::Sys;
+use self::self_updater::{SUP_PKG_IDENT, SelfUpdater};
 use self::service::{DesiredState, Pkg, ProcessState, StartStyle};
 use self::service_updater::ServiceUpdater;
 use self::spec_watcher::{SpecWatcher, SpecWatcherEvent};
+use VERSION;
 use error::{Error, Result, SupError};
 use config::GossipListenAddr;
 use census::CensusRing;
@@ -113,6 +117,9 @@ impl FsCfg {
 
 #[derive(Clone, Default)]
 pub struct ManagerConfig {
+    pub auto_update: bool,
+    pub update_url: String,
+    pub update_channel: Option<String>,
     pub gossip_listen: GossipListenAddr,
     pub http_listen: http_gateway::ListenAddr,
     pub gossip_peers: Vec<SocketAddr>,
@@ -132,6 +139,7 @@ pub struct Manager {
     updater: ServiceUpdater,
     watcher: SpecWatcher,
     organization: Option<String>,
+    self_updater: Option<SelfUpdater>,
     service_states: HashMap<PackageIdent, Timespec>,
     sys: Arc<Sys>,
 }
@@ -202,6 +210,21 @@ impl Manager {
     }
 
     fn new(cfg: ManagerConfig, fs_cfg: FsCfg, launcher: LauncherCli) -> Result<Manager> {
+        let current = PackageIdent::from_str(&format!("{}/{}", SUP_PKG_IDENT, VERSION)).unwrap();
+        let self_updater = if cfg.auto_update {
+            if current.fully_qualified() {
+                Some(SelfUpdater::new(
+                    current,
+                    cfg.update_url,
+                    cfg.update_channel,
+                ))
+            } else {
+                warn!("Supervisor version not fully qualified, unable to start self-updater");
+                None
+            }
+        } else {
+            None
+        };
         let mut sys = Sys::new(cfg.gossip_permanent, cfg.gossip_listen, cfg.http_listen);
         let member = Self::load_member(&mut sys, &fs_cfg)?;
 
@@ -236,6 +259,7 @@ impl Manager {
             server.member_list.add_initial_member(peer);
         }
         Ok(Manager {
+            self_updater: self_updater,
             updater: ServiceUpdater::new(server.clone()),
             census_ring: CensusRing::new(sys.member_id.clone()),
             butterfly: server,
@@ -509,6 +533,14 @@ impl Manager {
                 self.shutdown();
                 return Ok(());
             }
+            if let Some(package) = self.check_for_updated_supervisor() {
+                outputln!(
+                    "Supervisor shutting down for automatic update to {}",
+                    package
+                );
+                self.shutdown();
+                return Ok(());
+            }
             self.update_running_services_from_watcher()?;
             self.check_for_updated_packages();
             self.restart_elections();
@@ -565,6 +597,13 @@ impl Manager {
                 thread::sleep(Duration::from_millis(time_to_wait as u64));
             }
         }
+    }
+
+    fn check_for_updated_supervisor(&mut self) -> Option<PackageInstall> {
+        if let Some(ref mut updater) = self.self_updater {
+            return updater.updated();
+        }
+        None
     }
 
     /// Walk each service and check if it has an updated package installed via the Update Strategy.

@@ -193,6 +193,13 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                 "The listen address of an initial peer (IP[:PORT])")
             (@arg PERMANENT_PEER: --("permanent-peer") -I "If this Supervisor is a permanent peer")
             (@arg RING: --ring -r +takes_value "Ring key name")
+            (@arg CHANNEL: --channel +takes_value
+                "Receive Supervisor updates from the specified release channel")
+            (@arg DEPOT_URL: --url -u +takes_value {valid_url}
+                "Receive Supervisor updates from the Depot at the specified URL \
+                [default: https://bldr.habitat.sh/v1/depot]")
+            (@arg AUTO_UPDATE: --("auto-update") -A "Enable automatic updates for the Supervisor \
+                itself")
         )
         (@subcommand sh =>
             (about: "Start an interactive Bourne-like shell")
@@ -223,7 +230,7 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
             (@arg CHANNEL: --channel +takes_value
                 "Receive package updates from the specified release channel")
             (@arg GROUP: --group +takes_value
-                "The service group; shared config and topology [default: default].")
+                "The service group; shared config and topology [default: default]")
             (@arg DEPOT_URL: --url -u +takes_value {valid_url}
                 "Receive package updates from the Depot at the specified URL \
                 [default: https://bldr.habitat.sh/v1/depot]")
@@ -235,6 +242,8 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                 "One or more service groups to bind to a configuration")
             (@arg CONFIG_DIR: --("config-from") +takes_value {dir_exists}
                 "Use package config from this path, rather than the package itself")
+            (@arg AUTO_UPDATE: --("auto-update") -A "Enable automatic updates for the Supervisor \
+                itself")
         )
         (@subcommand status =>
             (about: "Query the status of Habitat services.")
@@ -605,6 +614,12 @@ fn sub_term(m: &ArgMatches) -> Result<()> {
 fn mgrcfg_from_matches(m: &ArgMatches) -> Result<ManagerConfig> {
     let mut cfg = ManagerConfig::default();
 
+    cfg.auto_update = m.is_present("AUTO_UPDATE");
+    cfg.update_url = match m.value_of("DEPOT_URL") {
+        Some(url) => url.to_string(),
+        None => henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string()),
+    };
+    cfg.update_channel = m.value_of("CHANNEL").map(|c| c.to_string());
     if let Some(addr_str) = m.value_of("LISTEN_GOSSIP") {
         cfg.gossip_listen = GossipListenAddr::from_str(addr_str)?;
     }
