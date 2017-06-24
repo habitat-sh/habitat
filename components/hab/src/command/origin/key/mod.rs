@@ -31,7 +31,7 @@ fn get_name_with_rev(keyfile: &Path, expected_vsn: &str) -> Result<String> {
     let f = try!(File::open(&keyfile));
     let f = BufReader::new(f);
     let mut lines = f.lines();
-    let _ = match lines.next() {
+    match lines.next() {
         Some(val) => {
             let val = try!(val);
             if &val != expected_vsn {
