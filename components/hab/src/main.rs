@@ -204,8 +204,8 @@ fn sub_origin_key_download(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 
     command::origin::key::download::start(
         ui,
-        &url,
-        &origin,
+        url,
+        origin,
         revision,
         &default_cache_key_path(Some(&*FS_ROOT)),
     )
@@ -222,7 +222,7 @@ fn sub_origin_key_export(m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_origin_key_generate(ui: &mut UI, m: &ArgMatches) -> Result<()> {
-    let origin = try!(origin_param_or_env(&m));
+    let origin = try!(origin_param_or_env(m));
     init();
 
     command::origin::key::generate::start(ui, &origin, &default_cache_key_path(Some(&*FS_ROOT)))
@@ -239,7 +239,7 @@ fn sub_origin_key_import(ui: &mut UI) -> Result<()> {
 fn sub_origin_key_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or_else(|_| DEFAULT_DEPOT_URL.to_string());
     let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
-    let token = try!(auth_token_param_or_env(&m));
+    let token = try!(auth_token_param_or_env(m));
 
     init();
 
@@ -258,7 +258,7 @@ fn sub_origin_key_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     } else {
         let keyfile = Path::new(m.value_of("PUBLIC_FILE").unwrap());
         let secret_keyfile = m.value_of("SECRET_FILE").map(|f| Path::new(f));
-        command::origin::key::upload::start(ui, url, &token, &keyfile, secret_keyfile)
+        command::origin::key::upload::start(ui, url, &token, keyfile, secret_keyfile)
     }
 }
 
@@ -266,7 +266,7 @@ fn sub_pkg_binlink(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let ident = try!(PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap()));
     let dest_dir = Path::new(m.value_of("DEST_DIR").unwrap_or(DEFAULT_BINLINK_DIR));
     match m.value_of("BINARY") {
-        Some(binary) => command::pkg::binlink::start(ui, &ident, &binary, &dest_dir, &*FS_ROOT),
+        Some(binary) => command::pkg::binlink::start(ui, &ident, binary, dest_dir, &*FS_ROOT),
         None => command::pkg::binlink::binlink_all_in_pkg(ui, &ident, dest_dir, &*FS_ROOT),
     }
 }
@@ -322,7 +322,7 @@ fn sub_pkg_exec(m: &ArgMatches, cmd_args: Vec<OsString>) -> Result<()> {
 fn sub_pkg_export(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let ident = try!(PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())); // Required via clap
     let format = &m.value_of("FORMAT").unwrap(); // Required via clap
-    let export_fmt = try!(command::pkg::export::format_for(ui, &format));
+    let export_fmt = try!(command::pkg::export::format_for(ui, format));
     command::pkg::export::start(ui, &ident, &export_fmt)
 }
 
@@ -331,7 +331,7 @@ fn sub_pkg_hash(m: &ArgMatches) -> Result<()> {
     match m.value_of("SOURCE") {
         Some(source) => {
             // hash single file
-            command::pkg::hash::start(&source)
+            command::pkg::hash::start(source)
         }
         None => {
             // read files from stdin
@@ -347,7 +347,7 @@ fn sub_pkg_hash(m: &ArgMatches) -> Result<()> {
 
 fn sub_plan_init(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let name = m.value_of("PKG_NAME").map(|v| v.into());
-    let origin = try!(origin_param_or_env(&m));
+    let origin = try!(origin_param_or_env(m));
     let include_callbacks = !m.is_present("NO_CALLBACKS");
     command::plan::init::start(ui, origin, include_callbacks, name)
 }
@@ -396,14 +396,14 @@ fn sub_pkg_provides(m: &ArgMatches) -> Result<()> {
     let full_releases = m.is_present("FULL_RELEASES");
     let full_paths = m.is_present("FULL_PATHS");
 
-    command::pkg::provides::start(&filename, &*FS_ROOT, full_releases, full_paths)
+    command::pkg::provides::start(filename, &*FS_ROOT, full_releases, full_paths)
 }
 
 fn sub_pkg_search(m: &ArgMatches) -> Result<()> {
     let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or_else(|_| DEFAULT_DEPOT_URL.to_string());
     let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
     let search_term = m.value_of("SEARCH_TERM").unwrap(); // Required via clap
-    command::pkg::search::start(&search_term, &url)
+    command::pkg::search::start(search_term, url)
 }
 
 fn sub_pkg_sign(ui: &mut UI, m: &ArgMatches) -> Result<()> {
@@ -411,11 +411,11 @@ fn sub_pkg_sign(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let dst = Path::new(m.value_of("DEST").unwrap()); // Required via clap
     init();
     let pair = try!(SigKeyPair::get_latest_pair_for(
-        &try!(origin_param_or_env(&m)),
+        &try!(origin_param_or_env(m)),
         &default_cache_key_path(Some(&*FS_ROOT)),
     ));
 
-    command::pkg::sign::start(ui, &pair, &src, &dst)
+    command::pkg::sign::start(ui, &pair, src, dst)
 }
 
 fn sub_pkg_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
@@ -426,12 +426,12 @@ fn sub_pkg_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
         "Invalid key path".to_string(),
     )));
     let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
-    let token = try!(auth_token_param_or_env(&m));
+    let token = try!(auth_token_param_or_env(m));
     let artifact_paths = m.values_of("HART_FILE").unwrap(); // Required via clap
     for artifact_path in artifact_paths {
         try!(command::pkg::upload::start(
             ui,
-            &url,
+            url,
             &token,
             &artifact_path,
             &key_path,
@@ -444,14 +444,14 @@ fn sub_pkg_verify(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let src = Path::new(m.value_of("SOURCE").unwrap()); // Required via clap
     init();
 
-    command::pkg::verify::start(ui, &src, &default_cache_key_path(Some(&*FS_ROOT)))
+    command::pkg::verify::start(ui, src, &default_cache_key_path(Some(&*FS_ROOT)))
 }
 
 fn sub_pkg_header(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let src = Path::new(m.value_of("SOURCE").unwrap()); // Required via clap
     init();
 
-    command::pkg::header::start(ui, &src)
+    command::pkg::header::start(ui, src)
 }
 
 fn sub_ring_key_export(m: &ArgMatches) -> Result<()> {
@@ -477,7 +477,7 @@ fn sub_ring_key_import(ui: &mut UI) -> Result<()> {
 }
 
 fn sub_service_key_generate(ui: &mut UI, m: &ArgMatches) -> Result<()> {
-    let org = try!(org_param_or_env(&m));
+    let org = try!(org_param_or_env(m));
     let service_group = try!(ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap()));
     init();
 
