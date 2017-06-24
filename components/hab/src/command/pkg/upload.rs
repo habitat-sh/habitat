@@ -116,25 +116,22 @@ pub fn start<P: AsRef<Path>>(
                             Some(p) => PathBuf::from(p),
                             None => unreachable!(),
                         };
-                        if retry(RETRIES,
-                                 RETRY_WAIT,
-                                 || {
-                                     attempt_upload_dep(ui,
-                                                        &depot_client,
-                                                        token,
-                                                        &dep,
-                                                        &candidate_path)
-                                 },
-                                 |res| res.is_ok())
-                                   .is_err() {
-                            return Err(Error::from(depot_client::Error::UploadFailed(format!("We tried \
-                                                                                      {} times \
-                                                                                      but could \
-                                                                                      not upload \
-                                                                                      {}. Giving \
-                                                                                      up.",
-                                                                                             RETRIES,
-                                                                                             &dep))));
+
+                        let retries_failed: bool = retry(
+                            RETRIES,
+                            RETRY_WAIT,
+                            || {
+                                attempt_upload_dep(ui, &depot_client, token, &dep, &candidate_path)
+                            },
+                            |res| res.is_ok(),
+                        ).is_err();
+
+                        if retries_failed {
+                            return Err(Error::from(depot_client::Error::UploadFailed(format!(
+                                "We tried {} times but could not upload {}. Giving up.",
+                                RETRIES,
+                                &dep
+                            ))));
                         }
                     }
                     Err(e) => return Err(Error::from(e)),
