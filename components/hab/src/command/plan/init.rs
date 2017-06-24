@@ -108,21 +108,19 @@ pub fn start(
     ));
 
     let config_path = format!("{}/config/", root);
-    match Path::new(&config_path).exists() {
-        true => {
-            try!(ui.status(
-                Status::Using,
-                format!("existing directory: {}", config_path),
-            ))
-        }
-        false => {
-            try!(ui.status(
-                Status::Creating,
-                format!("directory: {}", config_path),
-            ));
-            try!(create_dir_all(&config_path));
-        }
-    };
+    if Path::new(&config_path).exists() {
+        try!(ui.status(
+            Status::Using,
+            format!("existing directory: {}", config_path),
+        ))
+    } else {
+        try!(ui.status(
+            Status::Creating,
+            format!("directory: {}", config_path),
+        ));
+        try!(create_dir_all(&config_path));
+    }
+
     try!(ui.para(
         "The `config` directory is where you can set up configuration files for your app. \
                They are influenced by `default.toml`. For more information see here: \
@@ -130,21 +128,20 @@ pub fn start(
     ));
 
     let hooks_path = format!("{}/hooks/", root);
-    match Path::new(&hooks_path).exists() {
-        true => {
-            try!(ui.status(
-                Status::Using,
-                format!("existing directory: {}", hooks_path),
-            ))
-        }
-        false => {
-            try!(ui.status(
-                Status::Creating,
-                format!("directory: {}", hooks_path),
-            ));
-            try!(create_dir_all(&hooks_path));
-        }
-    };
+    if Path::new(&hooks_path).exists() {
+        try!(ui.status(
+            Status::Using,
+            format!("existing directory: {}", hooks_path),
+        ))
+    } else {
+        try!(ui.status(
+            Status::Creating,
+            format!("directory: {}", hooks_path),
+        ));
+        try!(create_dir_all(&hooks_path));
+
+    }
+
     try!(ui.para(
         "The `hooks` directory is where you can create a number of automation hooks into \
                your habitat. There are several hooks to create and tweak! See the full list \
@@ -205,8 +202,7 @@ fn render_ignorefile(ui: &mut UI, root: &str) -> Result<()> {
 fn is_git_managed(path: &Path) -> bool {
     if path.join(".git").is_dir() {
         true
-    }
-    else if let Some(parent) = path.parent() {
+    } else if let Some(parent) = path.parent() {
         is_git_managed(parent)
     } else {
         false
@@ -215,25 +211,23 @@ fn is_git_managed(path: &Path) -> bool {
 
 fn create_with_template(ui: &mut UI, location: &str, template: &str) -> Result<()> {
     let path = Path::new(&location);
-    match path.exists() {
-        false => {
-            try!(ui.status(Status::Creating, format!("file: {}", location)));
-            // If the directory doesn't exist we need to make it.
-            if let Some(directory) = path.parent() {
-                try!(create_dir_all(directory));
-            }
-            // Create and then render the template with Handlebars
-            try!(File::create(path).and_then(
-                |mut file| file.write(template.as_bytes()),
-            ));
+    if path.exists() {
+        // If the user has already configured a file overwriting would be impolite.
+        try!(ui.status(
+            Status::Using,
+            format!("existing file: {}", location),
+        ));
+    } else {
+        try!(ui.status(Status::Creating, format!("file: {}", location)));
+        // If the directory doesn't exist we need to make it.
+        if let Some(directory) = path.parent() {
+            try!(create_dir_all(directory));
         }
-        true => {
-            // If the user has already configured a file overwriting would be impolite.
-            try!(ui.status(
-                Status::Using,
-                format!("existing file: {}", location),
-            ));
-        }
-    };
+        // Create and then render the template with Handlebars
+        try!(File::create(path).and_then(
+            |mut file| file.write(template.as_bytes()),
+        ));
+    }
+
     Ok(())
 }

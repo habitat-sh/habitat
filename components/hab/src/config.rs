@@ -84,22 +84,20 @@ fn common_load(use_sudo_user: bool) -> Result<Config> {
 }
 
 fn cli_config_path(use_sudo_user: bool) -> PathBuf {
-    match am_i_root() {
-        true => {
-            if use_sudo_user {
-                if let Some(sudo_user) = henv::sudo_user() {
-                    if let Some(home) = users::get_home_for_user(&sudo_user) {
-                        return home.join(format!(".{}", CLI_CONFIG_PATH));
-                    }
+    if am_i_root() {
+        if use_sudo_user {
+            if let Some(sudo_user) = henv::sudo_user() {
+                if let Some(home) = users::get_home_for_user(&sudo_user) {
+                    return home.join(format!(".{}", CLI_CONFIG_PATH));
                 }
             }
         }
-        false => {
-            if let Some(home) = env::home_dir() {
-                return home.join(format!(".{}", CLI_CONFIG_PATH));
-            }
+    } else {
+        if let Some(home) = env::home_dir() {
+            return home.join(format!(".{}", CLI_CONFIG_PATH));
         }
     }
+
 
     PathBuf::from(&*FS_ROOT_PATH).join(CLI_CONFIG_PATH)
 }
