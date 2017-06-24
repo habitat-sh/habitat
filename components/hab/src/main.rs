@@ -57,7 +57,7 @@ lazy_static! {
     /// `FS_ROOT_ENVVAR`.
     static ref FS_ROOT: PathBuf = {
         use hcore::fs::FS_ROOT_ENVVAR;
-        if let Some(root) = henv::var(FS_ROOT_ENVVAR).ok() {
+        if let Ok(root) = henv::var(FS_ROOT_ENVVAR) {
             PathBuf::from(root)
         } else {
             PathBuf::from("/")
@@ -68,7 +68,7 @@ lazy_static! {
 fn main() {
     env_logger::init().unwrap();
     let mut ui = ui();
-    thread::spawn(|| analytics::instrument_subcommand());
+    thread::spawn(analytics::instrument_subcommand);
     if let Err(e) = start(&mut ui) {
         ui.fatal(e).unwrap();
         std::process::exit(1)
