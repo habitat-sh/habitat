@@ -357,11 +357,8 @@ fn sub_pkg_install(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
     let channel = m.value_of("CHANNEL");
     let ident_or_artifacts = m.values_of("PKG_IDENT_OR_ARTIFACT").unwrap(); // Required via clap
-    let ignore_target = if m.is_present("IGNORE_TARGET") {
-        true
-    } else {
-        false
-    };
+    let ignore_target = m.is_present("IGNORE_TARGET");
+    
     init();
 
     for ident_or_artifact in ident_or_artifacts {
