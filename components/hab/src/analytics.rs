@@ -185,6 +185,7 @@
 //! ```text
 //! hab/0.6.0/20160606153031 (x86_64-darwin; 14.5.0)
 //! ```
+#![cfg_attr(feature="clippy", allow(needless_pass_by_value))]
 
 use std::env;
 use std::fs::{self, File};
