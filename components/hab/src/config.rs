@@ -92,10 +92,8 @@ fn cli_config_path(use_sudo_user: bool) -> PathBuf {
                 }
             }
         }
-    } else {
-        if let Some(home) = env::home_dir() {
-            return home.join(format!(".{}", CLI_CONFIG_PATH));
-        }
+    } else if let Some(home) = env::home_dir() {
+        return home.join(format!(".{}", CLI_CONFIG_PATH));
     }
 
 
