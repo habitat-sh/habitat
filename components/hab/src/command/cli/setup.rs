@@ -11,7 +11,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#![cfg_attr(feature="clippy", allow(or_fun_call))]
 
 use std::path::Path;
 
@@ -203,7 +202,7 @@ fn prompt_origin(ui: &mut UI) -> Result<String> {
             )));
             Some(o)
         }
-        None => env::var(ORIGIN_ENVVAR).or(env::var("USER")).ok(),
+        None => env::var(ORIGIN_ENVVAR).or_else(|_| env::var("USER")).ok(),
     };
     Ok(try!(ui.prompt_ask(
         "Default origin name",
