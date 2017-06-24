@@ -209,7 +209,7 @@ $(foreach component,$(ALL),$(eval $(call UNIT,$(component))))
 
 define LINT
 lint-$1: image ## executes the $1 component's linter checks
-	$(run) sh -c 'cd components/$1 && cargo clippy'
+	$(run) sh -c 'cd components/$1 && cargo build --features clippy'
 .PHONY: lint-$1
 endef
 $(foreach component,$(ALL),$(eval $(call LINT,$(component))))
