@@ -6,6 +6,7 @@ description = "Habitat-Builder Database Library"
 workspace = "../../"
 
 [dependencies]
+clippy = {version = "*", optional = true}
 log = "*"
 r2d2 = "*"
 time = "*"
@@ -30,3 +31,4 @@ path = "../builder-protocol"
 
 [features]
 functional = []
+default = []

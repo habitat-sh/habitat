@@ -16,6 +16,7 @@ doc = false
 name = "functional"
 
 [dependencies]
+clippy = {version = "*", optional = true}
 ansi_term = "*"
 bitflags = "*"
 byteorder = "*"
@@ -59,3 +60,4 @@ hyper = "*"
 [features]
 functional = []
 apidocs =[]
+default = []

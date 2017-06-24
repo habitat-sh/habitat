@@ -7,6 +7,7 @@ build = "build.rs"
 workspace = "../../"
 
 [dependencies]
+clippy = {version = "*", optional = true}
 protobuf = "*"
 serde = "*"
 serde_derive = "*"
@@ -23,3 +24,4 @@ pkg-config = "0.3"
 [features]
 functional = []
 protocols = []
+default = []

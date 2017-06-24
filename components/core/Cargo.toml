@@ -9,6 +9,7 @@ build = "build.rs"
 gcc = "0.3"
 
 [dependencies]
+clippy = {version = "*", optional = true}
 base64 = "*"
 errno = "*"
 hex = "*"
@@ -45,3 +46,4 @@ tempdir = "*"
 
 [features]
 functional = []
+default = []

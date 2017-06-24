@@ -11,6 +11,7 @@ name = "bldr-worker"
 doc = false
 
 [dependencies]
+clippy = {version = "*", optional = true}
 chrono = { version = "*", features = ["serde"] }
 env_logger = "*"
 git2 = "*"
@@ -46,3 +47,4 @@ path = "../builder-protocol"
 
 [features]
 functional = []
+default = []

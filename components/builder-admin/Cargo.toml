@@ -11,6 +11,7 @@ name = "bldr-admin"
 doc = false
 
 [dependencies]
+clippy = {version = "*", optional = true}
 bodyparser = "*"
 env_logger = "*"
 hyper = "*"
@@ -46,3 +47,6 @@ path = "../builder-protocol"
 
 [dependencies.habitat_net]
 path = "../net"
+
+[features]
+default = []

@@ -8,6 +8,7 @@ build = "build.rs"
 workspace = "../../"
 
 [dependencies]
+clippy = {version = "*", optional = true}
 byteorder = "*"
 env_logger = "*"
 habitat_core = { path = "../core" }
@@ -26,6 +27,7 @@ pkg-config = "0.3"
 
 [features]
 protocols = []
+default = []
 
 [[bin]]
 name = "eventsrv"
@@ -35,3 +37,4 @@ path = "src/main.rs"
 [[bin]]
 name = "subscriber"
 path = "src/subscriber.rs"
+

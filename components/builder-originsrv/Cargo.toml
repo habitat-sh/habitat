@@ -11,6 +11,7 @@ name = "bldr-origin-srv"
 doc = false
 
 [dependencies]
+clippy = {version = "*", optional = true}
 env_logger = "*"
 log = "*"
 protobuf = "*"
@@ -42,3 +43,4 @@ branch = "release/v0.8"
 
 [features]
 functional = []
+default = []
