@@ -50,7 +50,7 @@ pub fn start(
                 format!("Downloading public origin keys for {}", origin),
             ));
             match depot_client.show_origin_keys(origin) {
-                Ok(ref keys) if keys.len() == 0 => {
+                Ok(ref keys) if keys.is_empty() => {
                     try!(ui.end(format!("No public keys for {}.", origin)));
                     Ok(())
                 }
