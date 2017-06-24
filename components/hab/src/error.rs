@@ -11,8 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#![cfg_attr(feature="clippy", allow(large_enum_variant))]
-#![cfg_attr(feature="clippy", allow(useless_format))]
+#![cfg_attr(feature="clippy", allow(large_enum_variant, useless_format))]
 
 use std::error;
 use std::ffi;

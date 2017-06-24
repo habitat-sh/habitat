@@ -572,8 +572,8 @@ fn raw_parse_args() -> (Vec<OsString>, Vec<OsString>) {
     }
 }
 
-/// Check to see if the user has passed in an AUTH_TOKEN param. If not, check the
-/// HAB_AUTH_TOKEN env var. If not, check the CLI config to see if there is a default auth
+/// Check to see if the user has passed in an `AUTH_TOKEN` param. If not, check the
+/// `HAB_AUTH_TOKEN` env var. If not, check the CLI config to see if there is a default auth
 /// token set. If that's empty too, then error.
 fn auth_token_param_or_env(m: &ArgMatches) -> Result<String> {
     match m.value_of("AUTH_TOKEN") {
@@ -593,7 +593,7 @@ fn auth_token_param_or_env(m: &ArgMatches) -> Result<String> {
     }
 }
 
-/// Check to see if the user has passed in an ORIGIN param.  If not, check the HABITAT_ORIGIN env
+/// Check to see if the user has passed in an `ORIGIN` param.  If not, check the `HABITAT_ORIGIN` env
 /// var. If not, check the CLI config to see if there is a default origin set. If that's empty too,
 /// then error.
 fn origin_param_or_env(m: &ArgMatches) -> Result<String> {
@@ -614,8 +614,8 @@ fn origin_param_or_env(m: &ArgMatches) -> Result<String> {
     }
 }
 
-/// Check to see if the user has passed in an ORG param.
-/// If not, check the HABITAT_ORG env var. If that's
+/// Check to see if the user has passed in an `ORG` param.
+/// If not, check the `HABITAT_ORG` env var. If that's
 /// empty too, then error.
 fn org_param_or_env(m: &ArgMatches) -> Result<String> {
     match m.value_of("ORG") {
