@@ -13,17 +13,20 @@
 // limitations under the License.
 
 use std::env;
+use std::fs;
 use std::ffi::OsString;
+use std::path::Path;
 
 use common::ui::UI;
 use hcore::crypto::CACHE_KEY_PATH_ENV_VAR;
 use hcore::env as henv;
-use hcore::fs::CACHE_KEY_PATH;
-use hcore::os::users;
+use hcore::fs::{CACHE_ARTIFACT_PATH, CACHE_KEY_PATH};
+use hcore::os::{filesystem, users};
 
 use config;
 use error::Result;
 
+const ARTIFACT_PATH_ENVVAR: &'static str = "ARTIFACT_PATH";
 const STUDIO_CMD: &'static str = "hab-studio";
 const STUDIO_CMD_ENVVAR: &'static str = "HAB_STUDIO_BINARY";
 const STUDIO_PACKAGE_IDENT: &'static str = "core/hab-studio";
@@ -42,14 +45,15 @@ pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
         }
     }
 
-    // If the `$HAB_CACHE_KEY_PATH` environment variable is not present, check if we are running
-    // under a `sudo` invocation. If so, determine the non-root user that issued the command in
-    // order to set their key cache location in the environment variable. This is done so that the
-    // `hab-studio` command will find the correct key cache or so that the correct directory will
-    // be volume mounted when used with Docker.
-    if henv::var(CACHE_KEY_PATH_ENV_VAR).is_err() {
-        if let Some(sudo_user) = henv::sudo_user() {
-            if let Some(home) = users::get_home_for_user(&sudo_user) {
+    // Check if we are running under a `sudo` invocation. If so, determine the non-root user that
+    // issued the command in order to set some Studio-related environment variables. This is done
+    // so that the `hab-studio` command will find the correct key cache, artifact cache, etc. and
+    // so that the correct directores will be volume mounted when used with Docker.
+    if let Some(sudo_user) = henv::sudo_user() {
+        if let Some(home) = users::get_home_for_user(&sudo_user) {
+            // If the `$HAB_CACHE_KEY_PATH` environment variable is not present, set it to the
+            // non-root user's key cache
+            if henv::var(CACHE_KEY_PATH_ENV_VAR).is_err() {
                 let cache_key_path = home.join(format!(".{}", CACHE_KEY_PATH));
                 debug!(
                     "Setting cache_key_path for SUDO_USER={} to: {}",
@@ -57,14 +61,79 @@ pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
                     cache_key_path.display()
                 );
                 env::set_var(CACHE_KEY_PATH_ENV_VAR, cache_key_path);
-                // Prevent any inner `hab` invocations from triggering similar logic: we will be
-                // operating in the context `hab-studio` which is running with root like privileges.
-                env::remove_var("SUDO_USER");
+            }
+            // If the `$ARTIFACT_PATH` environment variable is not present, set it to the non-root
+            // user's key cache
+            if henv::var(ARTIFACT_PATH_ENVVAR).is_err() {
+                let cache_artifact_path = home.join(format!(".{}", CACHE_ARTIFACT_PATH));
+                try!(create_cache_artifact_path(
+                    &cache_artifact_path,
+                    Some(&sudo_user),
+                ));
+                debug!(
+                    "Setting cache_artifact_path for SUDO_USER={} to: {}",
+                    &sudo_user,
+                    cache_artifact_path.display()
+                );
+                env::set_var(ARTIFACT_PATH_ENVVAR, cache_artifact_path);
+            }
+            // Prevent any inner `hab` invocations from triggering similar logic: we will be
+            // operating in the context `hab-studio` which is running with root like privileges.
+            env::remove_var("SUDO_USER");
+        }
+    } else {
+        if let Some(user) = users::get_current_username() {
+            if let Some(home) = users::get_home_for_user(&user) {
+                if henv::var(ARTIFACT_PATH_ENVVAR).is_err() {
+                    let cache_artifact_path = home.join(format!(".{}", CACHE_ARTIFACT_PATH));
+                    try!(create_cache_artifact_path(&cache_artifact_path, None));
+                    debug!(
+                        "Setting cache_artifact_path at: {}",
+                        cache_artifact_path.display()
+                    );
+                    env::set_var(ARTIFACT_PATH_ENVVAR, cache_artifact_path);
+                }
             }
         }
     }
 
     inner::start(ui, args)
+}
+
+fn create_cache_artifact_path(path: &Path, sudo_user: Option<&str>) -> Result<()> {
+    if path.is_dir() {
+        Ok(())
+    } else {
+        match sudo_user {
+            Some(sudo_user) => {
+                debug!(
+                    "Creating cache_artifact_path for SUDO_USER={} at: {}",
+                    &sudo_user,
+                    path.display()
+                )
+            }
+            None => debug!("Creating cache_artifact_path at: {}", path.display()),
+        };
+        try!(fs::create_dir_all(&path));
+        if let Some(sudo_user) = sudo_user {
+            if let (Some(uid), Some(gid)) =
+                (
+                    users::get_uid_by_name(sudo_user),
+                    users::get_primary_gid_for_user(sudo_user),
+                )
+            {
+                debug!(
+                    "Setting permissions of {} for SUDO_USER={} to: {}:{}",
+                    path.display(),
+                    &sudo_user,
+                    uid,
+                    gid
+                );
+                try!(filesystem::chown(path.to_string_lossy().as_ref(), uid, gid));
+            }
+        }
+        Ok(())
+    }
 }
 
 #[cfg(target_os = "linux")]
@@ -158,7 +227,7 @@ mod inner {
     use common::ui::UI;
     use hcore::crypto::{init, default_cache_key_path};
     use hcore::env as henv;
-    use hcore::fs::{CACHE_KEY_PATH, find_command};
+    use hcore::fs::{CACHE_ARTIFACT_PATH, CACHE_KEY_PATH, find_command};
     use hcore::os::process;
     use hcore::package::PackageIdent;
 
@@ -226,6 +295,9 @@ mod inner {
                 CACHE_KEY_PATH
             ),
         ];
+        if let Ok(cache_artifact_path) = henv::var(super::ARTIFACT_PATH_ENVVAR) {
+            volumes.push(format!("{}:/{}", cache_artifact_path, CACHE_ARTIFACT_PATH));
+        }
         if Path::new(DOCKER_SOCKET).exists() {
             volumes.push(format!("{}:{}", DOCKER_SOCKET, DOCKER_SOCKET));
         }

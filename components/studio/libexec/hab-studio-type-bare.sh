@@ -95,8 +95,6 @@ esac
 EOT
   $bb chmod a+x $HAB_STUDIO_ROOT/init.sh
 
-  $bb rm -f $HAB_STUDIO_ROOT$HAB_CACHE_ARTIFACT_PATH/*
-
   # remove the unnecessary supporting filesystem
   $bb rm -rf $HAB_STUDIO_ROOT/home $HAB_STUDIO_ROOT/lib $HAB_STUDIO_ROOT/lib64 $HAB_STUDIO_ROOT/mnt $HAB_STUDIO_ROOT/opt $HAB_STUDIO_ROOT/root $HAB_STUDIO_ROOT/run $HAB_STUDIO_ROOT/sbin $HAB_STUDIO_ROOT/src $HAB_STUDIO_ROOT/usr
 
