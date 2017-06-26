@@ -52,6 +52,7 @@ Lieutenant and may have many maintainers.
 * [Salim Alam](https://github.com/chefsalim)
 * [Nell Shamrell-Harrington](https://github.com/nellshamrell)
 * [George Marshall](https://github.com/georgemarshall)
+* [Tasha Drew](https://github.com/tashimi)
 
 ### Habitat Builder Web Application
 
@@ -68,6 +69,7 @@ The web application for the Habitat builder and depot.
 * [Matt Wrock](https://github.com/mwrock)
 * [Salim Alam](https://github.com/chefsalim)
 * [Nell Shamrell-Harrington](https://github.com/nellshamrell)
+* [Tasha Drew](https://github.com/tashimi)
 
 ### Habitat Builder
 
@@ -106,3 +108,4 @@ tutorials and reference materials.
 * [Salim Alam](https://github.com/chefsalim)
 * [Nell Shamrell-Harrington](https://github.com/nellshamrell)
 * [Robb Kidd](https://github.com/robbkidd)
+* [Tasha Drew](https://github.com/tashimi)
