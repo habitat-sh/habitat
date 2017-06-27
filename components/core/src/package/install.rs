@@ -501,8 +501,7 @@ impl PackageInstall {
         match self.read_metafile(file) {
             Ok(body) => {
                 if body.len() > 0 {
-                    let ids: Vec<String> = body.split("\n").map(|d| d.to_string()).collect();
-                    for id in &ids {
+                    for id in body.lines() {
                         let package = PackageIdent::from_str(id)?;
                         if !package.fully_qualified() {
                             return Err(Error::InvalidPackageIdent(package.to_string()));
