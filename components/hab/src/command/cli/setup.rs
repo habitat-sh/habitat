@@ -174,7 +174,7 @@ fn write_cli_config_auth_token(auth_token: &str) -> Result<()> {
 }
 
 fn is_origin_in_cache(origin: &str, cache_path: &Path) -> bool {
-    match SigKeyPair::get_latest_pair_for(origin, cache_path) {
+    match SigKeyPair::get_latest_pair_for(origin, cache_path, None) {
         Ok(pair) => {
             match pair.secret() {
                 Ok(_) => true,

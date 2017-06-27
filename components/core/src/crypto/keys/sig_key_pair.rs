@@ -75,14 +75,14 @@ impl SigKeyPair {
     }
 
     /// Return a Vec of origin keys with a given name.
-    /// The newest key is listed first in the Vec
-    /// Origin keys are always "sig" keys. They are used for signing/verifying
-    /// packages, not for encryption.
+    /// The newest key is listed first in the Vec.
     pub fn get_pairs_for<P: AsRef<Path> + ?Sized>(
         name: &str,
         cache_key_path: &P,
+        pair_type: Option<&PairType>,
     ) -> Result<Vec<Self>> {
-        let revisions = try!(get_key_revisions(name, cache_key_path.as_ref()));
+        let revisions = try!(get_key_revisions(name, cache_key_path.as_ref(), pair_type));
+        debug!("revisions = {:?}", &revisions);
         let mut key_pairs = Vec::new();
         for name_with_rev in &revisions {
             debug!(
@@ -138,8 +138,9 @@ impl SigKeyPair {
     pub fn get_latest_pair_for<P: AsRef<Path> + ?Sized>(
         name: &str,
         cache_key_path: &P,
+        pair_type: Option<&PairType>,
     ) -> Result<Self> {
-        let mut all = try!(Self::get_pairs_for(name, cache_key_path));
+        let mut all = try!(Self::get_pairs_for(name, cache_key_path, pair_type));
         match all.len() {
             0 => {
                 let msg = format!("No revisions found for {} sig key", name);
@@ -530,11 +531,11 @@ mod test {
     #[test]
     fn get_pairs_for() {
         let cache = TempDir::new("key_cache").unwrap();
-        let pairs = SigKeyPair::get_pairs_for("unicorn", cache.path()).unwrap();
+        let pairs = SigKeyPair::get_pairs_for("unicorn", cache.path(), None).unwrap();
         assert_eq!(pairs.len(), 0);
 
         let _ = SigKeyPair::generate_pair_for_origin("unicorn", cache.path()).unwrap();
-        let pairs = SigKeyPair::get_pairs_for("unicorn", cache.path()).unwrap();
+        let pairs = SigKeyPair::get_pairs_for("unicorn", cache.path(), None).unwrap();
         assert_eq!(pairs.len(), 1);
 
         let _ = match wait_until_ok(|| {
@@ -543,12 +544,21 @@ mod test {
             Some(pair) => pair,
             None => panic!("Failed to generate another keypair after waiting"),
         };
-        let pairs = SigKeyPair::get_pairs_for("unicorn", cache.path()).unwrap();
+        let pairs = SigKeyPair::get_pairs_for("unicorn", cache.path(), None).unwrap();
         assert_eq!(pairs.len(), 2);
 
         // We should not include another named key in the count
         let _ = SigKeyPair::generate_pair_for_origin("dragon", cache.path()).unwrap();
-        let pairs = SigKeyPair::get_pairs_for("unicorn", cache.path()).unwrap();
+        let pairs = SigKeyPair::get_pairs_for("unicorn", cache.path(), None).unwrap();
+        assert_eq!(pairs.len(), 2);
+
+        // We should be able to count public and private keys separately
+        let pairs = SigKeyPair::get_pairs_for("unicorn", cache.path(), Some(&PairType::Secret))
+            .unwrap();
+        assert_eq!(pairs.len(), 2);
+
+        let pairs = SigKeyPair::get_pairs_for("unicorn", cache.path(), Some(&PairType::Public))
+            .unwrap();
         assert_eq!(pairs.len(), 2);
     }
 
@@ -583,7 +593,7 @@ mod test {
         let cache = TempDir::new("key_cache").unwrap();
         let pair = SigKeyPair::generate_pair_for_origin("unicorn", cache.path()).unwrap();
 
-        let latest = SigKeyPair::get_latest_pair_for("unicorn", cache.path()).unwrap();
+        let latest = SigKeyPair::get_latest_pair_for("unicorn", cache.path(), None).unwrap();
         assert_eq!(latest.name, pair.name);
         assert_eq!(latest.rev, pair.rev);
     }
@@ -599,16 +609,38 @@ mod test {
             None => panic!("Failed to generate another keypair after waiting"),
         };
 
-        let latest = SigKeyPair::get_latest_pair_for("unicorn", cache.path()).unwrap();
+        let latest = SigKeyPair::get_latest_pair_for("unicorn", cache.path(), None).unwrap();
         assert_eq!(latest.name, p2.name);
         assert_eq!(latest.rev, p2.rev);
+    }
+
+    #[test]
+    fn get_latest_pair_for_secret() {
+        let cache = TempDir::new("key_cache").unwrap();
+        let p = SigKeyPair::generate_pair_for_origin("unicorn", cache.path()).unwrap();
+        let latest =
+            SigKeyPair::get_latest_pair_for("unicorn", cache.path(), Some(&PairType::Secret))
+                .unwrap();
+        assert_eq!(latest.name, p.name);
+        assert_eq!(latest.rev, p.rev);
+    }
+
+    #[test]
+    fn get_latest_pair_for_public() {
+        let cache = TempDir::new("key_cache").unwrap();
+        let p = SigKeyPair::generate_pair_for_origin("unicorn", cache.path()).unwrap();
+        let latest =
+            SigKeyPair::get_latest_pair_for("unicorn", cache.path(), Some(&PairType::Public))
+                .unwrap();
+        assert_eq!(latest.name, p.name);
+        assert_eq!(latest.rev, p.rev);
     }
 
     #[test]
     #[should_panic(expected = "No revisions found for")]
     fn get_latest_pair_for_nonexistent() {
         let cache = TempDir::new("key_cache").unwrap();
-        SigKeyPair::get_latest_pair_for("nope-nope", cache.path()).unwrap();
+        SigKeyPair::get_latest_pair_for("nope-nope", cache.path(), None).unwrap();
     }
 
     #[test]
