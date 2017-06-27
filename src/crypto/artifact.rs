@@ -314,7 +314,7 @@ mod test {
             SigKeyPair::get_secret_key_path(&pair.name_with_rev(), cache.path()).unwrap(),
         ).unwrap();
         // Now reload the key pair which will be missing the secret key
-        let pair = SigKeyPair::get_latest_pair_for("unicorn", cache.path()).unwrap();
+        let pair = SigKeyPair::get_latest_pair_for("unicorn", cache.path(), None).unwrap();
 
         sign(&fixture("signme.dat"), &dst, &pair).unwrap();
     }
@@ -332,7 +332,7 @@ mod test {
             SigKeyPair::get_public_key_path(&pair.name_with_rev(), cache.path()).unwrap(),
         ).unwrap();
         // Now reload the key pair which will be missing the public key
-        let _ = SigKeyPair::get_latest_pair_for("unicorn", cache.path()).unwrap();
+        let _ = SigKeyPair::get_latest_pair_for("unicorn", cache.path(), None).unwrap();
 
         verify(&dst, cache.path()).unwrap();
     }

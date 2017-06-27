@@ -159,7 +159,12 @@ impl<P, S> KeyPair<P, S> {
 /// file (without path, without .suffix) to the set. This function doesn't
 /// return an error on a "bad" file, the bad file key name just doesn't get
 /// added to the set.
-fn check_filename(keyname: &str, filename: String, candidates: &mut HashSet<String>) {
+fn check_filename(
+    keyname: &str,
+    filename: String,
+    candidates: &mut HashSet<String>,
+    pair_type: Option<&PairType>,
+) {
     let caps = match KEYFILE_RE.captures(&filename) {
         Some(c) => c,
         None => {
@@ -202,13 +207,40 @@ fn check_filename(keyname: &str, filename: String, candidates: &mut HashSet<Stri
 
     if name == keyname {
         let thiskey = format!("{}-{}", name, rev);
-        candidates.insert(thiskey);
+
+        let do_insert = match pair_type {
+            Some(&PairType::Secret) => {
+                if suffix == SECRET_SIG_KEY_SUFFIX || suffix == SECRET_BOX_KEY_SUFFIX ||
+                    suffix == SECRET_SYM_KEY_SUFFIX
+                {
+                    true
+                } else {
+                    false
+                }
+            }
+            Some(&PairType::Public) => {
+                if suffix == PUBLIC_KEY_SUFFIX {
+                    true
+                } else {
+                    false
+                }
+            }
+            None => true,
+        };
+
+        if do_insert {
+            candidates.insert(thiskey);
+        }
     }
 }
 
 /// Take a key name (ex "habitat"), and find all revisions of that
 /// keyname in the default_cache_key_path().
-fn get_key_revisions<P>(keyname: &str, cache_key_path: P) -> Result<Vec<String>>
+fn get_key_revisions<P>(
+    keyname: &str,
+    cache_key_path: P,
+    pair_type: Option<&PairType>,
+) -> Result<Vec<String>>
 where
     P: AsRef<Path>,
 {
@@ -253,7 +285,7 @@ where
             }
         };
         debug!("checking file: {}", &filename);
-        check_filename(keyname, filename, &mut candidates);
+        check_filename(keyname, filename, &mut candidates, pair_type);
     }
 
     // traverse the candidates set and sort the entries
@@ -447,6 +479,7 @@ mod test {
     use std::collections::HashSet;
     use std::fs::{self, File};
     use std::io::Write;
+    use std::{thread, time};
 
     use hex::ToHex;
     use tempdir::TempDir;
@@ -454,6 +487,7 @@ mod test {
     use super::box_key_pair::BoxKeyPair;
     use super::sig_key_pair::SigKeyPair;
     use super::sym_key::SymKey;
+    use super::PairType;
 
     use super::TmpKeyfile;
     use super::super::test_support::*;
@@ -550,6 +584,39 @@ mod test {
     }
 
     #[test]
+    fn get_key_revisions_can_return_everything() {
+        let cache = TempDir::new("key_cache").unwrap();
+        let _ = SigKeyPair::generate_pair_for_origin("foo", cache.path());
+        // we need to wait at least 1 second between generating keypairs to ensure uniqueness
+        thread::sleep(time::Duration::from_millis(1000));
+        let _ = SigKeyPair::generate_pair_for_origin("foo", cache.path());
+        let revs = super::get_key_revisions("foo", cache.path(), None).unwrap();
+        assert_eq!(2, revs.len());
+    }
+
+    #[test]
+    fn get_key_revisions_can_return_secret_keys() {
+        let cache = TempDir::new("key_cache").unwrap();
+        let _ = SigKeyPair::generate_pair_for_origin("foo", cache.path());
+        // we need to wait at least 1 second between generating keypairs to ensure uniqueness
+        thread::sleep(time::Duration::from_millis(1000));
+        let _ = SigKeyPair::generate_pair_for_origin("foo", cache.path());
+        let revs = super::get_key_revisions("foo", cache.path(), Some(&PairType::Secret)).unwrap();
+        assert_eq!(2, revs.len());
+    }
+
+    #[test]
+    fn get_key_revisions_can_return_public_keys() {
+        let cache = TempDir::new("key_cache").unwrap();
+        let _ = SigKeyPair::generate_pair_for_origin("foo", cache.path());
+        // we need to wait at least 1 second between generating keypairs to ensure uniqueness
+        thread::sleep(time::Duration::from_millis(1000));
+        let _ = SigKeyPair::generate_pair_for_origin("foo", cache.path());
+        let revs = super::get_key_revisions("foo", cache.path(), Some(&PairType::Public)).unwrap();
+        assert_eq!(2, revs.len());
+    }
+
+    #[test]
     fn get_user_key_revisions() {
         let cache = TempDir::new("key_cache").unwrap();
         for _ in 0..3 {
@@ -560,10 +627,10 @@ mod test {
         let _ = BoxKeyPair::generate_pair_for_user("wecoyote-foo", cache.path()).unwrap();
 
         // we shouldn't see wecoyote-foo as a 4th revision
-        let revisions = super::get_key_revisions("wecoyote", cache.path()).unwrap();
+        let revisions = super::get_key_revisions("wecoyote", cache.path(), None).unwrap();
         assert_eq!(3, revisions.len());
 
-        let revisions = super::get_key_revisions("wecoyote-foo", cache.path()).unwrap();
+        let revisions = super::get_key_revisions("wecoyote-foo", cache.path(), None).unwrap();
         assert_eq!(1, revisions.len());
     }
 
@@ -580,10 +647,10 @@ mod test {
         let _ = BoxKeyPair::generate_pair_for_service("acyou", "tnt.default", cache.path())
             .unwrap();
 
-        let revisions = super::get_key_revisions("tnt.default@acme", cache.path()).unwrap();
+        let revisions = super::get_key_revisions("tnt.default@acme", cache.path(), None).unwrap();
         assert_eq!(3, revisions.len());
 
-        let revisions = super::get_key_revisions("tnt.default@acyou", cache.path()).unwrap();
+        let revisions = super::get_key_revisions("tnt.default@acyou", cache.path(), None).unwrap();
         assert_eq!(1, revisions.len());
     }
 
@@ -597,10 +664,10 @@ mod test {
 
         let _ = SymKey::generate_pair_for_ring("acme-you", cache.path()).unwrap();
 
-        let revisions = super::get_key_revisions("acme", cache.path()).unwrap();
+        let revisions = super::get_key_revisions("acme", cache.path(), None).unwrap();
         assert_eq!(3, revisions.len());
 
-        let revisions = super::get_key_revisions("acme-you", cache.path()).unwrap();
+        let revisions = super::get_key_revisions("acme-you", cache.path(), None).unwrap();
         assert_eq!(1, revisions.len());
     }
 
@@ -616,11 +683,61 @@ mod test {
 
         let _ = SigKeyPair::generate_pair_for_origin("mutants-x", cache.path()).unwrap();
 
-        let revisions = super::get_key_revisions("mutants", cache.path()).unwrap();
+        let revisions = super::get_key_revisions("mutants", cache.path(), None).unwrap();
         assert_eq!(3, revisions.len());
 
-        let revisions = super::get_key_revisions("mutants-x", cache.path()).unwrap();
+        let revisions = super::get_key_revisions("mutants-x", cache.path(), None).unwrap();
         assert_eq!(1, revisions.len());
+    }
+
+    #[test]
+    fn check_filename_for_secret_keys() {
+        // only look for secret keys
+        let mut candidates = HashSet::new();
+        super::check_filename(
+            "wecoyote",
+            "wecoyote-20160519203610.pub".to_string(),
+            &mut candidates,
+            Some(&PairType::Secret),
+        );
+        super::check_filename(
+            "wecoyote",
+            "wecoyote-foo-20160519203610.pub".to_string(),
+            &mut candidates,
+            Some(&PairType::Secret),
+        );
+        super::check_filename(
+            "wecoyote",
+            "wecoyote-20160519203610.sig.key".to_string(),
+            &mut candidates,
+            Some(&PairType::Secret),
+        );
+        assert_eq!(1, candidates.len());
+    }
+
+    #[test]
+    fn check_filename_for_public_keys() {
+        // only look for public keys
+        let mut candidates = HashSet::new();
+        super::check_filename(
+            "wecoyote",
+            "wecoyote-20160519203610.pub".to_string(),
+            &mut candidates,
+            Some(&PairType::Public),
+        );
+        super::check_filename(
+            "wecoyote",
+            "wecoyote-20160519203611.pub".to_string(),
+            &mut candidates,
+            Some(&PairType::Public),
+        );
+        super::check_filename(
+            "wecoyote",
+            "wecoyote-20160519203610.sig.key".to_string(),
+            &mut candidates,
+            Some(&PairType::Public),
+        );
+        assert_eq!(2, candidates.len());
     }
 
     #[test]
@@ -631,21 +748,25 @@ mod test {
             "wecoyote",
             "wecoyote-20160519203610.pub".to_string(),
             &mut candidates,
+            None,
         );
         super::check_filename(
             "wecoyote",
             "wecoyote-foo-20160519203610.pub".to_string(),
             &mut candidates,
+            None,
         );
         super::check_filename(
             "wecoyote",
             "wecoyote-20160519203610.box.key".to_string(),
             &mut candidates,
+            None,
         );
         super::check_filename(
             "wecoyote",
             "wecoyote-foo-20160519203610.box.key".to_string(),
             &mut candidates,
+            None,
         );
         assert_eq!(1, candidates.len());
     }
@@ -659,21 +780,25 @@ mod test {
             "wecoyote-foo",
             "wecoyote-20160519203610.pub".to_string(),
             &mut candidates,
+            None,
         );
         super::check_filename(
             "wecoyote-foo",
             "wecoyote-foo-20160519203610.pub".to_string(),
             &mut candidates,
+            None,
         );
         super::check_filename(
             "wecoyote-foo",
             "wecoyote-20160519203610.box.key".to_string(),
             &mut candidates,
+            None,
         );
         super::check_filename(
             "wecoyote-foo",
             "wecoyote-foo-20160519203610.box.key".to_string(),
             &mut candidates,
+            None,
         );
         assert_eq!(1, candidates.len());
     }
