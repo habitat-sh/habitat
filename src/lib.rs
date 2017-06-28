@@ -60,6 +60,7 @@ pub mod util;
 pub mod crypto;
 pub mod os;
 pub mod event;
+pub mod channel;
 
 pub use os::filesystem;
 pub use os::users;
