@@ -4,6 +4,8 @@ $(function() {
     return doc.documentElement.textContent;
   }
 
+  console.log("Testing, hellos...");
+
   var makeCommunityEvent = function(e) {
     if (e === undefined) {
       return e;
