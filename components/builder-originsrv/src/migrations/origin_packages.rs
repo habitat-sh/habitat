@@ -214,7 +214,7 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                         RETURN;
                     END
                     $$ LANGUAGE plpgsql STABLE"#)?;
-    migrator.migrate("originsrv-v3",
+    migrator.migrate("originsrv",
                  r#"CREATE OR REPLACE FUNCTION get_origin_package_latest_v2 (
                     op_ident text,
                     op_target text
@@ -224,7 +224,7 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                         RETURN;
                     END
                     $$ LANGUAGE plpgsql STABLE"#)?;
-    migrator.migrate("originsrv-v4",
+    migrator.migrate("originsrv",
                      r#"CREATE OR REPLACE FUNCTION search_all_origin_packages_dynamic_v2 (
                     op_query text,
                     op_limit bigint,
@@ -244,7 +244,7 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                       END LOOP;
                     END;
                     $$ LANGUAGE plpgsql STABLE"#)?;
-    migrator.migrate("originsrv-v5",
+    migrator.migrate("originsrv",
                      r#"CREATE OR REPLACE FUNCTION get_origin_package_versions_for_origin_v3 (
                     op_origin text,
                     op_pkg text
@@ -254,7 +254,7 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                         RETURN;
                     END
                     $$ LANGUAGE plpgsql STABLE"#)?;
-    migrator.migrate("originsrv-v6",
+    migrator.migrate("originsrv",
                      r#"CREATE OR REPLACE FUNCTION get_origin_packages_for_origin_v2 (
                     op_ident text,
                     op_limit bigint,
@@ -267,5 +267,35 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                         RETURN;
                     END
                     $$ LANGUAGE plpgsql STABLE"#)?;
+    migrator.migrate("originsrv",
+              r#"CREATE OR REPLACE FUNCTION insert_origin_package_v2 (
+                 op_origin_id bigint,
+                 op_owner_id bigint,
+                 op_name text,
+                 op_ident text,
+                 op_checksum text,
+                 op_manifest text,
+                 op_config text,
+                 op_target text,
+                 op_channel text,
+                 op_deps text,
+                 op_tdeps text,
+                 op_exposes text
+              ) RETURNS SETOF origin_packages AS $$
+                  DECLARE
+                     inserted_package origin_packages;
+                     channel_id bigint;
+                  BEGIN
+                      INSERT INTO origin_packages (origin_id, owner_id, name, ident, checksum, manifest, config, target, deps, tdeps, exposes)
+                             VALUES (op_origin_id, op_owner_id, op_name, op_ident, op_checksum, op_manifest, op_config, op_target, op_deps, op_tdeps, op_exposes)
+                             RETURNING * into inserted_package;
+
+                      SELECT id FROM origin_channels WHERE origin_id = op_origin_id AND name = op_channel INTO channel_id;
+                      PERFORM promote_origin_package_v1(channel_id, inserted_package.id);
+
+                      RETURN NEXT inserted_package;
+                      RETURN;
+                  END
+              $$ LANGUAGE plpgsql VOLATILE"#)?;
     Ok(())
 }
