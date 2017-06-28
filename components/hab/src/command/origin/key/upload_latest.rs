@@ -36,7 +36,7 @@ pub fn start(
     try!(ui.begin(
         format!("Uploading latest public origin key {}", &origin),
     ));
-    let latest = try!(SigKeyPair::get_latest_pair_for(origin, cache));
+    let latest = try!(SigKeyPair::get_latest_pair_for(origin, cache, None));
     let public_keyfile = try!(SigKeyPair::get_public_key_path(
         &latest.name_with_rev(),
         cache,

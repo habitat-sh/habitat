@@ -281,6 +281,7 @@ fn sub_pkg_build(ui: &mut UI, m: &ArgMatches) -> Result<()> {
                 let pair = try!(SigKeyPair::get_latest_pair_for(
                     key,
                     &default_cache_key_path(Some(&*FS_ROOT)),
+                    None,
                 ));
                 let _ = pair.secret();
             }
@@ -411,6 +412,7 @@ fn sub_pkg_sign(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let pair = try!(SigKeyPair::get_latest_pair_for(
         &try!(origin_param_or_env(&m)),
         &default_cache_key_path(Some(&*FS_ROOT)),
+        None,
     ));
 
     command::pkg::sign::start(ui, &pair, &src, &dst)
