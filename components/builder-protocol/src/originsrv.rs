@@ -415,6 +415,7 @@ impl Serialize for OriginPackage {
         try!(strukt.serialize_field("tdeps", self.get_tdeps()));
         try!(strukt.serialize_field("exposes", self.get_exposes()));
         try!(strukt.serialize_field("config", self.get_config()));
+        try!(strukt.serialize_field("channels", self.get_channels()));
         strukt.end()
     }
 }
@@ -518,6 +519,37 @@ impl FromStr for OriginPackageIdent {
     fn from_str(value: &str) -> result::Result<Self, Self::Err> {
         let mut parts = value.split("/");
         let mut ident = OriginPackageIdent::new();
+        if let Some(part) = parts.next() {
+            if part.len() > 0 {
+                ident.set_origin(part.to_string());
+            }
+        }
+        if let Some(part) = parts.next() {
+            if part.len() > 0 {
+                ident.set_name(part.to_string());
+            }
+        }
+        if let Some(part) = parts.next() {
+            if part.len() > 0 {
+                ident.set_version(part.to_string());
+            }
+        }
+        if let Some(part) = parts.next() {
+            if part.len() > 0 {
+                ident.set_release(part.to_string());
+            }
+        }
+        Ok(ident)
+    }
+}
+
+impl FromStr for OriginPackageIdentWithChannels {
+    type Err = hab_core::Error;
+
+    fn from_str(value: &str) -> result::Result<Self, Self::Err> {
+        let mut parts = value.split("/");
+        let mut ident = OriginPackageIdentWithChannels::new();
+
         if let Some(part) = parts.next() {
             if part.len() > 0 {
                 ident.set_origin(part.to_string());
@@ -657,6 +689,21 @@ impl Serialize for OriginPackageIdent {
     }
 }
 
+impl Serialize for OriginPackageIdentWithChannels {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut strukt = try!(serializer.serialize_struct("origin_package_ident_for_version", 5));
+        try!(strukt.serialize_field("origin", self.get_origin()));
+        try!(strukt.serialize_field("name", self.get_name()));
+        try!(strukt.serialize_field("version", self.get_version()));
+        try!(strukt.serialize_field("release", self.get_release()));
+        try!(strukt.serialize_field("channels", self.get_channels()));
+        strukt.end()
+    }
+}
+
 impl Serialize for OriginPackageVersion {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
     where
@@ -690,6 +737,20 @@ impl Pageable for OriginPackageListRequest {
 }
 
 impl Routable for OriginPackageListRequest {
+    type H = String;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(String::from(self.get_ident().get_origin()))
+    }
+}
+
+impl Pageable for OriginPackagesForVersionRequest {
+    fn get_range(&self) -> [u64; 2] {
+        [self.get_start(), self.get_stop()]
+    }
+}
+
+impl Routable for OriginPackagesForVersionRequest {
     type H = String;
 
     fn route_key(&self) -> Option<Self::H> {

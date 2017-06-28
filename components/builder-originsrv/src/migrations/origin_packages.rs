@@ -42,44 +42,94 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
              )"#,
     )?;
     migrator.migrate("originsrv",
-                 r#"CREATE OR REPLACE FUNCTION insert_origin_package_v1 (
-                    op_origin_id bigint,
-                    op_owner_id bigint,
-                    op_name text,
-                    op_ident text,
-                    op_checksum text,
-                    op_manifest text,
-                    op_config text,
-                    op_target text,
-                    op_deps text,
-                    op_tdeps text,
-                    op_exposes text
-                 ) RETURNS SETOF origin_packages AS $$
-                     DECLARE
-                        inserted_package origin_packages;
-                        channel_id bigint;
-                     BEGIN
-                         INSERT INTO origin_packages (origin_id, owner_id, name, ident, checksum, manifest, config, target, deps, tdeps, exposes)
-                                VALUES (op_origin_id, op_owner_id, op_name, op_ident, op_checksum, op_manifest, op_config, op_target, op_deps, op_tdeps, op_exposes)
-                                RETURNING * into inserted_package;
+                 r#"CREATE OR REPLACE FUNCTION insert_origin_package_v2 (
+                        op_origin_id bigint,
+                        op_owner_id bigint,
+                        op_name text,
+                        op_ident text,
+                        op_checksum text,
+                        op_manifest text,
+                        op_config text,
+                        op_target text,
+                        op_deps text,
+                        op_tdeps text,
+                        op_exposes text
+                    ) RETURNS TABLE (
+                        id bigint,
+                        name text,
+                        origin_id bigint,
+                        owner_id bigint,
+                        ident text,
+                        checksum text,
+                        manifest text,
+                        config text,
+                        target text,
+                        deps text,
+                        tdeps text,
+                        exposes text,
+                        channels text[]
+                    ) AS $$
+                        DECLARE
+                            channel_id bigint;
+                            package_id bigint;
+                        BEGIN
+                            INSERT INTO origin_packages (origin_id, owner_id, name, ident, checksum, manifest, config, target, deps, tdeps, exposes)
+                            VALUES (op_origin_id, op_owner_id, op_name, op_ident, op_checksum, op_manifest, op_config, op_target, op_deps, op_tdeps, op_exposes)
+                            RETURNING origin_packages.id INTO package_id;
 
-                         SELECT id FROM origin_channels WHERE origin_id = op_origin_id AND name = 'unstable' INTO channel_id;
-                         PERFORM promote_origin_package_v1(channel_id, inserted_package.id);
+                            SELECT oc.id FROM origin_channels oc WHERE oc.origin_id = op_origin_id AND oc.name = 'unstable'
+                              INTO channel_id;
 
-                         RETURN NEXT inserted_package;
-                         RETURN;
-                     END
-                 $$ LANGUAGE plpgsql VOLATILE"#)?;
+                            PERFORM promote_origin_package_v1(channel_id, package_id);
+
+                            RETURN QUERY
+                                SELECT p.id, p.name, p.origin_id, p.owner_id, p.ident, p.checksum, p.manifest,
+                                       p.config, p.target, p.deps, p.tdeps, p.exposes,
+                                    (SELECT ARRAY(SELECT c.name
+                                                    FROM origin_channels c
+                                                   WHERE c.id IN (SELECT cp.channel_id
+                                                                    FROM origin_channel_packages cp
+                                                                   WHERE cp.package_id = p.id
+                                                                ORDER BY cp.created_at DESC))) AS channels
+                                  FROM origin_packages p
+                                 WHERE p.id = package_id;
+                            RETURN;
+                        END
+                    $$ LANGUAGE plpgsql VOLATILE"#)?;
     migrator.migrate(
         "originsrv",
-        r#"CREATE OR REPLACE FUNCTION get_origin_package_v1 (
-                    op_ident text
-                 ) RETURNS SETOF origin_packages AS $$
-                    BEGIN
-                        RETURN QUERY SELECT * FROM origin_packages WHERE ident = op_ident;
-                        RETURN;
-                    END
-                    $$ LANGUAGE plpgsql STABLE"#,
+         r#"CREATE OR REPLACE FUNCTION get_origin_package_v2 (
+                op_ident text
+            ) RETURNS TABLE (
+                id bigint,
+                name text,
+                origin_id bigint,
+                owner_id bigint,
+                ident text,
+                checksum text,
+                manifest text,
+                config text,
+                target text,
+                deps text,
+                tdeps text,
+                exposes text,
+                channels text[]
+            ) AS $$
+                BEGIN
+                    RETURN QUERY
+                        SELECT p.id, p.name, p.origin_id, p.owner_id, p.ident, p.checksum, p.manifest,
+                            p.config, p.target, p.deps, p.tdeps, p.exposes,
+                            (SELECT ARRAY(SELECT c.name
+                               FROM origin_channels c
+                              WHERE c.id IN (SELECT channel_id
+                                               FROM origin_channel_packages
+                                              WHERE package_id = p.id
+                                              ORDER BY created_at DESC))) AS channels
+                         FROM origin_packages p
+                        WHERE p.ident = op_ident;
+                    RETURN;
+                END
+            $$ LANGUAGE plpgsql STABLE"#,
     )?;
     migrator.migrate("originsrv",
                  r#"CREATE OR REPLACE FUNCTION get_origin_package_latest_v1 (
@@ -267,5 +317,32 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                         RETURN;
                     END
                     $$ LANGUAGE plpgsql STABLE"#)?;
+    migrator.migrate("originsrv",
+                     r#"CREATE OR REPLACE FUNCTION get_origin_packages_for_version_v1 (
+                            op_ident text,
+                            op_limit bigint,
+                            op_offset bigint
+                        ) RETURNS TABLE(total_count bigint, ident text, channels text[]) AS
+                        $$
+                            BEGIN
+                                RETURN QUERY
+                                   SELECT COUNT(*) OVER ()
+                                       AS total_count,
+                                          origin_packages.ident,
+                                          (SELECT ARRAY(SELECT name
+                                                          FROM origin_channels
+                                                         WHERE id IN (SELECT channel_id
+                                                                        FROM origin_channel_packages
+                                                                       WHERE package_id = origin_packages.id
+                                                                       ORDER BY created_at DESC)))
+                                     FROM origin_packages
+                                    WHERE origin_packages.ident LIKE (op_ident  || '%')
+                                 ORDER BY ident DESC
+                                    LIMIT op_limit
+                                   OFFSET op_offset;
+                                RETURN;
+                            END
+                        $$
+                        LANGUAGE plpgsql STABLE"#)?;
     Ok(())
 }

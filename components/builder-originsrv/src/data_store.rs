@@ -547,7 +547,7 @@ impl DataStore {
         let conn = self.pool.get(opc)?;
         let ident = opc.get_ident();
         let rows = conn.query(
-            "SELECT * FROM insert_origin_package_v1($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
+            "SELECT * FROM insert_origin_package_v2($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
             &[
                 &(opc.get_origin_id() as i64),
                 &(opc.get_owner_id() as i64),
@@ -575,7 +575,7 @@ impl DataStore {
     ) -> Result<Option<originsrv::OriginPackage>> {
         let conn = self.pool.get(opg)?;
         let rows = conn.query(
-            "SELECT * FROM get_origin_package_v1($1)",
+            "SELECT * FROM get_origin_package_v2($1)",
             &[&opg.get_ident().to_string()],
         ).map_err(Error::OriginPackageGet)?;
         if rows.len() != 0 {
@@ -592,7 +592,7 @@ impl DataStore {
     ) -> Result<Option<originsrv::OriginPackage>> {
         let conn = self.pool.get(ocpg)?;
         let rows = conn.query(
-            "SELECT * FROM get_origin_channel_package_v1($1, $2, $3)",
+            "SELECT * FROM get_origin_channel_package_v2($1, $2, $3)",
             &[
                 &ocpg.get_ident().get_origin(),
                 &ocpg.get_name(),
@@ -708,6 +708,38 @@ impl DataStore {
             versions.push(version_map.remove(&ident).unwrap());
         }
         response.set_versions(versions);
+        Ok(response)
+    }
+
+    pub fn list_origin_packages_for_version(
+        &self,
+        opl: &originsrv::OriginPackagesForVersionRequest,
+    ) -> Result<originsrv::OriginPackagesForVersionResponse> {
+        let conn = self.pool.get(opl)?;
+        let query = "SELECT * FROM get_origin_packages_for_version_v1($1, $2, $3)";
+
+        let rows = conn.query(
+            query,
+            &[
+                &self.searchable_ident(opl.get_ident()),
+                &opl.limit(),
+                &(opl.get_start() as i64),
+            ],
+        ).map_err(Error::OriginPackageList)?;
+
+        let mut response = originsrv::OriginPackagesForVersionResponse::new();
+        response.set_start(opl.get_start());
+        response.set_stop(self.last_index(opl, &rows));
+
+        let mut idents = protobuf::RepeatedField::new();
+
+        for row in rows.iter() {
+            let count: i64 = row.get("total_count");
+            response.set_count(count as u64);
+            idents.push(self.row_to_package_ident_for_version(&row));
+        }
+
+        response.set_packages(idents);
         Ok(response)
     }
 
@@ -907,7 +939,35 @@ impl DataStore {
         package.set_exposes(exposes);
         package.set_deps(self.into_idents(row.get("deps")));
         package.set_tdeps(self.into_idents(row.get("tdeps")));
+
+        let channels: Vec<String> = row.get("channels");
+        let mut channels_buf = ::protobuf::RepeatedField::new();
+
+        for channel in channels {
+            channels_buf.push(channel);
+        }
+
+        package.set_channels(channels_buf);
         package
+    }
+
+    fn row_to_package_ident_for_version(
+        &self,
+        row: &postgres::rows::Row,
+    ) -> originsrv::OriginPackageIdentWithChannels {
+        let ident: String = row.get("ident");
+        let channels: Vec<String> = row.get("channels");
+
+        let mut ident = originsrv::OriginPackageIdentWithChannels::from_str(ident.as_str())
+            .unwrap();
+        let mut channels_buf = ::protobuf::RepeatedField::new();
+
+        for channel in channels {
+            channels_buf.push(channel);
+        }
+
+        ident.set_channels(channels_buf);
+        ident
     }
 
     fn row_to_origin_package_ident(
