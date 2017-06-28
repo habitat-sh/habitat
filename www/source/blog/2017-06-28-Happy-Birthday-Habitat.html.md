@@ -7,7 +7,7 @@ category: community
 classes: body-article
 ---
 
-![habitat-birthday-image](/media/2017-06-28-Happy-Birthday-Habitat/habitat_birthday_dark.svg)
+![habitat-birthday-image](media/2017-06-28-Happy-Birthday-Habitat/habitat_birthday_dark.svg)
 
 Happy Birthday, Habitat!
 
