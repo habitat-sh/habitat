@@ -105,7 +105,7 @@ mod inner {
                 try!(install::start(
                     ui,
                     &default_depot_url(),
-                    None,
+                    None, // TODO: Support channels for export
                     &format_ident.to_string(),
                     PRODUCT,
                     VERSION,

@@ -179,6 +179,19 @@ pub struct PackageResults<T> {
     pub package_list: Vec<T>,
 }
 
+#[derive(Clone, Deserialize)]
+pub struct OriginChannelIdent {
+    pub name: String,
+}
+
+impl Into<originsrv::OriginChannelIdent> for OriginChannelIdent {
+    fn into(self) -> originsrv::OriginChannelIdent {
+        let mut out = originsrv::OriginChannelIdent::new();
+        out.set_name(self.name);
+        out
+    }
+}
+
 pub trait DisplayProgress: Write {
     fn size(&mut self, size: u64);
     fn finish(&mut self);
@@ -413,6 +426,8 @@ impl Client {
     where
         I: Identifiable,
     {
+        // TODO: When channels are fully rolled out, we may want to make
+        //       the channel specifier mandatory instead of being an Option
         let mut url = if let Some(channel) = channel {
             channel_package_path(channel, package)
         } else {
@@ -509,17 +524,14 @@ impl Client {
     /// * Remote Depot is not available
     ///
     /// # Panics
-    /// * If package archive does not have a version/release
+    /// * If package does not exist in the Depot
     /// * Authorization token was not set on client
-    pub fn promote_package(
-        &self,
-        pa: &mut PackageArchive,
-        channel: &str,
-        token: &str,
-    ) -> Result<()> {
-        let ident = try!(pa.ident());
-        let path = channel_package_promote(channel, &ident);
-        debug!("Promoting package, path: {:?}", path);
+    pub fn promote_package<I>(&self, ident: &I, channel: &str, token: &str) -> Result<()>
+    where
+        I: Identifiable,
+    {
+        let path = channel_package_promote(channel, ident);
+        debug!("Promoting package {}", ident);
 
         let res = self.add_authz(self.0.put(&path), token).send()?;
 
@@ -528,6 +540,46 @@ impl Client {
         };
 
         Ok(())
+    }
+
+    /// Create a custom channel
+    ///
+    /// # Failures
+    ///
+    /// * Remote Depot is not available
+    pub fn create_channel(&self, origin: &str, channel: &str, token: &str) -> Result<()> {
+        let path = format!("channels/{}/{}", origin, channel);
+        debug!("Creating channel, path: {:?}", path);
+
+        let res = self.add_authz(self.0.post(&path), token).send()?;
+
+        if res.status != StatusCode::Created {
+            return Err(err_from_response(res));
+        };
+
+        Ok(())
+    }
+
+    /// Return a list of channels for a given origin
+    ///
+    /// # Failures
+    /// * Remote Depot is not available
+    /// * Authorization token was not set on client
+    pub fn list_channels(&self, origin: &str) -> Result<Vec<String>> {
+        let path = format!("channels/{}", origin);
+        let mut res = self.0.get(&path).send()?;
+
+        match res.status {
+            StatusCode::Ok |
+            StatusCode::PartialContent => {
+                let mut encoded = String::new();
+                try!(res.read_to_string(&mut encoded));
+                let results: Vec<OriginChannelIdent> = try!(serde_json::from_str(&encoded));
+                let channels = results.into_iter().map(|o| o.name).collect();
+                Ok(channels)
+            }
+            _ => Err(err_from_response(res)),
+        }
     }
 
     /// Returns a vector of PackageIdent structs

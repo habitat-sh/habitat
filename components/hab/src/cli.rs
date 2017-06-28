@@ -216,9 +216,21 @@ pub fn get() -> App<'static, 'static> {
                 (@arg DEPOT_URL: -u --url +takes_value {valid_url}
                     "Use a specific Depot URL (ex: http://depot.example.com/v1/depot)")
                 (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for the Depot")
+                (@arg CHANNEL: --channel +takes_value
+                    "Upload to the specified release channel")
                 (@arg HART_FILE: +required +multiple {file_exists}
                     "One or more filepaths to a Habitat Artifact \
                     (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
+            )
+            (@subcommand promote =>
+                (about: "Promote a package to a specified channel")
+                (aliases: &["pr", "pro"])
+                (@arg DEPOT_URL: -u --url +takes_value {valid_url}
+                    "Use a specific Depot URL (ex: http://depot.example.com/v1/depot)")
+                (@arg PKG_IDENT: +required +takes_value
+                    "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
+                (@arg CHANNEL: +required +takes_value
+                    "Promote to the specified release channel")
             )
             (@subcommand verify =>
                 (about: "Verifies a Habitat Artifact with an origin key")

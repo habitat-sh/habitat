@@ -55,6 +55,7 @@ use retry::retry;
 pub fn start<P: AsRef<Path>>(
     ui: &mut UI,
     url: &str,
+    channel: Option<&str>,
     token: &str,
     archive_path: &P,
     key_path: &P,
@@ -116,25 +117,32 @@ pub fn start<P: AsRef<Path>>(
                             Some(p) => PathBuf::from(p),
                             None => unreachable!(),
                         };
-                        if retry(RETRIES,
-                                 RETRY_WAIT,
-                                 || {
-                                     attempt_upload_dep(ui,
-                                                        &depot_client,
-                                                        token,
-                                                        &dep,
-                                                        &candidate_path)
-                                 },
-                                 |res| res.is_ok())
-                                   .is_err() {
-                            return Err(Error::from(depot_client::Error::UploadFailed(format!("We tried \
+                        if retry(
+                            RETRIES,
+                            RETRY_WAIT,
+                            || {
+                                attempt_upload_dep(
+                                    ui,
+                                    &depot_client,
+                                    token,
+                                    &dep,
+                                    channel,
+                                    &candidate_path,
+                                )
+                            },
+                            |res| res.is_ok(),
+                        ).is_err()
+                        {
+                            return Err(Error::from(depot_client::Error::UploadFailed(format!(
+                                "We tried \
                                                                                       {} times \
                                                                                       but could \
                                                                                       not upload \
                                                                                       {}. Giving \
                                                                                       up.",
-                                                                                             RETRIES,
-                                                                                             &dep))));
+                                RETRIES,
+                                &dep
+                            ))));
                         }
                     }
                     Err(e) => return Err(Error::from(e)),
@@ -143,7 +151,9 @@ pub fn start<P: AsRef<Path>>(
 
             if retry(RETRIES,
                      RETRY_WAIT,
-                     || upload_into_depot(ui, &depot_client, token, &ident, &mut archive),
+                     || {
+                         upload_into_depot(ui, &depot_client, token, &ident, channel, &mut archive)
+                     },
                      |res| res.is_ok())
                        .is_err() {
                 return Err(Error::from(depot_client::Error::UploadFailed(format!("We tried \
@@ -167,13 +177,15 @@ fn upload_into_depot(
     depot_client: &Client,
     token: &str,
     ident: &PackageIdent,
+    channel: Option<&str>,
     mut archive: &mut PackageArchive,
 ) -> Result<()> {
     try!(ui.status(Status::Uploading, archive.path.display()));
-    match depot_client.put_package(&mut archive, token, ui.progress()) {
-        Ok(_) => (),
+    let try_promote = match depot_client.put_package(&mut archive, token, ui.progress()) {
+        Ok(_) => true,
         Err(depot_client::Error::APIError(StatusCode::Conflict, _)) => {
             println!("Package already exists on remote; skipping.");
+            true
         }
         Err(depot_client::Error::APIError(StatusCode::UnprocessableEntity, _)) => {
             return Err(Error::PackageArchiveMalformed(
@@ -185,16 +197,36 @@ fn upload_into_depot(
                 "Package platform or architecture not supported by the targeted \
                     depot; skipping."
             );
+            false
         }
         Err(depot_client::Error::APIError(StatusCode::FailedDependency, _)) => {
             try!(ui.fatal(
                 "Package upload introduces a circular dependency - please check \
                     pkg_deps; skipping.",
             ));
+            false
         }
         Err(e) => return Err(Error::from(e)),
     };
     try!(ui.status(Status::Uploaded, ident));
+
+    // Promote to channel if specified
+    if try_promote && channel.is_some() {
+        let channel_str = channel.unwrap();
+        if channel_str != "stable" && channel_str != "unstable" {
+            match depot_client.create_channel(&ident.origin, channel_str, token) {
+                Ok(_) => (),
+                Err(depot_client::Error::APIError(StatusCode::Conflict, _)) => (),
+                Err(e) => return Err(Error::from(e)),
+            };
+        }
+        match depot_client.promote_package(ident, channel_str, token) {
+            Ok(_) => (),
+            Err(e) => return Err(Error::from(e)),
+        };
+        try!(ui.status(Status::Promoted, ident));
+    }
+
     Ok(())
 }
 
@@ -203,12 +235,13 @@ fn attempt_upload_dep(
     depot_client: &Client,
     token: &str,
     ident: &PackageIdent,
+    channel: Option<&str>,
     archives_dir: &PathBuf,
 ) -> Result<()> {
     let candidate_path = archives_dir.join(ident.archive_name().unwrap());
     if candidate_path.is_file() {
         let mut archive = PackageArchive::new(candidate_path);
-        upload_into_depot(ui, &depot_client, token, &ident, &mut archive)
+        upload_into_depot(ui, &depot_client, token, &ident, channel, &mut archive)
     } else {
         try!(ui.status(
             Status::Missing,

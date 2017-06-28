@@ -42,6 +42,7 @@ pub enum Error {
     StringFromUtf8Error(string::FromUtf8Error),
     TomlSerializeError(toml::ser::Error),
     WireDecode(String),
+    PackageNotFound,
 }
 
 impl fmt::Display for Error {
@@ -76,6 +77,7 @@ impl fmt::Display for Error {
             Error::StringFromUtf8Error(ref e) => format!("{}", e),
             Error::TomlSerializeError(ref e) => format!("Can't serialize TOML: {}", e),
             Error::WireDecode(ref m) => format!("Failed to decode wire message: {}", m),
+            Error::PackageNotFound => format!("Package not found"),
         };
         write!(f, "{}", msg)
     }
@@ -103,6 +105,7 @@ impl error::Error for Error {
             Error::StringFromUtf8Error(_) => "Failed to convert a string as UTF-8",
             Error::TomlSerializeError(_) => "Can't serialize TOML",
             Error::WireDecode(_) => "Failed to decode wire message",
+            Error::PackageNotFound => "Package not found",
         }
     }
 }
