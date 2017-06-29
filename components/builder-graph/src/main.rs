@@ -36,6 +36,7 @@ pub mod config;
 pub mod data_store;
 pub mod error;
 
+use std::fs::File;
 use std::io::{self, Write};
 use clap::{Arg, App};
 use time::PreciseTime;
@@ -165,6 +166,13 @@ fn main() {
                         do_check(&datastore, &graph, v[1].to_lowercase().as_str(), &filter)
                     }
                 }
+                "export" => {
+                    if v.len() < 2 {
+                        println!("Missing file name\n")
+                    } else {
+                        do_export(&graph, v[1].to_lowercase().as_str(), &filter)
+                    }
+                }
                 "exit" => done = true,
                 _ => println!("Unknown command\n"),
             }
@@ -183,6 +191,7 @@ fn do_help() {
     println!("  rdeps   <name> [<max>]  Print the reverse dependencies for the package, up to max");
     println!("  deps    <name>|<ident>  Print the forward dependencies for the package");
     println!("  check   <name>|<ident>  Validate the latest dependencies for the package");
+    println!("  export  <filename>      Export data from graph to specified file");
     println!("  exit                    Exit the application\n");
 }
 
@@ -393,4 +402,23 @@ fn check_package(
         }
         Err(_) => println!("No matching package found for {}", ident),
     };
+}
+
+fn do_export(graph: &PackageGraph, filename: &str, filter: &str) {
+    let start_time = PreciseTime::now();
+    let latest = graph.latest();
+    let end_time = PreciseTime::now();
+    println!("\nTime: {} sec\n", start_time.to(end_time));
+
+    let mut file = File::create(filename).expect("Failed to initialize file");
+
+    if filter.len() > 0 {
+        println!("Checks filtered by: {}\n", filter);
+    }
+
+    for ident in latest {
+        if ident.starts_with(filter) {
+            file.write_fmt(format_args!("{}\n", ident)).unwrap();
+        }
+    }
 }

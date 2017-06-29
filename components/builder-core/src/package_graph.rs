@@ -287,6 +287,10 @@ impl PackageGraph {
         v
     }
 
+    pub fn latest(&self) -> Vec<String> {
+        self.latest_map.values().map(|x| format!("{}", x)).collect()
+    }
+
     // Given an identifier in 'origin/name' format, returns the
     // most recent version (fully-qualified package ident string)
     pub fn resolve(&self, name: &str) -> Option<String> {
