@@ -155,7 +155,16 @@ impl<'a> InstallTask<'a> {
         ident: PackageIdent,
         channel: Option<&str>,
     ) -> Result<PackageIdent> {
-        try!(ui.begin(format!("Installing {}", &ident)));
+        if channel.is_some() {
+            try!(ui.begin(format!(
+                "Installing {} from channel '{}'",
+                &ident,
+                channel.unwrap()
+            )));
+        } else {
+            try!(ui.begin(format!("Installing {}", &ident)));
+        }
+
         let mut ident = ident;
         if !ident.fully_qualified() {
             ident = match self.fetch_latest_pkg_ident_for(&ident, channel) {
@@ -185,6 +194,7 @@ impl<'a> InstallTask<'a> {
                 }
             }
         }
+
         if try!(self.is_package_installed(&ident)) {
             try!(ui.status(Status::Using, &ident));
             try!(ui.end(format!(

@@ -213,6 +213,12 @@ fn upload_into_depot(
     // Promote to channel if specified
     if try_promote && channel.is_some() {
         let channel_str = channel.unwrap();
+        try!(ui.begin(format!(
+            "Promoting {} to channel '{}'",
+            ident,
+            channel_str
+        )));
+
         if channel_str != "stable" && channel_str != "unstable" {
             match depot_client.create_channel(&ident.origin, channel_str, token) {
                 Ok(_) => (),
@@ -220,6 +226,7 @@ fn upload_into_depot(
                 Err(e) => return Err(Error::from(e)),
             };
         }
+
         match depot_client.promote_package(ident, channel_str, token) {
             Ok(_) => (),
             Err(e) => return Err(Error::from(e)),

@@ -216,7 +216,7 @@ pub fn get() -> App<'static, 'static> {
                 (@arg DEPOT_URL: -u --url +takes_value {valid_url}
                     "Use a specific Depot URL (ex: http://depot.example.com/v1/depot)")
                 (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for the Depot")
-                (@arg CHANNEL: --channel +takes_value
+                (@arg CHANNEL: --channel -c +takes_value
                     "Upload to the specified release channel")
                 (@arg HART_FILE: +required +multiple {file_exists}
                     "One or more filepaths to a Habitat Artifact \
@@ -493,7 +493,7 @@ fn sub_pkg_install() -> App<'static, 'static> {
         (about: "Installs a Habitat package from a Depot or locally from a Habitat Artifact")
         (@arg DEPOT_URL: --url -u +takes_value {valid_url}
             "Use a specific Depot URL [default: https://bldr.habitat.sh/v1/depot]")
-        (@arg CHANNEL: --channel +takes_value
+        (@arg CHANNEL: --channel -c +takes_value
             "Install from the specified release channel")
         (@arg PKG_IDENT_OR_ARTIFACT: +required +multiple
             "One or more Habitat package identifiers (ex: acme/redis) and/or filepaths \
