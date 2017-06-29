@@ -25,6 +25,7 @@ use std::process::{Command, Stdio};
 use std::str::FromStr;
 use std::sync::{mpsc, Arc, RwLock};
 use std::thread::{self, JoinHandle};
+use std::time::Duration;
 
 use bldr_core::logger::Logger;
 pub use protocol::jobsrv::JobState;
@@ -457,6 +458,8 @@ pub struct RunnerMgr {
     sock: zmq::Socket,
     msg: zmq::Message,
     config: Arc<RwLock<Config>>,
+    max_retries: u8,
+    retry_count: u8,
 }
 
 impl RunnerMgr {
@@ -482,6 +485,8 @@ impl RunnerMgr {
             sock: sock,
             msg: zmq::Message::new().unwrap(),
             config: config,
+            max_retries: 3,
+            retry_count: 0,
         })
     }
 
@@ -501,8 +506,28 @@ impl RunnerMgr {
             Runner::new(job, (*self.config.read().unwrap()).clone())
         };
         debug!("executing work, job={:?}", runner.job());
+
         let job = runner.run();
-        self.send_complete(&job)
+
+        if job.get_state() == JobState::Failed {
+            if self.retry_count < self.max_retries {
+                debug!("Job failed. Retrying.");
+                self.retry_count += 1;
+                // wait two seconds before trying again, just in case the failure was timing
+                // related
+                thread::sleep(Duration::from_secs(2));
+                self.execute_job(job)
+            } else {
+                debug!(
+                    "Job failed. We've already tried it {} times. Not trying again.",
+                    self.max_retries
+                );
+                self.retry_count = 0;
+                self.send_complete(&job)
+            }
+        } else {
+            self.send_complete(&job)
+        }
     }
 
     fn recv_job(&mut self) -> Result<Job> {
