@@ -231,6 +231,12 @@ message OriginPackagePromote {
   optional OriginPackageIdent ident = 3;
 }
 
+message OriginPackageDemote {
+  optional uint64 channel_id = 1;
+  optional uint64 package_id = 2;
+  optional OriginPackageIdent ident = 3;
+}
+
 message OriginPackageSearchRequest {
   optional string origin = 1;
   optional string query = 2;

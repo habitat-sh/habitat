@@ -32,6 +32,7 @@ pub type Result<T> = result::Result<T, Error>;
 pub enum Error {
     ArgumentError(&'static str),
     ButterflyError(String),
+    CannotRemoveFromChannel((String, String)),
     CommandNotFoundInPkg((String, String)),
     CryptoCLI(String),
     DepotClient(depot_client::Error),
@@ -62,6 +63,9 @@ impl fmt::Display for Error {
         let msg = match *self {
             Error::ArgumentError(ref e) => format!("{}", e),
             Error::ButterflyError(ref e) => format!("{}", e),
+            Error::CannotRemoveFromChannel((ref p, ref c)) => {
+                format!("{} cannot be removed from the {} channel.", p, c)
+            }
             Error::CommandNotFoundInPkg((ref p, ref c)) => {
                 format!(
                     "`{}' was not found under any 'PATH' directories in the {} package",
@@ -143,6 +147,9 @@ impl error::Error for Error {
         match *self {
             Error::ArgumentError(_) => "There was an error parsing an error or with it's value",
             Error::ButterflyError(_) => "Butterfly has had an error",
+            Error::CannotRemoveFromChannel(_) => {
+                "Package cannot be removed from the specified channel"
+            }
             Error::CommandNotFoundInPkg(_) => {
                 "Command was not found under any 'PATH' directories in the package"
             }

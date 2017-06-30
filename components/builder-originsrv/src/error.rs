@@ -58,6 +58,7 @@ pub enum Error {
     OriginPackageLatestGet(postgres::error::Error),
     OriginPackageList(postgres::error::Error),
     OriginPackageVersionList(postgres::error::Error),
+    OriginPackageDemote(postgres::error::Error),
     OriginPackagePromote(postgres::error::Error),
     OriginPackageSearch(postgres::error::Error),
     OriginPackageUniqueList(postgres::error::Error),
@@ -171,6 +172,9 @@ impl fmt::Display for Error {
                     e
                 )
             }
+            Error::OriginPackageDemote(ref e) => {
+                format!("Error demoting package from channel, {}", e)
+            }
             Error::OriginPackagePromote(ref e) => {
                 format!("Error promoting package to channel, {}", e)
             }
@@ -269,6 +273,7 @@ impl error::Error for Error {
             Error::OriginPackageLatestGet(ref err) => err.description(),
             Error::OriginPackageList(ref err) => err.description(),
             Error::OriginPackageVersionList(ref err) => err.description(),
+            Error::OriginPackageDemote(ref err) => err.description(),
             Error::OriginPackagePromote(ref err) => err.description(),
             Error::OriginPackageSearch(ref err) => err.description(),
             Error::OriginPackageUniqueList(ref err) => err.description(),

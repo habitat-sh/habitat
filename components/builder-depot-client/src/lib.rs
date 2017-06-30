@@ -542,6 +542,31 @@ impl Client {
         Ok(())
     }
 
+    /// Demote a package from a given channel
+    ///
+    /// # Failures
+    ///
+    /// * Remote Depot is not available
+    ///
+    /// # Panics
+    /// * If package does not exist in the Depot
+    /// * Authorization token was not set on client
+    pub fn demote_package<I>(&self, ident: &I, channel: &str, token: &str) -> Result<()>
+    where
+        I: Identifiable,
+    {
+        let path = channel_package_demote(channel, ident);
+        debug!("Demoting package {}", ident);
+
+        let res = self.add_authz(self.0.put(&path), token).send()?;
+
+        if res.status != StatusCode::Ok {
+            return Err(err_from_response(res));
+        };
+
+        Ok(())
+    }
+
     /// Create a custom channel
     ///
     /// # Failures
@@ -725,6 +750,20 @@ where
 {
     format!(
         "channels/{}/{}/pkgs/{}/{}/{}/promote",
+        package.origin(),
+        channel,
+        package.name(),
+        package.version().unwrap(),
+        package.release().unwrap()
+    )
+}
+
+fn channel_package_demote<I>(channel: &str, package: &I) -> String
+where
+    I: Identifiable,
+{
+    format!(
+        "channels/{}/{}/pkgs/{}/{}/{}/demote",
         package.origin(),
         channel,
         package.name(),

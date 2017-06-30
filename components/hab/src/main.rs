@@ -128,6 +128,7 @@ fn start(ui: &mut UI) -> Result<()> {
                 ("verify", Some(m)) => try!(sub_pkg_verify(ui, m)),
                 ("header", Some(m)) => try!(sub_pkg_header(ui, m)),
                 ("promote", Some(m)) => try!(sub_pkg_promote(ui, m)),
+                ("demote", Some(m)) => try!(sub_pkg_demote(ui, m)),
                 _ => unreachable!(),
             }
         }
@@ -474,6 +475,20 @@ fn sub_pkg_promote(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let ident = try!(PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())); // Required via clap
 
     command::pkg::promote::start(ui, &url, &ident, &channel, &token)
+}
+
+fn sub_pkg_demote(ui: &mut UI, m: &ArgMatches) -> Result<()> {
+    let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
+    let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
+
+    let channel_env_or_default =
+        henv::var(DEPOT_CHANNEL_ENVVAR).unwrap_or(DEFAULT_DEPOT_CHANNEL.to_string());
+    let channel = m.value_of("CHANNEL").unwrap_or(&channel_env_or_default);
+
+    let token = try!(auth_token_param_or_env(&m));
+    let ident = try!(PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())); // Required via clap
+
+    command::pkg::demote::start(ui, &url, &ident, &channel, &token)
 }
 
 fn sub_ring_key_export(m: &ArgMatches) -> Result<()> {

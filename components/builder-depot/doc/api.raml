@@ -478,3 +478,17 @@ securitySchemes:
                                             description: Origin or channel or identifier or version or release does not exist
                                         500:
                                             description: Server error
+                            /demote:
+                                put:
+                                    description: Demote a package from a specific channel
+                                    responses:
+                                        200:
+                                            description: Package successfully demoted
+                                        400:
+                                            description: Origin or channel or identifier or version or release not supplied
+                                        403:
+                                            description: Attempting to demote from unstable is not supported
+                                        404:
+                                            description: Origin or channel or identifier or version or release does not exist
+                                        500:
+                                            description: Server error

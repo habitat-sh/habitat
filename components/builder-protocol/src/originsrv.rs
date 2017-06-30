@@ -713,6 +713,14 @@ impl Routable for OriginPackagePromote {
     }
 }
 
+impl Routable for OriginPackageDemote {
+    type H = String;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(String::from(self.get_ident().get_origin()))
+    }
+}
+
 impl Pageable for OriginPackageSearchRequest {
     fn get_range(&self) -> [u64; 2] {
         [self.get_start(), self.get_stop()]

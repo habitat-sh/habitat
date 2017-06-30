@@ -644,6 +644,23 @@ pub fn origin_package_promote(
     Ok(())
 }
 
+pub fn origin_package_demote(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
+    let msg: proto::OriginPackageDemote = try!(req.parse_msg());
+    match state.datastore.demote_origin_package(&msg) {
+        Ok(()) =>  try!(req.reply_complete(sock, &net::NetOk::new())),
+        Err(err) => {
+            error!("OriginPackageDemote, err={:?}", err);
+            let err = net::err(ErrCode::DATA_STORE, "vt:origin-package-demote:1");
+            try!(req.reply_complete(sock, &err));
+        }
+    }
+    Ok(())
+}
+
 pub fn origin_package_unique_list(
     req: &mut Envelope,
     sock: &mut zmq::Socket,
