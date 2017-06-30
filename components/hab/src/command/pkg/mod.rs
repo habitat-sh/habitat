@@ -26,3 +26,4 @@ pub mod sign;
 pub mod upload;
 pub mod verify;
 pub mod promote;
+pub mod demote;

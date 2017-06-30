@@ -91,6 +91,13 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                         INSERT INTO origin_channel_packages (channel_id, package_id) VALUES (opp_channel_id, opp_package_id)
                         ON CONFLICT ON CONSTRAINT origin_channel_packages_pkey DO NOTHING;
                  $$ LANGUAGE SQL VOLATILE"#)?;
+    migrator.migrate("originsrv",
+                     r#"CREATE OR REPLACE FUNCTION demote_origin_package_v1 (
+                    opp_channel_id bigint,
+                    opp_package_id bigint
+                 ) RETURNS void AS $$
+                        DELETE FROM origin_channel_packages WHERE channel_id=opp_channel_id AND package_id=opp_package_id;
+                 $$ LANGUAGE SQL VOLATILE"#)?;
     migrator.migrate(
         "originsrv",
         r#"CREATE OR REPLACE FUNCTION delete_origin_channel_v1 (

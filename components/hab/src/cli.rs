@@ -231,6 +231,18 @@ pub fn get() -> App<'static, 'static> {
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
                 (@arg CHANNEL: +required +takes_value
                     "Promote to the specified release channel")
+                (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for the Depot")
+            )
+            (@subcommand demote =>
+                (about: "Demote a package from a specified channel")
+                (aliases: &["de", "dem", "demo", "demot"])
+                (@arg DEPOT_URL: -u --url +takes_value {valid_url}
+                    "Use a specific Depot URL (ex: http://depot.example.com/v1/depot)")
+                (@arg PKG_IDENT: +required +takes_value
+                    "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
+                (@arg CHANNEL: +required +takes_value
+                    "Demote from the specified release channel")
+                (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for the Depot")
             )
             (@subcommand verify =>
                 (about: "Verifies a Habitat Artifact with an origin key")
