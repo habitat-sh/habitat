@@ -167,8 +167,20 @@ impl WorkerMgr {
     }
 
     fn poll_timeout(&self) -> i64 {
+        let now = Instant::now();
+        let timeout;
+
         if let Some((_, expiry)) = self.workers.front() {
-            let timeout = *expiry - Instant::now();
+            // uh-oh. our expiration date is in the past. it's supposed to be in the
+            // future. blindly subtracting now from this will panic the current
+            // thread, since Instant's are supposed to monotonically increase.
+            // let's just timeout immediately instead.
+            if expiry < &now {
+                return 0;
+            } else {
+                timeout = *expiry - now;
+            }
+
             (timeout.as_secs() as i64 * 1000) + (timeout.subsec_nanos() as i64 / 1000 / 1000)
         } else {
             -1
