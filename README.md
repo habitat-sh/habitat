@@ -30,7 +30,8 @@ You can download it from the [Habitat downloads page](https://www.habitat.sh/doc
 
 Once you have downloaded it, follow the instructions on the page for your specific operating system.
 
-If you are running on a Mac or Linux, you can also use the Habitat install script.
+If you are running on a Mac or Linux, you can also use the [Habitat install
+script](https://github.com/habitat-sh/habitat/blob/master/components/hab/install.sh).
 
 ```
   $ curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh | sudo bash
