@@ -269,6 +269,8 @@ pub use self::keys::sym_key::SymKey;
 pub use self::keys::sig_key_pair::SigKeyPair;
 
 pub mod artifact;
+#[cfg(windows)]
+pub mod dpapi;
 pub mod hash;
 pub mod keys;
 
