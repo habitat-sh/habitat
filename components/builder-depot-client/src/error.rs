@@ -35,6 +35,7 @@ pub enum Error {
     Json(serde_json::Error),
     NoFilePart,
     NoXFilename,
+    PromoteIdentNotFullyQualified,
     UploadFailed(String),
     UrlParseError(url::ParseError),
     WriteSyncFailed,
@@ -62,6 +63,12 @@ impl fmt::Display for Error {
             Error::NoXFilename => {
                 format!("Invalid download from a Depot - missing X-Filename header")
             }
+            Error::PromoteIdentNotFullyQualified => {
+                format!(
+                    "Cannot promote a package identifier that is not fully qualified; please \
+                        include the package version and release"
+                )
+            }
             Error::UploadFailed(ref s) => format!("Upload failed: {}", s),
             Error::UrlParseError(ref e) => format!("{}", e),
             Error::WriteSyncFailed => {
@@ -86,6 +93,9 @@ impl error::Error for Error {
                 "An invalid path was passed - we needed a filename, and this path does not have one"
             }
             Error::NoXFilename => "Invalid download from a Depot - missing X-Filename header",
+            Error::PromoteIdentNotFullyQualified => {
+                "Cannot promote a package identifier that is not fully qualified"
+            }
             Error::UploadFailed(_) => "Upload failed",
             Error::UrlParseError(ref err) => err.description(),
             Error::WriteSyncFailed => {
