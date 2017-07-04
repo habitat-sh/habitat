@@ -530,6 +530,9 @@ impl Client {
     where
         I: Identifiable,
     {
+        if !ident.fully_qualified() {
+            return Err(Error::PromoteIdentNotFullyQualified);
+        }
         let path = channel_package_promote(channel, ident);
         debug!("Promoting package {}", ident);
 
