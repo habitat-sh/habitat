@@ -153,13 +153,21 @@ mod tests {
     #[test]
     fn well_known_group_account_has_well_known_sid() {
         let sid = Account::from_name("Everyone").unwrap().sid;
-        assert_eq!(sid.to_string(), "S-1-1-0")
+        assert_eq!(sid.to_string().unwrap(), "S-1-1-0")
     }
 
     #[test]
     fn mixing_case_returns_same_account() {
-        let lower_sid = Account::from_name("administrator").unwrap().sid;
-        let upper_sid = Account::from_name("ADMINISTRATOR").unwrap().sid;
-        assert_eq!(lower_sid.to_string(), upper_sid.to_string())
+        let current_user = env::var("USERNAME").unwrap();
+        let lower_sid = Account::from_name(current_user.to_lowercase().as_str())
+            .unwrap()
+            .sid;
+        let upper_sid = Account::from_name(current_user.to_uppercase().as_str())
+            .unwrap()
+            .sid;
+        assert_eq!(
+            lower_sid.to_string().unwrap(),
+            upper_sid.to_string().unwrap()
+        )
     }
 }
