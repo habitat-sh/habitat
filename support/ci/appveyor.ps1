@@ -108,7 +108,7 @@ if (($env:APPVEYOR_REPO_TAG_NAME -eq "$(Get-Content VERSION)") -or (Test-SourceC
                 & $habExe pkg install $hart.FullName
                 if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
 
-                if($env:HAB_AUTH_TOKEN -and (!Test-PullRequest)) {
+                if($env:HAB_AUTH_TOKEN -and (!(Test-PullRequest))) {
                     & $habExe pkg upload $hart
                     if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
                 }
