@@ -31,13 +31,14 @@ extern crate r2d2;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
+extern crate copperline;
 
 pub mod config;
 pub mod data_store;
 pub mod error;
 
 use std::fs::File;
-use std::io::{self, Write};
+use std::io::Write;
 use clap::{Arg, App};
 use time::PreciseTime;
 use bldr_core::package_graph::PackageGraph;
@@ -45,6 +46,7 @@ use hab_core::config::ConfigFile;
 use config::Config;
 use data_store::DataStore;
 use std::collections::HashMap;
+use copperline::Copperline;
 
 const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 
@@ -66,6 +68,8 @@ fn main() {
         Some(cfg_path) => Config::from_file(cfg_path).unwrap(),
         None => Config::default(),
     };
+
+    let mut cl = Copperline::new();
 
     println!("Connecting to {}", config.datastore.database);
 
@@ -91,12 +95,14 @@ fn main() {
 
     let mut filter = String::from("");
     let mut done = false;
-    while !done {
-        print!("command> ");
-        io::stdout().flush().ok().expect("Could not flush stdout");
 
-        let mut cmd = String::new();
-        io::stdin().read_line(&mut cmd).unwrap();
+    while !done {
+        let line = cl.read_line_utf8("command> ").ok();
+        if line.is_none() {
+            continue;
+        }
+        let cmd = line.expect("Could not get line");
+        cl.add_history(cmd.clone());
 
         let v: Vec<&str> = cmd.trim_right().split_whitespace().collect();
 
