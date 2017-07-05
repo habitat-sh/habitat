@@ -1,49 +1,24 @@
-// Overrides to make the Google Search results look better
-.gsc-table-result,
-.gsc-above-wrapper-area-container,
-.gsc-resultsHeader,
-.gsc-search-box,
-.gcsc-branding {
-  tbody {
-    background: transparent;
-    border: none;
-  }
+// Swiftype overrides
+input.st-ui-search-input,
+input.st-default-search-input {
+  width: 100%;
+  margin-bottom: 1rem;
+  box-sizing: border-box;
+  height: auto;
+  font-family: inherit;
+  font-size: 1rem;
+  background-position: 8px 12px;
 }
 
-.gsc-search-box {
-  td.gsc-input,
-  td.gsc-search-button,
-  td.gsc-clear-button {
-    padding: initial;
-  }
+.st-ui-injected-on-page-container {
+  font-family: inherit !important;
 
-  td.gsc-search-box {
-    padding-right: 12px;
-  }
-}
-
-input.gsc-input {
-  margin-bottom: 0;
-}
-
-.gsc-above-wrapper-area-container td {
-  padding: initial;
-}
-
-.gsc-resultsHeader {
-  display: none;
-}
-
-#___gcse_0 {
-  .gsc-control-cse {
-    padding: 0;
+  .st-ui-type-detail-bold {
+    font-size: 14px;
   }
 
-  .gsc-results .gsc-cursor-box .gsc-cursor-current-page {
-    color: $white;
-    border-color: $hab-green;
-    background: $hab-green;
-    text-shadow: none;
-    border-radius: 3px;
+  a.st-ui-result .st-ui-type-detail {
+    font-size: 14px;
+    max-height: 38px;
   }
 }

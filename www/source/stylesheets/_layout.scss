@@ -90,11 +90,16 @@ body.body-article {
 
   [type='text'] {
     padding: rem-calc(10) rem-calc(20);
-    background-color: transparent;
+    background: transparent;
     border-color: $hab-green;
     color: $white;
     line-height: 1rem;
     height: auto;
+    // overrides for Swiftype
+    box-sizing: border-box;
+    font-size: 1rem;
+    width: 100%;
+    font-family: inherit;
   }
 }
 
