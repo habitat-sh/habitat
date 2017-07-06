@@ -117,7 +117,8 @@ pub fn start<P: AsRef<Path>>(
                             Some(p) => PathBuf::from(p),
                             None => unreachable!(),
                         };
-                        if retry(
+
+                        let retry_result = retry(
                             RETRIES,
                             RETRY_WAIT,
                             || {
@@ -131,8 +132,8 @@ pub fn start<P: AsRef<Path>>(
                                 )
                             },
                             |res| res.is_ok(),
-                        ).is_err()
-                        {
+                        );
+                        if retry_result.is_err() {
                             return Err(Error::from(depot_client::Error::UploadFailed(format!(
                                 "We tried \
                                                                                       {} times \
@@ -149,21 +150,25 @@ pub fn start<P: AsRef<Path>>(
                 }
             }
 
-            if retry(RETRIES,
-                     RETRY_WAIT,
-                     || {
-                         upload_into_depot(ui, &depot_client, token, &ident, channel, &mut archive)
-                     },
-                     |res| res.is_ok())
-                       .is_err() {
-                return Err(Error::from(depot_client::Error::UploadFailed(format!("We tried \
+            let retry_result = retry(
+                RETRIES,
+                RETRY_WAIT,
+                || {
+                    upload_into_depot(ui, &depot_client, token, &ident, channel, &mut archive)
+                },
+                |res| res.is_ok(),
+            );
+            if retry_result.is_err() {
+                return Err(Error::from(depot_client::Error::UploadFailed(format!(
+                    "We tried \
                                                                                   {} times \
                                                                                   but could \
                                                                                   not upload \
                                                                                   {}. Giving \
                                                                                   up.",
-                                                                                 RETRIES,
-                                                                                 &ident))));
+                    RETRIES,
+                    &ident
+                ))));
             }
             try!(ui.end(format!("Upload of {} complete.", &ident)));
             Ok(())
@@ -221,8 +226,9 @@ fn upload_into_depot(
 
         if channel_str != "stable" && channel_str != "unstable" {
             match depot_client.create_channel(&ident.origin, channel_str, token) {
-                Ok(_) => (),
+                Ok(_) |
                 Err(depot_client::Error::APIError(StatusCode::Conflict, _)) => (),
+
                 Err(e) => return Err(Error::from(e)),
             };
         }
@@ -248,7 +254,7 @@ fn attempt_upload_dep(
     let candidate_path = archives_dir.join(ident.archive_name().unwrap());
     if candidate_path.is_file() {
         let mut archive = PackageArchive::new(candidate_path);
-        upload_into_depot(ui, &depot_client, token, &ident, channel, &mut archive)
+        upload_into_depot(ui, depot_client, token, ident, channel, &mut archive)
     } else {
         try!(ui.status(
             Status::Missing,

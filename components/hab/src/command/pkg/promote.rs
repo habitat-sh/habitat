@@ -57,8 +57,9 @@ pub fn start(
 
     if channel != "stable" && channel != "unstable" {
         match depot_client.create_channel(&ident.origin, channel, token) {
-            Ok(_) => (),
+            Ok(_) |
             Err(depot_client::Error::APIError(StatusCode::Conflict, _)) => (),
+
             Err(e) => {
                 println!("Failed to create '{}' channel: {:?}", channel, e);
                 return Err(Error::from(e));
