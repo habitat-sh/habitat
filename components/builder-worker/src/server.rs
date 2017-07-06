@@ -21,7 +21,8 @@ use zmq;
 
 use config::Config;
 use error::Result;
-use heartbeat::{HeartbeatCli, HeartbeatMgr};
+use hab_net::heartbeat::{HeartbeatCli};
+use heartbeat::{HeartbeatMgr};
 use log_forwarder::LogForwarder;
 use runner::{RunnerCli, RunnerMgr};
 

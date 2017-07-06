@@ -40,6 +40,7 @@ extern crate zmq;
 pub mod config;
 pub mod error;
 pub mod dispatcher;
+pub mod heartbeat;
 pub mod http;
 pub mod oauth;
 pub mod privilege;

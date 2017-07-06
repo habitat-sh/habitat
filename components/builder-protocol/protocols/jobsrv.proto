@@ -2,17 +2,6 @@ package jobsrv;
 import "protocols/net.proto";
 import "protocols/originsrv.proto";
 
-enum Os {
-  Linux = 1;
-  Darwin = 2;
-  Windows = 3;
-}
-
-enum WorkerState {
-  Ready = 0;
-  Busy = 1;
-}
-
 enum JobState {
   Pending = 0;
   Processing = 1;
@@ -20,12 +9,6 @@ enum JobState {
   Rejected = 3;
   Failed = 4;
   Dispatched = 5;
-}
-
-message Heartbeat {
-  optional string endpoint = 1;
-  optional Os os = 2;
-  optional WorkerState state = 3;
 }
 
 message Job {
