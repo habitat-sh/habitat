@@ -178,8 +178,7 @@ mod inner {
     const HAB_WINDOWS_STUDIO: &'static str = "HAB_WINDOWS_STUDIO";
 
     pub fn start(_ui: &mut UI, args: Vec<OsString>) -> Result<()> {
-        //TODO: Remove HAB_WINDOWS_STUDIO check after windows studio support is official
-        if cfg!(target_os = "windows") && henv::var(HAB_WINDOWS_STUDIO).is_ok() {
+        if is_windows_studio(&args) {
             start_windows_studio(_ui, args)
         } else {
             start_docker_studio(_ui, args)
@@ -378,6 +377,21 @@ mod inner {
     fn image_identifier() -> String {
         let version: Vec<&str> = VERSION.split("/").collect();
         henv::var(DOCKER_IMAGE_ENVVAR).unwrap_or(format!("{}:{}", DOCKER_IMAGE, version[0]))
+    }
+
+    fn is_windows_studio(args: &Vec<OsString>) -> bool {
+        if cfg!(not(target_os = "windows")) {
+            return false;
+        }
+
+        for arg in args.iter() {
+            let str_arg = arg.to_string_lossy().to_lowercase();
+            if str_arg == String::from("--windows") || str_arg == String::from("-w") {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     #[cfg(test)]
