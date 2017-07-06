@@ -1578,6 +1578,76 @@ fn list_origin_channel() {
 }
 
 #[test]
+fn list_origin_package_channels_for_package() {
+    let ds = datastore_test!(DataStore);
+    let mut origin = originsrv::OriginCreate::new();
+    origin.set_name(String::from("core"));
+    origin.set_owner_id(1);
+    origin.set_owner_name(String::from("scottkelly"));
+    ds.create_origin(&origin).expect("Should create origin");
+
+    let neurosis = ds.get_origin_by_name("core")
+        .expect("Could not retrieve origin")
+        .expect("Origin does not exist");
+
+    let mut og = originsrv::OriginGet::new();
+    og.set_name(String::from("core"));
+    let og_result = ds.get_origin(&og).expect("Could not get origin").unwrap();
+
+    // Create a new origin channel
+    let mut occ = originsrv::OriginChannelCreate::new();
+    occ.set_origin_id(og_result.get_id());
+    occ.set_origin_name(neurosis.get_name().to_string());
+    occ.set_name(String::from("foo"));
+    occ.set_owner_id(1);
+    let channel = ds.create_origin_channel(&occ).expect(
+        "Could not create channel",
+    );
+
+    let mut ident = originsrv::OriginPackageIdent::new();
+    ident.set_origin("core".to_string());
+    ident.set_name("red".to_string());
+    ident.set_version("2017.01.17".to_string());
+    ident.set_release("20170209064044".to_string());
+
+    let mut package = originsrv::OriginPackageCreate::new();
+    package.set_owner_id(1);
+    package.set_origin_id(og_result.get_id());
+    package.set_ident(ident.clone());
+    package.set_checksum("checksum".to_string());
+    package.set_manifest("manifest".to_string());
+    package.set_config("config".to_string());
+    package.set_target("x86_64-windows".to_string());
+    package.set_exposes(vec![1, 2]);
+    ds.create_origin_package(&package.clone()).expect(
+        "Failed to create origin package",
+    );
+
+    let mut package_get = originsrv::OriginPackageGet::new();
+    package_get.set_ident(ident.clone());
+    let result = ds.get_origin_package(&package_get)
+        .expect("Failed to get origin package")
+        .unwrap();
+
+    let mut opp = originsrv::OriginPackagePromote::new();
+    opp.set_channel_id(channel.get_id());
+    opp.set_package_id(result.get_id());
+    opp.set_ident(ident.clone());
+    ds.promote_origin_package(&opp).expect(
+        "Could not promote package",
+    );
+
+    let mut opclr = originsrv::OriginPackageChannelListRequest::new();
+    opclr.set_ident(ident);
+    let resp = ds.list_origin_package_channels_for_package(&opclr).expect(
+        "Could not list channels for package",
+    );
+
+    assert_eq!(resp.get_channels().len(), 2); // 2 because "unstable" is implicitly created
+    assert_eq!(resp.get_channels().iter().nth(0).unwrap().get_name(), "foo");
+}
+
+#[test]
 fn get_origin_channel() {
     let ds = datastore_test!(DataStore);
     let mut origin = originsrv::OriginCreate::new();

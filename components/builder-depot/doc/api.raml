@@ -296,6 +296,20 @@ securitySchemes:
                                 200:
                                 400:
                                 500:
+                    /channels:
+                        get:
+                            responses:
+                                200:
+                                    body:
+                                        application/json:
+                                            example: |
+                                                ["stable", "unstable"]
+                                400:
+                                    description: Package identifier is not fully qualified
+                                404:
+                                    description: Specified package could not be found
+                                500:
+                                    description: Internal server error
 /channels:
     /{origin}:
         get:

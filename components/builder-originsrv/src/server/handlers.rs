@@ -591,6 +591,25 @@ pub fn origin_package_version_list(
     Ok(())
 }
 
+pub fn origin_package_channel_list(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
+    let msg: proto::OriginPackageChannelListRequest = try!(req.parse_msg());
+    match state.datastore.list_origin_package_channels_for_package(
+        &msg,
+    ) {
+        Ok(ref opclr) => try!(req.reply_complete(sock, opclr)),
+        Err(err) => {
+            error!("OriginPackageChannelList, err={:?}", err);
+            let err = net::err(ErrCode::DATA_STORE, "vt:origin-package-channel-list:1");
+            try!(req.reply_complete(sock, &err));
+        }
+    }
+    Ok(())
+}
+
 pub fn origin_package_list(
     req: &mut Envelope,
     sock: &mut zmq::Socket,

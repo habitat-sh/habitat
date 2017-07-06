@@ -14,16 +14,17 @@
 
 pub mod binlink;
 pub mod build;
+pub mod channels;
+pub mod demote;
 pub mod env;
 pub mod exec;
 pub mod export;
 pub mod hash;
 pub mod header;
 pub mod path;
+pub mod promote;
 pub mod provides;
 pub mod search;
 pub mod sign;
 pub mod upload;
 pub mod verify;
-pub mod promote;
-pub mod demote;
