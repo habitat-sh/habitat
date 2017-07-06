@@ -28,6 +28,8 @@ environment:
     secure: il1kqjDtQSFOoD12nDaJhCBntC905Q8T9jRzyTZtqlJPxc3vCoS1bBeNbB55J82M
   ORIGIN_KEY:
     secure: T03FGJrevgQSlLfkc0mDaIkRyfu0/ci6+ryDnSqrezAmbtTayisHStac1yS4/96fMQmyfPYpGP5tMtvjuyw0cplUAUEtXarcK8CgatwnE+t7c9sjpBWgKfSE3wLOiDla
+  HAB_CRYPTO_KEY:
+    secure: ClumTYe8anMpdAb9ehrDURcO72ufvegDrweI7h+mBODkdlYkW6SzaCFbXbwUgbNCI4bDVQNw3N9/yhU3DUJ3vwmyLRHh/J5JR9aChxJJwYlwRSdVmdTA+G6EgRdEv259
 
   matrix:
     - hab_build_action: "test;build"

@@ -106,7 +106,7 @@ impl Supervisor {
         (healthy, status)
     }
 
-    pub fn start(&mut self, pkg: &Pkg) -> Result<()> {
+    pub fn start(&mut self, pkg: &Pkg, svc_encrypted_password: Option<&str>) -> Result<()> {
         if self.child.is_some() {
             outputln!(preamble & self.preamble, "Already started");
             return Ok(());
@@ -121,7 +121,7 @@ impl Supervisor {
                   &pkg.svc_user,
                   &pkg.svc_group);
         self.enter_state(ProcessState::Start);
-        let mut child = exec::run_cmd(&pkg.svc_run, &pkg)?;
+        let mut child = exec::run_cmd(&pkg.svc_run, &pkg, svc_encrypted_password)?;
         self.child = Some(HabChild::from(&mut child)?);
         let c_stdout = child.stdout;
         let c_stderr = child.stderr;
@@ -164,10 +164,10 @@ impl Supervisor {
         Ok(())
     }
 
-    pub fn restart(&mut self, pkg: &Pkg) -> Result<()> {
+    pub fn restart(&mut self, pkg: &Pkg, svc_encrypted_password: Option<&str>) -> Result<()> {
         self.enter_state(ProcessState::Restart);
         try!(self.stop());
-        try!(self.start(pkg));
+        try!(self.start(pkg, svc_encrypted_password));
         Ok(())
     }
 

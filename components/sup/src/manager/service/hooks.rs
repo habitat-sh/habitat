@@ -112,8 +112,13 @@ pub trait Hook: fmt::Debug + Sized {
     }
 
     /// Run a compiled hook.
-    fn run(&self, service_group: &ServiceGroup, pkg: &Pkg) -> Self::ExitValue {
-        let mut child = match exec::run_cmd(self.path(), &pkg) {
+    fn run(
+        &self,
+        service_group: &ServiceGroup,
+        pkg: &Pkg,
+        svc_encrypted_password: Option<&str>,
+    ) -> Self::ExitValue {
+        let mut child = match exec::run_cmd(self.path(), &pkg, svc_encrypted_password) {
             Ok(child) => child,
             Err(err) => {
                 outputln!(preamble service_group,
@@ -342,10 +347,10 @@ impl Hook for RunHook {
         }
     }
 
-    fn run(&self, _: &ServiceGroup, _: &Pkg) -> Self::ExitValue {
+    fn run(&self, _: &ServiceGroup, _: &Pkg, _: Option<&str>) -> Self::ExitValue {
         panic!(
             "The run hook is a an exception to the lifetime of a service. It should only be \
-                run by the supervisor module!"
+             run by the supervisor module!"
         );
     }
 

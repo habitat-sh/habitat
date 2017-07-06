@@ -17,6 +17,7 @@ name = "functional"
 
 [dependencies]
 ansi_term = "*"
+base64 = "*"
 bitflags = "*"
 byteorder = "*"
 clap = { version = "*", features = [ "suggestions", "color", "unstable" ] }
@@ -52,6 +53,8 @@ url = "*"
 
 [target.'cfg(windows)'.dependencies]
 ctrlc = "*"
+crypt32-sys = "*"
+winapi = "*"
 
 [dev-dependencies]
 hyper = "*"

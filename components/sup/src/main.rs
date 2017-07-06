@@ -35,6 +35,8 @@ use clap::{App, ArgMatches};
 use common::ui::UI;
 use hcore::env as henv;
 use hcore::crypto::{default_cache_key_path, SymKey};
+#[cfg(windows)]
+use hcore::crypto::dpapi::encrypt;
 use hcore::crypto::init as crypto_init;
 use hcore::package::{PackageArchive, PackageIdent};
 use hcore::url::{DEFAULT_DEPOT_URL, DEPOT_URL_ENVVAR};
@@ -84,6 +86,7 @@ fn start() -> Result<()> {
     }
 }
 
+#[cfg(any(target_os = "linux", target_os = "macos"))]
 fn cli<'a, 'b>() -> App<'a, 'b> {
     clap_app!(("hab-sup") =>
         (about: "The Habitat Supervisor")
@@ -196,6 +199,148 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                 "One or more service groups to bind to a configuration")
             (@arg CONFIG_DIR: --("config-from") +takes_value {dir_exists}
                 "Use package config from this path, rather than the package itself")
+        )
+        (@subcommand status =>
+            (about: "Query the status of Habitat services.")
+            (aliases: &["stat", "statu", "status"])
+            (@arg PKG_IDENT: +takes_value "A Habitat package identifier (ex: core/redis)")
+            (@arg NAME: --("override-name") +takes_value
+                "The name for the state directory if there is more than one Supervisor running \
+                [default: default]")
+        )
+        (@subcommand stop =>
+            (about: "Stop a running Habitat service.")
+            (aliases: &["sto"])
+            (@arg PKG_IDENT: +required +takes_value "A Habitat package identifier (ex: core/redis)")
+            (@arg NAME: --("override-name") +takes_value
+                "The name for the state directory if there is more than one Supervisor running \
+                [default: default]")
+        )
+        (@subcommand term =>
+            (about: "Gracefully terminate the Habitat Supervisor and all of it's running services")
+            (@arg NAME: --("override-name") +takes_value
+                "The name of the Supervisor if more than one is running [default: default]")
+        )
+    )
+}
+
+#[cfg(target_os = "windows")]
+fn cli<'a, 'b>() -> App<'a, 'b> {
+    clap_app!(("hab-sup") =>
+        (about: "The Habitat Supervisor")
+        (version: VERSION)
+        (author: "\nAuthors: The Habitat Maintainers <humans@habitat.sh>\n")
+        (@setting VersionlessSubcommands)
+        (@setting SubcommandRequiredElseHelp)
+        (@arg VERBOSE: -v +global "Verbose output; shows line numbers")
+        (@arg NO_COLOR: --("no-color") +global "Turn ANSI color off")
+        (@subcommand bash =>
+            (about: "Start an interactive Bash-like shell")
+            (aliases: &["b", "ba", "bas"])
+        )
+        (@subcommand config =>
+            (about: "Displays the default configuration options for a service")
+            (aliases: &["c", "co", "con", "conf", "confi"])
+            (@arg PKG_IDENT: +required +takes_value
+                "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
+        )
+        (@subcommand load =>
+            (about: "Load a service to be started and supervised by Habitat from a package or \
+                artifact. Services started in this manner will persist through Supervisor \
+                restarts.")
+            (aliases: &["lo", "loa"])
+            (@arg PKG_IDENT: +required +takes_value "A Habitat package identifier (ex: core/redis)")
+            (@arg NAME: --("override-name") +takes_value
+                "The name for the state directory if there is more than one Supervisor running \
+                [default: default]")
+            (@arg CHANNEL: --channel +takes_value
+                "Receive package updates from the specified release channel")
+            (@arg GROUP: --group +takes_value
+                "The service group; shared config and topology [default: default].")
+            (@arg DEPOT_URL: --url -u +takes_value {valid_url}
+                "Receive package updates from the Depot at the specified URL \
+                [default: https://bldr.habitat.sh/v1/depot]")
+            (@arg TOPOLOGY: --topology -t +takes_value {valid_topology}
+                "Service topology; [default: none]")
+            (@arg STRATEGY: --strategy -s +takes_value {valid_update_strategy}
+                "The update strategy; [default: none] [values: none, at-once, rolling]")
+            (@arg BIND: --bind +takes_value +multiple
+                "One or more service groups to bind to a configuration")
+            (@arg FORCE: --force -f "Load or reload an already loaded service. If the service was \
+                previously loaded and running this operation will also restart the service")
+                (@arg PASSWORD: --password +takes_value
+                    "Password of the service user")
+        )
+        (@subcommand unload =>
+            (about: "Unload a persistent or transient service started by the Habitat \
+                supervisor. If the Supervisor is running when the service is unloaded the \
+                service will be stopped.")
+            (aliases: &["un", "unl", "unlo", "unloa"])
+            (@arg PKG_IDENT: +required +takes_value "A Habitat package identifier (ex: core/redis)")
+            (@arg NAME: --("override-name") +takes_value
+                "The name for the state directory if there is more than one Supervisor running \
+                [default: default]")
+        )
+        (@subcommand run =>
+            (about: "Run the Habitat Supervisor")
+            (aliases: &["r", "ru"])
+            (@arg LISTEN_GOSSIP: --("listen-gossip") +takes_value
+                "The listen address for the gossip system [default: 0.0.0.0:9638]")
+            (@arg LISTEN_HTTP: --("listen-http") +takes_value
+                "The listen address for the HTTP gateway [default: 0.0.0.0:9631]")
+            (@arg NAME: --("override-name") +takes_value
+                "The name of the Supervisor if launching more than one [default: default]")
+            (@arg ORGANIZATION: --org +takes_value
+                "The organization that the supervisor and it's subsequent services are part of \
+                [default: default]")
+            (@arg PEER: --peer +takes_value +multiple
+                "The listen address of an initial peer (IP[:PORT])")
+            (@arg PERMANENT_PEER: --("permanent-peer") -I "If this Supervisor is a permanent peer")
+            (@arg RING: --ring -r +takes_value "Ring key name")
+        )
+        (@subcommand sh =>
+            (about: "Start an interactive Bourne-like shell")
+            (aliases: &[])
+        )
+        (@subcommand start =>
+            (about: "Start a loaded, but stopped, Habitat service or a transient service from \
+                a package or artifact. If the Habitat Supervisor is not already running this \
+                will additionally start one for you.")
+            (aliases: &["sta", "star"])
+            (@arg LISTEN_GOSSIP: --("listen-gossip") +takes_value
+                "The listen address for the gossip system [default: 0.0.0.0:9638]")
+            (@arg LISTEN_HTTP: --("listen-http") +takes_value
+                "The listen address for the HTTP gateway [default: 0.0.0.0:9631]")
+            (@arg NAME: --("override-name") +takes_value
+                "The name for the state directory if launching more than one Supervisor \
+                [default: default]")
+            (@arg ORGANIZATION: --org +takes_value
+                "The organization that the supervisor and it's subsequent services are part of \
+                [default: default]")
+            (@arg PEER: --peer +takes_value +multiple
+                "The listen address of an initial peer (IP[:PORT])")
+            (@arg PERMANENT_PEER: --("permanent-peer") -I "If this Supervisor is a permanent peer")
+            (@arg RING: --ring -r +takes_value "Ring key name")
+            (@arg PKG_IDENT_OR_ARTIFACT: +required +takes_value
+                "A Habitat package identifier (ex: core/redis) or filepath to a Habitat Artifact \
+                (ex: /home/core-redis-3.0.7-21120102031201-x86_64-linux.hart)")
+            (@arg CHANNEL: --channel +takes_value
+                "Receive package updates from the specified release channel")
+            (@arg GROUP: --group +takes_value
+                "The service group; shared config and topology [default: default].")
+            (@arg DEPOT_URL: --url -u +takes_value {valid_url}
+                "Receive package updates from the Depot at the specified URL \
+                [default: https://bldr.habitat.sh/v1/depot]")
+            (@arg TOPOLOGY: --topology -t +takes_value {valid_topology}
+                "Service topology; [default: none]")
+            (@arg STRATEGY: --strategy -s +takes_value {valid_update_strategy}
+                "The update strategy; [default: none] [values: none, at-once, rolling]")
+            (@arg BIND: --bind +takes_value +multiple
+                "One or more service groups to bind to a configuration")
+            (@arg CONFIG_DIR: --("config-from") +takes_value {dir_exists}
+                "Use package config from this path, rather than the package itself")
+            (@arg PASSWORD: --password +takes_value
+                "Password of the service user")
         )
         (@subcommand status =>
             (about: "Query the status of Habitat services.")
@@ -351,7 +496,7 @@ fn sub_start(m: &ArgMatches) -> Result<()> {
         if let Some(spec) = maybe_spec {
             outputln!(
                 "The supervisor is starting the {} service. See the supervisor output for \
-                      more details.",
+                 more details.",
                 spec.ident
             );
         }
@@ -545,8 +690,23 @@ fn spec_from_matches(ident: PackageIdent, m: &ArgMatches) -> Result<ServiceSpec>
         );
         outputln!("");
     }
+    set_spec_password(m, &mut spec)?;
 
     Ok(spec)
+}
+
+#[cfg(target_os = "windows")]
+fn set_spec_password(m: &ArgMatches, spec: &mut ServiceSpec) -> Result<()> {
+    if let Some(password) = m.value_of("PASSWORD") {
+        spec.svc_encrypted_password = Some(encrypt(password.to_string())?);
+    }
+
+    Ok(())
+}
+
+#[cfg(any(target_os = "linux", target_os = "macos"))]
+fn set_spec_password(m: &ArgMatches, spec: &mut ServiceSpec) -> Result<()> {
+    Ok(())
 }
 
 fn dir_exists(val: String) -> result::Result<(), String> {

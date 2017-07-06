@@ -34,16 +34,109 @@ use std::sync::Mutex;
 
 use kernel32;
 use rand::{self, Rng};
+use userenv;
+use widestring::WideCString;
 use winapi;
 use winapi::winbase;
 
 use error::{Error, Result};
+use habitat_win_users::sid::{self, Sid};
+
+use super::super::users::get_current_username;
+use super::super::super::crypto::dpapi::decrypt;
 
 lazy_static! {
     static ref CREATE_PROCESS_LOCK: Mutex<()> = Mutex::new(());
 }
 
+#[link(name = "user32")]
+extern "system" {
+    fn LogonUserW(
+        lpszUsername: winapi::LPCWSTR,
+        lpszDomain: winapi::LPCWSTR,
+        lpszPassword: winapi::LPCWSTR,
+        dwLogonType: winapi::DWORD,
+        dwLogonProvider: winapi::DWORD,
+        phToken: winapi::PHANDLE,
+    ) -> winapi::BOOL;
+
+    fn CreateProcessAsUserW(
+        hToken: winapi::HANDLE,
+        lpApplicationName: winapi::LPCWSTR,
+        lpCommandLine: winapi::LPWSTR,
+        lpProcessAttributes: winapi::LPSECURITY_ATTRIBUTES,
+        lpThreadAttributes: winapi::LPSECURITY_ATTRIBUTES,
+        bInheritHandles: winapi::BOOL,
+        dwCreationFlags: winapi::DWORD,
+        lpEnvironment: winapi::LPVOID,
+        lpCurrentDirectory: winapi::LPCWSTR,
+        lpStartupInfo: winapi::LPSTARTUPINFOW,
+        lpProcessInformation: winapi::LPPROCESS_INFORMATION,
+    ) -> winapi::BOOL;
+
+    fn GetProcessWindowStation() -> winapi::HWINSTA;
+
+    fn OpenDesktopW(
+        lpszDesktop: winapi::LPWSTR,
+        dwFlags: winapi::DWORD,
+        fInherit: winapi::BOOL,
+        dwDesiredAccess: winapi::ACCESS_MASK,
+    ) -> winapi::HDESK;
+}
+
 const HANDLE_FLAG_INHERIT: winapi::DWORD = 0x00000001;
+
+const LOGON32_LOGON_SERVICE: winapi::DWORD = 5;
+
+enum ParsePart {
+    Key,
+    Value,
+}
+
+struct ServiceCredential {
+    pub user: String,
+    pub domain: String,
+    pub password: String,
+}
+
+impl ServiceCredential {
+    pub fn new(svc_user: &str, svc_encrypted_password: Option<&str>) -> Result<Self> {
+        let mut full_user = svc_user.to_string();
+        let (domain, user) = match full_user.find('\\') {
+            Some(idx) => {
+                let u = full_user.split_off(idx);
+                (full_user, u.trim_matches('\\').to_string())
+            }
+            None => (".".to_string(), full_user),
+        };
+        let pass = match svc_encrypted_password {
+            Some(password) => decrypt(password.to_string())?,
+            None => String::new(),
+        };
+        Ok(Self {
+            user: user,
+            domain: domain,
+            password: pass,
+        })
+    }
+
+    pub fn is_current_user(&self) -> bool {
+        self.user == get_current_username().unwrap_or(String::new())
+    }
+
+    pub fn user_wide(&self) -> WideCString {
+        WideCString::from_str(self.user.as_str()).unwrap()
+    }
+
+    pub fn domain_wide(&self) -> WideCString {
+        WideCString::from_str(self.domain.as_str()).unwrap()
+    }
+
+    pub fn password_wide(&self) -> WideCString {
+        WideCString::from_str(self.password.as_str()).unwrap()
+    }
+}
+
 
 pub struct Child {
     handle: Handle,
@@ -52,7 +145,13 @@ pub struct Child {
 }
 
 impl Child {
-    pub fn spawn(program: &str, args: Vec<&str>, env: &HashMap<String, String>) -> Result<Child> {
+    pub fn spawn(
+        program: &str,
+        args: Vec<&str>,
+        env: &HashMap<String, String>,
+        svc_user: &str,
+        svc_encrypted_password: Option<&str>,
+    ) -> Result<Child> {
         let mut os_env: HashMap<OsString, OsString> = env::vars_os()
             .map(|(key, val)| (mk_key(key.to_str().unwrap()), val))
             .collect();
@@ -89,7 +188,6 @@ impl Child {
         let mut cmd_str = make_command_line(&program_path, &args)?;
         cmd_str.push(0); // add null terminator
 
-        let (envp, _data) = make_envp(&os_env)?;
         let mut pi = zeroed_process_information();
 
         // Prepare all stdio handles to be inherited by the child. This
@@ -117,26 +215,17 @@ impl Child {
         si.hStdError = stderr.raw();
         let flags = winapi::CREATE_UNICODE_ENVIRONMENT | winapi::CREATE_NEW_PROCESS_GROUP;
 
-        unsafe {
-            cvt(kernel32::CreateProcessW(
-                ptr::null(),
-                cmd_str.as_mut_ptr(),
-                ptr::null_mut(),
-                ptr::null_mut(),
-                winapi::TRUE,
-                flags,
-                envp,
-                ptr::null(),
-                &mut si,
-                &mut pi,
-            ))
-        }?;
+        let cred = ServiceCredential::new(svc_user, svc_encrypted_password)?;
+        if cred.is_current_user() {
+            create_process(cmd_str.as_mut_ptr(), flags, os_env, &mut si, &mut pi)?;
+        } else {
+            create_process_as_user(cred, cmd_str.as_mut_ptr(), flags, env, &mut si, &mut pi)?;
+        }
 
         // We close the thread handle because we don't care about keeping
         // the thread id valid, and we aren't keeping the thread handle
         // around to be able to close it later.
         unsafe { kernel32::CloseHandle(pi.hThread) };
-
         Ok(Child {
             handle: Handle::new(pi.hProcess),
             stdout: pipes.stdout.map(ChildStdout::from_inner),
@@ -780,6 +869,193 @@ impl<'a> Read for &'a RawHandle {
 
     fn read_to_end(&mut self, buf: &mut Vec<u8>) -> io::Result<usize> {
         unsafe { read_to_end_uninitialized(self, buf) }
+    }
+}
+
+fn create_process(
+    command: winapi::LPWSTR,
+    flags: winapi::DWORD,
+    env: HashMap<OsString, OsString>,
+    si: winapi::LPSTARTUPINFOW,
+    pi: winapi::LPPROCESS_INFORMATION,
+) -> io::Result<i32> {
+    let (envp, _data) = make_envp(&env)?;
+
+    unsafe {
+        cvt(kernel32::CreateProcessW(
+            ptr::null(),
+            command,
+            ptr::null_mut(),
+            ptr::null_mut(),
+            winapi::TRUE,
+            flags,
+            envp,
+            ptr::null(),
+            si,
+            pi,
+        ))
+    }
+}
+
+fn create_process_as_user(
+    credential: ServiceCredential,
+    command: winapi::LPWSTR,
+    flags: winapi::DWORD,
+    env: &HashMap<String, String>,
+    si: winapi::LPSTARTUPINFOW,
+    pi: winapi::LPPROCESS_INFORMATION,
+) -> Result<i32> {
+    unsafe {
+        let mut token = ptr::null_mut();
+
+        match cvt(LogonUserW(
+            credential.user_wide().as_ptr(),
+            credential.domain_wide().as_ptr(),
+            credential.password_wide().as_ptr(),
+            LOGON32_LOGON_SERVICE,
+            0,
+            &mut token,
+        )) {
+            Ok(_) => {}
+            Err(ref err)
+                if err.raw_os_error() == Some(winapi::ERROR_LOGON_TYPE_NOT_GRANTED as i32) => {
+                return Err(Error::LogonTypeNotGranted)
+            }
+            Err(_) => return Err(Error::LogonUserFailed(io::Error::last_os_error())),
+        };
+
+        let station = GetProcessWindowStation();
+
+        let desktop = WideCString::from_str("default").unwrap();
+        let hdesk = OpenDesktopW(
+            desktop.into_raw(),
+            0,
+            winapi::FALSE,
+            winapi::READ_CONTROL | winapi::WRITE_DAC | sid::DESKTOP_WRITEOBJECTS |
+                sid::DESKTOP_READOBJECTS,
+        );
+        if hdesk == ptr::null_mut() {
+            return Err(Error::OpenDesktopFailed(format!(
+                "Failed calling OpenDesktopW: {}",
+                io::Error::last_os_error()
+            )));
+        }
+
+        let sid = Sid::from_token(token)?;
+        sid.add_to_user_object(
+            station as winapi::HANDLE,
+            sid::CONTAINER_INHERIT_ACE | sid::INHERIT_ONLY_ACE |
+                sid::OBJECECT_INHERIT_ACE,
+            sid::GENERIC_READ | sid::GENERIC_WRITE |
+                sid::GENERIC_EXECUTE | sid::GENERIC_ALL,
+        )?;
+        sid.add_to_user_object(
+            station as winapi::HANDLE,
+            sid::NO_PROPAGATE_INHERIT_ACE,
+            sid::WINSTA_ALL_ACCESS | sid::DELETE | sid::READ_CONTROL | sid::WRITE_DAC |
+                sid::WRITE_OWNER,
+        )?;
+        sid.add_to_user_object(
+            hdesk as winapi::HANDLE,
+            0,
+            sid::DESKTOP_CREATEMENU | sid::DESKTOP_CREATEWINDOW | sid::DESKTOP_ENUMERATE |
+                sid::DESKTOP_HOOKCONTROL | sid::DESKTOP_JOURNALPLAYBACK |
+                sid::DESKTOP_JOURNALRECORD |
+                sid::DESKTOP_READOBJECTS | sid::DESKTOP_SWITCHDESKTOP |
+                sid::DESKTOP_WRITEOBJECTS |
+                sid::DELETE | sid::READ_CONTROL |
+                sid::WRITE_DAC | sid::WRITE_OWNER,
+        )?;
+
+        let mut os_env = create_user_environment(token, &mut env.clone())?;
+        match cvt(CreateProcessAsUserW(
+            token,
+            ptr::null(),
+            command,
+            ptr::null_mut(),
+            ptr::null_mut(),
+            winapi::TRUE,
+            flags,
+            os_env.as_mut_ptr() as winapi::LPVOID,
+            ptr::null(),
+            si,
+            pi,
+        )) {
+            Ok(process) => Ok(process),
+            Err(ref err) if err.raw_os_error() == Some(winapi::ERROR_PRIVILEGE_NOT_HELD as i32) => {
+                Err(Error::PrivilegeNotHeld)
+            }
+            Err(_) => Err(Error::CreateProcessAsUserFailed(io::Error::last_os_error())),
+        }
+    }
+}
+
+fn create_user_environment(
+    token: winapi::HANDLE,
+    env: &mut HashMap<String, String>,
+) -> io::Result<Vec<u16>> {
+    unsafe {
+        let mut new_env: Vec<u16> = Vec::new();
+        let mut block: winapi::LPVOID = ptr::null_mut();
+        cvt(userenv::CreateEnvironmentBlock(
+            &mut block,
+            token,
+            winapi::FALSE,
+        ))?;
+        let mut tail: u32 = winapi::MAXDWORD;
+        let mut offset = 0;
+        let mut part = ParsePart::Key;
+        let mut cur_key: Vec<u16> = Vec::new();
+        let mut cur_val: Vec<u16> = Vec::new();
+
+        // we keep shifting the last u16 char into tail's u32 space
+        // when it is 0 we know we are done because a propper environment
+        // block ends in \0\0
+        while tail != 0 {
+            tail = tail << 16;
+            let next_char = *(block.offset(offset) as *mut u16);
+            tail = tail | (next_char as u32);
+            offset = offset + 2;
+
+            match part {
+                ParsePart::Key => {
+                    new_env.push(next_char);
+                    if next_char == ('=' as u16) {
+                        part = ParsePart::Value;
+                    } else {
+                        cur_key.push(next_char);
+                    }
+                }
+                ParsePart::Value => {
+                    if next_char == 0 {
+                        part = ParsePart::Key;
+                        match env.remove(&String::from_utf16_lossy(&cur_key).to_uppercase()) {
+                            Some(val) => {
+                                new_env.extend(OsStr::new(&val).encode_wide());
+                            }
+                            None => new_env.append(&mut cur_val),
+                        }
+                        new_env.push(next_char);
+                        cur_key = Vec::new();
+                        cur_val = Vec::new();
+                    } else {
+                        cur_val.push(next_char);
+                    }
+                }
+            }
+        }
+        cvt(userenv::DestroyEnvironmentBlock(block))?;
+
+        let len = new_env.len();
+        new_env.truncate(len - 1);
+        for (k, v) in env {
+            new_env.extend(OsStr::new(k).encode_wide());
+            new_env.push('=' as u16);
+            new_env.extend(OsStr::new(v).encode_wide());
+            new_env.push(0);
+        }
+        new_env.push(0);
+        Ok(new_env)
     }
 }
 

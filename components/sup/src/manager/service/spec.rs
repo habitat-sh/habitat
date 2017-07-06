@@ -89,6 +89,7 @@ pub struct ServiceSpec {
     #[serde(deserialize_with = "deserialize_using_from_str",
             serialize_with = "serialize_using_to_string")]
     pub start_style: StartStyle,
+    pub svc_encrypted_password: Option<String>,
 }
 
 impl ServiceSpec {
@@ -218,6 +219,7 @@ impl Default for ServiceSpec {
             config_from: None,
             desired_state: DesiredState::default(),
             start_style: StartStyle::default(),
+            svc_encrypted_password: None,
         }
     }
 }
@@ -458,6 +460,7 @@ mod test {
             config_from: Some(PathBuf::from("/only/for/development")),
             desired_state: DesiredState::Down,
             start_style: StartStyle::Persistent,
+            svc_encrypted_password: None,
         };
         let toml = spec.to_toml_string().unwrap();
 
@@ -600,6 +603,7 @@ mod test {
             config_from: Some(PathBuf::from("/only/for/development")),
             desired_state: DesiredState::Down,
             start_style: StartStyle::Persistent,
+            svc_encrypted_password: None,
         };
         spec.to_file(&path).unwrap();
         let toml = string_from_file(path);
