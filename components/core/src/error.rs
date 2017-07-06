@@ -77,6 +77,12 @@ pub enum Error {
     ConfigInvalidUsize(&'static str),
     /// Crypto library error
     CryptoError(String),
+    /// Occurs when a call to CreateProcessAsUserW fails
+    CreateProcessAsUserFailed(io::Error),
+    /// Occurs when a call to CryptProtectData fails
+    CryptProtectDataFailed(String),
+    /// Occurs when a call to CryptUnprotectData fails
+    CryptUnprotectDataFailed(String),
     /// Occurs when a file that should exist does not or could not be read.
     FileNotFound(String),
     /// Occurs when a package identifier string cannot be successfully parsed.
@@ -91,6 +97,10 @@ pub enum Error {
     InvalidServiceGroup(String),
     /// Occurs when making lower level IO calls.
     IO(io::Error),
+    // When LogonUserW does not have the correct logon type
+    LogonTypeNotGranted,
+    /// Occurs when a call to LogonUserW fails
+    LogonUserFailed(io::Error),
     /// Occurs when a BIND or BIND_OPTIONAL MetaFile is read and contains a bad entry.
     MetaFileBadBind,
     /// Occurs when a package metadata file cannot be opened, read, or parsed.
@@ -101,6 +111,8 @@ pub enum Error {
     MetaFileIO(io::Error),
     /// Occurs when we can't find an outbound IP address
     NoOutboundAddr,
+    /// Occurs when a call to OpenDesktopW fails
+    OpenDesktopFailed(String),
     /// Occurs when a suitable installed package cannot be found.
     PackageNotFound(package::PackageIdent),
     /// When an error occurs parsing an integer.
@@ -109,6 +121,8 @@ pub enum Error {
     PermissionFailed(String),
     /// Error parsing the contents of a plan file were incomplete or malformed.
     PlanMalformed,
+    // When CreateProcessAsUserW does not have the correct privileges
+    PrivilegeNotHeld,
     /// When an error occurs parsing or compiling a regular expression.
     RegexParse(regex::Error),
     /// When an error occurs converting a `String` from a UTF-8 byte vector.
@@ -242,7 +256,12 @@ impl fmt::Display for Error {
             Error::ConfigInvalidUsize(ref f) => {
                 format!("Invalid usize value in config, field={}", f)
             }
+            Error::CreateProcessAsUserFailed(ref e) => {
+                format!("Failure calling CreateProcessAsUserW: {:?}", e)
+            }
             Error::CryptoError(ref e) => format!("Crypto error: {}", e),
+            Error::CryptProtectDataFailed(ref e) => format!("{}", e),
+            Error::CryptUnprotectDataFailed(ref e) => format!("{}", e),
             Error::FileNotFound(ref e) => format!("File not found at: {}", e),
             Error::InvalidPackageIdent(ref e) => {
                 format!(
@@ -268,6 +287,13 @@ impl fmt::Display for Error {
                 )
             }
             Error::IO(ref err) => format!("{}", err),
+            Error::LogonTypeNotGranted => {
+                format!(
+                    "hab_svc_user user must possess the 'SE_SERVICE_LOGON_NAME' \
+                account right to be spawned as a service by the supervisor"
+                )
+            }
+            Error::LogonUserFailed(ref e) => format!("Failure calling LogonUserW: {:?}", e),
             Error::MetaFileBadBind => format!("Bad value parsed from BIND or BIND_OPTIONAL"),
             Error::MetaFileMalformed(ref e) => {
                 format!("MetaFile: {:?}, didn't contain a valid UTF-8 string", e)
@@ -275,6 +301,7 @@ impl fmt::Display for Error {
             Error::MetaFileNotFound(ref e) => format!("Couldn't read MetaFile: {}, not found", e),
             Error::MetaFileIO(ref e) => format!("IO error while accessing MetaFile: {:?}", e),
             Error::NoOutboundAddr => format!("Failed to discover this hosts outbound IP address"),
+            Error::OpenDesktopFailed(ref e) => format!("{}", e),
             Error::PackageNotFound(ref pkg) => {
                 if pkg.fully_qualified() {
                     format!("Cannot find package: {}", pkg)
@@ -285,6 +312,12 @@ impl fmt::Display for Error {
             Error::ParseIntError(ref e) => format!("{}", e),
             Error::PlanMalformed => format!("Failed to read or parse contents of Plan file"),
             Error::PermissionFailed(ref e) => format!("{}", e),
+            Error::PrivilegeNotHeld => {
+                format!(
+                    "Current user must possess the 'SE_INCREASE_QUOTA_NAME' \
+                and 'SE_ASSIGNPRIMARYTOKEN_NAME' privilege to spawn a new process as a different user"
+                )
+            }
             Error::RegexParse(ref e) => format!("{}", e),
             Error::StringFromUtf8Error(ref e) => format!("{}", e),
             Error::TargetMatchError(ref e) => format!("{}", e),
@@ -368,7 +401,10 @@ impl error::Error for Error {
             Error::ConfigInvalidUsize(_) => {
                 "Invalid usize value encountered while parsing a configuration file"
             }
+            Error::CreateProcessAsUserFailed(_) => "CreateProcessAsUserW failed",
             Error::CryptoError(_) => "Crypto error",
+            Error::CryptProtectDataFailed(_) => "CryptProtectData failed",
+            Error::CryptUnprotectDataFailed(_) => "CryptUnprotectData failed",
             Error::FileNotFound(_) => "File not found",
             Error::InvalidPackageIdent(_) => {
                 "Package identifiers must be in origin/name format (example: acme/redis)"
@@ -382,15 +418,21 @@ impl error::Error for Error {
                 "Service group strings must be in service.group format (example: redis.production)"
             }
             Error::IO(ref err) => err.description(),
+            Error::LogonTypeNotGranted => {
+                "Logon type not granted to hab_svc_user to be spawned by the supervisor"
+            }
+            Error::LogonUserFailed(_) => "LogonUserW failed",
             Error::MetaFileBadBind => "Bad value parsed from BIND or BIND_OPTIONAL MetaFile",
             Error::MetaFileMalformed(_) => "MetaFile didn't contain a valid UTF-8 string",
             Error::MetaFileNotFound(_) => "Failed to read an archive's metafile",
             Error::MetaFileIO(_) => "MetaFile could not be read or written to",
             Error::NoOutboundAddr => "Failed to discover the outbound IP address",
+            Error::OpenDesktopFailed(_) => "OpenDesktopW failed",
             Error::PackageNotFound(_) => "Cannot find a package",
             Error::ParseIntError(_) => "Failed to parse an integer from a string!",
             Error::PermissionFailed(_) => "Failed to set permissions",
             Error::PlanMalformed => "Failed to read or parse contents of Plan file",
+            Error::PrivilegeNotHeld => "Privilege not held to spawn process as different user",
             Error::RegexParse(_) => "Failed to parse a regular expression",
             Error::StringFromUtf8Error(_) => "Failed to convert a string from a Vec<u8> as UTF-8",
             Error::TargetMatchError(_) => "System target does not match package target",

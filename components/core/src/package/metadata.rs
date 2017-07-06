@@ -22,6 +22,12 @@ use std::vec::IntoIter;
 
 use error::{Error, Result};
 
+#[cfg(not(windows))]
+const ENV_PATH_SEPARATOR: char = ':';
+
+#[cfg(windows)]
+const ENV_PATH_SEPARATOR: char = ';';
+
 pub fn parse_key_value(s: &str) -> Result<HashMap<String, String>> {
     Ok(HashMap::from_iter(
         s.lines()
@@ -99,7 +105,7 @@ impl PkgEnv {
                     value: p.into_string().expect(
                         "Failed to convert path to utf8 string"
                     ),
-                    separator: Some(':'),
+                    separator: Some(ENV_PATH_SEPARATOR),
                 },
             ],
         }
@@ -265,7 +271,7 @@ port=front-end.port
             EnvVar {
                 key: "PATH".to_string(),
                 value: "/hab/pkgs/python/setuptools/35.0.1/20170424072606/bin".to_string(),
-                separator: Some(':'),
+                separator: Some(ENV_PATH_SEPARATOR),
             },
         ];
 

@@ -48,8 +48,9 @@ impl Publish {
             error!("post processing error uploading package, ERR={:?}", err);
             return false;
         };
+        let ident = archive.ident().unwrap();
         if let Some(err) = client
-            .promote_package(archive, &self.channel, auth_token)
+            .promote_package(&ident, &self.channel, auth_token)
             .err()
         {
             error!("post processing error promoting package, ERR={:?}", err);

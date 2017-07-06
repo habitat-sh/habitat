@@ -34,6 +34,7 @@ pub enum Status {
     Cached,
     Creating,
     Deleting,
+    Demoted,
     Determining,
     Downloading,
     Encrypting,
@@ -45,6 +46,7 @@ pub enum Status {
     Uploading,
     Using,
     Verified,
+    Promoted,
     Custom(char, String),
 }
 
@@ -55,6 +57,7 @@ impl Status {
             Status::Cached => ('☑', "Cached".into(), Colour::Green),
             Status::Creating => ('Ω', "Creating".into(), Colour::Green),
             Status::Deleting => ('☒', "Deleting".into(), Colour::Green),
+            Status::Demoted => ('✓', "Demoted".into(), Colour::Green),
             Status::Determining => ('→', "Determining".into(), Colour::Green),
             Status::Downloading => ('↓', "Downloading".into(), Colour::Green),
             Status::Encrypting => ('☛', "Encrypting".into(), Colour::Green),
@@ -66,6 +69,7 @@ impl Status {
             Status::Uploading => ('↑', "Uploading".into(), Colour::Green),
             Status::Using => ('→', "Using".into(), Colour::Green),
             Status::Verified => ('✓', "Verified".into(), Colour::Green),
+            Status::Promoted => ('✓', "Promoted".into(), Colour::Green),
             Status::Custom(c, ref s) => (c, s.to_string(), Colour::Green),
         }
     }

@@ -31,12 +31,14 @@ extern crate r2d2;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
+extern crate copperline;
 
 pub mod config;
 pub mod data_store;
 pub mod error;
 
-use std::io::{self, Write};
+use std::fs::File;
+use std::io::Write;
 use clap::{Arg, App};
 use time::PreciseTime;
 use bldr_core::package_graph::PackageGraph;
@@ -44,6 +46,7 @@ use hab_core::config::ConfigFile;
 use config::Config;
 use data_store::DataStore;
 use std::collections::HashMap;
+use copperline::Copperline;
 
 const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 
@@ -65,6 +68,8 @@ fn main() {
         Some(cfg_path) => Config::from_file(cfg_path).unwrap(),
         None => Config::default(),
     };
+
+    let mut cl = Copperline::new();
 
     println!("Connecting to {}", config.datastore.database);
 
@@ -90,12 +95,14 @@ fn main() {
 
     let mut filter = String::from("");
     let mut done = false;
-    while !done {
-        print!("command> ");
-        io::stdout().flush().ok().expect("Could not flush stdout");
 
-        let mut cmd = String::new();
-        io::stdin().read_line(&mut cmd).unwrap();
+    while !done {
+        let line = cl.read_line_utf8("command> ").ok();
+        if line.is_none() {
+            continue;
+        }
+        let cmd = line.expect("Could not get line");
+        cl.add_history(cmd.clone());
 
         let v: Vec<&str> = cmd.trim_right().split_whitespace().collect();
 
@@ -165,6 +172,13 @@ fn main() {
                         do_check(&datastore, &graph, v[1].to_lowercase().as_str(), &filter)
                     }
                 }
+                "export" => {
+                    if v.len() < 2 {
+                        println!("Missing file name\n")
+                    } else {
+                        do_export(&graph, v[1].to_lowercase().as_str(), &filter)
+                    }
+                }
                 "exit" => done = true,
                 _ => println!("Unknown command\n"),
             }
@@ -183,6 +197,7 @@ fn do_help() {
     println!("  rdeps   <name> [<max>]  Print the reverse dependencies for the package, up to max");
     println!("  deps    <name>|<ident>  Print the forward dependencies for the package");
     println!("  check   <name>|<ident>  Validate the latest dependencies for the package");
+    println!("  export  <filename>      Export data from graph to specified file");
     println!("  exit                    Exit the application\n");
 }
 
@@ -393,4 +408,23 @@ fn check_package(
         }
         Err(_) => println!("No matching package found for {}", ident),
     };
+}
+
+fn do_export(graph: &PackageGraph, filename: &str, filter: &str) {
+    let start_time = PreciseTime::now();
+    let latest = graph.latest();
+    let end_time = PreciseTime::now();
+    println!("\nTime: {} sec\n", start_time.to(end_time));
+
+    let mut file = File::create(filename).expect("Failed to initialize file");
+
+    if filter.len() > 0 {
+        println!("Checks filtered by: {}\n", filter);
+    }
+
+    for ident in latest {
+        if ident.starts_with(filter) {
+            file.write_fmt(format_args!("{}\n", ident)).unwrap();
+        }
+    }
 }

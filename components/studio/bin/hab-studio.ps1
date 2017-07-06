@@ -284,16 +284,24 @@ function Enter-Studio {
     # This streams the tail of the supervisor log in a new window
     # We do this because breaking out of the tail stream via ctrl-C breaks
     # nested shells.
-    function slog {
+    function Get-SupervisorLog {
       Start-Process "$env:STUDIO_SCRIPT_ROOT\powershell\powershell.exe" -ArgumentList "-Command `"& {Get-Content $env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\out.log -Tail 100 -Wait}`""
+    }
+
+    function Stop-Supervisor {
+      if(Test-Path "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK") {
+        Stop-Process -Id (Get-Content "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK")
+        Remove-Item "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK"
+      }
     }
 
     New-PSDrive -Name "Habitat" -PSProvider FileSystem -Root $env:HAB_STUDIO_ENTER_ROOT | Out-Null
     mkdir $env:HAB_STUDIO_ENTER_ROOT\hab\sup\default -Force | Out-Null
     Start-Process hab.exe -ArgumentList "sup run" -NoNewWindow -RedirectStandardOutput $env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\out.log
     Write-Host  "** The Habitat Supervisor has been started in the background." -ForegroundColor Cyan
-    Write-Host  "** Use 'hab sup start' and 'hab sup stop' to start and stop services." -ForegroundColor Cyan
-    Write-Host  "** Use the 'slog' command to stream the supervisor log." -ForegroundColor Cyan
+    Write-Host  "** Use 'hab svc start' and 'hab svc stop' to start and stop services." -ForegroundColor Cyan
+    Write-Host  "** Use the 'Get-SupervisorLog' command to stream the supervisor log." -ForegroundColor Cyan
+    Write-Host  "** Use the 'Stop-Supervisor' to terminate the supervisor." -ForegroundColor Cyan
     Write-Host  ""
 
     Set-Location "Habitat:\src"

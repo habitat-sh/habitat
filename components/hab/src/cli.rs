@@ -217,9 +217,33 @@ pub fn get() -> App<'static, 'static> {
                 (@arg DEPOT_URL: -u --url +takes_value {valid_url}
                     "Use a specific Depot URL (ex: http://depot.example.com/v1/depot)")
                 (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for the Depot")
+                (@arg CHANNEL: --channel -c +takes_value
+                    "Upload to the specified release channel")
                 (@arg HART_FILE: +required +multiple {file_exists}
                     "One or more filepaths to a Habitat Artifact \
                     (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
+            )
+            (@subcommand promote =>
+                (about: "Promote a package to a specified channel")
+                (aliases: &["pr", "pro"])
+                (@arg DEPOT_URL: -u --url +takes_value {valid_url}
+                    "Use a specific Depot URL (ex: http://depot.example.com/v1/depot)")
+                (@arg PKG_IDENT: +required +takes_value
+                    "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
+                (@arg CHANNEL: +required +takes_value
+                    "Promote to the specified release channel")
+                (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for the Depot")
+            )
+            (@subcommand demote =>
+                (about: "Demote a package from a specified channel")
+                (aliases: &["de", "dem", "demo", "demot"])
+                (@arg DEPOT_URL: -u --url +takes_value {valid_url}
+                    "Use a specific Depot URL (ex: http://depot.example.com/v1/depot)")
+                (@arg PKG_IDENT: +required +takes_value
+                    "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
+                (@arg CHANNEL: +required +takes_value
+                    "Demote from the specified release channel")
+                (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for the Depot")
             )
             (@subcommand verify =>
                 (about: "Verifies a Habitat Artifact with an origin key")
@@ -482,7 +506,7 @@ fn sub_pkg_install() -> App<'static, 'static> {
         (about: "Installs a Habitat package from a Depot or locally from a Habitat Artifact")
         (@arg DEPOT_URL: --url -u +takes_value {valid_url}
             "Use a specific Depot URL [default: https://bldr.habitat.sh/v1/depot]")
-        (@arg CHANNEL: --channel +takes_value
+        (@arg CHANNEL: --channel -c +takes_value
             "Install from the specified release channel")
         (@arg PKG_IDENT_OR_ARTIFACT: +required +multiple
             "One or more Habitat package identifiers (ex: acme/redis) and/or filepaths \

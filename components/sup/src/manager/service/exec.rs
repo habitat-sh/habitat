@@ -26,12 +26,16 @@ use error::Result;
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 static LOGKEY: &'static str = "EX";
 
-pub fn run_cmd<S: AsRef<OsStr>>(path: S, pkg: &Pkg) -> Result<Child> {
-    exec(path, pkg)
+pub fn run_cmd<S: AsRef<OsStr>>(
+    path: S,
+    pkg: &Pkg,
+    svc_encrypted_password: Option<&str>,
+) -> Result<Child> {
+    exec(path, pkg, svc_encrypted_password)
 }
 
 #[cfg(any(target_os = "linux", target_os = "macos"))]
-fn exec<S: AsRef<OsStr>>(path: S, pkg: &Pkg) -> Result<Child> {
+fn exec<S: AsRef<OsStr>>(path: S, pkg: &Pkg, _: Option<&str>) -> Result<Child> {
     use std::process::{Command, Stdio};
 
     let mut cmd = Command::new(path);
@@ -74,8 +78,18 @@ fn exec<S: AsRef<OsStr>>(path: S, pkg: &Pkg) -> Result<Child> {
 }
 
 #[cfg(target_os = "windows")]
-fn exec<S: AsRef<OsStr>>(path: S, pkg: &Pkg) -> Result<Child> {
+fn exec<S: AsRef<OsStr>>(
+    path: S,
+    pkg: &Pkg,
+    svc_encrypted_password: Option<&str>,
+) -> Result<Child> {
     let ps_cmd = format!("iex $(gc {} | out-string)", path.as_ref().to_string_lossy());
     let args = vec!["-command", ps_cmd.as_str()];
-    Ok(Child::spawn("powershell.exe", args, &pkg.env)?)
+    Ok(Child::spawn(
+        "powershell.exe",
+        args,
+        &pkg.env,
+        &pkg.svc_user,
+        svc_encrypted_password,
+    )?)
 }

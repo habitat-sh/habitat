@@ -341,6 +341,7 @@ impl ExitStatusExt for HabExitStatus {
 #[cfg(test)]
 mod tests {
     use std::collections::HashMap;
+    use super::super::super::users::get_current_username;
     use super::super::*;
 
     #[test]
@@ -349,6 +350,8 @@ mod tests {
             "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
             vec!["-noprofile", "-command", "while($true) { Start-Sleep 1 }"],
             &HashMap::new(),
+            &get_current_username().unwrap(),
+            None,
         ).unwrap();
 
         let mut hab_child = HabChild::from(&mut child).unwrap();
@@ -362,6 +365,8 @@ mod tests {
             "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
             vec!["-noprofile", "-command", "$a='b'"],
             &HashMap::new(),
+            &get_current_username().unwrap(),
+            None,
         ).unwrap();
         let mut hab_child = HabChild::from(&mut child).unwrap();
 
@@ -376,6 +381,8 @@ mod tests {
             "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
             vec!["-noprofile", "-command", "while($true) { Start-Sleep 1 }"],
             &HashMap::new(),
+            &get_current_username().unwrap(),
+            None,
         ).unwrap();
 
         let mut hab_child = HabChild::from(&mut child).unwrap();
@@ -390,6 +397,8 @@ mod tests {
             "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
             vec!["-noprofile", "-command", "exit 5000"],
             &HashMap::new(),
+            &get_current_username().unwrap(),
+            None,
         ).unwrap();
 
         let mut hab_child = HabChild::from(&mut child).unwrap();

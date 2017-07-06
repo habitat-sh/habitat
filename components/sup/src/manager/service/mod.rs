@@ -98,6 +98,7 @@ pub struct Service {
     manager_fs_cfg: Arc<manager::FsCfg>,
     #[serde(rename = "process")]
     supervisor: Supervisor,
+    svc_encrypted_password: Option<String>,
 }
 
 impl Service {
@@ -139,6 +140,7 @@ impl Service {
             update_strategy: spec.update_strategy,
             config_from: spec.config_from,
             last_health_check: Instant::now() - *HEALTH_CHECK_INTERVAL,
+            svc_encrypted_password: spec.svc_encrypted_password,
         })
     }
 
@@ -223,7 +225,13 @@ impl Service {
     }
 
     fn start(&mut self) {
-        if let Some(err) = self.supervisor.start(&self.pkg).err() {
+        if let Some(err) = self.supervisor
+            .start(
+                &self.pkg,
+                self.svc_encrypted_password.as_ref().map(String::as_ref),
+            )
+            .err()
+        {
             outputln!(preamble self.service_group, "Service start failed: {}", err);
         } else {
             self.needs_reload = false;
@@ -240,12 +248,22 @@ impl Service {
     fn reload(&mut self) {
         self.needs_reload = false;
         if self.is_down() || self.hooks.reload.is_none() {
-            if let Some(err) = self.supervisor.restart(&self.pkg).err() {
+            if let Some(err) = self.supervisor
+                .restart(
+                    &self.pkg,
+                    self.svc_encrypted_password.as_ref().map(String::as_ref),
+                )
+                .err()
+            {
                 outputln!(preamble self.service_group, "Service restart failed: {}", err);
             }
         } else {
             let hook = self.hooks.reload.as_ref().unwrap();
-            hook.run(&self.service_group, &self.pkg);
+            hook.run(
+                &self.service_group,
+                &self.pkg,
+                self.svc_encrypted_password.as_ref().map(String::as_ref),
+            );
         }
     }
 
@@ -453,7 +471,11 @@ impl Service {
         outputln!(preamble self.service_group, "Initializing");
         self.initialized = true;
         if let Some(ref hook) = self.hooks.init {
-            self.initialized = hook.run(&self.service_group, &self.pkg)
+            self.initialized = hook.run(
+                &self.service_group,
+                &self.pkg,
+                self.svc_encrypted_password.as_ref().map(String::as_ref),
+            )
         }
     }
 
@@ -462,13 +484,21 @@ impl Service {
     fn reconfigure(&mut self) {
         self.needs_reconfiguration = false;
         if let Some(ref hook) = self.hooks.reconfigure {
-            hook.run(&self.service_group, &self.pkg);
+            hook.run(
+                &self.service_group,
+                &self.pkg,
+                self.svc_encrypted_password.as_ref().map(String::as_ref),
+            );
         }
     }
 
     fn post_run(&mut self) {
         if let Some(ref hook) = self.hooks.post_run {
-            hook.run(&self.service_group, &self.pkg);
+            hook.run(
+                &self.service_group,
+                &self.pkg,
+                self.svc_encrypted_password.as_ref().map(String::as_ref),
+            );
         }
     }
 
@@ -477,7 +507,11 @@ impl Service {
             return None;
         }
         self.hooks.suitability.as_ref().and_then(|hook| {
-            hook.run(&self.service_group, &self.pkg)
+            hook.run(
+                &self.service_group,
+                &self.pkg,
+                self.svc_encrypted_password.as_ref().map(String::as_ref),
+            )
         })
     }
 
@@ -609,7 +643,11 @@ impl Service {
     fn file_updated(&self) -> bool {
         if self.initialized {
             if let Some(ref hook) = self.hooks.file_updated {
-                return hook.run(&self.service_group, &self.pkg);
+                return hook.run(
+                    &self.service_group,
+                    &self.pkg,
+                    self.svc_encrypted_password.as_ref().map(String::as_ref),
+                );
             }
         }
         false
@@ -663,7 +701,11 @@ impl Service {
 
     fn run_health_check_hook(&mut self) {
         let check_result = if let Some(ref hook) = self.hooks.health_check {
-            hook.run(&self.service_group, &self.pkg)
+            hook.run(
+                &self.service_group,
+                &self.pkg,
+                self.svc_encrypted_password.as_ref().map(String::as_ref),
+            )
         } else {
             match self.supervisor.status() {
                 (true, _) => HealthCheck::Ok,

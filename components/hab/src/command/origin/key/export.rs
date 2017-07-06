@@ -23,7 +23,11 @@ use hcore::crypto::keys::PairType;
 use error::Result;
 
 pub fn start(origin: &str, pair_type: PairType, cache: &Path) -> Result<()> {
-    let latest = try!(SigKeyPair::get_latest_pair_for(origin, cache));
+    let latest = try!(SigKeyPair::get_latest_pair_for(
+        origin,
+        cache,
+        Some(&pair_type),
+    ));
     let path = match pair_type {
         PairType::Public => {
             try!(SigKeyPair::get_public_key_path(

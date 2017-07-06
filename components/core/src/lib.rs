@@ -43,7 +43,13 @@ extern crate users as linux_users;
 #[cfg(windows)]
 extern crate habitat_win_users;
 #[cfg(windows)]
+extern crate crypt32;
+#[cfg(windows)]
 extern crate kernel32;
+#[cfg(windows)]
+extern crate userenv;
+#[cfg(windows)]
+extern crate widestring;
 #[cfg(windows)]
 extern crate winapi;
 
@@ -60,6 +66,7 @@ pub mod util;
 pub mod crypto;
 pub mod os;
 pub mod event;
+pub mod channel;
 
 pub use os::filesystem;
 pub use os::users;

@@ -51,16 +51,16 @@ do
   HART=$(find ./results -name *${component}*.hart)
   ${TRAVIS_HAB} pkg install $HART
 
-  if [ -n "$HAB_AUTH_TOKEN" ]; then
-    ${TRAVIS_HAB} pkg upload $HART
-  fi
-
   # once we have built the stuio, switch over to bits built here
   if [[ "${component}" == "studio" ]]; then
     TRAVIS_HAB=$(find /hab/pkgs/core/hab -type f -name hab)
   elif [[ "${component}" == "hab" ]]; then
     RELEASE="${HART}_keep"
     cp $HART $RELEASE
+  fi
+
+  if [ -n "$HAB_AUTH_TOKEN" ]; then
+    ${TRAVIS_HAB} pkg upload $HART
   fi
 
   rm $HART

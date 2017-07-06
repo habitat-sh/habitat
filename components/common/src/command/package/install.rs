@@ -40,6 +40,7 @@ use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
 use depot_client::{self, Client};
+use depot_client::Error::APIError;
 use hcore;
 use hcore::fs::{am_i_root, cache_key_path};
 use hcore::crypto::{artifact, SigKeyPair};
@@ -127,17 +128,73 @@ impl<'a> InstallTask<'a> {
         })
     }
 
+    fn get_channel_recommendations(&self, ident: &PackageIdent) -> Result<Vec<(String, String)>> {
+        let mut res = Vec::new();
+
+        let channels = match self.depot_client.list_channels(ident.origin()) {
+            Ok(channels) => channels,
+            Err(e) => {
+                debug!("Failed to get channel list: {:?}", e);
+                return Err(Error::PackageNotFound);
+            }
+        };
+
+        for channel in channels {
+            match self.fetch_latest_pkg_ident_for(ident, Some(&channel)) {
+                Ok(pkg) => res.push((channel, format!("{}", pkg))),
+                Err(_) => (),
+            };
+        }
+
+        Ok(res)
+    }
+
     pub fn from_ident(
         &self,
         ui: &mut UI,
         ident: PackageIdent,
         channel: Option<&str>,
     ) -> Result<PackageIdent> {
-        try!(ui.begin(format!("Installing {}", &ident)));
+        if channel.is_some() {
+            try!(ui.begin(format!(
+                "Installing {} from channel '{}'",
+                &ident,
+                channel.unwrap()
+            )));
+        } else {
+            try!(ui.begin(format!("Installing {}", &ident)));
+        }
+
         let mut ident = ident;
         if !ident.fully_qualified() {
-            ident = self.fetch_latest_pkg_ident_for(&ident, channel)?;
+            ident = match self.fetch_latest_pkg_ident_for(&ident, channel) {
+                Ok(ident) => ident,
+                Err(Error::DepotClient(APIError(StatusCode::NotFound, _))) => {
+                    match self.get_channel_recommendations(&ident) {
+                        Ok(channels) => {
+                            if !channels.is_empty() {
+                                try!(ui.warn(
+                                    "The package does not have any versions in the specified channel.",
+                                ));
+                                try!(ui.warn(
+                                    "Did you intend to install one of the folowing instead?",
+                                ));
+                                for c in channels {
+                                    try!(ui.warn(format!("  {} in channel {}", c.1, c.0)));
+                                }
+                            }
+                        }
+                        Err(_) => (),
+                    }
+                    return Err(Error::PackageNotFound);
+                }
+                Err(e) => {
+                    debug!("error fetching ident: {:?}", e);
+                    return Err(e);
+                }
+            }
         }
+
         if try!(self.is_package_installed(&ident)) {
             try!(ui.status(Status::Using, &ident));
             try!(ui.end(format!(

@@ -1003,6 +1003,19 @@ impl DataStore {
         Ok(())
     }
 
+    pub fn demote_origin_package(&self, opp: &originsrv::OriginPackageDemote) -> Result<()> {
+        let conn = self.pool.get(opp)?;
+        &conn.query(
+            "SELECT * FROM demote_origin_package_v1($1, $2)",
+            &[
+                &(opp.get_channel_id() as i64),
+                &(opp.get_package_id() as i64),
+            ],
+        ).map_err(Error::OriginPackageDemote)?;
+
+        Ok(())
+    }
+
     pub fn delete_origin_channel_by_id(&self, ocd: &originsrv::OriginChannelDelete) -> Result<()> {
         let conn = self.pool.get(ocd)?;
         conn.execute(
