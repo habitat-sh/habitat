@@ -99,7 +99,7 @@ if (($env:APPVEYOR_REPO_TAG_NAME -eq "$(Get-Content VERSION)") -or (Test-SourceC
             foreach ($component in ($env:hab_components -split ';')) {
                 Write-Host "Building plan for $component"
                 Write-Host ""
-                & $habExe pkg build components/$component
+                & $habExe studio build components/$component -w
                 if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
                 
                 $hart = Get-Item "C:\hab\studios\projects--habitat\src\components\$component\results\*.hart"
