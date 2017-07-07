@@ -160,6 +160,10 @@ pub fn get() -> App<'static, 'static> {
                         contents and writes the key to disk")
                     (aliases: &["i", "im", "imp", "impo", "impor"])
                 )
+                (@subcommand list =>
+                    (about: "Lists origin keys")
+                    (aliases: &["l", "li", "lis"])
+                )
                 (@subcommand upload =>
                     (@group upload =>
                         (@attributes +required)
