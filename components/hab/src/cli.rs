@@ -495,6 +495,15 @@ fn sub_pkg_build() -> App<'static, 'static> {
                 .short("R")
                 .long("reuse"),
         )
+    } else if cfg!(target_os = "windows") {
+        sub.arg(
+            Arg::with_name("WINDOWS")
+                .help(
+                    "Use a Windows studio instead of a docker studio",
+                )
+                .short("w")
+                .long("windows"),
+        )
     } else {
         sub
     }

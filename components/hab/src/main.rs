@@ -297,8 +297,9 @@ fn sub_pkg_build(ui: &mut UI, m: &ArgMatches) -> Result<()> {
         None => None,
     };
     let reuse = m.is_present("REUSE");
+    let windows = m.is_present("WINDOWS");
 
-    command::pkg::build::start(ui, plan_context, root, src, keys, reuse)
+    command::pkg::build::start(ui, plan_context, root, src, keys, reuse, windows)
 }
 
 fn sub_pkg_config(m: &ArgMatches) -> Result<()> {
