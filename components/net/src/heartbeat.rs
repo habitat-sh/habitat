@@ -1,37 +1,13 @@
-use std::sync::{mpsc, Arc, RwLock};
-use std::thread::{self, JoinHandle};
-use std::time::Duration;
-
-use protobuf::Message;
-use protocol::net as proto;
-
 use error::Result;
-use server::{NetIdent, ZMQ_CONTEXT};
+use server::ZMQ_CONTEXT;
 use zmq;
 
-/// Polling timeout for HeartbeatMgr
-const HEARTBEAT_MS: i64 = 30_000;
 /// In-memory zmq address for HeartbeatMgr
 const INPROC_ADDR: &'static str = "inproc://heartbeat";
 /// Protocol message to notify the HeartbeatMgr to begin pulsing
 const CMD_PULSE: &'static str = "R";
 /// Protocol message to notify the HeartbeatMgr to pause pulsing
 const CMD_PAUSE: &'static str = "P";
-
-#[cfg(target_os = "linux")]
-fn worker_os() -> proto::Os {
-    proto::Os::Linux
-}
-
-#[cfg(target_os = "windows")]
-fn worker_os() -> proto::Os {
-    proto::Os::Windows
-}
-
-#[cfg(target_os = "macos")]
-fn worker_os() -> proto::Os {
-    proto::Os::Darwin
-}
 
 #[derive(PartialEq)]
 enum PulseState {

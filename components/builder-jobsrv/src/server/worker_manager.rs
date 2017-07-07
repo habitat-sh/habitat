@@ -20,6 +20,7 @@ use linked_hash_map::LinkedHashMap;
 use hab_net::server::ZMQ_CONTEXT;
 use protobuf::{parse_from_bytes, Message};
 use protocol::jobsrv;
+use protocol::net;
 use zmq;
 
 use config::Config;
@@ -252,10 +253,10 @@ impl WorkerMgr {
 
     fn process_heartbeat(&mut self) -> Result<bool> {
         try!(self.hb_sock.recv(&mut self.msg, 0));
-        let heartbeat: jobsrv::Heartbeat = try!(parse_from_bytes(&self.msg));
+        let heartbeat: net::Heartbeat = try!(parse_from_bytes(&self.msg));
         debug!("heartbeat={:?}", heartbeat);
         let result = match heartbeat.get_state() {
-            jobsrv::WorkerState::Ready => {
+            net::WorkerState::Ready => {
                 let now = Instant::now();
                 let expiry = now + Duration::from_millis(WORKER_TIMEOUT_MS);
                 self.workers.insert(
@@ -264,7 +265,7 @@ impl WorkerMgr {
                 );
                 true
             }
-            jobsrv::WorkerState::Busy => {
+            net::WorkerState::Busy => {
                 self.workers.remove(heartbeat.get_endpoint());
                 false
             }
