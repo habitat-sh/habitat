@@ -1,5 +1,29 @@
 # Habitat CHANGELOG
 
+## [0.25.1](https://github.com/habitat-sh/habitat/tree/0.25.1) (07-07-2017)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.25.0...0.25.1)
+
+## Features & Enhancements
+
+- Add promote & demote to docs [\#2702](https://github.com/habitat-sh/habitat/pull/2702) ([tashimi](https://github.com/tashimi))
+
+## Bug fixes
+
+- HAB\_WINDOWS\_STUDIO ignored in windows studio v25.0 [\#2701](https://github.com/habitat-sh/habitat/issues/2701)
+- fixes \#2701 making hab pkg build -w work on windows [\#2709](https://github.com/habitat-sh/habitat/pull/2709) ([mwrock](https://github.com/mwrock))
+- Default to unstable channel on package upload [\#2706](https://github.com/habitat-sh/habitat/pull/2706) ([reset](https://github.com/reset))
+
+**Closed issues:**
+
+- Problems with finding packages in depot [\#2700](https://github.com/habitat-sh/habitat/issues/2700)
+
+**Merged pull requests:**
+
+- deploy scripts should upload to stable [\#2710](https://github.com/habitat-sh/habitat/pull/2710) ([mwrock](https://github.com/mwrock))
+- bump dev version [\#2705](https://github.com/habitat-sh/habitat/pull/2705) ([mwrock](https://github.com/mwrock))
+- fix the mac and windows build [\#2699](https://github.com/habitat-sh/habitat/pull/2699) ([mwrock](https://github.com/mwrock))
+- Update builder dev [\#2623](https://github.com/habitat-sh/habitat/pull/2623) ([nellshamrell](https://github.com/nellshamrell))
+
 ## [0.25.0](https://github.com/habitat-sh/habitat/tree/0.25.0) (07-06-2017)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.24.1...0.25.0)
 
@@ -95,6 +119,7 @@
 
 **Merged pull requests:**
 
+- release 0.25.0 [\#2692](https://github.com/habitat-sh/habitat/pull/2692) ([mwrock](https://github.com/mwrock))
 - Bulk promotion tool [\#2689](https://github.com/habitat-sh/habitat/pull/2689) ([chefsalim](https://github.com/chefsalim))
 - some minor deployment fixes [\#2687](https://github.com/habitat-sh/habitat/pull/2687) ([mwrock](https://github.com/mwrock))
 - Better shell handling [\#2681](https://github.com/habitat-sh/habitat/pull/2681) ([chefsalim](https://github.com/chefsalim))
