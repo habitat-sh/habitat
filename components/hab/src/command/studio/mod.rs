@@ -175,8 +175,6 @@ mod inner {
     const DOCKER_IMAGE_ENVVAR: &'static str = "HAB_DOCKER_STUDIO_IMAGE";
     const DOCKER_OPTS: &'static str = "HAB_DOCKER_OPTS";
 
-    const HAB_WINDOWS_STUDIO: &'static str = "HAB_WINDOWS_STUDIO";
-
     pub fn start(_ui: &mut UI, args: Vec<OsString>) -> Result<()> {
         if is_windows_studio(&args) {
             start_windows_studio(_ui, args)
