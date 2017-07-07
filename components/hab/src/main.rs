@@ -568,6 +568,7 @@ fn exec_subcommand_if_called(ui: &mut UI) -> Result<()> {
         ("svc", "unload") |
         ("svc", "start") |
         ("svc", "status") |
+        ("svc", "exec") |
         ("svc", "stop") => command::sup::start(ui, env::args_os().skip(2).collect()),
         ("term", _) => command::sup::start(ui, env::args_os().skip(1).collect()),
         _ => Ok(()),
