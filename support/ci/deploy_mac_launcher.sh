@@ -7,12 +7,6 @@ version="$(cat VERSION)"
 # Address of the mac builder
 mac_builder=admin@74.80.245.236
 
-# fail fast if we aren't a merge to master or release tag
-if  [[ "${TRAVIS_BRANCH}" != $version && ("${TRAVIS_PULL_REQUEST}" = "true" || "${TRAVIS_BRANCH}" != "master") ]]; then
-    echo "We only publish on successful builds of master."
-    exit 0
-fi
-
 BINTRAY_REPO=unstable
 if [ $version == "$TRAVIS_TAG" ]; then
   BINTRAY_REPO=stable
@@ -23,6 +17,14 @@ echo "Kicking off the $BINTRAY_REPO mac build"
 var_file=/tmp/our-awesome-vars
 ssh_args="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i /tmp/habitat-srv-admin"
 
+if [ "${TRAVIS_PULL_REQUEST}" != "false" ]; then
+  co="FETCH_HEAD"
+  fetch="git fetch origin +refs/pull/$TRAVIS_PULL_REQUEST/merge:"
+else
+  co=$TRAVIS_COMMIT
+  fetch=""
+fi
+
 # first update the copy of the habitat code stored on the mac server to the latest
 ssh ${ssh_args} ${mac_builder} << EOF
     hab_src_dir="\$HOME/code/$TRAVIS_BUILD_NUMBER"
@@ -30,7 +32,8 @@ ssh ${ssh_args} ${mac_builder} << EOF
     cd \${hab_src_dir}
     git clone https://github.com/habitat-sh/habitat
     cd habitat
-    git checkout $TRAVIS_COMMIT
+    eval $fetch
+    git checkout -qf $co
     chmod 755 support/ci/deploy_mac.sh
 EOF
 
@@ -42,7 +45,7 @@ export HAB_ORIGIN_KEY=$HAB_ORIGIN_KEY
 export BINTRAY_USER=$BINTRAY_USER
 export BINTRAY_KEY=$BINTRAY_KEY
 export BINTRAY_PASSPHRASE=$BINTRAY_PASSPHRASE
-export TRAVIS_BUILD=$TRAVIS_BUILD_NUMBER
+export TRAVIS_BUILD_NUMBER=$TRAVIS_BUILD_NUMBER
 EOF
 
 scp ${ssh_args} ${var_file} ${mac_builder}:~/tmp
@@ -50,4 +53,4 @@ rm ${var_file}
 
 # kick off the build
 ssh ${ssh_args} ${mac_builder} \
-  "sudo ~/code/habitat/support/ci/deploy_mac.sh"
+  "sudo ~/code/$TRAVIS_BUILD_NUMBER/habitat/support/ci/deploy_mac.sh"

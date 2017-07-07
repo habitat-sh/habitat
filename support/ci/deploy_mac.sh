@@ -30,7 +30,7 @@ mac_dir="${hab_src_dir}/components/hab/mac"
 mac_hab="${bootstrap_dir}/hab"
 gnu_tar=/usr/local/bin/tar
 hab_download_url="https://api.bintray.com/content/habitat/stable/darwin/x86_64/hab-%24latest-x86_64-darwin.zip?bt_package=hab-x86_64-darwin"
-our_path="${HOME}/.cargo/bin:${PATH}"
+our_path="${HOME}/.cargo/bin:/usr/local/bin:${PATH}"
 export HAB_ORIGIN=core
 export PATH="${our_path}"
 

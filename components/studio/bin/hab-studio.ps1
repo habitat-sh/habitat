@@ -37,6 +37,7 @@ param (
     [switch]$q,
     [switch]$v,
     [switch]$R,
+    [switch]$w,
     [string]$command,
     [string]$commandVal,
     [string]$k,
