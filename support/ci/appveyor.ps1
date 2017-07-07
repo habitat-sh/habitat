@@ -109,7 +109,7 @@ if (($env:APPVEYOR_REPO_TAG_NAME -eq "$(Get-Content VERSION)") -or (Test-SourceC
                 if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
 
                 if($env:HAB_AUTH_TOKEN -and (!(Test-PullRequest))) {
-                    & $habExe pkg upload $hart
+                    & $habExe pkg upload $hart --channel stable
                     if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
                 }
 
