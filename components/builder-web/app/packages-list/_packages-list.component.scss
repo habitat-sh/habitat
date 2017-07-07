@@ -26,9 +26,6 @@
         text-align: center;
       }
     }
-
-    .sidebar {
-    }
   }
 
   .pkg-builds {
@@ -71,6 +68,10 @@
 
         .name {
           @include span-columns(4);
+
+          .channels {
+            margin-top: 8px;
+          }
         }
 
         .completed {

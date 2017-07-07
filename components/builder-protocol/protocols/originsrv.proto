@@ -172,6 +172,7 @@ message OriginPackage {
   repeated uint32 exposes = 9 [packed=true];
   optional string config = 10;
   optional string target = 11;
+  repeated string channels = 12;
 }
 
 message OriginPackageIdent {
@@ -216,6 +217,28 @@ message OriginPackageListRequest {
   optional uint64 start = 2;
   optional uint64 stop = 3;
   optional bool distinct = 4;
+}
+
+message OriginPackagesForVersionRequest {
+  optional OriginPackageIdent ident = 1;
+  optional uint64 start = 2;
+  optional uint64 stop = 3;
+  optional bool distinct = 4;
+}
+
+message OriginPackageIdentWithChannels {
+  optional string origin = 1;
+  optional string name = 2;
+  optional string version = 3;
+  optional string release = 4;
+  repeated string channels = 5;
+}
+
+message OriginPackagesForVersionResponse {
+  optional uint64 start = 1;
+  optional uint64 stop = 2;
+  optional uint64 count = 3;
+  repeated OriginPackageIdentWithChannels packages = 4;
 }
 
 message OriginPackageListResponse {

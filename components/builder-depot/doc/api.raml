@@ -261,6 +261,35 @@ securitySchemes:
                     description: TODO
                     responses:
                         200:
+                            body:
+                                application/json:
+                                    example: |
+                                        {
+                                            "ident": {
+                                                "origin": "core",
+                                                "name": "nginx",
+                                                "version": "1.11.10",
+                                                "release": "20170616000025"
+                                            },
+                                            "checksum": "267f376f48bdacef5090ab9b670849938e4b31fa2d0afcea53c9e04783ea9e02",
+                                            "manifest": "...",
+                                            "target": "x86_64-linux",
+                                            "deps": [
+                                                {
+                                                    "origin": "core",
+                                                    "name": "glibc",
+                                                    "version": "2.22",
+                                                    "release": "20170513201042"
+                                                }
+                                            ],
+                                            "exposes": [
+                                                80
+                                            ],
+                                            "config": "...",
+                                            "channels": [
+                                                "unstable"
+                                            ]
+                                        }
                         404:
                         500:
             /{version}:
@@ -268,6 +297,25 @@ securitySchemes:
                     description: TODO
                     responses:
                         200:
+                            body:
+                                application/json:
+                                    example: |
+                                        {
+                                            "range_start": 0,
+                                            "range_end": 0,
+                                            "total_count": 1,
+                                            "package_list": [
+                                                {
+                                                    "origin": "core",
+                                                    "name": "nginx",
+                                                    "version": "1.11.10",
+                                                    "release": "20170616000025",
+                                                    "channels": [
+                                                        "unstable"
+                                                    ]
+                                                }
+                                            ]
+                                        }
                         400:
                         404:
                         500:
@@ -275,12 +323,70 @@ securitySchemes:
                     get:
                         responses:
                             200:
+                                body:
+                                    application/json:
+                                        example: |
+                                            {
+                                                "ident": {
+                                                    "origin": "core",
+                                                    "name": "nginx",
+                                                    "version": "1.11.10",
+                                                    "release": "20170616000025"
+                                                },
+                                                "checksum": "267f376f48bdacef5090ab9b670849938e4b31fa2d0afcea53c9e04783ea9e02",
+                                                "manifest": "...",
+                                                "target": "x86_64-linux",
+                                                "deps": [
+                                                    {
+                                                        "origin": "core",
+                                                        "name": "glibc",
+                                                        "version": "2.22",
+                                                        "release": "20170513201042"
+                                                    }
+                                                ],
+                                                "exposes": [
+                                                    80
+                                                ],
+                                                "config": "...",
+                                                "channels": [
+                                                    "unstable"
+                                                ]
+                                            }
                             404:
                             500:
                 /{release}:
                     get:
                         responses:
                             200:
+                                body:
+                                    application/json:
+                                        example: |
+                                            {
+                                                "ident": {
+                                                    "origin": "core",
+                                                    "name": "nginx",
+                                                    "version": "1.11.10",
+                                                    "release": "20170616000025"
+                                                },
+                                                "checksum": "267f376f48bdacef5090ab9b670849938e4b31fa2d0afcea53c9e04783ea9e02",
+                                                "manifest": "...",
+                                                "target": "x86_64-linux",
+                                                "deps": [
+                                                    {
+                                                        "origin": "core",
+                                                        "name": "glibc",
+                                                        "version": "2.22",
+                                                        "release": "20170513201042"
+                                                    }
+                                                ],
+                                                "exposes": [
+                                                    80
+                                                ],
+                                                "config": "...",
+                                                "channels": [
+                                                    "unstable"
+                                                ]
+                                            }
                             404:
                             500:
                     post:

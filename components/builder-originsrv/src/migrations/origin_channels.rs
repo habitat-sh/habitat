@@ -111,21 +111,43 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
 
     migrator.migrate(
         "originsrv",
-        r#"CREATE OR REPLACE FUNCTION get_origin_channel_package_v1 (
-                    op_origin text,
-                    op_channel text,
-                    op_ident text
-                 ) RETURNS SETOF origin_packages AS $$
-                    BEGIN
-                        RETURN QUERY SELECT op.*
-                          FROM origin_packages op
-                          INNER JOIN origin_channel_packages ocp on ocp.package_id = op.id
-                          INNER JOIN origin_channels oc on ocp.channel_id = oc.id
-                          INNER JOIN origins o on oc.origin_id = o.id
-                          WHERE op.ident = op_ident AND o.name = op_origin AND oc.name = op_channel;
-                        RETURN;
-                    END
-                    $$ LANGUAGE plpgsql STABLE"#,
+        r#"CREATE OR REPLACE FUNCTION get_origin_channel_package_v2 (
+               op_origin text,
+               op_channel text,
+               op_ident text
+           ) RETURNS TABLE (
+               id bigint,
+               name text,
+               origin_id bigint,
+               owner_id bigint,
+               ident text,
+               checksum text,
+               manifest text,
+               config text,
+               target text,
+               deps text,
+               tdeps text,
+               exposes text,
+               channels text[]
+           ) AS $$
+               BEGIN
+                   RETURN QUERY
+                       SELECT op.id, op.name, op.origin_id, op.owner_id, op.ident, op.checksum, op.manifest,
+                           op.config, op.target, op.deps, op.tdeps, op.exposes,
+                           (SELECT ARRAY(SELECT c.name
+                              FROM origin_channels c
+                             WHERE c.id IN (SELECT channel_id
+                                              FROM origin_channel_packages
+                                             WHERE package_id = op.id
+                                             ORDER BY created_at DESC))) AS channels
+                        FROM origin_packages op
+                       INNER JOIN origin_channel_packages ocp on ocp.package_id = op.id
+                       INNER JOIN origin_channels oc on ocp.channel_id = oc.id
+                       INNER JOIN origins o on oc.origin_id = o.id
+                       WHERE op.ident = op_ident AND o.name = op_origin AND oc.name = op_channel;
+                   RETURN;
+               END
+           $$ LANGUAGE plpgsql STABLE"#,
     )?;
     migrator.migrate(
         "originsrv",

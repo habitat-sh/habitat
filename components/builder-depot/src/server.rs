@@ -1241,6 +1241,73 @@ fn list_package_versions(req: &mut Request) -> IronResult<Response> {
     }
 }
 
+fn list_origin_packages_for_version(req: &mut Request) -> IronResult<Response> {
+
+    let (start, stop) = match extract_pagination(req) {
+        Ok(range) => range,
+        Err(response) => return Ok(response),
+    };
+
+    let ident = {
+        let params = req.extensions.get::<Router>().unwrap();
+        ident_from_params(params).to_string()
+    };
+
+    let packages: RouteResult<OriginPackagesForVersionResponse>;
+    let mut request = OriginPackagesForVersionRequest::new();
+    request.set_start(start as u64);
+    request.set_stop(stop as u64);
+
+    request.set_ident(OriginPackageIdent::from_str(ident.as_str()).expect(
+        "invalid package identifier",
+    ));
+
+    packages = route_message::<OriginPackagesForVersionRequest, OriginPackagesForVersionResponse>(req, &request);
+
+    match packages {
+        Ok(packages) => {
+            debug!(
+                "list_origin_packages_for_version start: {}, stop: {}, total count: {}",
+                packages.get_start(),
+                packages.get_stop(),
+                packages.get_count()
+            );
+
+            let body = package_results_json(
+                &packages.get_packages().to_vec(),
+                packages.get_count() as isize,
+                packages.get_start() as isize,
+                packages.get_stop() as isize,
+            );
+
+            let mut response =
+                if packages.get_count() as isize > (packages.get_stop() as isize + 1) {
+                    Response::with((status::PartialContent, body))
+                } else {
+                    Response::with((status::Ok, body))
+                };
+
+            response.headers.set(ContentType(Mime(
+                TopLevel::Application,
+                SubLevel::Json,
+                vec![(Attr::Charset, Value::Utf8)],
+            )));
+
+            dont_cache_response(&mut response);
+            Ok(response)
+        }
+        Err(err) => {
+            match err.get_code() {
+                ErrCode::ENTITY_NOT_FOUND => Ok(Response::with((status::NotFound))),
+                _ => {
+                    error!("list_origin_packages_for_version:1, err={:?}", err);
+                    Ok(Response::with(status::InternalServerError))
+                }
+            }
+        }
+    }
+}
+
 fn list_packages(req: &mut Request) -> IronResult<Response> {
     let (start, stop) = match extract_pagination(req) {
         Ok(range) => range,
@@ -1987,7 +2054,7 @@ where
         packages_pkg: get "/pkgs/:origin/:pkg" => list_packages,
         package_pkg_versions: get "/pkgs/:origin/:pkg/versions" => list_package_versions,
         package_pkg_latest: get "/pkgs/:origin/:pkg/latest" => show_package,
-        packages_version: get "/pkgs/:origin/:pkg/:version" => list_packages,
+        packages_for_version: get "/pkgs/:origin/:pkg/:version" => list_origin_packages_for_version,
         package_version_latest: get "/pkgs/:origin/:pkg/:version/latest" => show_package,
         package: get "/pkgs/:origin/:pkg/:version/:release" => show_package,
 
@@ -2623,6 +2690,10 @@ mod test {
         package.set_config("config".to_string());
         package.set_target("x86_64-linux".to_string());
 
+        let mut channels = protobuf::RepeatedField::new();
+        channels.push("unstable".to_string());
+        package.set_channels(channels);
+
         show_broker.setup::<OriginPackageGet, OriginPackage>(&package);
 
         let (response, msgs) = iron_request(
@@ -2662,7 +2733,10 @@ mod test {
                 \"release\":\"20170101010103\"\
             }],\
             \"exposes\":[],\
-            \"config\":\"config\"\
+            \"config\":\"config\",\
+            \"channels\":[\
+                \"unstable\"\
+            ]\
         }"
         );
 
@@ -2707,6 +2781,10 @@ mod test {
         package.set_config("config".to_string());
         package.set_target("x86_64-linux".to_string());
 
+        let mut channels = protobuf::RepeatedField::new();
+        channels.push("unstable".to_string());
+        package.set_channels(channels);
+
         show_broker.setup::<OriginChannelPackageGet, OriginPackage>(&package);
 
         let (response, msgs) = iron_request(
@@ -2746,7 +2824,10 @@ mod test {
                 \"release\":\"20170101010103\"\
             }],\
             \"exposes\":[],\
-            \"config\":\"config\"\
+            \"config\":\"config\",\
+            \"channels\":[\
+                \"unstable\"\
+            ]\
         }"
         );
 
@@ -2791,6 +2872,11 @@ mod test {
         package.set_tdeps(tdep_idents);
         package.set_config("config".to_string());
         package.set_target("x86_64-linux".to_string());
+
+        let mut channels = protobuf::RepeatedField::new();
+        channels.push("unstable".to_string());
+        package.set_channels(channels);
+
         show_broker.setup::<OriginPackageGet, OriginPackage>(&package);
 
         //setup query for the latest ident
@@ -2844,7 +2930,10 @@ mod test {
                 \"release\":\"20170101010103\"\
             }],\
             \"exposes\":[],\
-            \"config\":\"config\"\
+            \"config\":\"config\",\
+            \"channels\":[\
+                \"unstable\"\
+            ]\
         }"
         );
 
@@ -2894,6 +2983,11 @@ mod test {
         package.set_tdeps(tdep_idents);
         package.set_config("config".to_string());
         package.set_target("x86_64-linux".to_string());
+
+        let mut channels = protobuf::RepeatedField::new();
+        channels.push("unstable".to_string());
+        package.set_channels(channels);
+
         show_broker.setup::<OriginChannelPackageGet, OriginPackage>(&package);
 
         //setup query for the latest ident
@@ -2947,7 +3041,10 @@ mod test {
                 \"release\":\"20170101010103\"\
             }],\
             \"exposes\":[],\
-            \"config\":\"config\"\
+            \"config\":\"config\",\
+            \"channels\":[\
+                \"unstable\"\
+            ]\
         }"
         );
 

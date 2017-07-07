@@ -608,6 +608,23 @@ pub fn origin_package_list(
     Ok(())
 }
 
+pub fn origin_packages_for_version(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
+    let msg: proto::OriginPackagesForVersionRequest = try!(req.parse_msg());
+    match state.datastore.list_origin_packages_for_version(&msg) {
+        Ok(ref oplr) => try!(req.reply_complete(sock, oplr)),
+        Err(err) => {
+            error!("OriginPackagesForVersion, err={:?}", err);
+            let err = net::err(ErrCode::DATA_STORE, "vt:origin-packages-for-version-list:1");
+            try!(req.reply_complete(sock, &err));
+        }
+    }
+    Ok(())
+}
+
 pub fn origin_channel_package_list(
     req: &mut Envelope,
     sock: &mut zmq::Socket,
