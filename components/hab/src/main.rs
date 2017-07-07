@@ -41,7 +41,7 @@ use hcore::fs::{cache_artifact_path, cache_analytics_path, cache_key_path};
 use hcore::service::ServiceGroup;
 use hcore::package::PackageIdent;
 use hcore::url::{DEFAULT_DEPOT_URL, DEPOT_URL_ENVVAR};
-use hcore::channel::{DEFAULT_DEPOT_CHANNEL, DEPOT_CHANNEL_ENVVAR};
+use hcore::channel::{DEPOT_CHANNEL_ENVVAR, STABLE_CHANNEL, UNSTABLE_CHANNEL};
 
 use hab::{analytics, cli, command, config, AUTH_TOKEN_ENVVAR, ORIGIN_ENVVAR, PRODUCT, VERSION};
 use hab::error::{Error, Result};
@@ -358,7 +358,7 @@ fn sub_pkg_install(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
     let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
     let channel_env_or_default =
-        henv::var(DEPOT_CHANNEL_ENVVAR).unwrap_or(DEFAULT_DEPOT_CHANNEL.to_string());
+        henv::var(DEPOT_CHANNEL_ENVVAR).unwrap_or(STABLE_CHANNEL.to_string());
     let channel = m.value_of("CHANNEL").unwrap_or(&channel_env_or_default);
     let ident_or_artifacts = m.values_of("PKG_IDENT_OR_ARTIFACT").unwrap(); // Required via clap
     let ignore_target = if m.is_present("IGNORE_TARGET") {
@@ -426,25 +426,14 @@ fn sub_pkg_sign(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 fn sub_pkg_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
     let key_path = cache_key_path(Some(&*FS_ROOT));
-    // don't use a pathbuf, as the P generic param for upload::start below is bound to a &str
-    let key_path = try!(key_path.to_str().ok_or(Error::CryptoCLI(
-        "Invalid key path".to_string(),
-    )));
     let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
     let channel_env_or_default =
-        henv::var(DEPOT_CHANNEL_ENVVAR).unwrap_or(DEFAULT_DEPOT_CHANNEL.to_string());
+        henv::var(DEPOT_CHANNEL_ENVVAR).unwrap_or(UNSTABLE_CHANNEL.to_string());
     let channel = m.value_of("CHANNEL").unwrap_or(&channel_env_or_default);
-    let token = try!(auth_token_param_or_env(&m));
+    let token = auth_token_param_or_env(&m)?;
     let artifact_paths = m.values_of("HART_FILE").unwrap(); // Required via clap
     for artifact_path in artifact_paths {
-        try!(command::pkg::upload::start(
-            ui,
-            &url,
-            Some(channel),
-            &token,
-            &artifact_path,
-            &key_path,
-        ));
+        command::pkg::upload::start(ui, &url, Some(channel), &token, &artifact_path, &key_path)?;
     }
     Ok(())
 }
@@ -466,28 +455,18 @@ fn sub_pkg_header(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 fn sub_pkg_promote(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
     let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
-
-    let channel_env_or_default =
-        henv::var(DEPOT_CHANNEL_ENVVAR).unwrap_or(DEFAULT_DEPOT_CHANNEL.to_string());
-    let channel = m.value_of("CHANNEL").unwrap_or(&channel_env_or_default);
-
-    let token = try!(auth_token_param_or_env(&m));
-    let ident = try!(PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())); // Required via clap
-
+    let channel = m.value_of("CHANNEL").unwrap();
+    let token = auth_token_param_or_env(&m)?;
+    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
     command::pkg::promote::start(ui, &url, &ident, &channel, &token)
 }
 
 fn sub_pkg_demote(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
     let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
-
-    let channel_env_or_default =
-        henv::var(DEPOT_CHANNEL_ENVVAR).unwrap_or(DEFAULT_DEPOT_CHANNEL.to_string());
-    let channel = m.value_of("CHANNEL").unwrap_or(&channel_env_or_default);
-
-    let token = try!(auth_token_param_or_env(&m));
-    let ident = try!(PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())); // Required via clap
-
+    let channel = m.value_of("CHANNEL").unwrap();
+    let token = auth_token_param_or_env(&m)?;
+    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
     command::pkg::demote::start(ui, &url, &ident, &channel, &token)
 }
 
