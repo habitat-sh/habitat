@@ -12,17 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use env;
-
-/// Default Depot Channel
-pub const DEFAULT_DEPOT_CHANNEL: &'static str = "stable";
+pub const UNSTABLE_CHANNEL: &'static str = "unstable";
+pub const STABLE_CHANNEL: &'static str = "stable";
 
 /// Default Depot Channel environment variable
 pub const DEPOT_CHANNEL_ENVVAR: &'static str = "HAB_DEPOT_CHANNEL";
-
-pub fn default_depot_channel() -> String {
-    match env::var(DEPOT_CHANNEL_ENVVAR) {
-        Ok(val) => val,
-        Err(_) => DEFAULT_DEPOT_CHANNEL.to_string(),
-    }
-}

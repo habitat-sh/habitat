@@ -217,7 +217,7 @@ pub fn get() -> App<'static, 'static> {
                     "Use a specific Depot URL (ex: http://depot.example.com/v1/depot)")
                 (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for the Depot")
                 (@arg CHANNEL: --channel -c +takes_value
-                    "Upload to the specified release channel")
+                    "Upload to the specified release channel (default: unstable)")
                 (@arg HART_FILE: +required +multiple {file_exists}
                     "One or more filepaths to a Habitat Artifact \
                     (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
@@ -504,9 +504,9 @@ fn sub_pkg_install() -> App<'static, 'static> {
     let sub = clap_app!(@subcommand install =>
         (about: "Installs a Habitat package from a Depot or locally from a Habitat Artifact")
         (@arg DEPOT_URL: --url -u +takes_value {valid_url}
-            "Use a specific Depot URL [default: https://bldr.habitat.sh/v1/depot]")
+            "Use a specific Depot URL (default: https://bldr.habitat.sh/v1/depot)")
         (@arg CHANNEL: --channel -c +takes_value
-            "Install from the specified release channel")
+            "Install from the specified release channel (default: stable)")
         (@arg PKG_IDENT_OR_ARTIFACT: +required +multiple
             "One or more Habitat package identifiers (ex: acme/redis) and/or filepaths \
             to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")

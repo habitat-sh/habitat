@@ -52,26 +52,27 @@ use retry::retry;
 /// * Fails if it cannot find a package
 /// * Fails if the package doesn't have a `.hart` file in the cache
 /// * Fails if it cannot upload the file
-pub fn start<P: AsRef<Path>>(
+pub fn start<T, U>(
     ui: &mut UI,
     url: &str,
     channel: Option<&str>,
     token: &str,
-    archive_path: &P,
-    key_path: &P,
-) -> Result<()> {
+    archive_path: T,
+    key_path: U,
+) -> Result<()>
+where
+    T: AsRef<Path>,
+    U: AsRef<Path>,
+{
     let mut archive = PackageArchive::new(PathBuf::from(archive_path.as_ref()));
-
-    let hart_header = try!(get_artifact_header(&archive_path.as_ref()));
-
-    let key_buf = key_path.as_ref().to_path_buf();
+    let hart_header = get_artifact_header(&archive_path.as_ref())?;
     let public_keyfile_name = format!("{}.pub", &hart_header.key_name);
-    let public_keyfile = key_buf.join(&public_keyfile_name);
+    let public_keyfile = key_path.as_ref().join(&public_keyfile_name);
 
-    try!(ui.status(
+    ui.status(
         Status::Signed,
         format!("artifact with {}", &public_keyfile_name),
-    ));
+    )?;
 
     let (name, rev) = try!(parse_name_with_rev(&hart_header.key_name));
     let depot_client = try!(Client::new(url, PRODUCT, VERSION, None));
