@@ -60,7 +60,7 @@ do
   fi
 
   if [ -n "$HAB_AUTH_TOKEN" ]; then
-    ${TRAVIS_HAB} pkg upload $HART
+    ${TRAVIS_HAB} pkg upload $HART --channel stable
   fi
 
   rm $HART
