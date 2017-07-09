@@ -29,10 +29,11 @@ use hcore;
 use hcore::service::ServiceGroup;
 use serde::{Serialize, Serializer};
 
-use super::{exec, health, Pkg};
+use super::{health, Pkg};
 use error::Result;
 use fs;
 use templating::{RenderContext, TemplateRenderer};
+use util::exec;
 
 pub const HOOK_PERMISSIONS: u32 = 0o755;
 static LOGKEY: &'static str = "HK";
@@ -121,7 +122,7 @@ pub trait Hook: fmt::Debug + Sized {
     where
         T: ToString,
     {
-        let mut child = match exec::run_cmd(self.path(), &pkg, svc_encrypted_password) {
+        let mut child = match exec::run(self.path(), &pkg, svc_encrypted_password) {
             Ok(child) => child,
             Err(err) => {
                 outputln!(preamble service_group,

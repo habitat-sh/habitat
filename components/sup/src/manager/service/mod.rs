@@ -14,7 +14,6 @@
 
 pub mod hooks;
 mod config;
-mod exec;
 mod health;
 mod package;
 mod spec;
@@ -173,10 +172,7 @@ impl Service {
     /// Create the service path for this package.
     pub fn create_svc_path(&self) -> Result<()> {
         debug!("{}, Creating svc paths", self.service_group);
-        util::users::assert_pkg_user_and_group(
-            self.pkg.svc_user.clone(),
-            self.pkg.svc_group.clone(),
-        )?;
+        util::users::assert_pkg_user_and_group(&self.pkg.svc_user, &self.pkg.svc_group)?;
 
         Self::create_dir_all(&self.pkg.svc_path)?;
 
