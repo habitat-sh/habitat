@@ -300,7 +300,7 @@ impl Runner {
                     .expect("failed to spawn child")
             }
         };
-        self.log_pipe().pipe(&mut child);
+        self.log_pipe().pipe(&mut child)?;
         let exit_status = child.wait().expect("failed to wait on child");
         debug!("build complete, status={:?}", exit_status);
         if exit_status.success() {
