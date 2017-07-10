@@ -76,7 +76,10 @@ fn main() {
 fn boot() -> Option<LauncherCli> {
     env_logger::init().unwrap();
     enable_features_from_env();
-    crypto::init();
+    if !crypto::init() {
+        println!("Crypto initialization failed!");
+        process::exit(1);
+    }
     match launcher_client::env_pipe() {
         Some(pipe) => {
             match LauncherCli::connect(pipe) {
