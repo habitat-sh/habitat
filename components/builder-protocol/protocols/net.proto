@@ -9,6 +9,23 @@ enum Protocol {
   Scheduler = 5;
 }
 
+enum Os {
+  Linux = 1;
+  Darwin = 2;
+  Windows = 3;
+}
+
+enum WorkerState {
+  Ready = 0;
+  Busy = 1;
+}
+
+message Heartbeat {
+  optional string endpoint = 1;
+  optional Os os = 2;
+  optional WorkerState state = 3;
+}
+
 message RouteInfo {
   optional Protocol protocol = 1;
   optional uint64 hash = 2;

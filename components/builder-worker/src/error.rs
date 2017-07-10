@@ -19,6 +19,7 @@ use std::result;
 
 use git2;
 use hab_core;
+use hab_net;
 use protobuf;
 use zmq;
 
@@ -28,6 +29,7 @@ pub enum Error {
     Git(git2::Error),
     HabitatCore(hab_core::Error),
     IO(io::Error),
+    NetError(hab_net::Error),
     Protobuf(protobuf::ProtobufError),
     UnknownVCS,
     WorkspaceSetup(String, io::Error),
@@ -46,6 +48,7 @@ impl fmt::Display for Error {
             Error::Git(ref e) => format!("{}", e),
             Error::HabitatCore(ref e) => format!("{}", e),
             Error::IO(ref e) => format!("{}", e),
+            Error::NetError(ref e) => format!("{}", e),
             Error::Protobuf(ref e) => format!("{}", e),
             Error::UnknownVCS => format!("Job requires an unknown VCS"),
             Error::Zmq(ref e) => format!("{}", e),
@@ -67,6 +70,7 @@ impl error::Error for Error {
             Error::Git(ref err) => err.description(),
             Error::HabitatCore(ref err) => err.description(),
             Error::IO(ref err) => err.description(),
+            Error::NetError(ref err) => err.description(),
             Error::Protobuf(ref err) => err.description(),
             Error::UnknownVCS => "Job requires an unknown VCS",
             Error::WorkspaceSetup(_, _) => "IO Error while creating workspace on disk",
@@ -91,6 +95,12 @@ impl From<hab_core::Error> for Error {
 impl From<io::Error> for Error {
     fn from(err: io::Error) -> Error {
         Error::IO(err)
+    }
+}
+
+impl From<hab_net::Error> for Error {
+    fn from(err: hab_net::Error) -> Self {
+        Error::NetError(err)
     }
 }
 
