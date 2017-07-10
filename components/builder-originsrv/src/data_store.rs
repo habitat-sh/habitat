@@ -853,15 +853,22 @@ impl DataStore {
                 &[&ops.get_query(), &ops.limit(), &(ops.get_start() as i64)],
             ).map_err(Error::OriginPackageSearch)?
         } else {
-            conn.query(
-                "SELECT * FROM search_origin_packages_for_origin_v1($1, $2, $3, $4)",
-                &[
-                    &ops.get_origin(),
-                    &ops.get_query(),
-                    &ops.limit(),
-                    &(ops.get_start() as i64),
-                ],
-            ).map_err(Error::OriginPackageSearch)?
+            if ops.get_origin().is_empty() {
+                conn.query(
+                    "SELECT * FROM search_all_origin_packages_v1($1, $2, $3)",
+                    &[&ops.get_query(), &ops.limit(), &(ops.get_start() as i64)],
+                ).map_err(Error::OriginPackageSearch)?
+            } else {
+                conn.query(
+                    "SELECT * FROM search_origin_packages_for_origin_v1($1, $2, $3, $4)",
+                    &[
+                        &ops.get_origin(),
+                        &ops.get_query(),
+                        &ops.limit(),
+                        &(ops.get_start() as i64),
+                    ],
+                ).map_err(Error::OriginPackageSearch)?
+            }
         };
 
         let mut response = originsrv::OriginPackageListResponse::new();
