@@ -141,8 +141,6 @@ pub enum Error {
     GetExitCodeProcessFailed(String),
     /// Occurs when a `WaitForSingleObject` win32 call returns an error.
     WaitForSingleObjectFailed(String),
-    /// Occurs when a `HabChild` constructor fails to return a process.
-    GetHabChildFailed(String),
     /// Occurs when a `TerminateProcess` win32 call returns an error.
     TerminateProcessFailed(String),
     /// When an error occurs attempting to interpret a sequence of u8 as a string.
@@ -314,8 +312,9 @@ impl fmt::Display for Error {
             Error::PermissionFailed(ref e) => format!("{}", e),
             Error::PrivilegeNotHeld => {
                 format!(
-                    "Current user must possess the 'SE_INCREASE_QUOTA_NAME' \
-                and 'SE_ASSIGNPRIMARYTOKEN_NAME' privilege to spawn a new process as a different user"
+                    "Current user must possess the 'SE_INCREASE_QUOTA_NAME' and \
+                    'SE_ASSIGNPRIMARYTOKEN_NAME' privilege to spawn a new process as a different \
+                    user"
                 )
             }
             Error::RegexParse(ref e) => format!("{}", e),
@@ -329,7 +328,6 @@ impl fmt::Display for Error {
             Error::GetExitCodeProcessFailed(ref e) => format!("{}", e),
             Error::CreateToolhelp32SnapshotFailed(ref e) => format!("{}", e),
             Error::WaitForSingleObjectFailed(ref e) => format!("{}", e),
-            Error::GetHabChildFailed(ref e) => format!("{}", e),
             Error::TerminateProcessFailed(ref e) => format!("{}", e),
             Error::Utf8Error(ref e) => format!("{}", e),
         };
@@ -442,7 +440,6 @@ impl error::Error for Error {
             Error::WaitpidFailed(_) => "waitpid failed",
             Error::GetExitCodeProcessFailed(_) => "GetExitCodeProcess failed",
             Error::WaitForSingleObjectFailed(_) => "WaitForSingleObjectFailed failed",
-            Error::GetHabChildFailed(_) => "Failed to return a HabChild",
             Error::TerminateProcessFailed(_) => "Failed to call TerminateProcess",
             Error::Utf8Error(_) => "Failed to interpret a sequence of bytes as a string",
         }
