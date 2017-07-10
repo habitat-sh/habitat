@@ -226,47 +226,39 @@
 
 use std::path::{Path, PathBuf};
 
-use sodiumoxide::init as nacl_init;
-
+pub use sodiumoxide::init;
 use env as henv;
+
+pub use self::keys::box_key_pair::BoxKeyPair;
+pub use self::keys::sym_key::SymKey;
+pub use self::keys::sig_key_pair::SigKeyPair;
 use fs::cache_key_path;
 
 /// The suffix on the end of a public sig/box file
 pub static PUBLIC_KEY_SUFFIX: &'static str = "pub";
-
 /// The suffix on the end of a public sig file
 pub static SECRET_SIG_KEY_SUFFIX: &'static str = "sig.key";
-
 /// The suffix on the end of a secret box file
 pub static SECRET_BOX_KEY_SUFFIX: &'static str = "box.key";
-
 /// The suffix on the end of a secret symmetric key file
 pub static SECRET_SYM_KEY_SUFFIX: &'static str = "sym.key";
-
 /// The hashing function we're using during sign/verify
 /// See also: https://download.libsodium.org/doc/hashing/generic_hashing.html
 pub static SIG_HASH_TYPE: &'static str = "BLAKE2b";
-
 /// This environment variable allows you to override the fs::CACHE_KEY_PATH
 /// at runtime. This is useful for testing.
 pub static CACHE_KEY_PATH_ENV_VAR: &'static str = "HAB_CACHE_KEY_PATH";
-
+pub static HART_FORMAT_VERSION: &'static str = "HART-1";
+pub static BOX_FORMAT_VERSION: &'static str = "BOX-1";
 /// Create secret key files with these permissions
 static PUBLIC_KEY_PERMISSIONS: u32 = 0o400;
 static SECRET_KEY_PERMISSIONS: u32 = 0o400;
-
-pub static HART_FORMAT_VERSION: &'static str = "HART-1";
-pub static BOX_FORMAT_VERSION: &'static str = "BOX-1";
 
 pub const PUBLIC_SIG_KEY_VERSION: &'static str = "SIG-PUB-1";
 pub const SECRET_SIG_KEY_VERSION: &'static str = "SIG-SEC-1";
 pub const PUBLIC_BOX_KEY_VERSION: &'static str = "BOX-PUB-1";
 pub const SECRET_BOX_KEY_VERSION: &'static str = "BOX-SEC-1";
 pub const SECRET_SYM_KEY_VERSION: &'static str = "SYM-SEC-1";
-
-pub use self::keys::box_key_pair::BoxKeyPair;
-pub use self::keys::sym_key::SymKey;
-pub use self::keys::sig_key_pair::SigKeyPair;
 
 pub mod artifact;
 #[cfg(windows)]
@@ -279,10 +271,6 @@ pub fn default_cache_key_path(fs_root_path: Option<&Path>) -> PathBuf {
         Ok(val) => PathBuf::from(val),
         Err(_) => cache_key_path(fs_root_path),
     }
-}
-
-pub fn init() {
-    nacl_init();
 }
 
 #[cfg(test)]
