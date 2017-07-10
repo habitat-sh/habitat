@@ -56,6 +56,7 @@ pub enum Error {
     OriginPackageCreate(postgres::error::Error),
     OriginPackageGet(postgres::error::Error),
     OriginPackageLatestGet(postgres::error::Error),
+    OriginPackageChannelList(postgres::error::Error),
     OriginPackageList(postgres::error::Error),
     OriginPackageVersionList(postgres::error::Error),
     OriginPackageDemote(postgres::error::Error),
@@ -162,6 +163,9 @@ impl fmt::Display for Error {
             Error::OriginPackageGet(ref e) => format!("Error getting package in database, {}", e),
             Error::OriginPackageLatestGet(ref e) => {
                 format!("Error getting latest package in database, {}", e)
+            }
+            Error::OriginPackageChannelList(ref e) => {
+                format!("Error getting list of channels for this package, {}", e)
             }
             Error::OriginPackageList(ref e) => {
                 format!("Error getting list of packages for this origin, {}", e)
@@ -271,6 +275,7 @@ impl error::Error for Error {
             Error::OriginPackageCreate(ref err) => err.description(),
             Error::OriginPackageGet(ref err) => err.description(),
             Error::OriginPackageLatestGet(ref err) => err.description(),
+            Error::OriginPackageChannelList(ref err) => err.description(),
             Error::OriginPackageList(ref err) => err.description(),
             Error::OriginPackageVersionList(ref err) => err.description(),
             Error::OriginPackageDemote(ref err) => err.description(),

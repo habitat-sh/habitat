@@ -258,6 +258,39 @@ impl Client {
         Ok(revisions)
     }
 
+    /// Return a list of channels for a given package
+    ///
+    /// # Failures
+    ///
+    /// * Remote Depot is not available
+    /// * Package does not exist
+    pub fn package_channels<I>(&self, ident: &I) -> Result<Vec<String>>
+    where
+        I: Identifiable,
+    {
+        if !ident.fully_qualified() {
+            return Err(Error::IdentNotFullyQualified);
+        }
+
+        let path = package_channels_path(ident);
+        debug!("Retrieving channels for {}", ident);
+
+        let mut res = self.0.get(&path).send()?;
+
+        if res.status != StatusCode::Ok {
+            return Err(err_from_response(res));
+        };
+
+        let mut encoded = String::new();
+        try!(res.read_to_string(&mut encoded));
+        debug!("Response body: {:?}", encoded);
+        let channels: Vec<String> = try!(serde_json::from_str::<Vec<String>>(&encoded))
+            .into_iter()
+            .map(|m| m.into())
+            .collect();
+        Ok(channels)
+    }
+
     /// Upload a public origin key to a remote Depot.
     ///
     /// # Failures
@@ -531,7 +564,7 @@ impl Client {
         I: Identifiable,
     {
         if !ident.fully_qualified() {
-            return Err(Error::PromoteIdentNotFullyQualified);
+            return Err(Error::IdentNotFullyQualified);
         }
         let path = channel_package_promote(channel, ident);
         debug!("Promoting package {}", ident);
@@ -745,6 +778,19 @@ where
         }
     }
     path
+}
+
+fn package_channels_path<I>(package: &I) -> String
+where
+    I: Identifiable,
+{
+    format!(
+        "pkgs/{}/{}/{}/{}/channels",
+        package.origin(),
+        package.name(),
+        package.version().unwrap(),
+        package.release().unwrap()
+    )
 }
 
 fn channel_package_promote<I>(channel: &str, package: &I) -> String

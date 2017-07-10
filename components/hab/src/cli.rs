@@ -244,6 +244,14 @@ pub fn get() -> App<'static, 'static> {
                     "Demote from the specified release channel")
                 (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for the Depot")
             )
+            (@subcommand channels =>
+                (about: "Find out what channels a package belongs to")
+                (aliases: &["ch", "cha", "chan", "chann", "channe", "channel"])
+                (@arg DEPOT_URL: -u --url +takes_value {valid_url}
+                    "Use a specific Depot URL (ex: http://depot.example.com/v1/depot)")
+                (@arg PKG_IDENT: +required +takes_value
+                    "A fully qualified package identifier (ex: core/redis/3.2.1/20160729052715)")
+            )
             (@subcommand verify =>
                 (about: "Verifies a Habitat Artifact with an origin key")
                 (aliases: &["v", "ve", "ver", "veri", "verif"])

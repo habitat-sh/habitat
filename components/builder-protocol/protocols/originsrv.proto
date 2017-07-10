@@ -237,6 +237,14 @@ message OriginPackageDemote {
   optional OriginPackageIdent ident = 3;
 }
 
+message OriginPackageChannelListRequest {
+  optional OriginPackageIdent ident = 1;
+}
+
+message OriginPackageChannelListResponse {
+  repeated OriginChannel channels = 1;
+}
+
 message OriginPackageSearchRequest {
   optional string origin = 1;
   optional string query = 2;

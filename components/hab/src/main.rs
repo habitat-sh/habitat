@@ -114,6 +114,7 @@ fn start(ui: &mut UI) -> Result<()> {
             match matches.subcommand() {
                 ("binlink", Some(m)) => try!(sub_pkg_binlink(ui, m)),
                 ("build", Some(m)) => try!(sub_pkg_build(ui, m)),
+                ("channels", Some(m)) => try!(sub_pkg_channels(ui, m)),
                 ("config", Some(m)) => try!(sub_pkg_config(m)),
                 ("env", Some(m)) => try!(sub_pkg_env(m)),
                 ("exec", Some(m)) => try!(sub_pkg_exec(m, remaining_args)),
@@ -469,6 +470,14 @@ fn sub_pkg_demote(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let token = auth_token_param_or_env(&m)?;
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
     command::pkg::demote::start(ui, &url, &ident, &channel, &token)
+}
+
+fn sub_pkg_channels(ui: &mut UI, m: &ArgMatches) -> Result<()> {
+    let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
+    let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
+    let ident = try!(PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())); // Required via clap
+
+    command::pkg::channels::start(ui, &url, &ident)
 }
 
 fn sub_ring_key_export(m: &ArgMatches) -> Result<()> {
