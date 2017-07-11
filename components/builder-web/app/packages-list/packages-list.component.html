@@ -37,14 +37,20 @@
             <h3 class="name">Build</h3>
             <h3 class="completed">Completed</h3>
         </li>
-        <li class="hab-packages-package" *ngFor="let pkg of packages" (click)="select(pkg)">
+        <li class="hab-packages-package" *ngFor="let pkg of packages">
             <a [routerLink]="routeFor(pkg)">
-                <span class="name" [class.large]="!pkg.version">
-                    {{ packageString(pkg) }}
-                </span>
-                <span *ngIf="layout === 'builds'" class="completed">
+                <div class="name" [class.large]="!pkg.version">
+                    <span>{{ packageString(pkg) }}</span>
+                    <ul class="channels" *ngIf="pkg.channels">
+                        <li class="channel {{ channel }}"
+                            *ngFor="let channel of pkg.channels">
+                            {{ channel }}
+                        </li>
+                    </ul>
+                </div>
+                <div *ngIf="layout === 'builds'" class="completed">
                     {{ releaseToDate(pkg.release) || "&mdash;" }}
-                </span>
+                </div>
                 <hab-build-status
                     [origin]="pkg.origin"
                     [name]="pkg.name"

@@ -43,11 +43,11 @@ import { OrganizationMembersComponent } from "./organization-members/Organizatio
 import { OrganizationsPageComponent } from "./organizations-page/OrganizationsPageComponent";
 import { PackageBreadcrumbsComponent } from "./PackageBreadcrumbsComponent";
 import { PackageBuildsComponent } from "./package-builds/package-builds.component";
-import { PackageInfoComponent } from "./package-info/PackageInfoComponent";
+import { PackageInfoComponent } from "./package-info/package-info.component";
 import { PackageListComponent } from "./package-page/PackageListComponent";
 import { PackagePageComponent } from "./package-page/PackagePageComponent";
 import { PackageVersionsPageComponent } from "./package-versions-page/package-versions-page.component";
-import { PackagesListComponent } from "./packages-list/PackagesListComponent";
+import { PackagesListComponent } from "./packages-list/packages-list.component";
 import { PackagesPageComponent } from "./packages-page/packages-page.component";
 import { ProjectSettingsPageComponent } from "./project-settings-page/ProjectSettingsPageComponent";
 import { ProjectCreatePageComponent } from "./project-create-page/ProjectCreatePageComponent";

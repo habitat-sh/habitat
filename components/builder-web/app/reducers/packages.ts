@@ -33,6 +33,9 @@ export default function packages(state = initialState["packages"], action) {
         case actionTypes.POPULATE_DASHBOARD_RECENT:
             return state.setIn(["dashboard", "recent"], List(action.payload));
 
+        case actionTypes.CLEAR_PACKAGE_CHANNELS:
+            return state.setIn(["current", "channels"], []);
+
         case actionTypes.CLEAR_PACKAGE_VERSIONS:
             return state.set("versions", undefined);
 
@@ -58,6 +61,13 @@ export default function packages(state = initialState["packages"], action) {
                     setIn(["ui", "current", "errorMessage"], undefined).
                     setIn(["ui", "current", "exists"], true).
                     setIn(["ui", "current", "loading"], false);
+            }
+
+        case actionTypes.SET_CURRENT_PACKAGE_CHANNELS:
+            if (action.error) {
+                return state.setIn(["current", "channels"], []);
+            } else {
+                return state.setIn(["current", "channels"], action.payload);
             }
 
         case actionTypes.SET_CURRENT_PACKAGE_VERSIONS:
@@ -96,6 +106,25 @@ export default function packages(state = initialState["packages"], action) {
                     setIn(["ui", "visible", "errorMessage"], undefined).
                     setIn(["ui", "visible", "exists"], true).
                     setIn(["ui", "visible", "loading"], false);
+            }
+
+        case actionTypes.SET_VISIBLE_PACKAGE_CHANNELS:
+            let visible = state.get("visible");
+
+            let i = visible.findIndex(p => {
+                return action.payload.pkg.origin === p.origin &&
+                    action.payload.pkg.name === p.name &&
+                    action.payload.pkg.version === p.version &&
+                    action.payload.pkg.release === p.release;
+            });
+
+            if (i >= 0) {
+                let pkg = visible.get(i);
+                pkg.channels = action.payload.channels;
+                return state.setIn(["visible", i], pkg);
+            }
+            else {
+                return state;
             }
 
         default:
