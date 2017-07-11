@@ -22,7 +22,7 @@ use std::str::FromStr;
 
 use uuid::Uuid;
 use bodyparser;
-use hab_core::package::{Identifiable, FromArchive, PackageArchive, PackageTarget};
+use hab_core::package::{Identifiable, FromArchive, PackageArchive, PackageIdent, PackageTarget};
 use hab_core::crypto::keys::{self, PairType};
 use hab_core::crypto::SigKeyPair;
 use hab_core::event::*;
@@ -1624,14 +1624,32 @@ fn search_packages(req: &mut Request) -> IronResult<Response> {
     request.set_start(start as u64);
     request.set_stop(stop as u64);
 
+
+    // First, try to parse the query like it's a PackageIdent, since it seems reasonable to expect
+    // that many people will try searching using that kind of string, e.g. core/redis.  If that
+    // works, set the origin appropriately and do a regular search.  If that doesn't work, do a
+    // search across all origins, similar to how the "distinct" search works now, but returning all
+    // the details instead of just names.
+
     {
         let params = req.extensions.get::<Router>().unwrap();
-        request.set_query(
-            url::percent_encoding::percent_decode(params.find("query").unwrap().as_bytes())
-                .decode_utf8()
-                .unwrap()
-                .to_string(),
-        );
+        let query = params.find("query").unwrap();
+
+        let decoded_query = match url::percent_encoding::percent_decode(query.as_bytes())
+            .decode_utf8() {
+            Ok(q) => q.to_string(),
+            Err(e) => return Ok(Response::with(status::BadRequest)),
+        };
+
+        match PackageIdent::from_str(decoded_query.as_ref()) {
+            Ok(ident) => {
+                request.set_origin(ident.origin().to_string());
+                request.set_query(ident.name().to_string());
+            }
+            Err(_) => {
+                request.set_query(decoded_query);
+            }
+        }
     };
 
     debug!("search_packages called with: {}", request.get_query());
@@ -1640,10 +1658,7 @@ fn search_packages(req: &mut Request) -> IronResult<Response> {
     // Counter::SearchPackages.increment();
     // Gauge::PackageCount.set(depot.datastore.key_count().unwrap() as f64);
 
-    // TODO MW: constraining to core is temporary until we have a cross origin index
-    request.set_origin("core".to_string());
-
-    // Setting distinct to true makes this query ignore the origin set above, because it's going to
+    // Setting distinct to true makes this query ignore any origin set, because it's going to
     // search both the origin name and the package name for the query string provided. This is
     // likely sub-optimal for performance but it makes things work right now and we should probably
     // switch to some kind of full-text search engine in the future anyway.
@@ -3060,7 +3075,8 @@ mod test {
         let package_req = msgs.get::<OriginPackageSearchRequest>().unwrap();
         assert_eq!(package_req.get_start(), 2);
         assert_eq!(package_req.get_stop(), 51);
-        assert_eq!(package_req.get_query(), "org/name".to_string());
+        assert_eq!(package_req.get_origin(), "org".to_string());
+        assert_eq!(package_req.get_query(), "name".to_string());
     }
 
     #[test]

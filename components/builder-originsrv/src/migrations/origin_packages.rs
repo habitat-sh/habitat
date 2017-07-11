@@ -157,6 +157,26 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                     END
                     $$ LANGUAGE plpgsql STABLE"#)?;
     migrator.migrate("originsrv",
+                     r#"CREATE OR REPLACE FUNCTION search_all_origin_packages_v1 (
+                   op_query text,
+                   op_limit bigint,
+                   op_offset bigint
+                 ) RETURNS TABLE(total_count bigint, ident text) AS $$
+                    DECLARE
+                      schema RECORD;
+                    BEGIN
+                      FOR schema IN EXECUTE
+                        format(
+                          'SELECT schema_name FROM information_schema.schemata WHERE left(schema_name, 6) = %L',
+                          'shard_'
+                        )
+                      LOOP
+                        RETURN QUERY EXECUTE
+                        format('SELECT COUNT(*) OVER () AS total_count, op.ident FROM %I.origins o INNER JOIN %I.origin_packages op ON o.id = op.origin_id WHERE op.ident LIKE (%L || %L || %L) ORDER BY ident ASC LIMIT %L OFFSET %L', schema.schema_name, schema.schema_name, '%', op_query, '%', op_limit, op_offset);
+                      END LOOP;
+                    END;
+                    $$ LANGUAGE plpgsql STABLE"#)?;
+    migrator.migrate("originsrv",
                      r#"CREATE OR REPLACE FUNCTION search_origin_packages_for_origin_distinct_v1 (
                    op_origin text,
                    op_query text,

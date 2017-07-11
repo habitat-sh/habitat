@@ -1470,6 +1470,31 @@ fn search_origin_package_for_origin() {
     assert_eq!(pkg4.to_string(), "core2/red");
     let pkg5 = result5.get_idents().iter().nth(4).unwrap();
     assert_eq!(pkg5.to_string(), "josh/red_dog");
+
+    ops.set_origin("".to_string());
+    ops.set_query("red".to_string());
+    ops.set_start(0);
+    ops.set_stop(20);
+    ops.set_distinct(false);
+    let result6 = ds.search_origin_package_for_origin(&ops).expect(
+        "Could not get the packages from the database",
+    );
+    assert_eq!(result6.get_idents().len(), 6);
+    assert_eq!(result6.get_start(), 0);
+    assert_eq!(result6.get_stop(), 5);
+    assert_eq!(result6.get_count(), 1);
+    let pkg1 = result6.get_idents().iter().nth(0).unwrap();
+    assert_eq!(pkg1.to_string(), "core/red/2017.01.17/20170209064044");
+    let pkg2 = result6.get_idents().iter().nth(1).unwrap();
+    assert_eq!(pkg2.to_string(), "core/red/2017.01.18/20170209064044");
+    let pkg3 = result6.get_idents().iter().nth(2).unwrap();
+    assert_eq!(pkg3.to_string(), "core/red_dog/2017.01.19/20170209064045");
+    let pkg4 = result6.get_idents().iter().nth(3).unwrap();
+    assert_eq!(pkg4.to_string(), "ace/red_dog/2017.01.19/20170209064045");
+    let pkg5 = result6.get_idents().iter().nth(4).unwrap();
+    assert_eq!(pkg5.to_string(), "core2/red/2017.01.18/20170209064045");
+    let pkg6 = result6.get_idents().iter().nth(5).unwrap();
+    assert_eq!(pkg6.to_string(), "josh/red_dog/2017.01.19/20170209064045");
 }
 
 #[test]

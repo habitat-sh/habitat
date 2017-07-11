@@ -52,6 +52,7 @@ use protobuf::core::ProtobufEnum;
 use protocol::{originsrv, net};
 use rand::{Rng, thread_rng};
 use tee::TeeReader;
+use url::percent_encoding::{percent_encode, PATH_SEGMENT_ENCODE_SET};
 
 header! { (XFileName, "X-Filename") => [String] }
 header! { (ETag, "ETag") => [String] }
@@ -756,7 +757,8 @@ where
 }
 
 fn package_search(term: &str) -> String {
-    format!("pkgs/search/{}", term)
+    let encoded_term = percent_encode(term.as_bytes(), PATH_SEGMENT_ENCODE_SET);
+    format!("pkgs/search/{}", encoded_term)
 }
 
 fn channel_package_path<I>(channel: &str, package: &I) -> String
