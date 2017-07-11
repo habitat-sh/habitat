@@ -25,6 +25,7 @@ use postgres;
 use protobuf;
 use r2d2;
 use zmq;
+use depot_client;
 
 #[derive(Debug)]
 pub enum Error {
@@ -53,6 +54,8 @@ pub enum Error {
     UnknownJobState,
     UnknownPackage,
     Zmq(zmq::Error),
+    ChannelCreate(depot_client::Error),
+    PackagePromote(depot_client::Error),
 }
 
 pub type Result<T> = result::Result<T, Error>;
@@ -91,6 +94,8 @@ impl fmt::Display for Error {
             Error::UnknownJobState => format!("Unknown Job State"),
             Error::UnknownPackage => format!("Unknown Package"),
             Error::Zmq(ref e) => format!("{}", e),
+            Error::ChannelCreate(ref e) => format!("{}", e),
+            Error::PackagePromote(ref e) => format!("{}", e),
         };
         write!(f, "{}", msg)
     }
@@ -118,12 +123,14 @@ impl error::Error for Error {
             Error::NetError(ref err) => err.description(),
             Error::ProtoNetError(ref err) => err.description(),
             Error::Protobuf(ref err) => err.description(),
-            Error::UnknownGroup => "Unknown Group",            
+            Error::UnknownGroup => "Unknown Group",
             Error::UnknownGroupState => "Unknown Group State",
             Error::UnknownProjectState => "Unknown Project State",
             Error::UnknownJobState => "Unknown Job State",
             Error::UnknownPackage => "Unknown Package",
             Error::Zmq(ref err) => err.description(),
+            Error::ChannelCreate(ref err) => err.description(),
+            Error::PackagePromote(ref err) => err.description(),
         }
     }
 }

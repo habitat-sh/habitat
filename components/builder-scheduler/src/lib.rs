@@ -19,6 +19,7 @@ extern crate habitat_core as hab_core;
 extern crate habitat_net as hab_net;
 extern crate habitat_builder_db as db;
 extern crate builder_core as bldr_core;
+extern crate habitat_depot_client as depot_client;
 extern crate linked_hash_map;
 #[macro_use]
 extern crate log;
@@ -33,6 +34,7 @@ extern crate serde_derive;
 extern crate toml;
 extern crate zmq;
 extern crate chrono;
+extern crate hyper;
 
 pub mod config;
 pub mod data_store;
@@ -42,3 +44,6 @@ pub mod migration;
 
 pub use self::config::Config;
 pub use self::error::{Error, Result};
+
+pub const PRODUCT: &'static str = "builder-scheduler";
+pub const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));

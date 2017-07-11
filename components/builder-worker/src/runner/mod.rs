@@ -34,6 +34,7 @@ use hab_core::{crypto, env};
 use hab_core::package::archive::PackageArchive;
 use hab_core::package::install::PackageInstall;
 use hab_core::package::PackageIdent;
+use hab_core::channel::bldr_channel_name;
 use hab_net::server::ZMQ_CONTEXT;
 use protobuf::{parse_from_bytes, Message};
 use protocol::jobsrv as proto;
@@ -274,6 +275,11 @@ impl Runner {
         ];
         let command = studio_cmd();
         debug!("building, cmd={:?}, args={:?}", command, args);
+        debug!(
+            "setting HAB_DEPOT_CHANNEL={}",
+            &bldr_channel_name(self.job().get_owner_id())
+        );
+
         let mut child = match env::var(RUNNER_DEBUG_ENV) {
             Ok(val) => {
                 Command::new(command)
@@ -281,6 +287,10 @@ impl Runner {
                     .env_clear()
                     .env("HAB_NONINTERACTIVE", "true")
                     .env("HAB_DEPOT_URL", &self.config.depot_url)
+                    .env(
+                        "HAB_DEPOT_CHANNEL",
+                        &bldr_channel_name(self.job().get_owner_id()),
+                    )
                     .env("DEBUG", val)
                     .stdout(Stdio::piped())
                     .stderr(Stdio::piped())
@@ -293,6 +303,7 @@ impl Runner {
                     .env_clear()
                     .env("HAB_NONINTERACTIVE", "true")
                     .env("HAB_DEPOT_URL", &self.config.depot_url)
+                    .env("HAB_DEPOT_CHANNEL", &bldr_channel_name(self.job().get_owner_id()))
                     .env("TERM", "xterm-256color") // Gives us ANSI color codes
                     .stdout(Stdio::piped())
                     .stderr(Stdio::piped())

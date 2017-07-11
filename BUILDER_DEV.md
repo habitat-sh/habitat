@@ -58,15 +58,22 @@ backend = "local"
 local_dir = "/tmp"
 ```
 
+`config_scheduler.toml`
+```toml
+auth_token = "<your github token>"
+depot_url = "http://localhost:9636/v1/depot"
+```
+
 (Note: If you want your log files to persist across restarts of your development machine, replace `/tmp` with some other directory. It *must* exist and be writable before you start the job server).
 
-Now, modify the `Procfile` (located in your hab repo in the `support` folder) to point the api, sessionsrv, jobsrv, and worker services to the previously created config files, e.g.
+Now, modify the `Procfile` (located in your hab repo in the `support` folder) to point the api, sessionsrv, jobsrv, scheduler and worker services to the previously created config files, e.g.
 
 ```
 api: target/debug/bldr-api start --path /tmp/depot --config /home/your_alias/habitat/config_api.toml
 sessionsrv: target/debug/bldr-session-srv start --config /home/your_alias/habitat/config_sessionsrv.toml
 worker: target/debug/bldr-worker start --config /home/your_alias/habitat/config_worker.toml
 jobsrv: target/debug/bldr-job-srv start --config /home/your_alias/habitat/config_jobsrv.toml
+scheduler: target/debug/bldr-scheduler start --config /home/your_alias/habitat/config_scheduler.toml
 ```
 
 ## Run the Builder services
@@ -343,7 +350,7 @@ If you see errors along these lines:
 	web.1       | npm ERR! syscall spawn
 	web.1       | npm ERR! habitat@0.8.0 build: `concurrently "npm run build-js" "npm run build-css"`
 	web.1       | npm ERR! spawn ENOENT
-	web.1       | npm ERR! 
+	web.1       | npm ERR!
 	web.1       | npm ERR! Failed at the habitat@0.8.0 build script 'concurrently "npm run build-js" "npm run build-css"'.
 	web.1       | npm ERR! This is most likely a problem with the habitat package,
 	web.1       | npm ERR! not with npm itself.

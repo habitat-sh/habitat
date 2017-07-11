@@ -251,12 +251,17 @@ impl DataStore {
                          END
                          $$ LANGUAGE plpgsql STABLE"#)?;
         // Update the state of a project given its name
-        migrator.migrate("scheduler-v2",
+        migrator.migrate("scheduler",
                              r#"CREATE OR REPLACE FUNCTION set_project_name_state_v1 (gid bigint, pname text, state text) RETURNS void AS $$
                                 BEGIN
                                     UPDATE projects SET project_state=state, updated_at=now() WHERE owner_id=gid AND project_name=pname;
                                 END
                              $$ LANGUAGE plpgsql VOLATILE"#)?;
+        // Update the state and ident of a project
+        migrator.migrate("scheduler",
+                           r#"CREATE OR REPLACE FUNCTION set_project_state_ident_v1 (pid bigint, jid bigint, state text, ident text) RETURNS void AS $$
+                                  UPDATE projects SET project_state=state, job_id=jid, project_ident=ident, updated_at=now() WHERE id=pid;
+                           $$ LANGUAGE SQL VOLATILE"#)?;
         migrator.finish()?;
 
         Ok(())
@@ -542,10 +547,19 @@ impl DataStore {
             _ => "InProgress",
         };
 
-        conn.execute(
-            "SELECT set_project_state_v1($1, $2, $3)",
-            &[&pid, &(job.get_id() as i64), &state],
-        ).map_err(Error::ProjectSetState)?;
+        if job.get_state() == JobState::Complete {
+            let ident = job.get_package_ident().to_string();
+
+            conn.execute(
+                "SELECT set_project_state_ident_v1($1, $2, $3, $4)",
+                &[&pid, &(job.get_id() as i64), &state, &ident],
+            ).map_err(Error::ProjectSetState)?;
+        } else {
+            conn.execute(
+                "SELECT set_project_state_v1($1, $2, $3)",
+                &[&pid, &(job.get_id() as i64), &state],
+            ).map_err(Error::ProjectSetState)?;
+        };
 
         Ok(())
     }
