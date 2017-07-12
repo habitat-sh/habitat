@@ -12,9 +12,6 @@ name = "habitat_sup"
 name = "hab-sup"
 doc = false
 
-[[test]]
-name = "functional"
-
 [dependencies]
 clippy = {version = "*", optional = true}
 ansi_term = "*"
@@ -60,7 +57,10 @@ winapi = "*"
 [dev-dependencies]
 hyper = "*"
 
+[dev-dependencies.habitat_core]
+path = "../core"
+[dev-dependencies.habitat_butterfly]
+path = "../butterfly"
+
 [features]
-default = []
-functional = []
 apidocs =[]

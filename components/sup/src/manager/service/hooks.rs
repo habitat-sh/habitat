@@ -30,7 +30,7 @@ use hcore::service::ServiceGroup;
 use serde::{Serialize, Serializer};
 
 use super::{health, Pkg};
-use error::Result;
+use error::{Result, SupError};
 use fs;
 use templating::{RenderContext, TemplateRenderer};
 use util::exec;

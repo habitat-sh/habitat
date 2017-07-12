@@ -1,6 +1,6 @@
 .DS_Store
 dump.rdb
-target
+/target
 terraform.tfstate*
 .delivery/cli.toml
 .tags*
