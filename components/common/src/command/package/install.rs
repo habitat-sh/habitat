@@ -193,6 +193,23 @@ impl<'a> InstallTask<'a> {
                     return Err(e);
                 }
             }
+        } else {
+            if channel.is_some() {
+                let ch = channel.unwrap().to_string();
+                match self.depot_client.package_channels(&ident) {
+                    Ok(channels) => {
+                        if channels.iter().find(|ref c| ***c == ch).is_none() {
+                            ui.warn(format!(
+                                "Can not find {} in the {} channel but installing anyway since the package ident was fully qualified.", &ident, &ch
+                            ))?;
+                        }
+                    }
+                    Err(e) => {
+                        debug!("Failed to get channel list: {:?}", e);
+                        return Err(Error::ChannelNotFound);
+                    }
+                };
+            }
         }
 
         if try!(self.is_package_installed(&ident)) {

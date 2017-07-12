@@ -1638,7 +1638,7 @@ fn search_packages(req: &mut Request) -> IronResult<Response> {
         let decoded_query = match url::percent_encoding::percent_decode(query.as_bytes())
             .decode_utf8() {
             Ok(q) => q.to_string(),
-            Err(e) => return Ok(Response::with(status::BadRequest)),
+            Err(_) => return Ok(Response::with(status::BadRequest)),
         };
 
         match PackageIdent::from_str(decoded_query.as_ref()) {

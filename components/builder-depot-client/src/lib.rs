@@ -413,10 +413,11 @@ impl Client {
 
     /// Download the latest release of a package.
     ///
-    /// An optional version and release can be specified which, when provided, will increase
-    /// specificity of the release retrieved. Specifying a version and no release will retrieve
-    /// the latest release of a given version. Specifying both a version and a release will
-    /// retrieve that exact package.
+    /// By the time this function is called, the ident must be fully qualified. The download URL in
+    /// the depot requires a fully qualified ident to work. If you want the latest version of
+    /// a package, e.g. core/redis, you can display package details for that via a different URL,
+    /// e.g. /pkgs/core/redis/latest but that only _shows_ you the details - it doesn't download
+    /// the package.
     ///
     /// # Failures
     ///
@@ -434,9 +435,9 @@ impl Client {
         I: Identifiable,
         D: DisplayProgress + Sized,
     {
-        // JW TODO: We need to add a channel scoped /download route to the API server. Technically
-        // this is wrong because we only want to download packages that are in the channel we
-        // specified to the API client
+        // Given that the download URL requires a fully qualified package, the channel is
+        // irrelevant, per https://github.com/habitat-sh/habitat/issues/2722. This function is fine
+        // as is.
         match self.download(&package_download(ident), dst_path.as_ref(), progress) {
             Ok(file) => Ok(PackageArchive::new(PathBuf::from(file))),
             Err(e) => Err(e),
