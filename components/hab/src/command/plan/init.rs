@@ -24,9 +24,13 @@ use handlebars::Handlebars;
 use common::ui::{UI, Status};
 use error::Result;
 
-const PLAN_TEMPLATE: &'static str = include_str!(concat!(
+const DEFAULT_PLAN_TEMPLATE: &'static str = include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),
-    "/static/template_plan.sh"
+    "/static/default_template_plan.sh"
+));
+const FULL_PLAN_TEMPLATE: &'static str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/static/full_template_plan.sh"
 ));
 const DEFAULT_TOML_TEMPLATE: &'static str = include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),
@@ -40,7 +44,8 @@ const GITIGNORE_TEMPLATE: &'static str = include_str!(concat!(
 pub fn start(
     ui: &mut UI,
     origin: String,
-    include_callbacks: bool,
+    with_docs: bool,
+    with_callbacks: bool,
     maybe_name: Option<String>,
 ) -> Result<()> {
     ui.begin("Constructing a cozy habitat for your app...")?;
@@ -70,10 +75,12 @@ pub fn start(
     let mut data = HashMap::new();
     data.insert("pkg_name".to_string(), name);
     data.insert("pkg_origin".to_string(), origin);
-    if include_callbacks {
-        data.insert("include_callbacks".to_string(), "true".to_string());
+    if with_callbacks {
+        data.insert("with_callbacks".to_string(), "true".to_string());
     }
-
+    if with_docs {
+        data.insert("with_docs".to_string(), "true".to_string());
+    }
     // Add all environment variables that start with "pkg_" as variables in
     // the template.
     for (key, value) in env::vars() {
@@ -83,9 +90,13 @@ pub fn start(
     }
 
     // We want to render the configured variables.
-    let rendered_plan = handlebars.template_render(PLAN_TEMPLATE, &data)?;
-    create_with_template(ui, &format!("{}/plan.sh", root), &rendered_plan)?;
-    ui.para(
+    let rendered_plan = try!(handlebars.template_render(FULL_PLAN_TEMPLATE, &data));
+    try!(create_with_template(
+        ui,
+        &format!("{}/plan.sh", root),
+        &rendered_plan,
+    ));
+    try!(ui.para(
         "The `plan.sh` is the foundation of your new habitat. You can \
         define core metadata, dependencies, and tasks. More documentation here: \
         https://www.habitat.sh/docs/reference/plan-syntax/",
