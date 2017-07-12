@@ -1,7 +1,0 @@
-#!/bin/sh
-
-ld_library_path=""
-for x in `find /opt -name 'lib' -type d`; do
-  ld_library_path="$ld_library_path:$x:$x/x86_64-linux-gnu"
-done
-exec env LD_LIBRARY_PATH=$ld_library_path /bin/bldr-debug $*
