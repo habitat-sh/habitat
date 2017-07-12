@@ -105,9 +105,13 @@
   }
 }
 
+.hab-package-channels,
 .hab-package-manifest,
 .hab-package-config {
   margin-bottom: rem(20);
+}
+
+.hab-package-manifest {
 
   .manifest {
     h1 {
