@@ -283,6 +283,7 @@ impl<'a> InstallTask<'a> {
         }
 
         let mut artifact = PackageArchive::new(try!(self.cached_artifact_path(&ident)));
+        try!(ui.status(Status::Verifying, try!(artifact.ident())));
         try!(self.verify_artifact(ui, &ident, &mut artifact));
         Ok(artifact)
     }
