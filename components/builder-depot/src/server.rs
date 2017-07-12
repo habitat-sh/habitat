@@ -1277,6 +1277,7 @@ fn list_package_versions(req: &mut Request) -> IronResult<Response> {
 }
 
 fn list_packages(req: &mut Request) -> IronResult<Response> {
+    let mut distinct = false;
     let (start, stop) = match extract_pagination(req) {
         Ok(range) => range,
         Err(response) => return Ok(response),
@@ -1327,6 +1328,7 @@ fn list_packages(req: &mut Request) -> IronResult<Response> {
 
             // only set this if "distinct" is present as a URL parameter, e.g. ?distinct=true
             if extract_query_value("distinct", req).is_some() {
+                distinct = true;
                 request.set_distinct(true);
             }
 
@@ -1346,8 +1348,32 @@ fn list_packages(req: &mut Request) -> IronResult<Response> {
                 packages.get_stop(),
                 packages.get_count()
             );
+
+            let mut results = Vec::new();
+
+            // The idea here is for every package we get back, pull its channels using the zmq API
+            // and accumulate those results. This avoids the N+1 HTTP requests that would be
+            // required to fetch channels for a list of packages in the UI. However, if our request
+            // has been marked as "distinct" then skip this step because it doesn't make sense in
+            // that case.
+            for package in packages.get_idents().to_vec() {
+                let mut channels: Option<Vec<String>> = None;
+
+                if !distinct {
+                    channels = channels_for_package_ident(&package);
+                }
+
+                let mut pkg_json = serde_json::to_value(package).unwrap();
+
+                if channels.is_some() {
+                    pkg_json["channels"] = json!(channels);
+                }
+
+                results.push(pkg_json);
+            }
+
             let body = package_results_json(
-                &packages.get_idents().to_vec(),
+                &results,
                 packages.get_count() as isize,
                 packages.get_start() as isize,
                 packages.get_stop() as isize,
@@ -1710,7 +1736,11 @@ fn search_packages(req: &mut Request) -> IronResult<Response> {
 }
 
 fn render_package(pkg: &OriginPackage, should_cache: bool) -> IronResult<Response> {
-    let body = serde_json::to_string(&pkg).unwrap();
+    let mut pkg_json = serde_json::to_value(pkg.clone()).unwrap();
+    let channels = channels_for_package_ident(pkg.get_ident());
+    pkg_json["channels"] = json!(channels);
+
+    let body = serde_json::to_string(&pkg_json).unwrap();
     let mut response = Response::with((status::Ok, body));
     response.headers.set(ETag(pkg.get_checksum().to_string()));
     response.headers.set(ContentType(Mime(
@@ -1945,6 +1975,26 @@ fn target_from_headers(user_agent_header: &UserAgent) -> result::Result<PackageT
     match PackageTarget::from_str(target) {
         Ok(t) => Ok(t),
         Err(_) => Err(Response::with(status::BadRequest)),
+    }
+}
+
+// Get channels for a package
+fn channels_for_package_ident(package: &OriginPackageIdent) -> Option<Vec<String>> {
+    let mut conn = Broker::connect().unwrap();
+    let mut opclr = OriginPackageChannelListRequest::new();
+    opclr.set_ident(package.clone());
+
+    match conn.route::<OriginPackageChannelListRequest, OriginPackageChannelListResponse>(&opclr) {
+        Ok(channels) => {
+            let list: Vec<String> = channels
+                .get_channels()
+                .iter()
+                .map(|channel| channel.get_name().to_string())
+                .collect();
+
+            Some(list)
+        }
+        Err(_) => None,
     }
 }
 
@@ -2533,29 +2583,28 @@ mod test {
         assert_eq!(response.status, Some(status::Ok));
 
         let result_body = response::extract_body_to_string(response);
+        let json_body: serde_json::Value = serde_json::from_str(&result_body).unwrap();
+        let expected_json = json!({
+            "range_start":0,
+            "range_end":1,
+            "total_count":2,
+            "package_list":[
+                {
+                    "origin":"org",
+                    "name":"name1",
+                    "version":"1.1.1",
+                    "release":"20170101010101",
+                },
+                {
+                    "origin":"org",
+                    "name":"name2",
+                    "version":"2.2.2",
+                    "release":"20170202020202",
+                }
+            ]
+        });
 
-        assert_eq!(
-            result_body,
-            "{\
-            \"range_start\":0,\
-            \"range_end\":1,\
-            \"total_count\":2,\
-            \"package_list\":[\
-                {\
-                    \"origin\":\"org\",\
-                    \"name\":\"name1\",\
-                    \"version\":\"1.1.1\",\
-                    \"release\":\"20170101010101\"\
-                },\
-                {\
-                    \"origin\":\"org\",\
-                    \"name\":\"name2\",\
-                    \"version\":\"2.2.2\",\
-                    \"release\":\"20170202020202\"\
-                }\
-            ]\
-        }"
-        );
+        assert_eq!(json_body, expected_json);
 
         //assert we sent the corect range to postgres
         let package_req = msgs.get::<OriginPackageListRequest>().unwrap();
@@ -2603,29 +2652,28 @@ mod test {
         assert_eq!(response.status, Some(status::Ok));
 
         let result_body = response::extract_body_to_string(response);
+        let json_body: serde_json::Value = serde_json::from_str(&result_body).unwrap();
+        let expected_json = json!({
+            "range_start":0,
+            "range_end":1,
+            "total_count":2,
+            "package_list":[
+                {
+                    "origin":"org",
+                    "name":"name1",
+                    "version":"1.1.1",
+                    "release":"20170101010101",
+                },
+                {
+                    "origin":"org",
+                    "name":"name2",
+                    "version":"2.2.2",
+                    "release":"20170202020202",
+                }
+            ]
+        });
 
-        assert_eq!(
-            result_body,
-            "{\
-            \"range_start\":0,\
-            \"range_end\":1,\
-            \"total_count\":2,\
-            \"package_list\":[\
-                {\
-                    \"origin\":\"org\",\
-                    \"name\":\"name1\",\
-                    \"version\":\"1.1.1\",\
-                    \"release\":\"20170101010101\"\
-                },\
-                {\
-                    \"origin\":\"org\",\
-                    \"name\":\"name2\",\
-                    \"version\":\"2.2.2\",\
-                    \"release\":\"20170202020202\"\
-                }\
-            ]\
-        }"
-        );
+        assert_eq!(json_body, expected_json);
 
         //assert we sent the corect range to postgres
         let package_req = msgs.get::<OriginChannelPackageListRequest>().unwrap();
@@ -2685,34 +2733,35 @@ mod test {
         assert_eq!(response.status, Some(status::Ok));
 
         let result_body = response::extract_body_to_string(response);
-        assert_eq!(
-            result_body,
-            "{\
-            \"ident\":{\
-                \"origin\":\"org\",\
-                \"name\":\"name\",\
-                \"version\":\"1.1.1\",\
-                \"release\":\"20170101010101\"\
-            },\
-            \"checksum\":\"checksum\",\
-            \"manifest\":\"manifest\",\
-            \"target\":\"x86_64-linux\",\
-            \"deps\":[{\
-                \"origin\":\"dep_org\",\
-                \"name\":\"dep_name\",\
-                \"version\":\"1.1.1-dep\",\
-                \"release\":\"20170101010102\"\
-            }],\
-            \"tdeps\":[{\
-                \"origin\":\"tdep_org\",\
-                \"name\":\"tdep_name\",\
-                \"version\":\"1.1.1-tdep\",\
-                \"release\":\"20170101010103\"\
-            }],\
-            \"exposes\":[],\
-            \"config\":\"config\"\
-        }"
-        );
+        let json_body: serde_json::Value = serde_json::from_str(&result_body).unwrap();
+        let expected_json = json!({
+            "channels": null,
+            "ident":{
+                "origin":"org",
+                "name":"name",
+                "version":"1.1.1",
+                "release":"20170101010101"
+            },
+            "checksum":"checksum",
+            "manifest":"manifest",
+            "target":"x86_64-linux",
+            "deps":[{
+                "origin":"dep_org",
+                "name":"dep_name",
+                "version":"1.1.1-dep",
+                "release":"20170101010102"
+            }],
+            "tdeps":[{
+                "origin":"tdep_org",
+                "name":"tdep_name",
+                "version":"1.1.1-tdep",
+                "release":"20170101010103"
+            }],
+            "exposes":[],
+            "config":"config"
+        });
+
+        assert_eq!(json_body, expected_json);
 
         //assert we sent the corect range to postgres
         let package_req = msgs.get::<OriginPackageGet>().unwrap();
@@ -2769,34 +2818,35 @@ mod test {
         assert_eq!(response.status, Some(status::Ok));
 
         let result_body = response::extract_body_to_string(response);
-        assert_eq!(
-            result_body,
-            "{\
-            \"ident\":{\
-                \"origin\":\"org\",\
-                \"name\":\"name\",\
-                \"version\":\"1.1.1\",\
-                \"release\":\"20170101010101\"\
-            },\
-            \"checksum\":\"checksum\",\
-            \"manifest\":\"manifest\",\
-            \"target\":\"x86_64-linux\",\
-            \"deps\":[{\
-                \"origin\":\"dep_org\",\
-                \"name\":\"dep_name\",\
-                \"version\":\"1.1.1-dep\",\
-                \"release\":\"20170101010102\"\
-            }],\
-            \"tdeps\":[{\
-                \"origin\":\"tdep_org\",\
-                \"name\":\"tdep_name\",\
-                \"version\":\"1.1.1-tdep\",\
-                \"release\":\"20170101010103\"\
-            }],\
-            \"exposes\":[],\
-            \"config\":\"config\"\
-        }"
-        );
+        let json_body: serde_json::Value = serde_json::from_str(&result_body).unwrap();
+        let expected_json = json!({
+            "channels": null,
+            "ident":{
+                "origin":"org",
+                "name":"name",
+                "version":"1.1.1",
+                "release":"20170101010101"
+            },
+            "checksum":"checksum",
+            "manifest":"manifest",
+            "target":"x86_64-linux",
+            "deps":[{
+                "origin":"dep_org",
+                "name":"dep_name",
+                "version":"1.1.1-dep",
+                "release":"20170101010102"
+            }],
+            "tdeps":[{
+                "origin":"tdep_org",
+                "name":"tdep_name",
+                "version":"1.1.1-tdep",
+                "release":"20170101010103"
+            }],
+            "exposes":[],
+            "config":"config"
+        });
+
+        assert_eq!(json_body, expected_json);
 
         //assert we sent the corect range to postgres
         let package_req = msgs.get::<OriginChannelPackageGet>().unwrap();
@@ -2867,34 +2917,35 @@ mod test {
         assert_eq!(response.status, Some(status::Ok));
 
         let result_body = response::extract_body_to_string(response);
-        assert_eq!(
-            result_body,
-            "{\
-            \"ident\":{\
-                \"origin\":\"org\",\
-                \"name\":\"name\",\
-                \"version\":\"1.1.1\",\
-                \"release\":\"20170101010101\"\
-            },\
-            \"checksum\":\"checksum\",\
-            \"manifest\":\"manifest\",\
-            \"target\":\"x86_64-linux\",\
-            \"deps\":[{\
-                \"origin\":\"dep_org\",\
-                \"name\":\"dep_name\",\
-                \"version\":\"1.1.1-dep\",\
-                \"release\":\"20170101010102\"\
-            }],\
-            \"tdeps\":[{\
-                \"origin\":\"tdep_org\",\
-                \"name\":\"tdep_name\",\
-                \"version\":\"1.1.1-tdep\",\
-                \"release\":\"20170101010103\"\
-            }],\
-            \"exposes\":[],\
-            \"config\":\"config\"\
-        }"
-        );
+        let json_body: serde_json::Value = serde_json::from_str(&result_body).unwrap();
+        let expected_json = json!({
+            "ident":{
+                "origin":"org",
+                "name":"name",
+                "version":"1.1.1",
+                "release":"20170101010101"
+            },
+            "channels":null,
+            "checksum":"checksum",
+            "manifest":"manifest",
+            "target":"x86_64-linux",
+            "deps":[{
+                "origin":"dep_org",
+                "name":"dep_name",
+                "version":"1.1.1-dep",
+                "release":"20170101010102"
+            }],
+            "tdeps":[{
+                "origin":"tdep_org",
+                "name":"tdep_name",
+                "version":"1.1.1-tdep",
+                "release":"20170101010103"
+            }],
+            "exposes":[],
+            "config":"config"
+        });
+
+        assert_eq!(json_body, expected_json);
 
         //assert we sent the corect requests to postgres
         let latest_req = msgs.get::<OriginPackageLatestGet>().unwrap();
@@ -2970,34 +3021,35 @@ mod test {
         assert_eq!(response.status, Some(status::Ok));
 
         let result_body = response::extract_body_to_string(response);
-        assert_eq!(
-            result_body,
-            "{\
-            \"ident\":{\
-                \"origin\":\"org\",\
-                \"name\":\"name\",\
-                \"version\":\"1.1.1\",\
-                \"release\":\"20170101010101\"\
-            },\
-            \"checksum\":\"checksum\",\
-            \"manifest\":\"manifest\",\
-            \"target\":\"x86_64-linux\",\
-            \"deps\":[{\
-                \"origin\":\"dep_org\",\
-                \"name\":\"dep_name\",\
-                \"version\":\"1.1.1-dep\",\
-                \"release\":\"20170101010102\"\
-            }],\
-            \"tdeps\":[{\
-                \"origin\":\"tdep_org\",\
-                \"name\":\"tdep_name\",\
-                \"version\":\"1.1.1-tdep\",\
-                \"release\":\"20170101010103\"\
-            }],\
-            \"exposes\":[],\
-            \"config\":\"config\"\
-        }"
-        );
+        let json_body: serde_json::Value = serde_json::from_str(&result_body).unwrap();
+        let expected_json = json!({
+            "ident":{
+                "origin":"org",
+                "name":"name",
+                "version":"1.1.1",
+                "release":"20170101010101"
+            },
+            "channels":null,
+            "checksum":"checksum",
+            "manifest":"manifest",
+            "target":"x86_64-linux",
+            "deps":[{
+                "origin":"dep_org",
+                "name":"dep_name",
+                "version":"1.1.1-dep",
+                "release":"20170101010102"
+            }],
+            "tdeps":[{
+                "origin":"tdep_org",
+                "name":"tdep_name",
+                "version":"1.1.1-tdep",
+                "release":"20170101010103"
+            }],
+            "exposes":[],
+            "config":"config"
+        });
+
+        assert_eq!(json_body, expected_json);
 
         //assert we sent the corect requests to postgres
         let latest_req = msgs.get::<OriginChannelPackageLatestGet>().unwrap();

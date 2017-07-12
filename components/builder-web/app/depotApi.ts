@@ -126,24 +126,6 @@ export function getPackageVersions(origin: string, pkg: string) {
     });
 }
 
-export function getPackageChannels(pkg) {
-    const ident = packageString(pkg);
-    const url = `${urlPrefix}/depot/pkgs/${ident}/channels`;
-
-    return new Promise((resolve, reject) => {
-        fetch(url)
-            .then(response => {
-                if (response.status >= 400) {
-                    reject(new Error(response.statusText));
-                }
-                else {
-                    response.json().then(results => resolve(results));
-                }
-            })
-            .catch(error => reject(error));
-    });
-}
-
 export function scheduleBuild(origin: string, pkg: string, token: string) {
     const url = `${urlPrefix}/depot/pkgs/schedule/${origin}/${pkg}`;
 
