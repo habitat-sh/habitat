@@ -26,6 +26,7 @@ use std::result;
 
 use ansi_term::Colour;
 use hcore;
+use hcore::crypto;
 use hcore::service::ServiceGroup;
 use serde::{Serialize, Serializer};
 
@@ -97,19 +98,56 @@ pub trait Hook: fmt::Debug + Sized {
 
     fn new(service_group: &ServiceGroup, render_pair: RenderPair) -> Self;
 
-    /// Compile a hook into it's destination service directory.
-    fn compile(&self, ctx: &RenderContext) -> Result<()> {
+    /// Cryptographically hash the contents of the compiled hook
+    /// file.
+    ///
+    /// If the file does not exist, an empty string is returned.
+    fn content_hash(&self) -> Result<String> {
+        if self.path().exists() {
+            crypto::hash::hash_file(&self.path().to_path_buf()).map_err(|e| SupError::from(e))
+        } else {
+            Ok(String::new())
+        }
+    }
+
+    /// Write `maybe_new_content` into the hook file only if it's
+    /// different from what's already there. Return `true` if the file
+    /// content was changed.
+    fn maybe_change_content(&self, maybe_new_content: &String) -> Result<bool> {
+        let content_hash = crypto::hash::hash_string(maybe_new_content);
+        let existing_hash = self.content_hash()?;
+
+        if existing_hash == content_hash {
+            Ok(false)
+        } else {
+            let mut file = File::create(self.path())?;
+            file.write_all(&maybe_new_content.as_bytes())?;
+            Ok(true)
+        }
+    }
+
+    /// Compile a hook into its destination service directory.
+    fn compile(&self, ctx: &RenderContext) -> Result<bool> {
+
         let data = self.renderer().render("hook", ctx)?;
-        let mut file = File::create(self.path())?;
-        file.write_all(data.as_bytes())?;
-        hcore::util::perm::set_owner(self.path(), &ctx.pkg.svc_user, &ctx.pkg.svc_group)?;
-        hcore::util::perm::set_permissions(self.path(), HOOK_PERMISSIONS)?;
-        debug!(
-            "{} compiled to {}",
-            Self::file_name(),
-            self.path().display()
-        );
-        Ok(())
+
+        match self.maybe_change_content(&data) {
+            Ok(true) => {
+                hcore::util::perm::set_owner(self.path(), &ctx.pkg.svc_user, &ctx.pkg.svc_group)?;
+                hcore::util::perm::set_permissions(self.path(), HOOK_PERMISSIONS)?;
+                debug!(
+                    "{} compiled to {}",
+                    Self::file_name(),
+                    self.path().display()
+                );
+                Ok(true)
+            }
+            Ok(false) => {
+                debug!("{} hook did not change", Self::file_name());
+                Ok(false)
+            }
+            Err(err) => Err(err),
+        }
     }
 
     /// Run a compiled hook.
@@ -750,45 +788,60 @@ impl HookTable {
     }
 
     /// Compile all loaded hooks from the table into their destination service directory.
-    pub fn compile(&self, service_group: &ServiceGroup, ctx: &RenderContext) {
+    ///
+    /// Returns `true` if compiling any of the hooks resulted in new
+    /// content being written to the hook scripts on disk.
+    pub fn compile(&self, service_group: &ServiceGroup, ctx: &RenderContext) -> Result<bool> {
+        let mut changed = false;
+
         if let Some(ref hook) = self.file_updated {
-            self.compile_one(hook, service_group, ctx);
+            changed = self.compile_one(hook, service_group, ctx)? || changed;
         }
         if let Some(ref hook) = self.health_check {
-            self.compile_one(hook, service_group, ctx);
+            changed = self.compile_one(hook, service_group, ctx)? || changed;
         }
         if let Some(ref hook) = self.init {
-            self.compile_one(hook, service_group, ctx);
+            changed = self.compile_one(hook, service_group, ctx)? || changed;
         }
         if let Some(ref hook) = self.reload {
-            self.compile_one(hook, service_group, ctx);
+            changed = self.compile_one(hook, service_group, ctx)? || changed;
         }
         if let Some(ref hook) = self.reconfigure {
-            self.compile_one(hook, service_group, ctx);
+            changed = self.compile_one(hook, service_group, ctx)? || changed;
         }
         if let Some(ref hook) = self.suitability {
-            self.compile_one(hook, service_group, ctx);
+            changed = self.compile_one(hook, service_group, ctx)? || changed;
         }
         if let Some(ref hook) = self.run {
-            self.compile_one(hook, service_group, ctx);
+            changed = self.compile_one(hook, service_group, ctx)? || changed;
         }
         if let Some(ref hook) = self.post_run {
-            self.compile_one(hook, service_group, ctx);
+            changed = self.compile_one(hook, service_group, ctx)? || changed;
         }
         if let Some(ref hook) = self.smoke_test {
-            self.compile_one(hook, service_group, ctx);
+            changed = self.compile_one(hook, service_group, ctx)? || changed;
         }
         debug!("{}, Hooks compiled", service_group);
+        Ok(changed)
     }
 
-    fn compile_one<H>(&self, hook: &H, service_group: &ServiceGroup, ctx: &RenderContext)
+    fn compile_one<H>(
+        &self,
+        hook: &H,
+        service_group: &ServiceGroup,
+        ctx: &RenderContext,
+    ) -> Result<bool>
     where
         H: Hook,
     {
-        hook.compile(ctx).unwrap_or_else(|e| {
-            outputln!(preamble service_group,
-                "Failed to compile {} hook: {}", H::file_name(), e);
-        });
+        match hook.compile(ctx) {
+            Ok(status) => Ok(status),
+            Err(e) => {
+                outputln!(preamble service_group,
+                          "Failed to compile {} hook: {}", H::file_name(), e);
+                Err(e)
+            }
+        }
     }
 }
 
@@ -900,6 +953,49 @@ mod tests {
     use tempdir::TempDir;
     use std::process::{Command, Stdio};
 
+    use std::iter;
+    use std::string::ToString;
+    use manager::sys::Sys;
+    use config::GossipListenAddr;
+    use http_gateway::ListenAddr;
+    use hcore::package::{PackageIdent, PackageInstall};
+    use manager::service::{Pkg, Cfg};
+    use manager::service::spec::ServiceBind;
+    use census::CensusRing;
+
+    use hcore::service::ServiceGroup;
+    use butterfly::member::MemberList;
+    use butterfly::rumor::service::Service as ServiceRumor;
+    use butterfly::rumor::service_config::ServiceConfig as ServiceConfigRumor;
+    use butterfly::rumor::service_file::ServiceFile as ServiceFileRumor;
+    use butterfly::rumor::election::Election as ElectionRumor;
+    use butterfly::rumor::election::ElectionUpdate as ElectionUpdateRumor;
+    use butterfly::rumor::service::SysInfo;
+    use butterfly::rumor::RumorStore;
+
+    // Turns out it's useful for Hooks to implement AsRef<Path>, at
+    // least for these tests. Ideally, this would be useful to use
+    // outside of the tests as well, but some additional refactoring
+    // will be necessary.
+    macro_rules! as_ref_path_impl {
+        ($($t:ty)*) => ($(
+            impl AsRef<Path> for $t {
+                fn as_ref(&self) -> &Path {
+                    &self.render_pair.path
+                }
+            }
+        )*)
+    }
+
+    as_ref_path_impl!(FileUpdatedHook
+                      HealthCheckHook
+                      InitHook
+                      PostRunHook
+                      ReconfigureHook
+                      ReloadHook
+                      RunHook
+                      SmokeTestHook
+                      SuitabilityHook);
 
     fn hook_fixtures_path() -> PathBuf {
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -907,6 +1003,430 @@ mod tests {
             .join("fixtures")
             .join("hooks")
     }
+
+    fn hook_templates_path() -> PathBuf {
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("tests")
+            .join("fixtures")
+            .join("hooks")
+            .join("hook_templates")
+    }
+
+    fn rendered_hooks_path() -> TempDir {
+        TempDir::new("habitat_hooks_test").expect("create temp dir")
+    }
+
+    fn service_group() -> ServiceGroup {
+        ServiceGroup::new("test_service", "test_group", None).expect("couldn't create ServiceGroup")
+    }
+
+    fn file_content<P>(path: P) -> String
+    where
+        P: AsRef<Path>,
+    {
+        let mut file = File::open(path).expect("Could not open file!");
+        let mut contents = String::new();
+        file.read_to_string(&mut contents).expect(
+            "Unable to read file!",
+        );
+        contents
+    }
+
+    fn create_with_content<P, C>(path: P, content: C)
+    where
+        P: AsRef<Path>,
+        C: ToString,
+    {
+        let mut file = File::create(path).expect("Cannot create file");
+        file.write_all(content.to_string().as_bytes()).expect(
+            "Cannot write to file",
+        );
+    }
+
+    ////////////////////////////////////////////////////////////////////////
+
+    #[test]
+    fn hashing_a_hook_that_already_exists_returns_a_hash_of_the_file() {
+        let service_group = service_group();
+        let concrete_path = rendered_hooks_path();
+        let template_path = hook_templates_path();
+
+        let hook = InitHook::load(&service_group, &concrete_path, &template_path)
+            .expect("Could not create testing init hook");
+
+        let content = r#"
+#!/bin/bash
+
+echo "The message is Hello World"
+"#;
+        create_with_content(&hook, content);
+
+        assert_eq!(
+            hook.content_hash().unwrap(),
+            "1cece41b2f4d5fddc643fc809d80c17d6658634b28ec1c5ceb80e512e20d2e72"
+        );
+    }
+
+    #[test]
+    fn hashing_a_hook_that_does_not_already_exist_returns_an_empty_string() {
+        let service_group = service_group();
+        let concrete_path = rendered_hooks_path();
+        let template_path = hook_templates_path();
+        let hook = InitHook::load(&service_group, &concrete_path, &template_path)
+            .expect("Could not create testing init hook");
+
+        assert_eq!(hook.content_hash().unwrap(), "");
+    }
+
+    #[test]
+    fn updating_a_hook_with_the_same_content_is_a_noop() {
+        let service_group = service_group();
+        let concrete_path = rendered_hooks_path();
+        let template_path = hook_templates_path();
+
+        let hook = InitHook::load(&service_group, &concrete_path, &template_path)
+            .expect("Could not create testing init hook");
+
+        // Since we're trying to update a file that should already
+        // exist, we need to actually create it :P
+        let content = r#"
+#!/bin/bash
+
+echo "The message is Hello World"
+"#;
+        create_with_content(&hook, content);
+
+        let pre_change_content = file_content(&hook);
+
+        // In the real world, we'd be templating something with this
+        // content, but for the purposes of detecting changes, feeding
+        // it the final text works well enough, and doesn't tie this
+        // test to the templating machinery.
+        assert_eq!(
+            hook.maybe_change_content(&String::from(content)).unwrap(),
+            false
+        );
+
+        let post_change_content = file_content(&hook);
+        assert_eq!(post_change_content, pre_change_content);
+    }
+
+    #[test]
+    fn updating_a_hook_that_creates_the_file_works() {
+        let service_group = service_group();
+        let concrete_path = rendered_hooks_path();
+        let template_path = hook_templates_path();
+
+        let hook = InitHook::load(&service_group, &concrete_path, &template_path)
+            .expect("Could not create testing init hook");
+
+        // In this test, we'll start with *no* rendered content.
+        assert_eq!(hook.as_ref().exists(), false);
+
+        let updated_content = r#"
+#!/bin/bash
+
+echo "The message is Hello World"
+"#;
+        // Since there was no compiled hook file before, this should
+        // create it, returning `true` to reflect that
+        assert_eq!(
+            hook.maybe_change_content(&String::from(updated_content))
+                .unwrap(),
+            true
+        );
+
+        // The content of the file should now be what we just changed
+        // it to.
+        let post_change_content = file_content(&hook);
+        assert_eq!(post_change_content, updated_content);
+    }
+
+    #[test]
+    fn truly_updating_a_hook_works() {
+        let service_group = service_group();
+        let concrete_path = rendered_hooks_path();
+        let template_path = hook_templates_path();
+
+        let hook = InitHook::load(&service_group, &concrete_path, &template_path)
+            .expect("Could not create testing init hook");
+
+        let initial_content = r#"
+#!/bin/bash
+
+echo "The message is Hello World"
+"#;
+        create_with_content(&hook, initial_content);
+
+        // Again, we're not templating anything here (as would happen
+        // in the real world), but just passing the final content that
+        // we'd like to update the hook with.
+        let updated_content = r#"
+#!/bin/bash
+
+echo "The message is Hola Mundo"
+"#;
+        assert_eq!(
+            hook.maybe_change_content(&String::from(updated_content))
+                .unwrap(),
+            true
+        );
+
+        let post_change_content = file_content(&hook);
+        assert_ne!(post_change_content, initial_content);
+        assert_eq!(post_change_content, updated_content);
+    }
+
+    /// Avert your eyes, children; avert your eyes!
+    ///
+    /// All I wanted was a simple RenderContext so I could compile a
+    /// hook. With the type signatures as they are, though, I don't
+    /// know if that's possible. So, in the functions that follow, a
+    /// minimal fake RenderContext is created within this function,
+    /// and we pass it into the relevant compilation functions to test
+    ///
+    /// A `RenderContext` could _almost_ be anything that's
+    /// JSON-serializable, in which case we wouldn't have to jump
+    /// through _nearly_ as many hoops as we do here. Unfortunately,
+    /// the compilation call also pulls things out of the context's
+    /// package struct, which is more than just a blob of JSON
+    /// data. We can probably do something about that, though.
+    ///
+    /// The context that these functions ends up making has a lot of
+    /// fake data around the ring membership, the package, etc. We
+    /// don't really need all that just to make compilation actually
+    /// change a file or not.
+    ///
+    /// Due to how a RenderContext is currently set up, though, I
+    /// couldn't sort out the relevant Rust lifetimes and type
+    /// signatures needed to have a helper function that just handed
+    /// back a RenderContext. It may be possible, or we may want to
+    /// refactor that code to make it possible. In the meantime, copy
+    /// and paste of the code is how we're going to do it :(
+    #[test]
+    fn compile_a_hook() {
+        let service_group = service_group();
+        let concrete_path = rendered_hooks_path();
+        let template_path = hook_templates_path();
+
+        let hook = InitHook::load(&service_group, &concrete_path, &template_path)
+            .expect("Could not create testing init hook");
+
+        ////////////////////////////////////////////////////////////////////////
+        // BEGIN RENDER CONTEXT SETUP
+        // (See comment above)
+
+        let sys = Sys::new(true, GossipListenAddr::default(), ListenAddr::default());
+
+        let pg_id = PackageIdent::new(
+            "testing",
+            &service_group.service(),
+            Some("1.0.0"),
+            Some("20170712000000"),
+        );
+
+        let pkg_install = PackageInstall::new_from_parts(
+            pg_id.clone(),
+            PathBuf::from("/tmp"),
+            PathBuf::from("/tmp"),
+            PathBuf::from("/tmp"),
+        );
+        let pkg = Pkg::from_install(pkg_install).expect("Could not create package!");
+
+        // This is gross, but it actually works
+        let cfg_path = concrete_path.as_ref().join("default.toml");
+        create_with_content(cfg_path, &String::from("message = \"Hello\""));
+
+        let cfg = Cfg::new(&pkg, Some(&concrete_path.as_ref().to_path_buf()))
+            .expect("Could not create config");
+
+        // SysInfo is basic Swim infrastructure information
+        let mut sys_info = SysInfo::new();
+        sys_info.set_ip("1.2.3.4".to_string());
+        sys_info.set_hostname("hostname".to_string());
+        sys_info.set_gossip_ip("0.0.0.0".to_string());
+        sys_info.set_gossip_port(7777);
+        sys_info.set_http_gateway_ip("0.0.0.0".to_string());
+        sys_info.set_http_gateway_port(9631);
+
+        let sg_one = service_group.clone(); // ServiceGroup::new("shield", "one", None).unwrap();
+
+        let service_store: RumorStore<ServiceRumor> = RumorStore::default();
+        let service_one = ServiceRumor::new("member-a", &pg_id, &sg_one, &sys_info, None);
+        service_store.insert(service_one);
+
+        let election_store: RumorStore<ElectionRumor> = RumorStore::default();
+        let mut election = ElectionRumor::new("member-a", sg_one.clone(), 10);
+        election.finish();
+        election_store.insert(election);
+
+        let election_update_store: RumorStore<ElectionUpdateRumor> = RumorStore::default();
+
+        let member_list = MemberList::new();
+
+        let service_config_store: RumorStore<ServiceConfigRumor> = RumorStore::default();
+        let service_file_store: RumorStore<ServiceFileRumor> = RumorStore::default();
+
+        let mut ring = CensusRing::new("member-a");
+        ring.update_from_rumors(
+            &service_store,
+            &election_store,
+            &election_update_store,
+            &member_list,
+            &service_config_store,
+            &service_file_store,
+        );
+
+        let bindings = iter::empty::<&ServiceBind>();
+
+        let ctx = RenderContext::new(&service_group, &sys, &pkg, &cfg, &ring, bindings);
+
+        // END RENDER CONTEXT SETUP
+        ////////////////////////////////////////////////////////////////////////
+
+        assert_eq!(hook.compile(&ctx).unwrap(), true);
+
+        let post_change_content = file_content(&hook);
+        let expected = r#"#!/bin/bash
+
+echo "The message is Hello"
+"#;
+        assert_eq!(post_change_content, expected);
+
+        // Compiling again should result in no changes
+        assert_eq!(hook.compile(&ctx).unwrap(), false);
+        let post_second_change_content = file_content(&hook);
+        assert_eq!(post_second_change_content, post_change_content);
+    }
+
+    #[test]
+    fn compile_hook_table() {
+
+        let tmp_root = rendered_hooks_path();
+        std::env::set_var("FS_ROOT", tmp_root.path());
+
+        let template_root = tmp_root
+            .path()
+            .join("hab")
+            .join("svc")
+            .join("test_service")
+            .join("hooks");
+        DirBuilder::new()
+            .recursive(true)
+            .create(template_root.clone())
+            .unwrap();
+
+        let service_group = service_group();
+
+        let concrete_path = template_root.clone(); //rendered_hooks_path();
+        let template_path = hook_templates_path();
+
+        ////////////////////////////////////////////////////////////////////////
+        // BEGIN RENDER CONTEXT SETUP
+        // (See comment above)
+
+        let sys = Sys::new(true, GossipListenAddr::default(), ListenAddr::default());
+
+        let pg_id = PackageIdent::new(
+            "testing",
+            &service_group.service(),
+            Some("1.0.0"),
+            Some("20170712000000"),
+        );
+
+        let pkg_install = PackageInstall::new_from_parts(
+            pg_id.clone(),
+            PathBuf::from("/tmp"),
+            PathBuf::from("/tmp"),
+            PathBuf::from("/tmp"),
+        );
+        let pkg = Pkg::from_install(pkg_install).expect("Could not create package!");
+
+        // This is gross, but it actually works
+        let cfg_path = &concrete_path.as_path().join("default.toml");
+        create_with_content(cfg_path, &String::from("message = \"Hello\""));
+
+        let cfg = Cfg::new(&pkg, Some(&concrete_path.as_path().to_path_buf()))
+            .expect("Could not create config");
+
+        // SysInfo is basic Swim infrastructure information
+        let mut sys_info = SysInfo::new();
+        sys_info.set_ip("1.2.3.4".to_string());
+        sys_info.set_hostname("hostname".to_string());
+        sys_info.set_gossip_ip("0.0.0.0".to_string());
+        sys_info.set_gossip_port(7777);
+        sys_info.set_http_gateway_ip("0.0.0.0".to_string());
+        sys_info.set_http_gateway_port(9631);
+
+        let sg_one = service_group.clone(); // ServiceGroup::new("shield", "one", None).unwrap();
+
+        let service_store: RumorStore<ServiceRumor> = RumorStore::default();
+        let service_one = ServiceRumor::new("member-a", &pg_id, &sg_one, &sys_info, None);
+        service_store.insert(service_one);
+
+        let election_store: RumorStore<ElectionRumor> = RumorStore::default();
+        let mut election = ElectionRumor::new("member-a", sg_one.clone(), 10);
+        election.finish();
+        election_store.insert(election);
+
+        let election_update_store: RumorStore<ElectionUpdateRumor> = RumorStore::default();
+
+        let member_list = MemberList::new();
+
+        let service_config_store: RumorStore<ServiceConfigRumor> = RumorStore::default();
+        let service_file_store: RumorStore<ServiceFileRumor> = RumorStore::default();
+
+        let mut ring = CensusRing::new("member-a");
+        ring.update_from_rumors(
+            &service_store,
+            &election_store,
+            &election_update_store,
+            &member_list,
+            &service_config_store,
+            &service_file_store,
+        );
+
+        let bindings = iter::empty::<&ServiceBind>();
+
+        let ctx = RenderContext::new(&service_group, &sys, &pkg, &cfg, &ring, bindings);
+
+        // END RENDER CONTEXT SETUP
+        ////////////////////////////////////////////////////////////////////////
+
+        let hook_table = HookTable::load(&service_group, &template_path);
+        assert_eq!(hook_table.compile(&service_group, &ctx).unwrap(), true);
+
+        // Verify init hook
+        let init_hook_content = file_content(&hook_table.init.as_ref().expect("no init hook??"));
+        assert_eq!(
+            init_hook_content,
+            "#!/bin/bash\n\necho \"The message is Hello\"\n"
+        );
+        // Verify run hook
+        let run_hook_content = file_content(&hook_table.run.as_ref().expect("no run hook??"));
+        assert_eq!(
+            run_hook_content,
+            "#!/bin/bash\n\necho \"Running a program\"\n"
+        );
+
+        // Recompiling again results in no changes
+        assert_eq!(hook_table.compile(&service_group, &ctx).unwrap(), false);
+
+        // Re-Verify init hook
+        let init_hook_content = file_content(&hook_table.init.as_ref().expect("no init hook??"));
+        assert_eq!(
+            init_hook_content,
+            "#!/bin/bash\n\necho \"The message is Hello\"\n"
+        );
+        // Re-Verify run hook
+        let run_hook_content = file_content(&hook_table.run.as_ref().expect("no run hook??"));
+        assert_eq!(
+            run_hook_content,
+            "#!/bin/bash\n\necho \"Running a program\"\n"
+        );
+    }
+
+    ////////////////////////////////////////////////////////////////////////
 
     #[test]
     fn hook_output() {

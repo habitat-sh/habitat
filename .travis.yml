@@ -45,6 +45,7 @@ matrix:
             - kalakris-cmake
           packages:
             - build-essential
+            - busybox          # Currently only needed for unit tests in the supervisor, sadly.
             - ca-certificates
             - cmake
             - curl

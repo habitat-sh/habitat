@@ -384,11 +384,23 @@ impl Service {
 
         let cfg_updated = self.cfg.update(census_group);
         if cfg_updated || census_ring.changed {
-            self.needs_reconfiguration = {
+            let (reload, reconfigure) = {
                 let ctx = self.render_context(census_ring);
-                self.compile_hooks(&ctx);
-                self.compile_configuration(&ctx)
+
+                let reload = match self.compile_hooks(&ctx) {
+                    Ok(status) => status,
+                    Err(err) => {
+                        outputln!(preamble self.service_group, "Unexpected error in hook compilation: {}", err);
+                        false
+                    }
+                };
+
+                let reconfigure = self.compile_configuration(&ctx);
+
+                (reload, reconfigure)
             };
+            self.needs_reload = reload;
+            self.needs_reconfiguration = reconfigure;
         }
         cfg_updated
     }
@@ -567,11 +579,21 @@ impl Service {
     /// Helper for compiling hook templates into hooks.
     ///
     /// This function will also perform any necessary post-compilation tasks.
-    fn compile_hooks(&self, ctx: &RenderContext) {
-        self.hooks.compile(&self.service_group, ctx);
-        outputln!(preamble self.service_group, "Hooks recompiled");
-        if let Some(err) = self.copy_run().err() {
-            outputln!(preamble self.service_group, "Failed to copy run hook: {}", err);
+    fn compile_hooks(&self, ctx: &RenderContext) -> Result<bool> {
+        match self.hooks.compile(&self.service_group, ctx) {
+            Ok(true) => {
+                outputln!(preamble self.service_group, "Hooks recompiled");
+                if let Some(err) = self.copy_run().err() {
+                    outputln!(preamble self.service_group, "Failed to copy run hook: {}", err);
+                    return Err(err);
+                }
+                Ok(true)
+            }
+            Ok(false) => {
+                outputln!(preamble self.service_group, "Hooks recompiled, but none changed");
+                Ok(false)
+            }
+            Err(err) => Err(err),
         }
     }
 
@@ -617,6 +639,8 @@ impl Service {
                 self.run_health_check_hook();
             }
 
+            // NOTE: if you need reconfiguration and you DON'T have a
+            // reload script, you're going to restart anyway.
             if self.needs_reload || self.process_down() || self.needs_reconfiguration {
                 self.reload(launcher);
                 if self.needs_reconfiguration {
