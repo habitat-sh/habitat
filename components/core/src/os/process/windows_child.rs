@@ -181,6 +181,7 @@ impl Child {
                     );
                     if fs::metadata(&path).is_ok() {
                         res = Some(path.into_os_string());
+                        break;
                     }
                 }
                 break;
