@@ -18,6 +18,7 @@ import {GitHubApiClient} from "../GitHubApiClient";
 import {AppStore} from "../AppStore";
 import {addProject, fetchProject, updateProject} from "../actions/index";
 import {RouterLink} from "@angular/router";
+import config from "../config";
 
 @Component({
     selector: "hab-project-info",
@@ -26,7 +27,7 @@ import {RouterLink} from "@angular/router";
       <div class="scm-repo-fields">
           <label>GitHub Repository</label>
           <div *ngIf="repo">
-              <a href="https://github.com/{{ownerAndRepo}}" target="_blank">
+              <a href="${config["github_web_url"]}/{{ownerAndRepo}}" target="_blank">
                   {{ownerAndRepo}}
               </a>
               <a [routerLink]="['/scm-repos']" href="#">(change)</a>

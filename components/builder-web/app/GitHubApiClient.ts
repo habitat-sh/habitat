@@ -13,16 +13,15 @@
 // limitations under the License.
 
 import "whatwg-fetch";
+import config from "./config";
 
 export class GitHubApiClient {
-    private urlPrefix: string = "https://api.github.com";
-
     constructor(private token: string) { }
 
     // Checks to see if a file exists at a location
     public doesFileExist(owner: string, repo: string, path: string) {
         return new Promise((resolve, reject) => {
-            fetch(`${this.urlPrefix}/repos/${owner}/${repo}/contents/${path}?access_token=${this.token}`, {
+            fetch(`${config["github_api_url"]}/repos/${owner}/${repo}/contents/${path}?access_token=${this.token}`, {
                 method: "GET"
             }).then(response => {
                 if (response.status === 404) {
@@ -44,7 +43,7 @@ export class GitHubApiClient {
 
     public getUser(username: string) {
         return new Promise((resolve, reject) => {
-            fetch(`${this.urlPrefix}/users/${username}?access_token=${this.token}`, {
+            fetch(`${config["github_api_url"]}/users/${username}?access_token=${this.token}`, {
                 method: "GET"
             }).then(response => {
                 if (response.ok) {

@@ -12,12 +12,13 @@ habitatConfig({
     // The environment in which we're running. If "production", enable
     // production mode
     environment: "production",
-    // The URL for Habitat's source code
     // GitHub Client ID for OAuth2
     // The example is for builder-dev: https://github.com/settings/connections/applications/0c2f738a7d0bd300de10
     github_client_id: "0c2f738a7d0bd300de10",
-    // The URL for GitHub
-    github_url: "https://github.com"
+    // The API URL for GitHub
+    github_api_url: "https://api.github.com",
+    // The Web URL for GitHub
+    github_web_url: "https://github.com",
     // The URL for the Habitat source code
     source_code_url: "https://github.com/habitat-sh/habitat",
     // The URL for tutorials
