@@ -15,4 +15,5 @@ port = {{member.cfg.port}}
 {{~/eachAlive}}
 
 [archive]
+local_dir = "{{pkg.svc_data_path}}"
 {{toToml cfg.archive}}
