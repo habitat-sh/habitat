@@ -16,4 +16,9 @@ connection_timeout_sec = 3600
 
 [archive]
 backend = "local"
-dir = "/tmp" # You don't want to use /tmp for real
+key = ""
+secret = ""
+endpoint = ""
+bucket = ""
+region = "us-east-1"
+local_dir = ""
