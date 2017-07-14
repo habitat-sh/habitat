@@ -85,7 +85,7 @@ export class SignInPageComponent implements OnInit, OnDestroy {
 
     get docsUrl() { return config["docs_url"]; }
 
-    get gitHubJoinUrl() { return `${config["github_url"]}/join`; }
+    get gitHubJoinUrl() { return `${config["github_web_url"]}/join`; }
 
     get gitHubLoginUrl() {
         return createGitHubLoginUrl(this.store.getState().gitHub.authState);

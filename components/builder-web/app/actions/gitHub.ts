@@ -51,7 +51,7 @@ export function authenticateWithGitHub(token = undefined) {
         if (token) {
             setCookie("gitHubAuthToken", token);
 
-            fetch(`https://api.github.com/user?access_token=${token}`).then(response => {
+            fetch(`${config["github_api_url"]}/user?access_token=${token}`).then(response => {
                 dispatch(setSigningInFlag(false));
 
                 if (response.ok) {
@@ -87,7 +87,7 @@ export function fetchGitHubOrgs(page = 1) {
     const token = cookies.get("gitHubAuthToken");
 
     return dispatch => {
-        fetch(`https://api.github.com/user/orgs?access_token=${token}&per_page=100&page=${page}`).then(response => {
+        fetch(`${config["github_api_url"]}/user/orgs?access_token=${token}&per_page=100&page=${page}`).then(response => {
             const links = parseLinkHeader(response.headers.get("Link"));
 
             // When we get the first page, clear everything out
@@ -114,7 +114,7 @@ export function fetchGitHubRepos(org, page = 1, username) {
             dispatch(setGitHubReposLoadingFlag(true));
         }
 
-        fetch(`https://api.github.com/${urlPath}?access_token=${token}&per_page=100&page=${page}`).then(response => {
+        fetch(`${config["github_api_url"]}/${urlPath}?access_token=${token}&per_page=100&page=${page}`).then(response => {
             const links = parseLinkHeader(response.headers.get("Link"));
 
             // When we get the first page, clear everything out
