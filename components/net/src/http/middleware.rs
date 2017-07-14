@@ -95,7 +95,10 @@ pub struct Authenticated {
 }
 
 impl Authenticated {
-    pub fn new<T: config::GitHubOAuth>(config: &T) -> Self {
+    pub fn new<T>(config: &T) -> Self
+    where
+        T: config::GitHubOAuth,
+    {
         let github = GitHubClient::new(config);
         Authenticated {
             github: github,

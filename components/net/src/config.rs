@@ -22,6 +22,8 @@ pub const DEFAULT_ROUTER_HEARTBEAT_PORT: u16 = 5563;
 
 /// URL to GitHub API endpoint
 pub const DEFAULT_GITHUB_URL: &'static str = "https://api.github.com";
+/// URL to GitHub Web endpoint
+pub const DEFAULT_GITHUB_WEB_URL: &'static str = "https://github.com";
 /// Default Client ID for providing a default value in development environments only. This is
 /// associated to the habitat-sh GitHub account and is configured to re-direct and point to a local
 /// builder-api.
@@ -45,14 +47,18 @@ pub trait DispatcherCfg {
 
 pub trait GitHubOAuth {
     fn github_url(&self) -> &str;
+    fn github_web_url(&self) -> &str;
     fn github_client_id(&self) -> &str;
     fn github_client_secret(&self) -> &str;
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(default)]
 pub struct GitHubCfg {
     /// URL to GitHub API
     pub url: String,
+    /// URL to GitHub Web
+    pub web_url: String,
     /// Client identifier used for GitHub API requests
     pub client_id: String,
     /// Client secret used for GitHub API requests
@@ -63,6 +69,7 @@ impl Default for GitHubCfg {
     fn default() -> Self {
         GitHubCfg {
             url: DEFAULT_GITHUB_URL.to_string(),
+            web_url: DEFAULT_GITHUB_WEB_URL.to_string(),
             client_id: DEV_GITHUB_CLIENT_ID.to_string(),
             client_secret: DEV_GITHUB_CLIENT_SECRET.to_string(),
         }
