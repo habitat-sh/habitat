@@ -43,3 +43,8 @@ authors:
     email: "mwrock@habitat.sh"
     twitter: "@mwrockx"
     bio: "Matt Wrock is a senior engineer on the core Habitat team. Among other things, Matt has been focusing on bringing feature parity to the Habitat build components and the supervisor on the Windows platform. Matt has 18 years experience in software development mostly in building high traffic distributed web applications in online advertising as well as various Microsoft.com web properties."
+  nellshamrell:
+    name: "Nell Shamrell-Harrington"
+    email: "nshamrell@habitat.sh"
+    twitter: "@nellshamrell"
+    bio: "Nell Shamrell-Harrington is a Software Development Engineer at Chef and core maintainer of the Habitat and Supermarket open source projects. She also sits on the advisory board for the University of Washington Certificates in Ruby Programming and DevOps. She specializes in Chef, Ruby, Rails, Rust Regular Expressions, and Test Driven Development and has traveled the world speaking on these topics. Prior to entering the world of software development, she studied and worked in the field of theatre."
