@@ -30,6 +30,7 @@ pub type Result<T> = result::Result<T, Error>;
 pub enum Error {
     ArtifactIdentMismatch((String, String, String)),
     CantUploadGossipToml,
+    ChannelNotFound,
     CryptoKeyError(String),
     GossipFileRelativePath(String),
     DepotClient(depot_client::Error),
@@ -59,6 +60,7 @@ impl fmt::Display for Error {
             Error::CantUploadGossipToml => {
                 format!("Can't upload gossip.toml, it's a reserved file name")
             }
+            Error::ChannelNotFound => format!("Channel not found"),
             Error::CryptoKeyError(ref s) => format!("Missing or invalid key: {}", s),
             Error::GossipFileRelativePath(ref s) => {
                 format!(
@@ -90,6 +92,7 @@ impl error::Error for Error {
                 "Artifact ident does not match expected ident"
             }
             Error::CantUploadGossipToml => "Can't upload gossip.toml, it's a reserved filename",
+            Error::ChannelNotFound => "Channel not found",
             Error::CryptoKeyError(_) => "Missing or invalid key",
             Error::GossipFileRelativePath(_) => {
                 "Path for gossip file cannot have relative components (eg: ..)"

@@ -9,7 +9,7 @@ function Test-ComponentChanged ($path) {
 
 function Test-PullRequest() {
     ($env:APPVEYOR_REPO_BRANCH -like 'master') -and
-        (test-path env:/APPVEYOR_PULL_REQUEST_NUMBER) -and 
+        (test-path env:/APPVEYOR_PULL_REQUEST_NUMBER) -and
         (-not [string]::IsNullOrEmpty($env:APPVEYOR_PULL_REQUEST_NUMBER))
 }
 
@@ -19,24 +19,24 @@ function Test-SentinelBuild() {
 
 function Test-SourceChanged {
     $files = if (Test-PullRequest -or Test-SentinelBuild) {
-        # for pull requests or sentinel builds diff 
+        # for pull requests or sentinel builds diff
         # against master
-        git diff master --name-only        
+        git diff master --name-only
     } else {
         # for master builds, check against the last merge
-        git show :/^Merge --pretty=format:%H -m --name-only    
+        git show :/^Merge --pretty=format:%H -m --name-only
     }
 
-    $BuildFiles = "appveyor.yml", "build.ps1", "support/ci/appveyor.ps1", "support/ci/appveyor.bat", 
+    $BuildFiles = "appveyor.yml", "build.ps1", "support/ci/appveyor.ps1", "support/ci/appveyor.bat",
                   "Cargo.toml", "Cargo.lock"
-    ($files | 
+    ($files |
         where-object {
             ($BuildFiles -contains $_ ) -or
-            (($_ -like 'components/*') -and 
+            (($_ -like 'components/*') -and
                 (Test-ComponentChanged $_))
         }
     ).count -ge 1
-} 
+}
 
 pushd "c:/projects/habitat"
 Write-Host "Configuring build environment"
@@ -52,14 +52,14 @@ if (($env:APPVEYOR_REPO_TAG_NAME -eq "$(Get-Content VERSION)") -or (Test-SourceC
 
     foreach ($BuildAction in ($env:hab_build_action -split ';')) {
         if ($BuildAction -like 'build') {
-            
+
             Write-Host "Building hab..."
             Write-Host ""
 
             ./build.ps1 -Path "components/hab" -Release
             if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
             ./target/release/hab.exe --version
-            if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}  
+            if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
 
         }
         elseif ($BuildAction -like 'test') {
@@ -67,7 +67,7 @@ if (($env:APPVEYOR_REPO_TAG_NAME -eq "$(Get-Content VERSION)") -or (Test-SourceC
                 pushd "c:/projects/habitat/components/$component"
                 Write-Host "Testing $component"
                 Write-Host ""
-                cargo test
+                cargo test --verbose
                 if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
                 popd
             }
@@ -81,7 +81,7 @@ if (($env:APPVEYOR_REPO_TAG_NAME -eq "$(Get-Content VERSION)") -or (Test-SourceC
             Invoke-WebRequest -UseBasicParsing -Uri $url -OutFile hab.zip
             Expand-Archive -Path hab.zip -DestinationPath $bootstrapDir
             $habExe = (Get-Item "$bootstrapDir/*/hab.exe").FullName
-            
+
             # This will override plan's CARGO_TARGET_DIR so we do not have to build each clean
             $env:HAB_CARGO_TARGET_DIR = "c:\projects\habitat\target"
 
@@ -101,7 +101,7 @@ if (($env:APPVEYOR_REPO_TAG_NAME -eq "$(Get-Content VERSION)") -or (Test-SourceC
                 Write-Host ""
                 & $habExe studio build components/$component -w
                 if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
-                
+
                 $hart = Get-Item "C:\hab\studios\projects--habitat\src\components\$component\results\*.hart"
                 Write-Host "Copying $hart to artifacts directory..."
                 Copy-Item $hart.FullName results
@@ -124,7 +124,7 @@ if (($env:APPVEYOR_REPO_TAG_NAME -eq "$(Get-Content VERSION)") -or (Test-SourceC
                     Copy-Item "/hab/pkgs/core/hab/*/*/bin/*" $zipDir
 
                     mkdir $stagingZipDir -Force
-                    Compress-Archive -Path $zipDir -DestinationPath "$stagingZipDir/$zip" 
+                    Compress-Archive -Path $zipDir -DestinationPath "$stagingZipDir/$zip"
                     if(Test-ReleaseBuild) {
                         mkdir "results/prod" -Force
                         Compress-Archive -Path ./windows -DestinationPath "results/prod/$zip"
@@ -139,7 +139,7 @@ if (($env:APPVEYOR_REPO_TAG_NAME -eq "$(Get-Content VERSION)") -or (Test-SourceC
         }
         else {
             Write-Warning "Unsupported Build Action: $BuildAction."
-        }  
+        }
     }
 }
 else {
