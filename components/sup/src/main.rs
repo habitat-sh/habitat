@@ -74,6 +74,7 @@ fn start() -> Result<()> {
     match app_matches.subcommand() {
         ("bash", Some(m)) => sub_bash(m),
         ("config", Some(m)) => sub_config(m),
+        ("exec", Some(m)) => sub_exec(m),
         ("load", Some(m)) => sub_load(m),
         ("run", Some(m)) => sub_run(m),
         ("sh", Some(m)) => sub_sh(m),
@@ -105,6 +106,11 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
             (aliases: &["c", "co", "con", "conf", "confi"])
             (@arg PKG_IDENT: +required +takes_value
                 "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
+        )
+        (@subcommand exec =>
+            (about: "Synchronously load a service, start it, display logs and unload it.")
+            (aliases: &["e", "ex", "exe"])
+            (@arg PKG_IDENT: +required +takes_value "A Habitat package identifier (ex: core/redis)")
         )
         (@subcommand load =>
             (about: "Load a service to be started and supervised by Habitat from a package or \
@@ -384,6 +390,87 @@ fn sub_config(m: &ArgMatches) -> Result<()> {
     Ok(())
 }
 
+fn start_common(
+    cfg: &ManagerConfig,
+    ident: &PackageIdent,
+    m: &ArgMatches,
+    local_artifact: &Option<&str>,
+    require_fresh: bool,
+) -> Result<()> {
+    let running = Manager::is_running(&cfg)?;
+
+    if require_fresh && running {
+        return Err(sup_error!(Error::AlreadyRunning(ident.name.clone())));
+    }
+
+    let default_spec = ServiceSpec::default_for(ident.clone());
+    let spec_file = Manager::spec_path_for(&cfg, &default_spec);
+    let spec = match ServiceSpec::from_file(&spec_file) {
+        Ok(mut spec) => {
+            if spec.desired_state == DesiredState::Down {
+                spec.desired_state = DesiredState::Up;
+                spec
+            } else {
+                if !running {
+                    let mut manager = Manager::load(cfg.clone())?;
+                    return manager.run();
+                } else {
+                    return Ok(());
+                }
+            }
+        }
+        Err(_) => {
+            let spec = spec_from_matches(default_spec.ident, m)?;
+            util::pkg::install_from_spec(&mut UI::default(), &spec)?;
+            spec
+        }
+    };
+
+    try!(command::start::run(
+        cfg.clone(),
+        Some(spec.clone()),
+        local_artifact.clone(),
+    ));
+    if running {
+        outputln!(
+            "The supervisor is starting the {} service. See the supervisor output for \
+             more details.",
+            spec.ident
+        );
+    }
+    Ok(())
+}
+
+fn unload_common(
+    cfg: &ManagerConfig,
+    ident: &PackageIdent,
+    m: &ArgMatches,
+) -> Result<()> {
+    let spec = spec_from_matches(ident.clone(), m)?;
+    let spec_file = Manager::spec_path_for(&cfg, &spec);
+    match std::fs::remove_file(&spec_file) {
+        Ok(_) => Ok(()),
+        Err(err) => match err.kind() {
+            std::io::ErrorKind::NotFound => Ok(()),
+            _ => Err(sup_error!(Error::ServiceSpecFileIO(spec_file, err)))
+        }
+    }
+}
+
+fn sub_exec(m: &ArgMatches) -> Result<()> {
+    if m.is_present("VERBOSE") {
+        sup::output::set_verbose(true);
+    }
+    if m.is_present("NO_COLOR") {
+        sup::output::set_no_color(true);
+    }
+    let cfg = mgrcfg_from_matches(m)?;
+    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
+    let local_artifact = None;
+    start_common(&cfg, &ident, m, &local_artifact, true)?;
+    unload_common(&cfg, &ident, m)
+}
+
 fn sub_load(m: &ArgMatches) -> Result<()> {
     if m.is_present("VERBOSE") {
         sup::output::set_verbose(true);
@@ -418,11 +505,7 @@ fn sub_unload(m: &ArgMatches) -> Result<()> {
     }
     let cfg = mgrcfg_from_matches(m)?;
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
-    let spec = spec_from_matches(ident, m)?;
-    let spec_file = Manager::spec_path_for(&cfg, &spec);
-    std::fs::remove_file(&spec_file).map_err(|err| {
-        sup_error!(Error::ServiceSpecFileIO(spec_file, err))
-    })
+    unload_common(&cfg, &ident, m)
 }
 
 fn sub_run(m: &ArgMatches) -> Result<()> {
@@ -450,58 +533,15 @@ fn sub_start(m: &ArgMatches) -> Result<()> {
         sup::output::set_no_color(true);
     }
     let cfg = mgrcfg_from_matches(m)?;
+    let ident_str = m.value_of("PKG_IDENT_OR_ARTIFACT").unwrap();
     let mut maybe_local_artifact: Option<&str> = None;
-    let maybe_spec = match m.value_of("PKG_IDENT_OR_ARTIFACT") {
-        Some(ident_or_artifact) => {
-            let ident = if Path::new(ident_or_artifact).is_file() {
-                maybe_local_artifact = Some(ident_or_artifact);
-                PackageArchive::new(Path::new(ident_or_artifact)).ident()?
-            } else {
-                PackageIdent::from_str(ident_or_artifact)?
-            };
-            let default_spec = ServiceSpec::default_for(ident);
-            let spec_file = Manager::spec_path_for(&cfg, &default_spec);
-            match ServiceSpec::from_file(&spec_file) {
-                Ok(mut spec) => {
-                    if spec.desired_state == DesiredState::Down {
-                        spec.desired_state = DesiredState::Up;
-                        Some(spec)
-                    } else {
-                        if !Manager::is_running(&cfg)? {
-                            let mut manager = Manager::load(cfg)?;
-                            return manager.run();
-                        } else {
-                            return Ok(());
-                        }
-                    }
-                }
-                Err(_) => {
-                    let spec = spec_from_matches(default_spec.ident, m)?;
-                    util::pkg::install_from_spec(&mut UI::default(), &spec)?;
-                    Some(spec)
-                }
-            }
-        }
-        None => None,
+    let ident = if Path::new(ident_str).is_file() {
+        maybe_local_artifact = Some(ident_str);
+        PackageArchive::new(Path::new(ident_str)).ident()?
+    } else {
+        PackageIdent::from_str(ident_str)?
     };
-
-    let running = Manager::is_running(&cfg)?;
-
-    try!(command::start::run(
-        cfg.clone(),
-        maybe_spec.clone(),
-        maybe_local_artifact,
-    ));
-    if running {
-        if let Some(spec) = maybe_spec {
-            outputln!(
-                "The supervisor is starting the {} service. See the supervisor output for \
-                 more details.",
-                spec.ident
-            );
-        }
-    }
-    Ok(())
+    start_common(&cfg, &ident, m, &maybe_local_artifact, false)
 }
 
 fn sub_status(m: &ArgMatches) -> Result<()> {

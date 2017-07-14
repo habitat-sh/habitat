@@ -348,12 +348,17 @@ pub fn get() -> App<'static, 'static> {
                 (about: "Stop a running Habitat service.")
                 (@setting Hidden)
             )
+            (@subcommand exec =>
+                (about: "Synchronously load a service, start it, display logs and unload it.")
+                (@setting Hidden)
+            )
             (after_help: "\nALIASES:\
                 \n    load       Alias for: 'sup load'\
                 \n    unload     Alias for: 'sup unload'\
                 \n    start      Alias for: 'sup start'\
                 \n    stop       Alias for: 'sup stop'\
                 \n    status     Alias for: 'sup status'\
+                \n    exec       Alias for: 'sup exec'\
                 \n"
             )
         )

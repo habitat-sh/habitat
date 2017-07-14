@@ -103,6 +103,7 @@ impl SupError {
 /// All the kinds of errors we produce.
 #[derive(Debug)]
 pub enum Error {
+    AlreadyRunning(String),
     BadDataFile(PathBuf, io::Error),
     BadDataPath(PathBuf, io::Error),
     BadDesiredState(String),
@@ -163,6 +164,12 @@ impl fmt::Display for SupError {
     // verbose on, and print it.
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let content = match self.err {
+            Error::AlreadyRunning(ref pkg) => {
+                format!(
+                    "Service {} is already running",
+                    pkg
+                )
+            }
             Error::BadDataFile(ref path, ref err) => {
                 format!(
                     "Unable to read or write to data file, {}, {}",
@@ -313,6 +320,7 @@ impl fmt::Display for SupError {
 impl error::Error for SupError {
     fn description(&self) -> &str {
         match self.err {
+            Error::AlreadyRunning(_) => "Service is already running",
             Error::BadDataFile(_, _) => "Unable to read or write to a data file",
             Error::BadDataPath(_, _) => "Unable to read or write to data directory",
             Error::BadElectionStatus(_) => "Unknown election status",
