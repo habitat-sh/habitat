@@ -43,14 +43,19 @@ const AUTH_SCOPES: &'static [&'static str] = &["user:email", "read:org"];
 #[derive(Clone)]
 pub struct GitHubClient {
     pub url: String,
+    pub web_url: String,
     pub client_id: String,
     pub client_secret: String,
 }
 
 impl GitHubClient {
-    pub fn new<T: config::GitHubOAuth>(config: &T) -> Self {
+    pub fn new<T>(config: &T) -> Self
+    where
+        T: config::GitHubOAuth,
+    {
         GitHubClient {
             url: config.github_url().to_string(),
+            web_url: config.github_web_url().to_string(),
             client_id: config.github_client_id().to_string(),
             client_secret: config.github_client_secret().to_string(),
         }
@@ -58,8 +63,9 @@ impl GitHubClient {
 
     pub fn authenticate(&self, code: &str) -> Result<String> {
         let url = Url::parse(&format!(
-            "https://github.com/login/oauth/access_token?\
+            "{}/login/oauth/access_token?\
                                 client_id={}&client_secret={}&code={}",
+            self.web_url,
             self.client_id,
             self.client_secret,
             code

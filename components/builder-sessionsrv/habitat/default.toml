@@ -14,5 +14,6 @@ connection_timeout_sec = 3600
 
 [github]
 url = "https://api.github.com"
+web_url = "https://github.com"
 client_id = ""
 client_secret = ""
