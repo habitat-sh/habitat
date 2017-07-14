@@ -16,6 +16,8 @@ habitatConfig({
     // GitHub Client ID for OAuth2
     // The example is for builder-dev: https://github.com/settings/connections/applications/0c2f738a7d0bd300de10
     github_client_id: "0c2f738a7d0bd300de10",
+    // The URL for GitHub
+    github_url: "https://github.com"
     // The URL for the Habitat source code
     source_code_url: "https://github.com/habitat-sh/habitat",
     // The URL for tutorials
@@ -31,7 +33,7 @@ habitatConfig({
     // The URL for feature requests
     feature_requests_url: "https://portal.prodpad.com/24539",
     // The URL for forums
-    forums_url: "https://forums.habitat.sh/",    
+    forums_url: "https://forums.habitat.sh/",
     // The version of the software we're running. In production, this should
     // be automatically populated by Habitat
     version: "",
