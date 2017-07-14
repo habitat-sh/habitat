@@ -53,6 +53,7 @@ use ansi_term::Colour::Yellow;
 use common;
 use common::ui::UI;
 use hcore::fs::{self, FS_ROOT_PATH};
+use launcher_client::LauncherCli;
 
 use {PRODUCT, VERSION};
 use error::Result;
@@ -63,6 +64,7 @@ static LOGKEY: &'static str = "CS";
 
 pub fn run(
     cfg: ManagerConfig,
+    launcher: LauncherCli,
     service_spec: Option<ServiceSpec>,
     local_artifact: Option<&str>,
 ) -> Result<()> {
@@ -87,14 +89,14 @@ pub fn run(
                 PRODUCT,
                 VERSION,
                 Path::new(&*FS_ROOT_PATH),
-                &fs::cache_artifact_path(None),
+                &fs::cache_artifact_path(None::<String>),
                 false,
             )?;
         }
         Manager::save_spec_for(&cfg, spec)?;
     }
     if !Manager::is_running(&cfg)? {
-        let mut manager = Manager::load(cfg)?;
+        let mut manager = Manager::load(cfg, launcher)?;
         manager.run()
     } else {
         Ok(())

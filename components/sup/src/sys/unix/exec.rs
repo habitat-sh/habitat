@@ -13,36 +13,22 @@
 // limitations under the License.
 
 use std::ffi::OsStr;
+use std::os::unix::process::CommandExt;
+use std::process::{Child, Command, Stdio};
 
-#[cfg(not(windows))]
-use std::process::Child;
+use hcore::os;
 
-#[cfg(windows)]
-use hcore::os::process::windows_child::Child;
+use error::{Error, Result};
+use manager::service::Pkg;
 
-use super::Pkg;
-use error::Result;
-
-#[cfg(any(target_os = "linux", target_os = "macos"))]
 static LOGKEY: &'static str = "EX";
 
-pub fn run_cmd<S: AsRef<OsStr>>(
-    path: S,
-    pkg: &Pkg,
-    svc_encrypted_password: Option<&str>,
-) -> Result<Child> {
-    exec(path, pkg, svc_encrypted_password)
-}
-
-#[cfg(any(target_os = "linux", target_os = "macos"))]
-fn exec<S: AsRef<OsStr>>(path: S, pkg: &Pkg, _: Option<&str>) -> Result<Child> {
-    use std::process::{Command, Stdio};
-
+pub fn run<T, S>(path: S, pkg: &Pkg, _: Option<T>) -> Result<Child>
+where
+    T: ToString,
+    S: AsRef<OsStr>,
+{
     let mut cmd = Command::new(path);
-    use error::Error;
-    use hcore::os;
-    use libc;
-    use std::os::unix::process::CommandExt;
     let uid = os::users::get_uid_by_name(&pkg.svc_user).ok_or(sup_error!(
         Error::Permissions(format!(
             "No uid for user '{}' could be found",
@@ -57,15 +43,6 @@ fn exec<S: AsRef<OsStr>>(path: S, pkg: &Pkg, _: Option<&str>) -> Result<Child> {
             ))
         ),
     )?;
-    // we want the command to spawn processes in their own process group
-    // and not the same group as the supervisor. Otherwise if a child process
-    // sends SIGTERM to the group, the supervisor could be terminated.
-    cmd.before_exec(|| {
-        unsafe {
-            libc::setpgid(0, 0);
-        }
-        Ok(())
-    });
     cmd.stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
@@ -75,21 +52,4 @@ fn exec<S: AsRef<OsStr>>(path: S, pkg: &Pkg, _: Option<&str>) -> Result<Child> {
         cmd.env(key, val);
     }
     Ok(cmd.spawn()?)
-}
-
-#[cfg(target_os = "windows")]
-fn exec<S: AsRef<OsStr>>(
-    path: S,
-    pkg: &Pkg,
-    svc_encrypted_password: Option<&str>,
-) -> Result<Child> {
-    let ps_cmd = format!("iex $(gc {} | out-string)", path.as_ref().to_string_lossy());
-    let args = vec!["-command", ps_cmd.as_str()];
-    Ok(Child::spawn(
-        "powershell.exe",
-        args,
-        &pkg.env,
-        &pkg.svc_user,
-        svc_encrypted_password,
-    )?)
 }

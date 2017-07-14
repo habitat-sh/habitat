@@ -24,17 +24,7 @@ mod imp;
 #[path = "linux.rs"]
 mod imp;
 
-use std::fmt;
-
-#[cfg(not(windows))]
-use std::process::Child;
-
-#[cfg(windows)]
-use self::windows_child::Child;
-
-use error::Result;
-
-pub use self::imp::{become_command, current_pid, is_alive, signal, Pid, SignalCode};
+pub use self::imp::*;
 
 pub trait OsSignal {
     fn os_signal(&self) -> SignalCode;
@@ -58,65 +48,41 @@ pub enum Signal {
     USR2,
 }
 
-pub enum ShutdownMethod {
-    AlreadyExited,
-    GracefulTermination,
-    Killed,
-}
-
-impl fmt::Display for ShutdownMethod {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let printable = match *self {
-            ShutdownMethod::AlreadyExited => "Already Exited",
-            ShutdownMethod::GracefulTermination => "Graceful Termination",
-            ShutdownMethod::Killed => "Killed",
-        };
-        write!(f, "{}", printable)
-    }
-}
-
-pub struct HabChild {
-    inner: imp::Child,
-}
-
-impl HabChild {
-    pub fn from(inner: &mut Child) -> Result<HabChild> {
-        match imp::Child::new(inner) {
-            Ok(child) => Ok(HabChild { inner: child }),
-            Err(e) => Err(e),
+impl From<i32> for Signal {
+    fn from(val: i32) -> Signal {
+        match val {
+            1 => Signal::HUP,
+            2 => Signal::INT,
+            3 => Signal::QUIT,
+            4 => Signal::ILL,
+            6 => Signal::ABRT,
+            8 => Signal::FPE,
+            9 => Signal::KILL,
+            10 => Signal::USR1,
+            11 => Signal::SEGV,
+            12 => Signal::USR2,
+            14 => Signal::ALRM,
+            15 => Signal::TERM,
+            _ => Signal::KILL,
         }
     }
-
-    pub fn id(&self) -> Pid {
-        self.inner.id()
-    }
-
-    pub fn status(&mut self) -> Result<HabExitStatus> {
-        self.inner.status()
-    }
-
-    pub fn kill(&mut self) -> Result<ShutdownMethod> {
-        self.inner.kill()
-    }
 }
 
-impl fmt::Debug for HabChild {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "pid: {}", self.id())
+impl From<Signal> for i32 {
+    fn from(value: Signal) -> i32 {
+        match value {
+            Signal::HUP => 1,
+            Signal::INT => 2,
+            Signal::QUIT => 3,
+            Signal::ILL => 4,
+            Signal::ABRT => 6,
+            Signal::FPE => 8,
+            Signal::KILL => 9,
+            Signal::USR1 => 10,
+            Signal::SEGV => 11,
+            Signal::USR2 => 12,
+            Signal::ALRM => 14,
+            Signal::TERM => 15,
+        }
     }
-}
-
-pub struct HabExitStatus {
-    status: Option<u32>,
-}
-
-impl HabExitStatus {
-    pub fn no_status(&self) -> bool {
-        self.status.is_none()
-    }
-}
-
-pub trait ExitStatusExt {
-    fn code(&self) -> Option<u32>;
-    fn signal(&self) -> Option<u32>;
 }

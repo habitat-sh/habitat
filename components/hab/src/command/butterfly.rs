@@ -52,22 +52,14 @@ mod inner {
                 let ident = try!(PackageIdent::from_str(
                     &format!("{}/{}", butterfly_ident, version[0]),
                 ));
-                try!(exec::command_from_min_pkg(
-                    ui,
-                    CMD,
-                    &ident,
-                    &default_cache_key_path(None),
-                    0,
-                ))
+                exec::command_from_min_pkg(ui, CMD, &ident, &default_cache_key_path(None), 0)?
             }
         };
 
         if let Some(cmd) = find_command(command.to_string_lossy().as_ref()) {
-            Ok(try!(process::become_command(cmd, args)))
+            Ok(process::become_command(cmd, args)?)
         } else {
-            Err(Error::ExecCommandNotFound(
-                command.to_string_lossy().into_owned(),
-            ))
+            Err(Error::ExecCommandNotFound(command))
         }
     }
 }

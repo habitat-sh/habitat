@@ -29,10 +29,11 @@ use hcore;
 use hcore::service::ServiceGroup;
 use serde::{Serialize, Serializer};
 
-use super::{exec, health, Pkg};
+use super::{health, Pkg};
 use error::Result;
 use fs;
 use templating::{RenderContext, TemplateRenderer};
+use util::exec;
 
 pub const HOOK_PERMISSIONS: u32 = 0o755;
 static LOGKEY: &'static str = "HK";
@@ -112,13 +113,16 @@ pub trait Hook: fmt::Debug + Sized {
     }
 
     /// Run a compiled hook.
-    fn run(
+    fn run<T>(
         &self,
         service_group: &ServiceGroup,
         pkg: &Pkg,
-        svc_encrypted_password: Option<&str>,
-    ) -> Self::ExitValue {
-        let mut child = match exec::run_cmd(self.path(), &pkg, svc_encrypted_password) {
+        svc_encrypted_password: Option<T>,
+    ) -> Self::ExitValue
+    where
+        T: ToString,
+    {
+        let mut child = match exec::run(self.path(), &pkg, svc_encrypted_password) {
             Ok(child) => child,
             Err(err) => {
                 outputln!(preamble service_group,
@@ -347,7 +351,10 @@ impl Hook for RunHook {
         }
     }
 
-    fn run(&self, _: &ServiceGroup, _: &Pkg, _: Option<&str>) -> Self::ExitValue {
+    fn run<T>(&self, _: &ServiceGroup, _: &Pkg, _: Option<T>) -> Self::ExitValue
+    where
+        T: ToString,
+    {
         panic!(
             "The run hook is a an exception to the lifetime of a service. It should only be \
              run by the supervisor module!"

@@ -17,11 +17,9 @@
 use std::sync::{Once, ONCE_INIT};
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering, ATOMIC_USIZE_INIT, ATOMIC_BOOL_INIT};
 
-use hcore::os::process::{OsSignal, Signal, SignalCode};
+use os::process::{OsSignal, Signal, SignalCode};
 
 use super::SignalEvent;
-
-static LOGKEY: &'static str = "SI";
 
 static INIT: Once = ONCE_INIT;
 // True when we have caught a signal
@@ -63,7 +61,7 @@ pub fn check_for_signal() -> Option<SignalEvent> {
                 Some(SignalEvent::Passthrough(signal))
             }
             None => {
-                outputln!("Received invalid signal: #{}", code);
+                println!("Received invalid signal: #{}", code);
                 None
             }
         }

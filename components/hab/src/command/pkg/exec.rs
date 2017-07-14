@@ -14,6 +14,7 @@
 
 use std::env;
 use std::ffi::OsString;
+use std::path::PathBuf;
 
 use hcore::os::process;
 use hcore::package::{PackageIdent, PackageInstall};
@@ -21,16 +22,20 @@ use hcore::fs::find_command;
 
 use error::{Error, Result};
 
-pub fn start(ident: &PackageIdent, command: &str, args: Vec<OsString>) -> Result<()> {
+pub fn start<T>(ident: &PackageIdent, command: T, args: Vec<OsString>) -> Result<()>
+where
+    T: Into<PathBuf>,
+{
+    let command = command.into();
     let pkg_install = PackageInstall::load(&ident, None)?;
     let run_env = pkg_install.runtime_environment()?;
     for (key, value) in run_env.into_iter() {
         info!("Setting: {}='{}'", key, value);
         env::set_var(key, value);
     }
-    let command = match find_command(command) {
+    let command = match find_command(&command) {
         Some(path) => path,
-        None => return Err(Error::ExecCommandNotFound(command.to_string())),
+        None => return Err(Error::ExecCommandNotFound(command)),
     };
     let mut display_args = command.to_string_lossy().into_owned();
     for arg in &args {

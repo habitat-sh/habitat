@@ -43,7 +43,7 @@ pub fn install(
         PRODUCT,
         VERSION,
         fs_root_path,
-        &fs::cache_artifact_path(None),
+        &fs::cache_artifact_path(None::<String>),
         false,
     )?;
     Ok(PackageInstall::load(&installed_ident, Some(&fs_root_path))?)
