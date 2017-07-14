@@ -111,8 +111,8 @@ impl FromStr for PackageTarget {
         let (architecture, platform) = match items.len() {
             2 => {
                 (
-                    try!(Architecture::from_str(items[0].into())),
-                    try!(Platform::from_str(items[1]).into()),
+                    Architecture::from_str(items[0].into())?,
+                    Platform::from_str(items[1].into())?,
                 )
             }
             _ => return Err(Error::InvalidPackageTarget(value.to_string())),

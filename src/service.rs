@@ -36,7 +36,7 @@ impl ServiceGroup {
         S2: AsRef<str>,
     {
         let formatted = Self::format(service, group, organization);
-        try!(Self::validate(&formatted));
+        Self::validate(&formatted)?;
         Ok(ServiceGroup(formatted))
     }
 

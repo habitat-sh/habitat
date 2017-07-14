@@ -102,7 +102,7 @@ fn become_child_command(command: PathBuf, args: Vec<OsString>) -> Result<()> {
         command.display(),
         &args
     );
-    let status = try!(Command::new(command).args(&args).status());
+    let status = Command::new(command).args(&args).status()?;
     // Let's honor the exit codes from the child process we finished running
     process::exit(status.code().unwrap())
 }
