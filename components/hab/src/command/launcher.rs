@@ -20,7 +20,7 @@ use error::Result;
 
 const LAUNCH_CMD: &'static str = "hab-launch";
 const LAUNCH_CMD_ENVVAR: &'static str = "HAB_LAUNCH_BINARY";
-const LAUNCH_PKG_IDENT: &'static str = "core/hab-launch";
+const LAUNCH_PKG_IDENT: &'static str = "core/hab-launcher";
 
 pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
     inner::start(ui, args)
