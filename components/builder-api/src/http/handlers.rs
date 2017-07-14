@@ -76,7 +76,7 @@ pub fn github_authenticate(req: &mut Request) -> IronResult<Response> {
     let github = req.get::<persistent::Read<GitHubCli>>().unwrap();
 
     if env::var_os("HAB_FUNC_TEST").is_some() {
-        let session = try!(session_create(&github, &code));
+        let session = session_create(&github, &code)?;
 
         log_event!(
             req,
@@ -91,7 +91,7 @@ pub fn github_authenticate(req: &mut Request) -> IronResult<Response> {
 
     match github.authenticate(&code) {
         Ok(token) => {
-            let session = try!(session_create(&github, &token));
+            let session = session_create(&github, &token)?;
 
             log_event!(
                 req,
@@ -373,7 +373,7 @@ pub fn project_delete(req: &mut Request) -> IronResult<Response> {
         (session_id, origin)
     };
 
-    if !try!(check_origin_access(req, session_id, origin)) {
+    if !check_origin_access(req, session_id, origin)? {
         return Ok(Response::with(status::Forbidden));
     }
 
@@ -456,7 +456,7 @@ pub fn project_update(req: &mut Request) -> IronResult<Response> {
                 Ok(ref bytes) => {
                     match Plan::from_bytes(bytes) {
                         Ok(plan) => {
-                            if !try!(check_origin_access(req, session_id, &origin)) {
+                            if !check_origin_access(req, session_id, &origin)? {
                                 return Ok(Response::with(status::Forbidden));
                             }
                             if plan.name != name {

@@ -28,21 +28,21 @@ static LOGKEY: &'static str = "SH";
 
 /// Start a bash shell
 pub fn bash() -> Result<()> {
-    try!(set_path());
+    set_path()?;
     outputln!("Starting your bashlike shell; enjoy!");
     exec_shell("bash")
 }
 
 /// Start a sh shell
 pub fn sh() -> Result<()> {
-    try!(set_path());
+    set_path()?;
     outputln!("Starting your bourne shell; enjoy!");
     exec_shell("sh")
 }
 
 fn set_path() -> Result<()> {
     let mut paths: Vec<PathBuf> = Vec::new();
-    let new_path = try!(path::append_interpreter_and_path(&mut paths));
+    let new_path = path::append_interpreter_and_path(&mut paths)?;
 
     debug!("Setting the PATH to {}", &new_path);
     env::set_var("PATH", &new_path);
@@ -54,7 +54,7 @@ fn exec_shell(cmd: &str) -> Result<()> {
         Some(p) => p,
         None => return Err(sup_error!(Error::ExecCommandNotFound(cmd.to_string()))),
     };
-    let c_cmd = try!(CString::new(cmd_path.to_string_lossy().into_owned()));
+    let c_cmd = CString::new(cmd_path.to_string_lossy().into_owned())?;
     let mut argv = [c_cmd.as_ptr(), ptr::null()];
     debug!("Exec {:?}", &cmd_path.display());
     unsafe {

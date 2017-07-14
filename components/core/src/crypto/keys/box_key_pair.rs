@@ -39,13 +39,13 @@ impl BoxKeyPair {
         S2: AsRef<str>,
         P: AsRef<Path>,
     {
-        let revision = try!(mk_revision_string());
+        let revision = mk_revision_string()?;
         let keyname =
             Self::mk_key_name_for_service(org.as_ref(), service_group.as_ref(), &revision);
         debug!("new service box key name = {}", &keyname);
         let (public_key, secret_key) =
-            try!(Self::generate_pair_files(&keyname, cache_key_path.as_ref()));
-        let (name, _) = try!(parse_name_with_rev(&keyname));
+            Self::generate_pair_files(&keyname, cache_key_path.as_ref())?;
+        let (name, _) = parse_name_with_rev(&keyname)?;
         Ok(Self::new(
             name,
             revision,
@@ -58,12 +58,12 @@ impl BoxKeyPair {
         user: &str,
         cache_key_path: &P,
     ) -> Result<Self> {
-        let revision = try!(mk_revision_string());
+        let revision = mk_revision_string()?;
         let keyname = Self::mk_key_name_for_user(user, &revision);
         debug!("new user sig key name = {}", &keyname);
         let (public_key, secret_key) =
-            try!(Self::generate_pair_files(&keyname, cache_key_path.as_ref()));
-        let (name, _) = try!(parse_name_with_rev(&keyname));
+            Self::generate_pair_files(&keyname, cache_key_path.as_ref())?;
+        let (name, _) = parse_name_with_rev(&keyname)?;
         Ok(Self::new(
             name,
             revision,
@@ -77,11 +77,7 @@ impl BoxKeyPair {
         T: AsRef<str>,
         P: AsRef<Path>,
     {
-        let revisions = try!(get_key_revisions(
-            name.as_ref(),
-            cache_key_path.as_ref(),
-            None,
-        ));
+        let revisions = get_key_revisions(name.as_ref(), cache_key_path.as_ref(), None)?;
         let mut key_pairs = Vec::new();
         for name_with_rev in revisions {
             debug!(
@@ -89,7 +85,7 @@ impl BoxKeyPair {
                 name_with_rev,
                 name.as_ref()
             );
-            let kp = try!(Self::get_pair_for(name_with_rev, cache_key_path.as_ref()));
+            let kp = Self::get_pair_for(name_with_rev, cache_key_path.as_ref())?;
             key_pairs.push(kp);
         }
         Ok(key_pairs)
@@ -100,7 +96,7 @@ impl BoxKeyPair {
         T: AsRef<str>,
         P: AsRef<Path>,
     {
-        let (name, rev) = try!(parse_name_with_rev(name_with_rev.as_ref()));
+        let (name, rev) = parse_name_with_rev(name_with_rev.as_ref())?;
         let pk = match Self::get_public_key(name_with_rev.as_ref(), cache_key_path.as_ref()) {
             Ok(k) => Some(k),
             Err(e) => {
@@ -138,7 +134,7 @@ impl BoxKeyPair {
         T: AsRef<str>,
         P: AsRef<Path>,
     {
-        let mut all = try!(Self::get_pairs_for(name.as_ref(), cache_key_path.as_ref()));
+        let mut all = Self::get_pairs_for(name.as_ref(), cache_key_path.as_ref())?;
         match all.len() {
             0 => {
                 let msg = format!("No revisions found for {} box key", name.as_ref());
@@ -178,7 +174,7 @@ impl BoxKeyPair {
     /// Key names and nonce are embedded in the payload.
     pub fn encrypt(&self, data: &[u8], receiver: &Self) -> Result<Vec<u8>> {
         let nonce = gen_nonce();
-        let ciphertext = box_::seal(data, &nonce, try!(receiver.public()), try!(self.secret()));
+        let ciphertext = box_::seal(data, &nonce, receiver.public()?, self.secret()?);
         let out = format!(
             "{}\n{}\n{}\n{}\n{}",
             BOX_FORMAT_VERSION,
@@ -198,7 +194,7 @@ impl BoxKeyPair {
         P: AsRef<Path>,
     {
         debug!("Decrypt key path = {}", cache_key_path.as_ref().display());
-        let mut lines = try!(str::from_utf8(payload)).lines();
+        let mut lines = str::from_utf8(payload)?.lines();
         match lines.next() {
             Some(val) => {
                 if val != BOX_FORMAT_VERSION {
@@ -213,7 +209,7 @@ impl BoxKeyPair {
             }
         }
         let sender = match lines.next() {
-            Some(val) => try!(Self::get_pair_for(val, cache_key_path.as_ref())),
+            Some(val) => Self::get_pair_for(val, cache_key_path.as_ref())?,
             None => {
                 return Err(Error::CryptoError(
                     "Corrupt payload, can't read sender key name".to_string(),
@@ -221,7 +217,7 @@ impl BoxKeyPair {
             }
         };
         let receiver = match lines.next() {
-            Some(val) => try!(Self::get_pair_for(val, cache_key_path.as_ref())),
+            Some(val) => Self::get_pair_for(val, cache_key_path.as_ref())?,
             None => {
                 return Err(Error::CryptoError(
                     "Corrupt payload, can't read receiver key name".to_string(),
@@ -230,9 +226,9 @@ impl BoxKeyPair {
         };
         let nonce = match lines.next() {
             Some(val) => {
-                let decoded = try!(base64::decode(val).map_err(|e| {
+                let decoded = base64::decode(val).map_err(|e| {
                     Error::CryptoError(format!("Can't decode nonce: {}", e))
-                }));
+                })?;
                 match Nonce::from_slice(&decoded) {
                     Some(nonce) => nonce,
                     None => return Err(Error::CryptoError("Invalid size of nonce".to_string())),
@@ -246,9 +242,9 @@ impl BoxKeyPair {
         };
         let ciphertext = match lines.next() {
             Some(val) => {
-                try!(base64::decode(val).map_err(|e| {
+                base64::decode(val).map_err(|e| {
                     Error::CryptoError(format!("Can't decode ciphertext: {}", e))
-                }))
+                })?
             }
             None => {
                 return Err(Error::CryptoError(
@@ -256,12 +252,7 @@ impl BoxKeyPair {
                 ));
             }
         };
-        match box_::open(
-            &ciphertext,
-            &nonce,
-            try!(sender.public()),
-            try!(receiver.secret()),
-        ) {
+        match box_::open(&ciphertext, &nonce, sender.public()?, receiver.secret()?) {
             Ok(v) => Ok(v),
             Err(_) => {
                 return Err(Error::CryptoError(
@@ -284,14 +275,14 @@ impl BoxKeyPair {
         debug!("public box keyfile = {}", public_keyfile.display());
         debug!("secret box keyfile = {}", secret_keyfile.display());
 
-        try!(write_keypair_files(
+        write_keypair_files(
             KeyType::Box,
             &name_with_rev,
             Some(&public_keyfile),
             Some(&base64::encode(&pk[..]).into_bytes()),
             Some(&secret_keyfile),
             Some(&base64::encode(&sk[..]).into_bytes()),
-        ));
+        )?;
         Ok((pk, sk))
     }
 
@@ -302,7 +293,7 @@ impl BoxKeyPair {
     {
         let public_keyfile =
             mk_key_filename(cache_key_path, key_with_rev.as_ref(), PUBLIC_KEY_SUFFIX);
-        let bytes = try!(read_key_bytes(&public_keyfile));
+        let bytes = read_key_bytes(&public_keyfile)?;
         match BoxPublicKey::from_slice(&bytes) {
             Some(sk) => Ok(sk),
             None => {
@@ -321,7 +312,7 @@ impl BoxKeyPair {
     {
         let secret_keyfile =
             mk_key_filename(cache_key_path, key_with_rev.as_ref(), SECRET_BOX_KEY_SUFFIX);
-        let bytes = try!(read_key_bytes(&secret_keyfile));
+        let bytes = read_key_bytes(&secret_keyfile)?;
         match BoxSecretKey::from_slice(&bytes) {
             Some(sk) => Ok(sk),
             None => {

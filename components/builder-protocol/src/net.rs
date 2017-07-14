@@ -74,9 +74,9 @@ impl Serialize for NetError {
     where
         S: Serializer,
     {
-        let mut strukt = try!(serializer.serialize_struct("error", 2));
-        try!(strukt.serialize_field("code", &self.get_code()));
-        try!(strukt.serialize_field("msg", self.get_msg()));
+        let mut strukt = serializer.serialize_struct("error", 2)?;
+        strukt.serialize_field("code", &self.get_code())?;
+        strukt.serialize_field("msg", self.get_msg())?;
         strukt.end()
     }
 }

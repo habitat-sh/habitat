@@ -35,9 +35,9 @@ pub fn start<P>(ident: &PackageIdent, fs_root_path: P) -> Result<()>
 where
     P: AsRef<Path>,
 {
-    let package = try!(PackageInstall::load(ident, Some(fs_root_path.as_ref())));
+    let package = PackageInstall::load(ident, Some(fs_root_path.as_ref()))?;
     match package.default_cfg() {
-        Some(cfg) => println!("{}", try!(toml::ser::to_string(&cfg))),
+        Some(cfg) => println!("{}", toml::ser::to_string(&cfg)?),
         None => {
             writeln!(
                 &mut io::stderr(),

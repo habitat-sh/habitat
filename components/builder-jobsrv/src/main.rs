@@ -60,7 +60,7 @@ fn config_from_args(matches: &clap::ArgMatches) -> Result<Config> {
     let cmd = matches.subcommand_name().unwrap();
     let args = matches.subcommand_matches(cmd).unwrap();
     let config = match args.value_of("config") {
-        Some(cfg_path) => try!(Config::from_file(cfg_path)),
+        Some(cfg_path) => Config::from_file(cfg_path)?,
         None => Config::from_file(CFG_DEFAULT_PATH).unwrap_or(Config::default()),
     };
     Ok(config)

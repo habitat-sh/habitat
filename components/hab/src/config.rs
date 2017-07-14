@@ -64,11 +64,11 @@ pub fn save(config: &Config) -> Result<()> {
             ))
         }
     };
-    try!(fs::create_dir_all(&parent_path));
-    let raw = try!(toml::ser::to_string(config));
+    fs::create_dir_all(&parent_path)?;
+    let raw = toml::ser::to_string(config)?;
     debug!("Raw config toml:\n---\n{}\n---", &raw);
-    let mut file = try!(File::create(&config_path));
-    try!(file.write_all(raw.as_bytes()));
+    let mut file = File::create(&config_path)?;
+    file.write_all(raw.as_bytes())?;
     Ok(())
 }
 
@@ -76,7 +76,7 @@ fn common_load(use_sudo_user: bool) -> Result<Config> {
     let cli_config_path = cli_config_path(use_sudo_user);
     if cli_config_path.exists() {
         debug!("Loading CLI config from {}", cli_config_path.display());
-        Ok(try!(Config::from_file(&cli_config_path)))
+        Ok(Config::from_file(&cli_config_path)?)
     } else {
         debug!("No CLI config found, loading defaults");
         Ok(Config::default())

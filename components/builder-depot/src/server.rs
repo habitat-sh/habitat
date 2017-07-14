@@ -310,7 +310,7 @@ pub fn invite_to_origin(req: &mut Request) -> IronResult<Response> {
         &user_to_invite,
         &origin
     );
-    if !try!(check_origin_access(req, session.get_id(), &origin)) {
+    if !check_origin_access(req, session.get_id(), &origin)? {
         return Ok(Response::with(status::Forbidden));
     }
     let mut request = AccountGet::new();
@@ -324,7 +324,7 @@ pub fn invite_to_origin(req: &mut Request) -> IronResult<Response> {
         }
         Err(err) => return Ok(render_net_error(&err)),
     };
-    match try!(get_origin(req, &origin)) {
+    match get_origin(req, &origin)? {
         Some(mut origin) => {
             invite_request.set_origin_id(origin.get_id());
             invite_request.set_origin_name(origin.take_name());
@@ -365,12 +365,12 @@ pub fn list_origin_invitations(req: &mut Request) -> IronResult<Response> {
     }
 
     let mut conn = Broker::connect().unwrap();
-    if !try!(check_origin_access(req, session_id, &origin_name)) {
+    if !check_origin_access(req, session_id, &origin_name)? {
         return Ok(Response::with(status::Forbidden));
     }
 
     let mut request = OriginInvitationListRequest::new();
-    match try!(get_origin(req, origin_name.as_str())) {
+    match get_origin(req, origin_name.as_str())? {
         Some(origin) => request.set_origin_id(origin.get_id()),
         None => return Ok(Response::with(status::NotFound)),
     };
@@ -400,12 +400,12 @@ pub fn list_origin_members(req: &mut Request) -> IronResult<Response> {
 
     let mut conn = Broker::connect().unwrap();
 
-    if !try!(check_origin_access(req, session_id, &origin_name)) {
+    if !check_origin_access(req, session_id, &origin_name)? {
         return Ok(Response::with(status::Forbidden));
     }
 
     let mut request = OriginMemberListRequest::new();
-    match try!(get_origin(req, origin_name.as_str())) {
+    match get_origin(req, origin_name.as_str())? {
         Some(origin) => request.set_origin_id(origin.get_id()),
         None => return Ok(Response::with(status::NotFound)),
     };
@@ -420,12 +420,12 @@ pub fn list_origin_members(req: &mut Request) -> IronResult<Response> {
 }
 
 fn write_archive(filename: &PathBuf, body: &mut Body) -> Result<PackageArchive> {
-    let file = try!(File::create(&filename));
+    let file = File::create(&filename)?;
     let mut writer = BufWriter::new(file);
     let mut written: i64 = 0;
     let mut buf = [0u8; 100000]; // Our byte buffer
     loop {
-        let len = try!(body.read(&mut buf)); // Raise IO errors
+        let len = body.read(&mut buf)?; // Raise IO errors
         match len {
             0 => {
                 // 0 == EOF, so stop writing and finish progress
@@ -433,7 +433,7 @@ fn write_archive(filename: &PathBuf, body: &mut Body) -> Result<PackageArchive> 
             }
             _ => {
                 // Write the buffer to the BufWriter on the Heap
-                let bytes_written = try!(writer.write(&buf[0..len]));
+                let bytes_written = writer.write(&buf[0..len])?;
                 if bytes_written == 0 {
                     return Err(Error::WriteSyncFailed);
                 }
@@ -455,7 +455,7 @@ fn upload_origin_key(req: &mut Request) -> IronResult<Response> {
 
     let origin = match params.find("origin") {
         Some(origin) => {
-            if !try!(check_origin_access(req, session.get_id(), origin)) {
+            if !check_origin_access(req, session.get_id(), origin)? {
                 return Ok(Response::with(status::Forbidden));
             }
             match get_origin(req, origin)? {
@@ -541,7 +541,7 @@ fn download_latest_origin_secret_key(req: &mut Request) -> IronResult<Response> 
     };
     let mut conn = Broker::connect().unwrap();
     let mut request = OriginSecretKeyGet::new();
-    match try!(get_origin(req, origin)) {
+    match get_origin(req, origin)? {
         Some(mut origin) => {
             request.set_owner_id(origin.get_owner_id());
             request.set_origin(origin.take_name());
@@ -565,10 +565,10 @@ fn upload_origin_secret_key(req: &mut Request) -> IronResult<Response> {
 
     let origin = match params.find("origin") {
         Some(origin) => {
-            if !try!(check_origin_access(req, session.get_id(), origin)) {
+            if !check_origin_access(req, session.get_id(), origin)? {
                 return Ok(Response::with(status::Forbidden));
             }
-            match try!(get_origin(req, origin)) {
+            match get_origin(req, origin)? {
                 Some(mut origin) => {
                     request.set_name(origin.take_name());
                     request.set_origin_id(origin.get_id());
@@ -659,12 +659,7 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
     // TODO: SA - Eliminate need to clone the session
     let session = req.extensions.get::<Authenticated>().unwrap().clone();
     if !depot.config.insecure {
-        if !try!(check_origin_access(
-            req,
-            session.get_id(),
-            &ident.get_origin(),
-        ))
-        {
+        if !check_origin_access(req, session.get_id(), &ident.get_origin())? {
             debug!(
                 "Failed origin access check, session: {}, ident: {}",
                 session.get_id(),
@@ -693,7 +688,7 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
     let temp_name = format!("{}.tmp", Uuid::new_v4());
     let temp_path = parent_path.join(temp_name);
 
-    let mut archive = try!(write_archive(&temp_path, &mut req.body));
+    let mut archive = write_archive(&temp_path, &mut req.body)?;
     debug!("Package Archive: {:#?}", archive);
 
     let target_from_artifact = match archive.target() {
@@ -807,7 +802,7 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
         package.set_owner_id(session.get_id());
 
         // let's make sure this origin actually exists
-        match try!(get_origin(req, &ident.get_origin())) {
+        match get_origin(req, &ident.get_origin())? {
             Some(origin) => {
                 package.set_origin_id(origin.get_id());
             }
@@ -1129,7 +1124,7 @@ fn list_origin_keys(req: &mut Request) -> IronResult<Response> {
     };
 
     let mut request = OriginPublicKeyListRequest::new();
-    match try!(get_origin(req, origin_name.as_str())) {
+    match get_origin(req, origin_name.as_str())? {
         Some(origin) => request.set_origin_id(origin.get_id()),
         None => return Ok(Response::with(status::NotFound)),
     };
@@ -1387,7 +1382,7 @@ fn list_channels(req: &mut Request) -> IronResult<Response> {
     };
 
     let mut request = OriginChannelListRequest::new();
-    match try!(get_origin(req, origin_name.as_str())) {
+    match get_origin(req, origin_name.as_str())? {
         Some(origin) => request.set_origin_id(origin.get_id()),
         None => return Ok(Response::with(status::NotFound)),
     };
@@ -1430,7 +1425,7 @@ fn create_channel(req: &mut Request) -> IronResult<Response> {
         };
     }
 
-    let origin_id = match try!(get_origin(req, &origin)) {
+    let origin_id = match get_origin(req, &origin)? {
         Some(origin) => origin.get_id(),
         None => {
             debug!("Origin {} not found!", origin);
@@ -1475,7 +1470,7 @@ fn delete_channel(req: &mut Request) -> IronResult<Response> {
     match route_message::<OriginChannelGet, OriginChannel>(req, &channel_req) {
         Ok(origin_channel) => {
             // make sure the person trying to create the channel has access to do so
-            if !try!(check_origin_access(req, session_id, &origin)) {
+            if !check_origin_access(req, session_id, &origin)? {
                 return Ok(Response::with(status::Forbidden));
             }
 
@@ -1767,7 +1762,7 @@ fn promote_package(req: &mut Request) -> IronResult<Response> {
     channel_req.set_name(channel);
     match route_message::<OriginChannelGet, OriginChannel>(req, &channel_req) {
         Ok(origin_channel) => {
-            if !try!(check_origin_access(req, session_id, &ident.get_origin())) {
+            if !check_origin_access(req, session_id, &ident.get_origin())? {
                 return Ok(Response::with(status::Forbidden));
             }
 
@@ -1860,7 +1855,7 @@ fn demote_package(req: &mut Request) -> IronResult<Response> {
     channel_req.set_name(channel);
     match route_message::<OriginChannelGet, OriginChannel>(req, &channel_req) {
         Ok(origin_channel) => {
-            if !try!(check_origin_access(req, session_id, &ident.get_origin())) {
+            if !check_origin_access(req, session_id, &ident.get_origin())? {
                 return Ok(Response::with(status::Forbidden));
             }
 
@@ -2116,7 +2111,7 @@ pub fn router(depot: DepotUtil) -> Result<Chain> {
 
 pub fn run(config: Config) -> Result<()> {
     let depot = DepotUtil::new(config.clone());
-    let v1 = try!(router(depot));
+    let v1 = router(depot)?;
     let broker = Broker::run(DepotUtil::net_ident(), &config.route_addrs().clone());
 
     let mut mount = Mount::new();

@@ -242,14 +242,14 @@ impl ApiClient {
 /// unchanged and will use the system's certificates.
 ///
 fn new_hyper_client(url: &Url, fs_root_path: Option<&Path>) -> Result<HyperClient> {
-    let connector = try!(ssl_connector(fs_root_path));
+    let connector = ssl_connector(fs_root_path)?;
     let ssl_client = OpensslClient::from(connector);
     let timeout = Some(Duration::from_secs(CLIENT_SOCKET_RW_TIMEOUT));
 
     match proxy_unless_domain_exempted(Some(url))? {
         Some(proxy) => {
             debug!("Using proxy {}:{}...", proxy.host(), proxy.port());
-            let connector = try!(ProxyHttpsConnector::new(proxy, ssl_client));
+            let connector = ProxyHttpsConnector::new(proxy, ssl_client)?;
             let pool = Pool::with_connector(Config::default(), connector);
             let mut client = HyperClient::with_protocol(Http11Protocol::with_connector(pool));
             client.set_read_timeout(timeout);
@@ -292,7 +292,7 @@ fn new_hyper_client(url: &Url, fs_root_path: Option<&Path>) -> Result<HyperClien
 ///
 /// * If system information cannot be obtained via `uname`
 fn user_agent(product: &str, version: &str) -> Result<UserAgent> {
-    let uname = try!(sys::uname());
+    let uname = sys::uname()?;
     let ua = format!(
         "{}/{} ({}-{}; {})",
         product.trim(),
@@ -306,15 +306,15 @@ fn user_agent(product: &str, version: &str) -> Result<UserAgent> {
 }
 
 fn ssl_connector(fs_root_path: Option<&Path>) -> Result<SslConnector> {
-    let mut conn = try!(SslConnectorBuilder::new(SslMethod::tls()));
+    let mut conn = SslConnectorBuilder::new(SslMethod::tls())?;
     let mut options = SslOption::empty();
     options.toggle(SSL_OP_NO_SSLV2);
     options.toggle(SSL_OP_NO_SSLV3);
     options.toggle(SSL_OP_NO_COMPRESSION);
-    try!(ssl::set_ca(conn.builder_mut(), fs_root_path));
+    ssl::set_ca(conn.builder_mut(), fs_root_path)?;
     conn.builder_mut().set_options(options);
-    try!(conn.builder_mut().set_cipher_list(
+    conn.builder_mut().set_cipher_list(
         "ALL!EXPORT!EXPORT40!EXPORT56!aNULL!LOW!RC4@STRENGTH",
-    ));
+    )?;
     Ok(conn.build())
 }

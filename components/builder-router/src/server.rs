@@ -78,7 +78,7 @@ impl Server {
                         self.state = SocketState::Cleaning;
                         continue;
                     }
-                    let hop = try!(self.fe_sock.recv_msg(0));
+                    let hop = self.fe_sock.recv_msg(0)?;
                     if self.envelope.hops().len() == 0 && hop.len() == 0 {
                         warn!("rejecting message, failed to receive identity frame from message");
                         self.state = SocketState::Cleaning;
@@ -94,7 +94,7 @@ impl Server {
                         self.state = SocketState::Cleaning;
                         continue;
                     }
-                    let hop = try!(self.fe_sock.recv_msg(0));
+                    let hop = self.fe_sock.recv_msg(0)?;
                     if hop.len() == 0 {
                         self.state = SocketState::Control;
                         continue;
@@ -103,7 +103,7 @@ impl Server {
                     self.envelope.add_hop(hop).unwrap();
                 }
                 SocketState::Control => {
-                    try!(self.fe_sock.recv(&mut self.req, 0));
+                    self.fe_sock.recv(&mut self.req, 0)?;
                     match self.req.as_str() {
                         Some("RP") => self.state = SocketState::Forwarding,
                         Some("RQ") => self.state = SocketState::Routing,
@@ -114,7 +114,7 @@ impl Server {
                     }
                 }
                 SocketState::Forwarding => {
-                    try!(self.fe_sock.recv(&mut self.req, 0));
+                    self.fe_sock.recv(&mut self.req, 0)?;
                     debug!("forwarding, msg={:?}", self.req.as_str());
                     for hop in &self.envelope.hops()[1..] {
                         self.fe_sock.send(&*hop, zmq::SNDMORE).unwrap();
@@ -124,7 +124,7 @@ impl Server {
                     self.state = SocketState::Cleaning;
                 }
                 SocketState::Routing => {
-                    try!(self.fe_sock.recv(&mut self.req, 0));
+                    self.fe_sock.recv(&mut self.req, 0)?;
                     if self.req.len() == 0 {
                         warn!("rejecting message, failed to receive a message body");
                         self.state = SocketState::Cleaning;
@@ -148,8 +148,8 @@ impl Server {
                         continue;
                     }
                     match self.envelope.msg.get_route_info().get_protocol() {
-                        Protocol::RouteSrv => try!(self.handle_message()),
-                        _ => try!(self.route_message()),
+                        Protocol::RouteSrv => self.handle_message()?,
+                        _ => self.route_message()?,
                     }
                     self.state = SocketState::Cleaning;
                 }
@@ -165,22 +165,22 @@ impl Server {
     }
 
     fn process_heartbeat(&mut self) -> Result<()> {
-        try!(self.hb_sock.recv(&mut self.req, 0));
+        self.hb_sock.recv(&mut self.req, 0)?;
         match self.req.as_str() {
             Some("") | None => return Ok(()),
             Some("R") => (),
             Some(ident) => {
-                try!(self.hb_sock.send_str(ident, zmq::SNDMORE));
-                try!(self.hb_sock.send(&[], zmq::SNDMORE));
-                try!(self.hb_sock.send_str("REG", 0));
+                self.hb_sock.send_str(ident, zmq::SNDMORE)?;
+                self.hb_sock.send(&[], zmq::SNDMORE)?;
+                self.hb_sock.send_str("REG", 0)?;
                 return Ok(());
             }
         }
-        try!(self.hb_sock.recv(&mut self.req, 0));
+        self.hb_sock.recv(&mut self.req, 0)?;
         // JW TODO: this data structure doesn't support a case where a shard *no longer* supports
         // shards, it only allows for additions. We need to keep track of what any given server reg
         // supports and then use the servers map as an index on top of that.
-        let registration: routesrv::Registration = try!(parse_from_bytes(&self.req));
+        let registration: routesrv::Registration = parse_from_bytes(&self.req)?;
         debug!("received server reg, {:?}", registration);
         if !self.servers.contains_key(&registration.get_protocol()) {
             self.servers.insert(
@@ -193,7 +193,7 @@ impl Server {
             let server = hab_net::ServerReg::new(registration.get_endpoint().to_string());
             shards.insert(*shard, server);
         }
-        try!(self.hb_sock.send_str("REGOK", 0));
+        self.hb_sock.send_str("REGOK", 0)?;
         Ok(())
     }
 
@@ -240,15 +240,15 @@ impl Server {
                             self.envelope.hops().len(),
                             self.envelope.msg
                         );
-                        try!(self.fe_sock.send_str(&server.endpoint, zmq::SNDMORE));
+                        self.fe_sock.send_str(&server.endpoint, zmq::SNDMORE)?;
                         for hop in self.envelope.hops() {
-                            try!(self.fe_sock.send(&*hop, zmq::SNDMORE));
+                            self.fe_sock.send(&*hop, zmq::SNDMORE)?;
                         }
-                        try!(self.fe_sock.send(&[], zmq::SNDMORE));
-                        try!(self.fe_sock.send(
+                        self.fe_sock.send(&[], zmq::SNDMORE)?;
+                        self.fe_sock.send(
                             &self.envelope.msg.write_to_bytes().unwrap(),
                             0,
-                        ));
+                        )?;
                     }
                     None => {
                         warn!(
@@ -258,12 +258,12 @@ impl Server {
                         let err = protocol::Message::new(
                             &protocol::net::err(ErrCode::NO_SHARD, "rt:route:1"),
                         ).build();
-                        let bytes = try!(err.write_to_bytes());
+                        let bytes = err.write_to_bytes()?;
                         for hop in self.envelope.hops() {
-                            try!(self.fe_sock.send(&*hop, zmq::SNDMORE));
+                            self.fe_sock.send(&*hop, zmq::SNDMORE)?;
                         }
-                        try!(self.fe_sock.send(&[], zmq::SNDMORE));
-                        try!(self.fe_sock.send(&bytes, 0));
+                        self.fe_sock.send(&[], zmq::SNDMORE)?;
+                        self.fe_sock.send(&bytes, 0)?;
                     }
                 }
             }
@@ -275,12 +275,12 @@ impl Server {
                 let err = protocol::Message::new(
                     &protocol::net::err(ErrCode::NO_SHARD, "rt:route:2"),
                 ).build();
-                let bytes = try!(err.write_to_bytes());
+                let bytes = err.write_to_bytes()?;
                 for hop in self.envelope.hops() {
-                    try!(self.fe_sock.send(&*hop, zmq::SNDMORE));
+                    self.fe_sock.send(&*hop, zmq::SNDMORE)?;
                 }
-                try!(self.fe_sock.send(&[], zmq::SNDMORE));
-                try!(self.fe_sock.send(&bytes, 0));
+                self.fe_sock.send(&[], zmq::SNDMORE)?;
+                self.fe_sock.send(&bytes, 0)?;
             }
         }
         Ok(())
@@ -301,8 +301,8 @@ impl Application for Server {
     fn run(&mut self) -> Result<()> {
         {
             let cfg = self.config.lock().unwrap();
-            try!(self.hb_sock.bind(&cfg.hb_addr()));
-            try!(self.fe_sock.bind(&cfg.fe_addr()));
+            self.hb_sock.bind(&cfg.hb_addr())?;
+            self.fe_sock.bind(&cfg.fe_addr())?;
             println!("Listening on ({})", cfg.fe_addr());
             println!("Heartbeat on ({})", cfg.hb_addr());
         }
@@ -317,7 +317,7 @@ impl Application for Server {
                 // or not on that socket.
                 // JW TODO: Implement service heartbeat and expiration
                 debug!("waiting for message");
-                try!(zmq::poll(&mut items, -1));
+                zmq::poll(&mut items, -1)?;
                 if (items[0].get_revents() & zmq::POLLIN) > 0 {
                     hb_msg = true;
                 }
@@ -327,11 +327,11 @@ impl Application for Server {
             }
             if hb_msg {
                 debug!("processing heartbeat");
-                try!(self.process_heartbeat());
+                self.process_heartbeat()?;
             }
             if fe_msg {
                 debug!("processing front-end");
-                try!(self.process_frontend());
+                self.process_frontend()?;
             }
             debug!("done processing");
             hb_msg = false;

@@ -42,18 +42,18 @@ pub struct ScheduleClient {
 
 impl ScheduleClient {
     pub fn connect(&mut self) -> Result<()> {
-        try!(self.socket.connect(SCHEDULER_ADDR));
-        try!(self.status_sock.connect(STATUS_ADDR));
+        self.socket.connect(SCHEDULER_ADDR)?;
+        self.status_sock.connect(STATUS_ADDR)?;
         Ok(())
     }
 
     pub fn notify_work(&mut self) -> Result<()> {
-        try!(self.socket.send(&[1], 0));
+        self.socket.send(&[1], 0)?;
         Ok(())
     }
 
     pub fn notify_status(&mut self, job: &Job) -> Result<()> {
-        try!(self.status_sock.send(&job.write_to_bytes().unwrap(), 0));
+        self.status_sock.send(&job.write_to_bytes().unwrap(), 0)?;
         Ok(())
     }
 }
@@ -88,19 +88,19 @@ pub struct ScheduleMgr {
 
 impl ScheduleMgr {
     pub fn new(datastore: DataStore, config: Arc<RwLock<Config>>) -> Result<Self> {
-        let work_sock = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER));
-        try!(work_sock.set_rcvhwm(1));
-        try!(work_sock.set_linger(0));
-        try!(work_sock.set_immediate(true));
+        let work_sock = (**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER)?;
+        work_sock.set_rcvhwm(1)?;
+        work_sock.set_linger(0)?;
+        work_sock.set_immediate(true)?;
 
-        let status_sock = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER));
-        try!(status_sock.set_rcvhwm(1));
-        try!(status_sock.set_linger(0));
-        try!(status_sock.set_immediate(true));
+        let status_sock = (**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER)?;
+        status_sock.set_rcvhwm(1)?;
+        status_sock.set_linger(0)?;
+        status_sock.set_immediate(true)?;
 
-        let msg = try!(zmq::Message::new());
+        let msg = zmq::Message::new()?;
         let mut schedule_cli = ScheduleClient::default();
-        try!(schedule_cli.connect());
+        schedule_cli.connect()?;
 
         let log_path = {
             let cfg = config.read().unwrap();
@@ -134,8 +134,8 @@ impl ScheduleMgr {
     }
 
     fn run(&mut self, rz: mpsc::SyncSender<()>) -> Result<()> {
-        try!(self.work_sock.bind(SCHEDULER_ADDR));
-        try!(self.status_sock.bind(STATUS_ADDR));
+        self.work_sock.bind(SCHEDULER_ADDR)?;
+        self.status_sock.bind(STATUS_ADDR)?;
 
         let mut status_sock = false;
         let mut work_sock = false;
@@ -146,7 +146,7 @@ impl ScheduleMgr {
                     self.work_sock.as_poll_item(1),
                     self.status_sock.as_poll_item(1),
                 ];
-                try!(zmq::poll(&mut items, 60000));
+                zmq::poll(&mut items, 60000)?;
 
                 if (items[0].get_revents() & zmq::POLLIN) > 0 {
                     work_sock = true;
@@ -166,7 +166,7 @@ impl ScheduleMgr {
                 if let Err(err) = self.process_work() {
                     warn!("Unable to process work: err {:?}", err);
                 }
-                try!(self.work_sock.recv(&mut self.msg, 0));
+                self.work_sock.recv(&mut self.msg, 0)?;
                 work_sock = false;
             }
 
@@ -404,7 +404,7 @@ impl ScheduleMgr {
     }
 
     fn process_status(&mut self) -> Result<()> {
-        try!(self.status_sock.recv(&mut self.msg, 0));
+        self.status_sock.recv(&mut self.msg, 0)?;
         let job: Job = parse_from_bytes(&self.msg)?;
         let group: proto::Group = self.get_group(job.get_owner_id())?;
 
@@ -478,7 +478,7 @@ impl ScheduleMgr {
             self.datastore.set_group_state(group_id, new_state)?;
 
             if new_state == proto::GroupState::Pending {
-                try!(self.schedule_cli.notify_work());
+                self.schedule_cli.notify_work()?;
             } else {
                 // TODO: Make this cleaner later
                 let mut updated_group = group.clone();

@@ -64,10 +64,10 @@ impl GitHubClient {
             self.client_secret,
             code
         )).unwrap();
-        let mut rep = try!(http_post(url));
+        let mut rep = http_post(url)?;
         if rep.status.is_success() {
             let mut encoded = String::new();
-            try!(rep.read_to_string(&mut encoded));
+            rep.read_to_string(&mut encoded)?;
             match serde_json::from_str::<AuthOk>(&encoded) {
                 Ok(msg) => {
                     let missing = msg.missing_auth_scopes();
@@ -106,11 +106,11 @@ impl GitHubClient {
             repo,
             path
         )).unwrap();
-        let mut rep = try!(http_get(url, token));
+        let mut rep = http_get(url, token)?;
         let mut body = String::new();
-        try!(rep.read_to_string(&mut body));
+        rep.read_to_string(&mut body)?;
         if rep.status != StatusCode::Ok {
-            let err: HashMap<String, String> = try!(serde_json::from_str(&body));
+            let err: HashMap<String, String> = serde_json::from_str(&body)?;
             return Err(Error::GitHubAPI(rep.status, err));
         }
         let mut contents: Contents = serde_json::from_str(&body).unwrap();
@@ -126,11 +126,11 @@ impl GitHubClient {
 
     pub fn repo(&self, token: &str, owner: &str, repo: &str) -> Result<Repo> {
         let url = Url::parse(&format!("{}/repos/{}/{}", self.url, owner, repo)).unwrap();
-        let mut rep = try!(http_get(url, token));
+        let mut rep = http_get(url, token)?;
         let mut body = String::new();
-        try!(rep.read_to_string(&mut body));
+        rep.read_to_string(&mut body)?;
         if rep.status != StatusCode::Ok {
-            let err: HashMap<String, String> = try!(serde_json::from_str(&body));
+            let err: HashMap<String, String> = serde_json::from_str(&body)?;
             return Err(Error::GitHubAPI(rep.status, err));
         }
 
@@ -147,11 +147,11 @@ impl GitHubClient {
 
     pub fn user(&self, token: &str) -> Result<User> {
         let url = Url::parse(&format!("{}/user", self.url)).unwrap();
-        let mut rep = try!(http_get(url, token));
+        let mut rep = http_get(url, token)?;
         let mut body = String::new();
-        try!(rep.read_to_string(&mut body));
+        rep.read_to_string(&mut body)?;
         if rep.status != StatusCode::Ok {
-            let err: HashMap<String, String> = try!(serde_json::from_str(&body));
+            let err: HashMap<String, String> = serde_json::from_str(&body)?;
             return Err(Error::GitHubAPI(rep.status, err));
         }
         let user: User = serde_json::from_str(&body).unwrap();
@@ -160,11 +160,11 @@ impl GitHubClient {
 
     pub fn other_user(&self, token: &str, username: &str) -> Result<User> {
         let url = Url::parse(&format!("{}/users/{}", self.url, username)).unwrap();
-        let mut rep = try!(http_get(url, token));
+        let mut rep = http_get(url, token)?;
         let mut body = String::new();
-        try!(rep.read_to_string(&mut body));
+        rep.read_to_string(&mut body)?;
         if rep.status != StatusCode::Ok {
-            let err: HashMap<String, String> = try!(serde_json::from_str(&body));
+            let err: HashMap<String, String> = serde_json::from_str(&body)?;
             return Err(Error::GitHubAPI(rep.status, err));
         }
         let user: User = serde_json::from_str(&body).unwrap();
@@ -173,40 +173,40 @@ impl GitHubClient {
 
     pub fn emails(&self, token: &str) -> Result<Vec<Email>> {
         let url = Url::parse(&format!("{}/user/emails", self.url)).unwrap();
-        let mut rep = try!(http_get(url, token));
+        let mut rep = http_get(url, token)?;
         let mut body = String::new();
-        try!(rep.read_to_string(&mut body));
+        rep.read_to_string(&mut body)?;
         if rep.status != StatusCode::Ok {
-            let err: HashMap<String, String> = try!(serde_json::from_str(&body));
+            let err: HashMap<String, String> = serde_json::from_str(&body)?;
             return Err(Error::GitHubAPI(rep.status, err));
         }
-        let emails: Vec<Email> = try!(serde_json::from_str(&body));
+        let emails: Vec<Email> = serde_json::from_str(&body)?;
         Ok(emails)
     }
 
     pub fn orgs(&self, token: &str) -> Result<Vec<Organization>> {
         let url = Url::parse(&format!("{}/user/orgs", self.url)).unwrap();
-        let mut rep = try!(http_get(url, token));
+        let mut rep = http_get(url, token)?;
         let mut body = String::new();
-        try!(rep.read_to_string(&mut body));
+        rep.read_to_string(&mut body)?;
         if rep.status != StatusCode::Ok {
-            let err: HashMap<String, String> = try!(serde_json::from_str(&body));
+            let err: HashMap<String, String> = serde_json::from_str(&body)?;
             return Err(Error::GitHubAPI(rep.status, err));
         }
-        let orgs: Vec<Organization> = try!(serde_json::from_str(&body));
+        let orgs: Vec<Organization> = serde_json::from_str(&body)?;
         Ok(orgs)
     }
 
     pub fn teams(&self, token: &str) -> Result<Vec<Team>> {
         let url = Url::parse(&format!("{}/user/teams", self.url)).unwrap();
-        let mut rep = try!(http_get(url, token));
+        let mut rep = http_get(url, token)?;
         let mut body = String::new();
-        try!(rep.read_to_string(&mut body));
+        rep.read_to_string(&mut body)?;
         if rep.status != StatusCode::Ok {
-            let err: HashMap<String, String> = try!(serde_json::from_str(&body));
+            let err: HashMap<String, String> = serde_json::from_str(&body)?;
             return Err(Error::GitHubAPI(rep.status, err));
         }
-        let teams: Vec<Team> = try!(serde_json::from_str(&body));
+        let teams: Vec<Team> = serde_json::from_str(&body)?;
         Ok(teams)
     }
 }

@@ -49,9 +49,7 @@ mod inner {
             Err(_) => {
                 init();
                 let version: Vec<&str> = VERSION.split("/").collect();
-                let ident = try!(PackageIdent::from_str(
-                    &format!("{}/{}", butterfly_ident, version[0]),
-                ));
+                let ident = PackageIdent::from_str(&format!("{}/{}", butterfly_ident, version[0]))?;
                 exec::command_from_min_pkg(ui, CMD, &ident, &default_cache_key_path(None), 0)?
             }
         };
@@ -90,13 +88,13 @@ mod inner {
             ("file", _) => "file",
             (_, _) => unreachable!(),
         };
-        try!(ui.warn(format!(
+        ui.warn(format!(
             "Running `{}` on this operating system is not currently \
                               supported. Try running this command again on a 64-bit Linux \
                               operating system.",
             &subcmd
-        )));
-        try!(ui.br());
+        ))?;
+        ui.br()?;
         Err(Error::SubcommandNotSupported(String::from(subcmd)))
     }
 }

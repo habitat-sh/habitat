@@ -35,11 +35,11 @@ impl SigKeyPair {
         name: &str,
         cache_key_path: &P,
     ) -> Result<Self> {
-        let revision = try!(mk_revision_string());
+        let revision = mk_revision_string()?;
         let keyname = Self::mk_key_name(name, &revision);
         debug!("new sig key name = {}", &keyname);
         let (public_key, secret_key) =
-            try!(Self::generate_pair_files(&keyname, cache_key_path.as_ref()));
+            Self::generate_pair_files(&keyname, cache_key_path.as_ref())?;
         Ok(Self::new(
             name.to_string(),
             revision,
@@ -63,14 +63,14 @@ impl SigKeyPair {
         debug!("public sig keyfile = {}", public_keyfile.display());
         debug!("secret sig keyfile = {}", secret_keyfile.display());
 
-        try!(write_keypair_files(
+        write_keypair_files(
             KeyType::Sig,
             &name_with_rev,
             Some(&public_keyfile),
             Some(&base64::encode(&pk[..]).into_bytes()),
             Some(&secret_keyfile),
             Some(&base64::encode(&sk[..]).into_bytes()),
-        ));
+        )?;
         Ok((pk, sk))
     }
 
@@ -81,7 +81,7 @@ impl SigKeyPair {
         cache_key_path: &P,
         pair_type: Option<&PairType>,
     ) -> Result<Vec<Self>> {
-        let revisions = try!(get_key_revisions(name, cache_key_path.as_ref(), pair_type));
+        let revisions = get_key_revisions(name, cache_key_path.as_ref(), pair_type)?;
         debug!("revisions = {:?}", &revisions);
         let mut key_pairs = Vec::new();
         for name_with_rev in &revisions {
@@ -90,7 +90,7 @@ impl SigKeyPair {
                 name_with_rev,
                 name
             );
-            let kp = try!(Self::get_pair_for(name_with_rev, cache_key_path));
+            let kp = Self::get_pair_for(name_with_rev, cache_key_path)?;
             key_pairs.push(kp);
         }
         Ok(key_pairs)
@@ -100,7 +100,7 @@ impl SigKeyPair {
         name_with_rev: &str,
         cache_key_path: &P,
     ) -> Result<Self> {
-        let (name, rev) = try!(parse_name_with_rev(name_with_rev));
+        let (name, rev) = parse_name_with_rev(name_with_rev)?;
         let pk = match Self::get_public_key(name_with_rev, cache_key_path.as_ref()) {
             Ok(k) => Some(k),
             Err(e) => {
@@ -140,7 +140,7 @@ impl SigKeyPair {
         cache_key_path: &P,
         pair_type: Option<&PairType>,
     ) -> Result<Self> {
-        let mut all = try!(Self::get_pairs_for(name, cache_key_path, pair_type));
+        let mut all = Self::get_pairs_for(name, cache_key_path, pair_type)?;
         match all.len() {
             0 => {
                 let msg = format!("No revisions found for {} sig key", name);
@@ -257,7 +257,7 @@ impl SigKeyPair {
         content: &str,
         cache_key_path: &P,
     ) -> Result<(Self, PairType)> {
-        let (pair_type, name_with_rev, key_body) = try!(Self::parse_key_str(content));
+        let (pair_type, name_with_rev, key_body) = Self::parse_key_str(content)?;
         let suffix = match pair_type {
             PairType::Public => PUBLIC_KEY_SUFFIX,
             PairType::Secret => SECRET_SIG_KEY_SUFFIX,
@@ -276,30 +276,30 @@ impl SigKeyPair {
         debug!("Writing temp key file {}", tmpfile.path.display());
         match pair_type {
             PairType::Public => {
-                try!(write_keypair_files(
+                write_keypair_files(
                     KeyType::Sig,
                     &name_with_rev,
                     Some(&tmpfile.path),
                     Some(&key_body.as_bytes()),
                     None,
                     None,
-                ));
+                )?;
             }
             PairType::Secret => {
-                try!(write_keypair_files(
+                write_keypair_files(
                     KeyType::Sig,
                     &name_with_rev,
                     None,
                     None,
                     Some(&tmpfile.path),
                     Some(&key_body.as_bytes()),
-                ));
+                )?;
             }
         }
 
         if Path::new(&keyfile).is_file() {
-            let existing_hash = try!(hash::hash_file(&keyfile));
-            let new_hash = try!(hash::hash_file(&tmpfile.path));
+            let existing_hash = hash::hash_file(&keyfile)?;
+            let new_hash = hash::hash_file(&tmpfile.path)?;
             if existing_hash != new_hash {
                 let msg = format!(
                     "Existing key file {} found but new version hash is different, \
@@ -319,13 +319,13 @@ impl SigKeyPair {
                     keyfile.display(),
                     tmpfile.path.display()
                 );
-                try!(fs::remove_file(&tmpfile.path));
+                fs::remove_file(&tmpfile.path)?;
             }
         } else {
-            try!(fs::rename(&tmpfile.path, keyfile));
+            fs::rename(&tmpfile.path, keyfile)?;
         }
         Ok((
-            try!(Self::get_pair_for(&name_with_rev, cache_key_path)),
+            Self::get_pair_for(&name_with_rev, cache_key_path)?,
             pair_type,
         ))
     }
@@ -415,13 +415,13 @@ impl SigKeyPair {
         };
         match lines.nth(1) {
             Some(val) => {
-                try!(base64::decode(val.trim()).map_err(|_| {
+                base64::decode(val.trim()).map_err(|_| {
                     Error::CryptoError(format!(
                         "write_sig_key_from_str:3 Malformed sig key \
                                                 string:\n({})",
                         content
                     ))
-                }));
+                })?;
                 Ok((
                     pair_type,
                     name_with_rev.to_string(),
@@ -440,7 +440,7 @@ impl SigKeyPair {
 
     fn get_public_key(key_with_rev: &str, cache_key_path: &Path) -> Result<SigPublicKey> {
         let public_keyfile = mk_key_filename(cache_key_path, key_with_rev, PUBLIC_KEY_SUFFIX);
-        let bytes = try!(read_key_bytes(&public_keyfile));
+        let bytes = read_key_bytes(&public_keyfile)?;
         match SigPublicKey::from_slice(&bytes) {
             Some(sk) => Ok(sk),
             None => {
@@ -453,7 +453,7 @@ impl SigKeyPair {
 
     fn get_secret_key(key_with_rev: &str, cache_key_path: &Path) -> Result<SigSecretKey> {
         let secret_keyfile = mk_key_filename(cache_key_path, key_with_rev, SECRET_SIG_KEY_SUFFIX);
-        let bytes = try!(read_key_bytes(&secret_keyfile));
+        let bytes = read_key_bytes(&secret_keyfile)?;
         match SigSecretKey::from_slice(&bytes) {
             Some(sk) => Ok(sk),
             None => {

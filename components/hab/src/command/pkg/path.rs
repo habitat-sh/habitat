@@ -19,7 +19,7 @@ use hcore::package::{PackageIdent, PackageInstall};
 use error::Result;
 
 pub fn start(ident: &PackageIdent, fs_root_path: &Path) -> Result<()> {
-    let pkg_install = try!(PackageInstall::load(ident, Some(fs_root_path)));
+    let pkg_install = PackageInstall::load(ident, Some(fs_root_path))?;
     println!("{}", pkg_install.installed_path().display());
     Ok(())
 }

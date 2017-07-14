@@ -35,23 +35,23 @@ where
     let hash = hash::hash_file(&src)?;
     debug!("File hash for {} = {}", src.as_ref().display(), &hash);
 
-    let signature = sign::sign(&hash.as_bytes(), try!(pair.secret()));
-    let output_file = try!(File::create(dst));
+    let signature = sign::sign(&hash.as_bytes(), pair.secret()?);
+    let output_file = File::create(dst)?;
     let mut writer = BufWriter::new(&output_file);
-    let () = try!(write!(writer,
-                         "{}\n{}\n{}\n{}\n\n",
-                         HART_FORMAT_VERSION,
-                         pair.name_with_rev(),
-                         SIG_HASH_TYPE,
-                         base64::encode(&signature)));
-    let mut file = try!(File::open(src));
-    try!(io::copy(&mut file, &mut writer));
+    let () = write!(writer,
+                    "{}\n{}\n{}\n{}\n\n",
+                    HART_FORMAT_VERSION,
+                    pair.name_with_rev(),
+                    SIG_HASH_TYPE,
+                    base64::encode(&signature))?;
+    let mut file = File::open(src)?;
+    io::copy(&mut file, &mut writer)?;
     Ok(())
 }
 
 /// return a BufReader to the .tar bytestream, skipping the signed header
 pub fn get_archive_reader<P: AsRef<Path>>(src: &P) -> Result<BufReader<File>> {
-    let f = try!(File::open(src));
+    let f = File::open(src)?;
     let mut your_format_version = String::new();
     let mut your_key_name = String::new();
     let mut your_hash_type = String::new();
@@ -59,19 +59,19 @@ pub fn get_archive_reader<P: AsRef<Path>>(src: &P) -> Result<BufReader<File>> {
     let mut empty_line = String::new();
 
     let mut reader = BufReader::new(f);
-    if try!(reader.read_line(&mut your_format_version)) <= 0 {
+    if reader.read_line(&mut your_format_version)? <= 0 {
         return Err(Error::CryptoError("Can't read format version".to_string()));
     }
-    if try!(reader.read_line(&mut your_key_name)) <= 0 {
+    if reader.read_line(&mut your_key_name)? <= 0 {
         return Err(Error::CryptoError("Can't read keyname".to_string()));
     }
-    if try!(reader.read_line(&mut your_hash_type)) <= 0 {
+    if reader.read_line(&mut your_hash_type)? <= 0 {
         return Err(Error::CryptoError("Can't read hash type".to_string()));
     }
-    if try!(reader.read_line(&mut your_signature_raw)) <= 0 {
+    if reader.read_line(&mut your_signature_raw)? <= 0 {
         return Err(Error::CryptoError("Can't read signature".to_string()));
     }
-    if try!(reader.read_line(&mut empty_line)) <= 0 {
+    if reader.read_line(&mut empty_line)? <= 0 {
         return Err(Error::CryptoError("Can't end of header".to_string()));
     }
     Ok(reader)
@@ -107,7 +107,7 @@ pub fn get_artifact_header<P: ?Sized>(src: &P) -> Result<ArtifactHeader>
 where
     P: AsRef<Path>,
 {
-    let f = try!(File::open(src));
+    let f = File::open(src)?;
     let mut your_format_version = String::new();
     let mut your_key_name = String::new();
     let mut your_hash_type = String::new();
@@ -115,19 +115,19 @@ where
     let mut empty_line = String::new();
 
     let mut reader = BufReader::new(f);
-    if try!(reader.read_line(&mut your_format_version)) <= 0 {
+    if reader.read_line(&mut your_format_version)? <= 0 {
         return Err(Error::CryptoError("Can't read format version".to_string()));
     }
-    if try!(reader.read_line(&mut your_key_name)) <= 0 {
+    if reader.read_line(&mut your_key_name)? <= 0 {
         return Err(Error::CryptoError("Can't read keyname".to_string()));
     }
-    if try!(reader.read_line(&mut your_hash_type)) <= 0 {
+    if reader.read_line(&mut your_hash_type)? <= 0 {
         return Err(Error::CryptoError("Can't read hash type".to_string()));
     }
-    if try!(reader.read_line(&mut your_signature_raw)) <= 0 {
+    if reader.read_line(&mut your_signature_raw)? <= 0 {
         return Err(Error::CryptoError("Can't read signature".to_string()));
     }
-    if try!(reader.read_line(&mut empty_line)) <= 0 {
+    if reader.read_line(&mut empty_line)? <= 0 {
         return Err(Error::CryptoError("Can't end of header".to_string()));
     }
     let your_format_version = your_format_version.trim().to_string();
@@ -149,7 +149,7 @@ where
     P1: AsRef<Path>,
     P2: AsRef<Path>,
 {
-    let f = try!(File::open(src));
+    let f = File::open(src)?;
     let mut reader = BufReader::new(f);
 
     let _ = {
@@ -173,12 +173,12 @@ where
     };
     let pair = {
         let mut buffer = String::new();
-        if try!(reader.read_line(&mut buffer)) <= 0 {
+        if reader.read_line(&mut buffer)? <= 0 {
             return Err(Error::CryptoError(
                 "Corrupt payload, can't read origin key name".to_string(),
             ));
         }
-        try!(SigKeyPair::get_pair_for(buffer.trim(), cache_key_path))
+        SigKeyPair::get_pair_for(buffer.trim(), cache_key_path)?
     };
     let _ = {
         let mut buffer = String::new();
@@ -206,26 +206,26 @@ where
                 ))
             }
             Ok(_) => {
-                try!(base64::decode(buffer.trim()).map_err(|e| {
+                base64::decode(buffer.trim()).map_err(|e| {
                     Error::CryptoError(format!("Can't decode signature: {}", e))
-                }))
+                })?
             }
             Err(e) => return Err(Error::from(e)),
         }
     };
     let _ = {
         let mut buffer = String::new();
-        if try!(reader.read_line(&mut buffer)) <= 0 {
+        if reader.read_line(&mut buffer)? <= 0 {
             return Err(Error::CryptoError(
                 "Corrupt payload, can't find end of header".to_string(),
             ));
         }
     };
-    let expected_hash = match sign::verify(signature.as_slice(), try!(pair.public())) {
+    let expected_hash = match sign::verify(signature.as_slice(), pair.public()?) {
         Ok(signed_data) => {
-            try!(String::from_utf8(signed_data).map_err(|_| {
+            String::from_utf8(signed_data).map_err(|_| {
                 Error::CryptoError("Error parsing artifact signature".to_string())
-            }))
+            })?
         }
         Err(_) => return Err(Error::CryptoError("Verification failed".to_string())),
     };
@@ -244,7 +244,7 @@ where
 }
 
 pub fn artifact_signer<P: AsRef<Path>>(src: &P) -> Result<String> {
-    let f = try!(File::open(src));
+    let f = File::open(src)?;
     let mut reader = BufReader::new(f);
 
     let _ = {
@@ -268,12 +268,12 @@ pub fn artifact_signer<P: AsRef<Path>>(src: &P) -> Result<String> {
     };
     let name_with_rev = {
         let mut buffer = String::new();
-        if try!(reader.read_line(&mut buffer)) <= 0 {
+        if reader.read_line(&mut buffer)? <= 0 {
             return Err(Error::CryptoError(
                 "Corrupt payload, can't read origin key name".to_string(),
             ));
         }
-        try!(parse_name_with_rev(buffer.trim()));
+        parse_name_with_rev(buffer.trim())?;
         buffer.trim().to_string()
     };
     Ok(name_with_rev)

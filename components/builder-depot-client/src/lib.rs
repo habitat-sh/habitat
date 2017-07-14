@@ -249,13 +249,13 @@ impl Client {
         };
 
         let mut encoded = String::new();
-        try!(res.read_to_string(&mut encoded));
+        res.read_to_string(&mut encoded)?;
         debug!("Response body: {:?}", encoded);
-        let revisions: Vec<originsrv::OriginKeyIdent> = try!(
-            serde_json::from_str::<Vec<OriginKeyIdent>>(&encoded)
-        ).into_iter()
-            .map(|m| m.into())
-            .collect();
+        let revisions: Vec<originsrv::OriginKeyIdent> =
+            serde_json::from_str::<Vec<OriginKeyIdent>>(&encoded)?
+                .into_iter()
+                .map(|m| m.into())
+                .collect();
         Ok(revisions)
     }
 
@@ -283,9 +283,9 @@ impl Client {
         };
 
         let mut encoded = String::new();
-        try!(res.read_to_string(&mut encoded));
+        res.read_to_string(&mut encoded)?;
         debug!("Response body: {:?}", encoded);
-        let channels: Vec<String> = try!(serde_json::from_str::<Vec<String>>(&encoded))
+        let channels: Vec<String> = serde_json::from_str::<Vec<String>>(&encoded)?
             .into_iter()
             .map(|m| m.into())
             .collect();
@@ -314,8 +314,8 @@ impl Client {
         D: DisplayProgress + Sized,
     {
         let path = format!("origins/{}/keys/{}", &origin, &revision);
-        let mut file = try!(File::open(src_path));
-        let file_size = try!(file.metadata()).len();
+        let mut file = File::open(src_path)?;
+        let file_size = file.metadata()?.len();
 
         let result = if let Some(mut progress) = progress {
             progress.size(file_size);
@@ -363,8 +363,8 @@ impl Client {
             return Err(err_from_response(res));
         }
         let mut encoded = String::new();
-        try!(res.read_to_string(&mut encoded));
-        let key = try!(serde_json::from_str(&encoded));
+        res.read_to_string(&mut encoded)?;
+        let key = serde_json::from_str(&encoded)?;
         Ok(key)
     }
 
@@ -390,8 +390,8 @@ impl Client {
         D: DisplayProgress + Sized,
     {
         let path = format!("origins/{}/secret_keys/{}", &origin, &revision);
-        let mut file = try!(File::open(src_path));
-        let file_size = try!(file.metadata()).len();
+        let mut file = File::open(src_path)?;
+        let file_size = file.metadata()?.len();
 
         let result = if let Some(mut progress) = progress {
             progress.size(file_size);
@@ -477,10 +477,9 @@ impl Client {
         }
 
         let mut encoded = String::new();
-        try!(res.read_to_string(&mut encoded));
+        res.read_to_string(&mut encoded)?;
         debug!("Body: {:?}", encoded);
-        let package: originsrv::OriginPackage = try!(serde_json::from_str::<Package>(&encoded))
-            .into();
+        let package: originsrv::OriginPackage = serde_json::from_str::<Package>(&encoded)?.into();
         Ok(package)
     }
 
@@ -503,10 +502,10 @@ impl Client {
     where
         D: DisplayProgress + Sized,
     {
-        let checksum = try!(pa.checksum());
-        let ident = try!(pa.ident());
-        let mut file = try!(File::open(&pa.path));
-        let file_size = try!(file.metadata()).len();
+        let checksum = pa.checksum()?;
+        let ident = pa.ident()?;
+        let mut file = File::open(&pa.path)?;
+        let file_size = file.metadata()?.len();
         let path = package_path(&ident);
         let custom = |url: &mut Url| { url.query_pairs_mut().append_pair("checksum", &checksum); };
         debug!("Reading from {}", &pa.path.display());
@@ -530,10 +529,10 @@ impl Client {
     }
 
     pub fn x_put_package(&self, pa: &mut PackageArchive, token: &str) -> Result<()> {
-        let checksum = try!(pa.checksum());
-        let ident = try!(pa.ident());
-        let mut file = try!(File::open(&pa.path));
-        let file_size = try!(file.metadata()).len();
+        let checksum = pa.checksum()?;
+        let ident = pa.ident()?;
+        let mut file = File::open(&pa.path)?;
+        let file_size = file.metadata()?.len();
         let path = package_path(&ident);
         let custom = |url: &mut Url| {
             url.query_pairs_mut()
@@ -636,8 +635,8 @@ impl Client {
             StatusCode::Ok |
             StatusCode::PartialContent => {
                 let mut encoded = String::new();
-                try!(res.read_to_string(&mut encoded));
-                let results: Vec<OriginChannelIdent> = try!(serde_json::from_str(&encoded));
+                res.read_to_string(&mut encoded)?;
+                let results: Vec<OriginChannelIdent> = serde_json::from_str(&encoded)?;
                 let channels = results.into_iter().map(|o| o.name).collect();
                 Ok(channels)
             }
@@ -659,9 +658,9 @@ impl Client {
             StatusCode::Ok |
             StatusCode::PartialContent => {
                 let mut encoded = String::new();
-                try!(res.read_to_string(&mut encoded));
+                res.read_to_string(&mut encoded)?;
                 let package_results: PackageResults<hab_core::package::PackageIdent> =
-                    try!(serde_json::from_str(&encoded));
+                    serde_json::from_str(&encoded)?;
                 let packages: Vec<hab_core::package::PackageIdent> = package_results.package_list;
                 Ok((packages, res.status == StatusCode::PartialContent))
             }
@@ -677,13 +676,13 @@ impl Client {
     where
         D: DisplayProgress + Sized,
     {
-        let mut res = try!(self.0.get(path).send());
+        let mut res = self.0.get(path).send()?;
         debug!("Response: {:?}", res);
 
         if res.status != hyper::status::StatusCode::Ok {
             return Err(err_from_response(res));
         }
-        try!(fs::create_dir_all(&dst_path));
+        fs::create_dir_all(&dst_path)?;
 
         let file_name = match res.headers.get::<XFileName>() {
             Some(filename) => format!("{}", filename),
@@ -696,7 +695,7 @@ impl Client {
         ));
         let dst_file_path = dst_path.join(file_name);
         debug!("Writing to {}", &tmp_file_path.display());
-        let mut f = try!(File::create(&tmp_file_path));
+        let mut f = File::create(&tmp_file_path)?;
         match progress {
             Some(mut progress) => {
                 let size: u64 = res.headers.get::<hyper::header::ContentLength>().map_or(
@@ -705,16 +704,16 @@ impl Client {
                 );
                 progress.size(size);
                 let mut writer = BroadcastWriter::new(&mut f, progress);
-                try!(io::copy(&mut res, &mut writer))
+                io::copy(&mut res, &mut writer)?
             }
-            None => try!(io::copy(&mut res, &mut f)),
+            None => io::copy(&mut res, &mut f)?,
         };
         debug!(
             "Moving {} to {}",
             &tmp_file_path.display(),
             &dst_file_path.display()
         );
-        try!(fs::rename(&tmp_file_path, &dst_file_path));
+        fs::rename(&tmp_file_path, &dst_file_path)?;
         Ok(dst_file_path)
     }
 }

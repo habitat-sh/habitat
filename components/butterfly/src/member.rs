@@ -213,18 +213,18 @@ impl Serialize for MemberList {
     where
         S: Serializer,
     {
-        let mut strukt = try!(serializer.serialize_struct("member_list", 4));
+        let mut strukt = serializer.serialize_struct("member_list", 4)?;
         {
             let member_struct = self.members.read().expect("Member lock is poisoned");
-            try!(strukt.serialize_field("members", &*member_struct));
+            strukt.serialize_field("members", &*member_struct)?;
         }
         {
             let health_struct = self.health.read().expect("Health lock is poisoned");
-            try!(strukt.serialize_field("health", &*health_struct));
+            strukt.serialize_field("health", &*health_struct)?;
         }
         {
             let update_number = self.update_counter.load(Ordering::SeqCst);
-            try!(strukt.serialize_field("update_counter", &update_number));
+            strukt.serialize_field("update_counter", &update_number)?;
         }
         strukt.end()
     }

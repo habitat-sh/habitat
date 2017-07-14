@@ -73,11 +73,11 @@ pub trait Dispatcher: Sized + Send {
         let mut raw = zmq::Message::new().unwrap();
         let mut sock = self.context().socket(zmq::DEALER).unwrap();
         let mut envelope = Envelope::default();
-        try!(sock.connect(Self::message_queue()));
+        sock.connect(Self::message_queue())?;
         rz.send(()).unwrap();
         'recv: loop {
             'hops: loop {
-                let hop = try!(sock.recv_msg(0));
+                let hop = sock.recv_msg(0)?;
                 if hop.len() == 0 {
                     break;
                 }
@@ -87,7 +87,7 @@ pub trait Dispatcher: Sized + Send {
                     break 'recv;
                 }
             }
-            try!(sock.recv(&mut raw, 0));
+            sock.recv(&mut raw, 0)?;
             match parse_from_bytes(&raw) {
                 Ok(msg) => {
                     debug!("OnMessage, {:?}", &msg);

@@ -304,10 +304,7 @@ impl Runner {
         let exit_status = child.wait().expect("failed to wait on child");
         debug!("build complete, status={:?}", exit_status);
         if exit_status.success() {
-            try!(fs::rename(
-                self.workspace.src().join("results"),
-                self.workspace.out(),
-            ));
+            fs::rename(self.workspace.src().join("results"), self.workspace.out())?;
             self.workspace.last_built()
         } else {
             Err(Error::BuildFailure(exit_status.code().unwrap_or(-1)))
@@ -418,35 +415,35 @@ impl RunnerCli {
 
     /// Connect to the Job Runner
     pub fn connect(&mut self) -> Result<()> {
-        try!(self.sock.connect(INPROC_ADDR));
+        self.sock.connect(INPROC_ADDR)?;
         Ok(())
     }
 
     /// Wait until client receives a work received acknowledgement by the Runner and return
     /// the assigned JobID.
     pub fn recv_ack(&mut self) -> Result<&zmq::Message> {
-        try!(self.sock.recv(&mut self.msg, 0));
+        self.sock.recv(&mut self.msg, 0)?;
         if Some(WORK_ACK) != self.msg.as_str() {
             unreachable!("wk:run:1, received unexpected response from runner");
         }
-        try!(self.sock.recv(&mut self.msg, 0));
+        self.sock.recv(&mut self.msg, 0)?;
         Ok(&self.msg)
     }
 
     /// Wait until client receives a work complete message by the Runner and return an encoded
     /// representation of the job.
     pub fn recv_complete(&mut self) -> Result<&zmq::Message> {
-        try!(self.sock.recv(&mut self.msg, 0));
+        self.sock.recv(&mut self.msg, 0)?;
         if Some(WORK_COMPLETE) != self.msg.as_str() {
             unreachable!("wk:run:2, received unexpected response from runner");
         }
-        try!(self.sock.recv(&mut self.msg, 0));
+        self.sock.recv(&mut self.msg, 0)?;
         Ok(&self.msg)
     }
 
     /// Send a message to the Job Runner
     pub fn send(&mut self, msg: &zmq::Message) -> Result<()> {
-        try!(self.sock.send(&*msg, 0));
+        self.sock.send(&*msg, 0)?;
         Ok(())
     }
 }
@@ -477,7 +474,7 @@ impl RunnerMgr {
     }
 
     fn new(config: Arc<RwLock<Config>>) -> Result<Self> {
-        let sock = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER));
+        let sock = (**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER)?;
         Ok(RunnerMgr {
             sock: sock,
             msg: zmq::Message::new().unwrap(),
@@ -487,12 +484,12 @@ impl RunnerMgr {
 
     // Main loop for server
     fn run(&mut self, rz: mpsc::SyncSender<()>) -> Result<()> {
-        try!(self.sock.bind(INPROC_ADDR));
+        self.sock.bind(INPROC_ADDR)?;
         rz.send(()).unwrap();
         loop {
-            let job = try!(self.recv_job());
-            try!(self.send_ack(&job));
-            try!(self.execute_job(job));
+            let job = self.recv_job()?;
+            self.send_ack(&job)?;
+            self.execute_job(job)?;
         }
     }
 
@@ -506,22 +503,22 @@ impl RunnerMgr {
     }
 
     fn recv_job(&mut self) -> Result<Job> {
-        try!(self.sock.recv(&mut self.msg, 0));
+        self.sock.recv(&mut self.msg, 0)?;
         let job: proto::Job = parse_from_bytes(&self.msg).unwrap();
         Ok(Job::new(job))
     }
 
     fn send_ack(&mut self, job: &Job) -> Result<()> {
         debug!("received work, job={:?}", job);
-        try!(self.sock.send_str(WORK_ACK, zmq::SNDMORE));
-        try!(self.sock.send(&*job.write_to_bytes().unwrap(), 0));
+        self.sock.send_str(WORK_ACK, zmq::SNDMORE)?;
+        self.sock.send(&*job.write_to_bytes().unwrap(), 0)?;
         Ok(())
     }
 
     fn send_complete(&mut self, job: &Job) -> Result<()> {
         debug!("work complete, job={:?}", job);
-        try!(self.sock.send_str(WORK_COMPLETE, zmq::SNDMORE));
-        try!(self.sock.send(&*job.write_to_bytes().unwrap(), 0));
+        self.sock.send_str(WORK_COMPLETE, zmq::SNDMORE)?;
+        self.sock.send(&*job.write_to_bytes().unwrap(), 0)?;
         Ok(())
     }
 }

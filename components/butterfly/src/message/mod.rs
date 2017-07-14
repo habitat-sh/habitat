@@ -30,19 +30,19 @@ pub fn generate_wire(payload: Vec<u8>, ring_key: &Option<SymKey>) -> Result<Vec<
     let mut wire = Wire::new();
     if let Some(ref ring_key) = *ring_key {
         wire.set_encrypted(true);
-        let (nonce, encrypted_payload) = try!(ring_key.encrypt(&payload));
+        let (nonce, encrypted_payload) = ring_key.encrypt(&payload)?;
         wire.set_nonce(nonce);
         wire.set_payload(encrypted_payload);
     } else {
         wire.set_payload(payload);
     }
-    Ok(try!(wire.write_to_bytes()))
+    Ok(wire.write_to_bytes()?)
 }
 
 pub fn unwrap_wire(payload: &[u8], ring_key: &Option<SymKey>) -> Result<Vec<u8>> {
-    let mut wire: Wire = try!(protobuf::parse_from_bytes(payload));
+    let mut wire: Wire = protobuf::parse_from_bytes(payload)?;
     if let Some(ref ring_key) = *ring_key {
-        Ok(try!(ring_key.decrypt(wire.get_nonce(), wire.get_payload())))
+        Ok(ring_key.decrypt(wire.get_nonce(), wire.get_payload())?)
     } else {
         Ok(wire.take_payload())
     }
@@ -53,19 +53,19 @@ impl Serialize for swim::Election {
     where
         S: Serializer,
     {
-        let mut strukt = try!(serializer.serialize_struct("election", 6));
-        try!(strukt.serialize_field("member_id", self.get_member_id()));
-        try!(strukt.serialize_field(
+        let mut strukt = serializer.serialize_struct("election", 6)?;
+        strukt.serialize_field("member_id", self.get_member_id())?;
+        strukt.serialize_field(
             "service_group",
             self.get_service_group(),
-        ));
-        try!(strukt.serialize_field("term", &self.get_term()));
-        try!(strukt.serialize_field(
+        )?;
+        strukt.serialize_field("term", &self.get_term())?;
+        strukt.serialize_field(
             "suitability",
             &self.get_suitability(),
-        ));
-        try!(strukt.serialize_field("status", &self.get_status()));
-        try!(strukt.serialize_field("votes", self.get_votes()));
+        )?;
+        strukt.serialize_field("status", &self.get_status())?;
+        strukt.serialize_field("votes", self.get_votes())?;
         strukt.end()
     }
 }
@@ -75,19 +75,19 @@ impl Serialize for swim::Member {
     where
         S: Serializer,
     {
-        let mut strukt = try!(serializer.serialize_struct("member", 6));
-        try!(strukt.serialize_field("id", self.get_id()));
-        try!(strukt.serialize_field(
+        let mut strukt = serializer.serialize_struct("member", 6)?;
+        strukt.serialize_field("id", self.get_id())?;
+        strukt.serialize_field(
             "incarnation",
             &self.get_incarnation(),
-        ));
-        try!(strukt.serialize_field("address", self.get_address()));
-        try!(strukt.serialize_field("swim_port", &self.get_swim_port()));
-        try!(strukt.serialize_field(
+        )?;
+        strukt.serialize_field("address", self.get_address())?;
+        strukt.serialize_field("swim_port", &self.get_swim_port())?;
+        strukt.serialize_field(
             "gossip_port",
             &self.get_gossip_port(),
-        ));
-        try!(strukt.serialize_field("persistent", &self.get_persistent()));
+        )?;
+        strukt.serialize_field("persistent", &self.get_persistent())?;
         strukt.end()
     }
 }
@@ -97,9 +97,9 @@ impl Serialize for swim::Membership {
     where
         S: Serializer,
     {
-        let mut strukt = try!(serializer.serialize_struct("membership", 2));
-        try!(strukt.serialize_field("member", self.get_member()));
-        try!(strukt.serialize_field("health", &self.get_health()));
+        let mut strukt = serializer.serialize_struct("membership", 2)?;
+        strukt.serialize_field("member", self.get_member())?;
+        strukt.serialize_field("health", &self.get_health())?;
         strukt.end()
     }
 }
@@ -109,30 +109,30 @@ impl Serialize for swim::Rumor {
     where
         S: Serializer,
     {
-        let mut strukt = try!(serializer.serialize_struct("rumor", 8));
-        try!(strukt.serialize_field("type", &self.get_field_type()));
-        try!(strukt.serialize_field("tag", self.get_tag()));
-        try!(strukt.serialize_field("from_id", self.get_from_id()));
+        let mut strukt = serializer.serialize_struct("rumor", 8)?;
+        strukt.serialize_field("type", &self.get_field_type())?;
+        strukt.serialize_field("tag", self.get_tag())?;
+        strukt.serialize_field("from_id", self.get_from_id())?;
         if self.has_member() {
-            try!(strukt.serialize_field("member", self.get_member()));
+            strukt.serialize_field("member", self.get_member())?;
         }
         if self.has_service() {
-            try!(strukt.serialize_field("service", self.get_service()));
+            strukt.serialize_field("service", self.get_service())?;
         }
         if self.has_service_config() {
-            try!(strukt.serialize_field(
+            strukt.serialize_field(
                 "service_config",
                 self.get_service_config(),
-            ));
+            )?;
         }
         if self.has_service_file() {
-            try!(strukt.serialize_field(
+            strukt.serialize_field(
                 "service_file",
                 self.get_service_file(),
-            ));
+            )?;
         }
         if self.has_election() {
-            try!(strukt.serialize_field("election", self.get_election()));
+            strukt.serialize_field("election", self.get_election())?;
         }
         strukt.end()
     }
@@ -170,19 +170,19 @@ impl Serialize for swim::ServiceConfig {
     where
         S: Serializer,
     {
-        let mut strukt = try!(serializer.serialize_struct("service_config", 4));
-        try!(strukt.serialize_field(
+        let mut strukt = serializer.serialize_struct("service_config", 4)?;
+        strukt.serialize_field(
             "service_group",
             self.get_service_group(),
-        ));
-        try!(strukt.serialize_field(
+        )?;
+        strukt.serialize_field(
             "incarnation",
             &self.get_incarnation(),
-        ));
-        try!(strukt.serialize_field("encrypted", &self.get_encrypted()));
+        )?;
+        strukt.serialize_field("encrypted", &self.get_encrypted())?;
         match str::from_utf8(self.get_config()) {
-            Ok(c) => try!(strukt.serialize_field("config", c)),
-            Err(_) => try!(strukt.serialize_field("config", self.get_config())),
+            Ok(c) => strukt.serialize_field("config", c)?,
+            Err(_) => strukt.serialize_field("config", self.get_config())?,
         };
         strukt.end()
     }
@@ -193,20 +193,20 @@ impl Serialize for swim::ServiceFile {
     where
         S: Serializer,
     {
-        let mut strukt = try!(serializer.serialize_struct("service_file", 5));
-        try!(strukt.serialize_field(
+        let mut strukt = serializer.serialize_struct("service_file", 5)?;
+        strukt.serialize_field(
             "service_group",
             self.get_service_group(),
-        ));
-        try!(strukt.serialize_field(
+        )?;
+        strukt.serialize_field(
             "incarnation",
             &self.get_incarnation(),
-        ));
-        try!(strukt.serialize_field("encrypted", &self.get_encrypted()));
-        try!(strukt.serialize_field("filename", self.get_filename()));
+        )?;
+        strukt.serialize_field("encrypted", &self.get_encrypted())?;
+        strukt.serialize_field("filename", self.get_filename())?;
         match str::from_utf8(self.get_body()) {
-            Ok(c) => try!(strukt.serialize_field("body", c)),
-            Err(_) => try!(strukt.serialize_field("body", self.get_body())),
+            Ok(c) => strukt.serialize_field("body", c)?,
+            Err(_) => strukt.serialize_field("body", self.get_body())?,
         };
         strukt.end()
     }

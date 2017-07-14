@@ -155,7 +155,7 @@ impl Rumor for Service {
     }
 
     fn write_to_bytes(&self) -> Result<Vec<u8>> {
-        Ok(try!(self.0.write_to_bytes()))
+        Ok(self.0.write_to_bytes()?)
     }
 }
 

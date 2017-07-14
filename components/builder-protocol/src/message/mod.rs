@@ -43,8 +43,10 @@ impl<'a, T: 'a + protobuf::Message> Message<'a, T> {
             Some("originsrv") => net::Protocol::OriginSrv,
             Some("scheduler") => net::Protocol::Scheduler,
             Some(_) | None => {
-                unreachable!("no protocol defined for message, name={}",
-                             self.0.descriptor().full_name())
+                unreachable!(
+                    "no protocol defined for message, name={}",
+                    self.0.descriptor().full_name()
+                )
             }
         }
     }
@@ -76,10 +78,9 @@ impl<'a, T: 'a + protobuf::Message> MessageBuilder<'a, T> {
 
     pub fn build(self) -> ::net::Msg {
         let mut msg = net::Msg::new();
-        msg.set_body(self.msg
-                         .0
-                         .write_to_bytes()
-                         .expect("All message fields have been set"));
+        msg.set_body(self.msg.0.write_to_bytes().expect(
+            "All message fields have been set",
+        ));
         msg.set_message_id(self.msg.0.descriptor().name().to_string());
         if let Some(route_info) = self.route_info {
             msg.set_route_info(route_info);
@@ -149,16 +150,26 @@ mod tests {
 
     #[test]
     fn message_protocol() {
-        assert_eq!(Message(&jobsrv::Job::new()).protocol(),
-                   net::Protocol::JobSrv);
+        assert_eq!(
+            Message(&jobsrv::Job::new()).protocol(),
+            net::Protocol::JobSrv
+        );
         assert_eq!(Message(&net::Ping::new()).protocol(), net::Protocol::Net);
-        assert_eq!(Message(&routesrv::Connect::new()).protocol(),
-                   net::Protocol::RouteSrv);
-        assert_eq!(Message(&sessionsrv::Session::new()).protocol(),
-                   net::Protocol::SessionSrv);
-        assert_eq!(Message(&originsrv::Origin::new()).protocol(),
-                   net::Protocol::OriginSrv);
-        assert_eq!(Message(&scheduler::GroupCreate::new()).protocol(),
-                   net::Protocol::Scheduler);
+        assert_eq!(
+            Message(&routesrv::Connect::new()).protocol(),
+            net::Protocol::RouteSrv
+        );
+        assert_eq!(
+            Message(&sessionsrv::Session::new()).protocol(),
+            net::Protocol::SessionSrv
+        );
+        assert_eq!(
+            Message(&originsrv::Origin::new()).protocol(),
+            net::Protocol::OriginSrv
+        );
+        assert_eq!(
+            Message(&scheduler::GroupCreate::new()).protocol(),
+            net::Protocol::Scheduler
+        );
     }
 }

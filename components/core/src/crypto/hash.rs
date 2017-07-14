@@ -73,7 +73,7 @@ pub fn hash_reader(reader: &mut BufReader<File>) -> Result<String> {
     }
     let mut buf = [0u8; BUF_SIZE];
     loop {
-        let bytes_read = try!(reader.read(&mut buf));
+        let bytes_read = reader.read(&mut buf)?;
         if bytes_read == 0 {
             break;
         }

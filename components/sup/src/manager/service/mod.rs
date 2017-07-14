@@ -580,18 +580,15 @@ impl Service {
         let svc_run = self.pkg.svc_path.join(hooks::RunHook::file_name());
         match self.hooks.run {
             Some(ref hook) => {
-                try!(std::fs::copy(hook.path(), &svc_run));
-                try!(set_permissions(
-                    &svc_run.to_str().unwrap(),
-                    HOOK_PERMISSIONS,
-                ));
+                std::fs::copy(hook.path(), &svc_run)?;
+                set_permissions(&svc_run.to_str().unwrap(), HOOK_PERMISSIONS)?;
             }
             None => {
                 let run = self.pkg.path.join(hooks::RunHook::file_name());
                 match std::fs::metadata(&run) {
                     Ok(_) => {
-                        try!(std::fs::copy(&run, &svc_run));
-                        try!(set_permissions(&svc_run, HOOK_PERMISSIONS));
+                        std::fs::copy(&run, &svc_run)?;
+                        set_permissions(&svc_run, HOOK_PERMISSIONS)?;
                     }
                     Err(err) => {
                         outputln!(preamble self.service_group, "Error finding run file: {}", err);
@@ -670,9 +667,9 @@ impl Service {
         }
         // note: we're NOT using p.metadata() here as that will follow the
         // symlink, which returns smd.file_type().is_symlink() == false in all cases.
-        let smd = try!(p.symlink_metadata());
+        let smd = p.symlink_metadata()?;
         if smd.file_type().is_symlink() {
-            try!(std::fs::remove_file(p));
+            std::fs::remove_file(p)?;
         }
         Ok(())
     }

@@ -426,9 +426,9 @@ fn sub_bash(m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_config(m: &ArgMatches) -> Result<()> {
-    let ident = try!(PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap()));
+    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
 
-    try!(common::command::package::config::start(&ident, "/"));
+    common::command::package::config::start(&ident, "/")?;
     Ok(())
 }
 
@@ -676,26 +676,24 @@ fn mgrcfg_from_matches(m: &ArgMatches) -> Result<ManagerConfig> {
     }
     cfg.gossip_peers = gossip_peers;
     let ring = match m.value_of("RING") {
-        Some(val) => Some(try!(SymKey::get_latest_pair_for(
+        Some(val) => Some(SymKey::get_latest_pair_for(
             &val,
             &default_cache_key_path(None),
-        ))),
+        )?),
         None => {
             match henv::var(RING_KEY_ENVVAR) {
                 Ok(val) => {
-                    let (key, _) = try!(SymKey::write_file_from_str(
-                        &val,
-                        &default_cache_key_path(None),
-                    ));
+                    let (key, _) =
+                        SymKey::write_file_from_str(&val, &default_cache_key_path(None))?;
                     Some(key)
                 }
                 Err(_) => {
                     match henv::var(RING_ENVVAR) {
                         Ok(val) => {
-                            Some(try!(SymKey::get_latest_pair_for(
+                            Some(SymKey::get_latest_pair_for(
                                 &val,
                                 &default_cache_key_path(None),
-                            )))
+                            )?)
                         }
                         Err(_) => None,
                     }

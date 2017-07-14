@@ -47,11 +47,11 @@ impl<S: SslClient> NetworkConnector for ProxyHttpsConnector<S> {
 
     fn connect(&self, host: &str, port: u16, scheme: &str) -> hyper::Result<Self::Stream> {
         // Initial connection to the proxy server, using an `HttpConnector`
-        let mut stream = try!(self.proxy_connector.connect(
+        let mut stream = self.proxy_connector.connect(
             self.proxy.host(),
             self.proxy.port(),
             "http",
-        ));
+        )?;
         match scheme {
             "https" => {
                 // If the target URL is an `"https"` scheme, then we use proxy/TCP tunneling as
@@ -80,15 +80,15 @@ impl<S: SslClient> NetworkConnector for ProxyHttpsConnector<S> {
                     self.proxy.port(),
                     connect_msg.trim().replace("\r\n", ", ")
                 );
-                try!(stream.write_all(connect_msg.as_bytes()));
-                try!(stream.flush());
+                stream.write_all(connect_msg.as_bytes())?;
+                stream.flush()?;
                 let mut buf = [0; 1024];
                 let mut n = 0;
                 while n < buf.len() {
-                    n += try!(stream.read(&mut buf[n..]));
+                    n += stream.read(&mut buf[n..])?;
                     let mut headers = [httparse::EMPTY_HEADER; 10];
                     let mut res = httparse::Response::new(&mut headers);
-                    if try!(res.parse(&buf[..n])).is_complete() {
+                    if res.parse(&buf[..n])?.is_complete() {
                         let code = res.code.expect("complete parsing lost code");
                         if code >= 200 && code < 300 {
                             debug!(

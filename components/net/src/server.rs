@@ -107,9 +107,9 @@ impl Envelope {
     }
 
     pub fn reply<M: ProtoBufMessage>(&mut self, sock: &mut zmq::Socket, msg: &M) -> Result<()> {
-        try!(self.send_header(sock));
+        self.send_header(sock)?;
         let rep = protocol::Message::new(msg).build();
-        try!(sock.send(&rep.write_to_bytes().unwrap(), zmq::SNDMORE));
+        sock.send(&rep.write_to_bytes().unwrap(), zmq::SNDMORE)?;
         Ok(())
     }
 
@@ -118,15 +118,15 @@ impl Envelope {
         sock: &mut zmq::Socket,
         msg: &M,
     ) -> Result<()> {
-        try!(self.send_header(sock));
+        self.send_header(sock)?;
         let rep = protocol::Message::new(msg).build();
-        let bytes = try!(rep.write_to_bytes());
-        try!(sock.send(&bytes, 0));
+        let bytes = rep.write_to_bytes()?;
+        sock.send(&bytes, 0)?;
         Ok(())
     }
 
     pub fn parse_msg<M: protobuf::MessageStatic>(&self) -> Result<M> {
-        let msg: M = try!(parse_from_bytes(&self.body()));
+        let msg: M = parse_from_bytes(&self.body())?;
         Ok(msg)
     }
 
@@ -212,25 +212,25 @@ pub trait Service: NetIdent {
         };
         for addr in &hb_addrs {
             println!("Connecting to {:?}...", addr);
-            try!(self.conn_mut().register(&addr));
+            self.conn_mut().register(&addr)?;
         }
         let mut ready = 0;
-        let mut rt = try!(zmq::Message::new());
-        let mut hb = try!(zmq::Message::new());
+        let mut rt = zmq::Message::new()?;
+        let mut hb = zmq::Message::new()?;
         while ready < hb_addrs.len() {
-            try!(self.conn_mut().heartbeat.recv(&mut rt, 0));
-            try!(self.conn_mut().heartbeat.recv(&mut hb, 0));
+            self.conn_mut().heartbeat.recv(&mut rt, 0)?;
+            self.conn_mut().heartbeat.recv(&mut hb, 0)?;
             debug!("received reg request, {:?}", hb.as_str());
-            try!(self.conn_mut().heartbeat.send_str("R", zmq::SNDMORE));
-            try!(self.conn_mut().heartbeat.send(
+            self.conn_mut().heartbeat.send_str("R", zmq::SNDMORE)?;
+            self.conn_mut().heartbeat.send(
                 &reg.write_to_bytes().unwrap(),
                 0,
-            ));
-            try!(self.conn_mut().heartbeat.recv(&mut hb, 0));
+            )?;
+            self.conn_mut().heartbeat.recv(&mut hb, 0)?;
             ready += 1;
         }
         for addr in addrs {
-            try!(self.conn_mut().connect(&addr));
+            self.conn_mut().connect(&addr)?;
         }
         println!("Connected");
         Ok(())
@@ -270,8 +270,8 @@ impl ServerReg {
         if now_ms >= self.ping_at {
             let ping = protocol::net::Ping::new();
             let req = protocol::Message::new(&ping).build();
-            let bytes = try!(req.write_to_bytes());
-            try!(socket.send(&bytes, 0));
+            let bytes = req.write_to_bytes()?;
+            socket.send(&bytes, 0)?;
             self.ping_at = Self::clock_time() + PING_INTERVAL;
         }
         Ok(())
@@ -295,11 +295,11 @@ pub struct RouteConn {
 
 impl RouteConn {
     pub fn new(ident: String, context: &mut zmq::Context) -> Result<Self> {
-        let socket = try!(context.socket(zmq::DEALER));
-        let heartbeat = try!(context.socket(zmq::DEALER));
-        try!(socket.set_identity(ident.as_bytes()));
-        try!(heartbeat.set_identity(format!("hb#{}", ident).as_bytes()));
-        try!(heartbeat.set_probe_router(true));
+        let socket = context.socket(zmq::DEALER)?;
+        let heartbeat = context.socket(zmq::DEALER)?;
+        socket.set_identity(ident.as_bytes())?;
+        heartbeat.set_identity(format!("hb#{}", ident).as_bytes())?;
+        heartbeat.set_probe_router(true)?;
         Ok(RouteConn {
             ident: ident,
             socket: socket,
@@ -308,17 +308,17 @@ impl RouteConn {
     }
 
     pub fn connect(&mut self, addr: &str) -> Result<()> {
-        try!(self.socket.connect(addr));
+        self.socket.connect(addr)?;
         Ok(())
     }
 
     pub fn register(&mut self, addr: &str) -> Result<()> {
-        try!(self.heartbeat.connect(addr));
+        self.heartbeat.connect(addr)?;
         Ok(())
     }
 
     pub fn recv(&mut self, flags: i32) -> Result<protocol::net::Msg> {
-        let envelope = try!(self.socket.recv_msg(flags));
+        let envelope = self.socket.recv_msg(flags)?;
         let msg: protocol::net::Msg = parse_from_bytes(&envelope).unwrap();
         Ok(msg)
     }
@@ -328,8 +328,8 @@ impl RouteConn {
             |key| key.hash(&mut FnvHasher::default()),
         );
         let req = protocol::Message::new(msg).routing(route_hash).build();
-        let bytes = try!(req.write_to_bytes());
-        try!(self.socket.send(&bytes, 0));
+        let bytes = req.write_to_bytes()?;
+        self.socket.send(&bytes, 0)?;
         Ok(())
     }
 }

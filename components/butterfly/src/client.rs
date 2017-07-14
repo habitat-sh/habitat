@@ -55,7 +55,7 @@ impl Client {
             "Failure to set the ZMQ send timeout",
         );
         let to_addr = format!("tcp://{}", addr.to_string());
-        try!(socket.connect(&to_addr).map_err(Error::ZmqConnectError));
+        socket.connect(&to_addr).map_err(Error::ZmqConnectError)?;
         Ok(Client {
             socket: socket,
             ring_key: ring_key,
@@ -93,8 +93,8 @@ impl Client {
 
     /// Send any `Rumor` to the server.
     pub fn send<T: Rumor>(&mut self, rumor: T) -> Result<()> {
-        let bytes = try!(rumor.write_to_bytes());
-        let wire_msg = try!(message::generate_wire(bytes, &self.ring_key));
+        let bytes = rumor.write_to_bytes()?;
+        let wire_msg = message::generate_wire(bytes, &self.ring_key)?;
         self.socket.send(&wire_msg, 0).map_err(Error::ZmqSendError)
     }
 }

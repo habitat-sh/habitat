@@ -43,8 +43,8 @@ pub fn start(
     include_callbacks: bool,
     maybe_name: Option<String>,
 ) -> Result<()> {
-    try!(ui.begin("Constructing a cozy habitat for your app..."));
-    try!(ui.br());
+    ui.begin("Constructing a cozy habitat for your app...")?;
+    ui.br()?;
 
     let (root, name) = match maybe_name {
         Some(name) => (name.clone(), name.clone()),
@@ -83,79 +83,75 @@ pub fn start(
     }
 
     // We want to render the configured variables.
-    let rendered_plan = try!(handlebars.template_render(PLAN_TEMPLATE, &data));
-    try!(create_with_template(
-        ui,
-        &format!("{}/plan.sh", root),
-        &rendered_plan,
-    ));
-    try!(ui.para(
+    let rendered_plan = handlebars.template_render(PLAN_TEMPLATE, &data)?;
+    create_with_template(ui, &format!("{}/plan.sh", root), &rendered_plan)?;
+    ui.para(
         "The `plan.sh` is the foundation of your new habitat. You can \
         define core metadata, dependencies, and tasks. More documentation here: \
         https://www.habitat.sh/docs/reference/plan-syntax/",
-    ));
+    )?;
 
-    let rendered_default_toml = try!(handlebars.template_render(DEFAULT_TOML_TEMPLATE, &data));
-    try!(create_with_template(
+    let rendered_default_toml = handlebars.template_render(DEFAULT_TOML_TEMPLATE, &data)?;
+    create_with_template(
         ui,
         &format!("{}/default.toml", root),
         &rendered_default_toml,
-    ));
-    try!(ui.para(
+    )?;
+    ui.para(
         "The `default.toml` allows you to declare default values for `cfg` prefixed
         variables. For more information see here:  \
         https://www.habitat.sh/docs/reference/plan-syntax/#runtime-configuration-settings",
-    ));
+    )?;
 
     let config_path = format!("{}/config/", root);
     match Path::new(&config_path).exists() {
         true => {
-            try!(ui.status(
+            ui.status(
                 Status::Using,
                 format!("existing directory: {}", config_path),
-            ))
+            )?
         }
         false => {
-            try!(ui.status(
+            ui.status(
                 Status::Creating,
                 format!("directory: {}", config_path),
-            ));
-            try!(create_dir_all(&config_path));
+            )?;
+            create_dir_all(&config_path)?;
         }
     };
-    try!(ui.para(
+    ui.para(
         "The `config` directory is where you can set up configuration files for your app. \
                They are influenced by `default.toml`. For more information see here: \
                https://www.habitat.sh/docs/reference/plan-syntax/#runtime-configuration-settings",
-    ));
+    )?;
 
     let hooks_path = format!("{}/hooks/", root);
     match Path::new(&hooks_path).exists() {
         true => {
-            try!(ui.status(
+            ui.status(
                 Status::Using,
                 format!("existing directory: {}", hooks_path),
-            ))
+            )?
         }
         false => {
-            try!(ui.status(
+            ui.status(
                 Status::Creating,
                 format!("directory: {}", hooks_path),
-            ));
-            try!(create_dir_all(&hooks_path));
+            )?;
+            create_dir_all(&hooks_path)?;
         }
     };
-    try!(ui.para(
+    ui.para(
         "The `hooks` directory is where you can create a number of automation hooks into \
                your habitat. There are several hooks to create and tweak! See the full list \
                with info here: https://www.habitat.sh/docs/reference/plan-syntax/#hooks",
-    ));
+    )?;
 
-    try!(render_ignorefile(ui, &root));
+    render_ignorefile(ui, &root)?;
 
-    try!(ui.end(
+    ui.end(
         "A happy abode for your code has been initialized! Now it's time to explore!",
-    ));
+    )?;
     Ok(())
 }
 
@@ -219,22 +215,22 @@ fn create_with_template(ui: &mut UI, location: &str, template: &str) -> Result<(
     let path = Path::new(&location);
     match path.exists() {
         false => {
-            try!(ui.status(Status::Creating, format!("file: {}", location)));
+            ui.status(Status::Creating, format!("file: {}", location))?;
             // If the directory doesn't exist we need to make it.
             if let Some(directory) = path.parent() {
-                try!(create_dir_all(directory));
+                create_dir_all(directory)?;
             }
             // Create and then render the template with Handlebars
-            try!(File::create(path).and_then(
+            File::create(path).and_then(
                 |mut file| file.write(template.as_bytes()),
-            ));
+            )?;
         }
         true => {
             // If the user has already configured a file overwriting would be impolite.
-            try!(ui.status(
+            ui.status(
                 Status::Using,
                 format!("existing file: {}", location),
-            ));
+            )?;
         }
     };
     Ok(())

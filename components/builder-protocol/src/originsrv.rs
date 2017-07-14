@@ -49,18 +49,18 @@ impl Serialize for AccountInvitationListResponse {
     where
         S: Serializer,
     {
-        let mut strukt = try!(serializer.serialize_struct(
+        let mut strukt = serializer.serialize_struct(
             "account_invitation_list_response",
             2,
-        ));
-        try!(strukt.serialize_field(
+        )?;
+        strukt.serialize_field(
             "account_id",
             &self.get_account_id().to_string(),
-        ));
-        try!(strukt.serialize_field(
+        )?;
+        strukt.serialize_field(
             "invitations",
             self.get_invitations(),
-        ));
+        )?;
         strukt.end()
     }
 }
@@ -78,17 +78,17 @@ impl Serialize for Origin {
     where
         S: Serializer,
     {
-        let mut strukt = try!(serializer.serialize_struct("origin", 4));
-        try!(strukt.serialize_field("id", &self.get_id().to_string()));
-        try!(strukt.serialize_field("name", self.get_name()));
-        try!(strukt.serialize_field(
+        let mut strukt = serializer.serialize_struct("origin", 4)?;
+        strukt.serialize_field("id", &self.get_id().to_string())?;
+        strukt.serialize_field("name", self.get_name())?;
+        strukt.serialize_field(
             "owner_id",
             &self.get_owner_id().to_string(),
-        ));
-        try!(strukt.serialize_field(
+        )?;
+        strukt.serialize_field(
             "private_key_name",
             self.get_private_key_name(),
-        ));
+        )?;
         strukt.end()
     }
 }
@@ -98,10 +98,10 @@ impl Serialize for OriginChannel {
     where
         S: Serializer,
     {
-        let mut strukt = try!(serializer.serialize_struct("origin", 4));
-        try!(strukt.serialize_field("id", &self.get_id()));
-        try!(strukt.serialize_field("name", self.get_name()));
-        try!(strukt.serialize_field("owner_id", &self.get_owner_id()));
+        let mut strukt = serializer.serialize_struct("origin", 4)?;
+        strukt.serialize_field("id", &self.get_id())?;
+        strukt.serialize_field("name", self.get_name())?;
+        strukt.serialize_field("owner_id", &self.get_owner_id())?;
         strukt.end()
     }
 }
@@ -135,8 +135,8 @@ impl Serialize for OriginChannelIdent {
     where
         S: Serializer,
     {
-        let mut strukt = try!(serializer.serialize_struct("origin_key", 3));
-        try!(strukt.serialize_field("name", self.get_name()));
+        let mut strukt = serializer.serialize_struct("origin_key", 3)?;
+        strukt.serialize_field("name", self.get_name())?;
         strukt.end()
     }
 }
@@ -162,11 +162,11 @@ impl Serialize for OriginChannelListResponse {
     where
         S: Serializer,
     {
-        let mut strukt = try!(serializer.serialize_struct(
+        let mut strukt = serializer.serialize_struct(
             "origin_channel_list_response",
             2,
-        ));
-        try!(strukt.serialize_field("channels", self.get_channels()));
+        )?;
+        strukt.serialize_field("channels", self.get_channels())?;
         strukt.end()
     }
 }
@@ -234,28 +234,28 @@ impl Serialize for OriginInvitation {
     where
         S: Serializer,
     {
-        let mut strukt = try!(serializer.serialize_struct("origin_invitation", 6));
-        try!(strukt.serialize_field("id", &self.get_id().to_string()));
-        try!(strukt.serialize_field(
+        let mut strukt = serializer.serialize_struct("origin_invitation", 6)?;
+        strukt.serialize_field("id", &self.get_id().to_string())?;
+        strukt.serialize_field(
             "account_id",
             &self.get_account_id().to_string(),
-        ));
-        try!(strukt.serialize_field(
+        )?;
+        strukt.serialize_field(
             "account_name",
             self.get_account_name(),
-        ));
-        try!(strukt.serialize_field(
+        )?;
+        strukt.serialize_field(
             "origin_id",
             &self.get_origin_id().to_string(),
-        ));
-        try!(strukt.serialize_field(
+        )?;
+        strukt.serialize_field(
             "origin_name",
             self.get_origin_name(),
-        ));
-        try!(strukt.serialize_field(
+        )?;
+        strukt.serialize_field(
             "owner_id",
             &self.get_owner_id().to_string(),
-        ));
+        )?;
         strukt.end()
     }
 }
@@ -297,18 +297,18 @@ impl Serialize for OriginInvitationListResponse {
     where
         S: Serializer,
     {
-        let mut strukt = try!(serializer.serialize_struct(
+        let mut strukt = serializer.serialize_struct(
             "origin_invitation_list_response",
             2,
-        ));
-        try!(strukt.serialize_field(
+        )?;
+        strukt.serialize_field(
             "origin_id",
             &self.get_origin_id().to_string(),
-        ));
-        try!(strukt.serialize_field(
+        )?;
+        strukt.serialize_field(
             "invitations",
             self.get_invitations(),
-        ));
+        )?;
         strukt.end()
     }
 }
@@ -318,10 +318,10 @@ impl Serialize for OriginKeyIdent {
     where
         S: Serializer,
     {
-        let mut strukt = try!(serializer.serialize_struct("origin_key", 3));
-        try!(strukt.serialize_field("origin", self.get_origin()));
-        try!(strukt.serialize_field("revision", self.get_revision()));
-        try!(strukt.serialize_field("location", self.get_location()));
+        let mut strukt = serializer.serialize_struct("origin_key", 3)?;
+        strukt.serialize_field("origin", self.get_origin())?;
+        strukt.serialize_field("revision", self.get_revision())?;
+        strukt.serialize_field("location", self.get_location())?;
         strukt.end()
     }
 }
@@ -339,15 +339,15 @@ impl Serialize for OriginMemberListResponse {
     where
         S: Serializer,
     {
-        let mut strukt = try!(serializer.serialize_struct(
+        let mut strukt = serializer.serialize_struct(
             "origin_member_list_response",
             2,
-        ));
-        try!(strukt.serialize_field(
+        )?;
+        strukt.serialize_field(
             "origin_id",
             &self.get_origin_id().to_string(),
-        ));
-        try!(strukt.serialize_field("members", self.get_members()));
+        )?;
+        strukt.serialize_field("members", self.get_members())?;
         strukt.end()
     }
 }
@@ -374,19 +374,13 @@ impl FromArchive for OriginPackage {
             Ok(value) => OriginPackageIdent::from(value),
             Err(e) => return Err(hab_core::Error::from(e)),
         };
-        let manifest = try!(archive.manifest());
-        let deps = try!(archive.deps()).into_iter().map(|d| d.into()).collect();
-        let tdeps = try!(archive.tdeps())
-            .into_iter()
-            .map(|d| d.into())
-            .collect();
-        let exposes = try!(archive.exposes())
-            .into_iter()
-            .map(|d| d as u32)
-            .collect();
-        let config = try!(archive.config());
-        let checksum = try!(archive.checksum());
-        let target = try!(archive.target());
+        let manifest = archive.manifest()?;
+        let deps = archive.deps()?.into_iter().map(|d| d.into()).collect();
+        let tdeps = archive.tdeps()?.into_iter().map(|d| d.into()).collect();
+        let exposes = archive.exposes()?.into_iter().map(|d| d as u32).collect();
+        let config = archive.config()?;
+        let checksum = archive.checksum()?;
+        let target = archive.target()?;
 
         let mut package = OriginPackage::new();
         package.set_ident(ident);
@@ -414,15 +408,15 @@ impl Serialize for OriginPackage {
     where
         S: Serializer,
     {
-        let mut strukt = try!(serializer.serialize_struct("origin_package", 8));
-        try!(strukt.serialize_field("ident", self.get_ident()));
-        try!(strukt.serialize_field("checksum", self.get_checksum()));
-        try!(strukt.serialize_field("manifest", self.get_manifest()));
-        try!(strukt.serialize_field("target", self.get_target()));
-        try!(strukt.serialize_field("deps", self.get_deps()));
-        try!(strukt.serialize_field("tdeps", self.get_tdeps()));
-        try!(strukt.serialize_field("exposes", self.get_exposes()));
-        try!(strukt.serialize_field("config", self.get_config()));
+        let mut strukt = serializer.serialize_struct("origin_package", 8)?;
+        strukt.serialize_field("ident", self.get_ident())?;
+        strukt.serialize_field("checksum", self.get_checksum())?;
+        strukt.serialize_field("manifest", self.get_manifest())?;
+        strukt.serialize_field("target", self.get_target())?;
+        strukt.serialize_field("deps", self.get_deps())?;
+        strukt.serialize_field("tdeps", self.get_tdeps())?;
+        strukt.serialize_field("exposes", self.get_exposes())?;
+        strukt.serialize_field("config", self.get_config())?;
         strukt.end()
     }
 }
@@ -435,19 +429,13 @@ impl FromArchive for OriginPackageCreate {
             Ok(value) => OriginPackageIdent::from(value),
             Err(e) => return Err(hab_core::Error::from(e)),
         };
-        let manifest = try!(archive.manifest());
-        let deps = try!(archive.deps()).into_iter().map(|d| d.into()).collect();
-        let tdeps = try!(archive.tdeps())
-            .into_iter()
-            .map(|d| d.into())
-            .collect();
-        let exposes = try!(archive.exposes())
-            .into_iter()
-            .map(|d| d as u32)
-            .collect();
-        let config = try!(archive.config());
-        let checksum = try!(archive.checksum());
-        let target = try!(archive.target());
+        let manifest = archive.manifest()?;
+        let deps = archive.deps()?.into_iter().map(|d| d.into()).collect();
+        let tdeps = archive.tdeps()?.into_iter().map(|d| d.into()).collect();
+        let exposes = archive.exposes()?.into_iter().map(|d| d as u32).collect();
+        let config = archive.config()?;
+        let checksum = archive.checksum()?;
+        let target = archive.target()?;
 
         let mut package = OriginPackageCreate::new();
         package.set_ident(ident);
@@ -652,14 +640,14 @@ impl Serialize for OriginPackageIdent {
     where
         S: Serializer,
     {
-        let mut strukt = try!(serializer.serialize_struct("origin_package_ident", 4));
-        try!(strukt.serialize_field("origin", self.get_origin()));
-        try!(strukt.serialize_field("name", self.get_name()));
+        let mut strukt = serializer.serialize_struct("origin_package_ident", 4)?;
+        strukt.serialize_field("origin", self.get_origin())?;
+        strukt.serialize_field("name", self.get_name())?;
         if !self.get_version().is_empty() {
-            try!(strukt.serialize_field("version", self.get_version()));
+            strukt.serialize_field("version", self.get_version())?;
         }
         if !self.get_release().is_empty() {
-            try!(strukt.serialize_field("release", self.get_release()));
+            strukt.serialize_field("release", self.get_release())?;
         }
         strukt.end()
     }
@@ -670,15 +658,15 @@ impl Serialize for OriginPackageVersion {
     where
         S: Serializer,
     {
-        let mut strukt = try!(serializer.serialize_struct("origin_package_version", 4));
-        try!(strukt.serialize_field("origin", self.get_origin()));
-        try!(strukt.serialize_field("name", self.get_name()));
-        try!(strukt.serialize_field("version", self.get_version()));
-        try!(strukt.serialize_field(
+        let mut strukt = serializer.serialize_struct("origin_package_version", 4)?;
+        strukt.serialize_field("origin", self.get_origin())?;
+        strukt.serialize_field("name", self.get_name())?;
+        strukt.serialize_field("version", self.get_version())?;
+        strukt.serialize_field(
             "release_count",
             &self.get_release_count().to_string(),
-        ));
-        try!(strukt.serialize_field("latest", &self.get_latest()));
+        )?;
+        strukt.serialize_field("latest", &self.get_latest())?;
         strukt.end()
     }
 }
@@ -762,25 +750,25 @@ impl Serialize for OriginProject {
     where
         S: Serializer,
     {
-        let mut state = try!(serializer.serialize_struct("project", 2));
-        try!(state.serialize_field("id", &self.get_id().to_string()));
-        try!(state.serialize_field(
+        let mut state = serializer.serialize_struct("project", 2)?;
+        state.serialize_field("id", &self.get_id().to_string())?;
+        state.serialize_field(
             "origin_id",
             &self.get_origin_id().to_string(),
-        ));
-        try!(state.serialize_field("origin_name", self.get_origin_name()));
-        try!(state.serialize_field(
+        )?;
+        state.serialize_field("origin_name", self.get_origin_name())?;
+        state.serialize_field(
             "package_name",
             self.get_package_name(),
-        ));
-        try!(state.serialize_field("name", self.get_name()));
-        try!(state.serialize_field("plan_path", self.get_plan_path()));
-        try!(state.serialize_field(
+        )?;
+        state.serialize_field("name", self.get_name())?;
+        state.serialize_field("plan_path", self.get_plan_path())?;
+        state.serialize_field(
             "owner_id",
             &self.get_owner_id().to_string(),
-        ));
-        try!(state.serialize_field("vcs_type", self.get_vcs_type()));
-        try!(state.serialize_field("vcs_data", self.get_vcs_data()));
+        )?;
+        state.serialize_field("vcs_type", self.get_vcs_type())?;
+        state.serialize_field("vcs_data", self.get_vcs_data())?;
         state.end()
     }
 }
@@ -844,19 +832,19 @@ impl Serialize for OriginPublicKey {
     where
         S: Serializer,
     {
-        let mut strukt = try!(serializer.serialize_struct("origin_public_key", 6));
-        try!(strukt.serialize_field("id", &self.get_id().to_string()));
-        try!(strukt.serialize_field(
+        let mut strukt = serializer.serialize_struct("origin_public_key", 6)?;
+        strukt.serialize_field("id", &self.get_id().to_string())?;
+        strukt.serialize_field(
             "origin_id",
             &self.get_origin_id().to_string(),
-        ));
-        try!(strukt.serialize_field("name", self.get_name()));
-        try!(strukt.serialize_field("revision", self.get_revision()));
-        try!(strukt.serialize_field("body", self.get_body()));
-        try!(strukt.serialize_field(
+        )?;
+        strukt.serialize_field("name", self.get_name())?;
+        strukt.serialize_field("revision", self.get_revision())?;
+        strukt.serialize_field("body", self.get_body())?;
+        strukt.serialize_field(
             "owner_id",
             &self.get_owner_id().to_string(),
-        ));
+        )?;
         strukt.end()
     }
 }
@@ -906,15 +894,15 @@ impl Serialize for OriginPublicKeyListResponse {
     where
         S: Serializer,
     {
-        let mut strukt = try!(serializer.serialize_struct(
+        let mut strukt = serializer.serialize_struct(
             "origin_public_key_list_response",
             2,
-        ));
-        try!(strukt.serialize_field(
+        )?;
+        strukt.serialize_field(
             "origin_id",
             &self.get_origin_id().to_string(),
-        ));
-        try!(strukt.serialize_field("keys", self.get_keys()));
+        )?;
+        strukt.serialize_field("keys", self.get_keys())?;
         strukt.end()
     }
 }
@@ -924,19 +912,19 @@ impl Serialize for OriginSecretKey {
     where
         S: Serializer,
     {
-        let mut strukt = try!(serializer.serialize_struct("origin_secret_key", 6));
-        try!(strukt.serialize_field("id", &self.get_id().to_string()));
-        try!(strukt.serialize_field(
+        let mut strukt = serializer.serialize_struct("origin_secret_key", 6)?;
+        strukt.serialize_field("id", &self.get_id().to_string())?;
+        strukt.serialize_field(
             "origin_id",
             &self.get_origin_id().to_string(),
-        ));
-        try!(strukt.serialize_field("name", self.get_name()));
-        try!(strukt.serialize_field("revision", self.get_revision()));
-        try!(strukt.serialize_field("body", self.get_body()));
-        try!(strukt.serialize_field(
+        )?;
+        strukt.serialize_field("name", self.get_name())?;
+        strukt.serialize_field("revision", self.get_revision())?;
+        strukt.serialize_field("body", self.get_body())?;
+        strukt.serialize_field(
             "owner_id",
             &self.get_owner_id().to_string(),
-        ));
+        )?;
         strukt.end()
     }
 }

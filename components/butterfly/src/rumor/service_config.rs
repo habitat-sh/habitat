@@ -101,7 +101,7 @@ impl ServiceConfig {
 
     pub fn encrypt(&mut self, user_pair: &BoxKeyPair, service_pair: &BoxKeyPair) -> Result<()> {
         let config = self.take_config();
-        let encrypted_config = try!(user_pair.encrypt(&config, service_pair));
+        let encrypted_config = user_pair.encrypt(&config, service_pair)?;
         self.set_config(encrypted_config);
         self.set_encrypted(true);
         Ok(())
@@ -109,19 +109,16 @@ impl ServiceConfig {
 
     pub fn config(&self) -> Result<toml::Value> {
         let config = if self.get_encrypted() {
-            let bytes = try!(BoxKeyPair::decrypt(
-                self.get_config(),
-                &default_cache_key_path(None),
-            ));
-            let encoded = try!(str::from_utf8(&bytes).map_err(|e| {
+            let bytes = BoxKeyPair::decrypt(self.get_config(), &default_cache_key_path(None))?;
+            let encoded = str::from_utf8(&bytes).map_err(|e| {
                 Error::ServiceConfigNotUtf8(self.get_service_group().to_string(), e)
-            }));
-            try!(self.parse_config(&encoded))
+            })?;
+            self.parse_config(&encoded)?
         } else {
-            let encoded = try!(str::from_utf8(self.get_config()).map_err(|e| {
+            let encoded = str::from_utf8(self.get_config()).map_err(|e| {
                 Error::ServiceConfigNotUtf8(self.get_service_group().to_string(), e)
-            }));
-            try!(self.parse_config(&encoded))
+            })?;
+            self.parse_config(&encoded)?
         };
         Ok(config)
     }
@@ -163,7 +160,7 @@ impl Rumor for ServiceConfig {
     }
 
     fn write_to_bytes(&self) -> Result<Vec<u8>> {
-        Ok(try!(self.0.write_to_bytes()))
+        Ok(self.0.write_to_bytes()?)
     }
 }
 

@@ -84,13 +84,13 @@ fn start(ui: &mut UI) -> Result<()> {
     match app_matches.subcommand() {
         ("config", Some(matches)) => {
             match matches.subcommand() {
-                ("apply", Some(m)) => try!(sub_config_apply(ui, m)),
+                ("apply", Some(m)) => sub_config_apply(ui, m)?,
                 _ => unreachable!(),
             }
         }
         ("file", Some(matches)) => {
             match matches.subcommand() {
-                ("upload", Some(m)) => try!(sub_file_upload(ui, m)),
+                ("upload", Some(m)) => sub_file_upload(ui, m)?,
                 _ => unreachable!(),
             }
         }
@@ -117,21 +117,21 @@ fn sub_config_apply(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     init();
     let cache = default_cache_key_path(Some(&*FS_ROOT));
     let ring_key = match m.value_of("RING") {
-        Some(name) => Some(try!(SymKey::get_latest_pair_for(&name, &cache))),
+        Some(name) => Some(SymKey::get_latest_pair_for(&name, &cache)?),
         None => None,
     };
 
-    let mut sg = try!(ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap()));
+    let mut sg = ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap())?;
     if let Some(org) = org_param_or_env(&m) {
         sg.set_org(org);
     }
     let service_pair = if sg.org().is_some() {
-        Some(try!(BoxKeyPair::get_latest_pair_for(&sg, &cache)))
+        Some(BoxKeyPair::get_latest_pair_for(&sg, &cache)?)
     } else {
         None
     };
     let user_pair = match user_param_or_env(&m) {
-        Some(username) => Some(try!(BoxKeyPair::get_latest_pair_for(username, &cache))),
+        Some(username) => Some(BoxKeyPair::get_latest_pair_for(username, &cache)?),
         None => None,
     };
     command::config::apply::start(
@@ -177,21 +177,21 @@ fn sub_file_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     init();
     let cache = default_cache_key_path(Some(&*FS_ROOT));
     let ring_key = match m.value_of("RING") {
-        Some(name) => Some(try!(SymKey::get_latest_pair_for(&name, &cache))),
+        Some(name) => Some(SymKey::get_latest_pair_for(&name, &cache)?),
         None => None,
     };
 
-    let mut sg = try!(ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap()));
+    let mut sg = ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap())?;
     if let Some(org) = org_param_or_env(&m) {
         sg.set_org(org);
     }
     let service_pair = if sg.org().is_some() {
-        Some(try!(BoxKeyPair::get_latest_pair_for(&sg, &cache)))
+        Some(BoxKeyPair::get_latest_pair_for(&sg, &cache)?)
     } else {
         None
     };
     let user_pair = match user_param_or_env(&m) {
-        Some(username) => Some(try!(BoxKeyPair::get_latest_pair_for(username, &cache))),
+        Some(username) => Some(BoxKeyPair::get_latest_pair_for(username, &cache)?),
         None => None,
     };
     command::file::upload::start(

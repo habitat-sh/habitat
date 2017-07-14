@@ -33,29 +33,29 @@ pub fn start(
     public_keyfile: &Path,
     secret_keyfile: Option<&Path>,
 ) -> Result<()> {
-    let depot_client = try!(Client::new(depot, PRODUCT, VERSION, None));
-    try!(ui.begin(format!(
+    let depot_client = Client::new(depot, PRODUCT, VERSION, None)?;
+    ui.begin(format!(
         "Uploading public origin key {}",
         public_keyfile.display()
-    )));
+    ))?;
 
-    let name_with_rev = try!(get_name_with_rev(&public_keyfile, PUBLIC_SIG_KEY_VERSION));
-    let (name, rev) = try!(parse_name_with_rev(&name_with_rev));
+    let name_with_rev = get_name_with_rev(&public_keyfile, PUBLIC_SIG_KEY_VERSION)?;
+    let (name, rev) = parse_name_with_rev(&name_with_rev)?;
 
     {
         let upload_fn = || -> Result<()> {
-            try!(ui.status(Status::Uploading, public_keyfile.display()));
+            ui.status(Status::Uploading, public_keyfile.display())?;
             match depot_client.put_origin_key(&name, &rev, public_keyfile, token, ui.progress()) {
-                Ok(()) => try!(ui.status(Status::Uploaded, &name_with_rev)),
+                Ok(()) => ui.status(Status::Uploaded, &name_with_rev)?,
                 Err(depot_client::Error::APIError(StatusCode::Conflict, _)) => {
-                    try!(ui.status(
+                    ui.status(
                         Status::Using,
                         format!(
                             "public key revision {} which already exists in the \
                                             depot",
                             &name_with_rev
                         ),
-                    ));
+                    )?;
                 }
                 Err(err) => return Err(Error::from(err)),
             }
@@ -79,17 +79,17 @@ pub fn start(
         }
     }
 
-    try!(ui.end(format!(
+    ui.end(format!(
         "Upload of public origin key {} complete.",
         &name_with_rev
-    )));
+    ))?;
 
     if let Some(secret_keyfile) = secret_keyfile {
-        let name_with_rev = try!(get_name_with_rev(&secret_keyfile, SECRET_SIG_KEY_VERSION));
-        let (name, rev) = try!(parse_name_with_rev(&name_with_rev));
+        let name_with_rev = get_name_with_rev(&secret_keyfile, SECRET_SIG_KEY_VERSION)?;
+        let (name, rev) = parse_name_with_rev(&name_with_rev)?;
 
         let upload_fn = || -> Result<()> {
-            try!(ui.status(Status::Uploading, secret_keyfile.display()));
+            ui.status(Status::Uploading, secret_keyfile.display())?;
             match depot_client.put_origin_secret_key(
                 &name,
                 &rev,
@@ -98,9 +98,9 @@ pub fn start(
                 ui.progress(),
             ) {
                 Ok(()) => {
-                    try!(ui.status(Status::Uploaded, &name_with_rev));
-                    try!(ui.end(format!("Upload of secret origin key {} complete.",
-                                        &name_with_rev)));
+                    ui.status(Status::Uploaded, &name_with_rev)?;
+                    ui.end(format!("Upload of secret origin key {} complete.",
+                                   &name_with_rev))?;
                     Ok(())
                 }
                 Err(e) => {
