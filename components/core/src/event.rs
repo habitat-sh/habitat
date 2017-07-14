@@ -132,11 +132,11 @@ impl Serialize for Event {
                 package: ref p,
                 account: ref a,
             } => {
-                let mut strukt = try!(serializer.serialize_struct("event", 4));
-                try!(strukt.serialize_field("name", &self.to_string()));
-                try!(strukt.serialize_field("origin", o));
-                try!(strukt.serialize_field("package", p));
-                try!(strukt.serialize_field("account", a));
+                let mut strukt = serializer.serialize_struct("event", 4)?;
+                strukt.serialize_field("name", &self.to_string())?;
+                strukt.serialize_field("origin", o)?;
+                strukt.serialize_field("package", p)?;
+                strukt.serialize_field("account", a)?;
                 strukt
             }
             Event::PackageUpload {
@@ -147,14 +147,14 @@ impl Serialize for Event {
                 target: ref t,
                 account: ref a,
             } => {
-                let mut strukt = try!(serializer.serialize_struct("event", 6));
-                try!(strukt.serialize_field("name", &self.to_string()));
-                try!(strukt.serialize_field("origin", o));
-                try!(strukt.serialize_field("package", p));
-                try!(strukt.serialize_field("version", v));
-                try!(strukt.serialize_field("release", r));
-                try!(strukt.serialize_field("target", t));
-                try!(strukt.serialize_field("account", a));
+                let mut strukt = serializer.serialize_struct("event", 6)?;
+                strukt.serialize_field("name", &self.to_string())?;
+                strukt.serialize_field("origin", o)?;
+                strukt.serialize_field("package", p)?;
+                strukt.serialize_field("version", v)?;
+                strukt.serialize_field("release", r)?;
+                strukt.serialize_field("target", t)?;
+                strukt.serialize_field("account", a)?;
                 strukt
             }
             Event::OriginInvitationSend {
@@ -163,52 +163,52 @@ impl Serialize for Event {
                 id: ref i,
                 account: ref a,
             } => {
-                let mut strukt = try!(serializer.serialize_struct("event", 5));
-                try!(strukt.serialize_field("name", &self.to_string()));
-                try!(strukt.serialize_field("origin", o));
-                try!(strukt.serialize_field("user", u));
-                try!(strukt.serialize_field("id", i));
-                try!(strukt.serialize_field("account", a));
+                let mut strukt = serializer.serialize_struct("event", 5)?;
+                strukt.serialize_field("name", &self.to_string())?;
+                strukt.serialize_field("origin", o)?;
+                strukt.serialize_field("user", u)?;
+                strukt.serialize_field("id", i)?;
+                strukt.serialize_field("account", a)?;
                 strukt
             }
             Event::OriginInvitationAccept {
                 id: ref i,
                 account: ref a,
             } => {
-                let mut strukt = try!(serializer.serialize_struct("event", 3));
-                try!(strukt.serialize_field("name", &self.to_string()));
-                try!(strukt.serialize_field("id", i));
-                try!(strukt.serialize_field("account", a));
+                let mut strukt = serializer.serialize_struct("event", 3)?;
+                strukt.serialize_field("name", &self.to_string())?;
+                strukt.serialize_field("id", i)?;
+                strukt.serialize_field("account", a)?;
                 strukt
             }
             Event::OriginInvitationIgnore {
                 id: ref i,
                 account: ref a,
             } => {
-                let mut strukt = try!(serializer.serialize_struct("event", 3));
-                try!(strukt.serialize_field("name", &self.to_string()));
-                try!(strukt.serialize_field("id", i));
-                try!(strukt.serialize_field("account", a));
+                let mut strukt = serializer.serialize_struct("event", 3)?;
+                strukt.serialize_field("name", &self.to_string())?;
+                strukt.serialize_field("id", i)?;
+                strukt.serialize_field("account", a)?;
                 strukt
             }
             Event::JobCreate {
                 package: ref p,
                 account: ref a,
             } => {
-                let mut strukt = try!(serializer.serialize_struct("event", 3));
-                try!(strukt.serialize_field("name", &self.to_string()));
-                try!(strukt.serialize_field("package", p));
-                try!(strukt.serialize_field("account", a));
+                let mut strukt = serializer.serialize_struct("event", 3)?;
+                strukt.serialize_field("name", &self.to_string())?;
+                strukt.serialize_field("package", p)?;
+                strukt.serialize_field("account", a)?;
                 strukt
             }
             Event::GithubAuthenticate {
                 user: ref u,
                 account: ref a,
             } => {
-                let mut strukt = try!(serializer.serialize_struct("event", 3));
-                try!(strukt.serialize_field("name", &self.to_string()));
-                try!(strukt.serialize_field("user", u));
-                try!(strukt.serialize_field("account", a));
+                let mut strukt = serializer.serialize_struct("event", 3)?;
+                strukt.serialize_field("name", &self.to_string())?;
+                strukt.serialize_field("user", u)?;
+                strukt.serialize_field("account", a)?;
                 strukt
             }
             Event::OriginKeyUpload {
@@ -216,11 +216,11 @@ impl Serialize for Event {
                 version: ref v,
                 account: ref a,
             } => {
-                let mut strukt = try!(serializer.serialize_struct("event", 4));
-                try!(strukt.serialize_field("name", &self.to_string()));
-                try!(strukt.serialize_field("origin", o));
-                try!(strukt.serialize_field("version", v));
-                try!(strukt.serialize_field("account", a));
+                let mut strukt = serializer.serialize_struct("event", 4)?;
+                strukt.serialize_field("name", &self.to_string())?;
+                strukt.serialize_field("origin", o)?;
+                strukt.serialize_field("version", v)?;
+                strukt.serialize_field("account", a)?;
                 strukt
             }
             Event::OriginSecretKeyUpload {
@@ -228,11 +228,11 @@ impl Serialize for Event {
                 version: ref v,
                 account: ref a,
             } => {
-                let mut strukt = try!(serializer.serialize_struct("event", 4));
-                try!(strukt.serialize_field("name", &self.to_string()));
-                try!(strukt.serialize_field("origin", o));
-                try!(strukt.serialize_field("version", v));
-                try!(strukt.serialize_field("account", a));
+                let mut strukt = serializer.serialize_struct("event", 4)?;
+                strukt.serialize_field("name", &self.to_string())?;
+                strukt.serialize_field("origin", o)?;
+                strukt.serialize_field("version", v)?;
+                strukt.serialize_field("account", a)?;
                 strukt
             }
         };
@@ -262,10 +262,10 @@ impl Serialize for Envelope {
     where
         S: Serializer,
     {
-        let mut strukt = try!(serializer.serialize_struct("envelope", 3));
-        try!(strukt.serialize_field("version", &self.version));
-        try!(strukt.serialize_field("timestamp", &self.timestamp));
-        try!(strukt.serialize_field("event", &self.event));
+        let mut strukt = serializer.serialize_struct("envelope", 3)?;
+        strukt.serialize_field("version", &self.version)?;
+        strukt.serialize_field("timestamp", &self.timestamp)?;
+        strukt.serialize_field("event", &self.event)?;
         strukt.end()
     }
 }

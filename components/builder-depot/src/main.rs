@@ -72,7 +72,7 @@ fn config_from_args(matches: &clap::ArgMatches) -> Result<Config> {
     let cmd = matches.subcommand_name().unwrap();
     let args = matches.subcommand_matches(cmd).unwrap();
     let mut config = match args.value_of("config") {
-        Some(cfg_path) => try!(Config::from_file(cfg_path)),
+        Some(cfg_path) => Config::from_file(cfg_path)?,
         None => Config::from_file(CFG_DEFAULT_PATH).unwrap_or(Config::default()),
     };
     if let Some(port) = args.value_of("port") {
@@ -132,7 +132,7 @@ fn start(config: Config) -> Result<()> {
 /// * A write transaction cannot be acquired
 pub fn repair(config: Config) -> Result<()> {
     let depot = depot::DepotUtil::new(config);
-    let report = try!(depot::doctor::repair(&depot));
+    let report = depot::doctor::repair(&depot)?;
     println!("Report: {:?}", &report);
     Ok(())
 }

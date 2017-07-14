@@ -20,12 +20,12 @@ use hcore::crypto::SigKeyPair;
 use error::Result;
 
 pub fn start(ui: &mut UI, content: &str, cache: &Path) -> Result<()> {
-    try!(ui.begin("Importing origin key from standard input"));
-    let (pair, pair_type) = try!(SigKeyPair::write_file_from_str(content, cache));
-    try!(ui.end(format!(
+    ui.begin("Importing origin key from standard input")?;
+    let (pair, pair_type) = SigKeyPair::write_file_from_str(content, cache)?;
+    ui.end(format!(
         "Imported {} origin key {}.",
         &pair_type,
         &pair.name_with_rev()
-    )));
+    ))?;
     Ok(())
 }

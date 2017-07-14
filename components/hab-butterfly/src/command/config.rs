@@ -38,69 +38,67 @@ pub mod apply {
         user_pair: Option<&BoxKeyPair>,
         service_pair: Option<&BoxKeyPair>,
     ) -> Result<()> {
-        try!(ui.begin(
-            format!("Applying configuration for {} incarnation {}", sg, number,),
-        ));
+        ui.begin(
+            format!("Applying configuration for {} incarnation {}", sg, number, ),
+        )?;
 
-        try!(ui.status(
+        ui.status(
             Status::Creating,
             format!("service configuration"),
-        ));
+        )?;
 
         let mut body = Vec::new();
 
         match file_path {
             Some(p) => {
-                let mut file = try!(File::open(&p));
-                try!(file.read_to_end(&mut body));
+                let mut file = File::open(&p)?;
+                file.read_to_end(&mut body)?;
             }
             None => {
-                try!(io::stdin().read_to_end(&mut body));
+                io::stdin().read_to_end(&mut body)?;
             }
         };
 
         match toml::de::from_slice::<toml::value::Value>(&body) {
             Ok(_) => {
-                try!(ui.status(
+                ui.status(
                     Status::Verified,
                     "this configuration is valid TOML",
-                ))
+                )?
             }
             Err(err) => {
-                try!(ui.fatal("Invalid TOML"));
-                try!(ui.br());
-                try!(ui.warn(&err));
-                try!(ui.br());
+                ui.fatal("Invalid TOML")?;
+                ui.br()?;
+                ui.warn(&err)?;
+                ui.br()?;
                 return Err(Error::TomlDeserializeError(err));
             }
         }
 
         let mut encrypted = false;
         if service_pair.is_some() && user_pair.is_some() {
-            try!(ui.status(
+            ui.status(
                 Status::Encrypting,
                 format!(
                     "TOML as {} for {}",
                     user_pair.unwrap().name_with_rev(),
                     service_pair.unwrap().name_with_rev()
                 ),
-            ));
-            body = try!(user_pair.unwrap().encrypt(&body, service_pair.unwrap()));
+            )?;
+            body = user_pair.unwrap().encrypt(&body, service_pair.unwrap())?;
             encrypted = true;
         }
 
         for peer in peers.iter() {
-            try!(ui.status(Status::Applying, format!("to peer {}", peer)));
-            let mut client = try!(Client::new(peer, ring_key.map(|k| k.clone())).map_err(
+            ui.status(Status::Applying, format!("to peer {}", peer))?;
+            let mut client = Client::new(peer, ring_key.map(|k| k.clone())).map_err(
                 |e| {
                     Error::ButterflyError(format!("{}", e))
                 },
-            ));
-            try!(
-                client
-                    .send_service_config(sg.clone(), number, body.clone(), encrypted)
-                    .map_err(|e| Error::ButterflyError(format!("{}", e)))
-            );
+            )?;
+            client
+                .send_service_config(sg.clone(), number, body.clone(), encrypted)
+                .map_err(|e| Error::ButterflyError(format!("{}", e)))?;
 
             // please take a moment to weep over the following line
             // of code. We must sleep to allow messages to be sent
@@ -108,7 +106,7 @@ pub mod apply {
             // see https://github.com/zeromq/libzmq/issues/1264
             thread::sleep(time::Duration::from_millis(100));
         }
-        try!(ui.end("Applied configuration"));
+        ui.end("Applied configuration")?;
         Ok(())
     }
 }

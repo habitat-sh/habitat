@@ -47,7 +47,7 @@ where
 
     /// Start the supervisor and block until all workers are ready.
     pub fn start(mut self) -> super::Result<()> {
-        try!(self.init());
+        self.init()?;
         debug!("Supervisor ready");
         self.run()
     }
@@ -59,7 +59,7 @@ where
             self.config.read().unwrap().worker_count()
         };
         for worker_id in 0..worker_count {
-            try!(self.spawn_worker(worker_id));
+            self.spawn_worker(worker_id)?;
         }
         Ok(())
     }
@@ -94,7 +94,7 @@ where
         let mut worker = T::new(cfg);
         let init_state = self.init_state.clone();
         thread::spawn(move || {
-            let state = try!(worker.init(init_state));
+            let state = worker.init(init_state)?;
             worker.start(tx, state)
         });
         if rx.recv().is_ok() {

@@ -36,17 +36,17 @@ pub mod upload {
         user_pair: Option<&BoxKeyPair>,
         service_pair: Option<&BoxKeyPair>,
     ) -> Result<()> {
-        try!(ui.begin(format!(
+        ui.begin(format!(
             "Uploading file {} to {} incarnation {}",
             &file_path.display(),
             sg,
             number
-        )));
-        try!(ui.status(Status::Creating, format!("service file")));
+        ))?;
+        ui.status(Status::Creating, format!("service file"))?;
 
         let mut body = Vec::new();
-        let mut file = try!(File::open(&file_path));
-        try!(file.read_to_end(&mut body));
+        let mut file = File::open(&file_path)?;
+        file.read_to_end(&mut body)?;
 
         // Safe because clap checks that this is a real file that exists
         let filename = file_path
@@ -57,36 +57,34 @@ pub mod upload {
 
         let mut encrypted = false;
         if service_pair.is_some() && user_pair.is_some() {
-            try!(ui.status(
+            ui.status(
                 Status::Encrypting,
                 format!(
                     "file as {} for {}",
                     user_pair.unwrap().name_with_rev(),
                     service_pair.unwrap().name_with_rev()
                 ),
-            ));
-            body = try!(user_pair.unwrap().encrypt(&body, service_pair.unwrap()));
+            )?;
+            body = user_pair.unwrap().encrypt(&body, service_pair.unwrap())?;
             encrypted = true;
         }
 
         for peer in peers.iter() {
-            try!(ui.status(Status::Applying, format!("to peer {}", peer)));
-            let mut client = try!(Client::new(peer, ring_key.map(|k| k.clone())).map_err(
+            ui.status(Status::Applying, format!("to peer {}", peer))?;
+            let mut client = Client::new(peer, ring_key.map(|k| k.clone())).map_err(
                 |e| {
                     Error::ButterflyError(format!("{}", e))
                 },
-            ));
-            try!(
-                client
-                    .send_service_file(
-                        sg.clone(),
-                        filename.clone(),
-                        number,
-                        body.clone(),
-                        encrypted,
-                    )
-                    .map_err(|e| Error::ButterflyError(format!("{}", e)))
-            );
+            )?;
+            client
+                .send_service_file(
+                    sg.clone(),
+                    filename.clone(),
+                    number,
+                    body.clone(),
+                    encrypted,
+                )
+                .map_err(|e| Error::ButterflyError(format!("{}", e)))?;
 
             // please take a moment to weep over the following line
             // of code. We must sleep to allow messages to be sent
@@ -94,7 +92,7 @@ pub mod upload {
             // see https://github.com/zeromq/libzmq/issues/1264
             thread::sleep(time::Duration::from_millis(100));
         }
-        try!(ui.end("Uploaded file"));
+        ui.end("Uploaded file")?;
         Ok(())
     }
 }

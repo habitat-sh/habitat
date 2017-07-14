@@ -109,7 +109,7 @@ pub fn lookup_hostname() -> Result<String> {
     match err {
         0 => {
             let slice = unsafe { CStr::from_ptr(ptr as *const libc::c_char) };
-            let s = try!(slice.to_str());
+            let s = slice.to_str()?;
             Ok(s.to_string())
         }
         n => {

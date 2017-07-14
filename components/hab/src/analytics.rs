@@ -356,22 +356,22 @@ pub fn instrument_clap_error(err: &clap::Error) {
 /// * If an opt-out if exists but cannot be deleted
 /// * If an opt-in file cannot be created
 pub fn opt_in(ui: &mut UI, analytics_path: &Path, origin_generated: bool) -> Result<()> {
-    try!(ui.begin("Opting in to analytics"));
+    ui.begin("Opting in to analytics")?;
     // Create the parent directory which will contain the opt-in file
-    try!(fs::create_dir_all(analytics_path));
+    fs::create_dir_all(analytics_path)?;
     // Get the path to the opt-out file
     let opt_out_path = analytics_path.join(OPTED_OUT_METAFILE);
     // If the opt-out file exists, delete it from disk
     if opt_out_path.exists() {
-        try!(ui.status(Status::Deleting, opt_out_path.display()));
-        try!(fs::remove_file(&opt_out_path));
+        ui.status(Status::Deleting, opt_out_path.display())?;
+        fs::remove_file(&opt_out_path)?;
     }
     // Get the path to the opt-in file
     let opt_in_path = analytics_path.join(OPTED_IN_METAFILE);
-    try!(ui.status(Status::Creating, opt_in_path.display()));
+    ui.status(Status::Creating, opt_in_path.display())?;
     // Create the opt-in file
-    let _ = try!(File::create(opt_in_path));
-    try!(ui.end("Analytics opted in, thank you!"));
+    let _ = File::create(opt_in_path)?;
+    ui.end("Analytics opted in, thank you!")?;
     // Record an event that the setup subcommand was invoked
     record_event(
         Event::Subcommand,
@@ -403,22 +403,22 @@ pub fn opt_in(ui: &mut UI, analytics_path: &Path, origin_generated: bool) -> Res
 /// * If an opt-in if exists but cannot be deleted
 /// * If an opt-out file cannot be created
 pub fn opt_out(ui: &mut UI, analytics_path: &Path) -> Result<()> {
-    try!(ui.begin("Opting out of analytics"));
+    ui.begin("Opting out of analytics")?;
     // Create the parent directory which will contain the opt-in file
-    try!(fs::create_dir_all(analytics_path));
+    fs::create_dir_all(analytics_path)?;
     // Get the path to the opt-in file
     let opt_in_path = analytics_path.join(OPTED_IN_METAFILE);
     // If the opt-in file exists, delete it from disk
     if opt_in_path.exists() {
-        try!(ui.status(Status::Deleting, opt_in_path.display()));
-        try!(fs::remove_file(&opt_in_path));
+        ui.status(Status::Deleting, opt_in_path.display())?;
+        fs::remove_file(&opt_in_path)?;
     }
     // Get the path to the opt-out file
     let opt_out_path = analytics_path.join(OPTED_OUT_METAFILE);
-    try!(ui.status(Status::Creating, opt_out_path.display()));
+    ui.status(Status::Creating, opt_out_path.display())?;
     // Create the opt-out file
-    let _ = try!(File::create(opt_out_path));
-    try!(ui.end("Analytics opted out, we salute you just the same!"));
+    let _ = File::create(opt_out_path)?;
+    ui.end("Analytics opted out, we salute you just the same!")?;
     // Return an empty Ok, representing a successful operation
     Ok(())
 }

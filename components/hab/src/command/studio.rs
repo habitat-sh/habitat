@@ -29,13 +29,13 @@ const STUDIO_CMD_ENVVAR: &'static str = "HAB_STUDIO_BINARY";
 const STUDIO_PACKAGE_IDENT: &'static str = "core/hab-studio";
 
 pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
-    try!(inner::rerun_with_sudo_if_needed(ui));
+    inner::rerun_with_sudo_if_needed(ui)?;
 
     // If the `$HAB_ORIGIN` environment variable is not present, then see if a default is set in
     // the CLI config. If so, set it as the `$HAB_ORIGIN` environment variable for the `hab-studio`
     // or `docker` execv call.
     if henv::var("HAB_ORIGIN").is_err() {
-        let config = try!(config::load_with_sudo_user());
+        let config = config::load_with_sudo_user()?;
         if let Some(default_origin) = config.origin {
             debug!("Setting default origin {} via CLI config", &default_origin);
             env::set_var("HAB_ORIGIN", default_origin);
@@ -128,19 +128,19 @@ mod inner {
                     "-E".into(),
                 ];
                 args.append(&mut env::args_os().collect());
-                Ok(try!(process::become_command(sudo_prog, args)))
+                Ok(process::become_command(sudo_prog, args)?)
             }
             None => {
-                try!(ui.warn(format!(
+                ui.warn(format!(
                     "Could not find the `{}' command, is it in your PATH?",
                     SUDO_CMD
-                )));
-                try!(ui.warn(
+                ))?;
+                ui.warn(
                     "Running Habitat Studio requires root or administrator privileges. \
                               Please retry this command as a super user or use a \
                               privilege-granting facility such as sudo.",
-                ));
-                try!(ui.br());
+                )?;
+                ui.br()?;
                 Err(Error::RootRequired)
             }
         }
@@ -186,21 +186,21 @@ mod inner {
             Err(_) => {
                 init();
                 let version: Vec<&str> = VERSION.split("/").collect();
-                let ident = try!(PackageIdent::from_str(
+                let ident = PackageIdent::from_str(
                     &format!("{}/{}", super::STUDIO_PACKAGE_IDENT, version[0]),
-                ));
-                try!(exec::command_from_min_pkg(
+                )?;
+                exec::command_from_min_pkg(
                     ui,
                     super::STUDIO_CMD,
                     &ident,
                     &default_cache_key_path(None),
                     0,
-                ))
+                )?
             }
         };
 
         if let Some(cmd) = find_command(command.to_string_lossy().as_ref()) {
-            try!(process::become_command(cmd, args));
+            process::become_command(cmd, args)?;
         } else {
             return Err(Error::ExecCommandNotFound(command));
         }
@@ -357,7 +357,7 @@ mod inner {
         }
 
         debug!("Docker arguments = {:?}", cmd_args);
-        Ok(try!(process::become_command(cmd, cmd_args)))
+        Ok(process::become_command(cmd, cmd_args)?)
     }
 
     pub fn rerun_with_sudo_if_needed(_ui: &mut UI) -> Result<()> {

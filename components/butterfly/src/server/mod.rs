@@ -227,16 +227,12 @@ impl Server {
             Ok(socket) => socket,
             Err(e) => return Err(Error::CannotBind(e)),
         };
-        try!(
-            socket
-                .set_read_timeout(Some(Duration::from_millis(1000)))
-                .map_err(|e| Error::SocketSetReadTimeout(e))
-        );
-        try!(
-            socket
-                .set_write_timeout(Some(Duration::from_millis(1000)))
-                .map_err(|e| Error::SocketSetReadTimeout(e))
-        );
+        socket
+            .set_read_timeout(Some(Duration::from_millis(1000)))
+            .map_err(|e| Error::SocketSetReadTimeout(e))?;
+        socket
+            .set_write_timeout(Some(Duration::from_millis(1000)))
+            .map_err(|e| Error::SocketSetReadTimeout(e))?;
 
         let server_a = self.clone();
         let socket_a = match socket.try_clone() {
@@ -857,22 +853,22 @@ impl Serialize for Server {
     where
         S: Serializer,
     {
-        let mut strukt = try!(serializer.serialize_struct("butterfly", 6));
-        try!(strukt.serialize_field("member", &self.member_list));
-        try!(strukt.serialize_field("service", &self.service_store));
-        try!(strukt.serialize_field(
+        let mut strukt = serializer.serialize_struct("butterfly", 6)?;
+        strukt.serialize_field("member", &self.member_list)?;
+        strukt.serialize_field("service", &self.service_store)?;
+        strukt.serialize_field(
             "service_config",
             &self.service_config_store,
-        ));
-        try!(strukt.serialize_field(
+        )?;
+        strukt.serialize_field(
             "service_file",
             &self.service_file_store,
-        ));
-        try!(strukt.serialize_field("election", &self.election_store));
-        try!(strukt.serialize_field(
+        )?;
+        strukt.serialize_field("election", &self.election_store)?;
+        strukt.serialize_field(
             "election_update",
             &self.update_store,
-        ));
+        )?;
         strukt.end()
     }
 }

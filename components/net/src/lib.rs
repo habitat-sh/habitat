@@ -54,19 +54,17 @@ pub use self::server::{Application, ServerReg};
 pub use self::supervisor::Supervisor;
 
 pub fn hostname() -> Result<String> {
-    let output = try!(
-        Command::new("sh")
-            .arg("-c")
-            .arg("hostname | awk '{printf \"%s\", $NF; exit}'")
-            .output()
-    );
+    let output = Command::new("sh")
+        .arg("-c")
+        .arg("hostname | awk '{printf \"%s\", $NF; exit}'")
+        .output()?;
     match output.status.success() {
         true => {
             debug!(
                 "Hostname address is {}",
                 String::from_utf8_lossy(&output.stdout)
             );
-            let hostname = try!(String::from_utf8(output.stdout).or(Err(Error::Sys)));
+            let hostname = String::from_utf8(output.stdout).or(Err(Error::Sys))?;
             Ok(hostname)
         }
         false => {

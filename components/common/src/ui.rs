@@ -103,24 +103,24 @@ impl UI {
         let (symbol, status_str, color) = status.parts();
         match stream.is_colored() {
             true => {
-                try!(write!(
+                write!(
                     stream,
                     "{} {}\n",
                     color.bold().paint(format!("{} {}", symbol, status_str)),
                     message.to_string()
-                ))
+                )?
             }
             false => {
-                try!(write!(
+                write!(
                     stream,
                     "{} {} {}\n",
                     symbol,
                     status_str,
                     message.to_string()
-                ))
+                )?
             }
         }
-        try!(stream.flush());
+        stream.flush()?;
         Ok(())
     }
 
@@ -128,19 +128,19 @@ impl UI {
         let ref mut stream = self.shell.err;
         match stream.is_colored() {
             true => {
-                try!(write!(
+                write!(
                     stream,
                     "{}\n",
                     Colour::Yellow.bold().paint(
                         format!("∅ {}", message.to_string()),
                     )
-                ));
+                )?;
             }
             false => {
-                try!(write!(stream, "∅ {}\n", message.to_string()));
+                write!(stream, "∅ {}\n", message.to_string())?;
             }
         }
-        try!(stream.flush());
+        stream.flush()?;
         Ok(())
     }
 
@@ -155,24 +155,20 @@ impl UI {
 
         match stream.is_colored() {
             true => {
-                try!(write!(
+                write!(
                     stream,
                     "{}\n",
                     Colour::Red.bold().paint(format!(
                         "✗✗✗\n{}\n✗✗✗",
                         formatted_message
                     ))
-                ));
+                )?;
             }
             false => {
-                try!(write!(
-                    stream,
-                    "✗✗✗\n{}\n✗✗✗\n",
-                    formatted_message
-                ));
+                write!(stream, "✗✗✗\n{}\n✗✗✗\n", formatted_message)?;
             }
         }
-        try!(stream.flush());
+        stream.flush()?;
         Ok(())
     }
 
@@ -188,8 +184,8 @@ impl UI {
         let ref mut stream = self.shell.out;
         match stream.is_colored() {
             true => {
-                try!(write!(stream, "{}\n", Colour::Green.bold().paint(text)));
-                try!(write!(
+                write!(stream, "{}\n", Colour::Green.bold().paint(text))?;
+                write!(
                     stream,
                     "{}\n\n",
                     Colour::Green.bold().paint(format!(
@@ -197,18 +193,18 @@ impl UI {
                         "",
                         width = text.chars().count()
                     ))
-                ));
+                )?;
             }
             false => {
-                try!(write!(stream, "{}\n", text));
-                try!(write!(
+                write!(stream, "{}\n", text)?;
+                write!(
                     stream,
                     "{}\n\n",
                     format!("{:=<width$}", "", width = text.chars().count())
-                ));
+                )?;
             }
         }
-        try!(stream.flush());
+        stream.flush()?;
         Ok(())
     }
 
@@ -216,13 +212,13 @@ impl UI {
         let ref mut stream = self.shell.out;
         match stream.is_colored() {
             true => {
-                try!(write!(stream, "{}\n\n", Colour::Green.bold().paint(text)));
+                write!(stream, "{}\n\n", Colour::Green.bold().paint(text))?;
             }
             false => {
-                try!(write!(stream, "{}\n\n", text));
+                write!(stream, "{}\n\n", text)?;
             }
         }
-        try!(stream.flush());
+        stream.flush()?;
         Ok(())
     }
 
@@ -232,8 +228,8 @@ impl UI {
 
     pub fn br(&mut self) -> Result<()> {
         let ref mut stream = self.shell.out;
-        try!(write!(stream, "\n"));
-        try!(stream.flush());
+        write!(stream, "\n")?;
+        stream.flush()?;
         Ok(())
     }
 
@@ -275,25 +271,20 @@ impl UI {
             }
         };
         loop {
-            try!(stream.flush());
+            stream.flush()?;
             match stream.is_colored() {
                 true => {
-                    try!(write!(
-                        stream,
-                        "{} {} ",
-                        Colour::Cyan.paint(question),
-                        choice
-                    ));
+                    write!(stream, "{} {} ", Colour::Cyan.paint(question), choice)?;
                 }
                 false => {
-                    try!(write!(stream, "{} {} ", question, choice));
+                    write!(stream, "{} {} ", question, choice)?;
                 }
             }
-            try!(stream.flush());
+            stream.flush()?;
             let mut response = String::new();
             {
                 let reference = self.shell.input.by_ref();
-                try!(BufReader::new(reference).read_line(&mut response));
+                BufReader::new(reference).read_line(&mut response)?;
             }
             match response.trim().chars().next().unwrap_or('\n') {
                 'y' | 'Y' => return Ok(true),
@@ -329,25 +320,25 @@ impl UI {
             None => "".to_string(),
         };
         loop {
-            try!(stream.flush());
+            stream.flush()?;
             match stream.is_colored() {
                 true => {
-                    try!(write!(
+                    write!(
                         stream,
                         "{}{} ",
                         Colour::Cyan.paint(format!("{}:", question)),
                         choice
-                    ));
+                    )?;
                 }
                 false => {
-                    try!(write!(stream, "{}{} ", format!("{}:", question), choice));
+                    write!(stream, "{}{} ", format!("{}:", question), choice)?;
                 }
             }
-            try!(stream.flush());
+            stream.flush()?;
             let mut response = String::new();
             {
                 let reference = self.shell.input.by_ref();
-                try!(BufReader::new(reference).read_line(&mut response));
+                BufReader::new(reference).read_line(&mut response)?;
             }
             if response.trim().is_empty() {
                 match default {
@@ -367,17 +358,17 @@ impl UI {
     ) -> Result<()> {
         match stream.is_colored() {
             true => {
-                try!(write!(
+                write!(
                     stream,
                     "{}\n",
                     color.bold().paint(
                         format!("{} {}", symbol, message.to_string()),
                     )
-                ))
+                )?
             }
-            false => try!(write!(stream, "{} {}\n", symbol, message.to_string())),
+            false => write!(stream, "{} {}\n", symbol, message.to_string())?,
         }
-        try!(stream.flush());
+        stream.flush()?;
         Ok(())
     }
 
@@ -393,13 +384,7 @@ impl UI {
             for word in line.split_whitespace() {
                 let wl = word.chars().count();
                 if (width + wl + 1) > (wrap_width - left_indent) {
-                    try!(write!(
-                        stream,
-                        "{:<width$}{}\n",
-                        " ",
-                        buffer,
-                        width = left_indent
-                    ));
+                    write!(stream, "{:<width$}{}\n", " ", buffer, width = left_indent)?;
                     buffer.clear();
                     width = 0;
                 }
@@ -408,17 +393,11 @@ impl UI {
                 buffer.push(' ');
             }
             if !buffer.is_empty() {
-                try!(write!(
-                    stream,
-                    "{:<width$}{}\n",
-                    " ",
-                    buffer,
-                    width = left_indent
-                ));
+                write!(stream, "{:<width$}{}\n", " ", buffer, width = left_indent)?;
             }
-            try!(write!(stream, "\n"));
+            write!(stream, "\n")?;
         }
-        try!(stream.flush());
+        stream.flush()?;
         Ok(())
     }
 }
@@ -621,7 +600,7 @@ impl WriteStream {
     fn get_term(writeable: Box<Write + Send>) -> Result<Self> {
         // Check if the creation of a console will succeed
         if ::term::WinConsole::new(vec![0u8; 0]).is_ok() {
-            let term = try!(::term::WinConsole::new(writeable));
+            let term = ::term::WinConsole::new(writeable)?;
             if !term.supports_color() {
                 Ok(WriteStream::NoColor(Box::new(term)))
             } else {

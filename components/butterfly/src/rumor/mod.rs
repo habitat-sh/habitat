@@ -123,15 +123,15 @@ impl<T: Rumor> Serialize for RumorStore<T> {
     where
         S: Serializer,
     {
-        let mut strukt = try!(serializer.serialize_struct("rumor_store", 2));
-        try!(strukt.serialize_field(
+        let mut strukt = serializer.serialize_struct("rumor_store", 2)?;
+        strukt.serialize_field(
             "list",
             &*(self.list.read().unwrap()),
-        ));
-        try!(strukt.serialize_field(
+        )?;
+        strukt.serialize_field(
             "update_counter",
             &self.get_update_counter(),
-        ));
+        )?;
         strukt.end()
     }
 }

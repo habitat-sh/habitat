@@ -35,7 +35,7 @@ impl VCS {
         match self.vcs_type.as_ref() {
             "git" => {
                 debug!("cloning git repository, url={}, path={:?}", self.data, path);
-                try!(git2::Repository::clone(&self.data, path));
+                git2::Repository::clone(&self.data, path)?;
                 Ok(())
             }
             _ => panic!("Unknown vcs type"),

@@ -30,7 +30,7 @@ pub fn job_create(
     sock: &mut zmq::Socket,
     state: &mut ServerState,
 ) -> Result<()> {
-    let msg: proto::JobSpec = try!(req.parse_msg());
+    let msg: proto::JobSpec = req.parse_msg()?;
     let mut job: proto::Job = msg.into();
     state.datastore().create_job(&mut job)?;
     debug!(
@@ -39,26 +39,26 @@ pub fn job_create(
         job.get_owner_id(),
         job.get_state()
     );
-    try!(state.worker_mgr().notify_work());
-    try!(req.reply_complete(sock, &job));
+    state.worker_mgr().notify_work()?;
+    req.reply_complete(sock, &job)?;
     Ok(())
 }
 
 pub fn job_get(req: &mut Envelope, sock: &mut zmq::Socket, state: &mut ServerState) -> Result<()> {
-    let msg: proto::JobGet = try!(req.parse_msg());
+    let msg: proto::JobGet = req.parse_msg()?;
     match state.datastore().get_job(&msg) {
         Ok(Some(ref job)) => {
             //let reply: proto::Job = job.into();
-            try!(req.reply_complete(sock, job));
+            req.reply_complete(sock, job)?;
         }
         Ok(None) => {
             let err = net::err(ErrCode::ENTITY_NOT_FOUND, "jb:job-get:1");
-            try!(req.reply_complete(sock, &err));
+            req.reply_complete(sock, &err)?;
         }
         Err(e) => {
             error!("datastore error, err={:?}", e);
             let err = net::err(ErrCode::DATA_STORE, "jb:job-get:2");
-            try!(req.reply_complete(sock, &err));
+            req.reply_complete(sock, &err)?;
         }
     }
     Ok(())
@@ -69,17 +69,17 @@ pub fn project_jobs_get(
     sock: &mut zmq::Socket,
     state: &mut ServerState,
 ) -> Result<()> {
-    let msg: proto::ProjectJobsGet = try!(req.parse_msg());
+    let msg: proto::ProjectJobsGet = req.parse_msg()?;
     match state.datastore().get_jobs_for_project(&msg) {
         Ok(ref jobs) => {
             // NOTE: Currently no difference between "project has no jobs" and "no
             // such project"
-            try!(req.reply_complete(sock, jobs));
+            req.reply_complete(sock, jobs)?;
         }
         Err(e) => {
             error!("datastore error, err={:?}", e);
             let err = net::err(ErrCode::DATA_STORE, "jb:project-jobs-get:2");
-            try!(req.reply_complete(sock, &err));
+            req.reply_complete(sock, &err)?;
         }
     }
     Ok(())

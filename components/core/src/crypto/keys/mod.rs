@@ -368,20 +368,20 @@ pub fn is_valid_origin_name(name: &str) -> bool {
 }
 
 fn read_key_bytes(keyfile: &Path) -> Result<Vec<u8>> {
-    let mut f = try!(File::open(keyfile));
+    let mut f = File::open(keyfile)?;
     let mut s = String::new();
-    if try!(f.read_to_string(&mut s)) <= 0 {
+    if f.read_to_string(&mut s)? <= 0 {
         return Err(Error::CryptoError("Can't read key bytes".to_string()));
     }
     match s.lines().nth(3) {
         Some(encoded) => {
-            let v = try!(base64::decode(encoded).map_err(|e| {
+            let v = base64::decode(encoded).map_err(|e| {
                 Error::CryptoError(format!(
                     "Can't read raw key from {}: {}",
                     keyfile.display(),
                     e
                 ))
-            }));
+            })?;
             Ok(v)
         }
         None => {
@@ -413,7 +413,7 @@ fn write_keypair_files(
         };
 
         if let Some(pk_dir) = public_keyfile.parent() {
-            try!(fs::create_dir_all(pk_dir));
+            fs::create_dir_all(pk_dir)?;
         } else {
             return Err(Error::BadKeyPath(
                 public_keyfile.to_string_lossy().into_owned(),
@@ -426,14 +426,11 @@ fn write_keypair_files(
                 public_keyfile.display()
             )));
         }
-        let public_file = try!(File::create(public_keyfile));
+        let public_file = File::create(public_keyfile)?;
         let mut public_writer = BufWriter::new(&public_file);
-        try!(write!(public_writer, "{}\n{}\n\n", public_version, keyname));
-        try!(public_writer.write_all(public_content));
-        try!(perm::set_permissions(
-            public_keyfile,
-            PUBLIC_KEY_PERMISSIONS,
-        ));
+        write!(public_writer, "{}\n{}\n\n", public_version, keyname)?;
+        public_writer.write_all(public_content)?;
+        perm::set_permissions(public_keyfile, PUBLIC_KEY_PERMISSIONS)?;
     }
 
     if let Some(secret_keyfile) = secret_keyfile {
@@ -449,7 +446,7 @@ fn write_keypair_files(
         };
 
         if let Some(sk_dir) = secret_keyfile.parent() {
-            try!(fs::create_dir_all(sk_dir));
+            fs::create_dir_all(sk_dir)?;
         } else {
             return Err(Error::BadKeyPath(
                 secret_keyfile.to_string_lossy().into_owned(),
@@ -462,14 +459,11 @@ fn write_keypair_files(
                 secret_keyfile.display()
             )));
         }
-        let secret_file = try!(File::create(secret_keyfile));
+        let secret_file = File::create(secret_keyfile)?;
         let mut secret_writer = BufWriter::new(&secret_file);
-        try!(write!(secret_writer, "{}\n{}\n\n", secret_version, keyname));
-        try!(secret_writer.write_all(secret_content));
-        try!(perm::set_permissions(
-            secret_keyfile,
-            SECRET_KEY_PERMISSIONS,
-        ));
+        write!(secret_writer, "{}\n{}\n\n", secret_version, keyname)?;
+        secret_writer.write_all(secret_content)?;
+        perm::set_permissions(secret_keyfile, SECRET_KEY_PERMISSIONS)?;
     }
     Ok(())
 }

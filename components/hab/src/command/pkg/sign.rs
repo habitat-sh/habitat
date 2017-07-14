@@ -20,8 +20,8 @@ use hcore::crypto::{artifact, SigKeyPair};
 use error::Result;
 
 pub fn start(ui: &mut UI, origin: &SigKeyPair, src: &Path, dst: &Path) -> Result<()> {
-    try!(ui.begin(format!("Signing {}", src.display())));
-    try!(ui.status(
+    ui.begin(format!("Signing {}", src.display()))?;
+    ui.status(
         Status::Signing,
         format!(
             "{} with {} to create {}",
@@ -29,8 +29,8 @@ pub fn start(ui: &mut UI, origin: &SigKeyPair, src: &Path, dst: &Path) -> Result
             &origin.name_with_rev(),
             dst.display()
         ),
-    ));
-    try!(artifact::sign(src, dst, origin));
-    try!(ui.end(format!("Signed artifact {}.", dst.display())));
+    )?;
+    artifact::sign(src, dst, origin)?;
+    ui.end(format!("Signed artifact {}.", dst.display()))?;
     Ok(())
 }

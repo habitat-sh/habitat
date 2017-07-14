@@ -50,9 +50,9 @@ pub fn start(
     token: &str,
 ) -> Result<()> {
 
-    let depot_client = try!(Client::new(url, PRODUCT, VERSION, None));
+    let depot_client = Client::new(url, PRODUCT, VERSION, None)?;
 
-    try!(ui.begin(format!("Demoting {} from {}", ident, channel)));
+    ui.begin(format!("Demoting {} from {}", ident, channel))?;
 
     if channel == "unstable" {
         return Err(Error::CannotRemoveFromChannel(
@@ -68,7 +68,7 @@ pub fn start(
         }
     }
 
-    try!(ui.status(Status::Demoted, ident));
+    ui.status(Status::Demoted, ident)?;
 
     Ok(())
 }

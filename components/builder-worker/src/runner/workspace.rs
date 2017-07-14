@@ -46,7 +46,7 @@ impl Workspace {
 
     /// Returns a `PackageArchive` representing the last built artifact from studio build
     pub fn last_built(&self) -> Result<PackageArchive> {
-        let build = try!(LastBuild::from_file(self.out().join("last_build.env")));
+        let build = LastBuild::from_file(self.out().join("last_build.env"))?;
         Ok(PackageArchive::new(self.out().join(build.pkg_artifact)))
     }
 
@@ -87,8 +87,8 @@ impl LastBuild {
     pub fn from_file<S: AsRef<Path>>(path: S) -> Result<Self> {
         let mut build = LastBuild::default();
         let mut buf: Vec<u8> = vec![];
-        let mut f = try!(File::open(path));
-        try!(f.read_to_end(&mut buf));
+        let mut f = File::open(path)?;
+        f.read_to_end(&mut buf)?;
         Self::parse_into(&mut build, &buf);
         Ok(build)
     }

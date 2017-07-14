@@ -50,7 +50,7 @@ impl Server {
             self.config.http.port
         );
         info!("builder-api is ready to go.");
-        let http = try!(http::run(cfg1));
+        let http = http::run(cfg1)?;
 
         http.join().unwrap();
         broker.join().unwrap();

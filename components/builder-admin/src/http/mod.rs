@@ -70,7 +70,7 @@ pub fn run(config: Arc<Config>) -> Result<JoinHandle<()>> {
         debug!("Mounting UI at filepath {}", path);
         mount.mount("/", Static::new(path));
     }
-    let chain = try!(router(config.clone()));
+    let chain = router(config.clone())?;
     mount.mount("/v1", chain);
 
     let handle = thread::Builder::new()

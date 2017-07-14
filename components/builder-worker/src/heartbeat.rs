@@ -88,21 +88,21 @@ impl HeartbeatCli {
 
     /// Connect to the `HeartbeatMgr`
     pub fn connect(&mut self) -> Result<()> {
-        try!(self.sock.connect(INPROC_ADDR));
+        self.sock.connect(INPROC_ADDR)?;
         Ok(())
     }
 
     /// Set the `HeartbeatMgr` state to busy
     pub fn set_busy(&mut self) -> Result<()> {
-        try!(self.sock.send_str(PulseState::Pause.as_ref(), 0));
-        try!(self.sock.recv(&mut self.msg, 0));
+        self.sock.send_str(PulseState::Pause.as_ref(), 0)?;
+        self.sock.recv(&mut self.msg, 0)?;
         Ok(())
     }
 
     /// Set the `HeartbeatMgr` state to ready
     pub fn set_ready(&mut self) -> Result<()> {
-        try!(self.sock.send_str(PulseState::Pulse.as_ref(), 0));
-        try!(self.sock.recv(&mut self.msg, 0));
+        self.sock.send_str(PulseState::Pulse.as_ref(), 0)?;
+        self.sock.recv(&mut self.msg, 0)?;
         Ok(())
     }
 }
@@ -137,11 +137,11 @@ impl HeartbeatMgr {
     }
 
     fn new(config: Arc<RwLock<Config>>) -> Result<Self> {
-        let pub_sock = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::PUB));
-        let cli_sock = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::REP));
-        try!(pub_sock.set_immediate(true));
-        try!(pub_sock.set_sndhwm(1));
-        try!(pub_sock.set_linger(0));
+        let pub_sock = (**ZMQ_CONTEXT).as_mut().socket(zmq::PUB)?;
+        let cli_sock = (**ZMQ_CONTEXT).as_mut().socket(zmq::REP)?;
+        pub_sock.set_immediate(true)?;
+        pub_sock.set_sndhwm(1)?;
+        pub_sock.set_linger(0)?;
         let mut reg = proto::Heartbeat::new();
         reg.set_endpoint(Server::net_ident());
         reg.set_os(worker_os());
@@ -162,30 +162,30 @@ impl HeartbeatMgr {
             let cfg = self.config.read().unwrap();
             for (hb, _, _) in cfg.jobsrv_addrs() {
                 println!("Connecting to heartbeat, {}", hb);
-                try!(self.pub_sock.connect(&hb));
+                self.pub_sock.connect(&hb)?;
             }
         }
-        try!(self.cli_sock.bind(INPROC_ADDR));
+        self.cli_sock.bind(INPROC_ADDR)?;
         rz.send(()).unwrap();
         // This hacky sleep is recommended and required by zmq for connections to establish
         thread::sleep(Duration::from_millis(100));
         let mut cli_sock_msg = false;
         loop {
             if self.state == PulseState::Pulse {
-                try!(self.pulse());
+                self.pulse()?;
             }
             {
                 let mut items = [self.cli_sock.as_poll_item(1)];
                 // Poll until timeout or message is received. Checking for the zmq::POLLIN flag on
                 // a poll item's revents will let you know if you have received a message or not
                 // on that socket.
-                try!(zmq::poll(&mut items, HEARTBEAT_MS));
+                zmq::poll(&mut items, HEARTBEAT_MS)?;
                 if items[0].get_revents() & zmq::POLLIN > 0 {
                     cli_sock_msg = true;
                 }
             }
             if cli_sock_msg {
-                try!(self.recv_cmd());
+                self.recv_cmd()?;
                 cli_sock_msg = false;
             }
         }
@@ -202,13 +202,13 @@ impl HeartbeatMgr {
     // Broadcast to subscribers the HeartbeatMgr health and state
     fn pulse(&mut self) -> Result<()> {
         debug!("heartbeat pulsed");
-        try!(self.pub_sock.send(&self.reg.write_to_bytes().unwrap(), 0));
+        self.pub_sock.send(&self.reg.write_to_bytes().unwrap(), 0)?;
         Ok(())
     }
 
     // Wait receive for a command from a client
     fn recv_cmd(&mut self) -> Result<()> {
-        try!(self.cli_sock.recv(&mut self.msg, 0));
+        self.cli_sock.recv(&mut self.msg, 0)?;
         match self.msg.as_str() {
             Some(CMD_PAUSE) => self.pause(),
             Some(CMD_PULSE) => self.resume(),

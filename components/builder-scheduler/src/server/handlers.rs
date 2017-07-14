@@ -29,7 +29,7 @@ pub fn group_create(
     sock: &mut zmq::Socket,
     state: &mut ServerState,
 ) -> Result<()> {
-    let msg: proto::GroupCreate = try!(req.parse_msg());
+    let msg: proto::GroupCreate = req.parse_msg()?;
     debug!("group_create message: {:?}", msg);
 
     let project_name = format!("{}/{}", msg.get_origin(), msg.get_package());
@@ -47,7 +47,7 @@ pub fn group_create(
             None => {
                 warn!("GroupCreate, project ident not found");
                 let err = net::err(ErrCode::ENTITY_NOT_FOUND, "sc:group-create:1");
-                try!(req.reply_complete(sock, &err));
+                req.reply_complete(sock, &err)?;
                 return Ok(());
             }
         };
@@ -106,11 +106,11 @@ pub fn group_create(
         new_group
     } else {
         let new_group = state.datastore().create_group(&msg, projects)?;
-        try!(state.schedule_cli().notify_work());
+        state.schedule_cli().notify_work()?;
         new_group
     };
 
-    try!(req.reply_complete(sock, &group));
+    req.reply_complete(sock, &group)?;
     Ok(())
 }
 
@@ -119,7 +119,7 @@ pub fn group_get(
     sock: &mut zmq::Socket,
     state: &mut ServerState,
 ) -> Result<()> {
-    let msg: proto::GroupGet = try!(req.parse_msg());
+    let msg: proto::GroupGet = req.parse_msg()?;
     debug!("group_get message: {:?}", msg);
 
     let group_opt = match state.datastore().get_group(&msg) {
@@ -136,11 +136,11 @@ pub fn group_get(
 
     match group_opt {
         Some(group) => {
-            try!(req.reply_complete(sock, &group));
+            req.reply_complete(sock, &group)?;
         }
         None => {
             let err = net::err(ErrCode::ENTITY_NOT_FOUND, "sc:schedule-get:1");
-            try!(req.reply_complete(sock, &err));
+            req.reply_complete(sock, &err)?;
         }
     }
 
@@ -152,7 +152,7 @@ pub fn package_create(
     sock: &mut zmq::Socket,
     state: &mut ServerState,
 ) -> Result<()> {
-    let msg: proto::PackageCreate = try!(req.parse_msg());
+    let msg: proto::PackageCreate = req.parse_msg()?;
     debug!("package_create message: {:?}", msg);
 
     let package = state.datastore().create_package(&msg)?;
@@ -172,7 +172,7 @@ pub fn package_create(
         );
     };
 
-    try!(req.reply_complete(sock, &package));
+    req.reply_complete(sock, &package)?;
     Ok(())
 }
 
@@ -181,7 +181,7 @@ pub fn package_precreate(
     sock: &mut zmq::Socket,
     state: &mut ServerState,
 ) -> Result<()> {
-    let msg: proto::PackagePreCreate = try!(req.parse_msg());
+    let msg: proto::PackagePreCreate = req.parse_msg()?;
     debug!("package_precreate message: {:?}", msg);
 
     let package: proto::Package = msg.into();
@@ -203,10 +203,10 @@ pub fn package_precreate(
     };
 
     if can_extend {
-        try!(req.reply_complete(sock, &net::NetOk::new()))
+        req.reply_complete(sock, &net::NetOk::new())?
     } else {
         let err = net::err(ErrCode::ENTITY_CONFLICT, "sc:schedule-pc:1");
-        try!(req.reply_complete(sock, &err));
+        req.reply_complete(sock, &err)?;
     }
 
     Ok(())
@@ -217,12 +217,12 @@ pub fn job_status(
     sock: &mut zmq::Socket,
     state: &mut ServerState,
 ) -> Result<()> {
-    let msg: proto::JobStatus = try!(req.parse_msg());
+    let msg: proto::JobStatus = req.parse_msg()?;
     debug!("job_status message: {:?}", msg);
 
-    try!(state.schedule_cli().notify_status(&msg.get_job()));
+    state.schedule_cli().notify_status(&msg.get_job())?;
 
-    try!(req.reply_complete(sock, &msg));
+    req.reply_complete(sock, &msg)?;
     Ok(())
 }
 
@@ -231,11 +231,11 @@ pub fn package_stats_get(
     sock: &mut zmq::Socket,
     state: &mut ServerState,
 ) -> Result<()> {
-    let msg: proto::PackageStatsGet = try!(req.parse_msg());
+    let msg: proto::PackageStatsGet = req.parse_msg()?;
     debug!("package_stats_get message: {:?}", msg);
 
     match state.datastore().get_package_stats(&msg) {
-        Ok(package_stats) => try!(req.reply_complete(sock, &package_stats)),
+        Ok(package_stats) => req.reply_complete(sock, &package_stats)?,
         Err(err) => {
             warn!(
                 "Unable to retrieve package stats for {}, err: {:?}",
@@ -243,7 +243,7 @@ pub fn package_stats_get(
                 err
             );
             let err = net::err(ErrCode::ENTITY_NOT_FOUND, "sc:package-stats-get:1");
-            try!(req.reply_complete(sock, &err));
+            req.reply_complete(sock, &err)?;
         }
     };
 

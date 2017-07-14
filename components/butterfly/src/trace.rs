@@ -124,18 +124,18 @@ impl<'a> TraceWrite<'a> {
 
 impl<'a> fmt::Display for TraceWrite<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        try!(write!(f, "{}", self.time));
-        try!(write!(f, "^{}", self.kind));
-        try!(write!(f, "^{}", self.thread_name));
-        try!(write!(f, "^{}", self.module_path));
-        try!(write!(f, "^{}", self.line));
-        try!(write!(f, "^{}", self.server_name.unwrap_or("")));
-        try!(write!(f, "^{}", self.member_id.unwrap_or("")));
-        try!(write!(f, "^{}", self.to_member_id.unwrap_or("")));
-        try!(write!(f, "^{}", self.listening.unwrap_or("")));
-        try!(write!(f, "^{}", self.to_addr.unwrap_or("")));
-        try!(write!(f, "^{}", self.swim.unwrap_or("")));
-        try!(write!(f, "^{}", self.rumor.unwrap_or("")));
+        write!(f, "{}", self.time)?;
+        write!(f, "^{}", self.kind)?;
+        write!(f, "^{}", self.thread_name)?;
+        write!(f, "^{}", self.module_path)?;
+        write!(f, "^{}", self.line)?;
+        write!(f, "^{}", self.server_name.unwrap_or(""))?;
+        write!(f, "^{}", self.member_id.unwrap_or(""))?;
+        write!(f, "^{}", self.to_member_id.unwrap_or(""))?;
+        write!(f, "^{}", self.listening.unwrap_or(""))?;
+        write!(f, "^{}", self.to_addr.unwrap_or(""))?;
+        write!(f, "^{}", self.swim.unwrap_or(""))?;
+        write!(f, "^{}", self.rumor.unwrap_or(""))?;
         write!(f, "\n")
     }
 }

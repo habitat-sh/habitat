@@ -500,7 +500,7 @@ fn process_no_proxy(
 }
 
 fn parse_proxy_url(url: &str) -> Result<Option<ProxyInfo>> {
-    let url = try!(Url::parse(&url));
+    let url = Url::parse(&url)?;
     let auth = match url.password() {
         Some(password) => {
             Some(ProxyBasicAuthorization::new(
@@ -514,5 +514,5 @@ fn parse_proxy_url(url: &str) -> Result<Option<ProxyInfo>> {
         }
         None => None,
     };
-    Ok(Some(try!(ProxyInfo::new(url, auth))))
+    Ok(Some(ProxyInfo::new(url, auth)?))
 }

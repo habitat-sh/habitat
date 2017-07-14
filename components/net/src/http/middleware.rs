@@ -115,7 +115,7 @@ impl Authenticated {
             Ok(session) => Ok(session),
             Err(err) => {
                 if err.get_code() == ErrCode::SESSION_EXPIRED {
-                    let session = try!(session_create(&self.github, token));
+                    let session = session_create(&self.github, token)?;
                     let flags = FeatureFlags::from_bits(session.get_flags()).unwrap();
                     if !flags.contains(self.features) {
                         let err = net::err(ErrCode::ACCESS_DENIED, "net:auth:0");
@@ -142,10 +142,10 @@ impl BeforeMiddleware for Authenticated {
             match req.headers.get::<Authorization<Bearer>>() {
                 Some(&Authorization(Bearer { ref token })) => {
                     match req.extensions.get_mut::<RouteBroker>() {
-                        Some(broker) => try!(self.authenticate(broker, token)),
+                        Some(broker) => self.authenticate(broker, token)?,
                         None => {
                             let mut broker = Broker::connect().unwrap();
-                            try!(self.authenticate(&mut broker, token))
+                            self.authenticate(&mut broker, token)?
                         }
                     }
                 }

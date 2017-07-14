@@ -42,7 +42,7 @@ use error::Result;
 ///
 /// * Fails if it cannot find the specified package in the Depot.
 pub fn start(ui: &mut UI, url: &str, ident: &PackageIdent) -> Result<()> {
-    let depot_client = try!(Client::new(url, PRODUCT, VERSION, None));
+    let depot_client = Client::new(url, PRODUCT, VERSION, None)?;
 
     ui.begin(format!("Retrieving channels for {}", ident))?;
     let channels = depot_client.package_channels(ident)?;

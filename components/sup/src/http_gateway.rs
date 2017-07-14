@@ -175,15 +175,13 @@ impl Server {
     }
 
     pub fn start(self) -> Result<JoinHandle<()>> {
-        let handle = try!(
-            thread::Builder::new()
-                .name("http-gateway".to_string())
-                .spawn(move || {
-                    self.0.http(*self.1).expect(
-                        "unable to start http-gateway thread",
-                    );
-                })
-        );
+        let handle = thread::Builder::new()
+            .name("http-gateway".to_string())
+            .spawn(move || {
+                self.0.http(*self.1).expect(
+                    "unable to start http-gateway thread",
+                );
+            })?;
         Ok(handle)
     }
 }

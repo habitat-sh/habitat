@@ -179,7 +179,7 @@ pub fn run_command(cmd_args: CommandArgs) -> Command {
 }
 
 pub fn spawn(mut command: Command) -> CmdResult<Cmd> {
-    let child = try!(command.spawn());
+    let child = command.spawn()?;
     Ok(Cmd {
         child: Some(child),
         status: None,

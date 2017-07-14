@@ -49,11 +49,11 @@ pub fn start(
     token: &str,
 ) -> Result<()> {
 
-    let depot_client = try!(Client::new(url, PRODUCT, VERSION, None));
+    let depot_client = Client::new(url, PRODUCT, VERSION, None)?;
 
-    try!(ui.begin(
+    ui.begin(
         format!("Promoting {} to channel '{}'", ident, channel),
-    ));
+    )?;
 
     if channel != "stable" && channel != "unstable" {
         match depot_client.create_channel(&ident.origin, channel, token) {
@@ -74,7 +74,7 @@ pub fn start(
         }
     }
 
-    try!(ui.status(Status::Promoted, ident));
+    ui.status(Status::Promoted, ident)?;
 
     Ok(())
 }

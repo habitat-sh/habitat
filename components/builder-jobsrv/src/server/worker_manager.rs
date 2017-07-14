@@ -35,12 +35,12 @@ pub struct WorkerMgrClient {
 
 impl WorkerMgrClient {
     pub fn connect(&mut self) -> Result<()> {
-        try!(self.socket.connect(WORKER_MGR_ADDR));
+        self.socket.connect(WORKER_MGR_ADDR)?;
         Ok(())
     }
 
     pub fn notify_work(&mut self) -> Result<()> {
-        try!(self.socket.send(&[1], 0));
+        self.socket.send(&[1], 0)?;
         Ok(())
     }
 }
@@ -67,15 +67,15 @@ pub struct WorkerMgr {
 
 impl WorkerMgr {
     pub fn new(config: Arc<RwLock<Config>>, datastore: DataStore) -> Result<Self> {
-        let hb_sock = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::SUB));
-        let rq_sock = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::ROUTER));
-        let work_mgr_sock = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER));
-        try!(rq_sock.set_router_mandatory(true));
-        try!(hb_sock.set_subscribe(&[]));
-        try!(work_mgr_sock.set_rcvhwm(1));
-        try!(work_mgr_sock.set_linger(0));
-        try!(work_mgr_sock.set_immediate(true));
-        let msg = try!(zmq::Message::new());
+        let hb_sock = (**ZMQ_CONTEXT).as_mut().socket(zmq::SUB)?;
+        let rq_sock = (**ZMQ_CONTEXT).as_mut().socket(zmq::ROUTER)?;
+        let work_mgr_sock = (**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER)?;
+        rq_sock.set_router_mandatory(true)?;
+        hb_sock.set_subscribe(&[])?;
+        work_mgr_sock.set_rcvhwm(1)?;
+        work_mgr_sock.set_linger(0)?;
+        work_mgr_sock.set_immediate(true)?;
+        let msg = zmq::Message::new()?;
         Ok(WorkerMgr {
             config: config,
             datastore: datastore,
@@ -103,7 +103,7 @@ impl WorkerMgr {
     }
 
     fn run(&mut self, rz: mpsc::SyncSender<()>) -> Result<()> {
-        try!(self.work_mgr_sock.bind(WORKER_MGR_ADDR));
+        self.work_mgr_sock.bind(WORKER_MGR_ADDR)?;
         {
             let cfg = self.config.read().unwrap();
             let worker_command = cfg.net.worker_command_addr();
@@ -133,7 +133,7 @@ impl WorkerMgr {
                 // Poll until timeout or message is received. Checking for the zmq::POLLIN flag on
                 // a poll item's revents will let you know if you have received a message or not
                 // on that socket.
-                try!(zmq::poll(&mut items, timeout));
+                zmq::poll(&mut items, timeout)?;
                 if (items[0].get_revents() & zmq::POLLIN) > 0 {
                     hb_sock = true;
                 }
@@ -145,23 +145,23 @@ impl WorkerMgr {
                 }
             }
             if hb_sock {
-                process_work = try!(self.process_heartbeat());
+                process_work = self.process_heartbeat()?;
                 hb_sock = false;
             }
             self.expire_workers();
             if rq_sock {
-                try!(self.process_job_status());
+                self.process_job_status()?;
                 rq_sock = false;
             }
             if work_mgr_sock {
                 process_work = true;
                 work_mgr_sock = false;
-                try!(self.work_mgr_sock.recv(&mut self.msg, 0));
+                self.work_mgr_sock.recv(&mut self.msg, 0)?;
             }
 
             // Handle potential work in pending_jobs queue
             if process_work {
-                try!(self.process_work());
+                self.process_work()?;
             }
         }
     }
@@ -251,8 +251,8 @@ impl WorkerMgr {
     }
 
     fn process_heartbeat(&mut self) -> Result<bool> {
-        try!(self.hb_sock.recv(&mut self.msg, 0));
-        let heartbeat: jobsrv::Heartbeat = try!(parse_from_bytes(&self.msg));
+        self.hb_sock.recv(&mut self.msg, 0)?;
+        let heartbeat: jobsrv::Heartbeat = parse_from_bytes(&self.msg)?;
         debug!("heartbeat={:?}", heartbeat);
         let result = match heartbeat.get_state() {
             jobsrv::WorkerState::Ready => {
@@ -274,12 +274,12 @@ impl WorkerMgr {
 
     fn process_job_status(&mut self) -> Result<()> {
         // Pop message delimiter
-        try!(self.rq_sock.recv(&mut self.msg, 0));
+        self.rq_sock.recv(&mut self.msg, 0)?;
         // Pop message body
-        try!(self.rq_sock.recv(&mut self.msg, 0));
-        let job: jobsrv::Job = try!(parse_from_bytes(&self.msg));
+        self.rq_sock.recv(&mut self.msg, 0)?;
+        let job: jobsrv::Job = parse_from_bytes(&self.msg)?;
         debug!("job_status={:?}", job);
-        try!(self.datastore.update_job(&job));
+        self.datastore.update_job(&job)?;
 
         Ok(())
     }
