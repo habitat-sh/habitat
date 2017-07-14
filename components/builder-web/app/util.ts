@@ -32,7 +32,7 @@ export function createGitHubLoginUrl(state) {
         scope: AUTH_SCOPES.join(","),
         state
     };
-    const urlPrefix = "https://github.com/login/oauth/authorize";
+    const urlPrefix = `${config["github_url"]}/login/oauth/authorize`;
     const queryString = Object.keys(params).map((k) =>
         `${k}=${encodeURIComponent(params[k])}`).
         join("&");

@@ -56,7 +56,7 @@ import { createGitHubLoginUrl, icon } from "../util";
                 The {{appName}} project is maintained on GitHub and packages are
                 built from plan files stored in GitHub repositories. GitHub
                 accounts are free.
-                <a href="https://github.com/join" _target="blank">
+                <a href="{{gitHubJoinUrl}}" _target="blank">
                     Create one now
                 </a>.
             </p>
@@ -84,6 +84,8 @@ export class SignInPageComponent implements OnInit, OnDestroy {
     get appName() { return this.store.getState().app.name; }
 
     get docsUrl() { return config["docs_url"]; }
+
+    get gitHubJoinUrl() { return `${config["github_url"]}/join`; }
 
     get gitHubLoginUrl() {
         return createGitHubLoginUrl(this.store.getState().gitHub.authState);

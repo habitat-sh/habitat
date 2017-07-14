@@ -5,6 +5,7 @@ habitatConfig({
     environment: "{{cfg.web.environment}}",
     friends_only: {{cfg.web.friends_only}},
     github_client_id: "{{cfg.github.client_id}}",
+    github_url: "{{cfg.github.web_url}}",
     source_code_url: "{{cfg.web.source_code_url}}",
     tutorials_url: "{{cfg.web.tutorials_url}}",
     version: "{{pkg.ident}}",
