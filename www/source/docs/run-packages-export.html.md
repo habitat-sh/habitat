@@ -3,7 +3,11 @@ title: Export a package
 ---
 
 # Export a package
-Packages can be exported into multiple external, immutable runtime formats. This topic will be updated as more formats are supported in the future.
+Packages can be exported into multiple external, immutable runtime formats. This topic will be updated as more formats are supported in the future. Currently there are exports for: docker, ACI, mesos, tar. 
+
+The command to export a package is `hab pkg export <FORMAT> <PKG_IDENT>`. [Habitat CLI Reference Guide](/docs/reference/habitat-cli/#hab-pkg-export/)
+
+Read on for more detailed instructions.
 
 ## Exporting to Docker
 
