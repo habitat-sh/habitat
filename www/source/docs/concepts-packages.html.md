@@ -18,17 +18,17 @@ Packages are identified using a four-component scheme: `origin/name/version/rele
 
 When referring to packages from either the depot or the `hab` command-line interface (CLI), you can refer to them in two ways: A package identifier and a fully qualified package identifier.
 
-- A package identifier is typically specified using the two-component form `origin/name`. For example, `chef/redis` or `chef/openssl`.
-- A fully-qualified package identifier includes all four components in the following format: `origin/name/version/release`. For example, `chef/glibc/2.22/20160310192356`.
+- A package identifier is typically specified using the two-component form `origin/name`. For example, `core/redis` or `core/openssl`.
+- A fully-qualified package identifier includes all four components in the following format: `origin/name/version/release`. For example, `core/glibc/2.22/20160310192356`.
 
 
 If the package identifier isn't fully specified (having less than four components), then the missing components are assumed to be the most recent versions for that package. For example:
 
-- `chef/glibc` assumes that version and release values are for the latest version of chef/glibc.
+- `core/glibc` assumes that version and release values are for the latest version of chef/glibc.
 
-- `chef/glibc/2.22` assumes that the version of chef/glibc is 2.22 and that the release is for the latest version of chef/glibc/2.22.
+- `core/glibc/2.22` assumes that the version of chef/glibc is 2.22 and that the release is for the latest version of chef/glibc/2.22.
 
-- `chef/glibc/2.22/20160310192356` only refers to the specific package 20160310192356.
+- `core/glibc/2.22/20160310192356` only refers to the specific package 20160310192356.
 
 <hr>
 <ul class="main-content--link-nav">
