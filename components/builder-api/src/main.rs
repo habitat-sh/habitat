@@ -67,6 +67,8 @@ fn config_from_args(matches: &clap::ArgMatches) -> Result<Config> {
         Some(cfg_path) => Config::from_file(cfg_path)?,
         None => Config::from_file(CFG_DEFAULT_PATH).unwrap_or(Config::default()),
     };
+    // Ensure GitHub config matches
+    config.depot.github = config.github.clone();
     if let Some(port) = args.value_of("port") {
         if u16::from_str(port).map(|p| config.http.port = p).is_err() {
             return Err(Error::BadPort(port.to_string()));
