@@ -1,10 +1,10 @@
 
 image: Visual Studio 2015
 
-cache:		
-  - c:\cargo\git		
+cache:
+  - c:\cargo\git
   - c:\projects\habitat\target
- 
+
 branches:
   only:
     - master
@@ -21,7 +21,7 @@ environment:
   CARGO_HOME: "c:\\cargo"
   RUSTUP_HOME: "c:\\multirust"
   CARGO_TARGET_DIR: "c:\\projects\\habitat\\target"
-  HAB_DEPOT_URL: "http://app.acceptance.habitat.sh/v1/depot"
+  HAB_DEPOT_URL: "https://bldr.habitat.sh/v1/depot"
   HAB_WINDOWS_STUDIO: true
   HAB_AUTH_TOKEN:
     secure: il1kqjDtQSFOoD12nDaJhCBntC905Q8T9jRzyTZtqlJPxc3vCoS1bBeNbB55J82M
