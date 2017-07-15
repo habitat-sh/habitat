@@ -40,10 +40,23 @@ mod inner {
     use hcore::package::PackageIdent;
 
     use super::{LAUNCH_CMD, LAUNCH_CMD_ENVVAR, LAUNCH_PKG_IDENT};
+    use super::super::sup::{SUP_CMD, SUP_CMD_ENVVAR, SUP_PKG_IDENT};
     use error::{Error, Result};
     use exec;
+    use VERSION;
 
     pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
+        init();
+        if henv::var(SUP_CMD_ENVVAR).is_err() {
+            let version: Vec<&str> = VERSION.split("/").collect();
+            exec::command_from_min_pkg(
+                ui,
+                SUP_CMD,
+                &PackageIdent::from_str(&format!("{}/{}", SUP_PKG_IDENT, version[0]))?,
+                &default_cache_key_path(None),
+                0,
+            )?;
+        }
         let command = match henv::var(LAUNCH_CMD_ENVVAR) {
             Ok(command) => PathBuf::from(command),
             Err(_) => {
