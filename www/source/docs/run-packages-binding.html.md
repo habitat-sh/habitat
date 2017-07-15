@@ -8,6 +8,16 @@ title: Running packages with runtime binding
 
 For example, you might have a web application `app-server` that depends on the value of the leader of a database service group. Rather than hardcoding the name of the service group or package identifier in `app-servers`'s plan, which would limit its portability, you can _bind_ the name `database`, for example, to the `default` service group running PostgreSQL. If you have multiple service groups for PostgreSQL - perhaps you have a production and development environment - you could bind `database` to `postgresql.production` or `postgresql.development`. If `app-server` supports multiple different database backends you could even bind `database` to another, such as `redis.default` or `mysql.default`.
 
+tl;dr
+- a required bind (`pkg_binds`) means that your service fails if it does not find a producer (with a `pkg_exports`) with the exact `binds` values that your service wants available to it. 
+- a producer can _export_ a larger variety of _binds_ than an individual service needs in a required bind
+- an optional bind (`pkg_binds_optional`) allows you to have more flexibility for services that require it. You can use an optional bind in several ways (list not conclusive):  
+-- service group A can optionally bind to "X". It will start without X being present (which could cause the service to fail to start). You may also expose optional configuration in your `default.toml` which you can write into your `config/hooks` in place of where the "X" would normally be satisfying. ((Real world example: an application service group that binds to a postgresql cluster or RDS, depending on where you are deploying it))
+-- service group A can optionally bind to “X”. “X” may provide additional features if it is provided. A runs successfully whether or not "X" is present. ((Real world example: an application service group that binds to a caching layer in certain situations))
+-- service group A can optionally bind to “X” or “Y”. If “X” is present, we operate this way, if “Y” is present, we operate this way. The service will start and may fail because “X” and/or “Y” my not be present at start, but it will eventually start. ((Real world example: an application service group that could use a redis backend or a postgresql backend, depending on how you are deploying it in different scenarios))
+
+Read on for more details...
+
 ## Producer Contract
 
 The producer defines their contract by "exporting" configuration publicly to consumers. This is done by setting keys in the `pkg_exports` associative array defined in your package's `plan.sh`. For example, a database server named `amnesia` might define the exports:
