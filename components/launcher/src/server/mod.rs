@@ -106,9 +106,13 @@ impl Server {
                         debug!("Supervisor exited: {}", status);
                         match status.code() {
                             Some(ERR_NO_RETRY_EXCODE) => {
-                                return Ok(TickState::Exit(ERR_NO_RETRY_EXCODE))
+                                self.services.kill_all();
+                                return Ok(TickState::Exit(ERR_NO_RETRY_EXCODE));
                             }
-                            Some(OK_NO_RETRY_EXCODE) => return Ok(TickState::Exit(0)),
+                            Some(OK_NO_RETRY_EXCODE) => {
+                                self.services.kill_all();
+                                return Ok(TickState::Exit(0));
+                            }
                             _ => (),
                         }
                         Err(Error::SupShutdown)
