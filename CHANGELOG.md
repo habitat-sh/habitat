@@ -1,5 +1,61 @@
 # Habitat CHANGELOG
 
+## [0.26.0](https://github.com/habitat-sh/habitat/tree/0.26.0) (07-14-2017)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.25.1...0.26.0)
+
+## Features & Enhancements
+
+- Add 'hab pkg channels' command [\#2682](https://github.com/habitat-sh/habitat/issues/2682)
+- \[builder ux\] failed builds don't show up in the builds page [\#2573](https://github.com/habitat-sh/habitat/issues/2573)
+- \[builder\] Worker should pull from specified environment and channel during studio build [\#2563](https://github.com/habitat-sh/habitat/issues/2563)
+- \[builder-web\] Auto-scroll when viewing a running build [\#2537](https://github.com/habitat-sh/habitat/issues/2537)
+- \[builder\] \[chore\] Fix hab graph tool [\#2514](https://github.com/habitat-sh/habitat/issues/2514)
+- \[www\] Fix automated deployment to acceptance [\#2510](https://github.com/habitat-sh/habitat/issues/2510)
+- \[builder services\] Fix migrator to not use sequence \#s [\#2498](https://github.com/habitat-sh/habitat/issues/2498)
+- Add `web\_url` config option to GitHubCfg [\#2747](https://github.com/habitat-sh/habitat/pull/2747) ([reset](https://github.com/reset))
+- Make github web url configurable for builder-web [\#2745](https://github.com/habitat-sh/habitat/pull/2745) ([reset](https://github.com/reset))
+- Add launcher, launcher-client, and launcher-protocol crates [\#2605](https://github.com/habitat-sh/habitat/pull/2605) ([reset](https://github.com/reset))
+
+## Bug fixes
+
+- Change hab pkg install logic [\#2722](https://github.com/habitat-sh/habitat/issues/2722)
+- hab pkg search doesn't work with origin [\#2684](https://github.com/habitat-sh/habitat/issues/2684)
+- Errors uploading packages with dependencies [\#2633](https://github.com/habitat-sh/habitat/issues/2633)
+- Retrieval of completed job log does not respect `start` parameter [\#2622](https://github.com/habitat-sh/habitat/issues/2622)
+- \[builder\] \[scheduler\] don't fail entire build group if there is a legitimate build failure [\#2527](https://github.com/habitat-sh/habitat/issues/2527)
+- hab origin key export --type secret failure [\#2524](https://github.com/habitat-sh/habitat/issues/2524)
+- Stats API returns total packages, UI refers to total plans [\#2453](https://github.com/habitat-sh/habitat/issues/2453)
+- \[builder-jobsrv\] occasionally panics when starting jobs [\#2386](https://github.com/habitat-sh/habitat/issues/2386)
+- Use proper pkg ident for launcher [\#2740](https://github.com/habitat-sh/habitat/pull/2740) ([reset](https://github.com/reset))
+- Warn when installing a fully qualified package not present in the given channel [\#2726](https://github.com/habitat-sh/habitat/pull/2726) ([raskchanky](https://github.com/raskchanky))
+- fix expansion of program to spawn on windows so it chooses the first path with a match and not the last [\#2725](https://github.com/habitat-sh/habitat/pull/2725) ([mwrock](https://github.com/mwrock))
+
+**Closed issues:**
+
+- Promote all packages that were in prod prior to 7/6/2017 to stable [\#2717](https://github.com/habitat-sh/habitat/issues/2717)
+- \[hab cli\] Package promotion should also promote all transitive dependencies [\#2716](https://github.com/habitat-sh/habitat/issues/2716)
+- 503 error on bldr.habitat.sh [\#2723](https://github.com/habitat-sh/habitat/issues/2723)
+- \[web ui\] Habitat birthday logo [\#2602](https://github.com/habitat-sh/habitat/issues/2602)
+- Create a shard-aware debugging tool [\#2326](https://github.com/habitat-sh/habitat/issues/2326)
+- Support running services under different accounts on windows [\#2125](https://github.com/habitat-sh/habitat/issues/2125)
+
+**Merged pull requests:**
+
+- Auto-configure \[archive.local\_dir\] in JobSrv [\#2734](https://github.com/habitat-sh/habitat/pull/2734) ([reset](https://github.com/reset))
+- set defaults for jobsrv config [\#2733](https://github.com/habitat-sh/habitat/pull/2733) ([robbkidd](https://github.com/robbkidd))
+- add caching again [\#2731](https://github.com/habitat-sh/habitat/pull/2731) ([mwrock](https://github.com/mwrock))
+- clear appveyor cache [\#2730](https://github.com/habitat-sh/habitat/pull/2730) ([mwrock](https://github.com/mwrock))
+- Add max\_locks\_per\_transaction to Postgres dev config [\#2728](https://github.com/habitat-sh/habitat/pull/2728) ([cnunciato](https://github.com/cnunciato))
+- let user know that artifacts are being verified [\#2727](https://github.com/habitat-sh/habitat/pull/2727) ([robbkidd](https://github.com/robbkidd))
+- correct ui - we are showing the total number of packages, not plans [\#2724](https://github.com/habitat-sh/habitat/pull/2724) ([nellshamrell](https://github.com/nellshamrell))
+- Show channels in the depot UI [\#2721](https://github.com/habitat-sh/habitat/pull/2721) ([cnunciato](https://github.com/cnunciato))
+- Add VM instructions [\#2720](https://github.com/habitat-sh/habitat/pull/2720) ([tashimi](https://github.com/tashimi))
+- Change try! to ? [\#2718](https://github.com/habitat-sh/habitat/pull/2718) ([georgemarshall](https://github.com/georgemarshall))
+- Fix "hab pkg search" to work with an origin. [\#2715](https://github.com/habitat-sh/habitat/pull/2715) ([raskchanky](https://github.com/raskchanky))
+- bumping dev version [\#2713](https://github.com/habitat-sh/habitat/pull/2713) ([mwrock](https://github.com/mwrock))
+- Add "hab pkg channels" to list channels for a given package. [\#2704](https://github.com/habitat-sh/habitat/pull/2704) ([raskchanky](https://github.com/raskchanky))
+- Add additional logging to LogForwarder and LogPipe. [\#2644](https://github.com/habitat-sh/habitat/pull/2644) ([raskchanky](https://github.com/raskchanky))
+
 ## [0.25.1](https://github.com/habitat-sh/habitat/tree/0.25.1) (07-07-2017)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.25.0...0.25.1)
 
@@ -19,7 +75,10 @@
 
 **Merged pull requests:**
 
+- fixing a format break [\#2712](https://github.com/habitat-sh/habitat/pull/2712) ([mwrock](https://github.com/mwrock))
+- release 0.25.1 [\#2711](https://github.com/habitat-sh/habitat/pull/2711) ([mwrock](https://github.com/mwrock))
 - deploy scripts should upload to stable [\#2710](https://github.com/habitat-sh/habitat/pull/2710) ([mwrock](https://github.com/mwrock))
+- blog about habitat on windows [\#2708](https://github.com/habitat-sh/habitat/pull/2708) ([mwrock](https://github.com/mwrock))
 - bump dev version [\#2705](https://github.com/habitat-sh/habitat/pull/2705) ([mwrock](https://github.com/mwrock))
 - fix the mac and windows build [\#2699](https://github.com/habitat-sh/habitat/pull/2699) ([mwrock](https://github.com/mwrock))
 - Update builder dev [\#2623](https://github.com/habitat-sh/habitat/pull/2623) ([nellshamrell](https://github.com/nellshamrell))
@@ -33,14 +92,8 @@
 - \[documentation\] Update 'view' with 'channel' [\#2616](https://github.com/habitat-sh/habitat/issues/2616)
 - \[Documentation\] Expand the current studio page [\#2581](https://github.com/habitat-sh/habitat/issues/2581)
 - \\[Documentation\\] Expand the current studio page [\#2581](https://github.com/habitat-sh/habitat/issues/2581)
-- \[builder ux\] failed builds don't show up in the builds page [\#2573](https://github.com/habitat-sh/habitat/issues/2573)
-- \[builder\] Worker should pull from specified environment and channel during studio build [\#2563](https://github.com/habitat-sh/habitat/issues/2563)
 - hab plan init should create .gitignore [\#2544](https://github.com/habitat-sh/habitat/issues/2544)
-- \[builder-web\] Auto-scroll when viewing a running build [\#2537](https://github.com/habitat-sh/habitat/issues/2537)
 - Service "bootstrapping" [\#2520](https://github.com/habitat-sh/habitat/issues/2520)
-- \[builder\] \[chore\] Fix hab graph tool [\#2514](https://github.com/habitat-sh/habitat/issues/2514)
-- \[www\] Fix automated deployment to acceptance [\#2510](https://github.com/habitat-sh/habitat/issues/2510)
-- \[builder services\] Fix migrator to not use sequence \#s [\#2498](https://github.com/habitat-sh/habitat/issues/2498)
 - Implement off-site long-term storage for job logs [\#2305](https://github.com/habitat-sh/habitat/issues/2305)
 - \[web ui\] Add new community content [\#2189](https://github.com/habitat-sh/habitat/issues/2189)
 - Supervisor Spring Cleaning [\#2094](https://github.com/habitat-sh/habitat/issues/2094)
@@ -61,16 +114,11 @@
 
 ## Bug fixes
 
-- Errors uploading packages with dependencies [\#2633](https://github.com/habitat-sh/habitat/issues/2633)
-- Retrieval of completed job log does not respect `start` parameter [\#2622](https://github.com/habitat-sh/habitat/issues/2622)
-- \[builder\] \[scheduler\] don't fail entire build group if there is a legitimate build failure [\#2527](https://github.com/habitat-sh/habitat/issues/2527)
-- hab origin key export --type secret failure [\#2524](https://github.com/habitat-sh/habitat/issues/2524)
 - When config is injected the run hook gets updated but the services does not restart [\#2518](https://github.com/habitat-sh/habitat/issues/2518)
 - Channel API not correctly returning latest channel packages [\#2452](https://github.com/habitat-sh/habitat/issues/2452)
 - Stats API responding with 503 [\#2441](https://github.com/habitat-sh/habitat/issues/2441)
 - \[builder\] \[web-ui\] Builder search fails when you include a `/` character [\#2440](https://github.com/habitat-sh/habitat/issues/2440)
 - Supervisor creates pipe for service `stderr` stream but does not consume it. [\#2395](https://github.com/habitat-sh/habitat/issues/2395)
-- \[builder-jobsrv\] occasionally panics when starting jobs [\#2386](https://github.com/habitat-sh/habitat/issues/2386)
 - .studiorc is sourced twice on 'hab studio enter' [\#2308](https://github.com/habitat-sh/habitat/issues/2308)
 - Stopping/Unloading Services on windows should kill child processes [\#2115](https://github.com/habitat-sh/habitat/issues/2115)
 - hab version is always 0.0.0 inside \[hab\] block [\#1438](https://github.com/habitat-sh/habitat/issues/1438)
@@ -96,7 +144,6 @@
 - Support scons and other build systems [\#2642](https://github.com/habitat-sh/habitat/issues/2642)
 - App Store [\#2636](https://github.com/habitat-sh/habitat/issues/2636)
 - Windows plans: Broken dependencies [\#2635](https://github.com/habitat-sh/habitat/issues/2635)
-- \[web ui\] Habitat birthday logo [\#2602](https://github.com/habitat-sh/habitat/issues/2602)
 - \[Documentation-Website\] Mention brand.chef.io [\#2582](https://github.com/habitat-sh/habitat/issues/2582)
 - Documentation [\#2576](https://github.com/habitat-sh/habitat/issues/2576)
 - CLI UX Helpers  [\#2572](https://github.com/habitat-sh/habitat/issues/2572)
@@ -114,8 +161,6 @@
 - \[web ui\] Change sort order on builds view to show most recent at top [\#2456](https://github.com/habitat-sh/habitat/issues/2456)
 - Add Habitat infographics to the repo [\#2431](https://github.com/habitat-sh/habitat/issues/2431)
 - \[web ui\] Update the header so the logo doesn't overlap with the label [\#2415](https://github.com/habitat-sh/habitat/issues/2415)
-- Create a shard-aware debugging tool [\#2326](https://github.com/habitat-sh/habitat/issues/2326)
-- Support running services under different accounts on windows [\#2125](https://github.com/habitat-sh/habitat/issues/2125)
 
 **Merged pull requests:**
 
