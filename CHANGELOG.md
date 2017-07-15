@@ -1,10 +1,27 @@
 # Habitat CHANGELOG
 
-## [0.26.0](https://github.com/habitat-sh/habitat/tree/0.26.0) (07-14-2017)
+## [0.26.1](https://github.com/habitat-sh/habitat/tree/0.26.1) (07-15-2017)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.26.0...0.26.1)
+
+## Bug fixes
+
+- Ensure hab-sup is installed when running launcher from Hab [\#2758](https://github.com/habitat-sh/habitat/pull/2758) ([reset](https://github.com/reset))
+- Stop all services on Launcher shutdown [\#2756](https://github.com/habitat-sh/habitat/pull/2756) ([reset](https://github.com/reset))
+- hab-cli will always attempt to install/use latest launcher [\#2755](https://github.com/habitat-sh/habitat/pull/2755) ([reset](https://github.com/reset))
+
+**Merged pull requests:**
+
+- Point AppVeyor to prod [\#2757](https://github.com/habitat-sh/habitat/pull/2757) ([chefsalim](https://github.com/chefsalim))
+- Depot inherit's API GitHubCfg [\#2754](https://github.com/habitat-sh/habitat/pull/2754) ([reset](https://github.com/reset))
+- Hardcode Depot GitHub cfg [\#2753](https://github.com/habitat-sh/habitat/pull/2753) ([reset](https://github.com/reset))
+- Bump version [\#2752](https://github.com/habitat-sh/habitat/pull/2752) ([chefsalim](https://github.com/chefsalim))
+
+## [0.26.0](https://github.com/habitat-sh/habitat/tree/0.26.0) (07-15-2017)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.25.1...0.26.0)
 
 ## Features & Enhancements
 
+- Promote all packages that were in prod prior to 7/6/2017 to stable [\#2717](https://github.com/habitat-sh/habitat/issues/2717)
 - Add 'hab pkg channels' command [\#2682](https://github.com/habitat-sh/habitat/issues/2682)
 - \[builder ux\] failed builds don't show up in the builds page [\#2573](https://github.com/habitat-sh/habitat/issues/2573)
 - \[builder\] Worker should pull from specified environment and channel during studio build [\#2563](https://github.com/habitat-sh/habitat/issues/2563)
@@ -19,6 +36,7 @@
 ## Bug fixes
 
 - Change hab pkg install logic [\#2722](https://github.com/habitat-sh/habitat/issues/2722)
+- \[hab cli\] Package promotion should also promote all transitive dependencies [\#2716](https://github.com/habitat-sh/habitat/issues/2716)
 - hab pkg search doesn't work with origin [\#2684](https://github.com/habitat-sh/habitat/issues/2684)
 - Errors uploading packages with dependencies [\#2633](https://github.com/habitat-sh/habitat/issues/2633)
 - Retrieval of completed job log does not respect `start` parameter [\#2622](https://github.com/habitat-sh/habitat/issues/2622)
@@ -32,8 +50,6 @@
 
 **Closed issues:**
 
-- Promote all packages that were in prod prior to 7/6/2017 to stable [\#2717](https://github.com/habitat-sh/habitat/issues/2717)
-- \[hab cli\] Package promotion should also promote all transitive dependencies [\#2716](https://github.com/habitat-sh/habitat/issues/2716)
 - 503 error on bldr.habitat.sh [\#2723](https://github.com/habitat-sh/habitat/issues/2723)
 - \[web ui\] Habitat birthday logo [\#2602](https://github.com/habitat-sh/habitat/issues/2602)
 - Create a shard-aware debugging tool [\#2326](https://github.com/habitat-sh/habitat/issues/2326)
@@ -41,6 +57,7 @@
 
 **Merged pull requests:**
 
+- Prep for release 0.26.0 [\#2751](https://github.com/habitat-sh/habitat/pull/2751) ([chefsalim](https://github.com/chefsalim))
 - Auto-configure \[archive.local\_dir\] in JobSrv [\#2734](https://github.com/habitat-sh/habitat/pull/2734) ([reset](https://github.com/reset))
 - set defaults for jobsrv config [\#2733](https://github.com/habitat-sh/habitat/pull/2733) ([robbkidd](https://github.com/robbkidd))
 - add caching again [\#2731](https://github.com/habitat-sh/habitat/pull/2731) ([mwrock](https://github.com/mwrock))
