@@ -18,9 +18,9 @@ use common::ui::UI;
 
 use error::Result;
 
-const SUP_CMD: &'static str = "hab-sup";
-const SUP_CMD_ENVVAR: &'static str = "HAB_SUP_BINARY";
-const SUP_PKG_IDENT: &'static str = "core/hab-sup";
+pub const SUP_CMD: &'static str = "hab-sup";
+pub const SUP_CMD_ENVVAR: &'static str = "HAB_SUP_BINARY";
+pub const SUP_PKG_IDENT: &'static str = "core/hab-sup";
 
 pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
     inner::start(ui, args)
