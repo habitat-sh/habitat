@@ -12,8 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-pub mod filesystem;
 pub mod ffi;
+pub mod filesystem;
+pub mod net;
 pub mod process;
 pub mod signals;
 pub mod system;

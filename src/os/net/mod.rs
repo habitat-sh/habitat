@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Copyright (c) 2017 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,13 +14,11 @@
 
 #[allow(unused_variables)]
 #[cfg(windows)]
-mod windows;
-
-#[cfg(windows)]
-pub use self::windows::{chown, chmod, symlink};
+#[path = "windows.rs"]
+mod imp;
 
 #[cfg(not(windows))]
-mod linux;
+#[path = "unix.rs"]
+mod imp;
 
-#[cfg(not(windows))]
-pub use self::linux::{chown, chmod, symlink};
+pub use self::imp::*;
