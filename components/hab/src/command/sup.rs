@@ -49,7 +49,7 @@ mod inner {
             Ok(command) => PathBuf::from(command),
             Err(_) => {
                 init();
-                let version: Vec<&str> = VERSION.split("/").collect();
+                let version: Vec<&str> = VERSION.split('/').collect();
                 let cmd = exec::command_from_min_pkg(
                     ui,
                     SUP_CMD,

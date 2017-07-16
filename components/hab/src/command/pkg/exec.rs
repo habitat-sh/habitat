@@ -27,7 +27,7 @@ where
     T: Into<PathBuf>,
 {
     let command = command.into();
-    let pkg_install = PackageInstall::load(&ident, None)?;
+    let pkg_install = PackageInstall::load(ident, None)?;
     let run_env = pkg_install.runtime_environment()?;
     for (key, value) in run_env {
         info!("Setting: {}='{}'", key, value);

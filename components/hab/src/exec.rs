@@ -77,7 +77,7 @@ where
                 &cache_artifact_path(None::<String>),
                 false,
             )?;
-            command_from_min_pkg(ui, &command, &ident, &cache_key_path, retry + 1)
+            command_from_min_pkg(ui, &command, ident, cache_key_path, retry + 1)
         }
         Err(e) => Err(Error::from(e)),
     }

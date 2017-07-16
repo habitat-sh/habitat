@@ -184,7 +184,7 @@ fn is_origin_in_cache(origin: &str, cache_path: &Path) -> bool {
 }
 
 fn create_origin(ui: &mut UI, origin: &str, cache_path: &Path) -> Result<()> {
-    let result = command::origin::key::generate::start(ui, &origin, cache_path);
+    let result = command::origin::key::generate::start(ui, origin, cache_path);
     ui.br()?;
     result
 }

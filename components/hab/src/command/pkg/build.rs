@@ -11,6 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+#![cfg_attr(feature="clippy", allow(logic_bug))]
 
 use std::ffi::OsString;
 
@@ -46,7 +47,7 @@ pub fn start(
         args.push("-R".into());
     }
     args.push(plan_context.into());
-    if cfg!(target_os = "windows") && windows {
+    if cfg!(target_os = "windows") && windows { // causes logic_bug lint warning
         args.push("-w".into());
     }
     studio::start(ui, args)

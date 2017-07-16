@@ -48,7 +48,7 @@ mod inner {
             Ok(command) => PathBuf::from(command),
             Err(_) => {
                 init();
-                let version: Vec<&str> = VERSION.split("/").collect();
+                let version: Vec<&str> = VERSION.split('/').collect();
                 let ident = PackageIdent::from_str(&format!("{}/{}", butterfly_ident, version[0]))?;
                 exec::command_from_min_pkg(ui, CMD, &ident, &default_cache_key_path(None), 0)?
             }

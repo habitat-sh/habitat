@@ -34,7 +34,7 @@ fn get_name_with_rev(keyfile: &Path, expected_vsn: &str) -> Result<String> {
     match lines.next() {
         Some(val) => {
             let val = val?;
-            if &val != expected_vsn {
+            if val != expected_vsn {
                 let msg = format!("Unsupported version: {}", &val);
                 return Err(Error::HabitatCore(hcore::Error::CryptoError(msg)));
             }

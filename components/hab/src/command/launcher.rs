@@ -48,7 +48,7 @@ mod inner {
     pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
         init();
         if henv::var(SUP_CMD_ENVVAR).is_err() {
-            let version: Vec<&str> = VERSION.split("/").collect();
+            let version: Vec<&str> = VERSION.split('/').collect();
             exec::command_from_min_pkg(
                 ui,
                 SUP_CMD,

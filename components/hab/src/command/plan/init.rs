@@ -104,21 +104,21 @@ pub fn start(
     )?;
 
     let config_path = format!("{}/config/", root);
-    match Path::new(&config_path).exists() {
-        true => {
-            ui.status(
-                Status::Using,
-                format!("existing directory: {}", config_path),
-            )?
-        }
-        false => {
-            ui.status(
-                Status::Creating,
-                format!("directory: {}", config_path),
-            )?;
-            create_dir_all(&config_path)?;
-        }
-    };
+    if Path::new(&config_path).exists() {
+
+        ui.status(
+            Status::Using,
+            format!("existing directory: {}", config_path),
+        )?
+    } else {
+
+        ui.status(
+            Status::Creating,
+            format!("directory: {}", config_path),
+        )?;
+        create_dir_all(&config_path)?;
+    }
+
     ui.para(
         "The `config` directory is where you can set up configuration files for your app. \
                They are influenced by `default.toml`. For more information see here: \
@@ -126,21 +126,18 @@ pub fn start(
     )?;
 
     let hooks_path = format!("{}/hooks/", root);
-    match Path::new(&hooks_path).exists() {
-        true => {
-            ui.status(
-                Status::Using,
-                format!("existing directory: {}", hooks_path),
-            )?
-        }
-        false => {
-            ui.status(
-                Status::Creating,
-                format!("directory: {}", hooks_path),
-            )?;
-            create_dir_all(&hooks_path)?;
-        }
-    };
+    if Path::new(&hooks_path).exists() {
+        ui.status(
+            Status::Using,
+            format!("existing directory: {}", hooks_path),
+        )?
+    } else {
+        ui.status(
+            Status::Creating,
+            format!("directory: {}", hooks_path),
+        )?;
+        create_dir_all(&hooks_path)?;
+    }
     ui.para(
         "The `hooks` directory is where you can create a number of automation hooks into \
                your habitat. There are several hooks to create and tweak! See the full list \
@@ -210,25 +207,22 @@ fn is_git_managed(path: &Path) -> bool {
 
 fn create_with_template(ui: &mut UI, location: &str, template: &str) -> Result<()> {
     let path = Path::new(&location);
-    match path.exists() {
-        false => {
-            ui.status(Status::Creating, format!("file: {}", location))?;
-            // If the directory doesn't exist we need to make it.
-            if let Some(directory) = path.parent() {
-                create_dir_all(directory)?;
-            }
-            // Create and then render the template with Handlebars
-            File::create(path).and_then(
-                |mut file| file.write(template.as_bytes()),
-            )?;
+    if path.exists() {
+        ui.status(Status::Creating, format!("file: {}", location))?;
+        // If the directory doesn't exist we need to make it.
+        if let Some(directory) = path.parent() {
+            create_dir_all(directory)?;
         }
-        true => {
-            // If the user has already configured a file overwriting would be impolite.
-            ui.status(
-                Status::Using,
-                format!("existing file: {}", location),
-            )?;
-        }
-    };
+        // Create and then render the template with Handlebars
+        File::create(path).and_then(
+            |mut file| file.write(template.as_bytes()),
+        )?;
+    } else {
+        // If the user has already configured a file overwriting would be impolite.
+        ui.status(
+            Status::Using,
+            format!("existing file: {}", location),
+        )?;
+    }
     Ok(())
 }

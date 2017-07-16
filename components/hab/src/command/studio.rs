@@ -92,7 +92,7 @@ mod inner {
             Ok(command) => PathBuf::from(command),
             Err(_) => {
                 init();
-                let version: Vec<&str> = VERSION.split("/").collect();
+                let version: Vec<&str> = VERSION.split('/').collect();
                 let ident = PackageIdent::from_str(
                     &format!("{}/{}", super::STUDIO_PACKAGE_IDENT, version[0]),
                 )?;

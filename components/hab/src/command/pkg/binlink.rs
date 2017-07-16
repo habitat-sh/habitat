@@ -37,7 +37,7 @@ pub fn start(
         &ident,
         dst_path.display()
     ))?;
-    let pkg_install = PackageInstall::load(&ident, Some(fs_root_path))?;
+    let pkg_install = PackageInstall::load(ident, Some(fs_root_path))?;
     let src = match hfs::find_command_in_pkg(binary, &pkg_install, fs_root_path)? {
         Some(c) => c,
         None => {
