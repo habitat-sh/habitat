@@ -14,6 +14,7 @@
 
 #[macro_use]
 extern crate habitat_builder_db as db;
+extern crate habitat_net as hab_net;
 
 mod async;
 mod migration;

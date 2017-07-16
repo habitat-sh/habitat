@@ -16,7 +16,8 @@ use std::sync::{mpsc, Arc, RwLock};
 use std::time::Duration;
 use std::thread::{self, JoinHandle};
 
-use hab_net::server::{NetIdent, ZMQ_CONTEXT};
+use hab_net::server::NetIdent;
+use hab_net::socket::DEFAULT_CONTEXT;
 use protobuf::{parse_from_bytes, Message};
 use protocol::jobsrv as proto;
 use zmq;
@@ -79,7 +80,7 @@ pub struct HeartbeatCli {
 impl HeartbeatCli {
     /// Create a new HeartbeatMgr client
     pub fn new() -> Self {
-        let sock = (**ZMQ_CONTEXT).as_mut().socket(zmq::REQ).unwrap();
+        let sock = (**DEFAULT_CONTEXT).as_mut().socket(zmq::REQ).unwrap();
         HeartbeatCli {
             sock: sock,
             msg: zmq::Message::new().unwrap(),
@@ -164,8 +165,8 @@ impl HeartbeatMgr {
     }
 
     fn new(config: Arc<RwLock<Config>>) -> Result<Self> {
-        let pub_sock = (**ZMQ_CONTEXT).as_mut().socket(zmq::PUB)?;
-        let cli_sock = (**ZMQ_CONTEXT).as_mut().socket(zmq::REP)?;
+        let pub_sock = (**DEFAULT_CONTEXT).as_mut().socket(zmq::PUB)?;
+        let cli_sock = (**DEFAULT_CONTEXT).as_mut().socket(zmq::REP)?;
         pub_sock.set_immediate(true)?;
         pub_sock.set_sndhwm(1)?;
         pub_sock.set_linger(0)?;

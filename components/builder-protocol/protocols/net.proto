@@ -9,17 +9,6 @@ enum Protocol {
   Scheduler = 5;
 }
 
-message RouteInfo {
-  optional Protocol protocol = 1;
-  optional uint64 hash = 2;
-}
-
-message Msg {
-  optional string message_id = 1;
-  optional bytes body = 2;
-  optional RouteInfo route_info = 3;
-}
-
 enum ErrCode {
   // Generic
   BUG = 0;
@@ -31,9 +20,11 @@ enum ErrCode {
   ACCESS_DENIED = 7;
   SESSION_EXPIRED = 8;
   ENTITY_CONFLICT = 9;
-  ZMQ = 10;
+  SOCK = 10;
   DATA_STORE = 11;
   AUTH_SCOPE = 12;
+  REMOTE_UNAVAILABLE = 13;
+  SYS = 14;
 
   // Worker
   WORKSPACE_SETUP = 1000;
@@ -42,6 +33,30 @@ enum ErrCode {
   VCS_CLONE = 1003;
   BUILD = 1004;
   POST_PROCESSOR = 1005;
+
+  // RouteSrv
+  REG_CONFLICT = 2000;
+  REG_NOT_FOUND = 2001;
+
+  // Scheduler
+  GROUP_NOT_COMPLETE = 3000;
+  PARTIAL_JOB_GROUP_PROMOTE = 3001;
+}
+
+message Header {
+  optional string message_id = 1;
+  optional bool route_info = 2;
+  optional bool txn = 3;
+}
+
+message RouteInfo {
+  optional Protocol protocol = 1;
+  optional uint64 hash = 2;
+}
+
+message Txn {
+  optional uint64 id = 1;
+  optional bool complete = 2;
 }
 
 message NetError {
@@ -50,5 +65,3 @@ message NetError {
 }
 
 message NetOk {}
-message Ping {}
-message Pong {}

@@ -14,7 +14,7 @@
 
 use bldr_core::logger::Logger;
 use error::{Error, Result};
-use hab_net::server::ZMQ_CONTEXT;
+use hab_net::socket::DEFAULT_CONTEXT;
 use protobuf::Message;
 use protocol::jobsrv::{JobLogComplete, JobLogChunk};
 use std::io::{BufRead, BufReader};
@@ -39,7 +39,7 @@ pub struct LogPipe {
 
 impl LogPipe {
     pub fn new(workspace: &Workspace) -> Self {
-        let sock = (**ZMQ_CONTEXT).as_mut().socket(zmq::PUSH).unwrap();
+        let sock = (**DEFAULT_CONTEXT).as_mut().socket(zmq::PUSH).unwrap();
         sock.set_immediate(true).unwrap();
         sock.set_linger(5000).unwrap();
         sock.connect(INPROC_ADDR).unwrap();

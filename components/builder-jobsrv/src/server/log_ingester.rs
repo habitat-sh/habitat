@@ -15,7 +15,7 @@
 use config::Config;
 use data_store::DataStore;
 use error::Result;
-use hab_net::server::ZMQ_CONTEXT;
+use hab_net::socket::DEFAULT_CONTEXT;
 use protobuf::parse_from_bytes;
 use protocol::jobsrv::{JobLogComplete, JobLogChunk};
 use server::log_archiver::{self, LogArchiver};
@@ -49,7 +49,7 @@ impl LogIngester {
         log_dir: LogDirectory,
         data_store: DataStore,
     ) -> Result<Self> {
-        let intake_sock = (**ZMQ_CONTEXT).as_mut().socket(zmq::ROUTER)?;
+        let intake_sock = (**DEFAULT_CONTEXT).as_mut().socket(zmq::ROUTER)?;
         intake_sock.set_router_mandatory(true)?;
         let msg = zmq::Message::new()?;
         let archiver = log_archiver::from_config(config.read().unwrap().archive.clone()).unwrap();

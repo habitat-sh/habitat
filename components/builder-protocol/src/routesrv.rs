@@ -13,3 +13,31 @@
 // limitations under the License.
 
 pub use message::routesrv::*;
+use message::Routable;
+
+pub const DEFAULT_ROUTER_PORT: u16 = 5562;
+pub const PING_INTERVAL_MS: i64 = 30_000;
+
+impl Routable for Disconnect {
+    type H = u64;
+
+    fn route_key(&self) -> Option<Self::H> {
+        None
+    }
+}
+
+impl Routable for Heartbeat {
+    type H = u64;
+
+    fn route_key(&self) -> Option<Self::H> {
+        None
+    }
+}
+
+impl Routable for Registration {
+    type H = u64;
+
+    fn route_key(&self) -> Option<Self::H> {
+        None
+    }
+}

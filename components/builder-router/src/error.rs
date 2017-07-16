@@ -14,49 +14,38 @@
 
 use std::error;
 use std::fmt;
-use std::io;
 use std::result;
 
 use hab_core;
-use hab_net;
-use protobuf;
-use zmq;
+use protocol;
 
-#[derive(Debug)]
-pub enum Error {
-    BadPort(String),
-    HabitatCore(hab_core::Error),
-    IO(io::Error),
-    NetError(hab_net::Error),
-    Protobuf(protobuf::ProtobufError),
-    Zmq(zmq::Error),
-}
+use conn::ConnErr;
 
 pub type Result<T> = result::Result<T, Error>;
 
+#[derive(Debug)]
+pub enum Error {
+    Connection(ConnErr),
+    HabitatCore(hab_core::Error),
+    Protocol(protocol::ProtocolError),
+}
+
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let msg = match *self {
-            Error::BadPort(ref e) => format!("{} is an invalid port. Valid range 1-65535.", e),
-            Error::HabitatCore(ref e) => format!("{}", e),
-            Error::IO(ref e) => format!("{}", e),
-            Error::NetError(ref e) => format!("{}", e),
-            Error::Protobuf(ref e) => format!("{}", e),
-            Error::Zmq(ref e) => format!("{}", e),
-        };
-        write!(f, "{}", msg)
+        match *self {
+            Error::Connection(ref e) => write!(f, "{}", e),
+            Error::HabitatCore(ref e) => write!(f, "{}", e),
+            Error::Protocol(ref e) => write!(f, "{}", e),
+        }
     }
 }
 
 impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
-            Error::BadPort(_) => "Received an invalid port or a number outside of the valid range.",
+            Error::Connection(ref err) => err.description(),
             Error::HabitatCore(ref err) => err.description(),
-            Error::IO(ref err) => err.description(),
-            Error::NetError(ref err) => err.description(),
-            Error::Protobuf(ref err) => err.description(),
-            Error::Zmq(ref err) => err.description(),
+            Error::Protocol(ref err) => err.description(),
         }
     }
 }
@@ -67,26 +56,14 @@ impl From<hab_core::Error> for Error {
     }
 }
 
-impl From<io::Error> for Error {
-    fn from(err: io::Error) -> Self {
-        Error::IO(err)
+impl From<ConnErr> for Error {
+    fn from(err: ConnErr) -> Error {
+        Error::Connection(err)
     }
 }
 
-impl From<hab_net::Error> for Error {
-    fn from(err: hab_net::Error) -> Self {
-        Error::NetError(err)
-    }
-}
-
-impl From<protobuf::ProtobufError> for Error {
-    fn from(err: protobuf::ProtobufError) -> Self {
-        Error::Protobuf(err)
-    }
-}
-
-impl From<zmq::Error> for Error {
-    fn from(err: zmq::Error) -> Self {
-        Error::Zmq(err)
+impl From<protocol::ProtocolError> for Error {
+    fn from(err: protocol::ProtocolError) -> Error {
+        Error::Protocol(err)
     }
 }

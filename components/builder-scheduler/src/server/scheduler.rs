@@ -18,7 +18,8 @@ use std::thread::{self, JoinHandle};
 use std::path::PathBuf;
 use std::collections::HashMap;
 
-use hab_net::server::ZMQ_CONTEXT;
+use hab_core::channel::{STABLE_CHANNEL, UNSTABLE_CHANNEL};
+use hab_net::socket::DEFAULT_CONTEXT;
 use hab_net::routing::Broker;
 use zmq;
 
@@ -54,7 +55,7 @@ impl ScheduleClient {
 
 impl Default for ScheduleClient {
     fn default() -> ScheduleClient {
-        let socket = (**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER).unwrap();
+        let socket = (**DEFAULT_CONTEXT).as_mut().socket(zmq::DEALER).unwrap();
         socket.set_sndhwm(1).unwrap();
         socket.set_linger(0).unwrap();
         socket.set_immediate(true).unwrap();
@@ -73,7 +74,7 @@ pub struct ScheduleMgr {
 
 impl ScheduleMgr {
     pub fn new(datastore: DataStore, config: Arc<RwLock<Config>>) -> Result<Self> {
-        let socket = (**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER)?;
+        let socket = (**DEFAULT_CONTEXT).as_mut().socket(zmq::DEALER)?;
         socket.set_rcvhwm(1)?;
         socket.set_linger(0)?;
         socket.set_immediate(true)?;
@@ -148,7 +149,8 @@ impl ScheduleMgr {
             // Take one group from the pending list
             let mut groups = self.datastore.pending_groups(1)?;
 
-            // 0 means there are no pending groups, so we should consume our notice that we have work
+            // 0 means there are no pending groups, so we should consume our notice that we have
+            // work
             if groups.len() == 0 {
                 break;
             }

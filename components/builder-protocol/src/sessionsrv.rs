@@ -22,7 +22,6 @@ use message::{Persistable, Routable};
 use sharding::InstaId;
 pub use message::sessionsrv::*;
 
-
 impl Routable for SessionCreate {
     type H = String;
 

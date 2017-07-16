@@ -58,11 +58,10 @@ impl DataStore {
     }
 
     /// Create a new DataStore from a pre-existing pool; useful for testing the database.
-    pub fn from_pool(pool: Pool) -> Result<DataStore> {
-        let ap = pool.clone();
+    pub fn from_pool(pool: Pool, router_pipe: Arc<String>) -> Result<DataStore> {
         Ok(DataStore {
+            async: AsyncServer::new(pool.clone(), router_pipe),
             pool: pool,
-            async: AsyncServer::new(ap),
         })
     }
 

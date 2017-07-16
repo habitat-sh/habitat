@@ -17,8 +17,8 @@
 use std::net::{IpAddr, Ipv4Addr};
 use std::str::FromStr;
 
-use hab_net::config::{DEFAULT_ROUTER_LISTEN_PORT, DEFAULT_ROUTER_HEARTBEAT_PORT};
 use hab_core::config::ConfigFile;
+use protocol::routesrv::DEFAULT_ROUTER_PORT;
 use toml;
 
 use error::{Error, Result};
@@ -29,27 +29,20 @@ pub struct Config {
     /// Listening ip address for client connections
     pub listen: IpAddr,
     /// Port for receiving routable messages from services and gateways
-    pub client_port: u16,
-    /// Port for receiving service heartbeats
-    pub heartbeat_port: u16,
+    pub port: u16,
 }
 
 impl Config {
-    pub fn fe_addr(&self) -> String {
-        format!("tcp://{}:{}", self.listen, self.client_port)
-    }
-
-    pub fn hb_addr(&self) -> String {
-        format!("tcp://{}:{}", self.listen, self.heartbeat_port)
+    pub fn addr(&self) -> String {
+        format!("tcp://{}:{}", self.listen, self.port)
     }
 }
 
 impl Default for Config {
     fn default() -> Self {
         Config {
-            listen: IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)),
-            client_port: DEFAULT_ROUTER_LISTEN_PORT,
-            heartbeat_port: DEFAULT_ROUTER_HEARTBEAT_PORT,
+            listen: IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
+            port: DEFAULT_ROUTER_PORT,
         }
     }
 }
@@ -76,14 +69,12 @@ mod tests {
     fn config_from_file() {
         let content = r#"
         listen = "0:0:0:0:0:0:0:1"
-        client_port = 9000
-        heartbeat_port = 9001
+        port = 9000
         "#;
 
         let config = Config::from_str(&content).unwrap();
         assert_eq!(&format!("{}", config.listen), "::1");
-        assert_eq!(config.client_port, 9000);
-        assert_eq!(config.heartbeat_port, 9001);
+        assert_eq!(config.port, 9000);
     }
 
     #[test]

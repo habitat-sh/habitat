@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Copyright (c) 2017 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,4 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-pub use super::{Dispatcher, DispatcherState, MessageHandler};
+use simple_time;
+
+/// Monotomically increasing clock time in milliseconds used to determine expiration events.
+pub fn clock_time() -> i64 {
+    let timespec = simple_time::get_time();
+    (timespec.sec as i64 * 1000) + (timespec.nsec as i64 / 1000 / 1000)
+}

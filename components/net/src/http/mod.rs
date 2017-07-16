@@ -40,5 +40,6 @@ pub fn net_err_to_http(err: ErrCode) -> Status {
         ErrCode::VCS_CLONE => Status::BadGateway,
         ErrCode::BUILD => Status::InternalServerError,
         ErrCode::POST_PROCESSOR => Status::InternalServerError,
+        ErrCode::REG_CONFLICT => Status::InternalServerError,
     }
 }

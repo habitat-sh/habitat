@@ -21,9 +21,10 @@ pub mod log_archiver;
 use std::ops::Deref;
 use std::sync::{Arc, RwLock};
 
-use hab_net::dispatcher::prelude::*;
 use hab_net::{Application, Supervisor};
-use hab_net::server::{Envelope, NetIdent, RouteConn, Service, ZMQ_CONTEXT};
+use hab_net::dispatcher::prelude::*;
+use hab_net::server::{Envelope, NetIdent, RouteConn, Service};
+use hab_net::socket::DEFAULT_CONTEXT;
 use hab_net::config::RouterCfg;
 use hab_net::routing::Broker;
 use protocol::net;
@@ -125,10 +126,6 @@ impl Dispatcher for Worker {
         }
     }
 
-    fn context(&mut self) -> &mut zmq::Context {
-        (**ZMQ_CONTEXT).as_mut()
-    }
-
     fn new(config: Arc<RwLock<Config>>) -> Self {
         Worker { config: config }
     }
@@ -158,8 +155,8 @@ pub struct Server {
 
 impl Server {
     pub fn new(config: Config) -> Result<Self> {
-        let router = RouteConn::new(Self::net_ident(), (**ZMQ_CONTEXT).as_mut())?;
-        let be = (**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER)?;
+        let router = RouteConn::new(Self::net_ident(), None)?;
+        let be = (**DEFAULT_CONTEXT).as_mut().socket(zmq::DEALER)?;
         Ok(Server {
             config: Arc::new(RwLock::new(config)),
             router: router,
@@ -242,14 +239,6 @@ impl Service for Server {
 
     fn config(&self) -> &Arc<RwLock<Self::Config>> {
         &self.config
-    }
-
-    fn conn(&self) -> &RouteConn {
-        &self.router
-    }
-
-    fn conn_mut(&mut self) -> &mut RouteConn {
-        &mut self.router
     }
 }
 

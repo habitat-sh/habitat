@@ -15,6 +15,7 @@ doc = false
 clippy = {version = "*", optional = true}
 aws-sdk-rust = "*"
 env_logger = "*"
+habitat-builder-protocol = { path = "../builder-protocol" }
 linked-hash-map = "*"
 log = "*"
 protobuf = "*"
@@ -39,9 +40,6 @@ path = "../core"
 [dependencies.builder_core]
 path = "../builder-core"
 
-[dependencies.habitat_builder_protocol]
-path = "../builder-protocol"
-
 [dependencies.habitat_net]
 path = "../net"
 
@@ -51,7 +49,3 @@ path = "../builder-db"
 [dependencies.zmq]
 git = "https://github.com/erickt/rust-zmq"
 branch = "release/v0.8"
-
-[features]
-default = []
-functional = []

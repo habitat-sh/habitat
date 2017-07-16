@@ -8,7 +8,8 @@ build = "../bldr-build.rs"
 [dependencies]
 base64 = "*"
 chrono = { version = "*", features = ["serde"] }
-clippy = {version = "*", optional = true}
+clippy = { version = "*", optional = true }
+habitat-builder-protocol = { path = "../builder-protocol" }
 iron = "*"
 libarchive = "*"
 log = "*"
@@ -27,12 +28,5 @@ walkdir = "*"
 [dependencies.habitat_core]
 path = "../core"
 
-[dependencies.habitat_builder_protocol]
-path = "../builder-protocol"
-
 [dependencies.habitat_net]
 path = "../net"
-
-[features]
-default = []
-functional = []

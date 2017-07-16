@@ -16,6 +16,7 @@ clippy = {version = "*", optional = true}
 base64 = "*"
 bodyparser = "*"
 env_logger = "*"
+habitat-builder-protocol = { path = "../builder-protocol" }
 hyper = "*"
 iron = "*"
 log = "*"
@@ -48,12 +49,5 @@ path = "../builder-core"
 [dependencies.habitat_depot]
 path = "../builder-depot"
 
-[dependencies.habitat_builder_protocol]
-path = "../builder-protocol"
-
 [dependencies.habitat_net]
 path = "../net"
-
-[features]
-default = []
-functional = []

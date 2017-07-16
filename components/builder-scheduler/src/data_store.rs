@@ -12,19 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::sync::Arc;
+
+use chrono::{DateTime, UTC};
 use db::pool::Pool;
 use db::migration::Migrator;
 use postgres;
-
-use config::Config;
-use error::{Result, Error};
-use chrono::{DateTime, UTC};
-
 use protocol;
 use protocol::jobsrv::{Job, JobState};
 use protocol::scheduler::*;
 use protobuf::RepeatedField;
 use protobuf::{parse_from_bytes, Message};
+
+use config::Config;
+use error::{SrvError, SrvResult};
 
 // DataStore inherits Send + Sync by virtue of having only one member, the pool itself.
 #[derive(Debug, Clone)]
@@ -43,7 +44,7 @@ impl DataStore {
     }
 
     /// Create a new DataStore from a pre-existing pool; useful for testing the database.
-    pub fn from_pool(pool: Pool) -> Result<DataStore> {
+    pub fn from_pool(pool: Pool, _: Arc<String>) -> SrvResult<DataStore> {
         Ok(DataStore { pool: pool })
     }
 

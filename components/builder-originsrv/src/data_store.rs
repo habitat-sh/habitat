@@ -58,11 +58,10 @@ impl DataStore {
         })
     }
 
-    pub fn from_pool(pool: Pool) -> Result<DataStore> {
-        let ap = pool.clone();
+    pub fn from_pool(pool: Pool, router_pipe: Arc<String>) -> SrvResult<DataStore> {
         Ok(DataStore {
+            async: AsyncServer::new(pool.clone(), router_pipe),
             pool: pool,
-            async: AsyncServer::new(ap),
         })
     }
 

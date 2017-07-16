@@ -12,11 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::error::Error as StdError;
 use std::collections::HashMap;
 use std::fmt;
 use std::io::Read;
-use std::result::Result as StdResult;
 use std::time::Duration;
 
 use hyper::{self, Url};
@@ -25,11 +23,11 @@ use hyper::header::{Authorization, Accept, Bearer, UserAgent, qitem};
 use hyper::mime::{Mime, TopLevel, SubLevel};
 use hyper::net::HttpsConnector;
 use hyper_openssl::OpensslClient;
-use protocol::{net, sessionsrv};
+use protocol::sessionsrv;
 use serde_json;
 
 use config;
-use error::{Error, Result};
+use error::{ErrCode, LibError, LibResult};
 
 const USER_AGENT: &'static str = "Habitat-Builder";
 const HTTP_TIMEOUT: u64 = 3_000;
@@ -61,7 +59,7 @@ impl GitHubClient {
         }
     }
 
-    pub fn authenticate(&self, code: &str) -> Result<String> {
+    pub fn authenticate(&self, code: &str) -> LibResult<String> {
         let url = Url::parse(&format!(
             "{}/login/oauth/access_token?\
                                 client_id={}&client_secret={}&code={}",
@@ -69,7 +67,7 @@ impl GitHubClient {
             self.client_id,
             self.client_secret,
             code
-        )).unwrap();
+        )).map_err(LibError::HttpClientParse)?;
         let mut rep = http_post(url)?;
         if rep.status.is_success() {
             let mut encoded = String::new();
@@ -81,43 +79,42 @@ impl GitHubClient {
                         Ok(msg.access_token)
                     } else {
                         let msg = format!("Missing OAuth scope(s), '{}'", missing.join(", "));
-                        let err = net::err(net::ErrCode::AUTH_SCOPE, msg);
-                        Err(Error::from(err))
+                        Err(LibError::net_err(ErrCode::AUTH_SCOPE, msg))
                     }
                 }
                 Err(_) => {
                     match serde_json::from_str::<AuthErr>(&encoded) {
-                        Ok(gh_err) => {
-                            let err = net::err(net::ErrCode::ACCESS_DENIED, gh_err.error);
-                            Err(Error::from(err))
-                        }
-                        Err(_) => {
-                            let err = net::err(net::ErrCode::BAD_REMOTE_REPLY, "net:github:0");
-                            Err(Error::from(err))
-                        }
+                        Ok(gh_err) => Err(LibError::net_err(ErrCode::ACCESS_DENIED, gh_err.error)),
+                        Err(_) => Err(LibError::net_err(ErrCode::BAD_REMOTE_REPLY, "net:github:0")),
                     }
                 }
             }
         } else {
-            Err(Error::HTTP(rep.status))
+            Err(LibError::HttpResponse(rep.status))
         }
     }
 
     /// Returns the contents of a file or directory in a repository.
-    pub fn contents(&self, token: &str, owner: &str, repo: &str, path: &str) -> Result<Contents> {
+    pub fn contents(
+        &self,
+        token: &str,
+        owner: &str,
+        repo: &str,
+        path: &str,
+    ) -> LibResult<Contents> {
         let url = Url::parse(&format!(
             "{}/repos/{}/{}/contents/{}",
             self.url,
             owner,
             repo,
             path
-        )).unwrap();
+        )).map_err(LibError::HttpClientParse)?;
         let mut rep = http_get(url, token)?;
         let mut body = String::new();
         rep.read_to_string(&mut body)?;
         if rep.status != StatusCode::Ok {
             let err: HashMap<String, String> = serde_json::from_str(&body)?;
-            return Err(Error::GitHubAPI(rep.status, err));
+            return Err(LibError::GitHubAPI(rep.status, err));
         }
         let mut contents: Contents = serde_json::from_str(&body).unwrap();
 
@@ -130,87 +127,91 @@ impl GitHubClient {
         Ok(contents)
     }
 
-    pub fn repo(&self, token: &str, owner: &str, repo: &str) -> Result<Repo> {
+    pub fn repo(&self, token: &str, owner: &str, repo: &str) -> LibResult<Repo> {
         let url = Url::parse(&format!("{}/repos/{}/{}", self.url, owner, repo)).unwrap();
         let mut rep = http_get(url, token)?;
         let mut body = String::new();
         rep.read_to_string(&mut body)?;
         if rep.status != StatusCode::Ok {
             let err: HashMap<String, String> = serde_json::from_str(&body)?;
-            return Err(Error::GitHubAPI(rep.status, err));
+            return Err(LibError::GitHubAPI(rep.status, err));
         }
 
         let repo: Repo = match serde_json::from_str(&body) {
             Ok(r) => r,
             Err(e) => {
                 debug!("github repo decode failed: {}. response body: {}", e, body);
-                return Err(Error::from(e));
+                return Err(LibError::from(e));
             }
         };
 
         Ok(repo)
     }
 
-    pub fn user(&self, token: &str) -> Result<User> {
+    pub fn user(&self, token: &str) -> LibResult<User> {
         let url = Url::parse(&format!("{}/user", self.url)).unwrap();
         let mut rep = http_get(url, token)?;
         let mut body = String::new();
         rep.read_to_string(&mut body)?;
         if rep.status != StatusCode::Ok {
             let err: HashMap<String, String> = serde_json::from_str(&body)?;
-            return Err(Error::GitHubAPI(rep.status, err));
+            return Err(LibError::GitHubAPI(rep.status, err));
         }
         let user: User = serde_json::from_str(&body).unwrap();
         Ok(user)
     }
 
-    pub fn other_user(&self, token: &str, username: &str) -> Result<User> {
+    pub fn other_user(&self, token: &str, username: &str) -> LibResult<User> {
         let url = Url::parse(&format!("{}/users/{}", self.url, username)).unwrap();
         let mut rep = http_get(url, token)?;
         let mut body = String::new();
         rep.read_to_string(&mut body)?;
         if rep.status != StatusCode::Ok {
             let err: HashMap<String, String> = serde_json::from_str(&body)?;
-            return Err(Error::GitHubAPI(rep.status, err));
+            return Err(LibError::GitHubAPI(rep.status, err));
         }
         let user: User = serde_json::from_str(&body).unwrap();
         Ok(user)
     }
 
-    pub fn emails(&self, token: &str) -> Result<Vec<Email>> {
+    pub fn emails(&self, token: &str) -> LibResult<Vec<Email>> {
         let url = Url::parse(&format!("{}/user/emails", self.url)).unwrap();
         let mut rep = http_get(url, token)?;
         let mut body = String::new();
         rep.read_to_string(&mut body)?;
         if rep.status != StatusCode::Ok {
             let err: HashMap<String, String> = serde_json::from_str(&body)?;
-            return Err(Error::GitHubAPI(rep.status, err));
+            return Err(LibError::GitHubAPI(rep.status, err));
         }
         let emails: Vec<Email> = serde_json::from_str(&body)?;
         Ok(emails)
     }
 
-    pub fn orgs(&self, token: &str) -> Result<Vec<Organization>> {
-        let url = Url::parse(&format!("{}/user/orgs", self.url)).unwrap();
+    pub fn orgs(&self, token: &str) -> LibResult<Vec<Organization>> {
+        let url = Url::parse(&format!("{}/user/orgs", self.url)).map_err(
+            LibError::HttpClientParse,
+        )?;
         let mut rep = http_get(url, token)?;
         let mut body = String::new();
         rep.read_to_string(&mut body)?;
         if rep.status != StatusCode::Ok {
             let err: HashMap<String, String> = serde_json::from_str(&body)?;
-            return Err(Error::GitHubAPI(rep.status, err));
+            return Err(LibError::GitHubAPI(rep.status, err));
         }
         let orgs: Vec<Organization> = serde_json::from_str(&body)?;
         Ok(orgs)
     }
 
-    pub fn teams(&self, token: &str) -> Result<Vec<Team>> {
-        let url = Url::parse(&format!("{}/user/teams", self.url)).unwrap();
+    pub fn teams(&self, token: &str) -> LibResult<Vec<Team>> {
+        let url = Url::parse(&format!("{}/user/teams", self.url)).map_err(
+            LibError::HttpClientParse,
+        )?;
         let mut rep = http_get(url, token)?;
         let mut body = String::new();
         rep.read_to_string(&mut body)?;
         if rep.status != StatusCode::Ok {
             let err: HashMap<String, String> = serde_json::from_str(&body)?;
-            return Err(Error::GitHubAPI(rep.status, err));
+            return Err(LibError::GitHubAPI(rep.status, err));
         }
         let teams: Vec<Team> = serde_json::from_str(&body)?;
         Ok(teams)
@@ -455,7 +456,7 @@ pub enum AuthResp {
     AuthErr,
 }
 
-fn http_get(url: Url, token: &str) -> StdResult<hyper::client::response::Response, net::NetError> {
+fn http_get(url: Url, token: &str) -> LibResult<hyper::client::response::Response> {
     hyper_client()
         .get(url)
         .header(Accept(vec![
@@ -466,10 +467,10 @@ fn http_get(url: Url, token: &str) -> StdResult<hyper::client::response::Respons
         .header(Authorization(Bearer { token: token.to_owned() }))
         .header(UserAgent(USER_AGENT.to_string()))
         .send()
-        .map_err(hyper_to_net_err)
+        .map_err(LibError::HttpClient)
 }
 
-fn http_post(url: Url) -> StdResult<hyper::client::response::Response, net::NetError> {
+fn http_post(url: Url) -> LibResult<hyper::client::response::Response> {
     hyper_client()
         .post(url)
         .header(Accept(vec![
@@ -479,7 +480,7 @@ fn http_post(url: Url) -> StdResult<hyper::client::response::Response, net::NetE
         ]))
         .header(UserAgent(USER_AGENT.to_string()))
         .send()
-        .map_err(hyper_to_net_err)
+        .map_err(LibError::HttpClient)
 }
 
 fn hyper_client() -> hyper::Client {
@@ -489,8 +490,4 @@ fn hyper_client() -> hyper::Client {
     client.set_read_timeout(Some(Duration::from_millis(HTTP_TIMEOUT)));
     client.set_write_timeout(Some(Duration::from_millis(HTTP_TIMEOUT)));
     client
-}
-
-fn hyper_to_net_err(err: hyper::error::Error) -> net::NetError {
-    net::err(net::ErrCode::BAD_REMOTE_REPLY, err.description())
 }

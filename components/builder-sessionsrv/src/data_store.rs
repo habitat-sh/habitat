@@ -14,6 +14,8 @@
 
 //! The PostgreSQL backend for the Account Server.
 
+use std::sync::Arc;
+
 use db::pool::Pool;
 use db::migration::Migrator;
 use hab_net::privilege;
@@ -36,7 +38,7 @@ impl DataStore {
         Ok(DataStore { pool: pool })
     }
 
-    pub fn from_pool(pool: Pool) -> Result<DataStore> {
+    pub fn from_pool(pool: Pool, _: Arc<String>) -> SrvResult<DataStore> {
         Ok(DataStore { pool: pool })
     }
 

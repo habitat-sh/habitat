@@ -11,15 +11,14 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 #![cfg_attr(feature="clippy", feature(plugin))]
 #![cfg_attr(feature="clippy", plugin(clippy))]
 
 #[macro_use]
 extern crate bitflags;
-extern crate fnv;
 extern crate habitat_builder_protocol as protocol;
 extern crate habitat_core as core;
-#[macro_use]
 extern crate hyper;
 extern crate hyper_openssl;
 #[macro_use]
@@ -35,47 +34,19 @@ extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_json;
-extern crate time;
+extern crate time as simple_time;
 extern crate unicase;
+extern crate uuid;
 extern crate zmq;
 
+pub mod app;
 pub mod config;
+pub mod conn;
 pub mod error;
-pub mod dispatcher;
 pub mod http;
 pub mod oauth;
 pub mod privilege;
-pub mod routing;
-pub mod server;
-pub mod supervisor;
+pub mod socket;
+pub mod time;
 
-use std::process::Command;
-
-pub use self::error::{Error, Result};
-pub use self::server::{Application, ServerReg};
-pub use self::supervisor::Supervisor;
-
-pub fn hostname() -> Result<String> {
-    let output = Command::new("sh")
-        .arg("-c")
-        .arg("hostname | awk '{printf \"%s\", $NF; exit}'")
-        .output()?;
-    match output.status.success() {
-        true => {
-            debug!(
-                "Hostname address is {}",
-                String::from_utf8_lossy(&output.stdout)
-            );
-            let hostname = String::from_utf8(output.stdout).or(Err(Error::Sys))?;
-            Ok(hostname)
-        }
-        false => {
-            debug!(
-                "Hostname address command returned: OUT: {} ERR: {}",
-                String::from_utf8_lossy(&output.stdout),
-                String::from_utf8_lossy(&output.stderr)
-            );
-            Err(Error::Sys)
-        }
-    }
-}
+pub use self::error::{ErrCode, NetError, NetOk, NetResult};

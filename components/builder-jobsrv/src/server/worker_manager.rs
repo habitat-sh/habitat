@@ -18,10 +18,11 @@ use std::time::{Duration, Instant};
 use std::thread::{self, JoinHandle};
 
 use bldr_core;
-use hab_net::server::ZMQ_CONTEXT;
+use hab_net::socket::DEFAULT_CONTEXT;
 use hab_net::routing::Broker;
 use linked_hash_map::LinkedHashMap;
 use protobuf::{parse_from_bytes, Message, RepeatedField};
+
 use protocol::jobsrv;
 use protocol::originsrv::{OriginIntegrationRequest, OriginIntegrationResponse};
 use protocol::net::{self, ErrCode};
@@ -54,7 +55,7 @@ impl WorkerMgrClient {
 
 impl Default for WorkerMgrClient {
     fn default() -> WorkerMgrClient {
-        let socket = (**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER).unwrap();
+        let socket = (**DEFAULT_CONTEXT).as_mut().socket(zmq::DEALER).unwrap();
         socket.set_sndhwm(1).unwrap();
         socket.set_linger(0).unwrap();
         socket.set_immediate(true).unwrap();
@@ -77,9 +78,9 @@ pub struct WorkerMgr {
 
 impl WorkerMgr {
     pub fn new(config: Arc<RwLock<Config>>, datastore: DataStore) -> Result<Self> {
-        let hb_sock = (**ZMQ_CONTEXT).as_mut().socket(zmq::SUB)?;
-        let rq_sock = (**ZMQ_CONTEXT).as_mut().socket(zmq::ROUTER)?;
-        let work_mgr_sock = (**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER)?;
+        let hb_sock = (**DEFAULT_CONTEXT).as_mut().socket(zmq::SUB)?;
+        let rq_sock = (**DEFAULT_CONTEXT).as_mut().socket(zmq::ROUTER)?;
+        let work_mgr_sock = (**DEFAULT_CONTEXT).as_mut().socket(zmq::DEALER)?;
         rq_sock.set_router_mandatory(true)?;
         hb_sock.set_subscribe(&[])?;
         work_mgr_sock.set_rcvhwm(1)?;

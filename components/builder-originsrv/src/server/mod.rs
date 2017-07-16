@@ -20,11 +20,12 @@ use std::sync::{Arc, RwLock};
 use protocol::net;
 use zmq;
 
+use hab_net::{Application, Supervisor};
 use hab_net::config::RouterCfg;
 use hab_net::routing::Broker;
-use hab_net::{Application, Supervisor};
+use hab_net::socket::DEFAULT_CONTEXT;
 use hab_net::dispatcher::prelude::*;
-use hab_net::server::{Envelope, NetIdent, RouteConn, Service, ZMQ_CONTEXT};
+use hab_net::server::{Envelope, NetIdent, RouteConn, Service};
 
 use config::Config;
 use data_store::DataStore;
@@ -143,10 +144,6 @@ impl Dispatcher for Worker {
     fn new(config: Arc<RwLock<Config>>) -> Self {
         Worker { config: config }
     }
-
-    fn context(&mut self) -> &mut zmq::Context {
-        (**ZMQ_CONTEXT).as_mut()
-    }
 }
 
 pub struct Server {
@@ -157,9 +154,8 @@ pub struct Server {
 
 impl Server {
     pub fn new(config: Config) -> Result<Self> {
-        // JW break; how do we pass a mutable context from static ref?
-        let router = RouteConn::new(Self::net_ident(), (**ZMQ_CONTEXT).as_mut())?;
-        let be = (**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER)?;
+        let router = RouteConn::new(Self::net_ident())?;
+        let be = (**DEFAULT_CONTEXT).as_mut().socket(zmq::DEALER)?;
         Ok(Server {
             config: Arc::new(RwLock::new(config)),
             router: router,

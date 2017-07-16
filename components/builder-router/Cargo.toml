@@ -14,6 +14,9 @@ doc = false
 [dependencies]
 clippy = {version = "*", optional = true}
 env_logger = "*"
+habitat-builder-protocol = { path = "../builder-protocol" }
+habitat_core = { path = "../core" }
+habitat_net = { path = "../net" }
 log = "*"
 protobuf = "*"
 rand = "*"
@@ -28,15 +31,3 @@ features = [ "suggestions", "color", "unstable" ]
 [dependencies.zmq]
 git = "https://github.com/erickt/rust-zmq"
 branch = "release/v0.8"
-
-[dependencies.habitat_builder_protocol]
-path = "../builder-protocol"
-
-[dependencies.habitat_core]
-path = "../core"
-
-[dependencies.habitat_net]
-path = "../net"
-
-[features]
-default = []

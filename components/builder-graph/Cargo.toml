@@ -13,6 +13,7 @@ doc = false
 
 [dependencies]
 clippy = {version = "*", optional = true}
+habitat-builder-protocol = { path = "../builder-protocol" }
 log = "*"
 env_logger = "*"
 petgraph = "*"
@@ -32,9 +33,6 @@ path = "../core"
 
 [dependencies.builder_core]
 path = "../builder-core"
-
-[dependencies.habitat_builder_protocol]
-path = "../builder-protocol"
 
 [dependencies.habitat_builder_db]
 path = "../builder-db"

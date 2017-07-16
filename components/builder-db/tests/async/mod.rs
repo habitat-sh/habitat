@@ -12,6 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::sync::Arc;
+
+use hab_net::conn::RouteClient;
+
 use db::async;
 use db::error::Result;
 use db::pool::Pool;
@@ -19,7 +23,7 @@ use db::pool::Pool;
 #[test]
 fn finishes() {
     with_pool!(pool, {
-        let server = async::AsyncServer::new(pool);
+        let server = async::AsyncServer::new(pool, Arc::new("inproc://test".to_string()));
         server.register("event1".to_string(), will_finish);
         assert!(
             server
@@ -50,7 +54,7 @@ fn finishes() {
 #[test]
 fn retries() {
     with_pool!(pool, {
-        let server = async::AsyncServer::new(pool);
+        let server = async::AsyncServer::new(pool, Arc::new("inproc://test".to_string()));
         server.register("event1".to_string(), will_retry);
         server.run_event("event1".to_string(), will_retry);
         assert_eq!(
@@ -83,10 +87,10 @@ fn retries() {
     });
 }
 
-fn will_finish(_pool: Pool) -> Result<async::EventOutcome> {
+fn will_finish(_pool: Pool, _conn: RouteClient) -> Result<async::EventOutcome> {
     Ok(async::EventOutcome::Finished)
 }
 
-fn will_retry(_pool: Pool) -> Result<async::EventOutcome> {
+fn will_retry(_pool: Pool, _conn: RouteClient) -> Result<async::EventOutcome> {
     Ok(async::EventOutcome::Retry)
 }

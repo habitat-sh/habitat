@@ -92,6 +92,7 @@ pub mod init {
 macro_rules! datastore_test {
     ($datastore:ident) => {
         {
+            use std::sync::Arc;
             use std::sync::atomic::Ordering;
             use $crate::config::DataStoreCfg;
             use $crate::pool::Pool;
@@ -99,17 +100,26 @@ macro_rules! datastore_test {
 
             postgres::start();
 
+            // JW: We don't run any tests which need to communicate between RouteSrv->DataStore
+            // implementor so we don't need to provide an actual pipe for a RouteClient to
+            // connect to
+            let router_pipe = Arc::new("inproc://database-test.ipc".to_string());
+
             INIT_TEMPLATE.call_once(|| {
                 let mut config = DataStoreCfg::default();
                 config.database = "template1".to_string();
                 config.pool_size = 1;
                 let pool = Pool::new(&config, vec![0]).expect("Failed to create pool");
                 let conn = pool.get_raw().expect("Failed to get connection");
-                conn.execute("DROP DATABASE IF EXISTS builder_db_test_template", &[]).expect("Failed to drop existing template database");
-                conn.execute("CREATE DATABASE builder_db_test_template", &[]).expect("Failed to create template database");
+                conn.execute("DROP DATABASE IF EXISTS builder_db_test_template", &[])
+                    .expect("Failed to drop existing template database");
+                conn.execute("CREATE DATABASE builder_db_test_template", &[])
+                    .expect("Failed to create template database");
                 config.database = "builder_db_test_template".to_string();
-                let template_pool = Pool::new(&config, (0..SHARD_COUNT).collect()).expect("Failed to create pool");
-                let ds = $datastore::from_pool(template_pool).expect("Failed to create data store from pool");
+                let template_pool = Pool::new(&config, (0..SHARD_COUNT).collect())
+                    .expect("Failed to create pool");
+                let ds = $datastore::from_pool(template_pool, router_pipe.clone())
+                    .expect("Failed to create data store from pool");
                 ds.setup().expect("Failed to migrate data");
             });
             let test_number = TEST_COUNT.fetch_add(1, Ordering::SeqCst);
@@ -120,14 +130,16 @@ macro_rules! datastore_test {
             let create_pool = Pool::new(&config, vec![0]).expect("Failed to create pool");
             let conn = create_pool.get_raw().expect("Failed to get connection");
             let drop_db = format!("DROP DATABASE IF EXISTS {}", db_name);
-            let create_db = format!("CREATE DATABASE {} TEMPLATE builder_db_test_template", db_name);
+            let create_db =
+                format!("CREATE DATABASE {} TEMPLATE builder_db_test_template", db_name);
             conn.execute(&drop_db, &[]).expect("Failed to drop test database");
             conn.execute(&create_db, &[]).expect("Failed to create test database from template");
 
             config.database = db_name;
             config.pool_size = 5;
-            let pool = Pool::new(&config, (0..SHARD_COUNT).collect()).expect("Failed to create pool");
-            $datastore::from_pool(pool).expect("Failed to create data store from pool")
+            let pool = Pool::new(&config, (0..SHARD_COUNT).collect())
+                .expect("Failed to create pool");
+            $datastore::from_pool(pool, router_pipe).expect("Failed to create data store from pool")
         }
     }
 }

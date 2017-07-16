@@ -22,7 +22,8 @@ use hab_net::dispatcher::prelude::*;
 use hab_net::config::RouterCfg;
 use hab_net::routing::Broker;
 use hab_net::oauth::github::GitHubClient;
-use hab_net::server::{Envelope, NetIdent, RouteConn, Service, ZMQ_CONTEXT};
+use hab_net::server::{Envelope, NetIdent, RouteConn, Service};
+use hab_net::socket::DEFAULT_CONTEXT;
 use protocol::net;
 use zmq;
 
@@ -100,10 +101,6 @@ impl Dispatcher for Worker {
     fn new(config: Arc<RwLock<Config>>) -> Self {
         Worker { config: config }
     }
-
-    fn context(&mut self) -> &mut zmq::Context {
-        (**ZMQ_CONTEXT).as_mut()
-    }
 }
 
 pub struct Server {
@@ -114,8 +111,8 @@ pub struct Server {
 
 impl Server {
     pub fn new(config: Config) -> Result<Self> {
-        let router = RouteConn::new(Self::net_ident(), (**ZMQ_CONTEXT).as_mut())?;
-        let be = (**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER)?;
+        let router = RouteConn::new(Self::net_ident())?;
+        let be = (**DEFAULT_CONTEXT).as_mut().socket(zmq::DEALER)?;
         Ok(Server {
             config: Arc::new(RwLock::new(config)),
             router: router,
@@ -138,7 +135,7 @@ impl Server {
 impl Application for Server {
     type Error = Error;
 
-    fn run(&mut self) -> Result<()> {
+    fn init(&self) -> Result<ServerState> {
         self.be_sock.bind(BE_LISTEN_ADDR)?;
         let (datastore, gh, permissions) = {
             let cfg = self.config.read().unwrap();
@@ -148,43 +145,9 @@ impl Application for Server {
         };
         let cfg = self.config.clone();
         datastore.setup()?;
-        let init_state = ServerState::new(datastore, gh, permissions);
-        let sup: Supervisor<Worker> = Supervisor::new(cfg, init_state);
-        sup.start()?;
-        self.connect()?;
-        {
-            let cfg = self.config.read().unwrap();
-            Broker::run(Self::net_ident(), cfg.route_addrs());
-        }
-        info!("builder-sessionsrv is ready to go.");
-        zmq::proxy(&mut self.router.socket, &mut self.be_sock)?;
-        Ok(())
+        Ok(ServerState::new(datastore, gh, permissions))
     }
 }
-
-impl Service for Server {
-    type Application = Self;
-    type Config = Config;
-    type Error = Error;
-
-    fn protocol() -> net::Protocol {
-        net::Protocol::SessionSrv
-    }
-
-    fn config(&self) -> &Arc<RwLock<Self::Config>> {
-        &self.config
-    }
-
-    fn conn(&self) -> &RouteConn {
-        &self.router
-    }
-
-    fn conn_mut(&mut self) -> &mut RouteConn {
-        &mut self.router
-    }
-}
-
-impl NetIdent for Server {}
 
 pub fn run(config: Config) -> Result<()> {
     Server::new(config)?.run()

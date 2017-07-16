@@ -1,3 +1,2 @@
 listen = "0.0.0.0"
-client_port = 5562
-heartbeat_port = 5563
+port = 5562
