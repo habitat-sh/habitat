@@ -89,13 +89,6 @@ var homepageScripts = function() {
     animateScroll($(".home--sub-hero--logos.applications"));
   });
 
-  // Logo hover tip
-  $('.main-nav--logo').hover(function() {
-    $('#hab-logo-tip').addClass('its-on');
-  }, function () {
-    $('#hab-logo-tip').removeClass('its-on');
-  })
-
   $(function() {
     var htmlDecode = function(input) {
       var doc = new DOMParser().parseFromString(input, "text/html");
