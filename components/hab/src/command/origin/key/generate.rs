@@ -20,11 +20,11 @@ use hcore::crypto::SigKeyPair;
 use error::Result;
 
 pub fn start(ui: &mut UI, origin: &str, cache: &Path) -> Result<()> {
-    try!(ui.begin(format!("Generating origin key for {}", &origin)));
-    let pair = try!(SigKeyPair::generate_pair_for_origin(origin, cache));
-    try!(ui.end(format!(
+    ui.begin(format!("Generating origin key for {}", &origin))?;
+    let pair = SigKeyPair::generate_pair_for_origin(origin, cache)?;
+    ui.end(format!(
         "Generated origin key pair {}.",
         &pair.name_with_rev()
-    )));
+    ))?;
     Ok(())
 }

@@ -54,9 +54,9 @@ impl DataMigrator {
 
 pub fn run(config: Config) -> Result<()> {
     let datastore = {
-        try!(DataStore::new(&config))
+        DataStore::new(&config)?
     };
-    try!(datastore.setup());
+    datastore.setup()?;
 
     let migrator = DataMigrator::new(datastore, PathBuf::from(config.migration_path));
     migrator.run()

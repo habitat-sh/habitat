@@ -399,11 +399,11 @@ impl Worker {
     fn install(&mut self, package: &PackageIdent, recurse: bool) -> Result<PackageInstall> {
         let package = match PackageInstall::load(package, Some(&*FS_ROOT_PATH)) {
             Ok(pkg) => pkg,
-            Err(_) => try!(self.download(package)),
+            Err(_) => self.download(package)?,
         };
         if recurse {
             for ident in package.tdeps()?.iter() {
-                try!(self.install(&ident, false));
+                self.install(&ident, false)?;
             }
         }
         Ok(package)
@@ -411,16 +411,16 @@ impl Worker {
 
     fn download(&mut self, package: &PackageIdent) -> Result<PackageInstall> {
         outputln!("Downloading {}", package);
-        let mut archive = try!(self.depot.fetch_package(
+        let mut archive = self.depot.fetch_package(
             package,
             &Path::new(&*FS_ROOT_PATH).join(
                 CACHE_ARTIFACT_PATH,
             ),
             self.ui.progress(),
-        ));
-        try!(archive.verify(&default_cache_key_path(None)));
+        )?;
+        archive.verify(&default_cache_key_path(None))?;
         outputln!("Installing {}", package);
-        try!(archive.unpack(None));
+        archive.unpack(None)?;
         let pkg = PackageInstall::load(archive.ident().as_ref().unwrap(), Some(&*FS_ROOT_PATH))?;
         Ok(pkg)
     }

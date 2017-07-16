@@ -146,11 +146,11 @@ impl Serialize for Project {
     where
         S: Serializer,
     {
-        let mut strukt = try!(serializer.serialize_struct("project", 4));
-        try!(strukt.serialize_field("name", &self.get_name()));
-        try!(strukt.serialize_field("ident", &self.get_ident()));
-        try!(strukt.serialize_field("state", &self.get_state()));
-        try!(strukt.serialize_field("job_id", &self.get_job_id()));
+        let mut strukt = serializer.serialize_struct("project", 4)?;
+        strukt.serialize_field("name", &self.get_name())?;
+        strukt.serialize_field("ident", &self.get_ident())?;
+        strukt.serialize_field("state", &self.get_state())?;
+        strukt.serialize_field("job_id", &self.get_job_id())?;
         strukt.end()
     }
 }
@@ -160,11 +160,11 @@ impl Serialize for Group {
     where
         S: Serializer,
     {
-        let mut strukt = try!(serializer.serialize_struct("group", 3));
-        try!(strukt.serialize_field("id", &self.get_id()));
-        try!(strukt.serialize_field("state", &self.get_state()));
-        try!(strukt.serialize_field("projects", &self.get_projects()));
-        try!(strukt.serialize_field("created_at", &self.get_created_at()));
+        let mut strukt = serializer.serialize_struct("group", 3)?;
+        strukt.serialize_field("id", &self.get_id())?;
+        strukt.serialize_field("state", &self.get_state())?;
+        strukt.serialize_field("projects", &self.get_projects())?;
+        strukt.serialize_field("created_at", &self.get_created_at())?;
         strukt.end()
     }
 }
@@ -174,9 +174,9 @@ impl Serialize for PackageStats {
     where
         S: Serializer,
     {
-        let mut strukt = try!(serializer.serialize_struct("packagestats", 2));
-        try!(strukt.serialize_field("plans", &self.get_plans()));
-        try!(strukt.serialize_field("builds", &self.get_builds()));
+        let mut strukt = serializer.serialize_struct("packagestats", 2)?;
+        strukt.serialize_field("plans", &self.get_plans())?;
+        strukt.serialize_field("builds", &self.get_builds())?;
         strukt.end()
     }
 }

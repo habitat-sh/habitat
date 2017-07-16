@@ -64,6 +64,10 @@ impl GitHubOAuth for Config {
         &self.github.url
     }
 
+    fn github_web_url(&self) -> &str {
+        &self.github.web_url
+    }
+
     fn github_client_id(&self) -> &str {
         &self.github.client_id
     }

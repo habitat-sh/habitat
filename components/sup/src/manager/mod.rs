@@ -13,7 +13,7 @@
 // limitations under the License.
 
 pub mod service;
-mod signals;
+mod self_updater;
 mod service_updater;
 mod spec_watcher;
 mod sys;
@@ -26,6 +26,7 @@ use std::net::SocketAddr;
 use std::path::{Path, PathBuf};
 use std::result;
 use std::thread;
+use std::str::FromStr;
 use std::sync::{Arc, RwLock};
 use std::sync::mpsc::channel;
 use std::time::Duration;
@@ -41,8 +42,9 @@ use eventsrv_client::EventSrvClient;
 use hcore::crypto::{default_cache_key_path, SymKey};
 use hcore::fs::FS_ROOT_PATH;
 use hcore::service::ServiceGroup;
-use hcore::os::process::{self, OsSignal, Signal};
-use hcore::package::{Identifiable, PackageIdent};
+use hcore::os::process::{self, Signal};
+use hcore::package::{Identifiable, PackageIdent, PackageInstall};
+use launcher_client::LauncherCli;
 use protobuf::Message;
 use serde;
 use serde_json;
@@ -50,13 +52,14 @@ use time::{self, Timespec, Duration as TimeDuration};
 
 pub use self::service::{Service, ServiceSpec, UpdateStrategy, Topology};
 pub use self::sys::Sys;
+use self::self_updater::{SUP_PKG_IDENT, SelfUpdater};
 use self::service::{DesiredState, Pkg, ProcessState, StartStyle};
 use self::service_updater::ServiceUpdater;
 use self::spec_watcher::{SpecWatcher, SpecWatcherEvent};
+use VERSION;
 use error::{Error, Result, SupError};
 use config::GossipListenAddr;
 use census::CensusRing;
-use manager::signals::SignalEvent;
 use http_gateway;
 
 const MEMBER_ID_FILE: &'static str = "MEMBER_ID";
@@ -114,6 +117,9 @@ impl FsCfg {
 
 #[derive(Clone, Default)]
 pub struct ManagerConfig {
+    pub auto_update: bool,
+    pub update_url: String,
+    pub update_channel: Option<String>,
     pub gossip_listen: GossipListenAddr,
     pub http_listen: http_gateway::ListenAddr,
     pub gossip_peers: Vec<SocketAddr>,
@@ -128,10 +134,12 @@ pub struct Manager {
     butterfly: butterfly::Server,
     census_ring: CensusRing,
     fs_cfg: Arc<FsCfg>,
+    launcher: LauncherCli,
     services: Arc<RwLock<Vec<Service>>>,
     updater: ServiceUpdater,
     watcher: SpecWatcher,
     organization: Option<String>,
+    self_updater: Option<SelfUpdater>,
     service_states: HashMap<PackageIdent, Timespec>,
     sys: Arc<Sys>,
 }
@@ -160,14 +168,14 @@ impl Manager {
     ///
     /// The returned Manager will be pre-populated with any cached data from disk from a previous
     /// run if available.
-    pub fn load(cfg: ManagerConfig) -> Result<Manager> {
+    pub fn load(cfg: ManagerConfig, launcher: LauncherCli) -> Result<Manager> {
         let state_path = Self::state_path_from(&cfg);
         Self::create_state_path_dirs(&state_path)?;
         Self::clean_dirty_state(&state_path)?;
         let fs_cfg = FsCfg::new(state_path);
         obtain_process_lock(&fs_cfg)?;
 
-        Self::new(cfg, fs_cfg)
+        Self::new(cfg, fs_cfg, launcher)
     }
 
     pub fn service_status(cfg: ManagerConfig, ident: PackageIdent) -> Result<ServiceStatus> {
@@ -201,7 +209,22 @@ impl Manager {
         }
     }
 
-    fn new(cfg: ManagerConfig, fs_cfg: FsCfg) -> Result<Manager> {
+    fn new(cfg: ManagerConfig, fs_cfg: FsCfg, launcher: LauncherCli) -> Result<Manager> {
+        let current = PackageIdent::from_str(&format!("{}/{}", SUP_PKG_IDENT, VERSION)).unwrap();
+        let self_updater = if cfg.auto_update {
+            if current.fully_qualified() {
+                Some(SelfUpdater::new(
+                    current,
+                    cfg.update_url,
+                    cfg.update_channel,
+                ))
+            } else {
+                warn!("Supervisor version not fully qualified, unable to start self-updater");
+                None
+            }
+        } else {
+            None
+        };
         let mut sys = Sys::new(cfg.gossip_permanent, cfg.gossip_listen, cfg.http_listen);
         let member = Self::load_member(&mut sys, &fs_cfg)?;
 
@@ -236,9 +259,11 @@ impl Manager {
             server.member_list.add_initial_member(peer);
         }
         Ok(Manager {
+            self_updater: self_updater,
             updater: ServiceUpdater::new(server.clone()),
             census_ring: CensusRing::new(sys.member_id.clone()),
             butterfly: server,
+            launcher: launcher,
             services: services,
             watcher: SpecWatcher::run(&fs_cfg.specs_path)?,
             fs_cfg: Arc::new(fs_cfg),
@@ -415,9 +440,13 @@ impl Manager {
             .push(service);
     }
 
-    fn remove_service(&self, service: &mut Service) {
+    fn remove_service(&self, service: &mut Service, term: bool) {
         // JW TODO: Update service rumor to remove service from cluster
-        service.stop();
+        if term {
+            service.stop(Some(&self.launcher));
+        } else {
+            service.stop(None);
+        }
         if service.start_style == StartStyle::Transient {
             // JW TODO: If we cleanup our Service structure to hold the ServiceSpec instead of
             // deconstruct it (see my comments in `add_service()` in this module) then we could
@@ -430,7 +459,6 @@ impl Manager {
                 );
             }
         }
-
         if let Err(err) = fs::remove_file(self.fs_cfg.health_check_cache(&service.service_group)) {
             outputln!(
                 "Unable to cleanup service health cache, {}, {}",
@@ -441,7 +469,6 @@ impl Manager {
     }
 
     pub fn run(&mut self) -> Result<()> {
-        signals::init();
         self.start_initial_services_from_watcher()?;
 
         outputln!(
@@ -500,10 +527,21 @@ impl Manager {
             })
             .expect("unable to start sup-eventsrv thread");
 
-
         loop {
             let next_check = time::get_time() + TimeDuration::milliseconds(1000);
-            if self.check_for_incoming_signals() {
+            if self.launcher.is_stopping() {
+                self.shutdown();
+                return Ok(());
+            }
+            if self.check_for_departure() {
+                self.shutdown();
+                return Err(sup_error!(Error::Departed));
+            }
+            if let Some(package) = self.check_for_updated_supervisor() {
+                outputln!(
+                    "Supervisor shutting down for automatic update to {}",
+                    package
+                );
                 self.shutdown();
                 return Ok(());
             }
@@ -554,7 +592,7 @@ impl Manager {
                 .expect("Services lock is poisoned!")
                 .iter_mut()
             {
-                if service.tick(&self.census_ring) {
+                if service.tick(&self.census_ring, &self.launcher) {
                     self.gossip_latest_service_rumor(&service);
                 }
             }
@@ -565,49 +603,11 @@ impl Manager {
         }
     }
 
-    // Takes signals passed to `hab-sup` and either shuts down all the services, or
-    // passes the signals through. This functionality is totally going to need a refactor
-    // when we get all the way to a single-sup-per-kernel model, since passing all random
-    // signals through to all services is most certainly not what you want.
-    //
-    // This function returns true if we are supposed to shut the system down, false if we
-    // can keep going.
-    fn check_for_incoming_signals(&mut self) -> bool {
-        match signals::check_for_signal() {
-            Some(SignalEvent::Shutdown) => {
-                for service in self.services
-                    .write()
-                    .expect("Services lock is poisoned!")
-                    .iter_mut()
-                {
-                    outputln!("Shutting down {}", service);
-                    service.down().unwrap_or_else(|err| {
-                        outputln!("Failed to shutdown {}: {}", service, err)
-                    });
-                }
-                true
-            }
-            Some(SignalEvent::Passthrough(signal)) => {
-                println!("GOT PASSTHROUGH {:?}", signal);
-                for service in self.services
-                    .read()
-                    .expect("Services lock is poisoned!")
-                    .iter()
-                {
-                    outputln!("Forwarding signal {} to {}", signal.os_signal(), service);
-                    if let Err(e) = service.send_signal(signal) {
-                        outputln!(
-                            "Failed to send signal {} to {}: {}",
-                            signal.os_signal(),
-                            service,
-                            e
-                        );
-                    }
-                }
-                false
-            }
-            None => false,
+    fn check_for_updated_supervisor(&mut self) -> Option<PackageInstall> {
+        if let Some(ref mut updater) = self.self_updater {
+            return updater.updated();
         }
+        None
     }
 
     /// Walk each service and check if it has an updated package installed via the Update Strategy.
@@ -646,6 +646,10 @@ impl Manager {
             }
         }
         self.butterfly.insert_service(service.to_rumor(incarnation));
+    }
+
+    fn check_for_departure(&self) -> bool {
+        self.butterfly.is_departed()
     }
 
     fn check_for_changed_services(&mut self) -> bool {
@@ -826,12 +830,15 @@ impl Manager {
     }
 
     fn shutdown(&self) {
+        outputln!("Gracefully departing from butterfly network.");
+        self.butterfly.set_departed();
+
         let mut services = self.services.write().expect("Services lock is poisend!");
+
         for mut service in services.drain(..) {
-            self.remove_service(&mut service);
+            self.remove_service(&mut service, false);
         }
         release_process_lock(&self.fs_cfg);
-        outputln!("Hasta la vista, services.");
     }
 
     fn start_initial_services_from_watcher(&mut self) -> Result<()> {
@@ -889,7 +896,7 @@ impl Manager {
             }
         };
         let mut service = services.remove(services_idx);
-        self.remove_service(&mut service);
+        self.remove_service(&mut service, true);
         Ok(())
     }
 
@@ -1017,7 +1024,7 @@ fn obtain_process_lock(fs_cfg: &FsCfg) -> Result<()> {
     }
 }
 
-fn read_process_lock<T>(lock_path: T) -> Result<process::Pid>
+fn read_process_lock<T>(lock_path: T) -> Result<u32>
 where
     T: AsRef<Path>,
 {
@@ -1026,7 +1033,7 @@ where
             let reader = BufReader::new(file);
             match reader.lines().next() {
                 Some(Ok(line)) => {
-                    match line.parse::<process::Pid>() {
+                    match line.parse::<u32>() {
                         Ok(pid) => Ok(pid),
                         Err(_) => Err(sup_error!(Error::ProcessLockCorrupt)),
                     }

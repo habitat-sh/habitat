@@ -34,6 +34,7 @@ pub enum TraceKind {
     ProbeComplete,
     ProbeConfirmed,
     ProbeSuspect,
+    ProbeDeparted,
     ProbePingReq,
     RecvAck,
     RecvPing,
@@ -56,6 +57,7 @@ impl fmt::Display for TraceKind {
             TraceKind::ProbeConfirmed => write!(f, "ProbeConfirmed"),
             TraceKind::ProbeComplete => write!(f, "ProbeComplete"),
             TraceKind::ProbeSuspect => write!(f, "ProbeSuspect"),
+            TraceKind::ProbeDeparted => write!(f, "ProbeDeparted"),
             TraceKind::ProbePingReq => write!(f, "ProbePingReq"),
             TraceKind::RecvAck => write!(f, "RecvAck"),
             TraceKind::RecvPing => write!(f, "RecvPing"),
@@ -124,18 +126,18 @@ impl<'a> TraceWrite<'a> {
 
 impl<'a> fmt::Display for TraceWrite<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        try!(write!(f, "{}", self.time));
-        try!(write!(f, "^{}", self.kind));
-        try!(write!(f, "^{}", self.thread_name));
-        try!(write!(f, "^{}", self.module_path));
-        try!(write!(f, "^{}", self.line));
-        try!(write!(f, "^{}", self.server_name.unwrap_or("")));
-        try!(write!(f, "^{}", self.member_id.unwrap_or("")));
-        try!(write!(f, "^{}", self.to_member_id.unwrap_or("")));
-        try!(write!(f, "^{}", self.listening.unwrap_or("")));
-        try!(write!(f, "^{}", self.to_addr.unwrap_or("")));
-        try!(write!(f, "^{}", self.swim.unwrap_or("")));
-        try!(write!(f, "^{}", self.rumor.unwrap_or("")));
+        write!(f, "{}", self.time)?;
+        write!(f, "^{}", self.kind)?;
+        write!(f, "^{}", self.thread_name)?;
+        write!(f, "^{}", self.module_path)?;
+        write!(f, "^{}", self.line)?;
+        write!(f, "^{}", self.server_name.unwrap_or(""))?;
+        write!(f, "^{}", self.member_id.unwrap_or(""))?;
+        write!(f, "^{}", self.to_member_id.unwrap_or(""))?;
+        write!(f, "^{}", self.listening.unwrap_or(""))?;
+        write!(f, "^{}", self.to_addr.unwrap_or(""))?;
+        write!(f, "^{}", self.swim.unwrap_or(""))?;
+        write!(f, "^{}", self.rumor.unwrap_or(""))?;
         write!(f, "\n")
     }
 }
@@ -392,6 +394,9 @@ macro_rules! trace_it {
                                 $payload.get_election().get_suitability(),
                                 $payload.get_election().get_status(),
                                 $payload.get_election().get_votes())
+                    }
+                    Rumor_Type::Departure => {
+                        format!("{}", $payload.get_departure().get_member_id())
                     }
                     Rumor_Type::Fake | Rumor_Type::Fake2 => format!("nothing-to-see"),
                 };

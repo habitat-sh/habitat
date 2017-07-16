@@ -95,6 +95,9 @@ impl Dispatcher for Worker {
             "OriginPackageGet" => handlers::origin_package_get(message, sock, state),
             "OriginPackageLatestGet" => handlers::origin_package_latest_get(message, sock, state),
             "OriginPackageListRequest" => handlers::origin_package_list(message, sock, state),
+            "OriginPackageChannelListRequest" => {
+                handlers::origin_package_channel_list(message, sock, state)
+            }
             "OriginPackageVersionListRequest" => {
                 handlers::origin_package_version_list(message, sock, state)
             }
@@ -140,8 +143,8 @@ pub struct Server {
 impl Server {
     pub fn new(config: Config) -> Result<Self> {
         // JW break; how do we pass a mutable context from static ref?
-        let router = try!(RouteConn::new(Self::net_ident(), (**ZMQ_CONTEXT).as_mut()));
-        let be = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER));
+        let router = RouteConn::new(Self::net_ident(), (**ZMQ_CONTEXT).as_mut())?;
+        let be = (**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER)?;
         Ok(Server {
             config: Arc::new(RwLock::new(config)),
             router: router,
@@ -165,7 +168,7 @@ impl Application for Server {
     type Error = Error;
 
     fn run(&mut self) -> Result<()> {
-        try!(self.be_sock.bind(BE_LISTEN_ADDR));
+        self.be_sock.bind(BE_LISTEN_ADDR)?;
         let broker = {
             let cfg = self.config.read().unwrap();
             Broker::run(Self::net_ident(), cfg.route_addrs())
@@ -174,15 +177,15 @@ impl Application for Server {
             let cfg = self.config.read().unwrap();
             DataStore::new(cfg.deref())?
         };
-        try!(datastore.setup());
+        datastore.setup()?;
         datastore.start_async();
         let cfg = self.config.clone();
         let init_state = ServerState::new(datastore);
         let sup: Supervisor<Worker> = Supervisor::new(cfg, init_state);
-        try!(sup.start());
-        try!(self.connect());
+        sup.start()?;
+        self.connect()?;
         info!("builder-originsrv is ready to go.");
-        try!(zmq::proxy(&mut self.router.socket, &mut self.be_sock));
+        zmq::proxy(&mut self.router.socket, &mut self.be_sock)?;
         broker.join().unwrap();
         Ok(())
     }
@@ -213,5 +216,5 @@ impl Service for Server {
 impl NetIdent for Server {}
 
 pub fn run(config: Config) -> Result<()> {
-    try!(Server::new(config)).run()
+    Server::new(config)?.run()
 }

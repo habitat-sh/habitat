@@ -55,13 +55,13 @@ use depot_client;
 use glob;
 use handlebars;
 use hcore;
-use hcore::os::process;
+use hcore::output::StructuredOutput;
 use hcore::package::{self, Identifiable, PackageInstall};
+use launcher_client;
 use notify;
 use serde_json;
 use toml;
 
-use output::StructuredOutput;
 use PROGRAM_NAME;
 
 static LOGKEY: &'static str = "ER";
@@ -103,6 +103,7 @@ impl SupError {
 /// All the kinds of errors we produce.
 #[derive(Debug)]
 pub enum Error {
+    Departed,
     BadDataFile(PathBuf, io::Error),
     BadDataPath(PathBuf, io::Error),
     BadDesiredState(String),
@@ -127,15 +128,19 @@ pub enum Error {
     InvalidUpdateStrategy(String),
     Io(io::Error),
     IPFailed,
+    Launcher(launcher_client::Error),
     MissingRequiredBind(Vec<String>),
     MissingRequiredIdent,
     NameLookup(io::Error),
     NetParseError(net::AddrParseError),
+    NoLauncher,
     NulError(ffi::NulError),
     PackageNotFound(package::PackageIdent),
     Permissions(String),
+    PidFileCorrupt(PathBuf),
+    PidFileIO(PathBuf, io::Error),
     ProcessLockCorrupt,
-    ProcessLocked(process::Pid),
+    ProcessLocked(u32),
     ProcessLockIO(PathBuf, io::Error),
     RenderContextSerialization(serde_json::Error),
     ServiceDeserializationError(serde_json::Error),
@@ -163,6 +168,11 @@ impl fmt::Display for SupError {
     // verbose on, and print it.
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let content = match self.err {
+            Error::Departed => {
+                format!(
+                    "This supervisor has been manually departed.\n\nFor the safety of the system, this supervisor cannot be started (if we did, we would risk the services on this machine behaving badly without our knowledge.) If you know that the services on this system are safe, and want them to rejoin the habitat ring, you need to:\n\n  rm -rf /hab/sup/default/MEMBER_ID /hab/sup/default/data\n\nThis will cause the supervisor to join the ring as a new member.\n\nIf you are in doubt, it is better to consider the services managed by this supervisor as unsafe to run."
+                )
+            }
             Error::BadDataFile(ref path, ref err) => {
                 format!(
                     "Unable to read or write to data file, {}, {}",
@@ -218,6 +228,7 @@ impl fmt::Display for SupError {
             Error::InvalidUpdateStrategy(ref s) => format!("Invalid update strategy: {}", s),
             Error::Io(ref err) => format!("{}", err),
             Error::IPFailed => format!("Failed to discover this hosts outbound IP address"),
+            Error::Launcher(ref err) => format!("{}", err),
             Error::MissingRequiredBind(ref e) => {
                 format!("Missing required bind(s), {}", e.join(", "))
             }
@@ -226,6 +237,7 @@ impl fmt::Display for SupError {
             }
             Error::NameLookup(ref e) => format!("Error resolving a name or IP address: {}", e),
             Error::NetParseError(ref e) => format!("Can't parse ip:port: {}", e),
+            Error::NoLauncher => format!("Supervisor must be run from `hab-launch`"),
             Error::NulError(ref e) => format!("{}", e),
             Error::PackageNotFound(ref pkg) => {
                 if pkg.fully_qualified() {
@@ -233,6 +245,12 @@ impl fmt::Display for SupError {
                 } else {
                     format!("Cannot find a release of package: {}", pkg)
                 }
+            }
+            Error::PidFileCorrupt(ref path) => {
+                format!("Unable to decode contents of PID file, {}", path.display())
+            }
+            Error::PidFileIO(ref path, ref err) => {
+                format!("Unable to read PID file, {}, {}", path.display(), err)
             }
             Error::ProcessLockCorrupt => format!("Unable to decode contents of process lock"),
             Error::ProcessLocked(ref pid) => {
@@ -313,6 +331,7 @@ impl fmt::Display for SupError {
 impl error::Error for SupError {
     fn description(&self) -> &str {
         match self.err {
+            Error::Departed => "Supervisor has been manually departed",
             Error::BadDataFile(_, _) => "Unable to read or write to a data file",
             Error::BadDataPath(_, _) => "Unable to read or write to data directory",
             Error::BadElectionStatus(_) => "Unknown election status",
@@ -339,6 +358,7 @@ impl error::Error for SupError {
             Error::InvalidUpdateStrategy(_) => "Invalid update strategy",
             Error::Io(ref err) => err.description(),
             Error::IPFailed => "Failed to discover the outbound IP address",
+            Error::Launcher(ref err) => err.description(),
             Error::MissingRequiredBind(_) => {
                 "A service to start without specifying a service group for all required binds"
             }
@@ -347,16 +367,19 @@ impl error::Error for SupError {
             }
             Error::NetParseError(_) => "Can't parse IP:port",
             Error::NameLookup(_) => "Error resolving a name or IP address",
+            Error::NoLauncher => "Supervisor must be run from `hab-launch`",
             Error::NulError(_) => {
                 "An attempt was made to build a CString with a null byte inside it"
             }
             Error::PackageNotFound(_) => "Cannot find a package",
             Error::Permissions(_) => "File system permissions error",
+            Error::PidFileCorrupt(_) => "Unable to decode contents of PID file",
+            Error::PidFileIO(_, _) => "Unable to read or write to PID file",
             Error::ProcessLockCorrupt => "Unable to decode contents of process lock",
             Error::ProcessLocked(_) => {
                 "Another instance of the Habitat Supervisor is already running"
             }
-            Error::ProcessLockIO(_, _) => "Unable to write or read to a process lock",
+            Error::ProcessLockIO(_, _) => "Unable to read or write to a process lock",
             Error::RenderContextSerialization(_) => "Unable to serialize rendering context",
             Error::ServiceDeserializationError(_) => "Can't deserialize service status",
             Error::ServiceNotLoaded(_) => "Service status called when service not loaded",
@@ -443,6 +466,12 @@ impl From<io::Error> for SupError {
 impl From<env::JoinPathsError> for SupError {
     fn from(err: env::JoinPathsError) -> SupError {
         sup_error!(Error::EnvJoinPathsError(err))
+    }
+}
+
+impl From<launcher_client::Error> for SupError {
+    fn from(err: launcher_client::Error) -> SupError {
+        sup_error!(Error::Launcher(err))
     }
 }
 

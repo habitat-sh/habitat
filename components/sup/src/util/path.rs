@@ -89,16 +89,16 @@ pub fn interpreter_paths() -> Result<Vec<PathBuf>> {
         // We've found the specific release that our supervisor was built with. Get its path
         // metadata.
         Some(ident) => {
-            let pkg_install = try!(PackageInstall::load(&ident, None));
-            try!(pkg_install.paths())
+            let pkg_install = PackageInstall::load(&ident, None)?;
+            pkg_install.paths()?
         }
         // If we're not running out of a package, then see if any package of the interpreter is
         // installed.
         None => {
-            let ident = try!(PackageIdent::from_str(INTERPRETER_IDENT));
+            let ident = PackageIdent::from_str(INTERPRETER_IDENT)?;
             match PackageInstall::load(&ident, None) {
                 // We found a version of the interpreter. Get its path metadata.
-                Ok(pkg_install) => try!(pkg_install.paths()),
+                Ok(pkg_install) => pkg_install.paths()?,
                 // Nope, no packages of the interpreter installed. Now we're going to see if the
                 // interpreter command is present on `PATH`.
                 Err(_) => {
@@ -142,13 +142,13 @@ pub fn interpreter_paths() -> Result<Vec<PathBuf>> {
 }
 
 pub fn append_interpreter_and_path(orig_paths: &mut Vec<PathBuf>) -> Result<String> {
-    let mut paths = try!(interpreter_paths()).to_owned();
+    let mut paths = interpreter_paths()?.to_owned();
     orig_paths.append(&mut paths);
     if let Some(val) = env::var_os("PATH") {
         let mut os_paths = env::split_paths(&val).collect::<Vec<PathBuf>>();
         orig_paths.append(&mut os_paths);
     }
-    let joined = try!(env::join_paths(orig_paths));
+    let joined = env::join_paths(orig_paths)?;
     let path_str = joined.into_string().expect(
         "Unable to convert OsStr path to string!",
     );

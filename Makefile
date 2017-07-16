@@ -179,7 +179,9 @@ endif
 changelog: image ## build the changelog
 	$(run) sh -c 'hab pkg install core/github_changelog_generator && \
 		hab pkg binlink core/github_changelog_generator github_changelog_generator && \
-		github_changelog_generator --future-release $(VERSION) --token $(GITHUB_TOKEN)'
+		github_changelog_generator --future-release $(VERSION) --token $(GITHUB_TOKEN) \
+		--enhancement-labels C-feature,C-chore,A-documentation --bug-labels C-bug \
+		--include-labels C-feature,C-bug,C-chore,A-documentation'
 
 docs: image ## build the docs
 	$(run) sh -c 'set -ex; \

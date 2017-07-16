@@ -14,9 +14,10 @@
 
 pub mod butterfly;
 pub mod cli;
+pub mod origin;
+pub mod launcher;
 pub mod pkg;
 pub mod plan;
-pub mod origin;
 pub mod ring;
 pub mod service;
 pub mod studio;

@@ -100,7 +100,11 @@ struct ServiceCredential {
 }
 
 impl ServiceCredential {
-    pub fn new(svc_user: &str, svc_encrypted_password: Option<&str>) -> Result<Self> {
+    pub fn new<U, P>(svc_user: U, svc_encrypted_password: Option<P>) -> Result<Self>
+    where
+        U: ToString,
+        P: ToString,
+    {
         let mut full_user = svc_user.to_string();
         let (domain, user) = match full_user.find('\\') {
             Some(idx) => {
@@ -139,19 +143,23 @@ impl ServiceCredential {
 
 
 pub struct Child {
-    handle: Handle,
+    pub handle: Handle,
     pub stdout: Option<ChildStdout>,
     pub stderr: Option<ChildStderr>,
 }
 
 impl Child {
-    pub fn spawn(
+    pub fn spawn<U, P>(
         program: &str,
         args: Vec<&str>,
         env: &HashMap<String, String>,
-        svc_user: &str,
-        svc_encrypted_password: Option<&str>,
-    ) -> Result<Child> {
+        svc_user: U,
+        svc_encrypted_password: Option<P>,
+    ) -> Result<Child>
+    where
+        U: ToString,
+        P: ToString,
+    {
         let mut os_env: HashMap<OsString, OsString> = env::vars_os()
             .map(|(key, val)| (mk_key(key.to_str().unwrap()), val))
             .collect();
@@ -173,6 +181,7 @@ impl Child {
                     );
                     if fs::metadata(&path).is_ok() {
                         res = Some(path.into_os_string());
+                        break;
                     }
                 }
                 break;

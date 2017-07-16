@@ -43,7 +43,7 @@ use hcore::fs::{cache_artifact_path, cache_analytics_path, cache_key_path};
 use hcore::service::ServiceGroup;
 use hcore::package::PackageIdent;
 use hcore::url::{DEFAULT_DEPOT_URL, DEPOT_URL_ENVVAR};
-use hcore::channel::{DEFAULT_DEPOT_CHANNEL, DEPOT_CHANNEL_ENVVAR};
+use hcore::channel::{DEPOT_CHANNEL_ENVVAR, STABLE_CHANNEL, UNSTABLE_CHANNEL};
 
 use hab::{analytics, cli, command, config, AUTH_TOKEN_ENVVAR, ORIGIN_ENVVAR, PRODUCT, VERSION};
 use hab::error::{Error, Result};
@@ -77,7 +77,7 @@ fn main() {
 }
 
 fn start(ui: &mut UI) -> Result<()> {
-    try!(exec_subcommand_if_called(ui));
+    exec_subcommand_if_called(ui)?;
 
     let (args, remaining_args) = raw_parse_args();
     debug!("clap cli args: {:?}", &args);
@@ -91,21 +91,21 @@ fn start(ui: &mut UI) -> Result<()> {
     match app_matches.subcommand() {
         ("cli", Some(matches)) => {
             match matches.subcommand() {
-                ("setup", Some(_)) => try!(sub_cli_setup(ui)),
-                ("completers", Some(m)) => try!(sub_cli_completers(m)),
+                ("setup", Some(_)) => sub_cli_setup(ui)?,
+                ("completers", Some(m)) => sub_cli_completers(m)?,
                 _ => unreachable!(),
             }
         }
-        ("install", Some(m)) => try!(sub_pkg_install(ui, m)),
+        ("install", Some(m)) => sub_pkg_install(ui, m)?,
         ("origin", Some(matches)) => {
             match matches.subcommand() {
                 ("key", Some(m)) => {
                     match m.subcommand() {
-                        ("download", Some(sc)) => try!(sub_origin_key_download(ui, sc)),
-                        ("export", Some(sc)) => try!(sub_origin_key_export(sc)),
-                        ("generate", Some(sc)) => try!(sub_origin_key_generate(ui, sc)),
-                        ("import", Some(_)) => try!(sub_origin_key_import(ui)),
-                        ("upload", Some(sc)) => try!(sub_origin_key_upload(ui, sc)),
+                        ("download", Some(sc)) => sub_origin_key_download(ui, sc)?,
+                        ("export", Some(sc)) => sub_origin_key_export(sc)?,
+                        ("generate", Some(sc)) => sub_origin_key_generate(ui, sc)?,
+                        ("import", Some(_)) => sub_origin_key_import(ui)?,
+                        ("upload", Some(sc)) => sub_origin_key_upload(ui, sc)?,
                         _ => unreachable!(),
                     }
                 }
@@ -114,29 +114,30 @@ fn start(ui: &mut UI) -> Result<()> {
         }
         ("pkg", Some(matches)) => {
             match matches.subcommand() {
-                ("binlink", Some(m)) => try!(sub_pkg_binlink(ui, m)),
-                ("build", Some(m)) => try!(sub_pkg_build(ui, m)),
-                ("config", Some(m)) => try!(sub_pkg_config(m)),
-                ("env", Some(m)) => try!(sub_pkg_env(m)),
-                ("exec", Some(m)) => try!(sub_pkg_exec(m, remaining_args)),
-                ("export", Some(m)) => try!(sub_pkg_export(ui, m)),
-                ("hash", Some(m)) => try!(sub_pkg_hash(m)),
-                ("install", Some(m)) => try!(sub_pkg_install(ui, m)),
-                ("path", Some(m)) => try!(sub_pkg_path(m)),
-                ("provides", Some(m)) => try!(sub_pkg_provides(m)),
-                ("search", Some(m)) => try!(sub_pkg_search(m)),
-                ("sign", Some(m)) => try!(sub_pkg_sign(ui, m)),
-                ("upload", Some(m)) => try!(sub_pkg_upload(ui, m)),
-                ("verify", Some(m)) => try!(sub_pkg_verify(ui, m)),
-                ("header", Some(m)) => try!(sub_pkg_header(ui, m)),
-                ("promote", Some(m)) => try!(sub_pkg_promote(ui, m)),
-                ("demote", Some(m)) => try!(sub_pkg_demote(ui, m)),
+                ("binlink", Some(m)) => sub_pkg_binlink(ui, m)?,
+                ("build", Some(m)) => sub_pkg_build(ui, m)?,
+                ("channels", Some(m)) => sub_pkg_channels(ui, m)?,
+                ("config", Some(m)) => sub_pkg_config(m)?,
+                ("env", Some(m)) => sub_pkg_env(m)?,
+                ("exec", Some(m)) => sub_pkg_exec(m, remaining_args)?,
+                ("export", Some(m)) => sub_pkg_export(ui, m)?,
+                ("hash", Some(m)) => sub_pkg_hash(m)?,
+                ("install", Some(m)) => sub_pkg_install(ui, m)?,
+                ("path", Some(m)) => sub_pkg_path(m)?,
+                ("provides", Some(m)) => sub_pkg_provides(m)?,
+                ("search", Some(m)) => sub_pkg_search(m)?,
+                ("sign", Some(m)) => sub_pkg_sign(ui, m)?,
+                ("upload", Some(m)) => sub_pkg_upload(ui, m)?,
+                ("verify", Some(m)) => sub_pkg_verify(ui, m)?,
+                ("header", Some(m)) => sub_pkg_header(ui, m)?,
+                ("promote", Some(m)) => sub_pkg_promote(ui, m)?,
+                ("demote", Some(m)) => sub_pkg_demote(ui, m)?,
                 _ => unreachable!(),
             }
         }
         ("plan", Some(matches)) => {
             match matches.subcommand() {
-                ("init", Some(m)) => try!(sub_plan_init(ui, m)),
+                ("init", Some(m)) => sub_plan_init(ui, m)?,
                 _ => unreachable!(),
             }
         }
@@ -144,9 +145,9 @@ fn start(ui: &mut UI) -> Result<()> {
             match matches.subcommand() {
                 ("key", Some(m)) => {
                     match m.subcommand() {
-                        ("export", Some(sc)) => try!(sub_ring_key_export(sc)),
-                        ("import", Some(_)) => try!(sub_ring_key_import(ui)),
-                        ("generate", Some(sc)) => try!(sub_ring_key_generate(ui, sc)),
+                        ("export", Some(sc)) => sub_ring_key_export(sc)?,
+                        ("import", Some(_)) => sub_ring_key_import(ui)?,
+                        ("generate", Some(sc)) => sub_ring_key_generate(ui, sc)?,
                         _ => unreachable!(),
                     }
                 }
@@ -157,19 +158,19 @@ fn start(ui: &mut UI) -> Result<()> {
             match matches.subcommand() {
                 ("key", Some(m)) => {
                     match m.subcommand() {
-                        ("generate", Some(sc)) => try!(sub_service_key_generate(ui, sc)),
+                        ("generate", Some(sc)) => sub_service_key_generate(ui, sc)?,
                         _ => unreachable!(),
                     }
                 }
                 _ => unreachable!(),
             }
         }
-        ("setup", Some(_)) => try!(sub_cli_setup(ui)),
+        ("setup", Some(_)) => sub_cli_setup(ui)?,
         ("user", Some(matches)) => {
             match matches.subcommand() {
                 ("key", Some(m)) => {
                     match m.subcommand() {
-                        ("generate", Some(sc)) => try!(sub_user_key_generate(ui, sc)),
+                        ("generate", Some(sc)) => sub_user_key_generate(ui, sc)?,
                         _ => unreachable!(),
                     }
                 }
@@ -217,16 +218,14 @@ fn sub_origin_key_download(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 
 fn sub_origin_key_export(m: &ArgMatches) -> Result<()> {
     let origin = m.value_of("ORIGIN").unwrap(); // Required via clap
-    let pair_type = try!(PairType::from_str(
-        m.value_of("PAIR_TYPE").unwrap_or("public"),
-    ));
+    let pair_type = PairType::from_str(m.value_of("PAIR_TYPE").unwrap_or("public"))?;
     init();
 
     command::origin::key::export::start(origin, pair_type, &default_cache_key_path(Some(&*FS_ROOT)))
 }
 
 fn sub_origin_key_generate(ui: &mut UI, m: &ArgMatches) -> Result<()> {
-    let origin = try!(origin_param_or_env(m));
+    let origin = origin_param_or_env(&m)?;
     init();
 
     command::origin::key::generate::start(ui, &origin, &default_cache_key_path(Some(&*FS_ROOT)))
@@ -234,7 +233,7 @@ fn sub_origin_key_generate(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 
 fn sub_origin_key_import(ui: &mut UI) -> Result<()> {
     let mut content = String::new();
-    try!(io::stdin().read_to_string(&mut content));
+    io::stdin().read_to_string(&mut content)?;
     init();
 
     command::origin::key::import::start(ui, &content, &default_cache_key_path(Some(&*FS_ROOT)))
@@ -244,7 +243,7 @@ fn sub_origin_key_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let env_or_default =
         henv::var(DEPOT_URL_ENVVAR).unwrap_or_else(|_| DEFAULT_DEPOT_URL.to_string());
     let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
-    let token = try!(auth_token_param_or_env(m));
+    let token = auth_token_param_or_env(&m)?;
 
     init();
 
@@ -268,7 +267,7 @@ fn sub_origin_key_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_pkg_binlink(ui: &mut UI, m: &ArgMatches) -> Result<()> {
-    let ident = try!(PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap()));
+    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
     let dest_dir = Path::new(m.value_of("DEST_DIR").unwrap_or(DEFAULT_BINLINK_DIR));
     match m.value_of("BINARY") {
         Some(binary) => command::pkg::binlink::start(ui, &ident, binary, dest_dir, &*FS_ROOT),
@@ -285,11 +284,11 @@ fn sub_pkg_build(ui: &mut UI, m: &ArgMatches) -> Result<()> {
             init();
             for key in keys.clone() {
                 // Validate that all secret keys are present
-                let pair = try!(SigKeyPair::get_latest_pair_for(
+                let pair = SigKeyPair::get_latest_pair_for(
                     key,
                     &default_cache_key_path(Some(&*FS_ROOT)),
                     None,
-                ));
+                )?;
                 let _ = pair.secret();
             }
             Some(keys.collect::<Vec<_>>().join(","))
@@ -301,14 +300,15 @@ fn sub_pkg_build(ui: &mut UI, m: &ArgMatches) -> Result<()> {
         None => None,
     };
     let reuse = m.is_present("REUSE");
+    let windows = m.is_present("WINDOWS");
 
-    command::pkg::build::start(ui, plan_context, root, src, keys, reuse)
+    command::pkg::build::start(ui, plan_context, root, src, keys, reuse, windows)
 }
 
 fn sub_pkg_config(m: &ArgMatches) -> Result<()> {
-    let ident = try!(PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap()));
+    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
 
-    try!(common::command::package::config::start(&ident, &*FS_ROOT));
+    common::command::package::config::start(&ident, &*FS_ROOT)?;
     Ok(())
 }
 
@@ -319,16 +319,16 @@ fn sub_pkg_env(m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_pkg_exec(m: &ArgMatches, cmd_args: Vec<OsString>) -> Result<()> {
-    let ident = try!(PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())); // Required via clap
+    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
     let cmd = m.value_of("CMD").unwrap(); // Required via clap
 
     command::pkg::exec::start(&ident, cmd, cmd_args)
 }
 
 fn sub_pkg_export(ui: &mut UI, m: &ArgMatches) -> Result<()> {
-    let ident = try!(PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())); // Required via clap
+    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
     let format = &m.value_of("FORMAT").unwrap(); // Required via clap
-    let export_fmt = try!(command::pkg::export::format_for(ui, format));
+    let export_fmt = command::pkg::export::format_for(ui, &format)?;
     command::pkg::export::start(ui, &ident, &export_fmt)
 }
 
@@ -343,8 +343,8 @@ fn sub_pkg_hash(m: &ArgMatches) -> Result<()> {
             // read files from stdin
             let stdin = io::stdin();
             for line in stdin.lock().lines() {
-                let file = try!(line);
-                try!(command::pkg::hash::start(file.trim_right()));
+                let file = line?;
+                command::pkg::hash::start(file.trim_right())?;
             }
             Ok(())
         }
@@ -353,7 +353,7 @@ fn sub_pkg_hash(m: &ArgMatches) -> Result<()> {
 
 fn sub_plan_init(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let name = m.value_of("PKG_NAME").map(|v| v.into());
-    let origin = try!(origin_param_or_env(m));
+    let origin = origin_param_or_env(&m)?;
     let include_callbacks = !m.is_present("NO_CALLBACKS");
     command::plan::init::start(ui, origin, include_callbacks, name)
 }
@@ -363,7 +363,7 @@ fn sub_pkg_install(ui: &mut UI, m: &ArgMatches) -> Result<()> {
         henv::var(DEPOT_URL_ENVVAR).unwrap_or_else(|_| DEFAULT_DEPOT_URL.to_string());
     let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
     let channel_env_or_default =
-        henv::var(DEPOT_CHANNEL_ENVVAR).unwrap_or_else(|_| DEFAULT_DEPOT_CHANNEL.to_string());
+        henv::var(DEPOT_CHANNEL_ENVVAR).unwrap_or_else(|_| STABLE_CHANNEL.to_string());
     let channel = m.value_of("CHANNEL").unwrap_or(&channel_env_or_default);
     let ident_or_artifacts = m.values_of("PKG_IDENT_OR_ARTIFACT").unwrap(); // Required via clap
     let ignore_target = m.is_present("IGNORE_TARGET");
@@ -371,7 +371,7 @@ fn sub_pkg_install(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     init();
 
     for ident_or_artifact in ident_or_artifacts {
-        let pkg_ident = try!(common::command::package::install::start(
+        let pkg_ident = common::command::package::install::start(
             ui,
             url,
             Some(channel),
@@ -381,7 +381,7 @@ fn sub_pkg_install(ui: &mut UI, m: &ArgMatches) -> Result<()> {
             &*FS_ROOT,
             &cache_artifact_path(Some(&*FS_ROOT)),
             ignore_target,
-        ));
+        )?;
         if m.is_present("BINLINK") {
             let dest_dir = Path::new(m.value_of("DEST_DIR").unwrap_or(DEFAULT_BINLINK_DIR));
             command::pkg::binlink::binlink_all_in_pkg(ui, &pkg_ident, dest_dir, &*FS_ROOT)?;
@@ -391,7 +391,7 @@ fn sub_pkg_install(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_pkg_path(m: &ArgMatches) -> Result<()> {
-    let ident = try!(PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap()));
+    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
 
     command::pkg::path::start(&ident, &*FS_ROOT)
 }
@@ -417,11 +417,11 @@ fn sub_pkg_sign(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let src = Path::new(m.value_of("SOURCE").unwrap()); // Required via clap
     let dst = Path::new(m.value_of("DEST").unwrap()); // Required via clap
     init();
-    let pair = try!(SigKeyPair::get_latest_pair_for(
-        &try!(origin_param_or_env(m)),
+    let pair = SigKeyPair::get_latest_pair_for(
+        &origin_param_or_env(&m)?,
         &default_cache_key_path(Some(&*FS_ROOT)),
         None,
-    ));
+    )?;
 
     command::pkg::sign::start(ui, &pair, src, dst)
 }
@@ -430,25 +430,14 @@ fn sub_pkg_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let env_or_default =
         henv::var(DEPOT_URL_ENVVAR).unwrap_or_else(|_| DEFAULT_DEPOT_URL.to_string());
     let key_path = cache_key_path(Some(&*FS_ROOT));
-    // don't use a pathbuf, as the P generic param for upload::start below is bound to a &str
-    let key_path = try!(key_path.to_str().ok_or_else(|| {
-        Error::CryptoCLI("Invalid key path".to_string())
-    }));
     let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
     let channel_env_or_default =
-        henv::var(DEPOT_CHANNEL_ENVVAR).unwrap_or_else(|_| DEFAULT_DEPOT_CHANNEL.to_string());
+        henv::var(DEPOT_CHANNEL_ENVVAR).unwrap_or(UNSTABLE_CHANNEL.to_string());
     let channel = m.value_of("CHANNEL").unwrap_or(&channel_env_or_default);
-    let token = try!(auth_token_param_or_env(m));
+    let token = auth_token_param_or_env(&m)?;
     let artifact_paths = m.values_of("HART_FILE").unwrap(); // Required via clap
     for artifact_path in artifact_paths {
-        try!(command::pkg::upload::start(
-            ui,
-            url,
-            Some(channel),
-            &token,
-            &artifact_path,
-            &key_path,
-        ));
+        command::pkg::upload::start(ui, &url, Some(channel), &token, &artifact_path, &key_path)?;
     }
     Ok(())
 }
@@ -470,29 +459,27 @@ fn sub_pkg_header(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 fn sub_pkg_promote(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or_else(|_| DEFAULT_DEPOT_URL.to_string());
     let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
-
-    let channel_env_or_default =
-        henv::var(DEPOT_CHANNEL_ENVVAR).unwrap_or_else(|_| DEFAULT_DEPOT_CHANNEL.to_string());
-    let channel = m.value_of("CHANNEL").unwrap_or(&channel_env_or_default);
-
-    let token = try!(auth_token_param_or_env(m));
-    let ident = try!(PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())); // Required via clap
-
-    command::pkg::promote::start(ui, url, &ident, channel, &token)
+    let channel = m.value_of("CHANNEL").unwrap();
+    let token = auth_token_param_or_env(&m)?;
+    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
+    command::pkg::promote::start(ui, &url, &ident, &channel, &token)
 }
 
 fn sub_pkg_demote(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or_else(|_| DEFAULT_DEPOT_URL.to_string());
     let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
+    let channel = m.value_of("CHANNEL").unwrap();
+    let token = auth_token_param_or_env(&m)?;
+    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
+    command::pkg::demote::start(ui, &url, &ident, &channel, &token)
+}
 
-    let channel_env_or_default =
-        henv::var(DEPOT_CHANNEL_ENVVAR).unwrap_or_else(|_| DEFAULT_DEPOT_CHANNEL.to_string());
-    let channel = m.value_of("CHANNEL").unwrap_or(&channel_env_or_default);
+fn sub_pkg_channels(ui: &mut UI, m: &ArgMatches) -> Result<()> {
+    let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
+    let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
+    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
 
-    let token = try!(auth_token_param_or_env(m));
-    let ident = try!(PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())); // Required via clap
-
-    command::pkg::demote::start(ui, url, &ident, channel, &token)
+    command::pkg::channels::start(ui, &url, &ident)
 }
 
 fn sub_ring_key_export(m: &ArgMatches) -> Result<()> {
@@ -511,15 +498,15 @@ fn sub_ring_key_generate(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 
 fn sub_ring_key_import(ui: &mut UI) -> Result<()> {
     let mut content = String::new();
-    try!(io::stdin().read_to_string(&mut content));
+    io::stdin().read_to_string(&mut content)?;
     init();
 
     command::ring::key::import::start(ui, &content, &default_cache_key_path(Some(&*FS_ROOT)))
 }
 
 fn sub_service_key_generate(ui: &mut UI, m: &ArgMatches) -> Result<()> {
-    let org = try!(org_param_or_env(m));
-    let service_group = try!(ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap()));
+    let org = org_param_or_env(&m)?;
+    let service_group = ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap())?;
     init();
 
     command::service::key::generate::start(
@@ -572,16 +559,19 @@ fn exec_subcommand_if_called(ui: &mut UI) -> Result<()> {
         ("config", _) | ("file", _) => {
             command::butterfly::start(ui, env::args_os().skip(1).collect())
         }
+        ("run", _) => command::launcher::start(ui, env::args_os().skip(1).collect()),
         ("stu", _) | ("stud", _) | ("studi", _) | ("studio", _) => {
             command::studio::start(ui, env::args_os().skip(2).collect())
         }
-        ("run", _) | ("start", _) | ("term", _) | ("stop", _) => {
-            command::sup::start(ui, env::args_os().skip(1).collect())
+        ("sup", "run") | ("sup", "start") => {
+            command::launcher::start(ui, env::args_os().skip(2).collect())
         }
-        ("sup", _) |
+        ("sup", _) => command::sup::start(ui, env::args_os().skip(2).collect()),
+        ("start", _) => command::launcher::start(ui, env::args_os().skip(1).collect()),
+        ("stop", _) => command::sup::start(ui, env::args_os().skip(1).collect()),
+        ("svc", "start") => command::launcher::start(ui, env::args_os().skip(2).collect()),
         ("svc", "load") |
         ("svc", "unload") |
-        ("svc", "start") |
         ("svc", "status") |
         ("svc", "stop") => command::sup::start(ui, env::args_os().skip(2).collect()),
         _ => Ok(()),
@@ -622,7 +612,7 @@ fn auth_token_param_or_env(m: &ArgMatches) -> Result<String> {
             match henv::var(AUTH_TOKEN_ENVVAR) {
                 Ok(v) => Ok(v),
                 Err(_) => {
-                    let config = try!(config::load());
+                    let config = config::load()?;
                     match config.auth_token {
                         Some(v) => Ok(v),
                         None => Err(Error::ArgumentError("No auth token specified")),
@@ -643,7 +633,7 @@ fn origin_param_or_env(m: &ArgMatches) -> Result<String> {
             match henv::var(ORIGIN_ENVVAR) {
                 Ok(v) => Ok(v),
                 Err(_) => {
-                    let config = try!(config::load());
+                    let config = config::load()?;
                     match config.origin {
                         Some(v) => Ok(v),
                         None => Err(Error::CryptoCLI("No origin specified".to_string())),

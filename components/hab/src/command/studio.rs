@@ -29,13 +29,13 @@ const STUDIO_CMD_ENVVAR: &'static str = "HAB_STUDIO_BINARY";
 const STUDIO_PACKAGE_IDENT: &'static str = "core/hab-studio";
 
 pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
-    try!(inner::rerun_with_sudo_if_needed(ui));
+    inner::rerun_with_sudo_if_needed(ui)?;
 
     // If the `$HAB_ORIGIN` environment variable is not present, then see if a default is set in
     // the CLI config. If so, set it as the `$HAB_ORIGIN` environment variable for the `hab-studio`
     // or `docker` execv call.
     if henv::var("HAB_ORIGIN").is_err() {
-        let config = try!(config::load_with_sudo_user());
+        let config = config::load_with_sudo_user()?;
         if let Some(default_origin) = config.origin {
             debug!("Setting default origin {} via CLI config", &default_origin);
             env::set_var("HAB_ORIGIN", default_origin);
@@ -92,28 +92,25 @@ mod inner {
             Ok(command) => PathBuf::from(command),
             Err(_) => {
                 init();
-                let version: Vec<&str> = VERSION.split('/').collect();
-                let ident = try!(PackageIdent::from_str(
+                let version: Vec<&str> = VERSION.split("/").collect();
+                let ident = PackageIdent::from_str(
                     &format!("{}/{}", super::STUDIO_PACKAGE_IDENT, version[0]),
-                ));
-                try!(exec::command_from_min_pkg(
+                )?;
+                exec::command_from_min_pkg(
                     ui,
                     super::STUDIO_CMD,
                     &ident,
                     &default_cache_key_path(None),
                     0,
-                ))
+                )?
             }
         };
 
         if let Some(cmd) = find_command(command.to_string_lossy().as_ref()) {
-            try!(process::become_command(cmd, args));
+            Ok(process::become_command(cmd, args)?)
         } else {
-            return Err(Error::ExecCommandNotFound(
-                command.to_string_lossy().into_owned(),
-            ));
+            Err(Error::ExecCommandNotFound(command))
         }
-        Ok(())
     }
 
     pub fn rerun_with_sudo_if_needed(ui: &mut UI) -> Result<()> {
@@ -131,19 +128,19 @@ mod inner {
                     "-E".into(),
                 ];
                 args.append(&mut env::args_os().collect());
-                Ok(try!(process::become_command(sudo_prog, args)))
+                Ok(process::become_command(sudo_prog, args)?)
             }
             None => {
-                try!(ui.warn(format!(
+                ui.warn(format!(
                     "Could not find the `{}' command, is it in your PATH?",
                     SUDO_CMD
-                )));
-                try!(ui.warn(
+                ))?;
+                ui.warn(
                     "Running Habitat Studio requires root or administrator privileges. \
                               Please retry this command as a super user or use a \
                               privilege-granting facility such as sudo.",
-                ));
-                try!(ui.br());
+                )?;
+                ui.br()?;
                 Err(Error::RootRequired)
             }
         }
@@ -175,11 +172,8 @@ mod inner {
     const DOCKER_IMAGE_ENVVAR: &'static str = "HAB_DOCKER_STUDIO_IMAGE";
     const DOCKER_OPTS: &'static str = "HAB_DOCKER_OPTS";
 
-    const HAB_WINDOWS_STUDIO: &'static str = "HAB_WINDOWS_STUDIO";
-
     pub fn start(_ui: &mut UI, args: Vec<OsString>) -> Result<()> {
-        //TODO: Remove HAB_WINDOWS_STUDIO check after windows studio support is official
-        if cfg!(target_os = "windows") && henv::var(HAB_WINDOWS_STUDIO).is_ok() {
+        if is_windows_studio(&args) {
             start_windows_studio(_ui, args)
         } else {
             start_docker_studio(_ui, args)
@@ -192,25 +186,23 @@ mod inner {
             Err(_) => {
                 init();
                 let version: Vec<&str> = VERSION.split("/").collect();
-                let ident = try!(PackageIdent::from_str(
+                let ident = PackageIdent::from_str(
                     &format!("{}/{}", super::STUDIO_PACKAGE_IDENT, version[0]),
-                ));
-                try!(exec::command_from_min_pkg(
+                )?;
+                exec::command_from_min_pkg(
                     ui,
                     super::STUDIO_CMD,
                     &ident,
                     &default_cache_key_path(None),
                     0,
-                ))
+                )?
             }
         };
 
         if let Some(cmd) = find_command(command.to_string_lossy().as_ref()) {
-            try!(process::become_command(cmd, args));
+            process::become_command(cmd, args)?;
         } else {
-            return Err(Error::ExecCommandNotFound(
-                command.to_string_lossy().into_owned(),
-            ));
+            return Err(Error::ExecCommandNotFound(command));
         }
         Ok(())
     }
@@ -220,7 +212,7 @@ mod inner {
 
         let cmd = match find_command(&docker) {
             Some(cmd) => cmd,
-            None => return Err(Error::ExecCommandNotFound(docker.to_string())),
+            None => return Err(Error::ExecCommandNotFound(docker.into())),
         };
 
         let output = Command::new(&cmd)
@@ -365,7 +357,7 @@ mod inner {
         }
 
         debug!("Docker arguments = {:?}", cmd_args);
-        Ok(try!(process::become_command(cmd, cmd_args)))
+        Ok(process::become_command(cmd, cmd_args)?)
     }
 
     pub fn rerun_with_sudo_if_needed(_ui: &mut UI) -> Result<()> {
@@ -378,6 +370,21 @@ mod inner {
     fn image_identifier() -> String {
         let version: Vec<&str> = VERSION.split("/").collect();
         henv::var(DOCKER_IMAGE_ENVVAR).unwrap_or(format!("{}:{}", DOCKER_IMAGE, version[0]))
+    }
+
+    fn is_windows_studio(args: &Vec<OsString>) -> bool {
+        if cfg!(not(target_os = "windows")) {
+            return false;
+        }
+
+        for arg in args.iter() {
+            let str_arg = arg.to_string_lossy().to_lowercase();
+            if str_arg == String::from("--windows") || str_arg == String::from("-w") {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     #[cfg(test)]

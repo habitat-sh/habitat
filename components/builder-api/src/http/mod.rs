@@ -94,14 +94,14 @@ pub fn run(config: Arc<Config>) -> Result<JoinHandle<()>> {
     let (tx, rx) = mpsc::sync_channel(1);
 
     let depot = depot::DepotUtil::new(config.depot.clone());
-    let depot_chain = try!(depot::server::router(depot));
+    let depot_chain = depot::server::router(depot)?;
 
     let mut mount = Mount::new();
     if let Some(ref path) = config.ui.root {
         debug!("Mounting UI at filepath {}", path);
         mount.mount("/", Static::new(path));
     }
-    let chain = try!(router(config.clone()));
+    let chain = router(config.clone())?;
     mount.mount("/v1", chain).mount("/v1/depot", depot_chain);
 
     let handle = thread::Builder::new()

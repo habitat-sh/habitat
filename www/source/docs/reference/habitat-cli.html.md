@@ -17,11 +17,13 @@ The commands and sub-commands for the Habitat CLI (`hab`) are listed below.
 - [hab origin key upload](#hab-origin-key-upload)
 - [hab pkg binlink](#hab-pkg-binlink)
 - [hab pkg build](#hab-pkg-build)
+- [hab pkg demote](#hab-pkg-demote)
 - [hab pkg exec](#hab-pkg-exec)
 - [hab pkg export](#hab-pkg-export)
 - [hab pkg hash](#hab-pkg-hash)
 - [hab pkg install](#hab-pkg-install)
 - [hab pkg path](#hab-pkg-path)
+- [hab pkg promote](#hab-pkg-promote)
 - [hab pkg provides](#hab-pkg-provides)
 - [hab pkg sign](#hab-pkg-sign)
 - [hab pkg upload](#hab-pkg-upload)
@@ -286,6 +288,28 @@ Executes a command using the 'PATH' context of an installed package
     <CMD>          The command to execute (ex: ls)
     <ARGS>...      Arguments to the command (ex: -l /tmp)
 
+<h2 id="hab-pkg-demote" class="anchor">hab pkg demote</h2>
+Demotes a package out of a specified channel 
+
+**USAGE**
+
+    hab pkg demote [FLAGS] [OPTIONS] <PKG_IDENT> <CHANNEL>
+
+**FLAGS**
+
+    -h, --help       Prints help information
+    -V, --version    Prints version information
+
+**OPTIONS**
+
+    -z, --auth <AUTH_VERSION>  Authentication token for the Depot
+    -u, --url <DEPOT_URL>      Use a specific Depot URL (ex: http://depot.example.com/v1/depot)
+
+**ARGS**
+
+    <PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
+    <CHANNEL>      Demote from the specified release channel
+
 <h2 id="hab-pkg-export" class="anchor">hab pkg export</h2>
 Exports the package to the specified format
 
@@ -357,6 +381,29 @@ Prints the path to a specific installed release of a package
 **ARGS**
 
     <PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
+
+<h2 id="hab-pkg-promote" class="anchor">hab pkg promote</h2>
+Promotes a package into a specified channel 
+
+**USAGE**
+
+    hab pkg promote [FLAGS] [OPTIONS] <PKG_IDENT> <CHANNEL>
+
+**FLAGS**
+
+    -h, --help       Prints help information
+    -V, --version    Prints version information
+
+**OPTIONS**
+
+    -z, --auth <AUTH_VERSION>  Authentication token for the Depot
+    -u, --url <DEPOT_URL>      Use a specific Depot URL (ex: http://depot.example.com/v1/depot)
+
+**ARGS**
+
+    <PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
+    <CHANNEL>      Promote to the specified release channel
+
 
 <h2 id="hab-pkg-provides" class="anchor">hab pkg provides</h2>
 Search installed Habitat packages for a given file.

@@ -53,10 +53,10 @@ impl BrokerConn {
     /// * Socket could not be created
     /// * Socket could not be configured
     pub fn new() -> Result<Self> {
-        let socket = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::REQ));
-        try!(socket.set_rcvtimeo(RECV_TIMEOUT_MS));
-        try!(socket.set_sndtimeo(SEND_TIMEOUT_MS));
-        try!(socket.set_immediate(true));
+        let socket = (**ZMQ_CONTEXT).as_mut().socket(zmq::REQ)?;
+        socket.set_rcvtimeo(RECV_TIMEOUT_MS)?;
+        socket.set_sndtimeo(SEND_TIMEOUT_MS)?;
+        socket.set_immediate(true)?;
         Ok(BrokerConn { sock: socket })
     }
 
@@ -66,7 +66,7 @@ impl BrokerConn {
     ///
     /// * A connection cannot be established to a socket at the given address
     pub fn connect(&mut self, addr: &str) -> Result<()> {
-        try!(self.sock.connect(addr));
+        self.sock.connect(addr)?;
         Ok(())
     }
 
@@ -128,8 +128,8 @@ impl BrokerConn {
         );
         let req = protocol::Message::new(msg).routing(route_hash).build();
         let bytes = req.write_to_bytes().unwrap();
-        try!(self.sock.send_str("RQ", zmq::SNDMORE));
-        try!(self.sock.send(&bytes, 0));
+        self.sock.send_str("RQ", zmq::SNDMORE)?;
+        self.sock.send(&bytes, 0)?;
         Ok(())
     }
 
@@ -142,8 +142,8 @@ impl BrokerConn {
     /// * Message was not received within the timeout
     /// * Received an unparseable message
     pub fn recv(&mut self) -> Result<protocol::net::Msg> {
-        let envelope = try!(self.sock.recv_msg(0));
-        let msg: protocol::net::Msg = try!(parse_from_bytes(&envelope));
+        let envelope = self.sock.recv_msg(0)?;
+        let msg: protocol::net::Msg = parse_from_bytes(&envelope)?;
         Ok(msg)
     }
 }
@@ -166,12 +166,12 @@ impl Broker {
     ///
     /// * Could not read `zmq::Context` due to deadlock or poisoning
     fn new(net_ident: String) -> Result<Self> {
-        let fe = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::ROUTER));
-        let be = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER));
-        try!(fe.set_identity(net_ident.as_bytes()));
-        try!(be.set_rcvtimeo(RECV_TIMEOUT_MS));
-        try!(be.set_sndtimeo(SEND_TIMEOUT_MS));
-        try!(be.set_immediate(true));
+        let fe = (**ZMQ_CONTEXT).as_mut().socket(zmq::ROUTER)?;
+        let be = (**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER)?;
+        fe.set_identity(net_ident.as_bytes())?;
+        be.set_rcvtimeo(RECV_TIMEOUT_MS)?;
+        be.set_sndtimeo(SEND_TIMEOUT_MS)?;
+        be.set_immediate(true)?;
         Ok(Broker {
             client_sock: fe,
             router_sock: be,
@@ -189,8 +189,8 @@ impl Broker {
     ///
     /// * Could not read `zmq::Context` due to deadlock or poisoning
     pub fn connect() -> Result<BrokerConn> {
-        let mut conn = try!(BrokerConn::new());
-        try!(conn.connect(ROUTE_INPROC_ADDR));
+        let mut conn = BrokerConn::new()?;
+        conn.connect(ROUTE_INPROC_ADDR)?;
         Ok(conn)
     }
 
@@ -221,12 +221,12 @@ impl Broker {
     // Binds front-end socket to ZeroMQ inproc address and connects to all routers. Sends a message
     // back to the caller over the given rendezvous channel to signal when ready.
     fn start(&mut self, rz: mpsc::SyncSender<()>, routers: Vec<String>) -> Result<()> {
-        try!(self.client_sock.bind(ROUTE_INPROC_ADDR));
+        self.client_sock.bind(ROUTE_INPROC_ADDR)?;
         for addr in routers {
-            try!(self.router_sock.connect(&addr));
+            self.router_sock.connect(&addr)?;
         }
         rz.send(()).unwrap();
-        try!(zmq::proxy(&mut self.client_sock, &mut self.router_sock));
+        zmq::proxy(&mut self.client_sock, &mut self.router_sock)?;
         Ok(())
     }
 }

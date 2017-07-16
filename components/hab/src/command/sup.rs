@@ -18,6 +18,10 @@ use common::ui::UI;
 
 use error::Result;
 
+pub const SUP_CMD: &'static str = "hab-sup";
+pub const SUP_CMD_ENVVAR: &'static str = "HAB_SUP_BINARY";
+pub const SUP_PKG_IDENT: &'static str = "core/hab-sup";
+
 pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
     inner::start(ui, args)
 }
@@ -35,52 +39,31 @@ mod inner {
     use hcore::os::process;
     use hcore::package::PackageIdent;
 
+    use super::{SUP_CMD, SUP_CMD_ENVVAR, SUP_PKG_IDENT};
     use error::{Error, Result};
     use exec;
     use VERSION;
 
-    const SUP_CMD: &'static str = "hab-sup";
-    const SUP_CMD_ENVVAR: &'static str = "HAB_SUP_BINARY";
-    const SUP_PACKAGE_IDENT: &'static str = "core/hab-sup";
-
-    const FEAT_STATIC: &'static str = "HAB_FEAT_SUP_STATIC";
-    const SUP_STATIC_PACKAGE_IDENT: &'static str = "core/hab-sup-static";
-
     pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
-        let sup_ident = match henv::var(FEAT_STATIC) {
-            Ok(_) => {
-                debug!(
-                    "Enabling statically compiled Supervisor from {}",
-                    SUP_STATIC_PACKAGE_IDENT
-                );
-                SUP_STATIC_PACKAGE_IDENT
-            }
-            Err(_) => SUP_PACKAGE_IDENT,
-        };
         let command = match henv::var(SUP_CMD_ENVVAR) {
             Ok(command) => PathBuf::from(command),
             Err(_) => {
                 init();
-                let version: Vec<&str> = VERSION.split('/').collect();
-                let ident = try!(PackageIdent::from_str(
-                    &format!("{}/{}", sup_ident, version[0]),
-                ));
-                try!(exec::command_from_min_pkg(
+                let version: Vec<&str> = VERSION.split("/").collect();
+                let cmd = exec::command_from_min_pkg(
                     ui,
                     SUP_CMD,
-                    &ident,
+                    &PackageIdent::from_str(&format!("{}/{}", SUP_PKG_IDENT, version[0]))?,
                     &default_cache_key_path(None),
                     0,
-                ))
+                )?;
+                PathBuf::from(cmd)
             }
         };
-
-        if let Some(cmd) = find_command(command.to_string_lossy().as_ref()) {
-            Ok(try!(process::become_command(cmd, args)))
+        if let Some(cmd) = find_command(&command) {
+            Ok(process::become_command(cmd, args)?)
         } else {
-            Err(Error::ExecCommandNotFound(
-                command.to_string_lossy().into_owned(),
-            ))
+            Err(Error::ExecCommandNotFound(command))
         }
     }
 }
@@ -96,11 +79,11 @@ mod inner {
 
     pub fn start(ui: &mut UI, _args: Vec<OsString>) -> Result<()> {
         let subcmd = env::args().nth(1).unwrap_or("<unknown>".to_string());
-        try!(ui.warn(
+        ui.warn(
             "Launching a native Supervisor on this operating system is not yet supported. \
-                   Try running this command again on a 64-bit Linux operating system.",
-        ));
-        try!(ui.br());
+            Try running this command again on 64-bit Linux or Windows.",
+        )?;
+        ui.br()?;
         Err(Error::SubcommandNotSupported(subcmd))
     }
 }

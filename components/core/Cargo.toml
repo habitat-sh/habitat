@@ -11,6 +11,7 @@ gcc = "0.3"
 
 [dependencies]
 clippy = {version = "*", optional = true}
+ansi_term = "*"
 base64 = "*"
 errno = "*"
 hex = "*"
@@ -39,6 +40,7 @@ path = "../win-users"
 
 [target.'cfg(windows)'.dependencies]
 crypt32-sys = "*"
+ctrlc = "*"
 kernel32-sys = "*"
 userenv-sys = "*"
 widestring = "*"

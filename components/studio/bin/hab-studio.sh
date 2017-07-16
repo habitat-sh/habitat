@@ -65,6 +65,7 @@ COMMON FLAGS:
     -q  Prints less output for better use in scripts
     -v  Prints more verbose output
     -V  Prints version information
+    -w  Use a Windows studio instead of a docker studio (only available on windows)
 
 COMMON OPTIONS:
     -k <HAB_ORIGIN_KEYS>  Installs secret origin keys (default:\$HAB_ORIGIN )

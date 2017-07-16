@@ -293,3 +293,66 @@ Add the following line if not present to see if it resolves your issue:
    says `WARNING: out of shared memory`, edit the `postgresql.conf` file in
    `/hab/pkgs/core/postgresql/$VERSION/$RELEASE/config` and add
    `max_locks_per_transaction=128` to it.
+
+### Node troubleshooting
+
+If you are seeing an error similar to this:
+
+   ```
+      web.1       | /home/nell/habitat/support/builder_web.sh: line 38: ./node_modules/.bin/lite-server: No such file or directory
+   ```
+
+Check what version of node that builder-web expects
+
+   ```
+     cd components/builder-web
+     cat .nvmrc
+   ```
+
+Then check which one you are running:
+
+   ```
+     node -v
+   ```
+
+If they are not the same, then you will need to run nvm install within the components/builder-web directory.
+
+   ```
+     nvm install
+   ```
+
+If you get this error "No command 'nvm' found, did you mean:", you will need to re-run your $HOME/.nvm/nvm.sh script
+
+   ```
+     $HOME/.nvm/nvm.sh
+   ```
+
+Then try running builder again
+
+   ```
+     make bldr-run
+   ```
+
+If you see errors along these lines:
+
+   ```
+	web.1       | npm ERR! npm  v2.15.1
+	web.1       | npm ERR! file sh
+	web.1       | npm ERR! code ELIFECYCLE
+	web.1       | npm ERR! errno ENOENT
+	web.1       | npm ERR! syscall spawn
+	web.1       | npm ERR! habitat@0.8.0 build: `concurrently "npm run build-js" "npm run build-css"`
+	web.1       | npm ERR! spawn ENOENT
+	web.1       | npm ERR! 
+	web.1       | npm ERR! Failed at the habitat@0.8.0 build script 'concurrently "npm run build-js" "npm run build-css"'.
+	web.1       | npm ERR! This is most likely a problem with the habitat package,
+	web.1       | npm ERR! not with npm itself.
+   ```
+
+Then you will need to remove your node_modules directory, then run npm install:
+
+   ```
+     cd path/to/habitat/repo/components/builder-web
+     rm -rf node_modules
+     npm install  
+   ```

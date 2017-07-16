@@ -101,6 +101,8 @@ if ! command -v rustc >/dev/null; then
   curl -s https://static.rust-lang.org/rustup.sh | sh -s -- -y
   rustc --version
   cargo --version
+else
+  rustup update
 fi
 
 info "Updating PATH to include GNU toolchain from HomeBrew"

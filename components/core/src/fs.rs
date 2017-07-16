@@ -54,7 +54,8 @@ lazy_static! {
             match (henv::var(FS_ROOT_ENVVAR), henv::var(SYSTEMDRIVE_ENVVAR)) {
                 (Ok(path), _) =>  PathBuf::from(path),
                 (Err(_), Ok(system_drive)) => PathBuf::from(format!("{}{}", system_drive, "/")),
-                (Err(_), Err(_)) => unreachable!("Windows should always have a SYSTEMDRIVE environment variable.")
+                (Err(_), Err(_)) => unreachable!("Windows should always have a SYSTEMDRIVE \
+                    environment variable.")
             }
         } else {
             PathBuf::from("/")
@@ -120,52 +121,73 @@ lazy_static! {
 }
 
 /// Returns the path to the analytics cache, optionally taking a custom filesystem root.
-pub fn cache_analytics_path(fs_root_path: Option<&Path>) -> PathBuf {
+pub fn cache_analytics_path<T>(fs_root_path: Option<T>) -> PathBuf
+where
+    T: AsRef<Path>,
+{
     match fs_root_path {
-        Some(fs_root_path) => Path::new(fs_root_path).join(&*MY_CACHE_ANALYTICS_PATH),
+        Some(fs_root_path) => fs_root_path.as_ref().join(&*MY_CACHE_ANALYTICS_PATH),
         None => Path::new(&*FS_ROOT_PATH).join(&*MY_CACHE_ANALYTICS_PATH),
     }
 }
 
 /// Returns the path to the artifacts cache, optionally taking a custom filesystem root.
-pub fn cache_artifact_path(fs_root_path: Option<&Path>) -> PathBuf {
+pub fn cache_artifact_path<T>(fs_root_path: Option<T>) -> PathBuf
+where
+    T: AsRef<Path>,
+{
     match fs_root_path {
-        Some(fs_root_path) => Path::new(fs_root_path).join(&*MY_CACHE_ARTIFACT_PATH),
+        Some(fs_root_path) => fs_root_path.as_ref().join(&*MY_CACHE_ARTIFACT_PATH),
         None => Path::new(&*FS_ROOT_PATH).join(&*MY_CACHE_ARTIFACT_PATH),
     }
 }
 
 /// Returns the path to the keys cache, optionally taking a custom filesystem root.
-pub fn cache_key_path(fs_root_path: Option<&Path>) -> PathBuf {
+pub fn cache_key_path<T>(fs_root_path: Option<T>) -> PathBuf
+where
+    T: AsRef<Path>,
+{
     match fs_root_path {
-        Some(fs_root_path) => Path::new(fs_root_path).join(&*MY_CACHE_KEY_PATH),
+        Some(fs_root_path) => fs_root_path.as_ref().join(&*MY_CACHE_KEY_PATH),
         None => Path::new(&*FS_ROOT_PATH).join(&*MY_CACHE_KEY_PATH),
     }
 }
 
 /// Returns the path to the src cache, optionally taking a custom filesystem root.
-pub fn cache_src_path(fs_root_path: Option<&Path>) -> PathBuf {
+pub fn cache_src_path<T>(fs_root_path: Option<T>) -> PathBuf
+where
+    T: AsRef<Path>,
+{
     match fs_root_path {
-        Some(fs_root_path) => Path::new(fs_root_path).join(&*MY_CACHE_SRC_PATH),
+        Some(fs_root_path) => fs_root_path.as_ref().join(&*MY_CACHE_SRC_PATH),
         None => Path::new(&*FS_ROOT_PATH).join(&*MY_CACHE_SRC_PATH),
     }
 }
 
 /// Returns the path to the SSL cache, optionally taking a custom filesystem root.
-pub fn cache_ssl_path(fs_root_path: Option<&Path>) -> PathBuf {
+pub fn cache_ssl_path<T>(fs_root_path: Option<T>) -> PathBuf
+where
+    T: AsRef<Path>,
+{
     match fs_root_path {
-        Some(fs_root_path) => Path::new(fs_root_path).join(&*MY_CACHE_SSL_PATH),
+        Some(fs_root_path) => fs_root_path.as_ref().join(&*MY_CACHE_SSL_PATH),
         None => Path::new(&*FS_ROOT_PATH).join(&*MY_CACHE_SSL_PATH),
     }
 }
 
-pub fn pkg_root_path(fs_root: Option<&Path>) -> PathBuf {
-    let mut buf = fs_root.map_or(PathBuf::from("/"), |p| p.into());
+pub fn pkg_root_path<T>(fs_root: Option<T>) -> PathBuf
+where
+    T: AsRef<Path>,
+{
+    let mut buf = fs_root.map_or(PathBuf::from("/"), |p| p.as_ref().into());
     buf.push(PKG_PATH);
     buf
 }
 
-pub fn pkg_install_path(ident: &PackageIdent, fs_root: Option<&Path>) -> PathBuf {
+pub fn pkg_install_path<T>(ident: &PackageIdent, fs_root: Option<T>) -> PathBuf
+where
+    T: AsRef<Path>,
+{
     assert!(
         ident.fully_qualified(),
         "Cannot determine install path without fully qualified ident"
@@ -225,19 +247,20 @@ pub fn pkg_install_path(ident: &PackageIdent, fs_root: Option<&Path>) -> PathBuf
 /// assert_eq!(result.is_some(), false);
 /// ```
 ///
-pub fn find_command(command: &str) -> Option<PathBuf> {
+pub fn find_command<T>(command: T) -> Option<PathBuf>
+where
+    T: AsRef<Path>,
+{
     // If the command path is absolute and a file exists, then use that.
-    let candidate = PathBuf::from(command);
-    if candidate.is_absolute() && candidate.is_file() {
-        return Some(candidate);
+    if command.as_ref().is_absolute() && command.as_ref().is_file() {
+        return Some(command.as_ref().to_path_buf());
     }
-
     // Find the command by checking each entry in `PATH`. If we still can't find it, give up and
     // return `None`.
     match henv::var_os("PATH") {
         Some(paths) => {
             for path in env::split_paths(&paths) {
-                let candidate = PathBuf::from(&path).join(command);
+                let candidate = PathBuf::from(&path).join(command.as_ref());
                 if candidate.is_file() {
                     return Some(candidate);
                 } else {
@@ -260,19 +283,23 @@ pub fn find_command(command: &str) -> Option<PathBuf> {
 /// # Failures
 ///
 /// * The path entries metadata cannot be loaded
-pub fn find_command_in_pkg(
-    command: &str,
+pub fn find_command_in_pkg<T, U>(
+    command: T,
     pkg_install: &PackageInstall,
-    fs_root_path: &Path,
-) -> Result<Option<PathBuf>> {
-    for path in try!(pkg_install.paths()) {
+    fs_root_path: U,
+) -> Result<Option<PathBuf>>
+where
+    T: AsRef<Path>,
+    U: AsRef<Path>,
+{
+    for path in pkg_install.paths()? {
         let stripped = path.strip_prefix("/").expect(&format!(
             "Package path missing / prefix {}",
             path.to_string_lossy()
         ));
-        let candidate = fs_root_path.join(stripped).join(command);
+        let candidate = fs_root_path.as_ref().join(stripped).join(command.as_ref());
         if candidate.is_file() {
-            return Ok(Some(path.join(command)));
+            return Ok(Some(path.join(command.as_ref())));
         } else {
             match find_command_with_pathext(&candidate) {
                 Some(result) => return Ok(Some(result)),

@@ -12,8 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use bldr_core::logger::Logger;
 use config::Config;
-use error::Result;
+use error::{Error, Result};
 use hab_net::server::ZMQ_CONTEXT;
 use std::sync::{mpsc, Arc, RwLock};
 use std::thread::{self, JoinHandle};
@@ -32,21 +33,31 @@ pub struct LogForwarder {
     /// The configuration of the worker server; used to obtain job
     /// server connection information.
     config: Arc<RwLock<Config>>,
+    /// Log file for debugging this process
+    logger: Logger,
 }
 
 impl LogForwarder {
     pub fn new(config: Arc<RwLock<Config>>) -> Result<Self> {
         let intake_sock = (**ZMQ_CONTEXT).as_mut().socket(zmq::PULL)?;
         let output_sock = (**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER)?;
+        let path = {
+            let cfg = config.read().unwrap();
+            cfg.log_path.clone()
+        };
 
         output_sock.set_sndhwm(5000)?;
         output_sock.set_linger(5000)?;
         output_sock.set_immediate(true)?;
 
+        let mut logger = Logger::init(path, "log_forwarder.log");
+        logger.log_ident("log_forwarder");
+
         Ok(LogForwarder {
             intake_sock: intake_sock,
             output_sock: output_sock,
             config: config,
+            logger: logger,
         })
     }
 
@@ -77,6 +88,9 @@ impl LogForwarder {
                 panic!("Routing logs to more than one Job Server is not yet implemented");
             }
         }
+
+        self.logger.log("Startup complete");
+
         self.intake_sock.bind(INPROC_ADDR)?;
 
         // Signal back to the spawning process that we're good
@@ -86,10 +100,21 @@ impl LogForwarder {
         // connections to establish
         thread::sleep(Duration::from_millis(100));
 
+        self.logger.log(
+            "Starting proxy between log_pipe and jobsrv",
+        );
+
         // Basically just need to pass things through... proxy time!
         // If we ever have multiple JobServers these need to be sent
         // to, then we might need some additional logic.
-        zmq::proxy(&mut self.intake_sock, &mut self.output_sock)?;
+        if let Err(e) = zmq::proxy(&mut self.intake_sock, &mut self.output_sock) {
+            self.logger.log(
+                format!("ZMQ proxy returned an error: {:?}", e)
+                    .as_ref(),
+            );
+            return Err(Error::Zmq(e));
+        }
+
         Ok(())
     }
 }

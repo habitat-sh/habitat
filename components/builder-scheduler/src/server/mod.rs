@@ -129,7 +129,7 @@ impl Dispatcher for Worker {
 
     fn init(&mut self, init_state: Self::InitState) -> Result<Self::State> {
         let mut schedule_cli = ScheduleClient::default();
-        try!(schedule_cli.connect());
+        schedule_cli.connect()?;
 
         let mut state: ServerState = init_state.into();
         state.schedule_cli = Some(schedule_cli);
@@ -146,8 +146,8 @@ pub struct Server {
 
 impl Server {
     pub fn new(config: Config) -> Result<Self> {
-        let router = try!(RouteConn::new(Self::net_ident(), (**ZMQ_CONTEXT).as_mut()));
-        let be = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER));
+        let router = RouteConn::new(Self::net_ident(), (**ZMQ_CONTEXT).as_mut())?;
+        let be = (**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER)?;
         Ok(Server {
             config: Arc::new(RwLock::new(config)),
             router: router,
@@ -171,12 +171,12 @@ impl Application for Server {
     type Error = Error;
 
     fn run(&mut self) -> Result<()> {
-        try!(self.be_sock.bind(BE_LISTEN_ADDR));
+        self.be_sock.bind(BE_LISTEN_ADDR)?;
         let datastore = {
             let cfg = self.config.read().unwrap();
-            try!(DataStore::new(cfg.deref()))
+            DataStore::new(cfg.deref())?
         };
-        try!(datastore.setup());
+        datastore.setup()?;
 
         let mut graph = PackageGraph::new();
         let packages = datastore.get_packages()?;
@@ -197,15 +197,15 @@ impl Application for Server {
         let sup: Supervisor<Worker> = Supervisor::new(cfg, init_state);
 
         let cfg2 = self.config.clone();
-        let schedule_mgr = try!(ScheduleMgr::start(ds2, cfg2));
-        try!(sup.start());
-        try!(self.connect());
+        let schedule_mgr = ScheduleMgr::start(ds2, cfg2)?;
+        sup.start()?;
+        self.connect()?;
         let broker = {
             let cfg = self.config.read().unwrap();
             Broker::run(Self::net_ident(), cfg.route_addrs())
         };
         info!("builder-scheduler is ready to go.");
-        try!(zmq::proxy(&mut self.router.socket, &mut self.be_sock));
+        zmq::proxy(&mut self.router.socket, &mut self.be_sock)?;
         broker.join().unwrap();
         schedule_mgr.join().unwrap();
         Ok(())
@@ -237,5 +237,5 @@ impl Service for Server {
 impl NetIdent for Server {}
 
 pub fn run(config: Config) -> Result<()> {
-    try!(Server::new(config)).run()
+    Server::new(config)?.run()
 }

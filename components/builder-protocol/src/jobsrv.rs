@@ -88,7 +88,7 @@ impl Serialize for Job {
     where
         S: Serializer,
     {
-        let mut strukt = try!(serializer.serialize_struct("job", 10));
+        let mut strukt = serializer.serialize_struct("job", 10)?;
 
         // Technically, an ID is a 64-bit integer, but that can cause
         // issues when processing it in JavaScript on the front-end,
@@ -142,7 +142,7 @@ impl Serialize for Job {
         strukt.serialize_field("state", &self.get_state())?;
 
         if self.has_error() {
-            try!(strukt.serialize_field("error", self.get_error()));
+            strukt.serialize_field("error", self.get_error())?;
         }
         strukt.end()
     }
@@ -153,8 +153,8 @@ impl Serialize for ProjectJobsGetResponse {
     where
         S: Serializer,
     {
-        let mut strukt = try!(serializer.serialize_struct("project_jobs_get_response", 1));
-        try!(strukt.serialize_field("jobs", self.get_jobs()));
+        let mut strukt = serializer.serialize_struct("project_jobs_get_response", 1)?;
+        strukt.serialize_field("jobs", self.get_jobs())?;
         strukt.end()
     }
 }
@@ -185,7 +185,7 @@ impl Serialize for JobLog {
     where
         S: Serializer,
     {
-        let mut log = try!(serializer.serialize_struct("JobLog", 4));
+        let mut log = serializer.serialize_struct("JobLog", 4)?;
         log.serialize_field("start", &self.get_start())?;
         log.serialize_field("stop", &self.get_stop())?;
         log.serialize_field("content", &self.get_content())?;

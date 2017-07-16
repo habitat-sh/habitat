@@ -13,6 +13,7 @@
 // limitations under the License.
 
 pub mod convert;
+pub mod exec;
 pub mod path;
 pub mod pkg;
 pub mod users;

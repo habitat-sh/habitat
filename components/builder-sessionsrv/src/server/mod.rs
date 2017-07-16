@@ -114,8 +114,8 @@ pub struct Server {
 
 impl Server {
     pub fn new(config: Config) -> Result<Self> {
-        let router = try!(RouteConn::new(Self::net_ident(), (**ZMQ_CONTEXT).as_mut()));
-        let be = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER));
+        let router = RouteConn::new(Self::net_ident(), (**ZMQ_CONTEXT).as_mut())?;
+        let be = (**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER)?;
         Ok(Server {
             config: Arc::new(RwLock::new(config)),
             router: router,
@@ -139,7 +139,7 @@ impl Application for Server {
     type Error = Error;
 
     fn run(&mut self) -> Result<()> {
-        try!(self.be_sock.bind(BE_LISTEN_ADDR));
+        self.be_sock.bind(BE_LISTEN_ADDR)?;
         let (datastore, gh, permissions) = {
             let cfg = self.config.read().unwrap();
             let ds = DataStore::new(cfg.deref())?;
@@ -147,17 +147,17 @@ impl Application for Server {
             (ds, gh, cfg.permissions.clone())
         };
         let cfg = self.config.clone();
-        try!(datastore.setup());
+        datastore.setup()?;
         let init_state = ServerState::new(datastore, gh, permissions);
         let sup: Supervisor<Worker> = Supervisor::new(cfg, init_state);
-        try!(sup.start());
-        try!(self.connect());
+        sup.start()?;
+        self.connect()?;
         {
             let cfg = self.config.read().unwrap();
             Broker::run(Self::net_ident(), cfg.route_addrs());
         }
         info!("builder-sessionsrv is ready to go.");
-        try!(zmq::proxy(&mut self.router.socket, &mut self.be_sock));
+        zmq::proxy(&mut self.router.socket, &mut self.be_sock)?;
         Ok(())
     }
 }
@@ -187,5 +187,5 @@ impl Service for Server {
 impl NetIdent for Server {}
 
 pub fn run(config: Config) -> Result<()> {
-    try!(Server::new(config)).run()
+    Server::new(config)?.run()
 }

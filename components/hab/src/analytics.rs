@@ -357,22 +357,22 @@ pub fn instrument_clap_error(err: &clap::Error) {
 /// * If an opt-out if exists but cannot be deleted
 /// * If an opt-in file cannot be created
 pub fn opt_in(ui: &mut UI, analytics_path: &Path, origin_generated: bool) -> Result<()> {
-    try!(ui.begin("Opting in to analytics"));
+    ui.begin("Opting in to analytics")?;
     // Create the parent directory which will contain the opt-in file
-    try!(fs::create_dir_all(analytics_path));
+    fs::create_dir_all(analytics_path)?;
     // Get the path to the opt-out file
     let opt_out_path = analytics_path.join(OPTED_OUT_METAFILE);
     // If the opt-out file exists, delete it from disk
     if opt_out_path.exists() {
-        try!(ui.status(Status::Deleting, opt_out_path.display()));
-        try!(fs::remove_file(&opt_out_path));
+        ui.status(Status::Deleting, opt_out_path.display())?;
+        fs::remove_file(&opt_out_path)?;
     }
     // Get the path to the opt-in file
     let opt_in_path = analytics_path.join(OPTED_IN_METAFILE);
-    try!(ui.status(Status::Creating, opt_in_path.display()));
+    ui.status(Status::Creating, opt_in_path.display())?;
     // Create the opt-in file
-    let _ = try!(File::create(opt_in_path));
-    try!(ui.end("Analytics opted in, thank you!"));
+    let _ = File::create(opt_in_path)?;
+    ui.end("Analytics opted in, thank you!")?;
     // Record an event that the setup subcommand was invoked
     record_event(
         Event::Subcommand,
@@ -404,32 +404,35 @@ pub fn opt_in(ui: &mut UI, analytics_path: &Path, origin_generated: bool) -> Res
 /// * If an opt-in if exists but cannot be deleted
 /// * If an opt-out file cannot be created
 pub fn opt_out(ui: &mut UI, analytics_path: &Path) -> Result<()> {
-    try!(ui.begin("Opting out of analytics"));
+    ui.begin("Opting out of analytics")?;
     // Create the parent directory which will contain the opt-in file
-    try!(fs::create_dir_all(analytics_path));
+    fs::create_dir_all(analytics_path)?;
     // Get the path to the opt-in file
     let opt_in_path = analytics_path.join(OPTED_IN_METAFILE);
     // If the opt-in file exists, delete it from disk
     if opt_in_path.exists() {
-        try!(ui.status(Status::Deleting, opt_in_path.display()));
-        try!(fs::remove_file(&opt_in_path));
+        ui.status(Status::Deleting, opt_in_path.display())?;
+        fs::remove_file(&opt_in_path)?;
     }
     // Get the path to the opt-out file
     let opt_out_path = analytics_path.join(OPTED_OUT_METAFILE);
-    try!(ui.status(Status::Creating, opt_out_path.display()));
+    ui.status(Status::Creating, opt_out_path.display())?;
     // Create the opt-out file
-    let _ = try!(File::create(opt_out_path));
-    try!(ui.end("Analytics opted out, we salute you just the same!"));
+    let _ = File::create(opt_out_path)?;
+    ui.end("Analytics opted out, we salute you just the same!")?;
     // Return an empty Ok, representing a successful operation
     Ok(())
 }
 
 /// Returns whether or not analytics are explicitly opted in, opted out, or are so far unset.
-pub fn is_opted_in(analytics_path: &Path) -> Option<bool> {
-    if analytics_path.join(OPTED_OUT_METAFILE).exists() {
+pub fn is_opted_in<T>(analytics_path: T) -> Option<bool>
+where
+    T: AsRef<Path>,
+{
+    if analytics_path.as_ref().join(OPTED_OUT_METAFILE).exists() {
         // If an explicit opt-out file exists, the return false
         Some(false)
-    } else if analytics_path.join(OPTED_IN_METAFILE).exists() {
+    } else if analytics_path.as_ref().join(OPTED_IN_METAFILE).exists() {
         // If an opt-in file exists, return true
         Some(true)
     } else {
@@ -440,7 +443,7 @@ pub fn is_opted_in(analytics_path: &Path) -> Option<bool> {
 
 /// Returns true if analytics are enabled and false otherwise.
 fn analytics_enabled() -> bool {
-    match is_opted_in(&hcore::fs::cache_analytics_path(None)) {
+    match is_opted_in(hcore::fs::cache_analytics_path(None::<String>)) {
         // If the value is explicitly true or false, return the unwrapped value
         Some(val) => val,
         // In all other cases, return false which enforces the default opt-out behavior
@@ -570,7 +573,7 @@ fn save_event(payload: &str) {
         }
     };
     // Determine the parent directory for the cached event file.
-    let cache_dir = hcore::fs::cache_analytics_path(None);
+    let cache_dir = hcore::fs::cache_analytics_path(None::<String>);
     // Determine the full path to the cached event file.
     let cached_event = cache_dir.join(format!("event-{}.{}.txt", secs, subsec_nanos));
     // Write the file with the payload contents to disk.
@@ -580,7 +583,7 @@ fn save_event(payload: &str) {
 /// Attempts to send any pending events on disk in the analytics cache.
 fn send_pending() {
     // Determine the path to the analytics cache directory.
-    let cache_dir = hcore::fs::cache_analytics_path(None);
+    let cache_dir = hcore::fs::cache_analytics_path(None::<String>);
     // Get an iterator to all file and directory entries under the cache directory. If an error
     // occurs, report and return early.
     let entries = match cache_dir.read_dir() {
@@ -643,7 +646,7 @@ fn client_id() -> String {
     // Get a path to the location containing a file with the randomly generated Client ID, using a
     // helper function from the `habitat_core` crate. The `None` tells the function that there is
     // no custom file system root prefix path.
-    let metadir = hcore::fs::cache_analytics_path(None);
+    let metadir = hcore::fs::cache_analytics_path(None::<String>);
     // Get the path to the metadata file.
     let metafile = metadir.join(CLIENT_ID_METAFILE);
     if metafile.exists() {

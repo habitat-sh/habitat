@@ -174,3 +174,32 @@ body {
   padding-left: $base-spacing;
   word-wrap: break-word;
 }
+
+.channels {
+  margin-top: 8px;
+
+  .channel {
+    display: inline-block;
+    margin-right: 4px;
+    font-size: rem(11);
+    font-weight: bold;
+    font-family: $base-font-family;
+    padding: 2px 10px;
+    border-radius: 11px;
+    color: $hab-blue;
+    background-color: $hab-blue-light;
+    border: 1px solid $hab-blue-light;
+
+    &.unstable {
+      background-color: $hab-white;
+      border: 1px solid $very-light-gray;
+      color: $hab-blue;
+    }
+
+    &.stable {
+      background-color: $hab-blue;
+      border: 1px solid $hab-blue;
+      color: $hab-white;
+    }
+  }
+}

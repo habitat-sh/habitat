@@ -34,6 +34,14 @@ import { releaseToDate } from "../util";
             </dd>
           </dl>
         </div>
+        <div class="hab-package-channels" *ngIf="package.channels.length > 0">
+          <h3>Channels</h3>
+          <ul class="channels">
+            <li *ngFor="let channel of package.channels" class="channel {{ channel }}">
+              {{ channel }}
+            </li>
+          </ul>
+        </div>
         <div class="hab-package-manifest">
           <h3>Manifest</h3>
           <div class="manifest" [innerHTML]="package.manifest"></div>

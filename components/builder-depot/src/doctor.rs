@@ -152,8 +152,8 @@ impl<'a> Doctor<'a> {
     }
 
     fn run(mut self) -> Result<Report> {
-        try!(self.init_fs());
-        try!(self.rebuild_metadata());
+        self.init_fs()?;
+        self.rebuild_metadata()?;
         Ok(self.report.generate())
     }
 
@@ -172,12 +172,12 @@ impl<'a> Doctor<'a> {
                         Reason::BadPermissions,
                     );
                 }
-                try!(fs::create_dir_all(&self.depot.packages_path()));
+                fs::create_dir_all(&self.depot.packages_path())?;
             }
-            Err(_) => try!(fs::create_dir_all(&self.depot.packages_path())),
+            Err(_) => fs::create_dir_all(&self.depot.packages_path())?,
         }
-        try!(fs::rename(&self.depot.packages_path(), &self.packages_path));
-        try!(fs::create_dir_all(&self.depot.packages_path()));
+        fs::rename(&self.depot.packages_path(), &self.packages_path)?;
+        fs::create_dir_all(&self.depot.packages_path())?;
         Ok(())
     }
 
@@ -196,7 +196,7 @@ impl<'a> Doctor<'a> {
                         Ok(package) => {
                             let mut conn = Broker::connect().unwrap();
                             conn.route::<originsrv::OriginPackageCreate, originsrv::OriginPackage>(&package)?;
-                            let path = self.depot.archive_path(&ident, &try!(archive.target()));
+                            let path = self.depot.archive_path(&ident, &archive.target()?);
                             if let Some(e) = fs::create_dir_all(path.parent().unwrap()).err() {
                                 self.report.failure(
                                     OperationType::ArchiveInsert(

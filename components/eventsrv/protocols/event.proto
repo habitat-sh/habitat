@@ -56,4 +56,5 @@ message CensusEntry {
   optional bool suspect = 20;
   optional bool confirmed = 21;
   optional bool persistent = 22;
+  optional bool departed = 23;
 }

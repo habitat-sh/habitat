@@ -44,9 +44,9 @@ pub fn start(
                 let mut comps = entry.path().components();
 
                 // skip prefix_count segments of the path
-                let _ = try!(comps.nth(prefix_count).ok_or_else(||
+                let _ = comps.nth(prefix_count).ok_or(
                     Error::FileNotFound(f.to_string()),
-                ));
+                )?;
 
                 let segments = if full_releases {
                     // take all 4 segments of the path

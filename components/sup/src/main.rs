@@ -13,7 +13,9 @@
 // limitations under the License.
 
 extern crate habitat_common as common;
+#[macro_use]
 extern crate habitat_core as hcore;
+extern crate habitat_launcher_client as launcher_client;
 #[macro_use]
 extern crate habitat_sup as sup;
 extern crate log;
@@ -25,8 +27,10 @@ extern crate clap;
 extern crate time;
 extern crate url;
 
+use std::io::{self, Write};
 use std::net::{SocketAddr, ToSocketAddrs};
 use std::path::{Path, PathBuf};
+use std::process;
 use std::result;
 use std::str::FromStr;
 
@@ -34,12 +38,12 @@ use ansi_term::Colour::{Red, Yellow};
 use clap::{App, ArgMatches};
 use common::ui::UI;
 use hcore::env as henv;
-use hcore::crypto::{default_cache_key_path, SymKey};
+use hcore::crypto::{self, default_cache_key_path, SymKey};
 #[cfg(windows)]
 use hcore::crypto::dpapi::encrypt;
-use hcore::crypto::init as crypto_init;
 use hcore::package::{PackageArchive, PackageIdent};
 use hcore::url::{DEFAULT_DEPOT_URL, DEPOT_URL_ENVVAR};
+use launcher_client::{LauncherCli, ERR_NO_RETRY_EXCODE, OK_NO_RETRY_EXCODE};
 use url::Url;
 
 use sup::VERSION;
@@ -60,24 +64,62 @@ static RING_ENVVAR: &'static str = "HAB_RING";
 static RING_KEY_ENVVAR: &'static str = "HAB_RING_KEY";
 
 fn main() {
+    if let Err(err) = start() {
+        println!("{}", err);
+        match err {
+            SupError { err: Error::ProcessLocked(_), .. } => process::exit(ERR_NO_RETRY_EXCODE),
+            SupError { err: Error::Departed, .. } => {
+                process::exit(ERR_NO_RETRY_EXCODE);
+            }
+            _ => process::exit(1),
+        }
+    }
+}
+
+fn boot() -> Option<LauncherCli> {
     env_logger::init().unwrap();
     enable_features_from_env();
-    if let Err(e) = start() {
-        println!("{}", e);
-        std::process::exit(1);
+    if !crypto::init() {
+        println!("Crypto initialization failed!");
+        process::exit(1);
+    }
+    match launcher_client::env_pipe() {
+        Some(pipe) => {
+            match LauncherCli::connect(pipe) {
+                Ok(launcher) => Some(launcher),
+                Err(err) => {
+                    println!("{}", err);
+                    process::exit(1);
+                }
+            }
+        }
+        None => None,
     }
 }
 
 fn start() -> Result<()> {
-    crypto_init();
-    let app_matches = cli().get_matches();
+    let launcher = boot();
+    let app_matches = match cli().get_matches_safe() {
+        Ok(matches) => matches,
+        Err(err) => {
+            let out = io::stdout();
+            writeln!(&mut out.lock(), "{}", err.message).expect("Error writing Error to stdout");
+            process::exit(ERR_NO_RETRY_EXCODE);
+        }
+    };
     match app_matches.subcommand() {
         ("bash", Some(m)) => sub_bash(m),
         ("config", Some(m)) => sub_config(m),
         ("load", Some(m)) => sub_load(m),
-        ("run", Some(m)) => sub_run(m),
+        ("run", Some(m)) => {
+            let launcher = launcher.ok_or(sup_error!(Error::NoLauncher))?;
+            sub_run(m, launcher)
+        }
         ("sh", Some(m)) => sub_sh(m),
-        ("start", Some(m)) => sub_start(m),
+        ("start", Some(m)) => {
+            let launcher = launcher.ok_or(sup_error!(Error::NoLauncher))?;
+            sub_start(m, launcher)
+        }
         ("status", Some(m)) => sub_status(m),
         ("stop", Some(m)) => sub_stop(m),
         ("term", Some(m)) => sub_term(m),
@@ -157,6 +199,13 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                 "The listen address of an initial peer (IP[:PORT])")
             (@arg PERMANENT_PEER: --("permanent-peer") -I "If this Supervisor is a permanent peer")
             (@arg RING: --ring -r +takes_value "Ring key name")
+            (@arg CHANNEL: --channel +takes_value
+                "Receive Supervisor updates from the specified release channel")
+            (@arg DEPOT_URL: --url -u +takes_value {valid_url}
+                "Receive Supervisor updates from the Depot at the specified URL \
+                [default: https://bldr.habitat.sh/v1/depot]")
+            (@arg AUTO_UPDATE: --("auto-update") -A "Enable automatic updates for the Supervisor \
+                itself")
         )
         (@subcommand sh =>
             (about: "Start an interactive Bourne-like shell")
@@ -187,7 +236,7 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
             (@arg CHANNEL: --channel +takes_value
                 "Receive package updates from the specified release channel")
             (@arg GROUP: --group +takes_value
-                "The service group; shared config and topology [default: default].")
+                "The service group; shared config and topology [default: default]")
             (@arg DEPOT_URL: --url -u +takes_value {valid_url}
                 "Receive package updates from the Depot at the specified URL \
                 [default: https://bldr.habitat.sh/v1/depot]")
@@ -199,6 +248,8 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                 "One or more service groups to bind to a configuration")
             (@arg CONFIG_DIR: --("config-from") +takes_value {dir_exists}
                 "Use package config from this path, rather than the package itself")
+            (@arg AUTO_UPDATE: --("auto-update") -A "Enable automatic updates for the Supervisor \
+                itself")
         )
         (@subcommand status =>
             (about: "Query the status of Habitat services.")
@@ -368,28 +419,28 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
 
 fn sub_bash(m: &ArgMatches) -> Result<()> {
     if m.is_present("VERBOSE") {
-        sup::output::set_verbose(true);
+        hcore::output::set_verbose(true);
     }
     if m.is_present("NO_COLOR") {
-        sup::output::set_no_color(true);
+        hcore::output::set_no_color(true);
     }
 
     command::shell::bash()
 }
 
 fn sub_config(m: &ArgMatches) -> Result<()> {
-    let ident = try!(PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap()));
+    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
 
-    try!(common::command::package::config::start(&ident, "/"));
+    common::command::package::config::start(&ident, "/")?;
     Ok(())
 }
 
 fn sub_load(m: &ArgMatches) -> Result<()> {
     if m.is_present("VERBOSE") {
-        sup::output::set_verbose(true);
+        hcore::output::set_verbose(true);
     }
     if m.is_present("NO_COLOR") {
-        sup::output::set_no_color(true);
+        hcore::output::set_no_color(true);
     }
     let cfg = mgrcfg_from_matches(m)?;
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
@@ -411,10 +462,10 @@ fn sub_load(m: &ArgMatches) -> Result<()> {
 
 fn sub_unload(m: &ArgMatches) -> Result<()> {
     if m.is_present("VERBOSE") {
-        sup::output::set_verbose(true);
+        hcore::output::set_verbose(true);
     }
     if m.is_present("NO_COLOR") {
-        sup::output::set_no_color(true);
+        hcore::output::set_no_color(true);
     }
     let cfg = mgrcfg_from_matches(m)?;
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
@@ -425,29 +476,29 @@ fn sub_unload(m: &ArgMatches) -> Result<()> {
     })
 }
 
-fn sub_run(m: &ArgMatches) -> Result<()> {
+fn sub_run(m: &ArgMatches, launcher: LauncherCli) -> Result<()> {
     let cfg = mgrcfg_from_matches(m)?;
-    let mut manager = Manager::load(cfg)?;
+    let mut manager = Manager::load(cfg, launcher)?;
     manager.run()
 }
 
 fn sub_sh(m: &ArgMatches) -> Result<()> {
     if m.is_present("VERBOSE") {
-        sup::output::set_verbose(true);
+        hcore::output::set_verbose(true);
     }
     if m.is_present("NO_COLOR") {
-        sup::output::set_no_color(true);
+        hcore::output::set_no_color(true);
     }
 
     command::shell::sh()
 }
 
-fn sub_start(m: &ArgMatches) -> Result<()> {
+fn sub_start(m: &ArgMatches, launcher: LauncherCli) -> Result<()> {
     if m.is_present("VERBOSE") {
-        sup::output::set_verbose(true);
+        hcore::output::set_verbose(true);
     }
     if m.is_present("NO_COLOR") {
-        sup::output::set_no_color(true);
+        hcore::output::set_no_color(true);
     }
     let cfg = mgrcfg_from_matches(m)?;
     let mut maybe_local_artifact: Option<&str> = None;
@@ -468,10 +519,10 @@ fn sub_start(m: &ArgMatches) -> Result<()> {
                         Some(spec)
                     } else {
                         if !Manager::is_running(&cfg)? {
-                            let mut manager = Manager::load(cfg)?;
+                            let mut manager = Manager::load(cfg, launcher)?;
                             return manager.run();
                         } else {
-                            return Ok(());
+                            process::exit(OK_NO_RETRY_EXCODE);
                         }
                     }
                 }
@@ -486,17 +537,17 @@ fn sub_start(m: &ArgMatches) -> Result<()> {
     };
 
     let running = Manager::is_running(&cfg)?;
-
-    try!(command::start::run(
+    command::start::run(
         cfg.clone(),
+        launcher,
         maybe_spec.clone(),
         maybe_local_artifact,
-    ));
+    )?;
+
     if running {
         if let Some(spec) = maybe_spec {
             outputln!(
-                "The supervisor is starting the {} service. See the supervisor output for \
-                 more details.",
+                "Supervisor starting {}. See the Supervisor output for more details.",
                 spec.ident
             );
         }
@@ -506,15 +557,15 @@ fn sub_start(m: &ArgMatches) -> Result<()> {
 
 fn sub_status(m: &ArgMatches) -> Result<()> {
     if m.is_present("VERBOSE") {
-        sup::output::set_verbose(true);
+        hcore::output::set_verbose(true);
     }
     if m.is_present("NO_COLOR") {
-        sup::output::set_no_color(true);
+        hcore::output::set_no_color(true);
     }
     let cfg = mgrcfg_from_matches(m)?;
     if !Manager::is_running(&cfg)? {
         println!("The supervisor is not running.");
-        std::process::exit(3);
+        process::exit(3);
     }
     match m.value_of("PKG_IDENT") {
         Some(pkg) => {
@@ -522,7 +573,7 @@ fn sub_status(m: &ArgMatches) -> Result<()> {
                 Ok(status) => outputln!("{}", status),
                 Err(_) => {
                     println!("{} is not currently loaded.", pkg);
-                    std::process::exit(2);
+                    process::exit(2);
                 }
             }
         }
@@ -542,10 +593,10 @@ fn sub_status(m: &ArgMatches) -> Result<()> {
 
 fn sub_stop(m: &ArgMatches) -> Result<()> {
     if m.is_present("VERBOSE") {
-        sup::output::set_verbose(true);
+        hcore::output::set_verbose(true);
     }
     if m.is_present("NO_COLOR") {
-        sup::output::set_no_color(true);
+        hcore::output::set_no_color(true);
     }
     let cfg = mgrcfg_from_matches(m)?;
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
@@ -569,11 +620,17 @@ fn sub_term(m: &ArgMatches) -> Result<()> {
 fn mgrcfg_from_matches(m: &ArgMatches) -> Result<ManagerConfig> {
     let mut cfg = ManagerConfig::default();
 
+    cfg.auto_update = m.is_present("AUTO_UPDATE");
+    cfg.update_url = match m.value_of("DEPOT_URL") {
+        Some(url) => url.to_string(),
+        None => henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string()),
+    };
+    cfg.update_channel = m.value_of("CHANNEL").map(|c| c.to_string());
     if let Some(addr_str) = m.value_of("LISTEN_GOSSIP") {
-        cfg.gossip_listen = try!(GossipListenAddr::from_str(addr_str));
+        cfg.gossip_listen = GossipListenAddr::from_str(addr_str)?;
     }
     if let Some(addr_str) = m.value_of("LISTEN_HTTP") {
-        cfg.http_listen = try!(http_gateway::ListenAddr::from_str(addr_str));
+        cfg.http_listen = http_gateway::ListenAddr::from_str(addr_str)?;
     }
     if let Some(name_str) = m.value_of("NAME") {
         cfg.name = Some(String::from(name_str));
@@ -622,26 +679,24 @@ fn mgrcfg_from_matches(m: &ArgMatches) -> Result<ManagerConfig> {
     }
     cfg.gossip_peers = gossip_peers;
     let ring = match m.value_of("RING") {
-        Some(val) => Some(try!(SymKey::get_latest_pair_for(
+        Some(val) => Some(SymKey::get_latest_pair_for(
             &val,
             &default_cache_key_path(None),
-        ))),
+        )?),
         None => {
             match henv::var(RING_KEY_ENVVAR) {
                 Ok(val) => {
-                    let (key, _) = try!(SymKey::write_file_from_str(
-                        &val,
-                        &default_cache_key_path(None),
-                    ));
+                    let (key, _) =
+                        SymKey::write_file_from_str(&val, &default_cache_key_path(None))?;
                     Some(key)
                 }
                 Err(_) => {
                     match henv::var(RING_ENVVAR) {
                         Ok(val) => {
-                            Some(try!(SymKey::get_latest_pair_for(
+                            Some(SymKey::get_latest_pair_for(
                                 &val,
                                 &default_cache_key_path(None),
-                            )))
+                            )?)
                         }
                         Err(_) => None,
                     }
@@ -705,7 +760,7 @@ fn set_spec_password(m: &ArgMatches, spec: &mut ServiceSpec) -> Result<()> {
 }
 
 #[cfg(any(target_os = "linux", target_os = "macos"))]
-fn set_spec_password(m: &ArgMatches, spec: &mut ServiceSpec) -> Result<()> {
+fn set_spec_password(_: &ArgMatches, _: &mut ServiceSpec) -> Result<()> {
     Ok(())
 }
 

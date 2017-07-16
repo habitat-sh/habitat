@@ -63,28 +63,28 @@ mod inner {
         match value {
             "docker" => {
                 let format = ExportFormat {
-                    pkg_ident: try!(PackageIdent::from_str("core/hab-pkg-dockerize")),
+                    pkg_ident: PackageIdent::from_str("core/hab-pkg-dockerize")?,
                     cmd: "hab-pkg-dockerize".to_string(),
                 };
                 Ok(format)
             }
             "aci" => {
                 let format = ExportFormat {
-                    pkg_ident: try!(PackageIdent::from_str("core/hab-pkg-aci")),
+                    pkg_ident: PackageIdent::from_str("core/hab-pkg-aci")?,
                     cmd: "hab-pkg-aci".to_string(),
                 };
                 Ok(format)
             }
             "mesos" => {
                 let format = ExportFormat {
-                    pkg_ident: try!(PackageIdent::from_str("core/hab-pkg-mesosize")),
+                    pkg_ident: PackageIdent::from_str("core/hab-pkg-mesosize")?,
                     cmd: "hab-pkg-mesosize".to_string(),
                 };
                 Ok(format)
             }
             "tar" => {
                 let format = ExportFormat {
-                    pkg_ident: try!(PackageIdent::from_str("core/hab-pkg-tarize")),
+                    pkg_ident: PackageIdent::from_str("core/hab-pkg-tarize")?,
                     cmd: "hab-pkg-tarize".to_string(),
                 };
                 Ok(format)
@@ -98,11 +98,11 @@ mod inner {
         match PackageInstall::load(format.pkg_ident(), None) {
             Ok(_) => {}
             _ => {
-                try!(ui.status(
+                ui.status(
                     Status::Missing,
                     format!("package for {}", &format_ident),
-                ));
-                try!(install::start(
+                )?;
+                install::start(
                     ui,
                     &default_depot_url(),
                     None, // TODO: Support channels for export
@@ -110,9 +110,9 @@ mod inner {
                     PRODUCT,
                     VERSION,
                     Path::new(&*FS_ROOT_PATH),
-                    &cache_artifact_path(None),
+                    &cache_artifact_path(None::<String>),
                     false,
-                ));
+                )?;
             }
         }
         let pkg_arg = OsString::from(&ident.to_string());
@@ -129,13 +129,13 @@ mod inner {
     use super::ExportFormat;
 
     pub fn format_for(ui: &mut UI, value: &str) -> Result<ExportFormat> {
-        try!(ui.warn(format!(
+        ui.warn(format!(
             "∅ Exporting {} packages from this operating system is not yet \
                            supported. Try running this command again on a 64-bit Linux \
                            operating system.\n",
             value
-        )));
-        try!(ui.br());
+        ))?;
+        ui.br()?;
         let e = Error::UnsupportedExportFormat(value.to_string());
         Err(e)
     }
@@ -143,11 +143,11 @@ mod inner {
     pub fn start(ui: &mut UI, _ident: &PackageIdent, _format: &ExportFormat) -> Result<()> {
         let subcmd = env::args().nth(1).unwrap_or("<unknown>".to_string());
         let subsubcmd = env::args().nth(2).unwrap_or("<unknown>".to_string());
-        try!(ui.warn(
+        ui.warn(
             "Exporting packages from this operating system is not yet supported. Try \
                    running this command again on a 64-bit Linux operating system.",
-        ));
-        try!(ui.br());
+        )?;
+        ui.br()?;
         Err(Error::SubcommandNotSupported(
             format!("{} {}", subcmd, subsubcmd),
         ))

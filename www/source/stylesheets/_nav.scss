@@ -76,7 +76,7 @@ $main-nav-breakpoint: 769px;
 
       @include large-nav {
         h1 {
-          background: url("../images/habitat-logo-birthday.svg") no-repeat left 40%;
+          background: url("../images/habitat-logo-light.svg") no-repeat left 40%;
           background-size: contain;
         }
       }
@@ -91,7 +91,6 @@ $main-nav-breakpoint: 769px;
 
 .main-nav--logo {
   @include grid-column(3);
-  position: relative;
 
   a {
     display: block;
@@ -113,27 +112,6 @@ $main-nav-breakpoint: 769px;
       min-width: rem-calc(170);
       height: $header-height;
     }
-  }
-}
-
-.hab-tip {
-  display: inline;
-  position: absolute;
-  top: 12px;
-  padding: .5rem;
-  opacity: 0;
-  background-color: $hab-navy-2;
-  border-radius: $global-radius;
-  box-shadow: 0 0 16px rgba($hab-white, 0.2);
-  color: $hab-white;
-  text-align: center;
-  font-size: rem-calc(12);
-  transition: top .2s, opacity .2s;
-
-  &.its-on {
-    top: 8px;
-    opacity: 1;
-    transition: all .2s;
   }
 }
 

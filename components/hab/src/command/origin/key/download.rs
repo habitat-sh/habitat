@@ -31,45 +31,45 @@ pub fn start(
     revision: Option<&str>,
     cache: &Path,
 ) -> Result<()> {
-    let depot_client = try!(Client::new(depot, PRODUCT, VERSION, None));
+    let depot_client = Client::new(depot, PRODUCT, VERSION, None)?;
     match revision {
         Some(revision) => {
             let nwr = format!("{}-{}", origin, revision);
-            try!(ui.begin(format!("Downloading public origin key {}", &nwr)));
+            ui.begin(format!("Downloading public origin key {}", &nwr))?;
             match download_key(ui, &depot_client, &nwr, origin, revision, cache) {
                 Ok(()) => {
                     let msg = format!("Download of {} public origin key completed.", nwr);
-                    try!(ui.end(msg));
+                    ui.end(msg)?;
                     Ok(())
                 }
                 Err(e) => Err(e),
             }
         }
         None => {
-            try!(ui.begin(
+            ui.begin(
                 format!("Downloading public origin keys for {}", origin),
-            ));
+            )?;
             match depot_client.show_origin_keys(origin) {
                 Ok(ref keys) if keys.is_empty() => {
-                    try!(ui.end(format!("No public keys for {}.", origin)));
+                    ui.end(format!("No public keys for {}.", origin))?;
                     Ok(())
                 }
                 Ok(keys) => {
                     for key in keys {
                         let nwr = format!("{}-{}", key.get_origin(), key.get_revision());
-                        try!(download_key(
+                        download_key(
                             ui,
                             &depot_client,
                             &nwr,
                             key.get_origin(),
                             key.get_revision(),
                             cache,
-                        ));
+                        )?;
                     }
-                    try!(ui.end(format!(
+                    ui.end(format!(
                         "Download of {} public origin keys completed.",
                         &origin
-                    )));
+                    ))?;
                     Ok(())
                 }
                 Err(e) => Err(Error::from(e)),
@@ -86,18 +86,18 @@ fn download_key(
     rev: &str,
     cache: &Path,
 ) -> Result<()> {
-    match SigKeyPair::get_public_key_path(nwr, &cache) {
-        Ok(_) => try!(ui.status(Status::Using, &nwr)),
+    match SigKeyPair::get_public_key_path(&nwr, &cache) {
+        Ok(_) => ui.status(Status::Using, &nwr)?,
         Err(_) => {
             let download_fn = || -> Result<()> {
-                try!(ui.status(Status::Downloading, &nwr));
-                try!(depot_client.fetch_origin_key(
+                ui.status(Status::Downloading, &nwr)?;
+                depot_client.fetch_origin_key(
                     name,
                     rev,
                     cache,
                     ui.progress(),
-                ));
-                try!(ui.status(Status::Cached, &nwr));
+                )?;
+                ui.status(Status::Cached, &nwr)?;
                 Ok(())
             };
 

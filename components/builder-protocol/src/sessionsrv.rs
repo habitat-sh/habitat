@@ -66,10 +66,10 @@ impl Serialize for Account {
     where
         S: Serializer,
     {
-        let mut strukt = try!(serializer.serialize_struct("account", 3));
-        try!(strukt.serialize_field("id", &self.get_id().to_string()));
-        try!(strukt.serialize_field("name", self.get_name()));
-        try!(strukt.serialize_field("email", self.get_email()));
+        let mut strukt = serializer.serialize_struct("account", 3)?;
+        strukt.serialize_field("id", &self.get_id().to_string())?;
+        strukt.serialize_field("name", self.get_name())?;
+        strukt.serialize_field("email", self.get_email())?;
         strukt.end()
     }
 }
@@ -136,18 +136,18 @@ impl Serialize for AccountInvitationListResponse {
     where
         S: Serializer,
     {
-        let mut strukt = try!(serializer.serialize_struct(
+        let mut strukt = serializer.serialize_struct(
             "account_invitation_list_response",
             2,
-        ));
-        try!(strukt.serialize_field(
+        )?;
+        strukt.serialize_field(
             "account_id",
             &self.get_account_id().to_string(),
-        ));
-        try!(strukt.serialize_field(
+        )?;
+        strukt.serialize_field(
             "invitations",
             self.get_invitations(),
-        ));
+        )?;
         strukt.end()
     }
 }
@@ -157,32 +157,32 @@ impl Serialize for AccountOriginInvitation {
     where
         S: Serializer,
     {
-        let mut strukt = try!(serializer.serialize_struct("account_origin_invitation", 6));
-        try!(strukt.serialize_field("id", &self.get_id().to_string()));
-        try!(strukt.serialize_field(
+        let mut strukt = serializer.serialize_struct("account_origin_invitation", 6)?;
+        strukt.serialize_field("id", &self.get_id().to_string())?;
+        strukt.serialize_field(
             "origin_invitation_id",
             &self.get_origin_invitation_id().to_string(),
-        ));
-        try!(strukt.serialize_field(
+        )?;
+        strukt.serialize_field(
             "account_id",
             &self.get_account_id().to_string(),
-        ));
-        try!(strukt.serialize_field(
+        )?;
+        strukt.serialize_field(
             "account_name",
             self.get_account_name(),
-        ));
-        try!(strukt.serialize_field(
+        )?;
+        strukt.serialize_field(
             "origin_id",
             &self.get_origin_id().to_string(),
-        ));
-        try!(strukt.serialize_field(
+        )?;
+        strukt.serialize_field(
             "origin_name",
             self.get_origin_name(),
-        ));
-        try!(strukt.serialize_field(
+        )?;
+        strukt.serialize_field(
             "owner_id",
             &self.get_owner_id().to_string(),
-        ));
+        )?;
         strukt.end()
     }
 }
@@ -192,15 +192,15 @@ impl Serialize for AccountOriginListResponse {
     where
         S: Serializer,
     {
-        let mut strukt = try!(serializer.serialize_struct(
+        let mut strukt = serializer.serialize_struct(
             "account_origin_list_response",
             2,
-        ));
-        try!(strukt.serialize_field(
+        )?;
+        strukt.serialize_field(
             "account_id",
             &self.get_account_id().to_string(),
-        ));
-        try!(strukt.serialize_field("origins", self.get_origins()));
+        )?;
+        strukt.serialize_field("origins", self.get_origins())?;
         strukt.end()
     }
 }
@@ -222,12 +222,12 @@ impl Serialize for Session {
     where
         S: Serializer,
     {
-        let mut strukt = try!(serializer.serialize_struct("session", 5));
-        try!(strukt.serialize_field("token", self.get_token()));
-        try!(strukt.serialize_field("id", &self.get_id().to_string()));
-        try!(strukt.serialize_field("name", self.get_name()));
-        try!(strukt.serialize_field("email", self.get_email()));
-        try!(strukt.serialize_field("flags", &self.get_flags()));
+        let mut strukt = serializer.serialize_struct("session", 5)?;
+        strukt.serialize_field("token", self.get_token())?;
+        strukt.serialize_field("id", &self.get_id().to_string())?;
+        strukt.serialize_field("name", self.get_name())?;
+        strukt.serialize_field("email", self.get_email())?;
+        strukt.serialize_field("flags", &self.get_flags())?;
         strukt.end()
     }
 }

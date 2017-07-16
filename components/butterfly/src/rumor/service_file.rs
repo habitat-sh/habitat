@@ -108,7 +108,7 @@ impl ServiceFile {
     /// Encrypt the contents of the service file
     pub fn encrypt(&mut self, user_pair: &BoxKeyPair, service_pair: &BoxKeyPair) -> Result<()> {
         let body = self.take_body();
-        let encrypted_body = try!(user_pair.encrypt(&body, service_pair));
+        let encrypted_body = user_pair.encrypt(&body, service_pair)?;
         self.set_body(encrypted_body);
         self.set_encrypted(true);
         Ok(())
@@ -118,10 +118,7 @@ impl ServiceFile {
     /// the fact that we might be encrypted.
     pub fn body(&self) -> Result<Vec<u8>> {
         if self.get_encrypted() {
-            let bytes = try!(BoxKeyPair::decrypt(
-                self.get_body(),
-                &default_cache_key_path(None),
-            ));
+            let bytes = BoxKeyPair::decrypt(self.get_body(), &default_cache_key_path(None))?;
             Ok(bytes)
         } else {
             Ok(self.get_body().to_vec())
@@ -159,7 +156,7 @@ impl Rumor for ServiceFile {
     }
 
     fn write_to_bytes(&self) -> Result<Vec<u8>> {
-        Ok(try!(self.0.write_to_bytes()))
+        Ok(self.0.write_to_bytes()?)
     }
 }
 

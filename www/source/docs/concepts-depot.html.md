@@ -4,7 +4,7 @@ title: Depot
 
 # Depot
 
-A service for storing Habitat packages for download and upload.
+A service for storing Habitat packages for download and upload. This service is a component of Habitat's Builder service.
 
 <hr>
 <ul class="main-content--link-nav">

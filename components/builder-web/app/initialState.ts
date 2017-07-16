@@ -15,6 +15,7 @@
 import { List, Map, Record } from "immutable";
 import { BehaviorSubject } from "rxjs";
 import { Origin } from "./records/Origin";
+import { Package } from "./records/Package";
 
 export default Record({
     app: Record({
@@ -130,7 +131,7 @@ export default Record({
         })(),
     })(),
     packages: Record({
-        current: undefined,
+        current: Package(),
         dashboard: Record({
             origin: undefined,
             recent: List()

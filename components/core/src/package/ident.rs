@@ -283,22 +283,22 @@ impl Ord for PackageIdent {
 ///
 /// Returns a Error if we fail to match for any reason.
 pub fn version_sort(a_version: &str, b_version: &str) -> Result<Ordering> {
-    let (a_parts, a_extension) = try!(split_version(a_version));
-    let (b_parts, b_extension) = try!(split_version(b_version));
+    let (a_parts, a_extension) = split_version(a_version)?;
+    let (b_parts, b_extension) = split_version(b_version)?;
     let mut a_iter = a_parts.iter();
     let mut b_iter = b_parts.iter();
     loop {
         let mut a_exhausted = false;
         let mut b_exhausted = false;
         let a_num = match a_iter.next() {
-            Some(i) => try!(i.parse::<u64>()),
+            Some(i) => i.parse::<u64>()?,
             None => {
                 a_exhausted = true;
                 0u64
             }
         };
         let b_num = match b_iter.next() {
-            Some(i) => try!(i.parse::<u64>()),
+            Some(i) => i.parse::<u64>()?,
             None => {
                 b_exhausted = true;
                 0u64
@@ -343,7 +343,7 @@ pub fn version_sort(a_version: &str, b_version: &str) -> Result<Ordering> {
 }
 
 fn split_version(version: &str) -> Result<(Vec<&str>, Option<String>)> {
-    let re = try!(Regex::new(r"([\d\.]+)(.+)?"));
+    let re = Regex::new(r"([\d\.]+)(.+)?")?;
     let caps = match re.captures(version) {
         Some(caps) => caps,
         None => return Err(Error::InvalidPackageIdent(version.to_string())),

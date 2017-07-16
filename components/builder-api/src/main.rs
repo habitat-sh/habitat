@@ -64,9 +64,11 @@ fn config_from_args(matches: &clap::ArgMatches) -> Result<Config> {
     let cmd = matches.subcommand_name().unwrap();
     let args = matches.subcommand_matches(cmd).unwrap();
     let mut config = match args.value_of("config") {
-        Some(cfg_path) => try!(Config::from_file(cfg_path)),
+        Some(cfg_path) => Config::from_file(cfg_path)?,
         None => Config::from_file(CFG_DEFAULT_PATH).unwrap_or(Config::default()),
     };
+    // Ensure GitHub config matches
+    config.depot.github = config.github.clone();
     if let Some(port) = args.value_of("port") {
         if u16::from_str(port).map(|p| config.http.port = p).is_err() {
             return Err(Error::BadPort(port.to_string()));

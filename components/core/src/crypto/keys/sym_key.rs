@@ -37,7 +37,7 @@ impl fmt::Debug for SymKey {
 
 impl SymKey {
     pub fn generate_in_memory<S: ToString>(name: S) -> Result<Self> {
-        let revision = try!(mk_revision_string());
+        let revision = mk_revision_string()?;
         let secret_key = secretbox::gen_key();
         Ok(SymKey::new(
             name.to_string(),
@@ -51,11 +51,11 @@ impl SymKey {
         name: &str,
         cache_key_path: &P,
     ) -> Result<Self> {
-        let revision = try!(mk_revision_string());
+        let revision = mk_revision_string()?;
         let keyname = Self::mk_key_name_for_ring(name, &revision);
         debug!("new ring key name = {}", &keyname);
         let (public_key, secret_key) =
-            try!(Self::generate_pair_files(&keyname, cache_key_path.as_ref()));
+            Self::generate_pair_files(&keyname, cache_key_path.as_ref())?;
         Ok(Self::new(
             name.to_string(),
             revision,
@@ -68,7 +68,7 @@ impl SymKey {
         name: &str,
         cache_key_path: &P,
     ) -> Result<Vec<Self>> {
-        let revisions = try!(get_key_revisions(name, cache_key_path.as_ref(), None));
+        let revisions = get_key_revisions(name, cache_key_path.as_ref(), None)?;
         let mut key_pairs = Vec::new();
         for name_with_rev in &revisions {
             debug!(
@@ -76,7 +76,7 @@ impl SymKey {
                 name_with_rev,
                 name
             );
-            let kp = try!(Self::get_pair_for(name_with_rev, cache_key_path));
+            let kp = Self::get_pair_for(name_with_rev, cache_key_path)?;
             key_pairs.push(kp);
         }
         Ok(key_pairs)
@@ -86,7 +86,7 @@ impl SymKey {
         name_with_rev: &str,
         cache_key_path: &P,
     ) -> Result<Self> {
-        let (name, rev) = try!(parse_name_with_rev(&name_with_rev));
+        let (name, rev) = parse_name_with_rev(&name_with_rev)?;
         let pk = match Self::get_public_key(name_with_rev, cache_key_path.as_ref()) {
             Ok(k) => Some(k),
             Err(e) => {
@@ -125,7 +125,7 @@ impl SymKey {
         name: &str,
         cache_key_path: &P,
     ) -> Result<Self> {
-        let mut all = try!(Self::get_pairs_for(name, cache_key_path));
+        let mut all = Self::get_pairs_for(name, cache_key_path)?;
         match all.len() {
             0 => {
                 let msg = format!("No revisions found for {} sym key", name);
@@ -212,7 +212,7 @@ impl SymKey {
     ///
     /// * If the secret key component of the `SymKey` is not present
     pub fn encrypt(&self, data: &[u8]) -> Result<(Vec<u8>, Vec<u8>)> {
-        let key = try!(self.secret());
+        let key = self.secret()?;
         let nonce = secretbox::gen_nonce();
         Ok((
             nonce.as_ref().to_vec(),
@@ -251,7 +251,7 @@ impl SymKey {
     /// * If the size of the provided nonce data is not the required size
     /// * If the ciphertext was not decryptable given the nonce and symmetric key
     pub fn decrypt(&self, nonce: &[u8], ciphertext: &[u8]) -> Result<Vec<u8>> {
-        let key = try!(self.secret());
+        let key = self.secret()?;
         let nonce = match secretbox::Nonce::from_slice(&nonce) {
             Some(n) => n,
             None => return Err(Error::CryptoError("Invalid size of nonce".to_string())),
@@ -275,7 +275,7 @@ impl SymKey {
 
     fn get_secret_key(key_with_rev: &str, cache_key_path: &Path) -> Result<SymSecretKey> {
         let secret_keyfile = mk_key_filename(cache_key_path, key_with_rev, SECRET_SYM_KEY_SUFFIX);
-        let bytes = try!(read_key_bytes(&secret_keyfile));
+        let bytes = read_key_bytes(&secret_keyfile)?;
         match SymSecretKey::from_slice(&bytes) {
             Some(sk) => Ok(sk),
             None => {
@@ -383,18 +383,18 @@ impl SymKey {
         };
 
         debug!("Writing temp key file {}", tmpfile.path.display());
-        try!(write_keypair_files(
+        write_keypair_files(
             KeyType::Sym,
             &name_with_rev,
             None,
             None,
             Some(&tmpfile.path),
             Some(&sk.as_bytes().to_vec()),
-        ));
+        )?;
 
         if Path::new(&secret_keyfile).is_file() {
-            let existing_hash = try!(hash::hash_file(&secret_keyfile));
-            let new_hash = try!(hash::hash_file(&tmpfile.path));
+            let existing_hash = hash::hash_file(&secret_keyfile)?;
+            let new_hash = hash::hash_file(&tmpfile.path)?;
             if existing_hash != new_hash {
                 let msg = format!(
                     "Existing key file {} found but new version hash is different, \
@@ -414,7 +414,7 @@ impl SymKey {
                     secret_keyfile.display(),
                     tmpfile.path.display()
                 );
-                try!(fs::remove_file(&tmpfile.path));
+                fs::remove_file(&tmpfile.path)?;
             }
         } else {
             debug!(
@@ -422,12 +422,12 @@ impl SymKey {
                 tmpfile.path.display(),
                 secret_keyfile.display()
             );
-            try!(fs::rename(&tmpfile.path, secret_keyfile));
+            fs::rename(&tmpfile.path, secret_keyfile)?;
         }
 
         // Now load and return the pair to ensure everything wrote out
         Ok((
-            try!(Self::get_pair_for(&name_with_rev, cache_key_path)),
+            Self::get_pair_for(&name_with_rev, cache_key_path)?,
             PairType::Secret,
         ))
     }
@@ -443,14 +443,14 @@ impl SymKey {
         let pk = ();
         let sk = secretbox::gen_key();
         let secret_keyfile = mk_key_filename(cache_key_path, name_with_rev, SECRET_SYM_KEY_SUFFIX);
-        try!(write_keypair_files(
+        write_keypair_files(
             KeyType::Sym,
             &name_with_rev,
             None,
             None,
             Some(&secret_keyfile),
             Some(&base64::encode(&sk[..]).into_bytes()),
-        ));
+        )?;
         Ok((pk, sk))
     }
 }

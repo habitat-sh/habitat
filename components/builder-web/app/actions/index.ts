@@ -84,10 +84,12 @@ export const TOGGLE_ORIGIN_PICKER = originActions.TOGGLE_ORIGIN_PICKER;
 
 export const CLEAR_PACKAGES = packageActions.CLEAR_PACKAGES;
 export const POPULATE_DASHBOARD_RECENT = packageActions.POPULATE_DASHBOARD_RECENT;
+export const CLEAR_PACKAGE_CHANNELS = packageActions.CLEAR_PACKAGE_CHANNELS;
 export const CLEAR_PACKAGE_VERSIONS = packageActions.CLEAR_PACKAGE_VERSIONS;
 export const POPULATE_EXPLORE = packageActions.POPULATE_EXPLORE;
 export const POPULATE_EXPLORE_STATS = packageActions.POPULATE_EXPLORE_STATS;
 export const SET_CURRENT_PACKAGE = packageActions.SET_CURRENT_PACKAGE;
+export const SET_CURRENT_PACKAGE_CHANNELS = packageActions.SET_CURRENT_PACKAGE_CHANNELS;
 export const SET_CURRENT_PACKAGE_VERSIONS = packageActions.SET_CURRENT_PACKAGE_VERSIONS;
 export const SET_PACKAGES_NEXT_RANGE = packageActions.SET_PACKAGES_NEXT_RANGE;
 export const SET_PACKAGES_SEARCH_QUERY =
@@ -95,6 +97,7 @@ export const SET_PACKAGES_SEARCH_QUERY =
 export const SET_PACKAGES_TOTAL_COUNT = packageActions.SET_PACKAGES_TOTAL_COUNT;
 
 export const SET_VISIBLE_PACKAGES = packageActions.SET_VISIBLE_PACKAGES;
+export const SET_VISIBLE_PACKAGE_CHANNELS = packageActions.SET_VISIBLE_PACKAGE_CHANNELS;
 
 export const POPULATE_PROJECT = projectActions.POPULATE_PROJECT;
 export const SET_CURRENT_PROJECT = projectActions.SET_CURRENT_PROJECT;
@@ -167,6 +170,7 @@ export const uploadOriginPrivateKey = originActions.uploadOriginPrivateKey;
 export const uploadOriginPublicKey = originActions.uploadOriginPublicKey;
 
 export const fetchDashboardRecent = packageActions.fetchDashboardRecent;
+export const fetchCurrentPackageChannels = packageActions.fetchCurrentPackageChannels;
 export const fetchExplore = packageActions.fetchExplore;
 export const fetchPackage = packageActions.fetchPackage;
 export const fetchLatestPackage = packageActions.fetchLatestPackage;

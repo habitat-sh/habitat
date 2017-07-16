@@ -52,6 +52,7 @@ use protobuf::core::ProtobufEnum;
 use protocol::{originsrv, net};
 use rand::{Rng, thread_rng};
 use tee::TeeReader;
+use url::percent_encoding::{percent_encode, PATH_SEGMENT_ENCODE_SET};
 
 header! { (XFileName, "X-Filename") => [String] }
 header! { (ETag, "ETag") => [String] }
@@ -248,14 +249,47 @@ impl Client {
         };
 
         let mut encoded = String::new();
-        try!(res.read_to_string(&mut encoded));
+        res.read_to_string(&mut encoded)?;
         debug!("Response body: {:?}", encoded);
-        let revisions: Vec<originsrv::OriginKeyIdent> = try!(
-            serde_json::from_str::<Vec<OriginKeyIdent>>(&encoded)
-        ).into_iter()
+        let revisions: Vec<originsrv::OriginKeyIdent> =
+            serde_json::from_str::<Vec<OriginKeyIdent>>(&encoded)?
+                .into_iter()
+                .map(|m| m.into())
+                .collect();
+        Ok(revisions)
+    }
+
+    /// Return a list of channels for a given package
+    ///
+    /// # Failures
+    ///
+    /// * Remote Depot is not available
+    /// * Package does not exist
+    pub fn package_channels<I>(&self, ident: &I) -> Result<Vec<String>>
+    where
+        I: Identifiable,
+    {
+        if !ident.fully_qualified() {
+            return Err(Error::IdentNotFullyQualified);
+        }
+
+        let path = package_channels_path(ident);
+        debug!("Retrieving channels for {}", ident);
+
+        let mut res = self.0.get(&path).send()?;
+
+        if res.status != StatusCode::Ok {
+            return Err(err_from_response(res));
+        };
+
+        let mut encoded = String::new();
+        res.read_to_string(&mut encoded)?;
+        debug!("Response body: {:?}", encoded);
+        let channels: Vec<String> = serde_json::from_str::<Vec<String>>(&encoded)?
+            .into_iter()
             .map(|m| m.into())
             .collect();
-        Ok(revisions)
+        Ok(channels)
     }
 
     /// Upload a public origin key to a remote Depot.
@@ -280,8 +314,8 @@ impl Client {
         D: DisplayProgress + Sized,
     {
         let path = format!("origins/{}/keys/{}", &origin, &revision);
-        let mut file = try!(File::open(src_path));
-        let file_size = try!(file.metadata()).len();
+        let mut file = File::open(src_path)?;
+        let file_size = file.metadata()?.len();
 
         let result = if let Some(mut progress) = progress {
             progress.size(file_size);
@@ -329,8 +363,8 @@ impl Client {
             return Err(err_from_response(res));
         }
         let mut encoded = String::new();
-        try!(res.read_to_string(&mut encoded));
-        let key = try!(serde_json::from_str(&encoded));
+        res.read_to_string(&mut encoded)?;
+        let key = serde_json::from_str(&encoded)?;
         Ok(key)
     }
 
@@ -356,8 +390,8 @@ impl Client {
         D: DisplayProgress + Sized,
     {
         let path = format!("origins/{}/secret_keys/{}", &origin, &revision);
-        let mut file = try!(File::open(src_path));
-        let file_size = try!(file.metadata()).len();
+        let mut file = File::open(src_path)?;
+        let file_size = file.metadata()?.len();
 
         let result = if let Some(mut progress) = progress {
             progress.size(file_size);
@@ -379,10 +413,11 @@ impl Client {
 
     /// Download the latest release of a package.
     ///
-    /// An optional version and release can be specified which, when provided, will increase
-    /// specificity of the release retrieved. Specifying a version and no release will retrieve
-    /// the latest release of a given version. Specifying both a version and a release will
-    /// retrieve that exact package.
+    /// By the time this function is called, the ident must be fully qualified. The download URL in
+    /// the depot requires a fully qualified ident to work. If you want the latest version of
+    /// a package, e.g. core/redis, you can display package details for that via a different URL,
+    /// e.g. /pkgs/core/redis/latest but that only _shows_ you the details - it doesn't download
+    /// the package.
     ///
     /// # Failures
     ///
@@ -400,9 +435,9 @@ impl Client {
         I: Identifiable,
         D: DisplayProgress + Sized,
     {
-        // JW TODO: We need to add a channel scoped /download route to the API server. Technically
-        // this is wrong because we only want to download packages that are in the channel we
-        // specified to the API client
+        // Given that the download URL requires a fully qualified package, the channel is
+        // irrelevant, per https://github.com/habitat-sh/habitat/issues/2722. This function is fine
+        // as is.
         match self.download(&package_download(ident), dst_path.as_ref(), progress) {
             Ok(file) => Ok(PackageArchive::new(PathBuf::from(file))),
             Err(e) => Err(e),
@@ -442,10 +477,9 @@ impl Client {
         }
 
         let mut encoded = String::new();
-        try!(res.read_to_string(&mut encoded));
+        res.read_to_string(&mut encoded)?;
         debug!("Body: {:?}", encoded);
-        let package: originsrv::OriginPackage = try!(serde_json::from_str::<Package>(&encoded))
-            .into();
+        let package: originsrv::OriginPackage = serde_json::from_str::<Package>(&encoded)?.into();
         Ok(package)
     }
 
@@ -468,10 +502,10 @@ impl Client {
     where
         D: DisplayProgress + Sized,
     {
-        let checksum = try!(pa.checksum());
-        let ident = try!(pa.ident());
-        let mut file = try!(File::open(&pa.path));
-        let file_size = try!(file.metadata()).len();
+        let checksum = pa.checksum()?;
+        let ident = pa.ident()?;
+        let mut file = File::open(&pa.path)?;
+        let file_size = file.metadata()?.len();
         let path = package_path(&ident);
         let custom = |url: &mut Url| { url.query_pairs_mut().append_pair("checksum", &checksum); };
         debug!("Reading from {}", &pa.path.display());
@@ -495,10 +529,10 @@ impl Client {
     }
 
     pub fn x_put_package(&self, pa: &mut PackageArchive, token: &str) -> Result<()> {
-        let checksum = try!(pa.checksum());
-        let ident = try!(pa.ident());
-        let mut file = try!(File::open(&pa.path));
-        let file_size = try!(file.metadata()).len();
+        let checksum = pa.checksum()?;
+        let ident = pa.ident()?;
+        let mut file = File::open(&pa.path)?;
+        let file_size = file.metadata()?.len();
         let path = package_path(&ident);
         let custom = |url: &mut Url| {
             url.query_pairs_mut()
@@ -531,7 +565,7 @@ impl Client {
         I: Identifiable,
     {
         if !ident.fully_qualified() {
-            return Err(Error::PromoteIdentNotFullyQualified);
+            return Err(Error::IdentNotFullyQualified);
         }
         let path = channel_package_promote(channel, ident);
         debug!("Promoting package {}", ident);
@@ -601,8 +635,8 @@ impl Client {
             StatusCode::Ok |
             StatusCode::PartialContent => {
                 let mut encoded = String::new();
-                try!(res.read_to_string(&mut encoded));
-                let results: Vec<OriginChannelIdent> = try!(serde_json::from_str(&encoded));
+                res.read_to_string(&mut encoded)?;
+                let results: Vec<OriginChannelIdent> = serde_json::from_str(&encoded)?;
                 let channels = results.into_iter().map(|o| o.name).collect();
                 Ok(channels)
             }
@@ -624,9 +658,9 @@ impl Client {
             StatusCode::Ok |
             StatusCode::PartialContent => {
                 let mut encoded = String::new();
-                try!(res.read_to_string(&mut encoded));
+                res.read_to_string(&mut encoded)?;
                 let package_results: PackageResults<hab_core::package::PackageIdent> =
-                    try!(serde_json::from_str(&encoded));
+                    serde_json::from_str(&encoded)?;
                 let packages: Vec<hab_core::package::PackageIdent> = package_results.package_list;
                 Ok((packages, res.status == StatusCode::PartialContent))
             }
@@ -642,13 +676,13 @@ impl Client {
     where
         D: DisplayProgress + Sized,
     {
-        let mut res = try!(self.0.get(path).send());
+        let mut res = self.0.get(path).send()?;
         debug!("Response: {:?}", res);
 
         if res.status != hyper::status::StatusCode::Ok {
             return Err(err_from_response(res));
         }
-        try!(fs::create_dir_all(&dst_path));
+        fs::create_dir_all(&dst_path)?;
 
         let file_name = match res.headers.get::<XFileName>() {
             Some(filename) => format!("{}", filename),
@@ -661,7 +695,7 @@ impl Client {
         ));
         let dst_file_path = dst_path.join(file_name);
         debug!("Writing to {}", &tmp_file_path.display());
-        let mut f = try!(File::create(&tmp_file_path));
+        let mut f = File::create(&tmp_file_path)?;
         match progress {
             Some(mut progress) => {
                 let size: u64 = res.headers.get::<hyper::header::ContentLength>().map_or(
@@ -670,16 +704,16 @@ impl Client {
                 );
                 progress.size(size);
                 let mut writer = BroadcastWriter::new(&mut f, progress);
-                try!(io::copy(&mut res, &mut writer))
+                io::copy(&mut res, &mut writer)?
             }
-            None => try!(io::copy(&mut res, &mut f)),
+            None => io::copy(&mut res, &mut f)?,
         };
         debug!(
             "Moving {} to {}",
             &tmp_file_path.display(),
             &dst_file_path.display()
         );
-        try!(fs::rename(&tmp_file_path, &dst_file_path));
+        fs::rename(&tmp_file_path, &dst_file_path)?;
         Ok(dst_file_path)
     }
 }
@@ -723,7 +757,8 @@ where
 }
 
 fn package_search(term: &str) -> String {
-    format!("pkgs/search/{}", term)
+    let encoded_term = percent_encode(term.as_bytes(), PATH_SEGMENT_ENCODE_SET);
+    format!("pkgs/search/{}", encoded_term)
 }
 
 fn channel_package_path<I>(channel: &str, package: &I) -> String
@@ -745,6 +780,19 @@ where
         }
     }
     path
+}
+
+fn package_channels_path<I>(package: &I) -> String
+where
+    I: Identifiable,
+{
+    format!(
+        "pkgs/{}/{}/{}/{}/channels",
+        package.origin(),
+        package.name(),
+        package.version().unwrap(),
+        package.release().unwrap()
+    )
 }
 
 fn channel_package_promote<I>(channel: &str, package: &I) -> String

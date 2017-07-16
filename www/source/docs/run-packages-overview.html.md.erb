@@ -48,6 +48,34 @@ Next use `hab svc load` to load one or more services into the supervisor for per
 
       sudo hab svc load yourorigin/yourname
 
+## Running a package on a virtual machine (VM) 
+
+After you have built the hart package
+
+      1) Spin up a Virtual Machine 
+      2) SCP the hart package from your local workstation onto the virtual machine (you can also use FTP or whatever tool you use to copy things from your local workstation to a remote server)
+      3) SSH into the virtual machine
+      4) In the virtual machine - run these commands
+
+            * Install Habitat
+
+             `curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh | sudo bash`
+
+            * Install the package (which should be on the virtual machine)
+
+            `sudo hab install your_package.hart`
+
+            * Create the Habitat group
+
+            `sudo groupadd hab`
+            `sudo useradd -g hab hab`
+
+            * Start the package
+
+            `sudo hab start your_origin/your_package`
+
+And it should run just fine!
+
 ## Section details
 
 This section is divided into the following areas:

@@ -44,7 +44,7 @@ impl Server {
     pub fn run(&mut self) -> Result<()> {
         let cfg1 = self.config.clone();
         let broker = Broker::run(Self::net_ident(), self.config.route_addrs());
-        let http = try!(http::run(cfg1));
+        let http = http::run(cfg1)?;
 
         println!(
             "Builder Admin listening on {}:{}",

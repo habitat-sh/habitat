@@ -22,7 +22,7 @@ use std::str::FromStr;
 
 use uuid::Uuid;
 use bodyparser;
-use hab_core::package::{Identifiable, FromArchive, PackageArchive, PackageTarget};
+use hab_core::package::{Identifiable, FromArchive, PackageArchive, PackageIdent, PackageTarget};
 use hab_core::crypto::keys::{self, PairType};
 use hab_core::crypto::SigKeyPair;
 use hab_core::event::*;
@@ -310,7 +310,7 @@ pub fn invite_to_origin(req: &mut Request) -> IronResult<Response> {
         &user_to_invite,
         &origin
     );
-    if !try!(check_origin_access(req, session.get_id(), &origin)) {
+    if !check_origin_access(req, session.get_id(), &origin)? {
         return Ok(Response::with(status::Forbidden));
     }
     let mut request = AccountGet::new();
@@ -324,7 +324,7 @@ pub fn invite_to_origin(req: &mut Request) -> IronResult<Response> {
         }
         Err(err) => return Ok(render_net_error(&err)),
     };
-    match try!(get_origin(req, &origin)) {
+    match get_origin(req, &origin)? {
         Some(mut origin) => {
             invite_request.set_origin_id(origin.get_id());
             invite_request.set_origin_name(origin.take_name());
@@ -365,12 +365,12 @@ pub fn list_origin_invitations(req: &mut Request) -> IronResult<Response> {
     }
 
     let mut conn = Broker::connect().unwrap();
-    if !try!(check_origin_access(req, session_id, &origin_name)) {
+    if !check_origin_access(req, session_id, &origin_name)? {
         return Ok(Response::with(status::Forbidden));
     }
 
     let mut request = OriginInvitationListRequest::new();
-    match try!(get_origin(req, origin_name.as_str())) {
+    match get_origin(req, origin_name.as_str())? {
         Some(origin) => request.set_origin_id(origin.get_id()),
         None => return Ok(Response::with(status::NotFound)),
     };
@@ -400,12 +400,12 @@ pub fn list_origin_members(req: &mut Request) -> IronResult<Response> {
 
     let mut conn = Broker::connect().unwrap();
 
-    if !try!(check_origin_access(req, session_id, &origin_name)) {
+    if !check_origin_access(req, session_id, &origin_name)? {
         return Ok(Response::with(status::Forbidden));
     }
 
     let mut request = OriginMemberListRequest::new();
-    match try!(get_origin(req, origin_name.as_str())) {
+    match get_origin(req, origin_name.as_str())? {
         Some(origin) => request.set_origin_id(origin.get_id()),
         None => return Ok(Response::with(status::NotFound)),
     };
@@ -420,12 +420,12 @@ pub fn list_origin_members(req: &mut Request) -> IronResult<Response> {
 }
 
 fn write_archive(filename: &PathBuf, body: &mut Body) -> Result<PackageArchive> {
-    let file = try!(File::create(&filename));
+    let file = File::create(&filename)?;
     let mut writer = BufWriter::new(file);
     let mut written: i64 = 0;
     let mut buf = [0u8; 100000]; // Our byte buffer
     loop {
-        let len = try!(body.read(&mut buf)); // Raise IO errors
+        let len = body.read(&mut buf)?; // Raise IO errors
         match len {
             0 => {
                 // 0 == EOF, so stop writing and finish progress
@@ -433,7 +433,7 @@ fn write_archive(filename: &PathBuf, body: &mut Body) -> Result<PackageArchive> 
             }
             _ => {
                 // Write the buffer to the BufWriter on the Heap
-                let bytes_written = try!(writer.write(&buf[0..len]));
+                let bytes_written = writer.write(&buf[0..len])?;
                 if bytes_written == 0 {
                     return Err(Error::WriteSyncFailed);
                 }
@@ -455,7 +455,7 @@ fn upload_origin_key(req: &mut Request) -> IronResult<Response> {
 
     let origin = match params.find("origin") {
         Some(origin) => {
-            if !try!(check_origin_access(req, session.get_id(), origin)) {
+            if !check_origin_access(req, session.get_id(), origin)? {
                 return Ok(Response::with(status::Forbidden));
             }
             match get_origin(req, origin)? {
@@ -541,7 +541,7 @@ fn download_latest_origin_secret_key(req: &mut Request) -> IronResult<Response> 
     };
     let mut conn = Broker::connect().unwrap();
     let mut request = OriginSecretKeyGet::new();
-    match try!(get_origin(req, origin)) {
+    match get_origin(req, origin)? {
         Some(mut origin) => {
             request.set_owner_id(origin.get_owner_id());
             request.set_origin(origin.take_name());
@@ -565,10 +565,10 @@ fn upload_origin_secret_key(req: &mut Request) -> IronResult<Response> {
 
     let origin = match params.find("origin") {
         Some(origin) => {
-            if !try!(check_origin_access(req, session.get_id(), origin)) {
+            if !check_origin_access(req, session.get_id(), origin)? {
                 return Ok(Response::with(status::Forbidden));
             }
-            match try!(get_origin(req, origin)) {
+            match get_origin(req, origin)? {
                 Some(mut origin) => {
                     request.set_name(origin.take_name());
                     request.set_origin_id(origin.get_id());
@@ -659,12 +659,7 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
     // TODO: SA - Eliminate need to clone the session
     let session = req.extensions.get::<Authenticated>().unwrap().clone();
     if !depot.config.insecure {
-        if !try!(check_origin_access(
-            req,
-            session.get_id(),
-            &ident.get_origin(),
-        ))
-        {
+        if !check_origin_access(req, session.get_id(), &ident.get_origin())? {
             debug!(
                 "Failed origin access check, session: {}, ident: {}",
                 session.get_id(),
@@ -693,7 +688,7 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
     let temp_name = format!("{}.tmp", Uuid::new_v4());
     let temp_path = parent_path.join(temp_name);
 
-    let mut archive = try!(write_archive(&temp_path, &mut req.body));
+    let mut archive = write_archive(&temp_path, &mut req.body)?;
     debug!("Package Archive: {:#?}", archive);
 
     let target_from_artifact = match archive.target() {
@@ -807,7 +802,7 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
         package.set_owner_id(session.get_id());
 
         // let's make sure this origin actually exists
-        match try!(get_origin(req, &ident.get_origin())) {
+        match get_origin(req, &ident.get_origin())? {
             Some(origin) => {
                 package.set_origin_id(origin.get_id());
             }
@@ -1027,6 +1022,37 @@ fn download_latest_origin_key(req: &mut Request) -> IronResult<Response> {
     Ok(response)
 }
 
+fn package_channels(req: &mut Request) -> IronResult<Response> {
+    let params = req.extensions.get::<Router>().unwrap();
+    let mut conn = Broker::connect().unwrap();
+    let ident = ident_from_params(params);
+
+    if !ident.fully_qualified() {
+        error!("package_channels:1");
+        return Ok(Response::with(status::BadRequest));
+    }
+
+    let mut request = OriginPackageChannelListRequest::new();
+    request.set_ident(ident);
+
+    match conn.route::<OriginPackageChannelListRequest, OriginPackageChannelListResponse>(
+        &request,
+    ) {
+        Ok(channels) => {
+            let list: Vec<String> = channels
+                .get_channels()
+                .iter()
+                .map(|channel| channel.get_name().to_string())
+                .collect();
+            let body = serde_json::to_string(&list).unwrap();
+            let mut response = Response::with((status::Ok, body));
+            dont_cache_response(&mut response);
+            Ok(response)
+        }
+        Err(e) => Ok(render_net_error(&e)),
+    }
+}
+
 fn download_package(req: &mut Request) -> IronResult<Response> {
     let lock = req.get::<persistent::State<DepotUtil>>().expect(
         "depot not found",
@@ -1098,7 +1124,7 @@ fn list_origin_keys(req: &mut Request) -> IronResult<Response> {
     };
 
     let mut request = OriginPublicKeyListRequest::new();
-    match try!(get_origin(req, origin_name.as_str())) {
+    match get_origin(req, origin_name.as_str())? {
         Some(origin) => request.set_origin_id(origin.get_id()),
         None => return Ok(Response::with(status::NotFound)),
     };
@@ -1356,7 +1382,7 @@ fn list_channels(req: &mut Request) -> IronResult<Response> {
     };
 
     let mut request = OriginChannelListRequest::new();
-    match try!(get_origin(req, origin_name.as_str())) {
+    match get_origin(req, origin_name.as_str())? {
         Some(origin) => request.set_origin_id(origin.get_id()),
         None => return Ok(Response::with(status::NotFound)),
     };
@@ -1399,7 +1425,7 @@ fn create_channel(req: &mut Request) -> IronResult<Response> {
         };
     }
 
-    let origin_id = match try!(get_origin(req, &origin)) {
+    let origin_id = match get_origin(req, &origin)? {
         Some(origin) => origin.get_id(),
         None => {
             debug!("Origin {} not found!", origin);
@@ -1444,7 +1470,7 @@ fn delete_channel(req: &mut Request) -> IronResult<Response> {
     match route_message::<OriginChannelGet, OriginChannel>(req, &channel_req) {
         Ok(origin_channel) => {
             // make sure the person trying to create the channel has access to do so
-            if !try!(check_origin_access(req, session_id, &origin)) {
+            if !check_origin_access(req, session_id, &origin)? {
                 return Ok(Response::with(status::Forbidden));
             }
 
@@ -1593,14 +1619,32 @@ fn search_packages(req: &mut Request) -> IronResult<Response> {
     request.set_start(start as u64);
     request.set_stop(stop as u64);
 
+
+    // First, try to parse the query like it's a PackageIdent, since it seems reasonable to expect
+    // that many people will try searching using that kind of string, e.g. core/redis.  If that
+    // works, set the origin appropriately and do a regular search.  If that doesn't work, do a
+    // search across all origins, similar to how the "distinct" search works now, but returning all
+    // the details instead of just names.
+
     {
         let params = req.extensions.get::<Router>().unwrap();
-        request.set_query(
-            url::percent_encoding::percent_decode(params.find("query").unwrap().as_bytes())
-                .decode_utf8()
-                .unwrap()
-                .to_string(),
-        );
+        let query = params.find("query").unwrap();
+
+        let decoded_query = match url::percent_encoding::percent_decode(query.as_bytes())
+            .decode_utf8() {
+            Ok(q) => q.to_string(),
+            Err(_) => return Ok(Response::with(status::BadRequest)),
+        };
+
+        match PackageIdent::from_str(decoded_query.as_ref()) {
+            Ok(ident) => {
+                request.set_origin(ident.origin().to_string());
+                request.set_query(ident.name().to_string());
+            }
+            Err(_) => {
+                request.set_query(decoded_query);
+            }
+        }
     };
 
     debug!("search_packages called with: {}", request.get_query());
@@ -1609,10 +1653,7 @@ fn search_packages(req: &mut Request) -> IronResult<Response> {
     // Counter::SearchPackages.increment();
     // Gauge::PackageCount.set(depot.datastore.key_count().unwrap() as f64);
 
-    // TODO MW: constraining to core is temporary until we have a cross origin index
-    request.set_origin("core".to_string());
-
-    // Setting distinct to true makes this query ignore the origin set above, because it's going to
+    // Setting distinct to true makes this query ignore any origin set, because it's going to
     // search both the origin name and the package name for the query string provided. This is
     // likely sub-optimal for performance but it makes things work right now and we should probably
     // switch to some kind of full-text search engine in the future anyway.
@@ -1721,7 +1762,7 @@ fn promote_package(req: &mut Request) -> IronResult<Response> {
     channel_req.set_name(channel);
     match route_message::<OriginChannelGet, OriginChannel>(req, &channel_req) {
         Ok(origin_channel) => {
-            if !try!(check_origin_access(req, session_id, &ident.get_origin())) {
+            if !check_origin_access(req, session_id, &ident.get_origin())? {
                 return Ok(Response::with(status::Forbidden));
             }
 
@@ -1814,7 +1855,7 @@ fn demote_package(req: &mut Request) -> IronResult<Response> {
     channel_req.set_name(channel);
     match route_message::<OriginChannelGet, OriginChannel>(req, &channel_req) {
         Ok(origin_channel) => {
-            if !try!(check_origin_access(req, session_id, &ident.get_origin())) {
+            if !check_origin_access(req, session_id, &ident.get_origin())? {
                 return Ok(Response::with(status::Forbidden));
             }
 
@@ -1990,10 +2031,8 @@ where
         packages_version: get "/pkgs/:origin/:pkg/:version" => list_packages,
         package_version_latest: get "/pkgs/:origin/:pkg/:version/latest" => show_package,
         package: get "/pkgs/:origin/:pkg/:version/:release" => show_package,
-
-        package_download: get "/pkgs/:origin/:pkg/:version/:release/download" => {
-            download_package
-        },
+        package_channels: get "/pkgs/:origin/:pkg/:version/:release/channels" => package_channels,
+        package_download: get "/pkgs/:origin/:pkg/:version/:release/download" => download_package,
         package_upload: post "/pkgs/:origin/:pkg/:version/:release" => {
             if insecure {
                 XHandler::new(upload_package)
@@ -2072,7 +2111,7 @@ pub fn router(depot: DepotUtil) -> Result<Chain> {
 
 pub fn run(config: Config) -> Result<()> {
     let depot = DepotUtil::new(config.clone());
-    let v1 = try!(router(depot));
+    let v1 = router(depot)?;
     let broker = Broker::run(DepotUtil::net_ident(), &config.route_addrs().clone());
 
     let mut mount = Mount::new();
@@ -3031,7 +3070,8 @@ mod test {
         let package_req = msgs.get::<OriginPackageSearchRequest>().unwrap();
         assert_eq!(package_req.get_start(), 2);
         assert_eq!(package_req.get_stop(), 51);
-        assert_eq!(package_req.get_query(), "org/name".to_string());
+        assert_eq!(package_req.get_origin(), "org".to_string());
+        assert_eq!(package_req.get_query(), "name".to_string());
     }
 
     #[test]

@@ -1470,6 +1470,31 @@ fn search_origin_package_for_origin() {
     assert_eq!(pkg4.to_string(), "core2/red");
     let pkg5 = result5.get_idents().iter().nth(4).unwrap();
     assert_eq!(pkg5.to_string(), "josh/red_dog");
+
+    ops.set_origin("".to_string());
+    ops.set_query("red".to_string());
+    ops.set_start(0);
+    ops.set_stop(20);
+    ops.set_distinct(false);
+    let result6 = ds.search_origin_package_for_origin(&ops).expect(
+        "Could not get the packages from the database",
+    );
+    assert_eq!(result6.get_idents().len(), 6);
+    assert_eq!(result6.get_start(), 0);
+    assert_eq!(result6.get_stop(), 5);
+    assert_eq!(result6.get_count(), 1);
+    let pkg1 = result6.get_idents().iter().nth(0).unwrap();
+    assert_eq!(pkg1.to_string(), "core/red/2017.01.17/20170209064044");
+    let pkg2 = result6.get_idents().iter().nth(1).unwrap();
+    assert_eq!(pkg2.to_string(), "core/red/2017.01.18/20170209064044");
+    let pkg3 = result6.get_idents().iter().nth(2).unwrap();
+    assert_eq!(pkg3.to_string(), "core/red_dog/2017.01.19/20170209064045");
+    let pkg4 = result6.get_idents().iter().nth(3).unwrap();
+    assert_eq!(pkg4.to_string(), "ace/red_dog/2017.01.19/20170209064045");
+    let pkg5 = result6.get_idents().iter().nth(4).unwrap();
+    assert_eq!(pkg5.to_string(), "core2/red/2017.01.18/20170209064045");
+    let pkg6 = result6.get_idents().iter().nth(5).unwrap();
+    assert_eq!(pkg6.to_string(), "josh/red_dog/2017.01.19/20170209064045");
 }
 
 #[test]
@@ -1575,6 +1600,76 @@ fn list_origin_channel() {
     assert_eq!(channel_1.get_name(), "eve");
     let channel_2 = channels.get_channels().iter().nth(1).unwrap();
     assert_eq!(channel_2.get_name(), "online");
+}
+
+#[test]
+fn list_origin_package_channels_for_package() {
+    let ds = datastore_test!(DataStore);
+    let mut origin = originsrv::OriginCreate::new();
+    origin.set_name(String::from("core"));
+    origin.set_owner_id(1);
+    origin.set_owner_name(String::from("scottkelly"));
+    ds.create_origin(&origin).expect("Should create origin");
+
+    let neurosis = ds.get_origin_by_name("core")
+        .expect("Could not retrieve origin")
+        .expect("Origin does not exist");
+
+    let mut og = originsrv::OriginGet::new();
+    og.set_name(String::from("core"));
+    let og_result = ds.get_origin(&og).expect("Could not get origin").unwrap();
+
+    // Create a new origin channel
+    let mut occ = originsrv::OriginChannelCreate::new();
+    occ.set_origin_id(og_result.get_id());
+    occ.set_origin_name(neurosis.get_name().to_string());
+    occ.set_name(String::from("foo"));
+    occ.set_owner_id(1);
+    let channel = ds.create_origin_channel(&occ).expect(
+        "Could not create channel",
+    );
+
+    let mut ident = originsrv::OriginPackageIdent::new();
+    ident.set_origin("core".to_string());
+    ident.set_name("red".to_string());
+    ident.set_version("2017.01.17".to_string());
+    ident.set_release("20170209064044".to_string());
+
+    let mut package = originsrv::OriginPackageCreate::new();
+    package.set_owner_id(1);
+    package.set_origin_id(og_result.get_id());
+    package.set_ident(ident.clone());
+    package.set_checksum("checksum".to_string());
+    package.set_manifest("manifest".to_string());
+    package.set_config("config".to_string());
+    package.set_target("x86_64-windows".to_string());
+    package.set_exposes(vec![1, 2]);
+    ds.create_origin_package(&package.clone()).expect(
+        "Failed to create origin package",
+    );
+
+    let mut package_get = originsrv::OriginPackageGet::new();
+    package_get.set_ident(ident.clone());
+    let result = ds.get_origin_package(&package_get)
+        .expect("Failed to get origin package")
+        .unwrap();
+
+    let mut opp = originsrv::OriginPackagePromote::new();
+    opp.set_channel_id(channel.get_id());
+    opp.set_package_id(result.get_id());
+    opp.set_ident(ident.clone());
+    ds.promote_origin_package(&opp).expect(
+        "Could not promote package",
+    );
+
+    let mut opclr = originsrv::OriginPackageChannelListRequest::new();
+    opclr.set_ident(ident);
+    let resp = ds.list_origin_package_channels_for_package(&opclr).expect(
+        "Could not list channels for package",
+    );
+
+    assert_eq!(resp.get_channels().len(), 2); // 2 because "unstable" is implicitly created
+    assert_eq!(resp.get_channels().iter().nth(0).unwrap().get_name(), "foo");
 }
 
 #[test]

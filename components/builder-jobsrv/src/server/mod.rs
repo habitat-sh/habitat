@@ -135,7 +135,7 @@ impl Dispatcher for Worker {
 
     fn init(&mut self, init_state: Self::InitState) -> Result<Self::State> {
         let mut worker_mgr = WorkerMgrClient::default();
-        try!(worker_mgr.connect());
+        worker_mgr.connect()?;
 
         let mut state: ServerState = init_state.into();
 
@@ -158,8 +158,8 @@ pub struct Server {
 
 impl Server {
     pub fn new(config: Config) -> Result<Self> {
-        let router = try!(RouteConn::new(Self::net_ident(), (**ZMQ_CONTEXT).as_mut()));
-        let be = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER));
+        let router = RouteConn::new(Self::net_ident(), (**ZMQ_CONTEXT).as_mut())?;
+        let be = (**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER)?;
         Ok(Server {
             config: Arc::new(RwLock::new(config)),
             router: router,
@@ -218,12 +218,12 @@ impl Application for Server {
         let log_ingester = LogIngester::start(cfg2, log_dir, ingester_datastore)?;
 
         let cfg3 = self.config.clone();
-        let worker_mgr = try!(WorkerMgr::start(cfg3, ds2));
+        let worker_mgr = WorkerMgr::start(cfg3, ds2)?;
 
-        try!(sup.start());
-        try!(self.connect());
+        sup.start()?;
+        self.connect()?;
         info!("builder-jobsrv is ready to go.");
-        try!(zmq::proxy(&mut self.router.socket, &mut self.be_sock));
+        zmq::proxy(&mut self.router.socket, &mut self.be_sock)?;
         worker_mgr.join().unwrap();
         broker.join().unwrap();
         log_ingester.join().unwrap();
@@ -256,5 +256,5 @@ impl Service for Server {
 impl NetIdent for Server {}
 
 pub fn run(config: Config) -> Result<()> {
-    try!(Server::new(config)).run()
+    Server::new(config)?.run()
 }

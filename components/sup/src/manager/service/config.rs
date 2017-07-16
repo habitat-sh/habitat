@@ -129,9 +129,9 @@ impl Cfg {
         let mut config = String::new();
         match file.read_to_string(&mut config) {
             Ok(_) => {
-                let toml = try!(toml::de::from_str(&config).map_err(|e| {
+                let toml = toml::de::from_str(&config).map_err(|e| {
                     sup_error!(Error::TomlParser(e))
-                }));
+                })?;
                 self.default = Some(toml::Value::Table(toml));
             }
             Err(e) => {
@@ -155,9 +155,9 @@ impl Cfg {
         let mut config = String::new();
         match file.read_to_string(&mut config) {
             Ok(_) => {
-                let toml = try!(toml::de::from_str(&config).map_err(|e| {
+                let toml = toml::de::from_str(&config).map_err(|e| {
                     sup_error!(Error::TomlParser(e))
-                }));
+                })?;
                 self.user = Some(toml::Value::Table(toml));
             }
             Err(e) => {
@@ -174,9 +174,9 @@ impl Cfg {
             .replace("-", "_");
         match env::var(&var_name) {
             Ok(config) => {
-                let toml = try!(toml::de::from_str(&config).map_err(|e| {
+                let toml = toml::de::from_str(&config).map_err(|e| {
                     sup_error!(Error::TomlParser(e))
-                }));
+                })?;
                 self.environment = Some(toml::Value::Table(toml));
 
             }
@@ -345,13 +345,13 @@ fn toml_merge_recurse(
                     ))));
                 }
             };
-            try!(toml_merge_recurse(
+            toml_merge_recurse(
                 &mut me_at_key,
                 other_value.as_table().expect(
                     "TOML Value should be a Table",
                 ),
                 depth + 1,
-            ));
+            )?;
         } else {
             me.insert(key.clone(), other_value.clone());
         }

@@ -37,6 +37,7 @@ param (
     [switch]$q,
     [switch]$v,
     [switch]$R,
+    [switch]$w,
     [string]$command,
     [string]$commandVal,
     [string]$k,
@@ -65,6 +66,7 @@ COMMON FLAGS:
     -n  Do not mount the source path into the Studio (default: mount the path)
     -q  Prints less output for better use in scripts
     -v  Prints more verbose output
+    -w  Use a Windows studio instead of a docker studio (only available on windows)
 
 COMMON OPTIONS:
     -k <HAB_ORIGIN_KEYS>  Installs secret origin keys (default:\$HAB_ORIGIN )
@@ -268,6 +270,9 @@ function Enter-Studio {
   if($printHelp) {
     Write-EnterHelp
     return
+  }
+  if(!(Test-Path $HAB_STUDIO_ROOT)) {
+    mkdir $HAB_STUDIO_ROOT | Out-Null
   }
   $env:HAB_STUDIO_ENTER_ROOT = Resolve-Path $HAB_STUDIO_ROOT
   New-Studio

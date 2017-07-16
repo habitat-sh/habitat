@@ -24,6 +24,7 @@
 //! new rumors, and dispatch them according to their `kind`.
 
 pub mod dat_file;
+pub mod departure;
 pub mod election;
 pub mod service;
 pub mod service_config;
@@ -33,11 +34,13 @@ pub use self::election::{Election, ElectionUpdate};
 pub use self::service::Service;
 pub use self::service_config::ServiceConfig;
 pub use self::service_file::ServiceFile;
+pub use self::departure::Departure;
 
 use std::collections::HashMap;
 use std::collections::hash_map::Entry;
 use std::default::Default;
 use std::ops::Deref;
+use std::cmp::Ord;
 use std::result;
 use std::sync::{Arc, RwLock};
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -123,15 +126,15 @@ impl<T: Rumor> Serialize for RumorStore<T> {
     where
         S: Serializer,
     {
-        let mut strukt = try!(serializer.serialize_struct("rumor_store", 2));
-        try!(strukt.serialize_field(
+        let mut strukt = serializer.serialize_struct("rumor_store", 2)?;
+        strukt.serialize_field(
             "list",
             &*(self.list.read().unwrap()),
-        ));
-        try!(strukt.serialize_field(
+        )?;
+        strukt.serialize_field(
             "update_counter",
             &self.get_update_counter(),
-        ));
+        )?;
         strukt.end()
     }
 }

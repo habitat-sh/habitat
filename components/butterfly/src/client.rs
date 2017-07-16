@@ -23,6 +23,7 @@ use zmq;
 use ZMQ_CONTEXT;
 use message;
 use rumor::Rumor;
+use rumor::departure::Departure;
 use rumor::service_config::ServiceConfig;
 use rumor::service_file::ServiceFile;
 use error::{Result, Error};
@@ -55,11 +56,17 @@ impl Client {
             "Failure to set the ZMQ send timeout",
         );
         let to_addr = format!("tcp://{}", addr.to_string());
-        try!(socket.connect(&to_addr).map_err(Error::ZmqConnectError));
+        socket.connect(&to_addr).map_err(Error::ZmqConnectError)?;
         Ok(Client {
             socket: socket,
             ring_key: ring_key,
         })
+    }
+
+    /// Create a departure notification and send it to the server.
+    pub fn send_departure(&mut self, member_id: String) -> Result<()> {
+        let departure = Departure::new(member_id);
+        self.send(departure)
     }
 
     /// Create a service configuration and send it to the server.
@@ -93,8 +100,8 @@ impl Client {
 
     /// Send any `Rumor` to the server.
     pub fn send<T: Rumor>(&mut self, rumor: T) -> Result<()> {
-        let bytes = try!(rumor.write_to_bytes());
-        let wire_msg = try!(message::generate_wire(bytes, &self.ring_key));
+        let bytes = rumor.write_to_bytes()?;
+        let wire_msg = message::generate_wire(bytes, &self.ring_key)?;
         self.socket.send(&wire_msg, 0).map_err(Error::ZmqSendError)
     }
 }

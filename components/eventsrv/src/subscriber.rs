@@ -18,6 +18,7 @@
 extern crate byteorder;
 extern crate env_logger;
 extern crate habitat_eventsrv;
+#[macro_use]
 extern crate log;
 extern crate protobuf;
 extern crate zmq;

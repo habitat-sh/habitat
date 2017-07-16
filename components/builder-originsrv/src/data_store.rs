@@ -711,6 +711,26 @@ impl DataStore {
         Ok(response)
     }
 
+    pub fn list_origin_package_channels_for_package(
+        &self,
+        opcl: &originsrv::OriginPackageChannelListRequest,
+    ) -> Result<originsrv::OriginPackageChannelListResponse> {
+        let conn = self.pool.get(opcl)?;
+
+        let rows = conn.query(
+            "SELECT * FROM get_origin_package_channels_for_package_v1($1)",
+            &[&self.searchable_ident(opcl.get_ident())],
+        ).map_err(Error::OriginPackageChannelList)?;
+
+        let mut response = originsrv::OriginPackageChannelListResponse::new();
+        let mut channels = protobuf::RepeatedField::new();
+        for row in rows.iter() {
+            channels.push(self.row_to_origin_channel(&row));
+        }
+        response.set_channels(channels);
+        Ok(response)
+    }
+
     pub fn list_origin_package_for_origin(
         &self,
         opl: &originsrv::OriginPackageListRequest,
@@ -833,15 +853,22 @@ impl DataStore {
                 &[&ops.get_query(), &ops.limit(), &(ops.get_start() as i64)],
             ).map_err(Error::OriginPackageSearch)?
         } else {
-            conn.query(
-                "SELECT * FROM search_origin_packages_for_origin_v1($1, $2, $3, $4)",
-                &[
-                    &ops.get_origin(),
-                    &ops.get_query(),
-                    &ops.limit(),
-                    &(ops.get_start() as i64),
-                ],
-            ).map_err(Error::OriginPackageSearch)?
+            if ops.get_origin().is_empty() {
+                conn.query(
+                    "SELECT * FROM search_all_origin_packages_v1($1, $2, $3)",
+                    &[&ops.get_query(), &ops.limit(), &(ops.get_start() as i64)],
+                ).map_err(Error::OriginPackageSearch)?
+            } else {
+                conn.query(
+                    "SELECT * FROM search_origin_packages_for_origin_v1($1, $2, $3, $4)",
+                    &[
+                        &ops.get_origin(),
+                        &ops.get_query(),
+                        &ops.limit(),
+                        &(ops.get_start() as i64),
+                    ],
+                ).map_err(Error::OriginPackageSearch)?
+            }
         };
 
         let mut response = originsrv::OriginPackageListResponse::new();
@@ -935,10 +962,10 @@ impl DataStore {
         let row = rows.iter().nth(0).expect(
             "Insert returns row, but no row present",
         );
-        Ok(self.row_to_origin_channel(row))
+        Ok(self.row_to_origin_channel(&row))
     }
 
-    fn row_to_origin_channel(&self, row: postgres::rows::Row) -> originsrv::OriginChannel {
+    fn row_to_origin_channel(&self, row: &postgres::rows::Row) -> originsrv::OriginChannel {
         let mut occ = originsrv::OriginChannel::new();
         let occ_id: i64 = row.get("id");
         occ.set_id(occ_id as u64);
@@ -965,7 +992,7 @@ impl DataStore {
 
         let mut channels = protobuf::RepeatedField::new();
         for row in rows {
-            channels.push(self.row_to_origin_channel(row))
+            channels.push(self.row_to_origin_channel(&row))
         }
 
         response.set_channels(channels);
@@ -984,7 +1011,7 @@ impl DataStore {
 
         if rows.len() != 0 {
             let row = rows.get(0);
-            Ok(Some(self.row_to_origin_channel(row)))
+            Ok(Some(self.row_to_origin_channel(&row)))
         } else {
             Ok(None)
         }
