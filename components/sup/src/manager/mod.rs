@@ -533,6 +533,10 @@ impl Manager {
                 self.shutdown();
                 return Ok(());
             }
+            if self.check_for_departure() {
+                self.shutdown();
+                return Err(sup_error!(Error::Departed));
+            }
             if let Some(package) = self.check_for_updated_supervisor() {
                 outputln!(
                     "Supervisor shutting down for automatic update to {}",
@@ -642,6 +646,10 @@ impl Manager {
             }
         }
         self.butterfly.insert_service(service.to_rumor(incarnation));
+    }
+
+    fn check_for_departure(&self) -> bool {
+        self.butterfly.is_departed()
     }
 
     fn check_for_changed_services(&mut self) -> bool {
@@ -822,7 +830,11 @@ impl Manager {
     }
 
     fn shutdown(&self) {
+        outputln!("Gracefully departing from butterfly network.");
+        self.butterfly.set_departed();
+
         let mut services = self.services.write().expect("Services lock is poisend!");
+
         for mut service in services.drain(..) {
             self.remove_service(&mut service, false);
         }

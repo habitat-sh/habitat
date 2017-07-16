@@ -68,6 +68,9 @@ fn main() {
         println!("{}", err);
         match err {
             SupError { err: Error::ProcessLocked(_), .. } => process::exit(ERR_NO_RETRY_EXCODE),
+            SupError { err: Error::Departed, .. } => {
+                process::exit(ERR_NO_RETRY_EXCODE);
+            }
             _ => process::exit(1),
         }
     }

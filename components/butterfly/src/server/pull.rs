@@ -111,6 +111,9 @@ impl Pull {
                 Rumor_Type::ElectionUpdate => {
                     self.server.insert_update_election(proto.into());
                 }
+                Rumor_Type::Departure => {
+                    self.server.insert_departure(proto.into());
+                }
                 Rumor_Type::Fake |
                 Rumor_Type::Fake2 => debug!("Nothing to do for fake rumor types"),
             }

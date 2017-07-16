@@ -23,6 +23,7 @@ use zmq;
 use ZMQ_CONTEXT;
 use message;
 use rumor::Rumor;
+use rumor::departure::Departure;
 use rumor::service_config::ServiceConfig;
 use rumor::service_file::ServiceFile;
 use error::{Result, Error};
@@ -60,6 +61,12 @@ impl Client {
             socket: socket,
             ring_key: ring_key,
         })
+    }
+
+    /// Create a departure notification and send it to the server.
+    pub fn send_departure(&mut self, member_id: String) -> Result<()> {
+        let departure = Departure::new(member_id);
+        self.send(departure)
     }
 
     /// Create a service configuration and send it to the server.

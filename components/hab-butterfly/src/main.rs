@@ -88,6 +88,9 @@ fn start(ui: &mut UI) -> Result<()> {
                 _ => unreachable!(),
             }
         }
+        ("depart", Some(matches)) => {
+            try!(sub_depart(ui, matches));
+        }
         ("file", Some(matches)) => {
             match matches.subcommand() {
                 ("upload", Some(m)) => sub_file_upload(ui, m)?,
@@ -97,6 +100,27 @@ fn start(ui: &mut UI) -> Result<()> {
         _ => unreachable!(),
     };
     Ok(())
+}
+
+fn sub_depart(ui: &mut UI, m: &ArgMatches) -> Result<()> {
+    let peers_str = m.value_of("PEER").unwrap_or("127.0.0.1");
+    let mut peers: Vec<String> = peers_str.split(",").map(|p| p.into()).collect();
+    for p in peers.iter_mut() {
+        if p.find(':').is_none() {
+            p.push(':');
+            p.push_str(&HABITAT_BUTTERFLY_PORT.to_string());
+        }
+    }
+    let member_id = m.value_of("MEMBER_ID").unwrap();
+
+    init();
+    let cache = default_cache_key_path(Some(&*FS_ROOT));
+    let ring_key = match m.value_of("RING") {
+        Some(name) => Some(try!(SymKey::get_latest_pair_for(&name, &cache))),
+        None => None,
+    };
+
+    command::depart::run(ui, String::from(member_id), &peers, ring_key.as_ref())
 }
 
 fn sub_config_apply(ui: &mut UI, m: &ArgMatches) -> Result<()> {
