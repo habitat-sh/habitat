@@ -291,6 +291,19 @@ function Invoke-Begin {
 function Invoke-DefaultBegin {
 }
 
+# At this phase of the build, all dependencies are downloaded, the build
+# environment is set, but this is just before any source downloading would
+# occur (if `$pkg_source` is set). This could be a suitable phase in which to
+# compute a dynamic version of a pacakge given the state of a Git repository,
+# fire an API call, start timing something, etc.
+function Invoke-Before {
+  Invoke-DefaultBefore
+}
+
+# Default implementation for the `Invoke-Before` phase.
+function Invoke-DefaultBefore {
+}
+
 function _Set-HabBin {
   if ($env:NO_INSTALL_DEPS) {
     Write-BuildLine "`$env:NO_INSTALL_DEPS set: no package dependencies will be installed"
@@ -1325,8 +1338,12 @@ try {
     # Set the complete `Path` environment.
     _Set-Path
 
-    # Download the source
     New-Item "$HAB_CACHE_SRC_PATH" -ItemType Directory -Force | Out-Null
+
+    # Run any code after the environment is set but before the build starts
+    Invoke-Before
+
+    # Download the source
     Invoke-Download
 
     # Verify the source
