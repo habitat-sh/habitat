@@ -17,8 +17,6 @@ extern crate habitat_eventsrv as eventsrv;
 extern crate log;
 extern crate protobuf;
 
-mod message;
-
 use std::env;
 
 use core::config::ConfigFile;

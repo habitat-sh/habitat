@@ -18,21 +18,19 @@
 extern crate byteorder;
 extern crate env_logger;
 extern crate habitat_eventsrv;
+extern crate habitat_eventsrv_protocol as protocol;
 #[macro_use]
 extern crate log;
 extern crate protobuf;
 extern crate zmq;
-
-mod message;
 
 use std::env;
 use std::io::Read;
 
 use byteorder::{ByteOrder, LittleEndian};
 use protobuf::parse_from_bytes;
+use protocol::{EventEnvelope, EventEnvelope_Type, CensusEntry as CensusEntryProto};
 use zmq::{Context, SUB};
-
-use message::event::{EventEnvelope, EventEnvelope_Type, CensusEntry as CensusEntryProto};
 
 fn main() {
     let ctx = Context::new();

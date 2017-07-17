@@ -53,7 +53,6 @@ extern crate habitat_common as common;
 #[macro_use]
 extern crate habitat_core as hcore;
 extern crate habitat_depot_client as depot_client;
-extern crate habitat_eventsrv as eventsrv;
 extern crate habitat_eventsrv_client as eventsrv_client;
 extern crate habitat_launcher_client as launcher_client;
 extern crate handlebars;

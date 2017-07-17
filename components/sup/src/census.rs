@@ -25,7 +25,7 @@ use butterfly::rumor::election::Election as ElectionRumor;
 use butterfly::rumor::election::Election_Status as ElectionStatusRumor;
 use butterfly::rumor::election::ElectionUpdate as ElectionUpdateRumor;
 use butterfly::rumor::service::SysInfo;
-use eventsrv::message::event::{CensusEntry as CensusEntryProto, PackageIdent as PackageIdentProto,
+use eventsrv_client::message::{CensusEntry as CensusEntryProto, PackageIdent as PackageIdentProto,
                                SysInfo as SysInfoProto};
 use hcore;
 use hcore::service::ServiceGroup;

@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Copyright (c) 2017 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,17 +13,18 @@
 // limitations under the License.
 
 extern crate env_logger;
-extern crate habitat_eventsrv;
+extern crate habitat_eventsrv_protocol as protocol;
 #[macro_use]
 extern crate log;
 extern crate protobuf;
 extern crate time;
 extern crate zmq;
 
+pub mod message;
+
 use zmq::{Context, PUSH, Socket};
 use protobuf::Message;
-
-use habitat_eventsrv::message::event::EventEnvelope;
+use protocol::EventEnvelope;
 
 pub struct EventSrvClient {
     ports: Vec<String>,
