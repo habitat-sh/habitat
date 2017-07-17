@@ -124,7 +124,7 @@ var homepageScripts = function() {
       var weekdayNames = ["Monday", "Tuesday", "Thursday", "Friday", "Saturday", "Sunday"]
       var monthNames = [ "January", "February", "March", "April", "May", "June",
           "July", "August", "September", "October", "November", "December" ];
-      var newDate = new Date(e["start_date"]);
+      var newDate = new Date(e["start"] * 1000);
       var formattedDate = weekdayNames[newDate.getDay()] + ', '  + monthNames[newDate.getMonth()] + ' ' + newDate.getDate();
       var month = monthNames[newDate.getMonth()];
 
