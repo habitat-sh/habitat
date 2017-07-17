@@ -3,7 +3,6 @@ image: Visual Studio 2015
 
 cache:
   - c:\cargo\git
-  - c:\projects\habitat\target
 
 branches:
   only:
