@@ -20,7 +20,7 @@ The Habitat documentation is broken out into the following sections:
 - [Create packages](/docs/create-packages-overview): Learn how to create a plan, what all of the plan settings are, how to configure a package, and how to build packages.
 - [Run packages](/docs/run-packages-overview): Learn how to run a package natively as well as through an external runtime format, such as a Docker or rkt container.
 - [Share packages](/docs/share-packages-overview): Describes how to upload, share, and run Habitat packages from the public depot.
-- [Continuous deployment](/docs/continuous-deployment-overview): Explains the how Habitat supports continuous deployment and the implementation details of deploying Habitat packages through Chef Automate.
+- [Continuous deployment](/docs/continuous-deployment-overview): Explains how Habitat supports continuous deployment and the implementation details of deploying Habitat packages through Chef Automate.
 - [Container orchestration](/docs/container-orchestration): Describes how to use Habitat with container orchestration technologies such as EC2 Container Service, Mesos, and Kubernetes.
 - [Habitat internals](/docs/internals-overview): Provides deeper explanations on topics such as how the supervisor works, how leader election happens, etc.
 
@@ -33,7 +33,7 @@ The Habitat documentation is broken out into the following sections:
 
 **Contribute**
 
-- [Help build Habitat](/docs/contribute-help-build): Additional functionality and that we would love the community to help us define and implement.
+- [Help build Habitat](/docs/contribute-help-build): Additional functionality that we would love the community to help us define and implement.
 
 ## Where to begin
 
