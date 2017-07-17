@@ -1,9 +1,12 @@
 [package]
-name = "habitat_eventsrv"
-version = "0.1.0"
-authors = ["Josh Black <raskchanky@gmail.com>",
-           "Christopher Maier <cmaier@chef.io>"]
-description = "Habitat event service"
+name = "habitat-eventsrv"
+version = "0.0.0"
+authors = [
+  "Josh Black <raskchanky@gmail.com>",
+  "Christopher Maier <cmaier@chef.io>",
+  "Jamie Winsor <reset@habitat.sh>",
+]
+description = "Habitat EventSrv service"
 build = "build.rs"
 workspace = "../../"
 
@@ -11,6 +14,7 @@ workspace = "../../"
 byteorder = "*"
 env_logger = "*"
 habitat_core = { path = "../core" }
+habitat-eventsrv-protocol = { path = "../eventsrv-protocol" }
 log = "*"
 protobuf = "*"
 serde = "*"

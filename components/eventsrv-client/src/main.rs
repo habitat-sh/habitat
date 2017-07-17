@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Copyright (c) 2017 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 // of EventSrvClient.
 
 extern crate byteorder;
-extern crate habitat_eventsrv;
-extern crate habitat_eventsrv_client;
+extern crate habitat_eventsrv_client as client;
+extern crate habitat_eventsrv_protocol as protocol;
 
 use std::env;
 use std::error::Error;
@@ -26,9 +26,8 @@ use std::io::prelude::*;
 use std::path::Path;
 
 use byteorder::{ByteOrder, LittleEndian};
-
-use habitat_eventsrv::message::event::{EventEnvelope, EventEnvelope_Type};
-use habitat_eventsrv_client::EventSrvClient;
+use client::EventSrvClient;
+use protocol::{EventEnvelope, EventEnvelope_Type};
 
 fn main() {
     let mut args: Vec<_> = env::args().collect();

@@ -13,6 +13,7 @@
 // limitations under the License.
 
 extern crate habitat_core as core;
+extern crate habitat_eventsrv_protocol as protocol;
 #[macro_use]
 extern crate log;
 extern crate protobuf;
@@ -24,15 +25,13 @@ extern crate zmq;
 
 pub mod config;
 pub mod error;
-pub mod message;
 
 use std::collections::HashMap;
 use std::collections::HashSet;
 
 use protobuf::parse_from_bytes;
+use protocol::EventEnvelope;
 use zmq::{Context, PULL, XPUB};
-
-use message::event::EventEnvelope;
 
 /// Proxies messages coming into `frontend_port` out through
 /// `backend_port`, caching recent messages for new subscribers.
