@@ -6,6 +6,7 @@ description = "Operational tools for Habitat developers"
 workspace = "../../"
 
 [dependencies]
+clippy = {version = "*", optional = true}
 fnv = "*"
 log = "*"
 habitat_core = { path = "../core" }
@@ -16,3 +17,7 @@ path = "../builder-protocol"
 [dependencies.clap]
 version = "*"
 features = [ "suggestions", "color", "unstable" ]
+
+[features]
+default = []
+

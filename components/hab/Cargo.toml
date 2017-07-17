@@ -10,6 +10,7 @@ name = "hab"
 doc = false
 
 [dependencies]
+clippy = {version = "*", optional = true}
 ansi_term = "*"
 env_logger = "*"
 hyper = "*"
@@ -47,4 +48,5 @@ version = "*"
 features = ["v4"]
 
 [features]
+default = []
 functional = []

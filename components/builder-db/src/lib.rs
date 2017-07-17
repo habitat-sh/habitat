@@ -60,6 +60,8 @@
 //! 1. Q: Won't this impact database performance? A: Probably, but in a positive way. Think about it - 99% of the time, you run the same queries all the time. This is the equivalent of having them prepared in advance for you all the time.
 //! 1. Q: But what about those horror stories? A: The horror stories are about encoding your business logic in the database. For example, doing complex transformations on the data, or map reducing it, or all kinds of other crazy business. Both our application and our access patterns mean we likely won't need to do a whole lot of that.
 //!
+#![cfg_attr(feature="clippy", feature(plugin))]
+#![cfg_attr(feature="clippy", plugin(clippy))]
 
 extern crate fnv;
 #[macro_use]
