@@ -16,10 +16,10 @@ HAB_DOWNLOAD_URL="https://api.bintray.com/content/habitat/stable/linux/x86_64/ha
 export HAB_ORIGIN=core
 
 BINTRAY_REPO=unstable
+CHANNEL=unstable
 if [ "$(cat VERSION)" == "$TRAVIS_TAG" ]; then
   BINTRAY_REPO=stable
-else
-  export HAB_DEPOT_URL=http://app.acceptance.habitat.sh/v1/depot
+  CHANNEL=stable
 fi
 
 mkdir -p ${BOOTSTRAP_DIR}
@@ -60,7 +60,7 @@ do
   fi
 
   if [ -n "$HAB_AUTH_TOKEN" ]; then
-    ${TRAVIS_HAB} pkg upload $HART --channel stable
+    ${TRAVIS_HAB} pkg upload $HART --channel $CHANNEL
   fi
 
   rm $HART
