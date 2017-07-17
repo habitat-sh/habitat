@@ -417,7 +417,7 @@ fn sub_pkg_sign(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let pair = SigKeyPair::get_latest_pair_for(
         &origin_param_or_env(&m)?,
         &default_cache_key_path(Some(&*FS_ROOT)),
-        None,
+        Some(&PairType::Secret),
     )?;
 
     command::pkg::sign::start(ui, &pair, &src, &dst)
