@@ -11,6 +11,7 @@ name = "bldr-scheduler"
 doc = false
 
 [dependencies]
+clippy = {version = "*", optional = true}
 env_logger = "*"
 linked-hash-map = "*"
 log = "*"
@@ -48,4 +49,5 @@ git = "https://github.com/erickt/rust-zmq"
 branch = "release/v0.8"
 
 [features]
+default = []
 functional = []

@@ -11,6 +11,7 @@ name = "bldr-depot"
 doc = false
 
 [dependencies]
+clippy = {version = "*", optional = true}
 bodyparser = "*"
 env_logger = "*"
 hyper = "*"
@@ -65,4 +66,5 @@ url = "*"
 uuid = "*"
 
 [features]
+default = []
 functional = []

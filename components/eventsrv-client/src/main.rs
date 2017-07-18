@@ -14,6 +14,8 @@
 
 // NOTE: This file is mostly used for testing purposes and isn't necessary for the main operation
 // of EventSrvClient.
+#![cfg_attr(feature="clippy", feature(plugin))]
+#![cfg_attr(feature="clippy", plugin(clippy))]
 
 extern crate byteorder;
 extern crate habitat_eventsrv_client as client;
