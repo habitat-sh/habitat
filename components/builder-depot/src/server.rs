@@ -765,12 +765,21 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
     match route_message::<PackagePreCreate, NetOk>(req, &pcr_req) {
         Ok(_) => (),
         Err(e) => {
-            debug!(
-                "Failed package circular dependency check: {:?}, err: {:?}",
-                ident,
-                e
-            );
-            return Ok(Response::with(status::FailedDependency));
+            if e.get_code() == ErrCode::ENTITY_CONFLICT {
+                warn!(
+                    "Failed package circular dependency check: {:?}, err: {:?}",
+                    ident,
+                    e
+                );
+                return Ok(Response::with(status::FailedDependency));
+            } else {
+                error!(
+                    "Unable to check package dependency: {:?}, err: {:?}",
+                    ident,
+                    e
+                );
+                return Ok(Response::with(status::InternalServerError));
+            }
         }
     }
 
