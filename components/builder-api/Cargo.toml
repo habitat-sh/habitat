@@ -11,6 +11,7 @@ name = "bldr-api"
 doc = false
 
 [dependencies]
+clippy = {version = "*", optional = true}
 base64 = "*"
 bodyparser = "*"
 env_logger = "*"
@@ -50,4 +51,5 @@ path = "../builder-protocol"
 path = "../net"
 
 [features]
+default = []
 functional = []

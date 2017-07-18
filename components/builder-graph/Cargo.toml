@@ -11,6 +11,7 @@ name = "bldr-graph"
 doc = false
 
 [dependencies]
+clippy = {version = "*", optional = true}
 log = "*"
 env_logger = "*"
 petgraph = "*"
@@ -42,3 +43,6 @@ path = "../net"
 
 [build-dependencies]
 pkg-config = "0.3"
+
+[features]
+default = []

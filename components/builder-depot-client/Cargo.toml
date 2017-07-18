@@ -6,6 +6,7 @@ build = "../bldr-build.rs"
 workspace = "../../"
 
 [dependencies]
+clippy = {version = "*", optional = true}
 broadcast = "*"
 hyper = "*"
 hyper-openssl = ""
@@ -29,4 +30,5 @@ path = "../core"
 path = "../http-client"
 
 [features]
+default = []
 functional = []

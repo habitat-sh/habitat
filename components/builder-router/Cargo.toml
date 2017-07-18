@@ -11,6 +11,7 @@ name = "bldr-router"
 doc = false
 
 [dependencies]
+clippy = {version = "*", optional = true}
 env_logger = "*"
 log = "*"
 protobuf = "*"
@@ -35,3 +36,6 @@ path = "../core"
 
 [dependencies.habitat_net]
 path = "../net"
+
+[features]
+default = []

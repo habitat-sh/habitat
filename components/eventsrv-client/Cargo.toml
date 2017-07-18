@@ -10,6 +10,7 @@ description = "Habitat EventSrv client"
 workspace = "../../"
 
 [dependencies]
+clippy = {version = "*", optional = true}
 byteorder = "*"
 env_logger = "*"
 habitat-eventsrv-protocol = { path = "../eventsrv-protocol" }
@@ -28,3 +29,6 @@ pkg-config = "0.3"
 [[bin]]
 name = "eventsrv-client"
 path = "src/main.rs"
+
+[features]
+default = []

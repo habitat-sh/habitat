@@ -16,6 +16,7 @@ path = "../butterfly-test"
 pkg-config = "0.3"
 
 [dependencies]
+clippy = {version = "*", optional = true}
 byteorder = "*"
 env_logger = "*"
 log = "*"
@@ -40,5 +41,6 @@ branch = "release/v0.8"
 path = "../core"
 
 [features]
+default = []
 functional = []
 protocols = []

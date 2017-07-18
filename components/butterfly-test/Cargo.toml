@@ -5,6 +5,7 @@ authors = ["Adam Jacob <adam@chef.io>"]
 workspace = "../../"
 
 [dependencies]
+clippy = {version = "*", optional = true}
 env_logger = "*"
 time = "*"
 
@@ -13,3 +14,6 @@ path = "../butterfly"
 
 [dependencies.habitat_core]
 path = "../core"
+
+[features]
+default = []

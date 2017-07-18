@@ -6,6 +6,7 @@ workspace = "../../"
 build = "../bldr-build.rs"
 
 [dependencies]
+clippy = {version = "*", optional = true}
 log = "*"
 statsd = "*"
 petgraph = "*"
@@ -22,4 +23,5 @@ path = "../core"
 path = "../builder-protocol"
 
 [features]
+default = []
 functional = []

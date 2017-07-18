@@ -5,6 +5,7 @@ authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletche
 workspace = "../../"
 
 [dependencies]
+clippy = {version = "*", optional = true}
 bitflags = "*"
 fnv = "*"
 habitat_builder_protocol = { path = "../builder-protocol" }
@@ -28,4 +29,5 @@ git = "https://github.com/erickt/rust-zmq"
 branch = "release/v0.8"
 
 [features]
+default = []
 functional = []

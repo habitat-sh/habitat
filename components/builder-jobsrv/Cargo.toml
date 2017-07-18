@@ -11,6 +11,7 @@ name = "bldr-job-srv"
 doc = false
 
 [dependencies]
+clippy = {version = "*", optional = true}
 aws-sdk-rust = "*"
 env_logger = "*"
 linked-hash-map = "*"
@@ -48,4 +49,5 @@ git = "https://github.com/erickt/rust-zmq"
 branch = "release/v0.8"
 
 [features]
+default = []
 functional = []
