@@ -354,6 +354,8 @@ subcommand_run() {
 
 # **Internal** Creates a new Studio.
 new_studio() {
+
+
   # Check if a pre-existing Studio configuration is found and use that to
   # determine the type
   if [ -s "$studio_config" ]; then
@@ -678,6 +680,9 @@ enter_studio() {
 
   local env="$(chroot_env "$studio_path" "$studio_enter_environment")"
 
+  info "=============================="
+  info "WE ARE CREATING THE STUDIO!!!!"
+  info "=============================="
   info "Entering Studio at $HAB_STUDIO_ROOT ($STUDIO_TYPE)"
   report_env_vars
   echo
@@ -774,48 +779,7 @@ rm_studio() {
 
   info "Destroying Studio at $HAB_STUDIO_ROOT ($STUDIO_TYPE)"
 
-  # Set the verbose flag (i.e. `-v`) for any coreutils-like commands if verbose
-  # mode was requested
-  if [ -n "$VERBOSE" ]; then
-    local v="-v"
-  else
-    local v=
-  fi
-
-  # Unmount filesystems that were previously set up in, but only if they are
-  # currently mounted. You know, so you can run this all day long, like, for
-  # fun and stuff.
-
-  if $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/src type"; then
-    $bb umount $v -l $HAB_STUDIO_ROOT/src
-  fi
-
-  if $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/run type"; then
-    $bb umount $v $HAB_STUDIO_ROOT/run
-  fi
-
-  if $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/sys type"; then
-    $bb umount $v $HAB_STUDIO_ROOT/sys
-  fi
-
-  if $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/proc type"; then
-    $bb umount $v $HAB_STUDIO_ROOT/proc
-  fi
-
-  if $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/dev/pts type"; then
-    $bb umount $v $HAB_STUDIO_ROOT/dev/pts
-  fi
-
-  if $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/dev type"; then
-    $bb umount $v -l $HAB_STUDIO_ROOT/dev
-  fi
-
-  if $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/var/run/docker.sock type"; then
-    $bb umount $v -l $HAB_STUDIO_ROOT/var/run/docker.sock
-  fi
-
-  # Remove remaining filesystem
-  $bb rm -rf $v $HAB_STUDIO_ROOT
+  trap cleanup_studio EXIT
 }
 
 
@@ -1022,6 +986,51 @@ cleanup_studio() {
   if [ -f $lock_file ]; then
     $bb kill $($bb cat $lock_file)
   fi
+
+  # Set the verbose flag (i.e. `-v`) for any coreutils-like commands if verbose
+  # mode was requested
+  if [ -n "$VERBOSE" ]; then
+    local v="-v"
+  else
+    local v=
+  fi
+
+
+  # Unmount filesystems that were previously set up in, but only if they are
+  # currently mounted. You know, so you can run this all day long, like, for
+  # fun and stuff.
+
+  if $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/src type"; then
+    $bb umount $v -l $HAB_STUDIO_ROOT/src
+  fi
+
+  if $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/run type"; then
+    $bb umount $v $HAB_STUDIO_ROOT/run
+  fi
+
+  if $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/sys type"; then
+    $bb umount $v $HAB_STUDIO_ROOT/sys
+  fi
+
+  if $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/proc type"; then
+    $bb umount $v $HAB_STUDIO_ROOT/proc
+  fi
+
+  if $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/dev/pts type"; then
+    $bb umount $v $HAB_STUDIO_ROOT/dev/pts
+  fi
+
+  if $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/dev type"; then
+    $bb umount $v -l $HAB_STUDIO_ROOT/dev
+  fi
+
+  if $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/var/run/docker.sock type"; then
+    $bb umount $v -l $HAB_STUDIO_ROOT/var/run/docker.sock
+  fi
+
+  # Remove remaining filesystem
+  $bb rm -rf $v $HAB_STUDIO_ROOT
+
 }
 
 # **Internal** Sets the `$libexec_path` variable, which is the absolute path to
