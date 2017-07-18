@@ -16,8 +16,4 @@ connection_timeout_sec = 3600
 
 [archive]
 backend = "local"
-key = ""
-secret = ""
-endpoint = ""
-bucket = ""
-region = "us-east-1"
+local_dir = "/tmp"

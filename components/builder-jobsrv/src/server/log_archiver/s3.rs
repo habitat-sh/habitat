@@ -70,7 +70,11 @@ impl S3Archiver {
         // Parameterize this if anyone ends up needing V2 signatures
         let signature_type = Signature::V4;
         let final_endpoint = match config.endpoint {
-            Some(url) => Some(extern_url::Url::parse(url.as_str())?),
+            Some(url) => {
+                let url = extern_url::Url::parse(url.as_str())
+                    .expect("Invalid endpoint URL given");
+                Some(url)
+            },
             None => None,
         };
         let user_agent = format!("Habitat-Builder/{}", VERSION);
