@@ -13,6 +13,7 @@
 // limitations under the License.
 
 use core::config::ConfigFile;
+use protocol::{DEFAULT_CONSUMER_PORT, DEFAULT_PRODUCER_PORT};
 
 use error::Error;
 
@@ -26,8 +27,8 @@ pub struct Config {
 impl Default for Config {
     fn default() -> Self {
         Config {
-            consumer_port: 9689,
-            producer_port: 9688,
+            consumer_port: DEFAULT_CONSUMER_PORT,
+            producer_port: DEFAULT_PRODUCER_PORT,
         }
     }
 }

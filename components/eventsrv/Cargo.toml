@@ -13,6 +13,7 @@ workspace = "../../"
 [dependencies]
 clippy = {version = "*", optional = true}
 byteorder = "*"
+clap = "*"
 env_logger = "*"
 habitat_core = { path = "../core" }
 habitat-eventsrv-protocol = { path = "../eventsrv-protocol" }

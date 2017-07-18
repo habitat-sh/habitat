@@ -16,7 +16,7 @@ env_logger = "*"
 habitat-eventsrv-protocol = { path = "../eventsrv-protocol" }
 log = "*"
 protobuf = "*"
-rand="*"
+rand = "*"
 time = "*"
 
 [dependencies.zmq]

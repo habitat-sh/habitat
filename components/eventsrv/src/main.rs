@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Copyright (c) 2017 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,21 +14,23 @@
 #![cfg_attr(feature="clippy", feature(plugin))]
 #![cfg_attr(feature="clippy", plugin(clippy))]
 
+#[macro_use]
+extern crate clap;
+
 extern crate habitat_core as core;
 extern crate habitat_eventsrv as eventsrv;
 extern crate log;
 extern crate protobuf;
 
-use std::env;
-
+use clap::App;
 use core::config::ConfigFile;
 use eventsrv::config::Config;
 
 fn main() {
-    let config = if let Some(path) = env::args().nth(1) {
-        Config::from_file(&path).unwrap_or(Config::default())
-    } else {
-        Config::default()
+    let matches = app().get_matches();
+    let config = match matches.value_of("config") {
+        Some(cfg) => Config::from_file(&cfg).unwrap_or(Config::default()),
+        None => Config::default(),
     };
 
     assert!(config.producer_port != config.consumer_port);
@@ -38,4 +40,17 @@ fn main() {
     println!("Starting proxy service...");
 
     eventsrv::proxy(config.producer_port, config.consumer_port);
+}
+
+fn app<'a, 'b>() -> clap::App<'a, 'b> {
+    clap::App::new("Habitat EventSrv")
+        .author("The Habitat Maintainers <humans@habitat.sh>")
+        .arg(
+            clap::Arg::with_name("config")
+                .short("c")
+                .long("config")
+                .value_name("FILE")
+                .help("Filepath to configuration file")
+                .takes_value(true),
+        )
 }
