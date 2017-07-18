@@ -113,7 +113,7 @@ pub trait Hook: fmt::Debug + Sized {
     /// Write `maybe_new_content` into the hook file only if it's
     /// different from what's already there. Return `true` if the file
     /// content was changed.
-    fn maybe_change_content(&self, maybe_new_content: &String) -> Result<bool> {
+    fn maybe_change_content(&self, maybe_new_content: &str) -> Result<bool> {
         let content_hash = crypto::hash::hash_string(maybe_new_content);
         let existing_hash = self.content_hash()?;
 

@@ -36,9 +36,10 @@ pub struct TestSup {
     pub process: Option<Child>,
 }
 
-/// Return a random unprivileged TCP port number.
+/// Return a random unprivileged, unregistered TCP port number.
 fn random_port() -> u16 {
-    let between = Range::new(1024, ::std::u16::MAX);
+    // IANA port registrations go to 49151
+    let between = Range::new(49152, ::std::u16::MAX);
     let mut rng = rand::thread_rng();
     between.ind_sample(&mut rng)
 }
