@@ -16,6 +16,7 @@ doc = false
 name = "functional"
 
 [dependencies]
+clippy = {version = "*", optional = true}
 ansi_term = "*"
 base64 = "*"
 bitflags = "*"
@@ -60,5 +61,6 @@ winapi = "*"
 hyper = "*"
 
 [features]
+default = []
 functional = []
 apidocs =[]
