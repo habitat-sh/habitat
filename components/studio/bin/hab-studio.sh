@@ -680,9 +680,6 @@ enter_studio() {
 
   local env="$(chroot_env "$studio_path" "$studio_enter_environment")"
 
-  info "=============================="
-  info "WE ARE CREATING THE STUDIO!!!!"
-  info "=============================="
   info "Entering Studio at $HAB_STUDIO_ROOT ($STUDIO_TYPE)"
   report_env_vars
   echo
