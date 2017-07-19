@@ -77,7 +77,7 @@ We now have a skeleton plan, but we need to modify some of its settings before w
 
     > Note: A previous version of the tutorial used version `0.1.0`; however, the content related to that version no longer works with the latest version of Habitat.
 3. Because this is a tutorial, you don't have to change the `pkg_maintainer` value to your email address; however, when you upload packages for others to consume, you should include your contact information.
-4. Leave the `pkg_upstream_url` and `pkg_source` values as they are. The `pkg_upstream_url` is a metadata setting for your project/application -- in this case, the `habitat-example-plans` GitHub repo. The `pkg_source` setting is required, but since you will be building your package with cloned source files, you do not need to specify a valid URL.
+4. Leave the `pkg_upstream_url` as it is. The `pkg_upstream_url` is a metadata setting for your project/application -- in this case, the `habitat-example-plans` GitHub repo.
 5. Our Node.js application depends on the `node` and `npm` binaries at runtime, so include one of the core Habitat packages, `core/node`, as a runtime dependency. Transitive dependencies, such as `core/glibc` used by `core/node`, do not need to be listed when creating plans.
 
        pkg_deps=(core/node)
