@@ -775,6 +775,9 @@ rm_studio() {
   info "Destroying Studio at $HAB_STUDIO_ROOT ($STUDIO_TYPE)"
 
   trap cleanup_studio EXIT
+
+  # Remove remaining filesystem
+  $bb rm -rf $v $HAB_STUDIO_ROOT
 }
 
 
@@ -1023,9 +1026,11 @@ cleanup_studio() {
     $bb umount $v -l $HAB_STUDIO_ROOT/var/run/docker.sock
   fi
 
-  # Remove remaining filesystem
-  $bb rm -rf $v $HAB_STUDIO_ROOT
+  # Remove `/dev/console` device
+  $bb rm $HAB_STUDIO_ROOT/dev/console
 
+  # Remove `/dev/null` device
+  $bb rm $HAB_STUDIO_ROOT/dev/null
 }
 
 # **Internal** Sets the `$libexec_path` variable, which is the absolute path to
