@@ -17,3 +17,8 @@ pub const STABLE_CHANNEL: &'static str = "stable";
 
 /// Default Depot Channel environment variable
 pub const DEPOT_CHANNEL_ENVVAR: &'static str = "HAB_DEPOT_CHANNEL";
+
+/// Helper function for Builder dynamic channels
+pub fn bldr_channel_name(id: u64) -> String {
+    format!("bldr-{}", id)
+}

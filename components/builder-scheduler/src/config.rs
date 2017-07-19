@@ -16,6 +16,7 @@
 
 use std::path::PathBuf;
 use db::config::DataStoreCfg;
+use hab_core::url;
 use hab_core::config::ConfigFile;
 use hab_net::config::{DispatcherCfg, RouterAddr, RouterCfg, Shards};
 use protocol::sharding::{ShardId, SHARD_COUNT};
@@ -25,6 +26,10 @@ use error::Error;
 #[derive(Debug, Deserialize)]
 #[serde(default)]
 pub struct Config {
+    /// Token for authenticating with the public builder-api
+    pub auth_token: String,
+    /// Default URL to determine which Builder Depot to use
+    pub depot_url: String,
     /// List of shard identifiers serviced by the running service.
     pub shards: Vec<ShardId>,
     /// Number of threads to process queued messages.
@@ -43,6 +48,8 @@ impl Default for Config {
         let mut datastore = DataStoreCfg::default();
         datastore.database = String::from("builder_scheduler");
         Config {
+            auth_token: "".to_string(),
+            depot_url: url::default_depot_url(),
             shards: (0..SHARD_COUNT).collect(),
             worker_threads: Self::default_worker_count(),
             migration_path: String::from("/hab/svc/builder-scheduler/pkgs"),
@@ -82,6 +89,8 @@ mod tests {
     #[test]
     fn config_from_file() {
         let content = r#"
+        auth_token = "mytoken"
+        depot_url = "mydepot"
         shards = [
             0
         ]
@@ -103,6 +112,8 @@ mod tests {
         "#;
 
         let config = Config::from_raw(&content).unwrap();
+        assert_eq!(&config.auth_token, "mytoken");
+        assert_eq!(&config.depot_url, "mydepot");
         assert_eq!(config.datastore.port, 9000);
         assert_eq!(config.datastore.user, "test");
         assert_eq!(config.datastore.database, "test_scheduler");
@@ -122,5 +133,6 @@ mod tests {
 
         let config = Config::from_raw(&content).unwrap();
         assert_eq!(config.worker_threads, 0);
+        assert_eq!(&config.auth_token, "");
     }
 }

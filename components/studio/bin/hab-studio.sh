@@ -930,6 +930,11 @@ chroot_env() {
   if [ -n "${HAB_DEPOT_URL:-}" ]; then
     env="$env HAB_DEPOT_URL=$HAB_DEPOT_URL"
   fi
+  # If a Habitat Depot Channel is set, then propagate it into the Studio's
+  # environment.
+  if [ -n "${HAB_DEPOT_CHANNEL:-}" ]; then
+    env="$env HAB_DEPOT_CHANNEL=$HAB_DEPOT_CHANNEL"
+  fi
   # If a no coloring environment variable is set, then propagate it into the Studio's
   # environment.
   if [ -n "${HAB_NOCOLORING:-}" ]; then
@@ -990,6 +995,9 @@ report_env_vars() {
   fi
   if [ -n "${HAB_DEPOT_URL:-}" ]; then
     info "Exported: HAB_DEPOT_URL=$HAB_DEPOT_URL"
+  fi
+  if [ -n "${HAB_DEPOT_CHANNEL:-}" ]; then
+    info "Exported: HAB_DEPOT_CHANNEL=$HAB_DEPOT_CHANNEL"
   fi
   if [ -n "${HAB_NOCOLORING:-}" ]; then
     info "Exported: HAB_NOCOLORING=$HAB_NOCOLORING"

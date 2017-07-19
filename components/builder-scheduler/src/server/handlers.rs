@@ -220,6 +220,10 @@ pub fn job_status(
     let msg: proto::JobStatus = req.parse_msg()?;
     debug!("job_status message: {:?}", msg);
 
+    // TODO BUG: SA There is a potential race condition here where the job status can get lost
+    // if the process goes away (for whatever reason) before the status gets processed by
+    // the scheduler thread. We can fix it by persisting the status and then handing it
+    // asynchronously, or by making the status update handling synchronous.
     state.schedule_cli().notify_status(&msg.get_job())?;
 
     req.reply_complete(sock, &msg)?;
