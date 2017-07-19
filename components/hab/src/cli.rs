@@ -75,6 +75,22 @@ pub fn get() -> App<'static, 'static> {
                     "Ring key name, which will encrypt communication messages")
             )
         )
+        (@subcommand job =>
+            (about: "Commands relating to job control")
+            (aliases: &["j", "jo"])
+            (@setting ArgRequiredElseHelp)
+            (@subcommand start =>
+                (about: "Schedule a job or group of jobs.")
+                (aliases: &["s", "st", "sta", "star"])
+                (@arg PKG_IDENT: +required +takes_value
+                    "The origin and name of the package to schedule a job for \
+                    (ex: core/redis)")
+                (@arg DEPOT_URL: -u --url +takes_value {valid_url}
+                    "Use a specific Depot URL (ex: http://depot.example.com/v1/depot)")
+                (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for the Depot")
+                (@arg GROUP: -g --group "Schedule jobs for this package and all of its reverse dependencies")
+            )
+        )
         (@subcommand origin =>
             (about: "Commands relating to Habitat origin keys")
             (aliases: &["o", "or", "ori", "orig", "origi"])

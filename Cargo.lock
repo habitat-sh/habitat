@@ -574,6 +574,7 @@ dependencies = [
  "clap 2.25.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "clippy 0.0.144 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "habitat_api_client 0.0.0",
  "habitat_common 0.0.0",
  "habitat_core 0.0.0",
  "habitat_depot_client 0.0.0",
@@ -694,6 +695,22 @@ dependencies = [
  "protobuf 1.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_derive 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "habitat_api_client"
+version = "0.0.0"
+dependencies = [
+ "clippy 0.0.144 (registry+https://github.com/rust-lang/crates.io-index)",
+ "habitat_core 0.0.0",
+ "habitat_http_client 0.0.0",
+ "hyper 0.10.9 (registry+https://github.com/rust-lang/crates.io-index)",
+ "hyper-openssl 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "log 0.3.7 (registry+https://github.com/rust-lang/crates.io-index)",
+ "regex 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde 0.8.23 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde_json 0.9.10 (registry+https://github.com/rust-lang/crates.io-index)",
+ "url 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]

@@ -217,6 +217,35 @@ impl Client {
         ))
     }
 
+    /// Schedules a job for a package ident
+    ///
+    /// # Failures
+    ///
+    /// * Key cannot be found
+    /// * Remote Depot is not available
+    pub fn schedule_job<I>(&self, ident: &I, token: &str) -> Result<()>
+    where
+        I: Identifiable,
+    {
+        let path = format!("pkgs/schedule/{}/{}", ident.origin(), ident.name());
+        let result = self.add_authz(self.0.post(&path), token).send();
+        match result {
+            Ok(Response { status: StatusCode::Ok, .. }) => Ok(()),
+            Ok(response) => {
+                if response.status == StatusCode::Unauthorized {
+                    Err(Error::APIError(
+                        response.status,
+                        "Your GitHub token requires both user:email and read:org permissions."
+                            .to_string(),
+                    ))
+                } else {
+                    Err(err_from_response(response))
+                }
+            }
+            Err(e) => Err(Error::from(e)),
+        }
+    }
+
     /// Download a public key from a remote Depot to the given filepath.
     ///
     /// # Failures

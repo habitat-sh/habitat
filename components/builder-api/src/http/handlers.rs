@@ -117,7 +117,14 @@ pub fn job_create(req: &mut Request) -> IronResult<Response> {
     {
         match req.get::<bodyparser::Struct<JobCreateReq>>() {
             Ok(Some(body)) => project_get.set_name(body.project_id),
-            _ => return Ok(Response::with(status::UnprocessableEntity)),
+            Ok(None) => {
+                debug!("The request body was empty");
+                return Ok(Response::with(status::UnprocessableEntity));
+            }
+            Err(body) => {
+                debug!("The request body was malformed: {:?}", &body);
+                return Ok(Response::with(status::UnprocessableEntity));
+            }
         }
     }
     // TODO: SA - Eliminate need to clone the session
@@ -143,7 +150,10 @@ pub fn job_create(req: &mut Request) -> IronResult<Response> {
             );
             Ok(render_json(status::Created, &job))
         }
-        Err(err) => Ok(render_net_error(&err)),
+        Err(err) => {
+            debug!("Error creating job: {:?}", &err);
+            Ok(render_net_error(&err))
+        }
     }
 }
 

@@ -1,0 +1,26 @@
+[package]
+name = "habitat_api_client"
+version = "0.0.0"
+authors = ["Josh Black <jblack@chef.io>"]
+build = "../bldr-build.rs"
+workspace = "../../"
+
+[dependencies]
+clippy = {version = "*", optional = true}
+hyper = "*"
+hyper-openssl = ""
+log = "*"
+regex = "*"
+serde = "*"
+serde_json = "*"
+url = "*"
+
+[dependencies.habitat_core]
+path = "../core"
+
+[dependencies.habitat_http_client]
+path = "../http-client"
+
+[features]
+default = []
+functional = []

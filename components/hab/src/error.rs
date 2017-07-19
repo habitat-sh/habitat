@@ -19,6 +19,7 @@ use std::io;
 use std::path::{self, PathBuf};
 use std::result;
 
+use api_client;
 use depot_client;
 use common;
 use hcore;
@@ -30,6 +31,7 @@ pub type Result<T> = result::Result<T, Error>;
 #[derive(Debug)]
 #[allow(dead_code)]
 pub enum Error {
+    APIClient(api_client::Error),
     ArgumentError(&'static str),
     ButterflyError(String),
     CannotRemoveFromChannel((String, String)),
@@ -61,6 +63,7 @@ pub enum Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
+            Error::APIClient(ref err) => format!("{}", err),
             Error::ArgumentError(ref e) => format!("{}", e),
             Error::ButterflyError(ref e) => format!("{}", e),
             Error::CannotRemoveFromChannel((ref p, ref c)) => {
@@ -148,6 +151,7 @@ impl fmt::Display for Error {
 impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
+            Error::APIClient(ref err) => err.description(),
             Error::ArgumentError(_) => "There was an error parsing an error or with it's value",
             Error::ButterflyError(_) => "Butterfly has had an error",
             Error::CannotRemoveFromChannel(_) => {
