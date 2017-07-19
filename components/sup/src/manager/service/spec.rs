@@ -22,11 +22,11 @@ use std::result;
 use std::str::FromStr;
 
 use hcore::package::{PackageIdent, PackageInstall};
-use hcore::service::ServiceGroup;
+use hcore::service::{ApplicationEnvironment, ServiceGroup};
 use hcore::url::DEFAULT_DEPOT_URL;
 use hcore::util::{deserialize_using_from_str, serialize_using_to_string};
 use rand::{Rng, thread_rng};
-use serde;
+use serde::{self, Deserialize};
 use toml;
 
 use super::{Topology, UpdateStrategy};
@@ -70,6 +70,22 @@ impl FromStr for DesiredState {
     }
 }
 
+pub fn deserialize_application_environment<'de, D>(
+    d: D,
+) -> result::Result<Option<ApplicationEnvironment>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let s: Option<String> = Option::deserialize(d)?;
+    if let Some(s) = s {
+        Ok(Some(
+            FromStr::from_str(&s).map_err(serde::de::Error::custom)?,
+        ))
+    } else {
+        Ok(None)
+    }
+}
+
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(default)]
 pub struct ServiceSpec {
@@ -77,6 +93,9 @@ pub struct ServiceSpec {
             serialize_with = "serialize_using_to_string")]
     pub ident: PackageIdent,
     pub group: String,
+    #[serde(deserialize_with = "deserialize_application_environment",
+            skip_serializing_if = "Option::is_none")]
+    pub application_environment: Option<ApplicationEnvironment>,
     pub depot_url: String,
     pub channel: Option<String>,
     pub topology: Topology,
@@ -211,6 +230,7 @@ impl Default for ServiceSpec {
         ServiceSpec {
             ident: PackageIdent::default(),
             group: DEFAULT_GROUP.to_string(),
+            application_environment: None,
             depot_url: DEFAULT_DEPOT_URL.to_string(),
             channel: None,
             topology: Topology::default(),
@@ -327,7 +347,7 @@ mod test {
 
     use hcore::error::Error as HError;
     use hcore::package::PackageIdent;
-    use hcore::service::ServiceGroup;
+    use hcore::service::{ApplicationEnvironment, ServiceGroup};
     use tempdir::TempDir;
     use toml;
 
@@ -359,6 +379,7 @@ mod test {
         let toml = r#"
             ident = "origin/name/1.2.3/20170223130020"
             group = "jobs"
+            application_environment = "theinternet.preprod"
             depot_url = "http://example.com/depot"
             topology = "leader"
             update_strategy = "rolling"
@@ -375,6 +396,12 @@ mod test {
             PackageIdent::from_str("origin/name/1.2.3/20170223130020").unwrap()
         );
         assert_eq!(spec.group, String::from("jobs"));
+        assert_eq!(
+            spec.application_environment,
+            Some(
+                ApplicationEnvironment::from_str("theinternet.preprod").unwrap(),
+            )
+        );
         assert_eq!(spec.depot_url, String::from("http://example.com/depot"));
         assert_eq!(spec.topology, Topology::Leader);
         assert_eq!(spec.update_strategy, UpdateStrategy::Rolling);
@@ -449,6 +476,10 @@ mod test {
         let spec = ServiceSpec {
             ident: PackageIdent::from_str("origin/name/1.2.3/20170223130020").unwrap(),
             group: String::from("jobs"),
+            application_environment: Some(
+                ApplicationEnvironment::from_str("theinternet.preprod")
+                    .unwrap(),
+            ),
             depot_url: String::from("http://example.com/depot"),
             channel: Some(String::from("stable")),
             topology: Topology::Leader,
@@ -468,6 +499,9 @@ mod test {
             r#"ident = "origin/name/1.2.3/20170223130020""#,
         ));
         assert!(toml.contains(r#"group = "jobs""#));
+        assert!(toml.contains(
+            r#"application_environment = "theinternet.preprod""#,
+        ));
         assert!(toml.contains(r#"depot_url = "http://example.com/depot""#));
         assert!(toml.contains(r#"channel = "stable""#));
         assert!(toml.contains(r#"topology = "leader""#));
@@ -503,6 +537,7 @@ mod test {
         let toml = r#"
             ident = "origin/name/1.2.3/20170223130020"
             group = "jobs"
+            application_environment = "theinternet.preprod"
             depot_url = "http://example.com/depot"
             topology = "leader"
             update_strategy = "rolling"
@@ -521,6 +556,12 @@ mod test {
         assert_eq!(spec.group, String::from("jobs"));
         assert_eq!(spec.depot_url, String::from("http://example.com/depot"));
         assert_eq!(spec.topology, Topology::Leader);
+        assert_eq!(
+            spec.application_environment,
+            Some(
+                ApplicationEnvironment::from_str("theinternet.preprod").unwrap(),
+            )
+        );
         assert_eq!(spec.update_strategy, UpdateStrategy::Rolling);
         assert_eq!(
             spec.binds,
@@ -592,6 +633,10 @@ mod test {
         let spec = ServiceSpec {
             ident: PackageIdent::from_str("origin/name/1.2.3/20170223130020").unwrap(),
             group: String::from("jobs"),
+            application_environment: Some(
+                ApplicationEnvironment::from_str("theinternet.preprod")
+                    .unwrap(),
+            ),
             depot_url: String::from("http://example.com/depot"),
             channel: Some(String::from("stable")),
             topology: Topology::Leader,
@@ -612,6 +657,9 @@ mod test {
             r#"ident = "origin/name/1.2.3/20170223130020""#,
         ));
         assert!(toml.contains(r#"group = "jobs""#));
+        assert!(toml.contains(
+            r#"application_environment = "theinternet.preprod""#,
+        ));
         assert!(toml.contains(r#"depot_url = "http://example.com/depot""#));
         assert!(toml.contains(r#"channel = "stable""#));
         assert!(toml.contains(r#"topology = "leader""#));
@@ -651,13 +699,13 @@ mod test {
 
     #[test]
     fn service_bind_from_str() {
-        let bind_str = "name:service.group@organization";
+        let bind_str = "name:app.env#service.group@organization";
         let bind = ServiceBind::from_str(bind_str).unwrap();
 
         assert_eq!(bind.name, String::from("name"));
         assert_eq!(
             bind.service_group,
-            ServiceGroup::from_str("service.group@organization").unwrap()
+            ServiceGroup::from_str("app.env#service.group@organization").unwrap()
         );
     }
 
@@ -737,13 +785,13 @@ mod test {
             key: ServiceBind,
         }
         let toml = r#"
-            key = "name:service.group@organization"
+            key = "name:app.env#service.group@organization"
             "#;
         let data: Data = toml::from_str(toml).unwrap();
 
         assert_eq!(
             data.key,
-            ServiceBind::from_str("name:service.group@organization").unwrap()
+            ServiceBind::from_str("name:app.env#service.group@organization").unwrap()
         );
     }
 

@@ -656,12 +656,12 @@ mod tests {
             Some("0.10.4"),
             Some("20170419115548"),
         );
-        let sg_one = ServiceGroup::new("shield", "one", None).unwrap();
+        let sg_one = ServiceGroup::new(None, "shield", "one", None).unwrap();
 
         let service_store: RumorStore<ServiceRumor> = RumorStore::default();
         let service_one =
             ServiceRumor::new("member-a".to_string(), &pg_id, &sg_one, &sys_info, None);
-        let sg_two = ServiceGroup::new("shield", "two", None).unwrap();
+        let sg_two = ServiceGroup::new(None, "shield", "two", None).unwrap();
         let service_two =
             ServiceRumor::new("member-b".to_string(), &pg_id, &sg_two, &sys_info, None);
         let service_three =

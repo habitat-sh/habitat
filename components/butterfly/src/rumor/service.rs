@@ -173,7 +173,7 @@ mod tests {
 
     fn create_service(member_id: &str) -> Service {
         let pkg = PackageIdent::from_str("core/neurosis/1.2.3/20161208121212").unwrap();
-        let sg = ServiceGroup::new(pkg.name(), "production", None).unwrap();
+        let sg = ServiceGroup::new(None, pkg.name(), "production", None).unwrap();
         Service::new(member_id.to_string(), &pkg, &sg, &SysInfo::default(), None)
     }
 
@@ -259,7 +259,7 @@ mod tests {
     #[should_panic]
     fn service_package_name_mismatch() {
         let ident = PackageIdent::from_str("core/overwatch/1.2.3/20161208121212").unwrap();
-        let sg = ServiceGroup::new("counter-strike", "times", Some("ofgrace")).unwrap();
+        let sg = ServiceGroup::new(None, "counter-strike", "times", Some("ofgrace")).unwrap();
         Service::new(
             "bad-member".to_string(),
             &ident,

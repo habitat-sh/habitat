@@ -35,7 +35,7 @@ function Invoke-Unpack {
 function Invoke-Build {
     Push-Location "$PLAN_CONTEXT"
     try {
-        cargo build --release
+        cargo build --release --verbose
         if($LASTEXITCODE -ne 0) {
             Write-Error "Cargo build failed!"
         }

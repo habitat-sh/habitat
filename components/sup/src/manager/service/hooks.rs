@@ -929,8 +929,9 @@ mod tests {
             InitHook::file_name()
         ));
         let mut hook_output = HookOutput::new(&stdout_log, &stderr_log);
-        let service_group =
-            ServiceGroup::new("dummy", "service", None).expect("couldn't create ServiceGroup");
+        let service_group = ServiceGroup::new(None, "dummy", "service", None).expect(
+            "couldn't create ServiceGroup",
+        );
 
         hook_output.stream_output::<InitHook>(&service_group, &mut child);
 
