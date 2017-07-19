@@ -11,6 +11,7 @@ pkg_build_deps=(core/protobuf core/protobuf-rust core/coreutils core/cacerts
 pkg_binds=(
   [router]="port heartbeat"
   [datastore]="port"
+  [depot]="url"
 )
 bin="bldr-scheduler"
 pkg_svc_run="$bin start -c ${pkg_svc_config_path}/config.toml"

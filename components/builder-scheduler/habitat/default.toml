@@ -1,3 +1,6 @@
+auth_token = ""
+promote_channel = "unstable"
+
 [datastore]
 user = "hab"
 password = ""

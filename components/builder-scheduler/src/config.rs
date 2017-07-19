@@ -40,7 +40,10 @@ pub struct Config {
     pub log_path: PathBuf,
     /// List of net addresses for routing servers to connect to
     pub routers: Vec<RouterAddr>,
+    /// Configuration for the DB to connect to
     pub datastore: DataStoreCfg,
+    /// Channel to auto-promote successful groups to
+    pub promote_channel: String,
 }
 
 impl Default for Config {
@@ -56,6 +59,7 @@ impl Default for Config {
             log_path: PathBuf::from("/tmp"),
             routers: vec![RouterAddr::default()],
             datastore: datastore,
+            promote_channel: String::from("unstable"),
         }
     }
 }
@@ -91,6 +95,7 @@ mod tests {
         let content = r#"
         auth_token = "mytoken"
         depot_url = "mydepot"
+        promote_channel = "foo"
         shards = [
             0
         ]
@@ -114,6 +119,7 @@ mod tests {
         let config = Config::from_raw(&content).unwrap();
         assert_eq!(&config.auth_token, "mytoken");
         assert_eq!(&config.depot_url, "mydepot");
+        assert_eq!(&config.promote_channel, "foo");
         assert_eq!(config.datastore.port, 9000);
         assert_eq!(config.datastore.user, "test");
         assert_eq!(config.datastore.database, "test_scheduler");
@@ -134,5 +140,6 @@ mod tests {
         let config = Config::from_raw(&content).unwrap();
         assert_eq!(config.worker_threads, 0);
         assert_eq!(&config.auth_token, "");
+        assert_eq!(&config.promote_channel, "unstable");
     }
 }
