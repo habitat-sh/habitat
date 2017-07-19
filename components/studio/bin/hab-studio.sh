@@ -354,8 +354,6 @@ subcommand_run() {
 
 # **Internal** Creates a new Studio.
 new_studio() {
-
-
   # Check if a pre-existing Studio configuration is found and use that to
   # determine the type
   if [ -s "$studio_config" ]; then
