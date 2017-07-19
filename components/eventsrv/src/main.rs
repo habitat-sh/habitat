@@ -11,18 +11,16 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 #![cfg_attr(feature="clippy", feature(plugin))]
 #![cfg_attr(feature="clippy", plugin(clippy))]
 
-#[macro_use]
 extern crate clap;
-
 extern crate habitat_core as core;
 extern crate habitat_eventsrv as eventsrv;
 extern crate log;
 extern crate protobuf;
 
-use clap::App;
 use core::config::ConfigFile;
 use eventsrv::config::Config;
 

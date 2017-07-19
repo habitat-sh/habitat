@@ -496,12 +496,12 @@ pub struct CensusMember {
     suspect: bool,
     confirmed: bool,
     departed: bool,
-    sys: SysInfo,
+    pub sys: SysInfo,
     // Maps must be represented last in a serializable struct for the current version of the toml
     // crate. Additionally, this deserialization method is required to correct any ordering issues
     // with the table being serialized - https://docs.rs/toml/0.4.0/toml/ser/fn.tables_last.html
     #[serde(serialize_with = "toml::ser::tables_last")]
-    cfg: toml::value::Table,
+    pub cfg: toml::value::Table,
 }
 
 impl CensusMember {

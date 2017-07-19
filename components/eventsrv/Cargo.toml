@@ -13,7 +13,7 @@ workspace = "../../"
 [dependencies]
 clippy = {version = "*", optional = true}
 byteorder = "*"
-clap = "*"
+clap = { version = "*", features = [ "suggestions", "color", "unstable" ] }
 env_logger = "*"
 habitat_core = { path = "../core" }
 habitat-eventsrv-protocol = { path = "../eventsrv-protocol" }
@@ -42,4 +42,3 @@ path = "src/main.rs"
 [[bin]]
 name = "subscriber"
 path = "src/subscriber.rs"
-

@@ -12,4 +12,4 @@ pkg_exports=(
 )
 pkg_exposes=(consumer_port producer_port)
 bin="eventsrv"
-pkg_svc_run="$bin ${pkg_svc_config_path}/config.toml"
+pkg_svc_run="$bin -c ${pkg_svc_config_path}/config.toml"
