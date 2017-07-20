@@ -16,4 +16,3 @@ connection_timeout_sec = 3600
 
 [archive]
 backend = "local"
-local_dir = "/tmp"
