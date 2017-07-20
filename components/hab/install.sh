@@ -306,7 +306,7 @@ dl_file() {
 
   # Attempt to download with wget, if found. If successful, quick return
   if command -v wget > /dev/null; then
-    info "Downlading via wget: ${_url}"
+    info "Downloading via wget: ${_url}"
     if [ -n "${SSL_CERT_FILE:-}" ]; then
       wget ${_wget_extra_args:+"--ca-certificate=${SSL_CERT_FILE}"} -q -O "${_dst}" "${_url}"
     else
@@ -324,7 +324,7 @@ dl_file() {
 
   # Attempt to download with curl, if found. If successful, quick return
   if command -v curl > /dev/null; then
-    info "Downlading via curl: ${_url}"
+    info "Downloading via curl: ${_url}"
     if [ -n "${SSL_CERT_FILE:-}" ]; then
       curl ${_curl_extra_args:+"--cacert ${SSL_CERT_FILE}"} -sSfL "${_url}" -o "${_dst}"
     else
