@@ -89,6 +89,7 @@ pub struct ScheduleMgr {
     schedule_cli: ScheduleClient,
     depot_url: String,
     auth_token: String,
+    promote_channel: String,
     msg: zmq::Message,
     logger: Logger,
 }
@@ -109,12 +110,13 @@ impl ScheduleMgr {
         let mut schedule_cli = ScheduleClient::default();
         schedule_cli.connect()?;
 
-        let (log_path, depot_url, auth_token) = {
+        let (log_path, depot_url, auth_token, promote_channel) = {
             let cfg = config.read().unwrap();
             (
                 PathBuf::from(cfg.log_path.clone()),
                 cfg.depot_url.clone(),
                 cfg.auth_token.clone(),
+                cfg.promote_channel.clone(),
             )
         };
 
@@ -127,6 +129,7 @@ impl ScheduleMgr {
             schedule_cli: schedule_cli,
             depot_url: depot_url,
             auth_token: auth_token,
+            promote_channel: promote_channel,
             msg: msg,
             logger: logger,
         })
@@ -551,8 +554,8 @@ impl ScheduleMgr {
                 // TODO: Add a better heuristic for promotion, eg, check leaf failure nodes
                 // and don't block promotion if the failures don't have any packages that
                 // depend on them.
-                if failed == 0 {
-                    self.promote_group(&group, "stable")?;
+                if failed == 0 && self.promote_channel != "unstable" {
+                    self.promote_group(&group, &self.promote_channel)?;
                 }
 
                 proto::GroupState::Complete
