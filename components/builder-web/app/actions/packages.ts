@@ -20,7 +20,6 @@ import { Package } from "../records/Package";
 
 export const CLEAR_PACKAGES = "CLEAR_PACKAGES";
 export const POPULATE_DASHBOARD_RECENT = "POPULATE_DASHBOARD_RECENT";
-export const CLEAR_PACKAGE_CHANNELS = "CLEAR_PACKAGE_CHANNELS";
 export const CLEAR_PACKAGE_VERSIONS = "CLEAR_PACKAGE_VERSIONS";
 export const POPULATE_EXPLORE = "POPULATE_EXPLORE";
 export const POPULATE_EXPLORE_STATS = "POPULATE_EXPLORE_STATS";
@@ -44,12 +43,6 @@ export function fetchDashboardRecent(origin: string) {
         return depotApi.get({ origin: origin })
             .then(data => dispatch(populateDashboardRecent(data)))
             .catch(error => console.error(error));
-    };
-}
-
-function clearPackageChannels() {
-    return {
-        type: CLEAR_PACKAGE_CHANNELS
     };
 }
 
@@ -78,34 +71,8 @@ export function fetchPackage(pkg) {
         dispatch(clearPackages());
         depotApi.get(pkg.ident).then(response => {
             dispatch(setCurrentPackage(response["results"]));
-            dispatch(fetchCurrentPackageChannels(pkg));
         }).catch(error => {
             dispatch(setCurrentPackage(undefined, error));
-        });
-    };
-}
-
-export function fetchCurrentPackageChannels(pkg) {
-    return dispatch => {
-        dispatch(clearPackageChannels());
-        depotApi.getPackageChannels(pkg.ident)
-            .then(channels => dispatch(setCurrentPackageChannels(channels)))
-            .catch(error => dispatch(setCurrentPackageChannels(undefined, error)));
-    };
-}
-
-export function fetchVisiblePackageChannels(pkgs) {
-    return dispatch => {
-        pkgs.forEach((pkg) => {
-
-            // Only fetch for fully qualified packages
-            if (pkg.origin && pkg.name && pkg.version && pkg.release) {
-                depotApi.getPackageChannels(pkg)
-                    .then(channels => {
-                        dispatch(setVisiblePackageChannels(pkg, channels));
-                    })
-                .catch(error => console.error(error));
-            }
         });
     };
 }
@@ -179,7 +146,6 @@ export function filterPackagesBy(
 
         depotApi.get(params, nextRange).then(response => {
             dispatch(setVisiblePackages(response["results"]));
-            dispatch(fetchVisiblePackageChannels(response["results"]));
             dispatch(setPackagesTotalCount(response["totalCount"]));
             dispatch(setPackagesNextRange(response["nextRange"]));
         }).catch(error => {
@@ -224,14 +190,6 @@ export function setCurrentPackage(pkg, error = undefined) {
     };
 }
 
-export function setCurrentPackageChannels(channels, error = undefined) {
-    return {
-        type: SET_CURRENT_PACKAGE_CHANNELS,
-        payload: channels,
-        error: error,
-    };
-}
-
 export function setCurrentPackageVersions(versions, error = undefined) {
     return {
         type: SET_CURRENT_PACKAGE_VERSIONS,
@@ -266,12 +224,5 @@ export function setVisiblePackages(params, error = undefined) {
         type: SET_VISIBLE_PACKAGES,
         payload: params,
         error: error,
-    };
-}
-
-export function setVisiblePackageChannels(pkg, channels) {
-    return {
-        type: SET_VISIBLE_PACKAGE_CHANNELS,
-        payload: { pkg, channels }
     };
 }
