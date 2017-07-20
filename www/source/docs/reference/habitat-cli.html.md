@@ -52,25 +52,28 @@ The main program that allows you to sign and upload packages, start Habitat serv
 
 **SUBCOMMANDS**
 
-    cli        Commands relating to Habitat runtime config
-    config     Commands relating to Habitat runtime config
-    file       Commands relating to Habitat files
-    help       Prints this message or the help of the given subcommand(s)
-    origin     Commands relating to Habitat origin keys
-    pkg        Commands relating to Habitat packages
-    ring       Commands relating to Habitat rings
-    service    Commands relating to Habitat services
-    studio     Commands relating to Habitat Studios
-    sup        Commands relating to the Habitat Supervisor
-    user       Commands relating to Habitat users
+    cli       Commands relating to Habitat runtime config
+    config    Commands relating to Habitat runtime config
+    file      Commands relating to Habitat files
+    help      Prints this message or the help of the given subcommand(s)
+    origin    Commands relating to Habitat origin keys
+    pkg       Commands relating to Habitat packages
+    plan      Commands relating to plans and other app-specific configuration.
+    ring      Commands relating to Habitat rings
+    studio    Commands relating to Habitat Studios
+    sup       Commands relating to the Habitat Supervisor
+    svc       Commands relating to Habitat services
+    user      Commands relating to Habitat users
 
 **ALIASES**
 
     apply      Alias for: 'config apply'
     install    Alias for: 'pkg install'
+    run        Alias for: 'sup run'
     setup      Alias for: 'cli setup'
-    start      Alias for: 'sup start'
-
+    start      Alias for: 'svc start'
+    stop       Alias for: 'svc stop'
+    term       Alias for: 'sup term'
 ***
 
 <h2 id="hab-cli-setup" class="anchor">hab cli setup</h2>
@@ -123,13 +126,13 @@ Upload a file to a supervisor ring.
     -p, --peer <PEER>    A comma-delimited list of one or more Habitat Supervisor peers to infect
                          (default: 127.0.0.1:9638)
     -r, --ring <RING>    Ring key name, which will encrypt communication messages
+    -u, --user <USER>    Name of the user key
 
 **ARGS**
 
     <SERVICE_GROUP>     Target service group (ex: redis.default)
     <FILE>              Path to local file on disk
     <VERSION_NUMBER>    A version number (positive integer) for this configuration (ex: 42)
-    <USER>              Name of the user key
 
 <h2 id="hab-origin-key-download" class="anchor">hab origin key download</h2>
 Download origin key(s) to `HAB_CACHE_KEY_PATH`
@@ -605,16 +608,43 @@ Helps you to build packages inside a studio environment.
 
 **ENVIRONMENT VARIABLES**
 
-    HAB_ORIGIN        Propagates this variable into any studios
-    HAB_ORIGIN_KEYS   Installs secret keys (`-k' option overrides)
-    HAB_STUDIOS_HOME  Sets a home path for all Studios (default: /hab/studios)
-    HAB_STUDIO_ROOT   Sets a Studio root (`-r' option overrides)
-    NO_SRC_PATH       If set, do not mount source path (`-n' flag overrides)
-    QUIET             Prints less output (`-q' flag overrides)
-    SRC_PATH          Sets the source path (`-s' option overrides)
-    STUDIO_TYPE       Sets a Studio type when creating (`-t' option overrides)
-    VERBOSE           Prints more verbose output (`-v' flag overrides)
+    HAB_NOCOLORING      Disables text coloring mode despite TERM capabilities
+    HAB_NONINTERACTIVE  Disables interactive progress bars despite tty
+    HAB_ORIGIN          Propagates this variable into any studios
+    HAB_ORIGIN_KEYS     Installs secret keys (`-k' option overrides)
+    HAB_STUDIOS_HOME    Sets a home path for all Studios (default: /hab/studios)
+    HAB_STUDIO_ROOT     Sets a Studio root (`-r' option overrides)
+    NO_SRC_PATH         If set, do not mount source path (`-n' flag overrides)
+    QUIET               Prints less output (`-q' flag overrides)
+    SRC_PATH            Sets the source path (`-s' option overrides)
+    STUDIO_TYPE         Sets a Studio type when creating (`-t' option overrides)
+    VERBOSE             Prints more verbose output (`-v' flag overrides)
+    http_proxy          Sets an http_proxy environment variable inside the Studio
+    https_proxy         Sets an https_proxy environment variable inside the Studio
+    no_proxy            Sets a no_proxy environment variable inside the Studio
 
+**EXAMPLES**
+
+    # Create a new default Studio
+    hab-studio new
+
+    # Enter the default Studio
+    hab-studio enter
+
+    # Run a command in the default Studio
+    hab-studio run wget --version
+
+    # Destroy the default Studio
+    hab-studio rm
+
+    # Create and enter a busybox type Studio with a custom root
+    hab-studio -r /opt/slim -t busybox enter
+
+    # Run a command in the slim Studio, showing only the command output
+    hab-studio -q -r /opt/slim run busybox ls -l /
+
+    # Verbosely destroy the slim Studio
+    hab-studio -v -r /opt/slim rm
 ***
 
 <h2 id="hab-sup" class="anchor">hab sup</h2>
@@ -633,11 +663,23 @@ Supervisor that starts and manages the software in a Habitat service.
 
 **SUBCOMMANDS**
 
-    config                  Print the default.toml for a given package
-    help                    Prints this message
-    sh                      Start an interactive shell
-    start                   Start a Habitat-supervised service from a package
-
+    bash      Start an interactive Bash-like shell
+    config    Displays the default configuration options for a service
+    help      Prints this message or the help of the given subcommand(s)
+    load      Load a service to be started and supervised by Habitat from a package or
+              artifact. Services started in this manner will persist through Supervisor
+              restarts.
+    run       Run the Habitat Supervisor
+    sh        Start an interactive Bourne-like shell
+    start     Start a loaded, but stopped, Habitat service or a transient service from a
+              package or artifact. If the Habitat Supervisor is not already running this
+              will additionally start one for you.
+    status    Query the status of Habitat services.
+    stop      Stop a running Habitat service.
+    term      Gracefully terminate the Habitat Supervisor and all of it's running services
+    unload    Unload a persistent or transient service started by the Habitat supervisor. If
+              the Supervisor is running when the service is unloaded the service will be
+              stopped.
 ***
 
 <h2 id="hab-user-key-generate" class="anchor">hab user key generate</h2>
