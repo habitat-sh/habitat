@@ -22,7 +22,7 @@ pub fn get_uid_by_name(owner: &str) -> Option<u32> {
 }
 
 pub fn get_gid_by_name(group: &str) -> Option<u32> {
-    linux_users::get_group_by_name(&group.as_ref()).map(|g| g.gid())
+    linux_users::get_group_by_name(group.as_ref()).map(|g| g.gid())
 }
 
 pub fn get_current_username() -> Option<String> {

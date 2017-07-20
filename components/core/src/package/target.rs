@@ -11,6 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+#![cfg_attr(feature="clippy", allow(ifs_same_cond))]
 
 use std::fmt;
 use std::result;
@@ -25,7 +26,7 @@ pub trait Target: fmt::Display + Into<PackageTarget> {
 }
 
 /// Describes the platform (operating system/kernel)
-/// and architecture (x86_64, i386, etc..) that a package is built for
+/// and architecture (`x86_64`, `i386`, etc..) that a package is built for
 #[derive(Deserialize, Serialize, Eq, PartialEq, Debug, Clone, Hash)]
 pub struct PackageTarget {
     #[serde(deserialize_with = "deserialize_using_from_str",
@@ -107,7 +108,7 @@ impl FromStr for PackageTarget {
     type Err = Error;
 
     fn from_str(value: &str) -> result::Result<Self, Self::Err> {
-        let items: Vec<&str> = value.split("-").collect();
+        let items: Vec<&str> = value.split('-').collect();
         let (architecture, platform) = match items.len() {
             2 => {
                 (

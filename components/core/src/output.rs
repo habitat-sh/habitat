@@ -51,13 +51,7 @@ pub fn set_verbose(booly: bool) {
 
 /// True if color is enabled
 pub fn is_color() -> bool {
-    unsafe {
-        if NO_COLOR.load(Ordering::Relaxed) {
-            false
-        } else {
-            true
-        }
-    }
+    unsafe { !NO_COLOR.load(Ordering::Relaxed) }
 }
 
 /// Set to true if you want color to turn off.
@@ -108,15 +102,15 @@ impl<'a> StructuredOutput<'a> {
 // function. Viola!
 impl<'a> fmt::Display for StructuredOutput<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let verbose = self.verbose.unwrap_or(is_verbose());
-        let color = self.color.unwrap_or(is_color());
+        let verbose = self.verbose.unwrap_or_else(is_verbose);
+        let color = self.color.unwrap_or_else(is_color);
         let preamble_color = if self.preamble == PROGRAM_NAME.as_str() {
             Cyan
         } else {
             Green
         };
-        if verbose {
-            if color {
+        match (verbose, color) {
+            (true, true) => {
                 write!(
                     f,
                     "{}({})[{}]: {}",
@@ -130,7 +124,8 @@ impl<'a> fmt::Display for StructuredOutput<'a> {
                     )),
                     self.content
                 )
-            } else {
+            }
+            (true, false) => {
                 write!(
                     f,
                     "{}({})[{}:{}:{}]: {}",
@@ -142,8 +137,7 @@ impl<'a> fmt::Display for StructuredOutput<'a> {
                     self.content
                 )
             }
-        } else {
-            if color {
+            (false, true) => {
                 write!(
                     f,
                     "{}({}): {}",
@@ -151,15 +145,14 @@ impl<'a> fmt::Display for StructuredOutput<'a> {
                     White.bold().paint(self.logkey),
                     self.content
                 )
-            } else {
-                write!(f, "{}({}): {}", self.preamble, self.logkey, self.content)
             }
+            (false, false) => write!(f, "{}({}): {}", self.preamble, self.logkey, self.content),
         }
     }
 }
 
 #[macro_export]
-/// Works the same as the print! macro, but uses our StructuredOutput formatter.
+/// Works the same as the `print!` macro, but uses our `StructuredOutput` formatter.
 macro_rules! output {
     ($content: expr) => {
         {

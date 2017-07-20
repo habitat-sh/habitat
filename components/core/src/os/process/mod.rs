@@ -57,7 +57,7 @@ impl From<i32> for Signal {
             4 => Signal::ILL,
             6 => Signal::ABRT,
             8 => Signal::FPE,
-            9 => Signal::KILL,
+            // 9 caught by _
             10 => Signal::USR1,
             11 => Signal::SEGV,
             12 => Signal::USR2,

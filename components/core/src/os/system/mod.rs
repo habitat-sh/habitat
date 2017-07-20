@@ -69,7 +69,7 @@ impl FromStr for Architecture {
         let architecture = value.trim().to_lowercase();
         match architecture.as_ref() {
             "x86_64" => Ok(Architecture::X86_64),
-            _ => return Err(Error::InvalidArchitecture(value.to_string())),
+            _ => Err(Error::InvalidArchitecture(value.to_string()))
         }
     }
 }
@@ -83,7 +83,7 @@ impl FromStr for Platform {
             "linux" => Ok(Platform::Linux),
             "windows" => Ok(Platform::Windows),
             "darwin" => Ok(Platform::Darwin),
-            _ => return Err(Error::InvalidPlatform(value.to_string())),
+            _ => Err(Error::InvalidPlatform(value.to_string()))
         }
     }
 }

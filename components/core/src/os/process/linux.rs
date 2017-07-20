@@ -57,7 +57,7 @@ impl OsSignal for Signal {
     }
 }
 
-pub fn become_command(command: PathBuf, args: Vec<OsString>) -> Result<()> {
+pub fn become_command(command: PathBuf, args: &[OsString]) -> Result<()> {
     become_exec_command(command, args)
 }
 
@@ -73,7 +73,6 @@ pub fn is_alive(pid: u32) -> bool {
         _ => {
             match io::Error::last_os_error().raw_os_error() {
                 Some(libc::EPERM) => true,
-                Some(libc::ESRCH) => false,
                 _ => false,
             }
         }
@@ -84,7 +83,7 @@ pub fn signal(pid: u32, signal: Signal) -> Result<()> {
     unsafe {
         match libc::kill(pid as pid_t, signal.os_signal()) {
             0 => Ok(()),
-            e => return Err(Error::SignalFailed(e, io::Error::last_os_error())),
+            e => Err(Error::SignalFailed(e, io::Error::last_os_error()))
         }
     }
 }
@@ -96,10 +95,10 @@ pub fn signal(pid: u32, signal: Signal) -> Result<()> {
 /// # Failures
 ///
 /// * If the system call fails the error will be returned, otherwise this function does not return
-fn become_exec_command(command: PathBuf, args: Vec<OsString>) -> Result<()> {
-    debug!("Calling execvp(): ({:?}) {:?}", command.display(), &args);
-    let error_if_failed = Command::new(command).args(&args).exec();
+fn become_exec_command(command: PathBuf, args: &[OsString]) -> Result<()> {
+    debug!("Calling execvp(): ({:?}) {:?}", command.display(), args);
+    let error_if_failed = Command::new(command).args(args).exec();
     // The only possible return for the above function is an `Error` so return it, meaning that we
     // failed to exec to our target program
-    return Err(error_if_failed.into());
+    Err(error_if_failed.into())
 }

@@ -34,7 +34,7 @@ impl Plan {
         let mut version: Option<String> = None;
         for line in bytes.lines() {
             if let Ok(line) = line {
-                let parts: Vec<&str> = line.splitn(2, "=").collect();
+                let parts: Vec<&str> = line.splitn(2, '=').collect();
                 match parts[0] {
                     "pkg_name" => name = Some(parts[1].to_string()),
                     "pkg_version" => version = Some(parts[1].to_string()),

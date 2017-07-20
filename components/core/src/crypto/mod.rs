@@ -137,7 +137,7 @@
 //! note unlike the format of keys, the compressed tarball is **not** Base64 encoded--it is the
 //! compressed tarball itself.
 //!
-//! Note that the BLAKE2b hash functions use a digest length of 32 bytes (256 bits!). More details
+//! Note that the `BLAKE2b` hash functions use a digest length of 32 bytes (256 bits!). More details
 //! about the hashing strategy can be found in the [libsodium hashing
 //! documentation](https://download.libsodium.org/doc/hashing/generic_hashing.html).
 //!
@@ -243,9 +243,9 @@ pub static SECRET_BOX_KEY_SUFFIX: &'static str = "box.key";
 /// The suffix on the end of a secret symmetric key file
 pub static SECRET_SYM_KEY_SUFFIX: &'static str = "sym.key";
 /// The hashing function we're using during sign/verify
-/// See also: https://download.libsodium.org/doc/hashing/generic_hashing.html
+/// See also: `https://download.libsodium.org/doc/hashing/generic_hashing.html`
 pub static SIG_HASH_TYPE: &'static str = "BLAKE2b";
-/// This environment variable allows you to override the fs::CACHE_KEY_PATH
+/// This environment variable allows you to override the `fs::CACHE_KEY_PATH`
 /// at runtime. This is useful for testing.
 pub static CACHE_KEY_PATH_ENV_VAR: &'static str = "HAB_CACHE_KEY_PATH";
 pub static HART_FORMAT_VERSION: &'static str = "HART-1";
