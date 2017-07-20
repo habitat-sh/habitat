@@ -42,6 +42,7 @@ use hcore::crypto::{self, default_cache_key_path, SymKey};
 #[cfg(windows)]
 use hcore::crypto::dpapi::encrypt;
 use hcore::package::{PackageArchive, PackageIdent};
+use hcore::service::ServiceGroup;
 use hcore::url::{DEFAULT_DEPOT_URL, DEPOT_URL_ENVVAR};
 use launcher_client::{LauncherCli, ERR_NO_RETRY_EXCODE, OK_NO_RETRY_EXCODE};
 use url::Url;
@@ -206,6 +207,8 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                 [default: https://bldr.habitat.sh/v1/depot]")
             (@arg AUTO_UPDATE: --("auto-update") -A "Enable automatic updates for the Supervisor \
                 itself")
+            (@arg EVENTS: --events -ev +takes_value {valid_service_group} "Name of the service \
+                group running a Habitat EventSrv to forward supervisor and service event data to")
         )
         (@subcommand sh =>
             (about: "Start an interactive Bourne-like shell")
@@ -250,6 +253,8 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                 "Use package config from this path, rather than the package itself")
             (@arg AUTO_UPDATE: --("auto-update") -A "Enable automatic updates for the Supervisor \
                 itself")
+            (@arg EVENTS: --events -ev +takes_value {valid_service_group} "Name of the service \
+                group running a Habitat EventSrv to forward supervisor and service event data to")
         )
         (@subcommand status =>
             (about: "Query the status of Habitat services.")
@@ -348,6 +353,15 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                 "The listen address of an initial peer (IP[:PORT])")
             (@arg PERMANENT_PEER: --("permanent-peer") -I "If this Supervisor is a permanent peer")
             (@arg RING: --ring -r +takes_value "Ring key name")
+            (@arg CHANNEL: --channel +takes_value
+                "Receive Supervisor updates from the specified release channel")
+            (@arg DEPOT_URL: --url -u +takes_value {valid_url}
+                "Receive Supervisor updates from the Depot at the specified URL \
+                [default: https://bldr.habitat.sh/v1/depot]")
+            (@arg AUTO_UPDATE: --("auto-update") -A "Enable automatic updates for the Supervisor \
+                itself")
+            (@arg EVENTS: --events -ev +takes_value {valid_service_group} "Name of the service \
+                group running a Habitat EventSrv to forward supervisor and service event data to")
         )
         (@subcommand sh =>
             (about: "Start an interactive Bourne-like shell")
@@ -378,7 +392,7 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
             (@arg CHANNEL: --channel +takes_value
                 "Receive package updates from the specified release channel")
             (@arg GROUP: --group +takes_value
-                "The service group; shared config and topology [default: default].")
+                "The service group; shared config and topology [default: default]")
             (@arg DEPOT_URL: --url -u +takes_value {valid_url}
                 "Receive package updates from the Depot at the specified URL \
                 [default: https://bldr.habitat.sh/v1/depot]")
@@ -390,8 +404,11 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                 "One or more service groups to bind to a configuration")
             (@arg CONFIG_DIR: --("config-from") +takes_value {dir_exists}
                 "Use package config from this path, rather than the package itself")
-            (@arg PASSWORD: --password +takes_value
-                "Password of the service user")
+            (@arg AUTO_UPDATE: --("auto-update") -A "Enable automatic updates for the Supervisor \
+                itself")
+            (@arg EVENTS: --events -ev +takes_value {valid_service_group} "Name of the service \
+                group running a Habitat EventSrv to forward supervisor and service event data to")
+            (@arg PASSWORD: --password +takes_value "Password of the service user")
         )
         (@subcommand status =>
             (about: "Query the status of Habitat services.")
@@ -707,6 +724,9 @@ fn mgrcfg_from_matches(m: &ArgMatches) -> Result<ManagerConfig> {
     if let Some(ring) = ring {
         cfg.ring = Some(ring.name_with_rev());
     }
+    if let Some(events) = m.value_of("EVENTS") {
+        cfg.eventsrv_group = ServiceGroup::from_str(events).ok();
+    }
     Ok(cfg)
 }
 
@@ -769,6 +789,13 @@ fn dir_exists(val: String) -> result::Result<(), String> {
         Ok(())
     } else {
         Err(format!("Directory: '{}' cannot be found", &val))
+    }
+}
+
+fn valid_service_group(val: String) -> result::Result<(), String> {
+    match ServiceGroup::validate(&val) {
+        Ok(()) => Ok(()),
+        Err(err) => Err(err.to_string()),
     }
 }
 

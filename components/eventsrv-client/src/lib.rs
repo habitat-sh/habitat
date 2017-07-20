@@ -11,60 +11,45 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 #![cfg_attr(feature="clippy", feature(plugin))]
 #![cfg_attr(feature="clippy", plugin(clippy))]
 
 extern crate env_logger;
 extern crate habitat_eventsrv_protocol as protocol;
-#[macro_use]
-extern crate log;
 extern crate protobuf;
 extern crate time;
 extern crate zmq;
 
 pub mod message;
 
-use zmq::{Context, PUSH, Socket};
+pub use protocol::EventSrvAddr;
 use protobuf::Message;
 use protocol::EventEnvelope;
 
-pub struct EventSrvClient {
-    ports: Vec<String>,
-    socket: Socket,
-}
+pub struct EventSrvClient(zmq::Socket);
 
 impl EventSrvClient {
-    pub fn new(ports: Vec<String>) -> Self {
-        let ctx = Context::new();
-        let socket = ctx.socket(PUSH).expect(
-            "unable to create EventSrvClient push socket",
-        );
-
+    pub fn new() -> Self {
+        let context = zmq::Context::new();
+        let socket = context.socket(zmq::PUSH).unwrap();
         // We want to intentionally set the high water mark for this socket to a low number. In the
         // event that one of our eventsrv processes crashes, this provides two benefits: it reduces
         // the number of message frames that get backed up and it also reduces the impact those
         // stale messages have when the dead process comes back and those messages get sent
         // through.
         socket.set_sndhwm(2).unwrap();
-
-        EventSrvClient {
-            ports: ports,
-            socket: socket,
-        }
+        EventSrvClient(socket)
     }
 
-    pub fn connect(&self) {
-        for p in &self.ports {
-            let push_connect = format!("tcp://localhost:{}", p);
-            debug!("EventSrvClient connecting to {}", push_connect);
-            assert!(self.socket.connect(&push_connect).is_ok());
-        }
+    pub fn connect(&self, addr: &EventSrvAddr) {
+        self.0.connect(&addr.to_producer_addr()).unwrap();
     }
 
-    pub fn send(&self, mut event: EventEnvelope) {
+    pub fn send(&self, event: &mut EventEnvelope) {
         let timestamp = self.current_time();
         event.set_timestamp(timestamp);
-        self.socket
+        self.0
             .send(event.write_to_bytes().unwrap().as_slice(), 0)
             .unwrap();
     }

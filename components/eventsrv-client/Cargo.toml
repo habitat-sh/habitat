@@ -14,9 +14,10 @@ clippy = {version = "*", optional = true}
 byteorder = "*"
 env_logger = "*"
 habitat-eventsrv-protocol = { path = "../eventsrv-protocol" }
+lazy_static = "*"
 log = "*"
 protobuf = "*"
-rand="*"
+rand = "*"
 time = "*"
 
 [dependencies.zmq]

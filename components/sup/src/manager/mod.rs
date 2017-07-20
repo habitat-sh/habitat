@@ -13,6 +13,7 @@
 // limitations under the License.
 
 pub mod service;
+mod events;
 mod self_updater;
 mod service_updater;
 mod spec_watcher;
@@ -28,24 +29,19 @@ use std::result;
 use std::thread;
 use std::str::FromStr;
 use std::sync::{Arc, RwLock};
-use std::sync::mpsc::channel;
 use std::time::Duration;
 
-use byteorder::{ByteOrder, LittleEndian};
 use butterfly;
 use butterfly::member::Member;
 use butterfly::trace::Trace;
 use butterfly::server::timing::Timing;
 use butterfly::server::Suitability;
-use eventsrv_client::EventSrvClient;
-use eventsrv_client::message::{EventEnvelope, EventEnvelope_Type, CensusEntry as CensusEntryProto};
 use hcore::crypto::{default_cache_key_path, SymKey};
 use hcore::fs::FS_ROOT_PATH;
 use hcore::service::ServiceGroup;
 use hcore::os::process::{self, Signal};
 use hcore::package::{Identifiable, PackageIdent, PackageInstall};
 use launcher_client::LauncherCli;
-use protobuf::Message;
 use serde;
 use serde_json;
 use time::{self, Timespec, Duration as TimeDuration};
@@ -118,6 +114,7 @@ impl FsCfg {
 #[derive(Clone, Default)]
 pub struct ManagerConfig {
     pub auto_update: bool,
+    pub eventsrv_group: Option<ServiceGroup>,
     pub update_url: String,
     pub update_channel: Option<String>,
     pub gossip_listen: GossipListenAddr,
@@ -126,13 +123,15 @@ pub struct ManagerConfig {
     pub gossip_permanent: bool,
     pub ring: Option<String>,
     pub name: Option<String>,
-    custom_state_path: Option<PathBuf>,
     pub organization: Option<String>,
+
+    custom_state_path: Option<PathBuf>,
 }
 
 pub struct Manager {
     butterfly: butterfly::Server,
     census_ring: CensusRing,
+    events_group: Option<ServiceGroup>,
     fs_cfg: Arc<FsCfg>,
     launcher: LauncherCli,
     services: Arc<RwLock<Vec<Service>>>,
@@ -227,7 +226,6 @@ impl Manager {
         };
         let mut sys = Sys::new(cfg.gossip_permanent, cfg.gossip_listen, cfg.http_listen);
         let member = Self::load_member(&mut sys, &fs_cfg)?;
-
         let ring_key = match cfg.ring {
             Some(ref ring_with_revision) => {
                 outputln!("Joining ring {}", ring_with_revision);
@@ -238,7 +236,6 @@ impl Manager {
             }
             None => None,
         };
-
         let services = Arc::new(RwLock::new(Vec::new()));
         let server = butterfly::Server::new(
             sys.gossip_listen(),
@@ -263,6 +260,7 @@ impl Manager {
             updater: ServiceUpdater::new(server.clone()),
             census_ring: CensusRing::new(sys.member_id.clone()),
             butterfly: server,
+            events_group: cfg.eventsrv_group,
             launcher: launcher,
             services: services,
             watcher: SpecWatcher::run(&fs_cfg.specs_path)?,
@@ -483,50 +481,10 @@ impl Manager {
         http_gateway::Server::new(self.fs_cfg.clone(), http_listen_addr)
             .start()?;
         debug!("http-gateway started");
-
-        let (event_tx, event_rx) = channel::<Vec<CensusEntryProto>>();
-        let member_id = self.sys.member_id.clone();
-
-        thread::Builder::new()
-            .name("sup-eventsrv".to_string())
-            .spawn(move || {
-                // JB TODO: these ports can't be hardcoded
-                let ports = vec![
-                    "10001".to_string(),
-                    "10011".to_string(),
-                    "10021".to_string(),
-                ];
-                let client = EventSrvClient::new(ports);
-                client.connect();
-
-                match event_rx.recv() {
-                    Ok(census_entries) => {
-                        // We're going to send a vector of bytes over the wire. The format will be
-                        // the length of the thing we're sending, followed by that thing itself,
-                        // repeated.
-                        let mut payload_buf: Vec<u8> = vec![];
-
-                        for entry in census_entries {
-                            let mut proto_size = vec![0; 8];
-                            let mut bytes = entry.write_to_bytes().unwrap();
-                            LittleEndian::write_u64(&mut proto_size, bytes.len() as u64);
-                            payload_buf.append(&mut proto_size);
-                            payload_buf.append(&mut bytes);
-                        }
-
-                        let mut ee = EventEnvelope::new();
-                        ee.set_field_type(EventEnvelope_Type::ProtoBuf);
-                        ee.set_payload(payload_buf);
-                        ee.set_member_id(member_id);
-                        ee.set_service("habitat-sup".to_string());
-                        let _ = client.send(ee);
-                        Ok(())
-                    }
-                    Err(e) => return Err(e),
-                }
-            })
-            .expect("unable to start sup-eventsrv thread");
-
+        let events = match self.events_group {
+            Some(ref evg) => Some(events::EventsMgr::start(evg.clone())),
+            None => None,
+        };
         loop {
             let next_check = time::get_time() + TimeDuration::milliseconds(1000);
             if self.launcher.is_stopping() {
@@ -563,8 +521,10 @@ impl Manager {
 
             if self.census_ring.changed {
                 self.persist_state();
+                events.as_ref().map(|events| {
+                    events.try_connect(&self.census_ring)
+                });
 
-                let mut censuses = Vec::<CensusEntryProto>::new();
                 for service in self.services
                     .read()
                     .expect("Services lock is poisoned!")
@@ -574,16 +534,9 @@ impl Manager {
                         self.census_ring.census_group_for(&service.service_group)
                     {
                         if let Some(member) = census_group.me() {
-                            let cep = member.as_protobuf();
-                            censuses.push(cep);
+                            events.as_ref().map(|events| events.send_census(member));
                         }
                     }
-                }
-
-                if censuses.is_empty() {
-                    debug!("There's nothing to send to the EventSrv this tick.");
-                } else {
-                    let _ = event_tx.send(censuses);
                 }
             }
 
