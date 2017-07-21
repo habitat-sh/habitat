@@ -13,17 +13,20 @@
 // limitations under the License.
 
 use std::env;
+use std::fs;
 use std::ffi::OsString;
+use std::path::Path;
 
 use common::ui::UI;
 use hcore::crypto::CACHE_KEY_PATH_ENV_VAR;
 use hcore::env as henv;
-use hcore::fs::CACHE_KEY_PATH;
-use hcore::os::users;
+use hcore::fs::{CACHE_ARTIFACT_PATH, CACHE_KEY_PATH};
+use hcore::os::{filesystem, users};
 
 use config;
 use error::Result;
 
+const ARTIFACT_PATH_ENVVAR: &'static str = "ARTIFACT_PATH";
 const STUDIO_CMD: &'static str = "hab-studio";
 const STUDIO_CMD_ENVVAR: &'static str = "HAB_STUDIO_BINARY";
 const STUDIO_PACKAGE_IDENT: &'static str = "core/hab-studio";
@@ -42,14 +45,15 @@ pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
         }
     }
 
-    // If the `$HAB_CACHE_KEY_PATH` environment variable is not present, check if we are running
-    // under a `sudo` invocation. If so, determine the non-root user that issued the command in
-    // order to set their key cache location in the environment variable. This is done so that the
-    // `hab-studio` command will find the correct key cache or so that the correct directory will
-    // be volume mounted when used with Docker.
-    if henv::var(CACHE_KEY_PATH_ENV_VAR).is_err() {
-        if let Some(sudo_user) = henv::sudo_user() {
-            if let Some(home) = users::get_home_for_user(&sudo_user) {
+    // Check if we are running under a `sudo` invocation. If so, determine the non-root user that
+    // issued the command in order to set some Studio-related environment variables. This is done
+    // so that the `hab-studio` command will find the correct key cache, artifact cache, etc. and
+    // so that the correct directores will be volume mounted when used with Docker.
+    if let Some(sudo_user) = henv::sudo_user() {
+        if let Some(home) = users::get_home_for_user(&sudo_user) {
+            // If the `$HAB_CACHE_KEY_PATH` environment variable is not present, set it to the
+            // non-root user's key cache
+            if henv::var(CACHE_KEY_PATH_ENV_VAR).is_err() {
                 let cache_key_path = home.join(format!(".{}", CACHE_KEY_PATH));
                 debug!(
                     "Setting cache_key_path for SUDO_USER={} to: {}",
@@ -57,14 +61,79 @@ pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
                     cache_key_path.display()
                 );
                 env::set_var(CACHE_KEY_PATH_ENV_VAR, cache_key_path);
-                // Prevent any inner `hab` invocations from triggering similar logic: we will be
-                // operating in the context `hab-studio` which is running with root like privileges.
-                env::remove_var("SUDO_USER");
+            }
+            // If the `$ARTIFACT_PATH` environment variable is not present, set it to the non-root
+            // user's key cache
+            if henv::var(ARTIFACT_PATH_ENVVAR).is_err() {
+                let cache_artifact_path = home.join(format!(".{}", CACHE_ARTIFACT_PATH));
+                try!(create_cache_artifact_path(
+                    &cache_artifact_path,
+                    Some(&sudo_user),
+                ));
+                debug!(
+                    "Setting cache_artifact_path for SUDO_USER={} to: {}",
+                    &sudo_user,
+                    cache_artifact_path.display()
+                );
+                env::set_var(ARTIFACT_PATH_ENVVAR, cache_artifact_path);
+            }
+            // Prevent any inner `hab` invocations from triggering similar logic: we will be
+            // operating in the context `hab-studio` which is running with root like privileges.
+            env::remove_var("SUDO_USER");
+        }
+    } else {
+        if let Some(user) = users::get_current_username() {
+            if let Some(home) = users::get_home_for_user(&user) {
+                if henv::var(ARTIFACT_PATH_ENVVAR).is_err() {
+                    let cache_artifact_path = home.join(format!(".{}", CACHE_ARTIFACT_PATH));
+                    try!(create_cache_artifact_path(&cache_artifact_path, None));
+                    debug!(
+                        "Setting cache_artifact_path at: {}",
+                        cache_artifact_path.display()
+                    );
+                    env::set_var(ARTIFACT_PATH_ENVVAR, cache_artifact_path);
+                }
             }
         }
     }
 
     inner::start(ui, args)
+}
+
+fn create_cache_artifact_path(path: &Path, sudo_user: Option<&str>) -> Result<()> {
+    if path.is_dir() {
+        Ok(())
+    } else {
+        match sudo_user {
+            Some(sudo_user) => {
+                debug!(
+                    "Creating cache_artifact_path for SUDO_USER={} at: {}",
+                    &sudo_user,
+                    path.display()
+                )
+            }
+            None => debug!("Creating cache_artifact_path at: {}", path.display()),
+        };
+        try!(fs::create_dir_all(&path));
+        if let Some(sudo_user) = sudo_user {
+            if let (Some(uid), Some(gid)) =
+                (
+                    users::get_uid_by_name(sudo_user),
+                    users::get_primary_gid_for_user(sudo_user),
+                )
+            {
+                debug!(
+                    "Setting permissions of {} for SUDO_USER={} to: {}:{}",
+                    path.display(),
+                    &sudo_user,
+                    uid,
+                    gid
+                );
+                try!(filesystem::chown(path.to_string_lossy().as_ref(), uid, gid));
+            }
+        }
+        Ok(())
+    }
 }
 
 #[cfg(target_os = "linux")]
@@ -150,15 +219,15 @@ mod inner {
 #[cfg(not(target_os = "linux"))]
 mod inner {
     use std::env;
-    use std::ffi::OsString;
-    use std::path::PathBuf;
+    use std::ffi::{OsStr, OsString};
+    use std::path::{Path, PathBuf};
     use std::process::{Command, Stdio};
     use std::str::FromStr;
 
     use common::ui::UI;
     use hcore::crypto::{init, default_cache_key_path};
     use hcore::env as henv;
-    use hcore::fs::{CACHE_KEY_PATH, find_command};
+    use hcore::fs::{CACHE_ARTIFACT_PATH, CACHE_KEY_PATH, find_command};
     use hcore::os::process;
     use hcore::package::PackageIdent;
 
@@ -170,7 +239,8 @@ mod inner {
     const DOCKER_CMD_ENVVAR: &'static str = "HAB_DOCKER_BINARY";
     const DOCKER_IMAGE: &'static str = "habitat-docker-registry.bintray.io/studio";
     const DOCKER_IMAGE_ENVVAR: &'static str = "HAB_DOCKER_STUDIO_IMAGE";
-    const DOCKER_OPTS: &'static str = "HAB_DOCKER_OPTS";
+    const DOCKER_OPTS_ENVVAR: &'static str = "HAB_DOCKER_OPTS";
+    const DOCKER_SOCKET: &'static str = "/var/run/docker.sock";
 
     pub fn start(_ui: &mut UI, args: Vec<OsString>) -> Result<()> {
         if is_windows_studio(&args) {
@@ -208,77 +278,125 @@ mod inner {
     }
 
     pub fn start_docker_studio(_ui: &mut UI, args: Vec<OsString>) -> Result<()> {
-        let docker = henv::var(DOCKER_CMD_ENVVAR).unwrap_or(DOCKER_CMD.to_string());
+        let docker_cmd = find_docker_cmd()?;
 
-        let cmd = match find_command(&docker) {
-            Some(cmd) => cmd,
-            None => return Err(Error::ExecCommandNotFound(docker.into())),
-        };
-
-        let output = Command::new(&cmd)
-            .arg("images")
-            .arg(&image_identifier())
-            .arg("-q")
-            .output()
-            .expect("docker failed to start");
-
-        let stdout = String::from_utf8(output.stdout).unwrap();
-        if stdout.is_empty() {
-            debug!("Failed to find studio image locally.");
-
-            let child = Command::new(&cmd)
-                .arg("pull")
-                .arg(&image_identifier())
-                .stdout(Stdio::inherit())
-                .stderr(Stdio::inherit())
-                .spawn()
-                .expect("docker failed to start");
-
-            let output = child.wait_with_output().expect("failed to wait on child");
-
-            if output.status.success() {
-                debug!("Docker image is reachable. Proceeding with launching docker.");
-            } else {
-                debug!(
-                    "Docker image is unreachable. Exit code = {:?}",
-                    output.status
-                );
-
-                let err_output = String::from_utf8(output.stderr).unwrap();
-
-                if err_output.contains("image") && err_output.contains("not found") {
-                    return Err(Error::DockerImageNotFound(image_identifier().to_string()));
-                } else if err_output.contains("Cannot connect to the Docker daemon") {
-                    return Err(Error::DockerDaemonDown);
-                } else {
-                    return Err(Error::DockerNetworkDown(image_identifier().to_string()));
-                }
-            }
+        if is_image_present(&docker_cmd) {
+            debug!("Found Studio Docker image locally.");
         } else {
-            debug!("Found studio image locally.");
-            debug!("Local image id: {}", stdout);
+            debug!("Failed to find Studio Docker image locally.");
+            pull_image(&docker_cmd)?;
         }
 
-        // We need to ensure that filesystem sharing has been enabled, otherwise the user will
-        // be greeted with a horrible error message that's difficult to make sense of. To
-        // mitigate this, we check the studio version. This will cause Docker to go through the
-        // mounting steps, so we can watch stderr for failure, but has the advantage of not
-        // requiring a TTY.
+        let mut volumes = vec![
+            format!("{}:/src", env::current_dir().unwrap().to_string_lossy()),
+            format!(
+                "{}:/{}",
+                default_cache_key_path(None).to_string_lossy(),
+                CACHE_KEY_PATH
+            ),
+        ];
+        if let Ok(cache_artifact_path) = henv::var(super::ARTIFACT_PATH_ENVVAR) {
+            volumes.push(format!("{}:/{}", cache_artifact_path, CACHE_ARTIFACT_PATH));
+        }
+        if Path::new(DOCKER_SOCKET).exists() {
+            volumes.push(format!("{}:{}", DOCKER_SOCKET, DOCKER_SOCKET));
+        }
 
-        let current_dir = format!("{}:/src", env::current_dir().unwrap().to_string_lossy());
-        let key_cache_path = format!(
-            "{}:/{}",
-            default_cache_key_path(None).to_string_lossy(),
-            CACHE_KEY_PATH
-        );
-        let version_output = Command::new(&cmd)
+        let env_vars = vec![
+            "HAB_DEPOT_URL",
+            "HAB_DEPOT_CHANNEL",
+            "HAB_ORIGIN",
+            "HAB_STUDIO_SUP",
+            "HAB_UPDATE_STRATEGY_FREQUENCY_MS",
+            "http_proxy",
+            "https_proxy",
+        ];
+
+        check_mounts(&docker_cmd, volumes.iter())?;
+        run_container(docker_cmd, args, volumes.iter(), env_vars.iter())
+    }
+
+    pub fn rerun_with_sudo_if_needed(_ui: &mut UI) -> Result<()> {
+        // No sudo calls necessary here--we are calling `docker` commands instead
+        Ok(())
+    }
+
+    fn find_docker_cmd() -> Result<PathBuf> {
+        let docker_cmd = henv::var(DOCKER_CMD_ENVVAR).unwrap_or(DOCKER_CMD.to_string());
+
+        match find_command(&docker_cmd) {
+            Some(docker_abs_path) => Ok(docker_abs_path),
+            None => Err(Error::ExecCommandNotFound(docker_cmd.into())),
+        }
+    }
+
+    fn is_image_present(docker_cmd: &Path) -> bool {
+        let mut cmd = Command::new(docker_cmd);
+        cmd.arg("images").arg(&image_identifier()).arg("-q");
+        debug!("Running command: {:?}", cmd);
+        let result = cmd.output().expect("Docker command failed to spawn");
+
+        !String::from_utf8_lossy(&result.stdout).as_ref().is_empty()
+    }
+
+    fn pull_image(docker_cmd: &Path) -> Result<()> {
+        let image = image_identifier();
+        let mut cmd = Command::new(docker_cmd);
+        cmd.arg("pull")
+            .arg(&image)
+            .stdout(Stdio::inherit())
+            .stderr(Stdio::inherit());
+        debug!("Running command: {:?}", cmd);
+        let result = cmd.spawn()
+            .expect("Docker command failed to spawn")
+            .wait_with_output()
+            .expect("Failed to wait on child process");
+
+        if result.status.success() {
+            debug!("Docker image '{}' is present locally.", &image);
+        } else {
+            debug!(
+                "Pulling Docker image '{}' failed with exit code: {:?}",
+                &image,
+                result.status
+            );
+
+            let err_output = String::from_utf8_lossy(&result.stderr);
+
+            if err_output.contains("image") && err_output.contains("not found") {
+                return Err(Error::DockerImageNotFound(image_identifier().to_string()));
+            } else if err_output.contains("Cannot connect to the Docker daemon") {
+                return Err(Error::DockerDaemonDown);
+            } else {
+                return Err(Error::DockerNetworkDown(image_identifier().to_string()));
+            }
+        }
+
+        Ok(())
+    }
+
+    /// Checks whether or not the volume mounts are working.
+    ///
+    /// We need to ensure that filesystem sharing has been enabled, otherwise the user will be
+    /// greeted with a horrible error message that's difficult to make sense of. To mitigate this,
+    /// we check the studio version. This will cause Docker to go through the mounting steps, so we
+    /// can watch stderr for failure, but has the advantage of not requiring a TTY.
+    fn check_mounts<I, S>(docker_cmd: &Path, volumes: I) -> Result<()>
+    where
+        I: IntoIterator<Item = S>,
+        S: AsRef<OsStr>,
+    {
+        let mut volume_args: Vec<OsString> = Vec::new();
+        for vol in volumes {
+            volume_args.push("--volume".into());
+            volume_args.push(vol.as_ref().into());
+        }
+
+        let version_output = Command::new(docker_cmd)
             .arg("run")
             .arg("--rm")
             .arg("--privileged")
-            .arg("--volume")
-            .arg(&key_cache_path)
-            .arg("--volume")
-            .arg(&current_dir)
+            .args(volume_args)
             .arg(image_identifier())
             .arg("-V")
             .output()
@@ -291,10 +409,21 @@ mod inner {
         {
             return Err(Error::DockerFileSharingNotEnabled);
         }
+        Ok(())
+    }
 
-        // If we make it here, filesystem sharing has been setup correctly, so let's proceed like
-        // normal.
-
+    fn run_container<I, J, S, T>(
+        docker_cmd: PathBuf,
+        args: Vec<OsString>,
+        volumes: I,
+        env_vars: J,
+    ) -> Result<()>
+    where
+        I: IntoIterator<Item = S>,
+        J: IntoIterator<Item = T>,
+        S: AsRef<OsStr>,
+        T: AsRef<str>,
+    {
         let mut cmd_args: Vec<OsString> = vec![
             "run".into(),
             "--rm".into(),
@@ -302,68 +431,46 @@ mod inner {
             "--interactive".into(),
             "--privileged".into(),
         ];
-
-        // All the args already placed in `cmd_args` are things that we don't want to insert again.
-        // Later args such as `--env` will overwrite any options (potentially) set mistakenly here.
-        if let Ok(opts) = henv::var(DOCKER_OPTS) {
+        if let Ok(opts) = henv::var(DOCKER_OPTS_ENVVAR) {
             let opts = opts.split(" ")
                 .map(|v| v.into())
                 // Ensure we're not passing something like `--tty` again here.
                 .filter(|v| !cmd_args.contains(v))
                 .collect::<Vec<_>>();
-            debug!("Docker opts originating from DOCKER_OPTS = {:?}", opts);
-            cmd_args.extend_from_slice(opts.as_slice());
-        }
-
-        let env_vars = vec![
-            "HAB_DEPOT_URL",
-            "HAB_DEPOT_CHANNEL",
-            "HAB_ORIGIN",
-            "HAB_STUDIO_SUP",
-            "HAB_UPDATE_STRATEGY_FREQUENCY_MS",
-            "http_proxy",
-            "https_proxy",
-        ];
-        for var in env_vars {
-            if let Ok(val) = henv::var(var) {
+            if !opts.is_empty() {
                 debug!(
-                    "Propagating environment variable into container: {}={}",
-                    var,
-                    val
+                    "Adding extra Docker options from {} = {:?}",
+                    DOCKER_OPTS_ENVVAR,
+                    opts
                 );
-                cmd_args.push("--env".into());
-                cmd_args.push(format!("{}={}", var, val).into());
+                cmd_args.extend_from_slice(opts.as_slice());
             }
         }
-
-        cmd_args.push("--volume".into());
-        cmd_args.push("/var/run/docker.sock:/var/run/docker.sock".into());
-        cmd_args.push("--volume".into());
-        cmd_args.push(key_cache_path.into());
-        cmd_args.push("--volume".into());
-        cmd_args.push(current_dir.into());
-
+        for var in env_vars {
+            if let Ok(val) = henv::var(var.as_ref()) {
+                debug!("Setting container env var: {:?}='{}'", var.as_ref(), val);
+                cmd_args.push("--env".into());
+                cmd_args.push(format!("{}={}", var.as_ref(), val).into());
+            }
+        }
+        for vol in volumes {
+            cmd_args.push("--volume".into());
+            cmd_args.push(vol.as_ref().into());
+        }
         cmd_args.push(image_identifier().into());
         cmd_args.extend_from_slice(args.as_slice());
 
+        unset_proxy_env_vars();
+        Ok(process::become_command(docker_cmd, cmd_args)?)
+    }
+
+    fn unset_proxy_env_vars() {
         for var in vec!["http_proxy", "https_proxy"] {
             if let Ok(_) = henv::var(var) {
-                debug!(
-                    "Unsetting proxy environment variable '{}' before calling `{}'",
-                    var,
-                    docker
-                );
+                debug!("Unsetting process environment variable '{}'", var);
                 env::remove_var(var);
             }
         }
-
-        debug!("Docker arguments = {:?}", cmd_args);
-        Ok(process::become_command(cmd, cmd_args)?)
-    }
-
-    pub fn rerun_with_sudo_if_needed(_ui: &mut UI) -> Result<()> {
-        // No sudo calls necessary here--we are calling `docker` commands instead
-        Ok(())
     }
 
     /// Returns the Docker Studio image with tag for the desired version which corresponds to the

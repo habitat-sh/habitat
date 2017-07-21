@@ -62,12 +62,14 @@ USAGE:
 COMMON FLAGS:
     -h  Prints this message
     -n  Do not mount the source path into the Studio (default: mount the path)
+    -N  Do not mount the source artifact cache path into the Studio (default: mount the path)
     -q  Prints less output for better use in scripts
     -v  Prints more verbose output
     -V  Prints version information
     -w  Use a Windows studio instead of a docker studio (only available on windows)
 
 COMMON OPTIONS:
+    -a <ARTIFACT_PATH>    Sets the source artifact cache path (default: /hab/cache/artifacts)
     -k <HAB_ORIGIN_KEYS>  Installs secret origin keys (default:\$HAB_ORIGIN )
     -r <HAB_STUDIO_ROOT>  Sets a Studio root (default: /hab/studios/<DIR_NAME>)
     -s <SRC_PATH>         Sets the source path (default: \$PWD)
@@ -84,13 +86,15 @@ SUBCOMMANDS:
     version   Prints version information
 
 ENVIRONMENT VARIABLES:
+    ARTIFACT_PATH       Sets the source artifact cache path (\`-a' option overrides)
     HAB_NOCOLORING      Disables text coloring mode despite TERM capabilities
     HAB_NONINTERACTIVE  Disables interactive progress bars despite tty
     HAB_ORIGIN          Propagates this variable into any studios
     HAB_ORIGIN_KEYS     Installs secret keys (\`-k' option overrides)
     HAB_STUDIOS_HOME    Sets a home path for all Studios (default: /hab/studios)
     HAB_STUDIO_ROOT     Sets a Studio root (\`-r' option overrides)
-    NO_SRC_PATH         If set, do not mount source path (\`-n' flag overrides)
+    NO_ARTIFACT_PATH    If set, do not mount the source artifact cache path (\`-N' flag overrides)
+    NO_SRC_PATH         If set, do not mount the source path (\`-n' flag overrides)
     QUIET               Prints less output (\`-q' flag overrides)
     SRC_PATH            Sets the source path (\`-s' option overrides)
     STUDIO_TYPE         Sets a Studio type when creating (\`-t' option overrides)
@@ -437,6 +441,17 @@ new_studio() {
     if [ -h "$HAB_STUDIO_ROOT/dev/shm" ]; then
       $bb mkdir -p $v $HAB_STUDIO_ROOT/$($bb readlink $HAB_STUDIO_ROOT/dev/shm)
     fi
+
+    # Mount the `$ARTIFACT_PATH` under `/hab/cache/artifacts` in the Studio,
+    # unless `$NO_ARTIFACT_PATH` are set
+    if [ -z "${NO_ARTIFACT_PATH}" ]; then
+      local studio_artifact_path
+      studio_artifact_path="${HAB_STUDIO_ROOT}${HAB_CACHE_ARTIFACT_PATH}"
+      if ! $bb mount | $bb grep -q "on $studio_artifact_path type"; then
+        $bb mkdir -p $v $studio_artifact_path
+        $bb mount $v --bind $ARTIFACT_PATH $studio_artifact_path
+      fi
+    fi
   fi
 
   # Create root filesystem
@@ -723,6 +738,8 @@ build_studio() {
     set -x
   fi
 
+  trap cleanup_studio EXIT
+
   # Run the build command in the `chroot` environment
   echo $studio_build_command $* | $bb chroot "$HAB_STUDIO_ROOT" \
     $studio_env_command -i $env $studio_run_command
@@ -750,6 +767,8 @@ run_studio() {
   if [ -n "$VERBOSE" ]; then
     set -x
   fi
+
+  trap cleanup_studio EXIT
 
   # Run the command in the `chroot` environment
   echo $* | $bb chroot "$HAB_STUDIO_ROOT" \
@@ -1001,6 +1020,15 @@ cleanup_studio() {
     local v=
   fi
 
+  # Update file ownership on files under the artifact cache path using the
+  # ownership of the artifact cache directory to determine the target uid and
+  # gid. This is done in an effort to leave files residing in a user directory
+  # not to be owned by root.
+  if [ -z "${NO_MOUNT}" -a -z "${NO_ARTIFACT_PATH}" ]; then
+    local artifact_path_owner
+    artifact_path_owner="$($bb stat -c '%u:%g' $ARTIFACT_PATH)"
+    $bb chown -R "$artifact_path_owner" "$ARTIFACT_PATH"
+  fi
 
   # Unmount filesystems that were previously set up in, but only if they are
   # currently mounted. You know, so you can run this all day long, like, for
@@ -1008,6 +1036,12 @@ cleanup_studio() {
 
   if $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/src type"; then
     $bb umount $v -l $HAB_STUDIO_ROOT/src
+  fi
+
+  local studio_artifact_path
+  studio_artifact_path="${HAB_STUDIO_ROOT}${HAB_CACHE_ARTIFACT_PATH}"
+  if $bb mount | $bb grep -q "on $studio_artifact_path type"; then
+    $bb umount $v -l $studio_artifact_path
   fi
 
   if $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/run type"; then
@@ -1119,10 +1153,16 @@ ensure_root
 # ## CLI Argument Parsing
 
 # Parse command line flags and options.
-while getopts ":nk:r:s:t:vqVh" opt; do
+while getopts ":nNa:k:r:s:t:vqVh" opt; do
   case $opt in
+    a)
+      ARTIFACT_PATH=$OPTARG
+      ;;
     n)
       NO_SRC_PATH=true
+      ;;
+    N)
+      NO_ARTIFACT_PATH=true
       ;;
     k)
       HAB_ORIGIN_KEYS=$OPTARG
@@ -1167,6 +1207,9 @@ shift "$((OPTIND - 1))"
 # The source path to be mounted into the Studio, which defaults to current
 # working directory
 : ${SRC_PATH:=$($bb pwd)}
+# The artifacts cache path to be mounted into the Studio, which defaults to the
+# artifact cache path.
+: ${ARTIFACT_PATH:=$HAB_CACHE_ARTIFACT_PATH}
 # The directory name of the Studio (which will live under `$HAB_STUDIOS_HOME`).
 # It is a directory path turned into a single directory name that can be
 # deterministically re-constructed on next program invocation.
@@ -1188,6 +1231,13 @@ studio_config="$HAB_STUDIO_ROOT/.studio"
 # The type (flavor, variant, etc.) of Studio. Such types include `default`,
 # `stage1`, and `busybox` among others.
 : ${STUDIO_TYPE:=}
+# Whether or not to mount the `$ARTIFACT_PATH` into the Studio. An unset or
+# empty value mean it is set to false (and therefore will mount
+# `$ARTIFACT_PATH`) and any other value is considered set to true (and
+# therefore will not mount `$ARTIFACT_PATH`). The choice of this variable name
+# is intended to show that it is not default behavior to skip the artifacts
+# cache path mounting and the user must explicitly opt-out.
+: ${NO_ARTIFACT_PATH:=}
 # Whether or not to mount the `$SRC_PATH` into the Studio. An unset or empty
 # value mean it is set to false (and therefore will mount `$SRC_PATH`) and any
 # other value is considered set to true (and therefore will not mount
