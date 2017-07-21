@@ -1,0 +1,3 @@
+#!/bin/bash
+
+echo "Checking health: {{cfg.hook_value}}"

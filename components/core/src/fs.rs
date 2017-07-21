@@ -58,7 +58,10 @@ lazy_static! {
                     environment variable.")
             }
         } else {
-            PathBuf::from("/")
+            match henv::var(FS_ROOT_ENVVAR) {
+                Ok(path) => PathBuf::from(path),
+                Err(_) => PathBuf::from("/")
+            }
         }
     };
 

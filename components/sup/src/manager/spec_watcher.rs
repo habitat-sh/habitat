@@ -661,7 +661,7 @@ mod test {
         active_specs: HashMap<String, ServiceSpec>,
     ) -> Vec<SpecWatcherEvent> {
         let start = Instant::now();
-        let timeout = Duration::from_millis(100);
+        let timeout = Duration::from_millis(1000);
         while start.elapsed() < timeout {
             let events = watcher.new_events(active_specs.clone()).unwrap();
             if !events.is_empty() {
