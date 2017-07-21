@@ -407,7 +407,7 @@ resource "aws_instance" "scheduler" {
       "sudo systemctl daemon-reload",
       "sudo systemctl start hab-sup",
       "sudo systemctl enable hab-sup",
-      "sudo hab svc load core/builder-scheduler --group ${var.env} --bind router:builder-router.${var.env} --bind datastore:builder-datastore.${var.env} --strategy at-once --url ${var.depot_url} --channel ${var.release_channel}"
+      "sudo hab svc load core/builder-scheduler --group ${var.env} --bind router:builder-router.${var.env} --bind datastore:builder-datastore.${var.env} --bind depot:builder-api.${var.env} --strategy at-once --url ${var.depot_url} --channel ${var.release_channel}"
     ]
   }
 
