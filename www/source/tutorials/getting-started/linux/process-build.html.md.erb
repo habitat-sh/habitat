@@ -78,7 +78,7 @@ To natively run services on your Linux host machine, do the following:
 
 3. Export the origin public key you created during `hab setup` and pipe the output into the `hab origin key import` subcommand. This will place the public key in the global keys cache on your machine. Before a package can be installed, the public key for that package must either be downloaded from a depot or placed in the correct cache location manually. The public key is then used to verify the integrity of the package.
 
-       $hab origin key export myorigin --type public | sudo hab origin key import
+       $ hab origin key export myorigin --type public | sudo hab origin key import
 
 4. Run `sudo hab install path/to/results/packagefilename.hart`. This will install your package in the same location on the host machine as it does in the studio (i.e. `/hab/pkgs`). Make sure you are in the
 `results` directory of `mytutorialapp` and the install the package.
