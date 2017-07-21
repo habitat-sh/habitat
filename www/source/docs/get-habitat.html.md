@@ -20,6 +20,10 @@ _Habitat for Mac requires a 64-bit processor running Mac OS X version 10.9+._
 ### For Linux
 To start using Habitat on Linux, download the following binary. Then unzip `hab` to `/usr/local/bin` and run `chmod a+x hab` to make it executable. As with the Mac instructions above, by copying the `hab` CLI into `/usr/local/bin`, it will automatically be added to your `PATH` variable.
 
+Alternatively, you can use the curlbash method to bootstrap habitat as follows:
+
+    curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh | sudo bash
+
 _Habitat for Linux requires a 64-bit processor with a kernel greater than 2.6.32._
 
 <a class="button" href="https://api.bintray.com/content/habitat/stable/linux/x86_64/hab-%24latest-x86_64-linux.tar.gz?bt_package=hab-x86_64-linux">Download Habitat for Linux</a>
