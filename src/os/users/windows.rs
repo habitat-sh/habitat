@@ -61,7 +61,7 @@ pub fn get_home_for_user(username: &str) -> Option<PathBuf> {
     unimplemented!();
 }
 
-pub fn get_primary_gid_for_user(username: &str) -> Option<u32> {
+pub fn get_primary_gid_for_user(username: &str) -> Option<String> {
     None
 }
 
