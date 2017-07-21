@@ -14,15 +14,29 @@
 
 //! Encapsulate running the `hab-sup` executable for tests.
 
+use std::collections::HashSet;
 use std::env;
-use std::process::{Child, Command, Stdio};
+use std::net::TcpListener;
 use std::path::{Path, PathBuf};
+use std::process::{Child, Command, Stdio};
 use std::string::ToString;
+use std::sync::Mutex;
+use std::thread;
+use std::time::Duration;
 
 use super::test_butterfly;
 
 extern crate rand;
 use self::rand::distributions::{IndependentSample, Range};
+
+lazy_static! {
+    /// Keep track of all TCP ports currently being used by TestSup
+    /// instances. Allows us to run tests in parallel without fear of
+    /// port conflicts between them.
+    static ref CLAIMED_PORTS: Mutex<HashSet<u16>> = {
+        Mutex::new(HashSet::new())
+    };
+}
 
 pub struct TestSup {
     pub hab_root: PathBuf,
@@ -34,6 +48,52 @@ pub struct TestSup {
     pub butterfly_client: test_butterfly::Client,
     pub cmd: Command,
     pub process: Option<Child>,
+}
+
+/// Return a free TCP port number. We test to see that the system has
+/// not already bound the port, while also tracking which ports are
+/// being used by other test supervisors that may be running alongside
+/// this one.
+///
+/// Once you receive a port number from this function, you can be
+/// reasonably sure that you're the only one that will be using
+/// it. There could be a race condition if the machine the tests are
+/// running on just happens to claim the same port number for
+/// something between the time we check and the time the TestSup
+/// claims it. If that happens to you, you should probably buy lottery
+/// tickets, though.
+///
+/// This function will recursively call itself with a decremented
+/// value for `tries` if it happens to pick a port that's already in
+/// use. Once all tries are used up, it panics! Yay!
+fn unclaimed_port(tries: u16) -> u16 {
+    if tries == 0 {
+        panic!("Couldn't find an unclaimed port for the test supervisor!")
+    }
+    let p = random_port();
+    match TcpListener::bind(format!("127.0.0.1:{}", p)) {
+        Ok(listener) => {
+            // The system hasn't bound it. Now we make sure none of
+            // our other tests have bound it.
+            let mut ports = CLAIMED_PORTS.lock().unwrap();
+            if ports.contains(&p) {
+                // Oops, another test is using it, try again
+                thread::sleep(Duration::from_millis(500));
+                unclaimed_port(tries - 1)
+            }
+            else {
+                // Nobody was using it. Return the port; the TcpListener
+                // that is currently bound to the port will be dropped,
+                // thus freeing the port for our use.
+                ports.insert(p);
+                p
+            }
+        },
+        Err(_) => {
+            // port already in use, try again
+            unclaimed_port(tries - 1)
+        }
+    }
 }
 
 /// Return a random unprivileged, unregistered TCP port number.
@@ -91,8 +151,10 @@ impl TestSup {
         P: ToString,
         S: ToString,
     {
-        let http_port = random_port();
-        let butterfly_port = http_port + 1;
+        // We'll give 10 tries to find a free port number
+        let http_port = unclaimed_port(10);
+        let butterfly_port = unclaimed_port(10);
+
         TestSup::new(
             fs_root,
             origin,
@@ -189,9 +251,13 @@ impl TestSup {
     }
 }
 
-// We kill the supervisor so you don't have to!
+// We kill the supervisor so you don't have to! We also free up the
+// ports used by this supervisor so other tests can use them.
 impl Drop for TestSup {
     fn drop(&mut self) {
+        let mut ports = CLAIMED_PORTS.lock().unwrap();
+        ports.remove(&self.http_port);
+        ports.remove(&self.butterfly_port);
         self.process
             .take()
             .expect("No process to kill!")
