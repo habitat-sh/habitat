@@ -42,7 +42,7 @@ use hcore::crypto::{self, default_cache_key_path, SymKey};
 #[cfg(windows)]
 use hcore::crypto::dpapi::encrypt;
 use hcore::package::{PackageArchive, PackageIdent};
-use hcore::service::ServiceGroup;
+use hcore::service::{ApplicationEnvironment, ServiceGroup};
 use hcore::url::{DEFAULT_DEPOT_URL, DEPOT_URL_ENVVAR};
 use launcher_client::{LauncherCli, ERR_NO_RETRY_EXCODE, OK_NO_RETRY_EXCODE};
 use url::Url;
@@ -158,6 +158,10 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
             (@arg NAME: --("override-name") +takes_value
                 "The name for the state directory if there is more than one Supervisor running \
                 [default: default]")
+            (@arg APPLICATION: --application -a +takes_value requires[ENVIRONMENT]
+                "Application name; [default: not set].")
+            (@arg ENVIRONMENT: --environment -e +takes_value requires[APPLICATION]
+                "Environment name; [default: not set].")
             (@arg CHANNEL: --channel +takes_value
                 "Receive package updates from the specified release channel")
             (@arg GROUP: --group +takes_value
@@ -207,7 +211,7 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                 [default: https://bldr.habitat.sh/v1/depot]")
             (@arg AUTO_UPDATE: --("auto-update") -A "Enable automatic updates for the Supervisor \
                 itself")
-            (@arg EVENTS: --events -ev +takes_value {valid_service_group} "Name of the service \
+            (@arg EVENTS: --events -n +takes_value {valid_service_group} "Name of the service \
                 group running a Habitat EventSrv to forward supervisor and service event data to")
         )
         (@subcommand sh =>
@@ -236,6 +240,10 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
             (@arg PKG_IDENT_OR_ARTIFACT: +required +takes_value
                 "A Habitat package identifier (ex: core/redis) or filepath to a Habitat Artifact \
                 (ex: /home/core-redis-3.0.7-21120102031201-x86_64-linux.hart)")
+            (@arg APPLICATION: --application -a +takes_value requires[ENVIRONMENT]
+                "Application name; [default: not set].")
+            (@arg ENVIRONMENT: --environment -e +takes_value requires[APPLICATION]
+                "Environment name; [default: not set].")
             (@arg CHANNEL: --channel +takes_value
                 "Receive package updates from the specified release channel")
             (@arg GROUP: --group +takes_value
@@ -253,7 +261,7 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                 "Use package config from this path, rather than the package itself")
             (@arg AUTO_UPDATE: --("auto-update") -A "Enable automatic updates for the Supervisor \
                 itself")
-            (@arg EVENTS: --events -ev +takes_value {valid_service_group} "Name of the service \
+            (@arg EVENTS: --events -n +takes_value {valid_service_group} "Name of the service \
                 group running a Habitat EventSrv to forward supervisor and service event data to")
         )
         (@subcommand status =>
@@ -309,6 +317,10 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
             (@arg NAME: --("override-name") +takes_value
                 "The name for the state directory if there is more than one Supervisor running \
                 [default: default]")
+            (@arg APPLICATION: --application -a +takes_value requires[ENVIRONMENT]
+                "Application name; [default: not set].")
+            (@arg ENVIRONMENT: --environment -e +takes_value requires[APPLICATION]
+                "Environment name; [default: not set].")
             (@arg CHANNEL: --channel +takes_value
                 "Receive package updates from the specified release channel")
             (@arg GROUP: --group +takes_value
@@ -360,7 +372,7 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                 [default: https://bldr.habitat.sh/v1/depot]")
             (@arg AUTO_UPDATE: --("auto-update") -A "Enable automatic updates for the Supervisor \
                 itself")
-            (@arg EVENTS: --events -ev +takes_value {valid_service_group} "Name of the service \
+            (@arg EVENTS: --events -n +takes_value {valid_service_group} "Name of the service \
                 group running a Habitat EventSrv to forward supervisor and service event data to")
         )
         (@subcommand sh =>
@@ -389,6 +401,10 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
             (@arg PKG_IDENT_OR_ARTIFACT: +required +takes_value
                 "A Habitat package identifier (ex: core/redis) or filepath to a Habitat Artifact \
                 (ex: /home/core-redis-3.0.7-21120102031201-x86_64-linux.hart)")
+            (@arg APPLICATION: --application -a +takes_value requires[ENVIRONMENT]
+                "Application name; [default: not set].")
+            (@arg ENVIRONMENT: --environment -e +takes_value requires[APPLICATION]
+                "Environment name; [default: not set].")
             (@arg CHANNEL: --channel +takes_value
                 "Receive package updates from the specified release channel")
             (@arg GROUP: --group +takes_value
@@ -406,7 +422,7 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                 "Use package config from this path, rather than the package itself")
             (@arg AUTO_UPDATE: --("auto-update") -A "Enable automatic updates for the Supervisor \
                 itself")
-            (@arg EVENTS: --events -ev +takes_value {valid_service_group} "Name of the service \
+            (@arg EVENTS: --events -n +takes_value {valid_service_group} "Name of the service \
                 group running a Habitat EventSrv to forward supervisor and service event data to")
             (@arg PASSWORD: --password +takes_value "Password of the service user")
         )
@@ -734,6 +750,12 @@ fn spec_from_matches(ident: PackageIdent, m: &ArgMatches) -> Result<ServiceSpec>
     let mut spec = ServiceSpec::default_for(ident);
     if let Some(group) = m.value_of("GROUP") {
         spec.group = group.to_string();
+    }
+    if let (Some(app), Some(env)) = (m.value_of("APPLICATION"), m.value_of("ENVIRONMENT")) {
+        spec.application_environment = Some(ApplicationEnvironment::new(
+            app.to_string(),
+            env.to_string(),
+        )?);
     }
     let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
     spec.depot_url = m.value_of("DEPOT_URL")

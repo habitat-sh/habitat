@@ -179,7 +179,7 @@ mod tests {
         let config_bytes: Vec<u8> = Vec::from(config);
         ServiceConfig::new(
             member_id,
-            ServiceGroup::new("neurosis", "production", None).unwrap(),
+            ServiceGroup::new(None, "neurosis", "production", None).unwrap(),
             config_bytes,
         )
     }

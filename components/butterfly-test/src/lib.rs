@@ -468,7 +468,7 @@ impl SwimNet {
         let ident = PackageIdent::from_str(package).expect(
             "package needs to be a fully qualified package identifier",
         );
-        let sg = ServiceGroup::new(ident.name(), "prod", None).unwrap();
+        let sg = ServiceGroup::new(None, ident.name(), "prod", None).unwrap();
         let s = Service::new(
             self[member].member_id().to_string(),
             &ident,
@@ -483,7 +483,7 @@ impl SwimNet {
         let config_bytes: Vec<u8> = Vec::from(config);
         let s = ServiceConfig::new(
             self[member].member_id(),
-            ServiceGroup::new(service, "prod", None).unwrap(),
+            ServiceGroup::new(None, service, "prod", None).unwrap(),
             config_bytes,
         );
         self[member].insert_service_config(s);
@@ -493,7 +493,7 @@ impl SwimNet {
         let body_bytes: Vec<u8> = Vec::from(body);
         let s = ServiceFile::new(
             self[member].member_id(),
-            ServiceGroup::new(service, "prod", None).unwrap(),
+            ServiceGroup::new(None, service, "prod", None).unwrap(),
             filename,
             body_bytes,
         );
@@ -506,7 +506,7 @@ impl SwimNet {
     }
 
     pub fn add_election(&mut self, member: usize, service: &str) {
-        self[member].start_election(ServiceGroup::new(service, "prod", None).unwrap(), 0);
+        self[member].start_election(ServiceGroup::new(None, service, "prod", None).unwrap(), 0);
     }
 }
 

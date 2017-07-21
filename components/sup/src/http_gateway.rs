@@ -25,7 +25,7 @@ use std::str::FromStr;
 use std::sync::Arc;
 use std::thread::{self, JoinHandle};
 
-use hcore::service::ServiceGroup;
+use hcore::service::{ApplicationEnvironment, ServiceGroup};
 use iron::prelude::*;
 use iron::{headers, status, typemap};
 use iron::modifiers::Header;
@@ -330,7 +330,19 @@ impl Into<status::Status> for HealthCheck {
 }
 
 fn build_service_group(req: &mut Request) -> Result<ServiceGroup> {
+    let app_env = match req.extensions.get::<Router>().unwrap().find(
+        "application_environment",
+    ) {
+        Some(s) => {
+            match ApplicationEnvironment::from_str(s) {
+                Ok(app_env) => Some(app_env),
+                Err(_) => None,
+            }
+        }
+        None => None,
+    };
     let sg = ServiceGroup::new(
+        app_env.as_ref(),
         req.extensions
             .get::<Router>()
             .unwrap()

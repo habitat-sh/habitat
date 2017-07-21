@@ -40,7 +40,7 @@ fn service_config_via_client() {
     let payload = Vec::from("I want to get lost in you, tokyo".as_bytes());
     client
         .send_service_config(
-            ServiceGroup::new("witcher", "prod", None).unwrap(),
+            ServiceGroup::new(None, "witcher", "prod", None).unwrap(),
             0,
             payload,
             false,

@@ -111,7 +111,12 @@ impl Service {
         spec.validate(&package)?;
         let pkg = Pkg::from_install(package)?;
         let spec_file = manager_fs_cfg.specs_path.join(spec.file_name());
-        let service_group = ServiceGroup::new(&pkg.name, spec.group, organization)?;
+        let service_group = ServiceGroup::new(
+            spec.application_environment.as_ref(),
+            &pkg.name,
+            spec.group,
+            organization,
+        )?;
         let config_root = Self::config_root(&pkg, spec.config_from.as_ref());
         let hooks_root = Self::hooks_root(&pkg, spec.config_from.as_ref());
         Ok(Service {

@@ -173,7 +173,7 @@ mod tests {
         let body_bytes: Vec<u8> = Vec::from(body);
         ServiceFile::new(
             member_id,
-            ServiceGroup::new("neurosis", "production", None).unwrap(),
+            ServiceGroup::new(None, "neurosis", "production", None).unwrap(),
             filename,
             body_bytes,
         )

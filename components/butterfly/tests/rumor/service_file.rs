@@ -45,7 +45,7 @@ fn service_file_via_client() {
     let payload = Vec::from("I want to get lost in you, tokyo".as_bytes());
     client
         .send_service_file(
-            ServiceGroup::new("witcher", "prod", None).unwrap(),
+            ServiceGroup::new(None, "witcher", "prod", None).unwrap(),
             "devil-wears-prada.txt",
             0,
             payload,
