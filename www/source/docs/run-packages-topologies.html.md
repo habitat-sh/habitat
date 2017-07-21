@@ -26,6 +26,16 @@ The first supervisor will block until it has quorum. You would start additional 
 
 Once you have quorum, one member is elected a leader, the supervisors in the service group update the service's configuration in concordance with the policy defined at package build time, and the service group starts up.
 
+### Robustness, Network Boundaries and Recovering from Partitions
+
+Within a leader-follower topology it is possible to get into a partitioned state where nodes are unable to achieve quorum. To solve this a permanent peer can be used to heal the netsplit. To set this pass the `--permanent-peer` option, or it's short form `-I`, to the supervisor.
+
+    hab start yourname/yourdb --topology leader --group production --permanent-peer
+
+When this is used we will attempt to ping the permanent peer and achieve quorum, even if they are confirmed dead.
+
+The notion of a permanent peer is an extension to the original [SWIM](https://www.cs.cornell.edu/~asdas/research/dsn02-swim.pdf) gossip protocol. It can add robustness provided everyone has a permanent member on both sides of the split.
+
 ### Defining Leader and Follower Behavior in Plans
 
 Because Habitat provides for automation that is built into the application package, this includes letting the application developer define the application's behavior when run under different topologies, even from the same immutable package. Here is an example of a configuration template marked up with conditional logic that will cause the running application to behave differently based on whether it is a leader or a follower:
