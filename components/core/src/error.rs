@@ -136,7 +136,7 @@ pub enum Error {
     /// Occurs when a `waitpid` libc call returns an error.
     WaitpidFailed(String),
     /// Occurs when a `kill` libc call returns an error.
-    SignalFailed(i32),
+    SignalFailed(i32, io::Error),
     /// Occurs when a `CreateToolhelp32Snapshot` win32 call returns an error.
     CreateToolhelp32SnapshotFailed(String),
     /// Occurs when a `GetExitCodeProcess` win32 call returns an error.
@@ -331,8 +331,8 @@ impl fmt::Display for Error {
             Error::TargetMatchError(ref e) => format!("{}", e),
             Error::UnameFailed(ref e) => format!("{}", e),
             Error::WaitpidFailed(ref e) => format!("{}", e),
-            Error::SignalFailed(ref e) => {
-                format!("Failed to send a signal to the child process: {}", e)
+            Error::SignalFailed(ref r, ref e) => {
+                format!("Failed to send a signal to the child process: {}, {}", r, e)
             }
             Error::GetExitCodeProcessFailed(ref e) => format!("{}", e),
             Error::CreateToolhelp32SnapshotFailed(ref e) => format!("{}", e),
@@ -448,7 +448,7 @@ impl error::Error for Error {
             Error::StringFromUtf8Error(_) => "Failed to convert a string from a Vec<u8> as UTF-8",
             Error::TargetMatchError(_) => "System target does not match package target",
             Error::UnameFailed(_) => "uname failed",
-            Error::SignalFailed(_) => "Failed to send a signal to the child process",
+            Error::SignalFailed(_, _) => "Failed to send a signal to the child process",
             Error::CreateToolhelp32SnapshotFailed(_) => "CreateToolhelp32Snapshot failed",
             Error::WaitpidFailed(_) => "waitpid failed",
             Error::GetExitCodeProcessFailed(_) => "GetExitCodeProcess failed",

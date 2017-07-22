@@ -13,6 +13,7 @@
 // limitations under the License.
 
 use std::ffi::OsString;
+use std::io;
 use std::path::PathBuf;
 use std::os::unix::process::CommandExt;
 use std::process::Command;
@@ -69,7 +70,13 @@ pub fn current_pid() -> u32 {
 pub fn is_alive(pid: u32) -> bool {
     match unsafe { libc::kill(pid as pid_t, 0) } {
         0 => true,
-        _ => false,
+        _ => {
+            match io::Error::last_os_error().raw_os_error() {
+                Some(libc::EPERM) => true,
+                Some(libc::ESRCH) => false,
+                _ => false,
+            }
+        }
     }
 }
 
@@ -77,7 +84,7 @@ pub fn signal(pid: u32, signal: Signal) -> Result<()> {
     unsafe {
         match libc::kill(pid as pid_t, signal.os_signal()) {
             0 => Ok(()),
-            e => return Err(Error::SignalFailed(e)),
+            e => return Err(Error::SignalFailed(e, io::Error::last_os_error())),
         }
     }
 }
