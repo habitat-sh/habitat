@@ -653,12 +653,16 @@ function _Add-Paths($fromFile) {
     if (Test-Path "$dep_path/$fromFile") {
       Push-Location $originalPath
       try {
-        $data = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath((Get-Content "$dep_path/$fromFile").Trim())
-        if (!$path_part) {
-          $path_part = $data
-        }
-        else {
-          $path_part += ";$data"
+        $paths = (Get-Content "$dep_path/$fromFile").Trim().Split(";")
+
+        foreach($path in  $paths) {
+            $data = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($path)
+            if (!$path_part) {
+            $path_part = $data
+            }
+            else {
+            $path_part += ";$data"
+            }
         }
       }
       finally { Pop-Location }
@@ -697,6 +701,8 @@ function _Set-Path {
   }
 
   Write-BuildLine "Setting PATH=$env:PATH"
+  Write-BuildLine "Setting LIB=$env:LIB"
+  Write-BuildLine "Setting INCLUDE=$env:INCLUDE"
 }
 
 function _Get-SHA256Converter {
