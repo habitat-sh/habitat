@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use env;
+
 pub const UNSTABLE_CHANNEL: &'static str = "unstable";
 pub const STABLE_CHANNEL: &'static str = "stable";
 
@@ -21,4 +23,12 @@ pub const DEPOT_CHANNEL_ENVVAR: &'static str = "HAB_DEPOT_CHANNEL";
 /// Helper function for Builder dynamic channels
 pub fn bldr_channel_name(id: u64) -> String {
     format!("bldr-{}", id)
+}
+
+/// Return the default release channel to use
+pub fn default() -> String {
+    env::var(DEPOT_CHANNEL_ENVVAR)
+        .ok()
+        .and_then(|c| Some(c.to_string()))
+        .unwrap_or(STABLE_CHANNEL.to_string())
 }
