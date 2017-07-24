@@ -37,10 +37,11 @@ use std::str::FromStr;
 use ansi_term::Colour::{Red, Yellow};
 use clap::{App, ArgMatches};
 use common::ui::UI;
-use hcore::env as henv;
+use hcore::channel;
 use hcore::crypto::{self, default_cache_key_path, SymKey};
 #[cfg(windows)]
 use hcore::crypto::dpapi::encrypt;
+use hcore::env as henv;
 use hcore::package::{PackageArchive, PackageIdent};
 use hcore::service::{ApplicationEnvironment, ServiceGroup};
 use hcore::url::{DEFAULT_DEPOT_URL, DEPOT_URL_ENVVAR};
@@ -163,7 +164,7 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
             (@arg ENVIRONMENT: --environment -e +takes_value requires[APPLICATION]
                 "Environment name; [default: not set].")
             (@arg CHANNEL: --channel +takes_value
-                "Receive package updates from the specified release channel")
+                "Receive package updates from the specified release channel [default: stable]")
             (@arg GROUP: --group +takes_value
                 "The service group; shared config and topology [default: default].")
             (@arg DEPOT_URL: --url -u +takes_value {valid_url}
@@ -205,7 +206,7 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
             (@arg PERMANENT_PEER: --("permanent-peer") -I "If this Supervisor is a permanent peer")
             (@arg RING: --ring -r +takes_value "Ring key name")
             (@arg CHANNEL: --channel +takes_value
-                "Receive Supervisor updates from the specified release channel")
+                "Receive Supervisor updates from the specified release channel [default: stable]")
             (@arg DEPOT_URL: --url -u +takes_value {valid_url}
                 "Receive Supervisor updates from the Depot at the specified URL \
                 [default: https://bldr.habitat.sh/v1/depot]")
@@ -245,7 +246,7 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
             (@arg ENVIRONMENT: --environment -e +takes_value requires[APPLICATION]
                 "Environment name; [default: not set].")
             (@arg CHANNEL: --channel +takes_value
-                "Receive package updates from the specified release channel")
+                "Receive package updates from the specified release channel [default: stable]")
             (@arg GROUP: --group +takes_value
                 "The service group; shared config and topology [default: default]")
             (@arg DEPOT_URL: --url -u +takes_value {valid_url}
@@ -322,7 +323,7 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
             (@arg ENVIRONMENT: --environment -e +takes_value requires[APPLICATION]
                 "Environment name; [default: not set].")
             (@arg CHANNEL: --channel +takes_value
-                "Receive package updates from the specified release channel")
+                "Receive package updates from the specified release channel [default: stable]")
             (@arg GROUP: --group +takes_value
                 "The service group; shared config and topology [default: default].")
             (@arg DEPOT_URL: --url -u +takes_value {valid_url}
@@ -366,7 +367,7 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
             (@arg PERMANENT_PEER: --("permanent-peer") -I "If this Supervisor is a permanent peer")
             (@arg RING: --ring -r +takes_value "Ring key name")
             (@arg CHANNEL: --channel +takes_value
-                "Receive Supervisor updates from the specified release channel")
+                "Receive Supervisor updates from the specified release channel [default: stable]")
             (@arg DEPOT_URL: --url -u +takes_value {valid_url}
                 "Receive Supervisor updates from the Depot at the specified URL \
                 [default: https://bldr.habitat.sh/v1/depot]")
@@ -406,7 +407,7 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
             (@arg ENVIRONMENT: --environment -e +takes_value requires[APPLICATION]
                 "Environment name; [default: not set].")
             (@arg CHANNEL: --channel +takes_value
-                "Receive package updates from the specified release channel")
+                "Receive package updates from the specified release channel [default: stable]")
             (@arg GROUP: --group +takes_value
                 "The service group; shared config and topology [default: default]")
             (@arg DEPOT_URL: --url -u +takes_value {valid_url}
@@ -658,7 +659,9 @@ fn mgrcfg_from_matches(m: &ArgMatches) -> Result<ManagerConfig> {
         Some(url) => url.to_string(),
         None => henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string()),
     };
-    cfg.update_channel = m.value_of("CHANNEL").map(|c| c.to_string());
+    cfg.update_channel = m.value_of("CHANNEL")
+        .and_then(|c| Some(c.to_string()))
+        .unwrap_or(channel::default());
     if let Some(addr_str) = m.value_of("LISTEN_GOSSIP") {
         cfg.gossip_listen = GossipListenAddr::from_str(addr_str)?;
     }
@@ -761,7 +764,9 @@ fn spec_from_matches(ident: PackageIdent, m: &ArgMatches) -> Result<ServiceSpec>
     spec.depot_url = m.value_of("DEPOT_URL")
         .unwrap_or(&env_or_default)
         .to_string();
-    spec.channel = m.value_of("CHANNEL").map(|c| c.to_string());
+    spec.channel = m.value_of("CHANNEL")
+        .and_then(|c| Some(c.to_string()))
+        .unwrap_or(channel::default());
     if let Some(topology) = m.value_of("TOPOLOGY") {
         spec.topology = Topology::from_str(topology)?;
     }

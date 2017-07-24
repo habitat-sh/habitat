@@ -116,7 +116,7 @@ pub struct ManagerConfig {
     pub auto_update: bool,
     pub eventsrv_group: Option<ServiceGroup>,
     pub update_url: String,
-    pub update_channel: Option<String>,
+    pub update_channel: String,
     pub gossip_listen: GossipListenAddr,
     pub http_listen: http_gateway::ListenAddr,
     pub gossip_peers: Vec<SocketAddr>,

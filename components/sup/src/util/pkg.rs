@@ -56,7 +56,7 @@ pub fn maybe_install_newer(
 ) -> Result<PackageInstall> {
     let latest_ident: PackageIdent = {
         let depot_client = Client::new(&spec.depot_url, PRODUCT, VERSION, None)?;
-        match depot_client.show_package(&spec.ident, spec.channel.as_ref().map(String::as_ref)) {
+        match depot_client.show_package(&spec.ident, Some(&spec.channel)) {
             Ok(pkg) => pkg.get_ident().clone().into(),
             Err(_) => return Ok(current),
         }
@@ -69,12 +69,7 @@ pub fn maybe_install_newer(
             latest_ident,
             spec.depot_url
         );
-        self::install(
-            ui,
-            &spec.depot_url,
-            &latest_ident,
-            spec.channel.as_ref().map(String::as_ref),
-        )
+        self::install(ui, &spec.depot_url, &latest_ident, Some(&spec.channel))
     } else {
         outputln!(
             "Confirmed latest version of {} is {}",
@@ -103,7 +98,7 @@ pub fn install_from_spec(ui: &mut UI, spec: &ServiceSpec) -> Result<PackageInsta
                 ui,
                 spec.depot_url.as_str(),
                 &spec.ident,
-                spec.channel.as_ref().map(String::as_ref),
+                Some(&spec.channel),
             )?)
         }
     }

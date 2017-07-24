@@ -84,7 +84,7 @@ pub fn run(
             common::command::package::install::start(
                 &mut ui,
                 &spec.depot_url,
-                spec.channel.as_ref().map(String::as_ref),
+                Some(&spec.channel),
                 artifact,
                 PRODUCT,
                 VERSION,

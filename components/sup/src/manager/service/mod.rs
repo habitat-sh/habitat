@@ -71,7 +71,7 @@ lazy_static! {
 pub struct Service {
     pub service_group: ServiceGroup,
     pub depot_url: String,
-    pub channel: Option<String>,
+    pub channel: String,
     pub spec_file: PathBuf,
     pub spec_ident: PackageIdent,
     pub start_style: StartStyle,
