@@ -119,6 +119,7 @@ sup-run() {
   echo "--> Launching the Habitat Supervisor in the background..."
   echo "    Running: hab sup run \$*"
   hab sup run \$* > /hab/sup/default/sup.log &
+  echo \$! > /hab/sup/default/launch.pid
   echo "    * Use 'hab svc start' & 'hab svc stop' to start and stop services"
   echo "    * Use 'sup-log' to tail the Supervisor's output (Ctrl+c to stop)"
   echo "    * Use 'sup-term' to terminate the Supervisor"
@@ -131,13 +132,14 @@ sup-run() {
 }
 
 sup-term() {
-  if [ -f /hab/sup/default/LOCK ]; then
+  local pid_file="/hab/sup/default/launch.pid "
+  if [ -f \$pid_file ]; then
     echo "--> Killing Habitat Supervisor running in the background..."
-    kill \$(cat /hab/sup/default/LOCK) \\
-      && echo "    Supervisor killed." \\
+    kill \$(cat \$pid_file) \\
+      && (echo "    Supervisor killed." && rm -f \$pid_file)\\
       || echo "--> Error killing Supervisor."
   else
-    echo "--> No Supervisor lock file found, Supervisor may not be running."
+    echo "--> No Launcher pid file found, Supervisor may not be running."
   fi
 }
 

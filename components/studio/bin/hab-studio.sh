@@ -793,7 +793,15 @@ rm_studio() {
 
   info "Destroying Studio at $HAB_STUDIO_ROOT ($STUDIO_TYPE)"
 
-  trap cleanup_studio EXIT
+  # Set the verbose flag (i.e. `-v`) for any coreutils-like commands if verbose
+  # mode was requested
+  if [ -n "$VERBOSE" ]; then
+    local v="-v"
+  else
+    local v=
+  fi
+
+  cleanup_studio
 
   # Remove remaining filesystem
   $bb rm -rf $v $HAB_STUDIO_ROOT
@@ -1005,13 +1013,40 @@ report_env_vars() {
 
 # **Internal** Run when an interactive studio exits.
 cleanup_studio() {
-  local lock_file
-  lock_file="$HAB_STUDIO_ROOT/hab/sup/default/LOCK"
+  kill_launcher
+  chown_artifacts
+  unmount_filesystems
+}
 
-  if [ -f $lock_file ]; then
-    $bb kill $($bb cat $lock_file)
+# **Internal** Kills a Launcher process, if one exists.
+kill_launcher() {
+  local pid_file
+  pid_file="$HAB_STUDIO_ROOT/hab/sup/default/launch.pid"
+
+  if [ -f $pid_file ]; then
+    $bb kill $($bb cat $pid_file) \
+      && $bb rm -f $pid_file
   fi
+}
 
+# **Internal** Updates file ownership on files under the artifact cache path
+# using the ownership of the artifact cache directory to determine the target
+# uid and gid. This is done in an effort to leave files residing in a user
+# directory not to be owned by root.
+chown_artifacts() {
+  if [ -z "${NO_MOUNT}" \
+      -a -z "${NO_ARTIFACT_PATH}" \
+      -a -d "$ARTIFACT_PATH" \
+  ]; then
+    local artifact_path_owner
+    artifact_path_owner="$($bb stat -c '%u:%g' $ARTIFACT_PATH)"
+    $bb chown -R "$artifact_path_owner" "$ARTIFACT_PATH"
+  fi
+}
+
+# **Internal** Unmounts file system mounts if mounted. The order of file system
+# unmounting is important as it is the opposite of the initial mount order
+unmount_filesystems() {
   # Set the verbose flag (i.e. `-v`) for any coreutils-like commands if verbose
   # mode was requested
   if [ -n "$VERBOSE" ]; then
@@ -1020,17 +1055,7 @@ cleanup_studio() {
     local v=
   fi
 
-  # Update file ownership on files under the artifact cache path using the
-  # ownership of the artifact cache directory to determine the target uid and
-  # gid. This is done in an effort to leave files residing in a user directory
-  # not to be owned by root.
-  if [ -z "${NO_MOUNT}" -a -z "${NO_ARTIFACT_PATH}" ]; then
-    local artifact_path_owner
-    artifact_path_owner="$($bb stat -c '%u:%g' $ARTIFACT_PATH)"
-    $bb chown -R "$artifact_path_owner" "$ARTIFACT_PATH"
-  fi
-
-  # Unmount filesystems that were previously set up in, but only if they are
+  # Unmount file systems that were previously set up in, but only if they are
   # currently mounted. You know, so you can run this all day long, like, for
   # fun and stuff.
 
@@ -1067,12 +1092,6 @@ cleanup_studio() {
   if $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/var/run/docker.sock type"; then
     $bb umount $v -l $HAB_STUDIO_ROOT/var/run/docker.sock
   fi
-
-  # Remove `/dev/console` device
-  $bb rm $HAB_STUDIO_ROOT/dev/console
-
-  # Remove `/dev/null` device
-  $bb rm $HAB_STUDIO_ROOT/dev/null
 }
 
 # **Internal** Sets the `$libexec_path` variable, which is the absolute path to
