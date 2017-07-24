@@ -386,22 +386,12 @@ impl Service {
         let census_group = census_ring.census_group_for(&self.service_group).expect(
             "Service update failed; unable to find own service group",
         );
-
         let cfg_updated = self.cfg.update(census_group);
         if cfg_updated || census_ring.changed {
             let (reload, reconfigure) = {
                 let ctx = self.render_context(census_ring);
-
-                let reload = match self.compile_hooks(&ctx) {
-                    Ok(status) => status,
-                    Err(err) => {
-                        outputln!(preamble self.service_group, "Unexpected error in hook compilation: {}", err);
-                        false
-                    }
-                };
-
+                let reload = self.compile_hooks(&ctx);
                 let reconfigure = self.compile_configuration(&ctx);
-
                 (reload, reconfigure)
             };
             self.needs_reload = reload;
@@ -584,22 +574,15 @@ impl Service {
     /// Helper for compiling hook templates into hooks.
     ///
     /// This function will also perform any necessary post-compilation tasks.
-    fn compile_hooks(&self, ctx: &RenderContext) -> Result<bool> {
-        match self.hooks.compile(&self.service_group, ctx) {
-            Ok(true) => {
-                outputln!(preamble self.service_group, "Hooks recompiled");
-                if let Some(err) = self.copy_run().err() {
-                    outputln!(preamble self.service_group, "Failed to copy run hook: {}", err);
-                    return Err(err);
-                }
-                Ok(true)
-            }
-            Ok(false) => {
-                outputln!(preamble self.service_group, "Hooks recompiled, but none changed");
-                Ok(false)
-            }
-            Err(err) => Err(err),
+    fn compile_hooks(&self, ctx: &RenderContext) -> bool {
+        let changed = self.hooks.compile(&self.service_group, ctx);
+        if let Some(err) = self.copy_run().err() {
+            outputln!(preamble self.service_group, "Failed to copy run hook: {}", err);
         }
+        if changed {
+            outputln!(preamble self.service_group, "Hooks recompiled");
+        }
+        changed
     }
 
     // Copy the "run" file to the svc path.

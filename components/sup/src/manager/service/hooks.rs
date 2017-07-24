@@ -86,7 +86,7 @@ pub trait Hook: fmt::Debug + Sized {
                 Some(Self::new(service_group, pair))
             }
             Err(_) => {
-                debug!(
+                info!(
                     "{} not found at {}, not loading",
                     Self::file_name(),
                     template.display()
@@ -98,55 +98,25 @@ pub trait Hook: fmt::Debug + Sized {
 
     fn new(service_group: &ServiceGroup, render_pair: RenderPair) -> Self;
 
-    /// Cryptographically hash the contents of the compiled hook
-    /// file.
-    ///
-    /// If the file does not exist, an empty string is returned.
-    fn content_hash(&self) -> Result<String> {
-        if self.path().exists() {
-            crypto::hash::hash_file(&self.path().to_path_buf()).map_err(|e| SupError::from(e))
-        } else {
-            Ok(String::new())
-        }
-    }
-
-    /// Write `maybe_new_content` into the hook file only if it's
-    /// different from what's already there. Return `true` if the file
-    /// content was changed.
-    fn maybe_change_content(&self, maybe_new_content: &str) -> Result<bool> {
-        let content_hash = crypto::hash::hash_string(maybe_new_content);
-        let existing_hash = self.content_hash()?;
-
-        if existing_hash == content_hash {
-            Ok(false)
-        } else {
-            let mut file = File::create(self.path())?;
-            file.write_all(&maybe_new_content.as_bytes())?;
-            Ok(true)
-        }
-    }
-
     /// Compile a hook into its destination service directory.
     fn compile(&self, ctx: &RenderContext) -> Result<bool> {
-
-        let data = self.renderer().render("hook", ctx)?;
-
-        match self.maybe_change_content(&data) {
-            Ok(true) => {
-                hcore::util::perm::set_owner(self.path(), &ctx.pkg.svc_user, &ctx.pkg.svc_group)?;
-                hcore::util::perm::set_permissions(self.path(), HOOK_PERMISSIONS)?;
-                debug!(
-                    "{} compiled to {}",
-                    Self::file_name(),
-                    self.path().display()
-                );
-                Ok(true)
-            }
-            Ok(false) => {
-                debug!("{} hook did not change", Self::file_name());
-                Ok(false)
-            }
-            Err(err) => Err(err),
+        let content = self.renderer().render("hook", ctx)?;
+        if write_hook(&content, self.path())? {
+            info!(
+                "{}, compiled to {}",
+                Self::file_name(),
+                self.path().display()
+            );
+            hcore::util::perm::set_owner(self.path(), &ctx.pkg.svc_user, &ctx.pkg.svc_group)?;
+            hcore::util::perm::set_permissions(self.path(), HOOK_PERMISSIONS)?;
+            Ok(true)
+        } else {
+            info!(
+                "{}, already compiled to {}",
+                Self::file_name(),
+                self.path().display()
+            );
+            Ok(false)
         }
     }
 
@@ -744,6 +714,37 @@ impl Hook for SuitabilityHook {
     }
 }
 
+/// Cryptographically hash the contents of the compiled hook
+/// file.
+///
+/// If the file does not exist, an empty string is returned.
+fn hash_content<T>(path: T) -> Result<String>
+where
+    T: AsRef<Path>,
+{
+    if path.as_ref().exists() {
+        crypto::hash::hash_file(path).map_err(|e| SupError::from(e))
+    } else {
+        Ok(String::new())
+    }
+}
+
+fn write_hook<T>(content: &str, path: T) -> Result<bool>
+where
+    T: AsRef<Path>,
+{
+    let content_hash = crypto::hash::hash_string(&content);
+    let existing_hash = hash_content(path.as_ref())?;
+
+    if existing_hash == content_hash {
+        Ok(false)
+    } else {
+        let mut file = File::create(path.as_ref())?;
+        file.write_all(&content.as_bytes())?;
+        Ok(true)
+    }
+}
+
 #[derive(Debug, Default, Serialize)]
 pub struct HookTable {
     pub health_check: Option<HealthCheckHook>,
@@ -778,7 +779,7 @@ impl HookTable {
                 table.smoke_test = SmokeTestHook::load(service_group, &hooks, &templates);
             }
         }
-        debug!(
+        info!(
             "{}, Hooks loaded, destination={}, templates={}",
             service_group,
             hooks.display(),
@@ -791,55 +792,50 @@ impl HookTable {
     ///
     /// Returns `true` if compiling any of the hooks resulted in new
     /// content being written to the hook scripts on disk.
-    pub fn compile(&self, service_group: &ServiceGroup, ctx: &RenderContext) -> Result<bool> {
+    pub fn compile(&self, service_group: &ServiceGroup, ctx: &RenderContext) -> bool {
+        debug!("{:?}", self);
         let mut changed = false;
-
         if let Some(ref hook) = self.file_updated {
-            changed = self.compile_one(hook, service_group, ctx)? || changed;
+            changed = self.compile_one(hook, service_group, ctx) || changed;
         }
         if let Some(ref hook) = self.health_check {
-            changed = self.compile_one(hook, service_group, ctx)? || changed;
+            changed = self.compile_one(hook, service_group, ctx) || changed;
         }
         if let Some(ref hook) = self.init {
-            changed = self.compile_one(hook, service_group, ctx)? || changed;
+            changed = self.compile_one(hook, service_group, ctx) || changed;
         }
         if let Some(ref hook) = self.reload {
-            changed = self.compile_one(hook, service_group, ctx)? || changed;
+            changed = self.compile_one(hook, service_group, ctx) || changed;
         }
         if let Some(ref hook) = self.reconfigure {
-            changed = self.compile_one(hook, service_group, ctx)? || changed;
+            changed = self.compile_one(hook, service_group, ctx) || changed;
         }
         if let Some(ref hook) = self.suitability {
-            changed = self.compile_one(hook, service_group, ctx)? || changed;
+            changed = self.compile_one(hook, service_group, ctx) || changed;
         }
         if let Some(ref hook) = self.run {
-            changed = self.compile_one(hook, service_group, ctx)? || changed;
+            changed = self.compile_one(hook, service_group, ctx) || changed;
         }
         if let Some(ref hook) = self.post_run {
-            changed = self.compile_one(hook, service_group, ctx)? || changed;
+            changed = self.compile_one(hook, service_group, ctx) || changed;
         }
         if let Some(ref hook) = self.smoke_test {
-            changed = self.compile_one(hook, service_group, ctx)? || changed;
+            changed = self.compile_one(hook, service_group, ctx) || changed;
         }
-        debug!("{}, Hooks compiled", service_group);
-        Ok(changed)
+        info!("{}, Hooks compiled", service_group);
+        changed
     }
 
-    fn compile_one<H>(
-        &self,
-        hook: &H,
-        service_group: &ServiceGroup,
-        ctx: &RenderContext,
-    ) -> Result<bool>
+    fn compile_one<H>(&self, hook: &H, service_group: &ServiceGroup, ctx: &RenderContext) -> bool
     where
         H: Hook,
     {
         match hook.compile(ctx) {
-            Ok(status) => Ok(status),
+            Ok(status) => status,
             Err(e) => {
                 outputln!(preamble service_group,
                           "Failed to compile {} hook: {}", H::file_name(), e);
-                Err(e)
+                false
             }
         }
     }
@@ -1017,7 +1013,8 @@ mod tests {
     }
 
     fn service_group() -> ServiceGroup {
-        ServiceGroup::new("test_service", "test_group", None).expect("couldn't create ServiceGroup")
+        ServiceGroup::new(None, "test_service", "test_group", None)
+            .expect("couldn't create ServiceGroup")
     }
 
     fn file_content<P>(path: P) -> String
@@ -1062,7 +1059,7 @@ echo "The message is Hello World"
         create_with_content(&hook, content);
 
         assert_eq!(
-            hook.content_hash().unwrap(),
+            hash_content(hook.path()).unwrap(),
             "1cece41b2f4d5fddc643fc809d80c17d6658634b28ec1c5ceb80e512e20d2e72"
         );
     }
@@ -1075,7 +1072,7 @@ echo "The message is Hello World"
         let hook = InitHook::load(&service_group, &concrete_path, &template_path)
             .expect("Could not create testing init hook");
 
-        assert_eq!(hook.content_hash().unwrap(), "");
+        assert_eq!(hash_content(hook.path()).unwrap(), "");
     }
 
     #[test]
@@ -1102,10 +1099,7 @@ echo "The message is Hello World"
         // content, but for the purposes of detecting changes, feeding
         // it the final text works well enough, and doesn't tie this
         // test to the templating machinery.
-        assert_eq!(
-            hook.maybe_change_content(&String::from(content)).unwrap(),
-            false
-        );
+        assert_eq!(write_hook(&content, hook.path()).unwrap(), false);
 
         let post_change_content = file_content(&hook);
         assert_eq!(post_change_content, pre_change_content);
@@ -1130,11 +1124,7 @@ echo "The message is Hello World"
 "#;
         // Since there was no compiled hook file before, this should
         // create it, returning `true` to reflect that
-        assert_eq!(
-            hook.maybe_change_content(&String::from(updated_content))
-                .unwrap(),
-            true
-        );
+        assert_eq!(write_hook(&updated_content, hook.path()).unwrap(), true);
 
         // The content of the file should now be what we just changed
         // it to.
@@ -1166,11 +1156,7 @@ echo "The message is Hello World"
 
 echo "The message is Hola Mundo"
 "#;
-        assert_eq!(
-            hook.maybe_change_content(&String::from(updated_content))
-                .unwrap(),
-            true
-        );
+        assert_eq!(write_hook(&updated_content, hook.path()).unwrap(), true);
 
         let post_change_content = file_content(&hook);
         assert_ne!(post_change_content, initial_content);
@@ -1394,7 +1380,7 @@ echo "The message is Hello"
         ////////////////////////////////////////////////////////////////////////
 
         let hook_table = HookTable::load(&service_group, &template_path);
-        assert_eq!(hook_table.compile(&service_group, &ctx).unwrap(), true);
+        assert_eq!(hook_table.compile(&service_group, &ctx), true);
 
         // Verify init hook
         let init_hook_content = file_content(&hook_table.init.as_ref().expect("no init hook??"));
@@ -1410,7 +1396,7 @@ echo "The message is Hello"
         );
 
         // Recompiling again results in no changes
-        assert_eq!(hook_table.compile(&service_group, &ctx).unwrap(), false);
+        assert_eq!(hook_table.compile(&service_group, &ctx), false);
 
         // Re-Verify init hook
         let init_hook_content = file_content(&hook_table.init.as_ref().expect("no init hook??"));

@@ -28,7 +28,10 @@ const BUF_SIZE: usize = 1024;
 /// Calculate the BLAKE2b hash of a file, return as a hex string
 /// digest size = 32 BYTES
 /// NOTE: the hashing is keyless
-pub fn hash_file<P: AsRef<Path>>(filename: &P) -> Result<String> {
+pub fn hash_file<P>(filename: P) -> Result<String>
+where
+    P: AsRef<Path>,
+{
     let file = File::open(filename.as_ref())?;
     let mut reader = BufReader::new(file);
     hash_reader(&mut reader)
