@@ -72,7 +72,7 @@ fn unclaimed_port(tries: u16) -> u16 {
     }
     let p = random_port();
     match TcpListener::bind(format!("127.0.0.1:{}", p)) {
-        Ok(listener) => {
+        Ok(_listener) => {
             // The system hasn't bound it. Now we make sure none of
             // our other tests have bound it.
             let mut ports = CLAIMED_PORTS.lock().unwrap();
@@ -80,15 +80,14 @@ fn unclaimed_port(tries: u16) -> u16 {
                 // Oops, another test is using it, try again
                 thread::sleep(Duration::from_millis(500));
                 unclaimed_port(tries - 1)
-            }
-            else {
+            } else {
                 // Nobody was using it. Return the port; the TcpListener
                 // that is currently bound to the port will be dropped,
                 // thus freeing the port for our use.
                 ports.insert(p);
                 p
             }
-        },
+        }
         Err(_) => {
             // port already in use, try again
             unclaimed_port(tries - 1)
@@ -116,7 +115,8 @@ fn random_port() -> u16 {
 ///    /home/me/habitat/target/debug/hab-sup
 ///
 fn find_exe<B>(binary_name: B) -> PathBuf
-    where B: AsRef<Path>
+where
+    B: AsRef<Path>,
 {
     let exe_root = env::current_exe()
         .unwrap()
@@ -128,7 +128,11 @@ fn find_exe<B>(binary_name: B) -> PathBuf
     let bin = exe_root.join(binary_name.as_ref());
     assert!(
         bin.exists(),
-        format!("Expected to find a {:?} executable at {:?}", binary_name.as_ref(), bin)
+        format!(
+            "Expected to find a {:?} executable at {:?}",
+            binary_name.as_ref(),
+            bin
+        )
     );
     bin
 }
