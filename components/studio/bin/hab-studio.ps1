@@ -294,9 +294,9 @@ function Enter-Studio {
     }
 
     function Stop-Supervisor {
-      if(Test-Path "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK") {
-        Stop-Process -Id (Get-Content "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK")
-        Remove-Item "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK"
+      if(Test-Path "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\launch.pid") {
+        Stop-Process -Id (Get-Content "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\launch.pid")
+        Remove-Item "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\launch.pid"
       }
     }
 
@@ -312,8 +312,8 @@ function Enter-Studio {
     Set-Location "Habitat:\src"
   }
 
-  if(Test-Path "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK") {
-    Stop-Process -Id (Get-Content "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK")
+  if(Test-Path "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\launch.pid") {
+    Stop-Process -Id (Get-Content "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\launch.pid")
   }
 }
 
