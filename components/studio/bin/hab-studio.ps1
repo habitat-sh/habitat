@@ -303,6 +303,12 @@ function Enter-Studio {
     New-PSDrive -Name "Habitat" -PSProvider FileSystem -Root $env:HAB_STUDIO_ENTER_ROOT | Out-Null
     mkdir $env:HAB_STUDIO_ENTER_ROOT\hab\sup\default -Force | Out-Null
     Start-Process hab.exe -ArgumentList "sup run" -NoNewWindow -RedirectStandardOutput $env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\out.log
+    $proc = $null
+    while (!$proc) {
+      $proc = Get-Process -Name hab-launch -ErrorAction SilentlyContinue
+      Start-Sleep -Milliseconds 100
+    }
+    $proc.Id > "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\launch.pid"
     Write-Host  "** The Habitat Supervisor has been started in the background." -ForegroundColor Cyan
     Write-Host  "** Use 'hab svc start' and 'hab svc stop' to start and stop services." -ForegroundColor Cyan
     Write-Host  "** Use the 'Get-SupervisorLog' command to stream the supervisor log." -ForegroundColor Cyan
