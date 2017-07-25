@@ -1,6 +1,6 @@
 ---
 title: Making a Leader/Follower MySql Cluster with Habitat!
-date: 2017-07-14
+date: 2017-07-25
 author: Nell Shamrell-Harrington
 tags: supervisor, packaging
 category: Supervisor
@@ -13,13 +13,12 @@ One of the most compelling pieces of Habitat is using the supervisor to create s
 
 Create three virtual machines on the cloud provider of your choice (when creating this post, I used AWS EC2).
 
-Why virtual machines and not containers?  You certainly could create a cluster in containers, but I strongly prefer to use containers only for stateless portions of an application.  A database is stateful part of an application and should be in a long lasting form of infrastructure, rather than an ephemeral one.
+Why virtual machines and not containers?  You certainly could create a cluster in containers, but I strongly prefer to use containers only for stateless portions of an application.  A database is stateful part of an application and should be in a long lasting form of infrastructure, rather than an ephemeral one.  Containers give you isolation, immutability, and the ability to schedule workloads.  Databases are not schedulable, but by using Habitat you can still get isolation and immutability for your database software packages.  Habitat gives your stateful portions of your application two of the three super powers of containers.
 
 When you set up your virtual machines, make sure that these ports are open.
 
 * 22 (ssh)
 * 9631 (tcp)
-* 9631 (udp)
 * 9638 (tcp)
 * 9638 (udp)
 
