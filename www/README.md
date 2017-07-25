@@ -13,19 +13,19 @@ Static site content for www.habitat.sh
 
 ## How To: Add a Blog Post
 
-1. Create your new blog post in source/blog
+* Create your new blog post in source/blog
 
   ```
   $ touch source/blog/YYYY-MM-DD-your-blog-post-title.html.md
   ```
 
-1. Open up your blog post
+* Open up your blog post
 
   ```
   $ vim source/blog/YYYY-MM-DD-your-blog-post-title.html.md
   ```
 
-1. And add these headers
+* And add these headers
 
   ```
   ---
@@ -38,15 +38,15 @@ Static site content for www.habitat.sh
   ---
   ```
 
-1. Then add your content below that.
+* Then add your content below that.
 
-1.  After adding your content, save and close the file, then open this file
+* After adding your content, save and close the file, then open this file
 
   ```
   $ vim www/data/author_bios.yml
   ```
 
-1. If your bio is not already there, add it in this format, then save and close the file.
+* If your bio is not already there, add it in this format, then save and close the file.
 
   ```
   nellshamrell-harrington:
@@ -56,13 +56,13 @@ Static site content for www.habitat.sh
 	bio: "Nell Shamrell-Harrington is a Software Development Engineer at Chef and core maintainer of the Habitat and Supermarket open source projects. She also sits on the advisory board for the University of Washington Certificates in Ruby Programming and DevOps. She specializes in Chef, Ruby, Rails, Rust Regular Expressions, and Test Driven Development and has traveled the world speaking on these topics. Prior to entering the world of software development, she studied and worked in the field of theatre."
   ```
 
-1. Now check out your new post locally by running:
+* Now check out your new post locally by running:
 
   ```
   $ make run
   ```
 
-If all looks good, open up a pull request!
+* If all looks good, open up a pull request!
 
 ## How-To: Serve Docs Locally
 
