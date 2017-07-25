@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::collections::HashMap;
 use std::sync::{mpsc, Arc, RwLock};
 use std::time::{Duration, Instant};
 use std::thread::{self, JoinHandle};
@@ -20,6 +21,7 @@ use linked_hash_map::LinkedHashMap;
 use hab_net::server::ZMQ_CONTEXT;
 use protobuf::{parse_from_bytes, Message};
 use protocol::jobsrv;
+use protocol::net::{self, ErrCode};
 use zmq;
 
 use config::Config;
@@ -28,6 +30,8 @@ use error::Result;
 
 const WORKER_MGR_ADDR: &'static str = "inproc://work-manager";
 const WORKER_TIMEOUT_MS: u64 = 33_000;
+const JOB_TIMEOUT_MS: u64 = 5_400_000;
+const DEFAULT_POLL_TIMEOUT_MS: i64 = 60_000;
 
 pub struct WorkerMgrClient {
     socket: zmq::Socket,
@@ -62,7 +66,10 @@ pub struct WorkerMgr {
     rq_sock: zmq::Socket,
     work_mgr_sock: zmq::Socket,
     msg: zmq::Message,
-    workers: LinkedHashMap<String, Instant>,
+    ready_workers: LinkedHashMap<String, Instant>,
+    busy_workers: LinkedHashMap<String, Instant>,
+    jobs: LinkedHashMap<u64, Instant>,
+    worker_map: HashMap<String, u64>,
 }
 
 impl WorkerMgr {
@@ -83,7 +90,10 @@ impl WorkerMgr {
             rq_sock: rq_sock,
             work_mgr_sock: work_mgr_sock,
             msg: msg,
-            workers: LinkedHashMap::new(),
+            ready_workers: LinkedHashMap::new(),
+            busy_workers: LinkedHashMap::new(),
+            jobs: LinkedHashMap::new(),
+            worker_map: HashMap::new(),
         })
     }
 
@@ -148,7 +158,8 @@ impl WorkerMgr {
                 process_work = self.process_heartbeat()?;
                 hb_sock = false;
             }
-            self.expire_workers();
+            self.expire_workers()?;
+            self.expire_jobs()?;
             if rq_sock {
                 self.process_job_status()?;
                 rq_sock = false;
@@ -170,7 +181,7 @@ impl WorkerMgr {
         let now = Instant::now();
         let timeout;
 
-        if let Some((_, expiry)) = self.workers.front() {
+        if let Some((_, expiry)) = self.ready_workers.front() {
             // uh-oh. our expiration date is in the past. it's supposed to be in the
             // future. blindly subtracting now from this will panic the current
             // thread, since Instant's are supposed to monotonically increase.
@@ -183,7 +194,7 @@ impl WorkerMgr {
 
             (timeout.as_secs() as i64 * 1000) + (timeout.subsec_nanos() as i64 / 1000 / 1000)
         } else {
-            -1
+            DEFAULT_POLL_TIMEOUT_MS
         }
     }
 
@@ -199,7 +210,7 @@ impl WorkerMgr {
             // This unwrap is fine, because we just checked our length
             let mut job = jobs.pop().unwrap();
 
-            match self.workers.pop_front() {
+            match self.ready_workers.pop_front() {
                 Some((worker, _)) => {
                     debug!("sending work, worker={:?}, job={:?}", worker, job);
                     if self.rq_sock.send_str(&worker, zmq::SNDMORE).is_err() {
@@ -223,6 +234,9 @@ impl WorkerMgr {
                         self.datastore.update_job(&job)?;
                         continue;
                     }
+                    let expiry = Instant::now() + Duration::from_millis(JOB_TIMEOUT_MS);
+                    self.jobs.insert(job.get_id(), expiry);
+                    self.worker_map.insert(worker, job.get_id());
                 }
                 None => {
                     debug!("no workers available - bailing for now");
@@ -235,37 +249,118 @@ impl WorkerMgr {
         Ok(())
     }
 
-    fn expire_workers(&mut self) {
+    fn expire_workers(&mut self) -> Result<()> {
         let now = Instant::now();
         loop {
-            if let Some((_, expiry)) = self.workers.front() {
+            if let Some((_, expiry)) = self.ready_workers.front() {
                 if expiry >= &now {
                     break;
                 }
             } else {
                 break;
             }
-            let worker = self.workers.pop_front();
-            debug!("expiring worker due to inactivity, worker={:?}", worker);
+
+            let (worker, _) = self.ready_workers.pop_front().unwrap();
+            debug!(
+                "expiring ready worker due to missed heartbeat, worker={:?}",
+                worker
+            );
         }
+
+        loop {
+            if let Some((_, expiry)) = self.busy_workers.front() {
+                if expiry >= &now {
+                    break;
+                }
+            } else {
+                break;
+            }
+
+            let (worker, _) = self.busy_workers.pop_front().unwrap();
+            debug!(
+                "expiring busy worker due to missed heartbeat, worker={:?}",
+                worker
+            );
+
+            assert!(self.worker_map.contains_key(&worker));
+            let job_id = self.worker_map.remove(&worker).unwrap();
+
+            if self.jobs.contains_key(&job_id) {
+                self.jobs.remove(&job_id).unwrap();
+            }
+
+            let mut req = jobsrv::JobGet::new();
+            req.set_id(job_id);
+
+            match self.datastore.get_job(&req)? {
+                Some(mut job) => {
+                    debug!("updating job {:?}, setting state back to Pending", job_id);
+                    job.set_state(jobsrv::JobState::Pending);
+                    self.datastore.update_job(&job)?;
+                }
+                None => {
+                    warn!(
+                        "did not find job id {:?} for busy worker {:?}!",
+                        job_id,
+                        worker
+                    );
+                }
+            }
+        }
+
+        Ok(())
+    }
+
+    fn expire_jobs(&mut self) -> Result<()> {
+        let now = Instant::now();
+        loop {
+            if let Some((_, expiry)) = self.jobs.front() {
+                if expiry >= &now {
+                    break;
+                }
+            } else {
+                break;
+            }
+
+            let (job_id, _) = self.jobs.pop_front().unwrap();
+            debug!("expiring job due to timeout, id={:?}", job_id);
+
+            let mut req = jobsrv::JobGet::new();
+            req.set_id(job_id);
+
+            match self.datastore.get_job(&req)? {
+                Some(mut job) => {
+                    job.set_state(jobsrv::JobState::Failed);
+                    let err = net::err(ErrCode::TIMEOUT, "js:err:1");
+                    job.set_error(err);
+                    debug!("updating job {:?} setting state to Failed", job_id);
+                    self.datastore.update_job(&job)?;
+                }
+                None => {}
+            }
+        }
+
+        Ok(())
     }
 
     fn process_heartbeat(&mut self) -> Result<bool> {
         self.hb_sock.recv(&mut self.msg, 0)?;
         let heartbeat: jobsrv::Heartbeat = parse_from_bytes(&self.msg)?;
         debug!("heartbeat={:?}", heartbeat);
+
+        let now = Instant::now();
+        let expiry = now + Duration::from_millis(WORKER_TIMEOUT_MS);
+        let endpoint = heartbeat.get_endpoint().to_string();
+
         let result = match heartbeat.get_state() {
             jobsrv::WorkerState::Ready => {
-                let now = Instant::now();
-                let expiry = now + Duration::from_millis(WORKER_TIMEOUT_MS);
-                self.workers.insert(
-                    heartbeat.get_endpoint().to_string(),
-                    expiry,
-                );
+                self.busy_workers.remove(&endpoint);
+                self.ready_workers.insert(endpoint, expiry);
                 true
             }
             jobsrv::WorkerState::Busy => {
-                self.workers.remove(heartbeat.get_endpoint());
+                self.ready_workers.remove(&endpoint);
+                self.busy_workers.insert(endpoint, expiry);
                 false
             }
         };
@@ -280,6 +375,15 @@ impl WorkerMgr {
         let job: jobsrv::Job = parse_from_bytes(&self.msg)?;
         debug!("job_status={:?}", job);
         self.datastore.update_job(&job)?;
+
+        match job.get_state() {
+            jobsrv::JobState::Complete |
+            jobsrv::JobState::Rejected |
+            jobsrv::JobState::Failed => {
+                self.jobs.remove(&job.get_id());
+            }
+            _ => (),
+        }
 
         Ok(())
     }
