@@ -46,7 +46,9 @@ Static site content for www.habitat.sh
   $ vim www/data/author_bios.yml
   ```
 
-* If your bio is not already there, add it in this format, then save and close the file.
+* If your bio is not already there, add it in this format, then save and close
+  the file. Specifically, make the yaml key for your name a lowercased version
+  of your name with all spaces removed.
 
   ```
   nellshamrell-harrington:
