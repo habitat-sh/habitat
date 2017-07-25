@@ -21,6 +21,7 @@ use std::path::{Path, PathBuf};
 use std::result;
 use std::str::FromStr;
 
+use hcore::channel::STABLE_CHANNEL;
 use hcore::package::{PackageIdent, PackageInstall};
 use hcore::service::{ApplicationEnvironment, ServiceGroup};
 use hcore::url::DEFAULT_DEPOT_URL;
@@ -97,7 +98,7 @@ pub struct ServiceSpec {
             skip_serializing_if = "Option::is_none")]
     pub application_environment: Option<ApplicationEnvironment>,
     pub depot_url: String,
-    pub channel: Option<String>,
+    pub channel: String,
     pub topology: Topology,
     pub update_strategy: UpdateStrategy,
     pub binds: Vec<ServiceBind>,
@@ -232,7 +233,7 @@ impl Default for ServiceSpec {
             group: DEFAULT_GROUP.to_string(),
             application_environment: None,
             depot_url: DEFAULT_DEPOT_URL.to_string(),
-            channel: None,
+            channel: STABLE_CHANNEL.to_string(),
             topology: Topology::default(),
             update_strategy: UpdateStrategy::default(),
             binds: Vec::default(),
@@ -481,7 +482,7 @@ mod test {
                     .unwrap(),
             ),
             depot_url: String::from("http://example.com/depot"),
-            channel: Some(String::from("stable")),
+            channel: String::from("unstable"),
             topology: Topology::Leader,
             update_strategy: UpdateStrategy::AtOnce,
             binds: vec![
@@ -503,7 +504,7 @@ mod test {
             r#"application_environment = "theinternet.preprod""#,
         ));
         assert!(toml.contains(r#"depot_url = "http://example.com/depot""#));
-        assert!(toml.contains(r#"channel = "stable""#));
+        assert!(toml.contains(r#"channel = "unstable""#));
         assert!(toml.contains(r#"topology = "leader""#));
         assert!(toml.contains(r#"update_strategy = "at-once""#));
         assert!(toml.contains(r#""cache:redis.cache@acmecorp""#));
@@ -570,6 +571,7 @@ mod test {
                 ServiceBind::from_str("db:postgres.app@acmecorp").unwrap(),
             ]
         );
+        assert_eq!(&spec.channel, "stable");
         assert_eq!(
             spec.config_from,
             Some(PathBuf::from("/only/for/development"))
@@ -638,7 +640,7 @@ mod test {
                     .unwrap(),
             ),
             depot_url: String::from("http://example.com/depot"),
-            channel: Some(String::from("stable")),
+            channel: String::from("unstable"),
             topology: Topology::Leader,
             update_strategy: UpdateStrategy::AtOnce,
             binds: vec![
@@ -661,7 +663,7 @@ mod test {
             r#"application_environment = "theinternet.preprod""#,
         ));
         assert!(toml.contains(r#"depot_url = "http://example.com/depot""#));
-        assert!(toml.contains(r#"channel = "stable""#));
+        assert!(toml.contains(r#"channel = "unstable""#));
         assert!(toml.contains(r#"topology = "leader""#));
         assert!(toml.contains(r#"update_strategy = "at-once""#));
         assert!(toml.contains(r#""cache:redis.cache@acmecorp""#));

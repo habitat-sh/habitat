@@ -36,14 +36,14 @@ use std::thread;
 use clap::{ArgMatches, Shell};
 
 use common::ui::{Coloring, UI, NOCOLORING_ENVVAR, NONINTERACTIVE_ENVVAR};
-use hcore::env as henv;
+use hcore::channel;
 use hcore::crypto::{init, default_cache_key_path, SigKeyPair};
 use hcore::crypto::keys::PairType;
+use hcore::env as henv;
 use hcore::fs::{cache_artifact_path, cache_analytics_path, cache_key_path};
-use hcore::service::ServiceGroup;
 use hcore::package::PackageIdent;
+use hcore::service::ServiceGroup;
 use hcore::url::{DEFAULT_DEPOT_URL, DEPOT_URL_ENVVAR};
-use hcore::channel::{DEPOT_CHANNEL_ENVVAR, STABLE_CHANNEL, UNSTABLE_CHANNEL};
 
 use hab::{analytics, cli, command, config, AUTH_TOKEN_ENVVAR, ORIGIN_ENVVAR, PRODUCT, VERSION};
 use hab::error::{Error, Result};
@@ -359,9 +359,9 @@ fn sub_plan_init(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 fn sub_pkg_install(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
     let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
-    let channel_env_or_default =
-        henv::var(DEPOT_CHANNEL_ENVVAR).unwrap_or(STABLE_CHANNEL.to_string());
-    let channel = m.value_of("CHANNEL").unwrap_or(&channel_env_or_default);
+    let channel = m.value_of("CHANNEL")
+        .and_then(|c| Some(c.to_string()))
+        .unwrap_or(channel::default());
     let ident_or_artifacts = m.values_of("PKG_IDENT_OR_ARTIFACT").unwrap(); // Required via clap
     let ignore_target = if m.is_present("IGNORE_TARGET") {
         true
@@ -374,7 +374,7 @@ fn sub_pkg_install(ui: &mut UI, m: &ArgMatches) -> Result<()> {
         let pkg_ident = common::command::package::install::start(
             ui,
             url,
-            Some(channel),
+            Some(&channel),
             ident_or_artifact,
             PRODUCT,
             VERSION,
@@ -429,13 +429,13 @@ fn sub_pkg_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
     let key_path = cache_key_path(Some(&*FS_ROOT));
     let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
-    let channel_env_or_default =
-        henv::var(DEPOT_CHANNEL_ENVVAR).unwrap_or(UNSTABLE_CHANNEL.to_string());
-    let channel = m.value_of("CHANNEL").unwrap_or(&channel_env_or_default);
+    let channel = m.value_of("CHANNEL")
+        .and_then(|c| Some(c.to_string()))
+        .unwrap_or(channel::default());
     let token = auth_token_param_or_env(&m)?;
     let artifact_paths = m.values_of("HART_FILE").unwrap(); // Required via clap
     for artifact_path in artifact_paths {
-        command::pkg::upload::start(ui, &url, Some(channel), &token, &artifact_path, &key_path)?;
+        command::pkg::upload::start(ui, &url, Some(&channel), &token, &artifact_path, &key_path)?;
     }
     Ok(())
 }

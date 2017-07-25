@@ -547,7 +547,7 @@ data "template_file" "hab_sup" {
   template = "${file("${path.module}/templates/hab-sup.service")}"
 
   vars {
-    flags               = "--listen-gossip 0.0.0.0:${var.gossip_listen_port} --listen-http 0.0.0.0:${var.http_listen_port}"
+    flags               = "--auto-update --channel ${var.release_channel} --events hab-eventsrv.default --listen-gossip 0.0.0.0:${var.gossip_listen_port} --listen-http 0.0.0.0:${var.http_listen_port}"
     gossip_listen_port  = "${var.gossip_listen_port}"
     peer_ip             = "${aws_instance.datastore.0.private_ip}"
     log_level           = "${var.log_level}"
@@ -558,7 +558,7 @@ data "template_file" "hab_sup_permanent" {
   template = "${file("${path.module}/templates/hab-sup.service")}"
 
   vars {
-    flags               = "--listen-gossip 0.0.0.0:${var.gossip_listen_port} --listen-http 0.0.0.0:${var.http_listen_port} --permanent-peer"
+    flags               = "--auto-update --channel ${var.release_channel} --events hab-eventsrv.default --listen-gossip 0.0.0.0:${var.gossip_listen_port} --listen-http 0.0.0.0:${var.http_listen_port} --permanent-peer"
     gossip_listen_port  = "${var.gossip_listen_port}"
     peer_ip             = "${aws_instance.datastore.0.private_ip}"
     log_level           = "${var.log_level}"
@@ -569,7 +569,7 @@ data "template_file" "hab_sup_seed" {
   template = "${file("${path.module}/templates/hab-sup.service")}"
 
   vars {
-    flags               = "--listen-gossip 0.0.0.0:${var.gossip_listen_port} --listen-http 0.0.0.0:${var.http_listen_port} --permanent-peer"
+    flags               = "--auto-update --channel ${var.release_channel} --events hab-eventsrv.default --listen-gossip 0.0.0.0:${var.gossip_listen_port} --listen-http 0.0.0.0:${var.http_listen_port} --permanent-peer"
     gossip_listen_port  = "${var.gossip_listen_port}"
     peer_ip             = "127.0.0.1"
     log_level           = "${var.log_level}"

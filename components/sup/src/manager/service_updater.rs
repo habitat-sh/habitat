@@ -290,7 +290,7 @@ struct Worker {
     current: PackageIdent,
     spec_ident: PackageIdent,
     depot: depot_client::Client,
-    channel: Option<String>,
+    channel: String,
     update_strategy: UpdateStrategy,
     ui: UI,
 }
@@ -351,7 +351,7 @@ impl Worker {
             let mut package: Option<PackageInstall> = None;
             match self.depot.show_package(
                 &self.spec_ident,
-                self.channel.as_ref().map(String::as_ref),
+                Some(&self.channel),
             ) {
                 Ok(remote) => {
                     let latest: PackageIdent = remote.get_ident().clone().into();

@@ -37,11 +37,11 @@ pub struct SelfUpdater {
     rx: Receiver<PackageInstall>,
     current: PackageIdent,
     update_url: String,
-    update_channel: Option<String>,
+    update_channel: String,
 }
 
 impl SelfUpdater {
-    pub fn new(current: PackageIdent, update_url: String, update_channel: Option<String>) -> Self {
+    pub fn new(current: PackageIdent, update_url: String, update_channel: String) -> Self {
         let rx = Self::init(current.clone(), &update_url, update_channel.clone());
         SelfUpdater {
             rx: rx,
@@ -54,7 +54,7 @@ impl SelfUpdater {
     fn init(
         current: PackageIdent,
         update_url: &str,
-        update_channel: Option<String>,
+        update_channel: String,
     ) -> Receiver<PackageInstall> {
         let (tx, rx) = sync_channel(0);
         let client = DepotClient::new(update_url, PRODUCT, VERSION, None).unwrap();
@@ -69,13 +69,13 @@ impl SelfUpdater {
         sender: SyncSender<PackageInstall>,
         current: PackageIdent,
         depot: DepotClient,
-        channel: Option<String>,
+        channel: String,
     ) {
         let spec_ident = PackageIdent::from_str(SUP_PKG_IDENT).unwrap();
         debug!("Self updater current package, {}", current);
         loop {
             let next_check = SteadyTime::now() + TimeDuration::milliseconds(update_frequency());
-            match depot.show_package(&spec_ident, channel.as_ref().map(String::as_ref)) {
+            match depot.show_package(&spec_ident, Some(&channel)) {
                 Ok(mut remote) => {
                     debug!("Self updater found remote, {}", remote.get_ident());
                     let latest: PackageIdent = remote.take_ident().into();
