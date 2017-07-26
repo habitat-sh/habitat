@@ -25,7 +25,7 @@ where
     S: AsRef<OsStr>,
 {
     let ps_cmd = format!("iex $(gc {} | out-string)", path.as_ref().to_string_lossy());
-    let args = vec!["-command", ps_cmd.as_str()];
+    let args = vec!["-NonInteractive", "-command", ps_cmd.as_str()];
     Ok(Child::spawn(
         "powershell.exe",
         args,
