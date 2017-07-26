@@ -11,13 +11,14 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 #![cfg_attr(feature="clippy", feature(plugin))]
 #![cfg_attr(feature="clippy", plugin(clippy))]
 
-extern crate hab;
 #[macro_use]
 extern crate clap;
 extern crate env_logger;
+extern crate hab;
 extern crate hab_butterfly;
 extern crate habitat_core as hcore;
 extern crate habitat_common as common;
@@ -118,11 +119,10 @@ fn sub_depart(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     init();
     let cache = default_cache_key_path(Some(&*FS_ROOT));
     let ring_key = match m.value_of("RING") {
-        Some(name) => Some(try!(SymKey::get_latest_pair_for(&name, &cache))),
+        Some(name) => Some(SymKey::get_latest_pair_for(&name, &cache)?),
         None => None,
     };
-
-    command::depart::run(ui, String::from(member_id), &peers, ring_key.as_ref())
+    command::depart::run(ui, member_id, peers, ring_key)
 }
 
 fn sub_config_apply(ui: &mut UI, m: &ArgMatches) -> Result<()> {

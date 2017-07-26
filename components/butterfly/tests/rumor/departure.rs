@@ -14,7 +14,6 @@
 
 use btest;
 use habitat_butterfly::member::Health;
-use habitat_butterfly::rumor::departure::Departure;
 use habitat_butterfly::client::Client;
 
 #[test]

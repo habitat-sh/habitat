@@ -119,7 +119,6 @@ impl Rumor for Departure {
 #[cfg(test)]
 mod tests {
     use std::cmp::Ordering;
-    use std::str::FromStr;
 
     use super::Departure;
     use rumor::Rumor;
