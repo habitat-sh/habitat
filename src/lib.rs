@@ -26,6 +26,7 @@ pub use message::supervisor::*;
 use message::net::*;
 
 pub const LAUNCHER_PIPE_ENV: &'static str = "HAB_LAUNCHER_PIPE";
+pub const LAUNCHER_PID_ENV: &'static str = "HAB_LAUNCHER_PID";
 /// Process exit code from Supervisor which indicates to Launcher that the Supervisor
 /// ran to completion with a successful result. The Launcher should not attempt to restart
 /// the Supervisor and should exit immediately with a successful exit code.
