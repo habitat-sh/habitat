@@ -36,7 +36,10 @@ pub struct Client {
 
 impl Client {
     /// Connect this client to the address, and optionally encrypt the traffic.
-    pub fn new<A: ToString>(addr: A, ring_key: Option<SymKey>) -> Result<Client> {
+    pub fn new<A>(addr: A, ring_key: Option<SymKey>) -> Result<Client>
+    where
+        A: ToString,
+    {
         let socket = (**ZMQ_CONTEXT).as_mut().socket(zmq::PUSH).expect(
             "Failure to create the ZMQ push socket",
         );
@@ -64,7 +67,10 @@ impl Client {
     }
 
     /// Create a departure notification and send it to the server.
-    pub fn send_departure(&mut self, member_id: String) -> Result<()> {
+    pub fn send_departure<T>(&mut self, member_id: T) -> Result<()>
+    where
+        T: ToString,
+    {
         let departure = Departure::new(member_id);
         self.send(departure)
     }
@@ -101,7 +107,7 @@ impl Client {
     /// Send any `Rumor` to the server.
     pub fn send<T: Rumor>(&mut self, rumor: T) -> Result<()> {
         let bytes = rumor.write_to_bytes()?;
-        let wire_msg = message::generate_wire(bytes, &self.ring_key)?;
+        let wire_msg = message::generate_wire(bytes, self.ring_key.as_ref())?;
         self.socket.send(&wire_msg, 0).map_err(Error::ZmqSendError)
     }
 }

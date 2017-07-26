@@ -26,9 +26,9 @@ use error::Result;
 use message::swim::Wire;
 use protobuf::{self, Message};
 
-pub fn generate_wire(payload: Vec<u8>, ring_key: &Option<SymKey>) -> Result<Vec<u8>> {
+pub fn generate_wire(payload: Vec<u8>, ring_key: Option<&SymKey>) -> Result<Vec<u8>> {
     let mut wire = Wire::new();
-    if let Some(ref ring_key) = *ring_key {
+    if let Some(ring_key) = ring_key {
         wire.set_encrypted(true);
         let (nonce, encrypted_payload) = ring_key.encrypt(&payload)?;
         wire.set_nonce(nonce);
@@ -39,9 +39,9 @@ pub fn generate_wire(payload: Vec<u8>, ring_key: &Option<SymKey>) -> Result<Vec<
     Ok(wire.write_to_bytes()?)
 }
 
-pub fn unwrap_wire(payload: &[u8], ring_key: &Option<SymKey>) -> Result<Vec<u8>> {
+pub fn unwrap_wire(payload: &[u8], ring_key: Option<&SymKey>) -> Result<Vec<u8>> {
     let mut wire: Wire = protobuf::parse_from_bytes(payload)?;
-    if let Some(ref ring_key) = *ring_key {
+    if let Some(ring_key) = ring_key {
         Ok(ring_key.decrypt(wire.get_nonce(), wire.get_payload())?)
     } else {
         Ok(wire.take_payload())

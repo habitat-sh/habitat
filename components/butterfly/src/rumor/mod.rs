@@ -60,11 +60,15 @@ pub struct RumorKey {
 }
 
 impl RumorKey {
-    pub fn new<A: Into<String>, B: Into<String>>(kind: Rumor_Type, id: A, key: B) -> RumorKey {
+    pub fn new<A, B>(kind: Rumor_Type, id: A, key: B) -> RumorKey
+    where
+        A: ToString,
+        B: ToString,
+    {
         RumorKey {
             kind: kind,
-            id: id.into(),
-            key: key.into(),
+            id: id.to_string(),
+            key: key.to_string(),
         }
     }
 
