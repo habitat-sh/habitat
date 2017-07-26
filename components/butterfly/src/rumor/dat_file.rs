@@ -518,7 +518,7 @@ mod tests {
         original.election_len = rand::random::<u64>();
         original.update_len = rand::random::<u64>();
         let bytes = original.write_to_bytes().unwrap();
-        let (size_of_header, restored) = Header::from_bytes(&bytes, HEADER_VERSION);
+        let (_size_of_header, restored) = Header::from_bytes(&bytes, HEADER_VERSION);
         assert_eq!(bytes.len(), mem::size_of::<Header>() + 8);
         assert_eq!(original, restored);
     }
