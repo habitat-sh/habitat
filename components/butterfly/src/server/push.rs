@@ -180,7 +180,10 @@ impl PushWorker {
         'rumorlist: for &(ref rumor_key, ref _heat) in rumors.iter() {
             let rumor_as_bytes = match rumor_key.kind {
                 ProtoRumor_Type::Member => {
-                    let send_rumor = self.create_member_rumor(&rumor_key);
+                    let send_rumor = match self.create_member_rumor(&rumor_key) {
+                        Some(rumor) => rumor,
+                        None => continue 'rumorlist,
+                    };
                     trace_it!(
                         GOSSIP: &self.server,
                         TraceKind::SendRumor,
@@ -339,14 +342,18 @@ impl PushWorker {
     }
 
     /// Given a rumorkey, creates a protobuf rumor for sharing.
-    fn create_member_rumor(&self, rumor_key: &RumorKey) -> ProtoRumor {
-        let mut member: ProtoMember = ProtoMember::new();
+    fn create_member_rumor(&self, rumor_key: &RumorKey) -> Option<ProtoRumor> {
+        let mut member: Option<ProtoMember> = None;
         self.server.member_list.with_member(&rumor_key.key(), |m| {
-            // TODO: This should not stand
-            member = m.unwrap().proto.clone();
+            if let Some(m) = m {
+                member = Some(m.proto.clone());
+            }
         });
+        if member.is_none() {
+            return None;
+        }
         let mut membership = ProtoMembership::new();
-        membership.set_member(member);
+        membership.set_member(member.unwrap());
         membership.set_health(
             self.server
                 .member_list
@@ -358,6 +365,6 @@ impl PushWorker {
         rumor.set_field_type(ProtoRumor_Type::Member);
         rumor.set_member(membership);
         rumor.set_from_id(String::from(self.server.member_id()));
-        rumor
+        Some(rumor)
     }
 }

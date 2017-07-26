@@ -264,8 +264,9 @@ pub fn populate_membership_rumors(server: &Server, target: &Member, swim: &mut S
     // targets current status. This ensures that members always get a "Confirmed" rumor, before we
     // have the chance to flip it to "Alive", which helps make sure we heal from a partition.
     if server.member_list.contains_member(target.get_id()) {
-        let always_target = server.member_list.membership_for(target.get_id());
-        membership_entries.push(always_target);
+        if let Some(always_target) = server.member_list.membership_for(target.get_id()) {
+            membership_entries.push(always_target);
+        }
     }
     let rumors = server.rumor_list.take_by_kind(
         target.get_id(),
@@ -273,7 +274,9 @@ pub fn populate_membership_rumors(server: &Server, target: &Member, swim: &mut S
         Rumor_Type::Member,
     );
     for &(ref rkey, _heat) in rumors.iter() {
-        membership_entries.push(server.member_list.membership_for(&rkey.key()));
+        if let Some(member) = server.member_list.membership_for(&rkey.key()) {
+            membership_entries.push(member);
+        }
     }
     // We don't want to update the heat for rumors that we know we are sending to a target that is
     // confirmed dead; the odds are, they won't receive them. Lets spam them a little harder with

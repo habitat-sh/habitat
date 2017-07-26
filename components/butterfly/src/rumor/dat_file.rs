@@ -351,8 +351,9 @@ impl DatFile {
             "Member list lock poisoned",
         );
         for member in members.values() {
-            let membership = member_list.membership_for(member.get_id());
-            total += self.write_member(writer, &membership)?;
+            if let Some(membership) = member_list.membership_for(member.get_id()) {
+                total += self.write_member(writer, &membership)?;
+            }
         }
         Ok(total)
     }

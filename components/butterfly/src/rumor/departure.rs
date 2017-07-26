@@ -76,14 +76,14 @@ impl DerefMut for Departure {
 impl Departure {
     pub fn new<U>(member_id: U) -> Self
     where
-        U: Into<String>,
+        U: ToString,
     {
         let mut rumor = ProtoRumor::new();
         rumor.set_from_id(String::from("butterflyclient"));
         rumor.set_field_type(ProtoRumor_Type::Departure);
 
         let mut proto = ProtoDeparture::new();
-        proto.set_member_id(member_id.into());
+        proto.set_member_id(member_id.to_string());
         rumor.set_departure(proto);
         Departure(rumor)
     }

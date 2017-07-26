@@ -461,8 +461,8 @@ impl Server {
         }
     }
 
-    /// Set our member to departed, then send up to 10 out of order ack messages to other members to seed
-    /// our status.
+    /// Set our member to departed, then send up to 10 out of order ack messages to other
+    /// members to seed our status.
     pub fn set_departed(&self) {
         if self.socket.is_some() {
             let member = {
@@ -598,7 +598,7 @@ impl Server {
     /// Insert a departure rumor into the departure store.
     pub fn insert_departure(&self, departure: Departure) {
         let rk = RumorKey::from(&departure);
-        if &self.member_id[..] == departure.get_member_id() {
+        if &*self.member_id == departure.get_member_id() {
             self.departed.compare_and_swap(
                 false,
                 true,
@@ -1009,11 +1009,11 @@ impl Server {
     }
 
     fn generate_wire(&self, payload: Vec<u8>) -> Result<Vec<u8>> {
-        message::generate_wire(payload, &self.ring_key)
+        message::generate_wire(payload, (*self.ring_key).as_ref())
     }
 
     fn unwrap_wire(&self, payload: &[u8]) -> Result<Vec<u8>> {
-        message::unwrap_wire(payload, &self.ring_key)
+        message::unwrap_wire(payload, (*self.ring_key).as_ref())
     }
 
     fn persist_data(&self) {

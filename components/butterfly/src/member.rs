@@ -330,10 +330,10 @@ impl MemberList {
                 // If currently healthy and the rumor is confirmation, then we are now confirmed
                 } else if *current_health == Health::Alive && health == Health::Confirmed {
                     share_rumor = true;
-                    // If currently healthy and the rumor is departed, then we are now departed
+                // If currently healthy and the rumor is departed, then we are now departed
                 } else if *current_health == Health::Alive && health == Health::Departed {
                     share_rumor = true;
-                    // If we are both alive, then nothing to see here.
+                // If we are both alive, then nothing to see here.
                 } else if *current_health == Health::Alive && health == Health::Alive {
                     share_rumor = false;
                 // If currently suspicious and the rumor is alive, then we are still suspicious
@@ -347,17 +347,17 @@ impl MemberList {
                 } else if *current_health == Health::Suspect && health == Health::Confirmed {
                     stop_suspicion = true;
                     share_rumor = true;
-                    // If currently suspicious and the rumor is departed, then we are now
-                    // departed
+                // If currently suspicious and the rumor is departed, then we are now
+                // departed
                 } else if *current_health == Health::Suspect && health == Health::Departed {
                     stop_suspicion = true;
                     share_rumor = true;
-                    // If we are confirmed, and the rumor is departed, we accept the departure
+                // If we are confirmed, and the rumor is departed, we accept the departure
                 } else if *current_health == Health::Confirmed && health == Health::Departed {
                     share_rumor = true;
                     stop_departure = true;
-                    // When we are currently confirmed or departed, we stay that way until something with a
-                    // higher incarnation changes our mind. (except for the above case)
+                // When we are currently confirmed or departed, we stay that way until something
+                // with a higher incarnation changes our mind. (except for the above case)
                 } else {
                     share_rumor = false;
                 }
@@ -419,10 +419,9 @@ impl MemberList {
     }
 
     pub fn check_in_voting_population_by_id(&self, member_id: &str) -> bool {
-        match self.health
-                  .read()
-                  .expect("Health lock is poisoned")
-                  .get(member_id) {
+        match self.health.read().expect("Health lock is poisoned").get(
+            member_id,
+        ) {
             Some(&Health::Alive) |
             Some(&Health::Suspect) |
             Some(&Health::Confirmed) => true,
@@ -499,21 +498,24 @@ impl MemberList {
     }
 
     /// Returns a protobuf membership record for the given member id.
-    pub fn membership_for(&self, member_id: &str) -> ProtoMembership {
+    pub fn membership_for(&self, member_id: &str) -> Option<ProtoMembership> {
         let mut pm = ProtoMembership::new();
-        let mhealth: ProtoMembership_Health = self.health
+        let mhealth: ProtoMembership_Health = match self.health
             .read()
             .expect("Health lock is poisoned")
-            .get(member_id)
-            .expect("Should have membership before calling membership_for")
-            .into();
+            .get(member_id) {
+            Some(health) => health.into(),
+            None => return None,
+        };
         let ml = self.members.read().expect("Member list lock is poisoned");
-        let member = ml.get(member_id).expect(
-            "Should have membership before calling membership_for",
-        );
-        pm.set_health(mhealth);
-        pm.set_member(member.proto.clone());
-        pm
+        match ml.get(member_id) {
+            Some(member) => {
+                pm.set_health(mhealth);
+                pm.set_member(member.proto.clone());
+                Some(pm)
+            }
+            None => None,
+        }
     }
 
     /// Returns the number of members.
@@ -634,13 +636,15 @@ impl MemberList {
 
     /// Iterates over every suspected membership entry, calling the given closure.
     pub fn with_departures<F>(&self, mut with_closure: F) -> ()
-        where F: FnMut((&str, &SteadyTime)) -> ()
+    where
+        F: FnMut((&str, &SteadyTime)) -> (),
     {
         for (id, departure_time) in
             self.depart
                 .read()
                 .expect("Departure list lock is poisoned")
-                .iter() {
+                .iter()
+        {
             with_closure((id, departure_time));
         }
     }
@@ -653,17 +657,17 @@ impl MemberList {
 
     /// Sets a departure time for a member who has been confirmed
     pub fn depart(&self, member_id: &str) {
-        let mut depart = self.depart
-            .write()
-            .expect("Departure list lock is poisoned");
+        let mut depart = self.depart.write().expect(
+            "Departure list lock is poisoned",
+        );
         depart.insert(member_id.to_string(), SteadyTime::now());
     }
 
     /// Removes a member from the departure list
     pub fn depart_remove(&self, member_id: &str) {
-        let mut depart = self.depart
-            .write()
-            .expect("Departure list lock is poisoned");
+        let mut depart = self.depart.write().expect(
+            "Departure list lock is poisoned",
+        );
         depart.remove(member_id);
     }
 
