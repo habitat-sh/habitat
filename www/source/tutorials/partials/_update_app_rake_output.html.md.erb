@@ -1,0 +1,33 @@
+~~~
+$ docker-compose exec railsapp myrailsapp-rake db:setup
+Created database 'myrailsapp_production'
+-- enable_extension("plpgsql")
+D, [2017-07-17T19:40:25.811350 #118] DEBUG -- :   SQL (1.9ms)  CREATE EXTENSION IF NOT EXISTS "plpgsql"
+   -> 0.0378s
+-- create_table("page_updates", {:force=>:cascade})
+D, [2017-07-17T19:40:25.817888 #118] DEBUG -- :    (0.2ms)  DROP TABLE IF EXISTS "page_updates" CASCADE
+D, [2017-07-17T19:40:25.835342 #118] DEBUG -- :    (17.0ms)  CREATE TABLE "page_updates" ("id" bigserial primary key, "motd" character varying NOT NULL)
+   -> 0.0183s
+D, [2017-07-17T19:40:25.846733 #118] DEBUG -- :    (5.7ms)  CREATE TABLE "schema_migrations" ("version" character varying NOT NULL PRIMARY KEY)
+D, [2017-07-17T19:40:25.876796 #118] DEBUG -- :    (0.6ms)  SELECT "schema_migrations"."version" FROM "schema_migrations" ORDER BY "schema_migrations"."version" ASC
+D, [2017-07-17T19:40:25.878938 #118] DEBUG -- :    (1.1ms)  INSERT INTO "schema_migrations" (version) VALUES (20170710222955)
+D, [2017-07-17T19:40:25.888853 #118] DEBUG -- :    (3.3ms)  CREATE TABLE "ar_internal_metadata" ("key" character varying NOT NULL PRIMARY KEY, "value" character varying, "created_at" timestamp NOT NULL, "updated_at" timestamp NOT NULL)
+D, [2017-07-17T19:40:25.896445 #118] DEBUG -- :   ActiveRecord::InternalMetadata Load (0.5ms)  SELECT  "ar_internal_metadata".* FROM "ar_internal_metadata" WHERE "ar_internal_metadata"."key" = $1 LIMIT $2  [["key", "environment"], ["LIMIT", 1]]
+D, [2017-07-17T19:40:25.905753 #118] DEBUG -- :    (0.1ms)  BEGIN
+D, [2017-07-17T19:40:25.908378 #118] DEBUG -- :   SQL (1.3ms)  INSERT INTO "ar_internal_metadata" ("key", "value", "created_at", "updated_at") VALUES ($1, $2, $3, $4) RETURNING "key"  [["key", "environment"], ["value", "production"], ["created_at", "2017-07-17 19:40:25.906368"], ["updated_at", "2017-07-17 19:40:25.906368"]]
+D, [2017-07-17T19:40:25.909157 #118] DEBUG -- :    (0.4ms)  COMMIT
+D, [2017-07-17T19:40:25.911108 #118] DEBUG -- :   ActiveRecord::InternalMetadata Load (0.3ms)  SELECT  "ar_internal_metadata".* FROM "ar_internal_metadata" WHERE "ar_internal_metadata"."key" = $1 LIMIT $2  [["key", "environment"], ["LIMIT", 1]]
+D, [2017-07-17T19:40:25.913185 #118] DEBUG -- :    (0.2ms)  BEGIN
+D, [2017-07-17T19:40:25.914540 #118] DEBUG -- :    (0.1ms)  COMMIT
+D, [2017-07-17T19:40:25.941094 #118] DEBUG -- :    (1.4ms)  SELECT "schema_migrations"."version" FROM "schema_migrations" ORDER BY "schema_migrations"."version" ASC
+D, [2017-07-17T19:40:25.944323 #118] DEBUG -- :    (1.9ms)  INSERT INTO page_updates (motd) VALUES
+ ('I love it when a plan.sh comes together'),
+ ('Servers don''t ask, they tell'),
+ ('Bldr build has baked your brownies!'),
+ ('Back at it again with habitat.sh'),
+ ('One ring to --peer them all'),
+ ('Habitat loves Humans!'),
+ ('Always have a plan'),
+ ('We .hart you!'),
+ ('Have a .hart');
+~~~

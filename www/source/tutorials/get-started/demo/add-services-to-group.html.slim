@@ -1,0 +1,142 @@
+---
+title: Habitat - Add Services to a Group
+---
+
+section
+  h2 Add Services to a Group
+
+  p Now that you have your first node running, we went ahead and added a second running node for you since this topology requires a minimum of three. Once we add a third, we'll see them elect a leader for the group.
+
+  p Adding a new node to a group is as simple as setting a flag that references any existing peer (by IP address or hostname) in the target service group.
+
+  p Start the third node, then switch between all three windows to see that each node has been connected to one another.
+
+  pre
+    code hab start core/postgresql -t leader --peer 172.17.0.2
+
+  .window-buttons
+    ul
+      li
+        a.button data-target="window-node-1" Node 1: <span class="node-status">Waiting for Quorum</span> <span class="button-badge">&nbsp;</span>
+      li
+        a.button data-target="window-node-2" Node 2: <span class="node-status">Waiting for Quorum</span> <span class="button-badge">&nbsp;</span>
+      li
+        a.button.active data-target="window-node-3" Node 3: <span class="node-status">Not Started</span>
+
+  #window-node-3.window-node
+    = partial "partials/terminal" do
+
+  .shell-panel.window-node id="window-node-1" style="display:none;"
+    pre
+      | # node is up and running as leader
+        hab-sup(MR): Supervisor Member-ID 361f7a786ea642b0af33bd10a44ce12a
+        hab-sup(MR): Starting core/postgresql
+        hab-sup(MR): Starting gossip-listener on 0.0.0.0:9638
+        hab-sup(MR): Starting http-gateway on 0.0.0.0:9631
+        postgresql.default(SR): Hooks recompiled
+        default(CF): Updated pg_ident.conf 0e5751c026e543b2e8ab2eb06099daa1d1e5df47778f7787faab45cdf12fe3a8
+        default(CF): Updated postgresql.conf 520f0b4f92b53312db6c512e577af98e2fe76c09d774eb81bfd62bb7fcc50b41
+        default(CF): Updated pwfile 5b4b01a4a3892ea3751793da57f072ae08eec694ddcda872239fc8239e4bcd1b
+        default(CF): Updated pg_hba.conf 262f519376471182971fc230c25775ee43c3507927be36a57813f62fd18e64e4
+        postgresql.default(SR): Configuration recompiled
+        postgresql.default(SR): Waiting to execute hooks; election in progress, and we have no quorum.
+
+    pre.full-output
+      | postgresql.default(SR): Hooks recompiled
+        postgresql.default(SR): Hooks recompiled
+        postgresql.default(SR): Hooks recompiled
+        postgresql.default(SR): Hooks recompiled
+        postgresql.default(SR): Executing hooks; 361f7a786ea642b0af33bd10a44ce12a is the leader
+        postgresql.default(SR): Initializing
+        postgresql.default hook[init]:(HK):  Database does not exist, creating with 'initdb'
+        postgresql.default hook[init]:(HK): The files belonging to this database system will be owned by user "hab".
+        postgresql.default hook[init]:(HK): This user must also own the server process.
+        postgresql.default hook[init]:(HK):
+        postgresql.default hook[init]:(HK): The database cluster will be initialized with locale "C".
+        postgresql.default hook[init]:(HK): The default text search configuration will be set to "english".
+        postgresql.default hook[init]:(HK):
+        postgresql.default hook[init]:(HK): Data page checksums are disabled.
+        postgresql.default hook[init]:(HK):
+        postgresql.default hook[init]:(HK): fixing permissions on existing directory /hab/svc/postgresql/data ... ok
+        postgresql.default hook[init]:(HK): creating subdirectories ... ok
+        postgresql.default hook[init]:(HK): selecting default max_connections ... 100
+        postgresql.default hook[init]:(HK): selecting default shared_buffers ... 128MB
+        postgresql.default hook[init]:(HK): selecting dynamic shared memory implementation ... posix
+        postgresql.default hook[init]:(HK): creating configuration files ... ok
+        postgresql.default hook[init]:(HK): running bootstrap script ... ok
+        postgresql.default hook[init]:(HK): performing post-bootstrap initialization ... ok
+        postgresql.default hook[init]:(HK): syncing data to disk ... ok
+        postgresql.default hook[init]:(HK):
+        postgresql.default hook[init]:(HK): WARNING: enabling "trust" authentication for local connections
+        postgresql.default hook[init]:(HK): You can change this by editing pg_hba.conf or using the option -A, or
+        postgresql.default hook[init]:(HK): --auth-local and --auth-host, the next time you run initdb.
+        postgresql.default hook[init]:(HK):
+        postgresql.default hook[init]:(HK): Success. You can now start the database server using:
+        postgresql.default hook[init]:(HK):
+        postgresql.default hook[init]:(HK):     pg_ctl -D /hab/svc/postgresql/data -l logfile start
+        postgresql.default hook[init]:(HK):
+        postgresql.default(SV): Starting process as user=hab, group=hab
+        postgresql.default(O): 2017-05-21 07:29:50 GMT LOG:  database system was shut down at 2017-05-21 07:29:50 GMT
+        postgresql.default(O): 2017-05-21 07:29:50 GMT LOG:  MultiXact member wraparound protections are now enabled
+        postgresql.default(O): 2017-05-21 07:29:50 GMT LOG:  database system is ready to accept connections
+        postgresql.default(O): 2017-05-21 07:29:50 GMT LOG:  autovacuum launcher started
+
+  .shell-panel.window-node id="window-node-2" style="display:none;"
+    pre
+      | # node is up and running as follower
+        hab-sup(MR): Supervisor Member-ID 21d4f3a68396417fbb3071906b919efd
+        hab-sup(MR): Starting core/postgresql
+        hab-sup(MR): Starting gossip-listener on 0.0.0.0:9638
+        hab-sup(MR): Starting http-gateway on 0.0.0.0:9631
+        postgresql.default(SR): Hooks recompiled
+        default(CF): Updated pg_hba.conf 262f519376471182971fc230c25775ee43c3507927be36a57813f62fd18e64e4
+        default(CF): Updated pg_ident.conf 0e5751c026e543b2e8ab2eb06099daa1d1e5df47778f7787faab45cdf12fe3a8
+        default(CF): Updated pwfile 5b4b01a4a3892ea3751793da57f072ae08eec694ddcda872239fc8239e4bcd1b
+        default(CF): Updated postgresql.conf 520f0b4f92b53312db6c512e577af98e2fe76c09d774eb81bfd62bb7fcc50b41
+        postgresql.default(SR): Configuration recompiled
+        postgresql.default(SR): Waiting to execute hooks; election in progress, and we have no quorum.
+
+    pre.full-output
+      | postgresql.default(SR): Hooks recompiled
+        postgresql.default(SR): Hooks recompiled
+        postgresql.default(SR): Hooks recompiled
+        postgresql.default(SR): Hooks recompiled
+        postgresql.default(SR): Executing hooks; 361f7a786ea642b0af33bd10a44ce12a is the leader
+        postgresql.default(SR): Initializing
+        postgresql.default hook[init]:(HK):  Database does not exist, creating with 'initdb'
+        postgresql.default hook[init]:(HK): The files belonging to this database system will be owned by user "hab".
+        postgresql.default hook[init]:(HK): This user must also own the server process.
+        postgresql.default hook[init]:(HK):
+        postgresql.default hook[init]:(HK): The database cluster will be initialized with locale "C".
+        postgresql.default hook[init]:(HK): The default text search configuration will be set to "english".
+        postgresql.default hook[init]:(HK):
+        postgresql.default hook[init]:(HK): Data page checksums are disabled.
+        postgresql.default hook[init]:(HK):
+        postgresql.default hook[init]:(HK): fixing permissions on existing directory /hab/svc/postgresql/data ... ok
+        postgresql.default hook[init]:(HK): creating subdirectories ... ok
+        postgresql.default hook[init]:(HK): selecting default max_connections ... 100
+        postgresql.default hook[init]:(HK): selecting default shared_buffers ... 128MB
+        postgresql.default hook[init]:(HK): selecting dynamic shared memory implementation ... posix
+        postgresql.default hook[init]:(HK): creating configuration files ... ok
+        postgresql.default hook[init]:(HK): running bootstrap script ... ok
+        postgresql.default hook[init]:(HK): performing post-bootstrap initialization ... ok
+        postgresql.default hook[init]:(HK): syncing data to disk ... ok
+        postgresql.default hook[init]:(HK):
+        postgresql.default hook[init]:(HK): WARNING: enabling "trust" authentication for local connections
+        postgresql.default hook[init]:(HK): You can change this by editing pg_hba.conf or using the option -A, or
+        postgresql.default hook[init]:(HK): --auth-local and --auth-host, the next time you run initdb.
+        postgresql.default hook[init]:(HK):
+        postgresql.default hook[init]:(HK): Success. You can now start the database server using:
+        postgresql.default hook[init]:(HK):
+        postgresql.default hook[init]:(HK):     pg_ctl -D /hab/svc/postgresql/data -l logfile start
+        postgresql.default hook[init]:(HK):
+        postgresql.default(SV): Starting process as user=hab, group=hab
+        postgresql.default(O): 2017-05-21 07:29:49 GMT LOG:  database system was shut down at 2017-05-21 07:29:49 GMT
+        postgresql.default(O): 2017-05-21 07:29:49 GMT LOG:  MultiXact member wraparound protections are now enabled
+        postgresql.default(O): 2017-05-21 07:29:49 GMT LOG:  database system is ready to accept connections
+        postgresql.default(O): 2017-05-21 07:29:49 GMT LOG:  autovacuum launcher started
+
+  #success
+    p Now that you've setup a leader-follower topology using command-line flags, learn how to use the built-in service monitoring capabilities of Habitat.
+
+= link_to 'Next: Check the Health of a Service', '/tutorials/get-started/demo/check-service-health/', class: 'button cta'

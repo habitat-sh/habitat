@@ -1,0 +1,64 @@
+Habitat provides basic health monitoring for your running service; however, if you want to 
+perform custom tests or other status checks, you can customize your plan to do that. This is 
+done by using a `health_check` hook, which is a script that responds to a specific event during the lifecycle 
+of a running service.
+
+There are multiple hooks that you can define in your plan. For example, the `init` and `run` hooks are responsible 
+for defining behavior during initialization and when the child service/application starts up. The Ruby scaffolding
+creates the initialization for you to handle connecting to a backend database and the build script used by the studio
+creates a generic run hook. However, to create the `health_check` hook, you have to perform the following operations:
+
+1. Change directory to `hooks`.
+
+<% if !is_windows %>
+   ~~~ bash
+   $ cd hooks
+   ~~~
+<% end %>
+
+<% if is_windows %>
+
+   ~~~ powershell
+   PS > cd hooks
+   ~~~
+<% end %>
+2. Create a new file named `health_check`.
+
+<% if !is_windows %>
+       $ touch health_check
+<% end %>
+
+<% if is_windows %>
+
+   ~~~ powershell
+   PS > New-Item -ItemType file health_check
+   ~~~
+<% end %>
+3. Open `health_check` in your text editor.
+4. Hooks use [shebangs](https://en.wikipedia.org/wiki/Shebang_(Unix)) to decide which interpreter to use when running their scripts. 
+In the case of the hook in our plan, we will use the system shell, so add the following to the `health_check` hook file:
+
+       #!/bin/sh
+       #
+
+       # default return code is 0
+       rc=0
+
+       # This request will test whether our index page can be retrieved. 
+       hab pkg exec core/curl curl -sS --head --fail --max-time 1 http://localhost:{{cfg.app.port}}/
+
+       case $? in
+         # Zero exit status means curl got back a 200 end everything is ok.
+         0)
+           rc=0 ;;
+         # Anything else is critical.
+         *)
+           rc=2 ;;
+       esac
+
+       exit $rc
+       
+    This hook performs a basic test to check whether the results of the curl command return a status code less than 400. 
+    If the curl command doesn't succeed, then this check will be denoted as "critical."
+
+5. Save the `health_check` hook file.

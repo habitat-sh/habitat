@@ -1,0 +1,29 @@
+hab-butterfly-config-apply
+Applies a configuration to a group of Habitat Supervisors
+
+USAGE:
+    hab-butterfly config apply [OPTIONS] <SERVICE_GROUP> <VERSION_NUMBER> [ARGS]
+
+FLAGS:
+    -h, --help       Prints help information
+    -V, --version    Prints version information
+
+OPTIONS:
+        --org <ORG>      Name of service organization to use for
+                         encryption
+    -p, --peer <PEER>    A comma-delimited list of one or more
+                         Habitat Supervisor peers (default:
+                         127.0.0.1:9638)
+    -r, --ring <RING>    Ring key name, which will encrypt
+                         communication messages
+    -u, --user <USER>    Name of a user key to use for encryption
+
+ARGS:
+    <SERVICE_GROUP>
+            Target service group (ex: redis.default)
+    <VERSION_NUMBER>
+            A version number (positive integer) for this
+            configuration (ex: 42)
+    <FILE>
+            Path to local file on disk (ex: /tmp/config.toml,
+            default: <stdin>)

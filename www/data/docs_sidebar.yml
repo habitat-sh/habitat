@@ -4,8 +4,8 @@ sidebar_links:
   links:
   - title: Overview
     link: "/docs/overview/"
-  - title: Get Habitat
-    link: "/docs/get-habitat/"
+  - title: Download and install Habitat
+    link: "/tutorials/download/"
   - title: Tutorials
     link: "/tutorials/"
   - title: Concepts <span>&plus;</span>
@@ -102,7 +102,7 @@ sidebar_links:
   - title: Supervisor log keys
     link: "/docs/reference/log-keys/"
   - title: Habitat infographics
-    link: "/docs/reference/habitat-infographics/"    
+    link: "/docs/reference/habitat-infographics/"
 - title: Contribute
   links:
   - title: Help build Habitat

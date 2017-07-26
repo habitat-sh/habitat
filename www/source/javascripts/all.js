@@ -5,3 +5,5 @@
 //= require nav.js
 //= require home.js
 //= require community.js
+//= require tutorials.js
+//= require demo.js

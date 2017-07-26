@@ -254,10 +254,6 @@ The helper outputs a YAML document (with a line beginning with `---`), so it
 must be used to create complete documents: you cannot insert a section of YAML
 into an existing YAML document with this helper.
 
-## Further examples
-
-For an example of how to templatize a configuration file and add it to your plan, see [Add configuration to your plan](/tutorials/getting-started-configure-plan) from the getting started tutorial.
-
 <hr>
 <ul class="main-content--link-nav">
   <li>Continue to the next topic</li>

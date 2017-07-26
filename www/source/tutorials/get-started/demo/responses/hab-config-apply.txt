@@ -1,0 +1,7 @@
+
+
+» Applying configuration for myrubyapp.default incarnation 1495263682
+Ω Creating service configuration
+✓ Verified this configuration is valid TOML
+↑ Applying to peer 0.0.0.0:9638
+★ Applied configuration

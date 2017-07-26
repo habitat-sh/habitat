@@ -1,0 +1,45 @@
+---
+title: Habitat - Create an Origin
+---
+
+section.download
+  h2 Create an Origin
+
+  p Origins are unique namespaces that can be used to denote a particular upstream of a package. For example, the "core" origin is the set of foundational packages that are managed and versioned by the core Habitat maintainers.
+
+  p In your depot dashboard, click <strong>Create your first origin</strong> to begin the process.
+
+  .screenshot
+    img src="/images/screenshots/dashboard-create-origin.png"
+
+  h3 Choose an Origin Name
+
+  p Pick an origin that is your company name, team name, personal name, or some other unique name that you want to associate with a given set of packages. It's important to note that once you have uploaded a package into the depot, the origin that you chose when building that package can neither be edited nor deleted.
+
+  .screenshot
+    img src="/images/screenshots/add-origin.png"
+
+  h3 View Your Origins
+
+  p The My Origins page allows you to see all of your origins in the depot. You can create multiple origins and also join existing ones.
+
+  .screenshot
+    img src="/images/screenshots/origins.png"
+
+  h3 Join an Existing Origin
+
+  p By clicking on an origin name in My Origins, you can see which packages are associated with that origin, what public and private keys have been uploaded to the depot for that origin, and you can also invite other users to a specific origin.
+
+  p To do this, click on the Member tab and type in the GitHub member name in the Invite Member section.
+
+  .screenshot
+    img src="/images/screenshots/send-invitation.png"
+
+  p When that member signs into the depot and clicks on My Origins, they will see a pending invitation.
+
+  .screenshot
+    img src="/images/screenshots/receive-invitation.png"
+
+  p Once they accept the invitation and refresh My Origins, they will see the new origin show up in their list.
+
+= link_to 'Next: Configure Your Workstation', '/tutorials/download/configure-workstation/', class: 'button cta'

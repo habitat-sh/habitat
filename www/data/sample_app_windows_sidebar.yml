@@ -1,0 +1,23 @@
+---
+sidebar_links:
+- title: Build a Sample App
+  links:
+  - title: Introduction
+    link: /tutorials/sample-app/
+    sub_links:
+    - title: Basic Concepts
+      link: /tutorials/sample-app/basic-concepts/
+    - title: Create a Plan with Scaffolding
+      link: /tutorials/sample-app/windows/
+    - title: Add Health Monitoring to a Plan
+      link: /tutorials/sample-app/windows/add-health-check-hook/
+    - title: Build the Package
+      link: /tutorials/sample-app/windows/build-package/
+    - title: Run the Sample App
+      link: /tutorials/sample-app/windows/run-app/
+    - title: Dynamically Update the App
+      link: /tutorials/sample-app/windows/update-app/
+    - title: Upload the Sample App
+      link: /tutorials/sample-app/windows/upload-package/
+  - title: Next Steps
+    link: /tutorials/sample-app/next-steps/

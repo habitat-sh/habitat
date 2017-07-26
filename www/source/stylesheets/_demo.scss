@@ -1,0 +1,167 @@
+// CSS for Try Habitat
+
+.page-title--heading {
+  @include grid-column(12);
+
+  @include breakpoint(medium){
+    @include grid-column(6);
+  }
+}
+
+.progress-container {
+  @include grid-column(12);
+
+  @include breakpoint(medium){
+    @include grid-column(6);
+  }
+
+  .progress {
+    margin-bottom: 0;
+    margin-top: rem-calc(10);
+  }
+}
+
+.container__try {
+  background-color: $white;
+  border-radius: $global-radius;
+
+  h2,
+  p {
+    max-width: rem-calc(760);
+  }
+}
+
+.CodeMirror,
+#shell-panel {
+  margin-bottom: rem-calc(20);
+}
+
+.CodeMirror {
+  border: 1px solid $light-gray;
+  font-family: $font-family-monospace;
+}
+
+code {
+  display: inline-block;
+}
+
+#shell-panel, .shell-panel {
+  background-color: #243442;
+  border-radius: $global-radius;
+  color: #82FF69;
+  font-family: $font-family-monospace;
+  font-size: rem-calc(13);
+  margin-bottom: 18px;
+  padding: 1em;
+  position: relative;
+  height: 400px;
+  width: 100%;
+  overflow-y: scroll;
+  overflow-x: scroll;
+
+  pre {
+    background-color: inherit;
+    border: 0;
+    color: inherit;
+    font-family: $font-family-monospace;
+    font-size: rem-calc(13);
+    padding: 0;
+    overflow: visible;
+  }
+}
+
+.ansi-black { color: rgb(0, 0, 0); }
+.ansi-red { color: rgb(187, 0, 0); }
+.ansi-green { color: rgb(0, 187, 0); }
+.ansi-yellow { color: rgb(187, 187, 0); }
+.ansi-blue { color: rgb(0, 0, 187); }
+.ansi-magenta { color: rgb(187, 0, 187); }
+.ansi-cyan { color: rgb(0, 187, 187); }
+.ansi-white { color: rgb(255, 255, 255); }
+.ansi-bright-black { color: rgb(85, 85, 85); }
+.ansi-bright-red { color: rgb(255, 85, 85); }
+.ansi-bright-green { color: rgb(0, 255, 0); }
+.ansi-bright-yellow { color: rgb(255, 255, 85); }
+.ansi-bright-blue { color: rgb(85, 85, 255); }
+.ansi-bright-magenta { color: rgb(255, 85, 255); }
+.ansi-bright-cyan { color: rgb(85, 255, 255); }
+.ansi-bright-white { color: rgb(255, 255, 255); }
+
+.window-buttons {
+
+  ul {
+    margin: 0;
+
+    li {
+      display: inline-block;
+      list-style: none;
+      margin-right: rem-calc(10);
+      position: relative;
+
+      .button {
+        background-color: #3A5369;
+        border-radius: $global-radius $global-radius 0 0;
+        color: $white;
+        font-family: $font-family-monospace;
+        font-size: rem-calc(13);
+        margin: 0;
+        padding: 1em;
+
+        &.active {
+          background-color: #243442;
+
+          &:hover {
+            background-color: #243442;
+          }
+        }
+      }
+
+      .button-badge {
+        background-color: $hab-green;
+        border: 1px solid $hab-green-dark;
+        border-radius: 100%;
+        box-shadow: 0 0 4px $hab-green-dark;
+        display: none;
+        height: 10px;
+        position: absolute;
+        right: -5px;
+        top: -5px;
+        width: 10px;
+      }
+    }
+  }
+
+  + .window-node {
+
+    #shell-panel {
+      border-radius: 0 $global-radius $global-radius $global-radius;
+    }
+  }
+
+  ~ .shell-panel {
+    border-radius: 0 $global-radius $global-radius $global-radius;
+  }
+}
+
+pre.full-output {
+  @extend .ansi-bright-cyan;
+  display: none;
+  margin-top: -1rem;
+}
+
+@include breakpoint(small down) {
+  #success .secondary {
+    @include primary-button;
+    color: $white;
+  }
+}
+
+#mobile-keyboard-trigger {
+  color: transparent;
+  height: 100px;
+  left: -40px;
+  opacity: 0;
+  position: absolute;
+  top: 0;
+  width: 320px;
+}

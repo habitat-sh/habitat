@@ -86,11 +86,9 @@ const stickyVisibleBreakpoint = 300;
 
 var toggleStickyNav = function() {
   if ($mainNav.is(":not(.has-sidebar)")) {
-    if ($(window).width() > navBreakpoint) {
-      $mainNav.toggleClass('is-sticky', $(window).scrollTop() > stickyBreakpoint);
-      $mainNav.toggleClass('is-visible', $(window).scrollTop() > stickyVisibleBreakpoint);
-      $('#content-outer').toggleClass('has-sticky-nav', $(window).scrollTop() > stickyBreakpoint);
-    } else {
+
+    // We only apply the sticky nav
+    if ($(window).width() <= navBreakpoint) {
       $mainNav.removeClass('is-visible');
       $mainNav.toggleClass('is-sticky', $(window).scrollTop() > 0);
     }

@@ -15,10 +15,10 @@ The Habitat documentation is broken out into the following sections:
 
 ## Getting Habitat
 
-Instructions for getting Habitat are on the [Get Habitat](/docs/get-habitat) page.
+Instructions for getting Habitat are available in the [Downoload and Install](/tutorials/download) section.
 
 <hr>
 <ul class="main-content--link-nav">
   <li>Continue to the next topic</li>
-  <li><a href="/docs/get-habitat">Get Habitat</a></li>
+  <li><a href="/tutorials/download">Download and install Habitat</a></li>
 </ul>

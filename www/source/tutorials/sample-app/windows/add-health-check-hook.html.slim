@@ -1,0 +1,14 @@
+---
+title: Habitat - Add Health Monitoring to a Plan
+---
+
+= partial '/tutorials/partials/platform_switcher', locals: { platform: 'windows' }
+
+section.sample-app
+  h1 Add Health Monitoring to a Plan
+
+  = partial "/tutorials/partials/add_hooks_sample_app", locals: { is_windows: true }
+
+  p Congratulations, you have added a custom health_check hook to your sample application. It's time to build your sample Rails application.
+
+= link_to 'Next: Build the Package', '/tutorials/sample-app/windows/build-package/', class: 'button cta'

@@ -10,7 +10,7 @@ published: true
 
 Hey there, fellow developer, let's make ourselves a quick [Express](https://expressjs.com/) app and wrap it up in a Habitat package. Ready? Me too, I like to learn.
 
-We're going to want Habitat installed on our system, but that's not too hard. Follow the instructions on the [Set up your environment](https://www.habitat.sh/tutorials/getting-started/mac/setup-environment/) page and come on back here. Can you run `hab --version` now in a terminal? Excellent.
+We're going to want Habitat installed on our system, but that's not too hard. Follow the instructions in [Download and Install](/tutorials/download) and come on back here. Can you run `hab --version` now in a terminal? Excellent.
 
 Okay, we're going to use the Express application generator, so make sure you have this npm packaged installed globally:
 

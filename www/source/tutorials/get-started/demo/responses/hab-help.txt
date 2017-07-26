@@ -1,0 +1,33 @@
+hab 0.21.0/20170421000356
+
+Authors: The Habitat Maintainers <humans@habitat.sh>
+
+"A Habitat is the natural environment for your services" - Alan Turing
+
+USAGE:
+    hab [SUBCOMMAND]
+
+FLAGS:
+    -h, --help       Prints help information
+    -V, --version    Prints version information
+
+SUBCOMMANDS:
+    cli        Commands relating to Habitat runtime config
+    config     Commands relating to Habitat runtime config
+    file       Commands relating to Habitat files
+    help       Prints this message or the help of the given subcommand(s)
+    origin     Commands relating to Habitat origin keys
+    pkg        Commands relating to Habitat packages
+    plan       Commands relating to plans and other app-specific configuration.
+    ring       Commands relating to Habitat rings
+    service    Commands relating to Habitat services
+    studio     Commands relating to Habitat Studios
+    sup        Commands relating to the Habitat Supervisor
+    user       Commands relating to Habitat users
+
+
+ALIASES:
+    apply      Alias for: 'config apply'
+    install    Alias for: 'pkg install'
+    setup      Alias for: 'cli setup'
+    start      Alias for: 'sup start'

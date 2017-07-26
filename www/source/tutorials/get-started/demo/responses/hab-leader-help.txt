@@ -1,0 +1,4 @@
+The package was not found. Please check spelling and re-try.
+
+The command to start the leader node is:
+   hab start -t leader core/postgresql

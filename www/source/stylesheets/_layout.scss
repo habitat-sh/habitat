@@ -11,6 +11,7 @@ body.body-article {
 }
 
 #content-outer {
+
   @include small-nav {
     // Use this padding when the global message is not being displayed
     padding-top: $header-height-mobile;

@@ -1,0 +1,20 @@
+---
+title: Habitat - Introduction to Habitat
+---
+
+section.full
+  h2 Introduction to Habitat
+
+  p Habitat is an integrated solution to building, running, and maintaining your application throughout its lifetime. It builds your application and its services into immutable artifacts with declarative dependencies, and then provides automatic rebuilds of your application and its services as your application code and dependencies have upstream updates.
+
+  img src="/images/build-deploy-run.svg"
+
+  p Habitat’s build system (“Builder”) programmatically rebuilds your application as it is updated. and puts it into a depot where you can share it with collaborators, or update it into the specific format you want to run it in (docker, bare metal, vm, etc). Habitat’s artifacts (harts) are portable: the same artifact can run in many different runtimes, allowing you to have absolute consistency across a variety of environments.
+
+  img src="/images/build-and-upload.svg"
+
+  p Habitat’s runtime has a Supervisor providing multi-service supervision over the workloads placed on a compute resource. This Supervisor allows you to programmatically define service topologies, update strategies, application lifecycle hooks, update leaders, and health checks over the services it is supervising. The Supervisor communicates with Builder to see when there are new packages available for it to download, test, and install, and also communicates with other Supervisors in a network in order to establish a global state.
+
+  img src="/images/running-applications.svg"
+
+= link_to 'Next: Getting Started with Habitat', '/tutorials/get-started/videos/getting-started/', class: 'button cta'

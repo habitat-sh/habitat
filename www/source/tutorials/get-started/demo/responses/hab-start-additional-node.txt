@@ -1,0 +1,54 @@
+hab-sup(MR): Supervisor Member-ID 10bd213b00d74d71a7d8153fd9b3b316
+hab-sup(MR): Starting core/postgresql
+hab-sup(MR): Starting gossip-listener on 0.0.0.0:9638
+hab-sup(MR): Starting http-gateway on 0.0.0.0:9631
+postgresql.default(SR): Hooks recompiled
+default(CF): Updated pg_ident.conf 0e5751c026e543b2e8ab2eb06099daa1d1e5df47778f7787faab45cdf12fe3a8
+default(CF): Updated pg_hba.conf 262f519376471182971fc230c25775ee43c3507927be36a57813f62fd18e64e4
+default(CF): Updated pwfile 5b4b01a4a3892ea3751793da57f072ae08eec694ddcda872239fc8239e4bcd1b
+default(CF): Updated postgresql.conf 520f0b4f92b53312db6c512e577af98e2fe76c09d774eb81bfd62bb7fcc50b41
+postgresql.default(SR): Configuration recompiled
+postgresql.default(SR): Waiting to execute hooks; election in progress, and we have no quorum.
+postgresql.default(SR): Hooks recompiled
+postgresql.default(SR): Hooks recompiled
+postgresql.default(SR): Executing hooks; 361f7a786ea642b0af33bd10a44ce12a is the leader
+postgresql.default(SR): Initializing
+postgresql.default hook[init]:(HK):  Database does not exist, creating with 'initdb'
+postgresql.default hook[init]:(HK): The files belonging to this database system will be owned by user "hab".
+postgresql.default hook[init]:(HK): This user must also own the server process.
+postgresql.default hook[init]:(HK):
+postgresql.default hook[init]:(HK): The database cluster will be initialized with locale "C".
+postgresql.default hook[init]:(HK): The default text search configuration will be set to "english".
+postgresql.default hook[init]:(HK):
+postgresql.default hook[init]:(HK): Data page checksums are disabled.
+postgresql.default hook[init]:(HK):
+postgresql.default hook[init]:(HK): fixing permissions on existing directory /hab/svc/postgresql/data ... ok
+postgresql.default hook[init]:(HK): creating subdirectories ... ok
+postgresql.default hook[init]:(HK): selecting default max_connections ... 100
+postgresql.default hook[init]:(HK): selecting default shared_buffers ... 128MB
+postgresql.default hook[init]:(HK): selecting dynamic shared memory implementation ... posix
+postgresql.default hook[init]:(HK): creating configuration files ... ok
+postgresql.default hook[init]:(HK): running bootstrap script ... ok
+postgresql.default hook[init]:(HK): performing post-bootstrap initialization ... ok
+postgresql.default hook[init]:(HK): syncing data to disk ... ok
+postgresql.default hook[init]:(HK):
+postgresql.default hook[init]:(HK): WARNING: enabling "trust" authentication for local connections
+postgresql.default hook[init]:(HK): You can change this by editing pg_hba.conf or using the option -A, or
+postgresql.default hook[init]:(HK): --auth-local and --auth-host, the next time you run initdb.
+postgresql.default hook[init]:(HK):
+postgresql.default hook[init]:(HK): Success. You can now start the database server using:
+postgresql.default hook[init]:(HK):
+postgresql.default hook[init]:(HK):     pg_ctl -D /hab/svc/postgresql/data -l logfile start
+postgresql.default hook[init]:(HK):
+postgresql.default(SV): Starting process as user=hab, group=hab
+postgresql.default(O): 2017-05-21 07:29:50 GMT LOG:  database system was shut down at 2017-05-21 07:29:50 GMT
+postgresql.default(O): 2017-05-21 07:29:50 GMT FATAL:  the database system is starting up
+postgresql.default(O): 2017-05-21 07:29:50 GMT LOG:  MultiXact member wraparound protections are now enabled
+postgresql.default(O): 2017-05-21 07:29:50 GMT LOG:  database system is ready to accept connections
+postgresql.default(O): 2017-05-21 07:29:50 GMT LOG:  autovacuum launcher started
+
+Success! Upon starting this instance, the minimum quorum of three nodes was met and a leader/follower group was formed.
+
+Switch between the windows and you'll see that the election automatically kicked off.
+
+All three nodes are now up and Node 1 has been elected leader.

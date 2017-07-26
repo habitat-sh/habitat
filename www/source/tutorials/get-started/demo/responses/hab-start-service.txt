@@ -1,0 +1,2 @@
+hab-sup(MR): Butterfly Member ID ef695b6934ab49268248e05466a113a0
+hab-sup(SS)[src/manager/service/spec.rs:177:23]: Missing required bind(s), database

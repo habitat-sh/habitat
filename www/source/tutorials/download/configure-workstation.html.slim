@@ -1,0 +1,27 @@
+---
+title: Habitat - Configure Your Workstation
+---
+
+section.download
+  h2 Configure Your Workstation
+
+  p The <code>hab</code> CLI makes it easy to get your workstation configured by guiding through the setup process.
+
+  p To set up your workstation, run <code>hab setup</code> and follow the instructions.
+
+  .screenshot
+    img src="/images/screenshots/hab-setup.png"
+
+  p Setup asks you to create a new origin and a set of origin keys. Optionally, you can also provide a #{link_to 'GitHub personal access token', 'https://help.github.com/articles/creating-an-access-token-for-command-line-use/'} to upload packages to the public depot and share them with the Habitat community. You can also provide anonymous data on your usage of the <code>hab</code> CLI. For information on the types of data we gather and how we intend to use it, see #{link_to 'Analytics in Habitat', '/docs/about-analytics'}.
+
+  blockquote
+    p The GitHub personal access token needs information provided from the <code>user:email</code> and <code>read:org</code> OAuth scopes. Habitat uses the information provided through these scopes for authentication and to determine features based on team membership. For more information, see #{link_to 'Setting up hab to authenticate to the depot', '/docs/share-packages-overview#setting-up-hab-to-authenticate-to-the-depot'}.
+
+  p Also, you can opt-out of providing usage data at a later point in time by re-running the <code>hab setup</code> and typing "No" when asked if you want to provide usage data.
+
+  .screenshot
+    img src="/images/screenshots/hab-setup-complete.png"
+
+  p That's it. You're all set up and ready to use Habitat to build and run packages!
+
+= link_to 'Next: Build a Sample App', '/tutorials/sample-app/', class: 'button cta'

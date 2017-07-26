@@ -1,0 +1,17 @@
+hab-sup(MR): Supervisor Member-ID 77050244e0fc40e8b3fb8c3d7abaaaab
+hab-sup(MR): Starting example/myrubyapp
+hab-sup(MR): Starting gossip-listener on 0.0.0.0:9638
+hab-sup(MR): Starting http-gateway on 0.0.0.0:9631
+myrubyapp.default(SR): The specified service group 'postgresql.default' for binding 'database' is not (yet?) present in the census data.
+myrubyapp.default(SR): Waiting for service binds...
+myrubyapp.default(SR): Hooks recompiled
+myrubyapp.default(CF): Updated app_env.sh b1a5a3a8620621c8d623fce9edc67259600b6d70e2903a5ddb1e7b692fe800cb
+myrubyapp.default(SR): Configuration recompiled
+myrubyapp.default(SR): Initializing
+myrubyapp.default hook[init]:(HK): Required environment variable SECRET_KEY_BASE is not set.
+myrubyapp.default hook[init]:(HK): Set this package's config setting 'secret_key_base' to a
+myrubyapp.default hook[init]:(HK): non-empty value. You can run 'rails secret' in development
+myrubyapp.default hook[init]:(HK): to generate a random key string.
+myrubyapp.default hook[init]:(HK):
+myrubyapp.default hook[init]:(HK): Aborting...
+myrubyapp.default(HK): Initialization failed! 'init' exited with status code 5

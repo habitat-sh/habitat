@@ -1,0 +1,35 @@
+= wrap_layout :layout do
+  .container__has-sidebar.container__tutorials
+    .subnav
+      = partial "/tutorials/partials/subnav"
+    .row
+      .main-sidebar
+          - if sidebar_layout == 'docs'
+            form.main-sidebar--search action="/docs/search/" method="get"
+              input.st-default-search-input type="text" placeholder="Search Documentation" name="q"
+          ul.no-bullet
+            - sidebar_data(sidebar_layout).each do |item|
+              li.main-sidebar--heading
+                h4 = item.title
+                ul.main-sidebar--list.no-bullet
+                  - item.links.each do |item_link|
+                    li.main-sidebar--list--item class=link_classes(current_resource.url, item_link)
+                      = link_to item_link.title, item_link.link, class: (item_link.icon || '')
+                      - if sub_links?(item_link)
+                        ul.main-sidebar--list--item--dropdown.no-bullet
+                          - item_link.sub_links.each do |sub_link|
+                            li.main-sidebar--list--item  class=link_classes(current_resource.url, sub_link)
+                              = link_to sub_link.title, sub_link.link, class: (sub_link.icon || '')
+
+      .main-content__has-sidebar
+          == yield
+
+  / Swiftype JS Snippet
+  - if sidebar_layout == 'docs'
+    javascript:
+      (function(w,d,t,u,n,s,e){w['SwiftypeObject']=n;w[n]=w[n]||function(){
+      (w[n].q=w[n].q||[]).push(arguments);};s=d.createElement(t);
+      e=d.getElementsByTagName(t)[0];s.async=1;s.src=u;e.parentNode.insertBefore(s,e);
+      })(window,document,'script','//s.swiftypecdn.com/install/v2/st.js','_st');
+
+      _st('install','8zxCLti7_7RsxUtSukaJ','2.0.0');

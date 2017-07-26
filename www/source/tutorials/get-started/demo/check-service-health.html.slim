@@ -1,0 +1,30 @@
+---
+title: Habitat - Check the Health of a Service
+---
+
+section
+  h2 Check the Health of a Service
+
+  p Habitat provides a consistent interface for retrieving the status of your running services.
+
+  p You can query the status of all services currently loaded or running under the supervisor using the <code>hab sup status</code> command. This command will list all persistent services loaded by the supervisor along with their current state. It will also list transient services that are currently running or in a starting or restarting state.
+
+  p To retrieve status for an individual service, specify the origin and package name in the <code>hab sup status</code> subcommand. Check the status of <code>example/myrubyapp</code> by entering the following into the terminal window:
+
+  pre
+    code hab sup status example/myrubyapp
+
+  p In addition to retrieving general status information about a service, the supervisor also exposes service health, leader election results, census information, and other data through an HTTP API endpoint.
+
+  p In our example, you will use <code>curl</code> to connect to the supervisor of the <code>myrubyapp</code> service and query for its health. This health check is user-defined in the plan, and can be used for basic tasks such as checking whether your web app is available for requests.
+
+  p To the results of a basic availability test for the Ruby-on-Rails application, enter the following:
+
+  pre
+    code curl http://172.17.0.3:9631/services/myrubyapp/default/health
+
+  p This health check is available by default when using the Ruby scaffolding to create your package.
+
+  = partial "partials/terminal" do
+
+= link_to 'Next: Learn More About Habitat', '/tutorials/get-started/demo/learn-more/', class: 'button cta'

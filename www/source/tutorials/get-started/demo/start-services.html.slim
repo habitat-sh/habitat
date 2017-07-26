@@ -1,0 +1,81 @@
+---
+title: Habitat - Start Up Services
+---
+
+section
+  h2 Start Up Services
+
+  p In the first window below, start up the front end using the <code>hab start</code> command. This command first starts up the Habitat #{link_to 'supervisor', '/docs/concepts-supervisor'} and then runs your application according to the behavior specified in your package.
+
+  p The start up procedure for the PostgreSQL package is similar, so in the second window, we have already started that package for you.
+
+  blockquote
+    p Tip: If you mess up entering a command, hit the Up arrow on your keyboard to re-enter your command in the terminal window. You can fix your error without having to type the whole command over again.
+
+  pre
+    code hab start example/myrubyapp
+
+  .window-buttons
+    ul
+      li
+        a.button.active data-target="window-node-1" Ruby-on-Rails
+      li
+        a.button data-target="window-node-2" PostgreSQL
+
+  #window-node-1.window-node
+    = partial "partials/terminal" do
+
+  .shell-panel.window-node id="window-node-2" style="display:none;"
+    pre
+      | user@workstation-machine:~$ hab start core/postgresql
+
+        hab-sup(MR): Butterfly Member ID 5eea050dcf5e41dd990c8552f4784c19
+        hab-sup(SR): Adding core/postgresql/9.6.1/20170424032128
+        hab-sup(MR): Starting butterfly on 0.0.0.0:9638
+        hab-sup(MR): Starting http-gateway on 0.0.0.0:9631
+        connecting to tcp://localhost:10001
+        connecting to tcp://localhost:10011
+        connecting to tcp://localhost:10021
+        hab-sup(SC): Updated postgresql.conf 520f0b4f92b53312db6c512e577af98e2fe76c09d774eb81bfd62bb7fcc50b41
+        hab-sup(SC): Updated pg_ident.conf 0e5751c026e543b2e8ab2eb06099daa1d1e5df47778f7787faab45cdf12fe3a8
+        hab-sup(SC): Updated pwfile 5b4b01a4a3892ea3751793da57f072ae08eec694ddcda872239fc8239e4bcd1b
+        hab-sup(SC): Updated pg_hba.conf 262f519376471182971fc230c25775ee43c3507927be36a57813f62fd18e64e4
+        postgresql.default(SR): Initializing
+        postgresql.default hook[init]:(HK):  Database does not exist, creating with 'initdb'
+        postgresql.default hook[init]:(HK): The files belonging to this database system will be owned by user "hab".
+        postgresql.default hook[init]:(HK): This user must also own the server process.
+        postgresql.default hook[init]:(HK):
+        postgresql.default hook[init]:(HK): The database cluster will be initialized with locale "C".
+        postgresql.default hook[init]:(HK): The default text search configuration will be set to "english".
+        postgresql.default hook[init]:(HK):
+        postgresql.default hook[init]:(HK): Data page checksums are disabled.
+        postgresql.default hook[init]:(HK):
+        postgresql.default hook[init]:(HK): fixing permissions on existing directory /hab/svc/postgresql/data ... ok
+        postgresql.default hook[init]:(HK): creating subdirectories ... ok
+        postgresql.default hook[init]:(HK): selecting default max_connections ... 100
+        postgresql.default hook[init]:(HK): selecting default shared_buffers ... 128MB
+        postgresql.default hook[init]:(HK): selecting dynamic shared memory implementation ... posix
+        postgresql.default hook[init]:(HK): creating configuration files ... ok
+        postgresql.default hook[init]:(HK): running bootstrap script ... ok
+        postgresql.default hook[init]:(HK): performing post-bootstrap initialization ... ok
+        postgresql.default hook[init]:(HK): syncing data to disk ... ok
+        postgresql.default hook[init]:(HK):
+        postgresql.default hook[init]:(HK): WARNING: enabling "trust" authentication for local connections
+        postgresql.default hook[init]:(HK): You can change this by editing pg_hba.conf or using the option -A, or
+        postgresql.default hook[init]:(HK): --auth-local and --auth-host, the next time you run initdb.
+        postgresql.default hook[init]:(HK):
+        postgresql.default hook[init]:(HK): Success. You can now start the database server using:
+        postgresql.default hook[init]:(HK):
+        postgresql.default hook[init]:(HK):     pg_ctl -D /hab/svc/postgresql/data -l logfile start
+        postgresql.default hook[init]:(HK):
+        postgresql.default(SV): Starting process as user=hab, group=hab
+        postgresql.default(O): 2017-05-21 05:36:44 GMT FATAL:  the database system is starting up
+        postgresql.default(O): 2017-05-21 05:36:44 GMT LOG:  database system was shut down at 2017-05-21 05:36:43 GMT
+        postgresql.default(O): 2017-05-21 05:36:44 GMT LOG:  MultiXact member wraparound protections are now enabled
+        postgresql.default(O): 2017-05-21 05:36:44 GMT LOG:  database system is ready to accept connections
+        postgresql.default(O): 2017-05-21 05:36:44 GMT LOG:  autovacuum launcher started
+
+  #success
+    p You can see in each output that the Supervisor starts up first and then starts up any packaged applications or services. In the case of our Ruby-on-Rails application, the Supervisor recognizes that the application must bind to a database (specified in its plan), before initialization can take place. We will address that problem in the next step.
+
+= link_to 'Next: Join Services Together', '/tutorials/get-started/demo/join-services/', class: 'button cta'

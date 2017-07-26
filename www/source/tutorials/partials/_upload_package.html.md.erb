@@ -1,0 +1,92 @@
+# Upload the Sample App
+
+Now that you have created your plan, built it, and verified it works correctly, you can upload it to the depot for others in your organization (or the general public)
+to use. To do that, you have to upload both the public key for your origin as well as the package itself.
+
+## Set Up hab to Authenticate with the Depot
+
+When you upload a package to a depot, you are required to supply an OAuth token as part of the `hab pkg upload` subcommand. Because the depot uses GitHub to authenticate, follow the steps to generate a [GitHub access token](https://help.github.com/articles/creating-an-access-token-for-command-line-use/). Save that token value and/or set the `HAB_AUTH_TOKEN` [environment variable](/docs/reference/environment-vars/) to it. You will need it later.
+
+> Note: The depot uses the following OAuth scopes when performing GitHub authentication: `user:email` and `read:org`; therefore, you must enable these [scopes](https://developer.github.com/v3/oauth/#scopes) for your personal access token. Habitat uses the information provided through these scopes for authentication and to determine features based on team membership.
+
+Once you have created this token, you can upload your public key and package.
+
+## Upload the Public Key for the Origin
+
+If the depot does not already have the public key for the package you built, you will have to upload it. You can upload keys for the origin through the web interface for the depot, or by using the `hab origin key upload` command. If you do not upload at least the public key for the origin, the depot will reject the upload of your packages under that origin. Providing the public key for the origin allows supervisors to verify the integrity of the Habitat packages (`.hart` files).
+
+To upload your public key, do the following:
+
+<% if !is_windows %>
+1. In a terminal window, run the `hab origin key upload` subcommand and specify the OAuth GitHub token you created earlier and your origin name. If you would like to upload a different key, you can do so by specifying the path to the key (e.g. `~/.hab/cache/keys/originname-release.pub`).
+
+       $ hab origin key upload -z <OAuth_token> originname
+
+> **Tip** Because only the private key is imported when entering the Habitat studio, it is easier to upload your public key outside of the studio.
+<% end %>
+
+<% if is_windows %>
+1. In a PowerShell window, run the `hab origin key upload` subcommand and specify the OAuth GitHub token you created earlier and your origin name. If you would like to upload a different key, you can do so by specifying the path to the key (e.g. `~\.hab\cache\keys\originname-release.pub`).
+
+       PS > hab origin key upload -z <OAuth_token> originname
+
+> **Tip** Because only the private key is imported when entering the Habitat studio, it is easier to upload your public key outside of the studio.
+<% end %>
+
+## Upload Packages to the Depot
+
+Once the depot possesses at least the public key of the origin, you may upload one or more packages to that origin by using the `hab pkg upload` command. The depot will check the cryptographic integrity of the package before allowing you to upload it. Uploading packages is also a privileged operation for which you must have the access token.
+
+<% if !is_windows %>
+1. Again, in your terminal window, change directory to the root of the `~/habitat-example-plans/myrailsapp` directory.
+
+       $ cd ~/habitat-example-plans/myrailsapp
+
+2. Run `hab pkg upload` specifying the OAuth token and the .hart file of your package.
+
+       $ hab pkg upload -z <OAuth_token> results/originname-myrailsapp-0.1.0-release-x86_64-linux.hart
+<% end %>
+
+<% if is_windows %>
+1. Again, in your PowerShell window, change directory to the root of the `~\habitat-example-plans\myrailsapp` directory.
+
+       PS > cd ~\habitat-example-plans\myrailsapp
+
+2. Run `hab pkg upload` specifying the OAuth token and the .hart file of your package.
+
+       PS > hab pkg upload -z <OAuth_token> .\results\originname-myrailsapp-0.1.0-release-x86_64-linux.hart
+<% end %>
+
+   If successful, you should see the following output:
+
+   ~~~
+   ↑ Uploading results/dwrede-myrailsapp-0.1.0-20170721004359-x86_64-linux.hart
+   5.69 MB / 5.69 MB | [=============================================================================================================================================================] 100.00 % 8.86 MB/s
+   ✓ Uploaded dwrede/myrailsapp/0.1.0/20170721004359
+   » Promoting dwrede/myrailsapp/0.1.0/20170721004359 to channel 'unstable'
+   ✓ Promoted dwrede/myrailsapp/0.1.0/20170721004359
+   ★ Upload of dwrede/myrailsapp/0.1.0/20170721004359 complete.
+   ~~~
+
+   If you look at the output, you should notice that your package was placed, or _promoted_, to a channel in the depot called "unstable". Channels are useful in CI/CD scenarios where you want to gate a package before making it the default version of the package that users should consume. You can think of this split as the difference between test and production, or nightly releases versus stable releases of products.
+
+3. (Optional) If you want to promote your package to the stable channel, run the `hab pkg promote` command as follows:
+
+<% if !is_windows %>
+       $ hab pkg promote -z <OAuth_token> originname-myrailsapp-0.1.0-release stable
+<% end %>
+
+<% if is_windows %>
+       PS > hab pkg promote -z <OAuth_token> originname-myrailsapp-0.1.0-release stable
+<% end %>
+
+   Output should look like the following:
+
+   ~~~
+   » Promoting dwrede/myrailsapp/0.1.0/20170721004359 to channel 'stable'
+   ✓ Promoted dwrede/myrailsapp/0.1.0/20170721004359
+   ~~~
+
+For more information on uploading and sharing packages, see [Sharing packages](/docs/share-packages-overview/).
+
+Congratulations, you're done! See the next page for more content resources to help you as you learn more about Habitat.

@@ -1,0 +1,22 @@
+---
+title: Habitat - Build a Sample App
+---
+
+section
+  h2 Build a Sample App
+
+  p Habitat provides an easy way for you to bundle your application and configuration behavior with only the dependencies your app requires. This allows you to take your Habitat package and deploy it across multiple runtime environments and expect the same runtime behavior no matter where your package is deployed. 
+  
+  p Building packages in Habitat requires two things: the application you want to package, and the plan for how that application should be built and configured. To streamline the process of creating a plan for your application, Habitat includes default implementations of how to build and configure specific app types such as Node.js and Ruby-on-Rails web applications. These default implementations are called #{link_to 'scaffolding', '/docs/concepts-scaffolding'}.
+
+  p The sample application we are packaging is a basic Ruby-on-Rails web application that connects to a PostgreSQL database to form a simple two-tier solution. The index page for our Rails application randomly selects a phrase to show when the page is refreshed.
+
+  img src="/images/rails_app_screenshot.png" title="Screen shot of Rails app tutorial output"
+
+  p If you went through the #{link_to 'interactive CLI demo', '/tutorials/get-started/demo/'}, this tutorial will show you how to build the application that we used in that demo.
+
+  p In addition to building the Rails web application, this tutorial will also show how to perform service binding between two services, utilize the built-in health monitoring event hook, dynamically update your service at runtime, and upload it to the public depot for others in your organization (or the broader Habitat community) to use.
+
+  = partial '/tutorials/partials/prerequisites'
+
+= link_to 'Next: Basic Concepts', '/tutorials/sample-app/basic-concepts/', class: 'button cta'

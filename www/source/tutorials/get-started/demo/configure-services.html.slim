@@ -1,0 +1,123 @@
+---
+title: Habitat - Dynamically Configure Services
+---
+
+section
+  h2 Dynamically Configure Services
+
+  p From the beginning, Habitat was built with configuration in mind. Instead of constantly destroying, rebuilding, and redeploying packages for each change, Habitat produces an immutable package artifact where you define which configuration settings should be exposed. You can make configuration changes through environment variables and through a configuration update process that sends updated values to any member within a given service group.
+
+  p In the example below, a workstation machine is connected to the same network as the Rails and PostgreSQL services. Run the <code>hab config apply</code> subcommand to send the <code>update_config.toml</code> to the <code>myrubyapp.default</code> service group. This will update the appropriate configuration values for the Rails app and allow it to connect to the database.
+
+  pre
+    code hab config apply --peer 172.17.0.2 myrubyapp.default 1 update_config.toml
+
+  p The Ruby-on-Rails window will show how its output changes in response to the configuration update.
+
+  .window-buttons
+    ul
+      li
+        a.button.active data-target="window-node-1" Workstation
+      li
+        a.button data-target="window-node-2" Ruby-on-Rails: <span class="node-status">Running</span> <span class="button-badge">&nbsp;</span>
+      li
+        a.button data-target="window-node-3" PostgreSQL: <span class="node-status">Running</span> <span class="button-badge">&nbsp;</span>
+
+  #window-node-1.window-node
+    = partial "partials/terminal" do
+
+  .shell-panel.window-node id="window-node-2" style="display:none;"
+    pre
+      | hab-sup(MR): Supervisor Member-ID 77050244e0fc40e8b3fb8c3d7abaaaab
+        hab-sup(MR): Starting example/myrubyapp
+        hab-sup(MR): Starting gossip-listener on 0.0.0.0:9638
+        hab-sup(MR): Starting http-gateway on 0.0.0.0:9631
+        myrubyapp.default(SR): The specified service group 'postgresql.default' for binding 'database' is not (yet?) present in the census data.
+        myrubyapp.default(SR): Waiting for service binds...
+        myrubyapp.default(SR): Hooks recompiled
+        myrubyapp.default(CF): Updated app_env.sh b1a5a3a8620621c8d623fce9edc67259600b6d70e2903a5ddb1e7b692fe800cb
+        myrubyapp.default(SR): Configuration recompiled
+        myrubyapp.default(SR): Initializing
+        myrubyapp.default hook[init]:(HK): Required environment variable SECRET_KEY_BASE is not set.
+        myrubyapp.default hook[init]:(HK): Set this package's config setting 'secret_key_base' to a
+        myrubyapp.default hook[init]:(HK): non-empty value. You can run 'rails secret' in development
+        myrubyapp.default hook[init]:(HK): to generate a random key string.
+        myrubyapp.default hook[init]:(HK):
+        myrubyapp.default hook[init]:(HK): Aborting...
+        myrubyapp.default(HK): Initialization failed! 'init' exited with status code 5
+    pre.full-output
+      | myrubyapp.default(SR): Hooks recompiled
+        default(CF): Updated app_env.sh 88da7126ed5f845108f02970152e026737a2f2e71eb67bec3b45b6622fe10421
+        myrubyapp.default(SR): Configuration recompiled
+        myrubyapp.default(SR): Initializing
+        myrubyapp.default hook[init]:(HK): created directory: '/hab/svc/myrubyapp/var/log'
+        myrubyapp.default hook[init]:(HK): created directory: '/hab/svc/myrubyapp/var/tmp'
+        myrubyapp.default hook[init]:(HK): created directory: '/hab/svc/myrubyapp/var/public/'
+        myrubyapp.default hook[init]:(HK): created directory: '/hab/svc/myrubyapp/var/public/system'
+        myrubyapp.default(SV): Starting process as user=hab, group=hab
+        myrubyapp.default(SR): Hooks recompiled
+        myrubyapp.default(O): => Booting Puma
+        myrubyapp.default(O): => Rails 5.1.1 application starting in production on http://0.0.0.0:8000
+        myrubyapp.default(O): => Run <code>rails server -h</code> for more startup options
+        myrubyapp.default(O): Puma starting in single mode...
+        myrubyapp.default(O): * Version 3.8.2 (ruby 2.4.1-p111), codename: Sassy Salamander
+        myrubyapp.default(O): * Min threads: 5, max threads: 5
+        myrubyapp.default(O): * Environment: production
+        myrubyapp.default(O): * Listening on tcp://0.0.0.0:8000
+        myrubyapp.default(O): Use Ctrl-C to stop
+
+
+  .shell-panel.window-node id="window-node-3" style="display:none;"
+    pre
+      | hab-sup(MR): Butterfly Member ID 5eea050dcf5e41dd990c8552f4784c19
+        hab-sup(SR): Adding core/postgresql/9.6.1/20170424032128
+        hab-sup(MR): Starting butterfly on 0.0.0.0:9638
+        hab-sup(MR): Starting http-gateway on 0.0.0.0:9631
+        connecting to tcp://localhost:10001
+        connecting to tcp://localhost:10011
+        connecting to tcp://localhost:10021
+        hab-sup(SC): Updated postgresql.conf 520f0b4f92b53312db6c512e577af98e2fe76c09d774eb81bfd62bb7fcc50b41
+        hab-sup(SC): Updated pg_ident.conf 0e5751c026e543b2e8ab2eb06099daa1d1e5df47778f7787faab45cdf12fe3a8
+        hab-sup(SC): Updated pwfile 5b4b01a4a3892ea3751793da57f072ae08eec694ddcda872239fc8239e4bcd1b
+        hab-sup(SC): Updated pg_hba.conf 262f519376471182971fc230c25775ee43c3507927be36a57813f62fd18e64e4
+        postgresql.default(SR): Initializing
+        postgresql.default hook[init]:(HK):  Database does not exist, creating with 'initdb'
+        postgresql.default hook[init]:(HK): The files belonging to this database system will be owned by user "hab".
+        postgresql.default hook[init]:(HK): This user must also own the server process.
+        postgresql.default hook[init]:(HK):
+        postgresql.default hook[init]:(HK): The database cluster will be initialized with locale "C".
+        postgresql.default hook[init]:(HK): The default text search configuration will be set to "english".
+        postgresql.default hook[init]:(HK):
+        postgresql.default hook[init]:(HK): Data page checksums are disabled.
+        postgresql.default hook[init]:(HK):
+        postgresql.default hook[init]:(HK): fixing permissions on existing directory /hab/svc/postgresql/data ... ok
+        postgresql.default hook[init]:(HK): creating subdirectories ... ok
+        postgresql.default hook[init]:(HK): selecting default max_connections ... 100
+        postgresql.default hook[init]:(HK): selecting default shared_buffers ... 128MB
+        postgresql.default hook[init]:(HK): selecting dynamic shared memory implementation ... posix
+        postgresql.default hook[init]:(HK): creating configuration files ... ok
+        postgresql.default hook[init]:(HK): running bootstrap script ... ok
+        postgresql.default hook[init]:(HK): performing post-bootstrap initialization ... ok
+        postgresql.default hook[init]:(HK): syncing data to disk ... ok
+        postgresql.default hook[init]:(HK):
+        postgresql.default hook[init]:(HK): WARNING: enabling "trust" authentication for local connections
+        postgresql.default hook[init]:(HK): You can change this by editing pg_hba.conf or using the option -A, or
+        postgresql.default hook[init]:(HK): --auth-local and --auth-host, the next time you run initdb.
+        postgresql.default hook[init]:(HK):
+        postgresql.default hook[init]:(HK): Success. You can now start the database server using:
+        postgresql.default hook[init]:(HK):
+        postgresql.default hook[init]:(HK):     pg_ctl -D /hab/svc/postgresql/data -l logfile start
+        postgresql.default hook[init]:(HK):
+        postgresql.default(SV): Starting process as user=hab, group=hab
+        postgresql.default(O): 2017-05-21 05:36:44 GMT FATAL:  the database system is starting up
+        postgresql.default(O): 2017-05-21 05:36:44 GMT LOG:  database system was shut down at 2017-05-21 05:36:43 GMT
+        postgresql.default(O): 2017-05-21 05:36:44 GMT LOG:  MultiXact member wraparound protections are now enabled
+        postgresql.default(O): 2017-05-21 05:36:44 GMT LOG:  database system is ready to accept connections
+        postgresql.default(O): 2017-05-21 05:36:44 GMT LOG:  autovacuum launcher started
+    pre.full-output
+      | postgresql.default(SR): Hooks recompiled
+
+  #success
+    p You have set up the service binding between the front-end and the back end, and dynamically reconfigured your front-end, but in a real production deployment, you would probably want to connect your front-end application to a highly-available database cluster for resiliency. Habitat has built-in support for a leader-follower topology to enable such a scenario. Find out how in the next step.
+
+= link_to 'Next: Set Up a Service Group Topology', '/tutorials/get-started/demo/set-up-topology/', class: 'button cta'

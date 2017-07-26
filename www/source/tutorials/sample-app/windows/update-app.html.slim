@@ -1,0 +1,122 @@
+---
+title: Habitat - Dynamically Update the App
+---
+
+= partial '/tutorials/partials/platform_switcher', locals: { platform: 'windows' }
+
+section.sample-app
+	h1 Dynamically Update the App
+
+	p You have now brought up both services in their containers, but the initialization hook for the Rails application cannot continue because an environment variable needs to be set before continuing. Habitat supervisors share, or gossip, information about the packages that they manage with other supervisors. We will use this to allow us to connect to one container and share information with it about a service running in the other container.
+
+	h2 Fill in the TOML File
+
+	p There are a couple of ways to make config changes: through environment variables or through a configuration update process that sends updated values to any member within a given service group.
+
+	p We will be updating multiple values, so it is easier to pass them all in an updated TOML file. The <code>updated_config.toml</code> file found in <code>habitat-example-plans/myrailsapp</code> can be used for this purpose.
+
+	pre
+		code
+			|
+				secret_key_base = ""
+
+				[db]
+				user = ""
+				password = ""
+
+	p As you can see, when you cloned the repo, the updated_config.toml did not have any values set. Assuming you still have your containers running in a Powershell window, open a new Powershell window and do the following:
+
+	ol
+		li
+			p Navigate to the <code>~\habitat-example-plans\myrailsapp</code> directory.
+		li
+			p Open <code>updated_config.toml</code> in your text editor.
+		li
+			p Set an alphanumeric string for the <code>secret_key_base</code> value, such as one shown below.
+
+			pre
+				code
+					|
+						secret_key_base = "35a2efb7eb37b72c40841033f092d5b6e704041c45fa5644677b9f6c587c511b37ef4af57af19b9842df908698b48f00e568591863fbc6aea85e15bfab713f4c"
+
+			blockquote
+				p Note: This <code>secret_key_base</code> value is for example purposes only. If you have <code>rails</code> installed, you can generate a new unique value by calling <code>rails secret</code> in the root of the <code>myrailsapp</code> directory.
+		li
+			p Now you need to provide database credentials to successfully connect to and create a database in our PostgreSQL container.
+
+			p The database values listed below are the default superuser values for the <code>core/postgresql</code> package.
+
+			pre
+				code
+					|
+						[db]
+						user = "admin"
+						password = "admin"
+
+			p If the running PostgreSQL service ever changes these values, you will need to update your updated_config.toml file and apply the new changes to the <code>myrailsapp.default</code> service group.
+
+			p The <code>updated_config.toml</code> file should now look like the following:
+
+			pre
+				code
+					|
+						secret_key_base = "35a2efb7eb37b72c40841033f092d5b6e704041c45fa5644677b9f6c587c511b37ef4af57af19b9842df908698b48f00e568591863fbc6aea85e15bfab713f4c"
+
+						[db]
+						user = "admin"
+						password = "admin"
+		li
+			p Save the file.
+
+	h2 Pass in Configuration Values
+
+	p To push the configuration changes to the container running <code>myrailsapp</code>, perform the following steps:
+
+	ol
+		li
+			p In your new Powershell window, make sure you are in the root of the <code>habitat-example-plans\myrailsapp</code> directory. If you shut down your containers, start them back up in your other window by running <code>docker-compose up</code>.
+		li
+			p Once your containers have started, run the <code>hab config apply</code> subcommand in your new window to send configuration updates to the <code>myrailsapp.default</code> service group.
+
+			pre
+				code PS > docker-compose exec db sh -c "hab config apply --peer railsapp myrailsapp.default $(date +%s) updated_config.toml
+
+			blockquote
+				p Note: This command executes a command directly on the running database container. If your host machine (or another container running the Habitat  supervisor) was joined to the other two services, then it could push the  configuration changes as well. Also, the command above used the <code>date</code> command to return the current date-time as seconds. Because <code>hab config apply</code> requires a positive incremental integer value, using this command is a good way of not having to manually input the value every time you make a configuration update.
+
+		p Your <code>myrailsapp</code> package should now successfully move forward in the initialization process; however, it will get stuck again in the following loop:
+
+		= partial "/tutorials/partials/update_app_output_1"
+
+		p Notice the <code>db.user</code>, <code>db.password</code>, and <code>db.name</code> values. The <code>db.user</code> and <code>db.password</code> values were updated from their default values to those specified in the <code>updated_config.toml</code> that was just applied to the <code>myrailsapp.default</code> service group. The <code>db.name</code> value was not updated from its default value, <code>myrailsapp_production</code>, which was set by the Ruby scaffolding when it built the <code>myrailsapp</code> package.
+
+	p So, the environment variable has been set, but the <code>myrailsapp_production</code> database has not actually been created in our PostgreSQL db container, which is why the initialization process still has yet to complete.
+
+	h2 Create and Seed the Database
+
+	p To set up the database, table, and seed it with a set of values, we must connect directly to the <code>myrailsapp</code> container and run <code>rake db:setup</code>. The Ruby scaffolding creates #{link_to 'process bins', 'https://github.com/habitat-sh/core-plans/blob/master/scaffolding-ruby/doc/reference.md#process-bins', target: '_blank'} for several Rails processes that you can use. They are essentially core processes for a given language or framework (like <code>rake</code>, or <code>sh</code>), but made to work within a Habitat package.
+
+	p Run the following from the root of the <code>~\habitat-example-plans\myrailsapp</code> directory:
+
+	pre
+		code PS > docker-compose exec railsapp myrailsapp-rake db:setup
+
+	p Your output should show the <code>myrailsapp_production</code> database and <code>page_updates</code> table being created. An initial set of values should also have been inserted into the table.
+
+	= partial "/tutorials/partials/update_app_rake_output"
+
+	h2 View Your Site
+
+	p Because your initialization hook can now run successfully, the run hook for myrailsapp will execute and allow you to connect to the Rails application through your host browser.
+
+	p The output of the Powershell window should look like the following:
+
+	= partial "/tutorials/partials/update_app_output_2"
+
+	p Periodically, the health_check hook that you created will run in the background. You should see the output of the curl command in the supervisor log.
+
+	p Once the rake tasks have completed, you can go to #{link_to 'http://localhost:8000', 'http://localhost:8000', target: '_blank'} on your host machine to see a random value pulled from the PostgreSQL database! Feel free to refresh the page to see other values.
+
+	p The final step will show you how to share your package with others by uploading it to the Habitat depot.
+
+= link_to 'Next: Upload the Sample App', '/tutorials/sample-app/windows/upload-package/', class: 'button cta'

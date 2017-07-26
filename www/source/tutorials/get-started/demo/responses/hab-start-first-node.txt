@@ -1,0 +1,13 @@
+hab-sup(MR): Supervisor Member-ID 361f7a786ea642b0af33bd10a44ce12a
+hab-sup(MR): Starting core/postgresql
+hab-sup(MR): Starting gossip-listener on 0.0.0.0:8638
+hab-sup(MR): Starting http-gateway on 0.0.0.0:8631
+postgresql.default(SR): Hooks recompiled
+default(CF): Updated pg_ident.conf 0e5751c026e543b2e8ab2eb06099daa1d1e5df47778f7787faab45cdf12fe3a8
+default(CF): Updated postgresql.conf 520f0b4f92b53312db6c512e577af98e2fe76c09d774eb81bfd62bb7fcc50b41
+default(CF): Updated pwfile 5b4b01a4a3892ea3751793da57f072ae08eec694ddcda872239fc8239e4bcd1b
+default(CF): Updated pg_hba.conf 262f519376471182971fc230c25775ee43c3507927be36a57813f62fd18e64e4
+postgresql.default(SR): Configuration recompiled
+postgresql.default(SR): Waiting to execute hooks; election in progress, and we have no quorum.
+
+Let's spin up two more PostgreSQL instances and connect all three in a group!
