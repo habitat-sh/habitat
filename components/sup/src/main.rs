@@ -443,11 +443,6 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                 "The name for the state directory if there is more than one Supervisor running \
                 [default: default]")
         )
-        (@subcommand term =>
-            (about: "Gracefully terminate the Habitat Supervisor and all of it's running services")
-            (@arg NAME: --("override-name") +takes_value
-                "The name of the Supervisor if more than one is running [default: default]")
-        )
     )
 }
 

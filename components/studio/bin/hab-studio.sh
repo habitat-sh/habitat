@@ -1021,7 +1021,7 @@ cleanup_studio() {
 # **Internal** Kills a Launcher process, if one exists.
 kill_launcher() {
   local pid_file
-  pid_file="$HAB_STUDIO_ROOT/hab/sup/default/launch.pid"
+  pid_file="$HAB_STUDIO_ROOT/hab/sup/default/LOCK"
 
   if [ -f $pid_file ]; then
     $bb kill $($bb cat $pid_file) \

@@ -37,6 +37,7 @@ use butterfly::trace::Trace;
 use butterfly::server::timing::Timing;
 use butterfly::server::Suitability;
 use hcore::crypto::{default_cache_key_path, SymKey};
+use hcore::env;
 use hcore::fs::FS_ROOT_PATH;
 use hcore::service::ServiceGroup;
 use hcore::os::process::{self, Signal};
@@ -60,6 +61,7 @@ use http_gateway;
 
 const MEMBER_ID_FILE: &'static str = "MEMBER_ID";
 const PROC_LOCK_FILE: &'static str = "LOCK";
+const LAUNCHER_PID_ENV: &'static str = "HAB_LAUNCHER_PID";
 
 static LOGKEY: &'static str = "MR";
 
@@ -1015,7 +1017,11 @@ where
             .as_ref(),
     ) {
         Ok(mut file) => {
-            match write!(&mut file, "{}", process::current_pid()) {
+            let pid = match env::var(LAUNCHER_PID_ENV) {
+                Ok(pid) => pid.parse::<u32>().expect("Unable to parse launcher pid"),
+                Err(_) => process::current_pid(),
+            };
+            match write!(&mut file, "{}", pid) {
                 Ok(()) => Ok(()),
                 Err(err) => {
                     Err(sup_error!(
