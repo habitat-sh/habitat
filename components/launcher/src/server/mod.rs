@@ -23,7 +23,7 @@ use std::time::Duration;
 
 use core;
 use core::package::{PackageIdent, PackageInstall};
-use core::os::process::Signal;
+use core::os::process::{self, Signal};
 use core::os::signals::{self, SignalEvent};
 use ipc_channel::ipc::{IpcOneShotServer, IpcReceiver, IpcSender};
 use protobuf;
@@ -301,6 +301,10 @@ fn spawn_supervisor(pipe: &str, args: &[String]) -> Result<Child> {
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
         .env(protocol::LAUNCHER_PIPE_ENV, pipe)
+        .env(
+            protocol::LAUNCHER_PID_ENV,
+            process::current_pid().to_string(),
+        )
         .args(args)
         .spawn()
         .map_err(Error::SupSpawn)?;
