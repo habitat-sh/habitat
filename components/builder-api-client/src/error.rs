@@ -18,6 +18,7 @@ use std::io;
 use std::result;
 
 use hyper;
+use serde_json;
 use url;
 
 use hab_http;
@@ -28,6 +29,7 @@ pub enum Error {
     HabitatHttpClient(hab_http::Error),
     HyperError(hyper::error::Error),
     IO(io::Error),
+    JSON(serde_json::Error),
     URL(url::ParseError),
 }
 
@@ -41,6 +43,7 @@ impl fmt::Display for Error {
             Error::HabitatHttpClient(ref e) => format!("{}", e),
             Error::HyperError(ref err) => format!("{}", err),
             Error::IO(ref e) => format!("{}", e),
+            Error::JSON(ref e) => format!("{}", e),
             Error::URL(ref e) => format!("{}", e),
         };
         write!(f, "{}", msg)
@@ -54,6 +57,7 @@ impl error::Error for Error {
             Error::HabitatHttpClient(ref err) => err.description(),
             Error::HyperError(ref err) => err.description(),
             Error::IO(ref err) => err.description(),
+            Error::JSON(ref err) => err.description(),
             Error::URL(ref err) => err.description(),
         }
     }

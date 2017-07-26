@@ -55,6 +55,17 @@ message PackageCreate {
   repeated string deps = 2;
 }
 
+message ReverseDependenciesGet {
+  optional string origin = 1;
+  optional string name = 2;
+}
+
+message ReverseDependencies {
+  optional string origin = 1;
+  optional string name = 2;
+  repeated string rdeps = 3;
+}
+
 message PackageStatsGet {
   optional string origin = 1;
 }

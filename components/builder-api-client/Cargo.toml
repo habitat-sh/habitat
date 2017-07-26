@@ -12,6 +12,7 @@ hyper-openssl = ""
 log = "*"
 regex = "*"
 serde = "*"
+serde_derive = "*"
 serde_json = "*"
 url = "*"
 

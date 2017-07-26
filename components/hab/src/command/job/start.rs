@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::io::{stdin, stdout, Write};
+
 use api_client::Client as ApiClient;
 use depot_client::Client as DepotClient;
 use common::ui::{Status, UI};
@@ -27,22 +29,54 @@ pub fn start(
     token: &str,
     group: bool,
 ) -> Result<()> {
-    debug!("Starting a job for {}", &ident);
+    debug!("Starting a job for {}", ident);
+
+    let api_client = ApiClient::new(depot_url, PRODUCT, VERSION, None).map_err(
+        Error::APIClient,
+    )?;
 
     if group {
-        let depot_client = DepotClient::new(depot_url, PRODUCT, VERSION, None)
-            .map_err(Error::DepotClient)?;
-        depot_client.schedule_job(ident, token).map_err(
-            Error::DepotClient,
-        )?;
+        let rdeps = api_client.fetch_rdeps(ident).map_err(Error::APIClient)?;
+        println!("The following are the reverse dependencies for {}:", ident);
+        println!("");
+
+        for rdep in rdeps {
+            println!("{}", rdep);
+        }
+
+        println!("");
+        print!(
+            "If you choose to start a group for this package, all of the above packages will be built as well. Is this what you want? Y/N "
+        );
+
+        let mut s = String::new();
+        let _ = stdout().flush();
+        stdin().read_line(&mut s).expect(
+            "Did not enter a correct string",
+        );
+        if let Some('\n') = s.chars().next_back() {
+            s.pop();
+        }
+        if let Some('\r') = s.chars().next_back() {
+            s.pop();
+        }
+
+        println!("");
+
+        if s.to_lowercase() == "y" {
+            let depot_client = DepotClient::new(depot_url, PRODUCT, VERSION, None)
+                .map_err(Error::DepotClient)?;
+            depot_client.schedule_job(ident, token).map_err(
+                Error::DepotClient,
+            )?;
+        } else {
+            println!("Aborted.");
+        }
     } else {
-        let api_client = ApiClient::new(depot_url, PRODUCT, VERSION, None).map_err(
-            Error::APIClient,
-        )?;
         api_client.create_job(ident, token).map_err(
             Error::APIClient,
         )?;
+        ui.status(Status::Creating, format!("job for {}", ident))?;
     }
-    ui.status(Status::Creating, format!("job for {}", ident))?;
     Ok(())
 }

@@ -31,6 +31,7 @@ use params::{Params, Value, FromValue};
 use persistent;
 use protocol::jobsrv::{Job, JobGet, JobLogGet, JobLog, JobSpec, ProjectJobsGet,
                        ProjectJobsGetResponse};
+use protocol::scheduler::{ReverseDependenciesGet, ReverseDependencies};
 use protocol::originsrv::*;
 use protocol::sessionsrv;
 use protocol::net::{self, NetOk, ErrCode};
@@ -110,6 +111,31 @@ pub fn github_authenticate(req: &mut Request) -> IronResult<Response> {
             Ok(render_net_error(&err))
         }
     }
+}
+
+pub fn rdeps_show(req: &mut Request) -> IronResult<Response> {
+    let params = req.extensions.get::<Router>().unwrap();
+    let origin = match params.find("origin") {
+        Some(origin) => origin.to_string(),
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+
+    let name = match params.find("name") {
+        Some(name) => name.to_string(),
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+
+    let mut rdeps_get = ReverseDependenciesGet::new();
+    rdeps_get.set_origin(origin);
+    rdeps_get.set_name(name);
+
+    let mut conn = Broker::connect().unwrap();
+    let rdeps = match conn.route::<ReverseDependenciesGet, ReverseDependencies>(&rdeps_get) {
+        Ok(rdeps) => rdeps,
+        Err(err) => return Ok(render_net_error(&err)),
+    };
+
+    Ok(render_json(status::Ok, &rdeps))
 }
 
 pub fn job_create(req: &mut Request) -> IronResult<Response> {

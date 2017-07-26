@@ -115,6 +115,7 @@ impl Dispatcher for Worker {
             "PackagePreCreate" => handlers::package_precreate(message, sock, state),
             "JobStatus" => handlers::job_status(message, sock, state),
             "PackageStatsGet" => handlers::package_stats_get(message, sock, state),
+            "ReverseDependenciesGet" => handlers::reverse_dependencies_get(message, sock, state),
             _ => panic!("unexpected message: {:?}", message.message_id()),
         }
     }

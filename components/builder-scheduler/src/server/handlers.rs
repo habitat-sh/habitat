@@ -114,6 +114,42 @@ pub fn group_create(
     Ok(())
 }
 
+pub fn reverse_dependencies_get(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
+    let msg: proto::ReverseDependenciesGet = req.parse_msg()?;
+    debug!("reverse_dependencies_get message: {:?}", msg);
+
+    let ident = format!("{}/{}", msg.get_origin(), msg.get_name());
+    let graph = state.graph().read().expect("Graph lock is poisoned");
+    let rdeps = graph.rdeps(&ident);
+    let mut rd_reply = proto::ReverseDependencies::new();
+    rd_reply.set_origin(msg.get_origin().to_string());
+    rd_reply.set_name(msg.get_name().to_string());
+
+    match rdeps {
+        Some(rd) => {
+            let mut rdps = RepeatedField::new();
+
+            // the tuples inside rd are of the form: (core/redis, core/redis/3.2.4/20170717232232)
+            // we're only interested in the short form, not the fully qualified form
+            for (id, _fully_qualified_id) in rd {
+                rdps.push(id);
+            }
+
+            rdps.sort_by(|a, b| a.cmp(b));
+            rd_reply.set_rdeps(rdps);
+        }
+        None => debug!("No rdeps found for {}", ident),
+    }
+
+    req.reply_complete(sock, &rd_reply)?;
+
+    Ok(())
+}
+
 pub fn group_get(
     req: &mut Envelope,
     sock: &mut zmq::Socket,

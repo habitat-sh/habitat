@@ -24,6 +24,8 @@ extern crate log;
 extern crate regex;
 extern crate serde;
 #[macro_use]
+extern crate serde_derive;
+#[macro_use]
 extern crate serde_json;
 extern crate url;
 
@@ -41,6 +43,13 @@ use hyper::status::StatusCode;
 use regex::Regex;
 
 pub struct Client(ApiClient);
+
+#[derive(Deserialize)]
+pub struct ReverseDependencies {
+    pub origin: String,
+    pub name: String,
+    pub rdeps: Vec<String>,
+}
 
 impl Client {
     pub fn new<U>(
@@ -93,7 +102,7 @@ impl Client {
             .send();
         match result {
             Ok(Response { status: StatusCode::Created, .. }) => Ok(()),
-            Ok(mut response) => {
+            Ok(response) => {
                 if response.status == StatusCode::Unauthorized {
                     Err(Error::APIError(
                         response.status,
@@ -102,16 +111,41 @@ impl Client {
                             .to_string(),
                     ))
                 } else {
-                    let mut s = String::new();
-                    response.read_to_string(&mut s).map_err(Error::IO)?;
-                    Err(Error::APIError(response.status, s))
+                    Err(err_from_response(response))
                 }
             }
             Err(e) => Err(Error::HyperError(e)),
         }
     }
 
+    /// Fetch the reverse dependencies for a package
+    ///
+    /// # Failures
+    ///
+    /// * Remote API Server is not available
+    pub fn fetch_rdeps(&self, ident: &PackageIdent) -> Result<Vec<String>> {
+        debug!("Fetching the reverse dependencies for {}", ident);
+
+        let url = format!("rdeps/{}", ident);
+        let mut res = self.0.get(&url).send().map_err(Error::HyperError)?;
+        if res.status != StatusCode::Ok {
+            return Err(err_from_response(res));
+        }
+
+        let mut encoded = String::new();
+        res.read_to_string(&mut encoded).map_err(Error::IO)?;
+        debug!("Body: {:?}", encoded);
+        let rd: ReverseDependencies = serde_json::from_str(&encoded).map_err(Error::JSON)?;
+        Ok(rd.rdeps.to_vec())
+    }
+
     fn add_authz<'a>(&'a self, rb: RequestBuilder<'a>, token: &str) -> RequestBuilder {
         rb.header(Authorization(Bearer { token: token.to_string() }))
     }
+}
+
+fn err_from_response(mut response: Response) -> Error {
+    let mut s = String::new();
+    response.read_to_string(&mut s).map_err(Error::IO).unwrap();
+    Error::APIError(response.status, s)
 }
