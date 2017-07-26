@@ -28,10 +28,14 @@ resource "aws_instance" "api" {
     volume_type = "gp2"
   }
 
+  provisioner "file" {
+    source = "${path.module}/scripts/install_base_packages.sh"
+    destination = "/tmp/install_base_packages.sh"
+  }
+
   provisioner "remote-exec" {
     scripts = [
-      "${path.module}/scripts/filesystem.sh",
-      "${path.module}/scripts/bootstrap.sh",
+      "${path.module}/scripts/foundation.sh",
     ]
   }
 
@@ -42,6 +46,9 @@ resource "aws_instance" "api" {
 
   provisioner "remote-exec" {
     inline = [
+      "chmod +x /tmp/install_base_packages.sh",
+      "sudo /tmp/install_base_packages.sh core/builder-api core/builder-api-proxy",
+
       "sudo mv /home/ubuntu/hab-sup.service /etc/systemd/system/hab-sup.service",
       "sudo systemctl daemon-reload",
       "sudo systemctl start hab-sup",
@@ -87,10 +94,14 @@ resource "aws_instance" "admin" {
     volume_type = "gp2"
   }
 
+  provisioner "file" {
+    source = "${path.module}/scripts/install_base_packages.sh"
+    destination = "/tmp/install_base_packages.sh"
+  }
+
   provisioner "remote-exec" {
     scripts = [
-      "${path.module}/scripts/filesystem.sh",
-      "${path.module}/scripts/bootstrap.sh",
+      "${path.module}/scripts/foundation.sh",
     ]
   }
 
@@ -101,6 +112,9 @@ resource "aws_instance" "admin" {
 
   provisioner "remote-exec" {
     inline = [
+      "chmod +x /tmp/install_base_packages.sh",
+      "sudo /tmp/install_base_packages.sh  core/builder-admin core/builder-admin-proxy",
+
       "sudo mv /home/ubuntu/hab-sup.service /etc/systemd/system/hab-sup.service",
       "sudo systemctl daemon-reload",
       "sudo systemctl start hab-sup",
@@ -149,10 +163,14 @@ resource "aws_instance" "datastore" {
     volume_type = "gp2"
   }
 
+  provisioner "file" {
+    source = "${path.module}/scripts/install_base_packages.sh"
+    destination = "/tmp/install_base_packages.sh"
+  }
+
   provisioner "remote-exec" {
     scripts = [
-      "${path.module}/scripts/filesystem.sh",
-      "${path.module}/scripts/bootstrap.sh",
+      "${path.module}/scripts/foundation.sh",
     ]
   }
 
@@ -163,6 +181,9 @@ resource "aws_instance" "datastore" {
 
   provisioner "remote-exec" {
     inline = [
+      "chmod +x /tmp/install_base_packages.sh",
+      "sudo /tmp/install_base_packages.sh core/builder-datastore",
+
       "sudo mv /home/ubuntu/hab-sup.service /etc/systemd/system/hab-sup.service",
       "sudo systemctl daemon-reload",
       "sudo systemctl start hab-sup",
@@ -210,10 +231,14 @@ resource "aws_instance" "jobsrv" {
     volume_type = "gp2"
   }
 
+  provisioner "file" {
+    source = "${path.module}/scripts/install_base_packages.sh"
+    destination = "/tmp/install_base_packages.sh"
+  }
+
   provisioner "remote-exec" {
     scripts = [
-      "${path.module}/scripts/filesystem.sh",
-      "${path.module}/scripts/bootstrap.sh",
+      "${path.module}/scripts/foundation.sh",
     ]
   }
 
@@ -224,6 +249,9 @@ resource "aws_instance" "jobsrv" {
 
   provisioner "remote-exec" {
     inline = [
+      "chmod +x /tmp/install_base_packages.sh",
+      "sudo /tmp/install_base_packages.sh core/builder-jobsrv",
+
       "sudo mv /home/ubuntu/hab-sup.service /etc/systemd/system/hab-sup.service",
       "sudo systemctl daemon-reload",
       "sudo systemctl start hab-sup",
@@ -270,10 +298,14 @@ resource "aws_instance" "originsrv" {
     volume_type = "gp2"
   }
 
+  provisioner "file" {
+    source = "${path.module}/scripts/install_base_packages.sh"
+    destination = "/tmp/install_base_packages.sh"
+  }
+
   provisioner "remote-exec" {
     scripts = [
-      "${path.module}/scripts/filesystem.sh",
-      "${path.module}/scripts/bootstrap.sh",
+      "${path.module}/scripts/foundation.sh",
     ]
   }
 
@@ -284,6 +316,9 @@ resource "aws_instance" "originsrv" {
 
   provisioner "remote-exec" {
     inline = [
+      "chmod +x /tmp/install_base_packages.sh",
+      "sudo /tmp/install_base_packages.sh core/builder-originsrv",
+
       "sudo mv /home/ubuntu/hab-sup.service /etc/systemd/system/hab-sup.service",
       "sudo systemctl daemon-reload",
       "sudo systemctl start hab-sup",
@@ -329,10 +364,14 @@ resource "aws_instance" "router" {
     volume_type = "gp2"
   }
 
+  provisioner "file" {
+    source = "${path.module}/scripts/install_base_packages.sh"
+    destination = "/tmp/install_base_packages.sh"
+  }
+
   provisioner "remote-exec" {
     scripts = [
-      "${path.module}/scripts/filesystem.sh",
-      "${path.module}/scripts/bootstrap.sh",
+      "${path.module}/scripts/foundation.sh",
     ]
   }
 
@@ -343,6 +382,9 @@ resource "aws_instance" "router" {
 
   provisioner "remote-exec" {
     inline = [
+      "chmod +x /tmp/install_base_packages.sh",
+      "sudo /tmp/install_base_packages.sh core/builder-router",
+
       "sudo mv /home/ubuntu/hab-sup.service /etc/systemd/system/hab-sup.service",
       "sudo systemctl daemon-reload",
       "sudo systemctl start hab-sup",
@@ -389,10 +431,14 @@ resource "aws_instance" "scheduler" {
     volume_type = "gp2"
   }
 
+  provisioner "file" {
+    source = "${path.module}/scripts/install_base_packages.sh"
+    destination = "/tmp/install_base_packages.sh"
+  }
+
   provisioner "remote-exec" {
     scripts = [
-      "${path.module}/scripts/filesystem.sh",
-      "${path.module}/scripts/bootstrap.sh",
+      "${path.module}/scripts/foundation.sh",
     ]
   }
 
@@ -403,6 +449,9 @@ resource "aws_instance" "scheduler" {
 
   provisioner "remote-exec" {
     inline = [
+      "chmod +x /tmp/install_base_packages.sh",
+      "sudo /tmp/install_base_packages.sh core/builder-scheduler",
+
       "sudo mv /home/ubuntu/hab-sup.service /etc/systemd/system/hab-sup.service",
       "sudo systemctl daemon-reload",
       "sudo systemctl start hab-sup",
@@ -449,10 +498,14 @@ resource "aws_instance" "sessionsrv" {
     volume_type = "gp2"
   }
 
+  provisioner "file" {
+    source = "${path.module}/scripts/install_base_packages.sh"
+    destination = "/tmp/install_base_packages.sh"
+  }
+
   provisioner "remote-exec" {
     scripts = [
-      "${path.module}/scripts/filesystem.sh",
-      "${path.module}/scripts/bootstrap.sh",
+      "${path.module}/scripts/foundation.sh",
     ]
   }
 
@@ -463,6 +516,9 @@ resource "aws_instance" "sessionsrv" {
 
   provisioner "remote-exec" {
     inline = [
+      "chmod +x /tmp/install_base_packages.sh",
+      "sudo /tmp/install_base_packages.sh core/builder-sessionsrv",
+
       "sudo mv /home/ubuntu/hab-sup.service /etc/systemd/system/hab-sup.service",
       "sudo systemctl daemon-reload",
       "sudo systemctl start hab-sup",
@@ -509,10 +565,14 @@ resource "aws_instance" "worker" {
     volume_type = "gp2"
   }
 
+  provisioner "file" {
+    source = "${path.module}/scripts/install_base_packages.sh"
+    destination = "/tmp/install_base_packages.sh"
+  }
+
   provisioner "remote-exec" {
     scripts = [
-      "${path.module}/scripts/filesystem.sh",
-      "${path.module}/scripts/bootstrap.sh",
+      "${path.module}/scripts/foundation.sh",
     ]
   }
 
@@ -523,6 +583,9 @@ resource "aws_instance" "worker" {
 
   provisioner "remote-exec" {
     inline = [
+      "chmod +x /tmp/install_base_packages.sh",
+      "sudo /tmp/install_base_packages.sh core/builder-worker",
+
       "sudo mv /home/ubuntu/hab-sup.service /etc/systemd/system/hab-sup.service",
       "sudo systemctl daemon-reload",
       "sudo systemctl start hab-sup",
