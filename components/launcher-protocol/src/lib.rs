@@ -27,6 +27,9 @@ use message::net::*;
 
 pub const LAUNCHER_PIPE_ENV: &'static str = "HAB_LAUNCHER_PIPE";
 pub const LAUNCHER_PID_ENV: &'static str = "HAB_LAUNCHER_PID";
+// Set to instruct the Supervisor to clean the Launcher's process LOCK on startup. This is useful
+// when restarting a Supervisor which terminated normally.
+pub const LAUNCHER_LOCK_CLEAN_ENV: &'static str = "HAB_LAUNCHER_LOCK_CLEAN";
 /// Process exit code from Supervisor which indicates to Launcher that the Supervisor
 /// ran to completion with a successful result. The Launcher should not attempt to restart
 /// the Supervisor and should exit immediately with a successful exit code.

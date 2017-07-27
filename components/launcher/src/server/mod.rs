@@ -55,7 +55,7 @@ pub struct Server {
 
 impl Server {
     pub fn new(args: Vec<String>) -> Result<Self> {
-        let ((rx, tx), supervisor) = Self::init(&args)?;
+        let ((rx, tx), supervisor) = Self::init(&args, false)?;
         Ok(Server {
             services: ServiceTable::default(),
             tx: tx,
@@ -65,9 +65,14 @@ impl Server {
         })
     }
 
-    fn init(args: &[String]) -> Result<((Receiver, Sender), Child)> {
+    /// Spawn a Supervisor and setup a bi-directional IPC connection to it.
+    ///
+    /// Passing a value of true to the `clean` argument will force the Supervisor to clean the
+    /// Launcher's process LOCK before starting. This is useful when restarting a Supervisor
+    /// that terminated gracefully.
+    fn init(args: &[String], clean: bool) -> Result<((Receiver, Sender), Child)> {
         let (server, pipe) = IpcOneShotServer::new().map_err(Error::OpenPipe)?;
-        let supervisor = spawn_supervisor(&pipe, args)?;
+        let supervisor = spawn_supervisor(&pipe, args, clean)?;
         let channel = setup_connection(server)?;
         Ok((channel, supervisor))
     }
@@ -76,7 +81,7 @@ impl Server {
     fn reload(&mut self) -> Result<()> {
         self.supervisor.kill();
         self.supervisor.wait();
-        let ((rx, tx), supervisor) = Self::init(&self.args)?;
+        let ((rx, tx), supervisor) = Self::init(&self.args, true)?;
         self.tx = tx;
         self.rx = rx;
         self.supervisor = supervisor;
@@ -293,9 +298,17 @@ fn setup_connection(server: IpcOneShotServer<Vec<u8>>) -> Result<(Receiver, Send
     Ok((rx, tx))
 }
 
-fn spawn_supervisor(pipe: &str, args: &[String]) -> Result<Child> {
+/// Start a Supervisor as a child process.
+///
+/// Passing a value of true to the `clean` argument will force the Supervisor to clean the
+/// Launcher's process LOCK before starting. This is useful when restarting a Supervisor
+/// that terminated gracefully.
+fn spawn_supervisor(pipe: &str, args: &[String], clean: bool) -> Result<Child> {
     let binary = supervisor_cmd()?;
     let mut command = Command::new(&binary);
+    if clean {
+        command.env(protocol::LAUNCHER_LOCK_CLEAN_ENV, clean.to_string());
+    }
     debug!("Starting Supervisor...");
     let child = command
         .stdout(Stdio::inherit())
@@ -311,6 +324,10 @@ fn spawn_supervisor(pipe: &str, args: &[String]) -> Result<Child> {
     Ok(child)
 }
 
+/// Determines the most viable Supervisor binary to run and returns a `PathBuf` to it.
+///
+/// Setting a filepath value to the `HAB_SUP_BINARY` env variable will force that binary to be used
+/// instead.
 fn supervisor_cmd() -> Result<PathBuf> {
     if let Ok(command) = core::env::var(SUP_CMD_ENVVAR) {
         return Ok(PathBuf::from(command));
