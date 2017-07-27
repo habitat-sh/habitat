@@ -1,26 +1,27 @@
 ---
 sidebar_links:
-- title: Tutorials
+- title: Build a Sample App
   links:
   - title: Introduction
-    link: "/tutorials"
-  - title: Getting started with Habitat <span>&plus;</span>
-    link: "/tutorials/getting-started/overview/"
-    sub_links:
-    - title: Basic concepts
-      link: "/tutorials/getting-started/linux/basic-concepts/"
-    - title: Set up your environment
-      link: "/tutorials/getting-started/linux/setup-environment/"
-    - title: Create your first plan
-      link: "/tutorials/getting-started/linux/create-plan/"
-    - title: Add hooks to your plan
-      link: "/tutorials/getting-started/linux/add-hooks/"
-    - title: Add configuration to your plan
-      link: "/tutorials/getting-started/linux/configure-plan/"
-    - title: Run your service
-      link: "/tutorials/getting-started/linux/process-build/"
-    - title: Next steps
-      link: "/tutorials/getting-started/next-steps/"
+    link: "/tutorials/sample-app/overview/"
+  - title: Basic concepts
+    link: "/tutorials/sample-app/basic-concepts/"
+#  - title: Choose your environment
+#    link: "/tutorials/sample-app/choose-environment/"
+  - title: Create your plan using scaffolding
+    link: "/tutorials/sample-app/linux/use-scaffolding/"
+  - title: Add health monitoring to your plan
+    link: "/tutorials/sample-app/linux/add-health-check-hook/"
+  - title: Build the package
+    link: "/tutorials/sample-app/linux/build-package/"
+  - title: Run the sample app
+    link: "/tutorials/sample-app/linux/run-app/"
+  - title: Dynamically update the app
+    link: "/tutorials/sample-app/linux/update-app/"
+  - title: Upload the sample app
+    link: "/tutorials/sample-app/linux/upload-package/"
+  - title: Next steps
+    link: "/tutorials/sample-app/next-steps/"
 - title: Quick Links
   links:
   - title: Habitat docs

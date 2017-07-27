@@ -88,7 +88,7 @@ The following sections describe each of these steps in more detail.
 #### Create your package identifier
 The origin defines packages that are conceptually related to each other. For example, the "core" origin packages are foundational to building other packages. If you would like to browse them, they are located in the [core-plans repo](https://github.com/habitat-sh/core-plans).
 
-> Note: The "core" origin name is reserved for the foundational library and binary packages owned by the Habitat maintainers group.
+> Note: The "core" origin name is reserved for the foundational library and binary packages owned by the Habitat maintainers group. If you would like to browse them, they are located in the Habitat [public depot](https://bldr.habitat.sh/#/pkgs/core).
 
 Creating packages for a specific origin requires that you also have access to the secret key for that origin. The secret key will be used to sign the package when it is built by the hab-plan-build command. Keys are kept in `$HOME/.hab/cache/keys` on the host machine and `/hab/cache/keys` while in the studio. For more information on keys, see [Keys](/docs/concepts-keys).
 
