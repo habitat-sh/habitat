@@ -18,7 +18,6 @@ use postgres;
 
 use config::Config;
 use error::{Result, Error};
-use rand::{Rng, thread_rng};
 use chrono::{DateTime, UTC};
 
 use protocol::jobsrv::{Job, JobState};
@@ -262,6 +261,43 @@ impl DataStore {
                            r#"CREATE OR REPLACE FUNCTION set_project_state_ident_v1 (pid bigint, jid bigint, state text, ident text) RETURNS void AS $$
                                   UPDATE projects SET project_state=state, job_id=jid, project_ident=ident, updated_at=now() WHERE id=pid;
                            $$ LANGUAGE SQL VOLATILE"#)?;
+
+        // Change the primary key for the groups table
+        migrator.migrate(
+            "scheduler",
+            r#"ALTER TABLE IF EXISTS groups DROP CONSTRAINT IF EXISTS groups_pkey;"#,
+        )?;
+        migrator.migrate(
+            "scheduler",
+            r#"CREATE SEQUENCE IF NOT EXISTS groups_id_seq;"#,
+        )?;
+        migrator.migrate("scheduler", r#"ALTER TABLE IF EXISTS groups ALTER COLUMN id SET DEFAULT next_id_v1('groups_id_seq');"#)?;
+        migrator.migrate(
+            "scheduler",
+            r#"ALTER TABLE IF EXISTS groups ADD PRIMARY KEY (id);"#,
+        )?;
+        migrator.migrate("scheduler",
+                     r#"CREATE OR REPLACE FUNCTION insert_group_v2 (
+                                project_names text[],
+                                project_idents text[]
+                                ) RETURNS SETOF groups AS $$
+                                    DECLARE
+                                        g groups % rowtype;
+                                    BEGIN
+                                        INSERT INTO groups (group_state)
+                                        VALUES ('Pending') RETURNING * INTO g;
+                                        RETURN NEXT g;
+
+                                        FOR i IN array_lower(project_names, 1)..array_upper(project_names, 1)
+                                        LOOP
+                                            INSERT INTO projects (owner_id, project_name, project_ident, project_state)
+                                            VALUES
+                                                (g.id, project_names[i], project_idents[i], 'NotStarted');
+                                        END LOOP;
+                                        RETURN;
+                                    END
+                                $$ LANGUAGE plpgsql VOLATILE
+                                "#)?;
         migrator.finish()?;
 
         Ok(())
@@ -350,20 +386,15 @@ impl DataStore {
 
         // TODO - the actual message will be used later for sharding
 
-        // BUG - the insert query should be creating and assigning back a group_id,
-        // instead of expecting it to be passed in. The random id is a temporary
-        // workaround.
-        let mut rng = thread_rng();
-        let id = rng.gen::<u64>();
-
         let (project_names, project_idents): (Vec<String>, Vec<String>) =
             project_tuples.iter().cloned().unzip();
 
-        conn.execute(
-            "SELECT insert_group_v1($1, $2, $3)",
-            &[&(id as i64), &project_names, &project_idents],
+        let rows = conn.query(
+            "SELECT * FROM insert_group_v2($1, $2)",
+            &[&project_names, &project_idents],
         ).map_err(Error::GroupCreate)?;
 
+        let mut group = self.row_to_group(&rows.get(0))?;
         let mut projects = RepeatedField::new();
 
         for (name, ident) in project_tuples {
@@ -374,9 +405,6 @@ impl DataStore {
             projects.push(project);
         }
 
-        let mut group = Group::new();
-        group.set_id(id);
-        group.set_state(GroupState::Pending);
         group.set_projects(projects);
 
         debug!("Group created: {:?}", group);
@@ -386,7 +414,6 @@ impl DataStore {
 
     pub fn get_group(&self, msg: &GroupGet) -> Result<Option<Group>> {
         let group_id = msg.get_group_id();
-
         let conn = self.pool.get_shard(0)?;
         let rows = &conn.query("SELECT * FROM get_group_v1($1)", &[&(group_id as i64)])
             .map_err(Error::GroupGet)?;
