@@ -8,7 +8,7 @@ from the master branch on a bi-weekly schedule occurring every other Thursday.
 1. Clone the Habitat repository if you do not already have it
 
     ```
-    $ git clone git@github.com:habitat-sh/habitat.git ~/code/habitat
+    $ git clone git@github.com:habitat-sh/habitat.git ~/habitat
     ```
 
 1. Ensure you are on the master branch and have the latest of `~/habitat`
@@ -29,7 +29,7 @@ from the master branch on a bi-weekly schedule occurring every other Thursday.
 1. Remove the `-dev` suffix from the version number found in the `VERSION` file
 
     ```
-    $ vi ~/habitat/VERSION
+    $ sed -i '' -e 's/-dev//' VERSION
     ```
 
 1. Generate a new `CHANGELOG.md`
