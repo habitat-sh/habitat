@@ -155,12 +155,13 @@ impl CensusRing {
             return;
         }
         self.changed = true;
-        member_list.with_members(|member| if let Some(census_member) =
-            self.find_member_mut(&member.get_id().to_string())
-        {
-            census_member.update_from_member(&member);
-            if let Some(health) = member_list.health_of(member) {
-                census_member.update_from_health(health);
+        member_list.with_members(|member| {
+            let health = member_list.health_of(&member).unwrap();
+            for group in self.census_groups.values_mut() {
+                if let Some(census_member) = group.find_member_mut(member.get_id()) {
+                    census_member.update_from_member(&member);
+                    census_member.update_from_health(health);
+                }
             }
         });
         self.last_membership_counter = member_list.get_update_counter();
@@ -203,15 +204,6 @@ impl CensusRing {
             census_group.update_from_service_file_rumors(rumors);
         });
         self.last_service_file_counter = service_file_rumors.get_update_counter();
-    }
-
-    fn find_member_mut(&mut self, member_id: &MemberId) -> Option<&mut CensusMember> {
-        for group in self.census_groups.values_mut() {
-            if let Some(member) = group.find_member_mut(member_id) {
-                return Some(member);
-            }
-        }
-        None
     }
 }
 
@@ -467,7 +459,7 @@ impl CensusGroup {
         }
     }
 
-    fn find_member_mut(&mut self, member_id: &MemberId) -> Option<&mut CensusMember> {
+    fn find_member_mut(&mut self, member_id: &str) -> Option<&mut CensusMember> {
         self.population.get_mut(member_id)
     }
 }
@@ -609,10 +601,16 @@ impl CensusMember {
     }
 
     fn update_from_health(&mut self, health: Health) {
-        self.alive = health == Health::Alive;
-        self.suspect = health == Health::Suspect;
-        self.confirmed = health == Health::Confirmed;
-        self.departed = health == Health::Departed;
+        self.alive = false;
+        self.suspect = false;
+        self.confirmed = false;
+        self.departed = false;
+        match health {
+            Health::Alive => self.alive = true,
+            Health::Suspect => self.suspect = true,
+            Health::Confirmed => self.confirmed = true,
+            Health::Departed => self.departed = true,
+        }
     }
 }
 

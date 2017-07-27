@@ -62,7 +62,8 @@ impl FromStr for Health {
             "alive" => Ok(Health::Alive),
             "suspect" => Ok(Health::Suspect),
             "confirmed" => Ok(Health::Confirmed),
-            _ => Ok(Health::Alive),
+            "departed" => Ok(Health::Departed),
+            value => panic!("No match for Health from string, {}", value),
         }
     }
 }
@@ -403,7 +404,7 @@ impl MemberList {
         match self.health.read().expect("Health lock is poisoned").get(
             member.get_id(),
         ) {
-            Some(health) => Some(health.clone()),
+            Some(health) => Some(*health),
             None => None,
         }
     }
@@ -413,7 +414,7 @@ impl MemberList {
         match self.health.read().expect("Health lock is poisoned").get(
             member_id,
         ) {
-            Some(health) => Some(health.clone()),
+            Some(health) => Some(*health),
             None => None,
         }
     }
