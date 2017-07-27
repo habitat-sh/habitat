@@ -35,32 +35,34 @@ impl HelperDef for EachAliveHelper {
             );
             let rendered = match (value.value().is_truthy(), value.value()) {
                 (true, &Json::Array(ref list)) => {
-                    let len = list.len();
+                    let alive_members: Vec<Json> = list.iter()
+                        .filter_map(|m| {
+                            m.as_object().and_then(|m| if m.contains_key("alive") &&
+                                m["alive"].as_bool().unwrap()
+                            {
+                                Some(to_json(&m))
+                            } else {
+                                None
+                            })
+                        })
+                        .collect();
+                    let len = alive_members.len();
                     for i in 0..len {
-                        let member = list[i].as_object().ok_or_else(|| {
-                            RenderError::new(format!(
-                                "Param value is not a valid census \
-                                member. Parameter content is: {:?}",
-                                list[i]
-                            ))
-                        })?;
-                        if member.contains_key("alive") && member["alive"].as_bool().unwrap() {
-                            let mut local_rc = rc.derive();
-                            local_rc.set_local_var("@first".to_string(), to_json(&(i == 0usize)));
-                            local_rc.set_local_var("@last".to_string(), to_json(&(i == len - 1)));
-                            local_rc.set_local_var("@index".to_string(), to_json(&i));
+                        let mut local_rc = rc.derive();
+                        local_rc.set_local_var("@first".to_string(), to_json(&(i == 0usize)));
+                        local_rc.set_local_var("@last".to_string(), to_json(&(i == len - 1)));
+                        local_rc.set_local_var("@index".to_string(), to_json(&i));
 
-                            if let Some(block_param) = h.block_param() {
-                                let mut map = BTreeMap::new();
-                                map.insert(block_param.to_string(), to_json(&list[i]));
-                                local_rc.push_block_context(&map);
-                            }
+                        if let Some(block_param) = h.block_param() {
+                            let mut map = BTreeMap::new();
+                            map.insert(block_param.to_string(), to_json(&alive_members[i]));
+                            local_rc.push_block_context(&map);
+                        }
 
-                            template.render(r, &mut local_rc)?;
+                        template.render(r, &mut local_rc)?;
 
-                            if h.block_param().is_some() {
-                                local_rc.pop_block_context();
-                            }
+                        if h.block_param().is_some() {
+                            local_rc.pop_block_context();
                         }
                     }
                     Ok(())
