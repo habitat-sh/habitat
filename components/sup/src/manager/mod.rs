@@ -42,7 +42,7 @@ use hcore::fs::FS_ROOT_PATH;
 use hcore::service::ServiceGroup;
 use hcore::os::process::{self, Signal};
 use hcore::package::{Identifiable, PackageIdent, PackageInstall};
-use launcher_client::LauncherCli;
+use launcher_client::{LAUNCHER_LOCK_CLEAN_ENV, LAUNCHER_PID_ENV, LauncherCli};
 use serde;
 use serde_json;
 use time::{self, Timespec, Duration as TimeDuration};
@@ -61,7 +61,6 @@ use http_gateway;
 
 const MEMBER_ID_FILE: &'static str = "MEMBER_ID";
 const PROC_LOCK_FILE: &'static str = "LOCK";
-const LAUNCHER_PID_ENV: &'static str = "HAB_LAUNCHER_PID";
 
 static LOGKEY: &'static str = "MR";
 
@@ -174,6 +173,9 @@ impl Manager {
         Self::create_state_path_dirs(&state_path)?;
         Self::clean_dirty_state(&state_path)?;
         let fs_cfg = FsCfg::new(state_path);
+        if env::var(LAUNCHER_LOCK_CLEAN_ENV).is_ok() {
+            release_process_lock(&fs_cfg);
+        }
         obtain_process_lock(&fs_cfg)?;
 
         Self::new(cfg, fs_cfg, launcher)
@@ -966,11 +968,11 @@ fn obtain_process_lock(fs_cfg: &FsCfg) -> Result<()> {
                     if process::is_alive(pid) {
                         return Err(sup_error!(Error::ProcessLocked(pid)));
                     }
-                    release_process_lock(fs_cfg);
+                    release_process_lock(&fs_cfg);
                     write_process_lock(&fs_cfg.proc_lock_file)
                 }
                 Err(SupError { err: Error::ProcessLockCorrupt, .. }) => {
-                    release_process_lock(fs_cfg);
+                    release_process_lock(&fs_cfg);
                     write_process_lock(&fs_cfg.proc_lock_file)
                 }
                 Err(err) => Err(err),
