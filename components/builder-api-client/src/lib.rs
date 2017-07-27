@@ -41,6 +41,7 @@ use hyper::client::{IntoUrl, Response, RequestBuilder};
 use hyper::header::{Accept, Authorization, Bearer, ContentType};
 use hyper::status::StatusCode;
 use regex::Regex;
+use url::Url;
 
 pub struct Client(ApiClient);
 
@@ -61,20 +62,14 @@ impl Client {
     where
         U: IntoUrl,
     {
-        let re = Regex::new(r"depot/?$").unwrap();
-        let mut url = depot_url.into_url().map_err(Error::URL)?;
+        let api_url = normalize_url_until_we_consolidate_our_apis(depot_url)?;
 
-        if re.is_match(url.path()) {
-            let mut psm = url.path_segments_mut().unwrap();
-            psm.pop();
-        }
-
-        let api_url = url.as_str();
-
-        Ok(Client(
-            ApiClient::new(api_url, product, version, fs_root_path)
-                .map_err(Error::HabitatHttpClient)?,
-        ))
+        Ok(Client(ApiClient::new(
+            api_url.as_str(),
+            product,
+            version,
+            fs_root_path,
+        ).map_err(Error::HabitatHttpClient)?))
     }
 
     /// Create a job.
@@ -86,7 +81,7 @@ impl Client {
     /// # Panics
     ///
     /// * Authorization token was not set on client
-    pub fn create_job(&self, ident: &PackageIdent, token: &str) -> Result<()> {
+    pub fn create_job(&self, ident: &PackageIdent, token: &str) -> Result<(String)> {
         debug!("Creating a job for {}", ident);
 
         let body = json!({
@@ -101,17 +96,26 @@ impl Client {
             .header(ContentType::json())
             .send();
         match result {
-            Ok(Response { status: StatusCode::Created, .. }) => Ok(()),
-            Ok(response) => {
-                if response.status == StatusCode::Unauthorized {
-                    Err(Error::APIError(
-                        response.status,
-                        "Your GitHub token requires both user:email and read:org \
-                                         permissions."
-                            .to_string(),
-                    ))
-                } else {
-                    Err(err_from_response(response))
+            Ok(mut response) => {
+                match response.status {
+                    StatusCode::Created => {
+                        let mut encoded = String::new();
+                        response.read_to_string(&mut encoded).map_err(Error::IO)?;
+                        debug!("Body: {:?}", encoded);
+                        let v: serde_json::Value =
+                            serde_json::from_str(&encoded).map_err(Error::JSON)?;
+                        let id = v["id"].as_str().unwrap();
+                        Ok(id.to_string())
+                    }
+                    StatusCode::Unauthorized => {
+                        Err(Error::APIError(
+                            response.status,
+                            "Your GitHub token requires both user:email and read:org \
+                                             permissions."
+                                .to_string(),
+                        ))
+                    }
+                    _ => Err(err_from_response(response)),
                 }
             }
             Err(e) => Err(Error::HyperError(e)),
@@ -148,4 +152,26 @@ fn err_from_response(mut response: Response) -> Error {
     let mut s = String::new();
     response.read_to_string(&mut s).map_err(Error::IO).unwrap();
     Error::APIError(response.status, s)
+}
+
+// This client crate specializes in dealing with builder-api, not builder-depot. However, we
+// already have lots of documentation around HAB_DEPOT_URL, including command line flags to the
+// CLI, environment variables, etc. It's silly and pointless to introduce duplications of all of
+// that for builder-api, especially when we plan on consolidating builder-depot and builder-api
+// into one unified thing at some point. Instead, this function accepts a builder-depot specific
+// URL and converts it to work with builder-api by detecting and possibly popping "/depot" off of
+// the end of it.
+fn normalize_url_until_we_consolidate_our_apis<U>(depot_url: U) -> Result<Url>
+where
+    U: IntoUrl,
+{
+    let re = Regex::new(r"depot/?$").unwrap();
+    let mut url = depot_url.into_url().map_err(Error::URL)?;
+
+    if re.is_match(url.path()) {
+        let mut psm = url.path_segments_mut().unwrap();
+        psm.pop();
+    }
+
+    Ok(url)
 }

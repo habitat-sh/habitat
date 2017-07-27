@@ -131,16 +131,16 @@ pub fn reverse_dependencies_get(
 
     match rdeps {
         Some(rd) => {
-            let mut rdps = RepeatedField::new();
+            let mut short_deps = RepeatedField::new();
 
             // the tuples inside rd are of the form: (core/redis, core/redis/3.2.4/20170717232232)
             // we're only interested in the short form, not the fully qualified form
             for (id, _fully_qualified_id) in rd {
-                rdps.push(id);
+                short_deps.push(id);
             }
 
-            rdps.sort_by(|a, b| a.cmp(b));
-            rd_reply.set_rdeps(rdps);
+            short_deps.sort();
+            rd_reply.set_rdeps(short_deps);
         }
         None => debug!("No rdeps found for {}", ident),
     }

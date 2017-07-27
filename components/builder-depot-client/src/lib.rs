@@ -82,6 +82,22 @@ pub struct OriginKeyIdent {
     pub location: String,
 }
 
+#[derive(Default, Deserialize)]
+pub struct Project {
+    pub name: String,
+    pub ident: String,
+    pub state: String,
+    pub job_id: u64,
+}
+
+#[derive(Default, Deserialize)]
+pub struct SchedulerResponse {
+    pub id: i64,
+    pub state: String,
+    pub projects: Vec<Project>,
+    pub created_at: String,
+}
+
 impl Into<originsrv::OriginKeyIdent> for OriginKeyIdent {
     fn into(self) -> originsrv::OriginKeyIdent {
         let mut out = originsrv::OriginKeyIdent::new();
@@ -223,21 +239,17 @@ impl Client {
     ///
     /// * Key cannot be found
     /// * Remote Depot is not available
-    pub fn schedule_job<I>(&self, ident: &I, token: &str) -> Result<()>
+    pub fn schedule_job<I>(&self, ident: &I, token: &str) -> Result<(i64)>
     where
         I: Identifiable,
     {
         let path = format!("pkgs/schedule/{}/{}", ident.origin(), ident.name());
         let result = self.add_authz(self.0.post(&path), token).send();
         match result {
-            Ok(Response { status: StatusCode::Ok, .. }) => Ok(()),
             Ok(response) => {
-                if response.status == StatusCode::Unauthorized {
-                    Err(Error::APIError(
-                        response.status,
-                        "Your GitHub token requires both user:email and read:org permissions."
-                            .to_string(),
-                    ))
+                if response.status == StatusCode::Ok {
+                    let sr: SchedulerResponse = decoded_response(response)?;
+                    Ok(sr.id)
                 } else {
                     Err(err_from_response(response))
                 }
@@ -361,18 +373,7 @@ impl Client {
         };
         match result {
             Ok(Response { status: StatusCode::Created, .. }) => Ok(()),
-            Ok(response) => {
-                if response.status == StatusCode::Unauthorized {
-                    Err(Error::APIError(
-                        response.status,
-                        "Your GitHub token requires both user:email and read:org \
-                                         permissions."
-                            .to_string(),
-                    ))
-                } else {
-                    Err(err_from_response(response))
-                }
-            }
+            Ok(response) => Err(err_from_response(response)),
             Err(e) => Err(Error::from(e)),
         }
     }
@@ -749,7 +750,25 @@ impl Client {
     }
 }
 
+fn decoded_response<T>(mut response: hyper::client::Response) -> Result<T>
+where
+    T: serde::de::DeserializeOwned,
+{
+    let mut encoded = String::new();
+    response.read_to_string(&mut encoded).map_err(Error::IO)?;
+    debug!("Body: {:?}", encoded);
+    let thing = serde_json::from_str(&encoded).map_err(Error::Json)?;
+    Ok(thing)
+}
+
 fn err_from_response(mut response: hyper::client::Response) -> Error {
+    if response.status == StatusCode::Unauthorized {
+        return Error::APIError(
+            response.status,
+            "Your GitHub token requires both user:email and read:org permissions.".to_string(),
+        );
+    }
+
     let mut buff = String::new();
     match response.read_to_string(&mut buff) {
         Ok(_) => {

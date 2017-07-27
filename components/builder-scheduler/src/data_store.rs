@@ -280,24 +280,19 @@ impl DataStore {
                      r#"CREATE OR REPLACE FUNCTION insert_group_v2 (
                                 project_names text[],
                                 project_idents text[]
-                                ) RETURNS SETOF groups AS $$
-                                    DECLARE
-                                        g groups % rowtype;
-                                    BEGIN
-                                        INSERT INTO groups (group_state)
-                                        VALUES ('Pending') RETURNING * INTO g;
-                                        RETURN NEXT g;
-
-                                        FOR i IN array_lower(project_names, 1)..array_upper(project_names, 1)
-                                        LOOP
-                                            INSERT INTO projects (owner_id, project_name, project_ident, project_state)
-                                            VALUES
-                                                (g.id, project_names[i], project_idents[i], 'NotStarted');
-                                        END LOOP;
-                                        RETURN;
-                                    END
-                                $$ LANGUAGE plpgsql VOLATILE
-                                "#)?;
+                                ) RETURNS SETOF groups
+                                  LANGUAGE SQL
+                                  VOLATILE AS $$
+                                  WITH my_group AS (
+                                          INSERT INTO groups (group_state)
+                                          VALUES ('Pending') RETURNING *
+                                      ), my_project AS (
+                                          INSERT INTO projects (owner_id, project_name, project_ident, project_state)
+                                          SELECT g.id, project_info.name, project_info.ident, 'NotStarted'
+                                          FROM my_group AS g, unnest(project_names, project_idents) AS project_info(name, ident)
+                                      )
+                                  SELECT * FROM my_group;
+                                $$"#)?;
         migrator.finish()?;
 
         Ok(())

@@ -76,7 +76,7 @@ pub fn get() -> App<'static, 'static> {
             )
         )
         (@subcommand job =>
-            (about: "Commands relating to job control")
+            (about: "Commands relating to build job control")
             (aliases: &["j", "jo"])
             (@setting ArgRequiredElseHelp)
             (@subcommand start =>

@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::io::{stdin, stdout, Write};
-
 use api_client::Client as ApiClient;
 use depot_client::Client as DepotClient;
 use common::ui::{Status, UI};
@@ -45,38 +43,44 @@ pub fn start(
         }
 
         println!("");
-        print!(
-            "If you choose to start a group for this package, all of the above packages will be built as well. Is this what you want? Y/N "
-        );
+        let question = "If you choose to start a group for this package, \
+            all of the above packages will be built as well. \
+            Is this what you want?";
 
-        let mut s = String::new();
-        let _ = stdout().flush();
-        stdin().read_line(&mut s).expect(
-            "Did not enter a correct string",
-        );
-        if let Some('\n') = s.chars().next_back() {
-            s.pop();
-        }
-        if let Some('\r') = s.chars().next_back() {
-            s.pop();
-        }
-
+        let doit = ui.prompt_yes_no(question, Some(true))?;
         println!("");
 
-        if s.to_lowercase() == "y" {
+        if doit {
+            ui.status(
+                Status::Creating,
+                format!("schedule group for {}. Please wait...", ident),
+            )?;
+
             let depot_client = DepotClient::new(depot_url, PRODUCT, VERSION, None)
                 .map_err(Error::DepotClient)?;
-            depot_client.schedule_job(ident, token).map_err(
+            let id = depot_client.schedule_job(ident, token).map_err(
                 Error::DepotClient,
+            )?;
+
+            ui.status(
+                Status::Created,
+                format!(
+                    "schedule group for {}. The group ID is {}.",
+                    ident,
+                    id
+                ),
             )?;
         } else {
             println!("Aborted.");
         }
     } else {
-        api_client.create_job(ident, token).map_err(
+        let id = api_client.create_job(ident, token).map_err(
             Error::APIClient,
         )?;
-        ui.status(Status::Creating, format!("job for {}", ident))?;
+        ui.status(
+            Status::Created,
+            format!("job for {}. The job ID is {}.", ident, id),
+        )?;
     }
     Ok(())
 }
