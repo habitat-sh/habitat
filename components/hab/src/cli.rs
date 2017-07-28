@@ -291,10 +291,15 @@ pub fn get() -> App<'static, 'static> {
                     Environment variables (those starting with 'pkg_') that are set will be used \
                     in the generated plan")
                 (aliases: &["i", "in", "ini"])
-                (@arg PKG_NAME: +takes_value "Name for the new app.")
+                (@arg PKG_NAME: +takes_value "Name for the new app")
                 (@arg ORIGIN: --origin -o +takes_value "Origin for the new app")
-                (@arg NO_CALLBACKS: --nocallbacks -f
-                    "Do not include callback functions in template")
+                (@arg WITH_DOCS: --withdocs "Include plan options documentation")
+                (@arg WITH_CALLBACKS: --withcallbacks
+                    "Include callback functions in template")
+                (@arg WITH_ALL: --withall
+                    "Generate omnibus plan with all available plan options")
+                (@arg SCAFFOLDING: --scaffolding -s +takes_value
+                    "Specify explicit scaffolding type for your app")
             )
         )
         (@subcommand ring =>
