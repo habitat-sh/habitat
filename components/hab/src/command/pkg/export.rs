@@ -34,8 +34,16 @@ impl ExportFormat {
     }
 }
 
-pub fn start(ui: &mut UI, ident: &PackageIdent, format: &ExportFormat) -> Result<()> {
-    inner::start(ui, ident, format)
+pub fn start(
+    ui: &mut UI,
+    url: &str,
+    channel: &str,
+    hab_url: &str,
+    hab_channel: &str,
+    ident: &PackageIdent,
+    format: &ExportFormat,
+) -> Result<()> {
+    inner::start(ui, url, channel, hab_url, hab_channel, ident, format)
 }
 
 pub fn format_for(ui: &mut UI, value: &str) -> Result<ExportFormat> {
@@ -44,15 +52,17 @@ pub fn format_for(ui: &mut UI, value: &str) -> Result<ExportFormat> {
 
 #[cfg(target_os = "linux")]
 mod inner {
+    use std::env;
     use std::ffi::OsString;
     use std::path::Path;
     use std::str::FromStr;
 
     use common::command::package::install;
     use common::ui::{Status, UI};
+    use hcore::url::DEPOT_URL_ENVVAR;
+    use hcore::channel::DEPOT_CHANNEL_ENVVAR;
     use hcore::fs::{cache_artifact_path, FS_ROOT_PATH};
     use hcore::package::{PackageIdent, PackageInstall};
-    use hcore::url::default_depot_url;
 
     use {PRODUCT, VERSION};
     use command::pkg::exec;
@@ -93,7 +103,15 @@ mod inner {
         }
     }
 
-    pub fn start(ui: &mut UI, ident: &PackageIdent, format: &ExportFormat) -> Result<()> {
+    pub fn start(
+        ui: &mut UI,
+        url: &str,
+        channel: &str,
+        hab_url: &str,
+        hab_channel: &str,
+        ident: &PackageIdent,
+        format: &ExportFormat,
+    ) -> Result<()> {
         let format_ident = format.pkg_ident();
         match PackageInstall::load(format.pkg_ident(), None) {
             Ok(_) => {}
@@ -104,8 +122,8 @@ mod inner {
                 )?;
                 install::start(
                     ui,
-                    &default_depot_url(),
-                    None, // TODO: Support channels for export
+                    hab_url,
+                    Some(hab_channel),
                     &format_ident.to_string(),
                     PRODUCT,
                     VERSION,
@@ -116,6 +134,8 @@ mod inner {
             }
         }
         let pkg_arg = OsString::from(&ident.to_string());
+        env::set_var(DEPOT_URL_ENVVAR, url);
+        env::set_var(DEPOT_CHANNEL_ENVVAR, channel);
         exec::start(&format_ident, &format.cmd(), vec![pkg_arg])
     }
 }
@@ -140,7 +160,15 @@ mod inner {
         Err(e)
     }
 
-    pub fn start(ui: &mut UI, _ident: &PackageIdent, _format: &ExportFormat) -> Result<()> {
+    pub fn start(
+        ui: &mut UI,
+        _url: &str,
+        _channel: &str,
+        _hab_url: &str,
+        _hab_channel: &str,
+        _ident: &PackageIdent,
+        _format: &ExportFormat,
+    ) -> Result<()> {
         let subcmd = env::args().nth(1).unwrap_or("<unknown>".to_string());
         let subsubcmd = env::args().nth(2).unwrap_or("<unknown>".to_string());
         ui.warn(
@@ -151,6 +179,5 @@ mod inner {
         Err(Error::SubcommandNotSupported(
             format!("{} {}", subcmd, subsubcmd),
         ))
-
     }
 }

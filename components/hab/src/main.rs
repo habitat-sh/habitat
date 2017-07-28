@@ -11,6 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 #![cfg_attr(feature="clippy", feature(plugin))]
 #![cfg_attr(feature="clippy", plugin(clippy))]
 
@@ -324,10 +325,27 @@ fn sub_pkg_exec(m: &ArgMatches, cmd_args: Vec<OsString>) -> Result<()> {
 }
 
 fn sub_pkg_export(ui: &mut UI, m: &ArgMatches) -> Result<()> {
-    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
-    let format = &m.value_of("FORMAT").unwrap(); // Required via clap
+    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
+    let format = &m.value_of("FORMAT").unwrap();
+    let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
+    let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
+    let channel = m.value_of("CHANNEL")
+        .and_then(|c| Some(c.to_string()))
+        .unwrap_or(channel::default());
+    let hab_url = m.value_of("HAB_DEPOT_URL").unwrap_or(&env_or_default);
+    let hab_channel = m.value_of("HAB_CHANNEL")
+        .and_then(|c| Some(c.to_string()))
+        .unwrap_or(channel::default());
     let export_fmt = command::pkg::export::format_for(ui, &format)?;
-    command::pkg::export::start(ui, &ident, &export_fmt)
+    command::pkg::export::start(
+        ui,
+        &url,
+        &channel,
+        &hab_url,
+        &hab_channel,
+        &ident,
+        &export_fmt,
+    )
 }
 
 fn sub_pkg_hash(m: &ArgMatches) -> Result<()> {
