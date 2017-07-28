@@ -20,9 +20,11 @@ use config::Config;
 use error::{Result, Error};
 use chrono::{DateTime, UTC};
 
+use protocol;
 use protocol::jobsrv::{Job, JobState};
 use protocol::scheduler::*;
 use protobuf::RepeatedField;
+use protobuf::{parse_from_bytes, Message};
 
 // DataStore inherits Send + Sync by virtue of having only one member, the pool itself.
 #[derive(Debug, Clone)]
@@ -293,6 +295,50 @@ impl DataStore {
                                       )
                                   SELECT * FROM my_group;
                                 $$"#)?;
+
+        // A queue to hold messages to be processed. This is currently only for JobStatus
+        // messages to allow the scheduler to deal with them asynchronously and reliably.
+        // The message queue is meant to provide 'at-least-once' delivery reliability.
+        // Eventually this functionality could be useful more broadly and be moved out to
+        // a separate module.
+        migrator.migrate(
+            "scheduler",
+            r#"CREATE TABLE IF NOT EXISTS message_queue (
+                                   id bigserial PRIMARY KEY,
+                                   message bytea
+                            )"#,
+        )?;
+
+        // Insert a message to the message queue.
+        migrator.migrate(
+            "scheduler",
+            r#"CREATE OR REPLACE FUNCTION insert_message_v1 (
+                               message bytea
+                           ) RETURNS SETOF message_queue AS $$
+                                    INSERT INTO message_queue (message)
+                                    VALUES (message)
+                                    RETURNING *;
+                               $$ LANGUAGE SQL VOLATILE"#,
+        )?;
+
+        // Retrieve oldest message(s) from the front of the message queue.
+        // The bigserial id is used to determine the message order.
+        migrator.migrate("scheduler",
+                        r#"CREATE OR REPLACE FUNCTION get_front_message_v1(max_rows int) RETURNS SETOF message_queue AS $$
+                               SELECT * FROM message_queue
+                               ORDER BY id ASC
+                               LIMIT max_rows;
+                        $$ LANGUAGE SQL VOLATILE"#)?;
+
+        // Delete a message from the message queue
+        migrator.migrate(
+            "scheduler",
+            r#"CREATE OR REPLACE FUNCTION delete_message_v1 (msg_id bigint) RETURNS void AS $$
+                   DELETE FROM message_queue
+                   WHERE id = msg_id;
+            $$ LANGUAGE SQL VOLATILE"#,
+        )?;
+
         migrator.finish()?;
 
         Ok(())
@@ -556,7 +602,7 @@ impl DataStore {
         // No rows means this job might not be one we care about
         if rows.is_empty() {
             warn!("No project found for job id: {}", job.get_id());
-            return Err(Error::UnknownJobState);
+            return Err(Error::UnknownProjectState);
         }
 
         assert!(rows.len() == 1); // should never have more than one
@@ -607,5 +653,41 @@ impl DataStore {
         }
 
         Ok(groups)
+    }
+
+    pub fn enqueue_message(&self, msg: &protocol::net::Msg) -> Result<()> {
+        let conn = self.pool.get_shard(0)?;
+
+        let body = msg.write_to_bytes().map_err(Error::Protobuf)?;
+
+        conn.execute("SELECT FROM insert_message_v1($1)", &[&body])
+            .map_err(Error::MessageInsert)?;
+
+        Ok(())
+    }
+
+    pub fn peek_message(&self, count: i32) -> Result<Vec<(i64, protocol::net::Msg)>> {
+        let mut results = Vec::new();
+
+        let conn = self.pool.get_shard(0)?;
+        let rows = &conn.query("SELECT * FROM get_front_message_v1($1)", &[&count])
+            .map_err(Error::MessageGet)?;
+        for row in rows {
+            let id: i64 = row.get("id");
+            let body: Vec<u8> = row.get("message");
+            let msg: protocol::net::Msg = parse_from_bytes(&body).map_err(Error::Protobuf)?;
+            results.push((id, msg));
+        }
+
+        Ok(results)
+    }
+
+    pub fn delete_message(&self, id: i64) -> Result<()> {
+        let conn = self.pool.get_shard(0)?;
+
+        conn.execute("SELECT FROM delete_message_v1($1)", &[&id])
+            .map_err(Error::MessageDelete)?;
+
+        Ok(())
     }
 }

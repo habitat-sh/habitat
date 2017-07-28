@@ -26,7 +26,6 @@ use postgres;
 use protobuf;
 use protocol::net::{NetOk, NetError, ErrCode};
 use protocol::{originsrv, jobsrv, scheduler};
-use std::str::FromStr;
 use protobuf::ProtobufEnum;
 
 /// DataStore inherints being Send + Sync by virtue of having only one member, the pool itself.
@@ -474,34 +473,32 @@ impl DataStore {
     pub fn update_job(&self, job: &jobsrv::Job) -> Result<()> {
         let conn = self.pool.get_shard(0)?;
         let job_id = job.get_id() as i64;
-        let job_state = match job.get_state() {
-            jobsrv::JobState::Dispatched => "Dispatched",
-            jobsrv::JobState::Pending => "Pending",
-            jobsrv::JobState::Processing => "Processing",
-            jobsrv::JobState::Complete => "Complete",
-            jobsrv::JobState::Rejected => "Rejected",
-            jobsrv::JobState::Failed => "Failed",
-        };
+        let job_state = job.get_state().to_string();
 
         // Note: the following fields may all be NULL. As currently
         // coded, if they are NULL, then the corresponding fields in
         // the database will also be updated to be NULL. This should
         // be OK, though, because they shouldn't be changing anyway.
-        let build_started_at = match job.has_build_started_at() {
-            true => Some(
-                DateTime::<UTC>::from_str(job.get_build_started_at()).unwrap(),
-            ),
-            false => None,
+        let build_started_at = if job.has_build_started_at() {
+            Some(job.get_build_started_at().parse::<DateTime<UTC>>().unwrap())
+        } else {
+            None
         };
-        let build_finished_at = match job.has_build_finished_at() {
-            true => Some(
-                DateTime::<UTC>::from_str(job.get_build_finished_at()).unwrap(),
-            ),
-            false => None,
+
+        let build_finished_at = if job.has_build_finished_at() {
+            Some(
+                job.get_build_finished_at()
+                    .parse::<DateTime<UTC>>()
+                    .unwrap(),
+            )
+        } else {
+            None
         };
-        let ident = match job.has_package_ident() {
-            true => Some(job.get_package_ident().to_string()),
-            false => None,
+
+        let ident = if job.has_package_ident() {
+            Some(job.get_package_ident().to_string())
+        } else {
+            None
         };
 
         let (err_code, err_msg) = if job.has_error() {
@@ -554,16 +551,9 @@ fn row_to_job(row: &postgres::rows::Row) -> Result<jobsrv::Job> {
     job.set_id(id as u64);
     let owner_id: i64 = row.get("owner_id");
     job.set_owner_id(owner_id as u64);
+
     let js: String = row.get("job_state");
-    let job_state = match &js[..] {
-        "Dispatched" => jobsrv::JobState::Dispatched,
-        "Pending" => jobsrv::JobState::Pending,
-        "Processing" => jobsrv::JobState::Processing,
-        "Complete" => jobsrv::JobState::Complete,
-        "Rejected" => jobsrv::JobState::Rejected,
-        "Failed" => jobsrv::JobState::Failed,
-        _ => return Err(Error::UnknownJobState),
-    };
+    let job_state: jobsrv::JobState = js.parse().map_err(Error::UnknownJobState)?;
     job.set_state(job_state);
 
     let created_at = row.get::<&str, DateTime<UTC>>("created_at");

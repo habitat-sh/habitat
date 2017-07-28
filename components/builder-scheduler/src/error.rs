@@ -45,13 +45,16 @@ pub enum Error {
     GroupPending(postgres::error::Error),
     GroupSetState(postgres::error::Error),
     ProjectSetState(postgres::error::Error),
+    MessageInsert(postgres::error::Error),
+    MessageGet(postgres::error::Error),
+    MessageDelete(postgres::error::Error),
     NetError(hab_net::Error),
     ProtoNetError(protocol::net::NetError),
     Protobuf(protobuf::ProtobufError),
     UnknownGroup,
     UnknownGroupState,
     UnknownProjectState,
-    UnknownJobState,
+    UnknownJobState(protocol::jobsrv::Error),
     UnknownPackage,
     Zmq(zmq::Error),
     ChannelCreate(depot_client::Error),
@@ -85,13 +88,31 @@ impl fmt::Display for Error {
             Error::GroupPending(ref e) => format!("Database error getting pending group, {}", e),
             Error::GroupSetState(ref e) => format!("Database error setting group state, {}", e),
             Error::ProjectSetState(ref e) => format!("Database error setting project state, {}", e),
+            Error::MessageInsert(ref e) => {
+                format!(
+                    "Database error inserting a message to the message queue, {}",
+                    e
+                )
+            }
+            Error::MessageGet(ref e) => {
+                format!(
+                    "Database error retrieving a message from the message queue, {}",
+                    e
+                )
+            }
+            Error::MessageDelete(ref e) => {
+                format!(
+                    "Database error deleting a message from the message queue, {}",
+                    e
+                )
+            }
             Error::NetError(ref e) => format!("{}", e),
             Error::ProtoNetError(ref e) => format!("{}", e),
             Error::Protobuf(ref e) => format!("{}", e),
             Error::UnknownGroup => format!("Unknown Group"),
             Error::UnknownGroupState => format!("Unknown Group State"),
             Error::UnknownProjectState => format!("Unknown Project State"),
-            Error::UnknownJobState => format!("Unknown Job State"),
+            Error::UnknownJobState(ref e) => format!("{}", e),
             Error::UnknownPackage => format!("Unknown Package"),
             Error::Zmq(ref e) => format!("{}", e),
             Error::ChannelCreate(ref e) => format!("{}", e),
@@ -120,13 +141,16 @@ impl error::Error for Error {
             Error::GroupPending(ref err) => err.description(),
             Error::GroupSetState(ref err) => err.description(),
             Error::ProjectSetState(ref err) => err.description(),
+            Error::MessageInsert(ref err) => err.description(),
+            Error::MessageGet(ref err) => err.description(),
+            Error::MessageDelete(ref err) => err.description(),
             Error::NetError(ref err) => err.description(),
             Error::ProtoNetError(ref err) => err.description(),
             Error::Protobuf(ref err) => err.description(),
             Error::UnknownGroup => "Unknown Group",
             Error::UnknownGroupState => "Unknown Group State",
             Error::UnknownProjectState => "Unknown Project State",
-            Error::UnknownJobState => "Unknown Job State",
+            Error::UnknownJobState(ref err) => err.description(),
             Error::UnknownPackage => "Unknown Package",
             Error::Zmq(ref err) => err.description(),
             Error::ChannelCreate(ref err) => err.description(),

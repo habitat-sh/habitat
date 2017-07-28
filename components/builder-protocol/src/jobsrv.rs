@@ -13,19 +13,38 @@
 // limitations under the License.
 
 use message::{Persistable, Routable};
-use protobuf::{ProtobufEnum, RepeatedField};
+use protobuf::RepeatedField;
 use regex::Regex;
 use serde::ser::SerializeStruct;
 use serde::{Serialize, Serializer};
 use sharding::InstaId;
 use std::result;
 use std::str::FromStr;
+use std::fmt;
+use std::error;
 
 pub use message::jobsrv::*;
 
 #[derive(Debug)]
 pub enum Error {
     BadJobState,
+}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let msg = match *self {
+            Error::BadJobState => "Bad Job State",
+        };
+        write!(f, "{}", msg)
+    }
+}
+
+impl error::Error for Error {
+    fn description(&self) -> &str {
+        match *self {
+            Error::BadJobState => "Job state cannot be parsed",
+        }
+    }
 }
 
 impl Into<Job> for JobSpec {
@@ -221,16 +240,30 @@ impl FromStr for JobState {
     type Err = Error;
 
     fn from_str(value: &str) -> result::Result<Self, Self::Err> {
-        match value.parse() {
-            Ok(id) => {
-                if let Some(state) = JobState::from_i32(id) {
-                    Ok(state)
-                } else {
-                    Err(Error::BadJobState)
-                }
-            }
-            Err(_) => Err(Error::BadJobState),
+
+        match value.to_lowercase().as_ref() {
+            "pending" => Ok(JobState::Pending),
+            "processing" => Ok(JobState::Processing),
+            "complete" => Ok(JobState::Complete),
+            "rejected" => Ok(JobState::Rejected),
+            "failed" => Ok(JobState::Failed),
+            "dispatched" => Ok(JobState::Dispatched),
+            _ => Err(Error::BadJobState),
         }
+    }
+}
+
+impl fmt::Display for JobState {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let value = match *self {
+            JobState::Dispatched => "Dispatched",
+            JobState::Pending => "Pending",
+            JobState::Processing => "Processing",
+            JobState::Complete => "Complete",
+            JobState::Rejected => "Rejected",
+            JobState::Failed => "Failed",
+        };
+        write!(f, "{}", value)
     }
 }
 

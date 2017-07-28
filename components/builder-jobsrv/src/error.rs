@@ -17,6 +17,7 @@ use db;
 use extern_url;
 use hab_core;
 use hab_net;
+use protocol;
 use postgres;
 use protobuf;
 use r2d2;
@@ -55,7 +56,7 @@ pub enum Error {
     ProjectJobsGet(postgres::error::Error),
     Protobuf(protobuf::ProtobufError),
     UnknownVCS,
-    UnknownJobState,
+    UnknownJobState(protocol::jobsrv::Error),
     Zmq(zmq::Error),
 }
 
@@ -113,7 +114,7 @@ impl fmt::Display for Error {
                 format!("Database error getting jobs for project, {}", e)
             }
             Error::UnknownVCS => format!("Unknown VCS"),
-            Error::UnknownJobState => format!("Unknown Job State"),
+            Error::UnknownJobState(ref e) => format!("{}", e),
             Error::Zmq(ref e) => format!("{}", e),
         };
         write!(f, "{}", msg)
@@ -148,7 +149,7 @@ impl error::Error for Error {
             Error::NetError(ref err) => err.description(),
             Error::ProjectJobsGet(ref err) => err.description(),
             Error::Protobuf(ref err) => err.description(),
-            Error::UnknownJobState => "Unknown Job State",
+            Error::UnknownJobState(ref err) => err.description(),
             Error::UnknownVCS => "Unknown VCS",
             Error::Zmq(ref err) => err.description(),
         }

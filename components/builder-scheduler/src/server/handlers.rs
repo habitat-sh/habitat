@@ -106,7 +106,7 @@ pub fn group_create(
         new_group
     } else {
         let new_group = state.datastore().create_group(&msg, projects)?;
-        state.schedule_cli().notify_work()?;
+        state.schedule_cli().notify()?;
         new_group
     };
 
@@ -256,11 +256,11 @@ pub fn job_status(
     let msg: proto::JobStatus = req.parse_msg()?;
     debug!("job_status message: {:?}", msg);
 
-    // TODO BUG: SA There is a potential race condition here where the job status can get lost
-    // if the process goes away (for whatever reason) before the status gets processed by
-    // the scheduler thread. We can fix it by persisting the status and then handing it
-    // asynchronously, or by making the status update handling synchronous.
-    state.schedule_cli().notify_status(&msg.get_job())?;
+    // Insert the inner status message into a queue, to be processed later by
+    // the schduler thread.
+    state.datastore().enqueue_message(&req.msg)?;
+
+    state.schedule_cli().notify()?;
 
     req.reply_complete(sock, &msg)?;
     Ok(())
