@@ -34,7 +34,7 @@ pub fn scaffold_check(ui: &mut UI, maybe_scaffold: Option<&str>) -> Result<Optio
                 "rails" |
                 "ruby-scaffolding" => {
                     let ident = PackageIdent::from_str("core/scaffolding-ruby").unwrap();
-                    let _ = ui.status(Status::Using, &format!("ruby scaffolding '{}'", ident));
+                    ui.status(Status::Using, &format!("ruby scaffolding '{}'", ident))?;
                     ui.para("")?;
                     Ok(Some(ident))
                 }
@@ -43,7 +43,7 @@ pub fn scaffold_check(ui: &mut UI, maybe_scaffold: Option<&str>) -> Result<Optio
                 "golang" |
                 "go-scaffolding" => {
                     let ident = PackageIdent::from_str("core/scaffolding-go").unwrap();
-                    let _ = ui.status(Status::Using, &format!("go scaffolding '{}'", ident));
+                    ui.status(Status::Using, &format!("go scaffolding '{}'", ident))?;
                     ui.para("")?;
                     Ok(Some(ident))
                 }
@@ -53,13 +53,13 @@ pub fn scaffold_check(ui: &mut UI, maybe_scaffold: Option<&str>) -> Result<Optio
                 "javascript" |
                 "js" => {
                     let ident = PackageIdent::from_str("core/scaffolding-node").unwrap();
-                    let _ = ui.status(Status::Using, &format!("node scaffolding '{}'", ident));
+                    ui.status(Status::Using, &format!("node scaffolding '{}'", ident))?;
                     ui.para("")?;
                     Ok(Some(ident))
                 }
                 _ => {
                     let ident = PackageIdent::from_str(scaffold).unwrap();
-                    let _ = ui.status(Status::Using, &format!("custom scaffolding: '{}'", ident));
+                    ui.status(Status::Using, &format!("custom scaffolding: '{}'", ident))?;
                     ui.para("")?;
                     Ok(Some(ident))
                 }
@@ -82,19 +82,19 @@ fn magic_function(ui: &mut UI) -> Result<Option<PackageIdent>> {
     if is_project_ruby(&current_path) {
         let ident = PackageIdent::from_str("core/scaffolding-ruby").unwrap();
         ui.begin("We've detected your app as Ruby")?;
-        let _ = ui.status(Status::Using, &format!("scaffolding package: '{}'", ident));
+        ui.status(Status::Using, &format!("scaffolding package: '{}'", ident))?;
         ui.para("")?;
         Ok(Some(ident))
     } else if is_project_golang(&current_path) {
         let ident = PackageIdent::from_str("core/scaffolding-go").unwrap();
         ui.begin("We've detected your app as Golang")?;
-        let _ = ui.status(Status::Using, &format!("scaffolding package: '{}'", ident));
+        ui.status(Status::Using, &format!("scaffolding package: '{}'", ident))?;
         ui.para("")?;
         Ok(Some(ident))
     } else if is_project_node(&current_path) {
         let ident = PackageIdent::from_str("core/scaffolding-node").unwrap();
         ui.begin("We've detected your app as Node.js")?;
-        let _ = ui.status(Status::Using, &format!("scaffolding package: '{}'", ident));
+        ui.status(Status::Using, &format!("scaffolding package: '{}'", ident))?;
         ui.para("")?;
         Ok(Some(ident))
     } else {

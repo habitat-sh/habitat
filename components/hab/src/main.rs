@@ -382,7 +382,7 @@ fn sub_pkg_hash(m: &ArgMatches) -> Result<()> {
 
 fn sub_plan_init(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let name = m.value_of("PKG_NAME").map(|v| v.into());
-    let origin = try!(origin_param_or_env(&m));
+    let origin = origin_param_or_env(&m)?;
     let with_docs = m.is_present("WITH_DOCS");
     let with_callbacks = m.is_present("WITH_CALLBACKS");
     let with_all = m.is_present("WITH_ALL");
