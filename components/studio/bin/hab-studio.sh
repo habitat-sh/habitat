@@ -448,6 +448,7 @@ new_studio() {
       local studio_artifact_path
       studio_artifact_path="${HAB_STUDIO_ROOT}${HAB_CACHE_ARTIFACT_PATH}"
       if ! $bb mount | $bb grep -q "on $studio_artifact_path type"; then
+        $bb mkdir -p $v $ARTIFACT_PATH
         $bb mkdir -p $v $studio_artifact_path
         $bb mount $v --bind $ARTIFACT_PATH $studio_artifact_path
       fi

@@ -18,9 +18,7 @@ use std::io::Write;
 use std::path::PathBuf;
 
 use hcore::config::ConfigFile;
-use hcore::env as henv;
 use hcore::fs::{am_i_root, FS_ROOT_PATH};
-use hcore::os::users;
 use toml;
 
 use error::{Error, Result};
@@ -47,15 +45,18 @@ impl Default for Config {
 }
 
 pub fn load() -> Result<Config> {
-    common_load(false)
-}
-
-pub fn load_with_sudo_user() -> Result<Config> {
-    common_load(true)
+    let cli_config_path = cli_config_path();
+    if cli_config_path.exists() {
+        debug!("Loading CLI config from {}", cli_config_path.display());
+        Ok(Config::from_file(&cli_config_path)?)
+    } else {
+        debug!("No CLI config found, loading defaults");
+        Ok(Config::default())
+    }
 }
 
 pub fn save(config: &Config) -> Result<()> {
-    let config_path = cli_config_path(false);
+    let config_path = cli_config_path();
     let parent_path = match config_path.parent() {
         Some(p) => p,
         None => {
@@ -72,34 +73,11 @@ pub fn save(config: &Config) -> Result<()> {
     Ok(())
 }
 
-fn common_load(use_sudo_user: bool) -> Result<Config> {
-    let cli_config_path = cli_config_path(use_sudo_user);
-    if cli_config_path.exists() {
-        debug!("Loading CLI config from {}", cli_config_path.display());
-        Ok(Config::from_file(&cli_config_path)?)
-    } else {
-        debug!("No CLI config found, loading defaults");
-        Ok(Config::default())
-    }
-}
-
-fn cli_config_path(use_sudo_user: bool) -> PathBuf {
-    match am_i_root() {
-        true => {
-            if use_sudo_user {
-                if let Some(sudo_user) = henv::sudo_user() {
-                    if let Some(home) = users::get_home_for_user(&sudo_user) {
-                        return home.join(format!(".{}", CLI_CONFIG_PATH));
-                    }
-                }
-            }
-        }
-        false => {
-            if let Some(home) = env::home_dir() {
-                return home.join(format!(".{}", CLI_CONFIG_PATH));
-            }
+fn cli_config_path() -> PathBuf {
+    if !am_i_root() {
+        if let Some(home) = env::home_dir() {
+            return home.join(format!(".{}", CLI_CONFIG_PATH));
         }
     }
-
     PathBuf::from(&*FS_ROOT_PATH).join(CLI_CONFIG_PATH)
 }
