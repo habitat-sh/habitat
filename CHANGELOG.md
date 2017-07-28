@@ -1,10 +1,27 @@
 # Habitat CHANGELOG
 
+## [0.27.1](https://github.com/habitat-sh/habitat/tree/0.27.1) (07-28-2017)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.27.0...0.27.1)
+
+## Bug fixes
+
+- \[studio\] Use system artifact cache dir when running studio as root. [\#2844](https://github.com/habitat-sh/habitat/pull/2844) ([fnichol](https://github.com/fnichol))
+- Honor channels and an alternate depot URL when exporting packages [\#2843](https://github.com/habitat-sh/habitat/pull/2843) ([reset](https://github.com/reset))
+- fix studio on windows and implement get\_home\_for\_current\_user\(\) [\#2841](https://github.com/habitat-sh/habitat/pull/2841) ([mwrock](https://github.com/mwrock))
+
+**Merged pull requests:**
+
+- use 0.26.1 to build windows harts and then use current studio to test that it works [\#2842](https://github.com/habitat-sh/habitat/pull/2842) ([mwrock](https://github.com/mwrock))
+- Tweak the release instructions ever-so-slightly [\#2839](https://github.com/habitat-sh/habitat/pull/2839) ([christophermaier](https://github.com/christophermaier))
+- Bump to next dev version [\#2838](https://github.com/habitat-sh/habitat/pull/2838) ([christophermaier](https://github.com/christophermaier))
+
 ## [0.27.0](https://github.com/habitat-sh/habitat/tree/0.27.0) (07-27-2017)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.26.1...0.27.0)
 
 ## Features & Enhancements
 
+- Document template helper functions [\#2775](https://github.com/habitat-sh/habitat/issues/2775)
+- Document template helper functions [\#2775](https://github.com/habitat-sh/habitat/issues/2775)
 - Stage 0 Bootstrap Improvement [\#2732](https://github.com/habitat-sh/habitat/issues/2732)
 - Indicate package channels in the depot UI [\#2646](https://github.com/habitat-sh/habitat/issues/2646)
 - \[builder\] Package validation for circular dependency [\#2536](https://github.com/habitat-sh/habitat/issues/2536)
@@ -12,12 +29,14 @@
 - Update the dev docs [\#2511](https://github.com/habitat-sh/habitat/issues/2511)
 - \[builder scheduler\] Add re-try logic for job failure [\#2488](https://github.com/habitat-sh/habitat/issues/2488)
 - \[builder\] \[scalability\] Package builds can stall if projects are moved/renamed [\#2473](https://github.com/habitat-sh/habitat/issues/2473)
+- Add rich data to `hab sup status` output. [\#2334](https://github.com/habitat-sh/habitat/issues/2334)
 - Monitoring/health check for builder services [\#2193](https://github.com/habitat-sh/habitat/issues/2193)
 - \[web-ui\] new top bar navigation and uniform dark theme styling [\#2188](https://github.com/habitat-sh/habitat/issues/2188)
 - Builder-scheduler service: provide API to support Explore view [\#2143](https://github.com/habitat-sh/habitat/issues/2143)
 - \[builder-web\] Build out the Explore view [\#2128](https://github.com/habitat-sh/habitat/issues/2128)
 - Scalability model/test for the builder service [\#2034](https://github.com/habitat-sh/habitat/issues/2034)
 - The builder-scheduler should parallelize dependency rebuilds [\#2033](https://github.com/habitat-sh/habitat/issues/2033)
+- Supervisor event stream client for EventSrv [\#1875](https://github.com/habitat-sh/habitat/issues/1875)
 - Document --permanent-peer behavior [\#1820](https://github.com/habitat-sh/habitat/issues/1820)
 - Install initial habitat packages from bootstrap bundle [\#2829](https://github.com/habitat-sh/habitat/pull/2829) ([christophermaier](https://github.com/christophermaier))
 - Cleanup hab-butterfly crate [\#2828](https://github.com/habitat-sh/habitat/pull/2828) ([reset](https://github.com/reset))
@@ -44,10 +63,14 @@
 
 - The supervisor fails to run of 2008 R2 [\#2820](https://github.com/habitat-sh/habitat/issues/2820)
 - Gracefully stopping Windows Services sometimes fails [\#2816](https://github.com/habitat-sh/habitat/issues/2816)
+- Butterfly error w/ ProtoBuf "unexpected wire type WireTypeLengthDelimited" [\#2671](https://github.com/habitat-sh/habitat/issues/2671)
 - \[builder\] worker build status can get stuck [\#2549](https://github.com/habitat-sh/habitat/issues/2549)
 - Hook-only config updates do not restart services [\#2448](https://github.com/habitat-sh/habitat/issues/2448)
 - Builder-jobsrv can 'lose' pending jobs if no workers available [\#2112](https://github.com/habitat-sh/habitat/issues/2112)
+- supervisor member reincarnation handling issue [\#1711](https://github.com/habitat-sh/habitat/issues/1711)
 - \[bug\] `hab studio rm` deletes files outside the studio [\#1705](https://github.com/habitat-sh/habitat/issues/1705)
+- Dead nodes are not aged out of the supervisor ring [\#1544](https://github.com/habitat-sh/habitat/issues/1544)
+- Release Launcher's LOCK on Supervisor restart [\#2836](https://github.com/habitat-sh/habitat/pull/2836) ([reset](https://github.com/reset))
 - Fix populating @first and @last in eachAlive helper [\#2831](https://github.com/habitat-sh/habitat/pull/2831) ([reset](https://github.com/reset))
 - Fix populating health of census members [\#2830](https://github.com/habitat-sh/habitat/pull/2830) ([reset](https://github.com/reset))
 - Fix panic when sending rumors of departed members [\#2827](https://github.com/habitat-sh/habitat/pull/2827) ([reset](https://github.com/reset))
@@ -66,6 +89,7 @@
 - Update On Call document and keep in GH markdown [\#2509](https://github.com/habitat-sh/habitat/issues/2509)
 - \[builder-web\] Build the Dashboard view [\#2176](https://github.com/habitat-sh/habitat/issues/2176)
 - Investigate running IIS applications via Habitat [\#2124](https://github.com/habitat-sh/habitat/issues/2124)
+- hab supervisor 'at once' update strategy doesn't seem to work as expected [\#1842](https://github.com/habitat-sh/habitat/issues/1842)
 
 **Merged pull requests:**
 
