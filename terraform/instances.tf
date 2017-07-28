@@ -11,6 +11,7 @@ resource "aws_instance" "api" {
   vpc_security_group_ids = [
     "${var.aws_admin_sg}",
     "${var.hab_sup_sg}",
+    "${var.events_sg}",
     "${aws_security_group.gateway.id}",
   ]
 
@@ -77,6 +78,7 @@ resource "aws_instance" "admin" {
   vpc_security_group_ids = [
     "${var.aws_admin_sg}",
     "${var.hab_sup_sg}",
+    "${var.events_sg}",
     "${aws_security_group.gateway.id}",
   ]
 
@@ -146,6 +148,7 @@ resource "aws_instance" "datastore" {
   vpc_security_group_ids = [
     "${var.aws_admin_sg}",
     "${var.hab_sup_sg}",
+    "${var.events_sg}",
     "${aws_security_group.datastore.id}",
   ]
 
@@ -212,6 +215,7 @@ resource "aws_instance" "jobsrv" {
   vpc_security_group_ids = [
     "${var.aws_admin_sg}",
     "${var.hab_sup_sg}",
+    "${var.events_sg}",
     "${aws_security_group.datastore_client.id}",
     "${aws_security_group.jobsrv.id}",
     "${aws_security_group.service.id}",
@@ -280,6 +284,7 @@ resource "aws_instance" "originsrv" {
   vpc_security_group_ids = [
     "${var.aws_admin_sg}",
     "${var.hab_sup_sg}",
+    "${var.events_sg}",
     "${aws_security_group.datastore_client.id}",
     "${aws_security_group.service.id}",
   ]
@@ -347,6 +352,7 @@ resource "aws_instance" "router" {
   vpc_security_group_ids = [
     "${var.aws_admin_sg}",
     "${var.hab_sup_sg}",
+    "${var.events_sg}",
     "${aws_security_group.router.id}",
   ]
 
@@ -413,6 +419,7 @@ resource "aws_instance" "scheduler" {
   vpc_security_group_ids = [
     "${var.aws_admin_sg}",
     "${var.hab_sup_sg}",
+    "${var.events_sg}",
     "${aws_security_group.datastore_client.id}",
     "${aws_security_group.service.id}",
   ]
@@ -480,6 +487,7 @@ resource "aws_instance" "sessionsrv" {
   vpc_security_group_ids = [
     "${var.aws_admin_sg}",
     "${var.hab_sup_sg}",
+    "${var.events_sg}",
     "${aws_security_group.datastore_client.id}",
     "${aws_security_group.service.id}",
   ]
@@ -547,6 +555,7 @@ resource "aws_instance" "worker" {
   vpc_security_group_ids = [
     "${var.aws_admin_sg}",
     "${var.hab_sup_sg}",
+    "${var.events_sg}",
     "${aws_security_group.jobsrv_client.id}",
     "${aws_security_group.worker.id}",
   ]
