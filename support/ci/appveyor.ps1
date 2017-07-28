@@ -77,7 +77,7 @@ if (($env:APPVEYOR_REPO_TAG_NAME -eq "$(Get-Content VERSION)") -or (Test-SourceC
         elseif ($BuildAction -like 'package') {
             Write-Host "Download and install latest release of hab.exe"
             $bootstrapDir = "c:\habitat"
-            $url = "https://api.bintray.com/content/habitat/stable/windows/x86_64/hab-%24latest-x86_64-windows.zip?bt_package=hab-x86_64-windows"
+            $url = "https://api.bintray.com/content/habitat/stable/windows/x86_64/hab-$($env:hab_exe_version)-x86_64-windows.zip?bt_package=hab-x86_64-windows"
             mkdir $bootstrapDir -Force
             # download a hab binary to build hab from source in a studio
             Invoke-WebRequest -UseBasicParsing -Uri $url -OutFile hab.zip
@@ -135,7 +135,7 @@ if (($env:APPVEYOR_REPO_TAG_NAME -eq "$(Get-Content VERSION)") -or (Test-SourceC
                 }
                 if ($component -eq "studio") {
                     # Now that we have built the studio we can use current hab and studio bits
-                    Copy-Item "/hab/pkgs/core/hab/*/*/bin/*" $bootstrapDir -Force
+                    Copy-Item "/hab/pkgs/core/hab/*/*/bin/*" (Split-Path $habExe -Parent) -Force
                 }
             }
         }
