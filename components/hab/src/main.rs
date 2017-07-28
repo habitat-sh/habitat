@@ -83,12 +83,24 @@ fn start(ui: &mut UI) -> Result<()> {
     let (args, remaining_args) = raw_parse_args();
     debug!("clap cli args: {:?}", &args);
     debug!("remaining cli args: {:?}", &remaining_args);
-    let app_matches = cli::get()
-        .get_matches_from_safe_borrow(&mut args.iter())
-        .unwrap_or_else(|e| {
-            analytics::instrument_clap_error(&e);
-            e.exit();
-        });
+
+    // We build the command tree in a separate thread to eliminate
+    // possible stack overflow crashes at runtime. OSX, for instance,
+    // will crash with our large tree. This is a known issue:
+    // https://github.com/kbknapp/clap-rs/issues/86
+    let child = thread::Builder::new()
+        .stack_size(8 * 1024 * 1024)
+        .spawn(move || {
+            return cli::get()
+                .get_matches_from_safe_borrow(&mut args.iter())
+                .unwrap_or_else(|e| {
+                    analytics::instrument_clap_error(&e);
+                    e.exit();
+                });
+        })
+        .unwrap();
+    let app_matches = child.join().unwrap();
+
     match app_matches.subcommand() {
         ("cli", Some(matches)) => {
             match matches.subcommand() {
