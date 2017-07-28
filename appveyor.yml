@@ -37,6 +37,7 @@ environment:
       hab_components: "core;http-client;builder-protocol;builder-depot-client;common;win-users;sup;hab-butterfly"
 
     - hab_build_action: "package"
+      hab_exe_version: "0.26.1-20170718004619"
       hab_components: "hab;plan-build-ps1;studio;sup;hab-butterfly"
 
 build_script:
