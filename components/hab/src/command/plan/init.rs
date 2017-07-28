@@ -20,6 +20,7 @@ use std::path::Path;
 use std::collections::HashMap;
 
 use handlebars::Handlebars;
+use hcore::package::PackageIdent;
 
 use common::ui::{UI, Status};
 use error::Result;
@@ -46,6 +47,8 @@ pub fn start(
     origin: String,
     with_docs: bool,
     with_callbacks: bool,
+    with_all: bool,
+    scaffolding_ident: Option<PackageIdent>,
     maybe_name: Option<String>,
 ) -> Result<()> {
     ui.begin("Constructing a cozy habitat for your app...")?;
@@ -75,6 +78,15 @@ pub fn start(
     let mut data = HashMap::new();
     data.insert("pkg_name".to_string(), name);
     data.insert("pkg_origin".to_string(), origin);
+
+    let scaffold = match scaffolding_ident {
+        Some(ident) => Some(data.insert(
+            "scaffolding_ident".to_string(),
+            ident.to_string(),
+        )),
+        None => None,
+    };
+
     if with_callbacks {
         data.insert("with_callbacks".to_string(), "true".to_string());
     }
@@ -90,29 +102,35 @@ pub fn start(
     }
 
     // We want to render the configured variables.
-    let rendered_plan = try!(handlebars.template_render(FULL_PLAN_TEMPLATE, &data));
-    try!(create_with_template(
-        ui,
-        &format!("{}/plan.sh", root),
-        &rendered_plan,
-    ));
+    if with_all || scaffold.is_none() {
+        let rendered_plan = try!(handlebars.template_render(FULL_PLAN_TEMPLATE, &data));
+        try!(create_with_template(
+            ui,
+            &format!("{}/plan.sh", root),
+            &rendered_plan,
+        ));
+    } else {
+        let rendered_plan = try!(handlebars.template_render(DEFAULT_PLAN_TEMPLATE, &data));
+        try!(create_with_template(
+            ui,
+            &format!("{}/plan.sh", root),
+            &rendered_plan,
+        ));
+    }
     try!(ui.para(
         "The `plan.sh` is the foundation of your new habitat. You can \
-        define core metadata, dependencies, and tasks. More documentation here: \
-        https://www.habitat.sh/docs/reference/plan-syntax/",
-    )?;
-
-    let rendered_default_toml = handlebars.template_render(DEFAULT_TOML_TEMPLATE, &data)?;
-    create_with_template(
+        define core metadata, dependencies, and tasks.",
+    ));
+    let rendered_default_toml = try!(handlebars.template_render(DEFAULT_TOML_TEMPLATE, &data));
+    try!(create_with_template(
         ui,
         &format!("{}/default.toml", root),
         &rendered_default_toml,
-    )?;
-    ui.para(
+    ));
+    try!(ui.para(
         "The `default.toml` allows you to declare default values for `cfg` prefixed
-        variables. For more information see here:  \
-        https://www.habitat.sh/docs/reference/plan-syntax/#runtime-configuration-settings",
-    )?;
+        variables.",
+    ));
 
     let config_path = format!("{}/config/", root);
     match Path::new(&config_path).exists() {
@@ -130,11 +148,10 @@ pub fn start(
             create_dir_all(&config_path)?;
         }
     };
-    ui.para(
+    try!(ui.para(
         "The `config` directory is where you can set up configuration files for your app. \
-               They are influenced by `default.toml`. For more information see here: \
-               https://www.habitat.sh/docs/reference/plan-syntax/#runtime-configuration-settings",
-    )?;
+        They are influenced by `default.toml`.",
+    ));
 
     let hooks_path = format!("{}/hooks/", root);
     match Path::new(&hooks_path).exists() {
@@ -152,17 +169,22 @@ pub fn start(
             create_dir_all(&hooks_path)?;
         }
     };
-    ui.para(
+    try!(ui.para(
         "The `hooks` directory is where you can create a number of automation hooks into \
-               your habitat. There are several hooks to create and tweak! See the full list \
-               with info here: https://www.habitat.sh/docs/reference/plan-syntax/#hooks",
-    )?;
+        your habitat.",
+    ));
+
+    try!(ui.para(
+        "For more information on any of the generated files: \
+        https://www.habitat.sh/docs/reference/plan-syntax/#basic-settings \
+        https://www.habitat.sh/docs/reference/plan-syntax/#runtime-configuration-settings \
+        https://www.habitat.sh/docs/reference/plan-syntax/#hooks \
+        https://www.habitat.sh/docs/reference/plan-syntax/#callbacks",
+    ));
 
     render_ignorefile(ui, &root)?;
 
-    ui.end(
-        "A happy abode for your code has been initialized! Now it's time to explore!",
-    )?;
+    try!(ui.end("An abode for your code has been initialized!"));
     Ok(())
 }
 

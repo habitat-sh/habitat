@@ -42,6 +42,7 @@ pub mod cli;
 pub mod command;
 pub mod config;
 pub mod error;
+pub mod scaffolding;
 mod exec;
 
 pub const PRODUCT: &'static str = "hab";

@@ -352,7 +352,6 @@ do_end() {
 }
 {{/if ~}}
 {{else ~}}
-
 pkg_name={{ pkg_name }}
 pkg_origin={{ pkg_origin }}
 {{#if pkg_version ~}}
@@ -369,6 +368,9 @@ pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license={{ pkg_license }}
 {{else ~}}
 pkg_license=('Apache-2.0')
+{{/if ~}}
+{{#if scaffolding_ident ~}}
+pkg_scaffolding="{{ scaffolding_ident }}"
 {{/if ~}}
 {{#if pkg_source ~}}
 pkg_source="{{ pkg_source }}"
@@ -517,5 +519,6 @@ do_strip() {
 do_end() {
   return 0
 }
+
 {{/if ~}}
 {{/if ~}}
