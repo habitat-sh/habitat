@@ -170,6 +170,18 @@ pub fn get() -> App<'static, 'static> {
                     "The export format (ex: docker, aci, mesos, or tar)")
                 (@arg PKG_IDENT: +required +takes_value
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
+                (@arg DEPOT_URL: --url -u +takes_value {valid_url}
+                    "Retrieve the container's package from the specified Depot \
+                    (default: https://bldr.habitat.sh/v1/depot)")
+                (@arg CHANNEL: --channel -c +takes_value
+                    "Retrieve the container's package from the specified release channel \
+                    (default: stable)")
+                (@arg HAB_DEPOT_URL: --("hab-url") -U +takes_value {valid_url}
+                    "Retrieve the Habitat toolchain for the container from the specified Depot \
+                    (default: https://bldr.habitat.sh/v1/depot)")
+                (@arg HAB_CHANNEL: --("hab-channel") -C +takes_value
+                    "Retrieve the Habitat toolchain for the container from the specified release \
+                    channel (default: stable)")
             )
             (@subcommand hash =>
                 (about: "Generates a blake2b hashsum from a target at any given filepath")
