@@ -48,7 +48,6 @@ use hcore::url::{DEFAULT_DEPOT_URL, DEPOT_URL_ENVVAR};
 
 use hab::{analytics, cli, command, config, scaffolding, AUTH_TOKEN_ENVVAR, ORIGIN_ENVVAR, PRODUCT,
           VERSION};
-// the above will include scaffolding
 use hab::error::{Error, Result};
 
 /// Makes the --org CLI param optional when this env var is set

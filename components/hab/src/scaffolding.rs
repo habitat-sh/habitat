@@ -28,23 +28,23 @@ pub fn scaffold_check(ui: &mut UI, maybe_scaffold: Option<&str>) -> Result<Optio
     match maybe_scaffold {
         Some(scaffold) => {
             init();
-            match scaffold {
+            match scaffold.to_lowercase().as_ref() {
                 "core/scaffolding-ruby" |
                 "ruby" |
                 "rails" |
-                "RUBY" |
                 "ruby-scaffolding" => {
-                    let ident = PackageIdent::from_str("core/scaffolding-ruby")?;
+                    let ident = PackageIdent::from_str("core/scaffolding-ruby").unwrap();
                     let _ = ui.status(Status::Using, &format!("ruby scaffolding '{}'", ident));
+                    ui.para("")?;
                     Ok(Some(ident))
                 }
                 "core/scaffolding-go" |
                 "go" |
                 "golang" |
-                "GO" |
                 "go-scaffolding" => {
-                    let ident = PackageIdent::from_str("core/scaffolding-go")?;
+                    let ident = PackageIdent::from_str("core/scaffolding-go").unwrap();
                     let _ = ui.status(Status::Using, &format!("go scaffolding '{}'", ident));
+                    ui.para("")?;
                     Ok(Some(ident))
                 }
                 "core/scaffolding-node" |
@@ -52,13 +52,15 @@ pub fn scaffold_check(ui: &mut UI, maybe_scaffold: Option<&str>) -> Result<Optio
                 "node.js" |
                 "javascript" |
                 "js" => {
-                    let ident = PackageIdent::from_str("core/scaffolding-node")?;
+                    let ident = PackageIdent::from_str("core/scaffolding-node").unwrap();
                     let _ = ui.status(Status::Using, &format!("node scaffolding '{}'", ident));
+                    ui.para("")?;
                     Ok(Some(ident))
                 }
                 _ => {
-                    let ident = PackageIdent::from_str(scaffold)?;
+                    let ident = PackageIdent::from_str(scaffold).unwrap();
                     let _ = ui.status(Status::Using, &format!("custom scaffolding: '{}'", ident));
+                    ui.para("")?;
                     Ok(Some(ident))
                 }
             }
@@ -71,83 +73,79 @@ pub fn scaffold_check(ui: &mut UI, maybe_scaffold: Option<&str>) -> Result<Optio
 fn magic_function(ui: &mut UI) -> Result<Option<PackageIdent>> {
     // Determine if the current dir has an app that can use
     // one of our scaffoldings and use it by default
-    try!(ui.begin("Attempting autodiscovery "));
-    try!(ui.para(
+    ui.begin("Attempting autodiscovery ")?;
+    ui.para(
         "No scaffolding type was provided. Let's see if we can figure out \
         what kind of application you're planning to package.",
-    ));
+    )?;
     let current_path = Path::new(".");
     if is_project_ruby(&current_path) {
-        let ident = PackageIdent::from_str("core/scaffolding-ruby")?;
-        try!(ui.begin("We've detected your app as Ruby"));
+        let ident = PackageIdent::from_str("core/scaffolding-ruby").unwrap();
+        ui.begin("We've detected your app as Ruby")?;
         let _ = ui.status(Status::Using, &format!("scaffolding package: '{}'", ident));
-        try!(ui.para(""));
+        ui.para("")?;
         Ok(Some(ident))
     } else if is_project_golang(&current_path) {
-        let ident = PackageIdent::from_str("core/scaffolding-go")?;
-        try!(ui.begin("We've detected your app as Golang"));
+        let ident = PackageIdent::from_str("core/scaffolding-go").unwrap();
+        ui.begin("We've detected your app as Golang")?;
         let _ = ui.status(Status::Using, &format!("scaffolding package: '{}'", ident));
-        try!(ui.para(""));
+        ui.para("")?;
         Ok(Some(ident))
     } else if is_project_node(&current_path) {
-        let ident = PackageIdent::from_str("core/scaffolding-node")?;
-        try!(ui.begin("We've detected your app as Node.js"));
+        let ident = PackageIdent::from_str("core/scaffolding-node").unwrap();
+        ui.begin("We've detected your app as Node.js")?;
         let _ = ui.status(Status::Using, &format!("scaffolding package: '{}'", ident));
-        try!(ui.para(""));
+        ui.para("")?;
         Ok(Some(ident))
     } else {
-        try!(ui.warn(
+        ui.warn(
             "Unable to determine the type of app in your current directory",
-        ));
-        try!(ui.para(
+        )?;
+        ui.para(
             "For now, we'll generate a plan with all of the available plan options and callbacks. \
             For more documentation on plan options try passing --withdocs or visit \
             https://www.habitat.sh/docs/reference/plan-syntax/",
-        ));
+        )?;
         Ok(None)
     }
 }
 
-fn is_project_ruby(path: &Path) -> bool {
-    if path.join("Gemfile").is_file() {
+fn is_project_ruby<T>(path: T) -> bool
+where
+    T: AsRef<Path>,
+{
+    if path.as_ref().join("Gemfile").is_file() {
         return true;
     }
-
-    if let Some(parent) = path.parent() {
-        return is_project_ruby(&parent);
-    }
-
-    return false;;
+    return false;
 }
 
-fn is_project_golang(path: &Path) -> bool {
-    if path.join("main.go").is_file() || path.join("Godeps/Godeps.json").is_file() ||
-        path.join("vendor/vendor.json").is_file() || path.join("glide.yaml").is_file() ||
-        project_uses_gb(path).expect("Result<bool> not returned from .go file check")
+fn is_project_golang<T>(path: T) -> bool
+where
+    T: AsRef<Path>,
+{
+    if path.as_ref().join("main.go").is_file() ||
+        path.as_ref().join("Godeps/Godeps.json").is_file() ||
+        path.as_ref().join("vendor/vendor.json").is_file() ||
+        path.as_ref().join("glide.yaml").is_file() ||
+        project_uses_gb(path.as_ref()).expect("Result<bool> not returned from .go file check")
     {
         return true;
     }
-
-    if let Some(parent) = path.parent() {
-        return is_project_golang(&parent);
-    }
-
-    return false;;
+    return false;
 }
 
-fn is_project_node(path: &Path) -> bool {
-    if path.join("package.json").is_file() {
+fn is_project_node<T>(path: T) -> bool
+where
+    T: AsRef<Path>,
+{
+    if path.as_ref().join("package.json").is_file() {
         return true;
     }
-
-    if let Some(parent) = path.parent() {
-        return is_project_node(&parent);
-    }
-
-    return false;;
+    return false;
 }
 
-fn project_uses_gb(dir: &Path) -> io::Result<(bool)> {
+fn project_uses_gb(dir: &Path) -> io::Result<bool> {
     if dir.is_dir() {
         for entry in fs::read_dir(dir)? {
             let entry = entry?;
@@ -155,13 +153,15 @@ fn project_uses_gb(dir: &Path) -> io::Result<(bool)> {
             if path.is_dir() {
                 project_uses_gb(&path)?;
             } else if path.is_file() {
-                if path.extension().unwrap() == "go" {
-                    return Ok(true);
+                if let Some(ext) = path.extension() {
+                    if ext == "go" {
+                        return Ok(true);
+                    }
                 }
             } else {
                 return Ok(false);
             }
         }
     }
-    return Ok(false);;
+    return Ok(false);
 }
