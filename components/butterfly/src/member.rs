@@ -276,6 +276,14 @@ impl MemberList {
         im.push(member);
     }
 
+    pub fn set_initial_members(&self, members: Vec<Member>) {
+        let mut im = self.initial_members.write().expect(
+            "Initial members lock is poisoned",
+        );
+        im.clear();
+        im.extend(members);
+    }
+
     pub fn with_initial_members<F>(&self, mut with_closure: F) -> ()
     where
         F: FnMut(&Member),
