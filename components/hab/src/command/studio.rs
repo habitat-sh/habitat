@@ -82,17 +82,15 @@ pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
             env::remove_var("SUDO_USER");
         }
     } else {
-        if let Some(user) = users::get_current_username() {
-            if let Some(home) = users::get_home_for_user(&user) {
-                if henv::var(ARTIFACT_PATH_ENVVAR).is_err() {
-                    let cache_artifact_path = home.join(format!(".{}", CACHE_ARTIFACT_PATH));
-                    try!(create_cache_artifact_path(&cache_artifact_path, None));
-                    debug!(
-                        "Setting cache_artifact_path at: {}",
-                        cache_artifact_path.display()
-                    );
-                    env::set_var(ARTIFACT_PATH_ENVVAR, cache_artifact_path);
-                }
+        if let Some(home) = users::get_home_for_current_user() {
+            if henv::var(ARTIFACT_PATH_ENVVAR).is_err() {
+                let cache_artifact_path = home.join(format!(".{}", CACHE_ARTIFACT_PATH));
+                try!(create_cache_artifact_path(&cache_artifact_path, None));
+                debug!(
+                    "Setting cache_artifact_path at: {}",
+                    cache_artifact_path.display()
+                );
+                env::set_var(ARTIFACT_PATH_ENVVAR, cache_artifact_path);
             }
         }
     }
