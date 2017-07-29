@@ -17,7 +17,7 @@ use std::time::Duration;
 use std::thread::{self, JoinHandle};
 
 use hab_net::server::{NetIdent, ZMQ_CONTEXT};
-use protobuf::Message;
+use protobuf::{parse_from_bytes, Message};
 use protocol::jobsrv as proto;
 use zmq;
 
@@ -92,16 +92,43 @@ impl HeartbeatCli {
         Ok(())
     }
 
+    fn heartbeat(&self, state: proto::WorkerState) -> proto::Heartbeat {
+        let mut hb = proto::Heartbeat::new();
+        hb.set_endpoint(Server::net_ident());
+        hb.set_os(worker_os());
+        hb.set_state(state);
+        hb
+    }
+
     /// Set the `HeartbeatMgr` state to busy
     pub fn set_busy(&mut self) -> Result<()> {
-        self.sock.send_str(PulseState::Pause.as_ref(), 0)?;
+        self.sock.send_str(PulseState::Pulse.as_ref(), zmq::SNDMORE)?;
+        self.sock.send(
+            &self.heartbeat(proto::WorkerState::Busy)
+                .write_to_bytes()
+                .unwrap(),
+            0,
+        )?;
         self.sock.recv(&mut self.msg, 0)?;
         Ok(())
     }
 
     /// Set the `HeartbeatMgr` state to ready
     pub fn set_ready(&mut self) -> Result<()> {
-        self.sock.send_str(PulseState::Pulse.as_ref(), 0)?;
+        self.sock.send_str(PulseState::Pulse.as_ref(), zmq::SNDMORE)?;
+        self.sock.send(
+            &self.heartbeat(proto::WorkerState::Ready)
+                .write_to_bytes()
+                .unwrap(),
+            0,
+        )?;
+        self.sock.recv(&mut self.msg, 0)?;
+        Ok(())
+    }
+
+    /// Pause the heartbeats until next state is set
+    pub fn pause(&mut self) -> Result<()> {
+        self.sock.send_str(PulseState::Pause.as_ref(), 0)?;
         self.sock.recv(&mut self.msg, 0)?;
         Ok(())
     }
@@ -194,7 +221,6 @@ impl HeartbeatMgr {
     // Set internal state to `PulseState::Pause` and notify client OK
     fn pause(&mut self) {
         debug!("heartbeat paused");
-        self.reg.set_state(proto::WorkerState::Busy);
         self.state = PulseState::Pause;
         self.cli_sock.send(&[], 0).unwrap();
     }
@@ -211,7 +237,12 @@ impl HeartbeatMgr {
         self.cli_sock.recv(&mut self.msg, 0)?;
         match self.msg.as_str() {
             Some(CMD_PAUSE) => self.pause(),
-            Some(CMD_PULSE) => self.resume(),
+            Some(CMD_PULSE) => {
+                let mut msg: zmq::Message = zmq::Message::new()?;
+                self.cli_sock.recv(&mut msg, 0)?;
+                self.reg = parse_from_bytes(&msg)?;
+                self.resume()
+            }
             _ => unreachable!("wk:hb:1, received unexpected message from client"),
         }
         Ok(())
@@ -220,7 +251,6 @@ impl HeartbeatMgr {
     // Set internal state to `PulseState::Pulse` and notify client OK
     fn resume(&mut self) {
         debug!("heartbeat resumed");
-        self.reg.set_state(proto::WorkerState::Ready);
         self.state = PulseState::Pulse;
         self.cli_sock.send(&[], 0).unwrap();
     }
