@@ -1,5 +1,20 @@
 # Habitat CHANGELOG
 
+## [0.28.0](https://github.com/habitat-sh/habitat/tree/0.28.0) (07-29-2017)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.27.1...0.28.0)
+
+## Features & Enhancements
+
+- couple more chores for clarity [\#2849](https://github.com/habitat-sh/habitat/pull/2849) ([eeyun](https://github.com/eeyun))
+- Hab plan init rewrite with autodetection [\#2847](https://github.com/habitat-sh/habitat/pull/2847) ([eeyun](https://github.com/eeyun))
+- Add `eventsg` variable to terraform module [\#2846](https://github.com/habitat-sh/habitat/pull/2846) ([reset](https://github.com/reset))
+- Create Artifact caching blog from Fletcher's pr [\#2840](https://github.com/habitat-sh/habitat/pull/2840) ([tashimi](https://github.com/tashimi))
+- Create Artifact caching blog from Fletcher's pr [\#2840](https://github.com/habitat-sh/habitat/pull/2840) ([tashimi](https://github.com/tashimi))
+
+## Bug fixes
+
+- build clap command tree in a separate thread with increased stack size [\#2848](https://github.com/habitat-sh/habitat/pull/2848) ([mwrock](https://github.com/mwrock))
+
 ## [0.27.1](https://github.com/habitat-sh/habitat/tree/0.27.1) (07-28-2017)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.27.0...0.27.1)
 
