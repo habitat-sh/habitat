@@ -293,10 +293,10 @@ pub fn get() -> App<'static, 'static> {
                 (aliases: &["i", "in", "ini"])
                 (@arg PKG_NAME: +takes_value "Name for the new app")
                 (@arg ORIGIN: --origin -o +takes_value "Origin for the new app")
-                (@arg WITH_DOCS: --withdocs "Include plan options documentation")
-                (@arg WITH_CALLBACKS: --withcallbacks
+                (@arg WITH_DOCS: --("with-docs") "Include plan options documentation")
+                (@arg WITH_CALLBACKS: --("with-callbacks")
                     "Include callback functions in template")
-                (@arg WITH_ALL: --withall
+                (@arg WITH_ALL: --("with-all")
                     "Generate omnibus plan with all available plan options")
                 (@arg SCAFFOLDING: --scaffolding -s +takes_value
                     "Specify explicit scaffolding type for your app")
