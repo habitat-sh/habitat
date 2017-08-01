@@ -32,6 +32,7 @@ pub const NOCOLORING_ENVVAR: &'static str = "HAB_NOCOLORING";
 pub enum Status {
     Applying,
     Cached,
+    Created,
     Creating,
     Deleting,
     Demoted,
@@ -56,6 +57,7 @@ impl Status {
         match *self {
             Status::Applying => ('↑', "Applying".into(), Colour::Green),
             Status::Cached => ('☑', "Cached".into(), Colour::Green),
+            Status::Created => ('✓', "Created".into(), Colour::Green),
             Status::Creating => ('Ω', "Creating".into(), Colour::Green),
             Status::Deleting => ('☒', "Deleting".into(), Colour::Green),
             Status::Demoted => ('✓', "Demoted".into(), Colour::Green),

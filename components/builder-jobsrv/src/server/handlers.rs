@@ -32,15 +32,15 @@ pub fn job_create(
 ) -> Result<()> {
     let msg: proto::JobSpec = req.parse_msg()?;
     let mut job: proto::Job = msg.into();
-    state.datastore().create_job(&mut job)?;
+    let created_job = state.datastore().create_job(&mut job)?;
     debug!(
         "Job created: id={} owner_id={} state={:?}",
-        job.get_id(),
-        job.get_owner_id(),
-        job.get_state()
+        created_job.get_id(),
+        created_job.get_owner_id(),
+        created_job.get_state()
     );
     state.worker_mgr().notify_work()?;
-    req.reply_complete(sock, &job)?;
+    req.reply_complete(sock, &created_job)?;
     Ok(())
 }
 

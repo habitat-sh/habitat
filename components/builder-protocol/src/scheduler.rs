@@ -102,6 +102,14 @@ impl Routable for PackageStatsGet {
     }
 }
 
+impl Routable for ReverseDependenciesGet {
+    type H = String;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(format!("{}/{}", self.get_origin(), self.get_name()))
+    }
+}
+
 impl Routable for JobStatus {
     type H = String;
 
@@ -165,6 +173,19 @@ impl Serialize for Group {
         strukt.serialize_field("state", &self.get_state())?;
         strukt.serialize_field("projects", &self.get_projects())?;
         strukt.serialize_field("created_at", &self.get_created_at())?;
+        strukt.end()
+    }
+}
+
+impl Serialize for ReverseDependencies {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut strukt = serializer.serialize_struct("reversedependencies", 3)?;
+        strukt.serialize_field("origin", &self.get_origin())?;
+        strukt.serialize_field("name", &self.get_name())?;
+        strukt.serialize_field("rdeps", &self.get_rdeps())?;
         strukt.end()
     }
 }

@@ -2,6 +2,7 @@
 members = [
   "components/builder-admin",
   "components/builder-api",
+  "components/builder-api-client",
   "components/builder-core",
   "components/builder-db",
   "components/builder-depot",

@@ -126,6 +126,12 @@ fn start(ui: &mut UI) -> Result<()> {
                 _ => unreachable!(),
             }
         }
+        ("job", Some(matches)) => {
+            match matches.subcommand() {
+                ("start", Some(m)) => sub_job_start(ui, m)?,
+                _ => unreachable!(),
+            }
+        }
         ("pkg", Some(matches)) => {
             match matches.subcommand() {
                 ("binlink", Some(m)) => sub_pkg_binlink(ui, m)?,
@@ -378,6 +384,16 @@ fn sub_pkg_hash(m: &ArgMatches) -> Result<()> {
             Ok(())
         }
     }
+}
+
+fn sub_job_start(ui: &mut UI, m: &ArgMatches) -> Result<()> {
+    let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
+    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
+    let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
+    let group = m.is_present("GROUP");
+    let token = auth_token_param_or_env(&m)?;
+    command::job::start::start(ui, &url, &ident, &token, group)?;
+    Ok(())
 }
 
 fn sub_plan_init(ui: &mut UI, m: &ArgMatches) -> Result<()> {

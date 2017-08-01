@@ -365,6 +365,28 @@ securitySchemes:
                         description: |
                           Job does not exist with corresponding jobId,
                           or no log was found for the given job.
+/rdeps:
+    /{origin}:
+        /{name}:
+            get:
+                description: |
+                    Retrieves the list of reverse dependencies for this package.
+                responses:
+                    200:
+                        body:
+                            application/json:
+                                example: |
+                                    {
+                                        "origin": "core",
+                                        "name": "linux-headers",
+                                        "rdeps": [
+                                            "core/redis"
+                                        ]
+                                    }
+                    404:
+                        description: Package not found
+                    500:
+                        description: Internal server error
 /user:
     /invitations:
         get:
