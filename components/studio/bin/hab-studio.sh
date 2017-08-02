@@ -575,9 +575,12 @@ EOF
 
   # Copy minimal networking and DNS resolution configuration files into the
   # Studio filesystem so that commands such as `wget(1)` will work
-  for f in /etc/hosts /etc/resolv.conf; do
+  for f in /etc/hosts /etc/resolv.conf /etc/nsswitch.conf; do
     $bb mkdir -p $v $($bb dirname $f)
     $bb cp $v $f $HAB_STUDIO_ROOT$f
+    if [ $f = "/etc/nsswitch.conf" ] ; then
+      echo 'hosts: files dns' > $f
+    fi
   done
 
   # Invoke the type's implementation
