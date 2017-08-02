@@ -17,14 +17,25 @@ use std::path::Path;
 use common::ui::UI;
 use hcore::crypto::SigKeyPair;
 
-use error::Result;
+use error::{Error, Result};
+use regex::Regex;
 
 pub fn start(ui: &mut UI, origin: &str, cache: &Path) -> Result<()> {
-    ui.begin(format!("Generating origin key for {}", &origin))?;
-    let pair = SigKeyPair::generate_pair_for_origin(origin, cache)?;
-    ui.end(format!(
-        "Generated origin key pair {}.",
-        &pair.name_with_rev()
-    ))?;
-    Ok(())
+    if origin.len() > 255 {
+        return Err(Error::InvalidOrigin);
+    }
+    let valid_origin = Regex::new(r"^[a-z0-9][\w\-_]*$").expect("Unable to compile regex");
+
+    match valid_origin.is_match(origin) {
+        false => Err(Error::InvalidOrigin),
+        true => {
+            ui.begin(format!("Generating origin key for {}", &origin))?;
+            let pair = SigKeyPair::generate_pair_for_origin(origin, cache)?;
+            ui.end(format!(
+                "Generated origin key pair {}.",
+                &pair.name_with_rev()
+            ))?;
+            Ok(())
+        }
+    }
 }
