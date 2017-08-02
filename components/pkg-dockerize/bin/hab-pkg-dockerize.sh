@@ -123,6 +123,12 @@ package_latest_tag() {
   cat $ident_file | awk 'BEGIN { FS = "/" }; { print $1 "/" $2 ":latest" }'
 }
 
+package_latest_path() {
+  local pkg="$1"
+  local ident_file=$(find $DOCKER_CONTEXT/rootfs/$HAB_ROOT_PATH/pkgs/$pkg -name IDENT)
+  echo $HAB_ROOT_PATH/pkgs/$(cat $ident_file)
+}
+
 docker_image() {
   env PKGS="$@" NO_MOUNT=1 hab-studio -r $DOCKER_CONTEXT/rootfs -t baseimage new
   local pkg_name=$(package_name_for $1)
@@ -136,6 +142,7 @@ WORKDIR /
 ADD rootfs /
 VOLUME $HAB_ROOT_PATH/svc/${pkg_name}/data $HAB_ROOT_PATH/svc/${pkg_name}/config
 EXPOSE 9631 $(package_exposes $1)
+RUN ["ln", "-s", "$(pkg_latest_path core/cacerts)/ssl", "/etc/"]
 ENTRYPOINT ["/init.sh"]
 CMD ["start", "$1"]
 EOT
