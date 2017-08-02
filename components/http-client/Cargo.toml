@@ -13,6 +13,8 @@ httparse = "*"
 hyper = "*"
 hyper-openssl = "*"
 openssl = "*"
+serde = "*"
+serde_json = "*"
 url = "*"
 
 [dependencies.habitat_core]

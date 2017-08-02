@@ -225,6 +225,12 @@ message OriginPackageListResponse {
   repeated OriginPackageIdent idents = 4;
 }
 
+message OriginPackageGroupPromote {
+  optional uint64 channel_id = 1;
+  repeated uint64 package_ids = 2 [packed=true];
+  optional string origin = 3;
+}
+
 message OriginPackagePromote {
   optional uint64 channel_id = 1;
   optional uint64 package_id = 2;

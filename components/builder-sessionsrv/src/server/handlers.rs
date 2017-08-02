@@ -70,7 +70,7 @@ pub fn session_create(
     sock: &mut zmq::Socket,
     state: &mut ServerState,
 ) -> Result<()> {
-    let msg: proto::SessionCreate = req.parse_msg()?;
+    let mut msg: proto::SessionCreate = req.parse_msg()?;
 
     let mut is_admin = false;
     let mut is_early_access = false;
@@ -117,6 +117,45 @@ pub fn session_create(
             }
         }
     }
+
+    // If only a token was filled in, let's grab the rest of the data from GH. We check email in
+    // this case because although email is an optional field in the protobuf message, email is
+    // required for access to builder.
+    if msg.get_email().is_empty() {
+        match state.github.user(msg.get_token()) {
+            Ok(user) => {
+                // Select primary email. If no primary email can be found, use any email. If
+                // no email is associated with account return an access denied error.
+                let email = match state.github.emails(msg.get_token()) {
+                    Ok(ref emails) => {
+                        emails
+                            .iter()
+                            .find(|e| e.primary)
+                            .unwrap_or(&emails[0])
+                            .email
+                            .clone()
+                    }
+                    Err(_) => {
+                        let err = net::err(ErrCode::ACCESS_DENIED, "ss:session-create:2");
+                        req.reply_complete(sock, &err)?;
+                        return Ok(());
+                    }
+                };
+
+                msg.set_extern_id(user.id);
+                msg.set_email(email);
+                msg.set_name(user.login);
+                msg.set_provider(proto::OAuthProvider::GitHub);
+            }
+            Err(e) => {
+                error!("Cannot retrieve user from github; failing: {}", e);
+                let err = net::err(ErrCode::DATA_STORE, "ss:session-create:3");
+                req.reply_complete(sock, &err)?;
+                return Ok(());
+            }
+        }
+    }
+
     match state.datastore.find_or_create_account_via_session(
         &msg,
         is_admin,

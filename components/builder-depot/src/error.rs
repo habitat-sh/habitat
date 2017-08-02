@@ -18,6 +18,7 @@ use std::io;
 use std::fmt;
 use std::result;
 
+use bld_core;
 use hab_core;
 use hab_core::package::{self, Identifiable};
 use hab_net;
@@ -27,6 +28,7 @@ use protocol::net::NetError;
 #[derive(Debug)]
 pub enum Error {
     BadPort(String),
+    BuilderCore(bld_core::Error),
     ChannelAlreadyExists(String),
     ChannelDoesNotExist(String),
     HabitatCore(hab_core::Error),
@@ -50,6 +52,7 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
             Error::BadPort(ref e) => format!("{} is an invalid port. Valid range 1-65535.", e),
+            Error::BuilderCore(ref e) => format!("{}", e),
             Error::ChannelAlreadyExists(ref e) => format!("{} already exists.", e),
             Error::ChannelDoesNotExist(ref e) => format!("{} does not exist.", e),
             Error::HabitatCore(ref e) => format!("{}", e),
@@ -97,6 +100,7 @@ impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
             Error::BadPort(_) => "Received an invalid port or a number outside of the valid range.",
+            Error::BuilderCore(ref err) => err.description(),
             Error::ChannelAlreadyExists(_) => "Channel already exists.",
             Error::ChannelDoesNotExist(_) => "Channel does not exist.",
             Error::HabitatCore(ref err) => err.description(),

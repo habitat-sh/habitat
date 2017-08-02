@@ -267,6 +267,21 @@ securitySchemes:
                 description: Project does not exist with corresponding projectId
             422:
                 description: Invalid or missing projectId in body
+    /group:
+        /{id}:
+            /promote:
+                /{channel}:
+                    post:
+                        description: Promote every successful project in a job group to the specified channel
+                        responses:
+                            200:
+                                description: Successful promotion
+                            400:
+                                description: ID or channel not provided
+                            404:
+                                description: Group not found
+                            500:
+                                description: Internal server error
     /{jobId}:
         get:
             description: Get the status of the given job

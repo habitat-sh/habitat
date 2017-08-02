@@ -46,6 +46,7 @@ use std::string::ToString;
 use broadcast::BroadcastWriter;
 use hab_core::package::{Identifiable, PackageArchive};
 use hab_http::ApiClient;
+use hab_http::util::decoded_response;
 use hyper::client::{Body, IntoUrl, Response, RequestBuilder};
 use hyper::status::StatusCode;
 use hyper::header::{Authorization, Bearer};
@@ -748,17 +749,6 @@ impl Client {
         fs::rename(&tmp_file_path, &dst_file_path)?;
         Ok(dst_file_path)
     }
-}
-
-fn decoded_response<T>(mut response: hyper::client::Response) -> Result<T>
-where
-    T: serde::de::DeserializeOwned,
-{
-    let mut encoded = String::new();
-    response.read_to_string(&mut encoded).map_err(Error::IO)?;
-    debug!("Body: {:?}", encoded);
-    let thing = serde_json::from_str(&encoded).map_err(Error::Json)?;
-    Ok(thing)
 }
 
 fn err_from_response(mut response: hyper::client::Response) -> Error {

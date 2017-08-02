@@ -16,6 +16,7 @@
 
 extern crate base64;
 extern crate bodyparser;
+extern crate builder_core as bld_core;
 extern crate habitat_builder_protocol as protocol;
 #[macro_use]
 extern crate habitat_core as hab_core;
