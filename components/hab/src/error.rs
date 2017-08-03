@@ -58,7 +58,6 @@ pub enum Error {
     TomlDeserializeError(toml::de::Error),
     TomlSerializeError(toml::ser::Error),
     Utf8Error(String),
-    InvalidOrigin,
 }
 
 impl fmt::Display for Error {
@@ -144,11 +143,6 @@ impl fmt::Display for Error {
             Error::TomlDeserializeError(ref e) => format!("Can't deserialize TOML: {}", e),
             Error::TomlSerializeError(ref e) => format!("Can't serialize TOML: {}", e),
             Error::Utf8Error(ref e) => format!("Error processing a string as UTF-8: {}", e),
-            Error::InvalidOrigin => {
-                "Origins must contain no spaces, and begin with a lowercase letter or number.
-Allowed characters include a – z, 0 – 9, _, and -. No more than 255 characters."
-                    .to_string()
-            }
         };
         write!(f, "{}", msg)
     }
@@ -194,10 +188,6 @@ impl error::Error for Error {
             Error::TomlDeserializeError(_) => "Can't deserialize TOML",
             Error::TomlSerializeError(_) => "Can't serialize TOML",
             Error::Utf8Error(_) => "Error processing string as UTF-8",
-            Error::InvalidOrigin => {
-                "Origins must contain no spaces, and begin with a lowercase letter or number.
-Allowed characters include a – z, 0 – 9, _, and -. No more than 255 characters."
-            }
 
         }
     }

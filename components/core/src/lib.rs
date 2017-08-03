@@ -73,6 +73,7 @@ pub mod os;
 pub mod output;
 pub mod event;
 pub mod channel;
+pub mod origin;
 
 use std::path::PathBuf;
 
