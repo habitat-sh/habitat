@@ -1,0 +1,65 @@
+---
+title: Run the sample app
+---
+
+<ul class="main-content--version">
+  <li>Current version:</li>
+  <li><a class="active" href="/tutorials/sample-app/mac/run-app">Mac</a></li>
+  <li><a href="/tutorials/sample-app/linux/run-app">Linux</a></li>
+  <li><a href="/tutorials/sample-app/windows/run-app">Windows</a></li>
+</ul>
+<hr />
+
+# Run the sample app
+
+<%= partial "/shared/run_app_common" %>
+
+Because this version of the tutorial shows how to use Habitat with Docker containers, we will use Docker Compose to run the containers created in the previous step.
+
+## Understanding the docker-compose.yml file
+
+When you cloned the `habitat-example-plans` repo, a `docker-compose.yml` file was included in the root of the `myrailsapp` directory. 
+
+    version: '3'
+    services:
+       db:
+         image: core/postgresql
+         volumes:       
+           - "./updated_config.toml:/updated_config.toml"
+       railsapp:
+          image: originname/myrailsapp
+          ports:
+            - 8000:8000
+          links: 
+           - db
+          command: --peer db --bind database:postgresql.default
+
+Before you run it, let's quickly review the file to understand how these containers will be brought up.
+
+* The images for both the database and your rails application are already installed on your local workstation as part of the `export` subcommand you ran in the last step.
+* As part of updating the configuration values to connect the rails application to the PostgreSQL database, you will use a TOML file to spread configuration updates between supervisors connected together in the ring. The `updated_config.toml` file is bind mounted from the root location of the `myrailsapp` directory to the root directory
+of the PostgreSQL container to enable you to reference it when applying the configuration update.
+* The port number for the rails container is exposed so you can view the rails app page from within your host browser.
+* The the entrypoint for the rails container has a few additional command arguments to connect it to the database container and set the binding to the appropriate database service group.
+
+## Starting up the containers
+
+Now that you have an understanding of how the containers will be brought up, it's time to start them up with Docker Compose.
+
+1. Change directory to the root of the `habitat-example-plans/myrailsapp` directory.
+
+2. Run `docker-compose up` to start up the containers. Missing packages will be downloaded and installed before the myrailsapp package and PostgreSQL packages start.
+
+3. If everything started up successfully, the rails application should loop through a message similar to the following where it requires an environment variable to be set before proceeding with the rest of the initialization process.
+
+   <%= partial "/shared/run_app_output" %>
+
+> **Note** If you need to stop the containers at any time, run `Ctrl-C`. If you want to remove the containers from your machine, run `docker-compose rm`.
+
+Learn how to fix this error by dynamically updating the configuration of the myrailsapp package in the next step.
+
+<hr>
+<ul class="main-content--button-nav">
+  <li><a href="/tutorials/sample-app/mac/update-app/" class="button cta">Next - Dynamically update the application</a></li>
+  <li><a href="/tutorials/sample-app/mac/build-package/">Back to previous step</a></li>
+</ul>
