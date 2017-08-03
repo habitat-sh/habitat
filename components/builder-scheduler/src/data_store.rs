@@ -339,6 +339,40 @@ impl DataStore {
             $$ LANGUAGE SQL VOLATILE"#,
         )?;
 
+        // Add a root project name column to the groups table
+        migrator.migrate(
+            "scheduler",
+            r#"ALTER TABLE groups ADD COLUMN IF NOT EXISTS project_name TEXT DEFAULT NULL"#,
+        )?;
+
+        // Check for an active (Pending or Dispatched) group with a given root project name
+        migrator.migrate("scheduler",
+                        r#"CREATE OR REPLACE FUNCTION check_active_group_v1(project_name text) RETURNS SETOF groups AS $$
+                               SELECT * FROM groups
+                               WHERE project_name = project_name
+                               AND group_state IN ('Pending', 'Dispatching')
+                        $$ LANGUAGE SQL VOLATILE"#)?;
+
+        // Group insertion now takes a root project parameter
+        migrator.migrate("scheduler",
+                     r#"CREATE OR REPLACE FUNCTION insert_group_v3 (
+                                root_project text,
+                                project_names text[],
+                                project_idents text[]
+                                ) RETURNS SETOF groups
+                                  LANGUAGE SQL
+                                  VOLATILE AS $$
+                                  WITH my_group AS (
+                                          INSERT INTO groups (project_name, group_state)
+                                          VALUES (root_project, 'Pending') RETURNING *
+                                      ), my_project AS (
+                                          INSERT INTO projects (owner_id, project_name, project_ident, project_state)
+                                          SELECT g.id, project_info.name, project_info.ident, 'NotStarted'
+                                          FROM my_group AS g, unnest(project_names, project_idents) AS project_info(name, ident)
+                                      )
+                                  SELECT * FROM my_group;
+                                $$"#)?;
+
         migrator.finish()?;
 
         Ok(())
@@ -416,23 +450,33 @@ impl DataStore {
         Ok(package_stats)
     }
 
+    pub fn is_group_active(&self, project_name: &str) -> Result<bool> {
+        let conn = self.pool.get_shard(0)?;
+
+        let rows = &conn.query("SELECT * FROM check_active_group_v1($1)", &[&project_name])
+            .map_err(Error::GroupGet)?;
+
+        // If we get any rows back, we found one or more active groups
+        Ok(rows.len() >= 1)
+    }
+
     pub fn create_group(
         &self,
-        _msg: &GroupCreate,
+        msg: &GroupCreate,
         project_tuples: Vec<(String, String)>,
     ) -> Result<Group> {
         let conn = self.pool.get_shard(0)?;
 
         assert!(!project_tuples.is_empty());
 
-        // TODO - the actual message will be used later for sharding
+        let root_project = format!("{}/{}", msg.get_origin(), msg.get_package());
 
         let (project_names, project_idents): (Vec<String>, Vec<String>) =
             project_tuples.iter().cloned().unzip();
 
         let rows = conn.query(
-            "SELECT * FROM insert_group_v2($1, $2)",
-            &[&project_names, &project_idents],
+            "SELECT * FROM insert_group_v3($1, $2, $3)",
+            &[&root_project, &project_names, &project_idents],
         ).map_err(Error::GroupCreate)?;
 
         let mut group = self.row_to_group(&rows.get(0))?;
