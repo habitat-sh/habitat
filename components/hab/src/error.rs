@@ -146,8 +146,9 @@ impl fmt::Display for Error {
             Error::Utf8Error(ref e) => format!("Error processing a string as UTF-8: {}", e),
             Error::InvalidOrigin => {
                 "Origins must contain no spaces, and begin with a lowercase letter or number.
-Allowed characters include a – z, 0 – 9, _, and -. No more than 255 characters.".to_string()
-            },
+Allowed characters include a – z, 0 – 9, _, and -. No more than 255 characters."
+                    .to_string()
+            }
         };
         write!(f, "{}", msg)
     }
@@ -196,7 +197,7 @@ impl error::Error for Error {
             Error::InvalidOrigin => {
                 "Origins must contain no spaces, and begin with a lowercase letter or number.
 Allowed characters include a – z, 0 – 9, _, and -. No more than 255 characters."
-            },
+            }
 
         }
     }
