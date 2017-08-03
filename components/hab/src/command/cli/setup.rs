@@ -17,6 +17,7 @@ use std::path::Path;
 use common::ui::UI;
 use hcore::crypto::SigKeyPair;
 use hcore::env;
+use hcore::origin::validate_origin;
 
 use {AUTH_TOKEN_ENVVAR, ORIGIN_ENVVAR};
 use analytics;
@@ -55,6 +56,7 @@ pub fn start(ui: &mut UI, cache_path: &Path, analytics_path: &Path) -> Result<()
                       on the Habitat build service found at https://bldr.habitat.sh/.",
         )?;
         let origin = prompt_origin(ui)?;
+        validate_origin(&origin)?;
         write_cli_config_origin(&origin)?;
         ui.br()?;
         if is_origin_in_cache(&origin, cache_path) {
