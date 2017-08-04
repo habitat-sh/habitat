@@ -41,7 +41,7 @@ resource "aws_instance" "api" {
   }
 
   provisioner "file" {
-    content     = "${data.template_file.hab_sup.rendered}"
+    content     = "${data.template_file.sup_service.rendered}"
     destination = "/home/ubuntu/hab-sup.service"
   }
 
@@ -108,7 +108,7 @@ resource "aws_instance" "admin" {
   }
 
   provisioner "file" {
-    content     = "${data.template_file.hab_sup.rendered}"
+    content     = "${data.template_file.sup_service.rendered}"
     destination = "/home/ubuntu/hab-sup.service"
   }
 
@@ -178,7 +178,7 @@ resource "aws_instance" "datastore" {
   }
 
   provisioner "file" {
-    content     = "${data.template_file.hab_sup_seed.rendered}"
+    content     = "${data.template_file.sup_service.rendered}"
     destination = "/home/ubuntu/hab-sup.service"
   }
 
@@ -247,7 +247,7 @@ resource "aws_instance" "jobsrv" {
   }
 
   provisioner "file" {
-    content     = "${data.template_file.hab_sup.rendered}"
+    content     = "${data.template_file.sup_service.rendered}"
     destination = "/home/ubuntu/hab-sup.service"
   }
 
@@ -315,7 +315,7 @@ resource "aws_instance" "originsrv" {
   }
 
   provisioner "file" {
-    content     = "${data.template_file.hab_sup.rendered}"
+    content     = "${data.template_file.sup_service.rendered}"
     destination = "/home/ubuntu/hab-sup.service"
   }
 
@@ -382,7 +382,7 @@ resource "aws_instance" "router" {
   }
 
   provisioner "file" {
-    content     = "${data.template_file.hab_sup_permanent.rendered}"
+    content     = "${data.template_file.sup_service.rendered}"
     destination = "/home/ubuntu/hab-sup.service"
   }
 
@@ -450,7 +450,7 @@ resource "aws_instance" "scheduler" {
   }
 
   provisioner "file" {
-    content     = "${data.template_file.hab_sup.rendered}"
+    content     = "${data.template_file.sup_service.rendered}"
     destination = "/home/ubuntu/hab-sup.service"
   }
 
@@ -518,7 +518,7 @@ resource "aws_instance" "sessionsrv" {
   }
 
   provisioner "file" {
-    content     = "${data.template_file.hab_sup.rendered}"
+    content     = "${data.template_file.sup_service.rendered}"
     destination = "/home/ubuntu/hab-sup.service"
   }
 
@@ -586,7 +586,7 @@ resource "aws_instance" "worker" {
   }
 
   provisioner "file" {
-    content     = "${data.template_file.hab_sup.rendered}"
+    content     = "${data.template_file.sup_service.rendered}"
     destination = "/home/ubuntu/hab-sup.service"
   }
 
@@ -615,35 +615,11 @@ resource "aws_instance" "worker" {
 ////////////////////////////////
 // Template Files
 
-data "template_file" "hab_sup" {
+data "template_file" "sup_service" {
   template = "${file("${path.module}/templates/hab-sup.service")}"
 
   vars {
-    flags               = "--auto-update --channel ${var.release_channel} --events hab-eventsrv.default --listen-gossip 0.0.0.0:${var.gossip_listen_port} --listen-http 0.0.0.0:${var.http_listen_port}"
-    gossip_listen_port  = "${var.gossip_listen_port}"
-    peer_ip             = "${aws_instance.datastore.0.private_ip}"
-    log_level           = "${var.log_level}"
-  }
-}
-
-data "template_file" "hab_sup_permanent" {
-  template = "${file("${path.module}/templates/hab-sup.service")}"
-
-  vars {
-    flags               = "--auto-update --channel ${var.release_channel} --events hab-eventsrv.default --listen-gossip 0.0.0.0:${var.gossip_listen_port} --listen-http 0.0.0.0:${var.http_listen_port} --permanent-peer"
-    gossip_listen_port  = "${var.gossip_listen_port}"
-    peer_ip             = "${aws_instance.datastore.0.private_ip}"
-    log_level           = "${var.log_level}"
-  }
-}
-
-data "template_file" "hab_sup_seed" {
-  template = "${file("${path.module}/templates/hab-sup.service")}"
-
-  vars {
-    flags               = "--auto-update --channel ${var.release_channel} --events hab-eventsrv.default --listen-gossip 0.0.0.0:${var.gossip_listen_port} --listen-http 0.0.0.0:${var.http_listen_port} --permanent-peer"
-    gossip_listen_port  = "${var.gossip_listen_port}"
-    peer_ip             = "127.0.0.1"
-    log_level           = "${var.log_level}"
+    flags     = "--auto-update --peers ${join(" ", var.peers)} --channel ${var.release_channel} --events hab-eventsrv.default --listen-gossip 0.0.0.0:${var.gossip_listen_port} --listen-http 0.0.0.0:${var.http_listen_port}"
+    log_level = "${var.log_level}"
   }
 }
