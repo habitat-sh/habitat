@@ -347,9 +347,9 @@ impl DataStore {
 
         // Check for an active (Pending or Dispatched) group with a given root project name
         migrator.migrate("scheduler",
-                        r#"CREATE OR REPLACE FUNCTION check_active_group_v1(project_name text) RETURNS SETOF groups AS $$
+                        r#"CREATE OR REPLACE FUNCTION check_active_group_v1(pname text) RETURNS SETOF groups AS $$
                                SELECT * FROM groups
-                               WHERE project_name = project_name
+                               WHERE project_name = pname
                                AND group_state IN ('Pending', 'Dispatching')
                         $$ LANGUAGE SQL VOLATILE"#)?;
 
