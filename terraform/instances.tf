@@ -619,7 +619,7 @@ data "template_file" "sup_service" {
   template = "${file("${path.module}/templates/hab-sup.service")}"
 
   vars {
-    flags     = "--auto-update --peers ${join(" ", var.peers)} --channel ${var.release_channel} --events hab-eventsrv.default --listen-gossip 0.0.0.0:${var.gossip_listen_port} --listen-http 0.0.0.0:${var.http_listen_port}"
+    flags     = "--auto-update --peer ${join(" ", var.peers)} --channel ${var.release_channel} --events hab-eventsrv.default --listen-gossip 0.0.0.0:${var.gossip_listen_port} --listen-http 0.0.0.0:${var.http_listen_port}"
     log_level = "${var.log_level}"
   }
 }
