@@ -16,14 +16,15 @@ use std::path::Path;
 
 use common::ui::UI;
 use hcore::crypto::SigKeyPair;
-use hcore::origin::validate_origin;
+use hcore::package::ident;
+use hcore::Error::InvalidOrigin;
 
 use error::{Error, Result};
 
 pub fn start(ui: &mut UI, origin: &str, cache: &Path) -> Result<()> {
-    match validate_origin(origin) {
-        Err(err) => Err(Error::from(err)),
-        Ok(_) => {
+    match ident::is_valid_origin_name(origin) {
+        false => Err(Error::from(InvalidOrigin)),
+        true => {
             ui.begin(format!("Generating origin key for {}", &origin))?;
             let pair = SigKeyPair::generate_pair_for_origin(origin, cache)?;
             ui.end(format!(

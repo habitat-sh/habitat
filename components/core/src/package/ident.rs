@@ -22,6 +22,10 @@ use regex::Regex;
 use package::PackageTarget;
 use error::{Error, Result};
 
+lazy_static! {
+    static ref ORIGIN_NAME_RE: Regex = Regex::new(r"\A[a-z0-9][a-z0-9_-]*\z").expect("Unable to compile regex");
+}
+
 #[derive(Deserialize, Serialize, Eq, PartialEq, Debug, Clone, Hash)]
 pub struct PackageIdent {
     pub origin: String,
@@ -363,6 +367,11 @@ fn split_version(version: &str) -> Result<(Vec<&str>, Option<String>)> {
     Ok((version_parts, extension))
 }
 
+/// Is the string a valid origin name?
+pub fn is_valid_origin_name(origin: &str) -> bool {
+    origin.chars().count() <= 255 && ORIGIN_NAME_RE.is_match(origin)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -602,4 +611,20 @@ mod tests {
         assert!(!invalid1.valid());
         assert!(!invalid2.valid());
     }
+
+    #[test]
+    fn check_origin_name() {
+        assert!(super::is_valid_origin_name("foo"));
+        assert!(super::is_valid_origin_name("foo_bar"));
+        assert!(super::is_valid_origin_name("foo-bar"));
+        assert!(super::is_valid_origin_name("0xdeadbeef"));
+
+        assert!(!super::is_valid_origin_name("Core"));
+        assert!(!super::is_valid_origin_name(" foo"));
+        assert!(!super::is_valid_origin_name("foo "));
+        assert!(!super::is_valid_origin_name("!foo"));
+        assert!(!super::is_valid_origin_name("foo bar"));
+        assert!(!super::is_valid_origin_name("0xDEADBEEF"));
+    
+    }   
 }
