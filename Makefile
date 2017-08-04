@@ -145,6 +145,10 @@ bldr-run: build-srv ## launches a development shell running the API
 	$(bldr_run) sh -c '$(forego) start -f support/Procfile -e support/bldr.env'
 .PHONY: bldr-run
 
+bldr-run-no-build: ## launches a development shell without rebuilding the world
+	$(bldr_run) sh -c '$(forego) start -f support/Procfile -e support/bldr.env'
+.PHONY: bldr-run-no-build
+
 serve-docs: docs ## serves the project documentation from an HTTP server
 	@echo "==> View the docs at:\n\n        http://`\
 		echo $(docs_host) | sed -e 's|^tcp://||' -e 's|:[0-9]\{1,\}$$||'`:9633/\n\n"
