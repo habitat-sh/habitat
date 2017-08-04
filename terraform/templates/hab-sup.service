@@ -4,7 +4,7 @@ Description=Habitat Supervisor
 [Service]
 Environment=RUST_LOG=${log_level},habitat_butterfly=error
 ExecStartPre=/bin/bash -c "/bin/systemctl set-environment SSL_CERT_FILE=$(hab pkg path core/cacerts)/ssl/cert.pem"
-ExecStart=/bin/hab run --peer ${peer_ip}:${gossip_listen_port} ${flags}
+ExecStart=/bin/hab run ${flags}
 
 [Install]
 WantedBy=default.target

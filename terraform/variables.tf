@@ -79,6 +79,11 @@ variable "private_subnet_id" {
   description = "Identifier for private AWS subnet"
 }
 
+variable "peers" {
+  type        = "list"
+  description = "List of addresses for initial Supervisor peer(s)"
+}
+
 variable "router_count" {
   description = "Number of RouteSrv to start"
 }
