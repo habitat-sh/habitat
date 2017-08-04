@@ -35,6 +35,14 @@ pub fn group_create(
     let project_name = format!("{}/{}", msg.get_origin(), msg.get_package());
     let mut projects = Vec::new();
 
+    // If we already have a scheduled or in-progress group, bail with a conflict error
+    if state.datastore().is_group_active(&project_name)? {
+        warn!("GroupCreate, project {} is already scheduled", project_name);
+        let err = net::err(ErrCode::ENTITY_CONFLICT, "sc:group-create:1");
+        req.reply_complete(sock, &err)?;
+        return Ok(());
+    }
+
     // Get the ident for the root package
     let mut start_time;
     let mut end_time;
@@ -46,7 +54,7 @@ pub fn group_create(
             Some(s) => s,
             None => {
                 warn!("GroupCreate, project ident not found");
-                let err = net::err(ErrCode::ENTITY_NOT_FOUND, "sc:group-create:1");
+                let err = net::err(ErrCode::ENTITY_NOT_FOUND, "sc:group-create:2");
                 req.reply_complete(sock, &err)?;
                 return Ok(());
             }
