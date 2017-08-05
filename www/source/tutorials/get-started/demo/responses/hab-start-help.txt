@@ -1,0 +1,50 @@
+hab-sup-start
+Start a loaded, but stopped, Habitat service or a transient service
+from a package or artifact. If the Habitat Supervisor is not
+already running this will additionally start one for you.
+
+USAGE:
+    hab-sup start [FLAGS] [OPTIONS] <PKG_IDENT_OR_ARTIFACT>
+
+FLAGS:
+        --no-color          Turn ANSI color off
+    -I, --permanent-peer    If this Supervisor is a permanent peer
+    -v                      Verbose output; shows line numbers
+    -h, --help              Prints help information
+
+OPTIONS:
+        --bind <BIND>...
+            One or more service groups to bind to a configuration
+        --config-from <CONFIG_DIR>
+            Use package config from this path, rather than the
+            package itself
+    -u, --url <DEPOT_URL>
+            Use a specific Depot URL (ex:
+            http://depot.example.com/v1/depot)
+        --group <GROUP>
+            The service group; shared config and topology [default:
+            default].
+        --listen-gossip <LISTEN_GOSSIP>
+            The listen address for the gossip system [default:
+            0.0.0.0:9638]
+        --listen-http <LISTEN_HTTP>
+            The listen address for the HTTP gateway [default:
+            0.0.0.0:9631]
+        --override-name <NAME>
+            The name for the state directory if launching more than
+            one Supervisor [default: default]
+        --org <ORGANIZATION>
+            The organization that the supervisor and it's
+            subsequent services are part of [default: default]
+        --peer <PEER>...
+            The listen address of an initial peer (IP[:PORT])
+    -r, --ring <RING>                      Ring key name
+    -s, --strategy <STRATEGY>
+            The update strategy; [default: none] [values: none,
+            at-once, rolling]
+    -t, --topology <TOPOLOGY>
+            Service topology; [default: none]
+
+ARGS:
+    <PKG_IDENT_OR_ARTIFACT>
+            A Habitat package identifier (ex: core/redis) or filepath to a Habitat Artifact (ex: /home/core-redis-3.0.7-21120102031201-x86_64-linux.hart)

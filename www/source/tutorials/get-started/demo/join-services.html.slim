@@ -1,0 +1,23 @@
+---
+title: Habitat - Join Services Together
+---
+
+section
+  h2 Join Services Together
+
+  p Supervisors can manage their applications in isolation, but the real power of Supervisors comes when they are networked together. The way they do that is by connecting to each other via an IP address and forming a "ring" of two or more Supervisors (although it is more like a peer-to-peer network than a circular ring).
+
+  p When Supervisors are connected in this way, they start sharing information amongst themselves, such as membership metadata and configuration settings. Configuration values are explicitly exported, so each service in your application has control over what configuration data gets exposed to other services. Once those values are available to the other services, they can automatically bind to those values. Having your applications automatically discover dependent services and configure themselves accordingly is useful if you have ever had to set up connection information between tiers in a web application.
+
+  p In our example, the PostgreSQL database service exposes a port number that the Ruby-on-Rails web application needs in order to connect to the database. To set up service binding between the Rails front-end and the PostgreSQL backend, you will restart the Rails app, but this time specifying the IP address of the Supervisor managing the backend and setting the <code>bind</code> argument to the service group name of the database. This will allow you your Rails app to use that port number when it initializes itself and tries to connect to the database.
+
+  pre
+    code hab start example/myrubyapp --peer 172.17.0.2 --bind database:postgresql.default
+
+  #window-node-1.window-node
+    = partial "partials/terminal" do
+
+  #success
+    p The service binding has been set, but the front end still cannot connect to the backend database. This is because our Rails front-end application has a configuration value that must be changed before it is allowed to complete initialization.
+
+= link_to 'Next: Dynamically Configure Services', '/tutorials/get-started/demo/configure-services/', class: 'button cta'

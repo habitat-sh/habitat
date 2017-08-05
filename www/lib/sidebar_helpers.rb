@@ -1,6 +1,16 @@
 # helper methods for source/layouts/sidebar.slim
 module SidebarHelpers
-  SIDEBAR_LAYOUTS = %w(about docs legal tutorials linux_tutorial windows_tutorial)
+  SIDEBAR_LAYOUTS = %w(
+    about
+    docs
+    download
+    get_started
+    legal
+    sample_app
+    sample_app_linux
+    sample_app_mac
+    sample_app_windows
+  )
 
   def sidebar_data(sidebar_layout)
     unless SIDEBAR_LAYOUTS.include?(sidebar_layout)
@@ -11,7 +21,9 @@ module SidebarHelpers
   end
 
   def link_classes(current_url, item_link)
-    'is-active' if same_link?(current_url, item_link.link)
+    classes = []
+    classes.push('is-active') if same_link?(current_url, item_link.link)
+    classes.join(' ')
   end
 
   def print_sub_links?(current_url, item_link)

@@ -1,0 +1,1 @@
+hab-sup(MN): core/postgresql/9.6.1/20170514001355, state:up, time:PT319.534202380S, pid:120, group:postgresql.default, style:transient

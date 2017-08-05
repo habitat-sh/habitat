@@ -1,4 +1,0 @@
-The config apply parameters were not correct. Please check spelling and re-try.
-
-The command to apply the gossip.toml file is:
-   [1;33mhab config apply redis.default 1 /tmp/gossip.toml --peer 172.17.0.4

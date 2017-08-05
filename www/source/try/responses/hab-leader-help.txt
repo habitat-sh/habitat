@@ -1,4 +1,0 @@
-The package was not found. Please check spelling and re-try.
-
-The command to start the leader node is:
-   [1;33mhab start -t leader core/redis

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="17px" height="17px" viewBox="0 0 17 17" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 45.2 (43514) - http://www.bohemiancoding.com/sketch -->
+    <title>icon/windows</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Habitat-Web-UI/Tutorials/desktop" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Habitat-Web---Tutorials---Download-&amp;-Install---1" transform="translate(-537.000000, -857.000000)" fill="#87B09A">
+            <g id="habitat-for-windows-box" transform="translate(520.000000, 829.000000)">
+                <g id="icon/os/windows" transform="translate(10.000000, 21.000000)">
+                    <g id="windows-logo-silhouette" transform="translate(7.000000, 7.000000)">
+                        <polygon id="Shape" fill-rule="nonzero" points="0 14.6323214 6.95414286 15.59075 6.95414286 8.95275 0 8.95275"></polygon>
+                        <polygon id="Shape" fill-rule="nonzero" points="0 8.09614286 6.95414286 8.09614286 6.95414286 1.37657143 0 2.335"></polygon>
+                        <polygon id="Shape" fill-rule="nonzero" points="7.71889286 15.6927857 16.9672143 16.9672143 16.9672143 8.95275 16.9672143 8.95264286 7.71889286 8.95264286"></polygon>
+                        <polygon id="Shape" fill-rule="nonzero" points="7.719 1.27457143 7.719 8.09614286 16.9672143 8.09614286 16.9672143 0"></polygon>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

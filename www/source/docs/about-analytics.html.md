@@ -19,5 +19,5 @@ Please do not hesitate to contact us at support@habitat.sh should you have quest
 <hr>
 <ul class="main-content--link-nav">
   <li>Continue to the next topic</li>
-  <li><a href="/docs/get-habitat">Get Habitat</a></li>
+  <li><a href="/tutorials/download">Download and install Habitat</a></li>
 </ul>

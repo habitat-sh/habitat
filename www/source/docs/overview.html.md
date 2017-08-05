@@ -11,8 +11,8 @@ The Habitat documentation is broken out into the following sections:
 
 **Getting Started**
 
-- [Get Habitat](/docs/get-habitat): Download the `hab` command-line interface tool (CLI) for Mac, Linux, and Windows to get started using Habitat.
-- [Tutorials](/tutorials): Location for our getting started and advanced tutorials. Currently, only the getting started tutorial is available. You should start here if you are new to Habitat.
+- [Download and install Habitat](/tutorials/download): Download the `hab` command-line interface tool (CLI) for Mac, Linux, and Windows to get started using Habitat.
+- [Tutorials](/tutorials): Location for our getting started and advanced tutorials. You should start here if you are new to Habitat.
 - [Concepts](/docs/concepts-overview): Describes the major components of Habitat and how they work.
 
 **Using Habitat**
@@ -47,7 +47,7 @@ you review the following items in the order listed.
 
 <div class="callout-box--container row">
   <div class="callout-box columns medium-4">
-    <a href="/try" class="button secondary">Try Habitat demo</a>
+    <a href="/tutorials/get-started/demo/" class="button secondary">Try Habitat demo</a>
     <p>Complete a short<br>10-minute interactive demo</p>
   </div>
   <div class="callout-box columns medium-4">
@@ -67,7 +67,7 @@ code and get cookin', then these links should provide everything you need.
 
 <div class="callout-box--container row">
   <div class="callout-box columns medium-4">
-    <a href="/docs/get-habitat" class="button secondary">Download Habitat</a>
+    <a href="/tutorials/download" class="button secondary">Download and Habitat</a>
     <p>Get Habitat and install it on your workstation</p>
   </div>
   <div class="callout-box columns medium-4">

@@ -1,0 +1,73 @@
+hab-studio 0.21.0/20170421003930
+
+The Habitat Maintainers <humans@habitat.sh>
+
+Habitat Studios - Plan for success!
+
+USAGE:
+        hab-studio [FLAGS] [OPTIONS] <SUBCOMMAND> [ARG ..]
+
+COMMON FLAGS:
+    -h  Prints this message
+    -n  Do not mount the source path into the Studio (default: mount the path)
+    -q  Prints less output for better use in scripts
+    -v  Prints more verbose output
+    -V  Prints version information
+
+COMMON OPTIONS:
+    -k <HAB_ORIGIN_KEYS>  Installs secret origin keys (default:$HAB_ORIGIN )
+    -r <HAB_STUDIO_ROOT>  Sets a Studio root (default: /hab/studios/<DIR_NAME>)
+    -s <SRC_PATH>         Sets the source path (default: $PWD)
+    -t <STUDIO_TYPE>      Sets a Studio type when creating (default: default)
+                          Valid types: [default baseimage busybox stage1]
+
+SUBCOMMANDS:
+    build     Build using a Studio
+    enter     Interactively enter a Studio
+    help      Prints this message
+    new       Creates a new Studio
+    rm        Destroys a Studio
+    run       Run a command in a Studio
+    version   Prints version information
+
+ENVIRONMENT VARIABLES:
+    HAB_NOCOLORING      Disables text coloring mode despite TERM capabilities
+    HAB_NONINTERACTIVE  Disables interactive progress bars despite tty
+    HAB_ORIGIN          Propagates this variable into any studios
+    HAB_ORIGIN_KEYS     Installs secret keys (`-k' option overrides)
+    HAB_STUDIOS_HOME    Sets a home path for all Studios (default: /hab/studios)
+    HAB_STUDIO_ROOT     Sets a Studio root (`-r' option overrides)
+    NO_SRC_PATH         If set, do not mount source path (`-n' flag overrides)
+    QUIET               Prints less output (`-q' flag overrides)
+    SRC_PATH            Sets the source path (`-s' option overrides)
+    STUDIO_TYPE         Sets a Studio type when creating (`-t' option overrides)
+    VERBOSE             Prints more verbose output (`-v' flag overrides)
+    http_proxy          Sets an http_proxy environment variable inside the Studio
+    https_proxy         Sets an https_proxy environment variable inside the Studio
+    no_proxy            Sets a no_proxy environment variable inside the Studio
+
+SUBCOMMAND HELP:
+    hab-studio <SUBCOMMAND> -h
+
+EXAMPLES:
+
+    # Create a new default Studio
+    hab-studio new
+
+    # Enter the default Studio
+    hab-studio enter
+
+    # Run a command in the default Studio
+    hab-studio run wget --version
+
+    # Destroy the default Studio
+    hab-studio rm
+
+    # Create and enter a busybox type Studio with a custom root
+    hab-studio -r /opt/slim -t busybox enter
+
+    # Run a command in the slim Studio, showing only the command output
+    hab-studio -q -r /opt/slim run busybox ls -l /
+
+    # Verbosely destroy the slim Studio
+    hab-studio -v -r /opt/slim rm

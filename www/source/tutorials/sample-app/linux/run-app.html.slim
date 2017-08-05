@@ -1,0 +1,76 @@
+---
+title: Habitat - Run the Sample App
+---
+
+= partial '/tutorials/partials/platform_switcher', locals: { platform: 'linux' }
+
+section.sample-app
+  h1 Run the Sample App
+
+  = partial "/tutorials/partials/run_app_common"
+
+  p Because this version of the tutorial shows how to use Habitat with Docker containers, we will use Docker Compose to run the containers created in the previous step.
+
+  h2 Update the docker-compose.yml File
+
+  p When you cloned the <code>habitat-example-plans</code> repo, a <code>docker-compose.yml</code> file was included in the root of the <code>myrailsapp</code> directory.
+
+  pre
+    code
+      |
+        version: '3'
+        services:
+          db:
+            image: core/postgresql
+            volumes:
+              - "./updated_config.toml:/updated_config.toml"
+          railsapp:
+              image: originname/myrailsapp
+              ports:
+                - 8000:8000
+              links:
+              - db
+              command: --peer db --bind database:postgresql.default
+
+  p Let's quickly review the file to understand how these containers will be brought up.
+
+  ul
+    li
+      p The images for both the database and your Rails application are already installed on your local workstation as part of the <code>export</code> subcommand you ran in the last step.
+    li
+      p As part of updating the configuration values to connect the Rails application to the PostgreSQL database, you will use a TOML file to spread configuration updates between supervisors connected together in the ring. The <code>updated_config.toml</code> file is bind mounted from the root location of the <code>myrailsapp</code> directory to the root directory.
+    li
+      p The port number for the Rails container is exposed so you can view the Rails app page from within your host browser.
+    li
+      p The the entrypoint for the Rails container has a few additional command arguments to connect it to the database container and set the binding to the appropriate database service group.
+
+  p Now that you understand how the docker-compose.yml file will be used, open the docker-compose.yml file in a text editor and update the following line with the name of your origin.
+
+  pre
+    code image: originname/myrailsapp
+
+  p Save the file and exit the editor.
+
+  h2 Start Up the Containers
+
+  p Now that you have an understanding of how the containers will be brought up, it's time to start them up with Docker Compose.
+
+  ol
+    li
+      p Change directory to the root of the <code>habitat-example-plans/myrailsapp</code> directory.
+    li
+      p Run <code>docker-compose up</code> to start up the containers. Missing packages will be downloaded and installed before the myrailsapp package and PostgreSQL packages start.
+
+      blockquote
+        p Note: If you did not add the <code>docker</code> group and your current user to that group after you installed Docker, you will have to use <code>sudo</code> when running <code>docker-compose</code>. For more details, see the Docker #{link_to 'Post-installation steps for Linux', 'https://docs.docker.com/engine/installation/linux/linux-postinstall/', target: '_blank'}.
+
+      p If everything started up successfully, the Rails application should loop through a message similar to the following where it requires an environment variable to be set before proceeding with the rest of the initialization process.
+
+      = partial "/tutorials/partials/run_app_output"
+
+  blockquote
+    p Note: If you need to stop the containers at any time, run <code>Ctrl-C</code>. If you want to bring them back up, run <code>docker-compose down</code> before running <code>docker-compose up</code> again. This will ensure the IP address of the database container resolves correctly when the <code>myrailsapp</code> container tries to bind to it. If you want to remove the containers from your machine, run <code>docker-compose rm</code>.
+
+  p Learn how to fix this error by dynamically updating the configuration of the myrailsapp package in the next step.
+
+= link_to 'Next: Dynamically Update the App', '/tutorials/sample-app/linux/update-app/', class: 'button cta'

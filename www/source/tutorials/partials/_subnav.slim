@@ -1,0 +1,9 @@
+ul
+  li class=('active' if path_starts_with?('tutorials/get-started'))
+    = link_to 'Get Started', '/tutorials/get-started/'
+
+  li class=('active' if path_starts_with?('tutorials/download'))
+    = link_to 'Download &amp; Install', '/tutorials/download/'
+
+  li class=('active' if path_starts_with?('tutorials/sample-app'))
+    = link_to 'Build a Sample App', '/tutorials/sample-app/'

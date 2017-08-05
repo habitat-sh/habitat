@@ -1,9 +1,0 @@
-Applying configuration ConfigFile redis.default 1 (F: gossip.toml, C: 21791f2efcee073816460e687bf5154) to redis.default
-Joining peer: 172.17.0.4:9638
-Configuration applied to: 172.17.0.4:9638
-Finished applying configuration
-
-[1;32mAnd just like that, you've applied your change and re-started your nodes.
-[1;33mCheck the other windows and you'll see the TCP backlog warning is no longer present after the re-start.
-
-[1;36mYou might be wondering how we connect nodes into a group. We'll learn how in the next step.

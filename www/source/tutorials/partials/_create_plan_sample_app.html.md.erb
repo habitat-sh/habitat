@@ -1,0 +1,129 @@
+Creating a plan starts with identifying and referencing the application code that you want to package and automate.
+Habitat provides several different ways to refer and include application code in your package: by downloading a tarball
+of the source and compiling it when building the package, by referring to a local source directory, or by using a pre-built
+binary and bundling it up in your package.
+
+To demonstrate Habitat code residing in the same repo as your source code, you are going to clone a simple Rails web
+application and then add your plan to that web application. By having the Habitat plan live in the same directory as your
+source code, the Habitat package for your application can be built right alongside your source code for testing and deployment purposes.
+
+## Clone the Project
+
+The Ruby-on-Rails web application in this tutorial is a simple web app that connects to a backend PostgreSQL database. It was created
+by running `rails new mywebapp --database=postgresql` to reference the use of PostgreSQL instead of the default database for most Rails
+apps, SQLite3. A new root "Hello World" index page and a model were added to the site to support pulling and displaying data from the
+PostgreSQL database.
+
+<% if !is_windows %>
+Open a new terminal window on your workstation and perform the following steps:
+<% end%>
+
+<% if is_windows %>
+Open a new PowerShell window on your workstation and perform the following steps:
+<% end %>
+
+<% if is_windows %>
+1. Change the default Git for Windows CRLF line endings setting to be LF line endings.
+
+   ~~~ powershell
+   PS > git config --global core.eol lf
+   PS > git config --global core.autocrlf input
+   ~~~
+<% end %>
+
+1. Clone the `habitat-example-plans` repo onto your local machine. In this example, a directory called `habitat-example-plans` will be created
+in the `$HOME` directory.
+
+<% if !is_windows %>
+       $ cd ~
+       $ git clone https://github.com/habitat-sh/habitat-example-plans
+<% end %>
+
+<% if is_windows %>
+   ~~~ powershell
+   PS > cd ~
+   PS > git clone https://github.com/habitat-sh/habitat-example-plans
+   ~~~
+<% end%>
+
+1. After you have successfully cloned the repo, change directory to the `myrailsapp` directory.
+
+<% if !is_windows %>
+       $ cd ~/habitat-example-plans/myrailsapp
+<% end %>
+
+<% if is_windows %>
+   ~~~ powershell
+   PS > cd .\habitat-example-plans\myrailsapp
+   ~~~
+<% end%>
+
+## Start with the Basics
+
+Now that you have cloned the `habitat-example-plans` repo, it is time to define the plan for `myrailsapp`. A plan is a directory comprised
+of shell scripts and optional configuration files that define how you download, configure, make, install, and manage the lifecycle of the
+software in the Habitat package.
+
+At a bare minimum, a plan must have a `plan.sh` at the root of the directory. This file specifies where the source code or binary is, how
+it should be built, and how the supervisor should start it at runtime.
+
+To create your plan, do the following in your terminal window:
+
+1. From within the `myrailsapp` directory, run `hab plan init -s ruby` to create a plan for the `myrailsapp` web application. Because the `myrailsapp` web application is a rails application, specifying `-s ruby` will create a plan that references the Ruby scaffolding.
+
+<% if !is_windows %>
+       $ hab plan init -s ruby
+<% end %>
+
+<% if is_windows %>
+   ~~~ powershell
+   PS > hab plan init -s ruby
+   ~~~
+<% end%>
+
+   A scaffolding is a meta-package for applications and services and Habitat provides scaffoldings for several languages. They provide a default configuration and behavior experience that gets application developers up and running quickly with Habitat.
+
+   And in the case of the Ruby scaffolding, if you set up PostgreSQL as your database (as we did in the myrailsapp sample code), the Ruby scaffolding will create configuration and credential information to connect to that database. For more information on scaffoldings, see the scaffolding [concepts topic](/docs/concepts-scaffolding).
+
+2. Now that you have created a basic plan, change directories into your newly-created `habitat` sub-directory and open plan.sh in your text editor.
+
+   Your `plan.sh` should now look like this:
+
+       pkg_name=myrailsapp
+       pkg_origin=<originname>
+       pkg_scaffolding="core/scaffolding-ruby"
+
+   > **Note** The origin name that you used when you ran `hab setup` during [Download and Install](/tutorials/download/) is used to populate the `pkg_origin` variable in your plan.sh file.
+
+3. The `pkg_origin` and `pkg_name` settings partially form the package identifier information. In order to build your package, you also need to have a version number associated with it. To do so, add the following line to your plan.sh:
+
+       pkg_version="0.1.0"
+
+4. As part of the health_check hook that you will create in the next step, you also need to add a runtime dependency on `core/curl`.
+
+       pkg_deps=( core/curl )
+
+## Add in Service Binding Support
+
+Service binding is accomplished when one service provides a setting, or collection of settings, that other services can consume and use at runtime. The `core/postgresql`
+package exposes a `port` configuration value that can be used by consuming services, such as the Rails application you are building in this tutorial. The Ruby scaffolding
+will create a default connection string to the PostgreSQL service and will use this value when making that connection.
+
+To enable the `myrailsapp` to use the exported `port` value from `core/postgresql`, add the following line to your plan.sh file:
+
+    pkg_binds=( [database]="port" )
+
+Other settings are described in the [Plan syntax guide](/docs/reference/plan-syntax).
+
+## Finished Plan
+
+Your finished plan should look like the following:
+
+    pkg_name=myrailsapp
+    pkg_origin=<originname>
+    pkg_scaffolding="core/scaffolding-ruby"
+    pkg_version="0.1.0"
+    pkg_deps=( core/curl )
+    pkg_binds=( [database]="port" )
+
+Now it is time to add custom health monitoring to your plan.

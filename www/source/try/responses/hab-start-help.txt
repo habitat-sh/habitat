@@ -1,7 +1,0 @@
-[1;31merror:[37m The following required arguments were not provided:
-    [1;31m<package>
-
-[37mUSAGE:
-    hab-sup start [FLAGS] [OPTIONS] <package>
-
-For more information try --help

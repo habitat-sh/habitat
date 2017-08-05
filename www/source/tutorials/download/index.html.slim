@@ -1,0 +1,53 @@
+---
+title: Habitat - Download and Install Habitat
+---
+
+section.download
+  h2 Download and Install Habitat
+
+  p From building packages to running services, everything in Habitat is done through the <code>hab</code> command-line interface (CLI) tool. To get started using Habitat, you need to download and install the <code>hab</code> CLI tool that corresponds to your workstation OS.
+
+  .hab-cli-os.linux
+    .row
+      .description.small-12.large-8.columns
+        h3 Habitat for Linux
+        h4 Requires 64-bit processor with kernel 2.6.32 or later
+
+        p Once you have downloaded the CLI, unzip it onto your machine. Unzipping to <code>/usr/local/bin</code> should place the <code>hab</code> command on your <code>PATH</code>.
+
+      .buttons.small-12.large-4.columns
+        = link_to 'Download Habitat for Linux', 'https://api.bintray.com/content/habitat/stable/linux/x86_64/hab-%24latest-x86_64-linux.tar.gz?bt_package=hab-x86_64-linux', class: 'button outline'
+
+  .hab-cli-os.mac
+    .row
+      .description.small-12.large-8.columns
+        h3 Habitat for Mac
+        h4 Requires 64-bit processor running 10.9 or later
+
+        p To use the Habitat Studio, you'll also need to install Docker for Mac.
+
+        p Once you have downloaded the <code>hab</code> CLI, unzip it onto your machine. Unzipping to <code>/usr/local/bin</code> should place it on your <code>PATH</code>.
+
+      .buttons.small-12.large-4.columns
+        = link_to 'Download Habitat for Mac', 'https://api.bintray.com/content/habitat/stable/darwin/x86_64/hab-%24latest-x86_64-darwin.zip?bt_package=hab-x86_64-darwin', class: 'button outline'
+        = link_to 'Download Docker for Mac', 'https://store.docker.com/editions/community/docker-ce-desktop-mac', class: 'button outline', target: '_blank'
+
+  .hab-cli-os.windows
+    .row
+      .description.small-12.large-8.columns
+        h3 Habitat for Windows
+        h4 Requires 64-bit Windows 10 Pro, Enterprise, or Education editions (1511 November update, build 10586 or later) with Hyper-V enabled
+
+        p To use the Habitat Studio, you'll also need to install Docker for Windows.
+
+        p Once you have downloaded the <code>hab</code> CLI, unzip it onto your machine. We suggest unzipping to <code>C:\habitat</code> and then adding that folder to your <code>PATH</code> variable. Here’s how to do that with Powershell:
+
+        pre
+          code $env:PATH += ";C:\habitat"
+
+      .buttons.small-12.large-4.columns
+        = link_to 'Download Habitat for Windows', 'https://api.bintray.com/content/habitat/stable/windows/x86_64/hab-%24latest-x86_64-windows.zip?bt_package=hab-x86_64-windows', class: 'button outline'
+
+        = link_to 'Download Docker for Windows', 'https://store.docker.com/editions/community/docker-ce-desktop-windows', class: 'button outline', target: '_blank'
+
+= link_to 'Next: Create a Habitat Account', '/tutorials/download/create-account/', class: 'button cta'

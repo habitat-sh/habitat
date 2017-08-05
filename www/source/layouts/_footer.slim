@@ -1,11 +1,11 @@
 footer#main-footer class="#{layout_class}"
-  - if layout_class != "has-sidebar" and layout_class != "try-hab" and layout_class != "blogs"
+  - if layout_class != "has-sidebar" and layout_class != "try-hab" and layout_class != "blogs" and layout_class != "tutorials"
     .row
       .columns.medium-12
         .footer--cta
           h2.footer--cta-heading See how it works in less than 10 minutes.
-          a.footer--cta-button href="/try" Try Habitat Now
-          a.footer--cta-button.outline href="/docs/get-habitat" Download Habitat
+          a.footer--cta-button href="/tutorials/" Try Habitat Now
+          a.footer--cta-button.outline href="/tutorials/download/" Download Habitat
 
   .footer--sitemap
     .row
@@ -25,7 +25,7 @@ footer#main-footer class="#{layout_class}"
               li.footer--sitemap--link
                 a href="/about" Why Habitat
               li.footer--sitemap--link
-                a href="/docs/overview/" Get Started
+                a href="/tutorials/" Get Started
 
 
           .columns.medium-2.small-6
@@ -37,7 +37,7 @@ footer#main-footer class="#{layout_class}"
               li.footer--sitemap--link
                 a href="#{builder_web_url}/#/sign-in" Sign In
               li.footer--sitemap--link
-                a href="/docs/get-habitat/" Download CLI
+                a href="/tutorials/download" Download CLI
 
           .columns.medium-2.small-6
             ul.no-bullet

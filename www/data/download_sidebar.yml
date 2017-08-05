@@ -1,0 +1,12 @@
+---
+sidebar_links:
+- title: Download &amp; Install
+  links:
+  - title: Install the Habitat CLI
+    link: /tutorials/download/
+  - title: Create a Habitat Account
+    link: /tutorials/download/create-account/
+  - title: Create an Origin
+    link: /tutorials/download/create-origin/
+  - title: Configure Your Workstation
+    link: /tutorials/download/configure-workstation/

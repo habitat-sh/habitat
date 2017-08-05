@@ -1,0 +1,36 @@
+hab-sup 0.21.0/20170421001811
+
+Authors: The Habitat Maintainers <humans@habitat.sh>
+
+The Habitat Supervisor
+
+USAGE:
+    hab-sup [FLAGS] [SUBCOMMAND]
+
+FLAGS:
+        --no-color    Turn ANSI color off
+    -v                Verbose output; shows line numbers
+    -h, --help        Prints help information
+    -V, --version     Prints version information
+
+SUBCOMMANDS:
+    bash      Start an interactive Bash-like shell
+    config    Displays the default configuration options for a
+              service
+    help      Prints this message or the help of the given
+              subcommand(s)
+    load      Load a service to be started and supervised by
+              Habitat from a package or artifact. Services
+              started in this manner will persist through
+              Supervisor restarts.
+    run       Start the Habitat Supervisor
+    sh        Start an interactive Bourne-like shell
+    start     Start a loaded, but stopped, Habitat service or a
+              transient service from a package or artifact. If
+              the Habitat Supervisor is not already running
+              this will additionally start one for you.
+    stop      Stop a running Habitat service.
+    unload    Unload a persistent or transient service started
+              by the Habitat supervisor. If the Supervisor is
+              running when the service is unloaded the service
+              will be stopped.

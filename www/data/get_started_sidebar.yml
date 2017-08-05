@@ -1,0 +1,30 @@
+---
+sidebar_links:
+- title: Get Started
+  links:
+  - title: Introduction to Habitat
+    link: /tutorials/get-started
+    sub_links:
+    - title: Getting Started with Habitat
+      link: /tutorials/get-started/videos/getting-started/
+      icon: 'play-video'
+    - title: Habitat in Production
+      link: /tutorials/get-started/videos/habitat-in-production/
+      icon: 'play-video'
+  - title: Interactive Demo
+    link: /tutorials/get-started/demo/
+    sub_links:
+    - title: Start Up Services
+      link: /tutorials/get-started/demo/start-services/
+    - title: Join Services Together
+      link: /tutorials/get-started/demo/join-services/
+    - title: Dynamically Configure Services
+      link: /tutorials/get-started/demo/configure-services/
+    - title: Set Up a Service Group Topology
+      link: /tutorials/get-started/demo/set-up-topology/
+    - title: Add Services to a Group
+      link: /tutorials/get-started/demo/add-services-to-group/
+    - title: Check the Health of a Service
+      link: /tutorials/get-started/demo/check-service-health/
+    - title: Learn More About Habitat
+      link: /tutorials/get-started/demo/learn-more/
