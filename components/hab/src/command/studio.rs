@@ -227,7 +227,7 @@ mod inner {
         if let Ok(cache_artifact_path) = henv::var(super::ARTIFACT_PATH_ENVVAR) {
             volumes.push(format!("{}:/{}", cache_artifact_path, CACHE_ARTIFACT_PATH));
         }
-        if Path::new(DOCKER_SOCKET).exists() {
+        if Path::new(DOCKER_SOCKET).exists() || cfg!(target_os = "windows") {
             volumes.push(format!("{}:{}", DOCKER_SOCKET, DOCKER_SOCKET));
         }
 
