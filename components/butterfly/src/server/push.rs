@@ -28,7 +28,7 @@ use zmq;
 use ZMQ_CONTEXT;
 use message::swim::{Rumor as ProtoRumor, Rumor_Type as ProtoRumor_Type, Member as ProtoMember,
                     Membership as ProtoMembership};
-use rumor::{RumorKey, RumorVec};
+use rumor::RumorKey;
 use member::Member;
 use server::Server;
 use server::timing::Timing;
@@ -93,7 +93,7 @@ impl Push {
                     if self.server.member_list.pingable(&member) &&
                         !self.server.member_list.persistent_and_confirmed(&member)
                     {
-                        let rumors = self.server.rumor_list.rumors(member.get_id());
+                        let rumors = self.server.rumor_heat.currently_hot_rumors(member.get_id());
                         if rumors.len() > 0 {
                             let sc = self.server.clone();
 
@@ -150,7 +150,7 @@ impl PushWorker {
     /// closes the connection as soon as we are done sending rumors. ZeroMQ may choose to keep the
     /// connection and socket open for 1 second longer - so it is possible, but unlikely, that this
     /// method can loose messages.
-    fn send_rumors(&self, member: Member, rumors: RumorVec) {
+    fn send_rumors(&self, member: Member, rumors: Vec<RumorKey>) {
         let socket = (**ZMQ_CONTEXT).as_mut().socket(zmq::PUSH).expect(
             "Failure to create the ZMQ push socket",
         );
@@ -177,7 +177,7 @@ impl PushWorker {
                 return;
             }
         }
-        'rumorlist: for &(ref rumor_key, ref _heat) in rumors.iter() {
+        'rumorlist: for ref rumor_key in rumors.iter() {
             let rumor_as_bytes = match rumor_key.kind {
                 ProtoRumor_Type::Member => {
                     let send_rumor = match self.create_member_rumor(&rumor_key) {
@@ -338,7 +338,7 @@ impl PushWorker {
                 }
             }
         }
-        self.server.rumor_list.update_heat(member.get_id(), &rumors);
+        self.server.rumor_heat.cool_rumors(member.get_id(), &rumors);
     }
 
     /// Given a rumorkey, creates a protobuf rumor for sharing.

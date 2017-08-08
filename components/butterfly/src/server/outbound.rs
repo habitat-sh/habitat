@@ -27,6 +27,7 @@ use time::SteadyTime;
 use protobuf::{Message, RepeatedField};
 
 use message::swim::{Ack, Ping, PingReq, Swim, Swim_Type, Rumor_Type};
+use rumor::RumorKey;
 use server::Server;
 use server::timing::Timing;
 use member::{Member, Health};
@@ -268,12 +269,17 @@ pub fn populate_membership_rumors(server: &Server, target: &Member, swim: &mut S
             membership_entries.push(always_target);
         }
     }
-    let rumors = server.rumor_list.take_by_kind(
-        target.get_id(),
-        5,
-        Rumor_Type::Member,
-    );
-    for &(ref rkey, _heat) in rumors.iter() {
+
+    // NOTE: the way this is currently implemented, this is grabbing
+    // the 5 coolest (but still warm!) Member rumors.
+    let rumors: Vec<RumorKey> = server.rumor_heat
+        .currently_hot_rumors(target.get_id())
+        .into_iter()
+        .filter(|ref r| r.kind == Rumor_Type::Member)
+        .take(5) // TODO (CM): magic number!
+        .collect();
+
+    for ref rkey in rumors.iter() {
         if let Some(member) = server.member_list.membership_for(&rkey.key()) {
             membership_entries.push(member);
         }
@@ -282,7 +288,7 @@ pub fn populate_membership_rumors(server: &Server, target: &Member, swim: &mut S
     // confirmed dead; the odds are, they won't receive them. Lets spam them a little harder with
     // rumors.
     if !server.member_list.persistent_and_confirmed(target) {
-        server.rumor_list.update_heat(target.get_id(), &rumors);
+        server.rumor_heat.cool_rumors(target.get_id(), &rumors);
     }
     swim.set_membership(membership_entries);
 }

@@ -71,7 +71,7 @@ impl Expire {
             for mid in expired_list.iter() {
                 self.server.member_list.expire(mid);
                 self.server.member_list.depart(mid);
-                self.server.rumor_list.insert(RumorKey::new(
+                self.server.rumor_heat.start_hot_rumor(RumorKey::new(
                     Rumor_Type::Member,
                     mid.clone(),
                     "",
@@ -102,7 +102,7 @@ impl Expire {
             );
             for mid in departed_list.iter() {
                 self.server.member_list.depart_remove(mid);
-                self.server.rumor_list.insert(RumorKey::new(
+                self.server.rumor_heat.start_hot_rumor(RumorKey::new(
                     Rumor_Type::Member,
                     mid.clone(),
                     "",

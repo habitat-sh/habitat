@@ -49,7 +49,8 @@ use serde::ser::SerializeStruct;
 use error::{Result, Error};
 use member::{Member, Health, MemberList};
 use message;
-use rumor::{Rumor, RumorList, RumorKey, RumorStore};
+use rumor::{Rumor, RumorKey, RumorStore};
+use rumor::heat::RumorHeat;
 use rumor::dat_file::DatFile;
 use rumor::departure::Departure;
 use rumor::service::Service;
@@ -70,7 +71,7 @@ pub struct Server {
     pub member: Arc<RwLock<Member>>,
     pub member_list: MemberList,
     ring_key: Arc<Option<SymKey>>,
-    rumor_list: RumorList,
+    rumor_heat: RumorHeat,
     pub service_store: RumorStore<Service>,
     pub service_config_store: RumorStore<ServiceConfig>,
     pub service_file_store: RumorStore<ServiceFile>,
@@ -100,7 +101,7 @@ impl Clone for Server {
             member: self.member.clone(),
             member_list: self.member_list.clone(),
             ring_key: self.ring_key.clone(),
-            rumor_list: self.rumor_list.clone(),
+            rumor_heat: self.rumor_heat.clone(),
             service_store: self.service_store.clone(),
             service_config_store: self.service_config_store.clone(),
             service_file_store: self.service_file_store.clone(),
@@ -154,7 +155,7 @@ impl Server {
                     member: Arc::new(RwLock::new(member)),
                     member_list: MemberList::new(),
                     ring_key: Arc::new(ring_key),
-                    rumor_list: RumorList::default(),
+                    rumor_heat: RumorHeat::default(),
                     service_store: RumorStore::default(),
                     service_config_store: RumorStore::default(),
                     service_file_store: RumorStore::default(),
@@ -436,7 +437,7 @@ impl Server {
                 trace_incarnation,
                 trace_health
             );
-            self.rumor_list.insert(rk);
+            self.rumor_heat.start_hot_rumor(rk);
         }
     }
 
@@ -457,7 +458,7 @@ impl Server {
                 trace_incarnation,
                 trace_health
             );
-            self.rumor_list.insert(rk);
+            self.rumor_heat.start_hot_rumor(rk);
         }
     }
 
@@ -527,7 +528,7 @@ impl Server {
                 trace_incarnation,
                 trace_health
             );
-            self.rumor_list.insert(rk);
+            self.rumor_heat.start_hot_rumor(rk);
         }
     }
 
@@ -566,7 +567,7 @@ impl Server {
                     self.member_list.depart_remove(
                         service_rumor.get_member_id(),
                     );
-                    self.rumor_list.insert(RumorKey::new(
+                    self.rumor_heat.start_hot_rumor(RumorKey::new(
                         message::swim::Rumor_Type::Member,
                         service_rumor.get_member_id().clone(),
                         "",
@@ -575,7 +576,7 @@ impl Server {
             }
         }
         if self.service_store.insert(service) {
-            self.rumor_list.insert(rk);
+            self.rumor_heat.start_hot_rumor(rk);
         }
     }
 
@@ -583,7 +584,7 @@ impl Server {
     pub fn insert_service_config(&self, service_config: ServiceConfig) {
         let rk = RumorKey::from(&service_config);
         if self.service_config_store.insert(service_config) {
-            self.rumor_list.insert(rk);
+            self.rumor_heat.start_hot_rumor(rk);
         }
     }
 
@@ -591,7 +592,7 @@ impl Server {
     pub fn insert_service_file(&self, service_file: ServiceFile) {
         let rk = RumorKey::from(&service_file);
         if self.service_file_store.insert(service_file) {
-            self.rumor_list.insert(rk);
+            self.rumor_heat.start_hot_rumor(rk);
         }
     }
 
@@ -611,14 +612,14 @@ impl Server {
         )
         {
             self.member_list.depart_remove(departure.get_member_id());
-            self.rumor_list.insert(RumorKey::new(
+            self.rumor_heat.start_hot_rumor(RumorKey::new(
                 message::swim::Rumor_Type::Member,
                 departure.get_member_id().clone(),
                 "",
             ));
         }
         if self.departure_store.insert(departure) {
-            self.rumor_list.insert(rk);
+            self.rumor_heat.start_hot_rumor(rk);
         }
     }
 
@@ -684,7 +685,7 @@ impl Server {
             e.no_quorum();
         }
         self.election_store.insert(e);
-        self.rumor_list.insert(ek);
+        self.rumor_heat.start_hot_rumor(ek);
     }
 
     pub fn start_update_election(&self, sg: ServiceGroup, suitability: u64, term: u64) {
@@ -695,7 +696,7 @@ impl Server {
             e.no_quorum();
         }
         self.update_store.insert(e);
-        self.rumor_list.insert(ek);
+        self.rumor_heat.start_hot_rumor(ek);
     }
 
     /// Check to see if this server needs to restart a given election. This happens when:
@@ -918,7 +919,7 @@ impl Server {
             }
         }
         if self.election_store.insert(election) {
-            self.rumor_list.insert(rk);
+            self.rumor_heat.start_hot_rumor(rk);
         }
     }
 
@@ -1004,7 +1005,7 @@ impl Server {
             }
         }
         if self.update_store.insert(election) {
-            self.rumor_list.insert(rk);
+            self.rumor_heat.start_hot_rumor(rk);
         }
     }
 
