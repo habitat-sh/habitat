@@ -488,13 +488,22 @@ fn sub_pkg_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
     let key_path = cache_key_path(Some(&*FS_ROOT));
     let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
-    let channel = m.value_of("CHANNEL")
-        .and_then(|c| Some(c.to_string()))
-        .unwrap_or(channel::default());
+
+    // When packages are uploaded, they *always* go to `unstable`;
+    // they can optionally get added to another channel, too.
+    let additional_release_channel: Option<&str> = m.value_of("CHANNEL");
+
     let token = auth_token_param_or_env(&m)?;
     let artifact_paths = m.values_of("HART_FILE").unwrap(); // Required via clap
     for artifact_path in artifact_paths {
-        command::pkg::upload::start(ui, &url, Some(&channel), &token, &artifact_path, &key_path)?;
+        command::pkg::upload::start(
+            ui,
+            &url,
+            additional_release_channel,
+            &token,
+            &artifact_path,
+            &key_path,
+        )?;
     }
     Ok(())
 }
