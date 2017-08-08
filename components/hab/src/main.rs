@@ -317,10 +317,11 @@ fn sub_pkg_build(ui: &mut UI, m: &ArgMatches) -> Result<()> {
         Some(s) => Some(s),
         None => None,
     };
+    let docker = m.is_present("DOCKER");
     let reuse = m.is_present("REUSE");
     let windows = m.is_present("WINDOWS");
 
-    command::pkg::build::start(ui, plan_context, root, src, keys, reuse, windows)
+    command::pkg::build::start(ui, plan_context, root, src, keys, reuse, windows, docker)
 }
 
 fn sub_pkg_config(m: &ArgMatches) -> Result<()> {
@@ -618,7 +619,7 @@ fn exec_subcommand_if_called(ui: &mut UI) -> Result<()> {
         }
         ("run", _) => command::launcher::start(ui, env::args_os().skip(1).collect()),
         ("stu", _) | ("stud", _) | ("studi", _) | ("studio", _) => {
-            command::studio::start(ui, env::args_os().skip(2).collect())
+            command::studio::enter::start(ui, env::args_os().skip(2).collect())
         }
         ("sup", "run") | ("sup", "start") => {
             command::launcher::start(ui, env::args_os().skip(2).collect())

@@ -66,7 +66,8 @@ COMMON FLAGS:
     -q  Prints less output for better use in scripts
     -v  Prints more verbose output
     -V  Prints version information
-    -w  Use a Windows studio instead of a docker studio (only available on windows)
+    -D  Use a docker studio instead of a chroot studio (only available on Linux)
+    -w  Use a Windows studio instead of a docker studio (only available on Windows)
 
 COMMON OPTIONS:
     -a <ARTIFACT_PATH>    Sets the source artifact cache path (default: /hab/cache/artifacts)
@@ -1188,7 +1189,7 @@ ensure_root
 # ## CLI Argument Parsing
 
 # Parse command line flags and options.
-while getopts ":nNa:k:r:s:t:vqVh" opt; do
+while getopts ":nNa:k:r:s:t:D:vqVh" opt; do
   case $opt in
     a)
       ARTIFACT_PATH=$OPTARG
@@ -1210,6 +1211,9 @@ while getopts ":nNa:k:r:s:t:vqVh" opt; do
       ;;
     t)
       STUDIO_TYPE=$OPTARG
+      ;;
+    D)
+      DOCKER=true
       ;;
     v)
       VERBOSE=true
@@ -1280,6 +1284,8 @@ studio_config="$HAB_STUDIO_ROOT/.studio"
 # not default behavior to skip the source path mounting and the user must
 # explicitly opt-out.
 : ${NO_SRC_PATH:=}
+# Whether to use a docker container as the environment to build the studio in
+: ${DOCKER:=}
 # Whether or not to mount filesystem in the Studio. An unset or empty value
 # means it is set to false (and therefore will mount filesystems) and any other
 # value is considered set to true (and therefore will not mount filesystems).
