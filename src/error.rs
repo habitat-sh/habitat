@@ -98,7 +98,7 @@ pub enum Error {
     /// Occurs when a service group string cannot be successfully parsed.
     InvalidServiceGroup(String),
     /// Occurs when an origin is in an invalid format
-    InvalidOrigin,
+    InvalidOrigin(String),
     /// Occurs when making lower level IO calls.
     IO(io::Error),
     // When LogonUserW does not have the correct logon type
@@ -295,10 +295,12 @@ impl fmt::Display for Error {
                     e
                 )
             }
-            Error::InvalidOrigin => {
+            Error::InvalidOrigin(ref origin) => {
                 format!(
-                    "Origins must contain no spaces, and begin with a lowercase letter or number.
-Allowed characters include a - z, 0 - 9, _, and -. No more than 255 characters."
+                    "Invalid origin: {}. Origins must begin with a lowercase letter or number. \
+                        Allowed characters include lowercase letters, numbers, -, and _. \
+                        No more than 255 characters.",
+                    origin
                 )
             }
             Error::IO(ref err) => format!("{}", err),
@@ -436,9 +438,9 @@ impl error::Error for Error {
             Error::InvalidServiceGroup(_) => {
                 "Service group strings must be in service.group format (example: redis.production)"
             }
-            Error::InvalidOrigin => {
-                "Origins must contain no spaces, and begin with a lowercase letter or number.
-Allowed characters include a - z, 0 - 9, _, and -. No more than 255 characters."
+            Error::InvalidOrigin(_) => {
+                "Origins must begin with a lowercase letter or number.  \
+                    Allowed characters include a - z, 0 - 9, _, and -. No more than 255 characters."
             }
             Error::IO(ref err) => err.description(),
             Error::LogonTypeNotGranted => {
