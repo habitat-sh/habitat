@@ -538,6 +538,14 @@ fn sub_pkg_build() -> App<'static, 'static> {
                 .short("R")
                 .long("reuse"),
         )
+        .arg(
+            Arg::with_name("DOCKER")
+                .help(
+                    "Uses a Dockerized Studio for the build (default: Studio uses a chroot on linux)"
+                )
+                .short("D")
+                .long("docker"),
+        )
     } else if cfg!(target_os = "windows") {
         sub.arg(
             Arg::with_name("WINDOWS")
