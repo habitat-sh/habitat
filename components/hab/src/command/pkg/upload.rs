@@ -29,20 +29,23 @@
 //! complex than just latest version.
 //!
 
+// Standard Library
 use std::path::{Path, PathBuf};
 
-use common::ui::{Status, UI};
+// External Libraries
+use hyper::status::StatusCode;
+use retry::retry;
+
+// Local Dependencies
 use common::command::package::install::{RETRIES, RETRY_WAIT};
+use common::ui::{Status, UI};
 use depot_client::{self, Client};
+use error::{Error, Result};
+use hcore::channel::{STABLE_CHANNEL, UNSTABLE_CHANNEL};
 use hcore::crypto::artifact::get_artifact_header;
 use hcore::crypto::keys::parse_name_with_rev;
 use hcore::package::{PackageArchive, PackageIdent};
-use hyper::status::StatusCode;
-
 use {PRODUCT, VERSION};
-use error::{Error, Result};
-
-use retry::retry;
 
 /// Upload a package from the cache to a Depot. The latest version/release of the package
 /// will be uploaded if not specified.
@@ -55,7 +58,7 @@ use retry::retry;
 pub fn start<T, U>(
     ui: &mut UI,
     url: &str,
-    channel: Option<&str>,
+    additional_release_channel: Option<&str>,
     token: &str,
     archive_path: T,
     key_path: U,
@@ -127,7 +130,7 @@ where
                                     &depot_client,
                                     token,
                                     &dep,
-                                    channel,
+                                    additional_release_channel,
                                     &candidate_path,
                                 )
                             },
@@ -150,21 +153,27 @@ where
                 }
             }
 
-            if retry(RETRIES,
-                     RETRY_WAIT,
-                     || {
-                         upload_into_depot(ui, &depot_client, token, &ident, channel, &mut archive)
-                     },
-                     |res| res.is_ok())
-                       .is_err() {
-                return Err(Error::from(depot_client::Error::UploadFailed(format!("We tried \
-                                                                                  {} times \
-                                                                                  but could \
-                                                                                  not upload \
-                                                                                  {}. Giving \
-                                                                                  up.",
-                                                                                 RETRIES,
-                                                                                 &ident))));
+            if retry(
+                RETRIES,
+                RETRY_WAIT,
+                || {
+                    upload_into_depot(
+                        ui,
+                        &depot_client,
+                        token,
+                        &ident,
+                        additional_release_channel,
+                        &mut archive,
+                    )
+                },
+                |res| res.is_ok(),
+            ).is_err()
+            {
+                return Err(Error::from(depot_client::Error::UploadFailed(format!(
+                    "We tried {} times but could not upload {}. Giving up.",
+                    RETRIES,
+                    &ident
+                ))));
             }
             ui.end(format!("Upload of {} complete.", &ident))?;
             Ok(())
@@ -173,16 +182,20 @@ where
     }
 }
 
+/// Uploads a package to the depot. All packages are always
+/// automatically put into the `unstable` channel, but if
+/// `additional_release_channel` is provided, packages will be
+/// promoted to that channel as well.
 fn upload_into_depot(
     ui: &mut UI,
     depot_client: &Client,
     token: &str,
     ident: &PackageIdent,
-    channel: Option<&str>,
+    additional_release_channel: Option<&str>,
     mut archive: &mut PackageArchive,
 ) -> Result<()> {
     ui.status(Status::Uploading, archive.path.display())?;
-    let try_promote = match depot_client.put_package(&mut archive, token, ui.progress()) {
+    let package_uploaded = match depot_client.put_package(&mut archive, token, ui.progress()) {
         Ok(_) => true,
         Err(depot_client::Error::APIError(StatusCode::Conflict, _)) => {
             println!("Package already exists on remote; skipping.");
@@ -211,16 +224,16 @@ fn upload_into_depot(
     };
     ui.status(Status::Uploaded, ident)?;
 
-    // Promote to channel if specified
-    if try_promote && channel.is_some() {
-        let channel_str = channel.unwrap();
+    // Promote to additional_release_channel if specified
+    if package_uploaded && additional_release_channel.is_some() {
+        let channel_str = additional_release_channel.unwrap();
         ui.begin(format!(
             "Promoting {} to channel '{}'",
             ident,
             channel_str
         ))?;
 
-        if channel_str != "stable" && channel_str != "unstable" {
+        if channel_str != STABLE_CHANNEL && channel_str != UNSTABLE_CHANNEL {
             match depot_client.create_channel(&ident.origin, channel_str, token) {
                 Ok(_) => (),
                 Err(depot_client::Error::APIError(StatusCode::Conflict, _)) => (),
@@ -243,13 +256,20 @@ fn attempt_upload_dep(
     depot_client: &Client,
     token: &str,
     ident: &PackageIdent,
-    channel: Option<&str>,
+    additional_release_channel: Option<&str>,
     archives_dir: &PathBuf,
 ) -> Result<()> {
     let candidate_path = archives_dir.join(ident.archive_name().unwrap());
     if candidate_path.is_file() {
         let mut archive = PackageArchive::new(candidate_path);
-        upload_into_depot(ui, &depot_client, token, &ident, channel, &mut archive)
+        upload_into_depot(
+            ui,
+            &depot_client,
+            token,
+            &ident,
+            additional_release_channel,
+            &mut archive,
+        )
     } else {
         ui.status(
             Status::Missing,

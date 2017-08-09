@@ -245,7 +245,9 @@ pub fn get() -> App<'static, 'static> {
                     "Use a specific Depot URL (ex: http://depot.example.com/v1/depot)")
                 (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for the Depot")
                 (@arg CHANNEL: --channel -c +takes_value
-                    "Upload to the specified release channel (default: unstable)")
+                    "Additional release channel to upload package to. \
+                     Packages are always uploaded to `unstable`, regardless \
+                     of the value of this option. (default: none)")
                 (@arg HART_FILE: +required +multiple {file_exists}
                     "One or more filepaths to a Habitat Artifact \
                     (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
