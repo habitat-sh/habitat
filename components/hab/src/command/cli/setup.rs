@@ -56,12 +56,16 @@ pub fn start(ui: &mut UI, cache_path: &Path, analytics_path: &Path) -> Result<()
                       publicly, we recommend that you select one that is not already in use \
                       on the Habitat build service found at https://bldr.habitat.sh/.",
         )?;
-        ui.para(&format!("{}", InvalidOrigin))?;
+        ui.para(&format!(
+            "Origins must begin with a lowercase letter or number. \
+                Allowed characters include lowercase letters, numbers, _, -. \
+                No more than 255 characters."
+        ))?;
         let mut origin = prompt_origin(ui)?;
 
         while !ident::is_valid_origin_name(&origin) {
             ui.br()?;
-            ui.fatal(&format!("{}", InvalidOrigin))?;
+            ui.fatal(&format!("{}", InvalidOrigin(origin)))?;
             ui.br()?;
 
             origin = prompt_origin(ui)?;
