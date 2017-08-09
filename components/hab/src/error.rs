@@ -188,6 +188,7 @@ impl error::Error for Error {
             Error::TomlDeserializeError(_) => "Can't deserialize TOML",
             Error::TomlSerializeError(_) => "Can't serialize TOML",
             Error::Utf8Error(_) => "Error processing string as UTF-8",
+
         }
     }
 }

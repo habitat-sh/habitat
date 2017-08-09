@@ -22,7 +22,8 @@ use std::str::FromStr;
 
 use uuid::Uuid;
 use bodyparser;
-use hab_core::package::{Identifiable, FromArchive, PackageArchive, PackageIdent, PackageTarget};
+use hab_core::package::{Identifiable, FromArchive, PackageArchive, PackageIdent, PackageTarget,
+                        ident};
 use hab_core::crypto::keys::{self, PairType};
 use hab_core::crypto::SigKeyPair;
 use hab_core::event::*;
@@ -175,7 +176,7 @@ pub fn origin_create(req: &mut Request) -> IronResult<Response> {
         _ => return Ok(Response::with(status::UnprocessableEntity)),
     };
 
-    if !keys::is_valid_origin_name(request.get_name()) {
+    if !ident::is_valid_origin_name(request.get_name()) {
         return Ok(Response::with(status::UnprocessableEntity));
     }
 

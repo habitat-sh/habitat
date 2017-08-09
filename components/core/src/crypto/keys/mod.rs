@@ -38,7 +38,6 @@ lazy_static! {
     static ref NAME_WITH_REV_RE: Regex = Regex::new(r"\A(?P<name>.+)-(?P<rev>\d{14})\z").unwrap();
     static ref KEYFILE_RE: Regex =
         Regex::new(r"\A(?P<name>.+)-(?P<rev>\d{14})\.(?P<suffix>[a-z]+(\.[a-z]+)?)\z").unwrap();
-    static ref ORIGIN_NAME_RE: Regex = Regex::new(r"\A[a-z0-9][a-z0-9_-]*\z").unwrap();
 }
 
 pub mod box_key_pair;
@@ -360,11 +359,6 @@ where
         }
     };
     Ok((name, rev))
-}
-
-/// Is the string a valid origin name?
-pub fn is_valid_origin_name(name: &str) -> bool {
-    name.chars().count() <= 255 && ORIGIN_NAME_RE.is_match(name)
 }
 
 fn read_key_bytes(keyfile: &Path) -> Result<Vec<u8>> {
@@ -795,21 +789,5 @@ mod test {
             None,
         );
         assert_eq!(1, candidates.len());
-    }
-
-    #[test]
-    fn check_origin_name() {
-        assert!(super::is_valid_origin_name("foo"));
-        assert!(super::is_valid_origin_name("foo_bar"));
-        assert!(super::is_valid_origin_name("foo-bar"));
-        assert!(super::is_valid_origin_name("0xdeadbeef"));
-
-        assert!(!super::is_valid_origin_name("Core"));
-        assert!(!super::is_valid_origin_name(" foo"));
-        assert!(!super::is_valid_origin_name("foo "));
-        assert!(!super::is_valid_origin_name("!foo"));
-        assert!(!super::is_valid_origin_name("foo!"));
-        assert!(!super::is_valid_origin_name("foo bar"));
-        assert!(!super::is_valid_origin_name("0xDEADBEEF"));
     }
 }
