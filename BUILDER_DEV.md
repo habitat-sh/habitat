@@ -31,6 +31,19 @@ client_id = "0c2f738a7d0bd300de10"
 client_secret = "438223113eeb6e7edf2d2f91a232b72de72b9bdf"
 ```
 
+`config_jobsrv.toml`
+```toml
+[archive]
+backend = "local"
+local_dir = "/tmp"
+```
+
+`config_scheduler.toml`
+```toml
+auth_token = "<your github token>"
+depot_url = "http://localhost:9636/v1/depot"
+```
+
 `config_sessionsrv.toml`
 ```toml
 [permissions]
@@ -51,18 +64,6 @@ depot_url = "http://localhost:9636/v1/depot"
 auto_publish = true
 ```
 
-`config_jobsrv.toml`
-```toml
-[archive]
-backend = "local"
-local_dir = "/tmp"
-```
-
-`config_scheduler.toml`
-```toml
-auth_token = "<your github token>"
-depot_url = "http://localhost:9636/v1/depot"
-```
 
 (Note: If you want your log files to persist across restarts of your development machine, replace `/tmp` with some other directory. It *must* exist and be writable before you start the job server).
 
