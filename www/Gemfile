@@ -10,6 +10,9 @@ gem 'wdm', '~> 0.1.0', platforms: [:mswin, :mingw]
 # windows does not come with time zone data
 gem 'tzinfo-data', platforms: [:mswin, :mingw]
 
+# For better code snippets in markdown
+gem 'redcarpet'
+
 # Middleman Gems
 gem 'middleman', '~> 4.1'
 gem 'middleman-autoprefixer'

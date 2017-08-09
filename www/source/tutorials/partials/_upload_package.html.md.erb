@@ -20,16 +20,18 @@ To upload your public key, do the following:
 <% if !is_windows %>
 1. In a terminal window, run the `hab origin key upload` subcommand and specify the OAuth GitHub token you created earlier and your origin name. If you would like to upload a different key, you can do so by specifying the path to the key (e.g. `~/.hab/cache/keys/originname-release.pub`).
 
-       $ hab origin key upload -z <OAuth_token> originname
-
+    ```
+    $ hab origin key upload -z <OAuth_token> originname
+    ```
 > **Tip** Because only the private key is imported when entering the Habitat studio, it is easier to upload your public key outside of the studio.
 <% end %>
 
 <% if is_windows %>
 1. In a PowerShell window, run the `hab origin key upload` subcommand and specify the OAuth GitHub token you created earlier and your origin name. If you would like to upload a different key, you can do so by specifying the path to the key (e.g. `~\.hab\cache\keys\originname-release.pub`).
 
-       PS > hab origin key upload -z <OAuth_token> originname
-
+    ```
+    PS > hab origin key upload -z <OAuth_token> originname
+    ```
 > **Tip** Because only the private key is imported when entering the Habitat studio, it is easier to upload your public key outside of the studio.
 <% end %>
 
@@ -40,52 +42,61 @@ Once the depot possesses at least the public key of the origin, you may upload o
 <% if !is_windows %>
 1. Again, in your terminal window, change directory to the root of the `~/habitat-example-plans/myrailsapp` directory.
 
-       $ cd ~/habitat-example-plans/myrailsapp
-
+    ```
+    $ cd ~/habitat-example-plans/myrailsapp
+    ```
 2. Run `hab pkg upload` specifying the OAuth token and the .hart file of your package.
 
-       $ hab pkg upload -z <OAuth_token> results/originname-myrailsapp-0.1.0-release-x86_64-linux.hart
+    ```
+    $ hab pkg upload -z <OAuth_token> results/originname-myrailsapp-0.1.0-release-x86_64-linux.hart
+    ```
 <% end %>
 
 <% if is_windows %>
 1. Again, in your PowerShell window, change directory to the root of the `~\habitat-example-plans\myrailsapp` directory.
 
-       PS > cd ~\habitat-example-plans\myrailsapp
-
+    ```
+    PS > cd ~\habitat-example-plans\myrailsapp
+    ```
 2. Run `hab pkg upload` specifying the OAuth token and the .hart file of your package.
 
-       PS > hab pkg upload -z <OAuth_token> .\results\originname-myrailsapp-0.1.0-release-x86_64-linux.hart
+    ```
+    PS > hab pkg upload -z <OAuth_token> .\results\originname-myrailsapp-0.1.0-release-x86_64-linux.hart
+    ```
 <% end %>
 
-   If successful, you should see the following output:
+    If successful, you should see the following output:
 
-   ~~~
-   ↑ Uploading results/dwrede-myrailsapp-0.1.0-20170721004359-x86_64-linux.hart
-   5.69 MB / 5.69 MB | [=============================================================================================================================================================] 100.00 % 8.86 MB/s
-   ✓ Uploaded dwrede/myrailsapp/0.1.0/20170721004359
-   » Promoting dwrede/myrailsapp/0.1.0/20170721004359 to channel 'unstable'
-   ✓ Promoted dwrede/myrailsapp/0.1.0/20170721004359
-   ★ Upload of dwrede/myrailsapp/0.1.0/20170721004359 complete.
-   ~~~
-
+    ```console
+    ↑ Uploading results/dwrede-myrailsapp-0.1.0-20170721004359-x86_64-linux.hart
+    5.69 MB / 5.69 MB | [====================================================] 100.00 % 8.86 MB/s
+    ✓ Uploaded dwrede/myrailsapp/0.1.0/20170721004359
+    » Promoting dwrede/myrailsapp/0.1.0/20170721004359 to channel 'unstable'
+    ✓ Promoted dwrede/myrailsapp/0.1.0/20170721004359
+    ★ Upload of dwrede/myrailsapp/0.1.0/20170721004359 complete.
+    ```
    If you look at the output, you should notice that your package was placed, or _promoted_, to a channel in the depot called "unstable". Channels are useful in CI/CD scenarios where you want to gate a package before making it the default version of the package that users should consume. You can think of this split as the difference between test and production, or nightly releases versus stable releases of products.
 
 3. (Optional) If you want to promote your package to the stable channel, run the `hab pkg promote` command as follows:
 
 <% if !is_windows %>
-       $ hab pkg promote -z <OAuth_token> originname-myrailsapp-0.1.0-release stable
+    ```
+    $ hab pkg promote -z <OAuth_token> originname-myrailsapp-0.1.0-release stable
+    ```
 <% end %>
 
 <% if is_windows %>
-       PS > hab pkg promote -z <OAuth_token> originname-myrailsapp-0.1.0-release stable
+    ```
+    PS > hab pkg promote -z <OAuth_token> originname-myrailsapp-0.1.0-release stable
+    ```
 <% end %>
 
-   Output should look like the following:
+    Output should look like the following:
 
-   ~~~
-   » Promoting dwrede/myrailsapp/0.1.0/20170721004359 to channel 'stable'
-   ✓ Promoted dwrede/myrailsapp/0.1.0/20170721004359
-   ~~~
+    ```console
+    » Promoting dwrede/myrailsapp/0.1.0/20170721004359 to channel 'stable'
+    ✓ Promoted dwrede/myrailsapp/0.1.0/20170721004359
+    ```
 
 For more information on uploading and sharing packages, see [Sharing packages](/docs/share-packages-overview/).
 

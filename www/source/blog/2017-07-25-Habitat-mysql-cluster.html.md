@@ -24,13 +24,13 @@ When you set up your virtual machines, make sure that these ports are open.
 
 When your virtual machines are up, ssh into each of them and run this command to install Habitat.
 
-```bash
+```console
   $ curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh | sudo bash
 ```
 
 Then create a hab group and user on each virtual machine.
 
-```bash
+```console
   $ sudo groupadd hab
   $ sudo useradd -g hab hab
 ```
@@ -39,7 +39,7 @@ Then create a hab group and user on each virtual machine.
 
 SSH into one of your virtual machines and run this command to download, install, and start MySql.
 
-```bash
+```console
   $ sudo hab start core/mysql --topology leader --group production
 ```
 
@@ -47,13 +47,13 @@ You will see a message indicating that an election is in progress, but a quorum 
 
 Now SSH into the other two virtual machines and run this command (substituting in the IP address for your first virtual machine).
 
-```bash
+```console
   $ sudo hab start core/mysql --topology leader --group production --peer first_vm_ip_address
 ```
 
 If the election is successful, you will now see output like this:
 
-```bash
+```console
   mysql.production(SR): Executing hooks; 557399da9e9a4ac9b78b1ea33432c24a is the leader
 ```
 

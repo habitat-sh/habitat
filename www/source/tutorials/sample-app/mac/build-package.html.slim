@@ -20,18 +20,18 @@ section.sample-app
       p To build the sample Rails application, start by changing directories to the root directory for your project.
 
       pre
-        code cd ~/habitat-example-plans/myrailsapp/
+        code.console $ cd ~/habitat-example-plans/myrailsapp/
 
     li
       p Make sure Docker Community Edition for Mac is running and then enter into the studio environment.
 
       pre
-        code hab studio enter
+        code.console $ hab studio enter
 
       p The package download and installation process should only take a few moments. If successful, you should see another bash prompt like this:
 
       pre
-        code [1][default:/src:0]#
+        code.console [1][default:/src:0]#
 
       p Because the studio is chrooted, the <code>src</code> directory maps to the <code>~/habitat-example-plans/myrailsapp</code> directory you were in before you entered the studio.
 
@@ -39,7 +39,7 @@ section.sample-app
       p Run the <code>build</code> command to build your package.
 
       pre
-        code [2][default:/src:0]# build
+        code.console [2][default:/src:0]# build
 
       p The last set of output messages from running <code>build</code> should look something like this:
 
@@ -59,16 +59,16 @@ section.sample-app
   p Run <code>hab pkg export docker originname/myrailsapp</code> with the origin you chose at setup.
 
   pre
-    code [3][default:/src:0]# hab pkg export docker originname/myrailsapp
+    code.console [3][default:/src:0]# hab pkg export docker originname/myrailsapp
 
   p Because we need to connect to a PostgreSQL database managed by Habitat, export the PostgreSQL database package to a Docker container as well.
 
   pre
-    code [4][default:/src:0]# hab pkg export docker core/postgresql
+    code.console [4][default:/src:0]# hab pkg export docker core/postgresql
 
   p Once you have finished exporting both packages, exit out of the studio.
 
   pre
-    code [5][default:/src:0]# exit
+    code.console [5][default:/src:0]# exit
 
 = link_to 'Next: Run the Sample App', '/tutorials/sample-app/mac/run-app/', class: 'button cta'

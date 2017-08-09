@@ -11,54 +11,57 @@ creates a generic run hook. However, to create the `health_check` hook, you have
 1. Change directory to `hooks`.
 
 <% if !is_windows %>
-   ~~~ bash
-   $ cd hooks
-   ~~~
+    ```console
+    $ cd hooks
+    ```
 <% end %>
 
 <% if is_windows %>
 
-   ~~~ powershell
-   PS > cd hooks
-   ~~~
+    ```powershell
+    PS > cd hooks
+    ```
 <% end %>
 2. Create a new file named `health_check`.
 
 <% if !is_windows %>
-       $ touch health_check
+    ```
+    $ touch health_check
+    ```
 <% end %>
 
 <% if is_windows %>
-
-   ~~~ powershell
-   PS > New-Item -ItemType file health_check
-   ~~~
+    ```powershell
+    PS > New-Item -ItemType file health_check
+    ```
 <% end %>
 3. Open `health_check` in your text editor.
 4. Hooks use [shebangs](https://en.wikipedia.org/wiki/Shebang_(Unix)) to decide which interpreter to use when running their scripts. 
 In the case of the hook in our plan, we will use the system shell, so add the following to the `health_check` hook file:
 
-       #!/bin/sh
-       #
+    ```bash
+    #!/bin/sh
+    #
 
-       # default return code is 0
-       rc=0
+    # default return code is 0
+    rc=0
 
-       # This request will test whether our index page can be retrieved. 
-       hab pkg exec core/curl curl -sS --head --fail --max-time 1 http://localhost:{{cfg.app.port}}/
+    # This request will test whether our index page can be retrieved. 
+    hab pkg exec core/curl curl -sS --head --fail --max-time 1 http://localhost:{{cfg.app.port}}/
 
-       case $? in
-         # Zero exit status means curl got back a 200 end everything is ok.
-         0)
-           rc=0 ;;
-         # Anything else is critical.
-         *)
-           rc=2 ;;
-       esac
+    case $? in
+        # Zero exit status means curl got back a 200 end everything is ok.
+        0)
+            rc=0 ;;
+        # Anything else is critical.
+        *)
+            rc=2 ;;
+    esac
 
-       exit $rc
-       
-    This hook performs a basic test to check whether the results of the curl command return a status code less than 400. 
-    If the curl command doesn't succeed, then this check will be denoted as "critical."
+    exit $rc
+    ```
+
+This hook performs a basic test to check whether the results of the curl command return a status code less than 400. 
+If the curl command doesn't succeed, then this check will be denoted as "critical."
 
 5. Save the `health_check` hook file.

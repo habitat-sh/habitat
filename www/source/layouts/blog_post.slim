@@ -6,6 +6,7 @@
       .main-content__has-sidebar
         article.article-detail
           header
+            = stylesheet_link_tag :ocean
             .article-detail--tags.heading
               ul.no-bullet
                 - current_page.tags.each do |tag|
