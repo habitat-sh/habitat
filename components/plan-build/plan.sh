@@ -3,8 +3,6 @@ pkg_origin=core
 pkg_version=$(cat "$PLAN_CONTEXT/../../VERSION")
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('Apache-2.0')
-pkg_source=nosuchfile.tar.gz
-pkg_build_deps=()
 pkg_bin_dirs=(bin)
 
 pkg_deps=(
@@ -41,22 +39,4 @@ do_build() {
 
 do_install() {
   install -D $program $pkg_prefix/bin/$program
-}
-
-# Turn the remaining default phases into no-ops
-
-do_prepare() {
-  return 0
-}
-
-do_download() {
-  return 0
-}
-
-do_verify() {
-  return 0
-}
-
-do_unpack() {
-  return 0
 }
