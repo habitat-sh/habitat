@@ -48,3 +48,8 @@ authors:
     email: "nshamrell@habitat.sh"
     twitter: "@nellshamrell"
     bio: "Nell Shamrell-Harrington is a Software Development Engineer at Chef and core maintainer of the Habitat and Supermarket open source projects. She also sits on the advisory board for the University of Washington Certificates in Ruby Programming and DevOps. She specializes in Chef, Ruby, Rails, Rust Regular Expressions, and Test Driven Development and has traveled the world speaking on these topics. Prior to entering the world of software development, she studied and worked in the field of theatre."
+  chrisnunciato:
+    name: "Chris Nunciato"
+    email: "cnunciato@habitat.sh"
+    twitter: "@cnunciato"
+    bio: "Chris Nunciato is a front-end developer at Chef and a Habitat core maintainer. He builds a lot of web sites, and in his spare time, he also builds web sites."
