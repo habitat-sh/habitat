@@ -1,5 +1,16 @@
 # Habitat CHANGELOG
 
+## [0.29.1](https://github.com/habitat-sh/habitat/tree/0.29.1) (08-10-2017)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.29.0...0.29.1)
+
+## Bug fixes
+
+- fix docker studio panic on mac/windows when no args passed [\#2909](https://github.com/habitat-sh/habitat/pull/2909) ([mwrock](https://github.com/mwrock))
+
+**Merged pull requests:**
+
+- version bump! [\#2908](https://github.com/habitat-sh/habitat/pull/2908) ([mgamini](https://github.com/mgamini))
+
 ## [0.29.0](https://github.com/habitat-sh/habitat/tree/0.29.0) (08-10-2017)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.28.0...0.29.0)
 
@@ -43,6 +54,7 @@
 
 **Merged pull requests:**
 
+- Build 0.29.0 [\#2907](https://github.com/habitat-sh/habitat/pull/2907) ([mgamini](https://github.com/mgamini))
 - Remove things that have sane defaults now [\#2905](https://github.com/habitat-sh/habitat/pull/2905) ([christophermaier](https://github.com/christophermaier))
 - add blog post on asp.net full framework iis apps [\#2904](https://github.com/habitat-sh/habitat/pull/2904) ([mwrock](https://github.com/mwrock))
 - alphabetize config entries in BUILDER\_DEV.md for easier scanning. Also, add myself to CODEOWNERS [\#2900](https://github.com/habitat-sh/habitat/pull/2900) ([mgamini](https://github.com/mgamini))
