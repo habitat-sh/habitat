@@ -12,7 +12,7 @@ section
   p In our example, the PostgreSQL database service exposes a port number that the Ruby-on-Rails web application needs in order to connect to the database. To set up service binding between the Rails front-end and the PostgreSQL backend, you will restart the Rails app, but this time specifying the IP address of the Supervisor managing the backend and setting the <code>bind</code> argument to the service group name of the database. This will allow you your Rails app to use that port number when it initializes itself and tries to connect to the database.
 
   pre
-    code hab start example/myrubyapp --peer 172.17.0.2 --bind database:postgresql.default
+    code.console $ hab start example/myrubyapp --peer 172.17.0.2 --bind database:postgresql.default
 
   #window-node-1.window-node
     = partial "partials/terminal" do

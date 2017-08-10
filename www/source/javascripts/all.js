@@ -7,3 +7,10 @@
 //= require community.js
 //= require tutorials.js
 //= require demo.js
+//= require highlight.pack
+
+$(document).ready(function() {
+  $('pre code').each(function(i, block) {
+    hljs.initHighlightingOnLoad();
+  });
+});

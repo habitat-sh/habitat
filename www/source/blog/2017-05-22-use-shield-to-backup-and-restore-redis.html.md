@@ -15,11 +15,11 @@ In this post we will take a look at running Redis and backing it up via Shield.
 
 To play around with the starkandwayne/redis release you can bring it up in the habitat studio:
 
-```
+```console
 $ hab studio enter
 [1][default:/src:0]# hab svc load starkandwayne/redis
 (...)
-[2][default:/src:127]# hab pkg binlink starkandwayne/redis                                                                                                                   [4/1836]
+[2][default:/src:127]# hab pkg binlink starkandwayne/redis
 » Symlinking redis-check-rdb from starkandwayne/redis into /bin
 ★ Binary redis-check-rdb from starkandwayne/redis/3.2.8/20170522110804 symlinked to /bin/redis-check-rdb
 » Symlinking redis-server from starkandwayne/redis into /bin
@@ -33,7 +33,7 @@ OK
 
 Typing `sl` will give you the log output of the background supervisor that got started when you entered the studio:
 
-```
+```console
 [4][default:/src:0]# sl
 --> Tailing the Habitat Supervisor's output (use 'Ctrl+c' to stop)
 redis.default(O):  |    `-._`-._        _.-'_.-'    |
@@ -50,9 +50,9 @@ redis.default(O): 168:M 22 May 13:11:55.082 * The server is now ready to accept 
 
 Since Shield is a bit more complex system with a few moving parts I will run it via the pre-exported docker images in docker-compose.
 
-First lets bring up the shield-daemon connected to a database. The daemon is the main coordinator of shield. It triggers backups as needed and persists the state of all created archives and backup jobs.
+First lets bring up the shield-daemon connected to a database. The daemon is the main coordinator of shield. It triggers backups as needed and persists the state of all created archives and backup jobs.  
 
-```
+```console
 $ mkdir redis-hab-demo && cd redis-hab-demo
 $ cat <<EOF > docker-compose.yml
 version: '3'
@@ -76,7 +76,8 @@ docker-compose up
 You can use the `shield` cli to interact with the daemon. Download it from the [github-release](https://github.com/starkandwayne/shield/releases).
 
 From another terminal:
-```
+
+```console
 $ shield create-backend hab https://localhost
 Successfully created backend 'hab', pointing to 'https://localhost'
 
@@ -118,7 +119,8 @@ docker-compose stop && docker-compose rm -f
 ```
 
 Use an EDITOR to add the agent to the docker-compose file. Add the `agent` service under the already existing `services:` key:
-```
+
+```YAML
 services:
   agent: # to autoprovision the dependant entities
     image: starkandwayne/shield-agent
@@ -165,10 +167,12 @@ Excellent we have now automatically configured a _store_. For the demo we are us
 Now that we have a schedule, policy and store in place we can bring up Redis and have it automatically configure Shield to run backups.
 
 Again stop the running system:
+
 ```
 docker-compose stop && docker-compose rm -f
 ```
 And add Redis to the `docker-compose.yml`. Again the `redis` service belongs under the _already existing_ `services:` key. The `volumes` key new:
+
 ```
 services:
   redis:
@@ -192,10 +196,12 @@ backups-volume: {}
 ```
 
 Bring it up and have a look:
+
 ```
 $ docker-compose up
 ```
 It can take a while for the whole system to come up but eventually you should see:
+
 ```
 $ shield jobs -k
 Name           P?  Summary  Retention Policy  Schedule  Remote IP        Target
@@ -206,6 +212,7 @@ redis-default  N            shortterm         daily     172.27.0.5:5444  {
 ```
 So the Redis service we just added was able to configure its own backup job just by binding to a running Shield daemon. Cool!
 Lets write a value, take a backup and see if it works:
+
 ```
 $ redis-cli -a password SET hello world
 OK
@@ -218,6 +225,7 @@ UUID                                  Target              Restore IP         Sto
 fb2b2b0b-925b-4e69-8083-ab649760048e  redis-default (fs)  192.168.16.5:5444  default (fs)  Tue, 16 May 2017 13:29:02 +0000  Wed, 17 May 2017 13:29:02 +0000  valid
 ```
 So we set a value and manually took a backup. Lets destroy and recreate the Redis service. Thanks to the auto-bootstrapping feature the value should be restored without any further input:
+
 ```
 $ docker-compose stop redis && docker-compose rm -f redis
 $ docker-compose up -d redis

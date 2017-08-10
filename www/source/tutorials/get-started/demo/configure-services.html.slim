@@ -10,7 +10,7 @@ section
   p In the example below, a workstation machine is connected to the same network as the Rails and PostgreSQL services. Run the <code>hab config apply</code> subcommand to send the <code>update_config.toml</code> to the <code>myrubyapp.default</code> service group. This will update the appropriate configuration values for the Rails app and allow it to connect to the database.
 
   pre
-    code hab config apply --peer 172.17.0.2 myrubyapp.default 1 update_config.toml
+    code.console $ hab config apply --peer 172.17.0.2 myrubyapp.default 1 update_config.toml
 
   p The Ruby-on-Rails window will show how its output changes in response to the configuration update.
 

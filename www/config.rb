@@ -1,8 +1,7 @@
 require 'slim'
 
-activate :syntax
-set :markdown_engine, :kramdown
-set :markdown, coderay_line_numbers: :table
+set :markdown_engine, :redcarpet
+set :markdown, fenced_code_blocks: true, tables: true
 
 ###
 # Page options, layouts, aliases and proxies

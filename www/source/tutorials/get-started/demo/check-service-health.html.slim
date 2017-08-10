@@ -12,7 +12,7 @@ section
   p To retrieve status for an individual service, specify the origin and package name in the <code>hab sup status</code> subcommand. Check the status of <code>example/myrubyapp</code> by entering the following into the terminal window:
 
   pre
-    code hab sup status example/myrubyapp
+    code.console $ hab sup status example/myrubyapp
 
   p In addition to retrieving general status information about a service, the supervisor also exposes service health, leader election results, census information, and other data through an HTTP API endpoint.
 
@@ -21,7 +21,7 @@ section
   p To the results of a basic availability test for the Ruby-on-Rails application, enter the following:
 
   pre
-    code curl http://172.17.0.3:9631/services/myrubyapp/default/health
+    code.console $ curl http://172.17.0.3:9631/services/myrubyapp/default/health
 
   p This health check is available by default when using the Ruby scaffolding to create your package.
 
