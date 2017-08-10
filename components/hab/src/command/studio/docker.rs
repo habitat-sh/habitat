@@ -71,8 +71,9 @@
         // We need to strip out the -D if it exists to avoid
         // it getting passed to the sup on entering the studio
         let to_cull = OsString::from("-D");
-        let index = args.iter().position(|x| *x == to_cull).unwrap();
-        args.remove(index);
+        if let Some(index) = args.iter().position(|x| *x == to_cull) {
+            args.remove(index);
+        }
 
         check_mounts(&docker_cmd, volumes.iter())?;
         run_container(docker_cmd, args, volumes.iter(), env_vars.iter())
