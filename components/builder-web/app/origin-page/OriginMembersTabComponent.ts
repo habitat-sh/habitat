@@ -75,9 +75,9 @@ import {List} from "immutable";
                     in this origin.
                 </p>
                 <p>
-                    Read the docs for more information on
+                    For more information, see
                     <a href="{{docsUrl}}/concepts-keys/">
-                        managing and using keys</a>.
+                    origin keys</a> in the documentation.
                 </p>
             </div>
         </div>

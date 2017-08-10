@@ -32,13 +32,19 @@ The depot uses the following OAuth scopes when performing GitHub authentication:
 
 Once you have this token, you can set the `HAB_AUTH_TOKEN` [environment variable](/docs/reference/environment-vars/) to this value, so that any commands requiring authentication will use it.
 
+## Creating origin keys
+
+After you have done the basic account creation steps, you need to create your origin keys. The private key will be used to sign your packages and the public key will be used by supervisors to verify the integrity of your packages (`.hart` files).
+
+You can either create an origin key pair by running `hab setup` from your host machine, or running `hab origin key generate <originname>` from either the host machine or from within the studio.
+
+Your keys are located at `~/.hab/cache/keys` on your host machine and `/hab/cache/keys` inside the studio environment.
+
 ## Uploading the keys for the origin
 
-If you created a new origin and the depot does not already have the keys for that origin, you may upload them. If you do not upload at least the public key for the origin, the depot will reject the upload of your packages under that origin.
+If you created a new origin and/or the depot does not have the public key that corresponds to the private key used to build your package, you must upload it. You also have the ability to upload your priate key; however, if you do not upload at least the public key, the depot will reject the upload of your packages for that origin.
 
-Providing the public key for the origin allows supervisors to verify the integrity of the Habitat packages (`.hart` files).
-
-You can upload keys for the origin through the web interface for the depot, or by using the `hab origin key upload` command. You must be authenticated using the access token described in the previous step before you can upload keys.
+You can upload keys for the origin through the web interface for the depot, or by using the `hab origin key upload` command. You must be authenticated using the access token described earlier before you can upload keys.
 
 ## Uploading packages to the depot
 
