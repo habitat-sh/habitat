@@ -10,7 +10,7 @@ section
   p Suppose you want to run several instances of our PostgreSQL database for high availability. Start off by simply restarting your PostgreSQL service, but this time add a <code>-t leader</code> flag to the <code>hab start</code> command.
 
   pre
-    code hab start core/postgresql -t leader
+    code.console $ hab start core/postgresql -t leader
 
   = partial "partials/terminal" do
 
