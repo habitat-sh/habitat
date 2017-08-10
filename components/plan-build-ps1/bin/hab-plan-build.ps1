@@ -786,7 +786,9 @@ function Invoke-Download {
 
 # Default implementation for the `Invoke-Download` phase.
 function Invoke-DefaultDownload {
-    _download_file $pkg_source $pkg_filename $pkg_shasum
+    if($pkg_source -and $pkg_source -ne "") {
+        _download_file $pkg_source $pkg_filename $pkg_shasum
+    }
 }
 
 # Verify that the package we have in `$HAB_CACHE_SRC_PATH\$pkg_filename` has
@@ -1272,7 +1274,7 @@ try {
     # Validate metadata
     Write-BuildLine "Validating plan metadata"
 
-    foreach ($var in @("pkg_origin", "pkg_name", "pkg_version", "pkg_source")) {
+    foreach ($var in @("pkg_origin", "pkg_name", "pkg_version")) {
         if (-Not (Test-Path variable:script:$var)) {
             _Exit-With "Failed to build. '$var' must be set." 1
         } elseif ((Get-Variable $var -Scope script).Value -eq "") {
@@ -1295,7 +1297,7 @@ try {
 
     # Set `$pkg_filename` to the basename of `$pkg_source`, if it is not already
     # set by the `plan.ps1`.
-    if ("$pkg_filename" -eq "") {
+    if ("$pkg_filename" -eq "" -and "$pkg_source" -ne "") {
         $script:pkg_filename = "$(Split-Path $pkg_source -Leaf)"
     }
 
