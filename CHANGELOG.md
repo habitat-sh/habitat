@@ -1,5 +1,69 @@
 # Habitat CHANGELOG
 
+## [0.29.0](https://github.com/habitat-sh/habitat/tree/0.29.0) (08-10-2017)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.28.0...0.29.0)
+
+## Features & Enhancements
+
+- Community Communications - Operational Status [\#2695](https://github.com/habitat-sh/habitat/issues/2695)
+- \[Documentation\] Expand the current studio page [\#2585](https://github.com/habitat-sh/habitat/issues/2585)
+- \\[Documentation\\] Expand the current studio page [\#2585](https://github.com/habitat-sh/habitat/issues/2585)
+- \[builder\] \[chore\] Terraform for acceptance should mount package snapshot [\#2515](https://github.com/habitat-sh/habitat/issues/2515)
+- Add whitelist origin capability to builder builds [\#2455](https://github.com/habitat-sh/habitat/issues/2455)
+- Contents of /etc/hosts does not resolve. [\#2317](https://github.com/habitat-sh/habitat/issues/2317)
+- Add support for running multiple services to docker export [\#2217](https://github.com/habitat-sh/habitat/issues/2217)
+- \[web ui\] Add "Why Habitat" Page  [\#2191](https://github.com/habitat-sh/habitat/issues/2191)
+- Add language/build tool detection for automatically determining scaffolding to use to plan generator [\#2009](https://github.com/habitat-sh/habitat/issues/2009)
+- Add plan scaffolding support to `hab plan init` [\#2008](https://github.com/habitat-sh/habitat/issues/2008)
+- do not require pkg\_source in ps1 builds [\#2906](https://github.com/habitat-sh/habitat/pull/2906) ([mwrock](https://github.com/mwrock))
+- Corrected incorrect markdown handling added syntax highlighting [\#2901](https://github.com/habitat-sh/habitat/pull/2901) ([eeyun](https://github.com/eeyun))
+- Corrected incorrect markdown handling added syntax highlighting [\#2901](https://github.com/habitat-sh/habitat/pull/2901) ([eeyun](https://github.com/eeyun))
+- Disallow multiple simultaneous builds of same project [\#2868](https://github.com/habitat-sh/habitat/pull/2868) ([chefsalim](https://github.com/chefsalim))
+- Implement "hab job start" command. [\#2817](https://github.com/habitat-sh/habitat/pull/2817) ([raskchanky](https://github.com/raskchanky))
+
+## Bug fixes
+
+- Packaged powershell breaking on 2008R2 [\#2890](https://github.com/habitat-sh/habitat/issues/2890)
+- \[www\] code blocks in blog post don't look right [\#2862](https://github.com/habitat-sh/habitat/issues/2862)
+- hab CLI allows creating origins that are invalid in depot [\#2833](https://github.com/habitat-sh/habitat/issues/2833)
+- `hab pkg build .` and `hab studio new` `-dev` version of `hab-backline` [\#2810](https://github.com/habitat-sh/habitat/issues/2810)
+- When exporting to docker unpublished hab-pkg-dockerize is being used [\#2802](https://github.com/habitat-sh/habitat/issues/2802)
+- Nodes don't agree on leader after election [\#2315](https://github.com/habitat-sh/habitat/issues/2315)
+- Package identifier version comparison barfs on non-numeric versions [\#2213](https://github.com/habitat-sh/habitat/issues/2213)
+- 'lost an election struct between looking it up and reading it' [\#2177](https://github.com/habitat-sh/habitat/issues/2177)
+- Don't upload to "stable" channel by default [\#2897](https://github.com/habitat-sh/habitat/pull/2897) ([christophermaier](https://github.com/christophermaier))
+- Corrects unexpected failure with hab-pkg-dockerize [\#2883](https://github.com/habitat-sh/habitat/pull/2883) ([eeyun](https://github.com/eeyun))
+- Validate origin names with the same rules as the Depot [\#2860](https://github.com/habitat-sh/habitat/pull/2860) ([smacfarlane](https://github.com/smacfarlane))
+
+**Closed issues:**
+
+- Service not getting hupped after providing a new configuration [\#2864](https://github.com/habitat-sh/habitat/issues/2864)
+- RFE: want Docker-based builds on Linux as well as macOS [\#2863](https://github.com/habitat-sh/habitat/issues/2863)
+- Originsrv package updates should synchronize with Builder scheduler [\#2160](https://github.com/habitat-sh/habitat/issues/2160)
+
+**Merged pull requests:**
+
+- Remove things that have sane defaults now [\#2905](https://github.com/habitat-sh/habitat/pull/2905) ([christophermaier](https://github.com/christophermaier))
+- add blog post on asp.net full framework iis apps [\#2904](https://github.com/habitat-sh/habitat/pull/2904) ([mwrock](https://github.com/mwrock))
+- alphabetize config entries in BUILDER\_DEV.md for easier scanning. Also, add myself to CODEOWNERS [\#2900](https://github.com/habitat-sh/habitat/pull/2900) ([mgamini](https://github.com/mgamini))
+- Extract rumor "heat" tracking to separate module [\#2893](https://github.com/habitat-sh/habitat/pull/2893) ([christophermaier](https://github.com/christophermaier))
+- Eeyun/docker linux [\#2886](https://github.com/habitat-sh/habitat/pull/2886) ([eeyun](https://github.com/eeyun))
+- "download" is mis-spelled [\#2885](https://github.com/habitat-sh/habitat/pull/2885) ([juliandunn](https://github.com/juliandunn))
+- Fix typo in Tutorials image [\#2877](https://github.com/habitat-sh/habitat/pull/2877) ([cnunciato](https://github.com/cnunciato))
+- mount docker.sock on windows host even if it is not a file [\#2876](https://github.com/habitat-sh/habitat/pull/2876) ([mwrock](https://github.com/mwrock))
+- Fix typo in param [\#2873](https://github.com/habitat-sh/habitat/pull/2873) ([chefsalim](https://github.com/chefsalim))
+- Change `--peers` flag in Terraform provisioner to appropriate `--peer` [\#2872](https://github.com/habitat-sh/habitat/pull/2872) ([reset](https://github.com/reset))
+- Add bldr-run-no-build option to Makefile [\#2871](https://github.com/habitat-sh/habitat/pull/2871) ([chefsalim](https://github.com/chefsalim))
+- Receive initial peer list from a Terraform variable [\#2869](https://github.com/habitat-sh/habitat/pull/2869) ([reset](https://github.com/reset))
+- Refresh the Tutorials! [\#2861](https://github.com/habitat-sh/habitat/pull/2861) ([cnunciato](https://github.com/cnunciato))
+- nsswitch.conf required for name resolution in studio [\#2859](https://github.com/habitat-sh/habitat/pull/2859) ([eeyun](https://github.com/eeyun))
+- link core/cacert bundle to standard location in container [\#2858](https://github.com/habitat-sh/habitat/pull/2858) ([eeyun](https://github.com/eeyun))
+- Adding myself to CODEOWNERS [\#2854](https://github.com/habitat-sh/habitat/pull/2854) ([raskchanky](https://github.com/raskchanky))
+- Initial CODEOWNERS file [\#2853](https://github.com/habitat-sh/habitat/pull/2853) ([christophermaier](https://github.com/christophermaier))
+- Use the most recent hab cli in appveyor and bump dev version [\#2852](https://github.com/habitat-sh/habitat/pull/2852) ([mwrock](https://github.com/mwrock))
+- Better async job status handling [\#2851](https://github.com/habitat-sh/habitat/pull/2851) ([chefsalim](https://github.com/chefsalim))
+- Better failure recovery for build jobs [\#2837](https://github.com/habitat-sh/habitat/pull/2837) ([chefsalim](https://github.com/chefsalim))
+
 ## [0.28.0](https://github.com/habitat-sh/habitat/tree/0.28.0) (07-29-2017)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.27.1...0.28.0)
 
@@ -14,6 +78,10 @@
 ## Bug fixes
 
 - build clap command tree in a separate thread with increased stack size [\#2848](https://github.com/habitat-sh/habitat/pull/2848) ([mwrock](https://github.com/mwrock))
+
+**Merged pull requests:**
+
+- prep 0.28.0 [\#2850](https://github.com/habitat-sh/habitat/pull/2850) ([mwrock](https://github.com/mwrock))
 
 ## [0.27.1](https://github.com/habitat-sh/habitat/tree/0.27.1) (07-28-2017)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.27.0...0.27.1)
@@ -293,7 +361,6 @@
 
 **Closed issues:**
 
-- Dependencies cant get reused [\#2658](https://github.com/habitat-sh/habitat/issues/2658)
 - \[RFC\] Patches [\#2656](https://github.com/habitat-sh/habitat/issues/2656)
 - Implement feature to auto-upload a successful build [\#2651](https://github.com/habitat-sh/habitat/issues/2651)
 - Support scons and other build systems [\#2642](https://github.com/habitat-sh/habitat/issues/2642)
