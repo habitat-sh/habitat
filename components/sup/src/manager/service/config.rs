@@ -25,6 +25,7 @@ use std::result;
 use ansi_term::Colour::Purple;
 use hcore::crypto;
 use serde::{Serialize, Serializer};
+use serde_json;
 use toml;
 
 use super::Pkg;
@@ -174,11 +175,24 @@ impl Cfg {
             .replace("-", "_");
         match env::var(&var_name) {
             Ok(config) => {
-                let toml = toml::de::from_str(&config).map_err(|e| {
-                    sup_error!(Error::TomlParser(e))
-                })?;
-                self.environment = Some(toml::Value::Table(toml));
-
+                match toml::de::from_str(&config) {
+                    Ok(toml) => {
+                        self.environment = Some(toml::Value::Table(toml));
+                        return Ok(());
+                    }
+                    Err(err) => debug!("Attempted to parse env config as toml and failed {}", err),
+                }
+                match serde_json::from_str(&config) {
+                    Ok(json) => {
+                        self.environment = Some(toml::Value::Table(json));
+                        return Ok(());
+                    }
+                    Err(err) => debug!("Attempted to parse env config as json and failed {}", err),
+                }
+                self.environment = None;
+                Err(sup_error!(
+                    Error::BadEnvConfig(package.name.to_ascii_uppercase())
+                ))
             }
             Err(e) => {
                 debug!(
@@ -187,9 +201,9 @@ impl Cfg {
                     e
                 );
                 self.environment = None;
+                Ok(())
             }
-        };
-        Ok(())
+        }
     }
 }
 

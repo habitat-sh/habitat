@@ -9,13 +9,13 @@ One of the key features of Habitat is the ability to define an immutable package
 
 ## Apply configuration updates to an individual service
 When starting a single service, you can provide alternate configuration values to those specified in `default.toml` through the use of an environment variable
-with the following format: `HAB_PACKAGENAME='keyname1=newvalue1 keyname2=newvalue2'`.
+with the following format: `HAB_PACKAGENAME='{"keyname1":"newvalue1", "tablename1":{"keyname2":"newvalue2"}}'`.
 
-    HAB_MYTUTORIALAPP='message = "Habitat rocks!"' hab start <origin>/<packagename>
+    HAB_MYTUTORIALAPP='{"message":"Habitat rocks!"}' hab start <origin>/<packagename>
 
-> Note: The package name in the environment variable must be uppercase, any dashes must be replaced with underscores, and if you are overriding values in a TOML table, you must override all values in the table.
+> Note: The preferred syntax used for applying configuration through environment variables is JSON but must be valid JSON input. The package name in the environment variable must be uppercase, any dashes must be replaced with underscores.
 
-For multiline environment variables, such as those in a TOML table, it's preferable to place your changes in a .toml
+For multiline environment variables, such as those in a TOML table or nested key value pairs, it can be easier to place your changes in a .toml
 file and pass it in using `HAB_PACKAGENAME="$(cat foo.toml)"`.
 
     HAB_MYTUTORIALAPP="$(cat my-env-stuff.toml)" hab start <origin>/<packagename>

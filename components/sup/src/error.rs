@@ -111,6 +111,7 @@ pub enum Error {
     BadPackage(PackageInstall, hcore::error::Error),
     BadSpecsPath(PathBuf, io::Error),
     BadStartStyle(String),
+    BadEnvConfig(String),
     ButterflyError(butterfly::error::Error),
     DepotClient(depot_client::Error),
     EnvJoinPathsError(env::JoinPathsError),
@@ -200,6 +201,9 @@ impl fmt::Display for SupError {
                 )
             }
             Error::BadStartStyle(ref style) => format!("Unknown service start style '{}'", style),
+            Error::BadEnvConfig(ref pkg) => {
+                format!("Unable to find valid TOML or JSON in HAB_{} ENVVAR", pkg)
+            }
             Error::ButterflyError(ref err) => format!("Butterfly error: {}", err),
             Error::ExecCommandNotFound(ref c) => {
                 format!("`{}' was not found on the filesystem or in PATH", c)
@@ -339,6 +343,7 @@ impl error::Error for SupError {
             Error::BadPackage(_, _) => "Package was malformed or contained malformed contents",
             Error::BadSpecsPath(_, _) => "Unable to create the specs directory",
             Error::BadStartStyle(_) => "Unknown start style in service spec",
+            Error::BadEnvConfig(_) => "Unknown syntax in Env Configuration",
             Error::ButterflyError(ref err) => err.description(),
             Error::ExecCommandNotFound(_) => "Exec command was not found on filesystem or in PATH",
             Error::TemplateFileError(ref err) => err.description(),
