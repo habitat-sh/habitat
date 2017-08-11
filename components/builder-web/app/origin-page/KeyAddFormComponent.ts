@@ -27,7 +27,7 @@ import {parseKey} from "../util";
         <label class="hab-key-add-form--label" for="key">Key</label>
         <small>
             Paste your key here. Check the documentation for a guide on
-            <a href="{{docsUrl}}/concepts-keys/">
+            <a href="{{docsUrl}}/share-packages-overview/">
                 generating keys</a>.
         </small>
         <textarea

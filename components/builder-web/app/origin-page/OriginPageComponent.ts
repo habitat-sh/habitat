@@ -179,7 +179,7 @@ export enum KeyType {
                         </p>
                         <p>
                             Read the docs for more information on
-                            <a href="{{docsUrl}}/concepts-keys/">
+                            <a href="{{docsUrl}}/share-packages-overview/">
                                 managing and using keys</a>.
                         </p>
                     </div>
