@@ -1,7 +1,7 @@
 require 'slim'
 
 set :markdown_engine, :redcarpet
-set :markdown, fenced_code_blocks: true, tables: true
+set :markdown, fenced_code_blocks: true, tables: true, no_intra_emphasis: true, with_toc_data: true
 
 ###
 # Page options, layouts, aliases and proxies
