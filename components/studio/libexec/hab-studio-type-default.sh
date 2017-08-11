@@ -51,6 +51,10 @@ finish_setup() {
         exit 1
       fi
     done
+  else
+    echo "\033[0;33mNo secret keys imported! This is likely because your HAB_ORIGIN is not set.\033[0m"
+    echo "To specify a HAB_ORIGIN, either set the HAB_ORIGIN environment variable"
+    echo "to your origin name or run 'hab setup' and specify a default origin"
   fi
 
   if [ -h "$HAB_STUDIO_ROOT$HAB_ROOT_PATH/bin/hab" ]; then
