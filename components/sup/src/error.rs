@@ -201,8 +201,8 @@ impl fmt::Display for SupError {
                 )
             }
             Error::BadStartStyle(ref style) => format!("Unknown service start style '{}'", style),
-            Error::BadEnvConfig(ref pkg) => {
-                format!("Unable to find valid TOML or JSON in HAB_{} ENVVAR", pkg)
+            Error::BadEnvConfig(ref varname) => {
+                format!("Unable to find valid TOML or JSON in {} ENVVAR", varname)
             }
             Error::ButterflyError(ref err) => format!("Butterfly error: {}", err),
             Error::ExecCommandNotFound(ref c) => {
