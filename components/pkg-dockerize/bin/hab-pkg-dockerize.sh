@@ -142,7 +142,7 @@ WORKDIR /
 ADD rootfs /
 VOLUME $HAB_ROOT_PATH/svc/${pkg_name}/data $HAB_ROOT_PATH/svc/${pkg_name}/config
 EXPOSE 9631 $(package_exposes $1)
-RUN ["ln", "-s", "$(pkg_latest_path core/cacerts)/ssl", "/etc/"]
+RUN ["ln", "-s", "$(package_latest_path core/cacerts)/ssl", "/etc/"]
 ENTRYPOINT ["/init.sh"]
 CMD ["start", "$1"]
 EOT
