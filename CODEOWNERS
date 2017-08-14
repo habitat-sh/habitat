@@ -1,5 +1,10 @@
 components/builder-web @cnunciato @raskchanky @mgamini
-components/builder-* @chefsalim @raskchanky
-components/butterfly* @christophermaier
-components/sup @christophermaier
+components/builder-* @chefsalim @raskchanky @reset
+components/butterfly* @christophermaier @reset
+components/core @reset
+components/eventsrv* @reset
+components/hab* @reset
+components/launcher* @reset
+components/net @reset
+components/sup @christophermaier @reset
 www @cnunciato @mgamini
