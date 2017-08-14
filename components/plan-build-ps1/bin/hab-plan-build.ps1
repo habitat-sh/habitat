@@ -371,6 +371,42 @@ function _resolve-dependency($dependency) {
   }
 }
 
+# **Internal** Returns (on stdout) the `DEPS` file contents of another locally
+# installed package which contain the set of all direct run dependencies. An
+# empty set could be returned as whitespace and/or newlines.  The lack of a
+# `DEPS` file in the desired package will be considered an unset, or empty set.
+#
+# ```
+# _Get-DepsFor /hab/pkgs/acme/a/4.2.2/20160113044458
+# # /hab/pkgs/acme/dep-b/1.2.3/20160113033619
+# # /hab/pkgs/acme/dep-c/5.0.1/20160113033507
+# # /hab/pkgs/acme/dep-d/2.0.0/20160113033539
+# # /hab/pkgs/acme/dep-e/10.0.1/20160113033453
+# # /hab/pkgs/acme/dep-f/4.2.2/20160113033338
+# # /hab/pkgs/acme/dep-g/4.2.2/20160113033319
+# ```
+#
+# Will return 0 in any case and the contents of `DEPS` if the file exists.
+function _Get-DepsFor($dependency) {
+  if (Test-Path "$dependency/DEPS") {
+    Get-Content $dependency/DEPS
+  }
+  else {
+    # No file, meaning an empty set
+    @()
+  }
+}
+
+function _Get-BuildDepsFor($dependency) {
+  if (Test-Path "$dependency/BUILD_DEPS") {
+    Get-Content $dependency/BUILD_DEPS
+  }
+  else {
+    # No file, meaning an empty set
+    @()
+  }
+}
+
 # **Internal** Returns (on stdout) the `TDEPS` file contents of another locally
 # installed package which contain the set of all direct and transitive run
 # dependencies. An empty set could be returned as whitespace and/or newlines.
@@ -565,72 +601,69 @@ function _Assert-Deps {
   }
 }
 
-function _Complete-DependencyResolution {
-  Write-BuildLine "Resolving dependencies"
-
-  # Build `${pkg_build_deps_resolved[@]}` containing all resolved direct build
+# **Internal** Create initial package-related arrays.
+function _init-Dependencies {
+  # Create `${pkg_build_deps_resolved[@]}` containing all resolved direct build
   # dependencies.
   $script:pkg_build_deps_resolved=@()
-  foreach($dep in $pkg_build_deps) {
-    _install-dependency $dep
-    if($resolved=(_resolve-dependency $dep)) {
-      Write-BuildLine "Resolved build dependency '$dep' to $resolved"
-      $script:pkg_build_deps_resolved+=($resolved)
-    }
-    else {
-      _Exit-With "Resolving '$dep' failed, should this be built first?" 1
-    }
-  }
 
-  # Build `${pkg_deps_resolved[@]}` containing all resolved direct run
+  # Create `${pkg_build_tdeps_resolved[@]}` containing all the direct build
+  # dependencies, and the run dependencies for each direct build dependency.
+  $script:pkg_build_tdeps_resolved=@()
+
+  # Create `${pkg_deps_resolved[@]}` containing all resolved direct run
   # dependencies.
   $script:pkg_deps_resolved=@()
-  foreach($dep in $pkg_deps) {
+
+  # Create `${pkg_tdeps_resolved[@]}` containing all the direct run
+  # dependencies, and the run dependencies for each direct run dependency.
+  $script:pkg_tdeps_resolved=@()
+}
+
+function _Resolve-ScaffoldingDependencies {
+  Write-BuildLine "Resolving scaffolding dependencies"
+  $scaff_build_deps = @()
+  $scaff_build_deps_resolved = @()
+  foreach($dep in $pkg_scaffolding) {
     _install-dependency $dep
-    if ($resolved=(_resolve-dependency $dep)) {
-      Write-BuildLine "Resolved dependency '$dep' to $resolved"
-      $script:pkg_deps_resolved+=$resolved
+    # Add scaffolding package to the list of scaffolding build deps
+    $scaff_build_deps += $dep
+    if($resolved=(_resolve-dependency $dep)) {
+      Write-BuildLine "Resolved scaffolding dependency '$dep' to $resolved"
+      $scaff_build_deps_resolved+=($resolved)
+      $sdeps=(@(_Get-DepsFor $resolved) + @(_Get-BuildDepsFor $resolved))
+      foreach($sdep in $sdeps) {
+          $scaff_build_deps += $sdep
+          $scaff_build_deps_resolved+=(Resolve-Path "$HAB_PKG_PATH/$sdep").Path
+      }
     }
     else {
       _Exit-With "Resolving '$dep' failed, should this be built first?" 1
     }
   }
 
-  # Build `${pkg_build_tdeps_resolved[@]}` containing all the direct build
-  # dependencies, and the run dependencies for each direct build dependency.
+  # Add all of the ordered scaffolding dependencies to the start of
+  # `${pkg_build_deps[@]}` to make sure they could be overridden by a Plan
+  # author if required.
+  $script:pkg_build_deps=$scaff_build_deps + $pkg_build_deps
+  Write-debug "Updating pkg_build_deps=$pkg_build_deps from Scaffolding deps"
 
-  # Copy all direct build dependencies into a new array
-  $script:pkg_build_tdeps_resolved=$pkg_build_deps_resolved
-  # Append all non-direct (transitive) run dependencies for each direct build
-  # dependency. That's right, not a typo ;) This is how a `acme/gcc` build
-  # dependency could pull in `acme/binutils` for us, as an example. Any
-  # duplicate entries are dropped to produce a proper set.
-  foreach($dep in $pkg_build_deps_resolved) {
-    $tdeps=_Get-TdepsFor $dep
-    foreach($tdep in $tdeps) {
-      $tdep=(Resolve-Path "$HAB_PKG_PATH/$tdep").Path
-      $script:pkg_build_tdeps_resolved=@(_return_or_append_to_set $tdep $pkg_build_tdeps_resolved)
-    }
-  }
-  # Build `${pkg_tdeps_resolved[@]}` containing all the direct run
-  # dependencies, and the run dependencies for each direct run dependency.
+  # Set `pkg_build_deps_resolved[@]}` to all resolved scaffolding dependencies.
+  # This will be used for early scaffolding package loading to mimic the state
+  # where all dependencies are known for helpers such as `pkg_path_for` and
+  # will be re-set later when the full build dependency set is known.
+  $script:pkg_build_deps_resolved=$scaff_build_deps_resolved
+  # Set `${pkg_build_tdeps_resolved[@]}` to all the direct scaffolding
+  # dependencies, and the run dependencies for each direct scaffolding
+  # dependency. As above, this will be re-set later when the full dependency
+  # set is known.
+  _Set-BuildTdepsResolved
+}
 
-  # Copy all direct dependencies into a new array
-  $script:pkg_tdeps_resolved=$pkg_deps_resolved
-  # Append all non-direct (transitive) run dependencies for each direct run
-  # dependency. Any duplicate entries are dropped to produce a proper set.
-  foreach($dep in $pkg_deps_resolved) {
-    $tdeps=_Get-TdepsFor $dep
-    foreach($tdep in $tdeps) {
-      $tdep=(Resolve-Path "$HAB_PKG_PATH/$tdep").Path
-      $script:pkg_tdeps_resolved=@(_return_or_append_to_set $tdep $pkg_tdeps_resolved)
-    }
-  }
-
+function _Set_DependencyArrays {
   # Build `${pkg_all_deps_resolved[@]}` containing all direct build and run
   # dependencies. The build dependencies appear before the run dependencies.
   $script:pkg_all_deps_resolved = $pkg_deps_resolved + $pkg_build_deps_resolved
-
   # Build an ordered set of all build and run dependencies (direct and
   # transitive). The order is important as this gets used when setting the
   # `$PATH` ordering in the build environment. To give priority to direct
@@ -644,8 +677,70 @@ function _Complete-DependencyResolution {
   foreach($dep in ($pkg_tdeps_resolved + $pkg_build_tdeps_resolved)) {
     $script:pkg_all_tdeps_resolved = @(_return_or_append_to_set $dep $pkg_all_tdeps_resolved)
   }
-  _Assert-Deps
 }
+
+# **Internal** Sets the value of `${pkg_build_tdeps_resolved[@]}`. This
+# function completely re-sets the value of `${pkg_build_tdeps_resolved[@]}`
+# using the current value of `${pkg_build_deps_resolved[@]}`.
+ function _Set-BuildTdepsResolved {
+  # Copy all direct build dependencies into a new array
+  $script:pkg_build_tdeps_resolved=$pkg_build_deps_resolved
+  # Append all non-direct (transitive) run dependencies for each direct build
+  # dependency. That's right, not a typo ;) This is how a `acme/gcc` build
+  # dependency could pull in `acme/binutils` for us, as an example. Any
+  # duplicate entries are dropped to produce a proper set.
+  foreach($dep in $pkg_build_deps_resolved) {
+    $tdeps=_Get-TdepsFor $dep
+    foreach($tdep in $tdeps) {
+      $tdep=(Resolve-Path "$HAB_PKG_PATH/$tdep").Path
+      $script:pkg_build_tdeps_resolved=@(_return_or_append_to_set $tdep $pkg_build_tdeps_resolved)
+    }
+  }
+ }
+
+ function _Resolve-BuildDependencies {
+  # Build `${pkg_build_deps_resolved[@]}` containing all resolved direct build
+  # dependencies.
+  foreach($dep in $pkg_build_deps) {
+    _install-dependency $dep
+    if($resolved=(_resolve-dependency $dep)) {
+      Write-BuildLine "Resolved build dependency '$dep' to $resolved"
+      $script:pkg_build_deps_resolved+=($resolved)
+    }
+    else {
+      _Exit-With "Resolving '$dep' failed, should this be built first?" 1
+    }
+  }
+
+  _Set-BuildTdepsResolved
+ }
+
+ function _Resolve-RunDependencies {
+  # Build `${pkg_deps_resolved[@]}` containing all resolved direct run
+  # dependencies.
+  foreach($dep in $pkg_deps) {
+    _install-dependency $dep
+    if ($resolved=(_resolve-dependency $dep)) {
+      Write-BuildLine "Resolved dependency '$dep' to $resolved"
+      $script:pkg_deps_resolved+=$resolved
+    }
+    else {
+      _Exit-With "Resolving '$dep' failed, should this be built first?" 1
+    }
+  }
+
+  # Copy all direct dependencies into a new array
+  $script:pkg_tdeps_resolved=$pkg_deps_resolved
+  # Append all non-direct (transitive) run dependencies for each direct run
+  # dependency. Any duplicate entries are dropped to produce a proper set.
+  foreach($dep in $pkg_deps_resolved) {
+    $tdeps=_Get-TdepsFor $dep
+    foreach($tdep in $tdeps) {
+      $tdep=(Resolve-Path "$HAB_PKG_PATH/$tdep").Path
+      $script:pkg_tdeps_resolved=@(_return_or_append_to_set $tdep $pkg_tdeps_resolved)
+    }
+  }
+ }
 
 function _Add-Paths($fromFile) {
   $path_part = $null
@@ -1341,7 +1436,43 @@ try {
     _Set-HabBin
 
     # Download and resolve the depdencies
-    _Complete-DependencyResolution
+    # Create initial package arrays
+    _init-Dependencies
+
+    # Inject, download, and resolve the scaffolding dependencies
+    _Resolve-ScaffoldingDependencies
+
+    # Populate package arrays to enable helper functions for early scaffolding
+    # load hooks
+    _Set_DependencyArrays
+
+    # Load scaffolding packages if they are being used.
+    if ($pkg_scaffolding) {
+        $scaff = $pkg_scaffolding.Split("/")[-1]
+        $lib="$(Get-HabPackagePath $scaff)/lib/scaffolding.ps1"
+        Write-BuildLine "Loading Scaffolding $lib"
+        if(!(Test-Path $lib)) {
+            _Exit-With "Failed to load Scaffolding from $lib" 17
+        }
+
+        . $lib
+
+        if(Test-Path function:\Load-Scaffolding) {
+            Load-Scaffolding
+        }
+    }
+
+    # Download and resolve the build dependencies
+    _Resolve-BuildDependencies
+
+    # Download and resolve the run dependencies
+    _Resolve-RunDependencies
+
+    # Finalize and normalize all resolved dependencies with all build and run
+    # dependencies
+    _Set_DependencyArrays
+
+    _Assert-Deps
 
     # Set the complete `Path` environment.
     _Set-Path
