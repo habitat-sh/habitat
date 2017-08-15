@@ -9,7 +9,7 @@ section.sample-app
 
     p The studio is an isolated environment used to build and test Habitat packages. For Windows platforms, there are two versions of the studio. One uses a Linux-based Docker container to create a #{link_to 'chrooted', 'https://en.wikipedia.org/wiki/Chroot'} shell environment and the other is a native Windows environment. Because this tutorial involves using some functionality that is currently only available for Linux-based packages, we will use the Linux-based studio that resides in a Docker container.
 
-    p The studio itself is a Habitat package, and all of the dependent packages for the studio will be downloaded, unpacked, and installed. The studio will also import any secret origin keys created by <code>hab setup</code>. When running macOS or Windows on your host machine, the studio runs inside a Docker container as root.
+    p The studio itself is a Habitat package, and all of the dependent packages for the studio will be downloaded, unpacked, and installed. The studio will also import any secret origin keys created by <code>hab setup</code>. When running Windows on your host machine, the studio runs inside a Docker container as root.
 
     p Packages are built in the studio through the <code>hab-plan-build</code> script, which handles creating Habitat packages from plan files. The <code>hab-plan-build</code> script looks for <code>plan.sh</code> either in the current directory, or in a <code>.\habitat</code> directory.
 
