@@ -21,10 +21,11 @@ use std::result;
 use std::str::FromStr;
 
 use uuid::Uuid;
+use bld_core;
 use bodyparser;
 use hab_core::package::{Identifiable, FromArchive, PackageArchive, PackageIdent, PackageTarget,
                         ident};
-use hab_core::crypto::keys::{self, PairType};
+use hab_core::crypto::keys::PairType;
 use hab_core::crypto::SigKeyPair;
 use hab_core::event::*;
 use hab_net::config::RouterCfg;
@@ -191,7 +192,7 @@ pub fn origin_show(req: &mut Request) -> IronResult<Response> {
     let params = req.extensions.get::<Router>().unwrap();
     let origin = match params.find("origin") {
         Some(origin) => origin.to_string(),
-        _ => return Ok(Response::with(status::BadRequest)),
+        None => return Ok(Response::with(status::BadRequest)),
     };
 
     let mut conn = Broker::connect().unwrap();
@@ -207,33 +208,20 @@ pub fn origin_show(req: &mut Request) -> IronResult<Response> {
     }
 }
 
-pub fn get_origin<T: ToString>(req: &mut Request, origin: T) -> IronResult<Option<Origin>> {
-    let mut request = OriginGet::new();
-    request.set_name(origin.to_string());
-    match route_message::<OriginGet, Origin>(req, &request) {
-        Ok(origin) => Ok(Some(origin)),
+pub fn get_origin<T: ToString>(origin: T) -> IronResult<Option<Origin>> {
+    match bld_core::api::get_origin(origin) {
+        Ok(o) => Ok(o),
         Err(err) => {
-            if err.get_code() == ErrCode::ENTITY_NOT_FOUND {
-                Ok(None)
-            } else {
-                let body = serde_json::to_string(&err).unwrap();
-                let status = net_err_to_http(err.get_code());
-                Err(IronError::new(err, (body, status)))
-            }
+            let body = serde_json::to_string(&err).unwrap();
+            let status = net_err_to_http(err.get_code());
+            Err(IronError::new(err, (body, status)))
         }
     }
 }
 
-pub fn check_origin_access<T: ToString>(
-    req: &mut Request,
-    account_id: u64,
-    origin: T,
-) -> IronResult<bool> {
-    let mut request = CheckOriginAccessRequest::new();
-    request.set_account_id(account_id);
-    request.set_origin_name(origin.to_string());
-    match route_message::<CheckOriginAccessRequest, CheckOriginAccessResponse>(req, &request) {
-        Ok(response) => Ok(response.get_has_access()),
+pub fn check_origin_access<T: ToString>(account_id: u64, origin: T) -> IronResult<bool> {
+    match bld_core::api::check_origin_access(account_id, origin) {
+        Ok(b) => Ok(b),
         Err(err) => {
             let body = serde_json::to_string(&err).unwrap();
             let status = net_err_to_http(err.get_code());
@@ -311,7 +299,7 @@ pub fn invite_to_origin(req: &mut Request) -> IronResult<Response> {
         &user_to_invite,
         &origin
     );
-    if !check_origin_access(req, session.get_id(), &origin)? {
+    if !check_origin_access(session.get_id(), &origin)? {
         return Ok(Response::with(status::Forbidden));
     }
     let mut request = AccountGet::new();
@@ -325,7 +313,7 @@ pub fn invite_to_origin(req: &mut Request) -> IronResult<Response> {
         }
         Err(err) => return Ok(render_net_error(&err)),
     };
-    match get_origin(req, &origin)? {
+    match get_origin(&origin)? {
         Some(mut origin) => {
             invite_request.set_origin_id(origin.get_id());
             invite_request.set_origin_name(origin.take_name());
@@ -366,12 +354,12 @@ pub fn list_origin_invitations(req: &mut Request) -> IronResult<Response> {
     }
 
     let mut conn = Broker::connect().unwrap();
-    if !check_origin_access(req, session_id, &origin_name)? {
+    if !check_origin_access(session_id, &origin_name)? {
         return Ok(Response::with(status::Forbidden));
     }
 
     let mut request = OriginInvitationListRequest::new();
-    match get_origin(req, origin_name.as_str())? {
+    match get_origin(origin_name.as_str())? {
         Some(origin) => request.set_origin_id(origin.get_id()),
         None => return Ok(Response::with(status::NotFound)),
     };
@@ -401,12 +389,12 @@ pub fn list_origin_members(req: &mut Request) -> IronResult<Response> {
 
     let mut conn = Broker::connect().unwrap();
 
-    if !check_origin_access(req, session_id, &origin_name)? {
+    if !check_origin_access(session_id, &origin_name)? {
         return Ok(Response::with(status::Forbidden));
     }
 
     let mut request = OriginMemberListRequest::new();
-    match get_origin(req, origin_name.as_str())? {
+    match get_origin(origin_name.as_str())? {
         Some(origin) => request.set_origin_id(origin.get_id()),
         None => return Ok(Response::with(status::NotFound)),
     };
@@ -456,10 +444,10 @@ fn upload_origin_key(req: &mut Request) -> IronResult<Response> {
 
     let origin = match params.find("origin") {
         Some(origin) => {
-            if !check_origin_access(req, session.get_id(), origin)? {
+            if !check_origin_access(session.get_id(), origin)? {
                 return Ok(Response::with(status::Forbidden));
             }
-            match get_origin(req, origin)? {
+            match get_origin(origin)? {
                 Some(mut origin) => {
                     request.set_name(origin.take_name());
                     request.set_origin_id(origin.get_id());
@@ -542,7 +530,7 @@ fn download_latest_origin_secret_key(req: &mut Request) -> IronResult<Response> 
     };
     let mut conn = Broker::connect().unwrap();
     let mut request = OriginSecretKeyGet::new();
-    match get_origin(req, origin)? {
+    match get_origin(origin)? {
         Some(mut origin) => {
             request.set_owner_id(origin.get_owner_id());
             request.set_origin(origin.take_name());
@@ -566,10 +554,10 @@ fn upload_origin_secret_key(req: &mut Request) -> IronResult<Response> {
 
     let origin = match params.find("origin") {
         Some(origin) => {
-            if !check_origin_access(req, session.get_id(), origin)? {
+            if !check_origin_access(session.get_id(), origin)? {
                 return Ok(Response::with(status::Forbidden));
             }
-            match get_origin(req, origin)? {
+            match get_origin(origin)? {
                 Some(mut origin) => {
                     request.set_name(origin.take_name());
                     request.set_origin_id(origin.get_id());
@@ -660,7 +648,7 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
     // TODO: SA - Eliminate need to clone the session
     let session = req.extensions.get::<Authenticated>().unwrap().clone();
     if !depot.config.insecure {
-        if !check_origin_access(req, session.get_id(), &ident.get_origin())? {
+        if !check_origin_access(session.get_id(), &ident.get_origin())? {
             debug!(
                 "Failed origin access check, session: {}, ident: {}",
                 session.get_id(),
@@ -696,7 +684,10 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
         Ok(target) => target,
         Err(e) => {
             info!("Could not read the target for {:#?}: {:#?}", archive, e);
-            return Ok(Response::with(status::UnprocessableEntity));
+            return Ok(Response::with((
+                status::UnprocessableEntity,
+                format!("ds:up:1, err={:?}", e),
+            )));
         }
     };
 
@@ -732,7 +723,7 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
         Ok(cksum) => cksum,
         Err(e) => {
             info!("Could not compute a checksum for {:#?}: {:#?}", archive, e);
-            return Ok(Response::with(status::UnprocessableEntity));
+            return Ok(Response::with((status::UnprocessableEntity, "ds:up:2")));
         }
     };
     if checksum_from_param != checksum_from_artifact {
@@ -741,7 +732,7 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
             checksum_from_param,
             checksum_from_artifact
         );
-        return Ok(Response::with(status::UnprocessableEntity));
+        return Ok(Response::with((status::UnprocessableEntity, "ds:up:3")));
     }
 
     // Check with scheduler to ensure we don't have circular deps
@@ -753,7 +744,7 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
         Ok(deps) => deps,
         Err(e) => {
             info!("Could not get deps from {:#?}: {:#?}", archive, e);
-            return Ok(Response::with(status::UnprocessableEntity));
+            return Ok(Response::with((status::UnprocessableEntity, "ds:up:4")));
         }
     };
 
@@ -805,14 +796,14 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
         Ok(package) => package,
         Err(e) => {
             info!("Error building package from archive: {:#?}", e);
-            return Ok(Response::with(status::UnprocessableEntity));
+            return Ok(Response::with((status::UnprocessableEntity, "ds:up:5")));
         }
     };
     if ident.satisfies(package.get_ident()) {
         package.set_owner_id(session.get_id());
 
         // let's make sure this origin actually exists
-        match get_origin(req, &ident.get_origin())? {
+        match get_origin(&ident.get_origin())? {
             Some(origin) => {
                 package.set_origin_id(origin.get_id());
             }
@@ -886,7 +877,7 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
             ident,
             package.get_ident()
         );
-        Ok(Response::with(status::UnprocessableEntity))
+        Ok(Response::with((status::UnprocessableEntity, "ds:up:6")))
     }
 }
 
@@ -1134,7 +1125,7 @@ fn list_origin_keys(req: &mut Request) -> IronResult<Response> {
     };
 
     let mut request = OriginPublicKeyListRequest::new();
-    match get_origin(req, origin_name.as_str())? {
+    match get_origin(origin_name.as_str())? {
         Some(origin) => request.set_origin_id(origin.get_id()),
         None => return Ok(Response::with(status::NotFound)),
     };
@@ -1230,12 +1221,12 @@ fn list_package_versions(req: &mut Request) -> IronResult<Response> {
 
         let origin = match params.find("origin") {
             Some(origin) => origin.to_string(),
-            _ => return Ok(Response::with(status::BadRequest)),
+            None => return Ok(Response::with(status::BadRequest)),
         };
 
         let name = match params.find("pkg") {
             Some(pkg) => pkg.to_string(),
-            _ => return Ok(Response::with(status::BadRequest)),
+            None => return Ok(Response::with(status::BadRequest)),
         };
 
         (origin, name)
@@ -1289,7 +1280,7 @@ fn list_packages(req: &mut Request) -> IronResult<Response> {
 
         let origin = match params.find("origin") {
             Some(origin) => origin.to_string(),
-            _ => return Ok(Response::with(status::BadRequest)),
+            None => return Ok(Response::with(status::BadRequest)),
         };
 
         let ident: String = if params.find("pkg").is_none() {
@@ -1418,7 +1409,7 @@ fn list_channels(req: &mut Request) -> IronResult<Response> {
     };
 
     let mut request = OriginChannelListRequest::new();
-    match get_origin(req, origin_name.as_str())? {
+    match get_origin(origin_name.as_str())? {
         Some(origin) => request.set_origin_id(origin.get_id()),
         None => return Ok(Response::with(status::NotFound)),
     };
@@ -1447,39 +1438,21 @@ fn create_channel(req: &mut Request) -> IronResult<Response> {
     let origin: String;
     let channel: String;
 
-    {
-        let session = req.extensions.get::<Authenticated>().unwrap();
-        session_id = session.get_id();
-        let params = req.extensions.get::<Router>().unwrap();
-        origin = match params.find("origin") {
-            Some(origin) => origin.to_string(),
-            _ => return Ok(Response::with(status::BadRequest)),
-        };
-        channel = match params.find("channel") {
-            Some(channel) => channel.to_string(),
-            _ => return Ok(Response::with(status::BadRequest)),
-        };
-    }
+    // JB TODO: eliminate the need to clone the session and params.  HI SALIM =)
+    let session = req.extensions.get::<Authenticated>().unwrap().clone();
+    session_id = session.get_id();
 
-    let origin_id = match get_origin(req, &origin)? {
-        Some(origin) => origin.get_id(),
-        None => {
-            debug!("Origin {} not found!", origin);
-            return Ok(Response::with(status::NotFound));
-        }
+    let params = req.extensions.get::<Router>().unwrap().clone();
+    origin = match params.find("origin") {
+        Some(origin) => origin.to_string(),
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+    channel = match params.find("channel") {
+        Some(channel) => channel.to_string(),
+        None => return Ok(Response::with(status::BadRequest)),
     };
 
-    let mut request = OriginChannelCreate::new();
-
-    request.set_owner_id(session_id);
-    request.set_origin_name(origin);
-    request.set_origin_id(origin_id);
-    request.set_name(channel);
-
-    match route_message::<OriginChannelCreate, OriginChannel>(req, &request) {
-        Ok(origin_channel) => Ok(render_json(status::Created, &origin_channel)),
-        Err(err) => Ok(render_net_error(&err)),
-    }
+    do_channel_creation(&origin, &channel, session_id)
 }
 
 fn delete_channel(req: &mut Request) -> IronResult<Response> {
@@ -1492,11 +1465,11 @@ fn delete_channel(req: &mut Request) -> IronResult<Response> {
         let params = req.extensions.get::<Router>().unwrap();
         origin = match params.find("origin") {
             Some(origin) => origin.to_string(),
-            _ => return Ok(Response::with(status::BadRequest)),
+            None => return Ok(Response::with(status::BadRequest)),
         };
         channel = match params.find("channel") {
             Some(channel) => channel.to_string(),
-            _ => return Ok(Response::with(status::BadRequest)),
+            None => return Ok(Response::with(status::BadRequest)),
         };
     }
 
@@ -1506,7 +1479,7 @@ fn delete_channel(req: &mut Request) -> IronResult<Response> {
     match route_message::<OriginChannelGet, OriginChannel>(req, &channel_req) {
         Ok(origin_channel) => {
             // make sure the person trying to create the channel has access to do so
-            if !check_origin_access(req, session_id, &origin)? {
+            if !check_origin_access(session_id, &origin)? {
                 return Ok(Response::with(status::Forbidden));
             }
 
@@ -1759,33 +1732,33 @@ fn render_package(pkg: &OriginPackage, should_cache: bool) -> IronResult<Respons
 
 fn promote_package(req: &mut Request) -> IronResult<Response> {
     let (channel, ident, session_id) = {
-        let session = req.extensions.get::<Authenticated>().unwrap();
+        let session = req.extensions.get::<Authenticated>().unwrap().clone();
         let session_id = session.get_id();
 
-        let params = req.extensions.get::<Router>().unwrap();
+        let params = req.extensions.get::<Router>().unwrap().clone();
         let origin = match params.find("origin") {
             Some(o) => o.to_string(),
-            _ => return Ok(Response::with(status::BadRequest)),
+            None => return Ok(Response::with(status::BadRequest)),
         };
 
         let channel = match params.find("channel") {
             Some(c) => c.to_string(),
-            _ => return Ok(Response::with(status::BadRequest)),
+            None => return Ok(Response::with(status::BadRequest)),
         };
 
         let pkg = match params.find("pkg") {
             Some(p) => p.to_string(),
-            _ => return Ok(Response::with(status::BadRequest)),
+            None => return Ok(Response::with(status::BadRequest)),
         };
 
         let version = match params.find("version") {
             Some(v) => v.to_string(),
-            _ => return Ok(Response::with(status::BadRequest)),
+            None => return Ok(Response::with(status::BadRequest)),
         };
 
         let release = match params.find("release") {
             Some(r) => r.to_string(),
-            _ => return Ok(Response::with(status::BadRequest)),
+            None => return Ok(Response::with(status::BadRequest)),
         };
 
         let mut ident = OriginPackageIdent::new();
@@ -1797,52 +1770,7 @@ fn promote_package(req: &mut Request) -> IronResult<Response> {
         (channel, ident, session_id)
     };
 
-    let mut channel_req = OriginChannelGet::new();
-    channel_req.set_origin_name(ident.get_origin().to_string());
-    channel_req.set_name(channel);
-    match route_message::<OriginChannelGet, OriginChannel>(req, &channel_req) {
-        Ok(origin_channel) => {
-            if !check_origin_access(req, session_id, &ident.get_origin())? {
-                return Ok(Response::with(status::Forbidden));
-            }
-
-            let mut request = OriginPackageGet::new();
-            request.set_ident(ident.clone());
-            match route_message::<OriginPackageGet, OriginPackage>(req, &request) {
-                Ok(package) => {
-                    let mut promote = OriginPackagePromote::new();
-                    promote.set_channel_id(origin_channel.get_id());
-                    promote.set_package_id(package.get_id());
-                    promote.set_ident(ident);
-                    match route_message::<OriginPackagePromote, NetOk>(req, &promote) {
-                        Ok(_) => Ok(Response::with(status::Ok)),
-                        Err(err) => {
-                            error!("Error promoting package, {}", err);
-                            Ok(render_net_error(&err))
-                        }
-                    }
-                }
-                Err(err) => {
-                    match err.get_code() {
-                        ErrCode::ENTITY_NOT_FOUND => Ok(Response::with((status::NotFound))),
-                        _ => {
-                            error!("promote:2, err={:?}", err);
-                            Ok(Response::with(status::InternalServerError))
-                        }
-                    }
-                }
-            }
-        }
-        Err(err) => {
-            match err.get_code() {
-                ErrCode::ENTITY_NOT_FOUND => Ok(Response::with((status::NotFound))),
-                _ => {
-                    error!("promote_package:1, err={:?}", err);
-                    Ok(Response::with(status::InternalServerError))
-                }
-            }
-        }
-    }
+    do_promotion(&ident, &channel, session_id)
 }
 
 fn demote_package(req: &mut Request) -> IronResult<Response> {
@@ -1853,27 +1781,27 @@ fn demote_package(req: &mut Request) -> IronResult<Response> {
         let params = req.extensions.get::<Router>().unwrap();
         let origin = match params.find("origin") {
             Some(o) => o.to_string(),
-            _ => return Ok(Response::with(status::BadRequest)),
+            None => return Ok(Response::with(status::BadRequest)),
         };
 
         let channel = match params.find("channel") {
             Some(c) => c.to_string(),
-            _ => return Ok(Response::with(status::BadRequest)),
+            None => return Ok(Response::with(status::BadRequest)),
         };
 
         let pkg = match params.find("pkg") {
             Some(p) => p.to_string(),
-            _ => return Ok(Response::with(status::BadRequest)),
+            None => return Ok(Response::with(status::BadRequest)),
         };
 
         let version = match params.find("version") {
             Some(v) => v.to_string(),
-            _ => return Ok(Response::with(status::BadRequest)),
+            None => return Ok(Response::with(status::BadRequest)),
         };
 
         let release = match params.find("release") {
             Some(r) => r.to_string(),
-            _ => return Ok(Response::with(status::BadRequest)),
+            None => return Ok(Response::with(status::BadRequest)),
         };
 
         let mut ident = OriginPackageIdent::new();
@@ -1895,7 +1823,7 @@ fn demote_package(req: &mut Request) -> IronResult<Response> {
     channel_req.set_name(channel);
     match route_message::<OriginChannelGet, OriginChannel>(req, &channel_req) {
         Ok(origin_channel) => {
-            if !check_origin_access(req, session_id, &ident.get_origin())? {
+            if !check_origin_access(session_id, &ident.get_origin())? {
                 return Ok(Response::with(status::Forbidden));
             }
 
@@ -1976,6 +1904,44 @@ fn target_from_headers(user_agent_header: &UserAgent) -> result::Result<PackageT
     match PackageTarget::from_str(target) {
         Ok(t) => Ok(t),
         Err(_) => Err(Response::with(status::BadRequest)),
+    }
+}
+
+pub fn do_channel_creation(origin: &str, channel: &str, session_id: u64) -> IronResult<Response> {
+    let origin_channel = match bld_core::api::create_channel(origin, channel, session_id) {
+        Ok(c) => c,
+        Err(bld_core::Error::OriginNotFound(_)) => return Ok(Response::with(status::NotFound)),
+        Err(bld_core::Error::NetError(e)) => return Ok(render_net_error(&e)),
+        Err(e) => {
+            error!("channel_create:1, err={:?}", &e);
+            return Ok(Response::with(status::InternalServerError));
+        }
+    };
+
+    Ok(render_json(status::Created, &origin_channel))
+}
+
+pub fn do_promotion(
+    ident: &OriginPackageIdent,
+    channel: &str,
+    session_id: u64,
+) -> IronResult<Response> {
+    match bld_core::api::promote_package_to_channel(ident, channel, session_id) {
+        Ok(_) => Ok(Response::with(status::Ok)),
+        Err(bld_core::Error::OriginAccessDenied) => Ok(Response::with(status::Forbidden)),
+        Err(bld_core::Error::NetError(err)) => {
+            match err.get_code() {
+                ErrCode::ENTITY_NOT_FOUND => Ok(Response::with(status::NotFound)),
+                _ => {
+                    error!("promote:1, err={:?}", &err);
+                    Ok(render_net_error(&err))
+                }
+            }
+        }
+        Err(e) => {
+            error!("promote:2, err={:?}", &e);
+            Ok(Response::with(status::InternalServerError))
+        }
     }
 }
 
@@ -2194,7 +2160,6 @@ impl From<Error> for IronError {
 
 #[cfg(test)]
 mod test {
-
     use iron::{self, method, Handler, Headers, Request, status, Url};
     use iron::middleware::BeforeMiddleware;
     use iron::prelude::*;
@@ -2257,7 +2222,6 @@ mod test {
         let http_request = hyper::server::Request::new(&mut buf_reader, addr).unwrap();
         let mut req = Request::from_http(http_request, addr, &iron::Protocol::http()).unwrap();
 
-
         let mut config = Config::default();
         config.path = env::temp_dir()
             .join("depot-tests")
@@ -2279,209 +2243,6 @@ mod test {
         let req_broker = req.extensions.get::<TestableBroker>().unwrap();
         let msgs = req_broker.routed_messages();
         (resp, msgs)
-    }
-
-    #[test]
-    fn list_public_keys() {
-        let mut broker: TestableBroker = Default::default();
-
-        let mut access_res = CheckOriginAccessResponse::new();
-        access_res.set_has_access(true);
-        broker.setup::<CheckOriginAccessRequest, CheckOriginAccessResponse>(&access_res);
-
-        let mut origin_res = Origin::new();
-        origin_res.set_id(5000);
-        broker.setup::<OriginGet, Origin>(&origin_res);
-
-        let mut key_res = OriginPublicKeyListResponse::new();
-        let mut keys = protobuf::RepeatedField::new();
-
-        let mut key = OriginPublicKey::new();
-        key.set_name("my_name".to_string());
-        key.set_revision("my_rev".to_string());
-        keys.push(key);
-
-        let mut key2 = OriginPublicKey::new();
-        key2.set_name("my_name2".to_string());
-        key2.set_revision("my_rev2".to_string());
-        keys.push(key2);
-
-        key_res.set_keys(keys);
-        broker.setup::<OriginPublicKeyListRequest, OriginPublicKeyListResponse>(&key_res);
-
-        let (response, _) = iron_request(
-            method::Get,
-            "http://localhost/origins/org/keys",
-            &mut Vec::new(),
-            Headers::new(),
-            broker,
-        );
-        let result_body = response::extract_body_to_string(response.unwrap());
-
-        assert_eq!(
-            result_body,
-            "[\
-            {\
-                \"origin\":\"my_name\",\
-                \"revision\":\"my_rev\",\
-                \"location\":\"/origins/my_name/keys/my_rev\"\
-            },\
-            {\
-                \"origin\":\"my_name2\",\
-                \"revision\":\"my_rev2\",\
-                \"location\":\"/origins/my_name2/keys/my_rev2\"\
-            }\
-        ]"
-        );
-    }
-
-    #[test]
-    fn upload_package() {
-        //Remove file saved from previous test
-        let mut config = Config::default();
-        config.path = env::temp_dir()
-            .join("depot-tests")
-            .to_string_lossy()
-            .to_string();
-        let depot = DepotUtil::new(config);
-        let mut ident = OriginPackageIdent::new();
-        ident.set_origin("core".to_string());
-        ident.set_name("cacerts".to_string());
-        ident.set_version("2017.01.17".to_string());
-        ident.set_release("20170209064044".to_string());
-        let target = PackageTarget::from_str("x86_64-windows").unwrap();
-        let file_name = depot.archive_path(&ident, &target);
-        let _ = fs::remove_file(&file_name);
-
-        //setup broker messages
-        let mut broker: TestableBroker = Default::default();
-        let mut access_res = CheckOriginAccessResponse::new();
-        access_res.set_has_access(true);
-        broker.setup::<CheckOriginAccessRequest, CheckOriginAccessResponse>(&access_res);
-        broker.setup_error::<OriginPackageGet>(net::err(ErrCode::ENTITY_NOT_FOUND, ""));
-
-        let mut origin_res = Origin::new();
-        origin_res.set_id(5000);
-        broker.setup::<OriginGet, Origin>(&origin_res);
-
-        broker.setup::<PackagePreCreate, NetOk>(&NetOk::new());
-        broker.setup::<OriginPackageCreate, OriginPackage>(&OriginPackage::new());
-
-        //inject hart fixture to upload
-        let mut body: Vec<u8> = Vec::new();
-        let path = hart_file("core-cacerts-2017.01.17-20170209064044-x86_64-windows.hart");
-        File::open(&path).unwrap().read_to_end(&mut body).unwrap();
-        let checksum = hash::hash_file(&path).unwrap();
-
-        let (resp, msgs) = iron_request(
-            method::Post,
-            format!(
-                "http://localhost/pkgs/core/cacerts/2017.01.17/20170209064044?checksum={}",
-                checksum
-            ).as_str(),
-            &mut body,
-            Headers::new(),
-            broker,
-        );
-
-        //assert headers
-        let response = resp.unwrap();
-        assert_eq!(response.status, Some(status::Created));
-        assert_eq!(
-            response.headers.get::<headers::Location>(),
-            Some(&headers::Location(format!(
-                "http://localhost/pkgs/core/cacerts/2017.01.17/20170209064044/download?checksum={}",
-                checksum
-            )))
-        );
-
-        //assert body
-        let result_body = response::extract_body_to_string(response);
-        assert_eq!(
-            result_body,
-            "/pkgs/core/cacerts/2017.01.17/20170209064044/download"
-        );
-        assert!(fs::metadata(&file_name).is_ok());
-
-        //assert we sent the corect data to postgres
-        let package_req = msgs.get::<OriginPackageCreate>().unwrap();
-        assert_eq!(package_req.get_origin_id(), 5000);
-        assert_eq!(package_req.get_ident().to_string(), ident.to_string());
-        assert_eq!(package_req.get_target().to_string(), target.to_string());
-    }
-
-    #[test]
-    fn download_package() {
-        //upload hart so it gets saved to disk
-        let mut upload_broker: TestableBroker = Default::default();
-        let mut access_res = CheckOriginAccessResponse::new();
-        access_res.set_has_access(true);
-        upload_broker.setup::<CheckOriginAccessRequest, CheckOriginAccessResponse>(&access_res);
-        upload_broker.setup_error::<OriginPackageGet>(net::err(ErrCode::ENTITY_NOT_FOUND, ""));
-        upload_broker.setup::<PackagePreCreate, NetOk>(&NetOk::new());
-        upload_broker.setup::<OriginPackageCreate, OriginPackage>(&OriginPackage::new());
-
-        let mut body: Vec<u8> = Vec::new();
-        let path = hart_file("core-cacerts-2017.01.17-20170209064045-x86_64-windows.hart");
-        File::open(&path).unwrap().read_to_end(&mut body).unwrap();
-        let checksum = hash::hash_file(&path).unwrap();
-
-        iron_request(
-            method::Post,
-            format!(
-                "http://localhost/pkgs/core/cacerts/2017.01.17/20170209064045?checksum={}",
-                checksum
-            ).as_str(),
-            &mut body.clone(),
-            Headers::new(),
-            upload_broker,
-        );
-
-        let mut download_broker: TestableBroker = Default::default();
-
-        //setup our package db request
-        let mut package = OriginPackage::new();
-        let mut ident = OriginPackageIdent::new();
-        ident.set_origin("core".to_string());
-        ident.set_name("cacerts".to_string());
-        ident.set_version("2017.01.17".to_string());
-        ident.set_release("20170209064045".to_string());
-        package.set_ident(ident);
-        download_broker.setup::<OriginPackageGet, OriginPackage>(&package);
-
-        //set the user agent to look like a windows download
-        let mut headers = Headers::new();
-        headers.set(UserAgent(
-            "hab/0.20.0-dev/20170326090935 (x86_64-windows; 10.0.14915)"
-                .to_string(),
-        ));
-
-        let (response, _) = iron_request(
-            method::Get,
-            "http://localhost/pkgs/core/cacerts/2017.01.17/20170209064045/download",
-            &mut Vec::new(),
-            headers,
-            download_broker,
-        );
-
-        //assert headers
-        let response = response.unwrap();
-        assert_eq!(response.status, Some(status::Ok));
-        let disp = ContentDisposition {
-            disposition: DispositionType::Attachment,
-            parameters: vec![
-                DispositionParam::Filename(
-                    Charset::Iso_8859_1,
-                    None,
-                    b"core-cacerts-2017.01.17-20170209064045-x86_64-windows.hart".to_vec()
-                ),
-            ],
-        };
-        assert_eq!(response.headers.get::<ContentDisposition>(), Some(&disp));
-
-        //assert file content
-        let result_body = response::extract_body_to_bytes(response);
-        assert_eq!(result_body, body);
     }
 
     #[test]
@@ -3134,231 +2895,5 @@ mod test {
         assert_eq!(package_req.get_stop(), 51);
         assert_eq!(package_req.get_origin(), "org".to_string());
         assert_eq!(package_req.get_query(), "name".to_string());
-    }
-
-    #[test]
-    fn list_channels() {
-        let mut broker: TestableBroker = Default::default();
-        let mut access_res = CheckOriginAccessResponse::new();
-
-        access_res.set_has_access(true);
-        broker.setup::<CheckOriginAccessRequest, CheckOriginAccessResponse>(&access_res);
-
-        let mut origin_res = Origin::new();
-        origin_res.set_id(5000);
-        broker.setup::<OriginGet, Origin>(&origin_res);
-
-        let mut channel_res = OriginChannelListResponse::new();
-        let mut channels = protobuf::RepeatedField::new();
-
-        let mut channel = OriginChannel::new();
-        channel.set_name("my_channel".to_string());
-        channels.push(channel);
-
-        let mut channel2 = OriginChannel::new();
-        channel2.set_name("my_channel2".to_string());
-        channels.push(channel2);
-
-        channel_res.set_channels(channels);
-
-        broker.setup::<OriginChannelListRequest, OriginChannelListResponse>(&channel_res);
-
-        let (response, _) = iron_request(
-            method::Get,
-            "http://localhost/channels/org",
-            &mut Vec::new(),
-            Headers::new(),
-            broker,
-        );
-        let result_body = response::extract_body_to_string(response.unwrap());
-
-        assert_eq!(
-            result_body,
-            "[\
-            {\
-                \"name\":\"my_channel\"\
-            },\
-            {\
-                \"name\":\"my_channel2\"\
-            }\
-        ]"
-        );
-    }
-
-    #[test]
-    fn create_channel() {
-        let mut broker: TestableBroker = Default::default();
-        let mut access_res = CheckOriginAccessResponse::new();
-
-        access_res.set_has_access(true);
-        broker.setup::<CheckOriginAccessRequest, CheckOriginAccessResponse>(&access_res);
-
-        let mut origin_res = Origin::new();
-        origin_res.set_name(String::from("neurosis"));
-        origin_res.set_id(5000);
-        broker.setup::<OriginGet, Origin>(&origin_res);
-
-        let mut channel_res = OriginChannel::new();
-        channel_res.set_origin_id(5000);
-        channel_res.set_name("my_channel".to_string());
-
-        broker.setup::<OriginChannelCreate, OriginChannel>(&channel_res);
-
-        let (resp, msgs) = iron_request(
-            method::Post,
-            "http://localhost/channels/neurosis/my_channel",
-            &mut Vec::new(),
-            Headers::new(),
-            broker,
-        );
-        let response = resp.unwrap();
-        assert_eq!(response.status, Some(status::Created));
-
-        let channel_req = msgs.get::<OriginChannelCreate>().unwrap();
-        assert_eq!(channel_req.get_origin_name(), "neurosis");
-        assert_eq!(channel_req.get_name(), "my_channel");
-    }
-
-    #[test]
-    fn demote_package() {
-        let mut broker: TestableBroker = Default::default();
-
-        //setup our full package
-        let mut ident = OriginPackageIdent::new();
-        ident.set_origin("org".to_string());
-        ident.set_name("name".to_string());
-        ident.set_version("1.1.1".to_string());
-        ident.set_release("20170101010101".to_string());
-
-        let mut package = OriginPackage::new();
-        package.set_id(5000);
-        package.set_ident(ident.clone());
-        package.set_checksum("checksum".to_string());
-        package.set_manifest("manifest".to_string());
-        package.set_config("config".to_string());
-        package.set_target("x86_64-linux".to_string());
-        broker.setup::<OriginPackageGet, OriginPackage>(&package);
-
-        let mut channel = OriginChannel::new();
-        channel.set_id(6000);
-        channel.set_name("my_channel".to_string());
-        broker.setup::<OriginChannelGet, OriginChannel>(&channel);
-
-        let mut access_res = CheckOriginAccessResponse::new();
-        access_res.set_has_access(true);
-        broker.setup::<CheckOriginAccessRequest, CheckOriginAccessResponse>(&access_res);
-
-        broker.setup::<OriginPackageDemote, NetOk>(&NetOk::new());
-
-        let (response, msgs) = iron_request(
-            method::Put,
-            "http://localhost/channels/org/my_channel/pkgs/name/1.1.1/20170101010101/demote",
-            &mut Vec::new(),
-            Headers::new(),
-            broker,
-        );
-
-        let response = response.unwrap();
-        assert_eq!(response.status, Some(status::Ok));
-
-        //assert we sent the corect range to postgres
-        let channel_get = msgs.get::<OriginChannelGet>().unwrap();
-        assert_eq!(channel_get.get_origin_name(), "org".to_string());
-        assert_eq!(channel_get.get_name(), "my_channel".to_string());
-
-        let package_get = msgs.get::<OriginPackageGet>().unwrap();
-        assert_eq!(package_get.get_ident().to_string(), ident.to_string());
-
-        let promote = msgs.get::<OriginPackageDemote>().unwrap();
-        assert_eq!(promote.get_channel_id(), 6000);
-        assert_eq!(promote.get_package_id(), 5000);
-        assert_eq!(promote.get_ident().to_string(), ident.to_string());
-    }
-
-    #[test]
-    fn promote_package() {
-        let mut broker: TestableBroker = Default::default();
-
-        //setup our full package
-        let mut ident = OriginPackageIdent::new();
-        ident.set_origin("org".to_string());
-        ident.set_name("name".to_string());
-        ident.set_version("1.1.1".to_string());
-        ident.set_release("20170101010101".to_string());
-
-        let mut package = OriginPackage::new();
-        package.set_id(5000);
-        package.set_ident(ident.clone());
-        package.set_checksum("checksum".to_string());
-        package.set_manifest("manifest".to_string());
-        package.set_config("config".to_string());
-        package.set_target("x86_64-linux".to_string());
-        broker.setup::<OriginPackageGet, OriginPackage>(&package);
-
-        let mut channel = OriginChannel::new();
-        channel.set_id(6000);
-        channel.set_name("my_channel".to_string());
-        broker.setup::<OriginChannelGet, OriginChannel>(&channel);
-
-        let mut access_res = CheckOriginAccessResponse::new();
-        access_res.set_has_access(true);
-        broker.setup::<CheckOriginAccessRequest, CheckOriginAccessResponse>(&access_res);
-
-        broker.setup::<OriginPackagePromote, NetOk>(&NetOk::new());
-
-        let (response, msgs) = iron_request(
-            method::Put,
-            "http://localhost/channels/org/my_channel/pkgs/name/1.1.1/20170101010101/promote",
-            &mut Vec::new(),
-            Headers::new(),
-            broker,
-        );
-
-        let response = response.unwrap();
-        assert_eq!(response.status, Some(status::Ok));
-
-        //assert we sent the corect range to postgres
-        let channel_get = msgs.get::<OriginChannelGet>().unwrap();
-        assert_eq!(channel_get.get_origin_name(), "org".to_string());
-        assert_eq!(channel_get.get_name(), "my_channel".to_string());
-
-        let package_get = msgs.get::<OriginPackageGet>().unwrap();
-        assert_eq!(package_get.get_ident().to_string(), ident.to_string());
-
-        let promote = msgs.get::<OriginPackagePromote>().unwrap();
-        assert_eq!(promote.get_channel_id(), 6000);
-        assert_eq!(promote.get_package_id(), 5000);
-        assert_eq!(promote.get_ident().to_string(), ident.to_string());
-    }
-
-    #[test]
-    fn channel_delete() {
-        let mut broker: TestableBroker = Default::default();
-
-        let mut access_res = CheckOriginAccessResponse::new();
-        access_res.set_has_access(true);
-        broker.setup::<CheckOriginAccessRequest, CheckOriginAccessResponse>(&access_res);
-
-        let mut channel = OriginChannel::new();
-        channel.set_id(6000);
-        channel.set_origin_id(5000);
-        broker.setup::<OriginChannelGet, OriginChannel>(&channel);
-
-        broker.setup::<OriginChannelDelete, NetOk>(&NetOk::new());
-
-        let (response, msgs) = iron_request(
-            method::Delete,
-            "http://localhost/channels/org/my_channel",
-            &mut Vec::new(),
-            Headers::new(),
-            broker,
-        );
-
-        let response = response.unwrap();
-        assert_eq!(response.status, Some(status::Ok));
-
-        let delete = msgs.get::<OriginChannelDelete>().unwrap();
-        assert_eq!(delete.get_id(), 6000);
-        assert_eq!(delete.get_origin_id(), 5000);
     }
 }

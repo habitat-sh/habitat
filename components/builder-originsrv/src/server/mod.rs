@@ -102,6 +102,9 @@ impl Dispatcher for Worker {
                 handlers::origin_package_version_list(message, sock, state)
             }
             "OriginPackageDemote" => handlers::origin_package_demote(message, sock, state),
+            "OriginPackageGroupPromote" => {
+                handlers::origin_package_group_promote(message, sock, state)
+            }
             "OriginPackagePromote" => handlers::origin_package_promote(message, sock, state),
             "OriginPackageUniqueListRequest" => {
                 handlers::origin_package_unique_list(message, sock, state)

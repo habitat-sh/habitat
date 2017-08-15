@@ -91,6 +91,20 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                         INSERT INTO origin_channel_packages (channel_id, package_id) VALUES (opp_channel_id, opp_package_id)
                         ON CONFLICT ON CONSTRAINT origin_channel_packages_pkey DO NOTHING;
                  $$ LANGUAGE SQL VOLATILE"#)?;
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE OR REPLACE FUNCTION promote_origin_package_group_v1 (
+                    opp_channel_id bigint,
+                    opp_package_ids bigint[]
+                 ) RETURNS void
+                   LANGUAGE SQL
+                   VOLATILE AS $$
+                     INSERT INTO origin_channel_packages (channel_id, package_id)
+                     SELECT opp_channel_id, package_ids.id
+                     FROM unnest(opp_package_ids) AS package_ids(id)
+                     ON CONFLICT ON CONSTRAINT origin_channel_packages_pkey DO NOTHING;
+                 $$"#,
+    )?;
     migrator.migrate("originsrv",
                      r#"CREATE OR REPLACE FUNCTION demote_origin_package_v1 (
                     opp_channel_id bigint,

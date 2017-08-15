@@ -1017,6 +1017,25 @@ impl DataStore {
         }
     }
 
+    pub fn promote_origin_package_group(
+        &self,
+        opp: &originsrv::OriginPackageGroupPromote,
+    ) -> Result<()> {
+        let conn = self.pool.get(opp)?;
+        let pkg_ids: Vec<i64> = opp.get_package_ids()
+            .to_vec()
+            .iter()
+            .map(|&x| x as i64)
+            .collect();
+
+        &conn.query(
+            "SELECT * FROM promote_origin_package_group_v1($1, $2)",
+            &[&(opp.get_channel_id() as i64), &(pkg_ids)],
+        ).map_err(Error::OriginPackageGroupPromote)?;
+
+        Ok(())
+    }
+
     pub fn promote_origin_package(&self, opp: &originsrv::OriginPackagePromote) -> Result<()> {
         let conn = self.pool.get(opp)?;
         &conn.query(

@@ -16,6 +16,7 @@ use std::error;
 use std::ffi;
 use std::fmt;
 use std::io;
+use std::num;
 use std::path::{self, PathBuf};
 use std::result;
 
@@ -49,7 +50,9 @@ pub enum Error {
     HabitatCore(hcore::Error),
     HandlebarsRenderError(handlebars::TemplateRenderError),
     IO(io::Error),
+    JobGroupPromote(u64, String),
     PackageArchiveMalformed(String),
+    ParseIntError(num::ParseIntError),
     PathPrefixError(path::StripPrefixError),
     ProvidesError(String),
     RootRequired,
@@ -125,12 +128,20 @@ impl fmt::Display for Error {
             Error::HabitatCore(ref e) => format!("{}", e),
             Error::HandlebarsRenderError(ref e) => format!("{}", e),
             Error::IO(ref err) => format!("{}", err),
+            Error::JobGroupPromote(ref id, ref c) => {
+                format!(
+                    "Failed to promote job group ID {} to channel {} because some packages did not build successfully.",
+                    id,
+                    c
+                )
+            }
             Error::PackageArchiveMalformed(ref e) => {
                 format!(
                     "Package archive was unreadable or contained unexpected contents: {:?}",
                     e
                 )
             }
+            Error::ParseIntError(ref err) => format!("{}", err),
             Error::PathPrefixError(ref err) => format!("{}", err),
             Error::ProvidesError(ref err) => format!("Can't find {}", err),
             Error::RootRequired => {
@@ -173,9 +184,13 @@ impl error::Error for Error {
             Error::HabitatCore(ref err) => err.description(),
             Error::HandlebarsRenderError(ref err) => err.description(),
             Error::IO(ref err) => err.description(),
+            Error::JobGroupPromote(_, _) => {
+                "Failed to promote job group because some packages did not build successfully."
+            }
             Error::PackageArchiveMalformed(_) => {
                 "Package archive was unreadable or had unexpected contents"
             }
+            Error::ParseIntError(ref err) => err.description(),
             Error::PathPrefixError(ref err) => err.description(),
             Error::ProvidesError(_) => {
                 "Can't find a package that provides the given search parameter"

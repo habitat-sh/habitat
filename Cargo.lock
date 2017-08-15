@@ -157,10 +157,13 @@ dependencies = [
  "clippy 0.0.144 (registry+https://github.com/rust-lang/crates.io-index)",
  "habitat_builder_protocol 0.0.0",
  "habitat_core 0.0.0",
+ "habitat_net 0.0.0",
  "libarchive 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "petgraph 0.4.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "protobuf 1.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde_derive 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "statsd 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "time 0.1.37 (registry+https://github.com/rust-lang/crates.io-index)",
  "walkdir 1.0.7 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -701,6 +704,7 @@ dependencies = [
 name = "habitat_api_client"
 version = "0.0.0"
 dependencies = [
+ "builder_core 0.0.0",
  "clippy 0.0.144 (registry+https://github.com/rust-lang/crates.io-index)",
  "habitat_core 0.0.0",
  "habitat_http_client 0.0.0",
@@ -748,6 +752,7 @@ version = "0.0.0"
 dependencies = [
  "base64 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "bodyparser 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "builder_core 0.0.0",
  "clap 2.25.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "clippy 0.0.144 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -912,6 +917,7 @@ dependencies = [
  "clap 2.25.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "clippy 0.0.144 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "habitat_api_client 0.0.0",
  "habitat_builder_db 0.0.0",
  "habitat_builder_protocol 0.0.0",
  "habitat_core 0.0.0",
@@ -1144,6 +1150,8 @@ dependencies = [
  "hyper-openssl 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "openssl 0.9.11 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde_json 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "url 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 

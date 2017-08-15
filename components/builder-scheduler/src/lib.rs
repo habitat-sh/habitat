@@ -20,6 +20,7 @@ extern crate habitat_net as hab_net;
 extern crate habitat_builder_db as db;
 extern crate builder_core as bldr_core;
 extern crate habitat_depot_client as depot_client;
+extern crate habitat_api_client as api_client;
 extern crate linked_hash_map;
 #[macro_use]
 extern crate log;

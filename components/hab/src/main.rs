@@ -129,6 +129,7 @@ fn start(ui: &mut UI) -> Result<()> {
         ("job", Some(matches)) => {
             match matches.subcommand() {
                 ("start", Some(m)) => sub_job_start(ui, m)?,
+                ("promote", Some(m)) => sub_job_promote(ui, m)?,
                 _ => unreachable!(),
             }
         }
@@ -394,6 +395,16 @@ fn sub_job_start(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let group = m.is_present("GROUP");
     let token = auth_token_param_or_env(&m)?;
     command::job::start::start(ui, &url, &ident, &token, group)?;
+    Ok(())
+}
+
+fn sub_job_promote(ui: &mut UI, m: &ArgMatches) -> Result<()> {
+    let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
+    let group_id = m.value_of("GROUP_ID").unwrap(); // Required via clap
+    let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
+    let channel = m.value_of("CHANNEL").unwrap(); // Required via clap
+    let token = auth_token_param_or_env(&m)?;
+    command::job::promote::start(ui, &url, &group_id, &channel, &token)?;
     Ok(())
 }
 

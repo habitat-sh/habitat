@@ -41,14 +41,15 @@ pub enum Status {
     Encrypting,
     Installed,
     Missing,
-    Signing,
+    Promoted,
+    Promoting,
     Signed,
+    Signing,
     Uploaded,
     Uploading,
     Using,
     Verified,
     Verifying,
-    Promoted,
     Custom(char, String),
 }
 
@@ -66,6 +67,8 @@ impl Status {
             Status::Encrypting => ('☛', "Encrypting".into(), Colour::Green),
             Status::Installed => ('✓', "Installed".into(), Colour::Green),
             Status::Missing => ('∵', "Missing".into(), Colour::Red),
+            Status::Promoted => ('✓', "Promoted".into(), Colour::Green),
+            Status::Promoting => ('→', "Promoting".into(), Colour::Green),
             Status::Signed => ('✓', "Signed".into(), Colour::Cyan),
             Status::Signing => ('☛', "Signing".into(), Colour::Cyan),
             Status::Uploaded => ('✓', "Uploaded".into(), Colour::Green),
@@ -73,7 +76,6 @@ impl Status {
             Status::Using => ('→', "Using".into(), Colour::Green),
             Status::Verified => ('✓', "Verified".into(), Colour::Green),
             Status::Verifying => ('☛', "Verifying".into(), Colour::Green),
-            Status::Promoted => ('✓', "Promoted".into(), Colour::Green),
             Status::Custom(c, ref s) => (c, s.to_string(), Colour::Green),
         }
     }
