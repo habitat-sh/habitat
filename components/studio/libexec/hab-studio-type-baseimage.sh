@@ -6,7 +6,7 @@ studio_build_command=
 studio_run_environment=
 studio_run_command=
 
-base_pkgs="core/hab core/hab-sup"
+base_pkgs="core/hab core/hab-launcher core/hab-sup"
 : ${PKGS:=}
 
 run_user="hab"
@@ -42,7 +42,7 @@ finish_setup() {
   local busybox_path=$(_pkgpath_for core/busybox-static)
 
   local full_path=""
-  for path_pkg in $PKGS core/hab-sup core/busybox-static; do
+  for path_pkg in $PKGS core/hab-launcher core/hab-sup core/busybox-static; do
     local path_file="$HAB_STUDIO_ROOT/$(_pkgpath_for $path_pkg)/PATH"
     if [ -f "$path_file" ]; then
       if [ -z "$full_path" ]; then
