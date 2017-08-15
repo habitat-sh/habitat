@@ -580,7 +580,7 @@ EOF
     $bb mkdir -p $v $($bb dirname $f)
     if [ $f = "/etc/nsswitch.conf" ] ; then
       $bb touch $HAB_STUDIO_ROOT$f
-      $bb cat <<EOF > "$f"
+      $bb cat <<EOF > "$HAB_STUDIO_ROOT$f"
 passwd:     files
 group:      files
 shadow:     files
