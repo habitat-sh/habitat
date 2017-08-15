@@ -1,26 +1,26 @@
 ---
-title: Packaging a Web Site with Nginx and Habitat
-date: 2017-08-11
+title: Packaging a Website with Nginx and Habitat
+date: 2017-08-15
 tags: packaging, nginx, websites
 category: Web Applications
 author: Chris Nunciato
 classes: body-article
 ---
 
-I build a lot of web sites, and until somewhat recently, my workflow would usually go something like this:
+I build a lot of websites, and until somewhat recently, my workflow would usually go something like this:
 
 1. Have an idea.
-1. Build a web site.
-1. Fumble through getting version 1 of the web site out into the world.
+1. Build a website.
+1. Fumble through getting version 1 of the website out into the world.
 1. Briefly celebrate before wondering how to get version 2 out into the world to fix all the bugs I shipped in version 1.
 
 Fortunately, I work on the Habitat project, so these days I spend less time wondering how I'm going to ship my web projects, and more time actually developing them (although I still ship more than my fair share of bugs).
 
-In this post, I'll show you how to package a simple web site with Habitat and serve it with the [Nginx web server](http://nginx.org/en/).
+In this post, I'll show you how to package a simple website with Habitat and serve it with the [Nginx web server](http://nginx.org/en/).
 
-## Start with a Simple Web Site
+## Start with a Simple Website
 
-We'll compose our web site by building two Habitat packages &mdash; one for the web site, one for the server. We want to be able to ship these packages independently of one another, so let's start by creating a folder with a subfolder for each of them:
+We'll compose our website by building two Habitat packages &mdash; one for the website, one for the server. We want to be able to ship these packages independently of one another, so let's start by creating a folder with a subfolder for each of them:
 
     $ cd ~
     $ mkdir -p hello-hab/site hello-hab/server
@@ -40,7 +40,7 @@ With your editor of choice, copy the markup below into `index.html` and save it:
       </body>
     </html>
 
-Excellent &mdash; we have a web site! We're just about ready to start packaging.
+Excellent &mdash; we have a website! We're just about ready to start packaging.
 
 ## Get Set Up with Habitat
 
@@ -67,7 +67,7 @@ If what you see when you run these commands looks significantly different, take 
 
 All right! Let's do some packaging.
 
-## Package the Web Site
+## Package the Website
 
 Let's start in the containing folder we created a moment ago:
 
@@ -100,7 +100,7 @@ As noted in [the plan docs](/docs/reference/plan-syntax/), the `do_build` step r
 
 Our `do_install` step also overrides Habitat's default behavior, this time by copying `index.html` from its location in our source tree into its final destination in the rendered package &mdash; a folder I've named, somewhat web-conventionally, `dist`). If our site were more complex, or if we'd performed some sort of a build step in `do_build` to produce a compiled web app, we might expand this step to do a bit more work &mdash; but for now, we've done all we need.
 
-Now, Habitat recognizes a number of [environment variables](/docs/reference/environment-vars/) you can use to make your plan-authoring experience a little nicer. Since I do most of my plan development on a Mac, I often use `HAB_DOCKER_OPTS`, which passes whatever value I specify as a string of command-line arguments to Docker when I enter [the Habitat studio](https://www.habitat.sh/docs/concepts-studio/) (which runs in a Docker container on the Mac). So if I'm building a web-site package and would like to view my site in a browser, I'll need to map a port from the container to my Mac &mdash; for example, port 80 in the container to 8080 on my machine.  I can do that pretty easily by exporting that variable before running `hab studio enter`.
+Now, Habitat recognizes a number of [environment variables](/docs/reference/environment-vars/) you can use to make your plan-authoring experience a little nicer. Since I do most of my plan development on a Mac, I often use `HAB_DOCKER_OPTS`, which passes whatever value I specify as a string of command-line arguments to Docker when I enter [the Habitat studio](https://www.habitat.sh/docs/concepts-studio/) (which runs in a Docker container on the Mac). So if I'm building a website package and would like to view my site in a browser, I'll need to map a port from the container to my Mac &mdash; for example, port 80 in the container to 8080 on my machine.  I can do that pretty easily by exporting that variable before running `hab studio enter`.
 
 Let's do that now, as it'll come in handy later when we start the web server. And let's also make sure we enter the studio at a level *above* our two packages so we can work with them both in a single studio session:
 
@@ -145,12 +145,12 @@ Your output should look something like this (I've removed a few lines to point o
       hello-hab-site:
       hello-hab-site: Build time: 0m0s
 
-Okay! According to this, we should now have a signed Habitat package containing our web site:
+Okay! According to this, we should now have a signed Habitat package containing our website:
 
     [2][default:/src:0]# ls ./results
     cnunciato-hello-hab-site-0.1.0-20170810182846-x86_64-linux.hart  last_build.env
 
-Great! Our web site is done. Let's move on to the server.
+Great! Our website is done. Let's move on to the server.
 
 ## Package the Web Server
 
@@ -168,7 +168,7 @@ That should leave you with some folders and files shaped generally like this:
         ├── default.toml
         └── plan.sh
 
-With our server plan, the goal is to produce a package that defines a service capable of serving the pages of our web site &mdash; specifically, the one we just built into our `hello-hab-site` package &mdash; and we can use [Habitat's `core/nginx` package](https://bldr.habitat.sh/#/pkgs/core/nginx) to do exactly that.
+With our server plan, the goal is to produce a package that defines a service capable of serving the pages of our website &mdash; specifically, the one we just built into our `hello-hab-site` package &mdash; and we can use [Habitat's `core/nginx` package](https://bldr.habitat.sh/#/pkgs/core/nginx) to do exactly that.
 
 We'll do so by composing a new plan that *depends* on `core/nginx`, bundle an Nginx configuration file with it, and expose some configurable properties to allow us to set things like ports, document roots and so on according to our needs. Let's start with the plan file.
 
@@ -240,8 +240,8 @@ A few things to note about what we've included here:
   * `deamon off`: Tells Nginx to run in the foreground, which allows it to be managed by the Habitat supervisor
   * `*_temp_path`: Directives that specify temporary file paths; these are currently required by `core/nginx`, so we specify them here as subpaths of `pkg.svc_var_path` (which ultimately ends up at `/hab/svc/hello-hab-server/var/`)
   * `listen`: The port on which we'll listen for HTTP requests
-  * `root`: The fully qualified path to the files of our web site
-  * `index`: The default document of our web site
+  * `root`: The fully qualified path to the files of our website
+  * `index`: The default document of our website
 
 When we start our web-server service, Habitat will combine the template above with metadata supplied by our package (the `pkg.*` expressions) and values we provide in our TOML files (the `cfg.*` ones) and produce a well-formed configuration file that `nginx` can consume when it starts. Let's finish this off by adding some default values to `server/habitat/default.toml`, which was created for you when you ran `hab plan init`:
 
@@ -312,11 +312,11 @@ And because you exported `HAB_DOCKER_OPTS` earlier to map port 80 in the contain
 
 ![](media/2017-08-11-Hab-and-Nginx/hello-hab-blank.png)
 
-## Hook Up the Web Site
+## Hook Up the Website
 
 That's great, and you should be proud &mdash; but a blank page isn't going to win you the Internet. Let's update our server's configuration to use `hello-hab-site`'s `dist` folder (where our HTML file lives now) as its new document root.
 
-To do that, we'll use `hab config apply` to send a bit of TOML to our server's [service group](/docs/concepts-services/) (and mind that line break &mdash; it needs to be included, or you'll get complaints about malformed TOML, and the change wont' be applied):
+To do that, we'll [use `hab config apply` to send a bit of TOML](/docs/run-packages-apply-config-updates/) to our server's [service group](/docs/concepts-services/) (and mind that line break &mdash; it needs to be included, or you'll get complaints about malformed TOML, and the change wont' be applied):
 
     [7][default:/src:0]# echo "[http.server]
     root = '$(hab pkg path cnunciato/hello-hab-site)/dist'" | hab config apply hello-hab-server.default 1
@@ -337,12 +337,19 @@ Now go ahead and give that browser a reload, and you should finally see what you
 
 That was a whole bunch of words to explain what was really just a few lines of code (which, by the way, [is up on GitHub](https://github.com/cnunciato/hello-hab) if you'd like to see everything in context), and we've covered a lot. We've learned:
 
-  * How to build a package for a web site and a web server, and how to enable those packages to interoperate and be shipped independently of one another
+  * How to build a package for a static website and a web server, and how to enable those packages to interoperate and be shipped independently of one another
   * How to expose configurable aspects of a package, and how to apply configuration changes to a service at runtime
   * How to develop multiple packages in a Habitat studio
 
-So what's next? There's so much more. But we have to stop sometime.
+So what's next? In future posts, we might develop our website package into a more sophisticated single-page web app, package a REST API to support it, extend our web-server configuration, add a database, build some containers, deploy, scale ... so many things. In the meantime, you might try a few on your own, like:
 
-In future posts, we might develop our web-site package into a more sophisticated single-page web app, package a REST API to support it, extend our web-server configuration, add a database, build some containers, deploy, scale ... so many things.
+ * [Uploading both packages](/docs/share-packages-overview/#uploading-packages-to-the-depot) to the Habitat Depot,
+ * [Installing them](/docs/reference/habitat-cli/#hab-pkg-install) on a server,
+ * [Running the web-server package](/docs/share-packages-overview/#running-packages-from-the-depot) from the Depot, and
+ * Iterating on the website package by building and uploading revisions to the Depot.
+
+In doing so, you may find that the pattern we've outlined here &mdash; using `hab config apply` to prompt the web server to pick up changes to the website package &mdash; works nicely, but does require the somewhat manual step of running that command (and remembering to increment the version number). It'd be better if the Habitat supervisor could detect a new version of that package on the Depot, install it for you, and have the web server pick up the change automatically.
+
+One way to do that would be with [scaffolding](/docs/concepts-scaffolding/) to make it easier to package static websites or single-page JavaScript web applications. We've just started talking about this one, so expect to hear more about that here as it develops.
 
 Until then, have fun! [We'll see you in Slack](http://slack.habitat.sh/).
