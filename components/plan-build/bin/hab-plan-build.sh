@@ -3004,7 +3004,7 @@ if [[ ! -f "$PLAN_CONTEXT/plan.sh" ]]; then
     places=`find_file $PLAN_CONTEXT plan.sh`
 
     # Now ask the user which plan file they want to use
-    PLAN=$(select_file $places 3>&1 1>&2 2>&3)
+    PLAN=$(select_file $places)
 
     if [[ ! -z "$PLAN" ]]; then
       PLAN_CONTEXT=$(dirname $PLAN)

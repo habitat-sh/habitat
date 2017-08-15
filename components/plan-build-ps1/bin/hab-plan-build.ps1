@@ -1253,7 +1253,7 @@ if (-Not (Test-Path "$PLAN_CONTEXT\plan.ps1")) {
       $places = find_file $PLAN_CONTEXT plan.sh
 
       # Now ask the user which plan file they want to use
-      $PLAN = cmd /c select_file $places '3>&1' '1>&2' '2>&3'
+      $PLAN = select_file $places
 
       if (Test-Path "$PLAN") {
         $PLAN_CONTEXT = (dirname $PLAN)
