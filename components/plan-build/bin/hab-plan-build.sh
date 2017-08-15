@@ -2997,8 +2997,20 @@ if [[ ! -f "$PLAN_CONTEXT/plan.sh" ]]; then
     # `$PLAN_CONTEXT` directory to be relative to the actual `plan.sh` file.
     PLAN_CONTEXT="$PLAN_CONTEXT/habitat"
   else
-    places="$PLAN_CONTEXT/plan.sh or $PLAN_CONTEXT/habitat/plan.sh"
-    exit_with "Plan file not found at $places" 42
+    # Since plan.sh doesn't exist in the default locations, search
+    # the entire directory tree for it
+
+    # First find all instances of plan.sh
+    places=`find_file $PLAN_CONTEXT plan.sh`
+
+    # Now ask the user which plan file they want to use
+    PLAN=$(select_file $places 3>&1 1>&2 2>&3)
+
+    if [[ ! -z "$PLAN" ]]; then
+      PLAN_CONTEXT=$(dirname $PLAN)
+    else
+      exit_with "No plan.sh found under the $PLAN_CONTEXT directory" 42
+    fi
   fi
 fi
 

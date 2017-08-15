@@ -5,9 +5,9 @@ $pkg_maintainer = "The Habitat Maintainers <humans@habitat.sh>"
 $pkg_license = @("Apache-2.0")
 $pkg_source = "nosuchfile.tar.gz"
 $pkg_bin_dirs = @("bin")
+$pkg_deps = @("saffronsnail/find-file")
 
-# No runtime or build dependencies yet
-$pkg_deps = @()
+# No build dependencies yet
 $pkg_build_deps = @()
 
 $bin = "hab-plan-build.ps1"

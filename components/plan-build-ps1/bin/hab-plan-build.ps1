@@ -1240,15 +1240,27 @@ if ((Test-Path "$PLAN_CONTEXT\plan.ps1") -and (Test-Path "$PLAN_CONTEXT\habitat\
     $places = "$PLAN_CONTEXT\plan.sh and $PLAN_CONTEXT\habitat/plan.sh"
     _Exit-With "A Plan file was found at $places. Only one is allowed at a time" 42
 }
-# We check if the provided path has a `plan.sh` in it in either location. If
-# not, we'll quickly bail.
+# We check if the provided path has a `plan.ps1` in it in either location. If
+# not, we'll search subdirectories for plan.ps1
 if (-Not (Test-Path "$PLAN_CONTEXT\plan.ps1")) {
     if (Test-Path "$PLAN_CONTEXT\habitat\plan.ps1") {
         $PLAN_CONTEXT = "$PLAN_CONTEXT\habitat"
     } else {
-        $places = "$PLAN_CONTEXT\plan.sh or $PLAN_CONTEXT\habitat/plan.sh"
-        _Exit-With "Plan file not found at $places" 42
-    }
+		# Since plan.ps1 doesn't exist in the default locations, search
+		# the entire directory tree for it
+
+		# First find all instances of plan.ps1
+		$places = find_file $PLAN_CONTEXT plan.sh
+
+		# Now ask the user which plan file they want to use
+		$PLAN = cmd /c select_file $places '3>&1' '1>&2' '2>&3'
+
+		if (Test-Path "$PLAN") {
+		  $PLAN_CONTEXT = (dirname $PLAN)
+		} else {
+		  _Exit-with "No plan.ps1 found under the $PLAN_CONTEXT directory" 42
+		}
+	}
 }
 
 # We want to fail the build for both termionating and non terminating errors
