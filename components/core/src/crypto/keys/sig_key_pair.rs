@@ -81,7 +81,7 @@ impl SigKeyPair {
         cache_key_path: &P,
         pair_type: Option<&PairType>,
     ) -> Result<Vec<Self>> {
-        let revisions = get_key_revisions(name, cache_key_path.as_ref(), pair_type)?;
+        let revisions = get_key_revisions(name, cache_key_path.as_ref(), pair_type, &KeyType::Sig)?;
         debug!("revisions = {:?}", &revisions);
         let mut key_pairs = Vec::new();
         for name_with_rev in &revisions {
