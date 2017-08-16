@@ -87,7 +87,7 @@ export HAB_DEPOT_URL=http://localhost:9636/v1/depot
 export HAB_ORIGIN=<your origin>
 ```
 
-1. Now, switch to the root user and do a `make bldr-run` from the root of your hab repo.
+1. Now run `make bldr-run` from the root of your hab repo.
 
 The first time this command runs, it will create the required databases. Let it run for a while, and then re-start it if there are errors (this is normal for the first time setup).
 
