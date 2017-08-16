@@ -14,6 +14,7 @@ sudo -E apt-get install -y --no-install-recommends \
   file \
   gdb \
   git \
+  httpie \
   iproute2 \
   libarchive-dev \
   libpcre3-dev \

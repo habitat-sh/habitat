@@ -10,6 +10,7 @@ sudo -E apt-get install -y --no-install-recommends \
   curl \
   file \
   gdb \
+  httpie \
   iproute2 \
   libarchive-dev \
   libprotobuf-dev \
