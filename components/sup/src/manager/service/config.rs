@@ -190,9 +190,7 @@ impl Cfg {
                     Err(err) => debug!("Attempted to parse env config as json and failed {}", err),
                 }
                 self.environment = None;
-                Err(sup_error!(
-                    Error::BadEnvConfig(package.name.to_ascii_uppercase())
-                ))
+                Err(sup_error!(Error::BadEnvConfig(var_name)))
             }
             Err(e) => {
                 debug!(
