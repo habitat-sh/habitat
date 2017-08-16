@@ -95,6 +95,7 @@ EOF
 # Add hab to the default PATH at the front so any wrapping scripts will
 # be found and called first
 export PATH=$HAB_ROOT_PATH/bin:\$PATH
+export HAB_BINLINK_DIR=/hab/bin
 
 # Colorize grep/egrep/fgrep by default
 alias grep='grep --color=auto'
