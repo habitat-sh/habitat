@@ -1,10 +1,17 @@
+components/backline @fnichol
 components/builder-web @cnunciato @raskchanky @mgamini
 components/builder-* @chefsalim @raskchanky @reset
 components/butterfly* @christophermaier @reset
-components/core @reset
+components/common @fnichol
+components/core @reset @fnichol
 components/eventsrv* @reset
-components/hab* @reset
+components/hab* @reset @fnichol
+components/http-client @fnichol
 components/launcher* @reset
 components/net @reset
-components/sup @christophermaier @reset
+components/pkg-* @fnichol
+components/plan-build @fnichol
+components/studio @fnichol
+components/sup @christophermaier @reset @fnichol
+support @fnichol
 www @cnunciato @mgamini
