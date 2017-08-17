@@ -9,6 +9,7 @@ This document outlines the steps to start and run a Builder environment for deve
 1. Ensure you have a Github auth token. Create from the Github site if you don't have one already. Token Capabilities needed: read:org, user:email
 1. The sample commands below use the 'httpie' tool. Install it if not present on your system (https://github.com/jkbrzt/httpie).
 1. A recent version of the habitat cli should also be installed in your dev environment (https://www.habitat.sh/docs/get-habitat/)
+1. Ensure that `sudo -E` functions correctly. Some OSes don't respect the -E flag. If this is the case, remove the `secure_path` section of your sudoers file.
 
 ## Bootstrap the OS with required packages
 You need to make sure you have the required packages installed.
@@ -93,7 +94,7 @@ export HAB_DEPOT_URL=http://localhost:9636/v1/depot
 export HAB_ORIGIN=<your origin>
 ```
 
-Now run `make bldr-run` from the root of your hab repo.
+Now run `sudo -E make bldr-run` from the root of your hab repo.
 
 The first time this command runs, it will create the required databases. Let it run for a while, and then re-start it if there are errors (this is normal for the first time setup).
 
