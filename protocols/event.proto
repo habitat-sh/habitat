@@ -65,12 +65,16 @@ message PackageIdent {
 message CensusEntry {
   /// Member-ID of originating Supervisor
   optional string member_id = 1;
+
   /// Service name
   optional string service = 2;
   /// Service group name
   optional string group = 3;
   /// Service group organization name
   optional string org = 4;
+  // NOTE: service group application and environment are further down
+  // in this file.
+
   /// Gossiped configuration of service
   optional bytes cfg = 5;
   /// System information of Supervisor
@@ -112,4 +116,9 @@ message CensusEntry {
   optional bool persistent = 22;
   /// `true` if the service is marked as departed
   optional bool departed = 23;
+
+  /// Service group application name
+  optional string application = 24;
+  /// Service group environment name
+  optional string environment = 25;
 }
