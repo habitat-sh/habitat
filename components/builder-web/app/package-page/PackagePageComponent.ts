@@ -155,11 +155,10 @@ export class PackagePageComponent implements OnDestroy {
     }
 
     private fetchBuilds() {
-        if (this.token) {
-            this.store.dispatch(
-                fetchBuilds(this.package.ident.origin, this.package.ident.name, this.token)
-            );
-        }
+        this.store.dispatch(
+            fetchBuilds(this.package.ident.origin, this.package.ident.name, this.token)
+        );
+
     }
 
     private fetchPackage () {

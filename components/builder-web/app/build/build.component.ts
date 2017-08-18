@@ -4,7 +4,6 @@ import { Subscription } from "rxjs";
 import * as AnsiUp from "ansi_up";
 import * as moment from "moment";
 import { fetchBuildLog, streamBuildLog } from "../actions/index";
-import { requireSignIn } from "../util";
 import { AppStore } from "../AppStore";
 
 @Component({
@@ -23,7 +22,6 @@ export class BuildComponent implements OnChanges, OnDestroy {
     constructor(
         private store: AppStore,
         private elementRef: ElementRef) {
-        requireSignIn(this);
     }
 
     ngOnChanges(change) {
