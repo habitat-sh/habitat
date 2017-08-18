@@ -80,7 +80,7 @@ pub fn get() -> App<'static, 'static> {
             (aliases: &["j", "jo"])
             (@setting ArgRequiredElseHelp)
             (@subcommand start =>
-                (about: "Schedule a job or group of jobs.")
+                (about: "Schedule a job or group of jobs")
                 (aliases: &["s", "st", "sta", "star"])
                 (@arg PKG_IDENT: +required +takes_value
                     "The origin and name of the package to schedule a job for \
@@ -89,6 +89,17 @@ pub fn get() -> App<'static, 'static> {
                     "Use a specific Depot URL (ex: http://depot.example.com/v1/depot)")
                 (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for the Depot")
                 (@arg GROUP: -g --group "Schedule jobs for this package and all of its reverse dependencies")
+            )
+            (@subcommand promote =>
+                (about: "Promote every package in a job group to a specified channel")
+                (aliases: &["p", "pr", "pro", "prom", "promo", "promot"])
+                (@arg GROUP_ID: +required +takes_value
+                    "The job group ID that was returned from \"hab job start\" \
+                    (ex: 771100000000000000)")
+                (@arg CHANNEL: +takes_value +required "The channel name to promote the built packages into")
+                (@arg DEPOT_URL: -u --url +takes_value {valid_url}
+                    "Use a specific Depot URL (ex: http://depot.example.com/v1/depot)")
+                (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for the Depot")
             )
         )
         (@subcommand origin =>

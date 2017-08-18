@@ -11,30 +11,22 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#![cfg_attr(feature="clippy", feature(plugin))]
-#![cfg_attr(feature="clippy", plugin(clippy))]
 
-extern crate habitat_builder_protocol as protocol;
-extern crate habitat_core as hab_core;
-extern crate habitat_net as hab_net;
-#[macro_use]
-extern crate log;
-extern crate statsd;
-extern crate time;
-extern crate petgraph;
-extern crate walkdir;
-extern crate chrono;
-extern crate protobuf;
-#[macro_use]
-extern crate serde_derive;
+use std::io::Read;
 
-pub use self::error::Error;
+use hyper::client::Response;
+use serde;
+use serde_json;
 
-pub mod api;
-pub mod data_structures;
-pub mod error;
-pub mod file_walker;
-pub mod logger;
-pub mod metrics;
-pub mod package_graph;
-pub mod rdeps;
+use error::{Error, Result};
+
+pub fn decoded_response<T>(mut response: Response) -> Result<T>
+where
+    T: serde::de::DeserializeOwned,
+{
+    let mut encoded = String::new();
+    response.read_to_string(&mut encoded).map_err(Error::IO)?;
+    debug!("Body: {:?}", encoded);
+    let thing = serde_json::from_str(&encoded).map_err(Error::Json)?;
+    Ok(thing)
+}

@@ -9,6 +9,7 @@ This document outlines the steps to start and run a Builder environment for deve
 1. Ensure you have a Github auth token. Create from the Github site if you don't have one already. Token Capabilities needed: read:org, user:email
 1. The sample commands below use the 'httpie' tool. Install it if not present on your system (https://github.com/jkbrzt/httpie).
 1. A recent version of the habitat cli should also be installed in your dev environment (https://www.habitat.sh/docs/get-habitat/)
+1. Ensure that `sudo -E` functions correctly. Some OSes don't respect the -E flag. If this is the case, remove the `secure_path` section of your sudoers file.
 
 ## Bootstrap the OS with required packages
 You need to make sure you have the required packages installed.
@@ -77,6 +78,12 @@ jobsrv: target/debug/bldr-job-srv start --config /home/your_alias/habitat/config
 scheduler: target/debug/bldr-scheduler start --config /home/your_alias/habitat/config_scheduler.toml
 ```
 
+## Build the Builder services for the first time
+1. Open a new terminal window.
+1. Run `make build-srv`
+
+Note: this only needs to be done the first time to get the pieces in place. If you clean the project, make sure to unset the variables show below when you do a clean build, otherwise the build will look for packages on your local build service!
+
 ## Run the Builder services
 1. Open a new terminal window.
 1. Export the following environment variables:
@@ -87,7 +94,7 @@ export HAB_DEPOT_URL=http://localhost:9636/v1/depot
 export HAB_ORIGIN=<your origin>
 ```
 
-1. Now, switch to the root user and do a `make bldr-run` from the root of your hab repo.
+Now run `sudo -E make bldr-run` from the root of your hab repo.
 
 The first time this command runs, it will create the required databases. Let it run for a while, and then re-start it if there are errors (this is normal for the first time setup).
 

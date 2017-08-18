@@ -17,7 +17,7 @@ use std::fs;
 use std::fmt;
 use std::fs::File;
 use std::io::prelude::*;
-use std::io::BufWriter;
+use std::io::{BufReader, BufWriter};
 use std::path::{Path, PathBuf};
 use std::result;
 use std::str::FromStr;
@@ -48,6 +48,16 @@ enum KeyType {
     Sig,
     Box,
     Sym,
+}
+
+impl fmt::Display for KeyType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            KeyType::Box => write!(f, "box"),
+            KeyType::Sig => write!(f, "sig"),
+            KeyType::Sym => write!(f, "sym"),
+        }
+    }
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -239,6 +249,7 @@ fn get_key_revisions<P>(
     keyname: &str,
     cache_key_path: P,
     pair_type: Option<&PairType>,
+    key_type: &KeyType,
 ) -> Result<Vec<String>>
 where
     P: AsRef<Path>,
@@ -275,6 +286,17 @@ where
                 continue;
             }
         };
+
+        let file = File::open(p.path())?;
+        let mut reader = BufReader::new(file);
+        let mut buf = String::new();
+        reader.read_line(&mut buf)?;
+
+        if !buf.starts_with(&key_type.to_string().to_uppercase()) {
+            debug!("Invalid key content in {:?} for type {}", p, &key_type);
+            continue;
+        }
+
         let filename = match p.file_name().into_string() {
             Ok(f) => f,
             Err(e) => {
@@ -475,6 +497,7 @@ mod test {
     use super::box_key_pair::BoxKeyPair;
     use super::sig_key_pair::SigKeyPair;
     use super::sym_key::SymKey;
+    use super::KeyType;
     use super::PairType;
 
     use super::TmpKeyfile;
@@ -578,8 +601,21 @@ mod test {
         // we need to wait at least 1 second between generating keypairs to ensure uniqueness
         thread::sleep(time::Duration::from_millis(1000));
         let _ = SigKeyPair::generate_pair_for_origin("foo", cache.path());
-        let revs = super::get_key_revisions("foo", cache.path(), None).unwrap();
+        let revs = super::get_key_revisions("foo", cache.path(), None, &KeyType::Sig).unwrap();
         assert_eq!(2, revs.len());
+    }
+
+    #[test]
+    fn get_key_revisions_can_only_return_keys_of_specified_type() {
+        let cache = TempDir::new("key_cache").unwrap();
+        let _ = SigKeyPair::generate_pair_for_origin("foo", cache.path());
+        let revs = super::get_key_revisions("foo", cache.path(), None, &KeyType::Sig).unwrap();
+        assert_eq!(1, revs.len());
+        // we need to wait at least 1 second between generating keypairs to ensure uniqueness
+        thread::sleep(time::Duration::from_millis(1000));
+        let _ = BoxKeyPair::generate_pair_for_user("foo-user", cache.path());
+        let revs = super::get_key_revisions("foo-user", cache.path(), None, &KeyType::Sig).unwrap();
+        assert_eq!(0, revs.len());
     }
 
     #[test]
@@ -589,7 +625,9 @@ mod test {
         // we need to wait at least 1 second between generating keypairs to ensure uniqueness
         thread::sleep(time::Duration::from_millis(1000));
         let _ = SigKeyPair::generate_pair_for_origin("foo", cache.path());
-        let revs = super::get_key_revisions("foo", cache.path(), Some(&PairType::Secret)).unwrap();
+        let revs =
+            super::get_key_revisions("foo", cache.path(), Some(&PairType::Secret), &KeyType::Sig)
+                .unwrap();
         assert_eq!(2, revs.len());
     }
 
@@ -600,7 +638,9 @@ mod test {
         // we need to wait at least 1 second between generating keypairs to ensure uniqueness
         thread::sleep(time::Duration::from_millis(1000));
         let _ = SigKeyPair::generate_pair_for_origin("foo", cache.path());
-        let revs = super::get_key_revisions("foo", cache.path(), Some(&PairType::Public)).unwrap();
+        let revs =
+            super::get_key_revisions("foo", cache.path(), Some(&PairType::Public), &KeyType::Sig)
+                .unwrap();
         assert_eq!(2, revs.len());
     }
 
@@ -615,10 +655,12 @@ mod test {
         let _ = BoxKeyPair::generate_pair_for_user("wecoyote-foo", cache.path()).unwrap();
 
         // we shouldn't see wecoyote-foo as a 4th revision
-        let revisions = super::get_key_revisions("wecoyote", cache.path(), None).unwrap();
+        let revisions = super::get_key_revisions("wecoyote", cache.path(), None, &KeyType::Box)
+            .unwrap();
         assert_eq!(3, revisions.len());
 
-        let revisions = super::get_key_revisions("wecoyote-foo", cache.path(), None).unwrap();
+        let revisions = super::get_key_revisions("wecoyote-foo", cache.path(), None, &KeyType::Box)
+            .unwrap();
         assert_eq!(1, revisions.len());
     }
 
@@ -635,10 +677,14 @@ mod test {
         let _ = BoxKeyPair::generate_pair_for_service("acyou", "tnt.default", cache.path())
             .unwrap();
 
-        let revisions = super::get_key_revisions("tnt.default@acme", cache.path(), None).unwrap();
+        let revisions =
+            super::get_key_revisions("tnt.default@acme", cache.path(), None, &KeyType::Box)
+                .unwrap();
         assert_eq!(3, revisions.len());
 
-        let revisions = super::get_key_revisions("tnt.default@acyou", cache.path(), None).unwrap();
+        let revisions =
+            super::get_key_revisions("tnt.default@acyou", cache.path(), None, &KeyType::Box)
+                .unwrap();
         assert_eq!(1, revisions.len());
     }
 
@@ -652,10 +698,12 @@ mod test {
 
         let _ = SymKey::generate_pair_for_ring("acme-you", cache.path()).unwrap();
 
-        let revisions = super::get_key_revisions("acme", cache.path(), None).unwrap();
+        let revisions = super::get_key_revisions("acme", cache.path(), None, &KeyType::Sym)
+            .unwrap();
         assert_eq!(3, revisions.len());
 
-        let revisions = super::get_key_revisions("acme-you", cache.path(), None).unwrap();
+        let revisions = super::get_key_revisions("acme-you", cache.path(), None, &KeyType::Sym)
+            .unwrap();
         assert_eq!(1, revisions.len());
     }
 
@@ -671,10 +719,12 @@ mod test {
 
         let _ = SigKeyPair::generate_pair_for_origin("mutants-x", cache.path()).unwrap();
 
-        let revisions = super::get_key_revisions("mutants", cache.path(), None).unwrap();
+        let revisions = super::get_key_revisions("mutants", cache.path(), None, &KeyType::Sig)
+            .unwrap();
         assert_eq!(3, revisions.len());
 
-        let revisions = super::get_key_revisions("mutants-x", cache.path(), None).unwrap();
+        let revisions = super::get_key_revisions("mutants-x", cache.path(), None, &KeyType::Sig)
+            .unwrap();
         assert_eq!(1, revisions.len());
     }
 

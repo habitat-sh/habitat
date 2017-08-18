@@ -11,30 +11,18 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#![cfg_attr(feature="clippy", feature(plugin))]
-#![cfg_attr(feature="clippy", plugin(clippy))]
 
-extern crate habitat_builder_protocol as protocol;
-extern crate habitat_core as hab_core;
-extern crate habitat_net as hab_net;
-#[macro_use]
-extern crate log;
-extern crate statsd;
-extern crate time;
-extern crate petgraph;
-extern crate walkdir;
-extern crate chrono;
-extern crate protobuf;
-#[macro_use]
-extern crate serde_derive;
+use env;
 
-pub use self::error::Error;
+/// Default Binlink Dir
+pub const DEFAULT_BINLINK_DIR: &'static str = "/bin";
 
-pub mod api;
-pub mod data_structures;
-pub mod error;
-pub mod file_walker;
-pub mod logger;
-pub mod metrics;
-pub mod package_graph;
-pub mod rdeps;
+/// Binlink Dir Environment variable
+pub const BINLINK_DIR_ENVVAR: &'static str = "HAB_BINLINK_DIR";
+
+pub fn default_binlink_dir() -> String {
+    match env::var(BINLINK_DIR_ENVVAR) {
+        Ok(val) => val,
+        Err(_) => DEFAULT_BINLINK_DIR.to_string(),
+    }
+}

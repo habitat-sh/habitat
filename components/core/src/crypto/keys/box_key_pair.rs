@@ -77,7 +77,8 @@ impl BoxKeyPair {
         T: AsRef<str>,
         P: AsRef<Path>,
     {
-        let revisions = get_key_revisions(name.as_ref(), cache_key_path.as_ref(), None)?;
+        let revisions =
+            get_key_revisions(name.as_ref(), cache_key_path.as_ref(), None, &KeyType::Box)?;
         let mut key_pairs = Vec::new();
         for name_with_rev in revisions {
             debug!(

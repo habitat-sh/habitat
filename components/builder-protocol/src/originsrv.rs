@@ -701,6 +701,14 @@ impl Routable for OriginPackageVersionListRequest {
     }
 }
 
+impl Routable for OriginPackageGroupPromote {
+    type H = String;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(self.get_origin().to_string())
+    }
+}
+
 impl Routable for OriginPackagePromote {
     type H = String;
 

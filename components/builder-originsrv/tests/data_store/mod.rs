@@ -1714,6 +1714,104 @@ fn get_origin_channel() {
 }
 
 #[test]
+fn promote_origin_package_group() {
+    let ds = datastore_test!(DataStore);
+    let mut origin = originsrv::OriginCreate::new();
+    origin.set_name(String::from("core"));
+    origin.set_owner_id(1);
+    origin.set_owner_name(String::from("scottkelly"));
+    ds.create_origin(&origin).expect("Should create origin");
+
+    let neurosis = ds.get_origin_by_name("core")
+        .expect("Could not retrieve origin")
+        .expect("Origin does not exist");
+
+    // Create a new origin channel
+    let mut oscc = originsrv::OriginChannelCreate::new();
+    oscc.set_origin_id(neurosis.get_id());
+    oscc.set_origin_name(neurosis.get_name().to_string());
+    oscc.set_name(String::from("eve"));
+    oscc.set_owner_id(1);
+    let channel1 = ds.create_origin_channel(&oscc).expect(
+        "Failed to create origin channel",
+    );
+
+    let mut ident1 = originsrv::OriginPackageIdent::new();
+    ident1.set_origin("core".to_string());
+    ident1.set_name("cacerts".to_string());
+    ident1.set_version("2017.01.17".to_string());
+    ident1.set_release("20170209064044".to_string());
+
+    let mut ident2 = originsrv::OriginPackageIdent::new();
+    ident2.set_origin("core".to_string());
+    ident2.set_name("cacerts".to_string());
+    ident2.set_version("2017.01.18".to_string());
+    ident2.set_release("20170209064044".to_string());
+
+    let mut ident3 = originsrv::OriginPackageIdent::new();
+    ident3.set_origin("core".to_string());
+    ident3.set_name("cacerts".to_string());
+    ident3.set_version("2017.01.18".to_string());
+    ident3.set_release("20170209064045".to_string());
+
+    let mut package = originsrv::OriginPackageCreate::new();
+    package.set_owner_id(1);
+    package.set_origin_id(neurosis.get_id());
+    package.set_ident(ident1.clone());
+    package.set_checksum("checksum".to_string());
+    package.set_manifest("manifest".to_string());
+    package.set_config("config".to_string());
+    package.set_target("x86_64-windows".to_string());
+    package.set_exposes(vec![1, 2]);
+    let package1 = ds.create_origin_package(&package.clone()).expect(
+        "Failed to create origin package",
+    );
+
+    package.set_ident(ident2.clone());
+    package.set_target("x86_64-linux".to_string());
+    let package2 = ds.create_origin_package(&package.clone()).expect(
+        "Failed to create origin package",
+    );
+
+    package.set_ident(ident3.clone());
+    package.set_target("x86_64-linux".to_string());
+    let package3 = ds.create_origin_package(&package.clone()).expect(
+        "Failed to create origin package",
+    );
+
+    let mut package_ids: Vec<u64> = Vec::new();
+    package_ids.push(package1.get_id());
+    package_ids.push(package2.get_id());
+    package_ids.push(package3.get_id());
+
+    let mut opp = originsrv::OriginPackageGroupPromote::new();
+    opp.set_channel_id(channel1.get_id());
+    opp.set_package_ids(package_ids);
+    opp.set_origin(origin.get_name().to_string());
+    ds.promote_origin_package_group(&opp).expect(
+        "Could not promote package",
+    );
+
+    let mut opl = originsrv::OriginChannelPackageListRequest::new();
+    opl.set_name(channel1.get_name().to_string());
+    opl.set_ident(originsrv::OriginPackageIdent::from_str("core").unwrap());
+    opl.set_start(0);
+    opl.set_stop(20);
+    let result = ds.list_origin_channel_package_for_channel(&opl.clone())
+        .expect("Could not get the packages from the database");
+    assert_eq!(result.get_idents().len(), 3);
+    assert_eq!(result.get_start(), 0);
+    assert_eq!(result.get_stop(), 2);
+    assert_eq!(result.get_count(), 3);
+    let pkg1 = result.get_idents().iter().nth(0).unwrap();
+    assert_eq!(pkg1.to_string(), ident1.to_string());
+    let pkg2 = result.get_idents().iter().nth(1).unwrap();
+    assert_eq!(pkg2.to_string(), ident2.to_string());
+    let pkg3 = result.get_idents().iter().nth(2).unwrap();
+    assert_eq!(pkg3.to_string(), ident3.to_string());
+}
+
+#[test]
 fn get_demote_channel_package() {
     let ds = datastore_test!(DataStore);
     let mut origin = originsrv::OriginCreate::new();

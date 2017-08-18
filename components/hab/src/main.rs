@@ -45,6 +45,7 @@ use hcore::fs::{cache_artifact_path, cache_analytics_path, cache_key_path};
 use hcore::package::PackageIdent;
 use hcore::service::ServiceGroup;
 use hcore::url::{DEFAULT_DEPOT_URL, DEPOT_URL_ENVVAR};
+use hcore::binlink::default_binlink_dir;
 
 use hab::{analytics, cli, command, config, scaffolding, AUTH_TOKEN_ENVVAR, ORIGIN_ENVVAR, PRODUCT,
           VERSION};
@@ -52,7 +53,6 @@ use hab::error::{Error, Result};
 
 /// Makes the --org CLI param optional when this env var is set
 const HABITAT_ORG_ENVVAR: &'static str = "HAB_ORG";
-const DEFAULT_BINLINK_DIR: &'static str = "/bin";
 
 lazy_static! {
     /// The default filesystem root path to base all commands from. This is lazily generated on
@@ -129,6 +129,7 @@ fn start(ui: &mut UI) -> Result<()> {
         ("job", Some(matches)) => {
             match matches.subcommand() {
                 ("start", Some(m)) => sub_job_start(ui, m)?,
+                ("promote", Some(m)) => sub_job_promote(ui, m)?,
                 _ => unreachable!(),
             }
         }
@@ -286,7 +287,8 @@ fn sub_origin_key_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 
 fn sub_pkg_binlink(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
-    let dest_dir = Path::new(m.value_of("DEST_DIR").unwrap_or(DEFAULT_BINLINK_DIR));
+    let env_or_default = default_binlink_dir();
+    let dest_dir = Path::new(m.value_of("DEST_DIR").unwrap_or(&env_or_default));
     match m.value_of("BINARY") {
         Some(binary) => command::pkg::binlink::start(ui, &ident, &binary, &dest_dir, &*FS_ROOT),
         None => command::pkg::binlink::binlink_all_in_pkg(ui, &ident, dest_dir, &*FS_ROOT),
@@ -397,6 +399,16 @@ fn sub_job_start(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     Ok(())
 }
 
+fn sub_job_promote(ui: &mut UI, m: &ArgMatches) -> Result<()> {
+    let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
+    let group_id = m.value_of("GROUP_ID").unwrap(); // Required via clap
+    let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
+    let channel = m.value_of("CHANNEL").unwrap(); // Required via clap
+    let token = auth_token_param_or_env(&m)?;
+    command::job::promote::start(ui, &url, &group_id, &channel, &token)?;
+    Ok(())
+}
+
 fn sub_plan_init(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let name = m.value_of("PKG_NAME").map(|v| v.into());
     let origin = origin_param_or_env(&m)?;
@@ -443,7 +455,8 @@ fn sub_pkg_install(ui: &mut UI, m: &ArgMatches) -> Result<()> {
             ignore_target,
         )?;
         if m.is_present("BINLINK") {
-            let dest_dir = Path::new(m.value_of("DEST_DIR").unwrap_or(DEFAULT_BINLINK_DIR));
+            let env_or_default = default_binlink_dir();
+            let dest_dir = Path::new(m.value_of("DEST_DIR").unwrap_or(&env_or_default));
             command::pkg::binlink::binlink_all_in_pkg(ui, &pkg_ident, dest_dir, &*FS_ROOT)?;
         }
     }

@@ -6,21 +6,26 @@ workspace = "../../"
 build = "../bldr-build.rs"
 
 [dependencies]
+chrono = { version = "*", features = ["serde"] }
 clippy = {version = "*", optional = true}
+libarchive = "*"
 log = "*"
-statsd = "*"
 petgraph = "*"
 protobuf = "*"
-walkdir = "*"
-libarchive = "*"
+serde = "*"
+serde_derive = "*"
+statsd = "*"
 time = "*"
-chrono = { version = "*", features = ["serde"] }
+walkdir = "*"
 
 [dependencies.habitat_core]
 path = "../core"
 
 [dependencies.habitat_builder_protocol]
 path = "../builder-protocol"
+
+[dependencies.habitat_net]
+path = "../net"
 
 [features]
 default = []

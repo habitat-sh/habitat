@@ -15,6 +15,7 @@
 #![cfg_attr(feature="clippy", feature(plugin))]
 #![cfg_attr(feature="clippy", plugin(clippy))]
 
+extern crate builder_core;
 extern crate habitat_http_client as hab_http;
 extern crate habitat_core as hab_core;
 extern crate hyper;
@@ -35,8 +36,10 @@ pub use error::{Error, Result};
 use std::io::Read;
 use std::path::Path;
 
+use builder_core::data_structures::PartialJobGroupPromote;
 use hab_core::package::PackageIdent;
 use hab_http::ApiClient;
+use hab_http::util::decoded_response;
 use hyper::client::{IntoUrl, Response, RequestBuilder};
 use hyper::header::{Accept, Authorization, Bearer, ContentType};
 use hyper::status::StatusCode;
@@ -103,7 +106,7 @@ impl Client {
                         response.read_to_string(&mut encoded).map_err(Error::IO)?;
                         debug!("Body: {:?}", encoded);
                         let v: serde_json::Value =
-                            serde_json::from_str(&encoded).map_err(Error::JSON)?;
+                            serde_json::from_str(&encoded).map_err(Error::Json)?;
                         let id = v["id"].as_str().unwrap();
                         Ok(id.to_string())
                     }
@@ -139,8 +142,50 @@ impl Client {
         let mut encoded = String::new();
         res.read_to_string(&mut encoded).map_err(Error::IO)?;
         debug!("Body: {:?}", encoded);
-        let rd: ReverseDependencies = serde_json::from_str(&encoded).map_err(Error::JSON)?;
+        let rd: ReverseDependencies = serde_json::from_str(&encoded).map_err(Error::Json)?;
         Ok(rd.rdeps.to_vec())
+    }
+
+    /// Promote a job group to a channel
+    ///
+    /// # Failures
+    ///
+    /// * Remote API Server is not available
+    pub fn job_group_promote(
+        &self,
+        group_id: u64,
+        channel: &str,
+        token: &str,
+    ) -> Result<Vec<String>> {
+        debug!("Promoting job group {} to channel {}", group_id, channel);
+        let url = format!("jobs/group/{}/promote/{}", group_id, channel);
+        let res = self.add_authz(self.0.post(&url), token).send().map_err(
+            Error::HyperError,
+        )?;
+
+        if res.status != StatusCode::Ok {
+            return Err(err_from_response(res));
+        }
+
+        // At first glance, this might look like a situation of an-error-thats-not-an-error. What's
+        // actually happening is the "decoded_response" function returns a generic T that
+        // implements the serde::de::Deserialized trait, meaning anything that serde can
+        // deserialize. However, if serde attempts to deserialize an empty response body (as the
+        // server will sometimes return in success cases) then serde will return an error and
+        // is_eof() will return true. We handle that edge case here by returning Ok, because for
+        // us, this is a success case, even though it's an error case for serde. In the future, we
+        // might want to investigate a way to have decoded_response handle this oddity.
+        match decoded_response::<PartialJobGroupPromote>(res).map_err(Error::HabitatHttpClient) {
+            Ok(value) => Ok(value.failed_projects),
+            Err(Error::HabitatHttpClient(hab_http::Error::Json(e))) => {
+                if e.is_eof() {
+                    return Ok(Vec::new());
+                } else {
+                    return Err(Error::Json(e));
+                }
+            }
+            Err(e) => return Err(e),
+        }
     }
 
     fn add_authz<'a>(&'a self, rb: RequestBuilder<'a>, token: &str) -> RequestBuilder {

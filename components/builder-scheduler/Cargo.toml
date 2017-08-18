@@ -42,6 +42,9 @@ path = "../builder-protocol"
 [dependencies.habitat_depot_client]
 path = "../builder-depot-client"
 
+[dependencies.habitat_api_client]
+path = "../builder-api-client"
+
 [dependencies.habitat_net]
 path = "../net"
 

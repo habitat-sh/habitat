@@ -18,6 +18,8 @@ use std::env;
 
 use base64;
 use bodyparser;
+use bld_core;
+use bld_core::api::promote_job_group_to_channel;
 use depot::server::check_origin_access;
 use hab_core::package::Plan;
 use hab_core::event::*;
@@ -36,6 +38,7 @@ use protocol::originsrv::*;
 use protocol::sessionsrv;
 use protocol::net::{self, NetOk, ErrCode};
 use router::Router;
+use serde_json;
 
 // For the initial release, Builder will only be enabled on the "core"
 // origin. Later, we'll roll it out to other origins; at that point,
@@ -109,6 +112,50 @@ pub fn github_authenticate(req: &mut Request) -> IronResult<Response> {
             error!("unhandled github authentication, err={:?}", e);
             let err = net::err(ErrCode::BUG, "rg:auth:0");
             Ok(render_net_error(&err))
+        }
+    }
+}
+
+pub fn job_group_promote(req: &mut Request) -> IronResult<Response> {
+    // JB TODO: eliminate the need to clone the params and session - HI SALIM =)
+    let params = req.extensions.get::<Router>().unwrap().clone();
+    let session = req.extensions.get::<Authenticated>().unwrap().clone();
+    let session_id = session.get_id();
+
+    let group_id = match params.find("id") {
+        Some(id) => {
+            match id.parse::<u64>() {
+                Ok(g) => g,
+                Err(e) => {
+                    debug!("Error finding group. e = {:?}", e);
+                    return Ok(Response::with(status::BadRequest));
+                }
+            }
+        }
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+
+    let channel = match params.find("channel") {
+        Some(c) => c.to_string(),
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+
+    match promote_job_group_to_channel(group_id, &channel, session_id) {
+        Ok(_) => Ok(Response::with(status::Ok)),
+        Err(bld_core::Error::NetError(e)) => Ok(render_net_error(&e)),
+        Err(bld_core::Error::GroupNotComplete) => Ok(
+            Response::with((status::Forbidden, "rg:jgp:1")),
+        ),
+        Err(bld_core::Error::OriginAccessDenied) => Ok(
+            Response::with((status::Forbidden, "rg:jpg:3")),
+        ),
+        Err(bld_core::Error::PartialJobGroupPromote(u)) => {
+            let resp = serde_json::to_string(&u).unwrap();
+            Ok(Response::with((status::Ok, resp)))
+        }
+        Err(e) => {
+            debug!("Error promoting group to channel. e = {:?}", e);
+            Ok(Response::with((status::InternalServerError, "rg:jgp:2")))
         }
     }
 }
@@ -187,7 +234,10 @@ pub fn job_show(req: &mut Request) -> IronResult<Response> {
     let params = req.extensions.get::<Router>().unwrap();
     let id = match params.find("id").unwrap().parse::<u64>() {
         Ok(id) => id,
-        Err(_) => return Ok(Response::with(status::BadRequest)),
+        Err(e) => {
+            debug!("Error finding id. e = {:?}", e);
+            return Ok(Response::with(status::BadRequest));
+        }
     };
     let mut conn = Broker::connect().unwrap();
     let mut request = JobGet::new();
@@ -227,7 +277,10 @@ pub fn job_log(req: &mut Request) -> IronResult<Response> {
     let params = req.extensions.get::<Router>().unwrap();
     let id = match params.find("id").unwrap().parse::<u64>() {
         Ok(id) => id,
-        Err(_) => return Ok(Response::with(status::BadRequest)),
+        Err(e) => {
+            debug!("Error finding id. e = {:?}", e);
+            return Ok(Response::with(status::BadRequest));
+        }
     };
     let mut conn = Broker::connect().unwrap();
 
@@ -322,7 +375,10 @@ pub fn project_create(req: &mut Request) -> IronResult<Response> {
                 &body.github.repo,
             ) {
                 Ok(repo) => project.set_vcs_data(repo.clone_url),
-                Err(_) => return Ok(Response::with((status::UnprocessableEntity, "rg:pc:1"))),
+                Err(e) => {
+                    debug!("Error finding github repo. e = {:?}", e);
+                    return Ok(Response::with((status::UnprocessableEntity, "rg:pc:1")));
+                }
             }
             (body.github.organization, body.github.repo)
         }
@@ -354,8 +410,9 @@ pub fn project_create(req: &mut Request) -> IronResult<Response> {
                             project.set_origin_id(origin.get_id());
                             project.set_package_name(String::from(plan.name));
                         }
-                        Err(_) => {
-                            return Ok(Response::with((status::UnprocessableEntity, "rg:pc:3")))
+                        Err(e) => {
+                            debug!("Error matching Plan. e = {:?}", e);
+                            return Ok(Response::with((status::UnprocessableEntity, "rg:pc:3")));
                         }
                     }
                 }
@@ -365,7 +422,10 @@ pub fn project_create(req: &mut Request) -> IronResult<Response> {
                 }
             }
         }
-        Err(_) => return Ok(Response::with((status::UnprocessableEntity, "rg:pc:2"))),
+        Err(e) => {
+            debug!("Error fetching contents from GH. e = {:?}", e);
+            return Ok(Response::with((status::UnprocessableEntity, "rg:pc:2")));
+        }
     }
 
     project.set_owner_id(session.get_id());
@@ -409,7 +469,7 @@ pub fn project_delete(req: &mut Request) -> IronResult<Response> {
         (session_id, origin)
     };
 
-    if !check_origin_access(req, session_id, origin)? {
+    if !check_origin_access(session_id, origin)? {
         return Ok(Response::with(status::Forbidden));
     }
 
@@ -474,7 +534,10 @@ pub fn project_update(req: &mut Request) -> IronResult<Response> {
             project.set_plan_path(body.plan_path);
             match github.repo(&session_token, &body.github.organization, &body.github.repo) {
                 Ok(repo) => project.set_vcs_data(repo.clone_url),
-                Err(_) => return Ok(Response::with((status::UnprocessableEntity, "rg:pu:1"))),
+                Err(e) => {
+                    debug!("Error finding GH repo. e = {:?}", e);
+                    return Ok(Response::with((status::UnprocessableEntity, "rg:pu:1")));
+                }
             }
             (body.github.organization, body.github.repo)
         }
@@ -492,7 +555,7 @@ pub fn project_update(req: &mut Request) -> IronResult<Response> {
                 Ok(ref bytes) => {
                     match Plan::from_bytes(bytes) {
                         Ok(plan) => {
-                            if !check_origin_access(req, session_id, &origin)? {
+                            if !check_origin_access(session_id, &origin)? {
                                 return Ok(Response::with(status::Forbidden));
                             }
                             if plan.name != name {
@@ -501,15 +564,22 @@ pub fn project_update(req: &mut Request) -> IronResult<Response> {
                             project.set_origin_name(String::from(origin));
                             project.set_package_name(String::from(name));
                         }
-                        Err(_) => {
-                            return Ok(Response::with((status::UnprocessableEntity, "rg:pu:3")))
+                        Err(e) => {
+                            debug!("Error matching Plan. e = {:?}", e);
+                            return Ok(Response::with((status::UnprocessableEntity, "rg:pu:3")));
                         }
                     }
                 }
-                Err(_) => return Ok(Response::with((status::UnprocessableEntity, "rg:pu:4"))),
+                Err(e) => {
+                    debug!("Error decoding content from b64. e = {:?}", e);
+                    return Ok(Response::with((status::UnprocessableEntity, "rg:pu:4")));
+                }
             }
         }
-        Err(_) => return Ok(Response::with((status::UnprocessableEntity, "rg:pu:5"))),
+        Err(e) => {
+            debug!("Erroring fetching contents from GH. e = {:?}", e);
+            return Ok(Response::with((status::UnprocessableEntity, "rg:pu:5")));
+        }
     }
     // JW TODO: owner_id should *not* be changing but we aren't using it just yet. FIXME before
     // making the project API public.

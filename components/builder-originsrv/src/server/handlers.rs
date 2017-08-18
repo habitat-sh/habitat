@@ -646,6 +646,23 @@ pub fn origin_channel_package_list(
     Ok(())
 }
 
+pub fn origin_package_group_promote(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
+    let msg: proto::OriginPackageGroupPromote = req.parse_msg()?;
+    match state.datastore.promote_origin_package_group(&msg) {
+        Ok(()) => req.reply_complete(sock, &net::NetOk::new())?,
+        Err(err) => {
+            error!("OriginPackageGroupPromote, err={:?}", err);
+            let err = net::err(ErrCode::DATA_STORE, "vt:origin-package-group-promote:1");
+            req.reply_complete(sock, &err)?;
+        }
+    }
+    Ok(())
+}
+
 pub fn origin_package_promote(
     req: &mut Envelope,
     sock: &mut zmq::Socket,
