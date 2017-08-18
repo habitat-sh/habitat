@@ -101,7 +101,7 @@ impl ServiceConfig {
 
     pub fn encrypt(&mut self, user_pair: &BoxKeyPair, service_pair: &BoxKeyPair) -> Result<()> {
         let config = self.take_config();
-        let encrypted_config = user_pair.encrypt(&config, service_pair)?;
+        let encrypted_config = user_pair.encrypt(&config, Some(service_pair))?;
         self.set_config(encrypted_config);
         self.set_encrypted(true);
         Ok(())

@@ -17,6 +17,7 @@ use std::str;
 
 use base64;
 use sodiumoxide::crypto::box_;
+use sodiumoxide::crypto::sealedbox;
 use sodiumoxide::crypto::box_::curve25519xsalsa20poly1305::PublicKey as BoxPublicKey;
 use sodiumoxide::crypto::box_::curve25519xsalsa20poly1305::SecretKey as BoxSecretKey;
 use sodiumoxide::crypto::box_::curve25519xsalsa20poly1305::{Nonce, gen_nonce};
@@ -24,7 +25,8 @@ use sodiumoxide::crypto::box_::curve25519xsalsa20poly1305::{Nonce, gen_nonce};
 use error::{Error, Result};
 use super::{get_key_revisions, mk_key_filename, mk_revision_string, parse_name_with_rev,
             read_key_bytes, write_keypair_files, KeyPair, KeyType};
-use super::super::{BOX_FORMAT_VERSION, PUBLIC_KEY_SUFFIX, SECRET_BOX_KEY_SUFFIX};
+use super::super::{BOX_FORMAT_VERSION, ANONYMOUS_BOX_FORMAT_VERSION, PUBLIC_KEY_SUFFIX,
+                   SECRET_BOX_KEY_SUFFIX};
 
 pub type BoxKeyPair = KeyPair<BoxPublicKey, BoxSecretKey>;
 
@@ -172,10 +174,20 @@ impl BoxKeyPair {
     }
 
     /// A user can encrypt data with a service as the recipient.
-    /// Key names and nonce are embedded in the payload.
-    pub fn encrypt(&self, data: &[u8], receiver: &Self) -> Result<Vec<u8>> {
+    /// Key names and nonce (if needed) are embedded in the payload.
+    /// If no recipient is specified, the encrypted payload is decryptable only
+    /// by the encrypting user.
+    pub fn encrypt(&self, data: &[u8], receiver: Option<&Self>) -> Result<Vec<u8>> {
+        match receiver {
+            Some(r) => self.encrypt_box(data, r),
+            None => self.encrypt_anonymous_box(data),
+        }
+    }
+
+    fn encrypt_box(&self, data: &[u8], receiver: &Self) -> Result<Vec<u8>> {
         let nonce = gen_nonce();
         let ciphertext = box_::seal(data, &nonce, receiver.public()?, self.secret()?);
+
         let out = format!(
             "{}\n{}\n{}\n{}\n{}",
             BOX_FORMAT_VERSION,
@@ -184,6 +196,20 @@ impl BoxKeyPair {
             base64::encode(&nonce[..]),
             base64::encode(&ciphertext)
         );
+
+        Ok(out.into_bytes())
+    }
+
+    fn encrypt_anonymous_box(&self, data: &[u8]) -> Result<Vec<u8>> {
+        let ciphertext = sealedbox::seal(data, self.public()?);
+
+        let out = format!(
+            "{}\n{}\n{}",
+            ANONYMOUS_BOX_FORMAT_VERSION,
+            &self.name_with_rev(),
+            base64::encode(&ciphertext)
+        );
+
         Ok(out.into_bytes())
     }
 
@@ -196,19 +222,19 @@ impl BoxKeyPair {
     {
         debug!("Decrypt key path = {}", cache_key_path.as_ref().display());
         let mut lines = str::from_utf8(payload)?.lines();
-        match lines.next() {
+        let version = match lines.next() {
             Some(val) => {
-                if val != BOX_FORMAT_VERSION {
+                if val != BOX_FORMAT_VERSION && val != ANONYMOUS_BOX_FORMAT_VERSION {
                     return Err(Error::CryptoError(format!("Unsupported version: {}", val)));
-                }
-                ()
+                };
+                val
             }
             None => {
                 return Err(Error::CryptoError(
                     "Corrupt payload, can't read file version".to_string(),
                 ));
             }
-        }
+        };
         let sender = match lines.next() {
             Some(val) => Self::get_pair_for(val, cache_key_path.as_ref())?,
             None => {
@@ -217,28 +243,36 @@ impl BoxKeyPair {
                 ));
             }
         };
-        let receiver = match lines.next() {
-            Some(val) => Self::get_pair_for(val, cache_key_path.as_ref())?,
-            None => {
-                return Err(Error::CryptoError(
-                    "Corrupt payload, can't read receiver key name".to_string(),
-                ));
-            }
-        };
-        let nonce = match lines.next() {
-            Some(val) => {
-                let decoded = base64::decode(val).map_err(|e| {
-                    Error::CryptoError(format!("Can't decode nonce: {}", e))
-                })?;
-                match Nonce::from_slice(&decoded) {
-                    Some(nonce) => nonce,
-                    None => return Err(Error::CryptoError("Invalid size of nonce".to_string())),
+        let receiver = if version == ANONYMOUS_BOX_FORMAT_VERSION {
+            None
+        } else {
+            match lines.next() {
+                Some(val) => Some(Self::get_pair_for(val, cache_key_path.as_ref())?),
+                None => {
+                    return Err(Error::CryptoError(
+                        "Corrupt payload, can't read receiver key name".to_string(),
+                    ));
                 }
             }
-            None => {
-                return Err(Error::CryptoError(
-                    "Corrupt payload, can't read nonce".to_string(),
-                ));
+        };
+        let nonce = if version == ANONYMOUS_BOX_FORMAT_VERSION {
+            None
+        } else {
+            match lines.next() {
+                Some(val) => {
+                    let decoded = base64::decode(val).map_err(|e| {
+                        Error::CryptoError(format!("Can't decode nonce: {}", e))
+                    })?;
+                    match Nonce::from_slice(&decoded) {
+                        Some(nonce) => Some(nonce),
+                        None => return Err(Error::CryptoError("Invalid size of nonce".to_string())),
+                    }
+                }
+                None => {
+                    return Err(Error::CryptoError(
+                        "Corrupt payload, can't read nonce".to_string(),
+                    ));
+                }
             }
         };
         let ciphertext = match lines.next() {
@@ -253,16 +287,41 @@ impl BoxKeyPair {
                 ));
             }
         };
-        match box_::open(&ciphertext, &nonce, sender.public()?, receiver.secret()?) {
-            Ok(v) => Ok(v),
-            Err(_) => {
-                return Err(Error::CryptoError(
-                    "Secret key, public key, and nonce could not \
-                                                    decrypt ciphertext"
-                        .to_string(),
-                ))
-            }
+        if version == ANONYMOUS_BOX_FORMAT_VERSION {
+            Self::decrypt_anonymous_box(&ciphertext, sender.public()?, sender.secret()?)
+        } else {
+            Self::decrypt_box(
+                &ciphertext,
+                &nonce.unwrap(),
+                sender.public()?,
+                receiver.unwrap().secret()?,
+            )
         }
+    }
+
+    fn decrypt_box(
+        ciphertext: &[u8],
+        nonce: &Nonce,
+        pk: &BoxPublicKey,
+        sk: &BoxSecretKey,
+    ) -> Result<Vec<u8>> {
+        box_::open(ciphertext, nonce, pk, sk).map_err(|_| {
+            Error::CryptoError(format!(
+                "Secret key, public key, and nonce could not decrypt ciphertext"
+            ))
+        })
+    }
+
+    fn decrypt_anonymous_box(
+        ciphertext: &[u8],
+        pk: &BoxPublicKey,
+        sk: &BoxSecretKey,
+    ) -> Result<Vec<u8>> {
+        sealedbox::open(ciphertext, &pk, &sk).map_err(|_| {
+            Error::CryptoError(format!(
+                "Secret key and public key could not decrypt ciphertext"
+            ))
+        })
     }
 
     fn generate_pair_files(
@@ -550,7 +609,7 @@ mod test {
             .unwrap();
         let user = BoxKeyPair::generate_pair_for_user("wecoyote", cache.path()).unwrap();
 
-        let ciphertext = user.encrypt("I wish to buy more rockets".as_bytes(), &service)
+        let ciphertext = user.encrypt("I wish to buy more rockets".as_bytes(), Some(&service))
             .unwrap();
         let message = BoxKeyPair::decrypt(&ciphertext, cache.path()).unwrap();
         assert_eq!(message, "I wish to buy more rockets".as_bytes());
@@ -563,9 +622,37 @@ mod test {
             .unwrap();
         let user = BoxKeyPair::generate_pair_for_user("wecoyote", cache.path()).unwrap();
 
-        let ciphertext = service.encrypt("Out of rockets".as_bytes(), &user).unwrap();
+        let ciphertext = service
+            .encrypt("Out of rockets".as_bytes(), Some(&user))
+            .unwrap();
         let message = BoxKeyPair::decrypt(&ciphertext, cache.path()).unwrap();
         assert_eq!(message, "Out of rockets".as_bytes());
+    }
+
+    #[test]
+    fn encrypt_and_decrypt_to_self() {
+        let cache = TempDir::new("key_cache").unwrap();
+        let sender = BoxKeyPair::generate_pair_for_user("wecoyote", cache.path()).unwrap();
+
+        let ciphertext = sender.encrypt("Buy more rockets".as_bytes(), None).unwrap();
+        let message = BoxKeyPair::decrypt(&ciphertext, cache.path()).unwrap();
+        assert_eq!(message, "Buy more rockets".as_bytes());
+    }
+
+    #[test]
+    fn encrypt_to_self_with_only_public_key() {
+        let cache = TempDir::new("key_cache").unwrap();
+        let sender = BoxKeyPair::generate_pair_for_user("wecoyote", cache.path()).unwrap();
+
+        // Delete the sender's secret key
+        fs::remove_file(
+            BoxKeyPair::get_secret_key_path(&sender.name_with_rev(), cache.path()).unwrap(),
+        ).unwrap();
+        // Now reload the sender's pair which will be missing the secret key
+        let sender = BoxKeyPair::get_latest_pair_for("wecoyote", cache.path()).unwrap();
+
+        let ciphertext = sender.encrypt("Nothing to see here".as_bytes(), None);
+        assert!(ciphertext.is_ok());
     }
 
     #[test]
@@ -622,7 +709,7 @@ mod test {
             let receiver = BoxKeyPair::get_latest_pair_for("tnt.default@acme", sender_cache.path())
                 .unwrap();
             sender
-                .encrypt("Falling hurts".as_bytes(), &receiver)
+                .encrypt("Falling hurts".as_bytes(), Some(&receiver))
                 .unwrap()
         };
 
@@ -649,7 +736,7 @@ mod test {
         let sender = BoxKeyPair::get_latest_pair_for("wecoyote", cache.path()).unwrap();
 
         sender
-            .encrypt("not going to happen".as_bytes(), &receiver)
+            .encrypt("not going to happen".as_bytes(), Some(&receiver))
             .unwrap();
     }
 
@@ -669,7 +756,7 @@ mod test {
         let receiver = BoxKeyPair::get_latest_pair_for("tnt.default@acme", cache.path()).unwrap();
 
         sender
-            .encrypt("not going to happen".as_bytes(), &receiver)
+            .encrypt("not going to happen".as_bytes(), Some(&receiver))
             .unwrap();
     }
 
@@ -687,7 +774,7 @@ mod test {
         ).unwrap();
 
         let ciphertext = sender
-            .encrypt("problems ahead".as_bytes(), &receiver)
+            .encrypt("problems ahead".as_bytes(), Some(&receiver))
             .unwrap();
         BoxKeyPair::decrypt(&ciphertext, cache.path()).unwrap();
     }
@@ -706,7 +793,7 @@ mod test {
         ).unwrap();
 
         let ciphertext = sender
-            .encrypt("problems ahead".as_bytes(), &receiver)
+            .encrypt("problems ahead".as_bytes(), Some(&receiver))
             .unwrap();
         BoxKeyPair::decrypt(&ciphertext, cache.path()).unwrap();
     }
@@ -786,7 +873,7 @@ mod test {
             .unwrap();
 
         let payload = sender
-            .encrypt("problems ahead".as_bytes(), &receiver)
+            .encrypt("problems ahead".as_bytes(), Some(&receiver))
             .unwrap();
         let mut botched = String::new();
         let mut lines = str::from_utf8(payload.as_slice()).unwrap().lines();
@@ -812,7 +899,7 @@ mod test {
             .unwrap();
 
         let payload = sender
-            .encrypt("problems ahead".as_bytes(), &receiver)
+            .encrypt("problems ahead".as_bytes(), Some(&receiver))
             .unwrap();
         let mut botched = String::new();
         let mut lines = str::from_utf8(payload.as_slice()).unwrap().lines();
