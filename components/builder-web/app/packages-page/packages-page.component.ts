@@ -188,10 +188,7 @@ export class PackagesPageComponent implements OnInit, OnDestroy {
     private fetchBuilds() {
         if (this.origin && this.name) {
             let token = this.store.getState().gitHub.authToken;
-
-            if (token) {
-                this.store.dispatch(fetchBuilds(this.origin, this.name, token));
-            }
+            this.store.dispatch(fetchBuilds(this.origin, this.name, token));
         }
     }
 

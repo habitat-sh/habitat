@@ -60,10 +60,6 @@ describe("BuildComponent", () => {
     store = TestBed.get(AppStore);
   });
 
-  it("requires sign-in", () => {
-    expect(util.requireSignIn).toHaveBeenCalledWith(fixture.componentInstance);
-  });
-
   describe("on init", () => {
 
     beforeEach(() => {
