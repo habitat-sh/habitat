@@ -12,7 +12,7 @@ export class BuildPageComponent implements OnInit, OnDestroy {
 
     constructor(
         private store: AppStore,
-        private route: ActivatedRoute) {        
+        private route: ActivatedRoute) {
     }
 
     ngOnInit() {
