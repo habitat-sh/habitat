@@ -16,7 +16,7 @@ use std::fs::File;
 use std::io::Read;
 use std::path::{Path, PathBuf};
 
-use hab_core::package::PackageArchive;
+use hab_core::package::{PackageArchive, PackageIdent};
 
 use super::Job;
 use error::Result;
@@ -46,8 +46,21 @@ impl Workspace {
 
     /// Returns a `PackageArchive` representing the last built artifact from studio build
     pub fn last_built(&self) -> Result<PackageArchive> {
-        let build = LastBuild::from_file(self.out().join("last_build.env"))?;
-        Ok(PackageArchive::new(self.out().join(build.pkg_artifact)))
+        let build = StudioBuild::from_file(self.out().join("last_build.env"))?;
+        Ok(PackageArchive::new(
+            self.out().join(build.pkg_artifact.unwrap()),
+        ))
+    }
+
+    /// Returns a `PackageIdent` representing the artifact that the studio attempted to build
+    pub fn attempted_build(&self) -> Result<PackageIdent> {
+        let build = StudioBuild::from_file(self.out().join("pre_build.env"))?;
+        Ok(PackageIdent::new(
+            build.pkg_origin,
+            build.pkg_name,
+            Some(build.pkg_version),
+            Some(build.pkg_release),
+        ))
     }
 
     /// Directory to the output directory containing built artifacts from studio build
@@ -72,20 +85,20 @@ impl Workspace {
 }
 
 #[derive(Debug)]
-pub struct LastBuild {
+pub struct StudioBuild {
     pub pkg_origin: String,
     pub pkg_name: String,
     pub pkg_version: String,
     pub pkg_release: String,
     pub pkg_ident: String,
-    pub pkg_artifact: String,
-    pub pkg_sha256sum: String,
-    pub pkg_blake2bsum: String,
+    pub pkg_artifact: Option<String>,
+    pub pkg_sha256sum: Option<String>,
+    pub pkg_blake2bsum: Option<String>,
 }
 
-impl LastBuild {
+impl StudioBuild {
     pub fn from_file<S: AsRef<Path>>(path: S) -> Result<Self> {
-        let mut build = LastBuild::default();
+        let mut build = StudioBuild::default();
         let mut buf: Vec<u8> = vec![];
         let mut f = File::open(path)?;
         f.read_to_end(&mut buf)?;
@@ -93,7 +106,7 @@ impl LastBuild {
         Ok(build)
     }
 
-    pub fn parse_into(env: &mut LastBuild, buf: &[u8]) {
+    pub fn parse_into(env: &mut StudioBuild, buf: &[u8]) {
         let content = String::from_utf8_lossy(buf).into_owned();
         for line in content.lines() {
             let split: Vec<&str> = line.split("=").map(|e| e.trim()).collect();
@@ -103,26 +116,26 @@ impl LastBuild {
                 "pkg_version" => env.pkg_version = split[1].to_string(),
                 "pkg_release" => env.pkg_release = split[1].to_string(),
                 "pkg_ident" => env.pkg_ident = split[1].to_string(),
-                "pkg_artifact" => env.pkg_artifact = split[1].to_string(),
-                "pkg_sha256sum" => env.pkg_sha256sum = split[1].to_string(),
-                "pkg_blake2bsum" => env.pkg_blake2bsum = split[1].to_string(),
+                "pkg_artifact" => env.pkg_artifact = Some(split[1].to_string()),
+                "pkg_sha256sum" => env.pkg_sha256sum = Some(split[1].to_string()),
+                "pkg_blake2bsum" => env.pkg_blake2bsum = Some(split[1].to_string()),
                 field => warn!("unknown field={}", field),
             }
         }
     }
 }
 
-impl Default for LastBuild {
+impl Default for StudioBuild {
     fn default() -> Self {
-        LastBuild {
+        StudioBuild {
             pkg_origin: "".to_string(),
             pkg_name: "".to_string(),
             pkg_version: "".to_string(),
             pkg_release: "".to_string(),
             pkg_ident: "".to_string(),
-            pkg_artifact: "".to_string(),
-            pkg_sha256sum: "".to_string(),
-            pkg_blake2bsum: "".to_string(),
+            pkg_artifact: None,
+            pkg_sha256sum: None,
+            pkg_blake2bsum: None,
         }
     }
 }
@@ -131,7 +144,7 @@ impl Default for LastBuild {
 mod tests {
     use super::*;
 
-    const ENV: &'static str = "
+    const LAST_BUILD: &'static str = "
     pkg_origin=core
     pkg_name=valgrind
     pkg_version=3.12.0
@@ -142,25 +155,54 @@ mod tests {
     pkg_blake2bsum=3b38af666a8f307b89ae47ff098cb75503ee15892d1a8a98d0ae24da1cfd153b
     ";
 
+    const PRE_BUILD: &'static str = "
+    pkg_origin=core
+    pkg_name=redis
+    pkg_version=3.2.4
+    pkg_release=20170817102134
+    pkg_ident=core/redis/3.2.4/20170817102134
+    ";
+
     #[test]
     fn parse_last_env_file() {
-        let mut build = LastBuild::default();
-        LastBuild::parse_into(&mut build, ENV.as_bytes());
+        let mut build = StudioBuild::default();
+        StudioBuild::parse_into(&mut build, LAST_BUILD.as_bytes());
         assert_eq!(build.pkg_origin, "core");
         assert_eq!(build.pkg_name, "valgrind");
         assert_eq!(build.pkg_version, "3.12.0");
+        assert_eq!(build.pkg_release, "20161031181251");
         assert_eq!(build.pkg_ident, "core/valgrind/3.12.0/20161031181251");
         assert_eq!(
             build.pkg_artifact,
-            "core-valgrind-3.12.0-20161031181251-x86_64-linux.hart"
+            Some(
+                "core-valgrind-3.12.0-20161031181251-x86_64-linux.hart".to_string(),
+            )
         );
         assert_eq!(
             build.pkg_sha256sum,
-            "3aeacaca8cf8274740863caae350f545cf97b15c79bdf6f873c0811b1a1ffbcf"
+            Some(
+                "3aeacaca8cf8274740863caae350f545cf97b15c79bdf6f873c0811b1a1ffbcf".to_string(),
+            )
         );
         assert_eq!(
             build.pkg_blake2bsum,
-            "3b38af666a8f307b89ae47ff098cb75503ee15892d1a8a98d0ae24da1cfd153b"
+            Some(
+                "3b38af666a8f307b89ae47ff098cb75503ee15892d1a8a98d0ae24da1cfd153b".to_string(),
+            )
         );
+    }
+
+    #[test]
+    fn parse_pre_build_env_file() {
+        let mut build = StudioBuild::default();
+        StudioBuild::parse_into(&mut build, PRE_BUILD.as_bytes());
+        assert_eq!(build.pkg_origin, "core");
+        assert_eq!(build.pkg_name, "redis");
+        assert_eq!(build.pkg_version, "3.2.4");
+        assert_eq!(build.pkg_release, "20170817102134");
+        assert_eq!(build.pkg_ident, "core/redis/3.2.4/20170817102134");
+        assert_eq!(build.pkg_artifact, None);
+        assert_eq!(build.pkg_sha256sum, None);
+        assert_eq!(build.pkg_blake2bsum, None);
     }
 }

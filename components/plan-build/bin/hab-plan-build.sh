@@ -2056,6 +2056,35 @@ _resolve_dependencies() {
   _validate_deps
 }
 
+# **Internal** This writes out a pre_build.env file, similar to the last_build.env
+# that gets written at the end of a build. The purpose of pre_build.env is to provide
+# metadata about what package we're trying to build before we build it. This is useful
+# if the build fails, because a worker can read that file in and use it to report back
+# about what exactly failed.
+_write_pre_build_file() {
+  local plan_owner
+  plan_owner="$(stat -c '%u:%g' "$PLAN_CONTEXT/plan.sh")"
+  pre_build_file="$pkg_output_path/pre_build.env"
+
+  build_line "Writing pre_build file"
+
+  mkdir -pv "$pkg_output_path"
+
+  if [ -f "$pre_build_file" ]; then
+    rm "$pre_build_file"
+  fi
+
+  cat <<-EOF > "$pre_build_file"
+pkg_origin=$pkg_origin
+pkg_name=$pkg_name
+pkg_version=$pkg_version
+pkg_release=$pkg_release
+pkg_ident=${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_release}
+EOF
+
+  chown "$plan_owner" "$pre_build_file" || true
+}
+
 # **Internal**  Build `$PATH` containing each path in our own
 # `${pkg_bin_dirs[@]}` array, and then any dependency's `PATH` entry (direct
 # or transitive) if one exists. The ordering of the path is specific to
@@ -2924,6 +2953,12 @@ _prepare_build_outputs() {
   cp -v "$pkg_artifact" "$pkg_output_path"/
   chown "$plan_owner" "$pkg_output_path/$(basename "$pkg_artifact")" || true
 
+  # At this point, we know it built successfully, so delete the pre_build file
+  pre_build_file="$pkg_output_path/pre_build.env"
+  if [ -f "$pre_build_file" ]; then
+    rm "$pre_build_file"
+  fi
+
   cat <<-EOF > "$pkg_output_path"/last_build.env
 pkg_origin=$pkg_origin
 pkg_name=$pkg_name
@@ -3105,6 +3140,9 @@ pkg_artifact="$HAB_CACHE_ARTIFACT_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-
 # Run `do_begin`
 build_line "$_program setup"
 do_begin
+
+# Write out a prebuild file so workers can have some metadata about failed builds
+_write_pre_build_file
 
 # Determine if we have all the commands we need to work
 _find_system_commands

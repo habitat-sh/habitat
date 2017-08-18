@@ -227,16 +227,6 @@ impl Runner {
             }
         };
 
-        // TODO: It doesn't appear that we can currently get a package
-        // identifier out of the build process unless it successfully
-        // completes. This means that only jobs that are successful
-        // will have complete identifiers, but that makes it difficult
-        // (impossible?) to associate failed jobs with specific
-        // package versions. We may be able to do some kind of log
-        // output snooping (or something more robust than that :) and
-        // cross-thread communication to retrieve this information for
-        // *all* job runs. But not today.
-
         // Converting from a core::PackageIdent to an OriginPackageIdent
         let ident = OriginPackageIdent::from(archive.ident().unwrap());
         self.workspace.job.set_package_ident(ident);
@@ -314,10 +304,17 @@ impl Runner {
         self.log_pipe().pipe(&mut child)?;
         let exit_status = child.wait().expect("failed to wait on child");
         debug!("build complete, status={:?}", exit_status);
+
+        if fs::rename(self.workspace.src().join("results"), self.workspace.out()).is_err() {
+            return Err(Error::BuildFailure(exit_status.code().unwrap_or(-2)));
+        }
+
         if exit_status.success() {
-            fs::rename(self.workspace.src().join("results"), self.workspace.out())?;
             self.workspace.last_built()
         } else {
+            let ident = self.workspace.attempted_build()?;
+            let op_ident = OriginPackageIdent::from(ident);
+            self.workspace.job.set_package_ident(op_ident);
             Err(Error::BuildFailure(exit_status.code().unwrap_or(-1)))
         }
     }
