@@ -766,6 +766,20 @@ function _Add-Paths($fromFile) {
   $path_part
 }
 
+function _Write-Pre-Build-File {
+    New-Item "$pkg_output_path" -ItemType Directory -Force | Out-Null
+    $preBuild = "$pkg_output_path\pre_build.env"
+    if (Test-Path $preBuild) { Remove-Item $preBuild -Force }
+
+    @"
+pkg_origin=$pkg_origin
+pkg_name=$pkg_name
+pkg_version=$pkg_version
+pkg_release=$pkg_release
+pkg_ident=${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_release}
+"@ | Out-File "$pkg_output_path\pre_build.env" -Encoding ascii
+}
+
 function _Set-Path {
   $path_part = $null
   foreach($path in $pkg_bin_dirs) {
@@ -1293,6 +1307,10 @@ function _Copy-BuildOutputs {
     $_pkg_sha256sum = (Get-FileHash "$pkg_artifact" -Algorithm SHA256).Hash.ToLower()
     $_pkg_blake2bsum = $(& $HAB_BIN pkg hash "$pkg_artifact")
 
+    # At this point, we know it built successfully, so delete the pre_build file
+    $preBuild = "$pkg_output_path\pre_build.env"
+    if (Test-Path $preBuild) { Remove-Item $preBuild -Force }
+
     @"
 pkg_origin=$pkg_origin
 pkg_name=$pkg_name
@@ -1476,6 +1494,9 @@ try {
 
     # Set the complete `Path` environment.
     _Set-Path
+
+    # Write out a prebuild file so workers can have some metadata about failed builds
+    _Write-Pre-Build-File
 
     New-Item "$HAB_CACHE_SRC_PATH" -ItemType Directory -Force | Out-Null
 

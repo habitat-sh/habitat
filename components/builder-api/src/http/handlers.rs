@@ -483,7 +483,6 @@ pub fn project_delete(req: &mut Request) -> IronResult<Response> {
 
 /// Update the given project
 pub fn project_update(req: &mut Request) -> IronResult<Response> {
-
     let (name, origin) = {
         let params = req.extensions.get::<Router>().unwrap();
         let origin = params.find("origin").unwrap().to_owned();
@@ -498,8 +497,15 @@ pub fn project_update(req: &mut Request) -> IronResult<Response> {
         (name, origin)
     };
 
+    let mut conn = Broker::connect().unwrap();
+    let mut project_get = OriginProjectGet::new();
+    project_get.set_name(format!("{}/{}", &origin, &name));
+    let mut project = match conn.route::<OriginProjectGet, OriginProject>(&project_get) {
+        Ok(project) => project,
+        Err(err) => return Ok(render_net_error(&err)),
+    };
+
     let mut request = OriginProjectUpdate::new();
-    let mut project = OriginProject::new();
     let github = req.get::<persistent::Read<GitHubCli>>().unwrap();
 
     let (session_token, session_id) = {
@@ -530,7 +536,6 @@ pub fn project_update(req: &mut Request) -> IronResult<Response> {
                     "Missing value for field: `github.repo`",
                 )));
             }
-            project.set_vcs_type(String::from("git"));
             project.set_plan_path(body.plan_path);
             match github.repo(&session_token, &body.github.organization, &body.github.repo) {
                 Ok(repo) => project.set_vcs_data(repo.clone_url),
@@ -543,6 +548,7 @@ pub fn project_update(req: &mut Request) -> IronResult<Response> {
         }
         _ => return Ok(Response::with(status::UnprocessableEntity)),
     };
+
     let mut conn = Broker::connect().unwrap();
     match github.contents(
         &session_token,
@@ -581,9 +587,7 @@ pub fn project_update(req: &mut Request) -> IronResult<Response> {
             return Ok(Response::with((status::UnprocessableEntity, "rg:pu:5")));
         }
     }
-    // JW TODO: owner_id should *not* be changing but we aren't using it just yet. FIXME before
-    // making the project API public.
-    project.set_owner_id(session_id);
+
     request.set_requestor_id(session_id);
     request.set_project(project);
     match conn.route::<OriginProjectUpdate, NetOk>(&request) {
