@@ -58,14 +58,12 @@ export class PackagePageComponent implements OnDestroy {
     originParam: string;
     nameParam: string;
     releaseParam: string;
-    spinnerFetchPackage: Function;
     versionParam: string;
 
     private fetched: boolean;
     private sub: Subscription;
 
     constructor(private route: ActivatedRoute, private store: AppStore) {
-        this.spinnerFetchPackage = this.fetchPackage.bind(this);
 
         this.sub = route.params.subscribe(params => {
             this.originParam = params["origin"];

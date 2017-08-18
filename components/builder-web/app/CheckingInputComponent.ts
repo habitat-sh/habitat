@@ -21,11 +21,11 @@ import { AsyncValidator } from "./AsyncValidator";
     template: `
     <div class="hab-checking-input">
         <div class="hab-checking-input--input-wrapper">
-            <i class="hab-checking-input--input-icon"
-                [class.loading]="control.pending"
+            <hab-icon [symbol]="symbolForState(control)" class="hab-checking-input--input-icon"
+                [class.spinning]="control.pending"
                 [class.invalid]="control.dirty && !control.pending && !control.valid"
                 [class.valid]="!control.pending && control.valid">
-            </i>
+            </hab-icon>
             <input class="hab-checking-input--input"
                 [class.loading]="control.pending"
                 autocomplete="off"
@@ -108,6 +108,18 @@ export class CheckingInputComponent implements OnInit {
         );
 
         this.form.addControl(this.name, this.control);
+    }
+
+    symbolForState(control) {
+        if (control.pending) {
+            return "loading";
+        }
+        else if (control.dirty && !control.pending && !control.valid) {
+            return "no";
+        }
+        else if (!control.pending && control.valid) {
+            return "check";
+        }
     }
 
     private patternValidator(control) {

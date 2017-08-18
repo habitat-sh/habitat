@@ -19,6 +19,7 @@ describe("PackagesListComponent", () => {
       ],
       declarations: [
         PackagesListComponent,
+        MockComponent({ selector: "hab-icon", inputs: [ "symbol" ]}),
         MockComponent({
           selector: "hab-build-status",
           inputs: [ "origin", "name", "version" ]

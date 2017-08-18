@@ -16,7 +16,7 @@ import { Component, OnInit, OnDestroy } from "@angular/core";
 import { AppStore } from "../AppStore";
 import { setGitHubAuthState, signOut, setLayout } from "../actions/index";
 import config from "../config";
-import { createGitHubLoginUrl, icon } from "../util";
+import { createGitHubLoginUrl } from "../util";
 
 @Component({
     template: `
@@ -29,7 +29,7 @@ import { createGitHubLoginUrl, icon } from "../util";
                 <hr>
                 <a [class.disabled]="isSigningIn || isSignedIn"
                    class="button cta" href="{{gitHubLoginUrl}}">
-                    <i class="octicon octicon-mark-github"></i>
+                    <hab-icon symbol="github"></hab-icon>
                     <span *ngIf="isSigningIn">
                         Signing In&hellip;
                     </span>
@@ -115,9 +115,5 @@ export class SignInPageComponent implements OnInit, OnDestroy {
 
     ngOnDestroy() {
         this.store.dispatch(setLayout("default"));
-    }
-
-    private icon(name) {
-        return icon(name);
     }
 }

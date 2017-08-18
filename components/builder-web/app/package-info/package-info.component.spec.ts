@@ -15,9 +15,9 @@ describe("PackageInfoComponent", () => {
     TestBed.configureTestingModule({
       declarations: [
         PackageInfoComponent,
+        MockComponent({ selector: "hab-icon", inputs: [ "symbol", "title" ]}),
         MockComponent({
-          selector: "hab-package-list",
-          inputs: [ "packages", "currentPackage" ]
+          selector: "hab-package-list", inputs: [ "packages", "currentPackage" ]
         })
       ]
     });

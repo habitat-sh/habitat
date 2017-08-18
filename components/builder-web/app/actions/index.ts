@@ -15,7 +15,6 @@
 import * as gitHubActions from "./gitHub";
 import * as buildActions from "./builds";
 import * as notificationActions from "./notifications";
-import * as orgActions from "./orgs";
 import * as originActions from "./origins";
 import * as packageActions from "./packages";
 import * as projectActions from "./projects";
@@ -48,13 +47,6 @@ export const STREAM_BUILD_LOG = buildActions.STREAM_BUILD_LOG;
 
 export const ADD_NOTIFICATION = notificationActions.ADD_NOTIFICATION;
 export const REMOVE_NOTIFICATION = notificationActions.REMOVE_NOTIFICATION;
-
-export const FINISH_CREATING_ORG = orgActions.FINISH_CREATING_ORG;
-export const ORG_INVITATION_CREATED = orgActions.ORG_INVITATION_CREATED;
-export const ORG_INVITATION_CANCELLED = orgActions.ORG_INVITATION_CANCELLED;
-export const PERFORM_ORG_MEMBER_SEARCH = orgActions.PERFORM_ORG_MEMBER_SEARCH;
-export const POPULATE_ORG = orgActions.POPULATE_ORG;
-export const TOGGLE_MEMBER_ACTION_MENU = orgActions.TOGGLE_MEMBER_ACTION_MENU;
 
 export const POPULATE_MY_ORIGINS = originActions.POPULATE_MY_ORIGINS;
 export const POPULATE_MY_ORIGIN_INVITATIONS =
@@ -140,13 +132,6 @@ export const scheduleBuild = buildActions.scheduleBuild;
 
 export const addNotification = notificationActions.addNotification;
 export const removeNotification = notificationActions.removeNotification;
-
-export const addOrg = orgActions.addOrg;
-export const cancelOrgInvitation = orgActions.cancelOrgInvitation;
-export const finishAddingOrg = orgActions.finishAddingOrg;
-export const inviteMemberToOrg = orgActions.inviteMemberToOrg;
-export const performOrgMemberSearch = orgActions.performOrgMemberSearch;
-export const toggleMemberActionMenu = orgActions.toggleMemberActionMenu;
 
 export const acceptOriginInvitation = originActions.acceptOriginInvitation;
 export const createOrigin = originActions.createOrigin;

@@ -5,7 +5,7 @@
             <h4>
                 <span *ngIf="searchQuery || query">Search Results</span>
             </h4>
-            <hab-spinner [isSpinning]="ui.loading" (click)="spinnerFetchPackages"></hab-spinner>
+            <hab-icon symbol="loading" [class.spinning]="ui.loading"></hab-icon>
         </div>
         <div *ngIf="showBreadcrumbs">
             <h2>
@@ -47,7 +47,7 @@
              <div class="build-history" *ngIf="showBuildHistoryLink">
                 <a [routerLink]="['/pkgs', origin, name, 'builds']">
                     View full build history
-                    <span class="octicon octicon-chevron-right"></span>
+                    <hab-icon symbol="chevron-right"></hab-icon>
                 </a>
             </div>
         </div>

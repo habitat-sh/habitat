@@ -17,7 +17,6 @@ import app from "./app";
 import gitHub from "./gitHub";
 import builds from "./builds";
 import notifications from "./notifications";
-import orgs from "./orgs";
 import origins from "./origins";
 import packages from "./packages";
 import projects from "./projects";
@@ -30,7 +29,6 @@ export default combineReducers({
     gitHub,
     builds,
     notifications,
-    orgs,
     origins,
     packages,
     projects,

@@ -31,27 +31,19 @@ input.hab-checking-input--input {
   }
 
   &--input-icon {
-    @extend .octicon;
     position: absolute;
     right: $small-spacing;
     top: $small-spacing;
 
-    &.loading {
-      @extend .octicon-sync;
-      animation-duration: 1s;
-      animation-iteration-count: infinite;
-      animation-name: hab-checking-input-spinner-rotate;
-      animation-timing-function: linear;
+    &.spinning {
       color: $light-gray;
     }
 
     &.invalid {
-      @extend .octicon-circle-slash;
       color: $failure-color;
     }
 
     &.valid {
-      @extend .octicon-check;
       color: $success-color;
     }
   }
@@ -72,15 +64,5 @@ input.hab-checking-input--input {
     &.valid {
       color: $success-color;
     }
-  }
-}
-
-@keyframes hab-checking-input-spinner-rotate {
-  from {
-    transform: rotate(0deg);
-  }
-
-  to {
-    transform: rotate(360deg);
   }
 }

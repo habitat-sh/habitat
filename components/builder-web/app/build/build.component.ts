@@ -81,11 +81,11 @@ export class BuildComponent implements OnChanges, OnDestroy {
     iconFor(state) {
         return {
             Complete: "check",
-            Dispatched: "sync",
-            Failed: "issue-opened",
-            Pending: "clock",
-            Processing: "sync",
-            Rejected: "issue-opened"
+            Dispatched: "loading",
+            Failed: "alert",
+            Pending: "pending",
+            Processing: "loading",
+            Rejected: "alert"
         }[state];
     }
 

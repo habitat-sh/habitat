@@ -28,7 +28,6 @@ export class PackagesPageComponent implements OnInit, OnDestroy {
     perPage: number = 50;
     query: string;
     searchBox: FormControl;
-    spinnerFetchPackages: Function;
     name: string;
     origin: string;
     version: string;
@@ -36,7 +35,6 @@ export class PackagesPageComponent implements OnInit, OnDestroy {
     private sub: Subscription;
 
     constructor(private store: AppStore, private route: ActivatedRoute, private router: Router) {
-        this.spinnerFetchPackages = this.fetchPackages.bind(this);
 
         this.sub = route.params.subscribe(params => {
             this.name = params["name"];

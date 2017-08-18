@@ -54,7 +54,7 @@ describe("DashboardComponent", () => {
       ],
       declarations: [
         DashboardComponent,
-        MockComponent({ selector: "hab-spinner", inputs: [ "isSpinning" ]})
+        MockComponent({ selector: "hab-icon", inputs: [ "symbol" ] })
       ],
       providers: [
         { provide: AppStore, useClass: MockAppStore }

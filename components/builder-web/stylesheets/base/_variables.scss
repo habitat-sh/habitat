@@ -16,7 +16,6 @@
 $base-font-family: "Titillium Web", $helvetica;
 $heading-font-family: "Montserrat Alternates", $verdana;
 $monospace-font-family: "Source Code Pro", Menlo, Consolas, monospace;
-$octicons-font-path: "/node_modules/octicons/octicons";
 
 // Font Sizes
 $base-font-size: 1em;
@@ -114,7 +113,3 @@ $form-box-shadow-focus-success: $form-box-shadow, 0 0 5px adjust-color($success-
 // Animations
 $base-duration: 150ms;
 $base-timing: ease;
-
-@function hab-icon($n) {
-  @return url("/node_modules/octicons/svg/" + $n + ".svg");
-}

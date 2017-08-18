@@ -20,9 +20,8 @@ import { ExploreComponent } from "./explore/explore.component";
 import { OriginCreatePageComponent } from "./origin-create-page/OriginCreatePageComponent";
 import { OriginPageComponent } from "./origin-page/OriginPageComponent";
 import { OriginsPageComponent } from "./origins-page/OriginsPageComponent";
-import { OrganizationCreatePageComponent } from "./organization-create-page/OrganizationCreatePageComponent";
-import { OrganizationsPageComponent } from "./organizations-page/OrganizationsPageComponent";
 import { PackageBuildsComponent } from "./package-builds/package-builds.component";
+import { PackageLatestComponent } from "./package-latest/package-latest.component";
 import { PackagePageComponent } from "./package-page/PackagePageComponent";
 import { PackageVersionsPageComponent } from "./package-versions-page/package-versions-page.component";
 import { PackagesPageComponent } from "./packages-page/packages-page.component";
@@ -62,6 +61,10 @@ export const routes: Routes = [
     {
         path: "pkgs/search/:query",
         component: PackagesPageComponent,
+    },
+    {
+        path: "pkgs/:origin/:name/latest",
+        component: PackageLatestComponent
     },
     {
         path: "pkgs/:origin/:name/builds",
@@ -110,16 +113,6 @@ export const routes: Routes = [
     {
         path: "scm-repos",
         component: SCMReposPageComponent,
-    },
-
-    // TODO: Remove these and their associated actions and reducers.
-    {
-        path: "orgs",
-        component: OrganizationsPageComponent,
-    },
-    {
-        path: "orgs/create",
-        component: OrganizationCreatePageComponent,
     },
     {
         path: "*",

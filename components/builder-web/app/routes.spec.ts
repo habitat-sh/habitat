@@ -4,9 +4,8 @@ import { ExploreComponent } from "./explore/explore.component";
 import { OriginCreatePageComponent } from "./origin-create-page/OriginCreatePageComponent";
 import { OriginPageComponent } from "./origin-page/OriginPageComponent";
 import { OriginsPageComponent } from "./origins-page/OriginsPageComponent";
-import { OrganizationCreatePageComponent } from "./organization-create-page/OrganizationCreatePageComponent";
-import { OrganizationsPageComponent } from "./organizations-page/OrganizationsPageComponent";
 import { PackageBuildsComponent } from "./package-builds/package-builds.component";
+import { PackageLatestComponent } from "./package-latest/package-latest.component";
 import { PackagePageComponent } from "./package-page/PackagePageComponent";
 import { PackagesPageComponent } from "./packages-page/packages-page.component";
 import { ProjectCreatePageComponent } from "./project-create-page/ProjectCreatePageComponent";
@@ -65,20 +64,6 @@ describe("Routes", () => {
     });
   });
 
-  describe("/orgs", () => {
-    it("routes to OrganizationsPageComponent", () => {
-      let r = route("orgs");
-      expect(r.component).toBe(OrganizationsPageComponent);
-    });
-  });
-
-  describe("/orgs/create", () => {
-    it("routes to OrganizationCreatePageComponent", () => {
-      let r = route("orgs/create");
-      expect(r.component).toBe(OrganizationCreatePageComponent);
-    });
-  });
-
   describe("/pkgs", () => {
     it("redirects to /pkgs/core", () => {
       let r = route("pkgs");
@@ -104,6 +89,13 @@ describe("Routes", () => {
     it("routes to PackageBuildsComponent", () => {
       let r = route("pkgs/:origin/:name/builds");
       expect(r.component).toBe(PackageBuildsComponent);
+    });
+  });
+
+  describe("/pkgs/:origin/:name/latest", () => {
+    it("routes to PackageLatestComponent", () => {
+      let r = route("pkgs/:origin/:name/latest");
+      expect(r.component).toBe(PackageLatestComponent);
     });
   });
 

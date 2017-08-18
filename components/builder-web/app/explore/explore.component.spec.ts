@@ -4,6 +4,7 @@ import { RouterTestingModule } from "@angular/router/testing";
 import { By } from "@angular/platform-browser";
 import { FormsModule } from "@angular/forms";
 import { Router } from "@angular/router";
+import { MockComponent } from "ng2-mock-component";
 import { AppStore } from "../AppStore";
 import * as actions from "../actions/index";
 import { ExploreComponent } from "./explore.component";
@@ -133,6 +134,7 @@ describe("ExploreComponent", () => {
         RouterTestingModule
       ],
       declarations: [
+        MockComponent({ selector: "hab-icon", inputs: [ "symbol" ]}),
         ExploreComponent
       ],
       providers: [

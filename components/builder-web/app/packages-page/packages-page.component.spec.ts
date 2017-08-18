@@ -43,7 +43,7 @@ describe("PackagesPageComponent", () => {
       ],
       declarations: [
         MockComponent({ selector: "hab-package-breadcrumbs", inputs: ["ident"] }),
-        MockComponent({ selector: "hab-spinner", inputs: ["isSpinning"] }),
+        MockComponent({ selector: "hab-icon", inputs: [ "symbol" ] }),
         MockComponent({
           selector: "hab-packages-list",
           inputs: [ "errorMessage", "noPackages", "layout", "packages", "versions" ]

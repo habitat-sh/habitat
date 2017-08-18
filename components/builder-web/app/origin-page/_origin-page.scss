@@ -20,6 +20,12 @@
       @include span-columns(8 of 8);
       padding: rem(10);
       border-bottom: 1px solid $light-gray;
+      font-size: 1rem;
+
+      h3 {
+        margin: 0;
+        padding-top: 4px;
+      }
     }
 
     .pkg-col-1 {
@@ -40,6 +46,11 @@
 
     .disabled-settings {
       opacity: 0.2;
+    }
+
+    hab-icon {
+      width: 24px;
+      height: 24px;
     }
 
     .origin-package-item {

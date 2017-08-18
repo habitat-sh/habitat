@@ -4,7 +4,7 @@
     <h3 class="username">{{ store.getState().users.current.username }}</h3>
   </div>
   <div class="page-body">
-    <hab-spinner [isSpinning]="loading" *ngIf="loading"></hab-spinner>
+    <hab-icon symbol="loading" [class.spinning]="loading" *ngIf="loading"></hab-icon>
     <section class="intro" *ngIf="noOrigins">
       <div class="image">
         <img src="/assets/images/run-icon.svg">
@@ -31,7 +31,7 @@
           <h4>My Origins</h4>
           <div class="controls">
             <a [routerLink]="['origins']" title="Add an Origin">
-              <span class="octicon octicon-diff-added"></span>
+              <hab-icon symbol="add-box"></hab-icon>
             </a>
           </div>
         </div>
@@ -41,7 +41,7 @@
               <a [routerLink]="['/origins', origin.name]">
                 {{ origin.name }}
               </a>
-              <div class="octicon octicon-chevron-right"></div>
+              <hab-icon symbol="chevron-right"></hab-icon>
             </li>
           </ul>
           <div class="none" *ngIf="noOrigins">
@@ -63,15 +63,15 @@
           <ul>
             <li>
               <a href="#">gcc</a>
-              <div class="octicon octicon-chevron-right"></div>
+              <hab-icon symbol="chevron-right"></hab-icon>
             </li>
             <li>
               <a href="#">coreutils</a>
-              <div class="octicon octicon-chevron-right"></div>
+              <hab-icon symbol="chevron-right"></hab-icon>
             </li>
             <li>
               <a href="#">glibx</a>
-              <div class="octicon octicon-chevron-right"></div>
+              <hab-icon symbol="chevron-right"></hab-icon>
             </li>
           </ul>
         </div>
@@ -81,7 +81,7 @@
           <h4>My Recent Favorites</h4>
           <div class="controls">
             <a href="#">
-              <span class="octicon octicon-list-unordered"></span>
+              <hab-icon symbol="list-bulleted"></hab-icon>
             </a>
           </div>
         </div>
@@ -89,15 +89,15 @@
           <ul>
             <li>
               <a href="#">python</a>
-              <div class="octicon octicon-chevron-right"></div>
+              <hab-icon symbol="chevron-right"></hab-icon>
             </li>
             <li>
               <a href="#">mysql</a>
-              <div class="octicon octicon-chevron-right"></div>
+              <hab-icon symbol="chevron-right"></hab-icon>
             </li>
             <li>
               <a href="#">unicorn</a>
-              <div class="octicon octicon-chevron-right"></div>
+              <hab-icon symbol="chevron-right"></hab-icon>
             </li>
           </ul>
         </div>
@@ -136,7 +136,7 @@
             <div class="package-updated">
               {{ releaseToDate(pkg.release) }}
             </div>
-            <span class="octicon octicon-chevron-right"></span>
+            <hab-icon symbol="chevron-right"></hab-icon>
           </li>
         </ul>
         <div class="none" *ngIf="noOrigins">

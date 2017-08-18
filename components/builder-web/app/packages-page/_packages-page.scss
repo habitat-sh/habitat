@@ -63,8 +63,10 @@
     }
   }
 
-  .hab-spinner {
-    float: right;
+  hab-icon[symbol="loading"] {
+    position: absolute;
+    right: 20px;
+    bottom: 20px;
   }
 
   &-list {

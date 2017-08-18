@@ -56,11 +56,6 @@ export function friendlyTime(t) {
     return moment(t).fromNow();
 }
 
-// get an icon's path
-export function icon(x: string): string {
-    return `/node_modules/octicons/svg/${x}.svg`;
-}
-
 // Take some params and return a project
 export function projectFromParams(p = {}) {
     let id = undefined;

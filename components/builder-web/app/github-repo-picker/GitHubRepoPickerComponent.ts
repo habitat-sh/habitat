@@ -21,9 +21,7 @@ import { List, Map, OrderedSet } from "immutable";
     <div class="hab-github-repo-picker">
         <div class="users">
             <h4>
-                <hab-spinner [onClick]="fetchGitHubOrgs"
-                             [isSpinning]="areOrgsLoading">
-                </hab-spinner>
+                <hab-icon symbol="loading" [class.spinning]="areOrgsLoading"></hab-icon>
                 Users/Organizations
             </h4>
             <ul>
@@ -46,9 +44,7 @@ import { List, Map, OrderedSet } from "immutable";
         </div>
         <div class="repos">
             <h4>
-                <hab-spinner [onClick]="clickFetchGitHubRepos"
-                             [isSpinning]="areReposLoading">
-                </hab-spinner>
+                <hab-icon symbol="loading" [class.spinning]="areReposLoading"></hab-icon>
                 Repositories
             </h4>
             <ul>
