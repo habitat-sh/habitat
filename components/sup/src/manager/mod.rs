@@ -442,34 +442,6 @@ impl Manager {
             .push(service);
     }
 
-    fn remove_service(&self, service: &mut Service, term: bool) {
-        // JW TODO: Update service rumor to remove service from cluster
-        if term {
-            service.stop(Some(&self.launcher));
-        } else {
-            service.stop(None);
-        }
-        if service.start_style == StartStyle::Transient {
-            // JW TODO: If we cleanup our Service structure to hold the ServiceSpec instead of
-            // deconstruct it (see my comments in `add_service()` in this module) then we could
-            // leverage `remove_spec()` instead of duplicaing this logic here.
-            if let Err(err) = fs::remove_file(&service.spec_file) {
-                outputln!(
-                    "Unable to cleanup service spec for transient service, {}, {}",
-                    service,
-                    err
-                );
-            }
-        }
-        if let Err(err) = fs::remove_file(self.fs_cfg.health_check_cache(&service.service_group)) {
-            outputln!(
-                "Unable to cleanup service health cache, {}, {}",
-                service,
-                err
-            );
-        }
-    }
-
     pub fn run(&mut self) -> Result<()> {
         self.start_initial_services_from_watcher()?;
 
@@ -582,6 +554,7 @@ impl Manager {
             if self.updater.check_for_updated_package(
                 service,
                 &self.census_ring,
+                &self.launcher,
             )
             {
                 self.gossip_latest_service_rumor(&service);
@@ -761,6 +734,38 @@ impl Manager {
         }
         if let Some(err) = fs::rename(&tmp_file, &self.fs_cfg.services_data_path).err() {
             warn!("Couldn't finalize services state on disk, {}", err);
+        }
+    }
+
+    /// Remove the given service from the manager.
+    ///
+    /// Passing `true` for the term argument will also request the Launcher to terminate the running
+    /// service. Passing a value of `false` will let the Launcher keep the service running. This
+    /// useful if you want the Supervisor to shutdown temporarily and then come back and re-attach
+    /// to all running processes.
+    fn remove_service(&self, service: &mut Service, term: bool) {
+        // JW TODO: Update service rumor to remove service from cluster
+        if term {
+            service.stop(&self.launcher);
+        }
+        if service.start_style == StartStyle::Transient {
+            // JW TODO: If we cleanup our Service structure to hold the ServiceSpec instead of
+            // deconstruct it (see my comments in `add_service()` in this module) then we could
+            // leverage `remove_spec()` instead of duplicaing this logic here.
+            if let Err(err) = fs::remove_file(&service.spec_file) {
+                outputln!(
+                    "Unable to cleanup service spec for transient service, {}, {}",
+                    service,
+                    err
+                );
+            }
+        }
+        if let Err(err) = fs::remove_file(self.fs_cfg.health_check_cache(&service.service_group)) {
+            outputln!(
+                "Unable to cleanup service health cache, {}, {}",
+                service,
+                err
+            );
         }
     }
 
