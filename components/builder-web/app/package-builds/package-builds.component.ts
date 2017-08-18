@@ -3,7 +3,6 @@ import { ActivatedRoute, Router } from "@angular/router";
 import { Subscription } from "rxjs";
 import { AppStore } from "../AppStore";
 import { clearBuilds, fetchBuilds } from "../actions/index";
-import { requireSignIn } from "../util";
 
 @Component({
     template: require("./package-builds.component.html")
@@ -18,7 +17,6 @@ export class PackageBuildsComponent implements OnInit, OnDestroy {
         private store: AppStore,
         private route: ActivatedRoute,
         private router: Router) {
-        requireSignIn(this);
     }
 
     ngOnInit() {

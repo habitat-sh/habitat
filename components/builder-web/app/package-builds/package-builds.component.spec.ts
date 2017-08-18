@@ -62,10 +62,6 @@ describe("PackageBuildsComponent", () => {
     router = TestBed.get(Router);
   });
 
-  it("requires sign-in", () => {
-    expect(util.requireSignIn).toHaveBeenCalledWith(fixture.componentInstance);
-  });
-
   it("dispatches a request for builds by origin and name", () => {
     let store = TestBed.get(AppStore);
 
