@@ -242,7 +242,7 @@ impl Service {
         }
     }
 
-    pub fn stop(&mut self, launcher: Option<&LauncherCli>) {
+    pub fn stop(&mut self, launcher: &LauncherCli) {
         if let Err(err) = self.supervisor.stop(launcher) {
             outputln!(preamble self.service_group, "Service stop failed: {}", err);
         }
@@ -401,7 +401,7 @@ impl Service {
     }
 
     /// Replace the package of the running service and restart it's system process.
-    pub fn update_package(&mut self, package: PackageInstall) {
+    pub fn update_package(&mut self, package: PackageInstall, launcher: &LauncherCli) {
         match Pkg::from_install(package) {
             Ok(pkg) => {
                 outputln!(preamble self.service_group,
@@ -426,8 +426,7 @@ impl Service {
                 return;
             }
         }
-        // JW TODO: Do I need to ask the launcher to terminate this process here?
-        if let Err(err) = self.supervisor.stop(None) {
+        if let Err(err) = self.supervisor.stop(launcher) {
             outputln!(preamble self.service_group,
                       "Error stopping process while updating package: {}", err);
         }

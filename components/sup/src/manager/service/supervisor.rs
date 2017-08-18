@@ -140,19 +140,11 @@ impl Supervisor {
         (healthy, status)
     }
 
-    pub fn stop(&mut self, launcher: Option<&LauncherCli>) -> Result<()> {
+    pub fn stop(&mut self, launcher: &LauncherCli) -> Result<()> {
         if self.pid.is_none() {
             return Ok(());
         }
-        if let Some(launcher) = launcher {
-            if let Err(err) = launcher.terminate(self.pid.unwrap()) {
-                warn!(
-                    "Unable to signal launcher to terminate {}, {}",
-                    self.pid.unwrap(),
-                    err
-                );
-            }
-        }
+        launcher.terminate(self.pid.unwrap())?;
         self.cleanup_pidfile();
         self.change_state(ProcessState::Down);
         Ok(())

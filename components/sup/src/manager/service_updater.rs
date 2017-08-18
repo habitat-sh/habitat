@@ -26,6 +26,7 @@ use hcore::package::{PackageIdent, PackageInstall};
 use hcore::service::ServiceGroup;
 use hcore::crypto::default_cache_key_path;
 use hcore::fs::{CACHE_ARTIFACT_PATH, FS_ROOT_PATH};
+use launcher_client::LauncherCli;
 use time::{SteadyTime, Duration as TimeDuration};
 
 use {PRODUCT, VERSION};
@@ -99,13 +100,14 @@ impl ServiceUpdater {
         &mut self,
         service: &mut Service,
         census_ring: &CensusRing,
+        launcher: &LauncherCli,
     ) -> bool {
         let mut updated = false;
         match self.states.get_mut(&service.service_group) {
             Some(&mut UpdaterState::AtOnce(ref mut rx)) => {
                 match rx.try_recv() {
                     Ok(package) => {
-                        service.update_package(package);
+                        service.update_package(package, launcher);
                         return true;
                     }
                     Err(TryRecvError::Empty) => return false,
@@ -173,7 +175,7 @@ impl ServiceUpdater {
                         match rx.try_recv() {
                             Ok(package) => {
                                 debug!("Rolling Update, polling found a new package");
-                                service.update_package(package);
+                                service.update_package(package, launcher);
                                 updated = true;
                             }
                             Err(TryRecvError::Empty) => return false,
@@ -252,7 +254,7 @@ impl ServiceUpdater {
                             Some(census_group) => {
                                 match rx.try_recv() {
                                     Ok(package) => {
-                                        service.update_package(package);
+                                        service.update_package(package, launcher);
                                         updated = true
                                     }
                                     Err(TryRecvError::Empty) => return false,
