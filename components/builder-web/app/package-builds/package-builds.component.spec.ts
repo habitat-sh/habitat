@@ -39,8 +39,6 @@ describe("PackageBuildsComponent", () => {
   let router: Router;
 
   beforeEach(() => {
-    spyOn(util, "requireSignIn");
-
     TestBed.configureTestingModule({
       imports: [
         RouterTestingModule

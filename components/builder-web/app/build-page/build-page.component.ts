@@ -2,7 +2,6 @@ import { Component, OnInit, OnDestroy } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
 import { Subscription } from "rxjs";
 import { fetchBuild } from "../actions/index";
-import { requireSignIn } from "../util";
 import { AppStore } from "../AppStore";
 
 @Component({
@@ -14,7 +13,6 @@ export class BuildPageComponent implements OnInit, OnDestroy {
     constructor(
         private store: AppStore,
         private route: ActivatedRoute) {
-        requireSignIn(this);
     }
 
     ngOnInit() {
