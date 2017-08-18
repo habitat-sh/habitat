@@ -468,7 +468,8 @@ impl CensusGroup {
 pub struct CensusMember {
     pub member_id: MemberId,
     pub pkg: Option<PackageIdent>,
-
+    application: Option<String>,
+    environment: Option<String>,
     service: String,
     group: String,
     org: Option<String>,
@@ -500,6 +501,9 @@ impl CensusMember {
     pub fn as_protobuf(&self) -> CensusEntryProto {
         let mut cep = CensusEntryProto::new();
         cep.set_member_id(self.member_id.clone());
+
+        cep.set_application(self.application.as_ref().unwrap_or(&"".to_string()).clone());
+        cep.set_environment(self.environment.as_ref().unwrap_or(&"".to_string()).clone());
         cep.set_service(self.service.clone());
         cep.set_group(self.group.clone());
         cep.set_org(self.org.as_ref().unwrap_or(&"".to_string()).clone());
@@ -553,6 +557,10 @@ impl CensusMember {
         self.group = sg.group().to_string();
         if let Some(org) = sg.org() {
             self.org = Some(org.to_string());
+        }
+        if let Some(appenv) = sg.application_environment() {
+            self.application = Some(appenv.application().to_string());
+            self.environment = Some(appenv.environment().to_string());
         }
         match PackageIdent::from_str(rumor.get_pkg()) {
             Ok(ident) => self.pkg = Some(ident),
