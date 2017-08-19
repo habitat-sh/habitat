@@ -108,7 +108,7 @@ impl ServiceFile {
     /// Encrypt the contents of the service file
     pub fn encrypt(&mut self, user_pair: &BoxKeyPair, service_pair: &BoxKeyPair) -> Result<()> {
         let body = self.take_body();
-        let encrypted_body = user_pair.encrypt(&body, service_pair)?;
+        let encrypted_body = user_pair.encrypt(&body, Some(service_pair))?;
         self.set_body(encrypted_body);
         self.set_encrypted(true);
         Ok(())

@@ -250,6 +250,7 @@ pub static SIG_HASH_TYPE: &'static str = "BLAKE2b";
 pub static CACHE_KEY_PATH_ENV_VAR: &'static str = "HAB_CACHE_KEY_PATH";
 pub static HART_FORMAT_VERSION: &'static str = "HART-1";
 pub static BOX_FORMAT_VERSION: &'static str = "BOX-1";
+pub static ANONYMOUS_BOX_FORMAT_VERSION: &'static str = "ANONYMOUS-BOX-1";
 /// Create secret key files with these permissions
 static PUBLIC_KEY_PERMISSIONS: u32 = 0o400;
 static SECRET_KEY_PERMISSIONS: u32 = 0o400;

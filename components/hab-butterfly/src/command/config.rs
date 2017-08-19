@@ -85,7 +85,10 @@ pub mod apply {
                     service_pair.unwrap().name_with_rev()
                 ),
             )?;
-            body = user_pair.unwrap().encrypt(&body, service_pair.unwrap())?;
+            body = user_pair.unwrap().encrypt(
+                &body,
+                Some(service_pair.unwrap()),
+            )?;
             encrypted = true;
         }
 
