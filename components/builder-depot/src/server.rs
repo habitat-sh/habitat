@@ -19,6 +19,7 @@ use std::path::PathBuf;
 use std::io::{Read, Write, BufWriter};
 use std::result;
 use std::str::FromStr;
+use base64;
 
 use uuid::Uuid;
 use bld_core;
@@ -26,7 +27,8 @@ use bodyparser;
 use hab_core::package::{Identifiable, FromArchive, PackageArchive, PackageIdent, PackageTarget,
                         ident};
 use hab_core::crypto::keys::PairType;
-use hab_core::crypto::SigKeyPair;
+use hab_core::crypto::{BoxKeyPair, SigKeyPair};
+use hab_core::crypto::PUBLIC_BOX_KEY_VERSION;
 use hab_core::event::*;
 use hab_net::config::RouterCfg;
 use hab_net::http::controller::*;
@@ -1866,6 +1868,53 @@ fn demote_package(req: &mut Request) -> IronResult<Response> {
     }
 }
 
+pub fn download_latest_builder_key(req: &mut Request) -> IronResult<Response> {
+    let lock = req.get::<persistent::State<DepotUtil>>().expect(
+        "depot not found",
+    );
+    let depot = lock.read().expect("depot read lock is poisoned");
+
+    // The builder key pair is expected to be found at the key_dir config.
+    // It is not currently persisted in the DB. Instead, it will be
+    // propagated via a 'hab file upload' to the depot service group.
+    let kp = match BoxKeyPair::get_latest_pair_for(
+        bld_core::keys::BUILDER_KEY_NAME,
+        &depot.config.key_dir,
+    ) {
+        Ok(p) => p,
+        Err(_) => {
+            error!("Can't find bldr key pair at {:?}", depot.config.key_dir);
+            return Ok(Response::with(status::NotFound));
+        }
+    };
+
+    let key = match kp.public() {
+        Ok(k) => k,
+        Err(_) => {
+            error!("Can't find public key in key pair: {}", kp.name_with_rev());
+            return Ok(Response::with(status::NotFound));
+        }
+    };
+
+    let xfilename = format!("{}-{}.pub", kp.name, kp.rev);
+    let body = base64::encode(&key[..]);
+
+    let output = format!(
+        "{}\n{}\n\n{}",
+        PUBLIC_BOX_KEY_VERSION,
+        kp.name_with_rev(),
+        body
+    );
+
+    let mut response = Response::with((status::Ok, output));
+    response.headers.set(ContentDisposition(
+        format!("attachment; filename=\"{}\"", xfilename),
+    ));
+    response.headers.set(XFileName(xfilename));
+    dont_cache_response(&mut response);
+    Ok(response)
+}
+
 fn ident_from_params(params: &Params) -> OriginPackageIdent {
     let mut ident = OriginPackageIdent::new();
     ident.set_origin(params.find("origin").unwrap().to_string());
@@ -2101,6 +2150,9 @@ where
                 XHandler::new(download_latest_origin_secret_key).before(worker.clone())
             }
         },
+
+        builder_key_latest: get "/builder/keys/latest" => download_latest_builder_key,
+
         // All of this API feels wrong to me.
         origin_invitation_create: post "/origins/:origin/users/:username/invitations" => {
             XHandler::new(invite_to_origin).before(basic.clone())
@@ -2168,14 +2220,10 @@ mod test {
     use hyper;
     use hyper::net::NetworkStream;
     use hyper::buffer::BufReader;
-    use hyper::header::{Charset, ContentDisposition, DispositionType, DispositionParam};
 
-    use hab_core::crypto::hash;
-    use protocol::net::{self, ErrCode};
     use protocol::sessionsrv::Session;
 
     use std::env;
-    use std::fs::File;
     use std::io::Cursor;
     use std::path::PathBuf;
 
@@ -2189,13 +2237,6 @@ mod test {
         fn before(&self, _: &mut Request) -> IronResult<()> {
             Ok(())
         }
-    }
-
-    pub fn hart_file(name: &str) -> PathBuf {
-        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("tests")
-            .join("fixtures")
-            .join(name)
     }
 
     fn iron_request(
@@ -2223,10 +2264,12 @@ mod test {
         let mut req = Request::from_http(http_request, addr, &iron::Protocol::http()).unwrap();
 
         let mut config = Config::default();
-        config.path = env::temp_dir()
-            .join("depot-tests")
-            .to_string_lossy()
-            .to_string();
+        config.path = PathBuf::from(
+            env::temp_dir()
+                .join("depot-tests")
+                .to_string_lossy()
+                .into_owned(),
+        );
         let depot = DepotUtil::new(config);
         req.extensions.insert::<Authenticated>(Session::new());
         req.extensions.insert::<TestableBroker>(broker);

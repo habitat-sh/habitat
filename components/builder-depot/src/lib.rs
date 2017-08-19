@@ -48,6 +48,7 @@ extern crate urlencoded;
 extern crate walkdir;
 extern crate zmq;
 extern crate uuid;
+extern crate base64;
 
 pub mod config;
 pub mod error;

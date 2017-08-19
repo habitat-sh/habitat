@@ -23,6 +23,7 @@ extern crate habitat_core as hab_core;
 extern crate log;
 
 use std::process;
+use std::path::PathBuf;
 use std::str::FromStr;
 
 use hab_core::config::ConfigFile;
@@ -77,7 +78,7 @@ fn config_from_args(matches: &clap::ArgMatches) -> Result<Config> {
         }
     }
     if let Some(path) = args.value_of("path") {
-        config.depot.path = path.to_string();
+        config.depot.path = PathBuf::from(path);
     }
     Ok(config)
 }
