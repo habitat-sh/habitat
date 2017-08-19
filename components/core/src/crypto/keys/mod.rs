@@ -256,8 +256,8 @@ where
 {
     // accumulator for files that match
     let mut candidates = HashSet::new();
-    let paths = match fs::read_dir(cache_key_path.as_ref()) {
-        Ok(p) => p,
+    let dir_entries = match fs::read_dir(cache_key_path.as_ref()) {
+        Ok(dir_entries) => dir_entries,
         Err(e) => {
             return Err(Error::CryptoError(format!(
                 "Error reading key directory {}: {}",
@@ -266,16 +266,18 @@ where
             )))
         }
     };
-    for path in paths {
-        let p = match path {
-            Ok(ref p) => p,
+    for result in dir_entries {
+        let dir_entry = match result {
+            Ok(ref dir_entry) => dir_entry,
             Err(e) => {
                 debug!("Error reading path {}", e);
                 return Err(Error::CryptoError(format!("Error reading key path {}", e)));
             }
         };
 
-        match p.metadata() {
+        // NB: this metadata() call traverses symlinks, which is
+        // exactly what we want.
+        match dir_entry.path().metadata() {
             Ok(md) => {
                 if !md.is_file() {
                     continue;
@@ -287,17 +289,21 @@ where
             }
         };
 
-        let file = File::open(p.path())?;
+        let file = File::open(dir_entry.path())?;
         let mut reader = BufReader::new(file);
         let mut buf = String::new();
         reader.read_line(&mut buf)?;
 
         if !buf.starts_with(&key_type.to_string().to_uppercase()) {
-            debug!("Invalid key content in {:?} for type {}", p, &key_type);
+            debug!(
+                "Invalid key content in {:?} for type {}",
+                dir_entry,
+                &key_type
+            );
             continue;
         }
 
-        let filename = match p.file_name().into_string() {
+        let filename = match dir_entry.file_name().into_string() {
             Ok(f) => f,
             Err(e) => {
                 // filename is still an OsString, so print it as debug output
@@ -489,6 +495,7 @@ mod test {
     use std::collections::HashSet;
     use std::fs::{self, File};
     use std::io::Write;
+    use std::path::Path;
     use std::{thread, time};
 
     use hex::ToHex;
@@ -726,6 +733,65 @@ mod test {
         let revisions = super::get_key_revisions("mutants-x", cache.path(), None, &KeyType::Sig)
             .unwrap();
         assert_eq!(1, revisions.len());
+    }
+
+    /// Keys should be able to be symlinks, not just normal
+    /// files. This is particularly important in environments like
+    /// Kubernetes that rely heavily on symlinks.
+    ///
+    /// See https://github.com/habitat-sh/habitat/issues/2939
+    #[test]
+    fn keys_that_are_symlinks_can_still_be_found() {
+        let temp_dir = TempDir::new("symlinks_are_ok").unwrap();
+        let key = SymKey::generate_pair_for_ring("symlinks_are_ok", temp_dir.path())
+            .expect("Could not generate ring key");
+
+        // Create a directory in our temp directory; this will serve
+        // as the cache directory in which we look for keys.
+        let cache_dir = temp_dir.path().join("cache");
+        fs::create_dir(&cache_dir).expect("Could not create cache_dir");
+
+        // Create a symlink to the key INTO that new dir
+        let name = format!("{}.sym.key", key.name_with_rev());
+        let src = temp_dir.path().join(&name);
+        let dest = cache_dir.join(&name);
+        symlink_file(&src, &dest).expect("Could not generate symlink");
+
+        // For sanity, confirm that we are indeed dealing with a symlink
+        let sym_meta = dest.symlink_metadata().expect(
+            "Could not get file metadata",
+        );
+        assert!(sym_meta.file_type().is_symlink());
+
+        let revisions = super::get_key_revisions(
+            "symlinks_are_ok",
+            &cache_dir, // <-- THIS IS THE KEY PART OF THE TEST
+            None,
+            &KeyType::Sym,
+        ).expect("Could not fetch key revisions!");
+
+        assert_eq!(1, revisions.len());
+        assert_eq!(revisions[0], key.name_with_rev());
+    }
+
+    // Windows and Linux platforms handle symlinking differently; this
+    // abstracts that for the purposes of our tests here.
+    #[cfg(target_os = "windows")]
+    fn symlink_file<P, Q>(src: P, dest: Q) -> ::std::io::Result<()>
+    where
+        P: AsRef<Path>,
+        Q: AsRef<Path>,
+    {
+        ::std::os::windows::fs::symlink_file(src.as_ref(), dest.as_ref())
+    }
+
+    #[cfg(not(target_os = "windows"))]
+    fn symlink_file<P, Q>(src: P, dest: Q) -> ::std::io::Result<()>
+    where
+        P: AsRef<Path>,
+        Q: AsRef<Path>,
+    {
+        ::std::os::unix::fs::symlink(src.as_ref(), dest.as_ref())
     }
 
     #[test]
