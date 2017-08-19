@@ -47,7 +47,7 @@ pub trait ConfigFile: DeserializeOwned + Sized {
     }
 
     fn from_raw(raw: &str) -> Result<Self, Self::Error> {
-        let value = toml::from_str(&raw).map_err(|e| Error::ConfigFileSyntax(e))?;
+        let value = toml::from_str(raw).map_err(Error::ConfigFileSyntax)?;
         Ok(value)
     }
 }

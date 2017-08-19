@@ -134,7 +134,7 @@ impl PackageArchive {
     pub fn exposes(&mut self) -> Result<Vec<u16>> {
         match self.read_metadata(MetaFile::Exposes) {
             Ok(Some(data)) => {
-                let ports: Vec<u16> = data.split(" ")
+                let ports: Vec<u16> = data.split(' ')
                     .filter_map(|port| port.parse::<u16>().ok())
                     .collect();
                 Ok(ports)
@@ -147,7 +147,7 @@ impl PackageArchive {
     pub fn ident(&mut self) -> Result<PackageIdent> {
         match self.read_metadata(MetaFile::Ident) {
             Ok(None) => Err(Error::MetaFileNotFound(MetaFile::Ident)),
-            Ok(Some(data)) => PackageIdent::from_str(&data),
+            Ok(Some(data)) => PackageIdent::from_str(data),
             Err(e) => Err(e),
         }
     }
@@ -184,7 +184,7 @@ impl PackageArchive {
     pub fn target(&mut self) -> Result<PackageTarget> {
         match self.read_metadata(MetaFile::Target) {
             Ok(None) => Err(Error::MetaFileNotFound(MetaFile::Target)),
-            Ok(Some(data)) => PackageTarget::from_str(&data),
+            Ok(Some(data)) => PackageTarget::from_str(data),
             Err(e) => Err(e),
         }
     }
@@ -215,7 +215,7 @@ impl PackageArchive {
     ///
     /// * If the package cannot be unpacked
     pub fn unpack(&self, fs_root_path: Option<&Path>) -> Result<()> {
-        let root = fs_root_path.unwrap_or(Path::new("/"));
+        let root = fs_root_path.unwrap_or_else(|| Path::new("/"));
         let tar_reader = artifact::get_archive_reader(&self.path)?;
         let mut builder = reader::Builder::new();
         builder.support_format(ReadFormat::Gnutar)?;

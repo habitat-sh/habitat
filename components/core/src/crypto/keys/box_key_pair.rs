@@ -139,7 +139,7 @@ impl BoxKeyPair {
         match all.len() {
             0 => {
                 let msg = format!("No revisions found for {} box key", name.as_ref());
-                return Err(Error::CryptoError(msg));
+                Err(Error::CryptoError(msg))
             }
             _ => Ok(all.remove(0)),
         }
@@ -256,7 +256,7 @@ impl BoxKeyPair {
         match box_::open(&ciphertext, &nonce, sender.public()?, receiver.secret()?) {
             Ok(v) => Ok(v),
             Err(_) => {
-                return Err(Error::CryptoError(
+                Err(Error::CryptoError(
                     "Secret key, public key, and nonce could not \
                                                     decrypt ciphertext"
                         .to_string(),
@@ -277,8 +277,8 @@ impl BoxKeyPair {
         debug!("secret box keyfile = {}", secret_keyfile.display());
 
         write_keypair_files(
-            KeyType::Box,
-            &name_with_rev,
+            &KeyType::Box,
+            name_with_rev,
             Some(&public_keyfile),
             Some(&base64::encode(&pk[..]).into_bytes()),
             Some(&secret_keyfile),
@@ -298,7 +298,7 @@ impl BoxKeyPair {
         match BoxPublicKey::from_slice(&bytes) {
             Some(sk) => Ok(sk),
             None => {
-                return Err(Error::CryptoError(format!(
+                Err(Error::CryptoError(format!(
                     "Can't read box public key for {}",
                     key_with_rev.as_ref()
                 )))
@@ -317,7 +317,7 @@ impl BoxKeyPair {
         match BoxSecretKey::from_slice(&bytes) {
             Some(sk) => Ok(sk),
             None => {
-                return Err(Error::CryptoError(format!(
+                Err(Error::CryptoError(format!(
                     "Can't read box secret key for {}",
                     key_with_rev.as_ref()
                 )))

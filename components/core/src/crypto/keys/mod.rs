@@ -83,7 +83,7 @@ impl FromStr for PairType {
             "public" => Ok(PairType::Public),
             "secret" => Ok(PairType::Secret),
             _ => {
-                return Err(Error::CryptoError(
+                Err(Error::CryptoError(
                     format!("Invalid PairType conversion from {}", value),
                 ))
             }
@@ -145,7 +145,7 @@ impl<P, S> KeyPair<P, S> {
                     "Public key is required but not present for {}",
                     self.name_with_rev()
                 );
-                return Err(Error::CryptoError(msg));
+                Err(Error::CryptoError(msg))
             }
         }
     }
@@ -158,7 +158,7 @@ impl<P, S> KeyPair<P, S> {
                     "Secret key is required but not present for {}",
                     self.name_with_rev()
                 );
-                return Err(Error::CryptoError(msg));
+                Err(Error::CryptoError(msg))
             }
         }
     }
@@ -170,11 +170,11 @@ impl<P, S> KeyPair<P, S> {
 /// added to the set.
 fn check_filename(
     keyname: &str,
-    filename: String,
+    filename: &str,
     candidates: &mut HashSet<String>,
     pair_type: Option<&PairType>,
 ) {
-    let caps = match KEYFILE_RE.captures(&filename) {
+    let caps = match KEYFILE_RE.captures(filename) {
         Some(c) => c,
         None => {
             debug!("check_filename: Cannot parse {}", &filename);
@@ -219,21 +219,10 @@ fn check_filename(
 
         let do_insert = match pair_type {
             Some(&PairType::Secret) => {
-                if suffix == SECRET_SIG_KEY_SUFFIX || suffix == SECRET_BOX_KEY_SUFFIX ||
+                suffix == SECRET_SIG_KEY_SUFFIX || suffix == SECRET_BOX_KEY_SUFFIX ||
                     suffix == SECRET_SYM_KEY_SUFFIX
-                {
-                    true
-                } else {
-                    false
-                }
             }
-            Some(&PairType::Public) => {
-                if suffix == PUBLIC_KEY_SUFFIX {
-                    true
-                } else {
-                    false
-                }
-            }
+            Some(&PairType::Public) => suffix == PUBLIC_KEY_SUFFIX,
             None => true,
         };
 
@@ -244,7 +233,7 @@ fn check_filename(
 }
 
 /// Take a key name (ex "habitat"), and find all revisions of that
-/// keyname in the default_cache_key_path().
+/// keyname in the `default_cache_key_path()`.
 fn get_key_revisions<P>(
     keyname: &str,
     cache_key_path: P,
@@ -308,11 +297,11 @@ where
             Err(e) => {
                 // filename is still an OsString, so print it as debug output
                 debug!("Invalid filename {:?}", e);
-                return Err(Error::CryptoError(format!("Invalid filename in key path")));
+                return Err(Error::CryptoError("Invalid filename in key path".to_owned()));
             }
         };
         debug!("checking file: {}", &filename);
-        check_filename(keyname, filename, &mut candidates, pair_type);
+        check_filename(keyname, &filename, &mut candidates, pair_type);
     }
 
     // traverse the candidates set and sort the entries
@@ -348,7 +337,7 @@ fn mk_revision_string() -> Result<String> {
     // http://man7.org/linux/man-pages/man3/strftime.3.html
     match now.strftime("%Y%m%d%H%M%S") {
         Ok(result) => Ok(result.to_string()),
-        Err(_) => return Err(Error::CryptoError("Can't parse system time".to_string())),
+        Err(_) => Err(Error::CryptoError("Can't parse system time".to_string())),
     }
 }
 
@@ -392,7 +381,7 @@ where
 fn read_key_bytes(keyfile: &Path) -> Result<Vec<u8>> {
     let mut f = File::open(keyfile)?;
     let mut s = String::new();
-    if f.read_to_string(&mut s)? <= 0 {
+    if f.read_to_string(&mut s)? == 0 {
         return Err(Error::CryptoError("Can't read key bytes".to_string()));
     }
     match s.lines().nth(3) {
@@ -415,7 +404,7 @@ fn read_key_bytes(keyfile: &Path) -> Result<Vec<u8>> {
 }
 
 fn write_keypair_files(
-    key_type: KeyType,
+    key_type: &KeyType,
     keyname: &str,
     public_keyfile: Option<&Path>,
     public_content: Option<&[u8]>,
@@ -423,7 +412,7 @@ fn write_keypair_files(
     secret_content: Option<&[u8]>,
 ) -> Result<()> {
     if let Some(public_keyfile) = public_keyfile {
-        let public_version = match key_type {
+        let public_version = match *key_type {
             KeyType::Sig => PUBLIC_SIG_KEY_VERSION,
             KeyType::Box => PUBLIC_BOX_KEY_VERSION,
             KeyType::Sym => unreachable!("Sym keys do not have a public key"),
@@ -456,7 +445,7 @@ fn write_keypair_files(
     }
 
     if let Some(secret_keyfile) = secret_keyfile {
-        let secret_version = match key_type {
+        let secret_version = match *key_type {
             KeyType::Sig => SECRET_SIG_KEY_VERSION,
             KeyType::Box => SECRET_BOX_KEY_VERSION,
             KeyType::Sym => SECRET_SYM_KEY_VERSION,

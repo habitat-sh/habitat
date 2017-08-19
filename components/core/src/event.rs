@@ -100,21 +100,21 @@ impl fmt::Display for Event {
     #[cfg_attr(rustfmt, rustfmt_skip)]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
-            Event::ProjectCreate { origin: _, package: _, account: _ } => "project-create",
-            Event::PackageUpload { origin: _, package: _, version: _, release: _, target: _, account: _ } => {
+            Event::ProjectCreate { .. } => "project-create",
+            Event::PackageUpload { .. } => {
                 "package-upload"
             }
-            Event::OriginKeyUpload { origin: _, version: _, account: _ } => "origin-key-upload",
-            Event::OriginSecretKeyUpload { origin: _, version: _, account: _ } => {
+            Event::OriginKeyUpload { .. } => "origin-key-upload",
+            Event::OriginSecretKeyUpload { .. } => {
                 "origin-secret-key-upload"
             }
-            Event::OriginInvitationSend { origin: _, user: _, id: _, account: _ } => {
+            Event::OriginInvitationSend { .. } => {
                 "origin-invitation-send"
             }
-            Event::OriginInvitationAccept { id: _, account: _ } => "origin-invitation-accept",
-            Event::OriginInvitationIgnore { id: _, account: _ } => "origin-invitation-ignore",
-            Event::JobCreate { package: _, account: _ } => "job-create",
-            Event::GithubAuthenticate { user: _, account: _ } => "github-authenticate",
+            Event::OriginInvitationAccept { .. } => "origin-invitation-accept",
+            Event::OriginInvitationIgnore { .. } => "origin-invitation-ignore",
+            Event::JobCreate { .. } => "job-create",
+            Event::GithubAuthenticate { .. } => "github-authenticate",
         };
 
         write!(f, "{}", msg)
@@ -174,13 +174,7 @@ impl Serialize for Event {
             Event::OriginInvitationAccept {
                 id: ref i,
                 account: ref a,
-            } => {
-                let mut strukt = serializer.serialize_struct("event", 3)?;
-                strukt.serialize_field("name", &self.to_string())?;
-                strukt.serialize_field("id", i)?;
-                strukt.serialize_field("account", a)?;
-                strukt
-            }
+            } |
             Event::OriginInvitationIgnore {
                 id: ref i,
                 account: ref a,
@@ -215,14 +209,7 @@ impl Serialize for Event {
                 origin: ref o,
                 version: ref v,
                 account: ref a,
-            } => {
-                let mut strukt = serializer.serialize_struct("event", 4)?;
-                strukt.serialize_field("name", &self.to_string())?;
-                strukt.serialize_field("origin", o)?;
-                strukt.serialize_field("version", v)?;
-                strukt.serialize_field("account", a)?;
-                strukt
-            }
+            } |
             Event::OriginSecretKeyUpload {
                 origin: ref o,
                 version: ref v,

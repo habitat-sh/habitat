@@ -25,7 +25,7 @@ use error::Result;
 
 const BUF_SIZE: usize = 1024;
 
-/// Calculate the BLAKE2b hash of a file, return as a hex string
+/// Calculate the `BLAKE2b` hash of a file, return as a hex string
 /// digest size = 32 BYTES
 /// NOTE: the hashing is keyless
 pub fn hash_file<P>(filename: P) -> Result<String>

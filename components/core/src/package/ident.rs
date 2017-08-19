@@ -166,7 +166,7 @@ impl FromStr for PackageIdent {
     type Err = Error;
 
     fn from_str(value: &str) -> result::Result<Self, Self::Err> {
-        let items: Vec<&str> = value.split("/").collect();
+        let items: Vec<&str> = value.split('/').collect();
         let (origin, name, ver, rel) = match items.len() {
             2 => (items[0], items[1], None, None),
             3 => (items[0], items[1], Some(items[2]), None),
@@ -328,11 +328,11 @@ pub fn version_sort(a_version: &str, b_version: &str) -> Result<Ordering> {
     // the plain digits who win.
     // 1.0.0-alpha1 vs 1.0.0
     if a_extension.is_some() && b_extension.is_none() {
-        return Ok(Ordering::Less);
+        Ok(Ordering::Less)
     } else if a_extension.is_none() && b_extension.is_some() {
-        return Ok(Ordering::Greater);
+        Ok(Ordering::Greater)
     } else if a_extension.is_none() && b_extension.is_none() {
-        return Ok(Ordering::Equal);
+        Ok(Ordering::Equal)
     } else {
         let a = match a_extension {
             Some(a) => a,
@@ -342,7 +342,7 @@ pub fn version_sort(a_version: &str, b_version: &str) -> Result<Ordering> {
             Some(b) => b,
             None => String::new(),
         };
-        return Ok(a.cmp(&b));
+        Ok(a.cmp(&b))
     }
 }
 

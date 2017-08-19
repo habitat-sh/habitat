@@ -64,8 +64,8 @@ impl SigKeyPair {
         debug!("secret sig keyfile = {}", secret_keyfile.display());
 
         write_keypair_files(
-            KeyType::Sig,
-            &name_with_rev,
+            &KeyType::Sig,
+            name_with_rev,
             Some(&public_keyfile),
             Some(&base64::encode(&pk[..]).into_bytes()),
             Some(&secret_keyfile),
@@ -144,7 +144,7 @@ impl SigKeyPair {
         match all.len() {
             0 => {
                 let msg = format!("No revisions found for {} sig key", name);
-                return Err(Error::CryptoError(msg));
+                Err(Error::CryptoError(msg))
             }
             _ => Ok(all.remove(0)),
         }
@@ -277,22 +277,22 @@ impl SigKeyPair {
         match pair_type {
             PairType::Public => {
                 write_keypair_files(
-                    KeyType::Sig,
+                    &KeyType::Sig,
                     &name_with_rev,
                     Some(&tmpfile.path),
-                    Some(&key_body.as_bytes()),
+                    Some(key_body.as_bytes()),
                     None,
                     None,
                 )?;
             }
             PairType::Secret => {
                 write_keypair_files(
-                    KeyType::Sig,
+                    &KeyType::Sig,
                     &name_with_rev,
                     None,
                     None,
                     Some(&tmpfile.path),
-                    Some(&key_body.as_bytes()),
+                    Some(key_body.as_bytes()),
                 )?;
             }
         }
@@ -444,7 +444,7 @@ impl SigKeyPair {
         match SigPublicKey::from_slice(&bytes) {
             Some(sk) => Ok(sk),
             None => {
-                return Err(Error::CryptoError(
+                Err(Error::CryptoError(
                     format!("Can't read sig public key for {}", key_with_rev),
                 ))
             }
@@ -457,7 +457,7 @@ impl SigKeyPair {
         match SigSecretKey::from_slice(&bytes) {
             Some(sk) => Ok(sk),
             None => {
-                return Err(Error::CryptoError(
+                Err(Error::CryptoError(
                     format!("Can't read sig secret key for {}", key_with_rev),
                 ))
             }

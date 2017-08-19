@@ -91,9 +91,9 @@ impl PackageInstall {
         }
         let pl = Self::package_list(&package_root_path)?;
         if ident.fully_qualified() {
-            if pl.iter().any(|ref p| p.satisfies(ident)) {
+            if pl.iter().any(|p| p.satisfies(ident)) {
                 Ok(PackageInstall {
-                    installed_path: fs::pkg_install_path(&ident, Some(&fs_root_path)),
+                    installed_path: fs::pkg_install_path(ident, Some(&fs_root_path)),
                     fs_root_path: fs_root_path,
                     package_root_path: package_root_path,
                     ident: ident.clone(),
@@ -108,10 +108,11 @@ impl PackageInstall {
                  b| {
                     match winner {
                         Some(a) => {
-                            match a.partial_cmp(&b) {
-                                Some(Ordering::Greater) => Some(a),
-                                Some(Ordering::Equal) => Some(a),
+                            match a.partial_cmp(b) {
                                 Some(Ordering::Less) => Some(b.clone()),
+
+                                Some(Ordering::Greater) |
+                                Some(Ordering::Equal) |
                                 None => Some(a),
                             }
                         }
@@ -160,10 +161,10 @@ impl PackageInstall {
 
         let pl = Self::package_list(&package_root_path)?;
         let latest: Option<PackageIdent> = pl.iter()
-            .filter(|ref p| p.origin == ident.origin && p.name == ident.name)
+            .filter(|p| p.origin == ident.origin && p.name == ident.name)
             .fold(None, |winner, b| match winner {
                 Some(a) => {
-                    match a.cmp(&b) {
+                    match a.cmp(b) {
                         Ordering::Greater | Ordering::Equal => Some(a),
                         Ordering::Less => Some(b.clone()),
                     }
@@ -376,7 +377,7 @@ impl PackageInstall {
         });
 
         let deps = self.load_deps()?;
-        for dep in deps.iter() {
+        for dep in &deps {
             let env = dep.environment()?;
             pkg_envs.push(if !env.is_empty() {
                 PkgEnv::new(env, dep.environment_sep()?)
@@ -387,7 +388,7 @@ impl PackageInstall {
         }
 
         let tdeps = self.load_tdeps()?;
-        for dep in tdeps.iter() {
+        for dep in &tdeps {
             if idents.contains(dep.ident()) {
                 continue;
             }
@@ -409,8 +410,8 @@ impl PackageInstall {
         let mut env: HashMap<String, String> = HashMap::new();
         let pkg_envs = self.package_environments()?;
 
-        for pkg_env in pkg_envs.into_iter() {
-            for env_var in pkg_env.into_iter() {
+        for pkg_env in pkg_envs {
+            for env_var in pkg_env {
                 match env.entry(env_var.key) {
                     Occupied(entry) => {
                         if let Some(sep) = env_var.separator {
@@ -500,7 +501,7 @@ impl PackageInstall {
         let mut deps: Vec<PackageIdent> = vec![];
         match self.read_metafile(file) {
             Ok(body) => {
-                if body.len() > 0 {
+                if !body.is_empty() {
                     for id in body.lines() {
                         let package = PackageIdent::from_str(id)?;
                         if !package.fully_qualified() {
@@ -526,7 +527,7 @@ impl PackageInstall {
     fn load_deps(&self) -> Result<Vec<PackageInstall>> {
         let ddeps = self.deps()?;
         let mut deps = Vec::with_capacity(ddeps.len());
-        for dep in ddeps.iter() {
+        for dep in &ddeps {
             let dep_install = Self::load(dep, Some(&*self.fs_root_path))?;
             deps.push(dep_install);
         }
@@ -543,7 +544,7 @@ impl PackageInstall {
     fn load_tdeps(&self) -> Result<Vec<PackageInstall>> {
         let tdeps = self.tdeps()?;
         let mut deps = Vec::with_capacity(tdeps.len());
-        for dep in tdeps.iter() {
+        for dep in &tdeps {
             let dep_install = Self::load(dep, Some(&*self.fs_root_path))?;
             deps.push(dep_install);
         }
@@ -554,7 +555,7 @@ impl PackageInstall {
     fn package_list(path: &Path) -> Result<Vec<PackageIdent>> {
         let mut package_list: Vec<PackageIdent> = vec![];
         if std::fs::metadata(path)?.is_dir() {
-            Self::walk_origins(&path, &mut package_list)?;
+            Self::walk_origins(path, &mut package_list)?;
         }
         Ok(package_list)
     }
@@ -592,7 +593,7 @@ impl PackageInstall {
     /// Helper function for walk_names. Walks the given name DirEntry for directories and recurses
     /// into them to find release directories.
     fn walk_versions(
-        origin: &String,
+        origin: &str,
         name: &DirEntry,
         packages: &mut Vec<PackageIdent>,
     ) -> Result<()> {
@@ -611,8 +612,8 @@ impl PackageInstall {
     /// concatenated onto the given packages vector with the origin, name, version, and release of
     /// each.
     fn walk_releases(
-        origin: &String,
-        name: &String,
+        origin: &str,
+        name: &str,
         version: &DirEntry,
         packages: &mut Vec<PackageIdent>,
     ) -> Result<()> {
@@ -628,7 +629,7 @@ impl PackageInstall {
                 .into_owned()
                 .to_string();
             let ident =
-                PackageIdent::new(origin.clone(), name.clone(), Some(version), Some(release));
+                PackageIdent::new(origin, name, Some(&version), Some(&release));
             packages.push(ident)
         }
         Ok(())

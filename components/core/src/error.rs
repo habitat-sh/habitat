@@ -170,100 +170,109 @@ impl fmt::Display for Error {
                     e
                 )
             }
-            Error::ConfigInvalidArraySocketAddr(ref f) => {
+            Error::ConfigInvalidArraySocketAddr(f) => {
                 format!(
                     "Invalid array value of network address pair strings config, field={}. \
                          (example: [\"127.0.0.1:8080\", \"10.0.0.4:22\"])",
                     f
                 )
             }
-            Error::ConfigInvalidArrayTableString(ref f) => {
+            Error::ConfigInvalidArrayTableString(f) => {
                 format!(
                     "Invalid array value of tables containing string fields and values in \
                          config, field={}",
                     f
                 )
             }
-            Error::ConfigInvalidArrayTarget(ref f) => {
+            Error::ConfigInvalidArrayTarget(f) => {
                 format!(
                     "Invalid array value of targets containing string fields and values in \
                          config, field={}",
                     f
                 )
             }
-            Error::ConfigInvalidArrayU16(ref f) => {
+            Error::ConfigInvalidArrayU16(f) => {
                 format!(
                     "Invalid array value of u16 entries in config, field={}. (example: [1, 2])",
                     f
                 )
             }
-            Error::ConfigInvalidArrayU32(ref f) => {
+            Error::ConfigInvalidArrayU32(f) => {
                 format!(
                     "Invalid array value of u32 entries in config, field={}. (example: [1, 2])",
                     f
                 )
             }
-            Error::ConfigInvalidArrayU64(ref f) => {
+            Error::ConfigInvalidArrayU64(f) => {
                 format!(
                     "Invalid array value of u64 entries in config, field={}. (example: [1, 2])",
                     f
                 )
             }
-            Error::ConfigInvalidBool(ref f) => {
+            Error::ConfigInvalidBool(f) => {
                 format!(
                     "Invalid boolean value in config, field={}. (example: true)",
                     f
                 )
             }
-            Error::ConfigInvalidIdent(ref f) => {
+            Error::ConfigInvalidIdent(f) => {
                 format!(
                     "Invalid package identifier string value in config, field={}. (example: \
                          \"core/redis\")",
                     f
                 )
             }
-            Error::ConfigInvalidIpAddr(ref f) => {
+            Error::ConfigInvalidIpAddr(f) => {
                 format!(
                     "Invalid IP address string value in config, field={}. (example: \
                          \"127.0.0.0\")",
                     f
                 )
             }
-            Error::ConfigInvalidSocketAddr(ref f) => {
+            Error::ConfigInvalidSocketAddr(f) => {
                 format!(
                     "Invalid network address pair string value in config, field={}. (example: \
                          \"127.0.0.0:8080\")",
                     f
                 )
             }
-            Error::ConfigInvalidString(ref f) => {
+            Error::ConfigInvalidString(f) => {
                 format!("Invalid string value in config, field={}.", f)
             }
-            Error::ConfigInvalidTableString(ref f) => {
+            Error::ConfigInvalidTableString(f) => {
                 format!(
                     "Invalid table value of string fields and values in config, field={}",
                     f
                 )
             }
-            Error::ConfigInvalidTarget(ref f) => {
+            Error::ConfigInvalidTarget(f) => {
                 format!(
                     "Invalid package target string value in config, field={}. (example: \
                          \"x86_64-linux\")",
                     f
                 )
             }
-            Error::ConfigInvalidU16(ref f) => format!("Invalid u16 value in config, field={}", f),
-            Error::ConfigInvalidU32(ref f) => format!("Invalid u32 value in config, field={}", f),
-            Error::ConfigInvalidU64(ref f) => format!("Invalid u64 value in config, field={}", f),
-            Error::ConfigInvalidUsize(ref f) => {
-                format!("Invalid usize value in config, field={}", f)
-            }
+            Error::ConfigInvalidU16(f) => format!("Invalid u16 value in config, field={}", f),
+            Error::ConfigInvalidU32(f) => format!("Invalid u32 value in config, field={}", f),
+            Error::ConfigInvalidU64(f) => format!("Invalid u64 value in config, field={}", f),
+            Error::ConfigInvalidUsize(f) => format!("Invalid usize value in config, field={}", f),
             Error::CreateProcessAsUserFailed(ref e) => {
                 format!("Failure calling CreateProcessAsUserW: {:?}", e)
             }
             Error::CryptoError(ref e) => format!("Crypto error: {}", e),
-            Error::CryptProtectDataFailed(ref e) => format!("{}", e),
-            Error::CryptUnprotectDataFailed(ref e) => format!("{}", e),
+
+            Error::CryptProtectDataFailed(ref e) |
+            Error::OpenDesktopFailed(ref e) |
+            Error::PermissionFailed(ref e) |
+            Error::TargetMatchError(ref e) |
+            Error::UnameFailed(ref e) |
+            Error::WaitpidFailed(ref e) |
+            Error::GetExitCodeProcessFailed(ref e) |
+            Error::CreateToolhelp32SnapshotFailed(ref e) |
+            Error::WaitForSingleObjectFailed(ref e) |
+            Error::TerminateProcessFailed(ref e) |
+            Error::CryptUnprotectDataFailed(ref e) => e.to_owned(),
+
             Error::FileNotFound(ref e) => format!("File not found at: {}", e),
             Error::InvalidApplicationEnvironment(ref e) => {
                 format!(
@@ -305,20 +314,18 @@ impl fmt::Display for Error {
             }
             Error::IO(ref err) => format!("{}", err),
             Error::LogonTypeNotGranted => {
-                format!(
-                    "hab_svc_user user must possess the 'SE_SERVICE_LOGON_NAME' \
+                "hab_svc_user user must possess the 'SE_SERVICE_LOGON_NAME' \
                 account right to be spawned as a service by the supervisor"
-                )
+                    .to_owned()
             }
             Error::LogonUserFailed(ref e) => format!("Failure calling LogonUserW: {:?}", e),
-            Error::MetaFileBadBind => format!("Bad value parsed from BIND or BIND_OPTIONAL"),
+            Error::MetaFileBadBind => "Bad value parsed from BIND or BIND_OPTIONAL".to_owned(),
             Error::MetaFileMalformed(ref e) => {
                 format!("MetaFile: {:?}, didn't contain a valid UTF-8 string", e)
             }
             Error::MetaFileNotFound(ref e) => format!("Couldn't read MetaFile: {}, not found", e),
             Error::MetaFileIO(ref e) => format!("IO error while accessing MetaFile: {:?}", e),
-            Error::NoOutboundAddr => format!("Failed to discover this hosts outbound IP address"),
-            Error::OpenDesktopFailed(ref e) => format!("{}", e),
+            Error::NoOutboundAddr => "Failed to discover this hosts outbound IP address".to_owned(),
             Error::PackageNotFound(ref pkg) => {
                 if pkg.fully_qualified() {
                     format!("Cannot find package: {}", pkg)
@@ -327,27 +334,18 @@ impl fmt::Display for Error {
                 }
             }
             Error::ParseIntError(ref e) => format!("{}", e),
-            Error::PlanMalformed => format!("Failed to read or parse contents of Plan file"),
-            Error::PermissionFailed(ref e) => format!("{}", e),
+            Error::PlanMalformed => "Failed to read or parse contents of Plan file".to_owned(),
             Error::PrivilegeNotHeld => {
-                format!(
-                    "Current user must possess the 'SE_INCREASE_QUOTA_NAME' and \
+                "Current user must possess the 'SE_INCREASE_QUOTA_NAME' and \
                     'SE_ASSIGNPRIMARYTOKEN_NAME' privilege to spawn a new process as a different \
                     user"
-                )
+                    .to_owned()
             }
             Error::RegexParse(ref e) => format!("{}", e),
             Error::StringFromUtf8Error(ref e) => format!("{}", e),
-            Error::TargetMatchError(ref e) => format!("{}", e),
-            Error::UnameFailed(ref e) => format!("{}", e),
-            Error::WaitpidFailed(ref e) => format!("{}", e),
             Error::SignalFailed(ref r, ref e) => {
                 format!("Failed to send a signal to the child process: {}, {}", r, e)
             }
-            Error::GetExitCodeProcessFailed(ref e) => format!("{}", e),
-            Error::CreateToolhelp32SnapshotFailed(ref e) => format!("{}", e),
-            Error::WaitForSingleObjectFailed(ref e) => format!("{}", e),
-            Error::TerminateProcessFailed(ref e) => format!("{}", e),
             Error::Utf8Error(ref e) => format!("{}", e),
         };
         write!(f, "{}", msg)

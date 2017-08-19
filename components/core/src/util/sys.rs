@@ -22,7 +22,7 @@ static GOOGLE_DNS: &'static str = "8.8.8.8:53";
 
 pub fn ip() -> Result<IpAddr> {
     let socket = UdpSocket::bind("0.0.0.0:0")?;
-    let _ = socket.connect(GOOGLE_DNS)?;
+    socket.connect(GOOGLE_DNS)?;
     let addr = socket.local_addr()?;
     Ok(addr.ip())
 }

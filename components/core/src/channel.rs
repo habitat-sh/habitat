@@ -30,5 +30,5 @@ pub fn default() -> String {
     env::var(DEPOT_CHANNEL_ENVVAR)
         .ok()
         .and_then(|c| Some(c.to_string()))
-        .unwrap_or(STABLE_CHANNEL.to_string())
+        .unwrap_or_else(|| STABLE_CHANNEL.to_string())
 }

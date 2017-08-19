@@ -129,7 +129,7 @@ impl SymKey {
         match all.len() {
             0 => {
                 let msg = format!("No revisions found for {} sym key", name);
-                return Err(Error::CryptoError(msg));
+                Err(Error::CryptoError(msg))
             }
             _ => Ok(all.remove(0)),
         }
@@ -216,7 +216,7 @@ impl SymKey {
         let nonce = secretbox::gen_nonce();
         Ok((
             nonce.as_ref().to_vec(),
-            secretbox::seal(data, &nonce, &key),
+            secretbox::seal(data, &nonce, key),
         ))
     }
 
@@ -252,11 +252,11 @@ impl SymKey {
     /// * If the ciphertext was not decryptable given the nonce and symmetric key
     pub fn decrypt(&self, nonce: &[u8], ciphertext: &[u8]) -> Result<Vec<u8>> {
         let key = self.secret()?;
-        let nonce = match secretbox::Nonce::from_slice(&nonce) {
+        let nonce = match secretbox::Nonce::from_slice(nonce) {
             Some(n) => n,
             None => return Err(Error::CryptoError("Invalid size of nonce".to_string())),
         };
-        match secretbox::open(ciphertext, &nonce, &key) {
+        match secretbox::open(ciphertext, &nonce, key) {
             Ok(msg) => Ok(msg),
             Err(_) => {
                 Err(Error::CryptoError(
@@ -279,7 +279,7 @@ impl SymKey {
         match SymSecretKey::from_slice(&bytes) {
             Some(sk) => Ok(sk),
             None => {
-                return Err(Error::CryptoError(
+                Err(Error::CryptoError(
                     format!("Can't read sym secret key for {}", key_with_rev),
                 ))
             }
@@ -330,7 +330,7 @@ impl SymKey {
         cache_key_path: &P,
     ) -> Result<(Self, PairType)> {
         let mut lines = content.lines();
-        let _ = match lines.next() {
+        match lines.next() {
             Some(val) => {
                 if val != SECRET_SYM_KEY_VERSION {
                     return Err(Error::CryptoError(
@@ -346,7 +346,8 @@ impl SymKey {
                 );
                 return Err(Error::CryptoError(msg));
             }
-        };
+        }
+
         let name_with_rev = match lines.next() {
             Some(val) => val,
             None => {
@@ -384,8 +385,8 @@ impl SymKey {
 
         debug!("Writing temp key file {}", tmpfile.path.display());
         write_keypair_files(
-            KeyType::Sym,
-            &name_with_rev,
+            &KeyType::Sym,
+            name_with_rev,
             None,
             None,
             Some(&tmpfile.path),
@@ -427,7 +428,7 @@ impl SymKey {
 
         // Now load and return the pair to ensure everything wrote out
         Ok((
-            Self::get_pair_for(&name_with_rev, cache_key_path)?,
+            Self::get_pair_for(name_with_rev, cache_key_path)?,
             PairType::Secret,
         ))
     }
@@ -440,18 +441,17 @@ impl SymKey {
         name_with_rev: &str,
         cache_key_path: &Path,
     ) -> Result<((), SymSecretKey)> {
-        let pk = ();
         let sk = secretbox::gen_key();
         let secret_keyfile = mk_key_filename(cache_key_path, name_with_rev, SECRET_SYM_KEY_SUFFIX);
         write_keypair_files(
-            KeyType::Sym,
-            &name_with_rev,
+            &KeyType::Sym,
+            name_with_rev,
             None,
             None,
             Some(&secret_keyfile),
             Some(&base64::encode(&sk[..]).into_bytes()),
         )?;
-        Ok((pk, sk))
+        Ok(((), sk))
     }
 }
 
