@@ -274,6 +274,29 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                         RETURN;
                     END
                     $$ LANGUAGE plpgsql STABLE"#)?;
+    migrator.migrate("originsrv",
+                     r#"CREATE OR REPLACE FUNCTION get_origin_package_versions_for_origin_v4 (
+                          op_origin text,
+                          op_pkg text
+                        ) RETURNS TABLE(version text, release_count bigint, latest text, platforms text)
+                        LANGUAGE SQL
+                        STABLE AS $$
+                          WITH packages AS (
+                            SELECT *
+                            FROM origin_packages op INNER JOIN origins o ON o.id = op.origin_id
+                            WHERE o.name = op_origin AND op.name = op_pkg
+                          ), idents AS (
+                            SELECT regexp_split_to_array(ident, '/') as parts, target
+                            FROM packages
+                          )
+                          SELECT i.parts[3] AS version,
+                          COUNT(i.parts[4]) AS release_count,
+                          MAX(i.parts[4]) as latest,
+                          ARRAY_TO_STRING(ARRAY_AGG(DISTINCT i.target), ',')
+                          FROM idents i
+                          GROUP BY version
+                          ORDER BY version DESC
+                        $$"#)?;
     migrator.migrate("originsrv-v6",
                      r#"CREATE OR REPLACE FUNCTION get_origin_packages_for_origin_v2 (
                     op_ident text,
@@ -287,5 +310,14 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                         RETURN;
                     END
                     $$ LANGUAGE plpgsql STABLE"#)?;
+    migrator.migrate("originsrv", r#"
+                        CREATE OR REPLACE FUNCTION get_origin_package_platforms_for_package_v1 (
+                          op_ident text
+                        ) RETURNS TABLE (target text)
+                        LANGUAGE SQL
+                        VOLATILE AS $$
+                        SELECT DISTINCT target FROM origin_packages WHERE ident LIKE (op_ident || '%')
+                        $$;
+                     "#)?;
     Ok(())
 }

@@ -60,6 +60,7 @@ pub enum Error {
     OriginPackageGet(postgres::error::Error),
     OriginPackageLatestGet(postgres::error::Error),
     OriginPackageChannelList(postgres::error::Error),
+    OriginPackagePlatformList(postgres::error::Error),
     OriginPackageList(postgres::error::Error),
     OriginPackageVersionList(postgres::error::Error),
     OriginPackageDemote(postgres::error::Error),
@@ -180,6 +181,9 @@ impl fmt::Display for Error {
             Error::OriginPackageChannelList(ref e) => {
                 format!("Error getting list of channels for this package, {}", e)
             }
+            Error::OriginPackagePlatformList(ref e) => {
+                format!("Error getting list of platforms for this package, {}", e)
+            }
             Error::OriginPackageList(ref e) => {
                 format!("Error getting list of packages for this origin, {}", e)
             }
@@ -295,6 +299,7 @@ impl error::Error for Error {
             Error::OriginPackageGet(ref err) => err.description(),
             Error::OriginPackageLatestGet(ref err) => err.description(),
             Error::OriginPackageChannelList(ref err) => err.description(),
+            Error::OriginPackagePlatformList(ref err) => err.description(),
             Error::OriginPackageList(ref err) => err.description(),
             Error::OriginPackageVersionList(ref err) => err.description(),
             Error::OriginPackageDemote(ref err) => err.description(),

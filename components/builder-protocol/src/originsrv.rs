@@ -130,6 +130,14 @@ impl Routable for OriginPackageChannelListRequest {
     }
 }
 
+impl Routable for OriginPackagePlatformListRequest {
+    type H = String;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(String::from(self.get_ident().get_origin()))
+    }
+}
+
 impl Serialize for OriginChannelIdent {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
     where
@@ -701,6 +709,7 @@ impl Serialize for OriginPackageVersion {
             &self.get_release_count().to_string(),
         )?;
         strukt.serialize_field("latest", &self.get_latest())?;
+        strukt.serialize_field("platforms", &self.get_platforms())?;
         strukt.end()
     }
 }

@@ -657,6 +657,25 @@ pub fn origin_package_version_list(
     Ok(())
 }
 
+pub fn origin_package_platform_list(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
+    let msg: proto::OriginPackagePlatformListRequest = req.parse_msg()?;
+    match state.datastore.list_origin_package_platforms_for_package(
+        &msg,
+    ) {
+        Ok(ref opplr) => req.reply_complete(sock, opplr)?,
+        Err(err) => {
+            error!("OriginPackagePlatformList, err={:?}", err);
+            let err = net::err(ErrCode::DATA_STORE, "vt:origin-package-platform-list:1");
+            req.reply_complete(sock, &err)?;
+        }
+    }
+    Ok(())
+}
+
 pub fn origin_package_channel_list(
     req: &mut Envelope,
     sock: &mut zmq::Socket,
