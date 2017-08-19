@@ -235,12 +235,6 @@ impl Serialize for Supervisor {
     }
 }
 
-impl Drop for Supervisor {
-    fn drop(&mut self) {
-        self.cleanup_pidfile();
-    }
-}
-
 fn read_pid<T>(pid_file: T) -> Result<u32>
 where
     T: AsRef<Path>,
