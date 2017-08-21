@@ -1,5 +1,75 @@
 # Habitat CHANGELOG
 
+## [0.30.0](https://github.com/habitat-sh/habitat/tree/0.30.0) (08-21-2017)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.29.1...0.30.0)
+
+## Features & Enhancements
+
+- Application and Environment should be in the Event protocol [\#2956](https://github.com/habitat-sh/habitat/issues/2956)
+- Spec out API additions to support new builder UI [\#2952](https://github.com/habitat-sh/habitat/issues/2952)
+- powershell plan scaffolding [\#2921](https://github.com/habitat-sh/habitat/issues/2921)
+- Anchor links in habitat documentation are broken [\#2918](https://github.com/habitat-sh/habitat/issues/2918)
+- Docs formatting issue on https://www.habitat.sh/docs/reference/plan-syntax [\#2917](https://github.com/habitat-sh/habitat/issues/2917)
+- Configurable publish phases in `builder.toml` [\#2903](https://github.com/habitat-sh/habitat/issues/2903)
+- Use latest powershell beta in supervisor and studio on windows [\#2892](https://github.com/habitat-sh/habitat/issues/2892)
+- how to use nginx with a web application [\#2878](https://github.com/habitat-sh/habitat/issues/2878)
+- \[builder-jobsrv\] Handle worker failures [\#2806](https://github.com/habitat-sh/habitat/issues/2806)
+- Monitoring breakage / Improvements [\#2696](https://github.com/habitat-sh/habitat/issues/2696)
+- \[builder\] Builder should use dynamic channels [\#2596](https://github.com/habitat-sh/habitat/issues/2596)
+- Add default health check to Ruby Scaffolding [\#2550](https://github.com/habitat-sh/habitat/issues/2550)
+- Create origin projects for core plans [\#2411](https://github.com/habitat-sh/habitat/issues/2411)
+- \[web ui\] Add interactive run time demo [\#2192](https://github.com/habitat-sh/habitat/issues/2192)
+- hab pkg binlink doesn't work in a studio [\#975](https://github.com/habitat-sh/habitat/issues/975)
+- Document build log behavior \(for hab pkg build\) and record\(\) function [\#961](https://github.com/habitat-sh/habitat/issues/961)
+- Document key upload process in 'Uploading keys' section [\#912](https://github.com/habitat-sh/habitat/issues/912)
+- Add sealed box encryption support [\#2971](https://github.com/habitat-sh/habitat/pull/2971) ([chefsalim](https://github.com/chefsalim))
+- removing restriction for builds in progress [\#2970](https://github.com/habitat-sh/habitat/pull/2970) ([mgamini](https://github.com/mgamini))
+- Add LICENSE [\#2963](https://github.com/habitat-sh/habitat/pull/2963) ([echohack](https://github.com/echohack))
+- Add application and environment to census data [\#2959](https://github.com/habitat-sh/habitat/pull/2959) ([christophermaier](https://github.com/christophermaier))
+- Add @fnichol to `CODEOWNERS`. [\#2958](https://github.com/habitat-sh/habitat/pull/2958) ([fnichol](https://github.com/fnichol))
+- Setup script and documentation updates for building builder. [\#2954](https://github.com/habitat-sh/habitat/pull/2954) ([scotthain](https://github.com/scotthain))
+- Corrects Binlink in Studio, adds HAB\_BINLINK\_DIR envvar [\#2951](https://github.com/habitat-sh/habitat/pull/2951) ([eeyun](https://github.com/eeyun))
+- Add @reset to CODEOWNERS file [\#2933](https://github.com/habitat-sh/habitat/pull/2933) ([reset](https://github.com/reset))
+- windows plans can consume scaffolding plans [\#2924](https://github.com/habitat-sh/habitat/pull/2924) ([mwrock](https://github.com/mwrock))
+- Set no\_intra\_emphasis and with\_toc\_data options in redcarpet. [\#2919](https://github.com/habitat-sh/habitat/pull/2919) ([mivok](https://github.com/mivok))
+- Implement "hab job promote" [\#2866](https://github.com/habitat-sh/habitat/pull/2866) ([raskchanky](https://github.com/raskchanky))
+
+## Bug fixes
+
+- Auto-updating Supervisor causes Supervisor to not reconnect to processes [\#2961](https://github.com/habitat-sh/habitat/issues/2961)
+- `No revisions found for chef-ring sym key` when ring key is a symlink [\#2939](https://github.com/habitat-sh/habitat/issues/2939)
+- Origin key import fails If there is a ring key of the same name in the key cache [\#2916](https://github.com/habitat-sh/habitat/issues/2916)
+- Studio shouldn't require a manual delete and data wipe [\#1848](https://github.com/habitat-sh/habitat/issues/1848)
+- \[bug\] Binlink links to /bin in a studio, but only /hab/bin is available in the path [\#1680](https://github.com/habitat-sh/habitat/issues/1680)
+- Don't remove pidfile in Supervisor struct's deconstructor [\#2974](https://github.com/habitat-sh/habitat/pull/2974) ([reset](https://github.com/reset))
+- Fix Supervisor re-attaching to processes after update & service update [\#2969](https://github.com/habitat-sh/habitat/pull/2969) ([reset](https://github.com/reset))
+- Resolve symlinks when searching for keys [\#2968](https://github.com/habitat-sh/habitat/pull/2968) ([christophermaier](https://github.com/christophermaier))
+- only get key revisions for a requested key type [\#2946](https://github.com/habitat-sh/habitat/pull/2946) ([mwrock](https://github.com/mwrock))
+- pkg-dockerize: fix function name [\#2925](https://github.com/habitat-sh/habitat/pull/2925) ([srenatus](https://github.com/srenatus))
+
+**Closed issues:**
+
+- Keys as symlinks are not found [\#2949](https://github.com/habitat-sh/habitat/issues/2949)
+- Allow `hab ring key generate` to output to STDOUT [\#2948](https://github.com/habitat-sh/habitat/issues/2948)
+- Include hab-launcher when exporting to docker [\#2935](https://github.com/habitat-sh/habitat/issues/2935)
+- Tracking Issue - Add config option for db.adapter in scaffold-ruby [\#2929](https://github.com/habitat-sh/habitat/issues/2929)
+
+**Merged pull requests:**
+
+- Add @raskchanky to a few more things [\#2972](https://github.com/habitat-sh/habitat/pull/2972) ([raskchanky](https://github.com/raskchanky))
+- 2824 - adding ability to view build output without authenticating [\#2967](https://github.com/habitat-sh/habitat/pull/2967) ([mgamini](https://github.com/mgamini))
+- Write out a pre\_build.env file before a build happens. [\#2962](https://github.com/habitat-sh/habitat/pull/2962) ([raskchanky](https://github.com/raskchanky))
+- Make sure nsswitch.conf is created inside the studio filesystem [\#2937](https://github.com/habitat-sh/habitat/pull/2937) ([mivok](https://github.com/mivok))
+- Add hab-launcher to studio baseimage [\#2936](https://github.com/habitat-sh/habitat/pull/2936) ([bodymindarts](https://github.com/bodymindarts))
+- Re-enable Windows tutorial + copyedits and refactoring [\#2928](https://github.com/habitat-sh/habitat/pull/2928) ([davidwrede](https://github.com/davidwrede))
+- \[www\] fix a 404 in plan-syntax reference docs [\#2926](https://github.com/habitat-sh/habitat/pull/2926) ([srenatus](https://github.com/srenatus))
+- Markdown cleanup and record\(\) documentation add [\#2923](https://github.com/habitat-sh/habitat/pull/2923) ([eeyun](https://github.com/eeyun))
+- warn when starting a studio with no origin specified [\#2922](https://github.com/habitat-sh/habitat/pull/2922) ([mwrock](https://github.com/mwrock))
+- Add a blog post about packaging a web site and nginx [\#2920](https://github.com/habitat-sh/habitat/pull/2920) ([cnunciato](https://github.com/cnunciato))
+- \[sup\] fix env variable name in sup error [\#2913](https://github.com/habitat-sh/habitat/pull/2913) ([srenatus](https://github.com/srenatus))
+- bump dev version [\#2912](https://github.com/habitat-sh/habitat/pull/2912) ([mwrock](https://github.com/mwrock))
+- Addresses doc issue \#912 [\#2911](https://github.com/habitat-sh/habitat/pull/2911) ([davidwrede](https://github.com/davidwrede))
+
 ## [0.29.1](https://github.com/habitat-sh/habitat/tree/0.29.1) (08-10-2017)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.29.0...0.29.1)
 
@@ -9,6 +79,7 @@
 
 **Merged pull requests:**
 
+- release 0.29.1 [\#2910](https://github.com/habitat-sh/habitat/pull/2910) ([mwrock](https://github.com/mwrock))
 - version bump! [\#2908](https://github.com/habitat-sh/habitat/pull/2908) ([mgamini](https://github.com/mgamini))
 
 ## [0.29.0](https://github.com/habitat-sh/habitat/tree/0.29.0) (08-10-2017)
