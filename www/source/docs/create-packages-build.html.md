@@ -62,7 +62,7 @@ A non-interactive build is one in which Habitat creates a studio for you, builds
 
 By default, the studio is reset to a clean state after the package is built; however, *if you are using the Linux version of `hab`*, you can reuse a previous studio when building your package by specifying the `-R` option when calling the `hab pkg build` subcommand.
 
-For more information on how to define a plan and build a package, how to create origin signing keys, and how to run a Habitat service, see the [getting started tutorial](/tutorials/getting-started-overview).
+For more information on how to set up and install Habitat and how to run a sample Ruby-on-Rails app in Habitat, see the [tutorials page] (/tutorials/).
 
 For information on the contents of an installed package, see [Package contents](/docs/reference/package-contents).
 

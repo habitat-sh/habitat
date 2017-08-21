@@ -22,8 +22,6 @@ file and pass it in using `HAB_PACKAGENAME="$(cat foo.toml)"`.
 
 The main advantage of applying configuration updates to an individual service through an environment variable is that you can quickly test configuration settings to see how your service behaves at runtime. The disadvantages of this method are that configuration changes have to be applied to one service at a time, and you have to manually interrupt (Ctrl+C) a running service before changing its configuration settings again.
 
-For an example of how to use an environment variable to update default configuration values, see [Run your service](/tutorials/getting-started/linux/process-build) in the Getting Started tutorial.
-
 ## Apply configuration updates to a service group
 Similar to specifying updates to individual settings at runtime, you can apply multiple configuration changes to an entire service group at runtime using stdin from your shell or through a TOML file. These configuration updates can be sent in the clear or encrypted in gossip messages through [wire encryption](/docs/run-packages-security#wire-encryption). Configuration updates to a service group will trigger a restart of the services as new changes are applied throughout the group.
 
