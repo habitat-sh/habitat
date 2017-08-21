@@ -16,9 +16,6 @@ serde_derive = "*"
 serde_json = "*"
 url = "*"
 
-[dependencies.builder_core]
-path = "../builder-core"
-
 [dependencies.habitat_core]
 path = "../core"
 
