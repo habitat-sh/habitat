@@ -47,7 +47,8 @@ describe("BuildComponent", () => {
       ],
       declarations: [
         BuildComponent,
-        MockComponent({ selector: "hab-package-breadcrumbs", inputs: [ "ident" ] })
+        MockComponent({ selector: "hab-package-breadcrumbs", inputs: [ "ident" ] }),
+        MockComponent({ selector: "hab-icon", inputs: [ "symbol" ] })
       ],
       providers: [
         { provide: AppStore, useClass: MockAppStore }

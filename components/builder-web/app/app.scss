@@ -16,12 +16,9 @@
 @import "bourbon";
 @import "base/base";
 @import "neat";
-@import "octicons.scss";
-
 @import "checking-input";
 @import "drop-down";
 @import "item-list";
-@import "spinner";
 @import "tabs";
 
 @import "explore/explore";
@@ -30,15 +27,13 @@
 @import "github-repo-picker/github-repo-picker";
 @import "header/header";
 @import "header/user-nav/user-nav";
+@import "icon/icon.component";
 @import "build/build.component";
 @import "build-list/build-list.component";
 @import "build-status/build-status.component";
 @import "notifications/notifications";
 @import "origin-create-page/origin-create-page";
 @import "origin-page/origin-page";
-@import "organization-create-page/organization-create-page";
-@import "organization-members/organization-members";
-@import "organizations-page/organizations-page";
 @import "package-builds/package-builds.component";
 @import "package-page/package-page";
 @import "package-versions-page/package-versions-page";

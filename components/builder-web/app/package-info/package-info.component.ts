@@ -25,7 +25,10 @@ import { releaseToDate } from "../util";
             <dt>Version</dt>
             <dd>{{package.ident.version}}</dd>
             <dt>Release</dt>
-            <dd>{{package.ident.release}}</dd>
+            <dd>
+              {{package.ident.release}}
+              <hab-icon [symbol]="osIconFor(package)" class="icon-os" title="Supported OS"></hab-icon>
+            </dd>
             <dt>Checksum</dt>
             <dd>{{package.checksum}}</dd>
             <dt *ngIf="package.exposes.length > 0">Exposed Ports</dt>
@@ -77,4 +80,19 @@ export class PackageInfoComponent {
     releaseToDate(release) {
         return releaseToDate(release);
     }
+
+    osIconFor(pkg) {
+      let icon;
+
+      if (pkg.target) {
+        if (pkg.target.match("windows")) {
+          icon = "windows";
+        }
+        else if (pkg.target.match("linux")) {
+          icon = "linux";
+        }
+      }
+
+      return icon;
+  }
 }

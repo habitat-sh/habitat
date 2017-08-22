@@ -27,8 +27,12 @@ import { Component, Input, OnInit } from "@angular/core";
            href="#"
            (click)="toggleOriginPicker()">
             {{currentOrigin.name}}
-            <span *ngIf="!isOpen"><img alt="icon arrow down" src="/node_modules/octicons/svg/chevron-down.svg" /></span>
-            <span *ngIf="isOpen"><img alt="icon arrow up" src="/node_modules/octicons/svg/chevron-up.svg" /></span>
+            <span *ngIf="!isOpen">
+                <hab-icon symbol="chevron-down"></hab-icon>
+            </span>
+            <span *ngIf="isOpen">
+                <hab-icon symbol="chevron-up"></hab-icon>
+            </span>
         </a>
     </div>
     <ul class="hab-origin-picker--list"
@@ -39,7 +43,7 @@ import { Component, Input, OnInit } from "@angular/core";
                 {{o.name}}
                 <span *ngIf="o.name == currentOrigin.name"
                     class="hab-origin-picker--list--i">
-                    <img alt="icon checkmark" src="/node_modules/octicons/svg/check.svg" />
+                    <hab-icon symbol="check"></hab-icon>
                 </span>
             </a>
         </li>

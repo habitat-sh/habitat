@@ -76,7 +76,6 @@ export enum KeyType {
                         <div class="pkg-col-2">&nbsp;</div>
                         <div class="pkg-col-3">Versions</div>
                     </div>
-
                     <div *ngFor="let pkg of packages" class="pkg-container">
                       <div class="pkg-col-1">
                         <h3>{{pkg.name}}</h3>
@@ -86,11 +85,10 @@ export enum KeyType {
                       </div>
                       <div class="pkg-col-3">
                         <a [routerLink]="['/pkgs', pkg.origin, pkg.name]">
-                          <img src="../assets/images/icon-layers.svg" alt="Versions" title="Versions">
+                          <hab-icon symbol="layers"></hab-icon>
                         </a>
                       </div>
                     </div>
-
                     <div *ngIf="packages.size < totalCount">
                         Showing {{packages.size}} of {{totalCount}} packages.
                         <a href="#" (click)="fetchMorePackages()">
@@ -98,7 +96,6 @@ export enum KeyType {
                             {{(totalCount - packages.size) > perPage ? perPage : totalCount - packages.size }}
                             more</a>.
                     </div>
-
                   </div>
                 </div>
                 <div class="hab-origin--right hab-origin--pkg-list">

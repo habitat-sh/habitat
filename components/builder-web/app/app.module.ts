@@ -14,7 +14,9 @@
 
 import { NgModule } from "@angular/core";
 import { LocationStrategy, HashLocationStrategy } from "@angular/common";
-import { BrowserModule } from "@angular/platform-browser";
+import { BrowserModule, DomSanitizer } from "@angular/platform-browser";
+import { HttpModule } from "@angular/http";
+import { MdIconModule, MdIconRegistry } from "@angular/material";
 import { routing } from "./routes";
 import { AppStore } from "./AppStore";
 import { AppComponent } from "./AppComponent";
@@ -30,6 +32,7 @@ import { FooterComponent } from "./footer/FooterComponent";
 import { GitHubRepoPickerComponent } from "./github-repo-picker/GitHubRepoPickerComponent";
 import { GravatarComponent } from "./GravatarComponent";
 import { HeaderComponent } from "./header/HeaderComponent";
+import { IconComponent } from "./icon/icon.component";
 import { BuildListComponent } from "./build-list/build-list.component";
 import { KeyAddFormComponent } from "./origin-page/KeyAddFormComponent";
 import { KeyListComponent } from "./origin-page/KeyListComponent";
@@ -38,11 +41,9 @@ import { OriginCreatePageComponent } from "./origin-create-page/OriginCreatePage
 import { OriginMembersTabComponent } from "./origin-page/OriginMembersTabComponent";
 import { OriginPageComponent } from "./origin-page/OriginPageComponent";
 import { OriginsPageComponent } from "./origins-page/OriginsPageComponent";
-import { OrganizationCreatePageComponent } from "./organization-create-page/OrganizationCreatePageComponent";
-import { OrganizationMembersComponent } from "./organization-members/OrganizationMembersComponent";
-import { OrganizationsPageComponent } from "./organizations-page/OrganizationsPageComponent";
 import { PackageBreadcrumbsComponent } from "./PackageBreadcrumbsComponent";
 import { PackageBuildsComponent } from "./package-builds/package-builds.component";
+import { PackageLatestComponent } from "./package-latest/package-latest.component";
 import { PackageInfoComponent } from "./package-info/package-info.component";
 import { PackageListComponent } from "./package-page/PackageListComponent";
 import { PackagePageComponent } from "./package-page/PackagePageComponent";
@@ -57,7 +58,6 @@ import { ProjectsPageComponent } from "./projects-page/ProjectsPageComponent";
 import { SCMReposPageComponent } from "./scm-repos-page/SCMReposPageComponent";
 import { SideNavComponent } from "./side-nav/SideNavComponent";
 import { SignInPageComponent } from "./sign-in-page/SignInPageComponent";
-import { SpinnerComponent } from "./SpinnerComponent";
 import { TabComponent } from "./TabComponent";
 import { TabsComponent } from "./TabsComponent";
 import { UserNavComponent } from "./header/user-nav/UserNavComponent";
@@ -66,6 +66,8 @@ import { UserNavComponent } from "./header/user-nav/UserNavComponent";
     imports: [
         BrowserModule,
         FormsModule,
+        HttpModule,
+        MdIconModule,
         ReactiveFormsModule,
         routing
     ],
@@ -82,7 +84,7 @@ import { UserNavComponent } from "./header/user-nav/UserNavComponent";
         GitHubRepoPickerComponent,
         GravatarComponent,
         HeaderComponent,
-        BuildListComponent,
+        IconComponent,
         KeyAddFormComponent,
         KeyListComponent,
         NotificationsComponent,
@@ -90,11 +92,9 @@ import { UserNavComponent } from "./header/user-nav/UserNavComponent";
         OriginMembersTabComponent,
         OriginPageComponent,
         OriginsPageComponent,
-        OrganizationCreatePageComponent,
-        OrganizationMembersComponent,
-        OrganizationsPageComponent,
         PackageBreadcrumbsComponent,
         PackageBuildsComponent,
+        PackageLatestComponent,
         PackageInfoComponent,
         PackageListComponent,
         PackagePageComponent,
@@ -108,7 +108,6 @@ import { UserNavComponent } from "./header/user-nav/UserNavComponent";
         SCMReposPageComponent,
         SideNavComponent,
         SignInPageComponent,
-        SpinnerComponent,
         ProjectSettingsPageComponent,
         TabComponent,
         TabsComponent,
@@ -122,4 +121,10 @@ import { UserNavComponent } from "./header/user-nav/UserNavComponent";
     bootstrap: [ AppComponent ]
 })
 
-export class AppModule { }
+export class AppModule {
+    constructor(private mdIconRegistry: MdIconRegistry, private sanitizer: DomSanitizer) {
+        mdIconRegistry.addSvgIconSet(
+            sanitizer.bypassSecurityTrustResourceUrl("/assets/images/icons/all.svg")
+        );
+    }
+}

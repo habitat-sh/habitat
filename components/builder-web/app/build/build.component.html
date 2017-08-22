@@ -1,13 +1,13 @@
 <div class="hab-build">
   <div class="back">
     <a [routerLink]="buildsLink">
-      <span class="octicon octicon-chevron-left"></span>
+      <hab-icon symbol="chevron-left"></hab-icon>
       Back to build history
     </a>
   </div>
   <div class="summary" *ngIf="info.state">
     <div class="status">
-      <div class="octicon octicon-{{ iconFor(info.state) }} {{ info.state | lowercase }}"></div>
+      <hab-icon [symbol]="iconFor(info.state)" [class]="info.state | lowercase"></hab-icon>
       <strong>Build {{ info.state }}</strong>
     </div>
     <div class="detail">
@@ -23,11 +23,11 @@
   </div>
   <div class="controls" [ngStyle]="controlsStyles">
     <button type="button" class="jump-to-top" (click)="scrollToTop()">
-      <span class="octicon octicon-chevron-up"></span>
+      <hab-icon symbol="chevron-up"></hab-icon>
       <span>Jump to top</span>
     </button>
     <button type="button" class="jump-to-end" (click)="toggleFollow()" [class.active]="followLog">
-      <span class="octicon octicon-chevron-down"></span>
+      <hab-icon symbol="chevron-down"></hab-icon>
       <span>{{ completed ? "Jump to end" : "Follow log" }}</span>
     </button>
   </div>

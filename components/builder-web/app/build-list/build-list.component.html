@@ -28,9 +28,11 @@
         {{ dateFor(build.created_at) }}
       </div>
       <div class="icons">
-        <div class="status octicon octicon-{{ iconFor(build.state) }} {{ build.state | lowercase }}"
-           title="{{ build.state | titlecase }}"></div>
-        <div class="octicon octicon-chevron-right"></div>
+        <hab-icon
+          [symbol]="iconFor(build.state)"
+          class="status {{ build.state | lowercase }}"
+          title="{{ build.state | titlecase }}"></hab-icon>
+        <hab-icon symbol="chevron-right"></hab-icon>
       </div>
     </li>
   </ol>

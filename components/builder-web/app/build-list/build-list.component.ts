@@ -21,11 +21,11 @@ export class BuildListComponent {
     iconFor(state) {
         return {
             Complete: "check",
-            Dispatched: "sync",
-            Failed: "issue-opened",
+            Dispatched: "loading",
+            Failed: "alert",
             Pending: "clock",
-            Processing: "sync",
-            Rejected: "issue-opened"
+            Processing: "loading",
+            Rejected: "alert"
         }[state];
     }
 

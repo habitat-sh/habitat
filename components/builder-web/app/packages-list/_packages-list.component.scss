@@ -91,17 +91,19 @@
     a {
       display: block;
 
-      .octicon-chevron-right {
+      hab-icon[symbol="chevron-right"] {
         position: absolute;
         display: none;
         right: 24px;
+        width: 24px;
+        height: 24px;
         top: 50%;
         transform: translateY(-50%);
       }
 
       &:hover {
 
-        .octicon-chevron-right {
+        hab-icon[symbol="chevron-right"] {
           display: block;
         }
       }
@@ -112,7 +114,9 @@
 
       hab-build-status {
 
-        .octicon {
+        hab-icon {
+          width: 24px;
+          height: 24px;
           position: absolute;
           right: 52px;
           top: 50%;

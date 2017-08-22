@@ -2,6 +2,7 @@ import { Component, DebugElement } from "@angular/core";
 import { TestBed, ComponentFixture } from "@angular/core/testing";
 import { RouterTestingModule } from "@angular/router/testing";
 import { By } from "@angular/platform-browser";
+import { MockComponent } from "ng2-mock-component";
 import { List } from "immutable";
 import { BuildListComponent } from "./build-list.component";
 
@@ -16,6 +17,7 @@ describe("BuildListComponent", () => {
         RouterTestingModule
       ],
       declarations: [
+        MockComponent({ selector: "hab-icon", inputs: [ "symbol" ]}),
         BuildListComponent
       ]
     });

@@ -15,7 +15,7 @@
 .hab-github-repo-picker {
   @include outer-container;
 
-  .hab-spinner {
+  hab-icon[symbol="loading"] {
     float: right;
     line-height: $base-spacing;
   }
@@ -24,7 +24,7 @@
     @extend .hab-item-list;
     padding: rem(5);
 
-    &.active, &:active {;
+    &.active, &:active {
       background-color: $hab-blue;
       border: none;
       box-shadow: none;

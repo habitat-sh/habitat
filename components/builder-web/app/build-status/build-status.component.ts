@@ -4,7 +4,10 @@ import { AppStore } from "../AppStore";
 @Component({
   selector: "hab-build-status",
   template: `
-    <span *ngIf="state" class='octicon octicon-{{ iconFor(state) }} {{ state | lowercase }}'></span>
+    <hab-icon
+      [symbol]="iconFor(state)"
+      class="status {{ state | lowercase }}"
+      *ngIf="state"></hab-icon>
   `
 })
 export class BuildStatusComponent {
@@ -18,11 +21,11 @@ export class BuildStatusComponent {
   iconFor(state) {
       return {
           Complete: "check",
-          Dispatched: "sync",
-          Failed: "issue-opened",
-          Pending: "clock",
-          Processing: "sync",
-          Rejected: "issue-opened"
+          Dispatched: "loading",
+          Failed: "alert",
+          Pending: "pending",
+          Processing: "loading",
+          Rejected: "alert"
       }[state];
   }
 

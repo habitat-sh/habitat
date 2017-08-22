@@ -27,5 +27,6 @@ export const Package = Record({
     tdeps: [],
     exposes: [],
     config: undefined,
-    channels: []
+    channels: [],
+    target: undefined
 });

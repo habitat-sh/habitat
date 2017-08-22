@@ -130,12 +130,18 @@
 
           .caret {
             opacity: 0;
-            padding-right: 20px;
+            padding-right: 14px;
             position: absolute;
             right: 0;
             top: 50%;
             transform: translateY(-50%);
             transition: opacity 0.2s;
+
+            hab-icon {
+              width: 12px;
+              height: 26px;
+              color: $hab-green;
+            }
           }
 
           &.heading {
