@@ -1,5 +1,21 @@
 # Habitat CHANGELOG
 
+## [0.30.1](https://github.com/habitat-sh/habitat/tree/0.30.1) (08-22-2017)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.30.0...0.30.1)
+
+## Bug fixes
+
+- Remove builder-core dependency from builder-api-client [\#2984](https://github.com/habitat-sh/habitat/pull/2984) ([chefsalim](https://github.com/chefsalim))
+
+**Closed issues:**
+
+- Binding incorrectly requires the `{environment}.{application}\#` predicate on the service group [\#2983](https://github.com/habitat-sh/habitat/issues/2983)
+
+**Merged pull requests:**
+
+- Removed old/broken links and redirected to new pages [\#2980](https://github.com/habitat-sh/habitat/pull/2980) ([davidwrede](https://github.com/davidwrede))
+- Bump version to 0.31.0-dev [\#2979](https://github.com/habitat-sh/habitat/pull/2979) ([chefsalim](https://github.com/chefsalim))
+
 ## [0.30.0](https://github.com/habitat-sh/habitat/tree/0.30.0) (08-21-2017)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.29.1...0.30.0)
 
