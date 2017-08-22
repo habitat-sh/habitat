@@ -303,6 +303,26 @@ impl Client {
         Ok(revisions)
     }
 
+    /// Download the latest builder public key from a remote Depot
+    /// to the given filepath.
+    ///
+    /// # Failures
+    ///
+    /// * Key cannot be found
+    /// * Remote Depot is not available
+    /// * File cannot be created and written to
+    pub fn fetch_builder_latest_key<D, P: ?Sized>(
+        &self,
+        dst_path: &P,
+        progress: Option<D>,
+    ) -> Result<PathBuf>
+    where
+        P: AsRef<Path>,
+        D: DisplayProgress + Sized,
+    {
+        self.download("builder/keys/latest", dst_path.as_ref(), progress)
+    }
+
     /// Return a list of channels for a given package
     ///
     /// # Failures
