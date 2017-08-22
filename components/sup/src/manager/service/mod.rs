@@ -344,6 +344,9 @@ impl Service {
     pub fn to_spec(&self) -> ServiceSpec {
         let mut spec = ServiceSpec::default_for(self.spec_ident.clone());
         spec.group = self.service_group.group().to_string();
+        if let Some(appenv) = self.service_group.application_environment() {
+            spec.application_environment = Some(appenv)
+        }
         spec.depot_url = self.depot_url.clone();
         spec.channel = self.channel.clone();
         spec.topology = self.topology;
