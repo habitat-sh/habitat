@@ -1,5 +1,32 @@
 # Habitat CHANGELOG
 
+## [0.30.2](https://github.com/habitat-sh/habitat/tree/0.30.2) (08-22-2017)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.30.1...0.30.2)
+
+## Features & Enhancements
+
+- Handle static sites with core/scaffolding-node [\#2942](https://github.com/habitat-sh/habitat/issues/2942)
+- \[builder-web\] Visualize architecture / platforms in UI [\#2894](https://github.com/habitat-sh/habitat/issues/2894)
+- Add builder key retrieval API [\#2975](https://github.com/habitat-sh/habitat/pull/2975) ([chefsalim](https://github.com/chefsalim))
+
+## Bug fixes
+
+- Docker Export Broken [\#2989](https://github.com/habitat-sh/habitat/issues/2989)
+- Running an service with an application and environment flag restarts all other services with application and env set [\#2964](https://github.com/habitat-sh/habitat/issues/2964)
+- Explicitly binlink bash and sh to /bin in exported images [\#2993](https://github.com/habitat-sh/habitat/pull/2993) ([christophermaier](https://github.com/christophermaier))
+- Add application/environment to ServiceSpec generated from a Service [\#2988](https://github.com/habitat-sh/habitat/pull/2988) ([christophermaier](https://github.com/christophermaier))
+
+**Closed issues:**
+
+- ssl errors, mac os [\#2950](https://github.com/habitat-sh/habitat/issues/2950)
+
+**Merged pull requests:**
+
+- Remove octicons build step [\#2992](https://github.com/habitat-sh/habitat/pull/2992) ([cnunciato](https://github.com/cnunciato))
+- Added HAB\_BINLINK\_DIR to env var list [\#2991](https://github.com/habitat-sh/habitat/pull/2991) ([davidwrede](https://github.com/davidwrede))
+- Convert to Angular Material icons [\#2990](https://github.com/habitat-sh/habitat/pull/2990) ([cnunciato](https://github.com/cnunciato))
+- Bump version [\#2987](https://github.com/habitat-sh/habitat/pull/2987) ([chefsalim](https://github.com/chefsalim))
+
 ## [0.30.1](https://github.com/habitat-sh/habitat/tree/0.30.1) (08-22-2017)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.30.0...0.30.1)
 
@@ -13,6 +40,7 @@
 
 **Merged pull requests:**
 
+- Prep for 0.30.1 release [\#2985](https://github.com/habitat-sh/habitat/pull/2985) ([chefsalim](https://github.com/chefsalim))
 - Removed old/broken links and redirected to new pages [\#2980](https://github.com/habitat-sh/habitat/pull/2980) ([davidwrede](https://github.com/davidwrede))
 - Bump version to 0.31.0-dev [\#2979](https://github.com/habitat-sh/habitat/pull/2979) ([chefsalim](https://github.com/chefsalim))
 
