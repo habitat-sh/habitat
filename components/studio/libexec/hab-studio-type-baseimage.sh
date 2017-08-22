@@ -73,8 +73,8 @@ finish_setup() {
   _hab pkg binlink --dest $HAB_ROOT_PATH/bin core/hab hab
 
   # Create `/bin/{sh,bash}` for software that hardcodes these shells
-  _hab pkg binlink core/busybox-static bash
-  _hab pkg binlink core/busybox-static sh
+  _hab pkg binlink --dest=/bin core/busybox-static bash
+  _hab pkg binlink --dest=/bin core/busybox-static sh
 
   # Set the login shell for any relevant user to be `/bin/bash`
   $bb sed -e "s,/bin/sh,$busybox_path/bin/bash,g" -i $HAB_STUDIO_ROOT/etc/passwd
