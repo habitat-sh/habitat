@@ -10,7 +10,6 @@ mkdir -p dist/assets
 cp -R assets favicon.ico fixtures robots.txt dist
 npm run build
 mkdir -p dist/node_modules
-cp -R node_modules/octicons dist/node_modules
 cp habitat.conf.sample.js dist/habitat.conf.js
 
 css_sha=$(openssl dgst -sha256 assets/app.css | cut -d ' ' -f 2)
