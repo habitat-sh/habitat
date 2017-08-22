@@ -15,7 +15,6 @@
 #![cfg_attr(feature="clippy", feature(plugin))]
 #![cfg_attr(feature="clippy", plugin(clippy))]
 
-extern crate builder_core;
 extern crate habitat_http_client as hab_http;
 extern crate habitat_core as hab_core;
 extern crate hyper;
@@ -36,7 +35,6 @@ pub use error::{Error, Result};
 use std::io::Read;
 use std::path::Path;
 
-use builder_core::data_structures::PartialJobGroupPromote;
 use hab_core::package::PackageIdent;
 use hab_http::ApiClient;
 use hab_http::util::decoded_response;
@@ -53,6 +51,12 @@ pub struct ReverseDependencies {
     pub origin: String,
     pub name: String,
     pub rdeps: Vec<String>,
+}
+
+#[derive(Default, Deserialize)]
+pub struct JobGroupPromoteResponse {
+    pub group_id: u64,
+    pub failed_projects: Vec<String>,
 }
 
 impl Client {
@@ -175,7 +179,7 @@ impl Client {
         // is_eof() will return true. We handle that edge case here by returning Ok, because for
         // us, this is a success case, even though it's an error case for serde. In the future, we
         // might want to investigate a way to have decoded_response handle this oddity.
-        match decoded_response::<PartialJobGroupPromote>(res).map_err(Error::HabitatHttpClient) {
+        match decoded_response::<JobGroupPromoteResponse>(res).map_err(Error::HabitatHttpClient) {
             Ok(value) => Ok(value.failed_projects),
             Err(Error::HabitatHttpClient(hab_http::Error::Json(e))) => {
                 if e.is_eof() {

@@ -704,7 +704,6 @@ dependencies = [
 name = "habitat_api_client"
 version = "0.0.0"
 dependencies = [
- "builder_core 0.0.0",
  "clippy 0.0.144 (registry+https://github.com/rust-lang/crates.io-index)",
  "habitat_core 0.0.0",
  "habitat_http_client 0.0.0",
