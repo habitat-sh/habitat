@@ -26,6 +26,7 @@ extern crate log;
 extern crate zmq;
 
 use std::process;
+use std::path::PathBuf;
 use std::str::FromStr;
 
 use hab_core::config::ConfigFile;
@@ -91,7 +92,7 @@ fn config_from_args(matches: &clap::ArgMatches) -> Result<Config> {
     }
 
     if let Some(path) = args.value_of("path") {
-        config.path = path.to_string();
+        config.path = PathBuf::from(path);
     }
     Ok(config)
 }
@@ -114,7 +115,10 @@ fn dispatch(config: Config, matches: &clap::ArgMatches) -> Result<()> {
 ///
 /// * Fails if the depot server fails to start - cannot bind to the port, etc.
 fn start(config: Config) -> Result<()> {
-    println!("Starting package Depot at {}", config.path);
+    println!(
+        "Starting package Depot at {}",
+        config.path.to_string_lossy()
+    );
     println!(
         "Depot listening on {}:{}",
         config.http.listen,

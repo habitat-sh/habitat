@@ -21,4 +21,5 @@ port = {{member.cfg.port}}
 [depot]
 path = "{{pkg.svc_data_path}}"
 log_dir = "{{pkg.svc_var_path}}"
+key_dir = "{{pkg.svc_files_path}}"
 {{toToml cfg.depot}}

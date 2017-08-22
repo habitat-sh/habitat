@@ -162,13 +162,17 @@ impl<'a> Doctor<'a> {
             Ok(meta) => {
                 if meta.is_file() {
                     self.report.failure(
-                        OperationType::InitDepotFs(self.depot.config.path.clone()),
+                        OperationType::InitDepotFs(
+                            self.depot.config.path.to_string_lossy().into_owned(),
+                        ),
                         Reason::FileExists,
                     );
                 }
                 if meta.permissions().readonly() {
                     self.report.failure(
-                        OperationType::InitDepotFs(self.depot.config.path.clone()),
+                        OperationType::InitDepotFs(
+                            self.depot.config.path.to_string_lossy().into_owned(),
+                        ),
                         Reason::BadPermissions,
                     );
                 }

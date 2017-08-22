@@ -1080,6 +1080,7 @@ dependencies = [
 name = "habitat_depot"
 version = "0.0.0"
 dependencies = [
+ "base64 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "bodyparser 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "builder_core 0.0.0",
  "clap 2.25.0 (registry+https://github.com/rust-lang/crates.io-index)",
