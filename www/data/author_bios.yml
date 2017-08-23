@@ -53,3 +53,8 @@ authors:
     email: "cnunciato@habitat.sh"
     twitter: "@cnunciato"
     bio: "Chris Nunciato is a front-end developer at Chef and a Habitat core maintainer. He builds a lot of web sites, and in his spare time, he also builds web sites."
+  nathenharvey:
+    name: "Nathen Harvey"
+    email: "nharvey@chef.io"
+    twitter: "@nathenharvey"
+    bio: "Nathen Harvey, VP of Community Development at Chef, helps the community whip up an awesome ecosystem built around the Chef platform. Nathen also spends much of his time helping people learn about the practices, processes, and technologies that support DevOps, continuous delivery, and high velocity organizations. Nathen is a co-host of the Food Fight Show, a podcast about Chef and DevOps.  He is also an occasional farmer who loves eggs and actively supports #hugops."
