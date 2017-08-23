@@ -51,6 +51,7 @@ message Service {
   optional string pkg = 9;
   optional bytes cfg = 10;
   optional SysInfo sys = 12;
+  optional string channel = 13;
 }
 
 message ServiceConfig {

@@ -121,4 +121,6 @@ message CensusEntry {
   optional string application = 24;
   /// Service group environment name
   optional string environment = 25;
+  /// Depot Channel consumed by updates
+  optional string channel = 26;
 }
