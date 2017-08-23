@@ -11,6 +11,7 @@ doc = false
 
 [dependencies]
 clippy = {version = "*", optional = true}
+base64 = "*"
 ansi_term = "*"
 env_logger = "*"
 hyper = "*"

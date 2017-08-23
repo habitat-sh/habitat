@@ -75,6 +75,18 @@ pub fn get() -> App<'static, 'static> {
                     "Ring key name, which will encrypt communication messages")
             )
         )
+        (@subcommand bldr =>
+            (about: "Commands relating to Habitat build service")
+            (aliases: &["b", "bl", "bld"])
+            (@setting ArgRequiredElseHelp)
+            (@subcommand encrypt =>
+                (about: "Reads a stdin stream containing plain text and outputs \
+                    an encrypted representation")
+                (aliases: &["e", "en", "enc", "encr", "encry"])
+                (@arg DEPOT_URL: -u --url +takes_value {valid_url}
+                    "Use a specific Depot URL (ex: http://depot.example.com/v1/depot)")
+            )
+        )
         (@subcommand job =>
             (about: "Commands relating to build job control")
             (aliases: &["j", "jo"])

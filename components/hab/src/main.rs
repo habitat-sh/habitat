@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#![recursion_limit="128"]
 #![cfg_attr(feature="clippy", feature(plugin))]
 #![cfg_attr(feature="clippy", plugin(clippy))]
 
@@ -25,6 +26,7 @@ extern crate handlebars;
 extern crate lazy_static;
 #[macro_use]
 extern crate log;
+extern crate base64;
 
 use std::env;
 use std::ffi::OsString;
@@ -123,6 +125,12 @@ fn start(ui: &mut UI) -> Result<()> {
                         _ => unreachable!(),
                     }
                 }
+                _ => unreachable!(),
+            }
+        }
+        ("bldr", Some(matches)) => {
+            match matches.subcommand() {
+                ("encrypt", Some(m)) => sub_bldr_encrypt(ui, m)?,
                 _ => unreachable!(),
             }
         }
@@ -389,14 +397,24 @@ fn sub_pkg_hash(m: &ArgMatches) -> Result<()> {
     }
 }
 
+fn sub_bldr_encrypt(ui: &mut UI, m: &ArgMatches) -> Result<()> {
+    let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
+    let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
+
+    let mut content = String::new();
+    io::stdin().read_to_string(&mut content)?;
+    init();
+
+    command::bldr::encrypt::start(ui, &url, &content, &default_cache_key_path(Some(&*FS_ROOT)))
+}
+
 fn sub_job_start(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
     let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
     let group = m.is_present("GROUP");
     let token = auth_token_param_or_env(&m)?;
-    command::job::start::start(ui, &url, &ident, &token, group)?;
-    Ok(())
+    command::job::start::start(ui, &url, &ident, &token, group)
 }
 
 fn sub_job_promote(ui: &mut UI, m: &ArgMatches) -> Result<()> {
@@ -405,8 +423,7 @@ fn sub_job_promote(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
     let channel = m.value_of("CHANNEL").unwrap(); // Required via clap
     let token = auth_token_param_or_env(&m)?;
-    command::job::promote::start(ui, &url, &group_id, &channel, &token)?;
-    Ok(())
+    command::job::promote::start(ui, &url, &group_id, &channel, &token)
 }
 
 fn sub_plan_init(ui: &mut UI, m: &ArgMatches) -> Result<()> {
