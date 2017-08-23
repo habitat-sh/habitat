@@ -44,7 +44,7 @@ use time::Timespec;
 
 use super::Sys;
 use self::config::CfgRenderer;
-use self::hooks::{HOOK_PERMISSIONS, Hook, HookTable};
+use self::hooks::{HOOK_PERMISSIONS, Hook, HookTable, ExitCode};
 use self::supervisor::Supervisor;
 use error::{Error, Result, SupError};
 use fs;
@@ -85,6 +85,7 @@ pub struct Service {
     #[serde(skip_serializing)]
     config_renderer: CfgRenderer,
     health_check: HealthCheck,
+    post_run_exit_code: ExitCode,
     last_election_status: ElectionStatus,
     needs_reload: bool,
     needs_reconfiguration: bool,
@@ -132,6 +133,7 @@ impl Service {
                 fs::svc_hooks_path(&service_group.service()),
             ),
             initialized: false,
+            post_run_exit_code: ExitCode::default(),
             last_election_status: ElectionStatus::None,
             needs_reload: false,
             needs_reconfiguration: false,
@@ -493,11 +495,11 @@ impl Service {
 
     fn post_run(&mut self) {
         if let Some(ref hook) = self.hooks.post_run {
-            hook.run(
+            self.post_run_exit_code = hook.run(
                 &self.service_group,
                 &self.pkg,
                 self.svc_encrypted_password.as_ref(),
-            );
+            )
         }
     }
 
@@ -626,8 +628,9 @@ impl Service {
             self.initialize();
             if self.initialized {
                 self.start(launcher);
-                self.post_run();
             }
+        } else if self.health_check.success() && !self.post_run_exit_code.success() {
+            self.post_run();
         } else {
             self.check_process();
             if Instant::now().duration_since(self.last_health_check) >= *HEALTH_CHECK_INTERVAL {
@@ -719,6 +722,7 @@ impl Service {
             }
         };
         self.last_health_check = Instant::now();
+        self.health_check = check_result;
         self.cache_health_check(check_result);
     }
 
