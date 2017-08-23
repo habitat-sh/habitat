@@ -41,9 +41,10 @@ Rust installed as above), is to run `cargo install rustfmt` and adding
 ## Mac OS X for Native Development
 
 These instructions assume you want to develop, build, and run the various
-Habitat software components in a macOS environment. While components other than
-the `hab` CLI itself aren't officially supported on Mac, it is possible and
-sometimes useful to run parts of the Habitat ecosystem without virtualization.
+Habitat software components in a macOS environment. Components other than
+the `hab` CLI itself aren't all supported on Mac, but it is sometimes useful
+to run parts of the Habitat ecosystem without virtualization. We recommend
+using another environment.
 
 First clone the codebase and enter the directory:
 
@@ -73,7 +74,7 @@ such as [direnv](https://direnv.net/), you can set up the following in the root
 of the git repository:
 
 ```
-echo 'export PKG_CONFIG_PATH="/usr/local/opt/libarchive/lib/pkgconfig:/usr/local/opt/openssl/lib/pkgconfig:/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH"' > .direnv
+echo 'export PKG_CONFIG_PATH="/usr/local/opt/libarchive/lib/pkgconfig:/usr/local/opt/openssl/lib/pkgconfig:/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH"' > .envrc
 direnv allow
 ```
 
@@ -204,7 +205,7 @@ sudo su - jdoe
 
 ## VM vs. Docker development
 
-While the available docker images can provide a convenient contributor onboarding experience, they may not prove ideal for extensive habitat development. Building habitat components is a disk intensive operation. Mounted file systems accross network boundaries, even when confined to a single local host, can yield build times dramatically slower than building against a locally attached file system. Build times will be best on either a bare metal linux environment or a dedicated linux vm. Also note that when using vagrant to provision a vm for habitat development, it is strongly advised that you do not put your habitat repo on a synced folder or at least do not use that folder as your build target. You should copy or clone the repository to a local directory in order to realize much faster build times.
+While the available docker images can provide a convenient contributor onboarding experience, they may not prove ideal for extensive habitat development. Building habitat components is a disk intensive operation. Mounted file systems accross network boundaries, even when confined to a single local host, can yield build times dramatically slower than building against a locally attached file system. Build times will be best on either a bare metal linux environment or a dedicated linux vm. Also note that when using vagrant to provision a vm for habitat development, it is strongly advised that you do not put your habitat repo on a synced folder or at least do not use that folder as your build target. The following directions clone the habitat repository into a local directory to realize faster build times.
 
 In the root of the project is a Vagrantfile that provisions an Ubuntu environment for Habitat development:
 
@@ -214,10 +215,11 @@ vagrant up --provider virtualbox  # See the Vagrantfile for additional providers
 
 Feel free to use this file as a jumping-off point for customizing your own Habitat development environment.
 
-Once your VM is up and running, SSH into it (`vagrant ssh`), change to the location of the Habitat source (e.g., `cd /vagrant`), and get started:
-
 ```
-cd components/builder-api
+vagrant ssh
+sudo su -
+git clone https://github.com/habitat-sh/habitat.git
+cd habitat/components/builder-api
 cargo test
 ```
 

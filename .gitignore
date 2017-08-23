@@ -16,3 +16,4 @@ test/builder-api/services.log
 test/builder-api/built/*
 tags
 *.rustfmt
+.envrc
