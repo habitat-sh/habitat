@@ -21,7 +21,7 @@ message EventEnvelope {
   optional Type type = 1;
   /// Contents of message
   optional bytes payload = 2;
-  /// Time of message origination
+  /// Time of message origination in milliseconds since the Epoch (1970-01-01T00:00:00Z).
   optional uint64 timestamp = 3;
   /// Member-ID of originating Supervisor
   optional string member_id = 4;
