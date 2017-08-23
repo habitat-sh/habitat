@@ -53,12 +53,18 @@ where
     fs::svc_logs_path(service_group.service()).join(format!("{}.stderr.log", T::file_name()))
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Serialize)]
 pub struct ExitCode(i32);
 
 impl Default for ExitCode {
     fn default() -> ExitCode {
         ExitCode(-1)
+    }
+}
+
+impl ExitCode {
+    pub fn success(&self) -> bool {
+        return self.0 == 0;
     }
 }
 
