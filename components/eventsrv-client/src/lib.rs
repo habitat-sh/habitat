@@ -54,6 +54,8 @@ impl EventSrvClient {
             .unwrap();
     }
 
+    /// Returns the current time as milliseconds since the Epoch
+    /// (1970-01-01T00:00:00Z).
     fn current_time(&self) -> u64 {
         let timespec = time::get_time();
         let sec: u64 = timespec.sec as u64 * 1000;
