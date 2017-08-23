@@ -19,6 +19,15 @@
   width: auto;
 }
 
+@mixin chevron-right {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
 // Buttons
 @mixin hab-button ($color1: $hab-green, $color2: $hab-green-dark, $textcolor: $hab-white) {
   background-color: $color1;
@@ -54,6 +63,7 @@
 @mixin cta-button {
   @include primary-button($hab-orange, $hab-orange-dark);
 }
+
 
 // ------------------------------------------------------------
 // Omega Reset (http://www.joshfry.me/blog/2013/05/13/omega-reset-for-bourbon-neat)

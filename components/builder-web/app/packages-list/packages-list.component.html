@@ -7,54 +7,12 @@
         </span>
         </p>
     </div>
-    <div *ngIf="layout === 'versions'" class="pkg-{{ layout }}">
-        <li class="heading">
-            <h3 class="name">Version</h3>
-            <h3 class="build-count">Builds</h3>
-            <h3 class="latest-release">Latest</h3>
-        </li>
-        <li class="hab-packages-version" *ngFor="let version of versions">
-            <a [routerLink]="routeFor(version)">
-                <span class="name">
-                    {{ version.version }}
-                </span>
-                <span class="build-count">
-                    {{ version.release_count }}
-                </span>
-                <span class="latest-release">
-                    {{ releaseToDate(version.latest) || "&mdash;" }}
-                </span>
-                <hab-build-status
-                    [origin]="version.origin"
-                    [name]="version.name"
-                    [version]="version.version"></hab-build-status>
-                <hab-icon symbol="chevron-right"></hab-icon>
-            </a>
-        </li>
-    </div>
     <div class="pkg-{{ layout }}">
-        <li *ngIf="layout === 'builds'" class="heading">
-            <h3 class="name">Build</h3>
-            <h3 class="completed">Completed</h3>
-        </li>
         <li class="hab-packages-package" *ngFor="let pkg of packages">
             <a [routerLink]="routeFor(pkg)">
                 <div class="name" [class.large]="!pkg.version">
                     <span>{{ packageString(pkg) }}</span>
-                    <ul class="channels" *ngIf="pkg.channels">
-                        <li class="channel {{ channel }}"
-                            *ngFor="let channel of pkg.channels">
-                            {{ channel }}
-                        </li>
-                    </ul>
                 </div>
-                <div *ngIf="layout === 'builds'" class="completed">
-                    {{ releaseToDate(pkg.release) || "&mdash;" }}
-                </div>
-                <hab-build-status
-                    [origin]="pkg.origin"
-                    [name]="pkg.name"
-                    [version]="pkg.version"></hab-build-status>
                 <hab-icon symbol="chevron-right"></hab-icon>
             </a>
         </li>

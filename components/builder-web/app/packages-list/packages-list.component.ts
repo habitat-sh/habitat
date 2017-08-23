@@ -29,15 +29,7 @@ export class PackagesListComponent {
     @Input() layout: string;
 
     routeFor(pkg) {
-        let link = ["/pkgs", pkg.origin];
-
-        [pkg.name, pkg.version, pkg.release].forEach((p) => {
-            if (p) {
-                link.push(p);
-            }
-        });
-
-        return link;
+        return ["/pkgs", pkg.origin, pkg.name, "latest"];
     }
 
     packageString(pkg) {

@@ -145,6 +145,7 @@ export default Record({
                 builds: 0
             })()
         })(),
+        latest: Package(),
         visible: List(),
         versions: undefined,
         nextRange: 0,

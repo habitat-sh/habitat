@@ -9,7 +9,7 @@ rules:
   leading-zero:
     - 2
     - include: true
-  nesting-depth: 3
+  nesting-depth: 0
   no-misspelled-properties:
     - 1
     - extra-properties:
@@ -21,6 +21,7 @@ rules:
       - webkit
       - moz
   placeholder-in-extend: 0
+  property-sort-order: 0
   quotes:
     - 2
     - style: double

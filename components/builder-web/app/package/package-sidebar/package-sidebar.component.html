@@ -1,0 +1,20 @@
+<div class="hab-package-sidebar">
+  <div class="build" *ngIf="buildable">
+    <h3>Build</h3>
+    <button class="button" (click)="build()">Build latest version</button>
+  </div>
+  <div class="latest-stable">
+    <h3>Latest Stable</h3>
+    <p>
+      <a [routerLink]="['./', latest.ident.version, latest.ident.release]">{{ latest.ident.version }}/{{ latest.ident.release }}</a>
+    </p>
+  </div>
+  <div class="command">
+    <h3>Run Command</h3>
+    <hab-copyable [command]="runCommand"></hab-copyable>
+  </div>
+  <div class="command">
+    <h3>Export Command</h3>
+    <hab-copyable [command]="exportCommand"></hab-copyable>
+  </div>
+</div>

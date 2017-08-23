@@ -20,10 +20,7 @@ import { ExploreComponent } from "./explore/explore.component";
 import { OriginCreatePageComponent } from "./origin-create-page/OriginCreatePageComponent";
 import { OriginPageComponent } from "./origin-page/OriginPageComponent";
 import { OriginsPageComponent } from "./origins-page/OriginsPageComponent";
-import { PackageBuildsComponent } from "./package-builds/package-builds.component";
-import { PackageLatestComponent } from "./package-latest/package-latest.component";
 import { PackagePageComponent } from "./package-page/PackagePageComponent";
-import { PackageVersionsPageComponent } from "./package-versions-page/package-versions-page.component";
 import { PackagesPageComponent } from "./packages-page/packages-page.component";
 import { ProjectCreatePageComponent } from "./project-create-page/ProjectCreatePageComponent";
 import { ProjectPageComponent } from "./project-page/ProjectPageComponent";
@@ -61,26 +58,6 @@ export const routes: Routes = [
     {
         path: "pkgs/search/:query",
         component: PackagesPageComponent,
-    },
-    {
-        path: "pkgs/:origin/:name/latest",
-        component: PackageLatestComponent
-    },
-    {
-        path: "pkgs/:origin/:name/builds",
-        component: PackageBuildsComponent
-    },
-    {
-        path: "pkgs/:origin/:name/:version/:release",
-        component: PackagePageComponent
-    },
-    {
-        path: "pkgs/:origin/:name/:version",
-        component: PackagesPageComponent,
-    },
-    {
-        path: "pkgs/:origin/:name",
-        component: PackagesPageComponent
     },
     {
         path: "pkgs/:origin",

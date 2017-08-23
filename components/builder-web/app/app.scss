@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+$output-bourbon-deprecation-warnings: false !default;
+
 @import "mixins";
 @import "bourbon";
 @import "base/base";
@@ -27,16 +29,25 @@
 @import "github-repo-picker/github-repo-picker";
 @import "header/header";
 @import "header/user-nav/user-nav";
-@import "icon/icon.component";
 @import "build/build.component";
-@import "build-list/build-list.component";
-@import "build-status/build-status.component";
+@import "shared/build-list/build-list.component";
+@import "shared/build-status/build-status.component";
+@import "shared/channels/channels.component";
+@import "shared/icon/icon.component";
+@import "shared/copyable/copyable.component";
 @import "notifications/notifications";
 @import "origin-create-page/origin-create-page";
 @import "origin-page/origin-page";
-@import "package-builds/package-builds.component";
 @import "package-page/package-page";
-@import "package-versions-page/package-versions-page";
+@import "package/package/package.component";
+@import "package/package-builds/package-builds.component";
+@import "package/package-latest/package-latest.component";
+@import "package/package-readme/package-readme.component";
+@import "package/package-release/package-release.component";
+@import "package/package-detail/package-detail.component";
+@import "package/package-settings/package-settings.component";
+@import "package/package-sidebar/package-sidebar.component";
+@import "package/package-versions/package-versions.component";
 @import "packages-list/packages-list.component";
 @import "packages-page/packages-page";
 @import "project-create-page/project-create-page";
@@ -137,6 +148,37 @@ body {
   }
 }
 
+.page-subnav {
+
+  > ul.tabs {
+    background-color: $hab-blue-light;
+    display: block;
+    padding: 0 rem(25);
+
+    > li {
+      display: inline;
+
+      a {
+        color: $hab-gray-dark;
+        border-bottom: $small-spacing / 4 solid transparent;
+        display: inline-block;
+        font-family: $heading-font-family;
+        font-size: rem(12);
+        margin-right: rem(30);
+        padding-top: rem(10);
+        padding-right: 0;
+        padding-bottom: rem(12);
+        padding-left: 0;
+        text-transform: uppercase;
+
+        &.active {
+          border-bottom-color: $hab-green;
+        }
+      }
+    }
+  }
+}
+
 .page-body {
   min-height: 50vh;
   padding: rem(20) rem(20);
@@ -168,33 +210,4 @@ body {
   border-left: 1px solid $light-gray;
   padding-left: $base-spacing;
   word-wrap: break-word;
-}
-
-.channels {
-  margin-top: 8px;
-
-  .channel {
-    display: inline-block;
-    margin-right: 4px;
-    font-size: rem(11);
-    font-weight: bold;
-    font-family: $base-font-family;
-    padding: 2px 10px;
-    border-radius: 11px;
-    color: $hab-blue;
-    background-color: $hab-blue-light;
-    border: 1px solid $hab-blue-light;
-
-    &.unstable {
-      background-color: $hab-white;
-      border: 1px solid $very-light-gray;
-      color: $hab-blue;
-    }
-
-    &.stable {
-      background-color: $hab-blue;
-      border: 1px solid $hab-blue;
-      color: $hab-white;
-    }
-  }
 }

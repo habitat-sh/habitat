@@ -29,9 +29,9 @@ export function clearBuilds() {
   };
 }
 
-export function scheduleBuild(origin: string, name: string, token: string) {
+export function submitJob(origin: string, name: string, token: string) {
     return dispatch => {
-        return depotApi.scheduleBuild(origin, name, token)
+        return depotApi.submitJob(origin, name, token)
             .then(response => {
                 dispatch(addNotification({
                     title: "Build submitted",
@@ -46,6 +46,8 @@ export function scheduleBuild(origin: string, name: string, token: string) {
 
 export function fetchBuilds(origin: string, name: string, token: string) {
   return dispatch => {
+    dispatch(clearBuilds);
+
     new BuilderApiClient(token)
       .getBuilds(origin, name)
       .then((data) => dispatch(populateBuilds(data)))
