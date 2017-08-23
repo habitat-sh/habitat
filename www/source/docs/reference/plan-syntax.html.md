@@ -330,6 +330,9 @@ These callbacks are listed in the order that they are called by the package buil
 ## Hooks
 Each plan can have a `hooks` subdirectory that specifies any of the hooks or asynchronous callbacks described in this section. Each hook is a script with a [shebang](https://en.wikipedia.org/wiki/Shebang_(Unix)) defined at the top to specify the interpreter to be used.
 
+**Important to note**
+: You cannot block the thread in a hook unless it is in the `run` hook. Never call `hab` or `sleep` in a hook that is not the `run` hook.
+
 **file_updated**
 : File location: `<plan>/hooks/file_updated`
 : This hook is run whenever a configuration file that is not related to a user or about the state of the service instances is updated.
