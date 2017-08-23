@@ -88,6 +88,72 @@ pub fn origin_get(
     Ok(())
 }
 
+pub fn origin_integration_get_names(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
+    let msg: proto::OriginIntegrationGetNames = req.parse_msg()?;
+
+    match state.datastore.get_origin_integration_names(&msg) {
+        Ok(Some(ref names)) => req.reply_complete(sock, names)?,
+        Ok(None) => {
+            let err = net::err(
+                ErrCode::ENTITY_NOT_FOUND,
+                "vt:origin-integration-get-names:0",
+            );
+            req.reply_complete(sock, &err)?;
+        }
+        Err(err) => {
+            error!("OriginIntegrationGetNames, err={:?}", err);
+            let err = net::err(ErrCode::DATA_STORE, "vt:origin-integration-get-names:1");
+            req.reply_complete(sock, &err)?;
+        }
+    }
+    Ok(())
+}
+
+pub fn origin_integration_create(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
+    let msg: proto::OriginIntegrationCreate = req.parse_msg()?;
+
+    match state.datastore.create_origin_integration(&msg) {
+        Ok(()) => req.reply_complete(sock, &NetOk::new())?,
+        Err(Error::OriginIntegrationCreate(PostgresError::Db(ref db)))
+            if db.code == UniqueViolation => {
+            let err = net::err(ErrCode::ENTITY_CONFLICT, "vt:origin-integration-create:1");
+            req.reply_complete(sock, &err)?;
+        }
+        Err(err) => {
+            error!("OriginIntegrationCreate, err={:?}", err);
+            let err = net::err(ErrCode::DATA_STORE, "vt:origin-integration-create:2");
+            req.reply_complete(sock, &err)?;
+        }
+    }
+    Ok(())
+}
+
+pub fn origin_integration_delete(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
+    let msg: proto::OriginIntegrationDelete = req.parse_msg()?;
+
+    match state.datastore.delete_origin_integration(&msg) {
+        Ok(()) => req.reply_complete(sock, &NetOk::new())?,
+        Err(err) => {
+            error!("OriginIntegrationDelete, err={:?}", err);
+            let err = net::err(ErrCode::DATA_STORE, "vt:origin-integration-delete:1");
+            req.reply_complete(sock, &err)?;
+        }
+    }
+    Ok(())
+}
+
 pub fn origin_invitation_accept(
     req: &mut Envelope,
     sock: &mut zmq::Socket,

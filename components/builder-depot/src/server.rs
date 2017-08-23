@@ -62,6 +62,7 @@ use urlencoded::UrlEncodedQuery;
 use super::DepotUtil;
 use config::Config;
 use error::{Error, Result};
+use handlers;
 
 define_event_log!();
 
@@ -140,7 +141,7 @@ const PAGINATION_RANGE_DEFAULT: isize = 0;
 const PAGINATION_RANGE_MAX: isize = 50;
 const ONE_YEAR_IN_SECS: usize = 31536000;
 
-fn route_message<M: Routable, R: protobuf::MessageStatic>(
+pub fn route_message<M: Routable, R: protobuf::MessageStatic>(
     req: &mut Request,
     msg: &M,
 ) -> RouteResult<R> {
@@ -2152,6 +2153,16 @@ where
         },
 
         builder_key_latest: get "/builder/keys/latest" => download_latest_builder_key,
+
+        origin_integration_get_names: get "/origins/:origin/integrations/:integration/names" => {
+            XHandler::new(handlers::integrations::fetch_origin_integration_names).before(basic.clone())
+        },
+        origin_integration_put: put "/origins/:origin/integrations/:integration/:name" => {
+            XHandler::new(handlers::integrations::create_origin_integration).before(basic.clone())
+        },
+        origin_integration_delete: delete "/origins/:origin/integrations/:integration/:name" => {
+            XHandler::new(handlers::integrations::delete_origin_integration).before(basic.clone())
+        },
 
         // All of this API feels wrong to me.
         origin_invitation_create: post "/origins/:origin/users/:username/invitations" => {

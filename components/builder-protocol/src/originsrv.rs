@@ -209,6 +209,40 @@ impl Routable for OriginChannelDelete {
     }
 }
 
+impl Routable for OriginIntegrationGetNames {
+    type H = String;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(self.get_origin().to_string())
+    }
+}
+
+impl Routable for OriginIntegrationCreate {
+    type H = String;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(self.get_origin().to_string())
+    }
+}
+
+impl Routable for OriginIntegrationDelete {
+    type H = String;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(self.get_origin().to_string())
+    }
+}
+
+impl Serialize for OriginIntegrationNames {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut strukt = serializer.serialize_struct("origin_integration_names", 1)?;
+        strukt.serialize_field("names", &self.get_names())?;
+        strukt.end()
+    }
+}
 
 impl Routable for OriginCreate {
     type H = String;

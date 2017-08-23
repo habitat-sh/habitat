@@ -373,3 +373,26 @@ message OriginSecretKeyGet {
   optional uint64 owner_id = 1;
   optional string origin = 2;
 }
+
+// Origin Integration
+message OriginIntegrationCreate {
+  optional string origin = 1;
+  optional string integration = 2;
+  optional string name = 3;
+  optional string body = 4;
+}
+
+message OriginIntegrationDelete {
+  optional string origin = 1;
+  optional string integration = 2;
+  optional string name = 3;
+}
+
+message OriginIntegrationGetNames {
+  optional string origin = 1;
+  optional string integration = 2;
+}
+
+message OriginIntegrationNames {
+  repeated string names = 1;
+}
