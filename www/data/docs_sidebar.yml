@@ -95,6 +95,19 @@ sidebar_links:
     link: "/docs/reference/habitat-cli/"
   - title: Plan syntax
     link: "/docs/reference/plan-syntax/"
+    sub_links:
+    - title: Basic settings
+      link: "/docs/reference/basic-settings/"
+    - title: Callbacks
+      link: "/docs/reference/callbacks/"
+    - title: Build variables
+      link: "/docs/reference/build-variables/"
+    - title: Hooks
+      link: "/docs/reference/hooks/"
+    - title: Runtime settings
+      link: "/docs/reference/runtime-settings/"
+    - title: Utility functions
+      link: "/docs/reference/utility-functions/"
   - title: Environment variables
     link: "/docs/reference/environment-vars/"
   - title: Package contents
