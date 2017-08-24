@@ -66,6 +66,23 @@ For more information on how to set up and install Habitat and how to run a sampl
 
 For information on the contents of an installed package, see [Package contents](/docs/reference/package-contents).
 
+## Iterative Development
+To assist in creating new packages, or modifying existing ones, the supervisor
+has an option to allow you to use the configuration directly from a specific
+directory, rather than the one it includes in the compiled artifact. This can
+significantly shorten the cycle time when working on configuration and hooks.
+
+First, build the plan as you normally would. Second, when you start the
+supervisor, pass the name of the directory with your plan inside it:
+
+```
+$ hab start core/redis --config-from /src
+```
+
+This would take the configuration and hooks from /src, rather than from the
+package you have previously built. When the configuration is as you want it,
+do a final rebuild of the package.
+
 <hr>
 <ul class="main-content--link-nav">
   <li>Continue to the next topic</li>
