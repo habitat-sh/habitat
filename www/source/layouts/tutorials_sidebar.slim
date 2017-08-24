@@ -21,7 +21,7 @@
                             li.main-sidebar--list--item  class=link_classes(current_resource.url, sub_link)
                               = link_to sub_link.title, sub_link.link, class: (sub_link.icon || '')
 
-      .main-content__has-sidebar
+      .main-content__has-sidebar data-swiftype-index="true"
           == yield
 
   / Swiftype JS Snippet
