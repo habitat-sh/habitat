@@ -82,13 +82,13 @@ mod inner {
     use exec;
     use VERSION;
 
-    use command::studio::docker as docker;
+    use command::studio::docker;
 
     const SUDO_CMD: &'static str = "sudo";
 
     pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
         rerun_with_sudo_if_needed(ui)?;
-        if is_docker_studio(&args){
+        if is_docker_studio(&args) {
             docker::start_docker_studio(ui, args)
         } else {
             let command = match henv::var(super::STUDIO_CMD_ENVVAR) {
@@ -236,16 +236,5 @@ mod inner {
         }
 
         return false;
-    }
-
-    #[cfg(test)]
-    mod tests {
-        use super::{image_identifier, DOCKER_IMAGE};
-        use VERSION;
-
-        #[test]
-        fn retrieve_image_identifier() {
-            assert_eq!(image_identifier(), format!("{}:{}", DOCKER_IMAGE, VERSION));
-        }
     }
 }
