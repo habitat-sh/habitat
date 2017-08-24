@@ -1,0 +1,33 @@
+[package]
+name = "habitat_pkg_export_docker"
+version = "0.0.0"
+authors = ["Fletcher Nichol <fnichol@habitat.sh>"]
+build = "../build.rs"
+workspace = "../../"
+
+[lib]
+name = "habitat_pkg_export_docker"
+
+[[bin]]
+name = "hab-pkg-export-docker"
+path = "src/main.rs"
+doc = false
+
+[dependencies]
+clap = { version = "*", features = ["suggestions", "color", "unstable"] }
+clippy = { version = "*", optional = true }
+env_logger = "*"
+hab = { path = "../hab" }
+habitat_core = { path = "../core" }
+habitat_common = { path = "../common" }
+handlebars = { version = "*", features = ["partial4"], default-features = false }
+lazy_static = "*"
+log = "*"
+serde = { version = "*", features = ["rc"] }
+serde_json = "*"
+tempdir = "*"
+url = "*"
+
+[features]
+default = []
+functional = []

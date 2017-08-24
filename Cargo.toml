@@ -30,5 +30,6 @@ members = [
   "components/launcher-protocol",
   "components/net",
   "components/op",
+  "components/pkg-export-docker",
   "components/sup"
 ]

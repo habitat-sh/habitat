@@ -14,7 +14,7 @@ matrix:
       language: ruby
       rvm: 2.3.1
       env:
-        - AFFECTED_DIRS="components/hab|components/sup"
+        - AFFECTED_DIRS="components/hab|components/hab-butterfly|components/pkg-export-docker|components/sup"
       sudo: required
       addons:
         apt:
@@ -191,7 +191,7 @@ matrix:
     - os: linux
       env:
         - COMPONENTS="sup hab-butterfly hab plan-build backline bintray-publish studio pkg-aci pkg-dockerize pkg-mesosize pkg-tarize"
-        - AFFECTED_DIRS="support/ci/deploy\.sh|Cargo\.toml|Cargo\.lock|components/hab|components/common|components/core|components/builder-depot-client|components/http-client|components/sup|components/hab-butterfly|components/butterfly|components/studio|VERSION"
+        - AFFECTED_DIRS="support/ci/deploy\.sh|Cargo\.toml|Cargo\.lock|components/hab|components/common|components/core|components/builder-depot-client|components/http-client|components/sup|components/hab-butterfly|components/butterfly|components/studio|components/pkg-dockerize|VERSION"
         # HAB_AUTH_TOKEN
         - secure: "OCq9oDAEP3Cc0BiGrnZHE0FoNdyqsAy2LPTwEoOKvgiZdrw5o2bvpN1Kl+DKpw2auKtkeAS1aVSE/CMrglxrDs+VolvK9ttW3kj8c7+AeuCYjBsyWqdnZ1/24u6P+20fKanYrsMsnFb2r9OWwxZVlFnfmks81LWToOlGFJpL5KnmSPrB2vlWPbiaH9+yg8aslrmCq0reSoSVSnoZHoTolWtjzx2WdPYqA4gu0HHASVbH5qP+PoQSGIWvwbBaU4xhwkp1K8rWCjI8lre2YpBMOdfZv+9arMjc3Xg/kgD9oGU9DN7Q3UzAWxTSJv/3Cm4LArwiI57rXMLDKf8N1MhvGMHP1xgbuN8JWFKqFuWpqCf6qJkYG8+VZkruKYOo/2tXtBY4hpbR2abcWvYU/S9AQFHKGJQ2vcArnp5SKO+Oq/fNVneeHli4RbGMRQCMVq+X0SSC148F0zEVVwkNM5eq4askfc/2y4asySrH0MT/5T3yBp8fr3zXpnj82h2ytCZOUs0o+La9+wt5gSDUJHdY/BwSSPrgnKSp7ixslM/g7lMy3nAOs6qLql8/vW543CXBurCACWTqwKcy3/wRparTkmZcs1d7vUrbcfYv7XJzh0pw2P1hCjWD9BtkowbuLVo8K9ndPl2rbFY9XljqFXMTcHxp4ETeCc23azHCs+SYFb0="
         # HAB_ORIGIN_KEY
@@ -227,7 +227,7 @@ matrix:
     - os: linux
       env:
         - COMPONENTS="sup hab-butterfly hab plan-build backline bintray-publish studio pkg-aci pkg-dockerize pkg-mesosize pkg-tarize"
-        - AFFECTED_DIRS="support/ci/deploy\.sh|Cargo\.toml|Cargo\.lock|components/hab|components/common|components/core|components/builder-depot-client|components/http-client|components/sup|components/hab-butterfly|components/butterfly|components/studio|VERSION"
+        - AFFECTED_DIRS="support/ci/deploy\.sh|Cargo\.toml|Cargo\.lock|components/hab|components/common|components/core|components/builder-depot-client|components/http-client|components/sup|components/hab-butterfly|components/butterfly|components/studio|components/pkg-dockerize|VERSION"
         # HAB_ORIGIN_KEY
         - secure: "uZ70GE8qK3GBgs7ZIsoy5DhPlHNs2hoLxLBGKq+u+0XrE017pOnW6mNHsn7J7i2r8CPtd4KFsFEN52wZSA+Sf96MFIL2w9E+geykBgbRMZzv4icuCf0xSGwm4iRMgZ9A08TfurMX6y6N+4JNsrCv9syVNuGq09EL2wLHPXOQhesMpodijQLcFikxfEXXbaWla1xHnYxJk+fbvYDoXVCbdqnpdeLTmGuQHFaaNI7jm1B3L/dl+IGZxwFdvqBT3G9mHiXBdyi8bALs7rcZNdV7PqtFFpp98zIeqwNHtHPd5cBRmqDRTRxucRSACS/lurrz9J+001a9RjPvUkYlLrn0hQY9pN6oo+kCpN/1r0bc17i4FbGx7R73FnFgPK/cno0ENBFygNZn7/jg6cENgjkBlHsZhc1+L1xhILo46nQU9XbWJrwelVYUOOGXI76tECOkGhkglx1vYK8fcMVLJMhL7psgPpbGbDJQDuAKhHS+75txNK+356ompNL+YUzeWZc4KSGZCNTQsPK+rsGttmA+JXtAaquFaY5xwSgyKHwETiSVg4dYXb3xh6goNxf2JTOZOosWaypyykHqcqsqCu2fzIDdmkgCx6I5/5q8I/7Z0es0jlUpHamlihZwe4E5YdYFCSouaDoeTnVdJKVI1p9fnAjpFqjivFgqLE/Z504vCNU="
         - BINTRAY_USER=chef-releng-ops
