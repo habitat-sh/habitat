@@ -100,7 +100,7 @@ pub trait Hook: fmt::Debug + Sized {
 
     /// Compile a hook into its destination service directory.
     fn compile(&self, ctx: &RenderContext) -> Result<bool> {
-        let content = self.renderer().render("hook", ctx)?;
+        let content = self.renderer().render(Self::file_name(), ctx)?;
         if write_hook(&content, self.path())? {
             info!(
                 "{}, compiled to {}",
@@ -853,8 +853,14 @@ impl RenderPair {
         T: AsRef<Path>,
     {
         let mut renderer = TemplateRenderer::new();
+        let name = template_path
+            .as_ref()
+            .file_name()
+            .unwrap()
+            .to_string_lossy()
+            .into_owned();
         renderer.register_template_file(
-            "hook",
+            &name,
             template_path.as_ref(),
         )?;
         Ok(RenderPair {
