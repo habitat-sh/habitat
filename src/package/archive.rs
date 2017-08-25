@@ -224,7 +224,6 @@ impl PackageArchive {
         let writer = writer::Disk::new();
         let mut extract_options = ExtractOptions::new();
         extract_options.add(ExtractOption::Time);
-        extract_options.add(ExtractOption::Owner);
         extract_options.add(ExtractOption::Permissions);
         writer.set_options(&extract_options)?;
         writer.set_standard_lookup()?;
