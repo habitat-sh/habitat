@@ -35,6 +35,7 @@
 //! * Unpack it
 //!
 
+use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
@@ -72,13 +73,18 @@ where
     P2: AsRef<Path> + ?Sized,
 {
     if !am_i_root() {
-        ui.warn(
-            "Installing a package requires root or administrator privileges. Please retry \
+        if let Some(_) = env::var_os("HAB_NON_ROOT") {
+            ui.warn("Allowing install by non-root user!")?;
+            ui.br()?;
+        } else {
+            ui.warn(
+                "Installing a package requires root or administrator privileges. Please retry \
                    this command as a super user or use a privilege-granting facility such as \
                    sudo.",
-        )?;
-        ui.br()?;
-        return Err(Error::RootRequired);
+            )?;
+            ui.br()?;
+            return Err(Error::RootRequired);
+        }
     }
 
     let cache_key_path = cache_key_path(Some(fs_root_path.as_ref()));
