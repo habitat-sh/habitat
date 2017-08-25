@@ -85,6 +85,7 @@ impl Service {
         member_id: U,
         package: &T,
         service_group: &ServiceGroup,
+        channel: U,
         sys: &SysInfo,
         cfg: Option<&toml::value::Table>,
     ) -> Self
@@ -109,6 +110,7 @@ impl Service {
         let mut proto = ProtoService::new();
         proto.set_member_id(rumor.get_from_id().to_string());
         proto.set_service_group(service_group.to_string());
+        proto.set_channel(channel.into());
         proto.set_incarnation(0);
         proto.set_pkg(package.to_string());
         proto.set_sys(sys.deref().clone());
@@ -174,7 +176,14 @@ mod tests {
     fn create_service(member_id: &str) -> Service {
         let pkg = PackageIdent::from_str("core/neurosis/1.2.3/20161208121212").unwrap();
         let sg = ServiceGroup::new(None, pkg.name(), "production", None).unwrap();
-        Service::new(member_id.to_string(), &pkg, &sg, &SysInfo::default(), None)
+        Service::new(
+            member_id.to_string(),
+            &pkg,
+            &sg,
+            String::from("channel"),
+            &SysInfo::default(),
+            None,
+        )
     }
 
     #[test]
@@ -264,6 +273,7 @@ mod tests {
             "bad-member".to_string(),
             &ident,
             &sg,
+            "channel".to_string(),
             &SysInfo::default(),
             None,
         );

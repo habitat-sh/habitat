@@ -450,6 +450,7 @@ impl Service {
             self.sys.member_id.as_str(),
             &self.pkg.ident,
             &self.service_group,
+            &self.channel,
             &self.sys.as_sys_info(),
             exported.as_ref(),
         );

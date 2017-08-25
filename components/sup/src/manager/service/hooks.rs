@@ -1244,7 +1244,8 @@ echo "The message is Hola Mundo"
         let sg_one = service_group.clone(); // ServiceGroup::new("shield", "one", None).unwrap();
 
         let service_store: RumorStore<ServiceRumor> = RumorStore::default();
-        let service_one = ServiceRumor::new("member-a", &pg_id, &sg_one, &sys_info, None);
+        let service_one =
+            ServiceRumor::new("member-a", &pg_id, &sg_one, "channel1", &sys_info, None);
         service_store.insert(service_one);
 
         let election_store: RumorStore<ElectionRumor> = RumorStore::default();
@@ -1353,7 +1354,8 @@ echo "The message is Hello"
         let sg_one = service_group.clone(); // ServiceGroup::new("shield", "one", None).unwrap();
 
         let service_store: RumorStore<ServiceRumor> = RumorStore::default();
-        let service_one = ServiceRumor::new("member-a", &pg_id, &sg_one, &sys_info, None);
+        let service_one =
+            ServiceRumor::new("member-a", &pg_id, &sg_one, "channel", &sys_info, None);
         service_store.insert(service_one);
 
         let election_store: RumorStore<ElectionRumor> = RumorStore::default();

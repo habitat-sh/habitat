@@ -489,6 +489,7 @@ pub struct CensusMember {
     suspect: bool,
     confirmed: bool,
     departed: bool,
+    channel: String,
     pub sys: SysInfo,
     // Maps must be represented last in a serializable struct for the current version of the toml
     // crate. Additionally, this deserialization method is required to correct any ordering issues
@@ -507,7 +508,7 @@ impl CensusMember {
         cep.set_service(self.service.clone());
         cep.set_group(self.group.clone());
         cep.set_org(self.org.as_ref().unwrap_or(&"".to_string()).clone());
-
+        cep.set_channel(self.channel.clone());
         // JW TODO: We need to leverage `swim.SysInfo` inside of the EventSrv protobufs. That
         // will alleviate this translation and make things more re-usable.
         let mut sys_info = SysInfoProto::new();
@@ -555,6 +556,7 @@ impl CensusMember {
         self.member_id = String::from(rumor.get_member_id());
         self.service = sg.service().to_string();
         self.group = sg.group().to_string();
+        self.channel = String::from(rumor.get_channel());
         if let Some(org) = sg.org() {
             self.org = Some(org.to_string());
         }
@@ -665,13 +667,31 @@ mod tests {
         let sg_one = ServiceGroup::new(None, "shield", "one", None).unwrap();
 
         let service_store: RumorStore<ServiceRumor> = RumorStore::default();
-        let service_one =
-            ServiceRumor::new("member-a".to_string(), &pg_id, &sg_one, &sys_info, None);
+        let service_one = ServiceRumor::new(
+            "member-a".to_string(),
+            &pg_id,
+            &sg_one,
+            "channel1".to_string(),
+            &sys_info,
+            None,
+        );
         let sg_two = ServiceGroup::new(None, "shield", "two", None).unwrap();
-        let service_two =
-            ServiceRumor::new("member-b".to_string(), &pg_id, &sg_two, &sys_info, None);
-        let service_three =
-            ServiceRumor::new("member-a".to_string(), &pg_id, &sg_two, &sys_info, None);
+        let service_two = ServiceRumor::new(
+            "member-b".to_string(),
+            &pg_id,
+            &sg_two,
+            "channel2".to_string(),
+            &sys_info,
+            None,
+        );
+        let service_three = ServiceRumor::new(
+            "member-a".to_string(),
+            &pg_id,
+            &sg_two,
+            "channel3".to_string(),
+            &sys_info,
+            None,
+        );
 
         service_store.insert(service_one);
         service_store.insert(service_two);
@@ -718,5 +738,8 @@ mod tests {
         let members = census_group_two.members();
         assert_eq!(members[0].member_id, "member-a");
         assert_eq!(members[1].member_id, "member-b");
+        assert_eq!(members[0].channel, "channel3");
+        assert_eq!(members[1].channel, "channel2");
+        assert_eq!(census_group_one.members()[0].channel, "channel1");
     }
 }

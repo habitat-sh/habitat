@@ -473,6 +473,7 @@ impl SwimNet {
             self[member].member_id().to_string(),
             &ident,
             &sg,
+            String::from("channel"),
             &SysInfo::default(),
             None,
         );

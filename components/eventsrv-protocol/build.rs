@@ -26,7 +26,6 @@ fn generate_protocols() {
     let cmd = Command::new(format!("{}/bin/protoc", prefix))
         .arg("--rust_out")
         .arg(out_dir)
-        .arg("--doc_out=markdown,index.md:doc")
         .args(&protocol_files())
         .output();
     match cmd {
