@@ -1,0 +1,67 @@
+<div class="hab-origins">
+  <div class="page-title">
+      <h2>My Origins</h2>
+  </div>
+  <div class="page-body">
+    <div class="page-body--main">
+      <div *ngIf="ui.loading">&nbsp;</div>
+      <div *ngIf="!ui.loading">
+        <p *ngIf="ui.errorMessage">
+            Failed to load origins: {{ui.errorMessage}}
+        </p>
+        <div *ngIf="origins.size === 0 && !ui.errorMessage">
+          <p><strong>You don't currently have any origins. Let's add one now.</strong></p>
+          <p>In order to begin uploading and distributing your packages, you'll
+          first need to <a href="#">create an origin</a>. If you would like to join
+          an existing origin, then you'll need to request an invite from a current
+          member.</p>
+          <p>If you've already created an origin locally via the Habitat CLI tool,
+          then you'll need to create it here too using the same name.</p>
+          <p><em>Not sure how to get started? <a href="#">Try the demo app</a> for a hands-on
+          walkthrough.</em></p>
+        </div>
+        <div *ngIf="origins.size > 0">
+          <div class="hab-origins-list">
+            <ul class="origins">
+              <li class="heading">
+                <h3>ORIGIN NAME</h3>
+                <h3>PACKAGES</h3>
+              </li>
+              <li class="origin" *ngFor="let origin of origins" (click)="routeToOrigin(origin.name)">
+                <div class="summary">
+                  <span class="origin-name">{{ origin.name }}</span>
+                  <span class="origin-pkg-count">{{ origin.packageCount }}</span>
+                  <hab-icon symbol="chevron-right"></hab-icon>
+                </div>
+              </li>
+            </ul>
+          </div>
+          <div *ngIf="invitations.size > 0">
+            <h3>Invitations</h3>
+            <ul>
+              <li *ngFor="let invitation of invitations" class="hab-item-list hab-no-select">
+              <h3 class="hab-item-list--title">{{invitation.origin_name}}</h3>
+              <button
+                class="count"
+                (click)="acceptInvitation(invitation.origin_invitation_id, invitation.origin_name)">
+                Accept Invitation
+                </button>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="page-body--sidebar">
+        <p><strong class="uppercase">ORIGINS</strong><p>
+        <a class="button create" [routerLink]="['/origins', 'create']">Create New Origin</a>
+        <p>Origins are used to manage ownership over a set of packages.
+        More specifically, each origin will have a unique key pair that is used by members
+        to upload and download packages</p>
+        <p>While origins themselves are always publically visible in the depot,
+        their package builds may be either public or private</p>
+        <p>When (or after) creating an origin, you can set the default privacy for any package
+        build uploaded to the depot</p>
+    </div>
+  </div>
+</div>

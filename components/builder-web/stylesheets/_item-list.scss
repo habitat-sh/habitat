@@ -15,15 +15,11 @@
 // For lists of things like packages or projects
 .hab-item-list {
   @include row;
-  @include transition(all 0.6s);
-  background-blend-mode: overlay;
   background-color: $white;
-  border: 1px solid $light-gray;
-  border-color: $hab-blue-light;
-  border-radius: $global-radius;
+  border-top: 1px solid $hab-blue-light;
+  
   color: inherit;
   display: block;
-  margin-bottom: 0.5em;
   padding: 1em 1.5em;
   position: relative;
 
@@ -79,7 +75,6 @@
     position: relative;
 
     img {
-      @include transition(opacity 0.6s);
       height: 1.5em;
       opacity: 0.1;
       position: absolute;
@@ -88,32 +83,9 @@
     }
   }
 
-  &:hover,
-  &.active {
-    @include transform(scale(1.01));
-    @include transition(all 0.2s ease-in-out);
-    //border-color: $hab-blue;
-    box-shadow: 0 1px 14px 0 $hab-blue-light;
-  }
-
   li {
     &:last-child & {
       margin-bottom: 0;
-    }
-  }
-
-  &.hab-no-select {
-    &:hover {
-      @include transform(none);
-      @include transition(none);
-      box-shadow: inherit;
-      color: inherit;
-      cursor: default;
-
-      &.active {
-        @include transform(scale(1.01));
-        box-shadow: 0 1px 14px 0 $hab-blue-light;
-      }
     }
   }
 

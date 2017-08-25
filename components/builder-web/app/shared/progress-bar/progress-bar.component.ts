@@ -12,14 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {List, Record} from "immutable";
+import { Component } from "@angular/core";
+import {AppStore} from "../../AppStore";
 
-export const Origin = Record({
-    id: undefined,
-    name: undefined,
-    owner_id: undefined,
-    private_key_name: undefined,
-    privateKeys: List(),
-    publicKeys: List(),
-    packageCount: undefined
-});
+@Component({
+    selector: "hab-progress-bar",
+    template: `
+    <div class="progress-bar-wrapper" *ngIf="loading">
+      <md-progress-bar mode="indeterminate"></md-progress-bar>
+    </div>`
+})
+
+export class ProgressBarComponent {
+  constructor(private store: AppStore) { }
+  get loading() {
+    const state = this.store.getState();
+    return (
+      state.origins.ui.mine.loading &&
+      state.packages.ui.visible.loading &&
+      state.projects.current.ui.loading
+    ); }
+}

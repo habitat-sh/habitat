@@ -17,68 +17,24 @@ import {acceptOriginInvitation, fetchMyOriginInvitations, fetchMyOrigins}
     from "../actions/index";
 import {AppStore} from "../AppStore";
 import {requireSignIn} from "../util";
+import {Router} from "@angular/router";
 
 @Component({
-    template: `
-    <div class="hab-origins">
-        <div class="page-title">
-            <h2>
-                Origins
-            </h2>
-            <a class="button create"
-               [routerLink]="['/origins', 'create']">Add Origin</a>
-        </div>
-        <div *ngIf="!ui.loading" class="page-body">
-            <p *ngIf="ui.errorMessage">
-                Failed to load origins: {{ui.errorMessage}}
-            </p>
-            <div *ngIf="origins.size === 0 && !ui.errorMessage">
-                <div class="hero">
-                    <h3>You don't currently have any origins. Let's add one now.</h3>
-                    <p>
-                        <a class="button cta" [routerLink]="['/origins', 'create']">
-                            Add Origin
-                        </a>
-                    </p>
-                </div>
-            </div>
-            <div *ngIf="origins.size > 0">
-                <ul class="hab-origins-list">
-                    <li *ngFor="let origin of origins">
-                        <a [routerLink]="['/origins', origin.name]"
-                           class="hab-item-list">
-                            <div class="hab-item-list--title">
-                                <h3>{{origin.name}}</h3>
-                            </div>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-            <div *ngIf="invitations.size > 0">
-                <h3>Invitations</h3>
-                <ul>
-                    <li *ngFor="let invitation of invitations" class="hab-item-list hab-no-select">
-                       <h3 class="hab-item-list--title">{{invitation.origin_name}}</h3>
-                       <button
-                           class="count"
-                           (click)="acceptInvitation(invitation.origin_invitation_id, invitation.origin_name)">
-                           Accept Invitation
-                        </button>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </div>`,
+    template: require("./origins-page.component.html")
 })
 
 export class OriginsPageComponent implements OnInit {
-    constructor(private store: AppStore) { }
+    constructor(private store: AppStore, private router: Router) { }
 
     get invitations() { return this.store.getState().origins.myInvitations; }
 
     get origins() { return this.store.getState().origins.mine; }
 
     get ui() { return this.store.getState().origins.ui.mine; }
+
+    routeToOrigin(origin) {
+        this.router.navigate(["/origins", origin]);
+    }
 
     acceptInvitation(invitationId, originName) {
         this.store.dispatch(acceptOriginInvitation(

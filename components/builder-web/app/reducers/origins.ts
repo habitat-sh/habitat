@@ -31,6 +31,19 @@ export default function origins(state = initialState["origins"], action) {
                     setIn(["ui", "mine", "loading"], false);
             }
 
+        case actionTypes.SET_PACKAGE_COUNT_FOR_ORIGIN:
+            if (action.payload.origin) {
+                const record = state.getIn(["mine"]).find(value => value.get("name") === action.payload.origin);
+                const index = state.getIn(["mine"]).indexOf(record);
+                const newRecord = record.merge({packageCount: action.payload.unique_packages});
+                return state.setIn(["mine", index], newRecord)
+                    .setIn(["ui", "mine", "errorMessage"], undefined)
+                    .setIn(["ui", "mine", "loading"], false);
+            } else {
+                return state;
+            }
+
+
         case actionTypes.POPULATE_MY_ORIGIN_INVITATIONS:
             return state.setIn(["myInvitations"],
                 List(action.payload));
