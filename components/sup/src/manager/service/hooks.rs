@@ -107,7 +107,6 @@ pub trait Hook: fmt::Debug + Sized {
                 Self::file_name(),
                 self.path().display()
             );
-            hcore::util::perm::set_owner(self.path(), &ctx.pkg.svc_user, &ctx.pkg.svc_group)?;
             hcore::util::perm::set_permissions(self.path(), HOOK_PERMISSIONS)?;
             Ok(true)
         } else {
