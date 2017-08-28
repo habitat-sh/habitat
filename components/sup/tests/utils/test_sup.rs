@@ -137,6 +137,12 @@ where
     bin
 }
 
+/// Return whether or not the tests are being run with the `--nocapture` flag meaning we want to
+/// see more output.
+fn nocapture() -> bool {
+    env::args().any(|arg| arg == "--nocapture")
+}
+
 impl TestSup {
     /// Create a new `TestSup` that will listen on randomly-selected
     /// ports for both gossip and HTTP requests so tests run in
@@ -220,9 +226,11 @@ impl TestSup {
             .arg("--listen-http")
             .arg(format!("{}:{}", listen_host, http_port))
             .arg(format!("{}/{}", origin, pkg_name))
-            .stdin(Stdio::null())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped());
+            .stdin(Stdio::null());
+        if !nocapture() {
+            cmd.stdout(Stdio::null());
+            cmd.stderr(Stdio::null());
+        }
 
         let bc = test_butterfly::Client::new(&pkg_name, &service_group, butterfly_port);
 
