@@ -16,13 +16,11 @@ import { NgModule } from "@angular/core";
 import { LocationStrategy, HashLocationStrategy } from "@angular/common";
 import { BrowserModule, DomSanitizer } from "@angular/platform-browser";
 import { HttpModule } from "@angular/http";
-import { MdIconModule, MdIconRegistry } from "@angular/material";
 import { routing } from "./routes";
 import { AppStore } from "./AppStore";
 import { AppComponent } from "./AppComponent";
 import { BuildComponent } from "./build/build.component";
 import { BuildPageComponent } from "./build-page/build-page.component";
-import { BuildStatusComponent } from "./build-status/build-status.component";
 import { CheckingInputComponent } from "./CheckingInputComponent";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { DashboardComponent } from "./dashboard/dashboard.component";
@@ -32,8 +30,6 @@ import { FooterComponent } from "./footer/FooterComponent";
 import { GitHubRepoPickerComponent } from "./github-repo-picker/GitHubRepoPickerComponent";
 import { GravatarComponent } from "./GravatarComponent";
 import { HeaderComponent } from "./header/HeaderComponent";
-import { IconComponent } from "./icon/icon.component";
-import { BuildListComponent } from "./build-list/build-list.component";
 import { KeyAddFormComponent } from "./origin-page/KeyAddFormComponent";
 import { KeyListComponent } from "./origin-page/KeyListComponent";
 import { NotificationsComponent } from "./notifications/NotificationsComponent";
@@ -41,13 +37,7 @@ import { OriginCreatePageComponent } from "./origin-create-page/OriginCreatePage
 import { OriginMembersTabComponent } from "./origin-page/OriginMembersTabComponent";
 import { OriginPageComponent } from "./origin-page/OriginPageComponent";
 import { OriginsPageComponent } from "./origins-page/OriginsPageComponent";
-import { PackageBreadcrumbsComponent } from "./PackageBreadcrumbsComponent";
-import { PackageBuildsComponent } from "./package-builds/package-builds.component";
-import { PackageLatestComponent } from "./package-latest/package-latest.component";
-import { PackageInfoComponent } from "./package-info/package-info.component";
-import { PackageListComponent } from "./package-page/PackageListComponent";
 import { PackagePageComponent } from "./package-page/PackagePageComponent";
-import { PackageVersionsPageComponent } from "./package-versions-page/package-versions-page.component";
 import { PackagesListComponent } from "./packages-list/packages-list.component";
 import { PackagesPageComponent } from "./packages-page/packages-page.component";
 import { ProjectSettingsPageComponent } from "./project-settings-page/ProjectSettingsPageComponent";
@@ -63,21 +53,23 @@ import { TabsComponent } from "./TabsComponent";
 import { UserNavComponent } from "./header/user-nav/UserNavComponent";
 import { RepoFilterPipe } from "./pipes/repoFilter.pipe";
 
+import { PackageModule } from "./package/package.module";
+import { SharedModule } from "./shared/shared.module";
+
 @NgModule({
     imports: [
         BrowserModule,
         FormsModule,
         HttpModule,
-        MdIconModule,
+        PackageModule,
         ReactiveFormsModule,
+        SharedModule,
         routing
     ],
     declarations: [
         AppComponent,
         BuildComponent,
         BuildPageComponent,
-        BuildListComponent,
-        BuildStatusComponent,
         CheckingInputComponent,
         DashboardComponent,
         ExploreComponent,
@@ -85,7 +77,6 @@ import { RepoFilterPipe } from "./pipes/repoFilter.pipe";
         GitHubRepoPickerComponent,
         GravatarComponent,
         HeaderComponent,
-        IconComponent,
         KeyAddFormComponent,
         KeyListComponent,
         NotificationsComponent,
@@ -93,13 +84,7 @@ import { RepoFilterPipe } from "./pipes/repoFilter.pipe";
         OriginMembersTabComponent,
         OriginPageComponent,
         OriginsPageComponent,
-        PackageBreadcrumbsComponent,
-        PackageBuildsComponent,
-        PackageLatestComponent,
-        PackageInfoComponent,
-        PackageListComponent,
         PackagePageComponent,
-        PackageVersionsPageComponent,
         PackagesListComponent,
         PackagesPageComponent,
         ProjectCreatePageComponent,
@@ -124,9 +109,5 @@ import { RepoFilterPipe } from "./pipes/repoFilter.pipe";
 })
 
 export class AppModule {
-    constructor(private mdIconRegistry: MdIconRegistry, private sanitizer: DomSanitizer) {
-        mdIconRegistry.addSvgIconSet(
-            sanitizer.bypassSecurityTrustResourceUrl("/assets/images/icons/all.svg")
-        );
-    }
+
 }

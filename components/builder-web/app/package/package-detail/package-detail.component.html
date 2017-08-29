@@ -1,0 +1,50 @@
+<div class="hab-package-detail" *ngIf="package">
+  <h2 *ngIf="fullName">
+    {{ fullName }}
+  </h2>
+  <section class="metadata">
+    <dl>
+      <div>
+        <dt>Version</dt>
+        <dd>
+          {{ package.ident.version }}
+        </dd>
+      </div>
+      <div>
+        <dt>Release</dt>
+        <dd>
+          {{ package.ident.release }}
+          <hab-icon [symbol]="osIconFor(package)" class="icon-os" title="Supported OS"></hab-icon>
+        </dd>
+      </div>
+      <div>
+        <dt>Checksum</dt>
+        <dd>
+          {{ package.checksum }}
+        </dd>
+      </div>
+      <div>
+        <dt>&nbsp;</dt>
+        <dd>
+          <hab-channels [channels]="package.channels"></hab-channels>
+        </dd>
+      </div>
+    </dl>
+  </section>
+  <section class="manifest" [innerHTML]="package.manifest"></section>
+  <section class="config" *ngIf="package.config">
+    <h2>Configuration</h2>
+    <pre>{{ package.config }}</pre>
+  </section>
+  <section class="deps">
+    <div class="direct-deps">
+      <h2>Dependencies</h2>
+      <hab-package-list [currentPackage]="package" [packages]="package.deps"></hab-package-list>
+    </div>
+    <div class="transitive-deps">
+      <h2>Transitive Dependencies</h2>
+      <hab-package-list [currentPackage]="package" [packages]="package.tdeps"></hab-package-list>
+    </div>
+  </section>
+</div>
+

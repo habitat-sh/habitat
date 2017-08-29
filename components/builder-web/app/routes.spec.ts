@@ -4,9 +4,6 @@ import { ExploreComponent } from "./explore/explore.component";
 import { OriginCreatePageComponent } from "./origin-create-page/OriginCreatePageComponent";
 import { OriginPageComponent } from "./origin-page/OriginPageComponent";
 import { OriginsPageComponent } from "./origins-page/OriginsPageComponent";
-import { PackageBuildsComponent } from "./package-builds/package-builds.component";
-import { PackageLatestComponent } from "./package-latest/package-latest.component";
-import { PackagePageComponent } from "./package-page/PackagePageComponent";
 import { PackagesPageComponent } from "./packages-page/packages-page.component";
 import { ProjectCreatePageComponent } from "./project-create-page/ProjectCreatePageComponent";
 import { ProjectPageComponent } from "./project-page/ProjectPageComponent";
@@ -75,41 +72,6 @@ describe("Routes", () => {
     it("routes to PackagesPageComponent", () => {
       let r = route("pkgs/:origin");
       expect(r.component).toBe(PackagesPageComponent);
-    });
-  });
-
-  describe("/pkgs/:origin/:name", () => {
-    it("routes to PackagesPageComponent", () => {
-      let r = route("pkgs/:origin/:name");
-      expect(r.component).toBe(PackagesPageComponent);
-    });
-  });
-
-  describe("/pkgs/:origin/:name/builds", () => {
-    it("routes to PackageBuildsComponent", () => {
-      let r = route("pkgs/:origin/:name/builds");
-      expect(r.component).toBe(PackageBuildsComponent);
-    });
-  });
-
-  describe("/pkgs/:origin/:name/latest", () => {
-    it("routes to PackageLatestComponent", () => {
-      let r = route("pkgs/:origin/:name/latest");
-      expect(r.component).toBe(PackageLatestComponent);
-    });
-  });
-
-  describe("/pkgs/:origin/:name/:version", () => {
-    it("routes to PackagesPageComponent", () => {
-      let r = route("pkgs/:origin/:name/:version");
-      expect(r.component).toBe(PackagesPageComponent);
-    });
-  });
-
-  describe("/pkgs/:origin/:name/:version/:release", () => {
-    it("routes to PackagePageComponent", () => {
-      let r = route("pkgs/:origin/:name/:version/:release");
-      expect(r.component).toBe(PackagePageComponent);
     });
   });
 

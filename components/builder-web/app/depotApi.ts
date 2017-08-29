@@ -126,15 +126,18 @@ export function getPackageVersions(origin: string, pkg: string) {
     });
 }
 
-export function scheduleBuild(origin: string, pkg: string, token: string) {
-    const url = `${urlPrefix}/depot/pkgs/schedule/${origin}/${pkg}`;
+export function submitJob(origin: string, pkg: string, token: string) {
+    const url = `${urlPrefix}/jobs`;
 
     return new Promise((resolve, reject) => {
         fetch(url, {
             headers: {
                 "Authorization": `Bearer ${token}`,
             },
-            method: "POST"
+            method: "POST",
+            body: JSON.stringify({
+                project_id: `${origin}/${pkg}`
+            })
         }).then(response => {
             if (response.ok) {
                 resolve(true);

@@ -1,0 +1,97 @@
+.hab-package-detail {
+
+  h1, h2 {
+    font-family: $base-font-family;
+    font-weight: 600;
+    font-size: rem(18);
+  }
+
+  dl {
+    font-size: rem(14);
+    margin-bottom: 18px;
+
+    hab-icon {
+      margin-left: 8px;
+      width: 18px;
+      height: 18px;
+    }
+
+    > div {
+      @include row;
+
+      dt {
+        @include span-columns(2);
+      }
+
+      dd {
+        @include span-columns(8);
+      }
+    }
+  }
+
+  .channels {
+    margin-bottom: 8px;
+  }
+
+  .manifest {
+    margin-bottom: 18px;
+
+    h1:first-child, p {
+      display: none;
+    }
+
+    h1 {
+      margin-top: 28px;
+    }
+
+    h2 {
+      font-size: rem(14);
+    }
+
+    ul {
+      font-size: rem(14);
+
+      li {
+        code {
+          font-family: $monospace-font-family;
+          font-size: $monospace-font-size;
+        }
+      }
+    }
+  }
+
+  .config {
+    margin-bottom: 18px;
+
+    h2 {
+      font-size: rem(14);
+    }
+  }
+
+  .deps {
+    @include row;
+
+    h2 {
+      font-size: rem(14);
+    }
+
+    .direct-deps {
+      @include span-columns(6);
+    }
+
+    .transitive-deps {
+      @include span-columns(6);
+    }
+  }
+
+  pre {
+    font-family: $monospace-font-family;
+    font-size: 12px;
+    line-height: 1.6;
+    @include pad($base-spacing);
+    background: $dark-blue;
+    border-radius: $global-radius;
+    color: $hab-white;
+    overflow: auto;
+  }
+}

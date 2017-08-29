@@ -30,6 +30,9 @@ export default function packages(state = initialState["packages"], action) {
                 setIn(["ui", "visible", "loading"], true).
                 setIn(["ui", "visible", "exists"], false);
 
+        case actionTypes.CLEAR_LATEST_PACKAGE:
+            return state.set("latest", Package());
+
         case actionTypes.POPULATE_DASHBOARD_RECENT:
             return state.setIn(["dashboard", "recent"], List(action.payload));
 
@@ -72,6 +75,15 @@ export default function packages(state = initialState["packages"], action) {
                     setIn(["ui", "versions", "errorMessage"], undefined).
                     setIn(["ui", "versions", "exists"], true).
                     setIn(["ui", "versions", "loading"], false);
+            }
+
+        case actionTypes.SET_LATEST_PACKAGE:
+            if (action.error) {
+                return state.set("latest", Package());
+            } else {
+                let p = Object.assign({}, action.payload);
+                p.manifest = marked(p.manifest);
+                return state.set("latest", Package(p));
             }
 
         case actionTypes.SET_PACKAGES_NEXT_RANGE:

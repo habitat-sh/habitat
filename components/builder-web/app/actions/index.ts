@@ -75,12 +75,14 @@ export const SET_ORIGIN_USER_INVITE_ERROR_MESSAGE =
 export const TOGGLE_ORIGIN_PICKER = originActions.TOGGLE_ORIGIN_PICKER;
 
 export const CLEAR_PACKAGES = packageActions.CLEAR_PACKAGES;
+export const CLEAR_LATEST_PACKAGE = packageActions.CLEAR_LATEST_PACKAGE;
 export const POPULATE_DASHBOARD_RECENT = packageActions.POPULATE_DASHBOARD_RECENT;
 export const CLEAR_PACKAGE_VERSIONS = packageActions.CLEAR_PACKAGE_VERSIONS;
 export const POPULATE_EXPLORE = packageActions.POPULATE_EXPLORE;
 export const POPULATE_EXPLORE_STATS = packageActions.POPULATE_EXPLORE_STATS;
 export const SET_CURRENT_PACKAGE = packageActions.SET_CURRENT_PACKAGE;
 export const SET_CURRENT_PACKAGE_VERSIONS = packageActions.SET_CURRENT_PACKAGE_VERSIONS;
+export const SET_LATEST_PACKAGE = packageActions.SET_LATEST_PACKAGE;
 export const SET_PACKAGES_NEXT_RANGE = packageActions.SET_PACKAGES_NEXT_RANGE;
 export const SET_PACKAGES_SEARCH_QUERY =
     packageActions.SET_PACKAGES_SEARCH_QUERY;
@@ -128,7 +130,7 @@ export const fetchBuild = buildActions.fetchBuild;
 export const fetchBuildLog = buildActions.fetchBuildLog;
 export const fetchBuilds = buildActions.fetchBuilds;
 export const streamBuildLog = buildActions.streamBuildLog;
-export const scheduleBuild = buildActions.scheduleBuild;
+export const submitJob = buildActions.submitJob;
 
 export const addNotification = notificationActions.addNotification;
 export const removeNotification = notificationActions.removeNotification;

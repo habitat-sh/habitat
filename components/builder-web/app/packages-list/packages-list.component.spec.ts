@@ -20,6 +20,7 @@ describe("PackagesListComponent", () => {
       declarations: [
         PackagesListComponent,
         MockComponent({ selector: "hab-icon", inputs: [ "symbol" ]}),
+        MockComponent({ selector: "hab-channels", inputs: [ "channels" ]}),
         MockComponent({
           selector: "hab-build-status",
           inputs: [ "origin", "name", "version" ]
@@ -60,13 +61,6 @@ describe("PackagesListComponent", () => {
   });
 
   it("renders a list of packages", () => {
-
-    function channelCountAt(i) {
-      return element.queryAll(By.css(`.hab-packages-package:nth-child(${i}) .channel`)).length;
-    }
-
-    expect(channelCountAt(1)).toBe(2);
-    expect(channelCountAt(2)).toBe(1);
-    expect(channelCountAt(3)).toBe(0);
+    expect(element.queryAll(By.css(".hab-packages-package .name")).length).toBe(3);
   });
 });

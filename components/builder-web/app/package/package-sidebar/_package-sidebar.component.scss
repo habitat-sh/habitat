@@ -1,0 +1,12 @@
+.hab-package-sidebar {
+
+  .build, .latest-stable, .command {
+    margin-bottom: 30px;
+  }
+
+  .latest-stable {
+    p {
+      font-size: rem(14);
+    }
+  }
+}

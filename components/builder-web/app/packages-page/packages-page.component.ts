@@ -17,7 +17,7 @@ import { Component, OnInit, OnDestroy } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
 import { AppStore } from "../AppStore";
 import { clearBuilds, fetchBuilds, fetchPackageVersions, filterPackagesBy,
-         scheduleBuild, setPackagesSearchQuery } from "../actions/index";
+         submitJob, setPackagesSearchQuery } from "../actions/index";
 import { Subscription } from "rxjs/Subscription";
 
 @Component({
@@ -180,7 +180,7 @@ export class PackagesPageComponent implements OnInit, OnDestroy {
 
     requestNewBuild() {
         let token = this.store.getState().gitHub.authToken;
-        this.store.dispatch(scheduleBuild(this.origin, this.name, token));
+        this.store.dispatch(submitJob(this.origin, this.name, token));
     }
 
     private fetchBuilds() {

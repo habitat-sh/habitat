@@ -1,0 +1,34 @@
+hab-copyable {
+  display: block;
+  position: relative;
+
+  span {
+    display: block;
+    font-size: rem(14);
+    font-weight: 600;
+    padding: 6px 8px;
+    border: 1px solid $very-light-gray;
+    border-radius: 2px 0 0 2px;
+    overflow-x: auto;
+    margin-right: 40px;
+    white-space: nowrap;
+  }
+
+  button {
+    position: absolute;
+    padding: 8px 10px 10px 10px;
+    border-radius: 0 2px 2px 0;
+    background-color: $very-light-gray;
+    background-image: unset;
+    color: $dark-gray;
+    width: 40px;
+    top: 0;
+    right: 0;
+    bottom: 0;
+
+    hab-icon {
+      width: 20px;
+      height: 20px;
+    }
+  }
+}
