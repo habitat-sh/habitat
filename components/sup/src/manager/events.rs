@@ -19,12 +19,16 @@ use std::thread;
 
 use byteorder::{ByteOrder, LittleEndian};
 use eventsrv_client::{EventSrvAddr, EventSrvClient};
-use eventsrv_client::message::{EventEnvelope, EventEnvelope_Type};
+use eventsrv_client::message::{EventEnvelope, EventEnvelope_Type,
+                               ServiceUpdate as ServiceUpdateProto,
+                               PackageIdent as PackageIdentProto, SysInfo as SysInfoProto};
 use hcore::service::ServiceGroup;
 use protobuf::Message;
+use toml;
 
 use PRODUCT;
 use census::{CensusMember, CensusRing};
+use manager::service::Service;
 
 enum Command {
     SendEvent(EventEnvelope),
@@ -44,17 +48,19 @@ impl EventsCli {
         }
     }
 
-    pub fn send_census(&self, member: &CensusMember) {
+    pub fn send_service(&self, member: &CensusMember, service: &Service) {
         let mut payload_buf: Vec<u8> = vec![];
         let mut proto_size = vec![0; 8];
-        let mut bytes = member.as_protobuf().write_to_bytes().unwrap();
+        let mut bytes = build_service_update(member, service)
+            .write_to_bytes()
+            .unwrap();
         LittleEndian::write_u64(&mut proto_size, bytes.len() as u64);
         payload_buf.append(&mut proto_size);
         payload_buf.append(&mut bytes);
         let mut event = EventEnvelope::new();
         event.set_field_type(EventEnvelope_Type::ProtoBuf);
         event.set_payload(payload_buf);
-        event.set_member_id(member.member_id.clone());
+        event.set_member_id(service.sys.member_id.clone());
         event.set_service(PRODUCT.to_string());
         self.tx.send(Command::SendEvent(event)).unwrap();
     }
@@ -132,4 +138,69 @@ fn eventsrv_addr(member: &CensusMember) -> EventSrvAddr {
         .as_integer()
         .unwrap() as u16;
     addr
+}
+
+fn build_service_update(member: &CensusMember, service: &Service) -> ServiceUpdateProto {
+    let mut sep = ServiceUpdateProto::new();
+    sep.set_member_id(service.sys.member_id.clone());
+
+    match service.service_group.application_environment() {
+        Some(appenv) => {
+            sep.set_application(appenv.application().to_string());
+            sep.set_environment(appenv.environment().to_string());
+        }
+        None => {
+            sep.set_application(String::new());
+            sep.set_environment(String::new());
+        }
+    }
+    sep.set_service(service.service_group.service().to_string());
+    sep.set_group(service.service_group.group().to_string());
+    sep.set_org(
+        service
+            .service_group
+            .org()
+            .unwrap_or(&"".to_string())
+            .to_string(),
+    );
+    sep.set_depot_url(service.depot_url.clone());
+    sep.set_channel(service.channel.clone());
+    sep.set_start_style(service.start_style.to_string());
+    sep.set_topology(service.topology.to_string());
+    sep.set_update_strategy(service.update_strategy.to_string());
+
+    // JW TODO: We need to leverage `swim.SysInfo` inside of the EventSrv protobufs. That
+    // will alleviate this translation and make things more re-usable.
+    let mut sys_info_proto = SysInfoProto::new();
+    let sys_info = service.sys.as_sys_info();
+    sys_info_proto.set_ip(sys_info.get_ip().to_string());
+    sys_info_proto.set_hostname(sys_info.get_hostname().to_string());
+    sys_info_proto.set_gossip_ip(sys_info.get_gossip_ip().to_string());
+    sys_info_proto.set_gossip_port(sys_info.get_gossip_port().to_string());
+    sys_info_proto.set_http_gateway_ip(sys_info.get_http_gateway_ip().to_string());
+    sys_info_proto.set_http_gateway_port(sys_info.get_http_gateway_port().to_string());
+    sep.set_sys(sys_info_proto);
+    let pkg = service.pkg.clone();
+    let mut pkg_ident = PackageIdentProto::new();
+    pkg_ident.set_origin(pkg.origin);
+    pkg_ident.set_name(pkg.name);
+    pkg_ident.set_version(pkg.version);
+    pkg_ident.set_release(pkg.release);
+    sep.set_pkg(pkg_ident);
+    sep.set_initialized(service.initialized);
+
+    let cfg_str = toml::to_string(&service.cfg).unwrap();
+    sep.set_cfg(cfg_str.into_bytes());
+
+    sep.set_leader(member.leader);
+    sep.set_follower(member.follower);
+    sep.set_update_leader(member.update_leader);
+    sep.set_update_follower(member.update_follower);
+    sep.set_election_is_running(member.election_is_running);
+    sep.set_election_is_no_quorum(member.election_is_no_quorum);
+    sep.set_election_is_finished(member.election_is_finished);
+    sep.set_update_election_is_running(member.update_election_is_running);
+    sep.set_update_election_is_no_quorum(member.update_election_is_no_quorum);
+    sep.set_update_election_is_finished(member.update_election_is_finished);
+    sep
 }

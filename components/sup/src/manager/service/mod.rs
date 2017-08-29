@@ -80,11 +80,11 @@ pub struct Service {
     pub cfg: Cfg,
     pub pkg: Pkg,
     pub sys: Arc<Sys>,
+    pub initialized: bool,
 
     #[serde(skip_serializing)]
     config_renderer: CfgRenderer,
     health_check: HealthCheck,
-    initialized: bool,
     last_election_status: ElectionStatus,
     needs_reload: bool,
     needs_reconfiguration: bool,
