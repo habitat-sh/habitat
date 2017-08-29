@@ -510,7 +510,9 @@ impl Manager {
                         self.census_ring.census_group_for(&service.service_group)
                     {
                         if let Some(member) = census_group.me() {
-                            events.as_ref().map(|events| events.send_census(member));
+                            events.as_ref().map(
+                                |events| events.send_service(member, service),
+                            );
                         }
                     }
                 }

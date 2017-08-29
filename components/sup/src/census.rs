@@ -25,8 +25,6 @@ use butterfly::rumor::election::Election as ElectionRumor;
 use butterfly::rumor::election::Election_Status as ElectionStatusRumor;
 use butterfly::rumor::election::ElectionUpdate as ElectionUpdateRumor;
 use butterfly::rumor::service::SysInfo;
-use eventsrv_client::message::{CensusEntry as CensusEntryProto, PackageIdent as PackageIdentProto,
-                               SysInfo as SysInfoProto};
 use hcore;
 use hcore::service::ServiceGroup;
 use hcore::package::PackageIdent;
@@ -468,89 +466,35 @@ impl CensusGroup {
 pub struct CensusMember {
     pub member_id: MemberId,
     pub pkg: Option<PackageIdent>,
-    application: Option<String>,
-    environment: Option<String>,
-    service: String,
-    group: String,
-    org: Option<String>,
-    initialized: bool,
-    persistent: bool,
-    leader: bool,
-    follower: bool,
-    update_leader: bool,
-    update_follower: bool,
-    election_is_running: bool,
-    election_is_no_quorum: bool,
-    election_is_finished: bool,
-    update_election_is_running: bool,
-    update_election_is_no_quorum: bool,
-    update_election_is_finished: bool,
-    alive: bool,
-    suspect: bool,
-    confirmed: bool,
-    departed: bool,
+    pub application: Option<String>,
+    pub environment: Option<String>,
+    pub service: String,
+    pub group: String,
+    pub org: Option<String>,
+    pub persistent: bool,
+    pub leader: bool,
+    pub follower: bool,
+    pub update_leader: bool,
+    pub update_follower: bool,
+    pub election_is_running: bool,
+    pub election_is_no_quorum: bool,
+    pub election_is_finished: bool,
+    pub update_election_is_running: bool,
+    pub update_election_is_no_quorum: bool,
+    pub update_election_is_finished: bool,
     pub sys: SysInfo,
     // Maps must be represented last in a serializable struct for the current version of the toml
     // crate. Additionally, this deserialization method is required to correct any ordering issues
     // with the table being serialized - https://docs.rs/toml/0.4.0/toml/ser/fn.tables_last.html
     #[serde(serialize_with = "toml::ser::tables_last")]
     pub cfg: toml::value::Table,
+    alive: bool,
+    suspect: bool,
+    confirmed: bool,
+    departed: bool,
 }
 
 impl CensusMember {
-    pub fn as_protobuf(&self) -> CensusEntryProto {
-        let mut cep = CensusEntryProto::new();
-        cep.set_member_id(self.member_id.clone());
-
-        cep.set_application(self.application.as_ref().unwrap_or(&"".to_string()).clone());
-        cep.set_environment(self.environment.as_ref().unwrap_or(&"".to_string()).clone());
-        cep.set_service(self.service.clone());
-        cep.set_group(self.group.clone());
-        cep.set_org(self.org.as_ref().unwrap_or(&"".to_string()).clone());
-
-        // JW TODO: We need to leverage `swim.SysInfo` inside of the EventSrv protobufs. That
-        // will alleviate this translation and make things more re-usable.
-        let mut sys_info = SysInfoProto::new();
-        sys_info.set_ip(self.sys.get_ip().to_string());
-        sys_info.set_hostname(self.sys.get_hostname().to_string());
-        sys_info.set_gossip_ip(self.sys.get_gossip_ip().to_string());
-        sys_info.set_gossip_port(self.sys.get_gossip_port().to_string());
-        sys_info.set_http_gateway_ip(self.sys.get_http_gateway_ip().to_string());
-        sys_info.set_http_gateway_port(self.sys.get_http_gateway_port().to_string());
-        cep.set_sys(sys_info);
-        if self.pkg.is_some() {
-            let pkg = self.pkg.clone().unwrap();
-            let mut pkg_ident = PackageIdentProto::new();
-            pkg_ident.set_origin(pkg.origin);
-            pkg_ident.set_name(pkg.name);
-            pkg_ident.set_version(pkg.version.unwrap_or(String::new()));
-            pkg_ident.set_release(pkg.release.unwrap_or(String::new()));
-            cep.set_pkg(pkg_ident);
-        }
-        cep.set_initialized(self.initialized);
-        cep.set_persistent(self.persistent);
-        cep.set_leader(self.leader);
-        cep.set_follower(self.follower);
-        cep.set_update_leader(self.update_leader);
-        cep.set_update_follower(self.update_follower);
-        cep.set_election_is_running(self.election_is_running);
-        cep.set_election_is_no_quorum(self.election_is_no_quorum);
-        cep.set_election_is_finished(self.election_is_finished);
-        cep.set_update_election_is_running(self.update_election_is_running);
-        cep.set_update_election_is_no_quorum(self.update_election_is_no_quorum);
-        cep.set_update_election_is_finished(self.update_election_is_finished);
-        cep.set_initialized(self.initialized);
-        cep.set_alive(self.alive);
-        cep.set_suspect(self.suspect);
-        cep.set_confirmed(self.confirmed);
-        cep.set_departed(self.departed);
-        cep.set_persistent(self.persistent);
-
-        let cfg_str = toml::to_string(&self.cfg).unwrap();
-        cep.set_cfg(cfg_str.into_bytes());
-        cep
-    }
-
     fn update_from_service_rumor(&mut self, sg: &ServiceGroup, rumor: &ServiceRumor) {
         self.member_id = String::from(rumor.get_member_id());
         self.service = sg.service().to_string();
