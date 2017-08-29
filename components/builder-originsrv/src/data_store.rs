@@ -518,7 +518,7 @@ impl DataStore {
         origin_get.set_name(origin_name.to_string());
         let conn = self.pool.get(&origin_get)?;
         let rows = &conn.query(
-            "SELECT * FROM origins_with_secret_key_full_name_v1 WHERE name = $1 LIMIT \
+            "SELECT * FROM origins_with_secret_key_full_name_v2 WHERE name = $1 LIMIT \
                         1",
             &[&origin_name],
         ).map_err(Error::OriginGet)?;
@@ -530,6 +530,8 @@ impl DataStore {
             origin.set_name(row.get("name"));
             let ooid: i64 = row.get("owner_id");
             origin.set_owner_id(ooid as u64);
+            let upc: i64 = row.get("unique_package_count");
+            origin.set_unique_package_count(upc as u64);
             let private_key_name: Option<String> = row.get("private_key_name");
             if let Some(pk) = private_key_name {
                 origin.set_private_key_name(pk);
