@@ -61,6 +61,7 @@ import { SignInPageComponent } from "./sign-in-page/SignInPageComponent";
 import { TabComponent } from "./TabComponent";
 import { TabsComponent } from "./TabsComponent";
 import { UserNavComponent } from "./header/user-nav/UserNavComponent";
+import { RepoFilterPipe } from "./pipes/repoFilter.pipe";
 
 @NgModule({
     imports: [
@@ -111,7 +112,8 @@ import { UserNavComponent } from "./header/user-nav/UserNavComponent";
         ProjectSettingsPageComponent,
         TabComponent,
         TabsComponent,
-        UserNavComponent
+        UserNavComponent,
+        RepoFilterPipe
     ],
     providers: [
         { provide: LocationStrategy, useClass: HashLocationStrategy },

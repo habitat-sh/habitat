@@ -14,6 +14,7 @@
 
 import { Component, Input, OnInit } from "@angular/core";
 import { List, Map, OrderedSet } from "immutable";
+import { GitHubRepo } from "../github-repos/shared/github-repos.model";
 
 @Component({
     selector: "hab-github-repo-picker",
@@ -47,11 +48,12 @@ import { List, Map, OrderedSet } from "immutable";
                 <hab-icon symbol="loading" [class.spinning]="areReposLoading"></hab-icon>
                 Repositories
             </h4>
+            <label>Filter: <input [(ngModel)]="filter.name"></label>
             <ul>
                 <li *ngIf="repos.size === 0 && selectedOrg && !areReposLoading">
                     No repositories found in '{{selectedOrg}}'
                 </li>
-                <li *ngFor="let repo of repos">
+                <li *ngFor="let repo of repos | habGitHubRepoFilter:filter:'name'">
                     <a (click)='onRepoSelect(repo.get("full_name"))' href="#">
                         {{repo.get("name")}}
                     </a>
@@ -73,6 +75,7 @@ export class GitHubRepoPickerComponent implements OnInit {
     @Input() selectedOrg: string;
     @Input() user;
 
+    filter: GitHubRepo = new GitHubRepo();
     clickFetchGitHubRepos: Function;
 
     constructor() {
