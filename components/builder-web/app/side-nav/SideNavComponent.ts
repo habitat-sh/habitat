@@ -41,7 +41,7 @@ import config from "../config";
                 <a href="{{ config['docs_url'] }}">Habitat Docs</a>
             </li>
             <li>
-                <a href="{{ config['tutorials_url'] }}/getting-started/overview">Getting Started</a>
+                <a href="{{ config['tutorials_url'] }}/get-started">Get Started</a>
             </li>
             <li>
                 <a href="{{ config['www_url'] }}/about">Why Habitat?</a>
