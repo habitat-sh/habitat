@@ -13,6 +13,7 @@
 // limitations under the License.
 
 use std::env;
+use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 
 use users;
@@ -47,23 +48,7 @@ lazy_static! {
     ///
     /// WARNING: On Windows this variable mutates on first call if an environment variable with
     ///          the key of `FS_ROOT_ENVVAR` is set.
-    pub static ref FS_ROOT_PATH: PathBuf = {
-        // JW TODO: When Windows container studios are available the platform reflection should
-        // be removed.
-        if cfg!(target_os = "windows") {
-            match (henv::var(FS_ROOT_ENVVAR), henv::var(SYSTEMDRIVE_ENVVAR)) {
-                (Ok(path), _) =>  PathBuf::from(path),
-                (Err(_), Ok(system_drive)) => PathBuf::from(format!("{}{}", system_drive, "/")),
-                (Err(_), Err(_)) => unreachable!("Windows should always have a SYSTEMDRIVE \
-                    environment variable.")
-            }
-        } else {
-            match henv::var(FS_ROOT_ENVVAR) {
-                Ok(path) => PathBuf::from(path),
-                Err(_) => PathBuf::from("/")
-            }
-        }
-    };
+    pub static ref FS_ROOT_PATH: PathBuf = fs_root_path();
 
     static ref EUID: u32 = users::get_effective_uid();
 
@@ -339,6 +324,56 @@ fn find_command_with_pathext(candidate: &PathBuf) -> Option<PathBuf> {
 /// Returns whether or not the current process is running with a root effective user id or not.
 pub fn am_i_root() -> bool {
     *EUID == 0u32
+}
+
+/// Returns a `PathBuf` which represents the filesystem root for Habitat.
+///
+/// **Note** with the current exception of behavior on Windows (see below), an absolute default
+/// path of `"/"` should always be returned. This function is used to populate a one-time static
+/// value which cannot be altered for the execution length of a program. Packages in Habitat may
+/// contain binaries and libraries having dependent libraries which are located in absolute paths
+/// meaning that changing the value from this function will render existing packages un-runnable in
+/// the Supervisor. Furthermore as a rule in this codebase, external environment variables should
+/// *not* influence the behavior of inner libraries--any environment variables should be detected
+/// in a program at CLI parsing time and explicitly passed to inner module functions.
+///
+/// There is one exception to this rule which is supported for testing only--primarily exercising
+/// the Supervisor behavior. It allows setting a testing-only environment variable to influence the
+/// file system root for the duration of a running program.  Note that when using such an
+/// environment varible, any existing/actual Habitat packages may not run correctly due to the
+/// presence of absolute paths in package binaries and libraries. The environment variable will not
+/// be referenced, exported, or consumed anywhere else in the system to ensure that it is *only*
+/// used internally in test suites.
+///
+/// Please contact a project maintainer or current owner with any questions. Thanks!
+fn fs_root_path() -> PathBuf {
+    // This behavior must never be expected, used, or counted on in production. This is explicitly
+    // unsupported.
+    if let Ok(path) = henv::var("TESTING_FS_ROOT") {
+        writeln!(
+            io::stderr(),
+            "DEBUG: setting custom filesystem root for testing only (TESTING_FS_ROOT='{}')",
+            &path
+        ).expect("Could not write to stderr");
+        return PathBuf::from(path);
+    }
+
+    // JW TODO: When Windows container studios are available the platform reflection should
+    // be removed.
+    if cfg!(target_os = "windows") {
+        match (henv::var(FS_ROOT_ENVVAR), henv::var(SYSTEMDRIVE_ENVVAR)) {
+            (Ok(path), _) => PathBuf::from(path),
+            (Err(_), Ok(system_drive)) => PathBuf::from(format!("{}{}", system_drive, "/")),
+            (Err(_), Err(_)) => {
+                unreachable!(
+                    "Windows should always have a SYSTEMDRIVE \
+                    environment variable."
+                )
+            }
+        }
+    } else {
+        PathBuf::from("/")
+    }
 }
 
 #[cfg(test)]
