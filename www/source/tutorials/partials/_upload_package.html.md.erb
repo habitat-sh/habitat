@@ -35,6 +35,7 @@ To upload your public key, do the following:
 > **Tip** Because only the private key is imported when entering the Habitat studio, it is easier to upload your public key outside of the studio.
 <% end %>
 
+
 ## Upload Packages to the Depot
 
 Once the depot possesses at least the public key of the origin, you may upload one or more packages to that origin by using the `hab pkg upload` command. The depot will check the cryptographic integrity of the package before allowing you to upload it. Uploading packages is also a privileged operation for which you must have the access token.
@@ -81,13 +82,13 @@ Once the depot possesses at least the public key of the origin, you may upload o
 
 <% if !is_windows %>
     ```
-    $ hab pkg promote -z <OAuth_token> originname-myrailsapp-0.1.0-release stable
+    $ hab pkg promote -z <OAuth_token> originname/myrailsapp/0.1.0/release stable
     ```
 <% end %>
 
 <% if is_windows %>
     ```
-    PS > hab pkg promote -z <OAuth_token> originname-myrailsapp-0.1.0-release stable
+    PS > hab pkg promote -z <OAuth_token> originname/myrailsapp/0.1.0/release stable
     ```
 <% end %>
 
