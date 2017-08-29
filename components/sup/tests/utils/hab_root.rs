@@ -29,8 +29,9 @@ use std::io::Read;
 use std::path::{PathBuf, Path};
 use std::string::ToString;
 
-extern crate tempdir;
-use self::tempdir::TempDir;
+use hcore::fs::PKG_PATH;
+use hcore::package::metadata::MetaFile;
+use tempdir::TempDir;
 
 #[derive(Debug)]
 pub struct HabRoot(TempDir);
@@ -57,14 +58,35 @@ impl HabRoot {
         T: AsRef<Path>,
     {
         self.0
-            .as_ref()
-            .to_path_buf()
-            .join("hab")
-            .join("pkgs")
+            .path()
+            .join(PKG_PATH)
             .join(origin.as_ref())
             .join(pkg_name.as_ref())
             .join("1.0.0")
             .join("20170721000000")
+    }
+
+    /// Returns the path to the service user metafile for a given package.
+    pub fn svc_user_path<S, T>(&self, origin: S, pkg_name: T) -> PathBuf
+    where
+        S: AsRef<Path>,
+        T: AsRef<Path>,
+    {
+        self.pkg_path(origin, pkg_name).join(
+            MetaFile::SvcUser.to_string(),
+        )
+    }
+
+    /// Returns the path to the service group metafile for a given package.
+    pub fn svc_group_path<S, T>(&self, origin: S, pkg_name: T) -> PathBuf
+    where
+        S: AsRef<Path>,
+        T: AsRef<Path>,
+    {
+        self.pkg_path(origin, pkg_name).join(
+            MetaFile::SvcGroup
+                .to_string(),
+        )
     }
 
     /// The path to which a spec file should be written for a given

@@ -14,11 +14,14 @@
 
 //! Utility functions for testing a supervisor
 
-use std::fs;
+use std::fs::{self, File};
+use std::io::Write;
 use std::path::Path;
 use std::string::ToString;
 use std::thread;
 use std::time::Duration;
+
+use hcore::os::users;
 
 pub mod fixture_root;
 pub mod hab_root;
@@ -75,6 +78,7 @@ pub fn setup_package_files<O, P, S>(
     let expanded_fixture_dir = fixture_root.expanded_package_dir(&package_name);
     let hab_pkg_path = hab_root.pkg_path(&origin_name, &package_name);
     copy_dir(&expanded_fixture_dir, &hab_pkg_path);
+    write_default_svc_user_and_group_metafiles(&hab_root, &origin_name, &package_name);
 }
 
 /// Recursively copy the contents of `source_dir` into `dest_dir`
@@ -119,4 +123,55 @@ where
             copy_dir(&source, &destination);
         }
     }
+}
+
+/// Write default `SVC_USER` and `SVC_GROUP` package metafiles unless one is already present in
+/// the target directory.
+///
+/// In an effort to execute a package when running test suites as a non-root user, the current
+/// username and the user's primary groupname will be used. If a fixture contains one or both of
+/// these metafiles, default values will *not* be used.
+fn write_default_svc_user_and_group_metafiles<S, T>(hab_root: &HabRoot, pkg_origin: S, pkg_name: T)
+where
+    S: AsRef<Path>,
+    T: AsRef<Path>,
+{
+    let svc_user_metafile = hab_root.svc_user_path(&pkg_origin, &pkg_name);
+    let svc_group_metafile = hab_root.svc_group_path(&pkg_origin, &pkg_name);
+
+    if !svc_user_metafile.is_file() {
+        write_metafile(
+            svc_user_metafile,
+            users::get_current_username()
+                .expect("Could not determine current username")
+                .as_str(),
+        );
+    }
+
+    if !svc_group_metafile.is_file() {
+        write_metafile(
+            svc_group_metafile,
+            users::get_current_groupname()
+                .expect("Could not determine current groupname")
+                .as_str(),
+        );
+    }
+}
+
+/// Write package metafile with provided content.
+fn write_metafile<P>(metafile: P, content: &str)
+where
+    P: AsRef<Path>,
+{
+    let mut f =
+        File::create(&metafile).expect(
+            format!("Could not create metafile {}", metafile.as_ref().display())
+                .as_str(),
+        );
+    f.write_all(content.as_bytes()).expect(
+        format!(
+            "Could not write file contents to metafile {}",
+            metafile.as_ref().display()
+        ).as_str(),
+    );
 }
