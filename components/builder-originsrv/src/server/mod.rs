@@ -73,6 +73,11 @@ impl Dispatcher for Worker {
             "CheckOriginAccessRequest" => handlers::origin_check_access(message, sock, state),
             "OriginCreate" => handlers::origin_create(message, sock, state),
             "OriginGet" => handlers::origin_get(message, sock, state),
+            "OriginIntegrationGetNames" => {
+                handlers::origin_integration_get_names(message, sock, state)
+            }
+            "OriginIntegrationCreate" => handlers::origin_integration_create(message, sock, state),
+            "OriginIntegrationDelete" => handlers::origin_integration_delete(message, sock, state),
             "OriginInvitationAcceptRequest" => {
                 handlers::origin_invitation_accept(message, sock, state)
             }

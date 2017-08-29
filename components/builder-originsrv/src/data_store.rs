@@ -80,6 +80,7 @@ impl DataStore {
         migrations::origin_projects::migrate(&mut migrator)?;
         migrations::origin_packages::migrate(&mut migrator)?;
         migrations::origin_channels::migrate(&mut migrator)?;
+        migrations::origin_integrations::migrate(&mut migrator)?;
 
         migrator.finish()?;
 
@@ -1069,6 +1070,71 @@ impl DataStore {
             &[&(ocd.get_id() as i64)],
         ).map_err(Error::OriginChannelDelete)?;
         Ok(())
+    }
+
+    pub fn create_origin_integration(
+        &self,
+        oic: &originsrv::OriginIntegrationCreate,
+    ) -> Result<()> {
+        let conn = self.pool.get(oic)?;
+
+        let rows = conn.query(
+            "SELECT * FROM insert_origin_integration_v1($1, $2, $3, $4)",
+            &[
+                &oic.get_origin(),
+                &oic.get_integration(),
+                &oic.get_name(),
+                &oic.get_body(),
+            ],
+        ).map_err(Error::OriginIntegrationCreate)?;
+        rows.iter().nth(0).expect(
+            "Insert returns row, but no row present",
+        );
+        Ok(())
+    }
+
+    pub fn get_origin_integration_names(
+        &self,
+        oig: &originsrv::OriginIntegrationGetNames,
+    ) -> Result<Option<originsrv::OriginIntegrationNames>> {
+        let conn = self.pool.get(oig)?;
+        let rows = &conn.query(
+            "SELECT * FROM get_origin_integrations_v1($1, $2)",
+            &[&oig.get_origin(), &oig.get_integration()],
+        ).map_err(Error::OriginIntegrationGetNames)?;
+
+        if rows.len() != 0 {
+            Ok(Some(self.rows_to_origin_integration_names(&rows)))
+        } else {
+            Ok(None)
+        }
+    }
+
+    pub fn delete_origin_integration(
+        &self,
+        oid: &originsrv::OriginIntegrationDelete,
+    ) -> Result<()> {
+        let conn = self.pool.get(oid)?;
+        conn.execute(
+            "SELECT delete_origin_integration_v1($1, $2)",
+            &[&oid.get_origin(), &oid.get_name()],
+        ).map_err(Error::OriginIntegrationDelete)?;
+        Ok(())
+    }
+
+    fn rows_to_origin_integration_names(
+        &self,
+        rows: &postgres::rows::Rows,
+    ) -> originsrv::OriginIntegrationNames {
+        let mut oin = originsrv::OriginIntegrationNames::new();
+        let mut names = protobuf::RepeatedField::new();
+        for row in rows.iter() {
+            let name: String = row.get("name");
+            names.push(name);
+        }
+
+        oin.set_names(names);
+        oin
     }
 }
 

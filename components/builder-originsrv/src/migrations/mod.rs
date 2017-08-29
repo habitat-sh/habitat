@@ -20,3 +20,4 @@ pub mod origin_invitations;
 pub mod origin_projects;
 pub mod origin_packages;
 pub mod origin_channels;
+pub mod origin_integrations;

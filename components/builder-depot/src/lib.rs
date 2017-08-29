@@ -54,6 +54,7 @@ pub mod config;
 pub mod error;
 pub mod doctor;
 pub mod server;
+pub mod handlers;
 
 pub use self::config::Config;
 pub use self::error::{Error, Result};

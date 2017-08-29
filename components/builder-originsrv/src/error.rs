@@ -48,6 +48,9 @@ pub enum Error {
     OriginCheckAccess(postgres::error::Error),
     OriginGet(postgres::error::Error),
     OriginMemberList(postgres::error::Error),
+    OriginIntegrationCreate(postgres::error::Error),
+    OriginIntegrationGetNames(postgres::error::Error),
+    OriginIntegrationDelete(postgres::error::Error),
     OriginInvitationAccept(postgres::error::Error),
     OriginInvitationCreate(postgres::error::Error),
     OriginInvitationListForOrigin(postgres::error::Error),
@@ -133,6 +136,15 @@ impl fmt::Display for Error {
             Error::OriginGet(ref e) => format!("Error getting origin from database, {}", e),
             Error::OriginMemberList(ref e) => {
                 format!("Error getting origin members from database, {}", e)
+            }
+            Error::OriginIntegrationCreate(ref e) => {
+                format!("Error creating integration in database, {}", e)
+            }
+            Error::OriginIntegrationGetNames(ref e) => {
+                format!("Error getting integration names from database, {}", e)
+            }
+            Error::OriginIntegrationDelete(ref e) => {
+                format!("Error deleting integration from database, {}", e)
             }
             Error::OriginInvitationAccept(ref e) => {
                 format!("Error accepting origin invitation in database, {}", e)
@@ -271,6 +283,9 @@ impl error::Error for Error {
             Error::OriginChannelDelete(ref err) => err.description(),
             Error::OriginGet(ref err) => err.description(),
             Error::OriginMemberList(ref err) => err.description(),
+            Error::OriginIntegrationCreate(ref err) => err.description(),
+            Error::OriginIntegrationGetNames(ref err) => err.description(),
+            Error::OriginIntegrationDelete(ref err) => err.description(),
             Error::OriginInvitationAccept(ref err) => err.description(),
             Error::OriginInvitationCreate(ref err) => err.description(),
             Error::OriginInvitationListForOrigin(ref err) => err.description(),
