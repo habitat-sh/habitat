@@ -21,8 +21,8 @@
 
 @mixin chevron-right {
   position: absolute;
-  width: 20px;
-  height: 20px;
+  width: $list-item-icon-width;
+  height: $list-item-icon-height;
   right: 0;
   top: 50%;
   transform: translateY(-50%);

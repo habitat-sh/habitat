@@ -95,8 +95,8 @@
         position: absolute;
         display: none;
         right: 24px;
-        width: 20px;
-        height: 20px;
+        width: $list-item-icon-width;
+        height: $list-item-icon-height;
         top: 50%;
         transform: translateY(-50%);
       }
@@ -115,8 +115,8 @@
       hab-build-status {
 
         hab-icon {
-          width: 20px;
-          height: 20px;
+          width: $list-item-icon-width;
+          height: $list-item-icon-height;
           position: absolute;
           right: 52px;
           top: 50%;
