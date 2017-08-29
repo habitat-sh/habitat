@@ -93,5 +93,14 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                         ADD CONSTRAINT origin_secret_keys_full_name_key
                         UNIQUE (full_name)"#,
     )?;
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE OR REPLACE VIEW origins_with_secret_key_full_name_v2 AS
+                        SELECT o.id, o.name, o.owner_id, osk.full_name AS private_key_name,
+                          (SELECT COUNT(DISTINCT op.name) FROM origin_packages op WHERE op.origin_id = o.id) as unique_package_count
+                          FROM origins o
+                          LEFT OUTER JOIN origin_secret_keys osk ON (o.id = osk.origin_id)
+                          ORDER BY o.id, osk.full_name DESC"#,
+    )?;
     Ok(())
 }

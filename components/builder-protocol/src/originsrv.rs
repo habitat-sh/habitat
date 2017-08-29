@@ -89,6 +89,10 @@ impl Serialize for Origin {
             "private_key_name",
             self.get_private_key_name(),
         )?;
+        strukt.serialize_field(
+            "unique_package_count",
+            &self.get_unique_package_count().to_string(),
+        )?;
         strukt.end()
     }
 }

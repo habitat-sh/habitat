@@ -31,6 +31,7 @@ message Origin {
   optional string name = 2;
   optional uint64 owner_id = 3;
   optional string private_key_name = 4;
+  optional uint64 unique_package_count = 5;
 }
 
 message OriginCreate {
