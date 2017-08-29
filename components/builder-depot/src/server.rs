@@ -1350,18 +1350,24 @@ fn list_packages(req: &mut Request) -> IronResult<Response> {
             // and accumulate those results. This avoids the N+1 HTTP requests that would be
             // required to fetch channels for a list of packages in the UI. However, if our request
             // has been marked as "distinct" then skip this step because it doesn't make sense in
-            // that case.
+            // that case. Let's get platforms at the same time.
             for package in packages.get_idents().to_vec() {
                 let mut channels: Option<Vec<String>> = None;
+                let mut platforms: Option<Vec<String>> = None;
 
                 if !distinct {
                     channels = channels_for_package_ident(&package);
+                    platforms = platforms_for_package_ident(&package);
                 }
 
                 let mut pkg_json = serde_json::to_value(package).unwrap();
 
                 if channels.is_some() {
                     pkg_json["channels"] = json!(channels);
+                }
+
+                if platforms.is_some() {
+                    pkg_json["platforms"] = json!(platforms);
                 }
 
                 results.push(pkg_json);
@@ -2011,6 +2017,20 @@ fn channels_for_package_ident(package: &OriginPackageIdent) -> Option<Vec<String
 
             Some(list)
         }
+        Err(_) => None,
+    }
+}
+
+// Get platforms for a package
+fn platforms_for_package_ident(package: &OriginPackageIdent) -> Option<Vec<String>> {
+    let mut conn = Broker::connect().unwrap();
+    let mut opplr = OriginPackagePlatformListRequest::new();
+    opplr.set_ident(package.clone());
+
+    match conn.route::<OriginPackagePlatformListRequest, OriginPackagePlatformListResponse>(
+        &opplr,
+    ) {
+        Ok(p) => Some(p.get_platforms().to_vec()),
         Err(_) => None,
     }
 }

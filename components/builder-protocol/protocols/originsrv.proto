@@ -187,6 +187,15 @@ message OriginPackageVersion {
   optional string version = 3;
   optional uint64 release_count = 4;
   optional string latest = 5;
+  repeated string platforms = 6;
+}
+
+message OriginPackagePlatformListRequest {
+  optional OriginPackageIdent ident = 1;
+}
+
+message OriginPackagePlatformListResponse {
+  repeated string platforms = 1;
 }
 
 message OriginPackageCreate {

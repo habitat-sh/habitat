@@ -100,6 +100,9 @@ impl Dispatcher for Worker {
             "OriginPackageGet" => handlers::origin_package_get(message, sock, state),
             "OriginPackageLatestGet" => handlers::origin_package_latest_get(message, sock, state),
             "OriginPackageListRequest" => handlers::origin_package_list(message, sock, state),
+            "OriginPackagePlatformListRequest" => {
+                handlers::origin_package_platform_list(message, sock, state)
+            }
             "OriginPackageChannelListRequest" => {
                 handlers::origin_package_channel_list(message, sock, state)
             }

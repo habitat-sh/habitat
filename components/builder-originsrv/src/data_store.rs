@@ -679,7 +679,7 @@ impl DataStore {
         let conn = self.pool.get(opvl)?;
 
         let rows = conn.query(
-            "SELECT * FROM get_origin_package_versions_for_origin_v3($1, $2)",
+            "SELECT * FROM get_origin_package_versions_for_origin_v4($1, $2)",
             &[&opvl.get_origin(), &opvl.get_name()],
         ).map_err(Error::OriginPackageVersionList)?;
 
@@ -693,12 +693,17 @@ impl DataStore {
 
             let release_count: i64 = row.get("release_count");
             let latest: String = row.get("latest");
+            let platforms_str: String = row.get("platforms");
+            let platforms_vec = platforms_str.split(',').map(|x| x.to_string()).collect();
+            let platforms = protobuf::RepeatedField::from_vec(platforms_vec);
+
             let mut version = originsrv::OriginPackageVersion::new();
             version.set_origin(opvl.get_origin().to_string());
             version.set_name(opvl.get_name().to_string());
             version.set_version(ver);
             version.set_release_count(release_count as u64);
             version.set_latest(latest);
+            version.set_platforms(platforms);
 
             version_map.insert(ident.clone(), version);
             idents.push(ident);
@@ -709,6 +714,27 @@ impl DataStore {
             versions.push(version_map.remove(&ident).unwrap());
         }
         response.set_versions(versions);
+        Ok(response)
+    }
+
+    pub fn list_origin_package_platforms_for_package(
+        &self,
+        oppl: &originsrv::OriginPackagePlatformListRequest,
+    ) -> Result<originsrv::OriginPackagePlatformListResponse> {
+        let conn = self.pool.get(oppl)?;
+
+        let rows = conn.query(
+            "SELECT * FROM get_origin_package_platforms_for_package_v1($1)",
+            &[&self.searchable_ident(oppl.get_ident())],
+        ).map_err(Error::OriginPackagePlatformList)?;
+
+        let mut response = originsrv::OriginPackagePlatformListResponse::new();
+        let mut platforms = protobuf::RepeatedField::new();
+        for row in rows.iter() {
+            let platform = row.get("target");
+            platforms.push(platform);
+        }
+        response.set_platforms(platforms);
         Ok(response)
     }
 
