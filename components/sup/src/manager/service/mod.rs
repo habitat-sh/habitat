@@ -126,7 +126,11 @@ impl Service {
             depot_url: spec.depot_url,
             channel: spec.channel,
             health_check: HealthCheck::default(),
-            hooks: HookTable::load(&service_group, &hooks_root),
+            hooks: HookTable::load(
+                &service_group,
+                &hooks_root,
+                fs::svc_hooks_path(&service_group.service()),
+            ),
             initialized: false,
             last_election_status: ElectionStatus::None,
             needs_reload: false,
@@ -420,6 +424,7 @@ impl Service {
                 self.hooks = HookTable::load(
                     &self.service_group,
                     &Self::hooks_root(&pkg, self.config_from.as_ref()),
+                    fs::svc_hooks_path(self.service_group.service()),
                 );
                 self.pkg = pkg;
             }
