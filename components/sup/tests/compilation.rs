@@ -17,12 +17,14 @@
 /// Integration tests for exercising the hook and config recompilation
 /// behavior of the supervisor
 
-mod utils;
-
 extern crate habitat_core as hcore;
+extern crate habitat_sup as sup;
 #[macro_use]
 extern crate lazy_static;
+extern crate rand;
 extern crate tempdir;
+
+mod utils;
 
 // The fixture location is derived from the name of this test
 // suite. By convention, it is the same as the file name.
