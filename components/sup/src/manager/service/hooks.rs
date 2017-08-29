@@ -759,29 +759,29 @@ pub struct HookTable {
 
 impl HookTable {
     /// Read all available hook templates from the table's package directory into the table.
-    pub fn load<T>(service_group: &ServiceGroup, templates: T) -> Self
+    pub fn load<P, T>(service_group: &ServiceGroup, templates: T, hooks_path: P) -> Self
     where
+        P: AsRef<Path>,
         T: AsRef<Path>,
     {
         let mut table = HookTable::default();
-        let hooks = fs::svc_hooks_path(service_group.service());
         if let Some(meta) = std::fs::metadata(templates.as_ref()).ok() {
             if meta.is_dir() {
-                table.file_updated = FileUpdatedHook::load(service_group, &hooks, &templates);
-                table.health_check = HealthCheckHook::load(service_group, &hooks, &templates);
-                table.suitability = SuitabilityHook::load(service_group, &hooks, &templates);
-                table.init = InitHook::load(service_group, &hooks, &templates);
-                table.reload = ReloadHook::load(service_group, &hooks, &templates);
-                table.reconfigure = ReconfigureHook::load(service_group, &hooks, &templates);
-                table.run = RunHook::load(service_group, &hooks, &templates);
-                table.post_run = PostRunHook::load(service_group, &hooks, &templates);
-                table.smoke_test = SmokeTestHook::load(service_group, &hooks, &templates);
+                table.file_updated = FileUpdatedHook::load(service_group, &hooks_path, &templates);
+                table.health_check = HealthCheckHook::load(service_group, &hooks_path, &templates);
+                table.suitability = SuitabilityHook::load(service_group, &hooks_path, &templates);
+                table.init = InitHook::load(service_group, &hooks_path, &templates);
+                table.reload = ReloadHook::load(service_group, &hooks_path, &templates);
+                table.reconfigure = ReconfigureHook::load(service_group, &hooks_path, &templates);
+                table.run = RunHook::load(service_group, &hooks_path, &templates);
+                table.post_run = PostRunHook::load(service_group, &hooks_path, &templates);
+                table.smoke_test = SmokeTestHook::load(service_group, &hooks_path, &templates);
             }
         }
         info!(
             "{}, Hooks loaded, destination={}, templates={}",
             service_group,
-            hooks.display(),
+            hooks_path.as_ref().display(),
             templates.as_ref().display()
         );
         table
@@ -973,6 +973,7 @@ mod tests {
     use butterfly::rumor::election::ElectionUpdate as ElectionUpdateRumor;
     use butterfly::rumor::service::SysInfo;
     use butterfly::rumor::RumorStore;
+    use super::fs as supfs;
 
     // Turns out it's useful for Hooks to implement AsRef<Path>, at
     // least for these tests. Ideally, this would be useful to use
@@ -1292,24 +1293,17 @@ echo "The message is Hello"
 
     #[test]
     fn compile_hook_table() {
-
         let tmp_root = rendered_hooks_path();
-        std::env::set_var("FS_ROOT", tmp_root.path());
-
-        let template_root = tmp_root
-            .path()
-            .join("hab")
-            .join("svc")
-            .join("test_service")
-            .join("hooks");
-        DirBuilder::new()
-            .recursive(true)
-            .create(template_root.clone())
-            .unwrap();
+        let hooks_path = tmp_root.path().join(
+            supfs::svc_hooks_path("test_service")
+                .strip_prefix("/")
+                .unwrap(),
+        );
+        fs::create_dir_all(&hooks_path).unwrap();
 
         let service_group = service_group();
 
-        let concrete_path = template_root.clone(); //rendered_hooks_path();
+        let concrete_path = hooks_path.clone(); //rendered_hooks_path();
         let template_path = hook_templates_path();
 
         ////////////////////////////////////////////////////////////////////////
@@ -1384,7 +1378,7 @@ echo "The message is Hello"
         // END RENDER CONTEXT SETUP
         ////////////////////////////////////////////////////////////////////////
 
-        let hook_table = HookTable::load(&service_group, &template_path);
+        let hook_table = HookTable::load(&service_group, &template_path, &hooks_path);
         assert_eq!(hook_table.compile(&service_group, &ctx), true);
 
         // Verify init hook
