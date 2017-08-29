@@ -24,10 +24,11 @@ use std::sync::Mutex;
 use std::thread;
 use std::time::Duration;
 
-use super::test_butterfly;
+use hcore::url::DEPOT_URL_ENVVAR;
+use rand;
+use rand::distributions::{IndependentSample, Range};
 
-extern crate rand;
-use self::rand::distributions::{IndependentSample, Range};
+use super::test_butterfly;
 
 lazy_static! {
     /// Keep track of all TCP ports currently being used by TestSup
@@ -217,9 +218,11 @@ impl TestSup {
         let pkg_name = pkg_name.to_string();
         let service_group = service_group.to_string();
 
-        cmd.env("FS_ROOT", fs_root.as_ref().to_string_lossy().as_ref())
-            .env("HAB_SUP_BINARY", &sup_exe)
-            .env("HAB_DEPOT_URL", "http://hab.sup.test/v1/depot")
+        cmd.env(
+            "TESTING_FS_ROOT",
+            fs_root.as_ref().to_string_lossy().as_ref(),
+        ).env("HAB_SUP_BINARY", &sup_exe)
+            .env(DEPOT_URL_ENVVAR, "http://hab.sup.test/v1/depot")
             .arg("start")
             .arg("--listen-gossip")
             .arg(format!("{}:{}", listen_host, butterfly_port))
