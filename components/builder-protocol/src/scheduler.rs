@@ -198,6 +198,10 @@ impl Serialize for PackageStats {
         let mut strukt = serializer.serialize_struct("packagestats", 2)?;
         strukt.serialize_field("plans", &self.get_plans())?;
         strukt.serialize_field("builds", &self.get_builds())?;
+        strukt.serialize_field(
+            "unique_packages",
+            &self.get_unique_packages(),
+        )?;
         strukt.end()
     }
 }

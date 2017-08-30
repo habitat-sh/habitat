@@ -373,6 +373,24 @@ impl DataStore {
                                   SELECT * FROM my_group;
                                 $$"#)?;
 
+        // get a count on the number of unique packages in an origin
+        migrator.migrate(
+            "scheduler",
+            r#"CREATE OR REPLACE FUNCTION count_unique_packages_v1 (
+                                  op_origin text
+                                ) RETURNS bigint
+                                LANGUAGE SQL
+                                STABLE AS $$
+                                WITH idents AS (
+                                  SELECT regexp_split_to_array(ident, '/') as parts
+                                  FROM packages
+                                )
+                                SELECT COUNT(DISTINCT i.parts[2]) AS total
+                                FROM idents i
+                                WHERE i.parts[1] = op_origin
+                                $$"#,
+        )?;
+
         migrator.finish()?;
 
         Ok(())
@@ -443,9 +461,15 @@ impl DataStore {
         assert!(rows.len() == 1); // should never have more than one
         let build_count: i64 = rows.get(0).get("count_projects_v1");
 
+        let rows = &conn.query("SELECT * FROM count_unique_packages_v1($1)", &[&origin])
+            .map_err(Error::PackageStats)?;
+        assert!(rows.len() == 1); // should never have more than one
+        let up_count: i64 = rows.get(0).get("count_unique_packages_v1");
+
         let mut package_stats = PackageStats::new();
         package_stats.set_plans(package_count as u64);
         package_stats.set_builds(build_count as u64);
+        package_stats.set_unique_packages(up_count as u64);
 
         Ok(package_stats)
     }
