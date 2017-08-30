@@ -30,6 +30,7 @@ serde_json = "*"
 sodiumoxide = { git = "https://github.com/dnaq/sodiumoxide" }
 time = "*"
 toml = { version = "*", features = ["serde"], default-features = false }
+typemap = "*"
 url = "*"
 
 [target.'cfg(not(windows))'.dependencies]
