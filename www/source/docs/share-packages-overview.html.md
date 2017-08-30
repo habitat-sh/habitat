@@ -50,6 +50,14 @@ You can upload keys for the origin through the web interface for the depot, or b
 
 Once the depot possesses at least the public key of the origin, you may upload one or more packages to that origin by using the `hab pkg upload` command. The depot will check the cryptographic integrity of the package before allowing you to upload it. Uploading packages is also a privileged operation for which you must have the access token.
 
+## Promoting packages
+
+By default, uploaded pacakges are placed in the unstable channel; however, the default package that is downloaded is the latest _stable_ version of a package, unless overridden in commands such as `hab start` and `hab install`. If you want to promote your package to the stable channel, run the `hab pkg promote` command as follows:
+
+```
+$ hab pkg promote -z <OAuth_token> origin/package/version/release stable
+```
+
 ## Running packages from the depot
 
 You can instruct the supervisor to download and run packages from a depot by using the `hab start` command, for example:
