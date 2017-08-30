@@ -1,0 +1,29 @@
+.hab-origin-members-tab {
+  &--section {
+    margin-bottom: rem(60);
+
+    > h3 {
+      margin-bottom: rem(30);
+    }
+
+    &.invite-members > h3 {
+      margin-bottom: rem(10);
+    }
+  }
+
+  &--submit {
+     @include outer-container;
+  }
+
+  &--save {
+    @include span-columns(4);
+    margin-top: 0;
+  }
+
+  &--errors {
+    @include span-columns(8);
+    @include omega;
+    color: $hab-red;
+    font-size: $error-font;
+  }
+}

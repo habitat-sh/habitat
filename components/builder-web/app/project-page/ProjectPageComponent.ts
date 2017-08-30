@@ -15,8 +15,6 @@
 import {AppStore} from "../AppStore";
 import {Component, OnInit, OnDestroy} from "@angular/core";
 import {RouterLink, ActivatedRoute} from "@angular/router";
-import {TabComponent} from "../TabComponent";
-import {TabsComponent} from "../TabsComponent";
 import {fetchBuilds, fetchProject, deleteProject} from "../actions/index";
 import {friendlyTime, requireSignIn} from "../util";
 import {Subscription} from "rxjs/Subscription";

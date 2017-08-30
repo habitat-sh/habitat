@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Component, OnInit} from "@angular/core";
-import {acceptOriginInvitation, fetchMyOriginInvitations, fetchMyOrigins}
-    from "../actions/index";
-import {AppStore} from "../AppStore";
-import {requireSignIn} from "../util";
-import {Router} from "@angular/router";
+import { Component, OnInit } from "@angular/core";
+import { acceptOriginInvitation, fetchMyOriginInvitations, fetchMyOrigins }
+    from "../../actions/index";
+import { AppStore } from "../../AppStore";
+import { requireSignIn } from "../../util";
+import { Router } from "@angular/router";
 
 @Component({
     template: require("./origins-page.component.html")

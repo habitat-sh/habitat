@@ -1,0 +1,71 @@
+<div class="page-body">
+  <div class="hab-origin--left">
+    <div class="hab-origin--key-list">
+      <h3>Public Origin Keys</h3>
+      <p>
+        <button
+          *ngIf="iAmPartOfThisOrigin"
+          (click)="setOriginAddingPublicKey(true)"
+          [disabled]="addingPublicKey">
+          Upload public origin key
+        </button>
+      </p>
+      <hab-key-add-form
+        *ngIf="iAmPartOfThisOrigin && addingPublicKey"
+        type="public"
+        [originName]="origin.name">
+      </hab-key-add-form>
+      <p *ngIf="ui.publicKeyListErrorMessage">
+        Failed to load public keys:
+        {{ui.publicKeyListErrorMessage}}.
+      </p>
+      <hab-key-list
+        *ngIf="!ui.publicKeyListErrorMessage"
+        [keys]="publicKeys"
+        type="public origin"
+        [keyType]="keyType.Public">
+      </hab-key-list>
+    </div>
+    <hr>
+    <div class="hab-origin--key-list" *ngIf="iAmPartOfThisOrigin">
+      <h3>Private Origin Keys</h3>
+      <p>
+        <button
+          (click)="setOriginAddingPrivateKey(true)"
+          [disabled]="addingPrivateKey">
+          Upload private origin key
+        </button>
+      </p>
+      <hab-key-add-form
+        *ngIf="addingPrivateKey"
+        type="private"
+        [originName]="origin.name">
+      </hab-key-add-form>
+      <hab-key-list
+        *ngIf="privateKeyNames.size > 0"
+        [keys]="privateKeyNames"
+        type="private origin"
+        [keyType]="keyType.Private">
+      </hab-key-list>
+      <ul class="bullet">
+        <li>For security purposes, private keys can not be viewed or downloaded.</li>
+        <li>Only one private key exists for an origin at a
+        given time.</li>
+        <li><em>Uploading a new private key will overwrite the
+        existing private key.</em></li>
+      </ul>
+    </div>
+  </div>
+  <div class="hab-origin--right">
+    <p>
+      <em>Origin keys</em> ensure only authorized users (or
+      organizations) are able to push updates to packages
+      in this origin.
+    </p>
+    <p>
+      Read the docs for more information on
+      <a href="{{docsUrl}}/share-packages-overview/">
+        managing and using keys</a>.
+    </p>
+  </div>
+</div>

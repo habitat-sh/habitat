@@ -21,7 +21,6 @@ import { AppStore } from "./AppStore";
 import { AppComponent } from "./AppComponent";
 import { BuildComponent } from "./build/build.component";
 import { BuildPageComponent } from "./build-page/build-page.component";
-import { CheckingInputComponent } from "./CheckingInputComponent";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { DashboardComponent } from "./dashboard/dashboard.component";
 import { DashboardGuard } from "./dashboard/dashboard.guard";
@@ -30,13 +29,8 @@ import { FooterComponent } from "./footer/FooterComponent";
 import { GitHubRepoPickerComponent } from "./github-repo-picker/GitHubRepoPickerComponent";
 import { GravatarComponent } from "./GravatarComponent";
 import { HeaderComponent } from "./header/HeaderComponent";
-import { KeyAddFormComponent } from "./origin-page/KeyAddFormComponent";
-import { KeyListComponent } from "./origin-page/KeyListComponent";
 import { NotificationsComponent } from "./notifications/NotificationsComponent";
-import { OriginCreatePageComponent } from "./origin-create-page/OriginCreatePageComponent";
-import { OriginMembersTabComponent } from "./origin-page/OriginMembersTabComponent";
-import { OriginPageComponent } from "./origin-page/OriginPageComponent";
-import { OriginsPageComponent } from "./origins-page/OriginsPageComponent";
+import { OriginModule } from "./origin/origin.module";
 import { PackagePageComponent } from "./package-page/PackagePageComponent";
 import { PackagesListComponent } from "./packages-list/packages-list.component";
 import { PackagesPageComponent } from "./packages-page/packages-page.component";
@@ -48,8 +42,6 @@ import { ProjectsPageComponent } from "./projects-page/ProjectsPageComponent";
 import { SCMReposPageComponent } from "./scm-repos-page/SCMReposPageComponent";
 import { SideNavComponent } from "./side-nav/SideNavComponent";
 import { SignInPageComponent } from "./sign-in-page/SignInPageComponent";
-import { TabComponent } from "./TabComponent";
-import { TabsComponent } from "./TabsComponent";
 import { UserNavComponent } from "./header/user-nav/UserNavComponent";
 import { RepoFilterPipe } from "./pipes/repoFilter.pipe";
 
@@ -61,6 +53,7 @@ import { SharedModule } from "./shared/shared.module";
         BrowserModule,
         FormsModule,
         HttpModule,
+        OriginModule,
         PackageModule,
         ReactiveFormsModule,
         SharedModule,
@@ -70,20 +63,13 @@ import { SharedModule } from "./shared/shared.module";
         AppComponent,
         BuildComponent,
         BuildPageComponent,
-        CheckingInputComponent,
         DashboardComponent,
         ExploreComponent,
         FooterComponent,
         GitHubRepoPickerComponent,
         GravatarComponent,
         HeaderComponent,
-        KeyAddFormComponent,
-        KeyListComponent,
         NotificationsComponent,
-        OriginCreatePageComponent,
-        OriginMembersTabComponent,
-        OriginPageComponent,
-        OriginsPageComponent,
         PackagePageComponent,
         PackagesListComponent,
         PackagesPageComponent,
@@ -95,8 +81,6 @@ import { SharedModule } from "./shared/shared.module";
         SideNavComponent,
         SignInPageComponent,
         ProjectSettingsPageComponent,
-        TabComponent,
-        TabsComponent,
         UserNavComponent,
         RepoFilterPipe
     ],

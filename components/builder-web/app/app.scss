@@ -37,9 +37,12 @@ $output-bourbon-deprecation-warnings: false !default;
 @import "shared/copyable/copyable.component";
 @import "shared/progress-bar/progress-bar.component";
 @import "notifications/notifications";
-@import "origin-create-page/origin-create-page";
-@import "origin-page/origin-page";
-@import "origins-page/origins-page.component";
+@import "origin/origin-create-page/origin-create-page.component";
+@import "origin/origin-page/origin-page.component";
+@import "origin/origin-page/origin-keys-tab/key-add-form/key-add-form.component";
+@import "origin/origin-page/origin-keys-tab/key-list/key-list.component";
+@import "origin/origin-page/origin-members-tab/origin-members-tab.component";
+@import "origin/origins-page/origins-page.component";
 @import "package-page/package-page";
 @import "package/package/package.component";
 @import "package/package-builds/package-builds.component";
@@ -150,37 +153,6 @@ body {
   }
 }
 
-.page-subnav {
-
-  > ul.tabs {
-    background-color: $hab-blue-light;
-    display: block;
-    padding: 0 rem(25);
-
-    > li {
-      display: inline;
-
-      a {
-        color: $hab-gray-dark;
-        border-bottom: $small-spacing / 4 solid transparent;
-        display: inline-block;
-        font-family: $heading-font-family;
-        font-size: rem(12);
-        margin-right: rem(30);
-        padding-top: rem(10);
-        padding-right: 0;
-        padding-bottom: rem(12);
-        padding-left: 0;
-        text-transform: uppercase;
-
-        &.active {
-          border-bottom-color: $hab-green;
-        }
-      }
-    }
-  }
-}
-
 .page-body {
   min-height: 50vh;
   padding: rem(20) rem(20);
@@ -212,4 +184,16 @@ body {
   border-left: 1px solid $light-gray;
   padding-left: $base-spacing;
   word-wrap: break-word;
+}
+
+.mat-tab-nav-bar {
+  background-color: $hab-blue-light;
+
+  .mat-tab-link {
+    color: $hab-gray-dark;
+    font-family: $heading-font-family;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    min-width: 100px;
+  }
 }

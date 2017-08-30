@@ -12,30 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Component, Input} from "@angular/core";
-import {List} from "immutable";
-import config from "../config";
-import {KeyType} from "./OriginPageComponent";
+import { Component, Input } from "@angular/core";
+import { List } from "immutable";
+import config from "../../../../config";
+import { KeyType } from "../origin-keys-tab.component";
 
 @Component({
     selector: "hab-key-list",
-    template: `
-    <p *ngIf="keys.size === 0">
-        No {{type}} keys found.
-    </p>
-    <p *ngIf="keys.size > 0 && publicKey">
-        Select any key to download the file.
-    </p>
-    <ul class="hab-key-list--list" *ngIf="keys.size > 0">
-        <li *ngFor="let key of keys" class="hab-item-list--all-link hab-item-list">
-            <h3>
-              <a href="{{apiUrl}}/depot{{key.location}}" *ngIf="publicKey">
-                {{key.origin}}-{{key.revision}}
-              </a>
-              <span *ngIf="!publicKey">{{key}}</span>
-            </h3>
-        </li>
-    </ul>`,
+    template: require("./key-list.component.html")
 })
 
 export class KeyListComponent {
