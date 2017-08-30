@@ -2601,6 +2601,7 @@ pub struct PackageStats {
     // message fields
     plans: ::std::option::Option<u64>,
     builds: ::std::option::Option<u64>,
+    unique_packages: ::std::option::Option<u64>,
     // special fields
     unknown_fields: ::protobuf::UnknownFields,
     cached_size: ::protobuf::CachedSize,
@@ -2677,6 +2678,33 @@ impl PackageStats {
     fn mut_builds_for_reflect(&mut self) -> &mut ::std::option::Option<u64> {
         &mut self.builds
     }
+
+    // optional uint64 unique_packages = 3;
+
+    pub fn clear_unique_packages(&mut self) {
+        self.unique_packages = ::std::option::Option::None;
+    }
+
+    pub fn has_unique_packages(&self) -> bool {
+        self.unique_packages.is_some()
+    }
+
+    // Param is passed by value, moved
+    pub fn set_unique_packages(&mut self, v: u64) {
+        self.unique_packages = ::std::option::Option::Some(v);
+    }
+
+    pub fn get_unique_packages(&self) -> u64 {
+        self.unique_packages.unwrap_or(0)
+    }
+
+    fn get_unique_packages_for_reflect(&self) -> &::std::option::Option<u64> {
+        &self.unique_packages
+    }
+
+    fn mut_unique_packages_for_reflect(&mut self) -> &mut ::std::option::Option<u64> {
+        &mut self.unique_packages
+    }
 }
 
 impl ::protobuf::Message for PackageStats {
@@ -2702,6 +2730,13 @@ impl ::protobuf::Message for PackageStats {
                     let tmp = is.read_uint64()?;
                     self.builds = ::std::option::Option::Some(tmp);
                 },
+                3 => {
+                    if wire_type != ::protobuf::wire_format::WireTypeVarint {
+                        return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
+                    }
+                    let tmp = is.read_uint64()?;
+                    self.unique_packages = ::std::option::Option::Some(tmp);
+                },
                 _ => {
                     ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
                 },
@@ -2720,6 +2755,9 @@ impl ::protobuf::Message for PackageStats {
         if let Some(v) = self.builds {
             my_size += ::protobuf::rt::value_size(2, v, ::protobuf::wire_format::WireTypeVarint);
         }
+        if let Some(v) = self.unique_packages {
+            my_size += ::protobuf::rt::value_size(3, v, ::protobuf::wire_format::WireTypeVarint);
+        }
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
         self.cached_size.set(my_size);
         my_size
@@ -2731,6 +2769,9 @@ impl ::protobuf::Message for PackageStats {
         }
         if let Some(v) = self.builds {
             os.write_uint64(2, v)?;
+        }
+        if let Some(v) = self.unique_packages {
+            os.write_uint64(3, v)?;
         }
         os.write_unknown_fields(self.get_unknown_fields())?;
         ::std::result::Result::Ok(())
@@ -2786,6 +2827,11 @@ impl ::protobuf::MessageStatic for PackageStats {
                     PackageStats::get_builds_for_reflect,
                     PackageStats::mut_builds_for_reflect,
                 ));
+                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeUint64>(
+                    "unique_packages",
+                    PackageStats::get_unique_packages_for_reflect,
+                    PackageStats::mut_unique_packages_for_reflect,
+                ));
                 ::protobuf::reflect::MessageDescriptor::new::<PackageStats>(
                     "PackageStats",
                     fields,
@@ -2800,6 +2846,7 @@ impl ::protobuf::Clear for PackageStats {
     fn clear(&mut self) {
         self.clear_plans();
         self.clear_builds();
+        self.clear_unique_packages();
         self.unknown_fields.clear();
     }
 }
@@ -3142,15 +3189,16 @@ static file_descriptor_proto_data: &'static [u8] = b"\
     \x01(\tR\x04name\"W\n\x13ReverseDependencies\x12\x16\n\x06origin\x18\x01\
     \x20\x01(\tR\x06origin\x12\x12\n\x04name\x18\x02\x20\x01(\tR\x04name\x12\
     \x14\n\x05rdeps\x18\x03\x20\x03(\tR\x05rdeps\")\n\x0fPackageStatsGet\x12\
-    \x16\n\x06origin\x18\x01\x20\x01(\tR\x06origin\"<\n\x0cPackageStats\x12\
+    \x16\n\x06origin\x18\x01\x20\x01(\tR\x06origin\"e\n\x0cPackageStats\x12\
     \x14\n\x05plans\x18\x01\x20\x01(\x04R\x05plans\x12\x16\n\x06builds\x18\
-    \x02\x20\x01(\x04R\x06builds\"*\n\tJobStatus\x12\x1d\n\x03job\x18\x01\
-    \x20\x01(\x0b2\x0b.jobsrv.JobR\x03job*U\n\x0cProjectState\x12\x0e\n\nNot\
-    Started\x10\0\x12\x0e\n\nInProgress\x10\x01\x12\x0b\n\x07Success\x10\x02\
-    \x12\x0b\n\x07Failure\x10\x03\x12\x0b\n\x07Skipped\x10\x04*D\n\nGroupSta\
-    te\x12\x0b\n\x07Pending\x10\0\x12\x0f\n\x0bDispatching\x10\x01\x12\x0c\n\
-    \x08Complete\x10\x02\x12\n\n\x06Failed\x10\x03J\xa5\x14\n\x06\x12\x04\0\
-    \0O\x01\n\x08\n\x01\x02\x12\x03\0\x08\x11\n\t\n\x02\x03\0\x12\x03\x01\
+    \x02\x20\x01(\x04R\x06builds\x12'\n\x0funique_packages\x18\x03\x20\x01(\
+    \x04R\x0euniquePackages\"*\n\tJobStatus\x12\x1d\n\x03job\x18\x01\x20\x01\
+    (\x0b2\x0b.jobsrv.JobR\x03job*U\n\x0cProjectState\x12\x0e\n\nNotStarted\
+    \x10\0\x12\x0e\n\nInProgress\x10\x01\x12\x0b\n\x07Success\x10\x02\x12\
+    \x0b\n\x07Failure\x10\x03\x12\x0b\n\x07Skipped\x10\x04*D\n\nGroupState\
+    \x12\x0b\n\x07Pending\x10\0\x12\x0f\n\x0bDispatching\x10\x01\x12\x0c\n\
+    \x08Complete\x10\x02\x12\n\n\x06Failed\x10\x03J\xea\x14\n\x06\x12\x04\0\
+    \0P\x01\n\x08\n\x01\x02\x12\x03\0\x08\x11\n\t\n\x02\x03\0\x12\x03\x01\
     \x07\x1f\n\n\n\x02\x05\0\x12\x04\x03\0\t\x01\n\n\n\x03\x05\0\x01\x12\x03\
     \x03\x05\x11\n\x0b\n\x04\x05\0\x02\0\x12\x03\x04\x02\x11\n\x0c\n\x05\x05\
     \0\x02\0\x01\x12\x03\x04\x02\x0c\n\x0c\n\x05\x05\0\x02\0\x02\x12\x03\x04\
@@ -3263,18 +3311,21 @@ static file_descriptor_proto_data: &'static [u8] = b"\
     \x03E\x02\x1d\n\x0c\n\x05\x04\t\x02\0\x04\x12\x03E\x02\n\n\x0c\n\x05\x04\
     \t\x02\0\x05\x12\x03E\x0b\x11\n\x0c\n\x05\x04\t\x02\0\x01\x12\x03E\x12\
     \x18\n\x0c\n\x05\x04\t\x02\0\x03\x12\x03E\x1b\x1c\n\n\n\x02\x04\n\x12\
-    \x04H\0K\x01\n\n\n\x03\x04\n\x01\x12\x03H\x08\x14\n\x0b\n\x04\x04\n\x02\
+    \x04H\0L\x01\n\n\n\x03\x04\n\x01\x12\x03H\x08\x14\n\x0b\n\x04\x04\n\x02\
     \0\x12\x03I\x02\x1c\n\x0c\n\x05\x04\n\x02\0\x04\x12\x03I\x02\n\n\x0c\n\
     \x05\x04\n\x02\0\x05\x12\x03I\x0b\x11\n\x0c\n\x05\x04\n\x02\0\x01\x12\
     \x03I\x12\x17\n\x0c\n\x05\x04\n\x02\0\x03\x12\x03I\x1a\x1b\n\x0b\n\x04\
     \x04\n\x02\x01\x12\x03J\x02\x1d\n\x0c\n\x05\x04\n\x02\x01\x04\x12\x03J\
     \x02\n\n\x0c\n\x05\x04\n\x02\x01\x05\x12\x03J\x0b\x11\n\x0c\n\x05\x04\n\
     \x02\x01\x01\x12\x03J\x12\x18\n\x0c\n\x05\x04\n\x02\x01\x03\x12\x03J\x1b\
-    \x1c\n\n\n\x02\x04\x0b\x12\x04M\0O\x01\n\n\n\x03\x04\x0b\x01\x12\x03M\
-    \x08\x11\n\x0b\n\x04\x04\x0b\x02\0\x12\x03N\x02\x1e\n\x0c\n\x05\x04\x0b\
-    \x02\0\x04\x12\x03N\x02\n\n\x0c\n\x05\x04\x0b\x02\0\x06\x12\x03N\x0b\x15\
-    \n\x0c\n\x05\x04\x0b\x02\0\x01\x12\x03N\x16\x19\n\x0c\n\x05\x04\x0b\x02\
-    \0\x03\x12\x03N\x1c\x1d\
+    \x1c\n\x0b\n\x04\x04\n\x02\x02\x12\x03K\x02&\n\x0c\n\x05\x04\n\x02\x02\
+    \x04\x12\x03K\x02\n\n\x0c\n\x05\x04\n\x02\x02\x05\x12\x03K\x0b\x11\n\x0c\
+    \n\x05\x04\n\x02\x02\x01\x12\x03K\x12!\n\x0c\n\x05\x04\n\x02\x02\x03\x12\
+    \x03K$%\n\n\n\x02\x04\x0b\x12\x04N\0P\x01\n\n\n\x03\x04\x0b\x01\x12\x03N\
+    \x08\x11\n\x0b\n\x04\x04\x0b\x02\0\x12\x03O\x02\x1e\n\x0c\n\x05\x04\x0b\
+    \x02\0\x04\x12\x03O\x02\n\n\x0c\n\x05\x04\x0b\x02\0\x06\x12\x03O\x0b\x15\
+    \n\x0c\n\x05\x04\x0b\x02\0\x01\x12\x03O\x16\x19\n\x0c\n\x05\x04\x0b\x02\
+    \0\x03\x12\x03O\x1c\x1d\
 ";
 
 static mut file_descriptor_proto_lazy: ::protobuf::lazy::Lazy<::protobuf::descriptor::FileDescriptorProto> = ::protobuf::lazy::Lazy {

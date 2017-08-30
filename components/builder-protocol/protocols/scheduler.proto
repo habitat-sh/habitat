@@ -73,6 +73,7 @@ message PackageStatsGet {
 message PackageStats {
   optional uint64 plans = 1;
   optional uint64 builds = 2;
+  optional uint64 unique_packages = 3;
 }
 
 message JobStatus {
