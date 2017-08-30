@@ -19,7 +19,8 @@ extern crate habitat_builder_protocol as protocol;
 #[macro_use]
 extern crate habitat_core as hab_core;
 extern crate habitat_net as hab_net;
-extern crate builder_core as bld_core;
+extern crate builder_core as bldr_core;
+extern crate builder_http_gateway as http_gateway;
 extern crate bodyparser;
 extern crate crypto;
 extern crate hyper;
@@ -55,6 +56,7 @@ pub mod error;
 pub mod doctor;
 pub mod server;
 pub mod handlers;
+mod broker;
 
 pub use self::config::Config;
 pub use self::error::{Error, Result};
@@ -65,7 +67,6 @@ use std::path::{Path, PathBuf};
 use crypto::sha2::Sha256;
 use crypto::digest::Digest;
 use hab_core::package::{Identifiable, PackageArchive, PackageTarget};
-use hab_net::server::NetIdent;
 use iron::typemap;
 
 pub struct DepotUtil {
@@ -134,5 +135,3 @@ impl DepotUtil {
 impl typemap::Key for DepotUtil {
     type Value = Self;
 }
-
-impl NetIdent for DepotUtil {}

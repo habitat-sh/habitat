@@ -22,8 +22,6 @@ extern crate habitat_core as core;
 extern crate hyper;
 extern crate hyper_openssl;
 #[macro_use]
-extern crate iron;
-#[macro_use]
 extern crate lazy_static;
 #[macro_use]
 extern crate log;
@@ -43,7 +41,6 @@ pub mod app;
 pub mod config;
 pub mod conn;
 pub mod error;
-pub mod http;
 pub mod oauth;
 pub mod privilege;
 pub mod socket;

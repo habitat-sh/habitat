@@ -18,7 +18,7 @@ use std::path::PathBuf;
 
 use hab_core;
 use hab_core::package::{FromArchive, PackageArchive};
-use hab_net::routing::Broker;
+use http_gateway::conn::RouteBroker;
 use protocol::originsrv;
 use time;
 use walkdir::WalkDir;
@@ -198,8 +198,9 @@ impl<'a> Doctor<'a> {
                 Ok(ident) => {
                     match originsrv::OriginPackageCreate::from_archive(&mut archive) {
                         Ok(package) => {
-                            let mut conn = Broker::connect().unwrap();
-                            conn.route::<originsrv::OriginPackageCreate, originsrv::OriginPackage>(&package)?;
+                            let mut conn = RouteBroker::connect().unwrap();
+                            conn.route::<originsrv::OriginPackageCreate,
+                                originsrv::OriginPackage>(&package)?;
                             let path = self.depot.archive_path(&ident, &archive.target()?);
                             if let Some(e) = fs::create_dir_all(path.parent().unwrap()).err() {
                                 self.report.failure(

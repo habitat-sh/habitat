@@ -6,17 +6,13 @@ description = "Habitat-Builder package depot"
 build = "../bldr-build.rs"
 workspace = "../../"
 
-[[bin]]
-name = "bldr-depot"
-path = "src/main.rs"
-doc = false
-
 [dependencies]
-clippy = {version = "*", optional = true}
+clippy = { version = "*", optional = true }
 base64 = "*"
 bodyparser = "*"
 env_logger = "*"
 habitat-builder-protocol = { path = "../builder-protocol" }
+builder-http-gateway = { path = "../builder-http-gateway" }
 hyper = "*"
 iron = "*"
 iron-test = "*"

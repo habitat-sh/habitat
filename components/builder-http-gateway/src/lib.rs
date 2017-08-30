@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Chef Software Inc. and/or applicable contributors
+// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,30 +15,37 @@
 #![cfg_attr(feature="clippy", feature(plugin))]
 #![cfg_attr(feature="clippy", plugin(clippy))]
 
-extern crate habitat_builder_db as db;
+extern crate base64;
+extern crate bodyparser;
+extern crate builder_core as bldr_core;
 extern crate habitat_builder_protocol as protocol;
-extern crate habitat_core as hab_core;
+extern crate habitat_core as core;
 extern crate habitat_net as hab_net;
+#[macro_use]
 extern crate hyper;
 #[macro_use]
-extern crate lazy_static;
+extern crate iron;
 #[macro_use]
 extern crate log;
-extern crate postgres;
+extern crate mount;
+extern crate num_cpus;
+extern crate params;
+extern crate persistent;
 extern crate protobuf;
-extern crate r2d2;
+extern crate router;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
-extern crate time;
+extern crate serde_json;
+extern crate staticfile;
 extern crate toml;
+extern crate unicase;
+extern crate urlencoded;
 extern crate zmq;
 
+pub mod app;
 pub mod config;
-pub mod data_store;
-pub mod error;
-pub mod migrations;
-pub mod server;
+pub mod conn;
+pub mod http;
 
-pub use self::config::Config;
-pub use self::error::{SrvError, SrvResult};
+pub use app::start;

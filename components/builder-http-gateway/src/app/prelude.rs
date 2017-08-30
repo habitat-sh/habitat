@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Copyright (c) 2017 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-pub use super::net_err_to_http;
-pub use super::headers::*;
-pub use super::middleware::*;
-pub use super::rendering::{render_json, render_net_error};
+pub use std::sync::Arc;
+
+pub use mount::Mount;
+pub use router::Router;
+
+pub use super::HttpGateway;
+pub use super::error::{AppError, AppResult};
+pub use config::GatewayCfg;
+pub use conn::RouteBroker;
+pub use http::middleware::*;

@@ -32,11 +32,7 @@ extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_json;
-extern crate urlencoded;
 
-pub use self::error::Error;
-
-pub mod api;
 pub mod data_structures;
 pub mod error;
 pub mod file_walker;

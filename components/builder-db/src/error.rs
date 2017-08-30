@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use hab_net;
-
 use std::error;
 use std::fmt;
 use std::result;
@@ -33,7 +31,6 @@ pub enum Error {
     FunctionCreate(postgres::error::Error),
     FunctionDrop(postgres::error::Error),
     FunctionRun(postgres::error::Error),
-    NetError(hab_net::Error),
     Migration(postgres::error::Error),
     MigrationCheck(postgres::error::Error),
     MigrationTable(postgres::error::Error),
@@ -74,7 +71,6 @@ impl fmt::Display for Error {
             Error::FunctionCreate(ref e) => format!("Error creating a function: {}", e),
             Error::FunctionDrop(ref e) => format!("Error dropping a function: {}", e),
             Error::FunctionRun(ref e) => format!("Error running a function: {}", e),
-            Error::NetError(ref e) => format!("{}", e),
             Error::Migration(ref e) => format!("Error executing migration: {}", e),
             Error::MigrationCheck(ref e) => format!("Error checking if a migration has run: {}", e),
             Error::MigrationTable(ref e) => {
@@ -109,7 +105,6 @@ impl error::Error for Error {
             Error::FunctionCreate(_) => "Error creating database function",
             Error::FunctionDrop(_) => "Error dropping database function",
             Error::FunctionRun(_) => "Error running a database function",
-            Error::NetError(ref err) => err.description(),
             Error::Migration(_) => "Error executing migration",
             Error::MigrationCheck(_) => "Error checking if a migration has run",
             Error::MigrationTable(_) => "Error creat2ing migration tracking table",
@@ -123,12 +118,6 @@ impl error::Error for Error {
             Error::TransactionCreate(_) => "Error creating a transaction",
             Error::TransactionCommit(_) => "Error committing a transaction",
         }
-    }
-}
-
-impl From<hab_net::Error> for Error {
-    fn from(err: hab_net::Error) -> Self {
-        Error::NetError(err)
     }
 }
 

@@ -11,7 +11,6 @@ habitat-builder-protocol = { path = "../builder-protocol" }
 habitat_core = { path = "../core" }
 hyper = "*"
 hyper-openssl = "*"
-iron = "*"
 lazy_static = "*"
 log = "*"
 num_cpus = "*"
@@ -21,7 +20,6 @@ serde = "*"
 serde_derive = "*"
 serde_json = "*"
 time = "*"
-typemap = "*"
 unicase = "*"
 uuid = { version = "*", features = ["v4"] }
 

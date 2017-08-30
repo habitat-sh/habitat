@@ -16,6 +16,7 @@
 #![cfg_attr(feature="clippy", plugin(clippy))]
 
 extern crate bodyparser;
+extern crate builder_http_gateway as http_gateway;
 extern crate habitat_builder_protocol as protocol;
 extern crate habitat_core as hab_core;
 extern crate habitat_net as hab_net;
@@ -40,7 +41,6 @@ extern crate zmq;
 
 pub mod config;
 pub mod error;
-pub mod http;
 pub mod server;
 
 pub use self::config::Config;

@@ -14,24 +14,23 @@
 // Configuration for a Habitat SessionSrv service
 
 use db::config::DataStoreCfg;
-use hab_core::config::ConfigFile;
-use hab_net::config::{DispatcherCfg, GitHubCfg, GitHubOAuth, RouterCfg, RouterAddr, Shards};
-use protocol::sharding::{ShardId, SHARD_COUNT};
+use hab_net::app::config::*;
+use hab_net::config::{GitHubCfg, GitHubOAuth};
 
-use error::Error;
+use error::SrvError;
 
 #[derive(Debug, Deserialize)]
 #[serde(default)]
 pub struct Config {
+    pub datastore: DataStoreCfg,
+    pub github: GitHubCfg,
+    pub permissions: PermissionsCfg,
+    /// List of net addresses for routing servers to connect to
+    pub routers: Vec<RouterAddr>,
     /// List of shard identifiers serviced by the running service.
     pub shards: Vec<ShardId>,
     /// Number of threads to process queued messages.
     pub worker_threads: usize,
-    /// List of net addresses for routing servers to connect to
-    pub routers: Vec<RouterAddr>,
-    pub datastore: DataStoreCfg,
-    pub github: GitHubCfg,
-    pub permissions: PermissionsCfg,
 }
 
 impl Default for Config {
@@ -50,10 +49,18 @@ impl Default for Config {
 }
 
 impl ConfigFile for Config {
-    type Error = Error;
+    type Error = SrvError;
 }
 
-impl DispatcherCfg for Config {
+impl AppCfg for Config {
+    fn route_addrs(&self) -> &[RouterAddr] {
+        self.routers.as_slice()
+    }
+
+    fn shards(&self) -> Option<&[ShardId]> {
+        Some(self.shards.as_slice())
+    }
+
     fn worker_count(&self) -> usize {
         self.worker_threads
     }
@@ -74,18 +81,6 @@ impl GitHubOAuth for Config {
 
     fn github_client_secret(&self) -> &str {
         &self.github.client_secret
-    }
-}
-
-impl RouterCfg for Config {
-    fn route_addrs(&self) -> &Vec<RouterAddr> {
-        &self.routers
-    }
-}
-
-impl Shards for Config {
-    fn shards(&self) -> &Vec<u32> {
-        &self.shards
     }
 }
 

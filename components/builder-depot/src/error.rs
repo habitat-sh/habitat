@@ -18,21 +18,19 @@ use std::io;
 use std::fmt;
 use std::result;
 
-use bld_core;
 use hab_core;
 use hab_core::package::{self, Identifiable};
 use hab_net;
 use hyper;
-use protocol::net::NetError;
 
 #[derive(Debug)]
 pub enum Error {
     BadPort(String),
-    BuilderCore(bld_core::Error),
     ChannelAlreadyExists(String),
     ChannelDoesNotExist(String),
     HabitatCore(hab_core::Error),
-    HabitatNet(hab_net::Error),
+    HabitatNet(hab_net::error::LibError),
+    NetError(hab_net::NetError),
     HTTP(hyper::status::StatusCode),
     InvalidPackageIdent(String),
     IO(io::Error),
@@ -41,7 +39,6 @@ pub enum Error {
     NoFilePart,
     NulError(ffi::NulError),
     PackageIsAlreadyInChannel(String, String),
-    ProtocolNetError(NetError),
     RemotePackageNotFound(package::PackageIdent),
     WriteSyncFailed,
 }
@@ -52,7 +49,6 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
             Error::BadPort(ref e) => format!("{} is an invalid port. Valid range 1-65535.", e),
-            Error::BuilderCore(ref e) => format!("{}", e),
             Error::ChannelAlreadyExists(ref e) => format!("{} already exists.", e),
             Error::ChannelDoesNotExist(ref e) => format!("{} does not exist.", e),
             Error::HabitatCore(ref e) => format!("{}", e),
@@ -67,6 +63,7 @@ impl fmt::Display for Error {
             }
             Error::IO(ref e) => format!("{}", e),
             Error::MessageTypeNotFound => format!("Unable to find message for given type"),
+            Error::NetError(ref e) => format!("{}", e),
             Error::NoXFilename => {
                 format!("Invalid download from a Depot - missing X-Filename header")
             }
@@ -80,7 +77,6 @@ impl fmt::Display for Error {
             Error::PackageIsAlreadyInChannel(ref p, ref c) => {
                 format!("{} is already in the {} channel.", p, c)
             }
-            Error::ProtocolNetError(ref e) => format!("{}", e),
             Error::RemotePackageNotFound(ref pkg) => {
                 if pkg.fully_qualified() {
                     format!("Cannot find package in any sources: {}", pkg)
@@ -100,7 +96,6 @@ impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
             Error::BadPort(_) => "Received an invalid port or a number outside of the valid range.",
-            Error::BuilderCore(ref err) => err.description(),
             Error::ChannelAlreadyExists(_) => "Channel already exists.",
             Error::ChannelDoesNotExist(_) => "Channel does not exist.",
             Error::HabitatCore(ref err) => err.description(),
@@ -110,11 +105,11 @@ impl error::Error for Error {
                 "Package identifiers must be in origin/name format (example: acme/redis)"
             }
             Error::IO(ref err) => err.description(),
+            Error::NetError(ref err) => err.description(),
             Error::NulError(_) => {
                 "An attempt was made to build a CString with a null byte inside it"
             }
             Error::PackageIsAlreadyInChannel(_, _) => "Package is already in channel",
-            Error::ProtocolNetError(ref err) => err.description(),
             Error::RemotePackageNotFound(_) => "Cannot find a package in any sources",
             Error::NoXFilename => "Invalid download from a Depot - missing X-Filename header",
             Error::NoFilePart => {
@@ -146,14 +141,14 @@ impl From<io::Error> for Error {
     }
 }
 
-impl From<hab_net::Error> for Error {
-    fn from(err: hab_net::Error) -> Error {
+impl From<hab_net::error::LibError> for Error {
+    fn from(err: hab_net::error::LibError) -> Error {
         Error::HabitatNet(err)
     }
 }
 
-impl From<NetError> for Error {
-    fn from(err: NetError) -> Error {
-        Error::ProtocolNetError(err)
+impl From<hab_net::NetError> for Error {
+    fn from(err: hab_net::NetError) -> Error {
+        Error::NetError(err)
     }
 }

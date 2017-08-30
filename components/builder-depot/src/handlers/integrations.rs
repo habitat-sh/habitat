@@ -13,18 +13,23 @@
 // limitations under the License.
 
 use std::collections::HashMap;
-use iron::status::{self, Status};
-use iron::prelude::*;
-use router::Router;
-use hab_net::http::controller::*;
+
+use bldr_core;
 use bodyparser;
+use http_gateway::http::controller::*;
+use iron::status::{self, Status};
+
 use protocol::originsrv::*;
 use protocol::net::{NetOk, ErrCode};
 use persistent;
-use DepotUtil;
-use bld_core;
+use router::Router;
 
+<<<<<<< Updated upstream
 use super::super::server::{route_message, check_origin_access};
+=======
+use super::super::server::check_origin_access;
+use DepotUtil;
+>>>>>>> Stashed changes
 
 pub fn encrypt(req: &mut Request, content: &str) -> Result<String, Status> {
     let lock = req.get::<persistent::State<DepotUtil>>().expect(
@@ -32,10 +37,8 @@ pub fn encrypt(req: &mut Request, content: &str) -> Result<String, Status> {
     );
     let depot = lock.read().expect("depot read lock is poisoned");
 
-    match bld_core::integrations::encrypt(&depot.config.key_dir, content) {
-        Ok(c) => Ok(c),
-        Err(_) => Err(status::InternalServerError),
-    }
+    bldr_core::integrations::encrypt(&depot.config.key_dir, content)
+        .map_err(|_| status::InternalServerError)
 }
 
 pub fn validate_params(
@@ -43,7 +46,6 @@ pub fn validate_params(
     expected_params: &[&str],
 ) -> Result<HashMap<String, String>, Status> {
     let mut res = HashMap::new();
-
     // Get the expected params
     {
         let params = req.extensions.get::<Router>().unwrap();
@@ -55,35 +57,32 @@ pub fn validate_params(
         for p in expected_params {
             res.insert(p.to_string(), params.find(p).unwrap().to_string());
         }
-    };
-
+    }
     // Check that we have origin access
     {
-        let session = req.extensions.get::<Authenticated>().unwrap();
-        if !check_origin_access(session.get_id(), &res["origin"])
+        let session_id = {
+            req.extensions.get::<Authenticated>().unwrap().get_id()
+        };
+        if !check_origin_access(req, session_id, &res["origin"])
             .map_err(|_| status::InternalServerError)?
         {
             debug!(
                 "Failed origin access check, session: {}, origin: {}",
-                session.get_id(),
+                session_id,
                 &res["origin"]
             );
             return Err(status::Forbidden);
         }
     }
-
     Ok(res)
 }
 
-// Handle GET /origins/:origin/integrations/:integration/names
 pub fn fetch_origin_integration_names(req: &mut Request) -> IronResult<Response> {
-    // Validate params
     let params = match validate_params(req, &["origin", "integration"]) {
         Ok(p) => p,
         Err(st) => return Ok(Response::with(st)),
     };
 
-    // Issue the get command
     let mut request = OriginIntegrationGetNames::new();
     request.set_origin(params["origin"].clone());
     request.set_integration(params["integration"].clone());
@@ -101,15 +100,12 @@ pub fn fetch_origin_integration_names(req: &mut Request) -> IronResult<Response>
     }
 }
 
-// Handle PUT /origins/:origin/integrations/:integration
 pub fn create_origin_integration(req: &mut Request) -> IronResult<Response> {
-    // Validate params
     let params = match validate_params(req, &["origin", "integration", "name"]) {
         Ok(p) => p,
         Err(st) => return Ok(Response::with(st)),
     };
 
-    // Check that we got valid JSON in the body
     let body = req.get::<bodyparser::Json>();
     match body {
         Ok(Some(_)) => (),
@@ -123,21 +119,18 @@ pub fn create_origin_integration(req: &mut Request) -> IronResult<Response> {
         }
     };
 
-    // We know body exists and is valid, non-empty JSON, so we can unwrap safely
-    let json_body = req.get::<bodyparser::Raw>().unwrap().unwrap();
-
-    // Encrypt the body
-    let encrypted = match encrypt(req, &json_body) {
-        Ok(s) => s,
-        Err(st) => return Ok(Response::with(st)),
-    };
-
-    // Issue the create command
     let mut oi = OriginIntegration::new();
     oi.set_origin(params["origin"].clone());
     oi.set_integration(params["integration"].clone());
     oi.set_name(params["name"].clone());
-    oi.set_body(encrypted);
+
+    // We know body exists and is valid, non-empty JSON, so we can unwrap safely
+    let json_body = req.get::<bodyparser::Raw>().unwrap().unwrap();
+
+    match encrypt(req, &json_body) {
+        Ok(encrypted) => oi.set_body(encrypted),
+        Err(st) => return Ok(Response::with(st)),
+    }
 
     let mut request = OriginIntegrationCreate::new();
     request.set_integration(oi);
@@ -156,15 +149,12 @@ pub fn create_origin_integration(req: &mut Request) -> IronResult<Response> {
     }
 }
 
-// Handle DELETE /origins/:origin/integrations/:integration
 pub fn delete_origin_integration(req: &mut Request) -> IronResult<Response> {
-    // Validate params
     let params = match validate_params(req, &["origin", "integration", "name"]) {
         Ok(p) => p,
         Err(st) => return Ok(Response::with(st)),
     };
 
-    // Issue the delete command
     let mut oi = OriginIntegration::new();
     oi.set_origin(params["origin"].clone());
     oi.set_integration(params["integration"].clone());

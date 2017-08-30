@@ -18,8 +18,8 @@ use std::io;
 use std::net::{Ipv4Addr, IpAddr, SocketAddr, ToSocketAddrs};
 use std::option::IntoIter;
 
-use hab_net::config::{GitHubCfg, GitHubOAuth, RouterAddr, RouterCfg};
-use hab_core::config::ConfigFile;
+use hab_net::config::{GitHubCfg, GitHubOAuth};
+use http_gateway::config::prelude::*;
 
 use error::Error;
 
@@ -54,9 +54,17 @@ impl GitHubOAuth for Config {
     }
 }
 
-impl RouterCfg for Config {
-    fn route_addrs(&self) -> &Vec<RouterAddr> {
-        &self.routers
+impl GatewayCfg for Config {
+    fn listen_addr(&self) -> &IpAddr {
+        &self.http.listen
+    }
+
+    fn listen_port(&self) -> u16 {
+        self.http.port
+    }
+
+    fn route_addrs(&self) -> &[RouterAddr] {
+        self.routers.as_slice()
     }
 }
 

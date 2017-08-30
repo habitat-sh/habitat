@@ -18,18 +18,13 @@ use std::env;
 
 use base64;
 use bodyparser;
-use bld_core;
-use bld_core::api::{channels_for_package_ident, extract_pagination, paginated_response,
-                    platforms_for_package_ident, promote_job_group_to_channel};
 use depot::server::check_origin_access;
 use hab_core::package::{Identifiable, Plan};
 use hab_core::event::*;
 use hab_net;
-use hab_net::http::controller::*;
-use hab_net::routing::Broker;
-use iron::prelude::*;
+use http_gateway::http::controller::*;
+use http_gateway::http::helpers;
 use iron::status;
-use iron::typemap;
 use params::{Params, Value, FromValue};
 use persistent;
 use protocol::jobsrv::{Job, JobGet, JobLogGet, JobLog, JobSpec, JobState, ProjectJobsGet,
@@ -37,9 +32,9 @@ use protocol::jobsrv::{Job, JobGet, JobLogGet, JobLog, JobSpec, JobState, Projec
 use protocol::scheduler::{ReverseDependenciesGet, ReverseDependencies};
 use protocol::originsrv::*;
 use protocol::sessionsrv;
-use protocol::net::{self, NetOk, ErrCode};
 use router::Router;
 use serde_json;
+use typemap;
 
 // For the initial release, Builder will only be enabled on the "core"
 // origin. Later, we'll roll it out to other origins; at that point,
@@ -108,10 +103,10 @@ pub fn github_authenticate(req: &mut Request) -> IronResult<Response> {
 
             Ok(render_json(status::Ok, &session))
         }
-        Err(hab_net::Error::Net(err)) => Ok(render_net_error(&err)),
+        Err(hab_net::error::LibError::NetError(err)) => Ok(render_net_error(&err)),
         Err(e) => {
             error!("unhandled github authentication, err={:?}", e);
-            let err = net::err(ErrCode::BUG, "rg:auth:0");
+            let err = NetError::new(ErrCode::BUG, "rg:auth:0");
             Ok(render_net_error(&err))
         }
     }
@@ -141,53 +136,34 @@ pub fn job_group_promote(req: &mut Request) -> IronResult<Response> {
         None => return Ok(Response::with(status::BadRequest)),
     };
 
-    match promote_job_group_to_channel(group_id, &channel, Some(session_id)) {
+    match helpers::promote_job_group_to_channel(req, group_id, &channel, Some(session_id)) {
         Ok(_) => Ok(Response::with(status::Ok)),
-        Err(bld_core::Error::NetError(e)) => Ok(render_net_error(&e)),
-        Err(bld_core::Error::GroupNotComplete) => Ok(
-            Response::with((status::Forbidden, "rg:jgp:1")),
-        ),
-        Err(bld_core::Error::OriginAccessDenied) => Ok(
-            Response::with((status::Forbidden, "rg:jpg:3")),
-        ),
-        Err(bld_core::Error::PartialJobGroupPromote(u)) => {
-            let resp = serde_json::to_string(&u).unwrap();
-            Ok(Response::with((status::Ok, resp)))
-        }
-        Err(e) => {
-            debug!("Error promoting group to channel. e = {:?}", e);
-            Ok(Response::with((status::InternalServerError, "rg:jgp:2")))
-        }
+        Err(err) => Ok(render_net_error(&err)),
     }
 }
 
 pub fn rdeps_show(req: &mut Request) -> IronResult<Response> {
-    let params = req.extensions.get::<Router>().unwrap();
-    let origin = match params.find("origin") {
-        Some(origin) => origin.to_string(),
-        None => return Ok(Response::with(status::BadRequest)),
-    };
-
-    let name = match params.find("name") {
-        Some(name) => name.to_string(),
-        None => return Ok(Response::with(status::BadRequest)),
-    };
-
     let mut rdeps_get = ReverseDependenciesGet::new();
-    rdeps_get.set_origin(origin);
-    rdeps_get.set_name(name);
+    {
+        let params = req.extensions.get::<Router>().unwrap();
+        match params.find("origin") {
+            Some(origin) => rdeps_get.set_origin(origin.to_string()),
+            None => return Ok(Response::with(status::BadRequest)),
+        }
+        match params.find("name") {
+            Some(name) => rdeps_get.set_name(name.to_string()),
+            None => return Ok(Response::with(status::BadRequest)),
+        }
+    }
 
     // TODO (SA): The rdeps API needs to be extended to support a target param.
     // For now, hard code a default value
     rdeps_get.set_target("x86_64-linux".to_string());
 
-    let mut conn = Broker::connect().unwrap();
-    let rdeps = match conn.route::<ReverseDependenciesGet, ReverseDependencies>(&rdeps_get) {
-        Ok(rdeps) => rdeps,
+    match route_message::<ReverseDependenciesGet, ReverseDependencies>(req, &rdeps_get) {
+        Ok(rdeps) => Ok(render_json(status::Ok, &rdeps)),
         Err(err) => return Ok(render_net_error(&err)),
-    };
-
-    Ok(render_json(status::Ok, &rdeps))
+    }
 }
 
 pub fn job_create(req: &mut Request) -> IronResult<Response> {
@@ -205,25 +181,22 @@ pub fn job_create(req: &mut Request) -> IronResult<Response> {
             }
         }
     }
-    // TODO: SA - Eliminate need to clone the session
-    let session = req.extensions.get::<Authenticated>().unwrap().clone();
-    let mut conn = Broker::connect().unwrap();
-    let project = match conn.route::<OriginProjectGet, OriginProject>(&project_get) {
-        Ok(project) => project,
-        Err(err) => return Ok(render_net_error(&err)),
-    };
-
     let mut job_spec: JobSpec = JobSpec::new();
-    job_spec.set_owner_id(session.get_id());
-    job_spec.set_project(project);
-
-    match conn.route::<JobSpec, Job>(&job_spec) {
+    {
+        let session = req.extensions.get::<Authenticated>().unwrap();
+        job_spec.set_owner_id(session.get_id());
+    }
+    match route_message::<OriginProjectGet, OriginProject>(req, &project_get) {
+        Ok(project) => job_spec.set_project(project),
+        Err(err) => return Ok(render_net_error(&err)),
+    }
+    match route_message::<JobSpec, Job>(req, &job_spec) {
         Ok(job) => {
             log_event!(
                 req,
                 Event::JobCreate {
                     package: job.get_project().get_id().to_string(),
-                    account: session.get_id().to_string(),
+                    account: job_spec.get_owner_id().to_string(),
                 }
             );
             Ok(render_json(status::Created, &job))
@@ -236,22 +209,22 @@ pub fn job_create(req: &mut Request) -> IronResult<Response> {
 }
 
 pub fn job_show(req: &mut Request) -> IronResult<Response> {
-    let params = req.extensions.get::<Router>().unwrap();
-    let id = match params.find("id").unwrap().parse::<u64>() {
-        Ok(id) => id,
-        Err(e) => {
-            debug!("Error finding id. e = {:?}", e);
-            return Ok(Response::with(status::BadRequest));
-        }
-    };
-    let mut conn = Broker::connect().unwrap();
     let mut request = JobGet::new();
-    request.set_id(id);
-    match conn.route::<JobGet, Job>(&request) {
+    {
+        let params = req.extensions.get::<Router>().unwrap();
+        match params.find("id").unwrap().parse::<u64>() {
+            Ok(id) => request.set_id(id),
+            Err(e) => {
+                debug!("Error finding id. e = {:?}", e);
+                return Ok(Response::with(status::BadRequest));
+            }
+        }
+    }
+    match route_message::<JobGet, Job>(req, &request) {
         Ok(job) => {
             if job.get_package_ident().fully_qualified() {
-                let channels = channels_for_package_ident(job.get_package_ident());
-                let platforms = platforms_for_package_ident(job.get_package_ident());
+                let channels = helpers::channels_for_package_ident(req, job.get_package_ident());
+                let platforms = helpers::platforms_for_package_ident(req, job.get_package_ident());
                 let mut job_json = serde_json::to_value(job).unwrap();
 
                 if channels.is_some() {
@@ -297,21 +270,19 @@ pub fn job_log(req: &mut Request) -> IronResult<Response> {
         .and_then(FromValue::from_value)
         .unwrap_or(false);
 
-    let params = req.extensions.get::<Router>().unwrap();
-    let id = match params.find("id").unwrap().parse::<u64>() {
-        Ok(id) => id,
-        Err(e) => {
-            debug!("Error finding id. e = {:?}", e);
-            return Ok(Response::with(status::BadRequest));
-        }
-    };
-    let mut conn = Broker::connect().unwrap();
-
     let mut request = JobLogGet::new();
-    request.set_id(id);
     request.set_start(start);
-
-    match conn.route::<JobLogGet, JobLog>(&request) {
+    {
+        let params = req.extensions.get::<Router>().unwrap();
+        match params.find("id").unwrap().parse::<u64>() {
+            Ok(id) => request.set_id(id),
+            Err(e) => {
+                debug!("Error finding id. e = {:?}", e);
+                return Ok(Response::with(status::BadRequest));
+            }
+        }
+    }
+    match route_message::<JobLogGet, JobLog>(req, &request) {
         Ok(mut log) => {
             if !include_color {
                 log.strip_ansi();
@@ -320,7 +291,6 @@ pub fn job_log(req: &mut Request) -> IronResult<Response> {
         }
         Err(err) => Ok(render_net_error(&err)),
     }
-
 }
 
 /// Endpoint for determining availability of builder-api components.
@@ -331,22 +301,30 @@ pub fn status(_req: &mut Request) -> IronResult<Response> {
 }
 
 pub fn list_account_invitations(req: &mut Request) -> IronResult<Response> {
-    let session = req.extensions.get::<Authenticated>().unwrap();
-    let mut conn = Broker::connect().unwrap();
     let mut request = sessionsrv::AccountInvitationListRequest::new();
-    request.set_account_id(session.get_id());
-    match conn.route::<sessionsrv::AccountInvitationListRequest, sessionsrv::AccountInvitationListResponse>(&request) {
+    {
+        let session = req.extensions.get::<Authenticated>().unwrap();
+        request.set_account_id(session.get_id());
+    }
+    match route_message::<
+        sessionsrv::AccountInvitationListRequest,
+        sessionsrv::AccountInvitationListResponse,
+    >(req, &request) {
         Ok(invites) => Ok(render_json(status::Ok, &invites)),
         Err(err) => Ok(render_net_error(&err)),
     }
 }
 
 pub fn list_user_origins(req: &mut Request) -> IronResult<Response> {
-    let session = req.extensions.get::<Authenticated>().unwrap();
-    let mut conn = Broker::connect().unwrap();
     let mut request = sessionsrv::AccountOriginListRequest::new();
-    request.set_account_id(session.get_id());
-    match conn.route::<sessionsrv::AccountOriginListRequest, sessionsrv::AccountOriginListResponse>(&request) {
+    {
+        let session = req.extensions.get::<Authenticated>().unwrap();
+        request.set_account_id(session.get_id());
+    }
+    match route_message::<
+        sessionsrv::AccountOriginListRequest,
+        sessionsrv::AccountOriginListResponse,
+    >(req, &request) {
         Ok(invites) => Ok(render_json(status::Ok, &invites)),
         Err(err) => Ok(render_net_error(&err)),
     }
@@ -407,8 +385,7 @@ pub fn project_create(req: &mut Request) -> IronResult<Response> {
         }
         _ => return Ok(Response::with(status::UnprocessableEntity)),
     };
-    let mut conn = Broker::connect().unwrap();
-    let origin = match conn.route::<OriginGet, Origin>(&origin_get) {
+    let origin = match route_message::<OriginGet, Origin>(req, &origin_get) {
         Ok(response) => response,
         Err(err) => return Ok(render_net_error(&err)),
     };
@@ -453,7 +430,7 @@ pub fn project_create(req: &mut Request) -> IronResult<Response> {
 
     project.set_owner_id(session.get_id());
     request.set_project(project);
-    match conn.route::<OriginProjectCreate, OriginProject>(&request) {
+    match route_message::<OriginProjectCreate, OriginProject>(req, &request) {
         Ok(response) => {
             log_event!(
                 req,
@@ -492,13 +469,12 @@ pub fn project_delete(req: &mut Request) -> IronResult<Response> {
         (session_id, origin)
     };
 
-    if !check_origin_access(session_id, origin)? {
+    if !check_origin_access(req, session_id, origin)? {
         return Ok(Response::with(status::Forbidden));
     }
 
     project_del.set_requestor_id(session_id);
-    let mut conn = Broker::connect().unwrap();
-    match conn.route::<OriginProjectDelete, NetOk>(&project_del) {
+    match route_message::<OriginProjectDelete, NetOk>(req, &project_del) {
         Ok(_) => Ok(Response::with(status::NoContent)),
         Err(err) => Ok(render_net_error(&err)),
     }
@@ -520,10 +496,9 @@ pub fn project_update(req: &mut Request) -> IronResult<Response> {
         (name, origin)
     };
 
-    let mut conn = Broker::connect().unwrap();
     let mut project_get = OriginProjectGet::new();
     project_get.set_name(format!("{}/{}", &origin, &name));
-    let mut project = match conn.route::<OriginProjectGet, OriginProject>(&project_get) {
+    let mut project = match route_message::<OriginProjectGet, OriginProject>(req, &project_get) {
         Ok(project) => project,
         Err(err) => return Ok(render_net_error(&err)),
     };
@@ -572,7 +547,6 @@ pub fn project_update(req: &mut Request) -> IronResult<Response> {
         _ => return Ok(Response::with(status::UnprocessableEntity)),
     };
 
-    let mut conn = Broker::connect().unwrap();
     match github.contents(
         &session_token,
         &organization,
@@ -584,7 +558,7 @@ pub fn project_update(req: &mut Request) -> IronResult<Response> {
                 Ok(ref bytes) => {
                     match Plan::from_bytes(bytes) {
                         Ok(plan) => {
-                            if !check_origin_access(session_id, &origin)? {
+                            if !check_origin_access(req, session_id, &origin)? {
                                 return Ok(Response::with(status::Forbidden));
                             }
                             if plan.name != name {
@@ -613,7 +587,7 @@ pub fn project_update(req: &mut Request) -> IronResult<Response> {
 
     request.set_requestor_id(session_id);
     request.set_project(project);
-    match conn.route::<OriginProjectUpdate, NetOk>(&request) {
+    match route_message::<OriginProjectUpdate, NetOk>(req, &request) {
         Ok(_) => Ok(Response::with(status::NoContent)),
         Err(err) => Ok(render_net_error(&err)),
     }
@@ -622,8 +596,8 @@ pub fn project_update(req: &mut Request) -> IronResult<Response> {
 /// Display the the given project's details
 pub fn project_show(req: &mut Request) -> IronResult<Response> {
     let mut project_get = OriginProjectGet::new();
-    let params = req.extensions.get::<Router>().unwrap();
     {
+        let params = req.extensions.get::<Router>().unwrap();
         let origin = params.find("origin").unwrap();
 
         // We're only allowing projects to be created for the core
@@ -636,8 +610,7 @@ pub fn project_show(req: &mut Request) -> IronResult<Response> {
         let name = params.find("name").unwrap();
         project_get.set_name(format!("{}/{}", origin, name));
     }
-    let mut conn = Broker::connect().unwrap();
-    match conn.route::<OriginProjectGet, OriginProject>(&project_get) {
+    match route_message::<OriginProjectGet, OriginProject>(req, &project_get) {
         Ok(project) => Ok(render_json(status::Ok, &project)),
         Err(err) => Ok(render_net_error(&err)),
     }
@@ -646,15 +619,8 @@ pub fn project_show(req: &mut Request) -> IronResult<Response> {
 /// Retrieve the most recent 50 jobs for a project.
 pub fn project_jobs(req: &mut Request) -> IronResult<Response> {
     let mut jobs_get = ProjectJobsGet::new();
-    let (start, stop) = match extract_pagination(req) {
-        Ok(range) => range,
-        Err(response) => return Ok(response),
-    };
-    jobs_get.set_start(start as u64);
-    jobs_get.set_stop(stop as u64);
-
-    let params = req.extensions.get::<Router>().unwrap();
     {
+        let params = req.extensions.get::<Router>().unwrap();
         let origin = params.find("origin").unwrap();
 
         // We're only allowing projects to be created for the core
@@ -667,15 +633,23 @@ pub fn project_jobs(req: &mut Request) -> IronResult<Response> {
         let name = params.find("name").unwrap();
         jobs_get.set_name(format!("{}/{}", origin, name));
     }
-    let mut conn = Broker::connect().unwrap();
-    match conn.route::<ProjectJobsGet, ProjectJobsGetResponse>(&jobs_get) {
+    match helpers::extract_pagination(req) {
+        Ok((start, stop)) => {
+            jobs_get.set_start(start as u64);
+            jobs_get.set_stop(stop as u64);
+        }
+        Err(response) => return Ok(response),
+    }
+    match route_message::<ProjectJobsGet, ProjectJobsGetResponse>(req, &jobs_get) {
         Ok(response) => {
             let list: Vec<serde_json::Value> = response
                 .get_jobs()
                 .iter()
                 .map(|job| if job.get_state() == JobState::Complete {
-                    let channels = channels_for_package_ident(&job.get_package_ident());
-                    let platforms = platforms_for_package_ident(&job.get_package_ident());
+                    let channels =
+                        helpers::channels_for_package_ident(req, &job.get_package_ident());
+                    let platforms =
+                        helpers::platforms_for_package_ident(req, &job.get_package_ident());
                     let mut job_json = serde_json::to_value(job).unwrap();
 
                     if channels.is_some() {
@@ -692,7 +666,7 @@ pub fn project_jobs(req: &mut Request) -> IronResult<Response> {
                 })
                 .collect();
 
-            paginated_response(
+            helpers::paginated_response(
                 &list,
                 response.get_count() as isize,
                 response.get_start() as isize,

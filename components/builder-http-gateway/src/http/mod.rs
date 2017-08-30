@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Copyright (c) 2016 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,34 +12,47 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//! A module containing the HTTP server and handlers for servicing client requests
+
 pub mod controller;
 pub mod headers;
+pub mod helpers;
 pub mod middleware;
 pub mod rendering;
 
+use hab_net::ErrCode;
 use iron::status::Status;
-use protocol::net::ErrCode;
 
 pub fn net_err_to_http(err: ErrCode) -> Status {
     match err {
-        ErrCode::BUG => Status::InternalServerError,
         ErrCode::TIMEOUT => Status::GatewayTimeout,
         ErrCode::REMOTE_REJECTED => Status::NotAcceptable,
-        ErrCode::BAD_REMOTE_REPLY => Status::BadGateway,
         ErrCode::ENTITY_NOT_FOUND => Status::NotFound,
-        ErrCode::NO_SHARD => Status::ServiceUnavailable,
-        ErrCode::ACCESS_DENIED => Status::Unauthorized,
-        ErrCode::SESSION_EXPIRED => Status::Unauthorized,
         ErrCode::ENTITY_CONFLICT => Status::Conflict,
-        ErrCode::ZMQ => Status::ServiceUnavailable,
-        ErrCode::DATA_STORE => Status::ServiceUnavailable,
-        ErrCode::AUTH_SCOPE => Status::Forbidden,
-        ErrCode::WORKSPACE_SETUP => Status::InternalServerError,
-        ErrCode::SECRET_KEY_FETCH => Status::BadGateway,
-        ErrCode::SECRET_KEY_IMPORT => Status::InternalServerError,
+
+        ErrCode::ACCESS_DENIED |
+        ErrCode::SESSION_EXPIRED => Status::Unauthorized,
+
+        ErrCode::BAD_REMOTE_REPLY |
+        ErrCode::SECRET_KEY_FETCH |
         ErrCode::VCS_CLONE => Status::BadGateway,
-        ErrCode::BUILD => Status::InternalServerError,
-        ErrCode::POST_PROCESSOR => Status::InternalServerError,
-        ErrCode::REG_CONFLICT => Status::InternalServerError,
+
+        ErrCode::NO_SHARD |
+        ErrCode::SOCK |
+        ErrCode::REMOTE_UNAVAILABLE => Status::ServiceUnavailable,
+
+        ErrCode::AUTH_SCOPE |
+        ErrCode::GROUP_NOT_COMPLETE |
+        ErrCode::PARTIAL_JOB_GROUP_PROMOTE => Status::Forbidden,
+
+        ErrCode::BUG |
+        ErrCode::POST_PROCESSOR |
+        ErrCode::BUILD |
+        ErrCode::SYS |
+        ErrCode::DATA_STORE |
+        ErrCode::WORKSPACE_SETUP |
+        ErrCode::SECRET_KEY_IMPORT |
+        ErrCode::REG_CONFLICT |
+        ErrCode::REG_NOT_FOUND => Status::InternalServerError,
     }
 }

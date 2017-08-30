@@ -15,10 +15,8 @@
 //! A collection of handlers for the HTTP server's router
 
 use bodyparser;
-use hab_net::http::controller::*;
 use hab_net::privilege;
-use hab_net::routing::Broker;
-use iron::prelude::*;
+use http_gateway::http::controller::*;
 use iron::status;
 use protocol::sessionsrv::*;
 use router::Router;
@@ -62,16 +60,16 @@ struct SearchTerm {
 }
 
 pub fn account_show(req: &mut Request) -> IronResult<Response> {
-    let params = req.extensions.get::<Router>().unwrap();
-    let stringy_id = params.find("id").unwrap();
-    let id = match stringy_id.parse::<u64>() {
-        Ok(id) => id,
-        Err(_) => return Ok(Response::with(status::BadRequest)),
-    };
     let mut account_get_id = AccountGetId::new();
-    account_get_id.set_id(id);
-    let mut conn = Broker::connect().unwrap();
-    match conn.route::<AccountGetId, Account>(&account_get_id) {
+    {
+        let params = req.extensions.get::<Router>().unwrap();
+        let stringy_id = params.find("id").unwrap();
+        match stringy_id.parse::<u64>() {
+            Ok(id) => account_get_id.set_id(id),
+            Err(_) => return Ok(Response::with(status::BadRequest)),
+        }
+    }
+    match route_message::<AccountGetId, Account>(req, &account_get_id) {
         Ok(account) => Ok(render_json(status::Ok, &account)),
         Err(err) => Ok(render_net_error(&err)),
     }
@@ -88,7 +86,7 @@ pub fn search(req: &mut Request) -> IronResult<Response> {
     match req.get::<bodyparser::Struct<SearchTerm>>() {
         Ok(Some(body)) => {
             match &*body.entity.to_lowercase() {
-                "account" => search_account(body.attr, body.value),
+                "account" => search_account(req, body.attr, body.value),
                 entity => {
                     Ok(Response::with((
                         status::UnprocessableEntity,
@@ -101,7 +99,7 @@ pub fn search(req: &mut Request) -> IronResult<Response> {
     }
 }
 
-fn search_account(key: String, value: String) -> IronResult<Response> {
+fn search_account(req: &mut Request, key: String, value: String) -> IronResult<Response> {
     match key.as_str() {
         "id" => {
             let mut account_get_id = AccountGetId::new();
@@ -110,8 +108,7 @@ fn search_account(key: String, value: String) -> IronResult<Response> {
                 Err(_) => return Ok(Response::with(status::BadRequest)),
             };
             account_get_id.set_id(id);
-            let mut conn = Broker::connect().unwrap();
-            match conn.route::<AccountGetId, Account>(&account_get_id) {
+            match route_message::<AccountGetId, Account>(req, &account_get_id) {
                 Ok(account) => Ok(render_json(status::Ok, &account)),
                 Err(err) => Ok(render_net_error(&err)),
             }
@@ -119,8 +116,7 @@ fn search_account(key: String, value: String) -> IronResult<Response> {
         "name" => {
             let mut account_get = AccountGet::new();
             account_get.set_name(value);
-            let mut conn = Broker::connect().unwrap();
-            match conn.route::<AccountGet, Account>(&account_get) {
+            match route_message::<AccountGet, Account>(req, &account_get) {
                 Ok(account) => Ok(render_json(status::Ok, &account)),
                 Err(err) => Ok(render_net_error(&err)),
             }

@@ -17,6 +17,7 @@ bitflags = "*"
 env_logger = "*"
 habitat-builder-protocol = { path = "../builder-protocol" }
 hyper = "*"
+lazy_static = "*"
 log = "*"
 postgres = "*"
 protobuf = "*"

@@ -15,6 +15,7 @@ doc = false
 clippy = {version = "*", optional = true}
 base64 = "*"
 bodyparser = "*"
+builder-http-gateway = { path = "../builder-http-gateway" }
 env_logger = "*"
 habitat-builder-protocol = { path = "../builder-protocol" }
 hyper = "*"
@@ -30,6 +31,7 @@ serde_derive = "*"
 serde_json = "*"
 staticfile = "*"
 toml = { version = "*", features = ["serde"], default-features = false }
+typemap = "*"
 unicase = "*"
 
 [dependencies.clap]
