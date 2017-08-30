@@ -1,0 +1,57 @@
+.hab-origins-list {
+  
+    ul.origins {
+  
+      li {
+  
+        &.heading, &.origin {
+          @include row;
+          border-bottom: 1px solid $very-light-gray;
+  
+          h3, .origin-name, .origin-pkg-count{
+            @include span-columns(5);
+          }
+        }
+  
+        &.heading {
+          padding: 0 10px;
+  
+          h3 {
+            padding: 0;
+          }
+        }
+  
+        &.origin {
+          cursor: pointer;
+          font-size: rem(12);
+  
+          .summary {
+            @include row;
+            padding: 15px 10px;
+            position: relative;
+  
+            .origin-name {
+              font-weight: 600;
+            }
+  
+            .origin-pkg-count {
+              color: $hab-gray;
+            }
+  
+            hab-icon[symbol="chevron-right"] {
+              @include chevron-right;
+              display: none;
+            }
+
+            &:hover {
+              background-color: rgba($medium-gray, 0.05);
+
+              hab-icon[symbol="chevron-right"] {
+                display: block;
+              }
+            }
+          }
+        }
+      }
+    }
+  }

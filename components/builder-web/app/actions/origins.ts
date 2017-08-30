@@ -38,6 +38,7 @@ export const SET_ORIGIN_PUBLIC_KEY_UPLOAD_ERROR_MESSAGE =
 export const SET_ORIGIN_USER_INVITE_ERROR_MESSAGE =
     "SET_ORIGIN_USER_INVITE_ERROR_MESSAGE";
 export const TOGGLE_ORIGIN_PICKER = "TOGGLE_ORIGIN_PICKER";
+export const SET_PACKAGE_COUNT_FOR_ORIGIN = "SET_PACKAGE_COUNT_FOR_ORIGIN";
 
 export function acceptOriginInvitation(invitationId: string, originName: string, token: string) {
     return dispatch => {
@@ -92,6 +93,7 @@ export function fetchMyOrigins(token) {
     return dispatch => {
         new BuilderApiClient(token).getMyOrigins().then(origins => {
             dispatch(populateMyOrigins(origins));
+            dispatch(fetchOriginsPackageCount(origins));
         }).catch(error => dispatch(populateMyOrigins(undefined, error)));
     };
 }
@@ -160,6 +162,22 @@ export function inviteUserToOrigin(username: string, origin: string, token: stri
             }).catch(error => {
                 dispatch(setOriginUserInviteErrorMessage(error.message));
             });
+    };
+}
+
+export function fetchOriginsPackageCount(origins) {
+    return dispatch => {
+        origins.forEach(origin => {
+            depotApi
+                .getStats(origin)
+                .then(response => {
+                    response["origin"] = origin;
+                    dispatch(populatePackageCountForOrigin(response));
+                })
+                .catch(error => {
+                    dispatch(populatePackageCountForOrigin(error.message));
+                });
+        });
     };
 }
 
@@ -263,6 +281,13 @@ function setOriginUserInviteErrorMessage(payload: string) {
 export function toggleOriginPicker() {
     return {
         type: TOGGLE_ORIGIN_PICKER,
+    };
+}
+
+export function populatePackageCountForOrigin(payload) {
+    return {
+        type: SET_PACKAGE_COUNT_FOR_ORIGIN,
+        payload
     };
 }
 

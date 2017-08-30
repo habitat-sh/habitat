@@ -23,6 +23,7 @@ import {authenticateWithGitHub, loadSessionState, removeNotification,
 @Component({
     selector: "hab-app",
     template: `
+    <hab-progress-bar></hab-progress-bar>
     <div id="main-nav">
         <hab-notifications [notifications]="state.notifications.all"
                            [removeNotification]="removeNotification">
