@@ -3,6 +3,10 @@ export class GitHubRepo {
    * @type {name} name The name of the repo.
    */
   name: String;
+
+  get(key): any {
+    return this[key];
+  }
 }
 
 /* Full model:
