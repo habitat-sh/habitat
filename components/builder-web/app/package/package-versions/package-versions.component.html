@@ -4,18 +4,16 @@
       <h3>Version</h3>
       <h3>Releases</h3>
       <h3>Updated</h3>
-      <h3>
-        <!-- <hab-icon symbol="linux"></hab-icon> -->
-      </h3>
-      <h3>
-        <!-- <hab-icon symbol="windows"></hab-icon> -->
-      </h3>
+      <h3>Platforms</h3>
     </li>
     <li class="version" *ngFor="let version of versions" (click)="toggle(version)">
       <div class="summary">
         <span class="version-name">{{ version.version }}</span>
         <span class="version-release-count">{{ version.release_count }}</span>
         <span class="version-latest">{{ releaseToDate(version.latest) }}</span>
+        <span class="version-platforms">
+          <hab-platform-icon [platform]="platform" *ngFor="let platform of platforms"></hab-platform-icon>
+        </span>
         <hab-icon class="toggle" [symbol]="toggleFor(version)"></hab-icon>
       </div>
       <div class="version-packages" *ngIf="selected === version">
@@ -25,17 +23,17 @@
               <span class="release-name">{{ packageString(pkg) }}</span>
               <hab-channels [channels]="pkg.channels"></hab-channels>
             </div>
+            <div class="build-date">
+                {{ releaseToDate(pkg.release) }}
+              </div>
             <div class="os">
-              <!-- <hab-icon [symbol]="osIconFor(pkg)"></hab-icon> -->
+                <hab-platform-icon [platform]="pkg.platforms[0]" *ngFor="let platform of platforms"></hab-platform-icon>
             </div>
             <div class="visibility">
               <!-- TBD -->
             </div>
             <div class="build-source">
               <!-- TBD -->
-            </div>
-            <div class="build-date">
-              {{ releaseToDate(pkg.release) }}
             </div>
             <hab-icon symbol="chevron-right"></hab-icon>
           </li>

@@ -12,6 +12,7 @@ import { IconComponent } from "./icon/icon.component";
 import { PackageInfoComponent } from "./package-info/package-info.component";
 import { PackageListComponent } from "./package-list/package-list.component";
 import { ProgressBarComponent } from "./progress-bar/progress-bar.component";
+import { PlatformIconComponent } from "./platform-icon/platform-icon.component";
 
 @NgModule({
   imports: [
@@ -29,7 +30,8 @@ import { ProgressBarComponent } from "./progress-bar/progress-bar.component";
     IconComponent,
     PackageInfoComponent,
     PackageListComponent,
-    ProgressBarComponent
+    ProgressBarComponent,
+    PlatformIconComponent
   ],
   exports: [
     BreadcrumbsComponent,
@@ -40,7 +42,8 @@ import { ProgressBarComponent } from "./progress-bar/progress-bar.component";
     IconComponent,
     PackageInfoComponent,
     PackageListComponent,
-    ProgressBarComponent
+    ProgressBarComponent,
+    PlatformIconComponent
   ]
 })
 export class SharedModule {

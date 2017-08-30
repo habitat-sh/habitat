@@ -125,6 +125,9 @@
             <div class="package-updated">
               <h5>Latest</h5>
             </div>
+            <div class="package-icons">
+              <!-- TBD -->
+            </div>
           </li>
           <li class="item" *ngFor="let pkg of myPackages" (click)="navigateToPackage(pkg)">
             <div class="package-origin">
@@ -135,6 +138,9 @@
             </div>
             <div class="package-updated">
               {{ releaseToDate(pkg.release) }}
+            </div>
+            <div class="package-icons">
+              <hab-platform-icon [platform]="pkg.platforms[0]"></hab-platform-icon>
             </div>
             <hab-icon symbol="chevron-right"></hab-icon>
           </li>

@@ -14,7 +14,7 @@
         <dt>Release</dt>
         <dd>
           {{ package.ident.release }}
-          <hab-icon [symbol]="osIconFor(package)" class="icon-os" title="Supported OS"></hab-icon>
+          <hab-platform-icon [platform]="package.target"></hab-platform-icon>
         </dd>
       </div>
       <div>

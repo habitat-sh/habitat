@@ -1,7 +1,7 @@
 import { Component, Input, OnChanges, SimpleChanges } from "@angular/core";
-import { packageString, releaseToDate } from "../../util";
+import { packageString, targetToPlatform, releaseToDate } from "../../util";
 import { AppStore } from "../../AppStore";
-import { fetchLatestPackage, submitJob } from "../../actions/index";
+import { fetchLatestPackage, fetchPackageVersions, submitJob } from "../../actions/index";
 
 @Component({
     selector: "hab-package-sidebar",
@@ -28,6 +28,7 @@ export class PackageSidebarComponent implements OnChanges {
 
         if (fetch) {
             this.fetchLatest();
+            this.fetchPackageVersions();
         }
     }
 
@@ -64,7 +65,26 @@ export class PackageSidebarComponent implements OnChanges {
       return false;
     }
 
+    get platforms() {
+        let targets = [];
+        let versions = this.store.getState().packages.versions || [];
+
+        versions.forEach((v) => {
+            v.platforms.forEach((p) => {
+                if (targets.indexOf(p) === -1) {
+                    targets.push(p);
+                }
+            });
+        });
+
+        return targets.sort();
+    }
+
     private fetchLatest() {
       this.store.dispatch(fetchLatestPackage(this.origin, this.name));
+    }
+
+    private fetchPackageVersions() {
+        this.store.dispatch(fetchPackageVersions(this.origin, this.name));
     }
 }

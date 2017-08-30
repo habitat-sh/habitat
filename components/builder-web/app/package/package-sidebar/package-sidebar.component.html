@@ -3,10 +3,17 @@
     <h3>Build</h3>
     <button class="button" (click)="build()">Build latest version</button>
   </div>
+  <div class="platforms">
+    <h3>Supported Platforms</h3>
+    <hab-platform-icon [platform]="platform" *ngFor="let platform of platforms"></hab-platform-icon>
+  </div>
   <div class="latest-stable">
     <h3>Latest Stable</h3>
     <p>
-      <a [routerLink]="['./', latest.ident.version, latest.ident.release]">{{ latest.ident.version }}/{{ latest.ident.release }}</a>
+      <a [routerLink]="['./', latest.ident.version, latest.ident.release]">
+        {{ latest.ident.version }}/{{ latest.ident.release }}
+      </a>
+      <hab-platform-icon [platform]="latest.target"></hab-platform-icon>
     </p>
   </div>
   <div class="command">

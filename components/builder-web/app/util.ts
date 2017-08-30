@@ -135,3 +135,8 @@ export function requireSignIn(pageComponent) {
 
     if (!hasToken) { store.dispatch(requestRoute(["/sign-in"])); }
 }
+
+// Plucks the os portion out of a target string (e.g., "x86_64-linux" -> "linux")
+export function targetToPlatform(target: string = ""): string {
+    return target.split("-").slice(-1).toString();
+}

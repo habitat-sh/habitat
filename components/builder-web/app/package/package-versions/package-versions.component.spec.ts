@@ -52,6 +52,7 @@ describe("PackageVersionsComponent", () => {
       declarations: [
         PackageVersionsComponent,
         MockComponent({ selector: "hab-icon", inputs: [ "symbol", "title" ]}),
+        MockComponent({ selector: "hab-platform-icon", inputs: [ "platform" ]}),
         MockComponent({ selector: "hab-channels", inputs: [ "channels" ]})
       ],
       providers: [

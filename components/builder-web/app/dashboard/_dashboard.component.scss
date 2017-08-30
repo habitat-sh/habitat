@@ -239,8 +239,8 @@
           border-bottom: 1px solid rgba($light-gray, 0.4);
           margin-right: 20px;
 
-          .package-name, .package-origin, .package-updated {
-            @include span-columns(2.8 of 9);
+          .package-name, .package-origin, .package-updated, .package-icons {
+            @include span-columns(2 of 9);
           }
 
           .package-name, .package-origin {
@@ -256,12 +256,12 @@
             cursor: pointer;
             background-color: rgba($very-light-gray, 0.2);
 
-            hab-icon {
+            hab-icon[symbol="chevron-right"] {
               display: block;
             }
           }
 
-          hab-icon {
+          hab-icon[symbol="chevron-right"] {
             display: none;
             position: absolute;
             width: 20px;
