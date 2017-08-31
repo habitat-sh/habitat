@@ -25,6 +25,7 @@ use std::result;
 use ansi_term::Colour::Purple;
 use hcore::crypto;
 use serde::{Serialize, Serializer};
+use serde::ser::SerializeMap;
 use serde_json;
 use toml;
 
@@ -231,7 +232,29 @@ impl Serialize for Cfg {
                 outputln!("Error merging gossip-cfg into config, {}", err);
             }
         }
-        table.serialize(serializer)
+
+        // Be sure to visit non-tables first (and also non
+        // array-of-tables) as all keys must be emitted first.
+        let mut map = serializer.serialize_map(Some(table.len()))?;
+        for (k, v) in &table {
+            if !v.is_array() && !v.is_table() {
+                map.serialize_key(&k)?;
+                map.serialize_value(&v)?;
+            }
+        }
+        for (k, v) in &table {
+            if v.is_array() {
+                map.serialize_key(&k)?;
+                map.serialize_value(&v)?;
+            }
+        }
+        for (k, v) in &table {
+            if v.is_table() {
+                map.serialize_key(&k)?;
+                map.serialize_value(&v)?;
+            }
+        }
+        map.end()
     }
 }
 
@@ -386,6 +409,9 @@ fn is_toml_value_a_table(key: &str, table: &toml::value::Table) -> bool {
 #[cfg(test)]
 mod test {
     use toml;
+    use tempdir::TempDir;
+
+    use hcore::package::{PackageIdent, PackageInstall};
 
     use super::*;
     use error::Error;
@@ -570,5 +596,29 @@ mod test {
             }
             Ok(_) => panic!("Should not complete successfully"),
         }
+    }
+
+    #[test]
+    fn serialize_config() {
+        let pkg_id = PackageIdent::new("testing", "testing", Some("1.0.0"), Some("20170712000000"));
+        let pkg_install = PackageInstall::new_from_parts(
+            pkg_id.clone(),
+            PathBuf::from("/tmp"),
+            PathBuf::from("/tmp"),
+            PathBuf::from("/tmp"),
+        );
+        let pkg = Pkg::from_install(pkg_install).expect("Could not create package!");
+        let concrete_path = TempDir::new("habitat_config_test").expect("create temp dir");
+
+        let mut cfg = Cfg::new(&pkg, Some(&concrete_path.as_ref().to_path_buf()))
+            .expect("Could not create config");
+
+        let default_toml = "shards = []\n\n[datastore]\ndatabase = \"builder_originsrv\"\npassword = \"\"\nuser = \"hab\"\n";
+
+        cfg.default = Some(toml::Value::Table(
+            toml::de::from_str(default_toml).unwrap(),
+        ));
+
+        assert_eq!(default_toml, toml::to_string(&cfg).unwrap());
     }
 }
