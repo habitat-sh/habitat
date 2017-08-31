@@ -15,7 +15,6 @@
 import { NgModule } from "@angular/core";
 import { LocationStrategy, HashLocationStrategy } from "@angular/common";
 import { BrowserModule, DomSanitizer } from "@angular/platform-browser";
-import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
 import { HttpModule } from "@angular/http";
 import { routing } from "./routes";
 import { AppStore } from "./AppStore";
