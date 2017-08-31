@@ -25,7 +25,7 @@ This is a list of all environment variables that can be used to modify the opera
 | `HAB_STUDIO_SUP` | build system | no default | Used to customize the arguments passed to an automatically launched Supervisor, or to disable the automatic launching by setting it to `false`, `no`, or `0`. |
 | `HAB_UPDATE_STRATEGY_FREQUENCY_MS` | supervisor | 60000 | Frequency of milliseconds to check for updates when running with an [update strategy](/docs/run-packages-update-strategy) |
 | `HAB_USER` | supervisor | no default | User key to use when running with [service group encryption](/docs/run-packages-security/#service-group-encryption) |
-| `HAB_NON_ROOT` | supervisor | no default | Enable the supervisor to install and run packages as non-root user. *Warning* it is highly reckomended not to use this setting except under very specific circumstances due to associated security risks. |
+| `HAB_NON_ROOT` | supervisor | no default | Enable the supervisor to install packages as non-root user. *Warning* it is highly recommended not to use this setting except under very specific circumstances due to associated security risks. |
 | `http_proxy` | build system, supervisor | no default | A URL for a local HTTP proxy server optionally supporting basic authentication |
 | `https_proxy` | build system, supervisor | no default | A URL for a local HTTPS proxy server optionally supporting basic authentication |
 | `no_proxy` | build system, supervisor | no default | A comma-separated list of domain exclusions for the `http_proxy` and `https_proxy` environment variables |
