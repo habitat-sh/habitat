@@ -1,4 +1,4 @@
 <span>{{ command }}</span>
-<button (click)="copy()">
-  <hab-icon symbol="copy" title="Copy to clipboard"></hab-icon>
+<button (click)="copy()" [class.copied]="copied" [title]="title">
+  <hab-icon [symbol]="symbol"></hab-icon>
 </button>
