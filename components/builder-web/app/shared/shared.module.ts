@@ -2,7 +2,8 @@ import { NgModule } from "@angular/core";
 import { DomSanitizer } from "@angular/platform-browser";
 import { CommonModule } from "@angular/common";
 import { RouterModule } from "@angular/router";
-import { MdIconModule, MdIconRegistry, MdProgressBarModule } from "@angular/material";
+import { MdIconModule, MdIconRegistry, MdProgressBarModule, MdTooltipModule } from "@angular/material";
+import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
 import { BreadcrumbsComponent } from "./breadcrumbs/breadcrumbs.component";
 import { BuildListComponent } from "./build-list/build-list.component";
 import { BuildStatusComponent } from "./build-status/build-status.component";
@@ -16,9 +17,11 @@ import { PlatformIconComponent } from "./platform-icon/platform-icon.component";
 
 @NgModule({
   imports: [
+    BrowserAnimationsModule,
     CommonModule,
     MdIconModule,
     MdProgressBarModule,
+    MdTooltipModule,
     RouterModule
   ],
   declarations: [
