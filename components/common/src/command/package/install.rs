@@ -35,6 +35,7 @@
 //! * Unpack it
 //!
 
+use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
@@ -71,7 +72,7 @@ where
     P1: AsRef<Path> + ?Sized,
     P2: AsRef<Path> + ?Sized,
 {
-    if !am_i_root() {
+    if env::var_os("HAB_NON_ROOT").is_none() && !am_i_root() {
         ui.warn(
             "Installing a package requires root or administrator privileges. Please retry \
                    this command as a super user or use a privilege-granting facility such as \
