@@ -8,6 +8,7 @@ workspace = "../../"
 
 [[bin]]
 name = "bldr-scheduler"
+path = "src/main.rs"
 doc = false
 
 [dependencies]

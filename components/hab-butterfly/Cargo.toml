@@ -7,6 +7,7 @@ workspace = "../../"
 
 [[bin]]
 name = "hab-butterfly"
+path = "src/main.rs"
 doc = false
 
 [dependencies]
