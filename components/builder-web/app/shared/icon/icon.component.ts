@@ -3,7 +3,7 @@ import { AfterViewChecked, Component, ElementRef, Input } from "@angular/core";
 @Component({
   selector: "hab-icon",
   template: `
-    <md-icon [svgIcon]="id" [title]="title" [mdTooltip]="tooltip" mdTooltipPosition="above"></md-icon>
+    <md-icon [svgIcon]="id" [mdTooltip]="tooltip" mdTooltipPosition="above"></md-icon>
   `
 })
 export class IconComponent implements AfterViewChecked {

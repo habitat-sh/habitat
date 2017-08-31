@@ -1,4 +1,5 @@
-import { Component, Input } from "@angular/core";
+import { Component, Input, ViewChild } from "@angular/core";
+import { MdTooltip } from "@angular/material";
 
 @Component({
   selector: "hab-copyable",
@@ -9,6 +10,9 @@ export class CopyableComponent {
   @Input() command: string = "";
 
   public copied: boolean = false;
+
+  @ViewChild(MdTooltip)
+  tooltip: MdTooltip;
 
   copy(text) {
       let el = document.createElement("input");
@@ -26,6 +30,7 @@ export class CopyableComponent {
       document.body.removeChild(el);
 
       this.copied = true;
+      setTimeout(() => { this.tooltip.show(); }, 10);
       setTimeout(() => { this.copied = false; }, 2500);
   }
 
