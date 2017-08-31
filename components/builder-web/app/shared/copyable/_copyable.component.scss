@@ -12,6 +12,7 @@ hab-copyable {
     overflow-x: auto;
     margin-right: 40px;
     white-space: nowrap;
+    height: 35px;
   }
 
   button {
@@ -25,10 +26,34 @@ hab-copyable {
     top: 0;
     right: 0;
     bottom: 0;
+    height: 35px;
+
+    &:hover, &:focus {
+      box-shadow: none;
+      background-color: $very-light-gray;
+      color: shade($dark-gray, 20%);
+    }
+
+    &.copied {
+      color: $hab-green-dark;
+    }
 
     hab-icon {
       width: 20px;
       height: 20px;
+
+      svg {
+        animation: fade 300ms linear;
+      }
+    }
+
+    @keyframes fade {
+      0% {
+        opacity: 0;
+      }
+      100% {
+        opacity: 1;
+      }
     }
   }
 }
