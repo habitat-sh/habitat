@@ -2,7 +2,7 @@ import { Component, OnDestroy, OnInit } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
 import { Subscription } from "rxjs/subscription";
 import { AppStore } from "../../AppStore";
-import { packageString, releaseToDate } from "../../util";
+import { packageString, targetToPlatform, releaseToDate } from "../../util";
 import { fetchPackageVersions, fetchBuilds, fetchLatestPackage, filterPackagesBy, submitJob } from "../../actions/index";
 
 @Component({
@@ -56,6 +56,20 @@ export class PackageVersionsComponent implements OnDestroy {
         }
     }
 
+    get platforms() {
+        let targets = [];
+
+        this.versions.forEach((v) => {
+            v.platforms.forEach((p) => {
+                if (targets.indexOf(p) === -1) {
+                    targets.push(p);
+                }
+            });
+        });
+
+        return targets.sort();
+    }
+
     fetchPackages(params) {
         this.store.dispatch(filterPackagesBy(params, null, false));
     }
@@ -82,7 +96,7 @@ export class PackageVersionsComponent implements OnDestroy {
     }
 
     get versions() {
-        return this.store.getState().packages.versions;
+        return this.store.getState().packages.versions || [];
     }
 
     packagesFor(version) {

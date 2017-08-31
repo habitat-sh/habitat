@@ -26,7 +26,7 @@ describe("PackageDetailComponent", () => {
     TestBed.configureTestingModule({
       declarations: [
         PackageDetailComponent,
-        MockComponent({ selector: "hab-icon", inputs: [ "symbol" ]}),
+        MockComponent({ selector: "hab-platform-icon", inputs: [ "platform" ]}),
         MockComponent({ selector: "hab-channels", inputs: [ "channels" ]}),
         MockComponent({ selector: "hab-package-list", inputs: [ "currentPackage", "packages" ]}),
       ]

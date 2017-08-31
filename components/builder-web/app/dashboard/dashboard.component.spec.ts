@@ -54,7 +54,8 @@ describe("DashboardComponent", () => {
       ],
       declarations: [
         DashboardComponent,
-        MockComponent({ selector: "hab-icon", inputs: [ "symbol" ] })
+        MockComponent({ selector: "hab-icon", inputs: [ "symbol" ] }),
+        MockComponent({ selector: "hab-platform-icon", inputs: [ "platform" ] })
       ],
       providers: [
         { provide: AppStore, useClass: MockAppStore }
@@ -139,10 +140,12 @@ describe("DashboardComponent", () => {
         beforeEach(() => {
           MockAppStore.recentPackages = List([
             {
-              "name": "thing1"
+              "name": "thing1",
+              "platforms": ["x86_64-linux"]
             },
             {
-              "name": "thing2"
+              "name": "thing2",
+              "platforms": ["x86_64-linux"]
             }
           ]);
 

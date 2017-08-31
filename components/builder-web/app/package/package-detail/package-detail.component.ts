@@ -1,5 +1,5 @@
 import { Component, Input } from "@angular/core";
-import { releaseToDate } from "../../util";
+import { targetToPlatform, releaseToDate } from "../../util";
 
 @Component({
     selector: "hab-package-detail",
@@ -22,19 +22,4 @@ export class PackageDetailComponent {
 
       return name;
     }
-
-    osIconFor(pkg) {
-      let icon;
-
-      if (pkg.target) {
-        if (pkg.target.match("windows")) {
-          icon = "windows";
-        }
-        else if (pkg.target.match("linux")) {
-          icon = "linux";
-        }
-      }
-
-      return icon;
-  }
 }
