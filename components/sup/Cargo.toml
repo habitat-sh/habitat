@@ -10,6 +10,7 @@ name = "habitat_sup"
 
 [[bin]]
 name = "hab-sup"
+path = "src/main.rs"
 doc = false
 
 [dependencies]

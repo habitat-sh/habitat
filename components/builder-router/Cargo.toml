@@ -8,6 +8,7 @@ workspace = "../../"
 
 [[bin]]
 name = "bldr-router"
+path = "src/main.rs"
 doc = false
 
 [dependencies]

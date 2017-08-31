@@ -8,6 +8,7 @@ workspace = "../../"
 
 [[bin]]
 name = "bldr-job-srv"
+path = "src/main.rs"
 doc = false
 
 [dependencies]

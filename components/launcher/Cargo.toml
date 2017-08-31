@@ -6,6 +6,7 @@ workspace = "../../"
 
 [[bin]]
 name = "hab-launch"
+path = "src/main.rs"
 doc = false
 
 [dependencies]
