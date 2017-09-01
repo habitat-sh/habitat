@@ -77,6 +77,10 @@
       width: 100%;
       padding: 2px 8px;
       outline: none;
+      border: none;
+      color: $hab-white;
+      font-family: $base-font-family;
+      cursor: pointer;
 
       &:first-child {
         border-radius: 4px 4px 0 0;

@@ -19,7 +19,7 @@ import config from "../../config";
     selector: "hab-user-nav",
     template: `
     <div class="main-nav--cta" *ngIf="!isSignedIn">
-      <a class="button" href="{{ config['www_url'] }}/try">Get Started</a>
+      <a md-button color="accent" class="button" href="{{ config['www_url'] }}/try">Get Started</a>
     </div>
     <div class="main-nav--profile" *ngIf="isSignedIn">
         <span class="main-nav--avatar">

@@ -148,10 +148,6 @@ export const fetchMyOriginInvitations = originActions.fetchMyOriginInvitations;
 export const inviteUserToOrigin = originActions.inviteUserToOrigin;
 export const toggleOriginPicker = originActions.toggleOriginPicker;
 export const setCurrentOrigin = originActions.setCurrentOrigin;
-export const setCurrentOriginAddingPrivateKey =
-    originActions.setCurrentOriginAddingPrivateKey;
-export const setCurrentOriginAddingPublicKey =
-    originActions.setCurrentOriginAddingPublicKey;
 export const uploadOriginPrivateKey = originActions.uploadOriginPrivateKey;
 export const uploadOriginPublicKey = originActions.uploadOriginPublicKey;
 export const setOriginPrivacySettings = originActions.setOriginPrivacySettings;

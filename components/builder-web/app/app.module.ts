@@ -14,6 +14,7 @@
 
 import { NgModule } from "@angular/core";
 import { LocationStrategy, HashLocationStrategy } from "@angular/common";
+import { MdButtonModule, MD_PLACEHOLDER_GLOBAL_OPTIONS } from "@angular/material";
 import { BrowserModule, DomSanitizer } from "@angular/platform-browser";
 import { HttpModule } from "@angular/http";
 import { routing } from "./routes";
@@ -35,7 +36,7 @@ import { ProjectPageComponent } from "./project-page/ProjectPageComponent";
 import { ProjectsPageComponent } from "./projects-page/ProjectsPageComponent";
 import { SCMReposPageComponent } from "./scm-repos-page/SCMReposPageComponent";
 import { SideNavComponent } from "./side-nav/SideNavComponent";
-import { SignInPageComponent } from "./sign-in-page/SignInPageComponent";
+import { SignInPageComponent } from "./sign-in-page/sign-in-page.component";
 import { UserNavComponent } from "./header/user-nav/UserNavComponent";
 import { RepoFilterPipe } from "./pipes/repoFilter.pipe";
 
@@ -49,6 +50,7 @@ import { SharedModule } from "./shared/shared.module";
         BrowserModule,
         FormsModule,
         HttpModule,
+        MdButtonModule,
         OriginModule,
         PackageModule,
         ReactiveFormsModule,
@@ -77,7 +79,8 @@ import { SharedModule } from "./shared/shared.module";
         RepoFilterPipe
     ],
     providers: [
-        { provide: LocationStrategy, useClass: HashLocationStrategy },
+        { provide: LocationStrategy, useClass: HashLocationStrategy, },
+        { provide: MD_PLACEHOLDER_GLOBAL_OPTIONS, useValue: {float: "always"}},
         AppStore,
         DashboardGuard
     ],

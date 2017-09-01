@@ -19,63 +19,7 @@ import config from "../config";
 import { createGitHubLoginUrl } from "../util";
 
 @Component({
-    template: `
-    <div class="hab-sign-in">
-        <div class="page-title">
-            <h2>Sign In</h2>
-        </div>
-        <div class="page-body">
-            <div class="button-area">
-                <hr>
-                <a [class.disabled]="isSigningIn || isSignedIn"
-                   class="button cta" href="{{gitHubLoginUrl}}">
-                    <hab-icon symbol="github"></hab-icon>
-                    <span *ngIf="isSigningIn">
-                        Signing In&hellip;
-                    </span>
-                    <span *ngIf="!isSignedIn && !isSigningIn">
-                        Sign In with GitHub
-                    </span>
-                    <span *ngIf="isSignedIn && !isSigningIn">
-                        Signed In with GitHub
-                    </span>
-                </a>
-                <a *ngIf="isSignedIn"
-                   class="button hab-sign-in--out"
-                   (click)="signOut()"
-                   href="#">
-                   Sign Out
-                </a>
-                <hr>
-            </div>
-            <p>
-                New to {{appName}}? To sign up, simply click the GitHub button
-                above.
-            </p>
-            <p>
-                The {{appName}} project is maintained on GitHub and packages are
-                built from plan files stored in GitHub repositories. GitHub
-                accounts are free.
-                <a href="{{gitHubJoinUrl}}" _target="blank">
-                    Create one now
-                </a>.
-            </p>
-            <p>
-                You can still browse the
-                <a href="{{sourceCodeUrl}}">
-                    {{appName}} source code
-                </a>,
-                <a [routerLink]="['/pkgs']">
-                    public packages
-                </a>,
-                and
-                <a href="{{docsUrl}}">
-                    documentation
-                </a>
-                without signing in.
-            </p>
-        </div>
-    </div>`,
+    template: require("./sign-in-page.component.html")
 })
 
 export class SignInPageComponent implements OnInit, OnDestroy {

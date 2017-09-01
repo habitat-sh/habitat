@@ -44,6 +44,12 @@ form {
   button {
     margin-top: rem(20);
   }
+  .hint, .error {
+    font-size: rem(12px);
+  }
+  .error {
+    color: $hab-red;
+  }
 }
 
 input,

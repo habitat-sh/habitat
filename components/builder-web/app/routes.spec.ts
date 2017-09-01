@@ -4,7 +4,7 @@ import { ProjectCreatePageComponent } from "./project-create-page/ProjectCreateP
 import { ProjectPageComponent } from "./project-page/ProjectPageComponent";
 import { ProjectsPageComponent } from "./projects-page/ProjectsPageComponent";
 import { SCMReposPageComponent } from "./scm-repos-page/SCMReposPageComponent";
-import { SignInPageComponent } from "./sign-in-page/SignInPageComponent";
+import { SignInPageComponent } from "./sign-in-page/sign-in-page.component";
 import { ProjectSettingsPageComponent } from "./project-settings-page/ProjectSettingsPageComponent";
 import { routes } from "./routes";
 

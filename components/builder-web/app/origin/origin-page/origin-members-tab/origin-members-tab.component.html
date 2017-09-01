@@ -1,38 +1,39 @@
 <div class="page-body">
   <div class="hab-origin--left">
-    <div class="hab-origin-members-tab--section invite-members">
-      <h3>Invite Member</h3>
-      <form
-        #formValues="ngForm"
-        [formGroup]="form"
-        (ngSubmit)="submit(formValues.value.username)">
-        <label>Add existing users by GitHub username</label>
-        <input type="search" name="username"
-          [formControl]="form.controls['username']">
-        <div class="hab-origin-members-tab--submit">
-          <button
-            class="hab-origin-members-tab--save"
-            [disabled]="!control.valid">
-            Send invitation
-          </button>
-          <div
-            *ngIf="errorMessage"
-            class="hab-origin-members-tab--errors">
-            {{errorMessage}}
+    <div class="member-actions">
+      <div class="member-invite">
+        <h3>Invite Member</h3>
+        <form
+          #formValues="ngForm"
+          [formGroup]="form"
+          (ngSubmit)="submit(formValues.value.username)">
+          <div class="member-search">
+            <span class="label">Add existing Habitat users by GitHub username.</span>
+            <input type="search" name="username"
+              [formControl]="form.controls['username']"
+              placeholder="GitHub Username">
+            <span class="error" *ngIf="errorMessage">{{errorMessage}}</span>
           </div>
-        </div>
-      </form>
-    </div>
-    <hr>
-    <div class="hab-origin-members-tab--section">
-      <h3>Pending Invitations</h3>
-      <p *ngIf="invitations.size === 0">No pending invitations.</p>
-      <ul class="pending">
-        <li *ngFor="let invitation of invitations"
-          class="hab-item-list hab-no-select">
-          <h3>{{invitation.account_name}}</h3>
-        </li>
-      </ul>
+          <div>
+            <button
+              md-raised-button
+              color="primary"
+              [disabled]="!control.valid">
+              Send invitation
+            </button>
+          </div>
+        </form>
+      </div>
+      <div class="members-pending-invites">
+        <h3>Pending Invites</h3>
+        <p *ngIf="invitations.size === 0">No pending invitations.</p>
+        <ul class="pending">
+          <li *ngFor="let invitation of invitations"
+            class="hab-item-list hab-no-select">
+            <h3>{{invitation.account_name}}</h3>
+          </li>
+        </ul>
+      </div>
     </div>
     <hr>
     <div class="hab-origin-members-tab--section">
@@ -47,15 +48,16 @@
     </div>
   </div>
   <div class="hab-origin--right">
+    <h4 class="uppercase">About Members</h4>
     <p>
-      <em>Origin keys</em> ensure only authorized users (or
-      organizations) are able to push updates to packages
-      in this origin.
+      Members are able to upload and utilize both private and public packages.
+      They can also invite new members.
     </p>
     <p>
-      For more information, see
-      <a href="{{docsUrl}}/concepts-keys/">
-      origin keys</a> in the documentation.
+      By default, the creator of an origin is also the owner.
+    </p>
+    <p>
+      In addition to regular member privelege, the owner can also remove other members
     </p>
   </div>
 </div>

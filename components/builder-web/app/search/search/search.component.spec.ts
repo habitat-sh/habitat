@@ -1,7 +1,9 @@
 import { DebugElement } from "@angular/core";
 import { TestBed, ComponentFixture } from "@angular/core/testing";
 import { ReactiveFormsModule } from "@angular/forms";
+import { MdInputModule } from "@angular/material";
 import { By } from "@angular/platform-browser";
+import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { ActivatedRoute } from "@angular/router";
 import { RouterTestingModule } from "@angular/router/testing";
 import { Observable } from "rxjs";
@@ -48,7 +50,9 @@ describe("SearchResultsComponent", () => {
     TestBed.configureTestingModule({
       imports: [
         ReactiveFormsModule,
-        RouterTestingModule
+        RouterTestingModule,
+        MdInputModule,
+        NoopAnimationsModule
       ],
       declarations: [
         MockComponent({ selector: "hab-package-breadcrumbs", inputs: ["ident"] }),

@@ -1,3 +1,37 @@
+.member-actions {
+  @include row;
+  .member-invite {
+    @include span-columns(7);
+    .member-search {
+      width: 100%;
+      margin-bottom: 20px;
+
+      .label {
+        font-size: rem(12px);
+        color: $medium-gray;
+      }
+
+      input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 13px 20px;
+        line-height: 18px;
+        outline: none;
+        border-radius: $global-radius;
+        border: 1px solid $medium-gray;
+        font-size: rem(14px);
+      }
+
+      .error {
+        font-size: rem(10);
+        color: $hab-red;
+      }
+    }
+  }
+  .member-pending-invites {
+    @include span-columns(5);
+  }
+}
 .hab-origin-members-tab {
   &--section {
     margin-bottom: rem(60);
@@ -9,21 +43,5 @@
     &.invite-members > h3 {
       margin-bottom: rem(10);
     }
-  }
-
-  &--submit {
-     @include outer-container;
-  }
-
-  &--save {
-    @include span-columns(4);
-    margin-top: 0;
-  }
-
-  &--errors {
-    @include span-columns(8);
-    @include omega;
-    color: $hab-red;
-    font-size: $error-font;
   }
 }

@@ -9,7 +9,7 @@
       <div>
         <form (ngSubmit)="search(term.value)">
           <input #term placeholder="What dependencies does your app have?">
-          <button type="submit">Find Packages</button>
+          <button md-raised-button color="primary" type="submit">Find Packages</button>
         </form>
       </div>
     </section>
@@ -161,7 +161,7 @@
           Join the community today to ramp up your knowledge, share your ideas,
           and contribute to the project.
         </p>
-        <a href="https://www.habitat.sh/community/" class="button cta">Join the Community</a>
+        <a md-raised-button color="accent" href="https://www.habitat.sh/community/">Join the Community</a>
       </div>
     </div>
   </section>

@@ -58,7 +58,7 @@ export class OriginMembersTabComponent implements OnInit, OnDestroy {
     }
 
     get errorMessage() {
-        return this.ui.errorMessage;
+        return this.ui.userInviteErrorMessage;
     }
 
     get invitations(): List<Object> {

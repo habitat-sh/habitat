@@ -1,6 +1,8 @@
 import { DebugElement } from "@angular/core";
 import { TestBed, ComponentFixture } from "@angular/core/testing";
 import { By } from "@angular/platform-browser";
+import { NoopAnimationsModule } from "@angular/platform-browser/animations";
+import { MdSelectModule } from "@angular/material";
 import { RouterTestingModule } from "@angular/router/testing";
 import { List } from "immutable";
 import { MockComponent } from "ng2-mock-component";
@@ -50,7 +52,9 @@ describe("DashboardComponent", () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [
-        RouterTestingModule
+        RouterTestingModule,
+        MdSelectModule,
+        NoopAnimationsModule
       ],
       declarations: [
         DashboardComponent,

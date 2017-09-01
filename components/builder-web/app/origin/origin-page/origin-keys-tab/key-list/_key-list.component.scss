@@ -1,5 +1,44 @@
-.hab-key-list {
-  &--list {
-    margin-top: $base-spacing;
+.hab-keys-list {
+  ul.keys {
+    li {
+      &.heading, &.key {
+        @include row;
+        border-bottom: 1px solid $very-light-gray;
+        font-size: rem(12);
+        
+        .key-name {
+          @include span-columns(10);
+        }
+        .download {
+          float: right;
+        }
+      }
+
+      &.heading {
+        padding: 0 10px;
+
+        h3 {
+          padding: 0;
+        }
+      }
+
+      &.key {
+        font-size: rem(14);
+
+        .key-icon {
+          margin-right: 10px;
+        }
+
+        .summary {
+          @include row;
+          padding: 15px 10px;
+          position: relative;
+
+          .key-name {
+            font-weight: 600;
+          }
+        }
+      }
+    }
   }
 }

@@ -13,18 +13,16 @@
 // limitations under the License.
 
 import { Component, Input, OnInit, OnDestroy } from "@angular/core";
+import { MdDialog } from "@angular/material";
 import { RouterLink, ActivatedRoute } from "@angular/router";
 import { List } from "immutable";
 import { Subscription } from "rxjs/Subscription";
+import { KeyAddFormDialog } from "./key-add-form/key-add-form.dialog";
 import { AppStore } from "../../../AppStore";
 import { Origin } from "../../../records/Origin";
 import config from "../../../config";
-import { fetchOriginPublicKeys, setCurrentOriginAddingPublicKey, setCurrentOriginAddingPrivateKey } from "../../../actions/index";
-
-export enum KeyType {
-  Public,
-  Private
-}
+import { fetchOriginPublicKeys } from "../../../actions/index";
+import { OriginService } from "../../origin.service";
 
 @Component({
     selector: "hab-origin-keys-tab",
@@ -33,15 +31,19 @@ export enum KeyType {
 
 export class OriginKeysTabComponent implements OnInit, OnDestroy {
 
-    keyType = KeyType;
     origin;
-    private sub: Subscription;
+    sub: Subscription;
 
-    constructor(private route: ActivatedRoute, private store: AppStore) {}
+    constructor(
+        private route: ActivatedRoute,
+        private store: AppStore,
+        private dialog: MdDialog,
+        private originService: OriginService
+    ) {}
 
     ngOnInit() {
         this.sub = this.route.parent.params.subscribe(params => {
-            this.origin = Origin({ name: params["origin"]});
+            this.origin = this.originService.origin(params["origin"], this.store.getState().origins.current);
         });
         this.store.dispatch(fetchOriginPublicKeys(
             this.origin.name, this.gitHubAuthToken
@@ -60,14 +62,6 @@ export class OriginKeysTabComponent implements OnInit, OnDestroy {
         return this.store.getState().origins.mine;
     }
 
-    get addingPrivateKey() {
-        return this.ui.addingPrivateKey;
-    }
-
-    get addingPublicKey() {
-        return this.ui.addingPublicKey;
-    }
-
     get publicKeys() {
         return this.store.getState().origins.currentPublicKeys;
     }
@@ -76,19 +70,20 @@ export class OriginKeysTabComponent implements OnInit, OnDestroy {
         return this.store.getState().gitHub.authToken;
     }
 
-    setOriginAddingPrivateKey(state: boolean) {
-        this.store.dispatch(setCurrentOriginAddingPrivateKey(state));
-        return false;
-    }
-
-    setOriginAddingPublicKey(state: boolean) {
-        this.store.dispatch(setCurrentOriginAddingPublicKey(state));
-        return false;
+    openKeyAddForm(type: string) {
+        let dialogRef = this.dialog.open(KeyAddFormDialog, {
+            data: { type, origin: this.origin.name },
+            width: "480px",
+            height: "341px"
+        });
     }
 
     get privateKeyNames() {
         if (this.origin.private_key_name) {
-            return List([this.origin.private_key_name]);
+            return List([{
+                name: this.origin.private_key_name,
+                location: `/origins/${this.origin.name}/secret_keys/latest`
+            }]);
         } else {
             return List([]);
         }

@@ -63,7 +63,7 @@
             "check-type"
         ],
 
-        "component-class-suffix": true,
+        "component-class-suffix": false,
         "component-selector": [true, "element", "hab", "kebab-case"],
         "directive-class-suffix": true,
         "directive-selector": [true, "attribute", "hab", "camelCase"],

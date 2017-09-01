@@ -1,16 +1,23 @@
-<p *ngIf="keys.size === 0">
-  No {{type}} keys found.
-</p>
-<p *ngIf="keys.size > 0 && publicKey">
-  Select any key to download the file.
-</p>
-<ul class="hab-key-list--list" *ngIf="keys.size > 0">
-  <li *ngFor="let key of keys" class="hab-item-list--all-link hab-item-list">
-    <h3>
-      <a href="{{apiUrl}}/depot{{key.location}}" *ngIf="publicKey">
-        {{key.origin}}-{{key.revision}}
-      </a>
-      <span *ngIf="!publicKey">{{key}}</span>
-    </h3>
-  </li>
-</ul>
+<div class="hab-keys-list">
+  <p *ngIf="keys.size === 0">
+    No {{type}} keys found.
+  </p>
+  <ul class="keys">
+    <li class="heading">
+      <h3 class="key-name uppercase">{{keyType}} Keys</h3>
+      <h3 class="uppercase download">Actions</h3>
+    </li>
+    <li *ngFor="let key of keys" class="key">
+      <div class="summary">
+        <span class="key-name">
+          <hab-icon class="key-icon" [symbol]="icon"></hab-icon>
+          <span *ngIf="publicKey">{{key.origin}}-{{key.revision}}</span>
+          <span *ngIf="!publicKey">{{key.name}}</span>
+          </span>
+        <a class="download" href="{{apiUrl}}/depot{{key.location}}">
+          <hab-icon symbol="file-download"></hab-icon>
+        </a>
+      </div>
+    </li>
+  </ul>
+</div>

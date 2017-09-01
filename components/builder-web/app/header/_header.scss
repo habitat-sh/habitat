@@ -197,9 +197,11 @@ $main-nav-breakpoint: 710px;
     border-radius: rem(6);
     font-size: 1em;
     text-shadow: none;
+    padding: rem(5) rem(15);
 
     &:hover {
       background-color: $hab-orange;
+      color: $hab-white;
       background-image: linear-gradient(to left, lighten($hab-orange, 13%), lighten($hab-orange-dark, 5%) 100%);
     }
 

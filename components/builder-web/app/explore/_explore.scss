@@ -90,6 +90,9 @@
         background: none;
         height: 48px;
         color: $hab-white;
+        width: 100%;
+        outline: none;
+        font-size: rem(14);
       }
 
       button {
@@ -101,6 +104,7 @@
         right: 0;
         top: 0;
         height: 48px;
+        font-size: rem(16);
       }
     }
 
