@@ -78,6 +78,9 @@ impl Dispatcher for Worker {
             }
             "OriginIntegrationCreate" => handlers::origin_integration_create(message, sock, state),
             "OriginIntegrationDelete" => handlers::origin_integration_delete(message, sock, state),
+            "OriginIntegrationRequest" => {
+                handlers::origin_integration_request(message, sock, state)
+            }
             "OriginInvitationAcceptRequest" => {
                 handlers::origin_invitation_accept(message, sock, state)
             }

@@ -76,5 +76,15 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                         WHERE origin = in_origin AND integration = in_integration AND name = in_name
                     $$ LANGUAGE SQL VOLATILE"#,
     )?;
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE OR REPLACE FUNCTION get_origin_integrations_for_origin_v1 (
+                        in_origin text
+                 ) RETURNS SETOF origin_integrations AS $$
+                        SELECT * FROM origin_integrations
+                        WHERE origin = in_origin
+                        ORDER BY integration, name
+                    $$ LANGUAGE SQL STABLE"#,
+    )?;
     Ok(())
 }

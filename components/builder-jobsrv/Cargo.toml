@@ -36,6 +36,9 @@ features = [ "suggestions", "color", "unstable" ]
 [dependencies.habitat_core]
 path = "../core"
 
+[dependencies.builder_core]
+path = "../builder-core"
+
 [dependencies.habitat_builder_protocol]
 path = "../builder-protocol"
 

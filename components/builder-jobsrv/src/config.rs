@@ -44,6 +44,9 @@ pub struct Config {
 
     /// Configuration for the job log archiver
     pub archive: ArchiveCfg,
+    ///
+    /// Filepath to where the builder encryption keys can be found
+    pub key_dir: PathBuf,
 }
 
 impl Default for Config {
@@ -58,6 +61,7 @@ impl Default for Config {
             datastore: datastore,
             log_dir: env::temp_dir(),
             archive: ArchiveCfg::default(),
+            key_dir: PathBuf::from("/hab/svc/hab-depot/files"),
         }
     }
 }

@@ -229,11 +229,19 @@ impl Routable for OriginIntegrationCreate {
     type H = String;
 
     fn route_key(&self) -> Option<Self::H> {
-        Some(self.get_origin().to_string())
+        Some(self.get_integration().get_origin().to_string())
     }
 }
 
 impl Routable for OriginIntegrationDelete {
+    type H = String;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(self.get_integration().get_origin().to_string())
+    }
+}
+
+impl Routable for OriginIntegrationRequest {
     type H = String;
 
     fn route_key(&self) -> Option<Self::H> {

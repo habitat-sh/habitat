@@ -22,9 +22,7 @@ use protocol::originsrv::*;
 use protocol::net::{NetOk, ErrCode};
 use persistent;
 use DepotUtil;
-use base64;
 use bld_core;
-use hab_core::crypto::BoxKeyPair;
 
 use super::super::server::{route_message, check_origin_access};
 
@@ -34,26 +32,10 @@ pub fn encrypt(req: &mut Request, content: &str) -> Result<String, Status> {
     );
     let depot = lock.read().expect("depot read lock is poisoned");
 
-    let kp = match BoxKeyPair::get_latest_pair_for(
-        bld_core::keys::BUILDER_KEY_NAME,
-        &depot.config.key_dir,
-    ) {
-        Ok(p) => p,
-        Err(_) => {
-            error!("Can't find bldr key pair at {:?}", depot.config.key_dir);
-            return Err(status::InternalServerError);
-        }
-    };
-
-    let ciphertext = match kp.encrypt(content.as_bytes(), None) {
-        Ok(s) => s,
-        Err(e) => {
-            error!("Unable to encrypt with bldr key pair, err={:?}", e);
-            return Err(status::InternalServerError);
-        }
-    };
-
-    Ok(base64::encode(&ciphertext))
+    match bld_core::integrations::encrypt(&depot.config.key_dir, content) {
+        Ok(c) => Ok(c),
+        Err(_) => Err(status::InternalServerError),
+    }
 }
 
 pub fn validate_params(
@@ -151,11 +133,15 @@ pub fn create_origin_integration(req: &mut Request) -> IronResult<Response> {
     };
 
     // Issue the create command
+    let mut oi = OriginIntegration::new();
+    oi.set_origin(params["origin"].clone());
+    oi.set_integration(params["integration"].clone());
+    oi.set_name(params["name"].clone());
+    oi.set_body(encrypted);
+
     let mut request = OriginIntegrationCreate::new();
-    request.set_origin(params["origin"].clone());
-    request.set_integration(params["integration"].clone());
-    request.set_name(params["name"].clone());
-    request.set_body(encrypted);
+    request.set_integration(oi);
+
     match route_message::<OriginIntegrationCreate, NetOk>(req, &request) {
         Ok(_) => Ok(Response::with(status::NoContent)),
         Err(err) => {
@@ -179,10 +165,14 @@ pub fn delete_origin_integration(req: &mut Request) -> IronResult<Response> {
     };
 
     // Issue the delete command
+    let mut oi = OriginIntegration::new();
+    oi.set_origin(params["origin"].clone());
+    oi.set_integration(params["integration"].clone());
+    oi.set_name(params["name"].clone());
+
     let mut request = OriginIntegrationDelete::new();
-    request.set_origin(params["origin"].clone());
-    request.set_integration(params["integration"].clone());
-    request.set_name(params["name"].clone());
+    request.set_integration(oi);
+
     match route_message::<OriginIntegrationDelete, NetOk>(req, &request) {
         Ok(_) => Ok(Response::with(status::NoContent)),
         Err(err) => {

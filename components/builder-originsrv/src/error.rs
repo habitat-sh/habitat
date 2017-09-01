@@ -51,6 +51,7 @@ pub enum Error {
     OriginIntegrationCreate(postgres::error::Error),
     OriginIntegrationGetNames(postgres::error::Error),
     OriginIntegrationDelete(postgres::error::Error),
+    OriginIntegrationRequest(postgres::error::Error),
     OriginInvitationAccept(postgres::error::Error),
     OriginInvitationCreate(postgres::error::Error),
     OriginInvitationListForOrigin(postgres::error::Error),
@@ -146,6 +147,9 @@ impl fmt::Display for Error {
             }
             Error::OriginIntegrationDelete(ref e) => {
                 format!("Error deleting integration from database, {}", e)
+            }
+            Error::OriginIntegrationRequest(ref e) => {
+                format!("Error retrieving integration request from database, {}", e)
             }
             Error::OriginInvitationAccept(ref e) => {
                 format!("Error accepting origin invitation in database, {}", e)
@@ -290,6 +294,7 @@ impl error::Error for Error {
             Error::OriginIntegrationCreate(ref err) => err.description(),
             Error::OriginIntegrationGetNames(ref err) => err.description(),
             Error::OriginIntegrationDelete(ref err) => err.description(),
+            Error::OriginIntegrationRequest(ref err) => err.description(),
             Error::OriginInvitationAccept(ref err) => err.description(),
             Error::OriginInvitationCreate(ref err) => err.description(),
             Error::OriginInvitationListForOrigin(ref err) => err.description(),

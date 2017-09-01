@@ -15,6 +15,7 @@
 #![cfg_attr(feature="clippy", plugin(clippy))]
 
 extern crate aws_sdk_rust;
+extern crate builder_core as bldr_core;
 extern crate chrono;
 extern crate habitat_builder_protocol as protocol;
 extern crate habitat_core as hab_core;

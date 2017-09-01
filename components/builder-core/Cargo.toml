@@ -6,6 +6,7 @@ workspace = "../../"
 build = "../bldr-build.rs"
 
 [dependencies]
+base64 = "*"
 chrono = { version = "*", features = ["serde"] }
 clippy = {version = "*", optional = true}
 libarchive = "*"
