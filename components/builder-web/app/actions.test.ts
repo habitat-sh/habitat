@@ -65,18 +65,21 @@ describe("actions", () => {
                 spyOn(gitHub, "currentHostname").and.returnValues(
                     "localhost",
                     "builder.habitat.sh",
-                    "builder.acceptance.habitat.foo"
+                    "builder.acceptance.habitat.foo",
+                    "1.2.3.4"
                 );
 
                 gitHub.setCookie("gitHubAuthToken", "some-token");
                 gitHub.setCookie("gitHubAuthToken", "some-token");
                 gitHub.setCookie("gitHubAuthToken", "some-token");
-
+                gitHub.setCookie("gitHubAuthToken", "some-token");
+                
                 expect(cookies.set.calls.allArgs()).toEqual(
                     [
                         [ "gitHubAuthToken", "some-token", { domain: "localhost", secure: false } ],
                         [ "gitHubAuthToken", "some-token", { domain: "habitat.sh", secure: false } ],
-                        [ "gitHubAuthToken", "some-token", { domain: "habitat.foo", secure: false } ]
+                        [ "gitHubAuthToken", "some-token", { domain: "habitat.foo", secure: false } ],
+                        [ "gitHubAuthToken", "some-token", { domain: "1.2.3.4", secure: false } ]
                     ]
                 );
             });
