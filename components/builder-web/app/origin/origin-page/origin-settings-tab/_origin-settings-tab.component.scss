@@ -1,0 +1,42 @@
+.title-description {
+  font-size: 14px;
+  line-height: 18px;
+}
+.pkg-selector-wrapper {
+  display: flex;
+
+  .active {
+    background-color: $very-light-gray;
+  }
+
+  .pkg-privacy-selector {
+    flex: 1;
+    border: 1px solid $very-light-gray;
+    padding: 10px;
+    margin-left: 10px;
+    border-radius: $base-border-radius;
+
+    h4 {
+      font-size: 14px;
+    }
+
+    .mat-radio-label {
+      position: relative;
+      text-transform: none;
+      
+      .mat-radio-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
+      .mat-radio-label-content {
+        white-space: normal;
+        margin-left: 20px;
+      }
+    }
+
+    &:first-of-type {
+      margin-left: 0;
+    }
+  }
+}

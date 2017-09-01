@@ -39,6 +39,7 @@ export const SET_ORIGIN_USER_INVITE_ERROR_MESSAGE =
     "SET_ORIGIN_USER_INVITE_ERROR_MESSAGE";
 export const TOGGLE_ORIGIN_PICKER = "TOGGLE_ORIGIN_PICKER";
 export const SET_PACKAGE_COUNT_FOR_ORIGIN = "SET_PACKAGE_COUNT_FOR_ORIGIN";
+export const SET_ORIGIN_PRIVACY_SETTINGS = "SET_ORIGIN_PRIVACY_SETTINGS";
 
 export function acceptOriginInvitation(invitationId: string, originName: string, token: string) {
     return dispatch => {
@@ -165,6 +166,12 @@ export function inviteUserToOrigin(username: string, origin: string, token: stri
     };
 }
 
+export function setOriginPrivacySettings(privacySetting) {
+    return dispatch => {
+        // ED TODO: Add API call here to set new origin privacy settings when it's implemented
+    };
+}
+
 export function fetchOriginsPackageCount(origins) {
     return dispatch => {
         origins.forEach(origin => {
@@ -277,6 +284,14 @@ function setOriginUserInviteErrorMessage(payload: string) {
         payload,
     };
 }
+
+// ED TODO: uncomment this when the api endpoint is added for privacy settings
+// function setCurrentOriginPrivacySetting(payload: string) {
+//     return {
+//         type: SET_ORIGIN_PRIVACY_SETTINGS,
+//         payload,
+//     };
+// }
 
 export function toggleOriginPicker() {
     return {

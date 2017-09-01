@@ -4,6 +4,7 @@ import { OriginPageComponent } from "../origin-page/origin-page.component";
 import { OriginKeysTabComponent } from "./origin-keys-tab/origin-keys-tab.component";
 import { OriginMembersTabComponent } from "./origin-members-tab/origin-members-tab.component";
 import { OriginPackagesTabComponent } from "./origin-packages-tab/origin-packages-tab.component";
+import { OriginSettingsTabComponent } from "./origin-settings-tab/origin-settings-tab.component";
 
 const routes: Routes = [
   {
@@ -26,6 +27,10 @@ const routes: Routes = [
       {
         path: "members",
         component: OriginMembersTabComponent
+      },
+      {
+        path: "settings",
+        component: OriginSettingsTabComponent
       },
       {
         path: "**",
