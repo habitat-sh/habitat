@@ -18,6 +18,7 @@ import { ProgressBarComponent } from "./progress-bar/progress-bar.component";
 import { PlatformIconComponent } from "./platform-icon/platform-icon.component";
 import { TabsComponent } from "./tabs/TabsComponent";
 import { TabComponent } from "./tabs/TabComponent";
+import { FormProgressComponent } from "./form-progress/form-progress.component";
 
 @NgModule({
   imports: [
@@ -43,7 +44,8 @@ import { TabComponent } from "./tabs/TabComponent";
     ProgressBarComponent,
     PlatformIconComponent,
     TabsComponent,
-    TabComponent
+    TabComponent,
+    FormProgressComponent
   ],
   exports: [
     BreadcrumbsComponent,
@@ -58,7 +60,8 @@ import { TabComponent } from "./tabs/TabComponent";
     ProgressBarComponent,
     PlatformIconComponent,
     TabsComponent,
-    TabComponent
+    TabComponent,
+    FormProgressComponent
   ]
 })
 export class SharedModule {

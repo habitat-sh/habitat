@@ -1,0 +1,25 @@
+.hab-package-form-progress {
+  background: $hab-blue;
+  padding: 5px 15px;
+  border-radius: 2px;
+}
+
+li.hab-package-form-progress-step {
+  display: inline-block;
+
+  > a {
+    color: white;
+
+    &.current, &:hover {
+      font-weight: bold;
+    }
+
+    &:after {
+      content: '→';
+      padding: 0px 15px;
+      display: inline-block;
+    }
+  }
+
+  &:last-child > a::after { display: none; }
+}
