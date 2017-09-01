@@ -223,14 +223,21 @@ function resetGitHubRepos() {
 }
 
 // Return up to two trailing segments of the current hostname
-// for purposes of setting the cookie domain.
+// for purposes of setting the cookie domain unless the domain
+// is an IP address.
 function cookieDomain() {
     let delim = ".";
+    let hostname = currentHostname();
+    let tld = hostname.split(delim).pop();
 
-    return currentHostname()
+    if (isNaN(Number(tld))) {
+        return hostname
         .split(delim)
         .splice(-2)
         .join(delim);
+    } else {
+        return hostname;
+    }
 }
 
 export const currentHostname = () => {
