@@ -564,11 +564,6 @@ impl CensusMember {
             Health::Departed => self.departed = true,
         }
     }
-
-    /// Is this member currently considered to be alive or not?
-    pub fn alive(&self) -> bool {
-        self.alive
-    }
 }
 
 fn service_group_from_str(sg: &str) -> Result<ServiceGroup, hcore::Error> {
