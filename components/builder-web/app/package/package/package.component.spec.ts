@@ -1,6 +1,7 @@
 import { TestBed, ComponentFixture } from "@angular/core/testing";
 import { RouterTestingModule } from "@angular/router/testing";
 import { Component, DebugElement } from "@angular/core";
+import { MdTabsModule } from "@angular/material";
 import { By } from "@angular/platform-browser";
 import { ActivatedRoute } from "@angular/router";
 import { Observable } from "rxjs";
@@ -24,7 +25,8 @@ describe("PackageComponent", () => {
 
     TestBed.configureTestingModule({
       imports: [
-        RouterTestingModule
+        RouterTestingModule,
+        MdTabsModule
       ],
       declarations: [
         PackageComponent,

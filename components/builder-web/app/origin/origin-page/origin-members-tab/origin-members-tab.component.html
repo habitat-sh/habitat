@@ -1,0 +1,61 @@
+<div class="page-body">
+  <div class="hab-origin--left">
+    <div class="hab-origin-members-tab--section invite-members">
+      <h3>Invite Member</h3>
+      <form
+        #formValues="ngForm"
+        [formGroup]="form"
+        (ngSubmit)="submit(formValues.value.username)">
+        <label>Add existing users by GitHub username</label>
+        <input type="search" name="username"
+          [formControl]="form.controls['username']">
+        <div class="hab-origin-members-tab--submit">
+          <button
+            class="hab-origin-members-tab--save"
+            [disabled]="!control.valid">
+            Send invitation
+          </button>
+          <div
+            *ngIf="errorMessage"
+            class="hab-origin-members-tab--errors">
+            {{errorMessage}}
+          </div>
+        </div>
+      </form>
+    </div>
+    <hr>
+    <div class="hab-origin-members-tab--section">
+      <h3>Pending Invitations</h3>
+      <p *ngIf="invitations.size === 0">No pending invitations.</p>
+      <ul class="pending">
+        <li *ngFor="let invitation of invitations"
+          class="hab-item-list hab-no-select">
+          <h3>{{invitation.account_name}}</h3>
+        </li>
+      </ul>
+    </div>
+    <hr>
+    <div class="hab-origin-members-tab--section">
+      <h3>Current Members</h3>
+      <p *ngIf="members.size === 0">No Members.</p>
+      <ul>
+        <li *ngFor="let member of members"
+          class="hab-item-list hab-no-select">
+          <h3>{{member}}</h3>
+        </li>
+      </ul>
+    </div>
+  </div>
+  <div class="hab-origin--right">
+    <p>
+      <em>Origin keys</em> ensure only authorized users (or
+      organizations) are able to push updates to packages
+      in this origin.
+    </p>
+    <p>
+      For more information, see
+      <a href="{{docsUrl}}/concepts-keys/">
+      origin keys</a> in the documentation.
+    </p>
+  </div>
+</div>

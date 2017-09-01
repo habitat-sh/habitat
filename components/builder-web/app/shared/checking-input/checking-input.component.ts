@@ -14,49 +14,11 @@
 
 import { FormControl, FormGroup, Validators } from "@angular/forms";
 import { Component, Input, OnInit } from "@angular/core";
-import { AsyncValidator } from "./AsyncValidator";
+import { AsyncValidator } from "../../AsyncValidator";
 
 @Component({
     selector: "hab-checking-input",
-    template: `
-    <div class="hab-checking-input">
-        <div class="hab-checking-input--input-wrapper">
-            <hab-icon [symbol]="symbolForState(control)" class="hab-checking-input--input-icon"
-                [class.spinning]="control.pending"
-                [class.invalid]="control.dirty && !control.pending && !control.valid"
-                [class.valid]="!control.pending && control.valid">
-            </hab-icon>
-            <input class="hab-checking-input--input"
-                [class.loading]="control.pending"
-                autocomplete="off"
-                autofocus="{{autofocus}}"
-                id="{{id}}"
-                [formControl]="form.controls[name]"
-                placeholder="{{placeholder}}">
-        </div>
-        <small class="hab-checking-input--input-msg-wrap">
-            &nbsp;
-            <span *ngIf="control.dirty && !control.pending && !control.valid"
-                    class="hab-checking-input--input-msg invalid">
-                <span *ngIf="control.errors.invalidFormat">
-                    {{displayName}} must match correct format
-                </span>
-                <span *ngIf="control.errors.required">
-                    {{displayName}} is required
-                </span>
-                <span *ngIf="control.errors.taken">
-                    {{displayName}} {{notAvailableMessage}}
-                </span>
-                <span *ngIf="control.errors.maxlength">
-                    Cannot be longer than {{maxLength}} characters
-                </span>
-            </span>
-            <span *ngIf="!control.pending && control.valid"
-                    class="hab-checking-input--input-msg valid">
-                {{displayName}} {{availableMessage}}
-            </span>
-        </small>
-    </div>`
+    template: require("./checking-input.component.html")
 })
 
 export class CheckingInputComponent implements OnInit {

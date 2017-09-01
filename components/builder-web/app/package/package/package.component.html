@@ -5,35 +5,38 @@
     </h2>
     <h4>package</h4>
   </div>
-  <div class="page-subnav">
-    <ul class="tabs">
-      <li *ngIf="enabled('latest')">
-        <a [routerLink]="['./latest']"
-          [routerLinkActiveOptions]="{exact: true}"
-          routerLinkActive="active">Latest</a>
-      </li>
-      <li *ngIf="enabled('readme')">
-        <a [routerLink]="['./readme']"
-            [routerLinkActiveOptions]="{exact: true}"
-            routerLinkActive="active">Readme</a>
-        </li>
-      <li *ngIf="enabled('versions')">
-        <a [routerLink]="['./']"
-           [routerLinkActiveOptions]="{exact: true}"
-            routerLinkActive="active">Versions</a>
-      </li>
-      <li *ngIf="enabled('builds')">
-        <a [routerLink]="['./builds']"
-            [routerLinkActiveOptions]="{exact: true}"
-            routerLinkActive="active">Build Jobs</a>
-      </li>
-      <li *ngIf="enabled('settings')">
-        <a [routerLink]="['./settings']"
-          [routerLinkActiveOptions]="{exact: true}"
-          routerLinkActive="active">Build Settings</a>
-      </li>
-    </ul>
-  </div>
+  <nav md-tab-nav-bar>
+    <a md-tab-link *ngIf="enabled('latest')"
+       routerLink="latest"
+       routerLinkActive #rla="routerLinkActive"
+       [active]="rla.isActive">
+      Latest
+    </a>
+    <a md-tab-link *ngIf="enabled('readme')"
+       routerLink="readme"
+       routerLinkActive #rla="routerLinkActive"
+       [active]="rla.isActive">
+      Readme
+    </a>
+    <a md-tab-link *ngIf="enabled('versions')"
+       routerLink="versions"
+       routerLinkActive #rla="routerLinkActive"
+       [active]="rla.isActive">
+      Versions
+    </a>
+    <a md-tab-link *ngIf="enabled('builds')"
+       routerLink="builds"
+       routerLinkActive #rla="routerLinkActive"
+       [active]="rla.isActive">
+      Builds
+    </a>
+    <a md-tab-link *ngIf="enabled('settings')"
+       routerLink="settings"
+       routerLinkActive #rla="routerLinkActive"
+       [active]="rla.isActive">
+      Settings
+    </a>
+  </nav>
   <div class="page-body">
     <div class="page-content">
       <router-outlet></router-outlet>

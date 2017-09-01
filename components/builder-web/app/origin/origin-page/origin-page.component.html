@@ -1,0 +1,23 @@
+<div class="hab-origin">
+  <div class="page-title">
+    <h2>{{origin.name}}</h2>
+    <h4>Origin</h4>
+  </div>
+  <div *ngIf="!ui.exists && !ui.loading" class="page-body">
+    <p>
+      Failed to load origin.
+      <span *ngIf="ui.errorMessage">
+        Error: {{ui.errorMessage}}
+      </span>
+    </p>
+  </div>
+  <nav md-tab-nav-bar>
+    <a md-tab-link *ngFor="let link of navLinks"
+       [routerLink]="link"
+       routerLinkActive #rla="routerLinkActive"
+       [active]="rla.isActive">
+      {{link}}
+    </a>
+  </nav>
+  <router-outlet></router-outlet>
+</div>

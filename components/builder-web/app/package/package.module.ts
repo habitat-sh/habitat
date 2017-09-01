@@ -1,6 +1,7 @@
 import { NgModule } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { RouterModule } from "@angular/router";
+import { MdTabsModule } from "@angular/material";
 import { PackageBuildsComponent } from "./package-builds/package-builds.component";
 import { PackageLatestComponent } from "./package-latest/package-latest.component";
 import { PackageDetailComponent } from "./package-detail/package-detail.component";
@@ -19,6 +20,11 @@ let routes = RouterModule.forChild([
       children: [
         {
           path: "",
+          pathMatch: "full",
+          redirectTo: "versions"
+        },
+        {
+          path: "versions",
           component: PackageVersionsComponent
         },
         {
@@ -53,6 +59,8 @@ let routes = RouterModule.forChild([
   imports: [
     CommonModule,
     routes,
+    RouterModule,
+    MdTabsModule,
     SharedModule
   ],
   declarations: [

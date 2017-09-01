@@ -1,9 +1,6 @@
 import { BuildPageComponent } from "./build-page/build-page.component";
 import { DashboardComponent } from "./dashboard/dashboard.component";
 import { ExploreComponent } from "./explore/explore.component";
-import { OriginCreatePageComponent } from "./origin-create-page/OriginCreatePageComponent";
-import { OriginPageComponent } from "./origin-page/OriginPageComponent";
-import { OriginsPageComponent } from "./origins-page/OriginsPageComponent";
 import { PackagesPageComponent } from "./packages-page/packages-page.component";
 import { ProjectCreatePageComponent } from "./project-create-page/ProjectCreatePageComponent";
 import { ProjectPageComponent } from "./project-page/ProjectPageComponent";
@@ -37,27 +34,6 @@ describe("Routes", () => {
     it("routes to BuildPageComponent", () => {
       let r = route("builds/:id");
       expect(r.component).toBe(BuildPageComponent);
-    });
-  });
-
-  describe("/origins", () => {
-    it("routes to OriginsPageComponent", () => {
-      let r = route("origins");
-      expect(r.component).toBe(OriginsPageComponent);
-    });
-  });
-
-  describe("/origins/create", () => {
-    it("routes to OriginCreatePageComponent", () => {
-      let r = route("origins/create");
-      expect(r.component).toBe(OriginCreatePageComponent);
-    });
-  });
-
-  describe("/origins/:origin", () => {
-    it("routes to OriginPageComponent", () => {
-      let r = route("origins/:origin");
-      expect(r.component).toBe(OriginPageComponent);
     });
   });
 
