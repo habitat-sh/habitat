@@ -30,10 +30,6 @@ import { GitHubRepoPickerComponent } from "./github-repo-picker/GitHubRepoPicker
 import { GravatarComponent } from "./GravatarComponent";
 import { HeaderComponent } from "./header/HeaderComponent";
 import { NotificationsComponent } from "./notifications/NotificationsComponent";
-import { OriginModule } from "./origin/origin.module";
-import { PackagePageComponent } from "./package-page/PackagePageComponent";
-import { PackagesListComponent } from "./packages-list/packages-list.component";
-import { PackagesPageComponent } from "./packages-page/packages-page.component";
 import { ProjectSettingsPageComponent } from "./project-settings-page/ProjectSettingsPageComponent";
 import { ProjectCreatePageComponent } from "./project-create-page/ProjectCreatePageComponent";
 import { ProjectInfoComponent } from "./project-info/ProjectInfoComponent";
@@ -45,7 +41,9 @@ import { SignInPageComponent } from "./sign-in-page/SignInPageComponent";
 import { UserNavComponent } from "./header/user-nav/UserNavComponent";
 import { RepoFilterPipe } from "./pipes/repoFilter.pipe";
 
+import { OriginModule } from "./origin/origin.module";
 import { PackageModule } from "./package/package.module";
+import { SearchModule } from "./search/search.module";
 import { SharedModule } from "./shared/shared.module";
 
 @NgModule({
@@ -56,6 +54,7 @@ import { SharedModule } from "./shared/shared.module";
         OriginModule,
         PackageModule,
         ReactiveFormsModule,
+        SearchModule,
         SharedModule,
         routing
     ],
@@ -70,9 +69,6 @@ import { SharedModule } from "./shared/shared.module";
         GravatarComponent,
         HeaderComponent,
         NotificationsComponent,
-        PackagePageComponent,
-        PackagesListComponent,
-        PackagesPageComponent,
         ProjectCreatePageComponent,
         ProjectInfoComponent,
         ProjectPageComponent,

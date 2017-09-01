@@ -24,12 +24,22 @@ import {AppStore} from "../../AppStore";
 })
 
 export class ProgressBarComponent {
+
   constructor(private store: AppStore) { }
+
   get loading() {
-    const state = this.store.getState();
-    return (
-      state.origins.ui.mine.loading &&
-      state.packages.ui.visible.loading &&
-      state.projects.current.ui.loading
-    ); }
+    return this.loadingOrigins;
+  }
+
+  private get state() {
+    return this.store.getState();
+  }
+
+  private get signedIn() {
+    return !!this.state.gitHub.authToken;
+  }
+
+  private get loadingOrigins() {
+    return this.signedIn && this.state.origins.ui.mine.loading;
+  }
 }

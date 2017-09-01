@@ -73,7 +73,7 @@ describe("actions", () => {
                 gitHub.setCookie("gitHubAuthToken", "some-token");
                 gitHub.setCookie("gitHubAuthToken", "some-token");
                 gitHub.setCookie("gitHubAuthToken", "some-token");
-                
+
                 expect(cookies.set.calls.allArgs()).toEqual(
                     [
                         [ "gitHubAuthToken", "some-token", { domain: "localhost", secure: false } ],
