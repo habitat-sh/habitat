@@ -137,18 +137,15 @@ impl<'a> Svc<'a> {
 #[derive(Clone, Debug, Serialize)]
 pub struct SvcMember<'a>(&'a CensusMember);
 
-/// Helper for pulling the leader or first alive member from a census
-/// group. This is used to populate the `.first` field in `bind` and
-/// `svc`.
+/// Helper for pulling the leader or first member from a census group. This is used to populate the
+/// `.first` field in `bind` and `svc`.
 fn select_first(census_group: &CensusGroup) -> Option<SvcMember> {
     match census_group.leader() {
         Some(member) => Some(SvcMember(member)),
         None => {
-            census_group
-                .members()
-                .into_iter()
-                .find(|ref m| m.alive())
-                .and_then(|m| Some(SvcMember(m)))
+            census_group.members().first().and_then(
+                |m| Some(SvcMember(m)),
+            )
         }
     }
 }
