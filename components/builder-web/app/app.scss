@@ -29,9 +29,6 @@ $output-bourbon-deprecation-warnings: false !default;
 @import "github-repo-picker/github-repo-picker";
 @import "header/header";
 @import "header/user-nav/user-nav";
-@import "build/build.component";
-@import "shared/build-list/build-list.component";
-@import "shared/build-status/build-status.component";
 @import "shared/channels/channels.component";
 @import "shared/icon/icon.component";
 @import "shared/copyable/copyable.component";
@@ -44,6 +41,9 @@ $output-bourbon-deprecation-warnings: false !default;
 @import "origin/origin-page/origin-members-tab/origin-members-tab.component";
 @import "origin/origin-page/origin-settings-tab/origin-settings-tab.component";
 @import "origin/origins-page/origins-page.component";
+@import "package/build-detail/build-detail.component";
+@import "package/build-list/build-list.component";
+@import "package/build-status/build-status.component";
 @import "package/package/package.component";
 @import "package/package-builds/package-builds.component";
 @import "package/package-latest/package-latest.component";
@@ -195,5 +195,6 @@ body {
     text-transform: uppercase;
     font-size: 0.75rem;
     min-width: 100px;
+    opacity: 1;
   }
 }

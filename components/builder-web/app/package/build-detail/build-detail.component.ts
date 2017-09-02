@@ -3,14 +3,14 @@ import { ActivatedRoute } from "@angular/router";
 import { Subscription } from "rxjs";
 import * as AnsiUp from "ansi_up";
 import * as moment from "moment";
-import { fetchBuildLog, streamBuildLog } from "../actions/index";
-import { AppStore } from "../AppStore";
+import { fetchBuildLog, streamBuildLog } from "../../actions/index";
+import { AppStore } from "../../AppStore";
 
 @Component({
-    selector: "hab-build",
-    template: require("./build.component.html")
+    selector: "hab-build-detail",
+    template: require("./build-detail.component.html")
 })
-export class BuildComponent implements OnChanges, OnDestroy {
+export class BuildDetailComponent implements OnChanges, OnDestroy {
     @Input() build;
     @Input() stream: boolean = false;
 

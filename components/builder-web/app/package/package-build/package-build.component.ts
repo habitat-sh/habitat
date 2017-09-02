@@ -1,13 +1,13 @@
 import { Component, OnInit, OnDestroy } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
 import { Subscription } from "rxjs";
-import { fetchBuild } from "../actions/index";
-import { AppStore } from "../AppStore";
+import { fetchBuild } from "../../actions/index";
+import { AppStore } from "../../AppStore";
 
 @Component({
-  template: require("./build-page.component.html")
+  template: require("./package-build.component.html")
 })
-export class BuildPageComponent implements OnInit, OnDestroy {
+export class PackageBuildComponent implements OnInit, OnDestroy {
     private routeSub: Subscription;
 
     constructor(

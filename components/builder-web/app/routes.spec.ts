@@ -1,4 +1,3 @@
-import { BuildPageComponent } from "./build-page/build-page.component";
 import { DashboardComponent } from "./dashboard/dashboard.component";
 import { ExploreComponent } from "./explore/explore.component";
 import { ProjectCreatePageComponent } from "./project-create-page/ProjectCreatePageComponent";
@@ -26,13 +25,6 @@ describe("Routes", () => {
     it("routes to DashboardComponent", () => {
       let r = route("");
       expect(r.component).toBe(DashboardComponent);
-    });
-  });
-
-  describe("/builds/:id", () => {
-    it("routes to BuildPageComponent", () => {
-      let r = route("builds/:id");
-      expect(r.component).toBe(BuildPageComponent);
     });
   });
 

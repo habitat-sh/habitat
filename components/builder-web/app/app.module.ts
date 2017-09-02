@@ -19,8 +19,6 @@ import { HttpModule } from "@angular/http";
 import { routing } from "./routes";
 import { AppStore } from "./AppStore";
 import { AppComponent } from "./AppComponent";
-import { BuildComponent } from "./build/build.component";
-import { BuildPageComponent } from "./build-page/build-page.component";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { DashboardComponent } from "./dashboard/dashboard.component";
 import { DashboardGuard } from "./dashboard/dashboard.guard";
@@ -60,8 +58,6 @@ import { SharedModule } from "./shared/shared.module";
     ],
     declarations: [
         AppComponent,
-        BuildComponent,
-        BuildPageComponent,
         DashboardComponent,
         ExploreComponent,
         FooterComponent,
