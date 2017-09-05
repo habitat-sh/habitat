@@ -23,7 +23,7 @@ use protocol::originsrv::{CheckOriginAccessRequest, CheckOriginAccessResponse, O
                           OriginPackage, OriginPackageGet, OriginPackageGroupPromote,
                           OriginPackageIdent, OriginPackagePromote};
 use protocol::net::{ErrCode, NetError, NetOk};
-use protocol::scheduler::{Group, GroupGet, GroupState, Project, ProjectState};
+use protocol::scheduler::{Group, GroupGet, Project, ProjectState};
 use protocol::sessionsrv::{Session, SessionCreate, SessionGet};
 
 use data_structures::PartialJobGroupPromote;
@@ -133,8 +133,13 @@ pub fn promote_job_group_to_channel(group_id: u64, channel: &str, session_id: u6
     };
 
     // This only makes sense if the group is complete. If the group isn't complete, return now and
-    // let the user know.
-    if group.get_state() != GroupState::Complete {
+    // let the user know. Check the completion state by checking the individual project states,
+    // as if this is called by the scheduler it needs to promote the group before marking it
+    // Complete.
+    if group.get_projects().iter().any(|&ref p| {
+        p.get_state() == ProjectState::NotStarted || p.get_state() == ProjectState::InProgress
+    })
+    {
         return Err(Error::GroupNotComplete);
     }
 
