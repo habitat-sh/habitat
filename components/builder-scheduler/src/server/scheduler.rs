@@ -27,10 +27,12 @@ use protobuf::parse_from_bytes;
 use protocol::jobsrv::{self, Job, JobSpec};
 use protocol::originsrv::*;
 use protocol::scheduler as proto;
+use protocol::net::ErrCode;
 use data_store::DataStore;
 use error::{Result, Error};
 
 use config::Config;
+use bldr_core;
 use bldr_core::api::{authenticate_with_auth_token, create_channel, promote_job_group_to_channel,
                      promote_package_to_channel};
 use bldr_core::logger::Logger;
@@ -450,8 +452,20 @@ impl ScheduleMgr {
         )?;
 
         if channel != STABLE_CHANNEL {
-            create_channel(ident.get_origin(), channel, session_id)
-                .map_err(Error::BuilderCore)?;
+            match create_channel(ident.get_origin(), channel, session_id) {
+                Ok(_) => (),
+                Err(bldr_core::Error::NetError(err)) => {
+                    // Attempting to re-create a channel is not an error
+                    if err.get_code() != ErrCode::ENTITY_CONFLICT {
+                        error!("Unable to create channel, err={:?}", err);
+                        return Err(Error::BuilderCore(bldr_core::Error::NetError(err)));
+                    }
+                }
+                Err(err) => {
+                    error!("Unable to create channel, err={:?}", err);
+                    return Err(Error::BuilderCore(err));
+                }
+            }
         }
 
         promote_package_to_channel(ident, channel, session_id)
