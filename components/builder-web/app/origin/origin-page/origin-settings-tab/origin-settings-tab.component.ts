@@ -12,15 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {List, Record} from "immutable";
+import { Component } from "@angular/core";
+import { AppStore } from "../../../AppStore";
+import { setOriginPrivacySettings } from "../../../actions/index";
 
-export const Origin = Record({
-    id: undefined,
-    name: undefined,
-    owner_id: undefined,
-    private_key_name: undefined,
-    privateKeys: List(),
-    publicKeys: List(),
-    packageCount: undefined,
-    privacy: undefined
-});
+@Component({
+    selector: "hab-origin-settings-tab",
+    template: require("./origin-settings-tab.component.html")
+})
+
+export class OriginSettingsTabComponent {
+  constructor(private store: AppStore) {}
+
+  get originPrivacy() {
+    return this.store.getState().origins.current.privacy;
+  }
+
+  updatePrivacy(event) {
+    this.store.dispatch(setOriginPrivacySettings(event.value));
+  }
+}

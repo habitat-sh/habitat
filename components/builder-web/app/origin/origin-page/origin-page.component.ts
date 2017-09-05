@@ -67,7 +67,8 @@ export class OriginPageComponent implements OnInit, OnDestroy {
     }
 
     get navLinks() {
-        return ["packages", "keys", "members"];
+        // ED TODO: Uncomment settings when the privacy api endpoint is implemented
+        return ["packages", "keys", "members"/*, "settings"*/];
     }
 
     get features() {

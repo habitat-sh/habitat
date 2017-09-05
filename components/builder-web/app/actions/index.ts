@@ -74,6 +74,7 @@ export const SET_ORIGIN_PUBLIC_KEY_UPLOAD_ERROR_MESSAGE =
 export const SET_ORIGIN_USER_INVITE_ERROR_MESSAGE =
     originActions.SET_ORIGIN_USER_INVITE_ERROR_MESSAGE;
 export const TOGGLE_ORIGIN_PICKER = originActions.TOGGLE_ORIGIN_PICKER;
+export const SET_ORIGIN_PRIVACY_SETTINGS = originActions.SET_ORIGIN_PRIVACY_SETTINGS;
 
 export const CLEAR_PACKAGES = packageActions.CLEAR_PACKAGES;
 export const CLEAR_LATEST_PACKAGE = packageActions.CLEAR_LATEST_PACKAGE;
@@ -153,6 +154,7 @@ export const setCurrentOriginAddingPublicKey =
     originActions.setCurrentOriginAddingPublicKey;
 export const uploadOriginPrivateKey = originActions.uploadOriginPrivateKey;
 export const uploadOriginPublicKey = originActions.uploadOriginPublicKey;
+export const setOriginPrivacySettings = originActions.setOriginPrivacySettings;
 
 export const fetchDashboardRecent = packageActions.fetchDashboardRecent;
 export const fetchExplore = packageActions.fetchExplore;
