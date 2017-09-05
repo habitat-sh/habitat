@@ -1,0 +1,48 @@
+.hab-search-results {
+
+  li {
+    position: relative;
+    cursor: pointer;
+    font-size: rem(12);
+
+    a {
+      display: block;
+      transition: all 0.6s;
+      background-blend-mode: overlay;
+      border: 1px solid $hab-blue-light;
+      border-radius: $global-radius;
+      margin-bottom: 0.5em;
+      padding: rem(10);
+      color: $hab-gray-dark;
+      font-family: $heading-font-family;
+      font-size: rem(16);
+
+      &:hover, &.active {
+        transform: scale(1.01);
+        transition: all 0.2s ease-in-out;
+        box-shadow: 0 1px 14px 0 $hab-blue-light;
+      }
+
+      hab-icon[symbol="chevron-right"] {
+        position: absolute;
+        display: none;
+        right: 24px;
+        width: $list-item-icon-width;
+        height: $list-item-icon-height;
+        top: 50%;
+        transform: translateY(-50%);
+      }
+
+      &:hover {
+
+        hab-icon[symbol="chevron-right"] {
+          display: block;
+        }
+      }
+
+      .name {
+        font-family: $heading-font-family;
+      }
+    }
+  }
+}
