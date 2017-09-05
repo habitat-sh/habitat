@@ -20,7 +20,7 @@
             <h4>Popular Packages</h4>
           </li>
           <li *ngFor="let item of store.getState().packages.explore.popular">
-            <a [routerLink]="['/pkgs', item.origin, item.name]">
+            <a [routerLink]="['/pkgs', item.origin, item.name, 'latest']">
               <span class="title">{{item.origin}} / {{item.name}}</span>
             </a>
             <div class="caret">
@@ -33,7 +33,7 @@
             <h4>Packaging Your App</h4>
           </li>
           <li *ngFor="let item of store.getState().packages.explore.your_app">
-            <a [routerLink]="['/pkgs', item.origin, item.name]">
+            <a [routerLink]="['/pkgs', item.origin, item.name, 'latest']">
               <span class="title">{{item.origin}} / {{item.name}}</span>
             </a>
             <div class="caret">
@@ -46,7 +46,7 @@
             <h4>From the Community</h4>
           </li>
           <li *ngFor="let item of store.getState().packages.explore.community">
-            <a [routerLink]="['/pkgs', item.origin, item.name]">
+            <a [routerLink]="['/pkgs', item.origin, item.name, 'latest']">
               <span class="title">{{item.origin}} / {{item.name}}</span>
             </a>
             <div class="caret">

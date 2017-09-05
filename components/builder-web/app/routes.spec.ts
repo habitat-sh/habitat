@@ -1,7 +1,6 @@
 import { BuildPageComponent } from "./build-page/build-page.component";
 import { DashboardComponent } from "./dashboard/dashboard.component";
 import { ExploreComponent } from "./explore/explore.component";
-import { PackagesPageComponent } from "./packages-page/packages-page.component";
 import { ProjectCreatePageComponent } from "./project-create-page/ProjectCreatePageComponent";
 import { ProjectPageComponent } from "./project-page/ProjectPageComponent";
 import { ProjectsPageComponent } from "./projects-page/ProjectsPageComponent";
@@ -34,20 +33,6 @@ describe("Routes", () => {
     it("routes to BuildPageComponent", () => {
       let r = route("builds/:id");
       expect(r.component).toBe(BuildPageComponent);
-    });
-  });
-
-  describe("/pkgs", () => {
-    it("redirects to /pkgs/core", () => {
-      let r = route("pkgs");
-      expect(r.redirectTo).toBe("/pkgs/core");
-    });
-  });
-
-  describe("/pkgs/:origin", () => {
-    it("routes to PackagesPageComponent", () => {
-      let r = route("pkgs/:origin");
-      expect(r.component).toBe(PackagesPageComponent);
     });
   });
 

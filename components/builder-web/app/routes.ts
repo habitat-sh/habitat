@@ -17,9 +17,6 @@ import { BuildPageComponent } from "./build-page/build-page.component";
 import { DashboardComponent } from "./dashboard/dashboard.component";
 import { DashboardGuard } from "./dashboard/dashboard.guard";
 import { ExploreComponent } from "./explore/explore.component";
-import { OriginModule } from "./origin/origin.module";
-import { PackagePageComponent } from "./package-page/PackagePageComponent";
-import { PackagesPageComponent } from "./packages-page/packages-page.component";
 import { ProjectCreatePageComponent } from "./project-create-page/ProjectCreatePageComponent";
 import { ProjectPageComponent } from "./project-page/ProjectPageComponent";
 import { ProjectsPageComponent } from "./projects-page/ProjectsPageComponent";
@@ -40,18 +37,6 @@ export const routes: Routes = [
     {
         path: "builds/:id",
         component: BuildPageComponent
-    },
-    {
-        path: "pkgs/search/:query",
-        component: PackagesPageComponent,
-    },
-    {
-        path: "pkgs/:origin",
-        component: PackagesPageComponent
-    },
-    {
-        path: "pkgs",
-        redirectTo: "/pkgs/core"
     },
     {
         path: "sign-in",

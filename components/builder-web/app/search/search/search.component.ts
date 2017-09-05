@@ -15,31 +15,26 @@
 import { FormControl } from "@angular/forms";
 import { Component, OnInit, OnDestroy } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
-import { AppStore } from "../AppStore";
-import { clearBuilds, fetchBuilds, fetchPackageVersions, filterPackagesBy,
-         submitJob, setPackagesSearchQuery } from "../actions/index";
+import { AppStore } from "../../AppStore";
+import { filterPackagesBy, setPackagesSearchQuery } from "../../actions/index";
 import { Subscription } from "rxjs/Subscription";
 
 @Component({
-    template: require("./packages-page.component.html")
+    template: require("./search.component.html")
 })
 
-export class PackagesPageComponent implements OnInit, OnDestroy {
+export class SearchComponent implements OnInit, OnDestroy {
     perPage: number = 50;
     query: string;
     searchBox: FormControl;
-    name: string;
     origin: string;
-    version: string;
 
     private sub: Subscription;
 
     constructor(private store: AppStore, private route: ActivatedRoute, private router: Router) {
 
         this.sub = route.params.subscribe(params => {
-            this.name = params["name"];
             this.origin = params["origin"];
-            this.version = params["version"];
             this.query = params["query"];
             this.fetch();
         });
@@ -60,72 +55,17 @@ export class PackagesPageComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy() {
-        this.store.dispatch(clearBuilds());
-
         if (this.sub) {
             this.sub.unsubscribe();
         }
     }
 
-    get activeBuild() {
-        for (let i = 0; i < this.builds.size; i++ ) {
-            let build = this.builds.get(i);
-
-            if (build["state"] === "Dispatched" || build["state"] === "Pending") {
-                return build;
-            }
-        }
-
-        return null;
-    }
-
     fetch() {
-        this.store.dispatch(clearBuilds());
-
         if (this.query) {
             this.search(this.query);
         } else {
-            this.fetchBuilds();
-
-            if (this.name && !this.version) {
-                this.fetchVersions();
-            } else {
-                this.fetchPackages();
-            }
+            this.fetchPackages();
         }
-    }
-
-    get builds() {
-        return this.store.getState().builds.visible;
-    }
-
-    get iCanRequestABuild() {
-        let isMember = !!this.store.getState().origins.mine.find(o => o.name === "core");
-
-        if (this.origin === "core" && isMember && this.layout === "versions") {
-            return true;
-        }
-
-        return false;
-    }
-
-    get showBuildHistoryLink() {
-        return !!this.store.getState().gitHub.authToken &&
-            this.layout !== "origin" &&
-            this.origin === "core";
-    }
-
-    get layout() {
-        let s = "origin";
-
-        if (this.version) {
-            s = "builds";
-        }
-        else if (this.name) {
-            s = "versions";
-        }
-
-        return s;
     }
 
     get packages() {
@@ -136,18 +76,6 @@ export class PackagesPageComponent implements OnInit, OnDestroy {
         return this.store.getState().packages.searchQuery;
     }
 
-    get showBreadcrumbs() {
-        return this.origin && this.name;
-    }
-
-    get showSearch() {
-        return (this.origin && !this.name || this.query);
-    }
-
-    get subtitle() {
-        return this.version ? "builds" : "package";
-    }
-
     get totalCount() {
         return this.store.getState().packages.totalCount;
     }
@@ -156,15 +84,11 @@ export class PackagesPageComponent implements OnInit, OnDestroy {
         return this.store.getState().packages.ui.visible;
     }
 
-    get versions() {
-        return this.store.getState().packages.versions;
-    }
-
     fetchMorePackages() {
         this.store.dispatch(filterPackagesBy(
             this.packageParams(),
             this.searchQuery,
-            this.distinct(),
+            true,
             this.store.getState().packages.nextRange)
         );
         return false;
@@ -172,38 +96,16 @@ export class PackagesPageComponent implements OnInit, OnDestroy {
 
     packageParams() {
         return {
-            name: this.name,
             origin: this.origin,
-            version: this.version
         };
-    }
-
-    requestNewBuild() {
-        let token = this.store.getState().gitHub.authToken;
-        this.store.dispatch(submitJob(this.origin, this.name, token));
-    }
-
-    private fetchBuilds() {
-        if (this.origin && this.name) {
-            let token = this.store.getState().gitHub.authToken;
-            this.store.dispatch(fetchBuilds(this.origin, this.name, token));
-        }
     }
 
     private fetchPackages() {
         this.store.dispatch(filterPackagesBy(
             this.packageParams(),
             this.searchQuery,
-            this.distinct())
+            true)
         );
-    }
-
-    private fetchVersions() {
-        this.store.dispatch(fetchPackageVersions(this.origin, this.name));
-    }
-
-    private distinct() {
-        return !this.version;
     }
 
     private search(query) {
