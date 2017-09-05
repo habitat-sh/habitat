@@ -517,7 +517,9 @@ impl PackageInstall {
                     for id in body.lines() {
                         let package = PackageIdent::from_str(id)?;
                         if !package.fully_qualified() {
-                            return Err(Error::InvalidPackageIdent(package.to_string()));
+                            return Err(Error::FullyQualifiedPackageIdentRequired(
+                                package.to_string(),
+                            ));
                         }
                         deps.push(package);
                     }
