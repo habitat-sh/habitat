@@ -38,12 +38,10 @@ pub fn start(
     ui: &mut UI,
     url: &str,
     channel: &str,
-    hab_url: &str,
-    hab_channel: &str,
     ident: &PackageIdent,
     format: &ExportFormat,
 ) -> Result<()> {
-    inner::start(ui, url, channel, hab_url, hab_channel, ident, format)
+    inner::start(ui, url, channel, ident, format)
 }
 
 pub fn format_for(ui: &mut UI, value: &str) -> Result<ExportFormat> {
@@ -54,47 +52,54 @@ pub fn format_for(ui: &mut UI, value: &str) -> Result<ExportFormat> {
 mod inner {
     use std::env;
     use std::ffi::OsString;
-    use std::path::Path;
     use std::str::FromStr;
 
-    use common::command::package::install;
-    use common::ui::{Status, UI};
+    use common::ui::UI;
+    use hcore::crypto::{init, default_cache_key_path};
     use hcore::url::DEPOT_URL_ENVVAR;
     use hcore::channel::DEPOT_CHANNEL_ENVVAR;
-    use hcore::fs::{cache_artifact_path, FS_ROOT_PATH};
-    use hcore::package::{PackageIdent, PackageInstall};
+    use hcore::fs::find_command;
+    use hcore::package::PackageIdent;
 
-    use {PRODUCT, VERSION};
-    use command::pkg::exec;
+    use VERSION;
+    use command;
     use error::{Error, Result};
+    use exec;
     use super::ExportFormat;
 
     pub fn format_for(_ui: &mut UI, value: &str) -> Result<ExportFormat> {
+        let version: Vec<_> = VERSION.split("/").collect();
         match value {
             "docker" => {
                 let format = ExportFormat {
-                    pkg_ident: PackageIdent::from_str("core/hab-pkg-dockerize")?,
+                    pkg_ident: PackageIdent::from_str(
+                        &format!("core/hab-pkg-dockerize/{}", version[0]),
+                    )?,
                     cmd: "hab-pkg-dockerize".to_string(),
                 };
                 Ok(format)
             }
             "aci" => {
                 let format = ExportFormat {
-                    pkg_ident: PackageIdent::from_str("core/hab-pkg-aci")?,
+                    pkg_ident: PackageIdent::from_str(&format!("core/hab-pkg-aci/{}", version[0]))?,
                     cmd: "hab-pkg-aci".to_string(),
                 };
                 Ok(format)
             }
             "mesos" => {
                 let format = ExportFormat {
-                    pkg_ident: PackageIdent::from_str("core/hab-pkg-mesosize")?,
+                    pkg_ident: PackageIdent::from_str(
+                        &format!("core/hab-pkg-mesosize/{}", version[0]),
+                    )?,
                     cmd: "hab-pkg-mesosize".to_string(),
                 };
                 Ok(format)
             }
             "tar" => {
                 let format = ExportFormat {
-                    pkg_ident: PackageIdent::from_str("core/hab-pkg-tarize")?,
+                    pkg_ident: PackageIdent::from_str(
+                        &format!("core/hab-pkg-tarize/{}", version[0]),
+                    )?,
                     cmd: "hab-pkg-tarize".to_string(),
                 };
                 Ok(format)
@@ -107,36 +112,30 @@ mod inner {
         ui: &mut UI,
         url: &str,
         channel: &str,
-        hab_url: &str,
-        hab_channel: &str,
         ident: &PackageIdent,
         format: &ExportFormat,
     ) -> Result<()> {
-        let format_ident = format.pkg_ident();
-        match PackageInstall::load(format.pkg_ident(), None) {
-            Ok(_) => {}
-            _ => {
-                ui.status(
-                    Status::Missing,
-                    format!("package for {}", &format_ident),
-                )?;
-                install::start(
-                    ui,
-                    hab_url,
-                    Some(hab_channel),
-                    &format_ident.to_string(),
-                    PRODUCT,
-                    VERSION,
-                    Path::new(&*FS_ROOT_PATH),
-                    &cache_artifact_path(None::<String>),
-                    false,
-                )?;
-            }
+        init();
+        let command = exec::command_from_min_pkg(
+            ui,
+            format.cmd(),
+            format.pkg_ident(),
+            &default_cache_key_path(None),
+            0,
+        )?;
+
+        if let Some(cmd) = find_command(command.to_string_lossy().as_ref()) {
+            let pkg_arg = OsString::from(&ident.to_string());
+            env::set_var(DEPOT_URL_ENVVAR, url);
+            env::set_var(DEPOT_CHANNEL_ENVVAR, channel);
+            // TODO fn: Currently, the PATH-setting behavior of `hab pkg exec` is being used to put
+            // dependent programs such as `docker` on `$PATH`. This is not ideal and we should be
+            // using `hcore::os::process::become_command` but for the moment we'll continue to use
+            // the behavior of the `pkg exec` subcommand.
+            command::pkg::exec::start(format.pkg_ident(), cmd, vec![pkg_arg])
+        } else {
+            Err(Error::ExecCommandNotFound(command))
         }
-        let pkg_arg = OsString::from(&ident.to_string());
-        env::set_var(DEPOT_URL_ENVVAR, url);
-        env::set_var(DEPOT_CHANNEL_ENVVAR, channel);
-        exec::start(&format_ident, &format.cmd(), vec![pkg_arg])
     }
 }
 
@@ -164,8 +163,6 @@ mod inner {
         ui: &mut UI,
         _url: &str,
         _channel: &str,
-        _hab_url: &str,
-        _hab_channel: &str,
         _ident: &PackageIdent,
         _format: &ExportFormat,
     ) -> Result<()> {

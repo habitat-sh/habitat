@@ -362,20 +362,8 @@ fn sub_pkg_export(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let channel = m.value_of("CHANNEL")
         .and_then(|c| Some(c.to_string()))
         .unwrap_or(channel::default());
-    let hab_url = m.value_of("HAB_DEPOT_URL").unwrap_or(&env_or_default);
-    let hab_channel = m.value_of("HAB_CHANNEL")
-        .and_then(|c| Some(c.to_string()))
-        .unwrap_or(channel::default());
     let export_fmt = command::pkg::export::format_for(ui, &format)?;
-    command::pkg::export::start(
-        ui,
-        &url,
-        &channel,
-        &hab_url,
-        &hab_channel,
-        &ident,
-        &export_fmt,
-    )
+    command::pkg::export::start(ui, &url, &channel, &ident, &export_fmt)
 }
 
 fn sub_pkg_hash(m: &ArgMatches) -> Result<()> {

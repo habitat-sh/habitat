@@ -215,12 +215,6 @@ pub fn get() -> App<'static, 'static> {
                 (@arg CHANNEL: --channel -c +takes_value
                     "Retrieve the container's package from the specified release channel \
                     (default: stable)")
-                (@arg HAB_DEPOT_URL: --("hab-url") -U +takes_value {valid_url}
-                    "Retrieve the Habitat toolchain for the container from the specified Depot \
-                    (default: https://bldr.habitat.sh/v1/depot)")
-                (@arg HAB_CHANNEL: --("hab-channel") -C +takes_value
-                    "Retrieve the Habitat toolchain for the container from the specified release \
-                    channel (default: stable)")
             )
             (@subcommand hash =>
                 (about: "Generates a blake2b hashsum from a target at any given filepath")
