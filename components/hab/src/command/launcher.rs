@@ -18,10 +18,6 @@ use common::ui::UI;
 
 use error::Result;
 
-const LAUNCH_CMD: &'static str = "hab-launch";
-const LAUNCH_CMD_ENVVAR: &'static str = "HAB_LAUNCH_BINARY";
-const LAUNCH_PKG_IDENT: &'static str = "core/hab-launcher";
-
 pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
     inner::start(ui, args)
 }
@@ -39,11 +35,14 @@ mod inner {
     use hcore::os::process;
     use hcore::package::PackageIdent;
 
-    use super::{LAUNCH_CMD, LAUNCH_CMD_ENVVAR, LAUNCH_PKG_IDENT};
     use super::super::sup::{SUP_CMD, SUP_CMD_ENVVAR, SUP_PKG_IDENT};
     use error::{Error, Result};
     use exec;
     use VERSION;
+
+    const LAUNCH_CMD: &'static str = "hab-launch";
+    const LAUNCH_CMD_ENVVAR: &'static str = "HAB_LAUNCH_BINARY";
+    const LAUNCH_PKG_IDENT: &'static str = "core/hab-launcher";
 
     pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
         init();

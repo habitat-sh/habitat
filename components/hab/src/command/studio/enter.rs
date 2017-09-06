@@ -168,16 +168,14 @@ mod inner {
 
 #[cfg(not(target_os = "linux"))]
 mod inner {
-    use std::env;
-    use std::ffi::{OsStr, OsString};
-    use std::path::{Path, PathBuf};
-    use std::process::{Command, Stdio};
+    use std::ffi::OsString;
+    use std::path::PathBuf;
     use std::str::FromStr;
 
     use common::ui::UI;
     use hcore::crypto::{init, default_cache_key_path};
     use hcore::env as henv;
-    use hcore::fs::{CACHE_ARTIFACT_PATH, CACHE_KEY_PATH, find_command};
+    use hcore::fs::find_command;
     use hcore::os::process;
     use hcore::package::PackageIdent;
 
