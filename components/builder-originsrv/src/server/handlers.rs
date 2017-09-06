@@ -66,6 +66,24 @@ pub fn origin_create(
     Ok(())
 }
 
+pub fn origin_update(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
+    let msg: proto::OriginUpdate = req.parse_msg()?;
+
+    match state.datastore.update_origin(&msg) {
+        Ok(()) => req.reply_complete(sock, &NetOk::new())?,
+        Err(err) => {
+            error!("OriginUpdate, err={:?}", err);
+            let err = net::err(ErrCode::DATA_STORE, "vt:origin-update:1");
+            req.reply_complete(sock, &err)?;
+        }
+    }
+    Ok(())
+}
+
 pub fn origin_get(
     req: &mut Envelope,
     sock: &mut zmq::Socket,

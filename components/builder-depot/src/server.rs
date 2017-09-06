@@ -130,6 +130,11 @@ struct OriginCreateReq {
     default_package_visibility: String,
 }
 
+#[derive(Clone, Serialize, Deserialize)]
+struct OriginUpdateReq {
+    default_package_visibility: String,
+}
+
 #[derive(Serialize)]
 struct PackageResults<'a, T: 'a> {
     range_start: isize,
@@ -169,6 +174,47 @@ fn package_results_json<T: Serialize>(
     serde_json::to_string(&results).unwrap()
 }
 
+pub fn origin_update(req: &mut Request) -> IronResult<Response> {
+    let mut request = OriginUpdate::new();
+
+    let origin = {
+        let params = req.extensions.get::<Router>().unwrap();
+
+        match params.find("name") {
+            Some(o) => o.to_string(),
+            None => return Ok(Response::with(status::BadRequest)),
+        }
+    };
+
+    match req.get::<bodyparser::Struct<OriginUpdateReq>>() {
+        Ok(Some(body)) => {
+            let dpv = match body.default_package_visibility
+                .parse::<OriginPackageVisibility>() {
+                Ok(x) => x,
+                Err(_) => return Ok(Response::with(status::UnprocessableEntity)),
+            };
+            request.set_name(origin.clone());
+            request.set_default_package_visibility(dpv);
+        }
+        _ => return Ok(Response::with(status::UnprocessableEntity)),
+    }
+
+    let mut conn = Broker::connect().unwrap();
+    let mut origin_get = OriginGet::new();
+    origin_get.set_name(origin);
+
+    let origin_id = match conn.route::<OriginGet, Origin>(&origin_get) {
+        Ok(o) => o.get_id(),
+        Err(err) => return Ok(render_net_error(&err)),
+    };
+
+    request.set_id(origin_id);
+    match conn.route::<OriginUpdate, NetOk>(&request) {
+        Ok(_) => Ok(Response::with(status::NoContent)),
+        Err(err) => Ok(render_net_error(&err)),
+    }
+}
+
 pub fn origin_create(req: &mut Request) -> IronResult<Response> {
     let mut request = OriginCreate::new();
     {
@@ -176,13 +222,19 @@ pub fn origin_create(req: &mut Request) -> IronResult<Response> {
         request.set_owner_id(session.get_id());
         request.set_owner_name(session.get_name().to_string());
     }
+
     match req.get::<bodyparser::Struct<OriginCreateReq>>() {
         Ok(Some(body)) => {
+            let dpv = match body.default_package_visibility
+                .parse::<OriginPackageVisibility>() {
+                Ok(x) => x,
+                Err(_) => return Ok(Response::with(status::UnprocessableEntity)),
+            };
             request.set_name(body.name);
-            request.set_default_package_visibility(body.default_package_visibility);
+            request.set_default_package_visibility(dpv);
         }
         _ => return Ok(Response::with(status::UnprocessableEntity)),
-    };
+    }
 
     if !ident::is_valid_origin_name(request.get_name()) {
         return Ok(Response::with(status::UnprocessableEntity));
@@ -2152,6 +2204,9 @@ where
 
         origin_create: post "/origins" => {
             XHandler::new(origin_create).before(basic.clone())
+        },
+        origin_update: put "/origins/:name" => {
+            XHandler::new(origin_update).before(basic.clone())
         },
         origin: get "/origins/:origin" => origin_show,
 

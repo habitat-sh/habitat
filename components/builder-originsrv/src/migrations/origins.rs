@@ -138,5 +138,17 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                          RETURN;
                      END
                  $$ LANGUAGE plpgsql VOLATILE"#)?;
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE OR REPLACE FUNCTION update_origin_v1 (
+                        origin_id bigint,
+                        op_default_package_visibility text
+                 ) RETURNS void AS $$
+                        UPDATE origins SET
+                            default_package_visibility = op_default_package_visibility,
+                            updated_at = now()
+                            WHERE id = origin_id;
+                 $$ LANGUAGE SQL VOLATILE"#,
+    )?;
     Ok(())
 }
