@@ -319,5 +319,86 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                         SELECT DISTINCT target FROM origin_packages WHERE ident LIKE (op_ident || '%')
                         $$;
                      "#)?;
+    migrator.migrate(
+        "originsrv",
+        r#"ALTER TABLE origin_packages ADD COLUMN IF NOT EXISTS owner_name TEXT DEFAULT NULL"#,
+    )?;
+    migrator.migrate("originsrv",
+                 r#"CREATE OR REPLACE FUNCTION insert_origin_package_v2 (
+                    op_origin_id bigint,
+                    op_owner_id bigint,
+                    op_name text,
+                    op_ident text,
+                    op_checksum text,
+                    op_manifest text,
+                    op_config text,
+                    op_target text,
+                    op_deps text,
+                    op_tdeps text,
+                    op_exposes text,
+                    op_owner_name text
+                 ) RETURNS SETOF origin_packages AS $$
+                     DECLARE
+                        inserted_package origin_packages;
+                        channel_id bigint;
+                     BEGIN
+                         INSERT INTO origin_packages (origin_id, owner_id, name, ident, checksum, manifest, config, target, deps, tdeps, exposes, owner_name)
+                                VALUES (op_origin_id, op_owner_id, op_name, op_ident, op_checksum, op_manifest, op_config, op_target, op_deps, op_tdeps, op_exposes, op_owner_name)
+                                RETURNING * into inserted_package;
+
+                         SELECT id FROM origin_channels WHERE origin_id = op_origin_id AND name = 'unstable' INTO channel_id;
+                         PERFORM promote_origin_package_v1(channel_id, inserted_package.id);
+
+                         RETURN NEXT inserted_package;
+                         RETURN;
+                     END
+                 $$ LANGUAGE plpgsql VOLATILE"#)?;
+    migrator.migrate("originsrv",
+                     r#"CREATE OR REPLACE FUNCTION get_origin_packages_for_origin_v3 (
+                    op_ident text,
+                    op_limit bigint,
+                    op_offset bigint
+                 ) RETURNS TABLE(total_count bigint, ident text, owner_name text) AS $$
+                    BEGIN
+                        RETURN QUERY SELECT COUNT(*) OVER () AS total_count, origin_packages.ident, origin_packages.owner_name FROM origin_packages WHERE origin_packages.ident LIKE (op_ident  || '%')
+                          ORDER BY ident DESC
+                          LIMIT op_limit OFFSET op_offset;
+                        RETURN;
+                    END
+                    $$ LANGUAGE plpgsql STABLE"#)?;
+    migrator.migrate("originsrv",
+                     r#"CREATE OR REPLACE FUNCTION search_origin_packages_for_origin_v2 (
+                   op_origin text,
+                   op_query text,
+                   op_limit bigint,
+                   op_offset bigint
+                 ) RETURNS TABLE(total_count bigint, ident text, owner_name text) AS $$
+                    BEGIN
+                        RETURN QUERY SELECT COUNT(*) OVER () AS total_count, origin_packages.ident, origin_packages.owner_name FROM origins INNER JOIN origin_packages ON origins.id = origin_packages.origin_id WHERE origins.name = op_origin and origin_packages.name LIKE ('%' || op_query || '%')
+                          ORDER BY ident ASC
+                          LIMIT op_limit OFFSET op_offset;
+                        RETURN;
+                    END
+                    $$ LANGUAGE plpgsql STABLE"#)?;
+    migrator.migrate("originsrv",
+                     r#"CREATE OR REPLACE FUNCTION search_all_origin_packages_v2 (
+                   op_query text,
+                   op_limit bigint,
+                   op_offset bigint
+                 ) RETURNS TABLE(total_count bigint, ident text, owner_name text) AS $$
+                    DECLARE
+                      schema RECORD;
+                    BEGIN
+                      FOR schema IN EXECUTE
+                        format(
+                          'SELECT schema_name FROM information_schema.schemata WHERE left(schema_name, 6) = %L',
+                          'shard_'
+                        )
+                      LOOP
+                        RETURN QUERY EXECUTE
+                        format('SELECT COUNT(*) OVER () AS total_count, op.ident, op.owner_name FROM %I.origins o INNER JOIN %I.origin_packages op ON o.id = op.origin_id WHERE op.ident LIKE (%L || %L || %L) ORDER BY ident ASC LIMIT %L OFFSET %L', schema.schema_name, schema.schema_name, '%', op_query, '%', op_limit, op_offset);
+                      END LOOP;
+                    END;
+                    $$ LANGUAGE plpgsql STABLE"#)?;
     Ok(())
 }
