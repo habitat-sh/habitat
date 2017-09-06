@@ -71,10 +71,9 @@ impl S3Archiver {
         let signature_type = Signature::V4;
         let final_endpoint = match config.endpoint {
             Some(url) => {
-                let url = extern_url::Url::parse(url.as_str())
-                    .expect("Invalid endpoint URL given");
+                let url = extern_url::Url::parse(url.as_str()).expect("Invalid endpoint URL given");
                 Some(url)
-            },
+            }
             None => None,
         };
         let user_agent = format!("Habitat-Builder/{}", VERSION);

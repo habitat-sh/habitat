@@ -17,10 +17,13 @@ use std::sync::{mpsc, Arc, RwLock};
 use std::time::{Duration, Instant};
 use std::thread::{self, JoinHandle};
 
-use linked_hash_map::LinkedHashMap;
+use bldr_core;
 use hab_net::server::ZMQ_CONTEXT;
-use protobuf::{parse_from_bytes, Message};
+use hab_net::routing::Broker;
+use linked_hash_map::LinkedHashMap;
+use protobuf::{parse_from_bytes, Message, RepeatedField};
 use protocol::jobsrv;
+use protocol::originsrv::{OriginIntegrationRequest, OriginIntegrationResponse};
 use protocol::net::{self, ErrCode};
 use zmq;
 
@@ -209,6 +212,7 @@ impl WorkerMgr {
             }
             // This unwrap is fine, because we just checked our length
             let mut job = jobs.pop().unwrap();
+            self.add_integrations_to_job(&mut job);
 
             match self.ready_workers.pop_front() {
                 Some((worker, _)) => {
@@ -225,6 +229,7 @@ impl WorkerMgr {
                         self.datastore.update_job(&job)?;
                         continue;
                     }
+
                     if self.rq_sock
                         .send(&job.write_to_bytes().unwrap(), 0)
                         .is_err()
@@ -247,6 +252,45 @@ impl WorkerMgr {
             }
         }
         Ok(())
+    }
+
+    fn add_integrations_to_job(&mut self, job: &mut jobsrv::Job) {
+        let key_dir = {
+            let cfg = self.config.read().unwrap();
+            cfg.key_dir.clone()
+        };
+        let mut conn = Broker::connect().unwrap();
+        let mut integrations = RepeatedField::new();
+        let mut integration_request = OriginIntegrationRequest::new();
+        let origin = job.get_project().get_origin_name().to_string();
+        integration_request.set_origin(origin);
+
+        match conn.route::<OriginIntegrationRequest, OriginIntegrationResponse>(
+            &integration_request,
+        ) {
+            Ok(oir) => {
+                for i in oir.get_integrations() {
+                    let mut oi = i.clone();
+                    let plaintext = match bldr_core::integrations::decrypt(
+                        key_dir.to_str().unwrap(),
+                        i.get_body(),
+                    ) {
+                        Ok(p) => p,
+                        Err(e) => {
+                            debug!("Error decrypting integration. e = {:?}", e);
+                            continue;
+                        }
+                    };
+                    oi.set_body(plaintext);
+                    integrations.push(oi);
+                }
+
+                job.set_integrations(integrations);
+            }
+            Err(e) => {
+                debug!("Error fetching integrations. e = {:?}", e);
+            }
+        }
     }
 
     fn expire_workers(&mut self) -> Result<()> {

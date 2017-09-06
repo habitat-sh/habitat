@@ -384,17 +384,19 @@ message OriginSecretKeyGet {
 }
 
 // Origin Integration
-message OriginIntegrationCreate {
+message OriginIntegration {
   optional string origin = 1;
   optional string integration = 2;
   optional string name = 3;
   optional string body = 4;
 }
 
+message OriginIntegrationCreate {
+  optional OriginIntegration integration = 1;
+}
+
 message OriginIntegrationDelete {
-  optional string origin = 1;
-  optional string integration = 2;
-  optional string name = 3;
+  optional OriginIntegration integration = 1;
 }
 
 message OriginIntegrationGetNames {
@@ -404,4 +406,12 @@ message OriginIntegrationGetNames {
 
 message OriginIntegrationNames {
   repeated string names = 1;
+}
+
+message OriginIntegrationRequest {
+  optional string origin = 1;
+}
+
+message OriginIntegrationResponse {
+  repeated OriginIntegration integrations = 1;
 }

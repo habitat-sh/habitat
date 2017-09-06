@@ -1107,10 +1107,10 @@ impl DataStore {
         let rows = conn.query(
             "SELECT * FROM insert_origin_integration_v1($1, $2, $3, $4)",
             &[
-                &oic.get_origin(),
-                &oic.get_integration(),
-                &oic.get_name(),
-                &oic.get_body(),
+                &oic.get_integration().get_origin(),
+                &oic.get_integration().get_integration(),
+                &oic.get_integration().get_name(),
+                &oic.get_integration().get_body(),
             ],
         ).map_err(Error::OriginIntegrationCreate)?;
         rows.iter().nth(0).expect(
@@ -1136,14 +1136,49 @@ impl DataStore {
         }
     }
 
+    pub fn origin_integration_request(
+        &self,
+        oir: &originsrv::OriginIntegrationRequest,
+    ) -> Result<originsrv::OriginIntegrationResponse> {
+        let conn = self.pool.get(oir)?;
+        let rows = &conn.query(
+            "SELECT * FROM get_origin_integrations_for_origin_v1($1)",
+            &[&oir.get_origin()],
+        ).map_err(Error::OriginIntegrationRequest)?;
+
+        let mut response = originsrv::OriginIntegrationResponse::new();
+        let mut integrations = protobuf::RepeatedField::new();
+
+        for row in rows {
+            integrations.push(self.row_to_origin_integration(&row));
+        }
+
+        response.set_integrations(integrations);
+        Ok(response)
+    }
+
+    fn row_to_origin_integration(&self, row: &postgres::rows::Row) -> originsrv::OriginIntegration {
+        let mut oi = originsrv::OriginIntegration::new();
+        oi.set_origin(row.get("origin"));
+        oi.set_integration(row.get("integration"));
+        oi.set_name(row.get("name"));
+        oi.set_body(row.get("body"));
+        oi
+    }
+
     pub fn delete_origin_integration(
         &self,
         oid: &originsrv::OriginIntegrationDelete,
     ) -> Result<()> {
         let conn = self.pool.get(oid)?;
+
         conn.execute(
-            "SELECT delete_origin_integration_v1($1, $2)",
-            &[&oid.get_origin(), &oid.get_name()],
+            "SELECT * FROM delete_origin_integration_v1($1, $2, $3)",
+            &[
+                &oid.get_integration().get_origin(),
+                &oid.get_integration().get_integration(),
+                &oid.get_integration().get_name(),
+            ],
         ).map_err(Error::OriginIntegrationDelete)?;
         Ok(())
     }

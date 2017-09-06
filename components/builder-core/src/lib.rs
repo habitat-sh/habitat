@@ -24,6 +24,7 @@ extern crate time;
 extern crate petgraph;
 extern crate walkdir;
 extern crate chrono;
+extern crate base64;
 extern crate protobuf;
 #[macro_use]
 extern crate serde_derive;
@@ -34,6 +35,7 @@ pub mod api;
 pub mod data_structures;
 pub mod error;
 pub mod file_walker;
+pub mod integrations;
 pub mod logger;
 pub mod metrics;
 pub mod package_graph;

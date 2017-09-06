@@ -113,6 +113,24 @@ pub fn origin_integration_get_names(
     Ok(())
 }
 
+pub fn origin_integration_request(
+    req: &mut Envelope,
+    sock: &mut zmq::Socket,
+    state: &mut ServerState,
+) -> Result<()> {
+    let msg: proto::OriginIntegrationRequest = req.parse_msg()?;
+
+    match state.datastore.origin_integration_request(&msg) {
+        Ok(ref oir) => req.reply_complete(sock, oir)?,
+        Err(err) => {
+            error!("OriginIntegrationRequest, err={:?}", err);
+            let err = net::err(ErrCode::DATA_STORE, "vt:origin-integration-request:1");
+            req.reply_complete(sock, &err)?;
+        }
+    }
+    Ok(())
+}
+
 pub fn origin_integration_create(
     req: &mut Envelope,
     sock: &mut zmq::Socket,
