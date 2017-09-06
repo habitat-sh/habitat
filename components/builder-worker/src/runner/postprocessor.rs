@@ -16,15 +16,20 @@ use std::path::{Path, PathBuf};
 
 use hab_core::package::archive::PackageArchive;
 use hab_core::config::ConfigFile;
+use bldr_core::logger::Logger;
 
 use super::workspace::Workspace;
 use {PRODUCT, VERSION};
 use config::Config;
 use depot_client;
 use error::{Error, Result};
+use retry::retry;
 
 /// Postprocessing config file name
 const CONFIG_FILE: &'static str = "builder.toml";
+
+pub const RETRIES: u64 = 5;
+pub const RETRY_WAIT: u64 = 3000;
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
 pub struct Publish {
@@ -34,7 +39,12 @@ pub struct Publish {
 }
 
 impl Publish {
-    pub fn run(&mut self, archive: &mut PackageArchive, auth_token: &str) -> bool {
+    pub fn run(
+        &mut self,
+        archive: &mut PackageArchive,
+        auth_token: &str,
+        logger: &mut Logger,
+    ) -> bool {
         if !self.enabled {
             return true;
         }
@@ -43,19 +53,35 @@ impl Publish {
             self.url,
             self.channel
         );
+
         let client = depot_client::Client::new(&self.url, PRODUCT, VERSION, None).unwrap();
-        if let Some(err) = client.x_put_package(archive, auth_token).err() {
-            error!("post processing error uploading package, ERR={:?}", err);
-            return false;
-        };
+
+        match retry(RETRIES, RETRY_WAIT, || client.x_put_package(archive, auth_token), |res| res.is_ok()) {
+            Ok(_) => (),
+            Err(err) => {
+                let msg = format!("post processing error uploading package after {} retries. ERR={:?}",
+                RETRIES,
+                err);
+                error!("{}", msg);
+                logger.log(&msg);
+                return false;
+            }
+        }
+
         let ident = archive.ident().unwrap();
-        if let Some(err) = client
-            .promote_package(&ident, &self.channel, auth_token)
-            .err()
-        {
-            error!("post processing error promoting package, ERR={:?}", err);
-            return false;
-        };
+
+        match retry(RETRIES, RETRY_WAIT, || client.promote_package(&ident, &self.channel, auth_token), |res| res.is_ok()) {
+            Ok(_) => (),
+            Err(err) => {
+                let msg = format!("post processing error promoting package after {} retries, ERR={:?}",
+                RETRIES,
+                err);
+                error!("{}", msg);
+                logger.log(&msg);
+                return false;
+            }
+        }
+
         true
     }
 }
@@ -112,7 +138,12 @@ impl PostProcessor {
         PostProcessor { config_path: file_path }
     }
 
-    pub fn run(&mut self, archive: &mut PackageArchive, config: &Config) -> bool {
+    pub fn run(
+        &mut self,
+        archive: &mut PackageArchive,
+        config: &Config,
+        logger: &mut Logger,
+    ) -> bool {
         let mut publisher = match PublishBuilder::new(&self.config_path) {
             Ok(builder) => builder.build(config),
             Err(err) => {
@@ -121,7 +152,7 @@ impl PostProcessor {
             }
         };
         debug!("starting post processing");
-        publisher.run(archive, &config.auth_token)
+        publisher.run(archive, &config.auth_token, logger)
     }
 }
 

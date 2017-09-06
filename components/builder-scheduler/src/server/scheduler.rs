@@ -397,7 +397,19 @@ impl ScheduleMgr {
 
             debug!("Got job status: id={} job={:?}", msg_id, job);
 
-            let group: proto::Group = self.get_group(job.get_owner_id())?;
+            let group: proto::Group = match self.get_group(job.get_owner_id()) {
+                Ok(group) => group,
+                Err(Error::UnknownGroup) => {
+                    // UnknownGroup is ok, just delete the message and move on
+                    debug!("Skipping unknown group {:?}", job.get_owner_id());
+                    self.datastore.delete_message(msg_id)?;
+                    return Ok(());
+                }
+                Err(e) => {
+                    warn!("Error retrieving group {:?}: {:?}", job.get_owner_id(), e);
+                    return Err(e);
+                }
+            };
 
             self.logger.log_group_job(&group, &job);
 
