@@ -127,6 +127,7 @@ impl RoutedMessages {
 #[derive(Clone, Serialize, Deserialize)]
 struct OriginCreateReq {
     name: String,
+    default_package_visibility: String,
 }
 
 #[derive(Serialize)]
@@ -176,7 +177,10 @@ pub fn origin_create(req: &mut Request) -> IronResult<Response> {
         request.set_owner_name(session.get_name().to_string());
     }
     match req.get::<bodyparser::Struct<OriginCreateReq>>() {
-        Ok(Some(body)) => request.set_name(body.name),
+        Ok(Some(body)) => {
+            request.set_name(body.name);
+            request.set_default_package_visibility(body.default_package_visibility);
+        }
         _ => return Ok(Response::with(status::UnprocessableEntity)),
     };
 

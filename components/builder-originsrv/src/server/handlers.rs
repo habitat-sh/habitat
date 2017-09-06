@@ -42,9 +42,9 @@ pub fn origin_create(
     sock: &mut zmq::Socket,
     state: &mut ServerState,
 ) -> Result<()> {
-    let msg: proto::OriginCreate = req.parse_msg()?;
+    let mut msg: proto::OriginCreate = req.parse_msg()?;
 
-    match state.datastore.create_origin(&msg) {
+    match state.datastore.create_origin(&mut msg) {
         Ok(Some(ref origin)) => req.reply_complete(sock, origin)?,
         Ok(None) => {
             // this match branch is likely unnecessary because of the way a unique constraint

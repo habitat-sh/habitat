@@ -89,6 +89,10 @@ impl Serialize for Origin {
             "private_key_name",
             self.get_private_key_name(),
         )?;
+        strukt.serialize_field(
+            "default_package_visibility",
+            self.get_default_package_visibility(),
+        )?;
         strukt.end()
     }
 }

@@ -117,5 +117,26 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                         UPDATE origins SET session_sync = true WHERE id = in_origin_id;
                     END
                     $$ LANGUAGE plpgsql VOLATILE"#)?;
+    migrator.migrate("originsrv",
+                     r#"ALTER TABLE IF EXISTS origins ADD COLUMN IF NOT EXISTS default_package_visibility text NOT NULL DEFAULT 'public';"#)?;
+    migrator.migrate("originsrv",
+                     r#"CREATE OR REPLACE FUNCTION insert_origin_v2 (
+                     origin_name text,
+                     origin_owner_id bigint,
+                     origin_owner_name text,
+                     origin_default_package_visibility text
+                 ) RETURNS SETOF origins AS $$
+                     DECLARE
+                       inserted_origin origins;
+                     BEGIN
+                         INSERT INTO origins (name, owner_id, default_package_visibility)
+                                VALUES (origin_name, origin_owner_id, origin_default_package_visibility) RETURNING * into inserted_origin;
+                         PERFORM insert_origin_member_v1(inserted_origin.id, origin_name, origin_owner_id, origin_owner_name);
+                         PERFORM insert_origin_channel_v1(inserted_origin.id, origin_owner_id, 'unstable');
+                         PERFORM insert_origin_channel_v1(inserted_origin.id, origin_owner_id, 'stable');
+                         RETURN NEXT inserted_origin;
+                         RETURN;
+                     END
+                 $$ LANGUAGE plpgsql VOLATILE"#)?;
     Ok(())
 }
