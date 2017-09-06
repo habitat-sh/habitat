@@ -232,9 +232,7 @@ impl Runner {
         self.workspace.job.set_package_ident(ident);
 
         let mut post_processor = PostProcessor::new(&self.workspace);
-        if !post_processor.run(&mut archive, &self.config) {
-            // JW TODO: We should shelve the built artifacts and allow a retry on post-processing.
-            // If the job is killed then we can kill the shelved artifacts.
+        if !post_processor.run(&mut archive, &self.config, &mut self.logger) {
             return self.fail(net::err(ErrCode::POST_PROCESSOR, "wk:run:6"));
         }
 

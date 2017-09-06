@@ -19,6 +19,7 @@ git2 = "*"
 lazy_static = "*"
 log = "*"
 protobuf = "*"
+retry = "*"
 serde = "*"
 serde_derive = "*"
 toml = { version = "*", features = ["serde"], default-features = false }

@@ -32,6 +32,7 @@ extern crate toml;
 extern crate zmq;
 extern crate habitat_builder_protocol;
 extern crate builder_core as bldr_core;
+extern crate retry;
 
 pub mod config;
 pub mod error;

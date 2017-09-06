@@ -15,6 +15,7 @@
 use std::fs::File;
 use std::io::Write;
 use std::path::Path;
+use std::fs::OpenOptions;
 use chrono::prelude::*;
 
 use protocol::jobsrv::Job;
@@ -27,7 +28,14 @@ pub struct Logger {
 impl Logger {
     pub fn init<T: AsRef<Path>>(log_path: T, filename: &str) -> Self {
         let filepath = log_path.as_ref().to_path_buf().join(filename);
-        Logger { file: File::create(filepath).expect("Failed to initialize log file") }
+
+        Logger {
+            file: OpenOptions::new()
+                .append(true)
+                .create(true)
+                .open(filepath)
+                .expect("Failed to initialize log file"),
+        }
     }
 
     pub fn log(&mut self, msg: &str) {
