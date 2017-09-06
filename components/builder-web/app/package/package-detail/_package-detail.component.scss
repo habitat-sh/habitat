@@ -24,7 +24,9 @@
       }
 
       dd {
-        @include span-columns(8);
+        @include span-columns(10);
+        overflow-wrap: break-word;
+        word-wrap: break-word;
       }
     }
   }
@@ -52,6 +54,9 @@
       font-size: rem(14);
 
       li {
+        overflow-wrap: break-word;
+        word-wrap: break-word;
+
         code {
           font-family: $monospace-font-family;
           font-size: $monospace-font-size;
@@ -70,6 +75,7 @@
 
   .deps {
     @include row;
+    font-size: rem(14);
 
     h2 {
       font-size: rem(14);

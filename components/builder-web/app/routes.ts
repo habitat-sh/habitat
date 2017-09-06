@@ -13,7 +13,6 @@
 // limitations under the License.
 
 import { Routes, RouterModule } from "@angular/router";
-import { BuildPageComponent } from "./build-page/build-page.component";
 import { DashboardComponent } from "./dashboard/dashboard.component";
 import { DashboardGuard } from "./dashboard/dashboard.guard";
 import { ExploreComponent } from "./explore/explore.component";
@@ -33,10 +32,6 @@ export const routes: Routes = [
     {
         path: "explore",
         component: ExploreComponent
-    },
-    {
-        path: "builds/:id",
-        component: BuildPageComponent
     },
     {
         path: "sign-in",

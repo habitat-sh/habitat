@@ -36,7 +36,7 @@ export class PackageBuildsComponent implements OnDestroy {
     }
 
     onSelect(build) {
-        this.router.navigate(["builds", build.id]);
+        this.router.navigate(["pkgs", this.origin, this.name, "builds", build.id]);
     }
 
     private fetchBuilds() {

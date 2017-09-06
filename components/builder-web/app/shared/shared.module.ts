@@ -6,8 +6,6 @@ import { RouterModule } from "@angular/router";
 import { MdIconModule, MdIconRegistry, MdProgressBarModule, MdTooltipModule } from "@angular/material";
 import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
 import { BreadcrumbsComponent } from "./breadcrumbs/breadcrumbs.component";
-import { BuildListComponent } from "./build-list/build-list.component";
-import { BuildStatusComponent } from "./build-status/build-status.component";
 import { ChannelsComponent } from "./channels/channels.component";
 import { CheckingInputComponent } from "./checking-input/checking-input.component";
 import { CopyableComponent } from "./copyable/copyable.component";
@@ -33,8 +31,6 @@ import { FormProgressComponent } from "./form-progress/form-progress.component";
   ],
   declarations: [
     BreadcrumbsComponent,
-    BuildListComponent,
-    BuildStatusComponent,
     ChannelsComponent,
     CheckingInputComponent,
     CopyableComponent,
@@ -49,8 +45,6 @@ import { FormProgressComponent } from "./form-progress/form-progress.component";
   ],
   exports: [
     BreadcrumbsComponent,
-    BuildListComponent,
-    BuildStatusComponent,
     ChannelsComponent,
     CheckingInputComponent,
     CopyableComponent,

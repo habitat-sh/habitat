@@ -6,10 +6,10 @@ import { RouterTestingModule } from "@angular/router/testing";
 import { BehaviorSubject, Observable } from "rxjs";
 import { Record } from "immutable";
 import { MockComponent } from "ng2-mock-component";
-import { AppStore } from "../AppStore";
-import * as actions from "../actions/index";
-import * as util from "../util";
-import { BuildComponent } from "./build.component";
+import { AppStore } from "../../AppStore";
+import * as actions from "../../actions/index";
+import * as util from "../../util";
+import { BuildDetailComponent } from "./build-detail.component";
 
 class MockAppStore {
   getState() {
@@ -32,9 +32,9 @@ class MockAppStore {
   dispatch() {}
 }
 
-describe("BuildComponent", () => {
-  let fixture: ComponentFixture<BuildComponent>;
-  let component: BuildComponent;
+describe("BuildDetailComponent", () => {
+  let fixture: ComponentFixture<BuildDetailComponent>;
+  let component: BuildDetailComponent;
   let element: DebugElement;
   let store: AppStore;
 
@@ -46,7 +46,7 @@ describe("BuildComponent", () => {
         RouterTestingModule
       ],
       declarations: [
-        BuildComponent,
+        BuildDetailComponent,
         MockComponent({ selector: "hab-package-breadcrumbs", inputs: [ "ident" ] }),
         MockComponent({ selector: "hab-icon", inputs: [ "symbol" ] })
       ],
@@ -55,7 +55,7 @@ describe("BuildComponent", () => {
       ]
     });
 
-    fixture = TestBed.createComponent(BuildComponent);
+    fixture = TestBed.createComponent(BuildDetailComponent);
     component = fixture.componentInstance;
     element = fixture.debugElement;
     store = TestBed.get(AppStore);
@@ -71,14 +71,6 @@ describe("BuildComponent", () => {
       };
 
       fixture.detectChanges();
-    });
-
-    describe("the return-to-builds link", () => {
-
-      it("links to the build-history list", () => {
-        let link = element.query(By.css(".back a")).nativeElement;
-        expect(link.getAttribute("href")).toBe("/pkgs/core/nginx/builds");
-      });
     });
   });
 

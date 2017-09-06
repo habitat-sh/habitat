@@ -10,13 +10,25 @@
     @include row;
 
     .page-content {
-      @include span-columns(8);
+      @include span-columns(12);
     }
 
     .page-sidebar {
-      @include span-columns(4);
-      padding-left: 20px;
-      border-left: 1px solid $very-light-gray;
+      display: none;
+    }
+
+    &.with-sidebar {
+
+      .page-content {
+        @include span-columns(8);
+      }
+
+      .page-sidebar {
+        @include span-columns(4);
+        display: block;
+        padding-left: 20px;
+        border-left: 1px solid $very-light-gray;
+      }
     }
   }
 }

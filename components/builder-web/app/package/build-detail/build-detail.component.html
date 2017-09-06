@@ -1,10 +1,4 @@
 <div class="hab-build">
-  <div class="back">
-    <a [routerLink]="buildsLink">
-      <hab-icon symbol="chevron-left"></hab-icon>
-      Back to build history
-    </a>
-  </div>
   <div class="summary" *ngIf="info.state">
     <div class="status">
       <hab-icon [symbol]="iconFor(info.state)" [class]="info.state | lowercase"></hab-icon>

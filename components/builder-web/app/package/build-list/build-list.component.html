@@ -1,7 +1,7 @@
 <div class="hab-build-list">
   <div class="active {{ activeBuild.state | lowercase }}" *ngIf="activeBuild">
     A build is in progress.
-    <a [routerLink]="['/builds', activeBuild.id]">View streaming output</a>.
+    <a [routerLink]="[activeBuild.id]">View streaming output</a>.
   </div>
   <ol *ngIf="builds && builds.size">
     <li class="heading">
