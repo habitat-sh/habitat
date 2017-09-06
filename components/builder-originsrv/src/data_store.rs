@@ -471,6 +471,7 @@ impl DataStore {
         let oid: i64 = row.get("id");
         origin.set_id(oid as u64);
         origin.set_name(row.get("name"));
+        origin.set_default_package_visibility(row.get("default_package_visibility"));
         let ooid: i64 = row.get("owner_id");
         origin.set_owner_id(ooid as u64);
         let private_key_name = row.get_opt("private_key_name");
@@ -482,15 +483,21 @@ impl DataStore {
 
     pub fn create_origin(
         &self,
-        origin: &originsrv::OriginCreate,
+        origin: &mut originsrv::OriginCreate,
     ) -> Result<Option<originsrv::Origin>> {
         let conn = self.pool.get(origin)?;
+
+        if origin.get_default_package_visibility().is_empty() {
+            origin.set_default_package_visibility(String::from("public"));
+        }
+
         let rows = conn.query(
-            "SELECT * FROM insert_origin_v1($1, $2, $3)",
+            "SELECT * FROM insert_origin_v2($1, $2, $3, $4)",
             &[
                 &origin.get_name(),
                 &(origin.get_owner_id() as i64),
                 &origin.get_owner_name(),
+                &origin.get_default_package_visibility(),
             ],
         ).map_err(Error::OriginCreate)?;
         if rows.len() == 1 {
@@ -519,7 +526,7 @@ impl DataStore {
         origin_get.set_name(origin_name.to_string());
         let conn = self.pool.get(&origin_get)?;
         let rows = &conn.query(
-            "SELECT * FROM origins_with_secret_key_full_name_v1 WHERE name = $1 LIMIT \
+            "SELECT * FROM origins_with_secret_key_full_name_v2 WHERE name = $1 LIMIT \
                         1",
             &[&origin_name],
         ).map_err(Error::OriginGet)?;
@@ -530,6 +537,7 @@ impl DataStore {
             origin.set_id(oid as u64);
             origin.set_name(row.get("name"));
             let ooid: i64 = row.get("owner_id");
+            origin.set_default_package_visibility(row.get("default_package_visibility"));
             origin.set_owner_id(ooid as u64);
             let private_key_name: Option<String> = row.get("private_key_name");
             if let Some(pk) = private_key_name {

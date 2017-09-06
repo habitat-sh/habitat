@@ -31,12 +31,14 @@ message Origin {
   optional string name = 2;
   optional uint64 owner_id = 3;
   optional string private_key_name = 4;
+  optional string default_package_visibility = 5;
 }
 
 message OriginCreate {
   optional string name = 1;
   optional uint64 owner_id = 2;
   optional string owner_name = 3;
+  optional string default_package_visibility = 4;
 }
 
 message OriginDelete {
