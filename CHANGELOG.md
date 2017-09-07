@@ -1,5 +1,88 @@
 # Habitat CHANGELOG
 
+## [0.31.0](https://github.com/habitat-sh/habitat/tree/0.31.0) (09-07-2017)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.30.2...0.31.0)
+
+## Features & Enhancements
+
+- Add default package visibility to origins [\#3092](https://github.com/habitat-sh/habitat/issues/3092)
+- Pull jobs and logs into the Build Jobs tab [\#3084](https://github.com/habitat-sh/habitat/issues/3084)
+- Add API to persist and retrieve origin settings [\#3079](https://github.com/habitat-sh/habitat/issues/3079)
+- Plumb integration information through to the worker [\#3044](https://github.com/habitat-sh/habitat/issues/3044)
+- Extend depot package list APIs to add platform target [\#3017](https://github.com/habitat-sh/habitat/issues/3017)
+- Add filter box for builder repo picker [\#3003](https://github.com/habitat-sh/habitat/issues/3003)
+- Build out the Package Versions tab [\#2994](https://github.com/habitat-sh/habitat/issues/2994)
+- Add platforms to builder-depot API [\#2973](https://github.com/habitat-sh/habitat/issues/2973)
+- \[Plan-Build\] Composite Plan feature [\#2661](https://github.com/habitat-sh/habitat/issues/2661)
+- Template errors in hooks do not display which files is parsed  [\#2299](https://github.com/habitat-sh/habitat/issues/2299)
+- Allow non root user to run `hab service load` [\#2280](https://github.com/habitat-sh/habitat/issues/2280)
+- Depot architecture refactor [\#1933](https://github.com/habitat-sh/habitat/issues/1933)
+- Use crates.io versions for staticfile and zmq [\#1798](https://github.com/habitat-sh/habitat/issues/1798)
+- Fix compiler warnings on macOS platform. [\#3103](https://github.com/habitat-sh/habitat/pull/3103) ([fnichol](https://github.com/fnichol))
+- Add settings page for origin privacy [\#3080](https://github.com/habitat-sh/habitat/pull/3080) ([elliott-davis](https://github.com/elliott-davis))
+- Updates to make builder compile with Rust 1.20 [\#3062](https://github.com/habitat-sh/habitat/pull/3062) ([raskchanky](https://github.com/raskchanky))
+- Move origin page to a feature module with its own routing [\#3047](https://github.com/habitat-sh/habitat/pull/3047) ([elliott-davis](https://github.com/elliott-davis))
+- \[sup/functional\] Support running functionals as a non-root user. [\#3023](https://github.com/habitat-sh/habitat/pull/3023) ([fnichol](https://github.com/fnichol))
+- \[sup\] Don't set ownership when rendering hooks. [\#3022](https://github.com/habitat-sh/habitat/pull/3022) ([fnichol](https://github.com/fnichol))
+- send aggregated service and census data to event server [\#3018](https://github.com/habitat-sh/habitat/pull/3018) ([mwrock](https://github.com/mwrock))
+- Improve site search by scoping to main content on page [\#3013](https://github.com/habitat-sh/habitat/pull/3013) ([davidwrede](https://github.com/davidwrede))
+- Refactor out plan syntax sections into their own topics [\#3012](https://github.com/habitat-sh/habitat/pull/3012) ([davidwrede](https://github.com/davidwrede))
+- Moves test into correct file [\#3008](https://github.com/habitat-sh/habitat/pull/3008) ([blakestier](https://github.com/blakestier))
+- Document event envelope timestamp format [\#3004](https://github.com/habitat-sh/habitat/pull/3004) ([christophermaier](https://github.com/christophermaier))
+- Add hab bldr encrypt command [\#2998](https://github.com/habitat-sh/habitat/pull/2998) ([chefsalim](https://github.com/chefsalim))
+
+## Bug fixes
+
+- Packages used with `hab pkg export \*` must install same version if missing. [\#3093](https://github.com/habitat-sh/habitat/issues/3093)
+- Supervisor crashing on acceptance environment [\#3042](https://github.com/habitat-sh/habitat/issues/3042)
+- Census not present on all nodes [\#2976](https://github.com/habitat-sh/habitat/issues/2976)
+- hab studio enter: Doesn't create valid chroots on non-FHS-compliant systems [\#994](https://github.com/habitat-sh/habitat/issues/994)
+- \[hab\] Install minimum version of exporters when used. [\#3100](https://github.com/habitat-sh/habitat/pull/3100) ([fnichol](https://github.com/fnichol))
+- Make the `first` binding function return only live members [\#3076](https://github.com/habitat-sh/habitat/pull/3076) ([christophermaier](https://github.com/christophermaier))
+- serialize non-table keys of config before table keys [\#3059](https://github.com/habitat-sh/habitat/pull/3059) ([mwrock](https://github.com/mwrock))
+- Fix thread panic when building Census in Supervisor [\#3054](https://github.com/habitat-sh/habitat/pull/3054) ([reset](https://github.com/reset))
+- \[sup\] Fix hook table unit test which relied on lazy static value. [\#3037](https://github.com/habitat-sh/habitat/pull/3037) ([fnichol](https://github.com/fnichol))
+- \[core\] Add explicit, testing-only fs root support. [\#3030](https://github.com/habitat-sh/habitat/pull/3030) ([fnichol](https://github.com/fnichol))
+- Pass file name to template render functions when rendering hooks [\#3014](https://github.com/habitat-sh/habitat/pull/3014) ([rarenerd](https://github.com/rarenerd))
+
+**Closed issues:**
+
+- Tracking - New ruby-scaffolding broken for non-standard repo layouts [\#3078](https://github.com/habitat-sh/habitat/issues/3078)
+- Tracking issue - Investigate bundler version issues in Ruby scaffolding [\#3046](https://github.com/habitat-sh/habitat/issues/3046)
+
+**Merged pull requests:**
+
+- Add basic retry capability to build post-processor [\#3098](https://github.com/habitat-sh/habitat/pull/3098) ([chefsalim](https://github.com/chefsalim))
+- Add default package visibility to origins [\#3094](https://github.com/habitat-sh/habitat/pull/3094) ([raskchanky](https://github.com/raskchanky))
+- Pull jobs and logs into the Build Jobs tab [\#3091](https://github.com/habitat-sh/habitat/pull/3091) ([cnunciato](https://github.com/cnunciato))
+- Plumb integrations through to the worker. [\#3088](https://github.com/habitat-sh/habitat/pull/3088) ([raskchanky](https://github.com/raskchanky))
+- Fix channel failure case [\#3086](https://github.com/habitat-sh/habitat/pull/3086) ([chefsalim](https://github.com/chefsalim))
+- Adjust .gitignore, add unintentionally git-ignored [\#3085](https://github.com/habitat-sh/habitat/pull/3085) ([cnunciato](https://github.com/cnunciato))
+- Tab labels should be opaque [\#3083](https://github.com/habitat-sh/habitat/pull/3083) ([cnunciato](https://github.com/cnunciato))
+- Make a new Search module, do a bit of cleanup [\#3082](https://github.com/habitat-sh/habitat/pull/3082) ([cnunciato](https://github.com/cnunciato))
+- Revert "Make the `first` binding function return only live members" [\#3081](https://github.com/habitat-sh/habitat/pull/3081) ([christophermaier](https://github.com/christophermaier))
+- 3074 - building form progress breadcrumb component [\#3077](https://github.com/habitat-sh/habitat/pull/3077) ([mgamini](https://github.com/mgamini))
+- set cookie domain to current host on ip address hosts [\#3073](https://github.com/habitat-sh/habitat/pull/3073) ([mwrock](https://github.com/mwrock))
+- Tooltip refinements [\#3071](https://github.com/habitat-sh/habitat/pull/3071) ([cnunciato](https://github.com/cnunciato))
+- Add tooltips to icons [\#3064](https://github.com/habitat-sh/habitat/pull/3064) ([cnunciato](https://github.com/cnunciato))
+- Give some feedback after copying to clipboard [\#3058](https://github.com/habitat-sh/habitat/pull/3058) ([cnunciato](https://github.com/cnunciato))
+- Use OS icons in the Dashboard, Versions tab, Sidebar [\#3056](https://github.com/habitat-sh/habitat/pull/3056) ([cnunciato](https://github.com/cnunciato))
+- Add unique\_packages to package\_stats endpoint [\#3043](https://github.com/habitat-sh/habitat/pull/3043) ([raskchanky](https://github.com/raskchanky))
+- Adding any key [\#3039](https://github.com/habitat-sh/habitat/pull/3039) ([mgamini](https://github.com/mgamini))
+- Exclude devDependencies from npm-shrinkwrap [\#3038](https://github.com/habitat-sh/habitat/pull/3038) ([cnunciato](https://github.com/cnunciato))
+- Fixup broken get started tutorial link [\#3036](https://github.com/habitat-sh/habitat/pull/3036) ([martinisoft](https://github.com/martinisoft))
+- Pull package lists into a new view with tabs [\#3032](https://github.com/habitat-sh/habitat/pull/3032) ([cnunciato](https://github.com/cnunciato))
+- Add origins sidebar and package count [\#3029](https://github.com/habitat-sh/habitat/pull/3029) ([elliott-davis](https://github.com/elliott-davis))
+- Read HAB\_NON\_ROOT when installing package to allow for non-root usage. [\#3028](https://github.com/habitat-sh/habitat/pull/3028) ([bodymindarts](https://github.com/bodymindarts))
+- Add "platforms" to a few API calls [\#3027](https://github.com/habitat-sh/habitat/pull/3027) ([raskchanky](https://github.com/raskchanky))
+- \#3003 - Adding filter box for builder repo picker, update shrinkwrap / package.lock [\#3024](https://github.com/habitat-sh/habitat/pull/3024) ([mgamini](https://github.com/mgamini))
+- Added section on promoting packages [\#3020](https://github.com/habitat-sh/habitat/pull/3020) ([davidwrede](https://github.com/davidwrede))
+- Fixes incorrect content on package promotion [\#3019](https://github.com/habitat-sh/habitat/pull/3019) ([davidwrede](https://github.com/davidwrede))
+- Add APIs for builder integrations [\#3016](https://github.com/habitat-sh/habitat/pull/3016) ([chefsalim](https://github.com/chefsalim))
+- Add note about not blocking in hooks [\#3000](https://github.com/habitat-sh/habitat/pull/3000) ([tashimi](https://github.com/tashimi))
+- Announce the Community Summits [\#2997](https://github.com/habitat-sh/habitat/pull/2997) ([nathenharvey](https://github.com/nathenharvey))
+- bump dev version 0-31-0-dev [\#2996](https://github.com/habitat-sh/habitat/pull/2996) ([reset](https://github.com/reset))
+
 ## [0.30.2](https://github.com/habitat-sh/habitat/tree/0.30.2) (08-22-2017)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.30.1...0.30.2)
 
@@ -22,6 +105,7 @@
 
 **Merged pull requests:**
 
+- 0.30.2 release [\#2995](https://github.com/habitat-sh/habitat/pull/2995) ([reset](https://github.com/reset))
 - Remove octicons build step [\#2992](https://github.com/habitat-sh/habitat/pull/2992) ([cnunciato](https://github.com/cnunciato))
 - Added HAB\_BINLINK\_DIR to env var list [\#2991](https://github.com/habitat-sh/habitat/pull/2991) ([davidwrede](https://github.com/davidwrede))
 - Convert to Angular Material icons [\#2990](https://github.com/habitat-sh/habitat/pull/2990) ([cnunciato](https://github.com/cnunciato))
