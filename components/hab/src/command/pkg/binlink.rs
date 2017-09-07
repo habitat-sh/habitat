@@ -58,7 +58,7 @@ pub fn start(
             Status::Warning,
             format!("{} exists, skipping...", dst.display()),
         )?;
-        return Ok(())
+        return Ok(());
     }
     match fs::read_link(&dst) {
         Ok(path) => {
