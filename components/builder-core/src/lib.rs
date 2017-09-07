@@ -39,5 +39,6 @@ pub mod integrations;
 pub mod logger;
 pub mod metrics;
 pub mod package_graph;
+pub mod target_graph;
 pub mod rdeps;
 pub mod keys;

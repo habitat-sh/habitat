@@ -27,7 +27,7 @@ use hab_net::server::{Envelope, NetIdent, RouteConn, Service, ZMQ_CONTEXT};
 use protocol::net;
 use zmq;
 
-use bldr_core::package_graph::PackageGraph;
+use bldr_core::target_graph::TargetGraph;
 use config::Config;
 use data_store::DataStore;
 use self::scheduler::{ScheduleMgr, ScheduleClient};
@@ -38,11 +38,11 @@ const BE_LISTEN_ADDR: &'static str = "inproc://backend";
 #[derive(Clone)]
 pub struct InitServerState {
     datastore: DataStore,
-    graph: Arc<RwLock<PackageGraph>>,
+    graph: Arc<RwLock<TargetGraph>>,
 }
 
 impl InitServerState {
-    pub fn new(datastore: DataStore, graph: Arc<RwLock<PackageGraph>>) -> Self {
+    pub fn new(datastore: DataStore, graph: Arc<RwLock<TargetGraph>>) -> Self {
         InitServerState {
             datastore: datastore,
             graph: graph,
@@ -63,7 +63,7 @@ impl Into<ServerState> for InitServerState {
 pub struct ServerState {
     datastore: Option<DataStore>,
     schedule_cli: Option<ScheduleClient>,
-    graph: Option<Arc<RwLock<PackageGraph>>>,
+    graph: Option<Arc<RwLock<TargetGraph>>>,
 }
 
 impl ServerState {
@@ -75,7 +75,7 @@ impl ServerState {
         self.schedule_cli.as_mut().unwrap()
     }
 
-    fn graph(&mut self) -> &Arc<RwLock<PackageGraph>> {
+    fn graph(&mut self) -> &Arc<RwLock<TargetGraph>> {
         self.graph.as_ref().unwrap()
     }
 }
@@ -179,18 +179,21 @@ impl Application for Server {
         };
         datastore.setup()?;
 
-        let mut graph = PackageGraph::new();
+        let mut graph = TargetGraph::new();
         let packages = datastore.get_packages()?;
         let start_time = PreciseTime::now();
-        let (ncount, ecount) = graph.build(packages.into_iter());
+        let res = graph.build(packages.into_iter());
         let end_time = PreciseTime::now();
 
-        info!(
-            "Graph build stats: {} nodes, {} edges ({} sec)",
-            ncount,
-            ecount,
-            start_time.to(end_time)
-        );
+        info!("Graph build stats ({} sec):", start_time.to(end_time));
+        for stat in res {
+            info!(
+                "Target {}: {} nodes, {} edges",
+                stat.target,
+                stat.node_count,
+                stat.edge_count,
+            );
+        }
 
         let cfg = self.config.clone();
         let init_state = InitServerState::new(datastore, Arc::new(RwLock::new(graph)));

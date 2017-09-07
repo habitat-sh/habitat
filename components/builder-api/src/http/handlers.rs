@@ -176,6 +176,10 @@ pub fn rdeps_show(req: &mut Request) -> IronResult<Response> {
     rdeps_get.set_origin(origin);
     rdeps_get.set_name(name);
 
+    // TODO (SA): The rdeps API needs to be extended to support a target param.
+    // For now, hard code a default value
+    rdeps_get.set_target("x86_64-linux".to_string());
+
     let mut conn = Broker::connect().unwrap();
     let rdeps = match conn.route::<ReverseDependenciesGet, ReverseDependencies>(&rdeps_get) {
         Ok(rdeps) => rdeps,
