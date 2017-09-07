@@ -25,8 +25,8 @@ fn create_origin_poop() {
     origin.set_name(String::from("neurosis"));
     origin.set_owner_id(1);
     origin.set_owner_name(String::from("scottkelly"));
-    origin.set_default_package_visibility(String::from("public"));
-    ds.create_origin(&mut origin).expect("Should create origin");
+    origin.set_default_package_visibility(originsrv::OriginPackageVisibility::Public);
+    ds.create_origin(&origin).expect("Should create origin");
 
     // Create new database connection
     let conn = ds.pool.get(&origin).expect(
@@ -46,13 +46,13 @@ fn create_origin_handles_unique_constraint_violations_correctly() {
     origin.set_name(String::from("neurosis"));
     origin.set_owner_id(1);
     origin.set_owner_name(String::from("scottkelly"));
-    ds.create_origin(&mut origin).expect("Should create origin");
+    ds.create_origin(&origin).expect("Should create origin");
 
     let mut origin2 = originsrv::OriginCreate::new();
     origin2.set_name(String::from("neurosis"));
     origin2.set_owner_id(1);
     origin2.set_owner_name(String::from("scottkelly"));
-    let resp2 = ds.create_origin(&mut origin2);
+    let resp2 = ds.create_origin(&origin2);
 
     assert!(resp2.is_err(), "Insertion should've triggered an error");
 }
@@ -64,7 +64,7 @@ fn get_origin_by_name() {
     origin.set_name(String::from("neurosis"));
     origin.set_owner_id(1);
     origin.set_owner_name(String::from("scottkelly"));
-    ds.create_origin(&mut origin).expect("Should create origin");
+    ds.create_origin(&origin).expect("Should create origin");
 
     let new_origin = ds.get_origin_by_name("neurosis").expect(
         "Could not get the origin",
@@ -83,7 +83,7 @@ fn create_origin_secret_key() {
     origin.set_name(String::from("neurosis"));
     origin.set_owner_id(1);
     origin.set_owner_name(String::from("scottkelly"));
-    ds.create_origin(&mut origin).expect("Should create origin");
+    ds.create_origin(&origin).expect("Should create origin");
 
     let neurosis = ds.get_origin_by_name("neurosis")
         .expect("Could not retrieve origin")
@@ -124,7 +124,7 @@ fn create_origin_secret_key_handles_unique_constraint_violations_correctly() {
     origin.set_name(String::from("neurosis"));
     origin.set_owner_id(1);
     origin.set_owner_name(String::from("scottkelly"));
-    ds.create_origin(&mut origin).expect("Should create origin");
+    ds.create_origin(&origin).expect("Should create origin");
 
     let neurosis = ds.get_origin_by_name("neurosis")
         .expect("Could not retrieve origin")
@@ -160,7 +160,7 @@ fn get_origin_secret_key() {
     origin.set_name(String::from("neurosis"));
     origin.set_owner_id(1);
     origin.set_owner_name(String::from("scottkelly"));
-    ds.create_origin(&mut origin).expect("Should create origin");
+    ds.create_origin(&origin).expect("Should create origin");
 
     let neurosis = ds.get_origin_by_name("neurosis")
         .expect("Could not retrieve origin")
@@ -201,7 +201,7 @@ fn create_origin_public_key() {
     origin.set_name(String::from("neurosis"));
     origin.set_owner_id(1);
     origin.set_owner_name(String::from("scottkelly"));
-    ds.create_origin(&mut origin).expect("Should create origin");
+    ds.create_origin(&origin).expect("Should create origin");
 
     let neurosis = ds.get_origin_by_name("neurosis")
         .expect("Could not retrieve origin")
@@ -244,7 +244,7 @@ fn create_origin_public_key_handles_unique_constraint_violations_correctly() {
     origin.set_name(String::from("neurosis"));
     origin.set_owner_id(1);
     origin.set_owner_name(String::from("scottkelly"));
-    ds.create_origin(&mut origin).expect("Should create origin");
+    ds.create_origin(&origin).expect("Should create origin");
 
     let neurosis = ds.get_origin_by_name("neurosis")
         .expect("Could not retrieve origin")
@@ -289,7 +289,7 @@ fn get_origin_public_key_latest() {
     origin.set_name(String::from("neurosis"));
     origin.set_owner_id(1);
     origin.set_owner_name(String::from("scottkelly"));
-    ds.create_origin(&mut origin).expect("Should create origin");
+    ds.create_origin(&origin).expect("Should create origin");
 
     let neurosis = ds.get_origin_by_name("neurosis")
         .expect("Could not retrieve origin")
@@ -332,7 +332,7 @@ fn list_origin_public_key() {
     origin.set_name(String::from("neurosis"));
     origin.set_owner_id(1);
     origin.set_owner_name(String::from("scottkelly"));
-    ds.create_origin(&mut origin).expect("Should create origin");
+    ds.create_origin(&origin).expect("Should create origin");
 
     let neurosis = ds.get_origin_by_name("neurosis")
         .expect("Could not retrieve origin")
@@ -377,7 +377,7 @@ fn create_origin_invitation() {
     origin.set_name(String::from("neurosis"));
     origin.set_owner_id(1);
     origin.set_owner_name(String::from("scottkelly"));
-    ds.create_origin(&mut origin).expect("Should create origin");
+    ds.create_origin(&origin).expect("Should create origin");
 
     let neurosis = ds.get_origin_by_name("neurosis")
         .expect("Could not retrieve origin")
@@ -416,7 +416,7 @@ fn list_origin_invitations_for_origin() {
     origin.set_name(String::from("neurosis"));
     origin.set_owner_id(1);
     origin.set_owner_name(String::from("scottkelly"));
-    ds.create_origin(&mut origin).expect("Should create origin");
+    ds.create_origin(&origin).expect("Should create origin");
 
     let neurosis = ds.get_origin_by_name("neurosis")
         .expect("Could not retrieve origin")
@@ -473,7 +473,7 @@ fn check_account_in_origin() {
     origin.set_name(String::from("neurosis"));
     origin.set_owner_id(1);
     origin.set_owner_name(String::from("scottkelly"));
-    ds.create_origin(&mut origin).expect("Should create origin");
+    ds.create_origin(&origin).expect("Should create origin");
 
     ds.get_origin_by_name("neurosis")
         .expect("Could not retrieve origin")
@@ -498,7 +498,7 @@ fn create_origin_project() {
     origin.set_name(String::from("neurosis"));
     origin.set_owner_id(1);
     origin.set_owner_name(String::from("scottkelly"));
-    let neurosis = ds.create_origin(&mut origin)
+    let neurosis = ds.create_origin(&origin)
         .expect("Should create origin")
         .expect("Should return the origin");
 
@@ -526,7 +526,7 @@ fn create_origin_project_handles_unique_constraint_violations_correctly() {
     origin.set_name(String::from("neurosis"));
     origin.set_owner_id(1);
     origin.set_owner_name(String::from("scottkelly"));
-    let neurosis = ds.create_origin(&mut origin)
+    let neurosis = ds.create_origin(&origin)
         .expect("Should create origin")
         .expect("Should return the origin");
 
@@ -561,7 +561,7 @@ fn get_origin_project_by_name() {
     origin.set_name(String::from("neurosis"));
     origin.set_owner_id(1);
     origin.set_owner_name(String::from("scottkelly"));
-    let neurosis = ds.create_origin(&mut origin)
+    let neurosis = ds.create_origin(&origin)
         .expect("Should create origin")
         .expect("Should return the origin");
 
@@ -628,7 +628,7 @@ fn delete_origin_project_by_name() {
     origin.set_name(String::from("neurosis"));
     origin.set_owner_id(1);
     origin.set_owner_name(String::from("scottkelly"));
-    ds.create_origin(&mut origin).expect("Should create origin");
+    ds.create_origin(&origin).expect("Should create origin");
 
     let neurosis = ds.get_origin_by_name("neurosis")
         .expect("Could not retrieve origin")
@@ -663,13 +663,49 @@ fn delete_origin_project_by_name() {
 }
 
 #[test]
+fn update_origin() {
+    let ds = datastore_test!(DataStore);
+    let mut origin = originsrv::OriginCreate::new();
+    origin.set_name(String::from("neurosis"));
+    origin.set_owner_id(1);
+    origin.set_owner_name(String::from("scottkelly"));
+    origin.set_default_package_visibility(originsrv::OriginPackageVisibility::Private);
+    ds.create_origin(&origin).expect("Should create origin");
+
+    let neurosis = ds.get_origin_by_name("neurosis")
+        .expect("Could not retrieve origin")
+        .expect("Origin does not exist");
+
+    assert_eq!(
+        neurosis.get_default_package_visibility(),
+        originsrv::OriginPackageVisibility::Private
+    );
+
+    let mut ou = originsrv::OriginUpdate::new();
+    ou.set_id(neurosis.get_id());
+    ou.set_name(String::from("neurosis"));
+    ou.set_default_package_visibility(originsrv::OriginPackageVisibility::Public);
+
+    ds.update_origin(&ou).expect("Should update origin");
+
+    let neurosis = ds.get_origin_by_name("neurosis")
+        .expect("Could not retrieve origin")
+        .expect("Origin does not exist");
+
+    assert_eq!(
+        neurosis.get_default_package_visibility(),
+        originsrv::OriginPackageVisibility::Public
+    );
+}
+
+#[test]
 fn update_origin_project() {
     let ds = datastore_test!(DataStore);
     let mut origin = originsrv::OriginCreate::new();
     origin.set_name(String::from("neurosis"));
     origin.set_owner_id(1);
     origin.set_owner_name(String::from("scottkelly"));
-    ds.create_origin(&mut origin).expect("Should create origin");
+    ds.create_origin(&origin).expect("Should create origin");
 
     let neurosis = ds.get_origin_by_name("neurosis")
         .expect("Could not retrieve origin")
@@ -768,7 +804,7 @@ fn create_origin_package() {
     origin.set_name(String::from("neurosis"));
     origin.set_owner_id(1);
     origin.set_owner_name(String::from("scottkelly"));
-    let origin = ds.create_origin(&mut origin)
+    let origin = ds.create_origin(&origin)
         .expect("Should create origin")
         .unwrap();
 
@@ -830,7 +866,7 @@ fn get_origin_package() {
     origin.set_name(String::from("core"));
     origin.set_owner_id(1);
     origin.set_owner_name(String::from("scottkelly"));
-    let origin = ds.create_origin(&mut origin)
+    let origin = ds.create_origin(&origin)
         .expect("Should create origin")
         .unwrap();
 
@@ -908,7 +944,7 @@ fn get_latest_package() {
     origin.set_name(String::from("core"));
     origin.set_owner_id(1);
     origin.set_owner_name(String::from("scottkelly"));
-    let origin = ds.create_origin(&mut origin)
+    let origin = ds.create_origin(&origin)
         .expect("Should create origin")
         .unwrap();
 
@@ -984,7 +1020,7 @@ fn list_origin_package_versions_for_origin() {
     origin.set_name(String::from("core"));
     origin.set_owner_id(1);
     origin.set_owner_name(String::from("scottkelly"));
-    let origin = ds.create_origin(&mut origin)
+    let origin = ds.create_origin(&origin)
         .expect("Should create origin")
         .unwrap();
 
@@ -1070,7 +1106,7 @@ fn list_origin_package_for_origin() {
     origin.set_name(String::from("core"));
     origin.set_owner_id(1);
     origin.set_owner_name(String::from("scottkelly"));
-    let origin = ds.create_origin(&mut origin)
+    let origin = ds.create_origin(&origin)
         .expect("Should create origin")
         .unwrap();
 
@@ -1192,12 +1228,12 @@ fn list_origin_package_for_origin_unique() {
     origin.set_name(String::from("core"));
     origin.set_owner_id(1);
     origin.set_owner_name(String::from("scottkelly"));
-    let origin1 = ds.create_origin(&mut origin.clone())
+    let origin1 = ds.create_origin(&origin.clone())
         .expect("Should create origin")
         .unwrap();
 
     origin.set_name(String::from("core2"));
-    let origin2 = ds.create_origin(&mut origin)
+    let origin2 = ds.create_origin(&origin)
         .expect("Should create origin")
         .unwrap();
 
@@ -1293,22 +1329,22 @@ fn search_origin_package_for_origin() {
     origin.set_name(String::from("core"));
     origin.set_owner_id(1);
     origin.set_owner_name(String::from("scottkelly"));
-    let origin1 = ds.create_origin(&mut origin.clone())
+    let origin1 = ds.create_origin(&origin.clone())
         .expect("Should create origin")
         .unwrap();
 
     origin.set_name(String::from("core2"));
-    let origin2 = ds.create_origin(&mut origin)
+    let origin2 = ds.create_origin(&origin)
         .expect("Should create origin")
         .unwrap();
 
     origin.set_name(String::from("josh"));
-    let origin3 = ds.create_origin(&mut origin)
+    let origin3 = ds.create_origin(&origin)
         .expect("Should create origin")
         .unwrap();
 
     origin.set_name(String::from("ace"));
-    let origin4 = ds.create_origin(&mut origin)
+    let origin4 = ds.create_origin(&origin)
         .expect("Should create origin")
         .unwrap();
 
@@ -1505,7 +1541,7 @@ fn create_origin_channel() {
     origin.set_name(String::from("neurosis"));
     origin.set_owner_id(1);
     origin.set_owner_name(String::from("scottkelly"));
-    ds.create_origin(&mut origin).expect("Should create origin");
+    ds.create_origin(&origin).expect("Should create origin");
 
     let neurosis = ds.get_origin_by_name("neurosis")
         .expect("Could not retrieve origin")
@@ -1536,7 +1572,7 @@ fn create_origin_channel_handles_unique_constraint_violations_correctly() {
     origin.set_name(String::from("neurosis"));
     origin.set_owner_id(1);
     origin.set_owner_name(String::from("scottkelly"));
-    ds.create_origin(&mut origin).expect("Should create origin");
+    ds.create_origin(&origin).expect("Should create origin");
 
     let neurosis = ds.get_origin_by_name("neurosis")
         .expect("Could not retrieve origin")
@@ -1568,7 +1604,7 @@ fn list_origin_channel() {
     origin.set_name(String::from("neurosis"));
     origin.set_owner_id(1);
     origin.set_owner_name(String::from("scottkelly"));
-    ds.create_origin(&mut origin).expect("Should create origin");
+    ds.create_origin(&origin).expect("Should create origin");
 
     let neurosis = ds.get_origin_by_name("neurosis")
         .expect("Could not retrieve origin")
@@ -1610,7 +1646,7 @@ fn list_origin_package_channels_for_package() {
     origin.set_name(String::from("core"));
     origin.set_owner_id(1);
     origin.set_owner_name(String::from("scottkelly"));
-    ds.create_origin(&mut origin).expect("Should create origin");
+    ds.create_origin(&origin).expect("Should create origin");
 
     let neurosis = ds.get_origin_by_name("core")
         .expect("Could not retrieve origin")
@@ -1680,7 +1716,7 @@ fn get_origin_channel() {
     origin.set_name(String::from("neurosis"));
     origin.set_owner_id(1);
     origin.set_owner_name(String::from("scottkelly"));
-    ds.create_origin(&mut origin).expect("Should create origin");
+    ds.create_origin(&origin).expect("Should create origin");
 
     let neurosis = ds.get_origin_by_name("neurosis")
         .expect("Could not retrieve origin")
@@ -1721,7 +1757,7 @@ fn promote_origin_package_group() {
     origin.set_name(String::from("core"));
     origin.set_owner_id(1);
     origin.set_owner_name(String::from("scottkelly"));
-    ds.create_origin(&mut origin).expect("Should create origin");
+    ds.create_origin(&origin).expect("Should create origin");
 
     let neurosis = ds.get_origin_by_name("core")
         .expect("Could not retrieve origin")
@@ -1819,7 +1855,7 @@ fn get_demote_channel_package() {
     origin.set_name(String::from("neurosis"));
     origin.set_owner_id(1);
     origin.set_owner_name(String::from("scottkelly"));
-    ds.create_origin(&mut origin).expect("Should create origin");
+    ds.create_origin(&origin).expect("Should create origin");
 
     let neurosis = ds.get_origin_by_name("neurosis")
         .expect("Could not retrieve origin")
@@ -1873,7 +1909,7 @@ fn get_promote_channel_package() {
     origin.set_name(String::from("neurosis"));
     origin.set_owner_id(1);
     origin.set_owner_name(String::from("scottkelly"));
-    ds.create_origin(&mut origin).expect("Should create origin");
+    ds.create_origin(&origin).expect("Should create origin");
 
     let neurosis = ds.get_origin_by_name("neurosis")
         .expect("Could not retrieve origin")
@@ -1919,7 +1955,7 @@ fn get_channel_package() {
     origin.set_name(String::from("neurosis"));
     origin.set_owner_id(1);
     origin.set_owner_name(String::from("scottkelly"));
-    ds.create_origin(&mut origin).expect("Should create origin");
+    ds.create_origin(&origin).expect("Should create origin");
 
     let neurosis = ds.get_origin_by_name("neurosis")
         .expect("Could not retrieve origin")
@@ -1978,7 +2014,7 @@ fn get_latest_channel_package() {
     origin.set_name(String::from("core"));
     origin.set_owner_id(1);
     origin.set_owner_name(String::from("scottkelly"));
-    let origin = ds.create_origin(&mut origin)
+    let origin = ds.create_origin(&origin)
         .expect("Should create origin")
         .unwrap();
 
@@ -2140,7 +2176,7 @@ fn list_origin_channel_package_for_channel() {
     origin.set_name(String::from("core"));
     origin.set_owner_id(1);
     origin.set_owner_name(String::from("scottkelly"));
-    let origin = ds.create_origin(&mut origin)
+    let origin = ds.create_origin(&origin)
         .expect("Should create origin")
         .unwrap();
 
@@ -2293,7 +2329,7 @@ fn delete_origin_channel_by_name() {
     origin.set_name(String::from("neurosis"));
     origin.set_owner_id(1);
     origin.set_owner_name(String::from("scottkelly"));
-    ds.create_origin(&mut origin).expect("Should create origin");
+    ds.create_origin(&origin).expect("Should create origin");
 
     let neurosis = ds.get_origin_by_name("neurosis")
         .expect("Could not retrieve origin")

@@ -72,6 +72,7 @@ impl Dispatcher for Worker {
         match message.message_id() {
             "CheckOriginAccessRequest" => handlers::origin_check_access(message, sock, state),
             "OriginCreate" => handlers::origin_create(message, sock, state),
+            "OriginUpdate" => handlers::origin_update(message, sock, state),
             "OriginGet" => handlers::origin_get(message, sock, state),
             "OriginIntegrationGetNames" => {
                 handlers::origin_integration_get_names(message, sock, state)

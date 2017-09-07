@@ -26,19 +26,24 @@ message CheckOriginAccessResponse {
 }
 
 // Origin
+enum OriginPackageVisibility {
+  Public = 1;
+  Private = 2;
+}
+
 message Origin {
   optional uint64 id = 1;
   optional string name = 2;
   optional uint64 owner_id = 3;
   optional string private_key_name = 4;
-  optional string default_package_visibility = 5;
+  optional OriginPackageVisibility default_package_visibility = 5;
 }
 
 message OriginCreate {
   optional string name = 1;
   optional uint64 owner_id = 2;
   optional string owner_name = 3;
-  optional string default_package_visibility = 4;
+  optional OriginPackageVisibility default_package_visibility = 4;
 }
 
 message OriginDelete {
@@ -47,6 +52,12 @@ message OriginDelete {
 
 message OriginGet {
   optional string name = 1;
+}
+
+message OriginUpdate {
+  optional uint64 id = 1;
+  optional string name = 2; // just for routing/sharding purposes - you can't update the name of an origin
+  optional OriginPackageVisibility default_package_visibility = 3;
 }
 
 // Origin Channel

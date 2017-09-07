@@ -466,29 +466,34 @@ impl DataStore {
         Ok(response)
     }
 
-    fn row_to_origin(&self, row: postgres::rows::Row) -> originsrv::Origin {
+    fn row_to_origin(&self, row: postgres::rows::Row) -> Result<originsrv::Origin> {
         let mut origin = originsrv::Origin::new();
         let oid: i64 = row.get("id");
         origin.set_id(oid as u64);
         origin.set_name(row.get("name"));
-        origin.set_default_package_visibility(row.get("default_package_visibility"));
+
+        let dpv: String = row.get("default_package_visibility");
+        let new_dpv: originsrv::OriginPackageVisibility =
+            dpv.parse().map_err(Error::UnknownOriginPackageVisibility)?;
+        origin.set_default_package_visibility(new_dpv);
         let ooid: i64 = row.get("owner_id");
         origin.set_owner_id(ooid as u64);
         let private_key_name = row.get_opt("private_key_name");
         if let Some(Ok(pk)) = private_key_name {
             origin.set_private_key_name(pk);
         }
-        origin
+        Ok(origin)
     }
 
     pub fn create_origin(
         &self,
-        origin: &mut originsrv::OriginCreate,
+        origin: &originsrv::OriginCreate,
     ) -> Result<Option<originsrv::Origin>> {
         let conn = self.pool.get(origin)?;
+        let mut dpv = origin.get_default_package_visibility().to_string();
 
-        if origin.get_default_package_visibility().is_empty() {
-            origin.set_default_package_visibility(String::from("public"));
+        if dpv.is_empty() {
+            dpv = originsrv::OriginPackageVisibility::default().to_string();
         }
 
         let rows = conn.query(
@@ -497,7 +502,7 @@ impl DataStore {
                 &origin.get_name(),
                 &(origin.get_owner_id() as i64),
                 &origin.get_owner_name(),
-                &origin.get_default_package_visibility(),
+                &dpv,
             ],
         ).map_err(Error::OriginCreate)?;
         if rows.len() == 1 {
@@ -505,13 +510,25 @@ impl DataStore {
             let row = rows.iter().nth(0).expect(
                 "Insert returns row, but no row present",
             );
-            Ok(Some(self.row_to_origin(row)))
+            let o = self.row_to_origin(row)?;
+            Ok(Some(o))
         } else {
             // I don't think this will ever happen because a unique constraint violation (or any
             // other error) will trigger an error on the query and return from this function
             // before this if statement ever executes.
             Ok(None)
         }
+    }
+
+    pub fn update_origin(&self, ou: &originsrv::OriginUpdate) -> Result<()> {
+        let conn = self.pool.get(ou)?;
+        let dpv = ou.get_default_package_visibility().to_string();
+
+        conn.execute(
+            "SELECT update_origin_v1($1, $2)",
+            &[&(ou.get_id() as i64), &dpv],
+        ).map_err(Error::OriginUpdate)?;
+        Ok(())
     }
 
     pub fn get_origin(
@@ -537,7 +554,10 @@ impl DataStore {
             origin.set_id(oid as u64);
             origin.set_name(row.get("name"));
             let ooid: i64 = row.get("owner_id");
-            origin.set_default_package_visibility(row.get("default_package_visibility"));
+            let dpv: String = row.get("default_package_visibility");
+            let new_dpv: originsrv::OriginPackageVisibility =
+                dpv.parse().map_err(Error::UnknownOriginPackageVisibility)?;
+            origin.set_default_package_visibility(new_dpv);
             origin.set_owner_id(ooid as u64);
             let private_key_name: Option<String> = row.get("private_key_name");
             if let Some(pk) = private_key_name {

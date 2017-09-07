@@ -79,11 +79,13 @@ pub enum Error {
     OriginPublicKeyGet(postgres::error::Error),
     OriginPublicKeyLatestGet(postgres::error::Error),
     OriginPublicKeyListForOrigin(postgres::error::Error),
+    OriginUpdate(postgres::error::Error),
     OriginAccountList(postgres::error::Error),
     OriginAccountInOrigin(postgres::error::Error),
     SyncInvitations(postgres::error::Error),
     SyncInvitationsUpdate(postgres::error::Error),
     Protobuf(protobuf::ProtobufError),
+    UnknownOriginPackageVisibility(protocol::originsrv::Error),
     Zmq(zmq::Error),
 }
 
@@ -261,7 +263,9 @@ impl fmt::Display for Error {
             Error::SyncInvitationsUpdate(ref e) => {
                 format!("Error update invitation sync for account, {}", e)
             }
+            Error::OriginUpdate(ref e) => format!("Error updating origin, {}", e),
             Error::Protobuf(ref e) => format!("{}", e),
+            Error::UnknownOriginPackageVisibility(ref e) => format!("{}", e),
             Error::Zmq(ref e) => format!("{}", e),
         };
         write!(f, "{}", msg)
@@ -324,9 +328,11 @@ impl error::Error for Error {
             Error::OriginPublicKeyListForOrigin(ref err) => err.description(),
             Error::OriginAccountList(ref err) => err.description(),
             Error::OriginAccountInOrigin(ref err) => err.description(),
+            Error::OriginUpdate(ref err) => err.description(),
             Error::SyncInvitations(ref err) => err.description(),
             Error::SyncInvitationsUpdate(ref err) => err.description(),
             Error::Protobuf(ref err) => err.description(),
+            Error::UnknownOriginPackageVisibility(ref err) => err.description(),
             Error::Zmq(ref err) => err.description(),
         }
     }

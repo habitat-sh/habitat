@@ -5,6 +5,7 @@
 // is made available under an open source license such as the Apache 2.0 License.
 
 use std::cmp::{Eq, Ordering, PartialOrd};
+use std::error;
 use std::fmt;
 use std::result;
 use std::str::FromStr;
@@ -19,6 +20,28 @@ use serde::ser::SerializeStruct;
 pub use message::originsrv::*;
 use message::Routable;
 use sharding::InstaId;
+
+#[derive(Debug)]
+pub enum Error {
+    BadOriginPackageVisibility,
+}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let msg = match *self {
+            Error::BadOriginPackageVisibility => "Bad Origin Package Visibility",
+        };
+        write!(f, "{}", msg)
+    }
+}
+
+impl error::Error for Error {
+    fn description(&self) -> &str {
+        match *self {
+            Error::BadOriginPackageVisibility => "Origin package visibility cannot be parsed",
+        }
+    }
+}
 
 pub trait Pageable {
     fn get_range(&self) -> [u64; 2];
@@ -73,6 +96,48 @@ impl Routable for CheckOriginAccessRequest {
     }
 }
 
+impl Default for OriginPackageVisibility {
+    fn default() -> OriginPackageVisibility {
+        OriginPackageVisibility::Public
+    }
+}
+
+impl Serialize for OriginPackageVisibility {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        match *self as u64 {
+            1 => serializer.serialize_str("public"),
+            2 => serializer.serialize_str("private"),
+            _ => panic!("Unexpected enum value"),
+        }
+    }
+}
+
+impl FromStr for OriginPackageVisibility {
+    type Err = Error;
+
+    fn from_str(value: &str) -> result::Result<Self, Self::Err> {
+
+        match value.to_lowercase().as_ref() {
+            "public" => Ok(OriginPackageVisibility::Public),
+            "private" => Ok(OriginPackageVisibility::Private),
+            _ => Err(Error::BadOriginPackageVisibility),
+        }
+    }
+}
+
+impl fmt::Display for OriginPackageVisibility {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let value = match *self {
+            OriginPackageVisibility::Public => "public",
+            OriginPackageVisibility::Private => "private",
+        };
+        write!(f, "{}", value)
+    }
+}
+
 impl Serialize for Origin {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
     where
@@ -91,7 +156,7 @@ impl Serialize for Origin {
         )?;
         strukt.serialize_field(
             "default_package_visibility",
-            self.get_default_package_visibility(),
+            &self.get_default_package_visibility(),
         )?;
         strukt.end()
     }
@@ -265,6 +330,14 @@ impl Serialize for OriginIntegrationNames {
 }
 
 impl Routable for OriginCreate {
+    type H = String;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(self.get_name().to_string())
+    }
+}
+
+impl Routable for OriginUpdate {
     type H = String;
 
     fn route_key(&self) -> Option<Self::H> {
