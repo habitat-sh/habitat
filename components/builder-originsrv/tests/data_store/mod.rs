@@ -879,6 +879,7 @@ fn get_origin_package() {
     package.set_config("config".to_string());
     package.set_target("x86_64-linux".to_string());
     package.set_exposes(vec![1, 2]);
+    package.set_owner_name("owner".to_string());
     ds.create_origin_package(&package).expect(
         "Failed to create origin package",
     );
@@ -899,6 +900,7 @@ fn get_origin_package() {
     assert_eq!(result.get_exposes().to_vec(), vec![1, 2]);
     assert_eq!(result.get_deps().to_vec(), dep_idents.to_vec());
     assert_eq!(result.get_tdeps().to_vec(), tdep_idents.to_vec());
+    assert_eq!(result.get_owner_name(), "owner".to_string());
 }
 
 #[test]
@@ -1107,6 +1109,7 @@ fn list_origin_package_for_origin() {
     package.set_config("config".to_string());
     package.set_target("x86_64-windows".to_string());
     package.set_exposes(vec![1, 2]);
+    package.set_owner_name("owner".to_string());
     ds.create_origin_package(&package.clone()).expect(
         "Failed to create origin package",
     );
@@ -1135,21 +1138,23 @@ fn list_origin_package_for_origin() {
     let result = ds.list_origin_package_for_origin(&opl.clone()).expect(
         "Could not get the packages from the database",
     );
-    assert_eq!(result.get_idents().len(), 2);
+    assert_eq!(result.get_detail().len(), 2);
     assert_eq!(result.get_start(), 1);
     assert_eq!(result.get_stop(), 2);
     assert_eq!(result.get_count(), 3);
-    let pkg1 = result.get_idents().iter().nth(0).unwrap();
-    assert_eq!(pkg1.to_string(), ident2.to_string());
-    let pkg2 = result.get_idents().iter().nth(1).unwrap();
-    assert_eq!(pkg2.to_string(), ident1.to_string());
+    let pkg1 = result.get_detail().iter().nth(0).unwrap();
+    assert_eq!(pkg1.get_ident().to_string(), ident2.to_string());
+    assert_eq!(pkg1.get_owner_name(), "owner");
+    let pkg2 = result.get_detail().iter().nth(1).unwrap();
+    assert_eq!(pkg2.get_ident().to_string(), ident1.to_string());
+    assert_eq!(pkg2.get_owner_name(), "owner");
 
     opl.set_start(1);
     opl.set_stop(20);
     let result2 = ds.list_origin_package_for_origin(&opl).expect(
         "Could not get the packages from the database",
     );
-    assert_eq!(result2.get_idents().len(), 2);
+    assert_eq!(result2.get_detail().len(), 2);
     assert_eq!(result2.get_start(), 1);
     assert_eq!(result2.get_stop(), 2);
     assert_eq!(result2.get_count(), 3);
@@ -1162,7 +1167,7 @@ fn list_origin_package_for_origin() {
     let result3 = ds.list_origin_package_for_origin(&opl).expect(
         "Could not get the packages from the database",
     );
-    assert_eq!(result3.get_idents().len(), 0);
+    assert_eq!(result3.get_detail().len(), 0);
     assert_eq!(result3.get_start(), 0);
     assert_eq!(result3.get_stop(), 20);
     assert_eq!(result3.get_count(), 0);
@@ -1176,12 +1181,12 @@ fn list_origin_package_for_origin() {
     let result4 = ds.list_origin_package_for_origin(&opl).expect(
         "Could not get the packages from the database",
     );
-    assert_eq!(result4.get_idents().len(), 1);
+    assert_eq!(result4.get_detail().len(), 1);
     assert_eq!(result4.get_start(), 0);
     assert_eq!(result4.get_stop(), 0);
     assert_eq!(result4.get_count(), 1);
-    let pkg3 = result4.get_idents().iter().nth(0).unwrap();
-    assert_eq!(pkg3.to_string(), "core/cacerts");
+    let pkg3 = result4.get_detail().iter().nth(0).unwrap();
+    assert_eq!(pkg3.get_ident().to_string(), "core/cacerts");
 }
 
 #[test]
@@ -1350,6 +1355,7 @@ fn search_origin_package_for_origin() {
 
     let mut package = originsrv::OriginPackageCreate::new();
     package.set_owner_id(1);
+    package.set_owner_name("owner".to_string());
     package.set_origin_id(origin1.get_id());
     package.set_ident(ident1.clone());
     package.set_checksum("checksum".to_string());
@@ -1399,12 +1405,13 @@ fn search_origin_package_for_origin() {
     let result = ds.search_origin_package_for_origin(&ops.clone()).expect(
         "Could not get the packages from the database",
     );
-    assert_eq!(result.get_idents().len(), 1);
+    assert_eq!(result.get_detail().len(), 1);
     assert_eq!(result.get_start(), 0);
     assert_eq!(result.get_stop(), 0);
     assert_eq!(result.get_count(), 1);
-    let pkg1 = result.get_idents().iter().nth(0).unwrap();
-    assert_eq!(pkg1.to_string(), ident4.to_string());
+    let pkg1 = result.get_detail().iter().nth(0).unwrap();
+    assert_eq!(pkg1.get_ident().to_string(), ident4.to_string());
+    assert_eq!(pkg1.get_owner_name(), "owner");
 
     ops.set_query("red".to_string());
     ops.set_start(1);
@@ -1412,14 +1419,14 @@ fn search_origin_package_for_origin() {
     let result2 = ds.search_origin_package_for_origin(&ops).expect(
         "Could not get the packages from the database",
     );
-    assert_eq!(result2.get_idents().len(), 2);
+    assert_eq!(result2.get_detail().len(), 2);
     assert_eq!(result2.get_start(), 1);
     assert_eq!(result2.get_stop(), 2);
     assert_eq!(result2.get_count(), 3);
-    let pkg1 = result2.get_idents().iter().nth(0).unwrap();
-    assert_eq!(pkg1.to_string(), ident2.to_string());
-    let pkg2 = result2.get_idents().iter().nth(1).unwrap();
-    assert_eq!(pkg2.to_string(), ident4.to_string());
+    let pkg1 = result2.get_detail().iter().nth(0).unwrap();
+    assert_eq!(pkg1.get_ident().to_string(), ident2.to_string());
+    let pkg2 = result2.get_detail().iter().nth(1).unwrap();
+    assert_eq!(pkg2.get_ident().to_string(), ident4.to_string());
 
     ops.set_query("do".to_string());
     ops.set_start(0);
@@ -1427,12 +1434,12 @@ fn search_origin_package_for_origin() {
     let result3 = ds.search_origin_package_for_origin(&ops).expect(
         "Could not get the packages from the database",
     );
-    assert_eq!(result3.get_idents().len(), 1);
+    assert_eq!(result3.get_detail().len(), 1);
     assert_eq!(result3.get_start(), 0);
     assert_eq!(result3.get_stop(), 0);
     assert_eq!(result3.get_count(), 1);
-    let pkg1 = result3.get_idents().iter().nth(0).unwrap();
-    assert_eq!(pkg1.to_string(), ident4.to_string());
+    let pkg1 = result3.get_detail().iter().nth(0).unwrap();
+    assert_eq!(pkg1.get_ident().to_string(), ident4.to_string());
 
     ops.set_query("core/re".to_string());
     ops.set_start(0);
@@ -1441,14 +1448,14 @@ fn search_origin_package_for_origin() {
     let result4 = ds.search_origin_package_for_origin(&ops).expect(
         "Could not get the packages from the database",
     );
-    assert_eq!(result4.get_idents().len(), 2);
+    assert_eq!(result4.get_detail().len(), 2);
     assert_eq!(result4.get_start(), 0);
     assert_eq!(result4.get_stop(), 1);
     assert_eq!(result4.get_count(), 2);
-    let pkg1 = result4.get_idents().iter().nth(0).unwrap();
-    assert_eq!(pkg1.to_string(), "core/red");
-    let pkg2 = result4.get_idents().iter().nth(1).unwrap();
-    assert_eq!(pkg2.to_string(), "core/red_dog");
+    let pkg1 = result4.get_detail().iter().nth(0).unwrap();
+    assert_eq!(pkg1.get_ident().to_string(), "core/red");
+    let pkg2 = result4.get_detail().iter().nth(1).unwrap();
+    assert_eq!(pkg2.get_ident().to_string(), "core/red_dog");
 
     ops.set_query("red".to_string());
     ops.set_start(0);
@@ -1457,20 +1464,20 @@ fn search_origin_package_for_origin() {
     let result5 = ds.search_origin_package_for_origin(&ops).expect(
         "Could not get the packages from the database",
     );
-    assert_eq!(result5.get_idents().len(), 5);
+    assert_eq!(result5.get_detail().len(), 5);
     assert_eq!(result5.get_start(), 0);
     assert_eq!(result5.get_stop(), 4);
     assert_eq!(result5.get_count(), 1);
-    let pkg1 = result5.get_idents().iter().nth(0).unwrap();
-    assert_eq!(pkg1.to_string(), "core/red");
-    let pkg2 = result5.get_idents().iter().nth(1).unwrap();
-    assert_eq!(pkg2.to_string(), "core/red_dog");
-    let pkg3 = result5.get_idents().iter().nth(2).unwrap();
-    assert_eq!(pkg3.to_string(), "ace/red_dog");
-    let pkg4 = result5.get_idents().iter().nth(3).unwrap();
-    assert_eq!(pkg4.to_string(), "core2/red");
-    let pkg5 = result5.get_idents().iter().nth(4).unwrap();
-    assert_eq!(pkg5.to_string(), "josh/red_dog");
+    let pkg1 = result5.get_detail().iter().nth(0).unwrap();
+    assert_eq!(pkg1.get_ident().to_string(), "core/red");
+    let pkg2 = result5.get_detail().iter().nth(1).unwrap();
+    assert_eq!(pkg2.get_ident().to_string(), "core/red_dog");
+    let pkg3 = result5.get_detail().iter().nth(2).unwrap();
+    assert_eq!(pkg3.get_ident().to_string(), "ace/red_dog");
+    let pkg4 = result5.get_detail().iter().nth(3).unwrap();
+    assert_eq!(pkg4.get_ident().to_string(), "core2/red");
+    let pkg5 = result5.get_detail().iter().nth(4).unwrap();
+    assert_eq!(pkg5.get_ident().to_string(), "josh/red_dog");
 
     ops.set_origin("".to_string());
     ops.set_query("red".to_string());
@@ -1480,22 +1487,40 @@ fn search_origin_package_for_origin() {
     let result6 = ds.search_origin_package_for_origin(&ops).expect(
         "Could not get the packages from the database",
     );
-    assert_eq!(result6.get_idents().len(), 6);
+    assert_eq!(result6.get_detail().len(), 6);
     assert_eq!(result6.get_start(), 0);
     assert_eq!(result6.get_stop(), 5);
     assert_eq!(result6.get_count(), 1);
-    let pkg1 = result6.get_idents().iter().nth(0).unwrap();
-    assert_eq!(pkg1.to_string(), "core/red/2017.01.17/20170209064044");
-    let pkg2 = result6.get_idents().iter().nth(1).unwrap();
-    assert_eq!(pkg2.to_string(), "core/red/2017.01.18/20170209064044");
-    let pkg3 = result6.get_idents().iter().nth(2).unwrap();
-    assert_eq!(pkg3.to_string(), "core/red_dog/2017.01.19/20170209064045");
-    let pkg4 = result6.get_idents().iter().nth(3).unwrap();
-    assert_eq!(pkg4.to_string(), "ace/red_dog/2017.01.19/20170209064045");
-    let pkg5 = result6.get_idents().iter().nth(4).unwrap();
-    assert_eq!(pkg5.to_string(), "core2/red/2017.01.18/20170209064045");
-    let pkg6 = result6.get_idents().iter().nth(5).unwrap();
-    assert_eq!(pkg6.to_string(), "josh/red_dog/2017.01.19/20170209064045");
+    let pkg1 = result6.get_detail().iter().nth(0).unwrap();
+    assert_eq!(
+        pkg1.get_ident().to_string(),
+        "core/red/2017.01.17/20170209064044"
+    );
+    let pkg2 = result6.get_detail().iter().nth(1).unwrap();
+    assert_eq!(
+        pkg2.get_ident().to_string(),
+        "core/red/2017.01.18/20170209064044"
+    );
+    let pkg3 = result6.get_detail().iter().nth(2).unwrap();
+    assert_eq!(
+        pkg3.get_ident().to_string(),
+        "core/red_dog/2017.01.19/20170209064045"
+    );
+    let pkg4 = result6.get_detail().iter().nth(3).unwrap();
+    assert_eq!(
+        pkg4.get_ident().to_string(),
+        "ace/red_dog/2017.01.19/20170209064045"
+    );
+    let pkg5 = result6.get_detail().iter().nth(4).unwrap();
+    assert_eq!(
+        pkg5.get_ident().to_string(),
+        "core2/red/2017.01.18/20170209064045"
+    );
+    let pkg6 = result6.get_detail().iter().nth(5).unwrap();
+    assert_eq!(
+        pkg6.get_ident().to_string(),
+        "josh/red_dog/2017.01.19/20170209064045"
+    );
 }
 
 #[test]
@@ -1757,6 +1782,7 @@ fn promote_origin_package_group() {
 
     let mut package = originsrv::OriginPackageCreate::new();
     package.set_owner_id(1);
+    package.set_owner_name("owner".to_string());
     package.set_origin_id(neurosis.get_id());
     package.set_ident(ident1.clone());
     package.set_checksum("checksum".to_string());
@@ -1800,16 +1826,17 @@ fn promote_origin_package_group() {
     opl.set_stop(20);
     let result = ds.list_origin_channel_package_for_channel(&opl.clone())
         .expect("Could not get the packages from the database");
-    assert_eq!(result.get_idents().len(), 3);
+    assert_eq!(result.get_detail().len(), 3);
     assert_eq!(result.get_start(), 0);
     assert_eq!(result.get_stop(), 2);
     assert_eq!(result.get_count(), 3);
-    let pkg1 = result.get_idents().iter().nth(0).unwrap();
-    assert_eq!(pkg1.to_string(), ident1.to_string());
-    let pkg2 = result.get_idents().iter().nth(1).unwrap();
-    assert_eq!(pkg2.to_string(), ident2.to_string());
-    let pkg3 = result.get_idents().iter().nth(2).unwrap();
-    assert_eq!(pkg3.to_string(), ident3.to_string());
+    let pkg1 = result.get_detail().iter().nth(0).unwrap();
+    assert_eq!(pkg1.get_ident().to_string(), ident1.to_string());
+    let pkg2 = result.get_detail().iter().nth(1).unwrap();
+    assert_eq!(pkg2.get_ident().to_string(), ident2.to_string());
+    let pkg3 = result.get_detail().iter().nth(2).unwrap();
+    assert_eq!(pkg3.get_ident().to_string(), ident3.to_string());
+    assert_eq!(pkg3.get_owner_name(), "owner");
 }
 
 #[test]
@@ -2191,6 +2218,7 @@ fn list_origin_channel_package_for_channel() {
 
     let mut package = originsrv::OriginPackageCreate::new();
     package.set_owner_id(1);
+    package.set_owner_name("owner".to_string());
     package.set_origin_id(origin.get_id());
     package.set_ident(ident1.clone());
     package.set_checksum("checksum".to_string());
@@ -2262,14 +2290,14 @@ fn list_origin_channel_package_for_channel() {
     opl.set_stop(2);
     let result = ds.list_origin_channel_package_for_channel(&opl.clone())
         .expect("Could not get the packages from the database");
-    assert_eq!(result.get_idents().len(), 2);
+    assert_eq!(result.get_detail().len(), 2);
     assert_eq!(result.get_start(), 0);
     assert_eq!(result.get_stop(), 1);
     assert_eq!(result.get_count(), 2);
-    let pkg1 = result.get_idents().iter().nth(0).unwrap();
-    assert_eq!(pkg1.to_string(), ident1.to_string());
-    let pkg2 = result.get_idents().iter().nth(1).unwrap();
-    assert_eq!(pkg2.to_string(), ident2.to_string());
+    let pkg1 = result.get_detail().iter().nth(0).unwrap();
+    assert_eq!(pkg1.get_ident().to_string(), ident1.to_string());
+    let pkg2 = result.get_detail().iter().nth(1).unwrap();
+    assert_eq!(pkg2.get_ident().to_string(), ident2.to_string());
 
     opl.set_name(channel2.get_name().to_string());
     opl.set_ident(originsrv::OriginPackageIdent::from_str("core").unwrap());
@@ -2278,12 +2306,13 @@ fn list_origin_channel_package_for_channel() {
     let result2 = ds.list_origin_channel_package_for_channel(&opl).expect(
         "Could not get the packages from the database",
     );
-    assert_eq!(result2.get_idents().len(), 1);
+    assert_eq!(result2.get_detail().len(), 1);
     assert_eq!(result2.get_start(), 1);
     assert_eq!(result2.get_stop(), 1);
     assert_eq!(result2.get_count(), 2);
-    let pkg1 = result2.get_idents().iter().nth(0).unwrap();
-    assert_eq!(pkg1.to_string(), ident4.to_string());
+    let pkg1 = result2.get_detail().iter().nth(0).unwrap();
+    assert_eq!(pkg1.get_ident().to_string(), ident4.to_string());
+    assert_eq!(pkg1.get_owner_name(), "owner");
 }
 
 #[test]

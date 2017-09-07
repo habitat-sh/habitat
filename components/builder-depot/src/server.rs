@@ -808,6 +808,7 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
     };
     if ident.satisfies(package.get_ident()) {
         package.set_owner_id(session.get_id());
+        package.set_owner_name(session.get_name().to_string());
 
         // let's make sure this origin actually exists
         match get_origin(&ident.get_origin())? {
@@ -1355,13 +1356,13 @@ fn list_packages(req: &mut Request) -> IronResult<Response> {
             // required to fetch channels for a list of packages in the UI. However, if our request
             // has been marked as "distinct" then skip this step because it doesn't make sense in
             // that case. Let's get platforms at the same time.
-            for package in packages.get_idents().to_vec() {
+            for package in packages.get_detail().to_vec() {
                 let mut channels: Option<Vec<String>> = None;
                 let mut platforms: Option<Vec<String>> = None;
 
                 if !distinct {
-                    channels = channels_for_package_ident(&package);
-                    platforms = platforms_for_package_ident(&package);
+                    channels = channels_for_package_ident(&package.get_ident());
+                    platforms = platforms_for_package_ident(&package.get_ident());
                 }
 
                 let mut pkg_json = serde_json::to_value(package).unwrap();
@@ -1694,7 +1695,7 @@ fn search_packages(req: &mut Request) -> IronResult<Response> {
                 packages.get_count()
             );
             let body = package_results_json(
-                &packages.get_idents().to_vec(),
+                &packages.get_detail().to_vec(),
                 packages.get_count() as isize,
                 packages.get_start() as isize,
                 packages.get_stop() as isize,
@@ -2399,16 +2400,24 @@ mod test {
         ident1.set_name("name1".to_string());
         ident1.set_version("1.1.1".to_string());
         ident1.set_release("20170101010101".to_string());
-        packages.push(ident1);
+
+        let mut detail1 = OriginPackageDetail::new();
+        detail1.set_ident(ident1);
+        detail1.set_owner_name("owner1".to_string());
+        packages.push(detail1);
 
         let mut ident2 = OriginPackageIdent::new();
         ident2.set_origin("org".to_string());
         ident2.set_name("name2".to_string());
         ident2.set_version("2.2.2".to_string());
         ident2.set_release("20170202020202".to_string());
-        packages.push(ident2);
 
-        pkg_res.set_idents(packages);
+        let mut detail2 = OriginPackageDetail::new();
+        detail2.set_ident(ident2);
+        detail2.set_owner_name("owner2".to_string());
+        packages.push(detail2);
+
+        pkg_res.set_detail(packages);
         broker.setup::<OriginPackageListRequest, OriginPackageListResponse>(&pkg_res);
 
         let (response, msgs) = iron_request(
@@ -2434,12 +2443,14 @@ mod test {
                     "name":"name1",
                     "version":"1.1.1",
                     "release":"20170101010101",
+                    "owner_name":"owner1",
                 },
                 {
                     "origin":"org",
                     "name":"name2",
                     "version":"2.2.2",
                     "release":"20170202020202",
+                    "owner_name":"owner2",
                 }
             ]
         });
@@ -2468,16 +2479,24 @@ mod test {
         ident1.set_name("name1".to_string());
         ident1.set_version("1.1.1".to_string());
         ident1.set_release("20170101010101".to_string());
-        packages.push(ident1);
+
+        let mut detail1 = OriginPackageDetail::new();
+        detail1.set_ident(ident1);
+        detail1.set_owner_name("owner1".to_string());
+        packages.push(detail1);
 
         let mut ident2 = OriginPackageIdent::new();
         ident2.set_origin("org".to_string());
         ident2.set_name("name2".to_string());
         ident2.set_version("2.2.2".to_string());
         ident2.set_release("20170202020202".to_string());
-        packages.push(ident2);
 
-        pkg_res.set_idents(packages);
+        let mut detail2 = OriginPackageDetail::new();
+        detail2.set_ident(ident2);
+        detail2.set_owner_name("owner2".to_string());
+        packages.push(detail2);
+
+        pkg_res.set_detail(packages);
         broker.setup::<OriginChannelPackageListRequest, OriginPackageListResponse>(&pkg_res);
 
         let (response, msgs) = iron_request(
@@ -2503,12 +2522,14 @@ mod test {
                     "name":"name1",
                     "version":"1.1.1",
                     "release":"20170101010101",
+                    "owner_name":"owner1",
                 },
                 {
                     "origin":"org",
                     "name":"name2",
                     "version":"2.2.2",
                     "release":"20170202020202",
+                    "owner_name":"owner2",
                 }
             ]
         });
@@ -2552,6 +2573,7 @@ mod test {
 
         let mut package = OriginPackage::new();
         package.set_ident(ident.clone());
+        package.set_owner_name("owner".to_string());
         package.set_checksum("checksum".to_string());
         package.set_manifest("manifest".to_string());
         package.set_deps(dep_idents);
@@ -2598,7 +2620,8 @@ mod test {
                 "release":"20170101010103"
             }],
             "exposes":[],
-            "config":"config"
+            "config":"config",
+            "owner_name":"owner"
         });
 
         assert_eq!(json_body, expected_json);
@@ -2637,6 +2660,7 @@ mod test {
 
         let mut package = OriginPackage::new();
         package.set_ident(ident.clone());
+        package.set_owner_name("owner".to_string());
         package.set_checksum("checksum".to_string());
         package.set_manifest("manifest".to_string());
         package.set_deps(dep_idents);
@@ -2683,7 +2707,8 @@ mod test {
                 "release":"20170101010103"
             }],
             "exposes":[],
-            "config":"config"
+            "config":"config",
+            "owner_name":"owner"
         });
 
         assert_eq!(json_body, expected_json);
@@ -2723,6 +2748,7 @@ mod test {
 
         let mut package = OriginPackage::new();
         package.set_ident(ident.clone());
+        package.set_owner_name("owner".to_string());
         package.set_checksum("checksum".to_string());
         package.set_manifest("manifest".to_string());
         package.set_deps(dep_idents);
@@ -2782,7 +2808,8 @@ mod test {
                 "release":"20170101010103"
             }],
             "exposes":[],
-            "config":"config"
+            "config":"config",
+            "owner_name":"owner"
         });
 
         assert_eq!(json_body, expected_json);
@@ -2827,6 +2854,7 @@ mod test {
 
         let mut package = OriginPackage::new();
         package.set_ident(ident.clone());
+        package.set_owner_name("owner".to_string());
         package.set_checksum("checksum".to_string());
         package.set_manifest("manifest".to_string());
         package.set_deps(dep_idents);
@@ -2886,7 +2914,8 @@ mod test {
                 "release":"20170101010103"
             }],
             "exposes":[],
-            "config":"config"
+            "config":"config",
+            "owner_name":"owner"
         });
 
         assert_eq!(json_body, expected_json);
@@ -2919,16 +2948,24 @@ mod test {
         ident1.set_name("name1".to_string());
         ident1.set_version("1.1.1".to_string());
         ident1.set_release("20170101010101".to_string());
-        packages.push(ident1);
+
+        let mut detail1 = OriginPackageDetail::new();
+        detail1.set_ident(ident1);
+        detail1.set_owner_name("owner1".to_string());
+        packages.push(detail1);
 
         let mut ident2 = OriginPackageIdent::new();
         ident2.set_origin("org".to_string());
         ident2.set_name("name2".to_string());
         ident2.set_version("2.2.2".to_string());
         ident2.set_release("20170202020202".to_string());
-        packages.push(ident2);
 
-        pkg_res.set_idents(packages);
+        let mut detail2 = OriginPackageDetail::new();
+        detail2.set_ident(ident2);
+        detail2.set_owner_name("owner2".to_string());
+        packages.push(detail2);
+
+        pkg_res.set_detail(packages);
         broker.setup::<OriginPackageSearchRequest, OriginPackageListResponse>(&pkg_res);
 
         let (response, msgs) = iron_request(
@@ -2955,13 +2992,15 @@ mod test {
                     \"origin\":\"org\",\
                     \"name\":\"name1\",\
                     \"version\":\"1.1.1\",\
-                    \"release\":\"20170101010101\"\
+                    \"release\":\"20170101010101\",\
+                    \"owner_name\":\"owner1\"\
                 },\
                 {\
                     \"origin\":\"org\",\
                     \"name\":\"name2\",\
                     \"version\":\"2.2.2\",\
-                    \"release\":\"20170202020202\"\
+                    \"release\":\"20170202020202\",\
+                    \"owner_name\":\"owner2\"\
                 }\
             ]\
         }"

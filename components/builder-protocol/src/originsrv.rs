@@ -462,7 +462,7 @@ impl Serialize for OriginPackage {
     where
         S: Serializer,
     {
-        let mut strukt = serializer.serialize_struct("origin_package", 8)?;
+        let mut strukt = serializer.serialize_struct("origin_package", 9)?;
         strukt.serialize_field("ident", self.get_ident())?;
         strukt.serialize_field("checksum", self.get_checksum())?;
         strukt.serialize_field("manifest", self.get_manifest())?;
@@ -471,6 +471,7 @@ impl Serialize for OriginPackage {
         strukt.serialize_field("tdeps", self.get_tdeps())?;
         strukt.serialize_field("exposes", self.get_exposes())?;
         strukt.serialize_field("config", self.get_config())?;
+        strukt.serialize_field("owner_name", self.get_owner_name())?;
         strukt.end()
     }
 }
@@ -511,6 +512,48 @@ impl Routable for OriginPackageCreate {
 
     fn route_key(&self) -> Option<Self::H> {
         Some(InstaId(self.get_origin_id()))
+    }
+}
+
+impl Eq for OriginPackageDetail {}
+
+impl Ord for OriginPackageDetail {
+    fn cmp(&self, other: &OriginPackageDetail) -> Ordering {
+        self.get_ident().cmp(other.get_ident())
+    }
+}
+
+impl PartialOrd for OriginPackageDetail {
+    fn partial_cmp(&self, other: &OriginPackageDetail) -> Option<Ordering> {
+        self.get_ident().partial_cmp(other.get_ident())
+    }
+}
+
+impl Serialize for OriginPackageDetail {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut strukt = serializer.serialize_struct("origin_package_detail", 5)?;
+        strukt.serialize_field(
+            "origin",
+            self.get_ident().get_origin(),
+        )?;
+        strukt.serialize_field("name", self.get_ident().get_name())?;
+        if !self.get_ident().get_version().is_empty() {
+            strukt.serialize_field(
+                "version",
+                self.get_ident().get_version(),
+            )?;
+        }
+        if !self.get_ident().get_release().is_empty() {
+            strukt.serialize_field(
+                "release",
+                self.get_ident().get_release(),
+            )?;
+        }
+        strukt.serialize_field("owner_name", self.get_owner_name())?;
+        strukt.end()
     }
 }
 

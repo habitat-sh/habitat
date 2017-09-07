@@ -556,7 +556,7 @@ impl DataStore {
         let conn = self.pool.get(opc)?;
         let ident = opc.get_ident();
         let rows = conn.query(
-            "SELECT * FROM insert_origin_package_v1($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
+            "SELECT * FROM insert_origin_package_v2($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)",
             &[
                 &(opc.get_origin_id() as i64),
                 &(opc.get_owner_id() as i64),
@@ -569,6 +569,7 @@ impl DataStore {
                 &self.into_delimited(opc.get_deps().to_vec()),
                 &self.into_delimited(opc.get_tdeps().to_vec()),
                 &self.into_delimited(opc.get_exposes().to_vec()),
+                &(opc.get_owner_name()),
             ],
         ).map_err(Error::OriginPackageCreate)?;
 
@@ -775,7 +776,7 @@ impl DataStore {
         let query = if *&opl.get_distinct() {
             "SELECT * FROM get_origin_packages_for_origin_distinct_v1($1, $2, $3)"
         } else {
-            "SELECT * FROM get_origin_packages_for_origin_v2($1, $2, $3)"
+            "SELECT * FROM get_origin_packages_for_origin_v3($1, $2, $3)"
         };
 
         let rows = conn.query(
@@ -791,12 +792,15 @@ impl DataStore {
         response.set_start(opl.get_start());
         response.set_stop(self.last_index(opl, &rows));
         let mut idents = protobuf::RepeatedField::new();
+        let mut details = protobuf::RepeatedField::new();
         for row in rows.iter() {
             let count: i64 = row.get("total_count");
             response.set_count(count as u64);
             idents.push(self.row_to_origin_package_ident(&row));
+            details.push(self.row_to_origin_package_detail(&row));
         }
         response.set_idents(idents);
+        response.set_detail(details);
         Ok(response)
     }
 
@@ -827,7 +831,7 @@ impl DataStore {
         let conn = self.pool.get(opl)?;
 
         let rows = conn.query(
-            "SELECT * FROM get_origin_channel_packages_for_channel_v1($1, $2, $3, $4, $5)",
+            "SELECT * FROM get_origin_channel_packages_for_channel_v2($1, $2, $3, $4, $5)",
             &[
                 &opl.get_ident().get_origin(),
                 &opl.get_name(),
@@ -841,12 +845,15 @@ impl DataStore {
         response.set_start(opl.get_start());
         response.set_stop(self.last_index(opl, &rows));
         let mut idents = protobuf::RepeatedField::new();
+        let mut details = protobuf::RepeatedField::new();
         for row in rows.iter() {
             let count: i64 = row.get("total_count");
             response.set_count(count as u64);
             idents.push(self.row_to_origin_package_ident(&row));
+            details.push(self.row_to_origin_package_detail(&row));
         }
         response.set_idents(idents);
+        response.set_detail(details);
         Ok(response)
     }
 
@@ -890,12 +897,12 @@ impl DataStore {
         } else {
             if ops.get_origin().is_empty() {
                 conn.query(
-                    "SELECT * FROM search_all_origin_packages_v1($1, $2, $3)",
+                    "SELECT * FROM search_all_origin_packages_v2($1, $2, $3)",
                     &[&ops.get_query(), &ops.limit(), &(ops.get_start() as i64)],
                 ).map_err(Error::OriginPackageSearch)?
             } else {
                 conn.query(
-                    "SELECT * FROM search_origin_packages_for_origin_v1($1, $2, $3, $4)",
+                    "SELECT * FROM search_origin_packages_for_origin_v2($1, $2, $3, $4)",
                     &[
                         &ops.get_origin(),
                         &ops.get_query(),
@@ -910,14 +917,19 @@ impl DataStore {
         response.set_start(ops.get_start());
         response.set_stop(self.last_index(ops, &rows));
         let mut idents = protobuf::RepeatedField::new();
+        let mut details = protobuf::RepeatedField::new();
         for row in rows.iter() {
             let count: i64 = row.get("total_count");
             response.set_count(count as u64);
             idents.push(self.row_to_origin_package_ident(&row));
+            details.push(self.row_to_origin_package_detail(&row));
         }
 
         idents.sort_by(|a, b| a.cmp(b));
+        details.sort_by(|a, b| a.cmp(b));
+
         response.set_idents(idents);
+        response.set_detail(details);
         Ok(response)
     }
 
@@ -969,6 +981,8 @@ impl DataStore {
         package.set_exposes(exposes);
         package.set_deps(self.into_idents(row.get("deps")));
         package.set_tdeps(self.into_idents(row.get("tdeps")));
+        let owner_name: String = row.get("owner_name");
+        package.set_owner_name(owner_name);
         package
     }
 
@@ -978,6 +992,18 @@ impl DataStore {
     ) -> originsrv::OriginPackageIdent {
         let ident: String = row.get("ident");
         originsrv::OriginPackageIdent::from_str(ident.as_str()).unwrap()
+    }
+
+    fn row_to_origin_package_detail(
+        &self,
+        row: &postgres::rows::Row,
+    ) -> originsrv::OriginPackageDetail {
+        let mut detail = originsrv::OriginPackageDetail::new();
+        detail.set_ident(self.row_to_origin_package_ident(row));
+        if let Some(Ok(owner)) = row.get_opt("owner_name") {
+            detail.set_owner_name(owner);
+        }
+        detail
     }
 
     pub fn create_origin_channel(
