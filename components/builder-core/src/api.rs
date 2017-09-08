@@ -22,7 +22,9 @@ use protocol::originsrv::{CheckOriginAccessRequest, CheckOriginAccessResponse, O
                           OriginChannel, OriginChannelCreate, OriginChannelGet, OriginGet,
                           OriginPackage, OriginPackageChannelListRequest,
                           OriginPackageChannelListResponse, OriginPackageGet,
-                          OriginPackageGroupPromote, OriginPackageIdent, OriginPackagePromote};
+                          OriginPackageGroupPromote, OriginPackageIdent,
+                          OriginPackagePlatformListRequest, OriginPackagePlatformListResponse,
+                          OriginPackagePromote};
 use protocol::net::{ErrCode, NetError, NetOk};
 use protocol::scheduler::{Group, GroupGet, Project, ProjectState};
 use protocol::sessionsrv::{Session, SessionCreate, SessionGet};
@@ -47,6 +49,20 @@ pub fn channels_for_package_ident(package: &OriginPackageIdent) -> Option<Vec<St
 
             Some(list)
         }
+        Err(_) => None,
+    }
+}
+
+// Get platforms for a package
+pub fn platforms_for_package_ident(package: &OriginPackageIdent) -> Option<Vec<String>> {
+    let mut conn = Broker::connect().unwrap();
+    let mut opplr = OriginPackagePlatformListRequest::new();
+    opplr.set_ident(package.clone());
+
+    match conn.route::<OriginPackagePlatformListRequest, OriginPackagePlatformListResponse>(
+        &opplr,
+    ) {
+        Ok(p) => Some(p.get_platforms().to_vec()),
         Err(_) => None,
     }
 }

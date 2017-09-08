@@ -19,9 +19,10 @@ use std::env;
 use base64;
 use bodyparser;
 use bld_core;
-use bld_core::api::{channels_for_package_ident, promote_job_group_to_channel};
+use bld_core::api::{channels_for_package_ident, platforms_for_package_ident,
+                    promote_job_group_to_channel};
 use depot::server::check_origin_access;
-use hab_core::package::{Identifiable, Plan};
+use hab_core::package::Plan;
 use hab_core::event::*;
 use hab_net;
 use hab_net::http::controller::*;
@@ -31,7 +32,7 @@ use iron::status;
 use iron::typemap;
 use params::{Params, Value, FromValue};
 use persistent;
-use protocol::jobsrv::{Job, JobGet, JobLogGet, JobLog, JobSpec, ProjectJobsGet,
+use protocol::jobsrv::{Job, JobGet, JobLogGet, JobLog, JobSpec, JobState, ProjectJobsGet,
                        ProjectJobsGetResponse};
 use protocol::scheduler::{ReverseDependenciesGet, ReverseDependencies};
 use protocol::originsrv::*;
@@ -646,10 +647,19 @@ pub fn project_jobs(req: &mut Request) -> IronResult<Response> {
             let list: Vec<serde_json::Value> = response
                 .get_jobs()
                 .iter()
-                .map(|job| if job.get_package_ident().fully_qualified() {
+                .map(|job| if job.get_state() == JobState::Complete {
                     let channels = channels_for_package_ident(&job.get_package_ident());
+                    let platforms = platforms_for_package_ident(&job.get_package_ident());
                     let mut job_json = serde_json::to_value(job).unwrap();
-                    job_json["channels"] = json!(channels);
+
+                    if channels.is_some() {
+                        job_json["channels"] = json!(channels);
+                    }
+
+                    if platforms.is_some() {
+                        job_json["platforms"] = json!(platforms);
+                    }
+
                     job_json
                 } else {
                     serde_json::to_value(job).unwrap()
