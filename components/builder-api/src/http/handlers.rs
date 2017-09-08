@@ -19,9 +19,9 @@ use std::env;
 use base64;
 use bodyparser;
 use bld_core;
-use bld_core::api::promote_job_group_to_channel;
+use bld_core::api::{channels_for_package_ident, promote_job_group_to_channel};
 use depot::server::check_origin_access;
-use hab_core::package::Plan;
+use hab_core::package::{Identifiable, Plan};
 use hab_core::event::*;
 use hab_net;
 use hab_net::http::controller::*;
@@ -642,7 +642,21 @@ pub fn project_jobs(req: &mut Request) -> IronResult<Response> {
     }
     let mut conn = Broker::connect().unwrap();
     match conn.route::<ProjectJobsGet, ProjectJobsGetResponse>(&jobs_get) {
-        Ok(jobs) => Ok(render_json(status::Ok, &jobs)),
+        Ok(response) => {
+            let list: Vec<serde_json::Value> = response
+                .get_jobs()
+                .iter()
+                .map(|job| if job.get_package_ident().fully_qualified() {
+                    let channels = channels_for_package_ident(&job.get_package_ident());
+                    let mut job_json = serde_json::to_value(job).unwrap();
+                    job_json["channels"] = json!(channels);
+                    job_json
+                } else {
+                    serde_json::to_value(job).unwrap()
+                })
+                .collect();
+            Ok(render_json(status::Ok, &list))
+        }
         Err(err) => Ok(render_net_error(&err)),
     }
 }

@@ -46,8 +46,7 @@ message Job {
   // The RFC3339-formatted time the `hab studio build` process
   // stopped, successful or not.
   optional string build_finished_at = 8;
-  // The identifier of the package built by the job. Set only a
-  // successfully-built Job.
+  // The identifier of the package built/attempted by the job.
   optional originsrv.OriginPackageIdent package_ident = 9;
   // Whether or not the log for the job has been archived
   optional bool is_archived = 11;

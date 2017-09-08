@@ -23,6 +23,7 @@ use base64;
 
 use uuid::Uuid;
 use bld_core;
+use bld_core::api::channels_for_package_ident;
 use bodyparser;
 use hab_core::package::{Identifiable, FromArchive, PackageArchive, PackageIdent, PackageTarget,
                         ident};
@@ -2054,26 +2055,6 @@ pub fn do_promotion(
             error!("promote:2, err={:?}", &e);
             Ok(Response::with(status::InternalServerError))
         }
-    }
-}
-
-// Get channels for a package
-fn channels_for_package_ident(package: &OriginPackageIdent) -> Option<Vec<String>> {
-    let mut conn = Broker::connect().unwrap();
-    let mut opclr = OriginPackageChannelListRequest::new();
-    opclr.set_ident(package.clone());
-
-    match conn.route::<OriginPackageChannelListRequest, OriginPackageChannelListResponse>(&opclr) {
-        Ok(channels) => {
-            let list: Vec<String> = channels
-                .get_channels()
-                .iter()
-                .map(|channel| channel.get_name().to_string())
-                .collect();
-
-            Some(list)
-        }
-        Err(_) => None,
     }
 }
 
