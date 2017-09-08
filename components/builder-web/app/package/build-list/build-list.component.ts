@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, Output } from "@angular/core";
 import { List } from "immutable";
 import * as moment from "moment";
+import { iconForBuildState } from "../../util";
 
 @Component({
   selector: "hab-build-list",
@@ -19,25 +20,6 @@ export class BuildListComponent {
     }
 
     iconFor(state) {
-        return {
-            Complete: "check",
-            Dispatched: "loading",
-            Failed: "alert",
-            Pending: "clock",
-            Processing: "loading",
-            Rejected: "alert"
-        }[state];
-    }
-
-    get activeBuild() {
-        for (let i = 0; i < this.builds.size; i++ ) {
-            let build = this.builds.get(i);
-
-            if (build["state"] === "Dispatched") {
-                return build;
-            }
-        }
-
-        return null;
+        return iconForBuildState(state);
     }
 }

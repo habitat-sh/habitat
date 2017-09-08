@@ -1,4 +1,5 @@
 import { Component, Input } from "@angular/core";
+import { iconForBuildState } from "../../util";
 import { AppStore } from "../../AppStore";
 
 @Component({
@@ -19,14 +20,7 @@ export class BuildStatusComponent {
   constructor(private store: AppStore) {}
 
   iconFor(state) {
-      return {
-          Complete: "check",
-          Dispatched: "loading",
-          Failed: "alert",
-          Pending: "pending",
-          Processing: "loading",
-          Rejected: "alert"
-      }[state];
+      return iconForBuildState(state);
   }
 
   get id() {

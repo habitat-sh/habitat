@@ -4,6 +4,7 @@ import { Subscription } from "rxjs";
 import * as AnsiUp from "ansi_up";
 import * as moment from "moment";
 import { fetchBuildLog, streamBuildLog } from "../../actions/index";
+import { iconForBuildState } from "../../util";
 import { AppStore } from "../../AppStore";
 
 @Component({
@@ -78,15 +79,12 @@ export class BuildDetailComponent implements OnChanges, OnDestroy {
         return props;
     }
 
-    iconFor(state) {
-        return {
-            Complete: "check",
-            Dispatched: "loading",
-            Failed: "alert",
-            Pending: "pending",
-            Processing: "loading",
-            Rejected: "alert"
-        }[state];
+    get statusIcon() {
+        return iconForBuildState(this.info.state);
+    }
+
+    get statusClass() {
+        return this.info.state ? this.info.state.toLowerCase() : "";
     }
 
     toggleFollow() {

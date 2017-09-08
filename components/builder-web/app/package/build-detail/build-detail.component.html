@@ -1,7 +1,7 @@
 <div class="hab-build">
   <div class="summary" *ngIf="info.state">
-    <div class="status">
-      <hab-icon [symbol]="iconFor(info.state)" [class]="info.state | lowercase"></hab-icon>
+    <div class="status {{ statusClass }}">
+      <hab-icon [symbol]="statusIcon" [class]="statusClass" [title]="info.state | titlecase"></hab-icon>
       <strong>Build {{ info.state }}</strong>
     </div>
     <div class="detail">
@@ -25,5 +25,7 @@
       <span>{{ completed ? "Jump to end" : "Follow log" }}</span>
     </button>
   </div>
-  <pre class="output"></pre>
+  <div class="output-container {{ statusClass }}">
+    <pre class="output"></pre>
+  </div>
 </div>

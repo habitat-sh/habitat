@@ -140,3 +140,15 @@ export function requireSignIn(pageComponent) {
 export function targetToPlatform(target: string = ""): string {
     return target.split("-").slice(-1).toString();
 }
+
+// Return a build state's proper icon symbol
+export function iconForBuildState(state) {
+    return {
+        complete: "check",
+        dispatched: "loading",
+        failed: "alert",
+        pending: "pending",
+        processing: "loading",
+        rejected: "alert"
+    }[state.toLowerCase()];
+}

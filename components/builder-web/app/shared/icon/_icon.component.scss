@@ -1,21 +1,22 @@
 hab-icon {
   display: inline-block;
+  vertical-align: middle;
   line-height: initial;
-  width: 1.1em;
-  height: 1em;
-  vertical-align: sub;
+  width: 1em;
+  height: auto;
 
   .mat-icon {
+    display: inline-block;
+    line-height: inherit;
     width: auto;
     height: auto;
-  }
 
-  svg {
-    width: 100%;
-    height: 100%;
+    svg {
+      display: inline-block;
 
-    path {
-      fill: currentColor;
+      path {
+        fill: currentColor;
+      }
     }
   }
 

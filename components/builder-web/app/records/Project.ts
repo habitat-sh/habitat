@@ -16,9 +16,12 @@ import {Record} from "immutable";
 
 export const Project = Record({
     id: undefined,
-    plan_path: "plan.sh",
-    vcs: Record({
-        type: "git",
-        url: undefined
-    })
+    name: undefined,
+    origin_id: undefined,
+    origin_name: undefined,
+    owner_id: undefined,
+    package_name: undefined,
+    plan_path: undefined,
+    vcs_data: undefined,
+    vcs_type: undefined
 });

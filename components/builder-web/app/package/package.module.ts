@@ -4,6 +4,7 @@ import { RouterModule } from "@angular/router";
 import { MdTabsModule } from "@angular/material";
 import { BuildDetailComponent } from "./build-detail/build-detail.component";
 import { BuildListComponent } from "./build-list/build-list.component";
+import { BuildNoticeComponent } from "./build-notice/build-notice.component";
 import { BuildStatusComponent } from "./build-status/build-status.component";
 import { PackageBuildComponent } from "./package-build/package-build.component";
 import { PackageComponent } from "./package/package.component";
@@ -29,6 +30,7 @@ import { PackageRoutingModule } from "./package-routing.module";
   declarations: [
     BuildDetailComponent,
     BuildListComponent,
+    BuildNoticeComponent,
     BuildStatusComponent,
     PackageComponent,
     PackageBuildComponent,

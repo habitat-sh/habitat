@@ -38,12 +38,13 @@
       Build Settings
     </a>
   </nav>
-  <div class="page-body" [class.with-sidebar]="sidebar">
+  <div class="page-body" [class.with-sidebar]="showSidebar" [class.with-active-build]="showActiveBuild">
+    <hab-build-notice [build]="activeBuild"></hab-build-notice>
     <div class="page-content">
       <router-outlet (activate)="onRouteActivate($event)"></router-outlet>
     </div>
     <div class="page-sidebar">
-      <hab-package-sidebar [origin]="origin" [name]="name"></hab-package-sidebar>
+      <hab-package-sidebar [origin]="origin" [name]="name" [building]="building" [buildable]="buildable"></hab-package-sidebar>
     </div>
   </div>
 </div>

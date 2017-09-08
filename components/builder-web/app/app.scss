@@ -43,6 +43,7 @@ $output-bourbon-deprecation-warnings: false !default;
 @import "origin/origins-page/origins-page.component";
 @import "package/build-detail/build-detail.component";
 @import "package/build-list/build-list.component";
+@import "package/build-notice/build-notice.component";
 @import "package/build-status/build-status.component";
 @import "package/package/package.component";
 @import "package/package-builds/package-builds.component";

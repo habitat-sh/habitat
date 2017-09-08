@@ -10,6 +10,8 @@ import { fetchLatestPackage, fetchPackageVersions, submitJob } from "../../actio
 export class PackageSidebarComponent implements OnChanges {
     @Input() origin: string;
     @Input() name: string;
+    @Input() building: boolean = false;
+    @Input() buildable: boolean = false;
 
     constructor(private store: AppStore) {}
 
@@ -43,26 +45,16 @@ export class PackageSidebarComponent implements OnChanges {
         }
     }
 
+    get buildButtonLabel() {
+        return this.building ? "Build pending" : "Build latest version";
+    }
+
     get exportCommand() {
         return `hab pkg export docker ${this.origin}/${this.name}`;
     }
 
     get runCommand() {
         return `hab start ${this.origin}/${this.name}`;
-    }
-
-    get buildable() {
-      let isMember = !!this.store.getState().origins.mine.find((o) => {
-
-        // Still limiting builds to the core origin
-        return o.name === this.origin && this.origin === "core";
-      });
-
-      if (isMember) {
-          return true;
-      }
-
-      return false;
     }
 
     get platforms() {

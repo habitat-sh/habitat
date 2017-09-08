@@ -2,7 +2,6 @@ import { Component, OnDestroy } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
 import { Subscription } from "rxjs/subscription";
 import { AppStore } from "../../AppStore";
-import { fetchBuilds } from "../../actions/index";
 
 @Component({
     template: require("./package-builds.component.html")
@@ -21,7 +20,6 @@ export class PackageBuildsComponent implements OnDestroy {
         this.sub = this.route.parent.params.subscribe((params) => {
             this.origin = params["origin"];
             this.name = params["name"];
-            this.fetchBuilds();
         });
     }
 
@@ -37,9 +35,5 @@ export class PackageBuildsComponent implements OnDestroy {
 
     onSelect(build) {
         this.router.navigate(["pkgs", this.origin, this.name, "builds", build.id]);
-    }
-
-    private fetchBuilds() {
-        this.store.dispatch(fetchBuilds(this.origin, this.name, ""));
     }
 }

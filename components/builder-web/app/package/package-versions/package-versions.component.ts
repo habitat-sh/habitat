@@ -3,7 +3,7 @@ import { ActivatedRoute, Router } from "@angular/router";
 import { Subscription } from "rxjs/subscription";
 import { AppStore } from "../../AppStore";
 import { packageString, targetToPlatform, releaseToDate } from "../../util";
-import { fetchPackageVersions, fetchBuilds, fetchLatestPackage, filterPackagesBy, submitJob } from "../../actions/index";
+import { fetchPackageVersions, fetchLatestPackage, filterPackagesBy, submitJob } from "../../actions/index";
 
 @Component({
     template: require("./package-versions.component.html")
@@ -24,7 +24,6 @@ export class PackageVersionsComponent implements OnDestroy {
             this.origin = params["origin"];
             this.name = params["name"];
             this.fetchVersions();
-            this.fetchBuilds();
         });
     }
 
@@ -107,12 +106,6 @@ export class PackageVersionsComponent implements OnDestroy {
         }
 
         return [];
-    }
-
-    private fetchBuilds() {
-        this.store.dispatch(
-            fetchBuilds(this.origin, this.name, "")
-        );
     }
 
     private fetchVersions() {

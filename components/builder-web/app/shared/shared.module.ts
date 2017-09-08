@@ -60,6 +60,30 @@ import { FormProgressComponent } from "./form-progress/form-progress.component";
 })
 export class SharedModule {
   constructor(private mdIconRegistry: MdIconRegistry, private sanitizer: DomSanitizer) {
+
+    // At the time of this monkeypatching, the SVG settings applied by MdIconRegistry
+    // were missing the `viewBox` attribute, which is responsible for mapping the coordinate space
+    // of an SVG image to that of the viewport, enabling proper scaling. While we await resolution
+    // of the issue below, we'll go ahead and plow right over Angular's implementation,
+    // 'cause JavaScript is awesome.
+    // https://github.com/angular/material2/issues/5188
+    // https://github.com/angular/material2/blob/bef6271c617f6904cc360454805ea080e2212f2a/src/lib/icon/icon-registry.ts#L424-L436
+    mdIconRegistry["_setSvgAttributes"] = (svg: SVGElement): SVGElement => {
+
+      if (!svg.getAttribute("xmlns")) {
+        svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+      }
+
+      svg.setAttribute("fit", "");
+      svg.setAttribute("height", "100%");
+      svg.setAttribute("width", "100%");
+      svg.setAttribute("viewBox", "0 0 24 24"); // This is the one we care about.
+      svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+      svg.setAttribute("focusable", "false");
+
+      return svg;
+    };
+
     mdIconRegistry.addSvgIconSet(
         sanitizer.bypassSecurityTrustResourceUrl("/assets/images/icons/all.svg")
     );
