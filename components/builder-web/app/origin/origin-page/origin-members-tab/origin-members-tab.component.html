@@ -3,22 +3,14 @@
     <div class="member-actions">
       <div class="member-invite">
         <h3>Invite Member</h3>
-        <form
-          #formValues="ngForm"
-          [formGroup]="form"
-          (ngSubmit)="submit(formValues.value.username)">
+        <form #formValues="ngForm" [formGroup]="form" (ngSubmit)="submit(formValues.value.username)">
           <div class="member-search">
             <span class="label">Add existing Habitat users by GitHub username.</span>
-            <input type="search" name="username"
-              [formControl]="form.controls['username']"
-              placeholder="GitHub Username">
+            <input type="search" name="username" [formControl]="form.controls['username']" placeholder="GitHub Username">
             <span class="error" *ngIf="errorMessage">{{errorMessage}}</span>
           </div>
           <div>
-            <button
-              md-raised-button
-              color="primary"
-              [disabled]="!control.valid">
+            <button md-raised-button color="primary" [disabled]="!control.valid">
               Send invitation
             </button>
           </div>
@@ -28,8 +20,7 @@
         <h3>Pending Invites</h3>
         <p *ngIf="invitations.size === 0">No pending invitations.</p>
         <ul class="pending">
-          <li *ngFor="let invitation of invitations"
-            class="hab-item-list hab-no-select">
+          <li *ngFor="let invitation of invitations" class="pending-invite hab-table-list">
             <h3>{{invitation.account_name}}</h3>
           </li>
         </ul>
@@ -40,8 +31,7 @@
       <h3>Current Members</h3>
       <p *ngIf="members.size === 0">No Members.</p>
       <ul>
-        <li *ngFor="let member of members"
-          class="hab-item-list hab-no-select">
+        <li *ngFor="let member of members" class="hab-table-list">
           <h3>{{member}}</h3>
         </li>
       </ul>
@@ -50,8 +40,7 @@
   <div class="hab-origin--right">
     <h4 class="uppercase">About Members</h4>
     <p>
-      Members are able to upload and utilize both private and public packages.
-      They can also invite new members.
+      Members are able to upload and utilize both private and public packages. They can also invite new members.
     </p>
     <p>
       By default, the creator of an origin is also the owner.

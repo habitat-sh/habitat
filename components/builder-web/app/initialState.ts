@@ -112,6 +112,7 @@ export default Record({
     currentPendingInvitations: List(),
     mine: List(),
     myInvitations: List(),
+    currentIntegrations: List(),
     ui: Record({
       current: Record({
         addingPublicKey: false,
@@ -124,6 +125,7 @@ export default Record({
         publicKeyErrorMessage: undefined,
         publicKeyListErrorMessage: undefined,
         userInviteErrorMessage: undefined,
+        integrationsSaveErrorMessage: undefined
       })(),
       mine: Record({
         errorMessage: undefined,
@@ -234,9 +236,9 @@ function cookieDomain() {
 
   if (isNaN(Number(tld))) {
     return hostname
-    .split(delim)
-    .splice(-2)
-    .join(delim);
+      .split(delim)
+      .splice(-2)
+      .join(delim);
   } else {
     return hostname;
   }

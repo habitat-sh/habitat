@@ -17,7 +17,7 @@ import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { NgModule } from "@angular/core";
 import { RouterModule } from "@angular/router";
-import { MdTabsModule, MdRadioModule, MdButtonModule, MdDialogModule, MdInputModule } from "@angular/material";
+import { MdTabsModule, MdRadioModule, MdButtonModule, MdDialogModule } from "@angular/material";
 import { KeyAddFormDialog } from "./origin-keys-tab/key-add-form/key-add-form.dialog";
 import { KeyListComponent } from "./origin-keys-tab/key-list/key-list.component";
 import { OriginPageRoutingModule } from "./origin-page-routing.module";
@@ -26,7 +26,8 @@ import { OriginPackagesTabComponent } from "./origin-packages-tab/origin-package
 import { OriginMembersTabComponent } from "./origin-members-tab/origin-members-tab.component";
 import { OriginKeysTabComponent } from "./origin-keys-tab/origin-keys-tab.component";
 import { OriginSettingsTabComponent } from "./origin-settings-tab/origin-settings-tab.component";
-import { DockerCredentialsFormDialog } from "./origin-settings-tab/docker-credentials-form/docker-credentials-form.dialog";
+import { OriginIntegrationsTabComponent } from "./origin-integrations-tab/origin-integrations-tab.component";
+import { DockerCredentialsFormDialog } from "./docker-credentials-form/docker-credentials-form.dialog";
 import { SharedModule } from "../../shared/shared.module";
 
 export const imports = [
@@ -51,7 +52,8 @@ export const declarations = [
   OriginMembersTabComponent,
   OriginKeysTabComponent,
   OriginSettingsTabComponent,
-  DockerCredentialsFormDialog
+  DockerCredentialsFormDialog,
+  OriginIntegrationsTabComponent
 ];
 
 const entryComponents = [
@@ -64,4 +66,4 @@ const entryComponents = [
   declarations,
   entryComponents
 })
-export class OriginPageModule {}
+export class OriginPageModule { }

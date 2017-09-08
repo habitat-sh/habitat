@@ -60,6 +60,8 @@ export const POPULATE_ORIGIN_MEMBERS =
     originActions.POPULATE_ORIGIN_MEMBERS;
 export const POPULATE_ORIGIN_PUBLIC_KEYS =
     originActions.POPULATE_ORIGIN_PUBLIC_KEYS;
+export const POPULATE_ORIGIN_INTEGRATIONS =
+    originActions.POPULATE_ORIGIN_INTEGRATIONS;
 export const SET_CURRENT_ORIGIN = originActions.SET_CURRENT_ORIGIN;
 export const SET_CURRENT_ORIGIN_CREATING_FLAG =
     originActions.SET_CURRENT_ORIGIN_CREATING_FLAG;
@@ -75,6 +77,8 @@ export const SET_ORIGIN_PUBLIC_KEY_UPLOAD_ERROR_MESSAGE =
     originActions.SET_ORIGIN_PUBLIC_KEY_UPLOAD_ERROR_MESSAGE;
 export const SET_ORIGIN_USER_INVITE_ERROR_MESSAGE =
     originActions.SET_ORIGIN_USER_INVITE_ERROR_MESSAGE;
+export const SET_ORIGIN_INTEGRATION_SAVE_ERROR_MESSAGE =
+    originActions.SET_ORIGIN_INTEGRATION_SAVE_ERROR_MESSAGE;
 export const TOGGLE_ORIGIN_PICKER = originActions.TOGGLE_ORIGIN_PICKER;
 export const SET_ORIGIN_PRIVACY_SETTINGS = originActions.SET_ORIGIN_PRIVACY_SETTINGS;
 
@@ -112,11 +116,11 @@ export const TOGGLE_USER_NAV_MENU = usersActions.TOGGLE_USER_NAV_MENU;
 
 export const SET_LAYOUT = uiActions.SET_LAYOUT;
 
-export const SET_COOKIE    = cookieActions.SET_COOKIE;
+export const SET_COOKIE = cookieActions.SET_COOKIE;
 export const REMOVE_COOKIE = cookieActions.REMOVE_COOKIE;
 
-export const SET_FEATURE_FLAG    = featureFlagActions.SET_FEATURE_FLAG;
-export const SET_FEATURE_FLAGS   = featureFlagActions.SET_FEATURE_FLAGS;
+export const SET_FEATURE_FLAG = featureFlagActions.SET_FEATURE_FLAG;
+export const SET_FEATURE_FLAGS = featureFlagActions.SET_FEATURE_FLAGS;
 
 // Used by redux-reset to reset the app state
 export const RESET = "RESET";
@@ -145,6 +149,7 @@ export const removeNotification = notificationActions.removeNotification;
 
 export const acceptOriginInvitation = originActions.acceptOriginInvitation;
 export const createOrigin = originActions.createOrigin;
+export const ignoreOriginInvitation = originActions.ignoreOriginInvitation;
 export const fetchOrigin = originActions.fetchOrigin;
 export const fetchOriginInvitations = originActions.fetchOriginInvitations;
 export const fetchOriginMembers = originActions.fetchOriginMembers;
@@ -157,6 +162,8 @@ export const setCurrentOrigin = originActions.setCurrentOrigin;
 export const uploadOriginPrivateKey = originActions.uploadOriginPrivateKey;
 export const uploadOriginPublicKey = originActions.uploadOriginPublicKey;
 export const setOriginPrivacySettings = originActions.setOriginPrivacySettings;
+export const addDockerHubCredentials = originActions.addDockerHubCredentials;
+export const fetchIntegrations = originActions.fetchIntegrations;
 
 export const fetchDashboardRecent = packageActions.fetchDashboardRecent;
 export const fetchExplore = packageActions.fetchExplore;
@@ -193,13 +200,13 @@ export const signOut = usersActions.signOut;
 
 export const setLayout = uiActions.setLayout;
 
-export const getCookie    = cookieActions.getCookie;
-export const setCookie    = cookieActions.setCookie;
+export const getCookie = cookieActions.getCookie;
+export const setCookie = cookieActions.setCookie;
 export const removeCookie = cookieActions.removeCookie;
 
 export const loadFeatureFlags = featureFlagActions.loadFeatureFlags;
 export const setFeatureFlag = featureFlagActions.setFeatureFlag;
-export const setFeatureFlags  = featureFlagActions.setFeatureFlags;
+export const setFeatureFlags = featureFlagActions.setFeatureFlags;
 
 export function resetAppState() {
     return {

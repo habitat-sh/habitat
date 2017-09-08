@@ -28,7 +28,7 @@
       }
     }
   }
-  .member-pending-invites {
+  .members-pending-invites {
     @include span-columns(5);
   }
 }
@@ -43,5 +43,22 @@
     &.invite-members > h3 {
       margin-bottom: rem(10);
     }
+  }
+}
+
+.hab-table-list {
+  border-bottom: 1px solid rgba(216,216,216,0.4);
+  padding: 15px;
+
+  &:last-child {
+    border-top: none;
+  }
+
+  &:first-child {
+    border-top: 1px solid rgba(216,216,216,0.4);
+  }
+
+  h3 {
+    margin: 0;
   }
 }
