@@ -4,6 +4,4 @@ set -x
 concurrently \
   "npm run build-css-watch" \
   "npm run build-js-watch" \
-  "npm run test-unit -- --no-single-run" \
-  "npm run lint-css-watch" \
   "lite-server"
