@@ -1,5 +1,5 @@
-app**/*.js
-app**/*.js.map
+app/**/*.js
+app/**/*.js.map
 assets/app.css
 assets/app.css.map
 assets/app.js
