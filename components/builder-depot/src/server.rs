@@ -797,6 +797,7 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
     // Check with scheduler to ensure we don't have circular deps
     let mut pcr_req = PackagePreCreate::new();
     pcr_req.set_ident(format!("{}", ident));
+    pcr_req.set_target(target_from_artifact.to_string());
 
     let mut pcr_deps = protobuf::RepeatedField::new();
     let deps_from_artifact = match archive.deps() {
@@ -907,6 +908,7 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
             let mut request = GroupCreate::new();
             request.set_origin(ident.get_origin().to_string());
             request.set_package(ident.get_name().to_string());
+            request.set_target(target_from_artifact.to_string());
             request.set_deps_only(true);
 
             match conn.route::<GroupCreate, Group>(&request) {
@@ -980,6 +982,10 @@ fn schedule(req: &mut Request) -> IronResult<Response> {
     let mut request = GroupCreate::new();
     request.set_origin(String::from(origin));
     request.set_package(String::from(package));
+
+    // TODO (SA): The schedule API needs to be extended to support a target param.
+    // For now, hard code a default value
+    request.set_target(String::from("x86_64-linux"));
 
     match conn.route::<GroupCreate, Group>(&request) {
         Ok(group) => {

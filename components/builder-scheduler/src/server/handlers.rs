@@ -48,13 +48,26 @@ pub fn group_create(
     let mut end_time;
 
     let project_ident = {
-        let graph = state.graph().read().unwrap();
+        let mut target_graph = state.graph().write().unwrap();
+        let graph = match target_graph.graph_mut(msg.get_target()) {
+            Some(g) => g,
+            None => {
+                warn!(
+                    "GroupCreate, no graph found for target {}",
+                    msg.get_target()
+                );
+                let err = net::err(ErrCode::ENTITY_NOT_FOUND, "sc:group-create:2");
+                req.reply_complete(sock, &err)?;
+                return Ok(());
+            }
+        };
+
         start_time = PreciseTime::now();
         let ret = match graph.resolve(&project_name) {
             Some(s) => s,
             None => {
                 warn!("GroupCreate, project ident not found");
-                let err = net::err(ErrCode::ENTITY_NOT_FOUND, "sc:group-create:2");
+                let err = net::err(ErrCode::ENTITY_NOT_FOUND, "sc:group-create:3");
                 req.reply_complete(sock, &err)?;
                 return Ok(());
             }
@@ -71,7 +84,8 @@ pub fn group_create(
 
     // Search the packages graph to find the reverse dependencies
     let rdeps_opt = {
-        let graph = state.graph().read().unwrap();
+        let target_graph = state.graph().read().unwrap();
+        let graph = target_graph.graph(msg.get_target()).unwrap(); // Unwrap OK
         start_time = PreciseTime::now();
         let ret = graph.rdeps(&project_name);
         end_time = PreciseTime::now();
@@ -131,7 +145,20 @@ pub fn reverse_dependencies_get(
     debug!("reverse_dependencies_get message: {:?}", msg);
 
     let ident = format!("{}/{}", msg.get_origin(), msg.get_name());
-    let graph = state.graph().read().expect("Graph lock is poisoned");
+    let target_graph = state.graph().read().expect("Graph lock is poisoned");
+    let graph = match target_graph.graph(msg.get_target()) {
+        Some(g) => g,
+        None => {
+            warn!(
+                "ReverseDependenciesGet, no graph found for target {}",
+                msg.get_target()
+            );
+            let err = net::err(ErrCode::ENTITY_NOT_FOUND, "sc:reverse-dependencies-get:2");
+            req.reply_complete(sock, &err)?;
+            return Ok(());
+        }
+    };
+
     let rdeps = graph.rdeps(&ident);
     let mut rd_reply = proto::ReverseDependencies::new();
     rd_reply.set_origin(msg.get_origin().to_string());
@@ -203,7 +230,20 @@ pub fn package_create(
 
     // Extend the graph with new package
     {
-        let mut graph = state.graph().write().unwrap();
+        let mut target_graph = state.graph().write().unwrap();
+        let graph = match target_graph.graph_mut(msg.get_target()) {
+            Some(g) => g,
+            None => {
+                warn!(
+                    "PackageCreate, no graph found for target {}",
+                    msg.get_target()
+                );
+                let err = net::err(ErrCode::ENTITY_NOT_FOUND, "sc:package-create:2");
+                req.reply_complete(sock, &err)?;
+                return Ok(());
+            }
+        };
+
         let start_time = PreciseTime::now();
         let (ncount, ecount) = graph.extend(&package);
         let end_time = PreciseTime::now();
@@ -232,7 +272,20 @@ pub fn package_precreate(
 
     // Check that we can safely extend the graph with new package
     let can_extend = {
-        let mut graph = state.graph().write().unwrap();
+        let mut target_graph = state.graph().write().unwrap();
+        let graph = match target_graph.graph_mut(package.get_target()) {
+            Some(g) => g,
+            None => {
+                warn!(
+                    "PackagePreCreate, no graph found for target {}",
+                    package.get_target()
+                );
+                let err = net::err(ErrCode::ENTITY_NOT_FOUND, "sc:package-pc:1");
+                req.reply_complete(sock, &err)?;
+                return Ok(());
+            }
+        };
+
         let start_time = PreciseTime::now();
         let ret = graph.check_extend(&package);
         let end_time = PreciseTime::now();
@@ -249,7 +302,7 @@ pub fn package_precreate(
     if can_extend {
         req.reply_complete(sock, &net::NetOk::new())?
     } else {
-        let err = net::err(ErrCode::ENTITY_CONFLICT, "sc:schedule-pc:1");
+        let err = net::err(ErrCode::ENTITY_CONFLICT, "sc:package-pc:2");
         req.reply_complete(sock, &err)?;
     }
 

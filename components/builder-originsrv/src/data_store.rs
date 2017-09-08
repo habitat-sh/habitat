@@ -1273,7 +1273,7 @@ fn sync_packages(pool: Pool) -> DbResult<EventOutcome> {
     let mut result = EventOutcome::Finished;
     for shard in pool.shards.iter() {
         let conn = pool.get_shard(*shard)?;
-        let rows = &conn.query("SELECT * FROM sync_packages_v1()", &[])
+        let rows = &conn.query("SELECT * FROM sync_packages_v2()", &[])
             .map_err(DbError::AsyncFunctionCheck)?;
         if rows.len() > 0 {
             let mut bconn = Broker::connect()?;
@@ -1282,6 +1282,7 @@ fn sync_packages(pool: Pool) -> DbResult<EventOutcome> {
                 let pid: i64 = row.get("package_id");
                 let ident: String = row.get("package_ident");
                 let deps_column: String = row.get("package_deps");
+                let target: String = row.get("package_target");
 
                 let mut deps = protobuf::RepeatedField::new();
                 for ident in deps_column.split(":") {
@@ -1292,6 +1293,7 @@ fn sync_packages(pool: Pool) -> DbResult<EventOutcome> {
                     }
                 }
                 request.set_ident(ident);
+                request.set_target(target);
                 request.set_deps(deps);
 
                 match bconn.route::<scheduler::PackageCreate, NetOk>(&request) {

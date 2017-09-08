@@ -319,5 +319,13 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                         SELECT DISTINCT target FROM origin_packages WHERE ident LIKE (op_ident || '%')
                         $$;
                      "#)?;
+    migrator.migrate("originsrv",
+                  r#"CREATE OR REPLACE FUNCTION sync_packages_v2() RETURNS TABLE(account_id bigint, package_id bigint, package_ident text, package_deps text, package_target text) AS $$
+                        SELECT owner_id, id, ident, deps, target FROM origin_packages WHERE scheduler_sync = false;
+                     $$ LANGUAGE SQL STABLE"#)?;
+    migrator.migrate(
+        "originsrv",
+        r#"UPDATE origin_packages SET scheduler_sync = false"#,
+    )?;
     Ok(())
 }

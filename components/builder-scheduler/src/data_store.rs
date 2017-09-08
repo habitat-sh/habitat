@@ -391,6 +391,31 @@ impl DataStore {
                                 $$"#,
         )?;
 
+        // Add a target column to the packages table
+        migrator.migrate(
+            "scheduler",
+            r#"ALTER TABLE packages ADD COLUMN IF NOT EXISTS target TEXT DEFAULT NULL"#,
+        )?;
+
+        // Insert or update a new package into the packages table
+        migrator.migrate(
+            "scheduler",
+            r#"CREATE OR REPLACE FUNCTION upsert_package_v1 (
+                                    in_ident text,
+                                    in_deps text[],
+                                    in_target text
+                                ) RETURNS SETOF packages AS $$
+                                        BEGIN
+                                            RETURN QUERY INSERT INTO packages (ident, deps, target)
+                                            VALUES (in_ident, in_deps, in_target)
+                                            ON CONFLICT(ident)
+                                            DO UPDATE SET deps=in_deps, target=in_target RETURNING *;
+                                            RETURN;
+                                        END
+                                    $$ LANGUAGE plpgsql VOLATILE
+                                "#,
+        )?;
+
         migrator.finish()?;
 
         Ok(())
@@ -400,8 +425,8 @@ impl DataStore {
         let conn = self.pool.get_shard(0)?;
 
         let rows = conn.query(
-            "SELECT * FROM insert_package_v1($1, $2)",
-            &[&msg.get_ident(), &msg.get_deps()],
+            "SELECT * FROM upsert_package_v1($1, $2, $3)",
+            &[&msg.get_ident(), &msg.get_deps(), &msg.get_target()],
         ).map_err(Error::PackageInsert)?;
 
         let row = rows.get(0);
@@ -553,6 +578,10 @@ impl DataStore {
 
         let name: String = row.get("ident");
         package.set_ident(name);
+
+        if let Some(Ok(target)) = row.get_opt::<&str, String>("target") {
+            package.set_target(target);
+        }
 
         let deps: Vec<String> = row.get("deps");
 

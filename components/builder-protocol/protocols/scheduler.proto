@@ -14,6 +14,7 @@ message Project {
   optional string ident = 2;
   optional ProjectState state = 3;
   optional uint64 job_id = 4;
+  optional string target = 5;
 }
 
 enum GroupState {
@@ -27,6 +28,7 @@ message GroupCreate {
   optional string origin = 1;
   optional string package = 2;
   optional bool deps_only = 3;
+  optional string target = 4;
 }
 
 message GroupGet {
@@ -43,21 +45,25 @@ message Group {
 message Package {
   optional string ident = 1;
   repeated string deps = 2;
+  optional string target = 3;
 }
 
 message PackagePreCreate {
   optional string ident = 1;
   repeated string deps = 2;
+  optional string target = 3;
 }
 
 message PackageCreate {
   optional string ident = 1;
   repeated string deps = 2;
+  optional string target = 3;
 }
 
 message ReverseDependenciesGet {
   optional string origin = 1;
   optional string name = 2;
+  optional string target = 3;
 }
 
 message ReverseDependencies {

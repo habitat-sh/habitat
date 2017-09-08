@@ -25,10 +25,12 @@ impl From<OriginPackage> for Package {
         let mut package = Package::new();
 
         let name = format!("{}", value.get_ident());
+        let target = value.get_target().to_string();
 
         let deps = value.get_deps().iter().map(|x| format!("{}", x)).collect();
 
         package.set_ident(name);
+        package.set_target(target);
         package.set_deps(deps);
         package
     }
@@ -39,10 +41,12 @@ impl From<Package> for PackageCreate {
         let mut package = PackageCreate::new();
 
         let name = format!("{}", value.get_ident());
+        let target = value.get_target().to_string();
 
         let deps = value.get_deps().iter().map(|x| format!("{}", x)).collect();
 
         package.set_ident(name);
+        package.set_target(target);
         package.set_deps(deps);
         package
     }
@@ -53,10 +57,12 @@ impl Into<Package> for PackagePreCreate {
         let mut package = Package::new();
 
         let name = format!("{}", self.get_ident());
+        let target = self.get_target().to_string();
 
         let deps = self.get_deps().iter().map(|x| format!("{}", x)).collect();
 
         package.set_ident(name);
+        package.set_target(target);
         package.set_deps(deps);
         package
     }
