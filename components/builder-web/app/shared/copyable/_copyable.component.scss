@@ -27,6 +27,8 @@ hab-copyable {
     right: 0;
     bottom: 0;
     height: 35px;
+    vertical-align: middle;
+    display: inline-block;
 
     &:hover, &:focus {
       box-shadow: none;
@@ -40,7 +42,6 @@ hab-copyable {
 
     hab-icon {
       width: 20px;
-      height: 20px;
 
       svg {
         animation: fade 300ms linear;

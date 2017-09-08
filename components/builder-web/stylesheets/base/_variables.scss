@@ -114,6 +114,12 @@ $form-box-shadow-focus-success: $form-box-shadow, 0 0 5px adjust-color($success-
 $base-duration: 150ms;
 $base-timing: ease;
 
-// Icons
-$list-item-icon-width: 20px;
-$list-item-icon-height: 20px;
+// Build status colors
+$status-colors: (
+  complete: $hab-green,
+  dispatched: $hab-orange,
+  processing: $hab-orange,
+  pending: $hab-blue,
+  failed: $hab-red,
+  rejected: $hab-red
+);

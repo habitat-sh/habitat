@@ -1,0 +1,37 @@
+.hab-build-notice {
+  @include row;
+  font-size: rem(14);
+  padding: 0 8px 8px 8px;
+  margin-bottom: 22px;
+
+  hab-icon {
+    width: 1.4em;
+    margin-right: 2px;
+
+    &.dispatched, &.processing {
+      @extend hab-icon.spinning;
+    }
+  }
+
+  a {
+    text-decoration: underline;
+  }
+
+  &.dispatched, &.processing {
+    border-bottom: 2px solid $hab-orange;
+    color: $hab-orange;
+
+    a {
+      color: $hab-orange;
+    }
+  }
+
+  &.pending {
+    border-bottom: 2px solid $hab-blue;
+    color: $hab-blue;
+
+    a {
+      color: $hab-blue;
+    }
+  }
+}

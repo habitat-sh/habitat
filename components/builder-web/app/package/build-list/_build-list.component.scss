@@ -1,37 +1,5 @@
 .hab-build-list {
 
-  .active {
-    @include row;
-
-    line-height: rem(42);
-    border-radius: 7px;
-    font-size: rem(14);
-    padding: 0 12px;
-    margin-bottom: 22px;
-
-    a {
-      text-decoration: underline;
-    }
-
-    &.dispatched, &.processing {
-      border: 1px solid $hab-orange;
-      color: $hab-orange;
-
-      a {
-        color: $hab-orange;
-      }
-    }
-
-    &.pending {
-      border: 1px solid $hab-blue;
-      color: $hab-blue;
-
-      a {
-        color: $hab-blue;
-      }
-    }
-  }
-
   ol {
 
     li {
@@ -60,7 +28,6 @@
 
             hab-icon {
               width: 20px;
-              height: 20px;
 
               &[symbol="chevron-right"] {
                 display: block;
@@ -93,7 +60,6 @@
 
         hab-icon {
           width: 20px;
-          height: 20px;
           position: absolute;
           right: 0;
           top: 50%;

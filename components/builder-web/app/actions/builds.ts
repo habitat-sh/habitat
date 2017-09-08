@@ -44,7 +44,7 @@ export function submitJob(origin: string, name: string, token: string) {
     };
 }
 
-export function fetchBuilds(origin: string, name: string, token: string) {
+export function fetchBuilds(origin: string, name: string, token: string = "") {
   return dispatch => {
     dispatch(clearBuilds);
 

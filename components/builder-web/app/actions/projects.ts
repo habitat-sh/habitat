@@ -63,16 +63,14 @@ export function resetProjectHint() {
 
 export function fetchProject(id: string, token: string, alert: boolean) {
     return dispatch => {
+        dispatch(setCurrentProject({ ui: { exists: false, loading: true } }));
+
         new BuilderApiClient(token).getProject(id).then(response => {
-            dispatch(
-              setCurrentProject(
-                Object.assign({
-                  ui: { exists: true, loading: false }
-                }, response)
-              )
-            );
+            dispatch(setCurrentProject(Object.assign({ ui: { exists: true, loading: false } }, response)));
             dispatch(populateProject(response));
         }).catch(error => {
+            dispatch(setCurrentProject({ ui: { exists: false, loading: false } }));
+
             if (alert) {
               dispatch(addNotification({
                   title: "Failed to fetch project",

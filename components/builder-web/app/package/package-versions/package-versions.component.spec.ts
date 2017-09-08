@@ -42,7 +42,6 @@ describe("PackageVersionsComponent", () => {
 
     store = new MockAppStore();
     spyOn(store, "dispatch");
-    spyOn(actions, "fetchBuilds");
     spyOn(actions, "fetchPackageVersions");
 
     TestBed.configureTestingModule({
@@ -71,11 +70,6 @@ describe("PackageVersionsComponent", () => {
     it("fetches the list of versions", () => {
       expect(store.dispatch).toHaveBeenCalled();
       expect(actions.fetchPackageVersions).toHaveBeenCalledWith("core", "nginx");
-    });
-
-    it("fetches the list of builds", () => {
-      expect(store.dispatch).toHaveBeenCalled();
-      expect(actions.fetchBuilds).toHaveBeenCalledWith("core", "nginx", "");
     });
   });
 });

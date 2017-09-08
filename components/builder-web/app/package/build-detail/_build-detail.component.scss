@@ -11,6 +11,12 @@
     }
   }
 
+  @each $status, $color in $status-colors {
+    .#{$status} {
+      color: #{$color};
+    }
+  }
+
   .summary {
     @include row;
     border: 1px solid $very-light-gray;
@@ -26,30 +32,15 @@
       font-size: rem(14);
 
       strong {
-        padding-left: 32px;
-        color: $dim-slate-gray;
+        padding-left: 26px;
       }
 
       hab-icon {
-        width: 24px;
-        height: 24px;
+        width: 1.5em;
         position: absolute;
-
-        &.complete {
-          color: $hab-green;
-        }
 
         &.dispatched, &.processing {
           @extend hab-icon.spinning;
-          color: $hab-orange;
-        }
-
-        &.pending {
-          color: $hab-blue;
-        }
-
-        &.failed, &.rejected {
-          color: $hab-red;
         }
       }
     }
@@ -110,11 +101,23 @@
     }
   }
 
+  .output-container {
+    padding-left: 6px;
+    border-left: 2px solid transparent;
+    border-radius: 2px;
+
+    @each $status, $color in $status-colors {
+      &.#{$status} {
+        border-color: #{$color};
+      }
+    }
+  }
+
   .output {
     font-family: $monospace-font-family;
     font-size: $monospace-font-size;
     @include pad($base-spacing);
-    background: $hab-gray-dark;
+    background: $dark-blue;
     border-radius: $global-radius;
     color: $medium-gray;
     overflow: auto;

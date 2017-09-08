@@ -7,7 +7,10 @@ import { ActivatedRoute } from "@angular/router";
 import { Observable } from "rxjs";
 import { MockComponent } from "ng2-mock-component";
 import * as actions from "../../actions/index";
+import { AppStore } from "../../AppStore";
 import { PackageComponent } from "./package.component";
+
+class MockAppStore {}
 
 class MockRoute {
   params = Observable.of({
@@ -31,10 +34,12 @@ describe("PackageComponent", () => {
       declarations: [
         PackageComponent,
         MockComponent({ selector: "hab-package-breadcrumbs", inputs: [ "ident" ]}),
-        MockComponent({ selector: "hab-package-sidebar", inputs: [ "origin", "name" ]})
+        MockComponent({ selector: "hab-package-sidebar", inputs: [ "origin", "name", "building", "buildable" ]}),
+        MockComponent({ selector: "hab-build-notice", inputs: [ "build" ] })
       ],
       providers: [
-        { provide: ActivatedRoute, useClass: MockRoute }
+        { provide: ActivatedRoute, useClass: MockRoute },
+        { provide: AppStore, useClass: MockAppStore }
       ]
     });
 

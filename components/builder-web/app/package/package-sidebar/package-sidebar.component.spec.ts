@@ -88,21 +88,28 @@ describe("PackageSidebarComponent", () => {
       expect(element.query(By.css(".hab-package-sidebar .build button"))).toBeNull();
     });
 
-    describe("when the user is signed in", () => {
+    describe("when buildable", () => {
 
       beforeEach(() => {
-        MockAppStore.state.gitHub.authToken = "some-token";
+        component.buildable = true;
       });
 
-      describe("and a member of the package's origin", () => {
+      it("shows the build button", () => {
+        fixture.detectChanges();
+        expect(element.query(By.css(".hab-package-sidebar .build button"))).not.toBeNull();
+      });
+
+      describe("and building", () => {
 
         beforeEach(() => {
-          MockAppStore.state.origins.mine = List([ { name: "core" } ]);
+          component.building = true;
         });
 
-        it("shows the build button", () => {
+        it("disables the build button", () => {
           fixture.detectChanges();
-          expect(element.query(By.css(".hab-package-sidebar .build button"))).not.toBeNull();
+
+          let el = element.query(By.css(".hab-package-sidebar .build button")).nativeElement;
+          expect(el.getAttribute("disabled")).not.toBeNull();
         });
       });
     });

@@ -178,18 +178,19 @@ export default Record({
         all: List(),
         hint: {},
         current: Record({
-            id: undefined,
-            plan_path: undefined,
-            description: undefined,
-            latestBuild: undefined,
-            sourceUrl: undefined,
-            maintainer: Record({
 
-            })(),
-            vcs: Record({
-                type: "git",
-                url: undefined
-            }),
+            // TODO: Once we merge the project work into the package UI,
+            // make `current` a Project() record and `ui` a sibling of that.
+            id: undefined,
+            name: undefined,
+            origin_id: undefined,
+            origin_name: undefined,
+            owner_id: undefined,
+            package_name: undefined,
+            plan_path: undefined,
+            vcs_data: undefined,
+            vcs_type: undefined,
+
             ui: Record({
                 exists: false,
                 loading: true,

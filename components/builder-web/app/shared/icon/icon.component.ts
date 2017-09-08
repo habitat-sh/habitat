@@ -1,26 +1,12 @@
-import { AfterViewChecked, Component, ElementRef, Input } from "@angular/core";
+import { Component, Input } from "@angular/core";
 
 @Component({
   selector: "hab-icon",
-  template: `
-    <md-icon [svgIcon]="id" [mdTooltip]="tooltip" mdTooltipPosition="above"></md-icon>
-  `
+  template: `<md-icon [svgIcon]="id" [mdTooltip]="tooltip" mdTooltipPosition="above"></md-icon>`
 })
-export class IconComponent implements AfterViewChecked {
+export class IconComponent {
   @Input() symbol: string;
   @Input() title: string = "";
-
-  private el: ElementRef;
-
-  constructor(el: ElementRef) {
-    this.el = el;
-  }
-
-  ngAfterViewChecked() {
-    if (this.svg) {
-      this.svg.setAttribute("viewBox", "0 0 24 24");
-    }
-  }
 
   get id() {
     if (this.symbol) {
@@ -36,9 +22,5 @@ export class IconComponent implements AfterViewChecked {
     }
 
     return tip;
-  }
-
-  get svg() {
-    return this.el.nativeElement.querySelector("svg");
   }
 }

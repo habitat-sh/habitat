@@ -13,7 +13,7 @@
       @include span-columns(12);
     }
 
-    .page-sidebar {
+    .page-sidebar, hab-build-notice {
       display: none;
     }
 
@@ -28,6 +28,13 @@
         display: block;
         padding-left: 20px;
         border-left: 1px solid $very-light-gray;
+      }
+    }
+
+    &.with-active-build {
+
+      hab-build-notice {
+        display: block;
       }
     }
   }

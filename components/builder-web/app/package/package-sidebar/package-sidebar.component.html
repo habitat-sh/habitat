@@ -1,7 +1,9 @@
 <div class="hab-package-sidebar">
   <div class="build" *ngIf="buildable">
     <h3>Build</h3>
-    <button class="button" (click)="build()">Build latest version</button>
+    <button class="button" (click)="build()" [disabled]="building">
+      {{ buildButtonLabel }}
+    </button>
   </div>
   <div class="platforms">
     <h3>Supported Platforms</h3>
