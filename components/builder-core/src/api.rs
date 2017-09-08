@@ -20,8 +20,11 @@ use hab_core::channel::{STABLE_CHANNEL, UNSTABLE_CHANNEL};
 use hab_net::routing::Broker;
 use protocol::originsrv::{CheckOriginAccessRequest, CheckOriginAccessResponse, Origin,
                           OriginChannel, OriginChannelCreate, OriginChannelGet, OriginGet,
-                          OriginPackage, OriginPackageGet, OriginPackageGroupPromote,
-                          OriginPackageIdent, OriginPackagePromote};
+                          OriginPackage, OriginPackageChannelListRequest,
+                          OriginPackageChannelListResponse, OriginPackageGet,
+                          OriginPackageGroupPromote, OriginPackageIdent,
+                          OriginPackagePlatformListRequest, OriginPackagePlatformListResponse,
+                          OriginPackagePromote};
 use protocol::net::{ErrCode, NetError, NetOk};
 use protocol::scheduler::{Group, GroupGet, Project, ProjectState};
 use protocol::sessionsrv::{Session, SessionCreate, SessionGet};
@@ -29,6 +32,40 @@ use protocol::sessionsrv::{Session, SessionCreate, SessionGet};
 use data_structures::PartialJobGroupPromote;
 
 use error::{Error, Result};
+
+// Get channels for a package
+pub fn channels_for_package_ident(package: &OriginPackageIdent) -> Option<Vec<String>> {
+    let mut conn = Broker::connect().unwrap();
+    let mut opclr = OriginPackageChannelListRequest::new();
+    opclr.set_ident(package.clone());
+
+    match conn.route::<OriginPackageChannelListRequest, OriginPackageChannelListResponse>(&opclr) {
+        Ok(channels) => {
+            let list: Vec<String> = channels
+                .get_channels()
+                .iter()
+                .map(|channel| channel.get_name().to_string())
+                .collect();
+
+            Some(list)
+        }
+        Err(_) => None,
+    }
+}
+
+// Get platforms for a package
+pub fn platforms_for_package_ident(package: &OriginPackageIdent) -> Option<Vec<String>> {
+    let mut conn = Broker::connect().unwrap();
+    let mut opplr = OriginPackagePlatformListRequest::new();
+    opplr.set_ident(package.clone());
+
+    match conn.route::<OriginPackagePlatformListRequest, OriginPackagePlatformListResponse>(
+        &opplr,
+    ) {
+        Ok(p) => Some(p.get_platforms().to_vec()),
+        Err(_) => None,
+    }
+}
 
 pub fn get_origin<T: ToString>(origin: T) -> result::Result<Option<Origin>, NetError> {
     let mut conn = Broker::connect().unwrap();
