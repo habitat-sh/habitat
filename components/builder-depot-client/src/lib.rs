@@ -196,7 +196,7 @@ pub struct PackageResults<T> {
     pub range_start: isize,
     pub range_end: isize,
     pub total_count: isize,
-    pub package_list: Vec<T>,
+    pub data: Vec<T>,
 }
 
 #[derive(Clone, Deserialize)]
@@ -714,7 +714,7 @@ impl Client {
                 res.read_to_string(&mut encoded)?;
                 let package_results: PackageResults<hab_core::package::PackageIdent> =
                     serde_json::from_str(&encoded)?;
-                let packages: Vec<hab_core::package::PackageIdent> = package_results.package_list;
+                let packages: Vec<hab_core::package::PackageIdent> = package_results.data;
                 Ok((packages, res.status == StatusCode::PartialContent))
             }
             _ => Err(err_from_response(res)),

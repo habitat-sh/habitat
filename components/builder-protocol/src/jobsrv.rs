@@ -12,16 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::result;
+use std::str::FromStr;
+use std::fmt;
+use std::error;
+
 use message::{Persistable, Routable};
+use originsrv::Pageable;
 use protobuf::RepeatedField;
 use regex::Regex;
 use serde::ser::SerializeStruct;
 use serde::{Serialize, Serializer};
 use sharding::InstaId;
-use std::result;
-use std::str::FromStr;
-use std::fmt;
-use std::error;
 
 pub use message::jobsrv::*;
 
@@ -99,6 +101,12 @@ impl Routable for ProjectJobsGet {
 
     fn route_key(&self) -> Option<Self::H> {
         Some(self.get_name().to_string())
+    }
+}
+
+impl Pageable for ProjectJobsGet {
+    fn get_range(&self) -> [u64; 2] {
+        [self.get_start(), self.get_stop()]
     }
 }
 

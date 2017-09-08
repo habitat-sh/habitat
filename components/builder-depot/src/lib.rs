@@ -44,7 +44,6 @@ extern crate time;
 extern crate toml;
 extern crate unicase;
 extern crate url;
-extern crate urlencoded;
 extern crate walkdir;
 extern crate zmq;
 extern crate uuid;

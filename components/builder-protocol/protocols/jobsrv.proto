@@ -64,16 +64,18 @@ message JobSpec {
 }
 
 // Retrieve jobs for a specific project.
-//
-// Currently retrieves 50 most recent; additional filtering and
-// sorting comes later.
 message ProjectJobsGet {
   // The origin-qualified name of a project, e.g. "core/nginx"
   optional string name = 1;
+  optional uint64 start = 2;
+  optional uint64 stop = 3;
 }
 
 message ProjectJobsGetResponse {
   repeated Job jobs = 1;
+  optional uint64 start = 2;
+  optional uint64 stop = 3;
+  optional uint64 count = 4;
 }
 
 // Sent from a worker to the job server's log ingester during a build.

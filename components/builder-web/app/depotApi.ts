@@ -34,8 +34,8 @@ export function getUnique(origin: string, nextRange: number = 0) {
                     const totalCount = parseInt(resultsObj.total_count, 10);
                     const nextRange = totalCount > (endRange + 1) ? endRange + 1 : 0;
 
-                    if (resultsObj["package_list"]) {
-                        results = resultsObj["package_list"];
+                    if (resultsObj["data"]) {
+                        results = resultsObj["data"];
                     } else {
                         results = resultsObj;
                     }
@@ -94,8 +94,8 @@ export function get(params, nextRange: number = 0) {
                     const totalCount = parseInt(resultsObj.total_count, 10);
                     const nextRange = totalCount > (endRange + 1) ? endRange + 1 : 0;
 
-                    if (resultsObj["package_list"]) {
-                        results = resultsObj["package_list"];
+                    if (resultsObj["data"]) {
+                        results = resultsObj["data"];
                     } else {
                         results = resultsObj;
                     }

@@ -17,6 +17,7 @@
 extern crate habitat_builder_protocol as protocol;
 extern crate habitat_core as hab_core;
 extern crate habitat_net as hab_net;
+extern crate iron;
 #[macro_use]
 extern crate log;
 extern crate statsd;
@@ -26,8 +27,11 @@ extern crate walkdir;
 extern crate chrono;
 extern crate base64;
 extern crate protobuf;
+extern crate serde;
 #[macro_use]
 extern crate serde_derive;
+extern crate serde_json;
+extern crate urlencoded;
 
 pub use self::error::Error;
 

@@ -37,9 +37,6 @@ time = "*"
 toml = { version = "*", features = ["serde"], default-features = false }
 unicase = "*"
 url = "*"
-# JW TODO: Switch back to crates version once an updated version is published to crates.io
-# which leverages the latest version of bodyparser
-urlencoded = { version = "*", git = "https://github.com/iron/urlencoded" }
 walkdir = "*"
 uuid = { version = "0.4", features = ["v4"] }
 
