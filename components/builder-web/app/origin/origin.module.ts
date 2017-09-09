@@ -24,22 +24,26 @@ import { OriginsPageComponent } from "./origins-page/origins-page.component";
 import { OriginCreatePageComponent } from "./origin-create-page/origin-create-page.component";
 import { OriginService } from "./origin.service";
 
+// This is so we can test that the ordering of the modules is correct.
+// Ordering matters in this case because we have a static route 'create'
+// that can get interpreted as the route variable :origin
+export const imports = [
+  CommonModule,
+  FormsModule,
+  MdButtonModule,
+  OriginRoutingModule,
+  OriginPageModule,
+  ReactiveFormsModule,
+  SharedModule
+];
+
+export const declarations = [
+  OriginsPageComponent,
+  OriginCreatePageComponent
+];
+
 @NgModule({
-  imports: [
-    CommonModule,
-    FormsModule,
-    MdButtonModule,
-    OriginPageModule,
-    OriginRoutingModule,
-    ReactiveFormsModule,
-    SharedModule
-  ],
-  declarations: [
-    OriginsPageComponent,
-    OriginCreatePageComponent
-  ],
-  providers: [
-    OriginService
-  ]
+  imports,
+  declarations
 })
 export class OriginModule {}

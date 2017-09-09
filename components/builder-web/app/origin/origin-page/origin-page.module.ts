@@ -29,34 +29,39 @@ import { OriginSettingsTabComponent } from "./origin-settings-tab/origin-setting
 import { DockerCredentialsFormDialog } from "./origin-settings-tab/docker-credentials-form/docker-credentials-form.dialog";
 import { SharedModule } from "../../shared/shared.module";
 
+export const imports = [
+  BrowserAnimationsModule,
+  CommonModule,
+  FormsModule,
+  MdTabsModule,
+  MdRadioModule,
+  MdDialogModule,
+  MdButtonModule,
+  ReactiveFormsModule,
+  RouterModule,
+  OriginPageRoutingModule,
+  SharedModule
+];
+
+export const declarations = [
+  KeyAddFormDialog,
+  KeyListComponent,
+  OriginPageComponent,
+  OriginPackagesTabComponent,
+  OriginMembersTabComponent,
+  OriginKeysTabComponent,
+  OriginSettingsTabComponent,
+  DockerCredentialsFormDialog
+];
+
+const entryComponents = [
+  DockerCredentialsFormDialog,
+  KeyAddFormDialog
+];
+
 @NgModule({
-  imports: [
-    BrowserAnimationsModule,
-    CommonModule,
-    FormsModule,
-    MdTabsModule,
-    MdRadioModule,
-    MdDialogModule,
-    MdButtonModule,
-    MdInputModule,
-    ReactiveFormsModule,
-    RouterModule,
-    OriginPageRoutingModule,
-    SharedModule
-  ],
-  declarations: [
-    KeyAddFormDialog,
-    KeyListComponent,
-    OriginPageComponent,
-    OriginPackagesTabComponent,
-    OriginMembersTabComponent,
-    OriginKeysTabComponent,
-    OriginSettingsTabComponent,
-    DockerCredentialsFormDialog
-  ],
-  entryComponents: [
-    DockerCredentialsFormDialog,
-    KeyAddFormDialog
-  ]
+  imports,
+  declarations,
+  entryComponents
 })
 export class OriginPageModule {}

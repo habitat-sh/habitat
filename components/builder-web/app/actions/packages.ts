@@ -164,7 +164,7 @@ export function filterPackagesBy(
 }
 
 export function populateDashboardRecent(data) {
-    let grouped = groupBy(data.results.reverse(), "name");
+    let grouped = groupBy(data.results.package_list.reverse(), "name");
     let mapped = [];
 
     for (let k in grouped) {
