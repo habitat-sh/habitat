@@ -50,6 +50,7 @@ use config::Config;
 use error::{Error, Result};
 use server::Server;
 use hab_net::server::NetIdent;
+use retry::retry;
 use vcs;
 
 /// Environment variable to enable or disable debug output in runner's studio
@@ -69,6 +70,9 @@ lazy_static! {
     // that means we're just in a dev shell.
     static ref STUDIO_PKG: PackageIdent = PackageIdent::from_str("core/hab-studio").unwrap();
 }
+
+pub const RETRIES: u64 = 10;
+pub const RETRY_WAIT: u64 = 60000;
 
 #[derive(Debug)]
 pub struct Job(proto::Job);
@@ -169,12 +173,25 @@ impl Runner {
             warn!("WARNING: No auth token specified, will likely fail fetching secret key");
         };
 
-        match self.depot_cli.fetch_origin_secret_key(
-            self.job().origin(),
-            &self.config.auth_token,
+        match retry(
+            RETRIES,
+            RETRY_WAIT,
+            || {
+                self.depot_cli.fetch_origin_secret_key(
+                    self.job().origin(),
+                    &self.config.auth_token,
+                )
+            },
+            |res| {
+                if res.is_err() {
+                    error!("fetch origin secret key failure: {:?}", res);
+                };
+                res.is_ok()
+            },
         ) {
-            Ok(key) => {
+            Ok(res) => {
                 let cache = crypto::default_cache_key_path(None);
+                let key = res.unwrap(); // Ok to unwrap, we know it is a success
                 let s: String = String::from_utf8(key.body).expect("Found invalid UTF-8");
 
                 match crypto::SigKeyPair::write_file_from_str(&s, &cache) {
@@ -191,11 +208,14 @@ impl Runner {
                     }
                 }
             }
-            Err(err) => {
-                error!("Unable to retrieve secret key, err={}", err);
+            Err(_) => {
+                let msg = format!("Unable to retrieve secret key after {} retries", RETRIES);
+                error!("{}", msg);
+                self.logger.log(&msg);
                 return self.fail(net::err(ErrCode::SECRET_KEY_FETCH, "wk:run:3"));
             }
         }
+
         if let Some(err) = self.job().vcs().clone(&self.workspace.src()).err() {
             error!("Unable to clone remote source repository, err={}", err);
             return self.fail(net::err(ErrCode::VCS_CLONE, "wk:run:4"));

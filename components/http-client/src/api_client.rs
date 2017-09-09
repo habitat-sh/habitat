@@ -32,7 +32,7 @@ use proxy::{ProxyInfo, proxy_unless_domain_exempted};
 use ssl;
 
 // Read and write TCP socket timeout for Hyper/HTTP client calls.
-const CLIENT_SOCKET_RW_TIMEOUT: u64 = 30;
+const CLIENT_SOCKET_RW_TIMEOUT: u64 = 60;
 
 header! { (ProxyAuthorization, "Proxy-Authorization") => [String] }
 
