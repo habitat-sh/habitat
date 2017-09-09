@@ -24,12 +24,10 @@ use config::Config;
 use depot_client;
 use error::{Error, Result};
 use retry::retry;
+use super::{RETRIES, RETRY_WAIT};
 
 /// Postprocessing config file name
 const CONFIG_FILE: &'static str = "builder.toml";
-
-pub const RETRIES: u64 = 10;
-pub const RETRY_WAIT: u64 = 60000;
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
 pub struct Publish {
@@ -56,12 +54,15 @@ impl Publish {
 
         let client = depot_client::Client::new(&self.url, PRODUCT, VERSION, None).unwrap();
 
-        match retry(RETRIES, RETRY_WAIT, || client.x_put_package(archive, auth_token), |res| res.is_ok()) {
+        match retry(RETRIES, RETRY_WAIT, || client.x_put_package(archive, auth_token), |res| {
+            let msg = format!("upload status: {:?}", res);
+            debug!("{}", msg);
+            logger.log(&msg);
+            res.is_ok()
+        }) {
             Ok(_) => (),
-            Err(err) => {
-                let msg = format!("post processing error uploading package after {} retries. ERR={:?}",
-                RETRIES,
-                err);
+            Err(_) => {
+                let msg = format!("post processing - fail uploading package after {} retries", RETRIES);
                 error!("{}", msg);
                 logger.log(&msg);
                 return false;
@@ -70,12 +71,15 @@ impl Publish {
 
         let ident = archive.ident().unwrap();
 
-        match retry(RETRIES, RETRY_WAIT, || client.promote_package(&ident, &self.channel, auth_token), |res| res.is_ok()) {
+        match retry(RETRIES, RETRY_WAIT, || client.promote_package(&ident, &self.channel, auth_token), |res| {
+                let msg = format!("promote status: {:?}", res);
+                debug!("{}", msg);
+                logger.log(&msg);
+                res.is_ok()
+        }) {
             Ok(_) => (),
-            Err(err) => {
-                let msg = format!("post processing error promoting package after {} retries, ERR={:?}",
-                RETRIES,
-                err);
+            Err(_) => {
+                let msg = format!("post processing - fail promoting package after {} retries", RETRIES);
                 error!("{}", msg);
                 logger.log(&msg);
                 return false;
