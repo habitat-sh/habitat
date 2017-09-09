@@ -28,8 +28,8 @@ use retry::retry;
 /// Postprocessing config file name
 const CONFIG_FILE: &'static str = "builder.toml";
 
-pub const RETRIES: u64 = 5;
-pub const RETRY_WAIT: u64 = 3000;
+pub const RETRIES: u64 = 10;
+pub const RETRY_WAIT: u64 = 60000;
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
 pub struct Publish {
