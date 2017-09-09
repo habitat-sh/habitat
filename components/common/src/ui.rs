@@ -50,7 +50,6 @@ pub enum Status {
     Using,
     Verified,
     Verifying,
-    Warning,
     Custom(char, String),
 }
 
@@ -77,7 +76,6 @@ impl Status {
             Status::Using => ('→', "Using".into(), Colour::Green),
             Status::Verified => ('✓', "Verified".into(), Colour::Green),
             Status::Verifying => ('☛', "Verifying".into(), Colour::Green),
-            Status::Warning => ('⚠', "Warning".into(), Colour::Yellow),
             Status::Custom(c, ref s) => (c, s.to_string(), Colour::Green),
         }
     }

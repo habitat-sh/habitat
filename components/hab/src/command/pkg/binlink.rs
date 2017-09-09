@@ -54,10 +54,7 @@ pub fn start(
         fs::create_dir_all(&dst_path)?
     }
     if dst.exists() {
-        ui.status(
-            Status::Warning,
-            format!("{} exists, skipping...", dst.display()),
-        )?;
+        ui.warn(format!("{} exists, skipping...", dst.display()))?;
         return Ok(());
     }
     match fs::read_link(&dst) {
