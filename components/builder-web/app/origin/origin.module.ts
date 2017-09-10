@@ -15,17 +15,20 @@
 import { NgModule } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { RouterModule } from "@angular/router";
+import { MdButtonModule } from "@angular/material";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { SharedModule } from "../shared/shared.module";
 import { OriginPageModule } from "./origin-page/origin-page.module";
 import { OriginRoutingModule } from "./origin-routing.module";
 import { OriginsPageComponent } from "./origins-page/origins-page.component";
 import { OriginCreatePageComponent } from "./origin-create-page/origin-create-page.component";
+import { OriginService } from "./origin.service";
 
 @NgModule({
   imports: [
     CommonModule,
     FormsModule,
+    MdButtonModule,
     OriginPageModule,
     OriginRoutingModule,
     ReactiveFormsModule,
@@ -34,6 +37,9 @@ import { OriginCreatePageComponent } from "./origin-create-page/origin-create-pa
   declarations: [
     OriginsPageComponent,
     OriginCreatePageComponent
+  ],
+  providers: [
+    OriginService
   ]
 })
 export class OriginModule {}

@@ -236,20 +236,6 @@ export function setCurrentOrigin(payload, error = undefined) {
     };
 }
 
-export function setCurrentOriginAddingPrivateKey(payload: boolean) {
-    return {
-        type: SET_CURRENT_ORIGIN_ADDING_PRIVATE_KEY,
-        payload,
-    };
-}
-
-export function setCurrentOriginAddingPublicKey(payload: boolean) {
-    return {
-        type: SET_CURRENT_ORIGIN_ADDING_PUBLIC_KEY,
-        payload,
-    };
-}
-
 function setCurrentOriginLoading(payload: boolean) {
     return {
         type: SET_CURRENT_ORIGIN_LOADING,
@@ -310,7 +296,6 @@ export function uploadOriginPrivateKey(key: string , token: string) {
     return dispatch => {
         new BuilderApiClient(token).createOriginKey(key).then(() => {
             dispatch(setOriginPrivateKeyUploadErrorMessage(undefined));
-            dispatch(setCurrentOriginAddingPrivateKey(false));
             dispatch(fetchOrigin(parseKey(key).origin));  // we need this to make the keys appear after upload
             dispatch(addNotification({
                 title: "Origin Private Key Uploaded",
@@ -327,7 +312,6 @@ export function uploadOriginPublicKey(key: string, token: string) {
     return dispatch => {
         new BuilderApiClient(token).createOriginKey(key).then(() => {
             dispatch(setOriginPublicKeyUploadErrorMessage(undefined));
-            dispatch(setCurrentOriginAddingPublicKey(false));
             dispatch(fetchOriginPublicKeys(parseKey(key).origin, token));
             dispatch(addNotification({
                 title: "Origin Public Key Uploaded",

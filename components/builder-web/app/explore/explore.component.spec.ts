@@ -269,7 +269,7 @@ describe("ExploreComponent", () => {
     describe("call-to-action button", () => {
 
       beforeEach(() => {
-        button = element.query(By.css("section.community a.button")).nativeElement;
+        button = element.query(By.css("section.community a")).nativeElement;
       });
 
       it("links to the community view", () => {

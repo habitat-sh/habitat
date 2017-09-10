@@ -1,7 +1,12 @@
 <div class="hab-package-sidebar">
   <div class="build" *ngIf="buildable">
     <h3>Build</h3>
-    <button class="button" (click)="build()" [disabled]="building">
+    <button
+      md-raised-button
+      color="primary"
+      class="button"
+      (click)="build()"
+      [disabled]="building">
       {{ buildButtonLabel }}
     </button>
   </div>

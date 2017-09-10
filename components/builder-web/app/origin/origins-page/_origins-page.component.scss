@@ -7,7 +7,7 @@
         &.heading, &.origin {
           @include row;
           border-bottom: 1px solid $very-light-gray;
-  
+
           h3, .origin-name, .origin-pkg-count{
             @include span-columns(5);
           }
@@ -18,12 +18,14 @@
   
           h3 {
             padding: 0;
+            font-size: rem(12px);
+            font-family: $heading-font-family;
           }
         }
   
         &.origin {
           cursor: pointer;
-          font-size: rem(12);
+          font-size: rem(14px);
   
           .summary {
             @include row;

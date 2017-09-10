@@ -15,14 +15,15 @@
 import { Component } from "@angular/core";
 import { AppStore } from "../../../AppStore";
 import { setOriginPrivacySettings } from "../../../actions/index";
-
+import { MdDialog, MdDialogRef } from "@angular/material";
+import { DockerCredentialsFormDialog } from "./docker-credentials-form/docker-credentials-form.dialog";
 @Component({
     selector: "hab-origin-settings-tab",
     template: require("./origin-settings-tab.component.html")
 })
 
 export class OriginSettingsTabComponent {
-  constructor(private store: AppStore) {}
+  constructor(private store: AppStore, private dialog: MdDialog) {}
 
   get originPrivacy() {
     return this.store.getState().origins.current.privacy;
@@ -30,5 +31,16 @@ export class OriginSettingsTabComponent {
 
   updatePrivacy(event) {
     this.store.dispatch(setOriginPrivacySettings(event.value));
+  }
+
+  openDialog(): void {
+    let dialogRef = this.dialog.open(DockerCredentialsFormDialog, {
+      width: "480px",
+      height: "342px"
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      console.log(`The dialog was closed with: ${result}`);
+    });
   }
 }

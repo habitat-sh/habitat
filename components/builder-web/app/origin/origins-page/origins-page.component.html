@@ -24,8 +24,8 @@
           <div class="hab-origins-list">
             <ul class="origins">
               <li class="heading">
-                <h3>ORIGIN NAME</h3>
-                <h3>PACKAGES</h3>
+                <h3 class="uppercase">Origin Name</h3>
+                <h3 class="uppercase">Packages</h3>
               </li>
               <li class="origin" *ngFor="let origin of origins" (click)="routeToOrigin(origin.name)">
                 <div class="summary">
@@ -42,6 +42,8 @@
               <li *ngFor="let invitation of invitations" class="hab-item-list hab-no-select">
               <h3 class="hab-item-list--title">{{invitation.origin_name}}</h3>
               <button
+                md-raised-button
+                color="primary"
                 class="count"
                 (click)="acceptInvitation(invitation.origin_invitation_id, invitation.origin_name)">
                 Accept Invitation
@@ -53,8 +55,8 @@
       </div>
     </div>
     <div class="page-body--sidebar">
-        <p><strong class="uppercase">ORIGINS</strong><p>
-        <a class="button create" [routerLink]="['/origins', 'create']">Create New Origin</a>
+        <p><strong class="uppercase">Origins</strong><p>
+        <a md-raised-button color="primary" [routerLink]="['/origins', 'create']">Create New Origin</a>
         <p>Origins are used to manage ownership over a set of packages.
         More specifically, each origin will have a unique key pair that is used by members
         to upload and download packages</p>

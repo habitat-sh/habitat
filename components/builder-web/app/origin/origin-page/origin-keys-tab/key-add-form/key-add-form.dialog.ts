@@ -12,31 +12,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Component, Input, OnInit } from "@angular/core";
+import { Component, Inject, OnInit } from "@angular/core";
 import { FormControl, FormGroup, FormBuilder, Validators } from "@angular/forms";
+import { MdDialog, MdDialogRef, MD_DIALOG_DATA } from "@angular/material";
 import { parseKey } from "../../../../util";
 import { AppStore } from "../../../../AppStore";
 import config from "../../../../config";
 import {
     uploadOriginPrivateKey,
-    uploadOriginPublicKey,
-    setCurrentOriginAddingPrivateKey,
-    setCurrentOriginAddingPublicKey
+    uploadOriginPublicKey
 } from "../../../../actions/index";
 
 @Component({
     selector: "hab-key-add-form",
-    template: require("./key-add-form.component.html")
+    template: require("./key-add-form.dialog.html")
 })
 
-export class KeyAddFormComponent implements OnInit {
-    @Input() originName: string;
-    @Input() type: string;
-
+export class KeyAddFormDialog implements OnInit {
+    originName: string;
+    type: string;
     form: FormGroup;
     control: FormControl;
 
-    constructor(private formBuilder: FormBuilder, private store: AppStore) {
+    constructor(private formBuilder: FormBuilder, private store: AppStore,
+        public dialogRef: MdDialogRef<KeyAddFormDialog>,
+        @Inject(MD_DIALOG_DATA) public data: any) {
+        this.originName = data.origin;
+        this.type = data.type;
         this.form = formBuilder.group({});
     }
 
@@ -56,11 +58,11 @@ export class KeyAddFormComponent implements OnInit {
 
     submit(key) {
         if (this.type === "public") {
-            this.uploadPublicKey(key);
+            this.store.dispatch(uploadOriginPublicKey(key, this.gitHubAuthToken));
         } else {
-            this.uploadPrivateKey(key);
+            this.store.dispatch(uploadOriginPrivateKey(key, this.gitHubAuthToken));
         }
-        return false;
+        this.dialogRef.close();
     }
 
     keyFormatValidator(control) {
@@ -72,23 +74,27 @@ export class KeyAddFormComponent implements OnInit {
     }
 
     onCloseClick() {
-        if (this.type === "public") {
-            this.onPublicKeyCloseClick();
-        } else {
-            this.onPrivateKeyCloseClick();
-        }
+        this.dialogRef.close();
     }
 
     get gitHubAuthToken() {
         return this.store.getState().gitHub.authToken;
     }
 
-    get docsUrl() {
-        return config["docs_url"];
-    }
-
     get ui() {
         return this.store.getState().origins.ui.current;
+    }
+
+    get icon() {
+        if (this.type === "public") {
+            return "visibility";
+        } else {
+            return "visibility-off";
+        }
+    }
+
+    get docsUrl() {
+        return config["docs_url"];
     }
 
     get errorMessage() {
@@ -105,24 +111,6 @@ export class KeyAddFormComponent implements OnInit {
         } else {
             return "SIG-SEC-1";
         }
-    }
-
-    uploadPrivateKey(key) {
-        this.store.dispatch(uploadOriginPrivateKey(key, this.gitHubAuthToken));
-    }
-
-    uploadPublicKey(key) {
-        this.store.dispatch(uploadOriginPublicKey(key, this.gitHubAuthToken));
-    }
-
-    onPrivateKeyCloseClick() {
-        this.store.dispatch(setCurrentOriginAddingPrivateKey(false));
-        return false;
-    }
-
-    onPublicKeyCloseClick() {
-        this.store.dispatch(setCurrentOriginAddingPublicKey(false));
-        return false;
     }
 
     private keyTypeValidator(control) {

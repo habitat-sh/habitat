@@ -24,7 +24,7 @@
                             name="name"
                             [value]="isFirstOrigin ? username : ''">
         </hab-checking-input>
-        <button [disabled]="!form.valid || creating">
+        <button md-raised-button color="primary" [disabled]="!form.valid || creating">
           <span *ngIf="creating">Saving&hellip;</span>
           <span *ngIf="!creating">Save & Continue</span>
         </button>

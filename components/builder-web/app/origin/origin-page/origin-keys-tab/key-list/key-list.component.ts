@@ -15,7 +15,8 @@
 import { Component, Input } from "@angular/core";
 import { List } from "immutable";
 import config from "../../../../config";
-import { KeyType } from "../origin-keys-tab.component";
+
+type KeyType = "public" | "private";
 
 @Component({
     selector: "hab-key-list",
@@ -24,12 +25,19 @@ import { KeyType } from "../origin-keys-tab.component";
 
 export class KeyListComponent {
     @Input() keys: List<any>;
-    @Input() type: string;
     @Input() keyType: KeyType;
 
     get apiUrl() { return config["habitat_api_url"]; }
 
     get publicKey() {
-        return this.keyType === KeyType.Public;
+        return this.keyType === "public";
+    }
+
+    get icon() {
+        if (this.publicKey) {
+            return "visibility";
+        } else {
+            return "visibility-off";
+        }
     }
 }

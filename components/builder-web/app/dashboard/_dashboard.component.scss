@@ -221,12 +221,17 @@
       }
 
       select {
+        display: block;
+        font-family: $base-font-family;
+        font-size: $base-font-size;
         min-width: 160px;
         border: 1px solid $very-light-gray;
         border-radius: 5px;
         background-color: $very-light-gray;
         font-size: rem(14);
         color: $dark-gray;
+        padding: $base-spacing / 3;
+        margin-bottom: $base-spacing;
       }
 
       ul.packages {

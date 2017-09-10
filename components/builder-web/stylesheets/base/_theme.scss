@@ -3,7 +3,10 @@
 
 @import "@angular/material/theming";
 @import "theme_palette";
-@include mat-core();
+
+$custom-typography: mat-typography-config(
+  $font-family: "Titillium Web"
+);
 
 $hab-theme-primary: mat-palette($md-mcgpalette0);
 $hab-theme-accent: mat-palette($md-mcgpalette2);
@@ -14,5 +17,5 @@ $hab-theme: mat-light-theme(
   $hab-theme-accent,
   $hab-theme-warn
 );
-
+@include mat-core($custom-typography);
 @include angular-material-theme($hab-theme);

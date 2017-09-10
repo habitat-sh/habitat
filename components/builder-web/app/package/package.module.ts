@@ -1,7 +1,7 @@
 import { NgModule } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { RouterModule } from "@angular/router";
-import { MdTabsModule } from "@angular/material";
+import { MdTabsModule, MdButtonModule } from "@angular/material";
 import { BuildDetailComponent } from "./build-detail/build-detail.component";
 import { BuildListComponent } from "./build-list/build-list.component";
 import { BuildNoticeComponent } from "./build-notice/build-notice.component";
@@ -25,6 +25,7 @@ import { PackageRoutingModule } from "./package-routing.module";
     PackageRoutingModule,
     RouterModule,
     MdTabsModule,
+    MdButtonModule,
     SharedModule
   ],
   declarations: [
