@@ -22,6 +22,7 @@ use super::workspace::Workspace;
 use {PRODUCT, VERSION};
 use config::Config;
 use depot_client;
+use hyper::status::StatusCode;
 use error::{Error, Result};
 use retry::retry;
 use super::{RETRIES, RETRY_WAIT};
@@ -58,7 +59,11 @@ impl Publish {
             let msg = format!("upload status: {:?}", res);
             debug!("{}", msg);
             logger.log(&msg);
-            res.is_ok()
+            match *res {
+                Ok(_) |  // Conflict means package got uploaded earlier
+                Err(depot_client::Error::APIError(StatusCode::Conflict, _)) => true,
+                Err(_) => false
+            }
         }) {
             Ok(_) => (),
             Err(_) => {
