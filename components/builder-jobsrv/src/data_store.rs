@@ -358,6 +358,27 @@ impl DataStore {
                            OFFSET p_offset;
                          $$"#,
         )?;
+        migrator.migrate(
+            "jobsrv",
+            r#"ALTER TABLE jobs ADD COLUMN IF NOT EXISTS channel TEXT DEFAULT NULL"#,
+        )?;
+
+        migrator.migrate("jobsrv",
+                             r#"CREATE OR REPLACE FUNCTION insert_job_v2 (
+                                p_owner_id bigint,
+                                p_project_id bigint,
+                                p_project_name text,
+                                p_project_owner_id bigint,
+                                p_project_plan_path text,
+                                p_vcs text,
+                                p_vcs_arguments text[],
+                                p_channel text
+                                ) RETURNS SETOF jobs AS $$
+                                    INSERT INTO jobs (owner_id, job_state, project_id, project_name, project_owner_id, project_plan_path, vcs, vcs_arguments, channel)
+                                    VALUES (p_owner_id, 'Pending', p_project_id, p_project_name, p_project_owner_id, p_project_plan_path, p_vcs, p_vcs_arguments, p_channel)
+                                    RETURNING *;
+                                $$ LANGUAGE SQL VOLATILE"#)?;
+
         migrator.finish()?;
 
         self.async.register("sync_jobs".to_string(), sync_jobs);
@@ -381,11 +402,17 @@ impl DataStore {
     pub fn create_job(&self, job: &jobsrv::Job) -> Result<jobsrv::Job> {
         let conn = self.pool.get_shard(0)?;
 
+        let channel = if job.has_channel() {
+            Some(job.get_channel())
+        } else {
+            None
+        };
+
         if job.get_project().get_vcs_type() == "git" {
             let project = job.get_project();
 
             let rows = conn.query(
-                "SELECT * FROM insert_job_v1($1, $2, $3, $4, $5, $6, $7)",
+                "SELECT * FROM insert_job_v2($1, $2, $3, $4, $5, $6, $7, $8)",
                 &[
                     &(job.get_owner_id() as i64),
                     &(project.get_id() as i64),
@@ -394,6 +421,7 @@ impl DataStore {
                     &project.get_plan_path(),
                     &project.get_vcs_type(),
                     &vec![project.get_vcs_data()],
+                    &channel,
                 ],
             ).map_err(Error::JobCreate)?;
             let job = row_to_job(&rows.get(0))?;
@@ -658,6 +686,10 @@ fn row_to_job(row: &postgres::rows::Row) -> Result<jobsrv::Job> {
     }
 
     job.set_is_archived(row.get("archived"));
+
+    if let Some(Ok(channel)) = row.get_opt::<&str, String>("channel") {
+        job.set_channel(channel);
+    };
 
     Ok(job)
 }

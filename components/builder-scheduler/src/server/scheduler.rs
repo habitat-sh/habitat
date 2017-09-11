@@ -18,7 +18,6 @@ use std::thread::{self, JoinHandle};
 use std::path::PathBuf;
 use std::collections::HashMap;
 
-use hab_core::channel::{STABLE_CHANNEL, UNSTABLE_CHANNEL};
 use hab_net::server::ZMQ_CONTEXT;
 use hab_net::routing::Broker;
 use zmq;
@@ -27,14 +26,10 @@ use protobuf::parse_from_bytes;
 use protocol::jobsrv::{self, Job, JobSpec};
 use protocol::originsrv::*;
 use protocol::scheduler as proto;
-use protocol::net::ErrCode;
 use data_store::DataStore;
 use error::{Result, Error};
 
 use config::Config;
-use bldr_core;
-use bldr_core::api::{authenticate_with_auth_token, create_channel, promote_job_group_to_channel,
-                     promote_package_to_channel};
 use bldr_core::logger::Logger;
 use hab_core::channel::bldr_channel_name;
 
@@ -72,8 +67,6 @@ pub struct ScheduleMgr {
     datastore: DataStore,
     socket: zmq::Socket,
     schedule_cli: ScheduleClient,
-    auth_token: String,
-    promote_channel: String,
     msg: zmq::Message,
     logger: Logger,
 }
@@ -89,13 +82,9 @@ impl ScheduleMgr {
         let mut schedule_cli = ScheduleClient::default();
         schedule_cli.connect()?;
 
-        let (log_path, auth_token, promote_channel) = {
+        let log_path = {
             let cfg = config.read().unwrap();
-            (
-                PathBuf::from(cfg.log_path.clone()),
-                cfg.auth_token.clone(),
-                cfg.promote_channel.clone(),
-            )
+            PathBuf::from(cfg.log_path.clone())
         };
 
         let logger = Logger::init(log_path, "builder-scheduler.log");
@@ -104,8 +93,6 @@ impl ScheduleMgr {
             datastore: datastore,
             socket: socket,
             schedule_cli: schedule_cli,
-            auth_token: auth_token,
-            promote_channel: promote_channel,
             msg: msg,
             logger: logger,
         })
@@ -348,6 +335,7 @@ impl ScheduleMgr {
         let mut job_spec: JobSpec = JobSpec::new();
         job_spec.set_owner_id(group_id);
         job_spec.set_project(project);
+        job_spec.set_channel(bldr_channel_name(group_id));
 
         match conn.route::<JobSpec, Job>(&job_spec) {
             Ok(job) => {
@@ -429,11 +417,7 @@ impl ScheduleMgr {
                     }
 
                     match job.get_state() {
-                        jobsrv::JobState::Complete => {
-                            self.promote_to_sandbox(&job)?;
-                            self.update_group_state(job.get_owner_id())?
-                        }
-
+                        jobsrv::JobState::Complete |
                         jobsrv::JobState::Failed => self.update_group_state(job.get_owner_id())?,
 
                         _ => (),
@@ -445,56 +429,6 @@ impl ScheduleMgr {
                 Err(err) => debug!("Did not set job state: {:?}", err),
             }
         }
-
-        Ok(())
-    }
-
-    fn promote_to_sandbox(&self, job: &jobsrv::Job) -> Result<()> {
-        self.promote_package(
-            &job.get_package_ident(),
-            &bldr_channel_name(job.get_owner_id()),
-        )
-    }
-
-    fn promote_package(&self, ident: &OriginPackageIdent, channel: &str) -> Result<()> {
-        debug!("Promoting '{:?}' to '{}'", ident, channel);
-
-        let session_id = authenticate_with_auth_token(&self.auth_token).map_err(
-            Error::BuilderCore,
-        )?;
-
-        if channel != STABLE_CHANNEL {
-            match create_channel(ident.get_origin(), channel, session_id) {
-                Ok(_) => (),
-                Err(bldr_core::Error::NetError(err)) => {
-                    // Attempting to re-create a channel is not an error
-                    if err.get_code() != ErrCode::ENTITY_CONFLICT {
-                        error!("Unable to create channel, err={:?}", err);
-                        return Err(Error::BuilderCore(bldr_core::Error::NetError(err)));
-                    }
-                }
-                Err(err) => {
-                    error!("Unable to create channel, err={:?}", err);
-                    return Err(Error::BuilderCore(err));
-                }
-            }
-        }
-
-        promote_package_to_channel(ident, channel, session_id)
-            .map_err(Error::BuilderCore)?;
-
-        Ok(())
-    }
-
-    fn promote_group(&self, group: &proto::Group, channel: &str) -> Result<()> {
-        debug!("Promoting group {} to {} channel", group.get_id(), channel);
-
-        let session_id = authenticate_with_auth_token(&self.auth_token).map_err(
-            Error::BuilderCore,
-        )?;
-
-        promote_job_group_to_channel(group.get_id(), channel, session_id)
-            .map_err(Error::BuilderCore)?;
 
         Ok(())
     }
@@ -530,14 +464,6 @@ impl ScheduleMgr {
             let dispatchable = self.dispatchable_projects(&group)?;
 
             let new_state = if (succeeded + skipped + failed) == group.get_projects().len() {
-                // Promote everything to stable if there are no failures
-                // TODO: Add a better heuristic for promotion, eg, check leaf failure nodes
-                // and don't block promotion if the failures don't have any packages that
-                // depend on them.
-                if failed == 0 && self.promote_channel != UNSTABLE_CHANNEL {
-                    self.promote_group(&group, &self.promote_channel)?;
-                }
-
                 proto::GroupState::Complete
             } else if dispatchable.len() > 0 {
                 proto::GroupState::Pending

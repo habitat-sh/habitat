@@ -119,6 +119,11 @@ pub fn extract_query_value(key: &str, req: &mut Request) -> Option<String> {
     }
 }
 
+// Builder services (eg, scheduler or build worker) can call APIs without a
+// login session. We need a way to identify that there is no session.
+// TODO (SA): Push this down the stack, origin calls should support no session
+pub const NO_SESSION: u64 = 0;
+
 // Get channels for a package
 pub fn channels_for_package_ident(package: &OriginPackageIdent) -> Option<Vec<String>> {
     let mut conn = Broker::connect().unwrap();
@@ -184,7 +189,11 @@ pub fn check_origin_access<T: ToString>(
     }
 }
 
-pub fn create_channel(origin: &str, channel: &str, session_id: u64) -> Result<OriginChannel> {
+pub fn create_channel(
+    origin: &str,
+    channel: &str,
+    session_id_opt: Option<u64>,
+) -> Result<OriginChannel> {
     let origin_id = match get_origin(origin).map_err(Error::NetError)? {
         Some(o) => o.get_id(),
         None => {
@@ -195,6 +204,11 @@ pub fn create_channel(origin: &str, channel: &str, session_id: u64) -> Result<Or
 
     let mut conn = Broker::connect().unwrap();
     let mut request = OriginChannelCreate::new();
+
+    let session_id = match session_id_opt {
+        Some(id) => id,
+        None => NO_SESSION,
+    };
 
     request.set_owner_id(session_id);
     request.set_origin_name(origin.to_string());
@@ -210,12 +224,14 @@ pub fn create_channel(origin: &str, channel: &str, session_id: u64) -> Result<Or
 pub fn promote_package_to_channel(
     ident: &OriginPackageIdent,
     channel: &str,
-    session_id: u64,
+    session_id_opt: Option<u64>,
 ) -> Result<()> {
-    if !check_origin_access(session_id, ident.get_origin())
-        .map_err(Error::NetError)?
-    {
-        return Err(Error::OriginAccessDenied);
+    if let Some(session_id) = session_id_opt {
+        if !check_origin_access(session_id, ident.get_origin())
+            .map_err(Error::NetError)?
+        {
+            return Err(Error::OriginAccessDenied);
+        }
     }
 
     let mut conn = Broker::connect().unwrap();
@@ -245,7 +261,11 @@ pub fn promote_package_to_channel(
     }
 }
 
-pub fn promote_job_group_to_channel(group_id: u64, channel: &str, session_id: u64) -> Result<()> {
+pub fn promote_job_group_to_channel(
+    group_id: u64,
+    channel: &str,
+    session_id_opt: Option<u64>,
+) -> Result<()> {
     let mut group_get = GroupGet::new();
     group_get.set_group_id(group_id);
 
@@ -310,22 +330,23 @@ pub fn promote_job_group_to_channel(group_id: u64, channel: &str, session_id: u6
     // one origin at a time. We do "core" first, since it's not possible to do the entire operation
     // atomically. Instead, we prioritize the core origin since it's the most important one.
     if let Some(core_projects) = origin_map.remove("core") {
-        if let Err(e) = channel_fn("core", channel, session_id) {
+        if let Err(e) = channel_fn("core", channel, session_id_opt) {
             return Err(e);
         }
 
-        let promote_result = do_group_promotion(channel, core_projects, "core", session_id);
+        let promote_result = do_group_promotion(channel, core_projects, "core", session_id_opt);
         if promote_result.is_err() {
             return promote_result;
         }
     }
 
     for (origin, projects) in origin_map.iter() {
-        if let Err(e) = channel_fn(&origin, channel, session_id) {
+        if let Err(e) = channel_fn(&origin, channel, session_id_opt) {
             return Err(e);
         }
 
-        let promote_result = do_group_promotion(channel, projects.to_vec(), &origin, session_id);
+        let promote_result =
+            do_group_promotion(channel, projects.to_vec(), &origin, session_id_opt);
         if promote_result.is_err() {
             return promote_result;
         }
@@ -369,7 +390,7 @@ fn do_group_promotion(
     channel: &str,
     projects: Vec<&Project>,
     origin: &str,
-    session_id: u64,
+    session_id_opt: Option<u64>,
 ) -> Result<()> {
     let mut conn = Broker::connect().unwrap();
     let mut ocg = OriginChannelGet::new();
@@ -380,11 +401,13 @@ fn do_group_promotion(
 
     let channel = match conn.route::<OriginChannelGet, OriginChannel>(&ocg) {
         Ok(c) => {
-            if !check_origin_access(session_id, origin).map_err(
-                Error::NetError,
-            )?
-            {
-                return Err(Error::OriginAccessDenied);
+            if let Some(session_id) = session_id_opt {
+                if !check_origin_access(session_id, origin).map_err(
+                    Error::NetError,
+                )?
+                {
+                    return Err(Error::OriginAccessDenied);
+                }
             }
 
             c

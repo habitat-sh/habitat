@@ -141,7 +141,7 @@ pub fn job_group_promote(req: &mut Request) -> IronResult<Response> {
         None => return Ok(Response::with(status::BadRequest)),
     };
 
-    match promote_job_group_to_channel(group_id, &channel, session_id) {
+    match promote_job_group_to_channel(group_id, &channel, Some(session_id)) {
         Ok(_) => Ok(Response::with(status::Ok)),
         Err(bld_core::Error::NetError(e)) => Ok(render_net_error(&e)),
         Err(bld_core::Error::GroupNotComplete) => Ok(

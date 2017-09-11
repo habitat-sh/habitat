@@ -17,6 +17,7 @@
 use std::net::{IpAddr, Ipv4Addr};
 use std::path::PathBuf;
 
+use hab_net::config::{RouterAddr, RouterCfg};
 use hab_core::config::ConfigFile;
 use hab_core::url;
 
@@ -41,6 +42,8 @@ pub struct Config {
     pub depot_url: String,
     /// List of Job Servers to connect to
     pub jobsrv: JobSrvCfg,
+    /// List of net addresses for routing servers to connect to
+    pub routers: Vec<RouterAddr>,
 }
 
 impl Config {
@@ -66,6 +69,7 @@ impl Default for Config {
             depot_channel: String::from("unstable"),
             depot_url: url::default_depot_url(),
             jobsrv: vec![JobSrvAddr::default()],
+            routers: vec![RouterAddr::default()],
         }
     }
 }
@@ -74,6 +78,11 @@ impl ConfigFile for Config {
     type Error = Error;
 }
 
+impl RouterCfg for Config {
+    fn route_addrs(&self) -> &Vec<RouterAddr> {
+        &self.routers
+    }
+}
 pub type JobSrvCfg = Vec<JobSrvAddr>;
 
 #[derive(Clone, Debug, Deserialize)]

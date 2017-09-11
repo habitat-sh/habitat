@@ -2021,7 +2021,7 @@ where
 }
 
 pub fn do_channel_creation(origin: &str, channel: &str, session_id: u64) -> IronResult<Response> {
-    let origin_channel = match bld_core::api::create_channel(origin, channel, session_id) {
+    let origin_channel = match bld_core::api::create_channel(origin, channel, Some(session_id)) {
         Ok(c) => c,
         Err(bld_core::Error::OriginNotFound(_)) => return Ok(Response::with(status::NotFound)),
         Err(bld_core::Error::NetError(e)) => return Ok(render_net_error(&e)),
@@ -2039,7 +2039,7 @@ pub fn do_promotion(
     channel: &str,
     session_id: u64,
 ) -> IronResult<Response> {
-    match bld_core::api::promote_package_to_channel(ident, channel, session_id) {
+    match bld_core::api::promote_package_to_channel(ident, channel, Some(session_id)) {
         Ok(_) => Ok(Response::with(status::Ok)),
         Err(bld_core::Error::OriginAccessDenied) => Ok(Response::with(status::Forbidden)),
         Err(bld_core::Error::NetError(err)) => {

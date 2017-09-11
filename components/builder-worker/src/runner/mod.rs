@@ -15,6 +15,8 @@
 pub mod log_pipe;
 pub mod workspace;
 pub mod postprocessor;
+pub mod publisher;
+pub mod toml_builder;
 
 use std::path::PathBuf;
 use std::ffi::OsString;
@@ -34,7 +36,7 @@ use hab_core::{crypto, env};
 use hab_core::package::archive::PackageArchive;
 use hab_core::package::install::PackageInstall;
 use hab_core::package::PackageIdent;
-use hab_core::channel::bldr_channel_name;
+use hab_core::channel::STABLE_CHANNEL;
 use hab_net::server::ZMQ_CONTEXT;
 use protobuf::{parse_from_bytes, Message};
 use protocol::jobsrv as proto;
@@ -44,7 +46,7 @@ use zmq;
 
 use {PRODUCT, VERSION};
 use self::log_pipe::LogPipe;
-use self::postprocessor::PostProcessor;
+use self::postprocessor::post_process;
 use self::workspace::Workspace;
 use config::Config;
 use error::{Error, Result};
@@ -251,8 +253,13 @@ impl Runner {
         let ident = OriginPackageIdent::from(archive.ident().unwrap());
         self.workspace.job.set_package_ident(ident);
 
-        let mut post_processor = PostProcessor::new(&self.workspace);
-        if !post_processor.run(&mut archive, &self.config, &mut self.logger) {
+        if !post_process(
+            &mut archive,
+            &self.workspace,
+            &self.config,
+            &mut self.logger,
+        )
+        {
             return self.fail(net::err(ErrCode::POST_PROCESSOR, "wk:run:6"));
         }
 
@@ -283,10 +290,13 @@ impl Runner {
         ];
         let command = studio_cmd();
         debug!("building, cmd={:?}, args={:?}", command, args);
-        debug!(
-            "setting HAB_DEPOT_CHANNEL={}",
-            &bldr_channel_name(self.job().get_owner_id())
-        );
+
+        let channel = if self.job().has_channel() {
+            self.job().get_channel().to_string()
+        } else {
+            STABLE_CHANNEL.to_string()
+        };
+        debug!("setting HAB_DEPOT_CHANNEL={}", &channel);
 
         let mut child = match env::var(RUNNER_DEBUG_ENV) {
             Ok(val) => {
@@ -295,10 +305,7 @@ impl Runner {
                     .env_clear()
                     .env("HAB_NONINTERACTIVE", "true")
                     .env("HAB_DEPOT_URL", &self.config.depot_url)
-                    .env(
-                        "HAB_DEPOT_CHANNEL",
-                        &bldr_channel_name(self.job().get_owner_id()),
-                    )
+                    .env("HAB_DEPOT_CHANNEL", &channel)
                     .env("DEBUG", val)
                     .stdout(Stdio::piped())
                     .stderr(Stdio::piped())
@@ -311,7 +318,7 @@ impl Runner {
                     .env_clear()
                     .env("HAB_NONINTERACTIVE", "true")
                     .env("HAB_DEPOT_URL", &self.config.depot_url)
-                    .env("HAB_DEPOT_CHANNEL", &bldr_channel_name(self.job().get_owner_id()))
+                    .env("HAB_DEPOT_CHANNEL", &channel)
                     .env("TERM", "xterm-256color") // Gives us ANSI color codes
                     .stdout(Stdio::piped())
                     .stderr(Stdio::piped())
