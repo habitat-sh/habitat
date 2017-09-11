@@ -9,10 +9,12 @@ log
 plans
 results
 support
+!support/builder
 !support/devshell_profile.sh
 !support/linux/install_dev_*.sh
 target
 terraform
+!terraform/scripts/*
 tmp
 vendor
 www
