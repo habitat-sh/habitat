@@ -18,6 +18,8 @@ use std::str::FromStr;
 
 use hab_core::channel::{STABLE_CHANNEL, UNSTABLE_CHANNEL};
 use hab_net::routing::Broker;
+use iron::prelude::*;
+use iron::status;
 use protocol::originsrv::{CheckOriginAccessRequest, CheckOriginAccessResponse, Origin,
                           OriginChannel, OriginChannelCreate, OriginChannelGet, OriginGet,
                           OriginPackage, OriginPackageChannelListRequest,
@@ -28,10 +30,94 @@ use protocol::originsrv::{CheckOriginAccessRequest, CheckOriginAccessResponse, O
 use protocol::net::{ErrCode, NetError, NetOk};
 use protocol::scheduler::{Group, GroupGet, Project, ProjectState};
 use protocol::sessionsrv::{Session, SessionCreate, SessionGet};
+use serde::Serialize;
+use serde_json;
+use urlencoded::UrlEncodedQuery;
 
 use data_structures::PartialJobGroupPromote;
-
 use error::{Error, Result};
+
+const PAGINATION_RANGE_DEFAULT: isize = 0;
+const PAGINATION_RANGE_MAX: isize = 50;
+
+#[derive(Serialize)]
+struct PaginatedResults<'a, T: 'a> {
+    range_start: isize,
+    range_end: isize,
+    total_count: isize,
+    data: &'a Vec<T>,
+}
+
+pub fn paginated_response<T: Serialize>(
+    body: &Vec<T>,
+    count: isize,
+    start: isize,
+    end: isize,
+) -> IronResult<Response> {
+    let body = package_results_json(body, count, start, end);
+
+    if count > end + 1 {
+        Ok(Response::with((status::PartialContent, body)))
+    } else {
+        Ok(Response::with((status::Ok, body)))
+    }
+}
+
+pub fn package_results_json<T: Serialize>(
+    packages: &Vec<T>,
+    count: isize,
+    start: isize,
+    end: isize,
+) -> String {
+    let results = PaginatedResults {
+        range_start: start,
+        range_end: end,
+        total_count: count,
+        data: packages,
+    };
+
+    serde_json::to_string(&results).unwrap()
+}
+
+// Returns a tuple representing the from and to values representing a paginated set.
+// The range (start, stop) values are zero-based.
+pub fn extract_pagination(req: &mut Request) -> result::Result<(isize, isize), Response> {
+    let range_from_param = match extract_query_value("range", req) {
+        Some(range) => range,
+        None => PAGINATION_RANGE_DEFAULT.to_string(),
+    };
+
+    let offset = {
+        match range_from_param.parse::<usize>() {
+            Ok(range) => range as isize,
+            Err(_) => return Err(Response::with(status::BadRequest)),
+        }
+    };
+
+    debug!(
+        "extract_pagination range: (start, end): ({}, {})",
+        offset,
+        (offset + PAGINATION_RANGE_MAX - 1)
+    );
+    Ok((offset, offset + PAGINATION_RANGE_MAX - 1))
+}
+
+pub fn extract_query_value(key: &str, req: &mut Request) -> Option<String> {
+    match req.get_ref::<UrlEncodedQuery>() {
+        Ok(ref map) => {
+            for (k, v) in map.iter() {
+                if key == *k {
+                    if v.len() < 1 {
+                        return None;
+                    }
+                    return Some(v[0].clone());
+                }
+            }
+            None
+        }
+        Err(_) => None,
+    }
+}
 
 // Get channels for a package
 pub fn channels_for_package_ident(package: &OriginPackageIdent) -> Option<Vec<String>> {

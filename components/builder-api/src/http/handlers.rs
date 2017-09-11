@@ -19,8 +19,8 @@ use std::env;
 use base64;
 use bodyparser;
 use bld_core;
-use bld_core::api::{channels_for_package_ident, platforms_for_package_ident,
-                    promote_job_group_to_channel};
+use bld_core::api::{channels_for_package_ident, extract_pagination, paginated_response,
+                    platforms_for_package_ident, promote_job_group_to_channel};
 use depot::server::check_origin_access;
 use hab_core::package::{Identifiable, Plan};
 use hab_core::event::*;
@@ -644,11 +644,15 @@ pub fn project_show(req: &mut Request) -> IronResult<Response> {
 }
 
 /// Retrieve the most recent 50 jobs for a project.
-///
-/// Later, we'll add more options for pagination, sorting, filtering,
-/// etc.
 pub fn project_jobs(req: &mut Request) -> IronResult<Response> {
     let mut jobs_get = ProjectJobsGet::new();
+    let (start, stop) = match extract_pagination(req) {
+        Ok(range) => range,
+        Err(response) => return Ok(response),
+    };
+    jobs_get.set_start(start as u64);
+    jobs_get.set_stop(stop as u64);
+
     let params = req.extensions.get::<Router>().unwrap();
     {
         let origin = params.find("origin").unwrap();
@@ -687,7 +691,13 @@ pub fn project_jobs(req: &mut Request) -> IronResult<Response> {
                     serde_json::to_value(job).unwrap()
                 })
                 .collect();
-            Ok(render_json(status::Ok, &list))
+
+            paginated_response(
+                &list,
+                response.get_count() as isize,
+                response.get_start() as isize,
+                response.get_stop() as isize,
+            )
         }
         Err(err) => Ok(render_net_error(&err)),
     }

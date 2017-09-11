@@ -23,7 +23,8 @@ use base64;
 
 use uuid::Uuid;
 use bld_core;
-use bld_core::api::{channels_for_package_ident, platforms_for_package_ident};
+use bld_core::api::{channels_for_package_ident, extract_pagination, extract_query_value,
+                    package_results_json, platforms_for_package_ident};
 use bodyparser;
 use hab_core::package::{Identifiable, FromArchive, PackageArchive, PackageIdent, PackageTarget,
                         ident};
@@ -55,10 +56,8 @@ use protocol::scheduler::{Group, GroupCreate, GroupGet, PackageStatsGet, Package
 use protocol::sessionsrv::{Account, AccountGet};
 use regex::Regex;
 use router::{Params, Router};
-use serde::Serialize;
 use serde_json;
 use url;
-use urlencoded::UrlEncodedQuery;
 
 use super::DepotUtil;
 use config::Config;
@@ -136,16 +135,6 @@ struct OriginUpdateReq {
     default_package_visibility: String,
 }
 
-#[derive(Serialize)]
-struct PackageResults<'a, T: 'a> {
-    range_start: isize,
-    range_end: isize,
-    total_count: isize,
-    package_list: &'a Vec<T>,
-}
-
-const PAGINATION_RANGE_DEFAULT: isize = 0;
-const PAGINATION_RANGE_MAX: isize = 50;
 const ONE_YEAR_IN_SECS: usize = 31536000;
 
 pub fn route_message<M: Routable, R: protobuf::MessageStatic>(
@@ -157,22 +146,6 @@ pub fn route_message<M: Routable, R: protobuf::MessageStatic>(
     }
 
     Broker::connect().unwrap().route::<M, R>(msg)
-}
-
-fn package_results_json<T: Serialize>(
-    packages: &Vec<T>,
-    count: isize,
-    start: isize,
-    end: isize,
-) -> String {
-    let results = PackageResults {
-        range_start: start,
-        range_end: end,
-        total_count: count,
-        package_list: packages,
-    };
-
-    serde_json::to_string(&results).unwrap()
 }
 
 pub fn origin_update(req: &mut Request) -> IronResult<Response> {
@@ -2064,48 +2037,6 @@ pub fn do_promotion(
     }
 }
 
-// Returns a tuple representing the from and to values representing a paginated set.
-// The range (start, stop) values are zero-based.
-//
-// These values can be passed to a sorted set in Redis to return a paginated list.
-fn extract_pagination(req: &mut Request) -> result::Result<(isize, isize), Response> {
-    let range_from_param = match extract_query_value("range", req) {
-        Some(range) => range,
-        None => PAGINATION_RANGE_DEFAULT.to_string(),
-    };
-
-    let offset = {
-        match range_from_param.parse::<usize>() {
-            Ok(range) => range as isize,
-            Err(_) => return Err(Response::with(status::BadRequest)),
-        }
-    };
-
-    debug!(
-        "extract_pagination range: (start, end): ({}, {})",
-        offset,
-        (offset + PAGINATION_RANGE_MAX - 1)
-    );
-    Ok((offset, offset + PAGINATION_RANGE_MAX - 1))
-}
-
-fn extract_query_value(key: &str, req: &mut Request) -> Option<String> {
-    match req.get_ref::<UrlEncodedQuery>() {
-        Ok(ref map) => {
-            for (k, v) in map.iter() {
-                if key == *k {
-                    if v.len() < 1 {
-                        return None;
-                    }
-                    return Some(v[0].clone());
-                }
-            }
-            None
-        }
-        Err(_) => None,
-    }
-}
-
 fn do_cache_response(response: &mut Response) {
     response.headers.set(CacheControl(
         format!("public, max-age={}", ONE_YEAR_IN_SECS),
@@ -2393,7 +2324,7 @@ mod test {
             \"range_start\":0,\
             \"range_end\":1,\
             \"total_count\":2,\
-            \"package_list\":[\
+            \"data\":[\
                 {\
                     \"origin\":\"org\",\
                     \"name\":\"name1\"\
@@ -2456,7 +2387,7 @@ mod test {
             "range_start":0,
             "range_end":1,
             "total_count":2,
-            "package_list":[
+            "data":[
                 {
                     "origin":"org",
                     "name":"name1",
@@ -2525,7 +2456,7 @@ mod test {
             "range_start":0,
             "range_end":1,
             "total_count":2,
-            "package_list":[
+            "data":[
                 {
                     "origin":"org",
                     "name":"name1",
@@ -2978,7 +2909,7 @@ mod test {
             \"range_start\":0,\
             \"range_end\":1,\
             \"total_count\":2,\
-            \"package_list\":[\
+            \"data\":[\
                 {\
                     \"origin\":\"org\",\
                     \"name\":\"name1\",\

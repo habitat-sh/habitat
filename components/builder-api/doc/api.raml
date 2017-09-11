@@ -517,9 +517,7 @@ securitySchemes:
         /jobs:
             get:
                 description: |
-                    Retrieve the 50 most recently started jobs for the given project.
-
-                    Pagination and sort options to come later!
+                    Retrieve the most recently started jobs for the given project.
                 responses:
                     200:
                         body:
@@ -528,7 +526,10 @@ securitySchemes:
                                   jobs
                                 example: |
                                   {
-                                      "jobs": [
+                                      "range_start": 0,
+                                      "range_end": 5,
+                                      "total_count": 6,
+                                      "data": [
                                           {
                                               "id": "73089155726360582",
                                               "origin": "core",
