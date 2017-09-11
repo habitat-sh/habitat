@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Copyright (c) 2016 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,92 +14,40 @@
 
 use std::path::Path;
 
-use ansi_term::Colour::Yellow;
 use common;
+use common::command::package::install::InstallSource;
 use common::ui::UI;
-use depot_client::Client;
 use hcore::fs::{self, FS_ROOT_PATH};
-use hcore::package::{PackageIdent, PackageInstall};
+use hcore::package::PackageInstall;
 
 use {PRODUCT, VERSION};
-use error::Result;
-use manager::ServiceSpec;
-use manager::service::UpdateStrategy;
+use error::{Result, SupError};
 
-static LOGKEY: &'static str = "PK";
-
+// NOOOO, this is just for the sup crate... but we also do this in
+// hab, too! AAAAAAAA
+/// Helper function for use in the Supervisor to handle lower-level
+/// arguments needed for installing a package.
 pub fn install(
     ui: &mut UI,
     url: &str,
-    ident: &PackageIdent,
-    channel: Option<&str>,
+    install_source: &InstallSource,
+    channel: &str,
 ) -> Result<PackageInstall> {
     let fs_root_path = Path::new(&*FS_ROOT_PATH);
-    let installed_ident = common::command::package::install::start(
+    common::command::package::install::start(
         ui,
         url,
-        channel,
-        &ident.to_string(),
+        // We currently need this to be an option due to how the depot
+        // client is written. Anything that calls the current
+        // function, though, should always have a channel. We should
+        // push this "Option-ness" as far down the stack as we can,
+        // with the ultimate goal of eliminating it altogether.
+        Some(channel),
+        install_source,
         PRODUCT,
         VERSION,
         fs_root_path,
         &fs::cache_artifact_path(None::<String>),
         false,
-    )?;
-    Ok(PackageInstall::load(&installed_ident, Some(&fs_root_path))?)
-}
-
-pub fn maybe_install_newer(
-    ui: &mut UI,
-    spec: &ServiceSpec,
-    current: PackageInstall,
-) -> Result<PackageInstall> {
-    let latest_ident: PackageIdent = {
-        let depot_client = Client::new(&spec.bldr_url, PRODUCT, VERSION, None)?;
-        match depot_client.show_package(&spec.ident, Some(&spec.channel)) {
-            Ok(pkg) => pkg.get_ident().clone().into(),
-            Err(_) => return Ok(current),
-        }
-    };
-
-    if &latest_ident > current.ident() {
-        outputln!(
-            "Newer version of {} detected. Installing {} from {}",
-            spec.ident,
-            latest_ident,
-            spec.bldr_url
-        );
-        self::install(ui, &spec.bldr_url, &latest_ident, Some(&spec.channel))
-    } else {
-        outputln!(
-            "Confirmed latest version of {} is {}",
-            spec.ident,
-            current.ident()
-        );
-        Ok(current)
-    }
-}
-
-pub fn install_from_spec(ui: &mut UI, spec: &ServiceSpec) -> Result<PackageInstall> {
-    match PackageInstall::load(&spec.ident, Some(&Path::new(&*FS_ROOT_PATH))) {
-        Ok(package) => {
-            match spec.update_strategy {
-                UpdateStrategy::AtOnce => Ok(maybe_install_newer(ui, spec, package)?),
-                UpdateStrategy::None | UpdateStrategy::Rolling => Ok(package),
-            }
-        }
-        Err(_) => {
-            outputln!(
-                "{} not found in local package cache, installing from {}",
-                Yellow.bold().paint(spec.ident.to_string()),
-                &spec.bldr_url
-            );
-            Ok(install(
-                ui,
-                spec.bldr_url.as_str(),
-                &spec.ident,
-                Some(&spec.channel),
-            )?)
-        }
-    }
+    ).map_err(SupError::from)
 }

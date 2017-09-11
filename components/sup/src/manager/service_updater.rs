@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Copyright (c) 2016 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,27 +13,20 @@
 // limitations under the License.
 
 use std::collections::HashMap;
-use std::path::Path;
 use std::sync::mpsc::{sync_channel, Receiver, SyncSender, TryRecvError};
 use std::thread;
-use std::time::Duration;
 
 use butterfly;
-use common::ui::{Coloring, Status, UI};
-use depot_client;
+use common::ui::{Coloring, UI};
 use env;
 use hcore::package::{PackageIdent, PackageInstall};
 use hcore::service::ServiceGroup;
-use hcore::crypto::{artifact, default_cache_key_path, SigKeyPair};
-use hcore::crypto::keys::parse_name_with_rev;
-use hcore::fs::{CACHE_ARTIFACT_PATH, FS_ROOT_PATH};
 use launcher_client::LauncherCli;
-use time::{SteadyTime, Duration as TimeDuration};
 
-use {PRODUCT, VERSION};
-use error::Result;
 use census::CensusRing;
+use manager::periodic::Periodic;
 use manager::service::{Service, Topology, UpdateStrategy};
+use util;
 
 static LOGKEY: &'static str = "SU";
 const FREQUENCY_ENVVAR: &'static str = "HAB_UPDATE_STRATEGY_FREQUENCY_MS";
@@ -58,8 +51,12 @@ enum LeaderState {
     Waiting,
 }
 
+/// Current package update state of a follower in a leader-follower
+/// topology
 enum FollowerState {
+    /// Waiting to be told to update
     Waiting,
+    /// Currently updating
     Updating(Receiver<PackageInstall>),
 }
 
@@ -76,6 +73,9 @@ impl ServiceUpdater {
         }
     }
 
+    /// Register a new `Service` for updates. Returns `true` if the
+    /// `ServiceUpdater` was modified (i.e., the given service has an
+    /// `UpdateStrategy` that is not `None`).
     pub fn add(&mut self, service: &Service) -> bool {
         match service.update_strategy {
             UpdateStrategy::None => false,
@@ -97,6 +97,12 @@ impl ServiceUpdater {
         }
     }
 
+    // TODO (CM): How do we remove something from the updater? e.g.,
+    // when we stop or unload a service?
+
+    /// See if the given service has an update. Returns `true` if a
+    /// new version was installed, thus signalling that the service
+    /// should be restarted
     pub fn check_for_updated_package(
         &mut self,
         service: &mut Service,
@@ -112,11 +118,13 @@ impl ServiceUpdater {
                         return true;
                     }
                     Err(TryRecvError::Empty) => return false,
-                    Err(TryRecvError::Disconnected) => {}
+                    Err(TryRecvError::Disconnected) => {
+                        debug!("Service Updater worker has died; restarting...");
+                        *rx = Worker::new(service).start(&service.service_group, None);
+                    }
                 }
-                debug!("Service Updater worker has died; restarting...");
-                *rx = Worker::new(service).start(&service.service_group, None);
             }
+
             Some(&mut UpdaterState::Rolling(ref mut st @ RollingState::AwaitingElection)) => {
                 if let Some(census_group) = census_ring.census_group_for(&service.service_group) {
                     if service.topology == Topology::Leader {
@@ -292,10 +300,34 @@ impl ServiceUpdater {
 struct Worker {
     current: PackageIdent,
     spec_ident: PackageIdent,
-    depot: depot_client::Client,
+    builder_url: String,
     channel: String,
-    update_strategy: UpdateStrategy,
     ui: UI,
+}
+
+impl Periodic for Worker {
+    // TODO (CM): Consider performing this check once and storing it,
+    // instead of re-checking every time.
+    fn update_period(&self) -> i64 {
+        match env::var(FREQUENCY_ENVVAR) {
+            Ok(val) => {
+                match val.parse::<i64>() {
+                    Ok(num) => num,
+                    Err(_) => {
+                        outputln!(
+                            "Unable to parse '{}' from {} as a valid integer. Falling back \
+                             to default {} MS frequency.",
+                            val,
+                            FREQUENCY_ENVVAR,
+                            DEFAULT_FREQUENCY
+                        );
+                        DEFAULT_FREQUENCY
+                    }
+                }
+            }
+            Err(_) => DEFAULT_FREQUENCY,
+        }
+    }
 }
 
 impl Worker {
@@ -303,9 +335,8 @@ impl Worker {
         Worker {
             current: service.pkg.ident.clone(),
             spec_ident: service.spec_ident.clone(),
-            depot: depot_client::Client::new(&service.bldr_url, PRODUCT, VERSION, None).unwrap(),
+            builder_url: service.bldr_url.clone(),
             channel: service.channel.clone(),
-            update_strategy: service.update_strategy.clone(),
             ui: UI::default_with(Coloring::Never, None),
         }
     }
@@ -327,12 +358,43 @@ impl Worker {
         rx
     }
 
+    // TODO (CM): A refactor I'd like to do is to tease out the
+    // run_once and run_poll cases into two separate "start" functions
+    // that describe more what's going on. Passing `None` as the
+    // identifier just means to keep going until you get a new
+    // one. Passing an identifier (which should probably be a
+    // fully-qualified one, right?) just goes until that package gets
+    // downloaded.
+    //
+    // In all cases except for FollowerState::Updating and
+    // FollowerState::Waiting, we pass None, so that's easy. In those
+    // two states, though, the package can legitimately be an Option
+    // (we get it from CensusMember.pkg), but it seems like it can
+    // only be None if there was an unparseable identifier in the
+    // ServiceRumor the CensusMember was generated from. I suspect
+    // that we might be able to refactor the types (or how we handle
+    // them) a bit better.
+    //
+    // I'm also not 100% clear why we have run_poll and run_once,
+    // since their implementations are very similar. There may be an
+    // opportunity to collapse those.
+    /// Polls until a newer version of the specified package is
+    /// available. When such a package is found, it is installed, and
+    /// the function exits.
     fn run_once(&mut self, sender: SyncSender<PackageInstall>, ident: PackageIdent) {
+        // Fairly certain that this only gets called in a rolling update
+        // scenario, where `ident` is always a fully-qualified identifier
         outputln!("Updating from {} to {}", self.current, ident);
+        let install_source = ident.into();
         loop {
-            let next_check = SteadyTime::now() +
-                TimeDuration::milliseconds(self.update_frequency());
-            match self.install(&ident, true) {
+            let next_time = self.next_period_start();
+
+            match util::pkg::install(
+                &mut self.ui,
+                &self.builder_url,
+                &install_source,
+                &self.channel,
+            ) {
                 Ok(package) => {
                     self.current = package.ident().clone();
                     sender.send(package).expect("Main thread has gone away!");
@@ -340,146 +402,44 @@ impl Worker {
                 }
                 Err(e) => warn!("Failed to install updated package: {:?}", e),
             }
-            let time_to_wait = (next_check - SteadyTime::now()).num_milliseconds();
-            if time_to_wait > 0 {
-                thread::sleep(Duration::from_millis(time_to_wait as u64));
-            }
+
+            self.sleep_until(next_time);
         }
     }
 
+    /// Continually poll for a new version of a package, installing it
+    /// when found.
     fn run_poll(&mut self, sender: SyncSender<PackageInstall>) {
+        let install_source = self.spec_ident.clone().into(); // UGH clone
         loop {
-            let next_check = SteadyTime::now() +
-                TimeDuration::milliseconds(self.update_frequency());
-            let mut package: Option<PackageInstall> = None;
-            match self.depot.show_package(
-                &self.spec_ident,
-                Some(&self.channel),
+            let next_time = self.next_period_start();
+
+            match util::pkg::install(
+                &mut self.ui,
+                &self.builder_url,
+                &install_source,
+                &self.channel,
             ) {
-                Ok(remote) => {
-                    let latest: PackageIdent = remote.get_ident().clone().into();
-                    if latest > self.current {
-                        outputln!("Updating from {} to {}", self.current, latest);
-                        match self.install(&latest, true) {
-                            Ok(pkg) => package = Some(pkg),
-                            Err(e) => warn!("Failed to install updated package: {:?}", e),
-                        }
+                Ok(maybe_newer_package) => {
+                    if self.current < *maybe_newer_package.ident() {
+                        outputln!(
+                            "Updating from {} to {}",
+                            self.current,
+                            maybe_newer_package.ident()
+                        );
+                        self.current = maybe_newer_package.ident().clone();
+                        sender.send(maybe_newer_package).expect(
+                            "Main thread has gone away!",
+                        );
+                        break;
                     } else {
                         debug!("Package found is not newer than ours");
                     }
                 }
                 Err(e) => warn!("Updater failed to get latest package: {:?}", e),
             }
-            if self.update_strategy == UpdateStrategy::AtOnce {
-                if let Ok(cached) = PackageInstall::load(
-                    &self.spec_ident,
-                    Some(&Path::new(&*FS_ROOT_PATH)),
-                )
-                {
-                    let compare = match package {
-                        Some(ref pkg) => pkg.ident.clone(),
-                        None => self.current.clone(),
-                    };
 
-                    if cached.ident > compare {
-                        package = Some(cached);
-                    }
-                }
-            }
-
-            if let Some(pkg) = package {
-                self.current = pkg.ident.clone();
-                sender.send(pkg).expect("Main thread has gone away!");
-                break;
-            }
-            let time_to_wait = (next_check - SteadyTime::now()).num_milliseconds();
-            if time_to_wait > 0 {
-                thread::sleep(Duration::from_millis(time_to_wait as u64));
-            }
+            self.sleep_until(next_time);
         }
-    }
-
-    fn install(&mut self, package: &PackageIdent, recurse: bool) -> Result<PackageInstall> {
-        let package = match PackageInstall::load(package, Some(&*FS_ROOT_PATH)) {
-            Ok(pkg) => pkg,
-            Err(_) => self.download(package)?,
-        };
-        if recurse {
-            for ident in package.tdeps()?.iter() {
-                self.install(&ident, false)?;
-            }
-        }
-        Ok(package)
-    }
-
-    fn download(&mut self, package: &PackageIdent) -> Result<PackageInstall> {
-        outputln!("Downloading {}", package);
-        let mut archive = self.depot.fetch_package(
-            package,
-            &Path::new(&*FS_ROOT_PATH).join(
-                CACHE_ARTIFACT_PATH,
-            ),
-            self.ui.progress(),
-        )?;
-
-        // TODO (CM): Copied (with modifications) from
-        // common::command::package::install; will be properly
-        // factored in an upcoming broad refactoring and consolidation
-        // of our installation logic.
-        let cache_key_path = &default_cache_key_path(None);
-        let nwr = artifact::artifact_signer(&archive.path)?;
-        if let Err(_) = SigKeyPair::get_public_key_path(&nwr, cache_key_path) {
-            self.fetch_origin_key(&nwr)?;
-        }
-
-        archive.verify(cache_key_path)?;
-        outputln!("Installing {}", package);
-        archive.unpack(None)?;
-        let pkg = PackageInstall::load(archive.ident().as_ref().unwrap(), Some(&*FS_ROOT_PATH))?;
-        Ok(pkg)
-    }
-
-    fn update_frequency(&self) -> i64 {
-        match env::var(FREQUENCY_ENVVAR) {
-            Ok(val) => {
-                match val.parse::<i64>() {
-                    Ok(num) => num,
-                    Err(_) => {
-                        outputln!(
-                            "Unable to parse '{}' from {} as a valid integer. Falling back \
-                                  to default {} MS frequency.",
-                            val,
-                            FREQUENCY_ENVVAR,
-                            DEFAULT_FREQUENCY
-                        );
-                        DEFAULT_FREQUENCY
-                    }
-                }
-            }
-            Err(_) => DEFAULT_FREQUENCY,
-        }
-    }
-
-    // TODO (CM): Copied (with modifications) from
-    // common::command::package::install; will be properly factored in
-    // an upcoming broad refactoring and consolidation of our
-    // installation logic.
-    fn fetch_origin_key(&mut self, name_with_rev: &str) -> Result<()> {
-        self.ui.status(
-            Status::Downloading,
-            format!("{} public origin key", &name_with_rev),
-        )?;
-        let (name, rev) = parse_name_with_rev(&name_with_rev)?;
-        self.depot.fetch_origin_key(
-            &name,
-            &rev,
-            &default_cache_key_path(None),
-            self.ui.progress(),
-        )?;
-        self.ui.status(
-            Status::Cached,
-            format!("{} public origin key", &name_with_rev),
-        )?;
-        Ok(())
     }
 }

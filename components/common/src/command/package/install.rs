@@ -39,6 +39,7 @@ use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
+use std::result::Result as StdResult;
 
 use depot_client::{self, Client};
 use depot_client::Error::APIError;
@@ -57,20 +58,129 @@ use retry::retry;
 pub const RETRIES: u64 = 5;
 pub const RETRY_WAIT: u64 = 3000;
 
+/// Represents a locally-available `.hart` file for package
+/// installation purposes only.
+///
+/// The struct itself must be public because it is used in
+/// `InstallSource` enum. The members are intentionally private,
+/// though; by design, the only way an instance of this struct can be
+/// created is to call `parse::<InstallSource>` on a file path that
+/// refers to a `.hart` file.
+///
+/// In other words, you are probably more interested in the
+/// `InstallSource` enum; this struct is just an implementation
+/// detail.
+pub struct LocalArchive {
+    // In an ideal world, we would just implement `InstallSource` in
+    // terms of a `PackageArchive` directly, since that can provide
+    // both an ident and path.
+    //
+    // However, asking for the ident of a `PackageArchive` is
+    // currently a mutating operation. As a result, that mutability
+    // requirement leaked out to all consumers of `InstallSource` in a
+    // way that was rather confusing.
+    //
+    // Instead, we simply bundle up both the path to the archive file
+    // along with the `PackageIdent` we extract from it when we create
+    // an instance of this struct (these data are the only things we
+    // really need to install from a local archive). The members are
+    // private to ensure that this module has full control over the
+    // creation of instances of the struct, and can thus ensure that
+    // the ident and path are mutually consistent and valid.
+    ident: PackageIdent,
+    path: PathBuf,
+}
+
+/// Encapsulate all possible sources we can install packages from.
+pub enum InstallSource {
+    /// We can install from a package identifier
+    Ident(PackageIdent),
+    /// We can install from a locally-available `.hart` file
+    Archive(LocalArchive),
+}
+
+impl FromStr for InstallSource {
+    type Err = hcore::Error;
+
+    /// Create an `InstallSource` from either a package identifier
+    /// string (e.g. "core/hab"), or from the path to a local package.
+    ///
+    /// Returns an error if the string is neither a valid package
+    /// identifier, or is not the path to an actual Habitat package.
+    fn from_str(s: &str) -> StdResult<InstallSource, Self::Err> {
+        let path = Path::new(s);
+        if path.is_file() {
+            // Is it really an archive? If it can produce an
+            // identifer, we'll say "yes".
+            let mut archive = PackageArchive::new(path);
+            match archive.ident() {
+                Ok(ident) => Ok(InstallSource::Archive(LocalArchive {
+                    ident: ident,
+                    path: path.to_path_buf(),
+                })),
+                Err(e) => Err(e),
+            }
+        } else {
+            match s.parse::<PackageIdent>() {
+                Ok(ident) => Ok(InstallSource::Ident(ident)),
+                Err(e) => Err(e),
+            }
+        }
+    }
+}
+
+impl From<PackageIdent> for InstallSource {
+    /// Convenience function to generate an `InstallSource` from an
+    /// existing `PackageIdent`.
+    fn from(ident: PackageIdent) -> Self {
+        InstallSource::Ident(ident)
+    }
+}
+
+impl AsRef<PackageIdent> for InstallSource {
+    fn as_ref(&self) -> &PackageIdent {
+        match *self {
+            InstallSource::Ident(ref ident) => ident,
+            InstallSource::Archive(ref local_archive) => &local_archive.ident,
+        }
+    }
+}
+
+/// Install a Habitat package.
+///
+/// If an `InstallSource::Ident` is given, we retrieve the package
+/// from the specified Builder `url`. Providing a fully-qualified
+/// identifer will result in that exact package being installed
+/// (regardless of `channel`). Providing a partially-qualified
+/// identifier will result in the installation of latest appropriate
+/// release from the given `channel`.
+///
+/// If an `InstallSource::Archive` is given, then this exact artifact will be
+/// installed, instead of retrieving it from Builder.
+///
+/// In either case, however, any dependencies of will be retrieved
+/// from Builder.
+///
+/// At the end of this function, the specified package and all its
+/// dependencies will be installed on the system.
+
+// TODO (CM): Consider passing in a configured depot client instead of
+// product / version... That might make it easier to share with the
+// `sup` crate
 pub fn start<P1, P2>(
     ui: &mut UI,
     url: &str,
     channel: Option<&str>,
-    ident_or_archive: &str,
+    install_source: &InstallSource,
     product: &str,
     version: &str,
-    fs_root_path: &P1,
-    cache_artifact_path: &P2,
+    fs_root_path: P1,
+    artifact_cache_path: P2,
     ignore_target: bool,
-) -> Result<PackageIdent>
+) -> Result<PackageInstall>
 where
-    P1: AsRef<Path> + ?Sized,
-    P2: AsRef<Path> + ?Sized,
+    P1: AsRef<Path>,
+    P2: AsRef<Path>,
 {
     if env::var_os("HAB_NON_ROOT").is_none() && !am_i_root() {
         ui.warn(
@@ -90,45 +200,146 @@ where
         product,
         version,
         fs_root_path.as_ref(),
-        cache_artifact_path.as_ref(),
+        artifact_cache_path.as_ref(),
         &cache_key_path,
         ignore_target,
     )?;
 
-    if Path::new(ident_or_archive).is_file() {
-        task.from_artifact(ui, &Path::new(ident_or_archive))
-    } else {
-        task.from_ident(ui, PackageIdent::from_str(ident_or_archive)?, channel)
+    match *install_source {
+        InstallSource::Ident(ref ident) => task.from_ident(ui, ident.clone(), channel),
+        InstallSource::Archive(ref local_archive) => task.from_archive(ui, local_archive),
     }
 }
 
 struct InstallTask<'a> {
     depot_client: Client,
     fs_root_path: &'a Path,
-    cache_artifact_path: &'a Path,
+    /// The path to the local artifact cache (e.g., /hab/cache/artifacts)
+    artifact_cache_path: &'a Path,
     cache_key_path: &'a Path,
     ignore_target: bool,
 }
 
 impl<'a> InstallTask<'a> {
-    pub fn new(
+    fn new(
         url: &str,
         product: &str,
         version: &str,
         fs_root_path: &'a Path,
-        cache_artifact_path: &'a Path,
+        artifact_cache_path: &'a Path,
         cache_key_path: &'a Path,
         ignore_target: bool,
     ) -> Result<Self> {
         Ok(InstallTask {
             depot_client: Client::new(url, product, version, Some(fs_root_path))?,
             fs_root_path: fs_root_path,
-            cache_artifact_path: cache_artifact_path,
+            artifact_cache_path: artifact_cache_path,
             cache_key_path: cache_key_path,
             ignore_target: ignore_target,
         })
     }
 
+    /// Install a package from the Depot, based on a given identifier.
+    ///
+    /// If the identifier is fully-qualified, that specific package
+    /// release will be installed (if it exists on Builder).
+    ///
+    /// However, if the identifier is _not_ fully-qualified, the
+    /// latest version from the given channel will be installed
+    /// instead.
+    ///
+    /// In either case, the identifier returned will be the
+    /// fully-qualified identifier of package that was infstalled
+    /// (which, as we have seen, may not be the same as the identifier
+    /// that was passed in).
+    fn from_ident(
+        &self,
+        ui: &mut UI,
+        ident: PackageIdent,
+        channel: Option<&str>,
+    ) -> Result<PackageInstall> {
+        if channel.is_some() {
+            ui.begin(format!(
+                "Installing {} from channel '{}'",
+                &ident,
+                channel.unwrap()
+            ))?;
+        } else {
+            ui.begin(format!("Installing {}", &ident))?;
+        }
+
+
+        // The "target_ident" will be the fully-qualified identifier
+        // of the package we will ultimately install, once we
+        // determine if we need to get a more recent version or not.
+        let target_ident = if !ident.fully_qualified() {
+            match self.fetch_latest_pkg_ident_for(&ident, channel) {
+                Ok(latest_ident) => latest_ident,
+                Err(Error::DepotClient(APIError(StatusCode::NotFound, _))) => {
+                    if let Ok(recommendations) = self.get_channel_recommendations(&ident) {
+                        if !recommendations.is_empty() {
+                            ui.warn(
+                                "The package does not have any versions in the specified channel.",
+                            )?;
+                            ui.warn(
+                                "Did you intend to install one of the folowing instead?",
+                            )?;
+                            for r in recommendations {
+                                ui.warn(format!("  {} in channel {}", r.1, r.0))?;
+                            }
+                        }
+                    }
+
+                    return Err(Error::PackageNotFound);
+                }
+                Err(e) => {
+                    debug!("error fetching ident: {:?}", e);
+                    return Err(e);
+                }
+            }
+        } else {
+            // This is just outputting some information in case the
+            // fully-qualified identifier we were given isn't actually
+            // in this channel. It shouldn't matter, though, because we've got
+            // a fully-qualified identifier.
+            if let Some(channel) = channel {
+                let ch = channel.to_string();
+                match self.depot_client.package_channels(&ident) {
+                    Ok(channels) => {
+                        if channels.iter().find(|ref c| ***c == ch).is_none() {
+                            ui.warn(format!(
+                                "Can not find {} in the {} channel but installing anyway since the package ident was fully qualified.", &ident, &ch
+                            ))?;
+                        }
+                    }
+                    Err(e) => {
+                        debug!("Failed to get channel list: {:?}", e);
+                        return Err(Error::ChannelNotFound);
+                    }
+                };
+            }
+
+            ident
+        };
+
+        match self.installed_package(&target_ident) {
+            Some(package_install) => {
+                ui.status(Status::Using, &target_ident)?;
+                ui.end(format!(
+                    "Install of {} complete with {} new packages installed.",
+                    &target_ident,
+                    0
+                ))?;
+                Ok(package_install)
+            }
+            None => self.install_package(ui, &target_ident),
+        }
+    }
+
+    /// Get a list of suggested package identifiers from all
+    /// channels. This is used to generate actionable user feedback
+    /// when the desired package was not found in the specified
+    /// channel.
     fn get_channel_recommendations(&self, ident: &PackageIdent) -> Result<Vec<(String, String)>> {
         let mut res = Vec::new();
 
@@ -150,190 +361,121 @@ impl<'a> InstallTask<'a> {
         Ok(res)
     }
 
-    pub fn from_ident(
-        &self,
-        ui: &mut UI,
-        ident: PackageIdent,
-        channel: Option<&str>,
-    ) -> Result<PackageIdent> {
-        if channel.is_some() {
-            ui.begin(format!(
-                "Installing {} from channel '{}'",
-                &ident,
-                channel.unwrap()
-            ))?;
-        } else {
-            ui.begin(format!("Installing {}", &ident))?;
-        }
-
-        let mut ident = ident;
-        if !ident.fully_qualified() {
-            ident = match self.fetch_latest_pkg_ident_for(&ident, channel) {
-                Ok(ident) => ident,
-                Err(Error::DepotClient(APIError(StatusCode::NotFound, _))) => {
-                    match self.get_channel_recommendations(&ident) {
-                        Ok(channels) => {
-                            if !channels.is_empty() {
-                                ui.warn(
-                                    "The package does not have any versions in the specified channel.",
-                                )?;
-                                ui.warn(
-                                    "Did you intend to install one of the folowing instead?",
-                                )?;
-                                for c in channels {
-                                    ui.warn(format!("  {} in channel {}", c.1, c.0))?;
-                                }
-                            }
-                        }
-                        Err(_) => (),
-                    }
-                    return Err(Error::PackageNotFound);
-                }
-                Err(e) => {
-                    debug!("error fetching ident: {:?}", e);
-                    return Err(e);
-                }
+    /// Given an archive on disk, ensure that it is properly installed
+    /// and return the package's identifier.
+    fn from_archive(&self, ui: &mut UI, local_archive: &LocalArchive) -> Result<PackageInstall> {
+        let ref ident = local_archive.ident;
+        match self.installed_package(ident) {
+            Some(package_install) => {
+                ui.status(Status::Using, ident)?;
+                ui.end(format!(
+                    "Install of {} complete with {} new packages installed.",
+                    ident,
+                    0
+                ))?;
+                Ok(package_install)
             }
-        } else {
-            if channel.is_some() {
-                let ch = channel.unwrap().to_string();
-                match self.depot_client.package_channels(&ident) {
-                    Ok(channels) => {
-                        if channels.iter().find(|ref c| ***c == ch).is_none() {
-                            ui.warn(format!(
-                                "Can not find {} in the {} channel but installing anyway since the package ident was fully qualified.", &ident, &ch
-                            ))?;
-                        }
-                    }
-                    Err(e) => {
-                        debug!("Failed to get channel list: {:?}", e);
-                        return Err(Error::ChannelNotFound);
-                    }
-                };
+            None => {
+                self.store_artifact_in_cache(ident, &local_archive.path)?;
+                self.install_package(ui, ident)
             }
         }
-
-        if self.is_package_installed(&ident)? {
-            ui.status(Status::Using, &ident)?;
-            ui.end(format!(
-                "Install of {} complete with {} new packages installed.",
-                &ident,
-                0
-            ))?;
-            return Ok(ident);
-        }
-
-        self.install_package(ui, ident, None)
     }
 
-    pub fn from_artifact(&self, ui: &mut UI, artifact_path: &Path) -> Result<PackageIdent> {
-        let ident = PackageArchive::new(artifact_path).ident()?;
-        if self.is_package_installed(&ident)? {
-            ui.status(Status::Using, &ident)?;
-            ui.end(format!(
-                "Install of {} complete with {} new packages installed.",
-                &ident,
-                0
-            ))?;
-            return Ok(ident);
-        }
-        self.cache_artifact(&ident, artifact_path)?;
-        let src_path = artifact_path.parent().unwrap();
+    /// Given the identifier of an artifact, ensure that the artifact,
+    /// as well as all its dependencies, have been cached and
+    /// installed.
+    ///
+    /// If the package is already present in the cache, it is not
+    /// re-downloaded. Any dependencies of the package that are not
+    /// installed will be re-cached (as needed) and installed.
+    fn install_package(&self, ui: &mut UI, ident: &PackageIdent) -> Result<PackageInstall> {
+        let mut artifact = self.get_cached_artifact(ui, ident)?;
 
-        self.install_package(ui, ident, Some(src_path))
-    }
-
-    fn install_package(
-        &self,
-        ui: &mut UI,
-        ident: PackageIdent,
-        src_path: Option<&Path>,
-    ) -> Result<PackageIdent> {
-        let mut artifact = self.get_cached_artifact(ui, ident.clone(), src_path)?;
-        let mut artifacts: Vec<PackageArchive> = Vec::new();
-
-        for ident in artifact.tdeps()? {
-            if self.is_package_installed(&ident)? {
-                ui.status(Status::Using, &ident)?;
+        // Ensure that all transitive dependencies, as well as the
+        // original package itself, are cached locally.
+        let dependencies = artifact.tdeps()?;
+        let mut artifacts_to_install = Vec::with_capacity(dependencies.len() + 1);
+        for dependency in dependencies.iter() {
+            if self.installed_package(dependency).is_some() {
+                ui.status(Status::Using, dependency)?;
             } else {
-                artifacts.push(self.get_cached_artifact(ui, ident, src_path)?);
+                artifacts_to_install.push(self.get_cached_artifact(ui, dependency)?);
             }
         }
-        artifacts.push(artifact);
+        // The package we're actually trying to install goes last; we
+        // want to ensure that its dependencies get installed before
+        // it does.
+        artifacts_to_install.push(artifact);
 
-        let num_installed = artifacts.len();
-        for mut artifact in artifacts {
-            self.extract_artifact(ui, &mut artifact)?;
+        // Ensure all uninstalled artifacts get installed
+        for artifact in artifacts_to_install.iter_mut() {
+            self.unpack_artifact(ui, artifact)?;
         }
+
         ui.end(format!(
             "Install of {} complete with {} new packages installed.",
-            &ident,
-            num_installed
+            ident,
+            artifacts_to_install.len()
         ))?;
-        Ok(ident)
+
+        // Return the thing we just installed
+        PackageInstall::load(ident, Some(self.fs_root_path)).map_err(Error::from)
     }
 
-    fn get_cached_artifact(
-        &self,
-        ui: &mut UI,
-        ident: PackageIdent,
-        src_path: Option<&Path>,
-    ) -> Result<PackageArchive> {
+    /// This ensures the identified package is in the local cache,
+    /// verifies it, and returns a handle to the package's metadata.
+    fn get_cached_artifact(&self, ui: &mut UI, ident: &PackageIdent) -> Result<PackageArchive> {
         if self.is_artifact_cached(&ident)? {
             debug!(
                 "Found {} in artifact cache, skipping remote download",
-                &ident
+                ident
             );
         } else {
-            if retry(RETRIES,
-                     RETRY_WAIT,
-                     || self.fetch_artifact(ui, &ident, src_path),
-                     |res| res.is_ok())
-                       .is_err() {
-                return Err(Error::from(depot_client::Error::DownloadFailed(format!("We tried {} \
-                                                                                    times but \
-                                                                                    could not \
-                                                                                    download {}. \
-                                                                                    Giving up.",
-                                                                                   RETRIES,
-                                                                                   &ident))));
+            if retry(
+                RETRIES,
+                RETRY_WAIT,
+                || self.fetch_artifact(ui, ident),
+                |res| res.is_ok(),
+            ).is_err()
+            {
+                return Err(Error::from(depot_client::Error::DownloadFailed(format!(
+                    "We tried {} times but could not download {}. Giving up.",
+                    RETRIES,
+                    ident
+                ))));
             }
         }
 
-        let mut artifact = PackageArchive::new(self.cached_artifact_path(&ident)?);
+        let mut artifact = PackageArchive::new(self.cached_artifact_path(ident)?);
         ui.status(Status::Verifying, artifact.ident()?)?;
-        self.verify_artifact(ui, &ident, &mut artifact)?;
+        self.verify_artifact(ui, ident, &mut artifact)?;
         Ok(artifact)
     }
 
-    fn extract_artifact(&self, ui: &mut UI, artifact: &mut PackageArchive) -> Result<()> {
+    /// Adapter function wrapping `PackageArchive::unpack`
+    fn unpack_artifact(&self, ui: &mut UI, artifact: &mut PackageArchive) -> Result<()> {
         artifact.unpack(Some(self.fs_root_path))?;
         ui.status(Status::Installed, artifact.ident()?)?;
         Ok(())
     }
 
-    fn is_package_installed(&self, ident: &PackageIdent) -> Result<bool> {
-        match PackageInstall::load(ident, Some(self.fs_root_path)) {
-            Ok(_) => Ok(true),
-            Err(hcore::Error::PackageNotFound(_)) => Ok(false),
-            Err(e) => Err(Error::HabitatCore(e)),
-        }
+    /// Adapter function to retrieve an installed package given an
+    /// identifier, if it exists.
+    fn installed_package(&self, ident: &PackageIdent) -> Option<PackageInstall> {
+        PackageInstall::load(ident, Some(self.fs_root_path)).ok()
     }
 
     fn is_artifact_cached(&self, ident: &PackageIdent) -> Result<bool> {
         Ok(self.cached_artifact_path(ident)?.is_file())
     }
 
+    /// Returns the path to the location this package would exist at in
+    /// the local package cache. It does not mean that the package is
+    /// actually *in* the package cache, though.
     fn cached_artifact_path(&self, ident: &PackageIdent) -> Result<PathBuf> {
-        let name = match ident.archive_name() {
-            Some(n) => n,
-            None => {
-                return Err(Error::HabitatCore(
-                    hcore::Error::InvalidPackageIdent(ident.to_string()),
-                ))
-            }
-        };
-        Ok(self.cache_artifact_path.join(name))
+        let name = fully_qualified_archive_name(ident)?;
+        Ok(self.artifact_cache_path.join(name))
     }
 
     fn fetch_latest_pkg_ident_for(
@@ -344,32 +486,13 @@ impl<'a> InstallTask<'a> {
         Ok(self.depot_client.show_package(ident, channel)?.into())
     }
 
-    fn fetch_artifact(
-        &self,
-        ui: &mut UI,
-        ident: &PackageIdent,
-        src_path: Option<&Path>,
-    ) -> Result<()> {
-        if let Some(src_path) = src_path {
-            let name = match ident.archive_name() {
-                Some(n) => n,
-                None => {
-                    return Err(Error::HabitatCore(
-                        hcore::Error::InvalidPackageIdent(ident.to_string()),
-                    ))
-                }
-            };
-            let local_artifact = src_path.join(name);
-            if local_artifact.is_file() {
-                self.cache_artifact(ident, &local_artifact)?;
-                return Ok(());
-            }
-        }
-
+    /// Retrieve the identified package from the depot, ensuring that
+    /// the artifact is cached locally.
+    fn fetch_artifact(&self, ui: &mut UI, ident: &PackageIdent) -> Result<()> {
         ui.status(Status::Downloading, ident)?;
         match self.depot_client.fetch_package(
             ident,
-            self.cache_artifact_path,
+            self.artifact_cache_path,
             ui.progress(),
         ) {
             Ok(_) => Ok(()),
@@ -403,17 +526,11 @@ impl<'a> InstallTask<'a> {
         Ok(())
     }
 
-    fn cache_artifact(&self, ident: &PackageIdent, artifact_path: &Path) -> Result<()> {
-        let name = match ident.archive_name() {
-            Some(n) => n,
-            None => {
-                return Err(Error::HabitatCore(
-                    hcore::Error::InvalidPackageIdent(ident.to_string()),
-                ))
-            }
-        };
-        fs::create_dir_all(self.cache_artifact_path)?;
-        fs::copy(artifact_path, self.cache_artifact_path.join(name))?;
+    /// Copies the artifact to the local artifact cache directory
+    fn store_artifact_in_cache(&self, ident: &PackageIdent, artifact_path: &Path) -> Result<()> {
+        let cache_path = self.cached_artifact_path(ident)?;
+        fs::create_dir_all(self.artifact_cache_path)?;
+        fs::copy(artifact_path, cache_path)?;
         Ok(())
     }
 
@@ -448,4 +565,15 @@ impl<'a> InstallTask<'a> {
         debug!("Verified {} signed by {}", ident, &nwr);
         Ok(())
     }
+}
+
+/// Adapter function wrapping `PackageIdent::archive_name` that
+/// returns an error if the identifier is not fully-qualified
+/// (only fully-qualified identifiers can yield an archive name).
+fn fully_qualified_archive_name(ident: &PackageIdent) -> Result<String> {
+    ident.archive_name().ok_or(Error::HabitatCore(
+        hcore::Error::FullyQualifiedPackageIdentRequired(
+            ident.to_string(),
+        ),
+    ))
 }

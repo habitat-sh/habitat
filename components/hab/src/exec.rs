@@ -66,11 +66,12 @@ where
                 Status::Missing,
                 format!("package for {}", &ident),
             )?;
+
             common::command::package::install::start(
                 ui,
                 &default_bldr_url(),
                 None,
-                &ident.to_string(),
+                &ident.clone().into(),
                 PRODUCT,
                 VERSION,
                 fs_root_path,

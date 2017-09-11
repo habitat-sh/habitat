@@ -86,13 +86,19 @@ pub fn start(
     Ok(())
 }
 
-pub fn binlink_all_in_pkg(
+pub fn binlink_all_in_pkg<F, D>(
     ui: &mut UI,
     pkg_ident: &PackageIdent,
-    dest_path: &Path,
-    fs_root_path: &Path,
+    dest_path: D,
+    fs_root_path: F,
     force: bool,
-) -> Result<()> {
+) -> Result<()>
+where
+    D: AsRef<Path>,
+    F: AsRef<Path>,
+{
+    let fs_root_path = fs_root_path.as_ref();
+
     let pkg_path = PackageInstall::load(&pkg_ident, Some(fs_root_path))?;
     for bin_path in pkg_path.paths()? {
         for bin in fs::read_dir(fs_root_path.join(bin_path.strip_prefix("/")?))? {
@@ -104,7 +110,14 @@ pub fn binlink_all_in_pkg(
                     continue;
                 }
             };
-            self::start(ui, &pkg_ident, &bin_name, &dest_path, &fs_root_path, force)?;
+            self::start(
+                ui,
+                &pkg_ident,
+                &bin_name,
+                dest_path.as_ref(),
+                &fs_root_path,
+                force,
+            )?;
         }
     }
     Ok(())

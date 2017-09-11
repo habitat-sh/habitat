@@ -38,6 +38,7 @@ use std::thread;
 
 use clap::{ArgMatches, Shell};
 
+use common::command::package::install::InstallSource;
 use common::ui::{Coloring, UI, NOCOLORING_ENVVAR, NONINTERACTIVE_ENVVAR};
 use hcore::channel;
 use hcore::crypto::{init, default_cache_key_path, SigKeyPair};
@@ -232,8 +233,7 @@ fn sub_cli_completers(m: &ArgMatches) -> Result<()> {
 fn sub_origin_key_download(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let origin = m.value_of("ORIGIN").unwrap(); // Required via clap
     let revision = m.value_of("REVISION");
-    let env_or_default = default_bldr_url();
-    let url = m.value_of("BLDR_URL").unwrap_or(&env_or_default);
+    let url = bldr_url_from_matches(m);
 
     command::origin::key::download::start(
         ui,
@@ -268,8 +268,7 @@ fn sub_origin_key_import(ui: &mut UI) -> Result<()> {
 }
 
 fn sub_origin_key_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
-    let env_or_default = default_bldr_url();
-    let url = m.value_of("BLDR_URL").unwrap_or(&env_or_default);
+    let url = bldr_url_from_matches(m);
     let token = auth_token_param_or_env(&m)?;
 
     init();
@@ -280,7 +279,7 @@ fn sub_origin_key_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
         let with_secret = m.is_present("WITH_SECRET");
         command::origin::key::upload_latest::start(
             ui,
-            url,
+            &url,
             &token,
             origin,
             with_secret,
@@ -289,14 +288,13 @@ fn sub_origin_key_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     } else {
         let keyfile = Path::new(m.value_of("PUBLIC_FILE").unwrap());
         let secret_keyfile = m.value_of("SECRET_FILE").map(|f| Path::new(f));
-        command::origin::key::upload::start(ui, url, &token, &keyfile, secret_keyfile)
+        command::origin::key::upload::start(ui, &url, &token, &keyfile, secret_keyfile)
     }
 }
 
 fn sub_pkg_binlink(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
-    let env_or_default = default_binlink_dir();
-    let dest_dir = Path::new(m.value_of("DEST_DIR").unwrap_or(&env_or_default));
+    let dest_dir = dest_dir_from_matches(m);
     let force = m.is_present("FORCE");
     match m.value_of("BINARY") {
         Some(binary) => {
@@ -360,8 +358,7 @@ fn sub_pkg_exec(m: &ArgMatches, cmd_args: Vec<OsString>) -> Result<()> {
 fn sub_pkg_export(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
     let format = &m.value_of("FORMAT").unwrap();
-    let env_or_default = default_bldr_url();
-    let url = m.value_of("BLDR_URL").unwrap_or(&env_or_default);
+    let url = bldr_url_from_matches(m);
     let channel = m.value_of("CHANNEL")
         .and_then(|c| Some(c.to_string()))
         .unwrap_or(channel::default());
@@ -389,8 +386,7 @@ fn sub_pkg_hash(m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_bldr_encrypt(ui: &mut UI, m: &ArgMatches) -> Result<()> {
-    let env_or_default = default_bldr_url();
-    let url = m.value_of("BLDR_URL").unwrap_or(&env_or_default);
+    let url = bldr_url_from_matches(m);
 
     let mut content = String::new();
     io::stdin().read_to_string(&mut content)?;
@@ -400,18 +396,16 @@ fn sub_bldr_encrypt(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_job_start(ui: &mut UI, m: &ArgMatches) -> Result<()> {
-    let env_or_default = default_bldr_url();
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
-    let url = m.value_of("BLDR_URL").unwrap_or(&env_or_default);
+    let url = bldr_url_from_matches(m);
     let group = m.is_present("GROUP");
     let token = auth_token_param_or_env(&m)?;
     command::job::start::start(ui, &url, &ident, &token, group)
 }
 
 fn sub_job_promote(ui: &mut UI, m: &ArgMatches) -> Result<()> {
-    let env_or_default = default_bldr_url();
+    let url = bldr_url_from_matches(m);
     let group_id = m.value_of("GROUP_ID").unwrap(); // Required via clap
-    let url = m.value_of("BLDR_URL").unwrap_or(&env_or_default);
     let channel = m.value_of("CHANNEL").unwrap(); // Required via clap
     let token = auth_token_param_or_env(&m)?;
     command::job::promote::start(ui, &url, &group_id, &channel, &token)
@@ -436,37 +430,67 @@ fn sub_plan_init(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     )
 }
 
-fn sub_pkg_install(ui: &mut UI, m: &ArgMatches) -> Result<()> {
-    let env_or_default = default_bldr_url();
-    let url = m.value_of("BLDR_URL").unwrap_or(&env_or_default);
-    let channel = m.value_of("CHANNEL")
+/// Resolve a Builder URL. Taken from the environment or from CLI args,
+/// if given.
+fn bldr_url_from_matches(matches: &ArgMatches) -> String {
+    match matches.value_of("BLDR_URL") {
+        Some(url) => url.to_string(),
+        None => default_bldr_url(),
+    }
+}
+
+/// Resolve a channel. Taken from the environment or from CLI args, if
+/// given.
+fn channel_from_matches(matches: &ArgMatches) -> String {
+    matches
+        .value_of("CHANNEL")
         .and_then(|c| Some(c.to_string()))
-        .unwrap_or(channel::default());
-    let ident_or_artifacts = m.values_of("PKG_IDENT_OR_ARTIFACT").unwrap(); // Required via clap
-    let ignore_target = if m.is_present("IGNORE_TARGET") {
-        true
-    } else {
-        false
-    };
+        .unwrap_or(channel::default())
+}
+
+fn dest_dir_from_matches(matches: &ArgMatches) -> PathBuf {
+    let env_or_default = default_binlink_dir();
+    Path::new(matches.value_of("DEST_DIR").unwrap_or(&env_or_default)).to_path_buf()
+}
+
+fn install_sources_from_matches(matches: &ArgMatches) -> Result<Vec<InstallSource>> {
+    matches.values_of("PKG_IDENT_OR_ARTIFACT")
+        .unwrap() // Required via clap
+        .map(|t| t.parse().map_err(Error::from))
+        .collect()
+}
+
+fn sub_pkg_install(ui: &mut UI, m: &ArgMatches) -> Result<()> {
+    let url = bldr_url_from_matches(m);
+    let channel = channel_from_matches(m);
+    let install_sources = install_sources_from_matches(m)?;
+    let ignore_target = m.is_present("IGNORE_TARGET");
+
     init();
 
-    for ident_or_artifact in ident_or_artifacts {
-        let pkg_ident = common::command::package::install::start(
+    for install_source in install_sources.iter() {
+        let pkg_install = common::command::package::install::start(
             ui,
-            url,
+            &url,
             Some(&channel),
-            ident_or_artifact,
+            install_source,
             PRODUCT,
             VERSION,
             &*FS_ROOT,
             &cache_artifact_path(Some(&*FS_ROOT)),
             ignore_target,
         )?;
+
         if m.is_present("BINLINK") {
-            let env_or_default = default_binlink_dir();
-            let dest_dir = Path::new(m.value_of("DEST_DIR").unwrap_or(&env_or_default));
+            let dest_dir = dest_dir_from_matches(m);
             let force = m.is_present("FORCE");
-            command::pkg::binlink::binlink_all_in_pkg(ui, &pkg_ident, &dest_dir, &*FS_ROOT, force)?;
+            command::pkg::binlink::binlink_all_in_pkg(
+                ui,
+                pkg_install.ident(),
+                dest_dir,
+                &*FS_ROOT,
+                force,
+            )?;
         }
     }
     Ok(())
@@ -488,8 +512,7 @@ fn sub_pkg_provides(m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_pkg_search(m: &ArgMatches) -> Result<()> {
-    let env_or_default = default_bldr_url();
-    let url = m.value_of("BLDR_URL").unwrap_or(&env_or_default);
+    let url = bldr_url_from_matches(m);
     let search_term = m.value_of("SEARCH_TERM").unwrap(); // Required via clap
     command::pkg::search::start(&search_term, &url)
 }
@@ -508,9 +531,8 @@ fn sub_pkg_sign(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_pkg_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
-    let env_or_default = default_bldr_url();
     let key_path = cache_key_path(Some(&*FS_ROOT));
-    let url = m.value_of("BLDR_URL").unwrap_or(&env_or_default);
+    let url = bldr_url_from_matches(m);
 
     // When packages are uploaded, they *always* go to `unstable`;
     // they can optionally get added to another channel, too.
@@ -546,8 +568,7 @@ fn sub_pkg_header(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_pkg_promote(ui: &mut UI, m: &ArgMatches) -> Result<()> {
-    let env_or_default = default_bldr_url();
-    let url = m.value_of("BLDR_URL").unwrap_or(&env_or_default);
+    let url = bldr_url_from_matches(m);
     let channel = m.value_of("CHANNEL").unwrap();
     let token = auth_token_param_or_env(&m)?;
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
@@ -555,8 +576,7 @@ fn sub_pkg_promote(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_pkg_demote(ui: &mut UI, m: &ArgMatches) -> Result<()> {
-    let env_or_default = default_bldr_url();
-    let url = m.value_of("BLDR_URL").unwrap_or(&env_or_default);
+    let url = bldr_url_from_matches(m);
     let channel = m.value_of("CHANNEL").unwrap();
     let token = auth_token_param_or_env(&m)?;
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
@@ -564,8 +584,7 @@ fn sub_pkg_demote(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_pkg_channels(ui: &mut UI, m: &ArgMatches) -> Result<()> {
-    let env_or_default = default_bldr_url();
-    let url = m.value_of("BLDR_URL").unwrap_or(&env_or_default);
+    let url = bldr_url_from_matches(m);
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
 
     command::pkg::channels::start(ui, &url, &ident)

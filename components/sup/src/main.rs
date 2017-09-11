@@ -36,13 +36,15 @@ use std::str::FromStr;
 
 use ansi_term::Colour::{Red, Yellow};
 use clap::{App, ArgMatches};
+use common::command::package::install::InstallSource;
 use common::ui::UI;
 use hcore::channel;
 use hcore::crypto::{self, default_cache_key_path, SymKey};
 #[cfg(windows)]
 use hcore::crypto::dpapi::encrypt;
 use hcore::env as henv;
-use hcore::package::{PackageArchive, PackageIdent};
+use hcore::fs;
+use hcore::package::PackageIdent;
 use hcore::service::{ApplicationEnvironment, ServiceGroup};
 use hcore::url::default_bldr_url;
 use launcher_client::{LauncherCli, ERR_NO_RETRY_EXCODE, OK_NO_RETRY_EXCODE};
@@ -472,7 +474,14 @@ fn sub_load(m: &ArgMatches) -> Result<()> {
         hcore::output::set_no_color(true);
     }
     let cfg = mgrcfg_from_matches(m)?;
+
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
+    // While an InstallSource can be created from a string, that would
+    // permit the use of an ident or a file path; this command
+    // currently explicitly calls for an ident, so we generate the
+    // InstallSource directly from a valid PackageIdent instead.
+    let install_source = ident.clone().into();
+
     let default_spec = ServiceSpec::default_for(ident);
     let spec_file = Manager::spec_path_for(&cfg, &default_spec);
     if let Ok(spec) = ServiceSpec::from_file(&spec_file) {
@@ -482,9 +491,15 @@ fn sub_load(m: &ArgMatches) -> Result<()> {
     }
     let mut spec = spec_from_matches(default_spec.ident, m)?;
     spec.start_style = StartStyle::Persistent;
-    util::pkg::install_from_spec(&mut UI::default(), &spec)?;
 
-    Manager::save_spec_for(&cfg, spec.clone())?;
+    util::pkg::install(
+        &mut UI::default(),
+        &spec.bldr_url,
+        &install_source,
+        &spec.channel,
+    )?;
+
+    Manager::save_spec_for(&cfg, &spec)?;
     outputln!("The {} service was successfully loaded", spec.ident);
     Ok(())
 }
@@ -530,58 +545,85 @@ fn sub_start(m: &ArgMatches, launcher: LauncherCli) -> Result<()> {
         hcore::output::set_no_color(true);
     }
     let cfg = mgrcfg_from_matches(m)?;
-    let mut maybe_local_artifact: Option<&str> = None;
-    let maybe_spec = match m.value_of("PKG_IDENT_OR_ARTIFACT") {
-        Some(ident_or_artifact) => {
-            let ident = if Path::new(ident_or_artifact).is_file() {
-                maybe_local_artifact = Some(ident_or_artifact);
-                PackageArchive::new(Path::new(ident_or_artifact)).ident()?
+
+    let mut ui = UI::default();
+    if !fs::am_i_root() {
+        ui.warn(
+            "Running the Habitat Supervisor with root or superuser privileges is recommended",
+        )?;
+        ui.br()?;
+    }
+
+    // PKG_IDENT_OR_ARTIFACT is required, so unwrap() is safe here
+    let ident_or_artifact = m.value_of("PKG_IDENT_OR_ARTIFACT").unwrap();
+    let install_source: InstallSource = ident_or_artifact.parse()?;
+    let ident: &PackageIdent = install_source.as_ref();
+
+    // NOTE: As coded, if you try to start a service from a hart file,
+    // but you already have a spec for that service (regardless of
+    // version), you're not going to ever install your hart file, and
+    // the spec isn't going to be updated to point to that exact
+    // version.
+    let spec = match existing_spec_for_ident(&cfg, ident.clone()) {
+        Some(mut spec) => {
+            if spec.desired_state == DesiredState::Down {
+                spec.desired_state = DesiredState::Up;
+                spec
             } else {
-                PackageIdent::from_str(ident_or_artifact)?
-            };
-            let default_spec = ServiceSpec::default_for(ident);
-            let spec_file = Manager::spec_path_for(&cfg, &default_spec);
-            match ServiceSpec::from_file(&spec_file) {
-                Ok(mut spec) => {
-                    if spec.desired_state == DesiredState::Down {
-                        spec.desired_state = DesiredState::Up;
-                        Some(spec)
-                    } else {
-                        if !Manager::is_running(&cfg)? {
-                            let mut manager = Manager::load(cfg, launcher)?;
-                            return manager.run();
-                        } else {
-                            process::exit(OK_NO_RETRY_EXCODE);
-                        }
-                    }
-                }
-                Err(_) => {
-                    let spec = spec_from_matches(default_spec.ident, m)?;
-                    util::pkg::install_from_spec(&mut UI::default(), &spec)?;
-                    Some(spec)
+                if !Manager::is_running(&cfg)? {
+                    let mut manager = Manager::load(cfg, launcher)?;
+                    return manager.run();
+                } else {
+                    process::exit(OK_NO_RETRY_EXCODE);
                 }
             }
         }
-        None => None,
+        None => {
+            let depot_url = bldr_url_from_matches(m);
+            let channel = channel_from_matches(m);
+            util::pkg::install(&mut UI::default(), &depot_url, &install_source, &channel)?;
+
+            // The spec file that we write out should respect the
+            // identifier the user passed in. If the user gave a hart
+            // file, this will be a fully-qualified
+            // identifier. However, note that a fully-qualified
+            // identifier in a spec file will result in a service that
+            // will never upgrade.
+            //
+            // Because of this, we should take care to use `ident`,
+            // rather than the identifier from the PackageInstall that
+            // comes back from installing the package, because the
+            // latter will *always* be a fully-qualified identifier.
+            spec_from_matches(ident.clone(), m)?
+        }
     };
 
-    let running = Manager::is_running(&cfg)?;
-    command::start::run(
-        cfg.clone(),
-        launcher,
-        maybe_spec.clone(),
-        maybe_local_artifact,
-    )?;
+    Manager::save_spec_for(&cfg, &spec)?;
 
-    if running {
-        if let Some(spec) = maybe_spec {
-            outputln!(
-                "Supervisor starting {}. See the Supervisor output for more details.",
-                spec.ident
-            );
-        }
+    if Manager::is_running(&cfg)? {
+        outputln!(
+            "Supervisor starting {}. See the Supervisor output for more details.",
+            spec.ident
+        );
+    } else {
+        let mut manager = Manager::load(cfg, launcher)?;
+        manager.run()?
     }
+
     Ok(())
+}
+
+// Given a package identifier, return the ServiceSpec for that
+// package, if it already exists in this supervisor.
+//
+// TODO (CM): passing ownership of the PackageIdent here is gross, and
+// we shouldn't need it... we're ultimately just trying to generate a
+// file path from data in that file. Once we stop using
+// `ServiceSpec::default_for()`, we can pass a reference here instead.
+fn existing_spec_for_ident(cfg: &ManagerConfig, ident: PackageIdent) -> Option<ServiceSpec> {
+    let default_spec = ServiceSpec::default_for(ident);
+    let spec_file = Manager::spec_path_for(cfg, &default_spec);
+    ServiceSpec::from_file(&spec_file).ok()
 }
 
 fn sub_status(m: &ArgMatches) -> Result<()> {
@@ -632,7 +674,7 @@ fn sub_stop(m: &ArgMatches) -> Result<()> {
     let spec_file = Manager::spec_path_for(&cfg, &ServiceSpec::default_for(ident));
     let mut spec = ServiceSpec::from_file(&spec_file)?;
     spec.desired_state = DesiredState::Down;
-    Manager::save_spec_for(&cfg, spec)
+    Manager::save_spec_for(&cfg, &spec)
 }
 
 fn sub_term(m: &ArgMatches) -> Result<()> {
@@ -650,13 +692,8 @@ fn mgrcfg_from_matches(m: &ArgMatches) -> Result<ManagerConfig> {
     let mut cfg = ManagerConfig::default();
 
     cfg.auto_update = m.is_present("AUTO_UPDATE");
-    cfg.update_url = match m.value_of("BLDR_URL") {
-        Some(url) => url.to_string(),
-        None => default_bldr_url(),
-    };
-    cfg.update_channel = m.value_of("CHANNEL")
-        .and_then(|c| Some(c.to_string()))
-        .unwrap_or(channel::default());
+    cfg.update_url = bldr_url_from_matches(m);
+    cfg.update_channel = channel_from_matches(m);
     if let Some(addr_str) = m.value_of("LISTEN_GOSSIP") {
         cfg.gossip_listen = GossipListenAddr::from_str(addr_str)?;
     }
@@ -744,6 +781,24 @@ fn mgrcfg_from_matches(m: &ArgMatches) -> Result<ManagerConfig> {
     Ok(cfg)
 }
 
+/// Resolve a Builder URL. Taken from the environment or from CLI args,
+/// if given.
+fn bldr_url_from_matches(matches: &ArgMatches) -> String {
+    match matches.value_of("BLDR_URL") {
+        Some(url) => url.to_string(),
+        None => default_bldr_url(),
+    }
+}
+
+/// Resolve a channel. Taken from the environment or from CLI args, if
+/// given.
+fn channel_from_matches(matches: &ArgMatches) -> String {
+    matches
+        .value_of("CHANNEL")
+        .and_then(|c| Some(c.to_string()))
+        .unwrap_or(channel::default())
+}
+
 fn spec_from_matches(ident: PackageIdent, m: &ArgMatches) -> Result<ServiceSpec> {
     let mut spec = ServiceSpec::default_for(ident);
     if let Some(group) = m.value_of("GROUP") {
@@ -755,13 +810,8 @@ fn spec_from_matches(ident: PackageIdent, m: &ArgMatches) -> Result<ServiceSpec>
             env.to_string(),
         )?);
     }
-    let env_or_default = default_bldr_url();
-    spec.bldr_url = m.value_of("BLDR_URL")
-        .unwrap_or(&env_or_default)
-        .to_string();
-    spec.channel = m.value_of("CHANNEL")
-        .and_then(|c| Some(c.to_string()))
-        .unwrap_or(channel::default());
+    spec.bldr_url = bldr_url_from_matches(m);
+    spec.channel = channel_from_matches(m);
     if let Some(topology) = m.value_of("TOPOLOGY") {
         spec.topology = Topology::from_str(topology)?;
     }
