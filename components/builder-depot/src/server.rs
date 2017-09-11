@@ -2557,7 +2557,8 @@ mod test {
                 "release":"20170101010103"
             }],
             "exposes":[],
-            "config":"config"
+            "config":"config",
+            "visibility": "public"
         });
 
         assert_eq!(json_body, expected_json);
@@ -2642,7 +2643,8 @@ mod test {
                 "release":"20170101010103"
             }],
             "exposes":[],
-            "config":"config"
+            "config":"config",
+            "visibility": "public"
         });
 
         assert_eq!(json_body, expected_json);
@@ -2741,7 +2743,8 @@ mod test {
                 "release":"20170101010103"
             }],
             "exposes":[],
-            "config":"config"
+            "config":"config",
+            "visibility": "public"
         });
 
         assert_eq!(json_body, expected_json);
@@ -2845,7 +2848,8 @@ mod test {
                 "release":"20170101010103"
             }],
             "exposes":[],
-            "config":"config"
+            "config":"config",
+            "visibility": "public"
         });
 
         assert_eq!(json_body, expected_json);

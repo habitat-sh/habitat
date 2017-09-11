@@ -48,7 +48,6 @@ pub fn job_get(req: &mut Envelope, sock: &mut zmq::Socket, state: &mut ServerSta
     let msg: proto::JobGet = req.parse_msg()?;
     match state.datastore().get_job(&msg) {
         Ok(Some(ref job)) => {
-            //let reply: proto::Job = job.into();
             req.reply_complete(sock, job)?;
         }
         Ok(None) => {
