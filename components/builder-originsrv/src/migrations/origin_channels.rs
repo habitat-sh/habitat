@@ -14,9 +14,9 @@
 
 use db::migration::Migrator;
 
-use error::Result;
+use error::SrvResult;
 
-pub fn migrate(migrator: &mut Migrator) -> Result<()> {
+pub fn migrate(migrator: &mut Migrator) -> SrvResult<()> {
     migrator.migrate(
         "originsrv",
         r#"CREATE SEQUENCE IF NOT EXISTS origin_channel_id_seq;"#,

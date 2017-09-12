@@ -15,6 +15,7 @@ doc = false
 clippy = {version = "*", optional = true}
 env_logger = "*"
 habitat-builder-protocol = { path = "../builder-protocol" }
+lazy_static = "*"
 log = "*"
 protobuf = "*"
 serde = "*"

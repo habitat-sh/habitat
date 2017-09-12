@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Copyright (c) 2016 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,10 +24,11 @@ extern crate habitat_builder_originsrv as originsrv;
 #[macro_use]
 extern crate log;
 
+use std::error;
 use std::process;
 
 use hab_core::config::ConfigFile;
-use originsrv::{Config, Error, Result};
+use originsrv::{Config, SrvResult};
 
 const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 const CFG_DEFAULT_PATH: &'static str = "/hab/svc/builder-originsrv/config.toml";
@@ -40,7 +41,7 @@ fn main() {
         Ok(result) => result,
         Err(e) => return exit_with(e, 1),
     };
-    match start(config) {
+    match originsrv::server::run(config) {
         Ok(_) => std::process::exit(0),
         Err(e) => exit_with(e, 1),
     }
@@ -60,7 +61,7 @@ fn app<'a, 'b>() -> clap::App<'a, 'b> {
     )
 }
 
-fn config_from_args(matches: &clap::ArgMatches) -> Result<Config> {
+fn config_from_args(matches: &clap::ArgMatches) -> SrvResult<Config> {
     let cmd = matches.subcommand_name().unwrap();
     let args = matches.subcommand_matches(cmd).unwrap();
     let config = match args.value_of("config") {
@@ -70,16 +71,10 @@ fn config_from_args(matches: &clap::ArgMatches) -> Result<Config> {
     Ok(config)
 }
 
-fn exit_with(err: Error, code: i32) {
+fn exit_with<T>(err: T, code: i32)
+where
+    T: error::Error,
+{
     println!("{}", err);
     process::exit(code)
-}
-
-/// Starts the builder-originsrv server.
-///
-/// # Failures
-///
-/// * Fails if the depot server fails to start - cannot bind to the port, etc.
-fn start(config: Config) -> Result<()> {
-    originsrv::server::run(config)
 }

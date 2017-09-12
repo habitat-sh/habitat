@@ -918,6 +918,7 @@ dependencies = [
  "habitat_builder_db 0.0.0",
  "habitat_core 0.0.0",
  "habitat_net 0.0.0",
+ "lazy_static 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "postgres 0.14.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "protobuf 1.2.2 (registry+https://github.com/rust-lang/crates.io-index)",

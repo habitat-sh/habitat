@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Copyright (c) 2016 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,26 +12,90 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-pub mod handlers;
+mod handlers;
 
-use std::ops::Deref;
-use std::sync::{Arc, RwLock};
-
-use protocol::net;
-use zmq;
-
-use hab_net::{Application, Supervisor};
-use hab_net::config::RouterCfg;
-use hab_net::routing::Broker;
-use hab_net::socket::DEFAULT_CONTEXT;
-use hab_net::dispatcher::prelude::*;
-use hab_net::server::{Envelope, NetIdent, RouteConn, Service};
+use hab_net::app::prelude::*;
+use protocol::originsrv::*;
 
 use config::Config;
 use data_store::DataStore;
-use error::{Error, Result};
+use error::{SrvError, SrvResult};
 
-const BE_LISTEN_ADDR: &'static str = "inproc://backend";
+lazy_static! {
+    static ref DISPATCH_TABLE: DispatchTable<OriginSrv> = {
+        let mut map = DispatchTable::new();
+        map.register(CheckOriginAccessRequest::descriptor_static(None),
+            handlers::origin_check_access);
+        map.register(OriginCreate::descriptor_static(None), handlers::origin_create);
+        map.register(OriginUpdate::descriptor_static(None), handlers::origin_update);
+        map.register(OriginGet::descriptor_static(None), handlers::origin_get);
+        map.register(OriginIntegrationGetNames::descriptor_static(None),
+            handlers::origin_integration_get_names);
+        map.register(OriginIntegrationCreate::descriptor_static(None),
+            handlers::origin_integration_create);
+        map.register(OriginIntegrationDelete::descriptor_static(None),
+            handlers::origin_integration_delete);
+        map.register(OriginIntegrationRequest::descriptor_static(None),
+            handlers::origin_integration_request);
+        map.register(OriginInvitationAcceptRequest::descriptor_static(None),
+            handlers::origin_invitation_accept);
+        map.register(OriginInvitationCreate::descriptor_static(None),
+            handlers::origin_invitation_create);
+        map.register(OriginInvitationListRequest::descriptor_static(None),
+            handlers::origin_invitation_list);
+        map.register(OriginMemberListRequest::descriptor_static(None),
+            handlers::origin_member_list);
+        map.register(OriginSecretKeyCreate::descriptor_static(None),
+            handlers::origin_secret_key_create);
+        map.register(OriginSecretKeyGet::descriptor_static(None),
+            handlers::origin_secret_key_get);
+        map.register(OriginPublicKeyCreate::descriptor_static(None),
+            handlers::origin_public_key_create);
+        map.register(OriginPublicKeyGet::descriptor_static(None),
+            handlers::origin_public_key_get);
+        map.register(OriginPublicKeyLatestGet::descriptor_static(None),
+            handlers::origin_public_key_latest_get);
+        map.register(OriginPublicKeyListRequest::descriptor_static(None),
+            handlers::origin_public_key_list);
+        map.register(OriginProjectCreate::descriptor_static(None), handlers::project_create);
+        map.register(OriginProjectDelete::descriptor_static(None), handlers::project_delete);
+        map.register(OriginProjectGet::descriptor_static(None), handlers::project_get);
+        map.register(OriginProjectUpdate::descriptor_static(None), handlers::project_update);
+        map.register(OriginPackageCreate::descriptor_static(None), handlers::origin_package_create);
+        map.register(OriginPackageGet::descriptor_static(None), handlers::origin_package_get);
+        map.register(OriginPackageLatestGet::descriptor_static(None),
+            handlers::origin_package_latest_get);
+        map.register(OriginPackageListRequest::descriptor_static(None),
+            handlers::origin_package_list);
+        map.register(OriginPackagePlatformListRequest::descriptor_static(None),
+            handlers::origin_package_platform_list);
+        map.register(OriginPackageChannelListRequest::descriptor_static(None),
+            handlers::origin_package_channel_list);
+        map.register(OriginPackageVersionListRequest::descriptor_static(None),
+            handlers::origin_package_version_list);
+        map.register(OriginPackageDemote::descriptor_static(None), handlers::origin_package_demote);
+        map.register(OriginPackageGroupPromote::descriptor_static(None),
+            handlers::origin_package_group_promote);
+        map.register(OriginPackagePromote::descriptor_static(None),
+            handlers::origin_package_promote);
+        map.register(OriginPackageUniqueListRequest::descriptor_static(None),
+            handlers::origin_package_unique_list);
+        map.register(OriginPackageSearchRequest::descriptor_static(None),
+            handlers::origin_package_search);
+        map.register(OriginChannelCreate::descriptor_static(None), handlers::origin_channel_create);
+        map.register(OriginChannelDelete::descriptor_static(None), handlers::origin_channel_delete);
+        map.register(OriginChannelGet::descriptor_static(None), handlers::origin_channel_get);
+        map.register(OriginChannelListRequest::descriptor_static(None),
+            handlers::origin_channel_list);
+        map.register(OriginChannelPackageGet::descriptor_static(None),
+            handlers::origin_channel_package_get);
+        map.register(OriginChannelPackageLatestGet::descriptor_static(None),
+            handlers::origin_channel_package_latest_get);
+        map.register(OriginChannelPackageListRequest::descriptor_static(None),
+            handlers::origin_channel_package_list);
+        map
+    };
+}
 
 #[derive(Clone)]
 pub struct ServerState {
@@ -39,193 +103,44 @@ pub struct ServerState {
 }
 
 impl ServerState {
-    pub fn new(datastore: DataStore) -> Self {
-        ServerState { datastore: datastore }
+    fn new(cfg: &Config, router_pipe: Arc<String>) -> SrvResult<Self> {
+        Ok(ServerState { datastore: DataStore::new(cfg, router_pipe)? })
     }
 }
 
-impl DispatcherState for ServerState {
-    fn is_initialized(&self) -> bool {
-        true
-    }
-}
-
-pub struct Worker {
-    #[allow(dead_code)]
-    config: Arc<RwLock<Config>>,
-}
-
-impl Dispatcher for Worker {
+impl AppState for ServerState {
     type Config = Config;
-    type Error = Error;
-    type InitState = ServerState;
+    type Error = SrvError;
+    type InitState = Self;
+
+    fn build(_config: &Self::Config, init_state: Self::InitState) -> SrvResult<Self> {
+        Ok(init_state)
+    }
+}
+
+struct OriginSrv;
+impl Dispatcher for OriginSrv {
+    const APP_NAME: &'static str = "builder-originsrv";
+    const PROTOCOL: Protocol = Protocol::OriginSrv;
+
+    type Error = SrvError;
     type State = ServerState;
 
-    fn message_queue() -> &'static str {
-        BE_LISTEN_ADDR
+    fn app_init(
+        config: &<Self::State as AppState>::Config,
+        router_pipe: Arc<String>,
+    ) -> SrvResult<<Self::State as AppState>::InitState> {
+        let state = ServerState::new(config, router_pipe)?;
+        state.datastore.setup()?;
+        state.datastore.start_async();
+        Ok(state)
     }
 
-    fn dispatch(
-        message: &mut Envelope,
-        sock: &mut zmq::Socket,
-        state: &mut ServerState,
-    ) -> Result<()> {
-        match message.message_id() {
-            "CheckOriginAccessRequest" => handlers::origin_check_access(message, sock, state),
-            "OriginCreate" => handlers::origin_create(message, sock, state),
-            "OriginUpdate" => handlers::origin_update(message, sock, state),
-            "OriginGet" => handlers::origin_get(message, sock, state),
-            "OriginIntegrationGetNames" => {
-                handlers::origin_integration_get_names(message, sock, state)
-            }
-            "OriginIntegrationCreate" => handlers::origin_integration_create(message, sock, state),
-            "OriginIntegrationDelete" => handlers::origin_integration_delete(message, sock, state),
-            "OriginIntegrationRequest" => {
-                handlers::origin_integration_request(message, sock, state)
-            }
-            "OriginInvitationAcceptRequest" => {
-                handlers::origin_invitation_accept(message, sock, state)
-            }
-            "OriginInvitationCreate" => handlers::origin_invitation_create(message, sock, state),
-            "OriginInvitationListRequest" => handlers::origin_invitation_list(message, sock, state),
-            "OriginMemberListRequest" => handlers::origin_member_list(message, sock, state),
-            "OriginSecretKeyCreate" => handlers::origin_secret_key_create(message, sock, state),
-            "OriginSecretKeyGet" => handlers::origin_secret_key_get(message, sock, state),
-            "OriginPublicKeyCreate" => handlers::origin_public_key_create(message, sock, state),
-            "OriginPublicKeyGet" => handlers::origin_public_key_get(message, sock, state),
-            "OriginPublicKeyLatestGet" => {
-                handlers::origin_public_key_latest_get(message, sock, state)
-            }
-            "OriginPublicKeyListRequest" => handlers::origin_public_key_list(message, sock, state),
-            "OriginProjectCreate" => handlers::project_create(message, sock, state),
-            "OriginProjectDelete" => handlers::project_delete(message, sock, state),
-            "OriginProjectGet" => handlers::project_get(message, sock, state),
-            "OriginProjectUpdate" => handlers::project_update(message, sock, state),
-            "OriginPackageCreate" => handlers::origin_package_create(message, sock, state),
-            "OriginPackageGet" => handlers::origin_package_get(message, sock, state),
-            "OriginPackageLatestGet" => handlers::origin_package_latest_get(message, sock, state),
-            "OriginPackageListRequest" => handlers::origin_package_list(message, sock, state),
-            "OriginPackagePlatformListRequest" => {
-                handlers::origin_package_platform_list(message, sock, state)
-            }
-            "OriginPackageChannelListRequest" => {
-                handlers::origin_package_channel_list(message, sock, state)
-            }
-            "OriginPackageVersionListRequest" => {
-                handlers::origin_package_version_list(message, sock, state)
-            }
-            "OriginPackageDemote" => handlers::origin_package_demote(message, sock, state),
-            "OriginPackageGroupPromote" => {
-                handlers::origin_package_group_promote(message, sock, state)
-            }
-            "OriginPackagePromote" => handlers::origin_package_promote(message, sock, state),
-            "OriginPackageUniqueListRequest" => {
-                handlers::origin_package_unique_list(message, sock, state)
-            }
-            "OriginPackageSearchRequest" => handlers::origin_package_search(message, sock, state),
-            "OriginChannelCreate" => handlers::origin_channel_create(message, sock, state),
-            "OriginChannelDelete" => handlers::origin_channel_delete(message, sock, state),
-            "OriginChannelGet" => handlers::origin_channel_get(message, sock, state),
-            "OriginChannelListRequest" => handlers::origin_channel_list(message, sock, state),
-            "OriginChannelPackageGet" => handlers::origin_channel_package_get(message, sock, state),
-            "OriginChannelPackageLatestGet" => {
-                handlers::origin_channel_package_latest_get(message, sock, state)
-            }
-            "OriginChannelPackageListRequest" => {
-                handlers::origin_channel_package_list(message, sock, state)
-            }
-            _ => {
-                debug!("dispatch: unhandled message: {}", message.message_id());
-                Ok(())
-            }
-        }
-    }
-
-    fn new(config: Arc<RwLock<Config>>) -> Self {
-        Worker { config: config }
+    fn dispatch_table() -> &'static DispatchTable<Self> {
+        &DISPATCH_TABLE
     }
 }
 
-pub struct Server {
-    config: Arc<RwLock<Config>>,
-    router: RouteConn,
-    be_sock: zmq::Socket,
-}
-
-impl Server {
-    pub fn new(config: Config) -> Result<Self> {
-        let router = RouteConn::new(Self::net_ident())?;
-        let be = (**DEFAULT_CONTEXT).as_mut().socket(zmq::DEALER)?;
-        Ok(Server {
-            config: Arc::new(RwLock::new(config)),
-            router: router,
-            be_sock: be,
-        })
-    }
-
-    pub fn reconfigure(&self, config: Config) -> Result<()> {
-        {
-            let mut cfg = self.config.write().unwrap();
-            *cfg = config;
-        }
-        // obtain lock and replace our config
-        // notify datastore to refresh it's connection if it needs to
-        // notify sockets to reconnect if changes
-        Ok(())
-    }
-}
-
-impl Application for Server {
-    type Error = Error;
-
-    fn run(&mut self) -> Result<()> {
-        self.be_sock.bind(BE_LISTEN_ADDR)?;
-        let broker = {
-            let cfg = self.config.read().unwrap();
-            Broker::run(Self::net_ident(), cfg.route_addrs())
-        };
-        let datastore = {
-            let cfg = self.config.read().unwrap();
-            DataStore::new(cfg.deref())?
-        };
-        datastore.setup()?;
-        datastore.start_async();
-        let cfg = self.config.clone();
-        let init_state = ServerState::new(datastore);
-        let sup: Supervisor<Worker> = Supervisor::new(cfg, init_state);
-        sup.start()?;
-        self.connect()?;
-        info!("builder-originsrv is ready to go.");
-        zmq::proxy(&mut self.router.socket, &mut self.be_sock)?;
-        broker.join().unwrap();
-        Ok(())
-    }
-}
-
-impl Service for Server {
-    type Application = Self;
-    type Config = Config;
-    type Error = Error;
-
-    fn protocol() -> net::Protocol {
-        net::Protocol::OriginSrv
-    }
-
-    fn config(&self) -> &Arc<RwLock<Self::Config>> {
-        &self.config
-    }
-
-    fn conn(&self) -> &RouteConn {
-        &self.router
-    }
-
-    fn conn_mut(&mut self) -> &mut RouteConn {
-        &mut self.router
-    }
-}
-
-impl NetIdent for Server {}
-
-pub fn run(config: Config) -> Result<()> {
-    Server::new(config)?.run()
+pub fn run(config: Config) -> AppResult<(), SrvError> {
+    app_start::<OriginSrv>(config)
 }
