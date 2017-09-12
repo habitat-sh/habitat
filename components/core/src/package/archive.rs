@@ -55,6 +55,9 @@ lazy_static! {
         map.insert(MetaFile::LdFlags,
                    Regex::new(&format!(r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
                               MetaFile::LdFlags)).unwrap());
+        map.insert(MetaFile::SvcUser,
+                   Regex::new(&format!(r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
+                              MetaFile::SvcUser)).unwrap());
         map.insert(MetaFile::Manifest,
                    Regex::new(&format!(r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
                               MetaFile::Manifest)).unwrap());
@@ -104,6 +107,17 @@ impl PackageArchive {
         match self.read_metadata(MetaFile::Config) {
             Ok(data) => Ok(data.cloned()),
             Err(e) => Err(e),
+        }
+    }
+
+    // hab-plan-build.sh only generates SVC_USER and SVC_GROUP files if it thinks a package is
+    // a service. It determines that by checking for the presence of a run hook file or a
+    // pkg_svc_run value. Therefore, if we can detect the presence of a SVC_USER file, we can
+    // consider this archive a service.
+    pub fn is_a_service(&mut self) -> bool {
+        match self.svc_user() {
+            Ok(_) => true,
+            _ => false,
         }
     }
 
@@ -162,6 +176,14 @@ impl PackageArchive {
     pub fn ldflags(&mut self) -> Result<Option<String>> {
         match self.read_metadata(MetaFile::LdFlags) {
             Ok(data) => Ok(data.cloned()),
+            Err(e) => Err(e),
+        }
+    }
+
+    pub fn svc_user(&mut self) -> Result<String> {
+        match self.read_metadata(MetaFile::SvcUser) {
+            Ok(Some(data)) => Ok(data.clone()),
+            Ok(None) => Err(Error::MetaFileNotFound(MetaFile::SvcUser)),
             Err(e) => Err(e),
         }
     }

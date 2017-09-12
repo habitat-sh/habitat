@@ -1606,7 +1606,7 @@ fn show_package(req: &mut Request) -> IronResult<Response> {
         request.set_name(channel);
         request.set_ident(ident);
         match route_message::<OriginChannelPackageGet, OriginPackage>(req, &request) {
-            Ok(pkg) => render_package(&pkg, false),
+            Ok(pkg) => render_package(req, &pkg, false),
             Err(err) => {
                 match err.get_code() {
                     ErrCode::ENTITY_NOT_FOUND => Ok(Response::with((status::NotFound))),
@@ -1646,9 +1646,9 @@ fn show_package(req: &mut Request) -> IronResult<Response> {
                 // If the request was for a fully qualified ident, cache the response, otherwise do
                 // not cache
                 if qualified {
-                    render_package(&pkg, true)
+                    render_package(req, &pkg, true)
                 } else {
-                    render_package(&pkg, false)
+                    render_package(req, &pkg, false)
                 }
             }
             Err(err) => {
@@ -1754,10 +1754,15 @@ fn search_packages(req: &mut Request) -> IronResult<Response> {
     }
 }
 
-fn render_package(pkg: &OriginPackage, should_cache: bool) -> IronResult<Response> {
+fn render_package(
+    req: &mut Request,
+    pkg: &OriginPackage,
+    should_cache: bool,
+) -> IronResult<Response> {
     let mut pkg_json = serde_json::to_value(pkg.clone()).unwrap();
     let channels = channels_for_package_ident(pkg.get_ident());
     pkg_json["channels"] = json!(channels);
+    pkg_json["is_a_service"] = json!(is_a_service(req, pkg.get_ident()));
 
     let body = serde_json::to_string(&pkg_json).unwrap();
     let mut response = Response::with((status::Ok, body));
@@ -1996,6 +2001,22 @@ fn target_from_headers(user_agent_header: &UserAgent) -> result::Result<PackageT
     match PackageTarget::from_str(target) {
         Ok(t) => Ok(t),
         Err(_) => Err(Response::with(status::BadRequest)),
+    }
+}
+
+fn is_a_service<T>(req: &mut Request, ident: &T) -> bool
+where
+    T: Identifiable,
+{
+    let lock = req.get::<persistent::State<DepotUtil>>().expect(
+        "depot not found",
+    );
+    let depot = lock.read().expect("depot read lock is poisoned");
+    let agent_target = target_from_headers(&req.headers.get::<UserAgent>().unwrap()).unwrap();
+
+    match depot.archive(ident, &agent_target) {
+        Some(mut archive) => archive.is_a_service(),
+        None => false,
     }
 }
 
@@ -2520,11 +2541,16 @@ mod test {
 
         show_broker.setup::<OriginPackageGet, OriginPackage>(&package);
 
+        let mut headers = Headers::new();
+        headers.set(UserAgent(
+            "hab/0.20.0-dev/20170326090935 (x86_64-linux; 9.9.9)"
+                .to_string(),
+        ));
         let (response, msgs) = iron_request(
             method::Get,
             "http://localhost/pkgs/org/name/1.1.1/20170101010101",
             &mut Vec::new(),
-            Headers::new(),
+            headers,
             show_broker,
         );
 
@@ -2558,7 +2584,8 @@ mod test {
             }],
             "exposes":[],
             "config":"config",
-            "visibility": "public"
+            "visibility": "public",
+            "is_a_service": false
         });
 
         assert_eq!(json_body, expected_json);
@@ -2606,11 +2633,16 @@ mod test {
 
         show_broker.setup::<OriginChannelPackageGet, OriginPackage>(&package);
 
+        let mut headers = Headers::new();
+        headers.set(UserAgent(
+            "hab/0.20.0-dev/20170326090935 (x86_64-linux; 9.9.9)"
+                .to_string(),
+        ));
         let (response, msgs) = iron_request(
             method::Get,
             "http://localhost/channels/org/channel/pkgs/name/1.1.1/20170101010101",
             &mut Vec::new(),
-            Headers::new(),
+            headers,
             show_broker,
         );
 
@@ -2644,7 +2676,8 @@ mod test {
             }],
             "exposes":[],
             "config":"config",
-            "visibility": "public"
+            "visibility": "public",
+            "is_a_service": false
         });
 
         assert_eq!(json_body, expected_json);
@@ -2744,7 +2777,8 @@ mod test {
             }],
             "exposes":[],
             "config":"config",
-            "visibility": "public"
+            "visibility": "public",
+            "is_a_service": false
         });
 
         assert_eq!(json_body, expected_json);
@@ -2849,7 +2883,8 @@ mod test {
             }],
             "exposes":[],
             "config":"config",
-            "visibility": "public"
+            "visibility": "public",
+            "is_a_service": false
         });
 
         assert_eq!(json_body, expected_json);
