@@ -576,7 +576,7 @@ impl DataStore {
         let conn = self.pool.get(opc)?;
         let ident = opc.get_ident();
         let rows = conn.query(
-            "SELECT * FROM insert_origin_package_v1($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
+            "SELECT * FROM insert_origin_package_v2($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
             &[
                 &(opc.get_origin_id() as i64),
                 &(opc.get_owner_id() as i64),
@@ -595,7 +595,7 @@ impl DataStore {
         self.async.schedule("sync_packages")?;
 
         let row = rows.get(0);
-        Ok(self.row_to_origin_package(&row))
+        self.row_to_origin_package(&row)
     }
 
     pub fn get_origin_package(
@@ -609,7 +609,8 @@ impl DataStore {
         ).map_err(Error::OriginPackageGet)?;
         if rows.len() != 0 {
             let row = rows.get(0);
-            Ok(Some(self.row_to_origin_package(&row)))
+            let pkg = self.row_to_origin_package(&row)?;
+            Ok(Some(pkg))
         } else {
             Ok(None)
         }
@@ -630,7 +631,8 @@ impl DataStore {
         ).map_err(Error::OriginChannelPackageGet)?;
         if rows.len() != 0 {
             let row = rows.get(0);
-            Ok(Some(self.row_to_origin_package(&row)))
+            let pkg = self.row_to_origin_package(&row)?;
+            Ok(Some(pkg))
         } else {
             Ok(None)
         }
@@ -962,7 +964,7 @@ impl DataStore {
         idents
     }
 
-    fn row_to_origin_package(&self, row: &postgres::rows::Row) -> originsrv::OriginPackage {
+    fn row_to_origin_package(&self, row: &postgres::rows::Row) -> Result<originsrv::OriginPackage> {
         let mut package = originsrv::OriginPackage::new();
         let id: i64 = row.get("id");
         package.set_id(id as u64);
@@ -989,7 +991,13 @@ impl DataStore {
         package.set_exposes(exposes);
         package.set_deps(self.into_idents(row.get("deps")));
         package.set_tdeps(self.into_idents(row.get("tdeps")));
-        package
+
+        let pv: String = row.get("visibility");
+        let pv2: originsrv::OriginPackageVisibility =
+            pv.parse().map_err(Error::UnknownOriginPackageVisibility)?;
+        package.set_visibility(pv2);
+
+        Ok(package)
     }
 
     fn row_to_origin_package_ident(

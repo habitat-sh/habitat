@@ -544,6 +544,7 @@ impl Serialize for OriginPackage {
         strukt.serialize_field("tdeps", self.get_tdeps())?;
         strukt.serialize_field("exposes", self.get_exposes())?;
         strukt.serialize_field("config", self.get_config())?;
+        strukt.serialize_field("visibility", &self.get_visibility())?;
         strukt.end()
     }
 }
