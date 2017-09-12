@@ -40,6 +40,8 @@ extern crate url;
 extern crate uuid;
 extern crate walkdir;
 extern crate base64;
+#[cfg(test)]
+extern crate tempdir;
 
 pub mod analytics;
 pub mod cli;
