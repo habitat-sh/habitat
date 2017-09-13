@@ -51,6 +51,9 @@ path = "../http-client"
 version = "*"
 features = ["v4"]
 
+[dev-dependencies]
+tempdir = "*"
+
 [features]
 default = []
 functional = []
