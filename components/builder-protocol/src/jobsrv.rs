@@ -55,6 +55,7 @@ impl Into<Job> for JobSpec {
         job.set_owner_id(self.get_owner_id());
         job.set_state(JobState::default());
         job.set_project(self.take_project());
+        job.set_channel(self.take_channel());
         job
     }
 }
@@ -171,6 +172,11 @@ impl Serialize for Job {
         if self.has_error() {
             strukt.serialize_field("error", self.get_error())?;
         }
+
+        if self.has_channel() {
+            strukt.serialize_field("channel", self.get_channel())?;
+        }
+
         strukt.end()
     }
 }

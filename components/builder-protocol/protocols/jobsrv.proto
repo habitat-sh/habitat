@@ -51,6 +51,7 @@ message Job {
   // Whether or not the log for the job has been archived
   optional bool is_archived = 11;
   repeated originsrv.OriginIntegration integrations = 12;
+  optional string channel = 13;
 }
 
 // Retrieve a single job by ID
@@ -61,6 +62,7 @@ message JobGet {
 message JobSpec {
   optional uint64 owner_id = 1;
   optional originsrv.OriginProject project = 2;
+  optional string channel = 3;
 }
 
 // Retrieve jobs for a specific project.

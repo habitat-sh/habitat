@@ -19,6 +19,7 @@ use std::result;
 
 use git2;
 use hab_core;
+use bldr_core;
 use protobuf;
 use zmq;
 
@@ -26,6 +27,7 @@ use zmq;
 pub enum Error {
     BuildFailure(i32),
     Git(git2::Error),
+    BuilderCore(bldr_core::Error),
     HabitatCore(hab_core::Error),
     IO(io::Error),
     Protobuf(protobuf::ProtobufError),
@@ -44,6 +46,7 @@ impl fmt::Display for Error {
                 format!("Build studio exited with non-zero exit code, {}", e)
             }
             Error::Git(ref e) => format!("{}", e),
+            Error::BuilderCore(ref e) => format!("{}", e),
             Error::HabitatCore(ref e) => format!("{}", e),
             Error::IO(ref e) => format!("{}", e),
             Error::Protobuf(ref e) => format!("{}", e),
@@ -65,6 +68,7 @@ impl error::Error for Error {
         match *self {
             Error::BuildFailure(_) => "Build studio exited with a non-zero exit code",
             Error::Git(ref err) => err.description(),
+            Error::BuilderCore(ref err) => err.description(),
             Error::HabitatCore(ref err) => err.description(),
             Error::IO(ref err) => err.description(),
             Error::Protobuf(ref err) => err.description(),
@@ -79,6 +83,12 @@ impl error::Error for Error {
 impl From<git2::Error> for Error {
     fn from(err: git2::Error) -> Error {
         Error::Git(err)
+    }
+}
+
+impl From<bldr_core::Error> for Error {
+    fn from(err: bldr_core::Error) -> Error {
+        Error::BuilderCore(err)
     }
 }
 

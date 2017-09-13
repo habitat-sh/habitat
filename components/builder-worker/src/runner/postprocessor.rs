@@ -12,177 +12,34 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::path::{Path, PathBuf};
 
 use hab_core::package::archive::PackageArchive;
-use hab_core::config::ConfigFile;
 use bldr_core::logger::Logger;
+use config::Config;
 
 use super::workspace::Workspace;
-use {PRODUCT, VERSION};
-use config::Config;
-use depot_client;
-use hyper::status::StatusCode;
-use error::{Error, Result};
-use retry::retry;
-use super::{RETRIES, RETRY_WAIT};
+use super::publisher::Publisher;
 
-/// Postprocessing config file name
-const CONFIG_FILE: &'static str = "builder.toml";
+pub fn post_process(
+    archive: &mut PackageArchive,
+    workspace: &Workspace,
+    config: &Config,
+    logger: &mut Logger,
+) -> bool {
+    let channel_opt = if workspace.job.has_channel() {
+        Some(workspace.job.get_channel().to_string())
+    } else {
+        None
+    };
 
-#[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
-pub struct Publish {
-    pub enabled: bool,
-    pub url: String,
-    pub channel: String,
-}
+    let url = config.depot_url.clone();
 
-impl Publish {
-    pub fn run(
-        &mut self,
-        archive: &mut PackageArchive,
-        auth_token: &str,
-        logger: &mut Logger,
-    ) -> bool {
-        if !self.enabled {
-            return true;
-        }
-        debug!(
-            "post process: publish (url: {}, channel: {})",
-            self.url,
-            self.channel
-        );
+    let mut publisher = Publisher {
+        enabled: config.auto_publish,
+        url: url,
+        channel_opt: channel_opt,
+    };
 
-        let client = depot_client::Client::new(&self.url, PRODUCT, VERSION, None).unwrap();
-
-        match retry(RETRIES, RETRY_WAIT, || client.x_put_package(archive, auth_token), |res| {
-            let msg = format!("upload status: {:?}", res);
-            debug!("{}", msg);
-            logger.log(&msg);
-            match *res {
-                Ok(_) |  // Conflict means package got uploaded earlier
-                Err(depot_client::Error::APIError(StatusCode::Conflict, _)) => true,
-                Err(_) => false
-            }
-        }) {
-            Ok(_) => (),
-            Err(_) => {
-                let msg = format!("post processing - fail uploading package after {} retries", RETRIES);
-                error!("{}", msg);
-                logger.log(&msg);
-                return false;
-            }
-        }
-
-        let ident = archive.ident().unwrap();
-
-        match retry(RETRIES, RETRY_WAIT, || client.promote_package(&ident, &self.channel, auth_token), |res| {
-                let msg = format!("promote status: {:?}", res);
-                debug!("{}", msg);
-                logger.log(&msg);
-                res.is_ok()
-        }) {
-            Ok(_) => (),
-            Err(_) => {
-                let msg = format!("post processing - fail promoting package after {} retries", RETRIES);
-                error!("{}", msg);
-                logger.log(&msg);
-                return false;
-            }
-        }
-
-        true
-    }
-}
-
-#[derive(Default, Deserialize)]
-#[serde(default)]
-struct PublishBuilder {
-    /// Whether publish is enabled
-    enabled: Option<bool>,
-    /// URL to Depot API
-    url: Option<String>,
-    /// Channel to publish to
-    channel: Option<String>,
-}
-
-impl PublishBuilder {
-    fn new(config_path: &Path) -> Result<Self> {
-        let builder = if config_path.exists() {
-            debug!(
-                "using post processing config from {}",
-                config_path.display()
-            );
-            PublishBuilder::from_file(config_path)?
-        } else {
-            debug!("no post processing config - using defaults");
-            PublishBuilder::default()
-        };
-        Ok(builder)
-    }
-
-    fn build(self, config: &Config) -> Publish {
-        Publish {
-            enabled: self.enabled.unwrap_or(config.auto_publish),
-            url: self.url.unwrap_or(config.depot_url.clone()),
-            channel: self.channel.unwrap_or(config.depot_channel.clone()),
-        }
-    }
-}
-
-impl ConfigFile for PublishBuilder {
-    type Error = Error;
-}
-
-pub struct PostProcessor {
-    config_path: PathBuf,
-}
-
-impl PostProcessor {
-    pub fn new(workspace: &Workspace) -> Self {
-        let parent_path = Path::new(workspace.job.get_project().get_plan_path())
-            .parent()
-            .unwrap();
-        let file_path = workspace.src().join(parent_path.join(CONFIG_FILE));
-        PostProcessor { config_path: file_path }
-    }
-
-    pub fn run(
-        &mut self,
-        archive: &mut PackageArchive,
-        config: &Config,
-        logger: &mut Logger,
-    ) -> bool {
-        let mut publisher = match PublishBuilder::new(&self.config_path) {
-            Ok(builder) => builder.build(config),
-            Err(err) => {
-                warn!("Failed to parse builder config, {}", err);
-                return false;
-            }
-        };
-        debug!("starting post processing");
-        publisher.run(archive, &config.auth_token, logger)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use hab_core::config::ConfigFile;
-    use super::*;
-    use config::Config;
-
-    #[test]
-    fn test_publish_config_from_toml() {
-        let toml = r#"
-        enabled = false
-        url = "https://willem.habitat.sh/v1/depot"
-        channel = "unstable"
-        "#;
-
-        let config = Config::default();
-        let cfg = PublishBuilder::from_raw(toml).unwrap().build(&config);
-        assert_eq!("https://willem.habitat.sh/v1/depot", cfg.url);
-        assert_eq!(false, cfg.enabled);
-        assert_eq!("unstable", cfg.channel);
-    }
+    debug!("Starting post processing");
+    publisher.run(archive, &config.auth_token, logger)
 }
