@@ -58,3 +58,8 @@ authors:
     email: "nharvey@chef.io"
     twitter: "@nathenharvey"
     bio: "Nathen Harvey, VP of Community Development at Chef, helps the community whip up an awesome ecosystem built around the Chef platform. Nathen also spends much of his time helping people learn about the practices, processes, and technologies that support DevOps, continuous delivery, and high velocity organizations. Nathen is a co-host of the Food Fight Show, a podcast about Chef and DevOps.  He is also an occasional farmer who loves eggs and actively supports #hugops."
+  irvingpopovetsky:
+    name: "Irving Popovetsky"
+    email: "irving@chef.io"
+    twitter: "@irvingpop"
+    bio: "Irving Popovetsky is a Principal Customer Architect at Chef and leads Chef's Customer Engineering team.  He has over 19 years of experience building, scaling, operating and troubleshooting large-scale Enterprise, Web and HPC systems. He has been deeply involved in the design, planning and scaling of Chef's largest customer installations"
