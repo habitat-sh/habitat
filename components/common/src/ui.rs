@@ -86,8 +86,56 @@ pub struct UI {
 }
 
 impl UI {
+    /// Creates a new `UI` from a `Shell`.
+    pub fn new(shell: Shell) -> Self {
+        UI { shell: shell }
+    }
+
+    /// Creates a new default `UI` with a coloring strategy and tty hinting.
     pub fn default_with(coloring: Coloring, isatty: Option<bool>) -> Self {
-        UI { shell: Shell::default_with(coloring, isatty) }
+        Self::new(Shell::default_with(coloring, isatty))
+    }
+
+    /// Creates a new `UI` from generic `Read` and `Write` streams.
+    ///
+    /// The standard input stream needs to implement `Read` and both the standard output and
+    /// standard error streams need to implement `Write`.
+    pub fn with_streams<O, E>(
+        stdin: Box<Read + Send>,
+        stdout_fn: O,
+        stderr_fn: E,
+        coloring: Coloring,
+        isatty: bool,
+    ) -> Self
+    where
+        O: FnMut() -> Box<Write + Send>,
+        E: FnMut() -> Box<Write + Send>,
+    {
+        Self::new(Shell::new(
+            InputStream::new(stdin, isatty),
+            OutputStream::new(
+                WriteStream::create(stdout_fn),
+                coloring,
+                isatty,
+            ),
+            OutputStream::new(
+                WriteStream::create(stderr_fn),
+                coloring,
+                isatty,
+            ),
+        ))
+    }
+
+    /// Creates a new `UI` which an empty standard input and sinks (i.e. a `/dev/null`-like stream)
+    /// for standard output and standard error.
+    pub fn with_sinks() -> Self {
+        Self::with_streams(
+            Box::new(io::empty()),
+            || Box::new(io::sink()),
+            || Box::new(io::sink()),
+            Coloring::Never,
+            false,
+        )
     }
 
     pub fn begin<T: ToString>(&mut self, message: T) -> Result<()> {
