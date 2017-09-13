@@ -8,7 +8,7 @@ classes: body-article
 ---
 
 In the [first part of this
-series](https://medium.com/@irvingpop/a-journey-with-habitat-on-amazon-ecs-part-1-39ae8af6542)
+series](https://www.habitat.sh/blog/2017/09/a-journey-with-habitat-on-amazon-ecs-part1/)
 we got the [Chef Automate
 Pilot](https://learn.chef.io/modules/chef-automate-pilot/scan-for-compliance#/)
 container stack up and running on ECS. Now let’s make it survive termination of
@@ -22,7 +22,7 @@ Elasticsearch. A story told in 3 git commits:
 <a href="https://github.com/chef-customers/aws_native_chef_server/commit/9e2d5e90e8a2f508d330be2cca2767bf7f0cec32#diff-5defeeb087e0527b6a3ade7ca4a1af85" target="_blank">
 ![](media/2017-09-12-a-journey/git-log1.png)</a>
 
-We know that Chef Automate stores almost all of it’s state in PostgreSQL, but is
+We know that Chef Automate stores almost all of its state in PostgreSQL, but is
 also a Git server and stores repositories on disk. We need to get all of that
 data out of the disposable container volumes and into highly available
 persistence stores.
