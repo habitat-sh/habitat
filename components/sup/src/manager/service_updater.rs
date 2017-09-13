@@ -435,7 +435,7 @@ impl Worker {
                     Err(_) => {
                         outputln!(
                             "Unable to parse '{}' from {} as a valid integer. Falling back \
-                                  to defailt {} MS frequency.",
+                                  to default {} MS frequency.",
                             val,
                             FREQUENCY_ENVVAR,
                             DEFAULT_FREQUENCY
