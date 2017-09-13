@@ -140,8 +140,15 @@ where
 
 /// Return whether or not the tests are being run with the `--nocapture` flag meaning we want to
 /// see more output.
-fn nocapture() -> bool {
-    env::args().any(|arg| arg == "--nocapture")
+fn nocapture_set() -> bool {
+    if env::args().any(|arg| arg == "--nocapture") {
+        return true;
+    } else {
+        match env::var("RUST_TEST_NOCAPTURE") {
+            Ok(val) => &val != "0",
+            Err(_) => false,
+        }
+    }
 }
 
 impl TestSup {
@@ -230,7 +237,7 @@ impl TestSup {
             .arg(format!("{}:{}", listen_host, http_port))
             .arg(format!("{}/{}", origin, pkg_name))
             .stdin(Stdio::null());
-        if !nocapture() {
+        if !nocapture_set() {
             cmd.stdout(Stdio::null());
             cmd.stderr(Stdio::null());
         }
