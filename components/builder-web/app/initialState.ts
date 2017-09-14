@@ -16,6 +16,7 @@ import { List, Map, Record } from "immutable";
 import { BehaviorSubject } from "rxjs";
 import { OriginRecord } from "./records/origin-record";
 import { Package } from "./records/Package";
+import { getBrowserCookies } from "./actions/cookies";
 
 export default Record({
     app: Record({
@@ -216,4 +217,27 @@ export default Record({
             gitHub: Map(),
         })(),
     })(),
+    cookies: Record({
+        domain: cookieDomain(),
+        secure: window.location.protocol === "https",
+        current: getBrowserCookies()
+    })(),
+    featureFlags: Record({
+        current: Map()
+    })()
 })();
+
+function cookieDomain() {
+    let delim = ".";
+    let hostname = location.hostname;
+    let tld = hostname.split(delim).pop();
+
+    if (isNaN(Number(tld))) {
+        return hostname
+        .split(delim)
+        .splice(-2)
+        .join(delim);
+    } else {
+        return hostname;
+    }
+}

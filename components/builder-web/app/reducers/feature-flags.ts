@@ -12,28 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { requestRoute, removeSessionStorage, resetAppState } from "./index";
+import * as actionTypes from "../actions/index";
+import initialState from "../initialState";
 
-export const SIGN_IN_ATTEMPT = "SIGN_IN_ATTEMPT";
-export const TOGGLE_USER_NAV_MENU = "TOGGLE_USER_NAV_MENU";
+export default function featureFlags(state = initialState["featureFlags"], action) {
+    switch (action.type) {
+    case actionTypes.SET_FEATURE_FLAGS:
+      return state.set("current", action.payload);
 
-export function attemptSignIn(username) {
-    return {
-        type: SIGN_IN_ATTEMPT,
-        payload: { username: username },
-    };
-}
+      case actionTypes.SET_FEATURE_FLAG:
+        return state.setIn(["current", action.payload.name], action.payload.value);
 
-export function toggleUserNavMenu() {
-    return {
-        type: TOGGLE_USER_NAV_MENU
-    };
-}
-
-export function signOut() {
-    return dispatch => {
-        dispatch(removeSessionStorage());
-        dispatch(resetAppState());
-        dispatch(requestRoute(["/sign-in"]));
-    };
+    default:
+      return state;
+  }
 }

@@ -23,6 +23,7 @@ import projects from "./projects";
 import router from "./router";
 import users from "./users";
 import ui from "./ui";
+import cookies from "./cookies";
 
 export default combineReducers({
     app,
@@ -34,5 +35,6 @@ export default combineReducers({
     projects,
     router,
     ui,
-    users
+    users,
+    cookies
 });

@@ -12,28 +12,34 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { requestRoute, removeSessionStorage, resetAppState } from "./index";
 
-export const SIGN_IN_ATTEMPT = "SIGN_IN_ATTEMPT";
-export const TOGGLE_USER_NAV_MENU = "TOGGLE_USER_NAV_MENU";
+import { merge } from "lodash";
 
-export function attemptSignIn(username) {
+import { getCookie, setCookie, removeCookie } from "./index";
+
+export const SET_FEATURE_FLAG = "SET_FEATURE_FLAG";
+export const SET_FEATURE_FLAGS = "SET_FEATURE_FLAGS";
+
+export function setFeatureFlag(name, value) {
     return {
-        type: SIGN_IN_ATTEMPT,
-        payload: { username: username },
+        type: SET_FEATURE_FLAG,
+        payload: {name, value}
     };
 }
 
-export function toggleUserNavMenu() {
+export function setFeatureFlags(payload) {
+    setCookie("featureFlags", payload);
+
     return {
-        type: TOGGLE_USER_NAV_MENU
+        type: SET_FEATURE_FLAGS,
+        payload,
     };
 }
 
-export function signOut() {
-    return dispatch => {
-        dispatch(removeSessionStorage());
-        dispatch(resetAppState());
-        dispatch(requestRoute(["/sign-in"]));
+export function loadFeatureFlags() {
+    return {
+        type: SET_FEATURE_FLAGS,
+        payload: getCookie("featureFlags")
     };
 }
+

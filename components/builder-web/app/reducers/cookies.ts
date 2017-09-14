@@ -12,28 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { requestRoute, removeSessionStorage, resetAppState } from "./index";
+import {
+  fromJS,
+  List
+} from "immutable";
+import * as actionTypes from "../actions/index";
+import initialState from "../initialState";
 
-export const SIGN_IN_ATTEMPT = "SIGN_IN_ATTEMPT";
-export const TOGGLE_USER_NAV_MENU = "TOGGLE_USER_NAV_MENU";
+export default function cookies(state = initialState["cookies"], action) {
+    switch (action.type) {
+    case actionTypes.SET_COOKIE:
+      return state.setIn(["current", action.payload.name], action.payload.value);
 
-export function attemptSignIn(username) {
-    return {
-        type: SIGN_IN_ATTEMPT,
-        payload: { username: username },
-    };
-}
+    case actionTypes.REMOVE_COOKIE:
+      let current = state.get("current");
+      current.delete(action.payload);
 
-export function toggleUserNavMenu() {
-    return {
-        type: TOGGLE_USER_NAV_MENU
-    };
-}
+      return state.set("current", current);
 
-export function signOut() {
-    return dispatch => {
-        dispatch(removeSessionStorage());
-        dispatch(resetAppState());
-        dispatch(requestRoute(["/sign-in"]));
-    };
+    default:
+      return state;
+  }
 }

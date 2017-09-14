@@ -16,9 +16,9 @@ import "whatwg-fetch";
 import {URLSearchParams} from "@angular/http";
 import * as cookies from "js-cookie";
 import config from "../config";
-import {attemptSignIn, addNotification, goHome, fetchMyOrigins, requestRoute, setSigningInFlag,
+import {attemptSignIn, addNotification, goHome, fetchMyOrigins, requestRoute, setFeatureFlag,
     signOut} from "./index";
-import {setFeatureFlags} from "./users";
+import {setFeatureFlags} from "./index";
 import {DANGER, WARNING} from "./notifications";
 
 const parseLinkHeader = require("parse-link-header");
@@ -45,14 +45,14 @@ export function authenticateWithGitHub(token = undefined) {
 
     return dispatch => {
         if (isCodeInQueryString) {
-            dispatch(setSigningInFlag(true));
+            dispatch(setFeatureFlag("signingIn", true));
         }
 
         if (token) {
             setCookie("gitHubAuthToken", token);
 
             fetch(`${config["github_api_url"]}/user?access_token=${token}`).then(response => {
-                dispatch(setSigningInFlag(false));
+                dispatch(setFeatureFlag("signingIn", false));
 
                 if (response.ok) {
                     return response.json();
@@ -192,6 +192,7 @@ export function requestGitHubAuthToken(params, stateKey = "") {
                     type: DANGER,
                 }));
             }).then(data => {
+                console.log("stuff", data);
                 if (data["token"]) {
                     dispatch(authenticateWithGitHub(data["token"]));
                     dispatch(setGitHubAuthToken(data["token"]));
