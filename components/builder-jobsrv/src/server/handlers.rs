@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Copyright (c) 2016 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,106 +14,91 @@
 
 //! A collection of handlers for the JobSrv dispatcher
 
-use error::{Error, Result};
-use hab_net::server::Envelope;
-use protobuf::RepeatedField;
-use protocol::jobsrv as proto;
-use protocol::net::{self, ErrCode};
 use std::fs::OpenOptions;
 use std::io::{BufRead, BufReader};
 use std::path::PathBuf;
-use super::ServerState;
-use zmq;
 
-pub fn job_create(
-    req: &mut Envelope,
-    sock: &mut zmq::Socket,
-    state: &mut ServerState,
-) -> Result<()> {
-    let msg: proto::JobSpec = req.parse_msg()?;
+use hab_net::app::prelude::*;
+use protobuf::RepeatedField;
+use protocol::jobsrv as proto;
+
+use super::ServerState;
+use error::{Error, Result};
+
+pub fn job_create(req: &mut Message, conn: &mut RouteConn, state: &mut ServerState) -> Result<()> {
+    let msg = req.parse::<proto::JobSpec>()?;
     let mut job: proto::Job = msg.into();
-    let created_job = state.datastore().create_job(&mut job)?;
+    let created_job = state.datastore.create_job(&mut job)?;
     debug!(
         "Job created: id={} owner_id={} state={:?}",
         created_job.get_id(),
         created_job.get_owner_id(),
         created_job.get_state()
     );
-    state.worker_mgr().notify_work()?;
-    req.reply_complete(sock, &created_job)?;
+    state.worker_mgr.notify_work()?;
+    conn.route_reply(req, &created_job)?;
     Ok(())
 }
 
-pub fn job_get(req: &mut Envelope, sock: &mut zmq::Socket, state: &mut ServerState) -> Result<()> {
-    let msg: proto::JobGet = req.parse_msg()?;
-    match state.datastore().get_job(&msg) {
-        Ok(Some(ref job)) => {
-            req.reply_complete(sock, job)?;
-        }
+pub fn job_get(req: &mut Message, conn: &mut RouteConn, state: &mut ServerState) -> Result<()> {
+    let msg = req.parse::<proto::JobGet>()?;
+    match state.datastore.get_job(&msg) {
+        Ok(Some(ref job)) => conn.route_reply(req, job)?,
         Ok(None) => {
-            let err = net::err(ErrCode::ENTITY_NOT_FOUND, "jb:job-get:1");
-            req.reply_complete(sock, &err)?;
+            let err = NetError::new(ErrCode::ENTITY_NOT_FOUND, "jb:job-get:1");
+            conn.route_reply(req, &*err)?;
         }
         Err(e) => {
-            error!("datastore error, err={:?}", e);
-            let err = net::err(ErrCode::DATA_STORE, "jb:job-get:2");
-            req.reply_complete(sock, &err)?;
+            let err = NetError::new(ErrCode::DATA_STORE, "jb:job-get:2");
+            error!("{}, {}", err, e);
+            conn.route_reply(req, &*err)?;
         }
     }
     Ok(())
 }
 
 pub fn project_jobs_get(
-    req: &mut Envelope,
-    sock: &mut zmq::Socket,
+    req: &mut Message,
+    conn: &mut RouteConn,
     state: &mut ServerState,
 ) -> Result<()> {
-    let msg: proto::ProjectJobsGet = req.parse_msg()?;
-    match state.datastore().get_jobs_for_project(&msg) {
+    let msg = req.parse::<proto::ProjectJobsGet>()?;
+    match state.datastore.get_jobs_for_project(&msg) {
         Ok(ref jobs) => {
             // NOTE: Currently no difference between "project has no jobs" and "no
             // such project"
-            req.reply_complete(sock, jobs)?;
+            conn.route_reply(req, jobs)?;
         }
         Err(e) => {
-            error!("datastore error, err={:?}", e);
-            let err = net::err(ErrCode::DATA_STORE, "jb:project-jobs-get:2");
-            req.reply_complete(sock, &err)?;
+            let err = NetError::new(ErrCode::DATA_STORE, "jb:project-jobs-get:1");
+            error!("{}, {}", err, e);
+            conn.route_reply(req, &*err)?;
         }
     }
     Ok(())
-
 }
 
-pub fn job_log_get(
-    req: &mut Envelope,
-    sock: &mut zmq::Socket,
-    state: &mut ServerState,
-) -> Result<()> {
-
-    let msg: proto::JobLogGet = req.parse_msg()?;
-
-    // Confirm job exists; if not, 404
+pub fn job_log_get(req: &mut Message, conn: &mut RouteConn, state: &mut ServerState) -> Result<()> {
+    let msg = req.parse::<proto::JobLogGet>()?;
     let mut get = proto::JobGet::new();
     get.set_id(msg.get_id());
-    let job = match state.datastore().get_job(&get) {
+    let job = match state.datastore.get_job(&get) {
         Ok(Some(job)) => job,
         Ok(None) => {
-            // No such job!
-            let err = net::err(ErrCode::ENTITY_NOT_FOUND, "jb:job-log-get:1");
-            req.reply_complete(sock, &err)?;
-            return Ok(()); // early return
+            let err = NetError::new(ErrCode::ENTITY_NOT_FOUND, "jb:job-log-get:1");
+            conn.route_reply(req, &*err)?;
+            return Ok(());
         }
         Err(e) => {
-            error!("datastore error, err={:?}", e);
-            let err = net::err(ErrCode::DATA_STORE, "jb:job-log-get:2");
-            req.reply_complete(sock, &err)?;
-            return Ok(()); // early return
+            let err = NetError::new(ErrCode::DATA_STORE, "jb:job-log-get:2");
+            error!("{}, {}", err, e);
+            conn.route_reply(req, &*err)?;
+            return Ok(());
         }
     };
 
     if job.get_is_archived() {
-        match state.archiver().retrieve(job.get_id()) {
+        match state.archiver.retrieve(job.get_id()) {
             Ok(lines) => {
                 let start = msg.get_start();
                 let num_lines = lines.len() as u64;
@@ -132,7 +117,7 @@ pub fn job_log_get(
                 log.set_stop(num_lines);
                 log.set_is_complete(true); // by definition
                 log.set_content(log_content);
-                req.reply_complete(sock, &log)?;
+                conn.route_reply(req, &log)?;
             }
             Err(e @ Error::CaughtPanic(_, _)) => {
                 // Generally, this happens when the archiver can't
@@ -141,18 +126,18 @@ pub fn job_log_get(
 
                 // TODO: Need to return a different error here... it's
                 // not quite ENTITY_NOT_FOUND
-                let err = net::err(ErrCode::ENTITY_NOT_FOUND, "jb:job-log-get:5");
-                req.reply_complete(sock, &err)?;
+                let err = NetError::new(ErrCode::ENTITY_NOT_FOUND, "jb:job-log-get:5");
+                conn.route_reply(req, &*err)?;
             }
             Err(_) => {
-                let err = net::err(ErrCode::ENTITY_NOT_FOUND, "jb:job-log-get:4");
-                req.reply_complete(sock, &err)?;
+                let err = NetError::new(ErrCode::ENTITY_NOT_FOUND, "jb:job-log-get:4");
+                conn.route_reply(req, &*err)?;
             }
         }
     } else {
         // retrieve fragment from on-disk file
         let start = msg.get_start();
-        let file = state.log_dir().log_file_path(msg.get_id());
+        let file = state.log_dir.log_file_path(msg.get_id());
 
         match get_log_content(&file, start) {
             Some(content) => {
@@ -162,13 +147,12 @@ pub fn job_log_get(
                 log.set_content(RepeatedField::from_vec(content));
                 log.set_stop(start + num_lines);
                 log.set_is_complete(false);
-                req.reply_complete(sock, &log)?;
+                conn.route_reply(req, &log)?;
             }
             None => {
-                // The job exists, but there are no logs (either yet, or
-                // ever).
-                let err = net::err(ErrCode::ENTITY_NOT_FOUND, "jb:job-log-get:3");
-                req.reply_complete(sock, &err)?;
+                // The job exists, but there are no logs (either yet, or ever).
+                let err = NetError::new(ErrCode::ENTITY_NOT_FOUND, "jb:job-log-get:3");
+                conn.route_reply(req, &*err)?;
             }
         }
     }
@@ -182,10 +166,7 @@ pub fn job_log_get(
 /// job never had any log information (e.g., it predates this
 /// feature).
 fn get_log_content(log_file: &PathBuf, offset: u64) -> Option<Vec<String>> {
-
-    let open = OpenOptions::new().read(true).open(log_file);
-
-    match open {
+    match OpenOptions::new().read(true).open(log_file) {
         Ok(file) => {
             let lines = BufReader::new(file)
                 .lines()

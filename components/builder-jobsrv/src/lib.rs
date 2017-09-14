@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Copyright (c) 2016 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,6 +23,8 @@ extern crate habitat_core as hab_core;
 extern crate habitat_net as hab_net;
 extern crate habitat_builder_db as db;
 extern crate hyper;
+#[macro_use]
+extern crate lazy_static;
 extern crate linked_hash_map;
 #[macro_use]
 extern crate log;

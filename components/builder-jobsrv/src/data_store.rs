@@ -14,14 +14,14 @@
 
 //! The PostgreSQL backend for the Jobsrv.
 
+use std::sync::Arc;
+
 use chrono::{DateTime, UTC};
-use config::Config;
 use db::async::{AsyncServer, EventOutcome};
 use db::error::{Error as DbError, Result as DbResult};
 use db::migration::Migrator;
 use db::pool::Pool;
-use error::{Result, Error};
-use hab_net::routing::Broker;
+use hab_net::conn::RouteClient;
 use postgres;
 use postgres::rows::Rows;
 use protobuf;
@@ -29,6 +29,9 @@ use protocol::net::{NetOk, NetError, ErrCode};
 use protocol::{originsrv, jobsrv, scheduler};
 use protocol::originsrv::Pageable;
 use protobuf::ProtobufEnum;
+
+use config::Config;
+use error::{Result, Error};
 
 /// DataStore inherints being Send + Sync by virtue of having only one member, the pool itself.
 #[derive(Debug, Clone)]
@@ -48,12 +51,12 @@ impl DataStore {
     ///
     /// * Can fail if the pool cannot be created
     /// * Blocks creation of the datastore on the existince of the pool; might wait indefinetly.
-    pub fn new(config: &Config) -> Result<DataStore> {
+    pub fn new(config: &Config, router_pipe: Arc<String>) -> Result<DataStore> {
         let pool = Pool::new(&config.datastore, config.shards.clone())?;
         let ap = pool.clone();
         Ok(DataStore {
             pool: pool,
-            async: AsyncServer::new(ap),
+            async: AsyncServer::new(ap, router_pipe),
         })
     }
 
@@ -693,7 +696,7 @@ fn row_to_job(row: &postgres::rows::Row) -> Result<jobsrv::Job> {
     Ok(job)
 }
 
-fn sync_jobs(pool: Pool) -> DbResult<EventOutcome> {
+fn sync_jobs(pool: Pool, mut route_conn: RouteClient) -> DbResult<EventOutcome> {
     let mut result = EventOutcome::Finished;
     for shard in pool.shards.iter() {
         let conn = pool.get_shard(*shard)?;
@@ -701,7 +704,6 @@ fn sync_jobs(pool: Pool) -> DbResult<EventOutcome> {
             DbError::AsyncFunctionCheck,
         )?;
         if rows.len() > 0 {
-            let mut bconn = Broker::connect()?;
             let mut request = scheduler::JobStatus::new();
             for row in rows.iter() {
                 let job = match row_to_job(&row) {
@@ -713,7 +715,7 @@ fn sync_jobs(pool: Pool) -> DbResult<EventOutcome> {
                 };
                 let id = job.get_id();
                 request.set_job(job);
-                match bconn.route::<scheduler::JobStatus, NetOk>(&request) {
+                match route_conn.route::<scheduler::JobStatus, NetOk>(&request) {
                     Ok(_) => {
                         conn.query("SELECT * FROM set_jobs_sync_v1($1)", &[&(id as i64)])
                             .map_err(DbError::AsyncFunctionUpdate)?;

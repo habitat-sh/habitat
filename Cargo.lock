@@ -893,6 +893,7 @@ dependencies = [
  "habitat_core 0.0.0",
  "habitat_net 0.0.0",
  "hyper 0.10.9 (registry+https://github.com/rust-lang/crates.io-index)",
+ "lazy_static 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "linked-hash-map 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "postgres 0.14.0 (registry+https://github.com/rust-lang/crates.io-index)",

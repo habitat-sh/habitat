@@ -14,7 +14,7 @@ pkg_exports=(
 )
 pkg_exposes=(worker_port worker_heartbeat)
 pkg_binds=(
-  [router]="port heartbeat"
+  [router]="port"
   [datastore]="port"
 )
 bin="bldr-job-srv"

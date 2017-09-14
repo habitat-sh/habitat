@@ -36,14 +36,13 @@ use super::LogArchiver;
 pub struct LocalArchiver(PathBuf);
 
 impl LocalArchiver {
-    // TODO: Implement an error type for bad configuration
-    pub fn new(config: ArchiveCfg) -> Result<LocalArchiver> {
-        // TODO: Only using LogDirectory for the validation
-        // logic; we should extract / consolidate this somehow
-        let archive_dir = config.local_dir.expect("Missing local archive directory!");
-        let ld = LogDirectory::new(&archive_dir);
-        ld.validate()?;
-        Ok(LocalArchiver(archive_dir))
+    // CM TODO: Implement an error type for bad configuration
+    pub fn new(config: &ArchiveCfg) -> Result<LocalArchiver> {
+        let archive_dir = config.local_dir.as_ref().expect(
+            "Missing local archive directory!",
+        );
+        LogDirectory::validate(archive_dir)?;
+        Ok(LocalArchiver(archive_dir.clone()))
     }
 
     /// Generate the path that a given job's logs will be stored

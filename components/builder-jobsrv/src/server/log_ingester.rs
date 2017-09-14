@@ -12,20 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use config::Config;
-use data_store::DataStore;
-use error::Result;
+use std::fs::{self, OpenOptions};
+use std::io::Write;
+use std::str;
+use std::sync::{mpsc, Arc};
+use std::thread::{self, JoinHandle};
+
 use hab_net::socket::DEFAULT_CONTEXT;
 use protobuf::parse_from_bytes;
 use protocol::jobsrv::{JobLogComplete, JobLogChunk};
 use server::log_archiver::{self, LogArchiver};
 use server::log_directory::LogDirectory;
-use std::fs::{self, OpenOptions};
-use std::io::Write;
-use std::str;
-use std::sync::{mpsc, Arc, RwLock};
-use std::thread::{self, JoinHandle};
 use zmq;
+
+use config::Config;
+use data_store::DataStore;
+use error::Result;
 
 /// ZMQ protocol frame to indicate a log line is being sent
 const LOG_LINE: &'static str = "L";
@@ -36,46 +38,37 @@ const LOG_COMPLETE: &'static str = "C";
 /// both streaming to clients and long-term storage.
 pub struct LogIngester {
     intake_sock: zmq::Socket,
-    config: Arc<RwLock<Config>>,
     msg: zmq::Message,
-    log_dir: LogDirectory,
+    log_dir: Arc<LogDirectory>,
+    log_ingestion_addr: String,
     data_store: DataStore,
-    archiver: Box<LogArchiver + 'static>,
+    archiver: Box<LogArchiver>,
 }
 
 impl LogIngester {
-    pub fn new(
-        config: Arc<RwLock<Config>>,
-        log_dir: LogDirectory,
-        data_store: DataStore,
-    ) -> Result<Self> {
+    pub fn new(config: &Config, log_dir: Arc<LogDirectory>, data_store: DataStore) -> Result<Self> {
         let intake_sock = (**DEFAULT_CONTEXT).as_mut().socket(zmq::ROUTER)?;
         intake_sock.set_router_mandatory(true)?;
-        let msg = zmq::Message::new()?;
-        let archiver = log_archiver::from_config(config.read().unwrap().archive.clone()).unwrap();
-
         Ok(LogIngester {
             intake_sock: intake_sock,
-            config: config,
-            msg: msg,
+            msg: zmq::Message::new()?,
             log_dir: log_dir,
+            log_ingestion_addr: config.net.log_ingestion_addr(),
             data_store: data_store,
-            archiver: archiver,
+            archiver: log_archiver::from_config(&config.archive)?,
         })
     }
 
     pub fn start(
-        cfg: Arc<RwLock<Config>>,
-        log_dir: LogDirectory,
+        cfg: &Config,
+        log_dir: Arc<LogDirectory>,
         data_store: DataStore,
     ) -> Result<JoinHandle<()>> {
+        let mut ingester = Self::new(cfg, log_dir, data_store)?;
         let (tx, rx) = mpsc::sync_channel(1);
         let handle = thread::Builder::new()
             .name("log-ingester".to_string())
-            .spawn(move || {
-                let mut ingester = Self::new(cfg, log_dir, data_store).unwrap();
-                ingester.run(tx).unwrap();
-            })
+            .spawn(move || { ingester.run(tx).unwrap(); })
             .unwrap();
         match rx.recv() {
             Ok(()) => Ok(handle),
@@ -84,15 +77,9 @@ impl LogIngester {
     }
 
     fn run(&mut self, rz: mpsc::SyncSender<()>) -> Result<()> {
-        {
-            let cfg = self.config.read().unwrap();
-            let addr = cfg.net.log_ingestion_addr();
-            println!("Listening for log data on {}", addr);
-            self.intake_sock.bind(&addr)?;
-        }
-
+        println!("Listening for log data on {}", self.log_ingestion_addr);
+        self.intake_sock.bind(&self.log_ingestion_addr)?;
         rz.send(()).unwrap();
-
         loop {
             // Right now we've got 3 frames per message:
             // 1: peer identity (we're using a ROUTER socket)
@@ -100,7 +87,6 @@ impl LogIngester {
             //    L = a line of log output
             //    C = the log is complete
             // 3: a protobuf message
-
             self.intake_sock.recv(&mut self.msg, 0)?; // identity frame
 
             match str::from_utf8(self.intake_sock.recv_bytes(0).unwrap().as_slice()).unwrap() {

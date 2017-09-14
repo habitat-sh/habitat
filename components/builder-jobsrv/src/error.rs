@@ -32,6 +32,7 @@ use zmq;
 pub enum Error {
     BadPort(String),
     CaughtPanic(String, String),
+    ConnErr(hab_net::conn::ConnErr),
     Db(db::error::Error),
     DbPoolTimeout(r2d2::GetTimeout),
     DbTransaction(postgres::error::Error),
@@ -52,9 +53,10 @@ pub enum Error {
     LogDirDoesNotExist(PathBuf, io::Error),
     LogDirIsNotDir(PathBuf),
     LogDirNotWritable(PathBuf),
-    NetError(hab_net::Error),
+    NetError(hab_net::NetError),
     ProjectJobsGet(postgres::error::Error),
     Protobuf(protobuf::ProtobufError),
+    Protocol(protocol::ProtocolError),
     UnknownVCS,
     UnknownJobState(protocol::jobsrv::Error),
     Zmq(zmq::Error),
@@ -70,6 +72,7 @@ impl fmt::Display for Error {
             Error::CaughtPanic(ref msg, ref source) => {
                 format!("Caught a panic: {}. {}", msg, source)
             }
+            Error::ConnErr(ref e) => format!("{}", e),
             Error::Db(ref e) => format!("{}", e),
             Error::DbPoolTimeout(ref e) => {
                 format!("Timeout getting connection from the database pool, {}", e)
@@ -110,6 +113,7 @@ impl fmt::Display for Error {
             }
             Error::NetError(ref e) => format!("{}", e),
             Error::Protobuf(ref e) => format!("{}", e),
+            Error::Protocol(ref e) => format!("{}", e),
             Error::ProjectJobsGet(ref e) => {
                 format!("Database error getting jobs for project, {}", e)
             }
@@ -126,6 +130,7 @@ impl error::Error for Error {
         match *self {
             Error::BadPort(_) => "Received an invalid port or a number outside of the valid range.",
             Error::CaughtPanic(_, _) => "Caught a panic",
+            Error::ConnErr(ref err) => err.description(),
             Error::Db(ref err) => err.description(),
             Error::DbPoolTimeout(ref err) => err.description(),
             Error::DbTransaction(ref err) => err.description(),
@@ -149,6 +154,7 @@ impl error::Error for Error {
             Error::NetError(ref err) => err.description(),
             Error::ProjectJobsGet(ref err) => err.description(),
             Error::Protobuf(ref err) => err.description(),
+            Error::Protocol(ref err) => err.description(),
             Error::UnknownJobState(ref err) => err.description(),
             Error::UnknownVCS => "Unknown VCS",
             Error::Zmq(ref err) => err.description(),
@@ -180,15 +186,27 @@ impl From<io::Error> for Error {
     }
 }
 
-impl From<hab_net::Error> for Error {
-    fn from(err: hab_net::Error) -> Self {
+impl From<hab_net::NetError> for Error {
+    fn from(err: hab_net::NetError) -> Self {
         Error::NetError(err)
+    }
+}
+
+impl From<hab_net::conn::ConnErr> for Error {
+    fn from(err: hab_net::conn::ConnErr) -> Self {
+        Error::ConnErr(err)
     }
 }
 
 impl From<protobuf::ProtobufError> for Error {
     fn from(err: protobuf::ProtobufError) -> Error {
         Error::Protobuf(err)
+    }
+}
+
+impl From<protocol::ProtocolError> for Error {
+    fn from(err: protocol::ProtocolError) -> Self {
+        Error::Protocol(err)
     }
 }
 

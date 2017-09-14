@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Copyright (c) 2016 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -11,6 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 #![cfg_attr(feature="clippy", feature(plugin))]
 #![cfg_attr(feature="clippy", plugin(clippy))]
 
@@ -22,10 +23,11 @@ extern crate habitat_core as hab_core;
 #[macro_use]
 extern crate log;
 
+use std::error;
 use std::process;
 
 use hab_core::config::ConfigFile;
-use jobsrv::{Config, Error, Result};
+use jobsrv::{Config, Result};
 
 const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 const CFG_DEFAULT_PATH: &'static str = "/hab/svc/builder-jobsrv/config.toml";
@@ -38,7 +40,7 @@ fn main() {
         Ok(result) => result,
         Err(e) => return exit_with(e, 1),
     };
-    match start(config) {
+    match jobsrv::server::run(config) {
         Ok(_) => std::process::exit(0),
         Err(e) => exit_with(e, 1),
     }
@@ -68,16 +70,10 @@ fn config_from_args(matches: &clap::ArgMatches) -> Result<Config> {
     Ok(config)
 }
 
-fn exit_with(err: Error, code: i32) {
+fn exit_with<T>(err: T, code: i32)
+where
+    T: error::Error,
+{
     println!("{}", err);
     process::exit(code)
-}
-
-/// Starts the builder-jobsrv server.
-///
-/// # Failures
-///
-/// * Cannot bind to the port
-fn start(config: Config) -> Result<()> {
-    jobsrv::server::run(config)
 }

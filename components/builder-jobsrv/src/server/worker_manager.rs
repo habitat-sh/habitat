@@ -13,19 +13,19 @@
 // limitations under the License.
 
 use std::collections::HashMap;
-use std::sync::{mpsc, Arc, RwLock};
+use std::path::PathBuf;
+use std::sync::mpsc;
 use std::time::{Duration, Instant};
 use std::thread::{self, JoinHandle};
 
 use bldr_core;
+use hab_net::{ErrCode, NetError};
+use hab_net::conn::RouteClient;
 use hab_net::socket::DEFAULT_CONTEXT;
-use hab_net::routing::Broker;
 use linked_hash_map::LinkedHashMap;
 use protobuf::{parse_from_bytes, Message, RepeatedField};
-
 use protocol::jobsrv;
 use protocol::originsrv::{OriginIntegrationRequest, OriginIntegrationResponse};
-use protocol::net::{self, ErrCode};
 use zmq;
 
 use config::Config;
@@ -64,8 +64,9 @@ impl Default for WorkerMgrClient {
 }
 
 pub struct WorkerMgr {
-    config: Arc<RwLock<Config>>,
     datastore: DataStore,
+    key_dir: PathBuf,
+    route_conn: RouteClient,
     hb_sock: zmq::Socket,
     rq_sock: zmq::Socket,
     work_mgr_sock: zmq::Socket,
@@ -73,11 +74,13 @@ pub struct WorkerMgr {
     ready_workers: LinkedHashMap<String, Instant>,
     busy_workers: LinkedHashMap<String, Instant>,
     jobs: LinkedHashMap<u64, Instant>,
+    worker_command: String,
+    worker_heartbeat: String,
     worker_map: HashMap<String, u64>,
 }
 
 impl WorkerMgr {
-    pub fn new(config: Arc<RwLock<Config>>, datastore: DataStore) -> Result<Self> {
+    pub fn new(cfg: &Config, datastore: DataStore, route_conn: RouteClient) -> Result<Self> {
         let hb_sock = (**DEFAULT_CONTEXT).as_mut().socket(zmq::SUB)?;
         let rq_sock = (**DEFAULT_CONTEXT).as_mut().socket(zmq::ROUTER)?;
         let work_mgr_sock = (**DEFAULT_CONTEXT).as_mut().socket(zmq::DEALER)?;
@@ -86,29 +89,29 @@ impl WorkerMgr {
         work_mgr_sock.set_rcvhwm(1)?;
         work_mgr_sock.set_linger(0)?;
         work_mgr_sock.set_immediate(true)?;
-        let msg = zmq::Message::new()?;
         Ok(WorkerMgr {
-            config: config,
             datastore: datastore,
+            key_dir: cfg.key_dir.clone(),
+            route_conn: route_conn,
             hb_sock: hb_sock,
             rq_sock: rq_sock,
             work_mgr_sock: work_mgr_sock,
-            msg: msg,
+            msg: zmq::Message::new()?,
             ready_workers: LinkedHashMap::new(),
             busy_workers: LinkedHashMap::new(),
             jobs: LinkedHashMap::new(),
             worker_map: HashMap::new(),
+            worker_command: cfg.net.worker_command_addr(),
+            worker_heartbeat: cfg.net.worker_heartbeat_addr(),
         })
     }
 
-    pub fn start(cfg: Arc<RwLock<Config>>, ds: DataStore) -> Result<JoinHandle<()>> {
+    pub fn start(cfg: &Config, datastore: DataStore, conn: RouteClient) -> Result<JoinHandle<()>> {
+        let mut manager = Self::new(cfg, datastore, conn)?;
         let (tx, rx) = mpsc::sync_channel(1);
         let handle = thread::Builder::new()
             .name("worker-manager".to_string())
-            .spawn(move || {
-                let mut manager = Self::new(cfg, ds).unwrap();
-                manager.run(tx).unwrap();
-            })
+            .spawn(move || { manager.run(tx).unwrap(); })
             .unwrap();
         match rx.recv() {
             Ok(()) => Ok(handle),
@@ -118,15 +121,10 @@ impl WorkerMgr {
 
     fn run(&mut self, rz: mpsc::SyncSender<()>) -> Result<()> {
         self.work_mgr_sock.bind(WORKER_MGR_ADDR)?;
-        {
-            let cfg = self.config.read().unwrap();
-            let worker_command = cfg.net.worker_command_addr();
-            let worker_heartbeat = cfg.net.worker_heartbeat_addr();
-            println!("Listening for commands on {}", worker_command);
-            self.rq_sock.bind(&worker_command)?;
-            println!("Listening for heartbeats on {}", worker_heartbeat);
-            self.hb_sock.bind(&worker_heartbeat)?;
-        }
+        println!("Listening for commands on {}", self.worker_command);
+        self.rq_sock.bind(&self.worker_command)?;
+        println!("Listening for heartbeats on {}", self.worker_heartbeat);
+        self.hb_sock.bind(&self.worker_heartbeat)?;
         let mut hb_sock = false;
         let mut rq_sock = false;
         let mut work_mgr_sock = false;
@@ -256,24 +254,19 @@ impl WorkerMgr {
     }
 
     fn add_integrations_to_job(&mut self, job: &mut jobsrv::Job) {
-        let key_dir = {
-            let cfg = self.config.read().unwrap();
-            cfg.key_dir.clone()
-        };
-        let mut conn = Broker::connect().unwrap();
         let mut integrations = RepeatedField::new();
         let mut integration_request = OriginIntegrationRequest::new();
         let origin = job.get_project().get_origin_name().to_string();
         integration_request.set_origin(origin);
 
-        match conn.route::<OriginIntegrationRequest, OriginIntegrationResponse>(
+        match self.route_conn.route::<OriginIntegrationRequest, OriginIntegrationResponse>(
             &integration_request,
         ) {
             Ok(oir) => {
                 for i in oir.get_integrations() {
                     let mut oi = i.clone();
                     let plaintext = match bldr_core::integrations::decrypt(
-                        key_dir.to_str().unwrap(),
+                        &self.key_dir,
                         i.get_body(),
                     ) {
                         Ok(p) => p,
@@ -379,8 +372,8 @@ impl WorkerMgr {
             match self.datastore.get_job(&req)? {
                 Some(mut job) => {
                     job.set_state(jobsrv::JobState::Failed);
-                    let err = net::err(ErrCode::TIMEOUT, "js:err:1");
-                    job.set_error(err);
+                    let err = NetError::new(ErrCode::TIMEOUT, "js:err:1");
+                    job.set_error(err.take_err());
                     debug!("updating job {:?} setting state to Failed", job_id);
                     self.datastore.update_job(&job)?;
                 }

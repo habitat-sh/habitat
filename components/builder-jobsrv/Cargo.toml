@@ -12,10 +12,15 @@ path = "src/main.rs"
 doc = false
 
 [dependencies]
+builder_core = { path = "../builder-core" }
 clippy = {version = "*", optional = true}
 aws-sdk-rust = "*"
 env_logger = "*"
+habitat_core = { path = "../core" }
+habitat_net = { path = "../net" }
+habitat_builder_db = { path = "../builder-db" }
 habitat-builder-protocol = { path = "../builder-protocol" }
+lazy_static = "*"
 linked-hash-map = "*"
 log = "*"
 protobuf = "*"
@@ -33,18 +38,6 @@ hyper = "*"
 [dependencies.clap]
 version = "*"
 features = [ "suggestions", "color", "unstable" ]
-
-[dependencies.habitat_core]
-path = "../core"
-
-[dependencies.builder_core]
-path = "../builder-core"
-
-[dependencies.habitat_net]
-path = "../net"
-
-[dependencies.habitat_builder_db]
-path = "../builder-db"
 
 [dependencies.zmq]
 git = "https://github.com/erickt/rust-zmq"

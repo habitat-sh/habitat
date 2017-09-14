@@ -26,26 +26,30 @@ impl LogDirectory {
     /// Create a new `LogDirectory` wrapping `path`.
     pub fn new<T>(path: T) -> Self
     where
-        T: AsRef<Path>,
+        T: Into<PathBuf>,
     {
-        LogDirectory(path.as_ref().to_path_buf())
+        LogDirectory(path.into())
     }
 
     /// Ensures that the specified log directory can be used.
     ///
-    /// Returns an `Err` if:
-    /// * the path does not exist
-    /// * the path is not a directory
-    /// * the path is not writable
-    pub fn validate(&self) -> Result<()> {
-        let meta = fs::metadata(&self.0).map_err(|e| {
-            Error::LogDirDoesNotExist(self.0.clone(), e)
+    /// # Errors
+    ///
+    /// * Path does not exist
+    /// * Path is not a directory
+    /// * Path is not writable
+    pub fn validate<T>(path: T) -> Result<()>
+    where
+        T: AsRef<Path> + Into<PathBuf>,
+    {
+        let meta = fs::metadata(&path).map_err(|e| {
+            Error::LogDirDoesNotExist(path.as_ref().into(), e)
         })?;
         if !meta.is_dir() {
-            return Err(Error::LogDirIsNotDir(self.0.clone()));
+            return Err(Error::LogDirIsNotDir(path.into()));
         }
         if meta.permissions().readonly() {
-            return Err(Error::LogDirNotWritable(self.0.clone()));
+            return Err(Error::LogDirNotWritable(path.into()));
         }
         Ok(())
     }
