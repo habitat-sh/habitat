@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Copyright (c) 2016 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,6 +22,8 @@ extern crate habitat_builder_db as db;
 extern crate builder_core as bldr_core;
 extern crate habitat_depot_client as depot_client;
 extern crate habitat_api_client as api_client;
+#[macro_use]
+extern crate lazy_static;
 extern crate linked_hash_map;
 #[macro_use]
 extern crate log;
@@ -44,8 +46,8 @@ pub mod error;
 pub mod server;
 pub mod migration;
 
-pub use self::config::Config;
-pub use self::error::{Error, Result};
+pub use config::Config;
+pub use error::{SrvError, SrvResult};
 
 pub const PRODUCT: &'static str = "builder-scheduler";
 pub const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));

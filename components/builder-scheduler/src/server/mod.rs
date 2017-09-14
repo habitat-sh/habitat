@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Copyright (c) 2016 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,29 +12,35 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-pub mod handlers;
-pub mod scheduler;
+mod handlers;
+mod scheduler;
 
-use std::ops::Deref;
-use std::sync::{Arc, RwLock};
+use std::sync::RwLock;
 use time::PreciseTime;
 
-use hab_net::config::RouterCfg;
-use hab_net::dispatcher::prelude::*;
-use hab_net::{Application, Supervisor};
-use hab_net::routing::Broker;
-use hab_net::server::{Envelope, NetIdent, RouteConn, Service};
-use hab_net::socket::DEFAULT_CONTEXT;
-use protocol::net;
-use zmq;
+use hab_net::app::prelude::*;
+use protocol::scheduler::*;
 
+use self::scheduler::{ScheduleMgr, ScheduleClient};
 use bldr_core::target_graph::TargetGraph;
 use config::Config;
 use data_store::DataStore;
-use self::scheduler::{ScheduleMgr, ScheduleClient};
-use error::{Error, Result};
+use error::{SrvError, SrvResult};
 
-const BE_LISTEN_ADDR: &'static str = "inproc://backend";
+lazy_static! {
+    static ref DISPATCH_TABLE: DispatchTable<SchedulerSrv> = {
+        let mut map = DispatchTable::new();
+        map.register(GroupCreate::descriptor_static(None), handlers::group_create);
+        map.register(GroupGet::descriptor_static(None), handlers::group_get);
+        map.register(PackageCreate::descriptor_static(None), handlers::package_create);
+        map.register(PackagePreCreate::descriptor_static(None), handlers::package_precreate);
+        map.register(JobStatus::descriptor_static(None), handlers::job_status);
+        map.register(PackageStatsGet::descriptor_static(None), handlers::package_stats_get);
+        map.register(ReverseDependenciesGet::descriptor_static(None),
+            handlers::reverse_dependencies_get);
+        map
+    };
+}
 
 #[derive(Clone)]
 pub struct InitServerState {
@@ -43,145 +49,55 @@ pub struct InitServerState {
 }
 
 impl InitServerState {
-    pub fn new(datastore: DataStore, graph: Arc<RwLock<TargetGraph>>) -> Self {
+    pub fn new(datastore: DataStore, graph: TargetGraph) -> Self {
         InitServerState {
             datastore: datastore,
-            graph: graph,
+            graph: Arc::new(RwLock::new(graph)),
         }
     }
 }
 
-impl Into<ServerState> for InitServerState {
-    fn into(self) -> ServerState {
-        let mut state = ServerState::default();
-        state.datastore = Some(self.datastore);
-        state.graph = Some(self.graph);
-        state
-    }
-}
-
-#[derive(Default)]
 pub struct ServerState {
-    datastore: Option<DataStore>,
-    schedule_cli: Option<ScheduleClient>,
-    graph: Option<Arc<RwLock<TargetGraph>>>,
+    datastore: DataStore,
+    graph: Arc<RwLock<TargetGraph>>,
+    schedule_cli: ScheduleClient,
 }
 
-impl ServerState {
-    fn datastore(&self) -> &DataStore {
-        self.datastore.as_ref().unwrap()
-    }
-
-    fn schedule_cli(&mut self) -> &mut ScheduleClient {
-        self.schedule_cli.as_mut().unwrap()
-    }
-
-    fn graph(&mut self) -> &Arc<RwLock<TargetGraph>> {
-        self.graph.as_ref().unwrap()
-    }
-}
-
-impl DispatcherState for ServerState {
-    fn is_initialized(&self) -> bool {
-        self.datastore.is_some() && self.schedule_cli.is_some() && self.graph.is_some()
-    }
-}
-
-pub struct Worker {
-    #[allow(dead_code)]
-    config: Arc<RwLock<Config>>,
-}
-
-impl Dispatcher for Worker {
+impl AppState for ServerState {
     type Config = Config;
-    type Error = Error;
+    type Error = SrvError;
     type InitState = InitServerState;
-    type State = ServerState;
 
-    fn message_queue() -> &'static str {
-        BE_LISTEN_ADDR
-    }
-
-    fn dispatch(
-        message: &mut Envelope,
-        sock: &mut zmq::Socket,
-        state: &mut Self::State,
-    ) -> Result<()> {
-        debug!("Message received: {}", message.message_id());
-
-        match message.message_id() {
-            "GroupCreate" => handlers::group_create(message, sock, state),
-            "GroupGet" => handlers::group_get(message, sock, state),
-            "PackageCreate" => handlers::package_create(message, sock, state),
-            "PackagePreCreate" => handlers::package_precreate(message, sock, state),
-            "JobStatus" => handlers::job_status(message, sock, state),
-            "PackageStatsGet" => handlers::package_stats_get(message, sock, state),
-            "ReverseDependenciesGet" => handlers::reverse_dependencies_get(message, sock, state),
-            _ => panic!("unexpected message: {:?}", message.message_id()),
-        }
-    }
-
-    fn new(config: Arc<RwLock<Config>>) -> Self {
-        Worker { config: config }
-    }
-
-    fn init(&mut self, init_state: Self::InitState) -> Result<Self::State> {
-        let mut schedule_cli = ScheduleClient::default();
-        schedule_cli.connect()?;
-
-        let mut state: ServerState = init_state.into();
-        state.schedule_cli = Some(schedule_cli);
-
+    fn build(_: &Self::Config, init_state: Self::InitState) -> SrvResult<Self> {
+        let mut state = ServerState {
+            datastore: init_state.datastore,
+            graph: init_state.graph,
+            schedule_cli: ScheduleClient::default(),
+        };
+        state.schedule_cli.connect()?;
         Ok(state)
     }
 }
 
-pub struct Server {
-    config: Arc<RwLock<Config>>,
-    router: RouteConn,
-    be_sock: zmq::Socket,
-}
+struct SchedulerSrv;
+impl Dispatcher for SchedulerSrv {
+    const APP_NAME: &'static str = "builder-scheduler";
+    const PROTOCOL: Protocol = Protocol::Scheduler;
 
-impl Server {
-    pub fn new(config: Config) -> Result<Self> {
-        let router = RouteConn::new(Self::net_ident())?;
-        let be = (**DEFAULT_CONTEXT).as_mut().socket(zmq::DEALER)?;
-        Ok(Server {
-            config: Arc::new(RwLock::new(config)),
-            router: router,
-            be_sock: be,
-        })
-    }
+    type Error = SrvError;
+    type State = ServerState;
 
-    pub fn reconfigure(&self, config: Config) -> Result<()> {
-        {
-            let mut cfg = self.config.write().unwrap();
-            *cfg = config;
-        }
-        // * disconnect from removed routers
-        // * notify remaining routers of any shard hosting changes
-        // * connect to new shard servers
-        Ok(())
-    }
-}
-
-impl Application for Server {
-    type Error = Error;
-
-    fn run(&mut self) -> Result<()> {
-        self.be_sock.bind(BE_LISTEN_ADDR)?;
-        let datastore = {
-            let cfg = self.config.read().unwrap();
-            DataStore::new(cfg.deref())?
-        };
+    fn app_init(
+        config: &<Self::State as AppState>::Config,
+        router_pipe: Arc<String>,
+    ) -> SrvResult<<Self::State as AppState>::InitState> {
+        let datastore = DataStore::new(config)?;
         datastore.setup()?;
-
         let mut graph = TargetGraph::new();
         let packages = datastore.get_packages()?;
         let start_time = PreciseTime::now();
         let res = graph.build(packages.into_iter());
         let end_time = PreciseTime::now();
-
         info!("Graph build stats ({} sec):", start_time.to(end_time));
         for stat in res {
             info!(
@@ -191,52 +107,16 @@ impl Application for Server {
                 stat.edge_count,
             );
         }
+        let state = InitServerState::new(datastore, graph);
+        ScheduleMgr::start(state.datastore.clone(), config, router_pipe)?;
+        Ok(state)
+    }
 
-        let cfg = self.config.clone();
-        let init_state = InitServerState::new(datastore, Arc::new(RwLock::new(graph)));
-        let ds2 = init_state.datastore.clone();
-        let sup: Supervisor<Worker> = Supervisor::new(cfg, init_state);
-
-        let cfg2 = self.config.clone();
-        let schedule_mgr = ScheduleMgr::start(ds2, cfg2)?;
-        sup.start()?;
-        self.connect()?;
-        let broker = {
-            let cfg = self.config.read().unwrap();
-            Broker::run(Self::net_ident(), cfg.route_addrs())
-        };
-        info!("builder-scheduler is ready to go.");
-        zmq::proxy(&mut self.router.socket, &mut self.be_sock)?;
-        broker.join().unwrap();
-        schedule_mgr.join().unwrap();
-        Ok(())
+    fn dispatch_table() -> &'static DispatchTable<Self> {
+        &DISPATCH_TABLE
     }
 }
 
-impl Service for Server {
-    type Application = Self;
-    type Config = Config;
-    type Error = Error;
-
-    fn protocol() -> net::Protocol {
-        net::Protocol::Scheduler
-    }
-
-    fn config(&self) -> &Arc<RwLock<Self::Config>> {
-        &self.config
-    }
-
-    fn conn(&self) -> &RouteConn {
-        &self.router
-    }
-
-    fn conn_mut(&mut self) -> &mut RouteConn {
-        &mut self.router
-    }
-}
-
-impl NetIdent for Server {}
-
-pub fn run(config: Config) -> Result<()> {
-    Server::new(config)?.run()
+pub fn run(config: Config) -> AppResult<(), SrvError> {
+    app_start::<SchedulerSrv>(config)
 }

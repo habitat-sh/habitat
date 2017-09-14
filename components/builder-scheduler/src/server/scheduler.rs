@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Copyright (c) 2016 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,22 +13,19 @@
 // limitations under the License.
 
 use std::sync::mpsc;
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 use std::thread::{self, JoinHandle};
-use std::path::PathBuf;
 use std::collections::HashMap;
 
-use hab_core::channel::{STABLE_CHANNEL, UNSTABLE_CHANNEL};
+use hab_net::conn::RouteClient;
 use hab_net::socket::DEFAULT_CONTEXT;
-use hab_net::routing::Broker;
 use zmq;
 
-use protobuf::parse_from_bytes;
 use protocol::jobsrv::{self, Job, JobSpec};
 use protocol::originsrv::*;
 use protocol::scheduler as proto;
 use data_store::DataStore;
-use error::{Result, Error};
+use error::{SrvResult, SrvError};
 
 use config::Config;
 use bldr_core::logger::Logger;
@@ -42,12 +39,12 @@ pub struct ScheduleClient {
 }
 
 impl ScheduleClient {
-    pub fn connect(&mut self) -> Result<()> {
+    pub fn connect(&mut self) -> SrvResult<()> {
         self.socket.connect(SCHEDULER_ADDR)?;
         Ok(())
     }
 
-    pub fn notify(&mut self) -> Result<()> {
+    pub fn notify(&mut self) -> SrvResult<()> {
         self.socket.send(&[1], 0)?;
         Ok(())
     }
@@ -66,47 +63,43 @@ impl Default for ScheduleClient {
 
 pub struct ScheduleMgr {
     datastore: DataStore,
-    socket: zmq::Socket,
-    schedule_cli: ScheduleClient,
-    msg: zmq::Message,
     logger: Logger,
+    msg: zmq::Message,
+    route_conn: RouteClient,
+    schedule_cli: ScheduleClient,
+    socket: zmq::Socket,
 }
 
 impl ScheduleMgr {
-    pub fn new(datastore: DataStore, config: Arc<RwLock<Config>>) -> Result<Self> {
+    pub fn new(datastore: DataStore, config: &Config, router_pipe: Arc<String>) -> SrvResult<Self> {
         let socket = (**DEFAULT_CONTEXT).as_mut().socket(zmq::DEALER)?;
         socket.set_rcvhwm(1)?;
         socket.set_linger(0)?;
         socket.set_immediate(true)?;
-
-        let msg = zmq::Message::new()?;
         let mut schedule_cli = ScheduleClient::default();
         schedule_cli.connect()?;
-
-        let log_path = {
-            let cfg = config.read().unwrap();
-            PathBuf::from(cfg.log_path.clone())
-        };
-
-        let logger = Logger::init(log_path, "builder-scheduler.log");
-
+        let route_conn = RouteClient::new()?;
+        route_conn.connect(&*router_pipe)?;
         Ok(ScheduleMgr {
             datastore: datastore,
-            socket: socket,
+            logger: Logger::init(&config.log_path, "builder-scheduler.log"),
+            msg: zmq::Message::new()?,
+            route_conn: route_conn,
             schedule_cli: schedule_cli,
-            msg: msg,
-            logger: logger,
+            socket: socket,
         })
     }
 
-    pub fn start(ds: DataStore, config: Arc<RwLock<Config>>) -> Result<JoinHandle<()>> {
+    pub fn start(
+        datastore: DataStore,
+        config: &Config,
+        route_pipe: Arc<String>,
+    ) -> SrvResult<JoinHandle<()>> {
         let (tx, rx) = mpsc::sync_channel(1);
+        let mut schedule_mgr = Self::new(datastore, config, route_pipe)?;
         let handle = thread::Builder::new()
             .name("scheduler".to_string())
-            .spawn(move || {
-                let mut schedule_mgr = Self::new(ds, config).unwrap();
-                schedule_mgr.run(tx).unwrap();
-            })
+            .spawn(move || { schedule_mgr.run(tx).unwrap(); })
             .unwrap();
         match rx.recv() {
             Ok(()) => Ok(handle),
@@ -114,7 +107,7 @@ impl ScheduleMgr {
         }
     }
 
-    fn run(&mut self, rz: mpsc::SyncSender<()>) -> Result<()> {
+    fn run(&mut self, rz: mpsc::SyncSender<()>) -> SrvResult<()> {
         self.socket.bind(SCHEDULER_ADDR)?;
 
         let mut socket = false;
@@ -144,7 +137,7 @@ impl ScheduleMgr {
         }
     }
 
-    fn process_work(&mut self) -> Result<()> {
+    fn process_work(&mut self) -> SrvResult<()> {
         loop {
             // Take one group from the pending list
             let mut groups = self.datastore.pending_groups(1)?;
@@ -166,7 +159,7 @@ impl ScheduleMgr {
         Ok(())
     }
 
-    fn dispatch_group(&mut self, group: &proto::Group) -> Result<()> {
+    fn dispatch_group(&mut self, group: &proto::Group) -> SrvResult<()> {
         self.logger.log_group(&group);
 
         let mut skipped = HashMap::new();
@@ -240,7 +233,7 @@ impl ScheduleMgr {
         Ok(())
     }
 
-    fn dispatchable_projects(&mut self, group: &proto::Group) -> Result<Vec<proto::Project>> {
+    fn dispatchable_projects(&mut self, group: &proto::Group) -> SrvResult<Vec<proto::Project>> {
         let mut projects = Vec::new();
         for project in group.get_projects().into_iter().filter(|x| {
             x.get_state() == proto::ProjectState::NotStarted
@@ -281,7 +274,11 @@ impl ScheduleMgr {
         true
     }
 
-    fn skip_projects(&mut self, group: &proto::Group, project_name: &str) -> Result<Vec<String>> {
+    fn skip_projects(
+        &mut self,
+        group: &proto::Group,
+        project_name: &str,
+    ) -> SrvResult<Vec<String>> {
         let mut skipped = HashMap::new();
         skipped.insert(project_name.to_string(), true);
 
@@ -315,13 +312,13 @@ impl ScheduleMgr {
         Ok(skipped.keys().map(|s| s.to_string()).collect())
     }
 
-    fn schedule_job(&mut self, group_id: u64, project_name: &str) -> Result<Option<Job>> {
+    fn schedule_job(&mut self, group_id: u64, project_name: &str) -> SrvResult<Option<Job>> {
         let mut project_get = OriginProjectGet::new();
-
         project_get.set_name(String::from(project_name));
 
-        let mut conn = Broker::connect().unwrap();
-        let project = match conn.route::<OriginProjectGet, OriginProject>(&project_get) {
+        let project = match self.route_conn.route::<OriginProjectGet, OriginProject>(
+            &project_get,
+        ) {
             Ok(project) => project,
             Err(err) => {
                 warn!(
@@ -339,19 +336,16 @@ impl ScheduleMgr {
         job_spec.set_project(project);
         job_spec.set_channel(bldr_channel_name(group_id));
 
-        match conn.route::<JobSpec, Job>(&job_spec) {
+        match self.route_conn.route::<JobSpec, Job>(&job_spec) {
             Ok(job) => {
                 debug!("Job created: {:?}", job);
                 Ok(Some(job))
             }
-            Err(err) => {
-                warn!("Job creation error: {:?}", err);
-                Err(Error::ProtoNetError(err))
-            }
+            Err(err) => Err(SrvError::from(err)),
         }
     }
 
-    fn get_group(&mut self, group_id: u64) -> Result<proto::Group> {
+    fn get_group(&mut self, group_id: u64) -> SrvResult<proto::Group> {
         let mut msg: proto::GroupGet = proto::GroupGet::new();
         msg.set_group_id(group_id);
 
@@ -359,17 +353,17 @@ impl ScheduleMgr {
             Ok(group_opt) => {
                 match group_opt {
                     Some(group) => Ok(group),
-                    None => Err(Error::UnknownGroup),
+                    None => Err(SrvError::UnknownGroup),
                 }
             }
             Err(err) => {
                 warn!("Group retrieve error: {:?}", err);
-                Err(Error::UnknownGroup)
+                Err(SrvError::UnknownGroup)
             }
         }
     }
 
-    fn process_status(&mut self) -> Result<()> {
+    fn process_status(&mut self) -> SrvResult<()> {
         loop {
             // Take the top job status message from the message queue
             let mut msgs = self.datastore.peek_message(1)?;
@@ -379,17 +373,14 @@ impl ScheduleMgr {
             }
 
             // This unwrap is fine, because we just checked our length
-            let (msg_id, msg) = msgs.pop().unwrap();
-
-            assert_eq!(msg.get_message_id(), "JobStatus");
-            let job_status: proto::JobStatus = parse_from_bytes(&msg.get_body())?;
+            let (msg_id, job_status) = msgs.pop().unwrap();
             let job = job_status.get_job();
 
             debug!("Got job status: id={} job={:?}", msg_id, job);
 
             let group: proto::Group = match self.get_group(job.get_owner_id()) {
                 Ok(group) => group,
-                Err(Error::UnknownGroup) => {
+                Err(SrvError::UnknownGroup) => {
                     // UnknownGroup is ok, just delete the message and move on
                     debug!("Skipping unknown group {:?}", job.get_owner_id());
                     self.datastore.delete_message(msg_id)?;
@@ -435,7 +426,7 @@ impl ScheduleMgr {
         Ok(())
     }
 
-    fn update_group_state(&mut self, group_id: u64) -> Result<()> {
+    fn update_group_state(&mut self, group_id: u64) -> SrvResult<()> {
         let group = self.get_group(group_id)?;
 
         // Group state transition rules:

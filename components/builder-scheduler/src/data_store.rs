@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Copyright (c) 2016 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ use protocol;
 use protocol::jobsrv::{Job, JobState};
 use protocol::scheduler::*;
 use protobuf::RepeatedField;
-use protobuf::{parse_from_bytes, Message};
 
 use config::Config;
 use error::{SrvError, SrvResult};
@@ -38,7 +37,7 @@ impl DataStore {
     ///
     /// * Can fail if the pool cannot be created
     /// * Blocks creation of the datastore on the existince of the pool; might wait indefinetly.
-    pub fn new(config: &Config) -> Result<DataStore> {
+    pub fn new(config: &Config) -> SrvResult<DataStore> {
         let pool = Pool::new(&config.datastore, vec![0])?;
         Ok(DataStore { pool: pool })
     }
@@ -52,9 +51,9 @@ impl DataStore {
     ///
     /// This includes all the schema and data migrations, along with stored procedures for data
     /// access.
-    pub fn setup(&self) -> Result<()> {
+    pub fn setup(&self) -> SrvResult<()> {
         let conn = self.pool.get_raw()?;
-        let xact = conn.transaction().map_err(Error::DbTransactionStart)?;
+        let xact = conn.transaction().map_err(SrvError::DbTransactionStart)?;
         let mut migrator = Migrator::new(xact, self.pool.shards.clone());
 
         migrator.setup()?;
@@ -422,25 +421,25 @@ impl DataStore {
         Ok(())
     }
 
-    pub fn create_package(&self, msg: &PackageCreate) -> Result<Package> {
+    pub fn create_package(&self, msg: &PackageCreate) -> SrvResult<Package> {
         let conn = self.pool.get_shard(0)?;
 
         let rows = conn.query(
             "SELECT * FROM upsert_package_v1($1, $2, $3)",
             &[&msg.get_ident(), &msg.get_deps(), &msg.get_target()],
-        ).map_err(Error::PackageInsert)?;
+        ).map_err(SrvError::PackageInsert)?;
 
         let row = rows.get(0);
         self.row_to_package(&row)
     }
 
-    pub fn get_packages(&self) -> Result<RepeatedField<Package>> {
+    pub fn get_packages(&self) -> SrvResult<RepeatedField<Package>> {
         let mut packages = RepeatedField::new();
 
         let conn = self.pool.get_shard(0)?;
 
         let rows = &conn.query("SELECT * FROM get_packages_v1()", &[]).map_err(
-            Error::PackagesGet,
+            SrvError::PackagesGet,
         )?;
 
         if rows.is_empty() {
@@ -456,15 +455,15 @@ impl DataStore {
         Ok(packages)
     }
 
-    pub fn get_package(&self, ident: &str) -> Result<Package> {
+    pub fn get_package(&self, ident: &str) -> SrvResult<Package> {
         let conn = self.pool.get_shard(0)?;
 
         let rows = &conn.query("SELECT * FROM get_package_v1($1)", &[&ident])
-            .map_err(Error::PackagesGet)?;
+            .map_err(SrvError::PackagesGet)?;
 
         if rows.is_empty() {
             error!("No package found");
-            return Err(Error::UnknownPackage);
+            return Err(SrvError::UnknownPackage);
         }
 
         assert!(rows.len() == 1);
@@ -472,23 +471,23 @@ impl DataStore {
         Ok(package)
     }
 
-    pub fn get_package_stats(&self, msg: &PackageStatsGet) -> Result<PackageStats> {
+    pub fn get_package_stats(&self, msg: &PackageStatsGet) -> SrvResult<PackageStats> {
         let conn = self.pool.get_shard(0)?;
 
         let origin = msg.get_origin();
         let rows = &conn.query("SELECT * FROM count_packages_v1($1)", &[&origin])
-            .map_err(Error::PackageStats)?;
+            .map_err(SrvError::PackageStats)?;
         assert!(rows.len() == 1); // should never have more than one
 
         let package_count: i64 = rows.get(0).get("count_packages_v1");
 
         let rows = &conn.query("SELECT * FROM count_projects_v1($1)", &[&origin])
-            .map_err(Error::PackageStats)?;
+            .map_err(SrvError::PackageStats)?;
         assert!(rows.len() == 1); // should never have more than one
         let build_count: i64 = rows.get(0).get("count_projects_v1");
 
         let rows = &conn.query("SELECT * FROM count_unique_packages_v1($1)", &[&origin])
-            .map_err(Error::PackageStats)?;
+            .map_err(SrvError::PackageStats)?;
         assert!(rows.len() == 1); // should never have more than one
         let up_count: i64 = rows.get(0).get("count_unique_packages_v1");
 
@@ -500,11 +499,11 @@ impl DataStore {
         Ok(package_stats)
     }
 
-    pub fn is_group_active(&self, project_name: &str) -> Result<bool> {
+    pub fn is_group_active(&self, project_name: &str) -> SrvResult<bool> {
         let conn = self.pool.get_shard(0)?;
 
         let rows = &conn.query("SELECT * FROM check_active_group_v1($1)", &[&project_name])
-            .map_err(Error::GroupGet)?;
+            .map_err(SrvError::GroupGet)?;
 
         // If we get any rows back, we found one or more active groups
         Ok(rows.len() >= 1)
@@ -514,7 +513,7 @@ impl DataStore {
         &self,
         msg: &GroupCreate,
         project_tuples: Vec<(String, String)>,
-    ) -> Result<Group> {
+    ) -> SrvResult<Group> {
         let conn = self.pool.get_shard(0)?;
 
         assert!(!project_tuples.is_empty());
@@ -527,7 +526,7 @@ impl DataStore {
         let rows = conn.query(
             "SELECT * FROM insert_group_v3($1, $2, $3)",
             &[&root_project, &project_names, &project_idents],
-        ).map_err(Error::GroupCreate)?;
+        ).map_err(SrvError::GroupCreate)?;
 
         let mut group = self.row_to_group(&rows.get(0))?;
         let mut projects = RepeatedField::new();
@@ -547,11 +546,11 @@ impl DataStore {
         Ok(group)
     }
 
-    pub fn get_group(&self, msg: &GroupGet) -> Result<Option<Group>> {
+    pub fn get_group(&self, msg: &GroupGet) -> SrvResult<Option<Group>> {
         let group_id = msg.get_group_id();
         let conn = self.pool.get_shard(0)?;
         let rows = &conn.query("SELECT * FROM get_group_v1($1)", &[&(group_id as i64)])
-            .map_err(Error::GroupGet)?;
+            .map_err(SrvError::GroupGet)?;
 
         if rows.is_empty() {
             warn!("Group id {} not found", group_id);
@@ -565,7 +564,7 @@ impl DataStore {
         let project_rows = &conn.query(
             "SELECT * FROM get_projects_for_group_v1($1)",
             &[&(group_id as i64)],
-        ).map_err(Error::GroupGet)?;
+        ).map_err(SrvError::GroupGet)?;
 
         assert!(project_rows.len() > 0); // should at least have one
         let projects = self.rows_to_projects(&project_rows)?;
@@ -574,7 +573,7 @@ impl DataStore {
         Ok(Some(group))
     }
 
-    fn row_to_package(&self, row: &postgres::rows::Row) -> Result<Package> {
+    fn row_to_package(&self, row: &postgres::rows::Row) -> SrvResult<Package> {
         let mut package = Package::new();
 
         let name: String = row.get("ident");
@@ -597,7 +596,7 @@ impl DataStore {
         Ok(package)
     }
 
-    fn row_to_group(&self, row: &postgres::rows::Row) -> Result<Group> {
+    fn row_to_group(&self, row: &postgres::rows::Row) -> SrvResult<Group> {
         let mut group = Group::new();
 
         let id: i64 = row.get("id");
@@ -608,7 +607,7 @@ impl DataStore {
             "Pending" => GroupState::Pending,
             "Complete" => GroupState::Complete,
             "Failed" => GroupState::Failed,
-            _ => return Err(Error::UnknownGroupState),
+            _ => return Err(SrvError::UnknownGroupState),
         };
         group.set_state(group_state);
 
@@ -618,7 +617,7 @@ impl DataStore {
         Ok(group)
     }
 
-    fn row_to_project(&self, row: &postgres::rows::Row) -> Result<Project> {
+    fn row_to_project(&self, row: &postgres::rows::Row) -> SrvResult<Project> {
         let mut project = Project::new();
 
         let name: String = row.get("project_name");
@@ -632,7 +631,7 @@ impl DataStore {
             "Success" => ProjectState::Success,
             "Failure" => ProjectState::Failure,
             "Skipped" => ProjectState::Skipped,
-            _ => return Err(Error::UnknownProjectState),
+            _ => return Err(SrvError::UnknownProjectState),
         };
 
         project.set_name(name);
@@ -643,7 +642,7 @@ impl DataStore {
         Ok(project)
     }
 
-    fn rows_to_projects(&self, rows: &postgres::rows::Rows) -> Result<RepeatedField<Project>> {
+    fn rows_to_projects(&self, rows: &postgres::rows::Rows) -> SrvResult<RepeatedField<Project>> {
         let mut projects = RepeatedField::new();
 
         for row in rows {
@@ -654,7 +653,7 @@ impl DataStore {
         Ok(projects)
     }
 
-    pub fn set_group_state(&self, group_id: u64, group_state: GroupState) -> Result<()> {
+    pub fn set_group_state(&self, group_id: u64, group_state: GroupState) -> SrvResult<()> {
         let conn = self.pool.get_shard(0)?;
         let state = match group_state {
             GroupState::Dispatching => "Dispatching",
@@ -665,7 +664,7 @@ impl DataStore {
         conn.execute(
             "SELECT set_group_state_v1($1, $2)",
             &[&(group_id as i64), &state],
-        ).map_err(Error::GroupSetState)?;
+        ).map_err(SrvError::GroupSetState)?;
         Ok(())
     }
 
@@ -674,7 +673,7 @@ impl DataStore {
         group_id: u64,
         project_name: &str,
         project_state: ProjectState,
-    ) -> Result<()> {
+    ) -> SrvResult<()> {
         let conn = self.pool.get_shard(0)?;
         let state = match project_state {
             ProjectState::NotStarted => "NotStarted",
@@ -686,21 +685,21 @@ impl DataStore {
         conn.execute(
             "SELECT set_project_name_state_v1($1, $2, $3)",
             &[&(group_id as i64), &project_name, &state],
-        ).map_err(Error::ProjectSetState)?;
+        ).map_err(SrvError::ProjectSetState)?;
         Ok(())
     }
 
-    pub fn set_group_job_state(&self, job: &Job) -> Result<()> {
+    pub fn set_group_job_state(&self, job: &Job) -> SrvResult<()> {
         let conn = self.pool.get_shard(0)?;
         let rows = &conn.query(
             "SELECT * FROM find_project_v1($1, $2)",
             &[&(job.get_owner_id() as i64), &job.get_project().get_name()],
-        ).map_err(Error::ProjectSetState)?;
+        ).map_err(SrvError::ProjectSetState)?;
 
         // No rows means this job might not be one we care about
         if rows.is_empty() {
             warn!("No project found for job id: {}", job.get_id());
-            return Err(Error::UnknownProjectState);
+            return Err(SrvError::UnknownProjectState);
         }
 
         assert!(rows.len() == 1); // should never have more than one
@@ -719,23 +718,23 @@ impl DataStore {
             conn.execute(
                 "SELECT set_project_state_ident_v1($1, $2, $3, $4)",
                 &[&pid, &(job.get_id() as i64), &state, &ident],
-            ).map_err(Error::ProjectSetState)?;
+            ).map_err(SrvError::ProjectSetState)?;
         } else {
             conn.execute(
                 "SELECT set_project_state_v1($1, $2, $3)",
                 &[&pid, &(job.get_id() as i64), &state],
-            ).map_err(Error::ProjectSetState)?;
+            ).map_err(SrvError::ProjectSetState)?;
         };
 
         Ok(())
     }
 
-    pub fn pending_groups(&self, count: i32) -> Result<Vec<Group>> {
+    pub fn pending_groups(&self, count: i32) -> SrvResult<Vec<Group>> {
         let mut groups = Vec::new();
 
         let conn = self.pool.get_shard(0)?;
         let group_rows = &conn.query("SELECT * FROM pending_groups_v1($1)", &[&count])
-            .map_err(Error::GroupPending)?;
+            .map_err(SrvError::GroupPending)?;
 
         for group_row in group_rows {
             let mut group = self.row_to_group(&group_row)?;
@@ -743,7 +742,7 @@ impl DataStore {
             let project_rows = &conn.query(
                 "SELECT * FROM get_projects_for_group_v1($1)",
                 &[&(group.get_id() as i64)],
-            ).map_err(Error::GroupPending)?;
+            ).map_err(SrvError::GroupPending)?;
             let projects = self.rows_to_projects(&project_rows)?;
 
             group.set_projects(projects);
@@ -753,39 +752,34 @@ impl DataStore {
         Ok(groups)
     }
 
-    pub fn enqueue_message(&self, msg: &protocol::net::Msg) -> Result<()> {
+    pub fn enqueue_message(&self, msg: &JobStatus) -> SrvResult<()> {
         let conn = self.pool.get_shard(0)?;
-
-        let body = msg.write_to_bytes().map_err(Error::Protobuf)?;
-
-        conn.execute("SELECT FROM insert_message_v1($1)", &[&body])
-            .map_err(Error::MessageInsert)?;
-
+        let bytes = protocol::message::encode(msg)?;
+        conn.execute("SELECT FROM insert_message_v1($1)", &[&bytes])
+            .map_err(SrvError::MessageInsert)?;
         Ok(())
     }
 
-    pub fn peek_message(&self, count: i32) -> Result<Vec<(i64, protocol::net::Msg)>> {
+    pub fn peek_message(&self, count: i32) -> SrvResult<Vec<(i64, JobStatus)>> {
         let mut results = Vec::new();
 
         let conn = self.pool.get_shard(0)?;
         let rows = &conn.query("SELECT * FROM get_front_message_v1($1)", &[&count])
-            .map_err(Error::MessageGet)?;
+            .map_err(SrvError::MessageGet)?;
         for row in rows {
             let id: i64 = row.get("id");
             let body: Vec<u8> = row.get("message");
-            let msg: protocol::net::Msg = parse_from_bytes(&body).map_err(Error::Protobuf)?;
+            let msg = protocol::message::decode::<JobStatus>(&body)?;
             results.push((id, msg));
         }
 
         Ok(results)
     }
 
-    pub fn delete_message(&self, id: i64) -> Result<()> {
+    pub fn delete_message(&self, id: i64) -> SrvResult<()> {
         let conn = self.pool.get_shard(0)?;
-
         conn.execute("SELECT FROM delete_message_v1($1)", &[&id])
-            .map_err(Error::MessageDelete)?;
-
+            .map_err(SrvError::MessageDelete)?;
         Ok(())
     }
 }

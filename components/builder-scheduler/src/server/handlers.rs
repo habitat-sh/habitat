@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Copyright (c) 2016 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,32 +14,31 @@
 
 //! A collection of handlers for the Scheduler dispatcher
 
-use time::PreciseTime;
-use hab_net::server::Envelope;
+use hab_net::app::prelude::*;
 use protocol::net::{self, ErrCode};
 use protocol::scheduler as proto;
 use protobuf::RepeatedField;
-use zmq;
+use time::PreciseTime;
 
 use super::ServerState;
-use error::Result;
+use error::SrvResult;
 
 pub fn group_create(
-    req: &mut Envelope,
-    sock: &mut zmq::Socket,
+    req: &mut Message,
+    conn: &mut RouteConn,
     state: &mut ServerState,
-) -> Result<()> {
-    let msg: proto::GroupCreate = req.parse_msg()?;
+) -> SrvResult<()> {
+    let msg = req.parse::<proto::GroupCreate>()?;
     debug!("group_create message: {:?}", msg);
 
     let project_name = format!("{}/{}", msg.get_origin(), msg.get_package());
     let mut projects = Vec::new();
 
     // If we already have a scheduled or in-progress group, bail with a conflict error
-    if state.datastore().is_group_active(&project_name)? {
+    if state.datastore.is_group_active(&project_name)? {
         warn!("GroupCreate, project {} is already scheduled", project_name);
-        let err = net::err(ErrCode::ENTITY_CONFLICT, "sc:group-create:1");
-        req.reply_complete(sock, &err)?;
+        let err = NetError::new(ErrCode::ENTITY_CONFLICT, "sc:group-create:1");
+        conn.route_reply(req, &*err)?;
         return Ok(());
     }
 
@@ -48,7 +47,7 @@ pub fn group_create(
     let mut end_time;
 
     let project_ident = {
-        let mut target_graph = state.graph().write().unwrap();
+        let mut target_graph = state.graph.write().unwrap();
         let graph = match target_graph.graph_mut(msg.get_target()) {
             Some(g) => g,
             None => {
@@ -56,8 +55,8 @@ pub fn group_create(
                     "GroupCreate, no graph found for target {}",
                     msg.get_target()
                 );
-                let err = net::err(ErrCode::ENTITY_NOT_FOUND, "sc:group-create:2");
-                req.reply_complete(sock, &err)?;
+                let err = NetError::new(ErrCode::ENTITY_NOT_FOUND, "sc:group-create:2");
+                conn.route_reply(req, &*err)?;
                 return Ok(());
             }
         };
@@ -67,8 +66,8 @@ pub fn group_create(
             Some(s) => s,
             None => {
                 warn!("GroupCreate, project ident not found");
-                let err = net::err(ErrCode::ENTITY_NOT_FOUND, "sc:group-create:3");
-                req.reply_complete(sock, &err)?;
+                let err = NetError::new(ErrCode::ENTITY_NOT_FOUND, "sc:group-create:3");
+                conn.route_reply(req, &*err)?;
                 return Ok(());
             }
         };
@@ -84,7 +83,7 @@ pub fn group_create(
 
     // Search the packages graph to find the reverse dependencies
     let rdeps_opt = {
-        let target_graph = state.graph().read().unwrap();
+        let target_graph = state.graph.read().unwrap();
         let graph = target_graph.graph(msg.get_target()).unwrap(); // Unwrap OK
         start_time = PreciseTime::now();
         let ret = graph.rdeps(&project_name);
@@ -127,25 +126,25 @@ pub fn group_create(
         new_group.set_projects(projects);
         new_group
     } else {
-        let new_group = state.datastore().create_group(&msg, projects)?;
-        state.schedule_cli().notify()?;
+        let new_group = state.datastore.create_group(&msg, projects)?;
+        state.schedule_cli.notify()?;
         new_group
     };
 
-    req.reply_complete(sock, &group)?;
+    conn.route_reply(req, &group)?;
     Ok(())
 }
 
 pub fn reverse_dependencies_get(
-    req: &mut Envelope,
-    sock: &mut zmq::Socket,
+    req: &mut Message,
+    conn: &mut RouteConn,
     state: &mut ServerState,
-) -> Result<()> {
-    let msg: proto::ReverseDependenciesGet = req.parse_msg()?;
+) -> SrvResult<()> {
+    let msg = req.parse::<proto::ReverseDependenciesGet>()?;
     debug!("reverse_dependencies_get message: {:?}", msg);
 
     let ident = format!("{}/{}", msg.get_origin(), msg.get_name());
-    let target_graph = state.graph().read().expect("Graph lock is poisoned");
+    let target_graph = state.graph.read().expect("Graph lock is poisoned");
     let graph = match target_graph.graph(msg.get_target()) {
         Some(g) => g,
         None => {
@@ -153,8 +152,8 @@ pub fn reverse_dependencies_get(
                 "ReverseDependenciesGet, no graph found for target {}",
                 msg.get_target()
             );
-            let err = net::err(ErrCode::ENTITY_NOT_FOUND, "sc:reverse-dependencies-get:2");
-            req.reply_complete(sock, &err)?;
+            let err = NetError::new(ErrCode::ENTITY_NOT_FOUND, "sc:reverse-dependencies-get:2");
+            conn.route_reply(req, &*err)?;
             return Ok(());
         }
     };
@@ -180,20 +179,20 @@ pub fn reverse_dependencies_get(
         None => debug!("No rdeps found for {}", ident),
     }
 
-    req.reply_complete(sock, &rd_reply)?;
+    conn.route_reply(req, &rd_reply)?;
 
     Ok(())
 }
 
 pub fn group_get(
-    req: &mut Envelope,
-    sock: &mut zmq::Socket,
+    req: &mut Message,
+    conn: &mut RouteConn,
     state: &mut ServerState,
-) -> Result<()> {
-    let msg: proto::GroupGet = req.parse_msg()?;
+) -> SrvResult<()> {
+    let msg = req.parse::<proto::GroupGet>()?;
     debug!("group_get message: {:?}", msg);
 
-    let group_opt = match state.datastore().get_group(&msg) {
+    let group_opt = match state.datastore.get_group(&msg) {
         Ok(group_opt) => group_opt,
         Err(err) => {
             warn!(
@@ -207,30 +206,28 @@ pub fn group_get(
 
     match group_opt {
         Some(group) => {
-            req.reply_complete(sock, &group)?;
+            conn.route_reply(req, &group)?;
         }
         None => {
-            let err = net::err(ErrCode::ENTITY_NOT_FOUND, "sc:schedule-get:1");
-            req.reply_complete(sock, &err)?;
+            let err = NetError::new(ErrCode::ENTITY_NOT_FOUND, "sc:schedule-get:1");
+            conn.route_reply(req, &*err)?;
         }
     }
-
     Ok(())
 }
 
 pub fn package_create(
-    req: &mut Envelope,
-    sock: &mut zmq::Socket,
+    req: &mut Message,
+    conn: &mut RouteConn,
     state: &mut ServerState,
-) -> Result<()> {
-    let msg: proto::PackageCreate = req.parse_msg()?;
+) -> SrvResult<()> {
+    let msg = req.parse::<proto::PackageCreate>()?;
     debug!("package_create message: {:?}", msg);
-
-    let package = state.datastore().create_package(&msg)?;
+    let package = state.datastore.create_package(&msg)?;
 
     // Extend the graph with new package
     {
-        let mut target_graph = state.graph().write().unwrap();
+        let mut target_graph = state.graph.write().unwrap();
         let graph = match target_graph.graph_mut(msg.get_target()) {
             Some(g) => g,
             None => {
@@ -238,8 +235,8 @@ pub fn package_create(
                     "PackageCreate, no graph found for target {}",
                     msg.get_target()
                 );
-                let err = net::err(ErrCode::ENTITY_NOT_FOUND, "sc:package-create:2");
-                req.reply_complete(sock, &err)?;
+                let err = NetError::new(ErrCode::ENTITY_NOT_FOUND, "sc:package-create:2");
+                conn.route_reply(req, &*err)?;
                 return Ok(());
             }
         };
@@ -256,23 +253,22 @@ pub fn package_create(
         );
     };
 
-    req.reply_complete(sock, &package)?;
+    conn.route_reply(req, &package)?;
     Ok(())
 }
 
 pub fn package_precreate(
-    req: &mut Envelope,
-    sock: &mut zmq::Socket,
+    req: &mut Message,
+    conn: &mut RouteConn,
     state: &mut ServerState,
-) -> Result<()> {
-    let msg: proto::PackagePreCreate = req.parse_msg()?;
+) -> SrvResult<()> {
+    let msg = req.parse::<proto::PackagePreCreate>()?;
     debug!("package_precreate message: {:?}", msg);
-
     let package: proto::Package = msg.into();
 
     // Check that we can safely extend the graph with new package
     let can_extend = {
-        let mut target_graph = state.graph().write().unwrap();
+        let mut target_graph = state.graph.write().unwrap();
         let graph = match target_graph.graph_mut(package.get_target()) {
             Some(g) => g,
             None => {
@@ -280,8 +276,8 @@ pub fn package_precreate(
                     "PackagePreCreate, no graph found for target {}",
                     package.get_target()
                 );
-                let err = net::err(ErrCode::ENTITY_NOT_FOUND, "sc:package-pc:1");
-                req.reply_complete(sock, &err)?;
+                let err = NetError::new(ErrCode::ENTITY_NOT_FOUND, "sc:package-pc:1");
+                conn.route_reply(req, &*err)?;
                 return Ok(());
             }
         };
@@ -300,53 +296,49 @@ pub fn package_precreate(
     };
 
     if can_extend {
-        req.reply_complete(sock, &net::NetOk::new())?
+        conn.route_reply(req, &net::NetOk::new())?
     } else {
-        let err = net::err(ErrCode::ENTITY_CONFLICT, "sc:package-pc:2");
-        req.reply_complete(sock, &err)?;
+        let err = NetError::new(ErrCode::ENTITY_CONFLICT, "sc:package-pc:2");
+        conn.route_reply(req, &*err)?;
     }
-
     Ok(())
 }
 
 pub fn job_status(
-    req: &mut Envelope,
-    sock: &mut zmq::Socket,
+    req: &mut Message,
+    conn: &mut RouteConn,
     state: &mut ServerState,
-) -> Result<()> {
-    let msg: proto::JobStatus = req.parse_msg()?;
+) -> SrvResult<()> {
+    let msg = req.parse::<proto::JobStatus>()?;
     debug!("job_status message: {:?}", msg);
 
     // Insert the inner status message into a queue, to be processed later by
     // the schduler thread.
-    state.datastore().enqueue_message(&req.msg)?;
-
-    state.schedule_cli().notify()?;
-
-    req.reply_complete(sock, &msg)?;
+    state.datastore.enqueue_message(&msg)?;
+    state.schedule_cli.notify()?;
+    conn.route_reply(req, &msg)?;
     Ok(())
 }
 
 pub fn package_stats_get(
-    req: &mut Envelope,
-    sock: &mut zmq::Socket,
+    req: &mut Message,
+    conn: &mut RouteConn,
     state: &mut ServerState,
-) -> Result<()> {
-    let msg: proto::PackageStatsGet = req.parse_msg()?;
+) -> SrvResult<()> {
+    let msg = req.parse::<proto::PackageStatsGet>()?;
     debug!("package_stats_get message: {:?}", msg);
 
-    match state.datastore().get_package_stats(&msg) {
-        Ok(package_stats) => req.reply_complete(sock, &package_stats)?,
+    match state.datastore.get_package_stats(&msg) {
+        Ok(package_stats) => conn.route_reply(req, &package_stats)?,
         Err(err) => {
             warn!(
                 "Unable to retrieve package stats for {}, err: {:?}",
                 msg.get_origin(),
                 err
             );
-            let err = net::err(ErrCode::ENTITY_NOT_FOUND, "sc:package-stats-get:1");
-            req.reply_complete(sock, &err)?;
+            let err = NetError::new(ErrCode::ENTITY_NOT_FOUND, "sc:package-stats-get:1");
+            conn.route_reply(req, &*err)?;
         }
-    };
-
+    }
     Ok(())
 }
