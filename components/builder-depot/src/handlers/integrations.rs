@@ -24,12 +24,8 @@ use protocol::net::{NetOk, ErrCode};
 use persistent;
 use router::Router;
 
-<<<<<<< Updated upstream
-use super::super::server::{route_message, check_origin_access};
-=======
 use super::super::server::check_origin_access;
 use DepotUtil;
->>>>>>> Stashed changes
 
 pub fn encrypt(req: &mut Request, content: &str) -> Result<String, Status> {
     let lock = req.get::<persistent::State<DepotUtil>>().expect(
