@@ -18,9 +18,9 @@ import * as cookies from "js-cookie";
 import config from "../config";
 import {
     attemptSignIn, addNotification, goHome, fetchMyOrigins, requestRoute, setFeatureFlag,
-    signOut,
-    setSigningInFlag
+    signOut, setSigningInFlag
 } from "./index";
+import { setFeatureFlags } from "./index";
 import { DANGER, WARNING } from "./notifications";
 
 const parseLinkHeader = require("parse-link-header");
@@ -47,13 +47,13 @@ export function authenticateWithGitHub(token = undefined) {
 
     return dispatch => {
         if (isCodeInQueryString) {
-            dispatch(setSigningInFlag(true));
+           setSigningInFlag(true);
         }
         if (token) {
             setCookie("gitHubAuthToken", token);
 
             fetch(`${config["github_api_url"]}/user?access_token=${token}`).then(response => {
-                dispatch(setSigningInFlag(false));
+               setSigningInFlag(false);
                 if (response.ok) {
                     return response.json();
                 } else {
@@ -191,6 +191,7 @@ export function requestGitHubAuthToken(params, stateKey = "") {
                     type: DANGER,
                 }));
             }).then(data => {
+                console.log("stuff", data);
                 if (data["token"]) {
                     dispatch(authenticateWithGitHub(data["token"]));
                     dispatch(setGitHubAuthToken(data["token"]));
