@@ -99,3 +99,7 @@ variable "connection_agent" {
 variable "connection_private_key" {
   description = "File path to AWS keypair private key"
 }
+
+variable "datadog_api_key" {
+  description = "API key for the DataDog agent"
+}

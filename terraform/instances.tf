@@ -40,6 +40,13 @@ resource "aws_instance" "api" {
     ]
   }
 
+  provisioner "remote-exec" {
+    inline = [
+      "DD_API_KEY=${var.datadog_api_key} /bin/bash -c \"$(curl -L https://raw.githubusercontent.com/DataDog/dd-agent/master/packaging/datadog-agent/source/install_agent.sh)\"",
+      "sudo sed -i \"$ a tags: env:${var.env}, role:api\" /etc/dd-agent/datadog.conf",
+      "sudo /etc/init.d/datadog-agent restart"
+    ]
+  }
   provisioner "file" {
     content     = "${data.template_file.sup_service.rendered}"
     destination = "/home/ubuntu/hab-sup.service"
@@ -104,6 +111,14 @@ resource "aws_instance" "admin" {
   provisioner "remote-exec" {
     scripts = [
       "${path.module}/scripts/foundation.sh",
+    ]
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "DD_API_KEY=${var.datadog_api_key} /bin/bash -c \"$(curl -L https://raw.githubusercontent.com/DataDog/dd-agent/master/packaging/datadog-agent/source/install_agent.sh)\"",
+      "sudo sed -i \"$ a tags: env:${var.env}, role:admin\" /etc/dd-agent/datadog.conf",
+      "sudo /etc/init.d/datadog-agent restart"
     ]
   }
 
@@ -177,6 +192,14 @@ resource "aws_instance" "datastore" {
     ]
   }
 
+  provisioner "remote-exec" {
+    inline = [
+      "DD_API_KEY=${var.datadog_api_key} /bin/bash -c \"$(curl -L https://raw.githubusercontent.com/DataDog/dd-agent/master/packaging/datadog-agent/source/install_agent.sh)\"",
+      "sudo sed -i \"$ a tags: env:${var.env}, role:datastore\" /etc/dd-agent/datadog.conf",
+      "sudo /etc/init.d/datadog-agent restart"
+    ]
+  }
+
   provisioner "file" {
     content     = "${data.template_file.sup_service.rendered}"
     destination = "/home/ubuntu/hab-sup.service"
@@ -243,6 +266,14 @@ resource "aws_instance" "jobsrv" {
   provisioner "remote-exec" {
     scripts = [
       "${path.module}/scripts/foundation.sh",
+    ]
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "DD_API_KEY=${var.datadog_api_key} /bin/bash -c \"$(curl -L https://raw.githubusercontent.com/DataDog/dd-agent/master/packaging/datadog-agent/source/install_agent.sh)\"",
+      "sudo sed -i \"$ a tags: env:${var.env}, role:jobsrv\" /etc/dd-agent/datadog.conf",
+      "sudo /etc/init.d/datadog-agent restart"
     ]
   }
 
@@ -314,6 +345,14 @@ resource "aws_instance" "originsrv" {
     ]
   }
 
+  provisioner "remote-exec" {
+    inline = [
+      "DD_API_KEY=${var.datadog_api_key} /bin/bash -c \"$(curl -L https://raw.githubusercontent.com/DataDog/dd-agent/master/packaging/datadog-agent/source/install_agent.sh)\"",
+      "sudo sed -i \"$ a tags: env:${var.env}, role:originsrv\" /etc/dd-agent/datadog.conf",
+      "sudo /etc/init.d/datadog-agent restart"
+    ]
+  }
+
   provisioner "file" {
     content     = "${data.template_file.sup_service.rendered}"
     destination = "/home/ubuntu/hab-sup.service"
@@ -378,6 +417,14 @@ resource "aws_instance" "router" {
   provisioner "remote-exec" {
     scripts = [
       "${path.module}/scripts/foundation.sh",
+    ]
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "DD_API_KEY=${var.datadog_api_key} /bin/bash -c \"$(curl -L https://raw.githubusercontent.com/DataDog/dd-agent/master/packaging/datadog-agent/source/install_agent.sh)\"",
+      "sudo sed -i \"$ a tags: env:${var.env}, role:router\" /etc/dd-agent/datadog.conf",
+      "sudo /etc/init.d/datadog-agent restart"
     ]
   }
 
@@ -449,6 +496,14 @@ resource "aws_instance" "scheduler" {
     ]
   }
 
+  provisioner "remote-exec" {
+    inline = [
+      "DD_API_KEY=${var.datadog_api_key} /bin/bash -c \"$(curl -L https://raw.githubusercontent.com/DataDog/dd-agent/master/packaging/datadog-agent/source/install_agent.sh)\"",
+      "sudo sed -i \"$ a tags: env:${var.env}, role:scheduler\" /etc/dd-agent/datadog.conf",
+      "sudo /etc/init.d/datadog-agent restart"
+    ]
+  }
+
   provisioner "file" {
     content     = "${data.template_file.sup_service.rendered}"
     destination = "/home/ubuntu/hab-sup.service"
@@ -517,6 +572,14 @@ resource "aws_instance" "sessionsrv" {
     ]
   }
 
+  provisioner "remote-exec" {
+    inline = [
+      "DD_API_KEY=${var.datadog_api_key} /bin/bash -c \"$(curl -L https://raw.githubusercontent.com/DataDog/dd-agent/master/packaging/datadog-agent/source/install_agent.sh)\"",
+      "sudo sed -i \"$ a tags: env:${var.env}, role:sessionsrv\" /etc/dd-agent/datadog.conf",
+      "sudo /etc/init.d/datadog-agent restart"
+    ]
+  }
+
   provisioner "file" {
     content     = "${data.template_file.sup_service.rendered}"
     destination = "/home/ubuntu/hab-sup.service"
@@ -582,6 +645,14 @@ resource "aws_instance" "worker" {
   provisioner "remote-exec" {
     scripts = [
       "${path.module}/scripts/foundation.sh",
+    ]
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "DD_API_KEY=${var.datadog_api_key} /bin/bash -c \"$(curl -L https://raw.githubusercontent.com/DataDog/dd-agent/master/packaging/datadog-agent/source/install_agent.sh)\"",
+      "sudo sed -i \"$ a tags: env:${var.env}, role:worker\" /etc/dd-agent/datadog.conf",
+      "sudo /etc/init.d/datadog-agent restart"
     ]
   }
 
