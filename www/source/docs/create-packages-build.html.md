@@ -37,15 +37,19 @@ An interactive build is one in which you enter a Habitat studio to perform the b
 The directory where your plan is located is known as the plan context.
 
 1. Change to the parent directory of the plan context.
-2. Create an enter a new Habitat studio and pass the origin key into it. We'll assume your origin key is named `yourname`.
+2. Create an enter a new Habitat studio. If you have defined an origin and origin key during `hab setup` or by explicitly setting the `HAB_ORIGIN` and `HAB\_ORIGIN\_KEYS` environment variables, then type the following:
 
-       hab studio -k yourname enter
+    ```
+    hab studio enter
+    ```
 
-       > Note: Same note as above applies when entering into a studio environment.
+    The directory you were in is now mounted as `/src` inside the studio. By default, a supervisor runs in the background for iterative testing. You can see the streaming output by running <code>sup-log</code>. Type <code>Ctrl-C</code> to exit the streaming output and <code>sup-term</code> to terminate the background supervisor. If you terminate the background supervisor, then running <code>sup-run</code> will restart it and running <code>hab start origin/package</code> will restart every package that was previously loaded. You have to explicitly run <code>hab svc unload origin/package</code> to remove a package from the "loaded" list.
 
-3. The directory you were in is now mounted as `/src` inside the studio. Enter the following command to create the package.
+3. Enter the following command to create the package.
 
-       build /src/planname
+    ```
+    build /src/planname
+    ```
 
 4. If the package builds successfully, it is placed into a `results` directory at the same level as your plan.
 
