@@ -19,12 +19,13 @@ use std::thread;
 use std::time::Duration;
 
 use butterfly;
-use common::ui::UI;
+use common::ui::{Status, UI};
 use depot_client;
 use env;
 use hcore::package::{PackageIdent, PackageInstall};
 use hcore::service::ServiceGroup;
-use hcore::crypto::default_cache_key_path;
+use hcore::crypto::{artifact, default_cache_key_path, SigKeyPair};
+use hcore::crypto::keys::parse_name_with_rev;
 use hcore::fs::{CACHE_ARTIFACT_PATH, FS_ROOT_PATH};
 use launcher_client::LauncherCli;
 use time::{SteadyTime, Duration as TimeDuration};
@@ -420,7 +421,18 @@ impl Worker {
             ),
             self.ui.progress(),
         )?;
-        archive.verify(&default_cache_key_path(None))?;
+
+        // TODO (CM): Copied (with modifications) from
+        // common::command::package::install; will be properly
+        // factored in an upcoming broad refactoring and consolidation
+        // of our installation logic.
+        let cache_key_path = &default_cache_key_path(None);
+        let nwr = artifact::artifact_signer(&archive.path)?;
+        if let Err(_) = SigKeyPair::get_public_key_path(&nwr, cache_key_path) {
+            self.fetch_origin_key(&nwr)?;
+        }
+
+        archive.verify(cache_key_path)?;
         outputln!("Installing {}", package);
         archive.unpack(None)?;
         let pkg = PackageInstall::load(archive.ident().as_ref().unwrap(), Some(&*FS_ROOT_PATH))?;
@@ -446,5 +458,28 @@ impl Worker {
             }
             Err(_) => DEFAULT_FREQUENCY,
         }
+    }
+
+    // TODO (CM): Copied (with modifications) from
+    // common::command::package::install; will be properly factored in
+    // an upcoming broad refactoring and consolidation of our
+    // installation logic.
+    fn fetch_origin_key(&mut self, name_with_rev: &str) -> Result<()> {
+        self.ui.status(
+            Status::Downloading,
+            format!("{} public origin key", &name_with_rev),
+        )?;
+        let (name, rev) = parse_name_with_rev(&name_with_rev)?;
+        self.depot.fetch_origin_key(
+            &name,
+            &rev,
+            &default_cache_key_path(None),
+            self.ui.progress(),
+        )?;
+        self.ui.status(
+            Status::Cached,
+            format!("{} public origin key", &name_with_rev),
+        )?;
+        Ok(())
     }
 }
