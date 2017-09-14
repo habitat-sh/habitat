@@ -15,8 +15,8 @@
 use bldr_core::logger::Logger;
 use config::Config;
 use error::{Error, Result};
-use hab_net::server::ZMQ_CONTEXT;
-use std::sync::{mpsc, Arc, RwLock};
+use hab_net::socket::DEFAULT_CONTEXT;
+use std::sync::mpsc;
 use std::thread::{self, JoinHandle};
 use std::time::Duration;
 use zmq;
@@ -30,45 +30,35 @@ pub struct LogForwarder {
     /// The socket from which log data is forwarded to the appropriate
     /// job server.
     pub output_sock: zmq::Socket,
-    /// The configuration of the worker server; used to obtain job
-    /// server connection information.
-    config: Arc<RwLock<Config>>,
-    /// Log file for debugging this process
+    /// Log file for debugging this process.
     logger: Logger,
 }
 
 impl LogForwarder {
-    pub fn new(config: Arc<RwLock<Config>>) -> Result<Self> {
-        let intake_sock = (**ZMQ_CONTEXT).as_mut().socket(zmq::PULL)?;
-        let output_sock = (**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER)?;
-        let path = {
-            let cfg = config.read().unwrap();
-            cfg.log_path.clone()
-        };
-
+    pub fn new(config: &Config) -> Result<Self> {
+        let intake_sock = (**DEFAULT_CONTEXT).as_mut().socket(zmq::PULL)?;
+        let output_sock = (**DEFAULT_CONTEXT).as_mut().socket(zmq::DEALER)?;
         output_sock.set_sndhwm(5000)?;
         output_sock.set_linger(5000)?;
         output_sock.set_immediate(true)?;
 
-        let mut logger = Logger::init(path, "log_forwarder.log");
+        let mut logger = Logger::init(&config.log_path, "log_forwarder.log");
         logger.log_ident("log_forwarder");
 
         Ok(LogForwarder {
             intake_sock: intake_sock,
             output_sock: output_sock,
-            config: config,
             logger: logger,
         })
     }
 
-    pub fn start(config: Arc<RwLock<Config>>) -> Result<JoinHandle<()>> {
+    pub fn start(config: &Config) -> Result<JoinHandle<()>> {
         let (tx, rx) = mpsc::sync_channel(0);
+        let mut log = Self::new(config).unwrap();
+        let jobsrv_addrs = config.jobsrv_addrs();
         let handle = thread::Builder::new()
             .name("log".to_string())
-            .spawn(move || {
-                let mut log = Self::new(config).unwrap();
-                log.run(tx).unwrap();
-            })
+            .spawn(move || { log.run(tx, jobsrv_addrs).unwrap(); })
             .unwrap();
         match rx.recv() {
             Ok(()) => Ok(handle),
@@ -76,37 +66,34 @@ impl LogForwarder {
         }
     }
 
-    pub fn run(&mut self, rz: mpsc::SyncSender<()>) -> Result<()> {
-        {
-            let cfg = self.config.read().unwrap();
-            let addrs = cfg.jobsrv_addrs();
-            if addrs.len() == 1 {
-                let (_, _, ref log) = addrs[0];
-                println!("Connecting to Job Server Log port, {}", log);
-                self.output_sock.connect(&log)?;
-            } else {
-                panic!("Routing logs to more than one Job Server is not yet implemented");
-            }
+    pub fn run(
+        &mut self,
+        rz: mpsc::SyncSender<()>,
+        addrs: Vec<(String, String, String)>,
+    ) -> Result<()> {
+        if addrs.len() == 1 {
+            let (_, _, ref log) = addrs[0];
+            println!("Connecting to Job Server Log port, {}", log);
+            self.output_sock.connect(&log)?;
+        } else {
+            warn!("Routing logs to more than one Job Server is not yet implemented");
         }
 
         self.logger.log("Startup complete");
-
         self.intake_sock.bind(INPROC_ADDR)?;
 
         // Signal back to the spawning process that we're good
         rz.send(()).unwrap();
 
-        // This hacky sleep is recommended and required by zmq for
-        // connections to establish
+        // This hacky sleep is recommended and required by zmq for connections to establish
         thread::sleep(Duration::from_millis(100));
 
         self.logger.log(
             "Starting proxy between log_pipe and jobsrv",
         );
 
-        // Basically just need to pass things through... proxy time!
-        // If we ever have multiple JobServers these need to be sent
-        // to, then we might need some additional logic.
+        // If we ever have multiple JobServers these need to be sent to, then we might need some
+        // additional logic.
         if let Err(e) = zmq::proxy(&mut self.intake_sock, &mut self.output_sock) {
             self.logger.log(
                 format!("ZMQ proxy returned an error: {:?}", e)
@@ -114,7 +101,6 @@ impl LogForwarder {
             );
             return Err(Error::Zmq(e));
         }
-
         Ok(())
     }
 }

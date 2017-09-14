@@ -22,6 +22,8 @@ use hab_core::url;
 
 use error::Error;
 
+pub type JobSrvCfg = Vec<JobSrvAddr>;
+
 #[derive(Clone, Debug, Deserialize)]
 #[serde(default)]
 pub struct Config {
@@ -73,8 +75,6 @@ impl Default for Config {
 impl ConfigFile for Config {
     type Error = Error;
 }
-
-pub type JobSrvCfg = Vec<JobSrvAddr>;
 
 #[derive(Clone, Debug, Deserialize)]
 #[serde(default)]

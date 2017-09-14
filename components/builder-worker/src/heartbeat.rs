@@ -12,19 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::sync::{mpsc, Arc, RwLock};
+use std::sync::mpsc;
 use std::time::Duration;
 use std::thread::{self, JoinHandle};
 
-use hab_net::server::NetIdent;
 use hab_net::socket::DEFAULT_CONTEXT;
-use protobuf::{parse_from_bytes, Message};
-use protocol::jobsrv as proto;
+use protocol::{message, jobsrv as proto};
 use zmq;
 
 use config::Config;
 use error::Result;
-use server::Server;
 
 /// Polling timeout for HeartbeatMgr
 const HEARTBEAT_MS: i64 = 30_000;
@@ -73,17 +70,22 @@ impl Default for PulseState {
 
 /// Client for sending and receiving messages to and from the HeartbeatMgr
 pub struct HeartbeatCli {
-    sock: zmq::Socket,
     msg: zmq::Message,
+    sock: zmq::Socket,
+    state: proto::Heartbeat,
 }
 
 impl HeartbeatCli {
     /// Create a new HeartbeatMgr client
-    pub fn new() -> Self {
+    pub fn new(net_ident: String) -> Self {
         let sock = (**DEFAULT_CONTEXT).as_mut().socket(zmq::REQ).unwrap();
+        let mut state = proto::Heartbeat::new();
+        state.set_endpoint(net_ident);
+        state.set_os(worker_os());
         HeartbeatCli {
-            sock: sock,
             msg: zmq::Message::new().unwrap(),
+            sock: sock,
+            state: state,
         }
     }
 
@@ -93,36 +95,20 @@ impl HeartbeatCli {
         Ok(())
     }
 
-    fn heartbeat(&self, state: proto::WorkerState) -> proto::Heartbeat {
-        let mut hb = proto::Heartbeat::new();
-        hb.set_endpoint(Server::net_ident());
-        hb.set_os(worker_os());
-        hb.set_state(state);
-        hb
-    }
-
     /// Set the `HeartbeatMgr` state to busy
     pub fn set_busy(&mut self) -> Result<()> {
+        self.state.set_state(proto::WorkerState::Busy);
         self.sock.send_str(PulseState::Pulse.as_ref(), zmq::SNDMORE)?;
-        self.sock.send(
-            &self.heartbeat(proto::WorkerState::Busy)
-                .write_to_bytes()
-                .unwrap(),
-            0,
-        )?;
+        self.sock.send(&message::encode(&self.state)?, 0)?;
         self.sock.recv(&mut self.msg, 0)?;
         Ok(())
     }
 
     /// Set the `HeartbeatMgr` state to ready
     pub fn set_ready(&mut self) -> Result<()> {
+        self.state.set_state(proto::WorkerState::Ready);
         self.sock.send_str(PulseState::Pulse.as_ref(), zmq::SNDMORE)?;
-        self.sock.send(
-            &self.heartbeat(proto::WorkerState::Ready)
-                .write_to_bytes()
-                .unwrap(),
-            0,
-        )?;
+        self.sock.send(&message::encode(&self.state)?, 0)?;
         self.sock.recv(&mut self.msg, 0)?;
         Ok(())
     }
@@ -137,26 +123,24 @@ impl HeartbeatCli {
 
 /// Maintains and broadcasts health and state of the Worker server to consumers
 pub struct HeartbeatMgr {
-    /// Public socket for publishing worker state to consumers
-    pub pub_sock: zmq::Socket,
     /// Internal socket for sending and receiving message to and from a `HeartbeatCli`
     pub cli_sock: zmq::Socket,
-    state: PulseState,
-    config: Arc<RwLock<Config>>,
+    /// Public socket for publishing worker state to consumers
+    pub pub_sock: zmq::Socket,
     heartbeat: proto::Heartbeat,
     msg: zmq::Message,
+    state: PulseState,
 }
 
 impl HeartbeatMgr {
     /// Start the HeartbeatMgr
-    pub fn start(config: Arc<RwLock<Config>>) -> Result<JoinHandle<()>> {
+    pub fn start(config: &Config, net_ident: String) -> Result<JoinHandle<()>> {
         let (tx, rx) = mpsc::sync_channel(0);
+        let mut heartbeat = Self::new(net_ident)?;
+        let jobsrv_addrs = config.jobsrv_addrs();
         let handle = thread::Builder::new()
             .name("heartbeat".to_string())
-            .spawn(move || {
-                let mut heartbeat = Self::new(config).unwrap();
-                heartbeat.run(tx).unwrap();
-            })
+            .spawn(move || { heartbeat.run(tx, jobsrv_addrs).unwrap(); })
             .unwrap();
         match rx.recv() {
             Ok(()) => Ok(handle),
@@ -164,19 +148,18 @@ impl HeartbeatMgr {
         }
     }
 
-    fn new(config: Arc<RwLock<Config>>) -> Result<Self> {
+    fn new(net_ident: String) -> Result<Self> {
         let pub_sock = (**DEFAULT_CONTEXT).as_mut().socket(zmq::PUB)?;
         let cli_sock = (**DEFAULT_CONTEXT).as_mut().socket(zmq::REP)?;
         pub_sock.set_immediate(true)?;
         pub_sock.set_sndhwm(1)?;
         pub_sock.set_linger(0)?;
         let mut heartbeat = proto::Heartbeat::new();
-        heartbeat.set_endpoint(Server::net_ident());
+        heartbeat.set_endpoint(net_ident);
         heartbeat.set_os(worker_os());
         heartbeat.set_state(proto::WorkerState::Ready);
         Ok(HeartbeatMgr {
             state: PulseState::default(),
-            config: config,
             pub_sock: pub_sock,
             cli_sock: cli_sock,
             heartbeat: heartbeat,
@@ -185,13 +168,14 @@ impl HeartbeatMgr {
     }
 
     // Main loop for server
-    fn run(&mut self, rz: mpsc::SyncSender<()>) -> Result<()> {
-        {
-            let cfg = self.config.read().unwrap();
-            for (hb, _, _) in cfg.jobsrv_addrs() {
-                println!("Connecting to heartbeat, {}", hb);
-                self.pub_sock.connect(&hb)?;
-            }
+    fn run(
+        &mut self,
+        rz: mpsc::SyncSender<()>,
+        jobsrv_addrs: Vec<(String, String, String)>,
+    ) -> Result<()> {
+        for (hb, _, _) in jobsrv_addrs {
+            println!("Connecting to heartbeat, {}", hb);
+            self.pub_sock.connect(&hb)?;
         }
         self.cli_sock.bind(INPROC_ADDR)?;
         rz.send(()).unwrap();
@@ -229,10 +213,7 @@ impl HeartbeatMgr {
     // Broadcast to subscribers the HeartbeatMgr health and state
     fn pulse(&mut self) -> Result<()> {
         debug!("heartbeat pulsed: {:?}", self.heartbeat.get_state());
-        self.pub_sock.send(
-            &self.heartbeat.write_to_bytes().unwrap(),
-            0,
-        )?;
+        self.pub_sock.send(&message::encode(&self.heartbeat)?, 0)?;
         Ok(())
     }
 
@@ -240,15 +221,16 @@ impl HeartbeatMgr {
     fn recv_cmd(&mut self) -> Result<()> {
         self.cli_sock.recv(&mut self.msg, 0)?;
         match self.msg.as_str() {
-            Some(CMD_PAUSE) => self.pause(),
-            Some(CMD_PULSE) => {
-                let mut msg: zmq::Message = zmq::Message::new()?;
-                self.cli_sock.recv(&mut msg, 0)?;
-                self.heartbeat = parse_from_bytes(&msg)?;
-                self.resume()
+            Some(CMD_PAUSE) => {
+                self.pause();
+                return Ok(());
             }
+            Some(CMD_PULSE) => (),
             _ => unreachable!("wk:hb:1, received unexpected message from client"),
         }
+        self.cli_sock.recv(&mut self.msg, 0)?;
+        self.heartbeat = message::decode(&self.msg)?;
+        self.resume();
         Ok(())
     }
 

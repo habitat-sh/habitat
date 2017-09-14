@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 
-use hab_net::server::{NetIdent, ZMQ_CONTEXT};
-use protobuf::{parse_from_bytes, Message};
-use protocol;
+use hab_net;
+use hab_net::socket::DEFAULT_CONTEXT;
+use protocol::{self, message};
 use zmq;
 
 use config::Config;
@@ -37,43 +37,43 @@ impl Default for State {
 }
 
 pub struct Server {
-    config: Arc<RwLock<Config>>,
+    config: Arc<Config>,
     /// Dealer Socket connected to JobSrv
     fe_sock: zmq::Socket,
     hb_cli: HeartbeatCli,
     runner_cli: RunnerCli,
     state: State,
     msg: zmq::Message,
+    net_ident: Arc<String>,
 }
 
 impl Server {
     pub fn new(config: Config) -> Result<Self> {
-        let fe_sock = (**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER)?;
-        let hb_cli = HeartbeatCli::new();
+        let net_ident = hab_net::socket::srv_ident();
+        let fe_sock = (**DEFAULT_CONTEXT).as_mut().socket(zmq::DEALER)?;
+        let hb_cli = HeartbeatCli::new(net_ident.clone());
         let runner_cli = RunnerCli::new();
-        fe_sock.set_identity(Self::net_ident().as_bytes())?;
+        fe_sock.set_identity(net_ident.as_bytes())?;
         Ok(Server {
-            config: Arc::new(RwLock::new(config)),
+            config: Arc::new(config),
             fe_sock: fe_sock,
             hb_cli: hb_cli,
             runner_cli: runner_cli,
             state: State::default(),
             msg: zmq::Message::new()?,
+            net_ident: Arc::new(net_ident),
         })
     }
 
     pub fn run(&mut self) -> Result<()> {
-        HeartbeatMgr::start(self.config.clone())?;
-        RunnerMgr::start(self.config.clone())?;
-        LogForwarder::start(self.config.clone())?;
+        HeartbeatMgr::start(&self.config, (&*self.net_ident).clone())?;
+        RunnerMgr::start(self.config.clone(), self.net_ident.clone())?;
+        LogForwarder::start(&self.config)?;
         self.hb_cli.connect()?;
         self.runner_cli.connect()?;
-        {
-            let cfg = self.config.read().unwrap();
-            for (_, queue, _) in cfg.jobsrv_addrs() {
-                println!("Connecting to job queue, {}", queue);
-                self.fe_sock.connect(&queue)?;
-            }
+        for (_, queue, _) in self.config.jobsrv_addrs() {
+            println!("Connecting to job queue, {}", queue);
+            self.fe_sock.connect(&queue)?;
         }
 
         let mut fe_msg = false;
@@ -114,9 +114,9 @@ impl Server {
                         self.set_busy()?;
                     }
                     State::Busy => {
-                        let mut reply: protocol::jobsrv::Job = parse_from_bytes(&self.msg).unwrap();
+                        let mut reply = message::decode::<protocol::jobsrv::Job>(&self.msg)?;
                         reply.set_state(protocol::jobsrv::JobState::Rejected);
-                        self.fe_sock.send(&reply.write_to_bytes().unwrap(), 0)?;
+                        self.fe_sock.send(&message::encode(&reply)?, 0)?;
                     }
                 }
                 fe_msg = false;
@@ -136,8 +136,6 @@ impl Server {
         Ok(())
     }
 }
-
-impl NetIdent for Server {}
 
 pub fn run(config: Config) -> Result<()> {
     Server::new(config)?.run()
