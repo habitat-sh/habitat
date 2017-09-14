@@ -19,7 +19,7 @@ use std::thread;
 use std::time::Duration;
 
 use butterfly;
-use common::ui::{Status, UI};
+use common::ui::{Coloring, Status, UI};
 use depot_client;
 use env;
 use hcore::package::{PackageIdent, PackageInstall};
@@ -306,7 +306,7 @@ impl Worker {
             depot: depot_client::Client::new(&service.depot_url, PRODUCT, VERSION, None).unwrap(),
             channel: service.channel.clone(),
             update_strategy: service.update_strategy.clone(),
-            ui: UI::default(),
+            ui: UI::default_with(Coloring::Never, None),
         }
     }
 
