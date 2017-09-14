@@ -1,7 +1,6 @@
-hab 0.21.0/20170421000356
+hab 0.31.0/20170907230858
 
 Authors: The Habitat Maintainers <humans@habitat.sh>
-
 "A Habitat is the natural environment for your services" - Alan Turing
 
 USAGE:
@@ -12,22 +11,28 @@ FLAGS:
     -V, --version    Prints version information
 
 SUBCOMMANDS:
-    cli        Commands relating to Habitat runtime config
-    config     Commands relating to Habitat runtime config
-    file       Commands relating to Habitat files
-    help       Prints this message or the help of the given subcommand(s)
-    origin     Commands relating to Habitat origin keys
-    pkg        Commands relating to Habitat packages
-    plan       Commands relating to plans and other app-specific configuration.
-    ring       Commands relating to Habitat rings
-    service    Commands relating to Habitat services
-    studio     Commands relating to Habitat Studios
-    sup        Commands relating to the Habitat Supervisor
-    user       Commands relating to Habitat users
+    bldr      Commands relating to Habitat build service
+    cli       Commands relating to Habitat runtime config
+    config    Commands relating to Habitat runtime config
+    file      Commands relating to Habitat files
+    help      Prints this message or the help of the given subcommand(s)
+    job       Commands relating to build job control
+    origin    Commands relating to Habitat origin keys
+    pkg       Commands relating to Habitat packages
+    plan      Commands relating to plans and other app-specific
+              configuration.
+    ring      Commands relating to Habitat rings
+    studio    Commands relating to Habitat Studios
+    sup       Commands relating to the Habitat Supervisor
+    svc       Commands relating to Habitat services
+    user      Commands relating to Habitat users
 
 
 ALIASES:
-    apply      Alias for: 'config apply'
-    install    Alias for: 'pkg install'
-    setup      Alias for: 'cli setup'
-    start      Alias for: 'sup start'
+apply      Alias for: 'config apply'
+install    Alias for: 'pkg install'
+run        Alias for: 'sup run'
+setup      Alias for: 'cli setup'
+start      Alias for: 'svc start'
+stop       Alias for: 'svc stop'
+term       Alias for: 'sup term'
