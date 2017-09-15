@@ -18,7 +18,7 @@ use std::fmt;
 use std::iter::{FromIterator, IntoIterator};
 use std::path::PathBuf;
 use std::str::FromStr;
-use std::vec::IntoIter;
+use std::vec;
 
 use error::{Error, Result};
 use package::PackageIdent;
@@ -99,79 +99,66 @@ impl FromStr for BindMapping {
     }
 }
 
-#[derive(Debug, PartialEq)]
-pub struct EnvVar {
-    pub key: String,
-    pub value: String,
-    pub separator: Option<char>,
-}
-
 #[derive(Debug)]
 pub struct PkgEnv {
-    inner: Vec<EnvVar>,
+    iter: vec::IntoIter<(String, String)>,
 }
 
 impl PkgEnv {
-    pub fn new(values: HashMap<String, String>, separators: HashMap<String, String>) -> Self {
-        Self {
-            inner: values
-                .into_iter()
-                .map(|(key, value)| if let Some(sep) = separators.get(&key) {
-                    EnvVar {
-                        key: key,
-                        value: value,
-                        separator: sep.to_owned().pop(),
-                    }
-                } else {
-                    EnvVar {
-                        key: key,
-                        value: value,
-                        separator: None,
-                    }
-                })
-                .collect(),
-        }
+    pub fn empty() -> Self {
+        Self { iter: Vec::new().into_iter() }
     }
 
-    pub fn from_paths(paths: Vec<PathBuf>) -> Self {
-        let p = env::join_paths(&paths).expect("Failed to build path string");
-        Self {
-            inner: vec![
-                EnvVar {
-                    key: "PATH".to_string(),
-                    value: p.into_string().expect(
-                        "Failed to convert path to utf8 string"
-                    ),
-                    separator: Some(ENV_PATH_SEPARATOR),
-                },
-            ],
-        }
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.inner.is_empty()
+    pub fn from_paths(p: Vec<PathBuf>) -> Result<Self> {
+        let p = env::join_paths(&p).expect("Failed to build path string");
+        let result = vec![
+            (
+                "PATH".to_string(),
+                p.into_string().expect(
+                    "Failed to convert path to utf8 string",
+                )
+            ),
+        ];
+        Ok(Self { iter: result.into_iter() })
     }
 }
 
-impl IntoIterator for PkgEnv {
-    type Item = EnvVar;
-    type IntoIter = IntoIter<EnvVar>;
+impl FromStr for PkgEnv {
+    type Err = Error;
 
-    fn into_iter(self) -> Self::IntoIter {
-        self.inner.into_iter()
+    fn from_str(s: &str) -> Result<Self> {
+        let mut result = Vec::new();
+        for line in s.lines() {
+            let mut parts = line.splitn(2, '=');
+            match (parts.next(), parts.next()) {
+                (Some(key), Some(value)) => result.push((String::from(key), String::from(value))),
+                _ => return Err(Error::MetaFileMalformed(MetaFile::Environment)),
+            }
+        }
+        Ok(Self { iter: result.into_iter() })
+    }
+}
+
+impl Iterator for PkgEnv {
+    type Item = (String, String);
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next()
+    }
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.iter.size_hint()
     }
 }
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub enum MetaFile {
-    BindMap, // Composite-only
+    BindMap,
+    // Composite-only
     Binds,
     BindsOptional,
     CFlags,
     Config,
     Deps,
     Environment,
-    EnvironmentSep,
     Exports,
     Exposes,
     Ident,
@@ -179,8 +166,10 @@ pub enum MetaFile {
     LdRunPath,
     Manifest,
     Path,
-    ResolvedServices, // Composite-only
-    Services, // Composite-only
+    ResolvedServices,
+    // Composite-only
+    Services,
+    // Composite-only
     SvcGroup,
     SvcUser,
     Target,
@@ -198,7 +187,6 @@ impl fmt::Display for MetaFile {
             MetaFile::Config => "default.toml",
             MetaFile::Deps => "DEPS",
             MetaFile::Environment => "ENVIRONMENT",
-            MetaFile::EnvironmentSep => "ENVIRONMENT_SEP",
             MetaFile::Exports => "EXPORTS",
             MetaFile::Exposes => "EXPOSES",
             MetaFile::Ident => "IDENT",
@@ -302,52 +290,39 @@ port=front-end.port
 
     #[test]
     fn build_pkg_env() {
-        let mut result = PkgEnv::new(
-            parse_key_value(&ENVIRONMENT).unwrap(),
-            parse_key_value(&ENVIRONMENT_SEP).unwrap(),
-        ).into_iter()
-            .collect::<Vec<_>>();
-        // Sort the result by key, so we have a guarantee of order
-        result.sort_by_key(|v| v.key.to_owned());
+        if let Ok(pe) = PkgEnv::from_str(ENVIRONMENT) {
+            let result = pe.collect::<Vec<_>>();
 
-        let expected = vec![
-            EnvVar {
-                key: "PATH".to_string(),
-                value: "/hab/pkgs/python/setuptools/35.0.1/20170424072606/bin".to_string(),
-                separator: Some(':'),
-            },
-            EnvVar {
-                key: "PYTHONPATH".to_string(),
-                value: "/hab/pkgs/python/setuptools/35.0.1/20170424072606/lib/python3.6/site-packages"
-                    .to_string(),
-                separator: Some(':'),
-            },
-        ];
+            let expected = vec![
+                (
+                    "PATH".to_string(),
+                    "/hab/pkgs/python/setuptools/35.0.1/20170424072606/bin".to_string()
+                ),
+                (
+                    "PYTHONPATH".to_string(),
+                    "/hab/pkgs/python/setuptools/35.0.1/20170424072606/lib/python3.6/site-packages"
+                        .to_string()
+                ),
+            ];
 
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn build_pkg_env_is_empty() {
-        let result = PkgEnv::new(HashMap::new(), HashMap::new());
-        assert!(result.is_empty());
+            assert_eq!(result, expected);
+        }
     }
 
     #[test]
     fn build_pkg_env_from_path() {
-        let result = PkgEnv::from_paths(vec![PathBuf::from(PATH)])
-            .into_iter()
-            .collect::<Vec<_>>();
+        if let Ok(pe) = PkgEnv::from_paths(vec![PathBuf::from(PATH)]) {
+            let result = pe.collect::<Vec<_>>();
 
-        let expected = vec![
-            EnvVar {
-                key: "PATH".to_string(),
-                value: "/hab/pkgs/python/setuptools/35.0.1/20170424072606/bin".to_string(),
-                separator: Some(ENV_PATH_SEPARATOR),
-            },
-        ];
+            let expected = vec![
+                (
+                    "PATH".to_string(),
+                    "/hab/pkgs/python/setuptools/35.0.1/20170424072606/bin".to_string()
+                ),
+            ];
 
-        assert_eq!(result, expected);
+            assert_eq!(result, expected);
+        }
     }
 
     #[test]

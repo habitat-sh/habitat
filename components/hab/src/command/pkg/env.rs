@@ -21,8 +21,7 @@ use error::Result;
 // TODO: This needs a windows compatible version
 pub fn start(ident: &PackageIdent, fs_root_path: &Path) -> Result<()> {
     let pkg_install = PackageInstall::load(ident, Some(fs_root_path))?;
-    let env = pkg_install.runtime_environment()?;
-    for (key, value) in env.into_iter() {
+    for (key, value) in pkg_install.environment()? {
         println!("export {}=\"{}\"", key, value);
     }
     Ok(())
