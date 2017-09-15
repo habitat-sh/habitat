@@ -18,6 +18,7 @@ mod periodic;
 mod self_updater;
 mod service_updater;
 mod spec_watcher;
+mod file_watcher;
 mod sys;
 
 use std::collections::HashMap;
