@@ -1701,9 +1701,9 @@ fn list_origin_package_channels_for_package() {
 
     let mut opclr = originsrv::OriginPackageChannelListRequest::new();
     opclr.set_ident(ident);
-    let resp = ds.list_origin_package_channels_for_package(&opclr).expect(
-        "Could not list channels for package",
-    );
+    let resp = ds.list_origin_package_channels_for_package(&opclr)
+        .expect("Could not list channels for package")
+        .unwrap();
 
     assert_eq!(resp.get_channels().len(), 2); // 2 because "unstable" is implicitly created
     assert_eq!(resp.get_channels().iter().nth(0).unwrap().get_name(), "foo");

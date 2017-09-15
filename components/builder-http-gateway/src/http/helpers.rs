@@ -29,7 +29,7 @@ use protocol::originsrv::{CheckOriginAccessRequest, CheckOriginAccessResponse, O
                           OriginPackagePlatformListRequest, OriginPackagePlatformListResponse,
                           OriginPackagePromote};
 use protocol::scheduler::{Group, GroupGet, Project, ProjectState};
-use protocol::sessionsrv::{Session, SessionCreate, SessionGet};
+use protocol::sessionsrv::Session;
 use serde::Serialize;
 use serde_json;
 use urlencoded::UrlEncodedQuery;
@@ -144,9 +144,13 @@ pub fn extract_query_value(key: &str, req: &mut Request) -> Option<String> {
 pub fn channels_for_package_ident(
     req: &mut Request,
     package: &OriginPackageIdent,
+    session_id: Option<u64>,
 ) -> Option<Vec<String>> {
     let mut opclr = OriginPackageChannelListRequest::new();
     opclr.set_ident(package.clone());
+    if session_id.is_some() {
+        opclr.set_account_id(session_id.unwrap());
+    }
 
     match route_message::<OriginPackageChannelListRequest, OriginPackageChannelListResponse>(
         req,
@@ -169,9 +173,13 @@ pub fn channels_for_package_ident(
 pub fn platforms_for_package_ident(
     req: &mut Request,
     package: &OriginPackageIdent,
+    session_id: Option<u64>,
 ) -> Option<Vec<String>> {
     let mut opplr = OriginPackagePlatformListRequest::new();
     opplr.set_ident(package.clone());
+    if session_id.is_some() {
+        opplr.set_account_id(session_id.unwrap());
+    }
 
     match route_message::<OriginPackagePlatformListRequest, OriginPackagePlatformListResponse>(
         req,
@@ -223,9 +231,9 @@ pub fn promote_package_to_channel(
     req: &mut Request,
     ident: &OriginPackageIdent,
     channel: &str,
-    session_id: Option<u64>,
+    session_id_opt: Option<u64>,
 ) -> NetResult<NetOk> {
-    if let Some(session_id) = session_id {
+    if let Some(session_id) = session_id_opt {
         if !check_origin_access(req, session_id, ident.get_origin())? {
             return Err(NetError::new(
                 ErrCode::ACCESS_DENIED,
@@ -240,6 +248,9 @@ pub fn promote_package_to_channel(
     let origin_channel = route_message::<OriginChannelGet, OriginChannel>(req, &channel_req)?;
     let mut request = OriginPackageGet::new();
     request.set_ident(ident.clone());
+    if let Some(session_id) = session_id_opt {
+        request.set_account_id(session_id);
+    }
     let package = route_message::<OriginPackageGet, OriginPackage>(req, &request)?;
     let mut promote = OriginPackagePromote::new();
     promote.set_channel_id(origin_channel.get_id());
@@ -317,23 +328,10 @@ pub fn promote_job_group_to_channel(
     }
 }
 
-pub fn authenticate_with_auth_token(req: &mut Request, auth_token: &str) -> NetResult<u64> {
-    let mut request = SessionGet::new();
-    request.set_token(auth_token.to_string());
-
-    match route_message::<SessionGet, Session>(req, &request) {
-        Ok(session) => Ok(session.get_id()),
-        Err(err) => {
-            if err.code() == ErrCode::SESSION_EXPIRED {
-                let mut create = SessionCreate::new();
-                create.set_token(auth_token.to_string());
-
-                let session = route_message::<SessionCreate, Session>(req, &create)?;
-                Ok(session.get_id())
-            } else {
-                Err(err)
-            }
-        }
+pub fn get_optional_session_id(req: &mut Request) -> Option<u64> {
+    match req.extensions.get::<Authenticated>() {
+        Some(session) => Some(session.get_id()),
+        None => None,
     }
 }
 
@@ -342,7 +340,7 @@ fn do_group_promotion(
     channel: &str,
     projects: Vec<&Project>,
     origin: &str,
-    session_id: Option<u64>,
+    session_id_opt: Option<u64>,
 ) -> NetResult<NetOk> {
     let mut ocg = OriginChannelGet::new();
     ocg.set_origin_name(origin.to_string());
@@ -350,7 +348,7 @@ fn do_group_promotion(
 
     let mut package_ids = Vec::new();
     let channel = route_message::<OriginChannelGet, OriginChannel>(req, &ocg)?;
-    if let Some(session_id) = session_id {
+    if let Some(session_id) = session_id_opt {
         if !check_origin_access(req, session_id, origin)? {
             return Err(NetError::new(
                 ErrCode::ACCESS_DENIED,
@@ -363,6 +361,10 @@ fn do_group_promotion(
         let opi = OriginPackageIdent::from_str(project.get_ident()).unwrap();
         let mut opg = OriginPackageGet::new();
         opg.set_ident(opi);
+        if let Some(session_id) = session_id_opt {
+            opg.set_account_id(session_id);
+        }
+
         let op = route_message::<OriginPackageGet, OriginPackage>(req, &opg)?;
         package_ids.push(op.get_id());
     }
