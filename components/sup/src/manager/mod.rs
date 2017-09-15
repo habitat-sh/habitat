@@ -56,6 +56,7 @@ use self::self_updater::{SUP_PKG_IDENT, SelfUpdater};
 use self::service::{DesiredState, Pkg, ProcessState, StartStyle};
 use self::service_updater::ServiceUpdater;
 use self::spec_watcher::{SpecWatcher, SpecWatcherEvent};
+use self::peer_watcher::PeerWatcher;
 use VERSION;
 use error::{Error, Result, SupError};
 use config::GossipListenAddr;
@@ -128,6 +129,7 @@ pub struct ManagerConfig {
     pub ring: Option<String>,
     pub name: Option<String>,
     pub organization: Option<String>,
+    pub watch_peer_file: Option<String>,
 
     custom_state_path: Option<PathBuf>,
 }
@@ -145,6 +147,7 @@ pub struct Manager {
     self_updater: Option<SelfUpdater>,
     service_states: HashMap<PackageIdent, Timespec>,
     sys: Arc<Sys>,
+    peer_watcher: Option<PeerWatcher>,
 }
 
 impl Manager {
@@ -298,6 +301,11 @@ impl Manager {
             server.member_list.add_initial_member(peer);
         }
         Self::migrate_specs(&fs_cfg);
+        let peer_watcher = if let Some(path) = cfg.watch_peer_file {
+            Some(PeerWatcher::run(path)?)
+        } else {
+            None
+        };
         Ok(Manager {
             self_updater: self_updater,
             updater: ServiceUpdater::new(server.clone()),
@@ -311,6 +319,7 @@ impl Manager {
             organization: cfg.organization,
             service_states: HashMap::new(),
             sys: Arc::new(sys),
+            peer_watcher: peer_watcher,
         })
     }
 
@@ -519,6 +528,7 @@ impl Manager {
                 return Ok(());
             }
             self.update_running_services_from_watcher()?;
+            self.update_peers_from_watch_file()?;
             self.check_for_updated_packages();
             self.restart_elections();
             self.census_ring.update_from_rumors(
@@ -882,6 +892,22 @@ impl Manager {
         }
 
         Ok(())
+    }
+
+    fn update_peers_from_watch_file(&mut self) -> Result<()> {
+        if !self.butterfly.need_peer_seeding() {
+            return Ok(());
+        }
+        match self.peer_watcher {
+            None => Ok(()),
+            Some(ref watcher) => {
+                if watcher.has_fs_events() {
+                    let members = watcher.get_members()?;
+                    self.butterfly.member_list.set_initial_members(members);
+                }
+                Ok(())
+            }
+        }
     }
 
     fn remove_service_for_spec(&mut self, spec: &ServiceSpec) -> Result<()> {
