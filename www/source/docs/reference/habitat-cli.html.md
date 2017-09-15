@@ -83,7 +83,7 @@ Commands relating to Habitat build service.
 - [hab bldr encrypt](#hab-bldr-encrypt)
 
 <h2 id="hab-bldr-encrypt" class="anchor">hab bldr encrypt</h2>
-Reads a stdin stream containing plain text and outputs an encrypted representation
+Reads a stdin stream containing plain text and outputs an encrypted representation.
 
 **USAGE** 
 
@@ -99,7 +99,7 @@ Reads a stdin stream containing plain text and outputs an encrypted representati
     -u, --url <DEPOT_URL>    Use a specific Depot URL (ex: http://depot.example.com/v1/depot)
 
 <h2 id="hab-cli" class="anchor">hab cli</h2>
-Commands relating to Habitat runtime config
+Commands relating to Habitat runtime config.
 
 **USAGE** 
 
@@ -149,7 +149,7 @@ Sets up the CLI with reasonable defaults.
     -V, --version    Prints version information
 
 <h2 id="hab-config-apply" class="anchor">hab config apply</h2>
-Applies a configuration to a group of Habitat Supervisors
+Applies a configuration to a group of Habitat Supervisors.
 
 **USAGE** 
 
@@ -204,7 +204,7 @@ Upload a file to the Supervisor ring.
     <FILE>              Path to local file on disk
 
 <h2 id="hab-job" class="anchor">hab job</h2>
-Commands relating to build job control
+Commands relating to build job control.
 
 **USAGE** 
 
@@ -226,7 +226,7 @@ Commands relating to build job control
 - [hab job start](#hab-job-start)
 
 <h2 id="hab-job-promote" class="anchor">hab job promote</h2>
-Promote every package in a job group to a specified channel
+Promote every package in a job group to a specified channel.
 
 **USAGE** 
 
@@ -243,7 +243,7 @@ Promote every package in a job group to a specified channel
     -u, --url <DEPOT_URL>      Use a specific Depot URL (ex:http://depot.example.com/v1/depot)
 
 <h2 id="hab-origin-key" class="anchor">hab origin key</h2>
-Commands relating to Habitat origin key maintenance
+Commands relating to Habitat origin key maintenance.
 
 **USAGE** 
 
@@ -296,7 +296,7 @@ Download origin key(s) to HAB_CACHE_KEY_PATH
     <REVISION>    The key revision
 
 <h2 id="hab-origin-key-export" class="anchor">hab origin key download</h2>
-Outputs the latest origin key contents to stdout
+Outputs the latest origin key contents to stdout.
 
 **USAGE** 
 
@@ -316,7 +316,7 @@ Outputs the latest origin key contents to stdout
     <ORIGIN>
 
 <h2 id="hab-origin-key-generate" class="anchor">hab origin key download</h2>
-Generates a Habitat origin key
+Generates a Habitat origin key.
 
 **USAGE** 
 
@@ -332,7 +332,7 @@ Generates a Habitat origin key
     <ORIGIN>    The origin name
 
 <h2 id="hab-origin-key-import" class="anchor">hab origin key download</h2>
-Reads a stdin stream containing a public or secret origin key contents and writes the key to disk
+Reads a stdin stream containing a public or secret origin key contents and writes the key to disk.
 
 **USAGE** 
 
@@ -344,7 +344,7 @@ Reads a stdin stream containing a public or secret origin key contents and write
     -V, --version    Prints version information
 
 <h2 id="hab-origin-key-upload" class="anchor">hab origin key download</h2>
-Upload origin keys to the depot
+Upload origin keys to the depot.
 
 **USAGE** 
 
@@ -368,7 +368,7 @@ Upload origin keys to the depot
     <ORIGIN>    The origin name
 
 <h2 id="hab-pkg" class="anchor">hab pkg</h2>
-Commands relating to Habitat packages
+Commands relating to Habitat packages.
 
 **USAGE**     
 
