@@ -24,6 +24,7 @@ import router from "./router";
 import users from "./users";
 import ui from "./ui";
 import cookies from "./cookies";
+import featureFlags from "./feature-flags";
 
 export default combineReducers({
     app,
@@ -36,5 +37,6 @@ export default combineReducers({
     router,
     ui,
     users,
-    cookies
+    cookies,
+    featureFlags
 });

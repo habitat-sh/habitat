@@ -18,7 +18,6 @@ import * as cookies from "js-cookie";
 import config from "../config";
 import {attemptSignIn, addNotification, goHome, fetchMyOrigins, requestRoute, setFeatureFlag,
     signOut} from "./index";
-import {setFeatureFlags} from "./index";
 import {DANGER, WARNING} from "./notifications";
 
 const parseLinkHeader = require("parse-link-header");
@@ -185,19 +184,17 @@ export function requestGitHubAuthToken(params, stateKey = "") {
             fetch(`${gitHubTokenAuthUrl}/${params.get("code")}`).then(response => {
                 return response.json();
             }).catch(error => {
-                console.error(error);
                 dispatch(addNotification({
                     title: "Authentication Failed",
                     body: "Unable to retrieve GitHub token",
                     type: DANGER,
                 }));
             }).then(data => {
-                console.log("stuff", data);
                 if (data["token"]) {
                     dispatch(authenticateWithGitHub(data["token"]));
                     dispatch(setGitHubAuthToken(data["token"]));
                     if (data["flags"]) {
-                        dispatch(setFeatureFlags(data["flags"]));
+                        dispatch(setFeatureFlag("gitHub", data["flags"]));
                     }
                 } else {
                     dispatch(addNotification({

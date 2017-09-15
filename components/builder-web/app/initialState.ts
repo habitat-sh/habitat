@@ -223,7 +223,8 @@ export default Record({
         current: getBrowserCookies()
     })(),
     featureFlags: Record({
-        current: Map()
+        pants: "none",
+        current: Map({})
     })()
 })();
 
