@@ -5,7 +5,7 @@ title: Habitat - Set Up a Service Group Topology
 section
   h2 Set Up a Service Group Topology
 
-  p By default, Habitat places running services into a service group with a standalone topology &ndash; however, Habitat also has built-in support for a leader-follower topology that any application can use. This support includes performing leader election and sharing those results with the rest of the services in the ring.
+  p Habitat supports multiple topologies that a service can declare and use.
 
   p Suppose you want to run several instances of our PostgreSQL database for high availability. Start off by simply restarting your PostgreSQL service, but this time add a <code>-t leader</code> flag to the <code>hab start</code> command.
 
