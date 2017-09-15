@@ -13,12 +13,19 @@
 // limitations under the License.
 
 import * as Cookies from "js-cookie";
-import { merge } from "lodash";
+import {
+  merge
+} from "lodash";
 
-import { AppStore } from "../AppStore";
+import {
+  AppStore
+} from "../AppStore";
 
 export const SET_COOKIE = "SET_COOKIE";
 export const REMOVE_COOKIE = "REMOVE_COOKIE";
+
+export const domain = cookieDomain();
+export const secure = window.location.protocol === "https";
 
 export function getCookie(name: string) {
   return Cookies.get(name);
@@ -29,28 +36,35 @@ export function getBrowserCookies() {
 }
 
 export function setCookie(name: string, value: any, opts: Object = {}) {
-  Cookies.set(name, value, merge(presetOpts(), opts));
+  Cookies.set(name, value, merge({domain, secure}, opts));
 
   return {
     type: SET_COOKIE,
-    payload: {name, value}
+    payload: {
+      name,
+      value
+    }
   };
 }
 
 export function removeCookie(name: string, opts: Object = {}) {
   return {
     type: REMOVE_COOKIE,
-    payload: Cookies.remove(name, merge({
-      domain: this.store.getState().cookies.domain
-    }, opts))
+    payload: Cookies.remove(name, merge({domain, secure}, opts))
   };
 }
 
-function presetOpts() {
-  const currentState = this.store.getState().cookies;
+function cookieDomain() {
+  let delim = ".";
+  let hostname = location.hostname;
+  let tld = hostname.split(delim).pop();
 
-  return {
-    domain: currentState.domain,
-    secure: currentState.secure
-  };
+  if (isNaN(Number(tld))) {
+    return hostname
+      .split(delim)
+      .splice(-2)
+      .join(delim);
+  } else {
+    return hostname;
+  }
 }

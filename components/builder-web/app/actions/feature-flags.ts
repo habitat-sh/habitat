@@ -15,31 +15,52 @@
 
 import { merge } from "lodash";
 
-import { getCookie, setCookie, removeCookie } from "./index";
+import { setCookie } from "./index";
+import { getBrowserCookies } from "./cookies";
+import { Map } from "immutable";
 
 export const SET_FEATURE_FLAG = "SET_FEATURE_FLAG";
 export const SET_FEATURE_FLAGS = "SET_FEATURE_FLAGS";
 
+const FEATURE_FLAG_KEY = "feature-flag";
+
 export function setFeatureFlag(name, value) {
-    return {
-        type: SET_FEATURE_FLAG,
-        payload: {name, value}
-    };
+  setCookie(`${FEATURE_FLAG_KEY}.${name}`, value);
+
+  return {
+    type: SET_FEATURE_FLAG,
+    payload: {name, value}
+  };
 }
 
 export function setFeatureFlags(payload) {
-    setCookie("featureFlags", payload);
+  const keys = Object.keys(payload);
 
-    return {
-        type: SET_FEATURE_FLAGS,
-        payload,
-    };
+  if (keys.length) {
+    keys.forEach((key) => {
+      setCookie(`${FEATURE_FLAG_KEY}.${key}`, payload[key]);
+    });
+  }
+
+  return {
+    type: SET_FEATURE_FLAGS,
+    payload,
+  };
 }
 
 export function loadFeatureFlags() {
-    return {
-        type: SET_FEATURE_FLAGS,
-        payload: getCookie("featureFlags")
-    };
+  const cookies = getBrowserCookies();
+  let payload = Map();
+
+  Object.keys(cookies)
+    .filter((key) => key.startsWith(FEATURE_FLAG_KEY))
+    .forEach((key) => {
+      payload.set(key.substring(FEATURE_FLAG_KEY.length + 1, key.length), cookies[key]);
+    });
+
+  return {
+    type: SET_FEATURE_FLAGS,
+    payload
+  };
 }
 

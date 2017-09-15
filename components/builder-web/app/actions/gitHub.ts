@@ -43,15 +43,10 @@ export function authenticateWithGitHub(token = undefined) {
     ).has("code");
 
     return dispatch => {
-        if (isCodeInQueryString) {
-            dispatch(setFeatureFlag("signingIn", true));
-        }
-
         if (token) {
             setCookie("gitHubAuthToken", token);
 
             fetch(`${config["github_api_url"]}/user?access_token=${token}`).then(response => {
-                dispatch(setFeatureFlag("signingIn", false));
 
                 if (response.ok) {
                     return response.json();
