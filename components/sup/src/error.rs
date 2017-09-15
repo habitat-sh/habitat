@@ -135,6 +135,7 @@ pub enum Error {
     NameLookup(io::Error),
     NetParseError(net::AddrParseError),
     NoLauncher,
+    NotifyError(notify::Error),
     NulError(ffi::NulError),
     PackageNotFound(package::PackageIdent),
     Permissions(String),
@@ -154,7 +155,6 @@ pub enum Error {
     SignalFailed,
     SpecWatcherDirNotFound(String),
     SpecWatcherGlob(glob::PatternError),
-    SpecWatcherNotify(notify::Error),
     StrFromUtf8Error(str::Utf8Error),
     StringFromUtf8Error(string::FromUtf8Error),
     TomlEncode(toml::ser::Error),
@@ -242,6 +242,7 @@ impl fmt::Display for SupError {
             Error::NameLookup(ref e) => format!("Error resolving a name or IP address: {}", e),
             Error::NetParseError(ref e) => format!("Can't parse ip:port: {}", e),
             Error::NoLauncher => format!("Supervisor must be run from `hab-launch`"),
+            Error::NotifyError(ref e) => format!("Notify error: {}", e),
             Error::NulError(ref e) => format!("{}", e),
             Error::PackageNotFound(ref pkg) => {
                 if pkg.fully_qualified() {
@@ -308,7 +309,6 @@ impl fmt::Display for SupError {
                 )
             }
             Error::SpecWatcherGlob(ref e) => format!("{}", e),
-            Error::SpecWatcherNotify(ref e) => format!("{}", e),
             Error::StrFromUtf8Error(ref e) => format!("{}", e),
             Error::StringFromUtf8Error(ref e) => format!("{}", e),
             Error::TomlEncode(ref e) => format!("Failed to encode TOML: {}", e),
@@ -373,6 +373,7 @@ impl error::Error for SupError {
             Error::NetParseError(_) => "Can't parse IP:port",
             Error::NameLookup(_) => "Error resolving a name or IP address",
             Error::NoLauncher => "Supervisor must be run from `hab-launch`",
+            Error::NotifyError(_) => "Notify error",
             Error::NulError(_) => {
                 "An attempt was made to build a CString with a null byte inside it"
             }
@@ -396,7 +397,6 @@ impl error::Error for SupError {
             Error::SignalFailed => "Failed to send a signal to the child process",
             Error::SpecWatcherDirNotFound(_) => "Spec directory not created or is not a directory",
             Error::SpecWatcherGlob(_) => "Spec watcher file globbing error",
-            Error::SpecWatcherNotify(_) => "Spec watcher error",
             Error::StrFromUtf8Error(_) => "Failed to convert a str from a &[u8] as UTF-8",
             Error::StringFromUtf8Error(_) => "Failed to convert a string from a Vec<u8> as UTF-8",
             Error::TomlEncode(_) => "Failed to encode toml!",
@@ -500,7 +500,7 @@ impl From<mpsc::TryRecvError> for SupError {
 
 impl From<notify::Error> for SupError {
     fn from(err: notify::Error) -> SupError {
-        sup_error!(Error::SpecWatcherNotify(err))
+        sup_error!(Error::NotifyError(err))
     }
 }
 
