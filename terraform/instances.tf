@@ -652,7 +652,7 @@ resource "aws_instance" "worker" {
     inline = [
       "DD_API_KEY=${var.datadog_api_key} /bin/bash -c \"$(curl -L https://raw.githubusercontent.com/DataDog/dd-agent/master/packaging/datadog-agent/source/install_agent.sh)\"",
       "sudo sed -i \"$ a tags: env:${var.env}, role:worker\" /etc/dd-agent/datadog.conf",
-      "sudo /etc/init.d/datadog-agent restart"
+      "sudo /etc/init.d/datadog-agent stop"
     ]
   }
 
