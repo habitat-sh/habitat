@@ -1005,7 +1005,7 @@ The Habitat Supervisor
 
 **USAGE** 
 
-hab sup [FLAGS] <SUBCOMMAND
+hab sup [FLAGS] <SUBCOMMAND>
 
 **FLAGS** 
 
