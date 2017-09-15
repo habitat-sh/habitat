@@ -28,7 +28,6 @@ import {Subscription} from "rxjs/Subscription";
           </p>
       </div>
       <div class="page-body">
-        <hab-project-info [ownerAndRepo]="ownerAndRepo"></hab-project-info>
       </div>
     </div>`
 })
@@ -57,6 +56,11 @@ export class ProjectCreatePageComponent implements OnInit, OnDestroy {
 
     ngOnDestroy() {
         this.sub.unsubscribe();
+    }
+
+    handleSubmit(selection) {
+        console.log(selection);
+        // do redirect
     }
 
     public ngOnInit() {

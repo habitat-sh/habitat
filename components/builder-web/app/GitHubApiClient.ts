@@ -15,8 +15,43 @@
 import "whatwg-fetch";
 import config from "./config";
 
+export interface File {
+    name: string;
+    path: string;
+    sha: string;
+    url: string;
+    git_url: string;
+    html: string;
+    repository: object;
+    score: number;
+}
+
+export interface FileResponse {
+    total_count: number;
+    incomplete_results: boolean;
+    items?: Array<File>;
+}
+
 export class GitHubApiClient {
     constructor(private token: string) { }
+
+    // Search for a filename within a repo
+    public findFileInRepo(owner: string, repo: string, filename: string) {
+        return new Promise((resolve, reject) => {
+            fetch(`${config["github_api_url"]}/search/code?q=repo:${owner}/${repo}+filename:${filename}`, {
+                method: "GET",
+                headers: {
+                    "Authorization": `token ${this.token}`
+                }
+            }).then(response => {
+                if (response.ok) {
+                    resolve(response.json());
+                } else {
+                    reject(new Error(response.statusText));
+                }
+            });
+        });
+    }
 
     // Checks to see if a file exists at a location
     public doesFileExist(owner: string, repo: string, path: string) {

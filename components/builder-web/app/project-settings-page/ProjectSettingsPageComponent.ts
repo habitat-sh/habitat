@@ -34,10 +34,10 @@ import {Record} from "immutable";
           </p>
       </div>
       <div class="page-body">
-        <hab-project-info [project]="project" [ownerAndRepo]="ownerAndRepo"></hab-project-info>
       </div>
     </div>
     `
+    // <hab-project-info [project]="project" [ownerAndRepo]="ownerAndRepo"></hab-project-info>
 })
 
 export class ProjectSettingsPageComponent implements OnInit, OnDestroy {
@@ -98,6 +98,10 @@ export class ProjectSettingsPageComponent implements OnInit, OnDestroy {
 
     get token() {
         return this.store.getState().gitHub.authToken;
+    }
+
+    handleSubmit() {
+        return false;
     }
 
     ngOnDestroy() {

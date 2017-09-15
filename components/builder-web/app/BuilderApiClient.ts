@@ -18,8 +18,8 @@ import { parseKey } from "./util";
 import { GitHubApiClient } from "./GitHubApiClient";
 
 export class BuilderApiClient {
-    private headers;
-    private urlPrefix: string = `${config["habitat_api_url"]}/v1`;
+  private headers;
+  private urlPrefix: string = `${config["habitat_api_url"]}/v1`;
 
     constructor(private token: string = "") {
         this.headers = token ? { "Authorization": `Bearer ${token}` } : {};
@@ -257,19 +257,19 @@ export class BuilderApiClient {
     }
 
     public getOriginInvitations(originName: string) {
-        return new Promise((resolve, reject) => {
-            fetch(`${this.urlPrefix}/depot/origins/${originName}/invitations`, {
-                headers: this.headers,
-            }).then(response => {
-                if (response.ok) {
-                    response.json().then(data => {
-                        resolve(data["invitations"]);
-                    });
-                } else {
-                    reject(new Error(response.statusText));
-                }
-            }).catch(error => reject(error));
-        });
+      return new Promise((resolve, reject) => {
+        fetch(`${this.urlPrefix}/depot/origins/${originName}/invitations`, {
+          headers: this.headers,
+        }).then(response => {
+          if (response.ok) {
+            response.json().then(data => {
+              resolve(data["invitations"]);
+            });
+          } else {
+            reject(new Error(response.statusText));
+          }
+        }).catch(error => reject(error));
+      });
     }
 
     public getOriginMembers(originName: string) {

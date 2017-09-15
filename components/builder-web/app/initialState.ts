@@ -219,27 +219,7 @@ export default Record({
       gitHub: Map(),
     })(),
   })(),
-  cookies: Record({
-    domain: cookieDomain(),
-    secure: window.location.protocol === "https",
-    current: getBrowserCookies()
-  })(),
   featureFlags: Record({
     current: Map({})
   })()
 })();
-
-function cookieDomain() {
-  let delim = ".";
-  let hostname = location.hostname;
-  let tld = hostname.split(delim).pop();
-
-  if (isNaN(Number(tld))) {
-    return hostname
-      .split(delim)
-      .splice(-2)
-      .join(delim);
-  } else {
-    return hostname;
-  }
-}

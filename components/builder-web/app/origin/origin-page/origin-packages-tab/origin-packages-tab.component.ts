@@ -14,6 +14,8 @@
 
 import { Component } from "@angular/core";
 import { AppStore } from "../../../AppStore";
+import { GitHubRepoPickerComponent } from "../../../shared/github-repo-picker/GitHubRepoPickerComponent";
+import { addProject, requestRoute } from "../../../actions/index";
 
 @Component({
     selector: "hab-origin-packages-tab",
@@ -21,7 +23,33 @@ import { AppStore } from "../../../AppStore";
 })
 
 export class OriginPackagesTabComponent {
+  selectingPlan: boolean = false;
+
   constructor(private store: AppStore) {}
+
+  loadRepoSelect() {
+    this.selectingPlan = true;
+  }
+
+  planSelected(selection) {
+    let planData = selection;
+    planData.origin = this.store.getState().origins.current.name;
+
+    this.store.dispatch(
+      addProject(
+        planData,
+        this.store.getState().gitHub.authToken,
+        (response) => {
+          this.store.dispatch(requestRoute(["/origins", response.name]));
+        }));
+  }
+
+  planSelectCanceled(event) {
+  }
+
+  get projectsFlag() {
+    return this.store.getState().featureFlags.current.get("project");
+  }
 
   get packagesUi() {
     return this.store.getState().packages.ui.visible;

@@ -8,8 +8,14 @@
         </span>
       </p>
     </div>
-
-    <div *ngIf="!noPackages">
+    <hab-plan-select
+      *ngIf="selectingPlan"
+      (planSelected)="planSelected($event)"
+      (planSelectCanceled)="planSelectCanceled()"></hab-plan-select>
+    <div *ngIf="!noPackages && !selectingPlan">
+      <div *ngIf="projectsFlag">
+        <button (click)="loadRepoSelect()" md-raised-button color="primary">Connect a plan file</button>
+      </div>
       <div class="pkg-container">
         <div class="pkg-col-1">Package Name</div>
         <div class="pkg-col-2">&nbsp;</div>

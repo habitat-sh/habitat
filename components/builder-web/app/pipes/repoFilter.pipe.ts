@@ -1,5 +1,5 @@
 import { Pipe, PipeTransform } from "@angular/core";
-import { GitHubRepo } from "../github-repos/shared/github-repos.model";
+import { GitHubRepo } from "../github/repo/shared/github-repo.model";
 
 @Pipe({
     name: "habGitHubRepoFilter",

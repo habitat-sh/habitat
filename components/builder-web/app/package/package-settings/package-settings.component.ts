@@ -18,6 +18,14 @@ export class PackageSettingsComponent implements OnDestroy {
         });
     }
 
+    planSelectSubmit(plan) {
+        console.log(plan);
+    }
+
+    planSelectCancel() {
+        console.log("on cancel");
+    }
+
     ngOnDestroy() {
         if (this.sub) {
             this.sub.unsubscribe();

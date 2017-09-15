@@ -19,7 +19,6 @@ import { ExploreComponent } from "./explore/explore.component";
 import { ProjectCreatePageComponent } from "./project-create-page/ProjectCreatePageComponent";
 import { ProjectPageComponent } from "./project-page/ProjectPageComponent";
 import { ProjectsPageComponent } from "./projects-page/ProjectsPageComponent";
-import { SCMReposPageComponent } from "./scm-repos-page/SCMReposPageComponent";
 import { SignInPageComponent } from "./sign-in-page/sign-in-page.component";
 import { ProjectSettingsPageComponent } from "./project-settings-page/ProjectSettingsPageComponent";
 
@@ -52,10 +51,6 @@ export const routes: Routes = [
     {
         path: "projects/:origin/:name/settings",
         component: ProjectSettingsPageComponent
-    },
-    {
-        path: "scm-repos",
-        component: SCMReposPageComponent,
     },
     {
         path: "*",
