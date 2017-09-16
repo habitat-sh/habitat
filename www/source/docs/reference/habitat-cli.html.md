@@ -117,8 +117,8 @@ Commands relating to Habitat runtime config.
 
 **Read More** 
 
-- [completers](#hab-cli-completers)
-- [setup](#hab-cli-setup)
+- [hab cli completers](#hab-cli-completers)
+- [hab cli setup](#hab-cli-setup)
 
 <h2 id="hab-cli-completers" class="anchor">hab cli completers</h2>
 Creates command-line completers for your shell.
