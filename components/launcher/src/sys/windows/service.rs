@@ -116,6 +116,7 @@ impl Process {
 }
 
 pub fn run(mut msg: protocol::Spawn) -> Result<Service> {
+    debug!("launcher is spawning {}", msg.get_binary());
     let ps_cmd = format!("iex $(gc {} | out-string)", msg.get_binary());
     let password = if msg.get_svc_password().is_empty() {
         None
