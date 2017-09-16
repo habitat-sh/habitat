@@ -102,7 +102,7 @@ function populateBuild(data, error = undefined) {
 function populateBuilds(data, error = undefined) {
   return {
     type: POPULATE_BUILDS,
-    payload: data ? data.jobs : undefined,
+    payload: data ? data.data : undefined,
     error: error
   };
 }

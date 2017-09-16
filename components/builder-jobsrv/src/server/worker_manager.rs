@@ -326,28 +326,31 @@ impl WorkerMgr {
                 worker
             );
 
-            assert!(self.worker_map.contains_key(&worker));
-            let job_id = self.worker_map.remove(&worker).unwrap();
+            // TODO: (SA) we need to handle a case where both worker and job srv
+            // restart during progress of a job - the job_id can get lost.
+            if self.worker_map.contains_key(&worker) {
+                let job_id = self.worker_map.remove(&worker).unwrap();
 
-            if self.jobs.contains_key(&job_id) {
-                self.jobs.remove(&job_id).unwrap();
-            }
-
-            let mut req = jobsrv::JobGet::new();
-            req.set_id(job_id);
-
-            match self.datastore.get_job(&req)? {
-                Some(mut job) => {
-                    debug!("updating job {:?}, setting state back to Pending", job_id);
-                    job.set_state(jobsrv::JobState::Pending);
-                    self.datastore.update_job(&job)?;
+                if self.jobs.contains_key(&job_id) {
+                    self.jobs.remove(&job_id).unwrap();
                 }
-                None => {
-                    warn!(
-                        "did not find job id {:?} for busy worker {:?}!",
-                        job_id,
-                        worker
-                    );
+
+                let mut req = jobsrv::JobGet::new();
+                req.set_id(job_id);
+
+                match self.datastore.get_job(&req)? {
+                    Some(mut job) => {
+                        debug!("updating job {:?}, setting state back to Pending", job_id);
+                        job.set_state(jobsrv::JobState::Pending);
+                        self.datastore.update_job(&job)?;
+                    }
+                    None => {
+                        warn!(
+                            "did not find job id {:?} for busy worker {:?}!",
+                            job_id,
+                            worker
+                        );
+                    }
                 }
             }
         }
