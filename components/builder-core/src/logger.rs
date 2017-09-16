@@ -116,8 +116,9 @@ impl Logger {
         };
 
         let msg = format!(
-            "J,{},{:?},{},{},{}",
+            "J,{},{},{:?},{},{},{}",
             job.get_owner_id(),
+            job.get_id(),
             job.get_state(),
             job.get_project().get_name(),
             suffix,
