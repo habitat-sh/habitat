@@ -14,8 +14,6 @@
 
 use std::sync::{Arc, RwLock};
 
-use hab_net::routing::Broker;
-use hab_net::config::RouterCfg;
 use hab_net::server::{NetIdent, ZMQ_CONTEXT};
 use protobuf::{parse_from_bytes, Message};
 use protocol;
@@ -77,11 +75,6 @@ impl Server {
                 self.fe_sock.connect(&queue)?;
             }
         }
-
-        {
-            let cfg = self.config.read().unwrap();
-            Broker::run(Self::net_ident(), cfg.route_addrs())
-        };
 
         let mut fe_msg = false;
         let mut runner_msg = false;

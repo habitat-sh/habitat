@@ -55,7 +55,9 @@ impl Into<Job> for JobSpec {
         job.set_owner_id(self.get_owner_id());
         job.set_state(JobState::default());
         job.set_project(self.take_project());
-        job.set_channel(self.take_channel());
+        if self.has_channel() {
+            job.set_channel(self.take_channel());
+        }
         job
     }
 }

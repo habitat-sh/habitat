@@ -142,7 +142,7 @@ pub struct HeartbeatMgr {
     pub cli_sock: zmq::Socket,
     state: PulseState,
     config: Arc<RwLock<Config>>,
-    reg: proto::Heartbeat,
+    heartbeat: proto::Heartbeat,
     msg: zmq::Message,
 }
 
@@ -169,16 +169,16 @@ impl HeartbeatMgr {
         pub_sock.set_immediate(true)?;
         pub_sock.set_sndhwm(1)?;
         pub_sock.set_linger(0)?;
-        let mut reg = proto::Heartbeat::new();
-        reg.set_endpoint(Server::net_ident());
-        reg.set_os(worker_os());
-        reg.set_state(proto::WorkerState::Ready);
+        let mut heartbeat = proto::Heartbeat::new();
+        heartbeat.set_endpoint(Server::net_ident());
+        heartbeat.set_os(worker_os());
+        heartbeat.set_state(proto::WorkerState::Ready);
         Ok(HeartbeatMgr {
             state: PulseState::default(),
             config: config,
             pub_sock: pub_sock,
             cli_sock: cli_sock,
-            reg: reg,
+            heartbeat: heartbeat,
             msg: zmq::Message::new().unwrap(),
         })
     }
@@ -227,8 +227,11 @@ impl HeartbeatMgr {
 
     // Broadcast to subscribers the HeartbeatMgr health and state
     fn pulse(&mut self) -> Result<()> {
-        debug!("heartbeat pulsed");
-        self.pub_sock.send(&self.reg.write_to_bytes().unwrap(), 0)?;
+        debug!("heartbeat pulsed: {:?}", self.heartbeat.get_state());
+        self.pub_sock.send(
+            &self.heartbeat.write_to_bytes().unwrap(),
+            0,
+        )?;
         Ok(())
     }
 
@@ -240,7 +243,7 @@ impl HeartbeatMgr {
             Some(CMD_PULSE) => {
                 let mut msg: zmq::Message = zmq::Message::new()?;
                 self.cli_sock.recv(&mut msg, 0)?;
-                self.reg = parse_from_bytes(&msg)?;
+                self.heartbeat = parse_from_bytes(&msg)?;
                 self.resume()
             }
             _ => unreachable!("wk:hb:1, received unexpected message from client"),

@@ -12,24 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::str::FromStr;
-
 use hab_core::package::archive::PackageArchive;
-use hab_core::package::Identifiable;
 use hab_core::channel::{STABLE_CHANNEL, UNSTABLE_CHANNEL};
-use bldr_core;
 use bldr_core::logger::Logger;
-use bldr_core::api::{create_channel, promote_package_to_channel};
 
 use {PRODUCT, VERSION};
 use depot_client;
 use hyper::status::StatusCode;
-use error::{Error, Result};
 use retry::retry;
 use super::{RETRIES, RETRY_WAIT};
-
-use protocol::originsrv::OriginPackageIdent;
-use protocol::net::ErrCode;
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
 pub struct Publisher {
@@ -86,10 +77,34 @@ impl Publisher {
                 None => panic!("Expected channel"),
             };
 
-            match retry(
-                RETRIES,
+            if channel != STABLE_CHANNEL && channel != UNSTABLE_CHANNEL {
+                match retry(RETRIES,
+                    RETRY_WAIT,
+                    || client.create_channel(&ident.origin, &channel, auth_token),
+                    |res| {
+                        let msg = format!("Create channel status: {:?}", res);
+                        debug!("{}", msg);
+                        logger.log(&msg);
+                        match *res {
+                            Ok(_) |  // Conflict means channel got created earlier
+                            Err(depot_client::Error::APIError(StatusCode::Conflict, _)) => true,
+                            Err(_) => false
+                        }
+                    },
+                ) {
+                    Ok(_) => (),
+                    Err(_) => {
+                        let msg = format!("Publisher failed creating channel after {} retries", RETRIES);
+                        error!("{}", msg);
+                        logger.log(&msg);
+                        return false;
+                    }
+                }
+            }
+
+            match retry(RETRIES,
                 RETRY_WAIT,
-                || promote_package(&ident, &channel),
+                || client.promote_package(&ident, &channel, auth_token),
                 |res| {
                     let msg = format!("Promote status: {:?}", res);
                     debug!("{}", msg);
@@ -99,10 +114,7 @@ impl Publisher {
             ) {
                 Ok(_) => (),
                 Err(_) => {
-                    let msg = format!(
-                        "Publisher failed promoting package after {} retries",
-                        RETRIES
-                    );
+                    let msg = format!("Publisher failed promoting package after {} retries", RETRIES);
                     error!("{}", msg);
                     logger.log(&msg);
                     return false;
@@ -111,37 +123,4 @@ impl Publisher {
         }
         true
     }
-}
-
-fn promote_package<T>(ident: &T, channel: &str) -> Result<()>
-where
-    T: Identifiable,
-{
-    debug!("Promoting '{}' to '{}'", ident, channel);
-    assert!(!channel.is_empty());
-
-    if channel != STABLE_CHANNEL && channel != UNSTABLE_CHANNEL {
-        match create_channel(ident.origin(), channel, None) {
-            Ok(_) => (),
-            Err(bldr_core::Error::NetError(err)) => {
-                // Attempting to re-create a channel is not an error
-                if err.get_code() != ErrCode::ENTITY_CONFLICT {
-                    error!("Unable to create channel, err={:?}", err);
-                    return Err(Error::BuilderCore(bldr_core::Error::NetError(err)));
-                }
-            }
-            Err(err) => {
-                error!("Unable to create channel, err={:?}", err);
-                return Err(Error::BuilderCore(err));
-            }
-        }
-    }
-
-    // TODO (SA): Refactor to pass in Identifiable through to the API
-    let opi = OriginPackageIdent::from_str(&ident.to_string()).unwrap();
-    promote_package_to_channel(&opi, channel, None).map_err(
-        Error::BuilderCore,
-    )?;
-
-    Ok(())
 }
