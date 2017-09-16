@@ -76,11 +76,6 @@ impl HttpGateway for ApiSrv {
             user_origins: get "/user/origins" => {
                 XHandler::new(list_user_origins).before(basic.clone())
             },
-
-            // NOTE: Each of the handler functions for projects currently
-            // short-circuits processing if trying to do anything with a
-            // non-"core" origin, since we're not enabling Builder for any
-            // other origins at the moment.
             projects: post "/projects" => XHandler::new(project_create).before(basic.clone()),
             project: get "/projects/:origin/:name" => project_show,
             project_jobs: get "/projects/:origin/:name/jobs" => project_jobs,

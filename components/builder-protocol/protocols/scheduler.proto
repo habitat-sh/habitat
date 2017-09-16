@@ -29,6 +29,8 @@ message GroupCreate {
   optional string package = 2;
   optional bool deps_only = 3;
   optional string target = 4;
+  optional bool origin_only = 5;
+  optional bool package_only = 6;
 }
 
 message GroupGet {

@@ -77,42 +77,44 @@ pub fn group_create(
     debug!("Resolved project name: {} sec\n", start_time.to(end_time));
 
     // Add the root package if needed
-    if !msg.get_deps_only() {
+    if !msg.get_deps_only() || msg.get_package_only() {
         projects.push((project_name.clone(), project_ident.clone()));
     }
 
     // Search the packages graph to find the reverse dependencies
-    let rdeps_opt = {
-        let target_graph = state.graph.read().unwrap();
-        let graph = target_graph.graph(msg.get_target()).unwrap(); // Unwrap OK
-        start_time = PreciseTime::now();
-        let ret = graph.rdeps(&project_name);
-        end_time = PreciseTime::now();
-        ret
-    };
+    if !msg.get_package_only() {
+        let rdeps_opt = {
+            let target_graph = state.graph.read().unwrap();
+            let graph = target_graph.graph(msg.get_target()).unwrap(); // Unwrap OK
+            start_time = PreciseTime::now();
+            let ret = graph.rdeps(&project_name);
+            end_time = PreciseTime::now();
+            ret
+        };
 
-    match rdeps_opt {
-        Some(rdeps) => {
-            debug!(
-                "Graph rdeps: {} items ({} sec)\n",
-                rdeps.len(),
-                start_time.to(end_time)
-            );
+        match rdeps_opt {
+            Some(rdeps) => {
+                debug!(
+                    "Graph rdeps: {} items ({} sec)\n",
+                    rdeps.len(),
+                    start_time.to(end_time)
+                );
 
-            for s in rdeps {
-                let origin = s.0.split("/").nth(0).unwrap();
+                for s in rdeps {
+                    let origin = s.0.split("/").nth(0).unwrap();
 
-                // We only build core packages for now
-                if origin == "core" {
-                    debug!("Adding to projects: {} ({})", s.0, s.1);
-                    projects.push(s.clone());
-                } else {
-                    debug!("Skipping non-core project: {} ({})", s.0, s.1);
+                    // If the origin_only flag is true, make sure the origin matches
+                    if !msg.get_origin_only() || origin == msg.get_origin() {
+                        debug!("Adding to projects: {} ({})", s.0, s.1);
+                        projects.push(s.clone());
+                    } else {
+                        debug!("Skipping non-origin project: {} ({})", s.0, s.1);
+                    }
                 }
             }
-        }
-        None => {
-            debug!("Graph rdeps: no entries found");
+            None => {
+                debug!("Graph rdeps: no entries found");
+            }
         }
     }
 

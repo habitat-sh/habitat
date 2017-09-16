@@ -39,6 +39,8 @@ pub struct Config {
     pub events_enabled: bool,
     /// Whether to schedule builds on package upload
     pub builds_enabled: bool,
+    /// Whether we allow non-core origin builds
+    pub non_core_builds_enabled: bool,
     /// Filepath to where log events for funnel metrics will be recorded
     pub log_dir: PathBuf,
     /// Filepath to where the builder encryption keys can be found
@@ -60,6 +62,7 @@ impl Default for Config {
             path: PathBuf::from("/hab/svc/hab-depot/data"),
             events_enabled: false, // TODO: change to default to true later
             builds_enabled: false,
+            non_core_builds_enabled: false,
             log_dir: PathBuf::from(env::temp_dir().to_string_lossy().into_owned()),
             key_dir: PathBuf::from("/hab/svc/hab-depot/files"),
             targets: vec![
@@ -138,6 +141,7 @@ mod tests {
         let content = r#"
         path = "/hab/svc/hab-depot/data"
         builds_enabled = true
+        non_core_builds_enabled = true
         events_enabled = true
         log_dir = "/hab/svc/hab-depot/var/log"
         key_dir = "/hab/svc/hab-depot/files"
@@ -167,6 +171,7 @@ mod tests {
         let config = Config::from_raw(&content).unwrap();
         assert_eq!(config.path, PathBuf::from("/hab/svc/hab-depot/data"));
         assert_eq!(config.builds_enabled, true);
+        assert_eq!(config.non_core_builds_enabled, true);
         assert_eq!(config.events_enabled, true);
         assert_eq!(config.log_dir, PathBuf::from("/hab/svc/hab-depot/var/log"));
         assert_eq!(config.key_dir, PathBuf::from("/hab/svc/hab-depot/files"));

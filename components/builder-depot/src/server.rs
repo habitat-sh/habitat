@@ -757,24 +757,24 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
 
         // Schedule re-build of dependent packages (if requested)
         // Don't schedule builds if the upload is being done by the builder
-        // Currently, we only do dep builds of 'core' packages
-        if depot.config.builds_enabled && ident.get_origin() == "core" &&
-            !match helpers::extract_query_value("builder", req) {
-                Some(_) => true,
-                None => false,
-            }
+        if depot.config.builds_enabled &&
+            (ident.get_origin() == "core" || depot.config.non_core_builds_enabled)
         {
             let mut request = GroupCreate::new();
             request.set_origin(ident.get_origin().to_string());
             request.set_package(ident.get_name().to_string());
             request.set_target(target_from_artifact.to_string());
             request.set_deps_only(true);
+            request.set_origin_only(!depot.config.non_core_builds_enabled);
+            request.set_package_only(false);
 
             match route_message::<GroupCreate, Group>(req, &request) {
                 Ok(group) => {
                     debug!(
-                        "Scheduled reverse dependecy build, group id: {}",
-                        group.get_id()
+                        "Scheduled reverse dependecy build for {}, group id: {}, origin_only: {}",
+                        ident,
+                        group.get_id(),
+                        !depot.config.non_core_builds_enabled
                     )
                 }
                 Err(err) => error!("Unable to schedule build, err: {:?}", err),
@@ -830,13 +830,27 @@ fn schedule(req: &mut Request) -> IronResult<Response> {
         Some(pkg) => pkg,
         None => return Ok(Response::with(status::BadRequest)),
     };
+    let target = match helpers::extract_query_value("target", req) {
+        Some(target) => target,
+        None => String::from("x86_64-linux"),
+    };
+    let deps_only = helpers::extract_query_value("deps_only", req).is_some();
+    let origin_only = helpers::extract_query_value("origin_only", req).is_some();
+    let package_only = helpers::extract_query_value("package_only", req).is_some();
+
+    // We only support building for Linux x64 only currently
+    if target != "x86_64-linux" {
+        info!("Rejecting build with target: {}", target);
+        return Ok(Response::with(status::BadRequest));
+    }
 
     let mut request = GroupCreate::new();
     request.set_origin(String::from(origin));
     request.set_package(String::from(package));
-    // TODO (SA): The schedule API needs to be extended to support a target param.
-    // For now, hard code a default value
-    request.set_target(String::from("x86_64-linux"));
+    request.set_target(target);
+    request.set_deps_only(deps_only);
+    request.set_origin_only(origin_only);
+    request.set_package_only(package_only);
 
     match route_message::<GroupCreate, Group>(req, &request) {
         Ok(group) => {

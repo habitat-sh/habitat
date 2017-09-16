@@ -295,20 +295,6 @@ pub fn promote_job_group_to_channel(
         }
     }
 
-    // Now that we've sorted all the projects into a HashMap keyed on origin, we can process them,
-    // one origin at a time. We do "core" first, since it's not possible to do the entire operation
-    // atomically. Instead, we prioritize the core origin since it's the most important one.
-    if let Some(core_projects) = origin_map.remove("core") {
-        if channel != STABLE_CHANNEL || channel != UNSTABLE_CHANNEL {
-            create_channel(req, "core", channel, session_id)?;
-        }
-
-        let promote_result = do_group_promotion(req, channel, core_projects, "core", session_id);
-        if promote_result.is_err() {
-            return promote_result;
-        }
-    }
-
     for (origin, projects) in origin_map.iter() {
         if channel != STABLE_CHANNEL || channel != UNSTABLE_CHANNEL {
             create_channel(req, &origin, channel, session_id)?;
