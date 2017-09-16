@@ -115,6 +115,7 @@ impl Process {
 }
 
 pub fn run(msg: protocol::Spawn) -> Result<Service> {
+    debug!("launcher is spawning {}", msg.get_binary());
     let mut cmd = Command::new(msg.get_binary());
     let uid = os::users::get_uid_by_name(msg.get_svc_user()).ok_or(
         Error::UserNotFound(msg.get_svc_user().to_string()),

@@ -200,7 +200,12 @@ impl ServiceTable {
             match service.try_wait() {
                 Ok(None) => (),
                 Ok(Some(code)) => {
-                    debug!("Child exited, {}, {}", service.id(), code);
+                    outputln!(
+                        "Child for service '{}' with PID {} exited with code {}",
+                        service.name(),
+                        service.id(),
+                        code
+                    );
                     dead.push(service.id());
                 }
                 Err(err) => {
