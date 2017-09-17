@@ -120,7 +120,7 @@ export function getUniquePackages(
         }
 
         depotApi.getUnique(origin, nextRange).then(response => {
-            dispatch(setVisiblePackages(response["results"]));
+            dispatch(setVisiblePackages(response["results"]["package_list"]));
             dispatch(setPackagesTotalCount(response["totalCount"]));
             dispatch(setPackagesNextRange(response["nextRange"]));
 
@@ -154,7 +154,7 @@ export function filterPackagesBy(
         }
 
         depotApi.get(params, nextRange).then(response => {
-            dispatch(setVisiblePackages(response["results"]));
+            dispatch(setVisiblePackages(response["results"]["package_list"]));
             dispatch(setPackagesTotalCount(response["totalCount"]));
             dispatch(setPackagesNextRange(response["nextRange"]));
         }).catch(error => {
@@ -164,7 +164,7 @@ export function filterPackagesBy(
 }
 
 export function populateDashboardRecent(data) {
-    let grouped = groupBy(data.results.reverse(), "name");
+    let grouped = groupBy(data.results.package_list.reverse(), "name");
     let mapped = [];
 
     for (let k in grouped) {

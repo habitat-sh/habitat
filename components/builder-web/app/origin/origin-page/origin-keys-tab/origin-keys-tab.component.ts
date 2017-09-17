@@ -19,7 +19,7 @@ import { List } from "immutable";
 import { Subscription } from "rxjs/Subscription";
 import { KeyAddFormDialog } from "./key-add-form/key-add-form.dialog";
 import { AppStore } from "../../../AppStore";
-import { Origin } from "../../../records/Origin";
+import { OriginRecord } from "../../../records/origin-record";
 import config from "../../../config";
 import { fetchOriginPublicKeys } from "../../../actions/index";
 import { OriginService } from "../../origin.service";

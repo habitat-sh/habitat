@@ -14,7 +14,7 @@
 
 import {List, Record} from "immutable";
 
-export const Origin = Record({
+export const OriginRecord = Record({
     id: undefined,
     name: undefined,
     owner_id: undefined,

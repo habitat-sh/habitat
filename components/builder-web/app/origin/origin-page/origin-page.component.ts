@@ -22,7 +22,7 @@ import { fetchOrigin, fetchOriginInvitations, fetchOriginMembers,
         filterPackagesBy, fetchMyOrigins,
         setProjectHint, requestRoute, setCurrentProject, getUniquePackages } from "../../actions/index";
 import config from "../../config";
-import { Origin } from "../../records/Origin";
+import { OriginRecord } from "../../records/origin-record";
 import { requireSignIn, packageString } from "../../util";
 
 export enum ProjectStatus {
@@ -44,7 +44,7 @@ export class OriginPageComponent implements OnInit, OnDestroy {
 
     constructor(private route: ActivatedRoute, private store: AppStore) {
         this.sub = this.route.params.subscribe(params => {
-            this.origin = Origin({ name: params["origin"]});
+            this.origin = OriginRecord({ name: params["origin"]});
         });
     }
 
