@@ -203,7 +203,7 @@ impl AsyncServer {
                         };
                         if !is_running {
                             let sa = server.clone();
-                            error!("Dispatching {}", key);
+                            debug!("Dispatching {}", key);
                             {
                                 let mut running_events = server.running.write().expect(
                                     "Running events lock poisoned",

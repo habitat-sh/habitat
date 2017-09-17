@@ -2761,7 +2761,7 @@ do_default_build_service() {
   else
     if [[ -n "${pkg_svc_run}" ]]; then
       # We use chpst to ensure that the script works outside `hab-sup`
-      # for debugging purposes, or under a `hab-director`.
+      # for debugging purposes
       build_line "Writing ${pkg_prefix}/run script to run ${pkg_svc_run} as ${pkg_svc_user}:${pkg_svc_group}"
       cat <<EOT >> $pkg_prefix/run
 #!/bin/sh
