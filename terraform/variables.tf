@@ -47,6 +47,11 @@ variable "depot_url" {
   default     = "https://bldr.habitat.sh/v1/depot"
 }
 
+variable "api_url" {
+  description = "URL of the Builder API"
+  default     = "https://bldr.habitat.sh"
+}
+
 variable "release_channel" {
   description = "Release channel in Depot to receive package updates from"
   default     = "stable"

@@ -196,6 +196,18 @@ resource "aws_instance" "datastore" {
     inline = [
       "DD_API_KEY=${var.datadog_api_key} /bin/bash -c \"$(curl -L https://raw.githubusercontent.com/DataDog/dd-agent/master/packaging/datadog-agent/source/install_agent.sh)\"",
       "sudo sed -i \"$ a tags: env:${var.env}, role:datastore\" /etc/dd-agent/datadog.conf",
+    ]
+  }
+
+  provisioner "file" {
+    source = "${path.module}/files/postgres.yaml"
+    destination = "/tmp/postgres.yaml"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo awk 'BEGIN{getline l < \"/hab/svc/builder-datastore/config/pwfile\"}/REPLACETHIS/{gsub(\"REPLACETHIS\",l)}1' /tmp/postgres.yaml > /tmp/postgres.yaml.rendered",
+      "sudo cp /tmp/postgres.yaml.rendered /etc/dd-agent/conf.d/postgres.yaml",
       "sudo /etc/init.d/datadog-agent restart"
     ]
   }
@@ -496,10 +508,17 @@ resource "aws_instance" "scheduler" {
     ]
   }
 
+  provisioner "file" {
+    content     = "${data.template_file.sch_log_parser.rendered}"
+    destination = "/tmp/sch_log_parser.py"
+  }
+
   provisioner "remote-exec" {
     inline = [
       "DD_API_KEY=${var.datadog_api_key} /bin/bash -c \"$(curl -L https://raw.githubusercontent.com/DataDog/dd-agent/master/packaging/datadog-agent/source/install_agent.sh)\"",
+      "sudo sed -i \"$ a dogstreams: /tmp/builder-scheduler.log:/etc/dd-agent/sch_log_parser.py:my_log_parser\" /etc/dd-agent/datadog.conf",
       "sudo sed -i \"$ a tags: env:${var.env}, role:scheduler\" /etc/dd-agent/datadog.conf",
+      "sudo cp /tmp/sch_log_parser.py /etc/dd-agent/sch_log_parser.py",
       "sudo /etc/init.d/datadog-agent restart"
     ]
   }
@@ -692,5 +711,13 @@ data "template_file" "sup_service" {
   vars {
     flags     = "--auto-update --peer ${join(" ", var.peers)} --channel ${var.release_channel} --events hab-eventsrv.default --listen-gossip 0.0.0.0:${var.gossip_listen_port} --listen-http 0.0.0.0:${var.http_listen_port}"
     log_level = "${var.log_level}"
+  }
+}
+
+data "template_file" "sch_log_parser" {
+  template = "${file("${path.module}/templates/sch_log_parser.py")}"
+
+  vars {
+    api_url = "${var.api_url}"
   }
 }
