@@ -7,7 +7,7 @@ import { ActivatedRoute, Router } from "@angular/router";
 import { Observable } from "rxjs";
 import { MockComponent } from "ng2-mock-component";
 import { AppStore } from "../../AppStore";
-import { Origin } from "../../records/origin";
+import { OriginRecord } from "../../records/origin-record";
 import { OriginsPageComponent } from "./origins-page.component";
 import * as actions from "../../actions";
 
@@ -19,7 +19,7 @@ class MockAppStore {
         authToken: "token"
       },
       origins: {
-        mine: List([Origin({name: "test"})]),
+        mine: List([OriginRecord({name: "test"})]),
         myInvitations: [],
         ui: {
           mine: {
@@ -30,6 +30,7 @@ class MockAppStore {
       }
     };
   }
+
   dispatch() {}
 }
 

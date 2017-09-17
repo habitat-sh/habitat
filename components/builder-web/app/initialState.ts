@@ -14,7 +14,7 @@
 
 import { List, Map, Record } from "immutable";
 import { BehaviorSubject } from "rxjs";
-import { Origin } from "./records/Origin";
+import { OriginRecord } from "./records/origin-record";
 import { Package } from "./records/Package";
 
 export default Record({
@@ -105,7 +105,7 @@ export default Record({
         })(),
     })(),
     origins: Record({
-        current: Origin(),
+        current: OriginRecord(),
         currentPublicKeys: List(),
         currentMembers: List(),
         currentPendingInvitations: List(),
