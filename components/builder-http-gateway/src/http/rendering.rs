@@ -12,18 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use hab_net::NetError;
 use iron::headers::ContentType;
 use iron::mime::{Mime, TopLevel, SubLevel};
 use iron::modifiers::Header;
 use iron::prelude::*;
 use iron::status;
-use protocol::net::NetError;
 use serde::Serialize;
 use serde_json;
 
 use super::net_err_to_http;
 
-pub fn render_json<T: Serialize>(status: status::Status, response: &T) -> Response {
+pub fn render_json<T>(status: status::Status, response: &T) -> Response
+where
+    T: Serialize,
+{
     let encoded = serde_json::to_string(response).unwrap();
     let headers = Header(ContentType(
         Mime(TopLevel::Application, SubLevel::Json, vec![]),
@@ -43,5 +46,5 @@ pub fn render_json<T: Serialize>(status: status::Status, response: &T) -> Respon
 /// * The given message could not be decoded
 /// * The NetError could not be encoded to JSON
 pub fn render_net_error(err: &NetError) -> Response {
-    render_json(net_err_to_http(err.get_code()), err)
+    render_json(net_err_to_http(err.code()), err)
 }

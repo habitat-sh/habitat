@@ -11,6 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 #![cfg_attr(feature="clippy", feature(plugin))]
 #![cfg_attr(feature="clippy", plugin(clippy))]
 
@@ -18,7 +19,8 @@ extern crate habitat_builder_protocol as protocol;
 #[macro_use]
 extern crate habitat_core as hab_core;
 extern crate habitat_net as hab_net;
-extern crate builder_core as bld_core;
+extern crate builder_core as bldr_core;
+extern crate builder_http_gateway as http_gateway;
 extern crate bodyparser;
 extern crate crypto;
 extern crate hyper;
@@ -64,7 +66,6 @@ use std::path::{Path, PathBuf};
 use crypto::sha2::Sha256;
 use crypto::digest::Digest;
 use hab_core::package::{Identifiable, PackageArchive, PackageTarget};
-use hab_net::server::NetIdent;
 use iron::typemap;
 
 pub struct DepotUtil {
@@ -133,5 +134,3 @@ impl DepotUtil {
 impl typemap::Key for DepotUtil {
     type Value = Self;
 }
-
-impl NetIdent for DepotUtil {}

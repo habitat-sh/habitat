@@ -12,6 +12,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 #![cfg_attr(feature="clippy", feature(plugin))]
 #![cfg_attr(feature="clippy", plugin(clippy))]
 
@@ -93,7 +94,8 @@ fn main() {
         start_time.to(end_time)
     );
 
-    println!("\nAvailable commands: help, stats, top, find, resolve, filter, rdeps, deps, check, exit\n",);
+    println!("\nAvailable commands: help, stats, top, find, resolve, filter, rdeps, deps, check, \
+        exit\n",);
 
     let mut filter = String::from("");
     let mut done = false;

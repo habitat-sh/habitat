@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Copyright (c) 2016 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -11,6 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 #![cfg_attr(feature="clippy", feature(plugin))]
 #![cfg_attr(feature="clippy", plugin(clippy))]
 
@@ -23,10 +24,11 @@ extern crate builder_core as bldr_core;
 #[macro_use]
 extern crate log;
 
+use std::error;
 use std::process;
 
 use hab_core::config::ConfigFile;
-use scheduler::{Config, Error, Result};
+use scheduler::{Config, SrvResult};
 
 const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 const CFG_DEFAULT_PATH: &'static str = "/hab/svc/builder-scheduler/config.toml";
@@ -39,10 +41,7 @@ fn main() {
         Ok(result) => result,
         Err(e) => return exit_with(e, 1),
     };
-    match dispatch(config, &matches) {
-        Ok(_) => std::process::exit(0),
-        Err(e) => exit_with(e, 1),
-    }
+    dispatch(config, &matches)
 }
 
 fn app<'a, 'b>() -> clap::App<'a, 'b> {
@@ -66,7 +65,7 @@ fn app<'a, 'b>() -> clap::App<'a, 'b> {
     )
 }
 
-fn config_from_args(matches: &clap::ArgMatches) -> Result<Config> {
+fn config_from_args(matches: &clap::ArgMatches) -> SrvResult<Config> {
     let cmd = matches.subcommand_name().unwrap();
     let args = matches.subcommand_matches(cmd).unwrap();
     let config = match args.value_of("config") {
@@ -76,29 +75,33 @@ fn config_from_args(matches: &clap::ArgMatches) -> Result<Config> {
     Ok(config)
 }
 
-fn dispatch(config: Config, matches: &clap::ArgMatches) -> Result<()> {
+fn dispatch(config: Config, matches: &clap::ArgMatches) {
     match matches.subcommand_name() {
-        Some("start") => start(config),
-        Some("migrate") => migrate(config),
-        Some(cmd) => {
-            debug!("Dispatch failed, no match for command: {:?}", cmd);
-            Ok(())
+        Some("start") => {
+            match scheduler::server::run(config) {
+                Ok(_) => std::process::exit(0),
+                Err(e) => exit_with(e, 1),
+            }
         }
-        None => Ok(()),
+        Some("migrate") => {
+            match migrate(config) {
+                Ok(_) => std::process::exit(0),
+                Err(e) => exit_with(e, 1),
+            }
+        }
+        _ => unreachable!(),
     }
 }
 
-fn exit_with(err: Error, code: i32) {
+fn exit_with<T>(err: T, code: i32)
+where
+    T: error::Error,
+{
     println!("{}", err);
     process::exit(code)
 }
 
-// Starts the builder-scheduler server.
-fn start(config: Config) -> Result<()> {
-    scheduler::server::run(config)
-}
-
 // Migrates package information from on-disk package archives into the Postgres DB.
-pub fn migrate(config: Config) -> Result<()> {
+pub fn migrate(config: Config) -> SrvResult<()> {
     scheduler::migration::run(config)
 }

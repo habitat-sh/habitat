@@ -7,6 +7,7 @@ workspace = "../../"
 
 [dependencies]
 clippy = {version = "*", optional = true}
+habitat-builder-protocol = { path = "../builder-protocol" }
 log = "*"
 r2d2 = "*"
 time = "*"
@@ -25,10 +26,3 @@ path = "../core"
 
 [dependencies.habitat_net]
 path = "../net"
-
-[dependencies.habitat_builder_protocol]
-path = "../builder-protocol"
-
-[features]
-default = []
-functional = []

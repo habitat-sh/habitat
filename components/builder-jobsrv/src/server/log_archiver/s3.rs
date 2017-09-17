@@ -24,24 +24,25 @@
 //!
 //! Currently the archiver must be configured with both an access key
 //! ID and a secret access key.
-//!
-use VERSION;
-use aws_sdk_rust::aws::common::credentials::{DefaultCredentialsProvider, ParametersProvider};
-use aws_sdk_rust::aws::common::region::Region;
-use aws_sdk_rust::aws::s3::endpoint::{Endpoint, Signature};
-use aws_sdk_rust::aws::s3::object::{GetObjectRequest, PutObjectRequest};
-use aws_sdk_rust::aws::s3::s3client::S3Client;
-use config::ArchiveCfg;
-use error::{Result, Error};
-use extern_url;
-use hyper::client::Client as HyperClient;
+
 use std::fs::OpenOptions;
 use std::io::Read;
 use std::panic::{self, AssertUnwindSafe};
 use std::path::PathBuf;
 use std::str::FromStr;
 
+use aws_sdk_rust::aws::common::credentials::{DefaultCredentialsProvider, ParametersProvider};
+use aws_sdk_rust::aws::common::region::Region;
+use aws_sdk_rust::aws::s3::endpoint::{Endpoint, Signature};
+use aws_sdk_rust::aws::s3::object::{GetObjectRequest, PutObjectRequest};
+use aws_sdk_rust::aws::s3::s3client::S3Client;
+use extern_url;
+use hyper::client::Client as HyperClient;
+
 use super::LogArchiver;
+use VERSION;
+use config::ArchiveCfg;
+use error::{Result, Error};
 
 pub struct S3Archiver {
     client: S3Client<DefaultCredentialsProvider, HyperClient>,
@@ -49,13 +50,17 @@ pub struct S3Archiver {
 }
 
 impl S3Archiver {
-    pub fn new(config: ArchiveCfg) -> Result<S3Archiver> {
+    pub fn new(config: &ArchiveCfg) -> Result<S3Archiver> {
         let region = Region::from_str(config.region.as_str()).unwrap();
-        let param_provider: Option<ParametersProvider>;
-        param_provider = Some(
+        let param_provider = Some(
             ParametersProvider::with_parameters(
-                config.key.expect("Missing S3 key!"),
-                config.secret.expect("Missing S3 secret!").as_str(),
+                config.key.as_ref().cloned().expect("Missing S3 key!"),
+                config
+                    .secret
+                    .as_ref()
+                    .cloned()
+                    .expect("Missing S3 secret!")
+                    .as_str(),
                 None,
             ).unwrap(),
         );
@@ -70,7 +75,7 @@ impl S3Archiver {
         // Parameterize this if anyone ends up needing V2 signatures
         let signature_type = Signature::V4;
         let final_endpoint = match config.endpoint {
-            Some(url) => {
+            Some(ref url) => {
                 let url = extern_url::Url::parse(url.as_str()).expect("Invalid endpoint URL given");
                 Some(url)
             }
@@ -92,7 +97,9 @@ impl S3Archiver {
 
         Ok(S3Archiver {
             client: client,
-            bucket: config.bucket.expect("Missing Bucket Name!"),
+            bucket: config.bucket.as_ref().cloned().expect(
+                "Missing Bucket Name!",
+            ),
         })
     }
 
@@ -130,7 +137,7 @@ impl LogArchiver for S3Archiver {
                 // This is a "normal", non-panicking error, e.g.,
                 // they're configured with a non-existent bucket.
                 Err(Error::JobLogArchive(job_id, e))
-            } 
+            }
             Err(e) => {
                 let source = match e.downcast_ref::<String>() {
                     Some(string) => string.to_string(),
@@ -160,7 +167,7 @@ impl LogArchiver for S3Archiver {
                 // This is a "normal", non-panicking error, e.g.,
                 // they're configured with a non-existent bucket.
                 return Err(Error::JobLogRetrieval(job_id, e));
-            } 
+            }
             Err(e) => {
                 let source = match e.downcast_ref::<String>() {
                     Some(string) => string.to_string(),

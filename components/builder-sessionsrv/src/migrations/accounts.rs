@@ -14,9 +14,9 @@
 
 use db::migration::Migrator;
 
-use error::Result;
+use error::SrvResult;
 
-pub fn migrate(migrator: &mut Migrator) -> Result<()> {
+pub fn migrate(migrator: &mut Migrator) -> SrvResult<()> {
     migrator.migrate(
         "accountsrv",
         r#"CREATE SEQUENCE IF NOT EXISTS accounts_id_seq;"#,
@@ -106,6 +106,5 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                      END
                  $$ LANGUAGE plpgsql STABLE"#,
     )?;
-
     Ok(())
 }

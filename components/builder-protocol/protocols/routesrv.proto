@@ -1,15 +1,10 @@
 import "protocols/net.proto";
 package routesrv;
 
-message Connect {
-  optional Registration registration = 1;
-}
-
-message ConnectOk {}
 message Disconnect {}
+message Heartbeat {}
 
 message Registration {
   optional net.Protocol protocol = 1;
-  optional string endpoint = 2;
-  repeated uint32 shards = 3 [packed=true];
+  repeated uint32 shards = 2 [packed=true];
 }

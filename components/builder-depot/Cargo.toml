@@ -6,16 +6,13 @@ description = "Habitat-Builder package depot"
 build = "../bldr-build.rs"
 workspace = "../../"
 
-[[bin]]
-name = "bldr-depot"
-path = "src/main.rs"
-doc = false
-
 [dependencies]
-clippy = {version = "*", optional = true}
+clippy = { version = "*", optional = true }
 base64 = "*"
 bodyparser = "*"
 env_logger = "*"
+habitat-builder-protocol = { path = "../builder-protocol" }
+builder-http-gateway = { path = "../builder-http-gateway" }
 hyper = "*"
 iron = "*"
 iron-test = "*"
@@ -38,14 +35,11 @@ toml = { version = "*", features = ["serde"], default-features = false }
 unicase = "*"
 url = "*"
 walkdir = "*"
-uuid = { version = "0.4", features = ["v4"] }
+uuid = { version = "*", features = ["v4"] }
 
 [dependencies.clap]
 version = "*"
 features = [ "suggestions", "color", "unstable" ]
-
-[dependencies.habitat_builder_protocol]
-path = "../builder-protocol"
 
 [dependencies.builder_core]
 path = "../builder-core"
@@ -59,11 +53,3 @@ path = "../net"
 [dependencies.zmq]
 git = "https://github.com/erickt/rust-zmq"
 branch = "release/v0.8"
-
-[dev-dependencies]
-url = "*"
-uuid = "*"
-
-[features]
-default = []
-functional = []

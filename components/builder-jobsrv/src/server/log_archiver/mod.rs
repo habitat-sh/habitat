@@ -35,7 +35,7 @@ pub enum ArchiveBackend {
     S3,
 }
 
-pub trait LogArchiver {
+pub trait LogArchiver: Send {
     /// Given a `job_id` and the path to the log output for that job,
     /// places the log in an archive for long-term storage.
     fn archive(&self, job_id: u64, file_path: &PathBuf) -> Result<()>;
@@ -45,15 +45,11 @@ pub trait LogArchiver {
     fn retrieve(&self, job_id: u64) -> Result<Vec<String>>;
 }
 
-/// Create appropriate LogArchiver variant based on configuration
-/// values.
-// TODO: Once TryFrom is stable we might try implementing that instead
-pub fn from_config(config: ArchiveCfg) -> Result<Box<LogArchiver + 'static>> {
-    let backend = config.backend.clone().expect(
-        "Did not specify an archive backend!",
-    );
-    match backend {
-        ArchiveBackend::Local => Ok(Box::new(local::LocalArchiver::new(config)?)),
-        ArchiveBackend::S3 => Ok(Box::new(s3::S3Archiver::new(config)?)),
+/// Create appropriate LogArchiver variant based on configuration values.
+pub fn from_config(config: &ArchiveCfg) -> Result<Box<LogArchiver>> {
+    match config.backend {
+        Some(ArchiveBackend::Local) => Ok(Box::new(local::LocalArchiver::new(config)?)),
+        Some(ArchiveBackend::S3) => Ok(Box::new(s3::S3Archiver::new(config)?)),
+        None => panic!("Did not specify an archive backend!"),
     }
 }

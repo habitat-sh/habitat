@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Copyright (c) 2016 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,6 +14,11 @@
 
 use std::env;
 
+use hab_net::{self, ErrCode, NetError};
+use hab_net::conn::RouteClient;
+use hab_net::error::LibError;
+use hab_net::oauth::github::GitHubClient;
+use hab_net::privilege::FeatureFlags;
 use hyper;
 use iron::Handler;
 use iron::headers::{self, Authorization, Bearer};
@@ -22,41 +27,48 @@ use iron::middleware::{AfterMiddleware, AroundMiddleware, BeforeMiddleware};
 use iron::prelude::*;
 use iron::status::Status;
 use iron::typemap::Key;
-use unicase::UniCase;
 use protocol::sessionsrv::*;
-use protocol::net::{self, ErrCode};
 use serde_json;
+use unicase::UniCase;
 
 use super::net_err_to_http;
-use super::super::error::Error;
-use super::super::routing::{Broker, BrokerConn};
-use super::super::oauth::github::GitHubClient;
-use config;
-use privilege::FeatureFlags;
+use conn::RouteBroker;
 
 /// Wrapper around the standard `iron::Chain` to assist in adding middleware on a per-handler basis
 pub struct XHandler(Chain);
 
 impl XHandler {
     /// Create a new XHandler
-    pub fn new<H: Handler>(handler: H) -> Self {
+    pub fn new<H>(handler: H) -> Self
+    where
+        H: Handler,
+    {
         XHandler(Chain::new(handler))
     }
 
     /// Add one or more before-middleware to the handler's chain
-    pub fn before<M: BeforeMiddleware>(mut self, middleware: M) -> Self {
+    pub fn before<M>(mut self, middleware: M) -> Self
+    where
+        M: BeforeMiddleware,
+    {
         self.0.link_before(middleware);
         self
     }
 
     /// Add one or more after-middleware to the handler's chain
-    pub fn after<M: AfterMiddleware>(mut self, middleware: M) -> Self {
+    pub fn after<M>(mut self, middleware: M) -> Self
+    where
+        M: AfterMiddleware,
+    {
         self.0.link_after(middleware);
         self
     }
 
     /// Ad one or more around-middleware to the handler's chain
-    pub fn around<M: AroundMiddleware>(mut self, middleware: M) -> Self {
+    pub fn around<M>(mut self, middleware: M) -> Self
+    where
+        M: AroundMiddleware,
+    {
         self.0.link_around(middleware);
         self
     }
@@ -74,16 +86,15 @@ impl Key for GitHubCli {
     type Value = GitHubClient;
 }
 
-pub struct RouteBroker;
-
-impl Key for RouteBroker {
-    type Value = BrokerConn;
+pub struct XRouteClient;
+impl Key for XRouteClient {
+    type Value = RouteClient;
 }
 
-impl BeforeMiddleware for RouteBroker {
+impl BeforeMiddleware for XRouteClient {
     fn before(&self, req: &mut Request) -> IronResult<()> {
-        let conn = Broker::connect().unwrap();
-        req.extensions.insert::<RouteBroker>(conn);
+        let conn = RouteBroker::connect().unwrap();
+        req.extensions.insert::<XRouteClient>(conn);
         Ok(())
     }
 }
@@ -97,7 +108,7 @@ pub struct Authenticated {
 impl Authenticated {
     pub fn new<T>(config: &T) -> Self
     where
-        T: config::GitHubOAuth,
+        T: hab_net::config::GitHubOAuth,
     {
         let github = GitHubClient::new(config);
         Authenticated {
@@ -111,7 +122,7 @@ impl Authenticated {
         self
     }
 
-    fn authenticate(&self, conn: &mut BrokerConn, token: &str) -> IronResult<Session> {
+    fn authenticate(&self, conn: &mut RouteClient, token: &str) -> IronResult<Session> {
         let mut request = SessionGet::new();
         request.set_token(token.to_string());
         match conn.route::<SessionGet, Session>(&request) {
@@ -121,12 +132,12 @@ impl Authenticated {
                     let session = session_create(&self.github, token)?;
                     let flags = FeatureFlags::from_bits(session.get_flags()).unwrap();
                     if !flags.contains(self.features) {
-                        let err = net::err(ErrCode::ACCESS_DENIED, "net:auth:0");
+                        let err = NetError::new(ErrCode::ACCESS_DENIED, "net:auth:0");
                         return Err(IronError::new(err, Status::Forbidden));
                     }
                     Ok(session)
                 } else {
-                    let status = net_err_to_http(err.get_code());
+                    let status = net_err_to_http(err.code());
                     let body = itry!(serde_json::to_string(&err));
                     Err(IronError::new(err, (body, status)))
                 }
@@ -144,16 +155,16 @@ impl BeforeMiddleware for Authenticated {
         let session = {
             match req.headers.get::<Authorization<Bearer>>() {
                 Some(&Authorization(Bearer { ref token })) => {
-                    match req.extensions.get_mut::<RouteBroker>() {
-                        Some(broker) => self.authenticate(broker, token)?,
+                    match req.extensions.get_mut::<XRouteClient>() {
+                        Some(conn) => self.authenticate(conn, token)?,
                         None => {
-                            let mut broker = Broker::connect().unwrap();
-                            self.authenticate(&mut broker, token)?
+                            let mut conn = RouteBroker::connect().unwrap();
+                            self.authenticate(&mut conn, token)?
                         }
                     }
                 }
                 _ => {
-                    let err = net::err(ErrCode::ACCESS_DENIED, "net:auth:1");
+                    let err = NetError::new(ErrCode::ACCESS_DENIED, "net:auth:1");
                     return Err(IronError::new(err, Status::Unauthorized));
                 }
             }
@@ -207,7 +218,7 @@ pub fn session_create(github: &GitHubClient, token: &str) -> IronResult<Session>
                 )
             }
         };
-        let mut conn = Broker::connect().unwrap();
+        let mut conn = RouteBroker::connect().unwrap();
         match conn.route::<SessionCreate, Session>(&request) {
             Ok(session) => return Ok(session),
             Err(err) => {
@@ -230,14 +241,15 @@ pub fn session_create(github: &GitHubClient, token: &str) -> IronResult<Session>
                         .email
                         .clone()
                 }
-                Err(_) => {
-                    let err = net::err(ErrCode::ACCESS_DENIED, "net:session-create:0");
+                Err(e) => {
+                    let err = NetError::new(ErrCode::ACCESS_DENIED, "net:session-create:0");
+                    debug!("{}, {}", err, e);
                     let status = net_err_to_http(err.get_code());
                     let body = itry!(serde_json::to_string(&err));
                     return Err(IronError::new(err, (body, status)));
                 }
             };
-            let mut conn = Broker::connect().unwrap();
+            let mut conn = RouteBroker::connect().unwrap();
             let mut request = SessionCreate::new();
             request.set_token(token.to_string());
             request.set_extern_id(user.id);
@@ -253,29 +265,29 @@ pub fn session_create(github: &GitHubClient, token: &str) -> IronResult<Session>
                 }
             }
         }
-        Err(Error::GitHubAPI(hyper::status::StatusCode::Unauthorized, _)) => {
-            let err = net::err(ErrCode::ACCESS_DENIED, "net:session-create:1");
+        Err(LibError::GitHubAPI(hyper::status::StatusCode::Unauthorized, _)) => {
+            let err = NetError::new(ErrCode::ACCESS_DENIED, "net:session-create:1");
             let status = net_err_to_http(err.get_code());
             let body = itry!(serde_json::to_string(&err));
             Err(IronError::new(err, (body, status)))
         }
-        Err(e @ Error::GitHubAPI(_, _)) => {
+        Err(e @ LibError::GitHubAPI(_, _)) => {
             warn!("Unexpected response from GitHub, {:?}", e);
-            let err = net::err(ErrCode::BAD_REMOTE_REPLY, "net:session-create:2");
+            let err = NetError::new(ErrCode::BAD_REMOTE_REPLY, "net:session-create:2");
             let status = net_err_to_http(err.get_code());
             let body = itry!(serde_json::to_string(&err));
             Err(IronError::new(err, (body, status)))
         }
-        Err(e @ Error::Json(_)) => {
+        Err(e @ LibError::Json(_)) => {
             warn!("Bad response body from GitHub, {:?}", e);
-            let err = net::err(ErrCode::BAD_REMOTE_REPLY, "net:session-create:3");
+            let err = NetError::new(ErrCode::BAD_REMOTE_REPLY, "net:session-create:3");
             let status = net_err_to_http(err.get_code());
             let body = itry!(serde_json::to_string(&err));
             Err(IronError::new(err, (body, status)))
         }
         Err(e) => {
             error!("Unexpected error, err={:?}", e);
-            let err = net::err(ErrCode::BUG, "net:session-create:4");
+            let err = NetError::new(ErrCode::BUG, "net:session-create:4");
             let status = net_err_to_http(err.get_code());
             let body = itry!(serde_json::to_string(&err));
             Err(IronError::new(err, (body, status)))

@@ -11,9 +11,11 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 #![cfg_attr(feature="clippy", feature(plugin))]
 #![cfg_attr(feature="clippy", plugin(clippy))]
 
+extern crate fnv;
 extern crate habitat_core as hab_core;
 #[macro_use]
 extern crate lazy_static;
@@ -26,6 +28,7 @@ extern crate time;
 
 pub mod error;
 pub mod jobsrv;
+pub mod message;
 pub mod net;
 pub mod routesrv;
 pub mod search;
@@ -33,8 +36,7 @@ pub mod sessionsrv;
 pub mod sharding;
 pub mod originsrv;
 pub mod scheduler;
-mod message;
 
 pub use self::error::{ProtocolError, ProtocolResult};
-pub use self::message::{Message, Persistable, Routable, RouteKey};
+pub use self::message::{Message, Protocol, Persistable, Routable, RouteKey};
 pub use self::sharding::{ShardId, SHARD_COUNT, InstaId};

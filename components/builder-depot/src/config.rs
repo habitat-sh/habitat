@@ -21,7 +21,8 @@ use std::path::PathBuf;
 use hab_core::config::ConfigFile;
 use hab_core::os::system::{Architecture, Platform};
 use hab_core::package::PackageTarget;
-use hab_net::config::{GitHubCfg, GitHubOAuth, RouterAddr, RouterCfg};
+use hab_net::config::{GitHubCfg, GitHubOAuth};
+use http_gateway::config::prelude::*;
 
 use error::Error;
 
@@ -72,6 +73,20 @@ impl Default for Config {
     }
 }
 
+impl GatewayCfg for Config {
+    fn listen_addr(&self) -> &IpAddr {
+        &self.http.listen
+    }
+
+    fn listen_port(&self) -> u16 {
+        self.http.port
+    }
+
+    fn route_addrs(&self) -> &[RouterAddr] {
+        self.routers.as_slice()
+    }
+}
+
 impl GitHubOAuth for Config {
     fn github_url(&self) -> &str {
         &self.github.url
@@ -87,12 +102,6 @@ impl GitHubOAuth for Config {
 
     fn github_client_secret(&self) -> &str {
         &self.github.client_secret
-    }
-}
-
-impl RouterCfg for Config {
-    fn route_addrs(&self) -> &Vec<RouterAddr> {
-        &self.routers
     }
 }
 

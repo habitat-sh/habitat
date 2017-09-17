@@ -11,6 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 #![cfg_attr(feature="clippy", feature(plugin))]
 #![cfg_attr(feature="clippy", plugin(clippy))]
 
@@ -22,6 +23,7 @@ extern crate habitat_core as hab_core;
 #[macro_use]
 extern crate log;
 
+use std::fmt;
 use std::process;
 use std::str::FromStr;
 
@@ -39,7 +41,7 @@ fn main() {
         Ok(result) => result,
         Err(e) => return exit_with(e, 1),
     };
-    match start(config) {
+    match admin::server::run(config) {
         Ok(_) => std::process::exit(0),
         Err(e) => exit_with(e, 1),
     }
@@ -75,16 +77,10 @@ fn config_from_args(matches: &clap::ArgMatches) -> Result<Config> {
     Ok(config)
 }
 
-fn exit_with(err: Error, code: i32) {
+fn exit_with<T>(err: T, code: i32)
+where
+    T: fmt::Display,
+{
     println!("{}", err);
     process::exit(code)
-}
-
-/// Starts the builder-admin server.
-///
-/// # Failures
-///
-/// * Fails if the admin server fails to start - cannot bind to the port, etc.
-fn start(config: Config) -> Result<()> {
-    admin::server::run(config)
 }

@@ -19,20 +19,12 @@ use std::string;
 
 use base64;
 
-use protocol::net;
-use data_structures;
-
 #[derive(Debug)]
 pub enum Error {
     Base64Error(base64::DecodeError),
     DecryptError(String),
     EncryptError(String),
     FromUtf8Error(string::FromUtf8Error),
-    GroupNotComplete,
-    NetError(net::NetError),
-    OriginAccessDenied,
-    OriginNotFound(String),
-    PartialJobGroupPromote(data_structures::PartialJobGroupPromote),
 }
 
 pub type Result<T> = result::Result<T, Error>;
@@ -44,13 +36,6 @@ impl fmt::Display for Error {
             Error::DecryptError(ref e) => format!("{}", e),
             Error::EncryptError(ref e) => format!("{}", e),
             Error::FromUtf8Error(ref e) => format!("{}", e),
-            Error::GroupNotComplete => format!("This group is not complete"),
-            Error::NetError(ref e) => format!("{}", e),
-            Error::OriginAccessDenied => format!("You don't have access to this origin"),
-            Error::OriginNotFound(ref e) => format!("Origin {} was not found", e),
-            Error::PartialJobGroupPromote(_) => {
-                format!("Some packages failed to promote to the specified channel")
-            }
         };
         write!(f, "{}", msg)
     }
@@ -63,11 +48,6 @@ impl error::Error for Error {
             Error::DecryptError(_) => "Error decrypting integration",
             Error::EncryptError(_) => "Error encrypting integration",
             Error::FromUtf8Error(ref e) => e.description(),
-            Error::GroupNotComplete => "Group not complete",
-            Error::NetError(ref e) => e.description(),
-            Error::OriginAccessDenied => "Origin access denied",
-            Error::OriginNotFound(_) => "Origin not found",
-            Error::PartialJobGroupPromote(_) => "Some packages failed to promote",
         }
     }
 }

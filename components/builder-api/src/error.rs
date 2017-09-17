@@ -32,7 +32,7 @@ pub enum Error {
     HyperError(hyper::error::Error),
     HTTP(hyper::status::StatusCode),
     IO(io::Error),
-    NetError(hab_net::Error),
+    NetError(hab_net::NetError),
     Protobuf(protobuf::ProtobufError),
     Zmq(zmq::Error),
 }
@@ -78,8 +78,8 @@ impl From<hab_core::Error> for Error {
     }
 }
 
-impl From<hab_net::Error> for Error {
-    fn from(err: hab_net::Error) -> Self {
+impl From<hab_net::NetError> for Error {
+    fn from(err: hab_net::NetError) -> Self {
         Error::NetError(err)
     }
 }

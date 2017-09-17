@@ -17,8 +17,6 @@ use std::str;
 
 use butterfly::rumor::service::SysInfo;
 use hcore;
-#[cfg(any(target_os = "linux", target_os = "macos"))]
-use libc;
 
 use VERSION;
 use config::GossipListenAddr;
@@ -98,38 +96,9 @@ pub fn lookup_ip() -> Result<IpAddr> {
     }
 }
 
-#[cfg(any(target_os = "linux", target_os = "macos"))]
 pub fn lookup_hostname() -> Result<String> {
-    use std::ffi::CStr;
-
-    let len = 255;
-    let mut buf = Vec::<u8>::with_capacity(len);
-    let ptr = buf.as_mut_slice().as_mut_ptr();
-    let err = unsafe { gethostname(ptr as *mut libc::c_char, len as libc::size_t) };
-    match err {
-        0 => {
-            let slice = unsafe { CStr::from_ptr(ptr as *const libc::c_char) };
-            let s = slice.to_str()?;
-            Ok(s.to_string())
-        }
-        n => {
-            error!("gethostname failure: {}", n);
-            Err(sup_error!(Error::IPFailed))
-        }
-    }
-}
-
-#[cfg(target_os = "windows")]
-pub fn lookup_hostname() -> Result<String> {
-    use std::env;
-
-    match env::var("COMPUTERNAME") {
-        Ok(computername) => Ok(computername),
+    match hcore::os::net::hostname() {
+        Ok(hostname) => Ok(hostname),
         Err(_) => Err(sup_error!(Error::IPFailed)),
     }
-}
-
-#[cfg(any(target_os = "linux", target_os = "macos"))]
-extern "C" {
-    pub fn gethostname(name: *mut libc::c_char, size: libc::size_t) -> libc::c_int;
 }

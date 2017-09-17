@@ -19,7 +19,7 @@ use bldr_core::file_walker::FileWalker;
 
 use config::Config;
 use data_store::DataStore;
-use error::Result;
+use error::SrvResult;
 
 struct DataMigrator {
     datastore: DataStore,
@@ -34,7 +34,7 @@ impl DataMigrator {
         }
     }
 
-    fn run(self) -> Result<()> {
+    fn run(self) -> SrvResult<()> {
         println!(
             "DataMigrator running, packages path is: {:?}",
             self.packages_path
@@ -52,7 +52,7 @@ impl DataMigrator {
     }
 }
 
-pub fn run(config: Config) -> Result<()> {
+pub fn run(config: Config) -> SrvResult<()> {
     let datastore = {
         DataStore::new(&config)?
     };

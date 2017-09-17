@@ -38,7 +38,7 @@ impl DataStore {
     }
 
     /// Create a new DataStore from a pre-existing pool; useful for testing the database.
-    pub fn from_pool(pool: Pool) -> Result<DataStore> {
+    pub fn from_pool(pool: Pool, _: Arc<String>) -> Result<DataStore> {
         Ok(DataStore { pool: pool })
     }
 

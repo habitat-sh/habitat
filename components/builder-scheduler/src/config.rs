@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Copyright (c) 2016 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,13 +15,13 @@
 //! Configuration for a Habitat Scheduler service
 
 use std::path::PathBuf;
+
 use db::config::DataStoreCfg;
 use hab_core::url;
 use hab_core::config::ConfigFile;
-use hab_net::config::{DispatcherCfg, RouterAddr, RouterCfg, Shards};
-use protocol::sharding::{ShardId, SHARD_COUNT};
+use hab_net::app::config::*;
 
-use error::Error;
+use error::SrvError;
 
 #[derive(Debug, Deserialize)]
 #[serde(default)]
@@ -59,24 +59,20 @@ impl Default for Config {
 }
 
 impl ConfigFile for Config {
-    type Error = Error;
+    type Error = SrvError;
 }
 
-impl DispatcherCfg for Config {
+impl AppCfg for Config {
+    fn route_addrs(&self) -> &[RouterAddr] {
+        self.routers.as_slice()
+    }
+
+    fn shards(&self) -> Option<&[ShardId]> {
+        Some(self.shards.as_slice())
+    }
+
     fn worker_count(&self) -> usize {
         self.worker_threads
-    }
-}
-
-impl RouterCfg for Config {
-    fn route_addrs(&self) -> &Vec<RouterAddr> {
-        &self.routers
-    }
-}
-
-impl Shards for Config {
-    fn shards(&self) -> &Vec<u32> {
-        &self.shards
     }
 }
 

@@ -19,6 +19,7 @@ use std::thread;
 use std::time::Duration;
 use std::fmt;
 
+use hab_net::conn::RouteClient;
 use rand::{self, Rng};
 use time::SteadyTime;
 use time::Duration as SteadyDuration;
@@ -28,7 +29,7 @@ use pool::Pool;
 use error::Result;
 
 pub type DispatchKey = String;
-pub type EventFunction = fn(Pool) -> Result<EventOutcome>;
+pub type EventFunction = fn(Pool, RouteClient) -> Result<EventOutcome>;
 
 pub enum EventOutcome {
     Finished,
@@ -41,6 +42,7 @@ const FAILURE_COUNT_UPPER_BOUND: usize = 10;
 #[derive(Clone)]
 pub struct AsyncServer {
     pool: Pool,
+    router_pipe: Arc<String>,
     stop: Arc<AtomicBool>,
     pub dispatch: Arc<RwLock<HashMap<DispatchKey, EventFunction>>>,
     pub failure_count: Arc<RwLock<HashMap<DispatchKey, usize>>>,
@@ -55,9 +57,10 @@ impl fmt::Debug for AsyncServer {
 }
 
 impl AsyncServer {
-    pub fn new(pool: Pool) -> AsyncServer {
+    pub fn new(pool: Pool, router_pipe: Arc<String>) -> AsyncServer {
         AsyncServer {
             pool: pool,
+            router_pipe: router_pipe,
             stop: Arc::new(AtomicBool::new(false)),
             dispatch: Arc::new(RwLock::new(HashMap::new())),
             failure_count: Arc::new(RwLock::new(HashMap::new())),
@@ -119,7 +122,11 @@ impl AsyncServer {
 
     pub fn run_event(&self, key: DispatchKey, event: EventFunction) {
         let remove_key = key.clone();
-        match event(self.pool.clone()) {
+        let conn = RouteClient::new().expect("failed to create RouteClient");
+        conn.connect(&*self.router_pipe).expect(
+            "failed to connect RouteClient to inproc pipe",
+        );
+        match event(self.pool.clone(), conn) {
             Ok(EventOutcome::Finished) => {
                 debug!("Event finished {}", key);
                 let mut r = self.retry.write().expect("Async retry lock poisoned");

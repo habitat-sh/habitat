@@ -13,14 +13,14 @@
 // limitations under the License.
 
 //! Configuration for a Habitat JobSrv service
+
 use std::env;
 use std::net::{IpAddr, Ipv4Addr};
 use std::path::PathBuf;
 
-use db::config::DataStoreCfg;
-use hab_core::config::ConfigFile;
-use hab_net::config::{DispatcherCfg, RouterAddr, RouterCfg, Shards};
+use hab_net::app::config::*;
 use protocol::sharding::{ShardId, SHARD_COUNT};
+use db::config::DataStoreCfg;
 use server::log_archiver::ArchiveBackend;
 
 use error::Error;
@@ -70,21 +70,17 @@ impl ConfigFile for Config {
     type Error = Error;
 }
 
-impl DispatcherCfg for Config {
+impl AppCfg for Config {
+    fn route_addrs(&self) -> &[RouterAddr] {
+        self.routers.as_slice()
+    }
+
+    fn shards(&self) -> Option<&[ShardId]> {
+        Some(self.shards.as_slice())
+    }
+
     fn worker_count(&self) -> usize {
         self.worker_threads
-    }
-}
-
-impl RouterCfg for Config {
-    fn route_addrs(&self) -> &Vec<RouterAddr> {
-        &self.routers
-    }
-}
-
-impl Shards for Config {
-    fn shards(&self) -> &Vec<u32> {
-        &self.shards
     }
 }
 

@@ -16,11 +16,11 @@ use hab_core::package::archive::PackageArchive;
 use hab_core::channel::{STABLE_CHANNEL, UNSTABLE_CHANNEL};
 use bldr_core::logger::Logger;
 
+use super::{RETRIES, RETRY_WAIT};
 use {PRODUCT, VERSION};
 use depot_client;
 use hyper::status::StatusCode;
 use retry::retry;
-use super::{RETRIES, RETRY_WAIT};
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
 pub struct Publisher {
@@ -94,7 +94,8 @@ impl Publisher {
                 ) {
                     Ok(_) => (),
                     Err(_) => {
-                        let msg = format!("Publisher failed creating channel after {} retries", RETRIES);
+                        let msg = format!("Publisher failed creating channel after {} retries",
+                            RETRIES);
                         error!("{}", msg);
                         logger.log(&msg);
                         return false;
@@ -114,7 +115,8 @@ impl Publisher {
             ) {
                 Ok(_) => (),
                 Err(_) => {
-                    let msg = format!("Publisher failed promoting package after {} retries", RETRIES);
+                    let msg = format!("Publisher failed promoting package after {} retries",
+                        RETRIES);
                     error!("{}", msg);
                     logger.log(&msg);
                     return false;

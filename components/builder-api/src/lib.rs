@@ -11,12 +11,14 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 #![cfg_attr(feature="clippy", feature(plugin))]
 #![cfg_attr(feature="clippy", plugin(clippy))]
 
 extern crate base64;
 extern crate bodyparser;
-extern crate builder_core as bld_core;
+extern crate builder_core as bldr_core;
+extern crate builder_http_gateway as http_gateway;
 extern crate habitat_builder_protocol as protocol;
 #[macro_use]
 extern crate habitat_core as hab_core;
@@ -38,12 +40,12 @@ extern crate serde_derive;
 extern crate serde_json;
 extern crate staticfile;
 extern crate toml;
+extern crate typemap;
 extern crate unicase;
 extern crate zmq;
 
 pub mod config;
 pub mod error;
-pub mod http;
 pub mod server;
 
 pub use self::config::Config;

@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Copyright (c) 2016 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,9 +14,8 @@
 
 use std::error;
 use std::fmt;
-use std::io;
-use std::result;
 
+use db;
 use hab_core;
 use hab_net;
 use protobuf;
@@ -24,19 +23,20 @@ use protocol;
 use postgres;
 use r2d2;
 use zmq;
-use db;
+
+pub type SrvResult<T> = Result<T, SrvError>;
 
 #[derive(Debug)]
-pub enum Error {
+pub enum SrvError {
     BadPort(String),
+    ConnErr(hab_net::conn::ConnErr),
     Db(db::error::Error),
     DbPoolTimeout(r2d2::GetTimeout),
     DbTransactionStart(postgres::error::Error),
     DbTransactionCommit(postgres::error::Error),
     DbListen(postgres::error::Error),
     HabitatCore(hab_core::Error),
-    IO(io::Error),
-    NetError(hab_net::Error),
+    NetError(hab_net::NetError),
     OriginCreate(postgres::error::Error),
     OriginChannelCreate(postgres::error::Error),
     OriginChannelGet(postgres::error::Error),
@@ -82,307 +82,312 @@ pub enum Error {
     OriginUpdate(postgres::error::Error),
     OriginAccountList(postgres::error::Error),
     OriginAccountInOrigin(postgres::error::Error),
+    Protocol(protocol::ProtocolError),
     SyncInvitations(postgres::error::Error),
     SyncInvitationsUpdate(postgres::error::Error),
     Protobuf(protobuf::ProtobufError),
     UnknownOriginPackageVisibility(protocol::originsrv::Error),
-    Zmq(zmq::Error),
 }
 
-pub type Result<T> = result::Result<T, Error>;
-
-impl fmt::Display for Error {
+impl fmt::Display for SrvError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
-            Error::BadPort(ref e) => format!("{} is an invalid port. Valid range 1-65535.", e),
-            Error::Db(ref e) => format!("{}", e),
-            Error::DbTransactionStart(ref e) => {
+            SrvError::BadPort(ref e) => format!("{} is an invalid port. Valid range 1-65535.", e),
+            SrvError::ConnErr(ref e) => format!("{}", e),
+            SrvError::Db(ref e) => format!("{}", e),
+            SrvError::DbTransactionStart(ref e) => {
                 format!("Failed to start database transaction, {}", e)
             }
-            Error::DbTransactionCommit(ref e) => {
+            SrvError::DbTransactionCommit(ref e) => {
                 format!("Failed to commit database transaction, {}", e)
             }
-            Error::DbPoolTimeout(ref e) => {
+            SrvError::DbPoolTimeout(ref e) => {
                 format!("Timeout getting connection from the database pool, {}", e)
             }
-            Error::DbListen(ref e) => {
+            SrvError::DbListen(ref e) => {
                 format!("Error setting up async database event listener, {}", e)
             }
-            Error::HabitatCore(ref e) => format!("{}", e),
-            Error::IO(ref e) => format!("{}", e),
-            Error::NetError(ref e) => format!("{}", e),
-            Error::OriginCreate(ref e) => format!("Error creating origin in database, {}", e),
-            Error::OriginChannelCreate(ref e) => {
+            SrvError::HabitatCore(ref e) => format!("{}", e),
+            SrvError::NetError(ref e) => format!("{}", e),
+            SrvError::OriginCreate(ref e) => format!("Error creating origin in database, {}", e),
+            SrvError::OriginChannelCreate(ref e) => {
                 format!("Error creating channel in database, {}", e)
             }
-            Error::OriginChannelGet(ref e) => format!("Error getting channel from database, {}", e),
-            Error::OriginChannelList(ref e) => {
+            SrvError::OriginChannelGet(ref e) => {
+                format!("Error getting channel from database, {}", e)
+            }
+            SrvError::OriginChannelList(ref e) => {
                 format!("Error listing channels for an origin from database, {}", e)
             }
-            Error::OriginChannelDelete(ref e) => {
+            SrvError::OriginChannelDelete(ref e) => {
                 format!("Error deleting channel in database, {}", e)
             }
-            Error::OriginChannelPackageGet(ref e) => {
+            SrvError::OriginChannelPackageGet(ref e) => {
                 format!("Error getting package for a channel from database, {}", e)
             }
-            Error::OriginChannelPackageLatestGet(ref e) => {
+            SrvError::OriginChannelPackageLatestGet(ref e) => {
                 format!(
                     "Error getting the latest package for a channel from database, {}",
                     e
                 )
             }
-            Error::OriginChannelPackageList(ref e) => {
+            SrvError::OriginChannelPackageList(ref e) => {
                 format!("Error listing packages for a channel from database, {}", e)
             }
-            Error::OriginCheckAccess(ref e) => {
+            SrvError::OriginCheckAccess(ref e) => {
                 format!("Error checking access to origin in database, {}", e)
             }
-            Error::OriginGet(ref e) => format!("Error getting origin from database, {}", e),
-            Error::OriginMemberList(ref e) => {
+            SrvError::OriginGet(ref e) => format!("Error getting origin from database, {}", e),
+            SrvError::OriginMemberList(ref e) => {
                 format!("Error getting origin members from database, {}", e)
             }
-            Error::OriginIntegrationCreate(ref e) => {
+            SrvError::OriginIntegrationCreate(ref e) => {
                 format!("Error creating integration in database, {}", e)
             }
-            Error::OriginIntegrationGetNames(ref e) => {
+            SrvError::OriginIntegrationGetNames(ref e) => {
                 format!("Error getting integration names from database, {}", e)
             }
-            Error::OriginIntegrationDelete(ref e) => {
+            SrvError::OriginIntegrationDelete(ref e) => {
                 format!("Error deleting integration from database, {}", e)
             }
-            Error::OriginIntegrationRequest(ref e) => {
+            SrvError::OriginIntegrationRequest(ref e) => {
                 format!("Error retrieving integration request from database, {}", e)
             }
-            Error::OriginInvitationAccept(ref e) => {
+            SrvError::OriginInvitationAccept(ref e) => {
                 format!("Error accepting origin invitation in database, {}", e)
             }
-            Error::OriginInvitationCreate(ref e) => {
+            SrvError::OriginInvitationCreate(ref e) => {
                 format!("Error creating origin invitation in database, {}", e)
             }
-            Error::OriginInvitationListForOrigin(ref e) => {
+            SrvError::OriginInvitationListForOrigin(ref e) => {
                 format!(
                     "Error listing origin invitations for an origin in database, {}",
                     e
                 )
             }
-            Error::OriginInvitationListForAccount(ref e) => {
+            SrvError::OriginInvitationListForAccount(ref e) => {
                 format!(
                     "Error listing origin invitations for an account in database, {}",
                     e
                 )
             }
-            Error::OriginInvitationValidate(ref e) => {
+            SrvError::OriginInvitationValidate(ref e) => {
                 format!(
                     "Error validating origin invitation for an account in database, {}",
                     e
                 )
             }
-            Error::OriginPackageCreate(ref e) => {
+            SrvError::OriginPackageCreate(ref e) => {
                 format!("Error creating package in database, {}", e)
             }
-            Error::OriginPackageGet(ref e) => format!("Error getting package in database, {}", e),
-            Error::OriginPackageLatestGet(ref e) => {
+            SrvError::OriginPackageGet(ref e) => {
+                format!("Error getting package in database, {}", e)
+            }
+            SrvError::OriginPackageLatestGet(ref e) => {
                 format!("Error getting latest package in database, {}", e)
             }
-            Error::OriginPackageChannelList(ref e) => {
+            SrvError::OriginPackageChannelList(ref e) => {
                 format!("Error getting list of channels for this package, {}", e)
             }
-            Error::OriginPackagePlatformList(ref e) => {
+            SrvError::OriginPackagePlatformList(ref e) => {
                 format!("Error getting list of platforms for this package, {}", e)
             }
-            Error::OriginPackageList(ref e) => {
+            SrvError::OriginPackageList(ref e) => {
                 format!("Error getting list of packages for this origin, {}", e)
             }
-            Error::OriginPackageVersionList(ref e) => {
+            SrvError::OriginPackageVersionList(ref e) => {
                 format!(
                     "Error getting list of package versions for this origin, {}",
                     e
                 )
             }
-            Error::OriginPackageDemote(ref e) => {
+            SrvError::OriginPackageDemote(ref e) => {
                 format!("Error demoting package from channel, {}", e)
             }
-            Error::OriginPackageGroupPromote(ref e) => {
+            SrvError::OriginPackageGroupPromote(ref e) => {
                 format!("Error promoting package group to channel, {}", e)
             }
-            Error::OriginPackagePromote(ref e) => {
+            SrvError::OriginPackagePromote(ref e) => {
                 format!("Error promoting package to channel, {}", e)
             }
-            Error::OriginPackageSearch(ref e) => {
+            SrvError::OriginPackageSearch(ref e) => {
                 format!("Error searching list of packages for this origin, {}", e)
             }
-            Error::OriginPackageUniqueList(ref e) => {
+            SrvError::OriginPackageUniqueList(ref e) => {
                 format!(
                     "Error getting unique list of packages for this origin, {}",
                     e
                 )
             }
-            Error::OriginProjectCreate(ref e) => {
+            SrvError::OriginProjectCreate(ref e) => {
                 format!("Error creating project in database, {}", e)
             }
-            Error::OriginProjectDelete(ref e) => {
+            SrvError::OriginProjectDelete(ref e) => {
                 format!("Error deleting project in database, {}", e)
             }
-            Error::OriginProjectGet(ref e) => format!("Error getting project from database, {}", e),
-            Error::OriginProjectUpdate(ref e) => {
+            SrvError::OriginProjectGet(ref e) => {
+                format!("Error getting project from database, {}", e)
+            }
+            SrvError::OriginProjectUpdate(ref e) => {
                 format!("Error updating project in database, {}", e)
             }
-            Error::OriginSecretKeyCreate(ref e) => {
+            SrvError::OriginSecretKeyCreate(ref e) => {
                 format!("Error creating origin secret key in database, {}", e)
             }
-            Error::OriginSecretKeyGet(ref e) => {
+            SrvError::OriginSecretKeyGet(ref e) => {
                 format!("Error getting origin secret key from database, {}", e)
             }
-            Error::OriginPublicKeyCreate(ref e) => {
+            SrvError::OriginPublicKeyCreate(ref e) => {
                 format!("Error creating origin public key in database, {}", e)
             }
-            Error::OriginPublicKeyGet(ref e) => {
+            SrvError::OriginPublicKeyGet(ref e) => {
                 format!("Error getting origin public key from database, {}", e)
             }
-            Error::OriginPublicKeyLatestGet(ref e) => {
+            SrvError::OriginPublicKeyLatestGet(ref e) => {
                 format!(
                     "Error getting latest origin public key from database, {}",
                     e
                 )
             }
-            Error::OriginPublicKeyListForOrigin(ref e) => {
+            SrvError::OriginPublicKeyListForOrigin(ref e) => {
                 format!(
                     "Error listing origin public keys for an origin from database, {}",
                     e
                 )
             }
-            Error::OriginAccountList(ref e) => {
+            SrvError::OriginAccountList(ref e) => {
                 format!("Error getting list of origins for this account, {}", e)
             }
-            Error::OriginAccountInOrigin(ref e) => {
+            SrvError::OriginAccountInOrigin(ref e) => {
                 format!("Error checking if this account is in an origin, {}", e)
             }
-            Error::SyncInvitations(ref e) => {
+            SrvError::Protocol(ref e) => format!("{}", e),
+            SrvError::SyncInvitations(ref e) => {
                 format!("Error syncing invitations for account, {}", e)
             }
-            Error::SyncInvitationsUpdate(ref e) => {
+            SrvError::SyncInvitationsUpdate(ref e) => {
                 format!("Error update invitation sync for account, {}", e)
             }
-            Error::OriginUpdate(ref e) => format!("Error updating origin, {}", e),
-            Error::Protobuf(ref e) => format!("{}", e),
-            Error::UnknownOriginPackageVisibility(ref e) => format!("{}", e),
-            Error::Zmq(ref e) => format!("{}", e),
+            SrvError::OriginUpdate(ref e) => format!("Error updating origin, {}", e),
+            SrvError::Protobuf(ref e) => format!("{}", e),
+            SrvError::UnknownOriginPackageVisibility(ref e) => format!("{}", e),
         };
         write!(f, "{}", msg)
     }
 }
 
-impl error::Error for Error {
+impl error::Error for SrvError {
     fn description(&self) -> &str {
         match *self {
-            Error::BadPort(_) => "Received an invalid port or a number outside of the valid range.",
-            Error::Db(ref err) => err.description(),
-            Error::DbTransactionStart(ref err) => err.description(),
-            Error::DbTransactionCommit(ref err) => err.description(),
-            Error::DbPoolTimeout(ref err) => err.description(),
-            Error::DbListen(ref err) => err.description(),
-            Error::HabitatCore(ref err) => err.description(),
-            Error::IO(ref err) => err.description(),
-            Error::NetError(ref err) => err.description(),
-            Error::OriginCreate(ref err) => err.description(),
-            Error::OriginChannelCreate(ref err) => err.description(),
-            Error::OriginChannelGet(ref err) => err.description(),
-            Error::OriginChannelList(ref err) => err.description(),
-            Error::OriginChannelPackageGet(ref err) => err.description(),
-            Error::OriginChannelPackageLatestGet(ref err) => err.description(),
-            Error::OriginChannelPackageList(ref err) => err.description(),
-            Error::OriginCheckAccess(ref err) => err.description(),
-            Error::OriginChannelDelete(ref err) => err.description(),
-            Error::OriginGet(ref err) => err.description(),
-            Error::OriginMemberList(ref err) => err.description(),
-            Error::OriginIntegrationCreate(ref err) => err.description(),
-            Error::OriginIntegrationGetNames(ref err) => err.description(),
-            Error::OriginIntegrationDelete(ref err) => err.description(),
-            Error::OriginIntegrationRequest(ref err) => err.description(),
-            Error::OriginInvitationAccept(ref err) => err.description(),
-            Error::OriginInvitationCreate(ref err) => err.description(),
-            Error::OriginInvitationListForOrigin(ref err) => err.description(),
-            Error::OriginInvitationListForAccount(ref err) => err.description(),
-            Error::OriginInvitationValidate(ref err) => err.description(),
-            Error::OriginPackageCreate(ref err) => err.description(),
-            Error::OriginPackageGet(ref err) => err.description(),
-            Error::OriginPackageLatestGet(ref err) => err.description(),
-            Error::OriginPackageChannelList(ref err) => err.description(),
-            Error::OriginPackagePlatformList(ref err) => err.description(),
-            Error::OriginPackageList(ref err) => err.description(),
-            Error::OriginPackageVersionList(ref err) => err.description(),
-            Error::OriginPackageDemote(ref err) => err.description(),
-            Error::OriginPackageGroupPromote(ref err) => err.description(),
-            Error::OriginPackagePromote(ref err) => err.description(),
-            Error::OriginPackageSearch(ref err) => err.description(),
-            Error::OriginPackageUniqueList(ref err) => err.description(),
-            Error::OriginProjectCreate(ref err) => err.description(),
-            Error::OriginProjectDelete(ref err) => err.description(),
-            Error::OriginProjectGet(ref err) => err.description(),
-            Error::OriginProjectUpdate(ref err) => err.description(),
-            Error::OriginSecretKeyCreate(ref err) => err.description(),
-            Error::OriginSecretKeyGet(ref err) => err.description(),
-            Error::OriginPublicKeyCreate(ref err) => err.description(),
-            Error::OriginPublicKeyGet(ref err) => err.description(),
-            Error::OriginPublicKeyLatestGet(ref err) => err.description(),
-            Error::OriginPublicKeyListForOrigin(ref err) => err.description(),
-            Error::OriginAccountList(ref err) => err.description(),
-            Error::OriginAccountInOrigin(ref err) => err.description(),
-            Error::OriginUpdate(ref err) => err.description(),
-            Error::SyncInvitations(ref err) => err.description(),
-            Error::SyncInvitationsUpdate(ref err) => err.description(),
-            Error::Protobuf(ref err) => err.description(),
-            Error::UnknownOriginPackageVisibility(ref err) => err.description(),
-            Error::Zmq(ref err) => err.description(),
+            SrvError::BadPort(_) => {
+                "Received an invalid port or a number outside of the valid range."
+            }
+            SrvError::ConnErr(ref err) => err.description(),
+            SrvError::Db(ref err) => err.description(),
+            SrvError::DbTransactionStart(ref err) => err.description(),
+            SrvError::DbTransactionCommit(ref err) => err.description(),
+            SrvError::DbPoolTimeout(ref err) => err.description(),
+            SrvError::DbListen(ref err) => err.description(),
+            SrvError::HabitatCore(ref err) => err.description(),
+            SrvError::NetError(ref err) => err.description(),
+            SrvError::OriginCreate(ref err) => err.description(),
+            SrvError::OriginChannelCreate(ref err) => err.description(),
+            SrvError::OriginChannelGet(ref err) => err.description(),
+            SrvError::OriginChannelList(ref err) => err.description(),
+            SrvError::OriginChannelPackageGet(ref err) => err.description(),
+            SrvError::OriginChannelPackageLatestGet(ref err) => err.description(),
+            SrvError::OriginChannelPackageList(ref err) => err.description(),
+            SrvError::OriginCheckAccess(ref err) => err.description(),
+            SrvError::OriginChannelDelete(ref err) => err.description(),
+            SrvError::OriginGet(ref err) => err.description(),
+            SrvError::OriginMemberList(ref err) => err.description(),
+            SrvError::OriginIntegrationCreate(ref err) => err.description(),
+            SrvError::OriginIntegrationGetNames(ref err) => err.description(),
+            SrvError::OriginIntegrationDelete(ref err) => err.description(),
+            SrvError::OriginIntegrationRequest(ref err) => err.description(),
+            SrvError::OriginInvitationAccept(ref err) => err.description(),
+            SrvError::OriginInvitationCreate(ref err) => err.description(),
+            SrvError::OriginInvitationListForOrigin(ref err) => err.description(),
+            SrvError::OriginInvitationListForAccount(ref err) => err.description(),
+            SrvError::OriginInvitationValidate(ref err) => err.description(),
+            SrvError::OriginPackageCreate(ref err) => err.description(),
+            SrvError::OriginPackageGet(ref err) => err.description(),
+            SrvError::OriginPackageLatestGet(ref err) => err.description(),
+            SrvError::OriginPackageChannelList(ref err) => err.description(),
+            SrvError::OriginPackagePlatformList(ref err) => err.description(),
+            SrvError::OriginPackageList(ref err) => err.description(),
+            SrvError::OriginPackageVersionList(ref err) => err.description(),
+            SrvError::OriginPackageDemote(ref err) => err.description(),
+            SrvError::OriginPackageGroupPromote(ref err) => err.description(),
+            SrvError::OriginPackagePromote(ref err) => err.description(),
+            SrvError::OriginPackageSearch(ref err) => err.description(),
+            SrvError::OriginPackageUniqueList(ref err) => err.description(),
+            SrvError::OriginProjectCreate(ref err) => err.description(),
+            SrvError::OriginProjectDelete(ref err) => err.description(),
+            SrvError::OriginProjectGet(ref err) => err.description(),
+            SrvError::OriginProjectUpdate(ref err) => err.description(),
+            SrvError::OriginSecretKeyCreate(ref err) => err.description(),
+            SrvError::OriginSecretKeyGet(ref err) => err.description(),
+            SrvError::OriginPublicKeyCreate(ref err) => err.description(),
+            SrvError::OriginPublicKeyGet(ref err) => err.description(),
+            SrvError::OriginPublicKeyLatestGet(ref err) => err.description(),
+            SrvError::OriginPublicKeyListForOrigin(ref err) => err.description(),
+            SrvError::OriginAccountList(ref err) => err.description(),
+            SrvError::OriginAccountInOrigin(ref err) => err.description(),
+            SrvError::OriginUpdate(ref err) => err.description(),
+            SrvError::Protocol(ref err) => err.description(),
+            SrvError::SyncInvitations(ref err) => err.description(),
+            SrvError::SyncInvitationsUpdate(ref err) => err.description(),
+            SrvError::Protobuf(ref err) => err.description(),
+            SrvError::UnknownOriginPackageVisibility(ref err) => err.description(),
         }
     }
 }
 
-impl From<r2d2::GetTimeout> for Error {
-    fn from(err: r2d2::GetTimeout) -> Error {
-        Error::DbPoolTimeout(err)
+impl From<r2d2::GetTimeout> for SrvError {
+    fn from(err: r2d2::GetTimeout) -> Self {
+        SrvError::DbPoolTimeout(err)
     }
 }
 
-impl From<hab_core::Error> for Error {
-    fn from(err: hab_core::Error) -> Error {
-        Error::HabitatCore(err)
+impl From<hab_core::Error> for SrvError {
+    fn from(err: hab_core::Error) -> Self {
+        SrvError::HabitatCore(err)
     }
 }
 
-impl From<db::error::Error> for Error {
+impl From<hab_net::NetError> for SrvError {
+    fn from(err: hab_net::NetError) -> Self {
+        SrvError::NetError(err)
+    }
+}
+
+impl From<hab_net::conn::ConnErr> for SrvError {
+    fn from(err: hab_net::conn::ConnErr) -> Self {
+        SrvError::ConnErr(err)
+    }
+}
+
+impl From<db::error::Error> for SrvError {
     fn from(err: db::error::Error) -> Self {
-        Error::Db(err)
+        SrvError::Db(err)
     }
 }
 
-impl From<hab_net::Error> for Error {
-    fn from(err: hab_net::Error) -> Self {
-        Error::NetError(err)
-    }
-}
-
-impl From<protocol::net::NetError> for Error {
-    fn from(err: protocol::net::NetError) -> Self {
-        Error::NetError(hab_net::Error::Net(err))
-    }
-}
-
-
-impl From<io::Error> for Error {
-    fn from(err: io::Error) -> Self {
-        Error::IO(err)
-    }
-}
-
-impl From<protobuf::ProtobufError> for Error {
+impl From<protobuf::ProtobufError> for SrvError {
     fn from(err: protobuf::ProtobufError) -> Self {
-        Error::Protobuf(err)
+        SrvError::Protobuf(err)
     }
 }
 
-impl From<zmq::Error> for Error {
+impl From<protocol::ProtocolError> for SrvError {
+    fn from(err: protocol::ProtocolError) -> Self {
+        SrvError::Protocol(err)
+    }
+}
+
+impl From<zmq::Error> for SrvError {
     fn from(err: zmq::Error) -> Self {
-        Error::Zmq(err)
+        SrvError::from(hab_net::conn::ConnErr::from(err))
     }
 }

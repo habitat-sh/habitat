@@ -21,7 +21,3 @@ path = "../core"
 
 [dependencies.habitat_http_client]
 path = "../http-client"
-
-[features]
-default = []
-functional = []

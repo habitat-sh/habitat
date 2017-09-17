@@ -26,14 +26,16 @@ pub struct Logger {
 }
 
 impl Logger {
-    pub fn init<T: AsRef<Path>>(log_path: T, filename: &str) -> Self {
-        let filepath = log_path.as_ref().to_path_buf().join(filename);
-
+    pub fn init<T, U>(log_path: T, filename: U) -> Self
+    where
+        T: AsRef<Path>,
+        U: AsRef<Path>,
+    {
         Logger {
             file: OpenOptions::new()
                 .append(true)
                 .create(true)
-                .open(filepath)
+                .open(log_path.as_ref().join(filename))
                 .expect("Failed to initialize log file"),
         }
     }
@@ -59,7 +61,6 @@ impl Logger {
     //   Start offset (offset from group creation, in seconds, only for jobs)
     //   Duration (job duration, in seconds, only for jobs)
     //   Error (if applicable)
-
     pub fn log_ident(&mut self, ident: &str) {
         let msg = format!("I,{}", ident);
         self.log(&msg);

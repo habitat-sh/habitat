@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Copyright (c) 2016 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-pub mod log_pipe;
-pub mod workspace;
-pub mod postprocessor;
-pub mod publisher;
-pub mod toml_builder;
+mod log_pipe;
+mod workspace;
+mod postprocessor;
+mod publisher;
+mod toml_builder;
 
 use std::path::PathBuf;
 use std::ffi::OsString;
@@ -25,11 +25,11 @@ use std::ops::{Deref, DerefMut};
 use std::path::Path;
 use std::process::{Command, Stdio};
 use std::str::FromStr;
-use std::sync::{mpsc, Arc, RwLock};
+use std::sync::{mpsc, Arc};
 use std::thread::{self, JoinHandle};
 
-use bldr_core::logger::Logger;
 pub use protocol::jobsrv::JobState;
+use bldr_core::logger::Logger;
 use chrono::UTC;
 use depot_client;
 use hab_core::{crypto, env};
@@ -37,9 +37,8 @@ use hab_core::package::archive::PackageArchive;
 use hab_core::package::install::PackageInstall;
 use hab_core::package::PackageIdent;
 use hab_core::channel::STABLE_CHANNEL;
-use hab_net::server::ZMQ_CONTEXT;
-use protobuf::{parse_from_bytes, Message};
-use protocol::jobsrv as proto;
+use hab_net::socket::DEFAULT_CONTEXT;
+use protocol::{message, jobsrv as proto};
 use protocol::originsrv::OriginPackageIdent;
 use protocol::net::{self, ErrCode};
 use zmq;
@@ -50,8 +49,6 @@ use self::postprocessor::post_process;
 use self::workspace::Workspace;
 use config::Config;
 use error::{Error, Result};
-use server::Server;
-use hab_net::server::NetIdent;
 use retry::retry;
 use vcs;
 
@@ -128,7 +125,7 @@ impl DerefMut for Job {
 }
 
 pub struct Runner {
-    config: Config,
+    config: Arc<Config>,
     depot_cli: depot_client::Client,
     log_pipe: Option<LogPipe>,
     workspace: Workspace,
@@ -136,16 +133,16 @@ pub struct Runner {
 }
 
 impl Runner {
-    pub fn new(job: Job, config: Config) -> Self {
+    pub fn new(job: Job, config: Arc<Config>, net_ident: &str) -> Self {
         let depot_cli = depot_client::Client::new(&config.depot_url, PRODUCT, VERSION, None)
             .unwrap();
 
         let log_path = config.log_path.clone();
         let mut logger = Logger::init(PathBuf::from(log_path), "builder-worker.log");
-        logger.log_ident(&Server::net_ident());
+        logger.log_ident(net_ident);
 
         Runner {
-            workspace: Workspace::new(config.data_path.clone(), job),
+            workspace: Workspace::new(&config.data_path, job),
             config: config,
             depot_cli: depot_cli,
             log_pipe: None,
@@ -173,7 +170,7 @@ impl Runner {
 
         if self.config.auth_token.is_empty() {
             warn!("WARNING: No auth token specified, will likely fail fetching secret key");
-        };
+        }
 
         match retry(
             RETRIES,
@@ -434,7 +431,7 @@ pub struct RunnerCli {
 impl RunnerCli {
     /// Create a new Job Runner client
     pub fn new() -> Self {
-        let sock = (**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER).unwrap();
+        let sock = (**DEFAULT_CONTEXT).as_mut().socket(zmq::DEALER).unwrap();
         RunnerCli {
             sock: sock,
             msg: zmq::Message::new().unwrap(),
@@ -484,21 +481,20 @@ impl RunnerCli {
 /// Receives work notifications from a `RunnerCli` and performs long-running tasks in a
 /// separate thread.
 pub struct RunnerMgr {
-    sock: zmq::Socket,
+    config: Arc<Config>,
+    net_ident: Arc<String>,
     msg: zmq::Message,
-    config: Arc<RwLock<Config>>,
+    sock: zmq::Socket,
 }
 
 impl RunnerMgr {
     /// Start the Job Runner
-    pub fn start(config: Arc<RwLock<Config>>) -> Result<JoinHandle<()>> {
+    pub fn start(config: Arc<Config>, net_ident: Arc<String>) -> Result<JoinHandle<()>> {
         let (tx, rx) = mpsc::sync_channel(0);
+        let mut runner = Self::new(config, net_ident).unwrap();
         let handle = thread::Builder::new()
             .name("runner".to_string())
-            .spawn(move || {
-                let mut runner = Self::new(config).unwrap();
-                runner.run(tx).unwrap();
-            })
+            .spawn(move || { runner.run(tx).unwrap(); })
             .unwrap();
         match rx.recv() {
             Ok(()) => Ok(handle),
@@ -506,12 +502,13 @@ impl RunnerMgr {
         }
     }
 
-    fn new(config: Arc<RwLock<Config>>) -> Result<Self> {
-        let sock = (**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER)?;
+    fn new(config: Arc<Config>, net_ident: Arc<String>) -> Result<Self> {
+        let sock = (**DEFAULT_CONTEXT).as_mut().socket(zmq::DEALER)?;
         Ok(RunnerMgr {
-            sock: sock,
-            msg: zmq::Message::new().unwrap(),
             config: config,
+            msg: zmq::Message::new().unwrap(),
+            net_ident: net_ident,
+            sock: sock,
         })
     }
 
@@ -527,9 +524,7 @@ impl RunnerMgr {
     }
 
     fn execute_job(&mut self, job: Job) -> Result<()> {
-        let runner = {
-            Runner::new(job, (*self.config.read().unwrap()).clone())
-        };
+        let runner = Runner::new(job, self.config.clone(), &self.net_ident);
         debug!("executing work, job={:?}", runner.job());
         let job = runner.run();
         self.send_complete(&job)
@@ -537,21 +532,21 @@ impl RunnerMgr {
 
     fn recv_job(&mut self) -> Result<Job> {
         self.sock.recv(&mut self.msg, 0)?;
-        let job: proto::Job = parse_from_bytes(&self.msg).unwrap();
+        let job = message::decode::<proto::Job>(&self.msg)?;
         Ok(Job::new(job))
     }
 
     fn send_ack(&mut self, job: &Job) -> Result<()> {
         debug!("received work, job={:?}", job);
         self.sock.send_str(WORK_ACK, zmq::SNDMORE)?;
-        self.sock.send(&*job.write_to_bytes().unwrap(), 0)?;
+        self.sock.send(&message::encode(&**job)?, 0)?;
         Ok(())
     }
 
     fn send_complete(&mut self, job: &Job) -> Result<()> {
         debug!("work complete, job={:?}", job);
         self.sock.send_str(WORK_COMPLETE, zmq::SNDMORE)?;
-        self.sock.send(&*job.write_to_bytes().unwrap(), 0)?;
+        self.sock.send(&message::encode(&**job)?, 0)?;
         Ok(())
     }
 }

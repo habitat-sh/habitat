@@ -17,11 +17,14 @@ use std::fmt;
 use std::io;
 use std::result;
 
+use bldr_core;
 use git2;
 use hab_core;
-use bldr_core;
 use protobuf;
+use protocol;
 use zmq;
+
+pub type Result<T> = result::Result<T, Error>;
 
 #[derive(Debug)]
 pub enum Error {
@@ -31,13 +34,12 @@ pub enum Error {
     HabitatCore(hab_core::Error),
     IO(io::Error),
     Protobuf(protobuf::ProtobufError),
+    Protocol(protocol::ProtocolError),
     UnknownVCS,
     WorkspaceSetup(String, io::Error),
     WorkspaceTeardown(String, io::Error),
     Zmq(zmq::Error),
 }
-
-pub type Result<T> = result::Result<T, Error>;
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -50,6 +52,7 @@ impl fmt::Display for Error {
             Error::HabitatCore(ref e) => format!("{}", e),
             Error::IO(ref e) => format!("{}", e),
             Error::Protobuf(ref e) => format!("{}", e),
+            Error::Protocol(ref e) => format!("{}", e),
             Error::UnknownVCS => format!("Job requires an unknown VCS"),
             Error::Zmq(ref e) => format!("{}", e),
             Error::WorkspaceSetup(ref p, ref e) => {
@@ -72,6 +75,7 @@ impl error::Error for Error {
             Error::HabitatCore(ref err) => err.description(),
             Error::IO(ref err) => err.description(),
             Error::Protobuf(ref err) => err.description(),
+            Error::Protocol(ref err) => err.description(),
             Error::UnknownVCS => "Job requires an unknown VCS",
             Error::WorkspaceSetup(_, _) => "IO Error while creating workspace on disk",
             Error::WorkspaceTeardown(_, _) => "IO Error while destroying workspace on disk",
@@ -107,6 +111,12 @@ impl From<io::Error> for Error {
 impl From<protobuf::ProtobufError> for Error {
     fn from(err: protobuf::ProtobufError) -> Error {
         Error::Protobuf(err)
+    }
+}
+
+impl From<protocol::ProtocolError> for Error {
+    fn from(err: protocol::ProtocolError) -> Self {
+        Error::Protocol(err)
     }
 }
 

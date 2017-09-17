@@ -8,9 +8,8 @@ pkg_deps=(core/glibc core/openssl core/gcc-libs core/zeromq core/libsodium core/
 pkg_build_deps=(core/protobuf core/protobuf-rust core/coreutils core/cacerts
   core/rust core/gcc core/git core/pkg-config)
 pkg_exports=(
-  [port]=client_port
-  [heartbeat]=heartbeat_port
+  [port]=port
 )
-pkg_exposes=(port heartbeat)
+pkg_exposes=(port)
 bin="bldr-router"
 pkg_svc_run="$bin start -c ${pkg_svc_config_path}/config.toml"

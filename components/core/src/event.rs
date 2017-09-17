@@ -101,7 +101,8 @@ impl fmt::Display for Event {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
             Event::ProjectCreate { origin: _, package: _, account: _ } => "project-create",
-            Event::PackageUpload { origin: _, package: _, version: _, release: _, target: _, account: _ } => {
+            Event::PackageUpload { origin: _, package: _, version: _, release: _, target: _,
+                account: _ } => {
                 "package-upload"
             }
             Event::OriginKeyUpload { origin: _, version: _, account: _ } => "origin-key-upload",
@@ -270,9 +271,9 @@ impl Serialize for Envelope {
     }
 }
 
-fn write_file<T: ?Sized>(parent_dir: &Path, file_path: &Path, val: &T)
+fn write_file<T>(parent_dir: &Path, file_path: &Path, val: &T)
 where
-    T: Serialize,
+    T: Serialize + ?Sized,
 {
     fs::create_dir_all(parent_dir).expect("Unable to create directory");
     let mut file = File::create(&file_path).expect("Unable to create file");

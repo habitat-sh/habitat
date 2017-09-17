@@ -7,12 +7,10 @@ workspace = "../../"
 [dependencies]
 clippy = {version = "*", optional = true}
 bitflags = "*"
-fnv = "*"
-habitat_builder_protocol = { path = "../builder-protocol" }
+habitat-builder-protocol = { path = "../builder-protocol" }
 habitat_core = { path = "../core" }
 hyper = "*"
 hyper-openssl = "*"
-iron = "*"
 lazy_static = "*"
 log = "*"
 num_cpus = "*"
@@ -23,11 +21,8 @@ serde_derive = "*"
 serde_json = "*"
 time = "*"
 unicase = "*"
+uuid = { version = "*", features = ["v4"] }
 
 [dependencies.zmq]
 git = "https://github.com/erickt/rust-zmq"
 branch = "release/v0.8"
-
-[features]
-default = []
-functional = []

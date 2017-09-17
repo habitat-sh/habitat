@@ -7,6 +7,7 @@ workspace = "../../"
 [dependencies]
 clippy = {version = "*", optional = true}
 ansi_term = "*"
+habitat-builder-protocol = { path = "../builder-protocol" }
 hyper = "*"
 libc = "*"
 log = "*"
@@ -22,9 +23,6 @@ path = "../core"
 
 [dependencies.habitat_depot_client]
 path = "../builder-depot-client"
-
-[dependencies.habitat_builder_protocol]
-path = "../builder-protocol"
 
 [target.'cfg(windows)'.dependencies]
 kernel32-sys = "*"
