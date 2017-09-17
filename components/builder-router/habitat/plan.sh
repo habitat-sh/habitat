@@ -12,4 +12,3 @@ pkg_exports=(
 )
 pkg_exposes=(port)
 bin="bldr-router"
-pkg_svc_run="$bin start -c ${pkg_svc_config_path}/config.toml"

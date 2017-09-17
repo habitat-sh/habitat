@@ -12,5 +12,4 @@ pkg_binds=(
   [router]="port"
   [datastore]="port"
 )
-bin="bldr-session-srv"
-pkg_svc_run="$bin start -c ${pkg_svc_config_path}/config.toml"
+bin="bldr-sessionsrv"

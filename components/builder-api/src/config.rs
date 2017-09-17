@@ -158,7 +158,6 @@ mod tests {
         [[routers]]
         host = "172.18.0.2"
         port = 9632
-        heartbeat = 9001
 
         [github]
         url = "https://api.github.com"

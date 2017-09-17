@@ -10,7 +10,6 @@ shards = {{toToml cfg.shards}}
 [[routers]]
 host = "{{member.sys.ip}}"
 port = {{member.cfg.port}}
-heartbeat = {{member.cfg.heartbeat}}
 {{~/eachAlive}}
 
 [datastore]

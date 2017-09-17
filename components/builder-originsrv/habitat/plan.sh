@@ -12,5 +12,4 @@ pkg_binds=(
   [router]="port heartbeat"
   [datastore]="port"
 )
-bin="bldr-origin-srv"
-pkg_svc_run="$bin start -c ${pkg_svc_config_path}/config.toml"
+bin="bldr-originsrv"

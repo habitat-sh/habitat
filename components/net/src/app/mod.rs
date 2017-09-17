@@ -328,7 +328,7 @@ where
             Some(Protocol::RouteSrv) => {
                 if self.msg_buf.message_id() == NetError::message_id() {
                     let err = NetError::parse(&self.msg_buf).unwrap();
-                    error!("handle-message, received termination request, {}", err);
+                    return Err(AppError::Terminated(err));
                 } else {
                     warn!(
                         "handle-message, received unknown request from RouteSrv, {}",

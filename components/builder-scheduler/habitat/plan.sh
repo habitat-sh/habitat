@@ -14,4 +14,3 @@ pkg_binds=(
   [depot]="url"
 )
 bin="bldr-scheduler"
-pkg_svc_run="$bin start -c ${pkg_svc_config_path}/config.toml"
