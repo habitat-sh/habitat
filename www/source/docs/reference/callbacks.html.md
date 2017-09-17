@@ -93,7 +93,7 @@ Here's an example example of a vanilla Plan such as Sed:
 **do_build_config()**
 : Copy the `./config` directory, relative to the Plan, to `$pkg_prefix/config`. Do the same with `default.toml`. Delegates most of the implementation to the `do_default_build_config()` function. 
 
-: Allows users to depend on a core plan and pull in its configuration but set their own unique configurations at build time.
+Allows users to depend on a core plan and pull in its configuration but set their own unique configurations at build time.
 
 **do_default_build_config()**
 : Default implementation for the `do_build_config()` phase.
