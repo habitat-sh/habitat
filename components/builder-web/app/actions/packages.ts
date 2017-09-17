@@ -120,7 +120,7 @@ export function getUniquePackages(
         }
 
         depotApi.getUnique(origin, nextRange).then(response => {
-            dispatch(setVisiblePackages(response["results"]));
+            dispatch(setVisiblePackages(response["results"]["package_list"]));
             dispatch(setPackagesTotalCount(response["totalCount"]));
             dispatch(setPackagesNextRange(response["nextRange"]));
 
@@ -154,7 +154,7 @@ export function filterPackagesBy(
         }
 
         depotApi.get(params, nextRange).then(response => {
-            dispatch(setVisiblePackages(response["results"]));
+            dispatch(setVisiblePackages(response["results"]["package_list"]));
             dispatch(setPackagesTotalCount(response["totalCount"]));
             dispatch(setPackagesNextRange(response["nextRange"]));
         }).catch(error => {

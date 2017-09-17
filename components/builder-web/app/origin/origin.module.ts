@@ -44,6 +44,9 @@ export const declarations = [
 
 @NgModule({
   imports,
-  declarations
+  declarations,
+  providers: [
+    OriginService
+  ]
 })
 export class OriginModule {}
