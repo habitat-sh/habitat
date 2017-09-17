@@ -8,14 +8,13 @@ pkg_deps=(core/glibc core/openssl core/gcc-libs core/zeromq core/libsodium core/
   core/zlib core/hab-studio core/curl)
 pkg_build_deps=(core/make core/cmake core/protobuf core/protobuf-rust core/coreutils core/cacerts
   core/rust core/gcc core/git core/pkg-config)
-bin="bldr-worker"
-pkg_svc_run="$bin start -c ${pkg_svc_config_path}/config.toml"
 pkg_svc_user="root"
 pkg_svc_group="root"
 pkg_binds=(
   [jobsrv]="worker_port worker_heartbeat"
   [depot]="url"
 )
+bin="bldr-worker"
 
 do_prepare() {
   do_builder_prepare

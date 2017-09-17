@@ -7,7 +7,7 @@ build = "../bldr-build.rs"
 workspace = "../../"
 
 [[bin]]
-name = "bldr-origin-srv"
+name = "bldr-originsrv"
 path = "src/main.rs"
 doc = false
 

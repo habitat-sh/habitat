@@ -1,0 +1,7 @@
+#!/bin/sh
+
+export HOME={{pkg.svc_data_path}}
+export RUST_LOG={{cfg.log_level}}
+pkg_svc_run="bldr-worker start -c {{pkg.svc_config_path}}/config.toml"
+
+exec ${pkg_svc_run} 2>&1
