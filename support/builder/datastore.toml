@@ -1,4 +1,5 @@
 max_locks_per_transaction = 128
+dynamic_shared_memory_type = 'none'
 
 [superuser]
 name = 'hab'

@@ -31,17 +31,7 @@ habitatConfig({
 ```
 ### Running the Builder API Service
 
-While it's possible to run this application without a concurrently running Builder API service, you won't be able to perform the kinds of actions that rely on that API (like create an origin, list and browse packages, sign in and out, and so on). To stand up a Builder API service locally, see the [BUILDER_DEV](../../BUILDER_DEV.md) doc.
-
-Also note that by default, the `bldr-run` task described in that document builds this app and starts a `web` process that serves it over port 3000. Since the dev-setup instructions below are also configured to use port 3000 (the OAuth app we use in development requires it), you could end up with a port conflict or a dev service running on a port other than 3000.
-
-There are couple of things you can do to avoid this:
-
-  * If you're running `bldr-run` in a container or VM, and you've mapped port 3000 from the guest onto your local machine, remove that mapping to allow the `web` process to continue running on port 3000 on the guest, and you to run on port 3000 locally without a conflict. This is a good option of you're a regular contributor to the UI. Some providers (e.g., VirtualBox) also allow you to change this mapping in the UI without requiring a restart.
-
-  * Prevent `bldr-run` from starting the `web` process by commenting the `web` line in `support/Procfile` and restarting the `bldr-run` task.
-
-  * Set up a custom GitHub OAuth application to run the dev service somewhere other than `localhost:3000`. See below for instructions on how to do that.
+While it's possible to run this application without a concurrently running Builder API service, you won't be able to perform the kinds of actions that rely on that API (like create an origin, list and browse packages, sign in and out, and so on). To stand up a Builder API service locally, see the [BUILDER_DEV](../../BUILDING.md) doc.
 
 ### Installing Node
 

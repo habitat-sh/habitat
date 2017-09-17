@@ -58,21 +58,6 @@ This file is the canonical source for how the Habitat project is maintained.
   affected by your patch.  The merge is initiated by an `r+` from an approved
   maintainer.
 
-### Pull Request Review and Merge Automation
-
-Habitat uses several bots to automate the review and merging of pull requests.
-Messages to and from the bots are brokered via the account @thesentinels. First,
-we use [Facebook's mention bot](https://github.com/facebook/mention-bot) to
-identify potential reviewers for a pull request based on the blame information
-in the relevant diff. @thesentinels can also receive incoming commands from
-reviewers to approve PRs. These commands are routed to a [homu
-bot](https://github.com/barosl/homu) that will automatically merge a PR when
-sufficient reviewers have provided a +1 (or `r+` in homu terminology).
-
-Any Maintainer may vote :-1: on a patch, which increases the requirement for a
-patch to be merged to an absolute majority of Maintainers for the affected
-component(s), unless that Maintainer later changes their vote.
-
 ## Patch Appeals Process
 
 There may be cases where someone wishes to appeal a Maintainer decision. In this

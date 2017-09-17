@@ -137,17 +137,9 @@ shell: image ## launches a development shell
 	$(run)
 .PHONY: shell
 
-bldr-shell: build-srv ## launches a development shell with forwarded ports but doesn't run anything
+bldr-shell: image ## launches a development shell with forwarded ports but doesn't run anything
 	$(bldr_run)
 .PHONY: bldr-shell
-
-bldr-run: build-srv ## launches a development shell running the API
-	$(bldr_run) sh -c '$(forego) start -f support/Procfile -e support/bldr.env'
-.PHONY: bldr-run
-
-bldr-run-no-build: ## launches a development shell without rebuilding the world
-	$(bldr_run) sh -c '$(forego) start -f support/Procfile -e support/bldr.env'
-.PHONY: bldr-run-no-build
 
 serve-docs: docs ## serves the project documentation from an HTTP server
 	@echo "==> View the docs at:\n\n        http://`\

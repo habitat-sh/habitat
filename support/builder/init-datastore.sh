@@ -23,6 +23,3 @@ while [ -f /hab/sup/default/specs/builder-datastore.spec ]; do
   echo "Stopping builder-datastore"
   sleep 2
 done
-
-hab term
-exit 0

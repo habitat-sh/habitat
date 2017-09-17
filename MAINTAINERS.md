@@ -60,7 +60,7 @@ The web application for the Habitat builder and depot.
 
 #### Lieutenant
 
-* [Nathan L Smith](https://github.com/smith)
+* [Chris Nunciato](https://github.com/cnunciato)
 
 #### Maintainers
 
