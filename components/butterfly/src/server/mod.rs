@@ -664,7 +664,7 @@ impl Server {
         let alive_population = electorate.len();
 
         if total_population < 3 {
-            info!(
+            trace!(
                 "Quorum size: {}/3 - election cannot complete",
                 total_population
             );
