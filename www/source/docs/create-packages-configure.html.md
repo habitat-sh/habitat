@@ -4,16 +4,15 @@ title: Configure packages
 
 # Add configuration to plans
 
-Habitat allows you to templatize your application's native
-configuration files using [Handlebars](http://handlebarsjs.com/)
-syntax. The following sections describe how to create tunable
-configuration elements for your application or service.
+Habitat allows you to templatize your application's native configuration files using [Handlebars](http://handlebarsjs.com/) syntax. The following sections describe how to create tunable configuration elements for your application or service.
 
-## Setting a config value
+- [Setting a config value](#setting-config-value)
+- [Branching and looping](#branching-looping)
+- [Advanced helpers](#advanced-helpers)
 
-Template variables, also referred to as tags, are indicated by double
-curly braces: `{{a_variable}}`. In Habitat, tunable config elements
-are prefixed with `cfg.` to indicate that the value is user-tunable.
+<h1 id="setting-config-value" class="anchor">Setting a config value</h1>
+
+Template variables, also referred to as tags, are indicated by double curly braces: `{{a_variable}}`. In Habitat, tunable config elements are prefixed with `cfg.` to indicate that the value is user-tunable.
 
 Here's an example of how to make a configuration element user-tunable. Assume that we have a native configuration file named `service.conf`. In `service.conf`, the following configuration element is defined:
 
@@ -36,7 +35,7 @@ default value for the `recv_buffer` tunable:
 
     recv_buffer = 128
 
-## Branching and looping
+<h1 id="branching-looping" class="anchor">Branching and looping</h1> 
 
 You can use block expressions to add basic logic to your template such as checking if a
 value exists or iterating through a list of items.
@@ -117,18 +116,20 @@ like this:
     host = "host-2"
     port = 3434
 
-## Advanced Helpers
+<h1 id="advanced-helpers" class="anchor">Advanced Helpers</h1>
 
 Habitat's templating flavour includes a number of useful helpers for writing configuration and hook files
 
-* [`toLowercase`](#tolowercase-helper)
-* [`toUppercase`](#touppercase-helper)
-* [`strReplace`](#strreplace-helper)
-* [`pkgPathFor`](#pkgpathfor-helper)
-* [`eachAlive`](#eachalive-helper)
-* [`toJson`](#tojson-helper)
-* [`toToml`](#totoml-helper)
-* [`toYaml`](#toyaml-helper)
+* [toLowercase](#tolowercase-helper)
+* [toUppercase](#touppercase-helper)
+* [strReplace](#strreplace-helper)
+* [pkgPathFor](#pkgpathfor-helper)
+* [eachAlive](#eachalive-helper)
+* [toJson](#tojson-helper)
+* [toToml](#totoml-helper)
+* [toYaml](#toyaml-helper)
+* [strJoin](#join-helper)
+* [strConcat](#concat-helper)
 
 ### toLowercase Helper
 
@@ -253,6 +254,17 @@ when rendered, it will look like:
 The helper outputs a YAML document (with a line beginning with `---`), so it
 must be used to create complete documents: you cannot insert a section of YAML
 into an existing YAML document with this helper.
+
+### [strJoin](#join-helper)
+The `join` helper can be used to create a string with the variables in a list with a separator specified by you. For example, where `list: ["foo", "bar", "baz"]`, `{{strJoin list ","}}` would return `"foo,bar,baz"`. 
+
+You cannot join an object (e.g. `{{strJoin web}}`), but you could join the variables in an object (e.g. `{{strJoin web.list "/"}}`).
+
+
+### [strConcat](#concat-helper)
+The `concat` helper can be used to connect multiple strings into one string without a separator. For example, `{{strConcat "foo" "bar" "baz"}}` would return `"foobarbaz"`.\
+
+You cannot concatenate an object (e.g. `{{strConcat web}}`), but you could concatenate the variables in an object (e.g. `{{strConcat web.list}}`).
 
 <hr>
 <ul class="main-content--link-nav">
