@@ -17,8 +17,10 @@ use std::str::FromStr;
 
 use core::channel::{STABLE_CHANNEL, UNSTABLE_CHANNEL};
 use hab_net::{ErrCode, NetError, NetOk, NetResult};
+use hab_net::privilege::{self, FeatureFlags};
+use http::controller::*;
+
 use iron::status;
-use iron::prelude::*;
 use protocol::originsrv::{CheckOriginAccessRequest, CheckOriginAccessResponse, Origin,
                           OriginChannel, OriginChannelCreate, OriginChannelGet, OriginGet,
                           OriginPackage, OriginPackageChannelListRequest,
@@ -38,6 +40,21 @@ use super::controller::route_message;
 // login session. We need a way to identify that there is no session.
 // TODO (SA): Push this down the stack, origin calls should support no session
 const NO_SESSION: u64 = 0;
+
+pub fn builder_session_id() -> u64 {
+    return NO_SESSION;
+}
+
+pub fn get_authenticated_session(req: &mut Request) -> Option<Session> {
+    let session = req.extensions.get::<Authenticated>().unwrap();
+    let flags = FeatureFlags::from_bits(session.get_flags()).unwrap();
+    if flags.contains(privilege::BUILD_WORKER) {
+        None
+    } else {
+        Some(session.to_owned())
+    }
+}
+
 const PAGINATION_RANGE_DEFAULT: isize = 0;
 const PAGINATION_RANGE_MAX: isize = 50;
 

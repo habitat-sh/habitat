@@ -549,6 +549,37 @@ fn upload_origin_secret_key(req: &mut Request) -> IronResult<Response> {
 }
 
 fn upload_package(req: &mut Request) -> IronResult<Response> {
+    let ident = {
+        let params = req.extensions.get::<Router>().unwrap();
+        ident_from_params(params)
+    };
+
+    if !ident.valid() || !ident.fully_qualified() {
+        info!(
+            "Invalid or not fully qualified package identifier: {}",
+            ident
+        );
+        return Ok(Response::with(status::BadRequest));
+    }
+
+    let session_opt = helpers::get_authenticated_session(req);
+
+    // Bypass origin check if caller is a build worker (no session)
+    let session_id = if session_opt.is_some() {
+        let session = session_opt.unwrap();
+        if !check_origin_access(req, session.get_id(), &ident.get_origin())? {
+            debug!(
+                "Failed origin access check, session: {}, ident: {}",
+                session.get_id(),
+                ident
+            );
+            return Ok(Response::with(status::Forbidden));
+        };
+        session.get_id()
+    } else {
+        helpers::builder_session_id()
+    };
+
     let lock = req.get::<persistent::State<DepotUtil>>().expect(
         "depot not found",
     );
@@ -557,37 +588,12 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
         Some(checksum) => checksum,
         None => return Ok(Response::with(status::BadRequest)),
     };
-    let ident = {
-        let params = req.extensions.get::<Router>().unwrap();
-        ident_from_params(params)
-    };
-
-    if !ident.valid() {
-        info!("Invalid package identifier: {}", ident);
-        return Ok(Response::with(status::BadRequest));
-    }
 
     debug!(
         "UPLOADING checksum={}, ident={}",
         checksum_from_param,
         ident
     );
-
-    // TODO: SA - Eliminate need to clone the session
-    let session = req.extensions.get::<Authenticated>().unwrap().clone();
-    if !depot.config.insecure {
-        if !check_origin_access(req, session.get_id(), &ident.get_origin())? {
-            debug!(
-                "Failed origin access check, session: {}, ident: {}",
-                session.get_id(),
-                ident
-            );
-            return Ok(Response::with(status::Forbidden));
-        }
-        if !ident.fully_qualified() {
-            return Ok(Response::with(status::BadRequest));
-        }
-    }
 
     // Find the path to folder where archive should be created, and
     // create the folder if necessary
@@ -729,7 +735,7 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
         }
     };
     if ident.satisfies(package.get_ident()) {
-        package.set_owner_id(session.get_id());
+        package.set_owner_id(session_id);
 
         // let's make sure this origin actually exists
         match helpers::get_origin(req, &ident.get_origin()) {
@@ -748,18 +754,6 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
                 return Ok(Response::with(status::InternalServerError));
             }
         }
-
-        log_event!(
-            req,
-            Event::PackageUpload {
-                origin: ident.get_origin().to_string(),
-                package: ident.get_name().to_string(),
-                version: ident.get_version().to_string(),
-                release: ident.get_release().to_string(),
-                target: target_from_artifact.to_string(),
-                account: session.get_id().to_string(),
-            }
-        );
 
         // Schedule re-build of dependent packages (if requested)
         // Don't schedule builds if the upload is being done by the builder
@@ -1357,9 +1351,12 @@ fn list_channels(req: &mut Request) -> IronResult<Response> {
 }
 
 fn create_channel(req: &mut Request) -> IronResult<Response> {
-    let session_id = {
-        req.extensions.get::<Authenticated>().unwrap().get_id()
+    let session_opt = helpers::get_authenticated_session(req);
+    let session_id_opt = match session_opt {
+        Some(s) => Some(s.get_id()),
+        None => None,
     };
+
     let (origin, channel) = {
         let params = req.extensions.get::<Router>().unwrap();
         let origin = match params.find("origin") {
@@ -1372,7 +1369,8 @@ fn create_channel(req: &mut Request) -> IronResult<Response> {
         };
         (origin, channel)
     };
-    match helpers::create_channel(req, &origin, &channel, Some(session_id)) {
+
+    match helpers::create_channel(req, &origin, &channel, session_id_opt) {
         Ok(origin_channel) => Ok(render_json(status::Created, &origin_channel)),
         Err(err) => Ok(render_net_error(&err)),
     }
@@ -1659,9 +1657,12 @@ fn render_package(
 }
 
 fn promote_package(req: &mut Request) -> IronResult<Response> {
-    let session_id = {
-        req.extensions.get::<Authenticated>().unwrap().get_id()
+    let session_opt = helpers::get_authenticated_session(req);
+    let session_id_opt = match session_opt {
+        Some(s) => Some(s.get_id()),
+        None => None,
     };
+
     let mut ident = OriginPackageIdent::new();
     let channel = {
         let params = req.extensions.get::<Router>().unwrap();
@@ -1688,7 +1689,7 @@ fn promote_package(req: &mut Request) -> IronResult<Response> {
             .unwrap()
             .to_string()
     };
-    match helpers::promote_package_to_channel(req, &ident, &channel, Some(session_id)) {
+    match helpers::promote_package_to_channel(req, &ident, &channel, session_id_opt) {
         Ok(_) => Ok(Response::with(status::Ok)),
         Err(err) => Ok(render_net_error(&err)),
     }
@@ -1903,7 +1904,7 @@ fn dont_cache_response(response: &mut Response) {
     ));
 }
 
-pub fn routes<M>(insecure: bool, basic: M, worker: M) -> Router
+pub fn routes<M>(basic: M, worker: M) -> Router
 where
     M: BeforeMiddleware + Clone,
 {
@@ -1944,19 +1945,11 @@ where
         package_channels: get "/pkgs/:origin/:pkg/:version/:release/channels" => package_channels,
         package_download: get "/pkgs/:origin/:pkg/:version/:release/download" => download_package,
         package_upload: post "/pkgs/:origin/:pkg/:version/:release" => {
-            if insecure {
-                XHandler::new(upload_package)
-            } else {
-                XHandler::new(upload_package).before(basic.clone())
-            }
+            XHandler::new(upload_package).before(basic.clone())
         },
         packages_stats: get "/pkgs/origins/:origin/stats" => package_stats,
         schedule: post "/pkgs/schedule/:origin/:pkg" => {
-            if insecure {
-                XHandler::new(schedule)
-            } else {
-                XHandler::new(schedule).before(basic.clone())
-            }
+            XHandler::new(schedule).before(basic.clone())
         },
         schedule_get: get "/pkgs/schedule/:groupid" => get_schedule,
 
@@ -1972,21 +1965,13 @@ where
         origin_key_latest: get "/origins/:origin/keys/latest" => download_latest_origin_key,
         origin_key: get "/origins/:origin/keys/:revision" => download_origin_key,
         origin_key_create: post "/origins/:origin/keys/:revision" => {
-            if insecure {
-                XHandler::new(upload_origin_key)
-            } else {
-                XHandler::new(upload_origin_key).before(basic.clone())
-            }
+            XHandler::new(upload_origin_key).before(basic.clone())
         },
         origin_secret_key_create: post "/origins/:origin/secret_keys/:revision" => {
             XHandler::new(upload_origin_secret_key).before(basic.clone())
         },
         origin_secret_key_latest: get "/origins/:origin/secret_keys/latest" => {
-            if insecure {
-                XHandler::new(download_latest_origin_secret_key)
-            } else {
-                XHandler::new(download_latest_origin_secret_key).before(worker.clone())
-            }
+            XHandler::new(download_latest_origin_secret_key).before(worker.clone())
         },
 
         builder_key_latest: get "/builder/keys/latest" => download_latest_builder_key,
@@ -2026,7 +2011,7 @@ where
 pub fn router(depot: DepotUtil) -> Result<Chain> {
     let basic = Authenticated::new(&depot.config);
     let worker = Authenticated::new(&depot.config).require(privilege::BUILD_WORKER);
-    let router = routes(depot.config.insecure, basic, worker);
+    let router = routes(basic, worker);
     let mut chain = Chain::new(router);
     chain.link(persistent::Read::<EventLog>::both(EventLogger::new(
         &depot.config.log_dir,

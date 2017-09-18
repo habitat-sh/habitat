@@ -33,8 +33,6 @@ pub struct Config {
     /// List of net addresses for routing servers to connect to
     pub routers: Vec<RouterAddr>,
     pub github: GitHubCfg,
-    /// Disable authenticated uploads for all entities
-    pub insecure: bool,
     /// Filepath to location on disk to store entities
     pub path: PathBuf,
     /// Whether to log events for funnel metrics
@@ -60,7 +58,6 @@ impl Default for Config {
             routers: vec![RouterAddr::default()],
             github: GitHubCfg::default(),
             path: PathBuf::from("/hab/svc/hab-depot/data"),
-            insecure: false,
             events_enabled: false, // TODO: change to default to true later
             builds_enabled: false,
             log_dir: PathBuf::from(env::temp_dir().to_string_lossy().into_owned()),
@@ -140,7 +137,6 @@ mod tests {
     fn config_from_file() {
         let content = r#"
         path = "/hab/svc/hab-depot/data"
-        insecure = true
         builds_enabled = true
         events_enabled = true
         log_dir = "/hab/svc/hab-depot/var/log"
@@ -170,7 +166,6 @@ mod tests {
 
         let config = Config::from_raw(&content).unwrap();
         assert_eq!(config.path, PathBuf::from("/hab/svc/hab-depot/data"));
-        assert_eq!(config.insecure, true);
         assert_eq!(config.builds_enabled, true);
         assert_eq!(config.events_enabled, true);
         assert_eq!(config.log_dir, PathBuf::from("/hab/svc/hab-depot/var/log"));

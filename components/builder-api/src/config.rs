@@ -142,7 +142,6 @@ mod tests {
 
         [depot]
         path = "/hab/svc/hab-depot/data"
-        insecure = true
         builds_enabled = true
         events_enabled = true
         log_dir = "/hab/svc/hab-depot/var/log"
