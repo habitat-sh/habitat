@@ -1,0 +1,40 @@
+init_config:
+
+instances:
+  - host: localhost
+    port: 5432
+    username: hab
+    password: REPLACETHIS
+    dbname: builder_jobsrv
+    ssl: False
+    tags:
+      - jobsrv
+    custom_metrics:
+    - # Completed jobs
+      descriptors:
+        - [job_state, completed]
+      metrics:
+         COUNT(job_state): [postgresql.job_state.completed, GAUGE]
+      query: SELECT job_state, %s from shard_0.jobs WHERE job_state = 'Complete' GROUP BY job_state;
+      relation: false
+    - # Failed jobs
+      descriptors:
+        - [job_state, failed]
+      metrics:
+         COUNT(job_state): [postgresql.job_state.failed, GAUGE]
+      query: SELECT job_state, %s from shard_0.jobs WHERE job_state = 'Failed' GROUP BY job_state;
+      relation: false
+    - # Pending jobs
+      descriptors:
+        - [job_state, waiting]
+      metrics:
+         COUNT(job_state): [postgresql.job_state.waiting, GAUGE]
+      query: SELECT job_state, %s from shard_0.jobs WHERE job_state = 'Pending' GROUP BY job_state;
+      relation: false
+    - # Dispatched jobs
+      descriptors:
+        - [job_state, working]
+      metrics:
+         COUNT(job_state): [postgresql.job_state.working, GAUGE]
+      query: SELECT job_state, %s from shard_0.jobs WHERE job_state = 'Dispatched' GROUP BY job_state;
+      relation: false
