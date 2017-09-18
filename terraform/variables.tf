@@ -58,8 +58,8 @@ variable "release_channel" {
 }
 
 variable "log_level" {
-  description = "The RUST_LOG logging level for the builder services"
-  default     = "error"
+  description = "Logging level for the Habitat Supervisor"
+  default     = "info"
 }
 
 variable "gossip_listen_port" {
