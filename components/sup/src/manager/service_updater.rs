@@ -365,7 +365,7 @@ impl Worker {
                             Err(e) => warn!("Failed to install updated package: {:?}", e),
                         }
                     } else {
-                        info!("Package found is not newer than ours");
+                        debug!("Package found is not newer than ours");
                     }
                 }
                 Err(e) => warn!("Updater failed to get latest package: {:?}", e),

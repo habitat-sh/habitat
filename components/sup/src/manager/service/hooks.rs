@@ -86,7 +86,7 @@ pub trait Hook: fmt::Debug + Sized {
                 Some(Self::new(service_group, pair))
             }
             Err(_) => {
-                info!(
+                warn!(
                     "{} not found at {}, not loading",
                     Self::file_name(),
                     template.display()
@@ -99,18 +99,15 @@ pub trait Hook: fmt::Debug + Sized {
     fn new(service_group: &ServiceGroup, render_pair: RenderPair) -> Self;
 
     /// Compile a hook into its destination service directory.
-    fn compile(&self, ctx: &RenderContext) -> Result<bool> {
+    fn compile(&self, service_group: &ServiceGroup, ctx: &RenderContext) -> Result<bool> {
         let content = self.renderer().render(Self::file_name(), ctx)?;
         if write_hook(&content, self.path())? {
-            info!(
-                "{}, compiled to {}",
-                Self::file_name(),
-                self.path().display()
-            );
+            outputln!(preamble service_group, "{}, compiled to {}", Self::file_name(),
+                self.path().display());
             hcore::util::perm::set_permissions(self.path(), HOOK_PERMISSIONS)?;
             Ok(true)
         } else {
-            info!(
+            debug!(
                 "{}, already compiled to {}",
                 Self::file_name(),
                 self.path().display()
@@ -778,7 +775,7 @@ impl HookTable {
                 table.smoke_test = SmokeTestHook::load(service_group, &hooks_path, &templates);
             }
         }
-        info!(
+        debug!(
             "{}, Hooks loaded, destination={}, templates={}",
             service_group,
             hooks_path.as_ref().display(),
@@ -821,7 +818,7 @@ impl HookTable {
         if let Some(ref hook) = self.smoke_test {
             changed = self.compile_one(hook, service_group, ctx) || changed;
         }
-        info!("{}, Hooks compiled", service_group);
+        outputln!(preamble service_group, "Hooks compiled");
         changed
     }
 
@@ -829,7 +826,7 @@ impl HookTable {
     where
         H: Hook,
     {
-        match hook.compile(ctx) {
+        match hook.compile(service_group, ctx) {
             Ok(status) => status,
             Err(e) => {
                 outputln!(preamble service_group,
@@ -1276,7 +1273,7 @@ echo "The message is Hola Mundo"
         // END RENDER CONTEXT SETUP
         ////////////////////////////////////////////////////////////////////////
 
-        assert_eq!(hook.compile(&ctx).unwrap(), true);
+        assert_eq!(hook.compile(&service_group, &ctx).unwrap(), true);
 
         let post_change_content = file_content(&hook);
         let expected = r#"#!/bin/bash
@@ -1286,7 +1283,7 @@ echo "The message is Hello"
         assert_eq!(post_change_content, expected);
 
         // Compiling again should result in no changes
-        assert_eq!(hook.compile(&ctx).unwrap(), false);
+        assert_eq!(hook.compile(&service_group, &ctx).unwrap(), false);
         let post_second_change_content = file_content(&hook);
         assert_eq!(post_second_change_content, post_change_content);
     }
