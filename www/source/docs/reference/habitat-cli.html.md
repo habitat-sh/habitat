@@ -577,7 +577,7 @@ Exports the package to the specified format
 
 **ARGS** 
 
-    <FORMAT>       The export format (ex: docker, aci, mesos, or tar)
+    <FORMAT>       The export format (docker, aci, mesos, or tar)
     <PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
 
 <h2 id="hab-pkg-hash" class="anchor">hab pkg hash</h2>
@@ -776,11 +776,16 @@ set will be used in the generated plan
 **OPTIONS** 
 
     -o, --origin <ORIGIN>              Origin for the new app
-    -s, --scaffolding <SCAFFOLDING>    Specify explicit scaffolding type for your app
+    -s, --scaffolding <SCAFFOLDING>    Specify explicit scaffolding type for your app (ruby, node, go)
 
 **ARGS** 
 
     <PKG_NAME>    Name for the new app
+
+**Scaffolding Options** 
+
+You can specify which scaffolding you want to use via the `hab plan init -s` command. 
+Current fully supported scaffoldings are accessed via the keyword `ruby`, `node`, or `go`.
 
 <h2 id="hab-ring-key" class="anchor">hab ring key</h2>
 Commands relating to Habitat ring keys
