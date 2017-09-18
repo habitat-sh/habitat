@@ -57,7 +57,7 @@ pub trait Callbacks {
 }
 
 // Essentially a pair of dirname and basename.
-#[derive(Clone, Default)]
+#[derive(Clone, Debug, Default)]
 struct DirFileName {
     directory: PathBuf,
     file_name: OsString,
@@ -93,6 +93,7 @@ impl DirFileName {
 // status in mountinfo, when some change there happens.
 
 // Similar to DirFileName, but the file_name part is optional.
+#[derive(Debug)]
 struct SplitPath {
     directory: PathBuf,
     file_name: Option<OsString>,
@@ -114,6 +115,7 @@ impl SplitPath {
 }
 
 // Contents of this type are for `process_path`.
+#[derive(Debug)]
 struct ProcessPathArgs {
     // The beginning of the patch to process (very often it is root,
     // but not always).
@@ -138,12 +140,14 @@ struct ProcessPathArgs {
 
 // This struct tells that for `path` the previous item in chain is
 // `prev`.
+#[derive(Debug)]
 struct ChainLinkInfo {
     path: PathBuf,
     prev: Option<PathBuf>,
 }
 
 // This struct is passed together with some event actions.
+#[derive(Debug)]
 struct PathsActionData {
     dir_file_name: DirFileName,
     args: ProcessPathArgs,
@@ -152,6 +156,7 @@ struct PathsActionData {
 // This is stores information about the watched item
 //
 // TODO(krnowak): Rename it.
+#[derive(Debug)]
 struct Common {
     // TODO: maybe drop this? we could also use dir_file_name.as_path()
     path: PathBuf,
@@ -316,6 +321,7 @@ impl CommonGenerator {
 }
 
 // An item we are interested in.
+#[derive(Debug)]
 enum WatchedFile {
     Regular(Common),
     MissingRegular(Common),
@@ -389,6 +395,7 @@ fn simplify_abs_path(abs_path: &PathBuf) -> PathBuf {
 //
 // We translate `DebouncedEvent` to `EventAction`, and `EventAction`
 // to a list of `PathsAction`s.
+#[derive(Debug)]
 enum EventAction {
     Ignore,
     PlainChange(PathBuf),
@@ -403,6 +410,7 @@ enum EventAction {
 }
 
 // Lower-level actions, created to execute `EventAction`s.
+#[derive(Debug)]
 enum PathsAction {
     NotifyFileAppeared(PathBuf),
     NotifyFileModified(PathBuf),
@@ -420,6 +428,7 @@ enum PathsAction {
 // directories.
 //
 // TODO(asymmetric): This could be renamed to `BranchStatus`.
+#[derive(Debug)]
 enum BranchResult {
     // The path already existed - may happen when dealing with
     // symlinks in the path.
@@ -431,6 +440,7 @@ enum BranchResult {
 }
 
 // See `BranchResult`.
+#[derive(Debug)]
 enum LeafResult {
     // New path in a known directory.
     NewInOldDirectory(ChainLinkInfo),
@@ -441,6 +451,7 @@ enum LeafResult {
 // Used when we settle a path, so we know if we processed a path
 // because all the paths were already settled, or not if there were
 // still some left to settle.
+#[derive(Debug)]
 enum ProcessPathStatus {
     // Holds a vector of new directories to watch (a result of
     // `process_path` function)
@@ -449,6 +460,7 @@ enum ProcessPathStatus {
 }
 
 // Paths holds the state with regards to watching.
+#[derive(Debug)]
 struct Paths {
     // A map of paths to file info of items. If something happens to
     // them, we react.
@@ -548,7 +560,10 @@ impl Paths {
         self.real_file = None;
 
         while let Some(common) = common_generator.get_new_common() {
+            debug!("common.path: {:?}", &common.path);
+            debug!("common.path_rest: {:?}", &common.path_rest);
             let dir_file_name = common.dir_file_name.clone();
+            debug!("dir_file_name: {:?}", dir_file_name);
 
             match common.path.symlink_metadata() {
                 // The error can be triggered when the underlying path
@@ -634,13 +649,16 @@ impl Paths {
                             }
                         };
 
+                        debug!("target: {:?}", &target);
                         let target_path = if target.is_absolute() {
                             target
                         } else {
+                            debug!("directory for target: {:?}", &dir_file_name.directory);
                             dir_file_name.directory.join(target)
                         };
 
                         let simplified_target = simplify_abs_path(&target_path);
+                        debug!("simplified target: {:?}", &simplified_target);
                         let process_args = Self::path_for_processing(&simplified_target);
 
                         if self.symlink_loop(
@@ -1049,8 +1067,12 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
         // Gather the high-level actions.
         actions.extend(Self::get_paths_actions(&self.paths, event));
 
+        debug!("in handle_event fn");
+        debug!("paths: {:?}", self.paths);
+        debug!("actions: {:?}", actions);
         // Perform lower-level actions.
         while let Some(action) = actions.pop_front() {
+            debug!("action {:?}", action);
             match action {
                 PathsAction::NotifyFileAppeared(p) => {
                     self.callbacks.file_appeared(p.as_path());
@@ -1129,6 +1151,7 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
     fn get_paths_actions(paths: &Paths, event: DebouncedEvent) -> Vec<PathsAction> {
         let mut actions = Vec::new();
         for event_action in Self::get_event_actions(paths, event) {
+            debug!("event_action: {:?}", event_action);
             match event_action {
                 EventAction::Ignore => (),
                 EventAction::PlainChange(p) => {
