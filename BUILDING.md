@@ -205,7 +205,9 @@ sudo su - jdoe
 
 ## VM vs. Docker development
 
-While the available docker images can provide a convenient contributor onboarding experience, they may not prove ideal for extensive habitat development. Building habitat components is a disk intensive operation. Mounted file systems accross network boundaries, even when confined to a single local host, can yield build times dramatically slower than building against a locally attached file system. Build times will be best on either a bare metal linux environment or a dedicated linux vm. Also note that when using vagrant to provision a vm for habitat development, it is strongly advised that you do not put your habitat repo on a synced folder or at least do not use that folder as your build target. The following directions clone the habitat repository into a local directory to realize faster build times.
+While the available docker images can provide a convenient contributor onboarding experience, they may not prove ideal for extensive habitat development. Building habitat components is a disk intensive operation. Mounted file systems across network boundaries, even when confined to a single local host, can yield build times dramatically slower than building against a locally attached file system. Build times will be best on either a bare metal linux environment or a dedicated linux vm. Also note that when using vagrant to provision a vm for habitat development, it is advised that you do not put your habitat repo on a synced folder or at least do not use that folder as your build target.
+
+The following directions clone the habitat repository into a local directory to realize faster build times; **however**, while faster, this approach carries the risk of losing your work if your VM should crash or get into an unrecoverable state. If developing in a VM, intermittently pushing a WIP to your Habitat fork can protect your progress.
 
 In the root of the project is a Vagrantfile that provisions an Ubuntu environment for Habitat development:
 
