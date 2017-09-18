@@ -37,6 +37,8 @@ impl TemplateRenderer {
         let mut handlebars = Handlebars::new();
         handlebars.register_helper("eachAlive", Box::new(helpers::EACH_ALIVE));
         handlebars.register_helper("pkgPathFor", Box::new(helpers::PKG_PATH_FOR));
+        handlebars.register_helper("strConcat", Box::new(helpers::STR_CONCAT));
+        handlebars.register_helper("strJoin", Box::new(helpers::STR_JOIN));
         handlebars.register_helper("strReplace", Box::new(helpers::STR_REPLACE));
         handlebars.register_helper("toUppercase", Box::new(helpers::TO_UPPERCASE));
         handlebars.register_helper("toLowercase", Box::new(helpers::TO_LOWERCASE));
