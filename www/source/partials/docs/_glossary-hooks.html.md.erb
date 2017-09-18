@@ -1,0 +1,18 @@
+# <a name="glossary-hooks">Hooks</a>
+
+Each plan can specify lifecycle event handlers, or hooks, to perform certain actions during a service's runtime. Each hook is a script with a shebang defined at the top to specify the interpreter to be used.
+
+> **Important:** You cannot block the thread in a hook unless it is in the run hook. Never call hab or sleep in a hook that is not the run hook.
+
+The currently available hooks are:
+
+  - file_updated
+  - health_check
+  - init
+  - reload
+  - reconfigure
+  - suitability
+  - run
+  - post-run
+
+For more information on any of these hooks check out our hooks documentation

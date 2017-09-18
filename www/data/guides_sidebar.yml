@@ -1,0 +1,43 @@
+---
+sidebar_links:
+- title: 
+  links:
+  - title: Docs Home
+    link: "/docs"
+  - title: Getting Started <span>&plus;</span>
+    link: "/docs/getting-started"
+    sub_links:
+    - title: Overview
+      link: "#overview"
+    - title: Installing Habitat
+      link: "#install-habitat"
+    - title: Install FAQ
+      link: "/docs/install-fq"
+  - title: The Next Thing <span>&plus;</span>
+    link: "/docs"
+    sub_links:
+    - title: Another Thing
+      link: "/docs"
+    - title: Blerg
+      link: "/also-blerg"
+  - title: Glossary <span>&plus;</span>
+    link: "/docs/glossary"
+    sub_links:
+    - title: Supervisor
+      link: "#glossary-supervisor"
+    - title: Plans
+      link: "#glossary-plan"
+    - title: Scaffolding
+      link: "#glossary-scaffolding"
+    - title: Packages
+      link: "#glossary-packages"
+    - title: Keys
+      link: "#glossary-keys"
+    - title: Studio
+      link: "#glossary-studio"
+    - title: Services
+      link: "#glossary-services"
+    - title: Builder
+      link: "#glossary-builder"
+  - title: Find .harts
+    link: "https://bldr.habitat.sh/#/explore"

@@ -1,0 +1,109 @@
+---
+sidebar_links:
+- title: Getting Started
+  links: 
+  - title: Overview
+    link: "/docs/overview/"
+  - title: Download and install Habitat
+    link: "/tutorials/download/"
+  - title: Tutorials
+    link: "/tutorials/"
+  - title: Concepts <span>&plus;</span>
+    link: "/docs/concepts-overview/"
+    sub_links:
+    - title: Supervisor
+      link: "/docs/concepts-supervisor/"
+    - title: Plans
+      link: "/docs/concepts-plans/"
+    - title: Scaffolding
+      link: "/docs/concepts-scaffolding/"
+    - title: Packages
+      link: "/docs/concepts-packages/"
+    - title: Keys
+      link: "/docs/concepts-keys/"
+    - title: Studio
+      link: "/docs/concepts-studio/"
+    - title: Services
+      link: "/docs/concepts-services/"
+    - title: Depot
+      link: "/docs/concepts-depot/"
+- title: Using Habitat
+  links:
+  - title: Create packages <span>&plus;</span>
+    link: "/docs/create-packages-overview/"
+    sub_links:
+    - title: Create plans
+      link: "/docs/create-plans/"
+    - title: Add configuration
+      link: "/docs/create-packages-configure/"
+    - title: Build packages
+      link: "/docs/create-packages-build/"
+    - title: Debug plans
+      link: "/docs/create-packages-debugging/"
+    - title: Create binary-only packages
+      link: "/docs/create-packages-binary-only"
+  - title: Run packages <span>&plus;</span>
+    link: "/docs/run-packages-overview/"
+    sub_links:
+    - title: Service groups
+      link: "/docs/run-packages-service-groups/"
+    - title: Topologies
+      link: "/docs/run-packages-topologies/"
+    - title: Configuration updates
+      link: "/docs/run-packages-apply-config-updates/"
+    - title: Upload files
+      link: "/docs/run-packages-upload-files/"
+    - title: Security
+      link: "/docs/run-packages-security/"
+    - title: Binding
+      link: "/docs/run-packages-binding/"
+    - title: Update strategy
+      link: "/docs/run-packages-update-strategy/"
+    - title: Multiple Services
+      link: "/docs/run-packages-multiple-services/"
+    - title: Export packages
+      link: "/docs/run-packages-export/"
+    - title: Monitoring
+      link: "/docs/run-packages-monitoring/"
+  - title: Share packages
+    link: "/docs/share-packages-overview/"
+  - title: Continuous deployment
+    link: "/docs/continuous-deployment-overview/"
+  - title: Container orchestration
+    link: "/docs/container-orchestration/"
+    sub_links:
+    - title: Amazon EC2 Container Service
+      link: "/docs/container-orchestration-ecs/"
+    - title: Apache Mesos and DC/OS
+      link: "/docs/container-orchestration-mesos/"
+    - title: Kubernetes
+      link: "/docs/container-orchestration-kubernetes/"
+  - title: Habitat internals <span>&plus;</span>
+    link: "/docs/internals-overview/"
+    sub_links:
+    - title: Supervisor
+      link: "/docs/internals-supervisor/"
+    - title: Leader Election
+      link: "/docs/internals-leader-election/"
+    - title: Cryptography
+      link: "/docs/internals-crypto/"
+    - title: Bootstrapping Habitat
+      link: "/docs/internals-bootstrapping/"
+- title: Reference
+  links:
+  - title: CLI reference
+    link: "/docs/reference/habitat-cli/"
+  - title: Plan syntax
+    link: "/docs/reference/plan-syntax/"
+  - title: Environment variables
+    link: "/docs/reference/environment-vars/"
+  - title: Package contents
+    link: "/docs/reference/package-contents/"
+  - title: Supervisor log keys
+    link: "/docs/reference/log-keys/"
+  - title: Habitat infographics
+    link: "/docs/reference/habitat-infographics/"
+- title: Contribute
+  links:
+  - title: Help build Habitat
+    link: "/docs/contribute-help-build/"

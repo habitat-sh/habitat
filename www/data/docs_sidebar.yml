@@ -1,109 +1,121 @@
 ---
 sidebar_links:
-- title: Getting Started
+- title: 
   links:
-  - title: Overview
-    link: "/docs/overview/"
-  - title: Download and install Habitat
-    link: "/tutorials/download/"
-  - title: Tutorials
-    link: "/tutorials/"
-  - title: Concepts <span>&plus;</span>
-    link: "/docs/concepts-overview/"
+  - title: Docs Home
+    link: "/docs"
+  - title: Using Habitat <span>&plus;</span>
+    link: "/docs/using-habitat"
+    sub_links:
+    - title: Overview
+      link: "#overview"
+    - title: Installing Habitat
+      link: "#install-habitat"
+    - title: Install FAQ
+      link: "/docs/install-faq"
+    - title: A thing
+      link: "/"
+  - title: Developing Plans <span>&plus;</span>
+    link: "/docs/developing-plans"
+    sub_links:
+      - title: a
+        link: "/"
+      - title: b
+        link: "/"
+      - title: c
+        link: "/"
+      - title: d
+        link: "/"
+  - title: Commands (CLI) <span>&plus;</span>
+    link: "/docs/habitat-cli"
+    sub_links:
+      - title: hab
+        link: "#hab"
+      - title: hab cli setup
+        link: "#hab-cli-setup"
+      - title: hab config apply
+        link: "#hab-config-apply"
+      - title: hab file upload
+        link: "#hab-file-upload"
+      - title: hab origin key download
+        link: "#hab-origin-key-download"
+      - title: hab origin key export
+        link: "#hab-origin-key-export"
+      - title: hab origin key generate
+        link: "#hab-origin-key-generate"
+      - title: hab origin key import
+        link: "#hab-origin-key-import"
+      - title: hab origin key upload
+        link: "#hab-origin-key-upload"
+      - title: hab pkg binlink
+        link: "#hab-pkg-binlink"
+      - title: hab pkg build
+        link: "#hab-pkg-build"
+      - title: hab pkg demote
+        link: "#hab-pkg-demote"
+      - title: hab pkg exec
+        link: "#hab-pkg-exec"
+      - title: hab pkg export
+        link: "#hab-pkg-export"
+      - title: hab pkg hash
+        link: "#hab-pkg-hash"
+      - title: hab pkg install
+        link: "#hab-pkg-install"
+      - title: hab pkg path
+        link: "#hab-pkg-path"
+      - title: hab pkg promote
+        link: "#hab-pkg-promote"
+      - title: hab pkg provides
+        link: "#hab-pkg-provides"
+      - title: hab pkg sign
+        link: "#hab-pkg-sign"
+      - title: hab pkg upload
+        link: "#hab-pkg-upload"
+      - title: hab pkg verify
+        link: "#hab-pkg-verify"
+      - title: hab plan init
+        link: "#hab-plan-ini"
+      - title: hab ring key export
+        link: "#hab-ring-key-export"
+      - title: hab ring key generate
+        link: "#hab-ring-key-generate"
+      - title: hab ring key import
+        link: "#hab-ring-key-import"
+      - title: hab svc key generate
+        link: "#hab-service-key-generate"
+      - title: hab studio
+        link: "#hab-studio"
+      - title: hab sup
+        link: "#hab-sup"
+      - title: hab user key generate
+        link: "hab-user-key-generate"
+  - title: Best Practices <span>&plus;</span>
+    link: "/docs"
+    sub_links:
+    - title: Another Thing
+      link: "/docs"
+    - title: Blerg
+      link: "/also-blerg"
+  - title: Glossary <span>&plus;</span>
+    link: "/docs/glossary"
     sub_links:
     - title: Supervisor
-      link: "/docs/concepts-supervisor/"
+      link: "#glossary-supervisor"
     - title: Plans
-      link: "/docs/concepts-plans/"
+      link: "#glossary-plan"
+    - title: Hooks
+      link: "#glossary-hooks"
     - title: Scaffolding
-      link: "/docs/concepts-scaffolding/"
+      link: "#glossary-scaffolding"
     - title: Packages
-      link: "/docs/concepts-packages/"
+      link: "#glossary-packages"
     - title: Keys
-      link: "/docs/concepts-keys/"
+      link: "#glossary-keys"
     - title: Studio
-      link: "/docs/concepts-studio/"
+      link: "#glossary-studio"
     - title: Services
-      link: "/docs/concepts-services/"
-    - title: Depot
-      link: "/docs/concepts-depot/"
-- title: Using Habitat
-  links:
-  - title: Create packages <span>&plus;</span>
-    link: "/docs/create-packages-overview/"
-    sub_links:
-    - title: Create plans
-      link: "/docs/create-plans/"
-    - title: Add configuration
-      link: "/docs/create-packages-configure/"
-    - title: Build packages
-      link: "/docs/create-packages-build/"
-    - title: Debug plans
-      link: "/docs/create-packages-debugging/"
-    - title: Create binary-only packages
-      link: "/docs/create-packages-binary-only"
-  - title: Run packages <span>&plus;</span>
-    link: "/docs/run-packages-overview/"
-    sub_links:
-    - title: Service groups
-      link: "/docs/run-packages-service-groups/"
-    - title: Topologies
-      link: "/docs/run-packages-topologies/"
-    - title: Configuration updates
-      link: "/docs/run-packages-apply-config-updates/"
-    - title: Upload files
-      link: "/docs/run-packages-upload-files/"
-    - title: Security
-      link: "/docs/run-packages-security/"
-    - title: Binding
-      link: "/docs/run-packages-binding/"
-    - title: Update strategy
-      link: "/docs/run-packages-update-strategy/"
-    - title: Multiple Services
-      link: "/docs/run-packages-multiple-services/"
-    - title: Export packages
-      link: "/docs/run-packages-export/"
-    - title: Monitoring
-      link: "/docs/run-packages-monitoring/"
-  - title: Share packages
-    link: "/docs/share-packages-overview/"
-  - title: Continuous deployment
-    link: "/docs/continuous-deployment-overview/"
-  - title: Container orchestration
-    link: "/docs/container-orchestration/"
-    sub_links:
-    - title: Amazon EC2 Container Service
-      link: "/docs/container-orchestration-ecs/"
-    - title: Apache Mesos and DC/OS
-      link: "/docs/container-orchestration-mesos/"
-    - title: Kubernetes
-      link: "/docs/container-orchestration-kubernetes/"
-  - title: Habitat internals <span>&plus;</span>
-    link: "/docs/internals-overview/"
-    sub_links:
-    - title: Supervisor
-      link: "/docs/internals-supervisor/"
-    - title: Leader Election
-      link: "/docs/internals-leader-election/"
-    - title: Cryptography
-      link: "/docs/internals-crypto/"
-    - title: Bootstrapping Habitat
-      link: "/docs/internals-bootstrapping/"
-- title: Reference
-  links:
-  - title: CLI reference
-    link: "/docs/reference/habitat-cli/"
-  - title: Plan syntax
-    link: "/docs/reference/plan-syntax/"
-  - title: Environment variables
-    link: "/docs/reference/environment-vars/"
-  - title: Package contents
-    link: "/docs/reference/package-contents/"
-  - title: Supervisor log keys
-    link: "/docs/reference/log-keys/"
-  - title: Habitat infographics
-    link: "/docs/reference/habitat-infographics/"
-- title: Contribute
-  links:
-  - title: Help build Habitat
-    link: "/docs/contribute-help-build/"
+      link: "#glossary-services"
+    - title: Builder
+      link: "#glossary-builder"
+  - title: Find .harts
+    link: "https://bldr.habitat.sh/#/explore"

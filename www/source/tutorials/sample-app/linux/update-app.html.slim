@@ -2,7 +2,7 @@
 title: Habitat - Dynamically Update the App
 ---
 
-= partial '/tutorials/partials/platform_switcher', locals: { platform: 'linux' }
+= partial '/partials/tutorials/platform_switcher', locals: { platform: 'linux' }
 
 section.sample-app
 	h1 Dynamically Update the App
@@ -86,7 +86,7 @@ section.sample-app
 
 		p Your <code>myrailsapp</code> package should now successfully move forward in the initialization process; however, it will get stuck again in the following loop:
 
-		= partial "/tutorials/partials/update_app_output_1"
+		= partial "/partials/tutorials/update_app_output_1"
 
 		p Notice the <code>db.user</code>, <code>db.password</code>, and <code>db.name</code> values. The <code>db.user</code> and <code>db.password</code> values were updated from their default values to those specified in the <code>updated_config.toml</code> that was just applied to the <code>myrailsapp.default</code> service group. The <code>db.name</code> value was not updated from its default value, <code>myrailsapp_production</code>, which was set by the Ruby scaffolding when it built the <code>myrailsapp</code> package.
 
@@ -103,7 +103,7 @@ section.sample-app
 
 	p Your output should show the <code>myrailsapp_production</code> database and <code>page_updates</code> table being created. An initial set of values should also have been inserted into the table.
 
-	= partial "/tutorials/partials/update_app_rake_output"
+	= partial "/partials/tutorials/update_app_rake_output"
 
 	h2 View Your Site
 
@@ -111,7 +111,7 @@ section.sample-app
 
 	p The output of the terminal window should look like the following:
 
-	= partial "/tutorials/partials/update_app_output_2"
+	= partial "/partials/tutorials/update_app_output_2"
 
 	p Periodically, the <code>health_check</code> hook that you created will run in the background. You should see the output of the curl command in the supervisor log.
 

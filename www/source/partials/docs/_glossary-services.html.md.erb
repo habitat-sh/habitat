@@ -1,8 +1,4 @@
----
-title: Services
----
-
-# Services
+# <a name="glossary-services">Services</a>
 
 A service in Habitat is defined as a Habitat package running under a Habitat supervisor. Services are always run within named service groups, even if there is only one.
 
@@ -29,9 +25,3 @@ This topology allows a distributed application running on at least three Habitat
 ## Leader election
 
 Habitat provides leader election capabilities out of the box for any topology that needs it. Leader election is implemented in the supervisor, using the [Bully](https://en.wikipedia.org/wiki/Bully_algorithm) algorithm. Habitat is a weakly consistent system, so it does not use Paxos or Raft, etc. for consensus.
-
-<hr>
-<ul class="main-content--link-nav">
-  <li>Continue to the next topic</li>
-  <li><a href="/docs/concepts-depot">Depot</a></li>
-</ul>

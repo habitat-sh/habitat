@@ -167,5 +167,5 @@ hab studio enter
 ~~~
 
 ~~~
-cat all_order | while read plan; do build $plan || break; done
+time { cat all_order | while read plan; do build $plan || break; done }
 ~~~

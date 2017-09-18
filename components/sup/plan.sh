@@ -1,7 +1,7 @@
 pkg_name=hab-sup
 _pkg_distname=$pkg_name
 pkg_origin=core
-pkg_version=$(cat "$PLAN_CONTEXT/../../VERSION")
+#pkg_version=$(cat "$PLAN_CONTEXT/../../VERSION")
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('Apache-2.0')
 pkg_deps=(
@@ -31,6 +31,14 @@ _common_prepare() {
     export CARGO_TARGET_DIR="$HAB_CARGO_TARGET_DIR"
   fi
   build_line "Setting CARGO_TARGET_DIR=$CARGO_TARGET_DIR"
+}
+
+pkg_version() {
+  cat "$PLAN_CONTEXT/../../VERSION"
+}
+
+do_before() {
+  update_pkg_version
 }
 
 do_prepare() {
