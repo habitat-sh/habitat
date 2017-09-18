@@ -78,10 +78,11 @@ impl CensusRing {
         service_file_rumors: &RumorStore<ServiceFileRumor>,
     ) {
         self.changed = false;
-        self.update_from_service_store(service_rumors);
+
+        self.populate_census(service_rumors, member_list);
         self.update_from_election_store(election_rumors);
         self.update_from_election_update_store(election_update_rumors);
-        self.update_from_member_list(member_list);
+
         self.update_from_service_config(service_config_rumors);
         self.update_from_service_files(service_file_rumors);
     }
@@ -94,11 +95,38 @@ impl CensusRing {
         self.census_groups.values().map(|cg| cg).collect()
     }
 
-    fn update_from_service_store(&mut self, service_rumors: &RumorStore<ServiceRumor>) {
-        if service_rumors.get_update_counter() <= self.last_service_counter {
+    /// Populates the census from `ServiceRumor`s and Butterfly-level
+    /// membership lists.
+    ///
+    /// (Butterfly provides the health, the ServiceRumors provide the
+    /// rest).
+    fn populate_census(
+        &mut self,
+        service_rumors: &RumorStore<ServiceRumor>,
+        member_list: &MemberList,
+    ) {
+        // We are drawing on information from two different sources
+        // which can change independently. If either have changed
+        // since the last we saw them, we need to re-examine our
+        // census.
+        if (service_rumors.get_update_counter() <= self.last_service_counter) &&
+            (member_list.get_update_counter() <= self.last_membership_counter)
+        {
             return;
         }
+
         self.changed = true;
+
+        // Populate our census; new groups are created here, as are
+        // new members of those groups.
+        //
+        // NOTE: In the current implementation, these members have an
+        // indeterminate health status until we process the contents
+        // of `member_list`. In the future, it would be nice to
+        // incorporate the member list into
+        // `census_group.update_from_service_rumors`, where new census
+        // members are created, so there would be no time that there
+        // is an indeterminate health anywhere.
         service_rumors.with_keys(|(service_group, rumors)| if let Ok(sg) =
             service_group_from_str(service_group)
         {
@@ -110,6 +138,19 @@ impl CensusRing {
             );
             census_group.update_from_service_rumors(rumors);
         });
+
+        member_list.with_members(|member| {
+            let health = member_list.health_of(&member).unwrap();
+            for group in self.census_groups.values_mut() {
+                if let Some(census_member) = group.find_member_mut(member.get_id()) {
+                    census_member.update_from_member(&member);
+                    census_member.update_from_health(health);
+                }
+            }
+        });
+
+        // Update our counters to reflect current state.
+        self.last_membership_counter = member_list.get_update_counter();
         self.last_service_counter = service_rumors.get_update_counter();
     }
 
@@ -146,23 +187,6 @@ impl CensusRing {
             }
         });
         self.last_election_update_counter = election_update_rumors.get_update_counter();
-    }
-
-    fn update_from_member_list(&mut self, member_list: &MemberList) {
-        if member_list.get_update_counter() <= self.last_membership_counter {
-            return;
-        }
-        self.changed = true;
-        member_list.with_members(|member| {
-            let health = member_list.health_of(&member).unwrap();
-            for group in self.census_groups.values_mut() {
-                if let Some(census_member) = group.find_member_mut(member.get_id()) {
-                    census_member.update_from_member(&member);
-                    census_member.update_from_health(health);
-                }
-            }
-        });
-        self.last_membership_counter = member_list.get_update_counter();
     }
 
     fn update_from_service_config(
