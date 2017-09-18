@@ -27,6 +27,19 @@ You can create a Docker container image for any package by performing the follow
 
 For an example of using Docker Compose to run multiple Habitat containers together, see the [Run the Sample App](/tutorials/sample-app/mac/run-app/) step in the Build a Sample App tutorial.
 
+## Exporting to a tarball 
+
+1. Enter the habitat studio by using `hab studio enter`. 
+2. Install or [build](/docs/create-packages-build) the Habitat package from which you want to create a tarball, for example: 
+
+        hab pkg install yourorigin/yourpackage 
+
+3. Run the tar exporter on the package. 
+
+        hab pkg export tar yourorigin/yourpackage 
+
+4. Your package in a tar file exists locally on your computer in the format `origin-package-version-timestamp.tar.gz` and can be deployed and run on a target machine. 
+
 ## Exporting to an Application Container Image (ACI)
 
 You can create an Application Container Image (ACI) for any package by performing the following steps:
