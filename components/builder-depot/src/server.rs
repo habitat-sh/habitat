@@ -58,7 +58,7 @@ define_event_log!();
 #[derive(Clone, Serialize, Deserialize)]
 struct OriginCreateReq {
     name: String,
-    default_package_visibility: String,
+    default_package_visibility: Option<String>,
 }
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -115,13 +115,13 @@ pub fn origin_create(req: &mut Request) -> IronResult<Response> {
 
     match req.get::<bodyparser::Struct<OriginCreateReq>>() {
         Ok(Some(body)) => {
-            let dpv = match body.default_package_visibility
-                .parse::<OriginPackageVisibility>() {
-                Ok(x) => x,
-                Err(_) => return Ok(Response::with(status::UnprocessableEntity)),
-            };
+            if let Some(vis) = body.default_package_visibility {
+                match vis.parse::<OriginPackageVisibility>() {
+                    Ok(vis) => request.set_default_package_visibility(vis),
+                    Err(_) => return Ok(Response::with(status::UnprocessableEntity)),
+                }
+            }
             request.set_name(body.name);
-            request.set_default_package_visibility(dpv);
         }
         _ => return Ok(Response::with(status::UnprocessableEntity)),
     }
