@@ -25,6 +25,11 @@ schemas:
                 "owner_id": {
                     "type": "string",
                     "required": false
+                },
+                "default_package_visibility": {
+                    "type": "string",
+                    "enum": ["Public", "Private"],
+                    "required": false
                 }
             }
         }
@@ -51,7 +56,7 @@ schemas:
                     "type": "string",
                     "required": true
                 },
-                "onwer_id": {
+                "owner_id": {
                     "type": "string",
                     "required": true
                 }
@@ -88,7 +93,8 @@ securitySchemes:
                 schema: origin
                 example: |
                     {
-                        "name": "reset"
+                        "name": "reset",
+                        "default_package_visibility": "public"
                     }
         responses:
             200:
@@ -99,7 +105,8 @@ securitySchemes:
                             {
                                 "id": "77732030103691265",
                                 "name": "reset",
-                                "owner_id": "77730215748435968"
+                                "owner_id": "77730215748435968",
+                                "default_package_visibility": "public"
                             }
             409:
                 description: The origin already exists
@@ -115,6 +122,7 @@ securitySchemes:
                             "id": "77732030103691265",
                             "name": "reset",
                             "owner_id": "77730215748435968"
+                            "default_package_visibility": "public"
                         }
         /keys:
             get:
