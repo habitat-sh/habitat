@@ -79,7 +79,7 @@ impl Inbound {
                             continue;
                         }
                     };
-                    debug!("SWIM Message: {:?}", msg);
+                    trace!("SWIM Message: {:?}", msg);
                     match msg.get_field_type() {
                         Swim_Type::PING => {
                             if self.server.check_blacklist(
@@ -178,7 +178,7 @@ impl Inbound {
                   msg.get_ack().get_from().get_id(),
                   addr,
                   &msg);
-        info!("Ack from {}@{}", msg.get_ack().get_from().get_id(), addr);
+        trace!("Ack from {}@{}", msg.get_ack().get_from().get_id(), addr);
         if msg.get_ack().has_forward_to() {
             if self.server.member_id() != msg.get_ack().get_forward_to().get_id() {
                 let forward_addr_str = format!(
@@ -197,7 +197,7 @@ impl Inbound {
                         return;
                     }
                 };
-                info!("Forwarding Ack from {}@{} to {}@{}",
+                trace!("Forwarding Ack from {}@{} to {}@{}",
                       msg.get_ack().get_from().get_id(),
                       addr,
                       msg.get_ack().get_forward_to().get_id(),
@@ -252,7 +252,7 @@ impl Inbound {
             from.set_address(format!("{}", addr.ip()));
             from
         };
-        info!("Ping from {}@{}", from.get_id(), addr);
+        trace!("Ping from {}@{}", from.get_id(), addr);
         if from.get_departed() {
             self.server.insert_member(from.into(), Health::Departed);
         } else {

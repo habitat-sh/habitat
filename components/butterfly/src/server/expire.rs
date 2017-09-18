@@ -47,25 +47,22 @@ impl Expire {
     pub fn run(&self) {
         loop {
             let mut expired_list: Vec<String> = Vec::new();
-            self.server
-                .member_list
-                .with_suspects(|(id, suspect)| {
-                    let now = SteadyTime::now();
-                    if now >= *suspect + self.timing.suspicion_timeout_duration() {
-                        expired_list.push(String::from(id));
-                        self.server
-                            .member_list
-                            .insert_health_by_id(id, Health::Confirmed);
-                        self.server
-                            .member_list
-                            .with_member(id, |has_member| {
-                                let member =
-                                    has_member.expect("Member does not exist when expiring it");
-                                debug!("Marking {:?} as Confirmed", member);
-                                trace_it!(
+            self.server.member_list.with_suspects(|(id, suspect)| {
+                let now = SteadyTime::now();
+                if now >= *suspect + self.timing.suspicion_timeout_duration() {
+                    expired_list.push(String::from(id));
+                    self.server.member_list.insert_health_by_id(
+                        id,
+                        Health::Confirmed,
+                    );
+                    self.server.member_list.with_member(id, |has_member| {
+                        let member = has_member.expect("Member does not exist when expiring it");
+                        trace!("Marking {:?} as Confirmed", member);
+                        trace_it!(
                                     PROBE: &self.server,
-                                    TraceKind::ProbeConfirmed, member.get_id(), member.get_address());
-                            });
+                                    TraceKind::ProbeConfirmed, member.get_id(),
+                                    member.get_address());
+                    });
                 }
             });
             for mid in expired_list.iter() {
@@ -91,7 +88,7 @@ impl Expire {
                         self.server.member_list.with_member(id, |has_member| {
                             let member =
                                 has_member.expect("Member does not exist when departing it");
-                            debug!("Marking {:?} as Departed", member);
+                            trace!("Marking {:?} as Departed", member);
                             trace_it!(PROBE: &self.server,
                                           TraceKind::ProbeDeparted,
                                           member.get_id(),

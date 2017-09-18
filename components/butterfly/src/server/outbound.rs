@@ -322,7 +322,7 @@ pub fn pingreq(server: &Server, socket: &UdpSocket, pingreq_target: &Member, tar
     };
     match socket.send_to(&payload, addr) {
         Ok(_s) => {
-            info!(
+            trace!(
                 "Sent PingReq to {}@{} for {}@{}",
                 pingreq_target.get_id(),
                 addr,
@@ -390,14 +390,14 @@ pub fn ping(
     match socket.send_to(&payload, addr) {
         Ok(_s) => {
             if forward_to.is_some() {
-                info!(
+                trace!(
                     "Sent Ping to {} on behalf of {}@{}",
                     addr,
                     swim.get_ping().get_forward_to().get_id(),
                     swim.get_ping().get_forward_to().get_address()
                 );
             } else {
-                info!("Sent Ping to {}", addr);
+                trace!("Sent Ping to {}", addr);
             }
         }
         Err(e) => error!("Failed Ping to {}: {}", addr, e),
@@ -438,7 +438,7 @@ pub fn forward_ack(server: &Server, socket: &UdpSocket, addr: SocketAddr, swim: 
 
     match socket.send_to(&payload, addr) {
         Ok(_s) => {
-            info!(
+            trace!(
                 "Forwarded ack to {}@{}",
                 swim.get_ack().get_from().get_id(),
                 addr
@@ -494,7 +494,7 @@ pub fn ack(
 
     match socket.send_to(&payload, addr) {
         Ok(_s) => {
-            info!(
+            trace!(
                 "Sent ack to {}@{}",
                 swim.get_ack().get_from().get_id(),
                 addr
