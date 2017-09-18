@@ -43,11 +43,8 @@ $docs-xlarge-breakpoint: rem-calc(1060);
 
 // Page level styles
 .docs section {
-  background-color: $hab-white;
-  border-radius: $global-radius;
-  margin-bottom: 30px;
-  padding: rem-calc(30) rem-calc(20);
-  position: relative;
+  margin: rem-calc(60) 0;
+  text-align: center;
 
   h2 {
     margin-bottom: rem-calc(60);
@@ -65,54 +62,6 @@ $docs-xlarge-breakpoint: rem-calc(1060);
   li + li a {
     margin-left: rem-calc(20);
   }
-
-  &.download {
-
-    .hab-cli-os {
-      position: relative;
-      border-top: 1px solid $hab-green;
-      margin-bottom: 4px;
-      padding: 28px 0 0 0;
-
-      @each $platform in (mac, linux, windows) {
-        &.#{$platform} {
-          &:before {
-            content: '';
-            background: url(/images/icons/icon-#{$platform}-dark.svg) no-repeat;
-            background-size: contain;
-            width: 1.2rem;
-            height: 1.2rem;
-            position: absolute;
-            left: 8px;
-            top: 28px;
-          }
-        }
-      }
-
-      .description {
-        padding-left: 50px;
-
-        h3 {
-          font-size: 1rem;
-          margin-bottom: 6px;
-        }
-
-        h4 {
-          font-family: $body-font-family;
-          font-size: rem-calc(16);
-        }
-      }
-
-      .buttons {
-        text-align: right;
-
-        .button {
-          padding-left: inherit;
-          text-align: center;
-        }
-      }
-    }
-  }
 }
 
 // Hero
@@ -128,54 +77,57 @@ $docs-xlarge-breakpoint: rem-calc(1060);
 }
 
 .docs--hero--heading {
-  color: $hab-navy;
-  font-size: rem-calc(36);
-  text-align: center;
+  color: $hab-blue-grey;
+  font-size: rem-calc(24);
+
   @include small-docs {
-    font-size: rem-calc(20);
+    font-size: rem-calc(16);
   }
 }
 
 .docs--hero--text {
-  margin: 0 auto rem-calc(40);
   max-width: rem-calc(600);
   color: $hab-navy;
-  text-align: center;
+  font-style: italic;
 
   & + .docs--hero--text {
     margin-top: rem-calc(-20px);
   }
 }
 
+.docs--intro {
+  .docs--hero--text {
+    padding: .75rem 1rem;
+    border-radius: $global-radius;
+    background-color: rgba(0,0,0,0.05);
+  }
+}
+
+.docs--feature--list {
+  margin: 0;
+  padding: 0;
+
+  li {
+    margin-bottom: 1rem;
+    padding: 0 1rem;
+    list-style: none;
+    border-left: 1px solid $hab-gray-light;
+  }
+}
+
 // Quicklinks
 .docs--quicklink {
-  margin-bottom: -240px !important;
-  padding-bottom: 240px;
-  position: relative;
-  z-index: 10;
-  min-height: 600px;
-  background: url(/images/polygons.svg) no-repeat bottom;
-  background-size: 100% 500px;
-
-  text-align: center;
-  h2 {
-    text-align: center;
-    color: $hab-navy;
-  }
-
-  h3 {
-
-    color: $hab-white;
-  }
 
   .docs--quicklink--card {
     @extend %card-box;
-    padding: 1rem;
+    @include shadow-float;
+    min-height: 240px;
+    transition: all .1s;
 
-    .body-content > p {
-      text-align: center;
-      max-height: 240px;
-      overflow-y: scroll;
+    &:hover {
+      @include shadow-float-hover;
+      margin-top: -3px;
+      transition: all .15s;
     }
   }
 }
