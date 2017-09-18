@@ -30,7 +30,7 @@ where
     let pkg_install = PackageInstall::load(&ident, None)?;
     let run_env = pkg_install.runtime_environment()?;
     for (key, value) in run_env.into_iter() {
-        info!("Setting: {}='{}'", key, value);
+        debug!("Setting: {}='{}'", key, value);
         env::set_var(key, value);
     }
     let command = match find_command(&command) {
@@ -42,6 +42,6 @@ where
         display_args.push(' ');
         display_args.push_str(arg.to_string_lossy().as_ref());
     }
-    info!("Running: {}", display_args);
+    debug!("Running: {}", display_args);
     Ok(process::become_command(command, args)?)
 }

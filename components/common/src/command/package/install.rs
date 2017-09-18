@@ -433,12 +433,11 @@ impl<'a> InstallTask<'a> {
         }
 
         if self.ignore_target {
-            info!("Skipping target validation for this package.");
+            debug!("Skipping target validation for this package.");
         } else {
             let artifact_target = artifact.target()?;
             artifact_target.validate()?;
         }
-
 
         let nwr = artifact::artifact_signer(&artifact.path)?;
         if let Err(_) = SigKeyPair::get_public_key_path(&nwr, self.cache_key_path) {
@@ -446,7 +445,7 @@ impl<'a> InstallTask<'a> {
         }
 
         artifact.verify(&self.cache_key_path)?;
-        info!("Verified {} signed by {}", ident, &nwr);
+        debug!("Verified {} signed by {}", ident, &nwr);
         Ok(())
     }
 }
