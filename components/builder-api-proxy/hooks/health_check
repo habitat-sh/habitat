@@ -1,9 +1,7 @@
 #!/bin/sh
-set -x
-
 rc=0
 
-{{pkgPathFor "core/curl"}}/bin/curl --head --fail --max-time 1 \
+{{pkgPathFor "core/curl"}}/bin/curl --head --fail --max-time 1 -s \
   http://{{sys.ip}}:{{cfg.http.listen_port}}/health > /dev/null
 
 case $? in
