@@ -14,7 +14,7 @@
 
 import { List, Map, Record } from "immutable";
 import { BehaviorSubject } from "rxjs";
-import { OriginRecord } from "./records/origin-record";
+import { Origin } from "./records/Origin";
 import { Package } from "./records/Package";
 import { getBrowserCookies } from "./actions/cookies";
 
