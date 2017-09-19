@@ -8,7 +8,9 @@ You can query all services currently loaded or running under the local superviso
 
 To retrieve status for an individual service, you can pass the service identifier:
 
-      hab sup status core/mysql
+```
+$ hab sup status core/mysql
+```
 
 The following exit codes are emitted by the `status` command:
 
@@ -33,7 +35,9 @@ The HTTP API provides information on the following endpoints:
 ## Usage
 Connect to the supervisor of the running service using the following syntax. This example uses `curl` to do the GET request.
 
-      curl http://172.17.0.2:9631/services
+```
+$ curl http://172.17.0.2:9631/services
+```
 
 > Note: The default listening port on the supervisor is 9631; however, that can be changed by using the `--listen-http` option when starting a service.
 

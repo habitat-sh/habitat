@@ -19,21 +19,29 @@ Supervisors running in a ring can be configured to encrypt all traffic between t
 
 1. Generate a ring key using the `hab` command-line tool. This can be done on your workstation. The generated key has the `.sym.key` extension, indicating that it is a symmetric pre-shared key, and is stored in the `$HOME/.hab/cache/keys` directory.
 
-       hab ring key generate yourringname
+    ```
+    $ hab ring key generate yourringname
+    ```
 
 2. Copy the key file to the environment where the supervisor will run, into the `/hab/cache/keys` directory. Ensure that it has the appropriate permissions so only the supervisor can read it.
 3. Start the supervisor with the `-r` or `--ring` parameter, specifying the name of the ring key to use.
 
-       hab start --ring yourringname yourorigin/yourapp
+    ```
+    $ hab start --ring yourringname yourorigin/yourapp
+    ```
 
     or, if using a standalone supervisor package:
 
-       hab-sup start --ring yourringname yourorigin/yourapp
+    ```
+    $ hab-sup start --ring yourringname yourorigin/yourapp
+    ```
 
 4. The supervisor becomes part of the named ring `yourringname` and uses the key for network encryption. Other supervisors that now attempt to connect to it without presenting the correct ring key will be rejected.
 5. It is also possible to set the environment variable `HAB_RING_KEY` to the contents of the ring key; for example:
 
-       env HAB_RING_KEY=$(cat /hab/cache/keys/ring-key-file) hab-sup start yourorigin/yourapp
+    ```
+    $ env HAB_RING_KEY=$(cat /hab/cache/keys/ring-key-file) hab-sup start yourorigin/yourapp
+    ```
 
 ### Using a Ring Key When Applying Configuration Changes
 
@@ -49,13 +57,17 @@ As explained in the [security overview](/docs/internals-crypto), this process al
 
 1. Generate a service group key using the `hab` command-line tool. This can be done on your workstation. Because asymmetric encryption is being used, two files will be generated: a file with a `.box.key` extension, which is the service group's private key, and a file with a `.pub` extension, which is the service group's public key.
 
-       hab svc key generate servicegroupname.example yourorg
+    ```
+    $ hab svc key generate servicegroupname.example yourorg
+    ```
 
 2. This generated a service group key for the service group `servicegroupname.example` in the organization `yourorg`. Copy the `.box.key` private key to the environment where the supervisor will run into the `/hab/cache/keys` directory. Ensure that it has the appropriate permissions so that only the supervisor can read it.
 3. Start the supervisor, specifying both the service group and organization that it belongs to:
 
-       hab start --org yourorg --group servicegroupname.example yourorigin/yourapp
-
+    ```
+    $ hab start --org yourorg --group servicegroupname.example yourorigin/yourapp
+    ```
+    
 4. Only users whose public keys that the supervisor already has in its cache will be allowed to reconfigure this service group. If you need to generate a user key pair, see the next section.
 
 ### Generating User Keys

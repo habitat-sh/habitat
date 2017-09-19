@@ -27,12 +27,14 @@ The build cookbook accomplishes the tasks described in the following table. It p
 
 ### Pre-Artifact
 
-| Lint | Uses [shellcheck](https://www.shellcheck.net/) to perform a check of the Habitat plan for conformance to shell best practices. |
-| Syntax | Performs a basic syntax check using `bash -n` against the Habitat plan. |
-| Unit | No default action. Intended to be overridden by the user if desired. |
-| Security | No default action. Intended to be overridden by the user if desired. |
-| Quality | No default action. Intended to be overriden by the user if desired. |
-| Publish | Builds the package with Habitat and uploads it to the configured Habitat depot. |
+| Phase    | Description                                                                                                                    |
+|----------|--------------------------------------------------------------------------------------------------------------------------------|
+| Lint     | Uses [shellcheck](https://www.shellcheck.net/) to perform a check of the Habitat plan for conformance to shell best practices. |
+| Syntax   | Performs a basic syntax check using `bash -n` against the Habitat plan.                                                        |
+| Unit     | No default action. Intended to be overridden by the user if desired.                                                           |
+| Security | No default action. Intended to be overridden by the user if desired.                                                           |
+| Quality  | No default action. Intended to be overriden by the user if desired.                                                            |
+| Publish  | Builds the package with Habitat and uploads it to the configured Habitat depot.                                                |
 
 At the end of the Publish phase, Chef Automate stores Habitat-specific information about the package (origin, package name, version, and release) for use in the Post-Artifact stage.
 
@@ -40,10 +42,12 @@ At the end of the Publish phase, Chef Automate stores Habitat-specific informati
 
 Each of these phases runs per environment (acceptance, union, rehearsal, delivered).
 
-| Provision | Updates the materialized channel in the depot for the application in the indicated environment with the metadata saved at the end of the pre-artifact stages. This will trigger supervisors in that environment to update the Habitat package in concordance with their configured update strategy, if any. |
-| Deploy | No default action. Intended to be overridden by the user if desired. |
-| Smoke | No default action. Intended to be overridden by the user if desired. |
-| Functional | No default action. Intended to be overridden by the user if desired. |
+| Phase      | Description                                                                                                                    |
+|------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Provision  | Updates the materialized channel in the depot for the application in the indicated environment with the metadata saved at the end of the pre-artifact stages. This will trigger supervisors in that environment to update the Habitat package in concordance with their configured update strategy, if any. |
+| Deploy     | No default action. Intended to be overridden by the user if desired.                                                                                                                                                                                                                                        |
+| Smoke      | No default action. Intended to be overridden by the user if desired.                                                                                                                                                                                                                                        |
+| Functional | No default action. Intended to be overridden by the user if desired.                                                                                                                                                                                                                                        |
 
 ### Supervisor Configuration
 

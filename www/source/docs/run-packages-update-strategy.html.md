@@ -14,7 +14,7 @@ Habitat supports two update strategies: `rolling` and `at-once`.
 
 To start a supervisor with the auto-update strategy, pass the `--strategy` argument to a supervisor start command, and optionally specify the depot URL:
 
-       hab start yourorigin/yourapp --strategy rolling --url https://willem.habitat.sh/v1/depot
+    $ hab start yourorigin/yourapp --strategy rolling --url https://willem.habitat.sh/v1/depot
 
 ### Rolling Strategy
 
@@ -43,9 +43,9 @@ Configuring the supervisors'  update strategy URL to point to a channel ensures 
 
 To start a supervisor with a strategy and pointing to a channel, modify slightly the URL to the depot:
 
-       hab start yourorigin/yourapp --strategy rolling --url https://yourdepot.example.com/v1/depot/channels/yourchannel
+    $ hab start yourorigin/yourapp --strategy rolling --url https://yourdepot.example.com/v1/depot/channels/yourchannel
 
-`yourchannel` represents the channel you have created in the depot.
+The placeholder `yourchannel` represents the channel you have created in the depot.
 
 _At the moment, the `hab` command-line tool lacks the ability to create and manage channels. To use channels, you must run your own depot server and use the internal depot maintenance tool to manage channels_.
 

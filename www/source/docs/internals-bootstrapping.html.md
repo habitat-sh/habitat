@@ -29,7 +29,7 @@ The entire tarball of bootstrap "tools" lives inside the [stage1 studio](https:/
 From time to time and especially with breaking changes to `hab`’s core behavior it is a good idea to update the software in the `habitat-studio-stage1` tarball, even if that means skipping the work of rebuilding the toolchain.
 
 ~~~
-> docker run --rm -ti -v `pwd`:/src ubuntu:xenial bash
+$ docker run --rm -ti -v `pwd`:/src ubuntu:xenial bash
 ~~~
 
 ~~~
