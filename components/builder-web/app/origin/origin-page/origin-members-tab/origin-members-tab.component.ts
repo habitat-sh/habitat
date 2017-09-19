@@ -20,7 +20,7 @@ import { AppStore } from "../../../AppStore";
 import { inviteUserToOrigin } from "../../../actions/index";
 import { ActivatedRoute } from "@angular/router";
 import { Subscription } from "rxjs/Subscription";
-import { OriginRecord } from "../../../records/origin-record";
+import { Origin } from "../../../records/Origin";
 
 @Component({
     selector: "hab-origin-members-tab",
@@ -43,7 +43,7 @@ export class OriginMembersTabComponent implements OnInit, OnDestroy {
 
     public ngOnInit() {
         this.sub = this.route.parent.params.subscribe(params => {
-            this.origin = OriginRecord({ name: params["origin"]});
+            this.origin = Origin({ name: params["origin"]});
         });
         this.control = new FormControl("", Validators.required);
         this.form.addControl("username", this.control);

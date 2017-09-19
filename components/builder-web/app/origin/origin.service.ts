@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
 import { AppStore } from "../AppStore";
-import { OriginRecord } from "../records/origin-record";
+import { Origin } from "../records/Origin";
 
 @Injectable()
 export class OriginService {
@@ -9,7 +9,7 @@ export class OriginService {
     if (currentOriginFromState.name === originInRoute) {
       return currentOriginFromState;
     } else {
-      return OriginRecord({ name: originInRoute });
+      return Origin({ name: originInRoute });
     }
   }
 }

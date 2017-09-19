@@ -15,7 +15,7 @@
 import {List} from "immutable";
 import * as actionTypes from "../actions/index";
 import initialState from "../initialState";
-import {OriginRecord} from "../records/origin-record";
+import { Origin } from "../records/Origin";
 
 export default function origins(state = initialState["origins"], action) {
     switch (action.type) {
@@ -26,7 +26,7 @@ export default function origins(state = initialState["origins"], action) {
                     setIn(["ui", "mine", "loading"], false);
             } else {
                 return state.setIn(["mine"], List(action.payload.map(name =>
-                    OriginRecord({ name })
+                    Origin({ name })
                 ))).setIn(["ui", "mine", "errorMessage"], undefined).
                     setIn(["ui", "mine", "loading"], false);
             }
@@ -72,13 +72,13 @@ export default function origins(state = initialState["origins"], action) {
 
         case actionTypes.SET_CURRENT_ORIGIN:
             if (action.error) {
-                return state.set("current", OriginRecord()).
+                return state.set("current", Origin()).
                     setIn(["ui", "current", "errorMessage"],
                     action.error.message).
                     setIn(["ui", "current", "loading"], false).
                     setIn(["ui", "current", "exists"], false);
             } else {
-                return state.set("current", OriginRecord(action.payload)).
+                return state.set("current", Origin(action.payload)).
                     setIn(["ui", "current", "errorMessage"], undefined).
                     setIn(["ui", "current", "exists"], true).
                     setIn(["ui", "current", "loading"], false);
