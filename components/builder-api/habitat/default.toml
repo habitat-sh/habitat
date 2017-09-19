@@ -21,6 +21,5 @@ tutorials_url    = "https://www.habitat.sh/tutorials"
 www_url          = "https://www.habitat.sh"
 
 [depot]
-insecure = false
 builds_enabled = true
 events_enabled = false
