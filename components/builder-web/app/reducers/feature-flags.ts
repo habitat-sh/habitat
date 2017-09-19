@@ -12,31 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { combineReducers } from "redux";
-import app from "./app";
-import gitHub from "./gitHub";
-import builds from "./builds";
-import notifications from "./notifications";
-import origins from "./origins";
-import packages from "./packages";
-import projects from "./projects";
-import router from "./router";
-import users from "./users";
-import ui from "./ui";
-import cookies from "./cookies";
-import featureFlags from "./feature-flags";
+import * as actionTypes from "../actions/index";
+import initialState from "../initialState";
+import { Map } from "immutable";
 
-export default combineReducers({
-    app,
-    gitHub,
-    builds,
-    notifications,
-    origins,
-    packages,
-    projects,
-    router,
-    ui,
-    users,
-    cookies,
-    featureFlags
-});
+export default function featureFlags(state = initialState["featureFlags"], action) {
+  switch (action.type) {
+    case actionTypes.SET_FEATURE_FLAGS:
+      return state.set("current", action.payload || Map());
+
+    case actionTypes.SET_FEATURE_FLAG:
+      return state.get("current").set(action.payload.name, action.payload.value);
+
+    default:
+      return state;
+  }
+}

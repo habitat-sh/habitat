@@ -16,9 +16,8 @@ import "whatwg-fetch";
 import {URLSearchParams} from "@angular/http";
 import * as cookies from "js-cookie";
 import config from "../config";
-import {attemptSignIn, addNotification, goHome, fetchMyOrigins, requestRoute, setSigningInFlag,
+import {attemptSignIn, addNotification, goHome, fetchMyOrigins, requestRoute, setFeatureFlag,
     signOut} from "./index";
-import {setFeatureFlags} from "./users";
 import {DANGER, WARNING} from "./notifications";
 
 const parseLinkHeader = require("parse-link-header");
@@ -44,15 +43,10 @@ export function authenticateWithGitHub(token = undefined) {
     ).has("code");
 
     return dispatch => {
-        if (isCodeInQueryString) {
-            dispatch(setSigningInFlag(true));
-        }
-
         if (token) {
             setCookie("gitHubAuthToken", token);
 
             fetch(`${config["github_api_url"]}/user?access_token=${token}`).then(response => {
-                dispatch(setSigningInFlag(false));
 
                 if (response.ok) {
                     return response.json();
@@ -185,7 +179,6 @@ export function requestGitHubAuthToken(params, stateKey = "") {
             fetch(`${gitHubTokenAuthUrl}/${params.get("code")}`).then(response => {
                 return response.json();
             }).catch(error => {
-                console.error(error);
                 dispatch(addNotification({
                     title: "Authentication Failed",
                     body: "Unable to retrieve GitHub token",
@@ -196,7 +189,7 @@ export function requestGitHubAuthToken(params, stateKey = "") {
                     dispatch(authenticateWithGitHub(data["token"]));
                     dispatch(setGitHubAuthToken(data["token"]));
                     if (data["flags"]) {
-                        dispatch(setFeatureFlags(data["flags"]));
+                        dispatch(setFeatureFlag("gitHub", data["flags"]));
                     }
                 } else {
                     dispatch(addNotification({

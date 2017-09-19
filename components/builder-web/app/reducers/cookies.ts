@@ -12,31 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { combineReducers } from "redux";
-import app from "./app";
-import gitHub from "./gitHub";
-import builds from "./builds";
-import notifications from "./notifications";
-import origins from "./origins";
-import packages from "./packages";
-import projects from "./projects";
-import router from "./router";
-import users from "./users";
-import ui from "./ui";
-import cookies from "./cookies";
-import featureFlags from "./feature-flags";
+import {
+  fromJS,
+  List
+} from "immutable";
+import * as actionTypes from "../actions/index";
+import initialState from "../initialState";
 
-export default combineReducers({
-    app,
-    gitHub,
-    builds,
-    notifications,
-    origins,
-    packages,
-    projects,
-    router,
-    ui,
-    users,
-    cookies,
-    featureFlags
-});
+export default function cookies(state = initialState["cookies"], action) {
+    switch (action.type) {
+    case actionTypes.SET_COOKIE:
+      return state.setIn(["current", action.payload.name], action.payload.value);
+
+    case actionTypes.REMOVE_COOKIE:
+      let current = state.get("current");
+      current.delete(action.payload);
+
+      return state.set("current", current);
+
+    default:
+      return state;
+  }
+}

@@ -12,12 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {requestRoute, removeSessionStorage, resetAppState} from "./index";
-import {setCookie} from "./gitHub";
-import * as cookies from "js-cookie";
+import { requestRoute, removeSessionStorage, resetAppState } from "./index";
 
-export const SET_FEATURE_FLAGS = "SET_FEATURE_FLAGS";
-export const SET_SIGNING_IN_FLAG = "SET_SIGNING_IN_FLAG";
 export const SIGN_IN_ATTEMPT = "SIGN_IN_ATTEMPT";
 export const TOGGLE_USER_NAV_MENU = "TOGGLE_USER_NAV_MENU";
 
@@ -25,29 +21,6 @@ export function attemptSignIn(username) {
     return {
         type: SIGN_IN_ATTEMPT,
         payload: { username: username },
-    };
-}
-
-export function setFeatureFlags(payload) {
-    setCookie("featureFlags", payload);
-
-    return {
-        type: SET_FEATURE_FLAGS,
-        payload,
-    };
-}
-
-export function loadFeatureFlags() {
-    return {
-        type: SET_FEATURE_FLAGS,
-        payload: cookies.get("featureFlags")
-    };
-}
-
-export function setSigningInFlag(payload) {
-    return {
-        type: SET_SIGNING_IN_FLAG,
-        payload,
     };
 }
 
