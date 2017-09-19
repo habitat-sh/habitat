@@ -61,16 +61,13 @@ hab=$(find_if_exists hab)
 shasum=$(find_if_exists shasum)
 sort=$(find_if_exists sort)
 
-# hab-launcher is versioned differently than the other packages
-# (monotonically increasing integer only). It also isn't going to
-# change much at all. This is the current version.
-#
-# TODO: Accept this as an optional argument?
-launcher_version=4435
-
 # The packages needed to run a Habitat Supervisor. These will be
 # installed on all machines.
-sup_packages=(core/hab-launcher/${launcher_version}
+#
+# hab-launcher is versioned differently than the other packages. It is
+# also changed and released relatively infrequently. We can just ask
+# the depot for the latest stable version of it.
+sup_packages=(core/hab-launcher
               core/hab/${hab_version}
               core/hab-sup/${hab_version}
               core/hab-butterfly/${hab_version})

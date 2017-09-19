@@ -77,3 +77,30 @@ Draft a new Release, specify the tag, and title it with the same (eg, 0.18.0). T
    1. general (Habitat Slack)
    1. announcements (Habitat Slack)
 1. Tweet a link to the announcement @habitatsh
+
+## Update Builder Bootstrap Bundle
+
+For the time being, there is one final manual step, and that is to
+generate a new bootstrap bundle for Builder using the release you just
+created. (A bootstrap bundle is a tarball containing all the Habitat
+packages needed to stand up a complete instance of Builder, without
+needing to talk to another Builder in the process.)
+
+You should run this from a Linux system, since that is the platform
+that Builder itself runs on. It should also be run as `root`, since it
+is installing packages (but in a separate directory, so your existing
+`/hab` directory structure will remain unchanged). Furthermore, you
+should have appropriate AWS credentials in your environment in order
+to push files to the `habitat_builder_bootstrap` S3 bucket.
+
+Finally, you'll need to know what release you just created :)
+
+So, with all that in place, the generation and upload of the bundle is
+rather simple:
+
+```
+terraform/scripts/create_builder_bootstrap.sh 0.32.0
+```
+
+(Of course, substitute `0.32.0` above with whatever the real version
+number is.)
