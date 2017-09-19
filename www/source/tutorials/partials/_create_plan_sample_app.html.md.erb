@@ -1,7 +1,10 @@
-Creating a plan starts with identifying and referencing the application code that you want to package and automate.
-Habitat provides several different ways to refer and include application code in your package: by downloading a tarball
-of the source and compiling it when building the package, by referring to a local source directory, or by using a pre-built
-binary and bundling it up in your package.
+The goal for of this tutorial is for you to create a portable, immutable, cryptographically-signed package that contains an application, its runtime dependencies, and its tunable configuration data. To start this process, you must create a plan.
+
+A plan is a directory comprised
+of shell scripts and optional configuration files that define how you download, configure, make, install, and manage the lifecycle of the
+software in the Habitat package. Creating a plan starts with identifying and referencing the application code for your package. 
+
+Habitat provides several different ways to refer and include application code in your package: by downloading a tarball of the source and compiling it when building the package, by referring to a local source directory, or by using a pre-built binary and bundling it up in your package.
 
 To demonstrate Habitat code residing in the same repo as your source code, you are going to clone a simple Rails web
 application and then add your plan to that web application. By having the Habitat plan live in the same directory as your
@@ -64,12 +67,10 @@ in the `$HOME` directory.
 
 ## Start with the Basics
 
-Now that you have cloned the `habitat-example-plans` repo, it is time to define the plan for `myrailsapp`. A plan is a directory comprised
-of shell scripts and optional configuration files that define how you download, configure, make, install, and manage the lifecycle of the
-software in the Habitat package.
+Now that you have cloned the `habitat-example-plans` repo, it is time to define the plan for `myrailsapp`. 
 
 At a bare minimum, a plan must have a `plan.sh` at the root of the directory. This file specifies where the source code or binary is, how
-it should be built, and how the supervisor should start it at runtime.
+it should be built, and how the [supervisor](/docs/concepts-supervisor/) should start the application or service it at runtime. 
 
 To create your plan, do the following in your terminal window:
 
@@ -112,19 +113,7 @@ To create your plan, do the following in your terminal window:
     ```bash
     pkg_deps=( core/curl )
     ```
-
-## Add in Service Binding Support
-
-Service binding is accomplished when one service provides a setting, or collection of settings, that other services can consume and use at runtime. The `core/postgresql`
-package exposes a `port` configuration value that can be used by consuming services, such as the Rails application you are building in this tutorial. The Ruby scaffolding
-will create a default connection string to the PostgreSQL service and will use this value when making that connection.
-
-To enable the `myrailsapp` to use the exported `port` value from `core/postgresql`, add the following line to your plan.sh file:
-
-```bash
-pkg_binds=( [database]="port" )
-```
-Other settings are described in the [Plan syntax guide](/docs/reference/plan-syntax).
+For more information on other plan settings, see [Basic Settings](/docs/reference/basic-settings/).
 
 ## Finished Plan
 
@@ -135,6 +124,5 @@ Your finished plan should look like the following:
     pkg_scaffolding="core/scaffolding-ruby"
     pkg_version="0.1.0"
     pkg_deps=( core/curl )
-    pkg_binds=( [database]="port" )
 
 Now it is time to add custom health monitoring to your plan.

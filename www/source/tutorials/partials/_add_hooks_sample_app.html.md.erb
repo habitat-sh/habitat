@@ -47,7 +47,7 @@ In the case of the hook in our plan, we will use the system shell, so add the fo
     rc=0
 
     # This request will test whether our index page can be retrieved. 
-    hab pkg exec core/curl curl -sS --head --fail --max-time 1 http://localhost:{{cfg.app.port}}/
+    {{pkgPathFor "core/curl"}}/bin/curl -sS --head --fail --max-time 1 http://localhost:{{cfg.app.port}}/
 
     case $? in
         # Zero exit status means curl got back a 200 end everything is ok.
