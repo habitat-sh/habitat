@@ -17,7 +17,6 @@
 use std::path::PathBuf;
 
 use db::config::DataStoreCfg;
-use hab_core::url;
 use hab_core::config::ConfigFile;
 use hab_net::app::config::*;
 
@@ -26,8 +25,6 @@ use error::SrvError;
 #[derive(Debug, Deserialize)]
 #[serde(default)]
 pub struct Config {
-    /// Default URL to determine which Builder to use
-    pub depot_url: String,
     /// List of shard identifiers serviced by the running service.
     pub shards: Vec<ShardId>,
     /// Number of threads to process queued messages.
@@ -47,7 +44,6 @@ impl Default for Config {
         let mut datastore = DataStoreCfg::default();
         datastore.database = String::from("builder_scheduler");
         Config {
-            depot_url: url::default_bldr_url(),
             shards: (0..SHARD_COUNT).collect(),
             worker_threads: Self::default_worker_count(),
             migration_path: String::from("/hab/svc/builder-scheduler/pkgs"),
@@ -83,7 +79,6 @@ mod tests {
     #[test]
     fn config_from_file() {
         let content = r#"
-        depot_url = "mydepot"
         shards = [
             0
         ]
@@ -105,7 +100,6 @@ mod tests {
         "#;
 
         let config = Config::from_raw(&content).unwrap();
-        assert_eq!(&config.depot_url, "mydepot");
         assert_eq!(config.datastore.port, 9000);
         assert_eq!(config.datastore.user, "test");
         assert_eq!(config.datastore.database, "test_scheduler");

@@ -57,7 +57,7 @@ impl TomlPublishBuilder {
     fn build(self, config: &Config) -> Publisher {
         Publisher {
             enabled: self.publish.enabled.unwrap_or(config.auto_publish),
-            url: self.publish.url.unwrap_or(config.depot_url.clone()),
+            url: self.publish.url.unwrap_or(config.bldr_url.clone()),
             channel_opt: self.publish.channel,
         }
     }

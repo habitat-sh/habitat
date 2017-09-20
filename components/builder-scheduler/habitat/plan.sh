@@ -11,6 +11,5 @@ pkg_build_deps=(core/protobuf core/protobuf-rust core/coreutils core/cacerts
 pkg_binds=(
   [router]="port"
   [datastore]="port"
-  [depot]="url"
 )
 bin="bldr-scheduler"

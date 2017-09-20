@@ -134,7 +134,7 @@ pub struct Runner {
 
 impl Runner {
     pub fn new(job: Job, config: Arc<Config>, net_ident: &str) -> Self {
-        let depot_cli = depot_client::Client::new(&config.depot_url, PRODUCT, VERSION, None)
+        let depot_cli = depot_client::Client::new(&config.bldr_url, PRODUCT, VERSION, None)
             .unwrap();
 
         let log_path = config.log_path.clone();
@@ -301,7 +301,7 @@ impl Runner {
                     .args(&args)
                     .env_clear()
                     .env("HAB_NONINTERACTIVE", "true")
-                    .env("HAB_BLDR_URL", &self.config.depot_url)
+                    .env("HAB_BLDR_URL", &self.config.bldr_url)
                     .env("HAB_BLDR_CHANNEL", &channel)
                     .env("DEBUG", val)
                     .stdout(Stdio::piped())
@@ -314,7 +314,7 @@ impl Runner {
                     .args(&args)
                     .env_clear()
                     .env("HAB_NONINTERACTIVE", "true")
-                    .env("HAB_BLDR_URL", &self.config.depot_url)
+                    .env("HAB_BLDR_URL", &self.config.bldr_url)
                     .env("HAB_BLDR_CHANNEL", &channel)
                     .env("TERM", "xterm-256color") // Gives us ANSI color codes
                     .stdout(Stdio::piped())

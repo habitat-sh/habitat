@@ -1,4 +1,4 @@
 log_level = "info"
 auth_token = ""
 auto_publish = true
-depot_channel = "unstable"
+bldr_channel = "unstable"
