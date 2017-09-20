@@ -22,23 +22,29 @@ You can create native Mesos containers from Habitat packages by following these 
 
 2. Install or [build](/docs/create-packages-build) the Habitat package from which you want to create a Marathon application, for example:
 
-       hab pkg install yourorigin/yourpackage
+    ```
+    $ hab pkg install yourorigin/yourpackage
+    ```
 
 3. Run the Mesos exporter on the package.
 
-       hab pkg export mesos yourorigin/yourpackage
+    ```
+    $ hab pkg export mesos yourorigin/yourpackage
+    ```
 
 4. This will create a Mesos container-format tarball in the results directory, and also print the JSON needed to load the application into Marathon. Note that the tarball needs to be uploaded to a download location and the `"uris"` in the JSON need to be updated manually. This is an example of the output:
 
-       {
-       "id": "yourorigin/yourpackage",
-       "cmd": "/bin/id -u hab &>/dev/null || /sbin/useradd hab; /bin/chown -R hab:hab *; mount -t proc proc proc/; mount -t sysfs sys sys/;mount -o bind /dev dev/; /usr/sbin/chroot . ./init.sh start yourorigin/yourpackage",
-       "cpus": 0.5,
-       "disk": 0,
-       "mem": 256,
-       "instances": 1,
-       "uris": [ "https://storage.googleapis.com/mesos-habitat/yourorigin/yourpackage-0.0.1-20160611121519.tgz" ]
-       }
+    ```
+    {
+    "id": "yourorigin/yourpackage",
+    "cmd": "/bin/id -u hab &>/dev/null || /sbin/useradd hab; /bin/chown -R hab:hab *; mount -t proc proc proc/; mount -t sysfs sys sys/;mount -o bind /dev dev/; /usr/sbin/chroot . ./init.sh start yourorigin/yourpackage",
+    "cpus": 0.5,
+    "disk": 0,
+    "mem": 256,
+    "instances": 1,
+    "uris": [ "https://storage.googleapis.com/mesos-habitat/yourorigin/yourpackage-0.0.1-20160611121519.tgz" ]
+    }
+    ```
 
 5. Note that the default resource allocation for the application is very small: 0.5 units of CPU, no disk, one instance, and 256MB of memory. To change these resource allocations, pass different values to the Mesos exporter as command line options (defaults are documented with `--help`).
 

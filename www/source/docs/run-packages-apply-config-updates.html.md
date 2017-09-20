@@ -36,11 +36,11 @@ Here are some examples of how to apply configuration changes through both the sh
 
 **Stdin**
 
-       echo 'buffersize = 16384' | hab config apply --peer 172.17.0.3 myapp.prod 1
+    $ echo 'buffersize = 16384' | hab config apply --peer 172.17.0.3 myapp.prod 1
 
 **TOML file**
 
-      hab config apply --peer 172.17.0.3 myapp.prod 1 /tmp/newconfig.toml
+    $ hab config apply --peer 172.17.0.3 myapp.prod 1 /tmp/newconfig.toml
 
   > Note: The filename of the configuration file is not important.
 

@@ -21,13 +21,16 @@ If your host machine is running Linux, do the following to run your packages:
 
 * Add the `hab` user and group.
 
-      sudo adduser --group hab
-      sudo useradd -g hab hab
+    ```
+    $ sudo adduser --group hab
+    $ sudo useradd -g hab hab
+    ```
 
 * Run the `hab` CLI as root.
 
-      sudo hab start yourorigin/yourname
-
+    ```
+    $ sudo hab start yourorigin/yourname
+    ```
 
 ## Running packages in any environment
 
@@ -35,47 +38,53 @@ The `hab` program can also be installed on servers. It will retrieve the necessa
 
 To start the supervisor, you can write an init script or a systemd unit file. For example, for systemd:
 
-      [Unit]
-      Description=The Habitat Supervisor
+    [Unit]
+    Description=The Habitat Supervisor
 
-      [Service]
-      ExecStart=/bin/hab sup run
+    [Service]
+    ExecStart=/bin/hab sup run
 
-      [Install]
-      WantedBy=default.target
+    [Install]
+    WantedBy=default.target
 
 Next use `hab svc load` to load one or more services into the supervisor for permanent supervision. Using the example from above:
 
-      sudo hab svc load yourorigin/yourname
+    $ sudo hab svc load yourorigin/yourname
 
 ## Running a package on a virtual machine (VM) 
 
-After you have built the hart package
+After you have built the hart package, do the following:
 
-      1) Spin up a Virtual Machine 
-      2) SCP the hart package from your local workstation onto the virtual machine (you can also use FTP or whatever tool you use to copy things from your local workstation to a remote server)
-      3) SSH into the virtual machine
-      4) In the virtual machine - run these commands
+1. Spin up a Virtual Machine. 
+2. Securely copy the .hart package from your local workstation onto the virtual machine. SCP is a widely-used tool to do this; however, you can also use FTP or whatever tool you use to copy things from your local workstation to a remote server.
+3. SSH into the virtual machine.
+4. In the virtual machine - run these commands:
 
-            * Install Habitat
+     1. Install Habitat
+     
+        ```
+        $ curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh | sudo bash
+        ```
 
-             `curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh | sudo bash`
+     2. Install the package (which should be on the virtual machine)
 
-            * Install the package (which should be on the virtual machine)
+        ```
+        $ sudo hab install your_package.hart
+        ```
 
-            `sudo hab install your_package.hart`
+     3. Create the Habitat group
 
-            * Create the Habitat group
+        ```
+        $ sudo groupadd hab
+        $ sudo useradd -g hab hab
+        ```
 
-            `sudo groupadd hab`
-            `sudo useradd -g hab hab`
-
-            * Start the package
-
-            `sudo hab start your_origin/your_package`
-
-And it should run just fine!
-
+     4. Start the package
+       
+        ```
+        $ sudo hab start your_origin/your_package
+        ```
+        
 ## Section details
 
 This section is divided into the following areas:

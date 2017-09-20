@@ -400,6 +400,7 @@ Commands relating to Habitat packages.
     verify      Verifies a Habitat Artifact with an origin key
 
 **Read More** 
+
 - <a href="/docs/create-packages-build">Knowledge Article: Create and Build Packages</a>
 - [hab pkg binlink](#hab-pkg-binlink) Creates a symlink for a package binary in a common 'PATH' location
 - [hab pkg build](#hab-pkg-build) Builds a Plan using a Studio
@@ -759,7 +760,7 @@ Verifies a Habitat Artifact with an origin key
 Generates common package specific configuration files. Executing without argument will create
 a `habitat` directory in your current folder for the plan. If `PKG_NAME` is specified it will
 create a folder with that name. Environment variables (those starting with 'pkg_') that are
-set will be used in the generated plan
+set will be used in the generated plan.
 
 **USAGE** 
 
@@ -862,7 +863,7 @@ Reads a stdin stream containing ring key contents and writes the key to disk
 
 **USAGE** 
 
-        hab studio [FLAGS] [OPTIONS] <SUBCOMMAND> [ARG ..]
+    hab studio [FLAGS] [OPTIONS] <SUBCOMMAND> [ARG ..]
 
 **COMMON FLAGS** 
 
@@ -939,7 +940,8 @@ Reads a stdin stream containing ring key contents and writes the key to disk
     # Verbosely destroy the slim Studio
     hab studio -v -r /opt/slim rm
 
-**Read More:**
+**Read More**
+
 - <a href="/docs/concepts-studio">Knowledge Article: Studio</a>
 - <a href="/docs/reference/environment-vars">Knowledge Article: Environment Variables</a>
 - <a href="/blog/2017/07/Hab-Studio-Artifact-Caching/">Blog: Habitat Studio Artifact Caching</a>

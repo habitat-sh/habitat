@@ -16,11 +16,15 @@ Habitat packages can be exported in both Docker and ACI formats (as well as othe
 
 Habitat packages exported as containers may be deployed into Kubernetes through the [`kubectl` command](http://kubernetes.io/docs/user-guide/pods/single-container/). Using the [Docker exporter](/docs/run-packages-export) to create a containerized application, the container may be launched like this example:
 
-       kubectl run mytutorial --image=myorigin/mytutorial --port=8080
+```
+$ kubectl run mytutorial --image=myorigin/mytutorial --port=8080
+```
 
 Assuming the Docker image is pulled from `myorigin/mytutorial` we are exposing port 8080 on the container for access. Networking ports exposed by Habitat need to be passed to `kubectl run` as `--port` options. We can see our deployment with the `kubectl get` command:
 
-       kubectl get pods -l run=mytutorial
+```
+$ kubectl get pods -l run=mytutorial
+```
 
 ## Environment variables and Networking
 

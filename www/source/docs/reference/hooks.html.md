@@ -24,14 +24,16 @@ To define a hook, simply create a bash file of the same name in `/my_plan_name/h
 * [smoke_test](#smoke_test)
 
 ###file_updated
-: File location: `<plan>/hooks/file_updated`
-: This hook is run whenever a configuration file that is not related to a user or about the state of the service instances is updated.
+File location: `<plan>/hooks/file_updated`
+
+This hook is run whenever a configuration file that is not related to a user or about the state of the service instances is updated.
 
 ###health_check
-: File location: `<plan>/hooks/health_check`
-: This hook is run when the Habitat HTTP API receives a request at `/health`.
+File location: `<plan>/hooks/health_check`
 
-  The `health_check` script must return a valid exit code from the list below.
+This hook is run when the Habitat HTTP API receives a request at `/health`.
+
+The `health_check` script must return a valid exit code from the list below.
 
   - **0**- ok
   - **1**- warning
@@ -39,118 +41,118 @@ To define a hook, simply create a bash file of the same name in `/my_plan_name/h
   - **3**- unknown
   - any other code - failed health check with additional output taken from `health_check` stdout.
 
-  A `health_check` hook can use the following as a template:
+A `health_check` hook can use the following as a template:
 
-  ~~~ bash
-  #!/bin/sh
+~~~ bash
+#!/bin/sh
 
-  # define default return code as 0
-  rc=0
-  program_that_returns_a_status
-  case $? in
-    0)
-      rc=1 ;;
-    3)
-      rc=0 ;;
-    4)
-      rc=2 ;;
-    *)
-      rc=3 ;;
-  esac
+# define default return code as 0
+rc=0
+program_that_returns_a_status
+case $? in
+  0)
+    rc=1 ;;
+  3)
+    rc=0 ;;
+  4)
+    rc=2 ;;
+  *)
+    rc=3 ;;
+esac
 
-  exit $rc
-  ~~~
+exit $rc
+~~~
 
 ###init
-: File location: `<plan>/hooks/init`
+File location: `<plan>/hooks/init`
 
-  This hook is run when a Habitat topology starts.
+This hook is run when a Habitat topology starts.
 
 ###reload
-: File location: `<plan>/hooks/reload`
+File location: `<plan>/hooks/reload`
 
 For processes that can update their configuration without requiring a restart a `reload` hook can be written. This hook will execute instead of the default behaviour of restarting the process. `{{pkg.svc_pid_file}}` can be used to get a handle on the `PID` of the service.
 
 ###reconfigure
-: File location: `<plan>/hooks/reconfigure`
+File location: `<plan>/hooks/reconfigure`
 
-  This hook is run when service configuration information has changed through a set of Habitat services that are peers with each other. Before the `reconfigure` hook the config files are re-rendered and the process is either restarted or the `reload` hook is called if present.
+This hook is run when service configuration information has changed through a set of Habitat services that are peers with each other. Before the `reconfigure` hook the config files are re-rendered and the process is either restarted or the `reload` hook is called if present.
 
 ###suitability
-: File location: `<plan>/hooks/suitability`
+File location: `<plan>/hooks/suitability`
 
-  The suitability hook allows a service to report a priority by which it should be elected leader. The hook is called when a new election is triggered and the last line it outputs to `stdout` should be a number parsable as a `u64`. In the event that a leader goes down and an election is started the service with the highest reported suitabilty will become the new leader.
+The suitability hook allows a service to report a priority by which it should be elected leader. The hook is called when a new election is triggered and the last line it outputs to `stdout` should be a number parsable as a `u64`. In the event that a leader goes down and an election is started the service with the highest reported suitabilty will become the new leader.
 
 ###run
-: File location: `<plan>/hooks/run`
+File location: `<plan>/hooks/run`
 
-  This hook is run when one of the following conditions occur:
+This hook is run when one of the following conditions occur:
 
   - The main topology starts, after the `init` hook has been called.
   - When a package is updated, after the `init` hook has been called.
   - When the package config changes, after the `init` hook has been called, but before a `reconfigure` hook is called.
 
-  You can use this hook in place of `$pkg_svc_run` when you need more complex behavior such as setting environment variables or command options that are based on dynamic configuration.
+You can use this hook in place of `$pkg_svc_run` when you need more complex behavior such as setting environment variables or command options that are based on dynamic configuration.
 
-  Services run using this hook should do two things:
+Services run using this hook should do two things:
 
   - Redirect stderr to stdout (e.g. with `exec 2>&1` at the start of the hook)
   - Call the command to execute with `exec <command> <options>` rather than running the command directly. This ensures the command is executed in the same process and that the service will restart correctly on configuration changes.
 
-  It is important to also consider what side effects the command to execute will have. For example, does the command spin off other processes in separate process groups? If so, they may not be cleaned up automatically when the system is reconfigured. In general, the command executed should behave in a manner similar to a daemon, and be able to clean up properly after itself when it receives a SIGTERM, and properly forward signals to other processes that it creates. For an even more specific example: let's say you are trying to start a node.js service. Instead of your command being `npm start`, you should use `node server.js` directly.
+It is important to also consider what side effects the command to execute will have. For example, does the command spin off other processes in separate process groups? If so, they may not be cleaned up automatically when the system is reconfigured. In general, the command executed should behave in a manner similar to a daemon, and be able to clean up properly after itself when it receives a SIGTERM, and properly forward signals to other processes that it creates. For an even more specific example: let's say you are trying to start a node.js service. Instead of your command being `npm start`, you should use `node server.js` directly.
 
-  A run hook can use the following as a template:
+A run hook can use the following as a template:
 
-  ~~~ bash
-  #!/bin/sh
+~~~ bash
+#!/bin/sh
 
-  # redirect stderr
-  exec 2>&1
+# redirect stderr
+exec 2>&1
 
-  # Set some environment variables
-  export MY_ENVIRONMENT_VARIABLE=1
-  export MY_OTHER_ENVIRONMENT_VARIABLE=2
+# Set some environment variables
+export MY_ENVIRONMENT_VARIABLE=1
+export MY_OTHER_ENVIRONMENT_VARIABLE=2
 
-  # Run the command
-  exec my_command --option {{cfg.option}} --option2 {{cfg.option2}}
-  ~~~
+# Run the command
+exec my_command --option {{cfg.option}} --option2 {{cfg.option2}}
+~~~
 
 ###post-run
-: File location: `<plan>/hooks/post-run`
+File location: `<plan>/hooks/post-run`
 
 The post run hook will get executed after initial startup.
 
 For many data services creation of specific users / roles or datastores is required. This needs to happen once the service has already started.
 
 ###smoke_test
-: File location: `<plan>/hooks/smoke_test`
+File location: `<plan>/hooks/smoke_test`
 
-: This hook is run when a new package is downloaded by the supervisor, before it is installed. 
+This hook is run when a new package is downloaded by the supervisor, before it is installed. 
 
-  The `smoke_test` script must return a valid exit code from the list below.
+The `smoke_test` script must return a valid exit code from the list below.
 
   - **0**- ok
   - **no code** - failed smoke check with additional output taken from `smoke_check` stdout. 
   - **any other code** - Returns code, returns failed smoke check with additional output taken from `smoke_check` stdout.
 
-  A `smoke_check` hook can use the following as a template:
+A `smoke_check` hook can use the following as a template:
 
-  ~~~ bash
-  #!/bin/sh
+~~~ bash
+#!/bin/sh
 
-  # define default return code as 0
-  rc=0
-  program_that_returns_a_status
-  case $? in
-    0)
-      rc=1 ;;
-    3)
-      rc=0 ;;
-    4)
-      rc=2 ;;
-    *)
-      rc=3 ;;
-  esac
+# define default return code as 0
+rc=0
+program_that_returns_a_status
+case $? in
+  0)
+    rc=1 ;;
+  3)
+    rc=0 ;;
+  4)
+    rc=2 ;;
+  *)
+    rc=3 ;;
+esac
 
-  exit $rc
-  ~~~
+exit $rc
+~~~

@@ -13,9 +13,9 @@ To begin using Scaffolding, you will need to add the appropriate `pkg_scaffoldin
     pkg_version=MY_VERSION
     pkg_scaffolding=core/scaffolding-ruby
 
-You can also use the cli command `hab plan init -s [PKG_NAME]` to initialize a scaffolding. Read more on the [CLI documentation page](/docs/reference/cli-docs/)
-* hab plan init -s [SCAFFOLDING_NAME] [PKG_NAME] 
-* Optional scaffolding names: ruby, node
+You can also use the cli command `hab plan init -s [SCAFFOLDING] [PKG_NAME]` to initialize a plan with a given scaffolding. Read more on the [CLI documentation page](/docs/reference/habitat-cli/#hab-plan-init) or see how to use it in the [Build a Sample App](/tutorials/sample-app/mac/) tutorial.
+
+* Available scaffolding values: `ruby`, `node`
 
 
 ## Available Scaffolding

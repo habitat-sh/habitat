@@ -4,19 +4,9 @@ title: Running packages with runtime binding
 
 # Runtime Binding
 
-*Runtime binding* in Habitat refers to the ability for one service group to connect to another forming a producer/consumer relationship where the consumer can use the producer's publicly available configuration to configure it's services at runtime. We form a [polymorphic relationship](https://en.wikipedia.org/wiki/Polymorphism_(computer_science)) between these two service groups defined by a [dynamically-typed](https://en.wikipedia.org/wiki/Duck_typing) contract where the consumer specifies a generic name of the service it is consuming along with the configuration keys it expects the producer to export.
+*Runtime binding* in Habitat refers to the ability for one service group to connect to another forming a producer/consumer relationship where the consumer can use the producer's publicly available configuration to configure it's services at runtime. A [polymorphic relationship](https://en.wikipedia.org/wiki/Polymorphism_(computer_science)) is formed between these two service groups defined by a [dynamically-typed](https://en.wikipedia.org/wiki/Duck_typing) contract where the consumer specifies a generic name of the service it is consuming along with the configuration keys it expects the producer to export.
 
-For example, you might have a web application `app-server` that depends on the value of the leader of a database service group. Rather than hardcoding the name of the service group or package identifier in `app-servers`'s plan, which would limit its portability, you can _bind_ the name `database`, for example, to the `default` service group running PostgreSQL. If you have multiple service groups for PostgreSQL - perhaps you have a production and development environment - you could bind `database` to `postgresql.production` or `postgresql.development`. If `app-server` supports multiple different database backends you could even bind `database` to another, such as `redis.default` or `mysql.default`.
-
-tl;dr
-- a required bind (`pkg_binds`) means that your service fails if it does not find a producer (with a `pkg_exports`) with the exact `binds` values that your service wants available to it. 
-- a producer can _export_ a larger variety of _binds_ than an individual service needs in a required bind
-- an optional bind (`pkg_binds_optional`) allows you to have more flexibility for services that require it. You can use an optional bind in several ways (list not conclusive):  
--- service group A can optionally bind to "X". It will start without X being present (which could cause the service to fail to start). You may also expose optional configuration in your `default.toml` which you can write into your `config/hooks` in place of where the "X" would normally be satisfying. ((Real world example: an application service group that binds to a postgresql cluster or RDS, depending on where you are deploying it))
--- service group A can optionally bind to “X”. “X” may provide additional features if it is provided. A runs successfully whether or not "X" is present. ((Real world example: an application service group that binds to a caching layer in certain situations))
--- service group A can optionally bind to “X” or “Y”. If “X” is present, we operate this way, if “Y” is present, we operate this way. The service will start and may fail because “X” and/or “Y” my not be present at start, but it will eventually start. ((Real world example: an application service group that could use a redis backend or a postgresql backend, depending on how you are deploying it in different scenarios))
-
-Read on for more details...
+For producing services, you must set `pkg_exports` in your plan.sh to the keys you are exporting and for consuming services, you must set `pkg_binds` or `pkg_binds_optional` in your plan.sh to the keys you wish to consume using a bind name for those values. For example, you might have a web application `app-server` that depends on a port value of a database service group. Rather than hardcoding the name of the service group or package identifier in `app-servers`'s plan, which would limit its portability, you can _bind_ the name `database` to the `default` service group running PostgreSQL. This will allow you to dynamically use the port value in any configuration or runtime hooks in your web application.
 
 ## Producer Contract
 
@@ -39,6 +29,14 @@ Consumers defines their half of the contract by specifying required and optional
 
 This says that `session-server` needs to bind to a service aliased as `database` and that service must export a configuration key for both `port` and `ssl-port`. This would make this application service compatible with the producer we defined above for a database called `amnesia` since it does export a value for both of these keys.
 
+A required bind (`pkg_binds`) means that your service fails if it does not find a producer with the exact `binds` values that your service wants available to it. A producer can also _export_ a larger variety of keys than an individual service needs in a required bind.
+
+An optional bind (`pkg_binds_optional`) allows you to have more flexibility for services that require it. You can use an optional bind in several ways (list not conclusive):
+
+ * Service group A can optionally bind to "X". It will start without X being present (which could cause the service to fail to start). You may also expose optional configuration in your `default.toml` which you can write into your `config/hooks` in place of where the "X" would normally be satisfying. Real world example: An application service group that binds to a PostgreSQL cluster or RDS, depending on where you are deploying it.
+ * Service group A can optionally bind to “X”. “X” may provide additional features if it is provided. A runs successfully whether or not "X" is present. Real world example: An application service group that binds to a caching layer in certain situations.
+ * Service group A can optionally bind to “X” or “Y”. If “X” is present, we operate this way, if “Y” is present, we operate this way. The service will start and may fail because “X” and/or “Y” my not be present at start, but it will eventually start. Real world example: An application service group that could use a Redis backend or a PostgreSQL backend, depending on how you are deploying it in different scenarios.
+
 ## Consumer's Configuration Example
 
 Once you've defined both ends of the contract you can leverage the bind in any of your package's hooks or configuration files. Given the two example services above, a section of a configuration file for `session-server` might look like this:
@@ -52,15 +50,15 @@ Once you've defined both ends of the contract you can leverage the bind in any o
 
 ## Starting A Consumer
 
-Since your application server defined `database` as a required bind, you'll need to provide the name of a service group running a package which fulfills the contract using the `--bind` parameter to the supervisor. For example, running the following:
+Referencing the examples above, if your application server defined `database` as a required bind, you would need to provide the supervisor with the name of a service group running a package which fulfills the contract using the `--bind` parameter. For example, running the following:
 
-    hab start my-origin/app-server --bind database:amnesia.default
+    $ hab start my-origin/app-server --bind database:amnesia.default
 
 would create a bind aliasing `database` to the `amnesia` service in the `default` service group.
 
-The service group passed to `--bind database:{service}.{group}` doesn't *need* to be the service `amnesia`. This bind can be any service as long as they export a configuration key for `port` and `ssl-port`.
+The service group passed to `--bind database:{service}.{group}` doesn't *need* to be the service `amnesia`. This bind can be any service as long as they export a configuration key for `port` and `ssl-port`. For example, if you have multiple service groups for PostgreSQL - perhaps you have a production and development environment - you could bind `database` to `postgresql.production` or `postgresql.development`. 
 
-You can declare bindings to multiple service groups in your templates by using the `--bind` option multiple times on the command line. Your service will not start if your package has declared a required bind and a value for it was not specified by `--bind`.
+You can declare bindings to multiple service groups in your templates by using the `--bind` option multiple times on the command line. This means if your web application named `app-server` supports multiple different database backends, you could even bind `database` to another, such as `redis.default` or `mysql.default`. Your service will not start if your package has declared a required bind and a value for it was not specified by `--bind`.
 
 <hr>
 <ul class="main-content--link-nav">
