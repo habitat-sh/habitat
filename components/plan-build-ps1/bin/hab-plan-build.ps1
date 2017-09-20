@@ -73,6 +73,10 @@ if ($DepotUrl) {
 }
 # Export the Depot URL so all other programs and subshells use this same one
 $env:HAB_DEPOT_URL = "$script:HAB_DEPOT_URL"
+if (!(Test-Path Env:\HAB_DEPOT_CHANNEL)) {
+    $env:HAB_DEPOT_CHANNEL = "stable"
+}
+$script:FALLBACK_CHANNEL = "stable"
 # The value of `$env:Path` on initial start of this program
 $script:INITIAL_PATH = "$env:Path"
 # The target architecture this plan will be built for
@@ -316,7 +320,11 @@ function _Set-HabBin {
 
 function _install-dependency($dependency) {
   if (!$env:NO_INSTALL_DEPS) {
-    & $HAB_BIN install -u $env:HAB_DEPOT_URL $dependency
+    & $HAB_BIN install -u $env:HAB_DEPOT_URL --channel $env:HAB_DEPOT_CHANNEL $dependency
+    if ($LASTEXITCODE -ne 0 -and ($env:HAB_DEPOT_URL -ne $FALLBACK_CHANNEL)) {
+      Write-BuildLine "Trying to install '$dependency' from '$FALLBACK_CHANNEL'"
+      & $HAB_BIN install -u $env:HAB_DEPOT_URL --channel $FALLBACK_CHANNEL $dependency
+    }
   }
 }
 
