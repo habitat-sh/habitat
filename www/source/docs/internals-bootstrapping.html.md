@@ -99,10 +99,10 @@ $BUILD ../components/depot
 ~~~
 
 ~~~
-hab origin key upload -z userkey -u http://127.0.0.1:9632/v1 \
+hab origin key upload -z userkey -u http://127.0.0.1:9636 \
   /hab/cache/keys/core-*.pub
 ls -1 launch-stage1-base-harts/*.hart \
-  | while read hart; do hab pkg up -z userkey -u http://127.0.0.1:9632/v1 $hart; done
+  | while read hart; do hab pkg up -z userkey -u http://127.0.0.1:9636 $hart; done
 ~~~
 
 ## Part IV: Stage 2
@@ -113,7 +113,7 @@ In this stage, we rebuild all the base packages needed by Habitat using the tool
 export STUDIO_TYPE=default
 export HAB_STUDIO_ROOT=/hab/studios/stage2
 export HAB_ORIGIN=core
-export HAB_BLDR_URL=http://127.0.0.1:9632/v1
+export HAB_BLDR_URL=http://127.0.0.1:9636
 hab studio enter
 ~~~
 
@@ -133,10 +133,10 @@ build ../components/depot
 ~~~
 
 ~~~
-hab origin key upload -z userkey -u http://127.0.0.1:9632/v1 \
+hab origin key upload -z userkey -u http://127.0.0.1:9636 \
   /hab/cache/keys/core-*.pub
 ls -1 launch-stage2-base-harts/*.hart \
-  | while read hart; do hab pkg up -z userkey -u http://127.0.0.1:9632/v1 $hart; done
+  | while read hart; do hab pkg up -z userkey -u http://127.0.0.1:9636 $hart; done
 ~~~
 
 ## Part V: Remaining packages in world
@@ -162,7 +162,7 @@ cp world_build_order all_order
 export STUDIO_TYPE=default
 export HAB_STUDIO_ROOT=/hab/studios/stage3
 export HAB_ORIGIN=core
-export HAB_BLDR_URL=http://127.0.0.1:9632/v1
+export HAB_BLDR_URL=http://127.0.0.1:9636
 hab studio enter
 ~~~
 
