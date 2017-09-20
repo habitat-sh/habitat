@@ -4,11 +4,9 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/ejn8d6bkhiml16al/branch/master?svg=true)](https://ci.appveyor.com/project/chef/habitat/branch/master)
 [![Slack](http://slack.habitat.sh/badge.svg)](http://slack.habitat.sh/)
 
-Want to try Habitat? [Get started here](https://www.habitat.sh/try/).
+Want to try Habitat? [Get started here](https://www.habitat.sh/tutorials/get-started/demo/).
 
-Habitat is an application automation framework that allows you to build
-applications that have automation built-in. This provides modern
-applications that:
+Habitat is an application automation framework that allows you to build applications that have automation built-in. This provides modern applications that:
 
 * Provide repeatable builds
 * Run from single, immutable assets
@@ -22,11 +20,22 @@ applications that:
 
 To learn more about Habitat, please visit the [Habitat website](https://www.habitat.sh).
 
-## Installation
+Participation in the Habitat community is governed by the [code of conduct](https://github.com/habitat-sh/habitat/blob/master/CODE_OF_CONDUCT.md).
 
-There are a couple of different way to install Habitat.
+# Table of Contents
+* [Install](#install)
+* [Contribute](#contribute)
+* [Documentation](#documentation)
+* [Code Organization](#repo-organization)
+* [Roadmap](#roadmap)
+* [Community and support](#community-and-support)
+* [Building](#building)
+* [Further reference material](#further-reference-material)
+* [License](#license)
 
-You can download it from the [Habitat downloads page](https://www.habitat.sh/docs/get-habitat/).
+## Install
+
+You can download Habitat from the [Habitat downloads page](https://www.habitat.sh/docs/get-habitat/).
 
 Once you have downloaded it, follow the instructions on the page for your specific operating system.
 
@@ -37,22 +46,48 @@ script](https://github.com/habitat-sh/habitat/blob/master/components/hab/install
   $ curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh | sudo bash
 ```
 
-## Web Application
+## Contribute
 
-The Habitat Builder web application is in the components/builder-web directory. See
-[its README](components/builder-web/README.md) for more information.
+We are always looking for more opportunities for community involvement. Interested in contributing? Check out our [CONTRIBUTING.md](CONTRIBUTING.md) to get started! 
 
 ## Documentation
 
-Habitat's website and documentation is located in the `www` directory of the Habitat source code. See [its README](www/README.md) for more information.
+Get started with the [Habitat tutorials](https://www.habitat.sh/tutorials/) or plunge into the [complete documentation](https://www.habitat.sh/docs/).
 
-## Contributing
-We are always looking for more opportunities for community involvement. Interested in contributing? Check out our [CONTRIBUTING.md](CONTRIBUTING.md) the [Rustlang](https://rust-lang.org) reference materials below or our [UX_PRINCIPLES doc](UX_PRINCIPLES.md) to get started!
+## Code Organization
+
+### Core Plans
+
+The Habitat plans that are built and maintained by Habitat's Core Team are in [their own repo.](github.com/habitat-sh/core-plans)
+
+### Habitat Supervisor, Builder, and other core components
+
+The code for the Habitat Supervisor, Builder, and other core components are in the [components directory](https://github.com/habitat-sh/habitat/tree/master/components). 
+
+### Web Application
+
+The code for the Habitat Builder web application is in the components/builder-web directory. See [its README](components/builder-web/README.md) for more information.
+
+### Docs
+
+Habitat's website and documentation source is located in the `www` directory of the Habitat source code. See [its README](www/README.md) for more information.
+
+## Roadmap
+
+The Habitat project's roadmap is public and is on our [community page](https://www.habitat.sh/community/). 
+
+The Habitat core team's project tracker is also public and on [Github.](https://github.com/habitat-sh/habitat/projects/1)
+
+## Community and support 
+
+* [Habitat Slack](https://slack.habitat.sh)
+* [Forums]()
+* Community triage is every Tuesday at 10am Pacific. The link to participate is shared in the [Habitat Slack channel](https://slack.habitat.sh), and videos are posted on the [Habitat YouTube channel](https://youtube.com/channel/UC0wJZeP2dfPZaDUPgvpVpSg).
 
 ## Building
 See [BUILDING.md](BUILDING.md) for platform specific info on building Habitat from source.
 
-## Useful reference material
+## Further reference material
 
 * [The Rust Programming Language](http://doc.rust-lang.org/book/)
 * [Rust by Example](http://rustbyexample.com/)
@@ -66,7 +101,7 @@ See [BUILDING.md](BUILDING.md) for platform specific info on building Habitat fr
 
 ## License
 
-Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+Copyright (c) 2016 Chef Software Inc. and/or applicable contributors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
