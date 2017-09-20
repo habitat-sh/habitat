@@ -17,10 +17,12 @@ import { RouterLink, ActivatedRoute } from "@angular/router";
 import { Subscription } from "rxjs/Subscription";
 import { AppStore } from "../../AppStore";
 import { FeatureFlags } from "../../Privilege";
-import { fetchOrigin, fetchOriginInvitations, fetchOriginMembers,
-        inviteUserToOrigin,
-        filterPackagesBy, fetchMyOrigins,
-        setProjectHint, requestRoute, setCurrentProject, getUniquePackages } from "../../actions/index";
+import {
+    fetchOrigin, fetchOriginInvitations, fetchOriginMembers,
+    inviteUserToOrigin,
+    filterPackagesBy, fetchMyOrigins,
+    setProjectHint, requestRoute, setCurrentProject, getUniquePackages, fetchIntegrations
+} from "../../actions";
 import config from "../../config";
 import { Origin } from "../../records/Origin";
 import { requireSignIn, packageString } from "../../util";
@@ -44,7 +46,7 @@ export class OriginPageComponent implements OnInit, OnDestroy {
 
     constructor(private route: ActivatedRoute, private store: AppStore) {
         this.sub = this.route.params.subscribe(params => {
-            this.origin = Origin({ name: params["origin"]});
+            this.origin = Origin({ name: params["origin"] });
         });
     }
 
@@ -60,6 +62,9 @@ export class OriginPageComponent implements OnInit, OnDestroy {
         ));
         this.getPackages();
         this.loadPackages = this.getPackages.bind(this);
+        this.store.dispatch(fetchIntegrations(
+            this.origin.name, this.gitHubAuthToken
+        ));
     }
 
     ngOnDestroy() {
@@ -68,7 +73,7 @@ export class OriginPageComponent implements OnInit, OnDestroy {
 
     get navLinks() {
         // ED TODO: Uncomment settings when the privacy api endpoint is implemented
-        return ["packages", "keys", "members"/*, "settings"*/];
+        return ["packages", "keys", "members", /*"integrations", "settings"*/];
     }
 
     get features() {

@@ -14,8 +14,8 @@
 
 import "whatwg-fetch";
 import config from "./config";
-import {parseKey} from "./util";
-import {GitHubApiClient} from "./GitHubApiClient";
+import { parseKey } from "./util";
+import { GitHubApiClient } from "./GitHubApiClient";
 
 export class BuilderApiClient {
     private headers;
@@ -27,18 +27,36 @@ export class BuilderApiClient {
 
     public acceptOriginInvitation(invitationId: string, originName: string) {
         return new Promise((resolve, reject) => {
-          fetch(`${this.urlPrefix}/depot/origins/${originName}/invitations/${invitationId}`, {
+            fetch(`${this.urlPrefix}/depot/origins/${originName}/invitations/${invitationId}`, {
                 headers: this.headers,
                 method: "PUT",
             })
-            .then(response => {
-                if (response.ok) {
-                    resolve(true);
-                } else {
-                    reject(new Error(response.statusText));
-                }
+                .then(response => {
+                    if (response.ok) {
+                        resolve(true);
+                    } else {
+                        reject(new Error(response.statusText));
+                    }
+                })
+                .catch(error => reject(error));
+        });
+    }
+
+    // TED TODO: This is just accepting, make it reject
+    public ignoreOriginInvitation(invitationId: string, originName: string) {
+        return new Promise((resolve, reject) => {
+            fetch(`${this.urlPrefix}/depot/origins/${originName}/invitations/${invitationId}`, {
+                headers: this.headers,
+                method: "PUT",
             })
-            .catch(error => reject(error));
+                .then(response => {
+                    if (response.ok) {
+                        resolve(true);
+                    } else {
+                        reject(new Error(response.statusText));
+                    }
+                })
+                .catch(error => reject(error));
         });
     }
 
@@ -66,7 +84,7 @@ export class BuilderApiClient {
                 headers: this.headers,
                 method: "POST",
             }).then(response => {
-                if  (response.ok) {
+                if (response.ok) {
                     resolve(true);
                 } else {
                     reject(new Error(response.statusText));
@@ -128,14 +146,14 @@ export class BuilderApiClient {
                 method: "GET",
                 headers: this.headers
             })
-            .then(response => {
-                if (response.ok) {
-                    resolve(response.json());
-                } else {
-                    reject(new Error(response.statusText));
-                }
-            })
-            .catch(error => reject(error));
+                .then(response => {
+                    if (response.ok) {
+                        resolve(response.json());
+                    } else {
+                        reject(new Error(response.statusText));
+                    }
+                })
+                .catch(error => reject(error));
         });
     }
 
@@ -145,14 +163,14 @@ export class BuilderApiClient {
                 method: "GET",
                 headers: this.headers
             })
-            .then(response => {
-                if (response.ok) {
-                    resolve(response.json());
-                } else {
-                    reject(new Error(response.statusText));
-                }
-            })
-            .catch(error => reject(error));
+                .then(response => {
+                    if (response.ok) {
+                        resolve(response.json());
+                    } else {
+                        reject(new Error(response.statusText));
+                    }
+                })
+                .catch(error => reject(error));
         });
     }
 
@@ -162,14 +180,14 @@ export class BuilderApiClient {
                 method: "GET",
                 headers: this.headers
             })
-            .then(response => {
-                if (response.ok) {
-                    resolve(response.json());
-                } else {
-                    reject(new Error(response.statusText));
-                }
-            })
-            .catch(error => reject(error));
+                .then(response => {
+                    if (response.ok) {
+                        resolve(response.json());
+                    } else {
+                        reject(new Error(response.statusText));
+                    }
+                })
+                .catch(error => reject(error));
         });
     }
 
@@ -314,7 +332,7 @@ export class BuilderApiClient {
                 // Getting a 200 means it exists and is already taken.
                 if (response.ok) {
                     reject(false);
-                // Getting a 404 means it does not exist and is available.
+                    // Getting a 404 means it does not exist and is available.
                 } else if (response.status === 404) {
                     resolve(true);
                 }
@@ -323,6 +341,51 @@ export class BuilderApiClient {
                 // not available.
                 reject(false);
             });
+        });
+    }
+
+    public getDockerHubCredentials(originName: string) {
+        return new Promise((resolve, reject) => {
+            fetch(`${this.urlPrefix}/depot/origins/${originName}/integrations/docker/names`, {
+                headers: this.headers,
+            }).then(response => {
+                if (response.ok) {
+                    resolve(response.json());
+                } else {
+                    reject(new Error(response.statusText));
+                }
+            }).catch(error => reject(error));
+        });
+    }
+
+    public addDockerHubCredentials(originName: string, credentials) {
+        return new Promise((resolve, reject) => {
+            fetch(`${this.urlPrefix}/depot/origins/${originName}/integrations/docker/docker`, {
+                headers: this.headers,
+                method: "PUT",
+                body: JSON.stringify(credentials)
+            }).then(response => {
+                if (response.ok) {
+                    resolve(response.json());
+                } else {
+                    reject(new Error(response.statusText));
+                }
+            }).catch(error => reject(error));
+        });
+    }
+
+    public deleteDockerHubCredentials(originName: string) {
+        return new Promise((resolve, reject) => {
+            fetch(`${this.urlPrefix}/depot/origins/${originName}/integrations/docker/docker`, {
+                headers: this.headers,
+                method: "DELETE",
+            }).then(response => {
+                if (response.ok) {
+                    resolve(response.json());
+                } else {
+                    reject(new Error(response.statusText));
+                }
+            }).catch(error => reject(error));
         });
     }
 }

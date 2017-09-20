@@ -1,15 +1,18 @@
-.hab-origins-list {
-  
-    ul.origins {
-  
+.hab-origins-list, .hab-invitations-list {
+    ul.origins, ul.invitations {
       li {
-  
-        &.heading, &.origin {
+        &.heading, &.origin, &.invitation {
           @include row;
           border-bottom: 1px solid $very-light-gray;
 
           h3, .origin-name, .origin-pkg-count{
             @include span-columns(5);
+          }
+          .invitation-origin-name {
+            @include span-columns(9);
+          }
+          .invitations-actions {
+            @include span-columns(3);
           }
         }
   
@@ -23,21 +26,28 @@
           }
         }
   
-        &.origin {
+        &.origin, &.invitation {
           cursor: pointer;
           font-size: rem(14px);
-  
+
           .summary {
             @include row;
             padding: 15px 10px;
             position: relative;
   
-            .origin-name {
+            .origin-name, .invitation-origin-name {
               font-weight: 600;
             }
   
             .origin-pkg-count {
               color: $hab-gray;
+            }
+
+            .invitation-actions {
+              hab-icon.action {
+                cursor: pointer;
+                width: 20px;
+              }
             }
   
             hab-icon[symbol="chevron-right"] {
@@ -53,6 +63,10 @@
               }
             }
           }
+        }
+
+        &.invitation {
+          cursor: auto;
         }
       }
     }

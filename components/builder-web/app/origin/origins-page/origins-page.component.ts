@@ -13,8 +13,12 @@
 // limitations under the License.
 
 import { Component, OnInit } from "@angular/core";
-import { acceptOriginInvitation, fetchMyOriginInvitations, fetchMyOrigins }
-    from "../../actions/index";
+import {
+    acceptOriginInvitation,
+    fetchMyOriginInvitations,
+    fetchMyOrigins,
+    ignoreOriginInvitation
+} from "../../actions/index";
 import { AppStore } from "../../AppStore";
 import { requireSignIn } from "../../util";
 import { Router } from "@angular/router";
@@ -38,9 +42,17 @@ export class OriginsPageComponent implements OnInit {
 
     acceptInvitation(invitationId, originName) {
         this.store.dispatch(acceptOriginInvitation(
-          invitationId,
-          originName,
+            invitationId,
+            originName,
             this.store.getState().gitHub.authToken
+        ));
+    }
+
+    ignoreInvitation(invitationId, originName) {
+        this.store.dispatch(ignoreOriginInvitation(
+            invitationId,
+            originName,
+            this.store.getState().github.authToken
         ));
     }
 

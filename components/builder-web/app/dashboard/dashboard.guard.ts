@@ -8,7 +8,7 @@ export class DashboardGuard implements CanActivate {
 
   constructor(
     private store: AppStore,
-    private router: Router) {}
+    private router: Router) { }
 
   canActivate() {
     let state = this.store.getState();

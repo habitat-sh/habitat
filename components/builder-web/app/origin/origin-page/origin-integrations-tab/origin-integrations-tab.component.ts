@@ -14,16 +14,16 @@
 
 import { Component } from "@angular/core";
 import { AppStore } from "../../../AppStore";
-import { setOriginPrivacySettings } from "../../../actions/index";
+import { setOriginPrivacySettings, addDockerHubCredentials } from "../../../actions";
 import { MdDialog, MdDialogRef } from "@angular/material";
 import { DockerCredentialsFormDialog } from "../docker-credentials-form/docker-credentials-form.dialog";
 @Component({
-    selector: "hab-origin-settings-tab",
-    template: require("./origin-settings-tab.component.html")
+  selector: "hab-origin-settings-tab",
+  template: require("./origin-integrations-tab.component.html")
 })
 
-export class OriginSettingsTabComponent {
-  constructor(private store: AppStore, private dialog: MdDialog) {}
+export class OriginIntegrationsTabComponent {
+  constructor(private store: AppStore, private dialog: MdDialog) { }
 
   get originPrivacy() {
     return this.store.getState().origins.current.privacy;
@@ -33,6 +33,16 @@ export class OriginSettingsTabComponent {
     this.store.dispatch(setOriginPrivacySettings(event.value));
   }
 
+  get integrations() { return this.store.getState().origin.currentIntegrations; }
+
+  get origin() {
+    return this.store.getState().origins.current;
+  }
+
+  get githubToken() {
+    return this.store.getState().gitHub.authToken;
+  }
+
   openDialog(): void {
     let dialogRef = this.dialog.open(DockerCredentialsFormDialog, {
       width: "480px",
@@ -40,7 +50,13 @@ export class OriginSettingsTabComponent {
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      console.log(`The dialog was closed with: ${result}`);
+      if (result) {
+        this.store.dispatch(addDockerHubCredentials(
+          this.origin.name,
+          result,
+          this.githubToken
+        ));
+      }
     });
   }
 }

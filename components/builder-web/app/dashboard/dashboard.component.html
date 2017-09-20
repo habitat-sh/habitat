@@ -13,15 +13,14 @@
         <div>
           <strong>New to Habitat? It's easy to get started.</strong>
           <p>
-            Check out the Quick Start demo for a brief overview, then
-            jump into the tutorials to build and upload your first package.
+            Check out the Quick Start demo for a brief overview, then jump into the tutorials to build and upload your first package.
           </p>
         </div>
       </div>
       <div class="buttons">
         <div>
-          <a class="button cta" href="{{ config['www_url'] }}/try">View Demo</a>
-          <a class="button cta" href="{{ config['tutorials_url'] }}">Start Tutorial</a>
+          <a md-raised-button color="accent" href="{{ config['www_url'] }}/try">View Demo</a>
+          <a md-raised-button color="accent" href="{{ config['tutorials_url'] }}">Start Tutorial</a>
         </div>
       </div>
     </section>
@@ -49,8 +48,7 @@
               Create your first origin, then begin uploading packages.
             </p>
             <p>
-              Already created an <strong>origin</strong> on the CLI?
-              You'll need to create one here too, using the same name.
+              Already created an <strong>origin</strong> on the CLI? You'll need to create one here too, using the same name.
             </p>
           </div>
         </div>
@@ -150,8 +148,7 @@
             <a [routerLink]="['origins']">Create your first origin</a>, then begin uploading packages.
           </p>
           <p>
-            Already created an <strong>origin</strong> on the CLI?
-            You'll need to create one here too, using the same name.
+            Already created an <strong>origin</strong> on the CLI? You'll need to create one here too, using the same name.
           </p>
         </div>
         <div class="none" *ngIf="myOrigins.size > 0 && myPackages.size === 0">

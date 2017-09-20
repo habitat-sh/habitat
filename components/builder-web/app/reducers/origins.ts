@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {List} from "immutable";
+import { List } from "immutable";
 import * as actionTypes from "../actions/index";
 import initialState from "../initialState";
 import { Origin } from "../records/Origin";
@@ -35,7 +35,7 @@ export default function origins(state = initialState["origins"], action) {
             if (action.payload.origin) {
                 const record = state.getIn(["mine"]).find(value => value.get("name") === action.payload.origin);
                 const index = state.getIn(["mine"]).indexOf(record);
-                const newRecord = record.merge({packageCount: action.payload.unique_packages});
+                const newRecord = record.merge({ packageCount: action.payload.unique_packages });
                 return state.setIn(["mine", index], newRecord)
                     .setIn(["ui", "mine", "errorMessage"], undefined)
                     .setIn(["ui", "mine", "loading"], false);
@@ -56,6 +56,10 @@ export default function origins(state = initialState["origins"], action) {
             return state.setIn(["currentMembers"],
                 List(action.payload));
 
+        case actionTypes.POPULATE_ORIGIN_INTEGRATIONS:
+            return state.setIn(["currentIntegrations"],
+                List(action.payload));
+
         case actionTypes.POPULATE_ORIGIN_PUBLIC_KEYS:
             if (action.error) {
                 return state.setIn(
@@ -65,8 +69,8 @@ export default function origins(state = initialState["origins"], action) {
             } else {
                 return state.setIn(["currentPublicKeys"], List(action.payload)).
                     setIn(
-                        ["ui", "current", "publicKeyListErrorMessage"],
-                        undefined
+                    ["ui", "current", "publicKeyListErrorMessage"],
+                    undefined
                     );
             }
 
@@ -104,6 +108,10 @@ export default function origins(state = initialState["origins"], action) {
 
         case actionTypes.SET_ORIGIN_PUBLIC_KEY_UPLOAD_ERROR_MESSAGE:
             return state.setIn(["ui", "current", "publicKeyErrorMessage"],
+                action.payload);
+
+        case actionTypes.SET_ORIGIN_INTEGRATION_SAVE_ERROR_MESSAGE:
+            return state.setIn(["ui", "current", "integrationsSaveErrorMessage"],
                 action.payload);
 
         case actionTypes.SET_ORIGIN_USER_INVITE_ERROR_MESSAGE:

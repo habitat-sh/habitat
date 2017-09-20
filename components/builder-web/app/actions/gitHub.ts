@@ -13,12 +13,15 @@
 // limitations under the License.
 
 import "whatwg-fetch";
-import {URLSearchParams} from "@angular/http";
+import { URLSearchParams } from "@angular/http";
 import * as cookies from "js-cookie";
 import config from "../config";
-import {attemptSignIn, addNotification, goHome, fetchMyOrigins, requestRoute, setFeatureFlag,
-    signOut} from "./index";
-import {DANGER, WARNING} from "./notifications";
+import {
+    attemptSignIn, addNotification, goHome, fetchMyOrigins, requestRoute, setFeatureFlag,
+    signOut,
+    setSigningInFlag
+} from "./index";
+import { DANGER, WARNING } from "./notifications";
 
 const parseLinkHeader = require("parse-link-header");
 const uuid = require("uuid").v4;
@@ -43,11 +46,14 @@ export function authenticateWithGitHub(token = undefined) {
     ).has("code");
 
     return dispatch => {
+        if (isCodeInQueryString) {
+            dispatch(setSigningInFlag(true));
+        }
         if (token) {
             setCookie("gitHubAuthToken", token);
 
             fetch(`${config["github_api_url"]}/user?access_token=${token}`).then(response => {
-
+                dispatch(setSigningInFlag(false));
                 if (response.ok) {
                     return response.json();
                 } else {
@@ -225,9 +231,9 @@ function cookieDomain() {
 
     if (isNaN(Number(tld))) {
         return hostname
-        .split(delim)
-        .splice(-2)
-        .join(delim);
+            .split(delim)
+            .splice(-2)
+            .join(delim);
     } else {
         return hostname;
     }
@@ -237,7 +243,7 @@ export const currentHostname = () => {
     return location.hostname;
 };
 
-export function setCookie (key, value) {
+export function setCookie(key, value) {
     return cookies.set(key, value, {
         domain: cookieDomain(),
         secure: window.location.protocol === "https"
