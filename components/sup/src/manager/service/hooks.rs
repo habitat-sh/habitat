@@ -86,7 +86,7 @@ pub trait Hook: fmt::Debug + Sized {
                 Some(Self::new(service_group, pair))
             }
             Err(_) => {
-                warn!(
+                debug!(
                     "{} not found at {}, not loading",
                     Self::file_name(),
                     template.display()
