@@ -23,12 +23,6 @@ use std::vec;
 use error::{Error, Result};
 use package::PackageIdent;
 
-#[cfg(not(windows))]
-const ENV_PATH_SEPARATOR: char = ':';
-
-#[cfg(windows)]
-const ENV_PATH_SEPARATOR: char = ';';
-
 pub fn parse_key_value(s: &str) -> Result<HashMap<String, String>> {
     Ok(HashMap::from_iter(
         s.lines()
@@ -105,15 +99,11 @@ pub struct PkgEnv {
 }
 
 impl PkgEnv {
-    pub fn empty() -> Self {
-        Self { iter: Vec::new().into_iter() }
-    }
-
     pub fn from_paths(p: Vec<PathBuf>) -> Result<Self> {
         let p = env::join_paths(&p).expect("Failed to build path string");
         let result = vec![
             (
-                "PATH".to_string(),
+                String::from("PATH"),
                 p.into_string().expect(
                     "Failed to convert path to utf8 string",
                 )
