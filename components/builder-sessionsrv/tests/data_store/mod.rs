@@ -18,35 +18,43 @@ use sessionsrv::data_store::DataStore;
 #[test]
 fn create_account() {
     let ds = datastore_test!(DataStore);
+    let mut ac = sessionsrv::AccountCreate::new();
+    ac.set_email(String::from("bobo@chef.io"));
+    ac.set_name(String::from("Bobo T. Clown"));
+
+    let account = ds.create_account(&ac).expect("Should create account");
+
+    assert_eq!(account.get_email(), "bobo@chef.io");
+    assert_eq!(account.get_name(), "Bobo T. Clown");
+}
+
+#[test]
+fn create_session() {
+    let ds = datastore_test!(DataStore);
+    let mut ac = sessionsrv::AccountCreate::new();
+    ac.set_email(String::from("bobo@chef.io"));
+    ac.set_name(String::from("Bobo T. Clown"));
+
+    let account = ds.create_account(&ac).expect("Should create account");
+
     let mut sc = sessionsrv::SessionCreate::new();
     sc.set_token(String::from("hail2theking"));
     sc.set_extern_id(64);
-    sc.set_email(String::from("bobo@chef.io"));
     sc.set_name(String::from("Bobo T. Clown"));
     sc.set_provider(sessionsrv::OAuthProvider::GitHub);
 
-    let session = ds.find_or_create_account_via_session(&sc, true, false, false)
+    let session = ds.create_session(&sc, &account, true, false, false)
         .expect("Should create account");
     assert!(session.get_id() != 0, "Created account has an ID");
     assert_eq!(session.get_email(), "bobo@chef.io");
     assert_eq!(session.get_name(), "Bobo T. Clown");
-
-    let session2 = ds.find_or_create_account_via_session(&sc, true, false, false)
-        .expect("Should return account");
-    assert_eq!(session.get_id(), session2.get_id());
-    assert_eq!(session.get_email(), session2.get_email());
-    assert_eq!(session.get_name(), session2.get_name());
 }
 
-fn create_bobo_account(ds: &DataStore) -> sessionsrv::Session {
-    let mut sc = sessionsrv::SessionCreate::new();
-    sc.set_token(String::from("hail2theking"));
-    sc.set_extern_id(64);
-    sc.set_email(String::from("bobo@chef.io"));
-    sc.set_name(String::from("Bobo T. Clown"));
-    sc.set_provider(sessionsrv::OAuthProvider::GitHub);
-    ds.find_or_create_account_via_session(&sc, true, false, false)
-        .expect("Should create account")
+fn create_bobo_account(ds: &DataStore) -> sessionsrv::Account {
+    let mut ac = sessionsrv::AccountCreate::new();
+    ac.set_email(String::from("bobo@chef.io"));
+    ac.set_name(String::from("Bobo T. Clown"));
+    ds.create_account(&ac).expect("Should create account")
 }
 
 #[test]
@@ -79,29 +87,4 @@ fn get_account_by_id() {
     assert_eq!(bobo.get_id(), bobo2.get_id());
     assert_eq!(bobo.get_email(), bobo2.get_email());
     assert_eq!(bobo.get_name(), bobo2.get_name());
-}
-
-#[test]
-fn get_session() {
-    let ds = datastore_test!(DataStore);
-    let bobo = create_bobo_account(&ds);
-
-    let mut sg = sessionsrv::SessionGet::new();
-    sg.set_name(String::from(bobo.get_name()));
-    sg.set_token(String::from(bobo.get_token()));
-
-    let session = ds.get_session(&sg)
-        .expect("Should run without error")
-        .expect("Session should exist");
-    assert_eq!(bobo, session);
-
-    // Should expire sessions that are more than a day old
-    {
-        let conn = ds.pool.get(&sg).expect("get the connection back");
-        conn.execute(
-            "UPDATE account_sessions SET expires_at = now() - interval '2 day' WHERE token = $1",
-            &[&sg.get_token()],
-        ).expect("Execute successfully");
-    }
-    assert_eq!(None, ds.get_session(&sg).expect("Should run without error"));
 }

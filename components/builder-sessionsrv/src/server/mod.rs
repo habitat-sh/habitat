@@ -27,6 +27,7 @@ lazy_static! {
         let mut map = DispatchTable::new();
         map.register(AccountGet::descriptor_static(None), handlers::account_get);
         map.register(AccountGetId::descriptor_static(None), handlers::account_get_id);
+        map.register(AccountCreate::descriptor_static(None), handlers::account_create);
         map.register(SessionCreate::descriptor_static(None), handlers::session_create);
         map.register(SessionGet::descriptor_static(None), handlers::session_get);
         map.register(AccountInvitationListRequest::descriptor_static(None),

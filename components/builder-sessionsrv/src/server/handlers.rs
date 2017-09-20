@@ -65,6 +65,23 @@ pub fn account_get(
     Ok(())
 }
 
+pub fn account_create(
+    req: &mut Message,
+    conn: &mut RouteConn,
+    state: &mut ServerState,
+) -> SrvResult<()> {
+    let msg = req.parse::<proto::AccountCreate>()?;
+    match state.datastore.create_account(&msg) {
+        Ok(account) => conn.route_reply(req, &account)?,
+        Err(e) => {
+            let err = NetError::new(ErrCode::DATA_STORE, "ss:account-create:0");
+            error!("{}, {}", e, err);
+            conn.route_reply(req, &*err)?;
+        }
+    }
+    Ok(())
+}
+
 pub fn session_create(
     req: &mut Message,
     conn: &mut RouteConn,
@@ -119,7 +136,13 @@ pub fn session_create(
     // If only a token was filled in, let's grab the rest of the data from GH. We check email in
     // this case because although email is an optional field in the protobuf message, email is
     // required for access to builder.
+    //
+    // In theory, when everything's working, this if should never get executed. We fetch the GH
+    // email and other info in the Authenticated middleware session creation method.
     if msg.get_email().is_empty() {
+        info!(
+            "Fetching GH information during session creation. Something must've gone wrong in the middleware."
+        );
         match state.github.user(msg.get_token()) {
             Ok(user) => {
                 // Select primary email. If no primary email can be found, use any email. If
@@ -153,8 +176,40 @@ pub fn session_create(
         }
     }
 
-    match state.datastore.find_or_create_account_via_session(
+    // lookup account based on the name we have
+    let mut account_get = proto::AccountGet::new();
+    account_get.set_name(msg.get_name().to_string());
+
+    let account = match conn.route::<proto::AccountGet, proto::Account>(&account_get) {
+        Ok(a) => a,
+        Err(e) => {
+            if e.get_code() == ErrCode::ENTITY_NOT_FOUND {
+                // account doesn't exist, so let's create it
+                let mut account_create = proto::AccountCreate::new();
+                account_create.set_name(msg.get_name().to_string());
+                account_create.set_email(msg.get_email().to_string());
+
+                match conn.route::<proto::AccountCreate, proto::Account>(&account_create) {
+                    Ok(b) => b,
+                    Err(e) => {
+                        let err = NetError::new(ErrCode::DATA_STORE, "ss:session-create:4");
+                        error!("{}, {}", e, err);
+                        conn.route_reply(req, &*err)?;
+                        return Ok(());
+                    }
+                }
+            } else {
+                let err = NetError::new(ErrCode::DATA_STORE, "ss:session-create:5");
+                error!("{}, {}", e, err);
+                conn.route_reply(req, &*err)?;
+                return Ok(());
+            }
+        }
+    };
+
+    match state.datastore.create_session(
         &msg,
+        &account,
         is_admin,
         is_early_access,
         is_build_worker,
@@ -175,7 +230,7 @@ pub fn session_get(
     state: &mut ServerState,
 ) -> SrvResult<()> {
     let msg = req.parse::<proto::SessionGet>()?;
-    match state.datastore.get_session(&msg) {
+    match state.datastore.get_session(&msg, conn) {
         Ok(Some(session)) => conn.route_reply(req, &session)?,
         Ok(None) => {
             let err = NetError::new(ErrCode::SESSION_EXPIRED, "ss:auth:4");

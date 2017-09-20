@@ -486,7 +486,7 @@ mod tests {
     #[test]
     fn route_info_build() {
         let mut msg = sessionsrv::SessionGet::new();
-        msg.set_name("reset".to_string());
+        msg.set_token("reset".to_string());
         let route_info = RouteInfo::build(&msg);
         assert_eq!(route_info.protocol(), net::Protocol::SessionSrv);
         assert_eq!(route_info.hash().map(|x| x % 128), Some(96));
