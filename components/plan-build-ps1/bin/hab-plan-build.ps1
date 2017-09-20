@@ -3,7 +3,7 @@ param (
     $Context = ".",
 
     [string]
-    $DepotUrl
+    $BldrUrl
 )
 
 # # License and Copyright
@@ -62,19 +62,19 @@ $script:HAB_PKG_PATH = "$resolvedRoot\pkgs"
 # `plan.sh` file
 $script:PLAN_CONTEXT = "$Context"
 # The default Habitat Depot from where to download dependencies. If the URL was
-# provided as an option use that, if not use any set `HAB_DEPOT_URL`
+# provided as an option use that, if not use any set `HAB_BLDR_URL`
 # environment variable, and otherwise use the default provided.
-if ($DepotUrl) {
-    $script:HAB_DEPOT_URL = "$DepotUrl"
-} elseif (Test-Path Env:\HAB_DEPOT_URL) {
-    $script:HAB_DEPOT_URL = "$env:HAB_DEPOT_URL"
+if ($BldrUrl) {
+    $script:HAB_BLDR_URL = "$BldrUrl"
+} elseif (Test-Path Env:\HAB_BLDR_URL) {
+    $script:HAB_BLDR_URL = "$env:HAB_BLDR_URL"
 } else {
-    $script:HAB_DEPOT_URL = "https://willem.habitat.sh/v1/depot"
+    $script:HAB_BLDR_URL = "https://bldr.habitat.sh"
 }
-# Export the Depot URL so all other programs and subshells use this same one
-$env:HAB_DEPOT_URL = "$script:HAB_DEPOT_URL"
-if (!(Test-Path Env:\HAB_DEPOT_CHANNEL)) {
-    $env:HAB_DEPOT_CHANNEL = "stable"
+# Export the Builder URL so all other programs and subshells use this same one
+$env:HAB_BLDR_URL = "$script:HAB_BLDR_URL"
+if (!(Test-Path Env:\HAB_BLDR_CHANNEL)) {
+    $env:HAB_BLDR_CHANNEL = "stable"
 }
 $script:FALLBACK_CHANNEL = "stable"
 # The value of `$env:Path` on initial start of this program
@@ -320,10 +320,10 @@ function _Set-HabBin {
 
 function _install-dependency($dependency) {
   if (!$env:NO_INSTALL_DEPS) {
-    & $HAB_BIN install -u $env:HAB_DEPOT_URL --channel $env:HAB_DEPOT_CHANNEL $dependency
-    if ($LASTEXITCODE -ne 0 -and ($env:HAB_DEPOT_URL -ne $FALLBACK_CHANNEL)) {
+    & $HAB_BIN install -u $env:HAB_BLDR_URL --channel $env:HAB_BLDR_CHANNEL $dependency
+    if ($LASTEXITCODE -ne 0 -and ($env:HAB_BLDR_URL -ne $FALLBACK_CHANNEL)) {
       Write-BuildLine "Trying to install '$dependency' from '$FALLBACK_CHANNEL'"
-      & $HAB_BIN install -u $env:HAB_DEPOT_URL --channel $FALLBACK_CHANNEL $dependency
+      & $HAB_BIN install -u $env:HAB_BLDR_URL --channel $FALLBACK_CHANNEL $dependency
     }
   }
 }

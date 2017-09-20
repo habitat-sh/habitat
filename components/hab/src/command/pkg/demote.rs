@@ -22,7 +22,7 @@
 //! This will demote the acme package specified from the stable channel, removing it.
 //!
 //! Notes:
-//!    The package should already have been uploaded to the Depot.
+//!    The package should already have been uploaded to Builder.
 //!    If the specified channel does not exist, this will fail.
 //!
 
@@ -39,7 +39,7 @@ use error::{Error, Result};
 ///
 /// # Failures
 ///
-/// * Fails if it cannot find the specified package in the Depot.
+/// * Fails if it cannot find the specified package in Builder.
 /// * Fails if the channel specified does not exist.
 /// * Fails if "unstable" is the channel specified.
 pub fn start(

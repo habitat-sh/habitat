@@ -116,7 +116,7 @@ do
     pkg_name=${pkg##core/} # strip "core/" if it's there
     # Using a fake depot URL keeps us honest; this will fail loudly if
     # we need to go off the box to get *anything*
-    HAB_DEPOT_URL=http://not-a-real-depot.habitat.sh \
+    HAB_BLDR_URL=http://not-a-real-depot.habitat.sh \
                  ${hab_bootstrap_bin} pkg install ${tmpdir}/artifacts/core-${pkg_name}-*.hart
 done
 

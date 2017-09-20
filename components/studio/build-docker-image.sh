@@ -15,7 +15,7 @@
 # * `core/hab`
 # * `core/hab-studio`
 #
-# A default usage installs both of the above packages from the Depot:
+# A default usage installs both of the above packages from Builder:
 #
 # ```sh
 # ./build-docker-image.sh

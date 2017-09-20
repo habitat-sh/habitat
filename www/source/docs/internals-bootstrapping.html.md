@@ -113,7 +113,7 @@ In this stage, we rebuild all the base packages needed by Habitat using the tool
 export STUDIO_TYPE=default
 export HAB_STUDIO_ROOT=/hab/studios/stage2
 export HAB_ORIGIN=core
-export HAB_DEPOT_URL=http://127.0.0.1:9632/v1
+export HAB_BLDR_URL=http://127.0.0.1:9632/v1
 hab studio enter
 ~~~
 
@@ -162,7 +162,7 @@ cp world_build_order all_order
 export STUDIO_TYPE=default
 export HAB_STUDIO_ROOT=/hab/studios/stage3
 export HAB_ORIGIN=core
-export HAB_DEPOT_URL=http://127.0.0.1:9632/v1
+export HAB_BLDR_URL=http://127.0.0.1:9632/v1
 hab studio enter
 ~~~
 

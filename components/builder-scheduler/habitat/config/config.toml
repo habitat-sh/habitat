@@ -1,9 +1,4 @@
 log_dir = "{{pkg.svc_var_path}}"
-{{~#if cfg.depot_url}}
-depot_url = "{{cfg.depot_url}}"
-{{~else}}
-depot_url = "{{bind.depot.first.cfg.url}}/depot"
-{{~/if}}
 
 {{~#eachAlive bind.router.members as |member|}}
 [[routers]]

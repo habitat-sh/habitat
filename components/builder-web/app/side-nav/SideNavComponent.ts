@@ -19,7 +19,7 @@ import config from "../config";
     selector: "hab-side-nav",
     template: `
     <nav class="hab-side-nav">
-        <h4>Depot</h4>
+        <h4>Builder</h4>
         <ul class="hab-side-nav--list">
             <li *ngIf="isSignedIn">
                 <a [routerLink]="['/']"

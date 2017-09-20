@@ -24,7 +24,7 @@ use std::str::FromStr;
 use hcore::channel::STABLE_CHANNEL;
 use hcore::package::{PackageIdent, PackageInstall};
 use hcore::service::{ApplicationEnvironment, ServiceGroup};
-use hcore::url::DEFAULT_DEPOT_URL;
+use hcore::url::DEFAULT_BLDR_URL;
 use hcore::util::{deserialize_using_from_str, serialize_using_to_string};
 use rand::{Rng, thread_rng};
 use serde::{self, Deserialize};
@@ -232,7 +232,7 @@ impl Default for ServiceSpec {
             ident: PackageIdent::default(),
             group: DEFAULT_GROUP.to_string(),
             application_environment: None,
-            depot_url: DEFAULT_DEPOT_URL.to_string(),
+            depot_url: DEFAULT_BLDR_URL.to_string(),
             channel: STABLE_CHANNEL.to_string(),
             topology: Topology::default(),
             update_strategy: UpdateStrategy::default(),

@@ -55,13 +55,13 @@ We use the following in our release process:
 ## Publishing `hab` binaries
 
 The software to publish binaries is shipped and executed as a Habitat package
-(naturally) which is hosted on the public Depot as the
+(naturally) which is hosted on the public Builder as the
 `core/hab-bintray-publish` package. Currently this software is only supported
 in a Linux environment, so an operator using a Mac workstation may opt to run
 the following from a Docker container, a virtual machine, a cloud instance, a
 CI worker, etc.
 
-First, install the latest package from the Depot:
+First, install the latest package from Builder:
 
 ```sh
 hab install core/hab-bintray-publish
@@ -88,7 +88,7 @@ hab pkg exec core/hab-bintray-publish publish-hab \
 A similar workflow is used to produce and push a Docker image containing a
 pre-created Studio instance.
 
-First, install the latest package from the Depot if it's not already installed:
+First, install the latest package from Builder if it's not already installed:
 
 ```sh
 hab install core/hab-bintray-publish
@@ -96,7 +96,7 @@ hab install core/hab-bintray-publish
 
 Finally, run the publish program using `hab pkg exec` in order to have the
 program's `PATH` correctly set. By default, the program will fetch `core/hab`
-and `core/hab-studio` (i.e. the latest version from the Depot) but you can
+and `core/hab-studio` (i.e. the latest version from Builder) but you can
 specify one or more package identifiers and/or package artifacts as arguments.
 Here are few examples:
 
@@ -120,7 +120,7 @@ The `core/hab-bintray-publish` Plan is located under `support/bintray-publish`:
 # build the package
 hab pkg build ./support/bintray-publish
 
-# upload a result to the Depot
+# upload a result to Builder
 hab pkg upload \
   ./results/core-hab-bintray-publish-0.7.0-20160614234255-x86_64-linux.hart
 

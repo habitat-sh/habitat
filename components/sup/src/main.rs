@@ -44,7 +44,7 @@ use hcore::crypto::dpapi::encrypt;
 use hcore::env as henv;
 use hcore::package::{PackageArchive, PackageIdent};
 use hcore::service::{ApplicationEnvironment, ServiceGroup};
-use hcore::url::{DEFAULT_DEPOT_URL, DEPOT_URL_ENVVAR};
+use hcore::url::default_bldr_url;
 use launcher_client::{LauncherCli, ERR_NO_RETRY_EXCODE, OK_NO_RETRY_EXCODE};
 use url::Url;
 
@@ -167,9 +167,9 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                 "Receive package updates from the specified release channel [default: stable]")
             (@arg GROUP: --group +takes_value
                 "The service group; shared config and topology [default: default].")
-            (@arg DEPOT_URL: --url -u +takes_value {valid_url}
-                "Receive package updates from the Depot at the specified URL \
-                [default: https://bldr.habitat.sh/v1/depot]")
+            (@arg BLDR_URL: --url -u +takes_value {valid_url}
+                "Receive package updates from Builder at the specified URL \
+                [default: https://bldr.habitat.sh]")
             (@arg TOPOLOGY: --topology -t +takes_value {valid_topology}
                 "Service topology; [default: none]")
             (@arg STRATEGY: --strategy -s +takes_value {valid_update_strategy}
@@ -207,9 +207,9 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
             (@arg RING: --ring -r +takes_value "Ring key name")
             (@arg CHANNEL: --channel +takes_value
                 "Receive Supervisor updates from the specified release channel [default: stable]")
-            (@arg DEPOT_URL: --url -u +takes_value {valid_url}
-                "Receive Supervisor updates from the Depot at the specified URL \
-                [default: https://bldr.habitat.sh/v1/depot]")
+            (@arg BLDR_URL: --url -u +takes_value {valid_url}
+                "Receive Supervisor updates from Builder at the specified URL \
+                [default: https://bldr.habitat.sh]")
             (@arg AUTO_UPDATE: --("auto-update") -A "Enable automatic updates for the Supervisor \
                 itself")
             (@arg EVENTS: --events -n +takes_value {valid_service_group} "Name of the service \
@@ -249,9 +249,9 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                 "Receive package updates from the specified release channel [default: stable]")
             (@arg GROUP: --group +takes_value
                 "The service group; shared config and topology [default: default]")
-            (@arg DEPOT_URL: --url -u +takes_value {valid_url}
-                "Receive package updates from the Depot at the specified URL \
-                [default: https://bldr.habitat.sh/v1/depot]")
+            (@arg BLDR_URL: --url -u +takes_value {valid_url}
+                "Receive package updates from Builder at the specified URL \
+                [default: https://bldr.habitat.sh]")
             (@arg TOPOLOGY: --topology -t +takes_value {valid_topology}
                 "Service topology; [default: none]")
             (@arg STRATEGY: --strategy -s +takes_value {valid_update_strategy}
@@ -326,9 +326,9 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                 "Receive package updates from the specified release channel [default: stable]")
             (@arg GROUP: --group +takes_value
                 "The service group; shared config and topology [default: default].")
-            (@arg DEPOT_URL: --url -u +takes_value {valid_url}
-                "Receive package updates from the Depot at the specified URL \
-                [default: https://bldr.habitat.sh/v1/depot]")
+            (@arg BLDR_URL: --url -u +takes_value {valid_url}
+                "Receive package updates from Builder at the specified URL \
+                [default: https://bldr.habitat.sh]")
             (@arg TOPOLOGY: --topology -t +takes_value {valid_topology}
                 "Service topology; [default: none]")
             (@arg STRATEGY: --strategy -s +takes_value {valid_update_strategy}
@@ -368,9 +368,9 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
             (@arg RING: --ring -r +takes_value "Ring key name")
             (@arg CHANNEL: --channel +takes_value
                 "Receive Supervisor updates from the specified release channel [default: stable]")
-            (@arg DEPOT_URL: --url -u +takes_value {valid_url}
-                "Receive Supervisor updates from the Depot at the specified URL \
-                [default: https://bldr.habitat.sh/v1/depot]")
+            (@arg BLDR_URL: --url -u +takes_value {valid_url}
+                "Receive Supervisor updates from Builder at the specified URL \
+                [default: https://bldr.habitat.sh]")
             (@arg AUTO_UPDATE: --("auto-update") -A "Enable automatic updates for the Supervisor \
                 itself")
             (@arg EVENTS: --events -n +takes_value {valid_service_group} "Name of the service \
@@ -410,9 +410,9 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                 "Receive package updates from the specified release channel [default: stable]")
             (@arg GROUP: --group +takes_value
                 "The service group; shared config and topology [default: default]")
-            (@arg DEPOT_URL: --url -u +takes_value {valid_url}
-                "Receive package updates from the Depot at the specified URL \
-                [default: https://bldr.habitat.sh/v1/depot]")
+            (@arg BLDR_URL: --url -u +takes_value {valid_url}
+                "Receive package updates from Builder at the specified URL \
+                [default: https://bldr.habitat.sh]")
             (@arg TOPOLOGY: --topology -t +takes_value {valid_topology}
                 "Service topology; [default: none]")
             (@arg STRATEGY: --strategy -s +takes_value {valid_update_strategy}
@@ -650,9 +650,9 @@ fn mgrcfg_from_matches(m: &ArgMatches) -> Result<ManagerConfig> {
     let mut cfg = ManagerConfig::default();
 
     cfg.auto_update = m.is_present("AUTO_UPDATE");
-    cfg.update_url = match m.value_of("DEPOT_URL") {
+    cfg.update_url = match m.value_of("BLDR_URL") {
         Some(url) => url.to_string(),
-        None => henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string()),
+        None => default_bldr_url(),
     };
     cfg.update_channel = m.value_of("CHANNEL")
         .and_then(|c| Some(c.to_string()))
@@ -755,8 +755,8 @@ fn spec_from_matches(ident: PackageIdent, m: &ArgMatches) -> Result<ServiceSpec>
             env.to_string(),
         )?);
     }
-    let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
-    spec.depot_url = m.value_of("DEPOT_URL")
+    let env_or_default = default_bldr_url();
+    spec.depot_url = m.value_of("BLDR_URL")
         .unwrap_or(&env_or_default)
         .to_string();
     spec.channel = m.value_of("CHANNEL")

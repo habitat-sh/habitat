@@ -46,7 +46,7 @@ use hcore::env as henv;
 use hcore::fs::{cache_artifact_path, cache_analytics_path, cache_key_path};
 use hcore::package::PackageIdent;
 use hcore::service::ServiceGroup;
-use hcore::url::{DEFAULT_DEPOT_URL, DEPOT_URL_ENVVAR};
+use hcore::url::default_bldr_url;
 use hcore::binlink::default_binlink_dir;
 
 use hab::{analytics, cli, command, config, scaffolding, AUTH_TOKEN_ENVVAR, ORIGIN_ENVVAR, PRODUCT,
@@ -232,8 +232,8 @@ fn sub_cli_completers(m: &ArgMatches) -> Result<()> {
 fn sub_origin_key_download(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let origin = m.value_of("ORIGIN").unwrap(); // Required via clap
     let revision = m.value_of("REVISION");
-    let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
-    let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
+    let env_or_default = default_bldr_url();
+    let url = m.value_of("BLDR_URL").unwrap_or(&env_or_default);
 
     command::origin::key::download::start(
         ui,
@@ -268,8 +268,8 @@ fn sub_origin_key_import(ui: &mut UI) -> Result<()> {
 }
 
 fn sub_origin_key_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
-    let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
-    let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
+    let env_or_default = default_bldr_url();
+    let url = m.value_of("BLDR_URL").unwrap_or(&env_or_default);
     let token = auth_token_param_or_env(&m)?;
 
     init();
@@ -357,8 +357,8 @@ fn sub_pkg_exec(m: &ArgMatches, cmd_args: Vec<OsString>) -> Result<()> {
 fn sub_pkg_export(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
     let format = &m.value_of("FORMAT").unwrap();
-    let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
-    let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
+    let env_or_default = default_bldr_url();
+    let url = m.value_of("BLDR_URL").unwrap_or(&env_or_default);
     let channel = m.value_of("CHANNEL")
         .and_then(|c| Some(c.to_string()))
         .unwrap_or(channel::default());
@@ -386,8 +386,8 @@ fn sub_pkg_hash(m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_bldr_encrypt(ui: &mut UI, m: &ArgMatches) -> Result<()> {
-    let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
-    let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
+    let env_or_default = default_bldr_url();
+    let url = m.value_of("BLDR_URL").unwrap_or(&env_or_default);
 
     let mut content = String::new();
     io::stdin().read_to_string(&mut content)?;
@@ -397,18 +397,18 @@ fn sub_bldr_encrypt(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_job_start(ui: &mut UI, m: &ArgMatches) -> Result<()> {
-    let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
+    let env_or_default = default_bldr_url();
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
-    let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
+    let url = m.value_of("BLDR_URL").unwrap_or(&env_or_default);
     let group = m.is_present("GROUP");
     let token = auth_token_param_or_env(&m)?;
     command::job::start::start(ui, &url, &ident, &token, group)
 }
 
 fn sub_job_promote(ui: &mut UI, m: &ArgMatches) -> Result<()> {
-    let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
+    let env_or_default = default_bldr_url();
     let group_id = m.value_of("GROUP_ID").unwrap(); // Required via clap
-    let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
+    let url = m.value_of("BLDR_URL").unwrap_or(&env_or_default);
     let channel = m.value_of("CHANNEL").unwrap(); // Required via clap
     let token = auth_token_param_or_env(&m)?;
     command::job::promote::start(ui, &url, &group_id, &channel, &token)
@@ -434,8 +434,8 @@ fn sub_plan_init(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_pkg_install(ui: &mut UI, m: &ArgMatches) -> Result<()> {
-    let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
-    let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
+    let env_or_default = default_bldr_url();
+    let url = m.value_of("BLDR_URL").unwrap_or(&env_or_default);
     let channel = m.value_of("CHANNEL")
         .and_then(|c| Some(c.to_string()))
         .unwrap_or(channel::default());
@@ -484,8 +484,8 @@ fn sub_pkg_provides(m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_pkg_search(m: &ArgMatches) -> Result<()> {
-    let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
-    let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
+    let env_or_default = default_bldr_url();
+    let url = m.value_of("BLDR_URL").unwrap_or(&env_or_default);
     let search_term = m.value_of("SEARCH_TERM").unwrap(); // Required via clap
     command::pkg::search::start(&search_term, &url)
 }
@@ -504,9 +504,9 @@ fn sub_pkg_sign(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_pkg_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
-    let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
+    let env_or_default = default_bldr_url();
     let key_path = cache_key_path(Some(&*FS_ROOT));
-    let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
+    let url = m.value_of("BLDR_URL").unwrap_or(&env_or_default);
 
     // When packages are uploaded, they *always* go to `unstable`;
     // they can optionally get added to another channel, too.
@@ -542,8 +542,8 @@ fn sub_pkg_header(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_pkg_promote(ui: &mut UI, m: &ArgMatches) -> Result<()> {
-    let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
-    let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
+    let env_or_default = default_bldr_url();
+    let url = m.value_of("BLDR_URL").unwrap_or(&env_or_default);
     let channel = m.value_of("CHANNEL").unwrap();
     let token = auth_token_param_or_env(&m)?;
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
@@ -551,8 +551,8 @@ fn sub_pkg_promote(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_pkg_demote(ui: &mut UI, m: &ArgMatches) -> Result<()> {
-    let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
-    let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
+    let env_or_default = default_bldr_url();
+    let url = m.value_of("BLDR_URL").unwrap_or(&env_or_default);
     let channel = m.value_of("CHANNEL").unwrap();
     let token = auth_token_param_or_env(&m)?;
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
@@ -560,8 +560,8 @@ fn sub_pkg_demote(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_pkg_channels(ui: &mut UI, m: &ArgMatches) -> Result<()> {
-    let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
-    let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
+    let env_or_default = default_bldr_url();
+    let url = m.value_of("BLDR_URL").unwrap_or(&env_or_default);
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
 
     command::pkg::channels::start(ui, &url, &ident)

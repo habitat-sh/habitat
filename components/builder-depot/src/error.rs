@@ -65,7 +65,7 @@ impl fmt::Display for Error {
             Error::MessageTypeNotFound => format!("Unable to find message for given type"),
             Error::NetError(ref e) => format!("{}", e),
             Error::NoXFilename => {
-                format!("Invalid download from a Depot - missing X-Filename header")
+                format!("Invalid download from Builder - missing X-Filename header")
             }
             Error::NoFilePart => {
                 format!(
@@ -111,7 +111,7 @@ impl error::Error for Error {
             }
             Error::PackageIsAlreadyInChannel(_, _) => "Package is already in channel",
             Error::RemotePackageNotFound(_) => "Cannot find a package in any sources",
-            Error::NoXFilename => "Invalid download from a Depot - missing X-Filename header",
+            Error::NoXFilename => "Invalid download from Builder - missing X-Filename header",
             Error::NoFilePart => {
                 "An invalid path was passed - we needed a filename, and this path does not have one"
             }

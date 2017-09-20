@@ -196,7 +196,7 @@ PROFILE_ENTER
 
 _hab() {
   # We remove a couple of env vars we do not want for this instance of the studio
-  $bb env FS_ROOT=$HAB_STUDIO_ROOT HAB_CACHE_KEY_PATH= HAB_DEPOT_CHANNEL= $hab $*
+  $bb env FS_ROOT=$HAB_STUDIO_ROOT HAB_CACHE_KEY_PATH= HAB_BLDR_CHANNEL= $hab $*
 }
 
 _pkgpath_for() {

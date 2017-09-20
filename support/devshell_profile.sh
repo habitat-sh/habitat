@@ -16,8 +16,8 @@ info 'Plan for success!'
 if [[ -n "$HAB_ORIGIN" ]]; then
   info "Exported: HAB_ORIGIN=$HAB_ORIGIN"
 fi
-if [[ -n "$HAB_DEPOT_URL" ]]; then
-  info "Exported: HAB_DEPOT_URL=$HAB_DEPOT_URL"
+if [[ -n "$HAB_BLDR_URL" ]]; then
+  info "Exported: HAB_BLDR_URL=$HAB_BLDR_URL"
 fi
 if [[ -n "$http_proxy" ]]; then
   info "Exported: http_proxy=$http_proxy"

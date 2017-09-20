@@ -22,12 +22,12 @@ use error::{Error, Result};
 
 pub fn start(
     ui: &mut UI,
-    depot_url: &str,
+    bldr_url: &str,
     group_id: &str,
     channel: &str,
     token: &str,
 ) -> Result<()> {
-    let api_client = api_client::Client::new(depot_url, PRODUCT, VERSION, None)
+    let api_client = api_client::Client::new(bldr_url, PRODUCT, VERSION, None)
         .map_err(Error::APIClient)?;
     let gid = match group_id.parse::<u64>() {
         Ok(g) => g,
@@ -65,7 +65,8 @@ pub fn start(
                 }
                 println!("");
                 println!(
-                    "It's possible this failure was transient. You can try re-running this job group. You can also run build jobs for each of these packages individually."
+                    "It's possible this failure was transient. You can try re-running this job \
+                    group. You can also run build jobs for each of these packages individually."
                 );
             }
         }

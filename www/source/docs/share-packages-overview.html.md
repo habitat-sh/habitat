@@ -71,13 +71,13 @@ If the supervisor does not have the `core/postgresql` package in its local cache
 You may also supply a `--url` argument to the `hab start` command to instruct the supervisor to use either a different depot, or a materialized channel in that depot for the purposes of continuous deployment:
 
 ```
-$ hab start core/postgresql --url http://mydepot.example.com/v1/depot
+$ hab start core/postgresql --url https://bldr.habitat.sh
 ```
 
 or
 
 ```
-$ hab start core/postgresql --url http://mydepot.example.com/v1/depot/channels/mychannel
+$ hab start core/postgresql --url https://bldr.habitat.sh --channel unstable
 ```
 
 <hr>

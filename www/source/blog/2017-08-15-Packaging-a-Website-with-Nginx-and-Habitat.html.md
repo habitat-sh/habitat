@@ -47,7 +47,7 @@ Excellent &mdash; we have a website! We're just about ready to start packaging.
 Before we go further, we need to make sure you've been through the [Download and Install](/download/) docs and set up your machine to build Habitat packages. By now, you'll need to have:
 
 * Downloaded and installed Habitat
-* Created an account on the Habitat Depot
+* Created an account on Habitat Builder
 * Created an Origin for your Habitat packages
 * Configured your workstation by running through `hab setup` (and generated your origin keys, since we'll be using them here to sign the packages we make)
 
@@ -343,12 +343,12 @@ That was a whole bunch of words to explain what was really just a few lines of c
 
 So what's next? In future posts, we might develop our website package into a more sophisticated single-page web app, package a REST API to support it, extend our web-server configuration, add a database, build some containers, deploy, scale ... so many things. In the meantime, you might try a few on your own, like:
 
- * [Uploading both packages](/docs/share-packages-overview/#uploading-packages-to-the-depot) to the Habitat Depot,
+ * [Uploading both packages](/docs/share-packages-overview/#uploading-packages-to-the-depot) to Builder,
  * [Installing them](/docs/reference/habitat-cli/#hab-pkg-install) on a server,
- * [Running the web-server package](/docs/share-packages-overview/#running-packages-from-the-depot) from the Depot, and
- * Iterating on the website package by building and uploading revisions to the Depot.
+ * [Running the web-server package](/docs/share-packages-overview/#running-packages-from-the-depot) from Builder, and
+ * Iterating on the website package by building and uploading revisions to Builder.
 
-In doing so, you may find that the pattern we've outlined here &mdash; using `hab config apply` to prompt the web server to pick up changes to the website package &mdash; works nicely, but does require the somewhat manual step of running that command (and remembering to increment the version number). It'd be better if the Habitat supervisor could detect a new version of that package on the Depot, install it for you, and have the web server pick up the change automatically.
+In doing so, you may find that the pattern we've outlined here &mdash; using `hab config apply` to prompt the web server to pick up changes to the website package &mdash; works nicely, but does require the somewhat manual step of running that command (and remembering to increment the version number). It'd be better if the Habitat supervisor could detect a new version of that package on Builder, install it for you, and have the web server pick up the change automatically.
 
 One way to do that would be with [scaffolding](/docs/concepts-scaffolding/) to make it easier to package static websites or single-page JavaScript web applications. We've just started talking about this one, so expect to hear more about that here as it develops.
 

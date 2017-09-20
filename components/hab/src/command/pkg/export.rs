@@ -56,8 +56,8 @@ mod inner {
 
     use common::ui::UI;
     use hcore::crypto::{init, default_cache_key_path};
-    use hcore::url::DEPOT_URL_ENVVAR;
-    use hcore::channel::DEPOT_CHANNEL_ENVVAR;
+    use hcore::url::BLDR_URL_ENVVAR;
+    use hcore::channel::BLDR_CHANNEL_ENVVAR;
     use hcore::fs::find_command;
     use hcore::package::PackageIdent;
 
@@ -126,8 +126,8 @@ mod inner {
 
         if let Some(cmd) = find_command(command.to_string_lossy().as_ref()) {
             let pkg_arg = OsString::from(&ident.to_string());
-            env::set_var(DEPOT_URL_ENVVAR, url);
-            env::set_var(DEPOT_CHANNEL_ENVVAR, channel);
+            env::set_var(BLDR_URL_ENVVAR, url);
+            env::set_var(BLDR_CHANNEL_ENVVAR, channel);
             // TODO fn: Currently, the PATH-setting behavior of `hab pkg exec` is being used to put
             // dependent programs such as `docker` on `$PATH`. This is not ideal and we should be
             // using `hcore::os::process::become_command` but for the moment we'll continue to use

@@ -362,16 +362,16 @@ HAB_PKG_PATH=$HAB_ROOT_PATH/pkgs
 # `plan.sh` file
 PLAN_CONTEXT=${1:-.}
 # The default Habitat Depot from where to download dependencies. If
-# `HAB_DEPOT_URL` is set, this value is overridden.
-: ${HAB_DEPOT_URL:=https://willem.habitat.sh/v1/depot}
-# Export the Depot URL so all other programs and subshells use this same one
-export HAB_DEPOT_URL
+# `HAB_BLDR_URL` is set, this value is overridden.
+: ${HAB_BLDR_URL:=https://bldr.habitat.sh}
+# Export the Builder URL so all other programs and subshells use this same one
+export HAB_BLDR_URL
 # The default Habitat channel from where to download dependencies. If
-# `HAB_DEPOT_CHANNEL` is set, this value is overridden.
-: ${HAB_DEPOT_CHANNEL:=stable}
-# Export the Depot channel so all other programs and subshells use this same one
-export HAB_DEPOT_CHANNEL
-# Fall back here if package can't be installed from $HAB_DEPOT_CHANNEL
+# `HAB_BLDR_CHANNEL` is set, this value is overridden.
+: ${HAB_BLDR_CHANNEL:=stable}
+# Export Builder channel so all other programs and subshells use this same one
+export HAB_BLDR_CHANNEL
+# Fall back here if package can't be installed from $HAB_BLDR_CHANNEL
 FALLBACK_CHANNEL="stable"
 # The value of `$PATH` on initial start of this program
 INITIAL_PATH="$PATH"
@@ -710,10 +710,10 @@ _resolve_dependency() {
 # ```
 _install_dependency() {
   if [[ -z "${NO_INSTALL_DEPS:-}" ]]; then
-    $HAB_BIN install -u $HAB_DEPOT_URL --channel $HAB_DEPOT_CHANNEL "$dep" || {
-      if [[ "$HAB_DEPOT_CHANNEL" != "$FALLBACK_CHANNEL" ]]; then
+    $HAB_BIN install -u $HAB_BLDR_URL --channel $HAB_BLDR_CHANNEL "$dep" || {
+      if [[ "$HAB_BLDR_CHANNEL" != "$FALLBACK_CHANNEL" ]]; then
         build_line "Trying to install '$dep' from '$FALLBACK_CHANNEL'"
-        $HAB_BIN install -u $HAB_DEPOT_URL --channel "$FALLBACK_CHANNEL" "$dep" || true
+        $HAB_BIN install -u $HAB_BLDR_URL --channel "$FALLBACK_CHANNEL" "$dep" || true
       fi
     }
   fi
@@ -2991,7 +2991,7 @@ OPTIND=2
 while getopts "u:" opt; do
   case "${opt}" in
     u)
-      HAB_DEPOT_URL=$OPTARG
+      HAB_BLDR_URL=$OPTARG
       ;;
     \?)
       echo "Invalid option: -$OPTARG" >&2

@@ -83,8 +83,8 @@ pub fn get() -> App<'static, 'static> {
                 (about: "Reads a stdin stream containing plain text and outputs \
                     an encrypted representation")
                 (aliases: &["e", "en", "enc", "encr", "encry"])
-                (@arg DEPOT_URL: -u --url +takes_value {valid_url}
-                    "Use a specific Depot URL (ex: http://depot.example.com/v1/depot)")
+                (@arg BLDR_URL: -u --url +takes_value {valid_url}
+                    "Specify an alternate Builder endpoint (ex: https://bldr.habitat.sh)")
             )
         )
         (@subcommand job =>
@@ -97,10 +97,11 @@ pub fn get() -> App<'static, 'static> {
                 (@arg PKG_IDENT: +required +takes_value
                     "The origin and name of the package to schedule a job for \
                     (ex: core/redis)")
-                (@arg DEPOT_URL: -u --url +takes_value {valid_url}
-                    "Use a specific Depot URL (ex: http://depot.example.com/v1/depot)")
-                (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for the Depot")
-                (@arg GROUP: -g --group "Schedule jobs for this package and all of its reverse dependencies")
+                (@arg BLDR_URL: -u --url +takes_value {valid_url}
+                    "Specify an alternate Builder endpoint (ex: https://bldr.habitat.sh)")
+                (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
+                (@arg GROUP: -g --group "Schedule jobs for this package and all of its reverse \
+                    dependencies")
             )
             (@subcommand promote =>
                 (about: "Promote every package in a job group to a specified channel")
@@ -108,10 +109,11 @@ pub fn get() -> App<'static, 'static> {
                 (@arg GROUP_ID: +required +takes_value
                     "The job group ID that was returned from \"hab job start\" \
                     (ex: 771100000000000000)")
-                (@arg CHANNEL: +takes_value +required "The channel name to promote the built packages into")
-                (@arg DEPOT_URL: -u --url +takes_value {valid_url}
-                    "Use a specific Depot URL (ex: http://depot.example.com/v1/depot)")
-                (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for the Depot")
+                (@arg CHANNEL: +takes_value +required "The channel name to promote the built \
+                    packages into")
+                (@arg BLDR_URL: -u --url +takes_value {valid_url}
+                    "Specify an alternate Builder endpoint (ex: https://bldr.habitat.sh)")
+                (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
             )
         )
         (@subcommand origin =>
@@ -127,8 +129,8 @@ pub fn get() -> App<'static, 'static> {
                     (aliases: &["d", "do", "dow", "down", "downl", "downlo", "downloa"])
                     (@arg ORIGIN: +required "The origin name")
                     (@arg REVISION: "The key revision")
-                    (@arg DEPOT_URL: -u --url +takes_value {valid_url}
-                        "Use a specific Depot URL (ex: http://depot.example.com/v1/depot)")
+                    (@arg BLDR_URL: -u --url +takes_value {valid_url}
+                        "Specify an alternate Builder endpoint (ex: https://bldr.habitat.sh)")
                 )
                 (@subcommand export =>
                     (about: "Outputs the latest origin key contents to stdout")
@@ -154,15 +156,15 @@ pub fn get() -> App<'static, 'static> {
                         (@arg PUBLIC_FILE: --pubfile +takes_value {file_exists}
                             "Path to a local public origin key file on disk")
                     )
-                    (about: "Upload origin keys to the depot")
+                    (about: "Upload origin keys to Builder")
                     (aliases: &["u", "up", "upl", "uplo", "uploa"])
                     (@arg WITH_SECRET: -s --secret conflicts_with[PUBLIC_FILE]
                         "Upload secret key in addition to the public key")
                     (@arg SECRET_FILE: --secfile +takes_value {file_exists} conflicts_with[ORIGIN]
                         "Path to a local secret origin key file on disk")
-                    (@arg DEPOT_URL: -u --url +takes_value {valid_url}
-                        "Use a specific Depot URL (ex: http://depot.example.com/v1/depot)")
-                    (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for the Depot")
+                    (@arg BLDR_URL: -u --url +takes_value {valid_url}
+                        "Specify an alternate Builder endpoint (ex: https://bldr.habitat.sh)")
+                    (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
                 )
             )
         )
@@ -209,9 +211,9 @@ pub fn get() -> App<'static, 'static> {
                     "The export format (ex: docker, aci, mesos, or tar)")
                 (@arg PKG_IDENT: +required +takes_value
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
-                (@arg DEPOT_URL: --url -u +takes_value {valid_url}
-                    "Retrieve the container's package from the specified Depot \
-                    (default: https://bldr.habitat.sh/v1/depot)")
+                (@arg BLDR_URL: --url -u +takes_value {valid_url}
+                    "Retrieve the container's package from the specified Builder \
+                    (default: https://bldr.habitat.sh)")
                 (@arg CHANNEL: --channel -c +takes_value
                     "Retrieve the container's package from the specified release channel \
                     (default: stable)")
@@ -239,10 +241,10 @@ pub fn get() -> App<'static, 'static> {
                 (@arg FULL_PATHS: -p "Show full path to file")
             )
             (@subcommand search =>
-                (about: "Search for a package on a Depot")
+                (about: "Search for a package in Builder")
                 (@arg SEARCH_TERM: +required +takes_value "Search term")
-                (@arg DEPOT_URL: -u --url +takes_value {valid_url}
-                    "Use a specific Depot URL (ex: http://depot.example.com/v1/depot)")
+                (@arg BLDR_URL: -u --url +takes_value {valid_url}
+                    "Specify an alternate Builder endpoint (ex: https://bldr.habitat.sh)")
             )
             (@subcommand sign =>
                 (about: "Signs an archive with an origin key, generating a Habitat Artifact")
@@ -256,11 +258,11 @@ pub fn get() -> App<'static, 'static> {
                     (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
             )
             (@subcommand upload =>
-                (about: "Uploads a local Habitat Artifact to a Depot")
+                (about: "Uploads a local Habitat Artifact to Builder")
                 (aliases: &["u", "up", "upl", "uplo", "uploa"])
-                (@arg DEPOT_URL: -u --url +takes_value {valid_url}
-                    "Use a specific Depot URL (ex: http://depot.example.com/v1/depot)")
-                (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for the Depot")
+                (@arg BLDR_URL: -u --url +takes_value {valid_url}
+                    "Specify an alternate Builder endpoint (ex: https://bldr.habitat.sh)")
+                (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
                 (@arg CHANNEL: --channel -c +takes_value
                     "Additional release channel to upload package to. \
                      Packages are always uploaded to `unstable`, regardless \
@@ -272,30 +274,30 @@ pub fn get() -> App<'static, 'static> {
             (@subcommand promote =>
                 (about: "Promote a package to a specified channel")
                 (aliases: &["pr", "pro"])
-                (@arg DEPOT_URL: -u --url +takes_value {valid_url}
-                    "Use a specific Depot URL (ex: http://depot.example.com/v1/depot)")
+                (@arg BLDR_URL: -u --url +takes_value {valid_url}
+                    "Specify an alternate Builder endpoint (ex: https://bldr.habitat.sh)")
                 (@arg PKG_IDENT: +required +takes_value
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
                 (@arg CHANNEL: +required +takes_value
                     "Promote to the specified release channel")
-                (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for the Depot")
+                (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
             )
             (@subcommand demote =>
                 (about: "Demote a package from a specified channel")
                 (aliases: &["de", "dem", "demo", "demot"])
-                (@arg DEPOT_URL: -u --url +takes_value {valid_url}
-                    "Use a specific Depot URL (ex: http://depot.example.com/v1/depot)")
+                (@arg BLDR_URL: -u --url +takes_value {valid_url}
+                    "Specify an alternate Builder endpoint (ex: https://bldr.habitat.sh)")
                 (@arg PKG_IDENT: +required +takes_value
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
                 (@arg CHANNEL: +required +takes_value
                     "Demote from the specified release channel")
-                (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for the Depot")
+                (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
             )
             (@subcommand channels =>
                 (about: "Find out what channels a package belongs to")
                 (aliases: &["ch", "cha", "chan", "chann", "channe", "channel"])
-                (@arg DEPOT_URL: -u --url +takes_value {valid_url}
-                    "Use a specific Depot URL (ex: http://depot.example.com/v1/depot)")
+                (@arg BLDR_URL: -u --url +takes_value {valid_url}
+                    "Specify an alternate Builder endpoint (ex: https://bldr.habitat.sh)")
                 (@arg PKG_IDENT: +required +takes_value
                     "A fully qualified package identifier (ex: core/redis/3.2.1/20160729052715)")
             )
@@ -554,15 +556,15 @@ fn sub_pkg_build() -> App<'static, 'static> {
                 )
                 .short("R")
                 .long("reuse"),
-        )
-        .arg(
-            Arg::with_name("DOCKER")
-                .help(
-                    "Uses a Dockerized Studio for the build (default: Studio uses a chroot on linux)"
-                )
-                .short("D")
-                .long("docker"),
-        )
+        ).arg(
+                Arg::with_name("DOCKER")
+                    .help(
+                        "Uses a Dockerized Studio for the build (default: Studio uses a chroot on \
+                        linux)",
+                    )
+                    .short("D")
+                    .long("docker"),
+            )
     } else if cfg!(target_os = "windows") {
         sub.arg(
             Arg::with_name("WINDOWS")
@@ -577,9 +579,9 @@ fn sub_pkg_build() -> App<'static, 'static> {
 
 fn sub_pkg_install() -> App<'static, 'static> {
     let sub = clap_app!(@subcommand install =>
-        (about: "Installs a Habitat package from a Depot or locally from a Habitat Artifact")
-        (@arg DEPOT_URL: --url -u +takes_value {valid_url}
-            "Use a specific Depot URL (default: https://bldr.habitat.sh/v1/depot)")
+        (about: "Installs a Habitat package from Builder or locally from a Habitat Artifact")
+        (@arg BLDR_URL: --url -u +takes_value {valid_url}
+            "Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)")
         (@arg CHANNEL: --channel -c +takes_value
             "Install from the specified release channel (default: stable)")
         (@arg PKG_IDENT_OR_ARTIFACT: +required +multiple

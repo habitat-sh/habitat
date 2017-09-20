@@ -42,7 +42,7 @@ local_dir = "/tmp"
 `config_scheduler.toml`
 ```toml
 auth_token = "<your github token>"
-depot_url = "http://localhost:9636/v1/depot"
+depot_url = "http://localhost:9636"
 ```
 
 `config_sessionsrv.toml`
@@ -61,7 +61,7 @@ client_secret = "438223113eeb6e7edf2d2f91a232b72de72b9bdf"
 `config_worker.toml`
 ```toml
 auth_token = "<your github token>"
-depot_url = "http://localhost:9636/v1/depot"
+depot_url = "http://localhost:9636"
 auto_publish = true
 ```
 
@@ -90,7 +90,7 @@ Note: this only needs to be done the first time to get the pieces in place. If y
 
 ```
 export HAB_AUTH_TOKEN=<your github token>
-export HAB_DEPOT_URL=http://localhost:9636/v1/depot
+export HAB_BLDR_URL=http://localhost:9636
 export HAB_ORIGIN=<your origin>
 ```
 
@@ -128,7 +128,7 @@ There are a couple of ways to do this.
 ### In the browser
 The `make bldr-run` command you ran above also starts the Builder Web UI, which should be listening on port 3000. If that process is running in a container or VM, and you've forwarded port 3000 to your host, you should be able to browse to http://localhost:3000/#/pkgs, sign in with GitHub, and click My Origins in the sidebar to create an origin.
 
-## Import origin keys to the Depot
+## Import origin keys to Builder
 This can be done via the Builder Web UI. Make sure you have both the public and private keys available for your origin.
 
 The web UI should be running at http://localhost:3000/#/pkgs. (If you need to bring up the UI at a different address or port, please refer to the builder-web [README](./components/builder-web/README.md) for setting up a custom OAuth app).
@@ -190,12 +190,12 @@ archive is not accessible, the builds will fail.
 
 Make sure you do a `hab pkg upload` to your environment
 ```
-export HAB_DEPOT_URL=http://localhost:9636/v1/depot
+export HAB_BLDR_URL=http://localhost:9636/v1/depot
 hab pkg upload <package>
 ```
 
 You can get the packages from the production or acceptance environments
-by pointing `HAB_DEPOT_URL` to https://app.habitat.sh or
+by pointing `HAB_BLDR_URL` to https://app.habitat.sh or
 http://app.acceptance.habitat.sh, and then doing a ```hab pkg install <package>```.
 
 ## Run a build
@@ -265,7 +265,7 @@ http GET http://localhost:9636/v1/depot/origins/core/users Authorization:Bearer:
 `
 
 ## Troubleshooting
-1. If you get the following error when building, check to make sure you have imported the origin keys, and that the `HAB_DEPOT_URL` export was done correctly in the terminal session that ran `make bldr-run`:
+1. If you get the following error when building, check to make sure you have imported the origin keys, and that the `HAB_BLDR_URL` export was done correctly in the terminal session that ran `make bldr-run`:
 `ERROR:habitat_builder_worker::runner: Unable to retrieve secret key, err=[404 Not Found]`
 
 1. If you get a build failing with a `401 Unauthorized`, make sure the builder worker is pointed to a valid Github token (via a config.toml in the Procfile)

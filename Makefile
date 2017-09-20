@@ -11,8 +11,8 @@ else ifeq ($(UNAME_S),Darwin)
 endif
 
 ifeq ($(IN_DOCKER),true)
-	build_args := --build-arg HAB_DEPOT_URL=$(HAB_DEPOT_URL)
-	run_args := -e HAB_DEPOT_URL=$(HAB_DEPOT_URL)
+	build_args := --build-arg HAB_BLDR_URL=$(HAB_BLDR_URL)
+	run_args := -e HAB_BLDR_URL=$(HAB_BLDR_URL)
 	run_args := $(run_args) -e HAB_ORIGIN=$(HAB_ORIGIN)
 	ifneq (${http_proxy},)
 		build_args := $(build_args) --build-arg http_proxy="${http_proxy}"

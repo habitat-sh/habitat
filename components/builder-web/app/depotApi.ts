@@ -16,7 +16,7 @@ import "whatwg-fetch";
 import config from "./config";
 import { packageString } from "./util";
 
-const urlPrefix = config["habitat_api_url"] || "";
+const urlPrefix = `${config["habitat_api_url"]}/v1` || "v1";
 
 export function getUnique(origin: string, nextRange: number = 0) {
     const url = `${urlPrefix}/depot/${origin}/pkgs?range=${nextRange}`;
@@ -81,7 +81,7 @@ export function get(params, nextRange: number = 0) {
             // Fail the promise if an error happens.
             //
             // If we're hitting the fake api, the 4xx response will show up
-            // here, but if we're hitting the real depot, it will show up in the
+            // here, but if we're hitting the real Builder, it will show up in the
             // catch below.
             if (response.status >= 400) {
                 reject(new Error(response.statusText));

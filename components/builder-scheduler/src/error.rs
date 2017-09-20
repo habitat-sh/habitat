@@ -16,10 +16,8 @@ use std::error;
 use std::fmt;
 use std::io;
 
-use api_client;
 use bldr_core;
 use db;
-use depot_client;
 use hab_core;
 use hab_net;
 use protocol;
@@ -32,10 +30,8 @@ pub type SrvResult<T> = Result<T, SrvError>;
 
 #[derive(Debug)]
 pub enum SrvError {
-    APIClient(api_client::Error),
     BadPort(String),
     BuilderCore(bldr_core::Error),
-    ChannelCreate(depot_client::Error),
     ConnErr(hab_net::conn::ConnErr),
     Db(db::error::Error),
     DbPoolTimeout(r2d2::GetTimeout),
@@ -53,7 +49,6 @@ pub enum SrvError {
     MessageInsert(postgres::error::Error),
     NetError(hab_net::NetError),
     PackageInsert(postgres::error::Error),
-    PackagePromote(depot_client::Error),
     PackageStats(postgres::error::Error),
     PackagesGet(postgres::error::Error),
     ProjectSetState(postgres::error::Error),
@@ -69,10 +64,8 @@ pub enum SrvError {
 impl fmt::Display for SrvError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
-            SrvError::APIClient(ref e) => format!("{}", e),
             SrvError::BadPort(ref e) => format!("{} is an invalid port. Valid range 1-65535.", e),
             SrvError::BuilderCore(ref e) => format!("{}", e),
-            SrvError::ChannelCreate(ref e) => format!("{}", e),
             SrvError::ConnErr(ref e) => format!("{}", e),
             SrvError::Db(ref e) => format!("{}", e),
             SrvError::DbPoolTimeout(ref e) => {
@@ -113,7 +106,6 @@ impl fmt::Display for SrvError {
             SrvError::PackageInsert(ref e) => {
                 format!("Database error inserting a new package, {}", e)
             }
-            SrvError::PackagePromote(ref e) => format!("{}", e),
             SrvError::PackageStats(ref e) => {
                 format!("Database error retrieving package statistics, {}", e)
             }
@@ -136,12 +128,10 @@ impl fmt::Display for SrvError {
 impl error::Error for SrvError {
     fn description(&self) -> &str {
         match *self {
-            SrvError::APIClient(ref err) => err.description(),
             SrvError::BadPort(_) => {
                 "Received an invalid port or a number outside of the valid range."
             }
             SrvError::BuilderCore(ref err) => err.description(),
-            SrvError::ChannelCreate(ref err) => err.description(),
             SrvError::ConnErr(ref err) => err.description(),
             SrvError::Db(ref err) => err.description(),
             SrvError::DbPoolTimeout(ref err) => err.description(),
@@ -159,7 +149,6 @@ impl error::Error for SrvError {
             SrvError::MessageInsert(ref err) => err.description(),
             SrvError::NetError(ref err) => err.description(),
             SrvError::PackageInsert(ref err) => err.description(),
-            SrvError::PackagePromote(ref err) => err.description(),
             SrvError::PackageStats(ref err) => err.description(),
             SrvError::PackagesGet(ref err) => err.description(),
             SrvError::ProjectSetState(ref err) => err.description(),

@@ -41,8 +41,8 @@ use hab_http::util::decoded_response;
 use hyper::client::{IntoUrl, Response, RequestBuilder};
 use hyper::header::{Accept, Authorization, Bearer, ContentType};
 use hyper::status::StatusCode;
-use regex::Regex;
-use url::Url;
+
+const DEFAULT_API_PATH: &'static str = "/v1";
 
 pub struct Client(ApiClient);
 
@@ -61,7 +61,7 @@ pub struct JobGroupPromoteResponse {
 
 impl Client {
     pub fn new<U>(
-        depot_url: U,
+        endpoint: U,
         product: &str,
         version: &str,
         fs_root_path: Option<&Path>,
@@ -69,14 +69,14 @@ impl Client {
     where
         U: IntoUrl,
     {
-        let api_url = normalize_url_until_we_consolidate_our_apis(depot_url)?;
-
-        Ok(Client(ApiClient::new(
-            api_url.as_str(),
-            product,
-            version,
-            fs_root_path,
-        ).map_err(Error::HabitatHttpClient)?))
+        let mut endpoint = endpoint.into_url().map_err(Error::URL)?;
+        if !endpoint.cannot_be_a_base() && endpoint.path() == "/" {
+            endpoint.set_path(DEFAULT_API_PATH);
+        }
+        Ok(Client(
+            ApiClient::new(endpoint, product, version, fs_root_path)
+                .map_err(Error::HabitatHttpClient)?,
+        ))
     }
 
     /// Create a job.
@@ -201,26 +201,4 @@ fn err_from_response(mut response: Response) -> Error {
     let mut s = String::new();
     response.read_to_string(&mut s).map_err(Error::IO).unwrap();
     Error::APIError(response.status, s)
-}
-
-// This client crate specializes in dealing with builder-api, not builder-depot. However, we
-// already have lots of documentation around HAB_DEPOT_URL, including command line flags to the
-// CLI, environment variables, etc. It's silly and pointless to introduce duplications of all of
-// that for builder-api, especially when we plan on consolidating builder-depot and builder-api
-// into one unified thing at some point. Instead, this function accepts a builder-depot specific
-// URL and converts it to work with builder-api by detecting and possibly popping "/depot" off of
-// the end of it.
-fn normalize_url_until_we_consolidate_our_apis<U>(depot_url: U) -> Result<Url>
-where
-    U: IntoUrl,
-{
-    let re = Regex::new(r"depot/?$").unwrap();
-    let mut url = depot_url.into_url().map_err(Error::URL)?;
-
-    if re.is_match(url.path()) {
-        let mut psm = url.path_segments_mut().unwrap();
-        psm.pop();
-    }
-
-    Ok(url)
 }

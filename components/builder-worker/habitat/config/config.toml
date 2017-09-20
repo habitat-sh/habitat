@@ -1,12 +1,8 @@
 auth_token = "{{cfg.auth_token}}"
 auto_publish = {{cfg.auto_publish}}
-depot_channel = "{{cfg.depot_channel}}"
 data_path = "{{pkg.svc_data_path}}"
-{{~#if cfg.depot_url}}
-depot_url = "{{cfg.depot_url}}"
-{{~else}}
-depot_url = "{{bind.depot.first.cfg.url}}/depot"
-{{~/if}}
+bldr_channel = "{{cfg.bldr_channel}}"
+bldr_url = "{{bind.depot.first.cfg.url}}"
 
 {{~#eachAlive bind.jobsrv.members as |member|}}
 [[jobsrv]]

@@ -32,7 +32,7 @@ pub fn post_process(
         None
     };
 
-    let url = config.depot_url.clone();
+    let url = config.bldr_url.clone();
 
     let mut publisher = Publisher {
         enabled: config.auto_publish,

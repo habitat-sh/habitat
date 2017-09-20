@@ -43,8 +43,8 @@ variable "hab_sup_sg" {
 }
 
 variable "depot_url" {
-  description = "URL of Depot to receive package updates from"
-  default     = "https://bldr.habitat.sh/v1/depot"
+  description = "URL of Builder to receive package updates from"
+  default     = "https://bldr.habitat.sh"
 }
 
 variable "api_url" {
@@ -53,7 +53,7 @@ variable "api_url" {
 }
 
 variable "release_channel" {
-  description = "Release channel in Depot to receive package updates from"
+  description = "Release channel in Builder to receive package updates from"
   default     = "stable"
 }
 

@@ -27,7 +27,7 @@ export class KeyListComponent {
     @Input() keys: List<any>;
     @Input() keyType: KeyType;
 
-    get apiUrl() { return config["habitat_api_url"]; }
+    get apiUrl() { return `${config["habitat_api_url"]}/v1`; }
 
     get publicKey() {
         return this.keyType === "public";

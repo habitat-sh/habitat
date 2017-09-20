@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Copyright (c) 2016 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -61,12 +61,12 @@ impl fmt::Display for Error {
                 )
             }
             Error::NoXFilename => {
-                format!("Invalid download from a Depot - missing X-Filename header")
+                format!("Invalid download from Builder - missing X-Filename header")
             }
             Error::IdentNotFullyQualified => {
                 format!(
-                    "Cannot perform the specified operation on a package identifier that is not fully qualified; please \
-                        include the package version and release"
+                    "Cannot perform the specified operation on a package identifier that is not \
+                    fully qualified; please include the package version and release"
                 )
             }
             Error::UploadFailed(ref s) => format!("Upload failed: {}", s),
@@ -92,9 +92,10 @@ impl error::Error for Error {
             Error::NoFilePart => {
                 "An invalid path was passed - we needed a filename, and this path does not have one"
             }
-            Error::NoXFilename => "Invalid download from a Depot - missing X-Filename header",
+            Error::NoXFilename => "Invalid download from Builder - missing X-Filename header",
             Error::IdentNotFullyQualified => {
-                "Cannot perform the specified operation on a package identifier that is not fully qualified"
+                "Cannot perform the specified operation on a package identifier that is not fully \
+                qualified"
             }
             Error::UploadFailed(_) => "Upload failed",
             Error::UrlParseError(ref err) => err.description(),

@@ -24,7 +24,7 @@ use std::sync::Mutex;
 use std::thread;
 use std::time::Duration;
 
-use hcore::url::DEPOT_URL_ENVVAR;
+use hcore::url::BLDR_URL_ENVVAR;
 use rand;
 use rand::distributions::{IndependentSample, Range};
 
@@ -229,7 +229,7 @@ impl TestSup {
             "TESTING_FS_ROOT",
             fs_root.as_ref().to_string_lossy().as_ref(),
         ).env("HAB_SUP_BINARY", &sup_exe)
-            .env(DEPOT_URL_ENVVAR, "http://hab.sup.test/v1/depot")
+            .env(BLDR_URL_ENVVAR, "http://hab.sup.test")
             .arg("start")
             .arg("--listen-gossip")
             .arg(format!("{}:{}", listen_host, butterfly_port))

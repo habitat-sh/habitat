@@ -1,6 +1,6 @@
 ident = "sup-integration-test/no-configs-only-hooks"
 group = "default"
-depot_url = "http://hab.sup.test/v1/depot"
+depot_url = "http://hab.sup.test"
 channel = "unstable"
 topology = "standalone"
 update_strategy = "at-once"

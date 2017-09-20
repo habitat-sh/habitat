@@ -19,7 +19,7 @@ use common::ui::{Status, UI};
 use hcore;
 use hcore::fs::{self, cache_artifact_path};
 use hcore::package::{PackageIdent, PackageInstall};
-use hcore::url::default_depot_url;
+use hcore::url::default_bldr_url;
 
 use {PRODUCT, VERSION};
 use error::{Error, Result};
@@ -68,7 +68,7 @@ where
             )?;
             common::command::package::install::start(
                 ui,
-                &default_depot_url(),
+                &default_bldr_url(),
                 None,
                 &ident.to_string(),
                 PRODUCT,
