@@ -267,6 +267,14 @@ impl SpecWatcher {
                 );
                 continue;
             }
+            // Migrate spec files using an older format
+            if let Err(err) = spec.to_file(&spec_file) {
+                outputln!(
+                    "Unable to migrate service spec, {}, {}",
+                    spec_file.display(),
+                    err
+                );
+            }
             specs.insert(spec.ident.name.clone(), spec);
         }
         Ok(specs)
