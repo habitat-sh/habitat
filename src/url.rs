@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Copyright (c) 2016 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,15 +14,23 @@
 
 use env;
 
-/// Default Depot URL
-pub const DEFAULT_DEPOT_URL: &'static str = "https://willem.habitat.sh/v1/depot";
+/// Default Builder URL environment variable
+pub const BLDR_URL_ENVVAR: &'static str = "HAB_BLDR_URL";
+/// Default Builder URL
+pub const DEFAULT_BLDR_URL: &'static str = "https://bldr.habitat.sh";
+/// Legacy environment variable for defining a default Builder endpoint
+const LEGACY_BLDR_URL_ENVVAR: &'static str = "HAB_DEPOT_URL";
 
-/// Default Depot URL environment variable
-pub const DEPOT_URL_ENVVAR: &'static str = "HAB_DEPOT_URL";
-
-pub fn default_depot_url() -> String {
-    match env::var(DEPOT_URL_ENVVAR) {
+pub fn default_bldr_url() -> String {
+    match env::var(BLDR_URL_ENVVAR) {
         Ok(val) => val,
-        Err(_) => DEFAULT_DEPOT_URL.to_string(),
+        Err(_) => legacy_depot_url(),
+    }
+}
+
+fn legacy_depot_url() -> String {
+    match env::var(LEGACY_BLDR_URL_ENVVAR) {
+        Ok(val) => val,
+        Err(_) => DEFAULT_BLDR_URL.to_string(),
     }
 }
