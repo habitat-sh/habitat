@@ -97,7 +97,7 @@ pub struct ServiceSpec {
     #[serde(deserialize_with = "deserialize_application_environment",
             skip_serializing_if = "Option::is_none")]
     pub application_environment: Option<ApplicationEnvironment>,
-    pub depot_url: String,
+    pub bldr_url: String,
     pub channel: String,
     pub topology: Topology,
     pub update_strategy: UpdateStrategy,
@@ -232,7 +232,7 @@ impl Default for ServiceSpec {
             ident: PackageIdent::default(),
             group: DEFAULT_GROUP.to_string(),
             application_environment: None,
-            depot_url: DEFAULT_BLDR_URL.to_string(),
+            bldr_url: DEFAULT_BLDR_URL.to_string(),
             channel: STABLE_CHANNEL.to_string(),
             topology: Topology::default(),
             update_strategy: UpdateStrategy::default(),
@@ -381,7 +381,7 @@ mod test {
             ident = "origin/name/1.2.3/20170223130020"
             group = "jobs"
             application_environment = "theinternet.preprod"
-            depot_url = "http://example.com/depot"
+            bldr_url = "http://example.com/depot"
             topology = "leader"
             update_strategy = "rolling"
             binds = ["cache:redis.cache@acmecorp", "db:postgres.app@acmecorp"]
@@ -403,7 +403,7 @@ mod test {
                 ApplicationEnvironment::from_str("theinternet.preprod").unwrap(),
             )
         );
-        assert_eq!(spec.depot_url, String::from("http://example.com/depot"));
+        assert_eq!(spec.bldr_url, String::from("http://example.com/depot"));
         assert_eq!(spec.topology, Topology::Leader);
         assert_eq!(spec.update_strategy, UpdateStrategy::Rolling);
         assert_eq!(
@@ -481,7 +481,7 @@ mod test {
                 ApplicationEnvironment::from_str("theinternet.preprod")
                     .unwrap(),
             ),
-            depot_url: String::from("http://example.com/depot"),
+            bldr_url: String::from("http://example.com/depot"),
             channel: String::from("unstable"),
             topology: Topology::Leader,
             update_strategy: UpdateStrategy::AtOnce,
@@ -503,7 +503,7 @@ mod test {
         assert!(toml.contains(
             r#"application_environment = "theinternet.preprod""#,
         ));
-        assert!(toml.contains(r#"depot_url = "http://example.com/depot""#));
+        assert!(toml.contains(r#"bldr_url = "http://example.com/depot""#));
         assert!(toml.contains(r#"channel = "unstable""#));
         assert!(toml.contains(r#"topology = "leader""#));
         assert!(toml.contains(r#"update_strategy = "at-once""#));
@@ -539,7 +539,7 @@ mod test {
             ident = "origin/name/1.2.3/20170223130020"
             group = "jobs"
             application_environment = "theinternet.preprod"
-            depot_url = "http://example.com/depot"
+            bldr_url = "http://example.com/depot"
             topology = "leader"
             update_strategy = "rolling"
             binds = ["cache:redis.cache@acmecorp", "db:postgres.app@acmecorp"]
@@ -555,7 +555,7 @@ mod test {
             PackageIdent::from_str("origin/name/1.2.3/20170223130020").unwrap()
         );
         assert_eq!(spec.group, String::from("jobs"));
-        assert_eq!(spec.depot_url, String::from("http://example.com/depot"));
+        assert_eq!(spec.bldr_url, String::from("http://example.com/depot"));
         assert_eq!(spec.topology, Topology::Leader);
         assert_eq!(
             spec.application_environment,
@@ -639,7 +639,7 @@ mod test {
                 ApplicationEnvironment::from_str("theinternet.preprod")
                     .unwrap(),
             ),
-            depot_url: String::from("http://example.com/depot"),
+            bldr_url: String::from("http://example.com/depot"),
             channel: String::from("unstable"),
             topology: Topology::Leader,
             update_strategy: UpdateStrategy::AtOnce,
@@ -662,7 +662,7 @@ mod test {
         assert!(toml.contains(
             r#"application_environment = "theinternet.preprod""#,
         ));
-        assert!(toml.contains(r#"depot_url = "http://example.com/depot""#));
+        assert!(toml.contains(r#"bldr_url = "http://example.com/depot""#));
         assert!(toml.contains(r#"channel = "unstable""#));
         assert!(toml.contains(r#"topology = "leader""#));
         assert!(toml.contains(r#"update_strategy = "at-once""#));

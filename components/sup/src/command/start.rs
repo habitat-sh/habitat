@@ -83,7 +83,7 @@ pub fn run(
             );
             common::command::package::install::start(
                 &mut ui,
-                &spec.depot_url,
+                &spec.bldr_url,
                 Some(&spec.channel),
                 artifact,
                 PRODUCT,
