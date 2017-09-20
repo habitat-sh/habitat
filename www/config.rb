@@ -143,3 +143,4 @@ redirect 'tutorials/getting-started/windows/create-plan/index.html', to: '/tutor
 redirect 'tutorials/getting-started/windows/configure-plan/index.html', to: '/tutorials/'
 redirect 'tutorials/getting-started/windows/process-build/index.html', to: '/tutorials/'
 redirect 'tutorials/getting-started/windows/setup-environment/index.html', to: '/tutorials/'
+redirect 'tutorials/sample-app/basic-concepts/index.html', to: '/tutorials/sample-app/'

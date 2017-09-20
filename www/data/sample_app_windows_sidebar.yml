@@ -5,8 +5,6 @@ sidebar_links:
   - title: Introduction
     link: /tutorials/sample-app/
     sub_links:
-    - title: Basic Concepts
-      link: /tutorials/sample-app/basic-concepts/
     - title: Create a Plan with Scaffolding
       link: /tutorials/sample-app/windows/
     - title: Add Health Monitoring to a Plan
