@@ -18,8 +18,6 @@
 
 mod error;
 
-use std::ops::{Deref, DerefMut};
-
 use protobuf;
 use protocol::Routable;
 use protocol::message::{Header, Message, RouteInfo, Txn};
@@ -44,199 +42,13 @@ pub enum ConnEvent {
 
 /// Client connection for sending and receiving messages to and from the service cluster through
 /// a running `RouteBroker`.
-pub struct RouteClient(RouteReqConn);
-
-impl RouteClient {
-    /// Create a new `RouteClient`
-    ///
-    /// # Errors
-    ///
-    /// * Socket(s) could not be created
-    pub fn new() -> Result<Self, ConnErr> {
-        Ok(RouteClient(RouteReqConn::new()?))
-    }
-
-    pub fn connect<T>(&self, queue: T) -> Result<(), ConnErr>
-    where
-        T: AsRef<str>,
-    {
-        self.0.connect(queue)
-    }
-
-    /// Routes a message to the connected broker, through a router, and to appropriate service,
-    /// waits for a response, and then returns the response.
-    pub fn route<M, T>(&mut self, msg: &M) -> NetResult<T>
-    where
-        M: Routable,
-        T: protobuf::MessageStatic,
-    {
-        if let Err(e) = self.route_async(msg) {
-            let err = NetError::new(ErrCode::SOCK, "net:route:1");
-            error!("{}, {}", err, e);
-            return Err(err);
-        }
-        self.0.msg_buf.reset();
-        // JW TODO: Handle socket errors more correctly here. Socket should be Timeout for example
-        if let Err(e) = read_header(&self.0.socket, &mut self.0.msg_buf, &mut self.0.recv_buf) {
-            let err = NetError::new(ErrCode::BUG, "net:route:2");
-            error!("{}, {}", err, e);
-            return Err(err);
-        }
-        if self.0.msg_buf.header().has_route_info() {
-            // read route info
-            if let Err(e) = try_read_route_info(
-                &self.0.socket,
-                &mut self.0.msg_buf,
-                &mut self.0.recv_buf,
-            )
-            {
-                let err = NetError::new(ErrCode::BUG, "net:route:3");
-                error!("{}, {}", err, e);
-                return Err(err);
-            }
-        }
-        if self.0.msg_buf.header().has_txn() {
-            if let Err(e) = try_read_txn(
-                &self.0.socket,
-                &mut self.0.msg_buf,
-                &mut self.0.recv_buf,
-            )
-            {
-                let err = NetError::new(ErrCode::BUG, "net:route:4");
-                error!("{}, {}", err, e);
-                return Err(err);
-            }
-        }
-        if let Err(e) = try_read_body(&self.0.socket, &mut self.0.msg_buf, &mut self.0.recv_buf) {
-            let err = NetError::new(ErrCode::BUG, "net:route:5");
-            error!("{}, {}", err, e);
-            return Err(err);
-        }
-        if self.0.msg_buf.message_id() == NetError::message_id() {
-            match NetError::parse(&self.0.msg_buf) {
-                Ok(err) => return Err(err),
-                Err(err) => error!("{}", err),
-            }
-        }
-        match self.0.msg_buf.parse::<T>() {
-            Ok(reply) => Ok(reply),
-            Err(e) => {
-                let err = NetError::new(ErrCode::BUG, "net:route:6");
-                error!("{}, {}", err, e);
-                Err(err)
-            }
-        }
-    }
-
-    /// Asynchronously routes a message to the connected broker, through a router, and to
-    /// appropriate service.
-    pub fn route_async<T>(&mut self, msg: &T) -> Result<(), ConnErr>
-    where
-        T: Routable + protobuf::MessageStatic,
-    {
-        self.0.route_async(msg)
-    }
-}
-
-/// Underlying connection struct for sending and receiving messages to and from a RouteSrv.
-pub struct RouteConn {
-    rep_conn: RouteRepConn,
-    req_conn: RouteReqConn,
-    recv_buf: zmq::Message,
-}
-
-impl RouteConn {
-    pub fn new() -> Result<Self, ConnErr> {
-        let rep_conn = RouteRepConn::new()?;
-        let req_conn = RouteReqConn::new()?;
-        Ok(RouteConn {
-            rep_conn: rep_conn,
-            req_conn: req_conn,
-            recv_buf: zmq::Message::new()?,
-        })
-    }
-
-    pub fn connect<T, U>(&self, rep_queue: T, req_queue: U) -> Result<(), ConnErr>
-    where
-        T: AsRef<str>,
-        U: AsRef<str>,
-    {
-        self.rep_conn.connect(rep_queue)?;
-        self.req_conn.connect(req_queue)?;
-        Ok(())
-    }
-
-    pub fn route<M, T>(&mut self, message: &M) -> NetResult<T>
-    where
-        M: Routable,
-        T: protobuf::MessageStatic,
-    {
-        self.req_conn.route(message)
-    }
-
-    pub fn route_reply<T>(&self, message: &mut Message, reply: &T) -> Result<(), ConnErr>
-    where
-        T: protobuf::Message,
-    {
-        self.rep_conn.route_reply(message, reply)
-    }
-
-    pub fn wait_recv(&mut self, message: &mut Message, timeout: i64) -> Result<ConnEvent, ConnErr> {
-        wait_recv(&*self.rep_conn, message, &mut self.recv_buf, timeout)
-    }
-}
-
-struct RouteRepConn(zmq::Socket);
-
-impl RouteRepConn {
-    /// Create a new `RouteClient`
-    ///
-    /// # Errors
-    ///
-    /// * Socket(s) could not be created
-    pub fn new() -> Result<Self, ConnErr> {
-        let socket = (**DEFAULT_CONTEXT).as_mut().socket(zmq::DEALER)?;
-        Ok(RouteRepConn(socket))
-    }
-
-    pub fn connect<T>(&self, queue: T) -> Result<(), ConnErr>
-    where
-        T: AsRef<str>,
-    {
-        self.0.connect(queue.as_ref())?;
-        Ok(())
-    }
-
-    /// Send a reply to a transactional message.
-    pub fn route_reply<T>(&self, message: &mut Message, reply: &T) -> Result<(), ConnErr>
-    where
-        T: protobuf::Message,
-    {
-        route_reply(&self.0, message, reply)
-    }
-}
-
-impl Deref for RouteRepConn {
-    type Target = zmq::Socket;
-
-    fn deref(&self) -> &zmq::Socket {
-        &self.0
-    }
-}
-
-impl DerefMut for RouteRepConn {
-    fn deref_mut(&mut self) -> &mut zmq::Socket {
-        &mut self.0
-    }
-}
-
-struct RouteReqConn {
+pub struct RouteClient {
     socket: zmq::Socket,
     msg_buf: Message,
     recv_buf: zmq::Message,
 }
 
-impl RouteReqConn {
+impl RouteClient {
     /// Create a new `RouteClient`
     ///
     /// # Errors
@@ -247,7 +59,7 @@ impl RouteReqConn {
         socket.set_rcvtimeo(RECV_TIMEOUT_MS)?;
         socket.set_sndtimeo(SEND_TIMEOUT_MS)?;
         socket.set_immediate(true)?;
-        Ok(RouteReqConn {
+        Ok(RouteClient {
             socket: socket,
             msg_buf: Message::default(),
             recv_buf: zmq::Message::new()?,
@@ -270,42 +82,53 @@ impl RouteReqConn {
         T: protobuf::MessageStatic,
     {
         if let Err(e) = self.route_async(msg) {
-            let err = NetError::new(ErrCode::SOCK, "rconn:route:1");
+            let err = NetError::new(ErrCode::SOCK, "net:route:1");
             error!("{}, {}", err, e);
             return Err(err);
         }
-        match wait_recv(&self.socket, &mut self.msg_buf, &mut self.recv_buf, -1) {
-            Ok(ConnEvent::OnMessage) => {
-                if self.msg_buf.message_id() == NetError::message_id() {
-                    match NetError::parse(&self.msg_buf) {
-                        Ok(err) => return Err(err),
-                        Err(err) => error!("{}", err),
-                    }
-                }
-                match self.msg_buf.parse::<T>() {
-                    Ok(reply) => Ok(reply),
-                    Err(e) => {
-                        let err = NetError::new(ErrCode::BUG, "rconn:route:2");
-                        error!("{}, {}", err, e);
-                        Err(err)
-                    }
-                }
-            }
-            Ok(ConnEvent::OnConnect) => {
-                let err = NetError::new(ErrCode::SOCK, "rconn:route:3");
-                error!("{}", err);
-                return Err(err);
-            }
-            Err(e @ ConnErr::Timeout) => {
-                let err = NetError::new(ErrCode::TIMEOUT, "rconn:route:4");
-                warn!("{}, {}", err, e);
-                return Err(err);
-            }
-            Err(e) => {
-                // JW TODO: We can do a lot better here by turning ConnErr into a NetErr.
-                let err = NetError::new(ErrCode::BUG, "rconn:route:5");
+        self.msg_buf.reset();
+        // JW TODO: Handle socket errors more correctly here. Socket should be Timeout for example
+        if let Err(e) = read_header(&self.socket, &mut self.msg_buf, &mut self.recv_buf) {
+            let err = NetError::new(ErrCode::BUG, "net:route:2");
+            error!("{}, {}", err, e);
+            return Err(err);
+        }
+        if self.msg_buf.header().has_route_info() {
+            if let Err(e) = try_read_route_info(
+                &self.socket,
+                &mut self.msg_buf,
+                &mut self.recv_buf,
+            )
+            {
+                let err = NetError::new(ErrCode::BUG, "net:route:3");
                 error!("{}, {}", err, e);
                 return Err(err);
+            }
+        }
+        if self.msg_buf.header().has_txn() {
+            if let Err(e) = try_read_txn(&self.socket, &mut self.msg_buf, &mut self.recv_buf) {
+                let err = NetError::new(ErrCode::BUG, "net:route:4");
+                error!("{}, {}", err, e);
+                return Err(err);
+            }
+        }
+        if let Err(e) = try_read_body(&self.socket, &mut self.msg_buf, &mut self.recv_buf) {
+            let err = NetError::new(ErrCode::BUG, "net:route:5");
+            error!("{}, {}", err, e);
+            return Err(err);
+        }
+        if self.msg_buf.message_id() == NetError::message_id() {
+            match NetError::parse(&self.msg_buf) {
+                Ok(err) => return Err(err),
+                Err(err) => error!("{}", err),
+            }
+        }
+        match self.msg_buf.parse::<T>() {
+            Ok(reply) => Ok(reply),
+            Err(e) => {
+                let err = NetError::new(ErrCode::BUG, "net:route:6");
+                error!("{}, {}", err, e);
+                Err(err)
             }
         }
     }
@@ -321,17 +144,51 @@ impl RouteReqConn {
     }
 }
 
-impl Deref for RouteReqConn {
-    type Target = zmq::Socket;
-
-    fn deref(&self) -> &zmq::Socket {
-        &self.socket
-    }
+/// Underlying connection struct for sending and receiving messages to and from a RouteSrv.
+pub struct RouteConn {
+    rep_sock: zmq::Socket,
+    req_conn: RouteClient,
+    recv_buf: zmq::Message,
 }
 
-impl DerefMut for RouteReqConn {
-    fn deref_mut(&mut self) -> &mut zmq::Socket {
-        &mut self.socket
+impl RouteConn {
+    pub fn new() -> Result<Self, ConnErr> {
+        let rep_sock = (**DEFAULT_CONTEXT).as_mut().socket(zmq::DEALER)?;
+        let req_conn = RouteClient::new()?;
+        Ok(RouteConn {
+            rep_sock: rep_sock,
+            req_conn: req_conn,
+            recv_buf: zmq::Message::new()?,
+        })
+    }
+
+    pub fn connect<T, U>(&self, rep_queue: T, req_queue: U) -> Result<(), ConnErr>
+    where
+        T: AsRef<str>,
+        U: AsRef<str>,
+    {
+        self.rep_sock.connect(rep_queue.as_ref())?;
+        self.req_conn.connect(req_queue)?;
+        Ok(())
+    }
+
+    pub fn route<M, T>(&mut self, message: &M) -> NetResult<T>
+    where
+        M: Routable,
+        T: protobuf::MessageStatic,
+    {
+        self.req_conn.route(message)
+    }
+
+    pub fn route_reply<T>(&self, message: &mut Message, reply: &T) -> Result<(), ConnErr>
+    where
+        T: protobuf::Message,
+    {
+        route_reply(&self.rep_sock, message, reply)
+    }
+
+    pub fn wait_recv(&mut self, message: &mut Message, timeout: i64) -> Result<ConnEvent, ConnErr> {
+        wait_recv(&self.rep_sock, message, &mut self.recv_buf, timeout)
     }
 }
 
