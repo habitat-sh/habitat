@@ -112,6 +112,7 @@ export const SET_REDIRECT_ROUTE = routerActions.SET_REDIRECT_ROUTE;
 export const RESET_REDIRECT_ROUTE = routerActions.RESET_REDIRECT_ROUTE;
 
 export const SIGN_IN_ATTEMPT = usersActions.SIGN_IN_ATTEMPT;
+export const SET_SIGNING_IN_FLAG = usersActions.SET_SIGNING_IN_FLAG;
 export const TOGGLE_USER_NAV_MENU = usersActions.TOGGLE_USER_NAV_MENU;
 
 export const SET_LAYOUT = uiActions.SET_LAYOUT;
@@ -194,6 +195,7 @@ export const requestRoute = routerActions.requestRoute;
 export const setRedirectRoute = routerActions.setRedirectRoute;
 export const resetRedirectRoute = routerActions.resetRedirectRoute;
 
+export const setSigningInFlag = usersActions.setSigningInFlag;
 export const attemptSignIn = usersActions.attemptSignIn;
 export const toggleUserNavMenu = usersActions.toggleUserNavMenu;
 export const signOut = usersActions.signOut;
