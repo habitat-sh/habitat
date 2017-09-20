@@ -36,11 +36,6 @@ use router::Router;
 use serde_json;
 use typemap;
 
-// For the initial release, Builder will only be enabled on the "core"
-// origin. Later, we'll roll it out to other origins; at that point,
-// we should consider other options, such as configurable middleware.
-const BUILDER_ENABLED_ORIGIN: &'static str = "core";
-
 define_event_log!();
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -332,9 +327,6 @@ pub fn list_user_origins(req: &mut Request) -> IronResult<Response> {
 
 /// Create a new project as the authenticated user and associated to
 /// the given origin.
-///
-/// NOTE: This currently only allows creation of projects in the
-/// "core" origin.
 pub fn project_create(req: &mut Request) -> IronResult<Response> {
     let mut request = OriginProjectCreate::new();
     let mut project = OriginProject::new();
@@ -389,11 +381,6 @@ pub fn project_create(req: &mut Request) -> IronResult<Response> {
         Ok(response) => response,
         Err(err) => return Ok(render_net_error(&err)),
     };
-
-    // Only allow projects to be created for the core origin initially.
-    if origin.get_name() != BUILDER_ENABLED_ORIGIN {
-        return Ok(Response::with((status::UnprocessableEntity, "rg:pc:5")));
-    }
 
     match github.contents(
         &session.get_token(),
@@ -458,13 +445,6 @@ pub fn project_delete(req: &mut Request) -> IronResult<Response> {
         let origin = params.find("origin").unwrap().to_owned();
         let name = params.find("name").unwrap();
 
-        // We're only allowing projects to be created for the core
-        // origin initially. Thus, if we try to delete a project for any
-        // other origin, we can safely short-circuit processing.
-        if origin != BUILDER_ENABLED_ORIGIN {
-            return Ok(Response::with((status::NotFound, "rg:pd:1")));
-        }
-
         project_del.set_name(format!("{}/{}", origin, name));
         (session_id, origin)
     };
@@ -487,12 +467,6 @@ pub fn project_update(req: &mut Request) -> IronResult<Response> {
         let origin = params.find("origin").unwrap().to_owned();
         let name = params.find("name").unwrap().to_owned();
 
-        // We're only allowing projects to be created for the core
-        // origin initially. Thus, if we try to update a project for
-        // any other origin, we can safely short-circuit processing.
-        if origin != BUILDER_ENABLED_ORIGIN {
-            return Ok(Response::with((status::NotFound, "rg:pu:6")));
-        }
         (name, origin)
     };
 
@@ -599,14 +573,6 @@ pub fn project_show(req: &mut Request) -> IronResult<Response> {
     {
         let params = req.extensions.get::<Router>().unwrap();
         let origin = params.find("origin").unwrap();
-
-        // We're only allowing projects to be created for the core
-        // origin initially. Thus, if we try to get a project for any
-        // other origin, we can safely short-circuit processing.
-        if origin != BUILDER_ENABLED_ORIGIN {
-            return Ok(Response::with((status::NotFound, "rg:ps:1")));
-        }
-
         let name = params.find("name").unwrap();
         project_get.set_name(format!("{}/{}", origin, name));
     }
@@ -622,14 +588,6 @@ pub fn project_jobs(req: &mut Request) -> IronResult<Response> {
     {
         let params = req.extensions.get::<Router>().unwrap();
         let origin = params.find("origin").unwrap();
-
-        // We're only allowing projects to be created for the core
-        // origin initially. Thus, if we try to get jobs for any
-        // project in another, we can safely short-circuit processing.
-        if origin != BUILDER_ENABLED_ORIGIN {
-            return Ok(Response::with((status::NotFound, "rg:pj:1")));
-        }
-
         let name = params.find("name").unwrap();
         jobs_get.set_name(format!("{}/{}", origin, name));
     }

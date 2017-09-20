@@ -157,12 +157,6 @@ export class BuilderApiClient {
     }
 
     public getBuilds(origin: string, name: string) {
-
-        // Don't bother requesting unless the origin is core
-        if (origin !== "core") {
-            Promise.resolve({ jobs: [] });
-        }
-
         return new Promise((resolve, reject) => {
             fetch(`${this.urlPrefix}/projects/${origin}/${name}/jobs`, {
                 method: "GET",

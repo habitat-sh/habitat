@@ -37,6 +37,8 @@ pub struct Config {
     pub depot: depot::config::Config,
     /// Whether to log events for funnel metrics
     pub events_enabled: bool,
+    /// Whether to enable builds for non-core origins
+    pub non_core_builds_enabled: bool,
     /// Where to record log events for funnel metrics
     pub log_dir: String,
 }
@@ -50,6 +52,7 @@ impl Default for Config {
             ui: UiCfg::default(),
             depot: depot::config::Config::default(),
             events_enabled: false,
+            non_core_builds_enabled: false,
             log_dir: env::temp_dir().to_string_lossy().into_owned(),
         }
     }
@@ -133,6 +136,9 @@ mod tests {
     #[test]
     fn config_from_file() {
         let content = r#"
+        events_enabled = true
+        non_core_builds_enabled = true
+
         [http]
         listen = "0:0:0:0:0:0:0:1"
         port = 9636
@@ -165,6 +171,8 @@ mod tests {
         "#;
 
         let config = Config::from_raw(&content).unwrap();
+        assert_eq!(config.events_enabled, true);
+        assert_eq!(config.non_core_builds_enabled, true);
         assert_eq!(&format!("{}", config.http.listen), "::1");
         assert_eq!(config.http.port, 9636);
         assert_eq!(&format!("{}", config.routers[0]), "172.18.0.2:9632");
@@ -185,6 +193,8 @@ mod tests {
         "#;
 
         let config = Config::from_raw(&content).unwrap();
+        assert_eq!(config.events_enabled, false);
+        assert_eq!(config.non_core_builds_enabled, false);
         assert_eq!(config.http.port, 9000);
     }
 }

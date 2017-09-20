@@ -241,6 +241,9 @@ impl Client {
     ///
     /// * Key cannot be found
     /// * Remote Depot is not available
+
+    // TODO (SA): This API needs to be extended to support a target param.
+
     pub fn schedule_job<I>(&self, ident: &I, token: &str) -> Result<(i64)>
     where
         I: Identifiable,
