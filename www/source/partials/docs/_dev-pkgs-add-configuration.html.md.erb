@@ -1,13 +1,6 @@
----
-title: Configure packages
----
+# <a name="add-configuration">Configuration Templates</a>
 
-# Add configuration to plans
-
-Habitat allows you to templatize your application's native
-configuration files using [Handlebars](http://handlebarsjs.com/)
-syntax. The following sections describe how to create tunable
-configuration elements for your application or service.
+Habitat allows you to templatize your application's native configuration files using [Handlebars](http://handlebarsjs.com/) syntax. The following sections describe how to create tunable static configuration elements as well as intelligent dynamic configuration for your application or service.
 
 ## Setting a config value
 
@@ -253,9 +246,3 @@ when rendered, it will look like:
 The helper outputs a YAML document (with a line beginning with `---`), so it
 must be used to create complete documents: you cannot insert a section of YAML
 into an existing YAML document with this helper.
-
-<hr>
-<ul class="main-content--link-nav">
-  <li>Continue to the next topic</li>
-  <li><a href="/docs/create-packages-build">Build packages</a></li>
-</ul>

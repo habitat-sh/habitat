@@ -13,19 +13,19 @@ sidebar_links:
       link: "#install-habitat"
     - title: Install FAQ
       link: "/docs/install-faq"
-    - title: A thing
-      link: "/"
-  - title: Developing Plans <span>&plus;</span>
-    link: "/docs/developing-plans"
+    - title: Using Habitat
+      link: "#using-habitat"
+  - title: Developing Packages <span>&plus;</span>
+    link: "/docs/developing-packages"
     sub_links:
-      - title: a
-        link: "/"
-      - title: b
-        link: "/"
-      - title: c
-        link: "/"
-      - title: d
-        link: "/"
+    - title: Writing a Plan.sh
+      link: "#write-plans"
+    - title: Config Templates
+      link: "#add-configuration"
+    - title: Plan Builds
+      link: "#plan-builds"
+    - title: Troubleshooting Builds
+      link: "#debug-builds"
   - title: Commands (CLI) <span>&plus;</span>
     link: "/docs/habitat-cli"
     sub_links:
@@ -99,6 +99,8 @@ sidebar_links:
   - title: Glossary <span>&plus;</span>
     link: "/docs/glossary"
     sub_links:
+    - title: Hab
+      link: "#glossary-hab"
     - title: Supervisor
       link: "#glossary-supervisor"
     - title: Plans

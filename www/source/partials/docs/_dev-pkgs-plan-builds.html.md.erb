@@ -1,10 +1,7 @@
----
-title: Building packages
----
 
-# Build packages
+# <a name="plan-builds">Plan Builds</a>
 
-Habitat packages are cryptographically-signed tarballs with a .hart extension that are built from plans. You can build a package in two ways: interactively from inside a studio, and non-interactively.
+ You can build your habitat plan in two ways: interactively from inside a studio, and non-interactively (which will also be executed inside the studio).
 
 In both scenarios, you'll first need to have a secret origin key to sign your package. The origin key name should either match the `pkg_origin` value defined inside your plan, or match the overridden value specified with the `HAB_ORIGIN` environment variable.
 
@@ -65,9 +62,3 @@ By default, the studio is reset to a clean state after the package is built; how
 For more information on how to define a plan and build a package, how to create origin signing keys, and how to run a Habitat service, see the [getting started tutorial](/tutorials/getting-started-overview).
 
 For information on the contents of an installed package, see [Package contents](/docs/reference/package-contents).
-
-<hr>
-<ul class="main-content--link-nav">
-  <li>Continue to the next topic</li>
-  <li><a href="/docs/create-packages-debugging">Debug plans</a></li>
-</ul>
