@@ -756,7 +756,7 @@ fn spec_from_matches(ident: PackageIdent, m: &ArgMatches) -> Result<ServiceSpec>
         )?);
     }
     let env_or_default = default_bldr_url();
-    spec.depot_url = m.value_of("BLDR_URL")
+    spec.bldr_url = m.value_of("BLDR_URL")
         .unwrap_or(&env_or_default)
         .to_string();
     spec.channel = m.value_of("CHANNEL")

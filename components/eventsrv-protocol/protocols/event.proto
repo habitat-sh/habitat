@@ -84,7 +84,7 @@ message ServiceUpdate {
   /// `true` if the service has successfully initialized
   optional bool initialized = 8;
   /// Builder that is checked for updates
-  optional string depot_url = 9;
+  optional string bldr_url = 9;
   /// Chennel chat is checked for updates
   optional string channel = 10;
   /// Persistent or transient

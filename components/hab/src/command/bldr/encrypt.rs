@@ -28,8 +28,8 @@ use retry::retry;
 
 pub const BUILDER_KEY_NAME: &'static str = "bldr";
 
-pub fn start(ui: &mut UI, depot_url: &str, content: &str, cache: &Path) -> Result<()> {
-    let depot_client = Client::new(depot_url, PRODUCT, VERSION, None)?;
+pub fn start(ui: &mut UI, bldr_url: &str, content: &str, cache: &Path) -> Result<()> {
+    let depot_client = Client::new(bldr_url, PRODUCT, VERSION, None)?;
     ui.begin("Downloading builder public key")?;
 
     download_builder_key(ui, &depot_client, cache)?;

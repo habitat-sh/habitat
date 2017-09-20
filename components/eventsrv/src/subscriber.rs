@@ -29,7 +29,7 @@ use std::io::Read;
 
 use byteorder::{ByteOrder, LittleEndian};
 use protobuf::parse_from_bytes;
-use protocol::{EventEnvelope, EventEnvelope_Type, CensusEntry as CensusEntryProto};
+use protocol::{EventEnvelope, EventEnvelope_Type, ServiceUpdate as ServiceUpdateProto};
 use zmq::{Context, SUB};
 
 fn main() {
@@ -77,9 +77,10 @@ fn main() {
 
                     match event.get_field_type() {
                         EventEnvelope_Type::ProtoBuf => {
-                            let data = parse_from_bytes::<CensusEntryProto>(&payload_buf).unwrap();
+                            let data = parse_from_bytes::<ServiceUpdateProto>(&payload_buf)
+                                .unwrap();
                             println!(
-                                "SUBSCRIBER: Census Entry Member ID {}",
+                                "SUBSCRIBER: Service Update Member ID {}",
                                 data.get_member_id()
                             );
                             let cfg = data.get_cfg().to_vec();

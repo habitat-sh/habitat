@@ -163,7 +163,7 @@ fn build_service_update(member: &CensusMember, service: &Service) -> ServiceUpda
             .unwrap_or(&"".to_string())
             .to_string(),
     );
-    sep.set_depot_url(service.depot_url.clone());
+    sep.set_bldr_url(service.bldr_url.clone());
     sep.set_channel(service.channel.clone());
     sep.set_start_style(service.start_style.to_string());
     sep.set_topology(service.topology.to_string());

@@ -303,7 +303,7 @@ impl Worker {
         Worker {
             current: service.pkg.ident.clone(),
             spec_ident: service.spec_ident.clone(),
-            depot: depot_client::Client::new(&service.depot_url, PRODUCT, VERSION, None).unwrap(),
+            depot: depot_client::Client::new(&service.bldr_url, PRODUCT, VERSION, None).unwrap(),
             channel: service.channel.clone(),
             update_strategy: service.update_strategy.clone(),
             ui: UI::default_with(Coloring::Never, None),

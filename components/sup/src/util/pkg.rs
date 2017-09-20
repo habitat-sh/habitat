@@ -55,7 +55,7 @@ pub fn maybe_install_newer(
     current: PackageInstall,
 ) -> Result<PackageInstall> {
     let latest_ident: PackageIdent = {
-        let depot_client = Client::new(&spec.depot_url, PRODUCT, VERSION, None)?;
+        let depot_client = Client::new(&spec.bldr_url, PRODUCT, VERSION, None)?;
         match depot_client.show_package(&spec.ident, Some(&spec.channel)) {
             Ok(pkg) => pkg.get_ident().clone().into(),
             Err(_) => return Ok(current),
@@ -67,9 +67,9 @@ pub fn maybe_install_newer(
             "Newer version of {} detected. Installing {} from {}",
             spec.ident,
             latest_ident,
-            spec.depot_url
+            spec.bldr_url
         );
-        self::install(ui, &spec.depot_url, &latest_ident, Some(&spec.channel))
+        self::install(ui, &spec.bldr_url, &latest_ident, Some(&spec.channel))
     } else {
         outputln!(
             "Confirmed latest version of {} is {}",
@@ -92,11 +92,11 @@ pub fn install_from_spec(ui: &mut UI, spec: &ServiceSpec) -> Result<PackageInsta
             outputln!(
                 "{} not found in local package cache, installing from {}",
                 Yellow.bold().paint(spec.ident.to_string()),
-                &spec.depot_url
+                &spec.bldr_url
             );
             Ok(install(
                 ui,
-                spec.depot_url.as_str(),
+                spec.bldr_url.as_str(),
                 &spec.ident,
                 Some(&spec.channel),
             )?)
