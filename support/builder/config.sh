@@ -174,7 +174,7 @@ EOT
 mkdir -p /hab/svc/builder-scheduler
 cat <<EOT > /hab/svc/builder-scheduler/user.toml
 auth_token = "8e2c9a90675e0c11af0cacf86ae404cc883335c3"
-depot_url = "http://localhost:9636/v1/depot"
+depot_url = "http://localhost:9636"
 
 [datastore]
 password = "$PGPASSWORD"
@@ -330,6 +330,6 @@ EOT
 mkdir -p /hab/svc/builder-worker
 cat <<EOT > /hab/svc/builder-worker/user.toml
 auth_token = "$WORKER_AUTH_TOKEN"
-depot_url = "http://$APP_HOSTNAME:9636/v1/depot"
+depot_url = "http://$APP_HOSTNAME:9636"
 auto_publish = true
 EOT

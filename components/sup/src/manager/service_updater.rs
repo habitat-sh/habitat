@@ -313,7 +313,7 @@ impl Worker {
     /// Start a new update worker.
     ///
     /// Passing an optional package identifier will make the worker perform a run-once update to
-    /// retrieve a specific version from a remote Depot. If no package identifier is specified,
+    /// retrieve a specific version from Builder. If no package identifier is specified,
     /// then the updater will poll until a newer more suitable package is found.
     fn start(mut self, sg: &ServiceGroup, ident: Option<PackageIdent>) -> Receiver<PackageInstall> {
         let (tx, rx) = sync_channel(0);

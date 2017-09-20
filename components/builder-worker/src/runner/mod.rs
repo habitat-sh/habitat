@@ -293,7 +293,7 @@ impl Runner {
         } else {
             STABLE_CHANNEL.to_string()
         };
-        debug!("setting HAB_DEPOT_CHANNEL={}", &channel);
+        debug!("setting HAB_BLDR_CHANNEL={}", &channel);
 
         let mut child = match env::var(RUNNER_DEBUG_ENV) {
             Ok(val) => {
@@ -301,8 +301,8 @@ impl Runner {
                     .args(&args)
                     .env_clear()
                     .env("HAB_NONINTERACTIVE", "true")
-                    .env("HAB_DEPOT_URL", &self.config.depot_url)
-                    .env("HAB_DEPOT_CHANNEL", &channel)
+                    .env("HAB_BLDR_URL", &self.config.depot_url)
+                    .env("HAB_BLDR_CHANNEL", &channel)
                     .env("DEBUG", val)
                     .stdout(Stdio::piped())
                     .stderr(Stdio::piped())
@@ -314,8 +314,8 @@ impl Runner {
                     .args(&args)
                     .env_clear()
                     .env("HAB_NONINTERACTIVE", "true")
-                    .env("HAB_DEPOT_URL", &self.config.depot_url)
-                    .env("HAB_DEPOT_CHANNEL", &channel)
+                    .env("HAB_BLDR_URL", &self.config.depot_url)
+                    .env("HAB_BLDR_CHANNEL", &channel)
                     .env("TERM", "xterm-256color") // Gives us ANSI color codes
                     .stdout(Stdio::piped())
                     .stderr(Stdio::piped())

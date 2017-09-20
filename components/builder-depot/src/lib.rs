@@ -77,13 +77,12 @@ impl DepotUtil {
         DepotUtil { config: config }
     }
 
-    // Return a PackageArchive representing the given package. None is returned if the Depot
+    // Return a PackageArchive representing the given package. None is returned if Builder
     // doesn't have an archive for the given package.
-    fn archive<T: Identifiable>(
-        &self,
-        ident: &T,
-        target: &PackageTarget,
-    ) -> Option<PackageArchive> {
+    fn archive<T>(&self, ident: &T, target: &PackageTarget) -> Option<PackageArchive>
+    where
+        T: Identifiable,
+    {
         let file = self.archive_path(ident, target);
         match fs::metadata(&file) {
             Ok(_) => Some(PackageArchive::new(file)),

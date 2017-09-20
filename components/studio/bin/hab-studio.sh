@@ -931,15 +931,15 @@ chroot_env() {
   if [ -n "${HAB_CONFIG_EXCLUDE:-}" ]; then
     env="$env HAB_CONFIG_EXCLUDE=$HAB_CONFIG_EXCLUDE"
   fi
-  # If a Habitat Depot URL is set, then propagate it into the Studio's
+  # If a Habitat Builder URL is set, then propagate it into the Studio's
   # environment.
-  if [ -n "${HAB_DEPOT_URL:-}" ]; then
-    env="$env HAB_DEPOT_URL=$HAB_DEPOT_URL"
+  if [ -n "${HAB_BLDR_URL:-}" ]; then
+    env="$env HAB_BLDR_URL=$HAB_BLDR_URL"
   fi
   # If a Habitat Depot Channel is set, then propagate it into the Studio's
   # environment.
-  if [ -n "${HAB_DEPOT_CHANNEL:-}" ]; then
-    env="$env HAB_DEPOT_CHANNEL=$HAB_DEPOT_CHANNEL"
+  if [ -n "${HAB_BLDR_CHANNEL:-}" ]; then
+    env="$env HAB_BLDR_CHANNEL=$HAB_BLDR_CHANNEL"
   fi
   # If a no coloring environment variable is set, then propagate it into the Studio's
   # environment.
@@ -999,11 +999,11 @@ report_env_vars() {
   if [ -n "${HAB_ORIGIN:-}" ]; then
     info "Exported: HAB_ORIGIN=$HAB_ORIGIN"
   fi
-  if [ -n "${HAB_DEPOT_URL:-}" ]; then
-    info "Exported: HAB_DEPOT_URL=$HAB_DEPOT_URL"
+  if [ -n "${HAB_BLDR_URL:-}" ]; then
+    info "Exported: HAB_BLDR_URL=$HAB_BLDR_URL"
   fi
-  if [ -n "${HAB_DEPOT_CHANNEL:-}" ]; then
-    info "Exported: HAB_DEPOT_CHANNEL=$HAB_DEPOT_CHANNEL"
+  if [ -n "${HAB_BLDR_CHANNEL:-}" ]; then
+    info "Exported: HAB_BLDR_CHANNEL=$HAB_BLDR_CHANNEL"
   fi
   if [ -n "${HAB_NOCOLORING:-}" ]; then
     info "Exported: HAB_NOCOLORING=$HAB_NOCOLORING"

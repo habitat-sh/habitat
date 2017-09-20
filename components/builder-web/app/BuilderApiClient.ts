@@ -19,7 +19,7 @@ import { GitHubApiClient } from "./GitHubApiClient";
 
 export class BuilderApiClient {
     private headers;
-    private urlPrefix: string = config["habitat_api_url"];
+    private urlPrefix: string = `${config["habitat_api_url"]}/v1`;
 
     constructor(private token: string = "") {
         this.headers = token ? { "Authorization": `Bearer ${token}` } : {};
@@ -312,7 +312,7 @@ export class BuilderApiClient {
                     resolve(true);
                 } else if (response.status === 404) {
                     new GitHubApiClient(this.token).getUser(username).then(ghResponse => {
-                        let msg = "This is a valid GitHub user but they have not logged into the Habitat depot yet. Once they login to the depot, you can invite them to your origin.";
+                        let msg = "This is a valid GitHub user but they have not logged into Builder yet. Once they login, you can invite them to your origin.";
                         reject(new Error(msg));
                     }).catch(error => reject(error));
                 } else if (response.status === 409) {

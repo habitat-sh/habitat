@@ -22,17 +22,15 @@ use error::{Error, Result};
 
 pub fn start(
     ui: &mut UI,
-    depot_url: &str,
+    bldr_url: &str,
     ident: &PackageIdent,
     token: &str,
     group: bool,
 ) -> Result<()> {
     debug!("Starting a job for {}", ident);
-
-    let api_client = ApiClient::new(depot_url, PRODUCT, VERSION, None).map_err(
+    let api_client = ApiClient::new(bldr_url, PRODUCT, VERSION, None).map_err(
         Error::APIClient,
     )?;
-
     if group {
         let rdeps = api_client.fetch_rdeps(ident).map_err(Error::APIClient)?;
         println!("The following are the reverse dependencies for {}:", ident);
@@ -56,8 +54,9 @@ pub fn start(
                 format!("schedule group for {}. Please wait...", ident),
             )?;
 
-            let depot_client = DepotClient::new(depot_url, PRODUCT, VERSION, None)
-                .map_err(Error::DepotClient)?;
+            let depot_client = DepotClient::new(bldr_url, PRODUCT, VERSION, None).map_err(
+                Error::DepotClient,
+            )?;
             let id = depot_client.schedule_job(ident, token).map_err(
                 Error::DepotClient,
             )?;

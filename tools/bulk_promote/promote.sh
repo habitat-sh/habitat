@@ -11,7 +11,7 @@ fi
 
 echo "Promoting from: $1"
 echo "Promoting to  : $2"
-echo "Environment   : $HAB_DEPOT_URL"
+echo "Environment   : $HAB_BLDR_URL"
 echo "Are you sure?"
 
 select yn in "Yes" "No"; do

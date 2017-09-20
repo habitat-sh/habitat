@@ -21,7 +21,7 @@
 //!     -u http://localhost:9632
 //! ```
 //!
-//! Will upload a package to the Depot.
+//! Will upload a package to Builder.
 //!
 //! # Notes
 //!

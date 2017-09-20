@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Copyright (c) 2016 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -60,6 +60,8 @@ use url::percent_encoding::{percent_encode, PATH_SEGMENT_ENCODE_SET};
 
 header! { (XFileName, "X-Filename") => [String] }
 header! { (ETag, "ETag") => [String] }
+
+const DEFAULT_API_PATH: &'static str = "/v1";
 
 #[derive(Clone, Deserialize)]
 #[serde(rename = "error")]
@@ -222,7 +224,7 @@ pub struct Client(ApiClient);
 
 impl Client {
     pub fn new<U>(
-        depot_url: U,
+        endpoint: U,
         product: &str,
         version: &str,
         fs_root_path: Option<&Path>,
@@ -230,8 +232,12 @@ impl Client {
     where
         U: IntoUrl,
     {
+        let mut endpoint = endpoint.into_url()?;
+        if !endpoint.cannot_be_a_base() && endpoint.path() == "/" {
+            endpoint.set_path(DEFAULT_API_PATH);
+        }
         Ok(Client(
-            ApiClient::new(depot_url, product, version, fs_root_path)?,
+            ApiClient::new(endpoint, product, version, fs_root_path)?,
         ))
     }
 
@@ -240,15 +246,13 @@ impl Client {
     /// # Failures
     ///
     /// * Key cannot be found
-    /// * Remote Depot is not available
-
-    // TODO (SA): This API needs to be extended to support a target param.
-
+    /// * Remote Builder is not available
     pub fn schedule_job<I>(&self, ident: &I, token: &str) -> Result<(i64)>
     where
         I: Identifiable,
     {
-        let path = format!("pkgs/schedule/{}/{}", ident.origin(), ident.name());
+        // TODO (SA): This API needs to be extended to support a target param.
+        let path = format!("depot/pkgs/schedule/{}/{}", ident.origin(), ident.name());
         let result = self.add_authz(self.0.post(&path), token).send();
         match result {
             Ok(response) => {
@@ -263,12 +267,12 @@ impl Client {
         }
     }
 
-    /// Download a public key from a remote Depot to the given filepath.
+    /// Download a public key from a remote Builder to the given filepath.
     ///
     /// # Failures
     ///
     /// * Key cannot be found
-    /// * Remote Depot is not available
+    /// * Remote Builder is not available
     /// * File cannot be created and written to
     pub fn fetch_origin_key<D, P: ?Sized>(
         &self,
@@ -282,7 +286,7 @@ impl Client {
         D: DisplayProgress + Sized,
     {
         self.download(
-            &format!("origins/{}/keys/{}", origin, revision),
+            &format!("depot/origins/{}/keys/{}", origin, revision),
             dst_path.as_ref(),
             progress,
         )
@@ -307,13 +311,13 @@ impl Client {
         Ok(revisions)
     }
 
-    /// Download the latest builder public key from a remote Depot
+    /// Download the latest builder public key from a remote Builder
     /// to the given filepath.
     ///
     /// # Failures
     ///
     /// * Key cannot be found
-    /// * Remote Depot is not available
+    /// * Remote Builder is not available
     /// * File cannot be created and written to
     pub fn fetch_builder_latest_key<D, P: ?Sized>(
         &self,
@@ -331,7 +335,7 @@ impl Client {
     ///
     /// # Failures
     ///
-    /// * Remote Depot is not available
+    /// * Remote Builder is not available
     /// * Package does not exist
     pub fn package_channels<I>(&self, ident: &I) -> Result<Vec<String>>
     where
@@ -348,7 +352,7 @@ impl Client {
 
         if res.status != StatusCode::Ok {
             return Err(err_from_response(res));
-        };
+        }
 
         let mut encoded = String::new();
         res.read_to_string(&mut encoded)?;
@@ -360,11 +364,11 @@ impl Client {
         Ok(channels)
     }
 
-    /// Upload a public origin key to a remote Depot.
+    /// Upload a public origin key to a remote Builder.
     ///
     /// # Failures
     ///
-    /// * Remote Depot is not available
+    /// * Remote Builder is not available
     /// * File cannot be read
     ///
     /// # Panics
@@ -381,7 +385,7 @@ impl Client {
     where
         D: DisplayProgress + Sized,
     {
-        let path = format!("origins/{}/keys/{}", &origin, &revision);
+        let path = format!("depot/origins/{}/keys/{}", &origin, &revision);
         let mut file = File::open(src_path)?;
         let file_size = file.metadata()?.len();
 
@@ -403,11 +407,11 @@ impl Client {
         }
     }
 
-    /// Download a secret key from a remote Depot to the given filepath.
+    /// Download a secret key from a remote Builder to the given filepath.
     ///
     /// # Failures
     ///
-    /// * Remote Depot is not available
+    /// * Remote Builder is not available
     /// * File cannot be read
     ///
     /// # Panics
@@ -425,11 +429,11 @@ impl Client {
         Ok(key)
     }
 
-    /// Upload a secret origin key to a remote Depot.
+    /// Upload a secret origin key to a remote Builder.
     ///
     /// # Failures
     ///
-    /// * Remote Depot is not available
+    /// * Remote Builder is not available
     /// * File cannot be read
     ///
     /// # Panics
@@ -446,7 +450,7 @@ impl Client {
     where
         D: DisplayProgress + Sized,
     {
-        let path = format!("origins/{}/secret_keys/{}", &origin, &revision);
+        let path = format!("depot/origins/{}/secret_keys/{}", &origin, &revision);
         let mut file = File::open(src_path)?;
         let file_size = file.metadata()?.len();
 
@@ -479,7 +483,7 @@ impl Client {
     /// # Failures
     ///
     /// * Package cannot be found
-    /// * Remote Depot is not available
+    /// * Remote Builder is not available
     /// * File cannot be created and written to
     pub fn fetch_package<D, I, P>(
         &self,
@@ -509,7 +513,7 @@ impl Client {
     /// # Failures
     ///
     /// * Package cannot be found
-    /// * Remote Depot is not available
+    /// * Remote Builder is not available
     pub fn show_package<I>(
         &self,
         package: &I,
@@ -540,11 +544,11 @@ impl Client {
         Ok(package)
     }
 
-    /// Upload a package to a remote Depot.
+    /// Upload a package to a remote Builder.
     ///
     /// # Failures
     ///
-    /// * Remote Depot is not available
+    /// * Remote Builder is not available
     /// * File cannot be read
     ///
     /// # Panics
@@ -612,10 +616,11 @@ impl Client {
     ///
     /// # Failures
     ///
-    /// * Remote Depot is not available
+    /// * Remote Builder is not available
     ///
     /// # Panics
-    /// * If package does not exist in the Depot
+    ///
+    /// * If package does not exist in Builder
     /// * Authorization token was not set on client
     pub fn promote_package<I>(&self, ident: &I, channel: &str, token: &str) -> Result<()>
     where
@@ -640,10 +645,11 @@ impl Client {
     ///
     /// # Failures
     ///
-    /// * Remote Depot is not available
+    /// * Remote Builder is not available
     ///
     /// # Panics
-    /// * If package does not exist in the Depot
+    ///
+    /// * If package does not exist in Builder
     /// * Authorization token was not set on client
     pub fn demote_package<I>(&self, ident: &I, channel: &str, token: &str) -> Result<()>
     where
@@ -665,9 +671,9 @@ impl Client {
     ///
     /// # Failures
     ///
-    /// * Remote Depot is not available
+    /// * Remote Builder is not available
     pub fn create_channel(&self, origin: &str, channel: &str, token: &str) -> Result<()> {
-        let path = format!("channels/{}/{}", origin, channel);
+        let path = format!("depot/channels/{}/{}", origin, channel);
         debug!("Creating channel, path: {:?}", path);
 
         let res = self.add_authz(self.0.post(&path), token).send()?;
@@ -682,10 +688,10 @@ impl Client {
     /// Return a list of channels for a given origin
     ///
     /// # Failures
-    /// * Remote Depot is not available
+    /// * Remote Builder is not available
     /// * Authorization token was not set on client
     pub fn list_channels(&self, origin: &str) -> Result<Vec<String>> {
-        let path = format!("channels/{}", origin);
+        let path = format!("depot/channels/{}", origin);
         let mut res = self.0.get(&path).send()?;
 
         match res.status {
@@ -799,11 +805,11 @@ fn err_from_response(mut response: hyper::client::Response) -> Error {
 }
 
 fn origin_keys_path(origin: &str) -> String {
-    format!("origins/{}/keys", origin)
+    format!("depot/origins/{}/keys", origin)
 }
 
 fn origin_secret_keys_latest(origin: &str) -> String {
-    format!("origins/{}/secret_keys/latest", origin)
+    format!("depot/origins/{}/secret_keys/latest", origin)
 }
 
 fn package_download<I>(package: &I) -> String
@@ -817,12 +823,12 @@ fn package_path<I>(package: &I) -> String
 where
     I: Identifiable,
 {
-    format!("pkgs/{}", package)
+    format!("depot/pkgs/{}", package)
 }
 
 fn package_search(term: &str) -> String {
     let encoded_term = percent_encode(term.as_bytes(), PATH_SEGMENT_ENCODE_SET);
-    format!("pkgs/search/{}", encoded_term)
+    format!("depot/pkgs/search/{}", encoded_term)
 }
 
 fn channel_package_path<I>(channel: &str, package: &I) -> String
@@ -830,7 +836,7 @@ where
     I: Identifiable,
 {
     let mut path = format!(
-        "channels/{}/{}/pkgs/{}",
+        "depot/channels/{}/{}/pkgs/{}",
         package.origin(),
         channel,
         package.name()
@@ -864,7 +870,7 @@ where
     I: Identifiable,
 {
     format!(
-        "channels/{}/{}/pkgs/{}/{}/{}/promote",
+        "depot/channels/{}/{}/pkgs/{}/{}/{}/promote",
         package.origin(),
         channel,
         package.name(),
@@ -878,7 +884,7 @@ where
     I: Identifiable,
 {
     format!(
-        "channels/{}/{}/pkgs/{}/{}/{}/demote",
+        "depot/channels/{}/{}/pkgs/{}/{}/{}/demote",
         package.origin(),
         channel,
         package.name(),

@@ -26,7 +26,7 @@ use openssl::ssl::{SslConnectorBuilder, SslConnector, SslMethod, SslOption, SSL_
                    SSL_OP_NO_SSLV3, SSL_OP_NO_COMPRESSION};
 use url::Url;
 
-use error::Result;
+use error::{Error, Result};
 use net::ProxyHttpsConnector;
 use proxy::{ProxyInfo, proxy_unless_domain_exempted};
 use ssl;
@@ -74,7 +74,7 @@ impl ApiClient {
     where
         T: IntoUrl,
     {
-        let endpoint = endpoint.into_url()?;
+        let endpoint = endpoint.into_url().map_err(Error::UrlParseError)?;
         Ok(ApiClient {
             inner: new_hyper_client(&endpoint, fs_root_path)?,
             proxy: proxy_unless_domain_exempted(Some(&endpoint))?,

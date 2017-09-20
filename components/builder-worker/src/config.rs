@@ -38,7 +38,7 @@ pub struct Config {
     /// Default channel name for Publish post-processor to use to determine which channel to
     /// publish artifacts to
     pub depot_channel: String,
-    /// Default URL for Publish post-processor to use to determine which Builder Depot to use
+    /// Default URL for Publish post-processor to use to determine which Builder to use
     /// for retrieving signing keys and publishing artifacts
     pub depot_url: String,
     /// List of Job Servers to connect to
@@ -66,7 +66,7 @@ impl Default for Config {
             data_path: PathBuf::from("/tmp"),
             log_path: PathBuf::from("/tmp"),
             depot_channel: String::from("unstable"),
-            depot_url: url::default_depot_url(),
+            depot_url: url::default_bldr_url(),
             jobsrv: vec![JobSrvAddr::default()],
         }
     }

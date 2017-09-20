@@ -23,7 +23,7 @@
 //! is in.
 //!
 //! Notes:
-//!    The package should already have been uploaded to the Depot.
+//!    The package should already have been uploaded to Builder.
 //!    If the specified package does not exist, this will fail.
 //!
 
@@ -40,7 +40,7 @@ use error::Result;
 ///
 /// # Failures
 ///
-/// * Fails if it cannot find the specified package in the Depot.
+/// * Fails if it cannot find the specified package in Builder.
 pub fn start(ui: &mut UI, url: &str, ident: &PackageIdent) -> Result<()> {
     let depot_client = Client::new(url, PRODUCT, VERSION, None)?;
 

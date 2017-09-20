@@ -4,7 +4,7 @@ habitatConfig({
     // of the habitat repo, this will be localhost (if running Docker for Mac or
     // Linux) or the result of `$(docker-machine ip default)` if using Docker
     // in a virtual Machine.
-    habitat_api_url: "http://localhost:9636/v1",
+    habitat_api_url: "http://localhost:9636",
     // The URL for community information
     community_url: "https://www.habitat.sh/community",
     // The URL for documentation

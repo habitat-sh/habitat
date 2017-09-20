@@ -77,14 +77,14 @@ mod tests {
         let toml = r#"
         [publish]
         enabled = false
-        url = "https://willem.habitat.sh/v1/depot"
+        url = "https://bldr.habitat.sh"
         channel = "unstable"
         "#;
 
 
         let config = Config::default();
         let cfg = TomlPublishBuilder::from_raw(toml).unwrap().build(&config);
-        assert_eq!("https://willem.habitat.sh/v1/depot", cfg.url);
+        assert_eq!("https://bldr.habitat.sh", cfg.url);
         assert_eq!(false, cfg.enabled);
         assert_eq!("unstable", cfg.channel_opt.unwrap());
     }

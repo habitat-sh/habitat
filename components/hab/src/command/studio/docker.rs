@@ -60,8 +60,8 @@ pub fn start_docker_studio(_ui: &mut UI, mut args: Vec<OsString>) -> Result<()> 
     }
 
     let env_vars = vec![
-        "HAB_DEPOT_URL",
-        "HAB_DEPOT_CHANNEL",
+        "HAB_BLDR_URL",
+        "HAB_BLDR_CHANNEL",
         "HAB_ORIGIN",
         "HAB_STUDIO_SUP",
         "HAB_UPDATE_STRATEGY_FREQUENCY_MS",

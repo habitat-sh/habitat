@@ -83,7 +83,7 @@ message ServiceUpdate {
   optional PackageIdent pkg = 7;
   /// `true` if the service has successfully initialized
   optional bool initialized = 8;
-  /// Depot that is checked for updates
+  /// Builder that is checked for updates
   optional string depot_url = 9;
   /// Chennel chat is checked for updates
   optional string channel = 10;

@@ -59,7 +59,7 @@ fn app<'a, 'b>() -> clap::App<'a, 'b> {
             (@arg config: -c --config +takes_value
                 "Filepath to configuration file. [default: /hab/svc/builder-api/config.toml]")
             (@arg path: -p --path +takes_value
-                "Filepath to service storage for the Depot service")
+                "Filepath to store packages, keys, and other artifacts.")
             (@arg port: --port +takes_value "Listen port. [default: 9636]")
         )
     )

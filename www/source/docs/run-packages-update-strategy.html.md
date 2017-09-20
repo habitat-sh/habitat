@@ -14,7 +14,7 @@ Habitat supports two update strategies: `rolling` and `at-once`.
 
 To start a supervisor with the auto-update strategy, pass the `--strategy` argument to a supervisor start command, and optionally specify the depot URL:
 
-    $ hab start yourorigin/yourapp --strategy rolling --url https://willem.habitat.sh/v1/depot
+    $ hab start yourorigin/yourapp --strategy rolling --url https://bldr.habitat.sh
 
 ### Rolling Strategy
 
@@ -30,7 +30,7 @@ It's important to note that because we must perform a leader election to determi
 
 This strategy does no peer coordination with other supervisors in the service group; it merely updates the underlying Habitat package whenever it detects that a new version has either been published to a depot or installed to the local habitat `pkg` cache. No coordination between supervisors is done, each supervisor will poll a remote depot on their own.
 
-## Configuring an Update Strategy with a Depot Channel
+## Configuring an Update Strategy with a Builder Channel
 
 A _channel_ in a depot is a point-in-time snapshot of the state of the depot. In point of fact, it is a [materialized view](https://en.wikipedia.org/wiki/Materialized_view) of the depot, starting with the specific `origin/package/version/release` quad, and encapsulating all of the transitive dependencies of that quad. This is very useful for continuous deployment purposes:
 
@@ -43,7 +43,7 @@ Configuring the supervisors'  update strategy URL to point to a channel ensures 
 
 To start a supervisor with a strategy and pointing to a channel, modify slightly the URL to the depot:
 
-    $ hab start yourorigin/yourapp --strategy rolling --url https://yourdepot.example.com/v1/depot/channels/yourchannel
+    $ hab start yourorigin/yourapp --strategy rolling --url https://bldr.habitat.sh --channel unstable
 
 The placeholder `yourchannel` represents the channel you have created in the depot.
 

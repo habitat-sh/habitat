@@ -17,7 +17,7 @@ For non-root users using Linux and for Windows and Mac users, a directory of `$H
 
 The net effect of this change is that users of the Studio should see a substantial reduction in bandwidth usage when building software. A couple of things to note however:
 
-* The install logic will still (as before) check the Depot to ensure that we still have the latest artifact cached. If a newer artifact exists in the Depot, it will still be downloaded. Therefore, as of this feature, you will still need internet access when running Studio builds. Any potential future "offline" feature would require this caching as a prerequisite which is why it has been implemented first.
+* The install logic will still (as before) check Builder to ensure that we still have the latest artifact cached. If a newer artifact exists in Builder, it will still be downloaded. Therefore, as of this feature, you will still need internet access when running Studio builds. Any potential future "offline" feature would require this caching as a prerequisite which is why it has been implemented first.
 * While an artifact may be pre-cached, the Studio code still needs to install it into the Studio instance, meaning that on-disk extraction and artifact verification is still being performed every time (as before).
 * While the benefits of saving on re-downloads is great, we introduce a new resource issue for users to keep an eye on: the size of their `~/.hab/cache/artifacts` directory.
 

@@ -22,7 +22,7 @@
 //!//! This will promote the acme package specified to the stable channel.
 //!
 //! Notes:
-//!    The package should already have been uploaded to the Depot.
+//!    The package should already have been uploaded to Builder.
 //!    If the specified channel does not exist, it will be created.
 //!
 
@@ -40,7 +40,7 @@ use error::{Error, Result};
 ///
 /// # Failures
 ///
-/// * Fails if it cannot find the specified package in the Depot
+/// * Fails if it cannot find the specified package in Builder
 pub fn start(
     ui: &mut UI,
     url: &str,

@@ -1,6 +1,6 @@
 # Builder Web
 
-This is the web application for the Habitat Depot. It's a single-page application built with [Angular](https://angular.io/), [TypeScript](https://www.typescriptlang.org/), [Redux](http://redux.js.org/) and [Immutable.js](https://facebook.github.io/immutable-js/).
+This is the web application for Builder. It's a single-page application built with [Angular](https://angular.io/), [TypeScript](https://www.typescriptlang.org/), [Redux](http://redux.js.org/) and [Immutable.js](https://facebook.github.io/immutable-js/).
 
 ## Development Setup
 
@@ -12,7 +12,7 @@ The configuration file looks like this:
 
 ```js
 habitatConfig({
-    habitat_api_url: "http://localhost:9636/v1",
+    habitat_api_url: "http://localhost:9636",
     community_url: "https://www.habitat.sh/community",
     docs_url: "https://www.habitat.sh/docs",
     environment: "production",

@@ -24,9 +24,9 @@ OPTIONS:
         --config-from <CONFIG_DIR>
             Use package config from this path, rather than the package itself
 
-    -u, --url <DEPOT_URL>
-            Receive package updates from the Depot at the specified URL
-            [default: https://bldr.habitat.sh/v1/depot]
+    -u, --url <BLDR_URL>
+            Receive package updates from Builder at the specified URL
+            [default: https://bldr.habitat.sh]
     -e, --environment <ENVIRONMENT>        Environment name; [default: not set].
     -n, --events <EVENTS>
             Name of the service group running a Habitat EventSrv to forward

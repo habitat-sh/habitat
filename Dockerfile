@@ -4,8 +4,8 @@ MAINTAINER The Habitat Maintainers <humans@habitat.sh>
 ENV CARGO_HOME /cargo-cache
 ENV PATH $PATH:$CARGO_HOME/bin:/root/.cargo/bin
 
-ARG HAB_DEPOT_URL
-ENV HAB_DEPOT_URL ${HAB_DEPOT_URL:-}
+ARG HAB_BLDR_URL
+ENV HAB_BLDR_URL ${HAB_BLDR_URL:-}
 
 COPY components/hab/install.sh \
   support/linux/install_dev_0_ubuntu_latest.sh \

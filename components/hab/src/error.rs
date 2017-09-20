@@ -130,7 +130,8 @@ impl fmt::Display for Error {
             Error::IO(ref err) => format!("{}", err),
             Error::JobGroupPromote(ref id, ref c) => {
                 format!(
-                    "Failed to promote job group ID {} to channel {} because some packages did not build successfully.",
+                    "Failed to promote job group ID {} to channel {} because some packages did \
+                    not build successfully.",
                     id,
                     c
                 )

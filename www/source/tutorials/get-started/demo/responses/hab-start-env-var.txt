@@ -1,6 +1,6 @@
 hab-sup(MN): Starting core/redis
 hab-sup(CS): core/redis is not installed
-hab-sup(CS): Searching for core/redis in remote https://willem.habitat.sh
+hab-sup(CS): Searching for core/redis in remote https://bldr.habitat.sh
 Installing core/redis
 Package core/glibc/2.22/20160427193532 already installed
 Package core/linux-headers/4.3/20160427193435 already installed

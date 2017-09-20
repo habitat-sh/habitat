@@ -3,7 +3,7 @@
 # Create a tarball of all the Habitat artifacts needed to run the
 # Habitat Supervisor on a system and upload it to S3. This includes
 # *all* dependencies. The goal is to have everything needed to run the
-# supervisor *without* needing to talk to a running Depot.
+# supervisor *without* needing to talk to a running Builder.
 #
 # Because you have to bootstrap yourself from *somewhere* :)
 #
@@ -72,19 +72,19 @@ sup_packages=(core/hab-launcher
               core/hab-sup/${hab_version}
               core/hab-butterfly/${hab_version})
 
-# If the HAB_DEPOT_URL environment variable is set, we'll use that
+# If the HAB_BLDR_URL environment variable is set, we'll use that
 # when downloading packages. Otherwise, we'll just default to the
 # production depot.
-if [[ ! -z "${HAB_DEPOT_URL:-}" ]]
+if [[ ! -z "${HAB_BLDR_URL:-}" ]]
 then
-    log "Using HAB_DEPOT_URL from environment: ${HAB_DEPOT_URL}"
-    depot_flag="HAB_DEPOT_URL=${HAB_DEPOT_URL}"
+    log "Using HAB_BLDR_URL from environment: ${HAB_BLDR_URL}"
+    depot_flag="HAB_BLDR_URL=${HAB_BLDR_URL}"
 else
-    log "No HAB_DEPOT_URL detected; using the default"
+    log "No HAB_BLDR_URL detected; using the default"
     depot_flag=
 fi
 
-# All packages that compose the Builder / Depot service. Not all need
+# All packages that compose the Builder service. Not all need
 # to be installed on the same machine, but all need to be present in
 # our bundle.
 builder_packages=(core/builder-api

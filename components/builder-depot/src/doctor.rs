@@ -264,7 +264,7 @@ impl<'a> Doctor<'a> {
 }
 
 /// Runs the repair tool on the given Depot and returns a Report containing the results. A repair
-/// tool analyzes all packages found within the Depot's metadata store and re-inserts them into
+/// tool analyzes all packages found within Builder's metadata store and re-inserts them into
 /// the file system and re-builds all indices.
 ///
 /// Any files found within the metastore which are not valid or readable archives are moved into a

@@ -140,7 +140,7 @@ Since we're running our rails application in a docker container, let's export ou
 (studio) $ hab pkg export docker originname/widget_world
 ```
 
-And we are going to be running the postgresql database in another container using the [core/postgresql](https://bldr.habitat.sh/#/pkgs/core/postgresql) package.  Let's export that package as a docker image as well (Habitat will automatically download it for us from the public Depot).
+And we are going to be running the postgresql database in another container using the [core/postgresql](https://bldr.habitat.sh/#/pkgs/core/postgresql) package.  Let's export that package as a docker image as well (Habitat will automatically download it for us from public Builder).
 
 ```console
 (studio) $ hab pkg export docker core/postgresql

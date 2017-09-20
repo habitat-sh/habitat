@@ -23,6 +23,8 @@ use openssl::{self, ssl};
 use serde_json;
 use url;
 
+pub type Result<T> = result::Result<T, Error>;
+
 #[derive(Debug)]
 pub enum Error {
     HabitatCore(hab_core::Error),
@@ -36,8 +38,6 @@ pub enum Error {
     /// When an error occurs attempting to parse a string into a URL.
     UrlParseError(url::ParseError),
 }
-
-pub type Result<T> = result::Result<T, Error>;
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

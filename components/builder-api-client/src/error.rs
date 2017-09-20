@@ -23,6 +23,8 @@ use url;
 
 use hab_http;
 
+pub type Result<T> = result::Result<T, Error>;
+
 #[derive(Debug)]
 pub enum Error {
     APIError(hyper::status::StatusCode, String),
@@ -32,8 +34,6 @@ pub enum Error {
     Json(serde_json::Error),
     URL(url::ParseError),
 }
-
-pub type Result<T> = result::Result<T, Error>;
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

@@ -26,7 +26,7 @@ use error::SrvError;
 #[derive(Debug, Deserialize)]
 #[serde(default)]
 pub struct Config {
-    /// Default URL to determine which Builder Depot to use
+    /// Default URL to determine which Builder to use
     pub depot_url: String,
     /// List of shard identifiers serviced by the running service.
     pub shards: Vec<ShardId>,
@@ -47,7 +47,7 @@ impl Default for Config {
         let mut datastore = DataStoreCfg::default();
         datastore.database = String::from("builder_scheduler");
         Config {
-            depot_url: url::default_depot_url(),
+            depot_url: url::default_bldr_url(),
             shards: (0..SHARD_COUNT).collect(),
             worker_threads: Self::default_worker_count(),
             migration_path: String::from("/hab/svc/builder-scheduler/pkgs"),

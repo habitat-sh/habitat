@@ -1,8 +1,0 @@
-Metrics/MethodLength:
-  Enabled: false
-
-Metrics/ClassLength:
-  Enabled: false
-
-Metrics/LineLength:
-  Enabled: false
