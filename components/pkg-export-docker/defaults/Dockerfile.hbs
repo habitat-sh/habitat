@@ -1,0 +1,7 @@
+FROM scratch
+ENV PATH {{path}}
+ADD {{rootfs}} /
+VOLUME {{volumes}}
+EXPOSE 9631 {{exposes}}
+ENTRYPOINT ["/init.sh"]
+CMD ["start", "{{primary_svc_ident}}"]
