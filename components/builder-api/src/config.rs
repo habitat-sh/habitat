@@ -81,6 +81,10 @@ impl GitHubOAuth for Config {
 }
 
 impl GatewayCfg for Config {
+    fn handler_count(&self) -> usize {
+        self.http.handler_count
+    }
+
     fn listen_addr(&self) -> &IpAddr {
         &self.http.listen
     }
@@ -100,6 +104,7 @@ impl GatewayCfg for Config {
 pub struct HttpCfg {
     pub listen: IpAddr,
     pub port: u16,
+    pub handler_count: usize,
 }
 
 impl Default for HttpCfg {
@@ -107,6 +112,7 @@ impl Default for HttpCfg {
         HttpCfg {
             listen: IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)),
             port: 9636,
+            handler_count: Config::default_handler_count(),
         }
     }
 }
@@ -142,6 +148,7 @@ mod tests {
         [http]
         listen = "0:0:0:0:0:0:0:1"
         port = 9636
+        handler_count = 128
 
         [ui]
         root = "/some/path"
@@ -175,6 +182,7 @@ mod tests {
         assert_eq!(config.non_core_builds_enabled, true);
         assert_eq!(&format!("{}", config.http.listen), "::1");
         assert_eq!(config.http.port, 9636);
+        assert_eq!(config.http.handler_count, 128);
         assert_eq!(&format!("{}", config.routers[0]), "172.18.0.2:9632");
         assert_eq!(config.github.url, "https://api.github.com");
         assert_eq!(config.github.client_id, "0c2f738a7d0bd300de10");
