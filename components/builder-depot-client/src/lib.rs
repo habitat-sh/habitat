@@ -857,7 +857,7 @@ where
     I: Identifiable,
 {
     format!(
-        "pkgs/{}/{}/{}/{}/channels",
+        "depot/pkgs/{}/{}/{}/{}/channels",
         package.origin(),
         package.name(),
         package.version().unwrap(),
