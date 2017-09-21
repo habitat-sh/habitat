@@ -28,7 +28,7 @@ use config::Config;
 use conn::{ConnErr, ConnEvent, SrvConn};
 use error::{Error, Result};
 
-const SERVER_TTL: i64 = PING_INTERVAL_MS + 2_000;
+const SERVER_TTL: i64 = PING_INTERVAL_MS + 5_000;
 
 pub struct Server {
     /// Server's configuration.
