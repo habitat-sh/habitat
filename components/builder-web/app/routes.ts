@@ -13,8 +13,7 @@
 // limitations under the License.
 
 import { Routes, RouterModule } from "@angular/router";
-import { DashboardComponent } from "./dashboard/dashboard.component";
-import { DashboardGuard } from "./dashboard/dashboard.guard";
+import { UserLoggedOutGuard } from "./shared/user/user.guard";
 import { ExploreComponent } from "./explore/explore.component";
 import { ProjectPageComponent } from "./project-page/ProjectPageComponent";
 import { ProjectsPageComponent } from "./projects-page/ProjectsPageComponent";
@@ -24,8 +23,8 @@ import { ProjectSettingsPageComponent } from "./project-settings-page/ProjectSet
 export const routes: Routes = [
     {
         path: "",
-        component: DashboardComponent,
-        canActivate: [ DashboardGuard ]
+        pathMatch: "full",
+        redirectTo: "origins"
     },
     {
         path: "explore",
@@ -33,7 +32,8 @@ export const routes: Routes = [
     },
     {
         path: "sign-in",
-        component: SignInPageComponent
+        component: SignInPageComponent,
+        canActivate: [UserLoggedOutGuard]
     },
     {
         path: "projects",

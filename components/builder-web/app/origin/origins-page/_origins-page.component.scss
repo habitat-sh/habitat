@@ -1,73 +1,80 @@
-.hab-origins-list, .hab-invitations-list {
-    ul.origins, ul.invitations {
-      li {
-        &.heading, &.origin, &.invitation {
-          @include row;
-          border-bottom: 1px solid $very-light-gray;
-
-          h3, .origin-name, .origin-pkg-count{
-            @include span-columns(5);
-          }
-          .invitation-origin-name {
-            @include span-columns(9);
-          }
-          .invitations-actions {
-            @include span-columns(3);
-          }
-        }
-  
-        &.heading {
-          padding: 0 10px;
-  
-          h3 {
-            padding: 0;
-            font-size: rem(12px);
-            font-family: $heading-font-family;
-          }
-        }
-  
-        &.origin, &.invitation {
-          cursor: pointer;
-          font-size: rem(14px);
-
-          .summary {
+.hab-origins {
+  .page-body {
+    .origin-create {
+      margin-bottom: 20px;
+    }
+    .hab-origins-list, .hab-invitations-list {
+      ul.origins, ul.invitations {
+        li {
+          &.heading, &.origin, &.invitation {
             @include row;
-            padding: 15px 10px;
-            position: relative;
-  
-            .origin-name, .invitation-origin-name {
-              font-weight: 600;
-            }
-  
-            .origin-pkg-count {
-              color: $hab-gray;
-            }
+            border-bottom: 1px solid $very-light-gray;
 
-            .invitation-actions {
-              hab-icon.action {
-                cursor: pointer;
-                width: 20px;
+            h3, .origin-name, .origin-pkg-count{
+              @include span-columns(5);
+            }
+            .invitation-origin-name {
+              @include span-columns(9);
+            }
+            .invitations-actions {
+              @include span-columns(3);
+            }
+          }
+
+          &.heading {
+            padding: 0 10px;
+
+            h3 {
+              padding: 0;
+              font-size: rem(12px);
+              font-family: $heading-font-family;
+            }
+          }
+
+          &.origin, &.invitation {
+            cursor: pointer;
+            font-size: rem(14px);
+
+            .summary {
+              @include row;
+              padding: 15px 10px;
+              position: relative;
+
+              .origin-name, .invitation-origin-name {
+                font-weight: 600;
               }
-            }
-  
-            hab-icon[symbol="chevron-right"] {
-              @include chevron-right;
-              display: none;
-            }
 
-            &:hover {
-              background-color: rgba($medium-gray, 0.05);
+              .origin-pkg-count {
+                color: $hab-gray;
+              }
+
+              .invitation-actions {
+                hab-icon.action {
+                  cursor: pointer;
+                  width: 20px;
+                }
+              }
 
               hab-icon[symbol="chevron-right"] {
-                display: block;
+                @include chevron-right;
+                display: none;
+              }
+
+              &:hover {
+                background-color: rgba($medium-gray, 0.05);
+
+                hab-icon[symbol="chevron-right"] {
+                  display: block;
+                }
               }
             }
           }
-        }
 
-        &.invitation {
-          cursor: auto;
+          &.invitation {
+            cursor: auto;
+          }
         }
       }
     }
   }
+}
