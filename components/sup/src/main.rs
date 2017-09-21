@@ -181,7 +181,7 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
         )
         (@subcommand unload =>
             (about: "Unload a persistent or transient service started by the Habitat \
-                supervisor. If the Supervisor is running when the service is unloaded the \
+                Supervisor. If the Supervisor is running when the service is unloaded the \
                 service will be stopped.")
             (aliases: &["un", "unl", "unlo", "unloa"])
             (@arg PKG_IDENT: +required +takes_value "A Habitat package identifier (ex: core/redis)")
@@ -199,7 +199,7 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
             (@arg NAME: --("override-name") +takes_value
                 "The name of the Supervisor if launching more than one [default: default]")
             (@arg ORGANIZATION: --org +takes_value
-                "The organization that the supervisor and it's subsequent services are part of \
+                "The organization that the Supervisor and its subsequent services are part of \
                 [default: default]")
             (@arg PEER: --peer +takes_value +multiple
                 "The listen address of an initial peer (IP[:PORT])")
@@ -213,7 +213,7 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
             (@arg AUTO_UPDATE: --("auto-update") -A "Enable automatic updates for the Supervisor \
                 itself")
             (@arg EVENTS: --events -n +takes_value {valid_service_group} "Name of the service \
-                group running a Habitat EventSrv to forward supervisor and service event data to")
+                group running a Habitat EventSrv to forward Supervisor and service event data to")
         )
         (@subcommand sh =>
             (about: "Start an interactive Bourne-like shell")
@@ -232,7 +232,7 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                 "The name for the state directory if launching more than one Supervisor \
                 [default: default]")
             (@arg ORGANIZATION: --org +takes_value
-                "The organization that the supervisor and it's subsequent services are part of \
+                "The organization that the Supervisor and it's subsequent services are part of \
                 [default: default]")
             (@arg PEER: --peer +takes_value +multiple
                 "The listen address of an initial peer (IP[:PORT])")
@@ -263,7 +263,7 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
             (@arg AUTO_UPDATE: --("auto-update") -A "Enable automatic updates for the Supervisor \
                 itself")
             (@arg EVENTS: --events -n +takes_value {valid_service_group} "Name of the service \
-                group running a Habitat EventSrv to forward supervisor and service event data to")
+                group running a Habitat EventSrv to forward Supervisor and service event data to")
         )
         (@subcommand status =>
             (about: "Query the status of Habitat services.")
@@ -342,7 +342,7 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
         )
         (@subcommand unload =>
             (about: "Unload a persistent or transient service started by the Habitat \
-                supervisor. If the Supervisor is running when the service is unloaded the \
+                Supervisor. If the Supervisor is running when the service is unloaded the \
                 service will be stopped.")
             (aliases: &["un", "unl", "unlo", "unloa"])
             (@arg PKG_IDENT: +required +takes_value "A Habitat package identifier (ex: core/redis)")
@@ -360,7 +360,7 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
             (@arg NAME: --("override-name") +takes_value
                 "The name of the Supervisor if launching more than one [default: default]")
             (@arg ORGANIZATION: --org +takes_value
-                "The organization that the supervisor and it's subsequent services are part of \
+                "The organization that the Supervisor and it's subsequent services are part of \
                 [default: default]")
             (@arg PEER: --peer +takes_value +multiple
                 "The listen address of an initial peer (IP[:PORT])")
@@ -374,7 +374,7 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
             (@arg AUTO_UPDATE: --("auto-update") -A "Enable automatic updates for the Supervisor \
                 itself")
             (@arg EVENTS: --events -n +takes_value {valid_service_group} "Name of the service \
-                group running a Habitat EventSrv to forward supervisor and service event data to")
+                group running a Habitat EventSrv to forward Supervisor and service event data to")
         )
         (@subcommand sh =>
             (about: "Start an interactive Bourne-like shell")
@@ -393,7 +393,7 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
                 "The name for the state directory if launching more than one Supervisor \
                 [default: default]")
             (@arg ORGANIZATION: --org +takes_value
-                "The organization that the supervisor and it's subsequent services are part of \
+                "The organization that the Supervisor and it's subsequent services are part of \
                 [default: default]")
             (@arg PEER: --peer +takes_value +multiple
                 "The listen address of an initial peer (IP[:PORT])")
@@ -424,7 +424,7 @@ fn cli<'a, 'b>() -> App<'a, 'b> {
             (@arg AUTO_UPDATE: --("auto-update") -A "Enable automatic updates for the Supervisor \
                 itself")
             (@arg EVENTS: --events -n +takes_value {valid_service_group} "Name of the service \
-                group running a Habitat EventSrv to forward supervisor and service event data to")
+                group running a Habitat EventSrv to forward Supervisor and service event data to")
             (@arg PASSWORD: --password +takes_value "Password of the service user")
         )
         (@subcommand status =>
@@ -593,7 +593,7 @@ fn sub_status(m: &ArgMatches) -> Result<()> {
     }
     let cfg = mgrcfg_from_matches(m)?;
     if !Manager::is_running(&cfg)? {
-        println!("The supervisor is not running.");
+        println!("The Supervisor is not running.");
         process::exit(3);
     }
     match m.value_of("PKG_IDENT") {
@@ -860,6 +860,6 @@ fn enable_features_from_env() {
         for feature in &features {
             outputln!("     * {:?}: HAB_FEAT_{}=true", feature.0, feature.1);
         }
-        outputln!("The supervisor will start now, enjoy!");
+        outputln!("The Supervisor will start now, enjoy!");
     }
 }

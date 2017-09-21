@@ -45,7 +45,7 @@ where
         }
     }
 
-    /// Start the supervisor and block until all workers are ready.
+    /// Start the Supervisor and block until all workers are ready.
     pub fn start(mut self) -> super::Result<()> {
         self.init()?;
         debug!("Supervisor ready");

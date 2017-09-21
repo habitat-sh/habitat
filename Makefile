@@ -214,7 +214,7 @@ endef
 $(foreach component,$(ALL),$(eval $(call UNIT,$(component))))
 
 # Here we just add a dependency on the hab-launch binary for the
-# supervisor (integration) tests
+# Supervisor (integration) tests
 build-launcher-for-supervisor-tests:
 	$(run) sh -c 'cd components/launcher && cargo build --bin=hab-launch'
 unit-sup: build-launcher-for-supervisor-tests

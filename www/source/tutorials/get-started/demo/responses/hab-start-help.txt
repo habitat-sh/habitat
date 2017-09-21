@@ -34,7 +34,7 @@ OPTIONS:
             The name for the state directory if launching more than
             one Supervisor [default: default]
         --org <ORGANIZATION>
-            The organization that the supervisor and it's
+            The organization that the Supervisor and its
             subsequent services are part of [default: default]
         --peer <PEER>...
             The listen address of an initial peer (IP[:PORT])

@@ -19,7 +19,7 @@ You can find a complete Github repo of this application along with its Habitat p
 
 ## .NET Full Framework and IIS as Infrastructure
 
-First and foremost, we will not be creating Habitat packages for the .NET framework or IIS. We are going to let our configuration management or provisioning system of choice ensure that the .NET framework is installed and that the appropriate IIS features are enabled. When we author our Habitat plan, we will assume that the .NET framework and IIS pieces are already in place. Our plan will focus on our individual .NET application. It will build the application on any machine where the .NET 4.0 CLR is installed, it will setup the IIS application pool and web site, and deploy our app binaries and web artifacts to our nodes where the Habitat supervisor will ensure it is running and update it as updates are available.
+First and foremost, we will not be creating Habitat packages for the .NET framework or IIS. We are going to let our configuration management or provisioning system of choice ensure that the .NET framework is installed and that the appropriate IIS features are enabled. When we author our Habitat plan, we will assume that the .NET framework and IIS pieces are already in place. Our plan will focus on our individual .NET application. It will build the application on any machine where the .NET 4.0 CLR is installed, it will setup the IIS application pool and web site, and deploy our app binaries and web artifacts to our nodes where the Habitat Supervisor will ensure it is running and update it as updates are available.
 
 So lets get started!
 
@@ -86,8 +86,8 @@ C:\dev\hab-sln> hab studio enter -w
    hab-studio: Entering Studio at /hab/studios/dev--hab-sln
 ** The Habitat Supervisor has been started in the background.
 ** Use 'hab svc start' and 'hab svc stop' to start and stop services.
-** Use the 'Get-SupervisorLog' command to stream the supervisor log.
-** Use the 'Stop-Supervisor' to terminate the supervisor.
+** Use the 'Get-SupervisorLog' command to stream the Supervisor log.
+** Use the 'Stop-Supervisor' to terminate the Supervisor.
 
 [HAB-STUDIO] Habitat:\src> build .\hab-sln\
    : Loading C:\hab\studios\dev--hab-sln\src\hab-sln\\habitat\plan.ps1
@@ -199,7 +199,7 @@ Our `run` hook will apply this configuration whenever we start our ASP.NET appli
 
 ## Running our Application in the Habitat Supervisor
 
-In full framewoerk apps, IIS is often in charge of the process lifecycle of our app, unlike Node or .NET Core where we would simply invoke `node.exe` or `dotnet.exe` to run our app in a lightweight web server. So instead of handing off our run hook to call into a runtime, we just need to make sure IIS is configured and the site and app pool are both in the "running" state. We already covered IIS configuration above. However if the `run` hook terminates, the supervisor assumes our service has terminated. As a result, we will have PowerShell loop and check that our application endpoint is responsive:
+In full framewoerk apps, IIS is often in charge of the process lifecycle of our app, unlike Node or .NET Core where we would simply invoke `node.exe` or `dotnet.exe` to run our app in a lightweight web server. So instead of handing off our run hook to call into a runtime, we just need to make sure IIS is configured and the site and app pool are both in the "running" state. We already covered IIS configuration above. However if the `run` hook terminates, the Supervisor assumes our service has terminated. As a result, we will have PowerShell loop and check that our application endpoint is responsive:
 
 ```powershell
 try {
@@ -215,7 +215,7 @@ catch {
     Write-Host "{{pkg.name}} HEAD check failed"
 }
 finally {
-    # Add any cleanup here which will run after supervisor stops the service
+    # Add any cleanup here which will run after Supervisor stops the service
     Write-Host "{{pkg.name}} is stoping..."
     ."$env:SystemRoot\System32\inetsrv\appcmd.exe" stop apppool "{{cfg.app_pool}}"
     ."$env:SystemRoot\System32\inetsrv\appcmd.exe" stop site "{{cfg.site_name}}"
@@ -223,9 +223,9 @@ finally {
 }
 ```
 
-As you can see, we simply call `Invoke-Webrequest` to send a `HEAD` request to our app. If the response is not a `200`, then we assume things have gone horribly wrong and exit the loop. Furthermore, if the supervisor stops our service (`hab svc stop mwrock/hab-sln`), execution will move to the `finally` block, where we tell IIS to shut down our application.
+As you can see, we simply call `Invoke-Webrequest` to send a `HEAD` request to our app. If the response is not a `200`, then we assume things have gone horribly wrong and exit the loop. Furthermore, if the Supervisor stops our service (`hab svc stop mwrock/hab-sln`), execution will move to the `finally` block, where we tell IIS to shut down our application.
 
-So let's run our application. If you are not already in a Windows studio, enter `hab studio enter -w` from the root of our solution. Assuming that the plan has been built as shown above, We can stream the supervisor log and start our service:
+So let's run our application. If you are not already in a Windows studio, enter `hab studio enter -w` from the root of our solution. Assuming that the plan has been built as shown above, We can stream the Supervisor log and start our service:
 
 ```
 [HAB-STUDIO] Habitat:\src> Get-SupervisorLog
@@ -233,7 +233,7 @@ So let's run our application. If you are not already in a Windows studio, enter 
 hab-sup(MN): Supervisor starting mwrock/hab-sln. See the Supervisor output for more details.
 ```
 
-Our supervisor log should look something like this:
+Our Supervisor log should look something like this:
 
 ```
 hab-sup(MR): Supervisor Member-ID 883fe61fe11b4e64b20245adc9830bed
@@ -270,7 +270,7 @@ Now let's go crazy and change the web site port:
 ★ Applied configuration
 ```
 
-and our supervisor log reads:
+and our Supervisor log reads:
 
 ```
 hab-sln.default(SR): Hooks recompiled

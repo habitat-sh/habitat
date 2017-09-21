@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # TODO: These are being temporarily disabled while the build is in flux for the
-# new version of the supervisor.
+# new version of the Supervisor.
 
 exit 0
 

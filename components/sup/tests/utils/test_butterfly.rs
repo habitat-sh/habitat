@@ -55,7 +55,7 @@ impl Client {
         }
     }
 
-    /// Apply the given configuration to the supervisor. It will
+    /// Apply the given configuration to the Supervisor. It will
     /// always be applied to the service group for which the client was
     /// initially configured.
     ///

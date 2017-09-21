@@ -12,7 +12,7 @@ As part of building a package, it needs to be signed with a secret origin key at
 
 The `hab-origin` subcommand will place originname-_timestamp_.sig.key and originname-_timestamp_.pub files (the origin key pair) in the `$HOME/.hab/cache/keys` directory. If you're creating origin keys in the studio container or you are running as root on a Linux machine, your keys will be stored in `/hab/cache/keys`.
 
-Because the secret key is used to sign your package, it should not be shared freely; however, if anyone wants to download and use your package, then they must have your public key (.pub) installed in their local `$HOME/.hab/cache/keys` or `/hab/cache/keys` directory. Public keys will be downloaded from the depot by the supervisor, if needed.
+Because the secret key is used to sign your package, it should not be shared freely; however, if anyone wants to download and use your package, then they must have your public key (.pub) installed in their local `$HOME/.hab/cache/keys` or `/hab/cache/keys` directory. Public keys will be downloaded from the depot by the Supervisor, if needed.
 
 ### Passing origin keys into the studio
 When you enter the studio environment, your origin keys are not automatically shared into it. This is to keep the studio environment as clean as possible. However, because you need to reference a secret origin key to sign your package, you can do this in three ways:

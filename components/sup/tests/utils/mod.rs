@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! Utility functions for testing a supervisor
+//! Utility functions for testing a Supervisor
 
 use std::fs;
 use std::path::Path;
@@ -36,7 +36,7 @@ pub fn sleep_seconds(seconds: u64) {
 }
 
 /// Copy fixture package files from `fixture_root` over to `hab_root`
-/// in the appropriate places for the supervisor to find them.
+/// in the appropriate places for the Supervisor to find them.
 pub fn setup_package_files<O, P, S>(
     origin_name: O,
     package_name: P,

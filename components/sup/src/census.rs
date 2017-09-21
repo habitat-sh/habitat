@@ -301,7 +301,7 @@ impl CensusGroup {
         }
     }
 
-    /// Returns the census member in the census ring for the running supervisor.
+    /// Returns the census member in the census ring for the running Supervisor.
     pub fn me(&self) -> Option<&CensusMember> {
         self.population.get(&self.local_member_id)
     }

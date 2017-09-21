@@ -286,7 +286,7 @@ function Enter-Studio {
     function build {
       & "$env:STUDIO_SCRIPT_ROOT\hab-plan-build.ps1" @args
     }
-    # This streams the tail of the supervisor log in a new window
+    # This streams the tail of the Supervisor log in a new window
     # We do this because breaking out of the tail stream via ctrl-C breaks
     # nested shells.
     function Get-SupervisorLog {
@@ -305,8 +305,8 @@ function Enter-Studio {
     Start-Process hab.exe -ArgumentList "sup run" -NoNewWindow -RedirectStandardOutput $env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\out.log
     Write-Host  "** The Habitat Supervisor has been started in the background." -ForegroundColor Cyan
     Write-Host  "** Use 'hab svc start' and 'hab svc stop' to start and stop services." -ForegroundColor Cyan
-    Write-Host  "** Use the 'Get-SupervisorLog' command to stream the supervisor log." -ForegroundColor Cyan
-    Write-Host  "** Use the 'Stop-Supervisor' to terminate the supervisor." -ForegroundColor Cyan
+    Write-Host  "** Use the 'Get-SupervisorLog' command to stream the Supervisor log." -ForegroundColor Cyan
+    Write-Host  "** Use the 'Stop-Supervisor' to terminate the Supervisor." -ForegroundColor Cyan
     Write-Host  ""
 
     Set-Location "Habitat:\src"

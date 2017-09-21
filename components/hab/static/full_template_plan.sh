@@ -129,9 +129,9 @@ pkg_pconfig_dirs={{ pkg_pconfig_dirs }}
 {{/if}}
 
 # Optional.
-# The command for the supervisor to execute when starting a service. You can
+# The command for the Supervisor to execute when starting a service. You can
 # omit this setting if your package is not intended to be run directly by a
-# supervisor of if your plan contains a run hook in hooks/run.
+# Supervisor of if your plan contains a run hook in hooks/run.
 {{#if pkg_svc_run ~}}
 pkg_svc_run="{{ pkg_svc_run }}"
 {{else ~}}
@@ -165,7 +165,7 @@ pkg_exposes={{ pkg_exposes }}
 # Optional.
 # An associative array representing services which you depend on and the configuration keys that
 # you expect the service to export (by their `pkg_exports`). These binds *must* be set for the
-# supervisor to load the service. The loaded service will wait to run until it's bind becomes
+# Supervisor to load the service. The loaded service will wait to run until it's bind becomes
 # available. If the bind does not contain the expected keys, the service will not start
 # successfully.
 {{#if pkg_binds ~}}

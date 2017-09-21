@@ -237,7 +237,7 @@ And inside that new file, place the following Habitat [configuration template](/
 
 A few things to note about what we've included here:
 
-  * `deamon off`: Tells Nginx to run in the foreground, which allows it to be managed by the Habitat supervisor
+  * `deamon off`: Tells Nginx to run in the foreground, which allows it to be managed by the Habitat Supervisor
   * `*_temp_path`: Directives that specify temporary file paths; these are currently required by `core/nginx`, so we specify them here as subpaths of `pkg.svc_var_path` (which ultimately ends up at `/hab/svc/hello-hab-server/var/`)
   * `listen`: The port on which we'll listen for HTTP requests
   * `root`: The fully qualified path to the files of our website
@@ -265,8 +265,8 @@ Perfect. All we have left are the scripts that start up the service.
 
 The Habitat docs explain all there is to know about [service hooks and how to use them](/docs/reference/plan-syntax/#sts=Hooks), so we're going to continue keeping things simple and define only the hooks we need to get our server package running:
 
-  * An **init** hook, which is a shell script run by the Habitat supervisor as a service starts up, and
-  * A **run** hook, called afterward, which is responsible for starting the service that the supervisor will manage.
+  * An **init** hook, which is a shell script run by the Habitat Supervisor as a service starts up, and
+  * A **run** hook, called afterward, which is responsible for starting the service that the Supervisor will manage.
 
 If you glance back at `config/nginx.conf` and `default.toml`, you'll see we're essentially telling Nginx that when it starts, it can expect to find a web page at `/hab/svc/hello-hab-server/static/index.html` &mdash; but we haven't done anything to make that happen yet. While our ultimate plan is to serve the file we bundled into `hello-hab-site`, we might also want to package a default home page *with* our web-server package, and the `init` hook gives us an opportunity to demonstrate one (slightly contrived) way to do that.
 
@@ -282,7 +282,7 @@ Make a new file, `server/hooks/init`, and give it the following contents:
 
 It might seem a little wierd to serve up an empty web page like this, but my intention is just to explain why we need the *next* line, wherein we change the ownership of `pkg.svc_static_path`.
 
-Recall that our server plan sets `pkg_svc_user` to `root` (we explained why earlier), so when the supervisor runs our init hook, it runs that hook as `root` as well, leaving `index.html` readable only by `root`. But since `core/nginx` is written to have Nginx spawn its worker processes as `hab` and not `root`, if we'd omitted that `chown`, started our server and browsed to it, we'd have been greeted with a not-so-friendly response of **403: Forbidden** and found a **Permission Denied** error in our service logs.
+Recall that our server plan sets `pkg_svc_user` to `root` (we explained why earlier), so when the Supervisor runs our init hook, it runs that hook as `root` as well, leaving `index.html` readable only by `root`. But since `core/nginx` is written to have Nginx spawn its worker processes as `hab` and not `root`, if we'd omitted that `chown`, started our server and browsed to it, we'd have been greeted with a not-so-friendly response of **403: Forbidden** and found a **Permission Denied** error in our service logs.
 
 With our minimally helpful init hook in place, let's finish off with a `run` hook. Make a new file, `server/habitat/hooks/run`, containing:
 
@@ -291,11 +291,11 @@ With our minimally helpful init hook in place, let's finish off with a `run` hoo
     # Start the Nginx server, passing it our bundled configuration file.
     exec {{ pkgPathFor "core/nginx" }}/bin/nginx -c "{{ pkg.svc_config_path }}/nginx.conf" 2>&1
 
-With this line, we're instructing the Habitat supervisor to:
+With this line, we're instructing the Habitat Supervisor to:
 
   * Start `nginx` using the binary packaged in `core/nginx` (`exec` runs that command without creating a new process),
   * Pass it our now-rendered config file (with Nginx's `-c` option), and
-  * Merge `stderr` into `stdout` so the supervisor can capture both of them as a single stream.
+  * Merge `stderr` into `stdout` so the Supervisor can capture both of them as a single stream.
 
 And that's it. We should now be able to build the server package:
 
@@ -348,8 +348,8 @@ So what's next? In future posts, we might develop our website package into a mor
  * [Running the web-server package](/docs/share-packages-overview/#running-packages-from-the-depot) from the Depot, and
  * Iterating on the website package by building and uploading revisions to the Depot.
 
-In doing so, you may find that the pattern we've outlined here &mdash; using `hab config apply` to prompt the web server to pick up changes to the website package &mdash; works nicely, but does require the somewhat manual step of running that command (and remembering to increment the version number). It'd be better if the Habitat supervisor could detect a new version of that package on the Depot, install it for you, and have the web server pick up the change automatically.
+In doing so, you may find that the pattern we've outlined here &mdash; using `hab config apply` to prompt the web server to pick up changes to the website package &mdash; works nicely, but does require the somewhat manual step of running that command (and remembering to increment the version number). It'd be better if the Habitat Supervisor could detect a new version of that package on the Depot, install it for you, and have the web server pick up the change automatically.
 
-One way to do that would be with [scaffolding](/docs/concepts-scaffolding/) to make it easier to package static websites or single-page JavaScript web applications. We've just started talking about this one, so expect to hear more about that here as it develops.
+One way to do that would be with [Scaffolding](/docs/concepts-scaffolding/) to make it easier to package static websites or single-page JavaScript web applications. We've just started talking about this one, so expect to hear more about that here as it develops.
 
 Until then, have fun! [We'll see you in Slack](http://slack.habitat.sh/).

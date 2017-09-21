@@ -60,7 +60,7 @@ The following are the various roles of our <b>Community Organizers</b> and the p
     - [Tasha Drew](tasha@habitat.sh), [@tashadrew](https://twitter.com/tashadrew)
     - [Nell Shamrell-Harrington](nshamrell@habitat.sh), [@nellshamrell](https://twitter.com/nellshamrell)
     - [Ben Dang](me@bdang.it), [@bdangit](https://twitter.com/bdangit)
-  * The <b>Project Maintainers</b> are likewise expected to conduct their behavior in line with the Code of Conduct and are individually responsible for both escalating to a <b>Community Advocate</b> in case of witnessing an incident and helping to foster the community and it's members.
+  * The <b>Project Maintainers</b> are likewise expected to conduct their behavior in line with the Code of Conduct and are individually responsible for both escalating to a <b>Community Advocate</b> in case of witnessing an incident and helping to foster the community and its members.
   * A <b>Community Member</b> is anyone who participates with the community whether in-person or via online channels. Community members are responsible for following the community guidelines, suggesting updates to the guidelines when warranted, and helping enforce community guidelines.
 
 ## Consequences of Unacceptable Behavior

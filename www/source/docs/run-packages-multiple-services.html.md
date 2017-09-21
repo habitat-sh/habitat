@@ -4,11 +4,11 @@ title: Running Multiple Services with one Supervisor
 
 # Run Multiple Services with one Supervisor
 
-The Habitat supervisor is designed to supervise one or more services concurrently so if you are running Habitat on bare metal or a virtual machine there is only need for one supervisor. This is also useful in a container environment if you require a secondary so-called "sidecar" service running alongside your primary service.
+The Habitat Supervisor is designed to supervise one or more services concurrently so if you are running Habitat on bare metal or a virtual machine there is only need for one Supervisor. This is also useful in a container environment if you require a secondary so-called "sidecar" service running alongside your primary service.
 
 ## Starting only the Supervisor
 
-Starting the supervisor is as simple as running:
+Starting the Supervisor is as simple as running:
 
 		hab sup run
 
@@ -16,7 +16,7 @@ This command also lets you override the default gossip and http gateway binding 
 
 ## Running the Supervisor with a Host's init System
 
-As only one supervisor is required on a host, this means that only one system service needs to be added. Your choice of Linux distribution may dictate which init system is in use (i.e. SysVinit, Systemd, runit, etc), but all options boil down to simply running `hab sup run` as the runnable program. The following example assumes that the Habitat program `hab` is installed, binlinked as `/bin/hab`, and a `hab` user and group are present.
+As only one Supervisor is required on a host, this means that only one system service needs to be added. Your choice of Linux distribution may dictate which init system is in use (i.e. SysVinit, Systemd, runit, etc), but all options boil down to simply running `hab sup run` as the runnable program. The following example assumes that the Habitat program `hab` is installed, binlinked as `/bin/hab`, and a `hab` user and group are present.
 
 For example, a suitable Systemd unit would simply be:
 
@@ -29,7 +29,7 @@ For example, a suitable Systemd unit would simply be:
 		[Install]
 		WantedBy=default.target
 
-It is important to start the supervisor via the `hab` program as upgrades to the `core/hab` Habitat package will also upgrade the version of the supervisor on next start.
+It is important to start the Supervisor via the `hab` program as upgrades to the `core/hab` Habitat package will also upgrade the version of the Supervisor on next start.
 
 ## Loading a Service for Supervision
 
@@ -37,7 +37,7 @@ To add a service to a Supervisor, you use the `hab svc load` subcommand. It has 
 
 		hab svc load yourorigin/yourname --topology leader --strategy rolling --group acme
 
-Running the `hab svc load` subcommand multiple times with different package identifiers will result in multiple services running on the same supervisor. Let's add `core/redis` to the supervisor for some fun:
+Running the `hab svc load` subcommand multiple times with different package identifiers will result in multiple services running on the same Supervisor. Let's add `core/redis` to the Supervisor for some fun:
 
 		hab svc load core/redis
 
@@ -59,8 +59,8 @@ To resume running a service which has been loaded but stopped (via the `hab svc 
 
 		hab svc start core/redis
 
-## Querying the supervisor for service status
-You can query all services currently loaded or running under the local supervisor using the `hab sup status` command. This command will list all persistent services loaded by the supervisor along with their current state. It will also list transient services that are currently running or in a `starting` or `restarting` state. The `status` command includes the version and release of the servicwe and for services that are running, it will include the `PID` of the running service.
+## Querying the Supervisor for service status
+You can query all services currently loaded or running under the local Supervisor using the `hab sup status` command. This command will list all persistent services loaded by the Supervisor along with their current state. It will also list transient services that are currently running or in a `starting` or `restarting` state. The `status` command includes the version and release of the servicwe and for services that are running, it will include the `PID` of the running service.
 
 To retrieve status for an individual service, you can pass the service identifier:
 
@@ -70,8 +70,8 @@ The following exit codes are emitted by the `status` command:
 
 * `0` - The status command successfully reports status on loaded services
 * `1` - A generic error has occured calling the `hab` cli
-* `2` - A service identifier was passed to `hab sup status` and that service is not loaded by the supervisor
-* `3` - There is no local running supervisor
+* `2` - A service identifier was passed to `hab sup status` and that service is not loaded by the Supervisor
+* `3` - There is no local running Supervisor
 
 <hr>
 <ul class="main-content--link-nav">

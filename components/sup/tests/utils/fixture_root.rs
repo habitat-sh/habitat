@@ -51,7 +51,7 @@
 //!       └── TARGET
 //!
 //! They contain only what is needed to a) be recognized by the
-//! supervisor as packages and b) satisfy the needs of their test.
+//! Supervisor as packages and b) satisfy the needs of their test.
 //!
 //! In general, each fixture should be used by a single test.
 

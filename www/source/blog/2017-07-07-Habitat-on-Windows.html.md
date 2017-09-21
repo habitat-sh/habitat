@@ -7,7 +7,7 @@ category: windows
 classes: body-article
 ---
 
-We are pleased to announce that the latest release of Habitat - [v0.25.0](https://api.bintray.com/content/habitat/stable/windows/x86_64/hab-%24latest-x86_64-windows.zip?bt_package=hab-x86_64-windows) - brings Habitat to Windows! This functionality has been evolving steadily for the last several months and has been available in various pieces along the way. Perhaps you have [seen my demo](https://www.youtube.com/watch?v=pzcmXivVRYI&t=615s) showing where we were back in March. Well with v0.25.0, we ship everything you need to author, package and run Habitat packages inside of a Windows supervisor.
+We are pleased to announce that the latest release of Habitat - [v0.25.0](https://api.bintray.com/content/habitat/stable/windows/x86_64/hab-%24latest-x86_64-windows.zip?bt_package=hab-x86_64-windows) - brings Habitat to Windows! This functionality has been evolving steadily for the last several months and has been available in various pieces along the way. Perhaps you have [seen my demo](https://www.youtube.com/watch?v=pzcmXivVRYI&t=615s) showing where we were back in March. Well with v0.25.0, we ship everything you need to author, package and run Habitat packages inside of a Windows Supervisor.
 
 Our Windows work is very much in the Alpha stages, but we are hungry for feedback from others who would like to start building Windows applications with Habitat. This post will walk you through building and running Habitat packages on Windows with an emphasis on how the Windows experience differs from building and running Linux based packages. Finally I will cover the few things that are not yet implemented for Windows and what is coming up next.
 
@@ -30,8 +30,8 @@ The best way to build packages on Windows is to enter the Windows studio. Curren
       hab-studio: Entering Studio at /hab/studios/dev--habitat-aspnet-sample
     ** The Habitat Supervisor has been started in the background.
     ** Use 'hab svc start' and 'hab svc stop' to start and stop services.
-    ** Use the 'Get-SupervisorLog' command to stream the supervisor log.
-    ** Use the 'Stop-Supervisor' to terminate the supervisor.
+    ** Use the 'Get-SupervisorLog' command to stream the Supervisor log.
+    ** Use the 'Stop-Supervisor' to terminate the Supervisor.
 
     [HAB-STUDIO] Habitat:\src>
 
@@ -43,7 +43,7 @@ We have packaged the [open sourced Powershell core](https://github.com/PowerShel
 
 ### A disposable Habitat environment.
 
-Just as we do in a Linux shell, we copy your keys from your primary local hab keys but the cached artifacts you would typically find in `c:\hab\cache\artifacts` are in an isolated Habitat environment as well as the supervisor data files and habitat service directories. You can find this disposable `/hab` directory under `c:\hab\studios` in a child directory named after the full path from where you entered the studio. This directory is the target of a "Powershell Drive" named `habitat`. A `hab studio rm -w` will remove this entire environment and eliminate all artifacts created during the lifetime of a studio.
+Just as we do in a Linux shell, we copy your keys from your primary local hab keys but the cached artifacts you would typically find in `c:\hab\cache\artifacts` are in an isolated Habitat environment as well as the Supervisor data files and habitat service directories. You can find this disposable `/hab` directory under `c:\hab\studios` in a child directory named after the full path from where you entered the studio. This directory is the target of a "Powershell Drive" named `habitat`. A `hab studio rm -w` will remove this entire environment and eliminate all artifacts created during the lifetime of a studio.
 
 ### The path is modified.
 
@@ -67,9 +67,9 @@ The following functions are available in a Windows Habitat studio:
 
 * `build` - this is identical to its Linux cousin. It builds a Habitat package. However instead of looking for a `plan.sh` it looks for a `plan.ps1`. We'll look more closely at plan.ps1 files soon.
 
-* `Get-SupervisorLog` - Just like one expects in a Linux studio, a Habitat supervisor is started in the Windows studio environment and runs in the background. `Get-SupervisorLog` streams the output of the supervisor to a new console window.
+* `Get-SupervisorLog` - Just like one expects in a Linux studio, a Habitat Supervisor is started in the Windows studio environment and runs in the background. `Get-SupervisorLog` streams the output of the Supervisor to a new console window.
 
-* `Stop-Supervisor` - This will stop the above mentioned background supervisor.
+* `Stop-Supervisor` - This will stop the above mentioned background Supervisor.
 
 ## Authoring a `plan.ps1`
 
@@ -129,20 +129,20 @@ All `hab svc` and `hab sup` based commands are exactly the same on Windows as th
 
 ### The Supervisor Path
 
-The behavior of creating the path for a service started by the Windows supervisor is actually identical to Linux. When a Habitat package is built, metadata is produced which states what directories to add to the path at runtime. Those directories are added to the path of the process that the supervisor starts as well as the same `PATH` metadata of all dependent packages. This is no different than how the Linux supervisor behaves. However I bring it up here to point out how dynamic linking differs on Windows opposed to Linux [ELF](https://en.wikipedia.org/wiki/Executable_and_Linkable_Format) based binaries.
+The behavior of creating the path for a service started by the Windows Supervisor is actually identical to Linux. When a Habitat package is built, metadata is produced which states what directories to add to the path at runtime. Those directories are added to the path of the process that the Supervisor starts as well as the same `PATH` metadata of all dependent packages. This is no different than how the Linux Supervisor behaves. However I bring it up here to point out how dynamic linking differs on Windows opposed to Linux [ELF](https://en.wikipedia.org/wiki/Executable_and_Linkable_Format) based binaries.
 
 While ELF binaries can have their headers manipulated at build time to link to dependencies at specific paths at runtime, native Windows binaries do not share this quality. Habitat packages for Linux highly leverage ELF header patching to enforce that a Habitat built binary points to the correct Habitat dependencies. This is great because it solidifies a Habitat guarantee which is that packages you build your top level application against will be the *EXACT SAME* packages that run along side your application at runtime - no surprises. Windows in contrast highly leverages the directories in an environment's `path` ([this post](https://msdn.microsoft.com/en-us/library/7d83bc18.aspx) covers the details of Windows DLL searching). The binaries of an application's dependencies need to be located in the path in order to be used at runtime. So the path, while it is constructed the same as on Linux is absolutly critical to dynamic linking of binaries at runtime.
 
 ### Gossiping over the ring and the Windows Firewall
 
-The Habitat supervisors can talk to other supervisor peers on the same gossip ring over ports 9631 (TCP) and 9638 (TCP/UDP). In order for supervisors on a ring to listen to each other, these ports must be opened on the Windows Firewall where the supervisor is running. You can open them by running:
+The Habitat Supervisors can talk to other Supervisor peers on the same gossip ring over ports 9631 (TCP) and 9638 (TCP/UDP). In order for Supervisors on a ring to listen to each other, these ports must be opened on the Windows Firewall where the Supervisor is running. You can open them by running:
 
     New-NetFirewallRule -DisplayName "Habitat TCP" -Direction Inbound -Action Allow -Protocol TCP -LocalPort 9631,9638
     New-NetFirewallRule -DisplayName "Habitat UDP" -Direction Inbound -Action Allow -Protocol UDP -LocalPort 9638
 
 ### Running services under different accounts - `pkg_svc_user`
 
-Just like on Linux, if a plan includes a `pkg_svc_user`, the supervisor will start that service by spawning a new process running as that user. If no `pkg_svc_user` is specified then the supervisor will use the `hab` user if that account exists. Otherwise, the supervisor will start the service under the same account that the supervisor itself is running under.
+Just like on Linux, if a plan includes a `pkg_svc_user`, the Supervisor will start that service by spawning a new process running as that user. If no `pkg_svc_user` is specified then the Supervisor will use the `hab` user if that account exists. Otherwise, the Supervisor will start the service under the same account that the Supervisor itself is running under.
 
 Here are some significant ways this behavior differs on Windows:
 
@@ -152,7 +152,7 @@ There are fundamental differences between the Linux and Windows concept of Group
 
 **Use the `--password` argument to specify the user's password**
 
-Unlike Linux, Windows processes cannot simply start processes setting the `UID` for the process. Instead, a token for that user must be generated. To generate this token, the user's credentials are required. Thus the Habitat supervisor needs that user's password.
+Unlike Linux, Windows processes cannot simply start processes setting the `UID` for the process. Instead, a token for that user must be generated. To generate this token, the user's credentials are required. Thus the Habitat Supervisor needs that user's password.
 
 Both the `hab svc load` and `hab svc start` commands accept a `--password` argument on Windows. Pass the password of the `pkg_svc_user` to this argument so that Habitat can generate the logon token for that user.
 
@@ -162,7 +162,7 @@ This can be set using the Local Security Policy GUI and give the user the right 
 
 **The Supervisor's account must posses the `SE_INCREASE_QUOTA_NAME` and `SE_ASSIGNPRIMARYTOKEN_NAME` privileges to start services as a different user**
 
-Like the `SE_SERVICE_LOGON_NAME` right above, both of these privileges can be set using the Local Security Policy GUI by assigning the supervisor's user to the "Adjust memory quotas for a process" right (likely already assigned) and "Replace a process level token" right.
+Like the `SE_SERVICE_LOGON_NAME` right above, both of these privileges can be set using the Local Security Policy GUI by assigning the Supervisor's user to the "Adjust memory quotas for a process" right (likely already assigned) and "Replace a process level token" right.
 
 For an example of setting user right assignments programatically via Powershell see [this Vagrantfile](https://github.com/habitat-sh/habitat-aspnet-sample/blob/master/Vagrantfile).
 
@@ -172,7 +172,7 @@ Throughout the development of these features, we have been using [the ASP.NET Co
 
 ### So can I package my .NET Full framework IIS applications and Windows Services?
 
-I get this question a lot! Probably thats because its these types of applications that most Windows developers actually build and run. Experimenting with bringing these applications to Habitat is high on our Windows priority list. These kinds of applications present some challenges to Habitat because IIS, the full .NET framework and the Windows Service Manager are very much coupled to the OS and not friendly to supervisor intervention.
+I get this question a lot! Probably thats because its these types of applications that most Windows developers actually build and run. Experimenting with bringing these applications to Habitat is high on our Windows priority list. These kinds of applications present some challenges to Habitat because IIS, the full .NET framework and the Windows Service Manager are very much coupled to the OS and not friendly to Supervisor intervention.
 
 These challenges do not at all mean that they cannot run with Habitat and we have some ideas we plan to test to get them running with Habitat. Keep an eye out for more on this in the weeks to come!
 
@@ -199,13 +199,13 @@ This list is very small.
 
 The main feature missing on Windows is the ability to export Windows `.hart` packages to a Windows Docker container. Obviously this would be an extremely cool feature to have. I personally want this very much.
 
-Finally, while this is not a feature, per se, we do not yet support running the supervisor as a Windows Service. While you can run Habitat under Systemd on Linux, on Windows you still need to run the supervisor in a console. That is clearly a blocker for many production scenarios and is toward the top of the list of things we plan to support.
+Finally, while this is not a feature, per se, we do not yet support running the Supervisor as a Windows Service. While you can run Habitat under Systemd on Linux, on Windows you still need to run the Supervisor in a console. That is clearly a blocker for many production scenarios and is toward the top of the list of things we plan to support.
 
 ## What's coming up for Windows
 
 The top items I have mentioned in this post:
 
-* Running the supervisor as a service
+* Running the Supervisor as a service
 * Creating patterns for packaging IIS/.NET Full framework and Windows service applicatrions
 * Exporting Windows services to Windows based docker containers
 * Various "polish" chores in the CLI and the docs
