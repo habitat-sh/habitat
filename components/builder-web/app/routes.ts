@@ -16,7 +16,6 @@ import { Routes, RouterModule } from "@angular/router";
 import { DashboardComponent } from "./dashboard/dashboard.component";
 import { DashboardGuard } from "./dashboard/dashboard.guard";
 import { ExploreComponent } from "./explore/explore.component";
-import { ProjectCreatePageComponent } from "./project-create-page/ProjectCreatePageComponent";
 import { ProjectPageComponent } from "./project-page/ProjectPageComponent";
 import { ProjectsPageComponent } from "./projects-page/ProjectsPageComponent";
 import { SignInPageComponent } from "./sign-in-page/sign-in-page.component";
@@ -39,10 +38,6 @@ export const routes: Routes = [
     {
         path: "projects",
         component: ProjectsPageComponent
-    },
-    {
-        path: "projects/create",
-        component: ProjectCreatePageComponent
     },
     {
         path: "projects/:origin/:name",

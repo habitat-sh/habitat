@@ -17,7 +17,7 @@ import { PlatformIconComponent } from "./platform-icon/platform-icon.component";
 import { TabsComponent } from "./tabs/TabsComponent";
 import { TabComponent } from "./tabs/TabComponent";
 import { FormProgressComponent } from "./form-progress/form-progress.component";
-import { GitHubRepoPickerComponent } from "./github-repo-picker/GitHubRepoPickerComponent";
+import { GitHubRepoPickerComponent } from "./github-repo-picker/github-repo-picker.component";
 import { PackagePlanSelectComponent } from "./plan-select/plan-select.component";
 import { RepoFilterPipe } from "../pipes/repoFilter.pipe";
 

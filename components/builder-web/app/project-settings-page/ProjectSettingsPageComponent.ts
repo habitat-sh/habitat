@@ -37,7 +37,6 @@ import {Record} from "immutable";
       </div>
     </div>
     `
-    // <hab-project-info [project]="project" [ownerAndRepo]="ownerAndRepo"></hab-project-info>
 })
 
 export class ProjectSettingsPageComponent implements OnInit, OnDestroy {

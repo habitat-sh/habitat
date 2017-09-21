@@ -13,28 +13,12 @@
 // limitations under the License.
 
 import * as fakeApi from "../fakeApi";
-import {
-  Observable
-} from "rxjs";
-import {
-  BuilderApiClient
-} from "../BuilderApiClient";
-import {
-  addNotification
-} from "./notifications";
-import {
-  DANGER,
-  INFO,
-  SUCCESS,
-  WARNING
-} from "./notifications";
-import {
-  requestRoute,
-  resetRedirectRoute
-} from "./router";
-import {
-  packageString
-} from "../util";
+import { Observable } from "rxjs";
+import { BuilderApiClient } from "../BuilderApiClient";
+import { addNotification } from "./notifications";
+import { DANGER, INFO, SUCCESS, WARNING } from "./notifications";
+import { requestRoute, resetRedirectRoute } from "./router";
+import { packageString } from "../util";
 
 export const POPULATE_PROJECT = "POPULATE_PROJECT";
 export const SET_CURRENT_PROJECT = "SET_CURRENT_PROJECT";

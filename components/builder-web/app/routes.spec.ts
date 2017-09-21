@@ -1,6 +1,5 @@
 import { DashboardComponent } from "./dashboard/dashboard.component";
 import { ExploreComponent } from "./explore/explore.component";
-import { ProjectCreatePageComponent } from "./project-create-page/ProjectCreatePageComponent";
 import { ProjectPageComponent } from "./project-page/ProjectPageComponent";
 import { ProjectsPageComponent } from "./projects-page/ProjectsPageComponent";
 import { SignInPageComponent } from "./sign-in-page/sign-in-page.component";
@@ -31,13 +30,6 @@ describe("Routes", () => {
     it("routes to ProjectsPageComponent", () => {
       let r = route("projects");
       expect(r.component).toBe(ProjectsPageComponent);
-    });
-  });
-
-  describe("/projects/create", () => {
-    it("routes to ProjectCreatePageComponent", () => {
-      let r = route("projects/create");
-      expect(r.component).toBe(ProjectCreatePageComponent);
     });
   });
 

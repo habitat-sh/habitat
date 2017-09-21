@@ -30,7 +30,6 @@ import { GravatarComponent } from "./GravatarComponent";
 import { HeaderComponent } from "./header/HeaderComponent";
 import { NotificationsComponent } from "./notifications/NotificationsComponent";
 import { ProjectSettingsPageComponent } from "./project-settings-page/ProjectSettingsPageComponent";
-import { ProjectCreatePageComponent } from "./project-create-page/ProjectCreatePageComponent";
 import { ProjectPageComponent } from "./project-page/ProjectPageComponent";
 import { ProjectsPageComponent } from "./projects-page/ProjectsPageComponent";
 import { SideNavComponent } from "./side-nav/SideNavComponent";
@@ -66,7 +65,6 @@ import { SharedModule } from "./shared/shared.module";
         GravatarComponent,
         HeaderComponent,
         NotificationsComponent,
-        ProjectCreatePageComponent,
         ProjectPageComponent,
         ProjectsPageComponent,
         SideNavComponent,
