@@ -4,7 +4,7 @@ title: Supervisor
 
 # Supervisor
 
-The supervisor is a process manager that has two primary responsibilities. First, it starts and monitors the child app service defined in the package. Second, it receives and acts upon configuration changes from other supervisors to which it is connected. A service will be reconfigured through hooks if its configuration has changed.
+The supervisor is a process manager that has two primary responsibilities. First, it starts and monitors the child app service defined in the package. Second, it receives and acts upon configuration changes from other supervisors to which it is connected. A Supervisor can reconfigure a service through application lifecycle hooks when certain lifecycle events occur.
 
 ## The Supervisor Ring
 
