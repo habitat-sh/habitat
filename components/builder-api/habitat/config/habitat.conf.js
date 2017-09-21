@@ -11,4 +11,5 @@ habitatConfig({
     tutorials_url: "{{cfg.web.tutorials_url}}",
     version: "{{pkg.ident}}",
     www_url: "{{cfg.web.www_url}}",
+    status_url: "{{cfg.web.status_url}}",
 });

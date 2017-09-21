@@ -19,6 +19,7 @@ friends_only     = false
 source_code_url  = "https://github.com/habitat-sh/habitat"
 tutorials_url    = "https://www.habitat.sh/tutorials"
 www_url          = "https://www.habitat.sh"
+status_url       = "https://status.habitat.sh/"
 
 [depot]
 builds_enabled = true
