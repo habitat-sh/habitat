@@ -108,3 +108,11 @@ variable "connection_private_key" {
 variable "datadog_api_key" {
   description = "API key for the DataDog agent"
 }
+
+variable "instance_size_api" {
+  description = "AWS instance size for builder-api server(s)"
+}
+
+variable "instance_size_worker" {
+  description = "AWS instance size for builder-worker server(s)"
+}
