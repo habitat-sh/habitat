@@ -14,18 +14,18 @@
 
 import { Component } from "@angular/core";
 import { AppStore } from "../../../AppStore";
-import { GitHubRepoPickerComponent } from "../../../shared/github-repo-picker/GitHubRepoPickerComponent";
+import { GitHubRepoPickerComponent } from "../../../shared/github-repo-picker/github-repo-picker.component";
 import { addProject, requestRoute } from "../../../actions/index";
 
 @Component({
-    selector: "hab-origin-packages-tab",
-    template: require("./origin-packages-tab.component.html")
+  selector: "hab-origin-packages-tab",
+  template: require("./origin-packages-tab.component.html")
 })
 
 export class OriginPackagesTabComponent {
   selectingPlan: boolean = false;
 
-  constructor(private store: AppStore) {}
+  constructor(private store: AppStore) { }
 
   loadRepoSelect() {
     this.selectingPlan = true;

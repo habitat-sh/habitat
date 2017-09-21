@@ -5,7 +5,7 @@ hab start core/builder-datastore &
 running=0;
 
 mkdir -p /hab/svc/builder-datastore/config/conf.d
-chown hab:hab -r /hab/svc/builder-datastore/config/*
+chown hab:hab -R /hab/svc/builder-datastore/config/*
 
 echo "Waiting for builder-datastore to start"
 while [ $running -eq 0 ]; do

@@ -22,8 +22,6 @@ import { routing } from "./routes";
 import { AppStore } from "./AppStore";
 import { AppComponent } from "./AppComponent";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
-import { DashboardComponent } from "./dashboard/dashboard.component";
-import { DashboardGuard } from "./dashboard/dashboard.guard";
 import { ExploreComponent } from "./explore/explore.component";
 import { FooterComponent } from "./footer/FooterComponent";
 import { GravatarComponent } from "./GravatarComponent";
@@ -59,7 +57,6 @@ import { SharedModule } from "./shared/shared.module";
     ],
     declarations: [
         AppComponent,
-        DashboardComponent,
         ExploreComponent,
         FooterComponent,
         GravatarComponent,
@@ -74,11 +71,10 @@ import { SharedModule } from "./shared/shared.module";
     ],
     providers: [
         { provide: LocationStrategy, useClass: HashLocationStrategy, },
-        { provide: MD_PLACEHOLDER_GLOBAL_OPTIONS, useValue: {float: "always"}},
-        AppStore,
-        DashboardGuard
+        { provide: MD_PLACEHOLDER_GLOBAL_OPTIONS, useValue: { float: "always" } },
+        AppStore
     ],
-    bootstrap: [ AppComponent ]
+    bootstrap: [AppComponent]
 })
 
 export class AppModule {

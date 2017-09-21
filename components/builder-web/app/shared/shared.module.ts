@@ -20,6 +20,7 @@ import { FormProgressComponent } from "./form-progress/form-progress.component";
 import { GitHubRepoPickerComponent } from "./github-repo-picker/github-repo-picker.component";
 import { PackagePlanSelectComponent } from "./plan-select/plan-select.component";
 import { RepoFilterPipe } from "../pipes/repoFilter.pipe";
+import { UserLoggedInGuard, UserLoggedOutGuard } from "./user/user.guard";
 
 @NgModule({
   imports: [
@@ -67,6 +68,10 @@ import { RepoFilterPipe } from "../pipes/repoFilter.pipe";
     FormProgressComponent,
     PackagePlanSelectComponent,
     GitHubRepoPickerComponent
+  ],
+  providers: [
+    UserLoggedInGuard,
+    UserLoggedOutGuard
   ]
 })
 export class SharedModule {
@@ -96,7 +101,7 @@ export class SharedModule {
     };
 
     mdIconRegistry.addSvgIconSet(
-        sanitizer.bypassSecurityTrustResourceUrl("/assets/images/icons/all.svg")
+      sanitizer.bypassSecurityTrustResourceUrl("/assets/images/icons/all.svg")
     );
   }
 }

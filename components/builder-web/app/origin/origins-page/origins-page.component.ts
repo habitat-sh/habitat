@@ -20,7 +20,6 @@ import {
     ignoreOriginInvitation
 } from "../../actions/index";
 import { AppStore } from "../../AppStore";
-import { requireSignIn } from "../../util";
 import { Router } from "@angular/router";
 
 @Component({
@@ -57,7 +56,6 @@ export class OriginsPageComponent implements OnInit {
     }
 
     public ngOnInit() {
-        requireSignIn(this);
         this.store.dispatch(fetchMyOrigins(
             this.store.getState().gitHub.authToken
         ));

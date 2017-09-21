@@ -22,11 +22,6 @@ import config from "../config";
         <h4>Builder</h4>
         <ul class="hab-side-nav--list">
             <li *ngIf="isSignedIn">
-                <a [routerLink]="['/']"
-                    routerLinkActive="active"
-                    [routerLinkActiveOptions]="{exact: true}">Dashboard</a>
-            </li>
-            <li *ngIf="isSignedIn">
                 <a [routerLink]="['/origins']"
                     routerLinkActive="active">My Origins</a>
             </li>

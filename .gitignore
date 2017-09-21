@@ -17,3 +17,4 @@ test/builder-api/built/*
 tags
 *.rustfmt
 .envrc
+.vscode

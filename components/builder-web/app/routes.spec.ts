@@ -1,4 +1,3 @@
-import { DashboardComponent } from "./dashboard/dashboard.component";
 import { ExploreComponent } from "./explore/explore.component";
 import { ProjectPageComponent } from "./project-page/ProjectPageComponent";
 import { ProjectsPageComponent } from "./projects-page/ProjectsPageComponent";
@@ -16,13 +15,6 @@ describe("Routes", () => {
     it("routes to ExploreComponent", () => {
       let r = route("explore");
       expect(r.component).toBe(ExploreComponent);
-    });
-  });
-
-  describe("/explore", () => {
-    it("routes to DashboardComponent", () => {
-      let r = route("");
-      expect(r.component).toBe(DashboardComponent);
     });
   });
 

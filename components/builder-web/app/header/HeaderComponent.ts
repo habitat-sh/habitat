@@ -17,8 +17,8 @@ import { Router, RouterLink } from "@angular/router";
 import config from "../config";
 
 @Component({
-    selector: "hab-header",
-    template: `
+  selector: "hab-header",
+  template: `
       <div class="main-nav--container clearfix">
         <div class="main-nav--logo">
           <a [routerLink]="['/']"><h1>{{appName}}</h1></a>
@@ -63,7 +63,7 @@ import config from "../config";
             </li>
             <li class="main-nav--link">
               <a class="depot"
-                [routerLink]="['/pkgs']"
+                [routerLink]="['/origins']"
                 [class.is-current-page]="area === 'depot'">Builder</a>
             </li>
             <li class="main-nav--link cta-link" *ngIf="!isSignedIn">
@@ -75,26 +75,26 @@ import config from "../config";
 })
 
 export class HeaderComponent {
-    @Input() appName;
-    @Input() isUserNavOpen;
-    @Input() isSignedIn;
-    @Input() username;
-    @Input() avatarUrl;
-    @Input() signOut;
-    @Input() toggleUserNavMenu;
+  @Input() appName;
+  @Input() isUserNavOpen;
+  @Input() isSignedIn;
+  @Input() username;
+  @Input() avatarUrl;
+  @Input() signOut;
+  @Input() toggleUserNavMenu;
 
-    constructor(private router: Router) {}
+  constructor(private router: Router) { }
 
-    get config() {
-      return config;
+  get config() {
+    return config;
+  }
+
+  get area() {
+    if (this.router.url === "/explore") {
+      return "explore";
     }
-
-    get area() {
-      if (this.router.url === "/explore") {
-        return "explore";
-      }
-      else {
-        return "depot";
-      }
+    else {
+      return "depot";
     }
+  }
 }
