@@ -1,4 +1,4 @@
-The Habitat blog exists in our repo with everything else and provides you with a simple way to publish your own Habitat content to the habitat site! 
+The Habitat blog exists in our repo with everything else and provides you with a simple way to publish your own Habitat content to the Habitat site! 
 
 You can open a pull request that includes a markdown file like this one with a format of `{date}-{title}.html.md`. For  example `2017-04-11-Hello-World.html.md`. 
 

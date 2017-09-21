@@ -38,5 +38,5 @@ Multi-container pod support through Habitat is still under active development. T
 
 * [In flight: Running a service group in kubernetes](https://github.com/habitat-sh/habitat/issues/2804)
 * [Habitat Kubernetes Operator](https://github.com/kinvolk/habitat-operator)
-* [Export a habitat package](/docs/run-packages-export)
+* [Export a Habitat package](/docs/run-packages-export)
 * [Habitat CLI](/docs/habitat-cli)

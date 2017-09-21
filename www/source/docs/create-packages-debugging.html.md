@@ -13,7 +13,7 @@ To use `attach`, insert it into your plan at the point where you would like to u
          make
        }
 
-Now, perform a [build](/docs/create-packages-build) -- we recommend using an interactive studio so you do not need to set up the environment from scratch for every build.
+Now, perform a [build](/docs/create-packages-build) -- we recommend using an interactive Studio so you do not need to set up the environment from scratch for every build.
 
        $ hab studio enter
        $ build yourapp

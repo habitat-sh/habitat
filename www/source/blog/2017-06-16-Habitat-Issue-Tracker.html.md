@@ -16,7 +16,7 @@ Habitat is governed by a core team, which is ultimately responsible for all deci
 * Sets the overall direction and vision for the project
 * Sets the priorities and release schedule
 * Makes final decisions
-You can track the core maintainers in our [MAINTAINERS.md](https://github.com/habitat-sh/habitat/blob/master/MAINTAINERS.md) file at the root of the habitat-sh/habitat repository.
+You can track the core maintainers in our [MAINTAINERS.md](https://github.com/habitat-sh/habitat/blob/master/MAINTAINERS.md) file at the root of the habitat-sh/Habitat repository.
 
 ## Tag Categorization
 We discussed this in [another blog post](https://www.habitat.sh/blog/2017/06/Triage-and-Contributions/) but it bares keeping in mind.
@@ -43,7 +43,7 @@ Every Tuesday afternoon there is a public, open triage process focused on making
 ## Feature Pipeline
 A majority of the feature work the core team is doing currently is prioritized by the Habitat product owner. Those features will be given issues and labels like all other work in the codebase and added onto the [core engineering project board](https://github.com/habitat-sh/habitat/projects/1). Many of the issues on this board are created by the core maintainers. But this board will also include features and bugs that have the Accepted Minor milestone.
 
-The project and our community is currently an easily managed size so we do not currently have an overly complex RFC process. For features that might include breaking changes, or that are a bit more complex or touch important habitat subsystems we suggest contributors to open an issue that includes [RFC] in the title. Doing so will put the issue on the maintainers radar. When the issue is triaged it will be labeled with the `C-RFC` tag. RFCs will get reviewed once per week by the whole team, but maintainers are encouraged to add discussion to these issues outside of public triage as they have the time.
+The project and our community is currently an easily managed size so we do not currently have an overly complex RFC process. For features that might include breaking changes, or that are a bit more complex or touch important Habitat subsystems we suggest contributors to open an issue that includes [RFC] in the title. Doing so will put the issue on the maintainers radar. When the issue is triaged it will be labeled with the `C-RFC` tag. RFCs will get reviewed once per week by the whole team, but maintainers are encouraged to add discussion to these issues outside of public triage as they have the time.
 
 Lots of new features might require community input. So, we suggest that the contributor whom submits the issue make sure to post about it in community channels to drum up user input. Contributors should also feel comfortable using the `@core-maintainers` slack notifier to notify the maintainers that the RFC has been opened.
 
@@ -74,4 +74,4 @@ Although Lieutenants and the Project Lead retain veto powers over certain compon
 All merged PRs will be added into our release notes which are generated automatically when we cut a release. The Habitat product manager typically will aggregate that PR list into a post on the [forums](https://forums.habitat.sh/c/habitat-announcements) with any qualifying information in regards to new features that will be included in that release.
 
 
-This is the majority of the process around governance that the project has in place today. If you're interested in reading more make sure to keep track of the habitat wiki page on GitHub, and check back here on our blog for updates in the future!
+This is the majority of the process around governance that the project has in place today. If you're interested in reading more make sure to keep track of the Habitat wiki page on GitHub, and check back here on our blog for updates in the future!

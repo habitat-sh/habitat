@@ -225,7 +225,7 @@ finally {
 
 As you can see, we simply call `Invoke-Webrequest` to send a `HEAD` request to our app. If the response is not a `200`, then we assume things have gone horribly wrong and exit the loop. Furthermore, if the supervisor stops our service (`hab svc stop mwrock/hab-sln`), execution will move to the `finally` block, where we tell IIS to shut down our application.
 
-So let's run our application. If you are not already in a Windows studio, enter `hab studio enter -w` from the root of our solution. Assuming that the plan has been built as shown above, We can stream the supervisor log and start our service:
+So let's run our application. If you are not already in a Windows Studio, enter `hab studio enter -w` from the root of our solution. Assuming that the plan has been built as shown above, We can stream the supervisor log and start our service:
 
 ```
 [HAB-STUDIO] Habitat:\src> Get-SupervisorLog

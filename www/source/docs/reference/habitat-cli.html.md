@@ -873,8 +873,8 @@ Reads a stdin stream containing ring key contents and writes the key to disk
     -q  Prints less output for better use in scripts
     -v  Prints more verbose output
     -V  Prints version information
-    -D  Use a docker studio instead of a chroot studio (only available on Linux)
-    -w  Use a Windows studio instead of a docker studio (only available on Windows)
+    -D  Use a Docker Studio instead of a chroot Studio (only available on Linux)
+    -w  Use a Windows Studio instead of a Docker Studio (only available on Windows)
 
 **COMMON OPTIONS**
 

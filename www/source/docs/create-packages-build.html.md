@@ -4,7 +4,7 @@ title: Building packages
 
 # Build packages
 
-Habitat packages are cryptographically-signed tarballs with a .hart extension that are built from plans. You can build a package in two ways: interactively from inside a studio, and non-interactively.
+Habitat packages are cryptographically-signed tarballs with a .hart extension that are built from plans. You can build a package in two ways: interactively from inside a Studio, and non-interactively.
 
 In both scenarios, you'll first need to have a secret origin key to sign your package. The origin key name should either match the `pkg_origin` value defined inside your plan, or match the overridden value specified with the `HAB_ORIGIN` environment variable.
 
@@ -13,37 +13,37 @@ As part of building a package, it needs to be signed with a secret origin key at
 
     hab origin key generate originname
 
-The `hab-origin` subcommand will place originname-_timestamp_.sig.key and originname-_timestamp_.pub files (the origin key pair) in the `$HOME/.hab/cache/keys` directory. If you're creating origin keys in the studio container or you are running as root on a Linux machine, your keys will be stored in `/hab/cache/keys`.
+The `hab-origin` subcommand will place originname-_timestamp_.sig.key and originname-_timestamp_.pub files (the origin key pair) in the `$HOME/.hab/cache/keys` directory. If you're creating origin keys in the Studio container or you are running as root on a Linux machine, your keys will be stored in `/hab/cache/keys`.
 
 Because the secret key is used to sign your package, it should not be shared freely; however, if anyone wants to download and use your package, then they must have your public key (.pub) installed in their local `$HOME/.hab/cache/keys` or `/hab/cache/keys` directory. Public keys will be downloaded from the depot by the supervisor, if needed.
 
-### Passing origin keys into the studio
-When you enter the studio environment, your origin keys are not automatically shared into it. This is to keep the studio environment as clean as possible. However, because you need to reference a secret origin key to sign your package, you can do this in three ways:
+### Passing origin keys into the Studio
+When you enter the Studio environment, your origin keys are not automatically shared into it. This is to keep the Studio environment as clean as possible. However, because you need to reference a secret origin key to sign your package, you can do this in three ways:
 
-* Set `HAB_ORIGIN` to the name of the secret origin key you intend to use before entering the studio like `export HAB_ORIGIN=originname`.
+* Set `HAB_ORIGIN` to the name of the secret origin key you intend to use before entering the Studio like `export HAB_ORIGIN=originname`.
 * Set `HAB_ORIGIN_KEYS` to one or more key names, separated by commas like `export HAB_ORIGIN_KEYS=originname-internal,originname-test,originname`.
 * Use the `-k` flag (short for “keys”) which accepts one or more key names separated by commas with `hab studio -k originname-internal,originname-test enter`.
 
-The first way overrides the `HAB_ORIGIN` environment variable to import public and secret keys into the studio environment and override any `pkg_origin` values in the packages that you build. This is useful if you want to not only build your package, but also you can use this to build your own versions of other packages, such as `originname/node` or `originname/glibc`.
+The first way overrides the `HAB_ORIGIN` environment variable to import public and secret keys into the Studio environment and override any `pkg_origin` values in the packages that you build. This is useful if you want to not only build your package, but also you can use this to build your own versions of other packages, such as `originname/node` or `originname/glibc`.
 
 The second and third way import multiple secret keys that must match the origin names for the plans you intend to build.
 
-After you create or receive your secret origin key, you can start up the studio and build your package.
+After you create or receive your secret origin key, you can start up the Studio and build your package.
 
 ## Interactive Build
 
-An interactive build is one in which you enter a Habitat studio to perform the build. Doing this allows you to examine the build environment before, during, and after the build.
+An interactive build is one in which you enter a Habitat Studio to perform the build. Doing this allows you to examine the build environment before, during, and after the build.
 
 The directory where your plan is located is known as the plan context.
 
 1. Change to the parent directory of the plan context.
-2. Create an enter a new Habitat studio. If you have defined an origin and origin key during `hab setup` or by explicitly setting the `HAB_ORIGIN` and `HAB\_ORIGIN\_KEYS` environment variables, then type the following:
+2. Create an enter a new Habitat Studio. If you have defined an origin and origin key during `hab setup` or by explicitly setting the `HAB_ORIGIN` and `HAB\_ORIGIN\_KEYS` environment variables, then type the following:
 
     ```
     hab studio enter
     ```
 
-    The directory you were in is now mounted as `/src` inside the studio. By default, a supervisor runs in the background for iterative testing. You can see the streaming output by running <code>sup-log</code>. Type <code>Ctrl-C</code> to exit the streaming output and <code>sup-term</code> to terminate the background supervisor. If you terminate the background supervisor, then running <code>sup-run</code> will restart it and running <code>hab start origin/package</code> will restart every package that was previously loaded. You have to explicitly run <code>hab svc unload origin/package</code> to remove a package from the "loaded" list.
+    The directory you were in is now mounted as `/src` inside the Studio. By default, a supervisor runs in the background for iterative testing. You can see the streaming output by running <code>sup-log</code>. Type <code>Ctrl-C</code> to exit the streaming output and <code>sup-term</code> to terminate the background supervisor. If you terminate the background supervisor, then running <code>sup-run</code> will restart it and running <code>hab start origin/package</code> will restart every package that was previously loaded. You have to explicitly run <code>hab svc unload origin/package</code> to remove a package from the "loaded" list.
 
 3. Enter the following command to create the package.
 
@@ -55,7 +55,7 @@ The directory where your plan is located is known as the plan context.
 
 ## Non-Interactive Build
 
-A non-interactive build is one in which Habitat creates a studio for you, builds the package inside it, and then destroys the studio, leaving the resulting `.hart` on your computer. Use a non-interactive build when you are sure the build will succeed, or in conjunction with a continuous integration system.
+A non-interactive build is one in which Habitat creates a Studio for you, builds the package inside it, and then destroys the Studio, leaving the resulting `.hart` on your computer. Use a non-interactive build when you are sure the build will succeed, or in conjunction with a continuous integration system.
 
 1. Change to the parent directory of the plan context.
 2. Build the package in an unattended fashion, passing the name of the origin key to the command.
@@ -64,7 +64,7 @@ A non-interactive build is one in which Habitat creates a studio for you, builds
 
 3. The resulting package is inside a directory called `results`, along with any build logs and a build report (`last_build.env`) that includes machine-parseable metadata about the build.
 
-By default, the studio is reset to a clean state after the package is built; however, *if you are using the Linux version of `hab`*, you can reuse a previous studio when building your package by specifying the `-R` option when calling the `hab pkg build` subcommand.
+By default, the Studio is reset to a clean state after the package is built; however, *if you are using the Linux version of `hab`*, you can reuse a previous Studio when building your package by specifying the `-R` option when calling the `hab pkg build` subcommand.
 
 For more information on how to set up and install Habitat and how to run a sample Ruby-on-Rails app in Habitat, see the [tutorials page] (/tutorials/).
 

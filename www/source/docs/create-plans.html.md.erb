@@ -29,7 +29,7 @@ pkg_bin_dirs=(bin)
 It has the name of the software, the version, where to download it, a checksum to verify the contents are what we expect, run dependencies on
 `core/glibc` and `core/readline`, build dependencies on `core/coreutils`, `core/make`, `core/gcc`, libraries files in `lib`, header files in `include`, and a binary file in `bin`. Also, because it's a core plan, it has a description and upstream URL for the source project included.
 
-When you have finished creating your plan and call `build` in Habitat studio, the following occurs:
+When you have finished creating your plan and call `build` in Habitat Studio, the following occurs:
 
 1.  The build script ensures that the origin key is available to sign the package.
 2.  If specified in `pkg_source`, a compressed file containing the source code is downloaded.
@@ -90,7 +90,7 @@ The origin defines packages that are conceptually related to each other. For exa
 
 > Note: The "core" origin name is reserved for the foundational library and binary packages owned by the Habitat maintainers group. If you would like to browse them, they are located in the Habitat [public depot](https://bldr.habitat.sh/#/pkgs/core).
 
-Creating packages for a specific origin requires that you also have access to the secret key for that origin. The secret key will be used to sign the package when it is built by the hab-plan-build command. Keys are kept in `$HOME/.hab/cache/keys` on the host machine and `/hab/cache/keys` while in the studio. For more information on keys, see [Keys](/docs/concepts-keys).
+Creating packages for a specific origin requires that you also have access to the secret key for that origin. The secret key will be used to sign the package when it is built by the hab-plan-build command. Keys are kept in `$HOME/.hab/cache/keys` on the host machine and `/hab/cache/keys` while in the Studio. For more information on keys, see [Keys](/docs/concepts-keys).
 
 The next important part of your package identifier is the name of the package. Standard naming convention is to base the name of the package off of the name of the source or project you download and install into the package; however, this is not a requirement.
 
@@ -183,7 +183,7 @@ If your service does not require custom behavior during the lifecycle of the run
 
 And, as mentioned above, you can use any of the [runtime configuration settings](/docs/reference/plan-syntax#runtime-configuration-settings), either defined by you in your config file, or defined by Habitat.
 
-Once you are done writing your plan, use the studio to [build your package](/docs/create-packages-build).
+Once you are done writing your plan, use the Studio to [build your package](/docs/create-packages-build).
 
 <hr>
 <ul class="main-content--link-nav">

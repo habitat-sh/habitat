@@ -5,7 +5,7 @@ of a running service.
 
 There are multiple hooks that you can define in your plan. For example, the `init` and `run` hooks are responsible 
 for defining behavior during initialization and when the child service/application starts up. The Ruby scaffolding
-creates the initialization for you to handle connecting to a backend database and the build script used by the studio
+creates the initialization for you to handle connecting to a backend database and the build script used by the Studio
 creates a generic run hook. However, to create the `health_check` hook, you have to perform the following operations:
 
 1. Change directory to `hooks`.
