@@ -35,7 +35,7 @@ use self::handlers::*;
 // See: http://172.16.2.131:9633/iron/prelude/struct.Iron.html#method.http
 const HTTP_THREAD_COUNT: usize = 128;
 
-/// Create a new `iron::Chain` containing a Router and it's required middleware
+/// Create a new `iron::Chain` containing a Router and its required middleware
 pub fn router(config: Arc<Config>) -> Result<Chain> {
     let admin = Authenticated::new(&*config).require(privilege::ADMIN);
     let router =
@@ -58,7 +58,7 @@ pub fn router(config: Arc<Config>) -> Result<Chain> {
 ///
 /// # Errors
 ///
-/// * Couldn't create Router or it's middleware
+/// * Couldn't create Router or its middleware
 ///
 /// # Panics
 ///

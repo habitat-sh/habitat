@@ -34,7 +34,7 @@ Once you have this token, you can set the `HAB_AUTH_TOKEN` [environment variable
 
 ## Creating origin keys
 
-After you have done the basic account creation steps, you need to create your origin keys. The private key will be used to sign your packages and the public key will be used by supervisors to verify the integrity of your packages (`.hart` files).
+After you have done the basic account creation steps, you need to create your origin keys. The private key will be used to sign your packages and the public key will be used by Supervisors to verify the integrity of your packages (`.hart` files).
 
 You can either create an origin key pair by running `hab setup` from your host machine, or running `hab origin key generate <originname>` from either the host machine or from within the studio.
 
@@ -52,13 +52,13 @@ Once the depot possesses at least the public key of the origin, you may upload o
 
 ## Running packages from the depot
 
-You can instruct the supervisor to download and run packages from a depot by using the `hab start` command, for example:
+You can instruct the Supervisor to download and run packages from a depot by using the `hab start` command, for example:
 
        hab start core/postgresql
 
-If the supervisor does not have the `core/postgresql` package in its local cache, it will contact the public depot, retrieve the latest version and the public key for the `core` origin, verify the cryptographic integrity of the package, and then start it.
+If the Supervisor does not have the `core/postgresql` package in its local cache, it will contact the public depot, retrieve the latest version and the public key for the `core` origin, verify the cryptographic integrity of the package, and then start it.
 
-You may also supply a `--url` argument to the `hab start` command to instruct the supervisor to use either a different depot, or a materialized channel in that depot for the purposes of continuous deployment:
+You may also supply a `--url` argument to the `hab start` command to instruct the Supervisor to use either a different depot, or a materialized channel in that depot for the purposes of continuous deployment:
 
        hab start core/postgresql --url http://mydepot.example.com/v1/depot
 

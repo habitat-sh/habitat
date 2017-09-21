@@ -4,7 +4,7 @@ title: Container orchestration with Habitat
 
 # Container orchestration with Habitat
 
-Habitat packages may be exported with the supervisor directly into a [Docker or ACI-formatted container](/docs/run-packages-export/), but frequently the container itself will run within a container orchestrator such as Kubernetes or Mesos. Container orchestrators provide scheduling and resource allocation, ensuring workloads are running and available. Containerized Habitat packages may run within these runtimes, managing the applications while the runtimes handle the environment surrounding the application (ie. compute, networking, security).
+Habitat packages may be exported with the Supervisor directly into a [Docker or ACI-formatted container](/docs/run-packages-export/), but frequently the container itself will run within a container orchestrator such as Kubernetes or Mesos. Container orchestrators provide scheduling and resource allocation, ensuring workloads are running and available. Containerized Habitat packages may run within these runtimes, managing the applications while the runtimes handle the environment surrounding the application (ie. compute, networking, security).
 
 ## Amazon EC2 Container Service
 

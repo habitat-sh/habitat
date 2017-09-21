@@ -40,14 +40,14 @@ At the end of the Publish phase, Chef Automate stores Habitat-specific informati
 
 Each of these phases runs per environment (acceptance, union, rehearsal, delivered).
 
-| Provision | Updates the materialized channel in the depot for the application in the indicated environment with the metadata saved at the end of the pre-artifact stages. This will trigger supervisors in that environment to update the Habitat package in concordance with their configured update strategy, if any. |
+| Provision | Updates the materialized channel in the depot for the application in the indicated environment with the metadata saved at the end of the pre-artifact stages. This will trigger Supervisors in that environment to update the Habitat package in concordance with their configured update strategy, if any. |
 | Deploy | No default action. Intended to be overridden by the user if desired. |
 | Smoke | No default action. Intended to be overridden by the user if desired. |
 | Functional | No default action. Intended to be overridden by the user if desired. |
 
 ### Supervisor Configuration
 
-In order to enable automatic deployment in each environment during the provision stage, you should [configure the supervisor](/docs/run-packages-update-strategy/) to use a named channel as its depot URL, and set its update strategy. By convention, it's best to name the depot channel the same as the service group name.
+In order to enable automatic deployment in each environment during the provision stage, you should [configure the Supervisor](/docs/run-packages-update-strategy/) to use a named channel as its depot URL, and set its update strategy. By convention, it's best to name the depot channel the same as the service group name.
 
 <hr>
 <ul class="main-content--link-nav">

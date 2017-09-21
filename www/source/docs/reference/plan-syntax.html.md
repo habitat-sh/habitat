@@ -129,7 +129,7 @@ populate `PKG_CONFIG_PATH` for software that depends on your package.
   ~~~
 
 **pkg\_svc\_run**
-: Optional. The command for the supervisor to execute when starting a service. You can omit this setting if your package is not intended to be run directly by a supervisor.
+: Optional. The command for the Supervisor to execute when starting a service. You can omit this setting if your package is not intended to be run directly by a Supervisor.
 
   ~~~
   pkg_svc_run="bin/haproxy -f $pkg_svc_config_path/haproxy.conf"
@@ -167,7 +167,7 @@ In this example, the corresponding default.toml file would have the following ke
   > Note: In addition to specifying the keys you defined in `pkg_exports`, you **must** have a default.toml file indicating the port values to expose.
 
 **pkg_binds**
-: Optional. An associative array representing services which you depend on and the configuration keys that you expect the service to export (by their `pkg_exports`). These binds *must* be set for the supervisor to load the service. The loaded service will wait to run until its bind becomes available. If the bind does not contain the expected keys, the service will not start successfully.
+: Optional. An associative array representing services which you depend on and the configuration keys that you expect the service to export (by their `pkg_exports`). These binds *must* be set for the Supervisor to load the service. The loaded service will wait to run until its bind becomes available. If the bind does not contain the expected keys, the service will not start successfully.
 
   ~~~
   pkg_binds=(
@@ -502,14 +502,14 @@ These are package settings specified by Habitat and correspond to the the settin
 : The value of `pkg_svc_group` specified in a plan.
 
 **svc\_user\_default**
-: The default user determined by the Habitat supervisor. `svc_user_default` will contain one of the following values, tested in order:
+: The default user determined by the Habitat Supervisor. `svc_user_default` will contain one of the following values, tested in order:
 
 - `svc_user` if specified in the plan
 - `hab` if the user exists
 - the current user id
 
 **svc\_group\_default**
-: The default group determined by the Habitat supervisor. `svc_group_default` will contain one of the following values, tested in order:
+: The default group determined by the Habitat Supervisor. `svc_group_default` will contain one of the following values, tested in order:
 
 - `svc_group` if specified in the plan
 - `hab` if the group exists
@@ -661,7 +661,7 @@ record mysoftware build /src/mysoftware
 ---
 
 ## Iterative Development
-To assist in creating new packages, or modifying existing ones, the supervisor
+To assist in creating new packages, or modifying existing ones, the Supervisor
 has an option to allow you to use the configuration directly from a specific
 directory, rather than the one it includes in the compiled artifact. This can
 significantly shorten the cycle time when working on configuration and hooks.

@@ -15,7 +15,7 @@
 #![cfg(not(windows))]
 
 /// Integration tests for exercising the hook and config recompilation
-/// behavior of the supervisor
+/// behavior of the Supervisor
 
 mod utils;
 

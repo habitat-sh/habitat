@@ -47,10 +47,10 @@ The CPU architecture and platform for the package. The format is `architecture-p
 Fully-qualified package identifiers of any runtime dependencies that the runtime dependencies for your project depend on. This is essentially a flattened tree of dependencies all the way up to the root dependency (`linux-headers` in most cases).
 
 ## SVC_GROUP
-The value of `pkg_svc_group` from a plan. The Habitat supervisor will try to start a service with this group if it exists.
+The value of `pkg_svc_group` from a plan. The Habitat Supervisor will try to start a service with this group if it exists.
 
 ## SVC_USER
-The value of `pkg_svc_user` from a plan. The Habitat supervisor will try to start a service with this user if it exists.
+The value of `pkg_svc_user` from a plan. The Habitat Supervisor will try to start a service with this user if it exists.
 
 ## default.toml
 If you have defined a default.toml file in the root of your plan, then it will be included in the same relative location within the installed package directory. For more information on configuration and the default.toml file, see [Add configuration to plans](/docs/create-packages-configure/).

@@ -11,7 +11,7 @@ group can decrypt the contents.
 
 By default, every service joins the _servicename_.**default** service group unless otherwise specified at runtime.
 
-In addition, multiple service groups can reside in the same ring. This allows data exposed by supervisors to
+In addition, multiple service groups can reside in the same ring. This allows data exposed by Supervisors to
 be shared with other members of the ring regardless of which group they are in.
 
 ## Joining a service group
@@ -21,7 +21,7 @@ group after an environment to support continuous deployment workflows.
 
 > Note: When applying configuration updates, you must reference the fully-qualified service group name, _servicename_._groupname_.
 
-Here's how to start up the `myapp` service with the `prod` group name using the supervisor (`hab-sup`) directly:
+Here's how to start up the `myapp` service with the `prod` group name using the Supervisor (`hab-sup`) directly:
 
     hab start myorigin/myapp --group prod
 
@@ -39,7 +39,7 @@ group your service belongs to, which in this case is **myapp.prod**. Keep this s
 
 Services only join together to form a ring when a peer IP address is specified by other similar services
 at runtime.  In a new window or external runtime format, run the same command you ran above, but this time,
-reference the peer IP address of the previous service specified in the supervisor output above.
+reference the peer IP address of the previous service specified in the Supervisor output above.
 
     hab start myorigin/myapp --group prod --peer 172.17.0.2
 

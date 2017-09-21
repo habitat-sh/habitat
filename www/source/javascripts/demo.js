@@ -160,7 +160,7 @@ $("#mobile-keyboard-trigger").click(function() {
                    });
                 break;
              case "sup":
-                // Find out the status of the service from the supervisor
+                // Find out the status of the service from the Supervisor
                 if (args.join(" ") === "sup status core/postgresql") {
                   getExample("hab-monitor-postgres", callback);
                 } else if(args.join(" ") === "sup status example/myrubyapp") {

@@ -57,7 +57,7 @@ p Habitat is a full-featured runtime with deployment coordination and service
 
 ul
   li A packaging format
-  li A supervisor
+  li A Supervisor
 
 p The format defines Habitat packages, which are isolated, immutable, and
   auditable. The term <em>auditable</em> means that the package can keep track
@@ -68,7 +68,7 @@ p The format defines Habitat packages, which are isolated, immutable, and
   does change&mdash;including available versions of dependencies&mdash;you
   create a new Habitat package, which has its own unique identifier.
 
-p The Habitat supervisor knows how to take the packages and run them. It's
+p The Habitat Supervisor knows how to take the packages and run them. It's
   aware of the package's peer relationships, its upgrade strategy and security
   policies.
 
@@ -136,7 +136,7 @@ p The first three values form part of the package's fully qualified name. The
   available. The <code>pkg_exposes</code> values specify which exported
   configuration values representing service ports will be exposed if this
   package is exported to a Docker image. Finally, the <code>pkg_svc_run</code>
-  value specifies how the ElasticSearch binary should be run when the supervisor
+  value specifies how the ElasticSearch binary should be run when the Supervisor
   starts the ElasticSearch package payload.
 
 p The callbacks override certain default behaviors such as compiling and
@@ -186,9 +186,9 @@ table
         member).
     tr
       td Security aware
-      td The supervisor has a number of built-in security features. For
+      td The Supervisor has a number of built-in security features. For
         example, it can be set up to use wire encryption when speaking with
-        peers in a supervisor network; it can be set up to trust or distrust
+        peers in a Supervisor network; it can be set up to trust or distrust
         Habitat packages signed with a certain origin key; it can trust or
         distrust configuration policy changes applied by users or by other
         peers. Habitat uses modern cryptography implemented in the
@@ -196,20 +196,20 @@ table
         (pronounced "Salt") library.
     tr
       td Software upgrades and rolling deployments
-      td The supervisor understands cluster topologies and has an update
-        strategy. The supervisor triggers that strategy by watching a depot.
-        By pointing the supervisor to the depot and specifying the service, it
+      td The Supervisor understands cluster topologies and has an update
+        strategy. The Supervisor triggers that strategy by watching a depot.
+        By pointing the Supervisor to the depot and specifying the service, it
         automatically checks, on a periodic basis, to see if there's a new
         package. If there is, it downloads that package and then goes into the
         upgrade cycle and applies the strategy. You can have rolling deployment
         without a central orchestrator.
     tr
       td Status
-      td The Habitat supervisor can determine the state of a service and bring
+      td The Habitat Supervisor can determine the state of a service and bring
         it back up if it is down.
     tr
       td Monitoring, health checks, interactions with other components
-      td The Habitat supervisor has an HTTP API that exposes information about
+      td The Habitat Supervisor has an HTTP API that exposes information about
         the package it is supervising, as well as any configuration changes it
         has received. The HTTP API also provides a mechanism for monitoring
         systems to invoke health checks defined by the application author when

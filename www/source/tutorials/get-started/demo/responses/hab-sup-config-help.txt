@@ -31,6 +31,6 @@ SUBCOMMANDS:
               this will additionally start one for you.
     stop      Stop a running Habitat service.
     unload    Unload a persistent or transient service started
-              by the Habitat supervisor. If the Supervisor is
+              by the Habitat Supervisor. If the Supervisor is
               running when the service is unloaded the service
               will be stopped.

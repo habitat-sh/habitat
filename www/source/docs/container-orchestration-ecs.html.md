@@ -34,4 +34,4 @@ Once Docker images are pushed to ECR, they may be run on Amazon's ECS within a [
 
 From the example, the ```mongo``` and ```national-parks``` services use the Docker images from the ECR. The ```links``` entry manages the deployment order of the container and according to the [Docker Compose documentation](https://docs.docker.com/engine/userguide/networking/default_network/dockerlinks/#/updating-the-etchosts-file) ```links``` should create ```/etc/hosts``` entries. This does not appear to currently work with ECS so we assign the ```hostname: "mongodb"```.
 
-The ```command``` entry for the National Parks Tomcat application allows the Habitat supervisor to ```--peer``` to the ```mongo``` gossip ring and ```--bind``` applies ```database``` entries to its Mongo configuration.
+The ```command``` entry for the National Parks Tomcat application allows the Habitat Supervisor to ```--peer``` to the ```mongo``` gossip ring and ```--bind``` applies ```database``` entries to its Mongo configuration.

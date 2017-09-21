@@ -80,7 +80,7 @@ impl SelfUpdater {
                     debug!("Self updater found remote, {}", remote.get_ident());
                     let latest: PackageIdent = remote.take_ident().into();
                     if latest > current {
-                        debug!("Self updater installing newer supervisor, {}", latest);
+                        debug!("Self updater installing newer Supervisor, {}", latest);
                         match install(&depot, &latest, true) {
                             Ok(package) => {
                                 sender.send(package).unwrap();

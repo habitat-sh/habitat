@@ -52,7 +52,7 @@ pub struct TestSup {
 
 /// Return a free TCP port number. We test to see that the system has
 /// not already bound the port, while also tracking which ports are
-/// being used by other test supervisors that may be running alongside
+/// being used by other test Supervisors that may be running alongside
 /// this one.
 ///
 /// Once you receive a port number from this function, you can be
@@ -68,7 +68,7 @@ pub struct TestSup {
 /// use. Once all tries are used up, it panics! Yay!
 fn unclaimed_port(tries: u16) -> u16 {
     if tries == 0 {
-        panic!("Couldn't find an unclaimed port for the test supervisor!")
+        panic!("Couldn't find an unclaimed port for the test Supervisor!")
     }
     let p = random_port();
     match TcpListener::bind(format!("127.0.0.1:{}", p)) {
@@ -169,23 +169,23 @@ impl TestSup {
         )
     }
 
-    /// Bundle up a Habitat supervisor process along with an
+    /// Bundle up a Habitat Supervisor process along with an
     /// associated Butterfly client for injecting new configuration
-    /// values. The supervisor executable is the one that has been
+    /// values. The Supervisor executable is the one that has been
     /// compiled for the current `cargo test` invocation.
     ///
-    /// The supervisor is configured to run a single package for a
+    /// The Supervisor is configured to run a single package for a
     /// test. This package is assumed to have already been installed
     /// relative to `fs_root` (i.e., the `FS_ROOT` environment
     /// variable, which in our tests will be a randomly-named
-    /// temporary directory that this supervisor will view as `/`.).
+    /// temporary directory that this Supervisor will view as `/`.).
     ///
     /// A Butterfly client is also created for interacting with this
-    /// supervisor and package. It is properly configured according to
+    /// Supervisor and package. It is properly configured according to
     /// the value provided for `butterfly_port`. To use it, see the
     /// `apply_config` function.
     ///
-    /// (No HTTP interaction with the supervisor is currently called
+    /// (No HTTP interaction with the Supervisor is currently called
     /// for, so we don't have a HTTP client.)
     pub fn new<R, O, P, S>(
         fs_root: R,
@@ -239,9 +239,9 @@ impl TestSup {
         }
     }
 
-    /// Spawn a process actually running the supervisor.
+    /// Spawn a process actually running the Supervisor.
     pub fn start(&mut self) {
-        let child = self.cmd.spawn().expect("Couldn't start the supervisor!");
+        let child = self.cmd.spawn().expect("Couldn't start the Supervisor!");
         self.process = Some(child);
     }
 
@@ -255,8 +255,8 @@ impl TestSup {
     }
 }
 
-// We kill the supervisor so you don't have to! We also free up the
-// ports used by this supervisor so other tests can use them.
+// We kill the Supervisor so you don't have to! We also free up the
+// ports used by this Supervisor so other tests can use them.
 impl Drop for TestSup {
     fn drop(&mut self) {
         let mut ports = CLAIMED_PORTS.lock().unwrap();
@@ -266,6 +266,6 @@ impl Drop for TestSup {
             .take()
             .expect("No process to kill!")
             .kill()
-            .expect("Tried to kill supervisor!");
+            .expect("Tried to kill Supervisor!");
     }
 }

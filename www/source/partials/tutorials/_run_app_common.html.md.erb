@@ -29,7 +29,7 @@ Let's quickly review the file to understand how these containers will be brought
 
 * The images for both the database and your Rails application are already installed on your local workstation as part of the `export` subcommand you ran in the last step.
 
-* As part of updating the configuration values to connect the Rails application to the PostgreSQL database, you will use a TOML file to send configuration updates between supervisors connected together in the ring. The `updated_config.toml` file is bind mounted from the root location of the `myrailsapp` directory to the root directory of the database container.
+* As part of updating the configuration values to connect the Rails application to the PostgreSQL database, you will use a TOML file to send configuration updates between Supervisors connected together in the ring. The `updated_config.toml` file is bind mounted from the root location of the `myrailsapp` directory to the root directory of the database container.
 
 * The port number for the Rails container is exposed so you can view the Rails app page from within your host browser.
 

@@ -205,7 +205,7 @@ impl Server {
             None => {
                 debug!(
                     "Exceeded an isize integer in swim-rounds. Congratulations, this is a \
-                        very long running supervisor!"
+                        very long running Supervisor!"
                 );
                 self.swim_rounds.store(0, Ordering::SeqCst);
             }
@@ -231,7 +231,7 @@ impl Server {
             None => {
                 debug!(
                     "Exceeded an isize integer in gossip-rounds. Congratulations, this is a \
-                        very long running supervisor!"
+                        very long running Supervisor!"
                 );
                 self.gossip_rounds.store(0, Ordering::SeqCst);
             }

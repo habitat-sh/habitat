@@ -71,5 +71,5 @@ sec = 60
 
 [1;32mHave a look! Scroll to the top of the output and note that the tcp-backlog is set to 511.
 
-[1;36mNot only can the supervisor report what's configurable, it can actually assist us with changing config items as well.
-[1;36mFirst, let's start up a service with a variable override, then we'll see how to apply the same change through the supervisor.
+[1;36mNot only can the Supervisor report what's configurable, it can actually assist us with changing config items as well.
+[1;36mFirst, let's start up a service with a variable override, then we'll see how to apply the same change through the Supervisor.
