@@ -55,6 +55,10 @@ impl GitHubOAuth for Config {
 }
 
 impl GatewayCfg for Config {
+    fn handler_count(&self) -> usize {
+        self.http.handler_count
+    }
+
     fn listen_addr(&self) -> &IpAddr {
         &self.http.listen
     }
@@ -73,6 +77,7 @@ impl GatewayCfg for Config {
 pub struct HttpCfg {
     pub listen: IpAddr,
     pub port: u16,
+    pub handler_count: usize,
 }
 
 impl Default for HttpCfg {
@@ -80,6 +85,7 @@ impl Default for HttpCfg {
         HttpCfg {
             listen: IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)),
             port: 8080,
+            handler_count: Config::default_handler_count(),
         }
     }
 }
