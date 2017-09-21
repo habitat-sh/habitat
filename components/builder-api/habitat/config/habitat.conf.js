@@ -12,4 +12,10 @@ habitatConfig({
     version: "{{pkg.ident}}",
     www_url: "{{cfg.web.www_url}}",
     status_url: "{{cfg.web.status_url}}",
+    forums_url: "{{cfg.web.forums_url}}",
+    events_url: "{{cfg.web.events_url}}",
+    roadmap_url: "{{cfg.web.roadmap_url}}",
+    feature_requests_url: "{{cfg.web.feature_requests_url}}",
+    slack_url: "{{cfg.web.slack_url}}",
+    youtube_url: "{{cfg.web.youtube_url}}",
 });
