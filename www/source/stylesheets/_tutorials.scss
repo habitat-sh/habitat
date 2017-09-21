@@ -379,7 +379,7 @@
         display: none;
 
         @include breakpoint(medium) {
-          @include grid-column(4);
+          @include grid-column(3);
           display: block;
         }
 

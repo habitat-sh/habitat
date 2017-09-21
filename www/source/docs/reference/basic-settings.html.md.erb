@@ -20,11 +20,9 @@ pkg_origin=Habitat
 ~~~
 
 **pkg_version**
-: Optional (Required unless `pkg_version()` function is defined). Sets the version of the package.
+: Optional (Required unless `pkg_version()` function is defined). Sets the version of the package. The version number can align to any versioning format you wish. Similar to the package name, the version of the package typically follows the same version and format as the source or project you are packaging.
 
-~~~
-pkg_version=1.2.8
-~~~
+<%= partial "partials/pkg_version_example"%>
 
 **pkg_maintainer**
 : Optional. The name and email address of the package maintainer.

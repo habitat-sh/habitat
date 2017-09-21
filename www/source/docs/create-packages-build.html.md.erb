@@ -44,6 +44,8 @@ The directory where your plan is located is known as the plan context.
     ```
 
     The directory you were in is now mounted as `/src` inside the Studio. By default, a supervisor runs in the background for iterative testing. You can see the streaming output by running <code>sup-log</code>. Type <code>Ctrl-C</code> to exit the streaming output and <code>sup-term</code> to terminate the background supervisor. If you terminate the background supervisor, then running <code>sup-run</code> will restart it and running <code>hab start origin/package</code> will restart every package that was previously loaded. You have to explicitly run <code>hab svc unload origin/package</code> to remove a package from the "loaded" list.
+    
+    > The default Studio is for building Linux-based packages. For building Windows packages, you must use the Windows version of the Habitat Studio by running <code>hab studio -w enter </code> and if you are building on a Linux workstation and would prefer to use a Docker container instead of a chrooted environment, run <code>hab studio -D enter</code>.
 
 3. Enter the following command to create the package.
 
@@ -71,21 +73,8 @@ For more information on how to set up and install Habitat and how to run a sampl
 For information on the contents of an installed package, see [Package contents](/docs/reference/package-contents).
 
 ## Iterative Development
-To assist in creating new packages, or modifying existing ones, the supervisor
-has an option to allow you to use the configuration directly from a specific
-directory, rather than the one it includes in the compiled artifact. This can
-significantly shorten the cycle time when working on configuration and hooks.
 
-First, build the plan as you normally would. Second, when you start the
-supervisor, pass the name of the directory with your plan inside it:
-
-```
-$ hab start core/redis --config-from /src
-```
-
-This would take the configuration and hooks from /src, rather than from the
-package you have previously built. When the configuration is as you want it,
-do a final rebuild of the package.
+<%= partial "/partials/iterative_development" %>
 
 <hr>
 <ul class="main-content--link-nav">
