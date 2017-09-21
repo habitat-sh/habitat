@@ -12,9 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-pub use std::net::{IpAddr, Ipv4Addr, SocketAddr, ToSocketAddrs};
-
-pub use super::GatewayCfg;
-pub use core::config::ConfigFile;
-pub use github_api_client::config::GitHubCfg;
-pub use hab_net::app::config::RouterAddr;
+header! { (XGitHubDelivery, "X-GitHub-Delivery") => [String] }
+header! { (XGitHubEvent, "X-GitHub-Event") => [String] }
+header! { (XHubSignature, "X-Hub-Signature") => [String] }

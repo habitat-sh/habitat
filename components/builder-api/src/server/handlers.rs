@@ -36,36 +36,15 @@ use router::Router;
 use serde_json;
 use typemap;
 
+use github;
+use headers::*;
+use types::*;
+
 // A default name for per-project integrations. Currently, there
 // can only be one.
 const DEFAULT_PROJECT_INTEGRATION: &'static str = "default";
 
 define_event_log!();
-
-#[derive(Clone, Serialize, Deserialize)]
-struct JobCreateReq {
-    project_id: String,
-}
-
-#[derive(Clone, Serialize, Deserialize)]
-struct ProjectCreateReq {
-    origin: String,
-    plan_path: String,
-    github: GitHubProject,
-}
-
-#[derive(Clone, Serialize, Deserialize)]
-struct ProjectUpdateReq {
-    plan_path: String,
-    github: GitHubProject,
-}
-
-#[derive(Clone, Serialize, Deserialize)]
-struct GitHubProject {
-    organization: String,
-    repo: String,
-    installation_id: Option<u64>,
-}
 
 pub fn github_authenticate(req: &mut Request) -> IronResult<Response> {
     let code = {
@@ -296,6 +275,13 @@ pub fn job_log(req: &mut Request) -> IronResult<Response> {
 
 }
 
+pub fn notify(req: &mut Request) -> IronResult<Response> {
+    if req.headers.has::<XGitHubEvent>() {
+        return github::handle_event(req);
+    }
+    Ok(Response::with(status::BadRequest))
+}
+
 /// Endpoint for determining availability of builder-api components.
 ///
 /// Returns a status 200 on success. Any non-200 responses are an outage or a partial outage.
@@ -378,7 +364,7 @@ pub fn project_create(req: &mut Request) -> IronResult<Response> {
                 None => session.get_token().to_string(),
                 Some(install_id) => {
                     project.set_vcs_installation_id(install_id);
-                    match github.authenticate_as_installation(install_id) {
+                    match github.app_installation_token(install_id) {
                         Ok(tok) => tok,
                         Err(e) => {
                             debug!("Error authenticating github app installation. e = {:?}", e);
@@ -408,9 +394,9 @@ pub fn project_create(req: &mut Request) -> IronResult<Response> {
 
     match github.contents(&token, &organization, &repo, &project.get_plan_path()) {
         Ok(contents) => {
-            match base64::decode(&contents.content) {
-                Ok(ref bytes) => {
-                    match Plan::from_bytes(bytes) {
+            match contents.decode() {
+                Ok(bytes) => {
+                    match Plan::from_bytes(bytes.as_slice()) {
                         Ok(plan) => {
                             project.set_origin_name(String::from(origin.get_name()));
                             project.set_origin_id(origin.get_id());
@@ -535,11 +521,10 @@ pub fn project_update(req: &mut Request) -> IronResult<Response> {
                 None => session_token,
                 Some(install_id) => {
                     project.set_vcs_installation_id(install_id);
-                    match github.authenticate_as_installation(install_id) {
-                        Ok(tok) => tok,
-                        Err(e) => {
-                            debug!("Error authenticating github app installation. e = {:?}", e);
-                            return Ok(Response::with(status::Forbidden));
+                    match github.app_installation_token(install_id) {
+                        Ok(token) => token,
+                        Err(err) => {
+                            return Ok(Response::with((status::BadGateway, err.to_string())));
                         }
                     }
                 }
@@ -563,8 +548,8 @@ pub fn project_update(req: &mut Request) -> IronResult<Response> {
     match github.contents(&token, &organization, &repo, &project.get_plan_path()) {
         Ok(contents) => {
             match base64::decode(&contents.content) {
-                Ok(ref bytes) => {
-                    match Plan::from_bytes(bytes) {
+                Ok(bytes) => {
+                    match Plan::from_bytes(bytes.as_slice()) {
                         Ok(plan) => {
                             if plan.name != name {
                                 return Ok(Response::with((status::UnprocessableEntity, "rg:pu:2")));

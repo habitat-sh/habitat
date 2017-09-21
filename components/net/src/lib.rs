@@ -15,6 +15,7 @@
 #![cfg_attr(feature="clippy", feature(plugin))]
 #![cfg_attr(feature="clippy", plugin(clippy))]
 
+extern crate base64;
 #[macro_use]
 extern crate bitflags;
 extern crate habitat_builder_protocol as protocol;

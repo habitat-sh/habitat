@@ -5,6 +5,7 @@ authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletche
 workspace = "../../"
 
 [dependencies]
+base64 = "*"
 clippy = {version = "*", optional = true}
 bitflags = "*"
 habitat-builder-protocol = { path = "../builder-protocol" }

@@ -13,10 +13,8 @@
 // limitations under the License.
 // Configuration for a Habitat SessionSrv service
 
-use std::path::PathBuf;
-
 use db::config::DataStoreCfg;
-use github_api_client::config::{GitHubCfg, GitHubOAuth};
+use github_api_client::config::GitHubCfg;
 use hab_net::app::config::*;
 
 use error::SrvError;
@@ -65,32 +63,6 @@ impl AppCfg for Config {
 
     fn worker_count(&self) -> usize {
         self.worker_threads
-    }
-}
-
-impl GitHubOAuth for Config {
-    fn github_url(&self) -> &str {
-        &self.github.url
-    }
-
-    fn github_web_url(&self) -> &str {
-        &self.github.web_url
-    }
-
-    fn github_client_id(&self) -> &str {
-        &self.github.client_id
-    }
-
-    fn github_client_secret(&self) -> &str {
-        &self.github.client_secret
-    }
-
-    fn github_app_id(&self) -> u64 {
-        self.github.app_id
-    }
-
-    fn github_app_private_key_path(&self) -> PathBuf {
-        self.github.app_private_key_path.clone()
     }
 }
 

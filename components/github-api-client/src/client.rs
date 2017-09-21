@@ -13,12 +13,9 @@
 // limitations under the License.
 
 use std::collections::HashMap;
-use std::fmt;
 use std::io::Read;
-use std::path::PathBuf;
-use std::time::Duration;
+use std::time::{UNIX_EPOCH, Duration, SystemTime};
 
-use base64;
 use hyper::{self, Url};
 use hyper::status::StatusCode;
 use hyper::header::{Authorization, Accept, Bearer, UserAgent, qitem};
@@ -27,19 +24,13 @@ use hyper::net::HttpsConnector;
 use hyper_openssl::OpensslClient;
 use jwt;
 use serde_json;
-use time;
 
-use config;
+use config::GitHubCfg;
 use error::{HubError, HubResult};
+use types::*;
 
-const HTTP_TIMEOUT: u64 = 3_000;
 const USER_AGENT: &'static str = "Habitat-Builder";
-// These OAuth scopes are required for a user to be authenticated. If this list is updated, then
-// the front-end also needs to be updated in `components/builder-web/app/util.ts`. Both the
-// front-end app and back-end app should have identical requirements to make things easier for
-// our users and less cumbersome for us to message out.
-// https://developer.github.com/v3/oauth/#scopes
-const AUTH_SCOPES: &'static [&'static str] = &["user:email", "read:org"];
+const HTTP_TIMEOUT: u64 = 3_000;
 
 #[derive(Clone)]
 pub struct GitHubClient {
@@ -47,22 +38,52 @@ pub struct GitHubClient {
     pub web_url: String,
     pub client_id: String,
     pub client_secret: String,
-    pub app_id: u64,
-    pub app_private_key_path: PathBuf,
+    app_private_key: String,
 }
 
 impl GitHubClient {
-    pub fn new<T>(config: &T) -> Self
-    where
-        T: config::GitHubOAuth,
-    {
+    pub fn new(config: GitHubCfg) -> Self {
         GitHubClient {
-            url: config.github_url().to_string(),
-            web_url: config.github_web_url().to_string(),
-            client_id: config.github_client_id().to_string(),
-            client_secret: config.github_client_secret().to_string(),
-            app_id: config.github_app_id(),
-            app_private_key_path: config.github_app_private_key_path(),
+            url: config.url,
+            web_url: config.web_url,
+            client_id: config.client_id,
+            client_secret: config.client_secret,
+            app_private_key: config.app_private_key,
+        }
+    }
+
+    pub fn app(&self) -> HubResult<App> {
+        let app_token = generate_app_token(&self.app_private_key);
+        let url = Url::parse(&format!("{}/app", self.url)).map_err(
+            HubError::HttpClientParse,
+        )?;
+        let mut rep = http_get_preview(url, app_token)?;
+        let mut body = String::new();
+        rep.read_to_string(&mut body)?;
+        if rep.status != StatusCode::Ok {
+            let err: HashMap<String, String> = serde_json::from_str(&body)?;
+            return Err(HubError::ApiError(rep.status, err));
+        }
+        let contents = serde_json::from_str::<App>(&body)?;
+        Ok(contents)
+    }
+
+    pub fn app_installation_token(&self, installation_id: u32) -> HubResult<String> {
+        let app_token = generate_app_token(&self.app_private_key);
+        let url = Url::parse(&format!(
+            "{}/installations/{}/access_tokens",
+            self.url,
+            installation_id
+        )).map_err(HubError::HttpClientParse)?;
+        let mut rep = http_post_preview(url, app_token)?;
+        let mut encoded = String::new();
+        rep.read_to_string(&mut encoded)?;
+        match serde_json::from_str::<AppInstallationToken>(&encoded) {
+            Ok(msg) => Ok(msg.token),
+            Err(_) => {
+                let err = serde_json::from_str::<AppAuthErr>(&encoded)?;
+                Err(HubError::AppAuth(err))
+            }
         }
     }
 
@@ -75,7 +96,7 @@ impl GitHubClient {
             self.client_secret,
             code
         )).map_err(HubError::HttpClientParse)?;
-        let mut rep = http_post(url, None)?;
+        let mut rep = http_post(url)?;
         if rep.status.is_success() {
             let mut encoded = String::new();
             rep.read_to_string(&mut encoded)?;
@@ -95,26 +116,6 @@ impl GitHubClient {
             }
         } else {
             Err(HubError::HttpResponse(rep.status))
-        }
-    }
-
-    pub fn authenticate_as_installation(&self, installation_id: u64) -> HubResult<String> {
-        let app_token = self.generate_signed_json_token();
-        let url = Url::parse(&format!(
-            "https://{}/installations/{}/access_tokens",
-            self.url,
-            installation_id
-        )).map_err(HubError::HttpClientParse)?;
-
-        let mut rep = http_post(url, Some(app_token))?;
-        let mut encoded = String::new();
-        rep.read_to_string(&mut encoded)?;
-        match serde_json::from_str::<InstallationAccessToken>(&encoded) {
-            Ok(msg) => Ok(msg.token),
-            Err(_) => {
-                let err = serde_json::from_str::<InstallationAuthErr>(&encoded)?;
-                Err(HubError::InstallationAuth(err))
-            }
         }
     }
 
@@ -233,7 +234,7 @@ impl GitHubClient {
             file,
             repo
         )).map_err(HubError::HttpClientParse)?;
-        let mut rep = http_get(url, token)?;
+        let mut rep = http_get_preview(url, token)?;
         let mut body = String::new();
         rep.read_to_string(&mut body)?;
         if rep.status != StatusCode::Ok {
@@ -258,244 +259,26 @@ impl GitHubClient {
         let teams: Vec<Team> = serde_json::from_str(&body)?;
         Ok(teams)
     }
-
-    fn generate_signed_json_token(&self) -> String {
-        let mut payload = jwt::Payload::new();
-        let header = jwt::Header::new(jwt::Algorithm::RS256);
-        let now = clock_time() / 1000;
-        payload.insert("iat".to_string(), now.to_string());
-        // github does not except an expiry over 10 minutes
-        payload.insert("exp".to_string(), (now + (10 * 60)).to_string());
-        payload.insert("iss".to_string(), self.app_id.to_string());
-        jwt::encode(
-            header,
-            self.app_private_key_path.to_string_lossy().into_owned(),
-            payload,
-        )
-    }
 }
 
-#[derive(Debug, Deserialize, Serialize)]
-pub struct Contents {
-    pub name: String,
-    pub path: String,
-    pub sha: String,
-    pub size: usize,
-    pub url: String,
-    pub html_url: String,
-    pub git_url: String,
-    pub download_url: String,
-    pub content: String,
-    pub encoding: String,
+fn generate_app_token<T>(key_path: T) -> String
+where
+    T: ToString,
+{
+    let mut payload = jwt::Payload::new();
+    let header = jwt::Header::new(jwt::Algorithm::RS256);
+    let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
+    let expiration = now + Duration::from_secs(10 * 60);
+    payload.insert("iat".to_string(), now.as_secs().to_string());
+    payload.insert("exp".to_string(), expiration.as_secs().to_string());
+    payload.insert("iss".to_string(), 5565.to_string());
+    jwt::encode(header, key_path.to_string(), payload)
 }
 
-impl Contents {
-    pub fn decode(&self) -> HubResult<Vec<u8>> {
-        base64::decode(&self.content).map_err(HubError::ContentDecode)
-    }
-}
-
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
-#[serde(default)]
-pub struct GitHubOwner {
-    /// Public name of commit author
-    pub name: String,
-    /// Public email of commit author
-    pub email: String,
-}
-
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
-#[serde(default)]
-pub struct Repository {
-    pub id: u64,
-    pub name: String,
-    pub full_name: String,
-    pub owner: User,
-    pub private: bool,
-    pub html_url: String,
-    pub description: Option<String>,
-    pub fork: bool,
-    pub url: String,
-    pub created_at: String,
-    pub updated_at: String,
-    pub pushed_at: String,
-    pub git_url: String,
-    pub ssh_url: String,
-    pub clone_url: String,
-    pub mirror_url: Option<String>,
-    default_branch: String,
-    master_branch: String,
-}
-
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
-#[serde(default)]
-pub struct Organization {
-    pub login: String,
-    pub id: u64,
-    pub avatar_url: String,
-    pub url: String,
-    pub company: Option<String>,
-    pub description: Option<String>,
-    pub gravatar_id: Option<String>,
-    pub hooks_url: Option<String>,
-    pub html_url: Option<String>,
-    pub followers_url: Option<String>,
-    pub following_url: Option<String>,
-    pub gists_url: Option<String>,
-    pub starred_url: Option<String>,
-    pub subscriptions_url: Option<String>,
-    pub organizations_url: Option<String>,
-    pub repos_url: Option<String>,
-    pub events_url: Option<String>,
-    pub received_events_url: Option<String>,
-    pub members_url: Option<String>,
-    pub site_admin: Option<bool>,
-}
-
-#[derive(Debug, Default, Serialize, Deserialize)]
-#[serde(default)]
-pub struct Team {
-    pub id: u64,
-    pub url: String,
-    pub name: String,
-    pub slug: String,
-    pub description: Option<String>,
-    pub privacy: String,
-    pub permission: String,
-    pub members_url: String,
-    pub repositories_url: String,
-    pub members_count: u64,
-    pub repos_count: u64,
-    pub organization: Organization,
-}
-
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
-#[serde(default)]
-pub struct User {
-    pub login: String,
-    pub id: u64,
-    pub avatar_url: String,
-    pub gravatar_id: String,
-    pub url: String,
-    pub html_url: String,
-    pub followers_url: String,
-    pub following_url: String,
-    pub gists_url: String,
-    pub starred_url: String,
-    pub subscriptions_url: String,
-    pub organizations_url: String,
-    pub repos_url: String,
-    pub events_url: String,
-    pub received_events_url: String,
-    pub site_admin: bool,
-    pub name: Option<String>,
-    pub company: Option<String>,
-    pub blog: Option<String>,
-    pub location: Option<String>,
-    pub email: Option<String>,
-    pub hireable: Option<bool>,
-    pub bio: Option<String>,
-    pub public_repos: Option<u32>,
-    pub public_gists: Option<u32>,
-    pub followers: Option<u32>,
-    pub following: Option<u32>,
-    pub created_at: Option<String>,
-    pub updated_at: Option<String>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Email {
-    pub email: String,
-    pub primary: bool,
-    pub verified: bool,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-pub struct AuthOk {
-    pub access_token: String,
-    pub scope: String,
-    pub token_type: String,
-}
-
-impl AuthOk {
-    pub fn missing_auth_scopes(&self) -> Vec<&'static str> {
-        let mut scopes = vec![];
-        for scope in AUTH_SCOPES.iter() {
-            if !self.scope.split(",").collect::<Vec<&str>>().iter().any(
-                |p| {
-                    p == scope
-                },
-            )
-            {
-                scopes.push(*scope);
-            }
-        }
-        scopes
-    }
-}
-
-#[derive(Deserialize, Serialize, Debug)]
-pub struct AuthErr {
-    pub error: String,
-    pub error_description: String,
-    pub error_uri: String,
-}
-
-impl fmt::Display for AuthErr {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "err={}, desc={}, uri={}",
-            self.error,
-            self.error_description,
-            self.error_uri
-        )
-    }
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-pub struct Search {
-    total_count: u64,
-    incomplete_results: bool,
-    items: Vec<SearchItem>,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-pub struct SearchItem {
-    name: String,
-    path: PathBuf,
-    sha: String,
-    url: String,
-    git_url: String,
-    html_url: String,
-    repository: Repository,
-    score: f64,
-}
-
-#[derive(Deserialize, Serialize)]
-pub struct InstallationAccessToken {
-    pub token: String,
-    pub expires_at: String,
-}
-
-#[derive(Deserialize, Serialize, Debug)]
-pub struct InstallationAuthErr {
-    pub message: String,
-    pub documentation_url: String,
-}
-
-impl fmt::Display for InstallationAuthErr {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "message={}, documentation_url={}",
-            self.message,
-            self.documentation_url
-        )
-    }
-}
-
-fn http_get(url: Url, token: &str) -> HubResult<hyper::client::response::Response> {
+fn http_get<T>(url: Url, token: T) -> HubResult<hyper::client::response::Response>
+where
+    T: ToString,
+{
     hyper_client()
         .get(url)
         .header(Accept(vec![
@@ -503,41 +286,67 @@ fn http_get(url: Url, token: &str) -> HubResult<hyper::client::response::Respons
                 Mime(TopLevel::Application, SubLevel::Json, vec![])
             ),
         ]))
+        .header(Authorization(Bearer { token: token.to_string() }))
+        .header(UserAgent(USER_AGENT.to_string()))
+        .send()
+        .map_err(HubError::HttpClient)
+}
+
+fn http_get_preview<T>(url: Url, token: T) -> HubResult<hyper::client::response::Response>
+where
+    T: ToString,
+{
+    hyper_client()
+        .get(url)
         .header(Accept(vec![
+            qitem(
+                Mime(TopLevel::Application, SubLevel::Json, vec![])
+            ),
             qitem(
                 "application/vnd.github.machine-man-preview+json"
                     .parse()
                     .unwrap()
             ),
         ]))
-        .header(Authorization(Bearer { token: token.to_owned() }))
+        .header(Authorization(Bearer { token: token.to_string() }))
         .header(UserAgent(USER_AGENT.to_string()))
         .send()
         .map_err(HubError::HttpClient)
 }
 
-fn http_post(url: Url, token: Option<String>) -> HubResult<hyper::client::response::Response> {
-    let client = hyper_client();
-    let mut req = client
+fn http_post(url: Url) -> HubResult<hyper::client::response::Response> {
+    hyper_client()
         .post(url)
         .header(Accept(vec![
             qitem(
                 Mime(TopLevel::Application, SubLevel::Json, vec![])
             ),
         ]))
+        .header(UserAgent(USER_AGENT.to_string()))
+        .send()
+        .map_err(HubError::HttpClient)
+}
+
+fn http_post_preview<T>(url: Url, token: T) -> HubResult<hyper::client::response::Response>
+where
+    T: ToString,
+{
+    hyper_client()
+        .post(url)
         .header(Accept(vec![
+            qitem(
+                Mime(TopLevel::Application, SubLevel::Json, vec![])
+            ),
             qitem(
                 "application/vnd.github.machine-man-preview+json"
                     .parse()
                     .unwrap()
             ),
         ]))
-        .header(UserAgent(USER_AGENT.to_string()));
-
-    if let Some(tok) = token {
-        req = req.header(Authorization(Bearer { token: tok }));
-    }
-    req.send().map_err(HubError::HttpClient)
+        .header(Authorization(Bearer { token: token.to_string() }))
+        .header(UserAgent(USER_AGENT.to_string()))
+        .send()
+        .map_err(HubError::HttpClient)
 }
 
 fn hyper_client() -> hyper::Client {
@@ -547,9 +356,4 @@ fn hyper_client() -> hyper::Client {
     client.set_read_timeout(Some(Duration::from_millis(HTTP_TIMEOUT)));
     client.set_write_timeout(Some(Duration::from_millis(HTTP_TIMEOUT)));
     client
-}
-
-fn clock_time() -> i64 {
-    let timespec = time::get_time();
-    (timespec.sec as i64 * 1000) + (timespec.nsec as i64 / 1000 / 1000)
 }

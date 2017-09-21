@@ -8,6 +8,7 @@ workspace = "../../"
 base64 = "*"
 chrono = { version = "*", features = ["serde"] }
 clippy = { version = "*", optional = true }
+glob = "*"
 habitat-builder-protocol = { path = "../builder-protocol" }
 iron = "*"
 libarchive = "*"
@@ -19,6 +20,7 @@ serde_derive = "*"
 serde_json = "*"
 statsd = "*"
 time = "*"
+toml = { version = "*", features = ["serde"], default-features = false }
 walkdir = "*"
 
 [dependencies.habitat_core]

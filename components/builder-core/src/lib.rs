@@ -15,6 +15,7 @@
 #![cfg_attr(feature="clippy", feature(plugin))]
 #![cfg_attr(feature="clippy", plugin(clippy))]
 
+extern crate glob;
 extern crate habitat_builder_protocol as protocol;
 extern crate habitat_core as hab_core;
 extern crate habitat_net as hab_net;
@@ -32,16 +33,18 @@ extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_json;
+extern crate toml;
 
+pub mod build_config;
 pub mod data_structures;
 pub mod error;
 pub mod file_walker;
 pub mod integrations;
+pub mod keys;
 pub mod logger;
 pub mod metrics;
 pub mod package_graph;
-pub mod target_graph;
 pub mod rdeps;
-pub mod keys;
+pub mod target_graph;
 
 pub use error::Error;

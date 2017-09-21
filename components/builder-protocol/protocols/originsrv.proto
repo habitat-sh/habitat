@@ -1,6 +1,5 @@
 package originsrv;
 
-// Account
 message AccountInvitationListRequest {
   optional uint64 account_id = 1;
 }
@@ -25,7 +24,6 @@ message CheckOriginAccessResponse {
   optional bool has_access = 1;
 }
 
-// Origin
 enum OriginPackageVisibility {
   Public = 1;
   Private = 2;
@@ -60,7 +58,6 @@ message OriginUpdate {
   optional OriginPackageVisibility default_package_visibility = 3;
 }
 
-// Origin Channel
 message OriginChannel {
   optional uint64 id = 1;
   optional uint64 origin_id = 2;
@@ -120,7 +117,6 @@ message OriginChannelDelete {
   optional uint64 origin_id = 2;
 }
 
-// Origin Invitation
 message OriginInvitation {
   optional uint64 id = 1;
   optional uint64 account_id = 2;
@@ -170,7 +166,6 @@ message OriginKeyIdent {
   optional string location = 3;
 }
 
-// Origin Member
 message OriginMemberListRequest {
   optional uint64 origin_id = 1;
 }
@@ -185,7 +180,6 @@ message OriginMemberRemove {
   optional uint64 user_id = 2;
 }
 
-// Origin Package
 message OriginPackage {
   optional uint64 id = 1;
   optional uint64 owner_id = 2;
@@ -330,7 +324,6 @@ message OriginPackageVersionListResponse {
   repeated OriginPackageVersion versions = 1;
 }
 
-// Origin Project
 message OriginProject {
   optional uint64 id = 1;
   optional uint64 origin_id = 2;
@@ -341,7 +334,7 @@ message OriginProject {
   optional uint64 owner_id = 7;
   optional string vcs_type = 8;
   optional string vcs_data = 9;
-  optional uint64 vcs_installation_id = 12;
+  optional uint32 vcs_installation_id = 12;
 }
 
 message OriginProjectCreate {
@@ -370,7 +363,6 @@ message OriginProjectList {
   repeated string names = 1;
 }
 
-// Origin Public Key
 message OriginPublicKey {
   optional uint64 id = 1;
   optional uint64 origin_id = 2;
@@ -409,7 +401,6 @@ message OriginPublicKeyListResponse {
   repeated OriginPublicKey keys = 2;
 }
 
-// Origin Secret Key
 message OriginSecretKey {
   optional uint64 id = 1;
   optional uint64 origin_id = 2;
@@ -432,7 +423,6 @@ message OriginSecretKeyGet {
   optional string origin = 2;
 }
 
-// Origin Integration
 message OriginIntegration {
   optional string origin = 1;
   optional string integration = 2;
@@ -465,7 +455,6 @@ message OriginIntegrationResponse {
   repeated OriginIntegration integrations = 1;
 }
 
-// Origin Project Integration
 message OriginProjectIntegration {
   optional string origin = 1;
   optional string name = 2;
