@@ -25,6 +25,7 @@ retry = "*"
 serde = "*"
 serde_derive = "*"
 toml = { version = "*", features = ["serde"], default-features = false }
+url = "*"
 
 [dependencies.clap]
 version = "*"

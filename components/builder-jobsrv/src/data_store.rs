@@ -412,6 +412,20 @@ impl DataStore {
 
         if job.get_project().get_vcs_type() == "git" {
             let project = job.get_project();
+            let token: Option<&str> = {
+                if project.has_vcs_auth_token() {
+                    Some(project.get_vcs_auth_token())
+                } else {
+                    None
+                }
+            };
+            let username: Option<&str> = {
+                if project.has_vcs_username() {
+                    Some(project.get_vcs_username())
+                } else {
+                    None
+                }
+            };
 
             let rows = conn.query(
                 "SELECT * FROM insert_job_v2($1, $2, $3, $4, $5, $6, $7, $8)",
@@ -422,7 +436,7 @@ impl DataStore {
                     &(project.get_owner_id() as i64),
                     &project.get_plan_path(),
                     &project.get_vcs_type(),
-                    &vec![project.get_vcs_data()],
+                    &vec![Some(project.get_vcs_data()), token, username],
                     &channel,
                 ],
             ).map_err(Error::JobCreate)?;
@@ -665,9 +679,19 @@ fn row_to_job(row: &postgres::rows::Row) -> Result<jobsrv::Job> {
     let rvcs: String = row.get("vcs");
     match rvcs.as_ref() {
         "git" => {
-            let mut vcsa: Vec<String> = row.get("vcs_arguments");
+            let mut vcsa: Vec<Option<String>> = row.get("vcs_arguments");
             project.set_vcs_type(String::from("git"));
-            project.set_vcs_data(vcsa.remove(0));
+            project.set_vcs_data(vcsa.remove(0).expect("expected vcs data"));
+            if vcsa.len() > 0 {
+                if let Some(auth_token) = vcsa.remove(0) {
+                    project.set_vcs_auth_token(auth_token);
+                }
+            }
+            if vcsa.len() > 0 {
+                if let Some(username) = vcsa.remove(0) {
+                    project.set_vcs_username(username);
+                }
+            }
         }
         e => {
             error!("Unknown VCS, {}", e);

@@ -22,6 +22,7 @@ use git2;
 use hab_core;
 use protobuf;
 use protocol;
+use url;
 use zmq;
 
 pub type Result<T> = result::Result<T, Error>;
@@ -29,13 +30,17 @@ pub type Result<T> = result::Result<T, Error>;
 #[derive(Debug)]
 pub enum Error {
     BuildFailure(i32),
+    CannotAddCreds,
     Git(git2::Error),
     BuilderCore(bldr_core::Error),
     HabitatCore(hab_core::Error),
+    IncompleteCredentials,
     IO(io::Error),
+    NotHTTPSCloneUrl(url::Url),
     Protobuf(protobuf::ProtobufError),
     Protocol(protocol::ProtocolError),
     UnknownVCS,
+    UrlParseError(url::ParseError),
     WorkspaceSetup(String, io::Error),
     WorkspaceTeardown(String, io::Error),
     Zmq(zmq::Error),
@@ -49,11 +54,22 @@ impl fmt::Display for Error {
             }
             Error::Git(ref e) => format!("{}", e),
             Error::BuilderCore(ref e) => format!("{}", e),
+            Error::CannotAddCreds => format!("Cannot add credentials to url"),
             Error::HabitatCore(ref e) => format!("{}", e),
             Error::IO(ref e) => format!("{}", e),
+            Error::IncompleteCredentials => {
+                format!("Credentials are missing either username or auth token")
+            }
+            Error::NotHTTPSCloneUrl(ref e) => {
+                format!(
+                    "Attempted to clone {}. Only HTTPS clone urls are supported",
+                    e
+                )
+            }
             Error::Protobuf(ref e) => format!("{}", e),
             Error::Protocol(ref e) => format!("{}", e),
             Error::UnknownVCS => format!("Job requires an unknown VCS"),
+            Error::UrlParseError(ref e) => format!("{}", e),
             Error::Zmq(ref e) => format!("{}", e),
             Error::WorkspaceSetup(ref p, ref e) => {
                 format!("Error while setting up workspace at {}, err={:?}", p, e)
@@ -72,10 +88,14 @@ impl error::Error for Error {
             Error::BuildFailure(_) => "Build studio exited with a non-zero exit code",
             Error::Git(ref err) => err.description(),
             Error::BuilderCore(ref err) => err.description(),
+            Error::CannotAddCreds => "Cannot add credentials to url",
             Error::HabitatCore(ref err) => err.description(),
             Error::IO(ref err) => err.description(),
+            Error::IncompleteCredentials => "Credentials are missing either username or auth token",
+            Error::NotHTTPSCloneUrl(_) => "Only HTTPS clone urls are supported",
             Error::Protobuf(ref err) => err.description(),
             Error::Protocol(ref err) => err.description(),
+            Error::UrlParseError(ref err) => err.description(),
             Error::UnknownVCS => "Job requires an unknown VCS",
             Error::WorkspaceSetup(_, _) => "IO Error while creating workspace on disk",
             Error::WorkspaceTeardown(_, _) => "IO Error while destroying workspace on disk",
@@ -123,5 +143,11 @@ impl From<protocol::ProtocolError> for Error {
 impl From<zmq::Error> for Error {
     fn from(err: zmq::Error) -> Error {
         Error::Zmq(err)
+    }
+}
+
+impl From<url::ParseError> for Error {
+    fn from(err: url::ParseError) -> Error {
+        Error::UrlParseError(err)
     }
 }

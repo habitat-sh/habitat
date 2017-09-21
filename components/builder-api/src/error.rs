@@ -32,6 +32,7 @@ pub enum Error {
     HyperError(hyper::error::Error),
     HTTP(hyper::status::StatusCode),
     IO(io::Error),
+    IncompleteCredentials,
     NetError(hab_net::NetError),
     Protobuf(protobuf::ProtobufError),
     Zmq(zmq::Error),
@@ -48,6 +49,9 @@ impl fmt::Display for Error {
             Error::HyperError(ref e) => format!("{}", e),
             Error::HTTP(ref e) => format!("{}", e),
             Error::IO(ref e) => format!("{}", e),
+            Error::IncompleteCredentials => {
+                format!("Credentials are missing either username or auth token")
+            }
             Error::NetError(ref e) => format!("{}", e),
             Error::Protobuf(ref e) => format!("{}", e),
             Error::Zmq(ref e) => format!("{}", e),
@@ -65,6 +69,7 @@ impl error::Error for Error {
             Error::HyperError(ref err) => err.description(),
             Error::HTTP(_) => "Non-200 HTTP response.",
             Error::IO(ref err) => err.description(),
+            Error::IncompleteCredentials => "Credentials are missing either username or auth token",
             Error::NetError(ref err) => err.description(),
             Error::Protobuf(ref err) => err.description(),
             Error::Zmq(ref err) => err.description(),
