@@ -28,6 +28,7 @@ pub fn start(
     binary: &str,
     dest_path: &Path,
     fs_root_path: &Path,
+    force: bool,
 ) -> Result<()> {
     let dst_path = fs_root_path.join(dest_path.strip_prefix("/")?);
     let dst = dst_path.join(&binary);
@@ -53,21 +54,35 @@ pub fn start(
         )?;
         fs::create_dir_all(&dst_path)?
     }
-    match fs::read_link(&dst) {
-        Ok(path) => {
-            if path != src {
-                fs::remove_file(&dst)?;
-                filesystem::symlink(&src, &dst)?;
-            }
-        }
-        Err(_) => filesystem::symlink(&src, &dst)?,
-    }
-    ui.end(format!(
-        "Binary {} from {} symlinked to {}",
+    let ui_symlinked =
+        format!(
+        "Symlinked {} from {} to {}",
         &binary,
         &pkg_install.ident(),
-        &dst.display()
-    ))?;
+        &dst.display(),
+    );
+    match fs::read_link(&dst) {
+        Ok(path) => {
+            if force && path != src {
+                fs::remove_file(&dst)?;
+                filesystem::symlink(&src, &dst)?;
+                ui.end(&ui_symlinked)?;
+            } else if path != src {
+                ui.warn(
+                    format!("Skipping symlink because {} already exists at {}. Use -f to overwrite",
+                &binary,
+                &dst.display(),
+                ),
+                )?;
+            } else {
+                ui.end(&ui_symlinked)?;
+            }
+        }
+        Err(_) => {
+            filesystem::symlink(&src, &dst)?;
+            ui.end(&ui_symlinked)?;
+        }
+    }
     Ok(())
 }
 
@@ -76,6 +91,7 @@ pub fn binlink_all_in_pkg(
     pkg_ident: &PackageIdent,
     dest_path: &Path,
     fs_root_path: &Path,
+    force: bool,
 ) -> Result<()> {
     let pkg_path = PackageInstall::load(&pkg_ident, Some(fs_root_path))?;
     for bin_path in pkg_path.paths()? {
@@ -84,13 +100,11 @@ pub fn binlink_all_in_pkg(
             let bin_name = match bin_file.file_name().to_str() {
                 Some(bn) => bn.to_owned(),
                 None => {
-                    ui.warn(
-                        "Found a binary with an invalid name.  Skipping binlink.",
-                    )?;
+                    ui.warn("Invalid binary name found. Skipping binlink")?;
                     continue;
                 }
             };
-            self::start(ui, &pkg_ident, &bin_name, &dest_path, &fs_root_path)?;
+            self::start(ui, &pkg_ident, &bin_name, &dest_path, &fs_root_path, force)?;
         }
     }
     Ok(())
@@ -122,15 +136,23 @@ mod test {
 
         let rootfs_src_dir = hcore::fs::pkg_install_path(&ident, Some(rootfs.path())).join("bin");
         let rootfs_bin_dir = rootfs.path().join("opt/bin");
+        let force = true;
 
         let (mut ui, _stdout, _stderr) = ui();
-        start(&mut ui, &ident, "magicate", &dst_path, rootfs.path()).unwrap();
+        start(&mut ui, &ident, "magicate", &dst_path, rootfs.path(), force).unwrap();
         assert_eq!(
             rootfs_src_dir.join("magicate"),
             rootfs_bin_dir.join("magicate").read_link().unwrap()
         );
 
-        start(&mut ui, &ident, "hypnoanalyze", &dst_path, rootfs.path()).unwrap();
+        start(
+            &mut ui,
+            &ident,
+            "hypnoanalyze",
+            &dst_path,
+            rootfs.path(),
+            force,
+        ).unwrap();
         assert_eq!(
             rootfs_src_dir.join("hypnoanalyze"),
             rootfs_bin_dir.join("hypnoanalyze").read_link().unwrap()
@@ -148,9 +170,10 @@ mod test {
 
         let rootfs_src_dir = hcore::fs::pkg_install_path(&ident, Some(rootfs.path()));
         let rootfs_bin_dir = rootfs.path().join("opt/bin");
+        let force = true;
 
         let (mut ui, _stdout, _stderr) = ui();
-        binlink_all_in_pkg(&mut ui, &ident, &dst_path, rootfs.path()).unwrap();
+        binlink_all_in_pkg(&mut ui, &ident, &dst_path, rootfs.path(), force).unwrap();
 
         assert_eq!(
             rootfs_src_dir.join("bin/magicate"),

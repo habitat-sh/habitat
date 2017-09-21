@@ -149,8 +149,9 @@ impl<'a> BuildSpec<'a> {
             &base_pkgs.busybox,
             &dst,
             rootfs.as_ref(),
+            true,
         )?;
-        hab::command::pkg::binlink::start(ui, &base_pkgs.hab, "hab", &dst, rootfs.as_ref())?;
+        hab::command::pkg::binlink::start(ui, &base_pkgs.hab, "hab", &dst, rootfs.as_ref(), true)?;
 
         Ok(())
     }

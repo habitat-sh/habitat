@@ -297,9 +297,12 @@ fn sub_pkg_binlink(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
     let env_or_default = default_binlink_dir();
     let dest_dir = Path::new(m.value_of("DEST_DIR").unwrap_or(&env_or_default));
+    let force = m.is_present("FORCE");
     match m.value_of("BINARY") {
-        Some(binary) => command::pkg::binlink::start(ui, &ident, &binary, &dest_dir, &*FS_ROOT),
-        None => command::pkg::binlink::binlink_all_in_pkg(ui, &ident, dest_dir, &*FS_ROOT),
+        Some(binary) => {
+            command::pkg::binlink::start(ui, &ident, &binary, &dest_dir, &*FS_ROOT, force)
+        }
+        None => command::pkg::binlink::binlink_all_in_pkg(ui, &ident, &dest_dir, &*FS_ROOT, force),
     }
 }
 
@@ -462,7 +465,8 @@ fn sub_pkg_install(ui: &mut UI, m: &ArgMatches) -> Result<()> {
         if m.is_present("BINLINK") {
             let env_or_default = default_binlink_dir();
             let dest_dir = Path::new(m.value_of("DEST_DIR").unwrap_or(&env_or_default));
-            command::pkg::binlink::binlink_all_in_pkg(ui, &pkg_ident, dest_dir, &*FS_ROOT)?;
+            let force = m.is_present("FORCE");
+            command::pkg::binlink::binlink_all_in_pkg(ui, &pkg_ident, &dest_dir, &*FS_ROOT, force)?;
         }
     }
     Ok(())
