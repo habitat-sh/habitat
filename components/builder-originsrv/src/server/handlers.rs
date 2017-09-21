@@ -694,7 +694,15 @@ pub fn origin_package_channel_list(
     match state.datastore.list_origin_package_channels_for_package(
         &msg,
     ) {
-        Ok(ref opclr) => conn.route_reply(req, opclr)?,
+        Ok(Some(ref opclr)) => conn.route_reply(req, opclr)?,
+        Ok(None) => {
+            let err = NetError::new(
+                ErrCode::ENTITY_NOT_FOUND,
+                "vt:origin-package-channel-list:0",
+            );
+            error!("{}", err);
+            conn.route_reply(req, &*err)?;
+        }
         Err(e) => {
             let err = NetError::new(ErrCode::DATA_STORE, "vt:origin-package-channel-list:1");
             error!("{}, {}", err, e);

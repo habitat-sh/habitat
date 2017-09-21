@@ -602,8 +602,8 @@ impl DataStore {
     ) -> SrvResult<Option<originsrv::OriginPackage>> {
         let conn = self.pool.get(opg)?;
         let rows = conn.query(
-            "SELECT * FROM get_origin_package_v1($1)",
-            &[&opg.get_ident().to_string()],
+            "SELECT * FROM get_origin_package_v2($1, $2)",
+            &[&opg.get_ident().to_string(), &(opg.get_account_id() as i64)],
         ).map_err(SrvError::OriginPackageGet)?;
         if rows.len() != 0 {
             let row = rows.get(0);
@@ -620,11 +620,12 @@ impl DataStore {
     ) -> SrvResult<Option<originsrv::OriginPackage>> {
         let conn = self.pool.get(ocpg)?;
         let rows = conn.query(
-            "SELECT * FROM get_origin_channel_package_v1($1, $2, $3)",
+            "SELECT * FROM get_origin_channel_package_v2($1, $2, $3, $4)",
             &[
                 &ocpg.get_ident().get_origin(),
                 &ocpg.get_name(),
                 &ocpg.get_ident().to_string(),
+                &(ocpg.get_account_id() as i64),
             ],
         ).map_err(SrvError::OriginChannelPackageGet)?;
         if rows.len() != 0 {
@@ -666,8 +667,12 @@ impl DataStore {
     ) -> SrvResult<Option<originsrv::OriginPackageIdent>> {
         let conn = self.pool.get(opc)?;
         let rows = conn.query(
-            "SELECT * FROM get_origin_package_latest_v2($1, $2)",
-            &[&self.searchable_ident(opc.get_ident()), &opc.get_target()],
+            "SELECT * FROM get_origin_package_latest_v3($1, $2, $3)",
+            &[
+                &self.searchable_ident(opc.get_ident()),
+                &opc.get_target(),
+                &(opc.get_account_id() as i64),
+            ],
         ).map_err(SrvError::OriginPackageLatestGet)?;
         if rows.len() != 0 {
             let latest = self.rows_to_latest_ident(&rows).unwrap();
@@ -683,12 +688,13 @@ impl DataStore {
     ) -> SrvResult<Option<originsrv::OriginPackageIdent>> {
         let conn = self.pool.get(ocpg)?;
         let rows = conn.query(
-            "SELECT * FROM get_origin_channel_package_latest_v2($1, $2, $3, $4)",
+            "SELECT * FROM get_origin_channel_package_latest_v3($1, $2, $3, $4, $5)",
             &[
                 &ocpg.get_ident().get_origin(),
                 &ocpg.get_name(),
                 &self.searchable_ident(ocpg.get_ident()),
                 &ocpg.get_target(),
+                &(ocpg.get_account_id() as i64),
             ],
         ).map_err(SrvError::OriginChannelPackageLatestGet)?;
 
@@ -707,8 +713,12 @@ impl DataStore {
         let conn = self.pool.get(opvl)?;
 
         let rows = conn.query(
-            "SELECT * FROM get_origin_package_versions_for_origin_v4($1, $2)",
-            &[&opvl.get_origin(), &opvl.get_name()],
+            "SELECT * FROM get_origin_package_versions_for_origin_v5($1, $2, $3)",
+            &[
+                &opvl.get_origin(),
+                &opvl.get_name(),
+                &(opvl.get_account_id() as i64),
+            ],
         ).map_err(SrvError::OriginPackageVersionList)?;
 
         let mut response = originsrv::OriginPackageVersionListResponse::new();
@@ -752,8 +762,11 @@ impl DataStore {
         let conn = self.pool.get(oppl)?;
 
         let rows = conn.query(
-            "SELECT * FROM get_origin_package_platforms_for_package_v1($1)",
-            &[&self.searchable_ident(oppl.get_ident())],
+            "SELECT * FROM get_origin_package_platforms_for_package_v2($1, $2)",
+            &[
+                &self.searchable_ident(oppl.get_ident()),
+                &(oppl.get_account_id() as i64),
+            ],
         ).map_err(SrvError::OriginPackagePlatformList)?;
 
         let mut response = originsrv::OriginPackagePlatformListResponse::new();
@@ -769,13 +782,23 @@ impl DataStore {
     pub fn list_origin_package_channels_for_package(
         &self,
         opcl: &originsrv::OriginPackageChannelListRequest,
-    ) -> SrvResult<originsrv::OriginPackageChannelListResponse> {
+    ) -> SrvResult<Option<originsrv::OriginPackageChannelListResponse>> {
         let conn = self.pool.get(opcl)?;
 
         let rows = conn.query(
-            "SELECT * FROM get_origin_package_channels_for_package_v1($1)",
-            &[&self.searchable_ident(opcl.get_ident())],
+            "SELECT * FROM get_origin_package_channels_for_package_v2($1, $2)",
+            &[
+                &self.searchable_ident(opcl.get_ident()),
+                &(opcl.get_account_id() as i64),
+            ],
         ).map_err(SrvError::OriginPackageChannelList)?;
+
+        // If there are no rows returned, we know either the ident they passed doesn't exist or it
+        // does exist but it's a private package and they don't have access to see it (since every
+        // package should be in at least "unstable")
+        if rows.len() == 0 {
+            return Ok(None);
+        }
 
         let mut response = originsrv::OriginPackageChannelListResponse::new();
         let mut channels = protobuf::RepeatedField::new();
@@ -783,7 +806,7 @@ impl DataStore {
             channels.push(self.row_to_origin_channel(&row));
         }
         response.set_channels(channels);
-        Ok(response)
+        Ok(Some(response))
     }
 
     pub fn list_origin_package_for_origin(
@@ -793,9 +816,9 @@ impl DataStore {
         let conn = self.pool.get(opl)?;
 
         let query = if *&opl.get_distinct() {
-            "SELECT * FROM get_origin_packages_for_origin_distinct_v1($1, $2, $3)"
+            "SELECT * FROM get_origin_packages_for_origin_distinct_v2($1, $2, $3, $4)"
         } else {
-            "SELECT * FROM get_origin_packages_for_origin_v2($1, $2, $3)"
+            "SELECT * FROM get_origin_packages_for_origin_v3($1, $2, $3, $4)"
         };
 
         let rows = conn.query(
@@ -804,6 +827,7 @@ impl DataStore {
                 &self.searchable_ident(opl.get_ident()),
                 &opl.limit(),
                 &(opl.get_start() as i64),
+                &(opl.get_account_id() as i64),
             ],
         ).map_err(SrvError::OriginPackageList)?;
 
@@ -876,8 +900,13 @@ impl DataStore {
     ) -> SrvResult<originsrv::OriginPackageUniqueListResponse> {
         let conn = self.pool.get(opl)?;
         let rows = conn.query(
-            "SELECT * FROM get_origin_packages_unique_for_origin_v1($1, $2, $3)",
-            &[&opl.get_origin(), &opl.limit(), &(opl.get_start() as i64)],
+            "SELECT * FROM get_origin_packages_unique_for_origin_v2($1, $2, $3, $4)",
+            &[
+                &opl.get_origin(),
+                &opl.limit(),
+                &(opl.get_start() as i64),
+                &(opl.get_account_id() as i64),
+            ],
         ).map_err(SrvError::OriginPackageUniqueList)?;
 
         let mut response = originsrv::OriginPackageUniqueListResponse::new();
@@ -904,23 +933,34 @@ impl DataStore {
 
         let rows = if *&ops.get_distinct() {
             conn.query(
-                "SELECT * FROM search_all_origin_packages_dynamic_v2($1, $2, $3)",
-                &[&ops.get_query(), &ops.limit(), &(ops.get_start() as i64)],
+                "SELECT * FROM search_all_origin_packages_dynamic_v3($1, $2, $3, $4)",
+                &[
+                    &ops.get_query(),
+                    &ops.limit(),
+                    &(ops.get_start() as i64),
+                    &(ops.get_account_id() as i64),
+                ],
             ).map_err(SrvError::OriginPackageSearch)?
         } else {
             if ops.get_origin().is_empty() {
                 conn.query(
-                    "SELECT * FROM search_all_origin_packages_v1($1, $2, $3)",
-                    &[&ops.get_query(), &ops.limit(), &(ops.get_start() as i64)],
+                    "SELECT * FROM search_all_origin_packages_v2($1, $2, $3, $4)",
+                    &[
+                        &ops.get_query(),
+                        &ops.limit(),
+                        &(ops.get_start() as i64),
+                        &(ops.get_account_id() as i64),
+                    ],
                 ).map_err(SrvError::OriginPackageSearch)?
             } else {
                 conn.query(
-                    "SELECT * FROM search_origin_packages_for_origin_v1($1, $2, $3, $4)",
+                    "SELECT * FROM search_origin_packages_for_origin_v2($1, $2, $3, $4, $5)",
                     &[
                         &ops.get_origin(),
                         &ops.get_query(),
                         &ops.limit(),
                         &(ops.get_start() as i64),
+                        &(ops.get_account_id() as i64),
                     ],
                 ).map_err(SrvError::OriginPackageSearch)?
             }

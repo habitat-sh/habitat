@@ -97,12 +97,14 @@ message OriginChannelListResponse {
 message OriginChannelPackageGet {
   optional string name = 1;
   optional OriginPackageIdent ident = 2;
+  optional uint64 account_id = 3;
 }
 
 message OriginChannelPackageLatestGet {
   optional string name = 1;
   optional OriginPackageIdent ident = 2;
   optional string target = 3;
+  optional uint64 account_id = 4;
 }
 
 message OriginChannelPackageListRequest {
@@ -110,6 +112,7 @@ message OriginChannelPackageListRequest {
   optional OriginPackageIdent ident = 2;
   optional uint64 start = 3;
   optional uint64 stop = 4;
+  optional uint64 account_id = 5;
 }
 
 message OriginChannelDelete {
@@ -206,6 +209,7 @@ message OriginPackageVersion {
 
 message OriginPackagePlatformListRequest {
   optional OriginPackageIdent ident = 1;
+  optional uint64 account_id = 2;
 }
 
 message OriginPackagePlatformListResponse {
@@ -227,11 +231,13 @@ message OriginPackageCreate {
 
 message OriginPackageGet {
   optional OriginPackageIdent ident = 1;
+  optional uint64 account_id = 2;
 }
 
 message OriginPackageLatestGet {
   optional OriginPackageIdent ident = 1;
   optional string target = 2;
+  optional uint64 account_id = 3;
 }
 
 message OriginPackageListRequest {
@@ -239,6 +245,7 @@ message OriginPackageListRequest {
   optional uint64 start = 2;
   optional uint64 stop = 3;
   optional bool distinct = 4;
+  optional uint64 account_id = 5;
 }
 
 message OriginPackageListResponse {
@@ -268,6 +275,7 @@ message OriginPackageDemote {
 
 message OriginPackageChannelListRequest {
   optional OriginPackageIdent ident = 1;
+  optional uint64 account_id = 2;
 }
 
 message OriginPackageChannelListResponse {
@@ -280,12 +288,14 @@ message OriginPackageSearchRequest {
   optional uint64 start = 3;
   optional uint64 stop = 4;
   optional bool distinct = 5;
+  optional uint64 account_id = 6;
 }
 
 message OriginPackageUniqueListRequest {
   optional string origin = 1;
   optional uint64 start = 2;
   optional uint64 stop = 3;
+  optional uint64 account_id = 4;
 }
 
 message OriginPackageUniqueListResponse {
@@ -298,6 +308,7 @@ message OriginPackageUniqueListResponse {
 message OriginPackageVersionListRequest {
   optional string origin = 1;
   optional string name = 2;
+  optional uint64 account_id = 3;
 }
 
 message OriginPackageVersionListResponse {

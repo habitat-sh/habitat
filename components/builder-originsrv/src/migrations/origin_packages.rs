@@ -361,5 +361,197 @@ pub fn migrate(migrator: &mut Migrator) -> SrvResult<()> {
                          RETURN;
                      END
                  $$ LANGUAGE plpgsql VOLATILE"#)?;
+    migrator.migrate("originsrv",
+                     r#"CREATE OR REPLACE FUNCTION get_origin_packages_for_origin_v3 (
+                    op_ident text,
+                    op_limit bigint,
+                    op_offset bigint,
+                    op_account_id bigint
+                 ) RETURNS TABLE(total_count bigint, ident text) AS $$
+                    BEGIN
+                        RETURN QUERY SELECT COUNT(*) OVER () AS total_count, op.ident
+                          FROM origin_packages op
+                          WHERE op.ident LIKE (op_ident  || '%')
+                          AND (op.visibility='public' OR (op.visibility='private' AND op.origin_id IN (SELECT origin_id FROM origin_members WHERE account_id = op_account_id)))
+                          ORDER BY op.ident DESC
+                          LIMIT op_limit
+                          OFFSET op_offset;
+                        RETURN;
+                    END
+                    $$ LANGUAGE plpgsql STABLE"#)?;
+    migrator.migrate("originsrv",
+                     r#"CREATE OR REPLACE FUNCTION get_origin_packages_for_origin_distinct_v2 (
+                    op_ident text,
+                    op_limit bigint,
+                    op_offset bigint,
+                    op_account_id bigint
+                 ) RETURNS TABLE(total_count bigint, ident text) AS $$
+                    BEGIN
+                        RETURN QUERY SELECT COUNT(p.partial_ident[1] || '/' || p.partial_ident[2]) OVER () AS total_count, p.partial_ident[1] || '/' || p.partial_ident[2] AS ident
+                        FROM (SELECT regexp_split_to_array(op.ident, '/') as partial_ident
+                              FROM origin_packages op
+                              WHERE op.ident LIKE ('%' || op_ident || '%')
+                              AND (op.visibility='public' OR (op.visibility='private' AND op.origin_id IN (SELECT origin_id FROM origin_members WHERE account_id = op_account_id)))
+                              ) AS p
+                        GROUP BY (p.partial_ident[1] || '/' || p.partial_ident[2])
+                        LIMIT op_limit
+                        OFFSET op_offset;
+                        RETURN;
+                    END
+                    $$ LANGUAGE plpgsql STABLE"#)?;
+    migrator.migrate("originsrv",
+                 r#"CREATE OR REPLACE FUNCTION get_origin_package_latest_v3 (
+                    op_ident text,
+                    op_target text,
+                    op_account_id bigint
+                 ) RETURNS SETOF origin_packages AS $$
+                    BEGIN
+                        RETURN QUERY SELECT *
+                        FROM origin_packages
+                        WHERE ident LIKE (op_ident  || '%')
+                        AND target = op_target
+                        AND (visibility='public' OR (visibility='private' AND origin_id IN (SELECT origin_id FROM origin_members WHERE account_id = op_account_id)));
+                        RETURN;
+                    END
+                    $$ LANGUAGE plpgsql STABLE"#)?;
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE OR REPLACE FUNCTION get_origin_package_v2 (
+                    op_ident text,
+                    op_account_id bigint
+                 ) RETURNS SETOF origin_packages AS $$
+                    BEGIN
+                        RETURN QUERY SELECT *
+                        FROM origin_packages
+                        WHERE ident = op_ident
+                        AND (visibility='public' OR (visibility='private' AND origin_id IN (SELECT origin_id FROM origin_members WHERE account_id = op_account_id)));
+                        RETURN;
+                    END
+                    $$ LANGUAGE plpgsql STABLE"#,
+    )?;
+    migrator.migrate("originsrv",
+                     r#"CREATE OR REPLACE FUNCTION search_all_origin_packages_dynamic_v3 (
+                    op_query text,
+                    op_limit bigint,
+                    op_offset bigint,
+                    op_account_id bigint
+                    ) RETURNS TABLE(total_count bigint, ident text) AS $$
+                    DECLARE
+                      schema RECORD;
+                    BEGIN
+                      FOR schema IN EXECUTE
+                        format(
+                          'SELECT schema_name FROM information_schema.schemata WHERE left(schema_name, 6) = %L',
+                          'shard_'
+                        )
+                      LOOP
+                        RETURN QUERY EXECUTE
+                        format('SELECT COUNT(p.partial_ident[1] || %L || p.partial_ident[2]) OVER () AS total_count, p.partial_ident[1] || %L || p.partial_ident[2] AS ident FROM (SELECT regexp_split_to_array(op.ident, %L) as partial_ident FROM %I.origin_packages op WHERE op.ident LIKE (%L || %L || %L) AND (op.visibility=%L OR (op.visibility=%L AND op.origin_id IN (SELECT origin_id FROM %I.origin_members WHERE account_id = %L)))) AS p GROUP BY (p.partial_ident[1] || %L || p.partial_ident[2]) LIMIT %L OFFSET %L', '/', '/', '/', schema.schema_name, '%', op_query, '%', 'public', 'private', schema.schema_name, op_account_id, '/', op_limit, op_offset);
+                      END LOOP;
+                      RETURN;
+                    END;
+                    $$ LANGUAGE plpgsql STABLE"#)?;
+    migrator.migrate("originsrv",
+                     r#"CREATE OR REPLACE FUNCTION search_all_origin_packages_v2 (
+                   op_query text,
+                   op_limit bigint,
+                   op_offset bigint,
+                   op_account_id bigint
+                 ) RETURNS TABLE(total_count bigint, ident text) AS $$
+                    DECLARE
+                      schema RECORD;
+                    BEGIN
+                      FOR schema IN EXECUTE
+                        format(
+                          'SELECT schema_name FROM information_schema.schemata WHERE left(schema_name, 6) = %L',
+                          'shard_'
+                        )
+                      LOOP
+                        RETURN QUERY EXECUTE
+                        format('SELECT COUNT(*) OVER () AS total_count, op.ident FROM %I.origin_packages op WHERE op.ident LIKE (%L || %L || %L) AND (op.visibility=%L OR (op.visibility=%L AND op.origin_id IN (SELECT origin_id FROM %I.origin_members WHERE account_id = %L))) ORDER BY op.ident ASC LIMIT %L OFFSET %L', schema.schema_name, '%', op_query, '%', 'public', 'private', schema.schema_name, op_account_id, op_limit, op_offset);
+                      END LOOP;
+                      RETURN;
+                    END;
+                    $$ LANGUAGE plpgsql STABLE"#)?;
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE OR REPLACE FUNCTION search_origin_packages_for_origin_v2 (
+                   op_origin text,
+                   op_query text,
+                   op_limit bigint,
+                   op_offset bigint,
+                   op_account_id bigint
+                 ) RETURNS TABLE(total_count bigint, ident text) AS $$
+                    BEGIN
+                        RETURN QUERY SELECT COUNT(*) OVER () AS total_count, op.ident
+                          FROM origins o INNER JOIN origin_packages op ON o.id = op.origin_id
+                          WHERE o.name = op_origin
+                          AND op.name LIKE ('%' || op_query || '%')
+                          AND (op.visibility='public' OR (op.visibility='private' AND op.origin_id IN (SELECT origin_id FROM origin_members WHERE account_id = op_account_id)))
+                          ORDER BY op.ident ASC
+                          LIMIT op_limit
+                          OFFSET op_offset;
+                        RETURN;
+                    END
+                    $$ LANGUAGE plpgsql STABLE"#,
+    )?;
+    migrator.migrate("originsrv",
+                     r#"CREATE OR REPLACE FUNCTION get_origin_packages_unique_for_origin_v2 (
+                   op_origin text,
+                   op_limit bigint,
+                   op_offset bigint,
+                   op_account_id bigint
+                 ) RETURNS TABLE(total_count bigint, name text) AS $$
+                    BEGIN
+                        RETURN QUERY SELECT COUNT(*) OVER () AS total_count, op.name
+                          FROM origins o INNER JOIN origin_packages op ON o.id = op.origin_id
+                          WHERE o.name = op_origin
+                          AND (op.visibility='public' OR (op.visibility='private' AND op.origin_id IN (SELECT origin_id FROM origin_members WHERE account_id = op_account_id)))
+                          GROUP BY op.name
+                          ORDER BY op.name ASC
+                          LIMIT op_limit
+                          OFFSET op_offset;
+                        RETURN;
+                    END
+                    $$ LANGUAGE plpgsql STABLE"#)?;
+    migrator.migrate("originsrv",
+                     r#"CREATE OR REPLACE FUNCTION get_origin_package_versions_for_origin_v5 (
+                          op_origin text,
+                          op_pkg text,
+                          op_account_id bigint
+                        ) RETURNS TABLE(version text, release_count bigint, latest text, platforms text)
+                        LANGUAGE SQL
+                        STABLE AS $$
+                          WITH packages AS (
+                            SELECT *
+                            FROM origin_packages op INNER JOIN origins o ON o.id = op.origin_id
+                            WHERE o.name = op_origin
+                            AND op.name = op_pkg
+                            AND (op.visibility='public' OR (op.visibility='private' AND op.origin_id IN (SELECT origin_id FROM origin_members WHERE account_id = op_account_id)))
+                          ), idents AS (
+                            SELECT regexp_split_to_array(ident, '/') as parts, target
+                            FROM packages
+                          )
+                          SELECT i.parts[3] AS version,
+                          COUNT(i.parts[4]) AS release_count,
+                          MAX(i.parts[4]) as latest,
+                          ARRAY_TO_STRING(ARRAY_AGG(DISTINCT i.target), ',')
+                          FROM idents i
+                          GROUP BY version
+                          ORDER BY version DESC
+                        $$"#)?;
+    migrator.migrate("originsrv", r#"
+                        CREATE OR REPLACE FUNCTION get_origin_package_platforms_for_package_v2 (
+                          op_ident text,
+                          op_account_id bigint
+                        ) RETURNS TABLE (target text)
+                        LANGUAGE SQL
+                        VOLATILE AS $$
+                        SELECT DISTINCT target
+                        FROM origin_packages
+                        WHERE ident LIKE (op_ident || '%')
+                        AND (visibility='public' OR (visibility='private' AND origin_id IN (SELECT origin_id FROM origin_members WHERE account_id = op_account_id)))
+                        $$;
+                     "#)?;
     Ok(())
 }

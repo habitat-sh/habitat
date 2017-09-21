@@ -103,6 +103,7 @@ impl BeforeMiddleware for XRouteClient {
 pub struct Authenticated {
     github: GitHubClient,
     features: FeatureFlags,
+    optional: bool,
 }
 
 impl Authenticated {
@@ -114,11 +115,17 @@ impl Authenticated {
         Authenticated {
             github: github,
             features: FeatureFlags::empty(),
+            optional: false,
         }
     }
 
     pub fn require(mut self, flag: FeatureFlags) -> Self {
         self.features.insert(flag);
+        self
+    }
+
+    pub fn optional(mut self) -> Self {
+        self.optional = true;
         self
     }
 
@@ -164,8 +171,12 @@ impl BeforeMiddleware for Authenticated {
                     }
                 }
                 _ => {
-                    let err = NetError::new(ErrCode::ACCESS_DENIED, "net:auth:1");
-                    return Err(IronError::new(err, Status::Unauthorized));
+                    if self.optional {
+                        return Ok(());
+                    } else {
+                        let err = NetError::new(ErrCode::ACCESS_DENIED, "net:auth:1");
+                        return Err(IronError::new(err, Status::Unauthorized));
+                    }
                 }
             }
         };
