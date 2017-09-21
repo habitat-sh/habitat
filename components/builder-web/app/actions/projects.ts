@@ -13,12 +13,12 @@
 // limitations under the License.
 
 import * as fakeApi from "../fakeApi";
-import {Observable} from "rxjs";
-import {BuilderApiClient} from "../BuilderApiClient";
-import {addNotification} from "./notifications";
-import {DANGER, INFO, SUCCESS, WARNING} from "./notifications";
-import {requestRoute, resetRedirectRoute} from "./router";
-import {packageString} from "../util";
+import { Observable } from "rxjs";
+import { BuilderApiClient } from "../BuilderApiClient";
+import { addNotification } from "./notifications";
+import { DANGER, INFO, SUCCESS, WARNING } from "./notifications";
+import { requestRoute, resetRedirectRoute } from "./router";
+import { packageString } from "../util";
 
 export const POPULATE_PROJECT = "POPULATE_PROJECT";
 export const SET_CURRENT_PROJECT = "SET_CURRENT_PROJECT";
@@ -28,151 +28,172 @@ export const DEPOPULATE_PROJECT = "DEPOPULATE_PROJECT";
 export const SET_PROJECT_HINT = "SET_PROJECT_HINT";
 export const RESET_PROJECT_HINT = "RESET_PROJECT_HINT";
 
-export function addProject(project: Object, token: string, route: Array<String>) {
-    return dispatch => {
-        new BuilderApiClient(token).createProject(project).then(response => {
-            dispatch(resetProjectHint());
-            dispatch(requestRoute(route));
-            dispatch(addNotification({
-                title: "Project created",
-                body: `Created ${response["id"]}.`,
-                type: SUCCESS,
-            }));
-        }).catch(error => {
-            dispatch(addNotification({
-                title: "Failed to Create project",
-                body: error.message,
-                type: DANGER,
-            }));
-        });
-    };
+export function addProject(project: any, token: string, onComplete: Function = () => {}) {
+  return dispatch => {
+    dispatch(addNotification({
+      title: "Adding Plan",
+      body: `To origin "${project.origin}"`,
+      type: INFO,
+    }));
+    new BuilderApiClient(token).createProject(project).then(response => {
+      dispatch(resetProjectHint());
+      dispatch(addNotification({
+        title: "Project created",
+        body: `Created ${response["id"]}.`,
+        type: SUCCESS,
+      }));
+      onComplete({success: true, response});
+    }).catch(error => {
+      dispatch(addNotification({
+        title: "Failed to Create project",
+        body: error.message,
+        type: DANGER,
+      }));
+      onComplete({success: false, error});
+    });
+  };
 }
 
 export function setProjectHint(hint: Object) {
-    return {
-        type: SET_PROJECT_HINT,
-        payload: hint
-    };
+  return {
+    type: SET_PROJECT_HINT,
+    payload: hint
+  };
 }
 
 export function resetProjectHint() {
-    return {
-        type: RESET_PROJECT_HINT
-    };
+  return {
+    type: RESET_PROJECT_HINT
+  };
 }
 
 export function fetchProject(id: string, token: string, alert: boolean) {
-    return dispatch => {
-        dispatch(setCurrentProject({ ui: { exists: false, loading: true } }));
+  return dispatch => {
+    dispatch(setCurrentProject({
+      ui: {
+        exists: false,
+        loading: true
+      }
+    }));
 
-        new BuilderApiClient(token).getProject(id).then(response => {
-            dispatch(setCurrentProject(Object.assign({ ui: { exists: true, loading: false } }, response)));
-            dispatch(populateProject(response));
-        }).catch(error => {
-            dispatch(setCurrentProject({ ui: { exists: false, loading: false } }));
+    new BuilderApiClient(token).getProject(id).then(response => {
+      dispatch(setCurrentProject(Object.assign({
+        ui: {
+          exists: true,
+          loading: false
+        }
+      }, response)));
+      dispatch(populateProject(response));
+    }).catch(error => {
+      dispatch(setCurrentProject({
+        ui: {
+          exists: false,
+          loading: false
+        }
+      }));
 
-            if (alert) {
-              dispatch(addNotification({
-                  title: "Failed to fetch project",
-                  body: error.message,
-                  type: DANGER,
-              }));
-            }
-        });
-    };
+      if (alert) {
+        dispatch(addNotification({
+          title: "Failed to fetch project",
+          body: error.message,
+          type: DANGER,
+        }));
+      }
+    });
+  };
 }
 
-export function fetchProjectsForPackages(packages: Array<Object>, token: string) {
-    return dispatch => {
-        for (let pkg of packages) {
-            let id = `${pkg["origin"]}/${pkg["name"]}`;
-            dispatch(fetchProject(id, token, false));
-        }
-    };
+export function fetchProjectsForPackages(packages: Array < Object > , token: string) {
+  return dispatch => {
+    for (let pkg of packages) {
+      let id = `${pkg["origin"]}/${pkg["name"]}`;
+      dispatch(fetchProject(id, token, false));
+    }
+  };
 }
 
 export function fetchProjects(token: string) {
-    return dispatch => {
-        new BuilderApiClient(token).getProjects().then(response => {
-            dispatch(setProjects(response));
-        });
-    };
+  return dispatch => {
+    new BuilderApiClient(token).getProjects().then(response => {
+      dispatch(setProjects(response));
+    });
+  };
 }
 
 export function deleteProject(id: string, token: string, origin: string) {
-    return dispatch => {
-        new BuilderApiClient(token).deleteProject(id).then(response => {
-            dispatch(resetProjectHint());
-            dispatch(requestRoute(["/origins", origin]));
-            dispatch(addNotification({
-                title: "Project deleted",
-                body: `Deleted ${id}.`,
-                type: SUCCESS
-            }));
-            dispatch(actuallyDeleteProject(id));
-            dispatch(depopulateProject(id));
-        }).catch(error => {
-            dispatch(addNotification({
-                title: "Failed to delete project",
-                body: error.message,
-                type: DANGER,
-            }));
-        });
-    };
+  return dispatch => {
+    new BuilderApiClient(token).deleteProject(id).then(response => {
+      dispatch(resetProjectHint());
+      dispatch(requestRoute(["/origins", origin]));
+      dispatch(addNotification({
+        title: "Project deleted",
+        body: `Deleted ${id}.`,
+        type: SUCCESS
+      }));
+      dispatch(actuallyDeleteProject(id));
+      dispatch(depopulateProject(id));
+    }).catch(error => {
+      dispatch(addNotification({
+        title: "Failed to delete project",
+        body: error.message,
+        type: DANGER,
+      }));
+    });
+  };
 }
 
-export function updateProject(projectId: string, project: Object, token: string, route: Array<String>) {
-    return dispatch => {
-        new BuilderApiClient(token).updateProject(projectId, project).then(response => {
-            dispatch(resetProjectHint());
-            dispatch(resetRedirectRoute());
-            dispatch(requestRoute(route));
-            dispatch(addNotification({
-                title: "Project updated",
-                body: `Updated ${projectId}.`,
-                type: SUCCESS
-            }));
-        }).catch(error => {
-            dispatch(addNotification({
-                title: "Failed to update project",
-                body: error.message,
-                type: DANGER,
-            }));
-        });
-    };
+export function updateProject(projectId: string, project: Object, token: string, route: Array < String > ) {
+  return dispatch => {
+    new BuilderApiClient(token).updateProject(projectId, project).then(response => {
+      dispatch(resetProjectHint());
+      dispatch(resetRedirectRoute());
+      dispatch(requestRoute(route));
+      dispatch(addNotification({
+        title: "Project updated",
+        body: `Updated ${projectId}.`,
+        type: SUCCESS
+      }));
+    }).catch(error => {
+      dispatch(addNotification({
+        title: "Failed to update project",
+        body: error.message,
+        type: DANGER,
+      }));
+    });
+  };
 }
 
 function depopulateProject(projectId) {
-    return {
-        type: DEPOPULATE_PROJECT,
-        payload: projectId
-    };
+  return {
+    type: DEPOPULATE_PROJECT,
+    payload: projectId
+  };
 }
 
 function actuallyDeleteProject(projectId) {
-    return {
-        type: DELETE_PROJECT,
-        payload: projectId,
-    };
+  return {
+    type: DELETE_PROJECT,
+    payload: projectId,
+  };
 }
 
 function populateProject(project) {
-    return {
-        type: POPULATE_PROJECT,
-        payload: project,
-    };
+  return {
+    type: POPULATE_PROJECT,
+    payload: project,
+  };
 }
 
 export function setCurrentProject(project) {
-    return {
-        type: SET_CURRENT_PROJECT,
-        payload: project,
-    };
+  return {
+    type: SET_CURRENT_PROJECT,
+    payload: project,
+  };
 }
 
 function setProjects(projects) {
-    return {
-        type: SET_PROJECTS,
-        payload: projects,
-    };
+  return {
+    type: SET_PROJECTS,
+    payload: projects,
+  };
 }

@@ -18,6 +18,7 @@ import { merge } from "lodash";
 import { setCookie } from "./index";
 import { getBrowserCookies } from "./cookies";
 import { Map } from "immutable";
+import config from "../config";
 
 export const SET_FEATURE_FLAG = "SET_FEATURE_FLAG";
 export const SET_FEATURE_FLAGS = "SET_FEATURE_FLAGS";
@@ -55,8 +56,14 @@ export function loadFeatureFlags() {
   Object.keys(cookies)
     .filter((key) => key.startsWith(FEATURE_FLAG_KEY))
     .forEach((key) => {
-      payload.set(key.substring(FEATURE_FLAG_KEY.length + 1, key.length), cookies[key]);
+      payload = payload.set(key.substring(FEATURE_FLAG_KEY.length + 1, key.length), cookies[key]);
     });
+
+  if (config.feature_flags) {
+    Object.keys(config.feature_flags).forEach((key) => {
+      payload = payload.set(key, config.feature_flags[key]);
+    });
+  }
 
   return {
     type: SET_FEATURE_FLAGS,

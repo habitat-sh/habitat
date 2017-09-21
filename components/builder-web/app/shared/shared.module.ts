@@ -3,7 +3,7 @@ import { CommonModule } from "@angular/common";
 import { DomSanitizer } from "@angular/platform-browser";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { RouterModule } from "@angular/router";
-import { MdIconModule, MdIconRegistry, MdProgressBarModule, MdTooltipModule } from "@angular/material";
+import { MdIconModule, MdIconRegistry, MdProgressBarModule, MdTooltipModule, MdTabsModule, MdRadioModule, MdButtonModule } from "@angular/material";
 import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
 import { BreadcrumbsComponent } from "./breadcrumbs/breadcrumbs.component";
 import { ChannelsComponent } from "./channels/channels.component";
@@ -17,6 +17,9 @@ import { PlatformIconComponent } from "./platform-icon/platform-icon.component";
 import { TabsComponent } from "./tabs/TabsComponent";
 import { TabComponent } from "./tabs/TabComponent";
 import { FormProgressComponent } from "./form-progress/form-progress.component";
+import { GitHubRepoPickerComponent } from "./github-repo-picker/github-repo-picker.component";
+import { PackagePlanSelectComponent } from "./plan-select/plan-select.component";
+import { RepoFilterPipe } from "../pipes/repoFilter.pipe";
 
 @NgModule({
   imports: [
@@ -24,8 +27,11 @@ import { FormProgressComponent } from "./form-progress/form-progress.component";
     CommonModule,
     FormsModule,
     MdIconModule,
+    MdTabsModule,
     MdProgressBarModule,
     MdTooltipModule,
+    MdRadioModule,
+    MdButtonModule,
     ReactiveFormsModule,
     RouterModule
   ],
@@ -41,7 +47,10 @@ import { FormProgressComponent } from "./form-progress/form-progress.component";
     PlatformIconComponent,
     TabsComponent,
     TabComponent,
-    FormProgressComponent
+    FormProgressComponent,
+    GitHubRepoPickerComponent,
+    PackagePlanSelectComponent,
+    RepoFilterPipe
   ],
   exports: [
     BreadcrumbsComponent,
@@ -55,7 +64,9 @@ import { FormProgressComponent } from "./form-progress/form-progress.component";
     PlatformIconComponent,
     TabsComponent,
     TabComponent,
-    FormProgressComponent
+    FormProgressComponent,
+    PackagePlanSelectComponent,
+    GitHubRepoPickerComponent
   ]
 })
 export class SharedModule {

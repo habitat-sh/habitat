@@ -18,9 +18,10 @@ import { Component, Input } from "@angular/core";
     selector: "hab-package-form-progress",
     template: `
     <ol class="hab-package-form-progress small">
-      <li class="hab-package-form-progress-step" *ngFor="let step of steps">
-        <a [ngClass]="{current: step.current}" [routerLink]="step.target">{{step.name}}</a>
-      </li>
+    <li class="hab-package-form-progress-step" *ngFor="let step of steps">
+      {{step.disabled}}
+      <a [ngClass]="{current: step.current}" [routerLink]="step.disabled ? null : step.target">{{step.name}}</a>
+    </li>
     </ol>`
 })
 

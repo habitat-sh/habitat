@@ -16,12 +16,10 @@ import "whatwg-fetch";
 import { URLSearchParams } from "@angular/http";
 import * as cookies from "js-cookie";
 import config from "../config";
-import {
-    attemptSignIn, addNotification, goHome, fetchMyOrigins, requestRoute, setFeatureFlag,
-    signOut,
-    setSigningInFlag
-} from "./index";
-import { DANGER, WARNING } from "./notifications";
+import {attemptSignIn, addNotification, goHome, fetchMyOrigins, requestRoute, setFeatureFlag,
+    signOut, setSigningInFlag} from "./index";
+import {setFeatureFlags} from "./index";
+import {DANGER, WARNING} from "./notifications";
 
 const parseLinkHeader = require("parse-link-header");
 const uuid = require("uuid").v4;
@@ -41,19 +39,12 @@ export const SET_SELECTED_GITHUB_ORG = "SET_SELECTED_GITHUB_ORG";
 
 export function authenticateWithGitHub(token = undefined) {
     const wasInitializedWithToken = !!token;
-    const isCodeInQueryString = new URLSearchParams(
-        window.location.search.slice(1)
-    ).has("code");
 
     return dispatch => {
-        if (isCodeInQueryString) {
-            dispatch(setSigningInFlag(true));
-        }
         if (token) {
             setCookie("gitHubAuthToken", token);
 
             fetch(`${config["github_api_url"]}/user?access_token=${token}`).then(response => {
-                dispatch(setSigningInFlag(false));
                 if (response.ok) {
                     return response.json();
                 } else {

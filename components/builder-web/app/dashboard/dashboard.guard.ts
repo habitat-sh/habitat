@@ -1,5 +1,6 @@
 import { Injectable } from "@angular/core";
 import { CanActivate, Router } from "@angular/router";
+import { URLSearchParams } from "@angular/http";
 import { AppStore } from "../AppStore";
 import config from "../config";
 
@@ -11,11 +12,12 @@ export class DashboardGuard implements CanActivate {
     private router: Router) { }
 
   canActivate() {
-    let state = this.store.getState();
-    let signingIn = state.users.current.isSigningIn;
-    let hasToken = !!state.gitHub.authToken;
+    const hasToken = !!this.store.getState().gitHub.authToken;
+    const isCodeInQueryString = new URLSearchParams(
+      window.location.search.slice(1)
+    ).has("code");
 
-    if (signingIn || hasToken) {
+    if (isCodeInQueryString || hasToken) {
       return true;
     }
 

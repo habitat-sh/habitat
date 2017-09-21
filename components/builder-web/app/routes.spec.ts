@@ -1,9 +1,7 @@
 import { DashboardComponent } from "./dashboard/dashboard.component";
 import { ExploreComponent } from "./explore/explore.component";
-import { ProjectCreatePageComponent } from "./project-create-page/ProjectCreatePageComponent";
 import { ProjectPageComponent } from "./project-page/ProjectPageComponent";
 import { ProjectsPageComponent } from "./projects-page/ProjectsPageComponent";
-import { SCMReposPageComponent } from "./scm-repos-page/SCMReposPageComponent";
 import { SignInPageComponent } from "./sign-in-page/sign-in-page.component";
 import { ProjectSettingsPageComponent } from "./project-settings-page/ProjectSettingsPageComponent";
 import { routes } from "./routes";
@@ -35,13 +33,6 @@ describe("Routes", () => {
     });
   });
 
-  describe("/projects/create", () => {
-    it("routes to ProjectCreatePageComponent", () => {
-      let r = route("projects/create");
-      expect(r.component).toBe(ProjectCreatePageComponent);
-    });
-  });
-
   describe("/projects/:origin/:name", () => {
     it("routes to ProjectPageComponent", () => {
       let r = route("projects/:origin/:name");
@@ -53,13 +44,6 @@ describe("Routes", () => {
     it("routes to ProjectSettingsPageComponent", () => {
       let r = route("projects/:origin/:name/settings");
       expect(r.component).toBe(ProjectSettingsPageComponent);
-    });
-  });
-
-  describe("/scm-repos", () => {
-    it("routes to SCMReposPageComponent", () => {
-      let r = route("scm-repos");
-      expect(r.component).toBe(SCMReposPageComponent);
     });
   });
 

@@ -16,10 +16,8 @@ import { Routes, RouterModule } from "@angular/router";
 import { DashboardComponent } from "./dashboard/dashboard.component";
 import { DashboardGuard } from "./dashboard/dashboard.guard";
 import { ExploreComponent } from "./explore/explore.component";
-import { ProjectCreatePageComponent } from "./project-create-page/ProjectCreatePageComponent";
 import { ProjectPageComponent } from "./project-page/ProjectPageComponent";
 import { ProjectsPageComponent } from "./projects-page/ProjectsPageComponent";
-import { SCMReposPageComponent } from "./scm-repos-page/SCMReposPageComponent";
 import { SignInPageComponent } from "./sign-in-page/sign-in-page.component";
 import { ProjectSettingsPageComponent } from "./project-settings-page/ProjectSettingsPageComponent";
 
@@ -42,20 +40,12 @@ export const routes: Routes = [
         component: ProjectsPageComponent
     },
     {
-        path: "projects/create",
-        component: ProjectCreatePageComponent
-    },
-    {
         path: "projects/:origin/:name",
         component: ProjectPageComponent
     },
     {
         path: "projects/:origin/:name/settings",
         component: ProjectSettingsPageComponent
-    },
-    {
-        path: "scm-repos",
-        component: SCMReposPageComponent,
     },
     {
         path: "*",
