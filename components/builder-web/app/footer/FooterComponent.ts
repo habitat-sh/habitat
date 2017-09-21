@@ -59,6 +59,7 @@ import config from "../config";
                     <li class="footer--sitemap--link"><a href="{{config['source_code_url']}}/issues">New Issues</a></li>
                     <li class="footer--sitemap--link"><a href="{{config['feature_requests_url']}}">Feature Request</a></li>
                     <li class="footer--sitemap--link"><a href="{{config['forums_url']}}">Forums</a></li>
+                    <li class="footer--sitemap--link"><a href="{{config['status_url']}}" target="_blank">Status</a></li>
                 </ul>
                 <ul class="no-bullet social">
                     <li><h4>Get in Touch</h4></li>
