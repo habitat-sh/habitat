@@ -51,7 +51,8 @@ export class PackageComponent implements OnInit, OnDestroy {
         return [
             "latest",
             "versions",
-            "builds"
+            "builds",
+            "settings"
         ].indexOf(feature) >= 0;
     }
 
@@ -62,15 +63,16 @@ export class PackageComponent implements OnInit, OnDestroy {
         };
     }
 
-    get buildable(): boolean {
-
-        let isMember = !!this.store.getState().origins.mine.find((o) => {
-          return o.name === this.origin;
+    get isOriginMember() {
+        return !!this.store.getState().origins.mine.find((o) => {
+            return o.name === this.origin;
         });
+    }
 
+    get buildable(): boolean {
         let hasProject = this.store.getState().projects.current.ui.exists;
 
-        if (isMember && hasProject) {
+        if (this.isOriginMember && hasProject) {
             return true;
         }
 

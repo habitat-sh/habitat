@@ -31,11 +31,11 @@
        [active]="rla.isActive">
       Build Jobs
     </a>
-    <a md-tab-link *ngIf="enabled('settings')"
+    <a md-tab-link *ngIf="enabled('settings') && isOriginMember"
        routerLink="settings"
        routerLinkActive #rla="routerLinkActive"
        [active]="rla.isActive">
-      Build Settings
+      Settings
     </a>
   </nav>
   <div class="page-body" [class.with-sidebar]="showSidebar" [class.with-active-build]="showActiveBuild">

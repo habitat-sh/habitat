@@ -19,6 +19,7 @@ $output-bourbon-deprecation-warnings: false !default;
 @import "base/base";
 @import "neat";
 @import "checking-input";
+@import "dialog";
 @import "drop-down";
 @import "item-list";
 @import "tabs";

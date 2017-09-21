@@ -31,21 +31,21 @@ export const RESET_PROJECT_HINT = "RESET_PROJECT_HINT";
 export function addProject(project: any, token: string, onComplete: Function = () => {}) {
   return dispatch => {
     dispatch(addNotification({
-      title: "Adding Plan",
+      title: "Adding plan",
       body: `To origin "${project.origin}"`,
       type: INFO,
     }));
     new BuilderApiClient(token).createProject(project).then(response => {
       dispatch(resetProjectHint());
       dispatch(addNotification({
-        title: "Project created",
+        title: "Plan created",
         body: `Created ${response["id"]}.`,
         type: SUCCESS,
       }));
       onComplete({success: true, response});
     }).catch(error => {
       dispatch(addNotification({
-        title: "Failed to Create project",
+        title: "Failed to create plan",
         body: error.message,
         type: DANGER,
       }));
@@ -120,21 +120,18 @@ export function fetchProjects(token: string) {
   };
 }
 
-export function deleteProject(id: string, token: string, origin: string) {
+export function deleteProject(id: string, token: string) {
   return dispatch => {
     new BuilderApiClient(token).deleteProject(id).then(response => {
-      dispatch(resetProjectHint());
-      dispatch(requestRoute(["/origins", origin]));
       dispatch(addNotification({
-        title: "Project deleted",
+        title: "Plan link deleted",
         body: `Deleted ${id}.`,
         type: SUCCESS
       }));
       dispatch(actuallyDeleteProject(id));
-      dispatch(depopulateProject(id));
     }).catch(error => {
       dispatch(addNotification({
-        title: "Failed to delete project",
+        title: "Failed to delete plan",
         body: error.message,
         type: DANGER,
       }));
@@ -142,23 +139,24 @@ export function deleteProject(id: string, token: string, origin: string) {
   };
 }
 
-export function updateProject(projectId: string, project: Object, token: string, route: Array < String > ) {
+export function updateProject(projectId: string, project: Object, token: string, onComplete: Function = () => {} ) {
   return dispatch => {
     new BuilderApiClient(token).updateProject(projectId, project).then(response => {
       dispatch(resetProjectHint());
       dispatch(resetRedirectRoute());
-      dispatch(requestRoute(route));
       dispatch(addNotification({
-        title: "Project updated",
+        title: "Plan updated",
         body: `Updated ${projectId}.`,
         type: SUCCESS
       }));
+      onComplete({success: true, response});
     }).catch(error => {
       dispatch(addNotification({
-        title: "Failed to update project",
+        title: "Failed to update plan",
         body: error.message,
         type: DANGER,
       }));
+      onComplete({success: false, error});
     });
   };
 }

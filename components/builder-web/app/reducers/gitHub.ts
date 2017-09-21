@@ -34,6 +34,13 @@ export default function gitHub(state = initialState["gitHub"], action) {
                 state.get("repos").concat(fromJS(action.payload)).
                     sortBy(repo => repo.get("name")));
 
+        case actionTypes.POPULATE_GITHUB_FILES:
+            return state.set("files", fromJS(action.payload.items.sort((a, b) => {
+                if (a.path < b.path) { return -1; }
+                if (a.path > b.path) { return 1; }
+                return 0;
+            })));
+
         case actionTypes.RESET_GITHUB_ORGS:
             return state.set("orgs", List());
 

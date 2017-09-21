@@ -35,24 +35,6 @@ export interface FileResponse {
 export class GitHubApiClient {
     constructor(private token: string) { }
 
-    // Search for a filename within a repo
-    public findFileInRepo(owner: string, repo: string, filename: string) {
-        return new Promise((resolve, reject) => {
-            fetch(`${config["github_api_url"]}/search/code?q=repo:${owner}/${repo}+filename:${filename}`, {
-                method: "GET",
-                headers: {
-                    "Authorization": `token ${this.token}`
-                }
-            }).then(response => {
-                if (response.ok) {
-                    resolve(response.json());
-                } else {
-                    reject(new Error(response.statusText));
-                }
-            });
-        });
-    }
-
     // Checks to see if a file exists at a location
     public doesFileExist(owner: string, repo: string, path: string) {
         return new Promise((resolve, reject) => {
@@ -73,6 +55,41 @@ export class GitHubApiClient {
                     resolve(true);
                 }
             }).catch(error => reject(error));
+        });
+    }
+
+    // Search for a filename within a repo
+    public findFileInRepo(owner: string, repo: string, filename: string, page: number = 1, per_page: number = 100) {
+        return new Promise((resolve, reject) => {
+            fetch(`${config["github_api_url"]}/search/code?q=repo:${owner}/${repo}+filename:${filename}&page=${page}&per_page=${per_page}`, {
+                method: "GET",
+                headers: {
+                    "Authorization": `token ${this.token}`
+                }
+            }).then(response => {
+                if (response.ok) {
+                    resolve(response.json());
+                } else {
+                    reject(new Error(response.statusText));
+                }
+            });
+        });
+    }
+
+    public getFileContent(owner: string, repo: string, path: string) {
+        return new Promise((resolve, reject) => {
+            fetch(`${config["github_api_url"]}/repos/${owner}/${repo}/contents/${path}`, {
+                method: "GET",
+                headers: {
+                    "Authorization": `token ${this.token}`
+                }
+            }).then(response => {
+                if (response.ok) {
+                    resolve(response.json());
+                } else {
+                    reject(new Error(response.statusText));
+                }
+            });
         });
     }
 

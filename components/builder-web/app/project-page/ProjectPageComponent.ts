@@ -140,7 +140,7 @@ export class ProjectPageComponent implements OnInit, OnDestroy {
     }
 
     deleteProject() {
-        this.store.dispatch(deleteProject(this.id, this.token, this.origin));
+        this.store.dispatch(deleteProject(this.id, this.token));
     }
 
     get project() {
