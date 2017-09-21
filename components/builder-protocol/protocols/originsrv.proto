@@ -326,6 +326,8 @@ message OriginProject {
   optional uint64 owner_id = 7;
   optional string vcs_type = 8;
   optional string vcs_data = 9;
+  optional string vcs_auth_token = 10;
+  optional string vcs_username = 11;
 }
 
 message OriginProjectCreate {

@@ -36,6 +36,8 @@ use router::Router;
 use serde_json;
 use typemap;
 
+use error::{Error, Result};
+
 define_event_log!();
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -60,6 +62,8 @@ struct ProjectUpdateReq {
 struct GitHubProject {
     organization: String,
     repo: String,
+    auth_token: Option<String>,
+    username: Option<String>,
 }
 
 pub fn github_authenticate(req: &mut Request) -> IronResult<Response> {
@@ -336,7 +340,7 @@ pub fn project_create(req: &mut Request) -> IronResult<Response> {
     let mut origin_get = OriginGet::new();
     let github = req.get::<persistent::Read<GitHubCli>>().unwrap();
     let session = req.extensions.get::<Authenticated>().unwrap().clone();
-    let (organization, repo) = match req.get::<bodyparser::Struct<ProjectCreateReq>>() {
+    let (organization, repo, token) = match req.get::<bodyparser::Struct<ProjectCreateReq>>() {
         Ok(Some(body)) => {
             if body.origin.len() <= 0 {
                 return Ok(Response::with((
@@ -362,21 +366,26 @@ pub fn project_create(req: &mut Request) -> IronResult<Response> {
                     "Missing value for field: `github.repo`",
                 )));
             }
+            let token = match github_creds_from_body(&body, &mut project, session.get_token()) {
+                Err(Error::IncompleteCredentials) => {
+                    return Ok(Response::with((status::UnprocessableEntity, "rg:pc:6")));
+                }
+                Ok(token) => token,
+                Err(_) => {
+                    return Ok(Response::with((status::UnprocessableEntity, "rg:pc:7")));
+                }
+            };
             origin_get.set_name(body.origin);
             project.set_plan_path(body.plan_path);
             project.set_vcs_type(String::from("git"));
-            match github.repo(
-                &session.get_token(),
-                &body.github.organization,
-                &body.github.repo,
-            ) {
+            match github.repo(&token, &body.github.organization, &body.github.repo) {
                 Ok(repo) => project.set_vcs_data(repo.clone_url),
                 Err(e) => {
                     debug!("Error finding github repo. e = {:?}", e);
                     return Ok(Response::with((status::UnprocessableEntity, "rg:pc:1")));
                 }
             }
-            (body.github.organization, body.github.repo)
+            (body.github.organization, body.github.repo, token)
         }
         _ => return Ok(Response::with(status::UnprocessableEntity)),
     };
@@ -385,12 +394,7 @@ pub fn project_create(req: &mut Request) -> IronResult<Response> {
         Err(err) => return Ok(render_net_error(&err)),
     };
 
-    match github.contents(
-        &session.get_token(),
-        &organization,
-        &repo,
-        &project.get_plan_path(),
-    ) {
+    match github.contents(&token, &organization, &repo, &project.get_plan_path()) {
         Ok(contents) => {
             match base64::decode(&contents.content) {
                 Ok(ref bytes) => {
@@ -491,7 +495,7 @@ pub fn project_update(req: &mut Request) -> IronResult<Response> {
         (session_token, session_id)
     };
 
-    let (organization, repo) = match req.get::<bodyparser::Struct<ProjectCreateReq>>() {
+    let (organization, repo, token) = match req.get::<bodyparser::Struct<ProjectCreateReq>>() {
         Ok(Some(body)) => {
             if body.plan_path.len() <= 0 {
                 return Ok(Response::with((
@@ -511,25 +515,36 @@ pub fn project_update(req: &mut Request) -> IronResult<Response> {
                     "Missing value for field: `github.repo`",
                 )));
             }
+            let token = match github_creds_from_body(&body, &mut project, session_token) {
+                Err(Error::IncompleteCredentials) => {
+                    return Ok(Response::with((status::UnprocessableEntity, "rg:pu:7")));
+                }
+                Ok(token) => token,
+                _ => {
+                    return Ok(Response::with((status::UnprocessableEntity, "rg:pu:8")));
+                }
+            };
             project.set_plan_path(body.plan_path);
-            match github.repo(&session_token, &body.github.organization, &body.github.repo) {
+            if let Some(username) = body.github.username {
+                if !project.has_vcs_auth_token() {
+                    debug!("Username supplied with no token");
+                    return Ok(Response::with((status::UnprocessableEntity, "rg:pu:8")));
+                }
+                project.set_vcs_username(username);
+            }
+            match github.repo(&token, &body.github.organization, &body.github.repo) {
                 Ok(repo) => project.set_vcs_data(repo.clone_url),
                 Err(e) => {
                     debug!("Error finding GH repo. e = {:?}", e);
                     return Ok(Response::with((status::UnprocessableEntity, "rg:pu:1")));
                 }
             }
-            (body.github.organization, body.github.repo)
+            (body.github.organization, body.github.repo, token)
         }
         _ => return Ok(Response::with(status::UnprocessableEntity)),
     };
 
-    match github.contents(
-        &session_token,
-        &organization,
-        &repo,
-        &project.get_plan_path(),
-    ) {
+    match github.contents(&token, &organization, &repo, &project.get_plan_path()) {
         Ok(contents) => {
             match base64::decode(&contents.content) {
                 Ok(ref bytes) => {
@@ -643,4 +658,28 @@ pub fn project_jobs(req: &mut Request) -> IronResult<Response> {
         }
         Err(err) => Ok(render_net_error(&err)),
     }
+}
+
+fn github_creds_from_body<S: Into<String>>(
+    body: &ProjectCreateReq,
+    project: &mut OriginProject,
+    session_token: S,
+) -> Result<String> {
+    let mut token = session_token.into();
+    if let Some(ref auth_token) = body.github.auth_token {
+        if body.github.username.is_none() {
+            debug!("Auth token supplied with no username");
+            return Err(Error::IncompleteCredentials);
+        }
+        project.set_vcs_auth_token(auth_token.to_string());
+        token = auth_token.to_string();
+    };
+    if let Some(ref username) = body.github.username {
+        if !project.has_vcs_auth_token() {
+            debug!("Username supplied with no token");
+            return Err(Error::IncompleteCredentials);
+        }
+        project.set_vcs_username(username.to_string());
+    }
+    Ok(token)
 }

@@ -84,9 +84,25 @@ impl Job {
     pub fn vcs(&self) -> vcs::VCS {
         match self.0.get_project().get_vcs_type() {
             "git" => {
+                let token: Option<String> = {
+                    if self.0.get_project().has_vcs_auth_token() {
+                        Some(self.0.get_project().get_vcs_auth_token().to_string())
+                    } else {
+                        None
+                    }
+                };
+                let username: Option<String> = {
+                    if self.0.get_project().has_vcs_username() {
+                        Some(self.0.get_project().get_vcs_username().to_string())
+                    } else {
+                        None
+                    }
+                };
                 vcs::VCS::new(
                     String::from(self.0.get_project().get_vcs_type()),
                     String::from(self.0.get_project().get_vcs_data()),
+                    token,
+                    username,
                 )
             }
             _ => panic!("unknown vcs associated with jobs project"),

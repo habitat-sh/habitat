@@ -906,6 +906,14 @@ impl Serialize for OriginProject {
         )?;
         state.serialize_field("vcs_type", self.get_vcs_type())?;
         state.serialize_field("vcs_data", self.get_vcs_data())?;
+        state.serialize_field(
+            "vcs_auth_token",
+            self.get_vcs_auth_token(),
+        )?;
+        state.serialize_field(
+            "vcs_username",
+            self.get_vcs_username(),
+        )?;
         state.end()
     }
 }

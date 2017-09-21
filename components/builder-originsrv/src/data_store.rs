@@ -106,7 +106,7 @@ impl DataStore {
         let conn = self.pool.get(opc)?;
         let project = opc.get_project();
         conn.execute(
-            "SELECT update_origin_project_v1($1, $2, $3, $4, $5, $6, $7)",
+            "SELECT update_origin_project_v2($1, $2, $3, $4, $5, $6, $7, $8, $9)",
             &[
                 &(project.get_id() as i64),
                 &(project.get_origin_id() as i64),
@@ -115,6 +115,8 @@ impl DataStore {
                 &project.get_vcs_type(),
                 &project.get_vcs_data(),
                 &(project.get_owner_id() as i64),
+                &project.get_vcs_auth_token(),
+                &project.get_vcs_username(),
             ],
         ).map_err(SrvError::OriginProjectUpdate)?;
         Ok(())
@@ -160,6 +162,14 @@ impl DataStore {
         project.set_plan_path(row.get("plan_path"));
         project.set_vcs_type(row.get("vcs_type"));
         project.set_vcs_data(row.get("vcs_data"));
+
+        if let Some(Ok(auth_token)) = row.get_opt::<&str, String>("vcs_auth_token") {
+            project.set_vcs_auth_token(auth_token);
+        }
+        if let Some(Ok(username)) = row.get_opt::<&str, String>("vcs_username") {
+            project.set_vcs_username(username);
+        }
+
         project
     }
 
@@ -169,8 +179,22 @@ impl DataStore {
     ) -> SrvResult<originsrv::OriginProject> {
         let conn = self.pool.get(opc)?;
         let project = opc.get_project();
+        let token: Option<&str> = {
+            if project.has_vcs_auth_token() {
+                Some(project.get_vcs_auth_token())
+            } else {
+                None
+            }
+        };
+        let username: Option<&str> = {
+            if project.has_vcs_username() {
+                Some(project.get_vcs_username())
+            } else {
+                None
+            }
+        };
         let rows = conn.query(
-            "SELECT * FROM insert_origin_project_v1($1, $2, $3, $4, $5, $6)",
+            "SELECT * FROM insert_origin_project_v2($1, $2, $3, $4, $5, $6, $7, $8)",
             &[
                 &project.get_origin_name(),
                 &project.get_package_name(),
@@ -178,6 +202,8 @@ impl DataStore {
                 &project.get_vcs_type(),
                 &project.get_vcs_data(),
                 &(project.get_owner_id() as i64),
+                &token,
+                &username,
             ],
         ).map_err(SrvError::OriginProjectCreate)?;
         let row = rows.get(0);

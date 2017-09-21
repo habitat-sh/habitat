@@ -30,6 +30,7 @@ extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 extern crate toml;
+extern crate url;
 extern crate zmq;
 extern crate habitat_builder_protocol;
 extern crate builder_core as bldr_core;

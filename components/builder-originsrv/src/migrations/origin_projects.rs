@@ -114,5 +114,78 @@ pub fn migrate(migrator: &mut Migrator) -> SrvResult<()> {
                             WHERE id = project_id;
                      END
                  $$ LANGUAGE plpgsql VOLATILE"#)?;
+    migrator.migrate(
+        "originsrv",
+        r#"ALTER TABLE IF EXISTS origin_projects ADD COLUMN IF NOT EXISTS vcs_auth_token text;"#,
+    )?;
+    migrator.migrate(
+        "originsrv",
+        r#"ALTER TABLE IF EXISTS origin_projects ADD COLUMN IF NOT EXISTS vcs_username text;"#,
+    )?;
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE OR REPLACE FUNCTION insert_origin_project_v2 (
+                        project_origin_name text,
+                        project_package_name text,
+                        project_plan_path text,
+                        project_vcs_type text,
+                        project_vcs_data text,
+                        project_owner_id bigint,
+                        project_vcs_auth_token text,
+                        project_vcs_username text
+                 ) RETURNS SETOF origin_projects AS $$
+                     BEGIN
+                         RETURN QUERY INSERT INTO origin_projects (origin_id,
+                                                      origin_name,
+                                                      package_name,
+                                                      name,
+                                                      plan_path,
+                                                      owner_id,
+                                                      vcs_type,
+                                                      vcs_data,
+                                                      vcs_auth_token,
+                                                      vcs_username)
+                                VALUES (
+                                    (SELECT id FROM origins where name = project_origin_name),
+                                    project_origin_name,
+                                    project_package_name,
+                                    project_origin_name || '/' || project_package_name,
+                                    project_plan_path,
+                                    project_owner_id,
+                                    project_vcs_type,
+                                    project_vcs_data,
+                                    project_vcs_auth_token,
+                                    project_vcs_username)
+                                RETURNING *;
+                         RETURN;
+                     END
+                 $$ LANGUAGE plpgsql VOLATILE"#,
+    )?;
+    migrator.migrate("originsrv",
+                     r#"CREATE OR REPLACE FUNCTION update_origin_project_v2 (
+                        project_id bigint,
+                        project_origin_id bigint,
+                        project_package_name text,
+                        project_plan_path text,
+                        project_vcs_type text,
+                        project_vcs_data text,
+                        project_owner_id bigint,
+                        project_vcs_auth_token text,
+                        project_vcs_username text
+                 ) RETURNS void AS $$
+                     BEGIN
+                        UPDATE origin_projects SET
+                            package_name = project_package_name,
+                            name = (SELECT name FROM origins WHERE id = project_origin_id) || '/' || project_package_name,
+                            plan_path = project_plan_path,
+                            vcs_type = project_vcs_type,
+                            vcs_data = project_vcs_data,
+                            owner_id = project_owner_id,
+                            updated_at = now(),
+                            vcs_auth_token = project_vcs_auth_token,
+                            vcs_username = project_vcs_username
+                            WHERE id = project_id;
+                     END
+                 $$ LANGUAGE plpgsql VOLATILE"#)?;
     Ok(())
 }
