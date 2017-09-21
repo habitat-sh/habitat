@@ -314,7 +314,7 @@ impl BuildRootContext {
                 PackageIdent::from_str(ident_or_archive)?
             };
             let pkg_install = PackageInstall::load(&ident, Some(&rootfs))?;
-            if pkg_install.installed_path.join("run").is_file() {
+            if pkg_install.is_runnable() {
                 idents.push(PkgIdentType::Svc(SvcIdent {
                     ident: ident,
                     exposes: pkg_install.exposes()?,
