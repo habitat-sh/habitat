@@ -188,7 +188,7 @@ use std::sync::Arc;
 
 use core::os::signals;
 use protocol::{self, Protocol};
-use protocol::routesrv::{self, PING_INTERVAL_MS};
+use protocol::routesrv;
 use uuid::Uuid;
 use zmq;
 
@@ -196,7 +196,7 @@ use self::config::AppCfg;
 use self::error::{AppError, AppResult};
 use self::dispatcher::{Dispatcher, DispatcherPool};
 use conn::{self, ConnErr, ConnEvent};
-use error::NetError;
+use error::{ErrCode, NetError};
 use socket::{self, DEFAULT_CONTEXT, ToAddrString};
 use time;
 
@@ -250,7 +250,7 @@ where
     registration: protocol::Message,
     /// Network Socket connecting to RouteSrv(s).
     router_sock: zmq::Socket,
-    /// Set of RouteSrv's net identity.
+    /// Set of RouteSrv's connections.
     routers: HashSet<Vec<u8>>,
     marker: PhantomData<T>,
 }
@@ -275,7 +275,7 @@ where
         Ok(Application {
             heartbeat: protocol::Message::build(&routesrv::Heartbeat::new())?,
             msg_buf: protocol::Message::default(),
-            next_heartbeat: time::clock_time() + PING_INTERVAL_MS,
+            next_heartbeat: next_heartbeat(),
             pipe_out: pipe_out,
             pipe_in: pipe_in,
             recv_buf: zmq::Message::new()?,
@@ -314,7 +314,6 @@ where
             &mut self.registration,
             self.msg_buf.sender().unwrap(),
         )?;
-        self.routers.insert(self.msg_buf.sender().unwrap().to_vec());
         Ok(())
     }
 
@@ -328,17 +327,27 @@ where
             Some(Protocol::RouteSrv) => {
                 if self.msg_buf.message_id() == NetError::message_id() {
                     let err = NetError::parse(&self.msg_buf).unwrap();
-                    return Err(AppError::Terminated(err));
+                    match err.code() {
+                        ErrCode::REG_CONFLICT => {
+                            error!("{}, retrying registration to RouteSrv", err);
+                        }
+                        ErrCode::REG_NOT_FOUND => {
+                            conn::send_to(
+                                &self.router_sock,
+                                &self.registration,
+                                self.msg_buf.sender().unwrap(),
+                            )?;
+                        }
+                        _ => error!("{}, unhandled error from RouteSrv", err),
+                    }
                 } else {
                     warn!(
-                        "handle-message, received unknown request from RouteSrv, {}",
+                        "handle-message, received unknown message from RouteSrv, {}",
                         self.msg_buf.message_id()
                     );
                 }
             }
-            Some(Protocol::Net) => {
-                warn!("handle-message, received Net protocol message");
-            }
+            Some(Protocol::Net) => warn!("handle-message, received Net protocol message"),
             None => warn!("handle-message, no route-info"),
             Some(_) => {
                 if self.msg_buf.completed_txn() {
@@ -355,13 +364,14 @@ where
     fn run(mut self, config: <T::State as AppState>::Config) -> AppResult<(), T::Error> {
         signals::init();
         for addr in config.route_addrs() {
-            self.router_sock.connect(&addr.to_addr_string())?;
+            let addr = addr.to_addr_string();
+            self.router_sock.connect(&addr)?;
+            self.routers.insert(addr.as_bytes().to_vec());
         }
         let pipe_in = Arc::new(format!("inproc://net.dispatcher.in.{}", Uuid::new_v4()));
         let pipe_out = Arc::new(format!("inproc://net.dispatcher.out.{}", Uuid::new_v4()));
         self.pipe_in.bind(&*pipe_in)?;
         self.pipe_out.bind(&*pipe_out)?;
-
         let state = T::app_init(&config, pipe_out.clone()).map_err(
             AppError::Init,
         )?;
@@ -406,15 +416,15 @@ where
                 RecvEvent::Timeout => {
                     trace!("recv timeout, sending heartbeat");
                     for addr in self.routers.iter() {
-                        conn::send_to(&self.router_sock, &mut self.heartbeat, addr)?;
+                        conn::send_to(&self.router_sock, &mut self.heartbeat, &addr)?;
                     }
-                    self.next_heartbeat = time::clock_time() + PING_INTERVAL_MS;
+                    self.next_heartbeat = next_heartbeat();
                 }
                 RecvEvent::Shutdown => {
                     info!("received shutdown signal, shutting down...");
                     let mut disconnect = protocol::Message::build(&routesrv::Disconnect::new())?;
                     for addr in self.routers.iter() {
-                        conn::send_to(&self.router_sock, &mut disconnect, addr)?;
+                        conn::send_to(&self.router_sock, &mut disconnect, &addr)?;
                     }
                     break;
                 }
@@ -469,6 +479,10 @@ where
 {
     let app = Application::<T>::new(&cfg)?;
     app.run(cfg)
+}
+
+fn next_heartbeat() -> i64 {
+    time::clock_time() + routesrv::PING_INTERVAL_MS
 }
 
 /// Proxy messages from one socket to another.

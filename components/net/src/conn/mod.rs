@@ -218,7 +218,7 @@ where
     route(socket, message)
 }
 
-pub fn send_to(socket: &zmq::Socket, message: &mut Message, dest: &[u8]) -> Result<(), ConnErr> {
+pub fn send_to(socket: &zmq::Socket, message: &Message, dest: &[u8]) -> Result<(), ConnErr> {
     socket.send(dest, zmq::SNDMORE)?;
     socket.send(&[], zmq::SNDMORE)?;
     send_header(socket, message)?;
