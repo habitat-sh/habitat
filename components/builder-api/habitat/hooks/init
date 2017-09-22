@@ -1,4 +1,5 @@
 #!/bin/sh
+set -e
 
 cp -a {{pkg.path}}/static/* {{pkg.svc_static_path}}
 rm -f {{pkg.svc_static_path}}/habitat.conf.js
