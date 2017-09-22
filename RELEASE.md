@@ -65,6 +65,13 @@ Draft a new Release, specify the tag, and title it with the same (eg, 0.18.0). T
 
 > Example: If the release version was `0.9.0` then the contents of `VERSION` might read `0.10.0-dev` if your next target is `0.10.0`.
 
+# If your Release is going to cause downtime
+
+1. Pre-announce outage on Twitter & Slack #general channel. There is no hard rule for a length of time you need to do this ahead of a release outage.
+1. When your release begins, post announcement in our statuspage.io with outage information. 
+1. Per [ON_CALL.md](#ON_CALL.md) you are responsible for updating status changes in statuspage.io as the downtime proceeds. You are not responsible for regular minutes or responding in any other venue.
+1. When the downtime is over, announce the end of the outage via statuspage.io. It will automatically post an announcement to #general and twitter.
+
 # Release Notification 
 
 1. Create a new post in [Habitat Announcements](https://forums.habitat.sh/c/habitat-announcements)
