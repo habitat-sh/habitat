@@ -17,7 +17,7 @@ use std::path::{Path, PathBuf};
 use common;
 use common::ui::{Status, UI};
 use hcore;
-use hcore::fs::{self, cache_artifact_path};
+use hcore::fs::{self, cache_artifact_path, FS_ROOT_PATH};
 use hcore::package::{PackageIdent, PackageInstall};
 use hcore::url::default_bldr_url;
 
@@ -53,10 +53,9 @@ where
         return Err(Error::ExecCommandNotFound(command));
     }
 
-    let fs_root_path = Path::new("/");
     match PackageInstall::load_at_least(ident, None) {
         Ok(pi) => {
-            match fs::find_command_in_pkg(&command, &pi, fs_root_path)? {
+            match fs::find_command_in_pkg(&command, &pi)? {
                 Some(cmd) => Ok(cmd),
                 None => Err(Error::ExecCommandNotFound(command)),
             }
@@ -73,7 +72,7 @@ where
                 &ident.to_string(),
                 PRODUCT,
                 VERSION,
-                fs_root_path,
+                &*FS_ROOT_PATH,
                 &cache_artifact_path(None::<String>),
                 false,
             )?;

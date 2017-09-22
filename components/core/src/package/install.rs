@@ -346,7 +346,13 @@ impl PackageInstall {
     pub fn paths(&self) -> Result<Vec<PathBuf>> {
         match self.read_metafile(MetaFile::Path) {
             Ok(body) => {
-                let v = env::split_paths(&body).map(|p| PathBuf::from(&p)).collect();
+                let v = env::split_paths(&body)
+                    .map(|p| {
+                        self.fs_root_path.join(PathBuf::from(
+                            &p.strip_prefix("/").unwrap(),
+                        ))
+                    })
+                    .collect();
                 Ok(v)
             }
             Err(Error::MetaFileNotFound(MetaFile::Path)) => {

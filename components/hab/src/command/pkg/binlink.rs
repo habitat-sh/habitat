@@ -38,7 +38,7 @@ pub fn start(
         dst_path.display()
     ))?;
     let pkg_install = PackageInstall::load(&ident, Some(fs_root_path))?;
-    let src = match hfs::find_command_in_pkg(binary, &pkg_install, fs_root_path)? {
+    let src = match hfs::find_command_in_pkg(binary, &pkg_install)? {
         Some(c) => c,
         None => {
             return Err(Error::CommandNotFoundInPkg(
@@ -79,7 +79,7 @@ pub fn binlink_all_in_pkg(
 ) -> Result<()> {
     let pkg_path = PackageInstall::load(&pkg_ident, Some(fs_root_path))?;
     for bin_path in pkg_path.paths()? {
-        for bin in fs::read_dir(fs_root_path.join(bin_path.strip_prefix("/")?))? {
+        for bin in fs::read_dir(bin_path)? {
             let bin_file = bin?;
             let bin_name = match bin_file.file_name().to_str() {
                 Some(bn) => bn.to_owned(),
@@ -120,7 +120,7 @@ mod test {
         let ident = fake_bin_pkg_install("acme/cooltools", tools, rootfs.path());
         let dst_path = Path::new("/opt/bin");
 
-        let rootfs_src_dir = hcore::fs::pkg_install_path(&ident, None::<&Path>).join("bin");
+        let rootfs_src_dir = hcore::fs::pkg_install_path(&ident, Some(rootfs.path())).join("bin");
         let rootfs_bin_dir = rootfs.path().join("opt/bin");
 
         let (mut ui, _stdout, _stderr) = ui();
@@ -146,7 +146,7 @@ mod test {
         let ident = fake_bin_pkg_install("acme/securetools", tools, rootfs.path());
         let dst_path = Path::new("/opt/bin");
 
-        let rootfs_src_dir = hcore::fs::pkg_install_path(&ident, None::<&Path>);
+        let rootfs_src_dir = hcore::fs::pkg_install_path(&ident, Some(rootfs.path()));
         let rootfs_bin_dir = rootfs.path().join("opt/bin");
 
         let (mut ui, _stdout, _stderr) = ui();
