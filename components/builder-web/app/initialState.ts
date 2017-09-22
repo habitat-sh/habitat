@@ -28,6 +28,7 @@ export default Record({
     authToken: undefined,
     orgs: List(),
     repos: List(),
+    files: List(),
     selectedOrg: undefined,
     username: undefined,
     ui: Record({

@@ -3,7 +3,8 @@ import { CommonModule } from "@angular/common";
 import { DomSanitizer } from "@angular/platform-browser";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { RouterModule } from "@angular/router";
-import { MdIconModule, MdIconRegistry, MdProgressBarModule, MdTooltipModule, MdTabsModule, MdRadioModule, MdButtonModule } from "@angular/material";
+import { MdIconModule, MdIconRegistry, MdProgressBarModule, MdRadioModule, MdRadioGroup, MdRadioButton,
+  MdTooltipModule, MdTabsModule, MdButtonModule } from "@angular/material";
 import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
 import { BreadcrumbsComponent } from "./breadcrumbs/breadcrumbs.component";
 import { ChannelsComponent } from "./channels/channels.component";
@@ -14,12 +15,12 @@ import { PackageInfoComponent } from "./package-info/package-info.component";
 import { PackageListComponent } from "./package-list/package-list.component";
 import { ProgressBarComponent } from "./progress-bar/progress-bar.component";
 import { PlatformIconComponent } from "./platform-icon/platform-icon.component";
+import { RepoFilterPipe } from "../pipes/repoFilter.pipe";
 import { TabsComponent } from "./tabs/TabsComponent";
 import { TabComponent } from "./tabs/TabComponent";
 import { FormProgressComponent } from "./form-progress/form-progress.component";
 import { GitHubRepoPickerComponent } from "./github-repo-picker/github-repo-picker.component";
 import { PackagePlanSelectComponent } from "./plan-select/plan-select.component";
-import { RepoFilterPipe } from "../pipes/repoFilter.pipe";
 import { UserLoggedInGuard, UserLoggedOutGuard } from "./user/user.guard";
 
 @NgModule({
@@ -30,6 +31,7 @@ import { UserLoggedInGuard, UserLoggedOutGuard } from "./user/user.guard";
     MdIconModule,
     MdTabsModule,
     MdProgressBarModule,
+    MdRadioModule,
     MdTooltipModule,
     MdRadioModule,
     MdButtonModule,
@@ -46,6 +48,7 @@ import { UserLoggedInGuard, UserLoggedOutGuard } from "./user/user.guard";
     PackageListComponent,
     ProgressBarComponent,
     PlatformIconComponent,
+    RepoFilterPipe,
     TabsComponent,
     TabComponent,
     FormProgressComponent,
@@ -59,10 +62,13 @@ import { UserLoggedInGuard, UserLoggedOutGuard } from "./user/user.guard";
     CheckingInputComponent,
     CopyableComponent,
     IconComponent,
+    MdRadioGroup,
+    MdRadioButton,
     PackageInfoComponent,
     PackageListComponent,
     ProgressBarComponent,
     PlatformIconComponent,
+    RepoFilterPipe,
     TabsComponent,
     TabComponent,
     FormProgressComponent,

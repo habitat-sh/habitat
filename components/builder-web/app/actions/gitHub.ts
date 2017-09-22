@@ -16,19 +16,22 @@ import "whatwg-fetch";
 import { URLSearchParams } from "@angular/http";
 import * as cookies from "js-cookie";
 import config from "../config";
-import {attemptSignIn, addNotification, goHome, fetchMyOrigins, requestRoute, setFeatureFlag,
-    signOut, setSigningInFlag} from "./index";
-import {setFeatureFlags} from "./index";
-import {DANGER, WARNING} from "./notifications";
+import { setFeatureFlags } from "./index";
+import { attemptSignIn, addNotification, goHome, fetchMyOrigins, requestRoute, setFeatureFlag,
+    signOut, setSigningInFlag } from "./index";
+import { DANGER, WARNING } from "./notifications";
+import { GitHubApiClient } from "../GitHubApiClient";
 
 const parseLinkHeader = require("parse-link-header");
 const uuid = require("uuid").v4;
 const gitHubTokenAuthUrl = `${config["habitat_api_url"]}/v1/authenticate`;
 
 export const LOAD_SESSION_STATE = "LOAD_SESSION_STATE";
+export const POPULATE_GITHUB_FILES = "POPULATE_GITHUB_FILES";
 export const POPULATE_GITHUB_ORGS = "POPULATE_GITHUB_ORGS";
 export const POPULATE_GITHUB_REPOS = "POPULATE_GITHUB_REPOS";
 export const POPULATE_GITHUB_USER_DATA = "POPULATE_GITHUB_USER_DATA";
+export const RESET_GITHUB_FILES = "RESET_GITHUB_FILES";
 export const RESET_GITHUB_ORGS = "RESET_GITHUB_ORGS";
 export const RESET_GITHUB_REPOS = "RESET_GITHUB_REPOS";
 export const SET_GITHUB_AUTH_STATE = "SET_GITHUB_AUTH_STATE";
@@ -74,6 +77,45 @@ export function authenticateWithGitHub(token = undefined) {
     };
 }
 
+export function fetchGitHubFiles(owner: string, repo: string, filename: string) {
+    const token = cookies.get("gitHubAuthToken");
+
+    return dispatch => {
+        const client = new GitHubApiClient(token);
+
+        client.findFileInRepo(owner, repo, filename)
+            .then((results) => {
+                dispatch(populateGitHubFiles(results));
+            });
+    };
+};
+
+export function fetchGitHubRepos(org, page = 1, username) {
+    const token = cookies.get("gitHubAuthToken");
+    const urlPath = username ? `users/${username}/repos` : `orgs/${org}/repos`;
+
+    return dispatch => {
+        if (page === 1) {
+            dispatch(setGitHubReposLoadingFlag(true));
+        }
+
+        fetch(`${config["github_api_url"]}/${urlPath}?access_token=${token}&per_page=100&page=${page}&type=all`).then(response => {
+            const links = parseLinkHeader(response.headers.get("Link"));
+
+            // When we get the first page, clear everything out
+            if (page === 1) { dispatch(resetGitHubRepos()); }
+
+            if (links && links.next && links.next.page) {
+                dispatch(fetchGitHubRepos(org, links.next.page, username));
+            } else {
+                dispatch(setGitHubReposLoadingFlag(false));
+            }
+
+            response.json().then(data => dispatch(populateGitHubRepos(data)));
+        });
+    };
+}
+
 export function fetchGitHubOrgs(page = 1) {
     const token = cookies.get("gitHubAuthToken");
 
@@ -96,32 +138,6 @@ export function fetchGitHubOrgs(page = 1) {
     };
 };
 
-export function fetchGitHubRepos(org, page = 1, username) {
-    const token = cookies.get("gitHubAuthToken");
-    const urlPath = username ? `users/${username}/repos` : `orgs/${org}/repos`;
-
-    return dispatch => {
-        if (page === 1) {
-            dispatch(setGitHubReposLoadingFlag(true));
-        }
-
-        fetch(`${config["github_api_url"]}/${urlPath}?access_token=${token}&per_page=100&page=${page}`).then(response => {
-            const links = parseLinkHeader(response.headers.get("Link"));
-
-            // When we get the first page, clear everything out
-            if (page === 1) { dispatch(resetGitHubRepos()); }
-
-            if (links && links.next && links.next.page) {
-                dispatch(fetchGitHubRepos(org, links.next.page, username));
-            } else {
-                dispatch(setGitHubReposLoadingFlag(false));
-            }
-
-            response.json().then(data => dispatch(populateGitHubRepos(data)));
-        });
-    };
-}
-
 export function loadSessionState() {
     return {
         type: LOAD_SESSION_STATE,
@@ -129,6 +145,13 @@ export function loadSessionState() {
             gitHubAuthToken: cookies.get("gitHubAuthToken"),
             gitHubAuthState: cookies.get("gitHubAuthState"),
         },
+    };
+}
+
+export function clearGitHubRepos() {
+    return dispatch => {
+        dispatch(resetGitHubRepos());
+        dispatch(resetGitHubFiles());
     };
 }
 
@@ -149,6 +172,13 @@ function populateGitHubOrgs(payload) {
 function populateGitHubRepos(data) {
     return {
         type: POPULATE_GITHUB_REPOS,
+        payload: data,
+    };
+}
+
+function populateGitHubFiles(data) {
+    return {
+        type: POPULATE_GITHUB_FILES,
         payload: data,
     };
 }
@@ -197,6 +227,12 @@ export function requestGitHubAuthToken(params, stateKey = "") {
                 }
             });
         }
+    };
+}
+
+function resetGitHubFiles() {
+    return {
+        type: RESET_GITHUB_FILES,
     };
 }
 
