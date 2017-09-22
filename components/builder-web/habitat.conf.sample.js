@@ -35,6 +35,8 @@ habitatConfig({
     feature_requests_url: "https://portal.prodpad.com/24539",
     // The URL for forums
     forums_url: "https://forums.habitat.sh/",
+    // The URL for status
+    status_url: "https://status.habitat.sh/",
     // The version of the software we're running. In production, this should
     // be automatically populated by Habitat
     version: "",
