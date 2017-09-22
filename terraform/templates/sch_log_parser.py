@@ -11,7 +11,7 @@ def my_log_parser(logger, line):
         url = '${api_url}/#/pkgs/{0}/builds/{1}'.format(package, job_id)
 
         if event == 'Failed':
-            error = rest.split(',')[4]
+            error = rest.split(',')[-1]
             message = package + ' ' + error + ' ' + url
         elif event == 'Complete':
             message = package + ' ' + url
