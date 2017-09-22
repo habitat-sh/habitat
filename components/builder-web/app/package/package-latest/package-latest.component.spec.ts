@@ -50,6 +50,7 @@ describe("PackageLatestComponent", () => {
       ],
       declarations: [
         PackageLatestComponent,
+        MockComponent({ selector: "hab-icon", inputs: [ "symbol" ]}),
         MockComponent({ selector: "hab-package-detail", inputs: [ "package" ]})
       ],
       providers: [

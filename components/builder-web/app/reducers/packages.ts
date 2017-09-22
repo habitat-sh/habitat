@@ -27,6 +27,8 @@ export default function packages(state = initialState["packages"], action) {
                 set("totalCount", 0).
                 setIn(["ui", "current", "loading"], true).
                 setIn(["ui", "current", "exists"], false).
+                setIn(["ui", "latest", "loading"], true).
+                setIn(["ui", "latest", "exists"], false).
                 setIn(["ui", "visible", "loading"], true).
                 setIn(["ui", "visible", "exists"], false);
 
@@ -79,11 +81,17 @@ export default function packages(state = initialState["packages"], action) {
 
         case actionTypes.SET_LATEST_PACKAGE:
             if (action.error) {
-                return state.set("latest", Package());
+                return state.set("latest", Package()).
+                    setIn(["ui", "latest", "errorMessage"], action.error.message).
+                    setIn(["ui", "latest", "exists"], false).
+                    setIn(["ui", "latest", "loading"], false);
             } else {
                 let p = Object.assign({}, action.payload);
                 p.manifest = marked(p.manifest);
-                return state.set("latest", Package(p));
+                return state.set("latest", Package(p)).
+                    setIn(["ui", "latest", "errorMessage"], undefined).
+                    setIn(["ui", "latest", "exists"], true).
+                    setIn(["ui", "latest", "loading"], false);
             }
 
         case actionTypes.SET_PACKAGES_NEXT_RANGE:

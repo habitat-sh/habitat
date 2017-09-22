@@ -38,6 +38,10 @@ export class PackageLatestComponent implements OnDestroy {
         return this.store.getState().packages.latest;
     }
 
+    get ui() {
+        return this.store.getState().packages.ui.latest;
+    }
+
     private fetchLatest () {
         this.store.dispatch(fetchLatestPackage(this.origin, this.name));
     }

@@ -11,6 +11,7 @@
 
     .page-content {
       @include span-columns(12);
+      min-height: 1px;
     }
 
     .page-sidebar, hab-build-notice {
