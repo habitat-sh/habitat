@@ -530,7 +530,14 @@ impl<'a> InstallTask<'a> {
     fn store_artifact_in_cache(&self, ident: &PackageIdent, artifact_path: &Path) -> Result<()> {
         let cache_path = self.cached_artifact_path(ident)?;
         fs::create_dir_all(self.artifact_cache_path)?;
-        fs::copy(artifact_path, cache_path)?;
+
+        // Handle the pathological case where you're trying to install
+        // an artifact file directly from the cache. Otherwise, you'd
+        // end up with a 0-byte file in the cache and wouldn't be able
+        // to subsequently verify it.
+        if artifact_path != cache_path {
+            fs::copy(artifact_path, cache_path)?;
+        }
         Ok(())
     }
 
