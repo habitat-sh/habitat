@@ -1,12 +1,73 @@
 # Habitat CHANGELOG
 
+## [0.33.0](https://github.com/habitat-sh/habitat/tree/0.33.0) (09-22-2017)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.32.0...0.33.0)
+
+## Features & Enhancements
+
+- Update runtime settings documentation with examples [\#3167](https://github.com/habitat-sh/habitat/issues/3167)
+- Complete backend work for private packages [\#3141](https://github.com/habitat-sh/habitat/issues/3141)
+- Implement publishing to Docker Hub in builder-worker [\#2940](https://github.com/habitat-sh/habitat/issues/2940)
+- Add config option for tuning HTTP handler thread count [\#3265](https://github.com/habitat-sh/habitat/pull/3265) ([reset](https://github.com/reset))
+- \[core\] Add `PackageInstall.is\_runnable\(\)` & use in Docker exporter. [\#3258](https://github.com/habitat-sh/habitat/pull/3258) ([fnichol](https://github.com/fnichol))
+- Migrate Service Spec files using an older format [\#3242](https://github.com/habitat-sh/habitat/pull/3242) ([reset](https://github.com/reset))
+- Additional renames of depot\_url to bldr\_url [\#3240](https://github.com/habitat-sh/habitat/pull/3240) ([reset](https://github.com/reset))
+- Remove all lines between Builder & Depot [\#3239](https://github.com/habitat-sh/habitat/pull/3239) ([reset](https://github.com/reset))
+- Remove all lines between Builder & Depot [\#3239](https://github.com/habitat-sh/habitat/pull/3239) ([reset](https://github.com/reset))
+- Update ReadMe.md [\#3238](https://github.com/habitat-sh/habitat/pull/3238) ([tashimi](https://github.com/tashimi))
+- Project creation [\#3237](https://github.com/habitat-sh/habitat/pull/3237) ([mgamini](https://github.com/mgamini))
+- Update Contributing.md [\#3235](https://github.com/habitat-sh/habitat/pull/3235) ([tashimi](https://github.com/tashimi))
+- Create ReadMe.md [\#3234](https://github.com/habitat-sh/habitat/pull/3234) ([tashimi](https://github.com/tashimi))
+- Update terms and conditions [\#3231](https://github.com/habitat-sh/habitat/pull/3231) ([tashimi](https://github.com/tashimi))
+- Update licensing [\#3229](https://github.com/habitat-sh/habitat/pull/3229) ([tashimi](https://github.com/tashimi))
+- Move incorrect warn statement to debug when try-loading a hook [\#3228](https://github.com/habitat-sh/habitat/pull/3228) ([reset](https://github.com/reset))
+- Removed Basic Concepts topic and inlined definitions from tutorial [\#3225](https://github.com/habitat-sh/habitat/pull/3225) ([davidwrede](https://github.com/davidwrede))
+- \[pkg-export-docker\] Rewrite `hab-pkg-dockerize` as a Rust program. [\#3213](https://github.com/habitat-sh/habitat/pull/3213) ([fnichol](https://github.com/fnichol))
+- improve callback order clarity [\#3210](https://github.com/habitat-sh/habitat/pull/3210) ([echohack](https://github.com/echohack))
+- Document how to create a new bootstrap bundle [\#3209](https://github.com/habitat-sh/habitat/pull/3209) ([christophermaier](https://github.com/christophermaier))
+- Add Dockerfile for building a self contained Builder [\#3193](https://github.com/habitat-sh/habitat/pull/3193) ([reset](https://github.com/reset))
+- Feature Flags! Cookies! [\#3156](https://github.com/habitat-sh/habitat/pull/3156) ([mgamini](https://github.com/mgamini))
+- Updates docs for Native and VM dev environments [\#3015](https://github.com/habitat-sh/habitat/pull/3015) ([tyler-ball](https://github.com/tyler-ball))
+
+## Bug fixes
+
+- \\[core\\] Add `PackageInstall.is\\_runnable\\(\\)` & use in Docker exporter. [\#3258](https://github.com/habitat-sh/habitat/pull/3258) ([fnichol](https://github.com/fnichol))
+- Add missing `depot/` prefix from channel package list in client [\#3247](https://github.com/habitat-sh/habitat/pull/3247) ([reset](https://github.com/reset))
+- Additional renames of depot\\_url to bldr\\_url [\#3240](https://github.com/habitat-sh/habitat/pull/3240) ([reset](https://github.com/reset))
+- Remove all lines between Builder & Depot [\#3239](https://github.com/habitat-sh/habitat/pull/3239) ([reset](https://github.com/reset))
+- Fix out of order messaging in RouteConn [\#3230](https://github.com/habitat-sh/habitat/pull/3230) ([reset](https://github.com/reset))
+
+**Closed issues:**
+
+- Tracking issue - Ruby scaffolding should exclude gems in dev and test groups [\#3204](https://github.com/habitat-sh/habitat/issues/3204)
+- Change build type in web UI [\#2953](https://github.com/habitat-sh/habitat/issues/2953)
+
+**Merged pull requests:**
+
+- Bump RouteSrv TTL from 32s to 35s [\#3266](https://github.com/habitat-sh/habitat/pull/3266) ([reset](https://github.com/reset))
+- Remove orphaned scss sheet to unbreak the build [\#3257](https://github.com/habitat-sh/habitat/pull/3257) ([elliott-davis](https://github.com/elliott-davis))
+- Remove dashboard component [\#3256](https://github.com/habitat-sh/habitat/pull/3256) ([elliott-davis](https://github.com/elliott-davis))
+- Update the Procfile to use new service names [\#3244](https://github.com/habitat-sh/habitat/pull/3244) ([cnunciato](https://github.com/cnunciato))
+- Incorporate feedback from previous PR for refactoring `--url` [\#3243](https://github.com/habitat-sh/habitat/pull/3243) ([reset](https://github.com/reset))
+- Integrations page [\#3233](https://github.com/habitat-sh/habitat/pull/3233) ([elliott-davis](https://github.com/elliott-davis))
+- Remove restrictions on non-core builds [\#3227](https://github.com/habitat-sh/habitat/pull/3227) ([chefsalim](https://github.com/chefsalim))
+- honor `HAB\_DEPOT\_CHANNEL` environment variable in powershell based builds [\#3226](https://github.com/habitat-sh/habitat/pull/3226) ([mwrock](https://github.com/mwrock))
+- Bump version [\#3221](https://github.com/habitat-sh/habitat/pull/3221) ([chefsalim](https://github.com/chefsalim))
+- Use build worker privilege for required depot APIs [\#3220](https://github.com/habitat-sh/habitat/pull/3220) ([chefsalim](https://github.com/chefsalim))
+- Minor fixes for BLDR container [\#3217](https://github.com/habitat-sh/habitat/pull/3217) ([reset](https://github.com/reset))
+- Ensure that only people with origin access can view private packages [\#3215](https://github.com/habitat-sh/habitat/pull/3215) ([raskchanky](https://github.com/raskchanky))
+- Fix automatic redirect to habtiat.sh when hitting / in container [\#3214](https://github.com/habitat-sh/habitat/pull/3214) ([reset](https://github.com/reset))
+- Origins: updating refs [\#3212](https://github.com/habitat-sh/habitat/pull/3212) ([mgamini](https://github.com/mgamini))
+- origin record [\#3211](https://github.com/habitat-sh/habitat/pull/3211) ([mgamini](https://github.com/mgamini))
+- Fixed broken formatting, cleaned up tables, lists, etc. [\#3202](https://github.com/habitat-sh/habitat/pull/3202) ([davidwrede](https://github.com/davidwrede))
+- add a vcs\_auth\_token to project data for interacting with private repos [\#3178](https://github.com/habitat-sh/habitat/pull/3178) ([mwrock](https://github.com/mwrock))
+
 ## [0.32.0](https://github.com/habitat-sh/habitat/tree/0.32.0) (09-18-2017)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.31.0...0.32.0)
 
 ## Features & Enhancements
 
 - In browser tutorial error [\#3157](https://github.com/habitat-sh/habitat/issues/3157)
-- Auto-generate CLI docs  [\#3149](https://github.com/habitat-sh/habitat/issues/3149)
 - Document all sys.\* keys [\#3129](https://github.com/habitat-sh/habitat/issues/3129)
 - Blog Contribution Documentation [\#3128](https://github.com/habitat-sh/habitat/issues/3128)
 - Remove depot client dependency from builder worker [\#3124](https://github.com/habitat-sh/habitat/issues/3124)
@@ -72,6 +133,7 @@
 
 **Merged pull requests:**
 
+- Rel note and version bump to 0.32.0 [\#3203](https://github.com/habitat-sh/habitat/pull/3203) ([chefsalim](https://github.com/chefsalim))
 - Fix UI breakage [\#3197](https://github.com/habitat-sh/habitat/pull/3197) ([chefsalim](https://github.com/chefsalim))
 - Add Join and Concat template helpers [\#3191](https://github.com/habitat-sh/habitat/pull/3191) ([elliott-davis](https://github.com/elliott-davis))
 - Add information about cli command [\#3185](https://github.com/habitat-sh/habitat/pull/3185) ([tashimi](https://github.com/tashimi))
