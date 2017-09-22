@@ -1509,7 +1509,7 @@ fn search_origin_package_for_origin() {
     assert_eq!(result2.get_idents().len(), 2);
     assert_eq!(result2.get_start(), 1);
     assert_eq!(result2.get_stop(), 2);
-    assert_eq!(result2.get_count(), 3);
+    assert_eq!(result2.get_count(), 2);
     let pkg1 = result2.get_idents().iter().nth(0).unwrap();
     assert_eq!(pkg1.to_string(), ident2.to_string());
     let pkg2 = result2.get_idents().iter().nth(1).unwrap();
@@ -1554,7 +1554,7 @@ fn search_origin_package_for_origin() {
     assert_eq!(result5.get_idents().len(), 5);
     assert_eq!(result5.get_start(), 0);
     assert_eq!(result5.get_stop(), 4);
-    assert_eq!(result5.get_count(), 1);
+    assert_eq!(result5.get_count(), 5);
     let pkg1 = result5.get_idents().iter().nth(0).unwrap();
     assert_eq!(pkg1.to_string(), "core/red");
     let pkg2 = result5.get_idents().iter().nth(1).unwrap();
@@ -1577,7 +1577,7 @@ fn search_origin_package_for_origin() {
     assert_eq!(result6.get_idents().len(), 6);
     assert_eq!(result6.get_start(), 0);
     assert_eq!(result6.get_stop(), 5);
-    assert_eq!(result6.get_count(), 1);
+    assert_eq!(result6.get_count(), 6);
     let pkg1 = result6.get_idents().iter().nth(0).unwrap();
     assert_eq!(pkg1.to_string(), "core/red/2017.01.17/20170209064044");
     let pkg2 = result6.get_idents().iter().nth(1).unwrap();

@@ -959,28 +959,28 @@ impl DataStore {
 
         let rows = if *&ops.get_distinct() {
             conn.query(
-                "SELECT * FROM search_all_origin_packages_dynamic_v3($1, $2, $3, $4)",
+                "SELECT COUNT(*) OVER () AS the_real_total, * FROM search_all_origin_packages_dynamic_v4($1, $2) ORDER BY ident LIMIT $3 OFFSET $4",
                 &[
                     &ops.get_query(),
+                    &(ops.get_account_id() as i64),
                     &ops.limit(),
                     &(ops.get_start() as i64),
-                    &(ops.get_account_id() as i64),
                 ],
             ).map_err(SrvError::OriginPackageSearch)?
         } else {
             if ops.get_origin().is_empty() {
                 conn.query(
-                    "SELECT * FROM search_all_origin_packages_v2($1, $2, $3, $4)",
+                    "SELECT COUNT(*) OVER () AS the_real_total, * FROM search_all_origin_packages_v3($1, $2) ORDER BY ident LIMIT $3 OFFSET $4",
                     &[
                         &ops.get_query(),
+                        &(ops.get_account_id() as i64),
                         &ops.limit(),
                         &(ops.get_start() as i64),
-                        &(ops.get_account_id() as i64),
                     ],
                 ).map_err(SrvError::OriginPackageSearch)?
             } else {
                 conn.query(
-                    "SELECT * FROM search_origin_packages_for_origin_v2($1, $2, $3, $4, $5)",
+                    "SELECT COUNT(*) OVER () AS the_real_total, * FROM search_origin_packages_for_origin_v2($1, $2, $3, $4, $5)",
                     &[
                         &ops.get_origin(),
                         &ops.get_query(),
@@ -997,7 +997,7 @@ impl DataStore {
         response.set_stop(self.last_index(ops, &rows));
         let mut idents = protobuf::RepeatedField::new();
         for row in rows.iter() {
-            let count: i64 = row.get("total_count");
+            let count: i64 = row.get("the_real_total");
             response.set_count(count as u64);
             idents.push(self.row_to_origin_package_ident(&row));
         }
