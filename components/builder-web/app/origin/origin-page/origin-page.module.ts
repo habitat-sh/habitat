@@ -18,6 +18,7 @@ import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { NgModule } from "@angular/core";
 import { RouterModule } from "@angular/router";
 import { MdTabsModule, MdRadioModule, MdButtonModule, MdDialogModule } from "@angular/material";
+import { GenerateKeysDialog } from "./generate-keys-dialog/generate-keys.dialog";
 import { KeyAddFormDialog } from "./origin-keys-tab/key-add-form/key-add-form.dialog";
 import { KeyListComponent } from "./origin-keys-tab/key-list/key-list.component";
 import { OriginPageRoutingModule } from "./origin-page-routing.module";
@@ -45,6 +46,8 @@ export const imports = [
 ];
 
 export const declarations = [
+  DockerCredentialsFormDialog,
+  GenerateKeysDialog,
   KeyAddFormDialog,
   KeyListComponent,
   OriginPageComponent,
@@ -52,13 +55,13 @@ export const declarations = [
   OriginMembersTabComponent,
   OriginKeysTabComponent,
   OriginSettingsTabComponent,
-  DockerCredentialsFormDialog,
   OriginIntegrationsTabComponent
 ];
 
 const entryComponents = [
   DockerCredentialsFormDialog,
-  KeyAddFormDialog
+  KeyAddFormDialog,
+  GenerateKeysDialog
 ];
 
 @NgModule({

@@ -28,7 +28,7 @@ export const DEPOPULATE_PROJECT = "DEPOPULATE_PROJECT";
 export const SET_PROJECT_HINT = "SET_PROJECT_HINT";
 export const RESET_PROJECT_HINT = "RESET_PROJECT_HINT";
 
-export function addProject(project: any, token: string, onComplete: Function = () => {}) {
+export function addProject(project: any, token: string, onComplete: Function = () => { }) {
   return dispatch => {
     dispatch(addNotification({
       title: "Adding Plan",
@@ -42,14 +42,14 @@ export function addProject(project: any, token: string, onComplete: Function = (
         body: `Created ${response["id"]}.`,
         type: SUCCESS,
       }));
-      onComplete({success: true, response});
+      onComplete({ success: true, response });
     }).catch(error => {
       dispatch(addNotification({
         title: "Failed to Create project",
         body: error.message,
         type: DANGER,
       }));
-      onComplete({success: false, error});
+      onComplete({ success: false, error });
     });
   };
 }
@@ -103,7 +103,7 @@ export function fetchProject(id: string, token: string, alert: boolean) {
   };
 }
 
-export function fetchProjectsForPackages(packages: Array < Object > , token: string) {
+export function fetchProjectsForPackages(packages: Array<Object>, token: string) {
   return dispatch => {
     for (let pkg of packages) {
       let id = `${pkg["origin"]}/${pkg["name"]}`;
@@ -142,7 +142,7 @@ export function deleteProject(id: string, token: string, origin: string) {
   };
 }
 
-export function updateProject(projectId: string, project: Object, token: string, route: Array < String > ) {
+export function updateProject(projectId: string, project: Object, token: string, route: Array<String>) {
   return dispatch => {
     new BuilderApiClient(token).updateProject(projectId, project).then(response => {
       dispatch(resetProjectHint());

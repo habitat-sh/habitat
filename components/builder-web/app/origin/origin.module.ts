@@ -49,4 +49,4 @@ export const declarations = [
     OriginService
   ]
 })
-export class OriginModule {}
+export class OriginModule { }

@@ -17,6 +17,7 @@ import { MdDialog } from "@angular/material";
 import { RouterLink, ActivatedRoute } from "@angular/router";
 import { List } from "immutable";
 import { Subscription } from "rxjs/Subscription";
+import { GenerateKeysDialog } from "../generate-keys-dialog/generate-keys.dialog";
 import { KeyAddFormDialog } from "./key-add-form/key-add-form.dialog";
 import { AppStore } from "../../../AppStore";
 import { Origin } from "../../../records/Origin";
@@ -39,7 +40,7 @@ export class OriginKeysTabComponent implements OnInit, OnDestroy {
         private store: AppStore,
         private dialog: MdDialog,
         private originService: OriginService
-    ) {}
+    ) { }
 
     ngOnInit() {
         this.sub = this.route.parent.params.subscribe(params => {
@@ -75,6 +76,13 @@ export class OriginKeysTabComponent implements OnInit, OnDestroy {
             data: { type, origin: this.origin.name },
             width: "480px",
             height: "341px"
+        });
+    }
+
+    openGenerateKeysDialog() {
+        let dialogRef = this.dialog.open(GenerateKeysDialog, {
+            width: "460px",
+            height: "204px"
         });
     }
 

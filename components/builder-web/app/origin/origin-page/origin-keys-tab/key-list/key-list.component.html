@@ -1,7 +1,4 @@
 <div class="hab-keys-list">
-  <p *ngIf="keys.size === 0">
-    No {{type}} keys found.
-  </p>
   <ul class="keys">
     <li class="heading">
       <h3 class="key-name uppercase">{{keyType}} Keys</h3>
@@ -12,12 +9,15 @@
         <span class="key-name">
           <hab-icon class="key-icon" [symbol]="icon"></hab-icon>
           <span *ngIf="publicKey">{{key.origin}}-{{key.revision}}</span>
-          <span *ngIf="!publicKey">{{key.name}}</span>
-          </span>
+        <span *ngIf="!publicKey">{{key.name}}</span>
+        </span>
         <a class="download" href="{{apiUrl}}/depot{{key.location}}">
           <hab-icon symbol="file-download"></hab-icon>
         </a>
       </div>
     </li>
   </ul>
+  <p *ngIf="keys.size === 0">
+    <strong>No {{type}} keys found.</strong>
+  </p>
 </div>
