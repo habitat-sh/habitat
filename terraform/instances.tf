@@ -42,9 +42,9 @@ resource "aws_instance" "api" {
 
   provisioner "remote-exec" {
     inline = [
-      "DD_API_KEY=${var.datadog_api_key} /bin/bash -c \"$(curl -L https://raw.githubusercontent.com/DataDog/dd-agent/master/packaging/datadog-agent/source/install_agent.sh)\"",
+      "DD_INSTALL_ONLY=true DD_API_KEY=${var.datadog_api_key} /bin/bash -c \"$(curl -L https://raw.githubusercontent.com/DataDog/dd-agent/master/packaging/datadog-agent/source/install_agent.sh)\"",
       "sudo sed -i \"$ a tags: env:${var.env}, role:api\" /etc/dd-agent/datadog.conf",
-      "sudo /etc/init.d/datadog-agent restart"
+      "sudo /etc/init.d/datadog-agent start"
     ]
   }
   provisioner "file" {
@@ -116,9 +116,9 @@ resource "aws_instance" "admin" {
 
   provisioner "remote-exec" {
     inline = [
-      "DD_API_KEY=${var.datadog_api_key} /bin/bash -c \"$(curl -L https://raw.githubusercontent.com/DataDog/dd-agent/master/packaging/datadog-agent/source/install_agent.sh)\"",
+      "DD_INSTALL_ONLY=true DD_API_KEY=${var.datadog_api_key} /bin/bash -c \"$(curl -L https://raw.githubusercontent.com/DataDog/dd-agent/master/packaging/datadog-agent/source/install_agent.sh)\"",
       "sudo sed -i \"$ a tags: env:${var.env}, role:admin\" /etc/dd-agent/datadog.conf",
-      "sudo /etc/init.d/datadog-agent restart"
+      "sudo /etc/init.d/datadog-agent start"
     ]
   }
 
@@ -194,7 +194,7 @@ resource "aws_instance" "datastore" {
 
   provisioner "remote-exec" {
     inline = [
-      "DD_API_KEY=${var.datadog_api_key} /bin/bash -c \"$(curl -L https://raw.githubusercontent.com/DataDog/dd-agent/master/packaging/datadog-agent/source/install_agent.sh)\"",
+      "DD_INSTALL_ONLY=true DD_API_KEY=${var.datadog_api_key} /bin/bash -c \"$(curl -L https://raw.githubusercontent.com/DataDog/dd-agent/master/packaging/datadog-agent/source/install_agent.sh)\"",
       "sudo sed -i \"$ a tags: env:${var.env}, role:datastore\" /etc/dd-agent/datadog.conf",
     ]
   }
@@ -208,7 +208,7 @@ resource "aws_instance" "datastore" {
     inline = [
       "sudo awk 'BEGIN{getline l < \"/hab/svc/builder-datastore/config/pwfile\"}/REPLACETHIS/{gsub(\"REPLACETHIS\",l)}1' /tmp/postgres.yaml > /tmp/postgres.yaml.rendered",
       "sudo cp /tmp/postgres.yaml.rendered /etc/dd-agent/conf.d/postgres.yaml",
-      "sudo /etc/init.d/datadog-agent restart"
+      "sudo /etc/init.d/datadog-agent start"
     ]
   }
 
@@ -283,9 +283,9 @@ resource "aws_instance" "jobsrv" {
 
   provisioner "remote-exec" {
     inline = [
-      "DD_API_KEY=${var.datadog_api_key} /bin/bash -c \"$(curl -L https://raw.githubusercontent.com/DataDog/dd-agent/master/packaging/datadog-agent/source/install_agent.sh)\"",
+      "DD_INSTALL_ONLY=true DD_API_KEY=${var.datadog_api_key} /bin/bash -c \"$(curl -L https://raw.githubusercontent.com/DataDog/dd-agent/master/packaging/datadog-agent/source/install_agent.sh)\"",
       "sudo sed -i \"$ a tags: env:${var.env}, role:jobsrv\" /etc/dd-agent/datadog.conf",
-      "sudo /etc/init.d/datadog-agent restart"
+      "sudo /etc/init.d/datadog-agent start"
     ]
   }
 
@@ -359,9 +359,9 @@ resource "aws_instance" "originsrv" {
 
   provisioner "remote-exec" {
     inline = [
-      "DD_API_KEY=${var.datadog_api_key} /bin/bash -c \"$(curl -L https://raw.githubusercontent.com/DataDog/dd-agent/master/packaging/datadog-agent/source/install_agent.sh)\"",
+      "DD_INSTALL_ONLY=true DD_API_KEY=${var.datadog_api_key} /bin/bash -c \"$(curl -L https://raw.githubusercontent.com/DataDog/dd-agent/master/packaging/datadog-agent/source/install_agent.sh)\"",
       "sudo sed -i \"$ a tags: env:${var.env}, role:originsrv\" /etc/dd-agent/datadog.conf",
-      "sudo /etc/init.d/datadog-agent restart"
+      "sudo /etc/init.d/datadog-agent start"
     ]
   }
 
@@ -434,9 +434,9 @@ resource "aws_instance" "router" {
 
   provisioner "remote-exec" {
     inline = [
-      "DD_API_KEY=${var.datadog_api_key} /bin/bash -c \"$(curl -L https://raw.githubusercontent.com/DataDog/dd-agent/master/packaging/datadog-agent/source/install_agent.sh)\"",
+      "DD_INSTALL_ONLY=true DD_API_KEY=${var.datadog_api_key} /bin/bash -c \"$(curl -L https://raw.githubusercontent.com/DataDog/dd-agent/master/packaging/datadog-agent/source/install_agent.sh)\"",
       "sudo sed -i \"$ a tags: env:${var.env}, role:router\" /etc/dd-agent/datadog.conf",
-      "sudo /etc/init.d/datadog-agent restart"
+      "sudo /etc/init.d/datadog-agent start"
     ]
   }
 
@@ -515,11 +515,11 @@ resource "aws_instance" "scheduler" {
 
   provisioner "remote-exec" {
     inline = [
-      "DD_API_KEY=${var.datadog_api_key} /bin/bash -c \"$(curl -L https://raw.githubusercontent.com/DataDog/dd-agent/master/packaging/datadog-agent/source/install_agent.sh)\"",
+      "DD_INSTALL_ONLY=true DD_API_KEY=${var.datadog_api_key} /bin/bash -c \"$(curl -L https://raw.githubusercontent.com/DataDog/dd-agent/master/packaging/datadog-agent/source/install_agent.sh)\"",
       "sudo sed -i \"$ a dogstreams: /tmp/builder-scheduler.log:/etc/dd-agent/sch_log_parser.py:my_log_parser\" /etc/dd-agent/datadog.conf",
       "sudo sed -i \"$ a tags: env:${var.env}, role:scheduler\" /etc/dd-agent/datadog.conf",
       "sudo cp /tmp/sch_log_parser.py /etc/dd-agent/sch_log_parser.py",
-      "sudo /etc/init.d/datadog-agent restart"
+      "sudo /etc/init.d/datadog-agent start"
     ]
   }
 
@@ -593,9 +593,9 @@ resource "aws_instance" "sessionsrv" {
 
   provisioner "remote-exec" {
     inline = [
-      "DD_API_KEY=${var.datadog_api_key} /bin/bash -c \"$(curl -L https://raw.githubusercontent.com/DataDog/dd-agent/master/packaging/datadog-agent/source/install_agent.sh)\"",
+      "DD_INSTALL_ONLY=true DD_API_KEY=${var.datadog_api_key} /bin/bash -c \"$(curl -L https://raw.githubusercontent.com/DataDog/dd-agent/master/packaging/datadog-agent/source/install_agent.sh)\"",
       "sudo sed -i \"$ a tags: env:${var.env}, role:sessionsrv\" /etc/dd-agent/datadog.conf",
-      "sudo /etc/init.d/datadog-agent restart"
+      "sudo /etc/init.d/datadog-agent start"
     ]
   }
 
@@ -669,7 +669,7 @@ resource "aws_instance" "worker" {
 
   provisioner "remote-exec" {
     inline = [
-      "DD_API_KEY=${var.datadog_api_key} /bin/bash -c \"$(curl -L https://raw.githubusercontent.com/DataDog/dd-agent/master/packaging/datadog-agent/source/install_agent.sh)\"",
+      "DD_INSTALL_ONLY=true DD_API_KEY=${var.datadog_api_key} /bin/bash -c \"$(curl -L https://raw.githubusercontent.com/DataDog/dd-agent/master/packaging/datadog-agent/source/install_agent.sh)\"",
       "sudo sed -i \"$ a tags: env:${var.env}, role:worker\" /etc/dd-agent/datadog.conf",
       "sudo /etc/init.d/datadog-agent stop"
     ]
