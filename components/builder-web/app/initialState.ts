@@ -191,8 +191,10 @@ export default Record({
       owner_id: undefined,
       package_name: undefined,
       plan_path: undefined,
+      vcs_auth_token: undefined,
       vcs_data: undefined,
       vcs_type: undefined,
+      vcs_username: undefined,
 
       ui: Record({
         exists: false,
