@@ -25,6 +25,7 @@ pub enum ConnErr {
     BadHeader(protocol::ProtocolError),
     BadRouteInfo(protocol::ProtocolError),
     BadTxn(protocol::ProtocolError),
+    HostUnreachable,
     MultipleSender,
     NoBody,
     NoIdentity,
@@ -49,6 +50,7 @@ impl fmt::Display for ConnErr {
                 write!(f, "Unable to parse route-info message part, {}", e)
             }
             ConnErr::BadTxn(ref e) => write!(f, "Unable to parse transaction message part, {}", e),
+            ConnErr::HostUnreachable => write!(f, "Unable to route message to destination"),
             ConnErr::MultipleSender => write!(f, "Message header contained multiple senders"),
             ConnErr::NoBody => write!(f, "Message missing body message part"),
             ConnErr::NoIdentity => write!(f, "Message missing identity message parts"),
@@ -81,6 +83,7 @@ impl error::Error for ConnErr {
             ConnErr::BadHeader(_) => "Unable to parse header message part",
             ConnErr::BadRouteInfo(_) => "Unable to parse route-info message part",
             ConnErr::BadTxn(_) => "Unable to parse transaction message part",
+            ConnErr::HostUnreachable => "Unable to route message to destination",
             ConnErr::MultipleSender => "Message header contained multiple senders",
             ConnErr::NoBody => "Message missing body message part",
             ConnErr::NoHeader => "Unable to route message without a `Header` message part",
@@ -100,8 +103,10 @@ impl error::Error for ConnErr {
 
 impl From<zmq::Error> for ConnErr {
     fn from(err: zmq::Error) -> Self {
-        // match the type of zmq error and map it to ours
-        ConnErr::Socket(err)
+        match err {
+            zmq::Error::EHOSTUNREACH => ConnErr::HostUnreachable,
+            _ => ConnErr::Socket(err),
+        }
     }
 }
 
