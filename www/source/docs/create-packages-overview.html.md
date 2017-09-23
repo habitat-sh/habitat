@@ -3,7 +3,7 @@ title: Create Habitat packages overview
 ---
 
 # Create Packages
-Packages are the cryptographically-signed tarballs that are uploaded, downloaded, unpacked, and installed in Habitat. They are built from shell scripts known as plans, but may also include runtime hooks and service configuration files that describe the behavior and configuration of a running package. More conceptual information on packages can be found in the [Packages concept topic](/docs/concepts-packages/).
+Packages are the cryptographically-signed tarballs that are uploaded, downloaded, unpacked, and installed in Habitat. They are built from shell scripts known as plans, but may also include application lifecycle hooks and service configuration files that describe the behavior and configuration of a running package. More conceptual information on packages can be found in the [Packages concept topic](/docs/concepts-packages/).
 
 ## Section details
 

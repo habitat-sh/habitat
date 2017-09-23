@@ -1,8 +1,6 @@
 # Scaffolding
 
-Scaffolding is default implementations of the build phases and runtime hooks for your application. Each scaffolding understands how your application was built, which allows it to can create the appropriate hooks and add in the correct runtime dependnencies when creating the package for your application. Scaffoldings also provide some default health check hooks where appropriate to ensure your application is functioning reliably. Customized Scaffolding can be created to facilitate re-usability of common patterns in your organization for developing, building, and running your applications.
-
-> Note: Currently only the Ruby and Node.js Scaffolding packages automatically add in the appropriate dependencies and configuration settings based on how your application is currently being built. This behavior will be pushed into the other available Scaffolding implementations soon.
+Scaffolding is a predictive implementation of the build phases and application lifecycle hooks for your application, based on the application type you are developing. The Habitat core team provides Scaffoldings for developers to leverage so if you are using a supported language you can focus on building your application instead of customizing your plans. Users can create their own customized Scaffolding to facilitate re-usability of common patterns in your organization for developing, building, and running your applications.
 
 ## Getting Started
 
@@ -28,6 +26,7 @@ You can also use the cli command `hab plan init -s [SCAFFOLDING] [PKG_NAME]` to 
 * core/scaffolding-go
 * core/scaffolding-python
 * core/scaffolding-java
+* core/scaffolding-gradle 
 
 ## Variables
 

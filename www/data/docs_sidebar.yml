@@ -102,7 +102,7 @@ sidebar_links:
       link: "/docs/reference/callbacks/"
     - title: Build variables
       link: "/docs/reference/build-variables/"
-    - title: Hooks
+    - title: Application Lifecycle Hooks
       link: "/docs/reference/hooks/"
     - title: Runtime settings
       link: "/docs/reference/runtime-settings/"
