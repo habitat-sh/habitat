@@ -4,11 +4,11 @@ title: Packaging Binary-Only Software
 
 # Packaging Binary-Only Software
 
-While Habitat provides the best behavior for applications that can be compiled from source into the Habitat ecosystem, one of its other major features is that it can bring the same management benefits to legacy applications. Frequently, these applications are off-the-shelf software purchased from an independent software vendor, distributed in binary-only form.
+While Habitat provides the most complete management for applications that are compiled from source into the Habitat ecosystem, it can bring the same management benefits to legacy applications. Frequently, these applications are off-the-shelf software purchased from an independent software vendor, distributed in binary-only form.
 
 You can write plans to package up these binary artifacts with minimal special handling. This article covers some tips and tricks for getting this software into the Habitat realm.
 
-## Override The Phases You Don't Need
+## Override The Build Phases You Don't Need
 
 A Habitat package build proceeds in phases: download, verification, unpacking (where you would also patch source code, if you had it), build, and finally installation. Each of these phases has [default behavior](/docs/reference/plan-syntax/#callbacks) within the build system.
 
@@ -36,19 +36,22 @@ Many binaries hardcode library dependencies to `/lib` or `/lib64` inside their E
 Most binaries compiled in a full Linux environment have a hard dependency on `/lib/ld-linux.so` or `/lib/ld-linux-x86_64.so`. In order to relocate this dependency to the Habitat-provided variant, which is provided by `core/glibc`, use the `patchelf(1)` utility within your plan:
 
 1. Declare a build-time dependency on `core/patchelf` as part of your `pkg_build_deps` line.
-2. Invoke `patchelf` on any binaries with this problem during the `do_install()` phase. For example:
+
+1. **Note**: When using `patchelf`, you must override the `do_strip()` callback to avoid undefined behavior.
+
+1. Invoke `patchelf` on any binaries with this problem during the `do_install()` phase. For example:
 
        patchelf --interpreter "$(pkg_path_for glibc)/lib/ld-linux-x86-64.so.2" \
                 ${pkg_prefix}/bin/somebinary
 
-3. The binary may have other hardcoded dependencies on its own libraries that you may need to relocate using other flags to `patchelf` like `--rpath`. For example, Oracle Java provides additional libraries in `lib/amd64/jli` that you will need to relocate to the Habitat location:
+1. The binary may have other hardcoded dependencies on its own libraries that you may need to relocate using other flags to `patchelf` like `--rpath`. For example, Oracle Java provides additional libraries in `lib/amd64/jli` that you will need to relocate to the Habitat location:
 
        export LD_RUN_PATH=$LD_RUN_PATH:$pkg_prefix/lib/amd64/jli
        patchelf --interpreter "$(pkg_path_for glibc)/lib/ld-linux-x86-64.so.2" \
                 --set-rpath ${LD_RUN_PATH} \
                 ${pkg_prefix}/bin/java
 
-4. For more information, please see the [patchelf](https://nixos.org/patchelf.html) documentation.
+1. For more information, please see the [patchelf](https://nixos.org/patchelf.html) documentation.
 
 ## If You Cannot Relocate Library Dependencies
 
@@ -72,7 +75,7 @@ If you have many files you need to fix, or the binary package automatically gene
 
        ln -sv $(pkg_path_for coreutils)/bin/env /usr/bin/env
 
-This is a last resort as it breaks the dependency isolation guarantees of Habitat.
+**This is a last resort as it breaks the dependency isolation guarantees of Habitat.**
 
 <hr>
 <ul class="main-content--link-nav">
