@@ -49,6 +49,17 @@ from the master branch on a bi-weekly schedule occurring every other Thursday.
     $ git push origin --tags
     ```
 
+## Update Builder Bootstrap Bundle
+
+Next we generate a release bundle of all Habitat and Builder components which are uploaded to an S3 bucket which we read from when we bootstrap new nodes. This bundle is useful if you are bootstrapping in an environment which doesn't have access to Builder or there simply isn't a Builder instance in existence (ah, those were the days).
+
+1. Configure your AWS credentials in your environment
+1. Run the bundle build make task
+
+    ```
+    $ make bundle
+    ```
+
 ## Publish Release
 
 Create release in [GitHub](https://github.com/habitat-sh/habitat/releases)
@@ -56,7 +67,7 @@ Create release in [GitHub](https://github.com/habitat-sh/habitat/releases)
 On the Github releases page, there should already be a tag for the release (pushed up previously).
 Draft a new Release, specify the tag, and title it with the same (eg, 0.18.0). Then hit Publish Release.
 
-# Drink. It. In. 
+# Drink. It. In.
 
 ## Bump Version
 
@@ -69,15 +80,15 @@ Draft a new Release, specify the tag, and title it with the same (eg, 0.18.0). T
 
 1. Put a scheduled maintanence window into PagerDuty so the on-call doesn't go off.
 1. Pre-announce outage on Twitter & Slack #general channel. There is no hard rule for a length of time you need to do this ahead of a release outage.
-1. When your release begins, post announcement in our statuspage.io with outage information. 
+1. When your release begins, post announcement in our statuspage.io with outage information.
 1. Per [ON_CALL.md](#ON_CALL.md) you are responsible for updating status changes in statuspage.io as the downtime proceeds. You are not responsible for regular minutes or responding in any other venue.
 1. When the downtime is over, announce the end of the outage via statuspage.io. It will automatically post an announcement to #general and twitter.
 
-# Release Notification 
+# Release Notification
 
 1. Create a new post in [Habitat Announcements](https://forums.habitat.sh/c/habitat-announcements)
 1. Link forum post to the github release
-1. Link github release to forum post 
+1. Link github release to forum post
 1. Message Slack channels and include the link to the release post
    1. cft-announce (Chef Slack)
    1. eng-announce (Chef Slack)
@@ -85,30 +96,3 @@ Draft a new Release, specify the tag, and title it with the same (eg, 0.18.0). T
    1. general (Habitat Slack)
    1. announcements (Habitat Slack)
 1. Tweet a link to the announcement @habitatsh
-
-## Update Builder Bootstrap Bundle
-
-For the time being, there is one final manual step, and that is to
-generate a new bootstrap bundle for Builder using the release you just
-created. (A bootstrap bundle is a tarball containing all the Habitat
-packages needed to stand up a complete instance of Builder, without
-needing to talk to another Builder in the process.)
-
-You should run this from a Linux system, since that is the platform
-that Builder itself runs on. It should also be run as `root`, since it
-is installing packages (but in a separate directory, so your existing
-`/hab` directory structure will remain unchanged). Furthermore, you
-should have appropriate AWS credentials in your environment in order
-to push files to the `habitat_builder_bootstrap` S3 bucket.
-
-Finally, you'll need to know what release you just created :)
-
-So, with all that in place, the generation and upload of the bundle is
-rather simple:
-
-```
-terraform/scripts/create_builder_bootstrap.sh 0.32.0
-```
-
-(Of course, substitute `0.32.0` above with whatever the real version
-number is.)
