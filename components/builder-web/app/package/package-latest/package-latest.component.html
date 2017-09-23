@@ -1,4 +1,5 @@
 <div class="hab-package-latest">
-  <hab-package-detail [package]="latest" *ngIf="latest"></hab-package-detail>
+  <hab-icon symbol="loading" class="spinning" *ngIf="ui.loading"></hab-icon>
+  <hab-package-detail [package]="latest" *ngIf="!ui.loading"></hab-package-detail>
 </div>
 

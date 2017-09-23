@@ -161,6 +161,11 @@ export default Record({
         exists: false,
         loading: true,
       })(),
+      latest: Record({
+        errorMessage: undefined,
+        exists: false,
+        loading: true,
+      })(),
       versions: Record({
         errorMessage: undefined,
         exists: false,
