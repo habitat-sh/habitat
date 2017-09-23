@@ -232,7 +232,6 @@ impl<'a> BuildSpec<'a> {
             VERSION,
             &fs_root_path,
             &cache_artifact_path(Some(&fs_root_path)),
-            false,
         )?;
         Ok(package_install.ident().clone())
     }

@@ -48,6 +48,5 @@ pub fn install(
         VERSION,
         fs_root_path,
         &fs::cache_artifact_path(None::<String>),
-        false,
     ).map_err(SupError::from)
 }

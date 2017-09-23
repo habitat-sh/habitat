@@ -464,7 +464,6 @@ fn sub_pkg_install(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let url = bldr_url_from_matches(m);
     let channel = channel_from_matches(m);
     let install_sources = install_sources_from_matches(m)?;
-    let ignore_target = m.is_present("IGNORE_TARGET");
 
     init();
 
@@ -478,7 +477,6 @@ fn sub_pkg_install(ui: &mut UI, m: &ArgMatches) -> Result<()> {
             VERSION,
             &*FS_ROOT,
             &cache_artifact_path(Some(&*FS_ROOT)),
-            ignore_target,
         )?;
 
         if m.is_present("BINLINK") {

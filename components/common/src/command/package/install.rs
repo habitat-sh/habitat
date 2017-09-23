@@ -176,7 +176,6 @@ pub fn start<P1, P2>(
     version: &str,
     fs_root_path: P1,
     artifact_cache_path: P2,
-    ignore_target: bool,
 ) -> Result<PackageInstall>
 where
     P1: AsRef<Path>,
@@ -202,7 +201,6 @@ where
         fs_root_path.as_ref(),
         artifact_cache_path.as_ref(),
         &cache_key_path,
-        ignore_target,
     )?;
 
     match *install_source {
@@ -217,7 +215,6 @@ struct InstallTask<'a> {
     /// The path to the local artifact cache (e.g., /hab/cache/artifacts)
     artifact_cache_path: &'a Path,
     cache_key_path: &'a Path,
-    ignore_target: bool,
 }
 
 impl<'a> InstallTask<'a> {
@@ -228,14 +225,12 @@ impl<'a> InstallTask<'a> {
         fs_root_path: &'a Path,
         artifact_cache_path: &'a Path,
         cache_key_path: &'a Path,
-        ignore_target: bool,
     ) -> Result<Self> {
         Ok(InstallTask {
             depot_client: Client::new(url, product, version, Some(fs_root_path))?,
             fs_root_path: fs_root_path,
             artifact_cache_path: artifact_cache_path,
             cache_key_path: cache_key_path,
-            ignore_target: ignore_target,
         })
     }
 
@@ -556,12 +551,8 @@ impl<'a> InstallTask<'a> {
             )));
         }
 
-        if self.ignore_target {
-            debug!("Skipping target validation for this package.");
-        } else {
-            let artifact_target = artifact.target()?;
-            artifact_target.validate()?;
-        }
+        let artifact_target = artifact.target()?;
+        artifact_target.validate()?;
 
         let nwr = artifact::artifact_signer(&artifact.path)?;
         if let Err(_) = SigKeyPair::get_public_key_path(&nwr, self.cache_key_path) {

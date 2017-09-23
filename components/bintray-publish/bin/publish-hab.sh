@@ -176,19 +176,32 @@ _build_slim_release() {
   if [ ! -e $target_hart ]; then
     exit_with ".hart file not found at given path: $target_hart" 1
   fi
-  mkdir -p "$tmp_root/hab/cache/artifacts"
-  cp $target_hart "$tmp_root/hab/cache/artifacts/"
-  env FS_ROOT="$tmp_root" $_hab_cmd pkg install "$target_hart" --ignore-target
-  if [[ $(find "$tmp_root/hab/pkgs" \( -name hab -or -name hab.exe \) -type f | wc -l) -ne 1 ]]; then
+
+  # We will extract the package from the .hart archive into this directory.
+  extract_dir="${tmp_root}/extract"
+  mkdir -p "${extract_dir}"
+
+  # Strip the header from the hart file (first 6 lines), then extract
+  # the package contents to $extract_dir.
+  #
+  # (--strip-components=6 will strip off the
+  # hab/pkgs/core/hab/$VERSION/$RELEASE portion of the path, because
+  # that's completely unnecessary for what we're doing here.)
+  tail -n+6 "${target_hart}" | \
+      tar --directory "${extract_dir}" \
+          --extract \
+          --xz \
+          --strip-components=6
+
+  if [[ $(find "${extract_dir}" \( -name hab -or -name hab.exe \) -type f | wc -l) -ne 1 ]]; then
     exit_with "$target_hart did not contain a \`hab' binary" 2
   fi
 
-  local hab_binary="$(find "$tmp_root/hab/pkgs" \( -name hab -or -name hab.exe \) -type f)"
-  local pkg_path="$(dirname $(dirname $hab_binary))"
-  pkg_target="$(cat $pkg_path/TARGET | tr --delete '\r')"
+  local hab_binary="$(find "$extract_dir" \( -name hab -or -name hab.exe \) -type f)"
+  pkg_target="$(cat ${extract_dir}/TARGET | tr --delete '\r')"
   pkg_arch="$(echo $pkg_target | cut -d '-' -f 1)"
   pkg_kernel="$(echo $pkg_target | cut -d '-' -f 2)"
-  pkg_ident="$(cat $pkg_path/IDENT | tr --delete '\r')"
+  pkg_ident="$(cat $extract_dir/IDENT | tr --delete '\r')"
   pkg_origin="$(echo $pkg_ident | cut -d '/' -f 1)"
   pkg_name="$(echo $pkg_ident | cut -d '/' -f 2)"
   pkg_version="$(echo $pkg_ident | cut -d '/' -f 3)"
