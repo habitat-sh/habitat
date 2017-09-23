@@ -255,3 +255,7 @@ fmt-$1: image ## formats the $1 component
 
 endef
 $(foreach component,$(ALL),$(eval $(call FMT,$(component))))
+
+# Run BATS integration tests in a Docker "cleanroom" container.
+bats: build-hab build-sup build-launcher-for-supervisor-tests
+	./run-bats.sh
