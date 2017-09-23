@@ -63,7 +63,7 @@ import config from "../config";
             </li>
             <li class="main-nav--link">
               <a class="depot"
-                [routerLink]="['/origins']"
+                [routerLink]="['/pkgs']"
                 [class.is-current-page]="area === 'depot'">Builder</a>
             </li>
             <li class="main-nav--link cta-link" *ngIf="!isSignedIn">
