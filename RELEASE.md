@@ -67,6 +67,7 @@ Draft a new Release, specify the tag, and title it with the same (eg, 0.18.0). T
 
 # If your Release is going to cause downtime
 
+1. Put a scheduled maintanence window into PagerDuty so the on-call doesn't go off.
 1. Pre-announce outage on Twitter & Slack #general channel. There is no hard rule for a length of time you need to do this ahead of a release outage.
 1. When your release begins, post announcement in our statuspage.io with outage information. 
 1. Per [ON_CALL.md](#ON_CALL.md) you are responsible for updating status changes in statuspage.io as the downtime proceeds. You are not responsible for regular minutes or responding in any other venue.
