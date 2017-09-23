@@ -3,7 +3,7 @@
 
 resource "aws_instance" "api" {
   ami           = "${lookup(var.aws_ami, var.aws_region)}"
-  instance_type = "t2.medium"
+  instance_type = "${var.api_instance_size}"
   key_name      = "${var.aws_key_pair}"
   subnet_id     = "${var.public_subnet_id}"
   count         = 1
@@ -628,7 +628,7 @@ resource "aws_instance" "sessionsrv" {
 
 resource "aws_instance" "worker" {
   ami           = "${lookup(var.aws_ami, var.aws_region)}"
-  instance_type = "c4.2xlarge"
+  instance_type = "${var.worker_instance_size}"
   key_name      = "${var.aws_key_pair}"
   // JW TODO: switch to private subnet after VPN is ready
   subnet_id     = "${var.public_subnet_id}"
