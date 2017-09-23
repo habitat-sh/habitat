@@ -102,7 +102,7 @@ pub mod prelude;
 use std::sync::Arc;
 use std::thread;
 
-use hab_net;
+use hab_net::socket;
 use iron;
 use iron::prelude::*;
 use mount::Mount;
@@ -164,6 +164,6 @@ where
         cfg.listen_port()
     );
     info!("{} is ready to go.", T::APP_NAME);
-    RouteBroker::start(hab_net::socket::srv_ident(), cfg.route_addrs())?;
+    RouteBroker::start(socket::srv_ident(), cfg.route_addrs())?;
     Ok(())
 }

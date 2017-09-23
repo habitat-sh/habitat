@@ -264,6 +264,7 @@ where
         router_sock.set_identity(socket::srv_ident().as_bytes())?;
         router_sock.set_probe_router(true)?;
         router_sock.set_immediate(true)?;
+        router_sock.set_router_mandatory(true)?;
         let pipe_out = (**DEFAULT_CONTEXT).as_mut().socket(zmq::ROUTER).unwrap();
         pipe_out.set_immediate(true)?;
         let pipe_in = (**DEFAULT_CONTEXT).as_mut().socket(zmq::DEALER).unwrap();
@@ -309,12 +310,18 @@ where
     /// Handle incoming server connect messages.
     fn handle_connect(&mut self) -> AppResult<(), T::Error> {
         debug!("handle-connect, {:?}", self.msg_buf.sender_str().unwrap());
-        conn::send_to(
+        match conn::send_to(
             &self.router_sock,
-            &mut self.registration,
+            &self.registration,
             self.msg_buf.sender().unwrap(),
-        )?;
-        Ok(())
+        ) {
+            Ok(()) => {
+                self.routers.insert(self.msg_buf.sender().unwrap().to_vec());
+                Ok(())
+            }
+            Err(ConnErr::HostUnreachable) => Ok(()),
+            Err(err) => Err(AppError::from(err)),
+        }
     }
 
     /// Handle incoming protocol messages.
@@ -332,11 +339,15 @@ where
                             error!("{}, retrying registration to RouteSrv", err);
                         }
                         ErrCode::REG_NOT_FOUND => {
-                            conn::send_to(
+                            match conn::send_to(
                                 &self.router_sock,
                                 &self.registration,
                                 self.msg_buf.sender().unwrap(),
-                            )?;
+                            ) {
+                                Ok(()) |
+                                Err(ConnErr::HostUnreachable) => (),
+                                Err(err) => return Err(AppError::from(err)),
+                            }
                         }
                         _ => error!("{}, unhandled error from RouteSrv", err),
                     }
@@ -366,8 +377,8 @@ where
         for addr in config.route_addrs() {
             let addr = addr.to_addr_string();
             self.router_sock.connect(&addr)?;
-            self.routers.insert(addr.as_bytes().to_vec());
         }
+        let mut drop_buf: Vec<Vec<u8>> = Vec::with_capacity(config.route_addrs().len());
         let pipe_in = Arc::new(format!("inproc://net.dispatcher.in.{}", Uuid::new_v4()));
         let pipe_out = Arc::new(format!("inproc://net.dispatcher.out.{}", Uuid::new_v4()));
         self.pipe_in.bind(&*pipe_in)?;
@@ -414,17 +425,30 @@ where
                     }
                 }
                 RecvEvent::Timeout => {
-                    trace!("recv timeout, sending heartbeat");
-                    for addr in self.routers.iter() {
-                        conn::send_to(&self.router_sock, &mut self.heartbeat, &addr)?;
-                    }
+                    trace!("recv timeout");
                     self.next_heartbeat = next_heartbeat();
+                    for addr in self.routers.iter() {
+                        trace!("sending heartbeat to {:?}", addr);
+                        match conn::send_to(&self.router_sock, &self.heartbeat, addr) {
+                            Ok(()) => (),
+                            Err(ConnErr::HostUnreachable) => {
+                                trace!("router went away, {:?}", addr);
+                                drop_buf.push(addr.to_vec());
+                            }
+                            Err(err) => return Err(AppError::from(err)),
+                        }
+                    }
+                    for addr in drop_buf.iter() {
+                        self.routers.remove(addr);
+                    }
+                    drop_buf.clear();
                 }
                 RecvEvent::Shutdown => {
                     info!("received shutdown signal, shutting down...");
-                    let mut disconnect = protocol::Message::build(&routesrv::Disconnect::new())?;
+                    let disconnect = protocol::Message::build(&routesrv::Disconnect::new())?;
                     for addr in self.routers.iter() {
-                        conn::send_to(&self.router_sock, &mut disconnect, &addr)?;
+                        trace!("sending disconnect to {:?}", addr);
+                        conn::send_to(&self.router_sock, &disconnect, &addr)?;
                     }
                     break;
                 }

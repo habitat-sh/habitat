@@ -13,11 +13,10 @@
 // limitations under the License.
 
 pub use hab_net::conn::{route, route_reply, wait_recv, ConnErr, ConnEvent};
+use hab_net::socket;
 use protobuf;
 use protocol::Message;
 use zmq;
-
-use config::Config;
 
 pub struct SrvConn {
     socket: zmq::Socket,
@@ -25,11 +24,11 @@ pub struct SrvConn {
 }
 
 impl SrvConn {
-    pub fn new(context: &mut zmq::Context, cfg: &Config) -> Result<Self, ConnErr> {
+    pub fn new(context: &mut zmq::Context) -> Result<Self, ConnErr> {
         let socket = context.socket(zmq::ROUTER)?;
         socket.set_router_mandatory(true)?;
         socket.set_probe_router(true)?;
-        socket.set_identity(cfg.addr().as_bytes())?;
+        socket.set_identity(socket::srv_ident().as_bytes())?;
         Ok(SrvConn {
             socket: socket,
             recv_buf: zmq::Message::new()?,

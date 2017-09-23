@@ -187,6 +187,18 @@ impl Message {
         self.header.message_id()
     }
 
+    /// Returns the identity of the socket which initially generated this message. Nothing is
+    /// returned if the message was not received from a socket thus having no originator.
+    pub fn originator(&self) -> Option<&[u8]> {
+        self.identities.first().map(Vec::as_slice)
+    }
+
+    /// Same as `originator()` but returns a lossy utf8 representation of the originators's
+    /// identity.
+    pub fn originator_str(&self) -> Option<Cow<str>> {
+        self.originator().map(String::from_utf8_lossy)
+    }
+
     pub fn parse<T>(&self) -> Result<T, ProtocolError>
     where
         T: protobuf::MessageStatic,
@@ -206,10 +218,13 @@ impl Message {
         self.txn.as_mut()
     }
 
+    /// Returns the identity of the socket which sent this message. Nothing is returned if the
+    /// message was not received from a socket thus having no sender.
     pub fn sender(&self) -> Option<&[u8]> {
-        self.identities.first().map(Vec::as_slice)
+        self.identities.last().map(Vec::as_slice)
     }
 
+    /// Same as `sender()` but returns a lossy utf8 representation of the sender's identity.
     pub fn sender_str(&self) -> Option<Cow<str>> {
         self.sender().map(String::from_utf8_lossy)
     }

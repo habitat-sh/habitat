@@ -106,7 +106,7 @@ impl Server {
 
     /// Run the server blocking the calling thread until the server shuts down.
     fn run(&mut self) -> Result<()> {
-        let mut conn = SrvConn::new(&mut self.context, &self.config)?;
+        let mut conn = SrvConn::new(&mut self.context)?;
         let mut message = Message::default();
         conn.bind(&self.config.addr())?;
         println!("Listening on ({})", self.config.addr());
