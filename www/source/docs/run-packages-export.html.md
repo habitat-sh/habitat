@@ -13,9 +13,9 @@ Read on for more detailed instructions.
 
 You can create a Docker container image for any package by performing the following steps:
 
-1. Ensure you have a Docker daemon running on your host system. The exporter shares the Docker socket (`unix:///var/run/docker.sock`) into the studio.
+1. Ensure you have a Docker daemon running on your host system. The exporter shares the Docker socket (`unix:///var/run/docker.sock`) into the Studio.
 
-2. Create an interactive studio with the `hab studio enter` command.
+2. Create an interactive Studio with the `hab studio enter` command.
 
 3. Install or [build](/docs/create-packages-build) the Habitat package from which you want to create a Docker container image, for example:
 
@@ -29,13 +29,13 @@ You can create a Docker container image for any package by performing the follow
     $ hab pkg export docker yourorigin/yourpackage
     ```
 
-5. You can now exit the studio. The new Docker container image exists on your computer and can be examined with `docker images` or run with `docker run`.
+5. You can now exit the Studio. The new Docker container image exists on your computer and can be examined with `docker images` or run with `docker run`.
 
 For an example of using Docker Compose to run multiple Habitat containers together, see the [Run the Sample App](/tutorials/sample-app/mac/run-app/) step in the Build a Sample App tutorial.
 
 ## Exporting to a tarball 
 
-1. Enter the habitat studio by using `hab studio enter`. 
+1. Enter the Habitat Studio by using `hab studio enter`. 
 
 2. Install or [build](/docs/create-packages-build) the Habitat package from which you want to create a tarball, for example: 
 
@@ -55,7 +55,7 @@ For an example of using Docker Compose to run multiple Habitat containers togeth
 
 You can create an Application Container Image (ACI) for any package by performing the following steps:
 
-1. Create an interactive studio in any directory with the `hab studio enter` command.
+1. Create an interactive Studio in any directory with the `hab studio enter` command.
 2. Install or [build](/docs/create-packages-build) the Habitat package from which you want to create an ACI, for example:
 
     ```
@@ -78,7 +78,7 @@ You can create an Application Container Image (ACI) for any package by performin
 
 ##Exporting to Apache Mesos and DC/OS 
 
-1. Create an interactive studio in any directory with the `hab studio enter` command.
+1. Create an interactive Studio in any directory with the `hab studio enter` command.
 
 2. Install or [build](/docs/create-packages-build) the Habitat package from which you want to create a Marathon application, for example: 
 

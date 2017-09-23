@@ -18,7 +18,7 @@ Mesos has support for [containerizers](http://mesos.apache.org/documentation/lat
 
 You can create native Mesos containers from Habitat packages by following these steps:
 
-1. Create an interactive studio in any directory with the `hab studio enter` command.
+1. Create an interactive Studio in any directory with the `hab studio enter` command.
 
 2. Install or [build](/docs/create-packages-build) the Habitat package from which you want to create a Marathon application, for example:
 

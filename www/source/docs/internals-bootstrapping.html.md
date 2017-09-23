@@ -20,7 +20,7 @@ We add the following software to augment the Linux From Scratch toolchain:
 
 Finally, we place a recent last-known-good copy of the `hab` binary inside `tools/bin`.
 
-The entire tarball of bootstrap "tools" lives inside the [stage1 studio](https://habitat-studio-stage1.s3.amazonaws.com/habitat-studio-stage1-20160612022150.tar.xz) tarball. This should be unpacked into `/tools` on a Linux host that will serve as the build environment until the system is self-sustaining through the rest of this procedure.
+The entire tarball of bootstrap "tools" lives inside the [stage1 Studio](https://habitat-studio-stage1.s3.amazonaws.com/habitat-studio-stage1-20160612022150.tar.xz) tarball. This should be unpacked into `/tools` on a Linux host that will serve as the build environment until the system is self-sustaining through the rest of this procedure.
 
 ## Part II: Stage 0
 
@@ -59,7 +59,7 @@ xz --compress -9 --threads=0 --verbose ${dst/.xz/}
 
 ## Part III: Stage 1
 
-In this stage, we rebuild all the base packages needed by Habitat using the tools (compiler, etc.) from the existing tools tarball. You will need to have a depot locally running on your system, the latest version of the studio, and you'll need a copy of the core-plans on your local disk.
+In this stage, we rebuild all the base packages needed by Habitat using the tools (compiler, etc.) from the existing tools tarball. You will need to have a depot locally running on your system, the latest version of the Studio, and you'll need a copy of the core-plans on your local disk.
 
 ~~~
 rm -rf /hab

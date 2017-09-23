@@ -69,7 +69,7 @@ We're going to use the Ruby scaffolding included with Habitat! To get this start
 $ hab plan init -s ruby
 ```
 
-This will generate a habitat directory, including a new plan.sh file.  Let's take a look at this file.
+This will generate a Habitat directory, including a new plan.sh file.  Let's take a look at this file.
 
 ```console
 $ vim habitat/plan.sh
@@ -125,7 +125,7 @@ password = "admin"
 
 Note: The "admin" username and "admin" password are the defaults for the core/postgresql package.  We will cover how to change them later in this post.
 
-Now, let's enter the Habitat studio and build our package.
+Now, let's enter the Habitat Studio and build our package.
 
 ```console
 $ hab studio enter
@@ -146,7 +146,7 @@ And we are going to be running the postgresql database in another container usin
 (studio) $ hab pkg export docker core/postgresql
 ```
 
-Now let's exit out of the studio:
+Now let's exit out of the Studio:
 
 ```console
 (studio) $ exit
@@ -247,7 +247,7 @@ password = "rds_instance_password"
 host: "rds_endpoint_without_port"
 ```
 
-Now, head back into the studio, build your package, export that newly built package as a Docker image, then exit the studio.
+Now, head back into the Studio, build your package, export that newly built package as a Docker image, then exit the Studio.
 
 ```console
 $ hab studio enter
@@ -375,7 +375,7 @@ host: "leader_public_ip_address"
 `
 ```
 
-Now, enter back into studio, build your package again, then export that new package into a docker image.
+Now, enter back into Studio, build your package again, then export that new package into a docker image.
 
 ```console
 $ hab studio enter

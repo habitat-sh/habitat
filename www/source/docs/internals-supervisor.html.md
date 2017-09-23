@@ -29,7 +29,7 @@ Butterfly is an eventually consistent system - it says, with a very high degree 
 
 ### Vocabulary
 
-* _Members_: Butterfly keeps track of "members"; each habitat supervisor is a single member.
+* _Members_: Butterfly keeps track of "members"; each Habitat supervisor is a single member.
 * _Peer_: All the members a given member is connected to are its "peers". A member is seeded with a list of "initial peers".
 * _Health_: The status of a given member, from the perspective of its peers.
 * _Rumor_: A piece of data shared with all the members of a ring; examples are election, membership, services, or configuration.

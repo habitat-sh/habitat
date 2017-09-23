@@ -72,7 +72,7 @@ The script should be passed the two built hart files with the hab and studio pac
 ./build-docker-image.sh ./results/core-hab-*.hart
 ```
 
-This will build the docker image and also install the docker image locally. Now you can enter this docker studio with:
+This will build the docker image and also install the docker image locally. Now you can enter this Docker Studio with:
 
 ```
 docker run --rm --tty --interactive --privileged  --env HAB_ORIGIN=<your origin> --volume /var/run/docker.sock:/var/run/docker.sock --volume /hab /cache/keys:/hab/cache/keys --volume <current directory>:/src <docker image sha> enter

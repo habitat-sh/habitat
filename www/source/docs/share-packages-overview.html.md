@@ -36,9 +36,9 @@ Once you have this token, you can set the `HAB_AUTH_TOKEN` [environment variable
 
 After you have done the basic account creation steps, you need to create your origin keys. The private key will be used to sign your packages and the public key will be used by supervisors to verify the integrity of your packages (`.hart` files).
 
-You can either create an origin key pair by running `hab setup` from your host machine, or running `hab origin key generate <originname>` from either the host machine or from within the studio.
+You can either create an origin key pair by running `hab setup` from your host machine, or running `hab origin key generate <originname>` from either the host machine or from within the Studio.
 
-Your keys are located at `~/.hab/cache/keys` on your host machine and `/hab/cache/keys` inside the studio environment.
+Your keys are located at `~/.hab/cache/keys` on your host machine and `/hab/cache/keys` inside the Studio environment.
 
 ## Uploading the keys for the origin
 

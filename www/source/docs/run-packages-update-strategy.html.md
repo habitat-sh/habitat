@@ -28,7 +28,7 @@ It's important to note that because we must perform a leader election to determi
 
 ### At-Once Strategy
 
-This strategy does no peer coordination with other supervisors in the service group; it merely updates the underlying Habitat package whenever it detects that a new version has either been published to a depot or installed to the local habitat `pkg` cache. No coordination between supervisors is done, each supervisor will poll a remote depot on their own.
+This strategy does no peer coordination with other supervisors in the service group; it merely updates the underlying Habitat package whenever it detects that a new version has either been published to a depot or installed to the local Habitat `pkg` cache. No coordination between supervisors is done, each supervisor will poll a remote depot on their own.
 
 ## Configuring an Update Strategy with a Builder Channel
 

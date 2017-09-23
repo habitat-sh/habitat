@@ -42,7 +42,7 @@ of two things:
 *Initial Peer*, so I’ll just re-point that to the `rabbitmq` container because
 we’ll be keeping that one, and it is now the most depended-on container.
 1.  Many of the containers also had binds to postgresql (`--bind
-database:postgresql.default` passed to the habitat supervisor) which have to be
+database:postgresql.default` passed to the Habitat supervisor) which have to be
 replaced with environment variables like so:
 
 ```yaml
@@ -65,7 +65,7 @@ makes variable interpolation delightful in multi-line strings, especially
 compared to the JSON format.
 
 Now you may wonder: how are you supposed to know what configuration to pass in
-to a particular habitat package? The awesome Habitat [depot site has the
+to a particular Habitat package? The awesome Habitat [depot site has the
 answer](https://bldr.habitat.sh/#/pkgs/frog-hornets-nest/workflow-server/1.6.81/20170808114045)
 (scroll down to the *Configuration* section to see all the variables Habitat’s
 [TOML](https://github.com/toml-lang/toml) config format). The Habitat docs
@@ -93,7 +93,7 @@ automate:
 From 4fb2f312c60cd10f57c08051d4243d3e62b1fbfb Mon Sep 17 00:00:00 2001
 From: Irving Popovetsky <irving@chef.io>
 Date: Fri, 18 Aug 2017 13:05:55 -0700
-Subject: [PATCH] Fix notifications habitat binds so that they can be optional
+Subject: [PATCH] Fix notifications Habitat binds so that they can be optional
  and remove an unneeded one for database
 
 ---
@@ -182,7 +182,7 @@ host (hint: on to the EFS mount) like so:
 
 It took some digging around to realize exactly what containers data I should be
 mounting on EFS (I still don’t really know what that `maintenance` volume does),
-but in later commits I start putting the habitat `data` volume for key
+but in later commits I start putting the Habitat `data` volume for key
 containers there. So let’s move on to that!
 
 ## AWS ES, A Signing Proxy, and HTTPS
@@ -215,7 +215,7 @@ go-based application as an example:
 ![](media/2017-09-12-a-journey/git-log4.png)</a>
 
 One thing I realized was that you need to export `http-port` instead of `port`
-(in the plan.sh) just like the [habitat elasticsearch
+(in the plan.sh) just like the [Habitat elasticsearch
 package](https://bldr.habitat.sh/#/pkgs/core/elasticsearch/5.5.0/20170726170852)
 — that way binds that previously depended on `elasticsearch` could now depend on
 the `aws-signing-proxy` service as a drop-in replacement.
@@ -243,7 +243,7 @@ this:
 ```
 
 Thanks to some very forward-thinking developers, we can skip the expensive
-`openssl`key generation step on subsequent starts by mounting the habitat data
+`openssl`key generation step on subsequent starts by mounting the Habitat data
 folder on EFS!
 
 Habitat is already smart enough to instruct docker to mount the

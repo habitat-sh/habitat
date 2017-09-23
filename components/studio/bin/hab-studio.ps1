@@ -66,7 +66,7 @@ COMMON FLAGS:
     -n  Do not mount the source path into the Studio (default: mount the path)
     -q  Prints less output for better use in scripts
     -v  Prints more verbose output
-    -w  Use a Windows studio instead of a docker studio (only available on windows)
+    -w  Use a Windows studio instead of a Docker Studio (only available on windows)
 
 COMMON OPTIONS:
     -k <HAB_ORIGIN_KEYS>  Installs secret origin keys (default:\$HAB_ORIGIN )

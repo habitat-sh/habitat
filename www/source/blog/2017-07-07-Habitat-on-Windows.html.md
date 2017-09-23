@@ -21,7 +21,7 @@ This packages a VERY minimal ASP.NET Core MVC application using Habitat that run
 
 ## Building packages on Windows
 
-The best way to build packages on Windows is to enter the Windows studio. Currently running `hab studio enter` on Windows will enter a Linux based studio in a Docker container. You can override this behavior by including the `-w` flag. `hab studio enter -w` will drop you into a Habitat studio built for Windows:
+The best way to build packages on Windows is to enter the Windows Studio. Currently running `hab studio enter` on Windows will enter a Linux based Studio in a Docker container. You can override this behavior by including the `-w` flag. `hab studio enter -w` will drop you into a Habitat Studio built for Windows:
 
     C:\dev\habitat-aspnet-sample [win_studio +0 ~1 -0]> hab studio enter -w
       hab-studio: Creating Studio at /hab/studios/dev--habitat-aspnet-sample
@@ -35,7 +35,7 @@ The best way to build packages on Windows is to enter the Windows studio. Curren
 
     [HAB-STUDIO] Habitat:\src>
 
-So how does this environment differ from a Linux based studio or a normal Windows shell?
+So how does this environment differ from a Linux based Studio or a normal Windows shell?
 
 ### Runs inside Habitat packaged Powershell
 
@@ -43,11 +43,11 @@ We have packaged the [open sourced Powershell core](https://github.com/PowerShel
 
 ### A disposable Habitat environment.
 
-Just as we do in a Linux shell, we copy your keys from your primary local hab keys but the cached artifacts you would typically find in `c:\hab\cache\artifacts` are in an isolated Habitat environment as well as the supervisor data files and habitat service directories. You can find this disposable `/hab` directory under `c:\hab\studios` in a child directory named after the full path from where you entered the studio. This directory is the target of a "Powershell Drive" named `habitat`. A `hab studio rm -w` will remove this entire environment and eliminate all artifacts created during the lifetime of a studio.
+Just as we do in a Linux shell, we copy your keys from your primary local hab keys but the cached artifacts you would typically find in `c:\hab\cache\artifacts` are in an isolated Habitat environment as well as the supervisor data files and Habitat service directories. You can find this disposable `/hab` directory under `c:\hab\studios` in a child directory named after the full path from where you entered the Studio. This directory is the target of a "Powershell Drive" named `habitat`. A `hab studio rm -w` will remove this entire environment and eliminate all artifacts created during the lifetime of a Studio.
 
 ### The path is modified.
 
-Habitat attempts to set your path to the most minimal path feasible to reduce the possibility of outside applications bleeding into your studio build environment. Just like a Linux studio, you want all of your build and runtime dependencies to exist as Habitat packages.
+Habitat attempts to set your path to the most minimal path feasible to reduce the possibility of outside applications bleeding into your Studio build environment. Just like a Linux Studio, you want all of your build and runtime dependencies to exist as Habitat packages.
 
     [HAB-STUDIO] Habitat:\src> $env:path
     C:\hab\pkgs\core\hab-studio\0.25.0-dev\20170705214714\bin\hab;C:\hab\pkgs\core\hab-studio\0.25.0-dev\20170705214714\bin\7zip;C:\hab\pkgs\core\hab-studio\0.25.0-dev\20170705214714\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\hab\pkgs\core\hab-studio\0.25.0-dev\20170705214714\bin\powershell
@@ -57,17 +57,17 @@ As you can see the only thing in your path besides Habitat packaged artifacts is
 
 Be aware that this does not quite promise the same guarantees of a Linux `chroot`ed environment. It is very possible for user installed applications to bleed into the system root directory. For example the C++ redistributable runtimes tend to save `dll`s to this location.
 
-### A `src` directory is created linking to the studio root
+### A `src` directory is created linking to the Studio root
 
-This is really no different from what happens in a Linux studio. Habitat creates a `Junction` directory called `src` in the root of the studio environment that targets the directory from which you entered the studio. Build artifacts will be saved to `src/results` allowing you to access them both from inside and outside the studio.
+This is really no different from what happens in a Linux Studio. Habitat creates a `Junction` directory called `src` in the root of the Studio environment that targets the directory from which you entered the Studio. Build artifacts will be saved to `src/results` allowing you to access them both from inside and outside the Studio.
 
 ### Added Habitat Powershell functions
 
-The following functions are available in a Windows Habitat studio:
+The following functions are available in a Windows Habitat Studio:
 
 * `build` - this is identical to its Linux cousin. It builds a Habitat package. However instead of looking for a `plan.sh` it looks for a `plan.ps1`. We'll look more closely at plan.ps1 files soon.
 
-* `Get-SupervisorLog` - Just like one expects in a Linux studio, a Habitat supervisor is started in the Windows studio environment and runs in the background. `Get-SupervisorLog` streams the output of the supervisor to a new console window.
+* `Get-SupervisorLog` - Just like one expects in a Linux Studio, a Habitat supervisor is started in the Windows Studio environment and runs in the background. `Get-SupervisorLog` streams the output of the supervisor to a new console window.
 
 * `Stop-Supervisor` - This will stop the above mentioned background supervisor.
 
@@ -191,7 +191,7 @@ Today there is not yet a way to filter packages by platform. What we do have tod
 * visual-cpp-build-tools-2015
 * visual-cpp-redist-2013
 
-While these packages largely represent libraries and supporting runtimes, as mentioned at the beginning of this post, see our [habitat-aspnet-sample](https://github.com/habitat-sh/habitat-aspnet-sample) application for an example of what a full habitat service on Windows would look like.
+While these packages largely represent libraries and supporting runtimes, as mentioned at the beginning of this post, see our [habitat-aspnet-sample](https://github.com/habitat-sh/habitat-aspnet-sample) application for an example of what a full Habitat service on Windows would look like.
 
 ## What features on Linux are missing on Windows
 
