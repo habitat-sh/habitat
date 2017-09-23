@@ -19,7 +19,6 @@ use protocol;
 use zmq;
 
 use conn;
-use error::NetError;
 
 pub type AppResult<T, E> = Result<T, AppError<E>>;
 
@@ -37,8 +36,6 @@ where
     NoRouter,
     /// Wrapper for protocol serialization and deserialization errors.
     Protocol(protocol::ProtocolError),
-    /// RouteSrv asked application to terminate.
-    Terminated(NetError),
 }
 
 impl<T> fmt::Display for AppError<T>
@@ -51,7 +48,6 @@ where
             AppError::Init(ref e) => write!(f, "Application failed to initialize, {}", e),
             AppError::NoRouter => write!(f, "Failed to route request, no reachable RouteSrv"),
             AppError::Protocol(ref e) => write!(f, "{}", e),
-            AppError::Terminated(ref e) => write!(f, "received termination request, {}", e),
         }
     }
 }
@@ -66,7 +62,6 @@ where
             AppError::Init(_) => "Application failed to initialize.",
             AppError::NoRouter => "Failed to route request, no reachable RouteSrv.",
             AppError::Protocol(ref err) => err.description(),
-            AppError::Terminated(_) => "RouteSrv asked application to terminate.",
         }
     }
 }
