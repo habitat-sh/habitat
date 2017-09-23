@@ -157,7 +157,7 @@ impl Server {
     /// variable depending upon when the next registration expiration would occur. The default
     /// wait time is `30_000` milliseconds.
     fn wait_timeout(&self) -> i64 {
-        self.servers.next_expiration().unwrap_or(30_000)
+        self.servers.next_expiration()
     }
 }
 
@@ -183,7 +183,10 @@ impl ServerMap {
         for shard in shards {
             registrations.insert(shard, net_ident.clone());
         }
-        self.timestamps.insert(net_ident, time::clock_time());
+        self.timestamps.insert(
+            net_ident,
+            time::clock_time() + SERVER_TTL,
+        );
         true
     }
 
@@ -199,18 +202,16 @@ impl ServerMap {
     pub fn expire(&mut self) {
         let now = time::clock_time();
         let mut expired = vec![];
-        self.timestamps.retain(
-            |id, last| if (*last + SERVER_TTL) <= now {
-                info!(
-                    "expiring server registration, {:?}",
-                    String::from_utf8_lossy(&id)
-                );
-                expired.push(id.clone());
-                false
-            } else {
-                true
-            },
-        );
+        self.timestamps.retain(|id, last| if *last <= now {
+            info!(
+                "expiring server registration, {:?}",
+                String::from_utf8_lossy(&id)
+            );
+            expired.push(id.clone());
+            false
+        } else {
+            true
+        });
         for net_ident in expired.iter() {
             self.drop(net_ident);
         }
@@ -223,10 +224,18 @@ impl ServerMap {
             .and_then(|s| Some(s.as_slice()))
     }
 
-    pub fn next_expiration(&self) -> Option<i64> {
+    pub fn next_expiration(&self) -> i64 {
         let mut timestamps = self.timestamps.values().collect::<Vec<&i64>>();
-        timestamps.sort_by(|av, bv| bv.cmp(av));
-        timestamps.first().map(|v| **v)
+        timestamps.sort_by(|av, bv| av.cmp(bv));
+        let expiration = timestamps.first().map_or(
+            30_000,
+            |v| **v - time::clock_time(),
+        );
+        if expiration.is_negative() {
+            0
+        } else {
+            expiration
+        }
     }
 
     pub fn renew(&mut self, target: &[u8]) -> bool {
