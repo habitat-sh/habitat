@@ -1,3 +1,4 @@
 #!/bin/sh
+set -e
 mkdir -p {{pkg.svc_var_path}}/nginx
 chown hab:hab {{pkg.svc_var_path}}
