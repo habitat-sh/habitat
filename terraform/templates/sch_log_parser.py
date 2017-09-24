@@ -8,7 +8,7 @@ def my_log_parser(logger, line):
     if report_type == 'J' and event != 'Pending':
         date = datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
         date = time.mktime(date.timetuple())
-        url = '${api_url}/#/pkgs/{0}/builds/{1}'.format(package, job_id)
+        url = '${bldr_url}/#/pkgs/{0}/builds/{1}'.format(package, job_id)
 
         if event == 'Failed':
             error = rest.split(',')[-1]
