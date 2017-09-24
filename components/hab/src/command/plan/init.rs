@@ -110,8 +110,8 @@ pub fn start(
         create_with_template(ui, &format!("{}/plan.sh", root), &rendered_plan)?;
     }
     ui.para(
-        "The `plan.sh` is the foundation of your new habitat. You can \
-        define core metadata, dependencies, and tasks.",
+        "`plan.sh` is the foundation of your new habitat. It contains \
+        metadata, dependencies, and tasks.",
     )?;
     let rendered_default_toml = handlebars.template_render(DEFAULT_TOML_TEMPLATE, &data)?;
     create_with_template(
@@ -120,8 +120,7 @@ pub fn start(
         &rendered_default_toml,
     )?;
     ui.para(
-        "The `default.toml` allows you to declare default values for `cfg` prefixed
-        variables.",
+        "`default.toml` contains default values for `cfg` prefixed variables.",
     )?;
 
     let config_path = format!("{}/config/", root);
@@ -141,8 +140,7 @@ pub fn start(
         }
     };
     ui.para(
-        "The `config` directory is where you can set up configuration files for your app. \
-        They are influenced by `default.toml`.",
+        "`/config/` contains configuration files for your app.",
     )?;
 
     let hooks_path = format!("{}/hooks/", root);
@@ -162,21 +160,17 @@ pub fn start(
         }
     };
     ui.para(
-        "The `hooks` directory is where you can create a number of automation hooks into \
-        your habitat.",
+        "`/hooks/` contains automation hooks into your habitat.",
     )?;
 
     ui.para(
-        "For more information on any of the generated files: \
-        https://www.habitat.sh/docs/reference/plan-syntax/#basic-settings \
-        https://www.habitat.sh/docs/reference/plan-syntax/#runtime-configuration-settings \
-        https://www.habitat.sh/docs/reference/plan-syntax/#hooks \
-        https://www.habitat.sh/docs/reference/plan-syntax/#callbacks",
+        "For more information on any of the files: \
+        https://www.habitat.sh/docs/reference/plan-syntax/",
     )?;
 
     render_ignorefile(ui, &root)?;
 
-    ui.end("An abode for your code has been initialized!")?;
+    ui.end("An abode for your code is initialized!")?;
     Ok(())
 }
 
