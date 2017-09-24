@@ -586,17 +586,18 @@ mod test {
                 .unwrap();
 
             assert_eq!(
-                hcore::fs::pkg_install_path(&base_pkgs.busybox, None::<&Path>).join("bin/busybox"),
+                hcore::fs::pkg_install_path(&base_pkgs.busybox, Some(rootfs.path()))
+                    .join("bin/busybox"),
                 rootfs.path().join("bin/busybox").read_link().unwrap(),
                 "busybox program is symlinked into /bin"
             );
             assert_eq!(
-                hcore::fs::pkg_install_path(&base_pkgs.busybox, None::<&Path>).join("bin/sh"),
+                hcore::fs::pkg_install_path(&base_pkgs.busybox, Some(rootfs.path())).join("bin/sh"),
                 rootfs.path().join("bin/sh").read_link().unwrap(),
                 "busybox's sh program is symlinked into /bin"
             );
             assert_eq!(
-                hcore::fs::pkg_install_path(&base_pkgs.hab, None::<&Path>).join("bin/hab"),
+                hcore::fs::pkg_install_path(&base_pkgs.hab, Some(rootfs.path())).join("bin/hab"),
                 rootfs.path().join("bin/hab").read_link().unwrap(),
                 "hab program is symlinked into /bin"
             );
