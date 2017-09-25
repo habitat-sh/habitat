@@ -15,7 +15,7 @@
 use std::collections::{HashMap, HashSet};
 use std::error::Error as StdErr;
 use std::ffi::OsStr;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::channel;
@@ -50,6 +50,22 @@ impl SpecWatcher {
         P: Into<PathBuf>,
     {
         Self::run_with::<RecommendedWatcher, _>(path)
+    }
+
+    pub fn spec_files<T>(watch_path: T) -> Result<Vec<PathBuf>>
+    where
+        T: AsRef<Path>,
+    {
+        Ok(
+            glob(&watch_path
+                .as_ref()
+                .join(SPEC_FILE_GLOB)
+                .display()
+                .to_string())?
+                .filter_map(|p| p.ok())
+                .filter(|p| p.is_file())
+                .collect(),
+        )
     }
 
     pub fn initial_events(&mut self) -> Result<Vec<SpecWatcherEvent>> {
@@ -210,14 +226,8 @@ impl SpecWatcher {
     }
 
     pub fn specs_from_watch_path<'a>(&self) -> Result<HashMap<String, ServiceSpec>> {
-        let spec_files: Vec<PathBuf> =
-            glob(&self.watch_path.join(SPEC_FILE_GLOB).display().to_string())?
-                .filter_map(|p| p.ok())
-                .filter(|p| p.is_file())
-                .collect();
-
         let mut specs = HashMap::new();
-        for spec_file in spec_files {
+        for spec_file in Self::spec_files(&self.watch_path)? {
             let spec = match ServiceSpec::from_file(&spec_file) {
                 Ok(s) => s,
                 Err(e) => {
@@ -266,14 +276,6 @@ impl SpecWatcher {
                     SPEC_FILE_EXT
                 );
                 continue;
-            }
-            // Migrate spec files using an older format
-            if let Err(err) = spec.to_file(&spec_file) {
-                outputln!(
-                    "Unable to migrate service spec, {}, {}",
-                    spec_file.display(),
-                    err
-                );
             }
             specs.insert(spec.ident.name.clone(), spec);
         }
