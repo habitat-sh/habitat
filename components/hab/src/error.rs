@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::env;
 use std::error;
 use std::ffi;
 use std::fmt;
@@ -43,6 +44,7 @@ pub enum Error {
     DockerFileSharingNotEnabled,
     DockerImageNotFound(String),
     DockerNetworkDown(String),
+    EnvJoinPathsError(env::JoinPathsError),
     ExecCommandNotFound(PathBuf),
     FFINulError(ffi::NulError),
     FileNotFound(String),
@@ -116,6 +118,7 @@ impl fmt::Display for Error {
                     e
                 )
             }
+            Error::EnvJoinPathsError(ref err) => format!("{}", err),
             Error::ExecCommandNotFound(ref c) => {
                 format!(
                     "`{}' was not found on the filesystem or in PATH",
@@ -178,6 +181,7 @@ impl error::Error for Error {
             Error::DockerFileSharingNotEnabled => "Docker file sharing is not enabled.",
             Error::DockerImageNotFound(_) => "The Docker image was not found.",
             Error::DockerNetworkDown(_) => "The Docker registry is unreachable.",
+            Error::EnvJoinPathsError(ref err) => err.description(),
             Error::ExecCommandNotFound(_) => "Exec command was not found on filesystem or in PATH",
             Error::FFINulError(ref err) => err.description(),
             Error::FileNotFound(_) => "File not found",
@@ -259,5 +263,11 @@ impl From<toml::de::Error> for Error {
 impl From<toml::ser::Error> for Error {
     fn from(err: toml::ser::Error) -> Self {
         Error::TomlSerializeError(err)
+    }
+}
+
+impl From<env::JoinPathsError> for Error {
+    fn from(err: env::JoinPathsError) -> Self {
+        Error::EnvJoinPathsError(err)
     }
 }

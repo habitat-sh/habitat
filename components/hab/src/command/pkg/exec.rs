@@ -14,11 +14,11 @@
 
 use std::env;
 use std::ffi::OsString;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use hcore::os::process;
 use hcore::package::{PackageIdent, PackageInstall};
-use hcore::fs::find_command;
+use hcore::fs::{find_command, FS_ROOT_PATH};
 
 use error::{Error, Result};
 
@@ -27,8 +27,26 @@ where
     T: Into<PathBuf>,
 {
     let command = command.into();
-    let pkg_install = PackageInstall::load(&ident, None)?;
-    let run_env = pkg_install.runtime_environment()?;
+    let pkg_install = PackageInstall::load(&ident, Some(&*FS_ROOT_PATH))?;
+    let mut run_env = pkg_install.runtime_environment()?;
+
+    let mut paths: Vec<PathBuf> = match run_env.get("PATH") {
+        Some(path) => env::split_paths(&path).collect(),
+        None => vec![],
+    };
+    for i in 0..paths.len() {
+        if paths[i].starts_with("/") {
+            paths[i] = Path::new(&*FS_ROOT_PATH).join(paths[i].strip_prefix("/").unwrap());
+        }
+    }
+    let joined = env::join_paths(paths)?;
+    run_env.insert(
+        String::from("PATH"),
+        joined.into_string().expect(
+            "Unable to convert OsStr path to string!",
+        ),
+    );
+
     for (key, value) in run_env.into_iter() {
         debug!("Setting: {}='{}'", key, value);
         env::set_var(key, value);
