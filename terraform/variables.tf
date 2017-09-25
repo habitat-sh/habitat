@@ -42,13 +42,8 @@ variable "hab_sup_sg" {
   description = "AWS security group identifier for Habitat Supervisor gossip connectivity"
 }
 
-variable "depot_url" {
+variable "bldr_url" {
   description = "URL of Builder to receive package updates from"
-  default     = "https://bldr.habitat.sh"
-}
-
-variable "api_url" {
-  description = "URL of the Builder API"
   default     = "https://bldr.habitat.sh"
 }
 
