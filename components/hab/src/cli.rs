@@ -181,6 +181,7 @@ pub fn get() -> App<'static, 'static> {
                     "The command to symlink (ex: bash)")
                 (@arg DEST_DIR: -d --dest +takes_value
                     "Sets the destination directory (default: /bin)")
+                (@arg FORCE: -f --force "Overwrite existing symlinks")
             )
             (@subcommand config =>
                 (about: "Displays the default configuration options for a service")
@@ -588,6 +589,7 @@ fn sub_pkg_install() -> App<'static, 'static> {
             "One or more Habitat package identifiers (ex: acme/redis) and/or filepaths \
             to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
         (@arg BINLINK: -b --binlink "Binlink all binaries from installed package(s)")
+        (@arg FORCE: -f --force "When using binlink, overwrite existing symlinks")
     );
     sub.arg(
         Arg::with_name("IGNORE_TARGET")
