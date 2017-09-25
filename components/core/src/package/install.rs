@@ -360,10 +360,8 @@ impl PackageInstall {
         match self.read_metafile(MetaFile::Path) {
             Ok(body) => {
                 let v = env::split_paths(&body)
-                    .map(|p| {
-                        self.fs_root_path.join(PathBuf::from(
-                            &p.strip_prefix("/").unwrap(),
-                        ))
+                    .filter_map(|p| {
+                        p.strip_prefix("/").ok().map(|p| self.fs_root_path.join(p))
                     })
                     .collect();
                 Ok(v)

@@ -212,6 +212,41 @@ impl Manager {
         }
     }
 
+    /// Read all spec files and rewrite them to disk migrating their format from a previous
+    /// Supervisor's to the one currently running.
+    fn migrate_specs(fs_cfg: &FsCfg) {
+        // JW: In the future we should write spec files to the Supervisor's DAT file in a more
+        // appropriate machine readable format. We'll need to wait until we modify how we load and
+        // unload services, though. Right now we watch files on disk and communicate with the
+        // Supervisor asynchronously. We need to move to communicating directly with the
+        // Supervisor's main loop through IPC.
+        match SpecWatcher::spec_files(&fs_cfg.specs_path) {
+            Ok(specs) => {
+                for spec_file in specs {
+                    match ServiceSpec::from_file(&spec_file) {
+                        Ok(spec) => {
+                            if let Err(err) = spec.to_file(&spec_file) {
+                                outputln!(
+                                    "Unable to migrate service spec, {}, {}",
+                                    spec_file.display(),
+                                    err
+                                );
+                            }
+                        }
+                        Err(err) => {
+                            outputln!(
+                                "Unable to migrate service spec, {}, {}",
+                                spec_file.display(),
+                                err
+                            );
+                        }
+                    }
+                }
+            }
+            Err(err) => outputln!("Unable to migrate service specs, {}", err),
+        }
+    }
+
     fn new(cfg: ManagerConfig, fs_cfg: FsCfg, launcher: LauncherCli) -> Result<Manager> {
         let current = PackageIdent::from_str(&format!("{}/{}", SUP_PKG_IDENT, VERSION)).unwrap();
         let self_updater = if cfg.auto_update {
@@ -259,6 +294,7 @@ impl Manager {
             peer.set_gossip_port(peer_addr.port() as i32);
             server.member_list.add_initial_member(peer);
         }
+        Self::migrate_specs(&fs_cfg);
         Ok(Manager {
             self_updater: self_updater,
             updater: ServiceUpdater::new(server.clone()),
