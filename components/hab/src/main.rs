@@ -638,32 +638,35 @@ fn exec_subcommand_if_called(ui: &mut UI) -> Result<()> {
     match (
         args.nth(1).unwrap_or_default().as_str(),
         args.next().unwrap_or_default().as_str(),
+        args.next().unwrap_or_default().as_str(),
     ) {
-        ("butterfly", _) => command::butterfly::start(ui, env::args_os().skip(2).collect()),
-        ("apply", _) => {
+        ("butterfly", _, _) => command::butterfly::start(ui, env::args_os().skip(2).collect()),
+        ("apply", _, _) => {
             let mut args: Vec<OsString> = env::args_os().skip(1).collect();
             args.insert(0, OsString::from("config"));
             command::butterfly::start(ui, args)
         }
-        ("config", _) | ("file", _) => {
+        ("config", _, _) | ("file", _, _) => {
             command::butterfly::start(ui, env::args_os().skip(1).collect())
         }
-        ("run", _) => command::launcher::start(ui, env::args_os().skip(1).collect()),
-        ("stu", _) | ("stud", _) | ("studi", _) | ("studio", _) => {
+        ("pkg", "export", "docker") => {
+            command::pkg::export::docker::start(ui, env::args_os().skip(4).collect())
+        }
+        ("run", _, _) => command::launcher::start(ui, env::args_os().skip(1).collect()),
+        ("stu", _, _) | ("stud", _, _) | ("studi", _, _) | ("studio", _, _) => {
             command::studio::enter::start(ui, env::args_os().skip(2).collect())
         }
-        ("sup", "run") | ("sup", "start") => {
-            command::launcher::start(ui, env::args_os().skip(2).collect())
-        }
-        ("sup", _) => command::sup::start(ui, env::args_os().skip(2).collect()),
-        ("start", _) => command::launcher::start(ui, env::args_os().skip(1).collect()),
-        ("stop", _) => command::sup::start(ui, env::args_os().skip(1).collect()),
-        ("svc", "start") => command::launcher::start(ui, env::args_os().skip(2).collect()),
-        ("svc", "load") |
-        ("svc", "unload") |
-        ("svc", "status") |
-        ("svc", "stop") => command::sup::start(ui, env::args_os().skip(2).collect()),
-        ("term", _) => command::sup::start(ui, env::args_os().skip(1).collect()),
+        ("sup", "run", _) |
+        ("sup", "start", _) => command::launcher::start(ui, env::args_os().skip(2).collect()),
+        ("sup", _, _) => command::sup::start(ui, env::args_os().skip(2).collect()),
+        ("start", _, _) => command::launcher::start(ui, env::args_os().skip(1).collect()),
+        ("stop", _, _) => command::sup::start(ui, env::args_os().skip(1).collect()),
+        ("svc", "start", _) => command::launcher::start(ui, env::args_os().skip(2).collect()),
+        ("svc", "load", _) |
+        ("svc", "unload", _) |
+        ("svc", "status", _) |
+        ("svc", "stop", _) => command::sup::start(ui, env::args_os().skip(2).collect()),
+        ("term", _, _) => command::sup::start(ui, env::args_os().skip(1).collect()),
         _ => Ok(()),
     }
 }

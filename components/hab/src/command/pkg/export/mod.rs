@@ -17,6 +17,8 @@ use hcore::package::PackageIdent;
 
 use error::Result;
 
+pub mod docker;
+
 #[allow(dead_code)]
 pub struct ExportFormat {
     pkg_ident: PackageIdent,
@@ -70,15 +72,6 @@ mod inner {
     pub fn format_for(_ui: &mut UI, value: &str) -> Result<ExportFormat> {
         let version: Vec<_> = VERSION.split("/").collect();
         match value {
-            "docker" => {
-                let format = ExportFormat {
-                    pkg_ident: PackageIdent::from_str(
-                        &format!("core/hab-pkg-dockerize/{}", version[0]),
-                    )?,
-                    cmd: "hab-pkg-dockerize".to_string(),
-                };
-                Ok(format)
-            }
             "aci" => {
                 let format = ExportFormat {
                     pkg_ident: PackageIdent::from_str(&format!("core/hab-pkg-aci/{}", version[0]))?,
