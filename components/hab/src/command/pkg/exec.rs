@@ -18,7 +18,7 @@ use std::path::PathBuf;
 
 use hcore::os::process;
 use hcore::package::{PackageIdent, PackageInstall};
-use hcore::fs::{find_command, FS_ROOT_PATH};
+use hcore::fs::find_command;
 
 use error::{Error, Result};
 
@@ -27,7 +27,7 @@ where
     T: Into<PathBuf>,
 {
     let command = command.into();
-    let pkg_install = PackageInstall::load(&ident, Some(&*FS_ROOT_PATH))?;
+    let pkg_install = PackageInstall::load(&ident, None)?;
     let run_env = pkg_install.runtime_environment()?;
     for (key, value) in run_env.into_iter() {
         debug!("Setting: {}='{}'", key, value);

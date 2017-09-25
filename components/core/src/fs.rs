@@ -271,14 +271,23 @@ where
 /// # Failures
 ///
 /// * The path entries metadata cannot be loaded
-pub fn find_command_in_pkg<T>(command: T, pkg_install: &PackageInstall) -> Result<Option<PathBuf>>
+pub fn find_command_in_pkg<T, U>(
+    command: T,
+    pkg_install: &PackageInstall,
+    fs_root_path: U,
+) -> Result<Option<PathBuf>>
 where
     T: AsRef<Path>,
+    U: AsRef<Path>,
 {
     for path in pkg_install.paths()? {
-        let candidate = path.join(command.as_ref());
+        let stripped = path.strip_prefix("/").expect(&format!(
+            "Package path missing / prefix {}",
+            path.to_string_lossy()
+        ));
+        let candidate = fs_root_path.as_ref().join(stripped).join(command.as_ref());
         if candidate.is_file() {
-            return Ok(Some(candidate));
+            return Ok(Some(path.join(command.as_ref())));
         } else {
             match find_command_with_pathext(&candidate) {
                 Some(result) => return Ok(Some(result)),

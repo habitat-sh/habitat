@@ -340,7 +340,7 @@ fn supervisor_cmd() -> Result<PathBuf> {
     let ident = PackageIdent::from_str(SUP_PACKAGE_IDENT).unwrap();
     match PackageInstall::load_at_least(&ident, None) {
         Ok(install) => {
-            match core::fs::find_command_in_pkg(SUP_CMD, &install) {
+            match core::fs::find_command_in_pkg(SUP_CMD, &install, "/") {
                 Ok(Some(cmd)) => Ok(cmd),
                 _ => Err(Error::SupBinaryNotFound),
             }
