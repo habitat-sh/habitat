@@ -1,5 +1,50 @@
 # Habitat CHANGELOG
 
+## [0.33.1](https://github.com/habitat-sh/habitat/tree/0.33.1) (09-25-2017)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.33.0...0.33.1)
+
+## Features & Enhancements
+
+- Enable project creation in the Package Settings tab [\#3269](https://github.com/habitat-sh/habitat/issues/3269)
+- Add Link to Status Page to Habitat Navigation menu [\#2823](https://github.com/habitat-sh/habitat/issues/2823)
+- Add patchelf warning [\#3255](https://github.com/habitat-sh/habitat/pull/3255) ([tashimi](https://github.com/tashimi))
+
+## Bug fixes
+
+- Hide content of Latest tab until package details are available [\#3292](https://github.com/habitat-sh/habitat/issues/3292)
+- Supervisor Seems to be having issues starting multiple services after 0.26 [\#2782](https://github.com/habitat-sh/habitat/issues/2782)
+- Fix race condition in loading/unloading services [\#3306](https://github.com/habitat-sh/habitat/pull/3306) ([reset](https://github.com/reset))
+- Remove old static content before copying new in builder-api init hook [\#3304](https://github.com/habitat-sh/habitat/pull/3304) ([reset](https://github.com/reset))
+- Improve dead peer detection in RouteSrv and App [\#3300](https://github.com/habitat-sh/habitat/pull/3300) ([reset](https://github.com/reset))
+- Fix for router registration expiry [\#3298](https://github.com/habitat-sh/habitat/pull/3298) ([reset](https://github.com/reset))
+- fix hab pkg exec inside windows studio [\#3232](https://github.com/habitat-sh/habitat/pull/3232) ([mwrock](https://github.com/mwrock))
+
+**Closed issues:**
+
+- Automate Git Credentials in the Studio [\#3297](https://github.com/habitat-sh/habitat/issues/3297)
+- Duplicate platform icons in the Versions tab [\#3290](https://github.com/habitat-sh/habitat/issues/3290)
+
+**Merged pull requests:**
+
+- Use appropriate variable name for instance tuning in Terraform files [\#3301](https://github.com/habitat-sh/habitat/pull/3301) ([reset](https://github.com/reset))
+- Add note about maintenance windows [\#3299](https://github.com/habitat-sh/habitat/pull/3299) ([tashimi](https://github.com/tashimi))
+- Link Builder to /pkgs, Fix link name in www nav [\#3295](https://github.com/habitat-sh/habitat/pull/3295) ([cnunciato](https://github.com/cnunciato))
+- Add "set -e" to remaining Builder init hooks [\#3294](https://github.com/habitat-sh/habitat/pull/3294) ([christophermaier](https://github.com/christophermaier))
+- Show spinner while loading Latest tab [\#3293](https://github.com/habitat-sh/habitat/pull/3293) ([cnunciato](https://github.com/cnunciato))
+- Fix duplicate icons in package lists [\#3291](https://github.com/habitat-sh/habitat/pull/3291) ([cnunciato](https://github.com/cnunciato))
+- Enable project creation in the Package Settings tab [\#3289](https://github.com/habitat-sh/habitat/pull/3289) ([cnunciato](https://github.com/cnunciato))
+- Add scheduled downtime procedure [\#3286](https://github.com/habitat-sh/habitat/pull/3286) ([tashimi](https://github.com/tashimi))
+- Update On\_Call.md [\#3284](https://github.com/habitat-sh/habitat/pull/3284) ([tashimi](https://github.com/tashimi))
+- Fix syntax error in api/admin proxy conf [\#3283](https://github.com/habitat-sh/habitat/pull/3283) ([reset](https://github.com/reset))
+- Only use loopback in api/admin proxy connecting back to app server [\#3281](https://github.com/habitat-sh/habitat/pull/3281) ([reset](https://github.com/reset))
+- Add new properties to current-project record [\#3274](https://github.com/habitat-sh/habitat/pull/3274) ([cnunciato](https://github.com/cnunciato))
+- Minor fix to log parser and some tweaks to the install script [\#3273](https://github.com/habitat-sh/habitat/pull/3273) ([chefsalim](https://github.com/chefsalim))
+- Capitalized 'habitat' and 'studio' inside CLI output and docs [\#3270](https://github.com/habitat-sh/habitat/pull/3270) ([davidwrede](https://github.com/davidwrede))
+- Adds footer link to status page [\#3268](https://github.com/habitat-sh/habitat/pull/3268) ([ryankeairns](https://github.com/ryankeairns))
+- Make builder-api and builder-worker instance size configurable [\#3263](https://github.com/habitat-sh/habitat/pull/3263) ([reset](https://github.com/reset))
+- Add application lifecycle to hooks to increase clarity about what they are [\#3251](https://github.com/habitat-sh/habitat/pull/3251) ([tashimi](https://github.com/tashimi))
+- Give just enough info at init time [\#3184](https://github.com/habitat-sh/habitat/pull/3184) ([echohack](https://github.com/echohack))
+
 ## [0.33.0](https://github.com/habitat-sh/habitat/tree/0.33.0) (09-22-2017)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.32.0...0.33.0)
 
@@ -44,6 +89,7 @@
 
 **Merged pull requests:**
 
+- Version bump 0.33.0 [\#3272](https://github.com/habitat-sh/habitat/pull/3272) ([reset](https://github.com/reset))
 - Bump RouteSrv TTL from 32s to 35s [\#3266](https://github.com/habitat-sh/habitat/pull/3266) ([reset](https://github.com/reset))
 - Remove orphaned scss sheet to unbreak the build [\#3257](https://github.com/habitat-sh/habitat/pull/3257) ([elliott-davis](https://github.com/elliott-davis))
 - Remove dashboard component [\#3256](https://github.com/habitat-sh/habitat/pull/3256) ([elliott-davis](https://github.com/elliott-davis))
