@@ -69,7 +69,7 @@ pub fn start(
                 ui.end(&ui_symlinked)?;
             } else if path != src {
                 ui.warn(
-                    format!("Skipping symlink because {} already exists at {}. Use -f to overwrite",
+                    format!("Skipping symlink because {} already exists at {}. Use --force to overwrite",
                 &binary,
                 &dst.display(),
                 ),

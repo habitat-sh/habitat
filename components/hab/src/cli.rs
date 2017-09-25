@@ -26,10 +26,6 @@ pub fn get() -> App<'static, 'static> {
         .about("Alias for 'config apply'")
         .aliases(&["ap", "app", "appl"])
         .setting(AppSettings::Hidden);
-    let alias_binlink = sub_pkg_binlink()
-        .about("Alias for 'pkg binlink'")
-        .aliases(&["b", "bi", "bin", "binl", "binli", "binlin"])
-        .setting(AppSettings::Hidden);
     let alias_install = sub_pkg_install()
         .about("Alias for 'pkg install'")
         .aliases(&["i", "in", "ins", "inst", "insta", "instal"])
@@ -176,7 +172,17 @@ pub fn get() -> App<'static, 'static> {
             (about: "Commands relating to Habitat packages")
             (aliases: &["p", "pk", "package"])
             (@setting ArgRequiredElseHelp)
-            (subcommand: sub_pkg_binlink())
+            (@subcommand binlink =>
+                (about: "Creates a symlink for a package binary in a common 'PATH' location")
+                (aliases: &["bi", "bin", "binl", "binli", "binlin"])
+                (@arg PKG_IDENT: +required +takes_value
+                    "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
+                (@arg BINARY: +takes_value
+                    "The command to symlink (ex: bash)")
+                (@arg DEST_DIR: -d --dest +takes_value
+                    "Sets the destination directory (default: /bin)")
+                (@arg FORCE: -f --force "Overwrite existing symlinks")
+            )
             (@subcommand config =>
                 (about: "Displays the default configuration options for a service")
                 (aliases: &["conf", "cfg"])
@@ -430,7 +436,6 @@ pub fn get() -> App<'static, 'static> {
             )
         )
         (subcommand: alias_apply)
-        (subcommand: alias_binlink)
         (subcommand: alias_install)
         (subcommand: alias_run())
         (subcommand: alias_setup)
@@ -573,24 +578,6 @@ fn sub_pkg_build() -> App<'static, 'static> {
     }
 }
 
-fn sub_pkg_binlink() -> App<'static, 'static> {
-    let sub = clap_app!(@subcommand binlink =>
-        (about: "Creates a symlink for a package binary in a common 'PATH' location")
-        (@arg PKG_IDENT: +required +takes_value
-            "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
-        (@arg BINARY: +takes_value
-            "The command to symlink (ex: bash)")
-        (@arg DEST_DIR: -d --dest +takes_value
-            "Sets the destination directory (default: /bin)")
-    );
-    sub.arg(
-        Arg::with_name("FORCE")
-            .help("Overwrites existing files")
-            .short("f")
-            .long("force"),
-    )
-}
-
 fn sub_pkg_install() -> App<'static, 'static> {
     let sub = clap_app!(@subcommand install =>
         (about: "Installs a Habitat package from Builder or locally from a Habitat Artifact")
@@ -602,6 +589,7 @@ fn sub_pkg_install() -> App<'static, 'static> {
             "One or more Habitat package identifiers (ex: acme/redis) and/or filepaths \
             to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
         (@arg BINLINK: -b --binlink "Binlink all binaries from installed package(s)")
+        (@arg FORCE: -f --force "When using binlink, overwrite existing symlinks")
     );
     sub.arg(
         Arg::with_name("IGNORE_TARGET")
