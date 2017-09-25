@@ -1,5 +1,12 @@
 # Habitat CHANGELOG
 
+## [0.33.2](https://github.com/habitat-sh/habitat/tree/0.33.2) (09-25-2017)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.33.1...0.33.2)
+
+## Bug fixes
+
+- Revert \#3232 & related fix in \#3306 [\#3308](https://github.com/habitat-sh/habitat/pull/3308) ([fnichol](https://github.com/fnichol))
+
 ## [0.33.1](https://github.com/habitat-sh/habitat/tree/0.33.1) (09-25-2017)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.33.0...0.33.1)
 
@@ -26,6 +33,7 @@
 
 **Merged pull requests:**
 
+- Version 0.33.1 [\#3307](https://github.com/habitat-sh/habitat/pull/3307) ([reset](https://github.com/reset))
 - Use appropriate variable name for instance tuning in Terraform files [\#3301](https://github.com/habitat-sh/habitat/pull/3301) ([reset](https://github.com/reset))
 - Add note about maintenance windows [\#3299](https://github.com/habitat-sh/habitat/pull/3299) ([tashimi](https://github.com/tashimi))
 - Link Builder to /pkgs, Fix link name in www nav [\#3295](https://github.com/habitat-sh/habitat/pull/3295) ([cnunciato](https://github.com/cnunciato))
