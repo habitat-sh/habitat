@@ -18,6 +18,7 @@ use hcore::package::PackageIdent;
 use error::Result;
 
 pub mod docker;
+pub mod cf;
 
 #[allow(dead_code)]
 pub struct ExportFormat {
