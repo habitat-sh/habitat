@@ -5,7 +5,7 @@ terraform.tfstate*
 .delivery/cli.toml
 .tags*
 log/
-components/*/results
+results/
 tmp/
 .vagrant/
 *.sig.key
