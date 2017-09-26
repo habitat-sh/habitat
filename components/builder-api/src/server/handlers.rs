@@ -27,7 +27,7 @@ use http_gateway::http::helpers;
 use iron::status;
 use params::{Params, Value, FromValue};
 use persistent;
-use protocol::jobsrv::{Job, JobGet, JobLogGet, JobLog, JobSpec, JobState, ProjectJobsGet,
+use protocol::jobsrv::{Job, JobGet, JobLogGet, JobLog, JobState, ProjectJobsGet,
                        ProjectJobsGetResponse};
 use protocol::scheduler::{ReverseDependenciesGet, ReverseDependencies};
 use protocol::originsrv::*;
@@ -162,48 +162,6 @@ pub fn rdeps_show(req: &mut Request) -> IronResult<Response> {
     match route_message::<ReverseDependenciesGet, ReverseDependencies>(req, &rdeps_get) {
         Ok(rdeps) => Ok(render_json(status::Ok, &rdeps)),
         Err(err) => return Ok(render_net_error(&err)),
-    }
-}
-
-pub fn job_create(req: &mut Request) -> IronResult<Response> {
-    let mut project_get = OriginProjectGet::new();
-    {
-        match req.get::<bodyparser::Struct<JobCreateReq>>() {
-            Ok(Some(body)) => project_get.set_name(body.project_id),
-            Ok(None) => {
-                debug!("The request body was empty");
-                return Ok(Response::with(status::UnprocessableEntity));
-            }
-            Err(body) => {
-                debug!("The request body was malformed: {:?}", &body);
-                return Ok(Response::with(status::UnprocessableEntity));
-            }
-        }
-    }
-    let mut job_spec: JobSpec = JobSpec::new();
-    {
-        let session = req.extensions.get::<Authenticated>().unwrap();
-        job_spec.set_owner_id(session.get_id());
-    }
-    match route_message::<OriginProjectGet, OriginProject>(req, &project_get) {
-        Ok(project) => job_spec.set_project(project),
-        Err(err) => return Ok(render_net_error(&err)),
-    }
-    match route_message::<JobSpec, Job>(req, &job_spec) {
-        Ok(job) => {
-            log_event!(
-                req,
-                Event::JobCreate {
-                    package: job.get_project().get_id().to_string(),
-                    account: job_spec.get_owner_id().to_string(),
-                }
-            );
-            Ok(render_json(status::Created, &job))
-        }
-        Err(err) => {
-            debug!("Error creating job: {:?}", &err);
-            Ok(render_net_error(&err))
-        }
     }
 }
 
