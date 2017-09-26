@@ -553,5 +553,45 @@ pub fn migrate(migrator: &mut Migrator) -> SrvResult<()> {
                         AND (visibility='public' OR (visibility='private' AND origin_id IN (SELECT origin_id FROM origin_members WHERE account_id = op_account_id)))
                         $$;
                      "#)?;
+    migrator.migrate("originsrv",
+                     r#"CREATE OR REPLACE FUNCTION search_all_origin_packages_dynamic_v4 (
+                    op_query text,
+                    op_account_id bigint
+                    ) RETURNS TABLE(ident text) AS $$
+                    DECLARE
+                      schema RECORD;
+                    BEGIN
+                      FOR schema IN EXECUTE
+                        format(
+                          'SELECT schema_name FROM information_schema.schemata WHERE left(schema_name, 6) = %L',
+                          'shard_'
+                        )
+                      LOOP
+                        RETURN QUERY EXECUTE
+                        format('SELECT p.partial_ident[1] || %L || p.partial_ident[2] AS ident FROM (SELECT regexp_split_to_array(op.ident, %L) as partial_ident FROM %I.origin_packages op WHERE op.ident LIKE (%L || %L || %L) AND (op.visibility=%L OR (op.visibility=%L AND op.origin_id IN (SELECT origin_id FROM %I.origin_members WHERE account_id = %L)))) AS p GROUP BY (p.partial_ident[1] || %L || p.partial_ident[2])', '/', '/', schema.schema_name, '%', op_query, '%', 'public', 'private', schema.schema_name, op_account_id, '/');
+                      END LOOP;
+                      RETURN;
+                    END;
+                    $$ LANGUAGE plpgsql STABLE"#)?;
+    migrator.migrate("originsrv",
+                     r#"CREATE OR REPLACE FUNCTION search_all_origin_packages_v3 (
+                   op_query text,
+                   op_account_id bigint
+                 ) RETURNS TABLE(ident text) AS $$
+                    DECLARE
+                      schema RECORD;
+                    BEGIN
+                      FOR schema IN EXECUTE
+                        format(
+                          'SELECT schema_name FROM information_schema.schemata WHERE left(schema_name, 6) = %L',
+                          'shard_'
+                        )
+                      LOOP
+                        RETURN QUERY EXECUTE
+                        format('SELECT op.ident FROM %I.origin_packages op WHERE op.ident LIKE (%L || %L || %L) AND (op.visibility=%L OR (op.visibility=%L AND op.origin_id IN (SELECT origin_id FROM %I.origin_members WHERE account_id = %L))) ORDER BY op.ident ASC', schema.schema_name, '%', op_query, '%', 'public', 'private', schema.schema_name, op_account_id);
+                      END LOOP;
+                      RETURN;
+                    END;
+                    $$ LANGUAGE plpgsql STABLE"#)?;
     Ok(())
 }
