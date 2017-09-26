@@ -183,13 +183,14 @@ where
     S: AsRef<OsStr>,
     T: AsRef<str>,
 {
-    let mut cmd_args: Vec<OsString> = vec![
-        "run".into(),
-        "--rm".into(),
-        "--tty".into(),
-        "--interactive".into(),
-        "--privileged".into(),
-    ];
+    let mut cmd_args: Vec<OsString> = vec!["run".into(), "--rm".into(), "--privileged".into()];
+    match args.first().map(|f| f.to_str().unwrap_or_default()) {
+        Some("build") => {}
+        _ => {
+            cmd_args.push("--tty".into());
+            cmd_args.push("--interactive".into());
+        }
+    }
     if let Ok(opts) = henv::var(DOCKER_OPTS_ENVVAR) {
         let opts = opts.split(" ")
                 .map(|v| v.into())
