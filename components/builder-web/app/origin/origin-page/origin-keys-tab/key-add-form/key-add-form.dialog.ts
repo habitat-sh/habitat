@@ -73,7 +73,7 @@ export class KeyAddFormDialog implements OnInit {
         }
     }
 
-    onCloseClick() {
+    close() {
         this.dialogRef.close();
     }
 

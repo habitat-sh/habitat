@@ -5,7 +5,11 @@
 @import "theme_palette";
 
 $custom-typography: mat-typography-config(
-  $font-family: "Titillium Web"
+  $font-family: $base-font-family
+);
+
+$tabs-typography: mat-typography-config(
+  $font-family: $tabs-font-family
 );
 
 $hab-theme-primary: mat-palette($md-mcgpalette0);
@@ -17,5 +21,7 @@ $hab-theme: mat-light-theme(
   $hab-theme-accent,
   $hab-theme-warn
 );
+
 @include mat-core($custom-typography);
+@include mat-tabs-typography($tabs-typography);
 @include angular-material-theme($hab-theme);

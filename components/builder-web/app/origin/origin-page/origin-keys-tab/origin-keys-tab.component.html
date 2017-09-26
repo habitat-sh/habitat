@@ -1,22 +1,19 @@
 <div class="page-body">
   <div class="hab-origin--left">
     <div class="hab-origin--key-list" *ngIf="iAmPartOfThisOrigin">
-      <p>
-        <button
-          md-raised-button
-          color="basic"
-          (click)="openKeyAddForm('private')"
-          [disabled]="!iAmPartOfThisOrigin">
-          <hab-icon symbol="file-upload"></hab-icon> Upload private key
-        </button>
-      </p>
       <hab-key-list
         *ngIf="privateKeyNames.size > 0"
         [keys]="privateKeyNames"
         keyType="private">
       </hab-key-list>
+      <button
+        md-raised-button
+        color="basic"
+        (click)="openKeyAddForm('private')"
+        [disabled]="!iAmPartOfThisOrigin">
+        <hab-icon symbol="file-upload"></hab-icon> Upload private key
+      </button>
     </div>
-    <hr>
     <div class="hab-origin--key-list">
       <p *ngIf="ui.publicKeyListErrorMessage">
           Failed to load public keys:
@@ -27,16 +24,14 @@
           [keys]="publicKeys"
           keyType="public">
       </hab-key-list>
-      <p>
-        <button
-          md-raised-button
-          color="basic"
-          *ngIf="iAmPartOfThisOrigin"
-          (click)="openKeyAddForm('public')"
-          [disabled]="!iAmPartOfThisOrigin">
-          <hab-icon symbol="file-upload"></hab-icon> Upload public key
-        </button>
-      </p>
+      <button
+        md-raised-button
+        color="basic"
+        *ngIf="iAmPartOfThisOrigin"
+        (click)="openKeyAddForm('public')"
+        [disabled]="!iAmPartOfThisOrigin">
+        <hab-icon symbol="file-upload"></hab-icon> Upload public key
+      </button>
     </div>
   </div>
 </div>

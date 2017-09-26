@@ -1,16 +1,26 @@
 .hab-keys-list {
+
   ul.keys {
+
     li {
+
       &.heading, &.key {
         @include row;
         border-bottom: 1px solid $very-light-gray;
         font-size: rem(12);
-        
+
         .key-name {
           @include span-columns(10);
         }
+
         .download {
           float: right;
+
+          hab-icon {
+            width: 16px;
+            height: 16px;
+            color: $hab-blue;
+          }
         }
       }
 
@@ -23,20 +33,19 @@
       }
 
       &.key {
-        font-size: rem(14);
+        font-family: $heading-font-family;
+        font-size: rem(12);
 
         .key-icon {
           margin-right: 10px;
+          width: 16px;
+          height: 16px;
         }
 
         .summary {
           @include row;
           padding: 15px 10px;
           position: relative;
-
-          .key-name {
-            font-weight: 600;
-          }
         }
       }
     }

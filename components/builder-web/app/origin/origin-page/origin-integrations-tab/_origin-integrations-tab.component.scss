@@ -1,9 +1,13 @@
 .integrations-tab {
+  @include span-columns(8);
+  @include omega;
+
   h3 {
     font-family: $heading-font-family;
-    font-size: rem(12px);
+    font-size: rem(12);
   }
+
   p {
-    font-size: rem(12px);
+    margin-bottom: 18px;
   }
 }

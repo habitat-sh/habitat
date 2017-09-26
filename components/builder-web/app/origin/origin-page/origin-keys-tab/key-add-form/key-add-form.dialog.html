@@ -1,5 +1,5 @@
 <h3 class="dialog-header"><hab-icon [symbol]="icon"></hab-icon> Upload {{type}} key</h3>
-<h6 class="uppercase">{{type}} Key</h6>
+<label>{{type}} Key</label>
 <form class="hab-key-add-form" [formGroup]="form" #formValues="ngForm"
 (ngSubmit)="submit(formValues.value.key)">
   <div>
@@ -32,10 +32,10 @@
       Failed to save key: {{errorMessage}}.
     </div>
   </div>
-  <div class="options-row">
+  <div class="controls">
     <button md-raised-button color="primary" tabindex="1" type="submit" [disabled]="!form.valid">
         Upload Key
     </button>
-    <button md-button md-dialog-close color="basic" tabindex="-1">Cancel</button>
+    <a (click)="close()">Cancel</a>
   </div>
 </form>

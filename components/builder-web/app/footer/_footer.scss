@@ -8,10 +8,6 @@
   position: relative;
   z-index: 5;
 
-  &.has-sidebar {
-    padding-top: 0;
-  }
-
   h4 {
     margin-bottom: rem(16);
     color: $white;

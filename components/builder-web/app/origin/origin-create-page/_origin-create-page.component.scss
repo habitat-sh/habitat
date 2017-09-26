@@ -27,4 +27,12 @@
   &--form {
     max-width: rem(480);
   }
+
+  .page-body--sidebar {
+    font-size: rem(14);
+
+    p {
+      margin-bottom: inherit;
+    }
+  }
 }

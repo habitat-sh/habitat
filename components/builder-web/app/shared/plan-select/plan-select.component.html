@@ -1,5 +1,5 @@
 <form (ngSubmit)="handleSubmit()" [formGroup]="form" #formValues="ngForm">
-    <div class="page-body has-sidebar">
+    <div class="page-body">
       <md-tab-group [selectedIndex]="formIndex" (selectChange)="onTabChange($event)" class="hab-tab-progress">
         <md-tab id="repoSelect" label="1. Select a GitHub repo">
           <div class="page-body">
@@ -22,11 +22,6 @@
                 <hab-icon [symbol]="plan.type" class="icon-os" title="OS"></hab-icon> {{plan.path}}
               </md-radio-button>
             </md-radio-group>
-            <hr />
-            <hab-icon [symbol]="docker" class="icon-os" title="Docker"></hab-icon>
-            <h3>Publish to Docker Hub</h3>
-            <small>Export the resulting .hart file to a Docker container and publish it to your Docker Hub account. Integration settings are managed under the origin Settings tab.</small>
-            <i>Export to docker hub component goes here</i>
             <div class="submit">
               <button (click)="handleSubmit()" type="submit" md-raised-button color="primary" [disabled]="!form.valid">
                 Save Project

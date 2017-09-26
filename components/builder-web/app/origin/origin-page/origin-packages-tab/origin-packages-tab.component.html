@@ -1,4 +1,4 @@
-<div class="page-body has-sidebar">
+<div class="page-body">
   <div class="hab-origin--left hab-origin--pkg-list">
     <div *ngIf="noPackages">
       <p>
@@ -13,27 +13,22 @@
       (planSelected)="planSelected($event)"
       (planSelectCanceled)="planSelectCanceled()"></hab-plan-select>
     <div *ngIf="!noPackages && !selectingPlan">
-      <div *ngIf="projectsFlag">
+      <div class="connect-button" *ngIf="projectsFlag">
         <button (click)="loadRepoSelect()" md-raised-button color="primary">Connect a plan file</button>
       </div>
-      <div class="pkg-container">
-        <div class="pkg-col-1">Package Name</div>
-        <div class="pkg-col-2">&nbsp;</div>
-        <div class="pkg-col-3">Versions</div>
-      </div>
-      <div *ngFor="let pkg of packages" class="pkg-container">
-        <div class="pkg-col-1">
-          <h3>{{pkg.name}}</h3>
-        </div>
-        <div class="pkg-col-2">
-          &nbsp;
-        </div>
-        <div class="pkg-col-3">
-          <a [routerLink]="['/pkgs', pkg.origin, pkg.name]">
-            <hab-icon symbol="layers"></hab-icon>
+      <ul class="packages-list">
+        <li class="heading">
+          <div class="pkg-col-1">
+            <h3>Package</h3>
+          </div>
+        </li>
+        <li *ngFor="let pkg of packages">
+          <a [routerLink]="['/pkgs', pkg.origin, pkg.name, 'latest']">
+            <span class="pkg-col-1">{{ pkg.name }}</span>
           </a>
-        </div>
-      </div>
+          <hab-icon symbol="chevron-right"></hab-icon>
+        </li>
+      </ul>
       <div *ngIf="packages.size < totalCount">
         Showing {{packages.size}} of {{totalCount}} packages.
         <a href="#" (click)="fetchMorePackages()">
@@ -42,11 +37,5 @@
           more</a>.
       </div>
     </div>
-  </div>
-  <div class="hab-origin--right hab-origin--pkg-list">
-    <p>An <b>origin</b> defines packages that are conceptually related to each other.</p>
-    <p>Automated package builds are enabled once your package has been connected to a GitHub repo that contains a Habitat plan file.</p>
-    <p>You can either <a href="#">upload your packages to Builder</a> and connect them afterwards or connect a repo now and upload your packages later.</p>
-    <p>Read the docs for more information on <a href="#">origins</a>, <a href="#">packages</a>, and the <a href="#">build service</a>.</p>
   </div>
 </div>

@@ -37,6 +37,8 @@ habitatConfig({
     forums_url: "https://forums.habitat.sh/",
     // The URL for status
     status_url: "https://status.habitat.sh/",
+    // The URL for the demo app
+    demo_app_url: "#",
     // The version of the software we're running. In production, this should
     // be automatically populated by Habitat
     version: "",

@@ -103,15 +103,6 @@ export function fetchProject(id: string, token: string, alert: boolean) {
   };
 }
 
-export function fetchProjectsForPackages(packages: Array < Object > , token: string) {
-  return dispatch => {
-    for (let pkg of packages) {
-      let id = `${pkg["origin"]}/${pkg["name"]}`;
-      dispatch(fetchProject(id, token, false));
-    }
-  };
-}
-
 export function fetchProjects(token: string) {
   return dispatch => {
     new BuilderApiClient(token).getProjects().then(response => {

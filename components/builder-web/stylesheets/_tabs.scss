@@ -12,24 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-.hab-tabs {
+.mat-tab-nav-bar {
   background-color: $hab-blue-light;
-  display: block;
-  padding: rem(10) rem(25);
 
-  >li {
-    border-bottom: $small-spacing / 4 solid transparent;
-    cursor: pointer;
-    display: inline;
-    font-family: $heading-font-family;
-    font-size: rem(12);
-    margin-right: rem(30);
-    padding-bottom: rem(12);
+  .mat-tab-link {
+    color: $black;
     text-transform: uppercase;
-
-    &.active {
-      border-bottom-color: $hab-green;
-    }
+    font-size: 0.75rem;
+    min-width: 100px;
+    opacity: 1;
   }
-
 }

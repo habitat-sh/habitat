@@ -4,22 +4,25 @@
   </div>
   <div class="page-body">
     <div class="origin-create">
-      <a md-raised-button color="primary" [routerLink]="['/origins', 'create']">Create New Origin</a>
+      <a md-raised-button color="primary" [routerLink]="['/origins', 'create']">Create origin</a>
     </div>
     <div *ngIf="ui.loading">&nbsp;</div>
     <div *ngIf="!ui.loading">
       <p *ngIf="ui.errorMessage">
         Failed to load origins: {{ui.errorMessage}}
       </p>
-      <div *ngIf="origins.size === 0 && !ui.errorMessage">
+      <div class="origin-create-intro" *ngIf="origins.size === 0 && !ui.errorMessage">
         <p><strong>You don't currently have any origins. Let's add one now.</strong></p>
-        <p>In order to begin uploading and distributing your packages, you'll first need to <a href="#">create an origin</a>.
-          If you would like to join an existing origin, then you'll need to request an invite from a current member.
+        <p>
+          In order to begin uploading and distributing your packages, you'll first need to <a [routerLink]="['/origins/create']">create an origin</a>. If you would like to join an existing origin, then you'll need to request an invite from a current member.
         </p>
-        <p>If you've already created an origin locally via the Habitat CLI tool, then you'll need to create it here too using
-          the same name.</p>
-        <p><em>Not sure how to get started? <a href="#">Try the demo app</a> for a hands-on
-        walkthrough.</em></p>
+        <p>
+          If you've already created an origin locally via the Habitat CLI tool, then you'll need to create it here too
+          using the same name.
+        </p>
+        <p>
+          <em>Not sure how to get started? <a href="{{ config['demo_app_url'] }}">Try the demo app</a> for a hands-on walkthrough.</em>
+        </p>
       </div>
       <div *ngIf="origins.size > 0">
         <div class="hab-origins-list">
@@ -38,8 +41,7 @@
           </ul>
         </div>
       </div>
-      <div *ngIf="invitations.size > 0">
-        <hr />
+      <div class="origin-invitations" *ngIf="invitations.size > 0">
         <h3>Pending Invitations</h3>
         <div class="hab-invitations-list">
           <ul class="invitations">

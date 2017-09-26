@@ -1,12 +1,12 @@
-<div class="page-body">
-  <div class="hab-origin--left">
-    <div class="member-actions">
-      <div class="member-invite">
+<div class="page-body members-tab">
+  <div class="members-actions">
+    <div class="members-invites">
+      <div class="members-invite">
         <h3>Invite Member</h3>
         <form #formValues="ngForm" [formGroup]="form" (ngSubmit)="submit(formValues.value.username)">
-          <div class="member-search">
+          <div class="members-search">
             <span class="label">Add existing Habitat users by GitHub username.</span>
-            <input type="search" name="username" [formControl]="form.controls['username']" placeholder="GitHub Username">
+            <input type="search" name="username" [formControl]="form.controls['username']" placeholder="GitHub username">
             <span class="error" *ngIf="errorMessage">{{errorMessage}}</span>
           </div>
           <div>
@@ -19,26 +19,25 @@
       <div class="members-pending-invites">
         <h3>Pending Invites</h3>
         <p *ngIf="invitations.size === 0">No pending invitations.</p>
-        <ul class="pending">
-          <li *ngFor="let invitation of invitations" class="pending-invite hab-table-list">
-            <h3>{{invitation.account_name}}</h3>
+        <ul>
+          <li *ngFor="let invitation of invitations" class="pending-invite">
+            <span>{{ invitation.account_name }}</span>
           </li>
         </ul>
       </div>
     </div>
-    <hr>
-    <div class="hab-origin-members-tab--section">
+    <div class="members">
       <h3>Current Members</h3>
       <p *ngIf="members.size === 0">No Members.</p>
       <ul>
-        <li *ngFor="let member of members" class="hab-table-list">
-          <h3>{{member}}</h3>
+        <li *ngFor="let member of members">
+          <span>{{ member }}</span>
         </li>
       </ul>
     </div>
   </div>
-  <div class="hab-origin--right">
-    <h4 class="uppercase">About Members</h4>
+  <div class="members-sidebar">
+    <h3>About Members</h3>
     <p>
       Members are able to upload and utilize both private and public packages. They can also invite new members.
     </p>
@@ -46,7 +45,7 @@
       By default, the creator of an origin is also the owner.
     </p>
     <p>
-      In addition to regular member privelege, the owner can also remove other members
+      In addition to regular member privelege, the owner can also remove other members.
     </p>
   </div>
 </div>

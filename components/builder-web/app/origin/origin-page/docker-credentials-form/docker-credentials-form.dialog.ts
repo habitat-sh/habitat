@@ -29,4 +29,8 @@ export class DockerCredentialsFormDialog {
     onSubmit() {
         this.dialogRef.close(this.model);
     }
+
+    close() {
+        this.dialogRef.close();
+    }
 }

@@ -15,7 +15,6 @@
 import { groupBy } from "lodash";
 import * as depotApi from "../depotApi";
 import * as fakeApi from "../fakeApi";
-import { fetchProjectsForPackages } from "./projects";
 import { Package } from "../records/Package";
 
 export const CLEAR_PACKAGES = "CLEAR_PACKAGES";
@@ -123,11 +122,6 @@ export function getUniquePackages(
             dispatch(setVisiblePackages(response["results"]));
             dispatch(setPackagesTotalCount(response["totalCount"]));
             dispatch(setPackagesNextRange(response["nextRange"]));
-
-            // Only for core
-            if (origin === "core") {
-                dispatch(fetchProjectsForPackages(response["results"], token));
-            }
         }).catch(error => {
             dispatch(setVisiblePackages(undefined, error));
         });

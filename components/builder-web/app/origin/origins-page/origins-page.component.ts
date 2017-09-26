@@ -13,14 +13,10 @@
 // limitations under the License.
 
 import { Component, OnInit } from "@angular/core";
-import {
-    acceptOriginInvitation,
-    fetchMyOriginInvitations,
-    fetchMyOrigins,
-    ignoreOriginInvitation
-} from "../../actions/index";
-import { AppStore } from "../../AppStore";
 import { Router } from "@angular/router";
+import { acceptOriginInvitation, fetchMyOriginInvitations, fetchMyOrigins, ignoreOriginInvitation } from "../../actions/index";
+import { AppStore } from "../../AppStore";
+import config from "../../config";
 
 @Component({
     template: require("./origins-page.component.html")
@@ -29,14 +25,20 @@ import { Router } from "@angular/router";
 export class OriginsPageComponent implements OnInit {
     constructor(private store: AppStore, private router: Router) { }
 
-    get invitations() { return this.store.getState().origins.myInvitations; }
+    get config() {
+        return config;
+    }
 
-    get origins() { return this.store.getState().origins.mine; }
+    get invitations() {
+         return this.store.getState().origins.myInvitations;
+    }
 
-    get ui() { return this.store.getState().origins.ui.mine; }
+    get origins() {
+        return this.store.getState().origins.mine;
+    }
 
-    routeToOrigin(origin) {
-        this.router.navigate(["/origins", origin]);
+    get ui() {
+        return this.store.getState().origins.ui.mine;
     }
 
     acceptInvitation(invitationId, originName) {
@@ -55,12 +57,16 @@ export class OriginsPageComponent implements OnInit {
         ));
     }
 
-    public ngOnInit() {
+    ngOnInit() {
         this.store.dispatch(fetchMyOrigins(
             this.store.getState().gitHub.authToken
         ));
         this.store.dispatch(fetchMyOriginInvitations(
             this.store.getState().gitHub.authToken
         ));
+    }
+
+    routeToOrigin(origin) {
+        this.router.navigate(["/origins", origin]);
     }
 }
