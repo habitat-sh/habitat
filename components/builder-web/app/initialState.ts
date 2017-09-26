@@ -150,6 +150,10 @@ export default Record({
       })()
     })(),
     latest: Package(),
+    latestInChannel: Record({
+      stable: undefined,
+      unstable: undefined
+    })(),
     visible: List(),
     versions: undefined,
     nextRange: 0,

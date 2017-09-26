@@ -50,13 +50,15 @@ describe("PackageSidebarComponent", () => {
   beforeEach(() => {
     MockAppStore.state = {
       packages: {
-        latest: Package({
-          ident: {
-            origin: "core",
-            name: "nginx",
-            version: "1.11.10"
+        latestInChannel: {
+          stable: {
+            ident: {
+              origin: "core",
+              name: "nginx",
+              version: "1.11.10"
+            }
           }
-        })
+        }
       },
       gitHub: {
         authToken: undefined
@@ -71,7 +73,7 @@ describe("PackageSidebarComponent", () => {
 
     beforeEach(() => {
       spyOn(store, "dispatch");
-      spyOn(actions, "fetchLatestPackage");
+      spyOn(actions, "fetchLatestInChannel");
 
       component.ngOnChanges({
         origin: new SimpleChange(undefined, "core", true),
@@ -81,7 +83,7 @@ describe("PackageSidebarComponent", () => {
 
     it("fetches the latest package", () => {
       expect(store.dispatch).toHaveBeenCalled();
-      expect(actions.fetchLatestPackage).toHaveBeenCalledWith("core", "nginx");
+      expect(actions.fetchLatestInChannel).toHaveBeenCalledWith("core", "nginx", "stable");
     });
 
     it("hides the build button", () => {

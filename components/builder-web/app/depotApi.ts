@@ -66,6 +66,25 @@ export function getLatest(origin: string, pkg: string) {
     });
 }
 
+export function getLatestInChannel(origin: string, name: string, channel: string, version: string = undefined) {
+    const url = `${urlPrefix}/depot/channels/${origin}/${channel}/pkgs/${name}/${version ? version + "/" : ""}latest`;
+
+    return new Promise((resolve, reject) => {
+        fetch(url)
+            .then(response => {
+                if (response.status >= 400) {
+                    reject(new Error(response.statusText));
+                }
+                else {
+                    response.json().then(results => {
+                        resolve(results);
+                    });
+                }
+            })
+            .catch(error => reject(error));
+    });
+}
+
 export function get(params, nextRange: number = 0) {
     let url = `${urlPrefix}/depot/pkgs/` +
         (params["query"] ? `search/${params["query"]}`

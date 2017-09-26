@@ -18,12 +18,14 @@ import * as fakeApi from "../fakeApi";
 import { Package } from "../records/Package";
 
 export const CLEAR_PACKAGES = "CLEAR_PACKAGES";
+export const CLEAR_LATEST_IN_CHANNEL = "CLEAR_LATEST_IN_CHANNEL";
 export const CLEAR_LATEST_PACKAGE = "CLEAR_LATEST_PACKAGE";
 export const POPULATE_DASHBOARD_RECENT = "POPULATE_DASHBOARD_RECENT";
 export const CLEAR_PACKAGE_VERSIONS = "CLEAR_PACKAGE_VERSIONS";
 export const POPULATE_EXPLORE = "POPULATE_EXPLORE";
 export const POPULATE_EXPLORE_STATS = "POPULATE_EXPLORE_STATS";
 export const SET_CURRENT_PACKAGE = "SET_CURRENT_PACKAGE";
+export const SET_LATEST_IN_CHANNEL = "SET_LATEST_IN_CHANNEL";
 export const SET_LATEST_PACKAGE = "SET_LATEST_PACKAGE";
 export const SET_CURRENT_PACKAGE_CHANNELS = "SET_CURRENT_PACKAGE_CHANNELS";
 export const SET_CURRENT_PACKAGE_VERSIONS = "SET_CURRENT_PACKAGE_VERSIONS";
@@ -36,6 +38,13 @@ export const SET_VISIBLE_PACKAGE_CHANNELS = "SET_VISIBLE_PACKAGE_CHANNELS";
 function clearPackages() {
     return {
         type: CLEAR_PACKAGES,
+    };
+}
+
+function clearLatestInChannel(channel: string) {
+    return {
+        type: CLEAR_LATEST_IN_CHANNEL,
+        payload: { channel }
     };
 }
 
@@ -93,6 +102,20 @@ export function fetchLatestPackage(origin: string, name: string) {
         }).catch(error => {
             dispatch(setLatestPackage(undefined, error));
         });
+    };
+}
+
+export function fetchLatestInChannel(origin: string, name: string, channel: string) {
+    return dispatch => {
+        dispatch(clearLatestInChannel(channel));
+
+        depotApi.getLatestInChannel(origin, name, channel)
+            .then(response => {
+                dispatch(setLatestInChannel(channel, response));
+            })
+            .catch(error => {
+                dispatch(setLatestInChannel(channel, undefined, error));
+            });
     };
 }
 
@@ -197,6 +220,14 @@ export function setLatestPackage(pkg, error = undefined) {
     return {
         type: SET_LATEST_PACKAGE,
         payload: pkg,
+        error: error,
+    };
+}
+
+export function setLatestInChannel(channel, pkg, error = undefined) {
+    return {
+        type: SET_LATEST_IN_CHANNEL,
+        payload: { channel, pkg },
         error: error,
     };
 }
