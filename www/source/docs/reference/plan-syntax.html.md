@@ -9,8 +9,8 @@ When defining a plan, there are several different settings, variables, and funct
 This syntax guide is divided into six parts:
 
 - [Basic settings](/docs/reference/basic-settings): The top-level settings that define your package identifier, runtime dependencies, etc.
-- [Callbacks](/docs/reference/callbacks): Functions that can be overridden to customize how your application is built.
-- [Build variables](/docs/reference/build-variables): Useful variables that you can use in callbacks to help package your application or service.
-- [Application Lifecycle Hooks](/docs/reference/hooks): Lifecycle event handlers that are called during the Habitat service's runtime.
+- [Callbacks](/docs/reference/callbacks): Callbacks are functions that allow you to customize how your application is built by overriding build phases.
+- [Build variables](/docs/reference/build-variables): Variables that you can use in callbacks to help package your application or service.
+- [Hooks](/docs/reference/hooks): Hooks allow you to tell the Supervisor to respond to runtime life cycle events in a specific way. 
 - [Runtime settings](/docs/reference/runtime-settings): Settings that can be used in hooks to get information about the currently-running service including templatized configuration settings in `default.toml`.
 - [Utility functions](/docs/reference/utility-functions): Functions that are useful in debugging buildtime errors, building packages, and so on.

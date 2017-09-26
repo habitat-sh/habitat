@@ -3,7 +3,7 @@ title: Utility functions
 ---
 
 # Utility functions
-The following helper functions can be useful in your plan to help you build your package correctly. They are mostly used for debugging and building packages.
+The following helper functions can be useful in your plan to help you build your package correctly. `attach()` is used for debugging packages. The others are used for building packages.
 
 **attach()**
 : Attaches your script to an interactive debugging session, which lets you check the state of variables, call arbitrary functions, and turn on higher levels of logging by using the `set -x` command and switch.
@@ -49,7 +49,7 @@ download_file http://example.com/file.tar.gz file.tar.gz ohnoes...
 Will return 0 if a file was downloaded or if a valid cached file was found.
 
 **pkg\_path\_for()**
-: Returns the path for a build or runtime package dependency on stdout from the list of dependencies referenced in `pkg_deps` or `pkg_build_deps`. This is useful if you need to install or reference specific dependencies from within a callback, such as `do_build()` or `do_install()`.
+: Returns the path for a build or runtime package dependency on stdout from the list of dependencies referenced in `pkg_deps` or `pkg_build_deps`. This is useful if you need to install or reference specific dependencies during a build phase from within a callback, such as `do_build()` or `do_install()`.
 
   Here's an example of how to use this function to retrieve the path to the perl binary in the core/perl package:
 

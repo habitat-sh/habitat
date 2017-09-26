@@ -139,7 +139,7 @@ p The first three values form part of the package's fully qualified name. The
   value specifies how the ElasticSearch binary should be run when the supervisor
   starts the ElasticSearch package payload.
 
-p The callbacks override certain default behaviors such as compiling and
+p Build phases, referenced as callbacks, override certain default behaviors such as compiling and
   building binaries from source code and installing them into the package
   directory. Instead, because the ElasticSearch archive does not contain any
   source code to compile, the <code>do_build</code> callback has been
