@@ -127,7 +127,7 @@ export function getPackageVersions(origin: string, pkg: string) {
 }
 
 export function submitJob(origin: string, pkg: string, token: string) {
-    const url = `${urlPrefix}/jobs`;
+    const url = `${urlPrefix}/depot/pkgs/schedule/${origin}/${pkg}`;
 
     return new Promise((resolve, reject) => {
         fetch(url, {
@@ -135,9 +135,6 @@ export function submitJob(origin: string, pkg: string, token: string) {
                 "Authorization": `Bearer ${token}`,
             },
             method: "POST",
-            body: JSON.stringify({
-                project_id: `${origin}/${pkg}`
-            })
         }).then(response => {
             if (response.ok) {
                 resolve(true);
