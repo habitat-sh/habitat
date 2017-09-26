@@ -185,7 +185,6 @@ export const getUniquePackages = packageActions.getUniquePackages;
 export const addProject = projectActions.addProject;
 export const fetchProject = projectActions.fetchProject;
 export const fetchProjects = projectActions.fetchProjects;
-export const fetchProjectsForPackages = projectActions.fetchProjectsForPackages;
 export const setCurrentProject = projectActions.setCurrentProject;
 export const deleteProject = projectActions.deleteProject;
 export const updateProject = projectActions.updateProject;

@@ -1,15 +1,37 @@
-.dialog-header {
-  margin-bottom: 20px;
-}
-.hab-key-add-form {
-  h6 {
-    font-size: rem(14px);
+hab-key-add-form {
+  font-size: rem(14);
+
+  .dialog-header {
+    margin-bottom: 20px;
+    font-size: rem(16);
   }
+
+  label {
+    font-family: $heading-font-family;
+    font-size: rem(12);
+    text-transform: uppercase;
+  }
+
   textarea {
-    // resize: none;
     margin-bottom: 0;
+    border: 1px solid $medium-gray;
+
+    &.ng-pristine:focus {
+      border: 1px solid $medium-gray;
+      box-shadow: inherit;
+    }
+
+    &::placeholder {
+      color: $medium-gray;
+    }
   }
-  .options-row {
+
+  .controls {
     margin-top: 25px;
+
+    a {
+      margin-left: 12px;
+      cursor: pointer;
+    }
   }
 }

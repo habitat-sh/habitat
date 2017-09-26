@@ -73,8 +73,7 @@ export class OriginKeysTabComponent implements OnInit, OnDestroy {
     openKeyAddForm(type: string) {
         let dialogRef = this.dialog.open(KeyAddFormDialog, {
             data: { type, origin: this.origin.name },
-            width: "480px",
-            height: "341px"
+            width: "480px"
         });
     }
 

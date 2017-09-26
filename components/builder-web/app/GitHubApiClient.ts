@@ -102,7 +102,7 @@ export class GitHubApiClient {
                     resolve(response.json());
                 } else {
                     if (response.status === 404) {
-                        reject(new Error(`User '${username}' does not exist.`));
+                        reject(new Error(`GitHub user '${username}' does not exist.`));
                     } else {
                         reject(new Error(response.statusText));
                     }

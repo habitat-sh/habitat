@@ -137,10 +137,6 @@ body {
   min-height: 50vh;
   padding: rem(20) rem(20);
 
-  &.has-sidebar {
-    @include outer-container;
-  }
-
   .hero {
     p {
       margin-bottom: rem(15);
@@ -164,19 +160,6 @@ body {
   border-left: 1px solid $light-gray;
   padding-left: $base-spacing;
   word-wrap: break-word;
-}
-
-.mat-tab-nav-bar {
-  background-color: $hab-blue-light;
-
-  .mat-tab-link {
-    color: $hab-gray-dark;
-    font-family: $heading-font-family;
-    text-transform: uppercase;
-    font-size: 0.75rem;
-    min-width: 100px;
-    opacity: 1;
-  }
 }
 
 .uppercase {

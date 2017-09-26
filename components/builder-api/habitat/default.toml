@@ -26,6 +26,7 @@ roadmap_url           = "https://ext.prodpad.com/ext/roadmap/d2938aed0d0ad1dd626
 feature_requests_url  = "https://portal.prodpad.com/24539"
 slack_url             = "http://slack.habitat.sh/"
 youtube_url           = "https://www.youtube.com/playlist?list=PL11cZfNdwNyOxlvI1Kq6ae8eVBl5S3IKk"
+demo_app_url          = "#"
 
 [depot]
 builds_enabled = true

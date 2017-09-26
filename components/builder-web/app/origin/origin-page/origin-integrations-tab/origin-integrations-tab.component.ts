@@ -45,8 +45,7 @@ export class OriginIntegrationsTabComponent {
 
   openDialog(): void {
     let dialogRef = this.dialog.open(DockerCredentialsFormDialog, {
-      width: "480px",
-      height: "342px"
+      width: "480px"
     });
 
     dialogRef.afterClosed().subscribe(result => {

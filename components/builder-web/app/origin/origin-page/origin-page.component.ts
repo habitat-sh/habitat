@@ -76,11 +76,12 @@ export class OriginPageComponent implements OnInit, OnDestroy {
         let links = ["packages", "keys", "members"];
         let flags = this.store.getState().featureFlags.current;
 
-        if (flags.get("integrations")) {
-          links.push("integrations");
-        }
         if (flags.get("settings")) {
           links.push("settings");
+        }
+
+        if (flags.get("integrations")) {
+          links.push("integrations");
         }
 
         return links;

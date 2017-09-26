@@ -9,6 +9,7 @@ import { requireSignIn } from "../../util";
 import { AppStore } from "../../AppStore";
 import { addNotification, addProject, updateProject, deleteProject, fetchGitHubFiles, fetchGitHubOrgs,
     fetchGitHubRepos, fetchProject, clearGitHubRepos } from "../../actions/index";
+import config from "../../config";
 
 @Component({
     template: require("./package-settings.component.html")
@@ -41,6 +42,10 @@ export class PackageSettingsComponent implements OnInit, OnDestroy {
         if (this.sub) {
             this.sub.unsubscribe();
         }
+    }
+
+    get config() {
+        return config;
     }
 
     get connectButtonLabel() {

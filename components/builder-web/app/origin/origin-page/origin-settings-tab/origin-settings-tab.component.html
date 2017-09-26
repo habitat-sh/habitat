@@ -1,32 +1,30 @@
-<div class="page-body has-sidebar">
-  <div class="hab-origin--left">
-    <h3 class="uppercase">Default Package Settings</h3>
-    <p class="title-description">Build artifacts (.hart files) can be made available to all Habitat
-       users or restricted to members of this origin.
-    </p>
-    <md-radio-group class="pkg-selector-wrapper" [(ngModel)]="originPrivacy" (change)="updatePrivacy($event)">
-      <md-radio-button class="pkg-privacy-selector" [ngClass]="{'active': originPrivacy === 'public'}" value="public">
-        <h4>
-          Public packages
-          <hab-icon symbol="public"></hab-icon>
-        </h4>
-        <span>Package build will appear in public search results and
-           can be utilized by any user.
-        </span>
-      </md-radio-button>
-      <md-radio-button class="pkg-privacy-selector" [ngClass]="{'active': originPrivacy === 'private'}" value="private">
-        <h4>
-          Private packages
-          <hab-icon symbol="lock"></hab-icon>
-        </h4>
-        <span>Package builds will NOT appear in public search results
-           and can ONLY be utilized by members of this origin.
-        </span>
-      </md-radio-button>
-    </md-radio-group>
-    <hr />
-    <div>
-        <a md-raised-button color="primary" (click)="openDialog()">Add Docker Credentials</a>
-    </div>
+<div class="page-body settings-tab">
+  <h3>Default Package Settings</h3>
+  <p class="title-description">
+    Build artifacts (.hart files) can be made available to all Habitat
+    users or restricted to members of this origin.
+  </p>
+  <md-radio-group class="pkg-selector-wrapper" [(ngModel)]="originPrivacy" (change)="updatePrivacy($event)">
+    <md-radio-button class="pkg-privacy-selector" [ngClass]="{'active': originPrivacy === 'public'}" value="public">
+      <h4>
+        Public packages
+        <hab-icon symbol="public"></hab-icon>
+      </h4>
+      <span>Package build will appear in public search results and
+          can be utilized by any user.
+      </span>
+    </md-radio-button>
+    <md-radio-button class="pkg-privacy-selector" [ngClass]="{'active': originPrivacy === 'private'}" value="private">
+      <h4>
+        Private packages
+        <hab-icon symbol="lock"></hab-icon>
+      </h4>
+      <span>Package builds will NOT appear in public search results
+          and can ONLY be utilized by members of this origin.
+      </span>
+    </md-radio-button>
+  </md-radio-group>
+  <div>
+      <a md-raised-button color="primary" (click)="openDialog()">Add Docker Credentials</a>
   </div>
 </div>

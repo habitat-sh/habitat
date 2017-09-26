@@ -13,58 +13,69 @@
 // limitations under the License.
 
 .hab-origin {
+  font-size: rem(14);
+
+  .page-body {
+    padding-top: 28px;
+  }
+
+  .connect-button {
+    @include row;
+    margin-bottom: 20px;
+  }
+
   &--left {
-    @include span-columns(8);
 
-    .pkg-container {
-      @include span-columns(8 of 8);
-      padding: rem(10);
-      border-bottom: 1px solid $light-gray;
-      font-size: 1rem;
+    .packages-list {
+      @include row;
 
-      h3 {
-        margin: 0;
-        padding-top: 4px;
+      li {
+        @include row;
+        position: relative;
+        border-bottom: 1px solid $very-light-gray;
+
+        &.heading {
+
+          h3 {
+            font-size: rem(12);
+            text-transform: uppercase;
+            margin-bottom: 0;
+          }
+        }
+
+        a {
+          display: block;
+          color: $hab-gray-dark;
+          font-family: $heading-font-family;
+        }
+
+        hab-icon {
+
+          &[symbol="chevron-right"] {
+            width: 20px;
+            height: 20px;
+            display: none;
+            @include chevron-right;
+          }
+        }
+
+        &:hover {
+          background-color: rgba($medium-gray, 0.05);
+
+          hab-icon[symbol="chevron-right"] {
+            display: block;
+          }
+        }
       }
     }
 
     .pkg-col-1 {
-      text-align: left;
-      @include span-columns(4 of 8);
-    }
-
-    .pkg-col-2 {
-      text-align: right;
-      @include span-columns(2 of 8);
-    }
-
-    .pkg-col-3 {
-      text-align: right;
-      @include span-columns(2 of 8);
-      @include omega();
+      @include span-columns(12);
+      padding: 12px 10px;
     }
 
     .disabled-settings {
       opacity: 0.2;
-    }
-
-    .origin-package-item {
-      border: 1px solid $light-gray;
-      border-color: $hab-blue-light;
-      border-radius: $global-radius;
-      color: inherit;
-      display: block;
-      margin-bottom: 0.5em;
-      padding: 1em 1.5em;
-      position: relative;
-
-      a {
-        position: static;
-        border: 0;
-        padding: 0;
-        margin: 0;
-        display: inline;
-      }
     }
   }
 
@@ -87,14 +98,24 @@
   }
 
   &--key-list {
-    margin-bottom: rem(60);
+    margin-bottom: 48px;
 
     > h3 {
       margin-bottom: rem(30);
     }
-  }
 
-  &--pkg-list {
-    margin-top: rem(30);
+    .hab-keys-list {
+      margin-bottom: 30px;
+    }
+
+    button {
+      color: $hab-green;
+      border: 1px solid $hab-green;
+      box-shadow: none;
+
+      &:not([disabled]):active {
+        box-shadow: none;
+      }
+    }
   }
 }

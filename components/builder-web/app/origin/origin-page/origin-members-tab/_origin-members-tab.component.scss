@@ -1,64 +1,87 @@
-.member-actions {
-  @include row;
-  .member-invite {
-    @include span-columns(7);
-    .member-search {
-      width: 100%;
-      margin-bottom: 20px;
-
-      .label {
-        font-size: rem(12px);
-        color: $medium-gray;
-      }
-
-      input {
-        width: 100%;
-        box-sizing: border-box;
-        padding: 13px 20px;
-        line-height: 18px;
-        outline: none;
-        border-radius: $global-radius;
-        border: 1px solid $medium-gray;
-        font-size: rem(14px);
-      }
-
-      .error {
-        font-size: rem(10);
-        color: $hab-red;
-      }
-    }
-  }
-  .members-pending-invites {
-    @include span-columns(5);
-  }
-}
-.hab-origin-members-tab {
-  &--section {
-    margin-bottom: rem(60);
-
-    > h3 {
-      margin-bottom: rem(30);
-    }
-
-    &.invite-members > h3 {
-      margin-bottom: rem(10);
-    }
-  }
-}
-
-.hab-table-list {
-  border-bottom: 1px solid rgba(216,216,216,0.4);
-  padding: 15px;
-
-  &:last-child {
-    border-top: none;
-  }
-
-  &:first-child {
-    border-top: 1px solid rgba(216,216,216,0.4);
-  }
+.members-tab {
 
   h3 {
-    margin: 0;
+    font-size: rem(12);
+    text-transform: uppercase;
+  }
+
+  .members-actions {
+    @include span-columns(9);
+
+    .members-invites {
+      @include row;
+      margin-bottom: 40px;
+
+      .members-invite {
+        @include span-columns(5 of 9);
+
+        .members-search {
+          width: 100%;
+          margin-bottom: 20px;
+
+          .label {
+            font-size: rem(14);
+          }
+
+          input {
+            margin-top: 16px;
+            box-sizing: border-box;
+            padding: 12px;
+            outline: none;
+            border-radius: $global-radius;
+            border: 1px solid $medium-gray;
+            font-size: rem(14);
+            font-weight: 600;
+
+            &.ng-pristine:focus {
+              box-shadow: inherit;
+            }
+
+            &::placeholder {
+              font-weight: normal;
+              font-size: rem(14);
+              color: $medium-gray;
+            }
+          }
+
+          .error {
+            color: $hab-red;
+          }
+        }
+      }
+
+      .members-pending-invites {
+        @include span-columns(4 of 9);
+
+        p {
+          font-size: rem(14);
+        }
+      }
+    }
+
+    .members {
+      @include row;
+      margin-bottom: 26px;
+    }
+  }
+
+  .members-pending-invites, .members {
+
+    ul {
+
+      li {
+        padding: 0;
+        font-size: rem(14);
+
+        span {
+          font-weight: 600;
+        }
+      }
+    }
+  }
+
+  .members-sidebar {
+    @include span-columns(3);
+    font-size: rem(14);
   }
 }

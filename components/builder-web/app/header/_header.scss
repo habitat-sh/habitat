@@ -47,10 +47,6 @@ $main-nav-breakpoint: 710px;
     top: 0;
   }
 
-  &.has-sidebar {
-    background: $hab-off-white;
-  }
-
   @include small-nav {
     background-color: $dark-blue;
     position: fixed;

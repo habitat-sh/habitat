@@ -1,42 +1,82 @@
-.title-description {
-  font-size: 14px;
-  line-height: 18px;
-}
-.pkg-selector-wrapper {
-  display: flex;
+.settings-tab {
+  @include span-columns(8);
+  @include omega;
 
-  .active {
-    background-color: $very-light-gray;
+  h3, h4 {
+    font-size: rem(12);
+    text-transform: uppercase;
   }
 
-  .pkg-privacy-selector {
-    flex: 1;
-    border: 1px solid $very-light-gray;
-    padding: 10px;
-    margin-left: 10px;
-    border-radius: $base-border-radius;
+  .title-description {
+    font-size: 14px;
+    line-height: 18px;
+  }
 
-    h4 {
-      font-size: 14px;
+  .mat-radio-container {
+    width: 16px;
+    height: 16px;
+
+    .mat-radio-outer-circle {
+      border-width: 1px;
     }
 
-    .mat-radio-label {
-      position: relative;
-      text-transform: none;
-      
-      .mat-radio-container {
-        position: absolute;
-        top: 0;
-        left: 0;
-      }
-      .mat-radio-label-content {
-        white-space: normal;
-        margin-left: 20px;
-      }
+    .mat-radio-ripple {
+      left: -12px;
+      top: -12px;
+    }
+  }
+
+  .pkg-selector-wrapper {
+    display: flex;
+    margin-bottom: 28px;
+
+    .active {
+      background-color: $very-light-gray;
     }
 
-    &:first-of-type {
-      margin-left: 0;
+    .pkg-privacy-selector {
+      flex: 1;
+      border: 1px solid $very-light-gray;
+      padding: 10px;
+      margin-left: 10px;
+      border-radius: $base-border-radius;
+
+      h3 {
+        font-size: rem(12);
+        text-transform: uppercase;
+      }
+
+      h4 {
+        font-family: $base-font-family;
+        font-weight: 600;
+        font-size: rem(14);
+        letter-spacing: normal;
+        text-transform: none;
+      }
+
+      .mat-radio-label {
+        position: relative;
+        text-transform: none;
+
+        .mat-radio-container {
+          position: absolute;
+          top: 2px;
+          left: 0;
+        }
+
+        .mat-radio-label-content {
+          white-space: normal;
+          margin-left: 20px;
+
+          hab-icon {
+            margin-left: 6px;
+          }
+        }
+      }
+
+      &:first-of-type {
+        margin-left: 0;
+      }
     }
   }
 }

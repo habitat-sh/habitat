@@ -312,7 +312,7 @@ export class BuilderApiClient {
                     resolve(true);
                 } else if (response.status === 404) {
                     new GitHubApiClient(this.token).getUser(username).then(ghResponse => {
-                        let msg = "This is a valid GitHub user but they have not logged into Builder yet. Once they login, you can invite them to your origin.";
+                        let msg = "This is a valid GitHub user but they have not signed into Builder yet. Once they sign in, you can invite them to your origin.";
                         reject(new Error(msg));
                     }).catch(error => reject(error));
                 } else if (response.status === 409) {

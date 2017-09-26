@@ -11,7 +11,6 @@ import { ChannelsComponent } from "./channels/channels.component";
 import { CheckingInputComponent } from "./checking-input/checking-input.component";
 import { CopyableComponent } from "./copyable/copyable.component";
 import { IconComponent } from "./icon/icon.component";
-import { PackageInfoComponent } from "./package-info/package-info.component";
 import { PackageListComponent } from "./package-list/package-list.component";
 import { ProgressBarComponent } from "./progress-bar/progress-bar.component";
 import { PlatformIconComponent } from "./platform-icon/platform-icon.component";
@@ -44,7 +43,6 @@ import { UserLoggedInGuard, UserLoggedOutGuard } from "./user/user.guard";
     CheckingInputComponent,
     CopyableComponent,
     IconComponent,
-    PackageInfoComponent,
     PackageListComponent,
     ProgressBarComponent,
     PlatformIconComponent,
@@ -64,7 +62,6 @@ import { UserLoggedInGuard, UserLoggedOutGuard } from "./user/user.guard";
     IconComponent,
     MdRadioGroup,
     MdRadioButton,
-    PackageInfoComponent,
     PackageListComponent,
     ProgressBarComponent,
     PlatformIconComponent,
