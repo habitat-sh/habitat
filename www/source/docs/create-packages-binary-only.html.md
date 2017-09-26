@@ -31,7 +31,7 @@ do_install() {
 
 ## Relocate Hard-Coded Library Dependencies If Possible
 
-Many binaries hardcode library dependencies to `/lib` or `/lib64` inside their ELF symbol table. Unfortunately, this means that Habitat is unable to provide dependency isolation guarantees if packages are dependent on any operating system's libraries in those directories. The built Habitat packages will also fail to run in minimal environments like containers built using `hab-pkg-dockerize`, because there will not be a `glibc` inside `/lib` or `/lib64`.
+Many binaries hardcode library dependencies to `/lib` or `/lib64` inside their ELF symbol table. Unfortunately, this means that Habitat is unable to provide dependency isolation guarantees if packages are dependent on any operating system's libraries in those directories. The built Habitat packages will also fail to run in minimal environments like containers built using a package exporter, because there will not be a `glibc` inside `/lib` or `/lib64`.
 
 Most binaries compiled in a full Linux environment have a hard dependency on `/lib/ld-linux.so` or `/lib/ld-linux-x86_64.so`. In order to relocate this dependency to the Habitat-provided variant, which is provided by `core/glibc`, use the `patchelf(1)` utility within your plan:
 
