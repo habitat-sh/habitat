@@ -42,6 +42,8 @@ const GITIGNORE_TEMPLATE: &'static str = include_str!(concat!(
     "/static/template_gitignore"
 ));
 
+const DEFAULT_PKG_VERSION: &'static str = "0.1.0";
+
 pub fn start(
     ui: &mut UI,
     origin: String,
@@ -78,6 +80,7 @@ pub fn start(
     let mut data = HashMap::new();
     data.insert("pkg_name".to_string(), name);
     data.insert("pkg_origin".to_string(), origin);
+    data.insert("pkg_version".to_string(), DEFAULT_PKG_VERSION.to_string());
 
     let scaffold = match scaffolding_ident {
         Some(ident) => Some(data.insert(
