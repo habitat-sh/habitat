@@ -4,15 +4,15 @@ title: Update Strategy
 
 # Update Strategy
 
-The Habitat supervisor can be configured to leverage an optional _update strategy_, which describes how the supervisor and its peers within a service group should respond when a new version of a package is available.
+The Habitat supervisor can be configured to leverage an optional _update strategy_, which describes how the Supervisor and its peers within a service group should respond when a new version of a package is available.
 
-To use an update strategy, the supervisor is configured to watch a [depot](/docs/concepts-depot) for new versions.
+To use an update strategy, the Supervisor is configured to watch a [depot](/docs/concepts-depot) for new versions.
 
 ## Configuring an Update Strategy
 
 Habitat supports two update strategies: `rolling` and `at-once`.
 
-To start a supervisor with the auto-update strategy, pass the `--strategy` argument to a supervisor start command, and optionally specify the depot URL:
+To start a Supervisor with the auto-update strategy, pass the `--strategy` argument to a Supervisor start command, and optionally specify the depot URL:
 
     $ hab start yourorigin/yourapp --strategy rolling --url https://bldr.habitat.sh
 
@@ -24,7 +24,7 @@ Once the update leader finds a new version it will update and wait until all oth
 
 If your service group is also running with the `--topology leader` flag, the leader of that election will never become the update leader, so all followers within a leader topology will update first.
 
-It's important to note that because we must perform a leader election to determine an update leader, *you need to have at least 3 supervisors running a service group to take advantage of the rolling update strategy*.
+It's important to note that because we must perform a leader election to determine an update leader, *you need to have at least 3 supervisors running in a service group that is in the same application and environment group (if you have specified those tags in your ring) to take advantage of the rolling update strategy*.
 
 ### At-Once Strategy
 
