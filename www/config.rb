@@ -113,6 +113,7 @@ end
 redirect 'about/index.html', to: '/about/announcement/'
 redirect 'docs/build-packages-overview.html', to: '/docs/create-packages-build/'
 redirect 'docs/get-habitat.html', to: '/tutorials/download/'
+redirect 'docs/try.html', to: '/tutorials/download/'
 redirect 'download/index.html', to: '/tutorials/download/'
 redirect 'downloads/index.html', to: '/tutorials/download/'
 redirect 'try/index.html', to: '/tutorials/get-started/demo/'
