@@ -26,7 +26,7 @@ impl Routable for SessionCreate {
     type H = String;
 
     fn route_key(&self) -> Option<Self::H> {
-        Some(String::from(self.get_name()))
+        Some(String::from(self.get_token()))
     }
 }
 
@@ -34,7 +34,7 @@ impl Routable for SessionGet {
     type H = String;
 
     fn route_key(&self) -> Option<Self::H> {
-        Some(String::from(self.get_name()))
+        Some(String::from(self.get_token()))
     }
 }
 
@@ -70,6 +70,14 @@ impl Serialize for Account {
         strukt.serialize_field("name", self.get_name())?;
         strukt.serialize_field("email", self.get_email())?;
         strukt.end()
+    }
+}
+
+impl Routable for AccountCreate {
+    type H = String;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(self.get_name().to_string())
     }
 }
 
