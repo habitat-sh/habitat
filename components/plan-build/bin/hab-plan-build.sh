@@ -253,9 +253,9 @@
 # * `$PREFIX`: Where to install the software; same as $pkg_prefix
 # * `$LD_RUN_PATH`: Where to find binaries at run time
 #
-# ## Plan Callbacks
+# ## Plan Callbacks (Build Phases)
 #
-# `hab-plan-build` allows you to alter its behavior by defining callbacks
+# `hab-plan-build` allows you to alter its behavior by defining callbacks (or build phases)
 # within the `plan.sh`. While `zlib` is awesome and requires no callbacks, most
 # software isn't quite so simple to build. To define a callback, simply create
 # a shell function with its name - then write out your script.

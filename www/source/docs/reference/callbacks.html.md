@@ -3,7 +3,7 @@ title: Callbacks
 ---
 
 # Callbacks
-When defining your plan, you have the flexibility to override the default behavior of Habitat in each part of the package building stage through a series of callbacks. To define a callback, simply create a shell function of the same name in your `plan.sh` file and then write your script. If you do not want to use the default callback behavior, you must override the callback and `return 0` in the function definition.
+When defining your plan, can override default Habitat build phase behavior by using callbacks. To define a callback, simply create a shell function of the same name in your `plan.sh` file and then write your script. If you do not want to use the default callback behavior, you must override the callback and `return 0` in the function definition.
 
 You can also use <a href="/docs/reference/build-variables">build variables</a> in your plans to place binaries, libraries, and files into their correct locations during package compilation or when running as a service.
 

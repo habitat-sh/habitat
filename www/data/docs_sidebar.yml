@@ -98,7 +98,7 @@ sidebar_links:
     sub_links:
     - title: Basic settings
       link: "/docs/reference/basic-settings/"
-    - title: Callbacks
+    - title: Callbacks (Build Phases)
       link: "/docs/reference/callbacks/"
     - title: Build variables
       link: "/docs/reference/build-variables/"
