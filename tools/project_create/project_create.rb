@@ -36,6 +36,7 @@ renderer = ERB.new(template)
 
 uri = URI.parse(url)
 http = Net::HTTP.new(uri.host, uri.port)
+http.use_ssl = (uri.scheme == "https")
 
 Dir.chdir source_dir
 Dir.open '.' do |root|
