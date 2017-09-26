@@ -360,7 +360,7 @@ pub fn project_create(req: &mut Request) -> IronResult<Response> {
                         Ok(plan) => {
                             project.set_origin_name(String::from(origin.get_name()));
                             project.set_origin_id(origin.get_id());
-                            project.set_package_name(String::from(plan.name));
+                            project.set_package_name(String::from(plan.name.trim_matches('"')));
                         }
                         Err(e) => {
                             debug!("Error matching Plan. e = {:?}", e);
