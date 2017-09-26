@@ -23,12 +23,6 @@ resource "aws_instance" "api" {
     agent       = "${var.connection_agent}"
   }
 
-  ebs_block_device {
-    device_name = "/dev/xvdf"
-    volume_size = 1500
-    volume_type = "gp2"
-  }
-
   provisioner "file" {
     source = "${path.module}/scripts/install_base_packages.sh"
     destination = "/tmp/install_base_packages.sh"
