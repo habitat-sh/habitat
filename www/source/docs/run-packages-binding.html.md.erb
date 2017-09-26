@@ -37,6 +37,8 @@ An optional bind (`pkg_binds_optional`) allows you to have more flexibility for 
  * Service group A can optionally bind to “X”. “X” may provide additional features if it is provided. A runs successfully whether or not "X" is present. Real world example: An application service group that binds to a caching layer in certain situations.
  * Service group A can optionally bind to “X” or “Y”. If “X” is present, we operate this way, if “Y” is present, we operate this way. The service will start and may fail because “X” and/or “Y” my not be present at start, but it will eventually start. Real world example: An application service group that could use a Redis backend or a PostgreSQL backend, depending on how you are deploying it in different scenarios.
 
+ <%= partial "/partials/exports_examples" %>
+
 ## Consumer's Configuration Example
 
 Once you've defined both ends of the contract you can leverage the bind in any of your package's hooks or configuration files. Given the two example services above, a section of a configuration file for `session-server` might look like this:

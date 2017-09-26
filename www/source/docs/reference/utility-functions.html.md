@@ -92,7 +92,46 @@ Will return 0 if a file was downloaded or if a valid cached file was found.
 : An optional way to determine the value for `$pkg_version`. The function must print the computed version string to standard output and will be called when the Plan author invokes the `update_pkg_version()` helper.
 
 **update\_pkg\_version()**
-: Updates the value for `$pkg_version` by calling a Plan author-provided `pkg_version()` function. This function must be explicitly called in a Plan in or after the `do_before()` build phase but before the `do_prepare()` build phase. The `$pkg_version` variable will be updated and any other relevant variables will be recomputed.
+: Updates the value for `$pkg_version` by calling a Plan author-provided `pkg_version()` function. This function must be explicitly called in a Plan in or after the `do_before()` build phase but before the `do_prepare()` build phase. The `$pkg_version` variable will be updated and any other relevant variables will be recomputed. The following examples show how to use `pkg_version()` and `update_pkg_version()` together.
+
+This plan concatenates a static file in the source root of the
+project to determine the version in the
+`do_before()` phase:
+
+~~~
+pkg_version() {
+  cat "$SRC_PATH/version.txt"
+}
+
+do_before() {
+  do_default_before
+  update_pkg_version
+}
+~~~
+
+The `pkg_version()` function in this plan uses grep and sed before using the
+date binary to format the final version string to standard output. As
+the downloaded file is required before running the version logic, the
+`update_pkg_version()` helper is called in the `do_download()` build
+phase:
+
+~~~
+pkg_version() {
+  local build_date
+
+  # Extract the build date of the certificates file
+  build_date=$(cat $HAB_CACHE_SRC_PATH/$pkg_filename \
+    | grep 'Certificate data from Mozilla' \
+    | sed 's/^## Certificate data from Mozilla as of: //')
+
+  date --date="$build_date" "+%Y.%m.%d"
+}
+
+do_download() {
+  do_default_download
+  update_pkg_version
+}
+~~~
 
 **abspath()**
 : Return the absolute path for a path, which might be absolute or relative.

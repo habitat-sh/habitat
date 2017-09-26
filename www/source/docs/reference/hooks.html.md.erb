@@ -3,7 +3,7 @@ title: Hooks
 ---
 
 # Hooks
-Each plan can specify lifecycle event handlers, or hooks, to perform certain actions during a service's runtime. Each hook is a script with a [shebang](https://en.wikipedia.org/wiki/Shebang_(Unix)) defined at the top to specify the interpreter to be used.
+<%= partial "/partials/hook_definition"%>
 
 To define a hook, simply create a bash file of the same name in `/my_plan_name/hooks/`, for example, `/postgresql/hooks/health_check`.
 
@@ -35,11 +35,11 @@ This hook is run when the Habitat HTTP API receives a request at `/health`.
 
 The `health_check` script must return a valid exit code from the list below.
 
-  - **0**- ok
-  - **1**- warning
-  - **2**- critical
-  - **3**- unknown
-  - any other code - failed health check with additional output taken from `health_check` stdout.
+- **0**- ok
+- **1**- warning
+- **2**- critical
+- **3**- unknown
+- any other code - failed health check with additional output taken from `health_check` stdout.
 
 A `health_check` hook can use the following as a template:
 

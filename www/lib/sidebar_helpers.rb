@@ -2,6 +2,7 @@
 module SidebarHelpers
   SIDEBAR_LAYOUTS = %w(
     about
+    build_web_app
     docs
     download
     get_started
