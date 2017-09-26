@@ -64,7 +64,6 @@ impl HttpGateway for ApiSrv {
             status: get "/status" => status,
             authenticate: get "/authenticate/:code" => github_authenticate,
 
-            jobs: post "/jobs" => XHandler::new(job_create).before(basic.clone()),
             job: get "/jobs/:id" => XHandler::new(job_show).before(opt.clone()),
             job_log: get "/jobs/:id/log" => job_log,
             job_group_promote: post "/jobs/group/:id/promote/:channel" => {

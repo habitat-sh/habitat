@@ -31,22 +31,32 @@ pub fn start(
     let api_client = ApiClient::new(bldr_url, PRODUCT, VERSION, None).map_err(
         Error::APIClient,
     )?;
+
+    let depot_client = DepotClient::new(bldr_url, PRODUCT, VERSION, None).map_err(
+        Error::DepotClient,
+    )?;
+
     if group {
         let rdeps = api_client.fetch_rdeps(ident).map_err(Error::APIClient)?;
-        println!("The following are the reverse dependencies for {}:", ident);
-        println!("");
+        let doit = if rdeps.len() > 0 {
+            println!("The following are the reverse dependencies for {}:", ident);
+            println!("");
 
-        for rdep in rdeps {
-            println!("{}", rdep);
-        }
+            for rdep in rdeps {
+                print!("{} ", rdep);
+            }
 
-        println!("");
-        let question = "If you choose to start a group for this package, \
+            println!("\n");
+            let question = "If you choose to start a group for this package, \
             all of the above packages will be built as well. \
             Is this what you want?";
 
-        let doit = ui.prompt_yes_no(question, Some(true))?;
-        println!("");
+            let doit = ui.prompt_yes_no(question, Some(true))?;
+            println!("");
+            doit
+        } else {
+            false
+        };
 
         if doit {
             ui.status(
@@ -54,10 +64,7 @@ pub fn start(
                 format!("schedule group for {}. Please wait...", ident),
             )?;
 
-            let depot_client = DepotClient::new(bldr_url, PRODUCT, VERSION, None).map_err(
-                Error::DepotClient,
-            )?;
-            let id = depot_client.schedule_job(ident, token).map_err(
+            let id = depot_client.schedule_job(ident, false, token).map_err(
                 Error::DepotClient,
             )?;
 
@@ -73,12 +80,13 @@ pub fn start(
             println!("Aborted.");
         }
     } else {
-        let id = api_client.create_job(ident, token).map_err(
-            Error::APIClient,
+        let id = depot_client.schedule_job(ident, true, token).map_err(
+            Error::DepotClient,
         )?;
+
         ui.status(
             Status::Created,
-            format!("job for {}. The job ID is {}.", ident, id),
+            format!("job for {}. The group ID is {}.", ident, id),
         )?;
     }
     Ok(())

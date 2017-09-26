@@ -247,13 +247,20 @@ impl Client {
     ///
     /// * Key cannot be found
     /// * Remote Builder is not available
-    pub fn schedule_job<I>(&self, ident: &I, token: &str) -> Result<(i64)>
+    pub fn schedule_job<I>(&self, ident: &I, package_only: bool, token: &str) -> Result<(i64)>
     where
         I: Identifiable,
     {
         // TODO (SA): This API needs to be extended to support a target param.
         let path = format!("depot/pkgs/schedule/{}/{}", ident.origin(), ident.name());
-        let result = self.add_authz(self.0.post(&path), token).send();
+        let result = if package_only {
+            let custom =
+                |url: &mut Url| { url.query_pairs_mut().append_pair("package_only", "true"); };
+            self.add_authz(self.0.post_with_custom_url(&path, custom), token)
+                .send()
+        } else {
+            self.add_authz(self.0.post(&path), token).send()
+        };
         match result {
             Ok(response) => {
                 if response.status == StatusCode::Ok {
