@@ -58,12 +58,12 @@ export class OriginsPageComponent implements OnInit {
     }
 
     ngOnInit() {
-        this.store.dispatch(fetchMyOrigins(
-            this.store.getState().gitHub.authToken
-        ));
-        this.store.dispatch(fetchMyOriginInvitations(
-            this.store.getState().gitHub.authToken
-        ));
+        const token = this.store.getState().gitHub.authToken;
+
+        if (token) {
+            this.store.dispatch(fetchMyOrigins(token));
+            this.store.dispatch(fetchMyOriginInvitations(token));
+        }
     }
 
     routeToOrigin(origin) {

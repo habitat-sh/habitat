@@ -6,7 +6,7 @@
     <div class="origin-create">
       <a md-raised-button color="primary" [routerLink]="['/origins', 'create']">Create origin</a>
     </div>
-    <div *ngIf="ui.loading">&nbsp;</div>
+    <hab-icon symbol="loading" class="spinning" *ngIf="ui.loading"></hab-icon>
     <div *ngIf="!ui.loading">
       <p *ngIf="ui.errorMessage">
         Failed to load origins: {{ui.errorMessage}}

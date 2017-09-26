@@ -17,12 +17,13 @@ import initialState from "../initialState";
 import { Map } from "immutable";
 
 export default function featureFlags(state = initialState["featureFlags"], action) {
+
   switch (action.type) {
     case actionTypes.SET_FEATURE_FLAGS:
       return state.set("current", action.payload || Map());
 
     case actionTypes.SET_FEATURE_FLAG:
-      return state.get("current").set(action.payload.name, action.payload.value);
+      return state.setIn(["current", action.payload.name], action.payload.value);
 
     default:
       return state;
