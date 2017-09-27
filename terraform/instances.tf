@@ -23,6 +23,27 @@ resource "aws_instance" "api" {
     agent       = "${var.connection_agent}"
   }
 
+  tags {
+    Name          = "builder-api-${count.index}"
+    X-Contact     = "The Habitat Maintainers <humans@habitat.sh>"
+    X-Environment = "${var.env}"
+    X-Application = "builder"
+    X-ManagedBy   = "Terraform"
+  }
+}
+
+resource "null_resource" "api_provision" {
+  triggers {
+    ebs_volume = "${aws_volume_attachment.api.id}"
+  }
+
+  connection {
+    host        = "${aws_instance.api.public_ip}"
+    user        = "ubuntu"
+    private_key = "${file("${var.connection_private_key}")}"
+    agent       = "${var.connection_agent}"
+  }
+
   provisioner "file" {
     source = "${path.module}/scripts/install_base_packages.sh"
     destination = "/tmp/install_base_packages.sh"
@@ -41,6 +62,7 @@ resource "aws_instance" "api" {
       "sudo /etc/init.d/datadog-agent start"
     ]
   }
+
   provisioner "file" {
     content     = "${data.template_file.sup_service.rendered}"
     destination = "/home/ubuntu/hab-sup.service"
@@ -58,14 +80,6 @@ resource "aws_instance" "api" {
       "sudo hab svc load core/builder-api --group ${var.env} --bind router:builder-router.${var.env} --strategy at-once --url ${var.bldr_url} --channel ${var.release_channel}",
       "sudo hab svc load core/builder-api-proxy --group ${var.env} --bind http:builder-api.${var.env} --strategy at-once --url ${var.bldr_url} --channel ${var.release_channel}",
     ]
-  }
-
-  tags {
-    Name          = "builder-api-${count.index}"
-    X-Contact     = "The Habitat Maintainers <humans@habitat.sh>"
-    X-Environment = "${var.env}"
-    X-Application = "builder"
-    X-ManagedBy   = "Terraform"
   }
 }
 
@@ -104,6 +118,7 @@ resource "aws_instance" "admin" {
 
   provisioner "remote-exec" {
     scripts = [
+      "${path.module}/scripts/init_filesystem.sh",
       "${path.module}/scripts/foundation.sh",
     ]
   }
@@ -169,10 +184,25 @@ resource "aws_instance" "datastore" {
     agent       = "${var.connection_agent}"
   }
 
-  ebs_block_device {
-    device_name = "/dev/xvdf"
-    volume_size = 1500
-    volume_type = "gp2"
+  tags {
+    Name          = "builder-datastore-${count.index}"
+    X-Contact     = "The Habitat Maintainers <humans@habitat.sh>"
+    X-Environment = "${var.env}"
+    X-Application = "builder"
+    X-ManagedBy   = "Terraform"
+  }
+}
+
+resource "null_resource" "datastore_provision" {
+  triggers {
+    ebs_volume = "${aws_volume_attachment.database.id}"
+  }
+
+  connection {
+    host        = "${aws_instance.datastore.public_ip}"
+    user        = "ubuntu"
+    private_key = "${file("${var.connection_private_key}")}"
+    agent       = "${var.connection_agent}"
   }
 
   provisioner "file" {
@@ -223,14 +253,6 @@ resource "aws_instance" "datastore" {
       "sudo hab svc load core/builder-datastore --group ${var.env} --strategy at-once --url ${var.bldr_url} --channel ${var.release_channel}"
     ]
   }
-
-  tags {
-    Name          = "builder-datastore-${count.index}"
-    X-Contact     = "The Habitat Maintainers <humans@habitat.sh>"
-    X-Environment = "${var.env}"
-    X-Application = "builder"
-    X-ManagedBy   = "Terraform"
-  }
 }
 
 resource "aws_instance" "jobsrv" {
@@ -271,6 +293,7 @@ resource "aws_instance" "jobsrv" {
 
   provisioner "remote-exec" {
     scripts = [
+      "${path.module}/scripts/init_filesystem.sh",
       "${path.module}/scripts/foundation.sh",
     ]
   }
@@ -347,6 +370,7 @@ resource "aws_instance" "originsrv" {
 
   provisioner "remote-exec" {
     scripts = [
+      "${path.module}/scripts/init_filesystem.sh",
       "${path.module}/scripts/foundation.sh",
     ]
   }
@@ -422,6 +446,7 @@ resource "aws_instance" "router" {
 
   provisioner "remote-exec" {
     scripts = [
+      "${path.module}/scripts/init_filesystem.sh",
       "${path.module}/scripts/foundation.sh",
     ]
   }
@@ -498,6 +523,7 @@ resource "aws_instance" "scheduler" {
 
   provisioner "remote-exec" {
     scripts = [
+      "${path.module}/scripts/init_filesystem.sh",
       "${path.module}/scripts/foundation.sh",
     ]
   }
@@ -531,7 +557,7 @@ resource "aws_instance" "scheduler" {
       "sudo systemctl daemon-reload",
       "sudo systemctl start hab-sup",
       "sudo systemctl enable hab-sup",
-      "sudo hab svc load core/builder-scheduler --group ${var.env} --bind router:builder-router.${var.env} --bind datastore:builder-datastore.${var.env} --bind depot:builder-api.${var.env} --strategy at-once --url ${var.bldr_url} --channel ${var.release_channel}"
+      "sudo hab svc load core/builder-scheduler --group ${var.env} --bind router:builder-router.${var.env} --bind datastore:builder-datastore.${var.env} --strategy at-once --url ${var.bldr_url} --channel ${var.release_channel}"
     ]
   }
 
@@ -581,6 +607,7 @@ resource "aws_instance" "sessionsrv" {
 
   provisioner "remote-exec" {
     scripts = [
+      "${path.module}/scripts/init_filesystem.sh",
       "${path.module}/scripts/foundation.sh",
     ]
   }
@@ -657,6 +684,7 @@ resource "aws_instance" "worker" {
 
   provisioner "remote-exec" {
     scripts = [
+      "${path.module}/scripts/init_filesystem.sh",
       "${path.module}/scripts/foundation.sh",
     ]
   }
