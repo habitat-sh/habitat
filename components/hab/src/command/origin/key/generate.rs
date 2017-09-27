@@ -26,7 +26,8 @@ pub fn start(ui: &mut UI, origin: &str, cache: &Path) -> Result<()> {
         false => Err(Error::from(InvalidOrigin(origin.to_string()))),
         true => {
             ui.begin(format!("Generating origin key for {}", &origin))?;
-            let pair = SigKeyPair::generate_pair_for_origin(origin, cache)?;
+            let pair = SigKeyPair::generate_pair_for_origin(origin)?;
+            pair.to_pair_files(cache)?;
             ui.end(format!(
                 "Generated origin key pair {}.",
                 &pair.name_with_rev()

@@ -29,10 +29,8 @@ use time;
 use error::{Error, Result};
 use util::perm;
 
-use super::{PUBLIC_BOX_KEY_VERSION, PUBLIC_KEY_PERMISSIONS, PUBLIC_KEY_SUFFIX,
-            PUBLIC_SIG_KEY_VERSION, SECRET_BOX_KEY_SUFFIX, SECRET_BOX_KEY_VERSION,
-            SECRET_KEY_PERMISSIONS, SECRET_SIG_KEY_SUFFIX, SECRET_SIG_KEY_VERSION,
-            SECRET_SYM_KEY_SUFFIX, SECRET_SYM_KEY_VERSION};
+use super::{PUBLIC_KEY_PERMISSIONS, PUBLIC_KEY_SUFFIX, SECRET_BOX_KEY_SUFFIX,
+            SECRET_KEY_PERMISSIONS, SECRET_SIG_KEY_SUFFIX, SECRET_SYM_KEY_SUFFIX};
 
 lazy_static! {
     static ref NAME_WITH_REV_RE: Regex = Regex::new(r"\A(?P<name>.+)-(?P<rev>\d{14})\z").unwrap();
@@ -415,20 +413,12 @@ fn read_key_bytes(keyfile: &Path) -> Result<Vec<u8>> {
 }
 
 fn write_keypair_files(
-    key_type: KeyType,
-    keyname: &str,
     public_keyfile: Option<&Path>,
-    public_content: Option<&[u8]>,
+    public_content: Option<String>,
     secret_keyfile: Option<&Path>,
-    secret_content: Option<&[u8]>,
+    secret_content: Option<String>,
 ) -> Result<()> {
     if let Some(public_keyfile) = public_keyfile {
-        let public_version = match key_type {
-            KeyType::Sig => PUBLIC_SIG_KEY_VERSION,
-            KeyType::Box => PUBLIC_BOX_KEY_VERSION,
-            KeyType::Sym => unreachable!("Sym keys do not have a public key"),
-        };
-
         let public_content = match public_content {
             Some(c) => c,
             None => panic!("Invalid calling of this function"),
@@ -450,18 +440,11 @@ fn write_keypair_files(
         }
         let public_file = File::create(public_keyfile)?;
         let mut public_writer = BufWriter::new(&public_file);
-        write!(public_writer, "{}\n{}\n\n", public_version, keyname)?;
-        public_writer.write_all(public_content)?;
+        public_writer.write_all(public_content.as_bytes())?;
         perm::set_permissions(public_keyfile, PUBLIC_KEY_PERMISSIONS)?;
     }
 
     if let Some(secret_keyfile) = secret_keyfile {
-        let secret_version = match key_type {
-            KeyType::Sig => SECRET_SIG_KEY_VERSION,
-            KeyType::Box => SECRET_BOX_KEY_VERSION,
-            KeyType::Sym => SECRET_SYM_KEY_VERSION,
-        };
-
         let secret_content = match secret_content {
             Some(c) => c,
             None => panic!("Invalid calling of this function"),
@@ -483,8 +466,7 @@ fn write_keypair_files(
         }
         let secret_file = File::create(secret_keyfile)?;
         let mut secret_writer = BufWriter::new(&secret_file);
-        write!(secret_writer, "{}\n{}\n\n", secret_version, keyname)?;
-        secret_writer.write_all(secret_content)?;
+        secret_writer.write_all(secret_content.as_bytes())?;
         perm::set_permissions(secret_keyfile, SECRET_KEY_PERMISSIONS)?;
     }
     Ok(())
@@ -604,10 +586,16 @@ mod test {
     #[test]
     fn get_key_revisions_can_return_everything() {
         let cache = TempDir::new("key_cache").unwrap();
-        let _ = SigKeyPair::generate_pair_for_origin("foo", cache.path());
+        SigKeyPair::generate_pair_for_origin("foo")
+            .unwrap()
+            .to_pair_files(cache.path())
+            .unwrap();
         // we need to wait at least 1 second between generating keypairs to ensure uniqueness
         thread::sleep(time::Duration::from_millis(1000));
-        let _ = SigKeyPair::generate_pair_for_origin("foo", cache.path());
+        SigKeyPair::generate_pair_for_origin("foo")
+            .unwrap()
+            .to_pair_files(cache.path())
+            .unwrap();
         let revs = super::get_key_revisions("foo", cache.path(), None, &KeyType::Sig).unwrap();
         assert_eq!(2, revs.len());
     }
@@ -615,12 +603,16 @@ mod test {
     #[test]
     fn get_key_revisions_can_only_return_keys_of_specified_type() {
         let cache = TempDir::new("key_cache").unwrap();
-        let _ = SigKeyPair::generate_pair_for_origin("foo", cache.path());
+        SigKeyPair::generate_pair_for_origin("foo")
+            .unwrap()
+            .to_pair_files(cache.path())
+            .unwrap();
         let revs = super::get_key_revisions("foo", cache.path(), None, &KeyType::Sig).unwrap();
         assert_eq!(1, revs.len());
         // we need to wait at least 1 second between generating keypairs to ensure uniqueness
         thread::sleep(time::Duration::from_millis(1000));
-        let _ = BoxKeyPair::generate_pair_for_user("foo-user", cache.path());
+        let pair = BoxKeyPair::generate_pair_for_user("foo-user");
+        pair.unwrap().to_pair_files(cache.path()).unwrap();
         let revs = super::get_key_revisions("foo-user", cache.path(), None, &KeyType::Sig).unwrap();
         assert_eq!(0, revs.len());
     }
@@ -628,10 +620,16 @@ mod test {
     #[test]
     fn get_key_revisions_can_return_secret_keys() {
         let cache = TempDir::new("key_cache").unwrap();
-        let _ = SigKeyPair::generate_pair_for_origin("foo", cache.path());
+        SigKeyPair::generate_pair_for_origin("foo")
+            .unwrap()
+            .to_pair_files(cache.path())
+            .unwrap();
         // we need to wait at least 1 second between generating keypairs to ensure uniqueness
         thread::sleep(time::Duration::from_millis(1000));
-        let _ = SigKeyPair::generate_pair_for_origin("foo", cache.path());
+        SigKeyPair::generate_pair_for_origin("foo")
+            .unwrap()
+            .to_pair_files(cache.path())
+            .unwrap();
         let revs =
             super::get_key_revisions("foo", cache.path(), Some(&PairType::Secret), &KeyType::Sig)
                 .unwrap();
@@ -641,10 +639,16 @@ mod test {
     #[test]
     fn get_key_revisions_can_return_public_keys() {
         let cache = TempDir::new("key_cache").unwrap();
-        let _ = SigKeyPair::generate_pair_for_origin("foo", cache.path());
+        SigKeyPair::generate_pair_for_origin("foo")
+            .unwrap()
+            .to_pair_files(cache.path())
+            .unwrap();
         // we need to wait at least 1 second between generating keypairs to ensure uniqueness
         thread::sleep(time::Duration::from_millis(1000));
-        let _ = SigKeyPair::generate_pair_for_origin("foo", cache.path());
+        SigKeyPair::generate_pair_for_origin("foo")
+            .unwrap()
+            .to_pair_files(cache.path())
+            .unwrap();
         let revs =
             super::get_key_revisions("foo", cache.path(), Some(&PairType::Public), &KeyType::Sig)
                 .unwrap();
@@ -656,10 +660,15 @@ mod test {
         let cache = TempDir::new("key_cache").unwrap();
         for _ in 0..3 {
             wait_until_ok(|| {
-                BoxKeyPair::generate_pair_for_user("wecoyote", cache.path())
+                let pair = BoxKeyPair::generate_pair_for_user("wecoyote")?;
+                pair.to_pair_files(cache.path())?;
+                Ok(())
             });
         }
-        let _ = BoxKeyPair::generate_pair_for_user("wecoyote-foo", cache.path()).unwrap();
+        BoxKeyPair::generate_pair_for_user("wecoyote-foo")
+            .unwrap()
+            .to_pair_files(cache.path())
+            .unwrap();
 
         // we shouldn't see wecoyote-foo as a 4th revision
         let revisions = super::get_key_revisions("wecoyote", cache.path(), None, &KeyType::Box)
@@ -677,11 +686,15 @@ mod test {
 
         for _ in 0..3 {
             wait_until_ok(|| {
-                BoxKeyPair::generate_pair_for_service("acme", "tnt.default", cache.path())
+                let pair = BoxKeyPair::generate_pair_for_service("acme", "tnt.default")?;
+                pair.to_pair_files(cache.path())?;
+                Ok(())
             });
         }
 
-        let _ = BoxKeyPair::generate_pair_for_service("acyou", "tnt.default", cache.path())
+        BoxKeyPair::generate_pair_for_service("acyou", "tnt.default")
+            .unwrap()
+            .to_pair_files(cache.path())
             .unwrap();
 
         let revisions =
@@ -700,10 +713,17 @@ mod test {
         let cache = TempDir::new("key_cache").unwrap();
 
         for _ in 0..3 {
-            wait_until_ok(|| SymKey::generate_pair_for_ring("acme", cache.path()));
+            wait_until_ok(|| {
+                let pair = SymKey::generate_pair_for_ring("acme")?;
+                pair.to_pair_files(cache.path())?;
+                Ok(())
+            });
         }
 
-        let _ = SymKey::generate_pair_for_ring("acme-you", cache.path()).unwrap();
+        SymKey::generate_pair_for_ring("acme-you")
+            .unwrap()
+            .to_pair_files(cache.path())
+            .unwrap();
 
         let revisions = super::get_key_revisions("acme", cache.path(), None, &KeyType::Sym)
             .unwrap();
@@ -720,11 +740,16 @@ mod test {
 
         for _ in 0..3 {
             wait_until_ok(|| {
-                SigKeyPair::generate_pair_for_origin("mutants", cache.path())
+                let pair = SigKeyPair::generate_pair_for_origin("mutants")?;
+                pair.to_pair_files(cache.path())?;
+                Ok(())
             });
         }
 
-        let _ = SigKeyPair::generate_pair_for_origin("mutants-x", cache.path()).unwrap();
+        SigKeyPair::generate_pair_for_origin("mutants-x")
+            .unwrap()
+            .to_pair_files(cache.path())
+            .unwrap();
 
         let revisions = super::get_key_revisions("mutants", cache.path(), None, &KeyType::Sig)
             .unwrap();
@@ -743,8 +768,9 @@ mod test {
     #[test]
     fn keys_that_are_symlinks_can_still_be_found() {
         let temp_dir = TempDir::new("symlinks_are_ok").unwrap();
-        let key = SymKey::generate_pair_for_ring("symlinks_are_ok", temp_dir.path())
-            .expect("Could not generate ring key");
+        let key =
+            SymKey::generate_pair_for_ring("symlinks_are_ok").expect("Could not generate ring key");
+        key.to_pair_files(temp_dir.path()).unwrap();
 
         // Create a directory in our temp directory; this will serve
         // as the cache directory in which we look for keys.
