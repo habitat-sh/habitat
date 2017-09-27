@@ -23,8 +23,6 @@ use hcore::package::PackageInstall;
 use {PRODUCT, VERSION};
 use error::{Result, SupError};
 
-// NOOOO, this is just for the sup crate... but we also do this in
-// hab, too! AAAAAAAA
 /// Helper function for use in the Supervisor to handle lower-level
 /// arguments needed for installing a package.
 pub fn install(

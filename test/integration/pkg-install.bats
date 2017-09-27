@@ -71,3 +71,9 @@ setup() {
     assert_failure
     [[ "$output" =~ "Can't read keyname" ]]
 }
+
+@test "trying to install from a nonexistent file that looks a hart doesn't work" {
+    run ${hab} pkg install looks-like/an-ident.hart
+    assert_failure
+    [[ "$output" =~ "File not found at: looks-like/an-ident.hart" ]]
+}

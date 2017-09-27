@@ -121,6 +121,12 @@ impl FromStr for InstallSource {
                 Err(e) => Err(e),
             }
         } else {
+            if let Some(extension) = path.extension() {
+                if extension == "hart" {
+                    return Err(hcore::Error::FileNotFound(s.to_string()));
+                }
+            }
+
             match s.parse::<PackageIdent>() {
                 Ok(ident) => Ok(InstallSource::Ident(ident)),
                 Err(e) => Err(e),
@@ -159,7 +165,7 @@ impl AsRef<PackageIdent> for InstallSource {
 /// installed, instead of retrieving it from Builder.
 ///
 /// In either case, however, any dependencies of will be retrieved
-/// from Builder.
+/// from Builder (if they're not already cached locally).
 ///
 /// At the end of this function, the specified package and all its
 /// dependencies will be installed on the system.
@@ -191,8 +197,11 @@ where
         return Err(Error::RootRequired);
     }
 
-    let cache_key_path = cache_key_path(Some(fs_root_path.as_ref()));
-    debug!("install cache_key_path: {}", cache_key_path.display());
+
+    // TODO (CM): rename fs::cache_key_path so the naming is
+    // consistent and flows better.
+    let key_cache_path = cache_key_path(Some(fs_root_path.as_ref()));
+    debug!("install key_cache_path: {}", key_cache_path.display());
 
     let task = InstallTask::new(
         url,
@@ -200,7 +209,7 @@ where
         version,
         fs_root_path.as_ref(),
         artifact_cache_path.as_ref(),
-        &cache_key_path,
+        &key_cache_path,
     )?;
 
     match *install_source {
@@ -214,7 +223,7 @@ struct InstallTask<'a> {
     fs_root_path: &'a Path,
     /// The path to the local artifact cache (e.g., /hab/cache/artifacts)
     artifact_cache_path: &'a Path,
-    cache_key_path: &'a Path,
+    key_cache_path: &'a Path,
 }
 
 impl<'a> InstallTask<'a> {
@@ -224,13 +233,13 @@ impl<'a> InstallTask<'a> {
         version: &str,
         fs_root_path: &'a Path,
         artifact_cache_path: &'a Path,
-        cache_key_path: &'a Path,
+        key_cache_path: &'a Path,
     ) -> Result<Self> {
         Ok(InstallTask {
             depot_client: Client::new(url, product, version, Some(fs_root_path))?,
             fs_root_path: fs_root_path,
             artifact_cache_path: artifact_cache_path,
-            cache_key_path: cache_key_path,
+            key_cache_path: key_cache_path,
         })
     }
 
@@ -319,6 +328,7 @@ impl<'a> InstallTask<'a> {
 
         match self.installed_package(&target_ident) {
             Some(package_install) => {
+                // The installed package was found on disk
                 ui.status(Status::Using, &target_ident)?;
                 ui.end(format!(
                     "Install of {} complete with {} new packages installed.",
@@ -327,7 +337,10 @@ impl<'a> InstallTask<'a> {
                 ))?;
                 Ok(package_install)
             }
-            None => self.install_package(ui, &target_ident),
+            None => {
+                // No installed package was found
+                self.install_package(ui, &target_ident)
+            }
         }
     }
 
@@ -511,7 +524,7 @@ impl<'a> InstallTask<'a> {
         self.depot_client.fetch_origin_key(
             &name,
             &rev,
-            self.cache_key_path,
+            self.key_cache_path,
             ui.progress(),
         )?;
         ui.status(
@@ -555,11 +568,11 @@ impl<'a> InstallTask<'a> {
         artifact_target.validate()?;
 
         let nwr = artifact::artifact_signer(&artifact.path)?;
-        if let Err(_) = SigKeyPair::get_public_key_path(&nwr, self.cache_key_path) {
+        if let Err(_) = SigKeyPair::get_public_key_path(&nwr, self.key_cache_path) {
             self.fetch_origin_key(ui, &nwr)?;
         }
 
-        artifact.verify(&self.cache_key_path)?;
+        artifact.verify(&self.key_cache_path)?;
         debug!("Verified {} signed by {}", ident, &nwr);
         Ok(())
     }

@@ -6,7 +6,7 @@
 
 docker build -t hab-bats-cleanroom $(pwd)/test/integration
 
-docker run -it \
+docker run -it --rm \
        --mount type=bind,source="$(pwd)/test/integration",target=/test \
        --mount type=bind,source="$(pwd)/target/debug/hab-launch",target=/bin/hab-launch \
        --mount type=bind,source="$(pwd)/target/debug/hab-sup",target=/bin/hab-sup \

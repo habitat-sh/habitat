@@ -294,7 +294,7 @@ fn sub_origin_key_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 
 fn sub_pkg_binlink(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
-    let dest_dir = dest_dir_from_matches(m);
+    let dest_dir = binlink_dest_dir_from_matches(m);
     let force = m.is_present("FORCE");
     match m.value_of("BINARY") {
         Some(binary) => {
@@ -430,36 +430,6 @@ fn sub_plan_init(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     )
 }
 
-/// Resolve a Builder URL. Taken from the environment or from CLI args,
-/// if given.
-fn bldr_url_from_matches(matches: &ArgMatches) -> String {
-    match matches.value_of("BLDR_URL") {
-        Some(url) => url.to_string(),
-        None => default_bldr_url(),
-    }
-}
-
-/// Resolve a channel. Taken from the environment or from CLI args, if
-/// given.
-fn channel_from_matches(matches: &ArgMatches) -> String {
-    matches
-        .value_of("CHANNEL")
-        .and_then(|c| Some(c.to_string()))
-        .unwrap_or(channel::default())
-}
-
-fn dest_dir_from_matches(matches: &ArgMatches) -> PathBuf {
-    let env_or_default = default_binlink_dir();
-    Path::new(matches.value_of("DEST_DIR").unwrap_or(&env_or_default)).to_path_buf()
-}
-
-fn install_sources_from_matches(matches: &ArgMatches) -> Result<Vec<InstallSource>> {
-    matches.values_of("PKG_IDENT_OR_ARTIFACT")
-        .unwrap() // Required via clap
-        .map(|t| t.parse().map_err(Error::from))
-        .collect()
-}
-
 fn sub_pkg_install(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let url = bldr_url_from_matches(m);
     let channel = channel_from_matches(m);
@@ -480,7 +450,7 @@ fn sub_pkg_install(ui: &mut UI, m: &ArgMatches) -> Result<()> {
         )?;
 
         if m.is_present("BINLINK") {
-            let dest_dir = dest_dir_from_matches(m);
+            let dest_dir = binlink_dest_dir_from_matches(m);
             let force = m.is_present("FORCE");
             command::pkg::binlink::binlink_all_in_pkg(
                 ui,
@@ -767,4 +737,35 @@ fn org_param_or_env(m: &ArgMatches) -> Result<String> {
             }
         }
     }
+}
+
+
+/// Resolve a Builder URL. Taken from the environment or from CLI args,
+/// if given.
+fn bldr_url_from_matches(matches: &ArgMatches) -> String {
+    match matches.value_of("BLDR_URL") {
+        Some(url) => url.to_string(),
+        None => default_bldr_url(),
+    }
+}
+
+/// Resolve a channel. Taken from the environment or from CLI args, if
+/// given.
+fn channel_from_matches(matches: &ArgMatches) -> String {
+    matches
+        .value_of("CHANNEL")
+        .and_then(|c| Some(c.to_string()))
+        .unwrap_or(channel::default())
+}
+
+fn binlink_dest_dir_from_matches(matches: &ArgMatches) -> PathBuf {
+    let env_or_default = default_binlink_dir();
+    Path::new(matches.value_of("DEST_DIR").unwrap_or(&env_or_default)).to_path_buf()
+}
+
+fn install_sources_from_matches(matches: &ArgMatches) -> Result<Vec<InstallSource>> {
+    matches.values_of("PKG_IDENT_OR_ARTIFACT")
+        .unwrap() // Required via clap
+        .map(|t| t.parse().map_err(Error::from))
+        .collect()
 }

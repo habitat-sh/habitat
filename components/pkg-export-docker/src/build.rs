@@ -233,7 +233,7 @@ impl<'a> BuildSpec<'a> {
             &fs_root_path,
             &cache_artifact_path(Some(&fs_root_path)),
         )?;
-        Ok(package_install.ident().clone())
+        Ok(package_install.into())
     }
 }
 
