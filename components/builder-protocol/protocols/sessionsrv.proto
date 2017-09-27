@@ -50,6 +50,16 @@ message AccountOriginInvitationAcceptRequest {
   optional bool ignore = 4;
 }
 
+message AccountOriginInvitationIgnoreRequest {
+  optional uint64 account_id = 1;
+  optional uint64 invitation_id = 2;
+}
+
+message AccountOriginInvitationRescindRequest {
+  optional uint64 account_id = 1;
+  optional uint64 invitation_id = 2;
+}
+
 message AccountInvitationListRequest {
   optional uint64 account_id = 1;
 }

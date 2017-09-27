@@ -119,6 +119,35 @@ pub fn migrate(migrator: &mut Migrator) -> SrvResult<()> {
                         UPDATE origin_invitations SET account_sync = true, updated_at = now() WHERE id = oi_id;
                     END
                     $$ LANGUAGE plpgsql VOLATILE"#)?;
-
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE OR REPLACE FUNCTION ignore_origin_invitation_v1 (
+                        oi_invitation_id bigint, oi_account_id bigint
+                    ) RETURNS void AS $$
+                        UPDATE origin_invitations
+                        SET ignored = true, updated_at = now()
+                        WHERE id = oi_invitation_id AND account_id = oi_account_id;
+                    $$ LANGUAGE SQL VOLATILE"#,
+    )?;
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE OR REPLACE FUNCTION rescind_origin_invitation_v1 (
+                        oi_invitation_id bigint, oi_owner_id bigint
+                    ) RETURNS void AS $$
+                        DELETE FROM origin_invitations
+                        WHERE id = oi_invitation_id
+                        AND owner_id = oi_owner_id
+                        AND ignored = false;
+                    $$ LANGUAGE SQL VOLATILE"#,
+    )?;
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE OR REPLACE FUNCTION get_origin_invitation_v1 (
+                        oi_invitation_id bigint
+                    ) RETURNS SETOF origin_invitations AS $$
+                        SELECT * FROM origin_invitations
+                        WHERE id = oi_invitation_id;
+                    $$ LANGUAGE SQL VOLATILE"#,
+    )?;
     Ok(())
 }

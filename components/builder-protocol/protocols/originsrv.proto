@@ -154,6 +154,16 @@ message OriginInvitationListResponse {
   repeated OriginInvitation invitations = 2;
 }
 
+message OriginInvitationIgnoreRequest {
+  optional uint64 invitation_id = 1;
+  optional uint64 account_id = 2;
+}
+
+message OriginInvitationRescindRequest {
+  optional uint64 invitation_id = 1;
+  optional uint64 owner_id = 2;
+}
+
 message OriginKeyIdent {
   optional string origin = 1;
   optional string revision = 2;

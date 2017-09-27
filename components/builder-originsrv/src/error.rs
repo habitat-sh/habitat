@@ -54,6 +54,9 @@ pub enum SrvError {
     OriginIntegrationRequest(postgres::error::Error),
     OriginInvitationAccept(postgres::error::Error),
     OriginInvitationCreate(postgres::error::Error),
+    OriginInvitationGet(postgres::error::Error),
+    OriginInvitationIgnore(postgres::error::Error),
+    OriginInvitationRescind(postgres::error::Error),
     OriginInvitationListForOrigin(postgres::error::Error),
     OriginInvitationListForAccount(postgres::error::Error),
     OriginInvitationValidate(postgres::error::Error),
@@ -154,10 +157,19 @@ impl fmt::Display for SrvError {
                 format!("Error retrieving integration request from database, {}", e)
             }
             SrvError::OriginInvitationAccept(ref e) => {
-                format!("Error accepting origin invitation in database, {}", e)
+                format!("Error accepting origin invitation, {}", e)
             }
             SrvError::OriginInvitationCreate(ref e) => {
-                format!("Error creating origin invitation in database, {}", e)
+                format!("Error creating origin invitation, {}", e)
+            }
+            SrvError::OriginInvitationGet(ref e) => {
+                format!("Error fetching origin invitation, {}", e)
+            }
+            SrvError::OriginInvitationIgnore(ref e) => {
+                format!("Error ignoring origin invitation, {}", e)
+            }
+            SrvError::OriginInvitationRescind(ref e) => {
+                format!("Error rescinding origin invitation, {}", e)
             }
             SrvError::OriginInvitationListForOrigin(ref e) => {
                 format!(
@@ -307,6 +319,9 @@ impl error::Error for SrvError {
             SrvError::OriginIntegrationRequest(ref err) => err.description(),
             SrvError::OriginInvitationAccept(ref err) => err.description(),
             SrvError::OriginInvitationCreate(ref err) => err.description(),
+            SrvError::OriginInvitationGet(ref err) => err.description(),
+            SrvError::OriginInvitationIgnore(ref err) => err.description(),
+            SrvError::OriginInvitationRescind(ref err) => err.description(),
             SrvError::OriginInvitationListForOrigin(ref err) => err.description(),
             SrvError::OriginInvitationListForAccount(ref err) => err.description(),
             SrvError::OriginInvitationValidate(ref err) => err.description(),

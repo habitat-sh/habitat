@@ -85,5 +85,26 @@ pub fn migrate(migrator: &mut Migrator) -> SrvResult<()> {
                             END IF;
                     END
                     $$ LANGUAGE plpgsql VOLATILE"#)?;
+    migrator.migrate(
+        "accountsrv",
+        r#"CREATE OR REPLACE FUNCTION ignore_account_invitation_v1 (
+                   oi_invitation_id bigint, oi_account_id bigint
+                 ) RETURNS void AS $$
+                    UPDATE account_invitations
+                    SET ignored = true, updated_at = now()
+                    WHERE origin_invitation_id = oi_invitation_id AND account_id = oi_account_id;
+                    $$ LANGUAGE SQL VOLATILE"#,
+    )?;
+    migrator.migrate(
+        "accountsrv",
+        r#"CREATE OR REPLACE FUNCTION rescind_account_invitation_v1 (
+                   oi_invitation_id bigint, oi_account_id bigint
+                 ) RETURNS void AS $$
+                    DELETE FROM account_invitations
+                    WHERE origin_invitation_id = oi_invitation_id
+                    AND account_id = oi_account_id
+                    AND ignored = false;
+                    $$ LANGUAGE SQL VOLATILE"#,
+    )?;
     Ok(())
 }

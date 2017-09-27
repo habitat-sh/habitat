@@ -33,6 +33,8 @@ pub enum SrvError {
     AccountIdFromString(num::ParseIntError),
     AccountOriginInvitationAccept(postgres::error::Error),
     AccountOriginInvitationCreate(postgres::error::Error),
+    AccountOriginInvitationIgnore(postgres::error::Error),
+    AccountOriginInvitationRescind(postgres::error::Error),
     AccountOriginInvitationList(postgres::error::Error),
     BadPort(String),
     ConnErr(hab_net::conn::ConnErr),
@@ -66,6 +68,12 @@ impl fmt::Display for SrvError {
             }
             SrvError::AccountOriginInvitationCreate(ref e) => {
                 format!("Error creating invitation in database, {}", e)
+            }
+            SrvError::AccountOriginInvitationIgnore(ref e) => {
+                format!("Error ignoring invitation, {}", e)
+            }
+            SrvError::AccountOriginInvitationRescind(ref e) => {
+                format!("Error rescinding invitation, {}", e)
             }
             SrvError::AccountOriginInvitationList(ref e) => {
                 format!("Error listing invitation in database, {}", e)
@@ -108,6 +116,8 @@ impl error::Error for SrvError {
             SrvError::AccountIdFromString(ref err) => err.description(),
             SrvError::AccountOriginInvitationAccept(ref err) => err.description(),
             SrvError::AccountOriginInvitationCreate(ref err) => err.description(),
+            SrvError::AccountOriginInvitationIgnore(ref err) => err.description(),
+            SrvError::AccountOriginInvitationRescind(ref err) => err.description(),
             SrvError::AccountOriginInvitationList(ref err) => err.description(),
             SrvError::BadPort(_) => {
                 "Received an invalid port or a number outside of the valid range."

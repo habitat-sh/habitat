@@ -114,6 +114,22 @@ impl Routable for AccountInvitationListRequest {
     }
 }
 
+impl Routable for AccountOriginInvitationIgnoreRequest {
+    type H = InstaId;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(InstaId(self.get_account_id()))
+    }
+}
+
+impl Routable for AccountOriginInvitationRescindRequest {
+    type H = InstaId;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(InstaId(self.get_account_id()))
+    }
+}
+
 impl Routable for AccountOriginListRequest {
     type H = InstaId;
 
