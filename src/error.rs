@@ -85,6 +85,10 @@ pub enum Error {
     CryptUnprotectDataFailed(String),
     /// Occurs when a file that should exist does not or could not be read.
     FileNotFound(String),
+    /// Occurs when a fully-qualified package identifier is required,
+    /// but a non-qualified identifier (e.g. "foo/bar" or
+    /// "foo/bar/1.0.0") was given instead.
+    FullyQualifiedPackageIdentRequired(String),
     /// Occurs when an application environment string cannot be successfully parsed.
     InvalidApplicationEnvironment(String),
     /// Occurs when a package identifier string cannot be successfully parsed.
@@ -265,6 +269,12 @@ impl fmt::Display for Error {
             Error::CryptProtectDataFailed(ref e) => format!("{}", e),
             Error::CryptUnprotectDataFailed(ref e) => format!("{}", e),
             Error::FileNotFound(ref e) => format!("File not found at: {}", e),
+            Error::FullyQualifiedPackageIdentRequired(ref ident) => {
+                format!(
+                    "Fully-qualified package identifier was expected, but found: {:?}",
+                    ident
+                )
+            }
             Error::InvalidApplicationEnvironment(ref e) => {
                 format!(
                     "Invalid application environment: {}. A valid application environment string \
@@ -423,6 +433,9 @@ impl error::Error for Error {
             Error::CryptProtectDataFailed(_) => "CryptProtectData failed",
             Error::CryptUnprotectDataFailed(_) => "CryptUnprotectData failed",
             Error::FileNotFound(_) => "File not found",
+            Error::FullyQualifiedPackageIdentRequired(_) => {
+                "A fully-qualified package identifier was expected"
+            }
             Error::InvalidApplicationEnvironment(_) => {
                 "Application environment strings must be in \
                  application.environment format (example: twitter.prod)"
