@@ -66,16 +66,16 @@ where
                 Status::Missing,
                 format!("package for {}", &ident),
             )?;
+
             common::command::package::install::start(
                 ui,
                 &default_bldr_url(),
                 None,
-                &ident.to_string(),
+                &ident.clone().into(),
                 PRODUCT,
                 VERSION,
                 fs_root_path,
                 &cache_artifact_path(None::<String>),
-                false,
             )?;
             command_from_min_pkg(ui, &command, &ident, &cache_key_path, retry + 1)
         }

@@ -579,7 +579,7 @@ fn sub_pkg_build() -> App<'static, 'static> {
 }
 
 fn sub_pkg_install() -> App<'static, 'static> {
-    let sub = clap_app!(@subcommand install =>
+    clap_app!(@subcommand install =>
         (about: "Installs a Habitat package from Builder or locally from a Habitat Artifact")
         (@arg BLDR_URL: --url -u +takes_value {valid_url}
             "Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)")
@@ -590,13 +590,6 @@ fn sub_pkg_install() -> App<'static, 'static> {
             to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
         (@arg BINLINK: -b --binlink "Binlink all binaries from installed package(s)")
         (@arg FORCE: -f --force "When using binlink, overwrite existing symlinks")
-    );
-    sub.arg(
-        Arg::with_name("IGNORE_TARGET")
-            .help("Skips target validation for package installation.")
-            .short("i")
-            .long("ignore-target")
-            .hidden(true),
     )
 }
 

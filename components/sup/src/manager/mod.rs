@@ -14,6 +14,7 @@
 
 pub mod service;
 mod events;
+mod periodic;
 mod self_updater;
 mod service_updater;
 mod spec_watcher;
@@ -351,8 +352,8 @@ impl Manager {
         Self::specs_path(&Self::state_path_from(cfg)).join(spec.file_name())
     }
 
-    pub fn save_spec_for(cfg: &ManagerConfig, spec: ServiceSpec) -> Result<()> {
-        spec.to_file(Self::spec_path_for(cfg, &spec))
+    pub fn save_spec_for(cfg: &ManagerConfig, spec: &ServiceSpec) -> Result<()> {
+        spec.to_file(Self::spec_path_for(cfg, spec))
     }
 
     fn clean_dirty_state<T>(state_path: T) -> Result<()>
