@@ -76,44 +76,42 @@ pub fn get() -> App<'static, 'static> {
             )
         )
         (@subcommand bldr =>
-            (about: "Commands relating to Habitat build service")
+            (about: "Commands relating to Habitat Builder")
             (aliases: &["b", "bl", "bld"])
             (@setting ArgRequiredElseHelp)
+            (@subcommand job =>
+                (about: "Commands relating to Habitat Builder jobs")
+                (aliases: &["j", "jo"])
+                (@setting ArgRequiredElseHelp)
+                (@subcommand start =>
+                    (about: "Schedule a build job or group of jobs")
+                    (aliases: &["s", "st", "sta", "star"])
+                    (@arg PKG_IDENT: +required +takes_value
+                        "The origin and name of the package to schedule a job for (eg: core/redis)")
+                    (@arg BLDR_URL: -u --url +takes_value {valid_url}
+                        "Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)")
+                    (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
+                    (@arg GROUP: -g --group "Schedule jobs for this package and all of its reverse \
+                        dependencies")
+                )
+                (@subcommand promote =>
+                    (about: "Promote every package in completed build job to a specified channel")
+                    (aliases: &["p", "pr", "pro", "prom", "promo", "promot"])
+                    (@arg GROUP_ID: +required +takes_value
+                        "The job id that was returned from \"hab bldr start\" \
+                        (ex: 771100000000000000)")
+                    (@arg CHANNEL: +takes_value +required "The target channel name")
+                    (@arg BLDR_URL: -u --url +takes_value {valid_url}
+                        "Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)")
+                    (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
+                )
+            )
             (@subcommand encrypt =>
                 (about: "Reads a stdin stream containing plain text and outputs \
                     an encrypted representation")
                 (aliases: &["e", "en", "enc", "encr", "encry"])
                 (@arg BLDR_URL: -u --url +takes_value {valid_url}
                     "Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)")
-            )
-        )
-        (@subcommand job =>
-            (about: "Commands relating to build job control")
-            (aliases: &["j", "jo"])
-            (@setting ArgRequiredElseHelp)
-            (@subcommand start =>
-                (about: "Schedule a job or group of jobs")
-                (aliases: &["s", "st", "sta", "star"])
-                (@arg PKG_IDENT: +required +takes_value
-                    "The origin and name of the package to schedule a job for \
-                    (ex: core/redis)")
-                (@arg BLDR_URL: -u --url +takes_value {valid_url}
-                    "Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)")
-                (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
-                (@arg GROUP: -g --group "Schedule jobs for this package and all of its reverse \
-                    dependencies")
-            )
-            (@subcommand promote =>
-                (about: "Promote every package in a job group to a specified channel")
-                (aliases: &["p", "pr", "pro", "prom", "promo", "promot"])
-                (@arg GROUP_ID: +required +takes_value
-                    "The job group ID that was returned from \"hab job start\" \
-                    (ex: 771100000000000000)")
-                (@arg CHANNEL: +takes_value +required "The channel name to promote the built \
-                    packages into")
-                (@arg BLDR_URL: -u --url +takes_value {valid_url}
-                    "Specify an alternate Builder endpoint (default: https://bldr.habitat.sh)")
-                (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
             )
         )
         (@subcommand origin =>

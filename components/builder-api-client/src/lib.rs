@@ -56,7 +56,7 @@ pub struct ReverseDependencies {
 #[derive(Default, Deserialize)]
 pub struct JobGroupPromoteResponse {
     pub group_id: u64,
-    pub failed_projects: Vec<String>,
+    pub not_promoted: Vec<PackageIdent>,
 }
 
 impl Client {
@@ -160,35 +160,23 @@ impl Client {
         group_id: u64,
         channel: &str,
         token: &str,
-    ) -> Result<Vec<String>> {
-        debug!("Promoting job group {} to channel {}", group_id, channel);
+    ) -> Result<Vec<PackageIdent>> {
         let url = format!("jobs/group/{}/promote/{}", group_id, channel);
         let res = self.add_authz(self.0.post(&url), token).send().map_err(
             Error::HyperError,
         )?;
 
         if res.status != StatusCode::Ok {
+            debug!("Failed to promote group, status: {:?}", res.status);
             return Err(err_from_response(res));
         }
 
-        // At first glance, this might look like a situation of an-error-thats-not-an-error. What's
-        // actually happening is the "decoded_response" function returns a generic T that
-        // implements the serde::de::Deserialized trait, meaning anything that serde can
-        // deserialize. However, if serde attempts to deserialize an empty response body (as the
-        // server will sometimes return in success cases) then serde will return an error and
-        // is_eof() will return true. We handle that edge case here by returning Ok, because for
-        // us, this is a success case, even though it's an error case for serde. In the future, we
-        // might want to investigate a way to have decoded_response handle this oddity.
         match decoded_response::<JobGroupPromoteResponse>(res).map_err(Error::HabitatHttpClient) {
-            Ok(value) => Ok(value.failed_projects),
-            Err(Error::HabitatHttpClient(hab_http::Error::Json(e))) => {
-                if e.is_eof() {
-                    return Ok(Vec::new());
-                } else {
-                    return Err(Error::Json(e));
-                }
+            Ok(value) => Ok(value.not_promoted),
+            Err(e) => {
+                debug!("Failed to decode response, err: {:?}", e);
+                return Err(e);
             }
-            Err(e) => return Err(e),
         }
     }
 

@@ -136,7 +136,7 @@ pub fn job_group_promote(req: &mut Request) -> IronResult<Response> {
     };
 
     match helpers::promote_job_group_to_channel(req, group_id, &channel, Some(session_id)) {
-        Ok(_) => Ok(Response::with(status::Ok)),
+        Ok(resp) => Ok(render_json(status::Ok, &resp)),
         Err(err) => Ok(render_net_error(&err)),
     }
 }

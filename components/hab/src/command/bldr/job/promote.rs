@@ -42,38 +42,31 @@ pub fn start(
         format!("job group {} to channel {}", group_id, channel),
     )?;
 
-    match api_client.job_group_promote(gid, channel, token).map_err(
-        Error::APIClient,
-    ) {
+    match api_client.job_group_promote(gid, channel, token) {
         Ok(projects) => {
-            if projects.is_empty() {
-                ui.status(
-                    Status::Promoted,
-                    format!("job group {} to channel {}", group_id, channel),
-                )?;
-            } else {
-                ui.status(
-                    Status::Promoted,
-                    format!(
-                        "job group {} to channel {}, but the following packages failed to promote:",
-                        group_id,
-                        channel
-                    ),
-                )?;
+            ui.status(
+                Status::Promoted,
+                format!("job group {} to channel {}", group_id, channel),
+            )?;
+            if !projects.is_empty() {
+                ui.warn("The following items were not promoted:")?;
                 for p in projects {
-                    println!("{}", p);
+                    ui.warn(format!("{}", p))?;
                 }
-                println!("");
-                println!(
-                    "It's possible this failure was transient. You can try re-running this job \
-                    group. You can also run build jobs for each of these packages individually."
-                );
+                ui.warn("")?;
+                ui.warn(
+                    "It's possible that these packages did not build, or you did not have \
+                     permissions or there was a transient error. You may try re-running the \
+                     promote command again.",
+                )?;
             }
         }
-        Err(Error::APIClient(api_client::Error::APIError(StatusCode::Forbidden, _))) => {
-            return Err(Error::JobGroupPromote(gid, channel.to_string()));
+        Err(api_client::Error::APIError(StatusCode::UnprocessableEntity, _)) => {
+            return Err(Error::JobGroupPromoteUnprocessable);
         }
-        Err(e) => return Err(e),
+        Err(e) => {
+            return Err(Error::JobGroupPromote(e));
+        }
     };
 
     Ok(())

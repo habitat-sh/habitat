@@ -854,6 +854,32 @@ impl Routable for OriginPackageGroupPromote {
     }
 }
 
+impl Routable for OriginPackageGroupPromoteResponse {
+    type H = String;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(self.get_group_id().to_string())
+    }
+}
+
+impl Serialize for OriginPackageGroupPromoteResponse {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut strukt = serializer.serialize_struct(
+            "origin_package_group_promote_response",
+            2,
+        )?;
+        strukt.serialize_field("group_id", &self.get_group_id())?;
+        strukt.serialize_field(
+            "not_promoted",
+            self.get_not_promoted(),
+        )?;
+        strukt.end()
+    }
+}
+
 impl Routable for OriginPackagePromote {
     type H = String;
 

@@ -41,9 +41,9 @@ pub fn net_err_to_http(err: ErrCode) -> Status {
         ErrCode::SOCK |
         ErrCode::REMOTE_UNAVAILABLE => Status::ServiceUnavailable,
 
-        ErrCode::AUTH_SCOPE |
-        ErrCode::GROUP_NOT_COMPLETE |
-        ErrCode::PARTIAL_JOB_GROUP_PROMOTE => Status::Forbidden,
+        ErrCode::AUTH_SCOPE => Status::Forbidden,
+        ErrCode::GROUP_NOT_COMPLETE => Status::UnprocessableEntity,
+        ErrCode::PARTIAL_JOB_GROUP_PROMOTE => Status::PartialContent,
 
         ErrCode::BUG |
         ErrCode::POST_PROCESSOR |

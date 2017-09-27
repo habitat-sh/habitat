@@ -27,12 +27,13 @@ use protocol::originsrv::{CheckOriginAccessRequest, CheckOriginAccessResponse, O
                           OriginPackageChannelListResponse, OriginPackageGet,
                           OriginPackageGroupPromote, OriginPackageIdent,
                           OriginPackagePlatformListRequest, OriginPackagePlatformListResponse,
-                          OriginPackagePromote};
+                          OriginPackagePromote, OriginPackageGroupPromoteResponse};
 use protocol::scheduler::{Group, GroupGet, Project, ProjectState};
 use protocol::sessionsrv::Session;
 use serde::Serialize;
 use serde_json;
 use urlencoded::UrlEncodedQuery;
+use protobuf::RepeatedField;
 
 use super::controller::route_message;
 
@@ -264,7 +265,7 @@ pub fn promote_job_group_to_channel(
     group_id: u64,
     channel: &str,
     session_id: Option<u64>,
-) -> NetResult<NetOk> {
+) -> NetResult<OriginPackageGroupPromoteResponse> {
     let mut group_get = GroupGet::new();
     group_get.set_group_id(group_id);
     let group = route_message::<GroupGet, Group>(req, &group_get)?;
@@ -283,7 +284,8 @@ pub fn promote_job_group_to_channel(
         ));
     }
 
-    let mut failed_projects = Vec::new();
+    let mut opgpr = OriginPackageGroupPromoteResponse::new();
+    let mut not_promoted = RepeatedField::new();
     let mut origin_map = HashMap::new();
 
     // We can't assume that every project in the group belongs to the same origin. It's entirely
@@ -302,30 +304,25 @@ pub fn promote_job_group_to_channel(
             );
             project_list.push(project);
         } else {
-            failed_projects.push(project.get_ident().to_string());
+            not_promoted.push(OriginPackageIdent::from_str(project.get_name()).unwrap());
         }
     }
 
     for (origin, projects) in origin_map.iter() {
-        if channel != STABLE_CHANNEL || channel != UNSTABLE_CHANNEL {
-            create_channel(req, &origin, channel, session_id)?;
-        }
-
-        let promote_result =
-            do_group_promotion(req, channel, projects.to_vec(), &origin, session_id);
-        if promote_result.is_err() {
-            return promote_result;
+        match do_group_promotion(req, channel, projects.to_vec(), &origin, session_id) {
+            Ok(_) => (),
+            Err(e) => {
+                if e.get_code() != ErrCode::ACCESS_DENIED {
+                    info!("Failed to promote group, err: {:?}", e);
+                    return Err(e);
+                }
+            }
         }
     }
 
-    if failed_projects.is_empty() {
-        Ok(NetOk::new())
-    } else {
-        Err(NetError::new(
-            ErrCode::PARTIAL_JOB_GROUP_PROMOTE,
-            "hg:promote-job-group:1",
-        ))
-    }
+    opgpr.set_group_id(group_id);
+    opgpr.set_not_promoted(not_promoted);
+    Ok(opgpr)
 }
 
 pub fn get_optional_session_id(req: &mut Request) -> Option<u64> {
@@ -342,20 +339,37 @@ fn do_group_promotion(
     origin: &str,
     session_id_opt: Option<u64>,
 ) -> NetResult<NetOk> {
-    let mut ocg = OriginChannelGet::new();
-    ocg.set_origin_name(origin.to_string());
-    ocg.set_name(channel.to_string());
-
-    let mut package_ids = Vec::new();
-    let channel = route_message::<OriginChannelGet, OriginChannel>(req, &ocg)?;
     if let Some(session_id) = session_id_opt {
         if !check_origin_access(req, session_id, origin)? {
             return Err(NetError::new(
                 ErrCode::ACCESS_DENIED,
-                "core:group-promote:0",
+                "hg:promote-job-group:0",
             ));
         }
     }
+
+    let mut ocg = OriginChannelGet::new();
+    ocg.set_origin_name(origin.to_string());
+    ocg.set_name(channel.to_string());
+
+    let channel = match route_message::<OriginChannelGet, OriginChannel>(req, &ocg) {
+        Ok(channel) => channel,
+        Err(e) => {
+            if e.get_code() == ErrCode::ENTITY_NOT_FOUND {
+                if channel != STABLE_CHANNEL || channel != UNSTABLE_CHANNEL {
+                    create_channel(req, &origin, channel, session_id_opt)?
+                } else {
+                    info!("Unable to retrieve default channel, err: {:?}", e);
+                    return Err(e);
+                }
+            } else {
+                info!("Unable to retrieve channel, err: {:?}", e);
+                return Err(e);
+            }
+        }
+    };
+
+    let mut package_ids = Vec::new();
 
     for project in projects {
         let opi = OriginPackageIdent::from_str(project.get_ident()).unwrap();
