@@ -1,0 +1,37 @@
+# <a name="file-uploads">Upload files to a service group</a>
+In addition to [configuration updates](/docs/run-packages-apply-config-updates), you can upload files to a service group. Keep these small - we recommend 4k or less per file, and keep the count of files to a minimum.
+
+## Usage
+
+When submitting a file to a service group, you must specify a peer in the ring to connect to, the version number of the file, and the new path to the file itself.
+
+File updates for service groups must be versioned. The version number must be an integer that starts at one and must be incremented with every subsequent update to the same service group. *If the version number is less than or equal to the current version number, the change(s) will not be applied.*
+
+Here are some examples of how to upload a file to the ring:
+
+    $ hab file upload myapp.prod 1 /tmp/yourfile.txt --peer 172.0.0.3
+
+  > Note: 1 is the version number. Increment this for additional configuration updates.
+
+    Your output would look something like this:
+
+       » Uploading file /tmp/yourfile.txt to myapp.prod incarnation 1
+       Ω Creating service file
+       ↑ Applying to peer 127.0.0.1:9638
+       ★ Uploaded file
+
+  The services in the myapp.prod service group will restart.
+
+       myapp.prod(SR): Service file updated from butterfly /hab/svc/myapp/files/yourfile.txt: 7a3d9e87e6b917e0ec53665038adfda0a6b43ab9c3f72640dcf7e43a280af719
+       myapp.prod(SR): File update hook succeeded.
+       myapp.prod(SV): Stopping
+       ...
+       myapp.prod(SV): Starting
+
+  > Note: The file will be put in your services svc directory.
+
+#### Encryption
+
+Files can be encrypted for the service group they are intended. To do so, pass the `--user` option with the name of your user key, and the `--org` option with the organization of the service group. If you have the public key for the service group, the data will be encrypted for that key, signed with your user key, and sent to the ring.
+
+It will then be stored encrypted in memory, and decrypted on disk.

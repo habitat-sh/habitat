@@ -5,14 +5,14 @@ title: Habitat - Connect to Database
 section
  h1 Connect to a Database
 
- p As part of the parsing logic of your Gemfile, the Ruby scaffolding detects any database gems that you have added and modifies the <code>init</code> hook and other setup scripts that it creates to provide a default customizable configuration behavior. The connection logic provided in the scaffolding also allows you to connect your web application to a database in a number of ways such as through containers, virtual machines, database cloud services, and so on. 
- 
- p The Ruby scaffolding will set up this connection logic for PostgreSQL databases assuming your Gemfile contains any of the following PostgreSQL database gems specified in the #{link_to 'Ruby scaffolding reference topic','https://github.com/habitat-sh/core-plans/blob/master/scaffolding-ruby/doc/reference.md#postgresql-database-detection'}. 
+ p As part of the parsing logic of your Gemfile, the Ruby scaffolding detects any database gems that you have added and modifies the <code>init</code> hook and other setup scripts that it creates to provide a default customizable configuration behavior. The connection logic provided in the scaffolding also allows you to connect your web application to a database in a number of ways such as through containers, virtual machines, database cloud services, and so on.
+
+ p The Ruby scaffolding will set up this connection logic for PostgreSQL databases assuming your Gemfile contains any of the following PostgreSQL database gems specified in the #{link_to 'Ruby scaffolding reference topic','https://github.com/habitat-sh/core-plans/blob/master/scaffolding-ruby/doc/reference.md#postgresql-database-detection'}.
 
  p This topic covers the following areas:
 
  ul
-  li #{link_to 'Setting service bindings','#setting-bindings'} 
+  li #{link_to 'Setting service bindings','#setting-bindings'}
   li #{link_to 'Setting database connection values','#setting-values'}
   li #{link_to 'Connecting to a database running inside a Docker container','#connect-docker'}
   li #{link_to 'Connecting to a PostgreSQL cluster running in VMs','#connect-vms'}
@@ -20,7 +20,7 @@ section
 
  h2 <a name="setting-bindings">Setting service bindings</a>
 
- p Service bindings allows runtime configuration values for one service group to be shared with another service group, forming a producer/consumer relationship. When you want to share out configuration data with another service group, you must add the <code>pkg_exports</code> setting to your plan.sh. The following shows how the Ruby scaffolding exports a port key for consuming services, such as a reverse proxy or load balancer. 
+ p Service bindings allows runtime configuration values for one service group to be shared with another service group, forming a producer/consumer relationship. When you want to share out configuration data with another service group, you must add the <code>pkg_exports</code> setting to your plan.sh. The following shows how the Ruby scaffolding exports a port key for consuming services, such as a reverse proxy or load balancer.
 
  pre
   code
@@ -34,27 +34,27 @@ section
    |
     [app]
     port=8080
- 
+
  p  Conversely, if your web application wants to bind to a key, such as a port from a database, you need to either use the <code>pkg_binds</code> or <code>pkg_binds_optional</code> settings in your plan.sh. This requires that you know what keys are exported by the producer service group.
 
- = partial "/partials/exports_examples"
+ = partial "/partials/global/exports_examples"
 
  p Once you have identified the key or keys of the producer that you want to consume in your web application, add that information to your plan.sh file.
 
  pre
   code
-   | 
+   |
     pkg_binds=( [elasticsearch]="http-port transport-port" )
 
  p For more examples and information on binding, see #{link_to 'Runtime Binding','/docs/run-packages-binding/'}.
- 
+
  blockquote
   p <b>Important</b> If the Ruby scaffolding detects that your web application references the <code>pg</code> gem in your Gemfile.lock, the scaffolding will create and set <code>pkg_binds_optional</code> to a binding called "database" with the key called "port". This maps to the exported key named "port" from the <code>core/postgresql</code> package.
- 
+
  h2 <a name="setting-values">Setting database connection values</a>
 
- p Connecting to the PostgreSQL database from Rails requires setting the database adapter value, user name, password, and host. If you use the default <code>init</code> hook created by the Ruby scaffolding, and also referenced a PostgreSQL gem in your Gemfile.lock, the Ruby scaffolding will create an <code>init</code> hook that will attempt to connect to any database you bind to. 
- 
+ p Connecting to the PostgreSQL database from Rails requires setting the database adapter value, user name, password, and host. If you use the default <code>init</code> hook created by the Ruby scaffolding, and also referenced a PostgreSQL gem in your Gemfile.lock, the Ruby scaffolding will create an <code>init</code> hook that will attempt to connect to any database you bind to.
+
  p In the <code>habitat</code> directory inside your project repo, edit the <code>default.toml</code> to set the correct database connection information.
 
  pre
@@ -74,7 +74,7 @@ section
  p Also, by default, because the <code>RAILS_ENV</code> is set to 'production', the database name that the scaffolding will try to connect to will be named <i>package_</i>production. If you want to override that value, add the following in the <code>db</code> TOML table:
 
  pre
-  code 
+  code
    |
     name = "databasename"
 
@@ -90,7 +90,7 @@ section
  pre
   code # hab pkg export docker core/postgresql && exit
 
- p Once you've created Docker containers for both your web application and the PostgreSQL database package, you can either open two terminal windows and start them up via <code>docker run</code> commands, or use Docker Compose to start them up together. 
+ p Once you've created Docker containers for both your web application and the PostgreSQL database package, you can either open two terminal windows and start them up via <code>docker run</code> commands, or use Docker Compose to start them up together.
 
  h3 Using containers directly
 
@@ -111,13 +111,13 @@ section
 
  p The other option is to use a tool such as Docker Compose to bring up both services. The <code>docker-compose.yml</code> used in the #{link_to 'Run the Sample App', 'https://www.habitat.sh/tutorials/sample-app/mac/run-app/'} step of the Build a Sample App tutorial can be modified and used for your iterative development needs.
 
- p Create a <code>docker-compose.yml</code> to bring up both your web application and database containers. The volume being shared assumes that you place the <code>docker-compose.yml</code> at the root of your local project repo. 
- 
+ p Create a <code>docker-compose.yml</code> to bring up both your web application and database containers. The volume being shared assumes that you place the <code>docker-compose.yml</code> at the root of your local project repo.
+
  p Replace <code>origin/package</code> with the values for your web application.
 
  pre
   code.yaml
-   | 
+   |
      version: '3'
      services:
        db:
@@ -142,7 +142,7 @@ section
  pre
   code $ docker-compose exec yourapp yourapp-rake db:setup
 
- p Your Rails app and database should now be up and running in Docker containers. You can validate this on your local workstation by browsing to https://localhost:8000/someendpoint. 
+ p Your Rails app and database should now be up and running in Docker containers. You can validate this on your local workstation by browsing to https://localhost:8000/someendpoint.
 
  h2 <a name="connect-vms">Connecting to a PostgreSQL cluster running in VMs</a>
 
@@ -184,8 +184,8 @@ section
 
  p Now, match that private IP to one of your instances and then copy the public IP of that instance.
 
- p Open up <code>habitat/default.toml</code> and replace the value for the <code>host</code> key with that public ip address. 
- 
+ p Open up <code>habitat/default.toml</code> and replace the value for the <code>host</code> key with that public ip address.
+
  blockquote
   p <b>Note</b>It does need to be the public ip of the leader in order to work.
 
@@ -211,7 +211,7 @@ section
  pre
   code $ docker run -it -p 8000:8000 origin/package
 
- p As part of the general workflow of using your rails app, you need to setup the database from your web application container. 
+ p As part of the general workflow of using your rails app, you need to setup the database from your web application container.
 
  pre
   code $ docker exec -it CONTAINERID yourapp-rake db:setup
@@ -234,7 +234,7 @@ section
 
  p Once the RDS instance is up, update the <code>habitat/default.toml</code> file in your local project repo.
 
- p Modify it so that the <code>db.user</code> matches the username you set for your RDS instance and the <code>db.password</code> matches the password you set for your RDS instance. Finally, you also need to add in <code>db.host</code> and set it to the endpoint for your RDS instance (you can get this from the AWS GUI or cli). Do not include the port number in the endpoint. The value should be "https://my_endpoint" not "https://my_endpoint:5432". 
+ p Modify it so that the <code>db.user</code> matches the username you set for your RDS instance and the <code>db.password</code> matches the password you set for your RDS instance. Finally, you also need to add in <code>db.host</code> and set it to the endpoint for your RDS instance (you can get this from the AWS GUI or cli). Do not include the port number in the endpoint. The value should be "https://my_endpoint" not "https://my_endpoint:5432".
 
  pre
   code
@@ -254,11 +254,11 @@ section
     # hab pkg export docker origin/package && exit
 
  p Because you're not interacting with another Habitat package as in the previous section, you do not need to set the service binding or join a ring with another service. Simply run the Docker container for your web application and set an exposed port so you can browse to your web application from your local workstation
- 
+
  pre
   code $ docker run -it -p 8000:8000 origin/package
 
- p And just as in the previous section, you need to setup the database from your web application container. 
+ p And just as in the previous section, you need to setup the database from your web application container.
 
  pre
   code $ docker exec -it CONTAINERID yourapp-rake db:setup

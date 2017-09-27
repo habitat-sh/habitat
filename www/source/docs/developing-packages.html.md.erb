@@ -1,0 +1,31 @@
+---
+title: developing-packages
+---
+# Developing Packages
+In Habitat the unit of automation is the application itself. This is a paradigm shift from automation frameworks like puppet and Chef that focus on automation from an infrastructure perspective. As such knowing the software you're attempting to package will be wonderfully helpful when you're ready to package your app with habitat. This chapter includes content related specifically to the process and workflow of developing habitat packages for your software. 
+
+## Table of Contents
+
+  - [Writing a Plan.sh](#write-plans)
+  - [Configuration Templates](#add-configuration) 
+  - [Binds and Exports](#pkg-binds)
+  - [Plan Builds](#plan-builds)
+  - [Troubleshooting Builds](#debug-builds)
+  - [Package Post-Processors (exporters)](#pkg-exports)
+  - [Sharing via Builder](#sharing-pkgs)
+
+<%= partial "/partials/docs/dev-pkgs-write-plans"%>
+---
+<%= partial "/partials/docs/dev-pkgs-add-configuration"%>
+---
+<%= partial "/partials/docs/reference-mustache-helpers"%>
+---
+<%= partial "/partials/docs/dev-pkgs-binding"%>
+---
+<%= partial "/partials/docs/dev-pkgs-plan-builds"%>
+---
+<%= partial "/partials/docs/dev-pkgs-troubleshooting"%>
+---
+<%= partial "/partials/docs/dev-pkgs-exports"%>
+---
+<%= partial "/partials/docs/dev-pkgs-share"%>

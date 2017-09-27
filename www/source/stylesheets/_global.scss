@@ -474,6 +474,8 @@ img {
 %card-box {
   margin-bottom: 1.5rem;
   padding: 0;
+  background-color: $hab-white;
+  border-radius: $global-radius;
   text-align: left;
 
   p {
@@ -527,8 +529,11 @@ img {
   }
 
   .body-content {
-    background-color: $hab-white;
     padding: 1.5rem;
-    border-radius: 0 0 $global-radius $global-radius;
+
+    h4 {
+      padding-bottom: .75rem;
+      border-bottom: 1px solid $hab-gray-light;
+    }
   }
 }

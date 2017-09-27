@@ -5,14 +5,14 @@ title: Habitat - Create Your Plan
 section
  h1 Create Your Plan
 
- p At the center of Habitat packaging is the plan. This is a directory comprised of shell scripts and optional configuration files that define how you download, configure, make, install, and manage the lifecycle of the software in the package. When writing a plan, it's important to understand that you are defining both how the package is built and how the Habitat service will behave when the Supervisor starts and manages the child process in the package. 
+ p At the center of Habitat packaging is the plan. This is a directory comprised of shell scripts and optional configuration files that define how you download, configure, make, install, and manage the lifecycle of the software in the package. When writing a plan, it's important to understand that you are defining both how the package is built and how the Habitat service will behave when the Supervisor starts and manages the child process in the package.
 
- p As demonstrated in #{link_to 'Build a Sample App', '/tutorials/sample-app/'}, the quickest way to get started building your application with Habitat is by using scaffolding. In this example, we're using the Ruby scaffolding. 
- 
+ p As demonstrated in #{link_to 'Build a Sample App', '/tutorials/sample-app/'}, the quickest way to get started building your application with Habitat is by using scaffolding. In this example, we're using the Ruby scaffolding.
+
  p Scaffolding helps you build and package applications which follow the common patterns and practices for that application type. The more your application follows convention, the more scaffolding helps you. For a Ruby-on-Rails application, the Ruby scaffolding parses your Gemfile and uses that information to build your application with the dependencies listed there. It will also detect what version of Rails you're running and set sensible default behaviors for your <code>init</code> and <code>run</code> hooks.
 
- p To use scaffolding, navigate to the root of your project repo and run the following: 
- 
+ p To use scaffolding, navigate to the root of your project repo and run the following:
+
  pre
   code.console $ hab plan init -s ruby
 
@@ -34,8 +34,8 @@ section
   p Note: The plan.sh file is the only required file to create a package. Configuration files, runtime hooks, and other source files are optional.
 
  h2 Versioning
- 
- = partial "partials/versioning_concepts"
+
+ = partial "/partials/global/versioning_concepts"
 
  h3 Defining the Ruby version
 
@@ -61,8 +61,7 @@ section
 
  blockquote
   p <b>Note</b> Currently only MRI versions of Ruby are supported.
- 
+
  p The rest of the steps in this guide will show you how to customize your plan, connect to common external services, and test your package. The customization steps are not required; however, they may be needed on more advanced Ruby web applications.
 
 = link_to 'Next: Define Dependencies', '/tutorials/build-your-own/define-dependencies/', class: 'button cta'
-

@@ -5,12 +5,12 @@ title: Habitat - Build and Test
 section
  h1 Build and Test
 
- = partial "/partials/studio_definition"
+ = partial "/partials/global/studio_definition"
 
  p This topic covers the following areas:
 
  ul
-  li #{link_to 'Building your package','#build-your-package'} 
+  li #{link_to 'Building your package','#build-your-package'}
   li #{link_to 'Testing your package locally','#test-locally'}
   li #{link_to 'Exporting and Running your Docker container','#export-container'}
   li #{link_to 'Debugging your plan','#debug-plan'}
@@ -22,11 +22,11 @@ section
  pre
   code $ hab studio enter
 
- p If you are building a Linux-based Habitat package on a Windows or Mac workstation, you will enter a Docker container because the Habitat Studio is a Linux-based Habitat package. 
+ p If you are building a Linux-based Habitat package on a Windows or Mac workstation, you will enter a Docker container because the Habitat Studio is a Linux-based Habitat package.
 
- p The <code>src</code> directory in the Habitat Studio environment is the directory you were in when you entered the Studio. In this case, because you are in the root of your local project repo, the default <code>src</code> directory is the root of your project. 
- 
- p Run <code>build</code> to build your package. 
+ p The <code>src</code> directory in the Habitat Studio environment is the directory you were in when you entered the Studio. In this case, because you are in the root of your local project repo, the default <code>src</code> directory is the root of your project.
+
+ p Run <code>build</code> to build your package.
 
  pre
   code # build
@@ -51,21 +51,21 @@ section
     hab svc load origin/package
     hab svc load origin/anotherpackage
     ...
- 
+
  p You can see the streaming output by running <code>sup-log</code>. Type <code>Ctrl-C</code> to exit the streaming output and <code>sup-term</code> to terminate the background Supervisor. If you terminate the background Supervisor, then running <code>sup-run</code> will restart it and running <code>hab start origin/package</code> will restart every package that was previously loaded. You have to explicitly run <code>hab svc unload origin/package</code> to remove a package from the "loaded" list.
 
- = partial '/partials/iterative_development'
+ = partial '/partials/global/iterative_development'
 
- p For large web applications with multiple runtime dependencies, using the existing build could save you a large amount of time. 
+ p For large web applications with multiple runtime dependencies, using the existing build could save you a large amount of time.
 
- h2 <a name="export-container">Exporting and Running your Docker container</a> 
+ h2 <a name="export-container">Exporting and Running your Docker container</a>
 
  p After you have built your package and are ready to test it outside of the Studio, export it to a Docker container.
 
  pre
   code # hab pkg export docker origin/package && exit
 
- p The following example shows how to start the Docker container running your Habitat package.  
+ p The following example shows how to start the Docker container running your Habitat package.
 
  pre
   code $ docker run -it origin/package
@@ -78,12 +78,12 @@ section
   li You can use an environment variable that is passed in when starting the web application container.
   li You can update your default.toml (either through a configuration update, or when the service starts up).
 
- p Either choice involves you creating an alphanumeric value. If you are using Rails, you can generate this by running the following command from within the local repo directory of your rails app project. 
+ p Either choice involves you creating an alphanumeric value. If you are using Rails, you can generate this by running the following command from within the local repo directory of your rails app project.
 
- pre 
+ pre
   code $ rails secret
 
- p To pass in an environment variable, make sure the value to pass in is quoted correctly. 
+ p To pass in an environment variable, make sure the value to pass in is quoted correctly.
 
  pre
   code $ echo -n 'secret_key_base="$(rails secret)"' | hab apply --peer RAILS_IP_ADDRESS yourapp.default $(date +%s)
@@ -109,7 +109,7 @@ section
 
  h3 Debugging at runtime
 
- p Debugging at runtime involves using a few different techniques to understand how your running service is behaving, how it interacts with peers in different topologies, how it handles configuration updates, etc. 
+ p Debugging at runtime involves using a few different techniques to understand how your running service is behaving, how it interacts with peers in different topologies, how it handles configuration updates, etc.
 
  p For verifying that files were copied into the appropriate paths for your service and paths resolve correctly in runtime hooks, log into the VM or connect to the Docker container that is running the service and examine the files and directories at <code>/hab/svc/package/</code>. Because the Bourne shell is included in the Docker image for every package, you can access the file structure by running the following command.
 
@@ -118,11 +118,11 @@ section
 
  p To observe HTTP endpoint data (such as census or butterfly information), start up your service, then connect to the HTTP endpoint using a tool such as curl. You can pipe the JSON output to packages such as <code>core/jq-static</code> to provide a filtered and readable view on the output.
 
- p First, install the <code>jq</code> and <code>curl</code> binaries through their respective packages. 
+ p First, install the <code>jq</code> and <code>curl</code> binaries through their respective packages.
 
  pre
   code
-   | 
+   |
     $ hab pkg install -b core/{curl,jq-static}
 
  p Next run the following to retrieve all of the live members of the "production" group:
@@ -136,8 +136,8 @@ section
 
  pre
   code
-   | 
-    $ docker-compose up --scale db=3 
+   |
+    $ docker-compose up --scale db=3
 
  p Piping output from one of the HTTP endpoints in the "cluster" group will provide you with leader election data.
 
@@ -145,7 +145,7 @@ section
   code
    |
     $ curl http://172.18.0.4:9631/census | jq '.census_groups."postgresql.cluster".leader_id'
- 
+
  p For information on what endpoint information you can query, see #{link_to 'Monitoring services','https://www.habitat.sh/docs/run-packages-monitoring/'}.
 
 = link_to 'Next: Connect to Database', '/tutorials/build-your-own/connect-database/', class: 'button cta'
