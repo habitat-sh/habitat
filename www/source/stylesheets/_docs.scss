@@ -66,6 +66,7 @@ $docs-xlarge-breakpoint: rem-calc(1060);
 
 // Hero
 .docs--hero {
+  padding: 0;
 
   & > .row {
     position: relative;
@@ -96,6 +97,8 @@ $docs-xlarge-breakpoint: rem-calc(1060);
 }
 
 .docs--intro {
+  padding: 0;
+
   .docs--hero--text {
     padding: .75rem 1rem;
     border-radius: $global-radius;
@@ -117,6 +120,7 @@ $docs-xlarge-breakpoint: rem-calc(1060);
 
 // Quicklinks
 .docs--quicklink {
+  padding: 0;
 
   .docs--quicklink--card {
     @extend %card-box;
@@ -146,7 +150,7 @@ $docs-xlarge-breakpoint: rem-calc(1060);
   display: none;
 }
 
-section {
+.docs section {
   border-radius: $global-radius;
   margin-bottom: 30px;
   padding: rem-calc(30) rem-calc(20);
