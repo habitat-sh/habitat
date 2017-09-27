@@ -41,6 +41,14 @@ pub struct PackageInstall {
     pub installed_path: PathBuf,
 }
 
+// The docs recommend implementing `From` instead, but that feels a
+// bit odd here.
+impl Into<PackageIdent> for PackageInstall {
+    fn into(self) -> PackageIdent {
+        self.ident
+    }
+}
+
 impl PackageInstall {
     /// Verifies an installation of a package is within the package path and returns a struct
     /// representing that package installation.
