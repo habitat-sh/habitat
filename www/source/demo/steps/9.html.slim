@@ -1,0 +1,54 @@
+---
+title: Habitat Demo - Step 9
+layout: demo_index
+classes: demo_step
+---
+#demo-step
+  .row
+    .columns.large-12.demo-step--content
+      .demo-step--indicators
+        a.demo-step--indicator.active href="/demo/steps/1"
+        a.demo-step--indicator.active href="/demo/steps/2"
+        a.demo-step--indicator.active href="/demo/steps/3"
+        a.demo-step--indicator.active href="/demo/steps/4"
+        a.demo-step--indicator.active href="/demo/steps/5"
+        a.demo-step--indicator.active href="/demo/steps/6"
+        a.demo-step--indicator.active href="/demo/steps/7"
+        a.demo-step--indicator.active href="/demo/steps/8"
+        a.demo-step--indicator.active href="/demo/steps/9"
+      .row
+        .columns.large-12
+          h1.h4="Step 9: Update Your Package Version"
+        .columns.large-6
+          p When there are updates to your app, you should update the version.
+          p
+            ' Edit the
+            strong  plan.sh
+            '  file in your forked GitHub repo (as we did earlier) by clicking the
+            span.icon-pencil pencil icon
+            ' . Change the value of
+            strong  pkg_version
+            '  from
+            em  1.0.1
+            '  to
+            em  1.0.2
+            ', then use the
+            strong  Commit changes
+            ' button to update the master branch.
+          p
+            ' Habitat Builder will detect the change and start a new build automatically. You can view the resulting output on Builder
+            // MGA TODO LINK
+            a.link-external href="" target="_blank" here.
+          p Once the job completes, re-run the docker command to see the updated container:
+          p.code $ docker run -p 4000:80 username/repository:tag
+        .columns.large-6
+          p
+            ' With the container runnning, visit
+            a.link-external href="http://0.0.0.0:80/" target="_blank" http://0.0.0.0:80/
+            ' and see the new version listed on the screen!
+          img src="/images/demo/screen-step-9.png"
+      .row.mt-1.step-bottom-nav
+        .columns.large-6
+          a.previous-step-link href="/demo/steps/8" Previous Step
+        .columns.large-6.text-align-right
+          a.button.cta.mb-0 href="/demo/summary" Summary

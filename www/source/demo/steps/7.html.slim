@@ -1,0 +1,39 @@
+---
+title: Habitat Demo - Step 7
+layout: demo_index
+classes: demo_step
+---
+#demo-step
+  .row
+    .columns.large-12.demo-step--content
+      .demo-step--indicators
+        a.demo-step--indicator.active href="/demo/steps/1"
+        a.demo-step--indicator.active href="/demo/steps/2"
+        a.demo-step--indicator.active href="/demo/steps/3"
+        a.demo-step--indicator.active href="/demo/steps/4"
+        a.demo-step--indicator.active href="/demo/steps/5"
+        a.demo-step--indicator.active href="/demo/steps/6"
+        a.demo-step--indicator.active href="/demo/steps/7"
+        a.demo-step--indicator href="/demo/steps/8"
+        a.demo-step--indicator href="/demo/steps/9"
+      .row
+        .columns.large-12
+          h1.h4="Step 7: It's Happening!"
+        .columns.large-6
+          p You've set up automated builds and Docker container publishing. Now, let's watch Habitat Builder at work!
+          p
+            ' From the My Origins Packages view, you'll see a message when a new build job kicks off (see image below). Once the message appears, click on the
+            strong View build output
+            '  link to see streaming logs as your job completes.
+          img src="/images/demo/screen-step-7a.png"
+        .columns.large-6
+          p
+            ' When the job is complete, click the
+            strong Published to
+            ' link to see the new container in your Docker Hub!
+          img src="/images/demo/screen-step-7b.png"
+      .row.mt-1.step-bottom-nav
+        .columns.large-6
+          a.previous-step-link href="/demo/steps/6" Previous Step
+        .columns.large-6.text-align-right
+          a.button.cta.mb-0 href="/demo/steps/8" Next Step

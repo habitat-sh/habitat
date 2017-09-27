@@ -7,33 +7,33 @@
   / = partial "layouts/message"
 
   a.main-nav--github href="https://github.com/habitat-sh"
-    img src="/images/nav-github.svg" onerror="this.src='/images/nav-github.png'" alt="Find Us On Github"
+    img src="/images/solutions-logos/icon-github.svg" alt="Find Us On Github"
+    span="Find us on GitHub"
 
-  .main-nav--container.clearfix
-    .main-nav--logo
+  .main-nav--container.row
+    .columns.small-2.main-nav--logo
       a href="/" data-builder-url="#{builder_web_url}"
         h1 habitat
-    nav.main-nav--links-wrap
+    .columns.small-10.nav.main-nav--links-wrap
       .main-nav--toggle
         = partial "layouts/nav-toggle-icon.svg"
       .main-nav--cta.signed-out
-        a.button href="/tutorials/" Get Started
+        a.button href="#{builder_web_url}/#/sign-in" Sign In / Sign Up
       ul.main-nav--links
         li.main-nav--link
           = link_to 'Explore', "#{builder_web_url}/#/explore"
         li.main-nav--link
+          a.pricing href="/pricing" Pricing
+        li.main-nav--link
           a.tutorials href="/tutorials" Tutorials
         li.main-nav--link
-          a.docs href="/docs" Docs
+          a.docs href="/docs" Reference
         li.main-nav--link
           a.community href="/community" Community
         li.main-nav--link
           a.blog href="/blog" Blog
-        li.main-nav--link
-          = link_to 'Builder', "#{builder_web_url}/#/pkgs"
-        li.main-nav--link.cta-link.signed-out
-          a.login href="#{builder_web_url}/#/sign-in" Sign In
         li.main-nav--link.signed-in
+          = link_to 'Builder', "#{builder_web_url}/#/pkgs"
           .avatar
             img
           .dropdown

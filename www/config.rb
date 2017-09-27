@@ -28,6 +28,7 @@ page 'tutorials/sample-app/mac/*', layout: :tutorials_sidebar, locals: { sidebar
 page 'tutorials/sample-app/*', layout: :tutorials_sidebar, locals: { sidebar_layout: 'sample_app' }
 page 'tutorials/build-your-own/*', layout: :tutorials_sidebar, locals: { sidebar_layout: 'build_web_app'}
 page '/blog/index.html', layout: :blog_index
+page '/demo/steps/*', layout: :demo_index
 
 activate :blog do |blog|
   blog.prefix = 'blog'

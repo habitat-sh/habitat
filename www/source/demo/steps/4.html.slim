@@ -1,0 +1,46 @@
+---
+title: Habitat Demo - Step 4
+layout: demo_index
+classes: demo_step
+---
+#demo-step
+  .row
+    .columns.large-12.demo-step--content
+      .demo-step--indicators
+        a.demo-step--indicator.active href="/demo/steps/1"
+        a.demo-step--indicator.active href="/demo/steps/2"
+        a.demo-step--indicator.active href="/demo/steps/3"
+        a.demo-step--indicator.active href="/demo/steps/4"
+        a.demo-step--indicator href="/demo/steps/5"
+        a.demo-step--indicator href="/demo/steps/6"
+        a.demo-step--indicator href="/demo/steps/7"
+        a.demo-step--indicator href="/demo/steps/8"
+        a.demo-step--indicator href="/demo/steps/9"
+      .row
+        .columns.large-12
+          h1.h4="Step 4: Edit the Sample Plan"
+        .columns.large-6
+          p Next, we're going to update the origin name in the sample Habitat plan file from the application you forked to match your new origin.
+          p Navigate to your repo where you forked the sample app.
+          p
+            ' Under the
+            strong="/habitat"
+            '  directory, open the
+            strong plan.sh
+            '  file on github.com (see image below) and click on the pencil icon to
+            strong Edit this file
+            ' .
+          img src="/images/demo/screen-step-4a.png"
+        .columns.large-6
+          p
+            ' In edit mode, change the value of
+            strong pkg_origin
+            '  to the origin name you created in the previous step, then use the
+            strong Commit changes
+            '  button to update the master branch.
+          img src="/images/demo/screen-step-4b.png"
+      .row.mt-1.step-bottom-nav
+        .columns.large-6
+          a.previous-step-link href="/demo/steps/3" Previous Step
+        .columns.large-6.text-align-right
+          a.button.cta.mb-0 href="/demo/steps/5" Next Step

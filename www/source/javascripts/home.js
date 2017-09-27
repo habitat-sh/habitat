@@ -1,5 +1,5 @@
 var homepageScripts = function() {
-  var adjustParentHeight = function($elements, $parent) {
+  window.adjustParentHeight = function($elements, $parent) {
     var maxElementHeight = 0;
     var currentElementHeight;
 
@@ -14,45 +14,8 @@ var homepageScripts = function() {
     });
   };
 
-  // Testimonials slider
-  const $testimonials = $(".testimonial");
-  const testimonialsSlider = ".testimonials-slider";
-  const $testimonialText = $(".testimonial--blurb");
-  var $currentSlide, testimonialHeight, currentTestimonialHeight;
-
-  adjustParentHeight($testimonials, $(testimonialsSlider));
-
-  $(window).resize(function() {
-    adjustParentHeight($testimonials, $(testimonialsSlider));
-  });
-
-  $('.testimonials--nav--dot').click(function() {
-    var posClass = $(this).attr("class").split(' ')[1];
-
-    $('.testimonial, .testimonials--nav--dot').removeClass('is-active');
-    $('.' + posClass).addClass('is-active');
-  })
-
-  setInterval(function() {
-    $currentSlide = $(".testimonial.is-active");
-
-    $(testimonialsSlider + " .is-active").removeClass("is-active");
-
-    if ($currentSlide.hasClass("first")) {
-      $(testimonialsSlider + " .second").addClass("is-active");
-    } else if ($currentSlide.hasClass("second")) {
-      $(testimonialsSlider + " .third").addClass("is-active");
-    } else if ($currentSlide.hasClass("third")) {
-      $(testimonialsSlider + " .fourth").addClass("is-active");
-    } else if ($currentSlide.hasClass("fourth")) {
-      $(testimonialsSlider + " .fifth").addClass("is-active");
-    } else if ($currentSlide.hasClass("fifth")) {
-      $(testimonialsSlider + " .sixth").addClass("is-active");
-    } else if ($currentSlide.hasClass("sixth")) {
-      $(testimonialsSlider + " .first").addClass("is-active");
-    }
-
-  }, 15000);
+  var mainCarousel = new Carousel($('.home--hero-carousel-slide'), $('.home--hero-carousel-nav-item'));
+  var testimonialCarousel = new Carousel($('.home--testimonial-carousel-slide'), $('.home--testimonial-carousel-nav-item'));
 
   // Sub-hero logo sliders
   var lastScrollPosition = 0;

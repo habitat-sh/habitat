@@ -1,0 +1,57 @@
+---
+title: Habitat Demo - Step 6
+layout: demo_index
+classes: demo_step
+---
+#demo-step
+  .row
+    .columns.large-12.demo-step--content
+      .demo-step--indicators
+        a.demo-step--indicator.active href="/demo/steps/1"
+        a.demo-step--indicator.active href="/demo/steps/2"
+        a.demo-step--indicator.active href="/demo/steps/3"
+        a.demo-step--indicator.active href="/demo/steps/4"
+        a.demo-step--indicator.active href="/demo/steps/5"
+        a.demo-step--indicator.active href="/demo/steps/6"
+        a.demo-step--indicator href="/demo/steps/7"
+        a.demo-step--indicator href="/demo/steps/8"
+        a.demo-step--indicator href="/demo/steps/9"
+      .row
+        .columns.large-12
+          h1.h4="Step 6: Set Up Automated Package Builds"
+        .columns.large-6
+          p Automate Habitat Builder to rebuild your application as you commit new code or underlying dependent packages have updates.
+          p
+            ' Navigate to the
+            strong Packages
+            '  tab and click the
+            strong Connect a plan
+            '  button.
+          p Select the GitHub org and repo where you forked the sample app. You will see the sample plan file listed (see image).
+          p
+            ' Switch the
+            em Publish to Docker Hub
+            '  option to
+            strong ON
+            '  - the Docker Hub account you added in the previous step should appear and be selected.
+          p
+            ' Finally, select a target Docker Hub repo
+            span.asterisk.sup="*"
+            '  from the dropdown. You can leave the
+            em Docker Tag
+            ' as default and click
+            strong Save connection
+            ' .
+          .footnote
+            p.mb-0
+              span.asterisk="*"
+              '  If the repo dropdown list is empty, log in to your
+              a.link-external href="https://hub.docker.com/" target="_blank" Docker Hub
+              '  account and create a repository.
+        .columns.large-6
+          img src="/images/demo/screen-step-6.png"
+      .row.mt-1.step-bottom-nav
+        .columns.large-6
+          a.previous-step-link href="/demo/steps/5" Previous Step
+        .columns.large-6.text-align-right
+          a.button.cta.mb-0 href="/demo/steps/7" Next Step

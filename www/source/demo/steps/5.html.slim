@@ -1,0 +1,46 @@
+---
+title: Habitat Demo - Step 5
+layout: demo_index
+classes: demo_step
+---
+#demo-step
+  .row
+    .columns.large-12.demo-step--content
+      .demo-step--indicators
+        a.demo-step--indicator.active href="/demo/steps/1"
+        a.demo-step--indicator.active href="/demo/steps/2"
+        a.demo-step--indicator.active href="/demo/steps/3"
+        a.demo-step--indicator.active href="/demo/steps/4"
+        a.demo-step--indicator.active href="/demo/steps/5"
+        a.demo-step--indicator href="/demo/steps/6"
+        a.demo-step--indicator href="/demo/steps/7"
+        a.demo-step--indicator href="/demo/steps/8"
+        a.demo-step--indicator href="/demo/steps/9"
+      .row
+        .columns.large-12
+          h1.h4="Step 5: Add Docker Hub Integration"
+        .columns.large-6
+          p
+            ' Connecting your Docker Hub account will allow Habitat Builder to publish the sample app package as a Docker container
+            span.asterisk="*"
+            ' .
+          p
+            ' Go to the
+            strong Integrations
+            '  tab for your
+            a.link-external href="https://bldr.habitat.sh/#/origins" target="_blanl" new origin
+            ' , then click on the
+            strong Add Docker Hub account
+            '  button. Enter your Docker Hub username and password, then save this account.
+          .footnote.habicat-with-linux
+            p.mb-0
+              span.asterisk="*"
+              '  Habitat Builder currently publishes only Linux-based containers. You can still complete this demo even if your system cannot run a Linux container, but you will not be able to run the app locally.
+        .columns.large-6
+          p You should see your new account added, as in the image below:
+          img src="/images/demo/screen-step-5.png"
+      .row.mt-1.step-bottom-nav
+        .columns.large-6
+          a.previous-step-link href="/demo/steps/4" Previous Step
+        .columns.large-6.text-align-right
+          a.button.cta.mb-0 href="/demo/steps/6" Next Step

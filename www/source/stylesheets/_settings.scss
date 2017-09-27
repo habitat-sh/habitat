@@ -61,6 +61,7 @@ $hab-gray-light: #e9eaeb;
 $hab-orange-dark: #eb6852;
 $hab-off-white: #f8f9f9;
 $hab-gray: #b6babe;
+$hab-gray-light: #f6f6f6;
 $hab-gray-dark: #7d868c;
 $hab-orange: #ff9012;
 $hab-blue-grey: #5c6670;
@@ -71,6 +72,9 @@ $hab-green-light-2: #87B09A;
 $hab-blue-green: #6F8E92;
 $hab-blue-medium: #dce6ed;
 $hab-gray-dark-15: rgba(125, 134, 140, 0.15);
+$hab-green-terminal: #82FF69;
+$hab-slate: #243442;
+$hab-slate-light: #627b8f;
 $hab-cta: $hab-green;
 
 $hab-primary: $hab-green;
@@ -163,13 +167,13 @@ $header-sizes: (
     'h6': 12,
   ),
   medium: (
-    'h1': 24,
-    'h2': 20,
-    'h3': 18,
-    'h4': 14,
-    'h5': 12,
-    'h6': 12,
-  ),
+    'h1': 48,
+    'h2': 40,
+    'h3': 31,
+    'h4': 25,
+    'h5': 20,
+    'h6': 16,
+  )
 );
 $header-color: inherit;
 $header-lineheight: 1.4;

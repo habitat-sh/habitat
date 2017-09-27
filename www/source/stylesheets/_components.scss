@@ -1,0 +1,92 @@
+$component-small-height: 10px;
+
+.circle {
+  display: block;
+
+  &.small {
+    height: $component-small-height;
+    width: $component-small-height;
+    border-radius: ($component-small-height / 2);
+  }
+
+  &.gray {
+    background: #627B8F;
+  }
+
+  &.green {
+    background: $hab-green-dark;
+  }
+}
+
+$tech-icon-height: 40px;
+
+.tech-icon {
+  position: relative;
+  display: block;
+  height: $tech-icon-height;
+  width: $tech-icon-height;
+  border-radius: ($tech-icon-height / 2);
+  background-color: $hab-gray-light;
+
+  &.coming-soon {
+    &:after {
+      content: '';
+      position: absolute;
+      top: 0px;
+      right: 0px;
+      @extend .circle.small;
+      @extend .circle.green;
+    }
+  }
+}
+
+.link-external {
+  background: url('/images/icons/open-in-new.svg') right center no-repeat;
+  padding-right: 30px;
+}
+
+//OOCSS
+.h1 { @extend h1; }
+.h2 { @extend h2; }
+.h3 { @extend h3; }
+.h4 { @extend h4; }
+.h5 { @extend h5; }
+.h6 { @extend h6; }
+.p { @extend p; }
+
+.relative { position: relative; }
+.full-width { width: 100%; }
+.float-left { float: left; }
+.float-right { float: right; }
+.text-align-left { text-align: left; }
+.text-align-center { text-align: center; }
+.text-align-right { text-align: right; }
+.center { text-align: center; }
+
+.text-white { color: $hab-white; }
+.text-gray { color: #C3C6C8; }
+.text-gray-dark { color: $hab-gray-dark; }
+
+.background-white { background-color: $hab-white; }
+.background-gray-light { background-color: $hab-gray-light; }
+
+$std-margin: 20;
+.mt-0 { margin-top: 0px; }
+.mt-1 { margin-top: rem-calc($std-margin); }
+.mt-2 { margin-top: rem-calc($std-margin * 2); }
+.mt-3 { margin-top: rem-calc($std-margin * 3); }
+.mt-4 { margin-top: rem-calc($std-margin * 4); }
+
+.mb-0 { margin-bottom: 0px; }
+.mb-1 { margin-bottom: rem-calc($std-margin); }
+.mb-2 { margin-bottom: rem-calc($std-margin * 2); }
+.mb-3 { margin-bottom: rem-calc($std-margin * 3); }
+.mb-4 { margin-bottom: rem-calc($std-margin * 4); }
+
+.background-waves-green {
+  background: url('/images/background-waves-green.png') repeat-x center center;
+  background-size: cover;
+  width: 100%;
+  height: 78px;
+  position: relative;
+}

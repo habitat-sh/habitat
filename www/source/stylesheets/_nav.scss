@@ -60,20 +60,19 @@ $main-nav-breakpoint: 769px;
     }
 
     .main-nav--logo {
-      @media (min-width: 1150px) {
-        width: rem-calc(240);
-        height: rem-calc(108);
-      }
+      // @media (min-width: 1150px) {
+      //   width: rem-calc(240);
+      //   height: rem-calc(108);
+      // }
 
-      @media (max-width: 1550px) and (min-width: 1150px) {
-        position: absolute;
-        left: rem-calc(180);
-      }
+      // @media (max-width: 1550px) and (min-width: 1150px) {
+      //   position: absolute;
+      //   left: rem-calc(180);
+      // }
 
-      @media (max-width: 1024px) {
-        width: rem-calc(100);
-      }
-
+      // @media (max-width: 1024px) {
+      //   width: rem-calc(100);
+      // }
       @include large-nav {
         h1 {
           background: url("../images/habitat-logo-light.svg") no-repeat left 40%;
@@ -90,27 +89,30 @@ $main-nav-breakpoint: 769px;
 }
 
 .main-nav--logo {
-  @include grid-column(3);
-
-  a {
-    display: block;
+  @include breakpoint(medium) {
+    @include grid-column(3);
   }
 
-  h1 {
-    overflow: hidden;
-    text-indent: 400%;
-    white-space: nowrap;
-    background: url("../images/habitat-logo-light.svg") no-repeat left 40%;
-    background-size: rem-calc(89) auto;
-    color: $white;
-    height: $header-height-mobile;
-    margin-bottom: 0;
-    min-width: rem-calc(89);
+  > a {
+    display: block;
 
-    @include large-nav {
-      background-size: rem-calc(170) auto;
-      min-width: rem-calc(170);
-      height: $header-height;
+    > h1 {
+      overflow: hidden;
+      text-indent: 400%;
+      white-space: nowrap;
+      background: url("../images/habitat-logo-light.svg") no-repeat left 40%;
+      background-size: rem-calc(89) auto;
+      color: $white;
+      height: $header-height-mobile;
+      margin-bottom: 0;
+      min-width: rem-calc(89);
+      max-width: rem-calc(140);
+
+      @include large-nav {
+        background-size: rem-calc(170) auto;
+        min-width: rem-calc(170);
+        height: $header-height;
+      }
     }
   }
 }
@@ -339,6 +341,16 @@ $main-nav-breakpoint: 769px;
   display: none;
   position: absolute;
   left: 0;
+  background: linear-gradient(180deg, $hab-navy-light 0%, $hab-navy 100%);
+  font-size: 12px;
+  height: 30px;
+  line-height: 30px;
+  color: $hab-white;
+  box-shadow: 0 2px 6px 0 rgba(35,39,39,0.49);
+
+  > span {
+    padding: 0px 5px;
+  }
 
   @media (min-width: 1150px) {
     .home & {

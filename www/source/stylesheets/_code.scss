@@ -17,3 +17,31 @@ pre {
     user-select: none;
   }
 }
+
+.code {
+  background-color: $hab-slate;
+  color: $hab-green-terminal;
+  font-family: $font-family-monospace;
+
+  .output {
+    color: $hab-gray-light;
+  }
+}
+
+.browser {
+  .url {
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    top: 18px;
+    left: 0px;
+
+    > span {
+      padding: 1px 80px;
+      border-radius: $global-radius;
+      color: $hab-white;
+      background: $hab-slate-light;
+
+    }
+  }
+}

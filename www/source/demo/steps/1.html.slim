@@ -1,0 +1,45 @@
+---
+title: Habitat Demo - Step 1
+layout: demo_index
+classes: demo_step
+---
+#demo-step
+  .row
+    .columns.large-12.demo-step--content
+      .demo-step--indicators
+        a.demo-step--indicator.active href="/demo/steps/1"
+        a.demo-step--indicator href="/demo/steps/2"
+        a.demo-step--indicator href="/demo/steps/3"
+        a.demo-step--indicator href="/demo/steps/4"
+        a.demo-step--indicator href="/demo/steps/5"
+        a.demo-step--indicator href="/demo/steps/6"
+        a.demo-step--indicator href="/demo/steps/7"
+        a.demo-step--indicator href="/demo/steps/8"
+        a.demo-step--indicator href="/demo/steps/9"
+      .row
+        .columns.large-12
+          h1.h4="Step 1: Fork the sample app on Github"
+        .columns.large-6
+          p
+            ' For this demo, you will be using a sample Node.js application. To get the application, you will need to be signed in to
+            a.link-external target="_bank" href="https://github.com" github.com
+            '  so that you can fork the repo.
+          p
+            ' Open the sample repo at
+            a.link-external target="_bank" href="https://github.com/habitat-sh/habitat-demo-node" https://github.com/habitat-sh/habitat-demo-node
+            ' .
+          p
+            | In the top-right corner of the page, click the Fork button (see image) and copy the sample app repo to one of your GitHub organizations.
+          .footnote
+            p.mb-0
+              span.asterisk *
+              ' Don't have a GitHub account?
+              a.link-external href="https://github.com/join" target="_bank" Sign up, it's free
+              ' .
+        .columns.large-6
+          img src="/images/demo/screen-step-1.png"
+      .row.mt-1.step-bottom-nav
+        .columns.large-6
+          a.previous-step-link href="/demo" Overview
+        .columns.large-6.text-align-right
+          a.button.cta.mb-0 href="/demo/steps/2" Next Step

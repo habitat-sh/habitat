@@ -1,0 +1,61 @@
+---
+layout: pricing
+classes: pricing
+inline_javascript: accordion()
+---
+.row
+  .columns.large-12.text-align-center
+    h1.text-white Pricing
+.pricing-row-wrapper
+  .background-waves-blue
+  .row.pricing-box-row
+    .columns.large-4.large-offset-4.text-align-center.pricing-box
+      .columns.large-12
+        h2.h5 Habitat Builder
+      .columns.large-12.price-entry
+        p.price.h2.mb-0 Free
+        p.small No credit card required
+      .columns.large-12.pricing-box-row
+        p.h6.mb-0 Unlimited application builds
+        p.mb-0 For both public and private packages
+      .columns.large-12.pricing-box-row.background-gray-light
+        p.h6.mb-0 Unlimited publishing
+        p.mb-0 Docker Hub only, more coming
+      .columns.large-12.pricing-box-row
+        p.h6.mb-0 Scaffoldings
+        p.mb-0 Ruby, Node, JVM, with more all the time
+      .columns.large-12.pricing-box-row.background-gray-light
+        p.h6.mb-0 Export your application to many formats
+        p.mb-0 Docker container, Application Container Image (ACI), AMI, Tar
+      .columns.large-12.pricing-box-row
+        p.h6.mb-0 Compatible with your favorite scheduler
+        p.mb-0 Kubernetes, CloudFoundry, Mesos DC/OS, Terraform, and more
+      .columns.large-12.pricing-box-row
+        a.button.cta.full-width.mb-0 href="/demo" Get Started
+.background-waves-green.mt-2
+section.pricing--faq-section
+  .row
+    .jumping-habicat
+    .standing-habicat
+    .columns.large-12.text-align-center
+      h2.mt-4.text-white FAQ
+  .row
+    .columns.large-8.large-offset-2.faq-box.text-gray-dark
+      = partial "partials/faq"
+section.pricing--contact-us
+  .row
+    .columns.large-8.large-offset-2.contact-box.background-white.text-align-center
+      h3.h4 Can't find what you're looking for?
+      p.mb-2 Contact us to get in touch or ask a question.
+      .columns.large-6.text-align-right
+        a.button.outline href="https://github.com/habitat-sh/habitat/" target="_blank" Find us on GitHub
+      .columns.large-6.text-align-left
+        a.button.outline href="http://slack.habitat.sh/" target="_blank" Join Our Slack Chat
+section.pricing--open-source
+  .row
+    .columns.large-8.large-offset-2.text-align-center.text-white
+      h3 Habitat Open Source Community
+      p Habitat is supported by a passionate group of people.
+      a.button.cta href="http://slack.habitat.sh/" target="_blank" Join the Community
+    .stars-left
+    .stars-right

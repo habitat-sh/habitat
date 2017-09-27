@@ -1,3 +1,200 @@
+// CSS for Demo
+
+.demo--page {
+  color: $hab-white;
+}
+
+#demo-footer.home--section-demo-cta {
+  width: 100%;
+  padding: 0px;
+}
+
+// demo index
+
+#demo-index .row {
+  padding: 0px rem-calc(30);
+}
+
+.demo--snorkelcat {
+  position: relative;
+
+  &:after {
+    content: '';
+    display: block;
+    position: absolute;
+    top: rem-calc(-100);
+    height: rem-calc(250);
+    width: 100%;
+    background: url('/images/demo/index-snorkelling-habicat.png') center center no-repeat transparent;
+    background-size: contain;
+  }
+}
+
+.demo--callout-content {
+  background-color: $hab-slate;
+  border-radius: $global-radius;
+  position: relative;
+  min-height: 130px;
+  width: 100%;
+  padding: 20px;
+
+  &:after {
+    content: '';
+    display: block;
+    position: absolute;
+    bottom: -30px;
+    right: 20px;
+  }
+
+  &.demo--callout-build:after {
+    height: rem-calc(95);
+    width: rem-calc(163);
+    background: url('/images/demo/index-callout-build.png') center center no-repeat;
+    background-size: contain;
+  }
+  &.demo--callout-publish:after {
+    height: rem-calc(91);
+    width: rem-calc(50);
+    background: url('/images/demo/index-callout-publish.png') center center no-repeat;
+    background-size: contain;
+  }
+  &.demo--callout-trigger:after {
+    height: rem-calc(77);
+    width: rem-calc(155);
+    background: url('/images/demo/index-callout-trigger.png') center center no-repeat;
+    background-size: contain;
+  }
+}
+
+// demo steps
+
+.nav-demo_step {
+  .main-nav--logo {
+    padding: 20px 0px 0px;
+    > a > h1 {
+      height: 100px;
+    }    
+  }
+}
+
+.demo-step--indicators {
+  position: absolute;
+  width: 100%;
+  top: 0px;
+  left: 0px;
+}
+
+$demo-step-count: 9;
+.demo-step--indicator {
+  height: 5px;
+  width: 100% / $demo-step-count;
+  display: block;
+  float: left;
+  background: #c3c6c8;
+  border-right: 3px solid $hab-white;
+  transition: background 1000ms ease;
+
+  &:last-child {
+    border-right: none;
+  }
+
+  &.active, &:hover {
+    background: linear-gradient(270deg, #F59B51 0%, #F58251 100%) #F58251;
+  }
+}
+
+.demo-step--content {
+  position: relative;
+  color: $hab-blue-grey;
+  background: $hab-white;
+  padding: rem-calc(58) rem-calc(40);
+
+  a {
+    color: $hab-orange;
+  }
+
+  .footnote {
+    background: $hab-gray-light;
+    border-radius: $global-radius;
+    padding: rem-calc(20);
+    position: relative;
+
+    &.habicat-with-linux:after {
+      content: '';
+      display: none;
+      width: 127px;
+      height: 104px;
+      position: absolute;
+      bottom: -60px;
+      right: rem-calc(20);
+      background: url('/images/demo/habicat-and-tux.png') center center no-repeat;
+      background-size: contain;
+
+      @include breakpoint(large) { display: block; }
+    }
+  }
+}
+
+.step-bottom-nav {
+  height: 50px;
+  line-height: 50px;
+}
+
+a.previous-step-link {
+  padding-left: 1.875rem !important;
+  background: url(../images/icons/icon-chevron-back-orange.png) no-repeat;
+  background-size: 6px 12px;
+  background-position: 15px 50%;
+  color: $hab-blue-grey;
+}
+
+.demo-step--screen-2 {
+  max-width: 300px;
+}
+
+// summary
+.body-demo_summary {
+  a {
+    color: $hab-orange;
+    &.previous-step-link { color: $hab-white; }
+  }
+  .social-icon {
+
+  }
+
+  #demo-footer {
+    display: none;
+  }
+}
+
+#demo-summary {
+  .header {
+    position: relative;
+  }
+  .home--section-demo-cta {
+    margin-top: rem-calc(60);
+    padding-top: rem-calc(20);
+  }
+}
+
+.habicat-congrats {
+  @include breakpoint(large) {
+    position: absolute;
+    top: -90px;
+    right: 20px;
+  }
+}
+
+.demo-summary--step-img {
+  min-height: 90px;
+  display: flex;
+  flex-flow: row;
+
+  > img {
+    align-self: flex-end;
+  }
+}
+
 // CSS for Try Habitat
 
 .page-title--heading {
