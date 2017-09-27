@@ -26,14 +26,16 @@ export class OriginIntegrationsTabComponent {
   constructor(private store: AppStore, private dialog: MdDialog) { }
 
   get originPrivacy() {
-    return this.store.getState().origins.current.privacy;
+    return this.store.getState().origins.current.default_package_visibility;
   }
 
   updatePrivacy(event) {
     this.store.dispatch(setOriginPrivacySettings(event.value));
   }
 
-  get integrations() { return this.store.getState().origin.currentIntegrations; }
+  get integrations() {
+    return this.store.getState().origin.currentIntegrations;
+  }
 
   get origin() {
     return this.store.getState().origins.current;

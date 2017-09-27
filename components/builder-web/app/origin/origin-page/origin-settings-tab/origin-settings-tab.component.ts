@@ -26,7 +26,7 @@ export class OriginSettingsTabComponent {
   constructor(private store: AppStore, private dialog: MdDialog) {}
 
   get originPrivacy() {
-    return this.store.getState().origins.current.privacy;
+    return this.store.getState().origins.current.default_package_visibility;
   }
 
   updatePrivacy(event) {
