@@ -18,6 +18,7 @@ import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { NgModule } from "@angular/core";
 import { RouterModule } from "@angular/router";
 import { MdTabsModule, MdRadioModule, MdButtonModule, MdDialogModule } from "@angular/material";
+import { IntegrationDeleteConfirmDialog } from "./origin-integrations-tab/dialog/integration-delete-confirm/integration-delete-confirm.dialog";
 import { KeyAddFormDialog } from "./origin-keys-tab/key-add-form/key-add-form.dialog";
 import { KeyListComponent } from "./origin-keys-tab/key-list/key-list.component";
 import { OriginPageRoutingModule } from "./origin-page-routing.module";
@@ -45,19 +46,21 @@ export const imports = [
 ];
 
 export const declarations = [
+  DockerCredentialsFormDialog,
+  IntegrationDeleteConfirmDialog,
   KeyAddFormDialog,
   KeyListComponent,
-  OriginPageComponent,
-  OriginPackagesTabComponent,
-  OriginMembersTabComponent,
   OriginKeysTabComponent,
+  OriginMembersTabComponent,
+  OriginPackagesTabComponent,
+  OriginPageComponent,
   OriginSettingsTabComponent,
-  DockerCredentialsFormDialog,
   OriginIntegrationsTabComponent
 ];
 
 const entryComponents = [
   DockerCredentialsFormDialog,
+  IntegrationDeleteConfirmDialog,
   KeyAddFormDialog
 ];
 

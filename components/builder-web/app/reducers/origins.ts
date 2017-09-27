@@ -19,6 +19,9 @@ import { Origin } from "../records/Origin";
 
 export default function origins(state = initialState["origins"], action) {
     switch (action.type) {
+        case actionTypes.CLEAR_DOCKER_INTEGRATIONS:
+            return state.setIn(["currentIntegrations", "docker"], List());
+
         case actionTypes.POPULATE_MY_ORIGINS:
             if (action.error) {
                 return state.setIn(["mine"], List()).
@@ -43,7 +46,6 @@ export default function origins(state = initialState["origins"], action) {
                 return state;
             }
 
-
         case actionTypes.POPULATE_MY_ORIGIN_INVITATIONS:
             return state.setIn(["myInvitations"],
                 List(action.payload));
@@ -56,9 +58,12 @@ export default function origins(state = initialState["origins"], action) {
             return state.setIn(["currentMembers"],
                 List(action.payload));
 
-        case actionTypes.POPULATE_ORIGIN_INTEGRATIONS:
-            return state.setIn(["currentIntegrations"],
-                List(action.payload));
+        case actionTypes.POPULATE_ORIGIN_DOCKER_INTEGRATIONS:
+            if (action.error) {
+                return state.setIn(["currentIntegrations", "docker"], List());
+            } else {
+                return state.setIn(["currentIntegrations", "docker"], List(action.payload.names));
+            }
 
         case actionTypes.POPULATE_ORIGIN_PUBLIC_KEYS:
             if (action.error) {

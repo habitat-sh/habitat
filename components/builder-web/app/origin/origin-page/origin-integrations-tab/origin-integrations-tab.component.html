@@ -1,13 +1,28 @@
 <div class="page-body integrations-tab">
-  <h3 class="uppercase">
-    <hab-icon symbol="docker"></hab-icon>
-    Docker Hub Integration
-  </h3>
-  <p>
-    By adding this integration, the Habitat Build Service can export the result of your package
-    build jobs (.hart file) to a Docker container and publish it to your Docker Hub account.
-  </p>
   <div>
-    <a md-raised-button color="primary" (click)="openDialog()">Add Docker Hub account</a>
+    <h3>
+      <hab-icon symbol="docker"></hab-icon>
+      Docker Hub Integration
+    </h3>
+    <p>
+      By adding this integration, the Habitat Build Service can export the result of your package
+      build jobs (.hart file) to a Docker container and publish it to your Docker Hub account.
+    </p>
+    <div *ngIf="integrations.docker.size === 0">
+      <a md-raised-button color="primary" (click)="addDocker()">Add Docker Hub account</a>
+    </div>
+  </div>
+  <div *ngIf="integrations.docker.size > 0">
+    <ul>
+      <li *ngFor="let name of integrations.docker">
+        <span class="name">
+          <hab-icon symbol="docker"></hab-icon>
+          {{ name }}
+        </span>
+        <span class="actions">
+          <hab-icon symbol="cancel" title="Delete this integration" (click)="deleteDocker(name)"></hab-icon>
+        </span>
+      </li>
+    </ul>
   </div>
 </div>

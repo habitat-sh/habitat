@@ -16,16 +16,12 @@ import { Component, OnInit, OnDestroy } from "@angular/core";
 import { RouterLink, ActivatedRoute } from "@angular/router";
 import { Subscription } from "rxjs/Subscription";
 import { AppStore } from "../../AppStore";
-import { FeatureFlags } from "../../Privilege";
-import {
-    fetchOrigin, fetchOriginInvitations, fetchOriginMembers,
-    inviteUserToOrigin,
-    filterPackagesBy, fetchMyOrigins,
-    setProjectHint, requestRoute, setCurrentProject, getUniquePackages, fetchIntegrations
-} from "../../actions";
 import config from "../../config";
 import { Origin } from "../../records/Origin";
 import { requireSignIn, packageString } from "../../util";
+import {  fetchOrigin, fetchOriginInvitations, fetchOriginMembers, inviteUserToOrigin, filterPackagesBy,
+    fetchMyOrigins, setProjectHint, requestRoute, setCurrentProject, getUniquePackages,
+    fetchDockerIntegration } from "../../actions";
 
 export enum ProjectStatus {
     Connect,
@@ -54,17 +50,11 @@ export class OriginPageComponent implements OnInit, OnDestroy {
         requireSignIn(this);
         this.store.dispatch(fetchOrigin(this.origin.name));
         this.store.dispatch(fetchMyOrigins(this.gitHubAuthToken));
-        this.store.dispatch(fetchOriginMembers(
-            this.origin.name, this.gitHubAuthToken
-        ));
-        this.store.dispatch(fetchOriginInvitations(
-            this.origin.name, this.gitHubAuthToken
-        ));
+        this.store.dispatch(fetchOriginMembers(this.origin.name, this.gitHubAuthToken));
+        this.store.dispatch(fetchOriginInvitations(this.origin.name, this.gitHubAuthToken));
+        this.store.dispatch(fetchDockerIntegration(this.origin.name, this.gitHubAuthToken));
         this.getPackages();
         this.loadPackages = this.getPackages.bind(this);
-        this.store.dispatch(fetchIntegrations(
-            this.origin.name, this.gitHubAuthToken
-        ));
     }
 
     ngOnDestroy() {

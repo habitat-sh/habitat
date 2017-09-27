@@ -113,7 +113,9 @@ export default Record({
     currentPendingInvitations: List(),
     mine: List(),
     myInvitations: List(),
-    currentIntegrations: List(),
+    currentIntegrations: Record({
+      docker: List()
+    })(),
     ui: Record({
       current: Record({
         addingPublicKey: false,

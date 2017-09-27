@@ -12,52 +12,63 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Component } from "@angular/core";
+import { Component, OnInit } from "@angular/core";
 import { AppStore } from "../../../AppStore";
-import { setOriginPrivacySettings, addDockerHubCredentials } from "../../../actions";
+import { deleteDockerIntegration, setDockerIntegration, setOriginPrivacySettings } from "../../../actions";
 import { MdDialog, MdDialogRef } from "@angular/material";
 import { DockerCredentialsFormDialog } from "../docker-credentials-form/docker-credentials-form.dialog";
+import { IntegrationDeleteConfirmDialog } from "./dialog/integration-delete-confirm/integration-delete-confirm.dialog";
+
 @Component({
-  selector: "hab-origin-settings-tab",
   template: require("./origin-integrations-tab.component.html")
 })
-
 export class OriginIntegrationsTabComponent {
-  constructor(private store: AppStore, private dialog: MdDialog) { }
 
-  get originPrivacy() {
-    return this.store.getState().origins.current.default_package_visibility;
-  }
-
-  updatePrivacy(event) {
-    this.store.dispatch(setOriginPrivacySettings(event.value));
-  }
+  constructor(
+    private store: AppStore,
+    private credsDialog: MdDialog,
+    private confirmDialog: MdDialog
+  ) { }
 
   get integrations() {
-    return this.store.getState().origin.currentIntegrations;
+    return this.store.getState().origins.currentIntegrations;
   }
 
   get origin() {
     return this.store.getState().origins.current;
   }
 
-  get githubToken() {
+  get originPrivacy() {
+    return this.store.getState().origins.current.default_package_visibility;
+  }
+
+  get token() {
     return this.store.getState().gitHub.authToken;
   }
 
-  openDialog(): void {
-    let dialogRef = this.dialog.open(DockerCredentialsFormDialog, {
-      width: "480px"
-    });
+  addDocker(): void {
+    this.credsDialog
+      .open(DockerCredentialsFormDialog, { width: "480px" })
+      .afterClosed()
+      .subscribe((result) => {
+        if (result) {
+          this.store.dispatch(setDockerIntegration(this.origin.name, result, this.token));
+        }
+      });
+  }
 
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.store.dispatch(addDockerHubCredentials(
-          this.origin.name,
-          result,
-          this.githubToken
-        ));
-      }
-    });
+  deleteDocker(name) {
+    this.confirmDialog
+      .open(IntegrationDeleteConfirmDialog, { width: "480px" })
+      .afterClosed()
+      .subscribe(confirmed => {
+        if (confirmed) {
+          this.store.dispatch(deleteDockerIntegration(this.origin.name, this.token, name));
+        }
+      });
+  }
+
+  updatePrivacy(event) {
+    this.store.dispatch(setOriginPrivacySettings(event.value));
   }
 }
