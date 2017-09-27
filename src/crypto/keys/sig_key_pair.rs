@@ -31,47 +31,10 @@ use super::super::{PUBLIC_KEY_SUFFIX, PUBLIC_SIG_KEY_VERSION, SECRET_SIG_KEY_SUF
 pub type SigKeyPair = KeyPair<SigPublicKey, SigSecretKey>;
 
 impl SigKeyPair {
-    pub fn generate_pair_for_origin<P: AsRef<Path> + ?Sized>(
-        name: &str,
-        cache_key_path: &P,
-    ) -> Result<Self> {
+    pub fn generate_pair_for_origin(name: &str) -> Result<Self> {
         let revision = mk_revision_string()?;
-        let keyname = Self::mk_key_name(name, &revision);
-        debug!("new sig key name = {}", &keyname);
-        let (public_key, secret_key) =
-            Self::generate_pair_files(&keyname, cache_key_path.as_ref())?;
-        Ok(Self::new(
-            name.to_string(),
-            revision,
-            Some(public_key),
-            Some(secret_key),
-        ))
-    }
-
-    fn mk_key_name(name: &str, revision: &str) -> String {
-        format!("{}-{}", name, revision)
-    }
-
-    fn generate_pair_files(
-        name_with_rev: &str,
-        cache_key_path: &Path,
-    ) -> Result<(SigPublicKey, SigSecretKey)> {
         let (pk, sk) = sign::gen_keypair();
-
-        let public_keyfile = mk_key_filename(cache_key_path, name_with_rev, PUBLIC_KEY_SUFFIX);
-        let secret_keyfile = mk_key_filename(cache_key_path, name_with_rev, SECRET_SIG_KEY_SUFFIX);
-        debug!("public sig keyfile = {}", public_keyfile.display());
-        debug!("secret sig keyfile = {}", secret_keyfile.display());
-
-        write_keypair_files(
-            KeyType::Sig,
-            &name_with_rev,
-            Some(&public_keyfile),
-            Some(&base64::encode(&pk[..]).into_bytes()),
-            Some(&secret_keyfile),
-            Some(&base64::encode(&sk[..]).into_bytes()),
-        )?;
-        Ok((pk, sk))
+        Ok(Self::new(name.to_string(), revision, Some(pk), Some(sk)))
     }
 
     /// Return a Vec of origin keys with a given name.
@@ -257,7 +220,7 @@ impl SigKeyPair {
         content: &str,
         cache_key_path: &P,
     ) -> Result<(Self, PairType)> {
-        let (pair_type, name_with_rev, key_body) = Self::parse_key_str(content)?;
+        let (pair_type, name_with_rev, _) = Self::parse_key_str(content)?;
         let suffix = match pair_type {
             PairType::Public => PUBLIC_KEY_SUFFIX,
             PairType::Secret => SECRET_SIG_KEY_SUFFIX,
@@ -276,24 +239,10 @@ impl SigKeyPair {
         debug!("Writing temp key file {}", tmpfile.path.display());
         match pair_type {
             PairType::Public => {
-                write_keypair_files(
-                    KeyType::Sig,
-                    &name_with_rev,
-                    Some(&tmpfile.path),
-                    Some(&key_body.as_bytes()),
-                    None,
-                    None,
-                )?;
+                write_keypair_files(Some(&tmpfile.path), Some(content.to_string()), None, None)?;
             }
             PairType::Secret => {
-                write_keypair_files(
-                    KeyType::Sig,
-                    &name_with_rev,
-                    None,
-                    None,
-                    Some(&tmpfile.path),
-                    Some(&key_body.as_bytes()),
-                )?;
+                write_keypair_files(None, None, Some(&tmpfile.path), Some(content.to_string()))?;
             }
         }
 
@@ -438,6 +387,58 @@ impl SigKeyPair {
         }
     }
 
+    pub fn to_public_string(&self) -> Result<String> {
+        match self.public {
+            Some(pk) => {
+                Ok(format!(
+                    "{}\n{}\n\n{}",
+                    PUBLIC_SIG_KEY_VERSION,
+                    self.name_with_rev(),
+                    &base64::encode(&pk[..])
+                ))
+            }
+            None => {
+                return Err(Error::CryptoError(format!(
+                    "No public key present for {}",
+                    self.name_with_rev()
+                )))
+            }
+        }
+    }
+
+    pub fn to_secret_string(&self) -> Result<String> {
+        match self.secret {
+            Some(ref sk) => {
+                Ok(format!(
+                    "{}\n{}\n\n{}",
+                    SECRET_SIG_KEY_VERSION,
+                    self.name_with_rev(),
+                    &base64::encode(&sk[..])
+                ))
+            }
+            None => {
+                return Err(Error::CryptoError(format!(
+                    "No secret key present for {}",
+                    self.name_with_rev()
+                )))
+            }
+        }
+    }
+
+    pub fn to_pair_files<P: AsRef<Path> + ?Sized>(&self, path: &P) -> Result<()> {
+        let public_keyfile = mk_key_filename(path, self.name_with_rev(), PUBLIC_KEY_SUFFIX);
+        let secret_keyfile = mk_key_filename(path, self.name_with_rev(), SECRET_SIG_KEY_SUFFIX);
+        debug!("public sig keyfile = {}", public_keyfile.display());
+        debug!("secret sig keyfile = {}", secret_keyfile.display());
+
+        write_keypair_files(
+            Some(&public_keyfile),
+            Some(self.to_public_string()?),
+            Some(&secret_keyfile),
+            Some(self.to_secret_string()?),
+        )
+    }
+
     fn get_public_key(key_with_rev: &str, cache_key_path: &Path) -> Result<SigPublicKey> {
         let public_keyfile = mk_key_filename(cache_key_path, key_with_rev, PUBLIC_KEY_SUFFIX);
         let bytes = read_key_bytes(&public_keyfile)?;
@@ -503,7 +504,8 @@ mod test {
     #[test]
     fn generated_origin_pair() {
         let cache = TempDir::new("key_cache").unwrap();
-        let pair = SigKeyPair::generate_pair_for_origin("unicorn", cache.path()).unwrap();
+        let pair = SigKeyPair::generate_pair_for_origin("unicorn").unwrap();
+        pair.to_pair_files(cache.path()).unwrap();
 
         assert_eq!(pair.name, "unicorn");
         match pair.public() {
@@ -534,12 +536,17 @@ mod test {
         let pairs = SigKeyPair::get_pairs_for("unicorn", cache.path(), None).unwrap();
         assert_eq!(pairs.len(), 0);
 
-        let _ = SigKeyPair::generate_pair_for_origin("unicorn", cache.path()).unwrap();
+        SigKeyPair::generate_pair_for_origin("unicorn")
+            .unwrap()
+            .to_pair_files(cache.path())
+            .unwrap();
         let pairs = SigKeyPair::get_pairs_for("unicorn", cache.path(), None).unwrap();
         assert_eq!(pairs.len(), 1);
 
         let _ = match wait_until_ok(|| {
-            SigKeyPair::generate_pair_for_origin("unicorn", cache.path())
+            let p = SigKeyPair::generate_pair_for_origin("unicorn")?;
+            p.to_pair_files(cache.path())?;
+            Ok(())
         }) {
             Some(pair) => pair,
             None => panic!("Failed to generate another keypair after waiting"),
@@ -548,7 +555,10 @@ mod test {
         assert_eq!(pairs.len(), 2);
 
         // We should not include another named key in the count
-        let _ = SigKeyPair::generate_pair_for_origin("dragon", cache.path()).unwrap();
+        SigKeyPair::generate_pair_for_origin("dragon")
+            .unwrap()
+            .to_pair_files(cache.path())
+            .unwrap();
         let pairs = SigKeyPair::get_pairs_for("unicorn", cache.path(), None).unwrap();
         assert_eq!(pairs.len(), 2);
 
@@ -565,9 +575,12 @@ mod test {
     #[test]
     fn get_pair_for() {
         let cache = TempDir::new("key_cache").unwrap();
-        let p1 = SigKeyPair::generate_pair_for_origin("unicorn", cache.path()).unwrap();
+        let p1 = SigKeyPair::generate_pair_for_origin("unicorn").unwrap();
+        p1.to_pair_files(cache.path()).unwrap();
         let p2 = match wait_until_ok(|| {
-            SigKeyPair::generate_pair_for_origin("unicorn", cache.path())
+            let p = SigKeyPair::generate_pair_for_origin("unicorn")?;
+            p.to_pair_files(cache.path())?;
+            Ok(p)
         }) {
             Some(pair) => pair,
             None => panic!("Failed to generate another keypair after waiting"),
@@ -591,7 +604,8 @@ mod test {
     #[test]
     fn get_latest_pair_for_single() {
         let cache = TempDir::new("key_cache").unwrap();
-        let pair = SigKeyPair::generate_pair_for_origin("unicorn", cache.path()).unwrap();
+        let pair = SigKeyPair::generate_pair_for_origin("unicorn").unwrap();
+        pair.to_pair_files(cache.path()).unwrap();
 
         let latest = SigKeyPair::get_latest_pair_for("unicorn", cache.path(), None).unwrap();
         assert_eq!(latest.name, pair.name);
@@ -601,9 +615,14 @@ mod test {
     #[test]
     fn get_latest_pair_for_multiple() {
         let cache = TempDir::new("key_cache").unwrap();
-        let _ = SigKeyPair::generate_pair_for_origin("unicorn", cache.path()).unwrap();
+        SigKeyPair::generate_pair_for_origin("unicorn")
+            .unwrap()
+            .to_pair_files(cache.path())
+            .unwrap();
         let p2 = match wait_until_ok(|| {
-            SigKeyPair::generate_pair_for_origin("unicorn", cache.path())
+            let p = SigKeyPair::generate_pair_for_origin("unicorn")?;
+            p.to_pair_files(cache.path())?;
+            Ok(p)
         }) {
             Some(pair) => pair,
             None => panic!("Failed to generate another keypair after waiting"),
@@ -617,7 +636,8 @@ mod test {
     #[test]
     fn get_latest_pair_for_secret() {
         let cache = TempDir::new("key_cache").unwrap();
-        let p = SigKeyPair::generate_pair_for_origin("unicorn", cache.path()).unwrap();
+        let p = SigKeyPair::generate_pair_for_origin("unicorn").unwrap();
+        p.to_pair_files(cache.path()).unwrap();
         let latest =
             SigKeyPair::get_latest_pair_for("unicorn", cache.path(), Some(&PairType::Secret))
                 .unwrap();
@@ -628,7 +648,8 @@ mod test {
     #[test]
     fn get_latest_pair_for_public() {
         let cache = TempDir::new("key_cache").unwrap();
-        let p = SigKeyPair::generate_pair_for_origin("unicorn", cache.path()).unwrap();
+        let p = SigKeyPair::generate_pair_for_origin("unicorn").unwrap();
+        p.to_pair_files(cache.path()).unwrap();
         let latest =
             SigKeyPair::get_latest_pair_for("unicorn", cache.path(), Some(&PairType::Public))
                 .unwrap();
