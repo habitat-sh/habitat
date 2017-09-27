@@ -170,6 +170,18 @@ export default Record({
         exists: false,
         loading: true,
       })(),
+      latestInChannel: Record({
+        stable: Record({
+          errorMessage: undefined,
+          exists: false,
+          loading: true,
+        })(),
+        unstable: Record({
+          errorMessage: undefined,
+          exists: false,
+          loading: true,
+        })()
+      })(),
       versions: Record({
         errorMessage: undefined,
         exists: false,

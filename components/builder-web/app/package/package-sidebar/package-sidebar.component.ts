@@ -34,10 +34,6 @@ export class PackageSidebarComponent implements OnChanges {
         }
     }
 
-    get latestStable() {
-        return this.store.getState().packages.latestInChannel.stable;
-    }
-
     build() {
         if (this.buildable) {
             let token = this.store.getState().gitHub.authToken;
@@ -52,6 +48,15 @@ export class PackageSidebarComponent implements OnChanges {
     get exportCommand() {
         return `hab pkg export docker ${this.origin}/${this.name}`;
     }
+
+    get latestStable() {
+        return this.store.getState().packages.latestInChannel.stable;
+    }
+
+    get loadingLatestStable() {
+        return this.store.getState().packages.ui.latestInChannel.stable.loading;
+    }
+
 
     get runCommand() {
         return `hab start ${this.origin}/${this.name}`;

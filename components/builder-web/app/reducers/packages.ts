@@ -36,7 +36,10 @@ export default function packages(state = initialState["packages"], action) {
             return state.set("latest", Package());
 
         case actionTypes.CLEAR_LATEST_IN_CHANNEL:
-            return state.setIn(["latestInChannel", action.payload.channel], undefined);
+            return state.setIn(["latestInChannel", action.payload.channel], undefined).
+                setIn(["ui", "latestInChannel", action.payload.channel, "errorMessage"], undefined).
+                setIn(["ui", "latestInChannel", action.payload.channel, "exists"], false).
+                setIn(["ui", "latestInChannel", action.payload.channel, "loading"], true);
 
         case actionTypes.POPULATE_DASHBOARD_RECENT:
             return state.setIn(["dashboard", "recent"], List(action.payload));
@@ -83,8 +86,16 @@ export default function packages(state = initialState["packages"], action) {
             }
 
         case actionTypes.SET_LATEST_IN_CHANNEL:
-            if (!action.error) {
-                return state.setIn(["latestInChannel", action.payload.channel], Package(action.payload.pkg));
+            if (action.error) {
+                return state.setIn(["latestInChannel", action.payload.channel], undefined).
+                    setIn(["ui", "latestInChannel", action.payload.channel, "errorMessage"], action.error.message).
+                    setIn(["ui", "latestInChannel", action.payload.channel, "exists"], false).
+                    setIn(["ui", "latestInChannel", action.payload.channel, "loading"], false);
+            } else {
+                return state.setIn(["latestInChannel", action.payload.channel], Package(action.payload.pkg)).
+                    setIn(["ui", "latestInChannel", action.payload.channel, "errorMessage"], undefined).
+                    setIn(["ui", "latestInChannel", action.payload.channel, "exists"], true).
+                    setIn(["ui", "latestInChannel", action.payload.channel, "loading"], false);
             }
 
         case actionTypes.SET_LATEST_PACKAGE:

@@ -13,13 +13,16 @@
     <h3>Supported Platforms</h3>
     <hab-platform-icon [platform]="platform" *ngFor="let platform of platforms"></hab-platform-icon>
   </div>
-  <div class="latest-stable" *ngIf="latestStable">
+  <div class="latest-stable">
     <h3>Latest Stable</h3>
-    <p>
+    <p *ngIf="latestStable">
       <a [routerLink]="['./', latestStable.ident.version, latestStable.ident.release]">
         {{ latestStable.ident.version }}/{{ latestStable.ident.release }}
       </a>
       <hab-platform-icon [platform]="latestStable.target"></hab-platform-icon>
+    </p>
+    <p *ngIf="!latestStable && !loadingLatestStable">
+      None. <a [routerLink]="['./']">View available versions</a>.
     </p>
   </div>
   <div class="command">
