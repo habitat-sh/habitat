@@ -1,7 +1,11 @@
 <div class="hab-origin">
   <div class="page-title">
-    <h2>{{origin.name}}</h2>
+    <h2>{{ origin.name }}</h2>
     <h4>origin</h4>
+    <div class="private-builds">
+      <hab-icon [symbol]="iconFor(origin.default_package_visibility)"></hab-icon>
+      <span>Private Builds {{ labelFor(origin.default_package_visibility) }}</span>
+    </div>
   </div>
   <div *ngIf="!ui.exists && !ui.loading" class="page-body">
     <p>

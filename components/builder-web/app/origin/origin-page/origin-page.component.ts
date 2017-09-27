@@ -42,11 +42,11 @@ export class OriginPageComponent implements OnInit, OnDestroy {
     perPage: number = 50;
     projectStatus = ProjectStatus;
     sub: Subscription;
-    origin;
+    originName: string;
 
     constructor(private route: ActivatedRoute, private store: AppStore) {
         this.sub = this.route.params.subscribe(params => {
-            this.origin = Origin({ name: params["origin"] });
+            this.originName = params["origin"];
         });
     }
 
@@ -69,6 +69,16 @@ export class OriginPageComponent implements OnInit, OnDestroy {
 
     ngOnDestroy() {
         this.sub.unsubscribe();
+    }
+
+    get origin() {
+        const current = this.store.getState().origins.current;
+
+        if (current.name === this.originName) {
+            return current;
+        }
+
+        return Origin({ name: this.originName });
     }
 
     get navLinks() {
@@ -115,6 +125,14 @@ export class OriginPageComponent implements OnInit, OnDestroy {
         return !!this.myOrigins.find(org => {
             return org["name"] === this.origin.name;
         });
+    }
+
+    iconFor(visibility) {
+        return visibility === "private" ? "lock" : "public";
+    }
+
+    labelFor(visibility) {
+        return visibility === "private" ? "ON" : "OFF";
     }
 
     linkToRepo(p): boolean {

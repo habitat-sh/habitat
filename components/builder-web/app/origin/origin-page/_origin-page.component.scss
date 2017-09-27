@@ -15,6 +15,16 @@
 .hab-origin {
   font-size: rem(14);
 
+  .private-builds {
+    position: absolute;
+    right: 20px;
+    top: 48px;
+    background-color: $white;
+    border-radius: $base-border-radius;
+    padding: 2px 4px;
+    font-size: rem(10);
+  }
+
   .page-body {
     padding-top: 28px;
   }
