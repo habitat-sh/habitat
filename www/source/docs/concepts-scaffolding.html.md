@@ -20,13 +20,14 @@ You can also use the cli command `hab plan init -s [SCAFFOLDING] [PKG_NAME]` to 
 
 * [core/scaffolding-ruby](https://github.com/habitat-sh/core-plans/blob/master/scaffolding-ruby/)
 * [core/scaffolding-node](https://github.com/habitat-sh/core-plans/tree/master/scaffolding-node)
+* [core/scaffolding-gradle](https://github.com/habitat-sh/core-plans/tree/master/scaffolding-gradle)
 
 ### Coming Soon!
 
 * core/scaffolding-go
 * core/scaffolding-python
 * core/scaffolding-java
-* core/scaffolding-gradle 
+
 
 ## Variables
 
