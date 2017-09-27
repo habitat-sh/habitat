@@ -16,6 +16,12 @@ You need to make sure you have the required packages installed.
 Run the appropriate shell script under the `support/linux` folder to install the packages.
 Refer to [BUILDING.md](./BUILDING.md) doc for the detailed steps.
 
+## Create Builder encryption key pair
+If you haven't already done this earlier, you'll need to create a key pair for builder to encrypt credentials.
+Do this via the `hab user key generate bldr` command. This will generate a key pair with the prefix `bldr`
+in your current directory. Copy the key pair over to some location that is accessible by the running services.
+You will need to specify that location in the config files below.
+
 ## Create configuration files
 Some capabilities (such as allowing builder permissions, and turning on auto-building when new packages are uploaded to the depot) require passing in a custom config to the Builder services.
 
@@ -25,6 +31,7 @@ Create the following files somewhere on your local filesystem (Note: the client_
 ```toml
 [depot]
 builds_enabled = true
+key_dir = "/path/to/bldr-key-pair"
 
 [github]
 url = "https://api.github.com"
@@ -34,6 +41,8 @@ client_secret = "438223113eeb6e7edf2d2f91a232b72de72b9bdf"
 
 `config_jobsrv.toml`
 ```toml
+key_dir = "/path/to/bldr-key-pair"
+
 [archive]
 backend = "local"
 local_dir = "/tmp"
