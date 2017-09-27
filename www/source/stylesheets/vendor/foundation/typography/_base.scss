@@ -331,6 +331,10 @@ $abbr-underline: 1px dotted $black !default;
     img {
       border: 0;
     }
+
+    &.link-external {
+      // MGA TODO 
+    }
   }
 
   // Horizontal rule

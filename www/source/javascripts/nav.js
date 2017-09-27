@@ -3,7 +3,7 @@ const $mainNav = $('#main-nav');
 const $navLinks = $('.main-nav--links');
 const $navToggle = $('.main-nav--toggle');
 const currentPagePath = location.pathname;
-const navPageLinks = ['about', 'docs', 'tutorials', 'community', 'blog'];
+const navPageLinks = ['about', 'docs', 'pricing', 'tutorials', 'community', 'blog'];
 const stickyBreakpoint = 280;
 const stickyVisibleBreakpoint = 300;
 
@@ -75,8 +75,8 @@ const stickyVisibleBreakpoint = 300;
     }
 
     function cookieDomain() {
-      let delim = ".";
-      let tld = location.hostname.split(delim);
+      var delim = ".";
+      var tld = location.hostname.split(delim);
       tld.shift();
       return tld.join(delim);
     }

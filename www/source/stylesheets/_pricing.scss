@@ -1,0 +1,161 @@
+.pricing-row-wrapper {
+  position: relative;
+
+  @include breakpoint(medium) {
+    .background-waves-blue {
+      position: absolute;
+      background: url('/images/background-dark-blue.svg') center top repeat-x;
+      background-size: cover;
+      left: 0px;
+      top: 50%;
+      height: 85px;
+      width: 100%;
+
+      &:after {
+        content: '';
+        background-color: #253442;
+        width: 100%;
+        height: 600px;
+        position: absolute;
+        top: 85px;
+      }
+    }
+  }
+}
+
+.pricing-box {
+  position: relative;
+  background: $hab-white;
+  border-radius: $global-radius;
+  box-shadow: 0 -2px 20px 0 rgba(200,210,217,0.5);
+  padding: rem-calc(40) 0px 0px;
+
+  &:before {
+    content: '';
+    display: block;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    height: 10px;
+    width: 100%;
+    border-radius: $global-radius $global-radius 0px 0px;
+    background: linear-gradient(90deg, #62AAA7 0%, #BADB8D 100%);
+  }
+}
+
+.container_pricing {
+  .price-entry {
+    border-bottom: 1px solid $hab-gray;
+  }
+
+  .price {
+    color: $hab-green;
+    text-transform: uppercase;
+  }
+
+  .pricing-box-row {
+    padding: rem-calc(20);
+  }
+}
+
+.pricing--faq-section {
+  width: 100%;
+  position: relative;
+  background: linear-gradient($hab-green-light-2, $hab-blue-green);
+  box-shadow: 0 -2px 20px 0 rgba(200,210,217,0.5);
+  padding-bottom: rem-calc(200);
+
+  > .row { position: relative; }
+  @include breakpoint(large) {
+    .jumping-habicat {
+      position: absolute;
+      display: block;
+      height: 189px;
+      width: 233px;
+      background: url('/images/decor/jumping-habicat.svg') center center no-repeat;
+      background-size: contain;
+      top: -190px;
+      left: 20px;
+    }
+    .standing-habicat {
+      position: absolute;
+      display: block;
+      height: 143px;
+      width: 355px;
+      background: url('/images/decor/standing-habicat.svg') center center no-repeat;
+      background-size: contain;
+      top: -150px;
+      right: 20px;
+    }
+  }
+}
+
+.faq-box {
+  .accordion-title {
+    font-size: 1rem;
+    color: $hab-gray-dark;
+    border-bottom: 0px;
+  }
+  .accordion-content {
+    border-bottom: 0px;
+  }
+  .accordion > .accordion-item:first-child {
+    border-radius: $global-radius $global-radius 0px 0px;
+  }
+  .accordion > .accordion-item:last-child {
+    border-radius: 0px 0px $global-radius $global-radius;
+  }
+}
+
+.pricing--contact-us {
+  min-height: 373px;
+  width: 100%;
+  margin-top: rem-calc(-150);
+  position: relative;
+  background: url('/images/graphics/polygon.svg') center 50px repeat-x transparent;
+
+  @include breakpoint(small only) {
+    background: transparent;
+  }
+
+  .contact-box {
+    padding: rem-calc(50) rem-calc(20px);
+    box-shadow: 0 -2px 20px 0 rgba(200,210,217,0.5);
+    border-radius: $global-radius;
+  }
+
+  .button {
+    @include breakpoint(small only) { width: 100%; }
+  }
+
+  .button.outline { color: $hab-orange; }
+}
+
+.pricing {
+  .footer--decor { display: none; }
+}
+
+.pricing--open-source {
+  padding: rem-calc(100) 0px;
+
+  > .row {
+    position: relative;
+  }
+
+  @include breakpoint(large) {
+    .stars-left {
+      position: absolute;
+      height: 166px;
+      width: 248px;
+      background: url('/images/decor/star_bg.svg') center center no-repeat;
+    }
+    .stars-right {
+      position: absolute;
+      height: 143px;
+      width: 254px;
+      background: url('/images/decor/star_bg2.svg') center center no-repeat;
+      right: 0px;
+      bottom: -100px;
+    }
+  }
+}

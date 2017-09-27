@@ -1,15 +1,44 @@
 #main-footer {
   position: relative;
   z-index: 5;
-  padding: rem-calc(60) 0 0;
+  // padding: rem-calc(60) 0 0;
   background: url('/images/footer-background.svg');
-  background: url('/images/footer-background.svg') left top repeat-x, linear-gradient($hab-green-light-2, $hab-blue-green) left 84px no-repeat;
+  background: url('/images/footer-background.svg') left top no-repeat, linear-gradient($hab-green-light-2, $hab-blue-green) left 84px no-repeat;
+  background-size: cover;
   color: $white;
 
   &.has-sidebar,
   &.try-hab {
     padding-top: 0;
   }
+}
+
+.footer--decor {
+  position: absolute;
+  width: 100%;
+  top: rem-calc(-60);
+}
+.footer--decor-item {
+  text-align: center;
+  > img { position: relative; }
+}
+// .footer--decor-clam
+.footer--decor-trees {
+  top: rem-calc(40);
+}
+.footer--decor-cube {
+  top: rem-calc(70);
+}
+.footer--decor-snorkel {
+  top: rem-calc(-50);
+
+  @include breakpoint(medium) {
+    top: rem-calc(-110);
+  }
+}
+
+.footer--subheader {
+  font-size: rem-calc(14);
 }
 
 .footer--cta {
@@ -57,7 +86,7 @@
   }
 
   @include breakpoint(small only) {
-    margin-bottom: rem-calc(60);
+    // margin-bottom: rem-calc(60);
 
     &.habitat {
       max-width: rem-calc(270);
@@ -66,7 +95,9 @@
 }
 
 .footer--sitemap {
-  padding-top: rem-calc(62);
+  @include breakpoint(small only) {
+    padding-top: rem-calc(62);
+  }
 
   a {
     color: lighten($hab-green-light, 25%);
@@ -88,8 +119,8 @@
 }
 
 .footer--copyright {
-  margin: rem-calc(30) 0 0;
-  padding-top: rem-calc(15);
+  margin: rem-calc(15) 0 0;
+  padding: rem-calc(15);
   font-size: rem-calc(12);
   color: lighten($hab-green-light, 25%);
   border-top: 1px solid rgba($white, .20);
@@ -97,5 +128,10 @@
   li {
     display: inline-block;
     margin-right: rem-calc(25);
+    margin-bottom: 0;
+  }
+
+  p {
+    margin-bottom: 0;
   }
 }

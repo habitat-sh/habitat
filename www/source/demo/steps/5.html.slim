@@ -1,0 +1,47 @@
+---
+title: Habitat Demo - Step 5
+layout: layout
+classes: demo_step
+---
+#demo-step
+  .row
+    .columns.large-12.demo-step--content
+      .demo-step--indicators
+        a.demo-step--indicator.active href="/demo/steps/1"
+        a.demo-step--indicator.active href="/demo/steps/2"
+        a.demo-step--indicator.active href="/demo/steps/3"
+        a.demo-step--indicator.active href="/demo/steps/4"
+        a.demo-step--indicator.active href="/demo/steps/5"
+        a.demo-step--indicator href="/demo/steps/6"
+        a.demo-step--indicator href="/demo/steps/7"
+        a.demo-step--indicator href="/demo/steps/8"
+        a.demo-step--indicator href="/demo/steps/9"
+        a.demo-step--indicator href="/demo/steps/10"
+      .row
+        .columns.large-12
+          h1.h4="Step 5: Activate Habitat Builder"
+        .columns.large-6
+          p
+            ' By installing the Habitat Builder GitHub App
+            span.asterisk="*"
+            ' , you will get automated builds any time a repo change is detected.
+          p
+            ' Simply
+            strong install
+            '  the app using this link
+            a.link-external href="#{github_app_url}" target="_blank" #{github_app_url}
+            ' .
+          p
+            ' You can either install it on your personal GitHub account or any organization for which you are the owner.
+          p
+            '  We recommend installing it on
+            strong all repositories
+            '  , or you can select your sample-node-app repository.
+
+        .columns.large-6
+          img src="/images/demo/screen-install-github-app.png"
+      .row.mt-1.step-bottom-nav
+        .columns.large-6
+          a.previous-step-link href="/demo/steps/4" Previous Step
+        .columns.large-6.text-align-right
+          a.button.cta.mb-0 href="/demo/steps/6" Next Step

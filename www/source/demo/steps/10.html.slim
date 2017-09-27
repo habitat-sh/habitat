@@ -1,0 +1,56 @@
+---
+title: Habitat Demo - Step 10
+layout: layout
+classes: demo_step
+---
+#demo-step
+  .row
+    .columns.large-12.demo-step--content
+      .demo-step--indicators
+        a.demo-step--indicator.active href="/demo/steps/1"
+        a.demo-step--indicator.active href="/demo/steps/2"
+        a.demo-step--indicator.active href="/demo/steps/3"
+        a.demo-step--indicator.active href="/demo/steps/4"
+        a.demo-step--indicator.active href="/demo/steps/5"
+        a.demo-step--indicator.active href="/demo/steps/6"
+        a.demo-step--indicator.active href="/demo/steps/7"
+        a.demo-step--indicator.active href="/demo/steps/8"
+        a.demo-step--indicator.active href="/demo/steps/9"
+        a.demo-step--indicator.active href="/demo/steps/10"
+      .row
+        .columns.large-12
+          h1.h4="Step 10: Update Your Package Version"
+        .columns.large-6
+          p Suppose we've been working on the sample app. Let's increment the version and trigger a new build.
+          p
+            ' Edit the
+            strong  plan.sh
+            '  file in your forked GitHub repo (as we did earlier) by clicking the
+            span.icon-pencil pencil icon
+            ' .
+          p
+            ' Change the value of
+            strong  pkg_version
+            '  from
+            em  1.0.1
+            '  to
+            em  1.0.2
+            ', then use the
+            strong  Commit changes
+            '  button to update the master branch.
+          p
+            ' Habitat Builder will detect the change and start a new build automatically. You can view the resulting output in the Habitat Builder web app.
+            ' Once the build job completes, re-run the docker commands to verify the updated container:
+          p.code $ docker pull your-docker-org/your-docker-repo
+          p.code $ docker run -it -p 8000:8000 your-docker-org/your-docker-repo
+        .columns.large-6
+          p
+            ' With the container runnning, visit
+            a.link-external href="http://localhost:8000/" target="_blank" http://localhost:8000/
+            ' and see the new version of the sample app.
+          img src="/images/demo/screen-sample-app-v2.png"
+      .row.mt-1.step-bottom-nav
+        .columns.large-6
+          a.previous-step-link href="/demo/steps/9" Previous Step
+        .columns.large-6.text-align-right
+          a.button.cta.mb-0 href="/demo/summary" Summary

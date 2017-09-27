@@ -8,6 +8,8 @@
 //= require tutorials.js
 //= require demo.js
 //= require highlight.pack
+//= require carousel.js
+//= require accordion.js
 
 $(document).ready(function() {
   $('pre code').each(function(i, block) {

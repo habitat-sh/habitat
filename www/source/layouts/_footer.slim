@@ -1,11 +1,21 @@
 footer#main-footer class="#{layout_class}"
-  - if layout_class != "has-sidebar" and layout_class != "try-hab" and layout_class != "blogs" and layout_class != "tutorials"
+  / - if layout_class != "has-sidebar" and layout_class != "try-hab" and layout_class != "blogs" and layout_class != "tutorials"
+  /   .row
+  /     .columns.medium-12
+  /       .footer--cta
+  /         h2.footer--cta-heading See how it works in less than 10 minutes.
+  /         a.footer--cta-button href="/tutorials/" Try Habitat Now
+  /         a.footer--cta-button.outline href="/tutorials/download/" Download Habitat
+  .footer--decor
     .row
-      .columns.medium-12
-        .footer--cta
-          h2.footer--cta-heading See how it works in less than 10 minutes.
-          a.footer--cta-button href="/tutorials/" Try Habitat Now
-          a.footer--cta-button.outline href="/tutorials/download/" Download Habitat
+      .columns.large-6.small-4.footer--decor-item
+        img.footer--decor-clam src="/images/decor/habs-in-clams.svg" alt="Habitat in your enviroments!"/
+      .columns.large-2.small-4.footer--decor-item
+        img.footer--decor-trees src="/images/decor/tree-pair.svg"/
+      .columns.large-2.footer--decor-item.hide-small
+        img.footer--decor-cube src="/images/decor/hab-cube.svg"/
+      .columns.large-2.small-4.footer--decor-item
+        img.footer--decor-snorkel src="/images/decor/snorkelling-habicat.svg"/
 
   .footer--sitemap
     .row
@@ -19,7 +29,7 @@ footer#main-footer class="#{layout_class}"
           .columns.medium-2.small-6
             ul.no-bullet
               li
-                h4 About Habitat
+                h4.footer--subheader About Habitat
               li.footer--sitemap--link
                 a href="/" Home
               li.footer--sitemap--link
@@ -31,7 +41,7 @@ footer#main-footer class="#{layout_class}"
           .columns.medium-2.small-6
             ul.no-bullet
               li
-                h4 Build Service
+                h4.footer--subheader Habitat Builder
               li.footer--sitemap--link
                 a href="#{builder_web_url}/#/pkgs/core" Find Packages
               li.footer--sitemap--link
@@ -42,7 +52,7 @@ footer#main-footer class="#{layout_class}"
           .columns.medium-2.small-6
             ul.no-bullet
               li
-                h4 Resources
+                h4.footer--subheader Resources
               li.footer--sitemap--link
                 a href="/tutorials" Tutorials
               li.footer--sitemap--link
@@ -53,7 +63,7 @@ footer#main-footer class="#{layout_class}"
           .columns.medium-2.small-6
             ul.no-bullet
               li
-                h4 Community
+                h4.footer--subheader Community
               li.footer--sitemap--link
                 a href="http://slack.habitat.sh/" Habitat Slack
               li.footer--sitemap--link
@@ -66,7 +76,7 @@ footer#main-footer class="#{layout_class}"
           .columns.medium-2.small-6
             ul.no-bullet
               li
-                h4 Support
+                h4.footer--subheader Support
               li.footer--sitemap--link
                 a href="https://github.com/habitat-sh/habitat/issues" New Issues
               li.footer--sitemap--link
@@ -79,7 +89,7 @@ footer#main-footer class="#{layout_class}"
           .columns.medium-2.small-6
             ul.no-bullet.social
               li
-                h4 Get in Touch
+                h4.footer--subheader Get in Touch
               li.footer--sitemap--link
                 a.github href="https://github.com/habitat-sh/habitat" GitHub
               li.footer--sitemap--link
