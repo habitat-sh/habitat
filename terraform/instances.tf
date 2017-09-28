@@ -59,6 +59,17 @@ resource "null_resource" "api_provision" {
     inline = [
       "DD_INSTALL_ONLY=true DD_API_KEY=${var.datadog_api_key} /bin/bash -c \"$(curl -L https://raw.githubusercontent.com/DataDog/dd-agent/master/packaging/datadog-agent/source/install_agent.sh)\"",
       "sudo sed -i \"$ a tags: env:${var.env}, role:api\" /etc/dd-agent/datadog.conf",
+    ]
+  }
+
+  provisioner "file" {
+    source = "${path.module}/files/nginx.yaml"
+    destination = "/tmp/nginx.yaml"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo cp /tmp/nginx.yaml /etc/dd-agent/conf.d/nginx.yaml",
       "sudo /etc/init.d/datadog-agent start"
     ]
   }
