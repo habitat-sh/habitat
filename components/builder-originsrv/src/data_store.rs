@@ -211,6 +211,85 @@ impl DataStore {
         Ok(self.row_to_origin_project(&row))
     }
 
+    pub fn create_project_integration(
+        &self,
+        opic: &originsrv::OriginProjectIntegrationCreate,
+    ) -> SrvResult<()> {
+        let conn = self.pool.get(opic)?;
+
+        let rows = conn.query(
+            "SELECT * FROM upsert_origin_project_integration_v1($1, $2, $3, $4, $5)",
+            &[
+                &opic.get_integration().get_origin(),
+                &opic.get_integration().get_name(),
+                &opic.get_integration().get_integration(),
+                &opic.get_integration().get_integration_name(),
+                &opic.get_integration().get_body(),
+            ],
+        ).map_err(SrvError::OriginProjectIntegrationCreate)?;
+        rows.iter().nth(0).expect(
+            "Insert returns row, but no row present",
+        );
+        Ok(())
+    }
+
+    pub fn get_project_integration(
+        &self,
+        opig: &originsrv::OriginProjectIntegrationGet,
+    ) -> SrvResult<Option<originsrv::OriginProjectIntegration>> {
+        let conn = self.pool.get(opig)?;
+        let rows = &conn.query(
+            "SELECT * FROM get_origin_project_integrations_v1($1, $2, $3, $4)",
+            &[
+                &opig.get_integration().get_origin(),
+                &opig.get_integration().get_name(),
+                &opig.get_integration().get_integration(),
+                &opig.get_integration().get_integration_name(),
+            ],
+        ).map_err(SrvError::OriginProjectIntegrationGet)?;
+
+        if rows.len() != 0 {
+            let row = rows.get(0);
+            Ok(Some(self.row_to_project_integration(&row)))
+        } else {
+            Ok(None)
+        }
+    }
+
+    fn row_to_project_integration(
+        &self,
+        row: &postgres::rows::Row,
+    ) -> originsrv::OriginProjectIntegration {
+        let mut opi = originsrv::OriginProjectIntegration::new();
+        opi.set_origin(row.get("origin"));
+        opi.set_name(row.get("name"));
+        opi.set_integration(row.get("integration"));
+        opi.set_integration_name(row.get("integration_name"));
+        opi.set_body(row.get("body"));
+        opi
+    }
+
+    pub fn origin_project_integration_request(
+        &self,
+        opir: &originsrv::OriginProjectIntegrationRequest,
+    ) -> SrvResult<originsrv::OriginProjectIntegrationResponse> {
+        let conn = self.pool.get(opir)?;
+        let rows = &conn.query(
+            "SELECT * FROM get_origin_project_integrations_for_project_v1($1, $2)",
+            &[&opir.get_origin(), &opir.get_name()],
+        ).map_err(SrvError::OriginProjectIntegrationRequest)?;
+
+        let mut response = originsrv::OriginProjectIntegrationResponse::new();
+        let mut integrations = protobuf::RepeatedField::new();
+
+        for row in rows {
+            integrations.push(self.row_to_project_integration(&row));
+        }
+
+        response.set_integrations(integrations);
+        Ok(response)
+    }
+
     pub fn check_account_in_origin(
         &self,
         coar: &originsrv::CheckOriginAccessRequest,

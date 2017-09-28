@@ -20,7 +20,7 @@ use hab_net::{ErrCode, NetError, NetOk, NetResult};
 use hab_net::privilege::{self, FeatureFlags};
 use http::controller::*;
 
-use iron::status;
+use iron::status::{self, Status};
 use protocol::originsrv::{CheckOriginAccessRequest, CheckOriginAccessResponse, Origin,
                           OriginChannel, OriginChannelCreate, OriginChannelGet, OriginGet,
                           OriginPackage, OriginPackageChannelListRequest,
@@ -35,6 +35,7 @@ use serde_json;
 use urlencoded::UrlEncodedQuery;
 use protobuf::RepeatedField;
 
+use router::Router;
 use super::controller::route_message;
 
 // Builder services (eg, scheduler or build worker) can call APIs without a
@@ -54,6 +55,40 @@ pub fn get_authenticated_session(req: &mut Request) -> Option<Session> {
     } else {
         Some(session.to_owned())
     }
+}
+
+pub fn validate_params(
+    req: &mut Request,
+    expected_params: &[&str],
+) -> Result<HashMap<String, String>, Status> {
+    let mut res = HashMap::new();
+    // Get the expected params
+    {
+        let params = req.extensions.get::<Router>().unwrap();
+
+        if expected_params.iter().any(|p| params.find(p).is_none()) {
+            return Err(status::BadRequest);
+        }
+
+        for p in expected_params {
+            res.insert(p.to_string(), params.find(p).unwrap().to_string());
+        }
+    }
+    // Check that we have origin access
+    {
+        let session_id = {
+            req.extensions.get::<Authenticated>().unwrap().get_id()
+        };
+        if check_origin_access(req, session_id, &res["origin"]).is_err() {
+            debug!(
+                "Failed origin access check, session: {}, origin: {}",
+                session_id,
+                &res["origin"]
+            );
+            return Err(status::Forbidden);
+        }
+    }
+    Ok(res)
 }
 
 const PAGINATION_RANGE_DEFAULT: isize = 0;

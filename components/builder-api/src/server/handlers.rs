@@ -23,7 +23,7 @@ use hab_core::package::{Identifiable, Plan};
 use hab_core::event::*;
 use hab_net;
 use http_gateway::http::controller::*;
-use http_gateway::http::helpers;
+use http_gateway::http::helpers::{self, validate_params};
 use iron::status;
 use params::{Params, Value, FromValue};
 use persistent;
@@ -37,6 +37,10 @@ use serde_json;
 use typemap;
 
 use error::{Error, Result};
+
+// A default name for per-project integrations. Currently, there
+// can only be one.
+const DEFAULT_PROJECT_INTEGRATION: &'static str = "default";
 
 define_event_log!();
 
@@ -640,4 +644,79 @@ fn github_creds_from_body<S: Into<String>>(
         project.set_vcs_username(username.to_string());
     }
     Ok(token)
+}
+
+pub fn create_project_integration(req: &mut Request) -> IronResult<Response> {
+    let params = match validate_params(req, &["origin", "name", "integration"]) {
+        Ok(p) => p,
+        Err(st) => return Ok(Response::with(st)),
+    };
+
+    let body = req.get::<bodyparser::Json>();
+    match body {
+        Ok(Some(_)) => (),
+        Ok(None) => {
+            warn!("create_project_integration: Empty body in request");
+            return Ok(Response::with(status::BadRequest));
+        }
+        Err(e) => {
+            warn!("create_project_integration, Error parsing body: {:?}", e);
+            return Ok(Response::with(status::BadRequest));
+        }
+    };
+
+    // We know body exists and is valid, non-empty JSON, so we can unwrap safely
+    let json_body = req.get::<bodyparser::Raw>().unwrap().unwrap();
+
+    let mut opi = OriginProjectIntegration::new();
+    opi.set_origin(params["origin"].clone());
+    opi.set_name(params["name"].clone());
+    opi.set_integration(params["integration"].clone());
+    opi.set_integration_name(String::from(DEFAULT_PROJECT_INTEGRATION));
+    opi.set_body(json_body);
+
+    let mut request = OriginProjectIntegrationCreate::new();
+    request.set_integration(opi);
+
+    match route_message::<OriginProjectIntegrationCreate, NetOk>(req, &request) {
+        Ok(_) => Ok(Response::with(status::NoContent)),
+        Err(err) => {
+            if err.get_code() == ErrCode::ENTITY_CONFLICT {
+                warn!("Failed to create integration as it already exists");
+                Ok(Response::with(status::Conflict))
+            } else {
+                error!("create_project_integration:1, err={:?}", err);
+                Ok(Response::with(status::InternalServerError))
+            }
+        }
+    }
+}
+
+pub fn get_project_integration(req: &mut Request) -> IronResult<Response> {
+    let params = match validate_params(req, &["origin", "name", "integration"]) {
+        Ok(p) => p,
+        Err(st) => return Ok(Response::with(st)),
+    };
+
+    let mut opi = OriginProjectIntegration::new();
+    opi.set_origin(params["origin"].clone());
+    opi.set_name(params["name"].clone());
+    opi.set_integration(params["integration"].clone());
+    opi.set_integration_name(String::from(DEFAULT_PROJECT_INTEGRATION));
+
+    let mut request = OriginProjectIntegrationGet::new();
+    request.set_integration(opi);
+
+    match route_message::<OriginProjectIntegrationGet, OriginProjectIntegration>(req, &request) {
+        Ok(integration) => Ok(render_json(status::Ok, &integration.get_body())),
+        Err(err) => {
+            match err.get_code() {
+                ErrCode::ENTITY_NOT_FOUND => Ok(Response::with((status::NotFound))),
+                _ => {
+                    error!("get_project_integration:1, err={:?}", err);
+                    Ok(Response::with(status::InternalServerError))
+                }
+            }
+        }
+    }
 }

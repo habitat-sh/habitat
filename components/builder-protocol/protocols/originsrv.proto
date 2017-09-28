@@ -457,3 +457,29 @@ message OriginIntegrationRequest {
 message OriginIntegrationResponse {
   repeated OriginIntegration integrations = 1;
 }
+
+// Origin Project Integration
+message OriginProjectIntegration {
+  optional string origin = 1;
+  optional string name = 2;
+  optional string integration = 3;
+  optional string integration_name = 4;
+  optional string body = 5;
+}
+
+message OriginProjectIntegrationCreate {
+  optional OriginProjectIntegration integration = 1;
+}
+
+message OriginProjectIntegrationGet {
+  optional OriginProjectIntegration integration = 1;
+}
+
+message OriginProjectIntegrationRequest {
+  optional string origin = 1;
+  optional string name = 2;
+}
+
+message OriginProjectIntegrationResponse {
+  repeated OriginProjectIntegration integrations = 1;
+}

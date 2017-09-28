@@ -329,6 +329,30 @@ impl Serialize for OriginIntegrationNames {
     }
 }
 
+impl Routable for OriginProjectIntegrationCreate {
+    type H = String;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(self.get_integration().get_origin().to_string())
+    }
+}
+
+impl Routable for OriginProjectIntegrationGet {
+    type H = String;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(self.get_integration().get_origin().to_string())
+    }
+}
+
+impl Routable for OriginProjectIntegrationRequest {
+    type H = String;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(self.get_origin().to_string())
+    }
+}
+
 impl Routable for OriginCreate {
     type H = String;
 
