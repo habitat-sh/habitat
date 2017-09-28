@@ -40,7 +40,7 @@ sidebar_links:
       link: "#plan-builds"
     - title: Troubleshooting Builds
       link: "#debug-builds"
-    - title: Package Post-Processors
+    - title: Package Export Formats
       link: "#pkg-exports"
     - title: Share via Builder
       link: "#sharing-pkgs"
@@ -92,7 +92,7 @@ sidebar_links:
       - title: hab pkg verify
         link: "#hab-pkg-verify"
       - title: hab plan init
-        link: "#hab-plan-ini"
+        link: "#hab-plan-init"
       - title: hab ring key export
         link: "#hab-ring-key-export"
       - title: hab ring key generate
@@ -141,9 +141,9 @@ sidebar_links:
       link: "#plan-variables"
     - title: Plan Helper Functions
       link: "#utility-functions"
-    - title: Callbacks
+    - title: Build Phase Callbacks
       link: "#reference-callbacks"
-    - title: Hooks
+    - title: Application Lifecycle Hooks
       link: "#reference-hooks"
     - title: Mustache Helpers
       link: "#mustache-helpers"
@@ -191,5 +191,5 @@ sidebar_links:
       link: "#bootstrap-internals"
   - title: Contribute
     link: "/docs/contribute"
-  - title: Find .harts
+  - title: Explore Habitat Builder
     link: "https://bldr.habitat.sh/#/explore"
