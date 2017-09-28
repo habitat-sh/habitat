@@ -131,14 +131,14 @@ fn start(ui: &mut UI) -> Result<()> {
         }
         ("bldr", Some(matches)) => {
             match matches.subcommand() {
+                ("job", Some(m)) => {
+                    match m.subcommand() {
+                        ("start", Some(m)) => sub_bldr_job_start(ui, m)?,
+                        ("promote", Some(m)) => sub_bldr_job_promote(ui, m)?,
+                        _ => unreachable!(),
+                    }
+                }
                 ("encrypt", Some(m)) => sub_bldr_encrypt(ui, m)?,
-                _ => unreachable!(),
-            }
-        }
-        ("job", Some(matches)) => {
-            match matches.subcommand() {
-                ("start", Some(m)) => sub_job_start(ui, m)?,
-                ("promote", Some(m)) => sub_job_promote(ui, m)?,
                 _ => unreachable!(),
             }
         }
@@ -395,20 +395,20 @@ fn sub_bldr_encrypt(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     command::bldr::encrypt::start(ui, &url, &content, &default_cache_key_path(Some(&*FS_ROOT)))
 }
 
-fn sub_job_start(ui: &mut UI, m: &ArgMatches) -> Result<()> {
+fn sub_bldr_job_start(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
     let url = bldr_url_from_matches(m);
     let group = m.is_present("GROUP");
     let token = auth_token_param_or_env(&m)?;
-    command::job::start::start(ui, &url, &ident, &token, group)
+    command::bldr::job::start::start(ui, &url, &ident, &token, group)
 }
 
-fn sub_job_promote(ui: &mut UI, m: &ArgMatches) -> Result<()> {
+fn sub_bldr_job_promote(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let url = bldr_url_from_matches(m);
     let group_id = m.value_of("GROUP_ID").unwrap(); // Required via clap
     let channel = m.value_of("CHANNEL").unwrap(); // Required via clap
     let token = auth_token_param_or_env(&m)?;
-    command::job::promote::start(ui, &url, &group_id, &channel, &token)
+    command::bldr::job::promote::start(ui, &url, &group_id, &channel, &token)
 }
 
 fn sub_plan_init(ui: &mut UI, m: &ArgMatches) -> Result<()> {
