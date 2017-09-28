@@ -639,10 +639,16 @@ fn download_latest_origin_secret_key(req: &mut Request) -> IronResult<Response> 
         }
         Err(err) => return Ok(render_net_error(&err)),
     }
-    match route_message::<OriginSecretKeyGet, OriginSecretKey>(req, &request) {
-        Ok(ref key) => Ok(render_json(status::Ok, key)),
-        Err(err) => Ok(render_net_error(&err)),
-    }
+    let key = match route_message::<OriginSecretKeyGet, OriginSecretKey>(req, &request) {
+        Ok(key) => key,
+        Err(err) => {
+            error!("Can't retrieve secret key file: {}", err);
+            return Ok(render_net_error(&err));
+        }
+    };
+
+    let xfilename = format!("{}-{}.sig.key", key.get_name(), key.get_revision());
+    download_content_as_file(key.get_body(), xfilename)
 }
 
 fn upload_origin_secret_key(req: &mut Request) -> IronResult<Response> {
@@ -1111,13 +1117,7 @@ fn download_latest_origin_key(req: &mut Request) -> IronResult<Response> {
     };
 
     let xfilename = format!("{}-{}.pub", key.get_name(), key.get_revision());
-    let mut response = Response::with((status::Ok, key.get_body()));
-    response.headers.set(ContentDisposition(
-        format!("attachment; filename=\"{}\"", xfilename),
-    ));
-    response.headers.set(XFileName(xfilename));
-    dont_cache_response(&mut response);
-    Ok(response)
+    download_content_as_file(key.get_body(), xfilename)
 }
 
 fn package_channels(req: &mut Request) -> IronResult<Response> {
@@ -2073,6 +2073,16 @@ fn ident_from_params(params: &Params) -> OriginPackageIdent {
         ident.set_release(rel.to_string());
     }
     ident
+}
+
+fn download_content_as_file(content: &[u8], filename: String) -> IronResult<Response> {
+    let mut response = Response::with((status::Ok, content));
+    response.headers.set(ContentDisposition(
+        format!("attachment; filename=\"{}\"", filename),
+    ));
+    response.headers.set(XFileName(filename));
+    dont_cache_response(&mut response);
+    Ok(response)
 }
 
 fn target_from_headers(user_agent_header: &UserAgent) -> result::Result<PackageTarget, Response> {
