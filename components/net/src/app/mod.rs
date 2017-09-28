@@ -295,11 +295,6 @@ where
                 ConnErr::Socket,
             )?;
         }
-        // Send REQ Socket addr
-        self.pipe_out.recv(&mut self.recv_buf, 0).unwrap();
-        self.router_sock.send(&self.recv_buf, zmq::SNDMORE).unwrap();
-        // Remove REQ's additional delimitter
-        self.pipe_out.recv(&mut self.recv_buf, 0).unwrap();
         proxy_message::<T>(
             &mut self.pipe_out,
             &mut self.router_sock,
