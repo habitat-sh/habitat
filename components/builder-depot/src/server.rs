@@ -366,6 +366,85 @@ fn write_archive(filename: &PathBuf, body: &mut Body) -> Result<PackageArchive> 
     Ok(PackageArchive::new(filename))
 }
 
+fn generate_origin_keys(req: &mut Request) -> IronResult<Response> {
+    debug!("Generate Origin Keys {:?}", req);
+    let session = req.extensions.get::<Authenticated>().unwrap().clone();
+    let params = req.extensions.get::<Router>().unwrap().clone();
+    let mut public_request = OriginPublicKeyCreate::new();
+    let mut secret_request = OriginSecretKeyCreate::new();
+    public_request.set_owner_id(session.get_id());
+    secret_request.set_owner_id(session.get_id());
+
+    let origin = match params.find("origin") {
+        Some(origin) => {
+            if !check_origin_access(req, session.get_id(), origin)? {
+                return Ok(Response::with(status::Forbidden));
+            }
+            match helpers::get_origin(req, origin) {
+                Ok(mut origin) => {
+                    public_request.set_name(origin.get_name().to_string());
+                    public_request.set_origin_id(origin.get_id());
+                    secret_request.set_name(origin.take_name());
+                    secret_request.set_origin_id(origin.get_id());
+                }
+                Err(err) => return Ok(render_net_error(&err)),
+            }
+            origin
+        }
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+
+    let pair = match SigKeyPair::generate_pair_for_origin(origin) {
+        Ok(pair) => pair,
+        Err(e) => {
+            error!("Unable to generate origin keys, err={:?}", e);
+            return Ok(Response::with(status::InternalServerError));
+        }
+    };
+    public_request.set_revision(pair.rev.clone());
+    public_request.set_body(
+        pair.to_public_string()
+            .expect("no public key in generated pair")
+            .into_bytes(),
+    );
+    secret_request.set_revision(pair.rev.clone());
+    secret_request.set_body(
+        pair.to_secret_string()
+            .expect("no secret key in generated pair")
+            .into_bytes(),
+    );
+
+    match route_message::<OriginPublicKeyCreate, OriginPublicKey>(req, &public_request) {
+        Ok(_) => {
+            log_event!(
+                req,
+                Event::OriginKeyUpload {
+                    origin: origin.to_string(),
+                    version: public_request.get_revision().to_string(),
+                    account: session.get_id().to_string(),
+                }
+            );
+        }
+        Err(err) => return Ok(render_net_error(&err)),
+    };
+
+    match route_message::<OriginSecretKeyCreate, OriginSecretKey>(req, &secret_request) {
+        Ok(_) => {
+            log_event!(
+                req,
+                Event::OriginSecretKeyUpload {
+                    origin: origin.to_string(),
+                    version: secret_request.take_revision(),
+                    account: session.get_id().to_string(),
+                }
+            );
+        }
+        Err(err) => return Ok(render_net_error(&err)),
+    };
+
+    Ok(Response::with(status::Created))
+}
+
 fn upload_origin_key(req: &mut Request) -> IronResult<Response> {
     debug!("Upload Origin Public Key {:?}", req);
     // TODO: SA - Eliminate need to clone the session and params
@@ -2055,6 +2134,9 @@ where
         origin_keys: get "/origins/:origin/keys" => list_origin_keys,
         origin_key_latest: get "/origins/:origin/keys/latest" => download_latest_origin_key,
         origin_key: get "/origins/:origin/keys/:revision" => download_origin_key,
+        origin_key_generate: post "/origins/:origin/keys" => {
+            XHandler::new(generate_origin_keys).before(basic.clone())
+        },
         origin_key_create: post "/origins/:origin/keys/:revision" => {
             XHandler::new(upload_origin_key).before(basic.clone())
         },
