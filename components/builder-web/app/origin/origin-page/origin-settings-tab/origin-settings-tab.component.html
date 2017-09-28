@@ -4,8 +4,8 @@
     Build artifacts (.hart files) can be made available to all Habitat
     users or restricted to members of this origin.
   </p>
-  <md-radio-group class="pkg-selector-wrapper" [(ngModel)]="originPrivacy" (change)="updatePrivacy($event)">
-    <md-radio-button class="pkg-privacy-selector" [ngClass]="{'active': originPrivacy === 'public'}" value="public">
+  <md-radio-group class="pkg-selector-wrapper" [(ngModel)]="privacy" (change)="update($event)">
+    <md-radio-button class="pkg-privacy-selector" [class.active]="privacy === 'public'" value="public">
       <h4>
         Public packages
         <hab-icon symbol="public"></hab-icon>
@@ -14,7 +14,7 @@
           can be utilized by any user.
       </span>
     </md-radio-button>
-    <md-radio-button class="pkg-privacy-selector" [ngClass]="{'active': originPrivacy === 'private'}" value="private">
+    <md-radio-button class="pkg-privacy-selector" [class.active]="privacy === 'private'" value="private">
       <h4>
         Private packages
         <hab-icon symbol="lock"></hab-icon>
@@ -24,7 +24,4 @@
       </span>
     </md-radio-button>
   </md-radio-group>
-  <div>
-      <a md-raised-button color="primary" (click)="openDialog()">Add Docker Credentials</a>
-  </div>
 </div>

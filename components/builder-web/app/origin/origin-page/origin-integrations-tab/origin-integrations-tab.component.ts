@@ -14,7 +14,7 @@
 
 import { Component, OnInit } from "@angular/core";
 import { AppStore } from "../../../AppStore";
-import { deleteDockerIntegration, setDockerIntegration, setOriginPrivacySettings } from "../../../actions";
+import { deleteDockerIntegration, setDockerIntegration } from "../../../actions";
 import { MdDialog, MdDialogRef } from "@angular/material";
 import { DockerCredentialsFormDialog } from "../docker-credentials-form/docker-credentials-form.dialog";
 import { IntegrationDeleteConfirmDialog } from "./dialog/integration-delete-confirm/integration-delete-confirm.dialog";
@@ -66,9 +66,5 @@ export class OriginIntegrationsTabComponent {
           this.store.dispatch(deleteDockerIntegration(this.origin.name, this.token, name));
         }
       });
-  }
-
-  updatePrivacy(event) {
-    this.store.dispatch(setOriginPrivacySettings(event.value));
   }
 }
