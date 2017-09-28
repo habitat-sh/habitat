@@ -37,7 +37,7 @@ export const SET_ORIGIN_USER_INVITE_ERROR_MESSAGE = "SET_ORIGIN_USER_INVITE_ERRO
 export const SET_ORIGIN_INTEGRATION_SAVE_ERROR_MESSAGE = "SET_ORIGIN_INTEGRATION_SAVE_ERROR_MESSAGE";
 export const TOGGLE_ORIGIN_PICKER = "TOGGLE_ORIGIN_PICKER";
 export const SET_PACKAGE_COUNT_FOR_ORIGIN = "SET_PACKAGE_COUNT_FOR_ORIGIN";
-export const SET_ORIGIN_PRIVACY_SETTINGS = "SET_ORIGIN_PRIVACY_SETTINGS";
+export const UPDATE_ORIGIN = "UPDATE_ORIGIN";
 
 export function acceptOriginInvitation(invitationId: string, originName: string, token: string) {
     return dispatch => {
@@ -220,9 +220,23 @@ export function setDockerIntegration(origin: string, credentials, token: string)
     };
 }
 
-export function setOriginPrivacySettings(privacySetting) {
+export function updateOrigin(origin: any, token: string) {
     return dispatch => {
-        // ED TODO: Add API call here to set new origin privacy settings when it's implemented
+        new BuilderApiClient(token).updateOrigin(origin)
+            .then(() => {
+                dispatch(addNotification({
+                    title: "Origin settings saved",
+                    type: SUCCESS
+                }));
+                dispatch(fetchOrigin(origin.name));
+            })
+            .catch(error => {
+                dispatch(addNotification({
+                    title: "Error saving origin settings",
+                    body: error.message,
+                    type: DANGER
+                }));
+            });
     };
 }
 

@@ -67,7 +67,7 @@ export const SET_ORIGIN_PUBLIC_KEY_UPLOAD_ERROR_MESSAGE = originActions.SET_ORIG
 export const SET_ORIGIN_USER_INVITE_ERROR_MESSAGE = originActions.SET_ORIGIN_USER_INVITE_ERROR_MESSAGE;
 export const SET_ORIGIN_INTEGRATION_SAVE_ERROR_MESSAGE = originActions.SET_ORIGIN_INTEGRATION_SAVE_ERROR_MESSAGE;
 export const TOGGLE_ORIGIN_PICKER = originActions.TOGGLE_ORIGIN_PICKER;
-export const SET_ORIGIN_PRIVACY_SETTINGS = originActions.SET_ORIGIN_PRIVACY_SETTINGS;
+export const UPDATE_ORIGIN = originActions.UPDATE_ORIGIN;
 
 export const CLEAR_PACKAGES = packageActions.CLEAR_PACKAGES;
 export const CLEAR_LATEST_IN_CHANNEL = packageActions.CLEAR_LATEST_IN_CHANNEL;
@@ -152,9 +152,9 @@ export const fetchMyOriginInvitations = originActions.fetchMyOriginInvitations;
 export const inviteUserToOrigin = originActions.inviteUserToOrigin;
 export const toggleOriginPicker = originActions.toggleOriginPicker;
 export const setCurrentOrigin = originActions.setCurrentOrigin;
+export const updateOrigin = originActions.updateOrigin;
 export const uploadOriginPrivateKey = originActions.uploadOriginPrivateKey;
 export const uploadOriginPublicKey = originActions.uploadOriginPublicKey;
-export const setOriginPrivacySettings = originActions.setOriginPrivacySettings;
 export const setDockerIntegration = originActions.setDockerIntegration;
 
 export const fetchDashboardRecent = packageActions.fetchDashboardRecent;

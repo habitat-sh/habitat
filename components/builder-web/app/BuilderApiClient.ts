@@ -394,4 +394,22 @@ export class BuilderApiClient {
             .catch(error => reject(error));
         });
     }
+
+    public updateOrigin(origin: any) {
+        return new Promise((resolve, reject) => {
+            fetch(`${this.urlPrefix}/depot/origins/${origin.name}`, {
+                headers: this.headers,
+                method: "PUT",
+                body: JSON.stringify(origin)
+            })
+            .then(response => {
+                if (response.ok) {
+                    resolve();
+                } else {
+                    reject(new Error(response.statusText));
+                }
+            })
+            .catch(error => reject(error));
+        });
+    }
 }

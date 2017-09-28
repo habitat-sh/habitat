@@ -14,32 +14,29 @@
 
 import { Component } from "@angular/core";
 import { AppStore } from "../../../AppStore";
-import { setOriginPrivacySettings } from "../../../actions/index";
-import { MdDialog, MdDialogRef } from "@angular/material";
-import { DockerCredentialsFormDialog } from "../docker-credentials-form/docker-credentials-form.dialog";
+import { updateOrigin } from "../../../actions/index";
 
 @Component({
     template: require("./origin-settings-tab.component.html")
 })
 
 export class OriginSettingsTabComponent {
-  constructor(private store: AppStore, private dialog: MdDialog) {}
 
-  get originPrivacy() {
-    return this.store.getState().origins.current.default_package_visibility;
+  constructor(private store: AppStore) {}
+
+  get origin() {
+    return this.store.getState().origins.current;
   }
 
-  updatePrivacy(event) {
-    this.store.dispatch(setOriginPrivacySettings(event.value));
+  get privacy() {
+    return this.origin.default_package_visibility;
   }
 
-  openDialog(): void {
-    let dialogRef = this.dialog.open(DockerCredentialsFormDialog, {
-      width: "480px",
-    });
+  get token() {
+    return this.store.getState().gitHub.authToken;
+  }
 
-    dialogRef.afterClosed().subscribe(result => {
-      console.log(`The dialog was closed with: ${result}`);
-    });
+  update(event) {
+    this.store.dispatch(updateOrigin({ name: this.origin.name, default_package_visibility: event.value }, this.token));
   }
 }
