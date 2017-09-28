@@ -1512,15 +1512,7 @@ fn list_packages(req: &mut Request) -> IronResult<Response> {
             dont_cache_response(&mut response);
             Ok(response)
         }
-        Err(err) => {
-            match err.get_code() {
-                ErrCode::ENTITY_NOT_FOUND => Ok(Response::with((status::NotFound))),
-                _ => {
-                    error!("list_packages:2, err={:?}", err);
-                    Ok(Response::with(status::InternalServerError))
-                }
-            }
-        }
+        Err(err) => Ok(render_net_error(&err)),
     }
 }
 
@@ -1629,15 +1621,7 @@ fn delete_channel(req: &mut Request) -> IronResult<Response> {
                 }
             }
         }
-        Err(err) => {
-            match err.get_code() {
-                ErrCode::ENTITY_NOT_FOUND => Ok(Response::with((status::NotFound))),
-                _ => {
-                    error!("delete_channel:1, err={:?}", err);
-                    Ok(Response::with(status::InternalServerError))
-                }
-            }
-        }
+        Err(err) => Ok(render_net_error(&err)),
     }
 }
 
@@ -1679,15 +1663,7 @@ fn show_package(req: &mut Request) -> IronResult<Response> {
                 &request,
             ) {
                 Ok(id) => ident = id.into(),
-                Err(err) => {
-                    match err.get_code() {
-                        ErrCode::ENTITY_NOT_FOUND => return Ok(Response::with((status::NotFound))),
-                        _ => {
-                            error!("show_package:2, err={:?}", err);
-                            return Ok(Response::with(status::InternalServerError));
-                        }
-                    }
-                }
+                Err(err) => return Ok(render_net_error(&err)),
             }
         }
 
@@ -1699,15 +1675,7 @@ fn show_package(req: &mut Request) -> IronResult<Response> {
         }
         match route_message::<OriginChannelPackageGet, OriginPackage>(req, &request) {
             Ok(pkg) => render_package(req, &pkg, false, session_id),
-            Err(err) => {
-                match err.get_code() {
-                    ErrCode::ENTITY_NOT_FOUND => Ok(Response::with((status::NotFound))),
-                    _ => {
-                        error!("show_package:3, err={:?}", err);
-                        Ok(Response::with(status::InternalServerError))
-                    }
-                }
-            }
+            Err(err) => Ok(render_net_error(&err)),
         }
     } else {
         if !qualified {
@@ -1722,15 +1690,7 @@ fn show_package(req: &mut Request) -> IronResult<Response> {
             }
             match route_message::<OriginPackageLatestGet, OriginPackageIdent>(req, &request) {
                 Ok(id) => ident = id.into(),
-                Err(err) => {
-                    match err.get_code() {
-                        ErrCode::ENTITY_NOT_FOUND => return Ok(Response::with((status::NotFound))),
-                        _ => {
-                            error!("show_package:5, err={:?}", err);
-                            return Ok(Response::with(status::InternalServerError));
-                        }
-                    }
-                }
+                Err(err) => return Ok(render_net_error(&err)),
             }
         }
 
@@ -1749,15 +1709,7 @@ fn show_package(req: &mut Request) -> IronResult<Response> {
                     render_package(req, &pkg, false, session_id)
                 }
             }
-            Err(err) => {
-                match err.get_code() {
-                    ErrCode::ENTITY_NOT_FOUND => Ok(Response::with((status::NotFound))),
-                    _ => {
-                        error!("show_package:6, err={:?}", err);
-                        Ok(Response::with(status::InternalServerError))
-                    }
-                }
-            }
+            Err(err) => Ok(render_net_error(&err)),
         }
     }
 }
@@ -1992,26 +1944,10 @@ fn demote_package(req: &mut Request) -> IronResult<Response> {
                         }
                     }
                 }
-                Err(err) => {
-                    match err.get_code() {
-                        ErrCode::ENTITY_NOT_FOUND => Ok(Response::with((status::NotFound))),
-                        _ => {
-                            error!("demote:2, err={:?}", err);
-                            Ok(Response::with(status::InternalServerError))
-                        }
-                    }
-                }
+                Err(err) => Ok(render_net_error(&err)),
             }
         }
-        Err(err) => {
-            match err.get_code() {
-                ErrCode::ENTITY_NOT_FOUND => Ok(Response::with((status::NotFound))),
-                _ => {
-                    error!("demote_package:1, err={:?}", err);
-                    Ok(Response::with(status::InternalServerError))
-                }
-            }
-        }
+        Err(err) => Ok(render_net_error(&err)),
     }
 }
 
