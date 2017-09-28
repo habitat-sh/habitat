@@ -1,4 +1,4 @@
-# <a name="pkg-binds">Runtime Binding</a>
+# <a name="pkg-binds" id="pkg-binds" data-magellan-target="pkg-binds">Runtime Binding</a>
 
 *Runtime binding* in Habitat refers to the ability for one service group to connect to another forming a producer/consumer relationship where the consumer can use the producer's publicly available configuration to configure it's services at runtime. A [polymorphic relationship](https://en.wikipedia.org/wiki/Polymorphism_(computer_science)) is formed between these two service groups defined by a [dynamically-typed](https://en.wikipedia.org/wiki/Duck_typing) contract where the consumer specifies a generic name of the service it is consuming along with the configuration keys it expects the producer to export.
 
@@ -52,6 +52,6 @@ Referencing the examples above, if your application server defined `database` as
 
 would create a bind aliasing `database` to the `amnesia` service in the `default` service group.
 
-The service group passed to `--bind database:{service}.{group}` doesn't *need* to be the service `amnesia`. This bind can be any service as long as they export a configuration key for `port` and `ssl-port`. For example, if you have multiple service groups for PostgreSQL - perhaps you have a production and development environment - you could bind `database` to `postgresql.production` or `postgresql.development`. 
+The service group passed to `--bind database:{service}.{group}` doesn't *need* to be the service `amnesia`. This bind can be any service as long as they export a configuration key for `port` and `ssl-port`. For example, if you have multiple service groups for PostgreSQL - perhaps you have a production and development environment - you could bind `database` to `postgresql.production` or `postgresql.development`.
 
 You can declare bindings to multiple service groups in your templates by using the `--bind` option multiple times on the command line. This means if your web application named `app-server` supports multiple different database backends, you could even bind `database` to another, such as `redis.default` or `mysql.default`. Your service will not start if your package has declared a required bind and a value for it was not specified by `--bind`.

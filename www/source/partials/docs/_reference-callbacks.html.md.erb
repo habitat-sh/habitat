@@ -1,10 +1,10 @@
-# <a name="reference-callbacks">Callbacks</a>
+# <a name="reference-callbacks" id="reference-callbacks" data-magellan-target="reference-callbacks">Callbacks</a>
 When defining your plan, you have the flexibility to override the default behavior of Habitat in each part of the package building stage through a series of callbacks. To define a callback, simply create a shell function of the same name in your plan.sh file and then write your script. If you do not want to use the default callback behavior, you must override the callback and `return 0` in the function definition.
 
 These callbacks are listed in the order that they are called by the package build script.
 
 
-### do_begin() 
+### do_begin()
 There is an empty default implementation of this callback. You can use it to execute any arbitrary commands before anything else happens. Note that at this phase of the build, no dependencies are resolved, the `$PATH` and environment is not set, and no external source has been downloaded. For a phase that is more completely set up, see the `do_before()` phase.
 
 ### do_before()

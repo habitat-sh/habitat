@@ -1,4 +1,4 @@
-# <a name="use-packages">Using Habitat Packages</a>
+# <a name="using-packages" id="using-packages" data-magellan-target="using-packages">Using Habitat Packages</a>
 
 Habitat packages used to start services are run under the Habitat supervisor. At runtime, you can join supervisors together in a service group running the same topology, send configuration updates to that group, and more. You can also export the supervisor together with the package to an external immutable format, such as a Docker container.
 
@@ -47,17 +47,17 @@ Next use `hab svc load` to load one or more services into the supervisor for per
 
     $ sudo hab svc load yourorigin/yourname
 
-## Running a package on a virtual machine (VM) 
+## Running a package on a virtual machine (VM)
 
 After you have built the hart package, do the following:
 
-1. Spin up a Virtual Machine. 
+1. Spin up a Virtual Machine.
 2. Securely copy the .hart package from your local workstation onto the virtual machine. SCP is a widely-used tool to do this; however, you can also use FTP or whatever tool you use to copy things from your local workstation to a remote server.
 3. SSH into the virtual machine.
 4. In the virtual machine - run these commands:
 
      1. Install Habitat
-     
+
         ```
         $ curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh | sudo bash
         ```
@@ -76,7 +76,7 @@ After you have built the hart package, do the following:
         ```
 
      4. Start the package
-       
+
         ```
         $ sudo hab start your_origin/your_package
         ```

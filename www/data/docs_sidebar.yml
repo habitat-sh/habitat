@@ -1,6 +1,6 @@
 ---
 sidebar_links:
-- title: 
+- title:
   links:
   - title: Docs Home
     link: "/docs"
@@ -12,9 +12,9 @@ sidebar_links:
     - title: Installing Habitat
       link: "#install-habitat"
     - title: Install FAQ
-      link: "/docs/install-faq"
-    - title: Using Habitat
-      link: "#using-habitat"
+      link: "#install-faq"
+    - title: Using Habitat Packages
+      link: "#using-packages"
     - title: Service Groups
       link: "#service-groups"
     - title: Topologies
@@ -117,8 +117,8 @@ sidebar_links:
     - title: Kubernetes
       link: "#kubernetes"
     - title: "ECS and Habitat"
-      link: "#ecs-and-habitat"   
-    - title: "DCOS and Apache Mesos"
+      link: "#ecs-and-habitat"
+    - title: "Apache Mesos and DC/OS"
       link: "#mesos-dcos"
     - title: Core Contribution
       link: "#core-development"
@@ -128,7 +128,7 @@ sidebar_links:
       link: "#iterative-development"
     - title: Continuous Deployment
       link: "#continuous-deployment"
-    - title: "Binary Wrapper Packages"  
+    - title: "Binary Wrapper Packages"
       link: "#binary-wrapper"
   - title: Reference <span>&plus;</span>
     link: "/docs/reference"

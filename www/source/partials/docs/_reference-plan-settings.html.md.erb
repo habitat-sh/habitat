@@ -1,5 +1,5 @@
 
-# <a name="plan-settings">Plan settings</a>
+# <a name="plan-settings" id="plan-settings" data-magellan-target="plan-settings">Plan settings</a>
 The following settings are defined at the beginning of your plan. They specify basic information about your plan such as name, version, and dependencies.
 
 ### pkg_name
@@ -141,7 +141,7 @@ In this example, the corresponding default.toml file would have the following ke
     port = 443
 
 ### pkg_exposes
-**Optional**. An array of `pkg_exports` keys containing default values for the ports that this package exposes. These values are used as sensible defaults for other tools, such as when exporting a package to a container format. 
+**Optional**. An array of `pkg_exports` keys containing default values for the ports that this package exposes. These values are used as sensible defaults for other tools, such as when exporting a package to a container format.
 
   ~~~
   pkg_exposes=(port ssl-port)

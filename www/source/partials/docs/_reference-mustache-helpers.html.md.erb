@@ -1,4 +1,4 @@
-<h1 id="mustache-helpers" class="anchor">Mustache Helpers</h1>
+# <a href="mustache-helpers" id="mustache-helpers" data-magellan-target="mustache-helpers" class="anchor">Mustache Helpers</a>
 
 Habitat's templating flavour includes a number of useful helpers for writing configuration and hook files
 
@@ -138,7 +138,7 @@ must be used to create complete documents: you cannot insert a section of YAML
 into an existing YAML document with this helper.
 
 ### [strJoin](#join-helper)
-The `join` helper can be used to create a string with the variables in a list with a separator specified by you. For example, where `list: ["foo", "bar", "baz"]`, `{{strJoin list ","}}` would return `"foo,bar,baz"`. 
+The `join` helper can be used to create a string with the variables in a list with a separator specified by you. For example, where `list: ["foo", "bar", "baz"]`, `{{strJoin list ","}}` would return `"foo,bar,baz"`.
 
 You cannot join an object (e.g. `{{strJoin web}}`), but you could join the variables in an object (e.g. `{{strJoin web.list "/"}}`).
 

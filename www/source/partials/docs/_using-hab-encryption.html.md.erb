@@ -1,4 +1,4 @@
-# <a name="using-encryption">Supervisor and Encryption</a>
+# <a name="using-encryption" id="using-encryption" data-magellan-target="using-encryption">Supervisor and Encryption</a>
 
 By default, a supervisor will run with no security. It will communicate with other supervisors in cleartext, and it will allow any user to apply new configuration without authentication. While this is beneficial for quickly illustrating the concepts of Habitat, users will want to run production deployments of Habitat supervisor networks with more security.
 
@@ -63,7 +63,7 @@ As explained in the [security overview](/docs/internals-crypto), this process al
     ```
     $ hab start --org yourorg --group servicegroupname.example yourorigin/yourapp
     ```
-    
+
 4. Only users whose public keys that the supervisor already has in its cache will be allowed to reconfigure this service group. If you need to generate a user key pair, see the next section.
 
 ### Generating User Keys

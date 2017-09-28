@@ -1,4 +1,4 @@
-# <a name="ecs-and-habitat">Amazon ECS and Habitat</a>
+# <a name="ecs-and-habitat" id="ecs-and-habitat" data-magellan-target="ecs-and-habitat">Amazon ECS and Habitat</a>
 
 Amazon Web Services provides a container management service called [EC2 Container Service (ECS)](https://aws.amazon.com/ecs/). ECS provides a Docker registry, container hosting and tooling to make deploying Docker-based containers fairly straightforward. ECS will schedule and deploy  your Docker containers within a Task while Habitat manages the applications.
 
@@ -34,7 +34,7 @@ From the example, the ```mongo``` and ```national-parks``` services use the Dock
 
 The ```command``` entry for the National Parks Tomcat application allows the Habitat supervisor to ```--peer``` to the ```mongo``` gossip ring and ```--bind``` applies ```database``` entries to its Mongo configuration.
 
-## Additional Reading 
+## Additional Reading
 
 * [Blog: A Journey with Habitat on Amazon ECS, Part 1](blog/2017/09/a-journey-with-habitat-on-amazon-ecs-part1/)
 * [Blog: A Journey with Habitat on Amazon ECS, Part 2](blog/2017/09/a-journey-with-habitat-on-amazon-ecs-part2/)

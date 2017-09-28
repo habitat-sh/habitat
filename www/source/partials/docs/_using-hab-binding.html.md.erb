@@ -1,4 +1,4 @@
-# <a name="using-binding">Runtime Binding</a>
+# <a name="using-binding" id="using-binding" data-magellan-target="using-binding">Runtime Binding</a>
 
 *Runtime binding* in Habitat refers to the ability for one service group to connect to another forming a producer/consumer relationship where the consumer can use the producer's publicly available configuration to configure it's services at runtime. We form a [polymorphic relationship](https://en.wikipedia.org/wiki/Polymorphism_(computer_science)) between these two service groups defined by a [dynamically-typed](https://en.wikipedia.org/wiki/Duck_typing) contract where the consumer specifies a generic name of the service it is consuming along with the configuration keys it expects the producer to export.
 
