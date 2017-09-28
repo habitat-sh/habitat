@@ -1,9 +1,10 @@
 = wrap_layout :layout do
   .container__has-sidebar.container__tutorials
-    .subnav
+    .subnav#subnav
       = partial "/partials/tutorials/subnav"
     .row
-      .main-sidebar
+      .main-sidebar data-sticky-container=""
+        .sticky data-sticky="" data-margin-top="1" data-top-anchor="subnav:bottom" data-btm-anchor="main-footer:top"
           - if sidebar_layout == 'docs'
             form.main-sidebar--search action="/docs/search/" method="get"
               input.st-default-search-input type="text" placeholder="Search Documentation" name="q"

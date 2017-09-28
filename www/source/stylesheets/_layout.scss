@@ -122,6 +122,10 @@ body.body-article {
   &:last-child {
     margin-bottom: rem-calc(24);
   }
+
+  @include breakpoint(large) {
+    min-width: rem-calc(220);
+  }
 }
 
 .main-content__has-sidebar {
