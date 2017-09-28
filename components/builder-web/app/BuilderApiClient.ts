@@ -344,48 +344,54 @@ export class BuilderApiClient {
         });
     }
 
-    public getDockerHubCredentials(originName: string) {
+    public getDockerIntegration(originName: string) {
         return new Promise((resolve, reject) => {
             fetch(`${this.urlPrefix}/depot/origins/${originName}/integrations/docker/names`, {
-                headers: this.headers,
-            }).then(response => {
+                headers: this.headers
+            })
+            .then(response => {
                 if (response.ok) {
                     resolve(response.json());
                 } else {
                     reject(new Error(response.statusText));
                 }
-            }).catch(error => reject(error));
+            })
+            .catch(error => reject(error));
         });
     }
 
-    public addDockerHubCredentials(originName: string, credentials) {
+    public setDockerIntegration(originName: string, credentials) {
         return new Promise((resolve, reject) => {
             fetch(`${this.urlPrefix}/depot/origins/${originName}/integrations/docker/docker`, {
                 headers: this.headers,
                 method: "PUT",
                 body: JSON.stringify(credentials)
-            }).then(response => {
+            })
+            .then(response => {
                 if (response.ok) {
-                    resolve(response.json());
+                    resolve();
                 } else {
                     reject(new Error(response.statusText));
                 }
-            }).catch(error => reject(error));
+            })
+            .catch(error => reject(error));
         });
     }
 
-    public deleteDockerHubCredentials(originName: string) {
+    public deleteDockerIntegration(origin: string, name: string) {
         return new Promise((resolve, reject) => {
-            fetch(`${this.urlPrefix}/depot/origins/${originName}/integrations/docker/docker`, {
+            fetch(`${this.urlPrefix}/depot/origins/${origin}/integrations/docker/${name}`, {
                 headers: this.headers,
                 method: "DELETE",
-            }).then(response => {
+            })
+            .then(response => {
                 if (response.ok) {
-                    resolve(response.json());
+                    resolve();
                 } else {
                     reject(new Error(response.statusText));
                 }
-            }).catch(error => reject(error));
+            })
+            .catch(error => reject(error));
         });
     }
 }

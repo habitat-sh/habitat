@@ -32,10 +32,8 @@ export const POPULATE_GITHUB_REPOS = gitHubActions.POPULATE_GITHUB_REPOS;
 export const POPULATE_GITHUB_USER_DATA = gitHubActions.POPULATE_GITHUB_USER_DATA;
 export const RESET_GITHUB_ORGS = gitHubActions.RESET_GITHUB_ORGS;
 export const RESET_GITHUB_REPOS = gitHubActions.RESET_GITHUB_REPOS;
-export const SET_GITHUB_ORGS_LOADING_FLAG =
-    gitHubActions.SET_GITHUB_ORGS_LOADING_FLAG;
-export const SET_GITHUB_REPOS_LOADING_FLAG =
-    gitHubActions.SET_GITHUB_REPOS_LOADING_FLAG;
+export const SET_GITHUB_ORGS_LOADING_FLAG = gitHubActions.SET_GITHUB_ORGS_LOADING_FLAG;
+export const SET_GITHUB_REPOS_LOADING_FLAG = gitHubActions.SET_GITHUB_REPOS_LOADING_FLAG;
 export const SET_GITHUB_AUTH_STATE = gitHubActions.SET_GITHUB_AUTH_STATE;
 export const SET_GITHUB_AUTH_TOKEN = gitHubActions.SET_GITHUB_AUTH_TOKEN;
 export const SET_SELECTED_GITHUB_ORG = gitHubActions.SET_SELECTED_GITHUB_ORG;
@@ -51,35 +49,23 @@ export const STREAM_BUILD_LOG = buildActions.STREAM_BUILD_LOG;
 export const ADD_NOTIFICATION = notificationActions.ADD_NOTIFICATION;
 export const REMOVE_NOTIFICATION = notificationActions.REMOVE_NOTIFICATION;
 
+export const CLEAR_DOCKER_INTEGRATIONS = originActions.CLEAR_DOCKER_INTEGRATIONS;
 export const POPULATE_MY_ORIGINS = originActions.POPULATE_MY_ORIGINS;
 export const SET_PACKAGE_COUNT_FOR_ORIGIN = originActions.SET_PACKAGE_COUNT_FOR_ORIGIN;
-export const POPULATE_MY_ORIGIN_INVITATIONS =
-    originActions.POPULATE_MY_ORIGIN_INVITATIONS;
-export const POPULATE_ORIGIN_INVITATIONS =
-    originActions.POPULATE_ORIGIN_INVITATIONS;
-export const POPULATE_ORIGIN_MEMBERS =
-    originActions.POPULATE_ORIGIN_MEMBERS;
-export const POPULATE_ORIGIN_PUBLIC_KEYS =
-    originActions.POPULATE_ORIGIN_PUBLIC_KEYS;
-export const POPULATE_ORIGIN_INTEGRATIONS =
-    originActions.POPULATE_ORIGIN_INTEGRATIONS;
+export const POPULATE_MY_ORIGIN_INVITATIONS = originActions.POPULATE_MY_ORIGIN_INVITATIONS;
+export const POPULATE_ORIGIN_INVITATIONS = originActions.POPULATE_ORIGIN_INVITATIONS;
+export const POPULATE_ORIGIN_MEMBERS = originActions.POPULATE_ORIGIN_MEMBERS;
+export const POPULATE_ORIGIN_PUBLIC_KEYS = originActions.POPULATE_ORIGIN_PUBLIC_KEYS;
+export const POPULATE_ORIGIN_DOCKER_INTEGRATIONS = originActions.POPULATE_ORIGIN_DOCKER_INTEGRATIONS;
 export const SET_CURRENT_ORIGIN = originActions.SET_CURRENT_ORIGIN;
-export const SET_CURRENT_ORIGIN_CREATING_FLAG =
-    originActions.SET_CURRENT_ORIGIN_CREATING_FLAG;
-export const SET_CURRENT_ORIGIN_ADDING_PRIVATE_KEY =
-    originActions.SET_CURRENT_ORIGIN_ADDING_PRIVATE_KEY;
-export const SET_CURRENT_ORIGIN_ADDING_PUBLIC_KEY =
-    originActions.SET_CURRENT_ORIGIN_ADDING_PUBLIC_KEY;
-export const SET_CURRENT_ORIGIN_LOADING =
-    originActions.SET_CURRENT_ORIGIN_LOADING;
-export const SET_ORIGIN_PRIVATE_KEY_UPLOAD_ERROR_MESSAGE =
-    originActions.SET_ORIGIN_PRIVATE_KEY_UPLOAD_ERROR_MESSAGE;
-export const SET_ORIGIN_PUBLIC_KEY_UPLOAD_ERROR_MESSAGE =
-    originActions.SET_ORIGIN_PUBLIC_KEY_UPLOAD_ERROR_MESSAGE;
-export const SET_ORIGIN_USER_INVITE_ERROR_MESSAGE =
-    originActions.SET_ORIGIN_USER_INVITE_ERROR_MESSAGE;
-export const SET_ORIGIN_INTEGRATION_SAVE_ERROR_MESSAGE =
-    originActions.SET_ORIGIN_INTEGRATION_SAVE_ERROR_MESSAGE;
+export const SET_CURRENT_ORIGIN_CREATING_FLAG = originActions.SET_CURRENT_ORIGIN_CREATING_FLAG;
+export const SET_CURRENT_ORIGIN_ADDING_PRIVATE_KEY = originActions.SET_CURRENT_ORIGIN_ADDING_PRIVATE_KEY;
+export const SET_CURRENT_ORIGIN_ADDING_PUBLIC_KEY = originActions.SET_CURRENT_ORIGIN_ADDING_PUBLIC_KEY;
+export const SET_CURRENT_ORIGIN_LOADING = originActions.SET_CURRENT_ORIGIN_LOADING;
+export const SET_ORIGIN_PRIVATE_KEY_UPLOAD_ERROR_MESSAGE = originActions.SET_ORIGIN_PRIVATE_KEY_UPLOAD_ERROR_MESSAGE;
+export const SET_ORIGIN_PUBLIC_KEY_UPLOAD_ERROR_MESSAGE = originActions.SET_ORIGIN_PUBLIC_KEY_UPLOAD_ERROR_MESSAGE;
+export const SET_ORIGIN_USER_INVITE_ERROR_MESSAGE = originActions.SET_ORIGIN_USER_INVITE_ERROR_MESSAGE;
+export const SET_ORIGIN_INTEGRATION_SAVE_ERROR_MESSAGE = originActions.SET_ORIGIN_INTEGRATION_SAVE_ERROR_MESSAGE;
 export const TOGGLE_ORIGIN_PICKER = originActions.TOGGLE_ORIGIN_PICKER;
 export const SET_ORIGIN_PRIVACY_SETTINGS = originActions.SET_ORIGIN_PRIVACY_SETTINGS;
 
@@ -95,8 +81,7 @@ export const SET_CURRENT_PACKAGE_VERSIONS = packageActions.SET_CURRENT_PACKAGE_V
 export const SET_LATEST_IN_CHANNEL = packageActions.SET_LATEST_IN_CHANNEL;
 export const SET_LATEST_PACKAGE = packageActions.SET_LATEST_PACKAGE;
 export const SET_PACKAGES_NEXT_RANGE = packageActions.SET_PACKAGES_NEXT_RANGE;
-export const SET_PACKAGES_SEARCH_QUERY =
-    packageActions.SET_PACKAGES_SEARCH_QUERY;
+export const SET_PACKAGES_SEARCH_QUERY = packageActions.SET_PACKAGES_SEARCH_QUERY;
 export const SET_PACKAGES_TOTAL_COUNT = packageActions.SET_PACKAGES_TOTAL_COUNT;
 
 export const SET_VISIBLE_PACKAGES = packageActions.SET_VISIBLE_PACKAGES;
@@ -155,7 +140,9 @@ export const removeNotification = notificationActions.removeNotification;
 
 export const acceptOriginInvitation = originActions.acceptOriginInvitation;
 export const createOrigin = originActions.createOrigin;
+export const deleteDockerIntegration = originActions.deleteDockerIntegration;
 export const ignoreOriginInvitation = originActions.ignoreOriginInvitation;
+export const fetchDockerIntegration = originActions.fetchDockerIntegration;
 export const fetchOrigin = originActions.fetchOrigin;
 export const fetchOriginInvitations = originActions.fetchOriginInvitations;
 export const fetchOriginMembers = originActions.fetchOriginMembers;
@@ -168,8 +155,7 @@ export const setCurrentOrigin = originActions.setCurrentOrigin;
 export const uploadOriginPrivateKey = originActions.uploadOriginPrivateKey;
 export const uploadOriginPublicKey = originActions.uploadOriginPublicKey;
 export const setOriginPrivacySettings = originActions.setOriginPrivacySettings;
-export const addDockerHubCredentials = originActions.addDockerHubCredentials;
-export const fetchIntegrations = originActions.fetchIntegrations;
+export const setDockerIntegration = originActions.setDockerIntegration;
 
 export const fetchDashboardRecent = packageActions.fetchDashboardRecent;
 export const fetchExplore = packageActions.fetchExplore;

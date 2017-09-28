@@ -5,9 +5,56 @@
   h3 {
     font-family: $heading-font-family;
     font-size: rem(12);
+    text-transform: uppercase;
+
+    hab-icon {
+      margin-right: 6px;
+    }
   }
 
   p {
     margin-bottom: 18px;
+  }
+
+  ul {
+    margin-top: 18px;
+    border-top: 1px solid $very-light-gray;
+
+    li {
+      @include row;
+      border-bottom: 1px solid $very-light-gray;
+      padding: 12px;
+      font-size: rem(12);
+
+      hab-icon {
+        width: 16px;
+        height: 16px;
+      }
+
+      .name {
+        @include span-columns(10);
+        font-weight: 600;
+
+        hab-icon {
+          margin-right: 6px;
+        }
+      }
+
+      .actions {
+        @include span-columns(2);
+        text-align: right;
+
+        hab-icon {
+          color: $hab-blue;
+          cursor: pointer;
+          margin-left: 12px;
+          transition: color .2s linear;
+
+          &:hover {
+            color: darken($hab-blue, 10%);
+          }
+        }
+      }
+    }
   }
 }

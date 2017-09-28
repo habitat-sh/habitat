@@ -18,28 +18,23 @@ import * as depotApi from "../depotApi";
 import { BuilderApiClient } from "../BuilderApiClient";
 import { parseKey } from "../util";
 
+export const CLEAR_DOCKER_INTEGRATIONS = "CLEAR_DOCKER_INTEGRATIONS";
+export const DELETE_DOCKER_INTEGRATION = "DELETE_DOCKER_INTEGRATION";
 export const POPULATE_MY_ORIGINS = "POPULATE_MY_ORIGINS";
 export const POPULATE_MY_ORIGIN_INVITATIONS = "POPULATE_MY_ORIGIN_INVITATIONS";
 export const POPULATE_ORIGIN_INVITATIONS = "POPULATE_ORIGIN_INVITATIONS";
 export const POPULATE_ORIGIN_MEMBERS = "POPULATE_ORIGIN_MEMBERS";
 export const POPULATE_ORIGIN_PUBLIC_KEYS = "POPULATE_ORIGIN_PUBLIC_KEYS";
-export const POPULATE_ORIGIN_INTEGRATIONS = "POPULATE_ORIGIN_INTEGRATIONS";
+export const POPULATE_ORIGIN_DOCKER_INTEGRATIONS = "POPULATE_ORIGIN_DOCKER_INTEGRATIONS";
 export const SET_CURRENT_ORIGIN = "SET_CURRENT_ORIGIN";
-export const SET_CURRENT_ORIGIN_CREATING_FLAG =
-    "SET_CURRENT_ORIGIN_CREATING_FLAG";
+export const SET_CURRENT_ORIGIN_CREATING_FLAG = "SET_CURRENT_ORIGIN_CREATING_FLAG";
 export const SET_CURRENT_ORIGIN_LOADING = "SET_CURRENT_ORIGIN_LOADING";
-export const SET_CURRENT_ORIGIN_ADDING_PRIVATE_KEY =
-    "SET_CURRENT_ORIGIN_ADDING_PRIVATE_KEY";
-export const SET_CURRENT_ORIGIN_ADDING_PUBLIC_KEY =
-    "SET_CURRENT_ORIGIN_ADDING_PUBLIC_KEY";
-export const SET_ORIGIN_PRIVATE_KEY_UPLOAD_ERROR_MESSAGE =
-    "SET_ORIGIN_PRIVATE_KEY_UPLOAD_ERROR_MESSAGE";
-export const SET_ORIGIN_PUBLIC_KEY_UPLOAD_ERROR_MESSAGE =
-    "SET_ORIGIN_PUBLIC_KEY_UPLOAD_ERROR_MESSAGE";
-export const SET_ORIGIN_USER_INVITE_ERROR_MESSAGE =
-    "SET_ORIGIN_USER_INVITE_ERROR_MESSAGE";
-export const SET_ORIGIN_INTEGRATION_SAVE_ERROR_MESSAGE =
-    "SET_ORIGIN_INTEGRATION_SAVE_ERROR_MESSAGE";
+export const SET_CURRENT_ORIGIN_ADDING_PRIVATE_KEY = "SET_CURRENT_ORIGIN_ADDING_PRIVATE_KEY";
+export const SET_CURRENT_ORIGIN_ADDING_PUBLIC_KEY = "SET_CURRENT_ORIGIN_ADDING_PUBLIC_KEY";
+export const SET_ORIGIN_PRIVATE_KEY_UPLOAD_ERROR_MESSAGE = "SET_ORIGIN_PRIVATE_KEY_UPLOAD_ERROR_MESSAGE";
+export const SET_ORIGIN_PUBLIC_KEY_UPLOAD_ERROR_MESSAGE = "SET_ORIGIN_PUBLIC_KEY_UPLOAD_ERROR_MESSAGE";
+export const SET_ORIGIN_USER_INVITE_ERROR_MESSAGE = "SET_ORIGIN_USER_INVITE_ERROR_MESSAGE";
+export const SET_ORIGIN_INTEGRATION_SAVE_ERROR_MESSAGE = "SET_ORIGIN_INTEGRATION_SAVE_ERROR_MESSAGE";
 export const TOGGLE_ORIGIN_PICKER = "TOGGLE_ORIGIN_PICKER";
 export const SET_PACKAGE_COUNT_FOR_ORIGIN = "SET_PACKAGE_COUNT_FOR_ORIGIN";
 export const SET_ORIGIN_PRIVACY_SETTINGS = "SET_ORIGIN_PRIVACY_SETTINGS";
@@ -188,25 +183,39 @@ export function inviteUserToOrigin(username: string, origin: string, token: stri
     };
 }
 
-
-export function addDockerHubCredentials(origin: string, credentials, token: string) {
+export function deleteDockerIntegration(origin: string, token: string, name: string) {
     return dispatch => {
-        new BuilderApiClient(token).addDockerHubCredentials(origin, credentials).
-            then(response => {
-                dispatch(fetchIntegrations(origin, token));
-            }).catch(error => {
-                dispatch(setOriginIntegrationSaveErrorMessage(error.message));
+        new BuilderApiClient(token).deleteDockerIntegration(origin, name)
+            .then(response => {
+                dispatch(fetchDockerIntegration(origin, token));
+            })
+            .catch(error => {
+                dispatch(populateDockerIntegrations(undefined, error.message));
             });
     };
 }
 
-export function fetchIntegrations(origin: string, token: string) {
+export function fetchDockerIntegration(origin: string, token: string) {
     return dispatch => {
-        new BuilderApiClient(token).getDockerHubCredentials(origin).
-            then(response => {
-                dispatch(populateIntegrations(response));
-            }).catch(error => {
-                dispatch(populateIntegrations(undefined, error.message));
+        dispatch(clearDockerIntegration());
+        new BuilderApiClient(token).getDockerIntegration(origin)
+            .then(response => {
+                dispatch(populateDockerIntegrations(response));
+            })
+            .catch(error => {
+                dispatch(populateDockerIntegrations(undefined, error.message));
+            });
+    };
+}
+
+export function setDockerIntegration(origin: string, credentials, token: string) {
+    return dispatch => {
+        new BuilderApiClient(token).setDockerIntegration(origin, credentials)
+            .then(() => {
+                dispatch(fetchDockerIntegration(origin, token));
+            })
+            .catch(error => {
+                dispatch(setOriginIntegrationSaveErrorMessage(error.message));
             });
     };
 }
@@ -230,6 +239,12 @@ export function fetchOriginsPackageCount(origins) {
                     dispatch(populatePackageCountForOrigin(error.message));
                 });
         });
+    };
+}
+
+function clearDockerIntegration() {
+    return {
+        type: CLEAR_DOCKER_INTEGRATIONS
     };
 }
 
@@ -273,9 +288,9 @@ function populateOriginPublicKeys(payload, error = undefined) {
     };
 }
 
-function populateIntegrations(payload, error = undefined) {
+function populateDockerIntegrations(payload, error = undefined) {
     return {
-        type: POPULATE_ORIGIN_INTEGRATIONS,
+        type: POPULATE_ORIGIN_DOCKER_INTEGRATIONS,
         payload,
         error
     };
