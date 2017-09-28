@@ -145,10 +145,10 @@ sidebar_links:
       link: "#reference-callbacks"
     - title: Application Lifecycle Hooks
       link: "#reference-hooks"
-    - title: Mustache Helpers
-      link: "#mustache-helpers"
-    - title: Runtime Settings
-      link: "#runtime-settings"
+    - title: Handlebars Helpers
+      link: "#handlebars-helpers"
+    - title: Template Data
+      link: "#template-data"
     - title: Package Contents
       link: "#package-contents"
     - title: Supervisor Log Keys

@@ -1,10 +1,10 @@
-# <a name="runtime-settings" id="runtime-settings" data-magellan-target="runtime-settings">Runtime settings</a>
-The following settings can be interrogated from the supervisor during a Habitat service's lifecycle. This means that you can use these settings in any of the plan hooks, such as init, or run, and also in any templatized configuration file for your application or service.
+# <a name="template-data" id="template-data" data-magellan-target="template-data">Template Data</a>
+The following data can be interrogated at runtime within your application lifecycle hooks or templated config files. This means that you can use these settings in any of the plan hooks, such as init, or run, and also in any templatized configuration file for your application or service.
 
-These configuration settings are referenced using the [Handlebars.js](https://github.com/wycats/handlebars.js/) version of [mustache-style](https://mustache.github.io/mustache.5.html) tags. For an example on how these settings are used in plan hooks, see [Add Health Monitoring to a Plan](/tutorials/sample-app/mac/add-health-check-hook/) in the getting started tutorial.
+This template data is referenced using the [Handlebars.js](https://github.com/wycats/handlebars.js/) version of [mustache-style](https://mustache.github.io/mustache.5.html) tags. For an example on how these settings are used in plan hooks, see [Add Health Monitoring to a Plan](/tutorials/sample-app/mac/add-health-check-hook/) in the getting started tutorial.
 
 ## sys
-These are service settings specified by Habitat and correspond to the network information of the running Habitat service. You can also query these values on a running Supervisor via the [Supervisor HTTP API](docs/run-packages-monitoring). Referencing this grouping of options in your hooks will follow standard mustache syntax like the following examples:
+This data is specified by Habitat and corresponds to the network information of the running Habitat service. You can also query these values on a running Supervisor via the [Supervisor HTTP API](docs/run-packages-monitoring). Referencing this grouping of options in your hooks will follow standard mustache syntax like the following examples:
 
 ```
 {{sys.version}}
@@ -40,7 +40,7 @@ These are service settings specified by Habitat and correspond to the network in
 : This is set to `true` if a Supervisor is being used as a permanent peer, to increase Ring network traffic stability.
 
 ## pkg
-These are package settings specified by Habitat and correspond to the the settings of the package when it was built and installed. Referencing this grouping of options in your hooks will follow standard mustache syntax like the following examples:
+This package data is specified by Habitat and correspond to the the settings of the package when it was built and installed. Referencing this grouping of options in your hooks will follow standard mustache syntax like the following examples:
 
 ```
 {{pkg.ident}}
@@ -121,6 +121,22 @@ These are package settings specified by Habitat and correspond to the the settin
 - `svc_group` if specified in the plan
 - `hab` if the group exists
 - the effective group id
+
+## bind
+This template data consists of any optional or required binds specified within your plan.sh. Referencing this grouping of options in your hooks will follow standard mustache syntax like the following examples:
+
+```
+{{bind.<bind_name>.members}}
+
+# For example in the case adding a 'database' binding to your plan
+{{bind.database.members}}
+```
+
+**first**
+: If the service group secified is running under a 'leader' topology this template variable will return the leader of the specified bind name. Otherwise, we simply return the first member.
+
+**members**
+: Returns the full dataset of members in the specified bind name. Typically used with an iterator to programmatically find a specific member. 
 
 ## cfg
 These are settings defined in your templatized configuration file. The values for those settings are pulled from the `default.toml` file included in your package. Referencing this grouping of options in your hooks will follow standard mustache syntax like the following example:
