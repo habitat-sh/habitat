@@ -419,6 +419,22 @@ impl Routable for OriginInvitationListResponse {
     }
 }
 
+impl Routable for OriginInvitationIgnoreRequest {
+    type H = InstaId;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(InstaId(self.get_invitation_id()))
+    }
+}
+
+impl Routable for OriginInvitationRescindRequest {
+    type H = InstaId;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(InstaId(self.get_invitation_id()))
+    }
+}
+
 impl Serialize for OriginInvitationListResponse {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
     where

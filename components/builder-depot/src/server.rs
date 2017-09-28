@@ -168,6 +168,84 @@ where
     }
 }
 
+pub fn rescind_invitation(req: &mut Request) -> IronResult<Response> {
+    let session = req.extensions.get::<Authenticated>().unwrap().clone();
+    let params = req.extensions.get::<Router>().unwrap().clone();
+    let origin = match params.find("origin") {
+        Some(origin) => origin,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+    let invitation = match params.find("invitation_id") {
+        Some(invitation) => invitation,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+    let invitation_id = match invitation.parse::<u64>() {
+        Ok(invitation_id) => invitation_id,
+        Err(e) => {
+            error!("Bad request; invitation ID did not parse into a u64, {}", e);
+            return Ok(Response::with(status::BadRequest));
+        }
+    };
+
+    debug!(
+        "Rescinding invitation id {} for user {} origin {}",
+        &invitation_id,
+        &session.get_id(),
+        &origin
+    );
+
+    let mut request = OriginInvitationRescindRequest::new();
+    request.set_invitation_id(invitation_id);
+    request.set_owner_id(session.get_id());
+
+    match route_message::<OriginInvitationRescindRequest, NetOk>(req, &request) {
+        Ok(_) => Ok(Response::with(status::NoContent)),
+        Err(err) => {
+            error!("Error rescinding invitation, {}", err);
+            Ok(render_net_error(&err))
+        }
+    }
+}
+
+pub fn ignore_invitation(req: &mut Request) -> IronResult<Response> {
+    let session = req.extensions.get::<Authenticated>().unwrap().clone();
+    let params = req.extensions.get::<Router>().unwrap().clone();
+    let origin = match params.find("origin") {
+        Some(origin) => origin,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+    let invitation = match params.find("invitation_id") {
+        Some(invitation) => invitation,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+    let invitation_id = match invitation.parse::<u64>() {
+        Ok(invitation_id) => invitation_id,
+        Err(e) => {
+            error!("Bad request; invitation ID did not parse into a u64, {}", e);
+            return Ok(Response::with(status::BadRequest));
+        }
+    };
+
+    debug!(
+        "Ignoring invitation id {} for user {} origin {}",
+        &invitation_id,
+        &session.get_id(),
+        &origin
+    );
+
+    let mut request = OriginInvitationIgnoreRequest::new();
+    request.set_invitation_id(invitation_id);
+    request.set_account_id(session.get_id());
+
+    match route_message::<OriginInvitationIgnoreRequest, NetOk>(req, &request) {
+        Ok(_) => Ok(Response::with(status::NoContent)),
+        Err(err) => {
+            error!("Error ignoring invitation, {}", err);
+            Ok(render_net_error(&err))
+        }
+    }
+}
+
 pub fn accept_invitation(req: &mut Request) -> IronResult<Response> {
     // TODO: SA - Eliminate need to clone the session and params
     let session = req.extensions.get::<Authenticated>().unwrap().clone();
@@ -193,11 +271,13 @@ pub fn accept_invitation(req: &mut Request) -> IronResult<Response> {
         &session.get_id(),
         &origin
     );
+
     let mut request = OriginInvitationAcceptRequest::new();
     request.set_account_id(session.get_id());
     request.set_invite_id(invitation_id);
     request.set_origin_name(origin.to_string());
     request.set_ignore(false);
+
     match route_message::<OriginInvitationAcceptRequest, NetOk>(req, &request) {
         Ok(_) => {
             log_event!(
@@ -224,21 +304,26 @@ pub fn invite_to_origin(req: &mut Request) -> IronResult<Response> {
         Some(origin) => origin,
         None => return Ok(Response::with(status::BadRequest)),
     };
+
     let user_to_invite = match params.find("username") {
         Some(username) => username,
         None => return Ok(Response::with(status::BadRequest)),
     };
+
     debug!(
         "Creating invitation for user {} origin {}",
         &user_to_invite,
         &origin
     );
+
     if !check_origin_access(req, session.get_id(), &origin)? {
         return Ok(Response::with(status::Forbidden));
     }
+
     let mut request = AccountGet::new();
     let mut invite_request = OriginInvitationCreate::new();
     request.set_name(user_to_invite.to_string());
+
     match route_message::<AccountGet, Account>(req, &request) {
         Ok(mut account) => {
             invite_request.set_account_id(account.get_id());
@@ -246,6 +331,7 @@ pub fn invite_to_origin(req: &mut Request) -> IronResult<Response> {
         }
         Err(err) => return Ok(render_net_error(&err)),
     };
+
     match helpers::get_origin(req, &origin) {
         Ok(mut origin) => {
             invite_request.set_origin_id(origin.get_id());
@@ -253,6 +339,7 @@ pub fn invite_to_origin(req: &mut Request) -> IronResult<Response> {
         }
         Err(err) => return Ok(render_net_error(&err)),
     }
+
     invite_request.set_owner_id(session.get_id());
 
     // store invitations in the originsrv
@@ -269,7 +356,13 @@ pub fn invite_to_origin(req: &mut Request) -> IronResult<Response> {
             );
             Ok(render_json(status::Created, &invitation))
         }
-        Err(err) => Ok(render_net_error(&err)),
+        Err(err) => {
+            if err.get_code() == ErrCode::ENTITY_CONFLICT {
+                Ok(Response::with(status::NoContent))
+            } else {
+                Ok(render_net_error(&err))
+            }
+        }
     }
 }
 
@@ -2161,17 +2254,18 @@ where
             XHandler::new(handlers::integrations::delete_origin_integration).before(basic.clone())
         },
 
-        // All of this API feels wrong to me.
-        // JW: To who ^? What should we change?
         origin_invitation_create: post "/origins/:origin/users/:username/invitations" => {
             XHandler::new(invite_to_origin).before(basic.clone())
         },
         origin_invitation_accept: put "/origins/:origin/invitations/:invitation_id" => {
             XHandler::new(accept_invitation).before(basic.clone())
         },
-        //origin_invitation_ignore: delete "/origins/:origin/invitations/:invitation_id" => {
-        //    XHandler::new(ignore_invitation).before(basic.clone())
-        //},
+        origin_invitation_ignore: put "/origins/:origin/invitations/:invitation_id/ignore" => {
+            XHandler::new(ignore_invitation).before(basic.clone())
+        },
+        origin_invitation_rescind: delete "/origins/:origin/invitations/:invitation_id" => {
+            XHandler::new(rescind_invitation).before(basic.clone())
+        },
         origin_invitations: get "/origins/:origin/invitations" => {
             XHandler::new(list_origin_invitations).before(basic.clone())
         },

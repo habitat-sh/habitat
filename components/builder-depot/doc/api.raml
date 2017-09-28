@@ -112,6 +112,57 @@ securitySchemes:
                 description: The origin already exists
             422:
                 description: Malformed origin in request body
+    /{origin}:
+        /users:
+            /{username}:
+                /invitations:
+                    post:
+                        description: Create an invitation to this origin for this user
+                        securedBy: [oauth_2_0]
+                        responses:
+                            201:
+                                description: Invitation created successfully
+                            204:
+                                description: Invitation creation request received
+                            400:
+                                description: No origin or username given
+                            401:
+                                description: You are not authorized to send invitations on behalf of this origin
+                            500:
+                                description: Internal server error
+        /invitations:
+            /{invitationId}:
+                put:
+                    description: Accept this invitation
+                    securedBy: [oauth_2_0]
+                    responses:
+                        204:
+                            description: Accepted the invitation
+                        400:
+                            description: No origin or invitation id given
+                        500:
+                            description: Internal server error
+                delete:
+                    description: Rescind an invitation that hasn't already been ignored
+                    securedBy: [oauth_2_0]
+                    responses:
+                        204:
+                            description: Invitation rescinded
+                        400:
+                            description: No origin or invitation id given
+                        500:
+                            description: Internal server error
+                /ignore:
+                    put:
+                        description: Ignore this invitation
+                        securedBy: [oauth_2_0]
+                        responses:
+                            204:
+                                description: Invitation ignored
+                            400:
+                                description: No origin or invitation id given
+                            500:
+                                description: Internal server error
     /{originId}:
         get:
             body:

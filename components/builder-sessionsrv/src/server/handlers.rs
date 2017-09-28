@@ -279,6 +279,43 @@ pub fn account_origin_invitation_accept(
     Ok(())
 }
 
+pub fn account_origin_invitation_ignore(
+    req: &mut Message,
+    conn: &mut RouteConn,
+    state: &mut ServerState,
+) -> SrvResult<()> {
+    let msg = req.parse::<proto::AccountOriginInvitationIgnoreRequest>()?;
+    match state.datastore.ignore_origin_invitation(&msg) {
+        Ok(()) => conn.route_reply(req, &net::NetOk::new())?,
+        Err(e) => {
+            let err = NetError::new(ErrCode::DATA_STORE, "ss:account-origin-invitation-ignore:1");
+            error!("{}, {}", e, err);
+            conn.route_reply(req, &*err)?;
+        }
+    }
+    Ok(())
+}
+
+pub fn account_origin_invitation_rescind(
+    req: &mut Message,
+    conn: &mut RouteConn,
+    state: &mut ServerState,
+) -> SrvResult<()> {
+    let msg = req.parse::<proto::AccountOriginInvitationRescindRequest>()?;
+    match state.datastore.rescind_origin_invitation(&msg) {
+        Ok(()) => conn.route_reply(req, &net::NetOk::new())?,
+        Err(e) => {
+            let err = NetError::new(
+                ErrCode::DATA_STORE,
+                "ss:account-origin-invitation-rescind:1",
+            );
+            error!("{}, {}", e, err);
+            conn.route_reply(req, &*err)?;
+        }
+    }
+    Ok(())
+}
+
 pub fn account_origin_create(
     req: &mut Message,
     conn: &mut RouteConn,

@@ -22,6 +22,7 @@ use db::async::{AsyncServer, EventOutcome};
 use db::migration::Migrator;
 use db::error::{Error as DbError, Result as DbResult};
 use hab_net::conn::{RouteClient, RouteConn};
+use hab_net::{ErrCode, NetError};
 use hab_core::package::PackageIdent;
 use postgres::rows::Rows;
 use protocol::{originsrv, sessionsrv, scheduler};
@@ -279,6 +280,94 @@ impl DataStore {
             "SELECT * FROM accept_origin_invitation_v1($1, $2)",
             &[&(oiar.get_invite_id() as i64), &oiar.get_ignore()],
         ).map_err(SrvError::OriginInvitationAccept)?;
+        tr.commit().map_err(SrvError::DbTransactionCommit)?;
+        Ok(())
+    }
+
+    pub fn ignore_origin_invitation(
+        &self,
+        conn: &mut RouteConn,
+        oiir: &originsrv::OriginInvitationIgnoreRequest,
+    ) -> SrvResult<()> {
+        let mut aoiir = sessionsrv::AccountOriginInvitationIgnoreRequest::new();
+        aoiir.set_account_id(oiir.get_account_id());
+        aoiir.set_invitation_id(oiir.get_invitation_id());
+
+        match conn.route::<sessionsrv::AccountOriginInvitationIgnoreRequest, NetOk>(&aoiir) {
+            Ok(_) => {
+                debug!("Updated session service; ignored invitation, {:?}", aoiir);
+            }
+            Err(e) => {
+                error!(
+                    "Failed to update session service on invitation ignore, {:?}, {:?}",
+                    aoiir,
+                    e
+                );
+                return Err(SrvError::from(e));
+            }
+        }
+
+        let conn = self.pool.get(oiir)?;
+        let tr = conn.transaction().map_err(SrvError::DbTransactionStart)?;
+        tr.execute(
+            "SELECT * FROM ignore_origin_invitation_v1($1, $2)",
+            &[
+                &(oiir.get_invitation_id() as i64),
+                &(oiir.get_account_id() as i64),
+            ],
+        ).map_err(SrvError::OriginInvitationIgnore)?;
+        tr.commit().map_err(SrvError::DbTransactionCommit)?;
+        Ok(())
+    }
+
+    pub fn rescind_origin_invitation(
+        &self,
+        conn: &mut RouteConn,
+        oirr: &originsrv::OriginInvitationRescindRequest,
+    ) -> SrvResult<()> {
+        let pconn = self.pool.get(oirr)?;
+        let mut aoirr = sessionsrv::AccountOriginInvitationRescindRequest::new();
+
+        let rows = &pconn
+            .query(
+                "SELECT * FROM get_origin_invitation_v1($1)",
+                &[&(oirr.get_invitation_id() as i64)],
+            )
+            .map_err(SrvError::OriginInvitationGet)?;
+
+        if rows.len() == 1 {
+            let row = rows.get(0);
+            let account_id: i64 = row.get("account_id");
+            aoirr.set_account_id(account_id as u64);
+        } else {
+            let err = NetError::new(ErrCode::ENTITY_NOT_FOUND, "od:rescind-origin-invitation:0");
+            return Err(SrvError::NetError(err));
+        }
+
+        aoirr.set_invitation_id(oirr.get_invitation_id());
+
+        match conn.route::<sessionsrv::AccountOriginInvitationRescindRequest, NetOk>(&aoirr) {
+            Ok(_) => {
+                debug!("Updated session service; rescinded invitation, {:?}", aoirr);
+            }
+            Err(e) => {
+                error!(
+                    "Failed to update session service on invitation rescind, {:?}, {:?}",
+                    aoirr,
+                    e
+                );
+                return Err(SrvError::from(e));
+            }
+        }
+
+        let tr = pconn.transaction().map_err(SrvError::DbTransactionStart)?;
+        tr.execute(
+            "SELECT * FROM rescind_origin_invitation_v1($1, $2)",
+            &[
+                &(oirr.get_invitation_id() as i64),
+                &(oirr.get_owner_id() as i64),
+            ],
+        ).map_err(SrvError::OriginInvitationRescind)?;
         tr.commit().map_err(SrvError::DbTransactionCommit)?;
         Ok(())
     }

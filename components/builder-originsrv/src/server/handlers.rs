@@ -189,7 +189,41 @@ pub fn origin_invitation_accept(
     match state.datastore.accept_origin_invitation(conn, &msg) {
         Ok(()) => conn.route_reply(req, &NetOk::new())?,
         Err(e) => {
-            let err = NetError::new(ErrCode::DATA_STORE, "vt:origin-invitation-list:1");
+            let err = NetError::new(ErrCode::DATA_STORE, "vt:origin-invitation-accept:1");
+            error!("{}, {}", err, e);
+            conn.route_reply(req, &*err)?;
+        }
+    }
+    Ok(())
+}
+
+pub fn origin_invitation_ignore(
+    req: &mut Message,
+    conn: &mut RouteConn,
+    state: &mut ServerState,
+) -> SrvResult<()> {
+    let msg = req.parse::<proto::OriginInvitationIgnoreRequest>()?;
+    match state.datastore.ignore_origin_invitation(conn, &msg) {
+        Ok(()) => conn.route_reply(req, &NetOk::new())?,
+        Err(e) => {
+            let err = NetError::new(ErrCode::DATA_STORE, "vt:origin-invitation-ignore:1");
+            error!("{}, {}", err, e);
+            conn.route_reply(req, &*err)?;
+        }
+    }
+    Ok(())
+}
+
+pub fn origin_invitation_rescind(
+    req: &mut Message,
+    conn: &mut RouteConn,
+    state: &mut ServerState,
+) -> SrvResult<()> {
+    let msg = req.parse::<proto::OriginInvitationRescindRequest>()?;
+    match state.datastore.rescind_origin_invitation(conn, &msg) {
+        Ok(()) => conn.route_reply(req, &NetOk::new())?,
+        Err(e) => {
+            let err = NetError::new(ErrCode::DATA_STORE, "vt:origin-invitation-rescind:1");
             error!("{}, {}", err, e);
             conn.route_reply(req, &*err)?;
         }
