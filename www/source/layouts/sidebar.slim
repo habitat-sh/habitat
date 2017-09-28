@@ -10,7 +10,7 @@
             - sidebar_data(sidebar_layout).each do |item|
               li.main-sidebar--heading
                 h4 = item.title
-                ul.main-sidebar--list.no-bullet data-magellan=""
+                ul.main-sidebar--list.no-bullet
                   - item.links.each do |item_link|
                     li.main-sidebar--list--item class=link_classes(current_resource.url, item_link)
                       = link_to item_link.title, item_link.link
