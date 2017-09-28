@@ -55,7 +55,7 @@ impl RouteClient {
     ///
     /// * Socket(s) could not be created
     pub fn new() -> Result<Self, ConnErr> {
-        let socket = (**DEFAULT_CONTEXT).as_mut().socket(zmq::REQ)?;
+        let socket = (**DEFAULT_CONTEXT).as_mut().socket(zmq::DEALER)?;
         socket.set_rcvtimeo(RECV_TIMEOUT_MS)?;
         socket.set_sndtimeo(SEND_TIMEOUT_MS)?;
         socket.set_immediate(true)?;
@@ -81,15 +81,21 @@ impl RouteClient {
         M: Routable,
         T: protobuf::MessageStatic,
     {
-        if let Err(e) = self.route_async(msg) {
-            let err = NetError::new(ErrCode::SOCK, "net:route:1");
+        self.msg_buf.reset();
+        if let Err(e) = self.msg_buf.populate(msg) {
+            let err = NetError::new(ErrCode::BUG, "net:route:1");
+            error!("{}, {}", err, e);
+            return Err(err);
+        }
+        if let Err(e) = route(&self.socket, &self.msg_buf) {
+            let err = NetError::new(ErrCode::SOCK, "net:route:2");
             error!("{}, {}", err, e);
             return Err(err);
         }
         self.msg_buf.reset();
         // JW TODO: Handle socket errors more correctly here. Socket should be Timeout for example
         if let Err(e) = read_header(&self.socket, &mut self.msg_buf, &mut self.recv_buf) {
-            let err = NetError::new(ErrCode::BUG, "net:route:2");
+            let err = NetError::new(ErrCode::BUG, "net:route:3");
             error!("{}, {}", err, e);
             return Err(err);
         }
@@ -100,20 +106,20 @@ impl RouteClient {
                 &mut self.recv_buf,
             )
             {
-                let err = NetError::new(ErrCode::BUG, "net:route:3");
+                let err = NetError::new(ErrCode::BUG, "net:route:4");
                 error!("{}, {}", err, e);
                 return Err(err);
             }
         }
         if self.msg_buf.header().has_txn() {
             if let Err(e) = try_read_txn(&self.socket, &mut self.msg_buf, &mut self.recv_buf) {
-                let err = NetError::new(ErrCode::BUG, "net:route:4");
+                let err = NetError::new(ErrCode::BUG, "net:route:5");
                 error!("{}, {}", err, e);
                 return Err(err);
             }
         }
         if let Err(e) = try_read_body(&self.socket, &mut self.msg_buf, &mut self.recv_buf) {
-            let err = NetError::new(ErrCode::BUG, "net:route:5");
+            let err = NetError::new(ErrCode::BUG, "net:route:6");
             error!("{}, {}", err, e);
             return Err(err);
         }
@@ -126,21 +132,11 @@ impl RouteClient {
         match self.msg_buf.parse::<T>() {
             Ok(reply) => Ok(reply),
             Err(e) => {
-                let err = NetError::new(ErrCode::BUG, "net:route:6");
+                let err = NetError::new(ErrCode::BUG, "net:route:7");
                 error!("{}, {}", err, e);
                 Err(err)
             }
         }
-    }
-
-    /// Asynchronously routes a message to the connected broker, through a router, and to
-    /// appropriate service.
-    pub fn route_async<T>(&mut self, msg: &T) -> Result<(), ConnErr>
-    where
-        T: Routable + protobuf::MessageStatic,
-    {
-        self.msg_buf.populate(msg).map_err(ConnErr::Protocol)?;
-        route(&self.socket, &self.msg_buf)
     }
 }
 
