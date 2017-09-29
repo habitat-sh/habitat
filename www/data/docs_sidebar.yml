@@ -59,6 +59,8 @@ sidebar_links:
       link: "#ecs-and-habitat"
     - title: "Apache Mesos and DC/OS"
       link: "#mesos-dcos"
+    - title: "Advanced Plan.sh Writing"
+      link: "#planwriting-guide"
     - title: Iterative Development
       link: "#iterative-development"
     - title: "Binary Wrapper Packages"
