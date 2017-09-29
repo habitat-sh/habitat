@@ -12,7 +12,7 @@ client_id = "$GITHUB_CLIENT_ID"
 client_secret = "$GITHUB_CLIENT_SECRET"
 
 [web]
-app_url          = "http://$APP_HOSTNAME/v1"
+app_url          = "http://$APP_HOSTNAME"
 community_url    = "https://www.habitat.sh/community"
 docs_url         = "https://www.habitat.sh/docs"
 environment      = "production"
