@@ -44,5 +44,5 @@ $ docker build --no-cache -f BLDR-Dockerfile --build-arg GITHUB_CLIENT_ID=02fb7d
 ## Running
 
 ```
-$ docker run -p 80:80 -p 443:443 -p 9631:9631 -p 9638:9638 habitat/builder
+$ docker run -p 80:80 -p 443:443 -p 9631:9631 -p 9638:9638 --privileged --name builder habitat/builder
 ```
