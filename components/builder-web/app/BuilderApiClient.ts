@@ -140,6 +140,23 @@ export class BuilderApiClient {
         });
     }
 
+    public generateOriginKeys(origin: string) {
+        return new Promise((resolve, reject) => {
+            fetch(`${this.urlPrefix}/depot/origins/${origin}/keys`, {
+                method: "POST",
+                headers: this.headers
+            })
+            .then(response => {
+                if (response.ok) {
+                    resolve();
+                } else {
+                    reject(new Error(response.statusText));
+                }
+            })
+            .catch(error => reject(error));
+        });
+    }
+
     public getBuild(id: string) {
         return new Promise((resolve, reject) => {
             fetch(`${this.urlPrefix}/jobs/${id}`, {
@@ -405,6 +422,22 @@ export class BuilderApiClient {
             .then(response => {
                 if (response.ok) {
                     resolve();
+                } else {
+                    reject(new Error(response.statusText));
+                }
+            })
+            .catch(error => reject(error));
+        });
+    }
+
+    public getSigningKey(origin: string) {
+        return new Promise((resolve, reject) => {
+            fetch(`${this.urlPrefix}/depot/origins/${origin}/secret_keys/latest`, {
+                headers: this.headers
+            })
+            .then(response => {
+                if (response.ok) {
+                    resolve(response);
                 } else {
                     reject(new Error(response.statusText));
                 }

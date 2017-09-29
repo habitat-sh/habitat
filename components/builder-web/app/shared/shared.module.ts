@@ -3,7 +3,7 @@ import { CommonModule } from "@angular/common";
 import { DomSanitizer } from "@angular/platform-browser";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { RouterModule } from "@angular/router";
-import { MdIconModule, MdIconRegistry, MdProgressBarModule, MdRadioModule, MdRadioGroup, MdRadioButton,
+import { MdCheckbox, MdCheckboxModule, MdIconModule, MdIconRegistry, MdProgressBarModule, MdRadioModule, MdRadioGroup, MdRadioButton,
   MdTooltipModule, MdTabsModule, MdButtonModule } from "@angular/material";
 import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
 import { BreadcrumbsComponent } from "./breadcrumbs/breadcrumbs.component";
@@ -27,6 +27,7 @@ import { UserLoggedInGuard, UserLoggedOutGuard } from "./user/user.guard";
     BrowserAnimationsModule,
     CommonModule,
     FormsModule,
+    MdCheckboxModule,
     MdIconModule,
     MdTabsModule,
     MdProgressBarModule,
@@ -60,6 +61,7 @@ import { UserLoggedInGuard, UserLoggedOutGuard } from "./user/user.guard";
     CheckingInputComponent,
     CopyableComponent,
     IconComponent,
+    MdCheckbox,
     MdRadioGroup,
     MdRadioButton,
     PackageListComponent,

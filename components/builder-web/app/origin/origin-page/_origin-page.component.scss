@@ -106,26 +106,4 @@
     @include primary-button;
     float: right;
   }
-
-  &--key-list {
-    margin-bottom: 48px;
-
-    > h3 {
-      margin-bottom: rem(30);
-    }
-
-    .hab-keys-list {
-      margin-bottom: 30px;
-    }
-
-    button {
-      color: $hab-green;
-      border: 1px solid $hab-green;
-      box-shadow: none;
-
-      &:not([disabled]):active {
-        box-shadow: none;
-      }
-    }
-  }
 }

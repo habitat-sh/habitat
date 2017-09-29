@@ -14,88 +14,118 @@
 
 import { Component, Input, OnInit, OnDestroy } from "@angular/core";
 import { MdDialog } from "@angular/material";
-import { RouterLink, ActivatedRoute } from "@angular/router";
-import { List } from "immutable";
+import { ActivatedRoute } from "@angular/router";
 import { Subscription } from "rxjs/Subscription";
-import { KeyAddFormDialog } from "./key-add-form/key-add-form.dialog";
 import { AppStore } from "../../../AppStore";
-import { Origin } from "../../../records/Origin";
-import config from "../../../config";
-import { fetchOriginPublicKeys } from "../../../actions/index";
+import { BuilderApiClient } from "../../../BuilderApiClient";
+import { GenerateKeysConfirmDialog } from "./dialog/generate-keys-confirm/generate-keys-confirm.dialog";
+import { KeyAddFormDialog } from "./key-add-form/key-add-form.dialog";
+import { fetchOriginPublicKeys, generateOriginKeys } from "../../../actions/index";
 import { OriginService } from "../../origin.service";
+import config from "../../../config";
 
 @Component({
-    selector: "hab-origin-keys-tab",
     template: require("./origin-keys-tab.component.html")
 })
 
 export class OriginKeysTabComponent implements OnInit, OnDestroy {
-
-    origin;
+    origin: string;
     sub: Subscription;
 
     constructor(
         private route: ActivatedRoute,
         private store: AppStore,
-        private dialog: MdDialog,
+        private keyAddDialog: MdDialog,
+        private keyGenerateDialog: MdDialog,
         private originService: OriginService
     ) {}
 
     ngOnInit() {
-        this.sub = this.route.parent.params.subscribe(params => {
-            this.origin = this.originService.origin(params["origin"], this.store.getState().origins.current);
+        this.sub = this.route.parent.params.subscribe((params) => {
+            this.origin = params["origin"];
+            this.store.dispatch(fetchOriginPublicKeys(this.origin, this.token));
         });
-        this.store.dispatch(fetchOriginPublicKeys(
-            this.origin.name, this.gitHubAuthToken
-        ));
     }
 
     ngOnDestroy() {
         this.sub.unsubscribe();
     }
 
-    get ui() {
-        return this.store.getState().origins.ui.current;
+    get memberOfOrigin() {
+        return !!this.origins.find(origin => origin["name"] === this.origin);
     }
 
-    get myOrigins() {
+    get origins() {
         return this.store.getState().origins.mine;
+    }
+
+    get privateKey() {
+        return this.store.getState().origins.current.private_key_name;
     }
 
     get publicKeys() {
         return this.store.getState().origins.currentPublicKeys;
     }
 
-    get gitHubAuthToken() {
+    get token() {
         return this.store.getState().gitHub.authToken;
     }
 
+    get ui() {
+        return this.store.getState().origins.ui.current;
+    }
+
+    downloadPrivateKey() {
+        new BuilderApiClient(this.store.getState().gitHub.authToken)
+            .getSigningKey(this.origin)
+            .then((response: any) => {
+                response.blob().then((blob) => {
+                    let header = response.headers.get("content-disposition");
+                    let filename = header.split("; filename=")[1].trim().replace(/"/g, "");
+                    this.download(blob, filename);
+                });
+            });
+    }
+
+    generateKeys() {
+        this.keyGenerateDialog.open(GenerateKeysConfirmDialog, {
+            width: "480px"
+        })
+        .afterClosed()
+        .subscribe((confirmed) => {
+          if (confirmed) {
+            this.store.dispatch(generateOriginKeys(this.origin, this.token));
+          }
+        });
+    }
+
     openKeyAddForm(type: string) {
-        let dialogRef = this.dialog.open(KeyAddFormDialog, {
-            data: { type, origin: this.origin.name },
+        this.keyAddDialog.open(KeyAddFormDialog, {
+            data: { type, origin: this.origin },
             width: "480px"
         });
     }
 
-    get privateKeyNames() {
-        if (this.origin.private_key_name) {
-            return List([{
-                name: this.origin.private_key_name,
-                location: `/origins/${this.origin.name}/secret_keys/latest`
-            }]);
-        } else {
-            return List([]);
+    urlFor(key) {
+        return `${config["habitat_api_url"]}/v1/depot${key.location}`;
+    }
+
+    private download(blob, name) {
+        const msSave = navigator.msSaveBlob;
+
+        if (typeof msSave === "function") {
+            msSave(blob, name);
+        }
+        else {
+            let href = window.URL.createObjectURL(blob);
+            let a = document.createElement("a");
+            a.href = href;
+            a.download = name;
+            a.setAttribute("style", "display: none");
+            a.onclick = (e) => { e.stopPropagation(); };
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => { document.body.removeChild(a); }, 100);
         }
     }
-
-    get iAmPartOfThisOrigin() {
-        return !!this.myOrigins.find(org => {
-            return org["name"] === this.origin.name;
-        });
-    }
-
-    get docsUrl() {
-        return config["docs_url"];
-    }
-
 }

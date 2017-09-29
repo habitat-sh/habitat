@@ -14,25 +14,45 @@
 
 
 .hab-origin-create {
-  @include outer-container;
 
-  &--checkbox {
-    margin-bottom: $small-spacing;
+  section {
+    @include span-columns(8);
+    @include omega;
+    margin-bottom: 24px;
+    padding-bottom: 8px;
 
-    &--label {
-      display: inline;
+    &:not(:last-child) {
+      border-bottom: 1px solid $very-light-gray;
     }
   }
 
-  &--form {
-    max-width: rem(480);
+  h3 {
+    text-transform: uppercase;
+    font-size: rem(12);
   }
 
-  .page-body--sidebar {
+  p, md-checkbox {
+    display: block;
     font-size: rem(14);
+    margin-bottom: 12px;
+  }
 
-    p {
-      margin-bottom: inherit;
+  label {
+    text-transform: none;
+  }
+
+  hab-checking-input {
+
+    input {
+      margin-bottom: 16px;
+    }
+
+    small {
+      text-align: left;
+
+      span {
+        margin-left: 0;
+      }
     }
   }
 }

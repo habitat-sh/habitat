@@ -197,6 +197,9 @@ impl AfterMiddleware for Cors {
         res.headers.set(headers::AccessControlAllowMethods(
             vec![Method::Put, Method::Delete],
         ));
+        res.headers.set(headers::AccessControlExposeHeaders(vec![
+            UniCase("content-disposition".to_string()),
+        ]));
         Ok(res)
     }
 }
