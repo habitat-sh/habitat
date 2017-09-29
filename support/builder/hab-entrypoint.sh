@@ -5,4 +5,4 @@ SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
 
 /bin/hab term
 sleep 1
-/bin/hab "$@"
+exec /bin/hab "$@"
