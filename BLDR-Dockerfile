@@ -58,7 +58,7 @@ RUN hab svc load core/builder-datastore \
   && hab svc load core/builder-admin-proxy --bind http:builder-admin.default \
   && hab svc load core/builder-jobsrv --bind router:builder-router.default --bind datastore:builder-datastore.default \
   && hab svc load core/builder-originsrv --bind router:builder-router.default --bind datastore:builder-datastore.default \
-  && hab svc load core/builder-scheduler --bind router:builder-router.default --bind datastore:builder-datastore.default --bind depot:builder-api.default \
+  && hab svc load core/builder-scheduler --bind router:builder-router.default --bind datastore:builder-datastore.default \
   && hab svc load core/builder-sessionsrv --bind router:builder-router.default --bind datastore:builder-datastore.default \
   && hab svc load core/builder-worker --bind jobsrv:builder-jobsrv.default --bind depot:builder-api.default
 
