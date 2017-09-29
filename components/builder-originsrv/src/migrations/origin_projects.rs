@@ -187,5 +187,77 @@ pub fn migrate(migrator: &mut Migrator) -> SrvResult<()> {
                             WHERE id = project_id;
                      END
                  $$ LANGUAGE plpgsql VOLATILE"#)?;
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE SEQUENCE IF NOT EXISTS origin_project_integration_id_seq;"#,
+    )?;
+    migrator.migrate(
+                     "originsrv",
+                     r#"CREATE TABLE IF NOT EXISTS origin_project_integrations (
+                                     id bigint PRIMARY KEY DEFAULT next_id_v1('origin_project_integration_id_seq'),
+                                     origin text,
+                                     name text,
+                                     integration text,
+                                     integration_name text,
+                                     body text,
+                                     created_at timestamptz DEFAULT now(),
+                                     updated_at timestamptz,
+                                     UNIQUE (origin, name, integration, integration_name)
+                                     )"#,
+                 )?;
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE OR REPLACE FUNCTION upsert_origin_project_integration_v1 (
+                                     in_origin text,
+                                     in_name text,
+                                     in_integration text,
+                                     in_integration_name text,
+                                     in_body text
+                              ) RETURNS SETOF origin_project_integrations AS $$
+                                    BEGIN
+                                        RETURN QUERY INSERT INTO origin_project_integrations(
+                                           origin,
+                                           name,
+                                           integration,
+                                           integration_name,
+                                           body)
+                                         VALUES (
+                                             in_origin,
+                                             in_name,
+                                             in_integration,
+                                             in_integration_name,
+                                             in_body)
+                                         ON CONFLICT(origin, name, integration, integration_name)
+                                            DO UPDATE SET body=in_body RETURNING *;
+                                        RETURN;
+                                    END
+                              $$ LANGUAGE plpgsql VOLATILE"#,
+    )?;
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE OR REPLACE FUNCTION get_origin_project_integrations_v1 (
+                                     in_origin text,
+                                     in_name text,
+                                     in_integration text,
+                                     in_integration_name text
+                              ) RETURNS SETOF origin_project_integrations AS $$
+                                     SELECT * FROM origin_project_integrations
+                                     WHERE origin = in_origin AND
+                                           name = in_name AND
+                                           integration = in_integration AND
+                                           in_integration_name = in_integration_name
+                                 $$ LANGUAGE SQL STABLE"#,
+    )?;
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE OR REPLACE FUNCTION get_origin_project_integrations_for_project_v1 (
+                        in_origin text,
+                        in_name text
+                 ) RETURNS SETOF origin_project_integrations AS $$
+                        SELECT * FROM origin_project_integrations
+                        WHERE origin = in_origin AND name = in_name
+                        ORDER BY integration, integration_name
+                    $$ LANGUAGE SQL STABLE"#,
+    )?;
     Ok(())
 }

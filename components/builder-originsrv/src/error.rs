@@ -76,6 +76,9 @@ pub enum SrvError {
     OriginProjectDelete(postgres::error::Error),
     OriginProjectGet(postgres::error::Error),
     OriginProjectUpdate(postgres::error::Error),
+    OriginProjectIntegrationCreate(postgres::error::Error),
+    OriginProjectIntegrationGet(postgres::error::Error),
+    OriginProjectIntegrationRequest(postgres::error::Error),
     OriginSecretKeyCreate(postgres::error::Error),
     OriginSecretKeyGet(postgres::error::Error),
     OriginPublicKeyCreate(postgres::error::Error),
@@ -243,6 +246,18 @@ impl fmt::Display for SrvError {
             SrvError::OriginProjectUpdate(ref e) => {
                 format!("Error updating project in database, {}", e)
             }
+            SrvError::OriginProjectIntegrationCreate(ref e) => {
+                format!("Error creating project integration in database, {}", e)
+            }
+            SrvError::OriginProjectIntegrationGet(ref e) => {
+                format!("Error getting project integration from database, {}", e)
+            }
+            SrvError::OriginProjectIntegrationRequest(ref e) => {
+                format!(
+                    "Error retrieving project integration request from database, {}",
+                    e
+                )
+            }
             SrvError::OriginSecretKeyCreate(ref e) => {
                 format!("Error creating origin secret key in database, {}", e)
             }
@@ -341,6 +356,9 @@ impl error::Error for SrvError {
             SrvError::OriginProjectDelete(ref err) => err.description(),
             SrvError::OriginProjectGet(ref err) => err.description(),
             SrvError::OriginProjectUpdate(ref err) => err.description(),
+            SrvError::OriginProjectIntegrationCreate(ref err) => err.description(),
+            SrvError::OriginProjectIntegrationGet(ref err) => err.description(),
+            SrvError::OriginProjectIntegrationRequest(ref err) => err.description(),
             SrvError::OriginSecretKeyCreate(ref err) => err.description(),
             SrvError::OriginSecretKeyGet(ref err) => err.description(),
             SrvError::OriginPublicKeyCreate(ref err) => err.description(),

@@ -497,6 +497,70 @@ pub fn project_update(
     Ok(())
 }
 
+pub fn project_integration_create(
+    req: &mut Message,
+    conn: &mut RouteConn,
+    state: &mut ServerState,
+) -> SrvResult<()> {
+    let msg = req.parse::<proto::OriginProjectIntegrationCreate>()?;
+    match state.datastore.create_project_integration(&msg) {
+        Ok(()) => conn.route_reply(req, &NetOk::new())?,
+        Err(SrvError::OriginProjectIntegrationCreate(PostgresError::Db(ref db)))
+            if db.code == UniqueViolation => {
+            let err = NetError::new(ErrCode::ENTITY_CONFLICT, "vt:project-integration-create:1");
+            conn.route_reply(req, &*err)?;
+        }
+        Err(e) => {
+            let err = NetError::new(ErrCode::DATA_STORE, "vt:project-integration-create:2");
+            error!("{}, {}", err, e);
+            conn.route_reply(req, &*err)?;
+        }
+    }
+    Ok(())
+}
+
+pub fn project_integration_get(
+    req: &mut Message,
+    conn: &mut RouteConn,
+    state: &mut ServerState,
+) -> SrvResult<()> {
+    let msg = req.parse::<proto::OriginProjectIntegrationGet>()?;
+
+    match state.datastore.get_project_integration(&msg) {
+        Ok(Some(ref integration)) => conn.route_reply(req, integration)?,
+        Ok(None) => {
+            let err = NetError::new(ErrCode::ENTITY_NOT_FOUND, "vt:project-integration-get:1");
+            conn.route_reply(req, &*err)?;
+        }
+        Err(e) => {
+            let err = NetError::new(ErrCode::DATA_STORE, "vt:project-integration-get:2");
+            error!("{}, {}", err, e);
+            conn.route_reply(req, &*err)?;
+        }
+    }
+    Ok(())
+}
+
+pub fn origin_project_integration_request(
+    req: &mut Message,
+    conn: &mut RouteConn,
+    state: &mut ServerState,
+) -> SrvResult<()> {
+    let msg = req.parse::<proto::OriginProjectIntegrationRequest>()?;
+    match state.datastore.origin_project_integration_request(&msg) {
+        Ok(ref opir) => conn.route_reply(req, opir)?,
+        Err(e) => {
+            let err = NetError::new(
+                ErrCode::DATA_STORE,
+                "vt:origin-project-integration-request:1",
+            );
+            error!("{}, {}", err, e);
+            conn.route_reply(req, &*err)?;
+        }
+    }
+    Ok(())
+}
+
 pub fn origin_channel_create(
     req: &mut Message,
     conn: &mut RouteConn,

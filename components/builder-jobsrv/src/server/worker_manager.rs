@@ -25,7 +25,8 @@ use hab_net::socket::DEFAULT_CONTEXT;
 use linked_hash_map::LinkedHashMap;
 use protobuf::{parse_from_bytes, Message, RepeatedField};
 use protocol::jobsrv;
-use protocol::originsrv::{OriginIntegrationRequest, OriginIntegrationResponse};
+use protocol::originsrv::{OriginIntegrationRequest, OriginIntegrationResponse,
+                          OriginProjectIntegrationRequest, OriginProjectIntegrationResponse};
 use zmq;
 
 use config::Config;
@@ -212,6 +213,7 @@ impl WorkerMgr {
             // This unwrap is fine, because we just checked our length
             let mut job = jobs.pop().unwrap();
             self.add_integrations_to_job(&mut job);
+            self.add_project_integrations_to_job(&mut job);
 
             match self.ready_workers.pop_front() {
                 Some((worker, _)) => {
@@ -283,6 +285,28 @@ impl WorkerMgr {
             }
             Err(e) => {
                 debug!("Error fetching integrations. e = {:?}", e);
+            }
+        }
+    }
+
+    fn add_project_integrations_to_job(&mut self, job: &mut jobsrv::Job) {
+        let mut integrations = RepeatedField::new();
+        let mut req = OriginProjectIntegrationRequest::new();
+        let origin = job.get_project().get_origin_name().to_string();
+        let name = job.get_project().get_package_name().to_string();
+        req.set_origin(origin);
+        req.set_name(name);
+
+        match self.route_conn
+            .route::<OriginProjectIntegrationRequest, OriginProjectIntegrationResponse>(&req) {
+            Ok(opir) => {
+                for opi in opir.get_integrations() {
+                    integrations.push(opi.clone());
+                }
+                job.set_project_integrations(integrations);
+            }
+            Err(e) => {
+                debug!("Error fetching project integrations. e = {:?}", e);
             }
         }
     }
