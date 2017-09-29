@@ -335,7 +335,7 @@ pub fn get() -> App<'static, 'static> {
                 (@arg WITH_ALL: --("with-all")
                     "Generate omnibus plan with all available plan options")
                 (@arg SCAFFOLDING: --scaffolding -s +takes_value
-                    "Specify explicit scaffolding type for your app")
+                    "Specify explicit Scaffolding for your app (ex: node, ruby)")
             )
         )
         (@subcommand ring =>
