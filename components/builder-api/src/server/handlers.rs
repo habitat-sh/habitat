@@ -15,9 +15,12 @@
 //! A collection of handlers for the HTTP server's router
 
 use std::env;
+use std::path::PathBuf;
 
 use base64;
 use bodyparser;
+use bldr_core;
+use depot::DepotUtil;
 use depot::server::check_origin_access;
 use hab_core::package::{Identifiable, Plan};
 use hab_core::event::*;
@@ -297,6 +300,7 @@ pub fn project_create(req: &mut Request) -> IronResult<Response> {
     let mut project = OriginProject::new();
     let mut origin_get = OriginGet::new();
     let github = req.get::<persistent::Read<GitHubCli>>().unwrap();
+    let depot = req.get::<persistent::Read<DepotUtil>>().unwrap();
     let session = req.extensions.get::<Authenticated>().unwrap().clone();
     let (organization, repo, token) = match req.get::<bodyparser::Struct<ProjectCreateReq>>() {
         Ok(Some(body)) => {
@@ -324,12 +328,18 @@ pub fn project_create(req: &mut Request) -> IronResult<Response> {
                     "Missing value for field: `github.repo`",
                 )));
             }
-            let token = match github_creds_from_body(&body, &mut project, session.get_token()) {
+            let token = match github_creds_from_body(
+                &body,
+                &mut project,
+                session.get_token(),
+                &depot.config.key_dir,
+            ) {
                 Err(Error::IncompleteCredentials) => {
                     return Ok(Response::with((status::UnprocessableEntity, "rg:pc:6")));
                 }
                 Ok(token) => token,
-                Err(_) => {
+                Err(e) => {
+                    debug!("Error reading github credentials. e = {:?}", e);
                     return Ok(Response::with((status::UnprocessableEntity, "rg:pc:7")));
                 }
             };
@@ -427,6 +437,7 @@ pub fn project_delete(req: &mut Request) -> IronResult<Response> {
 
 /// Update the given project
 pub fn project_update(req: &mut Request) -> IronResult<Response> {
+    let depot = req.get::<persistent::Read<DepotUtil>>().unwrap();
     let (name, origin) = {
         let params = req.extensions.get::<Router>().unwrap();
         let origin = params.find("origin").unwrap().to_owned();
@@ -473,7 +484,12 @@ pub fn project_update(req: &mut Request) -> IronResult<Response> {
                     "Missing value for field: `github.repo`",
                 )));
             }
-            let token = match github_creds_from_body(&body, &mut project, session_token) {
+            let token = match github_creds_from_body(
+                &body,
+                &mut project,
+                session_token,
+                &depot.config.key_dir,
+            ) {
                 Err(Error::IncompleteCredentials) => {
                     return Ok(Response::with((status::UnprocessableEntity, "rg:pu:7")));
                 }
@@ -622,6 +638,7 @@ fn github_creds_from_body<S: Into<String>>(
     body: &ProjectCreateReq,
     project: &mut OriginProject,
     session_token: S,
+    key_dir: &PathBuf,
 ) -> Result<String> {
     let mut token = session_token.into();
     if let Some(ref auth_token) = body.github.auth_token {
@@ -629,7 +646,10 @@ fn github_creds_from_body<S: Into<String>>(
             debug!("Auth token supplied with no username");
             return Err(Error::IncompleteCredentials);
         }
-        project.set_vcs_auth_token(auth_token.to_string());
+        let encrypted = bldr_core::integrations::encrypt(key_dir, auth_token)
+            .map_err(Error::EncryptionFailure)?;
+
+        project.set_vcs_auth_token(encrypted);
         token = auth_token.to_string();
     };
     if let Some(ref username) = body.github.username {

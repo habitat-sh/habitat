@@ -222,6 +222,7 @@ impl error::Error for NetError {
             ErrCode::PARTIAL_JOB_GROUP_PROMOTE => {
                 "Some packages failed to promote to the specified channel."
             }
+            ErrCode::JOB_DECRYPTION_FAILURE => "JobSrv was unable to decrypt VCS auth token.",
         }
     }
 }
