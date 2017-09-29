@@ -111,6 +111,7 @@ mod tests {
         host = "1:1:1:1:1:1:1:1"
         port = 9000
         heartbeat = 9001
+        log_port = 9021
 
         [[jobsrv]]
         host = "2.2.2.2"
@@ -124,6 +125,7 @@ mod tests {
         assert_eq!(&format!("{}", config.jobsrv[0].host), "1:1:1:1:1:1:1:1");
         assert_eq!(config.jobsrv[0].port, 9000);
         assert_eq!(config.jobsrv[0].heartbeat, 9001);
+        assert_eq!(config.jobsrv[0].log_port, 9021);
         assert_eq!(&format!("{}", config.jobsrv[1].host), "2.2.2.2");
         assert_eq!(config.jobsrv[1].port, 9000);
         assert_eq!(config.jobsrv[1].heartbeat, 5567);

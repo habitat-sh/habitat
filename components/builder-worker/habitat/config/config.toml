@@ -9,4 +9,5 @@ bldr_url = "{{bind.depot.first.cfg.url}}"
 host = "{{member.sys.ip}}"
 port = {{member.cfg.worker_port}}
 heartbeat = {{member.cfg.worker_heartbeat}}
+log_port = {{member.cfg.log_port}}
 {{~/eachAlive}}

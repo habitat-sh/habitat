@@ -11,7 +11,7 @@ pkg_build_deps=(core/make core/cmake core/protobuf core/protobuf-rust core/coreu
 pkg_svc_user="root"
 pkg_svc_group="root"
 pkg_binds=(
-  [jobsrv]="worker_port worker_heartbeat"
+  [jobsrv]="worker_port worker_heartbeat log_port"
   [depot]="url"
 )
 bin="bldr-worker"
