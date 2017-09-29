@@ -21,7 +21,6 @@ use std::path::PathBuf;
 use hab_core::config::ConfigFile;
 use hab_core::os::system::{Architecture, Platform};
 use hab_core::package::PackageTarget;
-use hab_net::config::{GitHubCfg, GitHubOAuth};
 use http_gateway::config::prelude::*;
 
 use error::Error;

@@ -19,8 +19,6 @@
 extern crate bitflags;
 extern crate habitat_builder_protocol as protocol;
 extern crate habitat_core as core;
-extern crate hyper;
-extern crate hyper_openssl;
 #[macro_use]
 extern crate lazy_static;
 #[macro_use]
@@ -31,17 +29,14 @@ extern crate protobuf;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
-extern crate serde_json;
 extern crate time as simple_time;
 extern crate unicase;
 extern crate uuid;
 extern crate zmq;
 
 pub mod app;
-pub mod config;
 pub mod conn;
 pub mod error;
-pub mod oauth;
 pub mod privilege;
 pub mod socket;
 pub mod time;

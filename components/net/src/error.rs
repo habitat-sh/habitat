@@ -12,35 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::collections::HashMap;
 use std::error;
 use std::fmt;
 use std::io;
 use std::ops::Deref;
 
 pub use protocol::net::{ErrCode, NetOk};
-use hyper;
 use protobuf::{self, MessageStatic};
 use protocol::{self, net};
-use serde_json;
 use zmq;
 
 use conn;
-use oauth;
 
 pub type LibResult<T> = Result<T, LibError>;
 pub type NetResult<T> = Result<T, NetError>;
 
 #[derive(Debug)]
 pub enum LibError {
-    Auth(oauth::github::AuthErr),
     Connection(conn::ConnErr),
-    GitHubAPI(hyper::status::StatusCode, HashMap<String, String>),
-    HttpClient(hyper::Error),
-    HttpClientParse(hyper::error::ParseError),
-    HttpResponse(hyper::status::StatusCode),
     IO(io::Error),
-    Json(serde_json::Error),
     NetError(NetError),
     Protobuf(protobuf::ProtobufError),
     Protocol(protocol::ProtocolError),
@@ -61,14 +51,8 @@ impl LibError {
 impl fmt::Display for LibError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
-            LibError::Auth(ref e) => format!("GitHub Authentication error, {}", e),
             LibError::Connection(ref e) => format!("{}", e),
-            LibError::GitHubAPI(ref c, ref m) => format!("[{}] {:?}", c, m),
-            LibError::HttpClient(ref e) => format!("{}", e),
-            LibError::HttpClientParse(ref e) => format!("{}", e),
-            LibError::HttpResponse(ref e) => format!("{}", e),
             LibError::IO(ref e) => format!("{}", e),
-            LibError::Json(ref e) => format!("{}", e),
             LibError::NetError(ref e) => format!("{}", e),
             LibError::Protobuf(ref e) => format!("{}", e),
             LibError::Protocol(ref e) => format!("{}", e),
@@ -85,14 +69,8 @@ impl fmt::Display for LibError {
 impl error::Error for LibError {
     fn description(&self) -> &str {
         match *self {
-            LibError::Auth(_) => "GitHub authorization error.",
             LibError::Connection(ref err) => err.description(),
-            LibError::GitHubAPI(_, _) => "GitHub API error.",
-            LibError::HttpClient(ref err) => err.description(),
-            LibError::HttpClientParse(ref err) => err.description(),
-            LibError::HttpResponse(_) => "Non-200 HTTP response.",
             LibError::IO(ref err) => err.description(),
-            LibError::Json(ref err) => err.description(),
             LibError::NetError(ref err) => err.description(),
             LibError::Protobuf(ref err) => err.description(),
             LibError::Protocol(ref err) => err.description(),
@@ -115,18 +93,6 @@ impl From<io::Error> for LibError {
     }
 }
 
-impl From<hyper::Error> for LibError {
-    fn from(err: hyper::Error) -> LibError {
-        LibError::HttpClient(err)
-    }
-}
-
-impl From<oauth::github::AuthErr> for LibError {
-    fn from(err: oauth::github::AuthErr) -> Self {
-        LibError::Auth(err)
-    }
-}
-
 impl From<protobuf::ProtobufError> for LibError {
     fn from(err: protobuf::ProtobufError) -> LibError {
         LibError::Protobuf(err)
@@ -136,12 +102,6 @@ impl From<protobuf::ProtobufError> for LibError {
 impl From<protocol::ProtocolError> for LibError {
     fn from(err: protocol::ProtocolError) -> LibError {
         LibError::Protocol(err)
-    }
-}
-
-impl From<serde_json::Error> for LibError {
-    fn from(err: serde_json::Error) -> LibError {
-        LibError::Json(err)
     }
 }
 

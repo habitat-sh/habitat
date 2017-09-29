@@ -14,10 +14,9 @@
 
 use std::env;
 
-use hab_net::{self, ErrCode, NetError};
+use github_api_client::{self, GitHubClient, HubError};
+use hab_net::{ErrCode, NetError};
 use hab_net::conn::RouteClient;
-use hab_net::error::LibError;
-use hab_net::oauth::github::GitHubClient;
 use hab_net::privilege::FeatureFlags;
 use hyper;
 use iron::Handler;
@@ -109,7 +108,7 @@ pub struct Authenticated {
 impl Authenticated {
     pub fn new<T>(config: &T) -> Self
     where
-        T: hab_net::config::GitHubOAuth,
+        T: github_api_client::config::GitHubOAuth,
     {
         let github = GitHubClient::new(config);
         Authenticated {
@@ -276,20 +275,20 @@ pub fn session_create(github: &GitHubClient, token: &str) -> IronResult<Session>
                 }
             }
         }
-        Err(LibError::GitHubAPI(hyper::status::StatusCode::Unauthorized, _)) => {
+        Err(HubError::ApiError(hyper::status::StatusCode::Unauthorized, _)) => {
             let err = NetError::new(ErrCode::ACCESS_DENIED, "net:session-create:1");
             let status = net_err_to_http(err.get_code());
             let body = itry!(serde_json::to_string(&err));
             Err(IronError::new(err, (body, status)))
         }
-        Err(e @ LibError::GitHubAPI(_, _)) => {
+        Err(e @ HubError::ApiError(_, _)) => {
             warn!("Unexpected response from GitHub, {:?}", e);
             let err = NetError::new(ErrCode::BAD_REMOTE_REPLY, "net:session-create:2");
             let status = net_err_to_http(err.get_code());
             let body = itry!(serde_json::to_string(&err));
             Err(IronError::new(err, (body, status)))
         }
-        Err(e @ LibError::Json(_)) => {
+        Err(e @ HubError::Serialization(_)) => {
             warn!("Bad response body from GitHub, {:?}", e);
             let err = NetError::new(ErrCode::BAD_REMOTE_REPLY, "net:session-create:3");
             let status = net_err_to_http(err.get_code());

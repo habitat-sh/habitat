@@ -15,6 +15,7 @@
 #![cfg_attr(feature="clippy", feature(plugin))]
 #![cfg_attr(feature="clippy", plugin(clippy))]
 
+extern crate github_api_client;
 extern crate habitat_builder_db as db;
 extern crate habitat_builder_protocol as protocol;
 extern crate habitat_core as hab_core;

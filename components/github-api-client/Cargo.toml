@@ -1,0 +1,15 @@
+[package]
+name = "github-api-client"
+version = "0.0.0"
+authors = ["Jamie Winsor <reset@habitat.sh>"]
+workspace = "../../"
+
+[dependencies]
+base64 = "*"
+hyper = "*"
+hyper-openssl = "*"
+log = "*"
+serde = "*"
+serde_derive = "*"
+serde_json = "*"
+time = "*"

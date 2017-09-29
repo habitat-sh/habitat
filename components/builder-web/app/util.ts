@@ -19,7 +19,7 @@ import {Project} from "./records/Project";
 import {AppStore} from "./AppStore";
 
 // These OAuth scopes are required for a user to be authenticated. If this list is updated, then
-// the back-end also needs to be updated in `components/net/src/oauth/github.rs`. Both the
+// the back-end also needs to be updated in `components/github-api-client/src/client.rs`. Both the
 // front-end app and back-end app should have identical requirements to make things easier for
 // our users and less cumbersome for us to message out.
 const AUTH_SCOPES = ["user:email", "read:org"];

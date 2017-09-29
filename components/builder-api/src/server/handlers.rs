@@ -19,9 +19,9 @@ use std::env;
 use base64;
 use bodyparser;
 use depot::server::check_origin_access;
+use github_api_client::HubError;
 use hab_core::package::{Identifiable, Plan};
 use hab_core::event::*;
-use hab_net;
 use http_gateway::http::controller::*;
 use http_gateway::http::helpers::{self, validate_params};
 use iron::status;
@@ -106,10 +106,22 @@ pub fn github_authenticate(req: &mut Request) -> IronResult<Response> {
 
             Ok(render_json(status::Ok, &session))
         }
-        Err(hab_net::error::LibError::NetError(err)) => Ok(render_net_error(&err)),
+        Err(e @ HubError::AuthScope(_)) => {
+            let err = NetError::new(ErrCode::AUTH_SCOPE, e.to_string());
+            Ok(render_net_error(&err))
+        }
+        Err(HubError::Auth(e)) => {
+            let err = NetError::new(ErrCode::ACCESS_DENIED, e.error);
+            Ok(render_net_error(&err))
+        }
+        Err(HubError::Serialization(e)) => {
+            warn!("bad reply from GitHub, {}", e);
+            let err = NetError::new(ErrCode::BAD_REMOTE_REPLY, "rg:auth:1");
+            Ok(render_net_error(&err))
+        }
         Err(e) => {
-            error!("unhandled github authentication, err={:?}", e);
-            let err = NetError::new(ErrCode::BUG, "rg:auth:0");
+            warn!("unhandled github authentication error, {:?}", e);
+            let err = NetError::new(ErrCode::BUG, "rg:auth:2");
             Ok(render_net_error(&err))
         }
     }
