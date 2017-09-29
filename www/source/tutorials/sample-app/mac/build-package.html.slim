@@ -2,7 +2,7 @@
 title: Habitat - Build the sample package
 ---
 
-= partial '/tutorials/partials/platform_switcher', locals: { platform: 'mac' }
+= partial '/partials/tutorials/platform_switcher', locals: { platform: 'mac' }
 
 section.sample-app
   h1 Build the Package
@@ -43,7 +43,7 @@ section.sample-app
 
       p The last set of output messages from running <code>build</code> should look something like this:
 
-      = partial "/tutorials/partials/create_plan_build_output_sample_app"
+      = partial "/partials/tutorials/create_plan_build_output_sample_app"
 
       p The source files are stored in <code>/hab/pkgs/ORIGIN/PACKAGENAME/VERSION/RELEASE</code> (for example, <code>/hab/pkgs/originname/myrailsapp/0.1.0/20170624214244</code>). Listing the contents of that directory will show you the source files copied into the package as well as package metadata and plan files. By default, this location is ephemeral. When you exit the Studio, the Studio environment is destroyed and recreated the next time you enter it.
 

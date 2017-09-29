@@ -1,122 +1,128 @@
 ---
 sidebar_links:
-- title: Getting Started
+- title:
   links:
-  - title: Overview
-    link: "/docs/overview/"
-  - title: Download and install Habitat
-    link: "/tutorials/download/"
-  - title: Tutorials
-    link: "/tutorials/"
-  - title: Concepts <span>&plus;</span>
-    link: "/docs/concepts-overview/"
+  - title: Docs Home
+    link: "/docs"
+  - title: Using Habitat <span>&plus;</span>
+    link: "/docs/using-habitat"
     sub_links:
-    - title: Supervisor
-      link: "/docs/concepts-supervisor/"
-    - title: Plans
-      link: "/docs/concepts-plans/"
-    - title: Scaffolding
-      link: "/docs/concepts-scaffolding/"
-    - title: Packages
-      link: "/docs/concepts-packages/"
-    - title: Keys
-      link: "/docs/concepts-keys/"
-    - title: Studio
-      link: "/docs/concepts-studio/"
-    - title: Services
-      link: "/docs/concepts-services/"
-    - title: Depot
-      link: "/docs/concepts-depot/"
-- title: Using Habitat
-  links:
-  - title: Create packages <span>&plus;</span>
-    link: "/docs/create-packages-overview/"
-    sub_links:
-    - title: Create plans
-      link: "/docs/create-plans/"
-    - title: Add configuration
-      link: "/docs/create-packages-configure/"
-    - title: Build packages
-      link: "/docs/create-packages-build/"
-    - title: Debug plans
-      link: "/docs/create-packages-debugging/"
-    - title: Create binary-only packages
-      link: "/docs/create-packages-binary-only"
-  - title: Run packages <span>&plus;</span>
-    link: "/docs/run-packages-overview/"
-    sub_links:
-    - title: Service groups
-      link: "/docs/run-packages-service-groups/"
+    - title: Overview
+      link: "#overview"
+    - title: Installing Habitat
+      link: "#install-habitat"
+    - title: Install FAQ
+      link: "#install-faq"
+    - title: Using Habitat Packages
+      link: "#using-packages"
+    - title: Service Groups
+      link: "#service-groups"
     - title: Topologies
-      link: "/docs/run-packages-topologies/"
-    - title: Configuration updates
-      link: "/docs/run-packages-apply-config-updates/"
-    - title: Upload files
-      link: "/docs/run-packages-upload-files/"
-    - title: Security
-      link: "/docs/run-packages-security/"
-    - title: Binding
-      link: "/docs/run-packages-binding/"
-    - title: Update strategy
-      link: "/docs/run-packages-update-strategy/"
-    - title: Multiple Services
-      link: "/docs/run-packages-multiple-services/"
-    - title: Export packages
-      link: "/docs/run-packages-export/"
-    - title: Monitoring
-      link: "/docs/run-packages-monitoring/"
-  - title: Share packages
-    link: "/docs/share-packages-overview/"
-  - title: Continuous deployment
-    link: "/docs/continuous-deployment-overview/"
-  - title: Container orchestration
-    link: "/docs/container-orchestration/"
+      link: "#topologies"
+    - title: Config Updates
+      link: "#config-updates"
+    - title: File Uploads
+      link: "#file-uploads"
+    - title: Encryption
+      link: "#using-encryption"
+    - title: Update Strategies
+      link: "#using-updates"
+  - title: Developing Packages <span>&plus;</span>
+    link: "/docs/developing-packages"
     sub_links:
-    - title: Amazon EC2 Container Service
-      link: "/docs/container-orchestration-ecs/"
-    - title: Apache Mesos and DC/OS
-      link: "/docs/container-orchestration-mesos/"
+    - title: Writing a Plan.sh
+      link: "#write-plans"
+    - title: Config Templates
+      link: "#add-configuration"
+    - title: Binds and Exports
+      link: "#pkg-binds"
+    - title: Plan Builds
+      link: "#plan-builds"
+    - title: Troubleshooting Builds
+      link: "#debug-builds"
+    - title: Package Export Formats
+      link: "#pkg-exports"
+    - title: Share via Builder
+      link: "#sharing-pkgs"
+  - title: Commands (CLI) <span>&plus;</span>
+    link: "/docs/habitat-cli"
+  - title: Best Practice Guides <span>&plus;</span>
+    link: "/docs/best-practices"
+    sub_links:
+    - title: Quickstart Guide
+      link: "#quickstart-guide"
+    - title: Container Orchestration
+      link: "#container-orchestration"
     - title: Kubernetes
-      link: "/docs/container-orchestration-kubernetes/"
-  - title: Habitat internals <span>&plus;</span>
-    link: "/docs/internals-overview/"
+      link: "#kubernetes"
+    - title: "ECS and Habitat"
+      link: "#ecs-and-habitat"
+    - title: "Apache Mesos and DC/OS"
+      link: "#mesos-dcos"
+    - title: Iterative Development
+      link: "#iterative-development"
+    - title: "Binary Wrapper Packages"
+      link: "#binary-wrapper"
+  - title: Reference <span>&plus;</span>
+    link: "/docs/reference"
+    sub_links:
+    - title: Environment Variables
+      link: "#environment-variables"
+    - title: Plan Settings
+      link: "#plan-settings"
+    - title: Plan Variables
+      link: "#plan-variables"
+    - title: Plan Helper Functions
+      link: "#utility-functions"
+    - title: Build Phase Callbacks
+      link: "#reference-callbacks"
+    - title: Application Lifecycle Hooks
+      link: "#reference-hooks"
+    - title: Handlebars Helpers
+      link: "#handlebars-helpers"
+    - title: Template Data
+      link: "#template-data"
+    - title: Package Contents
+      link: "#package-contents"
+    - title: Supervisor Log Keys
+      link: "#sup-log-keys"
+    - title: Infographics
+      link: "#infographics"
+  - title: Glossary <span>&plus;</span>
+    link: "/docs/glossary"
+    sub_links:
+    - title: Hab
+      link: "#glossary-hab"
+    - title: Supervisor
+      link: "#glossary-supervisor"
+    - title: Plans
+      link: "#glossary-plan"
+    - title: Application Lifecycle Hooks
+      link: "#glossary-hooks"
+    - title: Scaffolding
+      link: "#glossary-scaffolding"
+    - title: Packages
+      link: "#glossary-packages"
+    - title: Keys
+      link: "#glossary-keys"
+    - title: Studio
+      link: "#glossary-studio"
+    - title: Services
+      link: "#glossary-services"
+    - title: Builder
+      link: "#glossary-builder"
+  - title: Internals <span>&plus;</span>
+    link: "/docs/internals"
     sub_links:
     - title: Supervisor
-      link: "/docs/internals-supervisor/"
+      link: "#supervisor-internals"
     - title: Leader Election
-      link: "/docs/internals-leader-election/"
-    - title: Cryptography
-      link: "/docs/internals-crypto/"
-    - title: Bootstrapping Habitat
-      link: "/docs/internals-bootstrapping/"
-- title: Reference
-  links:
-  - title: CLI reference
-    link: "/docs/reference/habitat-cli/"
-  - title: Plan syntax
-    link: "/docs/reference/plan-syntax/"
-    sub_links:
-    - title: Basic settings
-      link: "/docs/reference/basic-settings/"
-    - title: Callbacks (Build Phases)
-      link: "/docs/reference/callbacks/"
-    - title: Build variables
-      link: "/docs/reference/build-variables/"
-    - title: Application Lifecycle Hooks
-      link: "/docs/reference/hooks/"
-    - title: Runtime settings
-      link: "/docs/reference/runtime-settings/"
-    - title: Utility functions
-      link: "/docs/reference/utility-functions/"
-  - title: Environment variables
-    link: "/docs/reference/environment-vars/"
-  - title: Package contents
-    link: "/docs/reference/package-contents/"
-  - title: Supervisor log keys
-    link: "/docs/reference/log-keys/"
-  - title: Habitat infographics
-    link: "/docs/reference/habitat-infographics/"
-- title: Contribute
-  links:
-  - title: Help build Habitat
-    link: "/docs/contribute-help-build/"
+      link: "#election-internals"
+    - title: Crypto
+      link: "#crypto-internals"
+    - title: Bottstrapping Habitat
+      link: "#bootstrap-internals"
+  - title: Contribute
+    link: "/docs/contribute"
+  - title: Explore Habitat Builder
+    link: "https://bldr.habitat.sh/#/explore"

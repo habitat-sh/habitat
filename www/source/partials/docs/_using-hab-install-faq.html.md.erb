@@ -1,0 +1,29 @@
+# <a name="install-faq" id="install-faq" data-magellan-target="install-faq">Install FAQ</a>
+This section tracks some of hte more frequently encountered questions around downloading and installing the `hab` binary.
+
+## Downloading
+**Q: Can I just download a GitHub release of habitat?**
+
+A: While we do cut releases in GitHub as part of our release process those archives are going to be a tar'ed point in time of our source code. As the `hab` cli is written rust if you follow this approach you'll need to compile the source for your platform.
+
+**Q: Compile for my platform? Does that mean there aren't any OS native packages of `hab`?**
+
+A: Yes and no. We don't currently publish or maintain Distro specific packages/repos but we do publish compiled packages for OSX, Linux, and Windows. If you'd like more info on the way rust compiles or how we're achieving cross-platform compatibility there's no succinct answer but We would suggest reading the [cargo guide](http://doc.crates.io/guide.html). Suffice to say `hab` has a requirement of either a Linux kernel >= 2.6.32, OSX >= 10.9, or 64-bit Windows 10 Pro, Enterprise, or Education editions (1511 November update, build 10586 or later) with Hyper-V enabled.
+
+**Q: No compiled GH releases and no Distro packages. So what if I need an old version of `hab`?**
+
+A: We've got you covered! The script we provide for doing curlbash installations will allow you to specify a `-v` flag to pull down a specific version of habitat.
+
+**Q: Oh! A curlbash I (love||hate) those.**
+
+A: Indeed they are divisive, we know, that's why we provide a few different ways for you to download. If you'd like to take a look at the script in advance of running it against your system you can find it in [the core habitat repo](https://github.com/habitat-sh/habitat/blob/master/components/hab/install.sh). If you trust us (and why wouldn't you frankly, we're obviously some standup folks) you can install habitat via `curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh | sudo bash`. If you're staunchly in the anti-curlbash camp you can get the latest packages from our [download page](https://habitat.sh/downloads) or via releases on [our bintray page](https://bintray.com/habitat)
+
+## Installation
+
+**Q: Er, how do I install habitat?**
+
+A: It's almost too simple, actually. You'll need to download the `hab` package. Extract the binary to somewhere on your $PATH (or somewhere that you can execute the binary from a command line). If you're installing on a workstation we would strongly recommend running `hab setup` after youve extracted the binary. 
+
+**Q: Well, what about installing hab across my server fleet?**
+
+A: for the most part, we leave that up to you. There are some [tools out there](https://github.com/chef-cookbooks/habitat) that the habitat team do not maintain for provisioning your infrastructure. But you could also just use the aforementioned curl-bash with your provisioner of choice. If your app was dockerized with habitat then you won't even need to ask this question, because you'll have everything you need inside your container. 

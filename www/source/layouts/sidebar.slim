@@ -1,7 +1,8 @@
 = wrap_layout :layout do
   .container__has-sidebar
     .row
-      .main-sidebar
+      .main-sidebar data-sticky-container=""
+        .sticky data-sticky="" data-margin-top="1" data-top-anchor="main-nav:bottom" data-btm-anchor="main-footer:top"
           - if sidebar_layout == 'docs'
             form.main-sidebar--search action="/docs/search/" method="get"
               input.st-default-search-input type="text" placeholder="Search Documentation" name="q"

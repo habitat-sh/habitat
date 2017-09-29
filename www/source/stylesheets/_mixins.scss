@@ -4,6 +4,10 @@
   box-shadow: 0px 2px 14px 0px rgba(0,0,0,0.10);
 }
 
+@mixin shadow-float-hover {
+  box-shadow: 0px 4px 24px 0px rgba(0,0,0,0.08);
+}
+
 @mixin hide-text() {
   overflow: hidden;
   text-indent: 201%;

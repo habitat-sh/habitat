@@ -1,0 +1,9 @@
+# <a name="glossary-builder" id="glossary-builder" data-magellan-target="glossary-builder">Builder</a>
+
+Builder, like other aspects of the habitat framework consists of several pieces of software that are tightly coupled to form a cohesive user experience. Builder consists of both a continuous build service _and_ a searchable package repository.
+
+## Build Service
+Users have the option to attach their GitHub repos to Builder to enable continuous reverse dependency builds of their plans. Meaning, if  you've added your habitat plan to the root of your source code repository and a package you depend on (e.g. openssl, ruby, node) needs to be rebuilt to mitigate a CVE, your software will also be rebuilt automatically once your reverse dependencies change.
+
+## Depot
+A repository for storing Habitat packages for download and upload.

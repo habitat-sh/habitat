@@ -1,0 +1,210 @@
+// Docs Page
+$docs-small-breakpoint: rem-calc(650);
+$docs-medium-breakpoint: rem-calc(880);
+$docs-xlarge-breakpoint: rem-calc(1060);
+
+@mixin small-docs {
+  @media (max-width: $docs-small-breakpoint - rem-calc(1)) {
+    @content;
+  }
+}
+
+@mixin medium-docs {
+  @media (min-width: $docs-small-breakpoint) and (max-width: $docs-medium-breakpoint - rem-calc(1)) {
+    @content;
+  }
+}
+
+@mixin large-docs {
+  @media (min-width: $docs-medium-breakpoint) {
+    @content;
+  }
+}
+
+@mixin x-large-docs {
+  @media (min-width: $docs-xlarge-breakpoint) {
+    @content;
+  }
+}
+
+@mixin section-left-margin {
+  @media (min-width: 1040px) {
+    margin-left: rem-calc(104);
+  }
+}
+
+%section-heading {
+  font-size: rem-calc(25);
+
+  @include small-docs {
+    font-size: rem-calc(18);
+  }
+}
+
+// Page level styles
+.docs section {
+  margin: rem-calc(60) 0;
+  text-align: center;
+
+  h2 {
+    margin-bottom: rem-calc(60);
+    font-size: rem-calc(24);
+  }
+
+  li {
+    display: inline-block;
+    a.button {
+      display: block;
+      min-width: 200px;
+    }
+  }
+
+  li + li a {
+    margin-left: rem-calc(20);
+  }
+}
+
+// Hero
+.docs--hero {
+  padding: 0;
+
+  & > .row {
+    position: relative;
+  }
+
+  .cta-subtext a {
+    color: $hab-orange-dark;
+  }
+}
+
+.docs--hero--heading {
+  color: $hab-blue-grey;
+  font-size: rem-calc(24);
+
+  @include small-docs {
+    font-size: rem-calc(16);
+  }
+}
+
+.docs--hero--text {
+  max-width: rem-calc(600);
+  color: $hab-navy;
+  font-style: italic;
+
+  & + .docs--hero--text {
+    margin-top: rem-calc(-20px);
+  }
+}
+
+.docs--intro {
+  padding: 0;
+
+  .docs--hero--text {
+    padding: .75rem 1rem;
+    border-radius: $global-radius;
+    background-color: rgba(0,0,0,0.05);
+  }
+}
+
+.docs--feature--list {
+  margin: 0;
+  padding: 0;
+
+  li {
+    margin-bottom: 1rem;
+    padding: 0 1rem;
+    list-style: none;
+    border-left: 1px solid $hab-gray-light;
+  }
+}
+
+// Quicklinks
+.docs--quicklink {
+  padding: 0;
+
+  .docs--quicklink--card {
+    @extend %card-box;
+    @include shadow-float;
+    min-height: 240px;
+    transition: all .1s;
+
+    &:hover {
+      @include shadow-float-hover;
+      margin-top: -3px;
+      transition: all .15s;
+    }
+  }
+}
+
+.docs--cta {
+  padding: rem-calc(150) 0 rem-calc(60);
+  color: $hab-white;
+
+  ul {
+    margin-top: rem-calc(30);
+    text-align: center;
+  }
+}
+
+.docs .footer--cta {
+  display: none;
+}
+
+.docs section {
+  border-radius: $global-radius;
+  margin-bottom: 30px;
+  padding: rem-calc(30) rem-calc(20);
+  position: relative;
+
+  &.download {
+
+    .hab-cli-os {
+      position: relative;
+      border-top: 1px solid $hab-green;
+      margin-bottom: 4px;
+      padding: 28px 0 0 0;
+
+      @each $platform in (mac, linux, windows) {
+          &.#{$platform} {
+            &:before {
+              content: '';
+              background: url(/images/icons/icon-#{$platform}-dark.svg) no-repeat;
+              background-size: contain;
+              width: 1.2rem;
+              height: 1.2rem;
+              position: absolute;
+              left: 8px;
+              top: 28px;
+            }
+          }
+        }
+
+        .description {
+          padding-left: 50px;
+
+          h3 {
+            font-size: 1rem;
+            margin-bottom: 6px;
+          }
+
+          h4 {
+            font-family: $body-font-family;
+            font-size: rem-calc(16);
+          }
+        }
+
+        .buttons {
+          text-align: right;
+
+          .button {
+            padding-left: inherit;
+            text-align: center;
+          }
+        }
+      }
+    }
+
+    &.sample-app {
+      border-radius: 0 0 $global-radius $global-radius;
+    }
+  }

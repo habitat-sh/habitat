@@ -20,26 +20,27 @@ section.community--hero
                 a.button.outline href="/docs/contribute-help-build/" Contribute to Habitat
 
 #community-event-template
-  .community--events--card.columns.medium-4
-    .community--events--card-heading.heading.a
-      ul.no-bullet
-        li
-          | {{ event_type }}
-    .body-content
-      h4
-        a href="{{ event_link }}"
-          | {{ event_name }}
-      p
-        | {{ event_description }}
-      .article-detail--meta
+  .community--events--card--wrapper.columns.medium-4
+    .community--events--card
+      .community--events--card-heading.heading.a
         ul.no-bullet
           li
-            img[src="/images/icons/icon-calendar.svg" alt="calendar icon"]
-            a. href="{{ event_date_url }}"
-              | {{ event_date }}
-          li
-            img[src="/images/icons/icon-pin.svg" alt="map pin icon"]
-              | {{ event_location }}
+            | {{ event_type }}
+      .body-content
+        h4
+          a href="{{ event_link }}"
+            | {{ event_name }}
+        p
+          | {{ event_description }}
+        .article-detail--meta
+          ul.no-bullet
+            li
+              img[src="/images/icons/icon-calendar.svg" alt="calendar icon"]
+              a. href="{{ event_date_url }}"
+                | {{ event_date }}
+            li
+              img[src="/images/icons/icon-pin.svg" alt="map pin icon"]
+                | {{ event_location }}
 
 section.community--events
   .row

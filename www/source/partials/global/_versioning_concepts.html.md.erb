@@ -1,0 +1,10 @@
+Every package needs a version number to use as part of its package identification and the <code>hab plan init</code> subcommand does not stub out a version for you. You have two options for adding versioning:
+
+* Explicitly add <code>pkg_version</code> to your plan.sh
+* Use the <code>pkg_version()</code> and <code>update_pkg_version()</code> helper functions to compute <code>pkg_version</code>
+
+ The following shows how to set <code>pkg_version</code>:
+
+ <%= partial "/partials/global/pkg_version_example" %>
+
+See [Basic settings](/docs/reference/basic-settings/) and [Utility functions](/docs/reference/utility-functions/) for more information on these versioning options.
