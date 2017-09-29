@@ -10,9 +10,3 @@ host = "{{member.sys.ip}}"
 port = {{member.cfg.worker_port}}
 heartbeat = {{member.cfg.worker_heartbeat}}
 {{~/eachAlive}}
-
-{{~#eachAlive bind.datastore.members as |member|}}
-[datastore]
-host = "{{member.sys.ip}}"
-port = {{member.cfg.port}}
-{{~/eachAlive}}
