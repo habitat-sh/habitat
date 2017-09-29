@@ -187,7 +187,7 @@ bundle: image ## build the changelog
 
 changelog: image ## build the changelog
 	$(run) sh -c 'hab pkg install core/github_changelog_generator && \
-		hab pkg binlink core/github_changelog_generator github_changelog_generator && \
+		hab pkg binlink core/github_changelog_generator github_changelog_generator --force && \
 		github_changelog_generator --future-release $(VERSION) --token $(GITHUB_TOKEN)'
 
 docs: image ## build the docs

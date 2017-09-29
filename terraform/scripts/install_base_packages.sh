@@ -122,4 +122,11 @@ done
 
 # Now we ensure that the hab binary being used on the system is the
 # one that we just installed.
-${hab_bootstrap_bin} pkg binlink core/hab hab
+#
+# TODO fn: The updated binlink behavior is to skip targets that already exist
+# so we want to use the `--force` flag. Unfortunetly, old versions of `hab`
+# don't have this flag. For now, we'll run with the new flag and fall back to
+# running the older behavior. This can be removed at a future date when we no
+# lnger are worrying about Habitat versions 0.33.2 and older. (2017-09-29)
+${hab_bootstrap_bin} pkg binlink core/hab hab --force \
+  || ${hab_bootstrap_bin} pkg binlink core/hab hab

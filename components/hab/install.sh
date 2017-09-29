@@ -263,7 +263,14 @@ install_hab() {
       info "Installing Habitat package using temporarily downloaded hab"
       # Install hab release using the extracted version and add/update symlink
       "${archive_dir}/hab" install "$_ident"
-      "${archive_dir}/hab" pkg binlink "$_ident" hab
+      # TODO fn: The updated binlink behavior is to skip targets that already
+      # exist so we want to use the `--force` flag. Unfortunetly, old versions
+      # of `hab` don't have this flag. For now, we'll run with the new flag and
+      # fall back to running the older behavior. This can be removed at a
+      # future date when we no lnger are worrying about Habitat versions 0.33.2
+      # and older. (2017-09-29)
+      "${archive_dir}/hab" pkg binlink "$_ident" hab --force \
+        || "${archive_dir}/hab" pkg binlink "$_ident" hab
       ;;
     *)
       exit_with "Unrecognized sys when installing: ${sys}" 5
