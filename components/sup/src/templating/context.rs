@@ -53,6 +53,9 @@ impl<'a> BindGroup<'a> {
     }
 }
 
+/// The context of a render call.
+///
+/// It stores information on a Service and its configuration.
 #[derive(Clone, Debug, Serialize)]
 pub struct RenderContext<'a> {
     pub sys: &'a Sys,
