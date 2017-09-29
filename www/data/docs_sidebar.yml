@@ -46,67 +46,6 @@ sidebar_links:
       link: "#sharing-pkgs"
   - title: Commands (CLI) <span>&plus;</span>
     link: "/docs/habitat-cli"
-    sub_links:
-      - title: hab
-        link: "#hab"
-      - title: hab cli setup
-        link: "#hab-cli-setup"
-      - title: hab config apply
-        link: "#hab-config-apply"
-      - title: hab file upload
-        link: "#hab-file-upload"
-      - title: hab origin key download
-        link: "#hab-origin-key-download"
-      - title: hab origin key export
-        link: "#hab-origin-key-export"
-      - title: hab origin key generate
-        link: "#hab-origin-key-generate"
-      - title: hab origin key import
-        link: "#hab-origin-key-import"
-      - title: hab origin key upload
-        link: "#hab-origin-key-upload"
-      - title: hab pkg binlink
-        link: "#hab-pkg-binlink"
-      - title: hab pkg build
-        link: "#hab-pkg-build"
-      - title: hab pkg demote
-        link: "#hab-pkg-demote"
-      - title: hab pkg exec
-        link: "#hab-pkg-exec"
-      - title: hab pkg export
-        link: "#hab-pkg-export"
-      - title: hab pkg hash
-        link: "#hab-pkg-hash"
-      - title: hab pkg install
-        link: "#hab-pkg-install"
-      - title: hab pkg path
-        link: "#hab-pkg-path"
-      - title: hab pkg promote
-        link: "#hab-pkg-promote"
-      - title: hab pkg provides
-        link: "#hab-pkg-provides"
-      - title: hab pkg sign
-        link: "#hab-pkg-sign"
-      - title: hab pkg upload
-        link: "#hab-pkg-upload"
-      - title: hab pkg verify
-        link: "#hab-pkg-verify"
-      - title: hab plan init
-        link: "#hab-plan-init"
-      - title: hab ring key export
-        link: "#hab-ring-key-export"
-      - title: hab ring key generate
-        link: "#hab-ring-key-generate"
-      - title: hab ring key import
-        link: "#hab-ring-key-import"
-      - title: hab svc key generate
-        link: "#hab-service-key-generate"
-      - title: hab studio
-        link: "#hab-studio"
-      - title: hab sup
-        link: "#hab-sup"
-      - title: hab user key generate
-        link: "hab-user-key-generate"
   - title: Best Practice Guides <span>&plus;</span>
     link: "/docs/best-practices"
     sub_links:
@@ -120,14 +59,8 @@ sidebar_links:
       link: "#ecs-and-habitat"
     - title: "Apache Mesos and DC/OS"
       link: "#mesos-dcos"
-    - title: Core Contribution
-      link: "#core-development"
-    - title: Advanced Plan.sh Writing
-      link: "#planwriting-guide"
     - title: Iterative Development
       link: "#iterative-development"
-    - title: Continuous Deployment
-      link: "#continuous-deployment"
     - title: "Binary Wrapper Packages"
       link: "#binary-wrapper"
   - title: Reference <span>&plus;</span>
@@ -164,7 +97,7 @@ sidebar_links:
       link: "#glossary-supervisor"
     - title: Plans
       link: "#glossary-plan"
-    - title: Hooks
+    - title: Application Lifecycle Hooks
       link: "#glossary-hooks"
     - title: Scaffolding
       link: "#glossary-scaffolding"
