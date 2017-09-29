@@ -23,6 +23,7 @@ use hcore::package::PackageIdent;
 use common::ui::{UI, Status};
 
 const SCAFFOLDING_GO_IDENT: &'static str = "core/scaffolding-go";
+const SCAFFOLDING_GRADLE_IDENT: &'static str = "core/scaffolding-gradle";
 const SCAFFOLDING_NODE_IDENT: &'static str = "core/scaffolding-node";
 const SCAFFOLDING_RUBY_IDENT: &'static str = "core/scaffolding-ruby";
 
@@ -39,6 +40,16 @@ pub fn scaffold_check(ui: &mut UI, maybe_scaffold: Option<&str>) -> Result<Optio
                     ui.status(
                         Status::Using,
                         &format!("Go Scaffolding '{}'", ident),
+                    )?;
+                    ui.para("")?;
+                    Ok(Some(ident))
+                }
+                SCAFFOLDING_GRADLE_IDENT |
+                "gradle" => {
+                    let ident = PackageIdent::from_str(SCAFFOLDING_GRADLE_IDENT).unwrap();
+                    ui.status(
+                        Status::Using,
+                        &format!("Gradle Scaffolding '{}'", ident),
                     )?;
                     ui.para("")?;
                     Ok(Some(ident))
@@ -97,6 +108,15 @@ fn autodiscover_scaffolding(ui: &mut UI) -> Result<Option<PackageIdent>> {
         )?;
         ui.para("")?;
         Ok(Some(ident))
+    } else if is_project_gradle(&current_path) {
+        let ident = PackageIdent::from_str(SCAFFOLDING_GRADLE_IDENT).unwrap();
+        ui.begin("We've detected a Gradle codebase")?;
+        ui.status(
+            Status::Using,
+            &format!("Scaffolding package: '{}'", ident),
+        )?;
+        ui.para("")?;
+        Ok(Some(ident))
     } else if is_project_node(&current_path) {
         let ident = PackageIdent::from_str(SCAFFOLDING_NODE_IDENT).unwrap();
         ui.begin("We've detected a Node.js codebase")?;
@@ -137,6 +157,18 @@ where
         path.as_ref().join("vendor/vendor.json").is_file() ||
         path.as_ref().join("glide.yaml").is_file() ||
         project_uses_gb(path.as_ref()).expect("Result<bool> not returned from .go file check")
+    {
+        return true;
+    }
+    return false;
+}
+
+fn is_project_gradle<T>(path: T) -> bool
+where
+    T: AsRef<Path>,
+{
+    if path.as_ref().join("build.gradle").is_file() ||
+        path.as_ref().join("settings.gradle").is_file()
     {
         return true;
     }
