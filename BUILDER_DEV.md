@@ -19,7 +19,7 @@ Refer to [BUILDING.md](./BUILDING.md) doc for the detailed steps.
 ## Create Builder encryption key pair
 If you haven't already done this earlier, you'll need to create a key pair for builder to encrypt credentials.
 Do this via the `hab user key generate bldr` command. This will generate a key pair with the prefix `bldr`
-in your current directory. Copy the key pair over to some location that is accessible by the running services.
+in your local `hab/cache/keys` directory. Copy the key pair over to some location that is accessible by the running services.
 You will need to specify that location in the config files below.
 
 ## Create configuration files
@@ -212,7 +212,7 @@ http://app.acceptance.habitat.sh, and then doing a ```hab pkg install <package>`
 Issue the following command (replace `core/nginx` with your origin and package names):
 
 ```
-http POST http://localhost:9636/v1/jobs Authorization:Bearer:${HAB_AUTH_TOKEN} project_id="core/nginx"
+http POST http://localhost:9636/v1/depot/pkgs/schedule/core/nginx Authorization:Bearer:${HAB_AUTH_TOKEN}
 ```
 
 This should create a build job, and then dispatch it to the build worker.
