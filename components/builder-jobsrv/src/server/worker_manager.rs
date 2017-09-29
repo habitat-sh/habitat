@@ -212,6 +212,22 @@ impl WorkerMgr {
             // This unwrap is fine, because we just checked our length
             let mut job = jobs.pop().unwrap();
             self.add_integrations_to_job(&mut job);
+            if job.get_project().has_vcs_auth_token() {
+                match bldr_core::integrations::decrypt(
+                    &self.key_dir,
+                    job.get_project().get_vcs_auth_token(),
+                ) {
+                    Ok(secret) => job.mut_project().set_vcs_auth_token(secret),
+                    Err(e) => {
+                        job.set_state(jobsrv::JobState::Failed);
+                        let err = NetError::new(ErrCode::JOB_DECRYPTION_FAILURE, "js:err:2");
+                        job.set_error(err.take_err());
+                        debug!("failed to decrypt vcs auth token, err={:?}", e);
+                        self.datastore.update_job(&job)?;
+                        continue;
+                    }
+                }
+            }
 
             match self.ready_workers.pop_front() {
                 Some((worker, _)) => {

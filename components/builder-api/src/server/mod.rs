@@ -40,6 +40,9 @@ impl HttpGateway for ApiSrv {
         chain.link(Read::<EventLog>::both(
             EventLogger::new(&config.log_dir, config.events_enabled),
         ));
+        chain.link(persistent::Read::<depot::DepotUtil>::both(
+            depot::DepotUtil::new(config.depot.clone()),
+        ));
         chain.link_after(Cors);
     }
 

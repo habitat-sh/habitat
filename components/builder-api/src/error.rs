@@ -17,6 +17,7 @@ use std::fmt;
 use std::io;
 use std::result;
 
+use bldr_core;
 use hab_core;
 use hab_net;
 use depot;
@@ -28,6 +29,7 @@ use zmq;
 pub enum Error {
     BadPort(String),
     Depot(depot::Error),
+    EncryptionFailure(bldr_core::Error),
     HabitatCore(hab_core::Error),
     HyperError(hyper::error::Error),
     HTTP(hyper::status::StatusCode),
@@ -45,6 +47,7 @@ impl fmt::Display for Error {
         let msg = match *self {
             Error::BadPort(ref e) => format!("{} is an invalid port. Valid range 1-65535.", e),
             Error::Depot(ref e) => format!("{}", e),
+            Error::EncryptionFailure(ref e) => format!("{}", e),
             Error::HabitatCore(ref e) => format!("{}", e),
             Error::HyperError(ref e) => format!("{}", e),
             Error::HTTP(ref e) => format!("{}", e),
@@ -65,6 +68,7 @@ impl error::Error for Error {
         match *self {
             Error::BadPort(_) => "Received an invalid port or a number outside of the valid range.",
             Error::Depot(ref err) => err.description(),
+            Error::EncryptionFailure(ref err) => err.description(),
             Error::HabitatCore(ref err) => err.description(),
             Error::HyperError(ref err) => err.description(),
             Error::HTTP(_) => "Non-200 HTTP response.",
