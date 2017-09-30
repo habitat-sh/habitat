@@ -29,26 +29,24 @@ export class OriginCreatePageComponent implements AfterViewInit, OnInit {
     isOriginAvailable: Function;
     maxLength = 255;
 
-    private builderApiClient: BuilderApiClient;
+    private api: BuilderApiClient;
     private name: FormControl;
 
     constructor(private formBuilder: FormBuilder, private store: AppStore) {
-        this.form = formBuilder.group({});
-        this.builderApiClient = new BuilderApiClient(
-            this.store.getState().gitHub.authToken
-        );
+        this.api = new BuilderApiClient(this.token);
+
+        this.form = formBuilder.group({
+            generateKeys: true
+        });
+
         this.isOriginAvailable = origin => {
-            return this.builderApiClient.isOriginAvailable(origin);
+            return this.api.isOriginAvailable(origin);
         };
     }
 
-    get creating() { return this.store.getState().origins.ui.current.creating; }
-
-    get isFirstOrigin() {
-        return this.store.getState().origins.mine.size === 0;
+    ngOnInit() {
+        requireSignIn(this);
     }
-
-    get username() { return this.store.getState().users.current.username; }
 
     ngAfterViewInit() {
         // Attempt to validate when the page loads.
@@ -57,16 +55,23 @@ export class OriginCreatePageComponent implements AfterViewInit, OnInit {
         }
     }
 
-    ngOnInit() {
-        requireSignIn(this);
+    get creating() {
+        return this.store.getState().origins.ui.current.creating;
+    }
+
+    get isFirstOrigin() {
+        return this.store.getState().origins.mine.size === 0;
+    }
+
+    get token() {
+        return this.store.getState().gitHub.authToken;
+    }
+
+    get username() {
+        return this.store.getState().users.current.username;
     }
 
     createOrigin(origin) {
-        this.store.dispatch(createOrigin(
-            origin,
-            this.store.getState().gitHub.authToken,
-            this.isFirstOrigin
-        ));
-        return false;
+        this.store.dispatch(createOrigin(origin, this.token, this.form.get("generateKeys").value, this.isFirstOrigin));
     }
 }

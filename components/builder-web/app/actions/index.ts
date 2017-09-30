@@ -149,6 +149,7 @@ export const fetchOriginMembers = originActions.fetchOriginMembers;
 export const fetchOriginPublicKeys = originActions.fetchOriginPublicKeys;
 export const fetchMyOrigins = originActions.fetchMyOrigins;
 export const fetchMyOriginInvitations = originActions.fetchMyOriginInvitations;
+export const generateOriginKeys = originActions.generateOriginKeys;
 export const inviteUserToOrigin = originActions.inviteUserToOrigin;
 export const toggleOriginPicker = originActions.toggleOriginPicker;
 export const setCurrentOrigin = originActions.setCurrentOrigin;

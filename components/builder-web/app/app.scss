@@ -149,19 +149,6 @@ body {
   }
 }
 
-.page-body--main {
-  @include span-columns(8);
-  word-wrap: break-word;
-}
-
-.page-body--sidebar {
-  @include span-columns(4);
-  @include omega;
-  border-left: 1px solid $light-gray;
-  padding-left: $base-spacing;
-  word-wrap: break-word;
-}
-
 .uppercase {
   text-transform: uppercase;
 }

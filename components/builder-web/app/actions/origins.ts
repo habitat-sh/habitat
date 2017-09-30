@@ -78,24 +78,29 @@ export function ignoreOriginInvitation(invitationId: string, originName: string,
     };
 }
 
-export function createOrigin(origin, token, isFirstOrigin = false) {
+export function createOrigin(name: string, token: string, generateKeys: boolean, isFirstOrigin = false) {
     return dispatch => {
         dispatch(setCurrentOriginCreatingFlag(true));
 
-        new BuilderApiClient(token).createOrigin(origin).then(origin => {
+        new BuilderApiClient(token).createOrigin(name).then(origin => {
+            dispatch(setCurrentOriginCreatingFlag(false));
+            dispatch(fetchMyOrigins(token));
+
             if (isFirstOrigin || origin["default"]) {
                 dispatch(setCurrentOrigin(origin));
             }
 
-            dispatch(fetchMyOrigins(token));
-            dispatch(setCurrentOriginCreatingFlag(false));
-            dispatch(requestRoute(["/origins"]));
             dispatch(addNotification({
-                title: "Origin Created",
-                body: origin["default"] ?
-                    `'${origin["name"]}' is now the default origin` : "",
+                title: "Origin created",
+                body: origin["default"] ? `'${origin["name"]}' is now the default origin` : "",
                 type: SUCCESS,
             }));
+
+            if (generateKeys) {
+                dispatch(generateOriginKeys(origin["name"], token));
+            }
+
+            dispatch(requestRoute(["/origins"]));
         }).catch(error => {
             dispatch(setCurrentOriginCreatingFlag(false));
             dispatch(addNotification({
@@ -167,6 +172,27 @@ export function fetchOriginPublicKeys(originName: string, token: string) {
                 dispatch(populateOriginPublicKeys(response));
             }).catch(error => {
                 dispatch(populateOriginPublicKeys(undefined, error));
+            });
+    };
+}
+
+export function generateOriginKeys(origin: string, token: string) {
+    return dispatch => {
+        new BuilderApiClient(token).generateOriginKeys(origin).
+            then(response => {
+                dispatch(fetchOrigin(origin));
+                dispatch(fetchOriginPublicKeys(origin, token));
+                dispatch(addNotification({
+                    title: "Origin keys generated",
+                    body: "Your public and private keys have been created and can be downloaded now.",
+                    type: SUCCESS
+                }));
+            }).catch(error => {
+                dispatch(addNotification({
+                    title: "Error generating origin keys",
+                    body: error.message,
+                    type: DANGER
+                }));
             });
     };
 }

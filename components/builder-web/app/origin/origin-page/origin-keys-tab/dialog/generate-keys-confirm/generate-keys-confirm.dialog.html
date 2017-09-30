@@ -1,0 +1,18 @@
+<div class="dialog generate-confirm">
+    <section class="heading">
+      <hab-icon symbol="delete"></hab-icon>
+      <h1>Confirm Generate</h1>
+    </section>
+    <section class="body">
+      <p>
+        Are you sure you want to generate a new key pair?
+        This will replace your private key, if one exists.
+      </p>
+    </section>
+    <section class="controls">
+      <button md-raised-button color="primary" class="button" (click)="ok()">
+          Yes, proceed
+      </button>
+      <a (click)="cancel()">Cancel</a>
+    </section>
+  </div>

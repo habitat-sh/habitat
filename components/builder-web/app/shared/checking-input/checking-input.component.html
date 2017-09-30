@@ -13,9 +13,8 @@
       [formControl]="form.controls[name]"
       placeholder="{{placeholder}}">
   </div>
-  <small class="hab-checking-input--input-msg-wrap">
-    &nbsp;
-    <span *ngIf="control.dirty && !control.pending && !control.valid"
+  <small *ngIf="control.dirty && !control.pending " class="hab-checking-input--input-msg-wrap">
+    <span *ngIf="!control.valid"
       class="hab-checking-input--input-msg invalid">
       <span *ngIf="control.errors.invalidFormat">
         {{displayName}} must match correct format
@@ -30,7 +29,7 @@
         Cannot be longer than {{maxLength}} characters
       </span>
     </span>
-    <span *ngIf="!control.pending && control.valid"
+    <span *ngIf="control.valid"
       class="hab-checking-input--input-msg valid">
       {{displayName}} {{availableMessage}}
     </span>

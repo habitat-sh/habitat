@@ -1,0 +1,69 @@
+.origin-keys-tab {
+
+  section {
+    margin-bottom: 28px;
+
+    &.generate {
+      margin-bottom: 18px;
+    }
+
+    h3 {
+      margin-bottom: 0;
+      font-size: rem(12);
+      text-transform: uppercase;
+    }
+
+    button {
+      color: $hab-green;
+      border: 1px solid $hab-green;
+      box-shadow: none;
+    }
+
+    ul {
+      margin-bottom: 20px;
+
+      li {
+        @include row;
+        border-bottom: 1px solid $very-light-gray;
+        padding: 14px;
+        font-size: rem(12);
+
+        .none {
+          font-size: rem(14);
+        }
+
+        .key {
+          @include span-columns(10);
+          font-family: $heading-font-family;
+
+          hab-icon {
+            margin-right: 10px;
+            width: 16px;
+            height: 16px;
+          }
+        }
+
+        .actions {
+          @include span-columns(2);
+          text-align: right;
+
+          a {
+            cursor: pointer;
+            display: block;
+          }
+
+          hab-icon {
+            color: $hab-blue;
+            transition: color .2s linear;
+            width: 16px;
+            height: 16px;
+
+            &:hover {
+              color: darken($hab-blue, 10%);
+            }
+          }
+        }
+      }
+    }
+  }
+}
