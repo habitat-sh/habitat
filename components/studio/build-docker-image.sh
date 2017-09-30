@@ -63,6 +63,9 @@ tmp_root="$(mktemp -d -t "$(basename $0)-XXXX")"
 trap 'rm -rf $tmp_root; exit $?' INT TERM EXIT
 
 export FS_ROOT="$tmp_root/rootfs"
+# Ensure that no existing `HAB_BINLINK_DIR` environment variable is present,
+# like it would if executed in a Studio instance.
+unset HAB_BINLINK_DIR
 
 info "Installing and extracting initial Habitat packages"
 default_pkgs="core/hab core/hab-studio"
