@@ -91,7 +91,7 @@ assert_service_running() {
 # Useful Setup / Teardown Functions
 ########################################################################
 
-# Some tests start up a Habitat supervisor in the background. Call
+# Some tests start up a Habitat Supervisor in the background. Call
 # this in a `teardown` function to ensure it is stopped before the
 # next test.a
 stop_supervisor() {
@@ -159,7 +159,7 @@ retry() {
 }
 
 # Run the given command in the background. Useful for starting a
-# supervisor and then moving on with commands that exercise it for the
+# Supervisor and then moving on with commands that exercise it for the
 # test.
 #
 # Ensures that BATS' handling of file handles is taken into account;

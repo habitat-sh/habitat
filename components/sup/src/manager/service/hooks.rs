@@ -361,7 +361,7 @@ impl Hook for RunHook {
     {
         panic!(
             "The run hook is a an exception to the lifetime of a service. It should only be \
-             run by the supervisor module!"
+             run by the Supervisor module!"
         );
     }
 

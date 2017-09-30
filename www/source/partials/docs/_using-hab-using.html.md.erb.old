@@ -150,4 +150,4 @@ httpd.default(O): [Wed Sep 20 18:09:18.594594 2017] [core:notice] [pid 15407] AH
 This will start up the requested package with it's default configuration and does not join the
 
 # Tune a package
-Without providing any configuration options or flags a supervisor will be started and the supervisor will manage the process of the requested package. It will not be joined to a supervisor ring. To provide a new configuration at runtime you have [several options]().
+Without providing any configuration options or flags a Supervisor will be started and the Supervisor will manage the process of the requested package. It will not be joined to a Supervisor ring. To provide a new configuration at runtime you have [several options]().

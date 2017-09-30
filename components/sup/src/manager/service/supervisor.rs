@@ -14,9 +14,9 @@
 
 /// Supervise a service.
 ///
-/// The supervisor is responsible for running any services we are asked to start. It handles
+/// The Supervisor is responsible for running any services we are asked to start. It handles
 /// spawning the new process, watching for failure, and ensuring the service is either up or down.
-/// If the process dies, the supervisor will restart it.
+/// If the process dies, the Supervisor will restart it.
 
 use std;
 use std::fmt;

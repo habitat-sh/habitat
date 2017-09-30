@@ -262,7 +262,7 @@ Not all crates have been fully ported to Windows.
 
 Currently the `hab` command will build (as well as the dependent crates).
 
-Work is in progress on the supervisor and other parts of the toolchain.
+Work is in progress on the Supervisor and other parts of the toolchain.
 
 # Running all builder components
 
@@ -275,7 +275,7 @@ make bldr-run
 
 When you are working on an individual component in the /components directory, you may wish to build, install, then use that individual component.
 
-Let's say you want to do this with the supervisor (which lives in the components/sup directory).
+Let's say you want to do this with the Supervisor (which lives in the components/sup directory).
 
 ## Building
 

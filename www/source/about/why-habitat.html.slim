@@ -95,12 +95,12 @@ img[src="/images/why-habitat/gossip-ring.png" style="margin: 2em 2em 2em auto;" 
 h2. Packaging and Supervision
 
 p Habitat accomplishes this by providing two main components: a robust,
-  safe, simple, and secure software packaging system; and a supervisor
+  safe, simple, and secure software packaging system; and a Supervisor
   which manages the lifecycle of the services declared in these packages. The packaging
   layer creates immutable, atomic packages, which contain both the software and
   all of its configuration options.
 
-p The supervisor component is where the run-time magic happens. Each supervisor
+p The Supervisor component is where the run-time magic happens. Each Supervisor
   can be joined with many others in a "ring", with the service it manages formed
   together into service groups. These supervisors can then handle ensuring the
   application has the correct configuration, has the right secrets, is in the
@@ -113,7 +113,7 @@ img[src="/images/why-habitat/difficulty-curve-07.png" style="margin-bottom: 2em;
 p This architecture allows us to avoid the production cliff problem: the closer you get
   to production, the more difficult it is. Rather than force the deployment of
   more and more infrastructure and management software as you approach
-  production, operations teams can simply pass more options to the supervisor:
+  production, operations teams can simply pass more options to the Supervisor:
   declaring the correct topology, update strategy, and configuration. Deploying
   the application <em>is</em> deploying the automation&mdash;all of it.
 

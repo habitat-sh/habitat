@@ -1,17 +1,17 @@
 # <a name="using-packages" id="using-packages" data-magellan-target="using-packages">Using Habitat Packages</a>
 
-Habitat packages used to start services are run under the Habitat supervisor. At runtime, you can join supervisors together in a service group running the same topology, send configuration updates to that group, and more. You can also export the supervisor together with the package to an external immutable format, such as a Docker container.
+Habitat packages used to start services are run under the Habitat Supervisor. At runtime, you can join supervisors together in a service group running the same topology, send configuration updates to that group, and more. You can also export the Supervisor together with the package to an external immutable format, such as a Docker container.
 
 ## Running single packages for testing
 
 Packages can be tested in the interactive studio environment or natively on a host machine running Linux.
 
-When entering an interactive studio, a supervisor is started for you in the background. To run packages inside of this supervisor:
+When entering an interactive studio, a Supervisor is started for you in the background. To run packages inside of this Supervisor:
 
 1. [Build your package](/docs/create-packages-build) inside an interactive studio. Do not exit the studio after it is built.
-2. To start your service in the running supervisor, type `hab sup start yourorigin/yourname`, substituting the name and origin of the package you built in step 1. Your service should now be running.
+2. To start your service in the running Supervisor, type `hab sup start yourorigin/yourname`, substituting the name and origin of the package you built in step 1. Your service should now be running.
 
-Because the supervisor is running in the background, you will not see the supervisor output as you start your service. However you can use the `sup-log` (supervisor log) command that will stream the tail of the supervisor output.
+Because the Supervisor is running in the background, you will not see the Supervisor output as you start your service. However you can use the `sup-log` (Supervisor log) command that will stream the tail of the Supervisor output.
 
 If your host machine is running Linux, do the following to run your packages:
 
@@ -30,9 +30,9 @@ If your host machine is running Linux, do the following to run your packages:
 
 ## Running packages in any environment
 
-The `hab` program can also be installed on servers. It will retrieve the necessary components (like the current release of the supervisor) in order to run packages. Thus, you can start the supervisor on any compatible system. As the supervisor can run more than one service (for more details, see the [multiple services](/docs/run-packages-multiple-services) page), only one is necessary per host.
+The `hab` program can also be installed on servers. It will retrieve the necessary components (like the current release of the Supervisor) in order to run packages. Thus, you can start the Supervisor on any compatible system. As the Supervisor can run more than one service (for more details, see the [multiple services](/docs/run-packages-multiple-services) page), only one is necessary per host.
 
-To start the supervisor, you can write an init script or a systemd unit file. For example, for systemd:
+To start the Supervisor, you can write an init script or a systemd unit file. For example, for systemd:
 
     [Unit]
     Description=The Habitat Supervisor
@@ -43,7 +43,7 @@ To start the supervisor, you can write an init script or a systemd unit file. Fo
     [Install]
     WantedBy=default.target
 
-Next use `hab svc load` to load one or more services into the supervisor for permanent supervision. Using the example from above:
+Next use `hab svc load` to load one or more services into the Supervisor for permanent supervision. Using the example from above:
 
     $ sudo hab svc load yourorigin/yourname
 
@@ -83,11 +83,11 @@ After you have built the hart package, do the following:
 
 # Run Multiple Services with one Supervisor
 
-The Habitat supervisor is designed to supervise one or more services concurrently so if you are running Habitat on bare metal or a virtual machine there is only need for one supervisor. This is also useful in a container environment if you require a secondary so-called "sidecar" service running alongside your primary service.
+The Habitat Supervisor is designed to supervise one or more services concurrently so if you are running Habitat on bare metal or a virtual machine there is only need for one Supervisor. This is also useful in a container environment if you require a secondary so-called "sidecar" service running alongside your primary service.
 
 ## Starting only the Supervisor
 
-Starting the supervisor is as simple as running:
+Starting the Supervisor is as simple as running:
 
     $ hab sup run
 
@@ -95,7 +95,7 @@ This command also lets you override the default gossip and http gateway binding 
 
 ## Running the Supervisor with a Host's init System
 
-As only one supervisor is required on a host, this means that only one system service needs to be added. Your choice of Linux distribution may dictate which init system is in use (i.e. SysVinit, Systemd, runit, etc), but all options boil down to simply running `hab sup run` as the runnable program. The following example assumes that the Habitat program `hab` is installed, binlinked as `/bin/hab`, and a `hab` user and group are present.
+As only one Supervisor is required on a host, this means that only one system service needs to be added. Your choice of Linux distribution may dictate which init system is in use (i.e. SysVinit, Systemd, runit, etc), but all options boil down to simply running `hab sup run` as the runnable program. The following example assumes that the Habitat program `hab` is installed, binlinked as `/bin/hab`, and a `hab` user and group are present.
 
 For example, a suitable Systemd unit would simply be:
 
@@ -110,7 +110,7 @@ ExecStart=/bin/hab sup run
 WantedBy=default.target
 ```
 
-It is important to start the supervisor via the `hab` program as upgrades to the `core/hab` Habitat package will also upgrade the version of the supervisor on next start.
+It is important to start the Supervisor via the `hab` program as upgrades to the `core/hab` Habitat package will also upgrade the version of the Supervisor on next start.
 
 ## Loading a Service for Supervision
 
@@ -118,7 +118,7 @@ To add a service to a Supervisor, you use the `hab svc load` subcommand. It has 
 
     $ hab svc load yourorigin/yourname --topology leader --strategy rolling --group acme
 
-Running the `hab svc load` subcommand multiple times with different package identifiers will result in multiple services running on the same supervisor. Let's add `core/redis` to the supervisor for some fun:
+Running the `hab svc load` subcommand multiple times with different package identifiers will result in multiple services running on the same Supervisor. Let's add `core/redis` to the Supervisor for some fun:
 
     $ hab svc load core/redis
 
@@ -140,8 +140,8 @@ To resume running a service which has been loaded but stopped (via the `hab svc 
 
     $ hab svc start core/redis
 
-## Querying the supervisor for service status
-You can query all services currently loaded or running under the local supervisor using the `hab sup status` command. This command will list all persistent services loaded by the supervisor along with their current state. It will also list transient services that are currently running or in a `starting` or `restarting` state. The `status` command includes the version and release of the servicwe and for services that are running, it will include the `PID` of the running service.
+## Querying the Supervisor for service status
+You can query all services currently loaded or running under the local Supervisor using the `hab sup status` command. This command will list all persistent services loaded by the Supervisor along with their current state. It will also list transient services that are currently running or in a `starting` or `restarting` state. The `status` command includes the version and release of the servicwe and for services that are running, it will include the `PID` of the running service.
 
 To retrieve status for an individual service, you can pass the service identifier:
 
@@ -153,16 +153,16 @@ The following exit codes are emitted by the `status` command:
 
 * `0` - The status command successfully reports status on loaded services
 * `1` - A generic error has occured calling the `hab` cli
-* `2` - A service identifier was passed to `hab sup status` and that service is not loaded by the supervisor
-* `3` - There is no local running supervisor
+* `2` - A service identifier was passed to `hab sup status` and that service is not loaded by the Supervisor
+* `3` - There is no local running Supervisor
 
 # Monitor services through the HTTP API
-When a service starts, the supervisor exposes the status of its services' health and other information through an HTTP API endpoint. This information can be useful in monitoring service health, results of leader elections, and so on.
+When a service starts, the Supervisor exposes the status of its services' health and other information through an HTTP API endpoint. This information can be useful in monitoring service health, results of leader elections, and so on.
 
 The HTTP API provides information on the following endpoints:
 
 * `/census` - Returns the current Census of Services on the Ring (roughly what you see as a service in config.toml).
-* `/services` - Returns an array of all the services running under this supervisor.
+* `/services` - Returns an array of all the services running under this Supervisor.
 * `/services/{name}/{group}/config` - Returns this service groups current configuration.
 * `/services/{name}/{group}/{organization}/config` - Same as above, but includes the organization.
 * `/services/{name}/{group}/health` - Returns the current health check for this service.
@@ -170,12 +170,12 @@ The HTTP API provides information on the following endpoints:
 * `/butterfly` - Debug information about the rumors stored via Butterfly.
 
 ## Usage
-Connect to the supervisor of the running service using the following syntax. This example uses `curl` to do the GET request.
+Connect to the Supervisor of the running service using the following syntax. This example uses `curl` to do the GET request.
 
 ```
 $ curl http://172.17.0.2:9631/services
 ```
 
-> Note: The default listening port on the supervisor is 9631; however, that can be changed by using the `--listen-http` option when starting a service.
+> Note: The default listening port on the Supervisor is 9631; however, that can be changed by using the `--listen-http` option when starting a service.
 
 Depending on the endpoint you hit, the data may be formatted in JSON, TOML, or plain text.

@@ -38,7 +38,7 @@ pub const CACHE_SSL_PATH: &'static str = "hab/cache/ssl";
 pub const PKG_PATH: &'static str = "hab/pkgs";
 /// The environment variable pointing to the filesystem root. This exists for internal
 /// Habitat team usage and is not intended to be used by Habitat consumers.
-/// Using this variable could lead to broken supervisor services and it should
+/// Using this variable could lead to broken Supervisor services and it should
 /// be used with extreme caution.
 pub const FS_ROOT_ENVVAR: &'static str = "FS_ROOT";
 pub const SYSTEMDRIVE_ENVVAR: &'static str = "SYSTEMDRIVE";

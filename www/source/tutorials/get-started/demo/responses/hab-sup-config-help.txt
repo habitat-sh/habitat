@@ -30,5 +30,5 @@ SUBCOMMANDS:
     term      Gracefully terminate the Habitat Supervisor and all of it's
               running services
     unload    Unload a persistent or transient service started by the
-              Habitat supervisor. If the Supervisor is running when the
+              Habitat Supervisor. If the Supervisor is running when the
               service is unloaded the service will be stopped.

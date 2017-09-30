@@ -171,7 +171,7 @@ impl fmt::Display for SupError {
         let content = match self.err {
             Error::Departed => {
                 format!(
-                    "This supervisor has been manually departed.\n\nFor the safety of the system, this supervisor cannot be started (if we did, we would risk the services on this machine behaving badly without our knowledge.) If you know that the services on this system are safe, and want them to rejoin the habitat ring, you need to:\n\n  rm -rf /hab/sup/default/MEMBER_ID /hab/sup/default/data\n\nThis will cause the supervisor to join the ring as a new member.\n\nIf you are in doubt, it is better to consider the services managed by this supervisor as unsafe to run."
+                    "This Supervisor has been manually departed.\n\nFor the safety of the system, this Supervisor cannot be started (if we did, we would risk the services on this machine behaving badly without our knowledge.) If you know that the services on this system are safe, and want them to rejoin the habitat ring, you need to:\n\n  rm -rf /hab/sup/default/MEMBER_ID /hab/sup/default/data\n\nThis will cause the Supervisor to join the ring as a new member.\n\nIf you are in doubt, it is better to consider the services managed by this Supervisor as unsafe to run."
                 )
             }
             Error::BadDataFile(ref path, ref err) => {

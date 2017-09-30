@@ -47,7 +47,7 @@ pub fn get() -> App<'static, 'static> {
             (aliases: &["f", "fi", "fil"])
             (@setting ArgRequiredElseHelp)
             (@subcommand upload =>
-                (about: "Upload a file to the supervisor ring.")
+                (about: "Upload a file to the Supervisor ring.")
                 (aliases: &["u", "up", "upl", "uplo", "uploa"])
                 (@arg SERVICE_GROUP: +required +takes_value {valid_service_group}
                     "Target service group (ex: redis.default)")

@@ -7,7 +7,7 @@ As part of building a package, it needs to be signed with a secret origin key at
 
 The `hab-origin` subcommand will place originname-_timestamp_.sig.key and originname-_timestamp_.pub files (the origin key pair) in the `$HOME/.hab/cache/keys` directory. If you're creating origin keys in the Studio container or you are running as root on a Linux machine, your keys will be stored in `/hab/cache/keys`.
 
-Because the secret key is used to sign your package, it should not be shared freely; however, if anyone wants to download and use your package, then they must have your public key (.pub) installed in their local `$HOME/.hab/cache/keys` or `/hab/cache/keys` directory. Public keys will be downloaded from the depot by the supervisor, if needed.
+Because the secret key is used to sign your package, it should not be shared freely; however, if anyone wants to download and use your package, then they must have your public key (.pub) installed in their local `$HOME/.hab/cache/keys` or `/hab/cache/keys` directory. Public keys will be downloaded from the depot by the Supervisor, if needed.
 
 ### Passing origin keys into the Studio
 When you enter the Studio environment, your origin keys are not automatically shared into it. This is to keep the Studio environment as clean as possible. However, because you need to reference a secret origin key to sign your package, you can do this in three ways:
@@ -35,7 +35,7 @@ The directory where your plan is located is known as the plan context.
     hab studio enter
     ```
 
-    The directory you were in is now mounted as `/src` inside the Studio. By default, a supervisor runs in the background for iterative testing. You can see the streaming output by running <code>sup-log</code>. Type <code>Ctrl-C</code> to exit the streaming output and <code>sup-term</code> to terminate the background supervisor. If you terminate the background supervisor, then running <code>sup-run</code> will restart it and running <code>hab start origin/package</code> will restart every package that was previously loaded. You have to explicitly run <code>hab svc unload origin/package</code> to remove a package from the "loaded" list.
+    The directory you were in is now mounted as `/src` inside the Studio. By default, a Supervisor runs in the background for iterative testing. You can see the streaming output by running <code>sup-log</code>. Type <code>Ctrl-C</code> to exit the streaming output and <code>sup-term</code> to terminate the background Supervisor. If you terminate the background Supervisor, then running <code>sup-run</code> will restart it and running <code>hab start origin/package</code> will restart every package that was previously loaded. You have to explicitly run <code>hab svc unload origin/package</code> to remove a package from the "loaded" list.
 
     > The default Studio is for building Linux-based packages. For building Windows packages, you must use the Windows version of the Habitat Studio by running <code>hab studio -w enter </code> and if you are building on a Linux workstation and would prefer to use a Docker container instead of a chrooted environment, run <code>hab studio -D enter</code>.
 

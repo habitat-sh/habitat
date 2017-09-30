@@ -317,7 +317,7 @@ impl fmt::Display for Error {
             Error::LogonTypeNotGranted => {
                 format!(
                     "hab_svc_user user must possess the 'SE_SERVICE_LOGON_NAME' \
-                account right to be spawned as a service by the supervisor"
+                account right to be spawned as a service by the Supervisor"
                 )
             }
             Error::LogonUserFailed(ref e) => format!("Failure calling LogonUserW: {:?}", e),
@@ -457,7 +457,7 @@ impl error::Error for Error {
             }
             Error::IO(ref err) => err.description(),
             Error::LogonTypeNotGranted => {
-                "Logon type not granted to hab_svc_user to be spawned by the supervisor"
+                "Logon type not granted to hab_svc_user to be spawned by the Supervisor"
             }
             Error::LogonUserFailed(_) => "LogonUserW failed",
             Error::MetaFileBadBind => "Bad value parsed from BIND or BIND_OPTIONAL MetaFile",

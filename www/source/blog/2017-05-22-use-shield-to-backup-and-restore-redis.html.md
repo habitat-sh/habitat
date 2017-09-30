@@ -31,7 +31,7 @@ OK
 "world"
 ```
 
-Typing `sl` will give you the log output of the background supervisor that got started when you entered the Studio:
+Typing `sl` will give you the log output of the background Supervisor that got started when you entered the Studio:
 
 ```console
 [4][default:/src:0]# sl

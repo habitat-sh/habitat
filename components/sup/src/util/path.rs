@@ -86,7 +86,7 @@ pub fn interpreter_paths() -> Result<Vec<PathBuf>> {
         Err(_) => None,
     };
     let interpreter_paths: Vec<PathBuf> = match my_interpreter_dep_ident {
-        // We've found the specific release that our supervisor was built with. Get its path
+        // We've found the specific release that our Supervisor was built with. Get its path
         // metadata.
         Some(ident) => {
             let pkg_install = PackageInstall::load(&ident, None)?;

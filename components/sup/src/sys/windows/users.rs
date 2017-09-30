@@ -23,7 +23,7 @@ pub fn assert_pkg_user_and_group(_user: &str, _group: &str) -> Result<()> {
 }
 
 /// For now we are ignoring any configured user and group
-/// because we do not start the supervisor on windows under
+/// because we do not start the Supervisor on windows under
 /// alternate credentials
 pub fn get_user_and_group(_pkg_install: &PackageInstall) -> Result<(String, String)> {
     default_user_and_group()

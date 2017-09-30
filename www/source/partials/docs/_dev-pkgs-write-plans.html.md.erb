@@ -68,7 +68,7 @@ All plans must have a `plan.sh` at the root of the plan context. This file will 
 
 4.  Now that you have stubbed out your plan.sh file in your plan context, open it and begin modifying it to suit your needs.
 
-When writing a plan, it's important to understand that you are defining both how the package is built and how the Habitat service will behave when the supervisor starts and manages the child process in the package. The following sections explain what you need to do for each phase.
+When writing a plan, it's important to understand that you are defining both how the package is built and how the Habitat service will behave when the Supervisor starts and manages the child process in the package. The following sections explain what you need to do for each phase.
 
 ### Buildtime workflow
 For buildtime installation and configuration, workflow steps need to be included in the plan.sh file. This script defines how you will install your application source files into a package. Before writing your plan, you should know and understand how your application binaries are currently built, installed, what their dependencies are, and where your application or software library expects to find those dependencies.
@@ -175,7 +175,7 @@ In this example, the `core/httpd` plan references several other core packages th
 When overriding any callbacks, you may use any of the variables, settings, or functions in the [Plan syntax guide](/docs/reference/plan-syntax), except for the runtime configuration settings. Those can only be used in runtime hooks once a Habitat service is running.
 
 ### Runtime workflow
-Similar to defining the setup and installation experience at buildtime, behavior for your application or service needs to be defined when the supervisor starts it. This is done at runtime through event hooks. Hooks are script files with [shebangs](https://en.wikipedia.org/wiki/Shebang_(Unix)) that you can use to customize this behavior. The following hooks are available: init, run, file-updated, health-check, and reconfigure. See [Hooks](/docs/reference/plan-syntax#hooks) for more information and examples.
+Similar to defining the setup and installation experience at buildtime, behavior for your application or service needs to be defined when the Supervisor starts it. This is done at runtime through event hooks. Hooks are script files with [shebangs](https://en.wikipedia.org/wiki/Shebang_(Unix)) that you can use to customize this behavior. The following hooks are available: init, run, file-updated, health-check, and reconfigure. See [Hooks](/docs/reference/plan-syntax#hooks) for more information and examples.
 
 If your service does not require custom behavior during the lifecycle of the running service, then you do not need to create hooks. Also, if you only need to start the application or service when the Habitat service starts, you can instead use the `pkg_svc_run` setting and specify the command as a string. When your package is created, a basic run hook will be created by Habitat.
 

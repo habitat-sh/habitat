@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! Encapsulate the filesystem root that the supervisor will see in
+//! Encapsulate the filesystem root that the Supervisor will see in
 //! our tests (corresponds to the `FS_ROOT` environment variable). At
 //! creation, it will generate a new, randomly-named temp directory on
 //! the (real) filesystem, which is deleted when the `HabRoot`

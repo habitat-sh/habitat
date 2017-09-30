@@ -107,7 +107,7 @@ You can also help triage by using the following labeling system adopted by the H
 1. The principle of least abstraction. When possible, we use the tooling that is closest to the native
 tooling for the platform, and provide as little abstraction as necessary. When we do choose an abstraction,
 we choose one - and we make it the one that is most user-serviceable.
-1. Keep it light. The runtime component of Habitat is used as a process supervisor - it needs to stay lean. No run-times.
+1. Keep it light. The runtime component of Habitat is used as a process Supervisor - it needs to stay lean. No run-times.
 1. Convention over configuration, with reasonable defaults. Where possible, we remove the need to configure things
 by having a convention cover it. When we do need to configure things, we set reasonable defaults.
 1. Call things what they are.
