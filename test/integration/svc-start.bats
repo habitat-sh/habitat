@@ -37,6 +37,18 @@ teardown() {
     assert_service_running "${desired_version}"
 }
 
+@test "start a service: pre-installed" {
+    desired_version="core/redis/3.2.3/20160920131015"
+    # Pre-install this older package. Starting the service should not cause a
+    # newer package to be installed.
+    run ${hab} pkg install "${desired_version}"
+    background ${hab} svc start "core/redis"
+    wait_for_service_to_run redis
+
+    assert_package_and_deps_installed "${desired_version}"
+    assert_service_running "${desired_version}"
+}
+
 @test "CAN start a service from hart file" {
     desired_version="core/redis/3.2.4/20170514150022"
 

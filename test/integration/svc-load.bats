@@ -35,6 +35,19 @@ setup() {
     assert_spec_exists_for redis
 }
 
+@test "load a service loads from installed package" {
+    desired_version="core/redis/3.2.3/20160920131015"
+    # Pre-install this older package. Loading the service should not cause a
+    # newer package to be installed.
+    run ${hab} pkg install "${desired_version}"
+
+    run ${hab} svc load "core/redis"
+    assert_success
+
+    assert_package_and_deps_installed "${desired_version}"
+    assert_spec_exists_for redis
+}
+
 @test "CANNOT load a service from hart file" {
     # First, grab a hart file!
     desired_version="core/redis/3.2.4/20170514150022"

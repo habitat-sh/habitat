@@ -476,11 +476,6 @@ fn sub_load(m: &ArgMatches) -> Result<()> {
     let cfg = mgrcfg_from_matches(m)?;
 
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
-    // While an InstallSource can be created from a string, that would
-    // permit the use of an ident or a file path; this command
-    // currently explicitly calls for an ident, so we generate the
-    // InstallSource directly from a valid PackageIdent instead.
-    let install_source = ident.clone().into();
 
     let default_spec = ServiceSpec::default_for(ident);
     let spec_file = Manager::spec_path_for(&cfg, &default_spec);
@@ -492,12 +487,21 @@ fn sub_load(m: &ArgMatches) -> Result<()> {
     let mut spec = spec_from_matches(default_spec.ident, m)?;
     spec.start_style = StartStyle::Persistent;
 
-    util::pkg::install(
-        &mut UI::default(),
-        &spec.bldr_url,
-        &install_source,
-        &spec.channel,
-    )?;
+    if let None = util::pkg::installed(&spec.ident) {
+        // While an InstallSource can be created from a string, that would
+        // permit the use of an ident or a file path; this command
+        // currently explicitly calls for an ident, so we generate the
+        // InstallSource directly from a valid PackageIdent instead.
+        let install_source = spec.ident.clone().into();
+
+        outputln!("Missing package for {}", &spec.ident);
+        util::pkg::install(
+            &mut UI::default(),
+            &spec.bldr_url,
+            &install_source,
+            &spec.channel,
+        )?;
+    }
 
     Manager::save_spec_for(&cfg, &spec)?;
     outputln!("The {} service was successfully loaded", spec.ident);
@@ -579,9 +583,12 @@ fn sub_start(m: &ArgMatches, launcher: LauncherCli) -> Result<()> {
             }
         }
         None => {
-            let depot_url = bldr_url_from_matches(m);
-            let channel = channel_from_matches(m);
-            util::pkg::install(&mut UI::default(), &depot_url, &install_source, &channel)?;
+            if let None = util::pkg::installed(&ident) {
+                let depot_url = bldr_url_from_matches(m);
+                let channel = channel_from_matches(m);
+                outputln!("Missing package for {}", &ident);
+                util::pkg::install(&mut UI::default(), &depot_url, &install_source, &channel)?;
+            }
 
             // The spec file that we write out should respect the
             // identifier the user passed in. If the user gave a hart
