@@ -41,7 +41,11 @@ teardown() {
     run ${hab} svc load --strategy=at-once --force core/redis
     assert_success
 
+    # The first restart is due to the service reloading via `--force`
     wait_for_service_to_restart redis "${initial_pid}"
+    reloaded_pid=$(pid_of_service redis)
+
+    wait_for_service_to_restart redis "${reloaded_pid}"
     updated_running_version=$(current_running_version_for redis)
 
     # Since the latest version of Redis will change as time goes on,

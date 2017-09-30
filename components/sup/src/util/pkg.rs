@@ -18,7 +18,7 @@ use common;
 use common::command::package::install::InstallSource;
 use common::ui::UI;
 use hcore::fs::{self, FS_ROOT_PATH};
-use hcore::package::PackageInstall;
+use hcore::package::{PackageIdent, PackageInstall};
 
 use {PRODUCT, VERSION};
 use error::{Result, SupError};
@@ -47,4 +47,10 @@ pub fn install(
         fs_root_path,
         &fs::cache_artifact_path(None::<String>),
     ).map_err(SupError::from)
+}
+
+/// Returns an installed package for the given ident, if one is present.
+pub fn installed(ident: &PackageIdent) -> Option<PackageInstall> {
+    let fs_root_path = Path::new(&*FS_ROOT_PATH);
+    PackageInstall::load(ident, Some(fs_root_path)).ok()
 }
