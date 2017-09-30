@@ -17,7 +17,7 @@ use std::sync::mpsc::{sync_channel, Receiver, SyncSender, TryRecvError};
 use std::thread;
 
 use butterfly;
-use common::ui::{Coloring, UI};
+use common::ui::UI;
 use env;
 use hcore::package::{PackageIdent, PackageInstall};
 use hcore::service::ServiceGroup;
@@ -302,7 +302,6 @@ struct Worker {
     spec_ident: PackageIdent,
     builder_url: String,
     channel: String,
-    ui: UI,
 }
 
 impl Periodic for Worker {
@@ -337,7 +336,6 @@ impl Worker {
             spec_ident: service.spec_ident.clone(),
             builder_url: service.bldr_url.clone(),
             channel: service.channel.clone(),
-            ui: UI::default_with(Coloring::Never, None),
         }
     }
 
@@ -390,7 +388,8 @@ impl Worker {
             let next_time = self.next_period_start();
 
             match util::pkg::install(
-                &mut self.ui,
+                // We don't want anything in here to print
+                &mut UI::with_sinks(),
                 &self.builder_url,
                 &install_source,
                 &self.channel,
@@ -415,7 +414,8 @@ impl Worker {
             let next_time = self.next_period_start();
 
             match util::pkg::install(
-                &mut self.ui,
+                // We don't want anything in here to print
+                &mut UI::with_sinks(),
                 &self.builder_url,
                 &install_source,
                 &self.channel,
