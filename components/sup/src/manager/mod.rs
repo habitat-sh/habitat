@@ -1050,7 +1050,7 @@ where
 
 fn release_process_lock(fs_cfg: &FsCfg) {
     if let Err(err) = fs::remove_file(&fs_cfg.proc_lock_file) {
-        debug!("Couldn't cleanup supervisor process lock, {}", err);
+        debug!("Couldn't cleanup Supervisor process lock, {}", err);
     }
 }
 

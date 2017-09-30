@@ -52,7 +52,7 @@ impl SelfUpdater {
         }
     }
 
-    /// Spawn a new supervisor updater thread.
+    /// Spawn a new Supervisor updater thread.
     fn init(
         current: PackageIdent,
         update_url: String,
@@ -88,7 +88,7 @@ impl SelfUpdater {
                 Ok(package) => {
                     if current < *package.ident() {
                         debug!(
-                            "Self updater installing newer supervisor, {}",
+                            "Self updater installing newer Supervisor, {}",
                             package.ident()
                         );
                         sender.send(package).expect("Main thread has gone away!");

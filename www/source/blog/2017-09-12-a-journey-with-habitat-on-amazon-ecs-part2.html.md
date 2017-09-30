@@ -42,7 +42,7 @@ of two things:
 *Initial Peer*, so I’ll just re-point that to the `rabbitmq` container because
 we’ll be keeping that one, and it is now the most depended-on container.
 1.  Many of the containers also had binds to postgresql (`--bind
-database:postgresql.default` passed to the Habitat supervisor) which have to be
+database:postgresql.default` passed to the Habitat Supervisor) which have to be
 replaced with environment variables like so:
 
 ```yaml

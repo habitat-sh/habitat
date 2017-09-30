@@ -187,7 +187,7 @@ impl Service {
 
         Self::create_dir_all(&self.pkg.svc_path)?;
 
-        // Create supervisor writable directories
+        // Create Supervisor writable directories
         Self::create_dir_all(fs::svc_hooks_path(&self.pkg.name))?;
         Self::create_dir_all(fs::svc_logs_path(&self.pkg.name))?;
 

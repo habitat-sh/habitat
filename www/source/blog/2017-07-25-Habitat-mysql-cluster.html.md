@@ -7,7 +7,7 @@ category: Supervisor
 classes: body-article
 ---
 
-One of the most compelling pieces of Habitat is using the supervisor to create self-organizing and self-healing topologies.  Today we will, step by step, create a MySQL Leader/Follower cluster using Habitat.
+One of the most compelling pieces of Habitat is using the Supervisor to create self-organizing and self-healing topologies.  Today we will, step by step, create a MySQL Leader/Follower cluster using Habitat.
 
 ## Setting up your infrastructure
 
@@ -57,7 +57,7 @@ If the election is successful, you will now see output like this:
   mysql.production(SR): Executing hooks; 557399da9e9a4ac9b78b1ea33432c24a is the leader
 ```
 
-This means that the supervisor with the ID of 557399da9e9a4ac9b78b1ea33432c24a is the leader, and the other two are followers.  The leader will receive write requests, and the follower will receive read requests.  But...how do we determine which virtual machine is running the supervisor with that cryptic ID?
+This means that the Supervisor with the ID of 557399da9e9a4ac9b78b1ea33432c24a is the leader, and the other two are followers.  The leader will receive write requests, and the follower will receive read requests.  But...how do we determine which virtual machine is running the Supervisor with that cryptic ID?
 
 ## Checking out the Census
 
@@ -65,7 +65,7 @@ We can find this out by looking into the census of our ring.  You can find this 
 
 ## We Need a New Leader!
 
-Now, let's try stopping the leader.  SSH into the virtual machine which is running the supervisor functioning as the leader (see "Checking out the Census" above to find this information).  Now kill the running supervisor (I just use CTRL+c).
+Now, let's try stopping the leader.  SSH into the virtual machine which is running the Supervisor functioning as the leader (see "Checking out the Census" above to find this information).  Now kill the running Supervisor (I just use CTRL+c).
 
 If you are watching the output of the two other virtual machines, you will see them elect a new leader, no human or orchestrator intervention required!
 

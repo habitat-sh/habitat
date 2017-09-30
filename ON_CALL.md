@@ -53,7 +53,7 @@ You can read the Supervisor output on any of the service instances by running `j
 ### Restarting services
 
 - Most instances just run a single service but there are a couple that run two. 
-- Running `systemctl restart hab-sup` will restart the supervisor itself and therefore all services it runs. 
+- Running `systemctl restart hab-sup` will restart the Supervisor itself and therefore all services it runs. 
 - You can run `sudo hab sup stop [service ident]` and `start` to restart individual services. 
 - Run `sudo hab sup status` to determine which services are loaded and what state each service is in.
 
@@ -94,7 +94,7 @@ HINT: If querying the `builder_originsrv` database. All data related to the `cor
 
 ### Deploying code
 
-If you are in a position where you need to deploy a fix, the builder services (assuming they are up) make this easy. Once your fix is merged to master, you simply need to `Request new build` from the package details page in the depot. You need to be a member of the core origin in order to do this. Once that is done, the supervisor on the builder-origisrv node will update itself.
+If you are in a position where you need to deploy a fix, the builder services (assuming they are up) make this easy. Once your fix is merged to master, you simply need to `Request new build` from the package details page in the depot. You need to be a member of the core origin in order to do this. Once that is done, the Supervisor on the builder-origisrv node will update itself.
  
 ## The Sentinel bot
  

@@ -335,7 +335,7 @@ $ sudo useradd -g hab hab
 
 ### Setting up the postgresql cluster
 
-Now, in one of these three instance, run this command to both install core/postgres and start a supervisor ring
+Now, in one of these three instance, run this command to both install core/postgres and start a Supervisor ring
 
 ```console
 $ sudo hab start core/postgresql --topology leader --group production
@@ -347,13 +347,13 @@ Then, in each of the other two instances, run this command
 $ sudo hab start core/postgresql --topology leader --group production --peer first_instance_public_ip_address
 ```
 
-This will peer them with the first instance and create a postgresql supervisor ring.  When all three are up, you will see them hold an election and select a leader.
+This will peer them with the first instance and create a postgresql Supervisor ring.  When all three are up, you will see them hold an election and select a leader.
 
 We need to know which instance is the leader, and the leader ID returned by Habitat is pretty cryptic.  Fortunately, there is a way to look it up.
 
 Pick the public IP of one of those three instances (it doesn't matter which), then head into your browser and navigate to http://your_instance_public_ip:9631/census).
 
-Once there, search for the id of the leader.  That will bring you to information about that particular supervisor.  Look for the ip address - this is the private IP of the instance that is the leader.
+Once there, search for the id of the leader.  That will bring you to information about that particular Supervisor.  Look for the ip address - this is the private IP of the instance that is the leader.
 
 Now, match that private IP to one of your instances.
 

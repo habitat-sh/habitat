@@ -2,7 +2,7 @@
 
 # Downloads the latest builder bootstrap tarball from S3 and installs
 # the desired packages into /hab/cache/artifacts. All
-# supervisor-related packages are always installed; additional
+# Supervisor-related packages are always installed; additional
 # packages from the archive can be installed by specifying them as
 # arguments.
 
@@ -12,7 +12,7 @@ set -euo pipefail
 # Command Line Arguments
 #
 # Any argument given to this script will be interpreted as a builder
-# package to install on the machine. All supervisor-related packages
+# package to install on the machine. All Supervisor-related packages
 # are always installed, and depending on the role the machine will
 # play, additional packages should also be installed.
 #
@@ -54,7 +54,7 @@ tar=$(find_if_exists tar)
 s3_root_url="https://s3-us-west-2.amazonaws.com/habitat-builder-bootstrap"
 
 # We're always going to need all the packages for running the
-# supervisor.
+# Supervisor.
 sup_packages=(hab-launcher
               hab
               hab-sup
@@ -101,7 +101,7 @@ hab_bootstrap_bin=${tmpdir}/bin/hab
 #
 # Note that this only puts the packages into /hab/cache/artifacts; it
 # does not run `hab svc load`. We'll want to do that later, to ensure
-# that the supervisor running in the proper environment (e.g., under
+# that the Supervisor running in the proper environment (e.g., under
 # systemd, and not this script).
 
 # Install the key(s) first. These need to be in place before

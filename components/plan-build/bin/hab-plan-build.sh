@@ -196,7 +196,7 @@
 # ### pkg_binds
 # An associative array representing services which you depend on and the configuration keys that
 # you expect the service to export (by their `pkg_exports`). These binds *must* be set for the
-# supervisor to load the service. The loaded service will wait to run until it's bind becomes
+# Supervisor to load the service. The loaded service will wait to run until it's bind becomes
 # available. If the bind does not contain the expected keys, the service will not start
 # successfully.
 # ```

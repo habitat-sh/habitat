@@ -3,7 +3,7 @@
 # Create a tarball of all the Habitat artifacts needed to run the
 # Habitat Supervisor on a system and upload it to S3. This includes
 # *all* dependencies. The goal is to have everything needed to run the
-# supervisor *without* needing to talk to a running Builder.
+# Supervisor *without* needing to talk to a running Builder.
 #
 # Because you have to bootstrap yourself from *somewhere* :)
 #
@@ -38,7 +38,7 @@ log() {
 ########################################################################
 # Command Line Arguments
 
-# Pass the version of the supervisor you want to be using.
+# Pass the version of the Supervisor you want to be using.
 # TODO: Alternatively, just dispense with versions altogether and just
 # get the latest stable?
 hab_version=${1}

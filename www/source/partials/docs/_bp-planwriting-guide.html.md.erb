@@ -90,7 +90,7 @@ You can read more about [callbacks](https://www.habitat.sh/docs/reference/#refer
 
 ### Hooks
 
-The supervisor dynamically invokes hooks at run-time, triggered by an application lifecycle event. You can read more about [hooks](https://www.habitat.sh/docs/reference/#reference-hooks) here.
+The Supervisor dynamically invokes hooks at run-time, triggered by an application lifecycle event. You can read more about [hooks](https://www.habitat.sh/docs/reference/#reference-hooks) here.
 
 - You cannot block the thread in a hook unless it is in the `run` hook. Never call `hab` or `sleep` in a hook that is not the `run` hook.
 - You should never shell out to `hab` from within a hook. If you think you want to, you should use a [runtime configuration setting](https://www.habitat.sh/docs/reference/#template-data) instead. If none of those will solve your problem, open an issue and tell the core team why.

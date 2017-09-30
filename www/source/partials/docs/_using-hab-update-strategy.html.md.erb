@@ -1,14 +1,14 @@
 # <a name="using-updates" id="using-updates" data-magellan-target="using-updates">Update Strategy</a>
 
-The Habitat supervisor can be configured to leverage an optional _update strategy_, which describes how the supervisor and its peers within a service group should respond when a new version of a package is available.
+The Habitat Supervisor can be configured to leverage an optional _update strategy_, which describes how the Supervisor and its peers within a service group should respond when a new version of a package is available.
 
-To use an update strategy, the supervisor is configured to watch a [depot](/docs/concepts-depot) for new versions.
+To use an update strategy, the Supervisor is configured to watch a [depot](/docs/concepts-depot) for new versions.
 
 ## Configuring an Update Strategy
 
 Habitat supports two update strategies: `rolling` and `at-once`.
 
-To start a supervisor with the auto-update strategy, pass the `--strategy` argument to a supervisor start command, and optionally specify the depot URL:
+To start a Supervisor with the auto-update strategy, pass the `--strategy` argument to a Supervisor start command, and optionally specify the depot URL:
 
     $ hab start yourorigin/yourapp --strategy rolling --url https://bldr.habitat.sh
 
@@ -24,7 +24,7 @@ It's important to note that because we must perform a leader election to determi
 
 ### At-Once Strategy
 
-This strategy does no peer coordination with other supervisors in the service group; it merely updates the underlying Habitat package whenever it detects that a new version has either been published to a depot or installed to the local habitat `pkg` cache. No coordination between supervisors is done, each supervisor will poll a remote depot on their own.
+This strategy does no peer coordination with other supervisors in the service group; it merely updates the underlying Habitat package whenever it detects that a new version has either been published to a depot or installed to the local habitat `pkg` cache. No coordination between supervisors is done, each Supervisor will poll a remote depot on their own.
 
 ## Configuring an Update Strategy with a Builder Channel
 
@@ -37,7 +37,7 @@ A _channel_ in a depot is a point-in-time snapshot of the state of the depot. In
 
 Configuring the supervisors'  update strategy URL to point to a channel ensures that new versions of the application do not get deployed until the channel is updated, thereby preventing unstable versions from reaching environments for which they are not intended.
 
-To start a supervisor with a strategy and pointing to a channel, modify slightly the URL to the depot:
+To start a Supervisor with a strategy and pointing to a channel, modify slightly the URL to the depot:
 
     $ hab start yourorigin/yourapp --strategy rolling --url https://bldr.habitat.sh --channel unstable
 

@@ -17,7 +17,7 @@ teardown() {
     # we'll definitely get something new when we try to upgrade.
     old_redis="core/redis/3.2.3/20161102201135"
 
-    # Start up an empty supervisor in the background. The update
+    # Start up an empty Supervisor in the background. The update
     # frequency is important for this test, otherwise we'll be waiting
     # too long.
     HAB_UPDATE_STRATEGY_FREQUENCY_MS=5000 ${hab} run &
