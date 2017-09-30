@@ -221,6 +221,7 @@ pub fn job_show(req: &mut Request) -> IronResult<Response> {
 }
 
 pub fn job_log(req: &mut Request) -> IronResult<Response> {
+    let session_id = helpers::get_optional_session_id(req);
     let start = {
         let params = req.get_ref::<Params>().unwrap();
         match params.find(&["start"]) {
@@ -246,27 +247,56 @@ pub fn job_log(req: &mut Request) -> IronResult<Response> {
         .and_then(FromValue::from_value)
         .unwrap_or(false);
 
+    let mut job_get = JobGet::new();
     let mut request = JobLogGet::new();
     request.set_start(start);
     {
         let params = req.extensions.get::<Router>().unwrap();
         match params.find("id").unwrap().parse::<u64>() {
-            Ok(id) => request.set_id(id),
+            Ok(id) => {
+                request.set_id(id);
+                job_get.set_id(id);
+            }
             Err(e) => {
                 debug!("Error finding id. e = {:?}", e);
                 return Ok(Response::with(status::BadRequest));
             }
         }
     }
-    match route_message::<JobLogGet, JobLog>(req, &request) {
-        Ok(mut log) => {
-            if !include_color {
-                log.strip_ansi();
+
+    // Before fetching the logs, we need to check and see if the logs we want to fetch are for
+    // a job that's building a private package, and if so, do we have the right to see said
+    // package.
+    match route_message::<JobGet, Job>(req, &job_get) {
+        Ok(mut job) => {
+            let ident = job.take_package_ident();
+            let mut opg = OriginPackageGet::new();
+            opg.set_ident(ident);
+
+            if session_id.is_some() {
+                opg.set_account_id(session_id.unwrap());
             }
-            Ok(render_json(status::Ok, &log))
+
+            match route_message::<OriginPackageGet, OriginPackage>(req, &opg) {
+                Ok(_) => {
+                    // We made it this far, which means either the package is public or it's
+                    // private and we have rights to see it.
+                    match route_message::<JobLogGet, JobLog>(req, &request) {
+                        Ok(mut log) => {
+                            if !include_color {
+                                log.strip_ansi();
+                            }
+                            Ok(render_json(status::Ok, &log))
+                        }
+                        Err(err) => Ok(render_net_error(&err)),
+                    }
+                }
+                Err(e) => return Ok(render_net_error(&e)),
+            }
         }
-        Err(err) => Ok(render_net_error(&err)),
+        Err(e) => return Ok(render_net_error(&e)),
     }
+
 }
 
 /// Endpoint for determining availability of builder-api components.
