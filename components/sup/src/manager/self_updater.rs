@@ -22,7 +22,7 @@ use std::time::Duration;
 use time::{SteadyTime, Duration as TimeDuration};
 
 use common::command::package::install::InstallSource;
-use common::ui::{Coloring, UI};
+use common::ui::UI;
 use env;
 use hcore::package::{PackageIdent, PackageInstall};
 use util;
@@ -80,7 +80,8 @@ impl SelfUpdater {
             let next_check = SteadyTime::now() + TimeDuration::milliseconds(update_frequency());
 
             match util::pkg::install(
-                &mut UI::default_with(Coloring::Never, None),
+                // We don't want anything in here to print
+                &mut UI::with_sinks(),
                 &builder_url,
                 &install_source,
                 &channel,
