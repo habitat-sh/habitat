@@ -1,5 +1,5 @@
 # <a name="pkg-exports" id="pkg-exports" data-magellan-target="pkg-exports">Export a package</a>
-Packages can be exported into multiple external, immutable runtime formats. This topic will be updated as more formats are supported in the future. Currently there are exports for: docker, ACI, mesos, tar.
+Packages can be exported into multiple external, immutable runtime formats. This topic will be updated as more formats are supported in the future. Currently there are exports for: docker, ACI, mesos, tar, and cloudfoundry.
 
 The command to export a package is `hab pkg export <FORMAT> <PKG_IDENT>`. See the [Habitat CLI Reference Guide](/docs/reference/habitat-cli/#hab-pkg-export/) for more CLI information.
 
@@ -13,7 +13,7 @@ You can create a Docker container image for any package by performing the follow
 
 2. Create an interactive studio with the `hab studio enter` command.
 
-3. Install or [build](/docs/create-packages-build) the Habitat package from which you want to create a Docker container image, for example:
+3. Install or [build](/docs/developing-packages/#plan-builds) the Habitat package from which you want to create a Docker container image, for example:
 
     ```
     $ hab pkg install yourorigin/yourpackage
@@ -27,13 +27,13 @@ You can create a Docker container image for any package by performing the follow
 
 5. You can now exit the studio. The new Docker container image exists on your computer and can be examined with `docker images` or run with `docker run`.
 
-For an example of using Docker Compose to run multiple Habitat containers together, see the [Run the Sample App](/tutorials/sample-app/mac/run-app/) step in the Build a Sample App tutorial.
+For an example of using Docker Compose to run multiple Habitat containers together, see the [Run the Sample App](//tutorials/sample-app/mac/run-app/) step in the Build a Sample App tutorial.
 
 ## Exporting to a tarball
 
 1. Enter the habitat studio by using `hab studio enter`.
 
-2. Install or [build](/docs/create-packages-build) the Habitat package from which you want to create a tarball, for example:
+2. Install or [build](/docs/developing-packages/#plan-builds) the Habitat package from which you want to create a tarball, for example:
 
     ```
     $ hab pkg install yourorigin/yourpackage
@@ -52,7 +52,7 @@ For an example of using Docker Compose to run multiple Habitat containers togeth
 You can create an Application Container Image (ACI) for any package by performing the following steps:
 
 1. Create an interactive studio in any directory with the `hab studio enter` command.
-2. Install or [build](/docs/create-packages-build) the Habitat package from which you want to create an ACI, for example:
+2. Install or [build](/docs/developing-packages/#plan-builds) the Habitat package from which you want to create an ACI, for example:
 
     ```
     $ hab pkg install yourorigin/yourpackage
@@ -76,7 +76,7 @@ You can create an Application Container Image (ACI) for any package by performin
 
 1. Create an interactive studio in any directory with the `hab studio enter` command.
 
-2. Install or [build](/docs/create-packages-build) the Habitat package from which you want to create a Marathon application, for example:
+2. Install or [build](/docs/developing-packages/#plan-builds) the Habitat package from which you want to create a Marathon application, for example:
 
     ```
     $ hab pkg install yourorigin/yourpackage
@@ -99,4 +99,4 @@ You can create an Application Container Image (ACI) for any package by performin
 
 5. Note that the default resource allocation for the application is very small: 0.5 units of CPU, no disk, one instance, and 256MB of memory. To change these resource allocations, pass different values to the Mesos exporter as command line options (defaults are documented with `--help`).
 
-6. See the article [Apaches Mesos and DC/OS](/docs/container-orchestration-mesos) for more information on getting your application running on Mesos.
+6. See the article [Apaches Mesos and DC/OS](/docs/best-practices/#mesos-dcos) for more information on getting your application running on Mesos.

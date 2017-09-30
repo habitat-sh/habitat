@@ -1,5 +1,6 @@
 <h1><a name="write-plans" id="write-plans" data-magellan-target="write-plans">Writing plans</a></h1>
-Packages are the cryptographically-signed tarballs that are uploaded, downloaded, unpacked, and installed in Habitat. They are built from shell scripts known as plans, but may also include runtime hooks and service configuration files that describe the behavior and configuration of a running package.
+
+Packages are the cryptographically-signed tarballs that are uploaded, downloaded, unpacked, and installed in Habitat. They are built from shell scripts known as plans, but may also include application lifecycle hooks and service configuration files that describe the behavior and configuration of a running package.
 
 At the center of Habitat packaging is the plan. This is a directory comprised of shell scripts and optional configuration files that define how you download, configure, make, install, and manage the lifecycle of the software in the package. For more conceptual information on packages can be found in the [Packages glossary topic](/docs/glossary#glossary-packages).
 
@@ -24,8 +25,7 @@ pkg_include_dirs=(include)
 pkg_bin_dirs=(bin)
 ~~~
 
-It has the name of the software, the version, where to download it, a checksum to verify the contents are what we expect, run dependencies on
-`core/glibc` and `core/readline`, build dependencies on `core/coreutils`, `core/make`, `core/gcc`, libraries files in `lib`, header files in `include`, and a binary file in `bin`. Also, because it's a core plan, it has a description and upstream URL for the source project included.
+It has the name of the software, the version, where to download it, a checksum to verify the contents are what we expect, run dependencies on `core/glibc` and `core/readline`, build dependencies on `core/coreutils`, `core/make`, `core/gcc`, libraries files in `lib`, header files in `include`, and a binary file in `bin`. Also, because it's a core plan, it has a description and upstream URL for the source project included.
 
 When you have finished creating your plan and call `build` in Habitat studio, the following occurs:
 
@@ -37,7 +37,7 @@ When you have finished creating your plan and call `build` in Habitat studio, th
 6.  Your package contents (binaries, runtine dependencies, libraries, assets, etc.) are then compressed into a tarball.
 7.  The tarball is signed with your origin key and given a .hart file extension.
 
-After the build script completes, you can then upload your package to the depot, or install and start your package locally.
+After the build script completes, you can then upload your package to Habitat Builder, or install and start your package locally.
 
 > Note: The plan.sh file is the only required file to create a package. Configuration files, runtime hooks, and other source files are optional.
 
@@ -68,10 +68,14 @@ All plans must have a `plan.sh` at the root of the plan context. This file will 
 
 4.  Now that you have stubbed out your plan.sh file in your plan context, open it and begin modifying it to suit your needs.
 
+<<<<<<< HEAD
 When writing a plan, it's important to understand that you are defining both how the package is built and how the Habitat service will behave when the Supervisor starts and manages the child process in the package. The following sections explain what you need to do for each phase.
+=======
+When writing a plan, it's important to understand that you are defining both how the package is built and the actions Habitat will take when the Supervisor starts and manages the child processes in the package. The following sections explain what you need to do for each phase.
+>>>>>>> 4d5dc58f... Fixing typos, updating language, fixing broken headers
 
 ### Buildtime workflow
-For buildtime installation and configuration, workflow steps need to be included in the plan.sh file. This script defines how you will install your application source files into a package. Before writing your plan, you should know and understand how your application binaries are currently built, installed, what their dependencies are, and where your application or software library expects to find those dependencies.
+For buildtime installation and configuration, workflow steps need to be included in the plan.sh file to define how you will install your application source files into a package. Before writing your plan, you should know and understand how your application binaries are currently built, installed, what their dependencies are, and where your application or software library expects to find those dependencies.
 
 The main steps in the buildtime workflow are the following:
 
@@ -79,32 +83,32 @@ The main steps in the buildtime workflow are the following:
 2. Add licensing and contact information.
 3. Download and unpack your source files.
 4. Define your dependencies.
-5. (Optional) Override any callbacks.
+5. (Optional) Override any default build phases you need to using callbacks.
 
 The following sections describe each of these steps in more detail.
 
 #### Create your package identifier
-The origin defines packages that are conceptually related to each other. For example, the "core" origin packages are foundational to building other packages. If you would like to browse them, they are located in the [core-plans repo](https://github.com/habitat-sh/core-plans).
+The origin is a place for you to set default privacy rules, store your packages, and collaborate with teammates. For example, the "core" origin is where the core maintainers of Habitat share packages that are foundational to building other packages. If you would like to browse them, they are located in the [core-plans repo](https://github.com/habitat-sh/core-plans), and on [Habitat Builder's Core Origin](https://bldr.habitat.sh/#/pkgs/core).
 
-> Note: The "core" origin name is reserved for the foundational library and binary packages owned by the Habitat maintainers group. If you would like to browse them, they are located in the Habitat [public depot](https://bldr.habitat.sh/#/pkgs/core).
+Creating packages for a specific origin requires that you have access to the secret key for that origin. The secret key will be used to sign the package when it is built by the hab-plan-build command. Keys are kept in `$HOME/.hab/cache/keys` on the host machine and `/hab/cache/keys` while in the studio. For more information on keys, see [Keys](/docs/glossary/#glossary-keys).
 
-Creating packages for a specific origin requires that you also have access to the secret key for that origin. The secret key will be used to sign the package when it is built by the hab-plan-build command. Keys are kept in `$HOME/.hab/cache/keys` on the host machine and `/hab/cache/keys` while in the studio. For more information on keys, see [Keys](/docs/concepts-keys).
-
-The next important part of your package identifier is the name of the package. Standard naming convention is to base the name of the package off of the name of the source or project you download and install into the package; however, this is not a requirement.
+The next important part of your package identifier is the name of the package. Standard naming convention is to base the name of the package off of the name of the source or project you download and install into the package.
 
 <%= partial "/partials/global/versioning_concepts" %>
 
 #### Add licensing and contact information
-While not strictly required, you should enter your contact information in your plan.
 
-More importantly, you should update the `pkg_license` value to indicate the type of license (or licenses) that your source files are licensed under. Valid license types can be found at [https://spdx.org/licenses/]. You can include multiple licenses as an array.
+You should enter your contact information in your plan.
+
+Most importantly, you should update the `pkg_license` value to indicate the type of license (or licenses) that your source files are licensed under. Valid license types can be found at [https://spdx.org/licenses/]. You can include multiple licenses as an array.
 
 > Note: Because all arrays in the pkg_* settings are shell arrays, they are whitespace delimited.
 
 #### Download and unpack your source files
+
 Add in the `pkg_source` value that points to where your source files are located at. Any `wget` url will work; however, unless you're downloading a tarball from a public endpoint, you may need to modify how you download your source files and where in your plan.sh you perform the download operation.
 
-For example, Habitat supports retrieving source files from Git servers like [GitHub](https://github.com). When cloning from GitHub, it is recommended to use https URIs because they are proxy friendly, whereas `git@github` or `git://` are not. To download the source from a GitHub repository, implement `do_download()` in your plan.sh and add a reference the `core/git` package as a build dependency. Because Habitat does not contain a system-wide CA cert bundle, you must use the `core/cacerts` package and export the `GIT_SSL_CAINFO` environment variable to point the `core/cacerts` package. Here’s an example of how to do this in the `do_download()` callback.
+Habitat supports retrieving source files from [GitHub](https://github.com). When cloning from GitHub, it is recommended to use https URIs because they are proxy friendly, whereas `git@github` or `git://` are not. To download the source from a GitHub repository, implement `do_download()` in your plan.sh and add a reference the `core/git` package as a build dependency. Because Habitat does not contain a system-wide CA cert bundle, you must use the `core/cacerts` package and export the `GIT_SSL_CAINFO` environment variable to point the `core/cacerts` package. Here’s an example of how to do this in the `do_download()` callback.
 
 ~~~ bash
 do_download() {
@@ -127,16 +131,18 @@ After you have either specified your source in `pkg_source`, or overridden the *
 If your package does not download any application or service source files, then you will need to override the **do_download()**, **do_verify()**, and **do_unpack()** callbacks. See [Callbacks](/docs/reference/plan-syntax#callbacks) for more details.
 
 #### Define your dependencies
-Dependencies are broken up into two main types: build dependencies and run dependencies. Build dependencies are needed while your package builds and run dependencies are those packages needed when your Habitat service is running.
 
-Declare any build dependencies in `pkg_build_deps` and any run dependencies in `pkg_deps`. You can include version and release information when declaring dependencies if your application is bound to that version.
+Applications have two types of dependencies: buildtime and runtime. 
 
-The package `core/glibc` is typically listed as a run dependency and `core/coreutils` as a build dependency; however, you should not take any inference from this. There are no standard dependencies that every package must have. For example, the mytutorialapp package only includes the `core/node` as a run dependency. You should include dependencies that would natively be part of the build or runtime dependencies your application or service would normally depend on.
+Declare any build dependencies in `pkg_build_deps` and any run dependencies in `pkg_deps`. You can include version and release information when declaring dependencies if your application is bound to a particular version.
 
-There is a third type of dependencies, transitive dependencies, that are the run dependencies of either the build or run dependencies listed in your plan. You do not need to explicitly declare transitive dependencies, but they are included in the list of files when your package is built. See [Package contents](/docs/reference/package-contents) for more information.
+The package `core/glibc` is typically listed as a run dependency and `core/coreutils` as a build dependency, however, you should not take any inference from this. There are no standard dependencies that every package must have. For example, the mytutorialapp package only includes the `core/node` as a run dependency. You should include dependencies that would natively be part of the build or runtime dependencies your application or service would normally depend on.
 
-#### Override any callbacks
-As shown in an example above, there are occasions when you want to override the default behavior of the hab-plan-build script. The Plan syntax guide lists the default implementations for [callbacks](/docs/reference/plan-syntax#callbacks), but if you need to reference specific packages in the process of building your applications or services, then you need to override the default implementations as in the example below.
+There is a third type of dependencies, transitive dependencies, that are the run dependencies of either the build or run dependencies listed in your plan. You do not need to explicitly declare transitive dependencies, but they are included in the list of files when your package is built. See [Package contents](/docs/reference/#package-contents) for more information.
+
+#### Override any build phase with callbacks
+
+As shown in an example above, there are occasions when you want to override the default behavior of the hab-plan-build script. The Plan syntax guide lists the default implementations for [build phase callbacks](/docs/reference/#reference-callbacks), but if you need to reference specific packages in the process of building your applications or services, then you need to override the default implementations as in the example below.
 
 ~~~ bash
 pkg_name=httpd
@@ -172,22 +178,27 @@ do_build() {
 
 In this example, the `core/httpd` plan references several other core packages through the use of the `pkg_path_for` function before `make` is called. You can use a similar pattern if you need reference a binary or library when building your source files.
 
-When overriding any callbacks, you may use any of the variables, settings, or functions in the [Plan syntax guide](/docs/reference/plan-syntax), except for the runtime configuration settings. Those can only be used in runtime hooks once a Habitat service is running.
+When overriding any callbacks, you may use any of the variables, settings, or functions in the [Plan syntax guide](/docs/reference/), except for the runtime template data. Those can only be used in Application Lifecycle hooks once a Habitat service is running.
 
 ### Runtime workflow
+<<<<<<< HEAD
 Similar to defining the setup and installation experience at buildtime, behavior for your application or service needs to be defined when the Supervisor starts it. This is done at runtime through event hooks. Hooks are script files with [shebangs](https://en.wikipedia.org/wiki/Shebang_(Unix)) that you can use to customize this behavior. The following hooks are available: init, run, file-updated, health-check, and reconfigure. See [Hooks](/docs/reference/plan-syntax#hooks) for more information and examples.
+=======
+>>>>>>> 4d5dc58f... Fixing typos, updating language, fixing broken headers
 
-If your service does not require custom behavior during the lifecycle of the running service, then you do not need to create hooks. Also, if you only need to start the application or service when the Habitat service starts, you can instead use the `pkg_svc_run` setting and specify the command as a string. When your package is created, a basic run hook will be created by Habitat.
+Similar to defining the setup and installation experience at buildtime, behavior for your application or service needs to be defined for the Supervisor. This is done at runtime through Application lifecycle hooks. See [Application Lifecycle hooks](/docs/reference/#reference-hooks) for more information and examples.
 
-And, as mentioned above, you can use any of the [runtime configuration settings](/docs/reference/plan-syntax#runtime-configuration-settings), either defined by you in your config file, or defined by Habitat.
+If you only need to start the application or service when the Habitat service starts, you can instead use the `pkg_svc_run` setting and specify the command as a string. When your package is created, a basic run hook will be created by Habitat.
 
-Once you are done writing your plan, use the studio to [build your package](/docs/create-packages-build).
+You can use any of the [runtime configuration settings (/docs/reference/#template-data), either defined by you in your config file, or defined by Habitat.
+
+Once you are done writing your plan, use the studio to [build your package](/docs/developing-packages/#plan-builds).
 
 
 ##
 
-- [write plans](/docs/create-plans/): Describes what a plan is and how to create one.
-- [Add configuration to plans](/docs/create-packages-configure/): Learn how to make your running service configurable by templatizing configuration files in your plan.
-- [Binary-only packages](/docs/create-packages-binary-only/): Learn how to create packages from software that comes only in binary form, like off-the-shelf or legacy programs.
+- [Write plans](/docs/developing-packages/#write-plans): Describes what a plan is and how to create one.
+- [Add configuration to plans](/docs/developing-packages/#add-configuration): Learn how to make your running service configurable by templatizing configuration files in your plan.
+- [Binary-only packages](/docs/best-practices/#binary-wrapper): Learn how to create packages from software that comes only in binary form, like off-the-shelf or legacy programs.
 
-You may also find the [plan syntax guide](/docs/reference#plan-syntax) useful. It lists the settings, variables, and functions that you can use when creating your plan.
+You may also find the [plan syntax guide](/docs/reference/) useful. It lists the settings, variables, and functions that you can use when creating your plan.
