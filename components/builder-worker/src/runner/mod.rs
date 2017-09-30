@@ -195,6 +195,7 @@ impl Runner {
                 self.depot_cli.fetch_origin_secret_key(
                     self.job().origin(),
                     &self.config.auth_token,
+                    &crypto::default_cache_key_path(None),
                 )
             },
             |res| {
@@ -205,23 +206,7 @@ impl Runner {
             },
         ) {
             Ok(res) => {
-                let cache = crypto::default_cache_key_path(None);
-                let key = res.unwrap(); // Ok to unwrap, we know it is a success
-                let s: String = String::from_utf8(key.body).expect("Found invalid UTF-8");
-
-                match crypto::SigKeyPair::write_file_from_str(&s, &cache) {
-                    Ok((pair, pair_type)) => {
-                        debug!(
-                            "Imported {} origin key {}.",
-                            &pair_type,
-                            &pair.name_with_rev()
-                        );
-                    }
-                    Err(err) => {
-                        error!("Unable to import secret key, err={}", err);
-                        return self.fail(net::err(ErrCode::SECRET_KEY_IMPORT, "wk:run:2"));
-                    }
-                }
+                debug!("Imported origin secret key to {:?}.", res.unwrap());
             }
             Err(_) => {
                 let msg = format!("Unable to retrieve secret key after {} retries", RETRIES);

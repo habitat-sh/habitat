@@ -424,16 +424,16 @@ impl Client {
     /// # Panics
     ///
     /// * Authorization token was not set on client
-    pub fn fetch_origin_secret_key(&self, origin: &str, token: &str) -> Result<OriginSecretKey> {
-        let mut res = self.add_authz(self.0.get(&origin_secret_keys_latest(origin)), token)
-            .send()?;
-        if res.status != StatusCode::Ok {
-            return Err(err_from_response(res));
-        }
-        let mut encoded = String::new();
-        res.read_to_string(&mut encoded)?;
-        let key = serde_json::from_str(&encoded)?;
-        Ok(key)
+    pub fn fetch_origin_secret_key<P>(
+        &self,
+        origin: &str,
+        token: &str,
+        dst_path: &P,
+    ) -> Result<PathBuf>
+    where
+        P: AsRef<Path>,
+    {
+        self.x_download(&origin_secret_keys_latest(origin), dst_path.as_ref(), token)
     }
 
     /// Upload a secret origin key to a remote Builder.
@@ -778,6 +778,42 @@ impl Client {
             }
             None => io::copy(&mut res, &mut f)?,
         };
+        debug!(
+            "Moving {} to {}",
+            &tmp_file_path.display(),
+            &dst_file_path.display()
+        );
+        fs::rename(&tmp_file_path, &dst_file_path)?;
+        Ok(dst_file_path)
+    }
+
+    // TODO: Ideally we would have a single download function that can support
+    // both progress and non-progress versions, however the Rust compiler cannot
+    // infer the type for a None for a Display + Sized trait, and makes this task
+    // much more difficult than it should be. Fix later.
+    fn x_download(&self, path: &str, dst_path: &Path, token: &str) -> Result<PathBuf> {
+        let mut res = self.add_authz(self.0.get(path), token).send()?;
+        debug!("Response: {:?}", res);
+
+        if res.status != hyper::status::StatusCode::Ok {
+            return Err(err_from_response(res));
+        }
+        fs::create_dir_all(&dst_path)?;
+
+        let file_name = match res.headers.get::<XFileName>() {
+            Some(filename) => format!("{}", filename),
+            None => return Err(Error::NoXFilename),
+        };
+        let tmp_file_path = dst_path.join(format!(
+            "{}.tmp-{}",
+            file_name,
+            thread_rng().gen_ascii_chars().take(8).collect::<String>()
+        ));
+        let dst_file_path = dst_path.join(file_name);
+        debug!("Writing to {}", &tmp_file_path.display());
+        let mut f = File::create(&tmp_file_path)?;
+        io::copy(&mut res, &mut f)?;
+
         debug!(
             "Moving {} to {}",
             &tmp_file_path.display(),
