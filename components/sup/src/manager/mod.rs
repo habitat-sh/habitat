@@ -45,7 +45,7 @@ use hcore::crypto::{default_cache_key_path, SymKey};
 use hcore::env;
 use hcore::fs::FS_ROOT_PATH;
 use hcore::service::ServiceGroup;
-use hcore::os::process::{self, Signal};
+use hcore::os::process::{self, Pid, Signal};
 use hcore::package::{Identifiable, PackageIdent, PackageInstall};
 use launcher_client::{LAUNCHER_LOCK_CLEAN_ENV, LAUNCHER_PID_ENV, LauncherCli};
 use serde;
@@ -1055,7 +1055,7 @@ fn obtain_process_lock(fs_cfg: &FsCfg) -> Result<()> {
     }
 }
 
-fn read_process_lock<T>(lock_path: T) -> Result<u32>
+fn read_process_lock<T>(lock_path: T) -> Result<Pid>
 where
     T: AsRef<Path>,
 {
@@ -1064,7 +1064,7 @@ where
             let reader = BufReader::new(file);
             match reader.lines().next() {
                 Some(Ok(line)) => {
-                    match line.parse::<u32>() {
+                    match line.parse::<Pid>() {
                         Ok(pid) => Ok(pid),
                         Err(_) => Err(sup_error!(Error::ProcessLockCorrupt)),
                     }
@@ -1094,7 +1094,7 @@ where
     ) {
         Ok(mut file) => {
             let pid = match env::var(LAUNCHER_PID_ENV) {
-                Ok(pid) => pid.parse::<u32>().expect("Unable to parse launcher pid"),
+                Ok(pid) => pid.parse::<Pid>().expect("Unable to parse launcher pid"),
                 Err(_) => process::current_pid(),
             };
             match write!(&mut file, "{}", pid) {

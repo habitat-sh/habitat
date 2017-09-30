@@ -27,7 +27,7 @@ impl Handler for SpawnHandler {
         match service::run(msg) {
             Ok(service) => {
                 let mut reply = protocol::SpawnOk::new();
-                reply.set_pid(service.id());
+                reply.set_pid(service.id().into());
                 services.insert(service);
                 Ok(reply)
             }

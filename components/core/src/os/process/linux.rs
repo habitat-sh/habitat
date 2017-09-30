@@ -23,6 +23,7 @@ use libc::{self, pid_t};
 use super::{OsSignal, Signal};
 use error::{Error, Result};
 
+pub type Pid = libc::pid_t;
 pub type SignalCode = libc::c_int;
 
 impl OsSignal for Signal {
@@ -62,12 +63,12 @@ pub fn become_command(command: PathBuf, args: Vec<OsString>) -> Result<()> {
 }
 
 /// Get process identifier of calling process.
-pub fn current_pid() -> u32 {
-    unsafe { libc::getpid() as u32 }
+pub fn current_pid() -> Pid {
+    unsafe { libc::getpid() as pid_t }
 }
 
 /// Determines if a process is running with the given process identifier.
-pub fn is_alive(pid: u32) -> bool {
+pub fn is_alive(pid: Pid) -> bool {
     match unsafe { libc::kill(pid as pid_t, 0) } {
         0 => true,
         _ => {
@@ -80,7 +81,7 @@ pub fn is_alive(pid: u32) -> bool {
     }
 }
 
-pub fn signal(pid: u32, signal: Signal) -> Result<()> {
+pub fn signal(pid: Pid, signal: Signal) -> Result<()> {
     unsafe {
         match libc::kill(pid as pid_t, signal.os_signal()) {
             0 => Ok(()),

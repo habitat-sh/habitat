@@ -7,7 +7,7 @@ message Register {
 }
 
 message Restart {
-  optional uint32 pid = 1;
+  optional int64 pid = 1;
 }
 
 message Spawn {
@@ -20,11 +20,11 @@ message Spawn {
 }
 
 message SpawnOk {
-  optional uint32 pid = 1;
+  optional int64 pid = 1;
 }
 
 message Terminate {
-  optional uint32 pid = 1;
+  optional int64 pid = 1;
 }
 
 message TerminateOk {

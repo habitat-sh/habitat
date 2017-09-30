@@ -24,7 +24,7 @@ use std::fs::File;
 use std::io::BufReader;
 use std::io::prelude::*;
 use std::path::{Path, PathBuf};
-use hcore::os::process;
+use hcore::os::process::{self, Pid};
 use std::result;
 
 use hcore::service::ServiceGroup;
@@ -60,7 +60,7 @@ pub struct Supervisor {
     pub preamble: String,
     pub state: ProcessState,
     pub state_entered: Timespec,
-    pid: Option<u32>,
+    pid: Option<Pid>,
     pid_file: PathBuf,
 }
 
@@ -235,7 +235,7 @@ impl Serialize for Supervisor {
     }
 }
 
-fn read_pid<T>(pid_file: T) -> Result<u32>
+fn read_pid<T>(pid_file: T) -> Result<Pid>
 where
     T: AsRef<Path>,
 {
@@ -244,7 +244,7 @@ where
             let reader = BufReader::new(file);
             match reader.lines().next() {
                 Some(Ok(line)) => {
-                    match line.parse::<u32>() {
+                    match line.parse::<Pid>() {
                         Ok(pid) => Ok(pid),
                         Err(_) => Err(sup_error!(
                             Error::PidFileCorrupt(pid_file.as_ref().to_path_buf())

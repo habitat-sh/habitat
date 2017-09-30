@@ -19,7 +19,7 @@ use std::process::{Command, ExitStatus, Stdio};
 use std::result;
 
 use core::os;
-use core::os::process::{signal, Signal};
+use core::os::process::{Pid, signal, Signal};
 use libc::{self, c_int, pid_t};
 use protocol::{self, ShutdownMethod};
 use time::{Duration, SteadyTime};
@@ -40,8 +40,8 @@ impl Process {
         }
     }
 
-    pub fn id(&self) -> u32 {
-        self.pid as u32
+    pub fn id(&self) -> Pid {
+        self.pid
     }
 
     /// Attempt to gracefully terminate a proccess and then forcefully kill it after

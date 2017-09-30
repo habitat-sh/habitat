@@ -16,6 +16,7 @@ use std::collections::HashMap;
 use std::io;
 use std::path::Path;
 
+use core::os::process::Pid;
 use ipc_channel::ipc::{IpcOneShotServer, IpcReceiver, IpcSender};
 use protobuf;
 use protocol;
@@ -105,12 +106,12 @@ impl LauncherCli {
     }
 
     /// Restart a running process with the same arguments
-    pub fn restart(&self, pid: u32) -> Result<u32> {
+    pub fn restart(&self, pid: Pid) -> Result<Pid> {
         let mut msg = protocol::Restart::new();
-        msg.set_pid(pid);
+        msg.set_pid(pid.into());
         Self::send(&self.tx, &msg)?;
         let reply = Self::recv::<protocol::SpawnOk>(&self.rx)?;
-        Ok(reply.get_pid())
+        Ok(reply.get_pid() as Pid)
     }
 
     /// Send a process spawn command to the connected Launcher
@@ -122,7 +123,7 @@ impl LauncherCli {
         group: G,
         password: Option<P>,
         env: Env,
-    ) -> Result<u32>
+    ) -> Result<Pid>
     where
         I: ToString,
         B: AsRef<Path>,
@@ -141,12 +142,12 @@ impl LauncherCli {
         msg.set_id(id.to_string());
         Self::send(&self.tx, &msg)?;
         let reply = Self::recv::<protocol::SpawnOk>(&self.rx)?;
-        Ok(reply.get_pid())
+        Ok(reply.get_pid() as Pid)
     }
 
-    pub fn terminate(&self, pid: u32) -> Result<i32> {
+    pub fn terminate(&self, pid: Pid) -> Result<i32> {
         let mut msg = protocol::Terminate::new();
-        msg.set_pid(pid);
+        msg.set_pid(pid.into());
         Self::send(&self.tx, &msg)?;
         let reply = Self::recv::<protocol::TerminateOk>(&self.rx)?;
         Ok(reply.get_exit_code())
