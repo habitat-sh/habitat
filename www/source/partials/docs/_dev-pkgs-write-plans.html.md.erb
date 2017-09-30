@@ -68,11 +68,7 @@ All plans must have a `plan.sh` at the root of the plan context. This file will 
 
 4.  Now that you have stubbed out your plan.sh file in your plan context, open it and begin modifying it to suit your needs.
 
-<<<<<<< HEAD
-When writing a plan, it's important to understand that you are defining both how the package is built and how the Habitat service will behave when the Supervisor starts and manages the child process in the package. The following sections explain what you need to do for each phase.
-=======
 When writing a plan, it's important to understand that you are defining both how the package is built and the actions Habitat will take when the Supervisor starts and manages the child processes in the package. The following sections explain what you need to do for each phase.
->>>>>>> 4d5dc58f... Fixing typos, updating language, fixing broken headers
 
 ### Buildtime workflow
 For buildtime installation and configuration, workflow steps need to be included in the plan.sh file to define how you will install your application source files into a package. Before writing your plan, you should know and understand how your application binaries are currently built, installed, what their dependencies are, and where your application or software library expects to find those dependencies.
@@ -181,10 +177,6 @@ In this example, the `core/httpd` plan references several other core packages th
 When overriding any callbacks, you may use any of the variables, settings, or functions in the [Plan syntax guide](/docs/reference/), except for the runtime template data. Those can only be used in Application Lifecycle hooks once a Habitat service is running.
 
 ### Runtime workflow
-<<<<<<< HEAD
-Similar to defining the setup and installation experience at buildtime, behavior for your application or service needs to be defined when the Supervisor starts it. This is done at runtime through event hooks. Hooks are script files with [shebangs](https://en.wikipedia.org/wiki/Shebang_(Unix)) that you can use to customize this behavior. The following hooks are available: init, run, file-updated, health-check, and reconfigure. See [Hooks](/docs/reference/plan-syntax#hooks) for more information and examples.
-=======
->>>>>>> 4d5dc58f... Fixing typos, updating language, fixing broken headers
 
 Similar to defining the setup and installation experience at buildtime, behavior for your application or service needs to be defined for the Supervisor. This is done at runtime through Application lifecycle hooks. See [Application Lifecycle hooks](/docs/reference/#reference-hooks) for more information and examples.
 

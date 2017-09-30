@@ -63,15 +63,9 @@ You can instruct the Supervisor to download and run packages from a depot by usi
 $ hab start core/postgresql
 ```
 
-<<<<<<< HEAD
-If the Supervisor does not have the `core/postgresql` package in its local cache, it will contact the public depot, retrieve the latest version and the public key for the `core` origin, verify the cryptographic integrity of the package, and then start it.
-
-You may also supply a `--url` argument to the `hab start` command to instruct the Supervisor to use either a different depot, or a materialized channel in that depot for the purposes of continuous deployment:
-=======
 If the Supervisor does not have the `core/postgresql` package in its local cache, it will contact Builder, retrieve the latest version and the public key for the `core` origin, verify the cryptographic integrity of the package, and then start it.
 
 You may also supply a `--url` argument to the `hab start` command to instruct the Supervisor to use either a different Builder, or a materialized channel in that depot for the purposes of continuous deployment:
->>>>>>> 4d5dc58f... Fixing typos, updating language, fixing broken headers
 
 ```
 $ hab start core/postgresql --url https://bldr.habitat.sh
