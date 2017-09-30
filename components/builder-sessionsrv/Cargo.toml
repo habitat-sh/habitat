@@ -15,6 +15,7 @@ doc = false
 clippy = {version = "*", optional = true}
 bitflags = "*"
 env_logger = "*"
+github-api-client = { path = "../github-api-client" }
 habitat-builder-protocol = { path = "../builder-protocol" }
 hyper = "*"
 lazy_static = "*"

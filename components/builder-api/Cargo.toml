@@ -17,6 +17,7 @@ base64 = "*"
 bodyparser = "*"
 builder-http-gateway = { path = "../builder-http-gateway" }
 env_logger = "*"
+github-api-client = { path = "../github-api-client" }
 habitat-builder-protocol = { path = "../builder-protocol" }
 hyper = "*"
 iron = "*"

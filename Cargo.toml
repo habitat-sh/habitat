@@ -22,6 +22,8 @@ members = [
   "components/core",
   "components/eventsrv",
   "components/eventsrv-client",
+  "components/eventsrv-protocol",
+  "components/github-api-client",
   "components/hab",
   "components/hab-butterfly",
   "components/http-client",

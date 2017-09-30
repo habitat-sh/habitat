@@ -9,8 +9,6 @@ clippy = {version = "*", optional = true}
 bitflags = "*"
 habitat-builder-protocol = { path = "../builder-protocol" }
 habitat_core = { path = "../core" }
-hyper = "*"
-hyper-openssl = "*"
 lazy_static = "*"
 log = "*"
 num_cpus = "*"
@@ -18,7 +16,6 @@ persistent = "*"
 protobuf = "*"
 serde = "*"
 serde_derive = "*"
-serde_json = "*"
 time = "*"
 unicase = "*"
 uuid = { version = "*", features = ["v4"] }

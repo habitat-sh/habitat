@@ -14,8 +14,8 @@
 
 mod handlers;
 
+use github_api_client::GitHubClient;
 use hab_net::app::prelude::*;
-use hab_net::oauth::github::GitHubClient;
 use protocol::sessionsrv::*;
 
 use config::{Config, PermissionsCfg};

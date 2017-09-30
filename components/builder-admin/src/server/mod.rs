@@ -16,7 +16,7 @@
 
 mod handlers;
 
-use hab_net::oauth::github::GitHubClient;
+use github_api_client::GitHubClient;
 use hab_net::privilege;
 use http_gateway;
 use http_gateway::app::prelude::*;

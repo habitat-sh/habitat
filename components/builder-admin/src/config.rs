@@ -18,7 +18,6 @@ use std::io;
 use std::net::{Ipv4Addr, IpAddr, SocketAddr, ToSocketAddrs};
 use std::option::IntoIter;
 
-use hab_net::config::{GitHubCfg, GitHubOAuth};
 use http_gateway::config::prelude::*;
 
 use error::Error;

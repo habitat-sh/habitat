@@ -14,8 +14,8 @@
 // Configuration for a Habitat SessionSrv service
 
 use db::config::DataStoreCfg;
+use github_api_client::config::{GitHubCfg, GitHubOAuth};
 use hab_net::app::config::*;
-use hab_net::config::{GitHubCfg, GitHubOAuth};
 
 use error::SrvError;
 

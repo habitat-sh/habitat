@@ -19,7 +19,6 @@ use std::io;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr, ToSocketAddrs};
 use std::option::IntoIter;
 
-use hab_net::config::{GitHubCfg, GitHubOAuth};
 use http_gateway::config::prelude::*;
 use depot;
 

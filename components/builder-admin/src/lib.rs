@@ -17,6 +17,7 @@
 
 extern crate bodyparser;
 extern crate builder_http_gateway as http_gateway;
+extern crate github_api_client;
 extern crate habitat_builder_protocol as protocol;
 extern crate habitat_core as hab_core;
 extern crate habitat_net as hab_net;

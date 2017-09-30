@@ -6,6 +6,7 @@ authors = [
   "Christopher Maier <cmaier@chef.io>",
   "Jamie Winsor <reset@habitat.sh>",
 ]
+workspace = "../../"
 
 [dependencies]
 protobuf = "*"

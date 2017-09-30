@@ -10,6 +10,7 @@ workspace = "../../"
 base64 = "*"
 bodyparser = "*"
 env_logger = "*"
+github-api-client = { path = "../github-api-client" }
 habitat-builder-protocol = { path = "../builder-protocol" }
 habitat_core = { path = "../core" }
 builder_core = { path = "../builder-core" }

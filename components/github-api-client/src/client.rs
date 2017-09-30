@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Copyright (c) 2017 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,19 +15,20 @@
 use std::collections::HashMap;
 use std::fmt;
 use std::io::Read;
+use std::path::PathBuf;
 use std::time::Duration;
 
+use base64;
 use hyper::{self, Url};
 use hyper::status::StatusCode;
 use hyper::header::{Authorization, Accept, Bearer, UserAgent, qitem};
 use hyper::mime::{Mime, TopLevel, SubLevel};
 use hyper::net::HttpsConnector;
 use hyper_openssl::OpensslClient;
-use protocol::sessionsrv;
 use serde_json;
 
 use config;
-use error::{ErrCode, LibError, LibResult};
+use error::{HubError, HubResult};
 
 const USER_AGENT: &'static str = "Habitat-Builder";
 const HTTP_TIMEOUT: u64 = 3_000;
@@ -59,7 +60,7 @@ impl GitHubClient {
         }
     }
 
-    pub fn authenticate(&self, code: &str) -> LibResult<String> {
+    pub fn authenticate(&self, code: &str) -> HubResult<String> {
         let url = Url::parse(&format!(
             "{}/login/oauth/access_token?\
                                 client_id={}&client_secret={}&code={}",
@@ -67,7 +68,7 @@ impl GitHubClient {
             self.client_id,
             self.client_secret,
             code
-        )).map_err(LibError::HttpClientParse)?;
+        )).map_err(HubError::HttpClientParse)?;
         let mut rep = http_post(url)?;
         if rep.status.is_success() {
             let mut encoded = String::new();
@@ -78,19 +79,16 @@ impl GitHubClient {
                     if missing.is_empty() {
                         Ok(msg.access_token)
                     } else {
-                        let msg = format!("Missing OAuth scope(s), '{}'", missing.join(", "));
-                        Err(LibError::net_err(ErrCode::AUTH_SCOPE, msg))
+                        Err(HubError::AuthScope(missing))
                     }
                 }
                 Err(_) => {
-                    match serde_json::from_str::<AuthErr>(&encoded) {
-                        Ok(gh_err) => Err(LibError::net_err(ErrCode::ACCESS_DENIED, gh_err.error)),
-                        Err(_) => Err(LibError::net_err(ErrCode::BAD_REMOTE_REPLY, "net:github:0")),
-                    }
+                    let err = serde_json::from_str::<AuthErr>(&encoded)?;
+                    Err(HubError::Auth(err))
                 }
             }
         } else {
-            Err(LibError::HttpResponse(rep.status))
+            Err(HubError::HttpResponse(rep.status))
         }
     }
 
@@ -101,22 +99,22 @@ impl GitHubClient {
         owner: &str,
         repo: &str,
         path: &str,
-    ) -> LibResult<Contents> {
+    ) -> HubResult<Contents> {
         let url = Url::parse(&format!(
             "{}/repos/{}/{}/contents/{}",
             self.url,
             owner,
             repo,
             path
-        )).map_err(LibError::HttpClientParse)?;
+        )).map_err(HubError::HttpClientParse)?;
         let mut rep = http_get(url, token)?;
         let mut body = String::new();
         rep.read_to_string(&mut body)?;
         if rep.status != StatusCode::Ok {
             let err: HashMap<String, String> = serde_json::from_str(&body)?;
-            return Err(LibError::GitHubAPI(rep.status, err));
+            return Err(HubError::ApiError(rep.status, err));
         }
-        let mut contents: Contents = serde_json::from_str(&body).unwrap();
+        let mut contents: Contents = serde_json::from_str(&body)?;
 
         // We need to strip line feeds as the Github API has started to return
         // base64 content with line feeds.
@@ -127,97 +125,114 @@ impl GitHubClient {
         Ok(contents)
     }
 
-    pub fn repo(&self, token: &str, owner: &str, repo: &str) -> LibResult<Repo> {
+    pub fn repo(&self, token: &str, owner: &str, repo: &str) -> HubResult<Repository> {
         let url = Url::parse(&format!("{}/repos/{}/{}", self.url, owner, repo)).unwrap();
         let mut rep = http_get(url, token)?;
         let mut body = String::new();
         rep.read_to_string(&mut body)?;
         if rep.status != StatusCode::Ok {
             let err: HashMap<String, String> = serde_json::from_str(&body)?;
-            return Err(LibError::GitHubAPI(rep.status, err));
+            return Err(HubError::ApiError(rep.status, err));
         }
 
-        let repo: Repo = match serde_json::from_str(&body) {
+        let repo = match serde_json::from_str::<Repository>(&body) {
             Ok(r) => r,
             Err(e) => {
                 debug!("github repo decode failed: {}. response body: {}", e, body);
-                return Err(LibError::from(e));
+                return Err(HubError::from(e));
             }
         };
 
         Ok(repo)
     }
 
-    pub fn user(&self, token: &str) -> LibResult<User> {
+    pub fn user(&self, token: &str) -> HubResult<User> {
         let url = Url::parse(&format!("{}/user", self.url)).unwrap();
         let mut rep = http_get(url, token)?;
         let mut body = String::new();
         rep.read_to_string(&mut body)?;
         if rep.status != StatusCode::Ok {
             let err: HashMap<String, String> = serde_json::from_str(&body)?;
-            return Err(LibError::GitHubAPI(rep.status, err));
+            return Err(HubError::ApiError(rep.status, err));
         }
-        let user: User = serde_json::from_str(&body).unwrap();
+        let user: User = serde_json::from_str(&body)?;
         Ok(user)
     }
 
-    pub fn other_user(&self, token: &str, username: &str) -> LibResult<User> {
+    pub fn other_user(&self, token: &str, username: &str) -> HubResult<User> {
         let url = Url::parse(&format!("{}/users/{}", self.url, username)).unwrap();
         let mut rep = http_get(url, token)?;
         let mut body = String::new();
         rep.read_to_string(&mut body)?;
         if rep.status != StatusCode::Ok {
             let err: HashMap<String, String> = serde_json::from_str(&body)?;
-            return Err(LibError::GitHubAPI(rep.status, err));
+            return Err(HubError::ApiError(rep.status, err));
         }
-        let user: User = serde_json::from_str(&body).unwrap();
+        let user: User = serde_json::from_str(&body)?;
         Ok(user)
     }
 
-    pub fn emails(&self, token: &str) -> LibResult<Vec<Email>> {
+    pub fn emails(&self, token: &str) -> HubResult<Vec<Email>> {
         let url = Url::parse(&format!("{}/user/emails", self.url)).unwrap();
         let mut rep = http_get(url, token)?;
         let mut body = String::new();
         rep.read_to_string(&mut body)?;
         if rep.status != StatusCode::Ok {
             let err: HashMap<String, String> = serde_json::from_str(&body)?;
-            return Err(LibError::GitHubAPI(rep.status, err));
+            return Err(HubError::ApiError(rep.status, err));
         }
         let emails: Vec<Email> = serde_json::from_str(&body)?;
         Ok(emails)
     }
 
-    pub fn orgs(&self, token: &str) -> LibResult<Vec<Organization>> {
+    pub fn orgs(&self, token: &str) -> HubResult<Vec<Organization>> {
         let url = Url::parse(&format!("{}/user/orgs", self.url)).map_err(
-            LibError::HttpClientParse,
+            HubError::HttpClientParse,
         )?;
         let mut rep = http_get(url, token)?;
         let mut body = String::new();
         rep.read_to_string(&mut body)?;
         if rep.status != StatusCode::Ok {
             let err: HashMap<String, String> = serde_json::from_str(&body)?;
-            return Err(LibError::GitHubAPI(rep.status, err));
+            return Err(HubError::ApiError(rep.status, err));
         }
         let orgs: Vec<Organization> = serde_json::from_str(&body)?;
         Ok(orgs)
     }
 
-    pub fn teams(&self, token: &str) -> LibResult<Vec<Team>> {
+    pub fn search_file(&self, token: &str, repo: &str, file: &str) -> HubResult<Search> {
+        let url = Url::parse(&format!(
+            "{}/search/code?q={}+in:path+repo:{}",
+            self.url,
+            file,
+            repo
+        )).map_err(HubError::HttpClientParse)?;
+        let mut rep = http_get(url, token)?;
+        let mut body = String::new();
+        rep.read_to_string(&mut body)?;
+        if rep.status != StatusCode::Ok {
+            let err: HashMap<String, String> = serde_json::from_str(&body)?;
+            return Err(HubError::ApiError(rep.status, err));
+        }
+        let search = serde_json::from_str::<Search>(&body)?;
+        Ok(search)
+    }
+
+    pub fn teams(&self, token: &str) -> HubResult<Vec<Team>> {
         let url = Url::parse(&format!("{}/user/teams", self.url)).map_err(
-            LibError::HttpClientParse,
+            HubError::HttpClientParse,
         )?;
         let mut rep = http_get(url, token)?;
         let mut body = String::new();
         rep.read_to_string(&mut body)?;
         if rep.status != StatusCode::Ok {
             let err: HashMap<String, String> = serde_json::from_str(&body)?;
-            return Err(LibError::GitHubAPI(rep.status, err));
+            return Err(HubError::ApiError(rep.status, err));
         }
         let teams: Vec<Team> = serde_json::from_str(&body)?;
         Ok(teams)
     }
 }
-
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Contents {
@@ -233,8 +248,24 @@ pub struct Contents {
     pub encoding: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Repo {
+impl Contents {
+    pub fn decode(&self) -> HubResult<Vec<u8>> {
+        base64::decode(&self.content).map_err(HubError::ContentDecode)
+    }
+}
+
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+#[serde(default)]
+pub struct GitHubOwner {
+    /// Public name of commit author
+    pub name: String,
+    /// Public email of commit author
+    pub email: String,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[serde(default)]
+pub struct Repository {
     pub id: u64,
     pub name: String,
     pub full_name: String,
@@ -244,72 +275,19 @@ pub struct Repo {
     pub description: Option<String>,
     pub fork: bool,
     pub url: String,
-    pub forks_url: String,
-    pub keys_url: String,
-    pub collaborators_url: String,
-    pub teams_url: String,
-    pub hooks_url: String,
-    pub issue_events_url: String,
-    pub events_url: String,
-    pub assignees_url: String,
-    pub branches_url: String,
-    pub tags_url: String,
-    pub blobs_url: String,
-    pub git_tags_url: String,
-    pub git_refs_url: String,
-    pub trees_url: String,
-    pub statuses_url: String,
-    pub languages_url: String,
-    pub stargazers_url: String,
-    pub contributors_url: String,
-    pub subscribers_url: String,
-    pub subscription_url: String,
-    pub commits_url: String,
-    pub git_commits_url: String,
-    pub comments_url: String,
-    pub issue_comment_url: String,
-    pub contents_url: String,
-    pub compare_url: String,
-    pub merges_url: String,
-    pub archive_url: String,
-    pub downloads_url: String,
-    pub issues_url: String,
-    pub pulls_url: String,
-    pub milestones_url: String,
-    pub notifications_url: String,
-    pub labels_url: String,
-    pub releases_url: String,
-    pub deployments_url: String,
-    pub created_at: String,
+    pub created_at: u64,
     pub updated_at: String,
-    pub pushed_at: String,
+    pub pushed_at: u64,
     pub git_url: String,
     pub ssh_url: String,
     pub clone_url: String,
-    pub svn_url: String,
-    pub homepage: Option<String>,
-    pub size: u32,
-    pub stargazers_count: u32,
-    pub watchers_count: u32,
-    pub language: String,
-    pub has_issues: bool,
-    pub has_downloads: bool,
-    pub has_wiki: bool,
-    pub has_pages: bool,
-    pub forks_count: u32,
     pub mirror_url: Option<String>,
-    pub open_issues_count: u32,
-    pub forks: u32,
-    pub open_issues: u32,
-    pub watchers: u32,
-    pub default_branch: String,
-    pub permissions: Permissions,
-    pub organization: Option<Organization>,
-    pub network_count: u32,
-    pub subscribers_count: u32,
+    default_branch: String,
+    master_branch: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[serde(default)]
 pub struct Organization {
     pub login: String,
     pub id: u64,
@@ -333,14 +311,8 @@ pub struct Organization {
     pub site_admin: Option<bool>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Permissions {
-    pub admin: bool,
-    pub push: bool,
-    pub pull: bool,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Default, Serialize, Deserialize)]
+#[serde(default)]
 pub struct Team {
     pub id: u64,
     pub url: String,
@@ -356,7 +328,8 @@ pub struct Team {
     pub organization: Organization,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[serde(default)]
 pub struct User {
     pub login: String,
     pub id: u64,
@@ -387,17 +360,6 @@ pub struct User {
     pub following: Option<u32>,
     pub created_at: Option<String>,
     pub updated_at: Option<String>,
-}
-
-impl From<User> for sessionsrv::Account {
-    fn from(user: User) -> sessionsrv::Account {
-        let mut account = sessionsrv::Account::new();
-        account.set_name(user.login);
-        if let Some(email) = user.email {
-            account.set_email(email);
-        }
-        account
-    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -450,13 +412,26 @@ impl fmt::Display for AuthErr {
     }
 }
 
-#[derive(Deserialize, Serialize)]
-pub enum AuthResp {
-    AuthOk,
-    AuthErr,
+#[derive(Debug, Deserialize, Serialize)]
+pub struct Search {
+    total_count: u64,
+    incomplete_results: bool,
+    items: Vec<SearchItem>,
 }
 
-fn http_get(url: Url, token: &str) -> LibResult<hyper::client::response::Response> {
+#[derive(Debug, Deserialize, Serialize)]
+pub struct SearchItem {
+    name: String,
+    path: PathBuf,
+    sha: String,
+    url: String,
+    git_url: String,
+    html_url: String,
+    repository: Repository,
+    score: f64,
+}
+
+fn http_get(url: Url, token: &str) -> HubResult<hyper::client::response::Response> {
     hyper_client()
         .get(url)
         .header(Accept(vec![
@@ -467,10 +442,10 @@ fn http_get(url: Url, token: &str) -> LibResult<hyper::client::response::Respons
         .header(Authorization(Bearer { token: token.to_owned() }))
         .header(UserAgent(USER_AGENT.to_string()))
         .send()
-        .map_err(LibError::HttpClient)
+        .map_err(HubError::HttpClient)
 }
 
-fn http_post(url: Url) -> LibResult<hyper::client::response::Response> {
+fn http_post(url: Url) -> HubResult<hyper::client::response::Response> {
     hyper_client()
         .post(url)
         .header(Accept(vec![
@@ -480,7 +455,7 @@ fn http_post(url: Url) -> LibResult<hyper::client::response::Response> {
         ]))
         .header(UserAgent(USER_AGENT.to_string()))
         .send()
-        .map_err(LibError::HttpClient)
+        .map_err(HubError::HttpClient)
 }
 
 fn hyper_client() -> hyper::Client {

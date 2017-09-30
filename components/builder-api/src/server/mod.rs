@@ -15,8 +15,8 @@
 mod handlers;
 
 use depot;
+use github_api_client::GitHubClient;
 use hab_core::event::EventLogger;
-use hab_net::oauth::github::GitHubClient;
 use http_gateway;
 use http_gateway::app::prelude::*;
 use iron;
@@ -79,7 +79,9 @@ impl HttpGateway for ApiSrv {
             },
             projects: post "/projects" => XHandler::new(project_create).before(basic.clone()),
             project: get "/projects/:origin/:name" => project_show,
-            project_jobs: get "/projects/:origin/:name/jobs" => XHandler::new(project_jobs).before(opt.clone()),
+            project_jobs: get "/projects/:origin/:name/jobs" => {
+                XHandler::new(project_jobs).before(opt.clone())
+            },
             edit_project: put "/projects/:origin/:name" => {
                 XHandler::new(project_update).before(basic.clone())
             },
