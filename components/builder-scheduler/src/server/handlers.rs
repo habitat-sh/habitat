@@ -65,10 +65,10 @@ pub fn group_create(
         let ret = match graph.resolve(&project_name) {
             Some(s) => s,
             None => {
-                warn!("GroupCreate, project ident not found");
-                let err = NetError::new(ErrCode::ENTITY_NOT_FOUND, "sc:group-create:3");
-                conn.route_reply(req, &*err)?;
-                return Ok(());
+                warn!("GroupCreate, project ident not found for {}", project_name);
+                // If a package has never been uploaded, we won't see it in the graph
+                // Carry on with stiff upper lip
+                String::from("")
             }
         };
         end_time = PreciseTime::now();
