@@ -73,6 +73,7 @@ pub enum SrvError {
     OriginPackagePromote(postgres::error::Error),
     OriginPackageSearch(postgres::error::Error),
     OriginPackageUniqueList(postgres::error::Error),
+    OriginPackageUpdate(postgres::error::Error),
     OriginProjectCreate(postgres::error::Error),
     OriginProjectDelete(postgres::error::Error),
     OriginProjectGet(postgres::error::Error),
@@ -239,6 +240,9 @@ impl fmt::Display for SrvError {
                     e
                 )
             }
+            SrvError::OriginPackageUpdate(ref e) => {
+                format!("Error updating a package in this origin, {}", e)
+            }
             SrvError::OriginProjectCreate(ref e) => {
                 format!("Error creating project in database, {}", e)
             }
@@ -361,6 +365,7 @@ impl error::Error for SrvError {
             SrvError::OriginPackagePromote(ref err) => err.description(),
             SrvError::OriginPackageSearch(ref err) => err.description(),
             SrvError::OriginPackageUniqueList(ref err) => err.description(),
+            SrvError::OriginPackageUpdate(ref err) => err.description(),
             SrvError::OriginProjectCreate(ref err) => err.description(),
             SrvError::OriginProjectDelete(ref err) => err.description(),
             SrvError::OriginProjectGet(ref err) => err.description(),

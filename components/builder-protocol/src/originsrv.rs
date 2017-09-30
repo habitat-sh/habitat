@@ -912,6 +912,14 @@ impl Serialize for OriginPackageGroupPromoteResponse {
     }
 }
 
+impl Routable for OriginPackageUpdate {
+    type H = String;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(String::from(self.get_pkg().get_ident().get_origin()))
+    }
+}
+
 impl Routable for OriginPackagePromote {
     type H = String;
 

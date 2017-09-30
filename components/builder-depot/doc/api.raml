@@ -349,6 +349,20 @@ securitySchemes:
                             422:
                             424:
                             409:
+                    /{visibility}:
+                        patch:
+                            description: Change the visibility of a package
+                            responses:
+                                200:
+                                    description: Successfully changed
+                                400:
+                                    description: Missing origin or name or version or release or visibility. Visibility not "public" or "private".
+                                403:
+                                    description: Unauthorized to change packages for this origin
+                                404:
+                                    description: Package not found
+                                500:
+                                    description: Internal server error
                     /download:
                         get:
                             responses:

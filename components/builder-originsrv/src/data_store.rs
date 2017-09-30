@@ -103,6 +103,33 @@ impl DataStore {
         async_thread.start(4);
     }
 
+    pub fn update_origin_package(&self, opu: &originsrv::OriginPackageUpdate) -> SrvResult<()> {
+        let conn = self.pool.get(opu)?;
+        let pkg = opu.get_pkg();
+        let ident = pkg.get_ident();
+        let visibility = format!("{}", pkg.get_visibility());
+
+        conn.execute(
+            "SELECT update_origin_package_v1($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)",
+            &[
+                &(pkg.get_id() as i64),
+                &(pkg.get_owner_id() as i64),
+                &ident.get_name(),
+                &ident.to_string(),
+                &pkg.get_checksum(),
+                &pkg.get_manifest(),
+                &pkg.get_config(),
+                &pkg.get_target(),
+                &self.into_delimited(pkg.get_deps().to_vec()),
+                &self.into_delimited(pkg.get_tdeps().to_vec()),
+                &self.into_delimited(pkg.get_exposes().to_vec()),
+                &visibility,
+            ],
+        ).map_err(SrvError::OriginPackageUpdate)?;
+        self.async.schedule("sync_packages")?;
+        Ok(())
+    }
+
     pub fn update_origin_project(&self, opc: &originsrv::OriginProjectUpdate) -> SrvResult<()> {
         let conn = self.pool.get(opc)?;
         let project = opc.get_project();
@@ -807,6 +834,7 @@ impl DataStore {
             "SELECT * FROM get_origin_package_v2($1, $2)",
             &[&opg.get_ident().to_string(), &(opg.get_account_id() as i64)],
         ).map_err(SrvError::OriginPackageGet)?;
+
         if rows.len() != 0 {
             let row = rows.get(0);
             let pkg = self.row_to_origin_package(&row)?;

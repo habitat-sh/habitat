@@ -593,5 +593,38 @@ pub fn migrate(migrator: &mut Migrator) -> SrvResult<()> {
                       RETURN;
                     END;
                     $$ LANGUAGE plpgsql STABLE"#)?;
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE OR REPLACE FUNCTION update_origin_package_v1 (
+                op_id bigint,
+                op_owner_id bigint,
+                op_name text,
+                op_ident text,
+                op_checksum text,
+                op_manifest text,
+                op_config text,
+                op_target text,
+                op_deps text,
+                op_tdeps text,
+                op_exposes text,
+                op_visibility text
+                 ) RETURNS void AS $$
+                    UPDATE origin_packages SET
+                        owner_id = op_owner_id,
+                        name = op_name,
+                        ident = op_ident,
+                        checksum = op_checksum,
+                        manifest = op_manifest,
+                        config = op_config,
+                        target = op_target,
+                        deps = op_deps,
+                        tdeps = op_tdeps,
+                        exposes = op_exposes,
+                        visibility = op_visibility,
+                        scheduler_sync = false,
+                        updated_at = now()
+                        WHERE id = op_id;
+                    $$ LANGUAGE SQL VOLATILE"#,
+    )?;
     Ok(())
 }

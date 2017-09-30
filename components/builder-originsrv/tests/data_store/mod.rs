@@ -733,6 +733,99 @@ fn delete_origin_member_by_name() {
 }
 
 #[test]
+fn update_origin_package() {
+    let ds = datastore_test!(DataStore);
+    let mut origin = originsrv::OriginCreate::new();
+    origin.set_name(String::from("core"));
+    origin.set_owner_id(1);
+    origin.set_owner_name(String::from("scottkelly"));
+    origin.set_default_package_visibility(originsrv::OriginPackageVisibility::Private);
+    let origin = ds.create_origin(&origin)
+        .expect("Should create origin")
+        .unwrap();
+
+    let mut ident = originsrv::OriginPackageIdent::new();
+    ident.set_origin("core".to_string());
+    ident.set_name("cacerts".to_string());
+    ident.set_version("2017.01.17".to_string());
+    ident.set_release("20170209064044".to_string());
+
+    let mut dep_idents = protobuf::RepeatedField::new();
+    let mut dep_ident = originsrv::OriginPackageIdent::new();
+    dep_ident.set_origin("dep_org".to_string());
+    dep_ident.set_name("dep_name".to_string());
+    dep_ident.set_version("1.1.1-dep".to_string());
+    dep_ident.set_release("20170101010102".to_string());
+    dep_idents.push(dep_ident);
+    let mut dep_ident2 = originsrv::OriginPackageIdent::new();
+    dep_ident2.set_origin("dep_org2".to_string());
+    dep_ident2.set_name("dep_name2".to_string());
+    dep_ident2.set_version("1.1.1-dep2".to_string());
+    dep_ident2.set_release("20170101010122".to_string());
+    dep_idents.push(dep_ident2);
+
+    let mut tdep_idents = protobuf::RepeatedField::new();
+    let mut tdep_ident = originsrv::OriginPackageIdent::new();
+    tdep_ident.set_origin("tdep_org".to_string());
+    tdep_ident.set_name("tdep_name".to_string());
+    tdep_ident.set_version("1.1.1-tdep".to_string());
+    tdep_ident.set_release("20170101010103".to_string());
+    tdep_idents.push(tdep_ident);
+    let mut tdep_ident2 = originsrv::OriginPackageIdent::new();
+    tdep_ident2.set_origin("tdep_org2".to_string());
+    tdep_ident2.set_name("tdep_name2".to_string());
+    tdep_ident2.set_version("1.1.1-tdep2".to_string());
+    tdep_ident2.set_release("20170101010123".to_string());
+    tdep_idents.push(tdep_ident2);
+
+    let mut package = originsrv::OriginPackageCreate::new();
+    package.set_owner_id(1);
+    package.set_origin_id(origin.get_id());
+    package.set_ident(ident.clone());
+    package.set_checksum("checksum".to_string());
+    package.set_manifest("manifest".to_string());
+    package.set_deps(dep_idents.clone());
+    package.set_tdeps(tdep_idents.clone());
+    package.set_config("config".to_string());
+    package.set_target("x86_64-linux".to_string());
+    package.set_exposes(vec![1, 2]);
+    ds.create_origin_package(&package).expect(
+        "Failed to create origin package",
+    );
+
+    let mut package_get = originsrv::OriginPackageGet::new();
+    package_get.set_ident(ident.clone());
+    package_get.set_account_id(1);
+    let mut result = ds.get_origin_package(&package_get)
+        .expect("Failed to get origin package")
+        .unwrap();
+
+    assert_eq!(
+        result.get_visibility(),
+        originsrv::OriginPackageVisibility::Private
+    );
+
+    let mut upd = originsrv::OriginPackageUpdate::new();
+    result.set_visibility(originsrv::OriginPackageVisibility::Public);
+    upd.set_pkg(result);
+
+    ds.update_origin_package(&upd).expect(
+        "Failed to update origin package",
+    );
+
+    let mut package_get2 = originsrv::OriginPackageGet::new();
+    package_get2.set_ident(ident.clone());
+    let result2 = ds.get_origin_package(&package_get2)
+        .expect("Failed to get origin package")
+        .unwrap();
+
+    assert_eq!(
+        result2.get_visibility(),
+        originsrv::OriginPackageVisibility::Public
+    );
+}
+
+#[test]
 fn update_origin() {
     let ds = datastore_test!(DataStore);
     let mut origin = originsrv::OriginCreate::new();

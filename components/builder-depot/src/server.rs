@@ -1435,6 +1435,55 @@ fn list_package_versions(req: &mut Request) -> IronResult<Response> {
     }
 }
 
+fn package_privacy_toggle(req: &mut Request) -> IronResult<Response> {
+    let session = req.extensions.get::<Authenticated>().unwrap().clone();
+    let params = req.extensions.get::<Router>().unwrap().clone();
+    let origin = match params.find("origin") {
+        Some(o) => o,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+    let visibility = match params.find("visibility") {
+        Some(v) => v,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+    let ident = ident_from_params(&params);
+
+    if !ident.valid() || !ident.fully_qualified() {
+        info!(
+            "Invalid or not fully qualified package identifier: {}",
+            ident
+        );
+        return Ok(Response::with(status::BadRequest));
+    }
+
+    let opv: OriginPackageVisibility = match visibility.parse() {
+        Ok(o) => o,
+        Err(_) => return Ok(Response::with(status::BadRequest)),
+    };
+
+    if !check_origin_access(req, session.get_id(), &origin)? {
+        return Ok(Response::with(status::Forbidden));
+    }
+
+    let mut opg = OriginPackageGet::new();
+    opg.set_ident(ident);
+    opg.set_account_id(session.get_id());
+
+    match route_message::<OriginPackageGet, OriginPackage>(req, &opg) {
+        Ok(mut package) => {
+            let mut opu = OriginPackageUpdate::new();
+            package.set_visibility(opv);
+            opu.set_pkg(package);
+
+            match route_message::<OriginPackageUpdate, NetOk>(req, &opu) {
+                Ok(_) => Ok(Response::with(status::Ok)),
+                Err(e) => Ok(render_net_error(&e)),
+            }
+        }
+        Err(e) => Ok(render_net_error(&e)),
+    }
+}
+
 fn list_packages(req: &mut Request) -> IronResult<Response> {
     let session_id = helpers::get_optional_session_id(req);
     let mut distinct = false;
@@ -2209,6 +2258,9 @@ where
         },
         package_upload: post "/pkgs/:origin/:pkg/:version/:release" => {
             XHandler::new(upload_package).before(basic.clone())
+        },
+        package_privacy_toggle: patch "/pkgs/:origin/:pkg/:version/:release/:visibility" => {
+            XHandler::new(package_privacy_toggle).before(basic.clone())
         },
         packages_stats: get "/pkgs/origins/:origin/stats" => package_stats,
         schedule: post "/pkgs/schedule/:origin/:pkg" => {

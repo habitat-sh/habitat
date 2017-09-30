@@ -333,6 +333,11 @@ message OriginPackageVersionListResponse {
   repeated OriginPackageVersion versions = 1;
 }
 
+message OriginPackageUpdate {
+  optional OriginPackage pkg = 1;
+}
+
+// Origin Project
 message OriginProject {
   optional uint64 id = 1;
   optional uint64 origin_id = 2;
