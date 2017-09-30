@@ -4,7 +4,7 @@ pkg_version=$(cat "$PLAN_CONTEXT/../../VERSION")
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('apachev2')
 pkg_source=nosuchfile.tar.gz
-pkg_deps=(core/coreutils core/util-linux core/bash core/zip core/tar core/gzip core/jfrog-cli
+pkg_deps=(core/coreutils core/util-linux core/bash core/zip core/tar core/xz core/gzip core/jfrog-cli
           core/grep core/findutils core/gawk core/hab core/docker)
 pkg_bin_dirs=(bin)
 programs=(publish-hab publish-studio)
