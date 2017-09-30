@@ -114,7 +114,7 @@ Download origin key(s) to `HAB_CACHE_KEY_PATH`
 
 **OPTIONS**
 
-    -u, --url <DEPOT_URL>    Use a specific Depot URL (ex: http://depot.example.com/v1/depot)
+    -u, --url <DEPOT_URL>    Use a specific Depot URL (ex: https://bldr.habitat.sh)
 
 **ARGS**
 
@@ -187,7 +187,7 @@ Upload origin keys to the depot
 **OPTIONS**
 
     -z, --auth <AUTH_TOKEN>        Authentication token for the Depot
-    -u, --url <DEPOT_URL>          Use a specific Depot URL (ex: http://depot.example.com/v1/depot)
+    -u, --url <DEPOT_URL>          Use a specific Depot URL (ex: https://bldr.habitat.sh)
         --pubfile <PUBLIC_FILE>    Path to a local public origin key file on disk
         --secfile <SECRET_FILE>    Path to a local secret origin key file on disk
 
@@ -274,7 +274,7 @@ Demotes a package out of a specified channel
 **OPTIONS**
 
     -z, --auth <AUTH_VERSION>  Authentication token for the Depot
-    -u, --url <DEPOT_URL>      Use a specific Depot URL (ex: http://depot.example.com/v1/depot)
+    -u, --url <DEPOT_URL>      Use a specific Depot URL (ex: https://bldr.habitat.sh)
 
 **ARGS**
 
@@ -296,9 +296,9 @@ Exports the package to the specified format
 **OPTIONS**
 
     -c, --channel <CHANNEL>            Retrieve the container's package from the specified release channel (default: stable)
-    -u, --url <DEPOT_URL>              Retrieve the container's package from the specified Depot (default: https://bldr.habitat.sh/v1/depot)
+    -u, --url <DEPOT_URL>              Retrieve the container's package from the specified Depot (default: https://bldr.habitat.sh)
     -C, --hab-channel <HAB_CHANNEL>    Retrieve the Habitat toolchain for the container from the specified release channel (default: stable)
-    -U, --hab-url <HAB_DEPOT_URL>      Retrieve the Habitat toolchain for the container from the specified Depot (default: https://bldr.habitat.sh/v1/depot)
+    -U, --hab-url <HAB_DEPOT_URL>      Retrieve the Habitat toolchain for the container from the specified Depot (default: https://bldr.habitat.sh)
 
 **ARGS**
 
@@ -337,7 +337,7 @@ Installs a Habitat package from a Depot or locally from a Habitat Artifact
 **OPTIONS**
 
     -c, --channel <CHANNEL>    Install from the specified release channel (default: stable)
-    -u, --url <DEPOT_URL>    Use a specific Depot URL (ex: http://depot.example.com/v1/depot)
+    -u, --url <DEPOT_URL>    Use a specific Depot URL (ex: https://bldr.habitat.sh)
 
 **ARGS**
 
@@ -376,7 +376,7 @@ Promotes a package into a specified channel
 **OPTIONS**
 
     -z, --auth <AUTH_VERSION>  Authentication token for the Depot
-    -u, --url <DEPOT_URL>      Use a specific Depot URL (ex: http://depot.example.com/v1/depot)
+    -u, --url <DEPOT_URL>      Use a specific Depot URL (ex: https://bldr.habitat.sh)
 
 **ARGS**
 
@@ -441,7 +441,7 @@ Uploads a local Habitat Artifact to a Depot
     -z, --auth <AUTH_TOKEN>    Authentication token for the Depot
     -c, --channel <CHANNEL>    Additional release channel to upload package to. Packages are always uploaded to `unstable`, regardless of the value of this
                             option. (default: none)
-    -u, --url <DEPOT_URL>      Use a specific Depot URL (ex: http://depot.example.com/v1/depot)
+    -u, --url <DEPOT_URL>      Use a specific Depot URL (ex: https://bldr.habitat.sh)
 
 **ARGS**
 

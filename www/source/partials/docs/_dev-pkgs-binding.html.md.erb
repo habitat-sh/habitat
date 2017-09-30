@@ -1,8 +1,10 @@
 # <a name="pkg-binds" id="pkg-binds" data-magellan-target="pkg-binds">Runtime Binding</a>
 
-*Runtime binding* in Habitat refers to the ability for one service group to connect to another forming a producer/consumer relationship where the consumer can use the producer's publicly available configuration to configure it's services at runtime. A [polymorphic relationship](https://en.wikipedia.org/wiki/Polymorphism_(computer_science)) is formed between these two service groups defined by a [dynamically-typed](https://en.wikipedia.org/wiki/Duck_typing) contract where the consumer specifies a generic name of the service it is consuming along with the configuration keys it expects the producer to export.
+*Runtime binding* in Habitat refers to the ability for one service group to connect to another forming a producer/consumer relationship where the consumer can use the producer's publicly available configuration to configure it's services at runtime. 
 
-For producing services, you must set `pkg_exports` in your plan.sh to the keys you are exporting and for consuming services, you must set `pkg_binds` or `pkg_binds_optional` in your plan.sh to the keys you wish to consume using a bind name for those values. For example, you might have a web application `app-server` that depends on a port value of a database service group. Rather than hardcoding the name of the service group or package identifier in `app-servers`'s plan, which would limit its portability, you can _bind_ the name `database` to the `default` service group running PostgreSQL. This will allow you to dynamically use the port value in any configuration or runtime hooks in your web application.
+For producing services, you must set `pkg_exports` in your plan.sh to the keys you are exporting and for consuming services, you must set `pkg_binds` or `pkg_binds_optional` in your plan.sh to the keys you wish to consume using a bind name for those values. 
+
+For example, you might have a web application `app-server` that depends on a port value of a database service group. Rather than hardcoding the name of the service group or package identifier in `app-servers`'s plan, which would limit its portability, you can _bind_ the name `database` to the `default` service group running PostgreSQL. This will allow you to dynamically use the port value in any configuration or application lifecycle hooks in your web application.
 
 ## Producer Contract
 
@@ -17,7 +19,7 @@ This will export the value of `network.port` and `transport.ssl.port` defined in
 
 ## Consumer Contract
 
-Consumers defines their half of the contract by specifying required and optional "binds". These are also represented by key/value pairs in an associative array called `pkg_binds` and `pkg_binds_optional` where the values are the exported keys defined by the producer. For example, an application server named `session-server` that depends on a database might define the following binds:
+Consumers specify required and optional "binds". These are represented by key/value pairs in an associative array called `pkg_binds` and `pkg_binds_optional` where the values are the exported keys defined by the producer. For example, an application server named `session-server` that depends on a database might define the following binds:
 
     pkg_binds=(
       [database]="port ssl-port"
@@ -46,7 +48,7 @@ Once you've defined both ends of the contract you can leverage the bind in any o
 
 ## Starting A Consumer
 
-Referencing the examples above, if your application server defined `database` as a required bind, you would need to provide the Supervisor with the name of a service group running a package which fulfills the contract using the `--bind` parameter. For example, running the following:
+If your application server defined `database` as a required bind, you would need to provide the Supervisor with the name of a service group running a package which fulfills the contract using the `--bind` parameter. For example, running the following:
 
     $ hab start my-origin/app-server --bind database:amnesia.default
 

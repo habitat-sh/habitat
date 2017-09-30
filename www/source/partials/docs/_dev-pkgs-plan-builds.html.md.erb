@@ -1,15 +1,16 @@
 
 # <a name="plan-builds" id="plan-builds" data-magellan-target="plan-builds">Plan Builds</a>
 
-As part of building a package, it needs to be signed with a secret origin key at buildtime. On your host machine, if you want to generate an origin key pair manually, or you used the `hab setup` and simply need another origin key pair, run the following command:
+Packages need to be signed with a secret origin key at buildtime. Generate an origin key pair manually by running the following command on your host machine:
 
     hab origin key generate originname
 
 The `hab-origin` subcommand will place originname-_timestamp_.sig.key and originname-_timestamp_.pub files (the origin key pair) in the `$HOME/.hab/cache/keys` directory. If you're creating origin keys in the Studio container or you are running as root on a Linux machine, your keys will be stored in `/hab/cache/keys`.
 
-Because the secret key is used to sign your package, it should not be shared freely; however, if anyone wants to download and use your package, then they must have your public key (.pub) installed in their local `$HOME/.hab/cache/keys` or `/hab/cache/keys` directory. Public keys will be downloaded from the depot by the Supervisor, if needed.
+Because the secret key is used to sign your package, it should not be shared freely; however, if anyone wants to download and use your package, then they must have your public key (.pub) installed in their local `$HOME/.hab/cache/keys` or `/hab/cache/keys` directory. Public keys will be downloaded from Habitat Builder by the Supervisor, if needed.
 
 ### Passing origin keys into the Studio
+
 When you enter the Studio environment, your origin keys are not automatically shared into it. This is to keep the Studio environment as clean as possible. However, because you need to reference a secret origin key to sign your package, you can do this in three ways:
 
 * Set `HAB_ORIGIN` to the name of the secret origin key you intend to use before entering the Studio like `export HAB_ORIGIN=originname`.
@@ -29,7 +30,7 @@ An interactive build is one in which you enter a Habitat Studio to perform the b
 The directory where your plan is located is known as the plan context.
 
 1. Change to the parent directory of the plan context.
-2. Create an enter a new Habitat Studio. If you have defined an origin and origin key during `hab setup` or by explicitly setting the `HAB_ORIGIN` and `HAB\_ORIGIN\_KEYS` environment variables, then type the following:
+2. Create and enter a new Habitat Studio. If you have defined an origin and origin key during `hab setup` or by explicitly setting the `HAB_ORIGIN` and `HAB\_ORIGIN\_KEYS` environment variables, then type the following:
 
     ```
     hab studio enter
@@ -62,4 +63,4 @@ By default, the Studio is reset to a clean state after the package is built; how
 
 For more information on how to set up and install Habitat and how to run a sample Ruby-on-Rails app in Habitat, see the [tutorials page] (/tutorials/).
 
-For information on the contents of an installed package, see [Package contents](/docs/reference/package-contents).
+For information on the contents of an installed package, see [Package contents](/docs/reference/#package-contents).
