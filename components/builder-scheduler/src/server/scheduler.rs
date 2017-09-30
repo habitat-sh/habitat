@@ -241,20 +241,25 @@ impl ScheduleMgr {
         {
             // Check the deps for the project. If we don't find any dep that
             // is in our project list and needs to be built, we can dispatch the project.
-            let package = self.datastore.get_package(&project.get_ident())?;
-            let deps = package.get_deps();
+            let dispatchable = if project.get_ident().is_empty() {
+                true
+            } else {
+                let mut check_status = true;
+                let package = self.datastore.get_package(&project.get_ident())?;
+                let deps = package.get_deps();
 
-            let mut dispatchable = true;
-            for dep in deps {
-                let parts: Vec<&str> = dep.split("/").collect();
-                assert!(parts.len() >= 2);
-                let name = format!("{}/{}", parts[0], parts[1]);
+                for dep in deps {
+                    let parts: Vec<&str> = dep.split("/").collect();
+                    assert!(parts.len() >= 2);
+                    let name = format!("{}/{}", parts[0], parts[1]);
 
-                if !self.check_dispatchable(group, &name) {
-                    dispatchable = false;
-                    break;
-                };
-            }
+                    if !self.check_dispatchable(group, &name) {
+                        check_status = false;
+                        break;
+                    };
+                }
+                check_status
+            };
 
             if dispatchable {
                 projects.push(project.clone());
