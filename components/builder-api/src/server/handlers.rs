@@ -344,6 +344,8 @@ pub fn project_create(req: &mut Request) -> IronResult<Response> {
     let mut origin_get = OriginGet::new();
     let github = req.get::<persistent::Read<GitHubCli>>().unwrap();
     let session = req.extensions.get::<Authenticated>().unwrap().clone();
+    let session_id = session.get_id();
+
     let (organization, repo, token) = match req.get::<bodyparser::Struct<ProjectCreateReq>>() {
         Ok(Some(body)) => {
             if body.origin.len() <= 0 {
@@ -370,6 +372,11 @@ pub fn project_create(req: &mut Request) -> IronResult<Response> {
                     "Missing value for field: `github.repo`",
                 )));
             }
+
+            if !check_origin_access(req, session_id, &body.origin)? {
+                return Ok(Response::with(status::Forbidden));
+            }
+
             let token = match github_creds_from_body(&body, &mut project, session.get_token()) {
                 Err(Error::IncompleteCredentials) => {
                     return Ok(Response::with((status::UnprocessableEntity, "rg:pc:6")));
@@ -499,6 +506,10 @@ pub fn project_update(req: &mut Request) -> IronResult<Response> {
         (session_token, session_id)
     };
 
+    if !check_origin_access(req, session_id, &origin)? {
+        return Ok(Response::with(status::Forbidden));
+    }
+
     let (organization, repo, token) = match req.get::<bodyparser::Struct<ProjectCreateReq>>() {
         Ok(Some(body)) => {
             if body.plan_path.len() <= 0 {
@@ -554,9 +565,6 @@ pub fn project_update(req: &mut Request) -> IronResult<Response> {
                 Ok(ref bytes) => {
                     match Plan::from_bytes(bytes) {
                         Ok(plan) => {
-                            if !check_origin_access(req, session_id, &origin)? {
-                                return Ok(Response::with(status::Forbidden));
-                            }
                             if plan.name != name {
                                 return Ok(Response::with((status::UnprocessableEntity, "rg:pu:2")));
                             }
@@ -592,28 +600,74 @@ pub fn project_update(req: &mut Request) -> IronResult<Response> {
 /// Display the the given project's details
 pub fn project_show(req: &mut Request) -> IronResult<Response> {
     let mut project_get = OriginProjectGet::new();
-    {
+
+    let (session_id, origin) = {
+        let session = req.extensions.get::<Authenticated>().unwrap();
+        let session_id = session.get_id();
+
         let params = req.extensions.get::<Router>().unwrap();
-        let origin = params.find("origin").unwrap();
+        let origin = params.find("origin").unwrap().to_owned();
         let name = params.find("name").unwrap();
+
         project_get.set_name(format!("{}/{}", origin, name));
+        (session_id, origin)
+    };
+
+    if !check_origin_access(req, session_id, &origin)? {
+        return Ok(Response::with(status::Forbidden));
     }
+
     match route_message::<OriginProjectGet, OriginProject>(req, &project_get) {
         Ok(project) => Ok(render_json(status::Ok, &project)),
         Err(err) => Ok(render_net_error(&err)),
     }
 }
 
+/// Return names of all the projects in the given origin
+pub fn project_list(req: &mut Request) -> IronResult<Response> {
+    let mut projects_get = OriginProjectListGet::new();
+
+    let (session_id, origin) = {
+        let session = req.extensions.get::<Authenticated>().unwrap();
+        let session_id = session.get_id();
+
+        let params = req.extensions.get::<Router>().unwrap();
+        let origin = params.find("origin").unwrap().to_owned();
+
+        projects_get.set_origin(origin.to_string());
+        (session_id, origin)
+    };
+
+    if !check_origin_access(req, session_id, &origin)? {
+        return Ok(Response::with(status::Forbidden));
+    }
+
+    match route_message::<OriginProjectListGet, OriginProjectList>(req, &projects_get) {
+        Ok(projects) => Ok(render_json(status::Ok, &projects.get_names())),
+        Err(err) => Ok(render_net_error(&err)),
+    }
+}
+
 /// Retrieve the most recent 50 jobs for a project.
 pub fn project_jobs(req: &mut Request) -> IronResult<Response> {
-    let session_id = helpers::get_optional_session_id(req);
     let mut jobs_get = ProjectJobsGet::new();
-    {
+
+    let (session_id, origin) = {
+        let session = req.extensions.get::<Authenticated>().unwrap();
+        let session_id = session.get_id();
+
         let params = req.extensions.get::<Router>().unwrap();
-        let origin = params.find("origin").unwrap();
+        let origin = params.find("origin").unwrap().to_owned();
         let name = params.find("name").unwrap();
         jobs_get.set_name(format!("{}/{}", origin, name));
+
+        (session_id, origin)
+    };
+
+    if !check_origin_access(req, session_id, &origin)? {
+        return Ok(Response::with(status::Forbidden));
     }
+
     match helpers::extract_pagination(req) {
         Ok((start, stop)) => {
             jobs_get.set_start(start as u64);
@@ -630,12 +684,12 @@ pub fn project_jobs(req: &mut Request) -> IronResult<Response> {
                     let channels = helpers::channels_for_package_ident(
                         req,
                         &job.get_package_ident(),
-                        session_id,
+                        Some(session_id),
                     );
                     let platforms = helpers::platforms_for_package_ident(
                         req,
                         &job.get_package_ident(),
-                        session_id,
+                        Some(session_id),
                     );
                     let mut job_json = serde_json::to_value(job).unwrap();
 

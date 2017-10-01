@@ -1038,6 +1038,25 @@ impl Routable for OriginProjectUpdate {
     }
 }
 
+impl Routable for OriginProjectListGet {
+    type H = String;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(String::from(self.get_origin()))
+    }
+}
+
+impl Serialize for OriginProjectList {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut state = serializer.serialize_struct("project_list", 1)?;
+        state.serialize_field("names", self.get_names())?;
+        state.end()
+    }
+}
+
 impl Serialize for OriginPublicKey {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
     where

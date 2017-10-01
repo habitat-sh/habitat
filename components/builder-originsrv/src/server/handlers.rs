@@ -497,6 +497,23 @@ pub fn project_update(
     Ok(())
 }
 
+pub fn project_list_get(
+    req: &mut Message,
+    conn: &mut RouteConn,
+    state: &mut ServerState,
+) -> SrvResult<()> {
+    let msg = req.parse::<proto::OriginProjectListGet>()?;
+    match state.datastore.get_origin_project_list(&msg) {
+        Ok(ref projects) => conn.route_reply(req, projects)?,
+        Err(e) => {
+            let err = NetError::new(ErrCode::DATA_STORE, "vt:origin-project-list-get:1");
+            error!("{}, {}", err, e);
+            conn.route_reply(req, &*err)?;
+        }
+    }
+    Ok(())
+}
+
 pub fn project_integration_create(
     req: &mut Message,
     conn: &mut RouteConn,

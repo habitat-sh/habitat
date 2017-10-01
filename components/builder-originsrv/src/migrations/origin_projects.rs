@@ -259,5 +259,14 @@ pub fn migrate(migrator: &mut Migrator) -> SrvResult<()> {
                         ORDER BY integration, integration_name
                     $$ LANGUAGE SQL STABLE"#,
     )?;
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE OR REPLACE FUNCTION get_origin_project_list_v1 (
+                        in_origin text
+                 ) RETURNS SETOF origin_projects AS $$
+                        SELECT * FROM origin_projects
+                        WHERE origin_name = in_origin
+                    $$ LANGUAGE SQL STABLE"#,
+    )?;
     Ok(())
 }

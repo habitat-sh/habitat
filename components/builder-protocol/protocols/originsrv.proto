@@ -363,6 +363,14 @@ message OriginProjectUpdate {
   optional OriginProject project = 2;
 }
 
+message OriginProjectListGet {
+  optional string origin = 1;
+}
+
+message OriginProjectList {
+  repeated string names = 1;
+}
+
 // Origin Public Key
 message OriginPublicKey {
   optional uint64 id = 1;

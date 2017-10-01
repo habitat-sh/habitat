@@ -211,6 +211,26 @@ impl DataStore {
         Ok(self.row_to_origin_project(&row))
     }
 
+    pub fn get_origin_project_list(
+        &self,
+        opl: &originsrv::OriginProjectListGet,
+    ) -> SrvResult<originsrv::OriginProjectList> {
+        let conn = self.pool.get(opl)?;
+        let origin = opl.get_origin();
+
+        let rows = conn.query("SELECT * FROM get_origin_project_list_v1($1)", &[&origin])
+            .map_err(SrvError::OriginProjectListGet)?;
+
+        let mut response = originsrv::OriginProjectList::new();
+        let mut projects = protobuf::RepeatedField::new();
+        for row in rows.iter() {
+            projects.push(row.get("package_name"));
+        }
+
+        response.set_names(projects);
+        Ok(response)
+    }
+
     pub fn create_project_integration(
         &self,
         opic: &originsrv::OriginProjectIntegrationCreate,
