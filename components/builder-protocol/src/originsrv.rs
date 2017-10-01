@@ -118,6 +118,7 @@ impl Serialize for OriginPackageVisibility {
         match *self as u64 {
             1 => serializer.serialize_str("public"),
             2 => serializer.serialize_str("private"),
+            3 => serializer.serialize_str("hidden"),
             _ => panic!("Unexpected enum value"),
         }
     }
@@ -131,6 +132,7 @@ impl FromStr for OriginPackageVisibility {
         match value.to_lowercase().as_ref() {
             "public" => Ok(OriginPackageVisibility::Public),
             "private" => Ok(OriginPackageVisibility::Private),
+            "hidden" => Ok(OriginPackageVisibility::Hidden),
             _ => Err(Error::BadOriginPackageVisibility),
         }
     }
@@ -141,6 +143,7 @@ impl fmt::Display for OriginPackageVisibility {
         let value = match *self {
             OriginPackageVisibility::Public => "public",
             OriginPackageVisibility::Private => "private",
+            OriginPackageVisibility::Hidden => "hidden",
         };
         write!(f, "{}", value)
     }
