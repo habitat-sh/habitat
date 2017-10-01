@@ -103,7 +103,8 @@ $ hab pkg install core/curl
 
 You can however provide `hab pkg install` a fully qualified package ident and this specific release and version will be retrieved.
 
-# Inspect plan tuneables
+# Inspect plan tunables
+
 Habitat core packages will have overrideable options to tune the configuration of the package when you're ready to start it. Those options may not fit your environment. You can get a concise list of the available tuneables of a package with the `hab pkg config` subcommand.
 
 ```terminal
@@ -150,4 +151,5 @@ httpd.default(O): [Wed Sep 20 18:09:18.594594 2017] [core:notice] [pid 15407] AH
 This will start up the requested package with it's default configuration and does not join the
 
 # Tune a package
+
 Without providing any configuration options or flags a Supervisor will be started and the Supervisor will manage the process of the requested package. It will not be joined to a Supervisor ring. To provide a new configuration at runtime you have [several options]().

@@ -1,10 +1,11 @@
 # <a name="using-binding" id="using-binding" data-magellan-target="using-binding">Runtime Binding</a>
 
-*Runtime binding* in Habitat refers to the ability for one service group to connect to another forming a producer/consumer relationship where the consumer can use the producer's publicly available configuration to configure it's services at runtime. We form a [polymorphic relationship](https://en.wikipedia.org/wiki/Polymorphism_(computer_science)) between these two service groups defined by a [dynamically-typed](https://en.wikipedia.org/wiki/Duck_typing) contract where the consumer specifies a generic name of the service it is consuming along with the configuration keys it expects the producer to export.
+*Runtime binding* in Habitat refers to the ability for one service group to connect to another forming a producer/consumer relationship where the consumer can use the producer's publicly available configuration to configure services at runtime. 
 
 For example, you might have a web application `app-server` that depends on the value of the leader of a database service group. Rather than hardcoding the name of the service group or package identifier in `app-servers`'s plan, which would limit its portability, you can _bind_ the name `database`, for example, to the `default` service group running PostgreSQL. If you have multiple service groups for PostgreSQL - perhaps you have a production and development environment - you could bind `database` to `postgresql.production` or `postgresql.development`. If `app-server` supports multiple different database backends you could even bind `database` to another, such as `redis.default` or `mysql.default`.
 
-tl;dr
+## Quick overview: 
+
 - a required bind (`pkg_binds`) means that your service fails if it does not find a producer (with a `pkg_exports`) with the exact `binds` values that your service wants available to it.
 - a producer can _export_ a larger variety of _binds_ than an individual service needs in a required bind
 - an optional bind (`pkg_binds_optional`) allows you to have more flexibility for services that require it. You can use an optional bind in several ways (list not conclusive):
@@ -12,7 +13,7 @@ tl;dr
 -- service group A can optionally bind to “X”. “X” may provide additional features if it is provided. A runs successfully whether or not "X" is present. ((Real world example: an application service group that binds to a caching layer in certain situations))
 -- service group A can optionally bind to “X” or “Y”. If “X” is present, we operate this way, if “Y” is present, we operate this way. The service will start and may fail because “X” and/or “Y” my not be present at start, but it will eventually start. ((Real world example: an application service group that could use a redis backend or a postgresql backend, depending on how you are deploying it in different scenarios))
 
-Read on for more details...
+Read on for more details.
 
 ## Producer Contract
 

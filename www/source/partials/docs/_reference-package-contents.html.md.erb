@@ -1,7 +1,7 @@
 # <a name="package-contents" id="package-contents" data-magellan-target="package-contents">Contents of a Habitat package</a>
 During the build process, the hab-plan-build script creates several files that specify dependency, build, and configuration information. When packages are unpacked (extracted) and installed during the initialization phase of a Habitat service, these files define what those packages need to run.
 
-Packages are installed in the `/hab/pkgs/` directory, and then further organized in subdirectories corresponding to fully-qualified package identifiers: `origin/name/version/release`. For more information on package identifiers, see [Packages](/docs/concepts-packages).
+Packages are installed in the `/hab/pkgs/` directory, and then further organized in subdirectories corresponding to fully-qualified package identifiers: `origin/name/version/release`. For more information on package identifiers, see [Packages](/docs/glossary/#glossary-packages).
 
 ## BUILD_DEPS
 Fully-qualified package identifiers of any build dependencies that your package depends on. These are listed in the root plan.sh file of your plan directory.
@@ -49,10 +49,10 @@ The value of `pkg_svc_group` from a plan. The Habitat Supervisor will try to sta
 The value of `pkg_svc_user` from a plan. The Habitat Supervisor will try to start a service with this user if it exists.
 
 ## default.toml
-If you have defined a default.toml file in the root of your plan, then it will be included in the same relative location within the installed package directory. For more information on configuration and the default.toml file, see [Add configuration to plans](/docs/create-packages-configure/).
+If you have defined a default.toml file in the root of your plan, then it will be included in the same relative location within the installed package directory. For more information on configuration and the default.toml file, see [Configuration Updates](/docs/using-habitat/#config-updates).
 
 ## config directory
-If you have defined a `config` subdirectory with a templatized configuration file in your plan, then they will be included in the same relative location within the installed package directory. For more information on templatized configuration files, see [Add configuration to plans](/docs/create-packages-configure/).
+If you have defined a `config` subdirectory with a templatized configuration file in your plan, then they will be included in the same relative location within the installed package directory. For more information on templatized configuration files, see [Add configuration to plans](/docs/developing-packages/#add-configuration).
 
 ## hooks directory
-If you have defined a `hooks` subdirectory with hook scripts in your plan, then they will be included in the same relative location within the installed package directory.
+If you have defined a `hooks` subdirectory with hook scripts in your plan, then they will be included in the same relative location within the installed package directory. Read more about [Application Lifecycle hooks](/docs/reference/#reference-hooks).

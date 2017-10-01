@@ -2,7 +2,7 @@
 
 The Habitat Supervisor can be configured to leverage an optional _update strategy_, which describes how the Supervisor and its peers within a service group should respond when a new version of a package is available.
 
-To use an update strategy, the Supervisor is configured to watch a [depot](/docs/concepts-depot) for new versions.
+To use an update strategy, the Supervisor is configured to subscribe to Habitat Builder, and more specifically, a channel for new versions.
 
 ## Configuring an Update Strategy
 
@@ -14,28 +14,27 @@ To start a Supervisor with the auto-update strategy, pass the `--strategy` argum
 
 ### Rolling Strategy
 
-This strategy ensures that all supervisors running a service within a service group are running the same version of software. An update leader is elected which all supervisors within a service group will update around. All update followers will first ensure they are running the same version of a service that their leader is running, and then, the leader will poll a depot for a newer version of the service's package.
+This strategy requires Supervisors to update to a newer version of their package one at a time in their service group. An update leader is elected which all supervisors within a service group will update around. All update followers will first ensure they are running the same version of a service that their leader is running, and then, the leader will poll Builder for a newer version of the service's package.
 
 Once the update leader finds a new version it will update and wait until all other alive members in the service group have also been updated before once again attempting to find a newer version of software to update to. Updates will happen more or less one at a time until completion with the exception of a new node being introduced into the service group during the middle of an update.
 
 If your service group is also running with the `--topology leader` flag, the leader of that election will never become the update leader, so all followers within a leader topology will update first.
 
-It's important to note that because we must perform a leader election to determine an update leader, *you need to have at least 3 supervisors running a service group to take advantage of the rolling update strategy*.
+It's important to note that because we must perform a leader election to determine an update leader, *you must have at least 3 supervisors running a service group to take advantage of the rolling update strategy*.
 
 ### At-Once Strategy
 
-This strategy does no peer coordination with other supervisors in the service group; it merely updates the underlying Habitat package whenever it detects that a new version has either been published to a depot or installed to the local habitat `pkg` cache. No coordination between supervisors is done, each Supervisor will poll a remote depot on their own.
+This strategy does no peer coordination with other supervisors in the service group; it merely updates the underlying Habitat package whenever it detects that a new version has either been published to a depot or installed to the local habitat `pkg` cache. No coordination between supervisors is done, each Supervisor will poll Builder on their own.
 
 ## Configuring an Update Strategy with a Builder Channel
 
-A _channel_ in a depot is a point-in-time snapshot of the state of the depot. In point of fact, it is a [materialized view](https://en.wikipedia.org/wiki/Materialized_view) of the depot, starting with the specific `origin/package/version/release` quad, and encapsulating all of the transitive dependencies of that quad. This is very useful for continuous deployment purposes:
+A channel is a tag for a package that your Supervisors can subscribe to. Every package has a stable and an unstable channel. New packages are by default placed on the unstable channel. You can then automatically or manually promote packages to a different channel, whether it's stable, or a channel you have created for your origin on the CLI. 
 
-* By convention, you name the channel in the depot after the name of your service group (e.g. `myapp.production`).
-* You deliver new versions of `myapp` as Habitat packages to the depot.
-* When you are ready to roll out a new version of the application, you update the channel corresponding to the intended environment.
-* The supervisors in that service group, configured with an appropriate update strategy, update their underlying Habitat package, optionally coordinating with one another, and restart the service.
+* You deliver new versions of `myapp` as Habitat packages via Builder or the Studio.
+* When you are ready to roll out a new version of the application, you promote that package to the channel corresponding to the intended environment. You can have multiple service groups in the same environment pointing to different channels, or the same channel.
+* The Supervisors in that service group see that the channel they are subscribed to have an update,  update their underlying Habitat package, coordinating with one another per their update strategy, and restart the service.
 
-Configuring the supervisors'  update strategy URL to point to a channel ensures that new versions of the application do not get deployed until the channel is updated, thereby preventing unstable versions from reaching environments for which they are not intended.
+Configuring the Supervisors' update strategy URL to point to a channel ensures that new versions of the application do not get deployed until the channel is updated, thereby preventing unstable versions from reaching environments for which they are not intended.
 
 To start a Supervisor with a strategy and pointing to a channel, modify slightly the URL to the depot:
 
@@ -43,4 +42,4 @@ To start a Supervisor with a strategy and pointing to a channel, modify slightly
 
 The placeholder `yourchannel` represents the channel you have created in the depot.
 
-_At the moment, the `hab` command-line tool lacks the ability to create and manage channels. To use channels, you must run your own depot server and use the internal depot maintenance tool to manage channels_.
+
