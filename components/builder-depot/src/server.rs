@@ -975,6 +975,50 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
             Err(err) => return Ok(render_net_error(&err)),
         }
 
+        // Zero this out initially
+        package.clear_visibility();
+
+        // First, try to fetch visibility settings from a project, if one exists
+        let mut project_get = OriginProjectGet::new();
+        let project_name = format!("{}/{}", ident.get_origin(), ident.get_name());
+        project_get.set_name(project_name);
+
+        match route_message::<OriginProjectGet, OriginProject>(req, &project_get) {
+            Ok(proj) => {
+                if proj.has_visibility() {
+                    package.set_visibility(proj.get_visibility());
+                }
+            }
+            Err(_) => {
+                // There's no project for this package. No worries - we'll check the origin
+                let mut origin_get = OriginGet::new();
+                origin_get.set_name(ident.get_origin().to_string());
+
+                match route_message::<OriginGet, Origin>(req, &origin_get) {
+                    Ok(o) => {
+                        if o.has_default_package_visibility() {
+                            package.set_visibility(o.get_default_package_visibility());
+                        }
+                    }
+                    Err(e) => {
+                        // Can't find the origin
+                        error!(
+                            "Trying to upload a package for {} and can't find the origin. e = {:?}",
+                            ident,
+                            e
+                        );
+                        return Ok(Response::with(status::NotFound));
+                    }
+                }
+            }
+        }
+
+        // If, after checking both the project and the origin, there's still no visibility set
+        // (this is highly unlikely), then just make it public.
+        if !package.has_visibility() {
+            package.set_visibility(OriginPackageVisibility::Public);
+        }
+
         match route_message::<OriginPackageCreate, OriginPackage>(req, &package) {
             Ok(_) => (),
             Err(err) => {

@@ -812,8 +812,10 @@ impl DataStore {
     ) -> SrvResult<originsrv::OriginPackage> {
         let conn = self.pool.get(opc)?;
         let ident = opc.get_ident();
+        let visibility = format!("{}", &opc.get_visibility());
+
         let rows = conn.query(
-            "SELECT * FROM insert_origin_package_v2($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
+            "SELECT * FROM insert_origin_package_v3($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)",
             &[
                 &(opc.get_origin_id() as i64),
                 &(opc.get_owner_id() as i64),
@@ -826,6 +828,7 @@ impl DataStore {
                 &self.into_delimited(opc.get_deps().to_vec()),
                 &self.into_delimited(opc.get_tdeps().to_vec()),
                 &self.into_delimited(opc.get_exposes().to_vec()),
+                &visibility
             ],
         ).map_err(SrvError::OriginPackageCreate)?;
 

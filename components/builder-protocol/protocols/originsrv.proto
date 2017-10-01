@@ -241,6 +241,7 @@ message OriginPackageCreate {
   repeated uint32 exposes = 8 [packed=true];
   optional string config = 9;
   optional string target = 10;
+  optional OriginPackageVisibility visibility = 11;
 }
 
 message OriginPackageGet {
