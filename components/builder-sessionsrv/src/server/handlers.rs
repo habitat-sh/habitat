@@ -15,12 +15,12 @@
 use std::env;
 
 use hab_net::app::prelude::*;
-use hab_net::privilege;
+use hab_net::privilege::{self, FeatureFlags};
 
 use protocol::net;
 use protocol::sessionsrv as proto;
 
-use super::ServerState;
+use super::{ServerState, Session};
 use error::SrvResult;
 
 pub fn account_get_id(
@@ -82,20 +82,42 @@ pub fn account_create(
     Ok(())
 }
 
+pub fn account_find_or_create(
+    req: &mut Message,
+    conn: &mut RouteConn,
+    state: &mut ServerState,
+) -> SrvResult<()> {
+    let msg = req.parse::<proto::AccountFindOrCreate>()?;
+    match state.datastore.account_find_or_create(&msg) {
+        Ok(account) => conn.route_reply(req, &account)?,
+        Err(e) => {
+            let err = NetError::new(ErrCode::DATA_STORE, "ss:account-foc:0");
+            error!("{}, {}", e, err);
+            conn.route_reply(req, &*err)?;
+        }
+    }
+    Ok(())
+}
+
 pub fn session_create(
     req: &mut Message,
     conn: &mut RouteConn,
     state: &mut ServerState,
 ) -> SrvResult<()> {
     let mut msg = req.parse::<proto::SessionCreate>()?;
-    let mut is_admin = false;
-    let mut is_early_access = false;
-    let mut is_build_worker = false;
+    {
+        if let Some(session) = state.sessions.read().unwrap().get(msg.get_token()) {
+            if !session.expired() {
+                conn.route_reply(req, &**session)?;
+                return Ok(());
+            }
+        }
+    }
 
+    let mut session = Session::default();
+    let mut flags = FeatureFlags::default();
     if env::var_os("HAB_FUNC_TEST").is_some() {
-        is_admin = true;
-        is_early_access = true;
-        is_build_worker = true;
+        flags = FeatureFlags::all();
     } else {
         let teams = match state.github.teams(msg.get_token()) {
             Ok(teams) => teams,
@@ -112,7 +134,7 @@ pub fn session_create(
                     privilege::ADMIN,
                     team.name
                 );
-                is_admin = true;
+                flags.set(privilege::ADMIN, true);
             }
             if team.id != 0 && state.permissions.early_access_teams.contains(&team.id) {
                 debug!(
@@ -120,7 +142,7 @@ pub fn session_create(
                     privilege::EARLY_ACCESS,
                     team.name
                 );
-                is_early_access = true;
+                flags.set(privilege::EARLY_ACCESS, true);
             }
             if team.id != 0 && state.permissions.build_worker_teams.contains(&team.id) {
                 debug!(
@@ -128,95 +150,29 @@ pub fn session_create(
                     privilege::BUILD_WORKER,
                     team.name
                 );
-                is_build_worker = true;
+                flags.set(privilege::BUILD_WORKER, true);
             }
         }
     }
+    session.set_flags(flags.bits());
+    session.set_token(msg.take_token());
 
-    // If only a token was filled in, let's grab the rest of the data from GH. We check email in
-    // this case because although email is an optional field in the protobuf message, email is
-    // required for access to builder.
-    //
-    // In theory, when everything's working, this if should never get executed. We fetch the GH
-    // email and other info in the Authenticated middleware session creation method.
-    if msg.get_email().is_empty() {
-        info!(
-            "Fetching GH information during session creation. Something must've gone wrong in the middleware."
-        );
-        match state.github.user(msg.get_token()) {
-            Ok(user) => {
-                // Select primary email. If no primary email can be found, use any email. If
-                // no email is associated with account return an access denied error.
-                let email = match state.github.emails(msg.get_token()) {
-                    Ok(ref emails) => {
-                        emails
-                            .iter()
-                            .find(|e| e.primary)
-                            .unwrap_or(&emails[0])
-                            .email
-                            .clone()
-                    }
-                    Err(_) => {
-                        let err = NetError::new(ErrCode::ACCESS_DENIED, "ss:session-create:2");
-                        conn.route_reply(req, &*err)?;
-                        return Ok(());
-                    }
-                };
+    let mut account_req = proto::AccountFindOrCreate::default();
+    account_req.set_name(msg.take_name());
+    account_req.set_email(msg.take_email());
 
-                msg.set_extern_id(user.id);
-                msg.set_email(email);
-                msg.set_name(user.login);
-                msg.set_provider(proto::OAuthProvider::GitHub);
+    match conn.route::<proto::AccountFindOrCreate, proto::Account>(&account_req) {
+        Ok(mut account) => {
+            session.set_email(account.take_email());
+            session.set_name(account.take_name());
+            session.set_id(account.get_id());
+            {
+                state.sessions.write().unwrap().replace(session.clone());
             }
-            Err(_) => {
-                let err = NetError::new(ErrCode::ACCESS_DENIED, "ss:session-create:3");
-                conn.route_reply(req, &*err)?;
-                return Ok(());
-            }
+            conn.route_reply(req, &*session)?;
         }
-    }
-
-    // lookup account based on the name we have
-    let mut account_get = proto::AccountGet::new();
-    account_get.set_name(msg.get_name().to_string());
-
-    let account = match conn.route::<proto::AccountGet, proto::Account>(&account_get) {
-        Ok(a) => a,
         Err(e) => {
-            if e.get_code() == ErrCode::ENTITY_NOT_FOUND {
-                // account doesn't exist, so let's create it
-                let mut account_create = proto::AccountCreate::new();
-                account_create.set_name(msg.get_name().to_string());
-                account_create.set_email(msg.get_email().to_string());
-
-                match conn.route::<proto::AccountCreate, proto::Account>(&account_create) {
-                    Ok(b) => b,
-                    Err(e) => {
-                        let err = NetError::new(ErrCode::DATA_STORE, "ss:session-create:4");
-                        error!("{}, {}", e, err);
-                        conn.route_reply(req, &*err)?;
-                        return Ok(());
-                    }
-                }
-            } else {
-                let err = NetError::new(ErrCode::DATA_STORE, "ss:session-create:5");
-                error!("{}, {}", e, err);
-                conn.route_reply(req, &*err)?;
-                return Ok(());
-            }
-        }
-    };
-
-    match state.datastore.create_session(
-        &msg,
-        &account,
-        is_admin,
-        is_early_access,
-        is_build_worker,
-    ) {
-        Ok(session) => conn.route_reply(req, &session)?,
-        Err(e) => {
-            let err = NetError::new(ErrCode::DATA_STORE, "ss:session-create:1");
+            let err = NetError::new(ErrCode::DATA_STORE, "ss:session-create:5");
             error!("{}, {}", e, err);
             conn.route_reply(req, &*err)?;
         }
@@ -230,15 +186,10 @@ pub fn session_get(
     state: &mut ServerState,
 ) -> SrvResult<()> {
     let msg = req.parse::<proto::SessionGet>()?;
-    match state.datastore.get_session(&msg, conn) {
-        Ok(Some(session)) => conn.route_reply(req, &session)?,
-        Ok(None) => {
-            let err = NetError::new(ErrCode::SESSION_EXPIRED, "ss:auth:4");
-            conn.route_reply(req, &*err)?;
-        }
-        Err(e) => {
-            let err = NetError::new(ErrCode::DATA_STORE, "ss:auth:5");
-            error!("{}, {}", e, err);
+    match state.sessions.read().unwrap().get(msg.get_token()) {
+        Some(session) => conn.route_reply(req, &**session)?,
+        None => {
+            let err = NetError::new(ErrCode::SESSION_EXPIRED, "ss:session-get:0");
             conn.route_reply(req, &*err)?;
         }
     }

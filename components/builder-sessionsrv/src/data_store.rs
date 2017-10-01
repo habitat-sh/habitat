@@ -18,8 +18,6 @@ use std::sync::Arc;
 
 use db::pool::Pool;
 use db::migration::Migrator;
-use hab_net::app::prelude::*;
-use hab_net::privilege;
 use protocol::sessionsrv;
 use postgres;
 use protobuf;
@@ -59,13 +57,17 @@ impl DataStore {
         Ok(())
     }
 
-    fn row_to_account(&self, row: postgres::rows::Row) -> sessionsrv::Account {
-        let mut account = sessionsrv::Account::new();
-        let id: i64 = row.get("id");
-        account.set_id(id as u64);
-        account.set_email(row.get("email"));
-        account.set_name(row.get("name"));
-        account
+    pub fn account_find_or_create(
+        &self,
+        msg: &sessionsrv::AccountFindOrCreate,
+    ) -> SrvResult<sessionsrv::Account> {
+        let conn = self.pool.get(msg)?;
+        let rows = conn.query(
+            "SELECT * FROM select_or_insert_account_v1($1, $2)",
+            &[&msg.get_name(), &msg.get_email()],
+        )?;
+        let row = rows.get(0);
+        Ok(self.row_to_account(row))
     }
 
     pub fn create_account(
@@ -80,62 +82,6 @@ impl DataStore {
         let row = rows.get(0);
         let account = self.row_to_account(row);
         Ok(account)
-    }
-
-    pub fn create_session(
-        &self,
-        session_create: &sessionsrv::SessionCreate,
-        account: &sessionsrv::Account,
-        is_admin: bool,
-        is_early_access: bool,
-        is_build_worker: bool,
-    ) -> SrvResult<sessionsrv::Session> {
-        let conn = self.pool.get(session_create)?;
-        let provider = match session_create.get_provider() {
-            sessionsrv::OAuthProvider::GitHub => "github",
-        };
-
-        let rows = conn.query(
-            "SELECT * FROM insert_account_session_v2($1, $2, $3, $4, $5, $6, $7, $8)",
-            &[
-                &(account.get_id() as i64),
-                &account.get_name(),
-                &session_create.get_token(),
-                &provider,
-                &(session_create.get_extern_id() as i64),
-                &is_admin,
-                &is_early_access,
-                &is_build_worker,
-            ],
-        ).map_err(SrvError::SessionCreate)?;
-        let row = rows.get(0);
-        let session = self.row_to_session(row, account);
-        Ok(session)
-    }
-
-    fn row_to_session(
-        &self,
-        row: postgres::rows::Row,
-        account: &sessionsrv::Account,
-    ) -> sessionsrv::Session {
-        let mut session = sessionsrv::Session::new();
-        session.set_token(row.get("token"));
-
-        let mut flags = privilege::FeatureFlags::empty();
-        if row.get("is_admin") {
-            flags.insert(privilege::ADMIN);
-        }
-        if row.get("is_early_access") {
-            flags.insert(privilege::EARLY_ACCESS);
-        }
-        if row.get("is_build_worker") {
-            flags.insert(privilege::BUILD_WORKER);
-        }
-        session.set_flags(flags.bits());
-        session.set_email(account.get_email().to_string());
-        session.set_name(account.get_name().to_string());
-        session.set_id(account.get_id());
-        session
     }
 
     pub fn get_account(
@@ -167,35 +113,6 @@ impl DataStore {
         if rows.len() != 0 {
             let row = rows.get(0);
             Ok(Some(self.row_to_account(row)))
-        } else {
-            Ok(None)
-        }
-    }
-
-    pub fn get_session(
-        &self,
-        session_get: &sessionsrv::SessionGet,
-        rconn: &mut RouteConn,
-    ) -> SrvResult<Option<sessionsrv::Session>> {
-        let conn = self.pool.get(session_get)?;
-        let rows = conn.query(
-            "SELECT * FROM get_account_session_v2($1)",
-            &[&session_get.get_token()],
-        ).map_err(SrvError::SessionGet)?;
-
-        if rows.len() > 0 {
-            let row = rows.get(0);
-            let name = row.get("account_name");
-
-            // fetch the account associated with this session
-            let mut request = sessionsrv::AccountGet::new();
-            request.set_name(name);
-            let account = rconn
-                .route::<sessionsrv::AccountGet, sessionsrv::Account>(&request)
-                .map_err(SrvError::NetErr)?;
-
-            let session = self.row_to_session(row, &account);
-            Ok(Some(session))
         } else {
             Ok(None)
         }
@@ -335,5 +252,14 @@ impl DataStore {
         }
         response.set_invitations(invitations);
         Ok(response)
+    }
+
+    fn row_to_account(&self, row: postgres::rows::Row) -> sessionsrv::Account {
+        let mut account = sessionsrv::Account::new();
+        let id: i64 = row.get("id");
+        account.set_id(id as u64);
+        account.set_email(row.get("email"));
+        account.set_name(row.get("name"));
+        account
     }
 }

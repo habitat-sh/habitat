@@ -28,28 +28,6 @@ fn create_account() {
     assert_eq!(account.get_name(), "Bobo T. Clown");
 }
 
-#[test]
-fn create_session() {
-    let ds = datastore_test!(DataStore);
-    let mut ac = sessionsrv::AccountCreate::new();
-    ac.set_email(String::from("bobo@chef.io"));
-    ac.set_name(String::from("Bobo T. Clown"));
-
-    let account = ds.create_account(&ac).expect("Should create account");
-
-    let mut sc = sessionsrv::SessionCreate::new();
-    sc.set_token(String::from("hail2theking"));
-    sc.set_extern_id(64);
-    sc.set_name(String::from("Bobo T. Clown"));
-    sc.set_provider(sessionsrv::OAuthProvider::GitHub);
-
-    let session = ds.create_session(&sc, &account, true, false, false)
-        .expect("Should create account");
-    assert!(session.get_id() != 0, "Created account has an ID");
-    assert_eq!(session.get_email(), "bobo@chef.io");
-    assert_eq!(session.get_name(), "Bobo T. Clown");
-}
-
 fn create_bobo_account(ds: &DataStore) -> sessionsrv::Account {
     let mut ac = sessionsrv::AccountCreate::new();
     ac.set_email(String::from("bobo@chef.io"));

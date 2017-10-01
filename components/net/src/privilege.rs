@@ -13,6 +13,7 @@
 // limitations under the License.
 
 bitflags! {
+    #[derive(Default)]
     pub flags FeatureFlags: u32 {
         const ADMIN = 0b00000001,
         const EARLY_ACCESS = 0b00000010,
