@@ -750,13 +750,25 @@ pub fn get_project_integration(req: &mut Request) -> IronResult<Response> {
     request.set_integration(opi);
 
     match route_message::<OriginProjectIntegrationGet, OriginProjectIntegration>(req, &request) {
-        Ok(integration) => Ok(render_json(status::Ok, &integration.get_body())),
+        Ok(integration) => {
+            let v: serde_json::Value = match serde_json::from_str(&integration.get_body()) {
+                Ok(v) => v,
+                Err(e) => {
+                    debug!("Error parsing to JSON. e = {:?}", e);
+                    return Ok(Response::with((status::UnprocessableEntity, "api:gpi:1")));
+                }
+            };
+            Ok(render_json(status::Ok, &v))
+        }
         Err(err) => {
             match err.get_code() {
                 ErrCode::ENTITY_NOT_FOUND => Ok(Response::with((status::NotFound))),
                 _ => {
-                    error!("get_project_integration:1, err={:?}", err);
-                    Ok(Response::with(status::InternalServerError))
+                    error!(
+                        "Unexpected error retrieving project integration, err={:?}",
+                        err
+                    );
+                    Ok(Response::with((status::InternalServerError, "api:gpi:2")))
                 }
             }
         }
