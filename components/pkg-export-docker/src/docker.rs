@@ -14,11 +14,12 @@
 
 use std::fs::{self, OpenOptions};
 use std::io::Write;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use common::ui::{UI, Status};
 use hcore::os::filesystem;
+use hcore::fs as hfs;
 use handlebars::Handlebars;
 
 use build::BuildRoot;
@@ -32,6 +33,14 @@ const DOCKERFILE: &'static str = include_str!("../defaults/Dockerfile.hbs");
 const INIT_SH: &'static str = include_str!("../defaults/init.sh.hbs");
 /// The build report template.
 const BUILD_REPORT: &'static str = include_str!("../defaults/last_docker_export.env.hbs");
+
+lazy_static! {
+    /// Absolute path to the Docker program
+    static ref DOCKER_PROGRAM: PathBuf = hfs::resolve_cmd_in_pkg(
+        "docker",
+        include_str!(concat!(env!("OUT_DIR"), "/DOCKER_PKG_IDENT")),
+    );
+}
 
 /// A builder used to create a Docker image.
 pub struct DockerBuilder<'a> {
@@ -457,11 +466,6 @@ impl DockerBuildRoot {
 }
 
 /// Returns a `Command` for the Docker program.
-///
-/// TODO fn: This is good enough for the moment, but it would be beneficial to support and
-/// environment variable or outer CLI option to set the location for the Docker program. However,
-/// future work might remove the requirement for this program so there currently isn't much bought
-/// by adding work that'll be stripped away later.
 fn docker_cmd() -> Command {
-    Command::new("docker")
+    Command::new(&*DOCKER_PROGRAM)
 }

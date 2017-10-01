@@ -17,17 +17,17 @@ use std::process::{Command, ExitStatus, Stdio};
 
 use hab_core::channel::{BLDR_CHANNEL_ENVVAR, STABLE_CHANNEL};
 use hab_core::env;
+use hab_core::fs;
 use hab_core::url::BLDR_URL_ENVVAR;
 
 use error::Result;
 use runner::log_pipe::LogPipe;
 use runner::{NONINTERACTIVE_ENVVAR, RUNNER_DEBUG_ENVVAR};
 use runner::workspace::Workspace;
-use util;
 
 lazy_static! {
     /// Absolute path to the Studio program
-    static ref STUDIO_PROGRAM: PathBuf = util::resolve_cmd_in_pkg(
+    static ref STUDIO_PROGRAM: PathBuf = fs::resolve_cmd_in_pkg(
         "hab-studio",
         include_str!(concat!(env!("OUT_DIR"), "/STUDIO_PKG_IDENT")),
     );
