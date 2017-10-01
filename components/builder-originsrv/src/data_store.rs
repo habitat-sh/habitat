@@ -133,8 +133,10 @@ impl DataStore {
     pub fn update_origin_project(&self, opc: &originsrv::OriginProjectUpdate) -> SrvResult<()> {
         let conn = self.pool.get(opc)?;
         let project = opc.get_project();
+        let visibility = format!("{}", project.get_visibility());
+
         conn.execute(
-            "SELECT update_origin_project_v3($1, $2, $3, $4, $5, $6, $7, $8)",
+            "SELECT update_origin_project_v3($1, $2, $3, $4, $5, $6, $7, $8, $9)",
             &[
                 &(project.get_id() as i64),
                 &(project.get_origin_id() as i64),
@@ -144,6 +146,7 @@ impl DataStore {
                 &project.get_vcs_data(),
                 &(project.get_owner_id() as i64),
                 &(project.get_vcs_installation_id() as i64),
+                &visibility,
             ],
         ).map_err(SrvError::OriginProjectUpdate)?;
         Ok(())

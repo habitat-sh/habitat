@@ -129,6 +129,54 @@ pub fn job_group_promote(req: &mut Request) -> IronResult<Response> {
     }
 }
 
+pub fn project_privacy_toggle(req: &mut Request) -> IronResult<Response> {
+    let session = req.extensions.get::<Authenticated>().unwrap().clone();
+    let params = req.extensions.get::<Router>().unwrap().clone();
+    let origin = match params.find("origin") {
+        Some(o) => o,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+    let name = match params.find("name") {
+        Some(n) => n,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+    let vis = match params.find("visibility") {
+        Some(v) => v,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+    let opv: OriginPackageVisibility = match vis.parse() {
+        Ok(o) => o,
+        Err(_) => return Ok(Response::with(status::BadRequest)),
+    };
+
+    if !check_origin_access(req, session.get_id(), &origin)? {
+        return Ok(Response::with(status::Forbidden));
+    }
+
+    let mut project_get = OriginProjectGet::new();
+    project_get.set_name(format!("{}/{}", origin, name));
+
+    match route_message::<OriginProjectGet, OriginProject>(req, &project_get) {
+        Ok(mut project) => {
+            let real_visibility =
+                match helpers::transition_visibility(opv, project.get_visibility()) {
+                    Ok(v) => v,
+                    Err(err) => return Ok(Response::with(err)),
+                };
+
+            let mut opu = OriginProjectUpdate::new();
+            project.set_visibility(real_visibility);
+            opu.set_project(project);
+
+            match route_message::<OriginProjectUpdate, NetOk>(req, &opu) {
+                Ok(_) => Ok(Response::with(status::NoContent)),
+                Err(err) => Ok(render_net_error(&err)),
+            }
+        }
+        Err(err) => Ok(render_net_error(&err)),
+    }
+}
+
 pub fn rdeps_show(req: &mut Request) -> IronResult<Response> {
     let mut rdeps_get = ReverseDependenciesGet::new();
     {
