@@ -111,7 +111,7 @@ It is important to start the Supervisor via the `hab` program as upgrades to the
 
 ## Loading a Service for Supervision
 
-To add a service to a Supervisor, you use the `hab svc load` subcommand. It has many of the same service-related flags and options as `hab start`, so there's nothing extra to learn here (for more details, read through the [Run packages sections](/docs/run-packages-overview)). For example, to load `yourorigin/yourname` in a Leader topology, a Rolling update strategy and a Group of "acme", run the following:
+To add a service to a Supervisor, you use the `hab svc load` subcommand. It has many of the same service-related flags and options as `hab start`, so there's nothing extra to learn here (for more details, read through the [Run packages sections](/docs/using-habitat)). For example, to load `yourorigin/yourname` in a Leader topology, a Rolling update strategy and a Group of "acme", run the following:
 
     $ hab svc load yourorigin/yourname --topology leader --strategy rolling --group acme
 

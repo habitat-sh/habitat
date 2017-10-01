@@ -111,7 +111,7 @@ end
 # Redirects
 ###
 redirect 'about/index.html', to: '/about/announcement/'
-redirect 'docs/build-packages-overview.html', to: '/docs/create-packages-build/'
+redirect 'docs/build-packages-overview.html', to: '/docs/developing-packages#plan-builds/'
 redirect 'docs/get-habitat.html', to: '/tutorials/download/'
 redirect 'docs/try.html', to: '/tutorials/download/'
 redirect 'download/index.html', to: '/tutorials/download/'

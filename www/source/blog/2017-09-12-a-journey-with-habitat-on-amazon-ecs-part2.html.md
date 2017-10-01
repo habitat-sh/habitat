@@ -8,7 +8,7 @@ classes: body-article
 ---
 
 In the [first part of this
-series](https://www.habitat.sh/blog/2017/09/a-journey-with-habitat-on-amazon-ecs-part1/)
+series](/blog/2017/09/a-journey-with-habitat-on-amazon-ecs-part1/)
 we got the [Chef Automate
 Pilot](https://learn.chef.io/modules/chef-automate-pilot/scan-for-compliance#/)
 container stack up and running on ECS. Now let’s make it survive termination of
@@ -70,12 +70,12 @@ answer](https://bldr.habitat.sh/#/pkgs/frog-hornets-nest/workflow-server/1.6.81/
 (scroll down to the *Configuration* section to see all the variables Habitat’s
 [TOML](https://github.com/toml-lang/toml) config format). The Habitat docs
 describe the [methodology for passing in runtime configuration via environment
-variables](https://www.habitat.sh/docs/run-packages-apply-config-updates/)
+variables](/docs/using-habitat#config-updates)
 although I was never able to get the JSON format to work reliably (Habitat
 auto-detects the format of the variable).
 
 Removing the [Habitat
-bindings](https://www.habitat.sh/docs/run-packages-binding/) and switching to
+bindings](docs/developing-packages#pkg-binds) and switching to
 environment variables worked fine for all of the services in the stack except
 the new `notifications` service. I didn’t realize when making this first commit
 that `notifications` didn’t need to talk to Postgres at all, so I passed in the

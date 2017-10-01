@@ -70,7 +70,7 @@ in the `$HOME` directory.
 Now that you have cloned the `habitat-example-plans` repo, it is time to define the plan for `myrailsapp`. 
 
 At a bare minimum, a plan must have a `plan.sh` at the root of the directory. This file specifies where the source code or binary is, how
-it should be built, and how the [Supervisor](/docs/concepts-supervisor/) should start the application or service it at runtime. 
+it should be built, and how the [Supervisor](/docs/glossary#glossary-supervisor) should start the application or service it at runtime. 
 
 To create your plan, do the following in your terminal window:
 
@@ -90,7 +90,7 @@ To create your plan, do the following in your terminal window:
 
     A scaffolding is a meta-package for applications and services and Habitat provides scaffoldings for several languages. They provide a default configuration and behavior experience that gets application developers up and running quickly with Habitat.
 
-    And in the case of the Ruby scaffolding, if you set up PostgreSQL as your database (as we did in the myrailsapp sample code), the Ruby scaffolding will create configuration and credential information to connect to that database. For more information on scaffoldings, see the scaffolding [concepts topic](/docs/concepts-scaffolding).
+    And in the case of the Ruby scaffolding, if you set up PostgreSQL as your database (as we did in the myrailsapp sample code), the Ruby scaffolding will create configuration and credential information to connect to that database. For more information on scaffoldings, see the scaffolding [concepts topic](/docs/glossary#glossary-scaffolding).
 
 2. Now that you have created a basic plan, change directories into your newly-created `habitat` sub-directory and open plan.sh in your text editor.
 
@@ -113,7 +113,7 @@ To create your plan, do the following in your terminal window:
     ```bash
     pkg_deps=( core/curl )
     ```
-For more information on other plan settings, see [Basic Settings](/docs/reference/basic-settings/).
+For more information on other plan settings, see [Basic Settings](/docs/reference#plan-settings).
 
 ## Finished Plan
 

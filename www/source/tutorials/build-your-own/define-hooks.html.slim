@@ -9,7 +9,7 @@ section
 
  = partial "/partials/global/hook_definition"
 
- p The #{link_to 'reference documentation', '/docs/reference/hooks'} contains the complete list of hooks; however, the only required hook is the <code>run</code> hook, and if you are only calling a built binary, you can specify that through a <code>pkg_svc_run</code> setting. Anything more complicated than running a binary and pointing to a local configuration file in the <code>config</code> directory will require you to create a custom <code>run</code> hook.
+ p The #{link_to 'reference documentation', '/docs/reference#reference-hooks'} contains the complete list of hooks; however, the only required hook is the <code>run</code> hook, and if you are only calling a built binary, you can specify that through a <code>pkg_svc_run</code> setting. Anything more complicated than running a binary and pointing to a local configuration file in the <code>config</code> directory will require you to create a custom <code>run</code> hook.
 
  h2 Scaffolding-generated Hooks
 
@@ -40,12 +40,12 @@ section
   p This path points to the <code>fastcgi.conf</code> file that resides in the <config> directory of the Nginx package.
 
 
- p For more helper functions that can be used in runtime hooks, see #{link_to 'Advanced Helpers','/docs/create-packages-configure#advanced-helpers'}.
+ p For more helper functions that can be used in runtime hooks, see #{link_to 'Advanced Helpers','/docs/reference#utility-functions'}.
 
  h2 Using runtime settings
 
  p Habitat allows you to reference configuration values set at runtime. These can be helpful in your hooks if you need to reference port numbers, IP addresses, or other values when performing business logic during the lifecycle of your running service.
 
- p You can use #{link_to 'runtime configuration settings','/docs/reference/runtime-settings'} in your hooks. These include #{link_to 'user-created configuration settings','/tutorials/build-your-own/add-config/'} defined by you in your config file, or built-in values defined by Habitat.
+ p You can use #{link_to 'runtime configuration settings','/docs/reference#template-data'} in your hooks. These include #{link_to 'user-created configuration settings','/tutorials/build-your-own/add-config/'} defined by you in your config file, or built-in values defined by Habitat.
 
 = link_to 'Next: Define Environment Variables', '/tutorials/build-your-own/define-variables/', class: 'button cta'

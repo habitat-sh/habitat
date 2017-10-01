@@ -110,7 +110,7 @@ other service to bind to:
 
 I will spare the full details on how binds work. There is [plenty of
 documentation
-available](https://www.habitat.sh/docs/run-packages-binding/) on the
+available](/docs/developing-packages#pkg-binds) on the
 Habitat website. What's important here is that, because I have bound
 my Drupal service to a Mysql service, I can now configure my service
 to use that database automatically. What does the user see now?

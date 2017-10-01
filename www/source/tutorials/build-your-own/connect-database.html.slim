@@ -46,7 +46,7 @@ section
    |
     pkg_binds=( [elasticsearch]="http-port transport-port" )
 
- p For more examples and information on binding, see #{link_to 'Runtime Binding','/docs/run-packages-binding/'}.
+ p For more examples and information on binding, see #{link_to 'Runtime Binding','/docs/developing-packages#pkg-binds'}.
 
  blockquote
   p <b>Important</b> If the Ruby scaffolding detects that your web application references the <code>pg</code> gem in your Gemfile.lock, the scaffolding will create and set <code>pkg_binds_optional</code> to a binding called "database" with the key called "port". This maps to the exported key named "port" from the <code>core/postgresql</code> package.

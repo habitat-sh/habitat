@@ -11,7 +11,7 @@ Habitat packages can be exported in both Docker and ACI formats (as well as othe
 
 ## kubectl
 
-Habitat packages exported as containers may be deployed into Kubernetes through the [`kubectl` command](http://kubernetes.io/docs/user-guide/pods/single-container/). Using the [Docker exporter](/docs/run-packages-export) to create a containerized application, the container may be launched like this example:
+Habitat packages exported as containers may be deployed into Kubernetes through the [`kubectl` command](http://kubernetes.io/docs/user-guide/pods/single-container/). Using the [Docker exporter](/docs/developing-packages#pkg-exports) to create a containerized application, the container may be launched like this example:
 
 ```
 $ kubectl run mytutorial --image=myorigin/mytutorial --port=8080
@@ -34,5 +34,5 @@ Multi-container pod support through Habitat is still under active development as
 ## Related Reading
 
 * [Habitat Kubernetes Operator](https://github.com/kinvolk/habitat-operator)
-* [Export a habitat package](https://www.habitat.sh/docs/developing-packages/#pkg-exports)
+* [Export a habitat package](/docs/developing-packages/#pkg-exports)
 * [Habitat CLI](/docs/habitat-cli)

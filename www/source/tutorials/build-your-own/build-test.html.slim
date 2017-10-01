@@ -95,7 +95,7 @@ section
    |
     secret_key_base = "some_secret_key_value"
 
- p For more information on using the Habitat Studio, see #{link_to 'Build packages', '/docs/create-packages-build/'}.
+ p For more information on using the Habitat Studio, see #{link_to 'Plan Builds', '/docs/developing-packages#plan-builds'}.
 
  h2 <a name="debug-plan">Debugging your plan</a>
 
@@ -105,7 +105,7 @@ section
 
  p If you have to customize how your web application is built, such as overriding default callbacks, it is helpful to know what environment variables are available to you, to make sure you have successfully copied/referenced files, or performed the business logic you intended to at that specific point in the build.
 
- p There are several #{link_to 'built-in functions','/docs/reference/utility-functions/'} you can call in your plan.sh to help you with these issues, but the most important from a debugging perspective is <code>attach</code>. This function can be called from within any of the callbacks and will drop you into an interactive debugging session. For information on how to use the <code>attach</code> function and what you can do with it, see #{link_to 'Debugging Plans','/docs/create-packages-debugging/'}.
+ p There are several #{link_to 'built-in functions','/docs/reference#utility-functions'} you can call in your plan.sh to help you with these issues, but the most important from a debugging perspective is <code>attach</code>. This function can be called from within any of the callbacks and will drop you into an interactive debugging session. For information on how to use the <code>attach</code> function and what you can do with it, see #{link_to 'Debugging Plans','/docs/developing-packages#debug-builds'}.
 
  h3 Debugging at runtime
 

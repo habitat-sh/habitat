@@ -6,7 +6,7 @@ To define a hook, simply create a bash file of the same name in `/my_plan_name/h
 > **Important** You cannot block the thread in a hook unless it is in the `run` hook. Never call `hab` or `sleep` in a hook that is not the `run` hook.
 
 # Related article: Runtime settings
-[Habitat's runtime settings](/docs/reference/runtime-settings) can be used in any of the plan hooks and also in any templatized configuration file for your application or service.
+[Habitat's runtime settings](/docs/reference#template-data) can be used in any of the plan hooks and also in any templatized configuration file for your application or service.
 
 ## Available hooks
 * [file_updated](#file_updated)

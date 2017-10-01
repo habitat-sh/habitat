@@ -5,7 +5,7 @@ to use. To do that, you have to upload both the public key for your origin as we
 
 ## Set Up hab to Authenticate with Builder
 
-When you upload a package to a depot, you are required to supply an OAuth token as part of the `hab pkg upload` subcommand. Because the depot uses GitHub to authenticate, follow the steps to generate a [GitHub access token](https://help.github.com/articles/creating-an-access-token-for-command-line-use/). Save that token value and/or set the `HAB_AUTH_TOKEN` [environment variable](/docs/reference/environment-vars/) to it. You will need it later.
+When you upload a package to a depot, you are required to supply an OAuth token as part of the `hab pkg upload` subcommand. Because the depot uses GitHub to authenticate, follow the steps to generate a [GitHub access token](https://help.github.com/articles/creating-an-access-token-for-command-line-use/). Save that token value and/or set the `HAB_AUTH_TOKEN` [environment variable](/docs/reference#environment-variables) to it. You will need it later.
 
 > Note: The depot uses the following OAuth scopes when performing GitHub authentication: `user:email` and `read:org`; therefore, you must enable these [scopes](https://developer.github.com/v3/oauth/#scopes) for your personal access token. Habitat uses the information provided through these scopes for authentication and to determine features based on team membership.
 
@@ -99,6 +99,6 @@ Once the depot possesses at least the public key of the origin, you may upload o
     ✓ Promoted dwrede/myrailsapp/0.1.0/20170721004359
     ```
 
-For more information on uploading and sharing packages, see [Sharing packages](/docs/share-packages-overview/).
+For more information on uploading and sharing packages, see [Sharing packages](/docs/developing-packages#sharing-pkgs).
 
 Congratulations, you're done! See the next page for more content resources to help you as you learn more about Habitat.

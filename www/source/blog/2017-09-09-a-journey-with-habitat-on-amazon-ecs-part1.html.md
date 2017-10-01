@@ -92,7 +92,7 @@ to bootstrap itself!) and the lack of overlay networking makes it harder for
 supervisors to all have 2-way communication with each other.
 
 That’s why the [Habitat docs section on
-ECS](https://www.habitat.sh/docs/container-orchestration-ecs/#ec2-compute-service)
+ECS](/docs/best-practices#ecs-and-habitat)
 simply tells you to use docker `links` (a deprecated feature) like so:
 
     version: '2'
@@ -159,12 +159,12 @@ Each container definition has some important components:
 * Links (as mentioned above for service discovery and networking between
 containers)
 * Command Line arguments that are passed to Habitat: A peer name (to form a
-[gossip ring](https://www.habitat.sh/docs/internals-supervisor/)) and bindings
+[gossip ring](/docs/internals#supervisor-internals)) and bindings
 (dependencies on a [service
-group](https://www.habitat.sh/docs/run-packages-service-groups/))
+group](/docs/using-habitat#service-groups))
 * Environment variables passed to Habitat — TOML formatted parameters which inject
 [configuration parameters
-](https://www.habitat.sh/docs/run-packages-apply-config-updates/)to be used at
+](/docs/using-habitat#config-updates)to be used at
 runtime by this container (and also consumable by dependent services on other
 containers)
 * Logging configuration, which is handy because it makes all container output

@@ -51,7 +51,7 @@ Before we go further, we need to make sure you've been through the [Download and
 * Created an Origin for your Habitat packages
 * Configured your workstation by running through `hab setup` (and generated your origin keys, since we'll be using them here to sign the packages we make)
 
-Ideally, you've also made it through some [tutorials](/tutorials/) and [docs](/docs/) (particularly the [packaging-related ones](/docs/create-packages-overview/)), so you've got some understanding of Habitat plans, packages and services.
+Ideally, you've also made it through some [tutorials](/tutorials/) and [docs](/docs/) (particularly the [packaging-related ones](/docs/developing-packages)), so you've got some understanding of Habitat plans, packages and services.
 
 As a quick test, try running `hab --version`. Here's what I see when I do that today:
 
@@ -75,7 +75,7 @@ Let's start in the containing folder we created a moment ago:
     $ ls
     server site
 
-We'll begin by creating a plan for the site. The goal for this plan is to produce a Habitat package containing just our humble little HTML page, so we can keep our plan pretty simple by creating just [a `plan.sh` file](/docs/create-plans/):
+We'll begin by creating a plan for the site. The goal for this plan is to produce a Habitat package containing just our humble little HTML page, so we can keep our plan pretty simple by creating just [a `plan.sh` file](/docs/developing-packages#write-plans):
 
     $ mkdir site/habitat
     $ touch site/habitat/plan.sh
@@ -96,11 +96,11 @@ In `site/habitat/plan.sh`, place the following plan definition (substituting you
       cp -v index.html "${pkg_prefix}/dist/"
     }
 
-As noted in [the plan docs](/docs/reference/plan-syntax/), the `do_build` step runs `make` by default &mdash; but since we don't have a Makefile in our source code (and don't really have any processing to do on it otherwise), we can bypass this step by providing our own "do nothing" implementation and return `0` to indicate success. (Yay!)
+As noted in [the plan docs](/docs/reference), the `do_build` step runs `make` by default &mdash; but since we don't have a Makefile in our source code (and don't really have any processing to do on it otherwise), we can bypass this step by providing our own "do nothing" implementation and return `0` to indicate success. (Yay!)
 
 Our `do_install` step also overrides Habitat's default behavior, this time by copying `index.html` from its location in our source tree into its final destination in the rendered package &mdash; a folder I've named, somewhat web-conventionally, `dist`). If our site were more complex, or if we'd performed some sort of a build step in `do_build` to produce a compiled web app, we might expand this step to do a bit more work &mdash; but for now, we've done all we need.
 
-Now, Habitat recognizes a number of [environment variables](/docs/reference/environment-vars/) you can use to make your plan-authoring experience a little nicer. Since I do most of my plan development on a Mac, I often use `HAB_DOCKER_OPTS`, which passes whatever value I specify as a string of command-line arguments to Docker when I enter [the Habitat Studio](https://www.habitat.sh/docs/concepts-studio/) (which runs in a Docker container on the Mac). So if I'm building a website package and would like to view my site in a browser, I'll need to map a port from the container to my Mac &mdash; for example, port 80 in the container to 8080 on my machine.  I can do that pretty easily by exporting that variable before running `hab studio enter`.
+Now, Habitat recognizes a number of [environment variables](/docs/reference#environment-variables) you can use to make your plan-authoring experience a little nicer. Since I do most of my plan development on a Mac, I often use `HAB_DOCKER_OPTS`, which passes whatever value I specify as a string of command-line arguments to Docker when I enter [the Habitat Studio](/docs/glossary#glossary-studio) (which runs in a Docker container on the Mac). So if I'm building a website package and would like to view my site in a browser, I'll need to map a port from the container to my Mac &mdash; for example, port 80 in the container to 8080 on my machine.  I can do that pretty easily by exporting that variable before running `hab studio enter`.
 
 Let's do that now, as it'll come in handy later when we start the web server. And let's also make sure we enter the Studio at a level *above* our two packages so we can work with them both in a single Studio session:
 
@@ -189,7 +189,7 @@ In `server/habitat/plan.sh`, modify the generated plan file to include only the 
       return 0
     }
 
-There are a couple of things worth pointing out here (all of which is detailed in the [plan-authoring docs](/docs/reference/plan-syntax/)). One is the specification of `pkg_svc_user`, which we set here as `root` because we'll need the [Nginx master process](http://nginx.org/en/docs/beginners_guide.html) to be able to bind to port 80, which typically requires elevated privileges. (Worker processes, as you'll see later, will be run as a different user.) Another is the declaration of `core/nginx` as a dependency, and then finally, since `core/nginx` takes care of building the Nginx server for us, we're left with nothing to do in our own build and install steps, so we can return zero for both of them.
+There are a couple of things worth pointing out here (all of which is detailed in the [plan-authoring docs](/docs/reference)). One is the specification of `pkg_svc_user`, which we set here as `root` because we'll need the [Nginx master process](http://nginx.org/en/docs/beginners_guide.html) to be able to bind to port 80, which typically requires elevated privileges. (Worker processes, as you'll see later, will be run as a different user.) Another is the declaration of `core/nginx` as a dependency, and then finally, since `core/nginx` takes care of building the Nginx server for us, we're left with nothing to do in our own build and install steps, so we can return zero for both of them.
 
 Now let's run a build just to make sure we're on the right track. Back in our still-open Habitat Studio:
 
@@ -211,7 +211,7 @@ Let's keep the configuration as simple as possible for now. (Amazing things can 
     $ cd ~/hello-hab
     $ touch server/habitat/config/nginx.conf
 
-And inside that new file, place the following Habitat [configuration template](/docs/create-packages-configure/#sts=Add configuration to plans):
+And inside that new file, place the following Habitat [configuration template](/docs/developing-packages#add-configuration#sts=Add configuration to plans):
 
     daemon off;
     pid {{ pkg.svc_var_path }}/pid;
@@ -246,7 +246,7 @@ A few things to note about what we've included here:
 When we start our web-server service, Habitat will combine the template above with metadata supplied by our package (the `pkg.*` expressions) and values we provide in our TOML files (the `cfg.*` ones) and produce a well-formed configuration file that `nginx` can consume when it starts. Let's finish this off by adding some default values to `server/habitat/default.toml`, which was created for you when you ran `hab plan init`:
 
     # Use this file to templatize your application's native configuration files.
-    # See the docs at https://www.habitat.sh/docs/create-packages-configure/.
+    # See the docs at https://www.habitat.sh/docs/developing-packages#add-configuration.
     # You can safely delete this file if you don't need it.
 
     worker_processes = 1
@@ -263,7 +263,7 @@ Perfect. All we have left are the scripts that start up the service.
 
 ## Add Some Service Hooks
 
-The Habitat docs explain all there is to know about [service hooks and how to use them](/docs/reference/plan-syntax/#sts=Hooks), so we're going to continue keeping things simple and define only the hooks we need to get our server package running:
+The Habitat docs explain all there is to know about [service hooks and how to use them](/docs/reference#sts=Hooks), so we're going to continue keeping things simple and define only the hooks we need to get our server package running:
 
   * An **init** hook, which is a shell script run by the Habitat Supervisor as a service starts up, and
   * A **run** hook, called afterward, which is responsible for starting the service that the Supervisor will manage.
@@ -316,7 +316,7 @@ And because you exported `HAB_DOCKER_OPTS` earlier to map port 80 in the contain
 
 That's great, and you should be proud &mdash; but a blank page isn't going to win you the Internet. Let's update our server's configuration to use `hello-hab-site`'s `dist` folder (where our HTML file lives now) as its new document root.
 
-To do that, we'll [use `hab config apply` to send a bit of TOML](/docs/run-packages-apply-config-updates/) to our server's [service group](/docs/concepts-services/) (and mind that line break &mdash; it needs to be included, or you'll get complaints about malformed TOML, and the change wont' be applied):
+To do that, we'll [use `hab config apply` to send a bit of TOML](/docs/using-habitat#config-updates/) to our server's [service group](/docs/glossary#glossary-services) (and mind that line break &mdash; it needs to be included, or you'll get complaints about malformed TOML, and the change wont' be applied):
 
     [7][default:/src:0]# echo "[http.server]
     root = '$(hab pkg path cnunciato/hello-hab-site)/dist'" | hab config apply hello-hab-server.default 1
@@ -343,13 +343,13 @@ That was a whole bunch of words to explain what was really just a few lines of c
 
 So what's next? In future posts, we might develop our website package into a more sophisticated single-page web app, package a REST API to support it, extend our web-server configuration, add a database, build some containers, deploy, scale ... so many things. In the meantime, you might try a few on your own, like:
 
- * [Uploading both packages](/docs/share-packages-overview/#uploading-packages-to-the-depot) to Builder,
- * [Installing them](/docs/reference/habitat-cli/#hab-pkg-install) on a server,
- * [Running the web-server package](/docs/share-packages-overview/#running-packages-from-the-depot) from Builder, and
+ * [Uploading both packages](/docs/developing-packages#uploading-packages-to-builder) to Builder,
+ * [Installing them](/docs/habitat-cli#hab-pkg-install) on a server,
+ * [Running the web-server package](/docs/developing-packages#running-packages-from-the-depot) from Builder, and
  * Iterating on the website package by building and uploading revisions to Builder.
 
 In doing so, you may find that the pattern we've outlined here &mdash; using `hab config apply` to prompt the web server to pick up changes to the website package &mdash; works nicely, but does require the somewhat manual step of running that command (and remembering to increment the version number). It'd be better if the Habitat Supervisor could detect a new version of that package on Builder, install it for you, and have the web server pick up the change automatically.
 
-One way to do that would be with [scaffolding](/docs/concepts-scaffolding/) to make it easier to package static websites or single-page JavaScript web applications. We've just started talking about this one, so expect to hear more about that here as it develops.
+One way to do that would be with [scaffolding](/docs/glossary#glossary-scaffolding/) to make it easier to package static websites or single-page JavaScript web applications. We've just started talking about this one, so expect to hear more about that here as it develops.
 
 Until then, have fun! [We'll see you in Slack](http://slack.habitat.sh/).

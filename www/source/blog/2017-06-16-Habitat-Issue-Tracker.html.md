@@ -6,7 +6,7 @@ tags: Governance,Community
 category: Community
 classes: body-article
 ---
-Hopefully our previous [blog](https://www.habitat.sh/blog/2017/06/Triage-and-Contributions/) and [discourse](https://forums.habitat.sh/t/habitat-community-triage/287) posts have given you some general understanding around the way we govern the Habitat project. But, as a group of people hoping to share what we're building with a larger audience we know we can always be doing more to "pull back the curtain". We can be doing more to [expose our work](https://ext.prodpad.com/ext/roadmap/d2938aed0d0ad1dd62669583e108357efd53b3a6) and keep our community informed and educated on the ways we've chosen to operate.
+Hopefully our previous [blog](/blog/2017/06/Triage-and-Contributions/) and [discourse](https://forums.habitat.sh/t/habitat-community-triage/287) posts have given you some general understanding around the way we govern the Habitat project. But, as a group of people hoping to share what we're building with a larger audience we know we can always be doing more to "pull back the curtain". We can be doing more to [expose our work](https://ext.prodpad.com/ext/roadmap/d2938aed0d0ad1dd62669583e108357efd53b3a6) and keep our community informed and educated on the ways we've chosen to operate.
 
 Thus, I'm here to explain as much as I can about the way we currently govern the Habitat Project and how the Issue Tracker fits in. Generally this blog post is going to build on top of the Triage and Contribution blog post linked.
 
@@ -19,7 +19,7 @@ Habitat is governed by a core team, which is ultimately responsible for all deci
 You can track the core maintainers in our [MAINTAINERS.md](https://github.com/habitat-sh/habitat/blob/master/MAINTAINERS.md) file at the root of the habitat-sh/Habitat repository.
 
 ## Tag Categorization
-We discussed this in [another blog post](https://www.habitat.sh/blog/2017/06/Triage-and-Contributions/) but it bares keeping in mind.
+We discussed this in [another blog post](/blog/2017/06/Triage-and-Contributions/) but it bares keeping in mind.
 
 | *TAGS Groups*                     |               Meaning                             |
 |:----------------------------------|:--------------------------------------------------|
