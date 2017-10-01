@@ -350,6 +350,7 @@ message OriginProject {
   optional string vcs_type = 8;
   optional string vcs_data = 9;
   optional uint32 vcs_installation_id = 12;
+  optional OriginPackageVisibility visibility = 13;
 }
 
 message OriginProjectCreate {

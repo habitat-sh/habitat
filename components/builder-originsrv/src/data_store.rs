@@ -169,13 +169,17 @@ impl DataStore {
             .map_err(SrvError::OriginProjectGet)?;
         if rows.len() != 0 {
             let row = rows.get(0);
-            Ok(Some(self.row_to_origin_project(&row)))
+            let project = self.row_to_origin_project(&row)?;
+            Ok(Some(project))
         } else {
             Ok(None)
         }
     }
 
-    pub fn row_to_origin_project(&self, row: &postgres::rows::Row) -> originsrv::OriginProject {
+    pub fn row_to_origin_project(
+        &self,
+        row: &postgres::rows::Row,
+    ) -> SrvResult<originsrv::OriginProject> {
         let mut project = originsrv::OriginProject::new();
         let id: i64 = row.get("id");
         project.set_id(id as u64);
@@ -194,7 +198,12 @@ impl DataStore {
             project.set_vcs_installation_id(install_id as u32);
         }
 
-        project
+        let pv: String = row.get("visibility");
+        let pv2: originsrv::OriginPackageVisibility =
+            pv.parse().map_err(SrvError::UnknownOriginPackageVisibility)?;
+        project.set_visibility(pv2);
+
+        Ok(project)
     }
 
     pub fn create_origin_project(
@@ -211,7 +220,7 @@ impl DataStore {
             }
         };
         let rows = conn.query(
-            "SELECT * FROM insert_origin_project_v3($1, $2, $3, $4, $5, $6, $7)",
+            "SELECT * FROM insert_origin_project_v3($1, $2, $3, $4, $5, $6, $7, $8)",
             &[
                 &project.get_origin_name(),
                 &project.get_package_name(),
@@ -223,7 +232,8 @@ impl DataStore {
             ],
         ).map_err(SrvError::OriginProjectCreate)?;
         let row = rows.get(0);
-        Ok(self.row_to_origin_project(&row))
+        let project = self.row_to_origin_project(&row)?;
+        Ok(project)
     }
 
     pub fn get_origin_project_list(

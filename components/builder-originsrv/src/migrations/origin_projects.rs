@@ -332,5 +332,50 @@ pub fn migrate(migrator: &mut Migrator) -> SrvResult<()> {
                         WHERE origin_name = in_origin
                     $$ LANGUAGE SQL STABLE"#,
     )?;
+    migrator.migrate(
+        "originsrv",
+        r#"ALTER TABLE IF EXISTS origin_projects ADD COLUMN IF NOT EXISTS visibility text NOT NULL DEFAULT 'public';"#,
+    )?;
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE OR REPLACE FUNCTION insert_origin_project_v3 (
+                        project_origin_name text,
+                        project_package_name text,
+                        project_plan_path text,
+                        project_vcs_type text,
+                        project_vcs_data text,
+                        project_owner_id bigint,
+                        project_vcs_auth_token text,
+                        project_vcs_username text
+                 ) RETURNS SETOF origin_projects AS $$
+                     BEGIN
+                         RETURN QUERY INSERT INTO origin_projects (origin_id,
+                                                      origin_name,
+                                                      package_name,
+                                                      name,
+                                                      plan_path,
+                                                      owner_id,
+                                                      vcs_type,
+                                                      vcs_data,
+                                                      vcs_auth_token,
+                                                      vcs_username,
+                                                      visibility)
+                                VALUES (
+                                    (SELECT id FROM origins WHERE name = project_origin_name),
+                                    project_origin_name,
+                                    project_package_name,
+                                    project_origin_name || '/' || project_package_name,
+                                    project_plan_path,
+                                    project_owner_id,
+                                    project_vcs_type,
+                                    project_vcs_data,
+                                    project_vcs_auth_token,
+                                    project_vcs_username,
+                                    (SELECT default_package_visibility FROM origins WHERE name = project_origin_name))
+                                RETURNING *;
+                         RETURN;
+                     END
+                 $$ LANGUAGE plpgsql VOLATILE"#,
+    )?;
     Ok(())
 }

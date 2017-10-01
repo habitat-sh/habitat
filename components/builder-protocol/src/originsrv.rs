@@ -995,6 +995,7 @@ impl Serialize for OriginProject {
             "vcs_installation_id",
             &self.get_vcs_installation_id().to_string(),
         )?;
+        state.serialize_field("visibility", &self.get_visibility())?;
         state.end()
     }
 }
