@@ -1,5 +1,42 @@
 # Habitat CHANGELOG
 
+## [0.34.1](https://github.com/habitat-sh/habitat/tree/0.34.1) (10-01-2017)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.34.0...0.34.1)
+
+## Features & Enhancements
+
+- Account for binlink --force change throughout codebase [\#3323](https://github.com/habitat-sh/habitat/issues/3323)
+- Add docker integration functionality to builder-web [\#3109](https://github.com/habitat-sh/habitat/issues/3109)
+- Key Generation in Web UI [\#2899](https://github.com/habitat-sh/habitat/issues/2899)
+- \[builder-web\] Project create [\#2889](https://github.com/habitat-sh/habitat/issues/2889)
+- Fixes core plans link in README [\#3434](https://github.com/habitat-sh/habitat/pull/3434) ([rsertelon](https://github.com/rsertelon))
+- \[builder-worker\] Preparatory refactoring for exporters in workers [\#3432](https://github.com/habitat-sh/habitat/pull/3432) ([fnichol](https://github.com/fnichol))
+- \[jobsrv\] Export `log\_port` for discovery by workers. [\#3424](https://github.com/habitat-sh/habitat/pull/3424) ([fnichol](https://github.com/fnichol))
+- Refactor net::oauth::github module into github-api-client crate [\#3422](https://github.com/habitat-sh/habitat/pull/3422) ([reset](https://github.com/reset))
+- Build & publish Supervisor package last when releasing. [\#3421](https://github.com/habitat-sh/habitat/pull/3421) ([fnichol](https://github.com/fnichol))
+- Bump VERSION to 0.35.0-dev. [\#3419](https://github.com/habitat-sh/habitat/pull/3419) ([fnichol](https://github.com/fnichol))
+- Make origin secret key fetch work again [\#3417](https://github.com/habitat-sh/habitat/pull/3417) ([chefsalim](https://github.com/chefsalim))
+- Temporarily use old & new forms of `hab pkg binlink`. [\#3411](https://github.com/habitat-sh/habitat/pull/3411) ([fnichol](https://github.com/fnichol))
+
+## Bug fixes
+
+- \[pkg-export-docker\] Build in runtime ident for Docker package. [\#3437](https://github.com/habitat-sh/habitat/pull/3437) ([fnichol](https://github.com/fnichol))
+- Store Session in memory instead of database [\#3436](https://github.com/habitat-sh/habitat/pull/3436) ([reset](https://github.com/reset))
+- \[sup\] Install a package only if missing for `start` & `load`. [\#3425](https://github.com/habitat-sh/habitat/pull/3425) ([fnichol](https://github.com/fnichol))
+- \[bintray-publish\] Fix a couple of issues used when releasing. [\#3420](https://github.com/habitat-sh/habitat/pull/3420) ([fnichol](https://github.com/fnichol))
+
+**Merged pull requests:**
+
+- Fix JSON parsing when retrieving project integration [\#3431](https://github.com/habitat-sh/habitat/pull/3431) ([chefsalim](https://github.com/chefsalim))
+- Fixing links in partials [\#3429](https://github.com/habitat-sh/habitat/pull/3429) ([tashimi](https://github.com/tashimi))
+- fix repo deserialization regression [\#3426](https://github.com/habitat-sh/habitat/pull/3426) ([mwrock](https://github.com/mwrock))
+- Don't print UI messages from updater threads [\#3418](https://github.com/habitat-sh/habitat/pull/3418) ([christophermaier](https://github.com/christophermaier))
+- Fixing typos, updating language, fixing broken headers [\#3416](https://github.com/habitat-sh/habitat/pull/3416) ([tashimi](https://github.com/tashimi))
+- Capitalized 'Supervisor' in content and project code [\#3415](https://github.com/habitat-sh/habitat/pull/3415) ([davidwrede](https://github.com/davidwrede))
+- Allow scheduler to build projects that are not known to the graph [\#3414](https://github.com/habitat-sh/habitat/pull/3414) ([chefsalim](https://github.com/chefsalim))
+- Add key generation to Builder UI [\#3413](https://github.com/habitat-sh/habitat/pull/3413) ([cnunciato](https://github.com/cnunciato))
+- Add optional auth to job logs [\#3408](https://github.com/habitat-sh/habitat/pull/3408) ([raskchanky](https://github.com/raskchanky))
+
 ## [0.34.0](https://github.com/habitat-sh/habitat/tree/0.34.0) (09-30-2017)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.33.2...0.34.0)
 
