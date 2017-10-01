@@ -27,9 +27,6 @@ import { FooterComponent } from "./footer/FooterComponent";
 import { GravatarComponent } from "./GravatarComponent";
 import { HeaderComponent } from "./header/HeaderComponent";
 import { NotificationsComponent } from "./notifications/NotificationsComponent";
-import { ProjectSettingsPageComponent } from "./project-settings-page/ProjectSettingsPageComponent";
-import { ProjectPageComponent } from "./project-page/ProjectPageComponent";
-import { ProjectsPageComponent } from "./projects-page/ProjectsPageComponent";
 import { SideNavComponent } from "./side-nav/SideNavComponent";
 import { SignInPageComponent } from "./sign-in-page/sign-in-page.component";
 import { UserNavComponent } from "./header/user-nav/UserNavComponent";
@@ -62,11 +59,8 @@ import { SharedModule } from "./shared/shared.module";
         GravatarComponent,
         HeaderComponent,
         NotificationsComponent,
-        ProjectPageComponent,
-        ProjectsPageComponent,
         SideNavComponent,
         SignInPageComponent,
-        ProjectSettingsPageComponent,
         UserNavComponent
     ],
     providers: [

@@ -13,9 +13,10 @@
 // limitations under the License.
 
 import { Component } from "@angular/core";
+import { Router } from "@angular/router";
 import { AppStore } from "../../../AppStore";
 import { GitHubRepoPickerComponent } from "../../../shared/github-repo-picker/github-repo-picker.component";
-import { addProject, requestRoute } from "../../../actions/index";
+import { addProject, requestRoute, setProjectIntegrationSettings } from "../../../actions/index";
 
 @Component({
   selector: "hab-origin-packages-tab",
@@ -25,26 +26,14 @@ import { addProject, requestRoute } from "../../../actions/index";
 export class OriginPackagesTabComponent {
   selectingPlan: boolean = false;
 
-  constructor(private store: AppStore) { }
+  constructor(private store: AppStore, private router: Router) { }
 
-  loadRepoSelect() {
-    this.selectingPlan = true;
+  get integrations() {
+    return this.store.getState().origins.currentIntegrations.docker;
   }
 
-  planSelected(selection) {
-    let planData = selection;
-    planData.origin = this.store.getState().origins.current.name;
-
-    this.store.dispatch(
-      addProject(
-        planData,
-        this.store.getState().gitHub.authToken,
-        (response) => {
-          this.store.dispatch(requestRoute(["/origins", response.name]));
-        }));
-  }
-
-  planSelectCanceled(event) {
+  get origin() {
+    return this.store.getState().origins.current.name;
   }
 
   get projectsFlag() {
@@ -61,5 +50,13 @@ export class OriginPackagesTabComponent {
 
   get noPackages() {
     return (!this.packagesUi.exists || this.packages.size === 0) && !this.packagesUi.loading;
+  }
+
+  saved(project) {
+    this.router.navigate(["/pkgs", project.origin, project.name, "settings"]);
+  }
+
+  toggled(active) {
+    this.selectingPlan = active;
   }
 }
