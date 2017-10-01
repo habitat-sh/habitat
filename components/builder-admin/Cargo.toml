@@ -3,7 +3,7 @@ name = "habitat_builder_admin"
 version = "0.0.0"
 authors = ["Jamie Winsor <reset@chef.io>"]
 description = "Habitat-Builder Admin Gateway"
-build = "../bldr-build.rs"
+build = "../build-builder.rs"
 workspace = "../../"
 
 [[bin]]

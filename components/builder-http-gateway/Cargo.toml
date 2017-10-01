@@ -3,7 +3,6 @@ name = "builder-http-gateway"
 version = "0.0.0"
 authors = ["Jamie Winsor <reset@habitat.sh"]
 description = "A library for implementing Builder HTTP Gateways"
-build = "../bldr-build.rs"
 workspace = "../../"
 
 [dependencies]
