@@ -40,10 +40,11 @@ extern crate hyper;
 pub mod config;
 pub mod error;
 pub mod heartbeat;
+pub mod log_forwarder;
 pub mod runner;
 pub mod server;
+mod util;
 pub mod vcs;
-pub mod log_forwarder;
 
 pub use self::config::Config;
 pub use self::error::{Error, Result};

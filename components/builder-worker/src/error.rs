@@ -22,6 +22,7 @@ use git2;
 use hab_core;
 use protobuf;
 use protocol;
+use retry;
 use url;
 use zmq;
 
@@ -39,6 +40,7 @@ pub enum Error {
     NotHTTPSCloneUrl(url::Url),
     Protobuf(protobuf::ProtobufError),
     Protocol(protocol::ProtocolError),
+    Retry(retry::RetryError),
     UnknownVCS,
     UrlParseError(url::ParseError),
     WorkspaceSetup(String, io::Error),
@@ -68,6 +70,7 @@ impl fmt::Display for Error {
             }
             Error::Protobuf(ref e) => format!("{}", e),
             Error::Protocol(ref e) => format!("{}", e),
+            Error::Retry(ref e) => format!("{}", e),
             Error::UnknownVCS => format!("Job requires an unknown VCS"),
             Error::UrlParseError(ref e) => format!("{}", e),
             Error::Zmq(ref e) => format!("{}", e),
@@ -95,6 +98,7 @@ impl error::Error for Error {
             Error::NotHTTPSCloneUrl(_) => "Only HTTPS clone urls are supported",
             Error::Protobuf(ref err) => err.description(),
             Error::Protocol(ref err) => err.description(),
+            Error::Retry(ref err) => err.description(),
             Error::UrlParseError(ref err) => err.description(),
             Error::UnknownVCS => "Job requires an unknown VCS",
             Error::WorkspaceSetup(_, _) => "IO Error while creating workspace on disk",
