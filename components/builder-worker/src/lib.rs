@@ -43,7 +43,6 @@ pub mod heartbeat;
 pub mod log_forwarder;
 pub mod runner;
 pub mod server;
-mod util;
 pub mod vcs;
 
 pub use self::config::Config;

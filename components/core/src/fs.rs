@@ -15,6 +15,7 @@
 use std::env;
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
+use std::str::FromStr;
 
 use users;
 
@@ -296,6 +297,59 @@ where
         }
     }
     Ok(None)
+}
+
+/// Resolves the absolute path to a program in the given package identifier string.
+///
+/// Note: this function is designed to be callable in `lazy_static!` blocks, meaning that if it
+/// can't make forward progress, it will panic and possibly termine the program. This is by design.
+///
+/// # Panics
+///
+/// * If the installed package can't be loaded off disk
+/// * If the the program can't be found in the installed package
+/// * If there is an error looking for the program in the installed package
+pub fn resolve_cmd_in_pkg(program: &str, ident_str: &str) -> PathBuf {
+    let ident = PackageIdent::from_str(ident_str).unwrap();
+    let abs_path = match PackageInstall::load(&ident, None) {
+        Ok(ref pkg_install) => {
+            match find_command_in_pkg(program, pkg_install, Path::new(&*FS_ROOT_PATH)) {
+                Ok(Some(p)) => p,
+                Ok(None) => {
+                    panic!(format!(
+                        "Could not find '{}' in the '{}' package! This is required for the \
+                        proper operation of this program.",
+                        program,
+                        &ident
+                    ))
+                }
+                Err(err) => {
+                    panic!(format!(
+                        "Error finding '{}' in the '{}' package! This is required for the \
+                        proper operation of this program. (Err: {:?})",
+                        program,
+                        &ident,
+                        err
+                    ))
+                }
+            }
+        }
+        Err(err) => {
+            panic!(format!(
+                "Package installation for '{}' not found! This is required for the \
+                proper operation of this program (Err: {:?})",
+                &ident,
+                err
+            ))
+        }
+    };
+    debug!(
+        "resolved absolute path to program, program={}, ident={}, abs_path={}",
+        program,
+        &ident,
+        abs_path.display()
+    );
+    abs_path
 }
 
 // Windows relies on path extensions to resolve commands like `docker` to `docker.exe`
