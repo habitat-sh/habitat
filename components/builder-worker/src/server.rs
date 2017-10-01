@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::collections::HashMap;
+use std::iter::FromIterator;
 use std::sync::Arc;
 
 use hab_net;
@@ -21,6 +23,7 @@ use zmq;
 
 use config::Config;
 use error::{Error, Result};
+use feat;
 use heartbeat::{HeartbeatCli, HeartbeatMgr};
 use log_forwarder::LogForwarder;
 use runner::{RunnerCli, RunnerMgr};
@@ -73,6 +76,7 @@ impl Server {
             );
             return Err(Error::IncompleteCredentials);
         }
+        self.enable_features_from_config();
 
         HeartbeatMgr::start(&self.config, (&*self.net_ident).clone())?;
         RunnerMgr::start(self.config.clone(), self.net_ident.clone())?;
@@ -142,6 +146,24 @@ impl Server {
         self.hb_cli.set_ready()?;
         self.state = State::Ready;
         Ok(())
+    }
+
+    fn enable_features_from_config(&self) {
+        let features: HashMap<_, _> = HashMap::from_iter(vec![("LIST", feat::List)]);
+        let features_enabled = self.config.features_enabled.split(",").map(|f| {
+            f.trim().to_uppercase()
+        });
+        for key in features_enabled {
+            if features.contains_key(key.as_str()) {
+                info!("Enabling feature: {}", key);
+                feat::enable(features.get(key.as_str()).unwrap().clone());
+            }
+        }
+
+        if feat::is_enabled(feat::List) {
+            println!("Listing possible feature flags: {:?}", features.keys());
+            println!("Enable features by populating 'features_enabled' in config");
+        }
     }
 }
 

@@ -12,9 +12,11 @@ path = "src/main.rs"
 doc = false
 
 [dependencies]
+bitflags = "*"
 clippy = {version = "*", optional = true}
 chrono = { version = "*", features = ["serde"] }
 env_logger = "*"
+features = "*"
 habitat-builder-protocol = { path = "../builder-protocol" }
 git2 = "*"
 hyper = "*"

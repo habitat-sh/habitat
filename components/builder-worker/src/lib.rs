@@ -15,7 +15,11 @@
 #![cfg_attr(feature="clippy", feature(plugin))]
 #![cfg_attr(feature="clippy", plugin(clippy))]
 
+#[macro_use]
+extern crate bitflags;
 extern crate chrono;
+#[macro_use]
+extern crate features;
 extern crate habitat_builder_protocol as protocol;
 extern crate habitat_core as hab_core;
 extern crate habitat_depot_client as depot_client;
@@ -47,6 +51,12 @@ pub mod vcs;
 
 pub use self::config::Config;
 pub use self::error::{Error, Result};
+
+features! {
+    pub mod feat {
+        const List = 0b00000001
+    }
+}
 
 pub const PRODUCT: &'static str = "builder-worker";
 pub const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
