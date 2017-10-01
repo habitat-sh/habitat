@@ -81,6 +81,14 @@ impl Routable for AccountCreate {
     }
 }
 
+impl Routable for AccountFindOrCreate {
+    type H = String;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(self.get_name().to_string())
+    }
+}
+
 impl Routable for AccountGet {
     type H = String;
 

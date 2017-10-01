@@ -14,9 +14,16 @@
 
 mod handlers;
 
+use std::borrow::Borrow;
+use std::collections::HashSet;
+use std::hash::{Hash, Hasher};
+use std::ops::{Deref, DerefMut};
+use std::sync::RwLock;
+use std::time::{Duration, Instant};
+
 use github_api_client::GitHubClient;
 use hab_net::app::prelude::*;
-use protocol::sessionsrv::*;
+use protocol::sessionsrv as proto;
 
 use config::{Config, PermissionsCfg};
 use data_store::DataStore;
@@ -25,29 +32,94 @@ use error::{SrvError, SrvResult};
 lazy_static! {
     static ref DISPATCH_TABLE: DispatchTable<SessionSrv> = {
         let mut map = DispatchTable::new();
-        map.register(AccountGet::descriptor_static(None), handlers::account_get);
-        map.register(AccountGetId::descriptor_static(None), handlers::account_get_id);
-        map.register(AccountCreate::descriptor_static(None), handlers::account_create);
-        map.register(SessionCreate::descriptor_static(None), handlers::session_create);
-        map.register(SessionGet::descriptor_static(None), handlers::session_get);
-        map.register(AccountInvitationListRequest::descriptor_static(None),
+        map.register(proto::AccountGet::descriptor_static(None), handlers::account_get);
+        map.register(proto::AccountGetId::descriptor_static(None), handlers::account_get_id);
+        map.register(proto::AccountCreate::descriptor_static(None), handlers::account_create);
+        map.register(proto::AccountFindOrCreate::descriptor_static(None),
+            handlers::account_find_or_create);
+        map.register(proto::SessionCreate::descriptor_static(None), handlers::session_create);
+        map.register(proto::SessionGet::descriptor_static(None), handlers::session_get);
+        map.register(proto::AccountInvitationListRequest::descriptor_static(None),
             handlers::account_invitation_list);
-        map.register(AccountOriginInvitationCreate::descriptor_static(None),
+        map.register(proto::AccountOriginInvitationCreate::descriptor_static(None),
             handlers::account_origin_invitation_create);
-        map.register(AccountOriginInvitationAcceptRequest::descriptor_static(None),
+        map.register(proto::AccountOriginInvitationAcceptRequest::descriptor_static(None),
             handlers::account_origin_invitation_accept
         );
-        map.register(AccountOriginInvitationIgnoreRequest::descriptor_static(None),
+        map.register(proto::AccountOriginInvitationIgnoreRequest::descriptor_static(None),
             handlers::account_origin_invitation_ignore
         );
-        map.register(AccountOriginInvitationRescindRequest::descriptor_static(None),
+        map.register(proto::AccountOriginInvitationRescindRequest::descriptor_static(None),
             handlers::account_origin_invitation_rescind
         );
-        map.register(AccountOriginListRequest::descriptor_static(None),
+        map.register(proto::AccountOriginListRequest::descriptor_static(None),
             handlers::account_origin_list_request);
-        map.register(AccountOriginCreate::descriptor_static(None), handlers::account_origin_create);
+        map.register(proto::AccountOriginCreate::descriptor_static(None),
+            handlers::account_origin_create);
         map
     };
+
+    static ref SESSION_DURATION: Duration = {
+        Duration::from_secs(1 * 24 * 60 * 60)
+    };
+}
+
+#[derive(Clone)]
+pub struct Session {
+    pub created_at: Instant,
+    inner: proto::Session,
+}
+
+impl Session {
+    pub fn expired(&self) -> bool {
+        self.created_at.elapsed() >= *SESSION_DURATION
+    }
+}
+
+impl Borrow<str> for Session {
+    fn borrow(&self) -> &str {
+        self.inner.get_token()
+    }
+}
+
+impl Default for Session {
+    fn default() -> Self {
+        Session {
+            created_at: Instant::now(),
+            inner: proto::Session::default(),
+        }
+    }
+}
+
+impl Deref for Session {
+    type Target = proto::Session;
+
+    fn deref(&self) -> &proto::Session {
+        &self.inner
+    }
+}
+
+impl DerefMut for Session {
+    fn deref_mut(&mut self) -> &mut proto::Session {
+        &mut self.inner
+    }
+}
+
+impl Eq for Session {}
+
+impl Hash for Session {
+    fn hash<H>(&self, state: &mut H)
+    where
+        H: Hasher,
+    {
+        self.inner.get_token().hash(state);
+    }
+}
+
+impl PartialEq for Session {
+    fn eq(&self, other: &Session) -> bool {
+        self.inner.get_token() == other.inner.get_token()
+    }
 }
 
 #[derive(Clone)]
@@ -55,6 +127,7 @@ pub struct ServerState {
     datastore: DataStore,
     github: Arc<Box<GitHubClient>>,
     permissions: Arc<PermissionsCfg>,
+    sessions: Arc<Box<RwLock<HashSet<Session>>>>,
 }
 
 impl ServerState {
@@ -63,6 +136,7 @@ impl ServerState {
             datastore: DataStore::new(cfg)?,
             github: Arc::new(Box::new(GitHubClient::new(cfg))),
             permissions: Arc::new(cfg.permissions.clone()),
+            sessions: Arc::new(Box::new(RwLock::new(HashSet::default()))),
         })
     }
 }

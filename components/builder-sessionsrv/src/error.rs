@@ -47,6 +47,7 @@ pub enum SrvError {
     NetErr(hab_net::NetError),
     OriginAccountList(postgres::error::Error),
     OriginCreate(postgres::error::Error),
+    PostgreSQL(postgres::error::Error),
     Protocol(protocol::ProtocolError),
     SessionCreate(postgres::error::Error),
     SessionGet(postgres::error::Error),
@@ -99,6 +100,7 @@ impl fmt::Display for SrvError {
             SrvError::OriginCreate(ref e) => {
                 format!("Error creating origin for account in database, {}", e)
             }
+            SrvError::PostgreSQL(ref e) => format!("{}", e),
             SrvError::Protocol(ref e) => format!("{}", e),
             SrvError::SessionCreate(ref e) => format!("Error creating session, {}", e),
             SrvError::SessionGet(ref e) => format!("Error getting session from database, {}", e),
@@ -132,6 +134,7 @@ impl error::Error for SrvError {
             SrvError::NetErr(ref err) => err.description(),
             SrvError::OriginAccountList(ref err) => err.description(),
             SrvError::OriginCreate(ref err) => err.description(),
+            SrvError::PostgreSQL(ref err) => err.description(),
             SrvError::Protocol(ref err) => err.description(),
             SrvError::SessionCreate(ref err) => err.description(),
             SrvError::SessionGet(ref err) => err.description(),
@@ -172,5 +175,11 @@ impl From<db::error::Error> for SrvError {
 impl From<num::ParseIntError> for SrvError {
     fn from(err: num::ParseIntError) -> Self {
         SrvError::AccountIdFromString(err)
+    }
+}
+
+impl From<postgres::error::Error> for SrvError {
+    fn from(err: postgres::error::Error) -> Self {
+        SrvError::PostgreSQL(err)
     }
 }

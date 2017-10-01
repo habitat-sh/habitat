@@ -10,6 +10,11 @@ message Account {
   optional string name = 3;
 }
 
+message AccountFindOrCreate {
+  optional string name = 1;
+  optional string email = 2;
+}
+
 // get an account by GH username
 message AccountGet {
   optional string name = 1;
@@ -112,4 +117,3 @@ message SessionGet {
   optional string name = 1;
   optional string token = 2;
 }
-
