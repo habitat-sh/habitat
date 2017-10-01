@@ -4,6 +4,7 @@ One of the key features of Habitat is the ability to define an immutable package
 
 
 ## Apply configuration updates to an individual service
+
 When starting a single service, you can provide alternate configuration values to those specified in `default.toml` through the use of an environment variable
 with the following format: `HAB_PACKAGENAME='{"keyname1":"newvalue1", "tablename1":{"keyname2":"newvalue2"}}'`.
 
@@ -21,9 +22,7 @@ The main advantage of applying configuration updates to an individual service th
 For an example of how to use an environment variable to update default configuration values, see [Run your service](/tutorials/getting-started/linux/process-build) in the Getting Started tutorial.
 
 ## Apply configuration updates to a service group
-Similar to specifying updates to individual settings at runtime, you can apply multiple configuration changes to an entire service group at runtime using stdin from your shell or through a TOML file. These configuration updates can be sent in the clear or encrypted in gossip messages through [wire encryption](/docs/run-packages-security#wire-encryption). Configuration updates to a service group will trigger a restart of the services as new changes are applied throughout the group.
-
-> Note: Wire encryption secures all traffic between supervisors in a ring that possess a ring key; however, if a Supervisor has the ring key, it can read any configuration content passed around the ring unless it is encrypted - see that section below.
+Similar to specifying updates to individual settings at runtime, you can apply multiple configuration changes to an entire service group at runtime using stdin from your shell or through a TOML file. These configuration updates can be sent in the clear or encrypted in gossip messages through [wire encryption](/docs/using-habitat/#using-encryption). Configuration updates to a service group will trigger a restart of the services as new changes are applied throughout the group.
 
 ### Usage
 When submitting a configuration update to a service group, you must specify a peer in the ring to connect to, the version number of the configuration update, and the new configuration itself. Configuration updates can be either TOML passed into stdin, or passed in a TOML file that is referenced in `hab config apply`.

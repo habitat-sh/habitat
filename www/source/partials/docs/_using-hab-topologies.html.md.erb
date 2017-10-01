@@ -1,6 +1,6 @@
 # <a name="topologies" id="topologies" data-magellan-target="topologies">Topologies</a>
 
-A topology describes the intended relationship between peers within a service group. Two topologies ship with Habitat by default: standalone, and leader-follower. The leader-follower topology employs [leader election](/docs/internals-leader-election) to define a leader.
+A topology describes the intended relationship between peers within a service group. Two topologies ship with Habitat by default: standalone, and leader-follower. The leader-follower topology employs [leader election](/docs/internals/#election-internals) to define a leader.
 
 ## Standalone
 
@@ -20,7 +20,7 @@ The first Supervisor will block until it has quorum. You would start additional 
 
 > Note: The `--peer` service does not need to be a peer that is in the same service group; it merely needs to be in the same ring that the other member(s) are in.
 
-Once you have quorum, one member is elected a leader, the supervisors in the service group update the service's configuration in concordance with the policy defined at package build time, and the service group starts up.
+Once you have quorum, one member is elected a leader, the Supervisors in the service group update the service's configuration in concordance with the policy defined at package build time, and the service group starts up.
 
 ### Robustness, Network Boundaries and Recovering from Partitions
 
@@ -34,7 +34,7 @@ The notion of a permanent peer is an extension to the original [SWIM](https://ww
 
 ### Defining Leader and Follower Behavior in Plans
 
-Because Habitat provides for automation that is built into the application package, this includes letting the application developer define the application's behavior when run under different topologies, even from the same immutable package. Here is an example of a configuration template marked up with conditional logic that will cause the running application to behave differently based on whether it is a leader or a follower:
+Habitat allows you to use the same immutable package in different deployment scenarios. Here is an example of a configuration template with conditional logic that will cause the running application to behave differently based on whether it is a leader or a follower:
 
     {{#if svc.me.follower}}
        {{#with svc.leader as |leader|}}
