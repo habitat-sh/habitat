@@ -1222,6 +1222,7 @@ fn download_package(req: &mut Request) -> IronResult<Response> {
     if session_id.is_some() {
         ident_req.set_account_id(session_id.unwrap());
     }
+    ident_req.set_show_hidden(true);
     let agent_target = target_from_headers(&req.headers.get::<UserAgent>().unwrap()).unwrap();
     if !depot.config.targets.contains(&agent_target) {
         error!(
@@ -1864,10 +1865,6 @@ fn search_packages(req: &mut Request) -> IronResult<Response> {
     };
 
     debug!("search_packages called with: {}", request.get_query());
-
-    // Not sure if we need this
-    // Counter::SearchPackages.increment();
-    // Gauge::PackageCount.set(depot.datastore.key_count().unwrap() as f64);
 
     // Setting distinct to true makes this query ignore any origin set, because it's going to
     // search both the origin name and the package name for the query string provided. This is

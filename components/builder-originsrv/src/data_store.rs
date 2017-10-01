@@ -841,8 +841,12 @@ impl DataStore {
     ) -> SrvResult<Option<originsrv::OriginPackage>> {
         let conn = self.pool.get(opg)?;
         let rows = conn.query(
-            "SELECT * FROM get_origin_package_v2($1, $2)",
-            &[&opg.get_ident().to_string(), &(opg.get_account_id() as i64)],
+            "SELECT * FROM get_origin_package_v3($1, $2, $3)",
+            &[
+                &opg.get_ident().to_string(),
+                &(opg.get_account_id() as i64),
+                &opg.get_show_hidden(),
+            ],
         ).map_err(SrvError::OriginPackageGet)?;
 
         if rows.len() != 0 {
@@ -1111,11 +1115,12 @@ impl DataStore {
         let conn = self.pool.get(opl)?;
 
         let rows = conn.query(
-            "SELECT * FROM get_origin_channel_packages_for_channel_v1($1, $2, $3, $4, $5)",
+            "SELECT * FROM get_origin_channel_packages_for_channel_v2($1, $2, $3, $4, $5, $6)",
             &[
                 &opl.get_ident().get_origin(),
                 &opl.get_name(),
                 &self.searchable_ident(opl.get_ident()),
+                &(opl.get_account_id() as i64),
                 &opl.limit(),
                 &(opl.get_start() as i64),
             ],

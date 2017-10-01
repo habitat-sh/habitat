@@ -246,6 +246,7 @@ message OriginPackageCreate {
 message OriginPackageGet {
   optional OriginPackageIdent ident = 1;
   optional uint64 account_id = 2;
+  optional bool show_hidden = 3;
 }
 
 message OriginPackageLatestGet {

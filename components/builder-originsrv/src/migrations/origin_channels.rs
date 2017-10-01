@@ -284,5 +284,31 @@ pub fn migrate(migrator: &mut Migrator) -> SrvResult<()> {
                         RETURN;
                     END
                     $$ LANGUAGE plpgsql STABLE"#)?;
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE OR REPLACE FUNCTION get_origin_channel_packages_for_channel_v2 (
+                    op_origin text,
+                    op_channel text,
+                    op_ident text,
+                    op_account_id bigint,
+                    op_limit bigint,
+                    op_offset bigint
+                 ) RETURNS TABLE(ident text) AS $$
+                    BEGIN
+                        RETURN QUERY SELECT COUNT(*) OVER () AS total_count, op.ident
+                          FROM origin_packages op
+                          INNER JOIN origin_channel_packages ocp on ocp.package_id = op.id
+                          INNER JOIN origin_channels oc on ocp.channel_id = oc.id
+                          INNER JOIN origins o on oc.origin_id = o.id
+                          WHERE o.name = op_origin
+                          AND oc.name = op_channel
+                          AND op.ident LIKE (op_ident  || '%')
+                          AND (op.visibility='public' OR (op.visibility='private' AND op.origin_id IN (SELECT origin_id FROM origin_members WHERE account_id = op_account_id)))
+                          ORDER BY ident ASC
+                          LIMIT op_limit OFFSET op_offset;
+                        RETURN;
+                    END
+                    $$ LANGUAGE plpgsql STABLE"#,
+    )?;
     Ok(())
 }

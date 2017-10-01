@@ -626,5 +626,23 @@ pub fn migrate(migrator: &mut Migrator) -> SrvResult<()> {
                         WHERE id = op_id;
                     $$ LANGUAGE SQL VOLATILE"#,
     )?;
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE OR REPLACE FUNCTION get_origin_package_v3 (
+                    op_ident text,
+                    op_account_id bigint,
+                    op_show_hidden bool
+                 ) RETURNS SETOF origin_packages AS $$
+                    BEGIN
+                        RETURN QUERY SELECT *
+                        FROM origin_packages
+                        WHERE ident = op_ident
+                        AND (visibility='public' OR
+                             (visibility='hidden' AND op_show_hidden = true) OR
+                             (visibility='private' AND origin_id IN (SELECT origin_id FROM origin_members WHERE account_id = op_account_id)));
+                        RETURN;
+                    END
+                    $$ LANGUAGE plpgsql STABLE"#,
+    )?;
     Ok(())
 }
