@@ -2,7 +2,6 @@
 name = "habitat_api_client"
 version = "0.0.0"
 authors = ["Josh Black <jblack@chef.io>"]
-build = "../bldr-build.rs"
 workspace = "../../"
 
 [dependencies]

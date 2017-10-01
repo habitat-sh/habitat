@@ -2,7 +2,6 @@
 name = "habitat_depot_client"
 version = "0.0.0"
 authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletcher Nichol <fnichol@chef.io>", "Joshua Timberman <joshua@chef.io>", "Dave Parfitt <dparfitt@chef.io>"]
-build = "../bldr-build.rs"
 workspace = "../../"
 
 [dependencies]

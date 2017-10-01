@@ -13,18 +13,15 @@
 // limitations under the License.
 
 mod log_pipe;
-mod workspace;
 mod postprocessor;
 mod publisher;
+mod studio;
 mod toml_builder;
+mod workspace;
 
 use std::path::PathBuf;
-use std::ffi::OsString;
 use std::fs;
 use std::ops::{Deref, DerefMut};
-use std::path::Path;
-use std::process::{Command, Stdio};
-use std::str::FromStr;
 use std::sync::{mpsc, Arc};
 use std::thread::{self, JoinHandle};
 
@@ -32,11 +29,8 @@ pub use protocol::jobsrv::JobState;
 use bldr_core::logger::Logger;
 use chrono::UTC;
 use depot_client;
-use hab_core::{crypto, env};
+use hab_core::crypto;
 use hab_core::package::archive::PackageArchive;
-use hab_core::package::install::PackageInstall;
-use hab_core::package::PackageIdent;
-use hab_core::channel::STABLE_CHANNEL;
 use hab_net::socket::DEFAULT_CONTEXT;
 use protocol::{message, jobsrv as proto};
 use protocol::originsrv::OriginPackageIdent;
@@ -46,29 +40,27 @@ use zmq;
 use {PRODUCT, VERSION};
 use self::log_pipe::LogPipe;
 use self::postprocessor::post_process;
+use self::studio::Studio;
 use self::workspace::Workspace;
 use config::Config;
 use error::{Error, Result};
 use retry::retry;
 use vcs;
 
+// TODO fn: copied from `components/common/src/ui.rs`. As this component doesn't currently depend
+// on habitat_common it didnt' seem worth it to add a dependency for only this constant. Probably
+// means that the constant should be relocated to habitat_core.
+/// Environment variable to disable progress bars in Habitat programs
+const NONINTERACTIVE_ENVVAR: &'static str = "HAB_NONINTERACTIVE";
+
 /// Environment variable to enable or disable debug output in runner's studio
-const RUNNER_DEBUG_ENV: &'static str = "BUILDER_RUNNER_DEBUG";
+const RUNNER_DEBUG_ENVVAR: &'static str = "BUILDER_RUNNER_DEBUG";
 /// In-memory zmq address of Job RunnerMgr
 const INPROC_ADDR: &'static str = "inproc://runner";
 /// Protocol message to indicate the Job Runner has received a work request
 const WORK_ACK: &'static str = "A";
 /// Protocol message to indicate the Job Runner has completed a work request
 const WORK_COMPLETE: &'static str = "C";
-
-lazy_static! {
-    // JW TODO: expose public API functions in the core crate to check if the Rust process which
-    // is currently executing is, itself, packaged by Habitat. If so, then we should expose another
-    // public API function to load the PackageInstall of a dep for the given `origin`/`name`
-    // combination. If we can't, then we should fall back to the latest of core/hab-studio because
-    // that means we're just in a dev shell.
-    static ref STUDIO_PKG: PackageIdent = PackageIdent::from_str("core/hab-studio").unwrap();
-}
 
 pub const RETRIES: u64 = 10;
 pub const RETRY_WAIT: u64 = 60000;
@@ -143,7 +135,6 @@ impl DerefMut for Job {
 pub struct Runner {
     config: Arc<Config>,
     depot_cli: depot_client::Client,
-    log_pipe: Option<LogPipe>,
     workspace: Workspace,
     logger: Logger,
 }
@@ -161,7 +152,6 @@ impl Runner {
             workspace: Workspace::new(&config.data_path, job),
             config: config,
             depot_cli: depot_cli,
-            log_pipe: None,
             logger: logger,
         }
     }
@@ -174,50 +164,17 @@ impl Runner {
         &mut self.workspace.job
     }
 
-    pub fn log_pipe(&mut self) -> &mut LogPipe {
-        self.log_pipe.as_mut().expect("LogPipe not initialized")
-    }
-
     pub fn run(mut self) -> Job {
         if let Some(err) = self.setup().err() {
-            error!("WORKSPACE SETUP ERR={:?}", err);
+            error!("failed to setup workspace err={:?}", err);
             return self.fail(net::err(ErrCode::WORKSPACE_SETUP, "wk:run:1"));
         }
-
-        if self.config.auth_token.is_empty() {
-            warn!("WARNING: No auth token specified, will likely fail fetching secret key");
+        if let Some(err) = self.install_origin_secret_key().err() {
+            error!("failed to retrieve secret key, err={:?}", err);
+            return self.fail(net::err(ErrCode::SECRET_KEY_FETCH, "wk:run:3"));
         }
-
-        match retry(
-            RETRIES,
-            RETRY_WAIT,
-            || {
-                self.depot_cli.fetch_origin_secret_key(
-                    self.job().origin(),
-                    &self.config.auth_token,
-                    &crypto::default_cache_key_path(None),
-                )
-            },
-            |res| {
-                if res.is_err() {
-                    error!("fetch origin secret key failure: {:?}", res);
-                };
-                res.is_ok()
-            },
-        ) {
-            Ok(res) => {
-                debug!("Imported origin secret key to {:?}.", res.unwrap());
-            }
-            Err(_) => {
-                let msg = format!("Unable to retrieve secret key after {} retries", RETRIES);
-                error!("{}", msg);
-                self.logger.log(&msg);
-                return self.fail(net::err(ErrCode::SECRET_KEY_FETCH, "wk:run:3"));
-            }
-        }
-
         if let Some(err) = self.job().vcs().clone(&self.workspace.src()).err() {
-            error!("Unable to clone remote source repository, err={}", err);
+            error!("failed to clone remote source repository, err={:?}", err);
             return self.fail(net::err(ErrCode::VCS_CLONE, "wk:run:4"));
         }
 
@@ -242,7 +199,7 @@ impl Runner {
                 self.workspace.job.set_build_finished_at(
                     UTC::now().to_rfc3339(),
                 );
-                error!("Unable to build in studio, err={}", err);
+                error!("failed the studio build, err={}", err);
                 return self.fail(net::err(ErrCode::BUILD, "wk:run:5"));
             }
         };
@@ -263,70 +220,47 @@ impl Runner {
 
         if let Some(err) = fs::remove_dir_all(self.workspace.out()).err() {
             error!(
-                "unable to remove out directory ({}), ERR={:?}",
+                "failed to delete directory, dir={}, err={:?}",
                 self.workspace.out().display(),
                 err
             )
         }
+        self.teardown().err().map(|e| error!("{}", e));
         self.complete()
     }
 
+    fn install_origin_secret_key(&mut self) -> Result<()> {
+        match retry(
+            RETRIES,
+            RETRY_WAIT,
+            || {
+                self.depot_cli.fetch_origin_secret_key(
+                    self.job().origin(),
+                    &self.config.auth_token,
+                    &crypto::default_cache_key_path(None),
+                )
+            },
+            |res| {
+                if res.is_err() {
+                    error!("failed to fetch origin secret key, err={:?}", res);
+                };
+                res.is_ok()
+            },
+        ) {
+            Ok(res) => {
+                debug!("imported origin secret key, dst={:?}.", res.unwrap());
+                Ok(())
+            }
+            Err(err) => Err(Error::Retry(err)),
+        }
+    }
+
     fn build(&mut self) -> Result<PackageArchive> {
-        let args = vec![
-            OsString::from("-s"), // source path
-            OsString::from(self.workspace.src()),
-            OsString::from("-r"), // hab studio root
-            OsString::from(self.workspace.studio()),
-            OsString::from("-k"), // origin keys to use
-            OsString::from(self.job().origin()),
-            OsString::from("build"),
-            OsString::from(
-                Path::new(self.job().get_project().get_plan_path())
-                    .parent()
-                    .unwrap()
-            ),
-        ];
-        let command = studio_cmd();
-        debug!("building, cmd={:?}, args={:?}", command, args);
+        let mut log_pipe = LogPipe::new(&self.workspace);
 
-        let channel = if self.job().has_channel() {
-            self.job().get_channel().to_string()
-        } else {
-            STABLE_CHANNEL.to_string()
-        };
-        debug!("setting HAB_BLDR_CHANNEL={}", &channel);
-
-        let mut child = match env::var(RUNNER_DEBUG_ENV) {
-            Ok(val) => {
-                Command::new(command)
-                    .args(&args)
-                    .env_clear()
-                    .env("HAB_NONINTERACTIVE", "true")
-                    .env("HAB_BLDR_URL", &self.config.bldr_url)
-                    .env("HAB_BLDR_CHANNEL", &channel)
-                    .env("DEBUG", val)
-                    .stdout(Stdio::piped())
-                    .stderr(Stdio::piped())
-                    .spawn()
-                    .expect("failed to spawn child")
-            }
-            Err(_) => {
-                Command::new(command)
-                    .args(&args)
-                    .env_clear()
-                    .env("HAB_NONINTERACTIVE", "true")
-                    .env("HAB_BLDR_URL", &self.config.bldr_url)
-                    .env("HAB_BLDR_CHANNEL", &channel)
-                    .env("TERM", "xterm-256color") // Gives us ANSI color codes
-                    .stdout(Stdio::piped())
-                    .stderr(Stdio::piped())
-                    .spawn()
-                    .expect("failed to spawn child")
-            }
-        };
-        self.log_pipe().pipe(&mut child)?;
-        let exit_status = child.wait().expect("failed to wait on child");
-        debug!("build complete, status={:?}", exit_status);
+        let exit_status = Studio::new(&self.workspace, &self.config.bldr_url).build(
+            &mut log_pipe,
+        )?;
 
         if fs::rename(self.workspace.src().join("results"), self.workspace.out()).is_err() {
             return Err(Error::BuildFailure(exit_status.code().unwrap_or(-2)));
@@ -343,7 +277,6 @@ impl Runner {
     }
 
     fn complete(mut self) -> Job {
-        self.teardown().err().map(|e| error!("{}", e));
         self.workspace.job.set_state(JobState::Complete);
         self.logger.log_worker_job(&self.workspace.job);
         self.workspace.job
@@ -360,12 +293,14 @@ impl Runner {
     fn setup(&mut self) -> Result<()> {
         self.logger.log_worker_job(&self.workspace.job);
 
-        if let Some(err) = fs::remove_dir_all(self.workspace.src()).err() {
-            error!(
-                "unable to remove out directory ({}), ERR={:?}",
-                self.workspace.out().display(),
-                err
-            )
+        if self.workspace.src().exists() {
+            if let Some(err) = fs::remove_dir_all(self.workspace.src()).err() {
+                error!(
+                    "failed to delete directory, dir={}, err={:?}",
+                    self.workspace.src().display(),
+                    err
+                )
+            }
         }
         if let Some(err) = fs::create_dir_all(self.workspace.src()).err() {
             return Err(Error::WorkspaceSetup(
@@ -373,42 +308,13 @@ impl Runner {
                 err,
             ));
         }
-        self.log_pipe = Some(LogPipe::new(&self.workspace));
+
         Ok(())
     }
 
     fn teardown(&mut self) -> Result<()> {
-        let args = vec![
-            OsString::from("-s"), // source path
-            OsString::from(self.workspace.src()),
-            OsString::from("-r"), // hab studio root
-            OsString::from(self.workspace.studio()),
-            OsString::from("rm"),
-        ];
+        let exit_status = Studio::new(&self.workspace, &self.config.bldr_url).rm()?;
 
-        let command = studio_cmd();
-        debug!("removing studio, cmd={:?}, args={:?}", command, args);
-        let mut child = match env::var(RUNNER_DEBUG_ENV) {
-            Ok(val) => {
-                Command::new(command)
-                    .args(&args)
-                    .env_clear()
-                    .env("HAB_NONINTERACTIVE", "true")
-                    .env("DEBUG", val)
-                    .spawn()
-                    .expect("failed to spawn child")
-            }
-            Err(_) => {
-                Command::new(command)
-                    .args(&args)
-                    .env_clear()
-                    .env("HAB_NONINTERACTIVE", "true")
-                    .spawn()
-                    .expect("failed to spawn child")
-            }
-        };
-        let exit_status = child.wait().expect("failed to wait on child");
-        debug!("studio removal complete, status={:?}", exit_status);
         if exit_status.success() {
             if let Some(err) = fs::remove_dir_all(self.workspace.src()).err() {
                 return Err(Error::WorkspaceTeardown(
@@ -420,6 +326,8 @@ impl Runner {
         } else {
             Err(Error::BuildFailure(exit_status.code().unwrap_or(-1)))
         }
+
+        // TODO fn: purge the secret origin key from worker
     }
 }
 
@@ -545,22 +453,10 @@ impl RunnerMgr {
     }
 
     fn send_complete(&mut self, job: &Job) -> Result<()> {
-        debug!("work complete, job={:?}", job);
+        debug!("completed work, job={:?}", job);
         self.sock.send_str(WORK_COMPLETE, zmq::SNDMORE)?;
         self.sock.send(&message::encode(&**job)?, 0)?;
         Ok(())
-    }
-}
-
-fn studio_cmd() -> String {
-    match PackageInstall::load(&STUDIO_PKG, None) {
-        Ok(package) => format!("{}/hab-studio", package.paths().unwrap()[0].display()),
-        Err(_) => {
-            panic!(
-                "core/hab-studio not found! This should be available as it is a runtime \
-                    dependency in the worker's plan.sh and also present in our dev Dockerfile"
-            )
-        }
     }
 }
 

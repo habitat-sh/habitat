@@ -20,7 +20,7 @@ use protocol::{self, message};
 use zmq;
 
 use config::Config;
-use error::Result;
+use error::{Error, Result};
 use heartbeat::{HeartbeatCli, HeartbeatMgr};
 use log_forwarder::LogForwarder;
 use runner::{RunnerCli, RunnerMgr};
@@ -66,6 +66,14 @@ impl Server {
     }
 
     pub fn run(&mut self) -> Result<()> {
+        if self.config.auth_token.is_empty() {
+            error!(
+                "ERROR: No 'auth_token' config value specified which prevents the \
+                   worker from download fetching signing keys."
+            );
+            return Err(Error::IncompleteCredentials);
+        }
+
         HeartbeatMgr::start(&self.config, (&*self.net_ident).clone())?;
         RunnerMgr::start(self.config.clone(), self.net_ident.clone())?;
         LogForwarder::start(&self.config)?;

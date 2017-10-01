@@ -1,18 +1,15 @@
+// Inline common build behavior
+include!("../libbuild.rs");
+
 use std::env;
 use std::fs::File;
-use std::io::BufReader;
-use std::io::prelude::*;
+use std::io::Write;
 use std::path::Path;
 use std::process::Command;
 
 fn main() {
-    let version = match env::var("PLAN_VERSION") {
-        Ok(ver) => ver,
-        _ => read_version(),
-    };
+    habitat::common();
     generate_apidocs();
-    let mut f = File::create(Path::new(&env::var("OUT_DIR").unwrap()).join("VERSION")).unwrap();
-    f.write_all(version.trim().as_bytes()).unwrap();
 }
 
 fn generate_apidocs() {
@@ -35,19 +32,4 @@ fn generate_apidocs() {
             file.write_all(b"No API docs provided at build").unwrap();
         }
     };
-
-}
-
-fn read_version() -> String {
-    let ver_file = Path::new(&env::var("CARGO_MANIFEST_DIR").unwrap())
-        .parent()
-        .unwrap()
-        .parent()
-        .unwrap()
-        .join("VERSION");
-    let f = File::open(ver_file).unwrap();
-    let mut reader = BufReader::new(f);
-    let mut ver = String::new();
-    reader.read_line(&mut ver).unwrap();
-    ver
 }
