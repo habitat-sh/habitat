@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+mod docker;
 mod log_pipe;
 mod postprocessor;
 mod publisher;
@@ -41,9 +42,11 @@ use {PRODUCT, VERSION};
 use self::log_pipe::LogPipe;
 use self::postprocessor::post_process;
 use self::studio::Studio;
+use self::docker::DockerExporter;
 use self::workspace::Workspace;
 use config::Config;
 use error::{Error, Result};
+use feat;
 use retry::retry;
 use vcs;
 
@@ -257,22 +260,36 @@ impl Runner {
 
     fn build(&mut self) -> Result<PackageArchive> {
         let mut log_pipe = LogPipe::new(&self.workspace);
-
-        let exit_status = Studio::new(&self.workspace, &self.config.bldr_url).build(
+        log_pipe.pipe_stdout(b"\n--- BEGIN: Studio build ---\n")?;
+        let mut status = Studio::new(&self.workspace, &self.config.bldr_url).build(
             &mut log_pipe,
         )?;
+        log_pipe.pipe_stdout(b"\n--- END: Studio build ---\n")?;
 
         if fs::rename(self.workspace.src().join("results"), self.workspace.out()).is_err() {
-            return Err(Error::BuildFailure(exit_status.code().unwrap_or(-2)));
+            return Err(Error::BuildFailure(status.code().unwrap_or(-2)));
         }
 
-        if exit_status.success() {
+        if feat::is_enabled(feat::Docker) && status.success() {
+            // TODO fn: This check should be updated in PackageArchive is check for run hooks.
+            if self.workspace.last_built()?.is_a_service() {
+                debug!("found runnable package, running docker export");
+                log_pipe.pipe_stdout(b"\n--- BEGIN: Docker export ---\n")?;
+                status = DockerExporter::new(&self.workspace, &self.config.bldr_url)
+                    .export(&mut log_pipe)?;
+                log_pipe.pipe_stdout(b"\n--- END: Docker export ---\n")?;
+            } else {
+                debug!("package not runnable, skipping docker export");
+            }
+        }
+
+        if status.success() {
             self.workspace.last_built()
         } else {
             let ident = self.workspace.attempted_build()?;
             let op_ident = OriginPackageIdent::from(ident);
             self.workspace.job.set_package_ident(op_ident);
-            Err(Error::BuildFailure(exit_status.code().unwrap_or(-1)))
+            Err(Error::BuildFailure(status.code().unwrap_or(-1)))
         }
     }
 

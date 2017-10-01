@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::process::{Command, ExitStatus, Stdio};
 
 use hab_core::channel::{BLDR_CHANNEL_ENVVAR, STABLE_CHANNEL};
@@ -66,11 +66,7 @@ impl<'a> Studio<'a> {
         cmd.arg("-k"); // Origin key
         cmd.arg(self.workspace.job.origin());
         cmd.arg("build");
-        cmd.arg(
-            Path::new(self.workspace.job.get_project().get_plan_path())
-                .parent()
-                .expect("Failed to find parent directory of Plan path"),
-        );
+        cmd.arg(build_path(self.workspace.job.get_project().get_plan_path()));
         debug!("building studio build command, cmd={:?}", &cmd);
         debug!(
             "setting studio build command env, {}={}",
@@ -127,5 +123,50 @@ impl<'a> Studio<'a> {
         cmd.stdout(Stdio::piped());
         cmd.stderr(Stdio::piped());
         cmd
+    }
+}
+
+/// Returns a path argument suitable to pass to a Studio build command.
+fn build_path(plan_path: &str) -> String {
+    let mut parts: Vec<_> = plan_path.split("/").collect();
+    if parts.last().map_or("", |p| *p) == "plan.sh" {
+        parts.pop();
+    }
+    if parts.last().map_or("", |p| *p) == "habitat" {
+        parts.pop();
+    }
+
+    if parts.is_empty() {
+        String::from(".")
+    } else {
+        parts.join("/")
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::build_path;
+
+    #[test]
+    fn build_path_with_plan_sh() {
+        assert_eq!(".", build_path("plan.sh"));
+    }
+
+    #[test]
+    fn build_path_with_habitat_plan_sh() {
+        assert_eq!(".", build_path("habitat/plan.sh"));
+    }
+
+    #[test]
+    fn build_path_with_subdir_plan_sh() {
+        assert_eq!("haaay", build_path("haaay/plan.sh"));
+    }
+
+    #[test]
+    fn build_path_with_subdir_habitat_plan_sh() {
+        assert_eq!(
+            "components/yep",
+            build_path("components/yep/habitat/plan.sh")
+        );
     }
 }

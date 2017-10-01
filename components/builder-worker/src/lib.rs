@@ -54,7 +54,8 @@ pub use self::error::{Error, Result};
 
 features! {
     pub mod feat {
-        const List = 0b00000001
+        const List = 0b00000001,
+        const Docker = 0b00000010
     }
 }
 

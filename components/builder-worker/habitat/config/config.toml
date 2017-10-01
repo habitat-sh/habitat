@@ -4,6 +4,7 @@ data_path = "{{pkg.svc_data_path}}"
 log_path = "{{pkg.svc_var_path}}"
 bldr_channel = "{{cfg.bldr_channel}}"
 bldr_url = "{{bind.depot.first.cfg.url}}"
+features_enabled = "{{cfg.features_enabled}}"
 
 {{~#eachAlive bind.jobsrv.members as |member|}}
 [[jobsrv]]
