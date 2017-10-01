@@ -58,7 +58,7 @@ Get started with the [Habitat tutorials](https://www.habitat.sh/tutorials/) or p
 
 ### Core Plans
 
-The Habitat plans that are built and maintained by Habitat's Core Team are in [their own repo.](github.com/habitat-sh/core-plans)
+The Habitat plans that are built and maintained by Habitat's Core Team are in [their own repo.](https://github.com/habitat-sh/core-plans)
 
 ### Habitat Supervisor, Builder, and other core components
 
