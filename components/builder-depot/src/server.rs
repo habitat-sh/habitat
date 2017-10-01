@@ -1471,8 +1471,14 @@ fn package_privacy_toggle(req: &mut Request) -> IronResult<Response> {
 
     match route_message::<OriginPackageGet, OriginPackage>(req, &opg) {
         Ok(mut package) => {
+            let real_visibility =
+                match helpers::transition_visibility(opv, package.get_visibility()) {
+                    Ok(v) => v,
+                    Err(err) => return Ok(Response::with(err)),
+                };
+
             let mut opu = OriginPackageUpdate::new();
-            package.set_visibility(opv);
+            package.set_visibility(real_visibility);
             opu.set_pkg(package);
 
             match route_message::<OriginPackageUpdate, NetOk>(req, &opu) {
