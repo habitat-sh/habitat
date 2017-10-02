@@ -104,6 +104,7 @@ impl SupError {
 #[derive(Debug)]
 pub enum Error {
     Departed,
+    BadCompositesPath(PathBuf, io::Error),
     BadDataFile(PathBuf, io::Error),
     BadDataPath(PathBuf, io::Error),
     BadDesiredState(String),
@@ -124,6 +125,7 @@ pub enum Error {
     TemplateRenderError(handlebars::RenderError),
     InvalidBinding(String),
     InvalidBinds(Vec<String>),
+    InvalidCompositeBinding(String),
     InvalidKeyParameter(String),
     InvalidPidFile,
     InvalidTopology(String),
@@ -172,6 +174,13 @@ impl fmt::Display for SupError {
     // verbose on, and print it.
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let content = match self.err {
+            Error::BadCompositesPath(ref path, ref err) => {
+                format!(
+                    "Unable to create the composites directory '{}' ({})",
+                    path.display(),
+                    err
+                )
+            }
             Error::Departed => {
                 format!(
                     "This Supervisor has been manually departed.\n\nFor the safety of the system, this Supervisor cannot be started (if we did, we would risk the services on this machine behaving badly without our knowledge.) If you know that the services on this system are safe, and want them to rejoin the habitat ring, you need to:\n\n  rm -rf /hab/sup/default/MEMBER_ID /hab/sup/default/data\n\nThis will cause the Supervisor to join the ring as a new member.\n\nIf you are in doubt, it is better to consider the services managed by this Supervisor as unsafe to run."
@@ -228,6 +237,14 @@ impl fmt::Display for SupError {
                 )
             }
             Error::InvalidBinds(ref e) => format!("Invalid bind(s), {}", e.join(", ")),
+            Error::InvalidCompositeBinding(ref binding) => {
+                format!(
+                    "Invalid binding \"{}\", must be of the form <SERVICE_NAME>:<NAME>:<SERVICE_GROUP> where \
+                     <SERVICE_NAME> is the name of a service within the composite, <NAME> is a bind name for \
+                     that service, and <SERVICE_GROUP> is a valid service group",
+                    binding
+                )
+            }
             Error::InvalidKeyParameter(ref e) => {
                 format!("Invalid parameter for key generation: {:?}", e)
             }
@@ -341,6 +358,7 @@ impl fmt::Display for SupError {
 impl error::Error for SupError {
     fn description(&self) -> &str {
         match self.err {
+            Error::BadCompositesPath(_, _) => "Unable to create the composites directory",
             Error::Departed => "Supervisor has been manually departed",
             Error::BadDataFile(_, _) => "Unable to read or write to a data file",
             Error::BadDataPath(_, _) => "Unable to read or write to data directory",
@@ -364,6 +382,7 @@ impl error::Error for SupError {
             Error::InvalidBinds(_) => {
                 "Service binds detected that are neither required nor optional package binds"
             }
+            Error::InvalidCompositeBinding(_) => "Invalid binding parameter",
             Error::InvalidKeyParameter(_) => "Key parameter error",
             Error::InvalidPidFile => "Invalid child process PID file",
             Error::InvalidTopology(_) => "Invalid topology",

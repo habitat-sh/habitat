@@ -48,6 +48,7 @@ use hcore::fs::{am_i_root, cache_key_path};
 use hcore::crypto::{artifact, SigKeyPair};
 use hcore::crypto::keys::parse_name_with_rev;
 use hcore::package::{Identifiable, PackageArchive, PackageIdent, Target, PackageInstall};
+use hcore::package::metadata::PackageType;
 use hyper::status::StatusCode;
 
 use error::{Error, Result};
@@ -70,6 +71,7 @@ pub const RETRY_WAIT: u64 = 3000;
 /// In other words, you are probably more interested in the
 /// `InstallSource` enum; this struct is just an implementation
 /// detail.
+#[derive(Debug)]
 pub struct LocalArchive {
     // In an ideal world, we would just implement `InstallSource` in
     // terms of a `PackageArchive` directly, since that can provide
@@ -92,6 +94,7 @@ pub struct LocalArchive {
 }
 
 /// Encapsulate all possible sources we can install packages from.
+#[derive(Debug)]
 pub enum InstallSource {
     /// We can install from a package identifier
     Ident(PackageIdent),
@@ -318,6 +321,9 @@ impl<'a> InstallTask<'a> {
                     }
                     Err(e) => {
                         debug!("Failed to get channel list: {:?}", e);
+                        // TODO (CM): Do we really want to return an
+                        // error here? Because we couldn't output a
+                        // warning message?
                         return Err(Error::ChannelNotFound);
                     }
                 };
@@ -392,40 +398,63 @@ impl<'a> InstallTask<'a> {
 
     /// Given the identifier of an artifact, ensure that the artifact,
     /// as well as all its dependencies, have been cached and
-    /// installed.
+    /// installed. Handles both standalone and composite package
+    /// types.
     ///
     /// If the package is already present in the cache, it is not
     /// re-downloaded. Any dependencies of the package that are not
     /// installed will be re-cached (as needed) and installed.
     fn install_package(&self, ui: &mut UI, ident: &PackageIdent) -> Result<PackageInstall> {
+        // TODO (CM): rename artifact to archive
         let mut artifact = self.get_cached_artifact(ui, ident)?;
 
-        // Ensure that all transitive dependencies, as well as the
-        // original package itself, are cached locally.
-        let dependencies = artifact.tdeps()?;
-        let mut artifacts_to_install = Vec::with_capacity(dependencies.len() + 1);
-        for dependency in dependencies.iter() {
-            if self.installed_package(dependency).is_some() {
-                ui.status(Status::Using, dependency)?;
-            } else {
-                artifacts_to_install.push(self.get_cached_artifact(ui, dependency)?);
+        match artifact.package_type()? {
+            PackageType::Standalone => {
+                // Ensure that all transitive dependencies, as well as the
+                // original package itself, are cached locally.
+                let dependencies = artifact.tdeps()?;
+                let mut artifacts_to_install = Vec::with_capacity(dependencies.len() + 1);
+                for dependency in dependencies.iter() {
+                    if self.installed_package(dependency).is_some() {
+                        ui.status(Status::Using, dependency)?;
+                    } else {
+                        artifacts_to_install.push(self.get_cached_artifact(ui, dependency)?);
+                    }
+                }
+                // The package we're actually trying to install goes last; we
+                // want to ensure that its dependencies get installed before
+                // it does.
+                artifacts_to_install.push(artifact);
+
+                // Ensure all uninstalled artifacts get installed
+                for artifact in artifacts_to_install.iter_mut() {
+                    self.unpack_artifact(ui, artifact)?;
+                }
+
+                ui.end(format!(
+                    "Install of {} complete with {} new packages installed.",
+                    ident,
+                    artifacts_to_install.len()
+                ))?;
             }
+            PackageType::Composite => {
+                let services = artifact.resolved_services()?;
+                for service in services {
+                    // We don't track the transitive dependencies of
+                    // all services at the composite level, because
+                    // each service itself does that. Thus, we need to
+                    // install them just like we would if we weren't
+                    // in a composite.
+                    //
+                    // We don't really need a channel down here, as
+                    // all these identifiers are fully-qualified.
+                    self.from_ident(ui, service, None)?;
+                }
+                // All the services have been unpacked; let's do the
+                // same with the composite package itself.
+                self.unpack_artifact(ui, &mut artifact)?;
+            }        
         }
-        // The package we're actually trying to install goes last; we
-        // want to ensure that its dependencies get installed before
-        // it does.
-        artifacts_to_install.push(artifact);
-
-        // Ensure all uninstalled artifacts get installed
-        for artifact in artifacts_to_install.iter_mut() {
-            self.unpack_artifact(ui, artifact)?;
-        }
-
-        ui.end(format!(
-            "Install of {} complete with {} new packages installed.",
-            ident,
-            artifacts_to_install.len()
-        ))?;
 
         // Return the thing we just installed
         PackageInstall::load(ident, Some(self.fs_root_path)).map_err(Error::from)
@@ -474,6 +503,8 @@ impl<'a> InstallTask<'a> {
         PackageInstall::load(ident, Some(self.fs_root_path)).ok()
     }
 
+    // TODO (CM): This could return a plain bool IF we could ensure
+    // above that the package identifier is FULLY QUALIFIED
     fn is_artifact_cached(&self, ident: &PackageIdent) -> Result<bool> {
         Ok(self.cached_artifact_path(ident)?.is_file())
     }
@@ -535,6 +566,7 @@ impl<'a> InstallTask<'a> {
     }
 
     /// Copies the artifact to the local artifact cache directory
+    // TODO (CM): Oh, we could just pass in the LocalArchive
     fn store_artifact_in_cache(&self, ident: &PackageIdent, artifact_path: &Path) -> Result<()> {
         let cache_path = self.cached_artifact_path(ident)?;
         fs::create_dir_all(self.artifact_cache_path)?;
