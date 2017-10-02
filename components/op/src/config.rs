@@ -18,6 +18,8 @@ pub struct Config {
     pub file: Option<String>,
     // origin to get the shard of
     pub origin: Option<String>,
+    // account to get the shard of
+    pub account: Option<u64>,
 }
 
 impl Default for Config {
@@ -25,6 +27,7 @@ impl Default for Config {
         Config {
             file: None,
             origin: None,
+            account: None,
         }
     }
 }

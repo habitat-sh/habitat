@@ -18,6 +18,7 @@ use std::path::PathBuf;
 use fnv::FnvHasher;
 use hcore::crypto::hash::hash_file;
 use protocol::SHARD_COUNT;
+const SHARD_MASK: u64 = 0x1FFF;
 
 use config::Config;
 use error::{Error, Result};
@@ -38,15 +39,20 @@ pub fn hash(config: Config) -> Result<()> {
 }
 
 pub fn shard(config: Config) -> Result<()> {
-    if config.origin.is_none() {
-        return Err(Error::NoOrigin);
+    if config.origin.is_none() && config.account.is_none() {
+        return Err(Error::NoParam);
     }
 
-    let origin = config.origin.unwrap();
-    let mut hasher = FnvHasher::default();
-    hasher.write(origin.as_bytes());
-    let hval = hasher.finish();
-    let result = hval % SHARD_COUNT as u64;
+    let result = if config.origin.is_some() {
+        let mut hasher = FnvHasher::default();
+        let origin = config.origin.unwrap();
+        hasher.write(origin.as_bytes());
+        let hval = hasher.finish();
+        hval % SHARD_COUNT as u64
+    } else {
+        let account = config.account.unwrap();
+        account & SHARD_MASK
+    };
     println!("{}", result);
     Ok(())
 }

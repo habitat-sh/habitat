@@ -21,7 +21,7 @@ use hcore;
 #[derive(Debug)]
 pub enum Error {
     NoFile,
-    NoOrigin,
+    NoParam,
     HabitatCore(hcore::Error),
 }
 
@@ -31,7 +31,9 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
             Error::NoFile => format!("No file was specified to hash"),
-            Error::NoOrigin => format!("No origin was specified to get a shard from"),
+            Error::NoParam => {
+                format!("No parameter was specified to get a shard from: try --origin or --account")
+            }
             Error::HabitatCore(ref e) => format!("{}", e),
         };
         write!(f, "{}", msg)
@@ -42,7 +44,9 @@ impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
             Error::NoFile => "No file was specified to hash",
-            Error::NoOrigin => "No origin was specified to get a shard from",
+            Error::NoParam => {
+                "No parameter was specified to get a shard from: try --origin or --account"
+            }
             Error::HabitatCore(ref err) => err.description(),
         }
     }
