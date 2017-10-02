@@ -55,9 +55,9 @@ hab studio enter
 build .
 ~~~
 
-After a lot of output flies by, we should have our first Habitat package built and installed! Mine is called `fnichol/expresso` because my origin name is part of the [Package Identifier](https://www.habitat.sh/docs/concepts-packages/).
+After a lot of output flies by, we should have our first Habitat package built and installed! Mine is called `fnichol/expresso` because my origin name is part of the [Package Identifier](/docs/glossary#glossary-packages).
 
-Now let's start our app! When you enter a Habitat Studio these days, a [Supervisor](https://www.habitat.sh/docs/concepts-supervisor/) will be running in the background waiting to start services, so we can start ours with:
+Now let's start our app! When you enter a Habitat Studio these days, a [Supervisor](/docs/glossary#glossary-supervisor) will be running in the background waiting to start services, so we can start ours with:
 
 ~~~sh
 hab svc start fnichol/expresso

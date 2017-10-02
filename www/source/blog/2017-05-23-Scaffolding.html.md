@@ -57,7 +57,7 @@ Some RubyGems have native extensions or require other software to be present so 
    habirails: Detected 'pg' gem in Gemfile.lock, adding postgresql package
 ~~~
 
-Similar to above, this detection will add the appropriate PostgreSQL Habitat packages, but will create an [optional bind](https://www.habitat.sh/docs/run-packages-binding/) for the package which lets your app discover its database in a Habitat ring. If you start the app service without a `--bind` option, the package will fall back to requiring database host and port configuration settings meaning that you can point your app at an existing database that lives outside a Habitat ring.
+Similar to above, this detection will add the appropriate PostgreSQL Habitat packages, but will create an [optional bind](/docs/developing-packages#pkg-binds) for the package which lets your app discover its database in a Habitat ring. If you start the app service without a `--bind` option, the package will fall back to requiring database host and port configuration settings meaning that you can point your app at an existing database that lives outside a Habitat ring.
 
 ~~~
    habirails: Installing dependencies using Bundler version 1.14.6
@@ -75,7 +75,7 @@ In this case, the `rake` RubyGem was detected in the `Gemfile.lock`, a `Rakefile
    habirails: No user-defined init hook found, generating init hook
 ~~~
 
-Based on the app detection above, the Ruby Scaffolding can generate a suitable [init hook](https://www.habitat.sh/docs/reference/plan-syntax/#hooks) which checks to see that the Rails' [secret key base](http://guides.rubyonrails.org/security.html#session-storage) is set and will even test your database connection--all before the Supervisor even attempts to boot the app itself.
+Based on the app detection above, the Ruby Scaffolding can generate a suitable [init hook](/docs/reference#reference-hooks) which checks to see that the Rails' [secret key base](http://guides.rubyonrails.org/security.html#session-storage) is set and will even test your database connection--all before the Supervisor even attempts to boot the app itself.
 
 There are a lot more features and goodies that Scaffolding packages provide for your app and it is worth reading the reference docs for the [Ruby](https://github.com/habitat-sh/core-plans/blob/master/scaffolding-ruby/doc/reference.md) and [Node.js](https://github.com/habitat-sh/core-plans/blob/master/scaffolding-node/doc/reference.md) implementations.
 
