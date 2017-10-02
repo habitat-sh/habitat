@@ -17,6 +17,7 @@
 use std::io;
 use std::net::{Ipv4Addr, IpAddr, SocketAddr, ToSocketAddrs};
 use std::option::IntoIter;
+use std::path::PathBuf;
 
 use http_gateway::config::prelude::*;
 
@@ -50,6 +51,14 @@ impl GitHubOAuth for Config {
 
     fn github_client_secret(&self) -> &str {
         &self.github.client_secret
+    }
+
+    fn github_app_id(&self) -> u64 {
+        self.github.app_id
+    }
+
+    fn github_app_private_key_path(&self) -> PathBuf {
+        self.github.app_private_key_path.clone()
     }
 }
 

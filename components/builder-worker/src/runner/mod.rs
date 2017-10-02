@@ -30,6 +30,7 @@ pub use protocol::jobsrv::JobState;
 use bldr_core::logger::Logger;
 use chrono::UTC;
 use depot_client;
+use github_api_client;
 use hab_core::crypto;
 use hab_core::package::archive::PackageArchive;
 use hab_net::socket::DEFAULT_CONTEXT;
@@ -76,19 +77,15 @@ impl Job {
         Job(job)
     }
 
-    pub fn vcs(&self) -> vcs::VCS {
+    pub fn vcs<T>(&self, config: &T) -> vcs::VCS
+    where
+        T: github_api_client::config::GitHubOAuth,
+    {
         match self.0.get_project().get_vcs_type() {
             "git" => {
-                let token: Option<String> = {
-                    if self.0.get_project().has_vcs_auth_token() {
-                        Some(self.0.get_project().get_vcs_auth_token().to_string())
-                    } else {
-                        None
-                    }
-                };
-                let username: Option<String> = {
-                    if self.0.get_project().has_vcs_username() {
-                        Some(self.0.get_project().get_vcs_username().to_string())
+                let installation_id: Option<u64> = {
+                    if self.0.get_project().has_vcs_installation_id() {
+                        Some(self.0.get_project().get_vcs_installation_id())
                     } else {
                         None
                     }
@@ -96,8 +93,8 @@ impl Job {
                 vcs::VCS::new(
                     String::from(self.0.get_project().get_vcs_type()),
                     String::from(self.0.get_project().get_vcs_data()),
-                    token,
-                    username,
+                    config,
+                    installation_id,
                 )
             }
             _ => panic!("unknown vcs associated with jobs project"),
@@ -176,7 +173,11 @@ impl Runner {
             error!("failed to retrieve secret key, err={:?}", err);
             return self.fail(net::err(ErrCode::SECRET_KEY_FETCH, "wk:run:3"));
         }
-        if let Some(err) = self.job().vcs().clone(&self.workspace.src()).err() {
+        if let Some(err) = self.job()
+            .vcs(&*self.config)
+            .clone(&self.workspace.src())
+            .err()
+        {
             error!("failed to clone remote source repository, err={:?}", err);
             return self.fail(net::err(ErrCode::VCS_CLONE, "wk:run:4"));
         }

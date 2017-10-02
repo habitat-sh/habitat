@@ -13,6 +13,7 @@
 // limitations under the License.
 
 extern crate base64;
+extern crate frank_jwt as jwt;
 extern crate hyper;
 extern crate hyper_openssl;
 #[macro_use]

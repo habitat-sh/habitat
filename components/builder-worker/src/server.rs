@@ -74,7 +74,7 @@ impl Server {
                 "ERROR: No 'auth_token' config value specified which prevents the \
                    worker from download fetching signing keys."
             );
-            return Err(Error::IncompleteCredentials);
+            return Err(Error::NoAuthTokenError);
         }
         self.enable_features_from_config();
 

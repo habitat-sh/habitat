@@ -25,13 +25,15 @@ use hyper::header::{Authorization, Accept, Bearer, UserAgent, qitem};
 use hyper::mime::{Mime, TopLevel, SubLevel};
 use hyper::net::HttpsConnector;
 use hyper_openssl::OpensslClient;
+use jwt;
 use serde_json;
+use time;
 
 use config;
 use error::{HubError, HubResult};
 
-const USER_AGENT: &'static str = "Habitat-Builder";
 const HTTP_TIMEOUT: u64 = 3_000;
+const USER_AGENT: &'static str = "Habitat-Builder";
 // These OAuth scopes are required for a user to be authenticated. If this list is updated, then
 // the front-end also needs to be updated in `components/builder-web/app/util.ts`. Both the
 // front-end app and back-end app should have identical requirements to make things easier for
@@ -45,6 +47,8 @@ pub struct GitHubClient {
     pub web_url: String,
     pub client_id: String,
     pub client_secret: String,
+    pub app_id: u64,
+    pub app_private_key_path: PathBuf,
 }
 
 impl GitHubClient {
@@ -57,6 +61,8 @@ impl GitHubClient {
             web_url: config.github_web_url().to_string(),
             client_id: config.github_client_id().to_string(),
             client_secret: config.github_client_secret().to_string(),
+            app_id: config.github_app_id(),
+            app_private_key_path: config.github_app_private_key_path(),
         }
     }
 
@@ -69,7 +75,7 @@ impl GitHubClient {
             self.client_secret,
             code
         )).map_err(HubError::HttpClientParse)?;
-        let mut rep = http_post(url)?;
+        let mut rep = http_post(url, None)?;
         if rep.status.is_success() {
             let mut encoded = String::new();
             rep.read_to_string(&mut encoded)?;
@@ -89,6 +95,26 @@ impl GitHubClient {
             }
         } else {
             Err(HubError::HttpResponse(rep.status))
+        }
+    }
+
+    pub fn authenticate_as_installation(&self, installation_id: u64) -> HubResult<String> {
+        let app_token = self.generate_signed_json_token();
+        let url = Url::parse(&format!(
+            "https://{}/installations/{}/access_tokens",
+            self.url,
+            installation_id
+        )).map_err(HubError::HttpClientParse)?;
+
+        let mut rep = http_post(url, Some(app_token))?;
+        let mut encoded = String::new();
+        rep.read_to_string(&mut encoded)?;
+        match serde_json::from_str::<InstallationAccessToken>(&encoded) {
+            Ok(msg) => Ok(msg.token),
+            Err(_) => {
+                let err = serde_json::from_str::<InstallationAuthErr>(&encoded)?;
+                Err(HubError::InstallationAuth(err))
+            }
         }
     }
 
@@ -231,6 +257,21 @@ impl GitHubClient {
         }
         let teams: Vec<Team> = serde_json::from_str(&body)?;
         Ok(teams)
+    }
+
+    fn generate_signed_json_token(&self) -> String {
+        let mut payload = jwt::Payload::new();
+        let header = jwt::Header::new(jwt::Algorithm::RS256);
+        let now = clock_time() / 1000;
+        payload.insert("iat".to_string(), now.to_string());
+        // github does not except an expiry over 10 minutes
+        payload.insert("exp".to_string(), (now + (10 * 60)).to_string());
+        payload.insert("iss".to_string(), self.app_id.to_string());
+        jwt::encode(
+            header,
+            self.app_private_key_path.to_string_lossy().into_owned(),
+            payload,
+        )
     }
 }
 
@@ -431,6 +472,29 @@ pub struct SearchItem {
     score: f64,
 }
 
+#[derive(Deserialize, Serialize)]
+pub struct InstallationAccessToken {
+    pub token: String,
+    pub expires_at: String,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct InstallationAuthErr {
+    pub message: String,
+    pub documentation_url: String,
+}
+
+impl fmt::Display for InstallationAuthErr {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "message={}, documentation_url={}",
+            self.message,
+            self.documentation_url
+        )
+    }
+}
+
 fn http_get(url: Url, token: &str) -> HubResult<hyper::client::response::Response> {
     hyper_client()
         .get(url)
@@ -439,23 +503,41 @@ fn http_get(url: Url, token: &str) -> HubResult<hyper::client::response::Respons
                 Mime(TopLevel::Application, SubLevel::Json, vec![])
             ),
         ]))
+        .header(Accept(vec![
+            qitem(
+                "application/vnd.github.machine-man-preview+json"
+                    .parse()
+                    .unwrap()
+            ),
+        ]))
         .header(Authorization(Bearer { token: token.to_owned() }))
         .header(UserAgent(USER_AGENT.to_string()))
         .send()
         .map_err(HubError::HttpClient)
 }
 
-fn http_post(url: Url) -> HubResult<hyper::client::response::Response> {
-    hyper_client()
+fn http_post(url: Url, token: Option<String>) -> HubResult<hyper::client::response::Response> {
+    let client = hyper_client();
+    let mut req = client
         .post(url)
         .header(Accept(vec![
             qitem(
                 Mime(TopLevel::Application, SubLevel::Json, vec![])
             ),
         ]))
-        .header(UserAgent(USER_AGENT.to_string()))
-        .send()
-        .map_err(HubError::HttpClient)
+        .header(Accept(vec![
+            qitem(
+                "application/vnd.github.machine-man-preview+json"
+                    .parse()
+                    .unwrap()
+            ),
+        ]))
+        .header(UserAgent(USER_AGENT.to_string()));
+
+    if let Some(tok) = token {
+        req = req.header(Authorization(Bearer { token: tok }));
+    }
+    req.send().map_err(HubError::HttpClient)
 }
 
 fn hyper_client() -> hyper::Client {
@@ -465,4 +547,9 @@ fn hyper_client() -> hyper::Client {
     client.set_read_timeout(Some(Duration::from_millis(HTTP_TIMEOUT)));
     client.set_write_timeout(Some(Duration::from_millis(HTTP_TIMEOUT)));
     client
+}
+
+fn clock_time() -> i64 {
+    let timespec = time::get_time();
+    (timespec.sec as i64 * 1000) + (timespec.nsec as i64 / 1000 / 1000)
 }

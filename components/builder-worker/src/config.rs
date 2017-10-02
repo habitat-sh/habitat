@@ -17,6 +17,7 @@
 use std::net::{IpAddr, Ipv4Addr};
 use std::path::PathBuf;
 
+use github_api_client::config::{GitHubCfg, GitHubOAuth};
 use hab_core::config::ConfigFile;
 use hab_core::url;
 
@@ -44,6 +45,8 @@ pub struct Config {
     /// List of Job Servers to connect to
     pub jobsrv: JobSrvCfg,
     pub features_enabled: String,
+    /// Github application id to use for private repo access
+    pub github: GitHubCfg,
 }
 
 impl Config {
@@ -70,12 +73,39 @@ impl Default for Config {
             bldr_url: url::default_bldr_url(),
             jobsrv: vec![JobSrvAddr::default()],
             features_enabled: "".to_string(),
+            github: GitHubCfg::default(),
         }
     }
 }
 
 impl ConfigFile for Config {
     type Error = Error;
+}
+
+impl GitHubOAuth for Config {
+    fn github_url(&self) -> &str {
+        &self.github.url
+    }
+
+    fn github_web_url(&self) -> &str {
+        &self.github.web_url
+    }
+
+    fn github_client_id(&self) -> &str {
+        &self.github.client_id
+    }
+
+    fn github_client_secret(&self) -> &str {
+        &self.github.client_secret
+    }
+
+    fn github_app_id(&self) -> u64 {
+        self.github.app_id
+    }
+
+    fn github_app_private_key_path(&self) -> PathBuf {
+        self.github.app_private_key_path.clone()
+    }
 }
 
 #[derive(Clone, Debug, Deserialize)]

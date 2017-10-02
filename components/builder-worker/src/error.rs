@@ -19,6 +19,7 @@ use std::result;
 
 use bldr_core;
 use git2;
+use github_api_client;
 use hab_core;
 use protobuf;
 use protocol;
@@ -34,9 +35,10 @@ pub enum Error {
     CannotAddCreds,
     Git(git2::Error),
     BuilderCore(bldr_core::Error),
+    GithubAppAuthErr(github_api_client::HubError),
     HabitatCore(hab_core::Error),
-    IncompleteCredentials,
     IO(io::Error),
+    NoAuthTokenError,
     NotHTTPSCloneUrl(url::Url),
     Protobuf(protobuf::ProtobufError),
     Protocol(protocol::ProtocolError),
@@ -55,13 +57,12 @@ impl fmt::Display for Error {
                 format!("Build studio exited with non-zero exit code, {}", e)
             }
             Error::Git(ref e) => format!("{}", e),
+            Error::GithubAppAuthErr(ref e) => format!("{}", e),
             Error::BuilderCore(ref e) => format!("{}", e),
             Error::CannotAddCreds => format!("Cannot add credentials to url"),
             Error::HabitatCore(ref e) => format!("{}", e),
             Error::IO(ref e) => format!("{}", e),
-            Error::IncompleteCredentials => {
-                format!("Credentials are missing either username or auth token")
-            }
+            Error::NoAuthTokenError => format!("No auth_token config specified"),
             Error::NotHTTPSCloneUrl(ref e) => {
                 format!(
                     "Attempted to clone {}. Only HTTPS clone urls are supported",
@@ -90,11 +91,12 @@ impl error::Error for Error {
         match *self {
             Error::BuildFailure(_) => "Build studio exited with a non-zero exit code",
             Error::Git(ref err) => err.description(),
+            Error::GithubAppAuthErr(ref err) => err.description(),
             Error::BuilderCore(ref err) => err.description(),
             Error::CannotAddCreds => "Cannot add credentials to url",
             Error::HabitatCore(ref err) => err.description(),
             Error::IO(ref err) => err.description(),
-            Error::IncompleteCredentials => "Credentials are missing either username or auth token",
+            Error::NoAuthTokenError => "No auth_token config specified",
             Error::NotHTTPSCloneUrl(_) => "Only HTTPS clone urls are supported",
             Error::Protobuf(ref err) => err.description(),
             Error::Protocol(ref err) => err.description(),
@@ -153,5 +155,11 @@ impl From<zmq::Error> for Error {
 impl From<url::ParseError> for Error {
     fn from(err: url::ParseError) -> Error {
         Error::UrlParseError(err)
+    }
+}
+
+impl From<github_api_client::HubError> for Error {
+    fn from(err: github_api_client::HubError) -> Error {
+        Error::GithubAppAuthErr(err)
     }
 }

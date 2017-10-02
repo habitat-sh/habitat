@@ -17,156 +17,69 @@ use std::path::Path;
 use git2;
 use url::Url;
 
+use github_api_client::{self, GitHubClient};
+
 use error::{Error, Result};
 
 pub struct VCS {
     pub vcs_type: String,
     pub data: String,
-    pub auth_token: Option<String>,
-    pub username: Option<String>,
+    pub github_client: GitHubClient,
+    pub installation_id: Option<u64>,
 }
 
 impl VCS {
-    pub fn new(
-        vcs_type: String,
-        data: String,
-        auth_token: Option<String>,
-        username: Option<String>,
-    ) -> VCS {
+    pub fn new<T>(vcs_type: String, data: String, config: &T, installation_id: Option<u64>) -> VCS
+    where
+        T: github_api_client::config::GitHubOAuth,
+    {
         VCS {
             vcs_type: vcs_type,
             data: data,
-            auth_token: auth_token,
-            username: username,
+            github_client: GitHubClient::new(&*config),
+            installation_id: installation_id,
         }
     }
 
     pub fn clone(&self, path: &Path) -> Result<()> {
         match self.vcs_type.as_ref() {
             "git" => {
+                let token = match self.installation_id {
+                    None => None,
+                    Some(id) => {
+                        Some(self.github_client
+                            .authenticate_as_installation(id)
+                            .map_err(|e| Error::GithubAppAuthErr(e))?)
+                    }
+                };
                 debug!(
                     "cloning git repository, url={}, path={:?}",
-                    self.url()?,
+                    self.url(token.clone())?,
                     path
                 );
-                git2::Repository::clone(&(self.url()?).as_str(), path)?;
+                git2::Repository::clone(&(self.url(token)?).as_str(), path)?;
                 Ok(())
             }
             _ => panic!("Unknown vcs type"),
         }
     }
 
-    pub fn url(&self) -> Result<Url> {
+    pub fn url(&self, token: Option<String>) -> Result<Url> {
         let mut url = Url::parse(self.data.as_str()).map_err(
             |e| Error::UrlParseError(e),
         )?;
         if self.data.starts_with("https://") {
-            let mut cred_parts = 0;
-            if let Some(ref username) = self.username {
-                url.set_username(username).map_err(
+            if let Some(ref tok) = token {
+                url.set_username("x-access-token").map_err(
                     |_| Error::CannotAddCreds,
                 )?;
-                cred_parts += 1;
-            }
-            if let Some(ref token) = self.auth_token {
-                url.set_password(Some(token.as_str())).map_err(|_| {
+                url.set_password(Some(tok.as_str())).map_err(|_| {
                     Error::CannotAddCreds
                 })?;
-                cred_parts += 1;
-            }
-            if cred_parts == 1 {
-                return Err(Error::IncompleteCredentials);
             }
         } else {
             return Err(Error::NotHTTPSCloneUrl(url));
         }
         Ok(url)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use error::Error;
-
-    #[test]
-    fn build_url_with_auth_token() {
-        let vcs = VCS::new(
-            String::from("git"),
-            String::from("https://github.com/owner/repo"),
-            Some(String::from("token")),
-            Some(String::from("user")),
-        );
-        assert_eq!(
-            vcs.url().unwrap().as_str(),
-            "https://user:token@github.com/owner/repo"
-        );
-    }
-
-    #[test]
-    fn build_url_with_no_auth_token() {
-        let vcs = VCS::new(
-            String::from("git"),
-            String::from("https://github.com/owner/repo"),
-            None,
-            None,
-        );
-        assert_eq!(vcs.url().unwrap().as_str(), "https://github.com/owner/repo");
-    }
-
-    #[test]
-    fn err_when_url_is_not_https() {
-        let vcs = VCS::new(
-            String::from("git"),
-            String::from("git://github.com/owner/repo"),
-            None,
-            None,
-        );
-        match vcs.url() {
-            Err(Error::NotHTTPSCloneUrl(_)) => {}
-            Ok(_) | Err(_) => panic!("did not return a NotHTTPSCloneUrl err"),
-        }
-    }
-
-    #[test]
-    fn err_when_url_is_invalid() {
-        let vcs = VCS::new(
-            String::from("git"),
-            String::from("blergyblargy"),
-            None,
-            None,
-        );
-        match vcs.url() {
-            Err(Error::UrlParseError(_)) => {}
-            Ok(_) | Err(_) => panic!("did not return a UrlParseError err"),
-        }
-    }
-
-    #[test]
-    fn err_when_only_username_set() {
-        let vcs = VCS::new(
-            String::from("git"),
-            String::from("https://github.com/owner/repo"),
-            None,
-            Some(String::from("user")),
-        );
-        match vcs.url() {
-            Err(Error::IncompleteCredentials) => {}
-            Ok(_) | Err(_) => panic!("did not return a IncompleteCredentials err"),
-        }
-    }
-
-    #[test]
-    fn err_when_only_token_set() {
-        let vcs = VCS::new(
-            String::from("git"),
-            String::from("https://github.com/owner/repo"),
-            Some(String::from("token")),
-            None,
-        );
-        match vcs.url() {
-            Err(Error::IncompleteCredentials) => {}
-            Ok(_) | Err(_) => panic!("did not return a IncompleteCredentials err"),
-        }
     }
 }

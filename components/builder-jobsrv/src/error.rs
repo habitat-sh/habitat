@@ -24,6 +24,7 @@ use r2d2;
 use std::error;
 use std::fmt;
 use std::io;
+use std::num;
 use std::path::PathBuf;
 use std::result;
 use zmq;
@@ -54,6 +55,7 @@ pub enum Error {
     LogDirIsNotDir(PathBuf),
     LogDirNotWritable(PathBuf),
     NetError(hab_net::NetError),
+    ParseVCSInstallationId(num::ParseIntError),
     ProjectJobsGet(postgres::error::Error),
     Protobuf(protobuf::ProtobufError),
     Protocol(protocol::ProtocolError),
@@ -112,6 +114,9 @@ impl fmt::Display for Error {
                 format!("Build log directory {:?} is not writable!", path)
             }
             Error::NetError(ref e) => format!("{}", e),
+            Error::ParseVCSInstallationId(ref e) => {
+                format!("VCS installation id could not be parsed as u64, {}", e)
+            }
             Error::Protobuf(ref e) => format!("{}", e),
             Error::Protocol(ref e) => format!("{}", e),
             Error::ProjectJobsGet(ref e) => {
@@ -152,6 +157,7 @@ impl error::Error for Error {
             Error::LogDirIsNotDir(_) => "Build log directory is not a directory",
             Error::LogDirNotWritable(_) => "Build log directory is not writable",
             Error::NetError(ref err) => err.description(),
+            Error::ParseVCSInstallationId(_) => "VCS installation id could not be parsed as u64",
             Error::ProjectJobsGet(ref err) => err.description(),
             Error::Protobuf(ref err) => err.description(),
             Error::Protocol(ref err) => err.description(),
@@ -219,5 +225,11 @@ impl From<zmq::Error> for Error {
 impl From<extern_url::ParseError> for Error {
     fn from(_err: extern_url::ParseError) -> Self {
         Error::InvalidUrl
+    }
+}
+
+impl From<num::ParseIntError> for Error {
+    fn from(err: num::ParseIntError) -> Self {
+        Error::ParseVCSInstallationId(err)
     }
 }

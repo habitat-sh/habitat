@@ -20,6 +20,7 @@ extern crate bitflags;
 extern crate chrono;
 #[macro_use]
 extern crate features;
+extern crate github_api_client;
 extern crate habitat_builder_protocol as protocol;
 extern crate habitat_core as hab_core;
 extern crate habitat_depot_client as depot_client;

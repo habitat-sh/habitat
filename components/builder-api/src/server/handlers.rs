@@ -36,8 +36,6 @@ use router::Router;
 use serde_json;
 use typemap;
 
-use error::{Error, Result};
-
 // A default name for per-project integrations. Currently, there
 // can only be one.
 const DEFAULT_PROJECT_INTEGRATION: &'static str = "default";
@@ -66,8 +64,7 @@ struct ProjectUpdateReq {
 struct GitHubProject {
     organization: String,
     repo: String,
-    auth_token: Option<String>,
-    username: Option<String>,
+    installation_id: Option<u64>,
 }
 
 pub fn github_authenticate(req: &mut Request) -> IronResult<Response> {
@@ -377,13 +374,17 @@ pub fn project_create(req: &mut Request) -> IronResult<Response> {
                 return Ok(Response::with(status::Forbidden));
             }
 
-            let token = match github_creds_from_body(&body, &mut project, session.get_token()) {
-                Err(Error::IncompleteCredentials) => {
-                    return Ok(Response::with((status::UnprocessableEntity, "rg:pc:6")));
-                }
-                Ok(token) => token,
-                Err(_) => {
-                    return Ok(Response::with((status::UnprocessableEntity, "rg:pc:7")));
+            let token = match body.github.installation_id {
+                None => session.get_token().to_string(),
+                Some(install_id) => {
+                    project.set_vcs_installation_id(install_id);
+                    match github.authenticate_as_installation(install_id) {
+                        Ok(tok) => tok,
+                        Err(e) => {
+                            debug!("Error authenticating github app installation. e = {:?}", e);
+                            return Ok(Response::with(status::Forbidden));
+                        }
+                    }
                 }
             };
             origin_get.set_name(body.origin);
@@ -530,22 +531,22 @@ pub fn project_update(req: &mut Request) -> IronResult<Response> {
                     "Missing value for field: `github.repo`",
                 )));
             }
-            let token = match github_creds_from_body(&body, &mut project, session_token) {
-                Err(Error::IncompleteCredentials) => {
-                    return Ok(Response::with((status::UnprocessableEntity, "rg:pu:7")));
-                }
-                Ok(token) => token,
-                _ => {
-                    return Ok(Response::with((status::UnprocessableEntity, "rg:pu:8")));
+            let token = match body.github.installation_id {
+                None => session_token,
+                Some(install_id) => {
+                    project.set_vcs_installation_id(install_id);
+                    match github.authenticate_as_installation(install_id) {
+                        Ok(tok) => tok,
+                        Err(e) => {
+                            debug!("Error authenticating github app installation. e = {:?}", e);
+                            return Ok(Response::with(status::Forbidden));
+                        }
+                    }
                 }
             };
             project.set_plan_path(body.plan_path);
-            if let Some(username) = body.github.username {
-                if !project.has_vcs_auth_token() {
-                    debug!("Username supplied with no token");
-                    return Ok(Response::with((status::UnprocessableEntity, "rg:pu:8")));
-                }
-                project.set_vcs_username(username);
+            if let Some(install_id) = body.github.installation_id {
+                project.set_vcs_installation_id(install_id);
             }
             match github.repo(&token, &body.github.organization, &body.github.repo) {
                 Ok(repo) => project.set_vcs_data(repo.clone_url),
@@ -716,30 +717,6 @@ pub fn project_jobs(req: &mut Request) -> IronResult<Response> {
         }
         Err(err) => Ok(render_net_error(&err)),
     }
-}
-
-fn github_creds_from_body<S: Into<String>>(
-    body: &ProjectCreateReq,
-    project: &mut OriginProject,
-    session_token: S,
-) -> Result<String> {
-    let mut token = session_token.into();
-    if let Some(ref auth_token) = body.github.auth_token {
-        if body.github.username.is_none() {
-            debug!("Auth token supplied with no username");
-            return Err(Error::IncompleteCredentials);
-        }
-        project.set_vcs_auth_token(auth_token.to_string());
-        token = auth_token.to_string();
-    };
-    if let Some(ref username) = body.github.username {
-        if !project.has_vcs_auth_token() {
-            debug!("Username supplied with no token");
-            return Err(Error::IncompleteCredentials);
-        }
-        project.set_vcs_username(username.to_string());
-    }
-    Ok(token)
 }
 
 pub fn create_project_integration(req: &mut Request) -> IronResult<Response> {

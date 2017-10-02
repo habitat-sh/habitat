@@ -102,6 +102,14 @@ impl GitHubOAuth for Config {
     fn github_client_secret(&self) -> &str {
         &self.github.client_secret
     }
+
+    fn github_app_id(&self) -> u64 {
+        self.github.app_id
+    }
+
+    fn github_app_private_key_path(&self) -> PathBuf {
+        self.github.app_private_key_path.clone()
+    }
 }
 
 #[derive(Clone, Debug, Deserialize)]
