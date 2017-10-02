@@ -18,3 +18,4 @@ tags
 *.rustfmt
 .envrc
 .vscode
+.secrets

@@ -12,9 +12,8 @@ habitatConfig({
     // The environment in which we're running. If "production", enable
     // production mode
     environment: "production",
-    // GitHub Client ID for OAuth2
-    // The example is for builder-dev: https://github.com/settings/connections/applications/0c2f738a7d0bd300de10
-    github_client_id: "0c2f738a7d0bd300de10",
+    // GitHub Client ID for GitHubApp
+    github_client_id: "Iv1.732260b62f84db15",
     // The API URL for GitHub
     github_api_url: "https://api.github.com",
     // The Web URL for GitHub

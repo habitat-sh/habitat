@@ -117,11 +117,6 @@ pub fn start(ui: &mut UI, cache_path: &Path, analytics_path: &Path) -> Result<()
                addition, it is how you can perform continuous deployment with Habitat.",
     )?;
     ui.para(
-        "The depot uses GitHub authentication by personal access token with the \
-                  user:email and read:org scopes (https://help.github.\
-                  com/articles/creating-an-access-token-for-command-line-use/).",
-    )?;
-    ui.para(
         "If you would like to share your packages on the depot, please enter your GitHub \
                access token. Otherwise, just enter No.",
     )?;

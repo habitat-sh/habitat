@@ -71,14 +71,14 @@ impl AppCfg for Config {
 pub struct PermissionsCfg {
     /// A GitHub Team identifier for which members will automatically have administration
     /// privileges assigned to their session
-    pub admin_team: u64,
+    pub admin_team: u32,
     /// GitHub team's whose members are granted Builder Worker abilities. These abilities
     /// include downloading the latest private key for any origin and uploading a package into
     /// any origin regardless of membership. This is essentially a user who ignores all rules.
-    pub build_worker_teams: Vec<u64>,
+    pub build_worker_teams: Vec<u32>,
     /// GitHub team's assigned to the early access group who may have access to features in Builder
     /// before a normal user.
-    pub early_access_teams: Vec<u64>,
+    pub early_access_teams: Vec<u32>,
 }
 
 #[cfg(test)]

@@ -82,10 +82,6 @@ pub fn github_authenticate(req: &mut Request) -> IronResult<Response> {
 
             Ok(render_json(status::Ok, &session))
         }
-        Err(e @ HubError::AuthScope(_)) => {
-            let err = NetError::new(ErrCode::AUTH_SCOPE, e.to_string());
-            Ok(render_net_error(&err))
-        }
         Err(HubError::Auth(e)) => {
             let err = NetError::new(ErrCode::ACCESS_DENIED, e.error);
             Ok(render_net_error(&err))

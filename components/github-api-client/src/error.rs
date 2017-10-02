@@ -30,7 +30,6 @@ pub enum HubError {
     ApiError(hyper::status::StatusCode, HashMap<String, String>),
     AppAuth(types::AppAuthErr),
     Auth(types::AuthErr),
-    AuthScope(Vec<&'static str>),
     ContentDecode(base64::DecodeError),
     HttpClient(hyper::Error),
     HttpClientParse(hyper::error::ParseError),
@@ -51,7 +50,6 @@ impl fmt::Display for HubError {
             }
             HubError::AppAuth(ref e) => format!("GitHub App Authentication error, {}", e),
             HubError::Auth(ref e) => format!("GitHub Authentication error, {}", e),
-            HubError::AuthScope(ref e) => format!("Missing OAuth scope(s), '{}'", e.join(", ")),
             HubError::ContentDecode(ref e) => format!("{}", e),
             HubError::HttpClient(ref e) => format!("{}", e),
             HubError::HttpClientParse(ref e) => format!("{}", e),
@@ -69,7 +67,6 @@ impl error::Error for HubError {
             HubError::ApiError(_, _) => "Response returned a non-200 status code.",
             HubError::AppAuth(_) => "GitHub App authorization error.",
             HubError::Auth(_) => "GitHub authorization error.",
-            HubError::AuthScope(_) => "Authentication token is missing required OAuth scopes.",
             HubError::ContentDecode(ref err) => err.description(),
             HubError::HttpClient(ref err) => err.description(),
             HubError::HttpClientParse(ref err) => err.description(),
