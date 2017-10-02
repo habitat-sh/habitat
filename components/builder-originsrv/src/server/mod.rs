@@ -64,6 +64,7 @@ lazy_static! {
         map.register(OriginProjectCreate::descriptor_static(None), handlers::project_create);
         map.register(OriginProjectDelete::descriptor_static(None), handlers::project_delete);
         map.register(OriginProjectGet::descriptor_static(None), handlers::project_get);
+        map.register(OriginProjectListGet::descriptor_static(None), handlers::project_list_get);
         map.register(OriginProjectUpdate::descriptor_static(None), handlers::project_update);
         map.register(OriginProjectIntegrationCreate::descriptor_static(None),
             handlers::project_integration_create);

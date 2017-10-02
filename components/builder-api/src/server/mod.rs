@@ -58,14 +58,13 @@ impl HttpGateway for ApiSrv {
 
     fn router(config: Arc<Self::Config>) -> Router {
         let basic = Authenticated::new(&*config);
-        let opt = basic.clone().optional();
 
         router!(
             status: get "/status" => status,
             authenticate: get "/authenticate/:code" => github_authenticate,
 
-            job: get "/jobs/:id" => XHandler::new(job_show).before(opt.clone()),
-            job_log: get "/jobs/:id/log" => XHandler::new(job_log).before(opt.clone()),
+            job: get "/jobs/:id" => XHandler::new(job_show).before(basic.clone()),
+            job_log: get "/jobs/:id/log" => XHandler::new(job_log).before(basic.clone()),
             job_group_promote: post "/jobs/group/:id/promote/:channel" => {
                 XHandler::new(job_group_promote).before(basic.clone())
             },
@@ -78,9 +77,10 @@ impl HttpGateway for ApiSrv {
                 XHandler::new(list_user_origins).before(basic.clone())
             },
             projects: post "/projects" => XHandler::new(project_create).before(basic.clone()),
-            project: get "/projects/:origin/:name" => project_show,
+            project: get "/projects/:origin/:name" => XHandler::new(project_show).before(basic.clone()),
+            project_list: get "/projects/:origin" => XHandler::new(project_list).before(basic.clone()),
             project_jobs: get "/projects/:origin/:name/jobs" => {
-                XHandler::new(project_jobs).before(opt.clone())
+                XHandler::new(project_jobs).before(basic.clone())
             },
             edit_project: put "/projects/:origin/:name" => {
                 XHandler::new(project_update).before(basic.clone())

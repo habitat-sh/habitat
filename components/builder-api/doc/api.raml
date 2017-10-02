@@ -462,6 +462,19 @@ securitySchemes:
                 description: |
                     The request body contained missing or invalid values or the file at the given
                     location was unreadable or did not contain a valid plan.
+    /{origin}
+        get:
+            description: Get the list of project names for the specified origin
+            responses:
+                200:
+                    body:
+                        application/json:
+                            example: |
+                                [
+                                    "foo",
+                                    "bar",
+                                    "baz"
+                                ]
     /{origin}/{name}:
         get:
             description: Return the project matching the given ID
