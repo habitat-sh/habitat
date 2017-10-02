@@ -52,8 +52,10 @@ fn app<'a, 'b>() -> clap::App<'a, 'b> {
             (@arg file: --file +takes_value "File to hash")
         )
         (@subcommand shard =>
-            (about: "Return the shard number for an origin")
+            (about: "Return the shard number for an origin or account id")
             (@arg origin: --origin +takes_value "Origin")
+            (@arg account: --account +takes_value "Account")
+
         )
     )
 }
@@ -65,6 +67,10 @@ fn config_from_args(matches: &clap::ArgMatches) -> Result<Config> {
 
     if let Some(origin) = args.value_of("origin") {
         config.origin = Some(origin.to_string());
+    }
+
+    if let Some(account) = args.value_of("account") {
+        config.account = Some(account.to_string().parse::<u64>().unwrap());
     }
 
     if let Some(file) = args.value_of("file") {
