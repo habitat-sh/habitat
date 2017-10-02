@@ -75,7 +75,7 @@ although I was never able to get the JSON format to work reliably (Habitat
 auto-detects the format of the variable).
 
 Removing the [Habitat
-bindings](docs/developing-packages#pkg-binds) and switching to
+bindings](/docs/developing-packages#pkg-binds) and switching to
 environment variables worked fine for all of the services in the stack except
 the new `notifications` service. I didn’t realize when making this first commit
 that `notifications` didn’t need to talk to Postgres at all, so I passed in the
