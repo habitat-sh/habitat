@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Copyright (c) 2017 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,20 +21,20 @@ use base64;
 use hyper;
 use serde_json;
 
-use client;
+use types;
 
 pub type HubResult<T> = Result<T, HubError>;
 
 #[derive(Debug)]
 pub enum HubError {
     ApiError(hyper::status::StatusCode, HashMap<String, String>),
-    Auth(client::AuthErr),
+    AppAuth(types::AppAuthErr),
+    Auth(types::AuthErr),
     AuthScope(Vec<&'static str>),
     ContentDecode(base64::DecodeError),
     HttpClient(hyper::Error),
     HttpClientParse(hyper::error::ParseError),
     HttpResponse(hyper::status::StatusCode),
-    InstallationAuth(client::InstallationAuthErr),
     IO(io::Error),
     Serialization(serde_json::Error),
 }
@@ -49,15 +49,13 @@ impl fmt::Display for HubError {
                     response
                 )
             }
+            HubError::AppAuth(ref e) => format!("GitHub App Authentication error, {}", e),
             HubError::Auth(ref e) => format!("GitHub Authentication error, {}", e),
             HubError::AuthScope(ref e) => format!("Missing OAuth scope(s), '{}'", e.join(", ")),
             HubError::ContentDecode(ref e) => format!("{}", e),
             HubError::HttpClient(ref e) => format!("{}", e),
             HubError::HttpClientParse(ref e) => format!("{}", e),
             HubError::HttpResponse(ref e) => format!("{}", e),
-            HubError::InstallationAuth(ref e) => {
-                format!("GitHub App Installation Authentication error, {}", e)
-            }
             HubError::IO(ref e) => format!("{}", e),
             HubError::Serialization(ref e) => format!("{}", e),
         };
@@ -69,21 +67,21 @@ impl error::Error for HubError {
     fn description(&self) -> &str {
         match *self {
             HubError::ApiError(_, _) => "Response returned a non-200 status code.",
+            HubError::AppAuth(_) => "GitHub App authorization error.",
             HubError::Auth(_) => "GitHub authorization error.",
             HubError::AuthScope(_) => "Authentication token is missing required OAuth scopes.",
             HubError::ContentDecode(ref err) => err.description(),
             HubError::HttpClient(ref err) => err.description(),
             HubError::HttpClientParse(ref err) => err.description(),
             HubError::HttpResponse(_) => "Non-200 HTTP response.",
-            HubError::InstallationAuth(_) => "GitHub App Installation authorization error.",
             HubError::IO(ref err) => err.description(),
             HubError::Serialization(ref err) => err.description(),
         }
     }
 }
 
-impl From<client::AuthErr> for HubError {
-    fn from(err: client::AuthErr) -> Self {
+impl From<types::AuthErr> for HubError {
+    fn from(err: types::AuthErr) -> Self {
         HubError::Auth(err)
     }
 }

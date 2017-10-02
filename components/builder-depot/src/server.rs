@@ -2222,8 +2222,8 @@ where
 }
 
 pub fn router(depot: DepotUtil) -> Result<Chain> {
-    let basic = Authenticated::new(&depot.config);
-    let worker = Authenticated::new(&depot.config).require(privilege::BUILD_WORKER);
+    let basic = Authenticated::new(depot.config.github.clone());
+    let worker = Authenticated::new(depot.config.github.clone()).require(privilege::BUILD_WORKER);
     let router = routes(basic, worker);
     let mut chain = Chain::new(router);
     chain.link(persistent::Read::<EventLog>::both(EventLogger::new(

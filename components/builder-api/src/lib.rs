@@ -25,6 +25,7 @@ extern crate habitat_builder_protocol as protocol;
 extern crate habitat_core as hab_core;
 extern crate habitat_depot as depot;
 extern crate habitat_net as hab_net;
+#[macro_use]
 extern crate hyper;
 extern crate iron;
 #[macro_use]
@@ -47,7 +48,10 @@ extern crate zmq;
 
 pub mod config;
 pub mod error;
+pub mod github;
+pub mod headers;
 pub mod server;
+mod types;
 
 pub use self::config::Config;
 pub use self::error::{Error, Result};

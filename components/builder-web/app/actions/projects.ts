@@ -12,41 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import * as fakeApi from "../fakeApi";
-import { Observable } from "rxjs";
 import { BuilderApiClient } from "../BuilderApiClient";
 import { addNotification } from "./notifications";
 import { DANGER, INFO, SUCCESS, WARNING } from "./notifications";
-import { requestRoute, resetRedirectRoute } from "./router";
-import { packageString } from "../util";
 
-export const POPULATE_PROJECT = "POPULATE_PROJECT";
-export const SET_CURRENT_PROJECT = "SET_CURRENT_PROJECT";
-export const SET_PROJECTS = "SET_PROJECTS";
+export const CLEAR_CURRENT_PROJECT = "CLEAR_CURRENT_PROJECT";
+export const CLEAR_CURRENT_PROJECT_INTEGRATION = "CLEAR_CURRENT_PROJECT_SETTINGS";
 export const DELETE_PROJECT = "DELETE_PROJECT";
-export const DEPOPULATE_PROJECT = "DEPOPULATE_PROJECT";
-export const SET_PROJECT_HINT = "SET_PROJECT_HINT";
-export const RESET_PROJECT_HINT = "RESET_PROJECT_HINT";
+export const SET_CURRENT_PROJECT = "SET_CURRENT_PROJECT";
+export const SET_CURRENT_PROJECT_INTEGRATION = "SET_CURRENT_PROJECT_INTEGRATION";
+export const SET_PROJECTS = "SET_PROJECTS";
 
 export function addProject(project: any, token: string, onComplete: Function = () => {}) {
   return dispatch => {
-    dispatch(addNotification({
-      title: "Adding plan",
-      body: `To origin "${project.origin}"`,
-      type: INFO,
-    }));
     new BuilderApiClient(token).createProject(project).then(response => {
-      dispatch(resetProjectHint());
       dispatch(addNotification({
-        title: "Plan created",
-        body: `Created ${response["id"]}.`,
+        title: "Plan connection saved",
         type: SUCCESS,
       }));
       onComplete({success: true, response});
     }).catch(error => {
       dispatch(addNotification({
-        title: "Failed to create plan",
-        body: error.message,
+        title: "Failed to save plan connection",
+        body: (error.message === "Conflict" ? `The plan you selected is already connected in this origin.` : error.message),
         type: DANGER,
       }));
       onComplete({success: false, error});
@@ -54,52 +42,38 @@ export function addProject(project: any, token: string, onComplete: Function = (
   };
 }
 
-export function setProjectHint(hint: Object) {
-  return {
-    type: SET_PROJECT_HINT,
-    payload: hint
-  };
-}
-
-export function resetProjectHint() {
-  return {
-    type: RESET_PROJECT_HINT
-  };
-}
-
-export function fetchProject(id: string, token: string, alert: boolean) {
+export function setProjectIntegrationSettings(origin: string, name: string, integration: string, settings: any, token: string) {
   return dispatch => {
-    dispatch(setCurrentProject({
-      ui: {
-        exists: false,
-        loading: true
-      }
-    }));
-
-    new BuilderApiClient(token).getProject(id).then(response => {
-      dispatch(setCurrentProject(Object.assign({
-        ui: {
-          exists: true,
-          loading: false
-        }
-      }, response)));
-      dispatch(populateProject(response));
-    }).catch(error => {
-      dispatch(setCurrentProject({
-        ui: {
-          exists: false,
-          loading: false
-        }
-      }));
-
-      if (alert) {
+    new BuilderApiClient(token).setProjectIntegrationSettings(origin, name, integration, settings)
+      .then(response => {
         dispatch(addNotification({
-          title: "Failed to fetch project",
-          body: error.message,
-          type: DANGER,
+          title: "Integration settings saved",
+          type: SUCCESS
         }));
-      }
-    });
+      })
+      .catch(error => {
+        dispatch(addNotification({
+          title: "Failed to save integration settings",
+          body: error.message,
+          type: DANGER
+        }));
+      });
+  };
+}
+
+export function fetchProject(origin: string, name: string, token: string, alert: boolean) {
+  return dispatch => {
+    dispatch(clearCurrentProject());
+    dispatch(clearCurrentProjectIntegration());
+
+    new BuilderApiClient(token).getProject(origin, name)
+      .then(response => {
+        dispatch(setCurrentProject(response, null));
+        dispatch(fetchProjectIntegration(origin, name, "docker", token));
+      })
+      .catch((error) => {
+        dispatch(setCurrentProject(null, error));
+      });
   };
 }
 
@@ -111,18 +85,29 @@ export function fetchProjects(token: string) {
   };
 }
 
+export function fetchProjectIntegration(origin: string, name: string, integration: string, token: string) {
+  return dispatch => {
+    dispatch(clearCurrentProjectIntegration());
+
+    new BuilderApiClient(token).getProjectIntegration(origin, name, integration)
+      .then(response => {
+        dispatch(setCurrentProjectIntegration(response));
+      })
+      .catch(error => {});
+  };
+}
+
 export function deleteProject(id: string, token: string) {
   return dispatch => {
     new BuilderApiClient(token).deleteProject(id).then(response => {
+      dispatch(clearCurrentProject());
       dispatch(addNotification({
-        title: "Plan link deleted",
-        body: `Deleted ${id}.`,
+        title: "Plan connection deleted",
         type: SUCCESS
       }));
-      dispatch(actuallyDeleteProject(id));
     }).catch(error => {
       dispatch(addNotification({
-        title: "Failed to delete plan",
+        title: "Failed to delete plan connection",
         body: error.message,
         type: DANGER,
       }));
@@ -133,17 +118,14 @@ export function deleteProject(id: string, token: string) {
 export function updateProject(projectId: string, project: Object, token: string, onComplete: Function = () => {} ) {
   return dispatch => {
     new BuilderApiClient(token).updateProject(projectId, project).then(response => {
-      dispatch(resetProjectHint());
-      dispatch(resetRedirectRoute());
       dispatch(addNotification({
-        title: "Plan updated",
-        body: `Updated ${projectId}.`,
+        title: "Plan connection saved",
         type: SUCCESS
       }));
       onComplete({success: true, response});
     }).catch(error => {
       dispatch(addNotification({
-        title: "Failed to update plan",
+        title: "Failed to save plan connection",
         body: error.message,
         type: DANGER,
       }));
@@ -152,31 +134,30 @@ export function updateProject(projectId: string, project: Object, token: string,
   };
 }
 
-function depopulateProject(projectId) {
+function clearCurrentProject() {
   return {
-    type: DEPOPULATE_PROJECT,
-    payload: projectId
+    type: CLEAR_CURRENT_PROJECT
   };
 }
 
-function actuallyDeleteProject(projectId) {
+function clearCurrentProjectIntegration() {
   return {
-    type: DELETE_PROJECT,
-    payload: projectId,
+    type: CLEAR_CURRENT_PROJECT_INTEGRATION
   };
 }
 
-function populateProject(project) {
-  return {
-    type: POPULATE_PROJECT,
-    payload: project,
-  };
-}
-
-export function setCurrentProject(project) {
+export function setCurrentProject(project, error = undefined) {
   return {
     type: SET_CURRENT_PROJECT,
     payload: project,
+    error: error
+  };
+}
+
+function setCurrentProjectIntegration(settings) {
+  return {
+    type: SET_CURRENT_PROJECT_INTEGRATION,
+    payload: settings
   };
 }
 

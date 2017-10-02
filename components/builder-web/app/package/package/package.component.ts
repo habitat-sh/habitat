@@ -7,7 +7,7 @@ import { PackageLatestComponent } from "../package-latest/package-latest.compone
 import { PackageReleaseComponent } from "../package-release/package-release.component";
 import { PackageVersionsComponent } from "../package-versions/package-versions.component";
 import { AppStore } from "../../AppStore";
-import { fetchBuilds, fetchProject } from "../../actions/index";
+import { fetchBuilds, fetchDockerIntegration, fetchProject } from "../../actions/index";
 
 @Component({
     template: require("./package.component.html")
@@ -70,7 +70,7 @@ export class PackageComponent implements OnInit, OnDestroy {
     }
 
     get buildable(): boolean {
-        let hasProject = this.store.getState().projects.current.ui.exists;
+        let hasProject = this.store.getState().projects.ui.current.exists;
 
         if (this.isOriginMember && hasProject) {
             return true;
@@ -120,7 +120,8 @@ export class PackageComponent implements OnInit, OnDestroy {
         let token = this.store.getState().gitHub.authToken;
 
         if (this.origin && this.name) {
-            this.store.dispatch(fetchProject(`${this.origin}/${this.name}`, token, false));
+            this.store.dispatch(fetchProject(this.origin, this.name, token, false));
+            this.store.dispatch(fetchDockerIntegration(this.origin, token));
         }
     }
 

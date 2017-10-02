@@ -134,7 +134,7 @@ impl ServerState {
     fn new(cfg: &Config) -> SrvResult<Self> {
         Ok(ServerState {
             datastore: DataStore::new(cfg)?,
-            github: Arc::new(Box::new(GitHubClient::new(cfg))),
+            github: Arc::new(Box::new(GitHubClient::new(cfg.github.clone()))),
             permissions: Arc::new(cfg.permissions.clone()),
             sessions: Arc::new(Box::new(RwLock::new(HashSet::default()))),
         })

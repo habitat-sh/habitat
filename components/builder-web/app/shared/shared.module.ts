@@ -3,16 +3,22 @@ import { CommonModule } from "@angular/common";
 import { DomSanitizer } from "@angular/platform-browser";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { RouterModule } from "@angular/router";
-import { MdCheckbox, MdCheckboxModule, MdIconModule, MdIconRegistry, MdProgressBarModule, MdRadioModule, MdRadioGroup, MdRadioButton,
-  MdTooltipModule, MdTabsModule, MdButtonModule } from "@angular/material";
+import {
+  MdCheckbox, MdCheckboxModule, MdIconModule, MdIconRegistry, MdProgressBarModule, MdRadioModule,
+  MdRadioGroup, MdRadioButton, MdSlideToggleModule, MdSlideToggle, MdTooltipModule, MdTabsModule,
+  MdButtonModule
+} from "@angular/material";
 import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
 import { BreadcrumbsComponent } from "./breadcrumbs/breadcrumbs.component";
 import { ChannelsComponent } from "./channels/channels.component";
 import { CheckingInputComponent } from "./checking-input/checking-input.component";
 import { CopyableComponent } from "./copyable/copyable.component";
+import { DockerExportSettingsComponent } from "./docker-export-settings/docker-export-settings.component";
+import { DisconnectConfirmDialog } from "./project-settings/dialog/disconnect-confirm/disconnect-confirm.dialog";
 import { IconComponent } from "./icon/icon.component";
 import { PackageListComponent } from "./package-list/package-list.component";
 import { ProgressBarComponent } from "./progress-bar/progress-bar.component";
+import { ProjectSettingsComponent } from "./project-settings/project-settings.component";
 import { PlatformIconComponent } from "./platform-icon/platform-icon.component";
 import { RepoFilterPipe } from "../pipes/repoFilter.pipe";
 import { TabsComponent } from "./tabs/TabsComponent";
@@ -32,6 +38,7 @@ import { UserLoggedInGuard, UserLoggedOutGuard } from "./user/user.guard";
     MdTabsModule,
     MdProgressBarModule,
     MdRadioModule,
+    MdSlideToggleModule,
     MdTooltipModule,
     MdRadioModule,
     MdButtonModule,
@@ -43,9 +50,12 @@ import { UserLoggedInGuard, UserLoggedOutGuard } from "./user/user.guard";
     ChannelsComponent,
     CheckingInputComponent,
     CopyableComponent,
+    DisconnectConfirmDialog,
+    DockerExportSettingsComponent,
     IconComponent,
     PackageListComponent,
     ProgressBarComponent,
+    ProjectSettingsComponent,
     PlatformIconComponent,
     RepoFilterPipe,
     TabsComponent,
@@ -55,17 +65,24 @@ import { UserLoggedInGuard, UserLoggedOutGuard } from "./user/user.guard";
     PackagePlanSelectComponent,
     RepoFilterPipe
   ],
+  entryComponents: [
+    DisconnectConfirmDialog
+  ],
   exports: [
     BreadcrumbsComponent,
     ChannelsComponent,
     CheckingInputComponent,
     CopyableComponent,
+    DisconnectConfirmDialog,
+    DockerExportSettingsComponent,
     IconComponent,
     MdCheckbox,
     MdRadioGroup,
     MdRadioButton,
+    MdSlideToggle,
     PackageListComponent,
     ProgressBarComponent,
+    ProjectSettingsComponent,
     PlatformIconComponent,
     RepoFilterPipe,
     TabsComponent,

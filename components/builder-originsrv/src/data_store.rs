@@ -164,7 +164,7 @@ impl DataStore {
         project.set_vcs_data(row.get("vcs_data"));
 
         if let Some(Ok(install_id)) = row.get_opt::<&str, i64>("vcs_installation_id") {
-            project.set_vcs_installation_id(install_id as u64);
+            project.set_vcs_installation_id(install_id as u32);
         }
 
         project

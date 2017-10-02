@@ -1,0 +1,25 @@
+.docker-export-settings {
+
+  h3 {
+    font-size: rem(12);
+    text-transform: uppercase;
+  }
+
+  .unconfigured {
+    font-style: italic;
+  }
+
+  .fields {
+    margin-top: 18px;
+
+    label {
+      font-weight: 600;
+      text-transform: none;
+      font-size: rem(12);
+    }
+
+    md-checkbox {
+      display: block;
+    }
+  }
+}
