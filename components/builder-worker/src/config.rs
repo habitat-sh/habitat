@@ -43,6 +43,7 @@ pub struct Config {
     pub bldr_url: String,
     /// List of Job Servers to connect to
     pub jobsrv: JobSrvCfg,
+    pub features_enabled: String,
 }
 
 impl Config {
@@ -68,6 +69,7 @@ impl Default for Config {
             bldr_channel: String::from("unstable"),
             bldr_url: url::default_bldr_url(),
             jobsrv: vec![JobSrvAddr::default()],
+            features_enabled: "".to_string(),
         }
     }
 }
@@ -106,6 +108,7 @@ mod tests {
         auth_token = "mytoken"
         data_path = "/path/to/data"
         log_path = "/path/to/logs"
+        features_enabled = "FOO,BAR"
 
         [[jobsrv]]
         host = "1:1:1:1:1:1:1:1"
@@ -129,5 +132,6 @@ mod tests {
         assert_eq!(&format!("{}", config.jobsrv[1].host), "2.2.2.2");
         assert_eq!(config.jobsrv[1].port, 9000);
         assert_eq!(config.jobsrv[1].heartbeat, 5567);
+        assert_eq!(&config.features_enabled, "FOO,BAR");
     }
 }

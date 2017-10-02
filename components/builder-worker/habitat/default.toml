@@ -2,3 +2,4 @@ log_level = "info"
 auth_token = ""
 auto_publish = true
 bldr_channel = "unstable"
+features_enabled = ""

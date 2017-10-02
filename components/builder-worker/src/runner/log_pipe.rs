@@ -35,6 +35,7 @@ pub struct LogPipe {
     job_id: u64,
     sock: zmq::Socket,
     logger: Logger,
+    line_count: u64,
 }
 
 impl LogPipe {
@@ -51,8 +52,9 @@ impl LogPipe {
 
         LogPipe {
             job_id: workspace.job.get_id(),
-            sock: sock,
-            logger: logger,
+            sock,
+            logger,
+            line_count: 0,
         }
     }
 
@@ -62,70 +64,38 @@ impl LogPipe {
     /// Contents of STDOUT are streamed before any from STDERR (if
     /// any).
     pub fn pipe(&mut self, process: &mut process::Child) -> Result<()> {
-        let mut line_count = 0;
-
         self.logger.log("About to log stdout");
         if let Some(ref mut stdout) = process.stdout {
             let reader = BufReader::new(stdout);
-            line_count = self.stream_lines(reader, line_count)?;
+            self.stream_lines(reader)?;
         }
         self.logger.log("Finished logging stdout");
         self.logger.log("About to log stderr");
         if let Some(ref mut stderr) = process.stderr {
             let reader = BufReader::new(stderr);
-            // not capturing line_count output because we don't use it
-            self.stream_lines(reader, line_count)?;
+            self.stream_lines(reader)?;
         }
         self.logger.log("Finished logging stderr");
-        self.logger.log(
-            "About to tell log_forwarder that the job is complete",
-        );
-        // Signal that the log is finished
-        let mut complete = JobLogComplete::new();
-        complete.set_job_id(self.job_id);
-        if let Err(e) = self.sock.send_str(LOG_COMPLETE, zmq::SNDMORE) {
-            self.logger.log(
-                format!("ZMQ error when sending LOG_COMPLETE: {:?}", &e).as_ref(),
-            );
-            return Err(Error::Zmq(e));
-        }
-        if let Err(e) = self.sock.send(
-            complete.write_to_bytes().unwrap().as_slice(),
-            0,
-        )
-        {
-            self.logger.log(
-                format!(
-                    "ZMQ error when sending JobLogComplete {:?} : {:?}",
-                    &complete,
-                    &e
-                ).as_ref(),
-            );
-            return Err(Error::Zmq(e));
-        }
-        self.logger.log(
-            "Finished telling log_forwarder that the job is complete",
-        );
 
+        Ok(())
+    }
+
+    pub fn pipe_stdout(&mut self, content: &[u8]) -> Result<()> {
+        self.logger.log("About to log stdout");
+        self.stream_lines(BufReader::new(content))?;
+        self.logger.log("Finished logging stdout");
         Ok(())
     }
 
     /// Send the lines of the reader out over the ZMQ socket as
     /// `JobLogChunk` messages.
     ///
-    /// `line_num` is the line number to start with when generating
+    /// `line_count` is the line number to start with when generating
     /// JobLogChunk messages. This allows us to send multiple output
-    /// to the same job (i.e. standard output and standard error);
-    /// send the first set using `line_num` = 0, send the second using
-    /// whatever value the first invocation of `stream_lines`
-    /// returned, etc.
-    ///
-    /// (I wrestled with the type system for an alternative
-    /// implementation, but it defeated me :( This seems passable in
-    /// the meantime.)
-    fn stream_lines<B: BufRead>(&mut self, reader: B, mut line_num: u64) -> Result<u64> {
+    /// to the same job (i.e. standard output and standard error).
+    fn stream_lines<B: BufRead>(&mut self, reader: B) -> Result<()> {
         for line in reader.lines() {
-            line_num = line_num + 1;
+            self.line_count += 1;
             let mut l: String = line.unwrap();
             l = l + EOL_MARKER;
 
@@ -133,7 +103,7 @@ impl LogPipe {
 
             let mut chunk = JobLogChunk::new();
             chunk.set_job_id(self.job_id);
-            chunk.set_seq(line_num);
+            chunk.set_seq(self.line_count);
             chunk.set_content(l.clone());
 
             if let Err(e) = self.sock.send_str(LOG_LINE, zmq::SNDMORE) {
@@ -156,6 +126,52 @@ impl LogPipe {
             self.logger.log("Finished sending ^ to log_forwarder");
         }
 
-        Ok(line_num)
+        Ok(())
+    }
+
+    fn complete(&mut self) {
+        self.logger.log(
+            "About to tell log_forwarder that the job is complete",
+        );
+
+        // Signal that the log is finished
+        let mut complete = JobLogComplete::new();
+        complete.set_job_id(self.job_id);
+        debug!("completing log_forwarder, job_id={}", self.job_id);
+        if let Err(e) = self.sock.send_str(LOG_COMPLETE, zmq::SNDMORE) {
+            self.logger.log(
+                format!("ZMQ error when sending LOG_COMPLETE: {:?}", &e).as_ref(),
+            );
+            warn!("ZMQ error when sending LOG_COMPLETE: {:?}", &e);
+            return;
+        }
+        if let Err(e) = self.sock.send(
+            complete.write_to_bytes().unwrap().as_slice(),
+            0,
+        )
+        {
+            self.logger.log(
+                format!(
+                    "ZMQ error when sending JobLogComplete {:?} : {:?}",
+                    &complete,
+                    &e
+                ).as_ref(),
+            );
+            warn!(
+                "ZMQ error when sending JobLogComplete {:?} : {:?}",
+                &complete,
+                &e
+            );
+            return;
+        }
+        self.logger.log(
+            "Finished telling log_forwarder that the job is complete",
+        );
+    }
+}
+
+impl Drop for LogPipe {
+    fn drop(&mut self) {
+        self.complete();
     }
 }
