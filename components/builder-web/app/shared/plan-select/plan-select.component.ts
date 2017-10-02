@@ -12,9 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Component, Input, OnInit, AfterViewInit, Output, EventEmitter } from "@angular/core";
+import { Component, Input, OnInit, AfterViewInit, Output, EventEmitter, ViewChild } from "@angular/core";
 import { FormControl, FormGroup, FormBuilder, Validators } from "@angular/forms";
 import { RouterLink } from "@angular/router";
+import { DockerExportSettingsComponent } from "../docker-export-settings/docker-export-settings.component";
 import { GitHubApiClient } from "../../GitHubApiClient";
 import { GitHubFileResponse } from "../../github/api/shared/github-file-response.model";
 import { GitHubFile } from "../../github/file/shared/github-file.model";
@@ -32,6 +33,9 @@ export class PackagePlanSelectComponent implements OnInit {
 
   @Input() ownerAndRepo: string;
   @Input() project: string;
+
+  @ViewChild("docker")
+  docker: DockerExportSettingsComponent;
 
   gitHubClient: GitHubApiClient = new GitHubApiClient(this.store.getState().gitHub.authToken);
   form: FormGroup;
@@ -51,6 +55,10 @@ export class PackagePlanSelectComponent implements OnInit {
 
   get token() {
     return this.store.getState().gitHub.authToken;
+  }
+
+  get integrations() {
+    return this.store.getState().origins.currentIntegrations.docker;
   }
 
   onTabChange(tab) {
@@ -90,14 +98,21 @@ export class PackagePlanSelectComponent implements OnInit {
 
   handleSubmit() {
     this.planSelected.emit({
-      github: {
-        organization: this.owner,
-        repo: this.repo,
+      project: {
+        github: {
+          organization: this.owner,
+          repo: this.repo,
+        },
+        plan_path: this.form.get("plan").value
       },
-      plan_path: this.form.get("plan").value
+      integrations: {
+        docker: this.docker.settings
+      }
     });
+  }
 
-    return false;
+  cancel() {
+    this.planSelectCanceled.emit(true);
   }
 
   public ngOnInit() {

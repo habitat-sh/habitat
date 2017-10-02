@@ -86,13 +86,12 @@ export const SET_PACKAGES_TOTAL_COUNT = packageActions.SET_PACKAGES_TOTAL_COUNT;
 
 export const SET_VISIBLE_PACKAGES = packageActions.SET_VISIBLE_PACKAGES;
 
-export const POPULATE_PROJECT = projectActions.POPULATE_PROJECT;
+export const CLEAR_CURRENT_PROJECT = projectActions.CLEAR_CURRENT_PROJECT;
+export const CLEAR_CURRENT_PROJECT_INTEGRATION = projectActions.CLEAR_CURRENT_PROJECT_INTEGRATION;
 export const SET_CURRENT_PROJECT = projectActions.SET_CURRENT_PROJECT;
+export const SET_CURRENT_PROJECT_INTEGRATION = projectActions.SET_CURRENT_PROJECT_INTEGRATION;
 export const SET_PROJECTS = projectActions.SET_PROJECTS;
 export const DELETE_PROJECT = projectActions.DELETE_PROJECT;
-export const DEPOPULATE_PROJECT = projectActions.DEPOPULATE_PROJECT;
-export const SET_PROJECT_HINT = projectActions.SET_PROJECT_HINT;
-export const RESET_PROJECT_HINT = projectActions.RESET_PROJECT_HINT;
 
 export const ROUTE_CHANGE = routerActions.ROUTE_CHANGE;
 export const ROUTE_REQUESTED = routerActions.ROUTE_REQUESTED;
@@ -175,11 +174,11 @@ export const getUniquePackages = packageActions.getUniquePackages;
 export const addProject = projectActions.addProject;
 export const fetchProject = projectActions.fetchProject;
 export const fetchProjects = projectActions.fetchProjects;
+export const fetchProjectIntegration = projectActions.fetchProjectIntegration;
 export const setCurrentProject = projectActions.setCurrentProject;
+export const setProjectIntegrationSettings = projectActions.setProjectIntegrationSettings;
 export const deleteProject = projectActions.deleteProject;
 export const updateProject = projectActions.updateProject;
-export const setProjectHint = projectActions.setProjectHint;
-export const resetProjectHint = projectActions.resetProjectHint;
 
 export const goHome = routerActions.goHome;
 export const routeChange = routerActions.routeChange;

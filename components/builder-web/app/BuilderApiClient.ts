@@ -208,9 +208,9 @@ export class BuilderApiClient {
         });
     }
 
-    public getProject(projectId) {
+    public getProject(origin: string, name: string) {
         return new Promise((resolve, reject) => {
-            fetch(`${this.urlPrefix}/projects/${projectId}`, {
+            fetch(`${this.urlPrefix}/projects/${origin}/${name}`, {
                 method: "GET",
                 headers: this.headers
             }).then(response => {
@@ -388,6 +388,42 @@ export class BuilderApiClient {
                 if (response.ok) {
                     resolve();
                 } else {
+                    reject(new Error(response.statusText));
+                }
+            })
+            .catch(error => reject(error));
+        });
+    }
+
+    public getProjectIntegration(origin: string, name: string, integration: string) {
+        return new Promise((resolve, reject) => {
+            fetch(`${this.urlPrefix}/projects/${origin}/${name}/integrations/${integration}/default`, {
+                headers: this.headers
+            })
+            .then(response => {
+                if (response.ok) {
+                    resolve(response.json());
+                }
+                else {
+                    reject(new Error(response.statusText));
+                }
+            })
+            .catch(error => reject(error));
+        });
+    }
+
+    public setProjectIntegrationSettings(origin: string, name: string, integration: string, settings: any) {
+        return new Promise((resolve, reject) => {
+            fetch(`${this.urlPrefix}/projects/${origin}/${name}/integrations/${integration}/default`, {
+                headers: this.headers,
+                method: "PUT",
+                body: JSON.stringify(settings)
+            })
+            .then(response => {
+                if (response.ok) {
+                    resolve();
+                }
+                else {
                     reject(new Error(response.statusText));
                 }
             })
