@@ -961,7 +961,7 @@ impl DataStore {
     ) -> SrvResult<Option<originsrv::OriginPackage>> {
         let conn = self.pool.get(ocpg)?;
         let rows = conn.query(
-            "SELECT * FROM get_origin_channel_package_v2($1, $2, $3, $4)",
+            "SELECT * FROM get_origin_channel_package_v3($1, $2, $3, $4)",
             &[
                 &ocpg.get_ident().get_origin(),
                 &ocpg.get_name(),
@@ -1008,7 +1008,7 @@ impl DataStore {
     ) -> SrvResult<Option<originsrv::OriginPackageIdent>> {
         let conn = self.pool.get(opc)?;
         let rows = conn.query(
-            "SELECT * FROM get_origin_package_latest_v3($1, $2, $3)",
+            "SELECT * FROM get_origin_package_latest_v4($1, $2, $3)",
             &[
                 &self.searchable_ident(opc.get_ident()),
                 &opc.get_target(),
@@ -1029,7 +1029,7 @@ impl DataStore {
     ) -> SrvResult<Option<originsrv::OriginPackageIdent>> {
         let conn = self.pool.get(ocpg)?;
         let rows = conn.query(
-            "SELECT * FROM get_origin_channel_package_latest_v3($1, $2, $3, $4, $5)",
+            "SELECT * FROM get_origin_channel_package_latest_v4($1, $2, $3, $4, $5)",
             &[
                 &ocpg.get_ident().get_origin(),
                 &ocpg.get_name(),
@@ -1054,7 +1054,7 @@ impl DataStore {
         let conn = self.pool.get(opvl)?;
 
         let rows = conn.query(
-            "SELECT * FROM get_origin_package_versions_for_origin_v5($1, $2, $3)",
+            "SELECT * FROM get_origin_package_versions_for_origin_v6($1, $2, $3)",
             &[
                 &opvl.get_origin(),
                 &opvl.get_name(),
@@ -1103,7 +1103,7 @@ impl DataStore {
         let conn = self.pool.get(oppl)?;
 
         let rows = conn.query(
-            "SELECT * FROM get_origin_package_platforms_for_package_v2($1, $2)",
+            "SELECT * FROM get_origin_package_platforms_for_package_v3($1, $2)",
             &[
                 &self.searchable_ident(oppl.get_ident()),
                 &(oppl.get_account_id() as i64),
@@ -1127,7 +1127,7 @@ impl DataStore {
         let conn = self.pool.get(opcl)?;
 
         let rows = conn.query(
-            "SELECT * FROM get_origin_package_channels_for_package_v2($1, $2)",
+            "SELECT * FROM get_origin_package_channels_for_package_v3($1, $2)",
             &[
                 &self.searchable_ident(opcl.get_ident()),
                 &(opcl.get_account_id() as i64),
@@ -1157,9 +1157,9 @@ impl DataStore {
         let conn = self.pool.get(opl)?;
 
         let query = if *&opl.get_distinct() {
-            "SELECT * FROM get_origin_packages_for_origin_distinct_v2($1, $2, $3, $4)"
+            "SELECT * FROM get_origin_packages_for_origin_distinct_v3($1, $2, $3, $4)"
         } else {
-            "SELECT * FROM get_origin_packages_for_origin_v3($1, $2, $3, $4)"
+            "SELECT * FROM get_origin_packages_for_origin_v4($1, $2, $3, $4)"
         };
 
         let rows = conn.query(
@@ -1242,7 +1242,7 @@ impl DataStore {
     ) -> SrvResult<originsrv::OriginPackageUniqueListResponse> {
         let conn = self.pool.get(opl)?;
         let rows = conn.query(
-            "SELECT * FROM get_origin_packages_unique_for_origin_v2($1, $2, $3, $4)",
+            "SELECT * FROM get_origin_packages_unique_for_origin_v3($1, $2, $3, $4)",
             &[
                 &opl.get_origin(),
                 &opl.limit(),
@@ -1275,7 +1275,7 @@ impl DataStore {
 
         let rows = if *&ops.get_distinct() {
             conn.query(
-                "SELECT COUNT(*) OVER () AS the_real_total, * FROM search_all_origin_packages_dynamic_v4($1, $2) ORDER BY ident LIMIT $3 OFFSET $4",
+                "SELECT COUNT(*) OVER () AS the_real_total, * FROM search_all_origin_packages_dynamic_v5($1, $2) ORDER BY ident LIMIT $3 OFFSET $4",
                 &[
                     &ops.get_query(),
                     &(ops.get_account_id() as i64),
@@ -1286,7 +1286,7 @@ impl DataStore {
         } else {
             if ops.get_origin().is_empty() {
                 conn.query(
-                    "SELECT COUNT(*) OVER () AS the_real_total, * FROM search_all_origin_packages_v3($1, $2) ORDER BY ident LIMIT $3 OFFSET $4",
+                    "SELECT COUNT(*) OVER () AS the_real_total, * FROM search_all_origin_packages_v4($1, $2) ORDER BY ident LIMIT $3 OFFSET $4",
                     &[
                         &ops.get_query(),
                         &(ops.get_account_id() as i64),
@@ -1296,7 +1296,7 @@ impl DataStore {
                 ).map_err(SrvError::OriginPackageSearch)?
             } else {
                 conn.query(
-                    "SELECT COUNT(*) OVER () AS the_real_total, * FROM search_origin_packages_for_origin_v2($1, $2, $3, $4, $5)",
+                    "SELECT COUNT(*) OVER () AS the_real_total, * FROM search_origin_packages_for_origin_v3($1, $2, $3, $4, $5)",
                     &[
                         &ops.get_origin(),
                         &ops.get_query(),
