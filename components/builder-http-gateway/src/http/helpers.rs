@@ -28,8 +28,7 @@ use protocol::originsrv::{CheckOriginOwnerRequest, CheckOriginOwnerResponse,
                           OriginPackageChannelListResponse, OriginPackageGet,
                           OriginPackageGroupPromote, OriginPackageIdent,
                           OriginPackagePlatformListRequest, OriginPackagePlatformListResponse,
-                          OriginPackagePromote, OriginPackageGroupPromoteResponse,
-                          OriginPackageVisibility};
+                          OriginPackagePromote, OriginPackageGroupPromoteResponse};
 use protocol::scheduler::{Group, GroupGet, Project, ProjectState};
 use protocol::sessionsrv::Session;
 use serde::Serialize;
@@ -56,23 +55,6 @@ pub fn get_authenticated_session(req: &mut Request) -> Option<Session> {
         None
     } else {
         Some(session.to_owned())
-    }
-}
-
-pub fn transition_visibility(
-    incoming: OriginPackageVisibility,
-    existing: OriginPackageVisibility,
-) -> Result<OriginPackageVisibility, Status> {
-    match incoming {
-        OriginPackageVisibility::Hidden => Err(status::BadRequest), // users can't manually set packages/projects to hidden
-        OriginPackageVisibility::Public => Ok(OriginPackageVisibility::Public), // setting anything to public is fine
-        OriginPackageVisibility::Private => {
-            match existing {
-                OriginPackageVisibility::Private => Ok(OriginPackageVisibility::Private), // no change, no problem
-                OriginPackageVisibility::Public => Ok(OriginPackageVisibility::Hidden),   // public packages can't be made private, only hidden
-                OriginPackageVisibility::Hidden => Ok(OriginPackageVisibility::Hidden),   // if it's hidden, keep it hidden
-            }
-        }
     }
 }
 

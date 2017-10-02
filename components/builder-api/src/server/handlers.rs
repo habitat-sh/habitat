@@ -18,6 +18,7 @@ use std::env;
 
 use base64;
 use bodyparser;
+use bldr_core::helpers::transition_visibility;
 use depot::server::check_origin_access;
 use github_api_client::HubError;
 use hab_core::package::{Identifiable, Plan};
@@ -144,6 +145,12 @@ pub fn project_privacy_toggle(req: &mut Request) -> IronResult<Response> {
         Some(v) => v,
         None => return Ok(Response::with(status::BadRequest)),
     };
+
+    // users aren't allowed to set projects to hidden manually
+    if vis.to_lowercase() == "hidden" {
+        return Ok(Response::with(status::BadRequest));
+    }
+
     let opv: OriginPackageVisibility = match vis.parse() {
         Ok(o) => o,
         Err(_) => return Ok(Response::with(status::BadRequest)),
@@ -158,12 +165,7 @@ pub fn project_privacy_toggle(req: &mut Request) -> IronResult<Response> {
 
     match route_message::<OriginProjectGet, OriginProject>(req, &project_get) {
         Ok(mut project) => {
-            let real_visibility =
-                match helpers::transition_visibility(opv, project.get_visibility()) {
-                    Ok(v) => v,
-                    Err(err) => return Ok(Response::with(err)),
-                };
-
+            let real_visibility = transition_visibility(opv, project.get_visibility());
             let mut opu = OriginProjectUpdate::new();
             project.set_visibility(real_visibility);
             opu.set_project(project);

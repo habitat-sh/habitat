@@ -15,6 +15,7 @@
 use std::error;
 use std::fmt;
 
+use bldr_core;
 use db;
 use hab_core;
 use hab_net;
@@ -29,6 +30,7 @@ pub type SrvResult<T> = Result<T, SrvError>;
 #[derive(Debug)]
 pub enum SrvError {
     BadPort(String),
+    BuilderCore(bldr_core::Error),
     ConnErr(hab_net::conn::ConnErr),
     Db(db::error::Error),
     DbPoolTimeout(r2d2::GetTimeout),
@@ -96,12 +98,14 @@ pub enum SrvError {
     SyncInvitationsUpdate(postgres::error::Error),
     Protobuf(protobuf::ProtobufError),
     UnknownOriginPackageVisibility(protocol::originsrv::Error),
+    VisibilityCascade(postgres::error::Error),
 }
 
 impl fmt::Display for SrvError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
             SrvError::BadPort(ref e) => format!("{} is an invalid port. Valid range 1-65535.", e),
+            SrvError::BuilderCore(ref e) => format!("{}", e),
             SrvError::ConnErr(ref e) => format!("{}", e),
             SrvError::Db(ref e) => format!("{}", e),
             SrvError::DbTransactionStart(ref e) => {
@@ -310,6 +314,7 @@ impl fmt::Display for SrvError {
             SrvError::OriginUpdate(ref e) => format!("Error updating origin, {}", e),
             SrvError::Protobuf(ref e) => format!("{}", e),
             SrvError::UnknownOriginPackageVisibility(ref e) => format!("{}", e),
+            SrvError::VisibilityCascade(ref e) => format!("{}", e),
         };
         write!(f, "{}", msg)
     }
@@ -321,6 +326,7 @@ impl error::Error for SrvError {
             SrvError::BadPort(_) => {
                 "Received an invalid port or a number outside of the valid range."
             }
+            SrvError::BuilderCore(ref err) => err.description(),
             SrvError::ConnErr(ref err) => err.description(),
             SrvError::Db(ref err) => err.description(),
             SrvError::DbTransactionStart(ref err) => err.description(),
@@ -388,6 +394,7 @@ impl error::Error for SrvError {
             SrvError::SyncInvitationsUpdate(ref err) => err.description(),
             SrvError::Protobuf(ref err) => err.description(),
             SrvError::UnknownOriginPackageVisibility(ref err) => err.description(),
+            SrvError::VisibilityCascade(ref err) => err.description(),
         }
     }
 }

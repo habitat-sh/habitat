@@ -20,6 +20,7 @@ use std::str::FromStr;
 
 use base64;
 use bldr_core;
+use bldr_core::helpers::transition_visibility;
 use bodyparser;
 use hab_core::package::{Identifiable, FromArchive, PackageArchive, PackageIdent, PackageTarget,
                         ident};
@@ -1491,6 +1492,12 @@ fn package_privacy_toggle(req: &mut Request) -> IronResult<Response> {
         Some(v) => v,
         None => return Ok(Response::with(status::BadRequest)),
     };
+
+    // users aren't allowed to set packages to hidden manually
+    if visibility.to_lowercase() == "hidden" {
+        return Ok(Response::with(status::BadRequest));
+    }
+
     let ident = ident_from_params(&params);
 
     if !ident.valid() || !ident.fully_qualified() {
@@ -1516,12 +1523,7 @@ fn package_privacy_toggle(req: &mut Request) -> IronResult<Response> {
 
     match route_message::<OriginPackageGet, OriginPackage>(req, &opg) {
         Ok(mut package) => {
-            let real_visibility =
-                match helpers::transition_visibility(opv, package.get_visibility()) {
-                    Ok(v) => v,
-                    Err(err) => return Ok(Response::with(err)),
-                };
-
+            let real_visibility = transition_visibility(opv, package.get_visibility());
             let mut opu = OriginPackageUpdate::new();
             package.set_visibility(real_visibility);
             opu.set_pkg(package);

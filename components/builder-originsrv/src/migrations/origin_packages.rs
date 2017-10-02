@@ -674,5 +674,38 @@ pub fn migrate(migrator: &mut Migrator) -> SrvResult<()> {
                          RETURN;
                      END
                  $$ LANGUAGE plpgsql VOLATILE"#)?;
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE OR REPLACE FUNCTION get_all_origin_packages_for_ident_v1 (
+                    op_ident text
+                 ) RETURNS SETOF origin_packages AS $$
+                    BEGIN
+                        RETURN QUERY SELECT * FROM origin_packages WHERE ident LIKE (op_ident || '%') ORDER BY ident;
+                        RETURN;
+                    END
+                    $$ LANGUAGE plpgsql STABLE"#,
+    )?;
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE OR REPLACE FUNCTION get_all_origin_packages_for_origin_v1 (
+                    op_id bigint
+                 ) RETURNS SETOF origin_packages AS $$
+                    BEGIN
+                        RETURN QUERY SELECT * FROM origin_packages WHERE id = op_id;
+                        RETURN;
+                    END
+                    $$ LANGUAGE plpgsql STABLE"#,
+    )?;
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE OR REPLACE FUNCTION update_package_visibility_in_bulk_v1 (
+                    op_visibility text,
+                    op_ids bigint[]
+                 ) RETURNS void AS $$
+                        UPDATE origin_packages
+                        SET visibility = op_visibility
+                        WHERE id IN (SELECT(unnest(op_ids)));
+                    $$ LANGUAGE SQL VOLATILE"#,
+    )?;
     Ok(())
 }
