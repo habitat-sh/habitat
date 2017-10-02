@@ -66,28 +66,20 @@ body.body-article {
   .is-active > a {
     font-weight: bold;
     color: $hab-primary;
-
-    &:before {
-      content: "";
-      position: absolute;
-      right: 0;
-      top: 50%;
-      transform: translateY(-50%);
-      width: rem-calc(12);
-      height: rem-calc(12);
-      background: url('/images/icons/sidebar-active.png') no-repeat;
-      background-size: 100% auto;
-    }
   }
 
   @include breakpoint(medium) {
     @include grid-column(3);
     padding: rem-calc(20) 0;
   }
+
+  .sticky {
+    width: rem-calc(260);
+  }
 }
 
 .main-sidebar--search {
-  margin-bottom: rem-calc(30);
+  margin-bottom: rem-calc(15);
 
   [type='text'] {
     padding: rem-calc(10) rem-calc(20);
@@ -99,8 +91,12 @@ body.body-article {
     // overrides for Swiftype
     box-sizing: border-box;
     font-size: 1rem;
-    width: 100%;
+    width: 90%;
     font-family: inherit;
+
+    @include breakpoint(large) {
+      width: 100%;
+    }
   }
 }
 
@@ -125,6 +121,22 @@ body.body-article {
 
   @include breakpoint(large) {
     min-width: rem-calc(220);
+  }
+}
+
+.menu  { // specifity to override zurb defaults
+  li.main-sidebar--list--item a {
+    padding: .5rem 1rem;
+  }
+
+  &.nested {
+    li:first-child {
+      margin-top: .5rem;
+    }
+
+    li.main-sidebar--list--item a {
+      padding: .33rem 1rem;
+    }
   }
 }
 

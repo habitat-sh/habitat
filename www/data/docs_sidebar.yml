@@ -4,126 +4,126 @@ sidebar_links:
   links:
   - title: Docs Home
     link: "/docs"
-  - title: Using Habitat <span>&plus;</span>
+  - title: Using Habitat
     link: "/docs/using-habitat"
     sub_links:
     - title: Overview
-      link: "#overview"
+      link: "/docs/using-habitat/#overview"
     - title: Installing Habitat
-      link: "#install-habitat"
+      link: "/docs/using-habitat/#install-habitat"
     - title: Install FAQ
-      link: "#install-faq"
+      link: "/docs/using-habitat/#install-faq"
     - title: Using Habitat Packages
-      link: "#using-packages"
+      link: "/docs/using-habitat/#using-packages"
     - title: Service Groups
-      link: "#service-groups"
+      link: "/docs/using-habitat/#service-groups"
     - title: Topologies
-      link: "#topologies"
+      link: "/docs/using-habitat/#topologies"
     - title: Config Updates
-      link: "#config-updates"
+      link: "/docs/using-habitat/#config-updates"
     - title: File Uploads
-      link: "#file-uploads"
+      link: "/docs/using-habitat/#file-uploads"
     - title: Encryption
-      link: "#using-encryption"
+      link: "/docs/using-habitat/#using-encryption"
     - title: Update Strategies
-      link: "#using-updates"
-  - title: Developing Packages <span>&plus;</span>
+      link: "/docs/using-habitat/#using-updates"
+  - title: Developing Packages
     link: "/docs/developing-packages"
     sub_links:
     - title: Writing a Plan.sh
-      link: "#write-plans"
+      link: "/docs/developing-packages/#write-plans"
     - title: Config Templates
-      link: "#add-configuration"
+      link: "/docs/developing-packages/#add-configuration"
     - title: Binds and Exports
-      link: "#pkg-binds"
+      link: "/docs/developing-packages/#pkg-binds"
     - title: Plan Builds
-      link: "#plan-builds"
+      link: "/docs/developing-packages/#plan-builds"
     - title: Troubleshooting Builds
-      link: "#debug-builds"
+      link: "/docs/developing-packages/#debug-builds"
     - title: Package Export Formats
-      link: "#pkg-exports"
+      link: "/docs/developing-packages/#pkg-exports"
     - title: Share via Builder
-      link: "#sharing-pkgs"
-  - title: Commands (CLI) <span>&plus;</span>
+      link: "/docs/developing-packages/#sharing-pkgs"
+  - title: Commands (CLI)
     link: "/docs/habitat-cli"
-  - title: Best Practice Guides <span>&plus;</span>
+  - title: Best Practice Guides
     link: "/docs/best-practices"
     sub_links:
     - title: Quickstart Guide
-      link: "#quickstart-guide"
+      link: "/docs/best-practices/#quickstart-guide"
     - title: Container Orchestration
-      link: "#container-orchestration"
+      link: "/docs/best-practices/#container-orchestration"
     - title: Kubernetes
-      link: "#kubernetes"
+      link: "/docs/best-practices/#kubernetes"
     - title: "ECS and Habitat"
-      link: "#ecs-and-habitat"
+      link: "/docs/best-practices/#ecs-and-habitat"
     - title: "Apache Mesos and DC/OS"
-      link: "#mesos-dcos"
+      link: "/docs/best-practices/#mesos-dcos"
     - title: "Advanced Plan.sh Writing"
-      link: "#planwriting-guide"
+      link: "/docs/best-practices/#planwriting-guide"
     - title: Iterative Development
-      link: "#iterative-development"
+      link: "/docs/best-practices/#iterative-development"
     - title: "Binary Wrapper Packages"
-      link: "#binary-wrapper"
-  - title: Reference <span>&plus;</span>
+      link: "/docs/best-practices/#binary-wrapper"
+  - title: Reference
     link: "/docs/reference"
     sub_links:
     - title: Environment Variables
-      link: "#environment-variables"
+      link: "/docs/reference/#environment-variables"
     - title: Plan Settings
-      link: "#plan-settings"
+      link: "/docs/reference/#plan-settings"
     - title: Plan Variables
-      link: "#plan-variables"
+      link: "/docs/reference/#plan-variables"
     - title: Plan Helper Functions
-      link: "#utility-functions"
+      link: "/docs/reference/#utility-functions"
     - title: Build Phase Callbacks
-      link: "#reference-callbacks"
+      link: "/docs/reference/#reference-callbacks"
     - title: Application Lifecycle Hooks
-      link: "#reference-hooks"
+      link: "/docs/reference/#reference-hooks"
     - title: Handlebars Helpers
-      link: "#handlebars-helpers"
+      link: "/docs/reference/#handlebars-helpers"
     - title: Template Data
-      link: "#template-data"
+      link: "/docs/reference/#template-data"
     - title: Package Contents
-      link: "#package-contents"
+      link: "/docs/reference/#package-contents"
     - title: Supervisor Log Keys
-      link: "#sup-log-keys"
+      link: "/docs/reference/#sup-log-keys"
     - title: Infographics
-      link: "#infographics"
-  - title: Glossary <span>&plus;</span>
+      link: "/docs/reference/#infographics"
+  - title: Glossary
     link: "/docs/glossary"
     sub_links:
     - title: Hab
-      link: "#glossary-hab"
+      link: "/docs/glossary/#glossary-hab"
     - title: Supervisor
-      link: "#glossary-supervisor"
+      link: "/docs/glossary/#glossary-supervisor"
     - title: Plans
-      link: "#glossary-plan"
+      link: "/docs/glossary/#glossary-plan"
     - title: Application Lifecycle Hooks
-      link: "#glossary-hooks"
+      link: "/docs/glossary/#glossary-hooks"
     - title: Scaffolding
-      link: "#glossary-scaffolding"
+      link: "/docs/glossary/#glossary-scaffolding"
     - title: Packages
-      link: "#glossary-packages"
+      link: "/docs/glossary/#glossary-packages"
     - title: Keys
-      link: "#glossary-keys"
+      link: "/docs/glossary/#glossary-keys"
     - title: Studio
-      link: "#glossary-studio"
+      link: "/docs/glossary/#glossary-studio"
     - title: Services
-      link: "#glossary-services"
+      link: "/docs/glossary/#glossary-services"
     - title: Builder
-      link: "#glossary-builder"
-  - title: Internals <span>&plus;</span>
+      link: "/docs/glossary/#glossary-builder"
+  - title: Internals
     link: "/docs/internals"
     sub_links:
     - title: Supervisor
-      link: "#supervisor-internals"
+      link: "/docs/internals/#supervisor-internals"
     - title: Leader Election
-      link: "#election-internals"
+      link: "/docs/internals/#election-internals"
     - title: Crypto
-      link: "#crypto-internals"
+      link: "/docs/internals/#crypto-internals"
     - title: Bottstrapping Habitat
-      link: "#bootstrap-internals"
+      link: "/docs/internals/#bootstrap-internals"
   - title: Contribute
     link: "/docs/contribute"
   - title: Explore Habitat Builder
