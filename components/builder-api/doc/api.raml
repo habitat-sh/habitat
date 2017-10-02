@@ -533,7 +533,21 @@ securitySchemes:
                     description: Project deleted successfully
                 404:
                     description: Project not found
-
+        /{visibility}:
+            patch:
+                description: |
+                    Toggle the visibility settings on a project. Public projects that are made
+                    private will change to hidden instead. Changes made to a project's
+                    visibility settings will cascade to its packages.
+                responses:
+                    204:
+                        description: Visibility settings toggled successfully
+                    400:
+                        description: Missing origin, name, visibility. Visibility other than public or private submitted.
+                    403:
+                        description: Not authorized to modify this origin
+                    500:
+                        description: Internal server error
         /jobs:
             get:
                 description: |
