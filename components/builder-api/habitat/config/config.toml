@@ -10,6 +10,7 @@ root = "{{pkg.svc_static_path}}"
 {{toToml cfg.web}}
 
 [github]
+app_private_key_path = "{{pkg.svc_files_path}}/builder-github-app.pem"
 {{toToml cfg.github}}
 
 {{~#eachAlive bind.router.members as |member|}}
