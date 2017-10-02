@@ -407,5 +407,44 @@ pub fn migrate(migrator: &mut Migrator) -> SrvResult<()> {
                             WHERE id = project_id;
                      END
                  $$ LANGUAGE plpgsql VOLATILE"#)?;
+    migrator.migrate(
+        "originsrv",
+        r#"CREATE OR REPLACE FUNCTION insert_origin_project_v4 (
+                        project_origin_name text,
+                        project_package_name text,
+                        project_plan_path text,
+                        project_vcs_type text,
+                        project_vcs_data text,
+                        project_owner_id bigint,
+                        project_vcs_installation_id bigint,
+                        project_visibility text
+                 ) RETURNS SETOF origin_projects AS $$
+                     BEGIN
+                         RETURN QUERY INSERT INTO origin_projects (origin_id,
+                                                      origin_name,
+                                                      package_name,
+                                                      name,
+                                                      plan_path,
+                                                      owner_id,
+                                                      vcs_type,
+                                                      vcs_data,
+                                                      vcs_installation_id,
+                                                      visibility)
+                                VALUES (
+                                    (SELECT id FROM origins where name = project_origin_name),
+                                    project_origin_name,
+                                    project_package_name,
+                                    project_origin_name || '/' || project_package_name,
+                                    project_plan_path,
+                                    project_owner_id,
+                                    project_vcs_type,
+                                    project_vcs_data,
+                                    project_vcs_installation_id,
+                                    project_visibility)
+                                RETURNING *;
+                         RETURN;
+                     END
+                 $$ LANGUAGE plpgsql VOLATILE"#,
+    )?;
     Ok(())
 }

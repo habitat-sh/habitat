@@ -418,6 +418,7 @@ pub fn project_create(req: &mut Request) -> IronResult<Response> {
         }
         _ => return Ok(Response::with(status::UnprocessableEntity)),
     };
+
     let origin = match route_message::<OriginGet, Origin>(req, &origin_get) {
         Ok(response) => response,
         Err(err) => return Ok(render_net_error(&err)),
@@ -452,6 +453,7 @@ pub fn project_create(req: &mut Request) -> IronResult<Response> {
     }
 
     project.set_owner_id(session.get_id());
+    project.set_visibility(origin.get_default_package_visibility());
     request.set_project(project);
     match route_message::<OriginProjectCreate, OriginProject>(req, &request) {
         Ok(response) => {

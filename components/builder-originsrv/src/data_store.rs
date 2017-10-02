@@ -243,6 +243,7 @@ impl DataStore {
     ) -> SrvResult<originsrv::OriginProject> {
         let conn = self.pool.get(opc)?;
         let project = opc.get_project();
+        let visibility = format!("{}", project.get_visibility());
         let install_id: Option<i64> = {
             if project.has_vcs_installation_id() {
                 Some(project.get_vcs_installation_id() as i64)
@@ -251,7 +252,7 @@ impl DataStore {
             }
         };
         let rows = conn.query(
-            "SELECT * FROM insert_origin_project_v3($1, $2, $3, $4, $5, $6, $7, $8)",
+            "SELECT * FROM insert_origin_project_v4($1, $2, $3, $4, $5, $6, $7, $8)",
             &[
                 &project.get_origin_name(),
                 &project.get_package_name(),
@@ -260,6 +261,7 @@ impl DataStore {
                 &project.get_vcs_data(),
                 &(project.get_owner_id() as i64),
                 &install_id,
+                &visibility,
             ],
         ).map_err(SrvError::OriginProjectCreate)?;
         let row = rows.get(0);
