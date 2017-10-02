@@ -27,6 +27,7 @@ protobuf = "*"
 retry = "*"
 serde = "*"
 serde_derive = "*"
+serde_json = "*"
 toml = { version = "*", features = ["serde"], default-features = false }
 url = "*"
 

@@ -38,6 +38,7 @@ pub enum Error {
     GithubAppAuthErr(github_api_client::HubError),
     HabitatCore(hab_core::Error),
     IO(io::Error),
+    InvalidIntegrations(String),
     NoAuthTokenError,
     NotHTTPSCloneUrl(url::Url),
     Protobuf(protobuf::ProtobufError),
@@ -62,6 +63,7 @@ impl fmt::Display for Error {
             Error::CannotAddCreds => format!("Cannot add credentials to url"),
             Error::HabitatCore(ref e) => format!("{}", e),
             Error::IO(ref e) => format!("{}", e),
+            Error::InvalidIntegrations(ref s) => format!("Invalid integration: {}", s),
             Error::NoAuthTokenError => format!("No auth_token config specified"),
             Error::NotHTTPSCloneUrl(ref e) => {
                 format!(
@@ -96,6 +98,7 @@ impl error::Error for Error {
             Error::CannotAddCreds => "Cannot add credentials to url",
             Error::HabitatCore(ref err) => err.description(),
             Error::IO(ref err) => err.description(),
+            Error::InvalidIntegrations(_) => "Invalid integrations detected",
             Error::NoAuthTokenError => "No auth_token config specified",
             Error::NotHTTPSCloneUrl(_) => "Only HTTPS clone urls are supported",
             Error::Protobuf(ref err) => err.description(),

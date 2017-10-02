@@ -42,15 +42,27 @@ lazy_static! {
 
 const DOCKER_HOST_ENVVAR: &'static str = "DOCKER_HOST";
 
+pub struct DockerExporterSpec {
+    pub username: String,
+    pub password: String,
+    pub docker_hub_repo_name: String,
+    pub latest_tag: bool,
+    pub version_tag: bool,
+    pub version_release_tag: bool,
+    pub custom_tag: Option<String>,
+}
+
 pub struct DockerExporter<'a> {
+    spec: DockerExporterSpec,
     workspace: &'a Workspace,
     bldr_url: &'a str,
 }
 
 impl<'a> DockerExporter<'a> {
     /// Creates a new Docker exporter for a given `Workspace` and Builder URL.
-    pub fn new(workspace: &'a Workspace, bldr_url: &'a str) -> Self {
+    pub fn new(spec: DockerExporterSpec, workspace: &'a Workspace, bldr_url: &'a str) -> Self {
         DockerExporter {
+            spec,
             workspace,
             bldr_url,
         }
@@ -82,17 +94,25 @@ impl<'a> DockerExporter<'a> {
         cmd.arg(&self.bldr_url);
         cmd.arg("--url");
         cmd.arg(&self.bldr_url);
-        cmd.arg("--tag-latest");
-        cmd.arg("--tag-version");
-        cmd.arg("--tag-version-release");
-        // TODO fn: enable push once passwords are gettable
-        // cmd.arg("--push-image");
-        // cmd.arg("--username");
-        // cmd.arg(username);
-        // cmd.arg("--password");
-        // cmd.arg(password);
-        // TODO fn: cleanup image once pushing is rolling
-        // cmd.arg("--rm-image");
+        if self.spec.latest_tag {
+            cmd.arg("--tag-latest");
+        }
+        if self.spec.version_tag {
+            cmd.arg("--tag-version");
+        }
+        if self.spec.version_release_tag {
+            cmd.arg("--tag-version-release");
+        }
+        if let Some(ref custom_tag) = self.spec.custom_tag {
+            cmd.arg("--tag-custom");
+            cmd.arg(custom_tag);
+        }
+        cmd.arg("--push-image");
+        cmd.arg("--username");
+        cmd.arg(&self.spec.username);
+        cmd.arg("--password");
+        cmd.arg(&self.spec.password);
+        cmd.arg("--rm-image");
         cmd.arg(self.workspace.last_built()?.path); // Locally built artifact
         debug!("building docker export command, cmd={:?}", &cmd);
 

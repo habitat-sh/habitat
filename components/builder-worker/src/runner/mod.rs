@@ -18,6 +18,7 @@ mod postprocessor;
 mod publisher;
 mod studio;
 mod toml_builder;
+mod util;
 mod workspace;
 
 use std::path::PathBuf;
@@ -162,6 +163,10 @@ impl Runner {
     }
 
     pub fn run(mut self) -> Job {
+        if let Some(err) = util::validate_integrations(&self.workspace).err() {
+            error!("failed to validate integrations err={:?}", err);
+            return self.fail(net::err(ErrCode::INVALID_INTEGRATIONS, "wk:run:7"));
+        };
         if let Some(err) = self.setup().err() {
             error!("failed to setup workspace err={:?}", err);
             return self.fail(net::err(ErrCode::WORKSPACE_SETUP, "wk:run:1"));
@@ -268,13 +273,16 @@ impl Runner {
             return Err(Error::BuildFailure(status.code().unwrap_or(-2)));
         }
 
-        if feat::is_enabled(feat::Docker) && status.success() {
+        if self.has_docker_integration() && status.success() {
             // TODO fn: This check should be updated in PackageArchive is check for run hooks.
             if self.workspace.last_built()?.is_a_service() {
                 debug!("found runnable package, running docker export");
                 log_pipe.pipe_stdout(b"\n--- BEGIN: Docker export ---\n")?;
-                status = DockerExporter::new(&self.workspace, &self.config.bldr_url)
-                    .export(&mut log_pipe)?;
+                status = DockerExporter::new(
+                    util::docker_exporter_spec(&self.workspace),
+                    &self.workspace,
+                    &self.config.bldr_url,
+                ).export(&mut log_pipe)?;
                 log_pipe.pipe_stdout(b"\n--- END: Docker export ---\n")?;
             } else {
                 debug!("package not runnable, skipping docker export");
@@ -343,6 +351,15 @@ impl Runner {
         }
 
         // TODO fn: purge the secret origin key from worker
+    }
+
+    /// Determines whether or not there is a Docker integration for the job.
+    ///
+    /// TODO fn: remember that for the time being we are only expecting a Docker export integration
+    /// and we are assuming that any calls to this method will happen after the integration data
+    /// has been validated.
+    fn has_docker_integration(&self) -> bool {
+        feat::is_enabled(feat::Docker) && !self.workspace.job.get_project_integrations().is_empty()
     }
 }
 

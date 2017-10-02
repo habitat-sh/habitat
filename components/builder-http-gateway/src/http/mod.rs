@@ -52,6 +52,7 @@ pub fn net_err_to_http(err: ErrCode) -> Status {
         ErrCode::DATA_STORE |
         ErrCode::WORKSPACE_SETUP |
         ErrCode::SECRET_KEY_IMPORT |
+        ErrCode::INVALID_INTEGRATIONS |
         ErrCode::REG_CONFLICT |
         ErrCode::REG_NOT_FOUND => Status::InternalServerError,
     }
