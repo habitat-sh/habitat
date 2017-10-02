@@ -10,7 +10,6 @@ web_url = "https://github.com"
 client_id = ""
 client_secret = ""
 app_id = 5565
-app_private_key_path = "/hab/svc/builder-worker/files/github_app_private_key.pem"
 
 [web]
 app_url               = "https://bldr.habitat.sh"

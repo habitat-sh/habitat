@@ -240,30 +240,13 @@ pub fn session_create(github: &GitHubClient, token: &str) -> IronResult<Session>
     }
     match github.user(&token) {
         Ok(user) => {
-            // Select primary email. If no primary email can be found, use any email. If
-            // no email is associated with account return an access denied error.
-            let email = match github.emails(&token) {
-                Ok(ref emails) => {
-                    emails
-                        .iter()
-                        .find(|e| e.primary)
-                        .unwrap_or(&emails[0])
-                        .email
-                        .clone()
-                }
-                Err(e) => {
-                    let err = NetError::new(ErrCode::ACCESS_DENIED, "net:session-create:0");
-                    debug!("{}, {}", err, e);
-                    let status = net_err_to_http(err.get_code());
-                    let body = itry!(serde_json::to_string(&err));
-                    return Err(IronError::new(err, (body, status)));
-                }
-            };
             let mut conn = RouteBroker::connect().unwrap();
             let mut request = SessionCreate::new();
             request.set_token(token.to_string());
-            request.set_extern_id(user.id);
-            request.set_email(email);
+            request.set_extern_id(user.id as u64);
+            if let Some(email) = user.email {
+                request.set_email(email);
+            }
             request.set_name(user.login);
             request.set_provider(OAuthProvider::GitHub);
             match conn.route::<SessionCreate, Session>(&request) {

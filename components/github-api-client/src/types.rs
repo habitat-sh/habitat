@@ -18,13 +18,6 @@ use base64;
 
 use error::{HubError, HubResult};
 
-// These OAuth scopes are required for a user to be authenticated. If this list is updated, then
-// the front-end also needs to be updated in `components/builder-web/app/util.ts`. Both the
-// front-end app and back-end app should have identical requirements to make things easier for
-// our users and less cumbersome for us to message out.
-// https://developer.github.com/v3/oauth/#scopes
-const AUTH_SCOPES: &'static [&'static str] = &["user:email", "read:org"];
-
 #[derive(Debug, Deserialize, Serialize)]
 pub struct App {
     pub id: u32,
@@ -65,23 +58,6 @@ pub struct AuthOk {
     pub access_token: String,
     pub scope: String,
     pub token_type: String,
-}
-
-impl AuthOk {
-    pub fn missing_auth_scopes(&self) -> Vec<&'static str> {
-        let mut scopes = vec![];
-        for scope in AUTH_SCOPES.iter() {
-            if !self.scope.split(",").collect::<Vec<&str>>().iter().any(
-                |p| {
-                    p == scope
-                },
-            )
-            {
-                scopes.push(*scope);
-            }
-        }
-        scopes
-    }
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -225,7 +201,7 @@ pub struct GitHubAppInstallation {
 #[serde(default)]
 pub struct GitHubWebhookSender {
     pub login: String,
-    pub id: u64,
+    pub id: u32,
     pub avatar_url: String,
     pub gravatar_id: Option<String>,
     pub url: String,
@@ -254,7 +230,7 @@ pub struct GitHubOwner {
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[serde(default)]
 pub struct PushRepository {
-    pub id: u64,
+    pub id: u32,
     pub name: String,
     pub full_name: String,
     pub owner: Organization,
@@ -273,7 +249,7 @@ pub struct PushRepository {
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Repository {
-    pub id: u64,
+    pub id: u32,
     pub name: String,
     pub full_name: String,
     pub owner: User,
@@ -293,7 +269,7 @@ pub struct Repository {
 #[serde(default)]
 pub struct Organization {
     pub login: String,
-    pub id: u64,
+    pub id: u32,
     pub avatar_url: String,
     pub url: String,
     pub company: Option<String>,
@@ -317,7 +293,7 @@ pub struct Organization {
 #[derive(Debug, Default, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Team {
-    pub id: u64,
+    pub id: u32,
     pub url: String,
     pub name: String,
     pub slug: String,
@@ -326,16 +302,15 @@ pub struct Team {
     pub permission: String,
     pub members_url: String,
     pub repositories_url: String,
-    pub members_count: u64,
-    pub repos_count: u64,
+    pub members_count: u32,
+    pub repos_count: u32,
     pub organization: Organization,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
-#[serde(default)]
 pub struct User {
     pub login: String,
-    pub id: u64,
+    pub id: u32,
     pub avatar_url: String,
     pub gravatar_id: String,
     pub url: String,
@@ -349,7 +324,6 @@ pub struct User {
     pub repos_url: String,
     pub events_url: String,
     pub received_events_url: String,
-    pub site_admin: bool,
     pub name: Option<String>,
     pub company: Option<String>,
     pub blog: Option<String>,
@@ -365,16 +339,17 @@ pub struct User {
     pub updated_at: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Email {
-    pub email: String,
-    pub primary: bool,
-    pub verified: bool,
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct UserPlan {
+    pub name: String,
+    pub space: u32,
+    pub private_repos: u32,
+    pub collaborators: u32,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Search {
-    pub total_count: u64,
+    pub total_count: u32,
     pub incomplete_results: bool,
     pub items: Vec<SearchItem>,
 }
@@ -388,5 +363,18 @@ pub struct SearchItem {
     pub git_url: String,
     pub html_url: String,
     pub repository: Repository,
-    pub score: f64,
+    pub score: f32,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct TeamMembership {
+    pub url: String,
+    pub role: String,
+    pub state: String,
+}
+
+impl TeamMembership {
+    pub fn active(&self) -> bool {
+        self.state == "active"
+    }
 }

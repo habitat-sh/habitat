@@ -15,7 +15,7 @@
 use std::env;
 
 use hab_net::app::prelude::*;
-use hab_net::privilege::{self, FeatureFlags};
+use hab_net::privilege::FeatureFlags;
 
 use protocol::net;
 use protocol::sessionsrv as proto;
@@ -119,40 +119,42 @@ pub fn session_create(
     if env::var_os("HAB_FUNC_TEST").is_some() {
         flags = FeatureFlags::all();
     } else {
-        let teams = match state.github.teams(msg.get_token()) {
-            Ok(teams) => teams,
-            Err(_) => {
-                let err = NetError::new(ErrCode::ACCESS_DENIED, "ss:session-create:0");
-                conn.route_reply(req, &*err)?;
-                return Ok(());
-            }
-        };
-        for team in teams {
-            if team.id != 0 && team.id == state.permissions.admin_team {
-                debug!(
-                    "Granting feature flag={:?} for team={:?}",
-                    privilege::ADMIN,
-                    team.name
-                );
-                flags.set(privilege::ADMIN, true);
-            }
-            if team.id != 0 && state.permissions.early_access_teams.contains(&team.id) {
-                debug!(
-                    "Granting feature flag={:?} for team={:?}",
-                    privilege::EARLY_ACCESS,
-                    team.name
-                );
-                flags.set(privilege::EARLY_ACCESS, true);
-            }
-            if team.id != 0 && state.permissions.build_worker_teams.contains(&team.id) {
-                debug!(
-                    "Granting feature flag={:?} for team={:?}",
-                    privilege::BUILD_WORKER,
-                    team.name
-                );
-                flags.set(privilege::BUILD_WORKER, true);
-            }
-        }
+        // JW TODO: We need to revisit how we configure teams for granting feature flags. The
+        // endpoints of the GitHub API that an App has access to is different than what is available
+        // to a personal access token. This is safe to comment out for now since we haven't piped
+        // feature flags into the front-end, but we should re-enable this at some point in the near
+        // future.
+        //     match state.github.check_team_membership(1995301, msg.get_name()) {
+        //         Ok(membership) => {
+        //             if membership.active() {
+        //                 debug!("Granting feature flag={:?}", privilege::ADMIN);
+        //                 flags.set(privilege::ADMIN, true);
+        //             }
+        //         }
+        //         Err(err) => warn!("Failed to check team membership, {}", err),
+        //     }
+        //     for team in state.permissions.early_access_teams.iter() {
+        //         match state.github.check_team_membership(*team, msg.get_name()) {
+        //             Ok(membership) => {
+        //                 if membership.active() {
+        //                     debug!("Granting feature flag={:?}", privilege::EARLY_ACCESS);
+        //                     flags.set(privilege::EARLY_ACCESS, true);
+        //                 }
+        //             }
+        //             Err(err) => warn!("Failed to check team membership, {}", err),
+        //         }
+        //     }
+        //     for team in state.permissions.build_worker_teams.iter() {
+        //         match state.github.check_team_membership(*team, msg.get_name()) {
+        //             Ok(membership) => {
+        //                 if membership.active() {
+        //                     debug!("Granting feature flag={:?}", privilege::BUILD_WORKER);
+        //                     flags.set(privilege::BUILD_WORKER, true);
+        //                 }
+        //             }
+        //             Err(err) => warn!("Failed to check team membership, {}", err),
+        //         }
+        //     }
     }
     session.set_flags(flags.bits());
     session.set_token(msg.take_token());

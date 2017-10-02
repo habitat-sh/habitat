@@ -6,10 +6,10 @@ This document outlines the steps to start and run a Builder environment for deve
 ## Pre-Reqs
 1. Use a Linux OS - either native or VM.
 1. Clone the habitat repo to your local filesystem. (If using a VM, you should use the local filesystem for the hab repo instead of using a mounted filesystem, otherwise things may fail later when running services).
-1. Ensure you have a Github auth token. Create from the Github site if you don't have one already. Token Capabilities needed: read:org, user:email
 1. The sample commands below use the 'httpie' tool. Install it if not present on your system (https://github.com/jkbrzt/httpie).
 1. A recent version of the habitat cli should also be installed in your dev environment (https://www.habitat.sh/docs/get-habitat/)
 1. Ensure that `sudo -E` functions correctly. Some OSes don't respect the -E flag. If this is the case, remove the `secure_path` section of your sudoers file.
+1. Copy `habitat-builder-dev.2017-10-02.private-key.pem` from 1Password into `.secrets/builder-github-app.pem`
 
 ## Bootstrap the OS with required packages
 You need to make sure you have the required packages installed.
