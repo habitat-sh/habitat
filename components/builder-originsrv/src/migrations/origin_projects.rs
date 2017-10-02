@@ -236,7 +236,8 @@ pub fn migrate(migrator: &mut Migrator) -> SrvResult<()> {
                         project_vcs_type text,
                         project_vcs_data text,
                         project_owner_id bigint,
-                        project_vcs_installation_id bigint
+                        project_vcs_installation_id bigint,
+                        project_visibility text
                  ) RETURNS void AS $$
                      BEGIN
                         UPDATE origin_projects SET
@@ -247,7 +248,8 @@ pub fn migrate(migrator: &mut Migrator) -> SrvResult<()> {
                             vcs_data = project_vcs_data,
                             owner_id = project_owner_id,
                             updated_at = now(),
-                            vcs_installation_id = project_vcs_installation_id
+                            vcs_installation_id = project_vcs_installation_id,
+                            visibility = project_visibility
                             WHERE id = project_id;
                      END
                  $$ LANGUAGE plpgsql VOLATILE"#)?;

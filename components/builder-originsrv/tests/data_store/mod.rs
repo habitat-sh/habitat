@@ -789,6 +789,7 @@ fn update_origin_package() {
     package.set_config("config".to_string());
     package.set_target("x86_64-linux".to_string());
     package.set_exposes(vec![1, 2]);
+    package.set_visibility(originsrv::OriginPackageVisibility::Private);
     ds.create_origin_package(&package).expect(
         "Failed to create origin package",
     );

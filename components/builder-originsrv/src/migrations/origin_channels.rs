@@ -293,7 +293,7 @@ pub fn migrate(migrator: &mut Migrator) -> SrvResult<()> {
                     op_account_id bigint,
                     op_limit bigint,
                     op_offset bigint
-                 ) RETURNS TABLE(ident text) AS $$
+                 ) RETURNS TABLE(total_count bigint, ident text) AS $$
                     BEGIN
                         RETURN QUERY SELECT COUNT(*) OVER () AS total_count, op.ident
                           FROM origin_packages op
