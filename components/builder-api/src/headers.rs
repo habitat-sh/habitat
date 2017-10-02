@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Copyright (c) 2017 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,30 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-.hab-project-settings {
-  form {
-    @include outer-container;
-  }
-
-  .scm-repo-fields {
-    @include span-columns(3);
-  }
-
-  .project-fields {
-    @include span-columns(9);
-    @include omega;
-    @include outer-container;
-
-    .origin, .name {
-      @include span-columns(6);
-    }
-
-    .name {
-      @include omega;
-    }
-
-    .plan, .submit {
-      @include span-columns(12);
-    }
-  }
-}
+header! { (XGitHubDelivery, "X-GitHub-Delivery") => [String] }
+header! { (XGitHubEvent, "X-GitHub-Event") => [String] }
+header! { (XHubSignature, "X-Hub-Signature") => [String] }

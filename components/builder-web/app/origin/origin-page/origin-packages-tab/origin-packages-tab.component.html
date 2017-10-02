@@ -1,26 +1,31 @@
-<div class="page-body">
+<div class="page-body origin-packages-tab">
   <div class="hab-origin--left hab-origin--pkg-list">
-    <div *ngIf="noPackages">
-      <p>
-        No packages found.
-        <span *ngIf="packagesUi.errorMessage">
-            Error: {{packagesUi.errorMessage}}
-        </span>
-      </p>
-    </div>
-    <hab-plan-select
-      *ngIf="selectingPlan"
-      (planSelected)="planSelected($event)"
-      (planSelectCanceled)="planSelectCanceled()"></hab-plan-select>
-    <div *ngIf="!noPackages && !selectingPlan">
-      <div class="connect-button" *ngIf="projectsFlag">
-        <button (click)="loadRepoSelect()" md-raised-button color="primary">Connect a plan file</button>
-      </div>
+
+    <!--
+      TODO: Reconcile these two. It's not over yet.
+      <hab-plan-select
+        *ngIf="selectingPlan"
+        (planSelected)="planSelected($event)"
+        (planSelectCanceled)="planSelectCanceled()"></hab-plan-select>
+      -->
+
+    <hab-project-settings
+      [origin]="origin"
+      [integrations]="integrations"
+      (toggled)="toggled($event)"
+      (saved)="saved($event)"></hab-project-settings>
+
+    <div *ngIf="!selectingPlan">
       <ul class="packages-list">
         <li class="heading">
           <div class="pkg-col-1">
             <h3>Package</h3>
           </div>
+        </li>
+        <li *ngIf="noPackages">
+          <span class="none">
+            No packages found.
+          </span>
         </li>
         <li *ngFor="let pkg of packages">
           <a [routerLink]="['/pkgs', pkg.origin, pkg.name, 'latest']">

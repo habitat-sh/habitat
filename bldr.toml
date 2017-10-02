@@ -1,0 +1,138 @@
+[builder-admin-proxy]
+paths = ["components/builder-admin-proxy/*"]
+
+[builder-admin]
+paths = [
+  "components/builder-admin/*",
+  "components/builder-http-gateway/*",
+  "components/builder-protocol/*",
+  "components/core/*",
+  "components/github-api-client/*",
+  "components/net/*",
+]
+
+[builder-api-proxy]
+paths = ["components/builder-api-proxy/*"]
+
+[builder-api]
+paths = [
+  "components/builder-api/*",
+  "components/builder-core/*",
+  "components/builder-depot/*",
+  "components/builder-http-gateway/*",
+  "components/builder-protocol/*",
+  "components/core/*",
+  "components/github-api-client/*",
+  "components/net/*",
+]
+
+[builder-datastore]
+paths = [
+  "components/builder-datastore"
+]
+
+[builder-jobsrv]
+paths = [
+  "components/builder-jobsrv/*",
+  "components/builder-core/*",
+  "components/builder-protocol/*",
+  "components/builder-db/*",
+  "components/core/*",
+  "components/net/*",
+]
+
+[builder-originsrv]
+paths = [
+  "components/builder-originsrv/*",
+  "components/builder-protocol/*",
+  "components/builder-db/*",
+  "components/core/*",
+  "components/net/*",
+]
+
+[builder-router]
+paths = [
+  "components/builder-router/*",
+  "components/builder-protocol/*",
+  "components/core/*",
+  "components/net/*",
+]
+
+[builder-scheduler]
+paths = [
+  "components/builder-scheduler/*",
+  "components/builder-core/*",
+  "components/builder-protocol/*",
+  "components/builder-db/*",
+  "components/core/*",
+  "components/net/*",
+]
+
+[builder-sessionsrv]
+paths = [
+  "components/builder-sessionsrv/*",
+  "components/builder-protocol/*",
+  "components/builder-db/*",
+  "components/core/*",
+  "components/github-api-client/*",
+  "components/net/*",
+]
+
+[builder-worker]
+paths = [
+  "components/builder-worker/*",
+  "components/builder-core/*",
+  "components/builder-depot-client/*",
+  "components/builder-protocol/*",
+  "components/core/*",
+  "components/github-api-client/*",
+  "components/net/*",
+]
+
+[hab]
+paths = [
+  "components/hab/*",
+  "components/builder-api-client/*",
+  "components/builder-depot-client/*",
+  "components/common/*",
+  "components/core/*",
+  "components/http-client/*",
+]
+
+[hab-backline]
+paths = ["components/backline/*"]
+
+[hab-bintray-publish]
+paths = ["components/hab-bintray-publish/*"]
+
+[hab-butterfly]
+paths = [
+  "components/hab-butterfly/*",
+  "components/butterfly/*",
+  "components/common/*",
+  "components/core/*",
+  "components/hab/*",
+]
+
+[hab-eventsrv]
+paths = [
+  "components/eventsrv/*",
+  "components/eventsrv-protocol/*",
+  "components/core/*",
+]
+
+[hab-launcher]
+paths = [
+  "components/launcher/*",
+  "components/launcher-protocol/*",
+]
+
+[hab-sup]
+paths = [
+  "components/sup/*",
+  "components/eventsrv-client/*",
+  "components/launcher-client/*",
+  "components/butterfly/*",
+  "components/core/*",
+  "components/builder-depot-client/*",
+]

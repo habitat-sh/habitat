@@ -7,7 +7,6 @@ import { BuildDetailComponent } from "./build-detail/build-detail.component";
 import { BuildListComponent } from "./build-list/build-list.component";
 import { BuildNoticeComponent } from "./build-notice/build-notice.component";
 import { BuildStatusComponent } from "./build-status/build-status.component";
-import { DisconnectConfirmDialog } from "./dialog/disconnect-confirm/disconnect-confirm.dialog";
 import { PackageBuildComponent } from "./package-build/package-build.component";
 import { PackageComponent } from "./package/package.component";
 import { PackageBuildsComponent } from "./package-builds/package-builds.component";
@@ -40,7 +39,6 @@ import { PackageRoutingModule } from "./package-routing.module";
     BuildListComponent,
     BuildNoticeComponent,
     BuildStatusComponent,
-    DisconnectConfirmDialog,
     PackageComponent,
     PackageBuildComponent,
     PackageBuildsComponent,
@@ -51,9 +49,6 @@ import { PackageRoutingModule } from "./package-routing.module";
     PackageSidebarComponent,
     PackageSettingsComponent,
     PackageVersionsComponent
-  ],
-  entryComponents: [
-    DisconnectConfirmDialog
   ]
 })
 export class PackageModule {}

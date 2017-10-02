@@ -15015,7 +15015,7 @@ pub struct OriginProject {
     owner_id: ::std::option::Option<u64>,
     vcs_type: ::protobuf::SingularField<::std::string::String>,
     vcs_data: ::protobuf::SingularField<::std::string::String>,
-    vcs_installation_id: ::std::option::Option<u64>,
+    vcs_installation_id: ::std::option::Option<u32>,
     // special fields
     unknown_fields: ::protobuf::UnknownFields,
     cached_size: ::protobuf::CachedSize,
@@ -15384,7 +15384,7 @@ impl OriginProject {
         &mut self.vcs_data
     }
 
-    // optional uint64 vcs_installation_id = 12;
+    // optional uint32 vcs_installation_id = 12;
 
     pub fn clear_vcs_installation_id(&mut self) {
         self.vcs_installation_id = ::std::option::Option::None;
@@ -15395,19 +15395,19 @@ impl OriginProject {
     }
 
     // Param is passed by value, moved
-    pub fn set_vcs_installation_id(&mut self, v: u64) {
+    pub fn set_vcs_installation_id(&mut self, v: u32) {
         self.vcs_installation_id = ::std::option::Option::Some(v);
     }
 
-    pub fn get_vcs_installation_id(&self) -> u64 {
+    pub fn get_vcs_installation_id(&self) -> u32 {
         self.vcs_installation_id.unwrap_or(0)
     }
 
-    fn get_vcs_installation_id_for_reflect(&self) -> &::std::option::Option<u64> {
+    fn get_vcs_installation_id_for_reflect(&self) -> &::std::option::Option<u32> {
         &self.vcs_installation_id
     }
 
-    fn mut_vcs_installation_id_for_reflect(&mut self) -> &mut ::std::option::Option<u64> {
+    fn mut_vcs_installation_id_for_reflect(&mut self) -> &mut ::std::option::Option<u32> {
         &mut self.vcs_installation_id
     }
 }
@@ -15464,7 +15464,7 @@ impl ::protobuf::Message for OriginProject {
                     if wire_type != ::protobuf::wire_format::WireTypeVarint {
                         return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
                     };
-                    let tmp = is.read_uint64()?;
+                    let tmp = is.read_uint32()?;
                     self.vcs_installation_id = ::std::option::Option::Some(tmp);
                 },
                 _ => {
@@ -15543,7 +15543,7 @@ impl ::protobuf::Message for OriginProject {
             os.write_string(9, &v)?;
         };
         if let Some(v) = self.vcs_installation_id {
-            os.write_uint64(12, v)?;
+            os.write_uint32(12, v)?;
         };
         os.write_unknown_fields(self.get_unknown_fields())?;
         ::std::result::Result::Ok(())
@@ -15634,7 +15634,7 @@ impl ::protobuf::MessageStatic for OriginProject {
                     OriginProject::get_vcs_data_for_reflect,
                     OriginProject::mut_vcs_data_for_reflect,
                 ));
-                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeUint64>(
+                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeUint32>(
                     "vcs_installation_id",
                     OriginProject::get_vcs_installation_id_for_reflect,
                     OriginProject::mut_vcs_installation_id_for_reflect,
@@ -23007,7 +23007,7 @@ static file_descriptor_proto_data: &'static [u8] = &[
     0x73, 0x5f, 0x64, 0x61, 0x74, 0x61, 0x18, 0x09, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x76, 0x63,
     0x73, 0x44, 0x61, 0x74, 0x61, 0x12, 0x2e, 0x0a, 0x13, 0x76, 0x63, 0x73, 0x5f, 0x69, 0x6e, 0x73,
     0x74, 0x61, 0x6c, 0x6c, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x69, 0x64, 0x18, 0x0c, 0x20, 0x01,
-    0x28, 0x04, 0x52, 0x11, 0x76, 0x63, 0x73, 0x49, 0x6e, 0x73, 0x74, 0x61, 0x6c, 0x6c, 0x61, 0x74,
+    0x28, 0x0d, 0x52, 0x11, 0x76, 0x63, 0x73, 0x49, 0x6e, 0x73, 0x74, 0x61, 0x6c, 0x6c, 0x61, 0x74,
     0x69, 0x6f, 0x6e, 0x49, 0x64, 0x22, 0x49, 0x0a, 0x13, 0x4f, 0x72, 0x69, 0x67, 0x69, 0x6e, 0x50,
     0x72, 0x6f, 0x6a, 0x65, 0x63, 0x74, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x12, 0x32, 0x0a, 0x07,
     0x70, 0x72, 0x6f, 0x6a, 0x65, 0x63, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x18, 0x2e,

@@ -14,7 +14,7 @@
 
 use std::env;
 
-use github_api_client::{self, GitHubClient, HubError};
+use github_api_client::{GitHubCfg, GitHubClient, HubError};
 use hab_net::{ErrCode, NetError};
 use hab_net::conn::RouteClient;
 use hab_net::privilege::FeatureFlags;
@@ -106,10 +106,7 @@ pub struct Authenticated {
 }
 
 impl Authenticated {
-    pub fn new<T>(config: &T) -> Self
-    where
-        T: github_api_client::config::GitHubOAuth,
-    {
+    pub fn new(config: GitHubCfg) -> Self {
         let github = GitHubClient::new(config);
         Authenticated {
             github: github,

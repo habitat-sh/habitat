@@ -16,6 +16,7 @@ import { List, Map, Record } from "immutable";
 import { BehaviorSubject } from "rxjs";
 import { Origin } from "./records/Origin";
 import { Package } from "./records/Package";
+import { Project } from "./records/Project";
 import { getBrowserCookies } from "./actions/cookies";
 
 export default Record({
@@ -197,34 +198,13 @@ export default Record({
     })(),
   })(),
   projects: Record({
-    // This is a temporary hack that lets us add projects, and gets
-    // concatted with projects on display. In real life we'll make another
-    // server call when displaying a list after a project is added and it will
-    // be there
-    added: List(),
-    all: List(),
-    hint: {},
-    current: Record({
-
-      // TODO: Once we merge the project work into the package UI,
-      // make `current` a Project() record and `ui` a sibling of that.
-      id: undefined,
-      name: undefined,
-      origin_id: undefined,
-      origin_name: undefined,
-      owner_id: undefined,
-      package_name: undefined,
-      plan_path: undefined,
-      vcs_auth_token: undefined,
-      vcs_data: undefined,
-      vcs_type: undefined,
-      vcs_username: undefined,
-
-      ui: Record({
+    current: Project(),
+    ui: Record({
+      current: Record({
         exists: false,
         loading: true,
       })()
-    })(),
+    })()
   })(),
   router: Record({
     requestedRoute: "",

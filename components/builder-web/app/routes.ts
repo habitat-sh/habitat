@@ -15,10 +15,7 @@
 import { Routes, RouterModule } from "@angular/router";
 import { UserLoggedOutGuard } from "./shared/user/user.guard";
 import { ExploreComponent } from "./explore/explore.component";
-import { ProjectPageComponent } from "./project-page/ProjectPageComponent";
-import { ProjectsPageComponent } from "./projects-page/ProjectsPageComponent";
 import { SignInPageComponent } from "./sign-in-page/sign-in-page.component";
-import { ProjectSettingsPageComponent } from "./project-settings-page/ProjectSettingsPageComponent";
 
 export const routes: Routes = [
     {
@@ -34,18 +31,6 @@ export const routes: Routes = [
         path: "sign-in",
         component: SignInPageComponent,
         canActivate: [UserLoggedOutGuard]
-    },
-    {
-        path: "projects",
-        component: ProjectsPageComponent
-    },
-    {
-        path: "projects/:origin/:name",
-        component: ProjectPageComponent
-    },
-    {
-        path: "projects/:origin/:name/settings",
-        component: ProjectSettingsPageComponent
     },
     {
         path: "*",

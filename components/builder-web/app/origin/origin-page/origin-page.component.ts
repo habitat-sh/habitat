@@ -20,14 +20,8 @@ import config from "../../config";
 import { Origin } from "../../records/Origin";
 import { requireSignIn, packageString } from "../../util";
 import {  fetchOrigin, fetchOriginInvitations, fetchOriginMembers, inviteUserToOrigin, filterPackagesBy,
-    fetchMyOrigins, setProjectHint, requestRoute, setCurrentProject, getUniquePackages,
+    fetchMyOrigins, requestRoute, setCurrentProject, getUniquePackages,
     fetchDockerIntegration } from "../../actions";
-
-export enum ProjectStatus {
-    Connect,
-    Settings,
-    Lacking
-}
 
 @Component({
     template: require("./origin-page.component.html")
@@ -36,7 +30,6 @@ export enum ProjectStatus {
 export class OriginPageComponent implements OnInit, OnDestroy {
     loadPackages: Function;
     perPage: number = 50;
-    projectStatus = ProjectStatus;
     sub: Subscription;
     originName: string;
 
@@ -72,27 +65,11 @@ export class OriginPageComponent implements OnInit, OnDestroy {
     }
 
     get navLinks() {
-        // ED TODO: Uncomment settings when the privacy api endpoint is implemented
-        let links = ["packages", "keys", "members"];
-        let flags = this.store.getState().featureFlags.current;
-
-        if (flags.get("settings")) {
-          links.push("settings");
-        }
-
-        if (flags.get("integrations")) {
-          links.push("integrations");
-        }
-
-        return links;
+        return ["packages", "keys", "members", "settings", "integrations"];
     }
 
     get features() {
         return this.store.getState().users.current.flags;
-    }
-
-    get docsUrl() {
-        return config["docs_url"];
     }
 
     get gitHubAuthToken() {
@@ -125,41 +102,6 @@ export class OriginPageComponent implements OnInit, OnDestroy {
         return visibility === "private" ? "ON" : "OFF";
     }
 
-    linkToRepo(p): boolean {
-        this.store.dispatch(setProjectHint({
-            originName: p.origin,
-            packageName: p.name
-        }));
-        this.store.dispatch(requestRoute(["/projects", "create"]));
-        return false;
-    }
-
-    projectSettings(p): boolean {
-        this.store.dispatch(setProjectHint({
-            originName: p.origin,
-            packageName: p.name
-        }));
-        this.store.dispatch(setCurrentProject(this.projectForPackage(p)));
-        this.store.dispatch(requestRoute(["/projects", p.origin, p.name, "settings"]));
-        return false;
-    }
-
-    projectForPackage(p) {
-        let proj = this.store.getState().projects.added.find(proj => {
-            return proj["id"] === this.projectId(p);
-        });
-
-        if (proj) {
-            if (proj["vcs"] && proj["vcs"]["url"]) {
-                return ProjectStatus.Settings;
-            } else {
-                return ProjectStatus.Lacking;
-            }
-        } else {
-            return ProjectStatus.Connect;
-        }
-    }
-
     getPackages() {
         this.store.dispatch(getUniquePackages(this.origin.name, 0, this.gitHubAuthToken));
     }
@@ -171,9 +113,5 @@ export class OriginPageComponent implements OnInit, OnDestroy {
             this.gitHubAuthToken
         ));
         return false;
-    }
-
-    private projectId(p) {
-        return `${p["origin"]}/${p["name"]}`;
     }
 }

@@ -677,7 +677,7 @@ fn row_to_job(row: &postgres::rows::Row) -> Result<jobsrv::Job> {
             project.set_vcs_data(vcsa.remove(0).expect("expected vcs data"));
             if vcsa.len() > 0 {
                 if let Some(install_id) = vcsa.remove(0) {
-                    project.set_vcs_installation_id(install_id.parse::<u64>().map_err(
+                    project.set_vcs_installation_id(install_id.parse::<u32>().map_err(
                         Error::ParseVCSInstallationId,
                     )?);
                 }
