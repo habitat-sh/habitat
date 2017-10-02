@@ -222,6 +222,10 @@ pub fn get() -> App<'static, 'static> {
                 (aliases: &["ha", "has"])
                 (@arg SOURCE: +takes_value {file_exists} "A filepath of the target")
             )
+            (@subcommand info =>
+                (about: "Prints package information for a given artifact")
+                (@arg SOURCE: +required +takes_value {file_exists} "A filepath of the artifact")
+            )
             (subcommand: sub_pkg_install().aliases(
                 &["i", "in", "ins", "inst", "insta", "instal"]))
             (@subcommand path =>

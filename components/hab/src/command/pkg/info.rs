@@ -22,7 +22,7 @@ use error::Result;
 
 pub fn start(ui: &mut UI, src: &Path) -> Result<()> {
     ui.begin(
-        format!("Reading package header for {}", &src.display()),
+        format!("Reading package info for {}", &src.display()),
     )?;
     ui.para("")?;
     if let Ok(header) = artifact::get_artifact_header(src) {
@@ -55,7 +55,7 @@ pub fn start(ui: &mut UI, src: &Path) -> Result<()> {
             ).as_bytes(),
         )?;
     } else {
-        ui.warn("Failed to read package header.")?;
+        ui.warn("Failed to read package info.")?;
     }
     Ok(())
 }

@@ -159,7 +159,7 @@ fn start(ui: &mut UI) -> Result<()> {
                 ("sign", Some(m)) => sub_pkg_sign(ui, m)?,
                 ("upload", Some(m)) => sub_pkg_upload(ui, m)?,
                 ("verify", Some(m)) => sub_pkg_verify(ui, m)?,
-                ("header", Some(m)) => sub_pkg_header(ui, m)?,
+                ("info", Some(m)) => sub_pkg_info(ui, m)?,
                 ("promote", Some(m)) => sub_pkg_promote(ui, m)?,
                 ("demote", Some(m)) => sub_pkg_demote(ui, m)?,
                 _ => unreachable!(),
@@ -528,11 +528,11 @@ fn sub_pkg_verify(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     command::pkg::verify::start(ui, &src, &default_cache_key_path(Some(&*FS_ROOT)))
 }
 
-fn sub_pkg_header(ui: &mut UI, m: &ArgMatches) -> Result<()> {
+fn sub_pkg_info(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let src = Path::new(m.value_of("SOURCE").unwrap()); // Required via clap
     init();
 
-    command::pkg::header::start(ui, &src)
+    command::pkg::info::start(ui, &src)
 }
 
 fn sub_pkg_promote(ui: &mut UI, m: &ArgMatches) -> Result<()> {
