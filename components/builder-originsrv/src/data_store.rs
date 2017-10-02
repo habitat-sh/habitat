@@ -29,7 +29,6 @@ use postgres::rows::Rows;
 use protocol::{originsrv, sessionsrv, scheduler};
 use protocol::net::NetOk;
 use protocol::originsrv::Pageable;
-use protocol::Routable;
 use postgres;
 use protobuf;
 
@@ -152,68 +151,12 @@ impl DataStore {
             ],
         ).map_err(SrvError::OriginProjectUpdate)?;
 
-        self.cascade_visibility_to_packages_from_project(
-            opc,
-            project.get_name(),
-            &visibility,
-        )?;
-        Ok(())
-    }
-
-    fn cascade_visibility_to_packages_from_project<T>(
-        &self,
-        msg: &T,
-        ident: &str,
-        visibility: &str,
-    ) -> SrvResult<()>
-    where
-        T: Routable,
-    {
-        let conn = self.pool.get(msg)?;
-        let incoming_visibility: originsrv::OriginPackageVisibility = visibility.parse().map_err(
-            SrvError::UnknownOriginPackageVisibility,
-        )?;
-
         // Get all the packages tied to this project
         let rows = conn.query(
             "SELECT * FROM get_all_origin_packages_for_ident_v1($1)",
-            &[&ident],
+            &[&project.get_name()],
         ).map_err(SrvError::VisibilityCascade)?;
-        self.cascade_visibility_to_packages(msg, rows, incoming_visibility)
-    }
 
-    fn cascade_visibility_to_packages_from_origin<T>(
-        &self,
-        msg: &T,
-        origin_id: u64,
-        visibility: &str,
-    ) -> SrvResult<()>
-    where
-        T: Routable,
-    {
-        let conn = self.pool.get(msg)?;
-        let incoming_visibility: originsrv::OriginPackageVisibility = visibility.parse().map_err(
-            SrvError::UnknownOriginPackageVisibility,
-        )?;
-
-        // Get all the packages tied to this project
-        let rows = conn.query(
-            "SELECT * FROM get_all_origin_packages_for_origin_v1($1)",
-            &[&(origin_id as i64)],
-        ).map_err(SrvError::VisibilityCascade)?;
-        self.cascade_visibility_to_packages(msg, rows, incoming_visibility)
-    }
-
-    fn cascade_visibility_to_packages<T>(
-        &self,
-        msg: &T,
-        rows: postgres::rows::Rows,
-        visibility: originsrv::OriginPackageVisibility,
-    ) -> SrvResult<()>
-    where
-        T: Routable,
-    {
-        let conn = self.pool.get(msg)?;
         let mut map = HashMap::new();
 
         // For each row, store its id in our map, keyed on visibility
@@ -222,7 +165,7 @@ impl DataStore {
             let pv: String = row.get("visibility");
             let vis: originsrv::OriginPackageVisibility =
                 pv.parse().map_err(SrvError::UnknownOriginPackageVisibility)?;
-            let new_vis = transition_visibility(visibility, vis);
+            let new_vis = transition_visibility(project.get_visibility(), vis);
             map.entry(new_vis).or_insert(Vec::new()).push(id);
         }
 
@@ -234,7 +177,6 @@ impl DataStore {
                 &[&vis_str, id_vector],
             ).map_err(SrvError::VisibilityCascade)?;
         }
-
         Ok(())
     }
 
@@ -853,11 +795,6 @@ impl DataStore {
             "SELECT update_origin_v1($1, $2)",
             &[&(ou.get_id() as i64), &dpv],
         ).map_err(SrvError::OriginUpdate)?;
-        self.cascade_visibility_to_packages_from_origin(
-            ou,
-            ou.get_id(),
-            &dpv,
-        )?;
         Ok(())
     }
 

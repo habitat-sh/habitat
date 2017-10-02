@@ -506,6 +506,15 @@ pub fn project_update(req: &mut Request) -> IronResult<Response> {
         (name, origin)
     };
 
+    let session_id = {
+        let session = req.extensions.get::<Authenticated>().unwrap();
+        session.get_id()
+    };
+
+    if !check_origin_access(req, session_id, &origin)? {
+        return Ok(Response::with(status::Forbidden));
+    }
+
     let mut project_get = OriginProjectGet::new();
     project_get.set_name(format!("{}/{}", &origin, &name));
     let mut project = match route_message::<OriginProjectGet, OriginProject>(req, &project_get) {
@@ -515,15 +524,6 @@ pub fn project_update(req: &mut Request) -> IronResult<Response> {
 
     let mut request = OriginProjectUpdate::new();
     let github = req.get::<persistent::Read<GitHubCli>>().unwrap();
-
-    let session_id = {
-        let session = req.extensions.get::<Authenticated>().unwrap();
-        session.get_id()
-    };
-
-    if !check_origin_access(req, session_id, &origin)? {
-        return Ok(Response::with(status::Forbidden));
-    }
 
     let (token, repo_id) = match req.get::<bodyparser::Struct<ProjectCreateReq>>() {
         Ok(Some(body)) => {
