@@ -34,6 +34,7 @@ pub enum HubError {
     HttpClient(hyper::Error),
     HttpClientParse(hyper::error::ParseError),
     HttpResponse(hyper::status::StatusCode),
+    InstallationAuth(client::InstallationAuthErr),
     IO(io::Error),
     Serialization(serde_json::Error),
 }
@@ -54,6 +55,9 @@ impl fmt::Display for HubError {
             HubError::HttpClient(ref e) => format!("{}", e),
             HubError::HttpClientParse(ref e) => format!("{}", e),
             HubError::HttpResponse(ref e) => format!("{}", e),
+            HubError::InstallationAuth(ref e) => {
+                format!("GitHub App Installation Authentication error, {}", e)
+            }
             HubError::IO(ref e) => format!("{}", e),
             HubError::Serialization(ref e) => format!("{}", e),
         };
@@ -71,6 +75,7 @@ impl error::Error for HubError {
             HubError::HttpClient(ref err) => err.description(),
             HubError::HttpClientParse(ref err) => err.description(),
             HubError::HttpResponse(_) => "Non-200 HTTP response.",
+            HubError::InstallationAuth(_) => "GitHub App Installation authorization error.",
             HubError::IO(ref err) => err.description(),
             HubError::Serialization(ref err) => err.description(),
         }

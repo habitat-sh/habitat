@@ -49,8 +49,7 @@ fn test_job() -> jobsrv::Job {
 fn get_job() {
     let mut job = test_job();
     let mut job2 = test_job();
-    job2.mut_project().set_vcs_auth_token("token".to_string());
-    job2.mut_project().set_vcs_username("user".to_string());
+    job2.mut_project().set_vcs_installation_id(1);
     let mut job3 = test_job();
 
     let ds = datastore_test!(DataStore);
@@ -74,12 +73,11 @@ fn get_job() {
         "Job should exist",
     );
     assert!(j1.get_id() != 0);
-    assert!(!j1.get_project().has_vcs_auth_token());
+    assert!(!j1.get_project().has_vcs_installation_id());
     assert!(j2.get_id() != 0);
-    assert_eq!(j2.get_project().get_vcs_auth_token(), "token");
-    assert_eq!(j2.get_project().get_vcs_username(), "user");
+    assert_eq!(j2.get_project().get_vcs_installation_id(), 1);
     assert!(j3.get_id() != 0);
-    assert!(!j3.get_project().has_vcs_auth_token());
+    assert!(!j3.get_project().has_vcs_installation_id());
 }
 
 #[test]

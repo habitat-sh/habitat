@@ -412,16 +412,9 @@ impl DataStore {
 
         if job.get_project().get_vcs_type() == "git" {
             let project = job.get_project();
-            let token: Option<&str> = {
-                if project.has_vcs_auth_token() {
-                    Some(project.get_vcs_auth_token())
-                } else {
-                    None
-                }
-            };
-            let username: Option<&str> = {
-                if project.has_vcs_username() {
-                    Some(project.get_vcs_username())
+            let install_id: Option<String> = {
+                if project.has_vcs_installation_id() {
+                    Some(project.get_vcs_installation_id().to_string())
                 } else {
                     None
                 }
@@ -436,7 +429,7 @@ impl DataStore {
                     &(project.get_owner_id() as i64),
                     &project.get_plan_path(),
                     &project.get_vcs_type(),
-                    &vec![Some(project.get_vcs_data()), token, username],
+                    &vec![Some(project.get_vcs_data().to_string()), install_id],
                     &channel,
                 ],
             ).map_err(Error::JobCreate)?;
@@ -683,13 +676,10 @@ fn row_to_job(row: &postgres::rows::Row) -> Result<jobsrv::Job> {
             project.set_vcs_type(String::from("git"));
             project.set_vcs_data(vcsa.remove(0).expect("expected vcs data"));
             if vcsa.len() > 0 {
-                if let Some(auth_token) = vcsa.remove(0) {
-                    project.set_vcs_auth_token(auth_token);
-                }
-            }
-            if vcsa.len() > 0 {
-                if let Some(username) = vcsa.remove(0) {
-                    project.set_vcs_username(username);
+                if let Some(install_id) = vcsa.remove(0) {
+                    project.set_vcs_installation_id(install_id.parse::<u64>().map_err(
+                        Error::ParseVCSInstallationId,
+                    )?);
                 }
             }
         }

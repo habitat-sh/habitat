@@ -509,8 +509,7 @@ fn create_origin_project() {
     op.set_plan_path(String::from("foo"));
     op.set_vcs_type(String::from("git"));
     op.set_vcs_data(String::from("git://github.com/habitat-sh/core-plans"));
-    op.set_vcs_auth_token(String::from("token"));
-    op.set_vcs_username(String::from("user"));
+    op.set_vcs_installation_id(1);
     op.set_owner_id(1);
 
     let mut opc = originsrv::OriginProjectCreate::new();
@@ -557,7 +556,7 @@ fn create_origin_project_handles_unique_constraint_violations_correctly() {
 }
 
 #[test]
-fn create_origin_project_returns_no_auth_token_when_none_was_set() {
+fn create_origin_project_returns_no_installation_id_when_none_was_set() {
     let ds = datastore_test!(DataStore);
     let mut origin = originsrv::OriginCreate::new();
     origin.set_name(String::from("neurosis"));
@@ -583,7 +582,7 @@ fn create_origin_project_returns_no_auth_token_when_none_was_set() {
         "Failed to create origin project",
     );
 
-    assert_eq!(proj.has_vcs_auth_token(), false);
+    assert_eq!(proj.has_vcs_installation_id(), false);
 }
 
 #[test]
@@ -604,8 +603,7 @@ fn get_origin_project_by_name() {
     op.set_plan_path(String::from("foo"));
     op.set_vcs_type(String::from("git"));
     op.set_vcs_data(String::from("git://github.com/habitat-sh/core-plans"));
-    op.set_vcs_auth_token(String::from("token"));
-    op.set_vcs_username(String::from("user"));
+    op.set_vcs_installation_id(1);
     op.set_owner_id(1);
 
     let mut opc = originsrv::OriginProjectCreate::new();
@@ -654,14 +652,9 @@ fn get_origin_project_by_name() {
         "Should have the right vcs data"
     );
     assert_eq!(
-        project.get_vcs_auth_token(),
-        "token",
-        "Should have the right vcs auth token"
-    );
-    assert_eq!(
-        project.get_vcs_username(),
-        "user",
-        "Should have the right vcs user"
+        project.get_vcs_installation_id(),
+        1,
+        "Should have the right vcs installation id"
     );
 }
 
@@ -762,8 +755,7 @@ fn update_origin_project() {
     op.set_plan_path(String::from("foo"));
     op.set_vcs_type(String::from("git"));
     op.set_vcs_data(String::from("git://github.com/habitat-sh/core-plans"));
-    op.set_vcs_auth_token(String::from("token1"));
-    op.set_vcs_username(String::from("user1"));
+    op.set_vcs_installation_id(1);
     op.set_owner_id(1);
 
     let mut opc = originsrv::OriginProjectCreate::new();
@@ -783,8 +775,7 @@ fn update_origin_project() {
     project.set_plan_path(String::from("bar"));
     project.set_vcs_type(String::from("svn"));
     project.set_vcs_data(String::from("svn://github.com/habitat-sh/core-plans"));
-    project.set_vcs_auth_token(String::from("token2"));
-    project.set_vcs_username(String::from("user2"));
+    op.set_vcs_installation_id(2);
     project.set_owner_id(2);
 
     let mut opu = originsrv::OriginProjectUpdate::new();
@@ -844,14 +835,9 @@ fn update_origin_project() {
         "Should have the same vcs data"
     );
     assert_eq!(
-        updated_project.get_vcs_auth_token(),
-        sepultura.get_vcs_auth_token(),
-        "Should have the same vcs auth token"
-    );
-    assert_eq!(
-        updated_project.get_vcs_username(),
-        sepultura.get_vcs_username(),
-        "Should have the same vcs user"
+        updated_project.get_vcs_installation_id(),
+        sepultura.get_vcs_installation_id(),
+        "Should have the same vcs installation id"
     );
 }
 

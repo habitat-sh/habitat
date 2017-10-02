@@ -6,6 +6,9 @@ bldr_channel = "{{cfg.bldr_channel}}"
 bldr_url = "{{bind.depot.first.cfg.url}}"
 features_enabled = "{{cfg.features_enabled}}"
 
+[github]
+{{toToml cfg.github}}
+
 {{~#eachAlive bind.jobsrv.members as |member|}}
 [[jobsrv]]
 host = "{{member.sys.ip}}"
