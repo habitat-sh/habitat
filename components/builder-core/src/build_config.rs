@@ -28,7 +28,7 @@ use toml;
 use error::{Error, Result};
 
 /// Postprocessing config file name
-pub const BLDR_CFG: &'static str = "bldr.toml";
+pub const BLDR_CFG: &'static str = ".bldr.toml";
 pub const DEFAULT_CHANNEL: &'static str = UNSTABLE_CHANNEL;
 
 #[derive(Debug, Default, Deserialize, Serialize)]
