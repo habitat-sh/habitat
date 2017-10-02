@@ -35,7 +35,7 @@ impl HttpGateway for AdminSrv {
 
     fn add_middleware(config: Arc<Self::Config>, chain: &mut iron::Chain) {
         chain.link(persistent::Read::<GitHubCli>::both(
-            GitHubClient::new(&*config),
+            GitHubClient::new(config.github.clone()),
         ));
     }
 
@@ -50,7 +50,7 @@ impl HttpGateway for AdminSrv {
     }
 
     fn router(config: Arc<Self::Config>) -> Router {
-        let admin = Authenticated::new(&*config).require(privilege::ADMIN);
+        let admin = Authenticated::new(config.github.clone()).require(privilege::ADMIN);
         router!(
             status: get "/status" => status,
             search: post "/search" => XHandler::new(search).before(admin.clone()),

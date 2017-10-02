@@ -34,6 +34,7 @@ pub enum Error {
     IO(io::Error),
     NetError(hab_net::NetError),
     Protobuf(protobuf::ProtobufError),
+    UnknownGitHubEvent(String),
     Zmq(zmq::Error),
 }
 
@@ -50,6 +51,9 @@ impl fmt::Display for Error {
             Error::IO(ref e) => format!("{}", e),
             Error::NetError(ref e) => format!("{}", e),
             Error::Protobuf(ref e) => format!("{}", e),
+            Error::UnknownGitHubEvent(ref e) => {
+                format!("Unknown or unsupported GitHub event, {}", e)
+            }
             Error::Zmq(ref e) => format!("{}", e),
         };
         write!(f, "{}", msg)
@@ -67,6 +71,9 @@ impl error::Error for Error {
             Error::IO(ref err) => err.description(),
             Error::NetError(ref err) => err.description(),
             Error::Protobuf(ref err) => err.description(),
+            Error::UnknownGitHubEvent(_) => {
+                "Unknown or unsupported GitHub event received in request"
+            }
             Error::Zmq(ref err) => err.description(),
         }
     }

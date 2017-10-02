@@ -18,6 +18,7 @@ use std::result;
 use std::string;
 
 use base64;
+use hab_core;
 
 #[derive(Debug)]
 pub enum Error {
@@ -25,6 +26,7 @@ pub enum Error {
     DecryptError(String),
     EncryptError(String),
     FromUtf8Error(string::FromUtf8Error),
+    HabitatCore(hab_core::Error),
 }
 
 pub type Result<T> = result::Result<T, Error>;
@@ -36,6 +38,7 @@ impl fmt::Display for Error {
             Error::DecryptError(ref e) => format!("{}", e),
             Error::EncryptError(ref e) => format!("{}", e),
             Error::FromUtf8Error(ref e) => format!("{}", e),
+            Error::HabitatCore(ref e) => format!("{}", e),
         };
         write!(f, "{}", msg)
     }
@@ -48,6 +51,13 @@ impl error::Error for Error {
             Error::DecryptError(_) => "Error decrypting integration",
             Error::EncryptError(_) => "Error encrypting integration",
             Error::FromUtf8Error(ref e) => e.description(),
+            Error::HabitatCore(ref err) => err.description(),
         }
+    }
+}
+
+impl From<hab_core::Error> for Error {
+    fn from(err: hab_core::Error) -> Error {
+        Error::HabitatCore(err)
     }
 }

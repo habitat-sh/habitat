@@ -12,9 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-pub use std::net::{IpAddr, Ipv4Addr, SocketAddr, ToSocketAddrs};
+pub use github_api_client::types::*;
 
-pub use super::GatewayCfg;
-pub use core::config::ConfigFile;
-pub use github_api_client::config::GitHubCfg;
-pub use hab_net::app::config::RouterAddr;
+#[derive(Clone, Serialize, Deserialize)]
+pub struct JobCreateReq {
+    pub project_id: String,
+}
+
+#[derive(Clone, Serialize, Deserialize)]
+pub struct ProjectCreateReq {
+    pub origin: String,
+    pub plan_path: String,
+    pub github: GitHubProject,
+}
+
+#[derive(Clone, Serialize, Deserialize)]
+pub struct ProjectUpdateReq {
+    pub plan_path: String,
+    pub github: GitHubProject,
+}
+
+#[derive(Clone, Serialize, Deserialize)]
+pub struct GitHubProject {
+    pub organization: String,
+    pub repo: String,
+    pub installation_id: Option<u32>,
+}

@@ -15,9 +15,8 @@
 use std::path::Path;
 
 use git2;
+use github_api_client::{GitHubClient, GitHubCfg};
 use url::Url;
-
-use github_api_client::{self, GitHubClient};
 
 use error::{Error, Result};
 
@@ -25,18 +24,20 @@ pub struct VCS {
     pub vcs_type: String,
     pub data: String,
     pub github_client: GitHubClient,
-    pub installation_id: Option<u64>,
+    pub installation_id: Option<u32>,
 }
 
 impl VCS {
-    pub fn new<T>(vcs_type: String, data: String, config: &T, installation_id: Option<u64>) -> VCS
-    where
-        T: github_api_client::config::GitHubOAuth,
-    {
+    pub fn new(
+        vcs_type: String,
+        data: String,
+        config: GitHubCfg,
+        installation_id: Option<u32>,
+    ) -> Self {
         VCS {
             vcs_type: vcs_type,
             data: data,
-            github_client: GitHubClient::new(&*config),
+            github_client: GitHubClient::new(config),
             installation_id: installation_id,
         }
     }
@@ -47,9 +48,9 @@ impl VCS {
                 let token = match self.installation_id {
                     None => None,
                     Some(id) => {
-                        Some(self.github_client
-                            .authenticate_as_installation(id)
-                            .map_err(|e| Error::GithubAppAuthErr(e))?)
+                        Some(self.github_client.app_installation_token(id).map_err(|e| {
+                            Error::GithubAppAuthErr(e)
+                        })?)
                     }
                 };
                 debug!(

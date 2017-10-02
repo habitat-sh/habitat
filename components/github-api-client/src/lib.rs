@@ -27,6 +27,8 @@ extern crate time;
 pub mod client;
 pub mod config;
 pub mod error;
+pub mod types;
 
 pub use client::GitHubClient;
+pub use config::GitHubCfg;
 pub use error::{HubError, HubResult};
