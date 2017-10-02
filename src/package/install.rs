@@ -27,7 +27,7 @@ use toml;
 use toml::Value;
 
 use super::{Identifiable, PackageIdent, Target, PackageTarget};
-use super::metadata::{Bind, MetaFile, PkgEnv, parse_key_value};
+use super::metadata::{Bind, BindMapping, MetaFile, PackageType, PkgEnv, parse_key_value};
 use error::{Error, Result};
 use fs;
 
@@ -223,6 +223,23 @@ impl PackageInstall {
         }
     }
 
+    /// Determine what kind of package this is.
+    pub fn pkg_type(&self) -> Result<PackageType> {
+        match self.read_metafile(MetaFile::Type) {
+            Ok(body) => body.parse(),
+            Err(Error::MetaFileNotFound(MetaFile::Type)) => Ok(PackageType::Standalone),
+            Err(e) => Err(e),
+        }
+    }
+
+    /// Which services are contained in a composite package? Note that
+    /// these identifiers are *as given* in the initial `plan.sh` of
+    /// the composite, and not the fully-resolved identifiers you
+    /// would get from other "dependency" metadata files.
+    pub fn pkg_services(&self) -> Result<Vec<PackageIdent>> {
+        self.read_deps(MetaFile::Services)
+    }
+
     pub fn binds(&self) -> Result<Vec<Bind>> {
         match self.read_metafile(MetaFile::Binds) {
             Ok(body) => {
@@ -253,6 +270,30 @@ impl PackageInstall {
                 Ok(binds)
             }
             Err(Error::MetaFileNotFound(MetaFile::BindsOptional)) => Ok(Vec::new()),
+            Err(e) => Err(e),
+        }
+    }
+
+    /// Returns the bind mappings for a composite package.
+    pub fn bind_map(&self) -> Result<HashMap<PackageIdent, Vec<BindMapping>>> {
+        match self.read_metafile(MetaFile::BindMap) {
+            Ok(body) => {
+                let mut bind_map = HashMap::new();
+                for line in body.lines() {
+                    let mut parts = line.split("=");
+                    let package = match parts.next() {
+                        Some(ident) => ident.parse()?,
+                        None => return Err(Error::MetaFileBadBind),
+                    };
+                    let binds: Result<Vec<BindMapping>> = match parts.next() {
+                        Some(binds) => binds.split(" ").map(|b| b.parse()).collect(),
+                        None => Err(Error::MetaFileBadBind),
+                    };
+                    bind_map.insert(package, binds?);
+                }
+                Ok(bind_map)
+            }
+            Err(Error::MetaFileNotFound(MetaFile::BindMap)) => Ok(HashMap::new()),
             Err(e) => Err(e),
         }
     }
@@ -512,19 +553,29 @@ impl PackageInstall {
     /// Reads metafiles containing dependencies represented by package identifiers separated by new
     /// lines.
     ///
+    /// In most cases, we want the identifiers to be fully qualified,
+    /// but in some cases (notably reading SERVICES from a composite
+    /// package), they do NOT need to be fully qualified.
+    ///
     /// # Failures
     ///
-    /// * Metafile could not be found
     /// * Contents of the metafile could not be read
     /// * Contents of the metafile are unreadable or malformed
     fn read_deps(&self, file: MetaFile) -> Result<Vec<PackageIdent>> {
         let mut deps: Vec<PackageIdent> = vec![];
+
+        // For now, all deps files but SERVICES need fully-qualified
+        // package identifiers
+        let must_be_fully_qualified = {
+            file != MetaFile::Services
+        };
+
         match self.read_metafile(file) {
             Ok(body) => {
                 if body.len() > 0 {
                     for id in body.lines() {
                         let package = PackageIdent::from_str(id)?;
-                        if !package.fully_qualified() {
+                        if !package.fully_qualified() && must_be_fully_qualified {
                             return Err(Error::FullyQualifiedPackageIdentRequired(
                                 package.to_string(),
                             ));
@@ -666,12 +717,17 @@ impl fmt::Display for PackageInstall {
 
 #[cfg(test)]
 mod test {
-    use std::str::FromStr;
+    use package::metadata::{BindMapping, MetaFile};
+    use std::collections::HashMap;
+    use std::fs::File;
+    use std::io::Write;
     use std::path::PathBuf;
-    use toml;
-    use super::super::PackageIdent;
+    use std::str::FromStr;
     use super::PackageInstall;
+    use super::super::PackageIdent;
     use super::super::test_support::*;
+    use tempdir::TempDir;
+    use toml;
 
     #[test]
     fn can_serialize_default_config() {
@@ -691,4 +747,104 @@ mod test {
             Err(e) => assert!(false, format!("{:?}", e)),
         }
     }
+
+    /// Create a `PackageInstall` struct for the explicit purpose of
+    /// testing metadata file interpretation. This exists to point to
+    /// a directory of metadata files, and that's it.
+    ///
+    /// You should pass in the path to a temporary directory for
+    /// `installed_path`.
+    fn fake_package_install(ident: &str, installed_path: PathBuf) -> PackageInstall {
+        PackageInstall {
+            ident: ident.parse().unwrap(),
+            fs_root_path: PathBuf::from(""),
+            package_root_path: PathBuf::from(""),
+            installed_path: installed_path,
+        }
+    }
+
+    /// Write the given contents into the specified metadata file for
+    /// the package.
+    fn write_metadata_file(pkg_install: &PackageInstall, metafile: MetaFile, content: &str) {
+        let path = pkg_install.installed_path().join(metafile.to_string());
+        let mut f = File::create(path).expect("Could not create metafile");
+        f.write_all(content.as_bytes()).expect(
+            "Could not write metafile contents",
+        );
+    }
+
+    #[test]
+    fn reading_a_valid_bind_map_file_works() {
+        // Create a testing package
+        let installed_path = TempDir::new("valid_bind_map").expect(
+            "Could not create installed_path temporary directory",
+        );
+        let package_install =
+            fake_package_install("core/composite", installed_path.path().to_path_buf());
+
+        // Create a BIND_MAP file for that package
+        let bind_map_contents = r#"
+core/foo=db:core/database fe:core/front-end be:core/back-end
+core/bar=pub:core/publish sub:core/subscribe
+        "#;
+        write_metadata_file(&package_install, MetaFile::BindMap, bind_map_contents);
+
+        // Grab the bind map from that package
+        let bind_map = package_install.bind_map().unwrap();
+
+        // Assert that it was interpreted correctly
+        let mut expected: HashMap<PackageIdent, Vec<BindMapping>> = HashMap::new();
+        expected.insert(
+            "core/foo".parse().unwrap(),
+            vec![
+                "db:core/database".parse().unwrap(),
+                "fe:core/front-end".parse().unwrap(),
+                "be:core/back-end".parse().unwrap(),
+            ],
+        );
+        expected.insert(
+            "core/bar".parse().unwrap(),
+            vec![
+                "pub:core/publish".parse().unwrap(),
+                "sub:core/subscribe".parse().unwrap(),
+            ],
+        );
+
+        assert_eq!(expected, bind_map);
+    }
+
+    #[test]
+    fn reading_a_bad_bind_map_file_results_in_an_error() {
+        // Create a testing package
+        let installed_path = TempDir::new("invalid_bind_map").expect(
+            "Could not create installed_path temporary directory",
+        );
+        let package_install = fake_package_install("core/dud", installed_path.path().to_path_buf());
+
+        // Create a BIND_MAP directory for that package
+        let bind_map_contents = "core/foo=db:this-is-not-an-identifier";
+        write_metadata_file(&package_install, MetaFile::BindMap, bind_map_contents);
+
+        // Grab the bind map from that package
+        let bind_map = package_install.bind_map();
+        assert!(bind_map.is_err());
+    }
+
+    /// Composite packages don't need to have a BIND_MAP file, and
+    /// standalone packages will never have them. This is OK.
+    #[test]
+    fn missing_bind_map_files_are_ok() {
+        let installed_path = TempDir::new("missing_bind_map").expect(
+            "Could not create installed_path temporary directory",
+        );
+        let package_install =
+            fake_package_install("core/no-binds", installed_path.path().to_path_buf());
+
+        // Grab the bind map from that package
+        let bind_map = package_install.bind_map().unwrap();
+        assert!(bind_map.is_empty());
+
+    }
+
+
 }
