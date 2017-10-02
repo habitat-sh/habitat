@@ -40,6 +40,11 @@ assert_spec_exists_for() {
     assert_file_exist $(spec_file_for ${service_name})
 }
 
+assert_spec_not_exists_for() {
+    local service_name=${1}
+    assert_file_not_exist $(spec_file_for ${service_name})
+}
+
 # Given a fully-qualified package identifer, assert that the package has been
 # installed.
 #
@@ -62,7 +67,7 @@ assert_package_installed() {
 # Given a fully-qualified package identifer, assert that it and all
 # its transitive dependencies have been completely installed.
 assert_package_and_deps_installed() {
-    ident=${1}
+    local ident=${1}
     assert_package_installed "${ident}"
 
     tdeps_file="/hab/pkgs/${ident}/TDEPS"
@@ -86,6 +91,71 @@ assert_service_running() {
     assert_file_exist "$(spec_file_for ${service_name})"
     assert_file_exist "$(service_directory_for ${service_name})"
     assert_equal $(current_running_version_for "${service_name}") "${ident}"
+}
+
+# Extracts a value from the given service's spec file and asserts that
+# its value is as expected.
+#
+# When asserting for binds, pass the entire expected TOML array as a
+# string, e.g.
+#
+#    assert_spec_value my_service binds '["foo:otherservice.default"]'
+#
+assert_spec_value() {
+    local service=${1}
+    local key=${2}
+    local expected=${3}
+
+    local spec=$(spec_file_for ${service})
+    run grep "${key} = " ${spec}
+    assert_success
+
+    if [ "${key}" = "binds" ]; then
+        # Binds are an array, and so shouldn't be quoted
+        assert_line "${key} = ${expected}"
+    else
+        assert_line "${key} = \"${expected}\""
+    fi
+}
+
+# All loaded composites currently write out a spec for themselves, the
+# contents of which are always deterministic, given the identifier for
+# the composite.
+assert_composite_spec() {
+    local composite_ident=${1} # fully-qualified
+    local composite_name=$(name_from_ident "${composite_ident}")
+
+    local composite_spec=$(composite_spec_file_for "${composite_name}")
+    assert_file_exist "${composite_spec}"
+    assert_composite_spec_value "${composite_name}" package_ident "${composite_ident}"
+}
+
+# Just like `assert_spec_value`, but for composites.
+# TODO (CM): Consolidate the two functions eventually
+assert_composite_spec_value() {
+    local composite=${1}
+    local key=${2}
+    local expected=${3}
+
+    local spec=$(composite_spec_file_for ${composite})
+    run grep "${key} = " ${spec}
+    assert_success
+    assert_line "${key} = \"${expected}\""
+}
+
+# When installing a composite, assert that every service described in
+# its RESOLVED_SERVICES file has been fully installed.
+assert_composite_and_services_are_installed() {
+    local composite_ident=${1} # fully-qualified
+
+    assert_package_installed "${composite_ident}"
+
+    local resolved_services_file="/hab/pkgs/${composite_ident}/RESOLVED_SERVICES"
+    assert_file_exist "${resolved_services_file}"
+
+    for service in $(cat "${resolved_services_file}"); do
+        assert_package_and_deps_installed "${service}"
+    done
 }
 
 # Useful Setup / Teardown Functions
@@ -125,6 +195,36 @@ remove_installed_packages() {
 
 reset_supervisor() {
     rm -Rf /hab/sup/*
+}
+
+# Use this in your setup function to skip all but the indicated test.
+# Useful for working on one test in isolation, since running them all
+# starts to be time-consuming.
+#
+# Pass the description of the test you want to run. That is, if you
+# have a test like this:
+#
+#     @test "this is my sweet, sweet test" {
+#         # make some assertions
+#     }
+#
+# then you would have a setup function like this:
+#
+#     setup() {
+#         run_only_test "this is my sweet, sweet test"
+#         # ...
+#     }
+#
+# and that's the only test in the entire file that will run.
+#
+# Useful for working on new tests, but remember to remove the call
+# before you commit!
+#
+# Stolen and modified from https://github.com/sstephenson/bats/issues/164
+run_only_test() {
+    if [ "$BATS_TEST_DESCRIPTION" != "$1" ]; then
+        skip
+    fi
 }
 
 # Helper Functions
@@ -193,11 +293,25 @@ service_is_alive() {
     ps -p "${pid}" > /dev/null 2>&1
 }
 
+service_is_not_alive() {
+    local service_name="${1}"
+    local pid=$(pid_of_service "${service_name}")
+    ps -p "${pid}" > /dev/null 2>&1
+    [ $? -ne 0 ]
+}
+
 # Checks once a second to see if the Habitat-supervised service
 # has is running yet.
 wait_for_service_to_run() {
     local service_name=${1}
-    retry 30 1 service_is_alive "${service_name}" #bash -c "[ -e /hab/svc/${service_name}/PID ]"
+    retry 30 1 service_is_alive "${service_name}"
+}
+
+# Checks once a second to see if the Habitat-supervised service
+# has is died yet.
+wait_for_service_to_die() {
+    local service_name=${1}
+    retry 30 1 service_is_not_alive "${service_name}"
 }
 
 pid_has_changed() {
@@ -354,6 +468,32 @@ service_directory_for() {
 # Returns the path to the named service's spec file.
 spec_file_for() {
     local service_name=${1}
-    echo "SFF: ${service_name}" >&2
     echo "/hab/sup/default/specs/${service_name}.spec"
+}
+
+
+
+# Given a package identifier, return the 'name' portion of it
+name_from_ident() {
+    local ident=${1}
+    declare -a parsed
+    IFS='/' read -r -a parsed <<< "${ident}"
+    echo "${parsed[1]}"
+}
+
+# Returns the path for the named composite's spec file.
+composite_spec_file_for() {
+    local composite_name=${1}
+    echo "/hab/sup/default/composites/${composite_name}.spec"
+}
+
+# Return the identifiers the composite manages. Note that these
+# identifiers are the ones that will appear in the spec files, and DO
+# NOT need to be fully-qualified!
+services_for_composite() {
+    local composite_ident=${1} # fully-qualified
+    local services_file="/hab/pkgs/${composite_ident}/SERVICES"
+    assert_file_exist "${services_file}"
+
+    cat "${services_file}"
 }
