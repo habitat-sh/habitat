@@ -24,6 +24,15 @@ message CheckOriginAccessResponse {
   optional bool has_access = 1;
 }
 
+message CheckOriginOwnerRequest {
+  optional uint64 account_id = 1;
+  optional string origin_name = 2;
+}
+
+message CheckOriginOwnerResponse {
+  optional bool is_owner = 1;
+}
+
 enum OriginPackageVisibility {
   Public = 1;
   Private = 2;
@@ -177,7 +186,7 @@ message OriginMemberListResponse {
 
 message OriginMemberRemove {
   optional uint64 origin_id = 1;
-  optional uint64 user_id = 2;
+  optional string account_name = 2;
 }
 
 message OriginPackage {

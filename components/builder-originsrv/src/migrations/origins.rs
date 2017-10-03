@@ -150,5 +150,12 @@ pub fn migrate(migrator: &mut Migrator) -> SrvResult<()> {
                             WHERE id = origin_id;
                  $$ LANGUAGE SQL VOLATILE"#,
     )?;
+    migrator.migrate("originsrv",
+                     r#"CREATE OR REPLACE FUNCTION delete_origin_member_v1 (
+                    om_origin_id bigint,
+                    om_account_name text
+                 ) RETURNS void AS $$
+                        DELETE FROM origin_members WHERE origin_id=om_origin_id AND account_name=om_account_name;
+                 $$ LANGUAGE SQL VOLATILE"#)?;
     Ok(())
 }

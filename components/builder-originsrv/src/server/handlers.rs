@@ -34,6 +34,33 @@ pub fn origin_check_access(
     Ok(())
 }
 
+pub fn origin_check_owner(
+    req: &mut Message,
+    conn: &mut RouteConn,
+    state: &mut ServerState,
+) -> SrvResult<()> {
+    let msg = req.parse::<proto::CheckOriginOwnerRequest>()?;
+    let mut og = proto::OriginGet::new();
+    og.set_name(msg.get_origin_name().to_string());
+    match state.datastore.get_origin(&og) {
+        Ok(Some(ref origin)) => {
+            let mut reply = proto::CheckOriginOwnerResponse::new();
+            reply.set_is_owner(origin.get_owner_id() == msg.get_account_id());
+            conn.route_reply(req, &reply)?;
+        }
+        Ok(None) => {
+            let err = NetError::new(ErrCode::ENTITY_NOT_FOUND, "vt:origin-check-owner:0");
+            conn.route_reply(req, &*err)?;
+        }
+        Err(e) => {
+            let err = NetError::new(ErrCode::DATA_STORE, "vt:origin-check-owner:1");
+            error!("{}, {}", err, e);
+            conn.route_reply(req, &*err)?;
+        }
+    }
+    Ok(())
+}
+
 pub fn origin_create(
     req: &mut Message,
     conn: &mut RouteConn,
@@ -941,6 +968,23 @@ pub fn origin_package_search(
         Ok(ref opsr) => conn.route_reply(req, opsr)?,
         Err(e) => {
             let err = NetError::new(ErrCode::DATA_STORE, "vt:origin-package-search:1");
+            error!("{}, {}", err, e);
+            conn.route_reply(req, &*err)?;
+        }
+    }
+    Ok(())
+}
+
+pub fn origin_member_delete(
+    req: &mut Message,
+    conn: &mut RouteConn,
+    state: &mut ServerState,
+) -> SrvResult<()> {
+    let msg = req.parse::<proto::OriginMemberRemove>()?;
+    match state.datastore.delete_origin_member(&msg) {
+        Ok(()) => conn.route_reply(req, &NetOk::new())?,
+        Err(e) => {
+            let err = NetError::new(ErrCode::DATA_STORE, "vt:origin-member-delete:1");
             error!("{}, {}", err, e);
             conn.route_reply(req, &*err)?;
         }

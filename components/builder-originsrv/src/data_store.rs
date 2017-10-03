@@ -1455,13 +1455,23 @@ impl DataStore {
         let conn = self.pool.get(oid)?;
 
         conn.execute(
-            "SELECT * FROM delete_origin_integration_v1($1, $2, $3)",
+            "SELECT delete_origin_integration_v1($1, $2, $3)",
             &[
                 &oid.get_integration().get_origin(),
                 &oid.get_integration().get_integration(),
                 &oid.get_integration().get_name(),
             ],
         ).map_err(SrvError::OriginIntegrationDelete)?;
+        Ok(())
+    }
+
+    pub fn delete_origin_member(&self, omr: &originsrv::OriginMemberRemove) -> SrvResult<()> {
+        let conn = self.pool.get(omr)?;
+
+        conn.execute(
+            "SELECT delete_origin_member_v1($1, $2)",
+            &[&(omr.get_origin_id() as i64), &omr.get_account_name()],
+        ).map_err(SrvError::OriginMemberDelete)?;
         Ok(())
     }
 

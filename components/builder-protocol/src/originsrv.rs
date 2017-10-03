@@ -96,6 +96,14 @@ impl Routable for CheckOriginAccessRequest {
     }
 }
 
+impl Routable for CheckOriginOwnerRequest {
+    type H = String;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(self.get_origin_name().to_string())
+    }
+}
+
 impl Default for OriginPackageVisibility {
     fn default() -> OriginPackageVisibility {
         OriginPackageVisibility::Public

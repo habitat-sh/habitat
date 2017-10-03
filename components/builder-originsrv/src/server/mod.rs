@@ -26,6 +26,8 @@ lazy_static! {
         let mut map = DispatchTable::new();
         map.register(CheckOriginAccessRequest::descriptor_static(None),
             handlers::origin_check_access);
+        map.register(CheckOriginOwnerRequest::descriptor_static(None),
+            handlers::origin_check_owner);
         map.register(OriginCreate::descriptor_static(None), handlers::origin_create);
         map.register(OriginUpdate::descriptor_static(None), handlers::origin_update);
         map.register(OriginGet::descriptor_static(None), handlers::origin_get);
@@ -104,6 +106,8 @@ lazy_static! {
             handlers::origin_channel_package_latest_get);
         map.register(OriginChannelPackageListRequest::descriptor_static(None),
             handlers::origin_channel_package_list);
+        map.register(OriginMemberRemove::descriptor_static(None),
+            handlers::origin_member_delete);
         map
     };
 }

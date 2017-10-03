@@ -700,6 +700,39 @@ fn delete_origin_project_by_name() {
 }
 
 #[test]
+fn delete_origin_member_by_name() {
+    let ds = datastore_test!(DataStore);
+    let mut origin = originsrv::OriginCreate::new();
+    origin.set_name(String::from("neurosis"));
+    origin.set_owner_id(1);
+    origin.set_owner_name(String::from("scottkelly"));
+    ds.create_origin(&origin).expect("Should create origin");
+
+    let neurosis = ds.get_origin_by_name("neurosis")
+        .expect("Could not retrieve origin")
+        .expect("Origin does not exist");
+
+    let mut omr = originsrv::OriginMemberRemove::new();
+    omr.set_origin_id(neurosis.get_id());
+    omr.set_account_name(String::from("scottkelly"));
+
+    ds.delete_origin_member(&omr).expect(
+        "Failed to delete member in database",
+    );
+
+    let mut omlr = originsrv::OriginMemberListRequest::new();
+    omlr.set_origin_id(neurosis.get_id());
+
+    assert_eq!(
+        ds.list_origin_members(&omlr)
+            .expect("Error getting origin members form database")
+            .get_members()
+            .len(),
+        0
+    );
+}
+
+#[test]
 fn update_origin() {
     let ds = datastore_test!(DataStore);
     let mut origin = originsrv::OriginCreate::new();
