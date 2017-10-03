@@ -58,6 +58,12 @@ pub fn get_authenticated_session(req: &mut Request) -> Option<Session> {
     }
 }
 
+pub fn dont_cache_response(response: &mut Response) {
+    response.headers.set(CacheControl(
+        format!("private, no-cache, no-store"),
+    ));
+}
+
 pub fn validate_params(
     req: &mut Request,
     expected_params: &[&str],
