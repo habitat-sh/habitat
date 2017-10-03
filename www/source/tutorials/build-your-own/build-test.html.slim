@@ -63,7 +63,10 @@ section
  p After you have built your package and are ready to test it outside of the Studio, export it to a Docker container.
 
  pre
-  code # hab pkg export docker origin/package && exit
+  code # hab pkg export docker ./results/&lt;hart-filename>.hart && exit
+
+ blockquote
+  p <b>Note</b> The command above is for local testing only. If you have uploaded your package to Builder, you can export it by calling <code>hab pkg export docker origin/package</code>. The default is to use the latest stable release; however, you can override that by specifying a different channel in an optional flag.
 
  p The following example shows how to start the Docker container running your Habitat package.
 

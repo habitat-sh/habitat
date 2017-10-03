@@ -13,17 +13,13 @@ You can create a Docker container image for any package by performing the follow
 
 2. Create an interactive studio with the `hab studio enter` command.
 
-3. Install or [build](/docs/developing-packages/#plan-builds) the Habitat package from which you want to create a Docker container image, for example:
+3. [Build](/docs/developing-packages/#plan-builds) the Habitat package from which you want to create a Docker container image and then run the Docker exporter on the package.
 
     ```
-    $ hab pkg install yourorigin/yourpackage
+    $ hab pkg export docker ./results/<hart-filename>.hart
     ```
 
-4. Run the Docker exporter on the package.
-
-    ```
-    $ hab pkg export docker yourorigin/yourpackage
-    ```
+  > **Note** The command above is for local testing only. If you have uploaded your package to Builder, you can export it by calling <code>hab pkg export docker origin/package</code>. The default is to use the latest stable release; however, you can override that by specifying a different channel in an optional flag.
 
 5. You can now exit the studio. The new Docker container image exists on your computer and can be examined with `docker images` or run with `docker run`.
 
