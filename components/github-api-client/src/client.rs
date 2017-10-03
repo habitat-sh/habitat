@@ -117,11 +117,15 @@ impl GitHubClient {
         }
     }
 
-    pub fn check_team_membership(&self, team: u32, user: &str) -> HubResult<TeamMembership> {
-        let app_token = generate_app_token(&self.app_private_key, &self.app_id);
+    pub fn check_team_membership(
+        &self,
+        token: &str,
+        team: u32,
+        user: &str,
+    ) -> HubResult<TeamMembership> {
         let url = Url::parse(&format!("{}/teams/{}/memberships/{}", self.url, team, user))
             .map_err(HubError::HttpClientParse)?;
-        let mut rep = http_get(url, Some(app_token))?;
+        let mut rep = http_get(url, Some(token))?;
         let mut body = String::new();
         rep.read_to_string(&mut body)?;
         debug!("GitHub response body, {}", body);

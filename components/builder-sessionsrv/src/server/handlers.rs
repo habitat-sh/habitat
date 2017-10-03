@@ -15,7 +15,7 @@
 use std::env;
 
 use hab_net::app::prelude::*;
-use hab_net::privilege::FeatureFlags;
+use hab_net::privilege::{self, FeatureFlags};
 
 use protocol::net;
 use protocol::sessionsrv as proto;
@@ -119,42 +119,7 @@ pub fn session_create(
     if env::var_os("HAB_FUNC_TEST").is_some() {
         flags = FeatureFlags::all();
     } else {
-        // JW TODO: We need to revisit how we configure teams for granting feature flags. The
-        // endpoints of the GitHub API that an App has access to is different than what is available
-        // to a personal access token. This is safe to comment out for now since we haven't piped
-        // feature flags into the front-end, but we should re-enable this at some point in the near
-        // future.
-        //     match state.github.check_team_membership(1995301, msg.get_name()) {
-        //         Ok(membership) => {
-        //             if membership.active() {
-        //                 debug!("Granting feature flag={:?}", privilege::ADMIN);
-        //                 flags.set(privilege::ADMIN, true);
-        //             }
-        //         }
-        //         Err(err) => warn!("Failed to check team membership, {}", err),
-        //     }
-        //     for team in state.permissions.early_access_teams.iter() {
-        //         match state.github.check_team_membership(*team, msg.get_name()) {
-        //             Ok(membership) => {
-        //                 if membership.active() {
-        //                     debug!("Granting feature flag={:?}", privilege::EARLY_ACCESS);
-        //                     flags.set(privilege::EARLY_ACCESS, true);
-        //                 }
-        //             }
-        //             Err(err) => warn!("Failed to check team membership, {}", err),
-        //         }
-        //     }
-        //     for team in state.permissions.build_worker_teams.iter() {
-        //         match state.github.check_team_membership(*team, msg.get_name()) {
-        //             Ok(membership) => {
-        //                 if membership.active() {
-        //                     debug!("Granting feature flag={:?}", privilege::BUILD_WORKER);
-        //                     flags.set(privilege::BUILD_WORKER, true);
-        //                 }
-        //             }
-        //             Err(err) => warn!("Failed to check team membership, {}", err),
-        //         }
-        //     }
+        assign_permissions(msg.get_name(), &mut flags, state)
     }
     session.set_flags(flags.bits());
     session.set_token(msg.take_token());
@@ -318,4 +283,49 @@ pub fn account_invitation_list(
         }
     }
     Ok(())
+}
+
+fn assign_permissions(name: &str, flags: &mut FeatureFlags, state: &ServerState) {
+    match state.github.app_installation_token(
+        state.permissions.app_install_id,
+    ) {
+        Ok(token) => {
+            match state.github.check_team_membership(
+                &token,
+                state.permissions.admin_team,
+                name,
+            ) {
+                Ok(membership) => {
+                    if membership.active() {
+                        debug!("Granting feature flag={:?}", privilege::ADMIN);
+                        flags.set(privilege::ADMIN, true);
+                    }
+                }
+                Err(err) => warn!("Failed to check team membership, {}", err),
+            }
+            for team in state.permissions.early_access_teams.iter() {
+                match state.github.check_team_membership(&token, *team, name) {
+                    Ok(membership) => {
+                        if membership.active() {
+                            debug!("Granting feature flag={:?}", privilege::EARLY_ACCESS);
+                            flags.set(privilege::EARLY_ACCESS, true);
+                        }
+                    }
+                    Err(err) => warn!("Failed to check team membership, {}", err),
+                }
+            }
+            for team in state.permissions.build_worker_teams.iter() {
+                match state.github.check_team_membership(&token, *team, name) {
+                    Ok(membership) => {
+                        if membership.active() {
+                            debug!("Granting feature flag={:?}", privilege::BUILD_WORKER);
+                            flags.set(privilege::BUILD_WORKER, true);
+                        }
+                    }
+                    Err(err) => warn!("Failed to check team membership, {}", err),
+                }
+            }
+        }
+        Err(err) => warn!("Failed to obtain installation token, {}", err),
+    }
 }

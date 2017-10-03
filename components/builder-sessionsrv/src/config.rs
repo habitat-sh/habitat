@@ -66,9 +66,10 @@ impl AppCfg for Config {
     }
 }
 
-#[derive(Clone, Debug, Default, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 #[serde(default)]
 pub struct PermissionsCfg {
+    pub app_install_id: u32,
     /// A GitHub Team identifier for which members will automatically have administration
     /// privileges assigned to their session
     pub admin_team: u32,
@@ -79,6 +80,17 @@ pub struct PermissionsCfg {
     /// GitHub team's assigned to the early access group who may have access to features in Builder
     /// before a normal user.
     pub early_access_teams: Vec<u32>,
+}
+
+impl Default for PermissionsCfg {
+    fn default() -> Self {
+        PermissionsCfg {
+            app_install_id: 56940,
+            admin_team: 1995301,
+            build_worker_teams: vec![1995301, 1996256],
+            early_access_teams: vec![1995301],
+        }
+    }
 }
 
 #[cfg(test)]
