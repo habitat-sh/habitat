@@ -36,6 +36,7 @@ message CheckOriginOwnerResponse {
 enum OriginPackageVisibility {
   Public = 1;
   Private = 2;
+  Hidden = 3;
 }
 
 message Origin {
@@ -240,11 +241,13 @@ message OriginPackageCreate {
   repeated uint32 exposes = 8 [packed=true];
   optional string config = 9;
   optional string target = 10;
+  optional OriginPackageVisibility visibility = 11;
 }
 
 message OriginPackageGet {
   optional OriginPackageIdent ident = 1;
   optional uint64 account_id = 2;
+  optional bool show_hidden = 3;
 }
 
 message OriginPackageLatestGet {
@@ -333,6 +336,11 @@ message OriginPackageVersionListResponse {
   repeated OriginPackageVersion versions = 1;
 }
 
+message OriginPackageUpdate {
+  optional OriginPackage pkg = 1;
+}
+
+// Origin Project
 message OriginProject {
   optional uint64 id = 1;
   optional uint64 origin_id = 2;
@@ -344,6 +352,7 @@ message OriginProject {
   optional string vcs_type = 8;
   optional string vcs_data = 9;
   optional uint32 vcs_installation_id = 12;
+  optional OriginPackageVisibility visibility = 13;
 }
 
 message OriginProjectCreate {

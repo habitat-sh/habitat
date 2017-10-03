@@ -118,6 +118,7 @@ impl Serialize for OriginPackageVisibility {
         match *self as u64 {
             1 => serializer.serialize_str("public"),
             2 => serializer.serialize_str("private"),
+            3 => serializer.serialize_str("hidden"),
             _ => panic!("Unexpected enum value"),
         }
     }
@@ -131,6 +132,7 @@ impl FromStr for OriginPackageVisibility {
         match value.to_lowercase().as_ref() {
             "public" => Ok(OriginPackageVisibility::Public),
             "private" => Ok(OriginPackageVisibility::Private),
+            "hidden" => Ok(OriginPackageVisibility::Hidden),
             _ => Err(Error::BadOriginPackageVisibility),
         }
     }
@@ -141,6 +143,7 @@ impl fmt::Display for OriginPackageVisibility {
         let value = match *self {
             OriginPackageVisibility::Public => "public",
             OriginPackageVisibility::Private => "private",
+            OriginPackageVisibility::Hidden => "hidden",
         };
         write!(f, "{}", value)
     }
@@ -912,6 +915,14 @@ impl Serialize for OriginPackageGroupPromoteResponse {
     }
 }
 
+impl Routable for OriginPackageUpdate {
+    type H = String;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(String::from(self.get_pkg().get_ident().get_origin()))
+    }
+}
+
 impl Routable for OriginPackagePromote {
     type H = String;
 
@@ -984,6 +995,7 @@ impl Serialize for OriginProject {
             "vcs_installation_id",
             &self.get_vcs_installation_id().to_string(),
         )?;
+        state.serialize_field("visibility", &self.get_visibility())?;
         state.end()
     }
 }

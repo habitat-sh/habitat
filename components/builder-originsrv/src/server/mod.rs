@@ -51,6 +51,8 @@ lazy_static! {
             handlers::origin_invitation_rescind);
         map.register(OriginMemberListRequest::descriptor_static(None),
             handlers::origin_member_list);
+        map.register(OriginPackageUpdate::descriptor_static(None),
+            handlers::origin_package_update);
         map.register(OriginSecretKeyCreate::descriptor_static(None),
             handlers::origin_secret_key_create);
         map.register(OriginSecretKeyGet::descriptor_static(None),

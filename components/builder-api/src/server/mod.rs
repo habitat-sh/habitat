@@ -95,6 +95,9 @@ impl HttpGateway for ApiSrv {
             delete_project: delete "/projects/:origin/:name" => {
                 XHandler::new(project_delete).before(basic.clone())
             },
+            project_privacy_toggle: patch "/projects/:origin/:name/:visibility" => {
+                XHandler::new(project_privacy_toggle).before(basic.clone())
+            },
             project_integration_get: get "/projects/:origin/:name/integrations/:integration/default" => {
                 XHandler::new(get_project_integration).before(basic.clone())
             },

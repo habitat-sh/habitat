@@ -20,6 +20,7 @@ use std::str::FromStr;
 
 use base64;
 use bldr_core;
+use bldr_core::helpers::transition_visibility;
 use bodyparser;
 use hab_core::package::{Identifiable, FromArchive, PackageArchive, PackageIdent, PackageTarget,
                         ident};
@@ -975,6 +976,50 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
             Err(err) => return Ok(render_net_error(&err)),
         }
 
+        // Zero this out initially
+        package.clear_visibility();
+
+        // First, try to fetch visibility settings from a project, if one exists
+        let mut project_get = OriginProjectGet::new();
+        let project_name = format!("{}/{}", ident.get_origin(), ident.get_name());
+        project_get.set_name(project_name);
+
+        match route_message::<OriginProjectGet, OriginProject>(req, &project_get) {
+            Ok(proj) => {
+                if proj.has_visibility() {
+                    package.set_visibility(proj.get_visibility());
+                }
+            }
+            Err(_) => {
+                // There's no project for this package. No worries - we'll check the origin
+                let mut origin_get = OriginGet::new();
+                origin_get.set_name(ident.get_origin().to_string());
+
+                match route_message::<OriginGet, Origin>(req, &origin_get) {
+                    Ok(o) => {
+                        if o.has_default_package_visibility() {
+                            package.set_visibility(o.get_default_package_visibility());
+                        }
+                    }
+                    Err(e) => {
+                        // Can't find the origin
+                        error!(
+                            "Trying to upload a package for {} and can't find the origin. e = {:?}",
+                            ident,
+                            e
+                        );
+                        return Ok(Response::with(status::NotFound));
+                    }
+                }
+            }
+        }
+
+        // If, after checking both the project and the origin, there's still no visibility set
+        // (this is highly unlikely), then just make it public.
+        if !package.has_visibility() {
+            package.set_visibility(OriginPackageVisibility::Public);
+        }
+
         match route_message::<OriginPackageCreate, OriginPackage>(req, &package) {
             Ok(_) => (),
             Err(err) => {
@@ -1222,6 +1267,7 @@ fn download_package(req: &mut Request) -> IronResult<Response> {
     if session_id.is_some() {
         ident_req.set_account_id(session_id.unwrap());
     }
+    ident_req.set_show_hidden(true);
     let agent_target = target_from_headers(&req.headers.get::<UserAgent>().unwrap()).unwrap();
     if !depot.config.targets.contains(&agent_target) {
         error!(
@@ -1432,6 +1478,62 @@ fn list_package_versions(req: &mut Request) -> IronResult<Response> {
                 }
             }
         }
+    }
+}
+
+fn package_privacy_toggle(req: &mut Request) -> IronResult<Response> {
+    let session = req.extensions.get::<Authenticated>().unwrap().clone();
+    let params = req.extensions.get::<Router>().unwrap().clone();
+    let origin = match params.find("origin") {
+        Some(o) => o,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+    let visibility = match params.find("visibility") {
+        Some(v) => v,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+
+    // users aren't allowed to set packages to hidden manually
+    if visibility.to_lowercase() == "hidden" {
+        return Ok(Response::with(status::BadRequest));
+    }
+
+    let ident = ident_from_params(&params);
+
+    if !ident.valid() || !ident.fully_qualified() {
+        info!(
+            "Invalid or not fully qualified package identifier: {}",
+            ident
+        );
+        return Ok(Response::with(status::BadRequest));
+    }
+
+    let opv: OriginPackageVisibility = match visibility.parse() {
+        Ok(o) => o,
+        Err(_) => return Ok(Response::with(status::BadRequest)),
+    };
+
+    if !check_origin_access(req, session.get_id(), &origin)? {
+        return Ok(Response::with(status::Forbidden));
+    }
+
+    let mut opg = OriginPackageGet::new();
+    opg.set_ident(ident);
+    opg.set_account_id(session.get_id());
+
+    match route_message::<OriginPackageGet, OriginPackage>(req, &opg) {
+        Ok(mut package) => {
+            let real_visibility = transition_visibility(opv, package.get_visibility());
+            let mut opu = OriginPackageUpdate::new();
+            package.set_visibility(real_visibility);
+            opu.set_pkg(package);
+
+            match route_message::<OriginPackageUpdate, NetOk>(req, &opu) {
+                Ok(_) => Ok(Response::with(status::Ok)),
+                Err(e) => Ok(render_net_error(&e)),
+            }
+        }
+        Err(e) => Ok(render_net_error(&e)),
     }
 }
 
@@ -1809,10 +1911,6 @@ fn search_packages(req: &mut Request) -> IronResult<Response> {
     };
 
     debug!("search_packages called with: {}", request.get_query());
-
-    // Not sure if we need this
-    // Counter::SearchPackages.increment();
-    // Gauge::PackageCount.set(depot.datastore.key_count().unwrap() as f64);
 
     // Setting distinct to true makes this query ignore any origin set, because it's going to
     // search both the origin name and the package name for the query string provided. This is
@@ -2203,6 +2301,9 @@ where
         },
         package_upload: post "/pkgs/:origin/:pkg/:version/:release" => {
             XHandler::new(upload_package).before(basic.clone())
+        },
+        package_privacy_toggle: patch "/pkgs/:origin/:pkg/:version/:release/:visibility" => {
+            XHandler::new(package_privacy_toggle).before(basic.clone())
         },
         packages_stats: get "/pkgs/origins/:origin/stats" => package_stats,
         schedule: post "/pkgs/schedule/:origin/:pkg" => {

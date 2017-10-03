@@ -61,6 +61,23 @@ pub fn origin_check_owner(
     Ok(())
 }
 
+pub fn origin_package_update(
+    req: &mut Message,
+    conn: &mut RouteConn,
+    state: &mut ServerState,
+) -> SrvResult<()> {
+    let msg = req.parse::<proto::OriginPackageUpdate>()?;
+    match state.datastore.update_origin_package(&msg) {
+        Ok(()) => conn.route_reply(req, &NetOk::new())?,
+        Err(e) => {
+            let err = NetError::new(ErrCode::DATA_STORE, "vt:origin-package-update:1");
+            error!("{}, {}", err, e);
+            conn.route_reply(req, &*err)?;
+        }
+    }
+    Ok(())
+}
+
 pub fn origin_create(
     req: &mut Message,
     conn: &mut RouteConn,

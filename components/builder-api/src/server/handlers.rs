@@ -18,6 +18,7 @@ use std::env;
 
 use base64;
 use bodyparser;
+use bldr_core::helpers::transition_visibility;
 use depot::server::check_origin_access;
 use github_api_client::HubError;
 use hab_core::package::{Identifiable, Plan};
@@ -125,6 +126,55 @@ pub fn job_group_promote(req: &mut Request) -> IronResult<Response> {
 
     match helpers::promote_job_group_to_channel(req, group_id, &channel, Some(session_id)) {
         Ok(resp) => Ok(render_json(status::Ok, &resp)),
+        Err(err) => Ok(render_net_error(&err)),
+    }
+}
+
+pub fn project_privacy_toggle(req: &mut Request) -> IronResult<Response> {
+    let session = req.extensions.get::<Authenticated>().unwrap().clone();
+    let params = req.extensions.get::<Router>().unwrap().clone();
+    let origin = match params.find("origin") {
+        Some(o) => o,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+    let name = match params.find("name") {
+        Some(n) => n,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+    let vis = match params.find("visibility") {
+        Some(v) => v,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+
+    // users aren't allowed to set projects to hidden manually
+    if vis.to_lowercase() == "hidden" {
+        return Ok(Response::with(status::BadRequest));
+    }
+
+    let opv: OriginPackageVisibility = match vis.parse() {
+        Ok(o) => o,
+        Err(_) => return Ok(Response::with(status::BadRequest)),
+    };
+
+    if !check_origin_access(req, session.get_id(), &origin)? {
+        return Ok(Response::with(status::Forbidden));
+    }
+
+    let mut project_get = OriginProjectGet::new();
+    project_get.set_name(format!("{}/{}", origin, name));
+
+    match route_message::<OriginProjectGet, OriginProject>(req, &project_get) {
+        Ok(mut project) => {
+            let real_visibility = transition_visibility(opv, project.get_visibility());
+            let mut opu = OriginProjectUpdate::new();
+            project.set_visibility(real_visibility);
+            opu.set_project(project);
+
+            match route_message::<OriginProjectUpdate, NetOk>(req, &opu) {
+                Ok(_) => Ok(Response::with(status::NoContent)),
+                Err(err) => Ok(render_net_error(&err)),
+            }
+        }
         Err(err) => Ok(render_net_error(&err)),
     }
 }
@@ -368,6 +418,7 @@ pub fn project_create(req: &mut Request) -> IronResult<Response> {
         }
         _ => return Ok(Response::with(status::UnprocessableEntity)),
     };
+
     let origin = match route_message::<OriginGet, Origin>(req, &origin_get) {
         Ok(response) => response,
         Err(err) => return Ok(render_net_error(&err)),
@@ -402,6 +453,7 @@ pub fn project_create(req: &mut Request) -> IronResult<Response> {
     }
 
     project.set_owner_id(session.get_id());
+    project.set_visibility(origin.get_default_package_visibility());
     request.set_project(project);
     match route_message::<OriginProjectCreate, OriginProject>(req, &request) {
         Ok(response) => {
@@ -456,6 +508,15 @@ pub fn project_update(req: &mut Request) -> IronResult<Response> {
         (name, origin)
     };
 
+    let session_id = {
+        let session = req.extensions.get::<Authenticated>().unwrap();
+        session.get_id()
+    };
+
+    if !check_origin_access(req, session_id, &origin)? {
+        return Ok(Response::with(status::Forbidden));
+    }
+
     let mut project_get = OriginProjectGet::new();
     project_get.set_name(format!("{}/{}", &origin, &name));
     let mut project = match route_message::<OriginProjectGet, OriginProject>(req, &project_get) {
@@ -465,15 +526,6 @@ pub fn project_update(req: &mut Request) -> IronResult<Response> {
 
     let mut request = OriginProjectUpdate::new();
     let github = req.get::<persistent::Read<GitHubCli>>().unwrap();
-
-    let session_id = {
-        let session = req.extensions.get::<Authenticated>().unwrap();
-        session.get_id()
-    };
-
-    if !check_origin_access(req, session_id, &origin)? {
-        return Ok(Response::with(status::Forbidden));
-    }
 
     let (token, repo_id) = match req.get::<bodyparser::Struct<ProjectCreateReq>>() {
         Ok(Some(body)) => {

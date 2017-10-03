@@ -17,6 +17,7 @@ use std::fmt::Display;
 use std::str::FromStr;
 use std::sync::Arc;
 
+use bldr_core::helpers::transition_visibility;
 use db::pool::Pool;
 use db::async::{AsyncServer, EventOutcome};
 use db::migration::Migrator;
@@ -103,11 +104,38 @@ impl DataStore {
         async_thread.start(4);
     }
 
+    pub fn update_origin_package(&self, opu: &originsrv::OriginPackageUpdate) -> SrvResult<()> {
+        let conn = self.pool.get(opu)?;
+        let pkg = opu.get_pkg();
+        let ident = pkg.get_ident();
+
+        conn.execute(
+            "SELECT update_origin_package_v1($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)",
+            &[
+                &(pkg.get_id() as i64),
+                &(pkg.get_owner_id() as i64),
+                &ident.get_name(),
+                &ident.to_string(),
+                &pkg.get_checksum(),
+                &pkg.get_manifest(),
+                &pkg.get_config(),
+                &pkg.get_target(),
+                &self.into_delimited(pkg.get_deps().to_vec()),
+                &self.into_delimited(pkg.get_tdeps().to_vec()),
+                &self.into_delimited(pkg.get_exposes().to_vec()),
+                &pkg.get_visibility().to_string(),
+            ],
+        ).map_err(SrvError::OriginPackageUpdate)?;
+        self.async.schedule("sync_packages")?;
+        Ok(())
+    }
+
     pub fn update_origin_project(&self, opc: &originsrv::OriginProjectUpdate) -> SrvResult<()> {
         let conn = self.pool.get(opc)?;
         let project = opc.get_project();
+
         conn.execute(
-            "SELECT update_origin_project_v3($1, $2, $3, $4, $5, $6, $7, $8)",
+            "SELECT update_origin_project_v3($1, $2, $3, $4, $5, $6, $7, $8, $9)",
             &[
                 &(project.get_id() as i64),
                 &(project.get_origin_id() as i64),
@@ -117,8 +145,36 @@ impl DataStore {
                 &project.get_vcs_data(),
                 &(project.get_owner_id() as i64),
                 &(project.get_vcs_installation_id() as i64),
+                &project.get_visibility().to_string(),
             ],
         ).map_err(SrvError::OriginProjectUpdate)?;
+
+        // Get all the packages tied to this project
+        let rows = conn.query(
+            "SELECT * FROM get_all_origin_packages_for_ident_v1($1)",
+            &[&project.get_name()],
+        ).map_err(SrvError::VisibilityCascade)?;
+
+        let mut map = HashMap::new();
+
+        // For each row, store its id in our map, keyed on visibility
+        for row in rows.iter() {
+            let id: i64 = row.get("id");
+            let pv: String = row.get("visibility");
+            let vis: originsrv::OriginPackageVisibility =
+                pv.parse().map_err(SrvError::UnknownOriginPackageVisibility)?;
+            let new_vis = transition_visibility(project.get_visibility(), vis);
+            map.entry(new_vis).or_insert(Vec::new()).push(id);
+        }
+
+        // Now do a bulk update for each different visibility
+        for (vis, id_vector) in map.iter() {
+            let vis_str = vis.to_string();
+            conn.execute(
+                "SELECT update_package_visibility_in_bulk_v1($1, $2)",
+                &[&vis_str, id_vector],
+            ).map_err(SrvError::VisibilityCascade)?;
+        }
         Ok(())
     }
 
@@ -142,13 +198,17 @@ impl DataStore {
             .map_err(SrvError::OriginProjectGet)?;
         if rows.len() != 0 {
             let row = rows.get(0);
-            Ok(Some(self.row_to_origin_project(&row)))
+            let project = self.row_to_origin_project(&row)?;
+            Ok(Some(project))
         } else {
             Ok(None)
         }
     }
 
-    pub fn row_to_origin_project(&self, row: &postgres::rows::Row) -> originsrv::OriginProject {
+    pub fn row_to_origin_project(
+        &self,
+        row: &postgres::rows::Row,
+    ) -> SrvResult<originsrv::OriginProject> {
         let mut project = originsrv::OriginProject::new();
         let id: i64 = row.get("id");
         project.set_id(id as u64);
@@ -167,7 +227,12 @@ impl DataStore {
             project.set_vcs_installation_id(install_id as u32);
         }
 
-        project
+        let pv: String = row.get("visibility");
+        let pv2: originsrv::OriginPackageVisibility =
+            pv.parse().map_err(SrvError::UnknownOriginPackageVisibility)?;
+        project.set_visibility(pv2);
+
+        Ok(project)
     }
 
     pub fn create_origin_project(
@@ -184,7 +249,7 @@ impl DataStore {
             }
         };
         let rows = conn.query(
-            "SELECT * FROM insert_origin_project_v3($1, $2, $3, $4, $5, $6, $7)",
+            "SELECT * FROM insert_origin_project_v4($1, $2, $3, $4, $5, $6, $7, $8)",
             &[
                 &project.get_origin_name(),
                 &project.get_package_name(),
@@ -193,10 +258,12 @@ impl DataStore {
                 &project.get_vcs_data(),
                 &(project.get_owner_id() as i64),
                 &install_id,
+                &project.get_visibility().to_string(),
             ],
         ).map_err(SrvError::OriginProjectCreate)?;
         let row = rows.get(0);
-        Ok(self.row_to_origin_project(&row))
+        let project = self.row_to_origin_project(&row)?;
+        Ok(project)
     }
 
     pub fn get_origin_project_list(
@@ -775,8 +842,9 @@ impl DataStore {
     ) -> SrvResult<originsrv::OriginPackage> {
         let conn = self.pool.get(opc)?;
         let ident = opc.get_ident();
+
         let rows = conn.query(
-            "SELECT * FROM insert_origin_package_v2($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
+            "SELECT * FROM insert_origin_package_v3($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)",
             &[
                 &(opc.get_origin_id() as i64),
                 &(opc.get_owner_id() as i64),
@@ -789,6 +857,7 @@ impl DataStore {
                 &self.into_delimited(opc.get_deps().to_vec()),
                 &self.into_delimited(opc.get_tdeps().to_vec()),
                 &self.into_delimited(opc.get_exposes().to_vec()),
+                &opc.get_visibility().to_string()
             ],
         ).map_err(SrvError::OriginPackageCreate)?;
 
@@ -804,9 +873,14 @@ impl DataStore {
     ) -> SrvResult<Option<originsrv::OriginPackage>> {
         let conn = self.pool.get(opg)?;
         let rows = conn.query(
-            "SELECT * FROM get_origin_package_v2($1, $2)",
-            &[&opg.get_ident().to_string(), &(opg.get_account_id() as i64)],
+            "SELECT * FROM get_origin_package_v3($1, $2, $3)",
+            &[
+                &opg.get_ident().to_string(),
+                &(opg.get_account_id() as i64),
+                &opg.get_show_hidden(),
+            ],
         ).map_err(SrvError::OriginPackageGet)?;
+
         if rows.len() != 0 {
             let row = rows.get(0);
             let pkg = self.row_to_origin_package(&row)?;
@@ -822,7 +896,7 @@ impl DataStore {
     ) -> SrvResult<Option<originsrv::OriginPackage>> {
         let conn = self.pool.get(ocpg)?;
         let rows = conn.query(
-            "SELECT * FROM get_origin_channel_package_v2($1, $2, $3, $4)",
+            "SELECT * FROM get_origin_channel_package_v3($1, $2, $3, $4)",
             &[
                 &ocpg.get_ident().get_origin(),
                 &ocpg.get_name(),
@@ -869,7 +943,7 @@ impl DataStore {
     ) -> SrvResult<Option<originsrv::OriginPackageIdent>> {
         let conn = self.pool.get(opc)?;
         let rows = conn.query(
-            "SELECT * FROM get_origin_package_latest_v3($1, $2, $3)",
+            "SELECT * FROM get_origin_package_latest_v4($1, $2, $3)",
             &[
                 &self.searchable_ident(opc.get_ident()),
                 &opc.get_target(),
@@ -890,7 +964,7 @@ impl DataStore {
     ) -> SrvResult<Option<originsrv::OriginPackageIdent>> {
         let conn = self.pool.get(ocpg)?;
         let rows = conn.query(
-            "SELECT * FROM get_origin_channel_package_latest_v3($1, $2, $3, $4, $5)",
+            "SELECT * FROM get_origin_channel_package_latest_v4($1, $2, $3, $4, $5)",
             &[
                 &ocpg.get_ident().get_origin(),
                 &ocpg.get_name(),
@@ -915,7 +989,7 @@ impl DataStore {
         let conn = self.pool.get(opvl)?;
 
         let rows = conn.query(
-            "SELECT * FROM get_origin_package_versions_for_origin_v5($1, $2, $3)",
+            "SELECT * FROM get_origin_package_versions_for_origin_v6($1, $2, $3)",
             &[
                 &opvl.get_origin(),
                 &opvl.get_name(),
@@ -964,7 +1038,7 @@ impl DataStore {
         let conn = self.pool.get(oppl)?;
 
         let rows = conn.query(
-            "SELECT * FROM get_origin_package_platforms_for_package_v2($1, $2)",
+            "SELECT * FROM get_origin_package_platforms_for_package_v3($1, $2)",
             &[
                 &self.searchable_ident(oppl.get_ident()),
                 &(oppl.get_account_id() as i64),
@@ -988,7 +1062,7 @@ impl DataStore {
         let conn = self.pool.get(opcl)?;
 
         let rows = conn.query(
-            "SELECT * FROM get_origin_package_channels_for_package_v2($1, $2)",
+            "SELECT * FROM get_origin_package_channels_for_package_v3($1, $2)",
             &[
                 &self.searchable_ident(opcl.get_ident()),
                 &(opcl.get_account_id() as i64),
@@ -1018,9 +1092,9 @@ impl DataStore {
         let conn = self.pool.get(opl)?;
 
         let query = if *&opl.get_distinct() {
-            "SELECT * FROM get_origin_packages_for_origin_distinct_v2($1, $2, $3, $4)"
+            "SELECT * FROM get_origin_packages_for_origin_distinct_v3($1, $2, $3, $4)"
         } else {
-            "SELECT * FROM get_origin_packages_for_origin_v3($1, $2, $3, $4)"
+            "SELECT * FROM get_origin_packages_for_origin_v4($1, $2, $3, $4)"
         };
 
         let rows = conn.query(
@@ -1073,11 +1147,12 @@ impl DataStore {
         let conn = self.pool.get(opl)?;
 
         let rows = conn.query(
-            "SELECT * FROM get_origin_channel_packages_for_channel_v1($1, $2, $3, $4, $5)",
+            "SELECT * FROM get_origin_channel_packages_for_channel_v2($1, $2, $3, $4, $5, $6)",
             &[
                 &opl.get_ident().get_origin(),
                 &opl.get_name(),
                 &self.searchable_ident(opl.get_ident()),
+                &(opl.get_account_id() as i64),
                 &opl.limit(),
                 &(opl.get_start() as i64),
             ],
@@ -1102,7 +1177,7 @@ impl DataStore {
     ) -> SrvResult<originsrv::OriginPackageUniqueListResponse> {
         let conn = self.pool.get(opl)?;
         let rows = conn.query(
-            "SELECT * FROM get_origin_packages_unique_for_origin_v2($1, $2, $3, $4)",
+            "SELECT * FROM get_origin_packages_unique_for_origin_v3($1, $2, $3, $4)",
             &[
                 &opl.get_origin(),
                 &opl.limit(),
@@ -1135,7 +1210,7 @@ impl DataStore {
 
         let rows = if *&ops.get_distinct() {
             conn.query(
-                "SELECT COUNT(*) OVER () AS the_real_total, * FROM search_all_origin_packages_dynamic_v4($1, $2) ORDER BY ident LIMIT $3 OFFSET $4",
+                "SELECT COUNT(*) OVER () AS the_real_total, * FROM search_all_origin_packages_dynamic_v5($1, $2) ORDER BY ident LIMIT $3 OFFSET $4",
                 &[
                     &ops.get_query(),
                     &(ops.get_account_id() as i64),
@@ -1146,7 +1221,7 @@ impl DataStore {
         } else {
             if ops.get_origin().is_empty() {
                 conn.query(
-                    "SELECT COUNT(*) OVER () AS the_real_total, * FROM search_all_origin_packages_v3($1, $2) ORDER BY ident LIMIT $3 OFFSET $4",
+                    "SELECT COUNT(*) OVER () AS the_real_total, * FROM search_all_origin_packages_v4($1, $2) ORDER BY ident LIMIT $3 OFFSET $4",
                     &[
                         &ops.get_query(),
                         &(ops.get_account_id() as i64),
@@ -1156,7 +1231,7 @@ impl DataStore {
                 ).map_err(SrvError::OriginPackageSearch)?
             } else {
                 conn.query(
-                    "SELECT COUNT(*) OVER () AS the_real_total, * FROM search_origin_packages_for_origin_v2($1, $2, $3, $4, $5)",
+                    "SELECT COUNT(*) OVER () AS the_real_total, * FROM search_origin_packages_for_origin_v3($1, $2, $3, $4, $5)",
                     &[
                         &ops.get_origin(),
                         &ops.get_query(),
