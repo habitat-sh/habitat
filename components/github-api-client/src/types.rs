@@ -140,7 +140,7 @@ pub struct GitHubWebhookPush {
     /// of 20 commits. If necessary, you can use the Commits API to fetch additional commits.
     /// This limit is applied to timeline events only and isn't applied to webhook deliveries)
     pub commits: Vec<GitHubWebhookCommit>,
-    pub head_commit: GitHubWebhookCommit,
+    pub head_commit: Option<GitHubWebhookCommit>,
     pub repository: PushRepository,
     pub pusher: GitHubOwner,
     pub sender: GitHubWebhookSender,
