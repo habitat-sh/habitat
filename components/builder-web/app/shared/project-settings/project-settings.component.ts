@@ -4,12 +4,13 @@ import { MdDialog, MdDialogRef } from "@angular/material";
 import { DisconnectConfirmDialog } from "./dialog/disconnect-confirm/disconnect-confirm.dialog";
 import { Subscription } from "rxjs/subscription";
 import { DockerExportSettingsComponent } from "../../shared/docker-export-settings/docker-export-settings.component";
+import { BuilderApiClient } from "../../BuilderApiClient";
 import { GitHubApiClient } from "../../GitHubApiClient";
 import { GitHubRepo } from "../../github/repo/shared/github-repo.model";
 import { requireSignIn } from "../../util";
 import { AppStore } from "../../AppStore";
-import { addNotification, addProject, updateProject, setProjectIntegrationSettings, deleteProject, fetchGitHubFiles, fetchGitHubOrgs,
-         fetchGitHubRepos, fetchProject, clearGitHubRepos } from "../../actions/index";
+import { addNotification, addProject, updateProject, setProjectIntegrationSettings, deleteProject, fetchGitHubFiles,
+    fetchGitHubInstallations, fetchGitHubInstallationRepositories, fetchProject } from "../../actions/index";
 import config from "../../config";
 
 @Component({
@@ -19,8 +20,9 @@ import config from "../../config";
 export class ProjectSettingsComponent {
     connecting: boolean = false;
     filter: GitHubRepo = new GitHubRepo();
+    selectedInstallation: any;
     selectedOrg: string;
-    selectedRepo: string;
+    selectedRepo: any;
     selectedPath: string;
 
     @Input() integrations;
@@ -50,6 +52,10 @@ export class ProjectSettingsComponent {
         return this.store.getState().gitHub.files;
     }
 
+    get installations() {
+        return this.store.getState().gitHub.installations;
+    }
+
     get orgs() {
         return this.store.getState().gitHub.orgs;
     }
@@ -58,15 +64,13 @@ export class ProjectSettingsComponent {
         return {
             "origin": this.origin,
             "plan_path": this.selectedPath,
-            "github": {
-                "organization": this.selectedOrg,
-                "repo": this.selectedRepo
-            }
+            "installation_id": this.selectedInstallation.get("id"),
+            "repo_id": this.selectedRepo.get("id")
         };
     }
 
     get repos() {
-        return this.store.getState().gitHub.repos;
+        return this.store.getState().gitHub.installationRepositories;
     }
 
     get token() {
@@ -83,7 +87,7 @@ export class ProjectSettingsComponent {
     }
 
     connect() {
-        this.store.dispatch(fetchGitHubOrgs());
+        this.store.dispatch(fetchGitHubInstallations());
         this.connecting = true;
         this.toggled.emit(this.connecting);
     }
@@ -119,7 +123,6 @@ export class ProjectSettingsComponent {
         this.selectedRepo = null;
         this.selectedPath = null;
         this.filter = new GitHubRepo();
-        this.store.dispatch(clearGitHubRepos());
     }
 
     editConnection() {
@@ -129,8 +132,8 @@ export class ProjectSettingsComponent {
     }
 
     saveConnection() {
-        new GitHubApiClient(this.token)
-            .getFileContent(this.selectedOrg, this.selectedRepo, this.selectedPath)
+        new BuilderApiClient(this.token)
+            .getGitHubFileContent(this.selectedInstallation.get("id"), this.selectedRepo.getIn(["owner", "login"]), this.selectedRepo.get("name"), this.selectedPath)
             .then((response) => {
 
                 // Plan variables may be prefixed with a $
@@ -199,20 +202,15 @@ export class ProjectSettingsComponent {
             });
     }
 
-    selectOrg(org) {
-        this.selectedOrg = org;
-        this.store.dispatch(fetchGitHubRepos(org, 1, undefined));
+    selectInstallation(installation) {
+        this.selectedInstallation = installation;
+        this.store.dispatch(fetchGitHubInstallationRepositories(installation.get("id")));
     }
 
     selectRepo(repo) {
         this.selectedRepo = repo;
-        this.store.dispatch(fetchGitHubFiles(this.selectedOrg, this.selectedRepo, "plan."));
+        this.store.dispatch(fetchGitHubFiles(this.selectedInstallation.get("id"), repo.getIn(["owner", "login"]), repo.get("name"), "plan."));
         window.scrollTo(0, 0);
-    }
-
-    selectUser(user) {
-        this.selectedOrg = user;
-        this.store.dispatch(fetchGitHubRepos(user, 1, user));
     }
 
     private handleSaved(successful, origin, name) {

@@ -17,7 +17,7 @@ hab-project-settings {
       margin-bottom: 14px;
     }
 
-    .orgs {
+    .installations {
       @include span-columns(4.5 of 9);
 
       img {
@@ -41,7 +41,7 @@ hab-project-settings {
       @include row;
     }
 
-    .orgs, .repos {
+    .installations, .repos {
 
       li {
         line-height:  40px;
