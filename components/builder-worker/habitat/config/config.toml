@@ -7,7 +7,7 @@ bldr_url = "{{bind.depot.first.cfg.url}}"
 features_enabled = "{{cfg.features_enabled}}"
 
 [github]
-app_private_key_path = "{{pkg.svc_files_path}}/builder-github-app.pem"
+app_private_key = "{{pkg.svc_files_path}}/builder-github-app.pem"
 {{toToml cfg.github}}
 
 {{~#eachAlive bind.jobsrv.members as |member|}}
