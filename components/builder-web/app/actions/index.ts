@@ -25,13 +25,14 @@ import * as cookieActions from "./cookies";
 import * as featureFlagActions from "./feature-flags";
 
 // Action types
+export const CLEAR_GITHUB_FILES = gitHubActions.CLEAR_GITHUB_FILES;
+export const CLEAR_GITHUB_REPOS = gitHubActions.CLEAR_GITHUB_REPOS;
 export const LOAD_SESSION_STATE = gitHubActions.LOAD_SESSION_STATE;
 export const POPULATE_GITHUB_FILES = gitHubActions.POPULATE_GITHUB_FILES;
-export const POPULATE_GITHUB_ORGS = gitHubActions.POPULATE_GITHUB_ORGS;
+export const POPULATE_GITHUB_INSTALLATIONS = gitHubActions.POPULATE_GITHUB_INSTALLATIONS;
+export const POPULATE_GITHUB_INSTALLATION_REPOSITORIES = gitHubActions.POPULATE_GITHUB_INSTALLATION_REPOSITORIES;
 export const POPULATE_GITHUB_REPOS = gitHubActions.POPULATE_GITHUB_REPOS;
 export const POPULATE_GITHUB_USER_DATA = gitHubActions.POPULATE_GITHUB_USER_DATA;
-export const RESET_GITHUB_ORGS = gitHubActions.RESET_GITHUB_ORGS;
-export const RESET_GITHUB_REPOS = gitHubActions.RESET_GITHUB_REPOS;
 export const SET_GITHUB_ORGS_LOADING_FLAG = gitHubActions.SET_GITHUB_ORGS_LOADING_FLAG;
 export const SET_GITHUB_REPOS_LOADING_FLAG = gitHubActions.SET_GITHUB_REPOS_LOADING_FLAG;
 export const SET_GITHUB_AUTH_STATE = gitHubActions.SET_GITHUB_AUTH_STATE;
@@ -116,11 +117,9 @@ export const RESET = "RESET";
 // Actions
 export const authenticateWithGitHub = gitHubActions.authenticateWithGitHub;
 export const fetchGitHubFiles = gitHubActions.fetchGitHubFiles;
-export const clearGitHubRepos = gitHubActions.clearGitHubRepos;
-export const fetchGitHubOrgs = gitHubActions.fetchGitHubOrgs;
-export const fetchGitHubRepos = gitHubActions.fetchGitHubRepos;
+export const fetchGitHubInstallations = gitHubActions.fetchGitHubInstallations;
+export const fetchGitHubInstallationRepositories = gitHubActions.fetchGitHubInstallationRepositories;
 export const loadSessionState = gitHubActions.loadSessionState;
-export const onGitHubOrgSelect = gitHubActions.onGitHubOrgSelect;
 export const removeSessionStorage = gitHubActions.removeSessionStorage;
 export const requestGitHubAuthToken = gitHubActions.requestGitHubAuthToken;
 export const setGitHubAuthState = gitHubActions.setGitHubAuthState;

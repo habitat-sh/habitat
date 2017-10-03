@@ -35,64 +35,6 @@ export interface FileResponse {
 export class GitHubApiClient {
     constructor(private token: string) { }
 
-    // Checks to see if a file exists at a location
-    public doesFileExist(owner: string, repo: string, path: string) {
-        return new Promise((resolve, reject) => {
-            fetch(`${config["github_api_url"]}/repos/${owner}/${repo}/contents/${path}?access_token=${this.token}`, {
-                method: "GET"
-            }).then(response => {
-                if (response.status === 404) {
-                    reject(false);
-                } else {
-                    // Check to see if it's a file
-                    response.json().then(data => {
-                        if ("type" in data && data["type"] === "file") {
-                            resolve(true);
-                        } else {
-                            reject(false);
-                        }
-                    });
-                    resolve(true);
-                }
-            }).catch(error => reject(error));
-        });
-    }
-
-    // Search for a filename within a repo
-    public findFileInRepo(owner: string, repo: string, filename: string, page: number = 1, per_page: number = 100) {
-        return new Promise((resolve, reject) => {
-            fetch(`${config["github_api_url"]}/search/code?q=repo:${owner}/${repo}+filename:${filename}&page=${page}&per_page=${per_page}`, {
-                method: "GET",
-                headers: {
-                    "Authorization": `token ${this.token}`
-                }
-            }).then(response => {
-                if (response.ok) {
-                    resolve(response.json());
-                } else {
-                    reject(new Error(response.statusText));
-                }
-            });
-        });
-    }
-
-    public getFileContent(owner: string, repo: string, path: string) {
-        return new Promise((resolve, reject) => {
-            fetch(`${config["github_api_url"]}/repos/${owner}/${repo}/contents/${path}`, {
-                method: "GET",
-                headers: {
-                    "Authorization": `token ${this.token}`
-                }
-            }).then(response => {
-                if (response.ok) {
-                    resolve(response.json());
-                } else {
-                    reject(new Error(response.statusText));
-                }
-            });
-        });
-    }
-
     public getUser(username: string) {
         return new Promise((resolve, reject) => {
             fetch(`${config["github_api_url"]}/users/${username}?access_token=${this.token}`, {
@@ -108,6 +50,54 @@ export class GitHubApiClient {
                     }
                 }
             }).catch(error => reject(error));
+        });
+    }
+
+    public getUserInstallations() {
+        return new Promise((resolve, reject) => {
+            fetch(`${config["github_api_url"]}/user/installations?access_token=${this.token}`, {
+                method: "GET",
+                headers: {
+                    "Accept": [
+                        "application/vnd.github.v3+json",
+                        "application/vnd.github.machine-man-preview+json"
+                    ]
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    resolve(response.json());
+                } else {
+                    reject(new Error(response.statusText));
+                }
+            })
+            .catch(error => {
+                reject(error);
+            });
+        });
+    }
+
+    public getUserInstallationRepositories(installationId: string) {
+        return new Promise((resolve, reject) => {
+            fetch(`${config["github_api_url"]}/user/installations/${installationId}/repositories?access_token=${this.token}`, {
+                method: "GET",
+                headers: {
+                    "Accept": [
+                        "application/vnd.github.v3+json",
+                        "application/vnd.github.machine-man-preview+json"
+                    ]
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    resolve(response.json());
+                } else {
+                    reject(new Error(response.statusText));
+                }
+            })
+            .catch(error => {
+                reject(error);
+            });
         });
     }
 }

@@ -48,36 +48,26 @@
             <li [class.active]="selectedRepo">Set path to Habitat plan file</li>
         </ol>
         <div class="browser" *ngIf="!selectedRepo">
-            <div class="orgs">
+            <div class="installations">
                 <h3>
                     <hab-icon symbol="github"></hab-icon>
-                    GitHub Orgs for {{ user.get("login") }}
+                    Installed Apps
                 </h3>
                 <ul>
-                    <li>
-                        <a (click)="selectUser(user.get('login'))"
-                            [class.active]='user.get("login") === selectedOrg'>
-                            <img src="{{ user.get('avatar_url') }}?s=32">
-                            {{ user.get("login") }}
-                            <hab-icon symbol="chevron-right"></hab-icon>
-                        </a>
-                    </li>
-                    <li *ngFor="let org of orgs">
-                        <a (click)="selectOrg(org.get('login'))"
-                            [class.active]="org.get('login') === selectedOrg">
-                            <img src='{{org.get("avatar_url")}}?s=32'>
-                            {{ org.get("login") }}
+                    <li *ngFor="let installation of installations">
+                        <a (click)="selectInstallation(installation)" [class.active]="installation === selectedInstallation">
+                            {{ installation.get("id") }}
                             <hab-icon symbol="chevron-right"></hab-icon>
                         </a>
                     </li>
                 </ul>
             </div>
             <div class="repos">
-                <h3>GitHub Repos for Selected Org</h3>
+                <h3>Repositories for App</h3>
                 <input [(ngModel)]="filter.name" placeholder="Filter by name">
                 <ul>
                     <li *ngFor="let repo of repos | habGitHubRepoFilter:filter:'name'">
-                        <a (click)="selectRepo(repo.get('name'))">
+                        <a (click)="selectRepo(repo)">
                             {{ repo.get("name") }}
                             <hab-icon symbol="chevron-right"></hab-icon>
                         </a>

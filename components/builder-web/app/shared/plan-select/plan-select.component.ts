@@ -68,9 +68,6 @@ export class PackagePlanSelectComponent implements OnInit {
   repoSelected(ownerAndRepo: string) {
     [this.owner, this.repo] = ownerAndRepo.split("/");
 
-    this.gitHubClient.findFileInRepo(this.owner, this.repo, "plan.")
-      .then(this.handleGitHubFileResponse.bind(this));
-
     return false;
   };
 

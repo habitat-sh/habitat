@@ -16,8 +16,7 @@ import { Component, Input, OnInit, Output, EventEmitter } from "@angular/core";
 import { List, Map, OrderedSet } from "immutable";
 import { AppStore } from "../../AppStore";
 import { GitHubRepo } from "../../github/repo/shared/github-repo.model";
-import {fetchGitHubOrgs, fetchGitHubRepos,
-  onGitHubOrgSelect, setSelectedGitHubOrg, resetRedirectRoute} from "../../actions/index";
+import { setSelectedGitHubOrg, resetRedirectRoute } from "../../actions/index";
 
 @Component({
   selector: "hab-github-repo-picker",
@@ -36,19 +35,12 @@ export class GitHubRepoPickerComponent implements OnInit {
   repoSelectCancel: Function;
 
   constructor(private store: AppStore) {
-    this.store.dispatch(fetchGitHubOrgs());
     this.clickFetchGitHubRepos = () => {
-      this.store.dispatch(fetchGitHubRepos(
-        this.selectedOrg, 1,
-        this.selectedOrg === this.user.get("login") ?
-          this.user.get("login") : undefined
-      ));
       return false;
     };
 
     this.orgSelect = (org, username) => {
       this.selectedOrg = org;
-      this.store.dispatch(onGitHubOrgSelect(org, username));
       return false;
     };
 
@@ -64,7 +56,7 @@ export class GitHubRepoPickerComponent implements OnInit {
   }
 
   public ngOnInit() {
-    // this.fetchGitHubOrgs();
+
   }
 
   get gitHub() {
