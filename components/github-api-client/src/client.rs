@@ -72,12 +72,12 @@ impl GitHubClient {
         Ok(contents)
     }
 
-    pub fn app_installation_token(&self, installation_id: u32) -> HubResult<String> {
+    pub fn app_installation_token(&self, install_id: u32) -> HubResult<String> {
         let app_token = generate_app_token(&self.app_private_key, &self.app_id);
         let url = Url::parse(&format!(
             "{}/installations/{}/access_tokens",
             self.url,
-            installation_id
+            install_id
         )).map_err(HubError::HttpClientParse)?;
         let mut rep = http_post(url, Some(app_token))?;
         let mut body = String::new();
@@ -188,6 +188,24 @@ impl GitHubClient {
         Ok(repo)
     }
 
+    pub fn repositories(&self, token: &str, install_id: u32) -> HubResult<Vec<Repository>> {
+        let url = Url::parse(&format!(
+            "{}/user/installations/{}/repositories",
+            self.url,
+            install_id
+        )).unwrap();
+        let mut rep = http_get(url, Some(token))?;
+        let mut body = String::new();
+        rep.read_to_string(&mut body)?;
+        debug!("GitHub response body, {}", body);
+        if rep.status != StatusCode::Ok {
+            let err: HashMap<String, String> = serde_json::from_str(&body)?;
+            return Err(HubError::ApiError(rep.status, err));
+        }
+        let list = serde_json::from_str::<RepositoryList>(&body)?;
+        Ok(list.repositories)
+    }
+
     pub fn user(&self, token: &str) -> HubResult<User> {
         let url = Url::parse(&format!("{}/user", self.url)).unwrap();
         let mut rep = http_get(url, Some(token))?;
@@ -218,13 +236,9 @@ impl GitHubClient {
         Ok(orgs)
     }
 
-    pub fn search_file(&self, token: &str, repo: &str, file: &str) -> HubResult<Search> {
-        let url = Url::parse(&format!(
-            "{}/search/code?q={}+in:path+repo:{}",
-            self.url,
-            file,
-            repo
-        )).map_err(HubError::HttpClientParse)?;
+    pub fn search_code(&self, token: &str, query: &str) -> HubResult<Search> {
+        let url = Url::parse(&format!("{}/search/code?{}", self.url, query))
+            .map_err(HubError::HttpClientParse)?;
         let mut rep = http_get(url, Some(token))?;
         let mut body = String::new();
         rep.read_to_string(&mut body)?;
@@ -252,6 +266,12 @@ impl GitHubClient {
         let teams: Vec<Team> = serde_json::from_str(&body)?;
         Ok(teams)
     }
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+struct RepositoryList {
+    pub total_count: u32,
+    pub repositories: Vec<Repository>,
 }
 
 fn generate_app_token<T, U>(key_path: T, app_id: U) -> String

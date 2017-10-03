@@ -241,6 +241,15 @@ securitySchemes:
                                 "id": "73089155726360582",
                                 "flags": 0
                             }
+/installations/{install_id}:
+    /search/code:
+        get:
+            responses:
+                200:
+                    body:
+                        application/json:
+                400:
+                    description: Bad search query parameter provided
 /jobs:
     post:
         description: Create a new job for the given project
