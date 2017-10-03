@@ -168,6 +168,20 @@ where
     }
 }
 
+pub fn check_origin_owner<T>(req: &mut Request, account_id: u64, origin: T) -> IronResult<bool>
+where
+    T: ToString,
+{
+    match helpers::check_origin_owner(req, account_id, origin) {
+        Ok(b) => Ok(b),
+        Err(err) => {
+            let body = serde_json::to_string(&err).unwrap();
+            let status = net_err_to_http(err.get_code());
+            Err(IronError::new(err, (body, status)))
+        }
+    }
+}
+
 pub fn rescind_invitation(req: &mut Request) -> IronResult<Response> {
     let session = req.extensions.get::<Authenticated>().unwrap().clone();
     let params = req.extensions.get::<Router>().unwrap().clone();
@@ -431,6 +445,46 @@ pub fn list_origin_members(req: &mut Request) -> IronResult<Response> {
             Ok(response)
         }
         Err(err) => Ok(render_net_error(&err)),
+    }
+}
+
+pub fn origin_member_delete(req: &mut Request) -> IronResult<Response> {
+    let session = req.extensions.get::<Authenticated>().unwrap().clone();
+    let params = req.extensions.get::<Router>().unwrap().clone();
+    let origin = match params.find("origin") {
+        Some(origin) => origin,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+
+    if !check_origin_owner(req, session.get_id(), &origin)? {
+        return Ok(Response::with(status::Forbidden));
+    }
+
+    let account_name = match params.find("username") {
+        Some(user) => user,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+
+    debug!(
+        "Deleting user name {} for user {} origin {}",
+        &account_name,
+        &session.get_id(),
+        &origin
+    );
+
+    let mut request = OriginMemberRemove::new();
+    match helpers::get_origin(req, origin) {
+        Ok(origin) => request.set_origin_id(origin.get_id()),
+        Err(err) => return Ok(render_net_error(&err)),
+    }
+    request.set_account_name(account_name.to_string());
+
+    match route_message::<OriginMemberRemove, NetOk>(req, &request) {
+        Ok(_) => Ok(Response::with(status::NoContent)),
+        Err(err) => {
+            error!("Error deleting member, {}", err);
+            Ok(render_net_error(&err))
+        }
     }
 }
 
@@ -2217,7 +2271,10 @@ where
         },
         origin_users: get "/origins/:origin/users" => {
             XHandler::new(list_origin_members).before(basic.clone())
-        }
+        },
+        origin_member_delete: delete "/origins/:origin/users/:username" => {
+            XHandler::new(origin_member_delete).before(basic.clone())
+        },
     )
 }
 

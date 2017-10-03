@@ -21,7 +21,8 @@ use hab_net::privilege::{self, FeatureFlags};
 use http::controller::*;
 
 use iron::status::{self, Status};
-use protocol::originsrv::{CheckOriginAccessRequest, CheckOriginAccessResponse, Origin,
+use protocol::originsrv::{CheckOriginOwnerRequest, CheckOriginOwnerResponse,
+                          CheckOriginAccessRequest, CheckOriginAccessResponse, Origin,
                           OriginChannel, OriginChannelCreate, OriginChannelGet, OriginGet,
                           OriginPackage, OriginPackageChannelListRequest,
                           OriginPackageChannelListResponse, OriginPackageGet,
@@ -244,6 +245,19 @@ where
     request.set_origin_name(origin.to_string());
     match route_message::<CheckOriginAccessRequest, CheckOriginAccessResponse>(req, &request) {
         Ok(response) => Ok(response.get_has_access()),
+        Err(err) => Err(err),
+    }
+}
+
+pub fn check_origin_owner<T>(req: &mut Request, account_id: u64, origin: T) -> NetResult<bool>
+where
+    T: ToString,
+{
+    let mut request = CheckOriginOwnerRequest::new();
+    request.set_account_id(account_id);
+    request.set_origin_name(origin.to_string());
+    match route_message::<CheckOriginOwnerRequest, CheckOriginOwnerResponse>(req, &request) {
+        Ok(response) => Ok(response.get_is_owner()),
         Err(err) => Err(err),
     }
 }

@@ -60,6 +60,7 @@ pub enum SrvError {
     OriginInvitationListForOrigin(postgres::error::Error),
     OriginInvitationListForAccount(postgres::error::Error),
     OriginInvitationValidate(postgres::error::Error),
+    OriginMemberDelete(postgres::error::Error),
     OriginPackageCreate(postgres::error::Error),
     OriginPackageGet(postgres::error::Error),
     OriginPackageLatestGet(postgres::error::Error),
@@ -195,6 +196,9 @@ impl fmt::Display for SrvError {
             }
             SrvError::OriginPackageCreate(ref e) => {
                 format!("Error creating package in database, {}", e)
+            }
+            SrvError::OriginMemberDelete(ref e) => {
+                format!("Error deleting member of origin in database, {}", e)
             }
             SrvError::OriginPackageGet(ref e) => {
                 format!("Error getting package in database, {}", e)
@@ -344,6 +348,7 @@ impl error::Error for SrvError {
             SrvError::OriginInvitationListForOrigin(ref err) => err.description(),
             SrvError::OriginInvitationListForAccount(ref err) => err.description(),
             SrvError::OriginInvitationValidate(ref err) => err.description(),
+            SrvError::OriginMemberDelete(ref err) => err.description(),
             SrvError::OriginPackageCreate(ref err) => err.description(),
             SrvError::OriginPackageGet(ref err) => err.description(),
             SrvError::OriginPackageLatestGet(ref err) => err.description(),
