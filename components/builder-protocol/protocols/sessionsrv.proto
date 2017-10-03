@@ -111,6 +111,7 @@ message SessionCreate {
   optional string email = 3;
   optional string name = 4;
   optional OAuthProvider provider = 5;
+  optional string app_token = 6;
 }
 
 message SessionGet {
