@@ -94,8 +94,7 @@ impl GitHubClient {
 
     pub fn authenticate(&self, code: &str) -> HubResult<String> {
         let url = Url::parse(&format!(
-            "{}/login/oauth/access_token?\
-                                client_id={}&client_secret={}&code={}",
+            "{}/login/oauth/access_token?client_id={}&client_secret={}&code={}",
             self.web_url,
             self.client_id,
             self.client_secret,
@@ -207,22 +206,6 @@ impl GitHubClient {
         Ok(user)
     }
 
-    pub fn orgs(&self, token: &str) -> HubResult<Vec<Organization>> {
-        let url = Url::parse(&format!("{}/user/orgs", self.url)).map_err(
-            HubError::HttpClientParse,
-        )?;
-        let mut rep = http_get(url, Some(token))?;
-        let mut body = String::new();
-        rep.read_to_string(&mut body)?;
-        debug!("GitHub response body, {}", body);
-        if rep.status != StatusCode::Ok {
-            let err: HashMap<String, String> = serde_json::from_str(&body)?;
-            return Err(HubError::ApiError(rep.status, err));
-        }
-        let orgs: Vec<Organization> = serde_json::from_str(&body)?;
-        Ok(orgs)
-    }
-
     pub fn search_code(&self, token: &str, query: &str) -> HubResult<Search> {
         let url = Url::parse(&format!("{}/search/code?{}", self.url, query))
             .map_err(HubError::HttpClientParse)?;
@@ -236,22 +219,6 @@ impl GitHubClient {
         }
         let search = serde_json::from_str::<Search>(&body)?;
         Ok(search)
-    }
-
-    pub fn teams(&self, token: &str) -> HubResult<Vec<Team>> {
-        let url = Url::parse(&format!("{}/user/teams", self.url)).map_err(
-            HubError::HttpClientParse,
-        )?;
-        let mut rep = http_get(url, Some(token))?;
-        let mut body = String::new();
-        rep.read_to_string(&mut body)?;
-        debug!("GitHub response body, {}", body);
-        if rep.status != StatusCode::Ok {
-            let err: HashMap<String, String> = serde_json::from_str(&body)?;
-            return Err(HubError::ApiError(rep.status, err));
-        }
-        let teams: Vec<Team> = serde_json::from_str(&body)?;
-        Ok(teams)
     }
 }
 
