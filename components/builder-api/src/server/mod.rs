@@ -24,6 +24,7 @@ use mount::Mount;
 use persistent::{self, Read};
 use staticfile::Static;
 
+use super::github;
 use self::handlers::*;
 use config::Config;
 
@@ -77,6 +78,7 @@ impl HttpGateway for ApiSrv {
             user_origins: get "/user/origins" => {
                 XHandler::new(list_user_origins).before(basic.clone())
             },
+
             projects: post "/projects" => XHandler::new(project_create).before(basic.clone()),
             project: get "/projects/:origin/:name" => {
                 XHandler::new(project_show).before(basic.clone())
@@ -98,6 +100,13 @@ impl HttpGateway for ApiSrv {
             },
             project_integration_put: put "/projects/:origin/:name/integrations/:integration/default" => {
                 XHandler::new(create_project_integration).before(basic.clone())
+            },
+
+            ext_search_code: get "/ext/installations/:install_id/search/code" => {
+                XHandler::new(github::search_code).before(basic.clone())
+            },
+            ext_repo_content: get "/ext/installations/:install_id/repos/:repo/contents/:path" => {
+                XHandler::new(github::repo_file_content).before(basic.clone())
             },
         )
     }

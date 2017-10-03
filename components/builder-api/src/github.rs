@@ -22,6 +22,7 @@ use http_gateway::http::controller::*;
 use iron::status;
 use persistent;
 use protocol::scheduler::{Group, GroupCreate};
+use router::Router;
 
 use error::Error;
 use headers::*;
@@ -65,6 +66,81 @@ pub fn handle_event(req: &mut Request) -> IronResult<Response> {
     }
 }
 
+pub fn repo_file_content(req: &mut Request) -> IronResult<Response> {
+    let github = req.get::<persistent::Read<GitHubCli>>().unwrap();
+    let session = req.extensions.get::<Authenticated>().unwrap();
+    let params = req.extensions.get::<Router>().unwrap();
+    let path = match params.find("path") {
+        Some(path) => path,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+    let install_id = match params.find("install_id") {
+        Some(install_id) => {
+            match install_id.parse::<u32>() {
+                Ok(install_id) => install_id,
+                Err(_) => return Ok(Response::with(status::BadRequest)),
+            }
+        }
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+    let token = {
+        match github.app_installation_token(install_id) {
+            Ok(token) => token,
+            Err(err) => {
+                return Ok(Response::with((status::BadGateway, err.to_string())));
+            }
+        }
+    };
+    let repo = {
+        let repo = match params.find("repo") {
+            Some(repo) => repo,
+            None => return Ok(Response::with(status::BadRequest)),
+        };
+        let repos = match github.repositories(session.get_token(), install_id) {
+            Ok(repos) => repos,
+            Err(err) => return Ok(Response::with((status::BadGateway, err.to_string()))),
+        };
+        match repos.into_iter().find(|r| r.name == repo) {
+            Some(repo) => repo,
+            None => return Ok(Response::with(status::NotFound)),
+        }
+    };
+    match github.contents(&token, repo.id, path) {
+        Ok(search) => Ok(render_json(status::Ok, &search)),
+        Err(err) => Ok(Response::with((status::BadGateway, err.to_string()))),
+    }
+}
+
+pub fn search_code(req: &mut Request) -> IronResult<Response> {
+    let github = req.get::<persistent::Read<GitHubCli>>().unwrap();
+    let params = req.extensions.get::<Router>().unwrap();
+    let query = match req.url.query() {
+        Some(query) => query,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+    let install_id = match params.find("install_id") {
+        Some(install_id) => {
+            match install_id.parse::<u32>() {
+                Ok(install_id) => install_id,
+                Err(_) => return Ok(Response::with(status::BadRequest)),
+            }
+        }
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+    let token = {
+        match github.app_installation_token(install_id) {
+            Ok(token) => token,
+            Err(err) => {
+                return Ok(Response::with((status::BadGateway, err.to_string())));
+            }
+        }
+    };
+    match github.search_code(&token, query) {
+        Ok(search) => Ok(render_json(status::Ok, &search)),
+        Err(err) => Ok(Response::with((status::BadGateway, err.to_string()))),
+    }
+}
+
 fn handle_push(req: &mut Request) -> IronResult<Response> {
     // JW TODO: THIS NEEDS TO BE AUTHENTICATED
     // use sender.login to get user ID to get account & see if they have access to origin
@@ -85,14 +161,15 @@ fn handle_push(req: &mut Request) -> IronResult<Response> {
         }
     };
     // JW TODO: Add searching for Windows plans (ps1) when Windows builders are completed
-    let plans = match github.search_file(&token, &hook.repository.full_name, "plan.sh") {
+    let query = format!("q={}+in:path+repo:{}", BLDR_CFG, hook.repository.full_name);
+    let plans = match github.search_code(&token, &query) {
         Ok(search) => search.items,
         Err(err) => return Ok(Response::with((status::BadGateway, err.to_string()))),
     };
     if plans.is_empty() {
         return Ok(Response::with(status::Ok));
     }
-    let config = match github.search_file(&token, &hook.repository.full_name, &BLDR_CFG) {
+    let config = match github.search_code(&token, &query) {
         Ok(search) => {
             match search
                 .items
@@ -153,12 +230,7 @@ fn read_bldr_config(
     hook: &GitHubWebhookPush,
     path: &str,
 ) -> HandleResult<BuildCfg> {
-    match github.contents(
-        token,
-        &hook.repository.organization,
-        &hook.repository.name,
-        path,
-    ) {
+    match github.contents(token, hook.repository.id, path) {
         Ok(contents) => {
             match contents.decode() {
                 Ok(ref bytes) => {
@@ -188,12 +260,7 @@ fn read_plans(
 ) -> HandleResult<Vec<Plan>> {
     let mut parsed = Vec::with_capacity(plans.len());
     for plan in plans {
-        match github.contents(
-            token,
-            &hook.repository.organization,
-            &hook.repository.name,
-            &plan.path,
-        ) {
+        match github.contents(token, hook.repository.id, &plan.path) {
             Ok(contents) => {
                 match contents.decode() {
                     Ok(bytes) => {

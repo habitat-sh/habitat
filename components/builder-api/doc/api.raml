@@ -241,6 +241,15 @@ securitySchemes:
                                 "id": "73089155726360582",
                                 "flags": 0
                             }
+/installations/{install_id}:
+    /search/code:
+        get:
+            responses:
+                200:
+                    body:
+                        application/json:
+                400:
+                    description: Bad search query parameter provided
 /jobs:
     post:
         description: Create a new job for the given project
@@ -434,10 +443,8 @@ securitySchemes:
                     {
                         "origin": "core",
                         "plan_path": "components/builder-api/plan.sh",
-                        "github": {
-                            "organization": "habitat-sh",
-                            "repo": "habitat"
-                        }
+                        "installation_id": 1234,
+                        "repo_id": 4567
                     }
         responses:
             201:
