@@ -173,6 +173,9 @@ impl error::Error for NetError {
             ErrCode::VCS_CLONE => "Worker runner unable to retrieve project source to build.",
             ErrCode::BUILD => "Worker runner failed to build project.",
             ErrCode::POST_PROCESSOR => "One or more post processing step failed in Worker runner.",
+            ErrCode::INVALID_INTEGRATIONS => {
+                "Worker runner found invalid project or origin integrations."
+            }
             ErrCode::REG_CONFLICT => {
                 "Service registration rejected by RouteSrv. Conflicting registration."
             }
