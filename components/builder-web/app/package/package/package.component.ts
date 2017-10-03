@@ -96,6 +96,10 @@ export class PackageComponent implements OnInit, OnDestroy {
         return this.activeBuilds.size > 0;
     }
 
+    get token() {
+        return this.store.getState().gitHub.authToken;
+    }
+
     onRouteActivate(routedComponent) {
         this.showSidebar = false;
         this.showActiveBuild = false;
@@ -117,15 +121,13 @@ export class PackageComponent implements OnInit, OnDestroy {
     }
 
     private fetchProject() {
-        let token = this.store.getState().gitHub.authToken;
-
         if (this.origin && this.name) {
-            this.store.dispatch(fetchProject(this.origin, this.name, token, false));
-            this.store.dispatch(fetchDockerIntegration(this.origin, token));
+            this.store.dispatch(fetchProject(this.origin, this.name, this.token, false));
+            this.store.dispatch(fetchDockerIntegration(this.origin, this.token));
         }
     }
 
     private fetchBuilds() {
-        this.store.dispatch(fetchBuilds(this.origin, this.name));
+        this.store.dispatch(fetchBuilds(this.origin, this.name, this.token));
     }
 }
