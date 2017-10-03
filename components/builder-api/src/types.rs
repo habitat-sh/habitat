@@ -23,18 +23,13 @@ pub struct JobCreateReq {
 pub struct ProjectCreateReq {
     pub origin: String,
     pub plan_path: String,
-    pub github: GitHubProject,
+    pub installation_id: u32,
+    pub repo_id: u32,
 }
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct ProjectUpdateReq {
     pub plan_path: String,
-    pub github: GitHubProject,
-}
-
-#[derive(Clone, Serialize, Deserialize)]
-pub struct GitHubProject {
-    pub organization: String,
-    pub repo: String,
-    pub installation_id: Option<u32>,
+    pub installation_id: u32,
+    pub repo_id: u32,
 }

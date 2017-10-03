@@ -135,7 +135,7 @@ impl GitHubClient {
     }
 
     /// Returns the contents of a file or directory in a repository.
-    pub fn x_contents(&self, token: &str, repo: u32, path: &str) -> HubResult<Contents> {
+    pub fn contents(&self, token: &str, repo: u32, path: &str) -> HubResult<Contents> {
         let url = Url::parse(&format!(
             "{}/repositories/{}/contents/{}",
             self.url,
@@ -161,21 +161,8 @@ impl GitHubClient {
         Ok(contents)
     }
 
-    /// Returns the contents of a file or directory in a repository.
-    pub fn contents(
-        &self,
-        token: &str,
-        owner: &str,
-        repo: &str,
-        path: &str,
-    ) -> HubResult<Contents> {
-        let url = Url::parse(&format!(
-            "{}/repos/{}/{}/contents/{}",
-            self.url,
-            owner,
-            repo,
-            path
-        )).map_err(HubError::HttpClientParse)?;
+    pub fn repo(&self, token: &str, repo: u32) -> HubResult<Repository> {
+        let url = Url::parse(&format!("{}/repositories/{}", self.url, repo)).unwrap();
         let mut rep = http_get(url, Some(token))?;
         let mut body = String::new();
         rep.read_to_string(&mut body)?;
@@ -184,35 +171,8 @@ impl GitHubClient {
             let err: HashMap<String, String> = serde_json::from_str(&body)?;
             return Err(HubError::ApiError(rep.status, err));
         }
-        let mut contents: Contents = serde_json::from_str(&body)?;
-
-        // We need to strip line feeds as the Github API has started to return
-        // base64 content with line feeds.
-        if contents.encoding == "base64" {
-            contents.content = contents.content.replace("\n", "");
-        }
-
-        Ok(contents)
-    }
-
-    pub fn repo(&self, token: &str, owner: &str, repo: &str) -> HubResult<Repository> {
-        let url = Url::parse(&format!("{}/repos/{}/{}", self.url, owner, repo)).unwrap();
-        let mut rep = http_get(url, Some(token))?;
-        let mut body = String::new();
-        rep.read_to_string(&mut body)?;
-        debug!("GitHub response body, {}", body);
-        if rep.status != StatusCode::Ok {
-            let err: HashMap<String, String> = serde_json::from_str(&body)?;
-            return Err(HubError::ApiError(rep.status, err));
-        }
-        let repo = match serde_json::from_str::<Repository>(&body) {
-            Ok(r) => r,
-            Err(e) => {
-                debug!("github repo decode failed: {}. response body: {}", e, body);
-                return Err(HubError::from(e));
-            }
-        };
-        Ok(repo)
+        let value = serde_json::from_str(&body)?;
+        Ok(value)
     }
 
     pub fn repositories(&self, token: &str, install_id: u32) -> HubResult<Vec<Repository>> {

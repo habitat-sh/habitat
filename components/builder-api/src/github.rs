@@ -66,7 +66,6 @@ pub fn handle_event(req: &mut Request) -> IronResult<Response> {
     }
 }
 
-// "/ext/installations/:install_id/repos/:repo/contents/:path"
 pub fn repo_file_content(req: &mut Request) -> IronResult<Response> {
     let github = req.get::<persistent::Read<GitHubCli>>().unwrap();
     let session = req.extensions.get::<Authenticated>().unwrap();
@@ -106,7 +105,7 @@ pub fn repo_file_content(req: &mut Request) -> IronResult<Response> {
             None => return Ok(Response::with(status::NotFound)),
         }
     };
-    match github.x_contents(&token, repo.id, path) {
+    match github.contents(&token, repo.id, path) {
         Ok(search) => Ok(render_json(status::Ok, &search)),
         Err(err) => Ok(Response::with((status::BadGateway, err.to_string()))),
     }
@@ -114,7 +113,6 @@ pub fn repo_file_content(req: &mut Request) -> IronResult<Response> {
 
 pub fn search_code(req: &mut Request) -> IronResult<Response> {
     let github = req.get::<persistent::Read<GitHubCli>>().unwrap();
-    let session = req.extensions.get::<Authenticated>().unwrap();
     let params = req.extensions.get::<Router>().unwrap();
     let query = match req.url.query() {
         Some(query) => query,
@@ -232,12 +230,7 @@ fn read_bldr_config(
     hook: &GitHubWebhookPush,
     path: &str,
 ) -> HandleResult<BuildCfg> {
-    match github.contents(
-        token,
-        &hook.repository.organization,
-        &hook.repository.name,
-        path,
-    ) {
+    match github.contents(token, hook.repository.id, path) {
         Ok(contents) => {
             match contents.decode() {
                 Ok(ref bytes) => {
@@ -267,12 +260,7 @@ fn read_plans(
 ) -> HandleResult<Vec<Plan>> {
     let mut parsed = Vec::with_capacity(plans.len());
     for plan in plans {
-        match github.contents(
-            token,
-            &hook.repository.organization,
-            &hook.repository.name,
-            &plan.path,
-        ) {
+        match github.contents(token, hook.repository.id, &plan.path) {
             Ok(contents) => {
                 match contents.decode() {
                     Ok(bytes) => {

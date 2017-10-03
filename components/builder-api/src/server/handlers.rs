@@ -325,7 +325,7 @@ pub fn project_create(req: &mut Request) -> IronResult<Response> {
     let session = req.extensions.get::<Authenticated>().unwrap().clone();
     let session_id = session.get_id();
 
-    let (organization, repo, token) = match req.get::<bodyparser::Struct<ProjectCreateReq>>() {
+    let (token, repo_id) = match req.get::<bodyparser::Struct<ProjectCreateReq>>() {
         Ok(Some(body)) => {
             if body.origin.len() <= 0 {
                 return Ok(Response::with((
@@ -339,47 +339,32 @@ pub fn project_create(req: &mut Request) -> IronResult<Response> {
                     "Missing value for field: `plan_path`",
                 )));
             }
-            if body.github.organization.len() <= 0 {
-                return Ok(Response::with((
-                    status::UnprocessableEntity,
-                    "Missing value for field: `github.organization`",
-                )));
-            }
-            if body.github.repo.len() <= 0 {
-                return Ok(Response::with((
-                    status::UnprocessableEntity,
-                    "Missing value for field: `github.repo`",
-                )));
-            }
 
             if !check_origin_access(req, session_id, &body.origin)? {
                 return Ok(Response::with(status::Forbidden));
             }
 
-            let token = match body.github.installation_id {
-                None => session.get_token().to_string(),
-                Some(install_id) => {
-                    project.set_vcs_installation_id(install_id);
-                    match github.app_installation_token(install_id) {
-                        Ok(tok) => tok,
-                        Err(e) => {
-                            debug!("Error authenticating github app installation. e = {:?}", e);
-                            return Ok(Response::with(status::Forbidden));
-                        }
-                    }
+            let token = match github.app_installation_token(body.installation_id) {
+                Ok(token) => token,
+                Err(err) => {
+                    debug!("Error authenticating github app installation, {}", err);
+                    return Ok(Response::with(status::Forbidden));
                 }
             };
+
             origin_get.set_name(body.origin);
             project.set_plan_path(body.plan_path);
             project.set_vcs_type(String::from("git"));
-            match github.repo(&token, &body.github.organization, &body.github.repo) {
+            project.set_vcs_installation_id(body.installation_id);
+
+            match github.repo(&token, body.repo_id) {
                 Ok(repo) => project.set_vcs_data(repo.clone_url),
                 Err(e) => {
                     debug!("Error finding github repo. e = {:?}", e);
                     return Ok(Response::with((status::UnprocessableEntity, "rg:pc:1")));
                 }
             }
-            (body.github.organization, body.github.repo, token)
+            (token, body.repo_id)
         }
         _ => return Ok(Response::with(status::UnprocessableEntity)),
     };
@@ -388,7 +373,7 @@ pub fn project_create(req: &mut Request) -> IronResult<Response> {
         Err(err) => return Ok(render_net_error(&err)),
     };
 
-    match github.contents(&token, &organization, &repo, &project.get_plan_path()) {
+    match github.contents(&token, repo_id, &project.get_plan_path()) {
         Ok(contents) => {
             match contents.decode() {
                 Ok(bytes) => {
@@ -481,19 +466,16 @@ pub fn project_update(req: &mut Request) -> IronResult<Response> {
     let mut request = OriginProjectUpdate::new();
     let github = req.get::<persistent::Read<GitHubCli>>().unwrap();
 
-    let (session_token, session_id) = {
+    let session_id = {
         let session = req.extensions.get::<Authenticated>().unwrap();
-        let session_id = session.get_id();
-        let session_token = session.get_token().to_string();
-
-        (session_token, session_id)
+        session.get_id()
     };
 
     if !check_origin_access(req, session_id, &origin)? {
         return Ok(Response::with(status::Forbidden));
     }
 
-    let (organization, repo, token) = match req.get::<bodyparser::Struct<ProjectCreateReq>>() {
+    let (token, repo_id) = match req.get::<bodyparser::Struct<ProjectCreateReq>>() {
         Ok(Some(body)) => {
             if body.plan_path.len() <= 0 {
                 return Ok(Response::with((
@@ -501,47 +483,30 @@ pub fn project_update(req: &mut Request) -> IronResult<Response> {
                     "Missing value for field: `plan_path`",
                 )));
             }
-            if body.github.organization.len() <= 0 {
-                return Ok(Response::with((
-                    status::UnprocessableEntity,
-                    "Missing value for field: `github.organization`",
-                )));
-            }
-            if body.github.repo.len() <= 0 {
-                return Ok(Response::with((
-                    status::UnprocessableEntity,
-                    "Missing value for field: `github.repo`",
-                )));
-            }
-            let token = match body.github.installation_id {
-                None => session_token,
-                Some(install_id) => {
-                    project.set_vcs_installation_id(install_id);
-                    match github.app_installation_token(install_id) {
-                        Ok(token) => token,
-                        Err(err) => {
-                            return Ok(Response::with((status::BadGateway, err.to_string())));
-                        }
-                    }
+
+            let token = match github.app_installation_token(body.installation_id) {
+                Ok(token) => token,
+                Err(err) => {
+                    debug!("Error authenticating github app installation, {}", err);
+                    return Ok(Response::with(status::Forbidden));
                 }
             };
+
             project.set_plan_path(body.plan_path);
-            if let Some(install_id) = body.github.installation_id {
-                project.set_vcs_installation_id(install_id);
-            }
-            match github.repo(&token, &body.github.organization, &body.github.repo) {
+            project.set_vcs_installation_id(body.installation_id);
+            match github.repo(&token, body.repo_id) {
                 Ok(repo) => project.set_vcs_data(repo.clone_url),
                 Err(e) => {
                     debug!("Error finding GH repo. e = {:?}", e);
                     return Ok(Response::with((status::UnprocessableEntity, "rg:pu:1")));
                 }
             }
-            (body.github.organization, body.github.repo, token)
+            (token, body.repo_id)
         }
         _ => return Ok(Response::with(status::UnprocessableEntity)),
     };
 
-    match github.contents(&token, &organization, &repo, &project.get_plan_path()) {
+    match github.contents(&token, repo_id, &project.get_plan_path()) {
         Ok(contents) => {
             match base64::decode(&contents.content) {
                 Ok(bytes) => {
