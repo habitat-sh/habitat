@@ -17,6 +17,7 @@ use std::collections::HashMap;
 use bldr_core;
 use bodyparser;
 use http_gateway::http::controller::*;
+use http_gateway::http::helpers;
 use iron::status::{self, Status};
 
 use protocol::originsrv::*;
@@ -83,7 +84,11 @@ pub fn fetch_origin_integration_names(req: &mut Request) -> IronResult<Response>
     request.set_origin(params["origin"].clone());
     request.set_integration(params["integration"].clone());
     match route_message::<OriginIntegrationGetNames, OriginIntegrationNames>(req, &request) {
-        Ok(integration) => Ok(render_json(status::Ok, &integration)),
+        Ok(integration) => {
+            let mut response = render_json(status::Ok, &integration);
+            helpers::dont_cache_response(&mut response);
+            Ok(response)
+        }
         Err(err) => {
             match err.get_code() {
                 ErrCode::ENTITY_NOT_FOUND => Ok(Response::with((status::NotFound))),

@@ -28,7 +28,7 @@ use hab_core::crypto::{BoxKeyPair, SigKeyPair};
 use hab_core::crypto::PUBLIC_BOX_KEY_VERSION;
 use hab_core::event::*;
 use http_gateway::http::controller::*;
-use http_gateway::http::helpers;
+use http_gateway::http::helpers::{self, dont_cache_response};
 use http_gateway::http::middleware::XRouteClient;
 use hab_net::{privilege, ErrCode, NetOk, NetResult};
 use hyper::header::{Charset, ContentDisposition, DispositionType, DispositionParam};
@@ -2122,12 +2122,6 @@ where
 fn do_cache_response(response: &mut Response) {
     response.headers.set(CacheControl(
         format!("public, max-age={}", ONE_YEAR_IN_SECS),
-    ));
-}
-
-fn dont_cache_response(response: &mut Response) {
-    response.headers.set(CacheControl(
-        format!("private, no-cache, no-store"),
     ));
 }
 
