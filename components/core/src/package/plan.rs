@@ -20,7 +20,7 @@ use error::{Error, Result};
 pub struct Plan {
     pub name: String,
     pub origin: String,
-    pub version: String,
+    pub version: Option<String>,
 }
 
 impl Plan {
@@ -44,8 +44,6 @@ impl Plan {
             return Err(Error::PlanMalformed);
         }
 
-        // Default the version to 'undefined' if it's not present
-        let version = version.unwrap_or("undefined".to_string());
         Ok(Plan {
             name: name.unwrap(),
             origin: origin.unwrap(),

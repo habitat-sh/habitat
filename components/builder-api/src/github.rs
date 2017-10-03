@@ -60,6 +60,7 @@ pub fn handle_event(req: &mut Request) -> IronResult<Response> {
         }
         _ => return Ok(Response::with(status::BadRequest)),
     };
+    // JW TODO: Authenticate hook
     match event {
         GitHubEvent::Ping => Ok(Response::with(status::Ok)),
         GitHubEvent::Push => handle_push(req),
@@ -142,8 +143,6 @@ pub fn search_code(req: &mut Request) -> IronResult<Response> {
 }
 
 fn handle_push(req: &mut Request) -> IronResult<Response> {
-    // JW TODO: THIS NEEDS TO BE AUTHENTICATED
-    // use sender.login to get user ID to get account & see if they have access to origin
     let hook = match req.get::<bodyparser::Struct<GitHubWebhookPush>>() {
         Ok(Some(hook)) => hook,
         Ok(None) => return Ok(Response::with(status::UnprocessableEntity)),
@@ -153,6 +152,9 @@ fn handle_push(req: &mut Request) -> IronResult<Response> {
             ));
         }
     };
+    if hook.commits.is_empty() {
+        return Ok(Response::with((status::Ok)));
+    }
     let github = req.get::<persistent::Read<GitHubCli>>().unwrap();
     let token = match github.app_installation_token(hook.installation.id) {
         Ok(token) => token,
@@ -160,8 +162,7 @@ fn handle_push(req: &mut Request) -> IronResult<Response> {
             return Ok(Response::with((status::BadGateway, err.to_string())));
         }
     };
-    // JW TODO: Add searching for Windows plans (ps1) when Windows builders are completed
-    let query = format!("q={}+in:path+repo:{}", BLDR_CFG, hook.repository.full_name);
+    let mut query = format!("q={}+in:path+repo:{}", "plan.sh", hook.repository.full_name);
     let plans = match github.search_code(&token, &query) {
         Ok(search) => search.items,
         Err(err) => return Ok(Response::with((status::BadGateway, err.to_string()))),
@@ -169,6 +170,7 @@ fn handle_push(req: &mut Request) -> IronResult<Response> {
     if plans.is_empty() {
         return Ok(Response::with(status::Ok));
     }
+    query = format!("q={}+in:path+repo:{}", BLDR_CFG, hook.repository.full_name);
     let config = match github.search_code(&token, &query) {
         Ok(search) => {
             match search
@@ -266,22 +268,21 @@ fn read_plans(
                     Ok(bytes) => {
                         match Plan::from_bytes(bytes.as_slice()) {
                             Ok(plan) => parsed.push(plan),
-                            Err(err) => {
-                                return HandleResult::Err(Response::with(
-                                    (status::UnprocessableEntity, err.to_string()),
-                                ))
-                            }
+                            Err(err) => debug!("{}, {}", plan.path, err),
                         }
                     }
                     Err(err) => {
-                        return HandleResult::Err(Response::with(
-                            (status::UnprocessableEntity, err.to_string()),
-                        ))
+                        return HandleResult::Err(Response::with((
+                            status::UnprocessableEntity,
+                            format!("{}, {}", plan.path, err),
+                        )))
                     }
                 }
             }
             Err(err) => {
-                return HandleResult::Err(Response::with((status::BadGateway, err.to_string())))
+                return HandleResult::Err(Response::with(
+                    (status::BadGateway, format!("{}, {}", plan.path, err)),
+                ))
             }
         }
     }
