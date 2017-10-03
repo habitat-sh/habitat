@@ -18,21 +18,15 @@ pub fn transition_visibility(
     incoming: OriginPackageVisibility,
     existing: OriginPackageVisibility,
 ) -> OriginPackageVisibility {
-    match incoming { // this is the _new_ setting that we're wanting to change it to
-        OriginPackageVisibility::Hidden => {
-            match existing { // this is what it is currently
-                OriginPackageVisibility::Hidden => OriginPackageVisibility::Hidden,    // hidden to hidden, fine
-                OriginPackageVisibility::Public => OriginPackageVisibility::Hidden,    // public to hidden, fine
-                OriginPackageVisibility::Private => OriginPackageVisibility::Private,  // private to hidden doesn't really make sense. keep it private
-            }
+    match (existing, incoming) {
+        (OriginPackageVisibility::Private, OriginPackageVisibility::Hidden) => {
+            OriginPackageVisibility::Private
         }
-        OriginPackageVisibility::Public => OriginPackageVisibility::Public,            // setting anything to public is fine
-        OriginPackageVisibility::Private => {
-            match existing {
-                OriginPackageVisibility::Private => OriginPackageVisibility::Private,  // no change, no problem
-                OriginPackageVisibility::Public => OriginPackageVisibility::Hidden,    // public packages can't be made private, only hidden
-                OriginPackageVisibility::Hidden => OriginPackageVisibility::Hidden,    // if it's hidden, keep it hidden
-            }
+        (OriginPackageVisibility::Private, OriginPackageVisibility::Private) => {
+            OriginPackageVisibility::Private
         }
+        (_, OriginPackageVisibility::Private) => OriginPackageVisibility::Hidden,
+        (_, OriginPackageVisibility::Hidden) => OriginPackageVisibility::Hidden,
+        (_, OriginPackageVisibility::Public) => OriginPackageVisibility::Public,
     }
 }

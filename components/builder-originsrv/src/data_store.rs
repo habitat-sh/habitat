@@ -108,7 +108,6 @@ impl DataStore {
         let conn = self.pool.get(opu)?;
         let pkg = opu.get_pkg();
         let ident = pkg.get_ident();
-        let visibility = format!("{}", pkg.get_visibility());
 
         conn.execute(
             "SELECT update_origin_package_v1($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)",
@@ -124,7 +123,7 @@ impl DataStore {
                 &self.into_delimited(pkg.get_deps().to_vec()),
                 &self.into_delimited(pkg.get_tdeps().to_vec()),
                 &self.into_delimited(pkg.get_exposes().to_vec()),
-                &visibility,
+                &pkg.get_visibility().to_string(),
             ],
         ).map_err(SrvError::OriginPackageUpdate)?;
         self.async.schedule("sync_packages")?;
@@ -134,7 +133,6 @@ impl DataStore {
     pub fn update_origin_project(&self, opc: &originsrv::OriginProjectUpdate) -> SrvResult<()> {
         let conn = self.pool.get(opc)?;
         let project = opc.get_project();
-        let visibility = format!("{}", project.get_visibility());
 
         conn.execute(
             "SELECT update_origin_project_v3($1, $2, $3, $4, $5, $6, $7, $8, $9)",
@@ -147,7 +145,7 @@ impl DataStore {
                 &project.get_vcs_data(),
                 &(project.get_owner_id() as i64),
                 &(project.get_vcs_installation_id() as i64),
-                &visibility,
+                &project.get_visibility().to_string(),
             ],
         ).map_err(SrvError::OriginProjectUpdate)?;
 
@@ -243,7 +241,6 @@ impl DataStore {
     ) -> SrvResult<originsrv::OriginProject> {
         let conn = self.pool.get(opc)?;
         let project = opc.get_project();
-        let visibility = format!("{}", project.get_visibility());
         let install_id: Option<i64> = {
             if project.has_vcs_installation_id() {
                 Some(project.get_vcs_installation_id() as i64)
@@ -261,7 +258,7 @@ impl DataStore {
                 &project.get_vcs_data(),
                 &(project.get_owner_id() as i64),
                 &install_id,
-                &visibility,
+                &project.get_visibility().to_string(),
             ],
         ).map_err(SrvError::OriginProjectCreate)?;
         let row = rows.get(0);
@@ -845,7 +842,6 @@ impl DataStore {
     ) -> SrvResult<originsrv::OriginPackage> {
         let conn = self.pool.get(opc)?;
         let ident = opc.get_ident();
-        let visibility = format!("{}", &opc.get_visibility());
 
         let rows = conn.query(
             "SELECT * FROM insert_origin_package_v3($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)",
@@ -861,7 +857,7 @@ impl DataStore {
                 &self.into_delimited(opc.get_deps().to_vec()),
                 &self.into_delimited(opc.get_tdeps().to_vec()),
                 &self.into_delimited(opc.get_exposes().to_vec()),
-                &visibility
+                &opc.get_visibility().to_string()
             ],
         ).map_err(SrvError::OriginPackageCreate)?;
 
