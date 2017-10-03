@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, ViewChild } from "@angular/core";
+import { Component, EventEmitter, Input, OnInit, Output, ViewChild } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
 import { MdDialog, MdDialogRef } from "@angular/material";
 import { DisconnectConfirmDialog } from "./dialog/disconnect-confirm/disconnect-confirm.dialog";
@@ -17,7 +17,7 @@ import config from "../../config";
     selector: "hab-project-settings",
     template: require("./project-settings.component.html")
 })
-export class ProjectSettingsComponent {
+export class ProjectSettingsComponent implements OnInit {
     connecting: boolean = false;
     filter: GitHubRepo = new GitHubRepo();
     selectedInstallation: any;
@@ -39,6 +39,10 @@ export class ProjectSettingsComponent {
     private sub: Subscription;
 
     constructor(private store: AppStore, private disconnectDialog: MdDialog) {}
+
+    ngOnInit() {
+        this.store.dispatch(fetchGitHubInstallations());
+    }
 
     get config() {
         return config;
@@ -87,7 +91,6 @@ export class ProjectSettingsComponent {
     }
 
     connect() {
-        this.store.dispatch(fetchGitHubInstallations());
         this.connecting = true;
         this.toggled.emit(this.connecting);
     }

@@ -26,6 +26,7 @@ import * as featureFlagActions from "./feature-flags";
 
 // Action types
 export const CLEAR_GITHUB_FILES = gitHubActions.CLEAR_GITHUB_FILES;
+export const CLEAR_GITHUB_INSTALLATIONS = gitHubActions.CLEAR_GITHUB_INSTALLATIONS;
 export const CLEAR_GITHUB_REPOS = gitHubActions.CLEAR_GITHUB_REPOS;
 export const LOAD_SESSION_STATE = gitHubActions.LOAD_SESSION_STATE;
 export const POPULATE_GITHUB_FILES = gitHubActions.POPULATE_GITHUB_FILES;

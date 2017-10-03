@@ -28,6 +28,7 @@ const uuid = require("uuid").v4;
 const gitHubTokenAuthUrl = `${config["habitat_api_url"]}/v1/authenticate`;
 
 export const CLEAR_GITHUB_FILES = "CLEAR_GITHUB_FILES";
+export const CLEAR_GITHUB_INSTALLATIONS = "CLEAR_GITHUB_INSTALLATIONS";
 export const CLEAR_GITHUB_REPOS = "CLEAR_GITHUB_REPOS";
 export const LOAD_SESSION_STATE = "LOAD_SESSION_STATE";
 export const POPULATE_GITHUB_FILES = "POPULATE_GITHUB_FILES";
@@ -97,6 +98,8 @@ export function fetchGitHubInstallations() {
 
     return dispatch => {
         const client = new GitHubApiClient(token);
+        dispatch(clearGitHubInstallations());
+        dispatch(clearGitHubRepos());
 
         client.getUserInstallations()
             .then((results) => {
@@ -113,7 +116,7 @@ export function fetchGitHubInstallationRepositories(installationId: string) {
     const token = cookies.get("gitHubAuthToken");
 
     return dispatch => {
-        dispatch(resetGitHubRepos());
+        dispatch(clearGitHubRepos());
 
         new GitHubApiClient(token).getUserInstallationRepositories(installationId)
             .then((results) => {
@@ -135,6 +138,12 @@ export function loadSessionState() {
 function clearGitHubFiles() {
     return {
         type: CLEAR_GITHUB_FILES
+    };
+}
+
+function clearGitHubInstallations() {
+    return {
+        type: CLEAR_GITHUB_INSTALLATIONS
     };
 }
 
@@ -213,7 +222,7 @@ export function requestGitHubAuthToken(params, stateKey = "") {
     };
 }
 
-function resetGitHubRepos() {
+function clearGitHubRepos() {
     return {
         type: CLEAR_GITHUB_REPOS,
     };
