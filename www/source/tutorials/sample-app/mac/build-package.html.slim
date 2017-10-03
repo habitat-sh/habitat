@@ -56,15 +56,18 @@ section.sample-app
 
   p Habitat packages can be exported into multiple runtime formats where the Habitat Supervisor, user package, and any runtime dependencies are installed and setup in that environment. For Docker containers, this means creating an image using the Docker scratch image and building up the rest of the image with exported packages.
 
-  p Run <code>hab pkg export docker originname/myrailsapp</code> with the origin you chose at setup.
+  p Run <code>hab pkg export docker</code> and reference the .hart file you created in the previous section.
 
   pre
-    code.console [3][default:/src:0]# hab pkg export docker originname/myrailsapp
+    code.console [2][default:/src:0]# hab pkg export docker ./results/&lt;hart-filename>.hart
 
   p Because we need to connect to a PostgreSQL database managed by Habitat, export the PostgreSQL database package to a Docker container as well.
 
   pre
-    code.console [4][default:/src:0]# hab pkg export docker core/postgresql
+    code.console [1][default:/src:0]# hab pkg export docker core/postgresql
+
+  blockquote
+   p <b>Note</b> If you specify an <code>origin/package</code> identifier, such as <code>core/postgresql</code>, instead of a local .hart file the Habitat CLI will check Builder for the latest stable version of the package and export that.
 
   p Once you have finished exporting both packages, exit out of the Studio.
 

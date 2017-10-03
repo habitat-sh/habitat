@@ -204,7 +204,7 @@ section
    |
     $ hab studio enter
     # build
-    # hab pkg export docker origin/package && exit
+    # hab pkg export docker ./results/&lt;hart-filename>.hart && exit
 
  p Run the docker container for your web application.
 
@@ -251,7 +251,7 @@ section
    |
     $ hab studio enter
     # build
-    # hab pkg export docker origin/package && exit
+    # hab pkg export docker ./results/&lt;hart-filename>.hart && exit
 
  p Because you're not interacting with another Habitat package as in the previous section, you do not need to set the service binding or join a ring with another service. Simply run the Docker container for your web application and set an exposed port so you can browse to your web application from your local workstation
 
