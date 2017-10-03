@@ -66,6 +66,52 @@ pub fn handle_event(req: &mut Request) -> IronResult<Response> {
     }
 }
 
+// "/ext/installations/:install_id/repos/:repo/contents/:path"
+pub fn repo_file_content(req: &mut Request) -> IronResult<Response> {
+    let github = req.get::<persistent::Read<GitHubCli>>().unwrap();
+    let session = req.extensions.get::<Authenticated>().unwrap();
+    let params = req.extensions.get::<Router>().unwrap();
+    let path = match params.find("path") {
+        Some(path) => path,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+    let install_id = match params.find("install_id") {
+        Some(install_id) => {
+            match install_id.parse::<u32>() {
+                Ok(install_id) => install_id,
+                Err(_) => return Ok(Response::with(status::BadRequest)),
+            }
+        }
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+    let token = {
+        match github.app_installation_token(install_id) {
+            Ok(token) => token,
+            Err(err) => {
+                return Ok(Response::with((status::BadGateway, err.to_string())));
+            }
+        }
+    };
+    let repo = {
+        let repo = match params.find("repo") {
+            Some(repo) => repo,
+            None => return Ok(Response::with(status::BadRequest)),
+        };
+        let repos = match github.repositories(session.get_token(), install_id) {
+            Ok(repos) => repos,
+            Err(err) => return Ok(Response::with((status::BadGateway, err.to_string()))),
+        };
+        match repos.into_iter().find(|r| r.name == repo) {
+            Some(repo) => repo,
+            None => return Ok(Response::with(status::NotFound)),
+        }
+    };
+    match github.x_contents(&token, repo.id, path) {
+        Ok(search) => Ok(render_json(status::Ok, &search)),
+        Err(err) => Ok(Response::with((status::BadGateway, err.to_string()))),
+    }
+}
+
 pub fn search_code(req: &mut Request) -> IronResult<Response> {
     let github = req.get::<persistent::Read<GitHubCli>>().unwrap();
     let session = req.extensions.get::<Authenticated>().unwrap();

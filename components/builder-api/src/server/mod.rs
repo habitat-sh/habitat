@@ -105,6 +105,9 @@ impl HttpGateway for ApiSrv {
             ext_search_code: get "/ext/installations/:install_id/search/code" => {
                 XHandler::new(github::search_code).before(basic.clone())
             },
+            ext_repo_content: get "/ext/installations/:install_id/repos/:repo/contents/:path" => {
+                XHandler::new(github::repo_file_content).before(basic.clone())
+            },
         )
     }
 }
