@@ -262,7 +262,7 @@ pub struct Repository {
     pub clone_url: String,
     pub default_branch: String,
     pub master_branch: String,
-    pub organization: String,
+    pub organization: Organization,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
