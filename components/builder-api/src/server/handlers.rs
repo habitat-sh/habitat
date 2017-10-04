@@ -290,25 +290,17 @@ pub fn job_log(req: &mut Request) -> IronResult<Response> {
     // a job that's building a private package, and if so, do we have the right to see said
     // package.
     match route_message::<JobGet, Job>(req, &job_get) {
-        Ok(mut job) => {
-            let mut origin_get = OriginGet::new();
-            origin_get.set_name(job.take_project().take_origin_name());
-            // JW TODO: We should be checking at the *project* level if this is private and not
-            // the origin level. This is the best we can do for now.
-            match route_message::<OriginGet, Origin>(req, &origin_get) {
-                Ok(origin) => {
-                    if origin.get_default_package_visibility() == OriginPackageVisibility::Private {
-                        match session_id {
-                            Some(session_id) => {
-                                if !check_origin_access(req, session_id, origin.get_name())? {
-                                    return Ok(Response::with(status::Forbidden));
-                                }
-                            }
-                            None => return Ok(Response::with(status::Forbidden)),
+        Ok(job) => {
+            let project = job.get_project();
+            if project.get_visibility() == OriginPackageVisibility::Private {
+                match session_id {
+                    Some(session_id) => {
+                        if !check_origin_access(req, session_id, project.get_origin_name())? {
+                            return Ok(Response::with(status::Forbidden));
                         }
                     }
+                    None => return Ok(Response::with(status::Forbidden)),
                 }
-                Err(err) => return Ok(render_net_error(&err)),
             }
             match route_message::<JobLogGet, JobLog>(req, &request) {
                 Ok(mut log) => {
