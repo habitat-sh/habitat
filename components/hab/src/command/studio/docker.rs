@@ -63,6 +63,7 @@ pub fn start_docker_studio(_ui: &mut UI, mut args: Vec<OsString>) -> Result<()> 
         "HAB_BLDR_URL",
         "HAB_BLDR_CHANNEL",
         "HAB_ORIGIN",
+        "HAB_STUDIO_NOSTUDIORC",
         "HAB_STUDIO_SUP",
         "HAB_UPDATE_STRATEGY_FREQUENCY_MS",
         "http_proxy",
