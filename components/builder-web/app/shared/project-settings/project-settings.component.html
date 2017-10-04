@@ -56,7 +56,7 @@
                 <ul>
                     <li *ngFor="let installation of installations">
                         <a (click)="selectInstallation(installation)" [class.active]="installation === selectedInstallation">
-                            {{ installation.get("id") }}
+                            {{ installation.getIn(["account", "login"]) }}
                             <hab-icon symbol="chevron-right"></hab-icon>
                         </a>
                     </li>
