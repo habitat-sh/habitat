@@ -21,12 +21,13 @@ import { ProgressBarComponent } from "./progress-bar/progress-bar.component";
 import { ProjectSettingsComponent } from "./project-settings/project-settings.component";
 import { PlatformIconComponent } from "./platform-icon/platform-icon.component";
 import { RepoFilterPipe } from "../pipes/repoFilter.pipe";
+import { SimpleConfirmDialog } from "./dialog/simple-confirm/simple-confirm.dialog";
 import { TabsComponent } from "./tabs/TabsComponent";
 import { TabComponent } from "./tabs/TabComponent";
 import { FormProgressComponent } from "./form-progress/form-progress.component";
 import { GitHubRepoPickerComponent } from "./github-repo-picker/github-repo-picker.component";
 import { PackagePlanSelectComponent } from "./plan-select/plan-select.component";
-import { UserLoggedInGuard, UserLoggedOutGuard } from "./user/user.guard";
+import { UserLoggedInGuard } from "./user/user.guard";
 
 @NgModule({
   imports: [
@@ -58,6 +59,7 @@ import { UserLoggedInGuard, UserLoggedOutGuard } from "./user/user.guard";
     ProjectSettingsComponent,
     PlatformIconComponent,
     RepoFilterPipe,
+    SimpleConfirmDialog,
     TabsComponent,
     TabComponent,
     FormProgressComponent,
@@ -66,7 +68,8 @@ import { UserLoggedInGuard, UserLoggedOutGuard } from "./user/user.guard";
     RepoFilterPipe
   ],
   entryComponents: [
-    DisconnectConfirmDialog
+    DisconnectConfirmDialog,
+    SimpleConfirmDialog
   ],
   exports: [
     BreadcrumbsComponent,
@@ -85,6 +88,7 @@ import { UserLoggedInGuard, UserLoggedOutGuard } from "./user/user.guard";
     ProjectSettingsComponent,
     PlatformIconComponent,
     RepoFilterPipe,
+    SimpleConfirmDialog,
     TabsComponent,
     TabComponent,
     FormProgressComponent,
@@ -92,8 +96,7 @@ import { UserLoggedInGuard, UserLoggedOutGuard } from "./user/user.guard";
     GitHubRepoPickerComponent
   ],
   providers: [
-    UserLoggedInGuard,
-    UserLoggedOutGuard
+    UserLoggedInGuard
   ]
 })
 export class SharedModule {

@@ -10,7 +10,7 @@
 
     .members-invites {
       @include row;
-      margin-bottom: 40px;
+      margin-bottom: 32px;
 
       .members-invite {
         @include span-columns(5 of 9);
@@ -24,7 +24,7 @@
           }
 
           input {
-            margin-top: 16px;
+            margin: 12px 0;
             box-sizing: border-box;
             padding: 12px;
             outline: none;
@@ -46,6 +46,7 @@
 
           .error {
             color: $hab-red;
+            font-size: inherit;
           }
         }
       }
@@ -75,6 +76,20 @@
 
         span {
           font-weight: 600;
+        }
+
+        .actions {
+
+          hab-icon {
+            color: $hab-blue;
+            cursor: pointer;
+            margin-left: 12px;
+            transition: color .2s linear;
+
+            &:hover {
+              color: darken($hab-blue, 10%);
+            }
+          }
         }
       }
     }

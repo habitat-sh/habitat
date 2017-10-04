@@ -20,91 +20,71 @@
       }
     }
 
-    .origin-invitations {
-      @include span-columns(12);
-      margin-top: 28px;
+    ul {
 
-      h3 {
-        margin-bottom: 18px;
+      li {
+        @include row;
+        border-bottom: 1px solid $very-light-gray;
         font-size: rem(14);
-        text-transform: uppercase;
-      }
-    }
+        padding: 15px 10px;
+        position: relative;
+        cursor: pointer;
 
-    .hab-origins-list, .hab-invitations-list {
+        h3, > span {
+          @include span-columns(4);
+          margin: 0;
+        }
 
-      ul.origins, ul.invitations {
+        h3 {
+          font-size: rem(12);
+          text-transform: uppercase;
+        }
 
-        li {
-          &.heading, &.origin, &.invitation {
-            @include row;
-            border-bottom: 1px solid $very-light-gray;
+        .name {
+          font-weight: 600;
+        }
 
-            h3, .origin-name, .origin-pkg-count{
-              @include span-columns(5);
-            }
-            .invitation-origin-name {
-              @include span-columns(9);
-            }
-            .invitations-actions {
-              @include span-columns(3);
-            }
+        &.invitation {
+          cursor: auto;
+
+          .name {
+            color: $medium-gray;
           }
+        }
 
-          &.heading {
-            padding: 0 10px;
+        .package-count {
+          font-size: rem(12);
+          color: $medium-gray;
+        }
 
-            h3 {
-              padding: 0;
-              font-size: rem(12px);
-              font-family: $heading-font-family;
-            }
-          }
+        .actions {
+          text-align: right;
+          color: $hab-blue;
 
-          &.origin, &.invitation {
+          .action {
+            border-radius: $global-radius;
+            padding: 4px 8px;
             cursor: pointer;
-            font-size: rem(14px);
+            margin-left: 8px;
+            transition: color .2s, background-color .2s;
 
-            .summary {
-              @include row;
-              padding: 15px 10px;
-              position: relative;
-
-              .origin-name, .invitation-origin-name {
-                font-weight: 600;
-              }
-
-              .origin-pkg-count {
-                font-size: rem(12);
-                color: $hab-gray;
-              }
-
-              .invitation-actions {
-
-                hab-icon.action {
-                  cursor: pointer;
-                  width: 20px;
-                  height: 20px;
-                }
-              }
-
-              hab-icon[symbol="chevron-right"] {
-                @include chevron-right;
-                display: none;
-              }
-
-              &:hover {
-                background-color: rgba($medium-gray, 0.05);
-
-                hab-icon[symbol="chevron-right"] {
-                  display: block;
-                }
-              }
+            &:hover {
+              background-color: lighten($hab-blue, 10%);
+              color: white;
             }
           }
+        }
 
-          &.invitation {
-            cursor: auto;
+        hab-icon[symbol="chevron-right"] {
+          @include chevron-right;
+          display: none;
+        }
+
+        &:hover {
+          background-color: rgba($medium-gray, 0.05);
+
+          hab-icon[symbol="chevron-right"] {
+            display: block;
           }
         }
       }

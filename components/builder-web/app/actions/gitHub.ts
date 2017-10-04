@@ -17,7 +17,7 @@ import { URLSearchParams } from "@angular/http";
 import * as cookies from "js-cookie";
 import config from "../config";
 import { setFeatureFlags } from "./index";
-import { attemptSignIn, addNotification, goHome, fetchMyOrigins, requestRoute, setFeatureFlag,
+import { attemptSignIn, addNotification, goHome, fetchMyOrigins, fetchMyOriginInvitations, requestRoute, setFeatureFlag,
     signOut, setSigningInFlag } from "./index";
 import { DANGER, WARNING } from "./notifications";
 import { BuilderApiClient } from "../BuilderApiClient";
@@ -60,6 +60,7 @@ export function authenticateWithGitHub(token = undefined) {
             }).then(data => {
                 dispatch(populateGitHubUserData(data));
                 dispatch(fetchMyOrigins(token));
+                dispatch(fetchMyOriginInvitations(token));
                 dispatch(attemptSignIn(data["login"]));
             }).catch(error => {
                 // We can assume an error from the response is a 401; anything

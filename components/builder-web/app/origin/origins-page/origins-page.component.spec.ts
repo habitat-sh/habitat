@@ -2,6 +2,7 @@ import { TestBed, ComponentFixture } from "@angular/core/testing";
 import { RouterTestingModule } from "@angular/router/testing";
 import { Component, DebugElement } from "@angular/core";
 import { By } from "@angular/platform-browser";
+import { MdDialog } from "@angular/material";
 import { List } from "immutable";
 import { ActivatedRoute, Router } from "@angular/router";
 import { Observable } from "rxjs";
@@ -34,6 +35,8 @@ class MockAppStore {
   dispatch() {}
 }
 
+class MockDialog {}
+
 describe("OriginsPageComponent", () => {
   let fixture: ComponentFixture<OriginsPageComponent>;
   let component: OriginsPageComponent;
@@ -56,7 +59,8 @@ describe("OriginsPageComponent", () => {
         MockComponent({ selector: "hab-icon", inputs: [ "symbol", "chevron-right" ]})
       ],
       providers: [
-        { provide: AppStore, useValue: store }
+        { provide: AppStore, useValue: store },
+        { provide: MdDialog, useClass: MockDialog }
       ]
     });
 
@@ -66,28 +70,25 @@ describe("OriginsPageComponent", () => {
   });
 
   describe("given origin and name", () => {
+
     it("fetches the list of origins", () => {
       fixture.detectChanges();
       expect(store.dispatch).toHaveBeenCalled();
       expect(actions.fetchMyOrigins).toHaveBeenCalledWith("token");
-      expect(component.origins.size).toEqual(1);
     });
 
     it("fetches the list of invitations", () => {
       fixture.detectChanges();
       expect(store.dispatch).toHaveBeenCalled();
       expect(actions.fetchMyOriginInvitations).toHaveBeenCalledWith("token");
-      expect(component.invitations.length).toEqual(0);
     });
   });
 
   it("routes to the correct origin", () => {
     fixture.detectChanges();
-    spyOn(component, "routeToOrigin");
-    // one element is the header and the other is the origin
-    expect(element.query(By.css(".origins")).children.length).toBe(2);
-    element.query(By.css(".origins > li:last-child")).nativeElement.click();
+    spyOn(component, "navigateTo");
+    element.query(By.css("li:last-child")).nativeElement.click();
     fixture.detectChanges();
-    expect(component.routeToOrigin).toHaveBeenCalledWith("test");
+    expect(component.navigateTo).toHaveBeenCalledWith(Origin({name: "test"}));
   });
 });

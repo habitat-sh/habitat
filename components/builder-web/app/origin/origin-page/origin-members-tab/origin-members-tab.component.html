@@ -21,7 +21,10 @@
         <p *ngIf="invitations.size === 0">No pending invitations.</p>
         <ul>
           <li *ngFor="let invitation of invitations" class="pending-invite">
-            <span>{{ invitation.account_name }}</span>
+            <span class="name">{{ invitation.account_name }}</span>
+            <span class="actions">
+              <hab-icon symbol="cancel" (click)="rescind(invitation)" title="Rescind this invitation"></hab-icon>
+            </span>
           </li>
         </ul>
       </div>
@@ -31,7 +34,10 @@
       <p *ngIf="members.size === 0">No Members.</p>
       <ul>
         <li *ngFor="let member of members">
-          <span>{{ member }}</span>
+          <span class="name">{{ member }}</span>
+          <span class="actions">
+            <hab-icon symbol="cancel" (click)="delete(member)" *ngIf="canDelete(member)" title="Remove this member from this origin"></hab-icon>
+          </span>
         </li>
       </ul>
     </div>

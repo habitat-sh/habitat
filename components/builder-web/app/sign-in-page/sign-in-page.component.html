@@ -8,21 +8,9 @@
             <a md-raised-button color="accent" [class.disabled]="isSigningIn || isSignedIn"
                class="button cta" href="{{gitHubLoginUrl}}">
                 <hab-icon symbol="github"></hab-icon>
-                <span *ngIf="isSigningIn">
-                    Signing In&hellip;
-                </span>
-                <span *ngIf="!isSignedIn && !isSigningIn">
+                <span>
                     Sign In with GitHub
                 </span>
-                <span *ngIf="isSignedIn && !isSigningIn">
-                    Signed In with GitHub
-                </span>
-            </a>
-            <a *ngIf="isSignedIn"
-               class="button hab-sign-in--out"
-               (click)="signOut()"
-               href="#">
-               Sign Out
             </a>
             <hr>
         </div>
@@ -34,22 +22,13 @@
             The {{appName}} project is maintained on GitHub and packages are
             built from plan files stored in GitHub repositories. GitHub
             accounts are free.
-            <a href="{{gitHubJoinUrl}}" _target="blank">
-                Create one now
-            </a>.
+            <a href="{{gitHubJoinUrl}}" _target="blank">Create one now</a>.
         </p>
         <p>
             You can still browse the
-            <a href="{{sourceCodeUrl}}">
-                {{appName}} source code
-            </a>,
-            <a [routerLink]="['/pkgs']">
-                public packages
-            </a>,
-            and
-            <a href="{{docsUrl}}">
-                documentation
-            </a>
+            <a href="{{sourceCodeUrl}}">{{appName}} source code</a>,
+            <a [routerLink]="['/pkgs']">public packages</a>,
+            and <a href="{{docsUrl}}">documentation</a>
             without signing in.
         </p>
     </div>

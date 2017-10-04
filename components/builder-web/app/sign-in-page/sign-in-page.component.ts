@@ -50,10 +50,8 @@ export class SignInPageComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit() {
-        // Populate the GitHub authstate (used to get a token) in SessionStorage
-        // either with what's there already, or with a new UUID.
+        this.store.dispatch(signOut());
         this.store.dispatch(setGitHubAuthState());
-        // Don't show the side nav on this screen
         this.store.dispatch(setLayout("centered"));
     }
 
