@@ -48,7 +48,6 @@ use self::docker::DockerExporter;
 use self::workspace::Workspace;
 use config::Config;
 use error::{Error, Result};
-use feat;
 use retry::retry;
 use vcs;
 
@@ -359,7 +358,7 @@ impl Runner {
     /// and we are assuming that any calls to this method will happen after the integration data
     /// has been validated.
     fn has_docker_integration(&self) -> bool {
-        feat::is_enabled(feat::Docker) && !self.workspace.job.get_project_integrations().is_empty()
+        !self.workspace.job.get_project_integrations().is_empty()
     }
 }
 
