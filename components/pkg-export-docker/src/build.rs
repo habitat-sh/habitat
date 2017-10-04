@@ -90,7 +90,8 @@ impl<'a> BuildSpec<'a> {
         let base_pkgs = self.install_base_pkgs(ui, &rootfs)?;
         self.link_binaries(ui, &rootfs, &base_pkgs)?;
         self.link_cacerts(ui, &rootfs, &base_pkgs)?;
-        self.install_user_pkgs(ui, &rootfs)?;
+        let user_pkgs = self.install_user_pkgs(ui, &rootfs)?;
+        self.link_user_pkgs(ui, &rootfs, &user_pkgs)?;
         self.remove_symlink_to_artifact_cache(ui, &rootfs)?;
 
         Ok(())
@@ -130,9 +131,28 @@ impl<'a> BuildSpec<'a> {
         })
     }
 
-    fn install_user_pkgs<P: AsRef<Path>>(&self, ui: &mut UI, rootfs: P) -> Result<()> {
+    fn install_user_pkgs<P: AsRef<Path>>(
+        &self,
+        ui: &mut UI,
+        rootfs: P,
+    ) -> Result<Vec<PackageIdent>> {
+        let mut idents = Vec::new();
         for ioa in self.idents_or_archives.iter() {
-            self.install_user_pkg(ui, ioa, &rootfs)?;
+            idents.push(self.install_user_pkg(ui, ioa, &rootfs)?);
+        }
+
+        Ok(idents)
+    }
+
+    fn link_user_pkgs<P: AsRef<Path>>(
+        &self,
+        ui: &mut UI,
+        rootfs: P,
+        user_pkgs: &Vec<PackageIdent>,
+    ) -> Result<()> {
+        let dst = util::bin_path();
+        for pkg in user_pkgs.iter() {
+            hab::command::pkg::binlink::binlink_all_in_pkg(ui, &pkg, &dst, rootfs.as_ref(), true)?;
         }
 
         Ok(())
