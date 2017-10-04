@@ -14,6 +14,7 @@
 
 import { AfterViewInit, Component, OnInit } from "@angular/core";
 import { FormControl, FormGroup, FormBuilder, Validators } from "@angular/forms";
+import { Router } from "@angular/router";
 import { AppStore } from "../../AppStore";
 import { AsyncValidator } from "../../AsyncValidator";
 import { BuilderApiClient } from "../../BuilderApiClient";
@@ -23,7 +24,6 @@ import { requireSignIn } from "../../util";
 @Component({
     template: require("./origin-create-page.component.html")
 })
-
 export class OriginCreatePageComponent implements AfterViewInit, OnInit {
     form: FormGroup;
     isOriginAvailable: Function;
@@ -32,7 +32,7 @@ export class OriginCreatePageComponent implements AfterViewInit, OnInit {
     private api: BuilderApiClient;
     private name: FormControl;
 
-    constructor(private formBuilder: FormBuilder, private store: AppStore) {
+    constructor(private formBuilder: FormBuilder, private store: AppStore, private router: Router) {
         this.api = new BuilderApiClient(this.token);
 
         this.form = formBuilder.group({
@@ -72,6 +72,8 @@ export class OriginCreatePageComponent implements AfterViewInit, OnInit {
     }
 
     createOrigin(origin) {
-        this.store.dispatch(createOrigin(origin, this.token, this.form.get("generateKeys").value, this.isFirstOrigin));
+        this.store.dispatch(createOrigin(origin, this.token, this.form.get("generateKeys").value, this.isFirstOrigin, (origin) => {
+            this.router.navigate(["/origins", origin.name]);
+        }));
     }
 }

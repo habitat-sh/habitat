@@ -20,7 +20,7 @@ import { AppStore } from "../../../AppStore";
 import { BuilderApiClient } from "../../../BuilderApiClient";
 import { GenerateKeysConfirmDialog } from "./dialog/generate-keys-confirm/generate-keys-confirm.dialog";
 import { KeyAddFormDialog } from "./key-add-form/key-add-form.dialog";
-import { fetchOriginPublicKeys, generateOriginKeys } from "../../../actions/index";
+import { fetchOriginPublicKeys, fetchMyOrigins, generateOriginKeys } from "../../../actions/index";
 import { OriginService } from "../../origin.service";
 import config from "../../../config";
 
@@ -43,6 +43,7 @@ export class OriginKeysTabComponent implements OnInit, OnDestroy {
     ngOnInit() {
         this.sub = this.route.parent.params.subscribe((params) => {
             this.origin = params["origin"];
+            this.store.dispatch(fetchMyOrigins(this.token));
             this.store.dispatch(fetchOriginPublicKeys(this.origin, this.token));
         });
     }

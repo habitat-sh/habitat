@@ -1,0 +1,17 @@
+<div class="dialog invitation-confirm">
+    <section class="heading">
+      <hab-icon symbol="delete"></hab-icon>
+      <h1>{{ heading }}</h1>
+    </section>
+    <section class="body">
+      <p>
+        {{ body }}
+      </p>
+    </section>
+    <section class="controls">
+      <button md-raised-button color="primary" class="button" (click)="ok()">
+          Yes, {{ action }}
+      </button>
+      <a (click)="cancel()">Cancel</a>
+    </section>
+  </div>

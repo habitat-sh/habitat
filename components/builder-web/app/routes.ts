@@ -13,7 +13,6 @@
 // limitations under the License.
 
 import { Routes, RouterModule } from "@angular/router";
-import { UserLoggedOutGuard } from "./shared/user/user.guard";
 import { ExploreComponent } from "./explore/explore.component";
 import { SignInPageComponent } from "./sign-in-page/sign-in-page.component";
 
@@ -29,8 +28,7 @@ export const routes: Routes = [
     },
     {
         path: "sign-in",
-        component: SignInPageComponent,
-        canActivate: [UserLoggedOutGuard]
+        component: SignInPageComponent
     },
     {
         path: "*",

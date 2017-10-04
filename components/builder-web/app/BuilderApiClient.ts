@@ -31,32 +31,65 @@ export class BuilderApiClient {
                 headers: this.headers,
                 method: "PUT",
             })
-                .then(response => {
-                    if (response.ok) {
-                        resolve(true);
-                    } else {
-                        reject(new Error(response.statusText));
-                    }
-                })
-                .catch(error => reject(error));
+            .then(response => {
+                if (response.ok) {
+                    resolve(true);
+                } else {
+                    reject(new Error(response.statusText));
+                }
+            })
+            .catch(error => reject(error));
         });
     }
 
-    // TED TODO: This is just accepting, make it reject
-    public ignoreOriginInvitation(invitationId: string, originName: string) {
+    public deleteOriginInvitation(invitationId: string, originName: string) {
         return new Promise((resolve, reject) => {
             fetch(`${this.urlPrefix}/depot/origins/${originName}/invitations/${invitationId}`, {
                 headers: this.headers,
+                method: "DELETE",
+            })
+            .then(response => {
+                if (response.ok) {
+                    resolve(true);
+                } else {
+                    reject(new Error(response.statusText));
+                }
+            })
+            .catch(error => reject(error));
+        });
+    }
+
+    public deleteOriginMember(origin: string, member: string) {
+        return new Promise((resolve, reject) => {
+            fetch(`${this.urlPrefix}/depot/origins/${origin}/users/${member}`, {
+                headers: this.headers,
+                method: "DELETE",
+            })
+            .then(response => {
+                if (response.ok) {
+                    resolve(true);
+                } else {
+                    reject(new Error(response.statusText));
+                }
+            })
+            .catch(error => reject(error));
+        });
+    }
+
+    public ignoreOriginInvitation(invitationId: string, originName: string) {
+        return new Promise((resolve, reject) => {
+            fetch(`${this.urlPrefix}/depot/origins/${originName}/invitations/${invitationId}/ignore`, {
+                headers: this.headers,
                 method: "PUT",
             })
-                .then(response => {
-                    if (response.ok) {
-                        resolve(true);
-                    } else {
-                        reject(new Error(response.statusText));
-                    }
-                })
-                .catch(error => reject(error));
+            .then(response => {
+                if (response.ok) {
+                    resolve(true);
+                } else {
+                    reject(new Error(response.statusText));
+                }
+            })
+            .catch(error => reject(error));
         });
     }
 

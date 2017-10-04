@@ -10,31 +10,11 @@ export class UserLoggedInGuard implements CanActivate {
 
   canActivate() {
     const hasToken = !!this.store.getState().gitHub.authToken;
-    const isCodeInQueryString = new URLSearchParams(
-      window.location.search.slice(1)
-    ).has("code");
+    const hasCode = window.location.search.slice(1).split("&").filter((param) => {
+      return !!param.match(/^code=.+/);
+    }).length >= 1;
 
-    if (isCodeInQueryString || hasToken) {
-      return true;
-    }
-
-    window.location.href = config["www_url"];
-    return false;
-  }
-}
-
-@Injectable()
-export class UserLoggedOutGuard implements CanActivate {
-
-  constructor(private store: AppStore, private router: Router) { }
-
-  canActivate() {
-    const hasToken = !!this.store.getState().gitHub.authToken;
-    const isCodeInQueryString = new URLSearchParams(
-      window.location.search.slice(1)
-    ).has("code");
-
-    if (!isCodeInQueryString || !hasToken) {
+    if (hasCode || hasToken) {
       return true;
     }
 

@@ -14,37 +14,43 @@
 
 import { Component, Input, OnInit, OnDestroy } from "@angular/core";
 import { FormControl, FormGroup, FormBuilder, Validators } from "@angular/forms";
-import { List } from "immutable";
-import config from "../../../config";
-import { AppStore } from "../../../AppStore";
-import { inviteUserToOrigin } from "../../../actions/index";
 import { ActivatedRoute } from "@angular/router";
 import { Subscription } from "rxjs/Subscription";
+import { List } from "immutable";
+import { MdDialog, MdDialogRef } from "@angular/material";
+import { SimpleConfirmDialog } from "../../../shared/dialog/simple-confirm/simple-confirm.dialog";
+import { AppStore } from "../../../AppStore";
+import { deleteOriginInvitation, inviteUserToOrigin } from "../../../actions/index";
 import { Origin } from "../../../records/Origin";
+import { deleteOriginMember, fetchOriginMembers, fetchOriginInvitations } from "../../../actions/index";
+import config from "../../../config";
 
 @Component({
     selector: "hab-origin-members-tab",
     template: require("./origin-members-tab.component.html")
 })
-
 export class OriginMembersTabComponent implements OnInit, OnDestroy {
     form: FormGroup;
     control: FormControl;
     sub: Subscription;
     origin;
 
-    constructor(private route: ActivatedRoute, formBuilder: FormBuilder, private store: AppStore) {
+    constructor(
+        formBuilder: FormBuilder,
+        private route: ActivatedRoute,
+        private store: AppStore,
+        private confirmDialog: MdDialog
+    ) {
         this.form = formBuilder.group({});
     }
 
-    submit(username: string) {
-        this.onSubmit(username);
-    }
-
-    public ngOnInit() {
+    ngOnInit() {
         this.sub = this.route.parent.params.subscribe(params => {
             this.origin = Origin({ name: params["origin"]});
+            this.store.dispatch(fetchOriginMembers(this.origin.name, this.token));
+            this.store.dispatch(fetchOriginInvitations(this.origin.name, this.token));
         });
+
         this.control = new FormControl("", Validators.required);
         this.form.addControl("username", this.control);
     }
@@ -73,15 +79,55 @@ export class OriginMembersTabComponent implements OnInit, OnDestroy {
         return config["docs_url"];
     }
 
-    get gitHubAuthToken() {
+    get token() {
         return this.store.getState().gitHub.authToken;
     }
 
-    onSubmit(username) {
-        this.store.dispatch(inviteUserToOrigin(
-            username,
-            this.origin.name,
-            this.gitHubAuthToken
-        ));
+    canDelete(member) {
+        return this.store.getState().users.current.username !== member;
+    }
+
+    delete(member) {
+        const data = {
+            heading: "Confirm remove",
+            body: `Are you sure you want to remove this member? Doing so will remove
+                revoke access to this origin and its private packages.`,
+            action: "remove member"
+        };
+
+        this.confirm(data, () => {
+            this.store.dispatch(deleteOriginMember(this.origin.name, member, this.token));
+        });
+    }
+
+    rescind(invitation) {
+        const data = {
+            heading: "Confirm rescind",
+            body: `Are you sure you want to rescind this invitation? Doing so will remove
+                access to this origin and its private packages.`,
+            action: "rescind it"
+        };
+
+        this.confirm(data, () => {
+            this.store.dispatch(deleteOriginInvitation(invitation.id, this.origin.name, this.token));
+        });
+    }
+
+    submit(username: string) {
+        this.store.dispatch(inviteUserToOrigin(username, this.origin.name, this.token));
+        const field = this.form.get("username");
+        field.setValue("");
+        field.markAsPristine();
+    }
+
+    private confirm(data, then) {
+        this.confirmDialog
+            .open(SimpleConfirmDialog, { width: "480px", data: data })
+            .afterClosed()
+            .subscribe((confirmed) => {
+                if (confirmed) {
+                    then();
+                }
+            });
     }
 }

@@ -18,6 +18,8 @@ import * as depotApi from "../depotApi";
 import { BuilderApiClient } from "../BuilderApiClient";
 import { parseKey } from "../util";
 
+export const CLEAR_MY_ORIGINS = "CLEAR_MY_ORIGINS";
+export const CLEAR_MY_ORIGIN_INVITATIONS = "CLEAR_MY_ORIGIN_INVITATIONS";
 export const CLEAR_DOCKER_INTEGRATIONS = "CLEAR_DOCKER_INTEGRATIONS";
 export const DELETE_DOCKER_INTEGRATION = "DELETE_DOCKER_INTEGRATION";
 export const POPULATE_MY_ORIGINS = "POPULATE_MY_ORIGINS";
@@ -44,14 +46,15 @@ export function acceptOriginInvitation(invitationId: string, originName: string,
         new BuilderApiClient(token).acceptOriginInvitation(invitationId, originName).
             then(response => {
                 dispatch(addNotification({
-                    title: "Invitation Accepted",
-                    body: "You are now a member",
+                    title: "Invitation accepted",
+                    body: `You are now a member of ${originName}.`,
                     type: SUCCESS,
                 }));
                 dispatch(fetchMyOriginInvitations(token));
+                dispatch(fetchMyOrigins(token));
             }).catch(error => {
                 dispatch(addNotification({
-                    title: "Invitation Acceptance Failed",
+                    title: "Invitation acceptance failed",
                     body: error.message,
                     type: DANGER,
                 }));
@@ -64,13 +67,14 @@ export function ignoreOriginInvitation(invitationId: string, originName: string,
         new BuilderApiClient(token).ignoreOriginInvitation(invitationId, originName).
             then(response => {
                 dispatch(addNotification({
-                    title: "Invitation Ignored",
+                    title: "Invitation ignored",
                     type: SUCCESS,
                 }));
                 dispatch(fetchMyOriginInvitations(token));
+                dispatch(fetchMyOrigins(token));
             }).catch(error => {
                 dispatch(addNotification({
-                    title: "Invitation Ignore Failed",
+                    title: "Invitation ignore failed",
                     body: error.message,
                     type: DANGER,
                 }));
@@ -78,7 +82,46 @@ export function ignoreOriginInvitation(invitationId: string, originName: string,
     };
 }
 
-export function createOrigin(name: string, token: string, generateKeys: boolean, isFirstOrigin = false) {
+export function deleteOriginInvitation(invitationId: string, originName: string, token: string) {
+    return dispatch => {
+        new BuilderApiClient(token).deleteOriginInvitation(invitationId, originName).
+            then(response => {
+                dispatch(addNotification({
+                    title: "Invitation rescinded",
+                    type: SUCCESS,
+                }));
+                dispatch(fetchOriginInvitations(originName, token));
+            }).catch(error => {
+                dispatch(addNotification({
+                    title: "Failed to rescind invitation",
+                    body: error.message,
+                    type: DANGER,
+                }));
+            });
+    };
+}
+
+export function deleteOriginMember(origin: string, member: string, token: string) {
+    return dispatch => {
+        new BuilderApiClient(token).deleteOriginMember(origin, member).
+            then(response => {
+                dispatch(addNotification({
+                    title: "Member removed",
+                    body: `${member} is no longer a member of ${origin}.`,
+                    type: SUCCESS,
+                }));
+                dispatch(fetchOriginMembers(origin, token));
+            }).catch(error => {
+                dispatch(addNotification({
+                    title: "Failed to remove member",
+                    body: error.message,
+                    type: DANGER,
+                }));
+            });
+    };
+}
+
+export function createOrigin(name: string, token: string, generateKeys: boolean, isFirstOrigin = false, callback: Function = (origin) => {}) {
     return dispatch => {
         dispatch(setCurrentOriginCreatingFlag(true));
 
@@ -100,7 +143,7 @@ export function createOrigin(name: string, token: string, generateKeys: boolean,
                 dispatch(generateOriginKeys(origin["name"], token));
             }
 
-            dispatch(requestRoute(["/origins"]));
+            callback(origin);
         }).catch(error => {
             dispatch(setCurrentOriginCreatingFlag(false));
             dispatch(addNotification({
@@ -114,19 +157,26 @@ export function createOrigin(name: string, token: string, generateKeys: boolean,
 
 export function fetchMyOrigins(token) {
     return dispatch => {
-        new BuilderApiClient(token).getMyOrigins().then(origins => {
-            dispatch(populateMyOrigins(origins));
-            dispatch(fetchOriginsPackageCount(origins));
-        }).catch(error => dispatch(populateMyOrigins(undefined, error)));
+        dispatch(clearMyOrigins());
+
+        new BuilderApiClient(token).getMyOrigins()
+            .then(origins => {
+                dispatch(populateMyOrigins(origins));
+                dispatch(fetchOriginsPackageCount(origins));
+            })
+            .catch(error => dispatch(populateMyOrigins(undefined, error)));
     };
 }
 
 export function fetchMyOriginInvitations(token) {
     return dispatch => {
-        new BuilderApiClient(token).getMyOriginInvitations().
-            then(invitations => {
+        dispatch(clearMyOriginInvitations());
+
+        new BuilderApiClient(token).getMyOriginInvitations()
+            .then(invitations => {
                 dispatch(populateMyOriginInvitations(invitations));
-            }).catch(error => {
+            })
+            .catch(error => {
                 dispatch(populateMyOriginInvitations(undefined, error));
             });
     };
@@ -282,6 +332,18 @@ export function fetchOriginsPackageCount(origins) {
     };
 }
 
+function clearMyOrigins() {
+    return {
+        type: CLEAR_MY_ORIGINS
+    };
+}
+
+function clearMyOriginInvitations() {
+    return {
+        type: CLEAR_MY_ORIGIN_INVITATIONS
+    };
+}
+
 function clearDockerIntegration() {
     return {
         type: CLEAR_DOCKER_INTEGRATIONS
@@ -385,14 +447,6 @@ function setOriginIntegrationSaveErrorMessage(payload: string) {
         payload,
     };
 }
-
-// ED TODO: uncomment this when the api endpoint is added for privacy settings
-// function setCurrentOriginPrivacySetting(payload: string) {
-//     return {
-//         type: SET_ORIGIN_PRIVACY_SETTINGS,
-//         payload,
-//     };
-// }
 
 export function toggleOriginPicker() {
     return {

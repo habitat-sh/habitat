@@ -19,6 +19,15 @@ import { Origin } from "../records/Origin";
 
 export default function origins(state = initialState["origins"], action) {
     switch (action.type) {
+
+        case actionTypes.CLEAR_MY_ORIGINS:
+            return state.setIn(["mine"], List())
+                .setIn(["ui", "mine", "errorMessage"], undefined)
+                .setIn(["ui", "mine", "loading"], true);
+
+        case actionTypes.CLEAR_MY_ORIGIN_INVITATIONS:
+            return state.setIn(["myInvitations"], List());
+
         case actionTypes.CLEAR_DOCKER_INTEGRATIONS:
             return state.setIn(["currentIntegrations", "docker"], List());
 

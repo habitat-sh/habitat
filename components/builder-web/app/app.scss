@@ -40,6 +40,10 @@ $output-bourbon-deprecation-warnings: false !default;
 @import "side-nav/side-nav";
 @import "sign-in-page/sign-in-page";
 
+html {
+  background-color: $dark-blue; // Firefox needs this for Material dialogs.
+}
+
 body {
   -moz-osx-font-smoothing: grayscale;
   -webkit-font-smoothing: antialiased;

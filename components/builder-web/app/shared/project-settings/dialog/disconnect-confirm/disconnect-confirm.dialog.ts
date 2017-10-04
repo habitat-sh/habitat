@@ -1,5 +1,5 @@
 import { Component, Inject } from "@angular/core";
-import { MdDialog, MdDialogRef, MD_DIALOG_DATA } from "@angular/material";
+import { MdDialogRef } from "@angular/material";
 
 @Component({
   template: require("./disconnect-confirm.dialog.html")

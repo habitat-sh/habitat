@@ -25,49 +25,30 @@
         </p>
       </div>
       <div *ngIf="origins.size > 0">
-        <div class="hab-origins-list">
-          <ul class="origins">
-            <li class="heading">
-              <h3 class="uppercase">Origin Name</h3>
-              <h3 class="uppercase">Packages</h3>
-            </li>
-            <li class="origin" *ngFor="let origin of origins" (click)="routeToOrigin(origin.name)">
-              <div class="summary">
-                <span class="origin-name">{{ origin.name }}</span>
-                <span class="origin-pkg-count">{{ origin.packageCount }}</span>
-                <hab-icon symbol="chevron-right"></hab-icon>
-              </div>
-            </li>
-          </ul>
-        </div>
-      </div>
-      <div class="origin-invitations" *ngIf="invitations.size > 0">
-        <h3>Pending Invitations</h3>
-        <div class="hab-invitations-list">
-          <ul class="invitations">
-            <li class="heading">
-              <h3 class="uppercase invitation-origin-name">Origin Name</h3>
-              <h3 class="uppercase invitations-actions">Actions</h3>
-            </li>
-            <li class="invitation" *ngFor="let invitation of invitations">
-              <div class="summary">
-                <span class="invitation-origin-name">{{ invitation.origin_name }}</span>
-                <span class="invitation-actions">
-                    <hab-icon
-                      class="action"
-                      symbol="check"
-                      title="Accept invitation"
-                      (click)="acceptInvitation(invitation.origin_invitation_id, invitation.origin_name)"></hab-icon>
-                    <hab-icon
-                      class="action"
-                      symbol="no"
-                      title="Ignore invitation"
-                      (click)="ignoreInvitation(invitation.origin_invitation_id, invitation.origin_name)"></hab-icon>
-                  </span>
-              </div>
-            </li>
-          </ul>
-        </div>
+        <ul>
+          <li class="heading">
+            <h3>Origin Name</h3>
+            <h3>Packages</h3>
+            <h3>&nbsp;</h3>
+          </li>
+          <li [class.invitation]="isInvitation(item)" *ngFor="let item of origins" (click)="navigateTo(item)">
+            <span class="name">{{ name(item) }}</span>
+            <span class="package-count">{{ packageCount(item) }}</span>
+            <span class="actions">
+              <span *ngIf="isInvitation(item)">
+                <span class="action" (click)="accept(item)">
+                  <hab-icon symbol="check"></hab-icon>
+                  Accept Invitation
+                </span>
+                <span class="action" (click)="ignore(item)">
+                  <hab-icon symbol="no"></hab-icon>
+                  Ignore Invitation
+                </span>
+              </span>
+            </span>
+            <hab-icon symbol="chevron-right"></hab-icon>
+          </li>
+        </ul>
       </div>
     </div>
   </div>

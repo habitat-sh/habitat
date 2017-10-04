@@ -51,6 +51,8 @@ export const STREAM_BUILD_LOG = buildActions.STREAM_BUILD_LOG;
 export const ADD_NOTIFICATION = notificationActions.ADD_NOTIFICATION;
 export const REMOVE_NOTIFICATION = notificationActions.REMOVE_NOTIFICATION;
 
+export const CLEAR_MY_ORIGINS = originActions.CLEAR_MY_ORIGINS;
+export const CLEAR_MY_ORIGIN_INVITATIONS = originActions.CLEAR_MY_ORIGIN_INVITATIONS;
 export const CLEAR_DOCKER_INTEGRATIONS = originActions.CLEAR_DOCKER_INTEGRATIONS;
 export const POPULATE_MY_ORIGINS = originActions.POPULATE_MY_ORIGINS;
 export const SET_PACKAGE_COUNT_FOR_ORIGIN = originActions.SET_PACKAGE_COUNT_FOR_ORIGIN;
@@ -139,6 +141,8 @@ export const removeNotification = notificationActions.removeNotification;
 
 export const acceptOriginInvitation = originActions.acceptOriginInvitation;
 export const createOrigin = originActions.createOrigin;
+export const deleteOriginInvitation = originActions.deleteOriginInvitation;
+export const deleteOriginMember = originActions.deleteOriginMember;
 export const deleteDockerIntegration = originActions.deleteDockerIntegration;
 export const ignoreOriginInvitation = originActions.ignoreOriginInvitation;
 export const fetchDockerIntegration = originActions.fetchDockerIntegration;

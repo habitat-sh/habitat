@@ -18,17 +18,22 @@ import { deleteDockerIntegration, setDockerIntegration } from "../../../actions"
 import { MdDialog, MdDialogRef } from "@angular/material";
 import { DockerCredentialsFormDialog } from "../docker-credentials-form/docker-credentials-form.dialog";
 import { IntegrationDeleteConfirmDialog } from "./dialog/integration-delete-confirm/integration-delete-confirm.dialog";
+import { fetchDockerIntegration } from "../../../actions/index";
 
 @Component({
   template: require("./origin-integrations-tab.component.html")
 })
-export class OriginIntegrationsTabComponent {
+export class OriginIntegrationsTabComponent implements OnInit {
 
   constructor(
     private store: AppStore,
     private credsDialog: MdDialog,
     private confirmDialog: MdDialog
   ) { }
+
+  ngOnInit() {
+    this.store.dispatch(fetchDockerIntegration(this.origin.name, this.token));
+  }
 
   get integrations() {
     return this.store.getState().origins.currentIntegrations;
