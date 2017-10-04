@@ -75,11 +75,10 @@ const stickyVisibleBreakpoint = 300;
     }
 
     function cookieDomain() {
-        let delim = ".";
-        return location.hostname
-            .split(delim)
-            .splice(-2)
-            .join(delim);
+      let delim = ".";
+      let tld = location.hostname.split(delim);
+      tdl.shift();
+      return tdl.join(delim);
     }
   });
 })($, Cookies);
