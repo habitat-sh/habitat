@@ -60,10 +60,9 @@ function cookieDomain() {
   let tld = hostname.split(delim).pop();
 
   if (isNaN(Number(tld))) {
-    return hostname
-      .split(delim)
-      .splice(-2)
-      .join(delim);
+    let domain = hostname.split(delim);
+    domain.shift();
+    return domain.join(delim);
   } else {
     return hostname;
   }
