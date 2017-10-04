@@ -187,6 +187,8 @@ dependencies = [
  "base64 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "chrono 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "clippy 0.0.144 (registry+https://github.com/rust-lang/crates.io-index)",
+ "git2 0.6.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "github-api-client 0.0.0",
  "glob 0.2.11 (registry+https://github.com/rust-lang/crates.io-index)",
  "habitat-builder-protocol 0.0.0",
  "habitat_core 0.0.0",
@@ -202,6 +204,7 @@ dependencies = [
  "statsd 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "time 0.1.37 (registry+https://github.com/rust-lang/crates.io-index)",
  "toml 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "url 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "walkdir 1.0.7 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 

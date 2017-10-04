@@ -23,15 +23,14 @@ mod workspace;
 
 use std::path::PathBuf;
 use std::fs;
-use std::ops::{Deref, DerefMut};
 use std::sync::{mpsc, Arc};
 use std::thread::{self, JoinHandle};
 
 pub use protocol::jobsrv::JobState;
+use bldr_core::job::Job;
 use bldr_core::logger::Logger;
 use chrono::UTC;
 use depot_client;
-use github_api_client::GitHubCfg;
 use hab_core::crypto;
 use hab_core::package::archive::PackageArchive;
 use hab_net::socket::DEFAULT_CONTEXT;
@@ -49,7 +48,6 @@ use self::workspace::Workspace;
 use config::Config;
 use error::{Error, Result};
 use retry::retry;
-use vcs;
 
 // TODO fn: copied from `components/common/src/ui.rs`. As this component doesn't currently depend
 // on habitat_common it didnt' seem worth it to add a dependency for only this constant. Probably
@@ -68,66 +66,6 @@ const WORK_COMPLETE: &'static str = "C";
 
 pub const RETRIES: u64 = 10;
 pub const RETRY_WAIT: u64 = 60000;
-
-#[derive(Debug)]
-pub struct Job(proto::Job);
-
-impl Job {
-    pub fn new(job: proto::Job) -> Self {
-        Job(job)
-    }
-
-    pub fn vcs(&self, config: GitHubCfg) -> vcs::VCS {
-        match self.0.get_project().get_vcs_type() {
-            "git" => {
-                let installation_id: Option<u32> = {
-                    if self.0.get_project().has_vcs_installation_id() {
-                        Some(self.0.get_project().get_vcs_installation_id())
-                    } else {
-                        None
-                    }
-                };
-                vcs::VCS::new(
-                    String::from(self.0.get_project().get_vcs_type()),
-                    String::from(self.0.get_project().get_vcs_data()),
-                    config,
-                    installation_id,
-                )
-            }
-            _ => panic!("unknown vcs associated with jobs project"),
-        }
-    }
-
-    pub fn origin(&self) -> &str {
-        let items = self.0
-            .get_project()
-            .get_name()
-            .split("/")
-            .collect::<Vec<&str>>();
-        assert!(
-            items.len() == 2,
-            format!(
-                "Invalid project identifier - {}",
-                self.0.get_project().get_id()
-            )
-        );
-        items[0]
-    }
-}
-
-impl Deref for Job {
-    type Target = proto::Job;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl DerefMut for Job {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
-    }
-}
 
 pub struct Runner {
     config: Arc<Config>,

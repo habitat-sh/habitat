@@ -49,7 +49,6 @@ pub mod heartbeat;
 pub mod log_forwarder;
 pub mod runner;
 pub mod server;
-pub mod vcs;
 
 pub use self::config::Config;
 pub use self::error::{Error, Result};

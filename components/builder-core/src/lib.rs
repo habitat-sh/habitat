@@ -19,6 +19,7 @@ extern crate glob;
 extern crate habitat_builder_protocol as protocol;
 extern crate habitat_core as hab_core;
 extern crate habitat_net as hab_net;
+extern crate github_api_client;
 extern crate iron;
 #[macro_use]
 extern crate log;
@@ -34,6 +35,8 @@ extern crate serde;
 extern crate serde_derive;
 extern crate serde_json;
 extern crate toml;
+extern crate url;
+extern crate git2;
 
 pub mod build_config;
 pub mod data_structures;
@@ -47,5 +50,7 @@ pub mod metrics;
 pub mod package_graph;
 pub mod rdeps;
 pub mod target_graph;
+pub mod vcs;
+pub mod job;
 
 pub use error::Error;
