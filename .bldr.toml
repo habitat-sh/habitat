@@ -127,6 +127,9 @@ paths = [
   "components/launcher-protocol/*",
 ]
 
+[hab-studio]
+paths = ["components/studio/*"]
+
 [hab-sup]
 paths = [
   "components/sup/*",
@@ -136,3 +139,20 @@ paths = [
   "components/core/*",
   "components/builder-depot-client/*",
 ]
+
+[hab-pkg-aci]
+paths = ["components/pkg-aci/*"]
+
+[hab-pkg-export-docker]
+paths = [
+  "components/pkg-export-docker/*",
+  "components/core/*",
+  "components/common/*",
+  "components/hab/*",
+]
+
+[hab-pkg-mesosize]
+paths = ["components/pkg-mesosize/*"]
+
+[hab-pkg-tarize]
+paths = ["components/pkg-tarize/*"]
