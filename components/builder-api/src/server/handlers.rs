@@ -241,34 +241,37 @@ pub fn job_log(req: &mut Request) -> IronResult<Response> {
     // package.
     match route_message::<JobGet, Job>(req, &job_get) {
         Ok(mut job) => {
-            let ident = job.take_package_ident();
-            let mut opg = OriginPackageGet::new();
-            opg.set_ident(ident);
-
-            if session_id.is_some() {
-                opg.set_account_id(session_id.unwrap());
-            }
-
-            match route_message::<OriginPackageGet, OriginPackage>(req, &opg) {
-                Ok(_) => {
-                    // We made it this far, which means either the package is public or it's
-                    // private and we have rights to see it.
-                    match route_message::<JobLogGet, JobLog>(req, &request) {
-                        Ok(mut log) => {
-                            if !include_color {
-                                log.strip_ansi();
+            let mut origin_get = OriginGet::new();
+            origin_get.set_name(job.take_project().take_name());
+            // JW TODO: We should be checking at the *project* level if this is private and not
+            // the origin level. This is the best we can do for now.
+            match route_message::<OriginGet, Origin>(req, &origin_get) {
+                Ok(origin) => {
+                    if origin.get_default_package_visibility() == OriginPackageVisibility::Private {
+                        match session_id {
+                            Some(session_id) => {
+                                if !check_origin_access(req, session_id, origin.get_name())? {
+                                    return Ok(Response::with(status::Forbidden));
+                                }
                             }
-                            Ok(render_json(status::Ok, &log))
+                            None => return Ok(Response::with(status::Forbidden)),
                         }
-                        Err(err) => Ok(render_net_error(&err)),
                     }
                 }
-                Err(e) => return Ok(render_net_error(&e)),
+                Err(err) => return Ok(render_net_error(&err)),
+            }
+            match route_message::<JobLogGet, JobLog>(req, &request) {
+                Ok(mut log) => {
+                    if !include_color {
+                        log.strip_ansi();
+                    }
+                    Ok(render_json(status::Ok, &log))
+                }
+                Err(err) => Ok(render_net_error(&err)),
             }
         }
         Err(e) => return Ok(render_net_error(&e)),
     }
-
 }
 
 pub fn notify(req: &mut Request) -> IronResult<Response> {
