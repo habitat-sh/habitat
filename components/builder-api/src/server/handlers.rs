@@ -292,7 +292,7 @@ pub fn job_log(req: &mut Request) -> IronResult<Response> {
     match route_message::<JobGet, Job>(req, &job_get) {
         Ok(mut job) => {
             let mut origin_get = OriginGet::new();
-            origin_get.set_name(job.take_project().take_name());
+            origin_get.set_name(job.take_project().take_origin_name());
             // JW TODO: We should be checking at the *project* level if this is private and not
             // the origin level. This is the best we can do for now.
             match route_message::<OriginGet, Origin>(req, &origin_get) {
