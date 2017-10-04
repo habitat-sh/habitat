@@ -163,16 +163,18 @@ if [[ -n "\${STUDIO_ENTER:-}" ]]; then
   source /etc/profile.enter
 fi
 
-# Source /src/.studiorc so we can apply user-specific configuration
-if [ -f /src/.studiorc ];then
-  source /src/.studiorc
-fi
-
 # Add command line completion
 source <(hab cli completers --shell bash)
 PROFILE
 
   $bb cat > $HAB_STUDIO_ROOT/etc/profile.enter <<PROFILE_ENTER
+# Source /src/.studiorc so we can apply user-specific configuration
+if [[ -f /src/.studiorc && -z "\${HAB_STUDIO_NOSTUDIORC:-}" ]]; then
+  echo "--> Detected and loading /src/.studiorc"
+  echo ""
+  source /src/.studiorc
+fi
+
 # Automatically run the Habitat Supervisor
 case "\${HAB_STUDIO_SUP:-}" in
   false|FALSE|no|NO|0)

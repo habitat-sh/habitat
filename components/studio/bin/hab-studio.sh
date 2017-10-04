@@ -93,7 +93,9 @@ ENVIRONMENT VARIABLES:
     HAB_ORIGIN          Propagates this variable into any studios
     HAB_ORIGIN_KEYS     Installs secret keys (\`-k' option overrides)
     HAB_STUDIOS_HOME    Sets a home path for all Studios (default: /hab/studios)
+    HAB_STUDIO_NOSTUDIORC Disables sourcing a \`.studiorc' in \`studio enter'
     HAB_STUDIO_ROOT     Sets a Studio root (\`-r' option overrides)
+    HAB_STUDIO_SUP      Sets args for a Supervisor in \`studio enter'
     NO_ARTIFACT_PATH    If set, do not mount the source artifact cache path (\`-N' flag overrides)
     NO_SRC_PATH         If set, do not mount the source path (\`-n' flag overrides)
     QUIET               Prints less output (\`-q' flag overrides)
@@ -956,6 +958,11 @@ chroot_env() {
   if [ -n "${HAB_ORIGIN:-}" ]; then
     env="$env HAB_ORIGIN=$HAB_ORIGIN"
   fi
+  # If a skip .studiorc environment variable is set, then propagate it into the
+  # Studio's environment.
+  if [ -n "${HAB_STUDIO_NOSTUDIORC:-}" ]; then
+    env="$env HAB_STUDIO_NOSTUDIORC=$HAB_STUDIO_NOSTUDIORC"
+  fi
   # Used to customize the arguments to pass to an automatically launched
   # Supervisor, or to disable the automatic launching (by setting to 'false').
   if [ -n "${HAB_STUDIO_SUP:-}" ]; then
@@ -1010,6 +1017,9 @@ report_env_vars() {
   fi
   if [ -n "${HAB_NONINTERACTIVE:-}" ]; then
     info "Exported: HAB_NONINTERACTIVE=$HAB_NONINTERACTIVE"
+  fi
+  if [ -n "${HAB_STUDIO_NOSTUDIORC:-}" ]; then
+    info "Exported: HAB_STUDIO_NOSTUDIORC=$HAB_STUDIO_NOSTUDIORC"
   fi
   if [ -n "${HAB_STUDIO_SUP:-}" ]; then
     info "Exported: HAB_STUDIO_SUP=$HAB_STUDIO_SUP"
