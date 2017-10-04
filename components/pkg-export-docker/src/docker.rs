@@ -94,7 +94,10 @@ impl<'a> DockerBuilder<'a> {
         }
         cmd.arg(".");
         debug!("Running: {:?}", &cmd);
-        cmd.spawn()?.wait()?;
+        let exit_status = cmd.spawn()?.wait()?;
+        if !exit_status.success() {
+            return Err(Error::BuildFailed(exit_status));
+        }
 
         let id = match self.tags.first() {
             Some(tag) => self.image_id(&format!("{}:{}", &self.name, tag))?,
@@ -261,7 +264,10 @@ impl<'a> DockerImage {
                 .replace(credentials.username, "<username-redacted>")
                 .replace(credentials.password, "<password-redacted>")
         );
-        cmd.spawn()?.wait()?;
+        let exit_status = cmd.spawn()?.wait()?;
+        if !exit_status.success() {
+            return Err(Error::LoginFailed(exit_status));
+        }
 
         Ok(())
     }
@@ -274,7 +280,10 @@ impl<'a> DockerImage {
         let mut cmd = docker_cmd();
         cmd.arg("logout");
         debug!("Running: {:?}", &cmd);
-        cmd.spawn()?.wait()?;
+        let exit_status = cmd.spawn()?.wait()?;
+        if !exit_status.success() {
+            return Err(Error::LogoutFailed(exit_status));
+        }
 
         Ok(())
     }
@@ -291,7 +300,10 @@ impl<'a> DockerImage {
         let mut cmd = docker_cmd();
         cmd.arg("push").arg(&image_tag);
         debug!("Running: {:?}", &cmd);
-        cmd.spawn()?.wait()?;
+        let exit_status = cmd.spawn()?.wait()?;
+        if !exit_status.success() {
+            return Err(Error::PushImageFailed(exit_status));
+        }
         ui.status(
             Status::Uploaded,
             format!("image '{}'", &image_tag),
@@ -312,7 +324,10 @@ impl<'a> DockerImage {
         let mut cmd = docker_cmd();
         cmd.arg("rmi").arg(&image_tag);
         debug!("Running: {:?}", &cmd);
-        cmd.spawn()?.wait()?;
+        let exit_status = cmd.spawn()?.wait()?;
+        if !exit_status.success() {
+            return Err(Error::RemoveImageFailed(exit_status));
+        }
 
         Ok(())
     }

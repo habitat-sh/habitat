@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::process::ExitStatus;
 use std::fmt;
 use std::io;
 use std::result;
@@ -25,11 +26,16 @@ pub type Result<T> = result::Result<T, Error>;
 
 #[derive(Debug)]
 pub enum Error {
+    BuildFailed(ExitStatus),
     DockerImageIdNotFound(String),
     Hab(hab::error::Error),
     HabitatCommon(common::Error),
     HabitatCore(hcore::Error),
+    LoginFailed(ExitStatus),
+    LogoutFailed(ExitStatus),
     PrimaryServicePackageNotFound(Vec<String>),
+    PushImageFailed(ExitStatus),
+    RemoveImageFailed(ExitStatus),
     TemplateRenderError(handlebars::TemplateRenderError),
     IO(io::Error),
 }
@@ -37,6 +43,7 @@ pub enum Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
+            Error::BuildFailed(status) => format!("Docker build failed with exit code: {}", status),
             Error::DockerImageIdNotFound(ref image_tag) => {
                 format!(
                     "Could not determine Docker image ID for image: {}",
@@ -46,11 +53,24 @@ impl fmt::Display for Error {
             Error::Hab(ref err) => format!("{}", err),
             Error::HabitatCommon(ref err) => format!("{}", err),
             Error::HabitatCore(ref err) => format!("{}", err),
+            Error::LoginFailed(status) => format!("Docker login failed with exit code: {}", status),
+            Error::LogoutFailed(status) => {
+                format!("Docker logout failed with exit code: {}", status)
+            }
             Error::PrimaryServicePackageNotFound(ref idents) => {
                 format!(
                     "A primary service package could not be determined from: {}. \
                     At least one package with a run hook must be provided.",
                     idents.join(", ")
+                )
+            }
+            Error::PushImageFailed(status) => {
+                format!("Docker image push failed with exit code: {}", status)
+            }
+            Error::RemoveImageFailed(status) => {
+                format!(
+                    "Removing Docker local images failed with exit code: {}",
+                    status
                 )
             }
             Error::TemplateRenderError(ref err) => format!("{}", err),
