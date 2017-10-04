@@ -90,6 +90,8 @@ impl<'a> DockerExporter<'a> {
 
         let mut cmd = Command::new(&*DOCKER_EXPORTER_PROGRAM);
         cmd.current_dir(self.workspace.root());
+        cmd.arg("--image-name");
+        cmd.arg(&self.spec.docker_hub_repo_name);
         cmd.arg("--base-pkgs-url");
         cmd.arg(&self.bldr_url);
         cmd.arg("--url");
