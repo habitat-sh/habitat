@@ -461,7 +461,7 @@ impl DockerBuildRoot {
         let image_name = match naming.custom_image_name {
             Some(ref custom) => Handlebars::new().template_render(custom, &json)?,
             None => format!("{}/{}", ident.origin, ident.name),
-        };
+        }.to_lowercase();
 
         let mut image = DockerImage::new(self.0.workdir(), image_name);
         if naming.version_release_tag {
@@ -474,7 +474,11 @@ impl DockerBuildRoot {
             image = image.tag("latest".to_string());
         }
         if let Some(ref custom) = naming.custom_tag {
-            image = image.tag(Handlebars::new().template_render(custom, &json)?);
+            image = image.tag(
+                Handlebars::new()
+                    .template_render(custom, &json)?
+                    .to_lowercase(),
+            );
         }
         image.build()
     }
