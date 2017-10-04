@@ -149,8 +149,7 @@ impl Server {
     }
 
     fn enable_features_from_config(&self) {
-        let features: HashMap<_, _> =
-            HashMap::from_iter(vec![("LIST", feat::List), ("DOCKER", feat::Docker)]);
+        let features: HashMap<_, _> = HashMap::from_iter(vec![("LIST", feat::List)]);
         let features_enabled = self.config.features_enabled.split(",").map(|f| {
             f.trim().to_uppercase()
         });
