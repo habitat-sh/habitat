@@ -1984,9 +1984,10 @@ update_pkg_version() {
   fi
   # Replace the unset placeholders with the computed value
   val="$(echo "$PATH" | sed "s,__pkg__version__unset__,${pkg_version},g")"
-  pkg_env[PATH]="$val"
   PATH="$val"
   build_line "Updating PATH=$PATH"
+  val="$(echo "${pkg_env[PATH]}" | sed "s,__pkg__version__unset__,${pkg_version},g")"
+  pkg_env[PATH]="$val"
 }
 
 # ## Build Phases
