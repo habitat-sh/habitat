@@ -13,6 +13,8 @@
 // limitations under the License.
 
 pub mod service;
+#[macro_use]
+mod debug;
 mod events;
 mod periodic;
 mod self_updater;

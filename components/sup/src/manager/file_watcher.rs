@@ -25,6 +25,8 @@ use error::{Error, Result};
 use notify;
 use notify::{DebouncedEvent, RecommendedWatcher, RecursiveMode, Watcher};
 
+use manager::debug::{IndentedStructFormatter, IndentedToString};
+
 const WATCHER_DELAY_MS: u64 = 2_000;
 static LOGKEY: &'static str = "FW";
 
@@ -95,6 +97,15 @@ impl DirFileName {
     }
 }
 
+impl IndentedToString for DirFileName {
+    fn indented_to_string(&self, spaces: &str, repeat: usize) -> String {
+        let mut formatter = IndentedStructFormatter::new("DirFileName", spaces, repeat);
+        formatter.add("directory", &self.directory);
+        formatter.add("file_name", &self.file_name);
+        formatter.fmt()
+    }
+}
+
 // TODO: handle mount events, we could use libc crate to get the
 // select function that we could use to watch /proc/self/mountinfo for
 // exceptional events - such event means that something was mounted or
@@ -103,7 +114,6 @@ impl DirFileName {
 // status in mountinfo, when some change there happens.
 
 // Similar to DirFileName, but the file_name part is optional.
-#[derive(Debug)]
 struct SplitPath {
     directory: PathBuf,
     file_name: Option<OsString>,
@@ -121,6 +131,15 @@ impl SplitPath {
             directory: self.directory.clone(),
             file_name: path,
         }
+    }
+}
+
+impl IndentedToString for SplitPath {
+    fn indented_to_string(&self, spaces: &str, repeat: usize) -> String {
+        let mut formatter = IndentedStructFormatter::new("SplitPath", spaces, repeat);
+        formatter.add("directory", &self.directory);
+        formatter.add("file_name", &self.file_name);
+        formatter.fmt()
     }
 }
 
@@ -148,12 +167,31 @@ struct ProcessPathArgs {
     prev: Option<PathBuf>,
 }
 
+impl IndentedToString for ProcessPathArgs {
+    fn indented_to_string(&self, spaces: &str, repeat: usize) -> String {
+        let mut formatter = IndentedStructFormatter::new("ProcessPathArgs", spaces, repeat);
+        formatter.add("path", &self.path);
+        formatter.add_debug("path_rest", &self.path_rest);
+        formatter.add_string("index", self.index.to_string());
+        formatter.add("prev", &self.prev);
+        formatter.fmt()
+    }
+}
+
 // This struct tells that for `path` the previous item in chain is
 // `prev`.
-#[derive(Debug)]
 struct ChainLinkInfo {
     path: PathBuf,
     prev: Option<PathBuf>,
+}
+
+impl IndentedToString for ChainLinkInfo {
+    fn indented_to_string(&self, spaces: &str, repeat: usize) -> String {
+        let mut formatter = IndentedStructFormatter::new("ChainLinkInfo", spaces, repeat);
+        formatter.add("path", &self.path);
+        formatter.add("prev", &self.prev);
+        formatter.fmt()
+    }
 }
 
 // This struct is passed together with some event actions.
@@ -163,10 +201,18 @@ struct PathsActionData {
     args: ProcessPathArgs,
 }
 
+impl IndentedToString for PathsActionData {
+    fn indented_to_string(&self, spaces: &str, repeat: usize) -> String {
+        let mut formatter = IndentedStructFormatter::new("PathsActionData", spaces, repeat);
+        formatter.add("dir_file_name", &self.dir_file_name);
+        formatter.add("args", &self.args);
+        formatter.fmt()
+    }
+}
+
 // This is stores information about the watched item
 //
 // TODO(krnowak): Rename it.
-#[derive(Debug)]
 struct Common {
     // TODO: maybe drop this? we could also use dir_file_name.as_path()
     path: PathBuf,
@@ -227,6 +273,19 @@ impl Common {
     }
 }
 
+impl IndentedToString for Common {
+    fn indented_to_string(&self, spaces: &str, repeat: usize) -> String {
+        let mut formatter = IndentedStructFormatter::new("Common", spaces, repeat);
+        formatter.add("path", &self.path);
+        formatter.add("dir_file_name", &self.dir_file_name);
+        formatter.add("prev", &self.prev);
+        formatter.add("next", &self.next);
+        formatter.add_string("index", self.index.to_string());
+        formatter.add_debug("path_rest", &self.path_rest);
+        formatter.fmt()
+    }
+}
+
 // This is only used to generate `Common` for each item we have in the
 // path, so for `/h-o/peers`, it will generate `Common` instance for
 // `/h-o` and then for `/h-o/peers` subsequently.
@@ -262,14 +321,16 @@ impl CommonGenerator {
             directory: args.path.clone(),
             file_name: None,
         };
-        Self {
+        let s = Self {
             prev: args.prev,
             old_prev: None,
             path: args.path,
             split_path: split_path,
             index: args.index,
             path_rest: args.path_rest,
-        }
+        };
+        debug!("common generator created: {}", dits!(s));
+        s
     }
 
     fn revert_previous(&mut self) {
@@ -282,18 +343,21 @@ impl CommonGenerator {
             directory: self.path.clone(),
             file_name: None,
         };
+        debug!("new path in generator: {:?}", self.path);
     }
 
     fn prepend_to_path_rest(&mut self, mut path_rest: VecDeque<OsString>) {
         path_rest.extend(self.path_rest.drain(..));
         self.path_rest = path_rest;
+        debug!("new path rest in generator: {:?}", self.path_rest);
     }
 
     // Extract a new component from the `path_rest` vec and create a
     // new `Common` instance. If there are not components left in
     // `path_rest`, returns `None`.
     fn get_new_common(&mut self) -> Option<Common> {
-        if let Some(component) = self.path_rest.pop_front() {
+        debug!("common generator before new Common: {}", dits!(self));
+        let c = if let Some(component) = self.path_rest.pop_front() {
             self.path.push(&component);
             let path = self.path.clone();
             let dir_file_name = self.split_path.push(component);
@@ -326,12 +390,27 @@ impl CommonGenerator {
             })
         } else {
             None
-        }
+        };
+        debug!("generated common: {}", dits!(c));
+        debug!("common generator after new Common: {}", dits!(self));
+        c
+    }
+}
+
+impl IndentedToString for CommonGenerator {
+    fn indented_to_string(&self, spaces: &str, repeat: usize) -> String {
+        let mut formatter = IndentedStructFormatter::new("CommonGenerator", spaces, repeat);
+        formatter.add("prev", &self.prev);
+        formatter.add("old_prev", &self.old_prev);
+        formatter.add("path", &self.path);
+        formatter.add("split_path", &self.split_path);
+        formatter.add_string("index", self.index.to_string());
+        formatter.add_debug("path_rest", &self.path_rest);
+        formatter.fmt()
     }
 }
 
 // An item we are interested in.
-#[derive(Debug)]
 enum WatchedFile {
     Regular(Common),
     MissingRegular(Common),
@@ -369,6 +448,19 @@ impl WatchedFile {
             WatchedFile::Directory(c) |
             WatchedFile::MissingDirectory(c) => c,
         }
+    }
+}
+
+impl IndentedToString for WatchedFile {
+    fn indented_to_string(&self, spaces: &str, repeat: usize) -> String {
+        let name = match self {
+            &WatchedFile::Regular(_) => "Regular",
+            &WatchedFile::MissingRegular(_) => "MissingRegular",
+            &WatchedFile::Symlink(_) => "Symlink",
+            &WatchedFile::Directory(_) => "Directory",
+            &WatchedFile::MissingDirectory(_) => "MissingDirectory",
+        };
+        format!("{}({})", name, its!(self.get_common(), spaces, repeat))
     }
 }
 
@@ -419,6 +511,35 @@ enum EventAction {
     SettlePath(PathBuf),
 }
 
+impl IndentedToString for EventAction {
+    fn indented_to_string(&self, spaces: &str, repeat: usize) -> String {
+        match self {
+            &EventAction::Ignore => "Ignore".to_string(),
+            &EventAction::PlainChange(ref p) => format!("PlainChange({})", its!(p, spaces, repeat)),
+            &EventAction::RestartWatching => "RestartWatching".to_string(),
+            &EventAction::AddRegular(ref pad) => {
+                format!("AddRegular({})", its!(pad, spaces, repeat))
+            }
+            &EventAction::DropRegular(ref pad) => {
+                format!("DropRegular({})", its!(pad, spaces, repeat))
+            }
+            &EventAction::AddDirectory(ref pad) => {
+                format!("AddDirectory({})", its!(pad, spaces, repeat))
+            }
+            &EventAction::DropDirectory(ref pad) => {
+                format!("DropDirectory({})", its!(pad, spaces, repeat))
+            }
+            &EventAction::RewireSymlink(ref pad) => {
+                format!("RewireSymlink({})", its!(pad, spaces, repeat))
+            }
+            &EventAction::DropSymlink(ref pad) => {
+                format!("DropSymlink({})", its!(pad, spaces, repeat))
+            }
+            &EventAction::SettlePath(ref p) => format!("SettlePath({})", its!(p, spaces, repeat)),
+        }
+    }
+}
+
 // Lower-level actions, created to execute `EventAction`s.
 #[derive(Debug)]
 enum PathsAction {
@@ -432,13 +553,39 @@ enum PathsAction {
     RestartWatching,
 }
 
+impl IndentedToString for PathsAction {
+    fn indented_to_string(&self, spaces: &str, repeat: usize) -> String {
+        match self {
+            &PathsAction::NotifyFileAppeared(ref p) => {
+                format!("NotifyFileAppeared({})", its!(p, spaces, repeat + 1))
+            }
+            &PathsAction::NotifyFileModified(ref p) => {
+                format!("NotifyFileModified({})", its!(p, spaces, repeat + 1))
+            }
+            &PathsAction::NotifyFileDisappeared(ref p) => {
+                format!("NotifyFileDisappeared({})", its!(p, spaces, repeat + 1))
+            }
+            &PathsAction::DropWatch(ref p) => format!("DropWatch({})", its!(p, spaces, repeat + 1)),
+            &PathsAction::AddPathToSettle(ref p) => {
+                format!("AddPathToSettle({})", its!(p, spaces, repeat + 1))
+            }
+            &PathsAction::SettlePath(ref p) => {
+                format!("SettlePath({})", its!(p, spaces, repeat + 1))
+            }
+            &PathsAction::ProcessPathAfterSettle(ref a) => {
+                format!("ProcessPathAfterSettle({})", its!(a, spaces, repeat + 1))
+            }
+            &PathsAction::RestartWatching => "RestartWatching".to_string(),
+        }
+    }
+}
+
 // Both branch result and leaf result are about the status of adding
 // new path to be watched. Branch is about symlinks and directories,
 // leaves - about regular files, missing regular files and missing
 // directories.
 //
 // TODO(asymmetric): This could be renamed to `BranchStatus`.
-#[derive(Debug)]
 enum BranchResult {
     // The path already existed - may happen when dealing with
     // symlinks in the path.
@@ -449,8 +596,25 @@ enum BranchResult {
     NewInNewDirectory(ChainLinkInfo, PathBuf),
 }
 
+impl IndentedToString for BranchResult {
+    fn indented_to_string(&self, spaces: &str, repeat: usize) -> String {
+        match self {
+            &BranchResult::AlreadyExists => "AlreadyExists".to_string(),
+            &BranchResult::NewInOldDirectory(ref i) => {
+                format!("NewInOldDirectory({})", its!(i, spaces, repeat))
+            }
+            &BranchResult::NewInNewDirectory(ref i, ref p) => {
+                format!(
+                    "NewInNewDirectory({}, {})",
+                    its!(i, spaces, repeat),
+                    p.to_string_lossy()
+                )
+            }
+        }
+    }
+}
+
 // See `BranchResult`.
-#[derive(Debug)]
 enum LeafResult {
     // New path in a known directory.
     NewInOldDirectory(ChainLinkInfo),
@@ -458,10 +622,26 @@ enum LeafResult {
     NewInNewDirectory(ChainLinkInfo, PathBuf),
 }
 
+impl IndentedToString for LeafResult {
+    fn indented_to_string(&self, spaces: &str, repeat: usize) -> String {
+        match self {
+            &LeafResult::NewInOldDirectory(ref i) => {
+                format!("NewInOldDirectory({})", its!(i, spaces, repeat))
+            }
+            &LeafResult::NewInNewDirectory(ref i, ref p) => {
+                format!(
+                    "NewInNewDirectory({}, {})",
+                    its!(i, spaces, repeat),
+                    p.to_string_lossy()
+                )
+            }
+        }
+    }
+}
+
 // Used when we settle a path, so we know if we processed a path
 // because all the paths were already settled, or not if there were
 // still some left to settle.
-#[derive(Debug)]
 enum ProcessPathStatus {
     // Holds a vector of new directories to watch (a result of
     // `process_path` function)
@@ -470,7 +650,6 @@ enum ProcessPathStatus {
 }
 
 // Paths holds the state with regards to watching.
-#[derive(Debug)]
 struct Paths {
     // A map of paths to file info of items. If something happens to
     // them, we react.
@@ -508,6 +687,20 @@ struct Paths {
     // These args are used to pass them to `process_path`, when
     // `paths_to_settle` becomes empty.
     process_args_after_settle: Option<ProcessPathArgs>,
+}
+
+impl IndentedToString for Paths {
+    fn indented_to_string(&self, spaces: &str, repeat: usize) -> String {
+        let mut formatter = IndentedStructFormatter::new("Paths", spaces, repeat);
+        formatter.add("paths", &self.paths);
+        formatter.add("dirs", &self.dirs);
+        formatter.add("start_path", &self.start_path);
+        formatter.add("symlink_loop_catcher", &self.symlink_loop_catcher);
+        formatter.add("real_file", &self.real_file);
+        formatter.add("paths_to_settle", &self.paths_to_settle);
+        formatter.add("process_args_after_settle", &self.process_args_after_settle);
+        formatter.fmt()
+    }
 }
 
 impl Paths {
@@ -570,10 +763,7 @@ impl Paths {
         self.real_file = None;
 
         while let Some(common) = common_generator.get_new_common() {
-            debug!("common.path: {:?}", &common.path);
-            debug!("common.path_rest: {:?}", &common.path_rest);
             let dir_file_name = common.dir_file_name.clone();
-            debug!("dir_file_name: {:?}", dir_file_name);
 
             match common.path.symlink_metadata() {
                 // The error can be triggered when the underlying path
@@ -584,8 +774,10 @@ impl Paths {
                 // TODO(krnowak): see TODO in get_event_actions for Chmod event.
                 Err(_) => {
                     let leaf_result = if common.is_leaf() {
+                        debug!("add missing regular because error and is a leaf");
                         self.add_missing_regular(common)
                     } else {
+                        debug!("add missing directory because error and is not a leaf");
                         self.add_missing_directory(common)
                     };
 
@@ -599,9 +791,17 @@ impl Paths {
                     if !file_type.is_symlink() {
                         if common.is_leaf() {
                             let leaf_result = if file_type.is_file() {
+                                debug!(
+                                    "add regular because is not a symlink, is a file and is a leaf"
+                                );
                                 self.real_file = Some(common.path.clone());
                                 self.add_regular(common)
                             } else {
+                                debug!(
+                                    "{}{}",
+                                    "add missing regular because is not a symlink,",
+                                    " not a file and is a leaf",
+                                );
                                 // It is not a symlink nor a file, so
                                 // it is either a directory or
                                 // something OS-specific. We expected
@@ -619,6 +819,7 @@ impl Paths {
                         }
 
                         if file_type.is_dir() {
+                            debug!("add directory because is not a symlink and is not a leaf");
                             let branch_result = self.get_or_add_directory(common);
 
                             self.handle_branch_result(
@@ -638,6 +839,11 @@ impl Paths {
                         // missing directory item here and stop
                         // processing the rest of the path - we need
                         // to wait for the directory to show up first.
+                        debug!(
+                            "{}{}",
+                            "add missing directory because is not a symlink ",
+                            "and is not a dir and is not a leaf",
+                        );
                         let leaf_result = self.add_missing_directory(common);
 
                         self.handle_leaf_result(leaf_result, &mut new_watches);
@@ -648,8 +854,18 @@ impl Paths {
                             Err(_) => {
                                 // The path does not exist.
                                 let leaf_result = if common.is_leaf() {
+                                    debug!(
+                                        "{}{}",
+                                        "add missing regular because is a symlink and",
+                                        " is a leaf, but failed to read link",
+                                    );
                                     self.add_missing_regular(common)
                                 } else {
+                                    debug!(
+                                        "{}{}",
+                                        "add missing directory because is a symlink",
+                                        " and is not a leaf, but failed to read link",
+                                    );
                                     self.add_missing_directory(common)
                                 };
 
@@ -678,12 +894,14 @@ impl Paths {
                             &process_args.path_rest,
                         )
                         {
+                            debug!("symlink loop");
                             // Symlink loop, nothing to watch here - hopefully
                             // later some symlink will be rewired to the real
                             // file.
                             break;
                         }
 
+                        debug!("add symlink");
                         let branch_result = self.get_or_add_symlink(common);
 
                         self.handle_branch_result(
@@ -703,6 +921,7 @@ impl Paths {
     }
 
     fn handle_leaf_result(&mut self, leaf_result: LeafResult, new_watches: &mut Vec<PathBuf>) {
+        debug!("handle leaf result: {}", dits!(leaf_result));
         match leaf_result {
             LeafResult::NewInNewDirectory(chain_link_info, directory) => {
                 new_watches.push(directory);
@@ -720,6 +939,7 @@ impl Paths {
         branch_result: BranchResult,
         new_watches: &mut Vec<PathBuf>,
     ) {
+        debug!("handle branch result: {}", dits!(branch_result));
         match branch_result {
             // This is a part of the symlink handling, where we want
             // to establish a chain link between a symlink and the
@@ -836,6 +1056,7 @@ impl Paths {
     }
 
     fn add_leaf_watched_file(&mut self, watched_file: WatchedFile) -> LeafResult {
+        debug!("add leaf file: {}", dits!(watched_file));
         let dir_file_name = watched_file.get_common().dir_file_name.clone();
         let needs_watch = self.add_dir(&dir_file_name);
         let chain_link_info = match self.paths.entry(dir_file_name.as_path()) {
@@ -861,6 +1082,7 @@ impl Paths {
     }
 
     fn get_or_add_branch_watched_file(&mut self, watched_file: WatchedFile) -> BranchResult {
+        debug!("get or add branch file: {}", dits!(watched_file));
         if self.paths.contains_key(&watched_file.get_common().path) {
             return BranchResult::AlreadyExists;
         }
@@ -869,6 +1091,7 @@ impl Paths {
 
         let needs_watch = self.add_dir(&dir_file_name);
         let chain_link_info = watched_file.get_common().get_chain_link_info();
+        debug!("chain link info: {:?}", dits!(chain_link_info));
         self.paths.insert(dir_file_name.as_path(), watched_file);
 
         if needs_watch {
@@ -1089,18 +1312,19 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
 
     fn handle_event(&mut self, event: DebouncedEvent) -> Result<()> {
         let mut actions = VecDeque::new();
+        debug!("in handle_event fn");
+        debug!("got debounced event: {:?}", event);
 
         self.emit_directories_for_event(&event);
 
         // Gather the high-level actions.
         actions.extend(Self::get_paths_actions(&self.paths, event));
 
-        debug!("in handle_event fn");
-        debug!("paths: {:?}", self.paths);
+        debug!("paths: {}", dits!(self.paths));
         debug!("actions: {:?}", actions);
         // Perform lower-level actions.
         while let Some(action) = actions.pop_front() {
-            debug!("action {:?}", action);
+            debug!("action {}", dits!(action));
             match action {
                 PathsAction::NotifyFileAppeared(p) => {
                     self.callbacks.file_appeared(p.as_path());
@@ -1188,6 +1412,7 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
                 }
             }
         }
+        debug!("event in dirs: {:?}", dirs);
         self.callbacks.event_in_directories(&dirs);
     }
 
@@ -1211,44 +1436,48 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
     fn get_paths_actions(paths: &Paths, event: DebouncedEvent) -> Vec<PathsAction> {
         let mut actions = Vec::new();
         for event_action in Self::get_event_actions(paths, event) {
-            debug!("event_action: {:?}", event_action);
+            debug!("event_action: {}", dits!(event_action));
+            let mut tmp_actions = Vec::new();
             match event_action {
                 EventAction::Ignore => (),
                 EventAction::PlainChange(p) => {
-                    actions.push(PathsAction::NotifyFileModified(p));
+                    tmp_actions.push(PathsAction::NotifyFileModified(p));
                 }
                 EventAction::RestartWatching => {
-                    actions.push(PathsAction::RestartWatching);
+                    tmp_actions.push(PathsAction::RestartWatching);
                 }
                 EventAction::AddRegular(pad) => {
                     let path = pad.dir_file_name.as_path();
-                    actions.push(PathsAction::DropWatch(path.clone()));
-                    actions.push(PathsAction::ProcessPathAfterSettle(pad.args));
+                    tmp_actions.push(PathsAction::DropWatch(path.clone()));
+                    tmp_actions.push(PathsAction::ProcessPathAfterSettle(pad.args));
                 }
                 EventAction::DropRegular(pad) => {
-                    actions.extend(Self::drop_common(paths, pad));
+                    tmp_actions.extend(Self::drop_common(paths, pad));
                 }
                 EventAction::AddDirectory(pad) => {
                     let path = pad.dir_file_name.as_path();
-                    actions.push(PathsAction::DropWatch(path.clone()));
-                    actions.push(PathsAction::ProcessPathAfterSettle(pad.args));
+                    tmp_actions.push(PathsAction::DropWatch(path.clone()));
+                    tmp_actions.push(PathsAction::ProcessPathAfterSettle(pad.args));
                 }
                 EventAction::DropDirectory(pad) => {
-                    actions.extend(Self::drop_common(paths, pad));
+                    tmp_actions.extend(Self::drop_common(paths, pad));
                 }
                 EventAction::RewireSymlink(pad) => {
                     let path = pad.dir_file_name.as_path();
-                    actions.extend(Self::drop_common(paths, pad));
-                    actions.push(PathsAction::SettlePath(path));
+                    tmp_actions.extend(Self::drop_common(paths, pad));
+                    tmp_actions.push(PathsAction::SettlePath(path));
                 }
                 EventAction::DropSymlink(pad) => {
-                    actions.extend(Self::drop_common(paths, pad));
+                    tmp_actions.extend(Self::drop_common(paths, pad));
                 }
                 EventAction::SettlePath(p) => {
-                    actions.push(PathsAction::SettlePath(p));
+                    tmp_actions.push(PathsAction::SettlePath(p));
                 }
             };
+            debug!("translated to {:?}", tmp_actions);
+            actions.extend(tmp_actions);
         }
+        debug!("all actions: {:?}", actions);
         actions
     }
 
@@ -1332,11 +1561,13 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
                 events.push(Self::handle_notice_remove_event(paths, &to));
                 events.push(EventAction::SettlePath(to));
                 events.push(Self::handle_remove_event(paths, from));
+                debug!("translated to {:?}", events);
                 return events;
             }
             DebouncedEvent::Rescan => EventAction::RestartWatching,
             DebouncedEvent::Error(_, _) => EventAction::RestartWatching,
         };
+        debug!("translated to single {}", dits!(event_action));
         vec![event_action]
     }
 
@@ -1395,6 +1626,7 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
 mod tests {
     use std::collections::{HashMap, HashSet, VecDeque};
     use std::ffi::OsString;
+    use std::fmt::{Display, Formatter, Error};
     use std::fs;
     use std::fs::File;
     use std::io::ErrorKind;
@@ -1408,7 +1640,7 @@ mod tests {
 
     use tempdir::TempDir;
 
-    use super::{WatchedFile, Callbacks, FileWatcher};
+    use super::{WatchedFile, Callbacks, FileWatcher, IndentedStructFormatter, IndentedToString};
 
     // Convenient macro for inline creation of hashmaps.
     macro_rules! hm(
@@ -2243,6 +2475,7 @@ mod tests {
     fn file_watcher() {
         for tc in get_test_cases() {
             let mut runner = TestCaseRunner::new();
+            runner.debug_info.add(format!("test case: {}", tc.name));
             runner.run_init_commands(&tc.init.commands);
             let setup = runner.prepare_watcher(&tc.init.path);
             runner.run_steps(setup, &tc.init.initial_file, &tc.steps);
@@ -2273,6 +2506,7 @@ mod tests {
     // Commands executed as a part of the test case step.
     // Tests may come and go, so some of the variants may be unused.
     #[allow(dead_code)]
+    #[derive(Debug)]
     enum StepAction {
         LnS(PathBuf, PathBuf),
         MkdirP(PathBuf),
@@ -2298,6 +2532,17 @@ mod tests {
         path_rest: Vec<OsString>,
         prev: Option<PathBuf>,
         next: Option<PathBuf>,
+    }
+
+    impl IndentedToString for PathState {
+        fn indented_to_string(&self, spaces: &str, repeat: usize) -> String {
+            let mut formatter = IndentedStructFormatter::new("PathState", spaces, repeat);
+            formatter.add_debug("kind", &self.kind);
+            formatter.add_debug("path_rest", &self.path_rest);
+            formatter.add("prev", &self.prev);
+            formatter.add("next", &self.next);
+            formatter.fmt()
+        }
     }
 
     #[derive(Clone, Copy, Debug, PartialEq)]
@@ -2348,6 +2593,17 @@ mod tests {
         // command. The events map to the `file_*` functions in
         // `Callbacks` trait.
         events: Vec<NotifyEvent>,
+    }
+
+    impl IndentedToString for Step {
+        fn indented_to_string(&self, spaces: &str, repeat: usize) -> String {
+            let mut formatter = IndentedStructFormatter::new("Step", spaces, repeat);
+            formatter.add_debug("action", &self.action);
+            formatter.add("dirs", &self.dirs);
+            formatter.add("paths", &self.paths);
+            formatter.add_debug("events", &self.events);
+            formatter.fmt()
+        }
     }
 
     struct TestCase {
@@ -2402,6 +2658,7 @@ mod tests {
         fn event_in_directories(&mut self, paths: &Vec<PathBuf>) {
             for path in paths {
                 if self.ignored_dirs.contains(path) {
+                    debug!("got event in ignored dirs");
                     self.ignore = true;
                     break;
                 }
@@ -2460,6 +2717,41 @@ mod tests {
         }
     }
 
+    struct DebugInfo {
+        logs_per_level: Vec<Vec<String>>,
+    }
+
+    impl DebugInfo {
+        fn new() -> Self {
+            Self { logs_per_level: vec![Vec::new()] }
+        }
+
+        fn push_level(&mut self) {
+            self.logs_per_level.push(Vec::new());
+        }
+
+        fn pop_level(&mut self) {
+            self.logs_per_level.pop();
+            assert!(!self.logs_per_level.is_empty(), "too many pops on DebugInfo");
+        }
+
+        fn add(&mut self, str: String) {
+            self.logs_per_level.last_mut().unwrap().push(str);
+        }
+    }
+
+    impl Display for DebugInfo {
+        fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
+            write!(f, "----------------\n")?;
+            for level_logs in &self.logs_per_level {
+                for entry in level_logs {
+                    write!(f, "{}\n----------------\n", entry)?;
+                }
+            }
+            Ok(())
+        }
+    }
+
     struct WatcherSetup {
         init_path: PathBuf,
         watcher: FileWatcher<TestCallbacks, TestWatcher>,
@@ -2468,6 +2760,7 @@ mod tests {
     // Structure used for executing the initial commands and step
     // actions.
     struct FsOps<'a> {
+        debug_info: &'a mut DebugInfo,
         root: &'a PathBuf,
         watched_dirs: Option<&'a HashSet<PathBuf>>,
     }
@@ -2481,9 +2774,10 @@ mod tests {
                 target.clone()
             };
             unix_fs::symlink(&tt, &pp).expect(&format!(
-                "could not create symlink at {} pointing to {}",
+                "could not create symlink at {} pointing to {}, debug info:\n{}",
                 pp.display(),
                 tt.display(),
+                self.debug_info,
             ));
             if self.parent_is_watched(&pp) {
                 // One event - create.
@@ -2520,16 +2814,18 @@ mod tests {
 
         fn real_mkdir(&self, real_path: &PathBuf) {
             fs::create_dir_all(&real_path).expect(&format!(
-                "could not create directories up to {}",
+                "could not create directories up to {}, debug info:\n{}",
                 real_path.display(),
+                self.debug_info,
             ));
         }
 
         fn touch(&self, path: &PathBuf) -> u32 {
             let pp = self.prepend_root(&path);
             File::create(&pp).expect(&format!(
-                "could not create file {}",
+                "could not create file {}, debug info:\n{}",
                 pp.display(),
+                self.debug_info,
             ));
             if self.parent_is_watched(&pp) {
                 // One event - create.
@@ -2544,9 +2840,10 @@ mod tests {
             let ff = self.prepend_root(&from);
             let tt = self.prepend_root(&to);
             fs::rename(&ff, &tt).expect(&format!(
-                "could not move from {} to {}",
+                "could not move from {} to {}, debug info:\n{}",
                 ff.display(),
                 tt.display(),
+                self.debug_info,
             ));
             match (self.parent_is_watched(&ff), self.parent_is_watched(&tt)) {
                 (true, true) | (true, false) => {
@@ -2582,9 +2879,10 @@ mod tests {
                         ErrorKind::NotFound => return 0,
                         _ => {
                             panic!(
-                                "Failed to stat {}: {}",
+                                "Failed to stat {}: {}, debug info:\n{}",
                                 pp.display(),
                                 e,
+                                self.debug_info,
                             )
                         }
                     }
@@ -2594,17 +2892,19 @@ mod tests {
             if metadata.is_dir() {
                 fs::remove_dir_all(&pp).unwrap_or_else(|err| {
                     panic!(
-                        "failed to remove directory {}: {}",
+                        "failed to remove directory {}: {}, debug info:\n{}",
                         pp.display(),
                         err,
+                        self.debug_info,
                     )
                 });
             } else {
                 fs::remove_file(&pp).unwrap_or_else(|err| {
                     panic!(
-                        "failed to remove file {}: {}",
+                        "failed to remove file {}: {}, debug info:\n{}",
                         pp.display(),
                         err,
+                        self.debug_info,
                     )
                 });
             }
@@ -2626,9 +2926,10 @@ mod tests {
                     Ok(m) => m,
                     Err(err) => {
                         panic!(
-                            "Failed to stat {}: {}",
+                            "Failed to stat {}: {}, debug info:\n{}",
                             path.display(),
                             err,
+                            self.debug_info,
                         )
                     }
                 };
@@ -2644,17 +2945,19 @@ mod tests {
             fs::read_dir(&path)
                 .unwrap_or_else(|err| {
                     panic!(
-                        "failed to read directory {}: {}",
+                        "failed to read directory {}: {}, debug info:\n{}",
                         path.display(),
                         err,
+                        self.debug_info,
                     )
                 })
                 .map(|rde| {
                     rde.unwrap_or_else(|err| {
                         panic!(
-                            "failed to get entry for {}: {}",
+                            "failed to get entry for {}: {}, debug info:\n{}",
                             path.display(),
                             err,
+                            self.debug_info,
                         )
                     }).path()
                         .to_owned()
@@ -2676,18 +2979,20 @@ mod tests {
         fn get_parent(&self, path: &PathBuf) -> PathBuf {
             path.parent()
                 .expect(&format!(
-                    "path {} has no parent",
+                    "path {} has no parent, debug info:\n{}",
                     path.display(),
+                    self.debug_info
                 ))
                 .to_owned()
         }
 
         fn prepend_root(&self, p: &PathBuf) -> PathBuf {
-            prepend_root_impl(self.root, p)
+            prepend_root_impl(self.root, p, self.debug_info)
         }
     }
 
     struct TestCaseRunner {
+        debug_info: DebugInfo,
         // We don't use this field anywhere, but it will drop the temp
         // dir when TestCaseRunner goes away.
         #[allow(dead_code)]
@@ -2702,6 +3007,7 @@ mod tests {
             ));
             let root = tmp_dir.path().to_owned();
             Self {
+                debug_info: DebugInfo::new(),
                 tmp_dir: tmp_dir,
                 root: root,
             }
@@ -2730,7 +3036,10 @@ mod tests {
             let callbacks = TestCallbacks::new(&additional_dirs);
             let watcher =
                 FileWatcher::<_, TestWatcher>::create(self.prepend_root(&init_path), callbacks)
-                    .expect("failed to create watcher");
+                    .expect(&format!(
+                    "failed to create watcher, debug info:\n{}",
+                    self.debug_info,
+                ));
             WatcherSetup {
                 init_path: init_path,
                 watcher: watcher,
@@ -2745,7 +3054,13 @@ mod tests {
         ) {
             let mut initial_file = tc_initial_file.clone();
             let mut actual_initial_file = setup.watcher.initial_real_file.clone();
-            for step in steps {
+            for (step_idx, step) in steps.iter().enumerate() {
+                self.debug_info.push_level();
+                self.debug_info.add(format!(
+                    "step {}:\n{}",
+                    step_idx,
+                    dits!(step)
+                ));
                 let iterations = self.execute_step_action(&mut setup, &step.action);
                 self.spin_watcher(&mut setup, iterations);
                 self.test_dirs(&step.dirs, &setup.watcher.paths.dirs);
@@ -2757,7 +3072,10 @@ mod tests {
                     &step.events,
                     &mut setup.watcher.get_mut_callbacks().events,
                 );
+                self.debug_info.pop_level();
+                debug!("\n\n\n++++++++++++++++\n++++STEP+END++++\n++++++++++++++++\n\n\n");
             }
+            debug!("\n\n\n================\n=TEST=CASE=ENDS=\n================\n\n\n");
         }
 
         fn execute_step_action(&mut self, setup: &mut WatcherSetup, action: &StepAction) -> u32 {
@@ -2773,15 +3091,23 @@ mod tests {
                     &StepAction::Nop => 0,
                 }
             };
+            self.debug_info.add(format!(
+                "expected iterations: {}",
+                iterations
+            ));
             iterations
         }
 
         fn spin_watcher(&self, setup: &mut WatcherSetup, iterations: u32) {
             let mut iteration = 0;
             while iteration < iterations {
-                setup.watcher.single_iteration().expect("iteration failed");
+                setup.watcher.single_iteration().expect(&format!(
+                    "iteration failed, debug info:\n{}",
+                    self.debug_info,
+                ));
                 let cb = setup.watcher.get_mut_callbacks();
                 if cb.ignore {
+                    debug!("got event below tmpdir, not increasing the iteration counter");
                     cb.ignore = false;
                 } else {
                     iteration += 1;
@@ -2795,10 +3121,15 @@ mod tests {
             actual_dirs: &HashMap<PathBuf, u32>,
         ) {
             let expected_dirs = self.fixup_expected_dirs(step_dirs);
+            self.debug_info.add(format!(
+                "fixed up expected dirs:\n{}",
+                dits!(expected_dirs),
+            ));
             assert_eq!(
                 &expected_dirs,
                 actual_dirs,
-                "comparing watched directories",
+                "comparing watched directories, debug info:\n{}",
+                self.debug_info,
             );
         }
 
@@ -2809,6 +3140,10 @@ mod tests {
             actual_paths: &HashMap<PathBuf, WatchedFile>,
         ) {
             let expected_paths = self.fixup_expected_paths(&step_paths, &init_path);
+            self.debug_info.add(format!(
+                "fixed up expected paths:\n{}",
+                dits!(expected_paths),
+            ));
             self.compare_paths(expected_paths, actual_paths);
         }
 
@@ -2821,10 +3156,15 @@ mod tests {
             if iterations > 0 {
                 let expected_initial_file =
                     initial_file.take().map(|path| self.prepend_root(&path));
+                self.debug_info.add(format!(
+                    "fixed up initial file: {:?}",
+                    expected_initial_file
+                ));
                 assert_eq!(
                     expected_initial_file,
                     actual_initial_file.take(),
-                    "comparing initial path",
+                    "comparing initial path, debug info:\n{}",
+                    self.debug_info,
                 );
                 expected_initial_file
             } else {
@@ -2839,10 +3179,15 @@ mod tests {
             actual_events: &mut Vec<NotifyEvent>,
         ) {
             let expected_events = self.fixup_expected_events(&step_events, real_initial_file);
+            self.debug_info.add(format!(
+                "fixed up expected events: {:?}",
+                expected_events
+            ));
             assert_eq!(
                 &expected_events,
                 actual_events,
-                "comparing expected events",
+                "comparing expected events, debug info:\n{}",
+                self.debug_info,
             );
             actual_events.clear();
         }
@@ -2855,6 +3200,7 @@ mod tests {
 
         fn get_fs_ops(&mut self) -> FsOps {
             FsOps {
+                debug_info: &mut self.debug_info,
                 root: &self.root,
                 watched_dirs: None,
             }
@@ -2936,7 +3282,17 @@ mod tests {
                 // paths in compare_path_keys.
                 let watched_file = actual_paths.get(&path).unwrap();
 
+                self.debug_info.push_level();
+                self.debug_info.add(format!("path: {}", path.display()));
+                self.debug_info.add(format!(
+                    "watched file:\n{}",
+                    dits!(watched_file)
+                ));
+                self.debug_info.add(
+                    format!("path state:\n{}", dits!(path_state)),
+                );
                 self.compare_path_state_with_watched_file(&path_state, &watched_file);
+                self.debug_info.pop_level();
             }
         }
 
@@ -3007,7 +3363,7 @@ mod tests {
         }
 
         fn prepend_root(&self, p: &PathBuf) -> PathBuf {
-            prepend_root_impl(&self.root, p)
+            prepend_root_impl(&self.root, p, &self.debug_info)
         }
 
         fn get_additional_paths(
@@ -3086,7 +3442,8 @@ mod tests {
             assert_eq!(
                 expected_paths_keys,
                 actual_paths_keys,
-                "comparing paths",
+                "comparing paths, debug info:\n{}",
+                self.debug_info,
             );
         }
 
@@ -3108,22 +3465,26 @@ mod tests {
             assert_eq!(
                 path_state.kind,
                 expected_kind,
-                "ensuring proper watched file kind",
+                "ensuring proper watched file kind, debug info:\n{}",
+                self.debug_info,
             );
             assert_eq!(
                 path_state.path_rest,
                 path_rest,
-                "comparing path rest",
+                "comparing path rest, debug info:\n{}",
+                self.debug_info,
             );
             assert_eq!(
                 path_state.prev,
                 common.prev,
-                "comparing prev member",
+                "comparing prev member, debug info:\n{}",
+                self.debug_info,
             );
             assert_eq!(
                 path_state.next,
                 common.next,
-                "comparing next member",
+                "comparing next member, debug info:\n{}",
+                self.debug_info,
             );
         }
 
@@ -3158,11 +3519,12 @@ mod tests {
         }
     }
 
-    fn prepend_root_impl(root: &PathBuf, p: &PathBuf) -> PathBuf {
+    fn prepend_root_impl(root: &PathBuf, p: &PathBuf, debug_info: &DebugInfo) -> PathBuf {
         if !p.is_absolute() {
             panic!(
-                "expected path {} to be absolute",
+                "expected path {} to be absolute, debug info:\n{}",
                 p.display(),
+                debug_info,
             );
         }
         root.join(strip_prefix_and_root(p))
