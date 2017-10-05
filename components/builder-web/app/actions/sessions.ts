@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import * as cookies from "js-cookie";
-import { setCookie } from "./github";
+import { setCookie } from "./gitHub";
 
 export const SET_BLDR_SESSION_TOKEN = "SET_BLDR_SESSION_TOKEN";
 
