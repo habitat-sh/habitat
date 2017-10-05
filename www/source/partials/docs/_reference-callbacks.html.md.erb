@@ -83,7 +83,7 @@ Here's an example example of a vanilla Plan such as Sed:
 **do_install()**
 :  Installs the software. Delegates most of the implementation to the `do_default_install()` function. You should override this behavior if you need to perform custom installation steps, such as copying files from `HAB_CACHE_SRC_PATH` to specific directories in your package, or installing pre-built binaries into your package.
 
-**do_install_default()** 
+**do_default_install()** 
 : The default implementation is to run `make install` on the source files and place the compiled binaries or libraries in `HAB_CACHE_SRC_PATH/$pkg_dirname`, which resolves to a path like `/hab/cache/src/packagename-version/`. It uses this location because of **do_build()** using the `--prefix` option when calling the configure script.
 
 **do_build_config()**
