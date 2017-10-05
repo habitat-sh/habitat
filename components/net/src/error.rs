@@ -166,7 +166,7 @@ impl error::Error for NetError {
             ErrCode::ENTITY_CONFLICT => "Entity already exists in datastore.",
             ErrCode::SOCK => "Network error.",
             ErrCode::DATA_STORE => "Database error.",
-            ErrCode::AUTH_SCOPE => "Additional authorization scope(s) required for action.",
+            ErrCode::BAD_TOKEN => "Received a badly formed authorization token.",
             ErrCode::WORKSPACE_SETUP => "Worker runner unable to setup build workspace.",
             ErrCode::SECRET_KEY_FETCH => "Worker runner unable to fetch secret key for origin.",
             ErrCode::SECRET_KEY_IMPORT => "Worker runner unable to import secret key for origin.",

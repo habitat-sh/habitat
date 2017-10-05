@@ -14,10 +14,11 @@
 
 use std::env;
 
+use base64;
 use hab_net::app::prelude::*;
 use hab_net::privilege::{self, FeatureFlags};
 
-use protocol::net;
+use protocol::{message, net};
 use protocol::sessionsrv as proto;
 
 use super::{ServerState, Session};
@@ -105,15 +106,6 @@ pub fn session_create(
     state: &mut ServerState,
 ) -> SrvResult<()> {
     let mut msg = req.parse::<proto::SessionCreate>()?;
-    {
-        if let Some(session) = state.sessions.read().unwrap().get(msg.get_token()) {
-            if !session.expired() {
-                conn.route_reply(req, &**session)?;
-                return Ok(());
-            }
-        }
-    }
-
     let mut session = Session::default();
     let mut flags = FeatureFlags::default();
     if env::var_os("HAB_FUNC_TEST").is_some() {
@@ -121,8 +113,6 @@ pub fn session_create(
     } else {
         assign_permissions(msg.get_name(), &mut flags, state)
     }
-    session.set_flags(flags.bits());
-    session.set_token(msg.take_token());
 
     let mut account_req = proto::AccountFindOrCreate::default();
     account_req.set_name(msg.take_name());
@@ -130,9 +120,20 @@ pub fn session_create(
 
     match conn.route::<proto::AccountFindOrCreate, proto::Account>(&account_req) {
         Ok(mut account) => {
+            let mut token = proto::SessionToken::new();
+            token.set_account_id(account.get_id());
+            token.set_extern_id(msg.get_extern_id());
+            token.set_provider(msg.get_provider());
+            token.set_token(msg.get_token().to_string().into_bytes());
+            let bytes = message::encode(&token)?;
+            let encoded_token = base64::encode(&bytes);
+
+            session.set_id(account.get_id());
             session.set_email(account.take_email());
             session.set_name(account.take_name());
-            session.set_id(account.get_id());
+            session.set_token(encoded_token);
+            session.set_flags(flags.bits());
+            session.set_oauth_token(msg.take_token());
             {
                 state.sessions.write().unwrap().replace(session.clone());
             }
@@ -153,8 +154,17 @@ pub fn session_get(
     state: &mut ServerState,
 ) -> SrvResult<()> {
     let msg = req.parse::<proto::SessionGet>()?;
-    match state.sessions.read().unwrap().get(msg.get_token()) {
-        Some(session) => conn.route_reply(req, &**session)?,
+    let encoded = message::encode(msg.get_token())?;
+    let base64_token = base64::encode(&encoded);
+    match state.sessions.read().unwrap().get(base64_token.as_str()) {
+        Some(session) => {
+            if session.expired() {
+                let err = NetError::new(ErrCode::SESSION_EXPIRED, "ss:session-get:1");
+                conn.route_reply(req, &*err)?;
+            } else {
+                conn.route_reply(req, &**session)?;
+            }
+        }
         None => {
             let err = NetError::new(ErrCode::SESSION_EXPIRED, "ss:session-get:0");
             conn.route_reply(req, &*err)?;
@@ -309,6 +319,7 @@ fn assign_permissions(name: &str, flags: &mut FeatureFlags, state: &ServerState)
                         if membership.active() {
                             debug!("Granting feature flag={:?}", privilege::EARLY_ACCESS);
                             flags.set(privilege::EARLY_ACCESS, true);
+                            break;
                         }
                     }
                     Err(err) => warn!("Failed to check team membership, {}", err),
@@ -320,6 +331,7 @@ fn assign_permissions(name: &str, flags: &mut FeatureFlags, state: &ServerState)
                         if membership.active() {
                             debug!("Granting feature flag={:?}", privilege::BUILD_WORKER);
                             flags.set(privilege::BUILD_WORKER, true);
+                            break;
                         }
                     }
                     Err(err) => warn!("Failed to check team membership, {}", err),

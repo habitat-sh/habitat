@@ -1,3 +1,4 @@
+syntax = "proto2";
 package net;
 
 enum Protocol {
@@ -22,7 +23,7 @@ enum ErrCode {
   ENTITY_CONFLICT = 9;
   SOCK = 10;
   DATA_STORE = 11;
-  AUTH_SCOPE = 12;
+  BAD_TOKEN = 12;
   REMOTE_UNAVAILABLE = 13;
   SYS = 14;
 

@@ -1,3 +1,4 @@
+syntax = "proto2";
 package sessionsrv;
 
 enum OAuthProvider {
@@ -94,20 +95,15 @@ message Session {
   optional uint64 id = 1;
   optional string email = 2;
   optional string name = 3;
+  // base64 encoded binary representation of SessionToken
   optional string token = 4;
   optional uint32 flags = 5;
-}
-
-// This can be deleted
-message SessionToken {
-  optional string token = 1;
-  optional uint64 owner_id = 2;
-  optional OAuthProvider provider = 3;
+  optional string oauth_token = 6;
 }
 
 message SessionCreate {
   optional string token = 1;
-  optional uint64 extern_id = 2;
+  optional uint32 extern_id = 2;
   optional string email = 3;
   optional string name = 4;
   optional OAuthProvider provider = 5;
@@ -115,6 +111,12 @@ message SessionCreate {
 }
 
 message SessionGet {
-  optional string name = 1;
-  optional string token = 2;
+  optional SessionToken token = 1;
+}
+
+message SessionToken {
+  optional uint64 account_id = 1;
+  optional uint32 extern_id = 2;
+  optional OAuthProvider provider = 3;
+  optional bytes token = 4;
 }

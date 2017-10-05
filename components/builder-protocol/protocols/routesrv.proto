@@ -1,3 +1,4 @@
+syntax = "proto2";
 import "protocols/net.proto";
 package routesrv;
 

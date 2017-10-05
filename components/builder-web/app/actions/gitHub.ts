@@ -22,6 +22,7 @@ import { attemptSignIn, addNotification, goHome, fetchMyOrigins, fetchMyOriginIn
 import { DANGER, WARNING } from "./notifications";
 import { BuilderApiClient } from "../BuilderApiClient";
 import { GitHubApiClient } from "../GitHubApiClient";
+import { setBldrSessionToken } from "./sessions";
 
 const parseLinkHeader = require("parse-link-header");
 const uuid = require("uuid").v4;
@@ -205,9 +206,10 @@ export function requestGitHubAuthToken(params, stateKey = "") {
                     type: DANGER,
                 }));
             }).then(data => {
-                if (data["token"]) {
-                    dispatch(authenticateWithGitHub(data["token"]));
-                    dispatch(setGitHubAuthToken(data["token"]));
+                if (data["oauth_token"]) {
+                    dispatch(authenticateWithGitHub(data["oauth_token"]));
+                    dispatch(setGitHubAuthToken(data["oauth_token"]));
+                    dispatch(setBldrSessionToken(data["token"]));
                     if (data["flags"]) {
                         dispatch(setFeatureFlag("gitHub", data["flags"]));
                     }
