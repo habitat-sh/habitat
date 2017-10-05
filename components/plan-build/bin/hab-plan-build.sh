@@ -542,7 +542,6 @@ _ensure_origin_key_present() {
 # command:
 #
 # * `$_hab_cmd` (hab cli for signing, hashing, and possibly installing)
-# * `$_sort_cmd` (GNU version from coreutils)
 # * `$_wget_cmd` (wget on system)
 # * `$_shasum_cmd` (either gsha256sum or sha256sum on system)
 # * `$_tar_cmd` (GNU version of tar)
@@ -558,17 +557,6 @@ _ensure_origin_key_present() {
 # If the commands are not found, `exit_with` is called and the program is
 # terminated.
 _find_system_commands() {
-  if $(sort --version 2>&1 | grep -q 'GNU coreutils'); then
-    _sort_cmd=$(command -v sort)
-  else
-    if $(/usr/bin/sort --version 2>&1 | grep -q 'GNU coreutils'); then
-      _sort_cmd=/usr/bin/sort
-    else
-      exit_with "We require GNU sort to find the latest package; aborting" 1
-    fi
-  fi
-  debug "Setting _sort_cmd=$_sort_cmd"
-
   if exists wget; then
     _wget_cmd=$(command -v wget)
     if [[ "${HAB_NONINTERACTIVE:-}" == "true" ]]; then
@@ -607,7 +595,7 @@ _find_system_commands() {
   else
     exit_with "We require xz to compress artifacts; aborting" 1
   fi
-  debug "Setting _hab_cmd=$_hab_cmd"
+  debug "Setting _xz_cmd=$_xz_cmd"
 
   if exists hab; then
     _hab_cmd=$(command -v hab)
@@ -639,29 +627,13 @@ _find_system_commands() {
 # found. A message will be printed to stderr explaining that no package was
 # found.
 _latest_installed_package() {
-  if [[ ! -d "$HAB_PKG_PATH/$1" ]]; then
-    warn "No installed packages of '$1' were found"
-    return 1
-  fi
-
-  # Count the number of slashes, and use it to make a choice
-  # about what to return as the latest package.
-  local latest_package_flags=$(echo $1 | grep -o '/' | wc -l)
-  local depth
   local result
-  case $(trim $latest_package_flags) in
-    3) depth=1 ;;
-    2) depth=2 ;;
-    1) depth=3 ;;
-  esac
-  result=$(find $HAB_PKG_PATH/${1} -maxdepth $depth -type f -name MANIFEST \
-    | $_sort_cmd --version-sort -r | head -n 1)
-  if [[ -z "$result" ]]; then
+  if result="$($HAB_BIN pkg path "$1" 2> /dev/null)"; then
+    echo "$result"
+    return 0
+  else
     warn "Could not find a suitable installed package for '$1'"
     return 1
-  else
-    echo "$(dirname $result)"
-    return 0
   fi
 }
 
@@ -2685,7 +2657,7 @@ _build_metadata() {
   pushd "$CACHE_PATH" > /dev/null
   build_line "Generating blake2b hashes of all files in the package"
   find $pkg_prefix -type f \
-    | $_sort_cmd \
+    | sort \
     | hab pkg hash > ${pkg_name}_blake2bsums
 
   build_line "Generating signed metadata FILES"
