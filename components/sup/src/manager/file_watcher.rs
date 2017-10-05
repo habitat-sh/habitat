@@ -54,6 +54,16 @@ pub trait Callbacks {
     /// be different from the one that was passed to `FileWatcher`,
     /// because of symlinks.
     fn file_disappeared(&mut self, real_path: &Path);
+    /// A function that gets called every time an event with paths
+    /// happens.
+    ///
+    /// `paths` contains a list of paths the recent event is related
+    /// to. Usually it will be just one, but in case of renames it may
+    /// be two.
+    // Keep the variable name for documentation purposes, so silence
+    // compiler's complaints about unused variable.
+    #[allow(unused_variables)]
+    fn event_in_directories(&mut self, paths: &Vec<PathBuf>) {}
 }
 
 // Essentially a pair of dirname and basename.
@@ -752,6 +762,10 @@ impl Paths {
         self.paths.get_mut(path)
     }
 
+    fn get_directory(&self, path: &PathBuf) -> Option<&u32> {
+        self.dirs.get(path)
+    }
+
     fn get_mut_directory(&mut self, path: &PathBuf) -> Option<&mut u32> {
         self.dirs.get_mut(path)
     }
@@ -1064,6 +1078,8 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
     fn handle_event(&mut self, event: DebouncedEvent) -> Result<()> {
         let mut actions = VecDeque::new();
 
+        self.emit_directories_for_event(&event);
+
         // Gather the high-level actions.
         actions.extend(Self::get_paths_actions(&self.paths, event));
 
@@ -1129,6 +1145,38 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
             }
         }
         Ok(())
+    }
+
+    fn emit_directories_for_event(&mut self, event: &DebouncedEvent) {
+        let paths = match event {
+            &DebouncedEvent::NoticeWrite(ref p) |
+            &DebouncedEvent::Write(ref p) |
+            &DebouncedEvent::Chmod(ref p) |
+            &DebouncedEvent::NoticeRemove(ref p) |
+            &DebouncedEvent::Remove(ref p) |
+            &DebouncedEvent::Create(ref p) => vec![p],
+            &DebouncedEvent::Rename(ref from, ref to) => vec![from, to],
+            &DebouncedEvent::Rescan => vec![],
+            &DebouncedEvent::Error(_, ref o) => {
+                match o {
+                    &Some(ref p) => vec![p],
+                    &None => vec![],
+                }
+            }
+        };
+        let mut dirs = vec![];
+        for path in paths {
+            if let Some(wf) = self.paths.get_watched_file(&path) {
+                dirs.push(wf.get_common().dir_file_name.directory.clone());
+            } else if self.paths.get_directory(&path).is_some() {
+                dirs.push(path.clone());
+            } else if let Some(df) = DirFileName::split_path(&path) {
+                if self.paths.get_directory(&df.directory).is_some() {
+                    dirs.push(df.directory.clone());
+                }
+            }
+        }
+        self.callbacks.event_in_directories(&dirs);
     }
 
     fn handle_process_path(&mut self) -> Result<Vec<PathsAction>> {
