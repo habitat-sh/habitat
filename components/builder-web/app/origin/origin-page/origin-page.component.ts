@@ -43,6 +43,7 @@ export class OriginPageComponent implements OnInit, OnDestroy {
         requireSignIn(this);
         this.store.dispatch(fetchOrigin(this.origin.name));
         this.store.dispatch(fetchMyOrigins(this.token));
+        this.store.dispatch(fetchDockerIntegration(this.origin.name, this.token));
         this.getPackages();
         this.loadPackages = this.getPackages.bind(this);
     }
