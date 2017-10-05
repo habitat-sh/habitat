@@ -1029,16 +1029,28 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
         })
     }
 
-    /// Get the reference to `C`.
+    /// Get the reference to callbacks.
     #[allow(dead_code)]
     pub fn get_callbacks(&self) -> &C {
         &self.callbacks
     }
 
-    /// Get the mutable reference to `C`.
+    /// Get the mutable reference to callbacks.
     #[allow(dead_code)]
     pub fn get_mut_callbacks(&mut self) -> &mut C {
         &mut self.callbacks
+    }
+
+    /// Get the reference to the underlying watcher.
+    #[allow(dead_code)]
+    pub fn get_underlying_watcher(&self) -> &W {
+        &self.watcher
+    }
+
+    /// Get the mutable reference to the underlying watcher.
+    #[allow(dead_code)]
+    pub fn get_mut_underlying_watcher(&mut self) -> &mut W {
+        &mut self.watcher
     }
 
     // Turns given path to a simplified absolute path.
