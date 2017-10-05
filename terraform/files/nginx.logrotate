@@ -1,0 +1,13 @@
+/hab/svc/builder-api-proxy/logs/host.access.log
+/hab/svc/builder-api-proxy/logs/host.error.log
+{
+        rotate 7
+        daily
+        missingok
+        notifempty
+        delaycompress
+        compress
+        postrotate
+                /bin/kill -USR1 `cat /hab/svc/builder-api-proxy/var/pid 2>/dev/null` 2>/dev/null || true
+        endscript
+}
