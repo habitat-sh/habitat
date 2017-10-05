@@ -116,7 +116,12 @@ impl<'a> DockerExporter<'a> {
         cmd.arg(&self.spec.password);
         cmd.arg("--rm-image");
         cmd.arg(self.workspace.last_built()?.path); // Locally built artifact
-        debug!("building docker export command, cmd={:?}", &cmd);
+        debug!(
+            "building docker export command, cmd={}",
+            format!("building docker export command, cmd={:?}", &cmd)
+                .replace(&self.spec.username, "<username-redacted>")
+                .replace(&self.spec.password, "<password-redacted>")
+        );
 
         cmd.env_clear();
         if let Some(_) = env::var_os(RUNNER_DEBUG_ENVVAR) {
