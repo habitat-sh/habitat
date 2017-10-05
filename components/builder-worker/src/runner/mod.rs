@@ -48,6 +48,7 @@ use self::workspace::Workspace;
 use config::Config;
 use error::{Error, Result};
 use retry::retry;
+use vcs::VCS;
 
 // TODO fn: copied from `components/common/src/ui.rs`. As this component doesn't currently depend
 // on habitat_common it didnt' seem worth it to add a dependency for only this constant. Probably
@@ -112,11 +113,8 @@ impl Runner {
             error!("failed to retrieve secret key, err={:?}", err);
             return self.fail(net::err(ErrCode::SECRET_KEY_FETCH, "wk:run:3"));
         }
-        if let Some(err) = self.job()
-            .vcs((*self.config).github.clone())
-            .clone(&self.workspace.src())
-            .err()
-        {
+        let vcs = VCS::from_job(&self.job(), self.config.github.clone());
+        if let Some(err) = vcs.clone(&self.workspace.src()).err() {
             error!("failed to clone remote source repository, err={:?}", err);
             return self.fail(net::err(ErrCode::VCS_CLONE, "wk:run:4"));
         }

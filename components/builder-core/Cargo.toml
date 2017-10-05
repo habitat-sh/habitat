@@ -10,8 +10,6 @@ chrono = { version = "*", features = ["serde"] }
 clippy = { version = "*", optional = true }
 glob = "*"
 habitat-builder-protocol = { path = "../builder-protocol" }
-github-api-client = { path = "../github-api-client" }
-git2 = "*"
 iron = "*"
 libarchive = "*"
 log = "*"
@@ -24,7 +22,6 @@ statsd = "*"
 time = "*"
 toml = { version = "*", features = ["serde"], default-features = false }
 walkdir = "*"
-url = "*"
 
 [dependencies.habitat_core]
 path = "../core"
