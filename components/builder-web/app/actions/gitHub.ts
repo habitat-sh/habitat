@@ -85,7 +85,7 @@ export function authenticateWithGitHub(oauth_token = undefined, session_token = 
 }
 
 export function fetchGitHubFiles(installationId: string, owner: string, repo: string, filename: string) {
-    const token = cookies.get("gitHubAuthToken");
+    const token = cookies.get("bldrAuthSessionToken");
 
     return dispatch => {
         dispatch(clearGitHubFiles());
@@ -99,7 +99,7 @@ export function fetchGitHubFiles(installationId: string, owner: string, repo: st
 };
 
 export function fetchGitHubInstallations() {
-    const token = cookies.get("gitHubAuthToken");
+    const token = cookies.get("bldrAuthSessionToken");
 
     return dispatch => {
         const client = new GitHubApiClient(token);
@@ -118,7 +118,7 @@ export function fetchGitHubInstallations() {
 
 
 export function fetchGitHubInstallationRepositories(installationId: string) {
-    const token = cookies.get("gitHubAuthToken");
+    const token = cookies.get("bldrAuthSessionToken");
 
     return dispatch => {
         dispatch(clearGitHubRepos());
