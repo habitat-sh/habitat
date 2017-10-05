@@ -28,7 +28,7 @@ export default function gitHub(state = initialState["gitHub"], action) {
         case actionTypes.CLEAR_GITHUB_REPOS:
             return state.set("installationRepositories", List());
 
-        case actionTypes.LOAD_SESSION_STATE:
+        case actionTypes.LOAD_GITHUB_SESSION_STATE:
             return state.set("authState", action.payload.gitHubAuthState).
                 set("authToken", action.payload.gitHubAuthToken);
 

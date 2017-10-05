@@ -15,9 +15,11 @@
 import * as actionTypes from "../actions/index";
 import initialState from "../initialState";
 
-export default function projects(state = initialState["session"], action) {
+export default function session(state = initialState["session"], action) {
     switch (action.type) {
         case actionTypes.SET_BLDR_SESSION_TOKEN:
+            return state.set("token", action.payload);
+        case actionTypes.LOAD_BLDR_SESSION_STATE:
             return state.set("token", action.payload);
         default:
             return state;
