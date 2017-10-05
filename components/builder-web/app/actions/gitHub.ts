@@ -31,7 +31,7 @@ const gitHubTokenAuthUrl = `${config["habitat_api_url"]}/v1/authenticate`;
 export const CLEAR_GITHUB_FILES = "CLEAR_GITHUB_FILES";
 export const CLEAR_GITHUB_INSTALLATIONS = "CLEAR_GITHUB_INSTALLATIONS";
 export const CLEAR_GITHUB_REPOS = "CLEAR_GITHUB_REPOS";
-export const LOAD_SESSION_STATE = "LOAD_SESSION_STATE";
+export const LOAD_GITHUB_SESSION_STATE = "LOAD_GITHUB_SESSION_STATE";
 export const POPULATE_GITHUB_FILES = "POPULATE_GITHUB_FILES";
 export const POPULATE_GITHUB_INSTALLATIONS = "POPULATE_GITHUB_INSTALLATIONS";
 export const POPULATE_GITHUB_INSTALLATION_REPOSITORIES = "POPULATE_GITHUB_INSTALLATION_REPOSITORIES";
@@ -49,7 +49,6 @@ export function authenticateWithGitHub(oauth_token = undefined, session_token = 
     return dispatch => {
         if (oauth_token) {
             setCookie("gitHubAuthToken", oauth_token);
-            setCookie("bldrAuthSessionToken", session_token);
 
             fetch(`${config["github_api_url"]}/user?access_token=${oauth_token}`).then(response => {
                 if (response.ok) {
@@ -61,8 +60,6 @@ export function authenticateWithGitHub(oauth_token = undefined, session_token = 
                 }
             }).then(data => {
                 dispatch(populateGitHubUserData(data));
-                dispatch(fetchMyOrigins(session_token));
-                dispatch(fetchMyOriginInvitations(session_token));
                 dispatch(attemptSignIn(data["login"]));
             }).catch(error => {
                 // We can assume an error from the response is a 401; anything
@@ -78,6 +75,11 @@ export function authenticateWithGitHub(oauth_token = undefined, session_token = 
                     type: WARNING,
                 }));
             });
+        }
+        if (session_token) {
+            setCookie("bldrAuthSessionToken", session_token);
+            dispatch(fetchMyOrigins(session_token));
+            dispatch(fetchMyOriginInvitations(session_token));
         }
     };
 }
@@ -128,9 +130,9 @@ export function fetchGitHubInstallationRepositories(installationId: string) {
     };
 };
 
-export function loadSessionState() {
+export function loadGitHubSessionState() {
     return {
-        type: LOAD_SESSION_STATE,
+        type: LOAD_GITHUB_SESSION_STATE,
         payload: {
             gitHubAuthToken: cookies.get("gitHubAuthToken"),
             gitHubAuthState: cookies.get("gitHubAuthState"),

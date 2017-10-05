@@ -16,6 +16,7 @@ import * as cookies from "js-cookie";
 import { setCookie } from "./gitHub";
 
 export const SET_BLDR_SESSION_TOKEN = "SET_BLDR_SESSION_TOKEN";
+export const LOAD_BLDR_SESSION_STATE = "LOAD_BLDR_SESSION_STATE";
 
 export function setBldrSessionToken(payload) {
     setCookie("bldrSessionToken", payload);
@@ -23,5 +24,12 @@ export function setBldrSessionToken(payload) {
     return {
         type: SET_BLDR_SESSION_TOKEN,
         payload
+    };
+}
+
+export function loadBldrSessionState() {
+    return {
+        type: LOAD_BLDR_SESSION_STATE,
+        payload: cookies.get("bldrSessionToken")
     };
 }

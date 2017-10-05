@@ -16,7 +16,7 @@ import {Subscription} from "rxjs/Subscription";
 import {AppStore} from "./AppStore";
 import {Component, OnInit, OnDestroy} from "@angular/core";
 import {Router, RouterOutlet} from "@angular/router";
-import {authenticateWithGitHub, loadSessionState, removeNotification,
+import {authenticateWithGitHub, loadGitHubSessionState, loadBldrSessionState, removeNotification,
     requestGitHubAuthToken, routeChange, setGitHubAuthState,
     setPackagesSearchQuery, signOut, toggleUserNavMenu, loadFeatureFlags} from "./actions/index";
 
@@ -110,7 +110,8 @@ export class AppComponent implements OnInit, OnDestroy {
         this.store.dispatch(setGitHubAuthState());
 
         // Load up the session state when we load the page
-        this.store.dispatch(loadSessionState());
+        this.store.dispatch(loadGitHubSessionState());
+        this.store.dispatch(loadBldrSessionState());
 
         // Request an auth token from GitHub. This doesn't do anything if the
         // "code" and "state" query parameters are not present.
@@ -122,7 +123,7 @@ export class AppComponent implements OnInit, OnDestroy {
         // When the page loads attempt to authenticate with GitHub. If there
         // is no token stored in session storage, this won't do anything.
         this.store.dispatch(
-            authenticateWithGitHub(this.state.gitHub.authToken, this.state.session.token)
+            authenticateWithGitHub(this.state.gitHub.authToken)
         );
 
         this.store.dispatch(loadFeatureFlags());
