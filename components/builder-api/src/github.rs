@@ -21,6 +21,7 @@ use hab_core::package::Plan;
 use http_gateway::http::controller::*;
 use iron::status;
 use persistent;
+use protocol::originsrv::{OriginProject, OriginProjectGet};
 use protocol::scheduler::{Group, GroupCreate};
 use router::Router;
 
@@ -152,9 +153,11 @@ fn handle_push(req: &mut Request) -> IronResult<Response> {
             ));
         }
     };
+
     if hook.commits.is_empty() {
-        return Ok(Response::with((status::Ok)));
+        return Ok(Response::with(status::Ok));
     }
+
     let github = req.get::<persistent::Read<GitHubCli>>().unwrap();
     let token = match github.app_installation_token(hook.installation.id) {
         Ok(token) => token,
@@ -162,15 +165,19 @@ fn handle_push(req: &mut Request) -> IronResult<Response> {
             return Ok(Response::with((status::BadGateway, err.to_string())));
         }
     };
+
     let mut query = format!("q={}+in:path+repo:{}", "plan.sh", hook.repository.full_name);
     let plans = match github.search_code(&token, &query) {
         Ok(search) => search.items,
         Err(err) => return Ok(Response::with((status::BadGateway, err.to_string()))),
     };
+
     if plans.is_empty() {
         return Ok(Response::with(status::Ok));
     }
+
     query = format!("q={}+in:path+repo:{}", BLDR_CFG, hook.repository.full_name);
+
     let config = match github.search_code(&token, &query) {
         Ok(search) => {
             match search
@@ -190,27 +197,50 @@ fn handle_push(req: &mut Request) -> IronResult<Response> {
         }
         Err(err) => return Ok(Response::with((status::BadGateway, err.to_string()))),
     };
+
     debug!("Config, {:?}", config);
+
     let mut plans = match read_plans(&github, &token, &hook, plans) {
         HandleResult::Ok(plans) => plans,
         HandleResult::Err(err) => return Ok(err),
     };
+
     debug!("Plans, {:?}", plans);
+
     if let Some(cfg) = config {
         plans.retain(|plan| match cfg.get(&plan.name) {
             Some(project) => hook.changed().iter().any(|f| project.triggered_by(f)),
             None => false,
         })
     }
-    build_plans(req, plans)
+
+    build_plans(req, &hook.repository.clone_url, plans)
 }
 
-fn build_plans(req: &mut Request, plans: Vec<Plan>) -> IronResult<Response> {
-    // JW TODO: Validate that this repository is where these plans belong. You could theoretically
-    // create a plan in a different repo and force a build of another piece of software without
-    // this check.
+fn build_plans(req: &mut Request, repo_url: &str, plans: Vec<Plan>) -> IronResult<Response> {
     let mut request = GroupCreate::new();
+
     for plan in plans.into_iter() {
+        let mut project_get = OriginProjectGet::new();
+        project_get.set_name(format!("{}/{}", &plan.origin, &plan.name));
+
+        match route_message::<OriginProjectGet, OriginProject>(req, &project_get) {
+            Ok(project) => {
+                if repo_url != project.get_vcs_data() {
+                    error!(
+                        "Incoming repository URL ({}) doesn't match what's in the project vcs data ({}). Aborting.",
+                        repo_url,
+                        project.get_vcs_data()
+                    );
+                    continue;
+                }
+            }
+            Err(err) => {
+                error!("Failed to fetch project. err = {:?}", &err);
+                continue;
+            }
+        }
+
         debug!("Scheduling, {:?}", plan);
         request.set_origin(plan.origin);
         request.set_package(plan.name);
@@ -223,6 +253,7 @@ fn build_plans(req: &mut Request, plans: Vec<Plan>) -> IronResult<Response> {
             Err(err) => debug!("Failed to create group, {:?}", err),
         }
     }
+
     Ok(Response::with(status::Ok))
 }
 
