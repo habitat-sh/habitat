@@ -5,38 +5,30 @@ branches:
     - /^acceptance_deploy.+$/
     - /^test_development-.*$/
     - /^\d+\.\d+\.\d+$/
+
 env:
   global:
     - PATH=$HOME/.cargo/bin:$PATH
+    # Habitat Rust program components
+    - _RUST_HAB_BIN_COMPONENTS="components/hab|components/hab-butterfly|components/launcher|components/pkg-export-docker|components/sup"
+    # Habitat Rust crate components
+    - _RUST_HAB_LIB_COMPONENTS="components/builder-api-client|components/builder-depot-client|components/butterfly|components/common|components/core|components/eventsrv-client|components/launcher-client|components/launcher-protocol"
+    # Builder Rust program components
+    - _RUST_BLDR_BIN_COMPONENTS="components/builder-admin|components/builder-api|components/builder-jobsrv|components/builder-originsrv|components/builder-router|components/builder-scheduler|components/builder-sessionsrv|components/builder-worker|components/eventsrv"
+    # Builder Rust crate components
+    - _RUST_BLDR_LIB_COMPONENTS="components/builder-core|components/builder-db|components/builder-depot|components/builder-depot-client|components/builder-http-gateway|components/builder-protocol|components/core|components/eventsrv-protocol|components/github-api-client|components/net"
+
 matrix:
   include:
-    - os: linux
-      language: ruby
-      rvm: 2.3.1
-      env:
-        - AFFECTED_DIRS="components/hab|components/hab-butterfly|components/pkg-export-docker|components/sup"
-      sudo: required
-      addons:
-        apt:
-          packages:
-          - build-essential
-          - ca-certificates
-          - curl
-          - wget
-      cache:
-        apt: true
-        cargo: true
-        directories:
-          - /root/travis_bootstrap
-      before_install:
-        - ./support/ci/fast_pass.sh || exit 0
-      script:
-        - sudo ./support/ci/specs.sh
+
+#
+# Job for testing Habitat Rust program components
+#
     - os: linux
       language: rust
       env:
-        - COMPONENTS=bin LIBSODIUM_PREFIX=$HOME/pkgs/libsodium/1.0.12 LIBARCHIVE_PREFIX=$HOME/pkgs/libarchive/3.2.0 LIBZMQ_PREFIX=$HOME/pkgs/zeromq/4.1.4 PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$LIBARCHIVE_PREFIX/lib/pkgconfig:$LIBSODIUM_PREFIX/lib/pkgconfig:$LIBZMQ_PREFIX/lib/pkgconfig" LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$LIBARCHIVE_PREFIX/lib:$LIBSODIUM_PREFIX/lib:$LIBZMQ_PREFIX/lib" LIBRARY_PATH="$LIBRARY_PATH:$LIBZMQ_PREFIX/lib"
-        - AFFECTED_DIRS="components/hab|components/sup"
+        - COMPONENTS=bin
+        - AFFECTED_DIRS="$_RUST_HAB_BIN_COMPONENTS|$_RUST_HAB_LIB_COMPONENTS"
       rust: stable
       sudo: false
       addons:
@@ -68,11 +60,15 @@ matrix:
       script:
         - ./support/ci/rust_tests.sh
         - ./support/ci/lint.sh
+
+#
+# Job for testing Habitat  and Builder Rust crate components
+#
     - os: linux
       language: rust
       env:
-        - COMPONENTS=lib LIBSODIUM_PREFIX=$HOME/pkgs/libsodium/1.0.12 LIBARCHIVE_PREFIX=$HOME/pkgs/libarchive/3.2.0 LIBZMQ_PREFIX=$HOME/pkgs/zeromq/4.1.4 PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$LIBARCHIVE_PREFIX/lib/pkgconfig:$LIBSODIUM_PREFIX/lib/pkgconfig:$LIBZMQ_PREFIX/lib/pkgconfig" LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$LIBARCHIVE_PREFIX/lib:$LIBSODIUM_PREFIX/lib:$LIBZMQ_PREFIX/lib" LIBRARY_PATH="$LIBRARY_PATH:$LIBZMQ_PREFIX/lib"
-        - AFFECTED_DIRS="components/builder-db|components/builder-core|components/builder-protocol|components/common|components/core|components/builder-depot-client|components/http-client|components/net|components/butterfly"
+        - COMPONENTS=lib
+        - AFFECTED_DIRS="$_RUST_HAB_LIB_COMPONENTS|$_RUST_BLDR_LIB_COMPONENTS"
       rust: stable
       sudo: required
       addons:
@@ -103,11 +99,15 @@ matrix:
       script:
         - ./support/ci/rust_tests.sh
         - ./support/ci/lint.sh
+
+#
+# Job for testing Builder Rust program components
+#
     - os: linux
       language: rust
       env:
-        - COMPONENTS=srv LIBSODIUM_PREFIX=$HOME/pkgs/libsodium/1.0.12 LIBARCHIVE_PREFIX=$HOME/pkgs/libarchive/3.2.0 LIBZMQ_PREFIX=$HOME/pkgs/zeromq/4.1.4 PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$LIBARCHIVE_PREFIX/lib/pkgconfig:$LIBSODIUM_PREFIX/lib/pkgconfig:$LIBZMQ_PREFIX/lib/pkgconfig" LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$LIBARCHIVE_PREFIX/lib:$LIBSODIUM_PREFIX/lib:$LIBZMQ_PREFIX/lib" LIBRARY_PATH="$LIBRARY_PATH:$LIBZMQ_PREFIX/lib"
-        - AFFECTED_DIRS="components/builder-api|components/builder-admin|components/builder-jobsrv|components/builder-sessionsrv|components/builder-originsrv|components/builder-worker|components/builder-depot"
+        - COMPONENTS=srv
+        - AFFECTED_DIRS="$_RUST_BLDR_BIN_COMPONENTS|$_RUST_BLDR_LIB_COMPONENTS"
       rust: stable
       sudo: required
       addons:
@@ -138,10 +138,14 @@ matrix:
       script:
         - ./support/ci/rust_tests.sh
         - ./support/ci/lint.sh
+
+#
+# Job for testing Builder Web components
+#
     - os: linux
       language: node_js
       node_js: 4.4.3
-      sudo: required
+      sudo: false
       env:
         - CXX=g++-4.8
         - AFFECTED_DIRS="components/builder-web"
@@ -164,7 +168,10 @@ matrix:
         - "(cd components/builder-web && npm install)"
       script:
         - "(cd components/builder-web && npm run travis)"
-        - sudo -E bash -c "./support/ci/build_builder_web.sh"
+
+#
+# Job for building and deploying the web site
+#
     - os: linux
       language: ruby
       rvm: 2.3.1
@@ -188,10 +195,15 @@ matrix:
         - secure: "nndTwXiUkVqtLaZ6ndFZHXKPoHvgCQmyJYpNHokgAA54cc8ART8F3ZZuka+fcM5a6dLUttB/rfvWm+Ytxi9XTpj0G2rAsR7+kBnWJf/FyfVi+r2YmYd7Bg9kGaDTigpYLgL+GUQxz3S2+QI/P1jzRDSRAz9LBVYIRnVyNVp8zYNcizD8HGopNfeFO3a2KIIEM4qvkQbwPVfHp9PmSLQfDPSStS6QBf1q2ebv94TzQz+xWozLQgY025KtY78YCXdj2930HJnbrrHiGfpvSAUSKjZcygLWXVSRKGkRTJJbenBXqK0uni4odpGmN+xL1afQlHfd+CBlXq6lyiZqoaRtIk2vkR8aGww5pouXBWA7UO4NMrqIk7nSzc1zpKgkNhiApr5O8xoy5dYSu6//tiRk63+jBSbZ7EoVPHqx2oBadykKJSlgeWzVGMSnEzad4fb2DDQKNVLObg0POZX/YdZKqbWv8DmiRkJkLKkE7iD5NYqpppl6OsCJDEBiKFbGokWi0YODOMkyTie9s9KQ3rZAIcnz4RjkYbj0F8S93BQ9Pefid3Yv20ix9OZQL1Cdf0HPBcE7fBWxfcWwbQVnoNrNIGsR3bbuqbuTuyiHT7E527QhOg12G4YZsrwoNZA6qGYZYg/4NNQTILFluTtG1YaZmWdN7vGXgiAYA4sDgGb9eiA="
       before_install: ./support/ci/fast_pass.sh || exit 0
       script: ./support/ci/deploy_website.sh
+
+#
+# Job for building and publishing Habitat Linux release packages
+#
     - os: linux
       env:
+        # These components will build as Habitat packages in the provided order
         - COMPONENTS="hab-butterfly hab plan-build backline bintray-publish studio pkg-aci pkg-export-docker pkg-mesosize pkg-tarize sup"
-        - AFFECTED_DIRS="support/ci/deploy\.sh|Cargo\.toml|Cargo\.lock|components/hab|components/common|components/core|components/builder-depot-client|components/http-client|components/sup|components/hab-butterfly|components/butterfly|components/studio|components/pkg-export-docker|VERSION"
+        - AFFECTED_DIRS="support/ci/deploy\.sh|Cargo\.toml|Cargo\.lock|VERSION|$_RUST_HAB_BIN_COMPONENTS|$_RUST_HAB_LIB_COMPONENTS"
         # HAB_AUTH_TOKEN
         - secure: "OCq9oDAEP3Cc0BiGrnZHE0FoNdyqsAy2LPTwEoOKvgiZdrw5o2bvpN1Kl+DKpw2auKtkeAS1aVSE/CMrglxrDs+VolvK9ttW3kj8c7+AeuCYjBsyWqdnZ1/24u6P+20fKanYrsMsnFb2r9OWwxZVlFnfmks81LWToOlGFJpL5KnmSPrB2vlWPbiaH9+yg8aslrmCq0reSoSVSnoZHoTolWtjzx2WdPYqA4gu0HHASVbH5qP+PoQSGIWvwbBaU4xhwkp1K8rWCjI8lre2YpBMOdfZv+9arMjc3Xg/kgD9oGU9DN7Q3UzAWxTSJv/3Cm4LArwiI57rXMLDKf8N1MhvGMHP1xgbuN8JWFKqFuWpqCf6qJkYG8+VZkruKYOo/2tXtBY4hpbR2abcWvYU/S9AQFHKGJQ2vcArnp5SKO+Oq/fNVneeHli4RbGMRQCMVq+X0SSC148F0zEVVwkNM5eq4askfc/2y4asySrH0MT/5T3yBp8fr3zXpnj82h2ytCZOUs0o+La9+wt5gSDUJHdY/BwSSPrgnKSp7ixslM/g7lMy3nAOs6qLql8/vW543CXBurCACWTqwKcy3/wRparTkmZcs1d7vUrbcfYv7XJzh0pw2P1hCjWD9BtkowbuLVo8K9ndPl2rbFY9XljqFXMTcHxp4ETeCc23azHCs+SYFb0="
         # HAB_ORIGIN_KEY
@@ -207,9 +219,9 @@ matrix:
       addons:
         apt:
           packages:
-          - ca-certificates
-          - curl
-          - wget
+            - ca-certificates
+            - curl
+            - wget
       cache:
         apt: true
         cargo: true
@@ -224,10 +236,14 @@ matrix:
         - openssl aes-256-cbc -K $encrypted_50e90ce07941_key -iv $encrypted_50e90ce07941_iv -in ./support/ci/habitat-srv-admin.enc -out /tmp/habitat-srv-admin -d
       script:
         - sudo ./support/ci/deploy.sh
+
+#
+# Job for building and publishing Habitat Mac release packages
+#
     - os: linux
       env:
-        - COMPONENTS="sup hab-butterfly hab plan-build backline bintray-publish studio pkg-aci pkg-export-docker pkg-mesosize pkg-tarize"
-        - AFFECTED_DIRS="support/ci/deploy\.sh|Cargo\.toml|Cargo\.lock|components/hab|components/common|components/core|components/builder-depot-client|components/http-client|components/sup|components/hab-butterfly|components/butterfly|components/studio|components/pkg-export-docker|VERSION"
+        - COMPONENTS="hab"
+        - AFFECTED_DIRS="support/ci/deploy\.sh|Cargo\.toml|Cargo\.lock|VERSION|components/hab|$_RUST_HAB_LIB_COMPONENTS"
         # HAB_ORIGIN_KEY
         - secure: "uZ70GE8qK3GBgs7ZIsoy5DhPlHNs2hoLxLBGKq+u+0XrE017pOnW6mNHsn7J7i2r8CPtd4KFsFEN52wZSA+Sf96MFIL2w9E+geykBgbRMZzv4icuCf0xSGwm4iRMgZ9A08TfurMX6y6N+4JNsrCv9syVNuGq09EL2wLHPXOQhesMpodijQLcFikxfEXXbaWla1xHnYxJk+fbvYDoXVCbdqnpdeLTmGuQHFaaNI7jm1B3L/dl+IGZxwFdvqBT3G9mHiXBdyi8bALs7rcZNdV7PqtFFpp98zIeqwNHtHPd5cBRmqDRTRxucRSACS/lurrz9J+001a9RjPvUkYlLrn0hQY9pN6oo+kCpN/1r0bc17i4FbGx7R73FnFgPK/cno0ENBFygNZn7/jg6cENgjkBlHsZhc1+L1xhILo46nQU9XbWJrwelVYUOOGXI76tECOkGhkglx1vYK8fcMVLJMhL7psgPpbGbDJQDuAKhHS+75txNK+356ompNL+YUzeWZc4KSGZCNTQsPK+rsGttmA+JXtAaquFaY5xwSgyKHwETiSVg4dYXb3xh6goNxf2JTOZOosWaypyykHqcqsqCu2fzIDdmkgCx6I5/5q8I/7Z0es0jlUpHamlihZwe4E5YdYFCSouaDoeTnVdJKVI1p9fnAjpFqjivFgqLE/Z504vCNU="
         - BINTRAY_USER=chef-releng-ops
@@ -239,7 +255,7 @@ matrix:
       addons:
         apt:
           packages:
-          - ca-certificates
+            - ca-certificates
       cache:
         apt: true
         directories:
@@ -251,6 +267,7 @@ matrix:
         - openssl aes-256-cbc -K $encrypted_50e90ce07941_key -iv $encrypted_50e90ce07941_iv -in ./support/ci/habitat-srv-admin.enc -out /tmp/habitat-srv-admin -d
       script:
         - sudo ./support/ci/deploy_mac_launcher.sh
+
 notifications:
   webhooks:
     urls:

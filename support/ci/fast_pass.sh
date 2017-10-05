@@ -25,8 +25,19 @@ else
   LATEST_MERGE_COMMIT="$(git log --merges --max-count=1 --pretty=format:%H)"
   CHANGED_FILES="$(git log -m --max-count=1 --name-only --pretty=format: $LATEST_MERGE_COMMIT)"
 
+  echo
+  echo "Checking for changed files:"
+  echo
+  echo "$CHANGED_FILES" | sed 's,^,    ,g'
+  echo
+
+  echo "In the affected directories:"
+  echo
+  echo "$AFFECTED_DIRS" | tr '|' '\n' | sed 's,^,    ,'
+  echo
+
   echo "$CHANGED_FILES" | grep -qE "^($AFFECTED_DIRS)" || {
-    echo "No files in $AFFECTED_DIRS have changed. Skipping CI run."
+    echo "No files in affected directories have changed. Skipping CI run."
     exit 1
   }
 fi
