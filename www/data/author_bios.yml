@@ -63,3 +63,8 @@ authors:
     email: "irving@chef.io"
     twitter: "@irvingpop"
     bio: "Irving Popovetsky is a Principal Customer Architect at Chef and leads Chef's Customer Engineering team.  He has over 19 years of experience building, scaling, operating and troubleshooting large-scale Enterprise, Web and HPC systems. He has been deeply involved in the design, planning and scaling of Chef's largest customer installations"
+  christophermaier:
+    name: "Christopher Maier"
+    email: "cmaier@habitat.sh"
+    twitter: "@_cwm_"
+    bio: "Christopher Maier is a Principal Engineer at Chef, and is a core maintainer of Habitat."
