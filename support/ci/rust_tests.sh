@@ -8,6 +8,10 @@ if [[ $is_tmp_commit = 0 ]]; then
   exit 0
 fi
 
+echo "--> Running $0"
+
+source $(dirname $0)/rust_env.sh
+
 set -e
 if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then
   make unit-${COMPONENTS:-all}
