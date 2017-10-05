@@ -4,8 +4,8 @@ import { SearchComponent } from "./search/search.component";
 
 const routes: Routes = [
   {
-    path: "pkgs/search/:query",
-    component: SearchComponent,
+      path: "search",
+      component: SearchComponent,
   },
   {
       path: "pkgs/:origin",

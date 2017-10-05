@@ -1,13 +1,15 @@
 <div class="hab-search">
     <div class="page-title">
         <h2>Search Packages</h2>
-        <h4>
-            <span *ngIf="searchQuery || query">Search Results</span>
-        </h4>
+        <h4><span *ngIf="searchQuery || query">Search Results</span></h4>
         <hab-icon symbol="loading" [class.spinning]="ui.loading"></hab-icon>
     </div>
     <div class="page-body">
-        <input type="search" autofocus [formControl]="searchBox" placeholder="Search Packages&hellip;">
+        <input type="search" #query autofocus
+            [formControl]="searchBox"
+            [value]="searchQuery"
+            (keyup.enter)="submit(query.value)"
+            placeholder="Search Packages&hellip;">
 
         <hab-search-results
             [noPackages]="(!ui.exists || packages.size === 0) && !ui.loading"
@@ -16,10 +18,8 @@
 
         <div *ngIf="packages.size < totalCount">
             Showing {{packages.size}} of {{totalCount}} packages.
-            <a href="#" (click)="fetchMorePackages()">
-                Load
-                {{(totalCount - packages.size) > perPage ? perPage : totalCount - packages.size }}
-                more</a>.
+            <a href="#" (click)="fetchMorePackages()">Load
+                {{(totalCount - packages.size) > perPage ? perPage : totalCount - packages.size }} more</a>.
         </div>
     </div>
 </div>

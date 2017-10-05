@@ -15,7 +15,7 @@
 import { AppStore } from "../AppStore";
 import { Component, OnInit, OnDestroy } from "@angular/core";
 import { Router } from "@angular/router";
-import { fetchExplore, setLayout } from "../actions/index";
+import { fetchExplore, setLayout, setPackagesSearchQuery } from "../actions/index";
 
 @Component({
     selector: "hab-explore",
@@ -38,6 +38,6 @@ export class ExploreComponent implements OnInit, OnDestroy {
     }
 
     search(term) {
-        this.router.navigate(["pkgs", "search", term.trim()]);
+        this.router.navigate(["search", { q: term.trim() }]);
     }
 }

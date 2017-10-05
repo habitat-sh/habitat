@@ -22,12 +22,10 @@ import config from "../config";
         <h4>Builder</h4>
         <ul class="hab-side-nav--list">
             <li *ngIf="isSignedIn">
-                <a [routerLink]="['/origins']"
-                    routerLinkActive="active">My Origins</a>
+                <a [routerLink]="['/origins']">My Origins</a>
             </li>
             <li>
-                <a [routerLink]="['/pkgs']"
-                    routerLinkActive="active">Search Packages</a>
+                <a [routerLink]="['/pkgs']">Search Packages</a>
             </li>
         </ul>
         <h4>Quick Links</h4>

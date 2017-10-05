@@ -108,15 +108,15 @@ describe("SearchResultsComponent", () => {
         expect(element.query(By.css(".page-body input[type='search']"))).not.toBeNull();
       });
 
-      describe("fetch", () => {
+      describe("fetchPackages", () => {
 
         it ("fetches with the distinct parameter", () => {
           spyOn(actions, "filterPackagesBy");
 
-          component.fetch();
+          component.fetchPackages();
 
           expect(actions.filterPackagesBy).toHaveBeenCalledWith(
-            { origin: undefined }, "foo", true
+            { origin: "core" }, "foo", true, 0
           );
         });
       });
