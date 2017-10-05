@@ -7,7 +7,7 @@ clean:
 	rm -rf build
 
 run: build
-	bundle exec middleman serve
+	BUILDER_WEB_URL="http://localhost:3000" bundle exec middleman serve
 
 sync: build check-env
 	bundle exec middleman s3_sync

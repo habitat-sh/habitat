@@ -10,6 +10,6 @@ else
   if [[ "${TRAVIS_PULL_REQUEST}" = "false" ]] && [[ "${TRAVIS_BRANCH}" =~ ^acceptance_deploy ]]; then
     echo "We are on a PR or against the master branch. Deploying to Acceptance."
     cd www
-    make acceptance
+    BUILDER_WEB_URL="https://bldr.acceptance.habitat.sh" make acceptance
   fi
 fi
