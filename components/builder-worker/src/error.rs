@@ -19,9 +19,12 @@ use std::result;
 
 use bldr_core;
 use hab_core;
+use git2;
+use github_api_client;
 use protobuf;
 use protocol;
 use retry;
+use url;
 use zmq;
 
 pub type Result<T> = result::Result<T, Error>;
@@ -30,13 +33,18 @@ pub type Result<T> = result::Result<T, Error>;
 pub enum Error {
     BuildFailure(i32),
     BuilderCore(bldr_core::Error),
+    CannotAddCreds,
+    Git(git2::Error),
+    GithubAppAuthErr(github_api_client::HubError),
     HabitatCore(hab_core::Error),
     IO(io::Error),
     InvalidIntegrations(String),
     NoAuthTokenError,
+    NotHTTPSCloneUrl(url::Url),
     Protobuf(protobuf::ProtobufError),
     Protocol(protocol::ProtocolError),
     Retry(retry::RetryError),
+    UrlParseError(url::ParseError),
     WorkspaceSetup(String, io::Error),
     WorkspaceTeardown(String, io::Error),
     Zmq(zmq::Error),
@@ -49,10 +57,19 @@ impl fmt::Display for Error {
                 format!("Build studio exited with non-zero exit code, {}", e)
             }
             Error::BuilderCore(ref e) => format!("{}", e),
+            Error::CannotAddCreds => format!("Cannot add credentials to url"),
+            Error::Git(ref e) => format!("{}", e),
+            Error::GithubAppAuthErr(ref e) => format!("{}", e),
             Error::HabitatCore(ref e) => format!("{}", e),
             Error::IO(ref e) => format!("{}", e),
             Error::InvalidIntegrations(ref s) => format!("Invalid integration: {}", s),
             Error::NoAuthTokenError => format!("No auth_token config specified"),
+            Error::NotHTTPSCloneUrl(ref e) => {
+                format!(
+                    "Attempted to clone {}. Only HTTPS clone urls are supported",
+                    e
+                )
+            }
             Error::Protobuf(ref e) => format!("{}", e),
             Error::Protocol(ref e) => format!("{}", e),
             Error::Retry(ref e) => format!("{}", e),
@@ -63,6 +80,7 @@ impl fmt::Display for Error {
             Error::WorkspaceTeardown(ref p, ref e) => {
                 format!("Error while tearing down workspace at {}, err={:?}", p, e)
             }
+            Error::UrlParseError(ref e) => format!("{}", e),
         };
         write!(f, "{}", msg)
     }
@@ -73,16 +91,21 @@ impl error::Error for Error {
         match *self {
             Error::BuildFailure(_) => "Build studio exited with a non-zero exit code",
             Error::BuilderCore(ref err) => err.description(),
+            Error::CannotAddCreds => "Cannot add credentials to url",
+            Error::Git(ref err) => err.description(),
+            Error::GithubAppAuthErr(ref err) => err.description(),
             Error::HabitatCore(ref err) => err.description(),
             Error::IO(ref err) => err.description(),
             Error::InvalidIntegrations(_) => "Invalid integrations detected",
             Error::NoAuthTokenError => "No auth_token config specified",
+            Error::NotHTTPSCloneUrl(_) => "Only HTTPS clone urls are supported",
             Error::Protobuf(ref err) => err.description(),
             Error::Protocol(ref err) => err.description(),
             Error::Retry(ref err) => err.description(),
             Error::WorkspaceSetup(_, _) => "IO Error while creating workspace on disk",
             Error::WorkspaceTeardown(_, _) => "IO Error while destroying workspace on disk",
             Error::Zmq(ref err) => err.description(),
+            Error::UrlParseError(ref err) => err.description(),
         }
     }
 }

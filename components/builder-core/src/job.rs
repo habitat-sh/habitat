@@ -14,37 +14,15 @@
 
 use std::fmt;
 use std::ops::{Deref, DerefMut};
+
 use protocol::jobsrv;
 use protocol::originsrv;
-use github_api_client::GitHubCfg;
-use vcs;
 
 pub struct Job(jobsrv::Job);
 
 impl Job {
     pub fn new(job: jobsrv::Job) -> Self {
         Job(job)
-    }
-
-    pub fn vcs(&self, config: GitHubCfg) -> vcs::VCS {
-        match self.0.get_project().get_vcs_type() {
-            "git" => {
-                let installation_id: Option<u32> = {
-                    if self.0.get_project().has_vcs_installation_id() {
-                        Some(self.0.get_project().get_vcs_installation_id())
-                    } else {
-                        None
-                    }
-                };
-                vcs::VCS::new(
-                    String::from(self.0.get_project().get_vcs_type()),
-                    String::from(self.0.get_project().get_vcs_data()),
-                    config,
-                    installation_id,
-                )
-            }
-            _ => panic!("unknown vcs associated with jobs project"),
-        }
     }
 
     pub fn origin(&self) -> &str {

@@ -17,9 +17,9 @@ clippy = {version = "*", optional = true}
 chrono = { version = "*", features = ["serde"] }
 env_logger = "*"
 features = "*"
+git2 = "*"
 github-api-client = { path = "../github-api-client" }
 habitat-builder-protocol = { path = "../builder-protocol" }
-git2 = "*"
 hyper = "*"
 lazy_static = "*"
 log = "*"

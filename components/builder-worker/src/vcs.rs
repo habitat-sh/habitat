@@ -14,6 +14,7 @@
 
 use std::path::Path;
 
+use bldr_core::job::Job;
 use git2;
 use github_api_client::{GitHubClient, GitHubCfg};
 use url::Url;
@@ -28,6 +29,27 @@ pub struct VCS {
 }
 
 impl VCS {
+    pub fn from_job(job: &Job, config: GitHubCfg) -> Self {
+        match job.get_project().get_vcs_type() {
+            "git" => {
+                let installation_id: Option<u32> = {
+                    if job.get_project().has_vcs_installation_id() {
+                        Some(job.get_project().get_vcs_installation_id())
+                    } else {
+                        None
+                    }
+                };
+                Self::new(
+                    String::from(job.get_project().get_vcs_type()),
+                    String::from(job.get_project().get_vcs_data()),
+                    config,
+                    installation_id,
+                )
+            }
+            _ => panic!("unknown vcs associated with jobs project"),
+        }
+    }
+
     pub fn new(
         vcs_type: String,
         data: String,
