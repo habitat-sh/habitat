@@ -58,7 +58,8 @@ impl VCS {
                     self.url(token.clone())?,
                     path
                 );
-                git2::Repository::clone(&(self.url(token)?).as_str(), path)?;
+                git2::Repository::clone(&(self.url(token)?).as_str(), path)
+                    .map_err(|e| Error::Git(e))?;
                 Ok(())
             }
             _ => panic!("Unknown vcs type"),

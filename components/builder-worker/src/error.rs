@@ -18,13 +18,10 @@ use std::io;
 use std::result;
 
 use bldr_core;
-use git2;
-use github_api_client;
 use hab_core;
 use protobuf;
 use protocol;
 use retry;
-use url;
 use zmq;
 
 pub type Result<T> = result::Result<T, Error>;
@@ -32,20 +29,14 @@ pub type Result<T> = result::Result<T, Error>;
 #[derive(Debug)]
 pub enum Error {
     BuildFailure(i32),
-    CannotAddCreds,
-    Git(git2::Error),
     BuilderCore(bldr_core::Error),
-    GithubAppAuthErr(github_api_client::HubError),
     HabitatCore(hab_core::Error),
     IO(io::Error),
     InvalidIntegrations(String),
     NoAuthTokenError,
-    NotHTTPSCloneUrl(url::Url),
     Protobuf(protobuf::ProtobufError),
     Protocol(protocol::ProtocolError),
     Retry(retry::RetryError),
-    UnknownVCS,
-    UrlParseError(url::ParseError),
     WorkspaceSetup(String, io::Error),
     WorkspaceTeardown(String, io::Error),
     Zmq(zmq::Error),
@@ -57,25 +48,14 @@ impl fmt::Display for Error {
             Error::BuildFailure(ref e) => {
                 format!("Build studio exited with non-zero exit code, {}", e)
             }
-            Error::Git(ref e) => format!("{}", e),
-            Error::GithubAppAuthErr(ref e) => format!("{}", e),
             Error::BuilderCore(ref e) => format!("{}", e),
-            Error::CannotAddCreds => format!("Cannot add credentials to url"),
             Error::HabitatCore(ref e) => format!("{}", e),
             Error::IO(ref e) => format!("{}", e),
             Error::InvalidIntegrations(ref s) => format!("Invalid integration: {}", s),
             Error::NoAuthTokenError => format!("No auth_token config specified"),
-            Error::NotHTTPSCloneUrl(ref e) => {
-                format!(
-                    "Attempted to clone {}. Only HTTPS clone urls are supported",
-                    e
-                )
-            }
             Error::Protobuf(ref e) => format!("{}", e),
             Error::Protocol(ref e) => format!("{}", e),
             Error::Retry(ref e) => format!("{}", e),
-            Error::UnknownVCS => format!("Job requires an unknown VCS"),
-            Error::UrlParseError(ref e) => format!("{}", e),
             Error::Zmq(ref e) => format!("{}", e),
             Error::WorkspaceSetup(ref p, ref e) => {
                 format!("Error while setting up workspace at {}, err={:?}", p, e)
@@ -92,30 +72,18 @@ impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
             Error::BuildFailure(_) => "Build studio exited with a non-zero exit code",
-            Error::Git(ref err) => err.description(),
-            Error::GithubAppAuthErr(ref err) => err.description(),
             Error::BuilderCore(ref err) => err.description(),
-            Error::CannotAddCreds => "Cannot add credentials to url",
             Error::HabitatCore(ref err) => err.description(),
             Error::IO(ref err) => err.description(),
             Error::InvalidIntegrations(_) => "Invalid integrations detected",
             Error::NoAuthTokenError => "No auth_token config specified",
-            Error::NotHTTPSCloneUrl(_) => "Only HTTPS clone urls are supported",
             Error::Protobuf(ref err) => err.description(),
             Error::Protocol(ref err) => err.description(),
             Error::Retry(ref err) => err.description(),
-            Error::UrlParseError(ref err) => err.description(),
-            Error::UnknownVCS => "Job requires an unknown VCS",
             Error::WorkspaceSetup(_, _) => "IO Error while creating workspace on disk",
             Error::WorkspaceTeardown(_, _) => "IO Error while destroying workspace on disk",
             Error::Zmq(ref err) => err.description(),
         }
-    }
-}
-
-impl From<git2::Error> for Error {
-    fn from(err: git2::Error) -> Error {
-        Error::Git(err)
     }
 }
 
@@ -152,17 +120,5 @@ impl From<protocol::ProtocolError> for Error {
 impl From<zmq::Error> for Error {
     fn from(err: zmq::Error) -> Error {
         Error::Zmq(err)
-    }
-}
-
-impl From<url::ParseError> for Error {
-    fn from(err: url::ParseError) -> Error {
-        Error::UrlParseError(err)
-    }
-}
-
-impl From<github_api_client::HubError> for Error {
-    fn from(err: github_api_client::HubError) -> Error {
-        Error::GithubAppAuthErr(err)
     }
 }

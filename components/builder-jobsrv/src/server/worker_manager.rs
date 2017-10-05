@@ -19,6 +19,7 @@ use std::time::{Duration, Instant};
 use std::thread::{self, JoinHandle};
 
 use bldr_core;
+use bldr_core::job::Job;
 use hab_net::{ErrCode, NetError};
 use hab_net::conn::RouteClient;
 use hab_net::socket::DEFAULT_CONTEXT;
@@ -211,7 +212,7 @@ impl WorkerMgr {
                 break;
             }
             // This unwrap is fine, because we just checked our length
-            let mut job = jobs.pop().unwrap();
+            let mut job = Job::new(jobs.pop().unwrap());
             self.add_integrations_to_job(&mut job);
             self.add_project_integrations_to_job(&mut job);
 
@@ -437,7 +438,7 @@ impl WorkerMgr {
         self.rq_sock.recv(&mut self.msg, 0)?;
         // Pop message body
         self.rq_sock.recv(&mut self.msg, 0)?;
-        let job: jobsrv::Job = parse_from_bytes(&self.msg)?;
+        let job = Job::new(parse_from_bytes::<jobsrv::Job>(&self.msg)?);
         debug!("job_status={:?}", job);
         self.datastore.update_job(&job)?;
 
