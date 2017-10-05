@@ -98,7 +98,7 @@ pub fn repo_file_content(req: &mut Request) -> IronResult<Response> {
             Some(repo) => repo,
             None => return Ok(Response::with(status::BadRequest)),
         };
-        let repos = match github.repositories(session.get_token(), install_id) {
+        let repos = match github.repositories(session.get_auth_token(), install_id) {
             Ok(repos) => repos,
             Err(err) => return Ok(Response::with((status::BadGateway, err.to_string()))),
         };
