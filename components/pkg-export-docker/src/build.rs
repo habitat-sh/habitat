@@ -21,7 +21,7 @@ use common;
 use common::command::package::install::InstallSource;
 use common::ui::{UI, Status};
 use hab;
-use hcore::fs::{CACHE_ARTIFACT_PATH, cache_artifact_path};
+use hcore::fs::{CACHE_ARTIFACT_PATH, CACHE_KEY_PATH, cache_artifact_path, cache_key_path};
 use hcore::PROGRAM_NAME;
 use hcore::package::{PackageArchive, PackageIdent, PackageInstall};
 use tempdir::TempDir;
@@ -87,11 +87,13 @@ impl<'a> BuildSpec<'a> {
         ui.status(Status::Creating, "root filesystem")?;
         rootfs::create(&rootfs)?;
         self.create_symlink_to_artifact_cache(ui, &rootfs)?;
+        self.create_symlink_to_key_cache(ui, &rootfs)?;
         let base_pkgs = self.install_base_pkgs(ui, &rootfs)?;
         self.link_binaries(ui, &rootfs, &base_pkgs)?;
         self.link_cacerts(ui, &rootfs, &base_pkgs)?;
         let user_pkgs = self.install_user_pkgs(ui, &rootfs)?;
         self.link_user_pkgs(ui, &rootfs, &user_pkgs)?;
+        self.remove_symlink_to_key_cache(ui, &rootfs)?;
         self.remove_symlink_to_artifact_cache(ui, &rootfs)?;
 
         Ok(())
@@ -105,6 +107,20 @@ impl<'a> BuildSpec<'a> {
         ui.status(Status::Creating, "artifact cache symlink")?;
         let src = cache_artifact_path(None::<P>);
         let dst = rootfs.as_ref().join(CACHE_ARTIFACT_PATH);
+        stdfs::create_dir_all(dst.parent().expect("parent directory exists"))?;
+        debug!(
+            "Symlinking src: {} to dst: {}",
+            src.display(),
+            dst.display()
+        );
+
+        Ok(symlink(src, dst)?)
+    }
+
+    fn create_symlink_to_key_cache<P: AsRef<Path>>(&self, ui: &mut UI, rootfs: P) -> Result<()> {
+        ui.status(Status::Creating, "key cache symlink")?;
+        let src = cache_key_path(None::<P>);
+        let dst = rootfs.as_ref().join(CACHE_KEY_PATH);
         stdfs::create_dir_all(dst.parent().expect("parent directory exists"))?;
         debug!(
             "Symlinking src: {} to dst: {}",
@@ -205,6 +221,13 @@ impl<'a> BuildSpec<'a> {
     ) -> Result<()> {
         ui.status(Status::Deleting, "artifact cache symlink")?;
         stdfs::remove_file(rootfs.as_ref().join(CACHE_ARTIFACT_PATH))?;
+
+        Ok(())
+    }
+
+    fn remove_symlink_to_key_cache<P: AsRef<Path>>(&self, ui: &mut UI, rootfs: P) -> Result<()> {
+        ui.status(Status::Deleting, "artifact key symlink")?;
+        stdfs::remove_file(rootfs.as_ref().join(CACHE_KEY_PATH))?;
 
         Ok(())
     }
@@ -598,6 +621,18 @@ mod test {
                 cache_artifact_path(None::<&Path>),
                 link.read_link().unwrap()
             );
+        }
+
+        #[test]
+        fn key_cache_symlink() {
+            let rootfs = TempDir::new("rootfs").unwrap();
+            let (mut ui, _, _) = ui();
+            build_spec()
+                .create_symlink_to_key_cache(&mut ui, rootfs.path())
+                .unwrap();
+            let link = rootfs.path().join(CACHE_KEY_PATH);
+
+            assert_eq!(cache_key_path(None::<&Path>), link.read_link().unwrap());
         }
 
         #[test]
