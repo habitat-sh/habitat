@@ -1,45 +1,38 @@
 pkg_name=hab-pkg-cfize
 pkg_origin=core
-pkg_version=$(cat "$PLAN_CONTEXT/../../VERSION")
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('Apache-2.0')
-pkg_source=nosuchfile.tar.gz
-pkg_deps=(core/coreutils core/findutils core/grep core/sed core/bash core/hab-pkg-dockerize)
-pkg_build_deps=()
+pkg_description="Habitat Cloud Foundry image exporter"
+pkg_upstream_url="https://github.com/habitat-sh/habitat"
+pkg_deps=(
+  core/coreutils core/findutils core/grep core/sed core/bash
+  core/hab-pkg-dockerize
+)
 pkg_bin_dirs=(bin)
 
-program=$pkg_name
+_bins=($pkg_name)
+
+# TODO fn: use `pkg_version()` form
+pkg_version=$(cat "$PLAN_CONTEXT/../../VERSION")
 
 do_build() {
-  cp -v $PLAN_CONTEXT/bin/${program}.sh ${program}
+  local bin
+  for bin in "${_bins[@]}"; do
+    cp -v "$PLAN_CONTEXT/bin/${bin}.sh" "$CACHE_PATH/${bin}"
 
-  # Use the bash from our dependency list as the shebang. Also, embed the
-  # release version of the program.
-  sed \
-    -e "s,#!/bin/bash$,#!$(pkg_path_for bash)/bin/bash," \
-    -e "s,@author@,$pkg_maintainer,g" \
-    -e "s,@version@,$pkg_version/$pkg_release,g" \
-    -i $program
+    # Use the Bash from our dependency list as the shebang. Also, embed the
+    # release version of the program.
+    sed \
+      -e "s,#!/bin/bash$,#!$(pkg_path_for bash)/bin/bash," \
+      -e "s,@author@,$pkg_maintainer,g" \
+      -e "s,@version@,$pkg_version/$pkg_release,g" \
+      -i "$CACHE_PATH/$bin"
+  done
 }
 
 do_install() {
-  install -v -D $program $pkg_prefix/bin/$program
-}
-
-# Turn the remaining default phases into no-ops
-
-do_download() {
-  return 0
-}
-
-do_verify() {
-  return 0
-}
-
-do_unpack() {
-  return 0
-}
-
-do_prepare() {
-  return 0
+  local bin
+  for bin in "${_bins[@]}"; do
+    install -v -D "$CACHE_PATH/$bin" "$pkg_prefix/bin/$bin"
+  done
 }
