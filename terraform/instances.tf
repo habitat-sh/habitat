@@ -67,9 +67,15 @@ resource "null_resource" "api_provision" {
     destination = "/tmp/nginx.yaml"
   }
 
+  provisioner "file" {
+    source = "${path.module}/files/nginx.logrotate"
+    destination = "/tmp/nginx.logrotate"
+  }
+
   provisioner "remote-exec" {
     inline = [
       "sudo cp /tmp/nginx.yaml /etc/dd-agent/conf.d/nginx.yaml",
+      "sudo cp /tmp/nginx.logrotate /etc/logrotate.d/nginx",
       "sudo /etc/init.d/datadog-agent start"
     ]
   }
