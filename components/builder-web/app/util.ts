@@ -118,13 +118,13 @@ export function parseKey(key) {
 
 export function isSignedIn() {
     const store = new AppStore();
-    return !!store.getState().gitHub.authToken;
+    return !!store.getState().session.token;
 }
 
 // Given a page component, check if the user is signed in and redirect if not
 export function requireSignIn(pageComponent) {
     const store = pageComponent.store;
-    const hasToken = !!store.getState().gitHub.authToken;
+    const hasToken = !!store.getState().session.token;
 
     if (!hasToken) { store.dispatch(requestRoute(["/sign-in"])); }
 }

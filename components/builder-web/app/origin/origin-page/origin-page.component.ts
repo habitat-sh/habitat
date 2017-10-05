@@ -42,7 +42,7 @@ export class OriginPageComponent implements OnInit, OnDestroy {
     ngOnInit() {
         requireSignIn(this);
         this.store.dispatch(fetchOrigin(this.origin.name));
-        this.store.dispatch(fetchMyOrigins(this.gitHubAuthToken));
+        this.store.dispatch(fetchMyOrigins(this.token));
         this.getPackages();
         this.loadPackages = this.getPackages.bind(this);
     }
@@ -69,8 +69,8 @@ export class OriginPageComponent implements OnInit, OnDestroy {
         return this.store.getState().users.current.flags;
     }
 
-    get gitHubAuthToken() {
-        return this.store.getState().gitHub.authToken;
+    get token() {
+        return this.store.getState().session.token;
     }
 
     get ui() {
@@ -100,14 +100,14 @@ export class OriginPageComponent implements OnInit, OnDestroy {
     }
 
     getPackages() {
-        this.store.dispatch(getUniquePackages(this.origin.name, 0, this.gitHubAuthToken));
+        this.store.dispatch(getUniquePackages(this.origin.name, 0, this.token));
     }
 
     fetchMorePackages() {
         this.store.dispatch(getUniquePackages(
             this.origin.name,
             this.store.getState().packages.nextRange,
-            this.gitHubAuthToken
+            this.token
         ));
         return false;
     }

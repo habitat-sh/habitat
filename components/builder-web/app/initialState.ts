@@ -24,6 +24,9 @@ export default Record({
     name: "Habitat",
     currentYear: new Date().getFullYear(),
   })(),
+  session: Record({
+    token: ""
+  })(),
   gitHub: Record({
     authState: undefined,
     authToken: undefined,

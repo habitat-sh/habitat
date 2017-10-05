@@ -64,7 +64,7 @@ export class OriginCreatePageComponent implements AfterViewInit, OnInit {
     }
 
     get token() {
-        return this.store.getState().gitHub.authToken;
+        return this.store.getState().session.token;
     }
 
     get username() {

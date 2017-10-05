@@ -23,6 +23,7 @@ import * as usersActions from "./users";
 import * as uiActions from "./ui";
 import * as cookieActions from "./cookies";
 import * as featureFlagActions from "./feature-flags";
+import * as sessionActions from "./sessions";
 
 // Action types
 export const CLEAR_GITHUB_FILES = gitHubActions.CLEAR_GITHUB_FILES;
@@ -39,6 +40,8 @@ export const SET_GITHUB_REPOS_LOADING_FLAG = gitHubActions.SET_GITHUB_REPOS_LOAD
 export const SET_GITHUB_AUTH_STATE = gitHubActions.SET_GITHUB_AUTH_STATE;
 export const SET_GITHUB_AUTH_TOKEN = gitHubActions.SET_GITHUB_AUTH_TOKEN;
 export const SET_SELECTED_GITHUB_ORG = gitHubActions.SET_SELECTED_GITHUB_ORG;
+
+export const SET_BLDR_SESSION_TOKEN = sessionActions.SET_BLDR_SESSION_TOKEN;
 
 export const CLEAR_BUILD = buildActions.CLEAR_BUILD;
 export const CLEAR_BUILD_LOG = buildActions.CLEAR_BUILD_LOG;

@@ -45,6 +45,6 @@ export class PackageBuildComponent implements OnInit, OnDestroy {
     }
 
     get token() {
-      return this.store.getState().gitHub.authToken;
+      return this.store.getState().session.token;
     }
 }

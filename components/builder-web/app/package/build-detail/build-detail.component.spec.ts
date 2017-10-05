@@ -24,6 +24,9 @@ class MockAppStore {
           }
         })()
       },
+      session: {
+        token: "some-token",
+      },
       gitHub: {
         authToken: "some-token"
       }
@@ -95,7 +98,7 @@ describe("BuildDetailComponent", () => {
 
         expect(actions.fetchBuildLog).toHaveBeenCalledWith(
           store.getState().builds.selected.info.id,
-          store.getState().gitHub.authToken,
+          store.getState().session.token,
           0
         );
       });

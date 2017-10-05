@@ -21,6 +21,7 @@ import origins from "./origins";
 import packages from "./packages";
 import projects from "./projects";
 import router from "./router";
+import sessions from "./sessions";
 import users from "./users";
 import ui from "./ui";
 import featureFlags from "./feature-flags";
@@ -34,6 +35,7 @@ export default combineReducers({
     packages,
     projects,
     router,
+    sessions,
     ui,
     users,
     featureFlags

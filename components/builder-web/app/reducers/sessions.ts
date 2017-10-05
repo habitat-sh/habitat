@@ -12,16 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import * as cookies from "js-cookie";
-import { setCookie } from "./gitHub";
+import * as actionTypes from "../actions/index";
+import initialState from "../initialState";
 
-export const SET_BLDR_SESSION_TOKEN = "SET_BLDR_SESSION_TOKEN";
-
-export function setBldrSessionToken(payload) {
-    setCookie("bldrSessionToken", payload);
-
-    return {
-        type: SET_BLDR_SESSION_TOKEN,
-        payload
-    };
+export default function projects(state = initialState["session"], action) {
+    switch (action.type) {
+        case actionTypes.SET_BLDR_SESSION_TOKEN:
+            return state.set("token", action.payload);
+        default:
+            return state;
+    }
 }

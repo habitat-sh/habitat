@@ -13,9 +13,11 @@ import { OriginsPageComponent } from "./origins-page.component";
 import * as actions from "../../actions";
 
 class MockAppStore {
-
   getState() {
     return {
+      session: {
+        token: "token"
+      },
       gitHub: {
         authToken: "token"
       },
