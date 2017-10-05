@@ -125,13 +125,11 @@ export default function packages(state = initialState["packages"], action) {
         case actionTypes.SET_VISIBLE_PACKAGES:
             if (action.error) {
                 return state.set("visible", List()).
-                    setIn(["ui", "visible", "errorMessage"],
-                    action.error.message).
+                    setIn(["ui", "visible", "errorMessage"], action.error.message).
                     setIn(["ui", "visible", "exists"], false).
                     setIn(["ui", "visible", "loading"], false);
             } else {
-                return state.set("visible",
-                    state.get("visible").concat(List(action.payload))).
+                return state.set("visible", state.get("visible").concat(List(action.payload))).
                     setIn(["ui", "visible", "errorMessage"], undefined).
                     setIn(["ui", "visible", "exists"], true).
                     setIn(["ui", "visible", "loading"], false);

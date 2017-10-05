@@ -59,6 +59,13 @@ select {
   font-size: $base-font-size;
 }
 
+input {
+
+  &[type="text"], &[type="search"], &[type="password"] {
+    -webkit-appearance: textfield
+  }
+}
+
 #{$all-text-inputs},
 select,
 select[multiple] {

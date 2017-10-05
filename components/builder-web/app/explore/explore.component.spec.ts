@@ -198,7 +198,7 @@ describe("ExploreComponent", () => {
         input.value = " g++ ";
         button.click();
 
-        expect(router.navigate).toHaveBeenCalledWith(["pkgs", "search", "g++"]);
+        expect(router.navigate).toHaveBeenCalledWith(["search", { q: "g++" }]);
       });
     });
   });

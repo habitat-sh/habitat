@@ -22,36 +22,37 @@ import { Subscription } from "rxjs/Subscription";
 @Component({
     template: require("./search.component.html")
 })
-
 export class SearchComponent implements OnInit, OnDestroy {
-    perPage: number = 50;
+    origin: string;
     query: string;
     searchBox: FormControl;
-    origin: string;
 
     private sub: Subscription;
 
     constructor(private store: AppStore, private route: ActivatedRoute, private router: Router) {
-
-        this.sub = route.params.subscribe(params => {
-            this.origin = params["origin"];
-            this.query = params["query"];
-            this.fetch();
-        });
+        this.searchBox = new FormControl(this.searchQuery);
     }
 
     ngOnInit() {
-        this.searchBox = new FormControl(this.searchQuery);
+        this.sub = this.route.params.subscribe(params => {
+            this.origin = params["origin"] || "core";
+            this.query = params["q"];
 
-        this.searchBox.valueChanges.debounceTime(400).distinctUntilChanged().
-            subscribe(query => {
-                if (query) {
-                    this.search(query);
-                } else {
-                    this.store.dispatch(setPackagesSearchQuery(""));
-                    this.fetch();
-                }
-            });
+            if (this.query) {
+                this.store.dispatch(setPackagesSearchQuery(this.query));
+            }
+
+            this.fetchPackages();
+        });
+
+        this.searchBox.valueChanges.debounceTime(400).distinctUntilChanged().subscribe(query => {
+            if (!query.trim()) {
+                this.router.navigate(["/pkgs"]);
+            }
+
+            this.store.dispatch(setPackagesSearchQuery(query));
+            this.fetchPackages();
+        });
     }
 
     ngOnDestroy() {
@@ -60,12 +61,10 @@ export class SearchComponent implements OnInit, OnDestroy {
         }
     }
 
-    fetch() {
-        if (this.query) {
-            this.search(this.query);
-        } else {
-            this.fetchPackages();
-        }
+    get packageParams() {
+        return {
+            origin: this.origin
+        };
     }
 
     get packages() {
@@ -84,40 +83,21 @@ export class SearchComponent implements OnInit, OnDestroy {
         return this.store.getState().packages.ui.visible;
     }
 
+    fetchPackages() {
+        this.store.dispatch(filterPackagesBy(this.packageParams, this.searchQuery, true, 0));
+    }
+
     fetchMorePackages() {
-        this.store.dispatch(filterPackagesBy(
-            this.packageParams(),
-            this.searchQuery,
-            true,
-            this.store.getState().packages.nextRange)
-        );
-        return false;
-    }
-
-    packageParams() {
-        return {
-            origin: this.origin,
-        };
-    }
-
-    private fetchPackages() {
-        this.store.dispatch(filterPackagesBy(
-            this.packageParams(),
-            this.searchQuery,
-            true)
+        this.store.dispatch(
+            filterPackagesBy(this.packageParams, this.searchQuery, true, this.store.getState().packages.nextRange)
         );
     }
 
-    private search(query) {
-        this.store.dispatch(setPackagesSearchQuery(query));
+    submit(query) {
+        const q = query.trim();
 
-        if (query === "") {
-            this.router.navigate(["/pkgs"]);
+        if (q) {
+            this.router.navigate(["/search", { q: q }]);
         }
-        else {
-            this.fetchPackages();
-        }
-
-        return false;
     }
 }
