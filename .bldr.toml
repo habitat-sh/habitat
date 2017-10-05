@@ -21,6 +21,7 @@ paths = [
   "components/builder-depot/*",
   "components/builder-http-gateway/*",
   "components/builder-protocol/*",
+  "components/builder-web/*",
   "components/core/*",
   "components/github-api-client/*",
   "components/net/*",
