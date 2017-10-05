@@ -1982,10 +1982,16 @@ update_pkg_version() {
   if [[ "${update_src_path:-}" == true ]]; then
     SRC_PATH="$CACHE_PATH"
   fi
+  
   # Replace the unset placeholders with the computed value
-  val="$(echo "$PATH" | sed "s,__pkg__version__unset__,${pkg_version},g")"
-  pkg_env[PATH]="$val"
+  if [[ "${pkg_env[PATH]+abc}" ]]; then
+    val="$(echo "${pkg_env[PATH]}" | sed "s,__pkg__version__unset__,${pkg_version},g")"
+    pkg_env[PATH]="$val"
+  fi
+
+  val="$(echo "${PATH}" | sed "s,__pkg__version__unset__,${pkg_version},g")"
   PATH="$val"
+
   build_line "Updating PATH=$PATH"
 }
 
