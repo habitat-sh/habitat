@@ -12,6 +12,7 @@ path = "src/main.rs"
 doc = false
 
 [dependencies]
+base64 = "*"
 clippy = {version = "*", optional = true}
 bitflags = "*"
 env_logger = "*"

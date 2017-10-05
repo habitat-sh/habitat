@@ -12,8 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::env;
-
+use base64;
 use github_api_client::{GitHubCfg, GitHubClient, HubError};
 use hab_net::{ErrCode, NetError};
 use hab_net::conn::RouteClient;
@@ -26,6 +25,8 @@ use iron::middleware::{AfterMiddleware, AroundMiddleware, BeforeMiddleware};
 use iron::prelude::*;
 use iron::status::Status;
 use iron::typemap::Key;
+use persistent;
+use protocol::message;
 use protocol::sessionsrv::*;
 use serde_json;
 use unicase::UniCase;
@@ -125,27 +126,30 @@ impl Authenticated {
         self
     }
 
-    fn authenticate(&self, conn: &mut RouteClient, token: &str) -> IronResult<Session> {
+    fn authenticate(&self, req: &mut Request, token: SessionToken) -> IronResult<Session> {
         let mut request = SessionGet::new();
-        request.set_token(token.to_string());
+        request.set_token(token);
+        let mut conn = req.extensions.get_mut::<XRouteClient>().unwrap();
         match conn.route::<SessionGet, Session>(&request) {
-            Ok(session) => Ok(session),
+            Ok(session) => {
+                self.validate_session(&session)?;
+                Ok(session)
+            }
             Err(err) => {
-                if err.get_code() == ErrCode::SESSION_EXPIRED {
-                    let session = session_create(&self.github, token)?;
-                    let flags = FeatureFlags::from_bits(session.get_flags()).unwrap();
-                    if !flags.contains(self.features) {
-                        let err = NetError::new(ErrCode::ACCESS_DENIED, "net:auth:0");
-                        return Err(IronError::new(err, Status::Forbidden));
-                    }
-                    Ok(session)
-                } else {
-                    let status = net_err_to_http(err.code());
-                    let body = itry!(serde_json::to_string(&err));
-                    Err(IronError::new(err, (body, status)))
-                }
+                let status = net_err_to_http(err.get_code());
+                let body = itry!(serde_json::to_string(&err));
+                Err(IronError::new(err, (body, status)))
             }
         }
+    }
+
+    fn validate_session(&self, session: &Session) -> IronResult<()> {
+        let flags = FeatureFlags::from_bits(session.get_flags()).unwrap();
+        if !flags.contains(self.features) {
+            let err = NetError::new(ErrCode::ACCESS_DENIED, "net:auth:2");
+            return Err(IronError::new(err, Status::Forbidden));
+        }
+        Ok(())
     }
 }
 
@@ -156,14 +160,18 @@ impl Key for Authenticated {
 impl BeforeMiddleware for Authenticated {
     fn before(&self, req: &mut Request) -> IronResult<()> {
         let session = {
-            match req.headers.get::<Authorization<Bearer>>() {
+            let token = match req.headers.get::<Authorization<Bearer>>() {
                 Some(&Authorization(Bearer { ref token })) => {
-                    match req.extensions.get_mut::<XRouteClient>() {
-                        Some(conn) => self.authenticate(conn, token)?,
-                        None => {
-                            let mut conn = RouteBroker::connect().unwrap();
-                            self.authenticate(&mut conn, token)?
+                    if let Ok(token) = base64::decode(token) {
+                        if let Ok(token) = message::decode(&token) {
+                            token
+                        } else {
+                            let err = NetError::new(ErrCode::BAD_TOKEN, "net:auth:2");
+                            return Err(IronError::new(err, Status::Forbidden));
                         }
+                    } else {
+                        let err = NetError::new(ErrCode::BAD_TOKEN, "net:auth:3");
+                        return Err(IronError::new(err, Status::Forbidden));
                     }
                 }
                 _ => {
@@ -174,7 +182,8 @@ impl BeforeMiddleware for Authenticated {
                         return Err(IronError::new(err, Status::Unauthorized));
                     }
                 }
-            }
+            };
+            self.authenticate(req, token)?
         };
         req.extensions.insert::<Self>(session);
         Ok(())
@@ -200,55 +209,21 @@ impl AfterMiddleware for Cors {
     }
 }
 
-pub fn session_create(github: &GitHubClient, token: &str) -> IronResult<Session> {
-    if env::var_os("HAB_FUNC_TEST").is_some() {
-        let request = match token {
-            "bobo" => {
-                let mut request = SessionCreate::new();
-                request.set_token(token.to_string());
-                request.set_extern_id(0);
-                request.set_email("bobo@example.com".to_string());
-                request.set_name("bobo".to_string());
-                request.set_provider(OAuthProvider::GitHub);
-                request
-            }
-            "logan" => {
-                let mut request = SessionCreate::new();
-                request.set_token(token.to_string());
-                request.set_extern_id(1);
-                request.set_email("logan@example.com".to_string());
-                request.set_name("logan".to_string());
-                request.set_provider(OAuthProvider::GitHub);
-                request
-            }
-            user => {
-                panic!(
-                    "You need to define the stub user {} during HAB_FUNC_TEST",
-                    user
-                )
-            }
-        };
-        let mut conn = RouteBroker::connect().unwrap();
-        match conn.route::<SessionCreate, Session>(&request) {
-            Ok(session) => return Ok(session),
-            Err(err) => {
-                let body = itry!(serde_json::to_string(&err));
-                let status = net_err_to_http(err.get_code());
-                return Err(IronError::new(err, (body, status)));
-            }
-        }
-    }
+pub fn session_create_github(req: &mut Request, token: String) -> IronResult<Session> {
+    let github = req.get::<persistent::Read<GitHubCli>>().unwrap();
+    let mut conn = req.extensions.get_mut::<XRouteClient>().expect(
+        "no XRouteClient extension in request",
+    );
     match github.user(&token) {
         Ok(user) => {
-            let mut conn = RouteBroker::connect().unwrap();
             let mut request = SessionCreate::new();
-            request.set_token(token.to_string());
-            request.set_extern_id(user.id as u64);
+            request.set_token(token);
+            request.set_extern_id(user.id);
+            request.set_name(user.login);
+            request.set_provider(OAuthProvider::GitHub);
             if let Some(email) = user.email {
                 request.set_email(email);
             }
-            request.set_name(user.login);
-            request.set_provider(OAuthProvider::GitHub);
             match conn.route::<SessionCreate, Session>(&request) {
                 Ok(session) => Ok(session),
                 Err(err) => {
@@ -284,6 +259,44 @@ pub fn session_create(github: &GitHubClient, token: &str) -> IronResult<Session>
             let status = net_err_to_http(err.get_code());
             let body = itry!(serde_json::to_string(&err));
             Err(IronError::new(err, (body, status)))
+        }
+    }
+}
+
+pub fn session_create_short_circuit(req: &mut Request, token: &str) -> IronResult<Session> {
+    let mut conn = req.extensions.get_mut::<XRouteClient>().expect(
+        "no XRouteClient extension in request",
+    );
+    let request = match token.as_ref() {
+        "bobo" => {
+            let mut request = SessionCreate::new();
+            request.set_extern_id(0);
+            request.set_email("bobo@example.com".to_string());
+            request.set_name("bobo".to_string());
+            request.set_provider(OAuthProvider::GitHub);
+            request
+        }
+        "logan" => {
+            let mut request = SessionCreate::new();
+            request.set_extern_id(1);
+            request.set_email("logan@example.com".to_string());
+            request.set_name("logan".to_string());
+            request.set_provider(OAuthProvider::GitHub);
+            request
+        }
+        user => {
+            panic!(
+                "You need to define the stub user {} during HAB_FUNC_TEST",
+                user
+            )
+        }
+    };
+    match conn.route::<SessionCreate, Session>(&request) {
+        Ok(session) => return Ok(session),
+        Err(err) => {
+            let body = itry!(serde_json::to_string(&err));
+            let status = net_err_to_http(err.get_code());
+            return Err(IronError::new(err, (body, status)));
         }
     }
 }

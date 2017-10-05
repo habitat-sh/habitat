@@ -52,27 +52,18 @@ pub fn github_authenticate(req: &mut Request) -> IronResult<Response> {
         let params = req.extensions.get::<Router>().unwrap();
         params.find("code").unwrap().to_string()
     };
-
-    let github = req.get::<persistent::Read<GitHubCli>>().unwrap();
-
     if env::var_os("HAB_FUNC_TEST").is_some() {
-        let session = session_create(&github, &code)?;
-
-        log_event!(
-            req,
-            Event::GithubAuthenticate {
-                user: session.get_name().to_string(),
-                account: session.get_id().to_string(),
-            }
-        );
-
+        let session = {
+            session_create_short_circuit(req, &code)?
+        };
         return Ok(render_json(status::Ok, &session));
     }
-
+    let github = req.get::<persistent::Read<GitHubCli>>().unwrap();
     match github.authenticate(&code) {
         Ok(token) => {
-            let session = session_create(&github, &token)?;
-
+            let session = {
+                session_create_github(req, token)?
+            };
             log_event!(
                 req,
                 Event::GithubAuthenticate {
@@ -80,7 +71,6 @@ pub fn github_authenticate(req: &mut Request) -> IronResult<Response> {
                     account: session.get_id().to_string(),
                 }
             );
-
             Ok(render_json(status::Ok, &session))
         }
         Err(HubError::Auth(e)) => {

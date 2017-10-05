@@ -459,6 +459,12 @@ impl RouteKey for InstaId {
     }
 }
 
+impl RouteKey for u32 {
+    fn hash(&self, _hasher: &mut Hasher) -> u64 {
+        *self as u64
+    }
+}
+
 impl RouteKey for u64 {
     fn hash(&self, _hasher: &mut Hasher) -> u64 {
         *self
@@ -485,8 +491,8 @@ mod tests {
 
     #[test]
     fn route_info_build() {
-        let mut msg = sessionsrv::SessionGet::new();
-        msg.set_token("reset".to_string());
+        let mut msg = sessionsrv::Session::new();
+        msg.set_name("reset".to_string());
         let route_info = RouteInfo::build(&msg);
         assert_eq!(route_info.protocol(), net::Protocol::SessionSrv);
         assert_eq!(route_info.hash().map(|x| x % 128), Some(96));

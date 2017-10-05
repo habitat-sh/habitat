@@ -23,18 +23,18 @@ use sharding::InstaId;
 pub use message::sessionsrv::*;
 
 impl Routable for SessionCreate {
-    type H = String;
+    type H = u32;
 
     fn route_key(&self) -> Option<Self::H> {
-        Some(String::from(self.get_token()))
+        Some(self.get_extern_id())
     }
 }
 
 impl Routable for SessionGet {
-    type H = String;
+    type H = u32;
 
     fn route_key(&self) -> Option<Self::H> {
-        Some(String::from(self.get_token()))
+        Some(self.get_token().get_extern_id())
     }
 }
 
@@ -236,29 +236,21 @@ impl Serialize for AccountOriginListResponse {
     }
 }
 
-impl Persistable for SessionToken {
-    type Key = String;
-
-    fn primary_key(&self) -> Self::Key {
-        self.get_token().to_string()
-    }
-
-    fn set_primary_key(&mut self, value: Self::Key) {
-        self.set_token(value)
-    }
-}
-
 impl Serialize for Session {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
-        let mut strukt = serializer.serialize_struct("session", 5)?;
-        strukt.serialize_field("token", self.get_token())?;
+        let mut strukt = serializer.serialize_struct("session", 6)?;
         strukt.serialize_field("id", &self.get_id().to_string())?;
         strukt.serialize_field("name", self.get_name())?;
         strukt.serialize_field("email", self.get_email())?;
+        strukt.serialize_field("token", self.get_token())?;
         strukt.serialize_field("flags", &self.get_flags())?;
+        strukt.serialize_field(
+            "oauth_token",
+            self.get_oauth_token(),
+        )?;
         strukt.end()
     }
 }

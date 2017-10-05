@@ -1,3 +1,4 @@
+syntax = "proto2";
 package jobsrv;
 import "protocols/net.proto";
 import "protocols/originsrv.proto";
